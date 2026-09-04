@@ -1,0 +1,94 @@
+/* EARNED CONFORMANCE SUITE v3 — runner.   node run.cjs   ·   node run.cjs --selftest   (FAILS CLOSED)
+   0 ENVIRONMENT  clock + zone must equal the oracle manifest's; both engine artifacts must exist (no SKIP → CONSISTENT)
+   1 INVENTORY    implemented law ids == the FROZEN external manifest (laws/manifest.json) in BOTH directions, per file + counts
+   2 PORT ORACLE  main-vs-main under the oracle manifest (pins, counts law with declared strikes, census v3 identical)
+   3 SENSITIVITY  per-leaf perturbation + SEMANTIC engine/input mutants + the real-change probe fix4b-vs-main
+   4 REFERENCE    every law GREEN against the reference models
+   5 MUTANTS      every law fails BY ASSERTION against each targeted mutant; exceptions = HARNESS_ERROR
+   6 ADAPTERS     PER FAMILY: an adapter is ABSENT only on an exact MODULE_NOT_FOUND for its own path (any other load error is
+                  HARNESS_ERROR → INCONSISTENT); absent → that family's laws RED(as specified); present → GREEN. Families are
+                  independent, so T2 (client) can land before T3 (authority).
+   7 PRIVACY      every private-fixture line is verdict-only in code; a canary self-test proves no canary value escapes
+   8 COVERAGE     exact law ids per section (both directions) + machine-verified gate artifacts (gates/gates.json, hashes)
+   9 ENGINE-TRACK rig185 (informational)
+   --selftest    (a) an adapter that throws at require → INCONSISTENT · (b) presence witnesses none / client-only /
+                  authority-only / both → CONSISTENT with the right expectations · (c) a deleted law and a renamed law →
+                  INCONSISTENT · (d) privacy canaries in counts, queue text, feed text, lift names, nested → none escape */
+const { execFileSync } = require("node:child_process"), path = require("node:path"), fs = require("node:fs"), os = require("node:os"), crypto = require("node:crypto");
+const { runLaws, runMutants, checkInventory, JP } = require("./lib/harness.cjs");
+const ROOT = __dirname, LOG = path.join(ROOT, "run.log");
+const ENGINES = { main: process.env.ENGINE_MAIN || "/tmp/rig174/engine-main.cjs", fix4b: process.env.ENGINE_FIX4B || "/tmp/rig174/engine-fix4b.cjs" };
+const ADAPTER_DIR = process.env.CONFORM_ADAPTERS_DIR || path.join(ROOT, "adapters");
+const sha = (p) => crypto.createHash("sha256").update(fs.readFileSync(p)).digest("hex");
+const sh = (cmd, args, env) => { try { return { out: execFileSync(cmd, args, { cwd: ROOT, env: { ...process.env, ...(env || {}) }, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 300000 }), code: 0 }; } catch (e) { return { out: (e.stdout || "") + (e.stderr || ""), code: e.status == null ? 1 : e.status }; } };
+if (process.argv.includes("--selftest")) { selftest(); }
+else { main(); }
+function main() {
+  fs.writeFileSync(LOG, `EARNED CONFORMANCE SUITE v3 — run ${new Date().toISOString()} clock=${process.env.MEASURED_TEST_NOW} tz=${process.env.TZ} adapters=${path.relative(ROOT, ADAPTER_DIR) || "adapters"}\n`);
+  const summary = []; let ok = true; const note = (s) => { console.log(s); fs.appendFileSync(LOG, s + "\n"); };
+  const step = (name, pass, extra) => { ok = ok && !!pass; summary.push(`${pass ? "OK  " : "BAD "} ${name}${extra ? " — " + extra : ""}`); if (!pass) note("BAD " + name + (extra ? " — " + extra : "")); return pass; };
+  /* 0 */
+  const man = JSON.parse(fs.readFileSync(path.join(ROOT, "oracle/manifest.json"), "utf8"));
+  step("0 clock and zone set and equal to the oracle manifest", !!process.env.MEASURED_TEST_NOW && !!process.env.TZ && process.env.MEASURED_TEST_NOW === man.clock && process.env.TZ === man.tz, `run ${process.env.MEASURED_TEST_NOW}/${process.env.TZ} manifest ${man.clock}/${man.tz}`);
+  step("0 engine artifacts present (main + fix4b) — a missing engine is BAD, never SKIP", fs.existsSync(ENGINES.main) && fs.existsSync(ENGINES.fix4b), JP(ENGINES));
+  /* 1 frozen inventory, both directions */
+  const frozen = JSON.parse(fs.readFileSync(path.join(ROOT, "laws/manifest.json"), "utf8")); const MODS = [];
+  for (const [file, spec] of Object.entries(frozen.laws)) { let m; try { m = require("./" + file); } catch (e) { step(`1 law file ${file} loads`, false, e.message); continue; } let laws = m.laws; const mut = process.env.CONFORM_MUTATE_LAWS; if (mut) { const [kind, id] = mut.split(":"); if (kind === "delete") laws = laws.filter((l) => l.id !== id); if (kind === "rename") laws = laws.map((l) => (l.id === id ? { ...l, id: l.id + "-renamed" } : l)); } const inv = checkInventory(laws, spec.ids); step(`1 inventory ${file} == frozen manifest (${spec.count} laws, family ${spec.family})`, inv.ok && laws.length === spec.count, inv.ok ? "" : JP({ dup: inv.dup, missing: inv.missing, extra: inv.extra })); MODS.push({ file, family: spec.family, laws }); }
+  const allIds = MODS.flatMap((m) => m.laws.map((l) => l.id)); step("1 inventory global ids unique and total == frozen total", new Set(allIds).size === allIds.length && allIds.length === frozen.totalLaws, `${allIds.length} vs frozen ${frozen.totalLaws}`);
+  /* 2–3 */
+  if (ok) { const r2 = sh("node", ["oracle/port-oracle.cjs", "check", ENGINES.main, "main", "main"]); fs.appendFileSync(LOG, r2.out); const ids2 = (r2.out.match(/^GREEN\s+(\S+)/gm) || []).map((x) => x.split(/\s+/)[1]); step("2 port oracle main-vs-main under the manifest — all GREEN and exactly the frozen PORT ids", r2.code === 0 && /\d+ GREEN · 0 RED-as-specified · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR/.test(r2.out) && JP(ids2.slice().sort()) === JP(frozen.port.check.slice().sort()), ids2.length + " ids");
+    const r3 = sh("node", ["oracle/port-oracle.cjs", "sensitivity", ENGINES.fix4b, "fix4b"]); fs.appendFileSync(LOG, r3.out); const ids3 = (r3.out.match(/^GREEN\s+(\S+)/gm) || []).map((x) => x.split(/\s+/)[1]); step("3 sensitivity: every leaf compared + semantic mutants DETECTED + fix4b-vs-main DETECTED, exactly the frozen PORT ids", r3.code === 0 && /\d+ GREEN · 0 RED-as-specified · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR/.test(r3.out) && JP(ids3.slice().sort()) === JP(frozen.port.sensitivity.slice().sort()), ids3.length + " ids"); }
+  /* 4–6 */
+  const REF = { authority: (cfg, h) => require("./reference/authority.cjs").create(cfg, h), client: (o, h) => require("./reference/client.cjs").create(o, h), policy: (cfg, h) => require("./reference/policy.cjs").create(cfg, h), progression: (cfg, h) => require("./reference/progression.cjs").create(cfg, h) };
+  const ADAPTERS = {}; const loadErrors = {};
+  for (const k of ["authority", "client", "policy", "progression"]) { const p = path.join(ADAPTER_DIR, k + ".cjs"); try { const m = require(p); if (!m || typeof m.create !== "function") loadErrors[k] = "adapter exports no create()"; else ADAPTERS[k] = (cfg, h) => m.create(cfg, h); } catch (e) { const exactMissing = e && e.code === "MODULE_NOT_FOUND" && String(e.message).indexOf(p) > -1 && !fs.existsSync(p); if (!exactMissing) loadErrors[k] = String(e && e.stack || e).split("\n").slice(0, 2).join(" | "); } }
+  step("6 adapter loading: only an exact MODULE_NOT_FOUND counts as absent; any other load failure is HARNESS_ERROR", Object.keys(loadErrors).length === 0, Object.keys(loadErrors).length ? JP(loadErrors) : `present: ${Object.keys(ADAPTERS).join(",") || "none"}`);
+  let totals = { green: 0, red: 0, strong: 0, adapterGreen: 0 };
+  for (const m of MODS) {
+    const r4 = runLaws(`4 REFERENCE ${m.file}`, m.laws, { bundle: REF, logPath: LOG, quiet: true }); step(`4 reference ${m.file}: all GREEN`, r4.green === m.laws.length && r4.fail === 0 && r4.errors === 0, `${r4.green}/${m.laws.length} GREEN · ${r4.fail} FAIL · ${r4.errors} HARNESS_ERROR`); totals.green += r4.green;
+    const r5 = runMutants(`5 MUTANTS ${m.file}`, m.laws, REF, { logPath: LOG, quiet: true }); step(`5 mutants ${m.file}: every law STRONG`, r5.strong === m.laws.length, `${r5.strong} STRONG · ${r5.weak} WEAK · ${r5.none} NO_MUTANT · ${r5.refFail} REFERENCE_FAIL · ${r5.errors} HARNESS_ERROR`); totals.strong += r5.strong;
+    const present = !!ADAPTERS[m.family]; const bundle = {}; for (const k of Object.keys(ADAPTERS)) bundle[k] = ADAPTERS[k]; const lawsFor = present ? m.laws : m.laws.map((l) => ({ ...l, expect: "RED" }));
+    const r6 = runLaws(`6 ADAPTERS ${m.file} (family ${m.family} ${present ? "PRESENT" : "ABSENT"})`, lawsFor, { bundle, logPath: LOG, quiet: true }); step(`6 adapters ${m.file}: family ${m.family} ${present ? "present → all GREEN" : "absent → all RED(as specified)"}, 0 DEFECT, 0 HARNESS_ERROR`, present ? (r6.green === m.laws.length && r6.errors === 0 && r6.fail === 0) : (r6.red === m.laws.length && r6.defects === 0 && r6.errors === 0), `${r6.green} GREEN · ${r6.red} RED · ${r6.fail} FAIL · ${r6.defects} DEFECT · ${r6.errors} HARNESS_ERROR`); totals.red += r6.red; totals.adapterGreen += r6.green;
+  }
+  /* 7 privacy: the log must carry no detail from the private fixture — every private line is verdict-only */
+  const logText = fs.readFileSync(LOG, "utf8"); const privLines = logText.split("\n").filter((l) => /PORT-live-/.test(l)); const privOk = privLines.length > 0 && privLines.every((l) => /\[private fixture: detail withheld in code\]|— \[private fixture/.test(l) || !/—/.test(l));
+  step("7 privacy: every private-fixture law line in the log is verdict-only (detail withheld in code)", privOk, privLines.length + " private lines");
+  /* 8 coverage + gates */
+  const gates = JSON.parse(fs.readFileSync(path.join(ROOT, "gates/gates.json"), "utf8")); const gatesOk = {}; const gateRows = [];
+  for (const g of gates.gates) { const inputsOk = g.inputs.every((i) => fs.existsSync(path.join(ROOT, i.path)) && sha(path.join(ROOT, i.path)) === i.sha256); const implOk = fs.existsSync(path.join(ROOT, g.impl.path)) && sha(path.join(ROOT, g.impl.path)) === g.impl.sha256; const clockOk = g.clock === process.env.MEASURED_TEST_NOW && g.tz === process.env.TZ; gatesOk[g.gate] = inputsOk && implOk && g.result.pass && clockOk; gateRows.push(`${gatesOk[g.gate] ? "VERIFIED" : "BAD     "} ${g.gate} ${g.result.passed}/${g.result.total} inputs:${inputsOk} impl:${implOk} clock:${clockOk} — ${g.covers}`); }
+  note("== 8 GATE ARTIFACTS (gates/gates.json — hash-pinned)"); gateRows.forEach(note); step("8 gate artifacts verified (files present, hashes match, results pass, clock matches)", Object.values(gatesOk).every(Boolean) && gates.gates.length >= 10, gates.gates.length + " gates");
+  const cov = require("./coverage/manifest.cjs").report(frozen, gatesOk); note("== 8 COVERAGE MANIFEST (exact law ids, both directions)"); for (const r of cov.rows) note(`${r.status.padEnd(17)} ${r.section}${r.laws ? "  [" + r.matched + " laws" + (r.missingIds.length ? ", MISSING " + JP(r.missingIds) : "") + "]" : ""}${r.gates ? "  gates: " + r.gates.join(",") + (r.gateBad.length ? " BAD " + JP(r.gateBad) : "") : ""}${r.port ? "  [port oracle ids: " + (frozen.port.check.length + frozen.port.sensitivity.length) + "]" : ""}${r.owner ? "  ← " + r.owner : ""}${r.note ? "  · " + r.note : ""}`); if (cov.uncovered.length) note("UNCOVERED LAW IDS: " + JP(cov.uncovered)); step("8 coverage: every TESTED section's ids exist, every law id is covered by a section, every gated section's gates verified", cov.ok, JP(cov.counts) + (cov.uncovered.length ? " uncovered " + cov.uncovered.length : ""));
+  note("DEFERRED / NOT RUN BY THIS SUITE: SOURCE INGESTION PROTOCOL v1.1 (its gate artifact rig184 is verified above; Sol's Protocol pass 2 is the human gate); the ≥ 30-day calendar soak (tranche T3).");
+  /* 9 */
+  const r9 = sh("node", ["rig185.cjs"]); note("== 9 ENGINE-TRACK (rig185 on fix4b — informational)"); note(r9.out.trim()); summary.push("INFO 9 engine-track rig185: " + (r9.out.split("\n").filter((l) => /⇒ (PASS|FAIL)/.test(l)).map((l) => l.slice(0, 2) + " " + (/⇒ PASS/.test(l) ? "PASS" : "FAIL")).join(", ")));
+  const tail = "\n== SUMMARY\n" + summary.join("\n") + `\n${ok ? "SUITE CONSISTENT" : "SUITE INCONSISTENT"} — ${totals.green} reference GREEN · ${totals.strong} STRONG · ${totals.red} RED-first against absent families · ${totals.adapterGreen} GREEN against present families\n`;
+  console.log(tail); fs.appendFileSync(LOG, tail); process.exit(ok ? 0 : 1);
+}
+function selftest() {
+  const results = []; const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "conform-selftest-")); const run = (env, label) => { const r = sh("node", [path.join(ROOT, "run.cjs")], env); const consistent = /SUITE CONSISTENT/.test(r.out) && r.code === 0; return { label, consistent, code: r.code, out: r.out }; };
+  const t = (name, pass, extra) => { results.push(`${pass ? "OK  " : "BAD "} selftest ${name}${extra ? " — " + extra : ""}`); };
+  const dir = (name, files) => { const d = path.join(tmp, name); fs.mkdirSync(d, { recursive: true }); for (const [f, body] of Object.entries(files)) fs.writeFileSync(path.join(d, f), body); return d; };
+  const refClient = `module.exports = { create: (o, h) => require(${JP(path.join(ROOT, "reference/client.cjs"))}).create(o, h) };`; const refAuth = `module.exports = { create: (c, h) => require(${JP(path.join(ROOT, "reference/authority.cjs"))}).create(c, h) };`;
+  /* (a) a throwing adapter must make the suite INCONSISTENT */
+  const a = run({ CONFORM_ADAPTERS_DIR: dir("throwing", { "authority.cjs": "throw new Error('boom at require');" }) }, "throwing adapter"); t("(a) adapter that throws at require → INCONSISTENT", !a.consistent && /adapter loading/.test(a.out) && /boom at require/.test(a.out));
+  const a2 = run({ CONFORM_ADAPTERS_DIR: dir("syntax", { "client.cjs": "module.exports = { create: (" }) }, "syntax error adapter"); t("(a) adapter with a syntax error → INCONSISTENT", !a2.consistent && /adapter loading/.test(a2.out));
+  const a3 = run({ CONFORM_ADAPTERS_DIR: dir("missingdep", { "policy.cjs": "require('some-missing-transitive-dependency'); module.exports = { create(){} };" }) }, "missing transitive dependency"); t("(a) adapter with a missing transitive dependency → INCONSISTENT (not treated as absent)", !a3.consistent && /adapter loading/.test(a3.out));
+  /* (b) presence witnesses */
+  const none = run({ CONFORM_ADAPTERS_DIR: dir("none", {}) }, "none"); t("(b) no adapters → CONSISTENT, every family RED", none.consistent && /absent → all RED\(as specified\)/.test(none.out) && !/present → all GREEN/.test(none.out));
+  const co = run({ CONFORM_ADAPTERS_DIR: dir("client-only", { "client.cjs": refClient }) }, "client only"); t("(b) client-only → CONSISTENT, client family GREEN, authority family still RED", co.consistent && /laws\/sheet-B-client\.cjs: family client present → all GREEN/.test(co.out) && /laws\/sheet-A-authority\.cjs: family authority absent → all RED/.test(co.out));
+  const ao = run({ CONFORM_ADAPTERS_DIR: dir("authority-only", { "authority.cjs": refAuth }) }, "authority only"); t("(b) authority-only → CONSISTENT, authority + soak GREEN, client still RED", ao.consistent && /sheet-A-authority\.cjs: family authority present → all GREEN/.test(ao.out) && /soak\.cjs: family authority present → all GREEN/.test(ao.out) && /sheet-B-client\.cjs: family client absent → all RED/.test(ao.out));
+  const both = run({ CONFORM_ADAPTERS_DIR: dir("both", { "client.cjs": refClient, "authority.cjs": refAuth }) }, "both"); t("(b) both → CONSISTENT, both families GREEN, policy/progression still RED", both.consistent && /family client present → all GREEN/.test(both.out) && /family authority present → all GREEN/.test(both.out) && /family policy absent → all RED/.test(both.out));
+  /* (c) manifest mutation */
+  const frozen = JSON.parse(fs.readFileSync(path.join(ROOT, "laws/manifest.json"), "utf8")); const someId = frozen.laws["laws/sheet-B-client.cjs"].ids[3];
+  const del = run({ CONFORM_MUTATE_LAWS: "delete:" + someId }, "delete"); t("(c) a deleted law → INCONSISTENT (inventory)", !del.consistent && /inventory laws\/sheet-B-client\.cjs/.test(del.out) && /missing/.test(del.out));
+  const ren = run({ CONFORM_MUTATE_LAWS: "rename:" + someId }, "rename"); t("(c) a renamed law → INCONSISTENT (inventory)", !ren.consistent && /inventory laws\/sheet-B-client\.cjs/.test(ren.out));
+  /* (d) privacy canaries: a private fixture with canary values in counts, queue text, feed text, lift names, nested → run the oracle on a temp copy → none escape */
+  const canary = { count: 8899, queueText: "CANARY_QUEUE_TEXT_7731", feedText: "CANARY_FEED_TEXT_5517", liftName: "CANARY_LIFT_3319", nestedRule: "CANARY_RULE_2244", note: "CANARY_NOTE_1188" };
+  const tmpRoot = path.join(tmp, "oracle-canary"); fs.mkdirSync(path.join(tmpRoot, "private"), { recursive: true }); fs.mkdirSync(path.join(tmpRoot, "golden"), { recursive: true }); fs.mkdirSync(path.join(tmpRoot, "fixtures"), { recursive: true }); fs.mkdirSync(path.join(tmpRoot, "oracle"), { recursive: true }); fs.mkdirSync(path.join(tmpRoot, "lib"), { recursive: true });
+  for (const f of ["oracle/census.cjs", "oracle/legacy-records.cjs", "oracle/port-oracle.cjs", "lib/harness.cjs"]) fs.copyFileSync(path.join(ROOT, f), path.join(tmpRoot, f));
+  const syn = JSON.parse(fs.readFileSync(path.join(ROOT, "fixtures/synthetic-pending-debut.json"), "utf8")); for (let i = 0; i < canary.count - syn.reads.length; i++) syn.reads.push({ d: new Date(Date.parse("2000-01-01T12:00:00Z") + i * 86400000).toISOString().slice(0, 10), w: 150 + (i % 9), note: canary.note, sealed: false }); syn.queue[0].t = canary.queueText; syn.queue[0].rule = canary.nestedRule; syn.feed[0].t = canary.feedText + " — TOP OF WINDOW, PROVISIONAL"; syn.exercises[0].n = canary.liftName; fs.writeFileSync(path.join(tmpRoot, "private/live.json"), JSON.stringify(syn));
+  const env = { MEASURED_TEST_NOW: process.env.MEASURED_TEST_NOW, TZ: process.env.TZ }; const g = sh("node", [path.join(tmpRoot, "oracle/port-oracle.cjs"), "golden", ENGINES.main, "main", "canary"], env); const c = sh("node", [path.join(tmpRoot, "oracle/port-oracle.cjs"), "check", ENGINES.main, "main", "main"], env); const s = sh("node", [path.join(tmpRoot, "oracle/port-oracle.cjs"), "sensitivity", ENGINES.fix4b, "fix4b"], env);
+  const everything = g.out + c.out + s.out + (fs.existsSync(path.join(tmpRoot, "run.log")) ? fs.readFileSync(path.join(tmpRoot, "run.log"), "utf8") : ""); const leaked = Object.values(canary).map(String).filter((v) => everything.indexOf(v) > -1);
+  t("(d) privacy canaries (count, queue text, feed text, lift name, nested rule, note) never reach stdout or the log", leaked.length === 0 && /PORT-live-/.test(c.out) && g.code === 0 && c.code === 0, leaked.length ? "LEAKED " + JP(leaked) : "0 leaked across golden/check/sensitivity output + log");
+  const ok = results.every((r) => r.startsWith("OK")); console.log("== SELFTEST\n" + results.join("\n") + "\n" + (ok ? "SELFTEST PASS" : "SELFTEST FAIL")); fs.appendFileSync(LOG, "\n== SELFTEST\n" + results.join("\n") + "\n" + (ok ? "SELFTEST PASS" : "SELFTEST FAIL") + "\n"); process.exit(ok ? 0 : 1);
+}

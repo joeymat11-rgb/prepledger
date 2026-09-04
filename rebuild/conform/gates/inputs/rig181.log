@@ -1,0 +1,34 @@
+== T1 — an old credential after removal and re-registration: every replay miss REFUSED, nothing created
+   v1.32: old credential C1, replay miss, current registration r2 present → NEW_ADMITTED#1@r2 | stored: 1 | direct disclosure: false
+PASS — v1.32: the door tests only the CURRENT registration's presence and phases — the historical credential's malicious item is ADMITTED (stamped r2, current at once) while the attacker is told nothing
+   v1.33: C1 (epoch 1, revoked) → REFUSED | C1 claiming version 2 → REFUSED | C2 (current) → NEW_ADMITTED | receipts issued to C1: 0
+PASS — v1.33: new_submission_authorized is false for the historical credential (state REVOKED, epoch 1 ≠ 2) — REFUSED: no receipt, stub, stamp, identity consumption or group; only C2's submission is admitted
+
+== T2 — door / group-commit / signed-cutoff interleavings
+   v1.32: {"order":"removal→commit","result":"RECEIPT#11","cutoff":10,"violation":true} {"order":"commit→removal","result":"RECEIPT#11","cutoff":11,"violation":false}
+   v1.33: {"order":"removal→commit","result":"REFUSED","cutoff":10,"violation":false} {"order":"commit→removal","result":"RECEIPT#11","cutoff":11,"violation":false}
+PASS — v1.32: removal wins, records cutoff 10 and advances to e2, then R commits receipt 11 on its stale door decision — a receipt BEYOND the cutoff that terminates e1 (fits neither serialization)
+PASS — v1.33: serialized per (athlete, source) with compare-and-append on the expected registry tuple — removal first ⇒ R is REFUSED and stores nothing; ingestion first ⇒ the cutoff is 11 and includes the group's last_receipt; no receipt ever exceeds its terminating cutoff
+PASS — v1.33: an exact result computed under e1 is re-checked against the current epoch immediately before release — after the revocation completes it is replaced by the generic envelope
+
+== T3 — ACTIVE / INACTIVE / REMOVED / REVOKED: one currentness result and one D14 truth each
+   v1.32 REVOKED readings: {"keepActive":"floor 2,001","mapToInactive":"ABSTAIN (REGISTRATION_NOT_CURRENT)","removeRoute":"ABSTAIN (REGISTRATION_NOT_CURRENT) + route gone"}
+PASS — v1.32: three implementations of REVOKED give different athlete truth (2,001 vs ABSTAIN vs route removed)
+   ACTIVE                                         currentness: true | D14: floor 2,001                          | new submission: true | exact response: true
+   INACTIVE (paused)                              currentness: false | D14: ABSTAIN (REGISTRATION_NOT_CURRENT)   | new submission: true | exact response: true
+   REMOVED                                        currentness: false | D14: ABSTAIN (REGISTRATION_NOT_CURRENT)   | new submission: false | exact response: false
+   REVOKED alone                                  currentness: true | D14: floor 2,001                          | new submission: false | exact response: false
+   REVOKED + deactivated (one atomic mutation)    currentness: false | D14: ABSTAIN (REGISTRATION_NOT_CURRENT)   | new submission: false | exact response: false
+   rotated: C3 current, C1 revoked                currentness: true | D14: floor 2,001                          | new submission: true | exact response: true
+PASS — v1.33: revocation alone stops new submissions and disclosure but does NOT reinterpret accepted evidence (PRESENT + active=true ⇒ still current, 2,001)
+PASS — v1.33: stopping the evidence is the ordinary active=false / removal path (REGISTRATION_NOT_CURRENT, re-issue); a paused source may still submit, non-current until reactivated
+PASS — v1.33: a credential rotation (old REVOKED, new CURRENT at the next epoch) changes no evidence and admits the new credential
+
+== T4 — unauthorized transport hit / content hit / recovery hit / refused miss: ONE observable response class
+   v1.32 observable classes: 3 | v1.33: 1 "{\"status\":202,\"headers\":\"fixed-set\",\"body\":\"ACKNOWLEDGED\",\"length\":64,\"connection\":\"close\",\"retry\":\"none\",\"release\":2000}"
+PASS — v1.32: 'same bytes' leaves 3 observable classes — status, length and recovery-dependent timing split the branches
+PASS — v1.33: one normalized UNAUTHORIZED RESPONSE ENVELOPE released on a fixed schedule from arrival, independent of the lookups and recovery (which proceed internally) — one observable class for every branch
+PASS — v1.33: the declared leakage inventory names what remains and none of it is hit / miss / disposition / recovery
+PASS — v1.33: sync carries EXISTING or RECOVERED stored results only — a refused replay miss adds nothing
+
+13 passed, 0 failed

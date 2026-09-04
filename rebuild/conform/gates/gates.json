@@ -1,0 +1,233 @@
+{
+ "gatesVersion": 1,
+ "gates": [
+  {
+   "gate": "rig175",
+   "covers": "appendix v1.27 (frontier, receipts, collision components, D14_INPUT_STATE_CHANGED precedence, least-id answer)",
+   "result": {
+    "passed": 10,
+    "total": 10,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig175.log",
+     "sha256": "a802dfa5519bf93f7a90437d1f57c5a92565e67286cca98054a9ab82bd357807"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig175.cjs",
+    "sha256": "6ced1b560b70794d8af6627b7762a5f328754b3f39dfadc8b082df1392fa61d1"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.840Z"
+  },
+  {
+   "gate": "rig176",
+   "covers": "appendix v1.28 (Sol pass 27)",
+   "result": {
+    "passed": 7,
+    "total": 7,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig176.log",
+     "sha256": "02d09f6b83368d3ececa3bb5906dbc712843640e43fc4223f3e8d1238ea698c8"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig176.cjs",
+    "sha256": "8c541c6ffeef60bc050ab5d9a20e9043c1cce48d423b9a1d652bb2402ba38615"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.841Z"
+  },
+  {
+   "gate": "rig177",
+   "covers": "appendix v1.30 (Sol pass 29: replay split, component_scope_current, count-neutral copy)",
+   "result": {
+    "passed": 13,
+    "total": 13,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig177.log",
+     "sha256": "c88f4b6f43b1688194fd9dc4a3d5eddbba0268e8f86e9f22099a6be7a5f38b12"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig177.cjs",
+    "sha256": "a512e279591d451715e0be7f4c547a19c7a5d6525ae4c01aa8ebdb0bacaa3f67"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.841Z"
+  },
+  {
+   "gate": "rig178",
+   "covers": "appendix v1.31 (Sol pass 30: stranded group, route stamp, selector population)",
+   "result": {
+    "passed": 10,
+    "total": 10,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig178.log",
+     "sha256": "ce0994cde15622a178266a0be611eaedb51fce6bcfa0e8b38c233a1fb456c96a"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig178.cjs",
+    "sha256": "13c112b6e37f5665e5f7d91d8005ab85a03dacbf608a9be454b212be277fce23"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.841Z"
+  },
+  {
+   "gate": "rig179",
+   "covers": "appendix v1.32 (Sol pass 31: content replay behind the door, historical principal vs disclosure)",
+   "result": {
+    "passed": 8,
+    "total": 8,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig179.log",
+     "sha256": "c61d6b07ba3099b3416bd6fee698b674d3eb508a7db58e44f7c080d530113863"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig179.cjs",
+    "sha256": "c0e033cbc267257669ba7b790c7cf00ba08018ae549c6bb6ea7e74c52c554ef5"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.842Z"
+  },
+  {
+   "gate": "rig180",
+   "covers": "appendix v1.33 / Protocol (Sol pass 32: replay partition, oracle, contract alias)",
+   "result": {
+    "passed": 9,
+    "total": 9,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig180.log",
+     "sha256": "7599f1e4c51ee37fd484bd2625569971944263e1b331caa92307248e955fe524"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig180.cjs",
+    "sha256": "0b1ac868f59403faf2d26b5b98729318ce11186e9052c40a573a6f36e1e7fd99"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.843Z"
+  },
+  {
+   "gate": "rig181",
+   "covers": "appendix v1.33 (Sol pass 32: new_submission_authorized, linearization, axes, envelope)",
+   "result": {
+    "passed": 13,
+    "total": 13,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig181.log",
+     "sha256": "f84ae3398f082cd9ae3e8a0cef04095192f38191750fe80afd5831497630c2cb"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig181.cjs",
+    "sha256": "1a859b6eab49ea95fd7b04b41a58696b23e2a9d08729397e7f78e4a0ad6c19d5"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.843Z"
+  },
+  {
+   "gate": "rig182",
+   "covers": "appendix v1.34 (Sol pass 33: stub before the door, incarnations, presence defect, release vs revocation)",
+   "result": {
+    "passed": 15,
+    "total": 15,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig182.log",
+     "sha256": "9eeb5526a6e6cc161720ba5cb94cffe3f255ff93fa8c79559eee7d31b8c97d12"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig182.cjs",
+    "sha256": "30d0de40d6d4d238dcee9cddb2d679f54d1f91639ccafc9de1f17be8fb8f6269"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.843Z"
+  },
+  {
+   "gate": "rig183",
+   "covers": "appendix v1.35 (Sol pass 34: producer_key, fixed deadline, three-stage validation, emission identity)",
+   "result": {
+    "passed": 13,
+    "total": 13,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig183.log",
+     "sha256": "dbe757bcb51826503862d6e28f5b1c572010c8c85afce8d05739c26aa9b3f572"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig183.cjs",
+    "sha256": "dd33ce4751c0b1ccbd3076feb03c1470ec21069a1a26a8ec0420309ece4b07f8"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.843Z"
+  },
+  {
+   "gate": "rig184",
+   "covers": "appendix v1.37 A1 + PROTOCOL v1.1 B1–B3 (Sol pass 35: instance-id reuse defect, response attempts, leakage by path, clause coverage)",
+   "result": {
+    "passed": 10,
+    "total": 10,
+    "pass": true
+   },
+   "inputs": [
+    {
+     "path": "gates/inputs/rig184.log",
+     "sha256": "bcc672949b445adeff010715336dbe3089c5d7fe59546fecd227600eee9bfb1f"
+    },
+    {
+     "path": "gates/inputs/EARNED-SOURCE-INGESTION-PROTOCOL-v1.1.txt",
+     "sha256": "9e777a27d8231930d1340039e3499f489c92fd39fe75fa9a37c912e2e534a740"
+    },
+    {
+     "path": "gates/inputs/EARNED-RUNTIME-SHEET-v1.7.38.txt",
+     "sha256": "604d8cc4c23baff85d4378270c8bbff26db1933f651ad3058c61ce7416476721"
+    }
+   ],
+   "impl": {
+    "path": "gates/inputs/rig184.cjs",
+    "sha256": "acba007c5f8fc3894aacdc09df52759b6874b1d5c25c9fe96728a011d5b5a13d"
+   },
+   "clock": "2026-09-03",
+   "tz": "America/New_York",
+   "generated_at": "2026-09-04T02:11:24.848Z"
+  }
+ ]
+}

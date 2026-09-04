@@ -1,0 +1,15 @@
+PASS T1a v1.36: Sol's witness yields an EMPTY defect set although instance 4 was reused (the promised check has no defect)
+   defect: {"code":"REGISTRATION_INSTANCE_ID_REUSED","producer_key":{"kind":"AUTHORITATIVE_SOURCE","producer_id":"S"},"registration_instance_id":4,"sorted_route_identities":[{"kind":"AUTHORITATIVE_SOURCE","producer_id":"S","registration_instance_id":4,"registration_version":7},{"kind":"AUTHORITATIVE_SOURCE","producer_id":"S","registration_instance_id":4,"registration_version":8}]}
+PASS T1b v1.37: both reducers compute the SAME canonical defect set — INVALID {REGISTRATION_INSTANCE_ID_REUSED}
+PASS T1c v1.37: a lawful history (instance 4 REMOVED, instance 5 PRESENT) stays VALID; an exact duplicate route is still ROUTE_IDENTITY_COLLISION, not reuse
+PASS T1d v1.37: reuse across DIFFERENT producer_keys is not reuse (allocation is per producer_key)
+   keyed-by-transport: replay → ENVELOPE_RELEASED · keyed-by-arrival: replay → EXACT_RELEASED
+PASS T2a under v1.0 both readings fit the words and DIVERGE: keyed by transport identity the replay can never get the exact result
+PASS T2b v1.1: response_attempt_id per arrival; attempt 1 ENVELOPE_RELEASED stays; attempt 2 (the replay) EXACT_RELEASED; ONE group, ONE receipt, transport identity unchanged
+PASS T2c v1.1: an exact release after the deadline transition is impossible for the SAME attempt (CAS from PENDING only)
+PASS T3a the ENVELOPE path: hit, miss, recovery-then-hit, unverifiable, unauthorized — ONE observable class (same bytes, same time)
+   exact path leaks {receipt, disposition, release time}; envelope path leaks nothing but 'no exact before the deadline'
+PASS T3b the AUTHORIZED EXACT path DISCLOSES disposition and readiness time — so a global 'never disposition' is FALSE; the inventory must be by path
+   35 normative clauses, all complete
+PASS T4 Protocol v1.1 §P1/§P2: every normative clause has a stable id, is a complete sentence, no fragment survives; registration-current stated whole
+rig184: 10/10

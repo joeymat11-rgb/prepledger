@@ -1,0 +1,21 @@
+== T1 — an incomplete group stranded behind the registration door
+   v1.30: (reply lost; group g1 incomplete) | after removal, retry: REFUSED_AT_THE_DOOR | reduction: BLOCKED (incomplete group)
+   v1.31: (reply lost) | after removal, retry: REPLAY→STORED | reduction: floor 2001
+PASS — v1.30: the retry is refused before replay lookup or recovery — the incomplete group blocks reduction over S for ever, and even a lost-ack retry returns REFUSED instead of the original disposition
+PASS — v1.31: the registry mutation completed the pending group first (authority-owned), the retry is a replay HIT returning the immutable prior result, reduction proceeds
+PASS — v1.31: with NO retry the removal itself completes the group; the athlete client learns the result through sync
+
+== T2 — component_scope_current reads a route stamp the enumeration never assigned to ANSWER / WITHDRAWAL members
+   v1.30 two ANSWER members under one id — impl A (literal enumeration): diagnostics only | impl B (inferred stamp): FINDING
+PASS — v1.30: two conforming implementations disagree on whether SOURCE_ITEM_IDENTITY_COLLISION binds cell d
+PASS — v1.31: both ANSWER members carry the route stamp (assigned before the identity test, COLLISION_MEMBER included) — the finding binds in every implementation
+PASS — v1.31: a WITHDRAWAL is stamped too (its currentness test reads that stamp); an authority-created REQUEST is outside the rule
+
+== T3 — 'every other stored answer is REQUEST_MISMATCH' contradicts the selector population
+   THE answer: a4
+   literal reading: ["a1:REQUEST_MISMATCH","a2:REQUEST_MISMATCH","a3:REQUEST_MISMATCH","a5:REQUEST_MISMATCH"]
+   population reading: ["a1:ZERO_PROOF_INAPPLICABLE{WITHDRAWN}","a2:(hidden: the COMPONENT blocker)","a3:(source-card: INERT)","a5:REQUEST_MISMATCH"]
+PASS — v1.30 literal: the withdrawn answer, the hidden collision member and the INERT answer all get REQUEST_MISMATCH rows — contradicting WITHDRAWN, the component blocker and the INERT resolution
+PASS — v1.31: only the other MEMBERS OF THE SELECTOR POPULATION are REQUEST_MISMATCH; the excluded answers keep their own rows
+
+8 passed, 0 failed

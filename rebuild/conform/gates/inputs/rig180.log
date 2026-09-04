@@ -1,0 +1,20 @@
+== T1 — content-identity replay behind the current-registration door partitions one content identity by transport
+   v1.31: {"sameT_afterRemoval":"ORIGINAL_RESULT","newT_afterRemoval":"REFUSED_CURRENT_DOOR","newT_whileCurrent":"ORIGINAL_RESULT"}
+   v1.32: {"sameT_afterRemoval":"ORIGINAL_RESULT","newT_afterRemoval":"ORIGINAL_RESULT","newT_whileCurrent":"ORIGINAL_RESULT"}
+PASS — v1.31: one content identity answers ORIGINAL / REFUSED / ORIGINAL depending on transport and registry — the declared single ingestion state is partitioned by transport representation
+PASS — v1.32: verification and the content-replay lookup precede the door, so every representation of I returns the holder's original result; only a miss on BOTH lookups meets the door
+PASS — v1.32: an unverifiable transport miss is REFUSED without a stub for an unregistered source and a transport-keyed stub for an admitted one
+
+== T2 — a removed principal holding its old credential as a replay-hit / disposition oracle
+   v1.31 removed principal probing {hit, miss}: ["receipt 7 · STORED","REFUSED"] | v1.32: ["ACKNOWLEDGED","ACKNOWLEDGED"] | revoked: ["ACKNOWLEDGED","ACKNOWLEDGED"]
+PASS — v1.31: a removed connector distinguishes a hit from a miss and reads the receipt and disposition — an indefinite oracle
+PASS — v1.32: historical_principal_verified permits the internal lookup and recovery, but direct_replay_response_authorized is false for REMOVED and REVOKED — the response is one identical ACKNOWLEDGED for hit and miss alike
+PASS — v1.32: an ACTIVE or routinely INACTIVE registration under the current credential epoch still receives its exact receipt and disposition
+PASS — v1.32: after re-registration the OLD credential epoch is below the signed cutoff — historical only, generic response
+
+== T3 — RESULT CONTRACT's 'a keyed content identity, never the receipt' re-creates the claimed-{id, commitment} alias
+   R's keyed identity: 591af408 | G's row keyed by claimed content: 591af408 | by transport: 1a9317c8
+PASS — v1.31 RESULT CONTRACT wording: the stub's ledger identity ALIASES the stored record's identity — the alias rig178 T1 closed, back through the contract
+PASS — v1.32: the applicable replay identity — verified content identity for a verified shape stub, otherwise the content-bound transport identity — keeps the stub's row distinct
+
+9 passed, 0 failed

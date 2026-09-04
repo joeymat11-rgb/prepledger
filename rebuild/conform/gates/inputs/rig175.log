@@ -1,0 +1,26 @@
+== C3 — 'the original stands' is delivery-order dependent; the component is not
+   v1.25  A then B → 2001 | B then A → 1801
+   v1.27  A then B → BLOCKED SOURCE_ITEM_IDENTITY_COLLISION | B then A → BLOCKED SOURCE_ITEM_IDENTITY_COLLISION
+PASS — v1.25: the same two admitted items give TWO floors (2001 vs 1801) depending on arrival order
+PASS — v1.27: both orders → the same hard blocker (BLOCKED SOURCE_ITEM_IDENTITY_COLLISION)
+
+== C1 — verify BEFORE the collision test: a garbled retry must not turn a valid record into a blocker
+   identity-first → BLOCKED SOURCE_ITEM_IDENTITY_COLLISION | verify-first → 2001
+PASS — identity-first: the garbled retry forms a collision and the VALID record becomes a hard blocker (BLOCKED SOURCE_ITEM_IDENTITY_COLLISION)
+PASS — verify-first: the garbled retry is a REJECTION STUB under its transport identity; the record stands at 2001
+
+== C2 — blocker params by receipts are order-dependent; by sorted member commitments they are not
+   receipts: [["4c19226e",1],["100136bd",2]] vs [["100136bd",1],["4c19226e",2]] | sorted commitments: ["100136bd","4c19226e"] vs ["100136bd","4c19226e"]
+PASS — params carrying receipts differ between the two orders → two bases for one evidence set
+PASS — params carrying sorted member commitments are identical in both orders
+
+== A1 — a receipt HIGH-WATER MARK is not a coverage proof; a CONTIGUOUS reduced-through frontier is
+   authority truth: ABSTAIN | client issued at: 2001 | client high-water: 4 authority: 4 | client contiguous frontier: 2
+PASS — v1.25 high-water mark: counters EQUAL (4 = 4) → the stale answer applies at 2001 while the truth is ABSTAIN
+PASS — v1.27 contiguous frontier: 2 ≠ 4 → the attempt PAUSES until the client reduces receipt 3
+
+== B1 — 'the first stored answer is THE answer' was arrival-ordered; least source_item_id is not
+PASS — first-stored picks ans-07 in one order and ans-03 in the other
+PASS — least source_item_id picks ans-03 in both orders
+
+10 passed, 0 failed

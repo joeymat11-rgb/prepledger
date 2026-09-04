@@ -1,0 +1,542 @@
+EARNED — SOURCE INGESTION PROTOCOL v1.1 · 2026-09-03 · Sol Protocol pass 1 applied (B1 High, B2 Medium, B3 Medium; every item executed in rig184 T2–T4) · blueprint-side · its own bounded audit · §P1 + §P2 are THE NORMATIVE CONTRACT, every clause a complete standalone sentence with a stable id; §P3 + §P4 are NON-NORMATIVE PROVENANCE (exact cross-references, no excerpts); the clause map in §P4 traces every clause to the appendix lines it restates
+==============================================================================================================
+SCOPE. This document governs the ADMITTED SET of source submissions for the D14 floor policy's source ingestion:
+which submissions pass the door, what a source is told, and how a response races a registry mutation. It sits
+beside the server-authoritative sync design of the blueprint (Sol's strategy audit P1–P19). It changes NO
+disposition, identity, currentness or reduction rule: those live in the RUNTIME SHEET's appendix §D14-C / §D14-F /
+§D14-G, whose ingestion order, registry model (incarnations, the quadruple route identity, producer_key,
+registration presence, the active boolean, current_submission_route_id, three-stage validation, the closed
+defect enum) and evidence rules are the model this Protocol admits into. THE OBLIGATION each way: the appendix
+holds for whatever set this Protocol admits (its determinism — ingestion is a FUNCTION of the admitted submission
+set — is proven there, independent of who may submit); this Protocol admits into that order and that registry
+model and nothing else. Terms used here and defined in the appendix: transport identity, content identity,
+replay lookups, verification (VERIFIED | UNVERIFIABLE), ingestion group, receipt sequence, signed cutoff's
+"sequence length", registration incarnation, registration_instance_id, producer_key,
+current_submission_route_id, registration_presence, active, global_registry_epoch. READING RULE (v1.1, Sol B3):
+a clause is normative iff it carries an id of the form [P1.n] or [P2.n]; nothing outside §P1 and §P2 is
+normative; a clause is read on its own, and "the appendix" always means RUNTIME SHEET v1.7.38 appendix v1.37.
+
+§P1 · THE NORMATIVE CONTRACT — AXES, THE THREE PREDICATES, DISCLOSURE, RESPONSE ATTEMPTS, THE RESPONSE PROTOCOL, THE ENVELOPE, LINEARIZATION AND CUTOFFS
+
+  [P1.1] The registry axes this Protocol reads are five distinct fields: registration_presence, which is
+  PRESENT or REMOVED; active, a boolean; credential_state, which is CURRENT or REVOKED and is a property of each
+  SOURCE PRINCIPAL's credential, never of the route identity; current_credential_epoch[source_id], which is
+  advanced by every removal, revocation, rotation or re-registration of that source; and global_registry_epoch,
+  the appendix §D14-G counter.
+
+  [P1.2] The two epochs, current_credential_epoch[source_id] and global_registry_epoch, are distinct fields
+  and are never compared to each other.
+
+  [P1.3] The predicate historical_principal_verified is TRUE iff the presented credential authenticates
+  against the source's registration history, present or past incarnations included; it permits the INTERNAL
+  lookups and recovery and nothing more, and a submission whose principal authenticates against no
+  registration, present or past, is refused with nothing created.
+
+  [P1.4] The predicate new_submission_authorized is TRUE iff the presented credential is bound to this athlete
+  and this source AND credential_state = CURRENT AND its credential epoch equals
+  current_credential_epoch[source_id] AND it is bound to current_submission_route_id[source_id], the EXACT
+  incarnation by registration_instance_id, AND that incarnation is PRESENT AND its declared_phases contains
+  RECORD, the active flag being EITHER value, because a paused-but-connected source may submit evidence that
+  stays non-current until reactivated (rig172 Y3; rig181 T1 is the witness for testing the exact incarnation).
+
+  [P1.5] After both replay lookups miss — an UNVERIFIABLE submission's content lookup being NOT_APPLICABLE,
+  which is a miss — new_submission_authorized FALSE means REFUSED: no receipt, no stub, no route stamp, no
+  identity consumed, no ingestion group and no durable state.
+
+  [P1.6] After both replay lookups miss, new_submission_authorized TRUE admits the submission: for VERIFIED
+  content into the appendix's shape, stamp and identity steps, and for UNVERIFIABLE content into the
+  transport-keyed rejection-stub group, both under the same expected-registry-tuple compare-and-append of
+  [P1.22].
+
+  [P1.7] A missing or malformed credential_state, credential epoch, signed cutoff or current-submission-route
+  field makes new_submission_authorized and direct_replay_response_authorized FALSE and forbids an exact
+  response.
+
+  [P1.8] The predicate direct_replay_response_authorized is TRUE iff the presented credential is bound to this
+  athlete and this source AND credential_state = CURRENT AND its credential epoch equals
+  current_credential_epoch[source_id] AND registration_presence = PRESENT, the active flag being either value
+  because a pause is the athlete's and not a revocation; it is FALSE for a REMOVED registration, for a REVOKED
+  credential and for any credential below the source's SIGNED CUTOFF (rig180 T2).
+
+  [P1.9] When direct_replay_response_authorized is TRUE at the serialized release step of [P1.13], the source
+  receives the exact receipt and disposition: a hit's original, a miss's new one, or the refusal.
+
+  [P1.10] RESPONSE ATTEMPT (rig184 T2): every network arrival of a submission — the first arrival and every
+  replay alike — is assigned an authority-issued response_attempt_id that is distinct from and excluded from
+  the transport identity, the content identity, the source item, every commitment, every receipt and every
+  ingestion state, and each arrival creates exactly one response state {response_attempt_id, arrived_at,
+  state: PENDING}.
+
+  [P1.11] A response attempt has exactly one terminal state, reached by the transition PENDING →
+  EXACT_RELEASED or PENDING → ENVELOPE_RELEASED, and a terminal state is never revisited.
+
+  [P1.12] A reply's COMPLETION PREREQUISITE is: for a replay hit, its group complete or recovered; for an
+  admitted miss, its new group committed; for a refused miss, the serialized no-commit refusal decision
+  completed, there being no group.
+
+  [P1.13] EXACT-RESPONSE RELEASE is itself an entry in the per-(athlete, source) serialized order of [P1.20],
+  and its LINEARIZATION POINT is the one serialized step that, by the registry state AT THAT STEP, verifies
+  the completion prerequisite and direct_replay_response_authorized, compare-and-sets the attempt's state
+  PENDING → EXACT_RELEASED, and hands the exact reply irrevocably to transport, all within that step
+  (rig182 T4).
+
+  [P1.14] An exact response may be released only BEFORE the attempt's deadline.
+
+  [P1.15] The DEADLINE of an attempt is the declared release interval measured from its arrived_at on one
+  clock for every attempt of the source, and it waits for no lookup and no recovery, which proceed
+  internally.
+
+  [P1.16] At its deadline an attempt still PENDING atomically compare-and-sets PENDING → ENVELOPE_RELEASED
+  and hands the UNAUTHORIZED RESPONSE ENVELOPE irrevocably to transport, whatever the reason an exact response
+  is unavailable — recovery in progress, a group not yet committed, a refusal decision not yet serialized, a
+  lost race with a registry mutation, or an unauthorized principal (rig183 T2).
+
+  [P1.17] Once an attempt is ENVELOPE_RELEASED no exact response is ever sent for THAT ATTEMPT; an authorized
+  source retrieves the completed result by REPLAY, and a replay is a NEW response attempt under [P1.10] over
+  the same immutable ingestion identity and the same stored result, judged by the ordinary rule (rig184 T2:
+  keyed by the transport identity the replay inherited ENVELOPE_RELEASED and could never receive the promised
+  exact result).
+
+  [P1.18] Therefore an unauthorized request receives exactly one envelope at the fixed time; an
+  authorized-but-slow request receives the SAME envelope at the same time and learns its result by replay; a
+  revocation never waits on an unfinished response; "an authorized principal receives the exact result" holds
+  only for a result ready before the deadline; the authenticated athlete client receives any EXISTING or
+  RECOVERED stored result through sync whatever the response state; and a refused miss creates no receipt
+  and no stored result and adds nothing to sync.
+
+  [P1.19] The UNAUTHORIZED RESPONSE ENVELOPE is ONE normalized response — a fixed status, a fixed header set,
+  a body padded to a fixed length, the same connection close and no retry instruction — so that, on the
+  envelope path, a transport hit, a content hit, a recovery-then-hit, a verified miss, an unverifiable miss
+  and an unauthorized principal are ONE observable class (rig181 T4); when direct_replay_response_authorized
+  is FALSE the lookups and recovery still run internally, the source receives the envelope, and the
+  authenticated athlete client obtains any existing or recovered stored result through sync.
+
+  [P1.20] LINEARIZATION: registry mutations, ingestion-group commits, no-commit refusal decisions and
+  exact-response releases SERIALIZE per (athlete, source) (rig181 T2).
+
+  [P1.21] The door captures an EXPECTED SOURCE-REGISTRY TUPLE {registration_presence,
+  registration_instance_id of current_submission_route_id, credential_state, current_credential_epoch,
+  declared_phases}; a same-version re-registration is a fresh instance id and therefore a mismatch; the
+  active boolean is deliberately excluded, because a pause during an in-flight commit lands the item
+  non-current and never refuses it.
+
+  [P1.22] The atomic ingestion group commits ONLY by compare-and-append while that expected tuple still
+  matches the registry; a mismatch restarts recovery and both lookups under the new state, and a remaining
+  miss re-evaluates new_submission_authorized.
+
+  [P1.23] If ingestion wins the race with a registry mutation, the later removal or revocation's signed
+  cutoff INCLUDES the group's last_receipt; if the mutation wins, the old credential's miss stores nothing.
+
+  [P1.24] If an exact release wins the race with a registry mutation, the removal or revocation completes
+  only after the hand-off; if the mutation wins, the reply is the envelope; queued exact replies are drained
+  before the mutation completes or are cancelled and replaced by the envelope; so a completed removal or
+  revocation is never followed by an exact response under the displaced epoch.
+
+  [P1.25] INVARIANT: no submission authorized only by credential epoch e ever receives a receipt greater than
+  the signed cutoff that terminates e.
+
+  [P1.26] Every removal, revocation, rotation or re-registration advances current_credential_epoch[source_id]
+  and records a signed cutoff {source_id, credential_epoch, the sequence length at that moment}, so an old
+  credential stays historical.
+
+  [P1.27] The counter global_registry_epoch is incremented by every change to the registry's canonical encoding — a
+  registration ADDED or REMOVED, a credential_state change, a current_credential_epoch advance or signed
+  cutoff, an active flag, declared_phases, input_domain_set or dependency-function edit — and the appendix's
+  coverage predicate therefore pauses application across a revocation exactly as across any other registry
+  change.
+
+  [P1.28] The INGESTION ORDER this Protocol admits into is the appendix's, restated once: principal
+  authentication against the registration history ([P1.3]), then authority-owned pending-group recovery, then
+  transport-exact replay, then verification that only REPORTS (VERIFIED | UNVERIFIABLE, committing nothing),
+  then verified content replay (NOT_APPLICABLE for UNVERIFIABLE, a miss), then, for every miss,
+  new_submission_authorized as the door ([P1.4]–[P1.6]), then ingestion-shape validation, which alone decides
+  whether a submission consumes its source_item_id, then the route stamp, then the identity test, then the
+  serialized exact-response release ([P1.13]).
+
+  [P1.29] A replay hit returns, internally, the holder's ORIGINAL receipt and the identity's current
+  disposition and stores nothing new; it is disclosed to the source only under [P1.9] and reaches the
+  athlete's client always through sync (rig173 A4).
+
+§P2 · THE NORMATIVE CONTRACT — THE CREDENTIAL AXIS AND THE RULED EFFECT OF REVOCATION
+
+  [P2.1] A source credential is bound to one athlete and one source, and it can authorize a new submission or
+  an exact response only while its registration incarnation is PRESENT.
+
+  [P2.2] ONE DEFINITION OF REGISTRATION-CURRENT, read by every reader of either document:
+  registration-current = registration_presence = PRESENT AND active = true; the credential axis plays NO
+  part in currentness.
+
+  [P2.3] THE RULED EFFECT of each axis: a new submission ([P1.4]) and a direct response ([P1.8]) require
+  PRESENT and a CURRENT credential at the current epoch, the active flag either value; reducer currentness
+  requires PRESENT and active = true.
+
+  [P2.4] A credential REVOCATION alone — a compromise response, or the old credential of a rotation —
+  prevents new submissions and disclosure and never silently reinterprets evidence already accepted.
+
+  [P2.5] When the athlete or the design also means to stop USING that evidence, the SAME atomic registry
+  mutation sets active = false or removes the registration, which is the appendix's ordinary
+  registry-epoch, re-issue and REGISTRATION_NOT_CURRENT path; removal means registration_presence = REMOVED.
+
+  [P2.6] A rotation — the old credential REVOKED, the new one CURRENT at the next epoch — changes no evidence
+  (cowork's adoption of the clean separation, v1.33; the owner may rule a different revocation effect, and
+  one is now stated so an implementation has one behaviour).
+
+§P3 · NON-NORMATIVE PROVENANCE — WHERE THE APPENDIX POINTS AT THIS PROTOCOL (exact cross-references into RUNTIME SHEET v1.7.38, appendix v1.37; no excerpts)
+  The appendix's §D14-C door passage names new_submission_authorized as the door and points here (sheet
+  v1.7.38 lines 2672–2695, the pointer sentences and the ONE obligation); its replay gloss says disclosure to
+  the source is this Protocol's (line 2711); its recovery rule says "whatever the source is told (the
+  Protocol's), recovery still completes internally" (line 2808); its registry passage says new submissions
+  and disclosure are the Protocol's and states reducer currentness (line 3079); its §D14-G epoch counts every
+  credential-axis change this Protocol defines (line 3537) and its group commit uses this Protocol's expected
+  registry tuple (line 3540). Everything those lines once said in full is [P1.1]–[P1.29] and [P2.1]–[P2.6]
+  above; the fragments v1.0 carried here ("group);", "a removal flips", "a CONTENT") were the cut edges of
+  those passages and are retired (Sol B3, rig184 T4).
+
+§P4 · NON-NORMATIVE PROVENANCE — THE §E BLUEPRINT OBLIGATIONS AND THE CLAUSE MAP
+  The appendix's §E obligations that name this Protocol are at sheet v1.7.38 lines 3782, 3801–3822 and
+  3860–3867; they summarize, they do not add. CLAUSE MAP (clause → the v1.7.36 appendix lines it restates,
+  the text Sol audited in passes 31–34): [P1.1]–[P1.2] ← 3072–3075 · [P1.3]–[P1.9] ← 2624–2650 · [P1.10],
+  [P1.11], [P1.17] ← NEW in v1.1 (Sol B1, rig184 T2; v1.0's "every request has ONE terminal response state"
+  at 2664–2676 left "request" undefined) · [P1.12]–[P1.16], [P1.18] ← 2650–2676 · [P1.19] ← 2660–2664 and
+  2809–2811 · [P1.20]–[P1.26] ← 2677–2696 · [P1.27] ← 3531–3538 · [P1.28] ← 3835–3842 · [P1.29] ← 2712–2713 ·
+  [P2.1]–[P2.6] ← 3072–3087. Meaning preservation is a reviewer's check against those lines; the mechanical
+  check is now COMPLETE-CLAUSE COVERAGE (rig184 T4: every [P1.n]/[P2.n] present once, a complete sentence,
+  no fragment marker surviving, registration-current stated whole), not substring presence.
+
+§P5 · THE DECLARED LEAKAGE INVENTORY, BY OBSERVER AND PATH (Sol B2, rig184 T3; v1.0's single global
+"never hit, miss, disposition or recovery" was false for the authorized exact path)
+  ENVELOPE PATH (any principal whose attempt reaches its deadline PENDING — an unauthorized principal, or an
+  authorized one whose result was not ready): the endpoint's existence and TLS acceptance; the fact that no
+  exact result was released before the deadline; network jitter below the release interval. The normalized
+  response reveals no hit, no miss, no disposition and no recovery branch.
+  AUTHORIZED EXACT PATH (direct_replay_response_authorized TRUE at the release step, result ready before the
+  deadline): the exact receipt, the disposition, and the release time, hence readiness. Inference by that
+  authorized principal about its own replay, admission or recovery from the release time is ACCEPTED (§P6 (c));
+  no schedule normalization is applied to exact responses; an unauthorized principal never reaches this path.
+
+§P6 · OWNER-VISIBLE RULES INSIDE THIS PROTOCOL (Joe may rule each differently; each is stated so an
+implementation has one behaviour): (a) a credential REVOCATION alone stops new submissions and disclosure and
+never reinterprets evidence already accepted — stopping the evidence is the appendix's ordinary active = false /
+removal path (cowork's adoption of the clean separation, v1.33); (b) an authorized-but-slow request receives the
+same envelope as an unauthorized one at the fixed deadline and learns its result by replay — a revocation never
+waits on an unfinished response (Sol's recommended protocol adopted, the authorization-reservation alternative
+rejected, v1.35); (c) on the authorized exact path the source's inference about its own replay, admission or
+recovery from the release time is ACCEPTED and exact responses are not schedule-normalized — the alternative,
+releasing every exact response at the deadline too, would cost every honest connector the whole release
+interval on every submission to hide from itself what it is entitled to know (cowork's recommendation, v1.1).
+
+§P7 · EXECUTED WITNESSES carried with this text: rig180 (T1 replay partition, T2 oracle, T3 contract alias),
+rig181 (T1 historical credential admits new content, T2 door / commit / cutoff interleavings, T3 revocation vs
+currentness, T4 one observable response class), rig182 (T1 stub before the door, T2 incarnation revival, T3
+presence defect, T4 release vs revocation), rig183 (T1 producer_key, T2 fixed deadline vs late selection, T3
+filter-first validation, T4 emission identity), rig184 (T1 instance-id reuse defect — appendix v1.37; T2
+response attempt identity; T3 leakage by path; T4 clause coverage) — files rig180.cjs … rig184.cjs with logs.
+
+CHANGES v1.0 → v1.1 (Sol's Protocol pass 1 — rig183 T2 CLOSED on deadline arbitration, T4 CLOSED; the split
+boundary PASSES; three findings, every one executed in rig184; the appendix takes A1 separately as v1.37):
+(B1) [High] "every request has ONE terminal response state" never said whether a request was a network arrival
+or the content-bound transport / replay identity; keyed by the transport identity, a replay after
+ENVELOPE_RELEASED inherited the envelope and could never receive the promised exact result, keyed by arrival it
+could (rig184 T2a) → RESPONSE ATTEMPTS [P1.10], [P1.11], [P1.17]: an authority-issued response_attempt_id per
+network arrival, excluded from every identity, commitment, receipt and ingestion state; exact release and the
+deadline transition are compare-and-sets on the attempt from PENDING; a replay is a new attempt over the same
+immutable identity and result (rig184 T2b/T2c). (B2) [Medium] the single leakage inventory "never hit, miss,
+disposition or recovery" contradicted the authorized exact path, which discloses the receipt, the disposition and
+its release time (rig184 T3) → §P5 split by observer and path; §P6 (c) states the accepted inference on the
+exact path. (B3) [Medium] the v1.0 verbatim extraction carried cut edges ("only while PRESENT;", "group);", "a
+removal flips", "a CONTENT" joined to the door) and stated registration-current without its PRESENT conjunct →
+§P1/§P2 rewritten as the single complete normative contract in numbered clauses ([P2.2] states
+registration-current whole), §P3/§P4 demoted to NON-NORMATIVE PROVENANCE with exact cross-references and a
+clause map, the extraction check replaced by complete-clause coverage (rig184 T4). Cowork's own read (X-series
+in rig184's header): X1 the reuse defect is NEW rather than a widened collision so the two failures stay
+distinguishable; X2 response_attempt_id is excluded from the transport digest (asserted); X3 two exact attempts
+of one replay are harmless; X4 exact-path disclosure is the path's purpose, stated as leakage nonetheless; X5
+coverage, not substring presence.
+
+CHANGES v1.0 (2026-09-03, owner ruling — the split): created by extracting the blocks VERBATIM from appendix
+v1.35 (sheet v1.7.36); the appendix became v1.36 (sheet v1.7.37) with the holes filled by pointer sentences and
+ONE obligation; the split script asserted every moved sentence appeared byte-for-byte (superseded by clause
+coverage in v1.1). Cowork's read of the cut at the time: (X1) "below" / "(above)" references — cited; (X2) the
+appendix's door passage names the Protocol's predicates by name; (X3) the §D14-G epoch still counts
+credential-axis changes so the appendix's coverage predicate pauses application across a revocation.
+
+PROVENANCE — the appendix CHANGES entries from v1.30 → v1.31 through v1.34 → v1.35 (Sol passes 30–34), copied verbatim from sheet v1.7.36; items
+that concern the appendix's own evidence rules remain the appendix's, the SUPERSEDED marks are as they stand there:
+
+CHANGES v1.34 → v1.35 (Sol's appendix pass 34 — rig182 T1 and T2 CLOSED, T3 and T4 closed on their
+implementation witnesses with the normative text still admitting another path; the row and precedence still
+RATIFIED, no runtime-sheet reopening; four findings, every one executed in rig183; the sheet stays closed):
+(1) [High] incarnation cardinality was keyed by an UNTYPED producer_id — instance-id allocation and the
+one-PRESENT rule read "per producer_id", while source_id and D14.1 method_id share no declared namespace: a
+source with source_id = p supplying a 2,001 floor and a D14.1 method with method_id = p registered afterwards —
+read literally, adding the method REMOVED the source incarnation (record stale, D14.1 supplies another bound);
+read as {kind, producer_id}, both coexist and the RECORD phase still governs (rig183 T1) → producer_key = {kind,
+producer_id}; registration_instance_id is allocated monotonically and without reuse PER producer_key; at most
+ONE PRESENT incarnation per producer_key, and adding one removes only the prior incarnation of the SAME
+producer_key; current_submission_route_id[source_id] selects the unique PRESENT {AUTHORITATIVE_SOURCE,
+source_id} incarnation; every incarnation / cardinality defect parameter names the producer_key (§D14-C registry,
+§D14-F P0a, §E; v1.7.36 sheet lines 3044–3046, 3065–3068, 3151 and 3820–3824); (2) [High] the fixed-schedule envelope and the
+late serialized exact selection did not compose — the envelope waits for nothing, but exact-versus-envelope was
+selected only after the prerequisite: a request authorized at arrival whose group had not committed by the
+deadline released nothing (authorized) and had no exact result; a revocation then won the serialized race, the
+CAS restarted and the request became a refused miss — a late envelope breaks the schedule and exposes the race,
+an envelope at the original deadline needs foresight, both is two responses, and blocking the revocation is a
+fourth unstated behaviour (rig183 T2) → ONE CLOSED PROTOCOL: every request has ONE terminal response state,
+PENDING → EXACT_RELEASED | ENVELOPE_RELEASED; an exact response may win BEFORE the fixed deadline only when its
+completion prerequisite is complete AND direct_replay_response_authorized is TRUE at its serialized release
+point; AT THE DEADLINE every still-PENDING request atomically becomes ENVELOPE_RELEASED, whatever the reason an
+exact response is unavailable — recovery, an uncommitted group, a pending refusal decision, a lost race, or an
+unauthorized principal; once ENVELOPE_RELEASED no exact response is ever sent for that request, and an
+authorized source retrieves the completed result by REPLAY under the ordinary rule; so an unauthorized request
+always receives exactly one envelope at the fixed time, and an authorized-but-slow request receives the SAME
+envelope at the same time without making recovery, the commit or the race observable; "an authorized principal
+receives the exact result" is now CONDITIONAL on readiness before the deadline (the alternative — an
+authorization reservation that makes revocation wait for an eventual exact hand-off — was NOT adopted; a
+revocation never waits on an unfinished response) (§D14-C, §E; v1.7.36 sheet lines 2662–2681, 3809 and 3829–3832); (3) [Medium]
+REGISTRATION_PRESENCE_MISSING_OR_INVALID was unreachable under the literal validation domain — "every test …
+ranges ONLY over PRESENT incarnations" filtered an entry with no presence out BEFORE any test could see it, so a
+filter-first reducer returned an EMPTY, non-defective registry while a structure-first one emitted the defect
+(rig183 T3: rig182 T3 still had two textual results) → REGISTRY VALIDATION IN THREE STAGES: stage 1, over EVERY
+raw entry of the current registry, validates the route identity, the registration_instance_id and
+registration_presence and emits the structural defects (ROUTE_IDENTITY_MALFORMED, ROUTE_IDENTITY_COLLISION,
+REGISTRATION_PRESENCE_MISSING_OR_INVALID); stage 2 forms the WORKING producer registry from the validated
+entries whose presence is PRESENT; stage 3 runs the active, phase, dependency and cardinality tests over that
+PRESENT set only; REMOVED history participates only in identity / non-reuse validation, never in P0a membership
+or an active cardinality; PRESENT_INCARNATION_CARDINALITY {producer_key, count} joins the closed enum (§D14-F
+P0a; v1.7.36 sheet lines 3125–3137 and 3826–3828); (4) [Medium] the current METHOD_DERIVATION EMISSION identity still spelled
+the superseded three-field route identity — r1 removed and r2 re-registered under the same producer, feed
+version, phase and class differ by registration_instance_id under the general rule yet the explicit emission
+identity aliased them, so a candidate identity, diagnostics, membership or an identity-keyed cache could reuse one
+identifier across exactly the reincarnation v1.34 separated (rig183 T4) → {kind: EMISSION, route_identity:
+{kind, producer_id, registration_version, registration_instance_id}, emitting_phase, class_id}; every explicit
+route tuple, sorting key, active-route record and identity-keyed cache carries the quadruple, abstract
+"route identity" references inherit it, and the v1.23 entry's "the only key anywhere" triple is marked
+SUPERSEDED; the route stamp stays OUT of the source-authored content commitment — that exclusion is intentional
+and unchanged (§D14-C; v1.7.36 sheet lines 2532–2534 and 1471). The v1.34 entry's "per producer_id" cardinality and the
+v1.33 entry's "an authorized principal receives an exact response" are marked SUPERSEDED in place (v1.7.36 sheet
+lines 859 and 950). A pre-delivery adversarial read (rig183 X1–X3) shaped the wording: the deadline is measured from
+ARRIVAL by the declared release interval and is the same clock for every request of the source; an
+EXACT_RELEASED request whose group later proves incomplete is impossible (its prerequisite was completion); the
+athlete client's sync is unaffected by the response state — it carries stored results whenever they exist.
+
+CHANGES v1.33 → v1.34 (Sol's appendix pass 33 — rig181 T1 / T2 / T3 / T4 CLOSED on their witnesses, the row and
+precedence still RATIFIED, no runtime-sheet reopening; four alternative normative paths, every one executed in
+rig182; the sheet stays closed): (1) [High] an UNVERIFIABLE miss could still create a stub BEFORE
+new_submission_authorized — the high-level order put the door after both lookups, but the detailed test order
+said "THEN VERIFICATION … → for a currently admitted source a REJECTION STUB", and "currently admitted" was
+glossed as a PRESENT registration declaring RECORD, never the presented credential: C1 of removed r1 / epoch e1,
+the source re-registered as r2 with RECORD, C1 sends new unverifiable bytes under a transport miss → the
+predicate says REFUSED, the verification branch saw PRESENT + RECORD and minted a transport-keyed stub, and with
+a parseable claimed scope SOURCE_ITEM_UNREADABLE entered the ledger from unauthorized input (rig182 T1) →
+VERIFICATION ONLY REPORTS: VERIFIED {content_identity} or UNVERIFIABLE {reason}, committing nothing; for
+UNVERIFIABLE the content lookup is NOT_APPLICABLE and counts as a miss; EVERY miss then passes through
+new_submission_authorized; only when it is TRUE may the authority create the transport-keyed rejection-stub
+group, under the same expected-registry-tuple compare-and-append; when FALSE, REFUSED with no durable state;
+every "currently admitted source" shortcut and every ingestion-order summary now states this rule (§D14-C,
+§E; v1.7.35 sheet lines 2649–2655, 2557–2579, 3715–3718 and 3780–3785); (2) [High] re-registration had no total REGISTRATION-INCARNATION
+rule — the credential had to be "bound to the CURRENT registration / route version", but nothing defined a
+unique current submission route or said whether a REMOVED identity may become PRESENT again: record A stamped
+under r1 (feed version 7), r1 REMOVED, the source re-registers at epoch e2 with the SAME version 7 — one
+implementation flips r1 back to PRESENT and A is silently current again, another mints a fresh route and A stays
+stale (rig182 T2: 2,001 vs ABSTAIN, and different component / withdrawal currentness) → a registration is an
+INCARNATION: the ROUTE IDENTITY gains an immutable, authority-issued, monotone, NEVER-REUSED
+registration_instance_id (the source's feed version alone cannot guarantee freshness); an incarnation's
+PRESENT → REMOVED transition is TERMINAL; re-registration always creates a fresh incarnation;
+current_submission_route_id[source_id] — the PRESENT incarnation of that source with the greatest instance id,
+of which the registry keeps AT MOST ONE (SUPERSEDED in v1.35: per producer_key = {kind, producer_id}, the
+selector being the unique PRESENT {AUTHORITATIVE_SOURCE, source_id} incarnation) — is the TOTAL selector the credential, new_submission_authorized and
+the expected registry tuple bind to; active false → true is the ONLY same-incarnation reactivation; a content
+replay retains its historical stamp, and only a NEW source_item_id submitted under the fresh incarnation can
+become current (§D14-C registry; v1.7.35 sheet lines 2965–2971, 2984–2991 and 2608–2612); (3) [Medium] the closed
+PRODUCER_REGISTRY_INVALID enum had no presence defect although registration_presence now decides P0a
+membership and every currentness test — a route with a valid identity, active = true, RECORD and valid domains
+but an absent or malformed presence was included as PRESENT by one reducer, excluded as REMOVED by another,
+and a third had no legal code to reject it; and D14_1_ACTIVE_CARDINALITY "≠ 1 while any D14.1 registration
+exists" could count a retained REMOVED incarnation (rig182 T3) → REGISTRATION_PRESENCE_MISSING_OR_INVALID
+{identity | position} joins the closed enum; P0a membership, every phase / cardinality defect and "any
+registration exists" range ONLY over PRESENT incarnations; ACTIVE_FLAG_MISSING applies only to a PRESENT
+incarnation (active is inapplicable when REMOVED); a missing or malformed credential_state, credential epoch,
+signed cutoff or current-submission-route field fails EVERY authorization predicate closed and forbids an exact
+response (§D14-F P0a, §D14-C; v1.7.35 sheet lines 3046–3052 and 2578); (4) [Medium] exact-response release was not
+linearized and a refusal had no group to wait for — "re-check immediately before release" still allowed check
+passes under e1 → revocation commits e2 → exact bytes released, and "released only after the group commits"
+named a group an authorized refusal never creates (rig182 T4) → EXACT-RESPONSE RELEASE is an entry in the
+per-(athlete, source) serialized order with its own LINEARIZATION POINT: the serialized step that selects exact
+versus envelope by the registry state AT THAT STEP and, for exact, hands the reply IRREVOCABLY to transport
+within it; if release wins, a removal or revocation completes only after that hand-off; if the mutation wins,
+the reply is the envelope; completion prerequisites are distinguished — a replay hit: its group complete or
+recovered; an admitted miss: its new group committed; a refused miss: the serialized no-commit refusal decision
+completed, there is no group; queued exact replies are drained before the mutation completes or cancelled and
+replaced by the envelope (§D14-C, §D14-G, §E; v1.7.35 sheet lines 2586–2595, 3449–3452 and 3730–3738). The v1.32 entry's
+"transport-keyed rejection stub for a currently admitted source", the v1.30 entry's stub-on-verification-failure
+note and the v1.33 entry's "bound to the current registration / route version" and "re-checked immediately
+before release" are marked SUPERSEDED in place (v1.7.35 sheet lines 916, 1007, 845 and 863). A pre-delivery adversarial read
+(rig182 X1–X3) shaped the wording: the transport-exact replay of an unauthorized principal's OWN earlier stub
+still returns that stub internally (a replay hit is not a miss) and is disclosed only by (iii); a D14.1
+METHOD registration is an incarnation too, its instance id issued by the same counter, so "the one active
+D14.1" ranges over PRESENT incarnations; the expected tuple names the instance id instead of the feed version,
+so a same-version re-registration is a tuple mismatch and restarts the in-flight commit.
+
+CHANGES v1.32 → v1.33 (Sol's appendix pass 32 — rig180 T1 / T2 / T3 CLOSED on their witnesses, the row and
+precedence still RATIFIED, no runtime-sheet reopening; four findings, every one executed in rig181; the sheet
+stays closed): (1) [High] a HISTORICAL credential could still admit NEW content — the door tested a replay miss
+only against the CURRENT registration's presence and phases, never against whether the presented credential
+belonged to that registration or its epoch: S registered at epoch e1 with credential C1, removed or revoked,
+re-registered at e2 as r2; C1 submits new verified content missing both lookups → the door saw r2 with RECORD
+and ADMITTED it, stamped r2 (current at once) while C1 was told nothing (rig181 T1) → a THIRD predicate,
+new_submission_authorized: the presented credential is bound to this athlete and source AND credential_state =
+CURRENT AND its credential epoch = current_credential_epoch[source_id] AND it is bound to the current
+registration / route version (SUPERSEDED in v1.34: to current_submission_route_id[source_id] by
+registration_instance_id) AND registration_presence = PRESENT AND declared_phases contains RECORD (active may
+be either value, preserving the ruled ability of a paused-but-connected source to submit evidence that stays
+non-current until reactivated); after both lookups miss, FALSE means REFUSED — no receipt, stub, route stamp,
+identity consumption or ingestion group — and a historically verified but unauthorized principal receives only
+the generic envelope (§D14-C, §E; v1.7.34 sheet lines 2503–2514 and 3616–3618); (2) [High] the door, the group commit and
+the signed cutoff were NOT LINEARIZED — atomicity gave all-or-nothing receipts but not that the registry state
+read at the door still held when the group committed, and recovery covered only already-durable groups, not an
+in-flight submission past the door: sequence length 10 under e1, R passes the door, removal wins concurrently,
+finds no pending group, records cutoff 10 and advances to e2, then R commits receipt 11 on its stale decision
+(rig181 T2: a receipt beyond the cutoff that terminates e1, fitting neither serialization) → registry mutations
+and ingestion-group commits SERIALIZE per (athlete, source); the door captures an EXPECTED SOURCE-REGISTRY TUPLE
+{registration_presence, registration version, credential_state, current_credential_epoch, declared_phases}; the
+atomic group commits ONLY by compare-and-append while that tuple still matches; a mismatch restarts recovery
+and both lookups under the new state and a remaining miss re-evaluates new_submission_authorized; if ingestion
+wins, the later removal / revocation cutoff INCLUDES the group's last_receipt; if the mutation wins, the old
+credential's miss stores nothing; exact-result disclosure is re-checked against the current credential epoch
+immediately before release (or serialized in the same transaction) — a completed removal / revocation is never
+followed by an exact response under the displaced epoch (SUPERSEDED in v1.34: the release is itself a serialized
+step with a linearization point; a refusal has no group to wait for); INVARIANT: no submission authorized only by credential
+epoch e ever receives a receipt greater than the signed cutoff that terminates e (§D14-C, §D14-G, §E; v1.7.34
+sheet lines 2532–2545, 3351–3356 and 3629); (3) [High] REVOKED was not mapped to the registration-currency model — every
+currentness reader tests whether the stamped registration is ACTIVE (a required mutable boolean), and v1.32
+introduced ACTIVE / INACTIVE / REMOVED / REVOKED as "registry states" without relating them to that boolean or
+to registry membership, so one active=true registration whose credential is revoked read three ways: evidence
+keeps governing, or REGISTRATION_NOT_CURRENT, or the route removed (rig181 T3: 2,001 vs ABSTAIN vs route gone)
+→ ORTHOGONAL AXES, each a named field: registration_presence = PRESENT | REMOVED; registration.active = true |
+false, defined only while PRESENT; credential_state = CURRENT | REVOKED, per source principal;
+current_credential_epoch[source_id]; global_registry_epoch (§D14-G's counter) — the two epochs are distinct
+fields never compared to each other; ONE DEFINITION of REGISTRATION-CURRENT, read by every reader ("ACTIVE"
+wherever this appendix tests a stamped registration): registration_presence = PRESENT AND active = true, the
+credential axis playing no part; THE RULED EFFECT: new submission and direct response require PRESENT + CURRENT
+credential + current epoch, active either value; reducer currentness requires PRESENT + active = true;
+credential revocation ALONE prevents new submissions and disclosure and never silently reinterprets accepted
+evidence; when revocation is also meant to stop using that evidence, the SAME atomic registry mutation sets
+active = false or removes the registration, which is the ordinary registry-epoch, re-issue and
+REGISTRATION_NOT_CURRENT path; removal means PRESENT = false; a credential rotation (old REVOKED, new CURRENT at
+the next epoch) changes no evidence (cowork's adoption of the clean separation; the owner may rule a different
+revocation effect — one is now stated) (§D14-C registry, §D14-G, §E; v1.7.34 sheet lines 2900–2920, 3351–3356 and 3632); (4)
+[Medium] "same bytes" did not complete the non-oracular contract — an unauthorized principal's five branches
+(transport hit, content hit, recovery-then-hit, verified miss, unverifiable miss) could still differ in status,
+headers, length, connection, retry instruction and above all timing, recovery making timing branch-dependent
+(rig181 T4: three observable classes) → option A adopted: ONE normalized UNAUTHORIZED RESPONSE ENVELOPE — fixed
+status, fixed header set, fixed body padded to a fixed length, the same connection close, no retry
+instruction — released on a FIXED SCHEDULE from arrival that does not wait for the lookups or recovery (they
+proceed internally, serialized per (athlete, source)), so no branch changes any observable of the envelope or
+its release time; a DECLARED LEAKAGE INVENTORY in §E names what remains — the endpoint's existence and TLS
+acceptance, the fact of being unauthorized (an authorized principal receives an exact response — SUPERSEDED in
+v1.35: only when its result is ready before the fixed deadline), network jitter
+below the release interval — and nothing about hit, miss, disposition or recovery; and the sync consequence is
+corrected: the athlete client receives any EXISTING or RECOVERED stored result through sync; a refused replay
+miss creates no receipt or stored result and adds nothing to sync (§D14-C, §E; v1.7.34 sheet lines 2520–2532, 2657, 3622 and 3634).
+The v1.32 entry's "two registry states with one authorization effect" and "the same bytes" are marked SUPERSEDED
+in place (v1.7.34 sheet lines 872). A pre-delivery adversarial read (rig181 X1–X3) shaped the wording: an
+INACTIVE source's exact responses continue (PRESENT + CURRENT credential); the expected tuple excludes the
+active boolean deliberately, so a pause during an in-flight commit does not refuse it (the item lands
+non-current); the authorized path's exact response is released only after its group commits, so an authorized
+principal never learns a receipt the cutoff could later exclude.
+
+CHANGES v1.31 → v1.32 (Sol's appendix pass 31 — rig179 T1 / T2 / T3 CLOSED on their witnesses, the row and
+precedence still RATIFIED, no runtime-sheet reopening; three findings, every one executed in rig180; the sheet
+stays closed): (1) [High] the CONTENT-identity replay still sat BEHIND the current-registration door — the v1.31
+order was transport replay → door on a miss → verification → content replay, which partitions ONE content
+identity by its transport representation: R stored under content identity I = {x, c} and transport T1, S removed;
+an exact T1 retry → R's original result; the same verified content under another legal transport T2 → a transport
+miss, REFUSED at the door before verification could reach the content lookup; the same T2 while S is current →
+R's original result (rig180 T1: ORIGINAL / REFUSED / ORIGINAL for one content identity, against the declared
+single ingestion state shared by a content identity and every transport identity carrying it) → THE ORDER IS
+NOW: principal-history authentication → authority-owned pending-group recovery → transport-exact replay lookup →
+VERIFICATION sufficient to derive a content identity → verified content-replay lookup → ONLY IF BOTH LOOKUPS
+MISS, the current-registration / phase door for NEW content → ingestion-shape validation → route stamp →
+identity test; an unverifiable transport miss is REFUSED WITHOUT A STUB for a source with no current
+registration and is a transport-keyed rejection stub for a currently admitted source (SUPERSEDED in v1.34: a stub
+exists only when new_submission_authorized is TRUE for the presented credential; verification never commits); a content replay NEVER
+receives a new route stamp — a source that wants equivalent content current under a newly registered route
+submits it under a NEW source_item_id (§D14-C, §E; v1.7.33 sheet lines 2418–2435, 2471–2484, 3469–3473 and 3531–3536); (2) [Medium]
+historical principal authentication defined no REPLAY-RESULT AUTHORIZATION — "a replay hit returns the prior result
+whatever the registry now says" let a removed or compromised connector holding its old credential read receipts
+and dispositions and probe hit / miss indefinitely, while "where the former source can no longer receive
+responses" read as the opposite (rig180 T2) → TWO PREDICATES: historical_principal_verified (the credential
+authenticates against the source's registration history — permits the internal replay lookup and recovery,
+nothing more) and direct_replay_response_authorized (a CLOSED rule: true iff the presented credential's
+CREDENTIAL EPOCH is the registry's current epoch for that source AND the registration is ACTIVE or INACTIVE;
+false for REMOVED, for REVOKED and for any credential below the source's SIGNED CUTOFF); when disclosure is
+unauthorized recovery still completes, the source receives ONE generic non-oracular response — identical for a
+hit, a miss and a refused miss — and only the authenticated athlete client obtains the stored result through
+sync; routine REMOVAL and security REVOCATION are two registry states with one authorization effect, each
+advancing the credential epoch and recording a signed cutoff {source_id, credential_epoch, sequence length};
+re-registration issues a new epoch, so an old credential stays historical (SUPERSEDED in v1.33: orthogonal
+axes — registration_presence and credential_state are separate fields with one ruled effect each; "the same
+bytes" is replaced by the normalized unauthorized response envelope on a fixed release schedule; sync carries
+existing or recovered results only) (§D14-C, §D14-G, §E; v1.7.33 sheet
+lines 2435–2446, 2557–2558, 3229–3230 and 3490–3495); (3) [Medium] two superseded summaries remained — the RESULT CONTRACT
+described SOURCE_ITEM_UNREADABLE's keyed_replay_identity_commitment as "a keyed content identity, never the
+receipt", impossible for an unverifiable submission, which has no content identity under the split-replay rule,
+and re-creating the claimed-{id, commitment} alias rig178 T1 closed (rig180 T3: the stub's ledger identity equalled
+the stored record's) → "a per-athlete, per-source, domain-separated keyed commitment to the APPLICABLE replay
+identity — the verified content identity for a verified shape stub, otherwise the content-bound transport
+identity — never a receipt"; and the v1.25 entry's "an answer's unknown request id turns into a stub by one
+decidable test" is marked SUPERSEDED (WAITING_FOR_SOURCE_ITEM, then a receipted INERT {NO_SUCH_REQUEST}
+resolution) — the v1.31 entry's "returns the immutable prior result whatever the registry now says" and its
+"only a replay MISS meets the door" are marked the same way (§D14-B RESULT CONTRACT; v1.7.33 sheet lines 2089–2092,
+1114, 839 and 878). A pre-delivery adversarial read (rig180 X1–X3) shaped the wording: the generic response is the SAME
+bytes for every unauthorized outcome (a refused miss included) so the refusal itself is not an oracle; an
+INACTIVE registration's connector keeps receiving exact results (a pause is the athlete's, not a revocation);
+the §D14-G epoch list now names REVOKED and a credential-epoch change as registry changes.
+
+CHANGES v1.30 → v1.31 (Sol's appendix pass 30 — rig178 T1 / T2 / T4 CLOSED on their witnesses, the row and
+precedence still RATIFIED, no runtime-sheet reopening, no research-policy objection; three findings, every one
+executed in rig179; the sheet stays closed): (1) [High] an incomplete group could be STRANDED behind the
+registration door — source S registered, submission R admitted, R's group durably incomplete across the crash cut
+with its reply lost, the athlete then REMOVES S, S retries the identical transport identity: the door refused the
+retry before any replay lookup or group recovery, the incomplete group stayed, and it blocked reduction over S and
+every D14 application reading it FOR EVER (a lost-ack retry after removal also answered REFUSED instead of the
+original disposition) (rig179 T1) → GROUP RECOVERY IS AUTHORITY-OWNED: before ANY later action involving that
+(athlete, source) — a later ingestion, a registry mutation touching the source, a sync snapshot, a reduction —
+the authority completes the pending group FIRST (its derived events are a function of the durably admitted
+triggering item and the stored state; nothing is needed from the source) and blocks that action until it has; and THE
+ORDER AT THE DOOR is: authenticate the submission's SOURCE PRINCIPAL against the source's registration HISTORY
+(a removed registration's principal stays authenticatable — the sequence is never dropped) → transport-exact
+replay lookup with recovery → only a replay MISS meets the CURRENT-registration door and its declared phases; a
+replay hit returns the immutable prior result whatever the registry now says; where the former source can no
+longer receive responses, recovery completes internally and the authenticated athlete client obtains the result
+through sync (SUPERSEDED in v1.32: the verified CONTENT lookup also precedes the door — only a miss on BOTH
+meets it — and a hit is DISCLOSED to the source only when direct_replay_response_authorized, else a generic
+response) (§D14-C, §D14-G, §E; v1.7.32 sheet lines 2367–2378, 2474–2484, 3157 and 3393, 3412, 3441, 3449–3453); (2) [High]
+component_scope_current read a ROUTE STAMP the stamping rule never assigned to every legal member kind — "INGESTION
+stamps every stored proof and record", yet the shared id space admits ANSWER and WITHDRAWAL members: two
+shape-valid ANSWER submissions under one id, different commitments, each claiming its request's scope — one
+implementation read the component as non-current and diagnostic-only, another inferred a stamp from "stored like
+any item" and bound SOURCE_ITEM_IDENTITY_COLLISION (rig179 T2; withdrawal currentness and an answer's later
+registration test needed the same stamp) → EVERY verified, ingestion-shape-valid, IDENTITY-CONSUMING
+source-authored submission — RECORD, PROOF, ANSWER and WITHDRAWAL, a submission whose terminal disposition becomes
+COLLISION_MEMBER included — receives an IMMUTABLE ROUTE STAMP before the identity test (the ROUTE STAMP is now a
+named step of the ingestion order); component_scope_current, a withdrawal's currentness and an answer's
+registration test read those per-member stamps; an authority-created REQUEST is outside the rule (§D14-C, §E;
+v1.7.32 sheet lines 2487–2494, 2417–2419 and 3412); (3) [Medium] the selector said "every other STORED answer is
+REQUEST_MISMATCH" — literally the withdrawn answer, the hidden collision member and the INERT answer the
+population rule had just excluded (rig179 T3: three contradicting rows) → "every other MEMBER OF THAT SELECTOR
+POPULATION is REQUEST_MISMATCH"; an answer outside the population keeps its own row (WITHDRAWN, the component
+blocker, the INERT resolution on the source card); the retained rule, stated once: terminal STORED + shape-valid
+ANSWER + APPLIES + no collision membership + not withdrawn → least source_item_id → domain qualification; the
+operative component sentence now reads "every later verified, shape-valid, identity-consuming submission" and
+"two verified, shape-valid answers"; four historical clauses marked SUPERSEDED in place — "an answer to no request
+is a stub" (v1.23 entry), wrong-kind withdrawals and answers resolving as stubs (v1.25 entry), "AT MOST ONE
+terminal response … a different answer is a collision stub" (v1.24 entry), "every later verified submission" is
+COLLISION_MEMBER (v1.27 entry) — each pointing at the final rule (§D14-C; v1.7.32 sheet lines 2613, 2620–2624,
+2422, 998, 1064, 1138, 1208 and 1085). A pre-delivery adversarial read (rig179 X1–X3) shaped the wording: a principal that
+authenticates against NO registration, present or past, is refused exactly as before; the §D14-G epoch sentence
+says a registry mutation touching a source completes that source's pending group first; a rejection stub carries
+its source_id and no route stamp (it is bound by R1 / P1 beside the screen, never by a stamp); §E's own
+replay-rule sentence and the v1.25 entry's door sentence no longer state "refused at the door" ahead of replay.
+
+SOURCES: the RUNTIME SHEET v1.7.37 (appendix v1.36) and its SOURCES section; Sol's bounded appendix passes 30–34; rigs 179–183.

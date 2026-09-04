@@ -1,0 +1,5874 @@
+{
+ "stamp": {
+  "engine": "main",
+  "engineSha256": "adf6ab1c8e80086f94771ddeaace712f9a286093d82ddb2f018e4b868f1e16b4",
+  "engineCommit": "a0009c3 (v7.55.9, deployed main)",
+  "clock": "2026-09-03",
+  "tz": "America/New_York",
+  "censusVersion": 3
+ },
+ "blobSha256": "b5eb62d459d6e58bfb26bfa65f772db193998825166d7538403dad41eddda499",
+ "census": {
+  "censusVersion": 3,
+  "required": {
+   "censusVersion": 3,
+   "migration": {
+    "sourceSchema": 54,
+    "recordsChangedByMigrate": {
+     "reads": 2,
+     "foodDays": 0,
+     "nights": 0,
+     "sessions": 1,
+     "lifts": 0,
+     "queue": 0,
+     "feed": 209,
+     "volumeReceipts": 0,
+     "sightings": 0,
+     "events": 0,
+     "waist": 0,
+     "plan": 0
+    }
+   },
+   "records": {
+    "reads": [
+     {
+      "date": "2026-06-10",
+      "lb": 170,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-11",
+      "lb": 169.6,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-12",
+      "lb": 170.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-13",
+      "lb": 169.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-14",
+      "lb": 173.4,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-15",
+      "lb": 170.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-16",
+      "lb": 170,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-17",
+      "lb": 169.4,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-18",
+      "lb": 169.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-19",
+      "lb": 168.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-20",
+      "lb": 167.9,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-21",
+      "lb": 168.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-22",
+      "lb": 168.4,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-23",
+      "lb": 168.3,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-24",
+      "lb": 167.9,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-25",
+      "lb": 168.6,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-26",
+      "lb": 168.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-27",
+      "lb": 167.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-28",
+      "lb": 168.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-29",
+      "lb": 167,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-06-30",
+      "lb": 166.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-01",
+      "lb": 165.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-02",
+      "lb": 168.6,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-03",
+      "lb": 167.3,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-04",
+      "lb": 170,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-05",
+      "lb": 167.6,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-06",
+      "lb": 168.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-07",
+      "lb": 167.6,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-08",
+      "lb": 166.5,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-09",
+      "lb": 167,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-10",
+      "lb": 166.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-11",
+      "lb": 166,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-12",
+      "lb": 170.6,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-13",
+      "lb": 168.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-14",
+      "lb": 166.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-15",
+      "lb": 165.4,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-16",
+      "lb": 166.4,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-20",
+      "lb": 163.8,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-21",
+      "lb": 163.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-22",
+      "lb": 163.2,
+      "note": "sealed — excluded from trend",
+      "sealed": true,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-23",
+      "lb": 163.7,
+      "note": "sealed — excluded from trend",
+      "sealed": true,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-24",
+      "lb": 164,
+      "note": "sealed — excluded from trend",
+      "sealed": true,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-25",
+      "lb": 162.8,
+      "note": "salt or alcohol yesterday — water noise likely · sealed — excluded from trend",
+      "sealed": true,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-26",
+      "lb": 162.4,
+      "note": "salt or alcohol yesterday — water noise likely · sealed — excluded from trend",
+      "sealed": true,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-27",
+      "lb": 161.8,
+      "note": "spike — damped in trend",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-28",
+      "lb": 164.2,
+      "note": "inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-29",
+      "lb": 162.4,
+      "note": "spike — damped in trend",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-30",
+      "lb": 161,
+      "note": "spike — damped in trend",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-07-31",
+      "lb": 165,
+      "note": "salt or alcohol yesterday — water noise likely",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-03",
+      "lb": 164,
+      "note": "salt or alcohol yesterday — water noise likely · inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-04",
+      "lb": 162.4,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-05",
+      "lb": 162.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-06",
+      "lb": 162.8,
+      "note": "inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-08",
+      "lb": 163.1,
+      "note": "inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-09",
+      "lb": 164.5,
+      "note": "salt or alcohol yesterday — water noise likely",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-10",
+      "lb": 164,
+      "note": "inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-11",
+      "lb": 164.2,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-12",
+      "lb": 164.7,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-13",
+      "lb": 163.3,
+      "note": "inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-14",
+      "lb": 164.7,
+      "note": "",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     },
+     {
+      "date": "2026-08-15",
+      "lb": 163.3,
+      "note": "inside your noise — not information",
+      "sealed": false,
+      "morning": null,
+      "attested": null
+     }
+    ],
+    "foodDays": [
+     {
+      "date": "2026-06-10",
+      "kcal": 2440,
+      "protein_g": 173,
+      "steps": 13500
+     },
+     {
+      "date": "2026-06-11",
+      "kcal": 1564,
+      "protein_g": 170,
+      "steps": 15500
+     },
+     {
+      "date": "2026-06-12",
+      "kcal": 1550,
+      "protein_g": 195,
+      "steps": 12000
+     },
+     {
+      "date": "2026-06-13",
+      "kcal": 3500,
+      "protein_g": 196,
+      "steps": 17600
+     },
+     {
+      "date": "2026-06-14",
+      "kcal": 1530,
+      "protein_g": 182,
+      "steps": 13500
+     },
+     {
+      "date": "2026-06-15",
+      "kcal": 1573,
+      "protein_g": 183,
+      "steps": 19000
+     },
+     {
+      "date": "2026-06-16",
+      "kcal": 1530,
+      "protein_g": 184,
+      "steps": 21000
+     },
+     {
+      "date": "2026-06-17",
+      "kcal": 2170,
+      "protein_g": 181,
+      "steps": 21700
+     },
+     {
+      "date": "2026-06-18",
+      "kcal": 1590,
+      "protein_g": 185,
+      "steps": 23000
+     },
+     {
+      "date": "2026-06-19",
+      "kcal": 1570,
+      "protein_g": 171,
+      "steps": 22000
+     },
+     {
+      "date": "2026-06-20",
+      "kcal": 1595,
+      "protein_g": 191,
+      "steps": 18500
+     },
+     {
+      "date": "2026-06-21",
+      "kcal": 1610,
+      "protein_g": 170,
+      "steps": 22000
+     },
+     {
+      "date": "2026-06-22",
+      "kcal": 1680,
+      "protein_g": 175,
+      "steps": 17500
+     },
+     {
+      "date": "2026-06-23",
+      "kcal": 1720,
+      "protein_g": 181,
+      "steps": 19000
+     },
+     {
+      "date": "2026-06-24",
+      "kcal": 2610,
+      "protein_g": 173,
+      "steps": 20000
+     },
+     {
+      "date": "2026-06-25",
+      "kcal": 1660,
+      "protein_g": 187,
+      "steps": 21000
+     },
+     {
+      "date": "2026-06-26",
+      "kcal": 1691,
+      "protein_g": 190,
+      "steps": 16000
+     },
+     {
+      "date": "2026-06-27",
+      "kcal": 1700,
+      "protein_g": 197,
+      "steps": 19600
+     },
+     {
+      "date": "2026-06-28",
+      "kcal": 1685,
+      "protein_g": 184,
+      "steps": 20000
+     },
+     {
+      "date": "2026-06-29",
+      "kcal": 1711,
+      "protein_g": 178,
+      "steps": 23000
+     },
+     {
+      "date": "2026-06-30",
+      "kcal": 1725,
+      "protein_g": 175,
+      "steps": 22000
+     },
+     {
+      "date": "2026-07-01",
+      "kcal": 2636,
+      "protein_g": 194,
+      "steps": 20000
+     },
+     {
+      "date": "2026-07-02",
+      "kcal": 1711,
+      "protein_g": 181,
+      "steps": 21000
+     },
+     {
+      "date": "2026-07-03",
+      "kcal": 3200,
+      "protein_g": null,
+      "steps": 21000
+     },
+     {
+      "date": "2026-07-04",
+      "kcal": 1730,
+      "protein_g": 190,
+      "steps": 20000
+     },
+     {
+      "date": "2026-07-05",
+      "kcal": 1830,
+      "protein_g": 175,
+      "steps": 25000
+     },
+     {
+      "date": "2026-07-06",
+      "kcal": 1731,
+      "protein_g": 168,
+      "steps": 19000
+     },
+     {
+      "date": "2026-07-07",
+      "kcal": 1731,
+      "protein_g": 180,
+      "steps": 21000
+     },
+     {
+      "date": "2026-07-08",
+      "kcal": 2600,
+      "protein_g": 180,
+      "steps": 20000
+     },
+     {
+      "date": "2026-07-09",
+      "kcal": 1850,
+      "protein_g": 165,
+      "steps": 17800
+     },
+     {
+      "date": "2026-07-10",
+      "kcal": 1770,
+      "protein_g": 170,
+      "steps": 17000
+     },
+     {
+      "date": "2026-07-11",
+      "kcal": 4000,
+      "protein_g": null,
+      "steps": 19000
+     },
+     {
+      "date": "2026-07-12",
+      "kcal": 1700,
+      "protein_g": null,
+      "steps": 17000
+     },
+     {
+      "date": "2026-07-13",
+      "kcal": 1800,
+      "protein_g": 175,
+      "steps": 18000
+     },
+     {
+      "date": "2026-07-14",
+      "kcal": 1750,
+      "protein_g": 175,
+      "steps": 19000
+     },
+     {
+      "date": "2026-07-15",
+      "kcal": 1780,
+      "protein_g": 170,
+      "steps": 16700
+     },
+     {
+      "date": "2026-07-17",
+      "kcal": 1790,
+      "protein_g": 175,
+      "steps": 11500
+     },
+     {
+      "date": "2026-07-18",
+      "kcal": 2300,
+      "protein_g": 170,
+      "steps": 13000
+     },
+     {
+      "date": "2026-07-19",
+      "kcal": 2000,
+      "protein_g": 170,
+      "steps": 12500
+     },
+     {
+      "date": "2026-07-20",
+      "kcal": 1780,
+      "protein_g": 180,
+      "steps": 14000
+     },
+     {
+      "date": "2026-07-22",
+      "kcal": 2530,
+      "protein_g": 186,
+      "steps": 17000
+     },
+     {
+      "date": "2026-07-23",
+      "kcal": 1785,
+      "protein_g": 173,
+      "steps": 17500
+     },
+     {
+      "date": "2026-07-24",
+      "kcal": 2150,
+      "protein_g": 180,
+      "steps": 16500
+     },
+     {
+      "date": "2026-07-25",
+      "kcal": 2600,
+      "protein_g": 160,
+      "steps": 15000
+     },
+     {
+      "date": "2026-07-26",
+      "kcal": 1700,
+      "protein_g": 175,
+      "steps": 14000
+     },
+     {
+      "date": "2026-07-27",
+      "kcal": 1750,
+      "protein_g": 175,
+      "steps": 17500
+     },
+     {
+      "date": "2026-07-28",
+      "kcal": 1990,
+      "protein_g": 185,
+      "steps": 15500
+     },
+     {
+      "date": "2026-07-29",
+      "kcal": 1980,
+      "protein_g": 171,
+      "steps": 17000
+     },
+     {
+      "date": "2026-07-30",
+      "kcal": 3200,
+      "protein_g": 200,
+      "steps": 19000
+     },
+     {
+      "date": "2026-07-31",
+      "kcal": 4000,
+      "protein_g": 200,
+      "steps": 12000
+     },
+     {
+      "date": "2026-08-01",
+      "kcal": 3000,
+      "protein_g": 185,
+      "steps": 12000
+     },
+     {
+      "date": "2026-08-02",
+      "kcal": 1900,
+      "protein_g": 160,
+      "steps": 16500
+     },
+     {
+      "date": "2026-08-03",
+      "kcal": 1950,
+      "protein_g": 180,
+      "steps": 12000
+     },
+     {
+      "date": "2026-08-04",
+      "kcal": 1950,
+      "protein_g": 185,
+      "steps": 12000
+     },
+     {
+      "date": "2026-08-05",
+      "kcal": 2800,
+      "protein_g": 200,
+      "steps": 12000
+     },
+     {
+      "date": "2026-08-06",
+      "kcal": 2800,
+      "protein_g": 190,
+      "steps": 16000
+     },
+     {
+      "date": "2026-08-07",
+      "kcal": 3000,
+      "protein_g": 190,
+      "steps": 14000
+     },
+     {
+      "date": "2026-08-08",
+      "kcal": 2900,
+      "protein_g": 200,
+      "steps": 15000
+     },
+     {
+      "date": "2026-08-09",
+      "kcal": 2350,
+      "protein_g": 175,
+      "steps": 14700
+     },
+     {
+      "date": "2026-08-10",
+      "kcal": 2231,
+      "protein_g": 175,
+      "steps": 19500
+     },
+     {
+      "date": "2026-08-11",
+      "kcal": 2279,
+      "protein_g": 175,
+      "steps": 17500
+     },
+     {
+      "date": "2026-08-12",
+      "kcal": 2249,
+      "protein_g": 160,
+      "steps": 19000
+     },
+     {
+      "date": "2026-08-13",
+      "kcal": 2208,
+      "protein_g": 160,
+      "steps": 17000
+     },
+     {
+      "date": "2026-08-14",
+      "kcal": 2800,
+      "protein_g": 180,
+      "steps": 16500
+     }
+    ],
+    "nights": [
+     {
+      "date": "2026-06-10",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-06-11",
+      "hours": 7.25,
+      "quality": null
+     },
+     {
+      "date": "2026-06-14",
+      "hours": 9,
+      "quality": null
+     },
+     {
+      "date": "2026-06-16",
+      "hours": 6.5,
+      "quality": null
+     },
+     {
+      "date": "2026-06-17",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-06-18",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-06-19",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-06-20",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-06-21",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-06-22",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-06-23",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-06-24",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-06-25",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-06-26",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-06-27",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-06-28",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-06-29",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-06-30",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-01",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-02",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-04",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-06",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-07",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-08",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-07-09",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-07-10",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-12",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-13",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-14",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-15",
+      "hours": 6.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-16",
+      "hours": 4.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-17",
+      "hours": 8,
+      "quality": null
+     },
+     {
+      "date": "2026-07-18",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-07-19",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-20",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-21",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-22",
+      "hours": 6,
+      "quality": null
+     },
+     {
+      "date": "2026-07-23",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-24",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-25",
+      "hours": 7.58,
+      "quality": null
+     },
+     {
+      "date": "2026-07-26",
+      "hours": 6.17,
+      "quality": null
+     },
+     {
+      "date": "2026-07-27",
+      "hours": 6,
+      "quality": null
+     },
+     {
+      "date": "2026-07-28",
+      "hours": 7.42,
+      "quality": null
+     },
+     {
+      "date": "2026-07-29",
+      "hours": 7.5,
+      "quality": null
+     },
+     {
+      "date": "2026-07-30",
+      "hours": 7.83,
+      "quality": null
+     },
+     {
+      "date": "2026-07-31",
+      "hours": 5,
+      "quality": null
+     },
+     {
+      "date": "2026-08-01",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-08-02",
+      "hours": 7,
+      "quality": null
+     },
+     {
+      "date": "2026-08-03",
+      "hours": 6.17,
+      "quality": null
+     },
+     {
+      "date": "2026-08-04",
+      "hours": 6,
+      "quality": null
+     },
+     {
+      "date": "2026-08-05",
+      "hours": 7.58,
+      "quality": null
+     },
+     {
+      "date": "2026-08-06",
+      "hours": 7.75,
+      "quality": null
+     },
+     {
+      "date": "2026-08-08",
+      "hours": 7.08,
+      "quality": null
+     },
+     {
+      "date": "2026-08-09",
+      "hours": 8.08,
+      "quality": null
+     },
+     {
+      "date": "2026-08-10",
+      "hours": 8.58,
+      "quality": null
+     },
+     {
+      "date": "2026-08-11",
+      "hours": 7.67,
+      "quality": null
+     },
+     {
+      "date": "2026-08-12",
+      "hours": 5.33,
+      "quality": null
+     },
+     {
+      "date": "2026-08-13",
+      "hours": 9.08,
+      "quality": null
+     },
+     {
+      "date": "2026-08-14",
+      "hours": 8,
+      "quality": null
+     }
+    ],
+    "sessions": [
+     {
+      "date": "2026-07-23",
+      "entries": [
+       {
+        "id": "curl",
+        "load": null,
+        "reps": [
+         9,
+         7,
+         7
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "lateral",
+        "load": 80,
+        "reps": [
+         14,
+         14,
+         13,
+         12
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "press",
+        "load": 245,
+        "reps": [
+         8,
+         8,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "pulldown",
+        "load": 160,
+        "reps": [
+         8,
+         7
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "rearDelt",
+        "load": 20,
+        "reps": [
+         9,
+         9,
+         10
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "rows",
+        "load": 180,
+        "reps": [
+         7,
+         7
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "sulek",
+        "load": 87.5,
+        "reps": [
+         12,
+         10
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "tricep",
+        "load": 55,
+        "reps": [
+         12,
+         9,
+         10
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-07-24",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         9,
+         10,
+         12
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "calves",
+        "load": 315,
+        "reps": [
+         13,
+         12,
+         11,
+         10
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "extension",
+        "load": 150,
+        "reps": [
+         6,
+         9
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 160,
+        "reps": [
+         7,
+         8,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "ham",
+        "load": 120,
+        "reps": [
+         12,
+         10
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         6,
+         6
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-07-27",
+      "entries": [
+       {
+        "id": "curl",
+        "load": null,
+        "reps": [
+         7,
+         8,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "lateral",
+        "load": 80,
+        "reps": [
+         15,
+         14,
+         13,
+         12
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "press",
+        "load": 245,
+        "reps": [
+         8,
+         8,
+         5
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "pronated",
+        "load": 40,
+        "reps": [
+         12,
+         12
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "pulldown",
+        "load": 160,
+        "reps": [
+         8,
+         7
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "rearDelt",
+        "load": 20,
+        "reps": [
+         10,
+         9,
+         9
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "rows",
+        "load": 180,
+        "reps": [
+         8,
+         7
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "sulek",
+        "load": 87.5,
+        "reps": [
+         12,
+         11
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "tricep",
+        "load": 55,
+        "reps": [
+         12,
+         10,
+         9
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-07-28",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         10,
+         12,
+         10
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "calves",
+        "load": 320,
+        "reps": [
+         10,
+         8,
+         7,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "extension",
+        "load": 150,
+        "reps": [
+         8,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 160,
+        "reps": [
+         9,
+         9,
+         9
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "ham",
+        "load": 120,
+        "reps": [
+         12,
+         11
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         5,
+         6
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-07-30",
+      "entries": [
+       {
+        "id": "curl",
+        "load": null,
+        "reps": [
+         11,
+         9,
+         9
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         null,
+         1
+        ]
+       },
+       {
+        "id": "lateral",
+        "load": 80,
+        "reps": [
+         14,
+         13,
+         12,
+         12
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "press",
+        "load": 245,
+        "reps": [
+         8,
+         8,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "pronated",
+        "load": 40,
+        "reps": [
+         12,
+         12
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         1
+        ]
+       },
+       {
+        "id": "pulldown",
+        "load": 160,
+        "reps": [
+         9,
+         6
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         0
+        ]
+       },
+       {
+        "id": "rearDelt",
+        "load": 20,
+        "reps": [
+         10,
+         10,
+         8
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "rows",
+        "load": 180,
+        "reps": [
+         8,
+         8
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         1
+        ]
+       },
+       {
+        "id": "sulek",
+        "load": 87.5,
+        "reps": [
+         13,
+         9
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null
+        ]
+       },
+       {
+        "id": "tricep",
+        "load": 55,
+        "reps": [
+         11,
+         11,
+         9
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         null,
+         1
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-07-31",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         12,
+         12,
+         15
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         null,
+         2
+        ]
+       },
+       {
+        "id": "calves",
+        "load": 320,
+        "reps": [
+         11,
+         9,
+         7,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "extension",
+        "load": 150,
+        "reps": [
+         10,
+         9
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         2
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 160,
+        "reps": [
+         11,
+         10,
+         11
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         null,
+         2
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         6,
+         6
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         2
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-03",
+      "entries": [
+       {
+        "id": "curl",
+        "load": null,
+        "reps": [
+         11,
+         10,
+         9
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "lateral",
+        "load": 80,
+        "reps": [
+         15,
+         15,
+         13,
+         12
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "press",
+        "load": 250,
+        "reps": [
+         8,
+         7,
+         7
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "pronated",
+        "load": 40,
+        "reps": [
+         12,
+         11
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         0
+        ]
+       },
+       {
+        "id": "pulldown",
+        "load": 160,
+        "reps": [
+         9,
+         7
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         0
+        ]
+       },
+       {
+        "id": "rearDelt",
+        "load": 20,
+        "reps": [
+         11,
+         10,
+         10
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "rows",
+        "load": 180,
+        "reps": [
+         9,
+         9
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         2
+        ]
+       },
+       {
+        "id": "sulek",
+        "load": 87.5,
+        "reps": [
+         13,
+         11
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         0
+        ]
+       },
+       {
+        "id": "tricep",
+        "load": 55,
+        "reps": [
+         12,
+         11,
+         11
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-04",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         13,
+         13,
+         15
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "calves",
+        "load": 320,
+        "reps": [
+         11,
+         10,
+         7,
+         8
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 160,
+        "reps": [
+         11,
+         11,
+         10
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "ham",
+        "load": 120,
+        "reps": [
+         10,
+         10
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         6,
+         5
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         0
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-06",
+      "entries": [
+       {
+        "id": "curl",
+        "load": null,
+        "reps": [
+         11,
+         9,
+         10
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "lateral",
+        "load": 85,
+        "reps": [
+         14,
+         13,
+         12,
+         11
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "press",
+        "load": 250,
+        "reps": [
+         8,
+         8,
+         7
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "pulldown",
+        "load": 160,
+        "reps": [
+         9,
+         8
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         0
+        ]
+       },
+       {
+        "id": "rearDelt",
+        "load": 20,
+        "reps": [
+         10,
+         9,
+         9
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "rows",
+        "load": 180,
+        "reps": [
+         9,
+         8
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         0
+        ]
+       },
+       {
+        "id": "sulek",
+        "load": 87.5,
+        "reps": [
+         14,
+         12
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         0
+        ]
+       },
+       {
+        "id": "tricep",
+        "load": 55,
+        "reps": [
+         12,
+         11,
+         9
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-07",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         14,
+         12,
+         14
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "calves",
+        "load": 320,
+        "reps": [
+         11,
+         11,
+         9,
+         8
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "extension",
+        "load": 155,
+        "reps": [
+         8,
+         9
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         0
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 160,
+        "reps": [
+         12,
+         11,
+         13
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "ham",
+        "load": 120,
+        "reps": [
+         11,
+         9,
+         11
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         6,
+         6
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         0
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-09",
+      "entries": [
+       {
+        "id": "curl",
+        "load": null,
+        "reps": [
+         11,
+         10,
+         10
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "lateral",
+        "load": 85,
+        "reps": [
+         14,
+         14,
+         12,
+         12
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "press",
+        "load": 250,
+        "reps": [
+         8,
+         8,
+         7,
+         4
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "pulldown",
+        "load": 160,
+        "reps": [
+         9,
+         8
+        ],
+        "rir": 0,
+        "rirSets": [
+         0,
+         0
+        ]
+       },
+       {
+        "id": "rearDelt",
+        "load": 20,
+        "reps": [
+         10,
+         9,
+         8,
+         8
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "rows",
+        "load": 180,
+        "reps": [
+         9,
+         9
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         0
+        ]
+       },
+       {
+        "id": "sulek",
+        "load": 87.5,
+        "reps": [
+         14,
+         13
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         0
+        ]
+       },
+       {
+        "id": "tricep",
+        "load": 55,
+        "reps": [
+         12,
+         12
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-10",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         14,
+         13,
+         14
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "calves",
+        "load": 320,
+        "reps": [
+         11,
+         11,
+         10,
+         8
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "extension",
+        "load": 155,
+        "reps": [
+         9,
+         9
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 180,
+        "reps": [
+         9,
+         9,
+         10
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "ham",
+        "load": 120,
+        "reps": [
+         12,
+         12,
+         11
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         null
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         6,
+         6
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         0
+        ]
+       }
+      ]
+     },
+     {
+      "date": "2026-08-14",
+      "entries": [
+       {
+        "id": "abs",
+        "load": 100,
+        "reps": [
+         14,
+         14,
+         14
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "extension",
+        "load": 160,
+        "reps": [
+         8,
+         9
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         0
+        ]
+       },
+       {
+        "id": "hack",
+        "load": 200,
+        "reps": [
+         7,
+         7,
+         8
+        ],
+        "rir": 2,
+        "rirSets": [
+         2,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "ham",
+        "load": 125,
+        "reps": [
+         11,
+         9,
+         9
+        ],
+        "rir": 1,
+        "rirSets": [
+         1,
+         null,
+         0
+        ]
+       },
+       {
+        "id": "hanging",
+        "load": null,
+        "reps": [
+         7,
+         6
+        ],
+        "rir": null,
+        "rirSets": [
+         null,
+         0
+        ]
+       }
+      ]
+     }
+    ],
+    "lifts": [
+     {
+      "id": "abs",
+      "name": "Prime abdominal crunch",
+      "muscle": "abs",
+      "day": "L",
+      "load": 100,
+      "inc": 5,
+      "sets": 3,
+      "hi": 14,
+      "lo": null,
+      "retired": false,
+      "renames": [
+       {
+        "prevN": "Abs",
+        "at": ""
+       }
+      ],
+      "forks": [
+       {
+        "prevN": "Prime abdominal crunch",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "calves",
+      "name": "Calves",
+      "muscle": "calves",
+      "day": "L",
+      "load": 320,
+      "inc": 5,
+      "sets": 3,
+      "hi": 11,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [
+       {
+        "prevN": "Calves",
+        "from": "2026-08-13",
+        "kind": ""
+       },
+       {
+        "prevN": "Calves",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "curl",
+      "name": "Curls (preacher)",
+      "muscle": "biceps",
+      "day": "U",
+      "load": null,
+      "inc": 5,
+      "sets": 3,
+      "hi": 12,
+      "lo": null,
+      "retired": false,
+      "renames": [
+       {
+        "prevN": "Curls",
+        "at": ""
+       }
+      ],
+      "forks": [
+       {
+        "prevN": "Curls (preacher)",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "extension",
+      "name": "Leg extension",
+      "muscle": "quads",
+      "day": "L",
+      "load": 160,
+      "inc": 5,
+      "sets": 2,
+      "hi": 10,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [
+       {
+        "prevN": "Leg extension",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "fly",
+      "name": "Machine fly",
+      "muscle": "chest",
+      "day": "U",
+      "load": null,
+      "inc": 5,
+      "sets": 2,
+      "hi": 20,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [],
+      "last": null
+     },
+     {
+      "id": "hack",
+      "name": "Hack squat",
+      "muscle": "quads",
+      "day": "L",
+      "load": 200,
+      "inc": 10,
+      "sets": 3,
+      "hi": 10,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "ham",
+      "name": "Ham curl",
+      "muscle": "hams",
+      "day": "L",
+      "load": 125,
+      "inc": 5,
+      "sets": 3,
+      "hi": 12,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [
+       {
+        "prevN": "Ham curl",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "hanging",
+      "name": "Supported leg raise (medicine-ball pad)",
+      "muscle": "abs",
+      "day": "L",
+      "load": null,
+      "inc": null,
+      "sets": 2,
+      "hi": 8,
+      "lo": null,
+      "retired": false,
+      "renames": [
+       {
+        "prevN": "Hanging raise",
+        "at": ""
+       }
+      ],
+      "forks": [
+       {
+        "prevN": "Supported leg raise (medicine-ball pad)",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "hipthrust",
+      "name": "Hip thrust machine",
+      "muscle": "glutes",
+      "day": "L",
+      "load": null,
+      "inc": 5,
+      "sets": 3,
+      "hi": 12,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [],
+      "last": null
+     },
+     {
+      "id": "lateral",
+      "name": "Lateral machine",
+      "muscle": "delts",
+      "day": "U",
+      "load": 85,
+      "inc": 2.5,
+      "sets": 5,
+      "hi": 15,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "press",
+      "name": "Press",
+      "muscle": "chest",
+      "day": "U",
+      "load": 250,
+      "inc": 5,
+      "sets": 4,
+      "hi": 9,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "pronated",
+      "name": "Pronated EZ curl",
+      "muscle": "forearms",
+      "day": "U",
+      "load": 40,
+      "inc": 5,
+      "sets": 2,
+      "hi": 13,
+      "lo": null,
+      "retired": true,
+      "renames": [],
+      "forks": [],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "pulldown",
+      "name": "Pulldown",
+      "muscle": "back",
+      "day": "U",
+      "load": 160,
+      "inc": 5,
+      "sets": 3,
+      "hi": 10,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [
+       {
+        "prevN": "Pulldown",
+        "from": "2026-08-13",
+        "kind": ""
+       },
+       {
+        "prevN": "Pulldown",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "rearDelt",
+      "name": "Rear-delt fly (cable, unilateral)",
+      "muscle": "delts",
+      "day": "U",
+      "load": 20,
+      "inc": 2.5,
+      "sets": 3,
+      "hi": 12,
+      "lo": null,
+      "retired": false,
+      "renames": [
+       {
+        "prevN": "Rear-delt fly (cable · uni)",
+        "at": ""
+       }
+      ],
+      "forks": [
+       {
+        "prevN": "Rear-delt fly (cable, unilateral)",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "rows",
+      "name": "Prime seated row (hooks)",
+      "muscle": "back",
+      "day": "U",
+      "load": 180,
+      "inc": 5,
+      "sets": 2,
+      "hi": 9,
+      "lo": null,
+      "retired": false,
+      "renames": [
+       {
+        "prevN": "Rows (strapless)",
+        "at": ""
+       }
+      ],
+      "forks": [
+       {
+        "prevN": "Rows (strapless)",
+        "from": "2026-08-13",
+        "kind": ""
+       },
+       {
+        "prevN": "Prime seated row (hooks)",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "sulek",
+      "name": "Sulek wrist curl (high cable)",
+      "muscle": "forearms",
+      "day": "U",
+      "load": 87.5,
+      "inc": 2.5,
+      "sets": 2,
+      "hi": 15,
+      "lo": null,
+      "retired": false,
+      "renames": [
+       {
+        "prevN": "Sulek curl (forearm)",
+        "at": ""
+       }
+      ],
+      "forks": [
+       {
+        "prevN": "Sulek wrist curl (high cable)",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     },
+     {
+      "id": "tricep",
+      "name": "Tricep",
+      "muscle": "triceps",
+      "day": "U",
+      "load": 55,
+      "inc": 5,
+      "sets": 3,
+      "hi": 13,
+      "lo": null,
+      "retired": false,
+      "renames": [],
+      "forks": [
+       {
+        "prevN": "Tricep",
+        "from": "2026-08-17",
+        "kind": ""
+       }
+      ],
+      "last": {
+       "date": "",
+       "load": null,
+       "reps": []
+      }
+     }
+    ],
+    "queue": [
+     {
+      "id": "q_abs",
+      "kind": "debut",
+      "exId": "abs",
+      "newW": null,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 9,10,12",
+      "rule": "Doc-approved to ride alongside the hack debut",
+      "text": "ABS 100 DEBUT"
+     },
+     {
+      "id": "q_calves_inc",
+      "kind": "debut",
+      "exId": "calves",
+      "newW": 320,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 10,8,7,7",
+      "rule": "Increment unlocked — queued as a structural change",
+      "text": "CALVES 320 DEBUT"
+     },
+     {
+      "id": "q_ext155",
+      "kind": "debut",
+      "exId": "extension",
+      "newW": 155,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 8,9",
+      "rule": "Queued as a structural change",
+      "text": "EXTENSION 155 — GATE REOPENED"
+     },
+     {
+      "id": "q_hack3",
+      "kind": "debut",
+      "exId": "hack",
+      "newW": null,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 7,8,7",
+      "rule": "Gate passed — runs unless a true <4.5 h night",
+      "text": "HACK 3RD SET DEBUT"
+     },
+     {
+      "id": "q_hack_170",
+      "kind": "debut",
+      "exId": "hack",
+      "newW": 170,
+      "newWSets": null,
+      "done": true,
+      "state": "RETRACTED",
+      "gate": "Earned on reps since corrected — retracted, on the record.",
+      "rule": "Auto-queued — runs when it wins the structural slot",
+      "text": "HACK SQUAT 170 DEBUT"
+     },
+     {
+      "id": "q_ham_125",
+      "kind": "debut",
+      "exId": "ham",
+      "newW": 125,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 11,9,9",
+      "rule": "Auto-queued — runs when it wins the structural slot",
+      "text": "HAM CURL 125 DEBUT"
+     },
+     {
+      "id": "q_lateral_85",
+      "kind": "debut",
+      "exId": "lateral",
+      "newW": 85,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 14,13,12,11",
+      "rule": "Auto-queued — runs when it wins the structural slot",
+      "text": "LATERAL MACHINE 85 DEBUT"
+     },
+     {
+      "id": "q_press250",
+      "kind": "debut",
+      "exId": "press",
+      "newW": 250,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 8,7,7",
+      "rule": "Coach flag before it runs — structural queue",
+      "text": "PRESS 250 DEBUT"
+     },
+     {
+      "id": "q_rows180",
+      "kind": "debut",
+      "exId": "rows",
+      "newW": 180,
+      "newWSets": null,
+      "done": true,
+      "state": "ESTABLISH",
+      "gate": "Debuted 7,7",
+      "rule": "The structural change for the next upper day",
+      "text": "ROWS 180 DEBUT"
+     },
+     {
+      "id": "q_pivot",
+      "kind": "exit",
+      "exId": "",
+      "newW": null,
+      "newWSets": null,
+      "done": false,
+      "state": "COACH'S EYE",
+      "gate": "When you and your coach call it — no date",
+      "rule": "One step to your MEASURED maintenance, hold, then decide",
+      "text": "THE DIET EXIT"
+     },
+     {
+      "id": "q_dexa",
+      "kind": "info",
+      "exId": "",
+      "newW": null,
+      "newWSets": null,
+      "done": false,
+      "state": "UNBOOKED",
+      "gate": "Jericho NY · fasted · normal day · 2+ days clear of refeed",
+      "rule": "Result re-anchors the whole BF model in the Body tab",
+      "text": "DEXA BASELINE"
+     },
+     {
+      "id": "q_peg",
+      "kind": "info",
+      "exId": "",
+      "newW": null,
+      "newWSets": null,
+      "done": true,
+      "state": "PARKED",
+      "gate": "Your call: the Prime 3-peg stays",
+      "rule": "Closed — the app stops raising this",
+      "text": "TRICEP SETUP — SETTLED"
+     },
+     {
+      "id": "q_primeRD",
+      "kind": "info",
+      "exId": "",
+      "newW": null,
+      "newWSets": null,
+      "done": false,
+      "state": "PARKED",
+      "gate": "Cable + conscious retraction is working",
+      "rule": "Fires only if rounding returns at fatigue — coach territory",
+      "text": "PRIME REAR-DELT SWITCH"
+     },
+     {
+      "id": "q_curl",
+      "kind": "ladder",
+      "exId": "curl",
+      "newW": null,
+      "newWSets": null,
+      "done": false,
+      "state": "LADDER",
+      "gate": "Set 2: 8 → 9–10 → 12",
+      "rule": "",
+      "text": "CURL 55 LADDER"
+     },
+     {
+      "id": "q_ext",
+      "kind": "own",
+      "exId": "extension",
+      "newW": null,
+      "newWSets": null,
+      "done": true,
+      "state": "OWNED",
+      "gate": "Self-bump to 155 cratered (9,6) — back to 150",
+      "rule": "155 reopens after 9,9 lands",
+      "text": "EXTENSION · OWN 150×9,9"
+     },
+     {
+      "id": "q_press_own",
+      "kind": "own",
+      "exId": "press",
+      "newW": null,
+      "newWSets": null,
+      "done": true,
+      "state": "OWNED",
+      "gate": "Repeat 8,8,7 — the repeat is the confirmation",
+      "rule": "Do NOT load until owned",
+      "text": "PRESS · OWN 245"
+     },
+     {
+      "id": "q_ease2",
+      "kind": "phase",
+      "exId": "",
+      "newW": null,
+      "newWSets": null,
+      "done": false,
+      "state": "ARMS @ ~13%",
+      "gate": "~2,350–2,400 cal · step taper",
+      "rule": "Arms itself from the live BF estimate",
+      "text": "EASE 2"
+     },
+     {
+      "id": "q_calves",
+      "kind": "reclaim",
+      "exId": "calves",
+      "newW": null,
+      "newWSets": null,
+      "done": true,
+      "state": "RECLAIMED",
+      "gate": "Needs 13,12,11,10 back (last: 12,10,9,8 on debt)",
+      "rule": "Hold 315 — increment stays locked",
+      "text": "CALF INCREMENT OFF 315"
+     }
+    ],
+    "feed": [
+     {
+      "date": "2026-07-15",
+      "text": "FIRST TRUE 16k STEP DAY",
+      "how": "16.7k organic — step-creep named and self-resolved",
+      "op": ""
+     },
+     {
+      "date": "2026-07-16",
+      "text": "PRESS 245×8,8,7",
+      "how": "after two 8,8,6.8 near-misses — via honest opener",
+      "op": ""
+     },
+     {
+      "date": "2026-07-18",
+      "text": "ZERO-COMP EVENT #5",
+      "how": "Wedding #1 at ~2,300 / 170 g — below maintenance · no penance",
+      "op": ""
+     },
+     {
+      "date": "2026-07-20",
+      "text": "CURL GRADUATION 50→55",
+      "how": "55×12 clean + 55×8 · new ladder started",
+      "op": ""
+     },
+     {
+      "date": "2026-07-20",
+      "text": "LATERAL 80 TARGET HIT",
+      "how": "80×14,13,13 — exactly the chase off the 7/16 baseline",
+      "op": ""
+     },
+     {
+      "date": "2026-07-20",
+      "text": "REAR-DELT OPENER FIX PROVEN",
+      "how": "10,10 / 10,10 / 9,9 vs 10,10 / 8,8 / 8,10 prior",
+      "op": ""
+     },
+     {
+      "date": "2026-07-20",
+      "text": "ROWS 175×10,10 STRAPLESS",
+      "how": "rebuild complete in 2 sessions off the 170→175 bump · 180 earned",
+      "op": ""
+     },
+     {
+      "date": "2026-07-20",
+      "text": "SLEEP RESET · NIGHT 1",
+      "how": "7.5 h after one good night in eight",
+      "op": ""
+     },
+     {
+      "date": "2026-07-21",
+      "text": "ABS 100 EARNED",
+      "how": "95×14,13,13 clean opener",
+      "op": ""
+     },
+     {
+      "date": "2026-07-22",
+      "text": "SLEEP RESET COMPLETE",
+      "how": "3 consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — MISS ARCHAEOLOGY",
+      "how": "17 misses across the whole record. Sat owns 8 of them · 0% followed a sub-7 night. No strong sleep link — day-structure is the lever.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — STEP EFFICACY",
+      "how": "Across 5 week-pairs: each extra 1k daily steps associates with ~0.3 lb/wk slower loss (directional, n=5). Signal weak so far — steps stay for health; the deficit does the",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — THE COMPOUNDING CURVE",
+      "how": "Best fortnight: −0.0 lb. Average: −0 lb. Gap ≈ 0.0 lb of pure execution — you don't need a better plan anywhere in this app; you need more weeks that look like your best ",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — THE HANDOFF DOSSIER",
+      "how": "Open the card and tap GENERATE — then copy it straight into a text to him.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — THE MONTHLY LETTER",
+      "how": "July so far vs June: calories 2100 vs 1829 · protein hits 72% vs 71% · steps 18.0k vs 18.9k · 1 gates flipped in July. Trajectory: tightening while the scale seal holds —",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — THE SENTINEL",
+      "how": "Fri 7/17 tripped 2 baselines at once — if you remember why, no action; if you don't, treat today gently and watch tonight's sleep.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — THE TRIALS DESK",
+      "how": "Open the card — proposals, running trials, and finished verdicts all live inside.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LAB LIVE — THE WEEKEND SPLIT",
+      "how": "Weekdays: 1901 cal · 81% protein hits · 18.6k steps. Weekends: 2098 · 50% · 18.1k. The gap is the weekend; one prepped Saturday meal closes most of it.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LATERAL 4TH SET — USER-CALLED",
+      "how": "added mid-session 7/23 · reference: last set ran 13 · rides beside today's rows debut — two structural moves in one day, flagged for the coach Monday",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "LATERAL MACHINE — TARGET MET",
+      "how": "80 × 14,14,13,12",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "PRESS — PROVISIONAL",
+      "how": "8,8,7 landed on debt · must repeat clean before it counts",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "PRONATED EZ CURL — TARGET MET",
+      "how": "40 × 12,12",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "PROTEIN RECOVERY",
+      "how": "miss fixed inside 24 h — the standard extends, it does not reset",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "REAR-DELT → 3×/SIDE (UNI)",
+      "how": "user-called mid-session 7/23 · log one number per round = the weaker side · third structural move today — the whole batch flags for the coach Monday",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "ROWS 180 DEBUT COMPLETE",
+      "how": "Rows (strapless) at 180: 7,7 · on debt — provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "SLEEP RESET COMPLETE",
+      "how": "3 consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD",
+      "op": ""
+     },
+     {
+      "date": "2026-07-23",
+      "text": "SULEK CURL (FOREARM) — TARGET MET",
+      "how": "87.5 × 12,10",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "ABS 100 DEBUT COMPLETE",
+      "how": "Abs at 100: 9,10,12 · on debt — provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "ANALYST ANSWER",
+      "how": "7/23 note says pronated was skipped for time, yet it's logged 40×12,12 — which is right? → Skipped",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "ANALYST ANSWER",
+      "how": "7/23 note says pronated was skipped for time, yet it's logged 40×12,12 — which is right? → Skipped",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "ANALYST ANSWER",
+      "how": "7/23 note says pronated was skipped for time, yet it's logged 40×12,12 — which is right? → Skipped.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "BOOKS CLOSED LATE — Fri 7/24 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "CAFFEINE — 400 mg at 1:30 PM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "CAFFEINE — 400 mg at 2:00 PM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "CALVES 315 RECLAIMED",
+      "how": "13,12,11,10 re-earned — increment unlocked",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "DAY AMENDED — Fri 7/24: 1773→2150 cal · 165→180 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "HACK 3RD SET DEBUT COMPLETE",
+      "how": "Hack squat at 160: 7,8,7 · on debt — provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "HAM CURL — TARGET MET",
+      "how": "120 × 12,10",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "HANGING RAISE — TARGET MET",
+      "how": "BW × 6,6",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "LAB LIVE — THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE",
+      "how": "This week: hams 2 ▼▼ · calves 4 ▼▼ · abs 5 ▼▼ · quads 5 ▼▼ · triceps 3 ▼▼ · forearms 4 ▼▼ · biceps 3 ▼▼ · chest 3 ▼▼ · back 4 ▼▼ · delts 7 ▼. ✓ in the working zone · ▼ li",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "LEG EXTENSION — NOT YET",
+      "how": "6,9 · standard stays 9,9 clean · nothing loads",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RIR DEBT BUFFER — OVERRIDDEN",
+      "how": "athlete call, this session only · banking rules unchanged: today still logs provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RULING — HACK LOADED UP +20",
+      "how": "when breathing fails before the quads, the weight rises and the reps drop — athlete call on the gym floor; rep ceiling now 12, fresh targets seeded at the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RULING — SMALLEST HONEST INCREMENT",
+      "how": "weight jumps take the machine's smallest step (calves 315 → 320, not 330) and debut targets expect to keep almost every rep — small steps, fast rebuilds, more honest sets near the top",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "RULING — SMALLEST STEP, EVERY LIFT",
+      "how": "every increment audited: stack machines take 5s (pulldown and ham curl were jumping 10); the hack stays 10 as plate-loaded; jump size is now editable on any card via the pencil",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "VOLUME PROPOSALS RECALLED",
+      "how": "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-24",
+      "text": "WEIGHT SET — HACK SQUAT 160",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-07-25",
+      "text": "ANALYST ANSWER",
+      "how": "Extension 7/24 logged 150×6,9 — second set above the first is odd. Real, or transposed? → Real",
+      "op": ""
+     },
+     {
+      "date": "2026-07-25",
+      "text": "BOOKS CLOSED LATE — Sat 7/25 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-25",
+      "text": "CAFFEINE — 350 mg at 1:30 PM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-25",
+      "text": "DAY AMENDED — Sat 7/25: 2600→2600 cal · 160→160 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-07-25",
+      "text": "MEDS — TAKEN AT 1:00 PM",
+      "how": "logged — the biggest confound in the system now has a clock",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "BOOKS CLOSED LATE — Sun 7/26 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "CAFFEINE — 200 mg at 2:00 PM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "CAFFEINE — 200 mg at 2:00 PM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "LAB LIVE — THE FORECAST — WEEK BY WEEK, ON YOUR OWN SLOPE",
+      "how": "Sun 9/20 · 155.9 lb ±6.1 · 8.7% bf · lean 142.3 — eight weeks out at your measured rate of 1.10 lb/wk, drawn from the pre-blackout trend while the scale is sealed. (forec",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "SLEEP RESET COMPLETE",
+      "how": "3 consecutive clean nights — PRs can be OWNED again · #1 lever for the back half, and for the ADHD",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "TODAY'S LOG CLEARED — filed in error after midnight",
+      "how": "the day reopens; tonight closes it honestly",
+      "op": ""
+     },
+     {
+      "date": "2026-07-26",
+      "text": "WEEK IN REVIEW · WK 7",
+      "how": "Sealed week: adherence carried it while the scale sat quarantined — Monday's read inherits a clean house. — protein 3/4 on target · 2 sessions logged · 7 wins filed · sleep 4/5 clean · scale sealed — verdict Monday · adj",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "CAFFEINE — 400 mg at 12:00 PM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "CURL LADDER MOVED",
+      "how": "set 2: 7 → 8 (top of rung: 12)",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "LAB LIVE — RIR CALIBRATION CHECK",
+      "how": "9% of your 1s preceded a crater — your 1 is honest; carry on.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "LAB LIVE — THE ADAPTATION METER",
+      "how": "Textbook says ~2703. Your ledger says ~2766. Adaptation: ~0 kcal — small. Your engine is holding remarkably well.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "MEDS — TAKEN AT 10:00 AM",
+      "how": "logged — the biggest confound in the system now has a clock",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "PRESS — NOT YET",
+      "how": "8,8,5 · standard stays 8,8,7 clean · nothing loads",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "ROWS (STRAPLESS) — TARGET MET",
+      "how": "180 × 8,7",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "SULEK CURL (FOREARM) — TARGET MET",
+      "how": "87.5 × 12,11",
+      "op": ""
+     },
+     {
+      "date": "2026-07-27",
+      "text": "WEIGHT SET — ROWS (STRAPLESS) 180 → 180",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "CALORIE BAND HAS DRIFTED FROM YOUR DATA — Your phase band says 1725–1800. Your own measured maintenance and your own target rate say 1848–2048 — a gap of about 186 kcal/day. Your measured maintenance is 2548 (2331–2765 once the rate's own error is carried through), from 33 logged days and a least-squares rate across 28 daily reads, both measured over the same stretch — Tue 6/23 to Tue 7/28. That matters because the two halves of that stretch are not the same: you averaged 1979 kcal on 20,475 steps in the first half and 2061 on 16,059 in the second. Averaging only the recent food against a rate the earlier weeks helped produce would read maintenance high. Your band asks for 1–1.4 lb/wk, which is 500–700 kcal/day under it. That lands at 1848–2048. The band was authored before there was data to check it against; there is now. Nothing here changes automatically, and the phase band stays exactly as written until you say otherwise.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "THE WEEKLY REFEED HAS NO EVIDENCE BEHIND IT — Your Wednesday refeed is prescribed at 2,450-2,500 against a band that is now 1981-2181. The case for refeeds does not hold up: the only matched-energy RCT in trained people (Campbell 2020) had its fat-free-mass result overturned on independent reanalysis, and across 12 trials the resting-metabolism advantage in resistance-trained subgroups is 11 kcal/day with a confidence interval from -67 to +46. Leptin, testosterone and free T3 were all unchanged across a full week at maintenance in the one trial that measured them. Higher-carbohydrate days have never beaten matched-calorie days for strength or hypertrophy in any isocaloric comparison. Meanwhile it costs something real: a Wednesday above the band deepens the other six days, and deficit size is the variable that actually predicts lean-mass loss. The proposal is to retire the fixed weekly refeed and simply run the band every day — keeping a DIET BREAK (a full week at maintenance) in reserve, which is the intervention the adherence evidence actually supports. If you keep the refeed, keep it because you enjoy it and it keeps you in the game. That is a real reason. It is just not the one the app has been giving you.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Hold the Calves 320 debut until a clean week — Hold the Calves 320 debut until a clean week",
+      "op": "sug:sug_2026-07-28_hold"
+     },
+     {
+      "date": "2026-07-28",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Fix lights-out: pick a time, take 7.5 h — sleep target set to 7.5 h",
+      "op": "sug:sug_2026-07-28_sleep"
+     },
+     {
+      "date": "2026-07-28",
+      "text": "BOOKS CLOSED LATE — Tue 7/28 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "CAFFEINE — 400 mg at 10:15 AM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "CALVES 320 DEBUT COMPLETE",
+      "how": "Calves at 320: 10,8,7,7 · on debt — provisional",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "HAM CURL — TARGET MET",
+      "how": "120 × 12,11",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "LAB LIVE — ENERGY AVAILABILITY — WHAT IS LEFT AFTER TRAINING IS PAID FOR",
+      "how": "24–29.9 kcal per kg lean, which reads MARGINAL. Counting the walking you are under the line; counting training alone you are over it. That gap is the accounting question,",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "LAB LIVE — MORNING SIGNALS — WIRED INTO THE MACHINE",
+      "how": "Today: energy 3/5 · grip — · sore nothing. The desk's receipts on TRAIN show these being consulted, lift by lift.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "LEG EXTENSION — NOT YET",
+      "how": "8,7 · standard stays 9,9 clean · nothing loads",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "MEDS — NONE TODAY",
+      "how": "logged — the analysts read appetite, pulse, and effort against this",
+      "op": ""
+     },
+     {
+      "date": "2026-07-28",
+      "text": "RECOVERY CARD STOOD DOWN",
+      "how": "the signals that raised it have cleared — 2 of 6 still up, which is below the line that holds structural changes",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING — This is the largest training effect in anything I have read for you, and it is not about reps or range of motion — it is about which machine, because a muscle that crosses two joints has its length set by the joint you are NOT training. Three questions. Is your calf raise done with the knee STRAIGHT (standing, or on a leg press) or BENT (seated)? Straight-knee produced +9-12% gastrocnemius growth against +0.6-1.7% for seated in a within-person MRI study — d = 0.88 to 1.58, the biggest single effect in this whole literature. Seated calf work essentially trains soleus only. Is your triceps work an overhead extension or a pushdown? Overhead grew the long head +28.5% vs +19.6% and the whole triceps +19.9% vs +13.9%, achieved with LIGHTER loads, because shoulder flexion puts the long head on stretch. And is your ham curl seated or lying? Seated flexes the hip and lengthens the hamstrings; the direction is established though I could not retrieve the exact percentages. Caveats worth having: these are small studies, mostly untrained subjects, and the calf one is n=14 — but they are within-person MRI designs and the mechanism is not in dispute. Set against that, the fashionable stuff is dead: lengthened partials came back practically equivalent to full range in a 297-person trial, tempo does not matter and if anything favours going faster, and slow eccentrics cost a great deal of perceived effort for a hypertrophy effect of −0.06. If any of the three answers is the short-muscle version, switching machines is free and worth more than every rep-mechanics tweak combined.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "YOUR RATE BAND IS IN THE WRONG UNIT — Your band is written as 1-1.4 lb/wk — an absolute weight. At today's 163.9 lb that is 0.61-0.85% of bodyweight per week. At 148 lb the same band would be 0.68-0.95%. So the band gets steadily more aggressive as you get lighter, which is backwards twice over: the leaner you are the more of any deficit comes off lean tissue, and the closest trial we have (Garthe 2011) had the 0.7%/wk arm gain 1.7% lean mass while the 1.0%/wk arm lost 2.0% — on identical total weight lost. A band anchored in pounds tightens the screw exactly where it should loosen it. The proposal is to restate it as 0.61-0.85% of bodyweight and let the pound figures follow your weight down. Nothing about today changes — you are running 0.66%/wk, which is inside it.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "YOUR RATE BAND IS IN THE WRONG UNIT — Your band is written as 1-1.4 lb/wk — an absolute weight. At today's 164.3 lb that is 0.61-0.85% of bodyweight per week. At 148 lb the same band would be 0.68-0.95%. So the band gets steadily more aggressive as you get lighter, which is backwards twice over: the leaner you are the more of any deficit comes off lean tissue, and the closest trial we have (Garthe 2011) had the 0.7%/wk arm gain 1.7% lean mass while the 1.0%/wk arm lost 2.0% — on identical total weight lost. A band anchored in pounds tightens the screw exactly where it should loosen it. The proposal is to restate it as 0.61-0.85% of bodyweight and let the pound figures follow your weight down. Nothing about today changes — you are running 0.55%/wk, which is just under the slow end already.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Leave the calorie band alone - that drift is your step taper — Leave the calorie band alone - that drift is your step taper",
+      "op": "sug:sug_2026-07-29_band_hold"
+     },
+     {
+      "date": "2026-07-29",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Extension: open harder — one rep in the tank, not two — training progression noted — coach territory",
+      "op": "sug:sug_2026-07-29_ext_opener"
+     },
+     {
+      "date": "2026-07-29",
+      "text": "BOOKS CLOSED LATE — Wed 7/29 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "LAB LIVE — ENERGY AVAILABILITY — WHAT IS LEFT AFTER TRAINING IS PAID FOR",
+      "how": "24.5–30.3 kcal per kg lean, which reads ADEQUATE. Counting the walking you are under the line; counting training alone you are over it. That gap is the accounting questio",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "RECOVERY CARD STOOD DOWN",
+      "how": "the signals that raised it have cleared — 2 of 7 still up, which is below the line that holds structural changes",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "SET-REALLOCATION CARD WITHDRAWN",
+      "how": "It counted your three deltoid heads as one muscle, which made 17 sets look excessive when split by head it is 5-7 each — the high-return tier. And the move it proposed was worth about 0.5 percentage points of growth against a smallest-detectable-effect of 2.05%. It was a recommendation the evidence cannot distinguish from zero, so it is withdrawn rather than left standing.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "THE CLEAN-SLEEP GATE IS GONE",
+      "how": "It was retired in the engine earlier but survived in three places that decided what you lift: the prescription desk held every lift on a short night, the set plan pulled your last set off failure, and the queue still told you sleep decided before your muscles did. None of that had evidence behind it — a short night costs about 2.85% on strength, which is smaller than your own set-to-set spread. Sleep still matters enormously, just for a different thing: at a matched deficit it decides how much of what you lose comes off muscle instead of fat. It is now on your sleep card as that, and nothing anywhere gates a rep on it.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "THE EXIT PLAN IS NOW YOURS",
+      "how": "It used to read 'fast reverse to ~2,450, then a lean surplus and an MRV build'. You said straight to maintenance, hold, then decide — so that is what it says now, and the number is your own measured maintenance rather than an authored 2,450, which sits about a hundred calories under it. Stepping up to a maintenance that is not your maintenance is just a smaller cut with a better name. No ramp: reverse dieting as a protocol has no controlled trial behind it. No surplus assumed: the hold exists so that decision has data under it.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "THESIS CONFIRMED · WK 8",
+      "how": "fuller, not flatter — the identity claim holds another week",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "TRICEP QUESTION CLOSED",
+      "how": "This sat in your queue waiting for a build phase that has no date and that you have not decided on. It was also a confused question: the research says overhead beats pushdown for the long head at d = 0.54-0.61, because the long head crosses the shoulder — but the Prime's peg changes the RESISTANCE PROFILE, not the shoulder angle, so no peg setting could ever have bought that effect. Different variables. Asked directly, you chose to keep the Prime, and that holds up: it is the lift you will actually do, adherence is the biggest lever in the literature, triceps are one muscle of about ten, and your pressing already loads them indirectly. Closed. The app will not raise it again.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-29",
+      "text": "WEEKLY REFEED RETIRED",
+      "how": "Wednesdays stop being refeed days from today. Past ones stay on the record as refeeds, because they were. Your band is the same every day now — which is also about 72 kcal/day less than you were averaging, since a 2,400 Wednesday against a 1,900 week was quietly raising the average nobody was showing you.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "BOOKS CLOSED LATE — Thu 7/30 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "CURL LADDER MOVED",
+      "how": "set 2: 8 → 9 (top of rung: 12)",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "DAY AMENDED — Thu 7/30: 2200→2600 cal · 185→185 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "DAY AMENDED — Thu 7/30: 2600→3200 cal · 185→200 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "LAB LIVE — THE VOLUME LEDGER — WEEKLY SETS PER MUSCLE",
+      "how": "This week: triceps 4.5 ▼▼ · forearms 5.5 ▼▼ · chest 3 ▼▼ · biceps 5 ▼▼ · back 4 ▼▼ · delts_rear 3 ▼▼ · delts_side 4 ▼▼. ✓ in the working zone · ▼ light · ▼▼ under the ret",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "PRESS 245 OWNED",
+      "how": "8,8,7 repeated — that is the confirmation, so 250 enters the queue at coach flag",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "PRONATED EZ CURL — TARGET MET",
+      "how": "40 × 12,12",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "ROWS 180 DEBUT COMPLETE",
+      "how": "Rows (strapless) at 180: 8,8",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "RULING — HACK LOADED UP +20",
+      "how": "when breathing fails before the quads, the weight rises and the reps drop — athlete call on the gym floor; rep ceiling now 12, fresh targets seeded at the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "RULING — SMALLEST HONEST INCREMENT",
+      "how": "weight jumps take the machine's smallest step (calves 315 → 320, not 330) and debut targets expect to keep almost every rep — small steps, fast rebuilds, more honest sets near the top",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "RULING — SMALLEST STEP, EVERY LIFT",
+      "how": "every increment audited: stack machines take 5s (pulldown and ham curl were jumping 10); the hack stays 10 as plate-loaded; jump size is now editable on any card via the pencil",
+      "op": ""
+     },
+     {
+      "date": "2026-07-30",
+      "text": "SULEK CURL (FOREARM) — TARGET MET",
+      "how": "87.5 × 13,9",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "ABS — TARGET MET",
+      "how": "100 × 12,12,15",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Fix your leg-day cards before you train — they're showing July 21 — Fix your leg-day cards before you train — they're showing July 21",
+      "op": "sug:sug_2026-07-31_legcards"
+     },
+     {
+      "date": "2026-07-31",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Press 250: get the coach flag — you owned 245 on Thursday — training progression noted — coach territory",
+      "op": "sug:sug_2026-07-31_press250"
+     },
+     {
+      "date": "2026-07-31",
+      "text": "BOOKS CLOSED LATE — Fri 7/31 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "CALVES — TARGET MET",
+      "how": "320 × 11,9,7,7",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "EXTENSION 150 RE-OWNED",
+      "how": "9,9 — the 155 gate reopens, earned",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "HACK SQUAT — TARGET MET",
+      "how": "160 × 11,10,11",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "HAM CURL — TOP OF WINDOW, PROVISIONAL",
+      "how": "12,12 tops the window, 1 rep up on last time — but your own set-to-set spread is ±0.74 reps (your lifts pooled), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "HANGING RAISE — TARGET MET",
+      "how": "BW × 6,6",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "LAB LIVE — MORNING SIGNALS — WIRED INTO THE MACHINE",
+      "how": "Today: energy — · grip — · sore —. The desk's receipts on TRAIN show these being consulted, lift by lift.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "LAB LIVE — REGULARITY INDEX",
+      "how": "Bed scatter ±35 min · wake scatter ±40 min. The anchor hasn't bitten yet — both ends tightening. This is what the anchor was for.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "LAB LIVE — REGULARITY INDEX",
+      "how": "Bed scatter ±34 min · wake scatter ±41 min. The anchor hasn't bitten yet — both ends tightening. This is what the anchor was for.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "LAB LIVE — REGULARITY INDEX",
+      "how": "Bed scatter ±34 min · wake scatter ±41 min. The anchor hasn't bitten yet — both ends tightening. This is what the anchor was for.",
+      "op": ""
+     },
+     {
+      "date": "2026-07-31",
+      "text": "LAB LIVE — RIR CALIBRATION CHECK",
+      "how": "17% of your 1s preceded a crater — your 1 is honest; carry on.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-01",
+      "text": "BOOKS CLOSED LATE — Sat 8/1 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-08-02",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "AUTO-PILOT · TIGHTEN THE TARGET — Measured ~0.7%BW/wk vs your MAX FAT LOSS target ~0.85%. Trim ~136 kcal to ride the MAX FAT LOSS line — steps are the cheaper lever if they aren't already maxed.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-02",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Extension 155: debut it, and treat 9,8 as a win — training progression noted — coach territory",
+      "op": "sug:sug_2026-08-01_ext155"
+     },
+     {
+      "date": "2026-08-02",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Strike Friday's ham curl — your note says you skipped it — Strike Friday's ham curl — your note says you skipped it",
+      "op": "sug:sug_2026-08-01_hamlog"
+     },
+     {
+      "date": "2026-08-02",
+      "text": "WEEK IN REVIEW · WK 8",
+      "how": "Textbook week: strength moved while the trend held the corridor. — protein 5/5 on target · 4 sessions logged · 4 wins filed · sleep 2/4 clean · rate ~1.15/wk vs band 1–1.4 · adjustments armed on NOW: VOLUME BAND SITS ABO",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "ADJUSTMENT LOGGED",
+      "how": "AUTO-PILOT · TIGHTEN THE TARGET — Measured ~0.68%BW/wk vs your MAX FAT LOSS target ~1%. Trim ~288 kcal to ride the MAX FAT LOSS line — steps are the cheaper lever if they aren't already maxed.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Weigh in this morning — three mornings dark, and every gauge is flying on Friday's data — Weigh in this morning — three mornings dark, and every gauge is flying on Friday's data",
+      "op": "sug:sug_2026-08-02_scale"
+     },
+     {
+      "date": "2026-08-03",
+      "text": "BOOKS CLOSED LATE — Mon 8/3 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "CURL LADDER MOVED",
+      "how": "set 2: 9 → 10 (top of rung: 12)",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "LAB LIVE — MELATONIN EXPERIMENT — ARM 1: NONE",
+      "how": "Off melatonin: avg 7.01 h ASLEEP over 9 nights (baseline 7.22 h) · drifting off in ~13 min · mid-night wakes 33% of nights. Wake pattern persisting off the pill shifts su",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "LAB LIVE — SESSION SHAPE",
+      "how": "9 lifts fingerprinted. Latest shapes match your baselines — no silent breaks. This card matters most the week it disagrees with you.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "LAB LIVE — STRENGTH VELOCITY",
+      "how": "Fastest climber: Rows (strapless) at +18.2%/wk while cutting · then Rear-delt fly (cable · uni) +6.8%/wk. Say this sentence out loud the next time a week feels pointless.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "LATERAL MACHINE 85 EARNED",
+      "how": "80×15,15,13,12 — 4 reps clear of last time, and two standard errors of your own measured spread is 2. That is outside the noise, so it banks on one sighting.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "PRESS 250 DEBUT COMPLETE",
+      "how": "Press at 250: 8,7,7 · short sleep, logged as such",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "REAR-DELT FLY (CABLE · UNI) — TARGET MET",
+      "how": "20 × 11,10,10",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "ROWS (STRAPLESS) — RIR 0 TWICE",
+      "how": "opener running hot two sessions straight — load HELD until an honest session lands",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "ROWS (STRAPLESS) — TARGET MET",
+      "how": "180 × 9,9",
+      "op": ""
+     },
+     {
+      "date": "2026-08-03",
+      "text": "WEEK IN REVIEW · WK 8",
+      "how": "A quiet week on the log — the return is the whole skill, and the door is open. — protein 0/0 on target · 0 sessions logged · 0 wins filed · sleep 0/0 clean · rate ~0.95/wk vs band 1–1.4 · adjustments armed on NOW: recove",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ABS — TARGET MET",
+      "how": "100 × 13,13,15",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ADJUSTMENT DECLINED",
+      "how": "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ADJUSTMENT DECLINED",
+      "how": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ADJUSTMENT DECLINED",
+      "how": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Lights out by 00:30 tonight — Sunday's 01:40 bed cost you 1.3 hours — sleep target set to 7.5 h",
+      "op": "sug:sug_2026-08-04_sleep"
+     },
+     {
+      "date": "2026-08-04",
+      "text": "BOOKS CLOSED LATE — Tue 8/4 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "CAFFEINE — 400 mg at 11:45 AM",
+      "how": "logged on NOW — the tail math runs on this",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "CALVES — TARGET MET",
+      "how": "320 × 11,10,7,8",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "HACK SQUAT — TARGET MET",
+      "how": "160 × 11,11,10",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — MELATONIN EXPERIMENT — ARM 1: NONE",
+      "how": "Off melatonin: avg 6.92 h ASLEEP over 10 nights (baseline 7.22 h) · drifting off in ~13 min · mid-night wakes 30% of nights. Wake pattern persisting off the pill shifts s",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — MORNING SIGNALS — WIRED INTO THE MACHINE",
+      "how": "Today: energy — · grip — · sore —. The desk's receipts on TRAIN show these being consulted, lift by lift.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — REGULARITY INDEX",
+      "how": "Bed scatter ±38 min · wake scatter ±62 min. The anchor hasn't bitten yet — both ends tightening. This is what the anchor was for.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — REP-DROP FINGERPRINTS",
+      "how": "Your distribution: opener 4 · tail 11 · broad 1. The dominant pattern names your dominant lever.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — REP-DROP FINGERPRINTS",
+      "how": "Your distribution: opener 4 · tail 11 · broad 1. The dominant pattern names your dominant lever.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — RIR CALIBRATION CHECK",
+      "how": "13% of your 1s preceded a crater — your 1 is honest; carry on.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — SESSION SHAPE",
+      "how": "13 lifts fingerprinted. Latest shapes match your baselines — no silent breaks. This card matters most the week it disagrees with you.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "LAB LIVE — STRENGTH VELOCITY",
+      "how": "Fastest climber: Hack squat at +28.9%/wk while cutting · then Abs +20.5%/wk. Say this sentence out loud the next time a week feels pointless.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "MEDS — TAKEN AT 11:30 AM",
+      "how": "logged — the biggest confound in the system now has a clock",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "PHANTOM SET REMOVED — HAM 2026-07-31",
+      "how": "A set of [12,12] at 120 was on the record for a lift that was never performed: your own note that day reads \"Ham curl skipped this sesh for time. Abnormal\", and this was the only lift in the session without an RIR — the signature of a lift that never passed through the RIR screen. Gym Mode's lift-screen \"skip\" advanced without recording the skip, so finish() banked the lift at its target reps. The lift is now filed as SKIPPED, not deleted, and the receipt shows it struck through. progressAnchor and typicalError are derived, so both self-correct.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "PHANTOM SET REMOVED — PRONATED 2026-07-23",
+      "how": "A set of [12,12] at 40 was on the record for a lift that was never performed: your own note that day reads \"Had to skip pronated today due to time constraints. Not typical.\", and this was the only lift in the session without an RIR — the signature of a lift that never passed through the RIR screen. Gym Mode's lift-screen \"skip\" advanced without recording the skip, so finish() banked the lift at its target reps. The lift is now filed as SKIPPED, not deleted, and the receipt shows it struck through. progressAnchor and typicalError are derived, so both self-correct.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "RATE-UNIT CARD RETIRED",
+      "how": "the band is now derived as % of bodyweight per mode by the engine, so the wrong-unit premise no longer holds — and its Garthe figure was wrong",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "RECORD AMENDED — Ham curl UN-SKIPPED on Tue 8/4",
+      "how": "logged 10,10 — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "RECORD AMENDED — Ham curl marked skipped on Fri 7/31",
+      "how": "honesty over history — phantom reps removed from every instrument",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "RECORD AMENDED — Leg extension UN-SKIPPED on Tue 8/4",
+      "how": "logged 8,8 — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "RECORD AMENDED — Leg extension marked skipped on Tue 8/4",
+      "how": "honesty over history — phantom reps removed from every instrument",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "RECORD AMENDED — Pronated EZ curl marked skipped on Thu 7/23",
+      "how": "honesty over history — phantom reps removed from every instrument",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "SKIPPED — Leg extension, Ham curl",
+      "how": "your call, on the record — zero phantom reps, nothing counted",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "WEEKLY REFEED RETIRED",
+      "how": "Wednesdays stop being refeed days from today. Past ones stay on the record as refeeds, because they were. Your band is the same every day now — which is also about 72 kcal/day less than you were averaging, since a 2,400 Wednesday against a 1,900 week was quietly raising the average nobody was showing you.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ZERO-COMP EVENT #6",
+      "how": "WEDDING #2 — estimated once, after · targets unchanged tomorrow · no penance",
+      "op": ""
+     },
+     {
+      "date": "2026-08-04",
+      "text": "ZERO-COMP EVENT #7",
+      "how": "WEDDING #2 — estimated once, after · targets unchanged tomorrow · no penance",
+      "op": ""
+     },
+     {
+      "date": "2026-08-05",
+      "text": "ADJUSTMENT DECLINED",
+      "how": "RECOVERY LOW — 3 OF 7 SIGNALS UP — you passed; nothing changed. The engine re-arms it if the pattern that raised it holds.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-05",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Put Tuesday's leg extension back — with the load on it — Put Tuesday's leg extension back — with the load on it",
+      "op": "sug:sug_2026-08-05_extlog"
+     },
+     {
+      "date": "2026-08-05",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Ham's top-of-window counter is a fourth cache — it is one sighting ahead of the log — Ham's top-of-window counter is a fourth cache — it is one sighting ahead of the log",
+      "op": "sug:sug_2026-08-05_hamcounter"
+     },
+     {
+      "date": "2026-08-05",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Open rows at 2 RIR next upper day — it is frozen until you do — training progression noted — coach territory",
+      "op": "sug:sug_2026-08-05_rows_open"
+     },
+     {
+      "date": "2026-08-05",
+      "text": "BOOKS CLOSED LATE — Wed 8/5 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-08-05",
+      "text": "LAB LIVE — SLEEP→LIFT LAG MAP",
+      "how": "Live — check the per-class lag before scheduling own-attempts.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-05",
+      "text": "LAB LIVE — STEP-CREEP RADAR v2",
+      "how": "Live and watching the floor.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-05",
+      "text": "LAB LIVE — THE PROPHET'S SCORECARD",
+      "how": "6 forecasts graded against the real reading: typical miss ±0.92 lb, bias -0.78 (runs pessimistic — you keep beating the machine). This is 7-day weight error only — the bo",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Bed by 00:30 tonight — and log the night. The debt went up, not down. — Bed by 00:30 tonight — and log the night. The debt went up, not down.",
+      "op": "sug:sug_2026-08-06_sleep"
+     },
+     {
+      "date": "2026-08-06",
+      "text": "CARD WITHDRAWN — WORTH ASKING: IS THE CUT DONE?",
+      "how": "It was produced by a body-fat threshold the app no longer trusts (R4): the estimate's interval is wider than the decision. The question it asked now belongs to the regime detector, which reads lifts and scale rate instead. Nothing was deleted; this card is on the record as withdrawn.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "DAY AMENDED — Thu 8/6: 2300→2800 cal · 190→190 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "LAB LIVE — REFEED ROI",
+      "how": "3 pairs: avg 2437 cal → 224 next-day reps. Spread widens the picture — one lighter refeed (~2,300) would be an informative experiment, coach-flag.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "LAB LIVE — THE CANARY LIFT",
+      "how": "Canary: Curls (+5 reps per extra hour). Most sleep-proof: Lateral machine. Debt-day programming writes itself.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "LATERAL MACHINE 85 DEBUT COMPLETE",
+      "how": "Lateral machine at 85: 14,13,12,11 · short sleep, logged as such",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "PRESS — TARGET MET",
+      "how": "250 × 8,8,7",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "PULLDOWN — TARGET MET",
+      "how": "160 × 9,8",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "SKIPPED — Pronated EZ curl",
+      "how": "your call, on the record — zero phantom reps, nothing counted",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "SULEK CURL (FOREARM) — TARGET MET",
+      "how": "87.5 × 14,12",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "THREE MACHINES MIGHT BE THE WRONG ONES — WORTH CHECKING",
+      "how": "This is the largest training effect in anything I have read for you, and it is not about reps or range of motion — it is about which machine, because a muscle that crosses two joints has its length set by the joint you are NOT training. Three questions. Is your calf raise done with the knee STRAIGHT (standing, or on a leg press) or BENT (seated)? Straight-knee produced +9-12% gastrocnemius growth against +0.6-1.7% for seated in a within-person MRI study — d = 0.88 to 1.58, the biggest single effect in this whole literature. Seated calf work essentially trains soleus only. Is your triceps work an overhead extension or a pushdown? Overhead grew the long head +28.5% vs +19.6% and the whole triceps +19.9% vs +13.9%, achieved with LIGHTER loads, because shoulder flexion puts the long head on stretch. And is your ham curl seated or lying? Seated flexes the hip and lengthens the hamstrings; the direction is established though I could not retrieve the exact percentages. Caveats worth having: these are small studies, mostly untrained subjects, and the calf one is n=14 — but they are within-person MRI designs and the mechanism is not in dispute. Set against that, the fashionable stuff is dead: lengthened partials came back practically equivalent to full range in a 297-person trial, tempo does not matter and if anything favours going faster, and slow eccentrics cost a great deal of perceived effort for a hypertrophy effect of −0.06. If any of the three answers is the short-muscle version, switching machines is free and worth more than every rep-mechanics tweak combined.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "TWO LIFTS HAVE PLATES TOO COARSE FOR THEM",
+      "how": "Rear-delt fly (cable · uni) steps 2.5 lb on 20 — a 12.5% jump, and Pronated EZ curl steps 5 lb on 40 — a 12.5% jump. Reps fall about 0.4 for every 1% of load (Nuzzo 2024, 952 reps-to-failure tests across 269 studies), so each of those costs roughly 4.7 reps. Top out at 12, take the jump, and you land near 7 — outside a tight window, with no rule to climb back. The ACSM's progression stand asks for 2-10% increments and specifically wants the SMALLER end on small-muscle exercises; fixed plates give you the exact inverse, 12.5% on a rear-delt fly against 1.6% on calves. Two fixes and the cheap one is hardware: 1.25 lb magnetic add-ons halve the jump and let the window stay tight. Otherwise the window has to widen to 6-12 — which this app has NOT done: that widened window is computed here to make the argument, but progression still climbs the authored one, so nothing about your targets changes until you decide it should. Worth knowing this is a derivation, not a citation — nobody has published guidance on rep-window width in a double-progression scheme. — Moved out of the inbox: information is a feed line now, and only decisions are cards. Nothing was deleted.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-06",
+      "text": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER",
+      "how": "Your working zone is 8–14 weekly sets per muscle. The largest dose-response analysis available (67 studies, 2,058 participants) finds returns per set highest at 5–10 sets, intermediate at 11–18, and lower above that — each added set keeps buying something, and buys less than the one before it. In a deficit the marginal set is worth less AND costs recovery you do not have, which argues for living in the high-return tier rather than the middle one. The proposal is to tighten to 6–12. This is a programme change, so it is a coach conversation as much as a tap — the app will not move it on its own. — Moved out of the inbox: information is a feed line now, and only decisions are cards. Nothing was deleted.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "ABS — RIR 0 TWICE",
+      "how": "opener running hot two sessions straight — load HELD until an honest session lands",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "BOOKS CLOSED LATE — Fri 8/7 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "CALVES — TARGET MET",
+      "how": "320 × 11,11,9,8",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "DAY AMENDED — Fri 8/7: 2500→2900 cal · 190→190 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "DAY AMENDED — Fri 8/7: 2900→3000 cal · 190→190 g",
+      "how": "athlete corrected the record after close — late bites logged where they belong",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "EXTENSION 155 — GATE REOPENED COMPLETE",
+      "how": "Leg extension at 155: 8,9",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "HACK SQUAT — NO NEXT LOAD ON FILE AT 160",
+      "how": "No next load is on file for this machine — it is plate-loaded, so nobody has measured a ceiling. Reps carry progression until you log a heavier weight, with the same earn discipline, and every rep past the old window top banks like any other record. Nothing needs you; this line exists so the lift can never silently deadlock.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "HACK SQUAT — TARGET MET",
+      "how": "160 × 12,11,13",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "HANGING RAISE — TARGET MET",
+      "how": "BW × 6,6",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "LAB LIVE — THE VARIANCE TAX",
+      "how": "Off-schedule nights (5) vs on-schedule (9): -0.5 h sleep · next-day output -29 reps (measured). The tax is real in you — drifting bedtime costs actual iron; the anchor is",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "LAB LIVE — VOLUME CONVERSION",
+      "how": "Ham curl: reading — 1/4 post-change sessions",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "MORNING READ MISSED",
+      "how": "the trend carries. Today it cost 0.03 lb/wk of rate precision — priced by the engine, not a guilt trip; tomorrow morning is the instrument.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "VOLUME +1 — CHEST via Press (now 4 sets)",
+      "how": "OWNER'S CALL — CHEST: 6 → 8 WEEKLY SETS — the count changes next session; the effort ladder re-keys itself, and the trend window restarts so the read is honest. The next push on this muscle waits for that read. One tap to undo.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "VOLUME +1 — HAMS via Ham curl (now 3 sets)",
+      "how": "OWNER'S CALL — HAMS: 4 → 6 WEEKLY SETS — the count changes next session; the effort ladder re-keys itself, and the trend window restarts so the read is honest. The next push on this muscle waits for that read. One tap to undo.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "VOLUME +1 — REAR DELT via Rear-delt fly (cable · uni) (now 4 sets)",
+      "how": "OWNER'S CALL — REAR DELT: 6 → 8 WEEKLY SETS — the count changes next session; the effort ladder re-keys itself, and the trend window restarts so the read is honest. The next push on this muscle waits for that read. One tap to undo.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-07",
+      "text": "VOLUME BAND SITS ABOVE THE HIGH-RETURN REGION",
+      "how": "Your working zone is 8–14 weekly sets per muscle. The biggest pooled analysis available (67 studies, 2,058 people) traces a smooth curve, not steps: every added set buys a little less growth than the one before it, and the buying is best in roughly the 5–10 range — there is no cliff at any number, just diminishing returns. While you are eating in a calorie cut, each extra set is also paid for out of recovery you do not have, which argues for living where sets pay best rather than in the middle of the curve. The proposal is to tighten to 6–12. This is a programme change, so it is a coach conversation as much as a tap — the app will not move it on its own.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-08",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Stagger the two upper-day set additions — raise it with your coach before you train — Stagger the two upper-day set additions — raise it with your coach before you train",
+      "op": "sug:sug_2026-08-08_volstack"
+     },
+     {
+      "date": "2026-08-08",
+      "text": "BOOKS CLOSED LATE — Sat 8/8 logged after midnight",
+      "how": "the repair door on NOW — same numbers, honest timestamp",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Open at 1–2 reps in reserve, not 0 — a rated 0 is what froze abs — training progression noted — coach territory",
+      "op": "sug:sug_2026-08-08_openerrir"
+     },
+     {
+      "date": "2026-08-09",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Hand back this morning's five set additions — keep Friday's three — Hand back this morning's five set additions — keep Friday's three",
+      "op": "sug:sug_2026-08-09_volstack5"
+     },
+     {
+      "date": "2026-08-09",
+      "text": "CURL LADDER MOVED",
+      "how": "set 2: 9 → 10 (top of rung: 12)",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "LATERAL MACHINE — TARGET MET",
+      "how": "85 × 14,14,12,12",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "PRONATED EZ CURL — TOP OF WINDOW, PROVISIONAL",
+      "how": "13,12 tops the window, 2 reps up on last time — but your own set-to-set spread is ±0.81 reps (your lifts pooled), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "RECORD AMENDED — Pronated EZ curl marked skipped on Sun 8/9",
+      "how": "honesty over history — phantom reps removed from every instrument",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "RECORD CORRECTED — unattested sets struck from Sunday's re-log",
+      "how": "Joe, on the record: 'I didn't do the 3rd set of arms' · 'the first ones look correct'. Tail slots nothing attested left tricep, curl and rows; the terminal RIR moved to the true last set. If a struck set was real, saying so restores it by the same mechanism.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "RECORD RE-STRUCK — Sunday 8/09 arm tails a merge had resurrected are removed again",
+      "how": "On the standing attestation: 'I didn't do the 3rd set of arms'. Reps match what you logged.",
+      "op": "restrike:2026-08-09:arms"
+     },
+     {
+      "date": "2026-08-09",
+      "text": "ROWS (STRAPLESS) — HOLD RELEASED",
+      "how": "opener back to 1 RIR — honest again, loads can earn",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "ROWS (STRAPLESS) — TARGET MET",
+      "how": "180 × 9,9,8",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "SULEK CURL (FOREARM) — TARGET MET",
+      "how": "87.5 × 14,13",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "TRICEP — TARGET MET",
+      "how": "55 × 12,12,11,10",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "VOLUME +1 — ABS via Abs (now 4 sets)",
+      "how": "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "VOLUME +1 — BACK via Rows (strapless) (now 3 sets)",
+      "how": "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "VOLUME +1 — BICEPS via Curls (now 4 sets)",
+      "how": "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "VOLUME +1 — QUADS via Hack squat (now 4 sets)",
+      "how": "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited",
+      "op": ""
+     },
+     {
+      "date": "2026-08-09",
+      "text": "VOLUME +1 — TRICEPS via Tricep (now 4 sets)",
+      "how": "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "ABS — HOLD RELEASED",
+      "how": "opener back to 2 RIR — honest again, loads can earn",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "ABS — TOP OF WINDOW, PROVISIONAL",
+      "how": "14,13,14 tops the window, 1 rep up on last time — but your own set-to-set spread is ±1.28 reps (this lift's own repeats), so one sighting cannot be told apart from a good day. Repeat it and the load queues itself. Sleep does not enter into it.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "ANALYST SUGGESTION APPLIED",
+      "how": "Set Sunday's five back by hand — your app recalled the proposals that made them, and there is no undo button — training progression noted — coach territory",
+      "op": "sug:sug_2026-08-10_volunwind"
+     },
+     {
+      "date": "2026-08-10",
+      "text": "CALVES — REP CEILING MOVES TO 11",
+      "how": "Your ruling, on the record: the felt-fatigue call the evidence prices at zero — range-equivalence near failure holds in a deficit. Your 11,11,10,8 at 320 stands untouched and reads against the new line. The next load on file is 325.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "CALVES — TARGET MET",
+      "how": "320 × 11,11,10,8",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "HACK 170 EARN RETRACTED",
+      "how": "The earn was banked on the pre-filled plan (160 × 12,12,13), not the day. Corrected below; retracted, on the record.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "HACK SQUAT 170 EARNED",
+      "how": "160×12,12,13 — second session at the top of the window at this load. One is inside your ±0.79-rep spread; two is not. Next rung this machine makes.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "HACK SQUAT — NEXT LOAD ON FILE: 170",
+      "how": "You told the app this machine's ladder (160, 170). The top-of-window session already on your record counts as sighting one — one more honest top, or one that beats your own spread, earns the 170 debut.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "HACK SQUAT — THE STACK TOPS OUT AT 180",
+      "how": "No rung above 180 is on file for this machine, so reps are the ladder now: targets keep stepping past the old window top with the same earn discipline, and every rep above it banks like any other record. If the gym's stack actually goes higher, log the heavier weight when you use it and the ladder learns the rung — otherwise nothing needs you; this line exists so a maxed lift can never silently deadlock again.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "HACK — REP RANGE MOVES TO 6-10",
+      "how": "Your ruling, on the record: breathing fails before the quads, so the weight rises and the reps drop — round two of the pattern that already worked. Your 12,12,13 at 160 stands untouched and reads against the new window. The next rung on file is 170.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "HAM CURL 125 EARNED",
+      "how": "120×12,12,11 — 4 reps clear of last time, and two standard errors of your own measured spread is 2.7. That is outside the noise, so it banks on one sighting. Confirm the rung: does this machine actually make 125 next? If not, fix the ladder in SETUP (uneven ✎) before the debut.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "JUMP SIZE — LATERAL MACHINE steps by 2.5",
+      "how": "athlete set the machine's smallest honest increment — even ladder",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "JUMP SIZE — LATERAL MACHINE steps by 2.5",
+      "how": "athlete set the machine's smallest honest increment — even ladder",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "JUMP SIZE — LATERAL MACHINE steps by 2.5",
+      "how": "athlete set the machine's smallest honest increment — even ladder",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "JUMP SIZE — LATERAL MACHINE steps by 2.5",
+      "how": "athlete set the machine's smallest honest increment — even ladder",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "JUMP SIZE — LATERAL MACHINE steps by 5",
+      "how": "athlete set the machine's smallest honest increment — even ladder",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "LEG EXTENSION — TARGET MET",
+      "how": "155 × 9,9",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "RECORD CORRECTED — HACK 180 × 9,9,10",
+      "how": "Your attestation, verbatim: 'I just hit hack 180 for 9 (2 RIR), 9, 10 (0 RIR).' The phone had logged the plan (160 × 12,12,13) because the weight editor walked the filed ladder only — 180 had no way in. The record now says what you did; every read derives from it, and the best-ever claim restates with it.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "ROWS (STRAPLESS) — REP CEILING MOVES TO 9",
+      "how": "Your ruling, on the record: the felt-fatigue call the evidence prices at zero — range-equivalence near failure holds in a deficit. Your 9,9 at 180 stands untouched and reads against the new line. The next load on file is 185.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "THE HAND-BACK, ENACTED — rows 3→2 · hack 4→3 · tricep 4→3 · curl 4→3 · abs 4→3",
+      "how": "The card you approved on 8/09 said this and did nothing (its apply was a note). Done now, exactly as it read: the morning five go back, Friday's three stand. On the record: that approval, and your audit ruling — 'we need to audit and fix.'",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "VOLUME PROPOSALS RECALLED",
+      "how": "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "VOLUME PROPOSALS RECALLED",
+      "how": "cold-start misfire — the ledger compared your first logged week against a week before this app existed. It now waits for 14 full days of your logs and speaks on Sundays, two proposals at most.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "WEEK IN REVIEW · WK 9",
+      "how": "The boring, winning kind of week — the kind that compounds. — protein 5/5 on target · 4 sessions logged · 3 wins filed · 1 lift on hold · sleep 2/3 clean · rate ~1.15/wk vs band 0.98–1.14 · adjustments this week: 2 — all",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "WEIGHT SET — LATERAL MACHINE 85 → 85",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-08-10",
+      "text": "WEIGHT SET — LATERAL MACHINE 85 → 85",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-08-11",
+      "text": "ANALYST SUGGESTION NOTED",
+      "how": "Check the ham machine actually makes 125 before you debut it — the hack number went wrong exactly this way — an observation, filed; approving it would have changed nothing, so nothing wears an apply button",
+      "op": "sug:sug_2026-08-11_ham125rung"
+     },
+     {
+      "date": "2026-08-11",
+      "text": "ANALYST SUGGESTION NOTED",
+      "how": "Weigh in the morning, not at night — you did step on the scale yesterday and the app binned it — an observation, filed; approving it would have changed nothing, so nothing wears an apply button",
+      "op": "sug:sug_2026-08-11_morningread"
+     },
+     {
+      "date": "2026-08-11",
+      "text": "ANALYST SUGGESTION NOTED",
+      "how": "Press: next upper day, either give the fourth set an honest set or run three — Sunday's best press scored nothing — an observation, filed; approving it would have changed nothing, so nothing wears an apply button",
+      "op": "sug:sug_2026-08-11_press4th"
+     },
+     {
+      "date": "2026-08-11",
+      "text": "HACK SQUAT — NEXT LOAD ON FILE: 190",
+      "how": "You told the app this machine's ladder (180, 190). Top the window twice at 180 — or once beating your own spread — and 190 queues itself.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-11",
+      "text": "LAB LIVE — SET ONE — THE STANDARDIZED READ",
+      "how": "Rows (strapless): +5.952%/session on set 1 over 5 comparable reads (CI 0.166 to 11.739) · Rear-delt fly (cable · uni): +2%/session on set 1 over 5 comparable reads (CI -5",
+      "op": ""
+     },
+     {
+      "date": "2026-08-11",
+      "text": "LAB LIVE — THE TRIALS DESK",
+      "how": "Open the card — proposals, running trials, and finished verdicts all live inside.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-11",
+      "text": "RATE FLOOR TRIPPED",
+      "how": "Two weeks under 0.82/wk (0.4, 0.3). Your rule: restore steps FIRST. If steps are already at target, trim ~50 off the calorie band.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-11",
+      "text": "TRIAL STARTED — THE FAILURE A/B — TRICEP CAPPED vs SULEK ALL-OUT",
+      "how": "designed by your analyst for a pattern in YOUR data, consented by you",
+      "op": ""
+     },
+     {
+      "date": "2026-08-11",
+      "text": "TWO SLOW WEEKS — YOUR RULE KICKS IN",
+      "how": "Weight loss ran under 0.82 lb/wk for two straight weeks (0.4 and 0.3 lb/wk). Your rule: steps below baseline → restore them FIRST. At baseline already → steps-vs-a-~50-kcal-trim is an ADHERENCE EXPERIMENT, not a hierarchy — run whichever you will actually keep.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-12",
+      "text": "FEED DEDUPED — 1 historical replay duplicate removed",
+      "how": "The old migration runner replayed every patch on every schema bump, and each replay re-minted these receipts: RULING — SMALLEST HONEST INCREMENT · RULING — SMALLEST STEP, EVERY LIFT · VOLUME PROPOSALS RECALLED. Byte-identical copies are gone; the first of each stays. Nothing else was touched.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — ABS via Abs",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:volabs1786251266738"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — BACK via Rows (strapless)",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:volback1786251148945"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — BICEPS via Curls",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:volbiceps1786251180232"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — DELTS_REAR via Rear-delt fly (cable ",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:voldelts_rear1786312010572"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — DELTS_SIDE via Lateral machine",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:voldelts_side1786334903080"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — QUADS via Hack squat",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:volquads1786251148945"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "OFFER SUPERSEDED — VOLUME +1 — TRICEPS via Tricep",
+      "how": "This offer was derived from the pre-split plan — its set counts and its chooser both reasoned about an order this ruling replaced. It closes without effect; anything still earned re-files under the current plan on the next sweep.",
+      "op": "supersede:voltriceps1786251180232"
+     },
+     {
+      "date": "2026-08-12",
+      "text": "PRONATED EZ CURL — RETIRED",
+      "how": "The split ruling retires the lift. Every logged session stays on the record, and the record never closes.",
+      "op": "retire:pronated"
+     },
+     {
+      "date": "2026-08-13",
+      "text": "FAILURE EXPERIMENT RETIRED",
+      "how": "Your call, before it began. The research default stands: train 1–2 reps shy; an occasional all-out last set keeps your effort reporting honest. No session ever ran under the experiment, so nothing is lost.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-13",
+      "text": "LAB LIVE — THE REGIME DETECTOR",
+      "how": "lifts rising and fat still falling — both terms improving at once",
+      "op": ""
+     },
+     {
+      "date": "2026-08-13",
+      "text": "LAB LIVE — THE TRIALS DESK",
+      "how": "Open the card — proposals, running trials, and finished verdicts all live inside.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-13",
+      "text": "VOLUME +1 — SIDE DELT via Lateral machine (now 5 sets)",
+      "how": "Side delt — EARNED VOLUME: 8 → 10 WEEKLY SETS — the count changes next session; the effort ladder re-keys itself, and the trend window restarts so the read is honest. The next push on this muscle waits for that read. One tap to undo.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "ANALYST SUGGESTION NOTED",
+      "how": "One short night, worth naming: 02:30 to bed on Tuesday put your sleep debt back on the board after eleven clean days. — an observation, filed; approving it would have changed nothing, so nothing wears an apply button",
+      "op": "sug:sug_2026-08-14_bedtime"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "ANALYST SUGGESTION NOTED",
+      "how": "Fill in Thursday — rough numbers are fine. It is the day the scale finally moved and the only day with nothing behind it. — an observation, filed; approving it would have changed nothing, so nothing wears an apply button",
+      "op": "sug:sug_2026-08-14_fillthursday"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "ANALYST SUGGESTION NOTED",
+      "how": "Ham curl: check in SETUP that the machine actually makes 125 before you load it today. — an observation, filed; approving it would have changed nothing, so nothing wears an apply button",
+      "op": "sug:sug_2026-08-14_ham125rung"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "HACK SQUAT — THE STACK TOPS OUT AT 190",
+      "how": "No rung above 190 is on file for this machine, so reps are the ladder now: targets keep stepping past the old window top with the same earn discipline, and every rep above it banks like any other record. If the gym's stack actually goes higher, log the heavier weight when you use it and the ladder learns the rung — otherwise nothing needs you; this line exists so a maxed lift can never silently deadlock again.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "HACK SQUAT — THE STACK TOPS OUT AT 200",
+      "how": "No rung above 200 is on file for this machine, so reps are the ladder now: targets keep stepping past the old window top with the same earn discipline, and every rep above it banks like any other record. If the gym's stack actually goes higher, log the heavier weight when you use it and the ladder learns the rung — otherwise nothing needs you; this line exists so a maxed lift can never silently deadlock again.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "HAM CURL 125 DEBUT COMPLETE",
+      "how": "Ham curl at 125: 11,9,9",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "JUMP SIZE — HACK SQUAT steps by 10",
+      "how": "athlete set the machine's smallest honest increment — even ladder",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "PIN FILLED — HAM CURL",
+      "how": "thigh pad is now on the record as \"Lowest possible\". Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "PIN FILLED — LEG EXTENSION",
+      "how": "load peg/profile is now on the record as \"1\". Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "PIN FILLED — PRIME ABDOMINAL CRUNCH",
+      "how": "resistance profile is now on the record as \"1\". Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "PIN FILLED — SUPPORTED LEG RAISE (MEDICINE-BALL PAD)",
+      "how": "knee bend is now on the record as \"yes\". Every setting is pinned — this lift's numbers are comparable from here, and the sessions logged before this stay on the record as provisional.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "PIN FILLED — SUPPORTED LEG RAISE (MEDICINE-BALL PAD)",
+      "how": "medicine-ball pad at is now on the record as \"mid-back\". 1 setting still to pin.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "RECORD AMENDED — HACK SQUAT 2026-08-14 logged 190 → 200",
+      "how": "the weight actually lifted. Corrected on the owner's word; reps and effort answers untouched.",
+      "op": "amend:2026-08-14:hack"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "RECORD AMENDED — LEG EXTENSION 2026-08-14 logged 155 → 160",
+      "how": "the weight actually lifted. Corrected on the owner's word; reps and effort answers untouched.",
+      "op": "amend:2026-08-14:extension"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "RECORD AMENDED — PRIME ABDOMINAL CRUNCH 2026-08-14: the last set ran to failure (0 RIR)",
+      "how": "on the owner's word. Reps and weight untouched; the opener stays unrated because it was never asked.",
+      "op": "amend:2026-08-14:abs:rir"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "RECORD AMENDED — Prime abdominal crunch UN-SKIPPED on Fri 8/14",
+      "how": "logged 14,14,14 — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "RECORD AMENDED — SUPPORTED LEG RAISE (MEDICINE-BALL PAD) 2026-08-14: the last set ran to failure (0 RIR)",
+      "how": "on the owner's word. Reps and weight untouched; the opener stays unrated because it was never asked.",
+      "op": "amend:2026-08-14:hanging:rir"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "RECORD AMENDED — Supported leg raise (medicine-ball pad) UN-SKIPPED on Fri 8/14",
+      "how": "logged 7,6 — it was on the record as skipped and it should not have been. Reps entered by hand, not inferred; RIR is left unrecorded because it was never captured.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "SKIPPED — Hip thrust machine, Prime abdominal crunch, Supported leg raise (medicine-ball pad), Calves",
+      "how": "your call, on the record — zero phantom reps, nothing counted",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "STEP TARGET RAISED",
+      "how": "UNDER THE CORRIDOR — STEPS FIRST — +1,000 steps/day → ~16,500 target. Holds until your next weigh-in, then the engine re-measures. One tap to undo.",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "WEIGHT SET — HACK SQUAT 180 → 190",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "WEIGHT SET — HACK SQUAT 190 → 190",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "WEIGHT SET — HACK SQUAT 190 → 190",
+      "how": "athlete entry on the card — targets re-seeded for the new load",
+      "op": ""
+     },
+     {
+      "date": "2026-08-14",
+      "text": "WORKING LOAD RECONCILED — HACK SQUAT 190 → 200",
+      "how": "The corrected record says 200 was lifted on 2026-08-14; the plan follows the record. The rung joined the ladder.",
+      "op": "adopt:corr:hack:2026-08-14"
+     },
+     {
+      "date": "2026-08-14",
+      "text": "WORKING LOAD RECONCILED — LEG EXTENSION 155 → 160",
+      "how": "The corrected record says 160 was lifted on 2026-08-14; the plan follows the record.",
+      "op": "adopt:corr:extension:2026-08-14"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "CALVES — FRESH BASELINE",
+      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:hipthrust:calves"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "CURLS (PREACHER) — FRESH BASELINE",
+      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:fly:curl"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "HAM CURL — FRESH BASELINE",
+      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:hipthrust:ham"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "LEG EXTENSION — FRESH BASELINE",
+      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:hipthrust:extension"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "PRIME ABDOMINAL CRUNCH — FRESH BASELINE",
+      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:hipthrust:abs"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "PRIME SEATED ROW (HOOKS) — FRESH BASELINE",
+      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:fly:rows"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "PULLDOWN — FRESH BASELINE",
+      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:fly:pulldown"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "REAR-DELT FLY (CABLE, UNILATERAL) — FRESH BASELINE",
+      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:fly:rearDelt"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "SULEK WRIST CURL (HIGH CABLE) — FRESH BASELINE",
+      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:fly:sulek"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "SUPPORTED LEG RAISE (MEDICINE-BALL PAD) — FRESH BASELINE",
+      "how": "The hip thrust enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:hipthrust:hanging"
+     },
+     {
+      "date": "2026-08-17",
+      "text": "TRICEP — FRESH BASELINE",
+      "how": "The machine fly enters the programme ahead of this lift, so its context changes. History stays on the record under the old order; the instruments start a fresh four-session baseline rather than comparing across the change.",
+      "op": "seam:fly:tricep"
+     },
+     {
+      "date": "2026-08-19",
+      "text": "2 MORNING READS RE-CLASSED — 8/8, 8/10",
+      "how": "The window rule read ‘today's numbers are typed’ as ‘breakfast happened’ and set these morning weigh-ins aside as evening reads; the owner attested on 2026-08-19 that all were morning reads. They count now: the trend replays to 163.9; the false receipts from those mornings are removed. Forecasts and the TDEE log keep what the app said on the day.",
+      "op": "patch59:scale"
+     },
+     {
+      "date": "2026-08-19",
+      "text": "MORNING READ ATTESTED — 8/10",
+      "how": "The owner attested on 2026-08-19 that this weigh-in was a morning read. This line is the record of that word — it travels with the data, so no older copy of the app can unsay it.",
+      "op": "reclass:2026-08-10"
+     },
+     {
+      "date": "2026-08-19",
+      "text": "MORNING READ ATTESTED — 8/8",
+      "how": "The owner attested on 2026-08-19 that this weigh-in was a morning read. This line is the record of that word — it travels with the data, so no older copy of the app can unsay it.",
+      "op": "reclass:2026-08-08"
+     }
+    ],
+    "volumeReceipts": [
+     {
+      "date": "2026-07-24",
+      "sign": 0,
+      "magnitude": null,
+      "muscle": "",
+      "via": "",
+      "nowSets": null,
+      "raw": "VOLUME PROPOSALS RECALLED"
+     },
+     {
+      "date": "2026-08-06",
+      "sign": 0,
+      "magnitude": null,
+      "muscle": "",
+      "via": "",
+      "nowSets": null,
+      "raw": "VOLUME BAND SITS ABOVE THE HIGH-RETURN TIER"
+     },
+     {
+      "date": "2026-08-07",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "CHEST",
+      "via": "Press",
+      "nowSets": 4,
+      "raw": "VOLUME +1 — CHEST via Press (now 4 sets)"
+     },
+     {
+      "date": "2026-08-07",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "HAMS",
+      "via": "Ham curl",
+      "nowSets": 3,
+      "raw": "VOLUME +1 — HAMS via Ham curl (now 3 sets)"
+     },
+     {
+      "date": "2026-08-07",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "REAR DELT",
+      "via": "Rear-delt fly (cable · uni)",
+      "nowSets": 4,
+      "raw": "VOLUME +1 — REAR DELT via Rear-delt fly (cable · uni) (now 4 sets)"
+     },
+     {
+      "date": "2026-08-07",
+      "sign": 0,
+      "magnitude": null,
+      "muscle": "",
+      "via": "",
+      "nowSets": null,
+      "raw": "VOLUME BAND SITS ABOVE THE HIGH-RETURN REGION"
+     },
+     {
+      "date": "2026-08-09",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "ABS",
+      "via": "Abs",
+      "nowSets": 4,
+      "raw": "VOLUME +1 — ABS via Abs (now 4 sets)"
+     },
+     {
+      "date": "2026-08-09",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "BACK",
+      "via": "Rows (strapless)",
+      "nowSets": 3,
+      "raw": "VOLUME +1 — BACK via Rows (strapless) (now 3 sets)"
+     },
+     {
+      "date": "2026-08-09",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "BICEPS",
+      "via": "Curls",
+      "nowSets": 4,
+      "raw": "VOLUME +1 — BICEPS via Curls (now 4 sets)"
+     },
+     {
+      "date": "2026-08-09",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "QUADS",
+      "via": "Hack squat",
+      "nowSets": 4,
+      "raw": "VOLUME +1 — QUADS via Hack squat (now 4 sets)"
+     },
+     {
+      "date": "2026-08-09",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "TRICEPS",
+      "via": "Tricep",
+      "nowSets": 4,
+      "raw": "VOLUME +1 — TRICEPS via Tricep (now 4 sets)"
+     },
+     {
+      "date": "2026-08-10",
+      "sign": 0,
+      "magnitude": null,
+      "muscle": "",
+      "via": "",
+      "nowSets": null,
+      "raw": "VOLUME PROPOSALS RECALLED"
+     },
+     {
+      "date": "2026-08-10",
+      "sign": 0,
+      "magnitude": null,
+      "muscle": "",
+      "via": "",
+      "nowSets": null,
+      "raw": "VOLUME PROPOSALS RECALLED"
+     },
+     {
+      "date": "2026-08-13",
+      "sign": 1,
+      "magnitude": 1,
+      "muscle": "SIDE DELT",
+      "via": "Lateral machine",
+      "nowSets": 5,
+      "raw": "VOLUME +1 — SIDE DELT via Lateral machine (now 5 sets)"
+     }
+    ],
+    "sightings": [
+     {
+      "id": "abs",
+      "topAt": 100,
+      "topRun": 1
+     },
+     {
+      "id": "calves",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "curl",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "extension",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "fly",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "hack",
+      "topAt": null,
+      "topRun": 0
+     },
+     {
+      "id": "ham",
+      "topAt": null,
+      "topRun": 0
+     },
+     {
+      "id": "hanging",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "hipthrust",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "lateral",
+      "topAt": null,
+      "topRun": 0
+     },
+     {
+      "id": "press",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "pronated",
+      "topAt": 40,
+      "topRun": 1
+     },
+     {
+      "id": "pulldown",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "rearDelt",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "rows",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "sulek",
+      "topAt": null,
+      "topRun": null
+     },
+     {
+      "id": "tricep",
+      "topAt": null,
+      "topRun": null
+     }
+    ],
+    "events": [
+     {
+      "date": "2026-07-25",
+      "type": "",
+      "label": "WEDDING #2"
+     }
+    ],
+    "waist": [],
+    "plan": {
+     "planGen": 51,
+     "exOrder": {
+      "L": [
+       "hack",
+       "hipthrust",
+       "extension",
+       "ham",
+       "abs",
+       "hanging",
+       "calves"
+      ],
+      "U": [
+       "lateral",
+       "press",
+       "fly",
+       "pulldown",
+       "rows",
+       "rearDelt",
+       "curl",
+       "tricep",
+       "sulek"
+      ]
+     },
+     "split": [
+      {
+       "from": "2026-08-09",
+       "map": {
+        "0": "U",
+        "1": "L",
+        "2": "REST",
+        "3": "REST",
+        "4": "U",
+        "5": "L",
+        "6": "REST"
+       },
+       "why": "athlete-stated 2026-08-09 — Sun U · Mon L · Thu U · Fri L (consent relayed on the record, R19)"
+      }
+     ],
+     "retirements": [
+      "pronated"
+     ]
+    }
+   },
+   "rawCounts": {
+    "reads": 61,
+    "nights": 59,
+    "dailyLogs": 64,
+    "sessionLog": 13,
+    "sets": 250,
+    "exercises": 17,
+    "queue": 18,
+    "feed": 323,
+    "earned": 4,
+    "debuts": 9,
+    "pendingDebuts": 0,
+    "volume": 14,
+    "events": 1,
+    "waist": 0
+   },
+   "counts": {
+    "reads": 61,
+    "nights": 59,
+    "dailyLogs": 64,
+    "sessionLog": 13,
+    "sets": 246,
+    "exercises": 17,
+    "queue": 18,
+    "feed": 321,
+    "earned": 4,
+    "debuts": 9,
+    "pendingDebuts": 0,
+    "volume": 14,
+    "events": 1,
+    "waist": 0
+   },
+   "lifts": {
+    "rows": {
+     "name": "Prime seated row (hooks)",
+     "load": 180,
+     "sets": 2,
+     "targets": [
+      9,
+      9
+     ]
+    },
+    "press": {
+     "name": "Press",
+     "load": 250,
+     "sets": 4,
+     "targets": [
+      8,
+      8,
+      8,
+      4
+     ]
+    },
+    "fly": {
+     "name": "Machine fly",
+     "load": null,
+     "sets": 2,
+     "targets": [
+      18,
+      18
+     ]
+    },
+    "lateral": {
+     "name": "Lateral machine",
+     "load": 85,
+     "sets": 5,
+     "targets": [
+      14,
+      14,
+      13,
+      12,
+      11
+     ]
+    },
+    "curl": {
+     "name": "Curls (preacher)",
+     "load": null,
+     "sets": 3,
+     "targets": [
+      11,
+      10,
+      10
+     ]
+    },
+    "rearDelt": {
+     "name": "Rear-delt fly (cable, unilateral)",
+     "load": 20,
+     "sets": 3,
+     "targets": [
+      10,
+      9,
+      8
+     ]
+    },
+    "pulldown": {
+     "name": "Pulldown",
+     "load": 160,
+     "sets": 3,
+     "targets": [
+      9,
+      8,
+      7
+     ]
+    },
+    "sulek": {
+     "name": "Sulek wrist curl (high cable)",
+     "load": 87.5,
+     "sets": 2,
+     "targets": [
+      14,
+      13
+     ]
+    },
+    "tricep": {
+     "name": "Tricep",
+     "load": 55,
+     "sets": 3,
+     "targets": [
+      12,
+      12,
+      11
+     ]
+    },
+    "hack": {
+     "name": "Hack squat",
+     "load": 200,
+     "sets": 3,
+     "targets": [
+      8,
+      7,
+      8
+     ]
+    },
+    "hipthrust": {
+     "name": "Hip thrust machine",
+     "load": null,
+     "sets": 3,
+     "targets": [
+      10,
+      10,
+      10
+     ]
+    },
+    "abs": {
+     "name": "Prime abdominal crunch",
+     "load": 100,
+     "sets": 3,
+     "targets": [
+      14,
+      14,
+      14
+     ]
+    },
+    "hanging": {
+     "name": "Supported leg raise (medicine-ball pad)",
+     "load": null,
+     "sets": 2,
+     "targets": [
+      7,
+      6
+     ]
+    },
+    "extension": {
+     "name": "Leg extension",
+     "load": 160,
+     "sets": 2,
+     "targets": [
+      8,
+      9
+     ]
+    },
+    "calves": {
+     "name": "Calves",
+     "load": 320,
+     "sets": 3,
+     "targets": [
+      11,
+      11,
+      10
+     ]
+    },
+    "ham": {
+     "name": "Ham curl",
+     "load": 125,
+     "sets": 3,
+     "targets": [
+      11,
+      9,
+      9
+     ]
+    }
+   },
+   "energy": {
+    "calorieTarget": {
+     "floor": 1750,
+     "floorBinds": false,
+     "floorHit": false,
+     "floorSoft": 2050,
+     "from": "measured",
+     "gated": false,
+     "hi": 2176,
+     "lo": 2084,
+     "mid": 2130,
+     "phaseHi": 1800,
+     "phaseLo": 1725,
+     "tdee": 2708,
+     "wkAvg": 2431,
+     "wkN": 7,
+     "band": [
+      0.98,
+      1.15
+     ]
+    },
+    "cutRateBand": {
+     "band": [
+      0.98,
+      1.15
+     ],
+     "floor": 0.82,
+     "mode": "recomp",
+     "pct": [
+      0.6,
+      0.7
+     ],
+     "redline": 1.64
+    },
+    "calorieFloor": {
+     "eee": 171,
+     "floor": 1750,
+     "soft": 2050,
+     "ffmKg": 63.4
+    },
+    "proteinTarget": {
+     "floor": 158,
+     "g": 160,
+     "hi": 165,
+     "lo": 160,
+     "perKg": 2.5,
+     "ffmKg": 63.4,
+     "bf": 14.8
+    },
+    "observedTDEE": {
+     "avg": 2312,
+     "days": 36,
+     "from": "2026-07-08",
+     "hi": 2941,
+     "lo": 2475,
+     "tdee": 2708,
+     "to": "2026-08-15",
+     "method": "regression",
+     "rate": 0.73,
+     "rateCi": 0.43,
+     "perLb": 3800
+    },
+    "currentRate": {
+     "ci": 0.43,
+     "ciOls": 0.34,
+     "fat": 0.73,
+     "from": "2026-07-08",
+     "hacInflation": 1.24,
+     "hacL": 3,
+     "hi": 1.16,
+     "lo": 0.3,
+     "measured": true,
+     "method": "regression",
+     "n": 28,
+     "rates": [
+      1.8,
+      0.8,
+      0.2,
+      0.4,
+      1.8,
+      1.3,
+      0.4,
+      0.3
+     ],
+     "rho1": 0.45,
+     "scale": 0.73,
+     "sigma": 1.66,
+     "span": "2026-07-08 → 2026-08-15",
+     "to": "2026-08-15"
+    },
+    "regime": {
+     "key": "unknown",
+     "confirmed": false,
+     "pending": null,
+     "pendingSince": null,
+     "prog": {
+      "nLifts": 2,
+      "nExcludedNonNumeric": 2,
+      "excludedIds": [
+       "curl",
+       "hanging"
+      ],
+      "setAsideDays": [
+       "2026-07-27"
+      ],
+      "lifts": [
+       {
+        "id": "lateral",
+        "n": 5,
+        "nSoft": 4,
+        "pct": 1.239,
+        "se": 0.939,
+        "lo": -1.748,
+        "hi": 4.226,
+        "from": "2026-07-23",
+        "to": "2026-08-09",
+        "pts": [
+         {
+          "d": "2026-07-23",
+          "y": 4240,
+          "soft": true,
+          "k": 4
+         },
+         {
+          "d": "2026-07-30",
+          "y": 4080,
+          "soft": true,
+          "k": 4
+         },
+         {
+          "d": "2026-08-03",
+          "y": 4400,
+          "soft": true,
+          "k": 4
+         },
+         {
+          "d": "2026-08-06",
+          "y": 4250,
+          "soft": true,
+          "k": 4
+         },
+         {
+          "d": "2026-08-09",
+          "y": 4420,
+          "soft": false,
+          "k": 4
+         }
+        ],
+        "k": 4,
+        "resetAt": null
+       },
+       {
+        "id": "hack",
+        "n": 6,
+        "nSoft": 2,
+        "pct": 0.461,
+        "se": 2.863,
+        "lo": -7.487,
+        "hi": 8.409,
+        "from": "2026-07-28",
+        "to": "2026-08-14",
+        "pts": [
+         {
+          "d": "2026-07-28",
+          "y": 4320,
+          "soft": true,
+          "k": 3
+         },
+         {
+          "d": "2026-07-31",
+          "y": 5120,
+          "soft": false,
+          "k": 3
+         },
+         {
+          "d": "2026-08-04",
+          "y": 5120,
+          "soft": true,
+          "k": 3
+         },
+         {
+          "d": "2026-08-07",
+          "y": 5760,
+          "soft": false,
+          "k": 3
+         },
+         {
+          "d": "2026-08-10",
+          "y": 5040,
+          "soft": false,
+          "k": 3
+         },
+         {
+          "d": "2026-08-14",
+          "y": 4400,
+          "soft": false,
+          "k": 3
+         }
+        ],
+        "k": 3,
+        "resetAt": null
+       }
+      ],
+      "state": "unknown",
+      "pct": null,
+      "lo": null,
+      "hi": null,
+      "why": "only 2 lift(s) carry a usable trend — 4 needed before this reads anything"
+     },
+     "rate": null,
+     "why": "only 2 lift(s) carry a usable trend — 4 needed before this reads anything"
+    }
+   },
+   "progression": {
+    "nLifts": 2,
+    "excludedIds": [
+     "curl",
+     "hanging"
+    ],
+    "setAsideDays": [
+     "2026-07-27"
+    ],
+    "lifts": [
+     {
+      "id": "hack",
+      "n": 6,
+      "nSoft": 2,
+      "pct": 0.461,
+      "lo": -7.487,
+      "hi": 8.409
+     },
+     {
+      "id": "lateral",
+      "n": 5,
+      "nSoft": 4,
+      "pct": 1.239,
+      "lo": -1.748,
+      "hi": 4.226
+     }
+    ]
+   },
+   "today": {
+    "trend": 163.9,
+    "phase": "EASE 1",
+    "statusFace": {
+     "word": "HOLDING",
+     "cause": "Reading is 19 days old · weigh in to refresh"
+    },
+    "statusTarget": {
+     "key": "now.inbox",
+     "id": "pl-inbox",
+     "label": "open what's waiting on your tap"
+    }
+   }
+  },
+  "optional": {
+   "internalSchema": 59,
+   "records": {},
+   "volDeltas": {},
+   "absent": [
+    "deriveSighting",
+    "_volDeltas",
+    "records"
+   ]
+  }
+ }
+}

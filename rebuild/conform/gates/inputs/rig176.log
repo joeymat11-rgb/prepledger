@@ -1,0 +1,19 @@
+== W1 — collision withdrawal: A(x,c1) · B(x,c2) · W(x) in two orders
+   v1.27  A→B→W: ABSTAIN | W→A→B: BLOCKED SOURCE_ITEM_IDENTITY_COLLISION | A→W→B: BLOCKED SOURCE_ITEM_IDENTITY_COLLISION
+   v1.28  A→B→W: ABSTAIN | W→A→B: ABSTAIN | A→W→B: ABSTAIN
+PASS — v1.27: the same admitted set {A, B, W} finishes retired in one order and BLOCKING in another (ABSTAIN / BLOCKED SOURCE_ITEM_IDENTITY_COLLISION / BLOCKED SOURCE_ITEM_IDENTITY_COLLISION)
+PASS — v1.28: a withdrawal targets the identity x, formation evaluates stored withdrawals → every order gives ABSTAIN (component retired, nothing under x in force)
+
+== W2 — crash between the COLLISION_MEMBER disposition and the formation event (hidden commit)
+   v1.27 log: ["1:DISPOSITION/STORED","2:DISPOSITION/COLLISION_MEMBER"] | retry of B → replay: original receipt, nothing new
+PASS — v1.27: the durable prefix holds COLLISION_MEMBER with NO formation — the STORED item stays visible (floor 2001 from a colliding id) and the retry cannot repair it (replay: original receipt, nothing new)
+   v1.28: crash → CRASH (partial group, NOT visible: length stays 1) | retry → ok (length 3) | visible: ["1:DISPOSITION/STORED","2:DISPOSITION/COLLISION_MEMBER","3:FORMATION"]
+PASS — v1.28: a crash mid-group leaves the sequence length at 1 — the COLLISION_MEMBER disposition is not visible without its formation
+PASS — v1.28: the retry performs GROUP RECOVERY — disposition + formation land together with consecutive receipts 2 and 3
+
+== W3 — answer selection after an answer identity collision
+   v1.27 selector → ans-01 | v1.28 selector → ans-02
+PASS — v1.27: least id over ALL stored answers picks the hidden collision member ans-01 — the promised new-id recovery is unreachable
+PASS — v1.28: least id over verified, non-member, non-withdrawn answers picks ans-02
+
+7 passed, 0 failed
