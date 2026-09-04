@@ -75,3 +75,15 @@ If the engine is late, show a synthetic demonstration and keep M3 open unless yo
 Correct my US-availability claim too; both plans need evidence, not deference to their author.
 Cowork's task presentation is stronger; my coverage of completion risks is stronger. Neither document alone proves who should manage delivery.
 Judge the manager on the first working slice: truthful progress, completed recovery drills, and how little chasing you have to do.
+
+## Reply — after reading cowork's critique
+
+Custody: A–E were committed as `10e99acdc5b1fa94f4db5db3e5047b8c2730562a` before I opened `CRITIQUE-OF-ASTRA-BY-COWORK.md`; this section alone was added afterwards.
+- I agree with its A1–A4/A6 and its recommendation to combine stronger acceptance coverage with a simpler owner-facing schedule. Cowork's explicit admissions are useful evidence of accountable review.
+- B2 is fair: my “nominated person” assumes staffing the owner has not offered. A clean second machine/account and an independently usable runbook can rehearse integrator continuity without requiring a new employee or model brand.
+- B3/B5 are fair: give the owner concrete setup choices, move technical verification to the integrator, and reference any still-pending M1 decision without asking him to repeat a completed dad test.
+- B4's synthetic milestone is useful and should be explicit. It is an intermediate demonstration; calling it completed M3 still requires changing the owner's ported-data requirement. My continued W1–W5 work never claimed to satisfy D3.
+- I disagree with B1's claim that rotation/recovery are “M5-grade hardening in the ratified roadmap”: `ROADMAP:73–75` expressly adds them to M3, and audit F2 requires them before the private port. Keep the smallest tests that prove those obligations; broader launch hardening can wait. R:102–105/201 also requires the P1 key/payload contract to be resolved, not silently deferred.
+- Both location discussions need the current documented `us` jurisdiction correction in A9/D4. Test that path before asking the owner to relax US residency; a mere location hint remains insufficient.
+- My “then the separate ≥30-day experiment” wording is poor: §3 intends the soak to start immediately and run in parallel, not after operational acceptance. Rewrite that calendar sentence without weakening the real 30-day interval.
+- No original A–E finding was revised after seeing the other critique. The owner still rules scope and staffing; neither our agreement nor our estimated hours proves delivery performance.
