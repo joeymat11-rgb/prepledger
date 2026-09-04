@@ -1,4 +1,4 @@
-/* M2 module 2 cumulative gate. No oracle or frozen-source edits, no migrated fixture files.
+/* M2 module 3 cumulative gate. No oracle or frozen-source edits, no migrated fixture files.
    Usage: MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York node this-file [--public]
    ENGINE_MAIN points to a locally rebuilt fe516c1 frozen bundle. Its packaging
    hash is platform-dependent; committed fixture/golden/stamp pins are mandatory.
@@ -19,12 +19,14 @@ const CANDIDATE = path.resolve(__dirname, "../oracle-shim.cjs");
 const WITHHELD = "[private fixture: detail withheld in code]";
 const shaBytes = (x) => crypto.createHash("sha256").update(x).digest("hex");
 const shaFile = (p) => shaBytes(fs.readFileSync(p));
-const groups = (c) => ({ lifts: required(c).lifts, progression: required(c).progression, energy: required(c).energy });
+const groups = (c) => ({ lifts: required(c).lifts, progression: required(c).progression,
+  energy: required(c).energy, today: required(c).today });
 const hasThrow = (x) => !!(x && typeof x === "object" &&
   (Object.prototype.hasOwnProperty.call(x, "THREW") || Object.values(x).some(hasThrow)));
 const SURFACE = ["exActive", "targetsFor", "deriveSighting", "_volDeltas", "progressionTrend",
   "calorieTarget", "cutRateBand", "calorieFloor", "proteinTarget", "observedTDEE", "currentRate",
-  "regime", "energyBalanceTarget", "stepTarget", "forecast", "signalState", "cleanAtDate", "atSleepTarget"];
+  "regime", "energyBalanceTarget", "stepTarget", "forecast", "signalState", "cleanAtDate", "atSleepTarget",
+  "statusFace", "statusTarget", "nowFocus", "marchingOrder", "nowModel", "oweTarget"];
 const assert = (ok) => { if (!ok) throw new Error("gate precondition failed"); };
 
 // This is the ONLY migration seam: census clones the supplied migrated snapshot,
@@ -32,7 +34,9 @@ const assert = (ok) => { if (!ok) throw new Error("gate precondition failed"); }
 function partial(T, dumped) {
   const out = groups(census({ ...T, migrate: (x) => x }, JSON.parse(dumped)));
   assert(!hasThrow(out));
-  // Keep all raw fields used by the later Today readers. The committed census
+  // Retain module 2's raw Today-input checks as well as the committed Today DTO.
+  // The DTO includes exact statusFace cause prose but excludes its UI tone token.
+  // The committed census
   // rounds currentRate and projects progressionTrend, so these extra references
   // come from the same pinned frozen engine and migrated snapshot, in memory.
   const state = JSON.parse(dumped);
@@ -109,7 +113,7 @@ function main() {
     const m = man.goldens[name + ".main"];
     assert(m && m.engineCommit === FROZEN_COMMIT && m.clock === man.clock && m.tz === man.tz && m.censusVersion === CENSUS_VERSION);
   }
-  console.log("GREEN M2-2 manifest: fe516c1 / v7.56.0; clock, zone and census version pinned");
+  console.log("GREEN M2-3 manifest: fe516c1 / v7.56.0; clock, zone and census version pinned");
   const blobs = [
     { name: "preimage-2026-08-15", file: "fixtures/preimage-2026-08-15.json", private: false },
     { name: "synthetic-pending-debut", file: "fixtures/synthetic-pending-debut.json", private: false },
@@ -139,13 +143,13 @@ function main() {
       assert(!hasThrow(expected));
       const rebuilt = partial(G, snapshot);
       const { todayInputs, ...committedGroups } = rebuilt;
-      assert(canon(committedGroups) === canon(expected)); // reproduce all three committed groups
+      assert(canon(committedGroups) === canon(expected)); // reproduce all four committed groups
       packet.blobs.push({ ...b, snapshot, expected: { ...expected, todayInputs } });
       preparation.push({ ...b, ok: true });
-      if (!b.private) console.log("GREEN M2-2 " + b.name + ": fixture/golden/stamp pins; frozen migrated snapshot matches golden");
+      if (!b.private) console.log("GREEN M2-3 " + b.name + ": fixture/golden/stamp pins; frozen migrated snapshot matches golden");
     } catch (_) {
       preparation.push({ ...b, ok: false });
-      console.log("FAIL M2-2 " + b.name + ": " + (b.private ? WITHHELD : "fixture/golden/stamp or frozen snapshot validation"));
+      console.log("FAIL M2-3 " + b.name + ": " + (b.private ? WITHHELD : "fixture/golden/stamp or frozen snapshot validation"));
     }
   }
   globalThis.Date = NativeDate;
@@ -153,12 +157,12 @@ function main() {
   const frozen = runWorker("frozen", packet);
   const unfrozen = runWorker("unfrozen", packet);
   if (!frozen || !unfrozen) {
-    console.log("FAIL M2-2 isolated candidate execution: details withheld");
-    if (!publicOnly) console.log("FAIL M2-2 live: " + WITHHELD);
+    console.log("FAIL M2-3 isolated candidate execution: details withheld");
+    if (!publicOnly) console.log("FAIL M2-3 live: " + WITHHELD);
     return 1;
   }
   const seedOK = frozen.seed && unfrozen.seed;
-  console.log((seedOK ? "GREEN" : "FAIL") + " M2-2 SEED: canonical byte equality to frozen __test.SEED in both Date modes");
+  console.log((seedOK ? "GREEN" : "FAIL") + " M2-3 SEED: canonical byte equality to frozen __test.SEED in both Date modes");
   let all = seedOK;
   for (let i = 0; i < blobs.length; i++) {
     const b = blobs[i], f = frozen.rows[i], u = unfrozen.rows[i];
@@ -166,18 +170,18 @@ function main() {
     const ok = f.ok && u.ok && deterministic;
     all = all && ok;
     if (b.private) {
-      console.log((ok ? "GREEN" : "FAIL") + " M2-2 live: " + WITHHELD);
+      console.log((ok ? "GREEN" : "FAIL") + " M2-3 live: " + WITHHELD);
       continue;
     }
     for (const [mode, row] of [["frozen", f], ["unfrozen", u]]) {
       const detail = row.error ? "candidate exception (details withheld)" : row.ok ?
-        "lifts + progression + energy + raw Today inputs byte-identical (" + row.leaves + " leaves)" :
+        "lifts + progression + energy + today + raw Today inputs byte-identical (" + row.leaves + " leaves)" :
         row.difference.count + " differing paths: " + row.difference.paths.join(" ") + " (values withheld)";
-      console.log((row.ok ? "GREEN" : "FAIL") + " M2-2 " + b.name + " Date=" + mode + ": " + detail);
+      console.log((row.ok ? "GREEN" : "FAIL") + " M2-3 " + b.name + " Date=" + mode + ": " + detail);
     }
-    console.log((deterministic ? "GREEN" : "FAIL") + " M2-2 " + b.name + ": frozen/unfrozen Date outputs identical; clock still injected");
+    console.log((deterministic ? "GREEN" : "FAIL") + " M2-3 " + b.name + ": frozen/unfrozen Date outputs identical; clock still injected");
   }
-  console.log((all ? "PASS" : "FAIL") + " M2-2 partial census: " +
+  console.log((all ? "PASS" : "FAIL") + " M2-3 partial census: " +
     (publicOnly ? "PUBLIC ONLY" : "all required blobs") + "; two Date modes; migration once per fixture");
   return all ? 0 : 1;
 }
@@ -190,7 +194,7 @@ if (process.argv[2] === "--worker") {
 } else {
   try { process.exitCode = main(); }
   catch (_) {
-    console.log("FAIL CLOSED M2-2 partial census: precondition or execution error (details withheld)");
+    console.log("FAIL CLOSED M2-3 partial census: precondition or execution error (details withheld)");
     process.exitCode = 1;
   }
 }
