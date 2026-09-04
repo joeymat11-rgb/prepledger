@@ -1091,16 +1091,24 @@ function _volDeltas(ex, s) {
    against three, and called it complete — and a line the WALK refused to count then banked a
    sighting at the next boot, earning the load a whole session early. Completeness on a day is
    judged against the MAXIMUM count plausibly active during it: what the receipts AFTER that day
-   imply, plus every +1 filed ON it. A day the count may have been four is a day a three-set line
+   imply (the end-of-day count), plus every -1 filed ON it (FIX-4c §1 — a same-day +1 is already
+   inside the end-of-day count). A day the count may have been four is a day a three-set line
    proves nothing. (Receipts written from here on also carry an "at" instant, so a future rebuild
    can order same-day events exactly; nothing reads it yet.) */
 function _setsAtTime(baseSets, deltas, d) {
-  let n9 = baseSets, plus9 = 0;
+  /* FIX-4c §1 (Sol PACK-3, rig185 W1) — THE SAME-DAY MAXIMUM IS THE END-OF-DAY COUNT PLUS THE
+     SAME-DAY DECREASES, NEVER PLUS THE INCREASES. The count walked back to the end of day d
+     already INCLUDES every push filed on d, so adding a same-day +1 counted it twice: a +1
+     with the lift at four read five, a count the lift never carried that day. And a same-day
+     -1 was invisible: with the lift at three, the -1 says it was FOUR before the undo, so the
+     maximum that day was four, and a three-set line proves nothing. The balanced +1/-1 case
+     read five either way, which is the only case the old pin covered. */
+  let end9 = baseSets, dec9 = 0;
   for (const p9 of (deltas || [])) {
-    if (p9[0] > String(d)) n9 -= p9[1];
-    else if (p9[0] === String(d) && p9[1] > 0) plus9 += p9[1];
+    if (p9[0] > String(d)) end9 -= p9[1];
+    else if (p9[0] === String(d) && p9[1] < 0) dec9 += -p9[1];
   }
-  return Math.max(1, n9 + plus9);
+  return Math.max(1, end9 + dec9);
 }
 function targetsFor(ex, s) {
   /* OWNER'S CALL rider — std/reclaim are AUTHORED target arrays sized for the set count
@@ -2273,7 +2281,7 @@ function _mintJointEarn(s, ex) {
     const upNext9 = nextLoad(ex);
     if (upNext9 == null) return false;
     if ((s.queue || []).some((q9) => q9 && q9.exId === ex.id && q9.kind === "debut" && !q9.done)) return false;
-    const nm9 = String(ex.n || "").toUpperCase();
+    const names9 = _formerNames(ex).map((n9) => n9.toUpperCase());   /* FIX-4c §2 (rig185 W2) — the PROVISIONAL scan reads the whole name family: a day-1 line filed under a FORMER name is the same walk's receipt, and matching the current name only left the merged pair unminted while the serial walk earned */
     /* FIX-4 §1 — THE MINT CONSUMES THE DERIVATION'S OWN TENURE-BOUNDED TRACE. It used to rescan
        every session at the current load and pair the last two tops, so any two PROVISIONAL days
        paired whatever lay between them — a load excursion, an earn, an era boundary. The run and
@@ -2286,7 +2294,7 @@ function _mintJointEarn(s, ex) {
     const dPrev9 = tdays9[tdays9.length - 2], dK9 = tdays9[tdays9.length - 1];
     const enPrev9 = entOn9(dPrev9), enK9 = entOn9(dK9);
     if (!enPrev9 || !enK9) return false;
-    const lineOn9 = (d9, re9) => (s.feed || []).some((f9) => f9 && String(f9.d) === String(d9) && typeof f9.t === "string" && f9.t.indexOf(nm9) === 0 && re9.test(f9.t));
+    const lineOn9 = (d9, re9) => (s.feed || []).some((f9) => f9 && String(f9.d) === String(d9) && typeof f9.t === "string" && names9.some((n9) => f9.t.indexOf(n9) === 0) && re9.test(f9.t));
     const prov9 = /(TOP OF WINDOW, PROVISIONAL|NO NEXT LOAD ON FILE)$/;
     if (!lineOn9(dPrev9, prov9) || !lineOn9(dK9, prov9)) return false;          /* both walks saw a first sighting */
     if (lineOn9(dK9, / EARNED$/) || lineOn9(dK9, /BUT HOT$/)) return false;      /* neither already decided */
@@ -14615,6 +14623,7 @@ __test.deriveSighting = deriveSighting;
 __test.progressionSetCount = progressionSetCount;
 __test._formerNames = _formerNames;   /* FIX-4b §1 — the pins assert the name family directly, on his own blob */
 __test._volDeltas = _volDeltas;
+__test._setsAtTime = _setsAtTime;   /* FIX-4c §1 — the six same-day values are pinned on the helper itself */
 __test.takeProposedDebut = takeProposedDebut;   /* FIX-4 §4 — the consent's MEANING is engine law, so the pins drive it directly */
 __test.reconcileDebutQueue = reconcileDebutQueue;   /* A5 — the pins assert the prefix rule directly */   /* A6 — the pins assert the derivation directly */   /* PROGRESSION-1 — the TECHNIQUE-only fork set: the pins assert the reset-bearing class directly rather than re-spelling its predicate */   /* v7.55.2 — the guard pin asserts the app's own projection class, not a rig's re-spelling of it */
 __test._isFeedDerived = _isFeedDerived;   /* v7.55.3 — and the guard's strictly smaller derived class */

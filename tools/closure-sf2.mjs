@@ -2986,6 +2986,81 @@ export function runClosureSF2(T, ok, readFileSync) {
         && T._formerNames(exN).every((x) => !/^\d{4}-\d{2}-\d{2}$/.test(String(x))),
         "FIX-4b §1 — one helper answers 'what has this lift been called', and it reads renames[].prevN. The old _volDeltas set added renames[].from — the DATE — to a set of names, so it matched nothing and merely looked as though renames were handled (observed " + JP(typeof T._formerNames === "function" ? T._formerNames(exN) : null) + ")");
     }
+    /* ---- FIX-4c §1 (Sol PACK-3 · rig185 W1) — the same-day maximum is END-OF-DAY + same-day DECREASES ---- */
+    {
+      const d1 = "2026-09-01", later1 = "2026-09-02";
+      const sat = (n, deltas) => (typeof T._setsAtTime === "function" ? T._setsAtTime(n, deltas, d1) : NaN);
+      const six = { plus: sat(4, [[d1, 1]]), minus: sat(3, [[d1, -1]]), balanced: sat(4, [[d1, 1], [d1, -1]]),
+        plusMinusMinus: sat(4, [[d1, 1], [d1, -1], [d1, -1]]), laterPlus: sat(4, [[later1, 1]]), laterMinus: sat(3, [[later1, -1]]) };
+      ok(six.plus === 4,
+        "FIX-4c §1 (rig185 W1) — ONE-SIDED +1 ON THE ENTRY'S OWN DAY: the lift is at four and the push was filed that day, so the maximum that day was FOUR. The count walked back to the end of the day already includes the push; 66bc7c3 added it again and read FIVE, a count the lift never carried (observed " + six.plus + ")");
+      ok(six.minus === 4,
+        "FIX-4c §1 (rig185 W1) — ONE-SIDED −1 ON THE ENTRY'S OWN DAY: the lift is at three and a set was removed that day, so it was FOUR before the undo and the maximum that day was four. 66bc7c3 read THREE, and a three-set line on a day the lift may have been four proves nothing (observed " + six.minus + ")");
+      ok(six.balanced === 5,
+        "FIX-4c §1 — the balanced +1/−1 still reads FIVE: the −1 says the count stood one higher before it. Right by coincidence on 66bc7c3, and the only case the old pin covered (observed " + six.balanced + ")");
+      ok(six.plusMinusMinus === 6,
+        "FIX-4c §1 — +1, −1, −1 on one day reads SIX: two same-day decreases mean the count stood two higher at some point that day. 66bc7c3 read five — the third red value, beyond the two the handoff named (observed " + six.plusMinusMinus + ")");
+      ok(six.laterPlus === 3,
+        "FIX-4c §1 — a +1 filed AFTER the day walks the count back: four today was three then. T20's shape, unchanged (observed " + six.laterPlus + ")");
+      ok(six.laterMinus === 4,
+        "FIX-4c §1 — a −1 filed AFTER the day walks it forward: three today was four then. FIX-3 §1's minus case, unchanged (observed " + six.laterMinus + ")");
+      /* and the two one-sided values decide what a real line is worth at the boot */
+      const mkC = (sets, line, reps) => {
+        const s9 = T.migrate(null);
+        const e9 = s9.exercises.find((x) => x.id === "press");
+        e9.forks = []; e9.std = null; e9.own = false; e9.reclaim = null; e9.ladder = null;
+        e9.w = 250; e9.sets = sets; e9.hi = 9; e9.last = reps.slice(); e9.inc = 5; e9.topAt = null; e9.topRun = 0;
+        e9.lastMeta = { d: "2026-08-18", w: 250, reps: reps.slice() };
+        s9.queue = [];
+        s9.feed = [{ d: "2026-08-20", t: line.replace("{N}", e9.n), how: "filed the same day the session ran" }];
+        s9.sessionLog["2026-08-20"] = { d: "2026-08-20", entries: [{ id: "press", w: 250, reps: reps.slice() }] };
+        return s9;
+      };
+      const vC = (s9) => { const e9 = s9.exercises.find((x) => x.id === "press"); return JP([e9.topAt == null ? null : e9.topAt, e9.topRun || 0]); };
+      const onePlus = T.migrate(clP(mkC(4, "VOLUME +1 — CHEST via {N} (now 4 sets)", [9, 9, 8, 7])));
+      ok(vC(onePlus) === JP([250, 1]),
+        "FIX-4c §1 — a lift pushed to FOUR on 08-20 that delivered FOUR that day is COMPLETE: the maximum that day was four. 66bc7c3 judged the line against five and threw away a real sighting (observed " + vC(onePlus) + ")");
+      const oneMinus = T.migrate(clP(mkC(3, "VOLUME −1 — CHEST via {N} (now 3 sets)", [9, 9, 8])));
+      ok(vC(oneMinus) === JP([null, 0]),
+        "FIX-4c §1 — a lift cut to THREE on 08-20 that delivered three that day is PARTIAL: it may have been four when the session ran. 66bc7c3 judged the line against three and banked a sighting the walk itself would have refused (observed " + vC(oneMinus) + ")");
+    }
+
+    /* ---- FIX-4c §2 (Sol PACK-3 · rig185 W2) — the mint's PROVISIONAL scan reads the lift's FORMER names ---- */
+    {
+      const mkW2 = (formerOnDay1) => {
+        const s9 = T.migrate(null);
+        const ex = s9.exercises.find((x) => x.id === "press");
+        ex.forks = []; ex.std = null; ex.own = false; ex.reclaim = null; ex.ladder = null;
+        ex.w = 250; ex.sets = 2; ex.hi = 9; ex.last = [9, 9]; ex.inc = 5; ex.topAt = null; ex.topRun = 0;
+        ex.lastMeta = { d: "2026-08-25", w: 250, reps: [9, 9] };
+        ex.renames = [{ from: "2026-08-20", prevN: "Chest press (old rack)" }];   /* a pure rename between the two sightings */
+        s9.queue = [];
+        /* device A banked sighting 1 on 08-18 and wrote its line under the name the lift had THEN;
+           device B banked sighting 1 on 08-25 under the current name; the merged history carries both */
+        s9.sessionLog["2026-08-18"] = { d: "2026-08-18", entries: [{ id: "press", w: 250, reps: [9, 9], rir: 2 }] };
+        s9.sessionLog["2026-08-25"] = { d: "2026-08-25", entries: [{ id: "press", w: 250, reps: [9, 9], rir: 2 }] };
+        const day1 = (formerOnDay1 ? "Chest press (old rack)" : String(ex.n)).toUpperCase();
+        s9.feed = [
+          { d: "2026-08-25", t: String(ex.n).toUpperCase() + " — TOP OF WINDOW, PROVISIONAL", how: "device B", op: "x2" },
+          { d: "2026-08-18", t: day1 + " — TOP OF WINDOW, PROVISIONAL", how: "device A", op: "x1" },
+        ];
+        return s9;
+      };
+      const vW = (s9) => { const e9 = s9.exercises.find((x) => x.id === "press");
+        return JP({ rec: [e9.topAt == null ? null : e9.topAt, e9.topRun || 0],
+          earned: (s9.feed || []).filter((f) => f && / EARNED$/.test(String(f.t || ""))).length,
+          debut: (s9.queue || []).filter((q) => q && q.exId === "press" && q.kind === "debut" && !q.done).length }); };
+      const bootF = T.migrate(clP(mkW2(true))), bootC = T.migrate(clP(mkW2(false)));
+      ok(vW(bootF) === JP({ rec: [250, 2], earned: 0, debut: 0 }) && vW(bootC) === vW(bootF),
+        "FIX-4c §2 (rig185 W2) — the derivation already reads BOTH tops through the name family: booted, the former-name history and the current-name history are the same run of TWO, no earn yet (the mint runs at the merge exit only) (observed former " + vW(bootF) + " / current " + vW(bootC) + ")");
+      const merC = T.mergeState(clP(bootC), clP(bootC)), merF = T.mergeState(clP(bootF), clP(bootF));
+      ok(vW(merC) === JP({ rec: [null, 0], earned: 1, debut: 1 }),
+        "FIX-4c §2 — with both PROVISIONAL lines under the CURRENT name the merge exit mints exactly one earn and queues one debut, and the earn spends the record (observed " + vW(merC) + ")");
+      ok(vW(merF) === vW(merC),
+        "FIX-4c §2 (rig185 W2) — AND THE SAME HISTORY WITH DAY 1 FILED UNDER THE FORMER NAME MINTS THE SAME EARN. On 66bc7c3 the mint's line scan matched the CURRENT name only, so the pair went unminted — EARNED 0, debuts 0 on a run of two — while the serial walk earned. Serial and merged histories must earn the SAME single earn and debut (observed former " + vW(merF) + " vs current " + vW(merC) + ")");
+      ok(vW(T.mergeState(clP(merF), clP(merF))) === vW(merF) && vW(T.migrate(clP(merF))) === vW(merF),
+        "FIX-4c §2 — and the minted state is a fixed point of merge(m,m) and of a boot: the EARNED receipt is what the next derivation reads (observed " + vW(merF) + ")");
+    }
     /* ---- FIX-4b §1 — on his own history: three receipts that were invisible ---- */
     withClock(RULED, () => {
       const m9 = T.migrate(clP(rawP1));
