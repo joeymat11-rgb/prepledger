@@ -12,6 +12,8 @@ const sameEra = (...args) => E.sameEra(...args);
 const resetForksOf = (...args) => E.resetForksOf(...args);
 const exActive = (...args) => E.exActive(...args);
 const dayType = (...args) => E.dayType(...args);
+const cleanAtDate = (...args) => E.cleanAtDate(...args);
+const dayWeather = (...args) => E.dayWeather(...args);
 
 // Copied from frozen src/app.jsx @ fe516c1:926-959.
 function progressStep(ex, s) {
@@ -746,49 +748,10 @@ function progressionTrend(s) {
     why: state === "unknown" ? "pooled interval " + lo.toFixed(1) + " to " + hi.toFixed(1) + " %/session is too wide to call" : "pooled " + pct.toFixed(2) + " %/session across " + trends.length + " lifts" };
 }
 
-// Copied from frozen src/app.jsx @ fe516c1:6994-6996.
-function nightsBefore(s, iso) {
-  return (((s || {}).sleep || {}).nights || []).filter((n) => n.d < iso).slice().sort((a, b) => (a.d < b.d ? -1 : 1));
-}
 
-// Copied from frozen src/app.jsx @ fe516c1:6997-7010.
-function cleanAtDate(s, iso) {
-  const nights = nightsBefore(s, iso);
-  if (!nights.length) return true;
-  const last = nights[nights.length - 1];
-  if (last.h < DEBT_LAST_H) return false;
-  /* three CALENDAR-consecutive nights ending last night, if we have them */
-  const run = [last];
-  for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {
-    if (Math.round((mk(run[0].d) - mk(nights[i].d)) / DAY) !== 1) break;
-    run.unshift(nights[i]);
-  }
-  if (run.length < 3) return true;
-  return run.reduce((a, b) => a + b.h, 0) / run.length >= DEBT_MEAN3_H;
-}
 
-// Copied from frozen src/app.jsx @ fe516c1:12419-12437.
-function dayWeather(s, iso) {
-  const flags = [];
-  const manual = (s.dayCtx || {})[iso];
-  if (manual && manual.est) flags.push({ k: "estimate", why: manual.note || "declared estimate day" });
-  if (manual && manual.travel) flags.push({ k: "travel", why: "travel day — interpretation context only, never a trigger" });
-  if (manual && manual.illness) flags.push({ k: "illness", why: "illness noted — interpretation context only, never a trigger" });
-  (s.events || []).forEach((e) => { const gap = (mk(iso) - mk(e.d)) / DAY; if (gap >= -1 && gap <= 2) flags.push({ k: "event", why: e.t || "event window", pre: gap < 0 }); });
-  if (s.blackout && iso <= s.blackout.until && (mk(s.blackout.until) - mk(iso)) / DAY <= 9) flags.push({ k: "sealwater", why: "scale carries event water — sealed window" });
-  { const mm2 = (s.medsLog || []).find((x) => x.d === iso); if (mm2 && !mm2.taken) flags.push({ k: "nomeds", why: "no meds this day — appetite, energy, and effort read differently" }); }
-  if (dayType(isoOf(new Date(mk(iso).getTime() - DAY)), s) === "REFEED") flags.push({ k: "postrefeed", why: "morning after refeed — storage bump expected" });
-  /* R17 — TWO QUESTIONS, TWO ANSWERS. `hard` answers "are this day's FOOD and SCALE
-     numbers trustworthy" — a declared estimate day and an event day both fail it, and
-     every food/scale consumer keeps reading it unchanged. `hardSession` answers a
-     different question: "was the TRAINING itself compromised". A guessed dinner does
-     not make 11 reps at 320 less true — the reps were counted at a known load — so the
-     estimate flag has no business excluding a session. An EVENT day stays excluded:
-     a wedding plausibly does degrade the session, and Joe's ruling left that alone. */
-  return { flags, noisy: flags.some((f) => f.k === "estimate" || f.k === "event" || f.k === "sealwater"), hard: flags.some((f) => f.k === "estimate" || (f.k === "event" && !f.pre)), hardSession: flags.some((f) => f.k === "event" && !f.pre), est: flags.some((f) => f.k === "estimate") };
-}
 
 return {
-  progressStep, progressAnchor, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, coarseLifts, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend, nightsBefore, cleanAtDate, dayWeather
+  progressStep, progressAnchor, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, coarseLifts, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend
 };
 };
