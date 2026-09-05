@@ -1,0 +1,33 @@
+:root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #142f36; background: #f4f0e7; }
+* { box-sizing: border-box; }
+body { margin: 0; font-size: 18px; line-height: 1.55; }
+main { max-width: 760px; margin: auto; padding: max(28px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left)); }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; justify-content: space-between; margin-bottom: 42px; }
+.eyebrow { font-size: 12px; font-weight: 750; letter-spacing: .13em; }
+.pill { font-size: 13px; padding: 5px 12px; border: 1px solid #748383; border-radius: 30px; }
+h1 { font-size: clamp(36px, 8vw, 60px); line-height: 1.08; letter-spacing: -.045em; font-weight: 650; margin: 0 0 22px; }
+h2 { font-size: 24px; line-height: 1.25; margin: 8px 0; }
+.intro { max-width: 550px; }
+section { margin-top: 26px; }
+#status-panel { padding: 20px; border: 1px solid #82938b; background: #e8eee6; border-radius: 14px; }
+#status-panel.error, .error { color: #941f1f; background: #fff0ea; border-color: #941f1f; }
+#status-panel p:last-child { margin-bottom: 0; }
+.deadline { font-size: clamp(25px, 6vw, 38px); font-weight: 800; letter-spacing: -.025em; line-height: 1.2; padding: 26px 0; border-block: 2px solid #142f36; overflow-wrap: anywhere; }
+dl { margin-top: 30px; }
+dl div { padding: 16px 0; border-bottom: 1px solid #c2c5bb; }
+dt { color: #4d5f60; font-size: 14px; }
+dd { margin: 5px 0 0; overflow-wrap: anywhere; }
+.mono { font-family: ui-monospace, monospace; letter-spacing: .04em; font-size: 24px; }
+.note, footer { font-size: 14px; color: #4d5f60; }
+details { margin-top: 26px; border: 1px solid #82938b; border-radius: 14px; padding: 16px; }
+summary { cursor: pointer; padding: 8px 0; font-weight: 650; }
+label { display: block; margin-top: 18px; font-size: 16px; }
+input, button, textarea { font: inherit; font-size: 16px; }
+.confirmation { padding: 12px 0; cursor: pointer; }
+input[type="checkbox"] { width: 22px; height: 22px; vertical-align: middle; margin-right: 8px; }
+textarea { display: block; margin-top: 8px; width: 100%; border: 1px solid #748383; border-radius: 7px; padding: 12px; color: #142f36; background: #fffdf7; }
+button { min-height: 48px; padding: 12px 18px; background: #142f36; color: #fffdf7; border: 0; border-radius: 8px; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+:focus-visible { outline: 3px solid #ac5a25; outline-offset: 4px; }
+footer { margin-top: 44px; }
+[hidden] { display: none !important; }
