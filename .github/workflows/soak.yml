@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Stage the nine static files (README: deploy nothing else) + the stub's own headers
+      - name: Stage the nine static files the stub's README allows, plus its own response headers
         run: |
           set -o pipefail
           SRC=rebuild/m3/soak-stub
