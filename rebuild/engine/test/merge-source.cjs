@@ -21,7 +21,7 @@ for (const file of ["dates", "constants", "seed", "plan", "progression", "sleep"
 }
 const oldIndex = git(["show", BASE + ":rebuild/engine/index.cjs"]);
 assert.equal(fs.readFileSync(path.resolve(__dirname, "../index.cjs"), "utf8"),
-  oldIndex.replace('  require("./migrate.cjs"),', '  require("./migrate.cjs"),\n  require("./merge.cjs"),'));
+  oldIndex.replace('  require("./migrate.cjs"),', '  require("./migrate.cjs"),\n  require("./merge.cjs"),\n  require("./writers.cjs"),'));
 const NativeDate = globalThis.Date;
 const { createEngine } = require("../index.cjs");
 assert.strictEqual(globalThis.Date, NativeDate);
@@ -41,4 +41,4 @@ A.MERGE_OBJ.push("invented-only-A");
 assert.equal(JSON.stringify(B.MERGE_OBJ), original);
 assert.strictEqual(globalThis.Date, NativeDate);
 console.log("MERGE SOURCE PASS: complete 1082-line frozen range / 42 declarations; only _stampCorr clock substitution; pass order and comments exact");
-console.log("PRIOR SOURCE PASS: modules 1–5 and oracle-shim byte-identical to accepted base; index adds merge last; per-engine maps and callable candidate exports");
+console.log("PRIOR SOURCE PASS: modules 1–5 and oracle-shim byte-identical to accepted base; index adds merge then writers; per-engine maps and callable candidate exports");

@@ -13,6 +13,7 @@ const modules = [
   require("./volume.cjs"),
   require("./migrate.cjs"),
   require("./merge.cjs"),
+  require("./writers.cjs"),
 ];
 
 function createEngine({ clock, ids, drafts } = {}) {
