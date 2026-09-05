@@ -11,15 +11,17 @@ const modules = [
   require("./policy.cjs"),
   require("./today.cjs"),
   require("./volume.cjs"),
+  require("./migrate.cjs"),
 ];
 
-function createEngine({ clock, ids } = {}) {
+function createEngine({ clock, ids, drafts } = {}) {
   if (!clock || typeof clock.today !== "function") {
     throw new TypeError("createEngine requires an injected clock.today()");
   }
   // One table per engine keeps cyclic calls and mutable seed objects local.
   const E = {};
-  const deps = { clock, ids };
+  // Storage-shaped, read-only injection keeps patchV51's caught key scan intact.
+  const deps = { clock, ids, drafts: drafts === undefined ? Object.freeze({ length: 0, key: () => null }) : drafts };
   for (const createModule of modules) Object.assign(E, createModule(E, deps));
   return { ...E, __test: { ...E } };
 }
