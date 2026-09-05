@@ -1,0 +1,6 @@
+{
+  "name": "earned-m3-tooling",
+  "private": true,
+  "description": "wrangler for the M3 setup steps (rebuild branch only; the frozen app package.json is untouched)",
+  "devDependencies": { "wrangler": "^4" }
+}
