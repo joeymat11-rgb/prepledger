@@ -1,4 +1,4 @@
-# EARNED — REBUILD ROADMAP v1.6 (2026-09-05, early morning after)
+# EARNED — REBUILD ROADMAP v1.7 (2026-09-05, morning)
 
 The durable plan. A chat can die; this file cannot. Every Claude Code handoff that changes the plan updates this file.
 Owner: Joe (rules). THE SPLIT (owner ruling 2026-09-05, after the M3-plan test — rebuild/m3/DECISION-MEMO context in
@@ -12,7 +12,7 @@ fulfilment). The integrator seat (secrets, private-golden custody, releases) is 
 backup-integrator rehearsal is queued for M3. Dad = first real user.
 
 ## Now (the task index — brief · base · next actor)
-- M2 modules 1–5 DONE (read side + volume + MIGRATE; module 5 accepted 2026-09-05, rebuild/m2/SCORECARD-M2-5.md: full port-oracle 10/10 on three blobs, two Date modes). NEXT = module 6 (merge: mergeState + the general merge API, with {mint:true} at its exit) and module 7 (writers) · Astra writes BRIEF-6 + BRIEF-7 in BRIEF-5's shape and BUILDS 6 in one PR · gate for 6 = the full port-oracle check unchanged + a merge differential (two-device union, keyed-union + additive migration, idempotent replay) · then the SECOND GATE (engine-test.jsx ≈ 2,600 assertions + sync-laws + engine-surface re-pointed), then the post-extraction audit (D1–D36 → red-first laws → owner rulings). CHECKPOINT 2026-09-11 17:00 NY: migrate half READY early; merge half = module 6.
+- M2 modules 1–6 DONE (read side + volume + MIGRATE + MERGE; module 6 accepted 2026-09-05, rebuild/m2/SCORECARD-M2-6.md: port-oracle 10/10 × 2 modes, sync-laws 18/59/0 skips re-pointed, merge differential 152 × 2). CHECKPOINT (proposed 09-11) ANSWERED EARLY: engine migrate + merge READY → real port in week 2 per PLAN-M3-v1. NEXT = module 7 (writers + the SECOND GATE: engine-test FINAL108 M=0 with the reference's N, vacuity, sync-laws zero skips, surface baseline byte-compare, writers-differential) · rebuild/m2/BRIEF-7.md (Astra-written, cowork-accepted with SCORECARD-M2-6 row 8) · ASTRA builds now · then the post-extraction audit (D1–D40 → red-first laws → owner rulings) and M2 CLOSES.
 - M3 DAY ONE — DONE 2026-09-05 by the owner: Cloudflare account, Workers Paid, $5 budget alert, domain earnedcoach.com (Cloudflare
   Registrar, auto-renew). Phone: iPhone 17 Pro, iOS 26.6.1. Second test phone: none yet (week 2).
 - M3 SOAK RUNNING: seeded 2026-09-05T01:04:21Z on the owner's iPhone 17 Pro (receipt rebuild/m3/SOAK-1.md); earliest readback 2026-10-05; pressure window to book in week 2. Host: https://earned-soak.netlify.app (.github/workflows/soak.yml).
@@ -54,7 +54,7 @@ backup-integrator rehearsal is queued for M3. Dad = first real user.
 ## Milestones (rough weeks; the bar does not move to hit a date)
 - M0 · CLOSE THE OLD APP — DONE 2026-09-04 (merged, live, frozen). Remaining: Sol/Grok v3 verdicts → suite v4 (their
   objections + the T2 findings: B-durability must restart from the store; canonical-v2 for the decimal defects; rig185's
-  rename shape; run.cjs engine defaults under rebuild/conform/engines/) → the suite FREEZES like the sheet.
+  rename shape; run.cjs engine defaults under rebuild/conform/engines/; sync-laws seeds for every MERGE_ARR key) → the suite FREEZES like the sheet.
 - M1 · SEE IT (now, in parallel). Mock LIVE → dad test → rulings. Backend RULED.
 - T3 · THE AUTHORITY — DONE 2026-09-04, RULED. Two builders, one brief. Pre-registered scorecard (rebuild/t3/SCORECARD.md):
   gate, independence, interop = tie; ten breaks 10/10 vs 9/9 effective; SEAMS Astra 9 vs Claude 13 (one omitted fixture
