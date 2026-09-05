@@ -1,0 +1,64 @@
+# soak-stub — deploy ONLY rebuild/m3/soak-stub/'s nine static files to the SEPARATE Netlify site "earned-soak".
+# The 30-day IndexedDB soak (rebuild/m3/PLAN-M3-v1.md §2 W1 / §6 SOAK-30) must run on its own origin: never the frozen app's,
+# never the future product's. This job never touches the production pipeline (deploy.yml), never runs on main, and uses the
+# repository's EXISTING NETLIFY_AUTH_TOKEN secret — no new secret, no other secret. Plan: rebuild/m3/SETUP-HOST.md (Path A).
+name: soak-stub
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main]
+    paths: ["rebuild/m3/soak-stub/**", ".github/workflows/soak.yml"]
+jobs:
+  soak:
+    name: earned-soak
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Stage the nine static files (README: deploy nothing else) + the stub's own headers
+        run: |
+          set -o pipefail
+          SRC=rebuild/m3/soak-stub
+          test -d "$SRC" || { echo "no $SRC on this branch — nothing to deploy"; exit 1; }
+          STAGE="$RUNNER_TEMP/site"; mkdir -p "$STAGE"
+          for f in index.html app.mjs store.mjs styles.css manifest.webmanifest service-worker.js icon-180.png icon-192.png icon-512.png; do
+            test -f "$SRC/$f" || { echo "missing $SRC/$f"; exit 1; }
+            cp "$SRC/$f" "$STAGE/$f"
+          done
+          # the same response headers the stub's own dev server (serve.cjs) sends
+          printf '/*\n  Cache-Control: no-store\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n' > "$STAGE/_headers"
+          echo "staged $(ls "$STAGE" | wc -l) files:"; ls -l "$STAGE"
+          (cd "$STAGE" && sha256sum *) | tee "$RUNNER_TEMP/soak-build-hashes.txt"
+          (cd "$STAGE" && zip -q "$RUNNER_TEMP/soak.zip" -r .)
+      - name: Create-or-find the site "earned-soak", deploy, wait until published
+        run: |
+          set -o pipefail
+          NT="${{ secrets.NETLIFY_AUTH_TOKEN }}"
+          SITE=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=100" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const s=JSON.parse(d).find(x=>x.name==='earned-soak');process.stdout.write(s?s.id:'')})")
+          if [ -z "$SITE" ]; then
+            SITE=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/json" -d '{"name":"earned-soak"}' \
+              "https://api.netlify.com/api/v1/sites" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const s=JSON.parse(d);if(!s.id){console.error(d);process.exit(1)}process.stdout.write(s.id)})")
+            echo "created site earned-soak ($SITE)"
+          else
+            echo "site earned-soak exists ($SITE)"
+          fi
+          URL=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites/$SITE" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).ssl_url||JSON.parse(d).url||''))")
+          DEP=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" --data-binary @"$RUNNER_TEMP/soak.zip" \
+            "https://api.netlify.com/api/v1/sites/$SITE/deploys" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).id))")
+          echo "deploy $DEP created, polling..."
+          for i in $(seq 1 30); do
+            ST=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/deploys/$DEP" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).state))")
+            echo "state: $ST"
+            [ "$ST" = "ready" ] && { echo "PUBLISHED $URL  (commit ${GITHUB_SHA})"; echo "SOAK_URL=$URL" >> "$GITHUB_ENV"; exit 0; }
+            [ "$ST" = "error" ] && exit 1
+            sleep 4
+          done
+          exit 1
+      - name: Probe the three URLs the phone needs (status codes only)
+        run: |
+          for p in index.html manifest.webmanifest service-worker.js; do
+            printf '%s %s\n' "$(curl -s -o /dev/null -w '%{http_code}' "$SOAK_URL/$p?t=$(date +%s)")" "$SOAK_URL/$p"
+          done
