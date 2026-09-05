@@ -26,6 +26,8 @@ const stepKcal = (...args) => E.stepKcal(...args);
 const stepTarget = (...args) => E.stepTarget(...args);
 const todayStart = (...args) => E.todayStart(...args);
 
+const structuralMovesThisWeek = (...args) => E.structuralMovesThisWeek(...args);
+
 // Copied from frozen src/app.jsx @ fe516c1:3568-3568.
 const cap = (t) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : t);
 
@@ -677,30 +679,6 @@ function phaseProposal(s, deps) {
   return null;
 }
 
-// Copied from frozen src/app.jsx @ fe516c1:8815-8836.
-function structuralMovesThisWeek(s) {
-  const t = isoOf(todayStart());
-  const d0 = mk(t); const off = (d0.getDay() + 6) % 7;
-  const monday = isoOf(new Date(d0 - off * DAY));
-  const moves = [];
-  const spillOf = (exId) => { const ex = (s.exercises || []).find((x) => x.id === exId); if (!ex) return [];
-    return [(ex.head || ex.mg), ...Object.keys(INDIRECT[ex.id] || {}).map((m) => (m === "delts" ? "delts_front" : m))]; };
-  (s.adjustments || []).forEach((a) => {
-    if (!a || a.undone || a.dismissed || !a.d || a.d < monday) return;
-    if (a.via === "cal" || a.via === "steps") moves.push({ kind: a.via, d: a.d, rid: a.rid });
-    if (a.exUndo && a.exUndo.field === "sets") moves.push({ kind: "sets", d: a.d, rid: a.rid, exId: a.exUndo.exId, mgs: spillOf(a.exUndo.exId) });
-  });
-  (s.feed || []).slice(0, 80).forEach((f) => {
-    if (!f || !f.t || !f.d || f.d < monday || f.t.indexOf("VOLUME ") !== 0) return;
-    const ex = (s.exercises || []).find((x) => f.t.indexOf("via " + x.n) > -1);   /* "VOLUME PASSED" carries no "via" — declines are not moves */
-    if (ex && !moves.some((m) => m.kind === "sets" && m.exId === ex.id)) moves.push({ kind: "sets", d: f.d, rid: null, exId: ex.id, mgs: spillOf(ex.id) });
-  });
-  return { monday, moves,
-    calOrSteps: moves.filter((m) => m.kind === "cal" || m.kind === "steps"),
-    sets: moves.filter((m) => m.kind === "sets"),
-    mgsTouched: [...new Set(moves.filter((m) => m.kind === "sets").flatMap((m) => m.mgs || []))] };
-}
-
 // Copied from frozen src/app.jsx @ fe516c1:9812-9817.
 function proposalDial(p) {
   if (!p || !p.apply) return null;
@@ -845,5 +823,5 @@ function signalReadCopy(s, sig) {
   return { rate, showRate, sentence, rawLine, word: sig.word };
 }
 
-return { signalState, weightNoise, trendSeries, signalReadCopy, autoPilot, autonomyOf, escalation, autoPilotPolicy, confidenceField, whyThisNumber, trackRecord, digitalTwin, twinBodyComp, forecastUncached, forecast, safeCrossing, redlineCrossing, rateDivergence, coneHalfWidth, normCdf, conditionalForesight, etaReached, phaseArc, dietBreakState, dietBreakHonest, phaseSupervisor, phaseProposal, activeAdjustment, apSteerHandled, proposalEffect, proposalDial, cap, signalTicks, structuralMovesThisWeek, daysBetween, _phaseSafe, _phaseSince };
+return { signalState, weightNoise, trendSeries, signalReadCopy, autoPilot, autonomyOf, escalation, autoPilotPolicy, confidenceField, whyThisNumber, trackRecord, digitalTwin, twinBodyComp, forecastUncached, forecast, safeCrossing, redlineCrossing, rateDivergence, coneHalfWidth, normCdf, conditionalForesight, etaReached, phaseArc, dietBreakState, dietBreakHonest, phaseSupervisor, phaseProposal, activeAdjustment, apSteerHandled, proposalEffect, proposalDial, cap, signalTicks, daysBetween, _phaseSafe, _phaseSince };
 };

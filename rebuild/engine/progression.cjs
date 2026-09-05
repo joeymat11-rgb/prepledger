@@ -325,12 +325,6 @@ function windowFor(ex) {
   };
 }
 
-// Copied from frozen src/app.jsx @ fe516c1:1398-1401.
-function coarseLifts(s) {
-  return (s.exercises || []).filter((e) => exActive(s, e.id)).map((e) => ({ e, w: windowFor(e) })).filter((x) => x.w.derived && x.w.tight)   /* FIX split-1 (P1-1): a retired lift's plates are nobody's problem — the migrated microload note named pronated */
-    .map((x) => ({ id: x.e.id, n: x.e.n, w: x.e.w, step: x.w.step, pct: x.w.pct, lost: x.w.lost, hi: x.e.hi, lo: x.w.lo }));
-}
-
 // Copied from frozen src/app.jsx @ fe516c1:1414-1457.
 function progressionSetCount(ex, s, through) {
   try {
@@ -752,6 +746,6 @@ function progressionTrend(s) {
 
 
 return {
-  progressStep, progressAnchor, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, coarseLifts, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend
+  progressStep, progressAnchor, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend
 };
 };

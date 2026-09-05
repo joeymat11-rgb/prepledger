@@ -10,6 +10,7 @@ const modules = [
   require("./energy.cjs"),
   require("./policy.cjs"),
   require("./today.cjs"),
+  require("./volume.cjs"),
 ];
 
 function createEngine({ clock, ids } = {}) {
