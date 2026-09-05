@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173e43">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Clock probe">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Earned · Clock diagnostic</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+<main>
+  <header><p class="eyebrow">EARNED / CLOCK DIAGNOSTIC</p><h1>What survived<br>the reopening?</h1></header>
+  <p>This separate test records invented diagnostic observations. It has no account, lease, signed server time or authority connection.</p>
+  <section class="status" aria-live="polite" aria-atomic="true">
+    <h2 id="status">Checking local history…</h2>
+    <p id="explanation">A saved counter cannot prove how much time passed.</p>
+  </section>
+  <section id="installation" hidden>
+    <h2>Install this separate diagnostic</h2>
+    <p>In Safari, choose Share → Add to Home Screen. Leave “Open as Web App” on. Open the new Clock probe icon online with the integrator. This Safari tab records nothing.</p>
+  </section>
+  <section id="setup" hidden>
+    <details><summary>Integrator: initialize a new test</summary>
+      <p>Missing history is not proof of first use. If this diagnostic has ever held a run, or its history is unknown, stop and inspect the off-device receipt. There is no reset or restore button.</p>
+      <label class="confirmation"><input id="confirm" type="checkbox"> I independently confirmed a never-initialized diagnostic origin, iPhone 17 Pro / iOS 26.6.1 in Settings, and will preserve the baseline off-device.</label>
+      <button id="initialize" type="button" disabled>Initialize this new diagnostic</button>
+    </details>
+  </section>
+  <section id="result" hidden>
+    <p class="important">STATE 20 · Continuity unproved<br><span>No Earned operation may be acknowledged from these observations.</span></p>
+    <p>Fresh authenticated server proof would be required to establish a new lease anchor. This diagnostic cannot obtain it, even while online.</p>
+    <dl>
+      <div><dt>Observation committed and read back</dt><dd id="counter"></dd></div>
+      <div><dt>Run identity</dt><dd id="run-id" class="mono"></dd></div>
+      <div><dt>Wall UTC · untrusted observation</dt><dd id="wall"></dd></div>
+      <div><dt>performance.timeOrigin · milliseconds</dt><dd id="origin" class="mono"></dd></div>
+      <div><dt>performance.now · milliseconds in this document</dt><dd id="performance" class="mono"></dd></div>
+      <div><dt>Same document as previous observation?</dt><dd id="same-document"></dd></div>
+      <div><dt>Elapsed milliseconds · same document only</dt><dd id="elapsed"></dd></div>
+      <div><dt>Persisted wall high-water · untrusted maximum, milliseconds</dt><dd id="wall-high" class="mono"></dd></div>
+      <div><dt>Persisted timeOrigin + now high-water · observed maximum only</dt><dd id="projected-high" class="mono"></dd></div>
+      <div><dt>Observed timezone / offset</dt><dd id="zone"></dd></div>
+      <div><dt>History integrity · full SHA-256</dt><dd id="digest" class="mono"></dd></div>
+    </dl>
+    <p>The counter increases within the surviving local history. A restored older copy can roll it back. Matching high-water values, a repeated time origin or a new document ID do not prove uninterrupted time.</p>
+    <label for="label">Label for the next observation</label>
+    <select id="label">
+      <option>Manual observation</option><option>Before process kill</option><option>After process kill</option>
+      <option>Wall clock +24 hours</option><option>Wall clock -24 hours</option><option>Clock restored</option>
+      <option>Timezone changed</option><option>Timezone restored</option><option>After device reboot</option><option>Actual DST transition</option>
+    </select>
+    <button id="capture" type="button">Record one observation</button>
+    <p id="capture-status" role="status"></p>
+    <details><summary>Integrator: preserve the complete receipt</summary>
+      <p>The download is ordinary JSON. Keep a separate encrypted off-device copy and an independent time record. Preserve the initial baseline and each later receipt separately.</p>
+      <button id="download" type="button">Download current receipt</button>
+      <label for="receipt">Or copy the full receipt</label><textarea id="receipt" readonly rows="9" spellcheck="false"></textarea>
+    </details>
+  </section>
+  <footer>clock-spike-v1 · target supplied: iPhone 17 Pro / iOS 26.6.1<br>No runtime requests, analytics, sync or background measurements.</footer>
+  <noscript><p>JavaScript is required. No observation can be verified.</p></noscript>
+</main>
+</body>
+</html>
