@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142f36">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Soak test">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; manifest-src 'self'; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Earned · Storage test</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <link rel="icon" href="./icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <main>
+    <header><p class="eyebrow">EARNED / STORAGE EXPERIMENT</p><span class="pill">Synthetic data only</span></header>
+    <h1>A small test.<br>A real 30-day wait.</h1>
+    <p class="intro">This installation holds three invented operations and two unsynced outbox entries. It never sends them anywhere.</p>
+    <section id="status-panel" class="error" aria-live="polite" aria-atomic="true">
+      <p class="eyebrow">STORAGE CHECK</p>
+      <h2 id="status">STORE MISSING/CHANGED</h2>
+      <p id="explanation">Storage has not yet been verified. If this message remains, do not restart the experiment. No seed is rewritten during verification.</p>
+    </section>
+    <section id="installation" hidden>
+      <h2>Install this test first</h2>
+      <p>In Safari, choose Share → Add to Home Screen. Keep “Open as Web App” on. Then open the new icon with your integrator. The Safari tab is not the test installation.</p>
+    </section>
+    <section id="setup" hidden>
+      <details>
+        <summary>Integrator: first test setup</summary>
+        <p>Use this once, on a new installation. If this icon has ever held a seed, stop: missing storage is a failed test, not a new test. There is no reset or recovery here.</p>
+        <label class="confirmation"><input id="confirm-new" type="checkbox"> I have confirmed a new, never-seeded installation on iPhone 17 Pro / iOS 26.6.1, and will save the receipt off-device.</label>
+        <button id="begin" type="button" disabled>Start this new storage test</button>
+      </details>
+    </section>
+    <section id="result" hidden>
+      <p id="do-not-open" class="deadline"></p>
+      <p>The idle interval begins when setup ends and you close the app. Your integrator records that time separately. An early opening changes the idle interval; this seed date stays unchanged.</p>
+      <dl>
+        <div><dt>Integrity · SHA-256 (short)</dt><dd id="hash" class="mono"></dd></div>
+        <div><dt>Seeded · UTC</dt><dd id="seed-time"></dd></div>
+        <div><dt>Device / OS · owner-supplied</dt><dd id="device"></dd></div>
+        <div><dt>Browser reported at seed</dt><dd id="observed"></dd></div>
+        <div><dt>Persistence request at seed</dt><dd id="persist"></dd></div>
+        <div><dt>Storage estimate at seed</dt><dd id="estimate"></dd></div>
+        <div><dt>Offline shell</dt><dd id="offline"></dd></div>
+      </dl>
+      <p class="note">A matching hash proves this read matches the saved baseline. It is not a 30-day PASS. Compare the full receipt off-device and record the pressure test.</p>
+      <details><summary>Integrator: save the receipt</summary>
+        <p>Save this synthetic baseline outside the phone, encrypted as the plan requires. A screenshot of the short hash is not the complete receipt.</p>
+        <button id="download" type="button">Download full receipt</button>
+        <label for="receipt">Or copy the full receipt</label>
+        <textarea id="receipt" readonly rows="8" spellcheck="false"></textarea>
+      </details>
+    </section>
+    <footer>soak-stub-v1 · iPhone 17 Pro / iOS 26.6.1 target<br>No sign-in. No health data. No sync or polling.</footer>
+    <noscript><p class="error">JavaScript is required. No storage result can be verified.</p></noscript>
+  </main>
+</body>
+</html>
