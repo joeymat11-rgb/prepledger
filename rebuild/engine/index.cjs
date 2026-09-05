@@ -12,6 +12,7 @@ const modules = [
   require("./today.cjs"),
   require("./volume.cjs"),
   require("./migrate.cjs"),
+  require("./merge.cjs"),
 ];
 
 function createEngine({ clock, ids, drafts } = {}) {
