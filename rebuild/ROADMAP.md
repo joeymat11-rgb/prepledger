@@ -1,4 +1,4 @@
-# EARNED — REBUILD ROADMAP v1.4 (2026-09-05, evening)
+# EARNED — REBUILD ROADMAP v1.5 (2026-09-05, night)
 
 The durable plan. A chat can die; this file cannot. Every Claude Code handoff that changes the plan updates this file.
 Owner: Joe (rules). THE SPLIT (owner ruling 2026-09-05, after the M3-plan test — rebuild/m3/DECISION-MEMO context in
@@ -12,10 +12,11 @@ fulfilment). The integrator seat (secrets, private-golden custody, releases) is 
 backup-integrator rehearsal is queued for M3. Dad = first real user.
 
 ## Now (the task index — brief · base · next actor)
-- M2 module 3 (Today read side) · rebuild/m2/BRIEF-3.md · base rebuild/t2-client-core · ASTRA builds, cowork scores. Modules 4–7 follow.
+- M2 modules 1–4 DONE (read side complete + volume). MODULE 5 = migrate (the long pole) · rebuild/m2/BRIEF-5.md (Astra-written, cowork-accepted) · ASTRA builds now · gate = FULL port-oracle check, three blobs, two Date modes. Then 6 (merge), 7 (writers), the SECOND GATE, the post-extraction audit (D1–D32).
 - M3 DAY ONE — DONE 2026-09-05 by the owner: Cloudflare account, Workers Paid, $5 budget alert, domain earnedcoach.com (Cloudflare
   Registrar, auto-renew). Phone: iPhone 17 Pro, iOS 26.6.1. Second test phone: none yet (week 2).
-- M3 W0+W1 the soak stub · PLAN-M3-v1 §2 W1 + §6 SOAK-30 · ASTRA builds · Claude Code hosts on a separate origin (W2) → owner installs → the 30-day clock.
+- M3 SOAK RUNNING: seeded 2026-09-05T01:04:21Z on the owner's iPhone 17 Pro (receipt rebuild/m3/SOAK-1.md); earliest readback 2026-10-05; pressure window to book in week 2. Host: https://earned-soak.netlify.app (.github/workflows/soak.yml).
+- M3 W3 DONE (PR #20): clock/lease continuity spike → RED WITNESS C1-C11-RESTART = an OPEN OWNER RULING (rebuild/m3/SCORECARD-W3.md, DECISIONS.md); iPhone hand test + DST NOT RUN (booked with the pressure window). Next Astra streams: W5 (D1 bridge + Worker + P-256 boundary) and W6 (browser bridge) per PLAN-M3-v1.
 - M3 W4 setup · Claude Code prepares the deploy-token permission list + a no-terminal secret-entry method for the owner; creates D1 `earned-us` with `--jurisdiction=us`.
 - Sol: blind T3 read (in flight) → then PROCESS AUDIT 1 + cowork's answers for the F8/F9 tie-break.
 - Owner rulings open: (1) is the source-ingestion protocol required for beta? (2) defect log D1–D22 (one ruling pass after module 3).

@@ -9,3 +9,6 @@ Format: date · who decided · the decision · what cowork recommended · outcom
 - 2026-09-05 · owner · "a · alert · buy · yes": THE SPLIT (Astra plans+builds; cowork PM of record + cross-family check; Claude Code integrator); "$5" = alert + limits; buy a domain; D1 `us` · cowork recommended (a), alert, buy, yes · in effect.
 - 2026-09-05 · cowork · PLAN-M3-v1 (Astra) accepted as the M3 plan of record after execution checks (repo cites true; budget alerts informational; `--jurisdiction=us` documented) · —
 - 2026-09-05 · owner · Day one done: Cloudflare Workers Paid + $5 alert; domain earnedcoach.com · cowork's day-one list (9 of Astra's 30 steps) · steps 7–9 pending (Clerk app; deploy token; soak stub install).
+- 2026-09-05 · cowork · Module 4 (volume) ACCEPTED; BRIEF-5 (migrate) ACCEPTED as written by Astra; module 5 may start · —
+- 2026-09-05 · OPEN (owner) · C1/C11 restart conflict (W3 red witness): after an unproven restart, allow offline writes under wall-clock + sequence budget (cowork recommends) or refuse until reconnect (strict) · cowork recommends the bounded-trust option; Sol reviews the sheet refinement after the ruling · pending
+- 2026-09-05 · owner · Soak seeded on the iPhone 17 Pro at 2026-09-05T01:04:21Z (hash 5e6b861da8abac95); readback ≥ 2026-10-05 · — · running
