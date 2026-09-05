@@ -1,19 +1,24 @@
-# EARNED — REBUILD ROADMAP v1.3 (2026-09-05)
+# EARNED — REBUILD ROADMAP v1.4 (2026-09-05, evening)
 
 The durable plan. A chat can die; this file cannot. Every Claude Code handoff that changes the plan updates this file.
-Owner: Joe (rules). Build chat (cowork) = senior developer / project manager + execution audits + the cross-family check
-(every claim re-run, never read). Builders: OpenAI Codex (GPT-6 Astra) builds modules against the suite (won T3);
-Claude Code (on the owner's PC) integrates, cuts goldens and ships. Sol = the blind reviewer (one round per milestone,
+Owner: Joe (rules). THE SPLIT (owner ruling 2026-09-05, after the M3-plan test — rebuild/m3/DECISION-MEMO context in
+rebuild/DECISIONS.md): ASTRA (OpenAI Codex / GPT-6) writes the technical plans and briefs and builds modules against the
+suite; COWORK (Claude) is the owner's project manager of record — relay, plain language, execution audits, the decision
+ledger, and the cross-family check by execution (every claim re-run, never read); CLAUDE CODE (on the owner's PC) is the
+integrator seat — secrets, private-golden custody, merges, releases — a ROLE with a runbook, not a model. Sol = the blind reviewer (one round per milestone,
 told to disagree) and the tie-breaker on disputes about cowork's own judgment; Grok is retired from the standing loop
 (2026-09-04 ruling; the T3 pre-registration promised two blind reviewers — this is a RECORDED change of plan, not its
 fulfilment). The integrator seat (secrets, private-golden custody, releases) is a ROLE with a runbook, not a model; a
 backup-integrator rehearsal is queued for M3. Dad = first real user.
 
 ## Now (the task index — brief · base · next actor)
-- M2 module 2 · rebuild/m2/BRIEF-2.md (to be committed) · base = rebuild/t2-client-core after this handoff · ASTRA builds, cowork scores.
-- Phone storage soak · rebuild/m3/SOAK-1.md (to be committed) · owner supplies the phone · starts in parallel with M2.
-- Sol: blind T3 read (in flight) → then PROCESS AUDIT 1 + cowork's answers (rebuild/audit/) for the F8/F9 tie-break.
-- Owner rulings open: (1) is the source-ingestion protocol required for beta? (2) defect log D1–D10 (after module 2, one ruling pass).
+- M2 module 3 (Today read side) · rebuild/m2/BRIEF-3.md · base rebuild/t2-client-core · ASTRA builds, cowork scores. Modules 4–7 follow.
+- M3 DAY ONE — DONE 2026-09-05 by the owner: Cloudflare account, Workers Paid, $5 budget alert, domain earnedcoach.com (Cloudflare
+  Registrar, auto-renew). Phone: iPhone 17 Pro, iOS 26.6.1. Second test phone: none yet (week 2).
+- M3 W0+W1 the soak stub · PLAN-M3-v1 §2 W1 + §6 SOAK-30 · ASTRA builds · Claude Code hosts on a separate origin (W2) → owner installs → the 30-day clock.
+- M3 W4 setup · Claude Code prepares the deploy-token permission list + a no-terminal secret-entry method for the owner; creates D1 `earned-us` with `--jurisdiction=us`.
+- Sol: blind T3 read (in flight) → then PROCESS AUDIT 1 + cowork's answers for the F8/F9 tie-break.
+- Owner rulings open: (1) is the source-ingestion protocol required for beta? (2) defect log D1–D22 (one ruling pass after module 3).
 
 ## Where we are (2026-09-04, evening)
 - FROZEN APP (Measured): PROGRESSION-1 merged (main 8610bd1), v7.56.0 LIVE and tail-verified; CDN denylist on main
@@ -65,7 +70,12 @@ backup-integrator rehearsal is queued for M3. Dad = first real user.
 - PROCESS AUDIT 1 (ASTRA, PR #12) — ten findings, seven disagreements; cowork's execution answers in
   rebuild/audit/ANSWERS-1.md. Accepted: F1 (soak now), F2 (M3 acceptance gates), F3 (family inventory), F4/F5/F7
   (suite v3.2 + v4 items), F6 (branch tracks frozen main), F10 (AGENTS.md, one-PR-link relay). F8/F9 to Sol.
-- M3 · WALKING SKELETON (calendar 1–2 weeks + the 30-day soak clock, which starts NOW in parallel with M2: a stub PWA on
+- M3 · WALKING SKELETON — PLAN OF RECORD = rebuild/m3/PLAN-M3-v1.md (Astra, merged from the M3-plan test; verified by cowork
+  2026-09-05; PR #13/#15 kept as evidence). Rulings: "$5" = budget ALERT (informational) + request limits, residual exposure
+  written down; domain BOUGHT (earnedcoach.com); D1 created with `--jurisdiction=us`; Clerk email-code only; P-256 public
+  verification replaces the shared HMAC on phones; the client never says Saved before the IndexedDB commit resolves; sign-out is
+  state 17. Dated checkpoint proposed 2026-09-11 17:00 New York (migrate/merge ready? else I1 synthetic Today and M3 stays open).
+  (calendar 10–15 working days + the 30-day soak clock, which starts on DAY ONE in parallel with M2: a stub PWA on
   the owner's phone writes an outbox, is left untouched, and is read back after ≥ 30 idle days — device/OS, start date,
   pressure protocol and earliest verdict date recorded in rebuild/m3/SOAK-1.md). The authority on Cloudflare Workers +
   D1 (owner creates the accounts; deploy token to the integrator), real on-device storage, ONE screen (Today) end-to-end
