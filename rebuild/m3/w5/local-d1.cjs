@@ -14,6 +14,8 @@ async function createLocalD1(options = {}) {
   const sql = fs.readFileSync(path.join(__dirname, 'migrations/0001_authority.sql'), 'utf8').replace(/--[^\n]*/g, '');
   const statements = sql.split(';').map(s => s.trim()).filter(Boolean).map(s => db.prepare(s));
   await db.batch(statements);
-  return { db, directory, close: () => mf.dispose(), dispose: () => mf.dispose() };
+  let closed = false;
+  const close = () => { if (closed) return Promise.resolve(); closed = true; return mf.dispose(); };
+  return { db, directory, close, dispose: close };
 }
 module.exports = { createLocalD1 };

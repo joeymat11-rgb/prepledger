@@ -19,8 +19,9 @@ async function databaseDigest(db) {
 async function run(options = {}) {
   const { createLocalD1 } = require("../w5/local-d1.cjs");
   const { createBridge } = require("../w5/bridge.cjs");
-  const runtime = await createLocalD1();
   const authorityKey = generateSigningKey("race-d1-run"), verificationKey = publicKeyOf(authorityKey);
+  const runtime = await require('./worker-race-runtime.cjs').createRaceRuntime({ authorityKey,
+    identityKeys: { 'ath-1': O.K_IDENTITY, 'ath-2': O.K_IDENTITY }, clockISO: NOW });
   const databaseErrors = new Set();
   const observedDb = { prepare: sql => runtime.db.prepare(sql), async batch(statements) {
     try { return await runtime.db.batch(statements); }
@@ -57,7 +58,7 @@ async function run(options = {}) {
     // own bridge invocation and takes its own asynchronous D1 snapshot.
     let completed = 0;
     const replies = await Promise.all(operations.map(async op => {
-      const result = await createBridge(config).invoke("admit", [op.athlete_id, op]);
+      const result = await runtime.invoke("admit", [op.athlete_id, op]);
       if (++completed % 25 === 0 && !options.quiet) console.log(`D1-RACE PROGRESS ${completed}/100 independent invocations completed`);
       return result;
     }));
@@ -75,12 +76,12 @@ async function run(options = {}) {
     assert.deepEqual((await fresh.invoke("dispositionHistory", ["ath-1", "dev-A", 2])).map(row => row.status), ["WAITING", "ACCEPTED"]);
     const original = await fresh.invoke("admit", ["ath-1", ownChild]);
     assert.deepEqual(await createBridge(config).invoke("admit", ["ath-1", ownChild]), original);
-    if (!options.quiet) console.log("D1-RACE PASS 100 independent invocations; foreign ownership and waiting drain; 100 unique contiguous accepted records across two athletes");
+    if (!options.quiet) console.log("D1-RACE PASS 100 independent workerd invocations; foreign ownership and waiting drain; 100 unique contiguous accepted records across two athletes");
 
     // Capture the actual write batch and cut each statement boundary with a
     // SQLite runtime error. D1 must roll back revision, rows and every effect.
-    let writeCount = null;
-    function cutDatabase(cut) {
+    let writeCount = null, expectedWriteCount = null;
+    function cutDatabase(cut, observations = []) {
       let calls = 0;
       return {
         prepare: sql => runtime.db.prepare(sql),
@@ -89,6 +90,12 @@ async function run(options = {}) {
           if (calls % 2 === 0) {
             writeCount = statements.length;
             if (cut !== null) {
+              observations.push({ cut, length: statements.length });
+              // Capture before the injected SQLite failure. The outer rig
+              // asserts this evidence even if the bridge converts this guard
+              // error to UNAVAILABLE; a mismatched layout cannot earn a PASS.
+              if (cut < 0 || cut > statements.length || statements.length !== expectedWriteCount)
+                throw new Error("RIG_CUT_LAYOUT_MISMATCH");
               const fail = runtime.db.prepare("SELECT abs(-9223372036854775808)");
               return runtime.db.batch([...statements.slice(0, cut), fail, ...statements.slice(cut)]);
             }
@@ -100,11 +107,17 @@ async function run(options = {}) {
     const probe = O.build({ op_id: "cut-probe", device_id: "dev-B", device_seq: 2, kind: "plan-mutation", class: "plan", payload: null, plan: {} });
     assert.equal((await createBridge({ ...config, db: cutDatabase(null) }).invoke("admit", ["ath-1", probe])).status, "ACCEPTED");
     assert(Number.isInteger(writeCount) && writeCount > 1, "Bridge did not expose one read batch followed by one write batch");
-    const boundaries = writeCount + 1;
+    expectedWriteCount = writeCount;
+    const boundaries = expectedWriteCount + 1;
     for (let cut = 0; cut < boundaries; cut++) {
       const operation = O.build({ op_id: "cut-op-" + cut, device_id: "dev-B", device_seq: cut + 3, kind: "plan-mutation", class: "plan", payload: null, plan: {} });
       const before = await databaseDigest(runtime.db);
-      const result = await createBridge({ ...config, db: cutDatabase(cut) }).invoke("admit", ["ath-1", operation]);
+      const observations = [];
+      const result = await createBridge({ ...config, db: cutDatabase(cut, observations) }).invoke("admit", ["ath-1", operation]);
+      assert.equal(observations.length, 1, "Crash cut must exercise exactly one captured write batch");
+      assert.equal(observations[0].length, expectedWriteCount, "Crash batch layout differs from the measured probe; use identical cloned prestate");
+      assert(cut <= observations[0].length, "Crash cut exceeds the current write batch length");
+      assert.equal(observations[0].cut, cut, "Crash cut evidence does not match the requested boundary");
       assert.equal(result.status, "UNAVAILABLE", "No durable success may escape a failed D1 batch");
       assert.equal(await databaseDigest(runtime.db), before, "Partial rows after atomic write cut " + cut);
       const accepted = await createBridge(config).invoke("admit", ["ath-1", operation]);

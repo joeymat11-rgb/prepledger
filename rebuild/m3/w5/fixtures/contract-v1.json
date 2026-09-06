@@ -108,6 +108,8 @@
       "server_time"
     ],
     "evidence": "authenticated server clock sample only; neither a UTC interval nor a reconciled history/standing checkpoint",
+    "serverSamplePoint": "after the awaited D1 scope revision commit, the last request I/O before signing",
+    "remoteTimerCaveat": "Deployed Workers Date.now/performance.now advance after I/O; local development timers also advance without I/O; timeOrigin is zero. Local timing does not certify remote sample age.",
     "productionServerUtcErrorBoundMs": null,
     "productionServerClockRateAndStepBound": null,
     "qualifiedClientElapsedRateAndSuspendBound": null,

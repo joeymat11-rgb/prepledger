@@ -70,7 +70,11 @@ function parseSignature(signature, kid) {
 }
 function signatureOver(record, key, domain, field = "authority_signature") {
   const signingKey = keyObject(key, true);
-  const bytes = sign("sha256", canonicalBytes(record, domain, field), { key: signingKey, dsaEncoding: "ieee-p1363" });
+  // workerd rejects a KeyObject nested in sign/verify options. Native PEM
+  // export is an in-memory adapter; no key bytes enter a response or fixture.
+  const bytes = sign("sha256", canonicalBytes(record, domain, field), {
+    key: signingKey.export({ format: "pem", type: "pkcs8" }), dsaEncoding: "ieee-p1363",
+  });
   return "ES256." + key.kid + "." + lowS(bytes).toString("base64url");
 }
 function verifyRecord(record, key, domain, field = "authority_signature") {
@@ -79,7 +83,7 @@ function verifyRecord(record, key, domain, field = "authority_signature") {
     checkKid(key);
     const raw = parseSignature(record[field], key.kid);
     return !!raw && verify("sha256", canonicalBytes(record, domain, field),
-      { key: keyObject(key, false), dsaEncoding: "ieee-p1363" }, raw);
+      { key: keyObject(key, false).export({ format: "pem", type: "spki" }), dsaEncoding: "ieee-p1363" }, raw);
   } catch (_) { return false; }
 }
 function publicKeyOf(key) {
