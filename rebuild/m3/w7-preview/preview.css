@@ -1,0 +1,30 @@
+/* The mock's CSS is copied before this file. These rules serve only the preview shell,
+   keyboard/focus mechanics, readable overflow and truthful temporary-state notices. */
+.preview-header, .preview-footnote { width:390px; max-width:100%; box-sizing:border-box; padding:0 12px; }
+.preview-label { font-size:12px; text-transform:uppercase; letter-spacing:.12em; margin:0 0 4px; color:var(--green); font-weight:600; }
+.preview-note, .preview-footnote { font-size:14px; line-height:1.5; color:var(--ink-2); margin:0; }
+.preview-controls { display:flex; flex-wrap:wrap; gap:8px 14px; margin:12px 0 4px; }
+.preview-controls button { font:inherit; font-size:14px; color:var(--ink-2); background:none; border:0; border-bottom:1px solid transparent; padding:6px 0; cursor:pointer; }
+.preview-controls button[aria-pressed="true"] { color:var(--ink); border-bottom-color:var(--ink); }
+#preview-message { font-size:13px; color:var(--ink-2); line-height:1.45; margin:8px 0 0; min-height:2.9em; }
+.preview-loading { padding:40px 28px; }
+.screen button, .sheet button, .why button { font-family:inherit; }
+.screen [role="button"]:focus-visible, .screen [role="link"]:focus-visible,
+button:focus-visible, input:focus-visible, [tabindex="-1"]:focus-visible { outline:2px solid var(--green); outline-offset:4px; }
+.sheet, .why { overflow-y:auto; overscroll-behavior:contain; }
+.sheet .btn { flex-shrink:0; }
+.sheet .big { box-sizing:border-box; font-size:clamp(48px,24vw,116px); }
+.sheet .grow { min-height:24px; }
+.sheet .help { margin-top:20px; }
+.preview-error { color:#8C3024; font-size:16px; min-height:1.5em; margin:12px 0; }
+.screen > div { gap:0; }
+.screen [data-slot="workout"] { margin-top:24px !important; flex-shrink:0; }
+.screen [data-slot="main-title"] { overflow-wrap:anywhere; }
+.why .preview-placeholder-copy { font-size:17px; line-height:1.6; }
+.btn { width:100%; text-align:left; }
+@media (max-width:430px) {
+  .preview-header { padding:16px 20px 0; }
+  .preview-footnote { padding:0 20px; }
+  .phone { min-height:740px; height:100svh; }
+}
+@media (prefers-reduced-motion:reduce) { * { scroll-behavior:auto !important; } }

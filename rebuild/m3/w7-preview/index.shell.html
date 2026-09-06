@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Earned — Today preview</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="stage">
+    <header class="preview-header">
+      <p class="preview-label">Preview · sample data</p>
+      <p class="preview-note">Try sample numbers only. Changes disappear on reload.</p>
+      <nav class="preview-controls" aria-label="Preview examples">
+        <button type="button" id="morning-example" aria-pressed="true">Morning</button>
+        <button type="button" id="logged-example" aria-pressed="false">After a weigh-in</button>
+        <button type="button" id="reset-preview">Reset example</button>
+      </nav>
+      <p id="preview-message" role="status">Temporary preview. Nothing is saved or sent.</p>
+    </header>
+    <main class="phone" id="phone" aria-label="Today preview">
+      <p class="preview-loading">Opening the sample day…</p>
+      <noscript>This preview needs JavaScript. Nothing has been saved.</noscript>
+    </main>
+    <p class="preview-footnote">Today screen only. Workout logging and account connections come later.</p>
+  </div>
+  <!-- MOCK_TEMPLATES -->
+</body>
+</html>

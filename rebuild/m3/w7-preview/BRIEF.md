@@ -2,11 +2,12 @@
 
 ## 0. Source and boundary
 
-Execute QUEUE W7-PREVIEW from9a42b10: PLAN-M3-v1 W7 read face and m1/MOCK.md's public artifact. One Today screen and its weigh-in/Why interactions, explicitly synthetic and memory-only. Use the actual accepted engine to project synthetic facts; its rules remain unchanged. The original private mock and live ledger are not preview inputs.
+Execute QUEUE W7-PREVIEW from 9a42b10: PLAN-M3-v1 W7 read face and m1/MOCK.md's public artifact. One Today screen and its weigh-in/Why interactions, explicitly synthetic and memory-only. Use the actual accepted engine to project synthetic facts; its rules remain unchanged. The original private mock and live ledger are not preview inputs.
 
 ## 1. Deliver
 
 Under this directory: runnable browser view with ratified typography/colors/layout, replaceable synthetic model, a local build/serve path using existing pinned dependencies, focused tests, README with one owner-facing opening instruction and technical reproduction for the integrator. Bundle only allowed preview assets; no repository-root server or source/ledger exposure. Fonts may use the mock's declared system fallbacks; document any fidelity limit.
+Add this slice's tests to the existing Linux/Windows public rebuild workflow so preview regressions are checked on future changes; preserve every existing gate and dependency/lockfile.
 All model-driven numbers/claims come from the engine at a pinned synthetic date. An in-memory weigh-in updates the preview only, says so, and never emits durable Saved/Synced. Unsupported Gym/plan-choice/history actions remain visibly unavailable in this slice; do not construct unapproved screens or imply their behavior works. Preserve the ratified product face, with clear separate preview controls/status.
 
 ## 2. Gate
