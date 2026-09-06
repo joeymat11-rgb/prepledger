@@ -64,4 +64,22 @@ This pair shows population sensitivity in this run, not universal causality or a
 
 Pair evidence `r1-population-diagnostic-pair.json` SHA256 `40dc1278d83ed8afd92df651a3cea7b42acdd38833aaef532905d265fc1b61bb`; A SHA256 `dcdb8f8a08c4f32a85dd82cab1d36f0ee23ff742e8ebf4e2b43b3747a6c34e44`; B SHA256 `a2b12203851d4d4c17cae74fe929f34a276e18af48f3500147ec2331ac614eb6`. Executed helper SHA256 `1f307379e00648275e7231f5134c33bb5afdbb794412a53e451bac04d03d9883`; tracked helper SHA256 `1ddd076abf1472b6f77ecce7495a55ce79236a13aaacb0eebf190aeb7bc05125`. After execution, only its pre-workload HEAD guard was changed to permit the four named docs/helper publication files after the pinned product commit, and a `productBase` field was added to pair metadata. Workload/fixture/measurement code stayed identical; the publication guard was syntax-checked, not followed by another A/B run. These diagnostic arms are separate from the five original-resource FAIL entries; no later trial was started.
 
+## Scoped-read v1.2 result — original metric still FAIL
+
+Candidate `ed71de2e7406bd83dee8eeec358c8bd163cb2f80` implements only the accepted scoped reconciliation read and named helper fixes. The unchanged default-runtime resource gate completed32 sequential +32+32 overlapping pages and the +1-byte typed413 on2026-09-06T21:01:55.983Z: **R1-RESOURCE FAIL — 96 actual pages; 3 resource violations**. Sequential/overlap/oversize allocation peaks139,217,057 /162,050,118 /148,139,227 bytes all exceed96MiB. Max guarded CPU125.75ms,5 statements/request,2,326 rows read and zero domain writes;192 revision-control rows written. Evidence `r1-resource-1m-scoped-read-fail.json` SHA256 `c1ebed33626e3e4478feb157cbbf18d0e5a3bf8b4b6a77fb184a4ad7801c098b`; the sixth sanitized FAIL entry preserves the previous five unchanged.
+
+One subsequent A/B diagnostic used the same current product/runtime/workload with explicit caller receipt `r1-scoped-source-pins.json`, SHA256 `8c178a606254c6eff8abd7bae1b0de211bb834129e8d57abd5edbe24807f33ff`: exact HEAD, helper SHA256 `80f4f5ca42f570ad19bfc653977cfb9a757b0a29c5ce80a23cf66a117f6404f4`, and all15 ordered source pins checked before/after both child runs. Command: `node rebuild/m3/w5/test/r1-population-diagnostic.cjs --source-pins <absolute-receipt-path> --run-id scoped-ed71de2`. Fresh-checkout directory creation and decimal individual-string bounds are fixed; the workload and metric are unchanged. A reviewer creates its own explicit receipt for its exact clean checkout; a stale receipt fails before execution. No prior evidence destination is overwritten.
+
+| Observation | A: own only | B: same own plus9MiB foreign JSON |
+|---|---:|---:|
+| Complete workload |96 pages + typed413;97 requests|96 pages + typed413;97 requests|
+| Original total+embedder+backing peak |161,795,629 bytes; FAIL|178,667,024 bytes; FAIL|
+| Diagnostic used+embedder+backing peak |83,715,877 bytes|86,555,640 bytes|
+| Guarded CPU maximum /p95 |110.125 /110.125ms|110.125 /110.125ms|
+| D1 rows read /control rows written |2,229 /192|2,326 /192|
+| D1 query duration sum |46ms|65ms|
+
+Both arms returned exact expected proofs, max5 statements and zero domain writes;192 pages/194 requests completed, same-own-semantics=true. The SQL plan now scopes returned authority rows, although index traversal/subject lookup still affects D1's physical rows-read count. The old large foreign-population amplification is reduced in this pair; it does not establish a universal memory bound. Own-only remains FAIL under the original metric; neither diagnostic used-based value changes acceptance. No forced collection, runtime flags, cap or metric revision. Existing failed collection diagnostics are not repeated.
+Ignored A/B/pair hashes respectively `336b155d00f5d00b5af2a7892546013760bc87cba4d041d3bde7b120afc9997c`, `f50659600fa24a3eba86b8a71faae1f1b460445cc22371c80c53ee04e06eb170`, `363222e3e06cd6ba9faf14369d72d8b108665e83c264dd92343c6cd04913689e`. All sampled vectors and prior-artifact hash checks remain local. Read-only instrumentation review found no concrete retained-payload/remote-handle defect; it cannot excuse the failures. OPEN-BYTE-PREFLIGHT and OPEN-RESOURCE-V2 still require a separately reviewed technical contract; neither is adopted here.
+
 If no reviewed resource profile meets the ceiling, R1-COMPLETE stays FAIL/BLOCKED and W6 may consume the published interface only as provisional work. No private import, CLOCK, checkpoint C, K1, P1 or phone recovery acceptance follows from these local tests.
