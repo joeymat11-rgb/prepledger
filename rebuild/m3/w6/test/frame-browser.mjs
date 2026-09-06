@@ -51,5 +51,42 @@ try {
   }, { vectors, generation: initial(), lease: O.lease("dev-A"), auth: O.AUTH_KEY });
   assert.equal(result.vectors, 26); assert.equal(result.rejected, 10); assert(result.batch > 1); assert.equal(result.unproven, true);
   console.log(`W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and ten refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium ${browser.version()}`);
+  const upgradeKeys = await page.evaluate(async generation => {
+    const F = await import("/frame.js"), key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+    let reached, changed; const state = { reached: new Promise(r => { reached = r; }), changed: new Promise(r => { changed = r; }), hold: true, armed: false };
+    const wrapped = { open(...args) { const req = indexedDB.open(...args); req.addEventListener("success", () => {
+      const db = req.result, transaction = db.transaction.bind(db); db.addEventListener("versionchange", () => changed());
+      db.transaction = (...values) => { const tx = transaction(...values); if (!state.armed || values[1] !== "readwrite") return tx;
+        const store = tx.objectStore("generations"), put = store.put.bind(store), originalObjectStore = tx.objectStore.bind(tx);
+        store.put = (value, name) => { const written = put(value, name); if (name === "active") reached(); return written; };
+        tx.objectStore = name => name === "generations" ? store : originalObjectStore(name);
+        const keepAlive = () => { if (state.hold) { const read = store.get("active"); read.onsuccess = keepAlive; } }; keepAlive(); return tx;
+      };
+    }); return req; } };
+    const args = { indexedDB: wrapped, databaseName: "synthetic-old-tab", namespace: "synthetic-old-tab", keyProvider: () => key, authorizeEnrollment: () => true };
+    const repo = await F.openRepository(args); await repo.initialize(generation, "synthetic"); const basis = await repo.load(), next = structuredClone(basis.generation); next.metadata.queuedLegacyAcknowledgment = "synthetic-preserved";
+    state.armed = true; state.pending = repo.commit(basis, next, () => null); await state.reached;
+    window.oldTabTest = { F, repo, basis, next, state }; return [...new Uint8Array(await crypto.subtle.exportKey("raw", key))];
+  }, initial());
+  const newTab = await context.newPage(); await newTab.goto(origin);
+  await newTab.evaluate(async raw => {
+    const F = await import("/frame.js"), key = await crypto.subtle.importKey("raw", new Uint8Array(raw), { name: "AES-GCM" }, false, ["encrypt", "decrypt"]), frameKey = crypto.getRandomValues(new Uint8Array(32));
+    const args = { databaseName: "synthetic-old-tab", namespace: "synthetic-old-tab", bodyKeyProvider: () => key, legacyKeyProvider: () => key, frameKeyProvider: () => ({ keyEpoch: 1, keyBytes: frameKey, revisionStart: 1 }) };
+    window.newTabTest = { F, args, opening: F.openFrameRepository(args).then(repo => ({ repo }), error => ({ error: error.state })) };
+  }, upgradeKeys);
+  await page.evaluate(async () => { await oldTabTest.state.changed; oldTabTest.state.hold = false; await oldTabTest.state.pending; });
+  const upgraded = await newTab.evaluate(async () => {
+    const { F, args } = newTabTest, opened = await newTabTest.opening;
+    if (opened.error !== undefined && opened.error !== 18) throw new Error("upgrade refusal was untyped");
+    const repo = opened.repo || await F.openFrameRepository(args), before = await repo.load({ compatibility: true });
+    if (before.legacy.metadata.queuedLegacyAcknowledgment !== "synthetic-preserved") throw new Error("pre-upgrade committed writer was lost");
+    const body = { format: 2, collections: before.legacy.collections, retainedMetadata: before.legacy.metadata, proofs: [] };
+    await repo.commitPrepared(before, await repo.prepare(before, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1, compatibility: true }), () => ({ kind: "publish", frameFields: F.frame({ kind: 3 }) }));
+    const after = await repo.load(); newTabTest.repo = repo; newTabTest.after = after; return after.revision;
+  });
+  const oldWrite = await page.evaluate(async () => { try { await oldTabTest.repo.commit(oldTabTest.basis, oldTabTest.next, () => null); return "unexpected-success"; } catch (error) { return error.state; } });
+  assert.equal(oldWrite, 3); assert.equal(await newTab.evaluate(async () => { const next = await newTabTest.repo.load(); newTabTest.repo.close(); return next.revision; }), upgraded);
+  await newTab.close();
+  console.log("W6 FRAME-OLD-TAB PASS — queued v1 write commits before version2 upgrade; complete conversion retains it; old tab cannot write after conversion");
   console.log("W6 FRAME semantics / CLOCK / custody / phone BLOCKED — mechanical synthetic evidence only");
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

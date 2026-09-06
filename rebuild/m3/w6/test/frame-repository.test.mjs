@@ -181,3 +181,36 @@ test("actual incoming history preserves a nonzero U: no non-batch charge increas
   const cap = await f.repo.prepare(basis, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }); await f.repo.commitPrepared(basis, cap, () => ({ kind: "publish", frameFields: frame({ kind: 1, U: basis.frame.U }) }));
   const after = await f.repo.load(); assert.equal(after.frame.U, basis.frame.U); assert.deepEqual(after.body.collections.ops[remote.op_id], remote); f.repo.close();
 });
+test("body crypto failure and time spent in pending encryption cannot publish or preserve an old final sample", async () => {
+  let mode = null, pendingCut = deferred(), release = deferred(), W = 10;
+  const observedCrypto = { getRandomValues: crypto.getRandomValues.bind(crypto), subtle: {
+    decrypt: crypto.subtle.decrypt.bind(crypto.subtle),
+    async encrypt(...args) { if (mode === "fail") throw new Error("synthetic encryption fault"); if (mode === "hold") { pendingCut.resolve(); await release.promise; } return crypto.subtle.encrypt(...args); },
+  } };
+  const f = await fixture({ crypto: observedCrypto }), before = await f.repo.load(); mode = "fail";
+  await assert.rejects(f.repo.prepare(before, before.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }), e => e.state === 3); assert.deepEqual(await f.repo.load(), before);
+  mode = "hold"; const preparing = f.repo.prepare(before, before.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }); await pendingCut.promise; W = 456; release.resolve();
+  await f.repo.commitPrepared(before, await preparing, () => ({ kind: "publish", frameFields: frame({ kind: 1, H: W, W_last: W }) }));
+  const after = await f.repo.load(); assert.equal(after.frame.H, 456); assert.equal(after.frame.W_last, 456); f.repo.close();
+});
+test("independent frame and body key epoch rotation retains old verification and refuses missing historical keys", async () => {
+  const bodies = new Map(), frames = new Map();
+  for (const epoch of [1, 2]) { bodies.set(epoch, await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"])); frames.set(epoch, crypto.getRandomValues(new Uint8Array(32))); }
+  const f = await fixture({ bodyKeyProvider: ({ keyEpoch }) => bodies.get(keyEpoch), frameKeyProvider: ({ keyEpoch }) => ({ keyEpoch, keyBytes: frames.get(keyEpoch), revisionStart: 1 }) });
+  const before = await f.repo.load(), cap = await f.repo.prepare(before, before.body, { bodyKeyEpoch: 2, frameKeyEpoch: 2 });
+  await f.repo.commitPrepared(before, cap, () => ({ kind: "publish", frameFields: frame({ kind: 1 }) })); const after = await f.repo.load();
+  assert.equal(after.active.frameKeyEpoch, 2); assert.equal(after.previous.frameKeyEpoch, 1); assert.deepEqual(after.body.collections, before.body.collections);
+  for (const map of [bodies, frames]) { const saved = map.get(1); map.delete(1); await assert.rejects(f.repo.load(), e => e.state === 18); map.set(1, saved); assert.deepEqual(await f.repo.load(), after); } f.repo.close();
+});
+test("synthetic v1 conversion abort rolls back complete pair and fresh retry preserves all legacy bytes", async () => {
+  const faults = faultDatabase(), key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]), frameKey = crypto.getRandomValues(new Uint8Array(32));
+  const args = { indexedDB: faults.indexedDB, databaseName: "synthetic-conversion-fault", namespace: "synthetic-conversion-fault" };
+  const old = await openRepository({ ...args, keyProvider: () => key, authorizeEnrollment: () => true }); await old.initialize(initial(), {}); old.close();
+  const repo = await openFrameRepository({ ...args, bodyKeyProvider: () => key, legacyKeyProvider: () => key, frameKeyProvider: () => ({ keyEpoch: 1, keyBytes: frameKey, revisionStart: 1 }) });
+  const before = await repo.load({ compatibility: true }), body = { format: 2, collections: before.legacy.collections, retainedMetadata: before.legacy.metadata, proofs: [] };
+  const prepare = () => repo.prepare(before, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1, compatibility: true }); const first = await prepare(); faults.state.armed = true; faults.state.mode = "quota";
+  await assert.rejects(repo.commitPrepared(before, first, () => ({ kind: "publish", frameFields: frame({ kind: 3 }) })), e => e.state === 3); faults.state.armed = false;
+  assert.deepEqual(await repo.load({ compatibility: true }), before); await assert.rejects(repo.load(), e => e.state === 18);
+  await repo.commitPrepared(before, await prepare(), () => ({ kind: "publish", frameFields: frame({ kind: 3 }) })); const after = await repo.load();
+  assert.deepEqual(after.previous, before.active); assert.deepEqual(after.body.collections, before.legacy.collections); assert.equal(after.unproven, true); repo.close();
+});

@@ -1,4 +1,4 @@
-import { cpSync, mkdtempSync, mkdirSync, readdirSync, rmSync, existsSync } from "node:fs";
+import { cpSync, mkdtempSync, mkdirSync, readdirSync, rmSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -21,4 +21,10 @@ try {
   const run = spawnSync(process.execPath, [join(destination, "build-browser.mjs")], { cwd: isolated, encoding: "utf8", windowsHide: true, timeout: 120000 });
   if (run.status !== 0) { console.error(run.stdout, run.stderr); throw new Error("Isolated browser build failed"); }
   console.log("W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph");
+  const manifestPath = join(destination, "cipher-imports.json"), original = readFileSync(manifestPath, "utf8"), changed = JSON.parse(original);
+  changed.inputs["aes.js"] = "0".repeat(64); writeFileSync(manifestPath, JSON.stringify(changed));
+  const broken = spawnSync(process.execPath, [join(destination, "build-browser.mjs")], { cwd: isolated, encoding: "utf8", windowsHide: true, timeout: 120000 });
+  writeFileSync(manifestPath, original);
+  if (broken.status === 0 || !broken.stderr.includes("Unapproved or changed cipher input") || readFileSync(manifestPath, "utf8") !== original) throw new Error("Cipher import-pin sensitivity failed");
+  console.log("W6 CIPHER-PIN DETECTED — disposable wrong AES input hash refused actual browser build; manifest restored byte-for-byte");
 } finally { rmSync(isolated, { recursive: true, force: true }); }
