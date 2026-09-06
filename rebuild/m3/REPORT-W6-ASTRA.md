@@ -1,60 +1,93 @@
-# W6 — independent storage/staging slice, ASTRA
+# W6 — storage, T2 staging and public browser integration, ASTRA
 
 ## What changed and why
 
-This is a reviewable **partial W6 implementation**, not W6 completion or permission to import the owner's data. The real T2 client can acknowledge a Promise-backed save before the write finishes. The new W6 boundary runs that unchanged client against an isolated candidate and publishes its view/acknowledgement only after an IndexedDB transaction completes. An abort retains the entry, exact previous generation and sequence. Missing or unproven stored truth enters state 18 and clears the previously published view.
+This is a reviewable **partial W6 implementation**, not W6 completion or permission to import the owner's data. The actual T2 client can acknowledge a Promise-backed save before it finishes. W6 runs that client against an isolated candidate and publishes its view/acknowledgement only after IndexedDB complete. Abort retains the entry, previous generation and sequence; unproven stored truth refuses18. The new checkpoint also executes actual T2 in a browser, verifies W5 public signatures before durable sinks, preserves original signed proofs and keeps network waits outside the short local staging queue.
+Only the independently accepted optional T2 integration seams change: `client/index.cjs`, `lease.cjs`, `sync.cjs`. Defaults remain identical; operation HMAC/identity/canonical contracts and athlete timestamps remain unchanged. All other implementation/test/dependency files are W6-local. No frozen app, engine, existing laws/oracles/runner, W5 source, W3 witnesses or seeded-soak bytes were changed. Root package/lock remain unchanged.
 
-Branch `rebuild/m3-w6-browser-bridge`; integration base `df09f438a93cb9548ef3f66b28b39deecc7fb347`. This base records cowork's acceptance of BRIEF-W6 v1.1 (`c31592b5e7fcbb5169075de6c23afbb7d037fd9b`) and the retained **24 observed hours / 64 operation slots**, rollback allowance invalidation, conditional lease mapping, hard knowledge-loss blocker and corrected18/17/19 table. These rules are not implemented by preserving a metadata object. No budget, CLOCK or full standing acceptance is claimed here.
+## Base, dependency and authorization receipts
 
-The local storage contract was committed before implementation as `7e14ec72a9ab78b861c9a3e913edbb5a467af93d`. During this build W5 published `d44706123d4be8844db6f919a8238255b73e3fb2`; I read its `w5/WIRE.md` and `w5/fixtures/contract-v1.json` directly at that commit. Post-checkpoint correction: its callable `public-client.cjs` implementation already exists at the same SHA; I have now read that implementation and pinned its exact factory/sinks in the concrete amendment proposal. The earlier statement that publication was still needed was too cautious. No W5 file was copied or changed. There are no T2, frozen-app, engine, existing-law/oracle/runner, W3 or seeded-soak changes.
-
-## Module map and compatibility
-
-| File or boundary | Implemented behavior and remaining limitation |
+| Receipt | Exact public reference |
 |---|---|
-| `w6/repository.mjs` | One full-generation IndexedDB store, active+previous; strict durability requested, actual mode reported; revision+whole authenticated-record token checked inside the same transaction. Encryption occurs before that transaction; only complete resolves success. Stale snapshots retry through the bridge. |
-| Local seal | AES-GCM-256, fresh random 96-bit nonce, 128-bit tag, JSON UTF-8 payload, AAD binding `earned/local-generation/v1`, format 1, installation namespace and revision. Key provider is injected. Synthetic keys only; production custody, recovery and key/schema migration are unimplemented. Integrity is not freshness. |
-| Generation | Every supplied T2 collection/key/value, including unknown empty collections, plus W6 metadata. Exact JSON-safe values required. Previous generation is retained atomically but never silently promoted or used to reseed. |
-| `w6/t2-stage.cjs` | Node-only adapter calls the actual unchanged T2 client/memory backend. Requires its surviving valid inner checkpoint and integrity before boot; allowlisted real actions are weighIn, logSet, logSession and finishSession. No copied committer or simulated browser crypto. Existing public synthetic HMAC test material stays in Node tests; it is not a phone authority-key design. |
-| `w6/bridge.mjs` | Serializes commands/reopen per instance; independent instances rely on stored CAS. Clones submission, staging result and published result/view. No candidate is exposed while commit waits. Thrown or returned18 clears truth; failed writes retain typed input. Final validator is mandatory and synchronous. |
-| W5 wire now known | Every route is POST JSON, version `earned/w5-http/v1`; ES256 P-256/SHA-256, low-S 64-byte P1363 and canonical base64url/domain fixtures. This slice invokes none of its transport APIs and does not pretend Node T2's shared-HMAC verifier accepts P-256. |
-| W5 still OPEN | Its callable public API is pinned, but `/enrol` is a preprovisioned lookup and `/lease` supplies current capability. No combined terminal/WAITING/history/head/standing/lease-history reconciliation or renewal proof; no sufficient production UTC-error/rate/qualified-RTT bounds. No checkpoint C, `[Tlo,Thi]`, refill or CLOCK PASS follows from signed time alone. |
-| `w6/T2-AMENDMENT-PROPOSAL.md` | Cowork accepted exact2f78973 with four concrete corrections, now published for coordinator matching under the existing conditional verdict. Exact index/lease/sync allowlist, unchanged defaults and W6-local @noble/hashes 2.2.0 / esbuild 0.28.1 scope remain. Invalid optional time refuses20 before parsing; real sink results/throws normalize after durability; structural grants allow repeated checks only within one candidate; reject-only validation cannot authenticate later H/W_last. No T2 or dependency implementation has begun in this docs update. |
+| Original branch/base | `rebuild/m3-w6-browser-bridge` from `df09f438a93cb9548ef3f66b28b39deecc7fb347`, preserved |
+| Adopted refinement | BRIEF-W6 v1.1, `c31592b5e7fcbb5169075de6c23afbb7d037fd9b`:24 observed hours/64 client-policy slots; rollback invalidates allowance; conditional lease bound; hard knowledge-loss blocker; corrected18/17/19 table |
+| Storage contract before code | `7e14ec72a9ab78b861c9a3e913edbb5a467af93d` |
+| Independently reviewed storage checkpoint | `e934f9b1787fbe01dc241081594254b5caeb1d8a`; cowork Linux28/28, W3 39/39, browser6/6 and independent effective CAS bite; review explicitly partial, PR32 DRAFT |
+| Concrete T2 amendment review | `2f789734d906fb3864ca747abfe6351455b732cc`: cowork ACCEPTS WITH FOUR CONCRETE CHANGES before T2 edits |
+| Four corrections applied first | docs-only `cc46d1bbd09e694cb5ba5bfa05a056a0560948e1`; root exact-diff PASS and cowork independent confirmation before implementation |
+| W5 callable API first published | `d44706123d4be8844db6f919a8238255b73e3fb2`; WIRE, contract-v1 fixture and public-client.cjs all read, not just the prose contract |
+| W5 accepted source/integration | source `9dd8dae3e0955dee079e91a2d0f426cdaac95a9a`; pushed integration `cb5580a3c3b778e614127026a3769d383f07611b`, containing merge `de494a8` |
+| Deliberate integration into this branch | `1d3d25356197341539700b6a5713555fe4c484b2`; no conflict, old base/evidence preserved |
+| Separate frame proposal | `7cfca45a8dbaae214b4d553a5d33a2b5035f89e3`; documentation only, no new cipher/format installed or frame semantics implemented in this checkpoint |
 
-## Executed gates, with their actual boundary
+The four accepted corrections are implemented: invalid optional permission time refuses20 before Lease.check; actual numeric/object/throw T2 sinks normalize after durability with bounded reasons; structural grants permit repeated predicates only within one candidate and renew on CAS retry; final validation explicitly cannot authenticate later H/W_last in presealed ciphertext. Its actual batch metadata and live epoch guards do not earn CLOCK PASS.
 
-Windows, Node 24; real `node_modules` directories, no symlink or root-lockfile change. The host has no npm executable, so the bundled pnpm installed development dependencies with `--ignore-scripts --lockfile=false --node-linker=hoisted`. W6 pins fake-indexeddb 6.2.5 and playwright-core 1.62.1. README gives normal npm reproduction; an already installed pinned Playwright package was selected explicitly for the browser run.
+## Store, crypto and W5 compatibility
 
-`node --test rebuild/m3/w6/test/*.test.mjs` (latest run):
+| Boundary | Implemented behavior and remaining limit |
+|---|---|
+| Repository format1 | One full-generation IndexedDB store, active+previous, all collections/metadata; requested strict durability; revision plus complete authenticated-record token CAS; only complete resolves. AES-GCM-256, random96-bit nonce/tag128, JSON UTF-8; AAD binds format/namespace/revision. This file remains unchanged from storage checkpoint e934f9b. |
+| Missing/corrupt store | Refuses18, never infers first use, reseeds, or silently promotes previous. Requires valid surviving inner T2 checkpoint too. Explicit initialization needs injected enrollment authorization. Production key/enrollment custody is still OPEN. |
+| Actual staged T2 | Real memory backend and committer, complete generation/reopen, real weighIn/logSet/logSession/finishSession. Missing inner truth clears old paint; abort retains input and does not consume sequence. No copied committer. |
+| Three optional T2 hooks | Complete exact-true public verifier pair without HMAC dummy; permission-only time sample; recursively frozen actual batch observer before store transaction. Absent hooks preserve defaults. Throw/object/Promise cannot authorize or drain. Invalid optional time is20 before parsing; athlete effective/time calls remain original. |
+| Browser crypto | W6-local @noble/hashes2.2.0 and esbuild0.28.1, integrity-pinned lockfile. SHA256/HMAC subset aliases literal node:crypto imports only in client/ops.cjs and client/plan.cjs; reject other builtins/importers. Exact Unicode/lone-surrogate vectors. No authority signer/private key in the browser graph. External audit1.0.0 is not a2.2.0 audit claim. |
+| Actual final metadata | Frozen command/args/snapshotRevision/kind, actual batch count/range/operations, basisMetadata/candidateMetadata and namespace/session/observation epochs. Count is actual actions.length, never an estimate. Samples/metadata precede sealing; live epoch can invalidate runtime changes that durable CAS alone cannot see. |
+| W5 wire | Every route POST JSON, `earned/w5-http/v1`; ES256 P-256/SHA-256, low-S64-byte P1363; published canonical/base64url/domain fixtures. W6 uses W5's existing public boundary; no rewritten protocol or re-signing. |
+| Signed inputs | Dispositions, pulls, individual receipts, snapshots, leases and challenge-bound server time verify before sinks. Complete original proof bytes remain in generation metadata and are reverified in later candidate/key contexts. Structural grants bind complete signed bytes+scope+epoch and retire after one candidate outcome; repeated face/first/last checks and canonical clones work within it. |
+| Actual sinks | T2 deliverReceipts numeric0 is success and storage exceptions are caught; deliverDisposition rejection preserves reason/state. W5 accepted-history snapshots ingest through real T2 receipts, not T2's differently shaped product snapshot. W7's engine projection remains separate. |
+| Truthful completion delivery | After IDB complete, a newly changed context gets no Saved or old-account view. Disk stays committed: stored:true/durable:true/confirmed:false/committedRevision, local acknowledged:false or inbound accepted:false. Callers cannot paint from stored:true alone. Subsequent local commands refuse without a new write; RAM latch is not a knowledge-loss fence. |
+| Time transport | One outstanding W5 challenge; its network wait does not own the local stage queue. Response verification/staging serializes only after it arrives; no timeout clears an unresolved real guard. A synthetic permitted local write during a pending request proves queue separation, not production fence availability. |
+| W5 still OPEN | No sufficient production UTC-error/rate/qualified-RTT bounds, combined terminal/WAITING/history/head/standing/lease-history reconciliation or renewal proof. A different lease refuses rather than inventing renewal. Signed time alone creates no interval/checkpoint C/refill or CLOCK PASS. |
+
+README defines the exact public factory, method/body shapes and exceptional completed-disk presentation refusal. Both an explicit trusted observation guard and final validator are mandatory; tests use **synthetic** guards. No production guard is shipped or implied.
+
+## Executed gates by actual boundary
+
+Windows, Node24; real node_modules directories. W6 dependencies installed using bundled pnpm, `--ignore-workspace --ignore-scripts`, with the committed W6 lockfile. A separate frozen **offline clean install/build** uses fresh dependencies and a copied public source tree without any root node_modules. No account, live Clerk call or private content enters these tests. Synthetic private signing keys are generated per run; none is committed.
+
+`node --test rebuild/m3/w6/test/*.test.mjs`:
 
 ```text
-ℹ tests 28
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors; accepted T2 baseline cb5580a3c3b778e614127026a3769d383f07611b
+ℹ tests 52
 ℹ suites 0
-ℹ pass 28
+ℹ pass 52
 ℹ fail 0
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 145.3079
+ℹ duration_ms 592.8132
 ```
 
-Those tests include the actual T2 early-Saved witness, delayed transaction completion and abort, injected quota after the first generation write, exact fresh-client reopen, concurrent independent writers, whole multi-operation sessions, corruption/missing-key/binding failures, stale basis mutation, returned18 after prior truth paint, missing inner checkpoint, whole-collection preservation and mutable candidate isolation. Fault injection wraps IndexedDB outside product code. Metadata equality proves preservation, not implemented allowance charging.
+The default comparison runs all35 existing client laws in fresh processes against a disposable accepted-T2 checkout and this candidate, comparing exact traces.56 vectors cover real multi-op logSession/finishSession, consent/plan/correction/undo, exhaustion/range crossing, valid projected snapshot and receipt numeric0, four timezone offsets and every clock call/state/return/full backend. The preserved default exhausted face1/write20 witness remains unchanged. New tests also cover structural grants, final actual batch descriptors, whole-generation abort/CAS, forged signatures, signed second-device history, replay, original proof retention, all17/18/19/20 sink/guard failures, context changes after actual IDB complete, subsequent reopen/retry and B11 pending-network control.
 
-`node rebuild/m3/w6/test/browser-check.mjs` with an explicitly selected installed Edge and pinned Playwright (fresh synthetic profile, external traffic refused):
+`node rebuild/m3/w6/test/browser-contract.mjs` with installed Edge selected explicitly, fresh synthetic profile and localhost-only test traffic:
+
+```text
+W6 BROWSER-T2 PASS — 56 exact Node/browser action/state/clock vectors; 6 signed surfaces +36 tamper/domain refusals; actual T2 session/finish persisted in IndexedDB; Chromium 152.0.4191.66
+W6 BROWSER-PUBLIC-SINK PASS — verified P-256 disposition through actual T2 and IndexedDB, forged response no drain, original proof retained, final20 abort preserves generation
+W6 CLOCK / full STANDING / iPhone acceptance BLOCKED — time bounds, knowledge fence and phone evidence remain unproved
+```
+
+`node rebuild/m3/w6/test/browser-check.mjs`:
 
 ```text
 W6 BROWSER-REPOSITORY PASS — 6/6 real IndexedDB cases; Chromium 152.0.4191.66; persistent process reopen, two-tab CAS, abort and tamper18
 W6 browser-T2 / iPhone / CLOCK acceptance NOT RUN — repository-only synthetic evidence
 ```
 
-This executes the repository inside a real browser, compares the entire synthetic T2-generated payload after closing/reopening the browser process, races two tabs, refuses an injected17 and detects persisted tampering after relaunch. T2 itself runs in Node to prepare the candidate; it is **not** browser-T2 integration, Safari, abrupt OS-kill durability or physical iPhone evidence.
+That runner's NOT RUN line refers to its repository-only boundary; the separate browser-contract runner above now exercises actual browser T2. Neither proves Safari, abrupt OS-kill survival or the owner's physical phone.
 
-Unchanged W3: `node --test rebuild/m3/clock-spike/test/continuity.test.mjs rebuild/m3/clock-spike/test/core-witness.test.mjs` → **39 tests, 39 pass, 0 fail**. Existing red-witness assertions remain unchanged; their successful reproduction does not make strict continuity true or implement the v1.1 refinement.
-
-Full unchanged regressions used explicit ENGINE_MAIN/ENGINE_OLD built from pinned public sources with accepted W0's builder. AGENTS' private fixture/golden preparation was performed only in ignored local paths; the committed pins matched and no private values, hashes, counts or receipts were emitted. The original builder's global temporary-worktree cleanup was avoided so other active worktrees remained untouched. Public goldens/manifest remained byte-identical. Suite/selftest used MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York; strict removed MEASURED_TEST_NOW.
+`node rebuild/m3/w6/test/clean-build.mjs`:
 
 ```text
-PRIVATE PREPARATION PASS — private fixture/golden match committed pins; public pins unchanged; no other worktree touched
+W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph
+```
+
+Unchanged W3: `node --test rebuild/m3/clock-spike/test/continuity.test.mjs rebuild/m3/clock-spike/test/core-witness.test.mjs` → **39 tests,39 pass,0 fail**. Retained red-witness assertions still reproduce the old gaps; they do not establish implemented bounded CLOCK.
+Unchanged conformance/selftest use explicit ENGINE_MAIN/ENGINE_OLD, MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York; strict unsets MEASURED_TEST_NOW. AGENTS private preparation occurred only in ignored local paths, verdict-only; public pins remained unchanged. The existing global temporary cleanup was avoided to protect concurrent worktrees. No private values/counts/dates/receipt text or private hashes are in this report.
+
+```text
 OK   6 adapters laws/sheet-A-authority.cjs: family authority present → all GREEN, 0 DEFECT, 0 HARNESS_ERROR — 34 GREEN · 0 RED · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR
 INFO 9 engine-track rig185: W1 PASS, W2 PASS
 SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
@@ -65,58 +98,43 @@ PASS  18 files ship; ledger/, src/, tools/, scripts/, docs/ and rebuild/ stay of
 All checks passed. Safe to ship.
 ```
 
-The strict tail concerns the unchanged existing app package; it does not certify W6 for private use. `git diff --check` passed. Linux/both-OS CI and independent cowork execution are NOT RUN by this builder.
-
-Post-checkpoint independent evidence, relayed by the coordinator: cowork re-executed exact `e934f9b` on Linux, reporting 28/28 storage tests, 39/39 W3 and 6/6 browser cases on Chromium 141. Cowork's separate disabled-CAS bite was detected by the Node and browser tests and restored. It reported no checkpoint defects while expressly withholding full W6 acceptance and keeping PR32 DRAFT. The docs-only follow-ups leave all submitted product/test bytes unchanged.
-
-## Independent amendment verdict and four corrections
-
-Cowork's separate verdict on exact `2f789734d906fb3864ca747abfe6351455b732cc`, relayed by the coordinator: **ACCEPTS WITH FOUR CONCRETE CHANGES before T2 edits**. It agrees with the index/lease/sync allowlist, unchanged default bytes and35 §B laws/39 W3 tests, actual actions.length, complete public-verifier pair without a dummy HMAC key, narrow crypto importers, lone-surrogate vectors and signed-proof retention. The four corrections are now documentation, not executed implementation:
-
-1. Non-string, unparseable, nonfinite, unavailable or throwing optional permissionNowIso must refuse state20 with input retained/no write **before Lease.check**; existing parseTime throws. A dedicated negative test is required in amendment §5.3.
-2. Actual T2 deliverReceipts returns a number and throws on failed storage; receiveSnapshot returns `{stored:r.ok}`; deliverDisposition can return `{stored:false,reason}`. Every W6 sink catches T2 throws, emits `{stored:true,durable:true}` only after IDB complete and otherwise `{stored:false,durable:false,state,code,reason}`. Preserve underlying17/18/19/20 and a bounded nonprivate reason; do not leak exceptions into a generic unexplained W5 state12.
-3. Grants compare structural canonical bytes including signature, scope and session epoch, not object identity. One grant serves one staged candidate: repeated valid face/first/last lease checks remain allowed. Consume/retire at the candidate outcome; CAS retry rebinds a new grant to fresh durable basis/current epoch. Identical clones work within that lifetime, but retired/reused/changed grants fail.
-4. The reject-only validator cannot authenticate later H/W_last into presealed ciphertext. Capture evidence/sample/batch/high-water before sealing; CAS proves only no intervening durable revision. Newer known runtime evidence invalidates through observation epoch/restaging. Repeated resealing is not a final-time/CLOCK solution. No storage format, final synchronous authentication frame or knowledge-fence profile is authorized here.
-
-The coordinator matches the docs diff to these existing conditions; cowork may confirm in parallel. This does not require a second owner approval. Continued implementation also waits for the actual accepted W5 integration SHA. W5's reported LOCAL acceptance at `9dd8dae3e0955dee079e91a2d0f426cdaac95a9a` is not itself that integration receipt and is not remote/CLOCK acceptance.
-
-| Required acceptance | Current verdict |
-|---|---|
-| IDB-187 full browser-T2 / physical matrix | INCOMPLETE;28 preliminary Node cases and6 real browser repository cases above; no full IDB-187 PASS claimed |
-| MIGRATE schema/key transition and old-tab matrix | NOT RUN; format1 creation/absence/corruption coverage only |
-| STANDING whole signed-response/sign-out/recovery table | BLOCKED; only storage refusal/final-cut17 tests implemented |
-| CLOCK v1.1 | BLOCKED; sufficient W5 time/reconciliation assumptions and proven knowledge-loss fence absent; allowance implementation pending |
-| SESSION-RESUME one real hour / iPhone | NOT RUN; no elapsed time accelerated into acceptance |
-| HTTP/signature integration, remote, owner-phone, isolated-restore | NOT RUN; no runner registration or simulated remote success |
+The strict tail covers the existing app package; it does not certify this partial W6 for private use. Independent cowork execution and both-OS CI of **this new checkpoint** are pending; prior e934f9b storage review is not inherited acceptance of changed bytes.
 
 ## Required bite and restoration
 
-Tracked `w6/test/bite.test.mjs` alters one awaited commit in a disposable copied bridge, leaves the real fake-IndexedDB transaction pending, observes premature acknowledgement, then aborts that transaction. Exact negative verdict and restored source hash:
+The tracked bite changes only a disposable copied bridge to stop awaiting the real IndexedDB transaction. It observes premature acknowledgement, then aborts the delayed transaction. The current source and restored copy are compared byte-for-byte:
 
 ```text
 IDB-187 FAIL — early acknowledgement before IndexedDB complete; delayed transaction abort left no saved operation (disposable mutant)
-W6 BITE RESTORED — bridge.mjs sha256 f74996052078b7362fe0f8197addb86a8ca515a811a58f43f62dce56fec67354
+W6 BITE RESTORED — bridge.mjs sha256 b3f871ce76295192ef89f79ba074881987848e8731aa2615d398ea037e3d4e3b
 ```
 
-The altered copy was restored byte-for-byte and compared, and the original source was unchanged throughout. The affected 28-case run passed after restoration. This proves bite sensitivity at the preliminary boundary, not full phone IDB-187 acceptance.
+The52-case run passes after restoration. Historical e934f9b bite restored hash was `f74996052078b7362fe0f8197addb86a8ca515a811a58f43f62dce56fec67354`; later bridge changes intentionally update it. This remains preliminary IDB-boundary evidence, not a full phone IDB-187 verdict.
 
 ## Review corrections, seams and red witnesses
 
-One bounded same-family agent reviewed storage code/tests and executed synthetic probes; it is not the independent cowork reviewer. It found six defects in the draft: mutable expected CAS basis during encryption, live candidate view/result references, returned18 retaining old truth, missing T2 checkpoint treated as first use, an unsupported positional writer exposed through a single-argument dispatcher, and dropped unknown empty collections. All six were fixed in W6 only. The reviewer re-ran five exact regression cases (5/5 PASS) and confirmed removed unsupported actions refuse without durable changes. Root independently identified the returned18 problem; the actual T2 corruption witness now clears view, retains input and makes no new operation/sequence.
+1. The original bounded same-family storage review found mutable CAS basis, live candidate references, returned18 retaining truth, missing inner checkpoint treated as first use, an unsupported positional writer exposed and dropped empty collections. W6 fixes were independently rechecked before e934f9b; they are not engine-rule changes.
+2. Root's current read-only review found immediate account-switch stale paint, context change after durable complete before result delivery, time-guard failures losing their specific state and time-request waiting blocking local writes. New real-T2 tests reproduce the cuts and verify the W6 fixes. Completed facts remain on disk while confirmation is withheld; no false rollback/abort claim is made.
+3. **W6-KNOWLEDGE-LOSS HARD CLOCK BLOCKER:** learned expiry/revocation/rejection followed by failed persistence and relaunch remains unresolved. Production controlled observations need proven durable pre-arm and recovery; ordinary session expiry is11, not automatic17. The injected test guard and RAM late-refusal latch do not satisfy this obligation. No permanent restart fence or new product rule was introduced.
+4. **Final-time seam OPEN:** actual batch/evidence metadata and permission separation are now implemented, but presealed ciphertext still cannot authenticate later H/W_last. Live epoch refusal is useful and not durable knowledge persistence. The separate proposed frame requires its accepted mechanics/semantics/key/privacy review before implementation; no silent schema or cipher change here.
+5. **W6-RESTORE-BOUND accepted residual:** a coherent old generation can restore old budget/sequence. Encryption cannot distinguish it; keep the owner's bounded exposure and Sol's31-day-kill example, not stealth strict continuity.
+6. **W6-LATE-CREATION:** valid offline operations can arrive after lease expiry. No arrival-time expiry, old-envelope rewrite, renumbering or guessed refill/renewal is introduced.
+7. Inner T2 count-based integrity is preserved, not claimed as a stronger complete-history validator. Retained previous generation is not a backup. Production keys/enrollment, migrations, full standing and old-tab recovery, authenticated history projection and W8/W9 device/recovery gates remain required. This store does not inherit the seeded soak's survival verdict.
 
-1. **Actual batch/final-cut seam OPEN:** validator currently receives command, cloned args and snapshot revision only. The conditionally accepted amendment publishes actual batch/range and prepared metadata, but these hooks are unimplemented. High-water changes after sealing need an independently reviewed authenticated final-cut design; reject-only restaging does not settle that gap. No guessed count, fake checkpoint or unconditional production validator is supplied.
-2. **Time/identity seam OPEN:** keep athlete effective timestamps and HMAC preimages unchanged; permission evidence cannot replace all clock calls. T2's Node crypto and shared-HMAC authority verifier need narrow reviewed integration, not a duplicate committer or re-signing W5 responses.
-3. **W6-KNOWLEDGE-LOSS HARD CLOCK BLOCKER:** durable local success does not solve learned expiry/revocation/rejection followed by failed persistence and relaunch. Controlled remote verification/sign-out channels need proven durable pre-arm/recovery coverage; ordinary session expiry remains11, not automatic revoked17. No blanket restart fence is implemented. Root's separate evidence note is preparatory analysis, not an accepted amendment.
-4. **W6-RESTORE-BOUND accepted residual:** a coherent old generation may restore old budget/sequence; encryption cannot distinguish it. Preserve the owner's bounded-rule exposure and Sol's31-day-kill example; do not reopen strict by stealth.
-5. **W6-LATE-CREATION:** valid offline envelopes can arrive after lease expiry; no arrival-time expiry rule, renewal rewrite, renumbering or old-envelope replacement is introduced.
-6. The outer seal does not prove inner product completeness; preboot T2 integrity is required. Its existing count-based integrity semantics are unchanged; this wrapper does not claim a new full semantic-history validator.
-7. Retained previous encrypted generation is not a backup/recovery protocol. Full-generation write cost, key epochs, schema migrations, independent tab standing, old-store restoration, eviction and physical commit timing need their remaining gates. Production identity/key custody and real recovery still depend on W4/W8.
-8. W7's remote-history projection and W9's actual-device tests remain unimplemented. The different sealed store cannot inherit the seeded soak's eventual survival verdict.
+| Required acceptance | Current verdict |
+|---|---|
+| IDB-187 full matrix | INCOMPLETE:52 Node and actual Chromium T2/repository cases pass; physical/supported-target and remaining matrix not complete |
+| MIGRATE schema/key transitions | NOT RUN; format1 creation/corruption only, no adopted frame migration |
+| STANDING full signed-response/sign-out/recovery | BLOCKED; tested public sinks/context refusals are partial; production knowledge fence absent |
+| CLOCK v1.1 | BLOCKED; time/reconciliation assumptions, allowance implementation, final-time persistence and knowledge-loss contract unproved |
+| SESSION-RESUME one real hour/iPhone | NOT RUN |
+| Remote/owner-phone/isolated-restore | NOT RUN; no simulated remote success or runner registration |
 
 ## Wall-clock and what remains unsure
 
-The contract commit at 2026-09-06 07:09:31 UTC precedes this report checkpoint at 07:27 UTC: approximately 18 minutes for this implementation/testing interval, excluding earlier preparation, subsequent independent review, W5 work and remaining integration. The plan's 18 engineering hours is historical allocation, not an elapsed-time result or a promise that remaining W6 takes that long. Missing remote, browser-T2 and physical evidence has no defensible completion date here.
+Historical storage interval: contract at2026-09-06 07:09:31UTC to checkpoint07:27UTC, approximately18 minutes, excluding preparation/review. Current authorized T2/browser implementation interval starts at accepted integration merge08:11:46UTC and ends at this checkpoint around08:36UTC, approximately24 minutes, including tests/report; it excludes earlier amendment review and future independent review/remaining W6. The plan's18 engineering hours remains historical allocation, not measured wall time or a completion guarantee.
+Production fence/key custody, finite time assumptions, reconciliation/renewal, full Safari/phone survival and recovery remain uncertain with named blockers above; no credible full-app completion date is inferred from these local test durations.
 
 ## NEXT
 
-Actual claim remains **W6** on this branch; this is the storage foundation for later W7 integration/W9 testing, not a completed predecessor or private-port unblock. The storage checkpoint has cowork's preliminary re-execution and the amendment has conditional acceptance with its four corrections published. The coordinator checks this correction diff and records the actual W5 integration SHA before continued T2/dependent build work. W5 time/reconciliation/renewal, W4 custody, final-time persistence, knowledge-loss fencing and W8/W9 remain explicit dependencies. Original base is preserved; no next implementation stream, full W6 acceptance or merge is claimed by this report.
+Keep **W6** as the same actual claim and PR32 DRAFT. Cowork re-executes the exact new T2/browser checkpoint before integration; root coordinates that review. This prepares W7 integration and W9 physical testing, but does not mark W6 done or unblock private import. Next on this same claim: publish independently reviewed frame mechanics corrections as a separate docs commit, then implement only the explicitly accepted scope after coordinator exact-diff matching. W5 time/reconciliation/renewal, W4 production custody, knowledge fencing and W8/W9 remain dependencies; no extra implementation stream or merge is claimed.

@@ -11,6 +11,9 @@
      standing           — "enrolled" | "revoked" (a device that already knows it was removed)
      signInRequired     — the authentication session is known to be expired (state 11)
      backoff            — outbox retry schedule (default [0, 1000, 2000, 4000] ms)
+     authorityVerification — optional complete synchronous { verifyLease, verifyDisposition } pair
+     permissionNowIso   — optional permission-only ISO sample; never replaces athlete effective timestamps
+     onPreparedBatch    — optional synchronous observer of actual immutable whole-batch envelopes
    }
    Everything the athlete does is a durable operation written with its outbox entry in ONE local transaction
    (durability rule). Everything the face shows is derived from the store's read model, rebuilt on boot(). The
@@ -28,12 +31,16 @@ const COPY = require("./copy.cjs");
 const Canonical = require("./canonical.cjs");
 
 const deepCopy = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+const deepFreeze = (v) => { if (v && typeof v === "object") { Object.values(v).forEach(deepFreeze); Object.freeze(v); } return v; };
 const localTime = (iso, tz) => { const m = /^([+-])(\d\d):(\d\d)$/.exec(tz || "+00:00"); const off = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0; const t = new Date(Date.parse(iso) + off * 60000); return t.toISOString().slice(11, 16); };
 const q = (value, unit) => ({ value, unit });
 
 function createClient(config) {
   const cfg = config || {};
-  for (const k of ["deviceId", "identityKey", "authorityKey", "clock"]) if (!cfg[k]) throw new Error("createClient: config." + k + " is required");
+  const verification = cfg.authorityVerification;
+  if (verification !== undefined && (!verification || typeof verification.verifyLease !== "function" || typeof verification.verifyDisposition !== "function")) throw new Error("createClient: authorityVerification needs verifyLease() and verifyDisposition()");
+  for (const k of ["deviceId", "identityKey", ...(verification === undefined ? ["authorityKey"] : []), "clock"]) if (!cfg[k]) throw new Error("createClient: config." + k + " is required");
+  if (cfg.onPreparedBatch !== undefined && typeof cfg.onPreparedBatch !== "function") throw new Error("createClient: onPreparedBatch must be a function");
   if (typeof cfg.clock.now !== "function" || typeof cfg.clock.today !== "function" || typeof cfg.clock.monotonicMs !== "function") throw new Error("createClient: clock needs now(), today(), monotonicMs()");
   const clock = cfg.clock; const K = cfg.identityKey; const tz = clock.tz || "+00:00";
   const store = new Store(cfg.backend || memoryBackend());
@@ -109,7 +116,17 @@ function createClient(config) {
   const bumpReductions = (t) => { t.put("sync", "reductions", { n: model.reductions + 1 }); };
 
   /* ---------- lease + contract ---------- */
-  const leaseNow = (nextSeq) => Lease.check(cfg.lease, { authorityKey: cfg.authorityKey, deviceId: model.deviceId, athleteId: model.athleteId, nowIso: clock.now(), nextSeq });
+  const leaseNow = (nextSeq) => {
+    let nowIso;
+    if (cfg.permissionNowIso !== undefined) {
+      try {
+        nowIso = cfg.permissionNowIso();
+        if (nowIso && typeof nowIso.then === "function") Promise.resolve(nowIso).catch(() => {});
+        if (typeof nowIso !== "string" || !Number.isFinite(Date.parse(nowIso))) throw new Error();
+      } catch { return { valid: false, reason: "permission time unavailable", not_after: cfg.lease && cfg.lease.not_after || null }; }
+    } else nowIso = clock.now();
+    return Lease.check(cfg.lease, { authorityKey: cfg.authorityKey, verifyLease: verification && verification.verifyLease, deviceId: model.deviceId, athleteId: model.athleteId, nowIso, nextSeq });
+  };
   const contractObsolete = () => { const c = cfg.contract; if (!c) return false; if (typeof c.obsolete === "boolean") return c.obsolete; return !!(c.required && c.client && String(c.required) !== String(c.client)); };
 
   /* ---------- sessions (state 14) ---------- */
@@ -125,7 +142,7 @@ function createClient(config) {
   /* fold an effective, received plan transaction into the local accepted projection (inside the same transaction) */
   const onFold = (t, op_id) => { const op = model.ops.get(op_id); if (!op || op.kind !== "plan-mutation") return; const list = model.appliedPlan.filter((a) => a.op_id !== op_id).concat([{ op_id, txn_id: op.requested_transaction_id, members: op.members, provenance: op.group_provenance || "authored" }]); t.put("plan", "applied", { list }); return list; };
   const onFolded = (op_id, list) => { if (list) model.appliedPlan = list; };
-  const sync = createSync({ store, model, outbox, authorityKey: cfg.authorityKey, clock, transport: cfg.transport, isOnline: () => model.online, isPaused: () => model.signInRequired || model.standing === "revoked" || model.restoreRequired, onFold, onFolded });
+  const sync = createSync({ store, model, outbox, authorityKey: cfg.authorityKey, verifyDisposition: verification && verification.verifyDisposition, clock, transport: cfg.transport, isOnline: () => model.online, isPaused: () => model.signInRequired || model.standing === "revoked" || model.restoreRequired, onFold, onFolded });
   const face = createFace({ model, outbox, sync, leaseNow: () => leaseNow(), contractObsolete, ambiguity, reads, touched, acceptedPlan, livePlan, answers, history, today: () => clock.today(), persistedSnapshot: () => store.get("sync", "snapshot") });
 
   /* ---------- the durability rule: ONE local transaction writes the operation(s) and the outbox entry(ies) ---------- */
@@ -140,6 +157,15 @@ function createClient(config) {
     try {
       actions.forEach((a, i) => { const seq = first + i; const op = Ops.build({ op_id: "op-" + model.deviceId + "-" + seq, athlete_id: model.athleteId, device_id: model.deviceId, device_seq: seq, predecessor: pred, parents: a.parents, class: a.class, kind: a.kind, target: a.target, effective: a.effective || effectiveOn(), lease_id: l.lease_id, payload: a.payload, plan: a.plan, undo: a.undo, extra: a.extra }, K); ops.push(op); pred = op.op_id; });
     } catch (e) { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(e.message), invalid: e.validation || [e.message] }; }
+    if (cfg.onPreparedBatch) {
+      try {
+        const descriptor = deepFreeze(deepCopy({ version: "earned/client-batch/v1", athleteId: model.athleteId, deviceId: model.deviceId,
+          count: actions.length, firstSequence: first, lastSequence: lastSeq, leaseId: l.lease_id, operations: ops }));
+        const observed = cfg.onPreparedBatch(descriptor);
+        if (observed && typeof observed.then === "function") Promise.resolve(observed).catch(() => {});
+        if (observed !== undefined) throw new Error("batch observer must return undefined");
+      } catch { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED, reason: "prepared batch observer failed" }; }
+    }
     const entries = ops.map((op, i) => ({ op_id: op.op_id, order: outbox.nextOrder() + i, enqueued: clock.now() }));
     const r = store.transaction((t) => { ops.forEach((op, i) => { t.put("ops", op.op_id, op); t.put("outbox", op.op_id, entries[i]); }); t.put("meta", "device", { device_id: model.deviceId, athlete_id: model.athleteId, seq: lastSeq }); return batch.also ? batch.also(t, ops) : undefined; });
     if (!r.ok) { model.lastSaveFailed = true; return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED, reason: r.error && r.error.message }; }

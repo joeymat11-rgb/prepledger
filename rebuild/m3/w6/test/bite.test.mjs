@@ -14,8 +14,8 @@ test("required disposable early-ack bite is effective and restored byte-for-byte
   const dir = fs.mkdtempSync(path.join(scratch, "early-ack-"));
   fs.copyFileSync(path.join(root, "repository.mjs"), path.join(dir, "repository.mjs"));
   const target = path.join(dir, "bridge.mjs"); fs.writeFileSync(target, source);
-  const old = "const commit = await repository.commit(snapshot, candidate.generation, () => validateCommit({ command, args: clone(args), snapshotRevision: snapshot.revision }));";
-  const replacement = "const pending = repository.commit(snapshot, candidate.generation, () => validateCommit({ command, args: clone(args), snapshotRevision: snapshot.revision })); pending.catch(() => {}); const commit = { revision: -1, durability: { actual: 'not-complete' } };";
+  const old = "const commit = await repository.commit(snapshot, candidate.generation, () => validateCommit(context));";
+  const replacement = "const pending = repository.commit(snapshot, candidate.generation, () => validateCommit(context)); pending.catch(() => {}); const commit = { revision: -1, durability: { actual: 'not-complete' } };";
   assert.equal(source.toString().split(old).length - 1, 1, "one effective mutation target required");
   try {
     fs.writeFileSync(target, source.toString().replace(old, replacement));
