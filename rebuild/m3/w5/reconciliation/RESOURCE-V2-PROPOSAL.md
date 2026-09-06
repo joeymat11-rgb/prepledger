@@ -1,4 +1,6 @@
-# R1 resource-local/v2 — PROPOSED, not adopted
+# R1 resource-local/v2 — REJECTED proposal, not adopted
+
+Independent disposition2026-09-06: cowork executed scoped9f08c01 on Linux and rejected this proposed acceptance metric. Own-only used-based128604204B and foreign133795156B still exceed96MiB; the proposal fails its own both-host requirement. Original reviewed proposal SHA791575c64578f42d6d0ec9bfe000ec773127100be6e22a8fa64b6be5a7e6a6ef remains available at9f08c01. The text below is preserved as the rejected proposal. No metric/cap/gate or remote-only replacement is adopted; original FAILs and R1-COMPLETE FAIL remain. The report distinguishes observed results from unproved runtime/hosted-equivalence hypotheses.
 
 2026-09-06; scoped product `ed71de2e7406bd83dee8eeec358c8bd163cb2f80`. This is the bounded OPEN-RESOURCE-V2 technical-review question already recorded in SCOPED-READ.md. No implementation, metric substitution, cap acceptance or resource PASS follows from this document. All six original resource-local/v1 FAILs remain authoritative until an explicit independently reviewed successor contract is recorded. W6 remains paused.
 
