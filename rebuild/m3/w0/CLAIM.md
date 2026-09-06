@@ -8,3 +8,4 @@
 - Dispatch is serialized by this task. This receipt records one actual start; it is not an atomic scheduler or permission for a second task to claim W0.
 - W6 budget research may run as bounded read-only preparation. W6 implementation and W5's wire contract remain outside this claim.
 - Completion is a reviewed PR plus the accepting/integrated commit, not this receipt.
+- Integration update: queue/role acceptance, public mock and task sources arrived at `8fa4912093be7d7fdf9164343be0473d2127e042`; W0 now includes that tip. The original published start commit remains in branch history. C-MOCK/OPEN-SOURCES/OPEN-LABELS are resolved by that integration; no private original was read.

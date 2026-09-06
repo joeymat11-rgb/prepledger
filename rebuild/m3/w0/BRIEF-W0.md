@@ -4,7 +4,7 @@
 
 Execute PLAN-M3-v1 §2 W0 and §6, and the accepted QUEUE W0-RIGS row. ASTRA owns technical delivery under the owner's 2026-09-06 ruling; cowork independently verifies; Claude Code integrates. One PR, no merge. Base and task claim are in CLAIM.md.
 
-Deliver only `.github/workflows/rebuild.yml`, `rebuild/m3/w0/` and `rebuild/m3/REPORT-W0-ASTRA.md`. The existing deployment workflow and its strict job remain unchanged. No product-rule, frozen app/suite, seed, private fixture, root dependency/lockfile or W5-owned rig edits. A new workflow is authorized by W0's early-CI requirement, not a production deployment.
+Deliver `.github/workflows/rebuild.yml`, `rebuild/m3/w0/` and `rebuild/m3/REPORT-W0-ASTRA.md`; update `rebuild/QUEUE.md` and append `rebuild/DECISIONS.md` only for this claim and already-evidenced status/citation corrections. The existing deployment workflow and its strict job remain unchanged. No product-rule, frozen app/suite, seed, private fixture, root dependency/lockfile or W5-owned rig edits. A new workflow is authorized by W0's early-CI requirement, not a production deployment; these routine queue updates authorize no new ruling or self-acceptance.
 
 ## 1. Deliverables
 
