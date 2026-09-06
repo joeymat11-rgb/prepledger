@@ -110,7 +110,7 @@ function packagePending(m,context) {
   reasons.push('successor reviewed manifest, concrete import-guard cases and declaration/legacy-case carriers not implemented');
   return reasons;
 }
-function gateRun(root,bundles,gate) {
+function gateRun(root,bundles,gate,{emit=console.log}={}) {
   const [id,file,needle,arg]=gate;
   if(id==='migrate-full') {
     const manifest=JSON.parse(fs.readFileSync(path.join(root,'rebuild/conform/oracle/manifest.json')));
@@ -128,8 +128,8 @@ function gateRun(root,bundles,gate) {
     id==='second-gate'&&/^SECOND GATE candidate (engine|sync|surface)/.test(line)||
     id==='conformance'&&line.includes('engine-track rig185')||
     id==='strict'&&line.includes('PASS engine suite'));
-  for(const line of extra)console.log(line);
-  console.log('LEGACY '+id+' PASS | '+tail);return {id,tail};
+  for(const line of extra)emit(line);
+  emit('LEGACY '+id+' PASS | '+tail);return {id,tail};
 }
 function parse(args) {
   const result={};
@@ -140,6 +140,7 @@ function parse(args) {
 function main(args=process.argv.slice(2)) {
   const options=parse(args),manifestFile=path.resolve(options['--manifest']);
   const m=JSON.parse(fs.readFileSync(manifestFile));
+  if(m.version===2){if(options['--phase'])fail('ENVELOPE-SUBSTANTIVE-OVERRIDE');return require('./package-runner.cjs').main({manifestFile,baseline:options['--baseline'],candidate:options['--candidate']});}
   if(options['--phase'])m.phase=options['--phase'];
   const context=preflight(m,{baseline:options['--baseline'],candidate:options['--candidate']});
   console.log('POSTFIX phase='+m.phase+' candidateBase='+m.candidateBase+' baseline='+m.baseline.auditCommit+' selectedApprovedFixIds='+JSON.stringify(m.selectedApprovedFixIds)+' plannedRequiredIds='+JSON.stringify(m.requiredIds));
@@ -170,5 +171,5 @@ function main(args=process.argv.slice(2)) {
   console.log('POSTFIX TOTAL '+m.inventory.filter(x=>x.disposition==='UNRULED').length+' UNRULED / '+m.inventory.filter(x=>x.disposition==='APPROVED-FIX').length+' APPROVED-FIX / '+m.inventory.filter(x=>x.implementation==='PRESENT').length+' PRESENT / '+m.inventory.filter(x=>x.disposition==='KEEP').length+' KEEP / '+m.inventory.filter(x=>x.disposition==='DEFER').length+' DEFER / 15 non-D OPEN; theme cases and deltas PENDING');
   console.log('BASELINE PASS / FIXES PENDING');return 0;
 }
-if(require.main===module)try{process.exitCode=main();}catch(e){const blocked=['REQUIRED-PRIVATE-PREPARATION-MISSING','REQUIRED-DISPOSITION-RECEIPT-MISSING','BASELINE-ESBUILD-MISSING'].includes(e.code);console.error('POSTFIX '+(blocked?'BLOCKED ':'FAIL ')+(e.code||e.name));process.exitCode=blocked?2:1;}
+if(require.main===module)try{process.exitCode=main();}catch(e){const blocked=['REQUIRED-PRIVATE-PREPARATION-MISSING','REQUIRED-DISPOSITION-RECEIPT-MISSING','BASELINE-ESBUILD-MISSING','INTEGRATION-FETCH-BLOCKED'].includes(e.code);console.error('POSTFIX '+(blocked?'BLOCKED ':'FAIL ')+(e.code||e.name));process.exitCode=blocked?2:1;}
 module.exports={REQUIRED,NON_D,GATES,validate,preflight,packagePending,gateRun,parse,main};

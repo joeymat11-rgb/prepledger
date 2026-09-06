@@ -31,7 +31,9 @@ SELFTEST PASS
 All checks passed. Safe to ship.
 ```
 The last line is the original strict gate's exact output, not permission to ship this incomplete package. Merge/writer runners also executed their frozen/trap modes. Legacy-carrier unit tests16/16 PASS; original baseline migration differential126 cases in each Date mode and D33–D36 witnesses4/4 were independently re-executed before successor adaptation.
-Required results remain the entire accepted brief's gate inventory; missing receipt or private preparation is BLOCKED, never a partial PASS. The successor artifact is a draft; its independent artifact acceptance receipt does not exist yet. Exact case×mode×clock traces, actual mutations, final successor carriers and authorized PACKAGE remain pending.
+All five successor carriers also passed against committed product5b1281d in both Date modes: MIGRATE-SOURCE, MERGE-SOURCE, WRITERS-SOURCE, DEFECT-WITNESSES-5 and MIGRATE-DIFFERENTIAL. They preserve every original assertion outside the five scoped source/outcome changes, retain D36 unchanged, and account for all126 original migration cases plus one genuine filed-strike positive. No original test file is edited.
+The raw three-way check completed45 defects ×4 configurations ×3 engines: literal frozen vs accepted baseline180/180 exact, other42 current traces168/168 exact, selected3 RED→GREEN12/12. D27/D44's four nondefault fixture outcomes receive the explicit accounting in §6. Twelve selected-output comparisons pass; twelve extra-output mutations are refused. Eleven actual scoped product mutants execute across all four configurations:44/44 EFFECTIVE, with V8 coverage at the edited declaration/site, named assertion failures and fresh unmutated GREEN before and after each fault.
+The assembled artifact is `rebuild/conform/v4/postfix/acceptance-import-guards.json`,3,336,135 bytes/SHA256 `c199e0e567af910dff5d17ff4748869161b5aed883553ec882f8b76ac3d42506`:208 cases,832 expectations,11 mutants and26 execution pins. Final infrastructure tests178/178 pass. Its operational review status remains PENDING/null; no independent artifact acceptance receipt exists yet. Required results remain the entire accepted brief's gate inventory; missing receipt or private preparation is BLOCKED, never a partial PASS. The final combined PACKAGE remains pending.
 
 ## 3. Clock, ID, storage and mutable ownership
 
@@ -39,13 +41,25 @@ No new ambient clock, ID, storage or global cache is introduced. Correction evid
 
 ## 4. Bite and restoration
 
-NOT RUN. Actual scoped source mutations, a behavioral RED line, exact restoration and an unlisted-delta comparator bite are required before acceptance.
+Root independently executed the tracked counts-only fault definition in a disposable real-engine copy: it restores the old counts-only exit inside dataLossGuard, executes the actual changed site and fails the exact read-identity assertion. The source checkout was never mutated; its complete module hash and a fresh unmutated run confirm restoration. Exact emitted evidence:
+```text
+BITE D33 counts-only RED | IG33-READ-REPLACE:guard
+RESTORED D33 counts-only GREEN | migrate.cjs sha256 aab15be8c83e11815937f144e2a505651aa750d96a39d745a6fb81646e3c302c
+```
+The complete tracked mutant test covers44 cells. Root separately added an unapproved synthetic output field to each of the12 actual selected raw candidate traces and used the same structural comparator as PACKAGE. Every altered trace failed, then each unchanged trace passed:
+```text
+DELTA BITE RED | UNAPPROVED-DELTA: 12/12 extra-output changes refused
+DELTA RESTORED GREEN | 12/12 exact approved raw trace comparisons
+```
 
 ## 5. SEAMS
 
 Authority: owner DECISIONS line60, SHA256 `ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8`; theme acceptance line62, SHA256 `5bc569c669b2ce2722128f512bb53488f5b306aa2b1329d8cd345e4a7ef6f53d`; both at the dispatch base. Accepted post-fix contract line49: `f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52`.
 Governing brief: `rebuild/m2/BRIEF-IMPORT-GUARDS.md` at `df5bd1b8682cc5ec2720da67976e8931e19b2cf8`, SHA256 `3229d916bcf013c1db9f91e86f174f09c13effdbeb1624f805ecbb9204ef7c6d`.
 The exact artifact/receipt split, descriptor-safe trace and source/case successor rules are mandatory. Existing unguarded restoreFromCloud and deterministic corr-only retry refusal remain explicit limits. Actual ghSync guards its remote preimage only: a sparse remote winner can still omit richer local entries without tripping that host call; the direct guard against the retained local preimage refuses. Ordinary save and explicit force use their actual unchanged argument/override rules. Exact frozen host compositions cover both directions, repeated retries, live skip/unskip controls and restore. No symmetric host guard, automatic force path or imported-evidence authentication is claimed.
+Expected trace cells are authored separately from candidate execution. `helpers/build-import-guard-expectations.cjs` compiles pinned public frozen Git sources; its closed projection table supplies only the brief's explicit per-call guard results, pristine booleans or future-input identity behavior. The unchanged frozen hosts produce the expected complete traces. Every unprojected carrier trace must first match the literal frozen target byte-for-byte; the generator cannot accept a candidate directory. Its source, projection table and occurrence checks are pinned in the artifact. These projected results are an answer key, never implementation proof, a mutant kill or a historical control; actual candidate cases and original raw-law execution remain separate.
+The ghSync early return removes four named todayStart/isoOf frames in its repeated-attempt case. Retained observations therefore have different frame indices. Explicit `afterPath` cells identify the original and final frame while retaining the exact nested path, old/new value or required absence, overlap/collision rejection and complete reconstructed-trace equality. Explicit bijective identity maps preserve every retained reference; deleted-only nodes receive collision-free spare labels before their exact pinned removals. No wildcard graph, receipt or alias exemption is used. Independent review will rederive these cells from the pinned frozen-only carrier before comparison with the candidate.
+Final independent construction completed832 cells, with3,368 exact delta cells and2,640 explicit alias pairs. Tracked `fixtures/import-guards-deltas.json`:2,919,360 bytes, SHA256 `0fdc167fcdf5de036205d4accdd6ec49bcd1e0a4073f082a49e03461de732a0b`. The construction receipt was written at2026-09-06T16:02:56.536Z before the separate final candidate-comparison process began; every unprojected carrier result had already byte-matched its actual frozen target. Carrier boundary/projection tests8/8 pass, including candidate path/forged-receipt refusal and changed-receipt rejection. These generation results do not substitute for the final actual candidate PACKAGE.
 
 ## 6. RECON disagreements
 

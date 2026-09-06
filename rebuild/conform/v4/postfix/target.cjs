@@ -6,6 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
+const {graphEncoderV2}=require('./trace-v2.cjs');
 const NativeDate = Date;
 const sha = x => crypto.createHash('sha256').update(x).digest('hex');
 function fail(code) { throw Object.assign(new Error(code), {code}); }
@@ -100,8 +101,9 @@ function rawLaw(baseline, descriptor) {
   if(!law||sha(Function.prototype.toString.call(law.run))!==descriptor.runSha256)fail('RAW-LAW-PIN');
   return law;
 }
-function createTarget({candidate,inventory,day='2026-09-03'}, frames = []) {
-  const loaded=[], factory=loadCandidate(candidate,inventory,loaded), encode=graphEncoder();let instance=0;
+function wrapFactory(factory,{day='2026-09-03',traceProfile=1,boundaryDateProfile=false},frames,loaded=[]) {
+  if(![1,2].includes(traceProfile))fail('TRACE-PROFILE');
+  const encode=traceProfile===2?graphEncoderV2({boundaryDateProfile}):graphEncoder();let instance=0;
   function engine(options={}) {
     if(!options||typeof options!=='object'||Array.isArray(options))fail('TARGET-OPTIONS');
     const c=options.clock||clock(day), idProvider=options.ids||ids(c), drafts=options.drafts||Object.freeze({length:0,key:()=>null});
@@ -115,22 +117,55 @@ function createTarget({candidate,inventory,day='2026-09-03'}, frames = []) {
     };
     return facade;
   }
-  return {engine,legacy:Object.freeze({kind:'candidate',clock,engine(value=day){return engine({clock:typeof value==='string'?clock(value):value});}}),loaded};
+  function record(name,value){if(typeof name!=='string'||!name)fail('OBSERVATION-NAME');frames.push({observation:name,value:encode(value)});}
+  return {engine,record,legacy:Object.freeze({kind:'candidate',clock,engine(value=day){return engine({clock:typeof value==='string'?clock(value):value});}}),loaded};
 }
-function worker(input) {
+function createTarget(input,frames=[]){const loaded=[];return wrapFactory(loadCandidate(input.candidate,input.inventory,loaded),input,frames,loaded);}
+function pinnedHelper(input,file){
+  if(!input.helperRoot||!input.helperPins)fail('HELPER-INVENTORY');
+  const root=fs.realpathSync(input.helperRoot),cache=new Map();
+  function load(file){const real=fs.realpathSync(file),rel=path.relative(root,real).split(path.sep).join('/');if(rel.startsWith('../')||path.isAbsolute(rel)||!Object.hasOwn(input.helperPins,rel)||sha(fs.readFileSync(real))!==input.helperPins[rel])fail('HELPER-SOURCE-PIN');if(cache.has(real))return cache.get(real);
+    const req=request=>{if(['node:fs','node:path','node:vm','node:crypto','node:child_process','node:assert/strict','node:url','node:util'].includes(request))return require(request);
+      if(['direct-frozen','raw-frozen'].includes(input.kind)&&input.bundle&&path.resolve(request)===path.resolve(input.bundle)){if(sha(fs.readFileSync(input.bundle))!==input.bundleSha256)fail('FROZEN-BUNDLE-PIN');delete require.cache[require.resolve(input.bundle)];return require(input.bundle);}
+      if(input.kind==='raw-frozen'&&path.resolve(path.dirname(real),request)===path.join(root,'rebuild/engine/index.cjs'))return {createEngine(){fail('FROZEN-CANDIDATE-FACTORY-FORBIDDEN');}};
+      if(!path.isAbsolute(request)&&!request.startsWith('./')&&!request.startsWith('../'))fail('HELPER-IMPORT');return load(path.resolve(path.dirname(real),request));};
+    req.resolve=request=>{const resolved=path.resolve(path.dirname(real),request);if(['direct-frozen','raw-frozen'].includes(input.kind)&&resolved===path.resolve(input.bundle))return resolved;const rel=path.relative(root,resolved).split(path.sep).join('/');if(!Object.hasOwn(input.helperPins,rel))fail('HELPER-IMPORT');return resolved;};req.cache=Object.create(null);
+    const out=compile(real,req);cache.set(real,out);return out;}
+  return load(path.resolve(root,file));
+}
+async function worker(input) {
   process.env.TZ='America/New_York';
   if(!['frozen','native'].includes(input.mode))fail('DATE-MODE');
   if(input.mode==='frozen') { const c=clock(input.day); globalThis.Date=class FrozenDate extends NativeDate {constructor(...a){super(...(a.length?a:[c.nowMs()]));}static now(){return c.nowMs();}}; }
-  const before=globalThis.Date, frames=[],target=createTarget(input,frames);
-  let result;
-  if(input.kind==='direct') {
+  const before=globalThis.Date,frames=[];let target;
+  if(input.kind==='direct-frozen'){
+    if(!input.bundle||sha(fs.readFileSync(input.bundle))!==input.bundleSha256)fail('FROZEN-BUNDLE-PIN');
+    const helper=pinnedHelper(input,input.frozenHelper);
+    target=wrapFactory(options=>{const table=helper.createFrozenEngine({...options,bundle:input.bundle,root:input.helperRoot});return table.__test?table:{__test:table};},{...input,boundaryDateProfile:true},frames);
+  }else if(input.kind==='raw-frozen'){
+    if(!input.bundle||sha(fs.readFileSync(input.bundle))!==input.bundleSha256)fail('FROZEN-BUNDLE-PIN');
+    const helper=pinnedHelper(input,'rebuild/conform/v4/helpers.cjs'),B=helper.bundle('frozen',input.bundle);
+    target=wrapFactory(options=>({__test:B.engine(options.clock)}),{...input,boundaryDateProfile:true},frames);
+  }else target=createTarget(input,frames);
+  let result,thrown=null;
+  if(input.kind==='direct'||input.kind==='direct-frozen') {
     if(sha(fs.readFileSync(input.caseFile))!==input.caseSha256)fail('DIRECT-CASE-PIN');
     const mod=compile(input.caseFile,()=>fail('DIRECT-CASE-IMPORT'));
     const law=mod.laws.find(x=>x.id===input.lawId);
     if(!law||law.implementation!=='PRESENT'||typeof law.run!=='function')fail('DIRECT-CASE-PENDING');
-    result=law.run(Object.freeze({engine:target.engine}));
-  } else result=rawLaw(input.baseline,input.law).run(target.legacy);
+    const api={engine:target.engine,record:target.record,caseId:input.caseId,day:input.day,clock:()=>clock(input.day)};
+    if(input.hostsHelper){const helper=pinnedHelper(input,input.hostsHelper);api.createHosts=engine=>helper.createHosts({engine,record:target.record,clock:clock(input.day),root:input.helperRoot});}
+    result=await law.run(Object.freeze(api));
+  } else {
+    const law=rawLaw(input.baseline,input.law); // Pin/import errors are outside the outcome catch.
+    try{result=await law.run(target.legacy);}catch(error){
+      const message=Object.getOwnPropertyDescriptor(error,'message');
+      if(input.traceProfile!==2||input.rawFixtureOutcome!=='D44-NONDEFAULT-FIXTURE'||input.day!=='2026-09-07'||input.law.defect!=='D44'||Object.getPrototypeOf(error)!==TypeError.prototype||!message||!Object.hasOwn(message,'value')||message.value!=="Cannot read properties of null (reading 'agentProposals')")throw error;
+      thrown={name:'TypeError',message:message.value};
+    }
+  }
   if(globalThis.Date!==before)fail('AMBIENT-DATE-MUTATED');
+  if(thrown){if(!frames.length)fail('RAW-LAW-RESULT-OR-NO-CALL');return {status:'THROWS',error:thrown,frames,detail:graphEncoderV2()(undefined),assertions:null,loaded:target.loaded};}
   if(!result||typeof result.ok!=='boolean'||!frames.length)fail('RAW-LAW-RESULT-OR-NO-CALL');
   return {status:result.ok?'GREEN':'RED',frames,detail:graphEncoder()(result.detail),assertions:result.assertions??null,loaded:target.loaded};
 }
@@ -138,12 +173,11 @@ function runRaw(input) {
   const child=spawnSync(process.execPath,[__filename,'--worker'],{input:JSON.stringify(input),encoding:'utf8',maxBuffer:32*1024*1024,timeout:30000,windowsHide:true,
     env:{...process.env,NODE_OPTIONS:'',NODE_V8_COVERAGE:input.coverageDirectory||'',TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',ENGINE_MAIN:'',ENGINE_OLD:''}});
   if(child.error||child.signal||child.status!==0)fail('RAW-CHILD-HARNESS-ERROR');
-  try {const r=JSON.parse(child.stdout);if(!['RED','GREEN'].includes(r.status)||!Array.isArray(r.frames)||!r.frames.length)fail('RAW-CHILD-PROTOCOL');return r;}
+  try {const r=JSON.parse(child.stdout);if(!['RED','GREEN','THROWS'].includes(r.status)||!Array.isArray(r.frames)||!r.frames.length)fail('RAW-CHILD-PROTOCOL');if(r.status==='THROWS'&&(input.rawFixtureOutcome!=='D44-NONDEFAULT-FIXTURE'||input.law?.defect!=='D44'||input.day!=='2026-09-07'||r.error?.name!=='TypeError'||r.error?.message!=="Cannot read properties of null (reading 'agentProposals')"))fail('RAW-CHILD-PROTOCOL');return r;}
   catch(e){fail('RAW-CHILD-PROTOCOL');}
 }
 if(require.main===module) {
   if(process.argv.length!==3||process.argv[2]!=='--worker'){console.error('TARGET USAGE ERROR');process.exitCode=1;}
-  else try {process.stdout.write(JSON.stringify(worker(JSON.parse(fs.readFileSync(0,'utf8')))));}
-  catch(e){console.error('TARGET HARNESS_ERROR '+(e.code||e.name));process.exitCode=1;}
+  else worker(JSON.parse(fs.readFileSync(0,'utf8'))).then(result=>process.stdout.write(JSON.stringify(result))).catch(e=>{console.error('TARGET HARNESS_ERROR '+(e.code||e.name));process.exitCode=1;});
 }
-module.exports={clock,ids,graphEncoder,loadCandidate,rawLaw,createTarget,runRaw,worker,sha,fail};
+module.exports={clock,ids,graphEncoder,graphEncoderV2,loadCandidate,rawLaw,createTarget,wrapFactory,runRaw,worker,sha,fail};
