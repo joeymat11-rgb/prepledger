@@ -150,7 +150,11 @@ async function worker(input) {
   let result,thrown=null;
   if(input.kind==='direct'||input.kind==='direct-frozen') {
     if(sha(fs.readFileSync(input.caseFile))!==input.caseSha256)fail('DIRECT-CASE-PIN');
-    const mod=compile(input.caseFile,()=>fail('DIRECT-CASE-IMPORT'));
+    const successor=path.resolve(input.caseFile)===path.resolve(input.helperRoot||'.','rebuild/conform/v4/postfix/laws/step-efficacy.cjs');
+    const mod=compile(input.caseFile,request=>{
+      if(!successor||request!=='./import-guards.cjs')fail('DIRECT-CASE-IMPORT');
+      return pinnedHelper(input,'rebuild/conform/v4/postfix/laws/import-guards.cjs');
+    });
     const law=mod.laws.find(x=>x.id===input.lawId);
     if(!law||law.implementation!=='PRESENT'||typeof law.run!=='function')fail('DIRECT-CASE-PENDING');
     const api={engine:target.engine,record:target.record,caseId:input.caseId,day:input.day,clock:()=>clock(input.day)};

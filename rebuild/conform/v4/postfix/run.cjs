@@ -140,7 +140,7 @@ function parse(args) {
 function main(args=process.argv.slice(2)) {
   const options=parse(args),manifestFile=path.resolve(options['--manifest']);
   const m=JSON.parse(fs.readFileSync(manifestFile));
-  if(m.version===2){if(options['--phase'])fail('ENVELOPE-SUBSTANTIVE-OVERRIDE');return require('./package-runner.cjs').main({manifestFile,baseline:options['--baseline'],candidate:options['--candidate']});}
+  if(m.version===2){if(options['--phase'])fail('ENVELOPE-SUBSTANTIVE-OVERRIDE');require('./acceptance.cjs').envelope(require('./strict-json.cjs').parseExact(fs.readFileSync(manifestFile)));return require('./package-runner.cjs').main({manifestFile,baseline:options['--baseline'],candidate:options['--candidate']});}
   if(options['--phase'])m.phase=options['--phase'];
   const context=preflight(m,{baseline:options['--baseline'],candidate:options['--candidate']});
   console.log('POSTFIX phase='+m.phase+' candidateBase='+m.candidateBase+' baseline='+m.baseline.auditCommit+' selectedApprovedFixIds='+JSON.stringify(m.selectedApprovedFixIds)+' plannedRequiredIds='+JSON.stringify(m.requiredIds));
@@ -173,4 +173,4 @@ function main(args=process.argv.slice(2)) {
 }
 // Publish shared gate exports before CLI dispatch can require this module again.
 module.exports={REQUIRED,NON_D,GATES,validate,preflight,packagePending,gateRun,parse,main};
-if(require.main===module)try{process.exitCode=main();}catch(e){const blocked=['REQUIRED-PRIVATE-PREPARATION-MISSING','REQUIRED-DISPOSITION-RECEIPT-MISSING','BASELINE-ESBUILD-MISSING','INTEGRATION-FETCH-BLOCKED'].includes(e.code);console.error('POSTFIX '+(blocked?'BLOCKED ':'FAIL ')+(e.code||e.name));process.exitCode=blocked?2:1;}
+if(require.main===module)try{process.exitCode=main();}catch(e){const blocked=['REQUIRED-PRIVATE-PREPARATION-MISSING','REQUIRED-DISPOSITION-RECEIPT-MISSING','BASELINE-ESBUILD-MISSING','INTEGRATION-FETCH-BLOCKED','STEP-CUSTODY-PENDING'].includes(e.code);console.error('POSTFIX '+(blocked?'BLOCKED ':'FAIL ')+(e.code||e.name));process.exitCode=blocked?2:1;}

@@ -1,0 +1,56 @@
+'use strict';
+// Successor-schema fixtures and disposable source copies authorize no repair or
+// final package. Parent acceptance alone is explicitly insufficient for D12.
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
+const A=require('../acceptance.cjs'),S=require('../source-proof.cjs'),L=require('../legacy-gates.cjs'),T=require('../target.cjs');
+const root=path.resolve(__dirname,'../../../../..'),parent=A.parentArtifact(),binding=A.parentBinding();
+const anchor='a777f64318dfb9b4766fa336d623196d07b5fc00';
+const line=L.object(root,anchor,'rebuild/DECISIONS.md').toString().split(/\r?\n/)[68];
+const throws=(fn,code)=>assert.throws(fn,e=>e.code===code),copy=structuredClone;
+const originalEnergy=L.object(root,parent.baseline.auditCommit,S.STEP_FILE).toString('utf8');
+function fixture({present=false}={}){
+  const a=copy(parent);a.packageId='M2-STEP-EFFICACY';a.codeBaseAnchor=anchor;a.requiredIds=A.requiredIds(a);a.selectedApprovedFixIds=A.requiredIds(a);a.newlySelectedIds=['D12'];a.carriedAcceptedIds=['D33','D34','D35'];a.acceptedParent=copy(binding);
+  a.contracts.push(copy(A.STEP_CONTRACT));a.caseModule='rebuild/conform/v4/postfix/laws/step-efficacy.cjs';a.helperFiles.hosts=a.helperFiles.frozen='rebuild/conform/v4/postfix/helpers/step-efficacy-frozen.cjs';
+  a.authorizations.theme={role:'cowork',line,lineSha256:T.sha(line)};a.authorizations.review={role:'cowork',prefix:'POSTFIX-ACCEPTANCE M2-STEP-EFFICACY',terminal:'ACCEPTED'};
+  const d=a.inventory.find(r=>r.defect==='D12');d.themeAcceptance='theme';for(const c of d.rawExpectations)c.candidateStatus='GREEN';
+  if(present){d.implementation='PRESENT';d.sourceDeltas=['source-stepEfficacy'];const change=S.proposeStepEfficacyChange(originalEnergy);a.sourceChanges.push(change);a.candidateEngine['energy.cjs']=T.sha(S.applyStepEfficacyChange(originalEnergy,change));}
+  return a;
+}
+function envelope(a){const e=JSON.parse(fs.readFileSync(path.join(root,binding.operational.file)));e.acceptanceFile=A.artifactFile(a);e.acceptanceSha256=T.sha(JSON.stringify(a,null,2)+'\n');e.candidateBase=anchor;
+  for(const key of ['owner','contract','theme'])e.receipts[key]={commit:anchor,path:'rebuild/DECISIONS.md',line:a.authorizations[key].line,lineSha256:a.authorizations[key].lineSha256};e.receipts.review={status:'PENDING',receipt:null};return e;}
+test('enumerated successor retains45 directions,15 nonD,19 gates and immutable parent rows',()=>{const a=fixture();A.validate(a);assert.deepEqual(a.requiredIds,['D12','D33','D34','D35']);assert.equal(a.inventory.length,45);assert.equal(a.nonD.length,15);assert.equal(a.gates.length,19);assert.equal(a.inventory.filter(r=>r.implementation==='PRESENT').length,3);assert(A.missing(a).includes('D12 cases pending'));assert(A.missing(a).some(x=>x.includes('one energy expression')));});
+test('source-present fixture remains pending without actual case/mutant/output coverage',()=>{const a=fixture({present:true});A.validate(a);assert.equal(a.inventory.filter(r=>r.implementation==='PRESENT').length,4);assert(A.missing(a).includes('D12 mutants pending'));assert(A.missing(a).includes('D12 outputDeltas pending'));});
+test('only exact profile names and file pairs are addressable',()=>{assert.equal(A.artifactFile(parent),A.FILE);assert.equal(A.envelopeFile('M2-STEP-EFFICACY'),'rebuild/conform/v4/postfix/manifest-step-efficacy.json');assert.deepEqual(A.requiredIds(parent),['D33','D34','D35']);throws(()=>A.profile('M2-ANYTHING'),'PACKAGE-INVENTORY');throws(()=>A.rawExpectations(fixture().inventory[0],parent.matrix,['D1']),'PACKAGE-INVENTORY');});
+for(const [name,mutate,code]of [
+  ['empty new selection',a=>a.newlySelectedIds=[],'PACKAGE-INVENTORY'],['new unrelated selection',a=>a.newlySelectedIds=['D13'],'PACKAGE-INVENTORY'],['dropped carried ID',a=>a.carriedAcceptedIds.pop(),'PACKAGE-INVENTORY'],['wrong anchor',a=>a.codeBaseAnchor=parent.codeBaseAnchor,'PACKAGE-INVENTORY'],
+  ['parent hash',a=>a.acceptedParent.artifact.sha256='0'.repeat(64),'ACCEPTED-PARENT-BINDING'],['parent receipt',a=>a.acceptedParent.receipt.line+=' ACCEPTED','ACCEPTED-PARENT-BINDING'],['parent candidate',a=>a.acceptedParent.candidateCommit=anchor,'ACCEPTED-PARENT-BINDING'],['extra parent field',a=>a.acceptedParent.trust=true,'ACCEPTED-PARENT-BINDING'],
+  ['inherited delta',a=>a.sourceChanges[0].after+='\n','INHERITED-SOURCE-CHANGES'],['inherited case',a=>a.inventory.find(r=>r.defect==='D33').cases.pop(),'CARRIED-OR-UNSELECTED-INVENTORY'],['inherited mutant',a=>a.inventory.find(r=>r.defect==='D34').mutants.pop(),'CARRIED-OR-UNSELECTED-INVENTORY'],
+  ['unselected output waiver',a=>a.inventory[0].outputDeltas.push({wildcard:true}),'CARRIED-OR-UNSELECTED-INVENTORY'],['unselected present',a=>a.inventory[0].implementation='PRESENT','CARRIED-OR-UNSELECTED-INVENTORY'],['D12 still red candidate',a=>a.inventory.find(r=>r.defect==='D12').rawExpectations[0].candidateStatus='RED','RAW-EXPECTATION-OUTCOME'],['D27 masking changed',a=>a.inventory.find(r=>r.defect==='D27').rawExpectations[2].classification='ACCEPTANCE','CARRIED-OR-UNSELECTED-INVENTORY'],
+  ['old theme receipt',a=>a.authorizations.theme=copy(parent.authorizations.theme),'THEME-AUTHORIZATION-PIN'],['old review prefix',a=>a.authorizations.review=copy(parent.authorizations.review),'REVIEW-CLAIM'],['unapproved contract',a=>a.contracts[2].sha256='0'.repeat(64),'CONTRACT-PIN'],['extra nonD',a=>a.nonD.push({id:'extra'}),'NON-D-INVENTORY'],['missing gate',a=>a.gates.pop(),'GATE-OR-MODE-INVENTORY'],['arbitrary case path',a=>a.caseModule='rebuild/conform/v4/postfix/laws/anything.cjs','THEME-PATH'],['arbitrary helper',a=>a.helperFiles.frozen=parent.helperFiles.frozen,'HELPER-PATH'],
+])test('closed STEP profile refuses '+name,()=>{const a=fixture();mutate(a);throws(()=>A.validate(a),code);});
+test('D12 fault cannot target an unrelated product declaration',()=>{const a=fixture(),r=a.inventory.find(r=>r.defect==='D12');r.cases=[{id:'synthetic',assertions:[{id:'synthetic:units',count:1}],originalFailures:['synthetic:units'],expectations:[]}];r.mutants=[{id:'synthetic',file:'writers.cjs',declaration:'runAdaptive',preimageHash:'0'.repeat(64),postimageHash:'1'.repeat(64),preimage:'a',postimage:'b',expectedFailures:['synthetic:units'],caseId:'synthetic',scope:{start:0,end:1,sha256:'2'.repeat(64)}}];throws(()=>A.validate(a),'MUTANT-SCHEMA');});
+test('actual parent Git bytes, accepted receipt and product ancestry verify without new approval',()=>{const a=fixture();assert.equal(A.verifyAcceptedParent(root,a).packageId,'M2-IMPORT-GUARDS');assert.equal(A.verifyReceipts(root,a,envelope(a),Buffer.from(JSON.stringify(a,null,2)+'\n')),false);});
+test('schema ACCEPTED marker cannot manufacture a missing D12 artifact ledger receipt',()=>{const a=fixture(),e=envelope(a);const reviewLine='- synthetic · cowork · POSTFIX-ACCEPTANCE M2-STEP-EFFICACY '+anchor+' '+A.STEP_FILE+' '+e.acceptanceSha256+' ACCEPTED';e.receipts.review={status:'ACCEPTED',receipt:{commit:anchor,path:'rebuild/DECISIONS.md',line:reviewLine,lineSha256:T.sha(reviewLine)}};A.envelope(e);throws(()=>A.verifyReceipts(root,a,e,Buffer.from(JSON.stringify(a,null,2)+'\n')),'RECEIPT-EXACT-LINE-MISSING');});
+test('parent ACCEPTED receipt cannot authorize successor even if copied into the runtime envelope',()=>{const a=fixture(),e=envelope(a);e.receipts.review={status:'ACCEPTED',receipt:{...copy(binding.receipt),commit:anchor}};A.envelope(e);throws(()=>A.verifyReceipts(root,a,e,Buffer.from(JSON.stringify(a,null,2)+'\n')),'REVIEW-EXACT-VERDICT');});
+test('pending/accepted contradictions remain rejected on successor',()=>{const a=fixture(),e=envelope(a);A.envelope(e);e.receipts.review.status='ACCEPTED';throws(()=>A.envelope(e),'REVIEW-STATUS-CONTRADICTION');});
+test('exact single-expression source projection is independently determined',()=>{const d=S.proposeStepEfficacyChange(originalEnergy),after=S.applyStepEfficacyChange(originalEnergy,d);assert.equal(after,originalEnergy.replace(S.STEP_BEFORE,S.STEP_AFTER));assert.equal(d.declaration,'stepEfficacy');assert.equal(S.proposeStepEfficacyChange(originalEnergy,after).after,d.after);});
+for(const [name,mutate,code]of [
+  ['another function',d=>d.declaration='stepPush','STEP-EXPRESSION-SCOPE'],['another module',d=>d.file='rebuild/engine/writers.cjs','STEP-EXPRESSION-SCOPE'],['scale after rounding',d=>{d.after=d.before.replace(S.STEP_BEFORE,'const slopePer1k = den ? +((num / den) * 1000).toFixed(3) / 1000 : 0;');d.afterSha256=T.sha(d.after);},'STEP-EXPRESSION-SCOPE'],['threshold change',d=>{assert(d.after.includes('boundPer1k * 5'));d.after=d.after.replace('boundPer1k * 5','boundPer1k * 6');d.afterSha256=T.sha(d.after);},'STEP-EXPRESSION-SCOPE'],['unbounded extra statement',d=>{d.after+='globalThis.effect=true;\n';d.afterSha256=T.sha(d.after);},'STEP-EXPRESSION-SCOPE'],['wrong declaration span',d=>d.start++,'STEP-DECLARATION-SCOPE'],['preimage hash',d=>d.beforeSha256='0'.repeat(64),'STEP-EXPRESSION-SCOPE']
+])test('energy source proof refuses '+name,()=>{const d=S.proposeStepEfficacyChange(originalEnergy);mutate(d);throws(()=>S.applyStepEfficacyChange(originalEnergy,d),code);});
+test('full-file output rejects unlisted header changes',()=>{const d=S.proposeStepEfficacyChange(originalEnergy),after=S.applyStepEfficacyChange(originalEnergy,d)+'\n';throws(()=>S.proposeStepEfficacyChange(originalEnergy,after),'UNAPPROVED-SOURCE-DELTA');});
+// A real local clone supplies unchanged original Git objects and parent receipts;
+// only disposable engine files receive the one source-derived expression.
+const scratchParent=path.join(root,'.tmp/postfix/step-profile-tests');fs.mkdirSync(scratchParent,{recursive:true});const scratch=fs.mkdtempSync(path.join(scratchParent,'source-'));
+test.after(()=>{assert(scratch.startsWith(scratchParent+path.sep));fs.rmSync(scratch,{recursive:true,force:true});});
+test('composed source check proves original audit plus accepted parent; no blanket changed-module waiver',()=>{
+  cp.execFileSync('git',['clone','--shared','--no-checkout','--quiet',root,scratch],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+  // Keep this negative tied to the pre-repair commit even after the real fix is committed.
+  cp.execFileSync('git',['-C',scratch,'update-ref','--no-deref','HEAD',anchor],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+  const a=fixture({present:true}),write=(file,bytes)=>{const out=path.join(scratch,file);fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,bytes);};
+  for(const pin of [binding.artifact,binding.operational])write(pin.file,L.object(root,pin.commit,pin.file));
+  for(const file of Object.keys(parent.candidateEngine))write('rebuild/engine/'+file,L.object(root,binding.candidateCommit,'rebuild/engine/'+file));
+  write(S.STEP_FILE,S.applyStepEfficacyChange(originalEnergy,a.sourceChanges[5]));
+  assert.equal(S.verifyProductSources({root:scratch,baseline:root,acceptance:a,gitHead:false}).changes.length,6);
+  throws(()=>S.verifyProductSources({root:scratch,baseline:root,acceptance:a,gitHead:true}),'UNCOMMITTED-PRODUCT-PIN');
+  fs.appendFileSync(path.join(scratch,'rebuild/engine/writers.cjs'),'\n');throws(()=>S.verifyProductSources({root:scratch,baseline:root,acceptance:a,gitHead:false}),'UNAPPROVED-SOURCE-DELTA');
+});

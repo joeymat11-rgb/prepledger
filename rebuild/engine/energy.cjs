@@ -1183,7 +1183,7 @@ function stepEfficacy(s) {
   if (pairs.length < 4) return { status: "ARMED", n: pairs.length, need: 4, slopePer1k: null, excluded };
   const ms = pairs.reduce((a, p) => a + p.steps, 0) / pairs.length, md = pairs.reduce((a, p) => a + p.drop, 0) / pairs.length;
   let num = 0, den = 0; pairs.forEach((p2) => { num += (p2.steps - ms) * (p2.drop - md); den += (p2.steps - ms) ** 2; });
-  const slopePer1k = den ? +((num / den) * 1000).toFixed(3) : 0;
+  const slopePer1k = den ? +(num / den).toFixed(3) : 0;
   /* PHYSICAL BOUND — the observedTDEE `impossible` precedent, applied here. 1,000 daily
      steps is ~stepKcal(bw,1000) kcal/day ≈ 0.06 lb/wk at his mass. A fitted slope far
      outside that is calorie confounding wearing a step costume: the verdict is UNRESOLVED,

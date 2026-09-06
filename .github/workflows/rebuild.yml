@@ -49,6 +49,6 @@ jobs:
       - name: Synthetic Today projection, UI and preview package
         run: node --test rebuild/m3/w7-preview/test/model.test.cjs rebuild/m3/w7-preview/test/view.test.cjs rebuild/m3/w7-preview/test/package.test.cjs
       - name: Accepted extracted-engine writer and merge second gate
-        run: node rebuild/engine/test/second-gate.mjs --candidate
+        run: node rebuild/conform/v4/postfix/ci-second-gate.cjs --profile M2-STEP-EFFICACY
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"
