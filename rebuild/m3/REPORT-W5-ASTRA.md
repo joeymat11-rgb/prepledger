@@ -122,3 +122,11 @@ Install W5's pinned dependencies once with `pnpm --dir rebuild/m3/w5 install --f
 Frozen preparation: attempt the prescribed `build-engines.mjs <root>`; on this Windows path use `node rebuild/m3/w5/build-engines-portable.mjs`, then `node rebuild/m3/w5/prepare-gate.cjs`. `node rebuild/m3/rigs/verify-local.cjs` runs local crypto, Worker smoke, bite, local/remote gates, golden preparation, frozen conformance/selftest and strict. It sets explicit absolute ENGINE_MAIN/ENGINE_OLD plus MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York for conformance, and unsets MEASURED_TEST_NOW for strict. Optional `--browser --playwright-path <installed playwright>` adds the real browser check; Playwright is not required by the local gate.
 
 Wall-clock: implementation files began approximately 2026-09-06 03:41Z; final verification finished 07:34Z, about 3h53 elapsed including substantial dependency/permission waits and diagnostic iterations. This is elapsed time, not claimed active coding time. PR publication follows verification; Linux execution remains Cowork's next actor.
+
+## NEXT
+
+- **W5-VERIFY — Cowork:** execute the claimed gates on Linux at the exact final PR head and record the verdict before integration.
+- The published contract unblocks **W6 transport implementation start only**. It does not accept W5, prove browser durability or authorize a release.
+- **W4-DEPLOY / W5-REMOTE:** actual provisioning remains necessary; remote execution depends on the provisioned service and accepted W5. Local fixtures do not satisfy those dependencies.
+- **CLOCK / time bounds / reconciliation / lease renewal remain OPEN** under the limits above.
+- The actual **W5 claim remains held for review corrections until explicit release**. This handoff does not create another implementation claim or transfer ownership implicitly.
