@@ -3,6 +3,8 @@
 // Frozen migration/reconciliation closure. Every mutable binding belongs to this engine.
 module.exports = function createMigrate(E, { clock, ids, drafts }) {
 const localStorage = drafts;
+const _unionCorrLog = (...a) => E._unionCorrLog(...a);
+const _replayCorrections = (...a) => E._replayCorrections(...a);
 const { AUTONOMY_LEVELS, DAY, INSERTION_PAIRS, LATE_READ_HOW, PLAN_POLICY_SCALARS, SCHEMA_V, SEED } = E;
 const _bornValid = (...args) => E._bornValid(...args);
 const _deriveSightingFull = (...args) => E._deriveSightingFull(...args);
@@ -2215,6 +2217,7 @@ function _settleExit(st) {
 
 // Copied from frozen src/app.jsx @ fe516c1:12263-12311.
 function migrate(old) {
+  if (old && old.v > SCHEMA_V) return old;
   /* RB-6 — the one-line container heal: a malformed store missing a container must
      not crash the chain; the arrays it holds stay exactly as found. */
   if (old && typeof old === "object") { old.sleep = old.sleep || { nights: [], needed: 3 }; old.sleep.nights = old.sleep.nights || []; old.dailyLogs = old.dailyLogs || {}; old.sessionLog = old.sessionLog || {}; old.reads = old.reads || []; }
@@ -2225,7 +2228,6 @@ function migrate(old) {
      dailyLog, session and queue item and then sync the wipe up. Some instruments
      may read oddly on fields this code does not know; re-upgrading restores full
      function. A visible misbehaviour is recoverable — a wipe is not. */
-  if (old && old.v > SCHEMA_V) return old;
   if (old && old.v >= 3 && old.v < SCHEMA_V) { return _settleExit(PATCHES.filter(([n]) => n > old.v).reduce((s, [, p]) => p(s), JSON.parse(JSON.stringify(old)))); }   /* FIX-15 — A BOOT ENDS WITH THE FEED IN ITS ONE ORDER. A patch unshifts its receipt at the head regardless of date (patchV55's 8/09 re-strike line landed above 8/17 seams on the branch's own v54 ledger copy — CC's leg-15 finding), and the next sync would move it: the boot was not a fixed point of the merge. Same sort, last, both exits. */
   const s = JSON.parse(JSON.stringify(SEED));
   /* SCALE-5 (Sol's pass 3, row 2) — the FOURTH exit. loadState's fresh install and the
@@ -2267,11 +2269,46 @@ function migrate(old) {
 // Copied from frozen src/app.jsx @ fe516c1:13233-13241.
 function isPristineSeed(s) {
   try {
+    const own = (o, k) => {
+      if (!o || typeof o !== "object") throw new TypeError("missing seed projection");
+      const d = Object.getOwnPropertyDescriptor(o, k);
+      if (!d || !Object.prototype.hasOwnProperty.call(d, "value")) throw new TypeError("invalid seed projection");
+      return d.value;
+    };
+    const encode = (value) => {
+      const active = new Set();
+      const visit = (v) => {
+        if (v === null || typeof v === "string" || typeof v === "boolean") return JSON.stringify(v);
+        if (typeof v === "number" && Number.isFinite(v)) return JSON.stringify(v);
+        if (!v || typeof v !== "object" || active.has(v)) throw new TypeError("non-JSON seed projection");
+        const array = Array.isArray(v), proto = Object.getPrototypeOf(v);
+        if (!array && proto !== null && proto !== Object.prototype) throw new TypeError("non-JSON seed object");
+        const keys = Reflect.ownKeys(v);
+        for (const k of keys) {
+          const d = Object.getOwnPropertyDescriptor(v, k);
+          if (typeof k !== "string" || !Object.prototype.hasOwnProperty.call(d, "value") || (!d.enumerable && !(array && k === "length"))) throw new TypeError("non-JSON seed field");
+        }
+        active.add(v);
+        let result;
+        if (array) {
+          if (keys.length !== v.length + 1) throw new TypeError("non-JSON seed array");
+          const cells = [];
+          for (let i = 0; i < v.length; i++) cells.push(visit(own(v, String(i))));
+          result = "[" + cells.join(",") + "]";
+        } else result = "{" + keys.sort().map(k => JSON.stringify(k) + ":" + visit(own(v, k))).join(",") + "}";
+        active.delete(v);
+        return result;
+      };
+      return visit(value);
+    };
+    const projection = (state) => [own(state, "reads"), own(own(state, "sleep"), "nights"), own(state, "dailyLogs"), own(state, "sessionLog")];
+    const current = encode(projection(s)), authored = encode(projection(SEED));
     const same = (a, b) => (a || []).length === (b || []).length;
     return same(s.reads, SEED.reads) && same(s.sleep.nights, SEED.sleep.nights)
       && Object.keys(s.dailyLogs || {}).length === Object.keys(SEED.dailyLogs || {}).length
       && Object.keys(s.sessionLog || {}).length === Object.keys(SEED.sessionLog || {}).length
-      && ((s.reads || [])[ (s.reads || []).length - 1] || {}).d === ((SEED.reads || [])[(SEED.reads || []).length - 1] || {}).d;
+      && ((s.reads || [])[ (s.reads || []).length - 1] || {}).d === ((SEED.reads || [])[(SEED.reads || []).length - 1] || {}).d
+      && current === authored;
   } catch (e) { return false; }
 }
 
@@ -2349,6 +2386,186 @@ function dataLossGuard(prev, next) {
   const nextMiss9 = _missD9(next);
   const nextClean9 = new Set(); for (const r9 of ((next && Array.isArray(next.reads)) ? next.reads : [])) if (r9 && r9.d && !r9.offWindow) nextClean9.add(String(r9.d));   /* SCALE-5 — sealed included: the read happened */
   for (const d9 of _missD9(prev)) if (!nextMiss9.has(d9) && !nextClean9.has(d9)) lost.push(`missedday ${d9}`);
+  /* D33: counts cannot protect the identity inside a surviving container. */
+  const ownValue = (o, k) => {
+    if (!o || (typeof o !== "object" && typeof o !== "function")) return undefined;
+    const d = Object.getOwnPropertyDescriptor(o, k);
+    return d && Object.prototype.hasOwnProperty.call(d, "value") ? d.value : undefined;
+  };
+  const plain = (v) => {
+    const p = Object.getPrototypeOf(v);
+    return p === null || p === Object.prototype;
+  };
+  const jsonKey = (value) => {
+    const active = new Set();
+    const encode = (v) => {
+      if (v === null || typeof v === "string" || typeof v === "boolean") return JSON.stringify(v);
+      if (typeof v === "number" && Number.isFinite(v)) return JSON.stringify(v);
+      if (!v || typeof v !== "object" || active.has(v) || (!Array.isArray(v) && !plain(v))) throw new TypeError("non-JSON guard body");
+      active.add(v);
+      const keys = Reflect.ownKeys(v), array = Array.isArray(v);
+      for (const k of keys) {
+        const d = Object.getOwnPropertyDescriptor(v, k);
+        if (typeof k !== "string" || !Object.prototype.hasOwnProperty.call(d, "value") || (!d.enumerable && !(array && k === "length"))) throw new TypeError("non-JSON guard field");
+      }
+      let out;
+      if (array) {
+        if (keys.length !== v.length + 1) throw new TypeError("non-JSON guard array");
+        const cells = [];
+        for (let i = 0; i < v.length; i++) {
+          if (!Object.prototype.hasOwnProperty.call(v, i)) throw new TypeError("non-JSON guard slot");
+          cells.push(encode(ownValue(v, String(i))));
+        }
+        out = "[" + cells.join(",") + "]";
+      } else out = "{" + keys.sort().map(k => JSON.stringify(k) + ":" + encode(ownValue(v, k))).join(",") + "}";
+      active.delete(v);
+      return out;
+    };
+    try { return encode(value); } catch (_) { return undefined; }
+  };
+  const unchanged = (x, y) => {
+    const left = new Map(), right = new Map();
+    const eq = (u, v) => {
+      if (Object.is(u, v)) return true;
+      if (!u || !v || typeof u !== "object" || typeof v !== "object") return false;
+      if (left.has(u) || right.has(v)) return left.get(u) === v && right.get(v) === u;
+      if (Array.isArray(u) !== Array.isArray(v) || (!Array.isArray(u) && (!plain(u) || !plain(v)))) return false;
+      left.set(u, v); right.set(v, u);
+      const uk = Reflect.ownKeys(u), vk = Reflect.ownKeys(v);
+      if (uk.length !== vk.length || uk.some(k => !vk.includes(k))) return false;
+      return uk.every(k => {
+        const a = Object.getOwnPropertyDescriptor(u, k), b = Object.getOwnPropertyDescriptor(v, k);
+        if (a.enumerable !== b.enumerable || a.configurable !== b.configurable) return false;
+        const data = Object.prototype.hasOwnProperty.call(a, "value");
+        if (data !== Object.prototype.hasOwnProperty.call(b, "value")) return false;
+        return data ? a.writable === b.writable && eq(a.value, b.value) : a.get === b.get && a.set === b.set;
+      });
+    };
+    try { return eq(x, y); } catch (_) { return false; }
+  };
+  const sameBody = (x, y) => {
+    const a = jsonKey(x), b = jsonKey(y);
+    return a !== undefined && b !== undefined ? a === b : unchanged(x, y);
+  };
+  const containsBodies = (old, next) => {
+    const used = new Set();
+    return old.every(body => {
+      const i = next.findIndex((candidate, index) => !used.has(index) && sameBody(body, candidate));
+      if (i < 0) return false;
+      used.add(i); return true;
+    });
+  };
+  const normalId = (id) => typeof id === "string" && id.length > 0;
+  const classify = (rec, key) => {
+    const descriptor = Object.getOwnPropertyDescriptor(rec || {}, key);
+    const value = ownValue(rec, key);
+    if (!descriptor) return { normal: new Map(), ambiguous: [], all: [] };
+    if (!Object.prototype.hasOwnProperty.call(descriptor, "value") || !Array.isArray(value)) return { normal: new Map(), ambiguous: [], all: [], opaque: descriptor };
+    const all = [], counts = new Map(), normal = new Map(), ambiguous = [];
+    for (let i = 0; i < value.length; i++) {
+      const d = Object.getOwnPropertyDescriptor(value, String(i));
+      if (d && !Object.prototype.hasOwnProperty.call(d, "value")) return { normal: new Map(), ambiguous: [], all: [], opaque: descriptor };
+      const body = d && Object.prototype.hasOwnProperty.call(d, "value") ? d.value : undefined;
+      all.push(body); const id = ownValue(body, "id");
+      if (normalId(id)) counts.set(id, (counts.get(id) || 0) + 1);
+    }
+    for (const body of all) {
+      const id = ownValue(body, "id"), reps = ownValue(body, "reps");
+      if (normalId(id) && counts.get(id) === 1 && (key === "skipped" || Array.isArray(reps))) normal.set(id, body);
+      else ambiguous.push(body);
+    }
+    return { normal, ambiguous, all };
+  };
+  const occupied = (entry) => {
+    const reps = ownValue(entry, "reps"), result = [];
+    if (!Array.isArray(reps)) return result;
+    for (let i = 0; i < reps.length; i++) {
+      const d = Object.getOwnPropertyDescriptor(reps, String(i));
+      if (d && (!Object.prototype.hasOwnProperty.call(d, "value") || (d.value !== null && d.value !== undefined))) result.push(i);
+    }
+    return result;
+  };
+  const correctionCoverage = (prevRec, nextRec) => {
+    const empty = () => false;
+    try {
+      const prevKey = jsonKey(prevRec), nextKey = jsonKey(nextRec);
+      if (prevKey === undefined || nextKey === undefined) return empty;
+      const prior = JSON.parse(prevKey), proposed = JSON.parse(nextKey);
+      const raw = Array.isArray(proposed.corrLog) ? proposed.corrLog : [];
+      const metadata = new Map(), contradictions = new Set();
+      for (const c of raw) if (c && typeof c === "object" && normalId(c.op)) {
+        const pair = JSON.stringify([c.kind, c.id]);
+        if (metadata.has(c.op) && metadata.get(c.op) !== pair) contradictions.add(c.op);
+        else metadata.set(c.op, pair);
+      }
+      const log = _unionCorrLog({}, proposed), effects = new Map();
+      const forId = (id) => { if (!effects.has(id)) effects.set(id, {}); return effects.get(id); };
+      for (const c of log) {
+        const valid = c && normalId(c.op) && !contradictions.has(c.op)
+          && typeof c.at === "string" && Number.isFinite(Date.parse(c.at));
+        if ((c.kind === "skip" || c.kind === "unskip") && c.id) {
+          const e = forId(c.id), to = c.to;
+          const complete = valid && normalId(c.id) && (c.kind === "skip"
+            || (to && typeof to === "object" && !Array.isArray(to) && to.id === c.id && Array.isArray(to.reps)));
+          e.placement = { kind: c.kind, valid: complete, fields: c.kind === "unskip" && to ? Object.keys(to) : [] };
+          if (c.kind === "skip") e.reps = null;
+          else if (to && to.id && Object.prototype.hasOwnProperty.call(to, "reps")) e.reps = { kind: c.kind, valid: complete, fields: Object.keys(to) };
+        } else if ((c.kind === "strike" || c.kind === "amend") && Array.isArray(c.to)) {
+          const counts = new Map();
+          for (const t of c.to) if (t && t.id) counts.set(t.id, (counts.get(t.id) || 0) + 1);
+          for (const t of c.to) if (t && t.id && t.reps !== undefined) {
+            const complete = valid && c.kind === "strike" && normalId(t.id) && counts.get(t.id) === 1
+              && (c.id == null || c.id === t.id) && Array.isArray(t.reps)
+              && (t.rirSets === undefined || Array.isArray(t.rirSets)) && nextOps9.has(c.op);
+            forId(t.id).reps = { kind: c.kind, valid: complete, fields: ["reps", "rirSets", "w"].filter(k => t[k] !== undefined) };
+          }
+        }
+      }
+      prior.corrLog = log;
+      const replayed = _replayCorrections(prior);
+      const replayEntries = classify(replayed, "entries").normal, replaySkipped = classify(replayed, "skipped").normal;
+      const nextEntries = classify(nextRec, "entries").normal, nextSkipped = classify(nextRec, "skipped").normal;
+      const fieldsMatch = (id, fields) => {
+        const replay = replayEntries.get(id), next = nextEntries.get(id);
+        return replay && next && fields.every(k => sameBody(ownValue(replay, k), ownValue(next, k)));
+      };
+      return (id, kind) => {
+        const effect = effects.get(id);
+        if (!effect) return false;
+        if (kind === "entry") return !!(effect.placement && effect.placement.valid && effect.placement.kind === "skip"
+          && !replayEntries.has(id) && replaySkipped.has(id) && !nextEntries.has(id) && nextSkipped.has(id));
+        if (kind === "skipped") return !!(effect.placement && effect.placement.valid && effect.placement.kind === "unskip"
+          && !replaySkipped.has(id) && !nextSkipped.has(id) && fieldsMatch(id, effect.placement.fields));
+        return !!(effect.reps && effect.reps.valid && fieldsMatch(id, effect.reps.fields));
+      };
+    } catch (_) { return empty; }
+  };
+  const readDays = (st) => new Set((Array.isArray(st.reads) ? st.reads : [])
+    .filter(r => r && typeof r === "object" && ownValue(r, "d") != null).map(r => String(ownValue(r, "d"))));
+  const nextDays = readDays(next), readLoss = [...readDays(prev)].filter(d => !nextDays.has(d)).sort();
+  const entryLoss = [], setLoss = [], skippedLoss = [], sessionLoss = new Set();
+  const previousLog = prev.sessionLog && typeof prev.sessionLog === "object" ? prev.sessionLog : {};
+  const proposedLog = next.sessionLog && typeof next.sessionLog === "object" ? next.sessionLog : {};
+  for (const day of Object.keys(previousLog).sort()) {
+    const prior = ownValue(previousLog, day), proposed = ownValue(proposedLog, day);
+    const pe = classify(prior, "entries"), ne = classify(proposed, "entries");
+    const ps = classify(prior, "skipped"), ns = classify(proposed, "skipped");
+    if ((pe.opaque && !unchanged(pe.opaque, ne.opaque)) || (ps.opaque && !unchanged(ps.opaque, ns.opaque))) sessionLoss.add(day);
+    if (!containsBodies(pe.ambiguous, ne.all) || !containsBodies(ps.ambiguous, ns.all)) sessionLoss.add(day);
+    const covers = correctionCoverage(prior, proposed);
+    for (const [id, entry] of pe.normal) {
+      if (!ne.normal.has(id)) { if (!covers(id, "entry")) entryLoss.push([day, id]); continue; }
+      const newSlots = new Set(occupied(ne.normal.get(id)));
+      if (!covers(id, "sets")) for (const i of occupied(entry)) if (!newSlots.has(i)) setLoss.push([day, id, i]);
+    }
+    for (const id of ps.normal.keys()) if (!ns.normal.has(id) && !covers(id, "skipped")) skippedLoss.push([day, id]);
+  }
+  const tupleOrder = (a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : (a[2] || 0) - (b[2] || 0);
+  for (const d of readLoss) lost.push("readidentity " + JSON.stringify(d));
+  for (const x of entryLoss.sort(tupleOrder)) lost.push("entryidentity " + JSON.stringify(x));
+  for (const x of setLoss.sort(tupleOrder)) lost.push("setidentity " + JSON.stringify(x));
+  for (const x of skippedLoss.sort(tupleOrder)) lost.push("skippedidentity " + JSON.stringify(x));
+  for (const d of [...sessionLoss].sort()) lost.push("sessionidentity " + JSON.stringify(d));
   return { safe: lost.length === 0, lost };
 }
 

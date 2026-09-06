@@ -17,7 +17,7 @@ function checkSources(root,commit,pins,{disk=true}={}) {
   }
 }
 function verifyReceipt(root,candidateBase,receipt,{role,mentions=[]}={}) {
-  if(!receipt||receipt.commit!==candidateBase||receipt.path!=='rebuild/DECISIONS.md'||!/^[a-f0-9]{64}$/.test(receipt.lineSha256)||typeof receipt.line!=='string'||receipt.line.includes('\n')||receipt.line.includes('\r'))fail('RECEIPT-SCHEMA');
+    if(!receipt||receipt.commit!==candidateBase||receipt.path!=='rebuild/DECISIONS.md'||!/^[a-f0-9]{64}$/.test(receipt.lineSha256)||typeof receipt.line!=='string'||receipt.line.includes('\n')||receipt.line.includes('\r'))fail('RECEIPT-SCHEMA');
   const lines=object(root,candidateBase,'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
   const found=lines.filter(line=>sha(Buffer.from(line))===receipt.lineSha256);
   if(found.length!==1||found[0]!==receipt.line)fail('RECEIPT-EXACT-LINE-MISSING');
@@ -66,6 +66,8 @@ function faultRun({candidate,inventory,scratch,mutant,caseInput,expected}) {
   if(sha(before)!==mutant.preimageHash||typeof mutant.preimage!=='string'||!mutant.preimage||before.split(mutant.preimage).length!==2||typeof mutant.postimage!=='string'||mutant.preimage===mutant.postimage)fail('MUTANT-PREIMAGE');
   const after=before.replace(mutant.preimage,mutant.postimage);
   if(sha(after)!==mutant.postimageHash)fail('MUTANT-POSTIMAGE');
+  const edit=before.indexOf(mutant.preimage);
+  if(mutant.scope){const s=mutant.scope;if(!Number.isSafeInteger(s.start)||!Number.isSafeInteger(s.end)||s.start<0||s.end>before.length||s.end<=s.start||edit<s.start||edit+mutant.preimage.length>s.end||sha(before.slice(s.start,s.end))!==s.sha256)fail('MUTANT-DECLARATION-SCOPE');}
   fs.mkdirSync(scratch,{recursive:true}); const copy=fs.mkdtempSync(path.join(scratch,'mutant-'));
   const coverage=path.join(copy,'coverage'), product=path.join(copy,'engine');fs.mkdirSync(product);fs.mkdirSync(coverage);
   const preflight=runRaw({...caseInput,candidate,inventory});
@@ -82,12 +84,13 @@ function faultRun({candidate,inventory,scratch,mutant,caseInput,expected}) {
     for(const name of fs.readdirSync(coverage))for(const script of JSON.parse(fs.readFileSync(path.join(coverage,name))).result||[]) {
       // vm.Script filenames are OS paths in some Node versions, file URLs in others.
       if(script.url!==wanted&&script.url!==requirePath(product,mutant.file))continue;
-      if(script.functions.some(f=>f.functionName===mutant.declaration&&f.ranges.some(r=>r.count>0)))executed=true;
+      const prefix='(function(exports,require,module,__filename,__dirname){\n'.length;
+      if(script.functions.some(f=>{if(f.functionName!==mutant.declaration)return false;if(!mutant.scope)return f.ranges.some(r=>r.count>0);const position=prefix+edit,cover=f.ranges.filter(r=>r.startOffset<=position&&r.endOffset>position).sort((a,b)=>(a.endOffset-a.startOffset)-(b.endOffset-b.startOffset));return cover.length&&cover[0].count>0;}))executed=true;
     }
     if(!executed)fail('MUTANT-DECLARATION-NOT-EXECUTED');
     for(const [file,hash] of Object.entries(inventory))if(sha(fs.readFileSync(path.join(candidate,file)))!==hash)fail('ORIGINAL-NOT-RESTORED');
     const restored=runRaw({...caseInput,candidate,inventory});if(assertions(restored,expected).length)fail('RESTORED-NOT-GREEN');
-    return {id:mutant.id,status:'EFFECTIVE',restoredSha256:sha(fs.readFileSync(path.join(candidate,mutant.file)))};
+    return {id:mutant.id,status:'EFFECTIVE',failedAssertions:failures,restoredSha256:sha(fs.readFileSync(path.join(candidate,mutant.file)))};
   } finally { if(!copy.startsWith(path.resolve(scratch)+path.sep))fail('SCRATCH-ESCAPE');fs.rmSync(copy,{recursive:true,force:true}); }
 }
 function publicReferences({baseline,scratch,sourcePins}) {
