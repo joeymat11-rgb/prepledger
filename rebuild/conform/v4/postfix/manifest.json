@@ -1,0 +1,1282 @@
+{
+  "version": 1,
+  "phase": "BASELINE",
+  "packageId": "M2-IMPORT-GUARDS",
+  "requiredIds": [
+    "D33",
+    "D34",
+    "D35"
+  ],
+  "selectedApprovedFixIds": [],
+  "baseline": {
+    "auditCommit": "614e20315b01543d3b7bbc4fa1fe8a5c20bcb690",
+    "extractionCommit": "ef83543aa825fb581671951d287854166717ad28",
+    "frozenCommit": "fe516c1",
+    "frozenBlob": "f98671d823f0d8cd83e730cdd930afe5f5e7b628",
+    "publicPins": {
+      "app.js": "53a04a9ec8185298af8e30139a2baa4b54c9bc40b891b89954fdf5484c67e9fa",
+      "index.html": "49d29ef54e1efe5bd32b51200f1105f6d3cc682480dbaedfebcb0c30879b40da",
+      "manifest.webmanifest": "511ded693304171502ef9122d695243f71999e207710d02e338e18af41c14246",
+      "package-lock.json": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "package.json": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "rebuild/conform/engines/build-engines.mjs": "19f7520f329151eaf8b113e6cde4019113fbc0774e06709d0eeaab4f50bc09fb",
+      "rebuild/conform/fixtures/preimage-2026-08-15.json": "b5eb62d459d6e58bfb26bfa65f772db193998825166d7538403dad41eddda499",
+      "rebuild/conform/fixtures/synthetic-pending-debut.json": "653d4c99ca3a4b5103fe8f1c0d2dc965a6c531922a286c35f705c3d5df8e738e",
+      "rebuild/conform/laws/d13-d14.cjs": "fd4a2cad9c8baf30f23d5f8bbde333c28546e8806ba5a026b32196cd6caca168",
+      "rebuild/conform/laws/manifest.json": "5fbcf425bc0c8e1814295cd556babef372e84ec7740e448a7c604e7ed49cde8f",
+      "rebuild/conform/laws/progression.cjs": "da980978744563ca51454b0146d4a676c57dc8cb3c82955700d3af2020501b6b",
+      "rebuild/conform/laws/sheet-A-authority.cjs": "6a3452fd560624f07e7eb6f95439f8d28b8191c6c41f94a406da27ee301846af",
+      "rebuild/conform/laws/sheet-B-client.cjs": "03141eeced79d86156d04ee0f98d7e1fc6f2c688ef4f6f66187a0fe0f44c8812",
+      "rebuild/conform/laws/soak.cjs": "6e833cd749dbc5c028c81eed5feee84571b2e10e59b3b84c2460fb6ff577753f",
+      "rebuild/conform/oracle/census.cjs": "3c99540b75e66cd632a67395404b22de699cc983f109b7499adaeaea0fde811a",
+      "rebuild/conform/oracle/legacy-records.cjs": "852ce69067f199b7dbe77fbb1b3514676c9cf1e2a260cec1259a1ddc1aa3c95f",
+      "rebuild/conform/oracle/make-synthetic.cjs": "7557386d1237eff0a4dac39c46a4e2d304c2771090ee8589fe71204bd7bccf11",
+      "rebuild/conform/oracle/manifest.json": "77d8caa13f20fc6198c36a334a0d0ae1af126c617ad90651a23c667ffcabc29a",
+      "rebuild/conform/oracle/port-oracle.cjs": "a61393d69bb50e3e4c8390c8a1795fd9e0ab61887c7d84021473dbd493af60e1",
+      "rebuild/conform/run.cjs": "27a71fd4c404f09275a8209191b9531e393eea6fa2afcad9acf62dd49b938bb2",
+      "rebuild/conform/v4/helpers.cjs": "a9c03c7ac76fdebbc7d74ff7068a79b705ac0ad0753e891c5b16ef75fe241b08",
+      "rebuild/conform/v4/laws-analyst-writer-contract.cjs": "1eb1675230bf6eaebec753271c91ac56eaa16784e470ff66e17b263e4296069f",
+      "rebuild/conform/v4/laws-cache-identity.cjs": "0621c181ad6489ebcc9c33fc5ac128a397a13f54455c657f930e71671989a17f",
+      "rebuild/conform/v4/laws-clock-and-as-of.cjs": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+      "rebuild/conform/v4/laws-counts-only-guards.cjs": "686f324ccf6dec75418841638b28def216411a4c22dc3080d4801f71bd2a69e9",
+      "rebuild/conform/v4/laws-evidence-comparability.cjs": "f2c62bbae2f557cefa871cdeaa5fbf3f788dedf75875c943816cadad06b8509a",
+      "rebuild/conform/v4/laws-merge-tie-identity.cjs": "a8c4044da67ef4692ba1041745c4ad5825a41b4c0c1162b569a1be46b2b1c31e",
+      "rebuild/conform/v4/laws-numeric-values-and-units.cjs": "a0de4b75c1e4fbb79f98e09f80f6706f153d74e5a56ac3b41ed300c5ea34a1f6",
+      "rebuild/conform/v4/laws-receipt-identity.cjs": "4dfb562acb93892b13099de2aeda7b5e538a744ab4e6a730835ca326213ee9c1",
+      "rebuild/conform/v4/laws-receipt-truth.cjs": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+      "rebuild/conform/v4/laws-scalar-per-set-load.cjs": "1c9b0a54b899777e491bb6b7d251963566adf42f40791e25a9e7ae6e44ba03a3",
+      "rebuild/conform/v4/laws-state-shape-and-failure.cjs": "104803f6ab038ee9b29404cd37b454f3b2f870c6cca81b94f25b835d39c5ed3a",
+      "rebuild/conform/v4/laws-target-and-load-domain.cjs": "96707b1c0b024dd4be4dcf1f3c2fe7fb0e33c7e8d88d713413ade62f8ba33654",
+      "rebuild/conform/v4/laws-undo-half-effects.cjs": "4db1af687ca9ed8de228625370b97211c248df8b14f346ba2e77511f1544ce75",
+      "rebuild/conform/v4/live-predicates.cjs": "d5636fac58320eba8ef97b16c42b6e9b25073189c40484455a6fe183eba4d0f3",
+      "rebuild/conform/v4/run-defect-laws.cjs": "2819a7e0683158bb0f146cfd38dbb967960a2148ecc4664fcae5660a02a2a54c",
+      "rebuild/conform/v4/run-live-checks.cjs": "746f5f918a1d14f75e172c5a6e07415e991a9b9cb1deff13e8efc0c923dea2b2",
+      "rebuild/engine/constants.cjs": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "rebuild/engine/dates.cjs": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "rebuild/engine/energy.cjs": "dca9e0c287cf64bf70881b2a13e7621478e0daa1221cc2dcbb94f6a75172b81c",
+      "rebuild/engine/index.cjs": "347d87de43c51931cfe0e897241fd9521a227ca94d322ef19490f4fde5ebc8c3",
+      "rebuild/engine/merge.cjs": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "rebuild/engine/migrate.cjs": "73a0082a8ca4ab005e4dd1c08482cef44eb202363f73944f9e7bc367135f7c3b",
+      "rebuild/engine/oracle-shim.cjs": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "rebuild/engine/plan.cjs": "2b834933ce0b93164064a7be36462f68683eb48a31d57c17a41cd81ed32c45b7",
+      "rebuild/engine/policy.cjs": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "rebuild/engine/progression.cjs": "adeb1b103260278452bd840185d7dfecd2642c4744955bf06bb0b495e02f9d4e",
+      "rebuild/engine/seed.cjs": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "rebuild/engine/sleep.cjs": "2dde4a082ba72d61f0c1cfa3c98fa8c9038d639ce5349078023874ae29cc0407",
+      "rebuild/engine/test/census-partial.cjs": "41bfb9339b7c564699c06ba73e99f6474d637b18314aba47a61588ab0c0418f6",
+      "rebuild/engine/test/defect-witnesses-2.cjs": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2",
+      "rebuild/engine/test/defect-witnesses-3.cjs": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6",
+      "rebuild/engine/test/defect-witnesses-4.cjs": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7",
+      "rebuild/engine/test/defect-witnesses-5.cjs": "024be3cd3e76d2f6854defda9e5c989f750a5ea9efde25a30b625f1233fbc27b",
+      "rebuild/engine/test/defect-witnesses-6.cjs": "71a5fa27293b6e7837ec627b273b266db9d6c4987ff850fb6fe9e2a5f86092c4",
+      "rebuild/engine/test/defect-witnesses-7.cjs": "990e814209aac63537288d80127e6a088b375c19562820cfec7bfd1a19a08d8a",
+      "rebuild/engine/test/defect-witnesses.cjs": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+      "rebuild/engine/test/merge-differential.cjs": "9e4bb55003f06361ff02ff913981e849033043cc2e8b770b0769c284359905f2",
+      "rebuild/engine/test/merge-laws-adapter.mjs": "a3b96e050b76cd7a744fba28ef336791b53ca66889d280596f29aaecf7be6909",
+      "rebuild/engine/test/merge-laws.cjs": "3d669f1f630cdd8561cdeb72f76cd1e636165e832f44971f7276d4eedfc3fded",
+      "rebuild/engine/test/merge-source.cjs": "5793fef1233904559120c0fff5d71e1b8d8c6599d3db9e7403a1f2c6a3f24450",
+      "rebuild/engine/test/migrate-differential.cjs": "fcc8cf83824d80c29eeb500275c3ed3ec3b14184ec4b8911d23129b18972ed8d",
+      "rebuild/engine/test/migrate-full.cjs": "02a2cd602eeeff4b021a4f55028d315720fe7c46a67ebb5c6c6b49adab98afc7",
+      "rebuild/engine/test/migrate-reference.cjs": "1a8a2a85de01dd91cea3d282a94745f8fe731f9cd0db6c31b594c196ca664a50",
+      "rebuild/engine/test/migrate-source.cjs": "b9fe1f7073e97e7af240bc31aed145b7ebafb293f4ce2afd95dbff187eeb3f4c",
+      "rebuild/engine/test/second-gate-adapter.mjs": "31726485cd897c4f919922610b4b9bfa8eacde5def0374ed32b5171a08c58c13",
+      "rebuild/engine/test/second-gate-assertions.json": "28d876bbc3953def3677965c02c87188c40691be8796efff30f44c3a0bc89d0a",
+      "rebuild/engine/test/second-gate-carrier.cjs": "b915631adef1f3e76af723aad6a1a800986ea0bede6467b283940dab5d96acdb",
+      "rebuild/engine/test/second-gate-inventory.json": "9d3eaae3060a1a3c3fda3d7e6778facf275a0c094f1fa63335743ebb0efdcdcf",
+      "rebuild/engine/test/second-gate-preload.cjs": "99027052301b01e355502d675f1f9611ee2ad14ececd99abcbbdc98eb3fe7d58",
+      "rebuild/engine/test/second-gate.mjs": "a59e274aa255183298b7180574497fdddb00dcf1f3d06d92b6a106afb7679f8e",
+      "rebuild/engine/test/volume-projection.cjs": "681880aeb461b20a479dc97a6bfb128aa34ebb399c50d9647d07462b24857444",
+      "rebuild/engine/test/volume-reference.cjs": "37ab7ddf4dde7c38873a0b09d6beb31b6a5e208807a40dd03d1070c6051c97e3",
+      "rebuild/engine/test/writers-differential.cjs": "2fec66f65c55f751c749f827e5c0fca6a6747a9e8440ba66cd13d166f2951217",
+      "rebuild/engine/test/writers-reference.cjs": "42fc5d84a5619d152ded1efbb5b2dabf1a92ccbf4f6f8be14074fa0c4fe29415",
+      "rebuild/engine/test/writers-source.cjs": "a99c93e8cbb3939af8a83132e7f73065946c28c0a7b30aba8e59f831d25ad1bb",
+      "rebuild/engine/today.cjs": "af4c65d2998c2fd588d6251a220262db5395e7ca5410ad36fe314826a04cbe0d",
+      "rebuild/engine/volume.cjs": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "rebuild/engine/writers.cjs": "8b4cc4048d00e36845e2652ee939583d55ee06132e166701945cc64fde136d36",
+      "scripts/bootstrap.mjs": "625a2114bb1e20c0f5d2d40db04dd079c641acdcee96f3a9cc3796ffb39c47d4",
+      "scripts/build.mjs": "9db6f0653f15cfc14eb2e4aa4d09a4a0aa69deebbd2adf1407611de7fb1444cd",
+      "scripts/check.mjs": "ad69479347818529358615dfbb1978b5fd7658963f213dc2e4a8e92af770b42d",
+      "scripts/lib.mjs": "6fc29a4b2d56efbb848c243e92d2c431f62ae9f6a3f1dbb6110cf8395bfc9c5c",
+      "scripts/prod-check.mjs": "7983b73a02bf57f204a134a927af712ad7241316a0d79446c5c4518b6d93c8eb",
+      "scripts/serve.mjs": "2fd23bb43244e34d693c62cc9b0adc93cec3c4c9071c5fd478fa29f2b00577e7",
+      "scripts/ship.mjs": "8ee4d81289239536aa8c3bf1cfa105d8dedd3828b7bd30f43794cd28313f62fe",
+      "scripts/site-manifest.mjs": "a70a1bce8d82435e12195a61a99cb373b777e86d357b8360869ce4564e5c425d",
+      "scripts/test.mjs": "0cb16cf04403d1af0feecb4b69d3cd668eaa261bfb53d1e259b9b695f0f7ca6a",
+      "src/app.jsx": "d1ac52b547beb023df2dc31b1b081487e3ed2e19699377252eb115e0d5faee5c",
+      "src/beacon.js": "8c2415409be0ea1f6e678fa4d8ebed27363f5152f7aa7fee53e667d7cba0262f",
+      "src/history.js": "5856be715c95a51c74b172ccbbfdf7d53a9b3697db05b064cf6cc2d3739799bb",
+      "src/main.jsx": "1c524c6e55f2632bfb6121b9e55e561dff8ab02d7d23716f510ee530bfdf3212",
+      "sw.js": "fd5cbe24b06ecb2d4666fb328c8aed04be2288e3eaaf30acb60d780fe2496caa",
+      "tools/_contrast-probe.jsx": "2c2d2a9cbae8f248cfd40d67b2a9c9406fb2efaa938111479a2a252167cd6988",
+      "tools/_engine-surface.jsx": "a14cd8ee7f3655f322c25af6d905b46083a95baf3d0680b76ad742539e4835f9",
+      "tools/_fixed-now.mjs": "ab939a356467d095f357d796f87a6567b9bcb9e0171b17fe4fb0f447916cf5a7",
+      "tools/_lab-probe.jsx": "cf439ab319a8d9298758b95371e9e280b4c6782a2f17720a706f8b727e14e04c",
+      "tools/_vs.mjs": "934551cdd54cf0376cb005fff135f2f99b29da3117da95eae3f2b087acb856b4",
+      "tools/affordance-lint.mjs": "19bdff1927dfe48b3829a605e9d1c69e2b8a985cfb329937ab9487731898a5ba",
+      "tools/analyst-engine.js": "f382427cae678e60ce3c4cd6fafb62bb33b8c0fa497ad7a90331a2f6be18ff89",
+      "tools/beacon-smoke.mjs": "8401d3d354a9f38b680ebbc66216a9b89ea33da0b3bd6e3d86d9f49f4d047e5e",
+      "tools/closure-sf1.mjs": "5d5e21ee32e54cd31c21566ef9c260ca21d15fb202485a2b2724ca8327cba8d4",
+      "tools/closure-sf2.mjs": "c8e1a33d493d873769e4e0146b7c73f9910d146632a6168aa18ac653023eb768",
+      "tools/contrast-audit.mjs": "e0ba8f0526519ef09844b5c0050058b278ee81b3bb29385c4a72012b18167e16",
+      "tools/debrief-words.json": "89cb6ab1254200d8c6c79a0031c15d8c4efc862f6b9f080257a954aa3c44c325",
+      "tools/dom-smoke.mjs": "ce588bba1af6f6f52a384449d96c3994890011df8bedf34d8b6d7595c508994d",
+      "tools/engine-baseline.json": "432a17da30a1f2274ed7eb674e3bdc0c8af744ccf9c7c76d9011ac3c0deb370c",
+      "tools/engine-diff.mjs": "dcf7ae3fea787b23b115e9855a66627041d71750eb659b0a80b29b3132d67847",
+      "tools/engine-test.jsx": "df3abc40a8d2b538fc09db4468117f1bb13afa451b264e3e39a8026cf0ef1428",
+      "tools/fixtures/ledger-preimage-2026-08-15.json": "b5eb62d459d6e58bfb26bfa65f772db193998825166d7538403dad41eddda499",
+      "tools/fonts.mjs": "813e3f4bbd725bf64d2b9df07b3da69441afe8b3493356000adfa8e875e8896e",
+      "tools/githooks/pre-commit": "8e37e9581ea49a74cda5054577f4d4eabe59a9cfffd2ecc15b60eff50d1113ef",
+      "tools/nextweek.jsx": "abde6b1aa45a05d48fd0731cbfc94eb8b927b5a0f926d152923c3b4a3b174c13",
+      "tools/render-smoke.mjs": "fe329591d8ef2836a75ba00853740c060e496c98c5e45dbd06d354b67bdcdc66",
+      "tools/ship.sh": "031197581e093b9c7d6551cf4f95c79adb9431ff957d94caabdc2797a5b079e0",
+      "tools/snapshots/2026-08-06-ledger.json": "62f9e0515bf3d34bc1e0d53cfc309cba0fa9acdf63f87e0fb42f246e6a7c199f",
+      "tools/snapshots/2026-08-07-ledger.json": "b86c20a004eb2822a347fe9d0bf579951de547d7131ddcee40a1824ff59180f9",
+      "tools/split-smoke.mjs": "cfdb4791670ebf79aaa1daeeaa2da96c9fe387a919625aa8a5d4c77d7048b72b",
+      "tools/sync-laws.mjs": "d65f0dd2c41bc106be61da2b5b0deecbd13f83bb87d99834d7dc4b31a6fcd938",
+      "tools/vacuity-baseline.json": "fc578c128bfd94652cb8ef9fc7246ba96a5c7fc1ae4c568dbeb35627c15bf9f8",
+      "tools/vacuity-scan.mjs": "2ace25807adbcad7d0c7e06192c59d815ee525f195a7beac393d3ba9d60957bc"
+    },
+    "engine": {
+      "constants.cjs": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "dates.cjs": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "energy.cjs": "dca9e0c287cf64bf70881b2a13e7621478e0daa1221cc2dcbb94f6a75172b81c",
+      "index.cjs": "347d87de43c51931cfe0e897241fd9521a227ca94d322ef19490f4fde5ebc8c3",
+      "merge.cjs": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "migrate.cjs": "73a0082a8ca4ab005e4dd1c08482cef44eb202363f73944f9e7bc367135f7c3b",
+      "oracle-shim.cjs": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "plan.cjs": "2b834933ce0b93164064a7be36462f68683eb48a31d57c17a41cd81ed32c45b7",
+      "policy.cjs": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "progression.cjs": "adeb1b103260278452bd840185d7dfecd2642c4744955bf06bb0b495e02f9d4e",
+      "seed.cjs": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "sleep.cjs": "2dde4a082ba72d61f0c1cfa3c98fa8c9038d639ce5349078023874ae29cc0407",
+      "today.cjs": "af4c65d2998c2fd588d6251a220262db5395e7ca5410ad36fe314826a04cbe0d",
+      "volume.cjs": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "writers.cjs": "8b4cc4048d00e36845e2652ee939583d55ee06132e166701945cc64fde136d36"
+    },
+    "buildSources": {
+      "fe516c1:src/app.jsx": "d1ac52b547beb023df2dc31b1b081487e3ed2e19699377252eb115e0d5faee5c",
+      "fe516c1:src/beacon.js": "8c2415409be0ea1f6e678fa4d8ebed27363f5152f7aa7fee53e667d7cba0262f",
+      "fe516c1:src/history.js": "5856be715c95a51c74b172ccbbfdf7d53a9b3697db05b064cf6cc2d3739799bb",
+      "fe516c1:src/main.jsx": "1c524c6e55f2632bfb6121b9e55e561dff8ab02d7d23716f510ee530bfdf3212",
+      "fe516c1:tools/_fixed-now.mjs": "ab939a356467d095f357d796f87a6567b9bcb9e0171b17fe4fb0f447916cf5a7",
+      "a0009c3:src/app.jsx": "3fdb0844327c2fbdde9822a3b36b8d7e374a0d153257fcf0ebf8976bc4c99478",
+      "a0009c3:src/beacon.js": "8c2415409be0ea1f6e678fa4d8ebed27363f5152f7aa7fee53e667d7cba0262f",
+      "a0009c3:src/history.js": "5856be715c95a51c74b172ccbbfdf7d53a9b3697db05b064cf6cc2d3739799bb",
+      "a0009c3:src/main.jsx": "1c524c6e55f2632bfb6121b9e55e561dff8ab02d7d23716f510ee530bfdf3212",
+      "a0009c3:tools/_fixed-now.mjs": "ab939a356467d095f357d796f87a6567b9bcb9e0171b17fe4fb0f447916cf5a7"
+    }
+  },
+  "candidateBase": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+  "contract": {
+    "file": "rebuild/m2/BRIEF-POSTFIX-GATE.md",
+    "commit": "45d52cbbde5290d6a1f09e8dbfabf2777076e537",
+    "sha256": "a5ab10cd91e4c692c8d079e87952df7e64671a28bcb10079365288387cb45797",
+    "acceptance": {
+      "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+      "path": "rebuild/DECISIONS.md",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner"
+    }
+  },
+  "inventory": [
+    {
+      "defect": "D1",
+      "law": {
+        "defect": "D1",
+        "id": "P-D1-first-targets-fit-current-set-count",
+        "file": "rebuild/conform/v4/laws-target-and-load-domain.cjs",
+        "fileSha256": "96707b1c0b024dd4be4dcf1f3c2fe7fb0e33c7e8d88d713413ade62f8ba33654",
+        "runSha256": "a6e096d4b7a0e144df7ccfa2ae525053c1a3bdd6d396a40dbf51195c055d599e"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D1-first-targets-fit-current-set-count",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D2",
+      "law": {
+        "defect": "D2",
+        "id": "E-D2-invalid-set-count-stays-quarantined",
+        "file": "rebuild/conform/v4/laws-target-and-load-domain.cjs",
+        "fileSha256": "96707b1c0b024dd4be4dcf1f3c2fe7fb0e33c7e8d88d713413ade62f8ba33654",
+        "runSha256": "a803eaf56d8d5b720fb19b758a023e8069cf5a9c275f7b6b41659884ff4885b9"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D2-invalid-set-count-stays-quarantined",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D3",
+      "law": {
+        "defect": "D3",
+        "id": "P-D3-volume-receipt-belongs-to-whole-lift-name",
+        "file": "rebuild/conform/v4/laws-receipt-identity.cjs",
+        "fileSha256": "4dfb562acb93892b13099de2aeda7b5e538a744ab4e6a730835ca326213ee9c1",
+        "runSha256": "6125ece0d59266769d572c70da07f3f1821377c1f1ff4339b6a82b3a68413530"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D3-volume-receipt-belongs-to-whole-lift-name",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D4",
+      "law": {
+        "defect": "D4",
+        "id": "P-D4-other-lift-earn-cannot-spend-sightings",
+        "file": "rebuild/conform/v4/laws-receipt-identity.cjs",
+        "fileSha256": "4dfb562acb93892b13099de2aeda7b5e538a744ab4e6a730835ca326213ee9c1",
+        "runSha256": "e501c70e0148b299155d7d9ef94e0db0ef2f5ea2fc2d87163b1d1585e20b051a"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D4-other-lift-earn-cannot-spend-sightings",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D5",
+      "law": {
+        "defect": "D5",
+        "id": "P-D5-ladder-minimum-counts-distinct-rungs",
+        "file": "rebuild/conform/v4/laws-target-and-load-domain.cjs",
+        "fileSha256": "96707b1c0b024dd4be4dcf1f3c2fe7fb0e33c7e8d88d713413ade62f8ba33654",
+        "runSha256": "e6abf3f6163789769a787a80f8574cbb4a9ef104f8cfe04fec42f01a7e2cc19f"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D5-ladder-minimum-counts-distinct-rungs",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D6",
+      "law": {
+        "defect": "D6",
+        "id": "P-D6-deload-preserves-absent-load",
+        "file": "rebuild/conform/v4/laws-target-and-load-domain.cjs",
+        "fileSha256": "96707b1c0b024dd4be4dcf1f3c2fe7fb0e33c7e8d88d713413ade62f8ba33654",
+        "runSha256": "5d1aad476e66d8cfe45365613940bf6613631e76db4c406b2b69e92c32c566ba"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D6-deload-preserves-absent-load",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D7",
+      "law": {
+        "defect": "D7",
+        "id": "P-D7-anchor-and-trend-exclude-future-sessions",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "23e8c831c650ae79d8c53f264d1c6bec0f8bcb812eac5690de7696aafc148776"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D7-anchor-and-trend-exclude-future-sessions",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D8",
+      "law": {
+        "defect": "D8",
+        "id": "D-D8-stale-sleep-does-not-claim-current-debt",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "7a8432d2ae526f99b5aa178a644791810161d87e7874f33e6a188439974ebe54"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "D-D8-stale-sleep-does-not-claim-current-debt",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D9",
+      "law": {
+        "defect": "D9",
+        "id": "E-D9-split-selects-latest-effective-date",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "f971930b7c964e7b8a3c55043cc95e01d319d29e920f27863dc6ba5501cd21c5"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D9-split-selects-latest-effective-date",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D10",
+      "law": {
+        "defect": "D10",
+        "id": "E-D10-calendar-week-is-seven-calendar-dates",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "a09f8479fd8cdd5694eba9c037d283d7eb5339cc3523f2d6b043b68d29dee075"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D10-calendar-week-is-seven-calendar-dates",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D11",
+      "law": {
+        "defect": "D11",
+        "id": "E-D11-gain-interval-is-ordered-and-zero-drift-never-promoted",
+        "file": "rebuild/conform/v4/laws-numeric-values-and-units.cjs",
+        "fileSha256": "a0de4b75c1e4fbb79f98e09f80f6706f153d74e5a56ac3b41ed300c5ea34a1f6",
+        "runSha256": "51d934a99a6869837b8cd1b468d45e0316511a3b4370cb784e57799e3f9219c6"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D11-gain-interval-is-ordered-and-zero-drift-never-promoted",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D12",
+      "law": {
+        "defect": "D12",
+        "id": "E-D12-step-slope-keeps-per-thousand-units",
+        "file": "rebuild/conform/v4/laws-numeric-values-and-units.cjs",
+        "fileSha256": "a0de4b75c1e4fbb79f98e09f80f6706f153d74e5a56ac3b41ed300c5ea34a1f6",
+        "runSha256": "3544ee60414d16e7da8fd55df1c75a43cac28e23b4733931c16d70a368c40664"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D12-step-slope-keeps-per-thousand-units",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D13",
+      "law": {
+        "defect": "D13",
+        "id": "E-D13-energy-density-cache-tracks-relevant-state",
+        "file": "rebuild/conform/v4/laws-cache-identity.cjs",
+        "fileSha256": "0621c181ad6489ebcc9c33fc5ac128a397a13f54455c657f930e71671989a17f",
+        "runSha256": "f350e9c35f89cf1d6e9e407326c8a6d77d986b1aaae255da43db96b6498fd38a"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D13-energy-density-cache-tracks-relevant-state",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D14",
+      "law": {
+        "defect": "D14",
+        "id": "E-D14-current-rate-uses-missing-drip-default",
+        "file": "rebuild/conform/v4/laws-numeric-values-and-units.cjs",
+        "fileSha256": "a0de4b75c1e4fbb79f98e09f80f6706f153d74e5a56ac3b41ed300c5ea34a1f6",
+        "runSha256": "3a9cdb0560dfe7211ac1bd2aaaa0263de294c2b0aef417b2e50e602375e98835"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D14-current-rate-uses-missing-drip-default",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D15",
+      "law": {
+        "defect": "D15",
+        "id": "E-D15-session-frequency-does-not-change-with-food-row-density",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "7029578de5ee620481f159a3ba8687ec68934cb4217dec3249d588d1837e2036"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D15-session-frequency-does-not-change-with-food-row-density",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D16",
+      "law": {
+        "defect": "D16",
+        "id": "E-D16-seven-day-forecast-does-not-grade-a-month-late-read",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "7b19bd485216d7fcef73b98e69e33925bc3d3a0685bd6a4c4b8f049cdcc60865"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D16-seven-day-forecast-does-not-grade-a-month-late-read",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D17",
+      "law": {
+        "defect": "D17",
+        "id": "E-D17-undone-adjustment-is-not-described-as-applied",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "fa736eeb29a434574bc09ce09795c7c76e11b833aee7e63351d059b2b8d561fc"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D17-undone-adjustment-is-not-described-as-applied",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D18",
+      "law": {
+        "defect": "D18",
+        "id": "P-D18-structural-budget-sees-current-week-volume-receipts-beyond-display-prefix",
+        "file": "rebuild/conform/v4/laws-counts-only-guards.cjs",
+        "fileSha256": "686f324ccf6dec75418841638b28def216411a4c22dc3080d4801f71bd2a69e9",
+        "runSha256": "d47d950bd42368aac23f38f72e3fb31fc25a48dc076ca8a06a6c518116a3d9ee"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D18-structural-budget-sees-current-week-volume-receipts-beyond-display-prefix",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D19",
+      "law": {
+        "defect": "D19",
+        "id": "P-D19-inclusive-break-end-prose-agrees-with-active-day",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "afe13b4989ff103305b385d8be343018d067a60ac17b99491026125ce1e70838"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D19-inclusive-break-end-prose-agrees-with-active-day",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D20",
+      "law": {
+        "defect": "D20",
+        "id": "E-D20-forecast-refreshes-after-an-observed-rate-change",
+        "file": "rebuild/conform/v4/laws-cache-identity.cjs",
+        "fileSha256": "0621c181ad6489ebcc9c33fc5ac128a397a13f54455c657f930e71671989a17f",
+        "runSha256": "bb05e47f60b7f83c5fbc1474f5dbe41eaf5402cb01ac46bd5f3f7de18943eaf1"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D20-forecast-refreshes-after-an-observed-rate-change",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D21",
+      "law": {
+        "defect": "D21",
+        "id": "E-D21-sleep-cleanliness-includes-the-fall-back-calendar-date",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "cfad409d5542fe8ef3303390c49c32b7cd7da18a5c83caedf914c970f652ffda"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D21-sleep-cleanliness-includes-the-fall-back-calendar-date",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D22",
+      "law": {
+        "defect": "D22",
+        "id": "E-D22-recovery-reader-preserves-indexed-sleep-facts-without-a-shape-crash",
+        "file": "rebuild/conform/v4/laws-state-shape-and-failure.cjs",
+        "fileSha256": "104803f6ab038ee9b29404cd37b454f3b2f870c6cca81b94f25b835d39c5ed3a",
+        "runSha256": "b3ee84a152523221d49a2572110938c5ded5f944e5cff4a2907e3e6afce018f6"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D22-recovery-reader-preserves-indexed-sleep-facts-without-a-shape-crash",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D23",
+      "law": {
+        "defect": "D23",
+        "id": "E-D23-scheduled-hack-debut-is-not-presented-as-a-rest-day",
+        "file": "rebuild/conform/v4/laws-state-shape-and-failure.cjs",
+        "fileSha256": "104803f6ab038ee9b29404cd37b454f3b2f870c6cca81b94f25b835d39c5ed3a",
+        "runSha256": "8468ec9c0fe5d73164de118520722fdf3d51346234ab5f427a3e3d41f75aa60a"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D23-scheduled-hack-debut-is-not-presented-as-a-rest-day",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D24",
+      "law": {
+        "defect": "D24",
+        "id": "E-D24-partial-yesterday-remains-owed-until-calories-are-present",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "02ce5f45e991238644e7902744cb1303bb135309c6e9f64bce1dbdc4db1896c3"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D24-partial-yesterday-remains-owed-until-calories-are-present",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D25",
+      "law": {
+        "defect": "D25",
+        "id": "E-D25-zero-protein-successes-cannot-be-a-good-protein-read",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "d5c57ece9bef79181ce6277051750109c1625aa33d24951f40799840531638e1"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D25-zero-protein-successes-cannot-be-a-good-protein-read",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D26",
+      "law": {
+        "defect": "D26",
+        "id": "E-D26-today-model-refreshes-when-the-calendar-day-changes",
+        "file": "rebuild/conform/v4/laws-cache-identity.cjs",
+        "fileSha256": "0621c181ad6489ebcc9c33fc5ac128a397a13f54455c657f930e71671989a17f",
+        "runSha256": "66a9cc37f69682e20eacbc8959537f222255fa334eb84a2218863c7c875c4714"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D26-today-model-refreshes-when-the-calendar-day-changes",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D27",
+      "law": {
+        "defect": "D27",
+        "id": "P-D27-maintenance-is-not-described-as-a-long-stalled-cut",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "833a20c2df447bcb536e692d9ad7f25b40b979befe04ec881000f8aa3fa3b30d"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D27-maintenance-is-not-described-as-a-long-stalled-cut",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D28",
+      "law": {
+        "defect": "D28",
+        "id": "E-D28-programme-volume-follows-the-current-effective-split",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "74985e87d09a0ba8d2f3cf709cdb69120bc6b91809835a5c4b4ee81041093f3f"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "E-D28-programme-volume-follows-the-current-effective-split",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D29",
+      "law": {
+        "defect": "D29",
+        "id": "P-D29-designed-and-logged-front-delt-volume-use-the-same-indirect-credit",
+        "file": "rebuild/conform/v4/laws-evidence-comparability.cjs",
+        "fileSha256": "f2c62bbae2f557cefa871cdeaa5fbf3f788dedf75875c943816cadad06b8509a",
+        "runSha256": "f621ec2858a11ddac6899ce8ae4c08ea79be277a3b32efb26e75113b72b40542"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D29-designed-and-logged-front-delt-volume-use-the-same-indirect-credit",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D30",
+      "law": {
+        "defect": "D30",
+        "id": "P-D30-first-set-trend-respects-the-recorded-technique-era",
+        "file": "rebuild/conform/v4/laws-evidence-comparability.cjs",
+        "fileSha256": "f2c62bbae2f557cefa871cdeaa5fbf3f788dedf75875c943816cadad06b8509a",
+        "runSha256": "36c87a543ca3037d3301b7b66fcae38257e4666d8d0dcb0d96d1444123e274e7"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "P-D30-first-set-trend-respects-the-recorded-technique-era",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D31",
+      "law": {
+        "defect": "D31",
+        "id": "V4-volume-tolerance-post-change",
+        "file": "rebuild/conform/v4/laws-evidence-comparability.cjs",
+        "fileSha256": "f2c62bbae2f557cefa871cdeaa5fbf3f788dedf75875c943816cadad06b8509a",
+        "runSha256": "c106be045c59fcb888f085526be9d8e79f06f9529b3d6f0724c2aa75466f438c"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-volume-tolerance-post-change",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D32",
+      "law": {
+        "defect": "D32",
+        "id": "V4-volume-replication-same-era",
+        "file": "rebuild/conform/v4/laws-evidence-comparability.cjs",
+        "fileSha256": "f2c62bbae2f557cefa871cdeaa5fbf3f788dedf75875c943816cadad06b8509a",
+        "runSha256": "73959b7a0a4e13942b4644493ac205bb802c43a3a7ad90b1d1a0dab585a1944d"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-volume-replication-same-era",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D33",
+      "law": {
+        "defect": "D33",
+        "id": "V4-guard-record-identities-and-sets",
+        "file": "rebuild/conform/v4/laws-counts-only-guards.cjs",
+        "fileSha256": "686f324ccf6dec75418841638b28def216411a4c22dc3080d4801f71bd2a69e9",
+        "runSha256": "70223cfffeaf68975ce687ca3771591b3255374c77c546492bf0f381a3f11a1d"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-guard-record-identities-and-sets",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D34",
+      "law": {
+        "defect": "D34",
+        "id": "V4-pristine-compares-record-content",
+        "file": "rebuild/conform/v4/laws-counts-only-guards.cjs",
+        "fileSha256": "686f324ccf6dec75418841638b28def216411a4c22dc3080d4801f71bd2a69e9",
+        "runSha256": "d926c91be6bddbf2e0a335a79515e4751458ec8d137d92bf99e0a6c1094352b0"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-pristine-compares-record-content",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D35",
+      "law": {
+        "defect": "D35",
+        "id": "V4-unknown-schema-return-untouched",
+        "file": "rebuild/conform/v4/laws-state-shape-and-failure.cjs",
+        "fileSha256": "104803f6ab038ee9b29404cd37b454f3b2f870c6cca81b94f25b835d39c5ed3a",
+        "runSha256": "2356c78ef8ac2e664c3751c8038727bb6069b60a3ceaa7edebaff038468bc553"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-unknown-schema-return-untouched",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D36",
+      "law": {
+        "defect": "D36",
+        "id": "V4-curl-receipt-prices-actual-vector",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "c150d7c790178b769db2ba896ba596f611d109a6f45218cbd82aa066d575cca1"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-curl-receipt-prices-actual-vector",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D37",
+      "law": {
+        "defect": "D37",
+        "id": "V4-merge-earned-receipt-historical-asof",
+        "file": "rebuild/conform/v4/laws-clock-and-as-of.cjs",
+        "fileSha256": "cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c",
+        "runSha256": "ea7cf765de8003f9e6575083c135ec139dfaf99e5e4f0d57b3c4e31d1626501c"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-merge-earned-receipt-historical-asof",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D38",
+      "law": {
+        "defect": "D38",
+        "id": "V4-merge-preserves-written-trial-decisions",
+        "file": "rebuild/conform/v4/laws-merge-tie-identity.cjs",
+        "fileSha256": "a8c4044da67ef4692ba1041745c4ad5825a41b4c0c1162b569a1be46b2b1c31e",
+        "runSha256": "3c5aeb5bb712a2caa45a44078a29cb278f3bc5e0d4aa9c834f1d5193ffcd5a63"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-merge-preserves-written-trial-decisions",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D39",
+      "law": {
+        "defect": "D39",
+        "id": "V4-merge-preserves-offer-dismissal",
+        "file": "rebuild/conform/v4/laws-merge-tie-identity.cjs",
+        "fileSha256": "a8c4044da67ef4692ba1041745c4ad5825a41b4c0c1162b569a1be46b2b1c31e",
+        "runSha256": "df346e47b3f9a99e6d4c9ba378d2c163a052c3fa70d50a07f8e28eb53c167d0b"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-merge-preserves-offer-dismissal",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D40",
+      "law": {
+        "defect": "D40",
+        "id": "V4-daily-conflict-direction-independent",
+        "file": "rebuild/conform/v4/laws-merge-tie-identity.cjs",
+        "fileSha256": "a8c4044da67ef4692ba1041745c4ad5825a41b4c0c1162b569a1be46b2b1c31e",
+        "runSha256": "fb2b583125fd27b40fecfaceb4a0e376465d246333ee14018c538c8b98eea360"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-daily-conflict-direction-independent",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D41",
+      "law": {
+        "defect": "D41",
+        "id": "V4-load-writes-advance-per-set-vector",
+        "file": "rebuild/conform/v4/laws-scalar-per-set-load.cjs",
+        "fileSha256": "1c9b0a54b899777e491bb6b7d251963566adf42f40791e25a9e7ae6e44ba03a3",
+        "runSha256": "01eb13ece765637646502f275cc694016509e1ec036ae9b3c043a58c6ebd3d11"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-load-writes-advance-per-set-vector",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D42",
+      "law": {
+        "defect": "D42",
+        "id": "V4-break-undo-restores-scale-effect",
+        "file": "rebuild/conform/v4/laws-undo-half-effects.cjs",
+        "fileSha256": "4db1af687ca9ed8de228625370b97211c248df8b14f346ba2e77511f1544ce75",
+        "runSha256": "6922b318555d866e8e2b9441340a2f8eff1c295cb783332e058dcec292668181"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-break-undo-restores-scale-effect",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D43",
+      "law": {
+        "defect": "D43",
+        "id": "V4-owned-session-retains-entered-load",
+        "file": "rebuild/conform/v4/laws-scalar-per-set-load.cjs",
+        "fileSha256": "1c9b0a54b899777e491bb6b7d251963566adf42f40791e25a9e7ae6e44ba03a3",
+        "runSha256": "caa5c20f7dff3222b8f1b7095aeee19eae68393659e36ebd05b343005d2793f8"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-owned-session-retains-entered-load",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D44",
+      "law": {
+        "defect": "D44",
+        "id": "V4-volume-receipt-requires-actual-change",
+        "file": "rebuild/conform/v4/laws-receipt-truth.cjs",
+        "fileSha256": "871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1",
+        "runSha256": "91a29e22bcf9c4b22491d0bdf6ea833b6e5770b5ee00d6eb5856d351a41a9270"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-volume-receipt-requires-actual-change",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    },
+    {
+      "defect": "D45",
+      "law": {
+        "defect": "D45",
+        "id": "V4-analyst-effort-rule-matches-writer",
+        "file": "rebuild/conform/v4/laws-analyst-writer-contract.cjs",
+        "fileSha256": "1eb1675230bf6eaebec753271c91ac56eaa16784e470ff66e17b263e4296069f",
+        "runSha256": "90a2f04279abd8c7bed19a32f8829f8cc3878a7084ec1bc9126eb78b69328bdf"
+      },
+      "disposition": "UNRULED",
+      "authorization": null,
+      "themeAcceptance": null,
+      "desiredClaim": "V4-analyst-effort-rule-matches-writer",
+      "implementation": "PENDING",
+      "dependencies": [],
+      "sourceDeltas": [],
+      "outputDeltas": [],
+      "cases": [],
+      "mutants": []
+    }
+  ],
+  "nonD": [
+    {
+      "id": "T2-serialized-restart",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/ROADMAP.md",
+        "section": "M0 lines 54–56",
+        "sha256": "9ff5774e9520c7e2078f9d59a75fc2d313e0c1d9c141b4f944b5633b8f96141e"
+      }
+    },
+    {
+      "id": "T2-unsigned-pull",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6e",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "CANONICAL-v2-decimals",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/ROADMAP.md",
+        "section": "M0 lines 54–56",
+        "sha256": "9ff5774e9520c7e2078f9d59a75fc2d313e0c1d9c141b4f944b5633b8f96141e"
+      }
+    },
+    {
+      "id": "RIG185-rename-shape",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/ROADMAP.md",
+        "section": "M0 lines 54–56",
+        "sha256": "9ff5774e9520c7e2078f9d59a75fc2d313e0c1d9c141b4f944b5633b8f96141e"
+      }
+    },
+    {
+      "id": "ENGINE-explicit-defaults",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/ROADMAP.md",
+        "section": "M0 lines 54–56",
+        "sha256": "9ff5774e9520c7e2078f9d59a75fc2d313e0c1d9c141b4f944b5633b8f96141e"
+      }
+    },
+    {
+      "id": "SYNC-all-MERGE_ARR",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/DECISIONS.md",
+        "section": "line 20",
+        "sha256": "ad778cd8cc554967c16e84043bb216c5432a5cd0b90fdb6ef9bb2973ea3e7779"
+      }
+    },
+    {
+      "id": "REVIEW-Sol-v3",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/ROADMAP.md",
+        "section": "M0 lines 54–56",
+        "sha256": "9ff5774e9520c7e2078f9d59a75fc2d313e0c1d9c141b4f944b5633b8f96141e"
+      }
+    },
+    {
+      "id": "REVIEW-Grok-v3",
+      "status": "OPEN",
+      "source": {
+        "commit": "5310f6206ee61d8b9a62446d30f910b159591b6f",
+        "file": "rebuild/ROADMAP.md",
+        "section": "M0 lines 54–56",
+        "sha256": "9ff5774e9520c7e2078f9d59a75fc2d313e0c1d9c141b4f944b5633b8f96141e"
+      }
+    },
+    {
+      "id": "T3-6a",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6a",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "T3-6b",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6b",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "T3-6c",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6c",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "T3-6d",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6d",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "T3-6e",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6e",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "T3-6f",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6f",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    },
+    {
+      "id": "T3-6g",
+      "status": "OPEN",
+      "source": {
+        "commit": "0c3e7ce",
+        "file": "rebuild/t3/REPORT-CLAUDE.md",
+        "section": "§6g",
+        "sha256": "7bcab7e89cc796539a652bc0f8228fc16277275e96c05693cfedadf24a86073d"
+      }
+    }
+  ],
+  "theme": {
+    "file": "laws/import-guards.cjs",
+    "sha256": "aec648971094b943972d07d6ce198ac0c17ea7ecf910fdc58f28194ad3dfdf61"
+  },
+  "matrix": [
+    {
+      "mode": "frozen",
+      "day": "2026-09-03"
+    },
+    {
+      "mode": "native",
+      "day": "2026-09-03"
+    },
+    {
+      "mode": "frozen",
+      "day": "2026-09-07"
+    },
+    {
+      "mode": "native",
+      "day": "2026-09-07"
+    }
+  ],
+  "gates": [
+    "migrate-source",
+    "merge-source",
+    "writers-source",
+    "witnesses-1",
+    "witnesses-2",
+    "witnesses-3",
+    "witnesses-4",
+    "witnesses-5",
+    "witnesses-6",
+    "witnesses-7",
+    "migrate-differential",
+    "merge-differential",
+    "writers-differential",
+    "merge-laws",
+    "migrate-full",
+    "second-gate",
+    "conformance",
+    "selftest",
+    "strict"
+  ],
+  "review": {
+    "status": "PENDING",
+    "receipt": null
+  }
+}
