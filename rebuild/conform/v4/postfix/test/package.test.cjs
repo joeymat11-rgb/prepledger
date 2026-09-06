@@ -3,8 +3,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');
 const {parseExact}=require('../strict-json.cjs'),T=require('../target.cjs'),A=require('../acceptance.cjs'),S=require('../structural-delta.cjs');
 const throws=(fn,code)=>assert.throws(fn,e=>e.code===code),bytes=o=>Buffer.from(JSON.stringify(o,null,2)+'\n');
-const artifact=JSON.parse(fs.readFileSync(path.join(__dirname,'../acceptance-import-guards.json'))),envelope=JSON.parse(fs.readFileSync(path.join(__dirname,'../manifest-import-guards.json')));
-test('v2 actual proposed inventory keeps all45 approved, selected3, remaining42 pending and15 OPEN',()=>{A.validate(artifact);A.envelope(envelope);assert.equal(artifact.inventory.length,45);assert.equal(artifact.nonD.length,15);assert.equal(envelope.receipts.review.status,'PENDING');});
+const artifact=JSON.parse(fs.readFileSync(path.join(__dirname,'../acceptance-import-guards.json'))),actualEnvelope=JSON.parse(fs.readFileSync(path.join(__dirname,'../manifest-import-guards.json')));
+// Actual review may legitimately progress. Schema validation grants no receipt
+// acceptance; contradiction tests start from their own explicit pending fixture.
+const pendingEnvelope=()=>{const e=structuredClone(actualEnvelope);e.receipts.review={status:'PENDING',receipt:null};return e;};
+test('v2 actual inventory and operational schema retain all45 approved, selected3, remaining42 pending and15 OPEN',()=>{A.validate(artifact);A.envelope(actualEnvelope);assert.equal(artifact.inventory.length,45);assert.equal(artifact.nonD.length,15);});
 test('canonical exact bytes parse',()=>assert.deepEqual(parseExact(bytes({a:[1,true,null,'x']})),{a:[1,true,null,'x']}));
 for(const [name,text,code]of [
   ['duplicate decoded key','{"a":1,"a":2}','JSON-DUPLICATE-KEY'],['escaped duplicate key','{"a":1,"\\u0061":2}','JSON-DUPLICATE-KEY'],['nested duplicate','{"x":[{"a":1,"a":2}]}','JSON-DUPLICATE-KEY'],
@@ -15,7 +18,7 @@ test('strict JSON rejects invalid UTF8 rather than replacing it',()=>throws(()=>
 test('strict JSON accepts dangerous names as inert parsed data, schema later restricts fields',()=>assert.equal(parseExact(Buffer.from('{\n  "__proto__": 1\n}\n')).__proto__,1));
 for(const [name,change,code]of [
   ['extra envelope field',e=>e.requiredIds=[],'ENVELOPE-SCHEMA'],['wrong version',e=>e.version=3,'ENVELOPE-SCHEMA'],['wrong artifact path',e=>e.acceptanceFile='../artifact.json','ENVELOPE-SCHEMA'],['pending plus receipt',e=>e.receipts.review.receipt=e.receipts.owner,'REVIEW-STATUS-CONTRADICTION'],['accepted without receipt',e=>e.receipts.review.status='ACCEPTED','REVIEW-STATUS-CONTRADICTION'],['third review status',e=>e.receipts.review.status='ALMOST','REVIEW-STATUS-CONTRADICTION']
-])test('operational envelope refuses '+name,()=>{const e=structuredClone(envelope);change(e);throws(()=>A.envelope(e),code);});
+])test('operational envelope refuses '+name,()=>{const e=pendingEnvelope();change(e);throws(()=>A.envelope(e),code);});
 for(const [name,change,code]of [
   ['missing defect',a=>a.inventory.pop(),'D-INVENTORY'],['duplicate defect',a=>a.inventory[1]=a.inventory[0],'D-INVENTORY'],['empty selection',a=>a.selectedApprovedFixIds=[],'PACKAGE-INVENTORY'],['empty required IDs',a=>a.requiredIds=[],'PACKAGE-INVENTORY'],['undeclared extra nonD',a=>a.nonD.push({id:'invention'}),'NON-D-INVENTORY'],['false other defect repair',a=>a.inventory[0].implementation='PRESENT','DISPOSITION-IMPLEMENTATION'],['unruled approved direction',a=>a.inventory[0].disposition='UNRULED','DISPOSITION-IMPLEMENTATION'],['changed original law',a=>a.inventory[0].law.runSha256='0'.repeat(64),'RAW-LAW-PIN'],['missing case mode',a=>a.matrix.pop(),'GATE-OR-MODE-INVENTORY']
 ])test('acceptance rejects '+name,()=>{const a=structuredClone(artifact);change(a);throws(()=>A.validate(a),code);});
@@ -42,7 +45,7 @@ function commit(message){git(['add','.']);git(['-c','user.name=Synthetic','-c','
 git(['init','-q']);const originalLines=['owner','contract','theme'].map(k=>artifact.authorizations[k].line);write('rebuild/DECISIONS.md',originalLines.join('\n')+'\n');const anchor=commit('synthetic authorization mappings');
 const payload=bytes({synthetic:true,noRealApproval:true});write(A.FILE,payload);const artifactCommit=commit('synthetic reviewed artifact');
 git(['checkout','-q','--detach',anchor]);const acceptedLine='- synthetic · cowork · POSTFIX-ACCEPTANCE M2-IMPORT-GUARDS '+artifactCommit+' '+A.FILE+' '+T.sha(payload)+' ACCEPTED';write('rebuild/DECISIONS.md',originalLines.concat(acceptedLine).join('\n')+'\n');const receiptBase=commit('synthetic acceptance receipt');git(['update-ref','refs/remotes/origin/rebuild/t2-client-core',receiptBase]);git(['-c','user.name=Synthetic','-c','user.email=synthetic@example.invalid','merge','--no-ff','-qm','synthetic combined candidate',artifactCommit]);
-const syntheticA={...artifact,codeBaseAnchor:anchor},syntheticE=structuredClone(envelope);syntheticE.candidateBase=receiptBase;syntheticE.acceptanceSha256=T.sha(payload);for(const k of ['owner','contract','theme'])syntheticE.receipts[k].commit=receiptBase;syntheticE.receipts.review={status:'ACCEPTED',receipt:{commit:receiptBase,path:'rebuild/DECISIONS.md',line:acceptedLine,lineSha256:T.sha(acceptedLine)}};
+const syntheticA={...artifact,codeBaseAnchor:anchor},syntheticE=pendingEnvelope();syntheticE.candidateBase=receiptBase;syntheticE.acceptanceSha256=T.sha(payload);for(const k of ['owner','contract','theme'])syntheticE.receipts[k].commit=receiptBase;syntheticE.receipts.review={status:'ACCEPTED',receipt:{commit:receiptBase,path:'rebuild/DECISIONS.md',line:acceptedLine,lineSha256:T.sha(acceptedLine)}};
 test('real synthetic artifact commit and exact ledger line produce noncircular acceptance',()=>{A.ancestry(repo,syntheticA,syntheticE);assert.equal(A.verifyReceipts(repo,syntheticA,syntheticE,payload),true);});
 test('missing review stays pending, not a fabricated acceptance',()=>{const e=structuredClone(syntheticE);e.receipts.review={status:'PENDING',receipt:null};assert.equal(A.verifyReceipts(repo,syntheticA,e,payload),false);});
 test('modified artifact bytes cannot reuse actual review',()=>throws(()=>A.verifyReceipts(repo,syntheticA,syntheticE,bytes({different:true})),'REVIEW-ARTIFACT-GIT-PIN'));

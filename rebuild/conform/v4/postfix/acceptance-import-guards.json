@@ -106355,7 +106355,8 @@
     "rebuild/conform/v4/postfix/test/expectation-carrier.test.cjs": "79320454969e2872589907650b1715e1d5d79cc19c7b0a354b168d15c1273030",
     "rebuild/conform/v4/postfix/test/legacy-carriers.test.cjs": "0de9bff83851fe5d11f00c42db5b2a67efedfd87607dd109d462eea6c7ad9b9d",
     "rebuild/conform/v4/postfix/test/mutants.test.cjs": "7dc482431814bc02e923119d7bc2acbf5cc61c3a2cab07a2e4eea3f53f712b07",
-    "rebuild/conform/v4/postfix/test/package.test.cjs": "edebe876872b566e3ff20c17da204ae9a490010638aec45d99eeac6f3ea5ca60",
+    "rebuild/conform/v4/postfix/test/package-lifecycle.test.cjs": "703dfc4534176a89f2926280e5306abc86b55645af2a82c8f5e63f46bc7c2ee9",
+    "rebuild/conform/v4/postfix/test/package.test.cjs": "2873b1e851628cfaab1227ac91c135471f56ee4035b73df29099205dd7377b9b",
     "rebuild/conform/v4/postfix/test/runner.test.cjs": "caabd9033caefe7be13d07208427cc7fe1d2b314a19aea5410110f301e6b1d64",
     "rebuild/conform/v4/postfix/test/source-proof.test.cjs": "6eda51afa651d79855951cda74b2126db1f611844dbdcc449f187ab2eab2c3b8",
     "rebuild/conform/v4/postfix/trace-v2.cjs": "5804390be453b9321955c1b498d7b5a80ee96f9b14ef701b33176a15f6ce9e2d"
