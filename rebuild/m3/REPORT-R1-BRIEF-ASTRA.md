@@ -23,6 +23,7 @@ Added409 ISSUANCE_EXHAUSTED for new counter/range issuance beyond capacity, with
 Added500 CLOCK_UNAVAILABLE for nonfinite/unrepresentable issuer times or computed time overflow, without issuance effects, state20 or a freshness claim.
 Closed an internal contradiction: historical enrollment-intent replay can coexist with a later current lease/creation epoch; repeated identities must agree, but historical and current pointers must not be forced equal. T03 now exercises that case.
 Retained the earlier reviewed corrections: exact `reconcile-manifest/page` domains, recovery-only full-value mismatch check, first-enrollment verification using pinned keys, and active-signer epoch selection.
+Same-family recheck found one retry ambiguity: the unchanged randomized P-256 signer can produce different valid signature bytes for identical page content. Defined duplicate identity by independently verified content and the exact original manifest, permitting valid signature/pinned-epoch variation; T06 now tests re-signing, key rotation and freshly signed changed-content refusal. A synthetic signer probe confirmed the differing-byte case; no R1 implementation test or independent acceptance is claimed.
 
 ## Verification and limits
 Executed repository/source inspection, ancestor checks, two-file scope inspection and whitespace checking. Scope runner: FROZEN-PATHS PASS; OLD-PACKAGE PASS (18 allowlisted files, actual ZIP bytes); full SCOPE-FREEZE remains PENDING. No product tests or proposed R1 gates were run for this docs PR.
