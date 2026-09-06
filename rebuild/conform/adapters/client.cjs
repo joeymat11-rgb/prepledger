@@ -1,15 +1,14 @@
-/* adapters/client.cjs — TRANCHE T2: the PRODUCT client (/home/claude/rebuild/client) behind the suite's §B adapter
+/* adapters/client.cjs — TRANCHE T2: the PRODUCT client behind the suite's §B adapter
    contract. This file maps the suite's synthetic opts onto createClient(config), supplies the faulty backend, the test
    clock and a tiny fake authority transport, and returns the normalized API the laws call. `hooks` is ignored (mutants
    apply only to the suite's own in-memory model). It requires ../lib/ops.cjs ONLY for the shared test constants
    (AUTH_KEY, K_IDENTITY, the default lease, and the signing primitive the fake authority uses) — nothing else from the
    suite, and nothing from the suite's model directory. */
 const O = require("../lib/ops.cjs");
-const path = require("node:path"), fs = require("node:fs");
-/* the product's location: EARNED_CLIENT_DIR, else the repo layout rebuild/client next to rebuild/conform, else the cowork tree */
-const CLIENT_DIR = process.env.EARNED_CLIENT_DIR || [path.join(__dirname, "..", "..", "client"), "/home/claude/rebuild/client"].find((d) => fs.existsSync(path.join(d, "index.cjs")));
-if (!CLIENT_DIR) throw new Error("adapters/client.cjs: the product client was not found (set EARNED_CLIENT_DIR)");
-const Client = require(CLIENT_DIR);
+const path = require("node:path");
+/* Explicit overrides remain available to other runners; otherwise test this checkout's product. */
+const CLIENT_DIR = process.env.EARNED_CLIENT_DIR || path.join(__dirname, "..", "..", "client");
+const Client = require(path.join(CLIENT_DIR, "index.cjs"));
 
 /* ---- fault injection from OUTSIDE the product: a backend that fails the way the law's storage mode says ---- */
 function faultyBackend(inner, mode) {
