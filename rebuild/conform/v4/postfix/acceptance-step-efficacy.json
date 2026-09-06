@@ -178460,7 +178460,73 @@
           "originalTraceSha256": "d98c66b9e3199598c87de7d27348d2b5172c6bf9340cd3619633ed4239126c49",
           "maskingReason": null
         }
-      ]
+      ],
+      "consequence": {
+        "classification": "CONSEQUENTIAL-RED",
+        "cause": "D12",
+        "preservedDefect": "D45",
+        "reason": "D12 units correction changes the derived lab summary embedded in askContext; D45 effort-rule contradiction remains RED.",
+        "energyPreimageSha256": "dca9e0c287cf64bf70881b2a13e7621478e0daa1221cc2dcbb94f6a75172b81c",
+        "oldExpression": "const slopePer1k = den ? +((num / den) * 1000).toFixed(3) : 0;",
+        "newExpression": "const slopePer1k = den ? +(num / den).toFixed(3) : 0;",
+        "projector": {
+          "file": "rebuild/conform/v4/postfix/helpers/build-step-efficacy-expectations.cjs",
+          "executionPin": "fca97f91b6afd70c104857cefca626a7bbf45de7dbfe1af5f767060534cd5698"
+        },
+        "raw": {
+          "lawId": "V4-analyst-effort-rule-matches-writer",
+          "matrix": [
+            {
+              "mode": "frozen",
+              "day": "2026-09-03"
+            },
+            {
+              "mode": "native",
+              "day": "2026-09-03"
+            },
+            {
+              "mode": "frozen",
+              "day": "2026-09-07"
+            },
+            {
+              "mode": "native",
+              "day": "2026-09-07"
+            }
+          ],
+          "frame": 0,
+          "name": "askContext",
+          "path": "/frames/0/after/4/1/5/1"
+        },
+        "witness": {
+          "file": "rebuild/engine/test/defect-witnesses-7.cjs",
+          "sourceSha256": "990e814209aac63537288d80127e6a088b375c19562820cfec7bfd1a19a08d8a",
+          "defect": "D45",
+          "modes": [
+            "frozen",
+            "native"
+          ],
+          "frame": 0,
+          "name": "askContext",
+          "path": "/0/result"
+        },
+        "differential": {
+          "file": "rebuild/engine/test/writers-differential.cjs",
+          "sourceSha256": "2fec66f65c55f751c749f827e5c0fca6a6747a9e8440ba66cd13d166f2951217",
+          "scenario": "plain-state day writer capture and supplied-doc ask",
+          "modes": [
+            "frozen",
+            "native",
+            "trap"
+          ],
+          "clockIndexes": [
+            0,
+            1
+          ],
+          "frame": 4,
+          "name": "askContext",
+          "path": "/result"
+        }
+      }
     }
   ],
   "nonD": [
@@ -178685,7 +178751,8 @@
   ],
   "executionPins": {
     "rebuild/conform/v4/postfix/acceptance-import-guards.json": "01b8d0b3e784d0ea65fd565db97c87dd4ebddb045cd91cd94d68c15c92d27329",
-    "rebuild/conform/v4/postfix/acceptance.cjs": "8ddc10385334cefb494bce510ac329a933b0529a46bee847cd93f29f4d846599",
+    "rebuild/conform/v4/postfix/acceptance.cjs": "4fbede996ff97f30aa54c5fb735981d9bdfecf77922854b66029dffd8011c2a4",
+    "rebuild/conform/v4/postfix/ci-second-gate.cjs": "75f95702fd1edd24639e046aaf555685497ebb1dded22a053db0fadefc1c4411",
     "rebuild/conform/v4/postfix/fixtures/import-guards-deltas.json": "ec6833cc1ddff5ffb4b2c014b55a50958fe64df962ca2f7fc6f98b3b83e3d641",
     "rebuild/conform/v4/postfix/fixtures/step-efficacy-deltas.json": "766822ce6c0a430a9d12e9057f8232603e5424ac1bccc4074cb70627713934a5",
     "rebuild/conform/v4/postfix/helpers/IMPORT-GUARDS-EXPECTATIONS.md": "177bedab881d8f4361941cfc3c557d561afb3b4a2a46d5ed8c4cab31888366ed",
@@ -178694,6 +178761,7 @@
     "rebuild/conform/v4/postfix/helpers/import-guards-expectations.cjs": "7b81bdb01f33dc341f8e6eb029ec43b22971ab44c31f477194ed552d303bf980",
     "rebuild/conform/v4/postfix/helpers/import-guards-frozen.cjs": "b5fc14675d8526b59cb34803b17a0797b1f1b91b9b5ea60661616e8d851ed596",
     "rebuild/conform/v4/postfix/helpers/import-guards-hosts.cjs": "5d80ce635aa2f6d72b8053d3688de150065c68858f9727be09fae1cecac653c3",
+    "rebuild/conform/v4/postfix/helpers/step-efficacy-d45-custody.cjs": "9271b6cff022908cf2d627ed0eb4d7601f085d70e57a58b6e42cdf51430c60a5",
     "rebuild/conform/v4/postfix/helpers/step-efficacy-d45-diagnosis.cjs": "106b952294e874264d860dece087a5f7a345ce154bd0a88d1b06fd3878fe829e",
     "rebuild/conform/v4/postfix/helpers/step-efficacy-frozen.cjs": "e23611876db3258b8f44f75d2e0ebb42c2ae7e12c4b0689f86abee0e05e271ab",
     "rebuild/conform/v4/postfix/helpers/step-efficacy-mutants.cjs": "22ac5e13687c5c6e0d43365c7c8e2fd90e32d01f5f92861cf7c1a2177b973d69",
@@ -178701,11 +178769,11 @@
     "rebuild/conform/v4/postfix/laws/step-efficacy.cjs": "1a8d2f2156beee863feea0fb1b38c5fde9abdbb915c51d1b0aa2dc66e231d672",
     "rebuild/conform/v4/postfix/legacy-carriers.cjs": "430edc4355cf51d3b77dcdbcca2cc75ebc2f7f7b367ac1430b25bc93bc3ee33d",
     "rebuild/conform/v4/postfix/legacy-gates.cjs": "b8891d9ba12f38713582634b7709b6f3a3a5c05e008a10c7f2d74a91e169b0df",
-    "rebuild/conform/v4/postfix/legacy-step-efficacy-carriers.cjs": "f9410daee8cab7d1ebc33fe77b7ed1ea744bd80c4195f2968a627aa7ef44aaf0",
+    "rebuild/conform/v4/postfix/legacy-step-efficacy-carriers.cjs": "7d04215c06029ad0a9f5a4aa3f66214ab2e0b605460fe809036032ed7e960a14",
     "rebuild/conform/v4/postfix/manifest-import-guards.json": "291b985d7ae14e9597d6963bc58151eea16535eae9e3635da6145a4bccca41ec",
     "rebuild/conform/v4/postfix/manifest.json": "5e1cdb7aabf3e8d8d6527590fa543e82aebc1bd7b536b9a0339a61e8a61372d4",
     "rebuild/conform/v4/postfix/mutant-proposals.cjs": "5fd0654266a6f4951b4907c91bb992f017d2e7ee530d13ce449e5db9512e59fb",
-    "rebuild/conform/v4/postfix/package-runner.cjs": "60fcfa32f6e75e6caa791a4670dffddb09ecd8d0577f882f422432299f6609a7",
+    "rebuild/conform/v4/postfix/package-runner.cjs": "8b3a5ef141529525c393106f6604fffc46b485fcacc664f550c40319f7fe64ff",
     "rebuild/conform/v4/postfix/run.cjs": "654288e073ea6815ce699c1eacb61c7030b0de0781b277477f3800fa06eb245a",
     "rebuild/conform/v4/postfix/source-proof.cjs": "cc741245cc4dcc9e0a63a503b39fb65393e6aebb19c064e2502743c992759326",
     "rebuild/conform/v4/postfix/step-efficacy-second-gate.cjs": "f608d2eac7047632bce4c97e920c59e09669ecf86179e39a7169ff11721aecb4",
@@ -178713,6 +178781,7 @@
     "rebuild/conform/v4/postfix/structural-delta.cjs": "7321a6a82c1bb574f7edee450832f2e5046ae722a8003cae69a1f54b2eb4719f",
     "rebuild/conform/v4/postfix/target.cjs": "e19f3399d9e4e4dff7d3a6dae2c2c251c9fda5b88ead9640e95adc3e4a7908bb",
     "rebuild/conform/v4/postfix/test-import-guards.cjs": "f8f7408afdc327611ff241e7d4ee1eb477e8786daa19f73edc10d18f2f6180f9",
+    "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs": "237dcb89279dfdbbb5c4011172c9149f8b23b7b170448b41ffa03e509ee03b2c",
     "rebuild/conform/v4/postfix/test/cli-entry.test.cjs": "3bb6e6194a6f11bcebcd776bf17d1a166bb734e7ad09dd457d59c6d7c06a51fe",
     "rebuild/conform/v4/postfix/test/expectation-carrier.test.cjs": "79320454969e2872589907650b1715e1d5d79cc19c7b0a354b168d15c1273030",
     "rebuild/conform/v4/postfix/test/legacy-carriers.test.cjs": "0de9bff83851fe5d11f00c42db5b2a67efedfd87607dd109d462eea6c7ad9b9d",
@@ -178722,10 +178791,11 @@
     "rebuild/conform/v4/postfix/test/runner.test.cjs": "caabd9033caefe7be13d07208427cc7fe1d2b314a19aea5410110f301e6b1d64",
     "rebuild/conform/v4/postfix/test/source-proof.test.cjs": "6eda51afa651d79855951cda74b2126db1f611844dbdcc449f187ab2eab2c3b8",
     "rebuild/conform/v4/postfix/test/step-array-correspondence.test.cjs": "48fa84dba4e08e564dd4d2cae1c78af598b92928d67952b4ba302d6a59b117f7",
+    "rebuild/conform/v4/postfix/test/step-efficacy-d45-custody.test.cjs": "01ebe0c7989701db4bfd525b116e044a2fd03a0281e4bbbcce5c4b183b9754ac",
     "rebuild/conform/v4/postfix/test/step-efficacy-direct.test.cjs": "506ab05a376362ae2150a32329618d731fe520b46bb45b1c4d3ccbd651c14c10",
-    "rebuild/conform/v4/postfix/test/step-efficacy-profile.test.cjs": "586a4b8842922159b724a347e84304b37858f41a73aaf587b7c3a2a2ead121d0",
+    "rebuild/conform/v4/postfix/test/step-efficacy-profile.test.cjs": "03f3b9eaceb485437f1d3509f60ac81de797f54284a490facc8c7e57a9c7c846",
     "rebuild/conform/v4/postfix/test/step-efficacy-second-gate.test.cjs": "307e527b685b441228dd836f1bf57b86c926c28ef0e55baa6ef2e14fedd45c79",
-    "rebuild/conform/v4/postfix/test/step-package-entry.test.cjs": "2fa740492415e41be0202ed0f72875ec2b0c4f39dec3502f65253968a0849c03",
+    "rebuild/conform/v4/postfix/test/step-package-entry.test.cjs": "07b2c735f464f12f67947b6afc60dddc61426e63d19358a17122c48eee818131",
     "rebuild/conform/v4/postfix/trace-v2.cjs": "5804390be453b9321955c1b498d7b5a80ee96f9b14ef701b33176a15f6ce9e2d"
   },
   "caseModule": "rebuild/conform/v4/postfix/laws/step-efficacy.cjs",

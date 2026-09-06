@@ -4,7 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),Module=require('node:module');
 const {spawnSync}=require('node:child_process');
 const parent=require('./legacy-carriers.cjs'),L=require('./legacy-gates.cjs'),S=require('./source-proof.cjs'),{sha,fail}=require('./target.cjs');
-const CARRIER_IDS=Object.freeze([...parent.CARRIER_IDS,'defect-witnesses-2','second-gate']);
+const CARRIER_IDS=Object.freeze([...parent.CARRIER_IDS,'defect-witnesses-2','second-gate','defect-witnesses-7','writers-differential']);
 const SOURCE_IDS=['migrate-source','merge-source','writers-source'];
 const WITNESS_PIN='833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2';
 let activeContext;
@@ -38,7 +38,12 @@ function pinned(root,baseline,id){
 }
 async function runWorker(input){
   const {id,root,baseline,bundles,acceptance,mode}=input;
-  if(!CARRIER_IDS.includes(id)||!['frozen','native'].includes(mode)||acceptance?.packageId!=='M2-STEP-EFFICACY')fail('STEP-CARRIER-CONFIG');
+  if(!CARRIER_IDS.includes(id)||!(id==='writers-differential'?['frozen','native','trap']:['frozen','native']).includes(mode)||acceptance?.packageId!=='M2-STEP-EFFICACY')fail('STEP-CARRIER-CONFIG');
+  if(id==='defect-witnesses-7'||id==='writers-differential'){
+    S.verifyProductSources({root,baseline,acceptance,gitHead:true});
+    const custody=require('./helpers/step-efficacy-d45-custody.cjs').prepareCustody(input);
+    try{const result=custody.runLegacy(id,mode);custody.assertSafePublicText(JSON.stringify(result));return result;}finally{custody.dispose();}
+  }
   if(id==='second-gate'){
     const file=path.join(__dirname,'step-efficacy-second-gate.cjs');
     if(!fs.existsSync(file))fail('STEP-CUSTODY-PENDING');

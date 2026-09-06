@@ -44,6 +44,8 @@ const scratchParent=path.join(root,'.tmp/postfix/step-profile-tests');fs.mkdirSy
 test.after(()=>{assert(scratch.startsWith(scratchParent+path.sep));fs.rmSync(scratch,{recursive:true,force:true});});
 test('composed source check proves original audit plus accepted parent; no blanket changed-module waiver',()=>{
   cp.execFileSync('git',['clone','--shared','--no-checkout','--quiet',root,scratch],{windowsHide:true,stdio:['ignore','pipe','pipe']});
+  // Keep this negative tied to the pre-repair commit even after the real fix is committed.
+  cp.execFileSync('git',['-C',scratch,'update-ref','--no-deref','HEAD',anchor],{windowsHide:true,stdio:['ignore','pipe','pipe']});
   const a=fixture({present:true}),write=(file,bytes)=>{const out=path.join(scratch,file);fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,bytes);};
   for(const pin of [binding.artifact,binding.operational])write(pin.file,L.object(root,pin.commit,pin.file));
   for(const file of Object.keys(parent.candidateEngine))write('rebuild/engine/'+file,L.object(root,binding.candidateCommit,'rebuild/engine/'+file));

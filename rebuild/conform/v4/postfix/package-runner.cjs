@@ -48,11 +48,11 @@ function caseInventory(root,a){
   const sortInventory=list=>list.map(x=>JSON.stringify(x)).sort();
   if(new Set(sortInventory(flattened)).size!==flattened.length||!equal(sortInventory(flattened),sortInventory(mod.ASSERTION_INVENTORY)))T.fail('ASSERTION-INVENTORY');
 }
-function carrierProfile(a){const step=A.profile(a).id==='M2-STEP-EFFICACY';return {file:step?'./legacy-step-efficacy-carriers.cjs':'./legacy-carriers.cjs',ids:step?['migrate-source','merge-source','writers-source','defect-witnesses-5','migrate-differential','defect-witnesses-2','second-gate']:null};}
-function carrierId(id,step=false){return id==='witnesses-5'?'defect-witnesses-5':step&&id==='witnesses-2'?'defect-witnesses-2':id;}
+function carrierProfile(a){const step=A.profile(a).id==='M2-STEP-EFFICACY';return {file:step?'./legacy-step-efficacy-carriers.cjs':'./legacy-carriers.cjs',ids:step?['migrate-source','merge-source','writers-source','defect-witnesses-5','migrate-differential','defect-witnesses-2','second-gate','defect-witnesses-7','writers-differential']:null};}
+function carrierId(id,step=false){return id==='witnesses-5'?'defect-witnesses-5':step&&id==='witnesses-2'?'defect-witnesses-2':step&&id==='witnesses-7'?'defect-witnesses-7':id;}
 // The inherited second gate has one fixed-clock invocation. Its STEP successor
 // preserves that domain; every other carrier keeps both Date-mode executions.
-function carrierModes(a,id){return A.profile(a).id==='M2-STEP-EFFICACY'&&id==='second-gate'?['frozen']:['frozen','native'];}
+function carrierModes(a,id){return A.profile(a).id==='M2-STEP-EFFICACY'?(id==='second-gate'?['frozen']:id==='writers-differential'?['frozen','native','trap']:['frozen','native']):['frozen','native'];}
 function main({manifestFile,baseline,candidate}){
   candidate=fs.realpathSync(candidate);baseline=fs.realpathSync(baseline);
   const root=L.git(candidate,['rev-parse','--show-toplevel']).toString().trim();
@@ -63,7 +63,7 @@ function main({manifestFile,baseline,candidate}){
   if(accepted&&!L.object(root,'HEAD',A.artifactFile(a)).equals(bytes))T.fail('UNCOMMITTED-ACCEPTANCE-ARTIFACT');
   // Pending evidence must never look like final acceptance, including inherited
   // gate tails. Exact original gate output remains in local-only gate logs.
-  const emit=line=>console.log(accepted?line:line.replace(/\bPASS\b/g,'OBSERVED'));
+  let custody=null;const emit=line=>{const text=accepted?line:line.replace(/\bPASS\b/g,'OBSERVED');if(custody)custody.assertSafePublicText(text);console.log(text);};
   emit('POSTFIX PACKAGE '+(accepted?'AUTHORIZED':'REVIEW-PENDING')+' acceptanceSha256='+e.acceptanceSha256+' candidateBase='+e.candidateBase);
   for(const r of a.inventory)emit(r.defect+' '+r.disposition+' / '+r.implementation);
   for(const n of a.nonD)emit('NON-D '+n.id+' OPEN');
@@ -73,6 +73,8 @@ function main({manifestFile,baseline,candidate}){
   checkPins(root,a);verifyProductSources({root,baseline,acceptance:a,gitHead:true});caseInventory(root,a);
   const R=require('./run.cjs'),carrierSpec=carrierProfile(a),carrier=require(carrierSpec.file);
   const bundles=L.publicReferences({baseline,scratch:path.join(root,'.tmp/postfix/package-reference'),sourcePins:a.baseline.buildSources});
+  if(A.profile(a).id==='M2-STEP-EFFICACY')custody=require('./helpers/step-efficacy-d45-custody.cjs').prepareCustody({root,baseline,bundles,acceptance:a});
+  try{
   emit(L.historicalAudit({baseline,bundles}));
   let raw=0,cases=0,mutants=0;
   for(const row of a.inventory){
@@ -82,7 +84,7 @@ function main({manifestFile,baseline,candidate}){
       const original=T.runRaw({...shared,kind:'raw-frozen',bundle:bundles.main,bundleSha256:T.sha(fs.readFileSync(bundles.main)),helperRoot:root,helperPins:a.baseline.publicPins}),current=T.runRaw({...shared,candidate,inventory:a.candidateEngine});
       if(original.status!==expectation.originalStatus||current.status!==expectation.candidateStatus||!equal(original.error??null,expectation.exception)||!equal(current.error??null,expectation.exception))T.fail('RAW-VERDICT-'+row.defect);
       if(T.sha(JSON.stringify(trace(original)))!==expectation.originalTraceSha256)T.fail('ORIGINAL-RAW-TRACE-PIN-'+row.defect);
-      compare(original,current,row.outputDeltas.find(d=>d.mode===cell.mode&&d.day===cell.day));raw++;
+      if(custody&&row.defect==='D45')emit(custody.compareRaw({original,current,cell}));else compare(original,current,row.outputDeltas.find(d=>d.mode===cell.mode&&d.day===cell.day));raw++;
       if(expectation.classification!=='ACCEPTANCE')emit(row.defect+' '+cell.mode+'/'+cell.day+' '+expectation.classification+' / exact original outcome+trace / PENDING; no repair credit');
     }
     if(row.implementation!=='PRESENT'){emit(row.defect+' gate-date RED-original / RED-candidate / preservation PASS');continue;}
@@ -111,5 +113,6 @@ function main({manifestFile,baseline,candidate}){
   emit('POSTFIX TOTAL 45 APPROVED-FIX / '+present+' PRESENT / '+(45-present)+' PENDING / 15 non-D OPEN; '+raw+' raw comparisons / '+cases+' direct case-mode executions / '+mutants+' effective mutation executions');
   if(!accepted){emit('REVIEW-PENDING: complete evidence collected; independent artifact acceptance required');return 2;}
   emit('POSTFIX PACKAGE PASS');return 0;
+  }finally{if(custody)custody.dispose();}
 }
 module.exports={main,checkPins,compare,directInput,directLawId,caseInventory,carrierProfile,carrierId,carrierModes};
