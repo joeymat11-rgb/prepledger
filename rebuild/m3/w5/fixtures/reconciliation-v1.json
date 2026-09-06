@@ -1,0 +1,73 @@
+{
+  "profile": "earned/r1/v1",
+  "keys": "No keys committed; tests generate signing/auth material per run",
+  "source": "Byte vectors independently authored from literals using Node Buffer and native SHA256, not candidate codec",
+  "vectors": [
+    {
+      "id": "byte-0",
+      "text": "",
+      "utf8Hex": "",
+      "base64url": "",
+      "operationDigest": "-jvlyYtWq0WaITfv-WzJ4IVTIbazOAb7b1MrPcmkxxo"
+    },
+    {
+      "id": "byte-1",
+      "text": "abc",
+      "utf8Hex": "616263",
+      "base64url": "YWJj",
+      "operationDigest": "XBS1wQfuDnp-F7_m47JEFBhQx-B61JHe_hQam4jrIQw"
+    },
+    {
+      "id": "byte-2",
+      "text": "Café",
+      "utf8Hex": "436166c3a9",
+      "base64url": "Q2Fmw6k",
+      "operationDigest": "GYV1_rLMKsPSmvrp9qh6u61Gh3-YnfsjPtKNOhDBqUI"
+    },
+    {
+      "id": "byte-3",
+      "text": "Café",
+      "utf8Hex": "43616665cc81",
+      "base64url": "Q2FmZcyB",
+      "operationDigest": "G3JT-dFSpr0G2R_5ji8jneQA9kKLV6puRipzL-BtTxM"
+    },
+    {
+      "id": "byte-4",
+      "text": "{\"z\":0,\"a\":1e-22}",
+      "utf8Hex": "7b227a223a302c2261223a31652d32327d",
+      "base64url": "eyJ6IjowLCJhIjoxZS0yMn0",
+      "operationDigest": "msjSA2XRnmv_qwhP4zAwUKi1qD2bSuiU7FV3KJZTqQw"
+    },
+    {
+      "id": "byte-5",
+      "text": "{\"n\":-0}",
+      "utf8Hex": "7b226e223a2d307d",
+      "base64url": "eyJuIjotMH0",
+      "operationDigest": "3RokBgYeW4082oLUqXjAgQ-LpSwRLPxZqXdazif7xY0"
+    }
+  ],
+  "duplicateDecodedKeyNegatives": [
+    "{\"a\":1,\"a\":2}",
+    "{\"a\":1,\"\\u0061\":2}"
+  ],
+  "base64Negatives": [
+    "YQ==",
+    "YR",
+    "A",
+    "a+b/"
+  ],
+  "signatureProfile": {
+    "curve": "P-256",
+    "digest": "SHA-256",
+    "encoding": "ES256.<pinned-kid>.<canonical-base64url-64-byte-P1363-r-then-s>",
+    "lowS": true,
+    "domain": "UTF8(exactDomain + original canonicalEncode(unsigned outer))"
+  },
+  "coverage": {
+    "authority_facts": "retained-at-one-snapshot",
+    "accepted": "complete-1-through-W",
+    "retained_rows": "complete-profile-collections",
+    "issued_leases": "complete-from-profile-genesis",
+    "history_origin": "PROFILE_GENESIS"
+  }
+}

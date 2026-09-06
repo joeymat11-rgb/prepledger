@@ -6,7 +6,9 @@ const plan = require("./plan.cjs");
 const issue = require("./issue.cjs");
 
 const slotId = op => JSON.stringify([op.device_id, op.device_seq]);
-function makeAdmission({ store, authorityKey, identityKey, now, athleteIds }) {
+function makeAdmission({ store, authorityKey, identityKey, now, athleteIds, resolveIssuedLease }) {
+  if (resolveIssuedLease !== undefined && typeof resolveIssuedLease !== "function")
+    throw new TypeError("resolveIssuedLease must be a synchronous function");
   const signed = (op, status, extra = {}) => signDisposition({
     op_id: op.op_id, canonical_content_commitment: op.canonical_content_commitment,
     device_id: op.device_id, device_seq: op.device_seq, status, decided_at: now(), ...extra,
@@ -39,7 +41,16 @@ function makeAdmission({ store, authorityKey, identityKey, now, athleteIds }) {
     if (digest !== op.canonical_content_commitment) return reject(tx, op, "MALFORMED");
     if (op.kind === "plan-mutation" && op.member_set_commitment !== hmac(key, "earned/members/v1" + canonicalEncode(op.members)))
       return reject(tx, op, "MALFORMED");
-    const device = state.devices[op.device_id], lease = device && device.lease;
+    const device = state.devices[op.device_id];
+    // The optional resolver reads this same staged transaction. Reconsidered
+    // WAITING entries reach this identical cut; renewal never substitutes a
+    // different capability for the operation's original lease identifier.
+    const lease = device && (resolveIssuedLease === undefined ? device.lease
+      : resolveIssuedLease(tx, athlete, op.device_id, op.lease_id));
+    if (resolveIssuedLease !== undefined && device && lease !== undefined &&
+        (!lease || typeof lease !== "object" || Array.isArray(lease) ||
+         typeof lease.then === "function" || typeof lease.lease_id !== "string" || !lease.lease_id))
+      throw new TypeError("issued lease resolver returned an invalid synchronous result");
     if (!lease || lease.lease_id !== op.lease_id) return reject(tx, op, "LEASE_UNKNOWN");
     if (!verifyLease(lease, authorityKey) || lease.device_id !== op.device_id || lease.athlete_id !== athlete)
       return reject(tx, op, "LEASE_FORGED");

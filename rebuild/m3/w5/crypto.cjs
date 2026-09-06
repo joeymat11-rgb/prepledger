@@ -50,6 +50,42 @@ function keyObject(key, privatePart) {
     throw new TypeError("only P-256 verification/signing keys are accepted");
   return value;
 }
+function isKeyring(key) {
+  return !!key && typeof key === "object" &&
+    (Object.hasOwn(key, "activeSigningKey") || Object.hasOwn(key, "verificationKeys"));
+}
+function keyring(key) {
+  if (Array.isArray(key) || Object.keys(key).some(name => !["activeSigningKey", "verificationKeys"].includes(name)) ||
+      !Array.isArray(key.verificationKeys) || !key.verificationKeys.length)
+    throw new TypeError("an active signing key and unique public verification pins are required");
+  checkKid(key.activeSigningKey);
+  if (typeof key.activeSigningKey.kid !== "string") throw new TypeError("active kid must be a string");
+  const pins = new Map();
+  for (const pin of key.verificationKeys) {
+    checkKid(pin);
+    if (typeof pin.kid !== "string" || Array.isArray(pin) || Object.keys(pin).some(name => !["kid", "publicKey"].includes(name)) ||
+        pins.has(pin.kid) || !pin.publicKey || pin.publicKey.d !== undefined || pin.publicKey.type === "private" ||
+        (pin.publicKey.key_ops !== undefined && (!Array.isArray(pin.publicKey.key_ops) ||
+          pin.publicKey.key_ops.length !== 1 || pin.publicKey.key_ops[0] !== "verify")) ||
+        (typeof pin.publicKey === "string" && /PRIVATE KEY/.test(pin.publicKey)))
+      throw new TypeError("verification pins must be unique public P-256 keys");
+    const object = keyObject(pin, false);
+    // Do not accept private key material in alternative Node key-input forms.
+    if (pin.publicKey.key !== undefined || Buffer.isBuffer(pin.publicKey))
+      throw new TypeError("verification pins must contain public key objects, JWKs or public PEM");
+    pins.set(pin.kid, { pin, object });
+  }
+  const active = pins.get(key.activeSigningKey.kid);
+  if (!active || !active.object.export({ format: "der", type: "spki" }).equals(
+    keyObject(key.activeSigningKey, false).export({ format: "der", type: "spki" })))
+    throw new TypeError("active signing key must match its public verification pin");
+  return { active: key.activeSigningKey, pins };
+}
+function activeKeyId(key) {
+  if (isKeyring(key)) return keyring(key).active.kid;
+  checkKid(key);
+  return key.kid;
+}
 const integer = bytes => BigInt("0x" + bytes.toString("hex"));
 function lowS(bytes) {
   if (bytes.length !== 64) throw new TypeError("P-256 requires a 64-byte P1363 signature");
@@ -69,7 +105,12 @@ function parseSignature(signature, kid) {
   return raw;
 }
 function signatureOver(record, key, domain, field = "authority_signature") {
+  const ring = isKeyring(key) ? keyring(key) : null;
+  if (ring) key = ring.active;
   const signingKey = keyObject(key, true);
+  if (ring && !createPublicKey(signingKey).export({ format: "der", type: "spki" }).equals(
+      ring.pins.get(key.kid).object.export({ format: "der", type: "spki" })))
+    throw new TypeError("active private key must match its public verification pin");
   // workerd rejects a KeyObject nested in sign/verify options. Native PEM
   // export is an in-memory adapter; no key bytes enter a response or fixture.
   const bytes = sign("sha256", canonicalBytes(record, domain, field), {
@@ -80,6 +121,13 @@ function signatureOver(record, key, domain, field = "authority_signature") {
 function verifyRecord(record, key, domain, field = "authority_signature") {
   if (!record || typeof record !== "object" || Array.isArray(record)) return false;
   try {
+    if (isKeyring(key)) {
+      const ring = keyring(key);
+      const match = typeof record[field] === "string" && /^ES256\.([A-Za-z0-9_-]{1,64})\./.exec(record[field]);
+      const found = match && ring.pins.get(match[1]);
+      if (!found) return false;
+      key = found.pin;
+    }
     checkKid(key);
     const raw = parseSignature(record[field], key.kid);
     return !!raw && verify("sha256", canonicalBytes(record, domain, field),
@@ -87,6 +135,7 @@ function verifyRecord(record, key, domain, field = "authority_signature") {
   } catch (_) { return false; }
 }
 function publicKeyOf(key) {
+  if (isKeyring(key)) key = keyring(key).active;
   const publicKey = keyObject(key, false).export({ format: "jwk" });
   return { kid: key.kid, publicKey: { kty: "EC", crv: "P-256", x: publicKey.x, y: publicKey.y, key_ops: ["verify"], ext: true } };
 }
@@ -97,7 +146,7 @@ function generateSigningKey(kid = "local-run") {
   return key;
 }
 const api = { PROFILE, DOMAINS, canonicalBytes, hmac, commitmentOf, signatureOver, verifyRecord,
-  parseSignature, publicKeyOf, generateSigningKey };
+  parseSignature, publicKeyOf, generateSigningKey, activeKeyId };
 for (const [kind, domain] of Object.entries(DOMAINS)) {
   const suffix = kind[0].toUpperCase() + kind.slice(1), field = FIELDS[kind] || "authority_signature";
   api["sign" + suffix] = (record, key) => ({ ...record, [field]: signatureOver(record, key, domain, field) });

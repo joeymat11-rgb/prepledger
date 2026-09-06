@@ -1,18 +1,19 @@
 "use strict";
 
 const { createAuthenticator, AuthenticationError } = require("./auth.cjs");
-const { signReceipt, signPull, signSnapshot, signServerTime, verifyLease } = require("./crypto.cjs");
+const { signReceipt, signPull, signSnapshot, signServerTime, verifyLease, activeKeyId } = require("./crypto.cjs");
 const { WIRE_VERSION, TIME_PROFILE } = require("./public-client.cjs");
+const { handleR1, ROUTES: R1_ROUTES } = require("./reconciliation/http.cjs");
 
 const ROUTES = new Set(["/op", "/pull", "/time", "/lease", "/enrol", "/snapshot", "/import", "/restore"]);
 const identifier = value => typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/.test(value);
 const watermark = value => Number.isSafeInteger(value) && value >= 0;
 const MAX_REQUEST_BYTES = 262144;
 
-async function boundedBody(request) {
+async function boundedBody(request, limit = MAX_REQUEST_BYTES) {
   const tooLarge = () => { const error = new Error("Request too large"); error.code = "REQUEST_TOO_LARGE"; throw error; };
   const declared = request.headers.get("content-length");
-  if (declared !== null && /^\d+$/.test(declared) && Number(declared) > MAX_REQUEST_BYTES) tooLarge();
+  if (declared !== null && /^\d+$/.test(declared) && Number(declared) > limit) tooLarge();
   if (!request.body) return "";
   const reader = request.body.getReader(), decoder = new TextDecoder("utf-8", { fatal: true });
   let bytes = 0, text = "";
@@ -21,7 +22,7 @@ async function boundedBody(request) {
       const chunk = await reader.read();
       if (chunk.done) break;
       bytes += chunk.value.byteLength;
-      if (bytes > MAX_REQUEST_BYTES) { await reader.cancel(); tooLarge(); }
+      if (bytes > limit) { await reader.cancel(); tooLarge(); }
       text += decoder.decode(chunk.value, { stream: true });
     }
     return text + decoder.decode();
@@ -41,18 +42,27 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
   const error = (status, code, state) => reply(status, { error: { code, ...(state === undefined ? {} : { state }) } });
   return {
     async fetch(request) {
+      let r1 = false;
       try {
         // Authenticate every route before parsing a body or looking up its scope.
         const principal = authenticate(request, new Date(now()).getTime());
         const url = new URL(request.url);
-        if (!ROUTES.has(url.pathname)) return error(404, "NOT_FOUND");
+        r1 = R1_ROUTES.has(url.pathname);
+        if (!ROUTES.has(url.pathname) && !r1) return error(404, "NOT_FOUND");
         if (request.method !== "POST") return error(405, "METHOD_NOT_ALLOWED");
         if (url.search || !(request.headers.get("content-type") || "").toLowerCase().startsWith("application/json"))
           return error(400, "MALFORMED_REQUEST");
         let raw;
-        try { raw = await boundedBody(request); }
-        catch (cause) { return error(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400,
+        try { raw = await boundedBody(request, r1 ? 1048576 : MAX_REQUEST_BYTES); }
+        catch (cause) {
+          if (r1) return reply(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400, { error: {
+            code: cause.code === "REQUEST_TOO_LARGE" ? "RECONCILE_LIMIT" : "INVALID_R1_REQUEST", retryable: false } });
+          return error(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400,
           cause.code === "REQUEST_TOO_LARGE" ? "REQUEST_TOO_LARGE" : "MALFORMED_REQUEST"); }
+        if (r1) {
+          const result = await handleR1({ route: url.pathname, raw, principal, auth, bridge, authorityKey });
+          return reply(result.status, result.body);
+        }
         let body;
         try { body = JSON.parse(raw); } catch (_) { return error(400, "MALFORMED_REQUEST"); }
         if (!body || typeof body !== "object" || Array.isArray(body) || !identifier(body.device_id))
@@ -92,7 +102,7 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
             seq: row.seq, op_id: row.op.op_id, canonical_content_commitment: row.op.canonical_content_commitment,
             accepted_at: row.accepted_at, op: row.op,
           }, authorityKey));
-          return reply(200, signPull({ wire_version: WIRE_VERSION, key_epoch: authorityKey.kid,
+          return reply(200, signPull({ wire_version: WIRE_VERSION, key_epoch: activeKeyId(authorityKey),
             athlete_id: athlete, device_id: device, after: body.after, through, receipts }, authorityKey));
         }
         if (url.pathname === "/snapshot") {
@@ -105,7 +115,7 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
             seq: row.seq, op_id: row.op.op_id, canonical_content_commitment: row.op.canonical_content_commitment,
             accepted_at: row.accepted_at, op: row.op,
           }, authorityKey));
-          return reply(200, signSnapshot({ wire_version: WIRE_VERSION, key_epoch: authorityKey.kid,
+          return reply(200, signSnapshot({ wire_version: WIRE_VERSION, key_epoch: activeKeyId(authorityKey),
             athlete_id: athlete, device_id: device, W: body.watermark,
             partial: false, pending: 0, records: entries.length, entries,
             label: `Complete through W${body.watermark} for all synced records`,
@@ -116,7 +126,7 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
           if (typeof body.challenge !== "string" || !/^[A-Za-z0-9_-]{22,128}$/.test(body.challenge))
             return error(400, "MALFORMED_REQUEST");
           return reply(200, signServerTime({ wire_version: WIRE_VERSION, time_profile: TIME_PROFILE,
-            key_epoch: authorityKey.kid, athlete_id: athlete, device_id: device,
+            key_epoch: activeKeyId(authorityKey), athlete_id: athlete, device_id: device,
             challenge: body.challenge, server_time: now() }, authorityKey));
         }
         if (url.pathname === "/lease") {
@@ -131,8 +141,10 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
         // are not proof that a valid offline-write lease has been revoked.
         if (cause instanceof AuthenticationError) return error(401, "UNAUTHENTICATED", 11);
         if (cause && cause.code === "SCOPE_FORBIDDEN") return error(403, "SCOPE_FORBIDDEN", 17);
+        if (r1 && cause?.name === "R1Error") return reply(cause.status, { error: {
+          code: cause.code, ...(cause.state === undefined ? {} : { state: cause.state }), retryable: cause.retryable === true } });
         // Never expose provider errors, token material, operation bodies or stacks.
-        return error(503, "UNAVAILABLE");
+        return r1 ? reply(503, { error: { code: "UNAVAILABLE", retryable: true } }) : error(503, "UNAVAILABLE");
       }
     },
   };

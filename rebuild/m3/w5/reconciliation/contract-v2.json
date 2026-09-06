@@ -1,0 +1,342 @@
+{
+  "version": 2,
+  "profile": "earned/r1/v1",
+  "signatureProfile": "earned/p256-sha256-p1363-low-s/v1",
+  "byteEncoding": "strict UTF-8; exact row JSON text retained; derived JSON fields in listed order",
+  "base64": "canonical unpadded base64url",
+  "hash": "SHA256(UTF8(tag+NUL)||exactBytes)",
+  "domains": {
+    "enrollment": "earned/enrollment-result/v1",
+    "renewal": "earned/lease-renewal-result/v1",
+    "replay": "earned/recovery-replay-result/v1",
+    "manifest": "earned/reconcile-manifest-1m/v1",
+    "page": "earned/reconcile-page-1m/v1"
+  },
+  "tags": {
+    "request": "earned/reconcile-request-bytes/v1",
+    "payload": "earned/reconcile-payload-bytes/v1",
+    "page": "earned/reconcile-page-bytes/v1",
+    "manifest": "earned/reconcile-manifest-bytes/v1",
+    "coverage": "earned/reconcile-coverage/v1",
+    "intent": "earned/r1-intent-bytes/v1",
+    "result": "earned/r1-result-bytes/v1",
+    "operation": "earned/r1-operation-bytes/v1",
+    "scope": "earned/reconcile-scope/v1"
+  },
+  "limits": {
+    "request": 1048576,
+    "payload": 1048576,
+    "page": 32768,
+    "pages": 32
+  },
+  "fields": {
+    "request": [
+      "version",
+      "mode",
+      "nonce",
+      "context_id",
+      "claims",
+      "requested_lease_ids"
+    ],
+    "manifest": [
+      "profile",
+      "key_epoch",
+      "scope_digest",
+      "nonce",
+      "context_id",
+      "request_digest",
+      "snapshot_id",
+      "payload_digest",
+      "payload_bytes",
+      "page_bytes",
+      "page_count",
+      "coverage_digest"
+    ],
+    "page": [
+      "profile",
+      "key_epoch",
+      "manifest_digest",
+      "index",
+      "offset",
+      "bytes",
+      "page_digest",
+      "data_b64"
+    ],
+    "result": [
+      "profile",
+      "key_epoch",
+      "scope_digest",
+      "nonce",
+      "intent_digest",
+      "payload_digest",
+      "payload_bytes",
+      "data_b64"
+    ],
+    "standing": [
+      "account_epoch",
+      "account_state",
+      "actor_device_id",
+      "actor_revoked",
+      "creation_epoch",
+      "current_lease_id"
+    ],
+    "row": [
+      "collection",
+      "row_id",
+      "value_b64"
+    ],
+    "claim": [
+      "claim_id",
+      "requested_envelope_digest",
+      "source_device_id",
+      "device_seq",
+      "op_id",
+      "commitment",
+      "outcome",
+      "envelope_match",
+      "stored_operation_row",
+      "history_rows",
+      "slot_incumbent"
+    ]
+  },
+  "collections": [
+    "metadata",
+    "operations",
+    "slots",
+    "history",
+    "ownership",
+    "log",
+    "lastAccepted",
+    "revocations",
+    "transactions",
+    "undo",
+    "suspensions",
+    "issuances",
+    "instances",
+    "applies",
+    "accountRegistry",
+    "deviceIssuance",
+    "issuedLeases",
+    "issuanceIntents",
+    "enrollmentIntents",
+    "standingEvents"
+  ],
+  "events": [
+    "PROFILE_GENESIS",
+    "DEVICE_ENROLLED",
+    "LEASE_RENEWED",
+    "DEVICE_REVOKED",
+    "ACCOUNT_CLOSED"
+  ],
+  "statuses": [
+    "ACCEPTED",
+    "WAITING",
+    "REJECTED",
+    "REJECTED_DEPENDENCY"
+  ],
+  "claimOutcomes": [
+    "KNOWN_TERMINAL",
+    "KNOWN_WAITING",
+    "IDENTITY_CONFLICT",
+    "ENVELOPE_MISMATCH",
+    "UNKNOWN_AT_SNAPSHOT"
+  ],
+  "mode": [
+    "CURRENT_DEVICE",
+    "ACCOUNT_RECOVERY"
+  ],
+  "historyOrigin": [
+    "PROFILE_GENESIS",
+    "VERIFIED_IMPORT"
+  ],
+  "payloadFields": [
+    "profile",
+    "scope",
+    "coverage",
+    "claims",
+    "accepted",
+    "devices",
+    "leases",
+    "standing",
+    "retained_rows"
+  ],
+  "payloadSchemas": {
+    "scope": [
+      "athlete_id",
+      "actor_device_id",
+      "mode",
+      "scope_digest"
+    ],
+    "coverage": [
+      "authority_facts",
+      "accepted",
+      "retained_rows",
+      "issued_leases",
+      "history_origin"
+    ],
+    "accepted": [
+      "W",
+      "rows"
+    ],
+    "devices": [
+      "device_id",
+      "creation",
+      "last_accepted",
+      "revocation"
+    ],
+    "leases": [
+      "issued",
+      "lookups"
+    ],
+    "leaseLookup": [
+      "source_device_id",
+      "lease_id",
+      "issued_row"
+    ],
+    "standing": [
+      "account_epoch",
+      "account_state",
+      "events"
+    ]
+  },
+  "rowSchemas": {
+    "metadata": [
+      "seq",
+      "devices",
+      "initialPlan"
+    ],
+    "accountRegistry": [
+      "profile",
+      "account_epoch",
+      "state",
+      "history_origin"
+    ],
+    "deviceIssuance": [
+      "device_id",
+      "creation_epoch",
+      "current_lease_id",
+      "issue_ordinal"
+    ],
+    "issuedLeases": [
+      "lease",
+      "lease_bytes_b64",
+      "issuer_profile",
+      "issue_ordinal",
+      "issuance_intent_digest",
+      "account_epoch",
+      "creation_epoch"
+    ],
+    "issuanceIntents": [
+      "stable_request_digest",
+      "lease_id",
+      "result_creation_epoch"
+    ],
+    "enrollmentIntents": [
+      "stable_request_digest",
+      "device_id",
+      "lease_id"
+    ],
+    "standingEvents": [
+      "kind",
+      "athlete_id",
+      "device_id",
+      "account_epoch",
+      "creation_epoch",
+      "evidence"
+    ],
+    "operations": [
+      "op",
+      "commitment",
+      "disposition",
+      "historyCount"
+    ],
+    "slots": [
+      "op_id"
+    ],
+    "ownership": [
+      "present"
+    ],
+    "lastAccepted": [
+      "seq"
+    ]
+  },
+  "legacyRowSchemas": "Remaining rows preserve the unchanged authority core's original JSON schema/receipt fields; see authority/{admit,plan,issue,reduce}.cjs. No new operation semantics or signatures.",
+  "routes": {
+    "/enrol/create": [
+      "intent_id",
+      "schema_version",
+      "nonce"
+    ],
+    "/lease/renew": [
+      "device_id",
+      "intent_id",
+      "expected_creation_epoch",
+      "expected_lease_id",
+      "schema_version",
+      "nonce"
+    ],
+    "/reconcile": [
+      "device_id",
+      "request_b64",
+      "continuation",
+      "page_index"
+    ],
+    "/recovery/replay": [
+      "device_id",
+      "envelope_b64",
+      "nonce"
+    ]
+  },
+  "fullValueEquality": "Object member order irrelevant; arrays ordered; strings code-point/code-unit exact without normalization; parsed Numbers use Object.is including negative zero. Original byte hash separately binds transport text.",
+  "ordering": {
+    "rows": "unsigned UTF-8 collection then row_id",
+    "devices": "unsigned UTF-8 device_id",
+    "history": "ordinal 1..historyCount",
+    "accepted": "numeric 1..W",
+    "claims": "request order",
+    "leaseLookups": "request order",
+    "issued": "retained row ordering"
+  },
+  "expectedVerifier": {
+    "common": [
+      "nonce",
+      "basisDigest",
+      "sessionEpoch"
+    ],
+    "paged": [
+      "scopeDigest",
+      "contextId",
+      "requestDigest"
+    ],
+    "assemble": [
+      "athleteId",
+      "actorDeviceId",
+      "mode"
+    ],
+    "result": [
+      "profile",
+      "intentDigest"
+    ],
+    "enrollment": [
+      "issuer",
+      "subject",
+      "origin"
+    ],
+    "renewal": [
+      "athleteId",
+      "actorDeviceId",
+      "scopeDigest"
+    ],
+    "replay": [
+      "athleteId",
+      "actorDeviceId",
+      "scopeDigest",
+      "originalEnvelopeDigest",
+      "originalEnvelopeB64",
+      "originalOperation"
+    ]
+  },
+  "permission": "Verification returns owned evidence only; no checkpoint, clock, nonce mutation, durable sink or permission signal. Structural basis/session are captured inputs, checked for currentness by W6 at its atomic sink.",
+  "status": "LOWER-CAP PROPOSED; independent acceptance required",
+  "requestVersion": "earned/reconcile-request-1m/v1"
+}

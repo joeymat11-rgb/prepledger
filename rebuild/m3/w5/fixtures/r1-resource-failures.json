@@ -1,0 +1,399 @@
+{
+  "provenance": "Actual local workerd; generated synthetic accounts only; no owner data or keys",
+  "runs": [
+    {
+      "name": "r1-resource-16m-fail.json",
+      "rawEvidenceSha256": "30b1a7a18d8af68bbe221da29f6b1dc0ee47dbc59e4cfb4785c1fbfea6cf0152",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "payloadCap": 16777216,
+      "completedPages": 844,
+      "requiredBoundaryPages": 512,
+      "requiredOverlapPages": 1024,
+      "sequentialPages": 512,
+      "overlapPages": null,
+      "oversizeRefusal": null,
+      "summary": {
+        "requests": 844,
+        "maxCpuMs": 1047.625,
+        "p95CpuMs": 938.25,
+        "rowsRead": 199184,
+        "rowsWritten": 1688,
+        "queryMs": 5568,
+        "maxStatements": 5,
+        "domainWrites": 0
+      },
+      "population": {
+        "authority_rows": 231,
+        "value_utf8_bytes": 9146614,
+        "maximum_value_utf8_bytes": 436530,
+        "accounts": [
+          {
+            "athlete_id": "first",
+            "rows": 208,
+            "value_utf8_bytes": 8536858
+          },
+          {
+            "athlete_id": "second",
+            "rows": 23,
+            "value_utf8_bytes": 609756
+          }
+        ],
+        "scope": "Synthetic authority_rows JSON values; excludes SQL indexes, subjects, revision and storage-engine overhead"
+      },
+      "phases": [
+        {
+          "name": "instrument-calibration",
+          "requestCount": 0,
+          "wholePhaseCpuMs": 187.5,
+          "observedPeakBytes": 30927928,
+          "sampleCount": 8
+        },
+        {
+          "name": "boundary-sequential",
+          "requestCount": 512,
+          "wholePhaseCpuMs": 223718.75,
+          "observedPeakBytes": 1900159455,
+          "sampleCount": 1357
+        }
+      ],
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 1900159455
+        },
+        {
+          "label": "overlap-b-page-69",
+          "code": "CPU_CEILING",
+          "actual": 1032
+        },
+        {
+          "label": "overlap-a-page-69",
+          "code": "CPU_CEILING",
+          "actual": 1032
+        },
+        {
+          "label": "overlap-a-page-111",
+          "code": "CPU_CEILING",
+          "actual": 1016.375
+        },
+        {
+          "label": "overlap-b-page-111",
+          "code": "CPU_CEILING",
+          "actual": 1016.375
+        },
+        {
+          "label": "overlap-a-page-153",
+          "code": "CPU_CEILING",
+          "actual": 1047.625
+        },
+        {
+          "label": "overlap-b-page-153",
+          "code": "CPU_CEILING",
+          "actual": 1047.625
+        }
+      ],
+      "limitations": [
+        "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+        "Memory is maximum observed inspector allocation vector, not a universal native-memory bound.",
+        "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1."
+      ],
+      "failure": {
+        "phase": "two-overlapping-complete-attempts",
+        "message": "RUNTIME_REQUEST_FAILED: fetch failed"
+      }
+    },
+    {
+      "name": "r1-resource-1m-fail.json",
+      "rawEvidenceSha256": "3eddf06f97dbc52a579de528ebaa40b0ccbde83a553e55ac89ee0316c2742ede",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "payloadCap": 1048576,
+      "completedPages": 96,
+      "requiredBoundaryPages": 32,
+      "requiredOverlapPages": 64,
+      "sequentialPages": 32,
+      "overlapPages": [
+        32,
+        32
+      ],
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 141.375,
+        "p95CpuMs": 125.75,
+        "rowsRead": 4460,
+        "rowsWritten": 192,
+        "queryMs": 48,
+        "maxStatements": 5,
+        "domainWrites": 0
+      },
+      "population": {
+        "authority_rows": 41,
+        "value_utf8_bytes": 1052791,
+        "maximum_value_utf8_bytes": 380918,
+        "accounts": [
+          {
+            "athlete_id": "first",
+            "rows": 18,
+            "value_utf8_bytes": 649819
+          },
+          {
+            "athlete_id": "second",
+            "rows": 23,
+            "value_utf8_bytes": 402972
+          }
+        ],
+        "scope": "Synthetic authority_rows JSON values; excludes SQL indexes, subjects, revision and storage-engine overhead"
+      },
+      "phases": [
+        {
+          "name": "instrument-calibration",
+          "requestCount": 0,
+          "wholePhaseCpuMs": 203.125,
+          "observedPeakBytes": 30927928,
+          "sampleCount": 9
+        },
+        {
+          "name": "boundary-sequential",
+          "requestCount": 32,
+          "wholePhaseCpuMs": 1156.25,
+          "observedPeakBytes": 247779176,
+          "sampleCount": 75
+        },
+        {
+          "name": "two-overlapping-complete-attempts",
+          "requestCount": 64,
+          "wholePhaseCpuMs": 2250,
+          "observedPeakBytes": 347626921,
+          "sampleCount": 120
+        },
+        {
+          "name": "oversize-typed-refusal",
+          "requestCount": 1,
+          "wholePhaseCpuMs": 31.25,
+          "observedPeakBytes": 316350953,
+          "sampleCount": 5
+        }
+      ],
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 247779176
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 347626921
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 316350953
+        }
+      ],
+      "limitations": [
+        "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+        "Memory is maximum observed inspector allocation vector, not a universal native-memory bound.",
+        "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1."
+      ],
+      "failure": null
+    },
+    {
+      "name": "r1-resource-1m-indexed-decode-fail.json",
+      "rawEvidenceSha256": "9ab813d6d1bb90ff369bbca4346be89fac8c11c898b028febadfa88924568c0c",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "payloadCap": 1048576,
+      "completedPages": 96,
+      "requiredBoundaryPages": 32,
+      "requiredOverlapPages": 64,
+      "sequentialPages": 32,
+      "overlapPages": [
+        32,
+        32
+      ],
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 125.75,
+        "p95CpuMs": 110.125,
+        "rowsRead": 4460,
+        "rowsWritten": 192,
+        "queryMs": 36,
+        "maxStatements": 5,
+        "domainWrites": 0
+      },
+      "population": {
+        "authority_rows": 41,
+        "value_utf8_bytes": 1052791,
+        "maximum_value_utf8_bytes": 380918,
+        "accounts": [
+          {
+            "athlete_id": "first",
+            "rows": 18,
+            "value_utf8_bytes": 649819
+          },
+          {
+            "athlete_id": "second",
+            "rows": 23,
+            "value_utf8_bytes": 402972
+          }
+        ],
+        "scope": "Synthetic authority_rows JSON values; excludes SQL indexes, subjects, revision and storage-engine overhead"
+      },
+      "phases": [
+        {
+          "name": "instrument-calibration",
+          "requestCount": 0,
+          "wholePhaseCpuMs": 156.25,
+          "observedPeakBytes": 30927928,
+          "sampleCount": 11
+        },
+        {
+          "name": "boundary-sequential",
+          "requestCount": 32,
+          "wholePhaseCpuMs": 1234.375,
+          "observedPeakBytes": 183940333,
+          "sampleCount": 95
+        },
+        {
+          "name": "two-overlapping-complete-attempts",
+          "requestCount": 64,
+          "wholePhaseCpuMs": 2234.375,
+          "observedPeakBytes": 524584712,
+          "sampleCount": 130
+        },
+        {
+          "name": "oversize-typed-refusal",
+          "requestCount": 1,
+          "wholePhaseCpuMs": 15.625,
+          "observedPeakBytes": 524584712,
+          "sampleCount": 5
+        }
+      ],
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 183940333
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 524584712
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 524584712
+        }
+      ],
+      "limitations": [
+        "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+        "Memory is maximum observed inspector allocation vector, not a universal native-memory bound.",
+        "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1."
+      ],
+      "failure": null
+    },
+    {
+      "name": "r1-resource-1m-readonly-fail.json",
+      "rawEvidenceSha256": "08e858b070b7977b7caacf0f046c2b219c9d5242e1ffbe77dbf8e5f15426411c",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "payloadCap": 1048576,
+      "completedPages": 96,
+      "requiredBoundaryPages": 32,
+      "requiredOverlapPages": 64,
+      "sequentialPages": 32,
+      "overlapPages": [
+        32,
+        32
+      ],
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 125.75,
+        "p95CpuMs": 110.125,
+        "rowsRead": 4460,
+        "rowsWritten": 192,
+        "queryMs": 45,
+        "maxStatements": 5,
+        "domainWrites": 0
+      },
+      "population": {
+        "authority_rows": 41,
+        "value_utf8_bytes": 1052791,
+        "maximum_value_utf8_bytes": 380918,
+        "accounts": [
+          {
+            "athlete_id": "first",
+            "rows": 18,
+            "value_utf8_bytes": 649819
+          },
+          {
+            "athlete_id": "second",
+            "rows": 23,
+            "value_utf8_bytes": 402972
+          }
+        ],
+        "scope": "Synthetic authority_rows JSON values; excludes SQL indexes, subjects, revision and storage-engine overhead"
+      },
+      "phases": [
+        {
+          "name": "instrument-calibration",
+          "requestCount": 0,
+          "wholePhaseCpuMs": 187.5,
+          "observedPeakBytes": 30927928,
+          "sampleCount": 12
+        },
+        {
+          "name": "boundary-sequential",
+          "requestCount": 32,
+          "wholePhaseCpuMs": 1031.25,
+          "observedPeakBytes": 152652731,
+          "sampleCount": 77
+        },
+        {
+          "name": "two-overlapping-complete-attempts",
+          "requestCount": 64,
+          "wholePhaseCpuMs": 2109.375,
+          "observedPeakBytes": 180073345,
+          "sampleCount": 130
+        },
+        {
+          "name": "oversize-typed-refusal",
+          "requestCount": 1,
+          "wholePhaseCpuMs": 15.625,
+          "observedPeakBytes": 160253404,
+          "sampleCount": 5
+        }
+      ],
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 152652731
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 180073345
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 160253404
+        }
+      ],
+      "limitations": [
+        "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+        "Memory is maximum observed inspector allocation vector, not a universal native-memory bound.",
+        "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1."
+      ],
+      "failure": null
+    }
+  ]
+}
