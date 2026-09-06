@@ -1,0 +1,60 @@
+# W5 wire contract — earned/w5-http/v1
+
+Consumer: W6 v1.1, read at integration commit `df09f438a93cb9548ef3f66b28b39deecc7fb347`. Pin the W5 implementation commit containing this file before integration. Original W5 base: `ef83543aa825fb581671951d287854166717ad28`. Executable encoding contract: `fixtures/contract-v1.json`; browser verification boundary: `public-client.cjs`.
+
+Every route is POST JSON. Send `Authorization: Bearer <Clerk JWT>` and an exact allowed `Origin`. JWT must have a pinned RS256 `kid`, verified signature, exact `iss`, an `aud` containing the configured audience, `azp` equal to Origin, nonfuture `iat`/`nbf`, and future `exp`. Local test issuer is `https://clerk.w5-test.invalid`, audience `earned-w5-test`, origin `https://today.w5-test.invalid`. Keys are generated per run; those names are not production credentials. No discovery/network request occurs during verification. W4 must configure production issuer, origins, audience-bearing Clerk tokens and pinned public JWKS.
+
+The server derives scope from persisted Clerk subject → athlete mapping plus that athlete's provisioned device. Body `athlete_id` or `subject` selectors are forbidden. The immutable operation still carries its original athlete/device fields; both must match the authenticated scope. Each data operation rechecks scope inside the same revision-guarded snapshot as its effects. A JSON body requires `device_id`; query strings are rejected. Every response has `Earned-Wire-Version: earned/w5-http/v1`, private/no-store Cache-Control, CDN no-store, and Vary: Authorization, Origin. W6 must reject an incompatible response version before delivering its contents.
+
+| Route | Body fields in addition to `device_id` | Success body (HTTP 200) | Meaning / refusal |
+|---|---|---|---|
+| `/op` | `operation`: unchanged T3 A3/A4 envelope with existing operation HMAC, canonical profile, identity and lease_id | `{disposition}`; original T3 fields `op_id, canonical_content_commitment, device_id, device_seq, status, decided_at, authority_signature`; ACCEPTED also `athlete_log_seq, accepted_at` and any core plan/response fields; rejection has `rejection_code` | Only after durable D1 commit. ACCEPTED, WAITING, REJECTED, REJECTED_DEPENDENCY retain T3 semantics. WAITING stays queued. Exact accepted retry returns byte-identical stored disposition and one effect. HTTP refusal never becomes an operation disposition. |
+| `/pull` | `after`: nonnegative safe integer | Signed `{athlete_id,device_id,after,through,receipts,wire_version,key_epoch,authority_signature}` | Full contiguous remaining range `after+1..through`; no pagination in v1. `after>head`:409 FRONTIER_AHEAD/state18. Every receipt is independently signed. Verify outer and all inner records before a single sink call. |
+| `/snapshot` | `watermark`: nonnegative safe integer | Signed `{athlete_id,device_id,W,partial:false,pending:0,records,entries,label,rejectedAppendix:[],otherDeviceNote,wire_version,key_epoch,authority_signature}` | Accepted history through requested W, including independently signed receipts 1..W. W beyond head:409 FRONTIER_AHEAD/state18. Server export does not include the phone's pending/rejected local ledger; W6 must add its honest local export qualification. |
+| `/time` | `challenge`: unpredictable base64url nonce, 22–128 characters | Signed `{athlete_id,device_id,challenge,server_time,wire_version,key_epoch,time_profile,authority_signature}` | `time_profile=earned/challenge-time/v1`. Clock sampled after scope check. This authenticates a sample, not a bounded UTC interval or reconciled checkpoint. See OPEN bounds below. |
+| `/lease` | none | `{lease}` with T3 lease fields and P-256 `signature` | Returns the currently provisioned durable capability unchanged. No renewal or replacement. Invalid stored lease:503 UNAVAILABLE. |
+| `/enrol` | none | `{lease}` as above | Idempotently retrieves enrollment for a preprovisioned subject/device. Unknown accounts/devices are403 SCOPE_FORBIDDEN/state17. New enrollment/provisioning workflow remains W4 integration. |
+| `/import`, `/restore` | none | No success implemented | Authenticated, scoped501 NOT_IMPLEMENTED. No writes, import receipt, restored checkpoint or fake success. |
+
+Receipt fields: `{seq,op_id,canonical_content_commitment,accepted_at,op,authority_signature}`. `op` preserves the accepted operation, including remote-device facts. Pull scope supplies the athlete binding; receipt `op.athlete_id` must match it. Outbox dispositions bind to the exact queued operation's identity/commitment/device/sequence; do not let an unknown disposition advance a frontier. Contiguous receipt verification precedes frontier changes. W6 owns the atomic durable sink; a verifier's successful callback is not an IndexedDB completion or Saved acknowledgement.
+
+| Error HTTP status | `{error:{code,state?}}` | W6 behavior |
+|---|---|---|
+| 400 / 413 | MALFORMED_REQUEST / REQUEST_TOO_LARGE | Retain entered values and queue; fix request. Never infer terminal acceptance/rejection. |
+| 401 | UNAUTHENTICATED, state11 | Sign in to sync. Token expiry alone does not revoke an enrolled device's valid offline lease or reset an allowance. |
+| 403 | SCOPE_FORBIDDEN, state17 | Refuse this scope, require enrollment/recovery. Preserve learned standing under W6's fence contract. |
+| 404 / 405 | NOT_FOUND / METHOD_NOT_ALLOWED | Protocol/configuration failure; no drain. |
+| 409 | FRONTIER_AHEAD, state18 | Integrity/reconciliation required. Do not rewind or reseed silently. |
+| 501 | NOT_IMPLEMENTED | Required route capability unavailable; no checkpoint or success. |
+| 503 | UNAVAILABLE | Retry the identical immutable operation with bounded backoff. D1 stale snapshots retry internally up to256 attempts; exhaustion/storage failure produces no success. No new op_id, sequence or HMAC on resend. |
+
+T3 operation rejection codes remain unchanged: IDENTITY_COLLISION, DEVICE_SEQ_REUSE, CROSS_ATHLETE_REFERENCE, REJECTED_DEPENDENCY, MALFORMED, LEASE_UNKNOWN, LEASE_FORGED, DEVICE_SEQ_OUT_OF_RANGE, LEASE_REVOKED_BEYOND_BARRIER, plus core plan validation outcomes. They are signed terminal history, unlike transport errors. Arrival after not_after does not invalidate previously saved leased work.
+
+## Signatures and trust
+
+P-256/SHA-256 over UTF-8(`domain + canonicalEncode(record minus its signature field)`), with no delimiter added. Signature is `ES256.<pinned-kid>.<unpadded-base64url>` containing exactly64 bytes: 32-byte big-endian r followed by32-byte big-endian s. Require low-S, `0<r<n`, `0<s<=n/2`, exact canonical base64url and a pinned verify-only public JWK. DER encodings, unknown keys and private JWK material on phones are refused. Fixtures specify canonical bytes and encoding boundaries without committing any key.
+
+| Record | Domain | Excluded signature field |
+|---|---|---|
+| Disposition | earned/disposition/v1 | authority_signature |
+| Lease | earned/lease/v1 | signature |
+| Fresh server time | earned/server-time/v1 | authority_signature |
+| Receipt | earned/receipt/v1 | authority_signature |
+| Pull | earned/pull/v1 | authority_signature |
+| Snapshot | earned/snapshot/v1 | authority_signature |
+
+Existing disposition/lease domains and signed fields remain T3-compatible; only signature algorithm/encoding changes. New pull/snapshot/time envelopes additionally sign wire_version and key_epoch; key_epoch equals signature kid. Operation/member HMAC and canonical-v1's known decimal quirks are unchanged. Native randomized ECDSA is used; durable terminal dispositions replay their stored bytes. Re-signing an identical pull need not give identical signature bytes. Public key sets can contain historical keys, but operational rotation, custody and epoch activation remain W4/W8 work.
+
+## Time and reconciliation — OPEN, no CLOCK PASS
+
+`createPublicBoundary.beginTimeChallenge()` generates a new32-byte nonce and records a same-execution monotonic send sample, replacing any prior outstanding challenge. `acceptServerTime()` requires correct signature, version/profile/key epoch, athlete/device, nonce and canonical UTC string. It samples elapsed time after verification and rejects rollback, nonfinite readings, elapsed above the configured timeout (default30,000ms), superseded challenges and replay. Exactly the timeout endpoint is accepted. The challenge is consumed before calling the sink; failed persistence requires a fresh challenge and W6 recovery handling. A new execution has no outstanding challenge. Server processing is stateless with respect to challenges; the client performs consume/timeout checks. Successful signed time alone never drains an outbox.
+
+**W6-TIME-BOUND OPEN.** The timeout limits only the verifier's observed same-execution timer. It is not a measured real-time RTT bound or a continuity proof through suspension/restart. No finite production UTC-error bound, maximum authority-clock forward rate/step, or qualified client elapsed-time bound has been established. Therefore this response cannot establish W6's `[Tlo,Thi]`, justify `Thi+H` as a permission bound, create checkpoint C, reset the settled24-observed-hour/64-slot allowance, or earn CLOCK PASS. W4/W5 must publish and independently verify those assumptions and failure handling. Synthetic fixed-clock tests are conditional protocol tests only. The owner's accepted restart/coherent-restore undercount exposure remains explicit and is not reopened here.
+
+**W6-RECONCILIATION/RENEWAL OPEN.** Lease/enrol return the currently provisioned durable capability; they do not extend it. Pull/snapshot expose accepted contiguous history only. No combined proof reconciles terminal and WAITING dispositions, pending immutable envelopes, sequence/head, standing and lease history. Fresh time, token refresh, successful reads and an empty outbox do not create checkpoint C. Keep each pending operation's original bytes and lease_id. W6 renewal remains blocked until a reviewed history/multiple-lease contract proves preservation of old pending work. Do not naively replace T3's one-device lease or strand WAITING children.
+
+W6's failed-persistence knowledge-loss fence, production sealing/recovery custody, remote D1 US configuration and phone durability remain separate unproven obligations. These local W5 gates claim none of them.
+
+## Runner registration and offline reproduction
+
+Install W5's pinned package dependencies once (`pnpm --dir rebuild/m3/w5 install --frozen-lockfile`, or install package.json's exact versions); installation needs registry access. Tests require no account/token/network beyond loopback after dependencies are present. Node24 is the tested Windows runtime. Root frozen regression dependencies must also be present as a real node_modules directory. Build the signature-boundary bundle with `node rebuild/m3/w5/build.cjs`, then run `node rebuild/m3/rigs/run.cjs --env local`. Optional `--case AUTH-D1` or `--case HTTP-190` selects one case. Other recognized environments are synthetic-remote, owner-phone and isolated-restore: unrun dependencies emit BLOCKED/PENDING and exit2; failure exits1. Synthetic remote explicitly says `W4 remote database not yet created`; it is never simulated. W6 must add its runner registration in an integration-reviewed change, without concurrent edits to these W5-owned files.
