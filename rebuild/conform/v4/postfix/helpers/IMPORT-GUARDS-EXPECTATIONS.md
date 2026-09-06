@@ -7,7 +7,7 @@ This is an expectation authoring carrier, not a candidate engine, repair control
 For each of the 208 cases and four accepted Date/clock cells, the builder first executes an unprojected literal-frozen carrier and requires its complete typed trace to equal the actual target worker byte-for-byte. It then applies only the closed per-case/per-call projection table in `import-guards-expectations.cjs`:
 
 - D33: exact literal guard results from the accepted identified-day/entry/slot/skipped/multiset rules, including existing earlier loss reasons. Positive controls use the actual frozen guard.
-- D34: fixed false predicate results for the authored equal-fingerprint content edits. Real seed, ordering and excluded-family positives use the actual frozen predicate.
+- D34: fixed false predicate results for the authored equal-fingerprint content edits. `IG34-MARKER-EXISTING` explicitly has two false predicate calls even though its existing marker preserves the final GREEN assertions: boot skips its redundant marker write and the unchanged offer OR reads the existing marker. Real seed, ordering and excluded-family positives use the actual frozen predicate.
 - D35: only the separately named ordinary-data future61/string61 cases return their original input without calling migration. Supported migrations remain literal frozen executions.
 
 Every projected call has an exact occurrence count and source/claim citation. An unknown, extra, or missing projected call fails. The profile and nested literals are frozen. The unchanged frozen host snippets consume those results, so marker, save-banner, durable-copy and remote-only sync consequences follow their actual control flow. No new host rule is modeled.

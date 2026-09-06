@@ -70429,7 +70429,509 @@
               "originalTraceSha256": "cc31eb480d735f599e09999ee6c3cb5b31ea8ea9726b7f2479400e2d00c3acfd",
               "delta": {
                 "aliases": [],
-                "cells": []
+                "cells": [
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:1",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "2",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:2",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "0",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:3",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:4",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:5",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "0"
+                    ],
+                    "before": "node",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:6",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": "1"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:7",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "5"
+                    ],
+                    "before": null,
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:8",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4"
+                    ],
+                    "before": [
+                      [
+                        [
+                          "string",
+                          "0"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "set"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "1"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "pl-restore-offer"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "2"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "1"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "length"
+                        ],
+                        "data",
+                        false,
+                        true,
+                        false,
+                        [
+                          "number",
+                          "3"
+                        ]
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:9",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "3"
+                    ],
+                    "before": "standard",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:10",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "2"
+                    ],
+                    "before": "Array",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:11",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "2"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:12",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "before",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:13",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "1"
+                    ],
+                    "before": 691,
+                    "after": 690
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:14",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:15",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:16",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "1"
+                    ],
+                    "before": 692,
+                    "after": 691
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:17",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": 692
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:18",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": "set",
+                    "after": "get"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:19",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "0",
+                      "1"
+                    ],
+                    "before": "2",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:20",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:21",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:22",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "0"
+                    ],
+                    "before": "string",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:23",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "2"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:24",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "3"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "3"
+                      ]
+                    ],
+                    "after": null
+                  }
+                ]
               }
             },
             {
@@ -70438,7 +70940,509 @@
               "originalTraceSha256": "cc31eb480d735f599e09999ee6c3cb5b31ea8ea9726b7f2479400e2d00c3acfd",
               "delta": {
                 "aliases": [],
-                "cells": []
+                "cells": [
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:1",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "2",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:2",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "0",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:3",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:4",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:5",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "0"
+                    ],
+                    "before": "node",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:6",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": "1"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:7",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "5"
+                    ],
+                    "before": null,
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:8",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4"
+                    ],
+                    "before": [
+                      [
+                        [
+                          "string",
+                          "0"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "set"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "1"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "pl-restore-offer"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "2"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "1"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "length"
+                        ],
+                        "data",
+                        false,
+                        true,
+                        false,
+                        [
+                          "number",
+                          "3"
+                        ]
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:9",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "3"
+                    ],
+                    "before": "standard",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:10",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "2"
+                    ],
+                    "before": "Array",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:11",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "2"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:12",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "before",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:13",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "1"
+                    ],
+                    "before": 691,
+                    "after": 690
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:14",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:15",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:16",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "1"
+                    ],
+                    "before": 692,
+                    "after": 691
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:17",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": 692
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:18",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": "set",
+                    "after": "get"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:19",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "0",
+                      "1"
+                    ],
+                    "before": "2",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:20",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:21",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:22",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "0"
+                    ],
+                    "before": "string",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:23",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "2"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:24",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "3"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "3"
+                      ]
+                    ],
+                    "after": null
+                  }
+                ]
               }
             },
             {
@@ -70447,7 +71451,509 @@
               "originalTraceSha256": "cc31eb480d735f599e09999ee6c3cb5b31ea8ea9726b7f2479400e2d00c3acfd",
               "delta": {
                 "aliases": [],
-                "cells": []
+                "cells": [
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:1",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "2",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:2",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "0",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:3",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:4",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:5",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "0"
+                    ],
+                    "before": "node",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:6",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": "1"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:7",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "5"
+                    ],
+                    "before": null,
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:8",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4"
+                    ],
+                    "before": [
+                      [
+                        [
+                          "string",
+                          "0"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "set"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "1"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "pl-restore-offer"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "2"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "1"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "length"
+                        ],
+                        "data",
+                        false,
+                        true,
+                        false,
+                        [
+                          "number",
+                          "3"
+                        ]
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:9",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "3"
+                    ],
+                    "before": "standard",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:10",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "2"
+                    ],
+                    "before": "Array",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:11",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "2"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:12",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "before",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:13",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "1"
+                    ],
+                    "before": 691,
+                    "after": 690
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:14",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:15",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:16",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "1"
+                    ],
+                    "before": 692,
+                    "after": 691
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:17",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": 692
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:18",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": "set",
+                    "after": "get"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:19",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "0",
+                      "1"
+                    ],
+                    "before": "2",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:20",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:21",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:22",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "0"
+                    ],
+                    "before": "string",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:23",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "2"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:24",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "3"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "3"
+                      ]
+                    ],
+                    "after": null
+                  }
+                ]
               }
             },
             {
@@ -70456,7 +71962,509 @@
               "originalTraceSha256": "cc31eb480d735f599e09999ee6c3cb5b31ea8ea9726b7f2479400e2d00c3acfd",
               "delta": {
                 "aliases": [],
-                "cells": []
+                "cells": [
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:1",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "2",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:2",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "0",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:3",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:4",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:5",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "0"
+                    ],
+                    "before": "node",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:6",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": "1"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:7",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "5"
+                    ],
+                    "before": null,
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:8",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4"
+                    ],
+                    "before": [
+                      [
+                        [
+                          "string",
+                          "0"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "set"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "1"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "pl-restore-offer"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "2"
+                        ],
+                        "data",
+                        true,
+                        true,
+                        true,
+                        [
+                          "string",
+                          "1"
+                        ]
+                      ],
+                      [
+                        [
+                          "string",
+                          "length"
+                        ],
+                        "data",
+                        false,
+                        true,
+                        false,
+                        [
+                          "number",
+                          "3"
+                        ]
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:9",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "3"
+                    ],
+                    "before": "standard",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:10",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "2"
+                    ],
+                    "before": "Array",
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:11",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "3",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "2"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "2"
+                      ]
+                    ],
+                    "after": null
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:12",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "before",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:13",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "1"
+                    ],
+                    "before": 691,
+                    "after": 690
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:14",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": 690,
+                    "after": 689
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:15",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "4",
+                      "after",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": "true",
+                    "after": "false"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:16",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "1"
+                    ],
+                    "before": 692,
+                    "after": 691
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:17",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "1"
+                    ],
+                    "before": 689,
+                    "after": 692
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:18",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "0",
+                      "5",
+                      "1"
+                    ],
+                    "before": "set",
+                    "after": "get"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:19",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "0",
+                      "1"
+                    ],
+                    "before": "2",
+                    "after": "length"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:20",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "2"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:21",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "4"
+                    ],
+                    "before": true,
+                    "after": false
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:22",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "0"
+                    ],
+                    "before": "string",
+                    "after": "number"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:23",
+                    "op": "replace",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "2",
+                      "5",
+                      "1"
+                    ],
+                    "before": "1",
+                    "after": "2"
+                  },
+                  {
+                    "id": "IG34-MARKER-EXISTING:isPristineSeed:24",
+                    "op": "remove",
+                    "path": [
+                      "frames",
+                      "5",
+                      "value",
+                      "4",
+                      "0",
+                      "5",
+                      "4",
+                      "1",
+                      "5",
+                      "4",
+                      "3"
+                    ],
+                    "before": [
+                      [
+                        "string",
+                        "length"
+                      ],
+                      "data",
+                      false,
+                      true,
+                      false,
+                      [
+                        "number",
+                        "3"
+                      ]
+                    ],
+                    "after": null
+                  }
+                ]
               }
             }
           ]
@@ -104324,11 +106332,11 @@
     }
   ],
   "executionPins": {
-    "rebuild/conform/v4/postfix/acceptance.cjs": "d6e0aca950bf1a7da9e3b16b35162a82f56e312639b11f0fed8dc601491c72a1",
-    "rebuild/conform/v4/postfix/fixtures/import-guards-deltas.json": "0fdc167fcdf5de036205d4accdd6ec49bcd1e0a4073f082a49e03461de732a0b",
-    "rebuild/conform/v4/postfix/helpers/IMPORT-GUARDS-EXPECTATIONS.md": "7fb20e8076adf1fefe2ff5283833e67d60fb9e892897f383ae8ec9a2a9078569",
-    "rebuild/conform/v4/postfix/helpers/build-import-guard-expectations.cjs": "4ae18481faa64633c186cdde03d4e1efb22f5863365d412e0fc030c240fcc87e",
-    "rebuild/conform/v4/postfix/helpers/import-guards-expectations.cjs": "803a41868a46e8fecde58aaf4a8689b2aabbc24227b5d2f8e0caa0956e61a7e7",
+    "rebuild/conform/v4/postfix/acceptance.cjs": "ccfa29464504ce6bdff70d55278e186bca997cf74647a234c1241fd8bf245546",
+    "rebuild/conform/v4/postfix/fixtures/import-guards-deltas.json": "ec6833cc1ddff5ffb4b2c014b55a50958fe64df962ca2f7fc6f98b3b83e3d641",
+    "rebuild/conform/v4/postfix/helpers/IMPORT-GUARDS-EXPECTATIONS.md": "177bedab881d8f4361941cfc3c557d561afb3b4a2a46d5ed8c4cab31888366ed",
+    "rebuild/conform/v4/postfix/helpers/build-import-guard-expectations.cjs": "7fb012a0a53f74f866feb98f2b50cd33c84b9f458b81fe942bca23a5bba26747",
+    "rebuild/conform/v4/postfix/helpers/import-guards-expectations.cjs": "7b81bdb01f33dc341f8e6eb029ec43b22971ab44c31f477194ed552d303bf980",
     "rebuild/conform/v4/postfix/helpers/import-guards-frozen.cjs": "b5fc14675d8526b59cb34803b17a0797b1f1b91b9b5ea60661616e8d851ed596",
     "rebuild/conform/v4/postfix/helpers/import-guards-hosts.cjs": "5d80ce635aa2f6d72b8053d3688de150065c68858f9727be09fae1cecac653c3",
     "rebuild/conform/v4/postfix/laws/import-guards.cjs": "2b28fc3d63d4ec8669919563aa5f770202848cdf0b816d83fbed2c8d24cec706",
@@ -104336,19 +106344,19 @@
     "rebuild/conform/v4/postfix/legacy-gates.cjs": "b8891d9ba12f38713582634b7709b6f3a3a5c05e008a10c7f2d74a91e169b0df",
     "rebuild/conform/v4/postfix/manifest.json": "5e1cdb7aabf3e8d8d6527590fa543e82aebc1bd7b536b9a0339a61e8a61372d4",
     "rebuild/conform/v4/postfix/mutant-proposals.cjs": "5fd0654266a6f4951b4907c91bb992f017d2e7ee530d13ce449e5db9512e59fb",
-    "rebuild/conform/v4/postfix/package-runner.cjs": "1bcdc29ebf58c780c98a5384eab21c477cfcb9c1d43e3db25d3149a372416ea0",
+    "rebuild/conform/v4/postfix/package-runner.cjs": "4e5f9a2f8ff6a28b803da1dacf59da4dc9035bb98c5646e09edb4f976457616b",
     "rebuild/conform/v4/postfix/run.cjs": "0725ca4e952724067bb99aac0536fff0dddee8e7d30abfa47f0aeaf9341fa473",
-    "rebuild/conform/v4/postfix/source-proof.cjs": "11557d35af712e63c649c8058880d03e98047b5453114bc61a23e37e6b21fd1c",
+    "rebuild/conform/v4/postfix/source-proof.cjs": "0000cc62b78ef1fe42e93aa38b2207bce55a7c988d7124022df50ea70232d232",
     "rebuild/conform/v4/postfix/strict-json.cjs": "5722f233e704149f03f2898bf739c3cc42fe323a0c91e0eee55eb82cc57a3478",
-    "rebuild/conform/v4/postfix/structural-delta.cjs": "c988e295b96c3e435978ce65cd7ec83876da2b38d00704c3f5071fbfd1c33820",
+    "rebuild/conform/v4/postfix/structural-delta.cjs": "f834e0f78ae1b6fc0c732260da199c94292b899876a63c6dd572d59b1abba095",
     "rebuild/conform/v4/postfix/target.cjs": "343be736fdf9febc3e5a3bdb84c8f95a260df61c4227006b2dd4cc31b7ab0bbf",
     "rebuild/conform/v4/postfix/test-import-guards.cjs": "f8f7408afdc327611ff241e7d4ee1eb477e8786daa19f73edc10d18f2f6180f9",
-    "rebuild/conform/v4/postfix/test/expectation-carrier.test.cjs": "cd37a0bc73d16d1ffcc4f7b2a218b1d7b85537c29c1058c417cb9108f0b494fb",
+    "rebuild/conform/v4/postfix/test/expectation-carrier.test.cjs": "79320454969e2872589907650b1715e1d5d79cc19c7b0a354b168d15c1273030",
     "rebuild/conform/v4/postfix/test/legacy-carriers.test.cjs": "0de9bff83851fe5d11f00c42db5b2a67efedfd87607dd109d462eea6c7ad9b9d",
     "rebuild/conform/v4/postfix/test/mutants.test.cjs": "7dc482431814bc02e923119d7bc2acbf5cc61c3a2cab07a2e4eea3f53f712b07",
-    "rebuild/conform/v4/postfix/test/package.test.cjs": "94ca407b554a5229f7c95c8c61f559acc78b22d7f8df45633d02df2f718db963",
+    "rebuild/conform/v4/postfix/test/package.test.cjs": "edebe876872b566e3ff20c17da204ae9a490010638aec45d99eeac6f3ea5ca60",
     "rebuild/conform/v4/postfix/test/runner.test.cjs": "caabd9033caefe7be13d07208427cc7fe1d2b314a19aea5410110f301e6b1d64",
-    "rebuild/conform/v4/postfix/test/source-proof.test.cjs": "6cd9f540e2116dc86c70afe7ac921ec3f5413f40ded56ada6eee582dc492655d",
+    "rebuild/conform/v4/postfix/test/source-proof.test.cjs": "6eda51afa651d79855951cda74b2126db1f611844dbdcc449f187ab2eab2c3b8",
     "rebuild/conform/v4/postfix/trace-v2.cjs": "5804390be453b9321955c1b498d7b5a80ee96f9b14ef701b33176a15f6ce9e2d"
   },
   "caseModule": "rebuild/conform/v4/postfix/laws/import-guards.cjs",

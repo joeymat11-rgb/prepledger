@@ -29,6 +29,11 @@ function directInput({root,baseline,a,bundles,row,caseId,cell,frozen}){
   return {kind:frozen?'direct-frozen':'direct',baseline,candidate:path.join(root,'rebuild/engine'),inventory:a.candidateEngine,caseFile:path.join(root,a.caseModule),caseSha256:a.executionPins[a.caseModule],lawId:row.law.id,caseId,mode:cell.mode,day:cell.day,traceProfile:2,helperRoot:root,helperPins:{...a.baseline.publicPins,...a.executionPins},hostsHelper:a.helperFiles.hosts,...(frozen?{frozenHelper:a.helperFiles.frozen,bundle:bundles.main,bundleSha256:T.sha(fs.readFileSync(bundles.main))}:{})};
 }
 function caseInventory(root,a){
+  const fixturePath='rebuild/conform/v4/postfix/fixtures/import-guards-deltas.json';
+  if(!Object.hasOwn(a.executionPins,fixturePath))T.fail('EXPECTED-FIXTURE-PIN');
+  const fixture=require('./strict-json.cjs').parseExact(fs.readFileSync(path.join(root,fixturePath)));
+  if(!Array.isArray(fixture)||!equal(fixture.map(r=>r.defect),a.requiredIds))T.fail('EXPECTED-FIXTURE-INVENTORY');
+  for(const r of fixture){A.keys(r,['defect','cases'],'EXPECTED-FIXTURE-SCHEMA');if(!equal(r.cases,a.inventory.find(x=>x.defect===r.defect).cases))T.fail('EXPECTED-FIXTURE-MISMATCH');}
   const mod=require(path.join(root,a.caseModule));
   if(!Array.isArray(mod.laws)||!Array.isArray(mod.CASES)||!Array.isArray(mod.ASSERTION_INVENTORY)||!equal(mod.INVENTORY,mod.laws.map(l=>l.id))||!equal(mod.laws.map(l=>l.defect),a.requiredIds))T.fail('THEME-INVENTORY');
   const requiredMutants={D33:['counts-only','missing-entry-slot','accept-any-correction','ignore-strike-receipt-payload','deny-all'],D34:['coarse-fingerprint','never-pristine','raw-key-order','whole-state-comparison'],D35:['heal-before-return','return-all-unchanged']};

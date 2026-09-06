@@ -49,9 +49,13 @@ for(const [id,lost]of Object.entries(fixed))declare(id,'dataLossGuard',[guard(lo
 for(const direction of ['FORWARD','REVERSE'])declare('IG33-LEGACY-CORR-'+direction,'dataLossGuard',[guard([entry]),guard([]),guard([entry])],'BRIEF-IMPORT-GUARDS.md §1 legacy corr-only; guard richer preimage, sparse preimage, retry');
 declare('IG33-GHSYNC-REMOTE-RICH','dataLossGuard',[guard([entry]),guard([entry])],'BRIEF-IMPORT-GUARDS.md §1 legacy host; frozen12364–12368 remote-only guard, two identical attempts');
 for(const c of CASES.filter(c=>c.defect==='D34'&&c.frozenRed))declare(c.id,'isPristineSeed',c.id.startsWith('IG34-MARKER-')?[false,false]:[false],'BRIEF-IMPORT-GUARDS.md §1 D34 complete four families; frozen13270–13272/16217 marker OR for host cases');
+// This compatibility case remains GREEN because the pre-existing marker keeps
+// the offer visible. Its edited read.pt still makes both predicate calls false:
+// boot skips the redundant set, and the unchanged offer OR reads the marker.
+declare('IG34-MARKER-EXISTING','isPristineSeed',[false,false],'BRIEF-IMPORT-GUARDS.md §1 D34 complete reads incl pt; frozen13270–13272/16217; existing-marker visible compatibility, exactly two predicate calls');
 for(const c of CASES.filter(c=>c.defect==='D35'&&c.id.startsWith('IG35-FUTURE-')))declare(c.id,'migrate',['IDENTITY-UNTOUCHED'],'BRIEF-IMPORT-GUARDS.md §1 D35 future61/string61 returns original input before every non-version read');
 for(const c of CASES)if(c.frozenRed&&!profiles[c.id])throw Error('MISSING-CLOSED-PROJECTION:'+c.id);
-for(const id of Object.keys(profiles))if(!CASES.some(c=>c.id===id&&c.frozenRed))throw Error('EXTRA-CLOSED-PROJECTION:'+id);
+for(const id of Object.keys(profiles))if(!CASES.some(c=>c.id===id&&(c.frozenRed||c.id==='IG34-MARKER-EXISTING')))throw Error('EXTRA-CLOSED-PROJECTION:'+id);
 function lock(v){if(v&&typeof v==='object'){for(const x of Object.values(v))lock(x);Object.freeze(v);}return v;}lock(profiles);
 function configureDate(mode,day){globalThis.Date=NativeDate;if(mode==='frozen'){const ms=new NativeDate(...day.split('-').map((x,i)=>+x-(i===1?1:0)),12).getTime();globalThis.Date=class extends NativeDate{constructor(...args){super(...(args.length?args:[ms]));}static now(){return ms;}};}else if(mode!=='native')throw Error('DATE-MODE');}
 async function produce({source,caseId,mode,day,project=false}){

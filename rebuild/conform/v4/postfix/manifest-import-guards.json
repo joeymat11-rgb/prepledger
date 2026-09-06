@@ -1,7 +1,7 @@
 {
   "version": 2,
   "acceptanceFile": "rebuild/conform/v4/postfix/acceptance-import-guards.json",
-  "acceptanceSha256": "c199e0e567af910dff5d17ff4748869161b5aed883553ec882f8b76ac3d42506",
+  "acceptanceSha256": "f20187240cbe4814327aff18601bfbd3af947728cd0d4536b0bc47ce3b31a906",
   "candidateBase": "947369caeb9fea2d6bcb04b0447857de35ba887b",
   "receipts": {
     "owner": {
