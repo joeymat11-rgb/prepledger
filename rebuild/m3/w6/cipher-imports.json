@@ -1,0 +1,11 @@
+{
+  "package": "@noble/ciphers",
+  "version": "2.4.0",
+  "releaseCommit": "4b0040dd772f0de985bd8cc2d1cf46dfa3a62b43",
+  "integrity": "sha512-AnjFn0Jv92laAkvMrghlFZq4qQCIN/4DxFV/eooqtC2YTjB7kBeLMS2T9KJX4Dn+ZVXLOwK0lSgqDtx9gvxtiw==",
+  "inputs": {
+    "aes.js": "941ebefe14c48cd1401ffe52f329d4e6ff14f3f596681b211a33cde21de3a90c",
+    "_polyval.js": "735b078133e0c5a97dd984a21389f152dc7958b283f52504f6f0906ded243fa5",
+    "utils.js": "a443ec1f60d1aaa25d1b7d8c102d33c0e8e6d683ada1ad17be9c32e69170ff95"
+  }
+}

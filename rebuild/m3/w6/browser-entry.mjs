@@ -5,3 +5,7 @@ export { Client, W5, Stage };
 export { openRepository, StorageFailure } from "./repository.mjs";
 export { createBridge } from "./bridge.mjs";
 export { createDurablePublicClient } from "./public-client.mjs";
+export { createFrameAttempt, decryptFrame } from "./frame-crypto.mjs";
+export { encodeFrame, decodeFrame, frameAad } from "./frame-format.mjs";
+export { parseStrictJson } from "./strict-json.mjs";
+export { openFrameRepository, makeProof } from "./frame-repository.mjs";

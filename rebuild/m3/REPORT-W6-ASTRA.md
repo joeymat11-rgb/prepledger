@@ -137,4 +137,17 @@ Production fence/key custody, finite time assumptions, reconciliation/renewal, f
 
 ## NEXT
 
-Keep **W6** as the same actual claim and PR32 DRAFT. Cowork re-executes the exact new T2/browser checkpoint before integration; root coordinates that review. This prepares W7 integration and W9 physical testing, but does not mark W6 done or unblock private import. Next on this same claim: publish independently reviewed frame mechanics corrections as a separate docs commit, then implement only the explicitly accepted scope after coordinator exact-diff matching. W5 time/reconciliation/renewal, W4 production custody, knowledge fencing and W8/W9 remain dependencies; no extra implementation stream or merge is claimed.
+Subsequent first mechanical-frame checkpoint: corrections890657d matched the already-issued independent R1′/R2′/R3/R4 verdict; clarity-only a5f58e3 preceded implementation. `w6/FRAME-IMPLEMENTATION-STATUS.md` records the exact new API, dependency/source pins and remaining test matrix. New format2 is an explicit separate factory, not an automatic change to the current public client or production permission rules.
+
+```text
+ℹ tests 77
+ℹ pass 77
+ℹ fail 0
+W6 FRAME RFC8452 PASS — 26 AES256/counter-wrap vectors
+W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and six refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium 152.0.4191.66
+W6 FRAME semantics / CLOCK / custody / phone BLOCKED — mechanical synthetic evidence only
+W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph
+```
+
+This adds25 tests to the52-test checkpoint without changing the T2 amendment or previous public-client code. First-frame engineering interval is roughly08:38–08:49UTC,11 minutes; its remaining matrix and independent execution are not included. Old-tab queued writes, complete migration/key/control-failure cuts, further effective frame mutations and independent review remain incomplete. Existing conformance/selftest/strict receipts above belong to the06d79f4 checkpoint and are not relabelled as final format2 acceptance.
+Keep **W6** as the same actual claim and PR32 DRAFT. Cowork re-executes exact06d79f4 while the coordinator tracks this separate mechanical checkpoint. Continue its named focused tests, not production permission integration. This prepares W7 integration and W9 physical testing but does not mark W6 done or unblock private import. W5 time/reconciliation/renewal, W4 custody/security budget, knowledge fencing and W8/W9 remain dependencies; no extra implementation stream or merge is claimed.

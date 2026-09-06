@@ -11,7 +11,7 @@ function copy(relative) { const destination = child(relative); mkdirSync(dirname
 try {
   for (const name of readdirSync(join(root, "rebuild/client"))) if (name.endsWith(".cjs")) copy(`rebuild/client/${name}`);
   copy("rebuild/authority/canonical.cjs"); copy("rebuild/m3/w5/public-client.cjs");
-  for (const name of readdirSync(here)) if (/\.(?:mjs|cjs)$/.test(name) || ["package.json", "pnpm-lock.yaml", ".npmrc"].includes(name)) copy(`rebuild/m3/w6/${name}`);
+  for (const name of readdirSync(here)) if (/\.(?:mjs|cjs)$/.test(name) || ["package.json", "pnpm-lock.yaml", "cipher-imports.json", ".npmrc"].includes(name)) copy(`rebuild/m3/w6/${name}`);
   const destination = child("rebuild/m3/w6");
   if (existsSync(child("node_modules")) || existsSync(join(destination, "node_modules"))) throw new Error("Clean dependency premise violated");
   // The caller explicitly selects a local package-manager executable. No account or live data is involved.

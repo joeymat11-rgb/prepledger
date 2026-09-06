@@ -10,6 +10,7 @@ const normalize = path => resolve(path).replaceAll("\\", "/");
 const approved = new Set(["ops.cjs", "plan.cjs"].map(name => normalize(resolve(root, "rebuild/client", name))));
 const builtins = new Set(builtinModules.flatMap(name => [name, `node:${name.replace(/^node:/, "")}`]));
 export async function buildBrowser({ outfile = resolve(here, ".tmp/browser/w6.js"), entryPoints = [resolve(here, "browser-entry.mjs")] } = {}) {
+  const cipherPins = JSON.parse(await readFile(resolve(here, "cipher-imports.json"), "utf8"));
   await mkdir(dirname(outfile), { recursive: true });
   const result = await build({ absWorkingDir: root, entryPoints, outfile, bundle: true, platform: "browser", format: "esm", target: "es2022", metafile: true,
     plugins: [{ name: "earned-w6-exact-crypto-boundary", setup(builder) {
@@ -27,7 +28,9 @@ export async function buildBrowser({ outfile = resolve(here, ".tmp/browser/w6.js
   for (const path of Object.keys(result.metafile.inputs)) {
     const absolute = resolve(root, path), name = relative(root, absolute).replaceAll("\\", "/");
     if (/^rebuild\/authority\//.test(name) && name !== "rebuild/authority/canonical.cjs" || name === "rebuild/m3/w5/crypto.cjs") throw new Error("Unapproved authority code in browser graph");
-    inventory.push({ path: name, sha256: createHash("sha256").update(await readFile(absolute)).digest("hex") });
+    const hash = createHash("sha256").update(await readFile(absolute)).digest("hex"), cipherInput = name.match(/\/@noble\/ciphers\/(.+)$/)?.[1];
+    if (cipherInput && cipherPins.inputs[cipherInput] !== hash) throw new Error("Unapproved or changed cipher input in browser graph");
+    inventory.push({ path: name, sha256: hash });
   }
   await writeFile(`${outfile}.meta.json`, JSON.stringify({ inputs: inventory, metafile: result.metafile }, null, 2));
   return { outfile, inventory };
