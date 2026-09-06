@@ -44,4 +44,24 @@ All206 sampled vectors remain in the ignored evidence. At the simultaneous alloc
 
 Evidence `r1-resource-constrained-diagnostic.json` SHA256 `f135eae3318847d72725003d72b105aeebcb79eed20ea6ab3a416f0154befbb3`; helper SHA256 `31e6cde76491337bf41207d1f87fcf965c8d05b0b1afc27435ddf7311888ef35`. Product remained bridge `7d6a22c1793a9c71c603208c02ddec24e25f5bf24c2c9e32c465b5c5f191c666` / codec `590b01401a5a5a57072c9413d516a53b311535127d4721f6d679f30170c38b6b`; original resource runner `ebd715abb5755f3d7cadc6377b56aa36c957e592c4bcf6221e663aba2f8dfa2b`. All four acceptance-failure artifacts and both prior diagnostic artifacts were rehashed unchanged. No second E1 or further collection experiment was started.
 
+## Population A/B diagnostic — NOT ACCEPTANCE
+
+On unchanged product `777caa543a7bd34264580a65b4ff7d7266b81920`, `node rebuild/m3/w5/test/r1-population-diagnostic.cjs` ran one pair of fresh workerds with identical runtime settings, workload and metrics. A contained only the own proof account: 18 rows / 649,819 JSON bytes. B retained the same own scope/request/1MiB-proof semantics and added a valid synthetic foreign account: 23 rows / exactly 9,437,184 JSON bytes. Its original three admitted facts were unchanged; one guarded revision batch appended 9,034,212 whitespace bytes across seven mutable metadata/operation/log rows. Largest row: 1,357,356 bytes, below 2MiB. Parsed values and every own raw row remained unchanged; immutable issuance/standing rows were untouched. B's actual guarded own projection equaled its exact expected pre-padding bytes. Fresh identifiers/signatures differed across arms, with each own request, raw inventory and expected proof separately pinned.
+
+| Observation | A: own only | B: own plus 9MiB foreign JSON |
+|---|---:|---:|
+| Complete workload | 32+32+32 pages + typed413 | 32+32+32 pages + typed413 |
+| Original simultaneous total+embedder+backing peak | 165,864,407 bytes | 652,866,449 bytes |
+| Diagnostic used+embedder+backing peak | 91,858,687 bytes | 563,481,621 bytes |
+| Guarded CPU maximum / p95 | 110.125 / 110.125ms | 235.125 / 188.25ms |
+| D1 rows read / control rows written | 2,132 / 192 | 4,460 / 192 |
+| D1 query duration sum | 37ms | 711ms |
+| Whole arm duration, including setup/cleanup | 8,217.3262ms | 16,562.2452ms |
+
+Both arms completed: 192 pages and two extra-byte refusals, 194 requests, no OOM/request failure, max five statements/request and zero domain writes. At the original simultaneous peak, A's used/total/embedder/backing vector was 60,629,800 / 134,635,520 / 515,872 / 30,713,015 bytes; B's was 555,014,276 / 644,399,104 / 258,024 / 8,209,321 bytes. Each arm's diagnostic used-based sum also peaked at that same sample. All 202 A and 220 B vectors remain in ignored evidence. Both original metrics FAIL; the extra used-based view changes no metric or acceptance decision.
+
+This pair shows population sensitivity in this run, not universal causality or a peak distribution. **Own-only still exceeds 96MiB**, so scoping unrelated rows would not by itself establish acceptance. No runtime flags, collection, product/SQL, cap or metric changes occurred. All 12 preceding resource evidence files and 15 held source pins were verified unchanged. The proposed bounded response, own-account preflight question and separate versioned-metric question are in `SCOPED-READ.md`, all for independent review, not implemented.
+
+Pair evidence `r1-population-diagnostic-pair.json` SHA256 `40dc1278d83ed8afd92df651a3cea7b42acdd38833aaef532905d265fc1b61bb`; A SHA256 `dcdb8f8a08c4f32a85dd82cab1d36f0ee23ff742e8ebf4e2b43b3747a6c34e44`; B SHA256 `a2b12203851d4d4c17cae74fe929f34a276e18af48f3500147ec2331ac614eb6`. Executed helper SHA256 `1f307379e00648275e7231f5134c33bb5afdbb794412a53e451bac04d03d9883`; tracked helper SHA256 `1ddd076abf1472b6f77ecce7495a55ce79236a13aaacb0eebf190aeb7bc05125`. After execution, only its pre-workload HEAD guard was changed to permit the four named docs/helper publication files after the pinned product commit, and a `productBase` field was added to pair metadata. Workload/fixture/measurement code stayed identical; the publication guard was syntax-checked, not followed by another A/B run. These diagnostic arms are separate from the five original-resource FAIL entries; no later trial was started.
+
 If no reviewed resource profile meets the ceiling, R1-COMPLETE stays FAIL/BLOCKED and W6 may consume the published interface only as provisional work. No private import, CLOCK, checkpoint C, K1, P1 or phone recovery acceptance follows from these local tests.
