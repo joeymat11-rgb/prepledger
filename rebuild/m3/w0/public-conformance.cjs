@@ -109,6 +109,8 @@ function runPublicConformance(options = {}) {
   const env = options.env || process.env;
   const note = options.note || console.log;
   checkEnvironment(env, readJson(path.join(CONFORM, "oracle/manifest.json")));
+  // Validate supplied overrides first, then pin the product actually consumed by the adapter.
+  process.env.EARNED_CLIENT_DIR = path.resolve(CONFORM, "../client");
   const manifest = readJson(path.join(CONFORM, "laws/manifest.json"));
   const modules = loadInventory(manifest);
   const { bundle, absent } = loadAdapters(options.adapterDir);

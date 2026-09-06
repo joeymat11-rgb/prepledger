@@ -32,6 +32,80 @@ test("wrong/missing clock, timezone and redirecting product overrides fail close
   assert.match(run.stderr, /PUBLIC-CONFORMANCE FAIL: ENVIRONMENT/);
 });
 
+test("a missing checkout client cannot pass through a usable external fallback (fresh processes)", (t) => {
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), "earned-public-client-pin-"));
+  t.after(() => {
+    const resolved = fs.realpathSync(temp), parent = fs.realpathSync(os.tmpdir());
+    assert.equal(path.dirname(resolved), parent);
+    assert.ok(path.basename(resolved).startsWith("earned-public-client-pin-"));
+    fs.rmSync(resolved, { recursive: true, force: true });
+  });
+  const conform = path.join(temp, "rebuild/conform");
+  // Copy only public law dependencies: no private fixtures, goldens or engine bundles.
+  for (const name of ["adapters", "coverage", "gates", "laws", "lib", "reference"])
+    fs.cpSync(path.join(check.CONFORM, name), path.join(conform, name), { recursive: true });
+  fs.mkdirSync(path.join(conform, "oracle"));
+  fs.copyFileSync(path.join(check.CONFORM, "oracle/manifest.json"), path.join(conform, "oracle/manifest.json"));
+  for (const name of ["authority", "client"])
+    fs.cpSync(path.resolve(check.CONFORM, "..", name), path.join(temp, "rebuild", name), { recursive: true });
+  const copiedScript = path.join(temp, "rebuild/m3/w0/public-conformance.cjs");
+  fs.mkdirSync(path.dirname(copiedScript), { recursive: true });
+  const wrapperBytes = fs.readFileSync(script);
+  fs.writeFileSync(copiedScript, wrapperBytes);
+  const adapterPath = path.join(conform, "adapters/client.cjs");
+  const adapterBytes = fs.readFileSync(adapterPath);
+  const fallback = path.join(temp, "external-client");
+  fs.cpSync(path.join(temp, "rebuild/client"), fallback, { recursive: true });
+  const invoke = (overrides = {}) => spawnSync(process.execPath, [copiedScript], {
+    env: { ...env, ...overrides }, encoding: "utf8", timeout: 120000,
+  });
+  const expectMissing = (run) => {
+    assert.equal(run.status, 1, run.stdout + run.stderr);
+    assert.match(run.stderr, /PUBLIC-CONFORMANCE FAIL: ADAPTER-LOAD: client:/);
+    assert.doesNotMatch(run.stdout, /PUBLIC-CONFORMANCE PASS/);
+  };
+  const baseline = invoke();
+  assert.equal(baseline.status, 0, baseline.stdout + baseline.stderr);
+  fs.unlinkSync(path.join(temp, "rebuild/client/index.cjs"));
+  // A package-directory require would silently fall back to this index.js after main disappears.
+  fs.writeFileSync(path.join(temp, "rebuild/client/index.js"), `module.exports = require(${JSON.stringify(fallback)});`);
+  expectMissing(invoke());
+
+  // An explicit override still works for OTHER runners, proving the outside client is usable.
+  const direct = spawnSync(process.execPath, ["-e", `require(${JSON.stringify(adapterPath)}); console.log('EXTERNAL CLIENT LOAD PASS');`], {
+    env: { ...env, EARNED_CLIENT_DIR: fallback }, encoding: "utf8", timeout: 120000,
+  });
+  assert.equal(direct.status, 0, direct.stdout + direct.stderr);
+  assert.match(direct.stdout, /EXTERNAL CLIENT LOAD PASS/);
+  const redirected = invoke({ EARNED_CLIENT_DIR: fallback });
+  assert.equal(redirected.status, 1);
+  assert.match(redirected.stderr, /ENVIRONMENT: EARNED_CLIENT_DIR must not redirect/);
+
+  // Reproduce the legacy selector only in this disposable copy, substituting a temporary
+  // fallback for /home/claude/rebuild/client. No actual user legacy path is read or written.
+  const selector = 'const CLIENT_DIR = process.env.EARNED_CLIENT_DIR || path.join(__dirname, "..", "..", "client");';
+  const legacy = `const CLIENT_DIR = process.env.EARNED_CLIENT_DIR || [path.join(__dirname, "..", "..", "client"), ${JSON.stringify(fallback)}].find((d) => require("node:fs").existsSync(path.join(d, "index.cjs")));`;
+  assert.ok(adapterBytes.toString().includes(selector), "adapter selector mutation must be effective");
+  const pin = '  process.env.EARNED_CLIENT_DIR = path.resolve(CONFORM, "../client");';
+  assert.ok(wrapperBytes.toString().includes(pin), "wrapper pin mutation must be effective");
+  const legacyAdapter = adapterBytes.toString().replace(selector, legacy);
+  const unpinnedWrapper = wrapperBytes.toString().replace(pin, "");
+  fs.writeFileSync(adapterPath, legacyAdapter);
+  expectMissing(invoke()); // Pin alone prevents the old adapter fallback.
+  fs.writeFileSync(copiedScript, unpinnedWrapper);
+  const regression = invoke();
+  assert.equal(regression.status, 0, regression.stdout + regression.stderr);
+  assert.match(regression.stdout, /PUBLIC-CONFORMANCE PASS/); // Both missing guards reproduce Cowork's false PASS.
+  fs.writeFileSync(adapterPath, adapterBytes);
+  expectMissing(invoke()); // Removing the fallback alone also closes the hole.
+  fs.writeFileSync(copiedScript, wrapperBytes);
+  assert.deepEqual(fs.readFileSync(adapterPath), adapterBytes);
+  assert.deepEqual(fs.readFileSync(copiedScript), wrapperBytes);
+  expectMissing(invoke());
+  t.diagnostic("CLIENT-PATH BITE: deleted checkout index.cjs -> PUBLIC-CONFORMANCE FAIL: ADAPTER-LOAD: client (exit 1); usable external/index.js fallbacks refused");
+  t.diagnostic("CLIENT-PATH MUTANT DETECTED: restoring legacy fallback + removing pin reproduced false PUBLIC-CONFORMANCE PASS; disposable sources restored byte-for-byte");
+});
+
 test("adapter deletions and load failures never become permitted RED families", (t) => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), "earned-public-adapters-"));
   t.after(() => {

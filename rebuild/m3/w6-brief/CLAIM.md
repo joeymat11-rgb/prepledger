@@ -8,3 +8,5 @@
 - Serialized selection: W0 has finished execution review; W6-BRIEF is now claimed by this task. W7-PREVIEW remains the proposed next unclaimed item, not a second dispatch.
 - Exact budget numbers are proposals for the recorded refinement/review process. This claim changes no sheet or product rule and authorizes no merge.
 - Integrator follow-up: verify the new rebuild workflow on BOTH OS jobs at the eventual W0 integration commit, not only at the PR head.
+
+- Integration update: W0 acceptance arrived at `9a42b10eb3a66c238dba7b2ad28dc8afb9924709` and is included via merge `024cc83`. GitHub run `34013150167` completed successfully for both `rebuild-public (windows-latest)` and `rebuild-public (ubuntu-latest)` on that exact integration commit; the requested integration confirmation is observed, not pending.
