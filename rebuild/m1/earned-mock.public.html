@@ -1,0 +1,986 @@
+<title>Earned — Clickable Mock</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+  /* The ratified design commits to one world: warm paper, ink, one green. Single theme, painted explicitly. */
+  :root { --paper:#F4F0E8; --ink:#1C1B18; --ink-2:#5A5348; --ink-3:#6F6759; --hair:#D8D0C2; --green:#2E5A3C; --ground:#E7E1D4; color-scheme: light; }
+  html, body { background: var(--ground); color: var(--ink); }
+  body { margin:0; font: 16px/1.5 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums; }
+  .stage { min-height: 100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap: 18px; padding: 24px 0 40px; box-sizing:border-box; }
+  .phone { position:relative; width: 390px; height: 844px; max-width: 100vw; background: var(--paper); overflow:hidden; border-radius: 40px; box-shadow: 0 0 0 1px rgba(28,27,24,.12), 0 30px 60px rgba(28,27,24,.18); }
+  .screen { position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling: touch; background: var(--paper); }
+  .screen > div { min-height: 100%; }
+  .screen [role="button"], .screen [role="link"], .screen [role="radio"] { cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+  .screen [role="button"]:active, .screen [role="radio"]:active { opacity: .82; }
+  .screen [role="radio"][aria-checked="true"] { background: var(--ink) !important; color: var(--paper) !important; }
+  .sheet { position:absolute; inset:0; background: var(--paper); display:flex; flex-direction:column; padding: 60px 28px 28px; box-sizing:border-box; }
+  .sheet .eyebrow { font-family:'Instrument Serif', Georgia, serif; font-style:italic; font-size:19px; color: var(--ink-2); }
+  .sheet .big { margin-top: 40px; font-family:'Instrument Serif', Georgia, serif; font-size: 116px; line-height:.88; letter-spacing:-.03em; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--ink); width: 100%; padding: 0 0 12px; outline: none; -moz-appearance: textfield; }
+  .sheet .big::-webkit-outer-spin-button, .sheet .big::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .sheet .big::placeholder { color: var(--hair); }
+  .sheet .unit { font-size:16px; color: var(--ink-2); margin-top: 16px; }
+  .sheet .help { font-size:16px; line-height:1.55; color: var(--ink); margin-top: 28px; text-wrap: pretty; }
+  .sheet .grow { flex-grow:1; }
+  .btn { display:flex; justify-content:space-between; align-items:center; min-height:56px; box-sizing:border-box; padding:0 20px; background: var(--ink); color: var(--paper); border:1.5px solid var(--ink); border-radius:14px; font-size:14px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
+  .btn.quiet { background: transparent; color: var(--ink); margin-top: 10px; }
+  .why { position:absolute; inset:0; background: var(--paper); padding: 60px 28px 28px; box-sizing:border-box; display:flex; flex-direction:column; gap: 14px; }
+  .why h2 { margin:0; font-family:'Instrument Serif', Georgia, serif; font-weight:400; font-size: 34px; line-height:1.06; letter-spacing:-.015em; text-wrap: balance; }
+  .why p { margin:0; font-size:16px; line-height:1.55; color: var(--ink); text-wrap: pretty; }
+  .why .back { margin-top:auto; display:flex; align-items:center; gap:8px; min-height:44px; font-weight:500; text-decoration:underline; text-underline-offset:4px; text-decoration-thickness:1px; text-decoration-color: var(--hair); cursor:pointer; }
+  .toast { position:absolute; left:28px; right:28px; bottom:28px; background: var(--ink); color: var(--paper); padding: 14px 18px; border-radius: 14px; font-size: 15px; line-height:1.4; opacity:0; transform: translateY(8px); transition: opacity .18s, transform .18s; pointer-events:none; }
+  .toast.on { opacity:1; transform:none; }
+  /* the owner's bar — not part of the product; hidden in dad mode */
+  .bar { width: 390px; max-width: 100vw; box-sizing:border-box; padding: 0 8px; display:flex; flex-wrap:wrap; gap: 6px 14px; align-items:center; font-size: 12px; letter-spacing:.12em; text-transform:uppercase; color: var(--ink-3); }
+  .bar button { all: unset; cursor:pointer; padding: 6px 0; color: var(--ink-3); border-bottom: 1px solid transparent; }
+  .bar button:hover, .bar button:focus-visible { color: var(--ink); border-bottom-color: var(--ink); outline: none; }
+  .bar .sep { flex-basis: 100%; height: 0; }
+  .bar .note { letter-spacing: 0; text-transform: none; font-size: 13px; color: var(--ink-2); }
+  .script { width: 390px; max-width: 100vw; box-sizing:border-box; padding: 8px 8px 0; color: var(--ink); }
+  .script h1 { font-family:'Instrument Serif', Georgia, serif; font-weight:400; font-size: 30px; line-height:1.08; letter-spacing:-.015em; margin: 0 0 10px; text-wrap: balance; }
+  .script h2 { font-size: 12px; letter-spacing:.12em; text-transform:uppercase; color: var(--ink-3); font-weight: 500; margin: 22px 0 8px; }
+  .script p, .script li { font-size: 15px; line-height: 1.55; margin: 0 0 8px; text-wrap: pretty; }
+  .script ol { padding-left: 1.2em; margin: 0; } .script li { padding-left: .2em; }
+  .script .k { font-family:'Instrument Serif', Georgia, serif; font-style: italic; color: var(--green); }
+  .script table { border-collapse: collapse; width:100%; font-size: 14px; } .script td { padding: 6px 8px 6px 0; border-top: 1px solid var(--hair); vertical-align: top; } .script td:first-child { color: var(--ink-3); white-space: nowrap; width: 8em; }
+  @media (max-width: 430px) { .stage { padding: 0 0 24px; gap: 12px; } .phone { width: 100vw; height: 100dvh; border-radius: 0; box-shadow: none; } }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+<div class="stage">
+  <div class="phone" id="phone" aria-live="polite"></div>
+  <div class="bar" id="bar">
+    <button data-go="morning">Morning</button><button data-go="decision">Decision</button><button data-go="gym">Gym</button><button data-go="stale">Stale · 10 days</button><button data-go="return">Return · 3 weeks</button><button data-go="hot">Hot opener</button><button data-go="debut">Debut · 255</button>
+    <span class="sep"></span>
+    <button id="tScript">Test script</button><button id="hideBar">Hide this bar</button>
+    <span class="note" id="barNote"></span>
+  </div>
+  <div class="script" id="script" hidden>
+    <h1>Five minutes with Dad</h1>
+    <p>Hand him the phone on the <span class="k">Morning</span> scenario. Say nothing except the task line. Do not help. Write down where he pauses, what he taps that does nothing, and any word he asks about. Every number on the screens is sample data, not his.</p>
+    <h2>The five tasks — read each one aloud, then wait</h2>
+    <ol>
+      <li>“It’s morning. You just stepped on the scale and it said 180.7. Put that in.”</li>
+      <li>“What should you eat today?” <em>(he should answer from the screen, not scroll)</em></li>
+      <li>“Why is it telling you that?” <em>(watch whether he finds “Why this plan?” without a hint)</em></li>
+      <li>“You’re at the gym. Do the exercise it shows and record what you did — say you got 9, then 8, then 7, then 6.” <em>(the reserve question after the first set: does he understand “clean reps left”?)</em></li>
+      <li>“It’s offering you a heavier weight. Decide.” <em>(then: “Undo that.”)</em></li>
+    </ol>
+    <h2>What to watch</h2>
+    <table>
+      <tr><td>Weigh-in</td><td>Does he find the button, type the number, and trust that it saved? (No confirmation screen is deliberate.)</td></tr>
+      <tr><td>Instruction</td><td>Does “Eat about 2,300 kcal” read as the answer, or does he hunt for more?</td></tr>
+      <tr><td>Why</td><td>Does he read it, or bounce? Which sentence does he stop on?</td></tr>
+      <tr><td>Sets</td><td>Stepper vs typing: does he know reps are counted with + and −? Does “clean reps left” need a definition?</td></tr>
+      <tr><td>Decision</td><td>Two plain choices, nothing pre-selected. Does he ask “what should I pick?” — that is a design finding, not a failure.</td></tr>
+      <tr><td>Words</td><td>List every word he asks about. Those words get demoted or renamed, never explained with a tooltip.</td></tr>
+    </table>
+    <h2>Afterwards — three questions, his words verbatim</h2>
+    <ol><li>“What does this app do?”</li><li>“What would you do tomorrow morning?”</li><li>“What confused you?”</li></ol>
+    <p>Bring the notes back to the build chat as they are. No summary, no fixing on the spot.</p>
+  </div>
+</div>
+<template id="s-T01"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Monday, August 10</div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: #5A5348; white-space: nowrap;" role="status" aria-label="Weighed in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg><span>Weighed in</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; margin-top: 40px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 116px; line-height: 0.88; letter-spacing: -0.03em; color: #1C1B18;">181.3</div>
+    <div style="font-size: 16px; color: #5A5348; margin-top: 16px;">lb this morning</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px; margin-top: 28px; border-top: 1px solid #1C1B18;">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 14px 0; border-right: 1px solid #D8D0C2;">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Trend</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #1C1B18; overflow-wrap: anywhere;">180.9 lb</div>
+      
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 14px 16px; ">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Per week</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #1C1B18; overflow-wrap: anywhere;">−1.1 lb</div>
+      
+    </div>
+  </div>
+  <div style="height: 1px; background: #D8D0C2; margin: 32px 0 26px 0;"></div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; color: #2E5A3C;">Today</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1.04; letter-spacing: -0.015em; color: #1C1B18; text-wrap: pretty;">Eat about 2,300 kcal.</div>
+    <div style="font-size: 16px; color: #5A5348; line-height: 1.5;">2,252–2,344 kcal · 160 g protein</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; margin-top: 4px; text-wrap: pretty;">Your weight trend is down 1.1 lb/week, within your target range. Keep the plan.</div>
+    <div role="link" tabindex="0" aria-label="Why this plan?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this plan?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="OPEN UPPER BODY · 9 LIFTS" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 0px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>OPEN UPPER BODY · 9 LIFTS</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T02"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Monday, August 10</div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: #5A5348; white-space: nowrap;" role="status" aria-label="No reading yet"><span>No reading yet</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 40px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 44px; line-height: 1.02; letter-spacing: -0.015em; color: #1C1B18;">Weigh in first.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #5A5348; text-wrap: pretty;">Step on the scale before you eat. Today’s plan follows the reading.</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px; margin-top: 28px; border-top: 1px solid #1C1B18;">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 14px 0; border-right: 1px solid #D8D0C2;">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Trend</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #5A5348; overflow-wrap: anywhere;">180.2 lb</div>
+      <div style="font-size: 13px; color: #6F6759;">as of yesterday</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 14px 16px; ">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Per week</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #5A5348; overflow-wrap: anywhere;">−0.3 lb</div>
+      <div style="font-size: 13px; color: #6F6759;">as of yesterday</div>
+    </div>
+  </div>
+  <div style="height: 1px; background: #D8D0C2; margin: 32px 0 26px 0;"></div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; color: #6F6759;">Until then</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 30px; line-height: 1.04; letter-spacing: -0.015em; color: #1C1B18; text-wrap: pretty;">Yesterday’s plan stands.</div>
+    <div style="font-size: 16px; color: #5A5348; line-height: 1.5;">About 1,900 kcal (1,883–1,970) · 160 g protein</div>
+    
+    
+  </div>
+  <div style="flex-grow: 1;"></div>
+  <div style="font-size: 15px; line-height: 1.5; color: #6F6759; margin-top: 0px; text-wrap: pretty;">Rest day — no session scheduled.</div>
+  <div role="button" tabindex="0" aria-label="LOG THIS MORNING’S WEIGHT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 12px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG THIS MORNING’S WEIGHT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T03"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Monday, August 31</div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: #5A5348; white-space: nowrap;" role="status" aria-label="Last reading 10 days ago"><span>Last reading 10 days ago</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 40px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 44px; line-height: 1.02; letter-spacing: -0.015em; color: #1C1B18;">Weigh in first.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #5A5348; text-wrap: pretty;">Last weight: 179.7 lb · 10 days ago (Aug 21).</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px; margin-top: 28px; border-top: 1px solid #1C1B18;">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 14px 0; border-right: 1px solid #D8D0C2;">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Trend</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #5A5348; overflow-wrap: anywhere;">180.2 lb</div>
+      <div style="font-size: 13px; color: #6F6759;">from Aug 21</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 14px 16px; ">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Per week</div>
+      <div style="font-size: 16px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #5A5348; overflow-wrap: anywhere;">Not current</div>
+      <div style="font-size: 13px; color: #6F6759;">needs fresh readings</div>
+    </div>
+  </div>
+  <div style="height: 1px; background: #D8D0C2; margin: 32px 0 26px 0;"></div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; color: #6F6759;">Keep for now</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 30px; line-height: 1.04; letter-spacing: -0.015em; color: #1C1B18; text-wrap: pretty;">About 1,900 kcal.</div>
+    <div style="font-size: 16px; color: #5A5348; line-height: 1.5;">Your last plan (1,883–1,970) · 160 g protein</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; margin-top: 4px; text-wrap: pretty;">That is the plan from before the gap, not a fresh instruction. This morning’s reading refreshes it.</div>
+    <div role="link" tabindex="0" aria-label="Why this plan?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this plan?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+  <div style="flex-grow: 1;"></div>
+<div role="link" tabindex="0" aria-label="Upper body · 9 lifts" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Upper body · 9 lifts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  <div role="button" tabindex="0" aria-label="LOG THIS MORNING’S WEIGHT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 8px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG THIS MORNING’S WEIGHT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T04"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Monday, August 10</div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: #5A5348; white-space: nowrap;" role="status" aria-label="Weighed in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg><span>Weighed in</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; margin-top: 24px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 116px; line-height: 0.88; letter-spacing: -0.03em; color: #1C1B18;">181.5</div>
+    <div style="font-size: 16px; color: #5A5348; margin-top: 16px;">lb this morning</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px; margin-top: 20px; border-top: 1px solid #1C1B18;">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 14px 0; border-right: 1px solid #D8D0C2;">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Trend</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #1C1B18; overflow-wrap: anywhere;">181.5 lb</div>
+      
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 14px 16px; ">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Per week</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #1C1B18; overflow-wrap: anywhere;">−0.6 lb</div>
+      
+    </div>
+  </div>
+  <div style="height: 1px; background: #D8D0C2; margin: 20px 0 18px 0;"></div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; color: #2E5A3C;">Today · one decision</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.04; letter-spacing: -0.015em; color: #1C1B18; text-wrap: pretty;">Add 1,000 steps a day?</div>
+    
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; margin-top: 4px; text-wrap: pretty;">Your weight trend is down 0.6 lb a week, below the 1.0–1.30 lb pace your plan is set for. Steps move first: 16,000 to 17,000 a day. Your food target stays at about 2,100 kcal.</div>
+    
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; margin-top: 12px;">
+    <div role="button" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 0 12px;">Add 1,000 steps/day</div>
+    <div role="button" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; background: transparent; color: #1C1B18; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 0 12px;">Keep current plan</div>
+  </div>
+<div role="link" tabindex="0" aria-label="Why this proposal?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this proposal?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="OPEN UPPER BODY · 9 LIFTS" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 0px; background: transparent; color: #1C1B18; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>OPEN UPPER BODY · 9 LIFTS</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T05"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Monday, August 10</div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: #5A5348; white-space: nowrap;" role="status" aria-label="Weighed in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg><span>Weighed in</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; margin-top: 40px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 116px; line-height: 0.88; letter-spacing: -0.03em; color: #1C1B18;">181.5</div>
+    <div style="font-size: 16px; color: #5A5348; margin-top: 16px;">lb this morning</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px; margin-top: 28px; border-top: 1px solid #1C1B18;">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 14px 0; border-right: 1px solid #D8D0C2;">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Trend</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #1C1B18; overflow-wrap: anywhere;">181.5 lb</div>
+      
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 14px 16px; ">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Per week</div>
+      <div style="font-size: 22px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #1C1B18; overflow-wrap: anywhere;">−0.6 lb</div>
+      
+    </div>
+  </div>
+  <div style="height: 1px; background: #D8D0C2; margin: 32px 0 26px 0;"></div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; color: #2E5A3C;">Today</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1.04; letter-spacing: -0.015em; color: #1C1B18; text-wrap: pretty;">Eat about 2,100 kcal.</div>
+    <div style="font-size: 16px; color: #5A5348; line-height: 1.5;">2,042–2,129 kcal · 160 g protein</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; margin-top: 4px; text-wrap: pretty;">Step target increased by 1,000 a day — now 17,000. Changed just now.</div>
+    
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center;"><div role="link" tabindex="0" aria-label="Undo" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Undo</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="History" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>History</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="OPEN UPPER BODY · 9 LIFTS" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 0px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>OPEN UPPER BODY · 9 LIFTS</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T06"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Sunday, September 20</div>
+    
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 48px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 44px; line-height: 1.02; letter-spacing: -0.015em; color: #1C1B18;">Welcome back. Start with today.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #5A5348; text-wrap: pretty;">Weigh in to refresh your plan.</div>
+  </div>
+  <div style="font-size: 15px; line-height: 1.5; color: #6F6759; margin-top: 28px; text-wrap: pretty;">Your last plan is saved. There is nothing to catch up on.</div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="LOG THIS MORNING’S WEIGHT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 0px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG THIS MORNING’S WEIGHT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T07"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 60px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Monday, August 31</div>
+    <div style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; color: #5A5348; white-space: nowrap;" role="status" aria-label="Weighed in"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg><span>Weighed in</span></div>
+  </div>
+  <div style="display: flex; flex-direction: column; margin-top: 40px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 116px; line-height: 0.88; letter-spacing: -0.03em; color: #1C1B18;">181.3</div>
+    <div style="font-size: 16px; color: #5A5348; margin-top: 16px;">lb today</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0px; margin-top: 28px; border-top: 1px solid #1C1B18;">
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 12px 14px 0; border-right: 1px solid #D8D0C2;">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Trend</div>
+      <div style="font-size: 16px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #5A5348; overflow-wrap: anywhere;">Settling</div>
+      <div style="font-size: 13px; color: #6F6759;">a few more readings</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; padding: 14px 0 14px 16px; ">
+      <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Per week</div>
+      <div style="font-size: 16px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.2; color: #5A5348; overflow-wrap: anywhere;">Not yet</div>
+      <div style="font-size: 13px; color: #6F6759;">one reading can’t say</div>
+    </div>
+  </div>
+  <div style="height: 1px; background: #D8D0C2; margin: 32px 0 26px 0;"></div>
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; color: #6F6759;">For now</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 34px; line-height: 1.04; letter-spacing: -0.015em; color: #1C1B18; text-wrap: pretty;">Keep your last plan.</div>
+    <div style="font-size: 16px; color: #5A5348; line-height: 1.5;">About 1,900 kcal (1,883–1,970) · 160 g protein</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; margin-top: 4px; text-wrap: pretty;">One reading after a break can’t say what changed. A few more mornings will.</div>
+    <div role="link" tabindex="0" aria-label="Why this plan?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this plan?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="OPEN UPPER BODY · 9 LIFTS" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 0px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>OPEN UPPER BODY · 9 LIFTS</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-T08"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 28px 28px 28px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div role="link" tabindex="0" aria-label="Back to Today" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; color: #5A5348;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg><span>Today</span></div>
+  <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1.02; letter-spacing: -0.015em; margin: 8px 0 18px 0;">Why this plan?</div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Your calorie range</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; text-wrap: pretty;">Your measured maintenance is 2,876 kcal a day (2,686–3,066 once the rate’s own error is carried through), from 37 logged days of food and 28 morning readings over the same stretch, Jul 3 to Aug 10. Losing about a pound a week from there gives 2,252–2,344 kcal.</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Protein</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; text-wrap: pretty;">160 g a day is 2.5 g per kg of your estimated lean mass, 63.4 kg. That estimate comes from a coach’s-eye body-fat reading of 14.6% (it could be 10.9–18.7%), so the target could be 160–165 g. A DEXA scan, already queued, would measure it instead.</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">What supports “keep the plan”</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; text-wrap: pretty;">Trend window: 28 morning readings, Jul 3 to Aug 10. Planned pace: 0.98–1.30 lb a week. Measured: 1.27 lb a week.</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">How fresh this is</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; text-wrap: pretty;">Newest reading: this morning, Aug 10. Food logged 37 of the last 39 days.</div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">What is still uncertain</div>
+    <div style="font-size: 16px; line-height: 1.55; color: #1C1B18; text-wrap: pretty;">The weekly rate could be anywhere from 0.77 to 1.47 lb. More readings narrow it. A missed weigh-in costs precision, not progress.</div>
+  </div>
+</div></template>
+<template id="s-G01"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center; margin-top: 2px;"><div role="link" tabindex="0" aria-label="Setup" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Setup</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="Lift actions" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Lift actions</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, current, target 9 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 2px solid #1C1B18; border-radius: 10px; color: #1C1B18; background: #FFFFFF;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;">Target 9</span>
+    </div>
+    <div aria-label="Set 3 of 4, target 7 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 7</span>
+    </div>
+    <div aria-label="Set 4 of 4, target 6 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 6</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 18px;">
+    <div style="font-size: 16px; color: #5A5348;">Set 2 reps</div>
+    <div role="group" aria-label="Set 2 reps" style="display: flex; flex-direction: row; align-items: center; gap: 12px;">
+      <div role="button" tabindex="0" aria-label="Decrease Set 2 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></div>
+      <div aria-live="polite" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1; min-width: 44px; text-align: center;">9</div>
+      <div role="button" tabindex="0" aria-label="Increase Set 2 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></div>
+    </div>
+  </div>
+  <div role="button" tabindex="0" aria-label="LOG SET 2" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 18px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG SET 2</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; font-size: 15px; color: #5A5348;"><span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Set 1 logged</span><span aria-hidden="true">·</span><div role="button" tabindex="0" style="display: flex; align-items: center; min-height: 44px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #D8D0C2;">Undo</div></div>
+<div role="link" tabindex="0" aria-label="Why this target?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this target?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Up next</div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px;">
+      <div style="font-size: 17px; font-weight: 500;">Machine fly</div>
+      <div style="font-size: 15px; color: #5A5348; white-space: nowrap;">10 · 10 · 105 lb</div>
+    </div>
+    <div role="link" tabindex="0" aria-label="View all 9 lifts" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>View all 9 lifts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+</div></template>
+<template id="s-G03"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center; margin-top: 2px;"><div role="link" tabindex="0" aria-label="Setup" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Setup</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="Lift actions" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Lift actions</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, target 9 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 9</span>
+    </div>
+    <div aria-label="Set 3 of 4, target 7 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 7</span>
+    </div>
+    <div aria-label="Set 4 of 4, target 6 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 6</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; font-size: 15px; color: #5A5348;"><span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Set 1 logged · 9 reps</span><span aria-hidden="true">·</span><div role="button" tabindex="0" style="display: flex; align-items: center; min-height: 44px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #D8D0C2;">Undo</div></div>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+    <div style="font-size: 16px; color: #1C1B18;">How many clean reps were left?</div>
+    <div role="radiogroup" aria-label="Clean reps left" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(3.4em, 1fr)); gap: 6px;">
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">0</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">1</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">2</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">3+</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 12px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">Not sure</div>
+    </div>
+    <div style="font-size: 13px; color: #6F6759;">Asked on the first set and the last set only. Nothing is assumed if you skip it.</div>
+  </div>
+  <div style="font-size: 15px; line-height: 1.5; color: #6F6759; margin-top: 12px; text-wrap: pretty;">Answer or skip — set 2 opens either way.</div>
+  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Up next</div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px;">
+      <div style="font-size: 17px; font-weight: 500;">Machine fly</div>
+      <div style="font-size: 15px; color: #5A5348; white-space: nowrap;">10 · 10 · 105 lb</div>
+    </div>
+    <div role="link" tabindex="0" aria-label="View all 9 lifts" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>View all 9 lifts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+</div></template>
+<template id="s-G04"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center; margin-top: 2px;"><div role="link" tabindex="0" aria-label="Setup" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Setup</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="Lift actions" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Lift actions</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 3 of 4, 7 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">7 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 4 of 4, current, target 6 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 2px solid #1C1B18; border-radius: 10px; color: #1C1B18; background: #FFFFFF;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;">Target 6</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 18px;">
+    <div style="font-size: 16px; color: #5A5348;">Set 4 reps</div>
+    <div role="group" aria-label="Set 4 reps" style="display: flex; flex-direction: row; align-items: center; gap: 12px;">
+      <div role="button" tabindex="0" aria-label="Decrease Set 4 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></div>
+      <div aria-live="polite" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1; min-width: 44px; text-align: center;">6</div>
+      <div role="button" tabindex="0" aria-label="Increase Set 4 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></div>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 16px;">
+    <div style="font-size: 16px; color: #1C1B18;">How many clean reps were left?</div>
+    <div role="radiogroup" aria-label="Clean reps left" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(3.4em, 1fr)); gap: 6px;">
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">0</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">1</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">2</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 16px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">3+</div>
+      <div role="radio" aria-checked="false" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 44px; box-sizing: border-box; border: 1px solid #1C1B18; border-radius: 10px; font-size: 12px; color: #1C1B18; text-align: center; line-height: 1.1; padding: 0 2px;">Not sure</div>
+    </div>
+    <div style="font-size: 13px; color: #6F6759;">Asked on the first set and the last set only. Nothing is assumed if you skip it.</div>
+  </div>
+  <div role="button" tabindex="0" aria-label="LOG SET 4" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 18px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG SET 4</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+  </div>
+  <div style="font-size: 15px; line-height: 1.5; color: #6F6759; margin-top: 10px; text-wrap: pretty;">Reps and reserve on the last set decide the next weight.</div>
+</div></template>
+<template id="s-G05"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 3 of 4, 7 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">7 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 4 of 4, 6 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">6 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin-top: 6px; font-size: 15px; color: #5A5348;"><span style="display: flex; align-items: center; gap: 6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Set 4 logged · 6 reps · 2 clean reps left</span><span aria-hidden="true">·</span><div role="button" tabindex="0" style="display: flex; align-items: center; min-height: 44px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #D8D0C2;">Undo</div></div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: 0; color: #1C1B18; text-wrap: pretty;">Full target reached once at 265 lb.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">One more like this makes 255 lb ready for your choice.</div>
+  </div>
+<div role="link" tabindex="0" aria-label="Why this target?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this target?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  <div role="button" tabindex="0" aria-label="NEXT LIFT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 18px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>NEXT LIFT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Up next</div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px;">
+      <div style="font-size: 17px; font-weight: 500;">Machine fly</div>
+      <div style="font-size: 15px; color: #5A5348; white-space: nowrap;">10 · 10 · 105 lb</div>
+    </div>
+    <div role="link" tabindex="0" aria-label="View all 9 lifts" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>View all 9 lifts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+</div></template>
+<template id="s-G06"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 3 of 4, 7 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">7 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 4 of 4, 6 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">6 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+  </div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 30px; font-weight: 400; line-height: 1.05; letter-spacing: -0.01em; color: #1C1B18; text-wrap: pretty;">255 lb is ready. Use it next time?</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">Full target reached twice at 265 lb — today and one earlier session. Nothing changes until you choose.</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; margin-top: 14px;">
+    <div role="button" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 0 12px;">Use 255 lb</div>
+    <div role="button" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; background: transparent; color: #1C1B18; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 0 12px;">Keep 265 lb</div>
+  </div>
+<div role="link" tabindex="0" aria-label="Why this target?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this target?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  <div role="button" tabindex="0" aria-label="NEXT LIFT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 14px; background: transparent; color: #1C1B18; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>NEXT LIFT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+</div></template>
+<template id="s-G07"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 3 of 4, 7 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">7 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 4 of 4, 6 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">6 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+  </div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: 0; color: #1C1B18; text-wrap: pretty;">Next Press load: 255 lb.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">Chosen just now. Your first session at 255 will aim for 7 · 8 · 6 · 5.</div>
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center;"><div role="link" tabindex="0" aria-label="Undo" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Undo</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="History" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>History</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div role="button" tabindex="0" aria-label="NEXT LIFT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 14px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>NEXT LIFT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Up next</div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px;">
+      <div style="font-size: 17px; font-weight: 500;">Machine fly</div>
+      <div style="font-size: 15px; color: #5A5348; white-space: nowrap;">10 · 10 · 105 lb</div>
+    </div>
+    <div role="link" tabindex="0" aria-label="View all 9 lifts" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>View all 9 lifts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+</div></template>
+<template id="s-G08"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">255 lb</div>
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center; margin-top: 2px;"><div role="link" tabindex="0" aria-label="Setup" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Setup</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="Lift actions" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Lift actions</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: 0; color: #1C1B18; text-wrap: pretty;">First session at 255 lb.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">Aim for 7 · 8 · 6 · 5. Today sets the new line; nothing is earned or missed.</div>
+  </div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, current, target 7 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 2px solid #1C1B18; border-radius: 10px; color: #1C1B18; background: #FFFFFF;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;">Target 7</span>
+    </div>
+    <div aria-label="Set 2 of 4, target 8 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 8</span>
+    </div>
+    <div aria-label="Set 3 of 4, target 6 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 6</span>
+    </div>
+    <div aria-label="Set 4 of 4, target 5 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 5</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 18px;">
+    <div style="font-size: 16px; color: #5A5348;">Set 1 reps</div>
+    <div role="group" aria-label="Set 1 reps" style="display: flex; flex-direction: row; align-items: center; gap: 12px;">
+      <div role="button" tabindex="0" aria-label="Decrease Set 1 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></div>
+      <div aria-live="polite" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1; min-width: 44px; text-align: center;">7</div>
+      <div role="button" tabindex="0" aria-label="Increase Set 1 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></div>
+    </div>
+  </div>
+  <div role="button" tabindex="0" aria-label="LOG SET 1" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 18px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG SET 1</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+  </div>
+<div role="link" tabindex="0" aria-label="Why this target?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this target?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+</div></template>
+<template id="s-G09"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, 9 reps logged, 0 clean reps left" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 2 of 4, 9 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">9 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 3 of 4, 7 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">7 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+    <div aria-label="Set 4 of 4, 6 reps logged" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">6 logged<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg></span>
+    </div>
+  </div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: 0; color: #1C1B18; text-wrap: pretty;">265 lb stays.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">Set 1 was reported at 0 clean reps left. Reach today’s targets again with at least 1 clean rep left on the first set.</div>
+  </div>
+<div role="link" tabindex="0" aria-label="Why this target?" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Why this target?</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  <div role="button" tabindex="0" aria-label="NEXT LIFT" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 18px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>NEXT LIFT</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #D8D0C2;">
+    <div style="font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;">Up next</div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px;">
+      <div style="font-size: 17px; font-weight: 500;">Machine fly</div>
+      <div style="font-size: 15px; color: #5A5348; white-space: nowrap;">10 · 10 · 105 lb</div>
+    </div>
+    <div role="link" tabindex="0" aria-label="View all 9 lifts" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>View all 9 lifts</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div>
+  </div>
+</div></template>
+<template id="s-G10"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; margin-top: 26px;">
+    <div role="heading" aria-level="1" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.015em;">Press</div>
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1; letter-spacing: -0.02em; white-space: nowrap;">265 lb</div>
+  </div>
+  <div style="display: flex; flex-direction: row; gap: 24px; align-items: center; margin-top: 2px;"><div role="link" tabindex="0" aria-label="Setup" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Setup</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div><div role="link" tabindex="0" aria-label="Lift actions" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; font-weight: 500; color: #1C1B18; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; text-decoration-color: #D8D0C2;"><span>Lift actions</span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></div></div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: 0; color: #1C1B18; text-wrap: pretty;">Keep 265 lb today. Reps can still rise.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">The last two first sets had no clean reps left. Reach today’s targets with at least 1 clean rep left on the first set to reopen a weight increase.</div>
+  </div>
+  <div role="group" aria-label="Sets" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5em, 1fr)); gap: 8px; margin-top: 14px;">
+    <div aria-label="Set 1 of 4, current, target 9 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 2px solid #1C1B18; border-radius: 10px; color: #1C1B18; background: #FFFFFF;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;">Set 1</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;">Target 9</span>
+    </div>
+    <div aria-label="Set 2 of 4, target 9 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 2</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 9</span>
+    </div>
+    <div aria-label="Set 3 of 4, target 7 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 3</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 7</span>
+    </div>
+    <div aria-label="Set 4 of 4, target 6 reps" style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border: 1px solid #D8D0C2; border-radius: 10px; color: #5A5348; background: transparent;">
+      <span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set 4</span>
+      <span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target 6</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-top: 18px;">
+    <div style="font-size: 16px; color: #5A5348;">Set 1 reps</div>
+    <div role="group" aria-label="Set 1 reps" style="display: flex; flex-direction: row; align-items: center; gap: 12px;">
+      <div role="button" tabindex="0" aria-label="Decrease Set 1 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"></path></svg></div>
+      <div aria-live="polite" style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1; min-width: 44px; text-align: center;">9</div>
+      <div role="button" tabindex="0" aria-label="Increase Set 1 reps" style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; box-sizing: border-box; border: 1.5px solid #1C1B18; border-radius: 50%; color: #1C1B18;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></div>
+    </div>
+  </div>
+  <div role="button" tabindex="0" aria-label="LOG SET 1" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 18px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>LOG SET 1</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+  </div>
+</div></template>
+<template id="s-G11"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div role="link" tabindex="0" aria-label="Back to the lift" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; color: #5A5348;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg><span>Press · 265 lb</span></div>
+  <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1.02; letter-spacing: -0.015em; margin: 8px 0 14px 0;">Lift actions</div>
+  <div role="button" tabindex="0" style="display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-size: 17px; font-weight: 500;">Setup notes</div>
+    <div style="font-size: 14px; color: #6F6759;">Seat 4 · handles neutral</div>
+  </div>
+  <div role="button" tabindex="0" style="display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-size: 17px; font-weight: 500;">Use a different load today</div>
+    <div style="font-size: 14px; color: #6F6759;">Logs what you actually lifted; the plan stays put</div>
+  </div>
+  <div role="button" tabindex="0" style="display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-size: 17px; font-weight: 500;">Skip this lift</div>
+    <div style="font-size: 14px; color: #6F6759;">Recorded as skipped, never as zero</div>
+  </div>
+  <div role="button" tabindex="0" style="display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-size: 17px; font-weight: 500;">Note pain or a joint</div>
+    <div style="font-size: 14px; color: #6F6759;">Kept with today’s record</div>
+  </div>
+  <div role="button" tabindex="0" style="display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-size: 17px; font-weight: 500;">Reorder today’s lifts</div>
+    
+  </div>
+  <div role="button" tabindex="0" style="display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-size: 17px; font-weight: 500;">End workout early</div>
+    <div style="font-size: 14px; color: #6F6759;">Unlogged lifts stay unlogged</div>
+  </div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="CANCEL" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 0px; background: transparent; color: #1C1B18; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>CANCEL</span>
+  </div>
+</div></template>
+<template id="s-G12"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">Lift 2 of 9</div>
+  </div>
+  <div style="flex-grow: 1;"></div>
+  <div role="dialog" aria-modal="true" aria-label="End workout early?" style="display: flex; flex-direction: column; gap: 12px; padding: 24px 0 8px 0; border-top: 1px solid #1C1B18;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 36px; line-height: 1.02; letter-spacing: -0.015em;">End workout early?</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">Press is incomplete; 7 lifts haven’t started. Your logged sets will stay saved. Everything else stays not logged — not zero.</div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; margin-top: 14px;">
+    <div role="button" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 0 12px;">Keep logging</div>
+    <div role="button" tabindex="0" style="display: flex; align-items: center; justify-content: center; min-height: 52px; box-sizing: border-box; background: transparent; color: #1C1B18; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; padding: 0 12px;">Finish anyway</div>
+  </div>
+</div></template>
+<template id="s-G13"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px;">
+    <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-style: italic; font-size: 19px; color: #5A5348;">Thursday · Upper body</div>
+    <div style="font-size: 14px; color: #5A5348; white-space: nowrap;">9 of 9 complete</div>
+  </div>
+  <div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 42px; line-height: 1.02; letter-spacing: -0.015em; margin-top: 26px;">All nine lifts logged.</div>
+  <div role="status" style="display: flex; flex-direction: column; gap: 8px; padding: 18px 0; margin-top: 18px; border-top: 1px solid #1C1B18; border-bottom: 1px solid #D8D0C2;">
+    <div style="font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; font-weight: 600; line-height: 1.4; letter-spacing: 0; color: #1C1B18; text-wrap: pretty;">Press: full target reached once at 265 lb.</div>
+    <div style="font-size: 16px; line-height: 1.5; color: #1C1B18; text-wrap: pretty;">One more like this makes 255 lb ready for your choice.</div>
+  </div>
+  <div style="display: flex; flex-direction: column; margin-top: 6px;">
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Lateral raise</span><span style="color: #5A5348; white-space: nowrap;">15 · 15 · 13 · 12 · 11 · 105 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Press</span><span style="color: #5A5348; white-space: nowrap;">9 · 9 · 7 · 6 · 265 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Machine fly</span><span style="color: #5A5348; white-space: nowrap;">10 · 10 · 105 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Pulldown</span><span style="color: #5A5348; white-space: nowrap;">9 · 9 · 8 · 205 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Seated row</span><span style="color: #5A5348; white-space: nowrap;">10 · 11 · 205 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Rear-delt fly (per side)</span><span style="color: #5A5348; white-space: nowrap;">10 · 10 · 9 · 45 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Preacher curl</span><span style="color: #5A5348; white-space: nowrap;">10 · 10 · 9 · 55 / 55 / 65 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Tricep extension</span><span style="color: #5A5348; white-space: nowrap;">14 · 10 · 8 · 70 lb</span></div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 2px 12px; min-height: 44px; box-sizing: border-box; padding: 10px 0; border-bottom: 1px solid #D8D0C2; font-size: 15px;"><span style="flex: 1 1 9em; display: flex; align-items: center; gap: 8px; color: #1C1B18;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Wrist curl</span><span style="color: #5A5348; white-space: nowrap;">14 · 14 · 104.8 lb</span></div>
+  </div>
+  <div style="flex-grow: 1;"></div>
+  <div role="button" tabindex="0" aria-label="FINISH SESSION" style="display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 56px; box-sizing: border-box; padding: 0 20px; margin-top: 16px; background: #1C1B18; color: #F4F0E8; border: 1.5px solid #1C1B18; border-radius: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;">
+    <span>FINISH SESSION</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+  </div>
+</div></template>
+<template id="s-G14"><div style="width: 100%; min-height: 100%; box-sizing: border-box; background: #F4F0E8; color: #1C1B18; font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 16px; display: flex; flex-direction: column; padding: 56px 24px 24px 24px; -webkit-font-smoothing: antialiased; font-variant-numeric: lining-nums tabular-nums;">
+  <div role="link" tabindex="0" aria-label="Back to the lift" style="display: flex; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; font-size: 16px; color: #5A5348;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg><span>Press · set 2</span></div>
+  <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: baseline; margin: 8px 0 14px 0;"><div style="font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-size: 40px; line-height: 1.02; letter-spacing: -0.015em;">Today’s lifts</div><div style="font-size: 14px; color: #5A5348;">Upper body · 9</div></div>
+  <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; padding: 8px 0; border-bottom: 1px solid #1C1B18; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #6F6759;"><span style="flex: 1 1 9em;">Lift</span><span style="display: flex; gap: 14px; white-space: nowrap;"><span>Target reps</span><span style="min-width: 64px; text-align: right;">Load</span></span></div>
+  <div style="display: flex; flex-direction: column;">
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Lateral raise</span><span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F6759; font-weight: 500;">Logged</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">15 · 15 · 13 · 12 · 11</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">105 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; font-weight: 600;">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Press</span><span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: #6F6759; font-weight: 500;">Current · set 2</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">9 · 9 · 7 · 6</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">265 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Machine fly</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">10 · 10</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">105 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Pulldown</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">9 · 9 · 8</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">205 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Seated row</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">10 · 11</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">205 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Rear-delt fly (per side)</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">10 · 10 · 9</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">45 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Preacher curl</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">10 · 10 · 9</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">55 / 55 / 65 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Tricep extension</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">14 · 10 · 8</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">70 lb</span></span>
+    </div>
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 4px 14px; align-items: baseline; min-height: 56px; box-sizing: border-box; padding: 14px 0; border-bottom: 1px solid #D8D0C2; ">
+      <span style="flex: 1 1 9em; font-size: 16px; display: flex; flex-direction: column; gap: 2px;"><span style="display: flex; align-items: center; gap: 8px;">Wrist curl</span></span>
+      <span style="display: flex; gap: 14px; align-items: baseline; white-space: nowrap;"><span style="font-size: 15px; color: #5A5348;">14 · 14</span><span style="font-size: 15px; color: #1C1B18; min-width: 64px; text-align: right;">104.8 lb</span></span>
+    </div>
+  </div>
+  <div style="font-size: 15px; line-height: 1.5; color: #6F6759; margin-top: 14px; text-wrap: pretty;">At large text, each lift stacks into a name line plus a target-and-load line.</div>
+</div></template>
+<script>
+(function () {
+  const phone = document.getElementById("phone");
+  const $t = (id) => document.getElementById("s-" + id);
+  const S = { weight: null, from: "T01", prev: [], lift: null, sheet: null };
+  const LIFT = () => ({ idx: "Lift 2 of 9", name: "Press", load: "265 lb", targets: [9, 9, 7, 6], logged: [], reserve: null, cur: 0, reps: 9, finalReserve: null });
+  /* ---- row markup, verbatim from the canvas (logged / current / upcoming) ---- */
+  const CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>';
+  const row = (n, total, kind, val) => {
+    const base = "display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-height: 56px; box-sizing: border-box; padding: 9px 12px; border-radius: 10px;";
+    if (kind === "logged") return `<div aria-label="Set ${n} of ${total}, ${val} reps logged" style="${base} border: 1px solid #D8D0C2; color: #5A5348; background: transparent;"><span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set ${n}</span><span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">${val} logged${CHECK}</span></div>`;
+    if (kind === "current") return `<div aria-label="Set ${n} of ${total}, current, target ${val} reps" style="${base} border: 2px solid #1C1B18; color: #1C1B18; background: #FFFFFF;"><span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600;">Set ${n}</span><span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase;">Target ${val}</span></div>`;
+    return `<div aria-label="Set ${n} of ${total}, target ${val} reps" style="${base} border: 1px solid #D8D0C2; color: #5A5348; background: transparent;"><span style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500;">Set ${n}</span><span style="display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase;">Target ${val}</span></div>`;
+  };
+  function paintRows(root, L, currentIsOpen) {
+    const sets = root.querySelector('[aria-label="Sets"]'); if (!sets) return;
+    const total = L.targets.length; let h = "";
+    for (let i = 0; i < total; i++) { if (i < L.logged.length) h += row(i + 1, total, "logged", L.logged[i]); else if (i === L.logged.length && currentIsOpen) h += row(i + 1, total, "current", L.targets[i]); else h += row(i + 1, total, "up", L.targets[i]); }
+    sets.innerHTML = h;
+  }
+  function liftScreen(L) {   /* set 1..n-1 → the G01 board; the final set → the G04 board (reps + reserve) */
+    const n = L.logged.length + 1, last = n === L.targets.length;
+    const tpl = $t(last ? "G04" : "G01"); let htmlStr = tpl.innerHTML;
+    const k = last ? 4 : 2;   /* the boards are drawn at set 2 (G01) and set 4 (G04) */
+    htmlStr = htmlStr.split(`Set ${k} reps`).join(`Set ${n} reps`).split(`LOG SET ${k}`).join(`LOG SET ${n}`);
+    const frag = document.createElement("div"); frag.innerHTML = htmlStr; const root = frag.firstElementChild;
+    paintRows(root, L, true);
+    const live = root.querySelector(`[role="group"][aria-label="Set ${n} reps"] [aria-live]`); if (live) live.textContent = String(L.reps);
+    /* the board's "Set k logged · Undo" receipt under the button: it names the PREVIOUS set, and there is none before set 1 */
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let node; while ((node = w.nextNode())) { if (/^Set \d logged$/.test(node.nodeValue.trim())) { if (n === 1) { node.parentElement.parentElement.remove(); } else { node.nodeValue = `Set ${n - 1} logged · ${L.logged[n - 2]} reps`; } break; } }
+    return root;
+  }
+  function staticLift(id, L) { const frag = document.createElement("div"); frag.innerHTML = $t(id).innerHTML; const root = frag.firstElementChild; paintRows(root, L, false); return root; }
+  function setText(root, from, to) { const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); let node; while ((node = w.nextNode())) if (node.nodeValue.indexOf(from) > -1) node.nodeValue = node.nodeValue.split(from).join(to); }
+  /* ---- screens ---- */
+  let current = null;
+  function render(id, opts = {}) {
+    if (current && !opts.noHistory) S.prev.push(current);
+    current = id; S.sheet = null;
+    let root;
+    if (id === "G_LIFT") root = liftScreen(S.lift);
+    else if (id === "G03" || id === "G05" || id === "G06" || id === "G07" || id === "G_KEPT" || id === "G_MISSED") { root = staticLift(id === "G_KEPT" || id === "G_MISSED" ? "G05" : id, S.lift);
+      if (id === "G_KEPT") { setText(root, "Full target reached once at 265 lb.", "You kept 265 lb."); setText(root, "One more like this makes 255 lb ready for your choice.", "255 lb stays ready — it will be offered again next time."); }
+      if (id === "G_MISSED") { setText(root, "Full target reached once at 265 lb.", "Not the full target today. 265 lb stays."); setText(root, "One more like this makes 255 lb ready for your choice.", "Next time aims for 9 · 9 · 7 · 6 again. Nothing changes."); }
+      if (id === "G03" || id === "G05" || id === "G_KEPT" || id === "G_MISSED") { const L = S.lift; const lastN = L.logged.length; setText(root, "Set 4 logged · 6 reps · 2 clean reps left", `Set ${lastN} logged · ${L.logged[lastN - 1]} reps` + (L.finalReserve != null ? ` · ${L.finalReserve} clean reps left` : "")); setText(root, "Set 1 logged · 9 reps", `Set 1 logged · ${L.logged[0]} reps`); } }
+    else { const frag = document.createElement("div"); frag.innerHTML = $t(id).innerHTML; root = frag.firstElementChild; }
+    if (S.weight != null && (id === "T01" || id === "T07")) setText(root, "181.3", S.weight);
+    const wrap = document.createElement("div"); wrap.className = "screen"; wrap.appendChild(root);
+    phone.replaceChildren(wrap); wrap.scrollTop = 0;
+    if (id.startsWith("T0") && id !== "T08") S.from = id;
+  }
+  function back() { const p = S.prev.pop(); if (p) render(p, { noHistory: true }); }
+  function toast(msg) { let t = phone.querySelector(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; phone.appendChild(t); } t.textContent = msg; requestAnimationFrame(() => t.classList.add("on")); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("on"), 2200); }
+  /* ---- the weigh-in sheet (not on the canvas: the one input the morning needs) ---- */
+  function weighSheet(next) {
+    const d = document.createElement("div"); d.className = "sheet"; d.innerHTML = `<div class="eyebrow">This morning</div><input class="big" type="number" inputmode="decimal" step="0.1" min="60" max="400" placeholder="—" aria-label="Weight in pounds"><div class="unit">lb, first thing, before eating</div><div class="help">One number a day is all Earned needs. It never asks twice.</div><div class="grow"></div><div class="btn" id="saveW"><span>SAVE</span><span aria-hidden="true">→</span></div><div class="btn quiet" id="notNow"><span>NOT NOW</span><span></span></div>`;
+    phone.appendChild(d); const inp = d.querySelector("input"); setTimeout(() => inp.focus(), 50);
+    const save = () => { const v = parseFloat(inp.value); if (!isFinite(v)) { inp.focus(); toast("Type this morning’s number, or tap Not now."); return; } S.weight = v.toFixed(1); render(next); toast("Saved on this phone · not yet synced"); };
+    d.querySelector("#saveW").addEventListener("click", save); inp.addEventListener("keydown", (e) => { if (e.key === "Enter") save(); });
+    d.querySelector("#notNow").addEventListener("click", () => d.remove());
+  }
+  function whySheet(title, lines) {
+    const d = document.createElement("div"); d.className = "why"; d.innerHTML = `<h2>${title}</h2>` + lines.map((l) => `<p>${l}</p>`).join("") + `<div class="back" role="link" tabindex="0">← Back</div>`;
+    phone.appendChild(d); d.querySelector(".back").addEventListener("click", () => d.remove());
+  }
+  /* ---- transitions: state → (aria-label or text) → next ---- */
+  const goGym = () => { S.lift = LIFT(); render("G_LIFT"); };
+  const T = {
+    T01: { "Why this plan?": "T08", "OPEN UPPER BODY · 9 LIFTS": goGym, "Weighed in": () => toast("Weighed in at " + (S.weight || "181.3") + " lb this morning") },
+    T02: { "LOG THIS MORNING’S WEIGHT": () => weighSheet("T01"), "No reading yet": () => toast("Nothing is decided until you weigh in.") },
+    T03: { "LOG THIS MORNING’S WEIGHT": () => weighSheet("T01"), "Why this plan?": "T08", "Upper body · 9 lifts": goGym, "Last reading 10 days ago": () => toast("Ten days without a reading: the plan is held, not re-aimed.") },
+    T04: { "Add 1,000 steps/day": "T05", "Keep current plan": () => { render("T01"); toast("Kept. Nothing changed."); }, "Why this proposal?": () => whySheet("Why this proposal?", ["Your trend is down 0.6 lb a week. Your plan is set for 1.0–1.30 lb a week.", "Steps move first because they cost nothing in recovery. Food stays at about 2,100 kcal.", "Nothing changes until you choose. Keeping the plan is always a choice."]), "OPEN UPPER BODY · 9 LIFTS": goGym },
+    T05: { "Undo": () => { render("T04"); toast("Undone. Back to the question."); }, "History": () => whySheet("History", ["Today · Step target increased by 1,000 a day — now 17,000. Changed just now.", "Aug 10 · Plan kept. Trend −1.1 lb a week, in range.", "Aug 3 · Food target set to about 2,300 kcal."]), "OPEN UPPER BODY · 9 LIFTS": goGym },
+    T06: { "LOG THIS MORNING’S WEIGHT": () => weighSheet("T07") },
+    T07: { "Why this plan?": "T08", "OPEN UPPER BODY · 9 LIFTS": goGym },
+    T08: { "Back to Today": () => render(S.from, { noHistory: true }) },
+    G03: { "Undo": () => { S.lift.logged.pop(); S.lift.reps = S.lift.targets[0]; render("G_LIFT"); }, "Setup": () => toast("Setup notes: not in this mock."), "Lift actions": "G11", "View all 9 lifts": "G14" },
+    G05: { "Undo": () => { S.lift.logged.pop(); S.lift.reps = S.lift.targets[3]; render("G_LIFT"); }, "Why this target?": () => whySheet("Why this target?", ["A full target means every set at or above its number with at least one clean rep left.", "Two full-target sessions at a load make the next rung ready. One has been reached at 265 lb.", "Nothing changes on its own. When 255 lb is ready, you choose."]), "NEXT LIFT": "G13", "View all 9 lifts": "G14" },
+    G_KEPT: { "Undo": () => render("G06"), "Why this target?": () => whySheet("Why this target?", ["Two full-target sessions at 265 lb made 255 lb ready.", "You kept 265 lb. That is a choice, not a miss — it will be offered again next time.", "Nothing changes on its own."]), "NEXT LIFT": "G13", "View all 9 lifts": "G14" },
+    G_MISSED: { "Undo": () => { S.lift.logged.pop(); S.lift.reps = S.lift.targets[3]; render("G_LIFT"); }, "Why this target?": () => whySheet("Why this target?", ["A full target means every set at or above its number with at least one clean rep left.", "Today fell short on at least one set, so nothing moves. 265 lb stays.", "Next time aims for 9 · 9 · 7 · 6 again."]), "NEXT LIFT": "G13", "View all 9 lifts": "G14" },
+    G06: { "Use 255 lb": () => { render("G07"); toast("Chosen. Next Press load: 255 lb."); }, "Keep 265 lb": () => { render("G_KEPT"); toast("Kept 265 lb."); }, "Why this target?": () => whySheet("Why this target?", ["Full target reached twice at 265 lb — today and one earlier session.", "That is the rule for the next rung: two full-target sessions, nothing sooner.", "Nothing changes until you choose. Keep is a real choice."]), "NEXT LIFT": "G13" },
+    G07: { "Undo": () => { render("G06"); toast("Undone. 255 lb is still ready."); }, "History": () => whySheet("History", ["Today · Next Press load chosen: 255 lb.", "Aug 6 · Full target reached once at 265 lb.", "Jul 30 · First session at 265 lb."]), "NEXT LIFT": "G13", "View all 9 lifts": "G14" },
+    G08: { "Setup": () => toast("Setup notes: not in this mock."), "Lift actions": "G11", "View all 9 lifts": "G14" },
+    G09: { "Why this target?": () => whySheet("Why this target?", ["The opener ran hot: 9 reps with 0 clean reps left.", "A grind is not an earn. Repeat it honest and the load queues itself."]), "NEXT LIFT": "G13", "View all 9 lifts": "G14" },
+    G10: { "Setup": () => toast("Setup notes: not in this mock."), "Lift actions": "G11", "View all 9 lifts": "G14" },
+    G11: { "Back to the lift": back, "CANCEL": back, "End workout early": "G12", "Setup notes": () => toast("Setup notes: not in this mock."), "Use a different load today": () => toast("Not in this mock."), "Skip this lift": () => toast("Not in this mock."), "Note pain or a joint": () => toast("Not in this mock."), "Reorder today’s lifts": () => toast("Not in this mock.") },
+    G12: { "Keep logging": back, "Finish anyway": "G13" },
+    G13: { "FINISH SESSION": () => { render("T01"); toast("Session saved on this phone · not yet synced"); } },
+    G14: { "Back to the lift": back },
+  };
+  function onLift(key, el) {   /* the live lift screen (G01/G04 boards) */
+    const L = S.lift, n = L.logged.length + 1, last = n === L.targets.length;
+    if (key === `Increase Set ${n} reps` || key === `Decrease Set ${n} reps`) { L.reps = Math.max(0, Math.min(30, L.reps + (key.startsWith("Inc") ? 1 : -1))); const live = phone.querySelector(`[role="group"][aria-label="Set ${n} reps"] [aria-live]`); if (live) live.textContent = String(L.reps); return; }
+    if (el.getAttribute("role") === "radio") { const g = el.closest('[role="radiogroup"]'); if (g) g.querySelectorAll('[role="radio"]').forEach((r) => r.setAttribute("aria-checked", r === el ? "true" : "false")); L.finalReserve = el.textContent.trim(); return; }
+    if (key === `LOG SET ${n}`) { L.logged.push(L.reps); if (n === 1) { render("G03"); return; } if (!last) { L.reps = L.targets[n]; render("G_LIFT"); return; }
+      const full = L.logged.every((r, i) => r >= L.targets[i]); render(full ? "G06" : "G_MISSED"); return; }
+    if (key === "Undo") { if (!L.logged.length) return; L.logged.pop(); L.reps = L.targets[L.logged.length]; render("G_LIFT", { noHistory: true }); return; }
+    if (key === "Setup") return toast("Setup notes: not in this mock.");
+    if (key === "Lift actions") return render("G11");
+    if (key === "View all 9 lifts") return render("G14");
+    if (key === "Why this target?") return whySheet("Why this target?", ["Targets are the reps you delivered last time at this load, plus what your own history says you can add.", "Log what happened. The app never rounds a set up."]);
+  }
+  phone.addEventListener("click", (e) => {
+    const el = e.target.closest('[role="button"], [role="link"], [role="radio"]'); if (!el || !phone.contains(el)) return;
+    const key = el.getAttribute("aria-label") || el.textContent.replace(/\s+/g, " ").trim();
+    if (current === "G_LIFT") return onLift(key, el);
+    if (current === "G03" && el.getAttribute("role") === "radio") { const g = el.closest('[role="radiogroup"]'); g.querySelectorAll('[role="radio"]').forEach((r) => r.setAttribute("aria-checked", r === el ? "true" : "false")); S.lift.reserve = el.textContent.trim(); S.lift.reps = S.lift.targets[1]; setTimeout(() => render("G_LIFT"), 260); return; }
+    const map = T[current] || {}; const hit = map[key];
+    if (typeof hit === "string") render(hit); else if (typeof hit === "function") hit(el); else if (el.getAttribute("role") !== "radio") toast("Not in this mock.");
+  });
+  phone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { const el = e.target.closest('[role="button"], [role="link"], [role="radio"]'); if (el) { e.preventDefault(); el.click(); } } });
+  /* ---- the owner's scenario bar ---- */
+  const SCEN = { morning: () => { S.weight = null; S.prev = []; render("T02", { noHistory: true }); }, decision: () => { S.prev = []; render("T04", { noHistory: true }); }, gym: () => { S.prev = []; S.lift = LIFT(); render("G_LIFT", { noHistory: true }); }, stale: () => { S.weight = null; S.prev = []; render("T03", { noHistory: true }); }, return: () => { S.weight = null; S.prev = []; render("T06", { noHistory: true }); }, hot: () => { S.prev = []; S.lift = LIFT(); S.lift.logged = [9, 9, 7, 6]; render("G09", { noHistory: true }); }, debut: () => { S.prev = []; S.lift = LIFT(); S.lift.load = "255 lb"; render("G08", { noHistory: true }); } };
+  document.querySelectorAll("#bar [data-go]").forEach((b) => b.addEventListener("click", () => SCEN[b.dataset.go]()));
+  const bar = document.getElementById("bar"), script = document.getElementById("script");
+  document.getElementById("tScript").addEventListener("click", () => { script.hidden = !script.hidden; document.getElementById("tScript").textContent = script.hidden ? "Test script" : "Hide script"; });
+  document.getElementById("hideBar").addEventListener("click", () => { bar.hidden = true; script.hidden = true; });
+  let taps = [];   /* triple-tap the phone's top edge to bring the bar back */
+  phone.addEventListener("pointerdown", (e) => { if (e.offsetY > 48) return; const now = Date.now(); taps = taps.filter((t) => now - t < 700); taps.push(now); if (taps.length >= 3) { bar.hidden = false; taps = []; } });
+  const q = new URLSearchParams(location.search);
+  if (q.has("dad")) bar.hidden = true;
+  document.getElementById("barNote").textContent = "Every number is sample data. Tap the top edge three times to bring this bar back.";
+  SCEN[q.get("start") || "morning"]();
+})();
+</script>
