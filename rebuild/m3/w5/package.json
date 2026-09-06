@@ -1,0 +1,7 @@
+{
+  "name": "earned-w5-authority-bridge",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": { "build": "node build.cjs", "test": "node ../rigs/run.cjs --env local" },
+  "devDependencies": { "wrangler": "4.129.0", "esbuild": "0.28.1" }
+}

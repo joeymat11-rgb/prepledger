@@ -1,0 +1,120 @@
+{
+  "profile": "earned/p256-sha256-p1363-low-s/v1",
+  "canonicalProfile": "earned/canonical/v1",
+  "signatureEncoding": "ES256.<pinned-kid>.<unpadded-base64url-of-64-byte-r-then-s>",
+  "curve": "P-256",
+  "digest": "SHA-256",
+  "signatureIntegerWidthBytes": 32,
+  "signatureByteOrder": "big-endian",
+  "lowSRequired": true,
+  "domainSeparator": "none; UTF-8(domain + canonicalEncode(record minus signature field))",
+  "references": [
+    "https://nodejs.org/api/crypto.html#cryptosignalgorithm-data-key-callback",
+    "https://www.w3.org/TR/WebCryptoAPI/#ecdsa-operations",
+    "https://www.rfc-editor.org/rfc/rfc7518#section-3.4"
+  ],
+  "domains": {
+    "disposition": "earned/disposition/v1",
+    "lease": "earned/lease/v1",
+    "serverTime": "earned/server-time/v1",
+    "receipt": "earned/receipt/v1",
+    "pull": "earned/pull/v1",
+    "snapshot": "earned/snapshot/v1"
+  },
+  "canonicalVectors": [
+    {
+      "name": "nfc-set-null-negative-zero",
+      "domain": "earned/disposition/v1",
+      "field": "authority_signature",
+      "record": {
+        "z": null,
+        "text": "Café",
+        "n": 0,
+        "causal_parents": [
+          "b",
+          "a",
+          "a"
+        ],
+        "authority_signature": "excluded"
+      },
+      "canonicalText": "earned/disposition/v1{\"causal_parents\":[\"a\",\"b\"],\"n\":0,\"text\":\"Café\",\"z\":null}",
+      "utf8Hex": "6561726e65642f646973706f736974696f6e2f76317b2263617573616c5f706172656e7473223a5b2261222c2262225d2c226e223a302c2274657874223a22436166c3a9222c227a223a6e756c6c7d"
+    },
+    {
+      "name": "v1-decimal-defects-preserved",
+      "domain": "earned/snapshot/v1",
+      "field": "authority_signature",
+      "record": {
+        "large": 1.5e+30,
+        "tiny": 1e-22,
+        "array": [
+          2,
+          1,
+          null
+        ],
+        "authority_signature": "excluded"
+      },
+      "canonicalText": "earned/snapshot/v1{\"array\":[2,1,null],\"large\":1.5e+3,\"tiny\":0}",
+      "utf8Hex": "6561726e65642f736e617073686f742f76317b226172726179223a5b322c312c6e756c6c5d2c226c61726765223a312e35652b332c2274696e79223a307d"
+    },
+    {
+      "name": "challenge-binding-and-lease-signature-field",
+      "domain": "earned/lease/v1",
+      "field": "signature",
+      "record": {
+        "device_id": "phone-a",
+        "athlete_id": "athlete-a",
+        "range": [
+          1,
+          5
+        ],
+        "signature": "excluded"
+      },
+      "canonicalText": "earned/lease/v1{\"athlete_id\":\"athlete-a\",\"device_id\":\"phone-a\",\"range\":[1,5]}",
+      "utf8Hex": "6561726e65642f6c656173652f76317b226174686c6574655f6964223a226174686c6574652d61222c226465766963655f6964223a2270686f6e652d61222c2272616e6765223a5b312c355d7d"
+    }
+  ],
+  "encodingVectors": [
+    {
+      "name": "synthetic-integers-no-key-no-cryptographic-claim",
+      "kid": "encoding-only",
+      "rHex": "0000000000000000000000000000000000000000000000000000000000000001",
+      "sHex": "0000000000000000000000000000000000000000000000000000000000000002",
+      "rawHex": "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000002",
+      "encodingValid": true,
+      "cryptographicallyValid": false,
+      "signature": "ES256.encoding-only.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAg"
+    }
+  ],
+  "keyPolicy": "No keys are stored in fixtures. Native keypairs are generated independently for every test run. The phone receives public verify-only JWKs. Test issuance keys are never production trust pins.",
+  "wireVersion": "earned/w5-http/v1",
+  "timeProfile": "earned/challenge-time/v1",
+  "epochPolicy": "kid names one immutable public verification key; new signed HTTP time/pull/snapshot envelopes carry key_epoch equal to their signature kid. Phones pin all accepted history epochs; no trust on first use or automatic key discovery.",
+  "timeContract": {
+    "challengeBytes": 32,
+    "challengeEncoding": "unpadded base64url",
+    "outstandingChallengesPerBoundary": 1,
+    "consume": "once, before the durable client callback; repeated or superseded challenges refused",
+    "maxObservedRoundTripMs": 30000,
+    "timeoutBoundary": "inclusive",
+    "timestamp": "canonical UTC ISO 8601, seconds or exactly three fractional digits",
+    "signedFields": [
+      "wire_version",
+      "time_profile",
+      "key_epoch",
+      "athlete_id",
+      "device_id",
+      "challenge",
+      "server_time"
+    ],
+    "evidence": "authenticated server clock sample only; neither a UTC interval nor a reconciled history/standing checkpoint",
+    "serverSamplePoint": "after the awaited D1 scope revision commit, the last request I/O before signing",
+    "remoteTimerCaveat": "Deployed Workers Date.now/performance.now advance after I/O; local development timers also advance without I/O; timeOrigin is zero. Local timing does not certify remote sample age.",
+    "productionServerUtcErrorBoundMs": null,
+    "productionServerClockRateAndStepBound": null,
+    "qualifiedClientElapsedRateAndSuspendBound": null,
+    "productionFreshnessBoundMs": null,
+    "clockAcceptance": "BLOCKED pending explicit production bounds and W6 knowledge-loss fence",
+    "syntheticAssumptions": "a fixed test clock and injected monotonic samples are fixture premises only; 30000 observed ms is a replay timeout policy, not a certified elapsed-time bound"
+  }
+}
