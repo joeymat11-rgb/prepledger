@@ -168,3 +168,16 @@ test("null/primitive/malformed predecessor is typed18 on read and at same-revisi
     await mutate(f, s => s.put(stable.previous, "previous"));
   } f.repo.close();
 });
+test("actual incoming history preserves a nonzero U: no non-batch charge increase or refill", async () => {
+  const f = await fixture(), write = await staged(f); await f.repo.commitPrepared(write.basis, write.capability, () => ({ kind: "publish", frameFields: write.fields }));
+  const basis = await f.repo.load(); assert(basis.frame.U > 0);
+  const remote = { op_id: "remote-nonzero", athlete_id: "ath-1", device_id: "dev-B", device_seq: 1, canonical_content_commitment: "synthetic" };
+  const incoming = Stage.createT2Stage(config, { allowInbound: true })({ collections: basis.body.collections, metadata: basis.body.retainedMetadata }, "@pull", null, { record: [{ seq: 1, op_id: remote.op_id, op: remote }], proof: { synthetic: true } });
+  const body = { format: 2, collections: incoming.generation.collections, retainedMetadata: incoming.generation.metadata, proofs: basis.body.proofs };
+  for (const U of [basis.frame.U - 1, basis.frame.U + 1]) {
+    const cap = await f.repo.prepare(basis, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 });
+    await assert.rejects(f.repo.commitPrepared(basis, cap, () => ({ kind: "publish", frameFields: frame({ kind: 1, U }) })), e => e.code === "FRAME_NONBATCH_CHARGE_CHANGE"); assert.deepEqual(await f.repo.load(), basis);
+  }
+  const cap = await f.repo.prepare(basis, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }); await f.repo.commitPrepared(basis, cap, () => ({ kind: "publish", frameFields: frame({ kind: 1, U: basis.frame.U }) }));
+  const after = await f.repo.load(); assert.equal(after.frame.U, basis.frame.U); assert.deepEqual(after.body.collections.ops[remote.op_id], remote); f.repo.close();
+});

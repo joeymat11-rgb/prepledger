@@ -212,6 +212,7 @@ export async function openFrameRepository({ indexedDB = globalThis.indexedDB, cr
             const prior = p.basis.frame;
             if (prior.allowanceInvalidated === 1 && fields.allowanceInvalidated !== 1 || fields.H < prior.H || fields.W_last < prior.W_last) fail("FRAME_EVIDENCE_ROLLBACK");
             if (prior.guard === 1 && fields.guard !== 1 || fields.checkpointRef !== prior.checkpointRef) fail("FRAME_CLOSURE_TRANSITION_UNIMPLEMENTED");
+            if (fields.kind !== 0 && fields.U !== prior.U) fail("FRAME_NONBATCH_CHARGE_CHANGE");
           }
           if (fields.kind === 0) {
             if (!p.batch || fields.batchRef !== p.batchRef || fields.batchCount !== p.batch.count || fields.firstSequence !== p.batch.firstSequence || fields.lastSequence !== p.batch.lastSequence || fields.U !== (p.basis?.frame.U || 0) + p.batch.count || fields.checkpointRef !== (p.basis?.frame.checkpointRef ?? null)) fail("FRAME_BATCH_MISMATCH");
