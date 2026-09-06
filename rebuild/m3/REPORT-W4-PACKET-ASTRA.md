@@ -20,7 +20,7 @@ SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implem
 
 The packet contains proposed recovery objectives and a bounded billing-rehearsal option, not owner approval. The actual deployment credential route remains blocked pending ordinary authorized setup and a dummy-data test. The cloud integrator's successful public preflight does not authorize moving private credentials or data there. Production crypto configuration waits for W5/W6's published and verified contracts. No account provisioning or helper policy change occurred. Vendor documentation describes capabilities; it does not prove entitlement or successful setup on the owner's account.
 
-Same-family preparation review corrected appointment ordering, loss-objective wording, billing-delay disclosure and route status. Cowork's independent review is requested on this exact publication; its verdict is not presumed.
+Same-family preparation review corrected appointment ordering, loss-objective wording, billing-delay disclosure and route status. Cowork independently accepted `4f7ade2` as preparation after scope-package and source/vendor checks, with one correction: distinguish the designed owner-run helper from the denied direct agent invocation. This revision applies that distinction, removes presumed administrator remediation and leaves the untested owner-session result NOT RUN. Exact-diff acceptance is requested; no setup success is inferred.
 
 ## NEXT
 
