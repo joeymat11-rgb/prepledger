@@ -6,6 +6,9 @@ import { openRepository } from "../repository.mjs";
 import { frame } from "./frame-support.mjs";
 import { initial, config, faultDatabase, deferred } from "./support.mjs";
 import Stage from "../t2-stage.cjs";
+import { readFileSync, writeFileSync, cpSync, mkdtempSync, rmSync } from "node:fs";
+import { resolve, dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const bytes = x => new TextEncoder().encode(JSON.stringify(x));
 async function fixture(options = {}) {
@@ -13,7 +16,7 @@ async function fixture(options = {}) {
   const indexedDB = options.indexedDB || new IDBFactory(), args = { indexedDB, databaseName: "synthetic-frame", namespace: "ath-1/dev-A/synthetic-frame", crypto,
     bodyKeyProvider: async () => bodyKey, frameKeyProvider: async ({ keyEpoch }) => ({ keyEpoch, keyBytes: frameKey, revisionStart: 1 }), authorizeEnrollment: () => true,
     proofValidators: { "batch/1": () => true }, ...options };
-  const repo = await openFrameRepository(args), generation = initial(), body = { format: 2, collections: generation.collections, retainedMetadata: generation.metadata, proofs: [] };
+  const repo = await (options.factory || openFrameRepository)(args), generation = initial(), body = { format: 2, collections: generation.collections, retainedMetadata: generation.metadata, proofs: [] };
   await repo.commitPrepared(null, await repo.prepare(null, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }), () => ({ kind: "publish", frameFields: frame() }), { enrollmentEvidence: "synthetic-only" });
   return { repo, args, body, bodyKey, frameKey, indexedDB };
 }
@@ -97,4 +100,71 @@ test("explicit synthetic v1 conversion retains exact legacy predecessor and no i
   const cap = await f.prepare(before, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1, compatibility: true }); await f.commitPrepared(before, cap, () => ({ kind: "publish", frameFields: frame({ kind: 3 }) }));
   const after = await f.load(); assert.equal(after.previous.format, 1); assert.deepEqual(after.body.collections, generation.collections); assert.equal(after.unproven, true); assert.equal(after.frame.state, 18);
   await assert.rejects(openRepository({ ...common, keyProvider: async () => key }), e => e.state === 18); f.close();
+});
+test("control persistence quota failure preserves known20 in-process but does not pretend its knowledge became durable", async () => {
+  const faults = faultDatabase(), f = await fixture({ indexedDB: faults.indexedDB }), basis = await f.repo.load();
+  const cap = await f.repo.prepare(basis, basis.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }); faults.state.armed = true; faults.state.mode = "quota";
+  await assert.rejects(f.repo.commitPrepared(basis, cap, () => ({ kind: "control", state: 20, code: "SYNTHETIC_ROLLBACK", frameFields: frame({ state: 20, allowanceInvalidated: 1 }) })), e => e.state === 20 && e.storageState === 3 && e.durable === false);
+  faults.state.armed = false; assert.deepEqual(await f.repo.load(), basis); f.repo.close(); const reopened = await openFrameRepository(f.args); assert.equal((await reopened.load()).frame.state, 18, "no production fence or knowledge persistence was proved"); reopened.close();
+});
+test("durable invalidation and high-water cannot be cleared or moved backward by a later mechanical frame", async () => {
+  const f = await fixture(), basis = await f.repo.load(), cap = await f.repo.prepare(basis, basis.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 });
+  await f.repo.commitPrepared(basis, cap, () => ({ kind: "control", state: 20, code: "SYNTHETIC", frameFields: frame({ state: 20, allowanceInvalidated: 1, H: 123, W_last: 123 }) }));
+  const after = await f.repo.load();
+  for (const patch of [{ allowanceInvalidated: 0 }, { H: 122 }, { W_last: 122 }]) {
+    const next = await f.repo.prepare(after, after.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 });
+    await assert.rejects(f.repo.commitPrepared(after, next, () => ({ kind: "control", state: 20, code: "SYNTHETIC", frameFields: { ...after.frame, ...patch } })), e => e.code === "FRAME_EVIDENCE_ROLLBACK"); assert.deepEqual(await f.repo.load(), after);
+  } f.repo.close();
+});
+test("same-revision predecessor mutation after prepare is caught inside the transaction, not only on load", async () => {
+  const f = await fixture(), a = await staged(f); await f.repo.commitPrepared(a.basis, a.capability, () => ({ kind: "publish", frameFields: a.fields }));
+  const b = await staged(f), tampered = structuredClone(b.basis.previous); tampered.frameNonce[0] ^= 1; await mutate(f, s => s.put(tampered, "previous"));
+  await assert.rejects(f.repo.commitPrepared(b.basis, b.capability, () => ({ kind: "publish", frameFields: b.fields })), e => e.code === "FRAME_HEAD_CHANGED_WITHOUT_REVISION");
+  await mutate(f, s => s.put(b.basis.previous, "previous")); assert.deepEqual(await f.repo.load(), b.basis); f.repo.close();
+});
+test("missing frame/body historical key refuses18 before returning any combined plaintext", async () => {
+  const f = await fixture(); f.repo.close();
+  for (const keyName of ["frameKeyProvider", "bodyKeyProvider"]) { const repo = await openFrameRepository({ ...f.args, [keyName]: () => { throw new Error("synthetic missing key"); } }); await assert.rejects(repo.load(), e => e.state === 18); repo.close(); }
+});
+test("effective disposable frame mutations detect partial charging and omitted predecessor comparison", async () => {
+  const here = resolve(dirname(fileURLToPath(import.meta.url)), ".."), original = readFileSync(join(here, "frame-repository.mjs"), "utf8");
+  for (const [name, needle] of [["partial-charge", "fields.U !== (p.basis?.frame.U || 0) + p.batch.count || "], ["predecessor-compare", "!sameBytes(active.previousRecordDigest, expected) || "]]) {
+    assert.equal(original.split(needle).length, 2); const scratch = mkdtempSync(join(here, ".tmp/frame-mutant-"));
+    try {
+      for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs"]) cpSync(join(here, file), join(scratch, file));
+      writeFileSync(join(scratch, "frame-repository.mjs"), original.replace(needle, "")); const changed = await import(pathToFileURL(join(scratch, "frame-repository.mjs")));
+      const f = await fixture({ factory: changed.openFrameRepository }), a = await staged(f);
+      if (name === "partial-charge") {
+        await f.repo.commitPrepared(a.basis, a.capability, () => ({ kind: "publish", frameFields: { ...a.fields, U: 1 } })); assert.equal((await f.repo.load()).frame.U, 1); assert.notEqual(a.batch.count, 1);
+      } else {
+        await f.repo.commitPrepared(a.basis, a.capability, () => ({ kind: "publish", frameFields: a.fields })); const previous = (await f.repo.load()).previous;
+        const b = await staged(f); await f.repo.commitPrepared(b.basis, b.capability, () => ({ kind: "publish", frameFields: b.fields })); await mutate(f, s => s.put(previous, "previous")); assert.equal((await f.repo.load()).revision, 3);
+      }
+      f.repo.close(); writeFileSync(join(scratch, "frame-repository.mjs"), original); assert.equal(readFileSync(join(scratch, "frame-repository.mjs"), "utf8"), original);
+      console.log(`W6 FRAME MUTANT DETECTED — ${name}; actual wrong durable result witnessed; copy restored byte-for-byte`);
+    } finally { rmSync(scratch, { recursive: true, force: true }); }
+  }
+  assert.equal(readFileSync(join(here, "frame-repository.mjs"), "utf8"), original);
+});
+test("publish kind2/kind3 cannot bypass actual T2 batch charging on an existing v2 basis", async () => {
+  const f = await fixture();
+  for (const kind of [2, 3, 1]) {
+    const c = await staged(f), hidden = await f.repo.prepare(c.basis, c.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1, batch: null });
+    await assert.rejects(f.repo.commitPrepared(c.basis, hidden, () => ({ kind: "publish", frameFields: frame({ kind }) })), e => e.state === 18);
+    assert.deepEqual(await f.repo.load(), c.basis);
+  } f.repo.close();
+});
+test("kind1 actual T2 incoming receipt stores remote history without a new local slot or outbox", async () => {
+  const f = await fixture(), basis = await f.repo.load(), remote = { op_id: "remote-synthetic", athlete_id: "ath-1", device_id: "dev-B", device_seq: 1, canonical_content_commitment: "synthetic" };
+  const candidate = Stage.createT2Stage(config, { allowInbound: true })({ collections: basis.body.collections, metadata: basis.body.retainedMetadata }, "@pull", null, { record: [{ seq: 1, op_id: remote.op_id, op: remote }], proof: { synthetic: true } });
+  const body = { format: 2, collections: candidate.generation.collections, retainedMetadata: candidate.generation.metadata, proofs: [] }, cap = await f.repo.prepare(basis, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 });
+  await f.repo.commitPrepared(basis, cap, () => ({ kind: "publish", frameFields: frame({ kind: 1 }) })); const after = await f.repo.load(); assert.equal(after.frame.U, 0); assert.deepEqual(after.body.collections.ops[remote.op_id], remote); f.repo.close();
+});
+test("null/primitive/malformed predecessor is typed18 on read and at same-revision CAS", async () => {
+  const f = await fixture(), a = await staged(f); await f.repo.commitPrepared(a.basis, a.capability, () => ({ kind: "publish", frameFields: a.fields })); const stable = await f.repo.load();
+  for (const value of [null, 1, "bad", {}, { format: 2 }]) {
+    const b = await staged(f); await mutate(f, s => s.put(value, "previous")); await assert.rejects(f.repo.load(), e => e.state === 18);
+    await assert.rejects(f.repo.commitPrepared(b.basis, b.capability, () => ({ kind: "publish", frameFields: b.fields })), e => e.state === 18);
+    await mutate(f, s => s.put(stable.previous, "previous"));
+  } f.repo.close();
 });

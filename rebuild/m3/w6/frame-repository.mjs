@@ -163,8 +163,10 @@ export async function openFrameRepository({ indexedDB = globalThis.indexedDB, cr
       }
       const bodyDigest = digest(new Uint8Array(body.ciphertext)), priorBodyDigest = basis?.active.format === 2 ? digest(new Uint8Array(basis.active.body.ciphertext)) : null;
       const priorEntries = basis?.body ? validateProofs(basis.body, validators) : null;
+      const priorCollections = basis?.body?.collections || {}, nextCollections = payload.collections;
+      const inboundSafe = Object.keys(nextCollections.outbox || {}).every(id => Object.hasOwn(priorCollections.outbox || {}, id)) && JSON.stringify(nextCollections.meta?.device) === JSON.stringify(priorCollections.meta?.device) && Object.entries(priorCollections.ops || {}).every(([id, op]) => JSON.stringify(nextCollections.ops?.[id]) === JSON.stringify(op));
       const capability = Object.freeze({});
-      prepared.set(capability, { basis, revision, payload, body, bodyDigest, bodyDigestHex: digestHex(new Uint8Array(body.ciphertext)), priorBodyDigest, entries, priorEntries, previousDigest: basis ? digest(recordBytes(basis.active)) : new Uint8Array(32), frameKeyEpoch, attempt, batch: batchCopy, batchRef, compatibility, used: false });
+      prepared.set(capability, { basis, revision, payload, body, bodyDigest, bodyDigestHex: digestHex(new Uint8Array(body.ciphertext)), priorBodyDigest, entries, priorEntries, previousDigest: basis ? digest(recordBytes(basis.active)) : new Uint8Array(32), frameKeyEpoch, attempt, batch: batchCopy, batchRef, compatibility, inboundSafe, used: false });
       return capability;
     } catch (error) { attempt.discard(); if (error instanceof StorageFailure) throw error; fail("FRAME_PREPARE_FAILED", 3); }
   }
@@ -173,7 +175,7 @@ export async function openFrameRepository({ indexedDB = globalThis.indexedDB, cr
     if (typeof finalizeSync !== "function" || (expected === null) !== (p.basis === null) || expected && (expected.revision !== p.basis.revision || expected.token !== p.basis.token)) { p.attempt.discard(); fail("FRAME_EXPECTED_INVALID"); }
     if (!p.basis) { let authorized = false; try { authorized = typeof authorizeEnrollment === "function" && await authorizeEnrollment(enrollmentEvidence, { namespace, databaseName }); } catch {} if (authorized !== true) { p.attempt.discard(); fail("FRAME_ENROLLMENT_UNPROVEN"); } }
     return new Promise((resolve, reject) => {
-      let tx, rejected = null, outcome;
+      let tx, rejected = null, outcome, knownControl = null;
       const abort = error => { rejected = error; try { tx.abort(); } catch {} };
       try { tx = db.transaction(STORE, "readwrite", { durability: "strict" }); } catch { p.attempt.discard(); reject(new StorageFailure("FRAME_TRANSACTION_BEGIN_FAILED", 3)); return; }
       const store = tx.objectStore(STORE); let active, previous, read = 0;
@@ -184,6 +186,7 @@ export async function openFrameRepository({ indexedDB = globalThis.indexedDB, cr
           if (p.basis === null) { if (active !== undefined || previous !== undefined) fail("FRAME_ALREADY_INITIALIZED"); }
           else {
             if (active === undefined) fail("FRAME_STORE_MISSING");
+            recordBytes(active);
             const revision = active.format === 1 ? active.revision : active.commitRevision;
             if (revision !== p.basis.revision) throw new StorageFailure("STALE_REVISION", 3, true);
             if (pairToken(active, previous) !== p.basis.token) fail("FRAME_HEAD_CHANGED_WITHOUT_REVISION");
@@ -199,9 +202,17 @@ export async function openFrameRepository({ indexedDB = globalThis.indexedDB, cr
           if (control) {
             if (!p.basis?.body || active.format !== 2 || fields.kind !== 2 || ![17, 18, 19, 20].includes(decision.state) || fields.state !== decision.state || typeof decision.code !== "string" || fields.U !== p.basis.frame.U || fields.guard !== p.basis.frame.guard || fields.checkpointRef !== p.basis.frame.checkpointRef) fail("FRAME_CONTROL_INVALID");
             body = clone(active.body); entries = p.priorEntries; bodyDigest = p.priorBodyDigest;
+            knownControl = { state: decision.state, code: decision.code };
           }
-          if (p.compatibility && fields.kind !== 3 || !p.compatibility && active?.format === 1) fail("FRAME_CONVERSION_REQUIRED");
+          if ((fields.kind === 3) !== p.compatibility || p.compatibility && !p.basis?.legacy || !p.compatibility && active?.format === 1) fail("FRAME_CONVERSION_REQUIRED");
+          if (!control && fields.kind === 2 && (p.basis !== null || fields.guard !== 0 || fields.state !== 18)) fail("FRAME_CONTROL_PUBLISH_FORBIDDEN");
+          if (!control && fields.kind === 1 && p.basis !== null && !p.inboundSafe) fail("FRAME_INBOUND_LOCAL_WRITE_FORBIDDEN");
           validateReferences(entries, fields);
+          if (p.basis?.frame) {
+            const prior = p.basis.frame;
+            if (prior.allowanceInvalidated === 1 && fields.allowanceInvalidated !== 1 || fields.H < prior.H || fields.W_last < prior.W_last) fail("FRAME_EVIDENCE_ROLLBACK");
+            if (prior.guard === 1 && fields.guard !== 1 || fields.checkpointRef !== prior.checkpointRef) fail("FRAME_CLOSURE_TRANSITION_UNIMPLEMENTED");
+          }
           if (fields.kind === 0) {
             if (!p.batch || fields.batchRef !== p.batchRef || fields.batchCount !== p.batch.count || fields.firstSequence !== p.batch.firstSequence || fields.lastSequence !== p.batch.lastSequence || fields.U !== (p.basis?.frame.U || 0) + p.batch.count || fields.checkpointRef !== (p.basis?.frame.checkpointRef ?? null)) fail("FRAME_BATCH_MISMATCH");
           } else if (!control && p.batch !== null) fail("FRAME_BATCH_MISMATCH");
@@ -212,7 +223,11 @@ export async function openFrameRepository({ indexedDB = globalThis.indexedDB, cr
         } catch (error) { abort(error instanceof StorageFailure ? error : new StorageFailure("FRAME_FINALIZER_FAILED", 3)); }
       }
       tx.oncomplete = () => { p.attempt.discard(); resolve({ ...outcome, durability: { requested: "strict", actual: tx.durability || "unreported" } }); };
-      tx.onabort = () => { p.attempt.discard(); reject(rejected || new StorageFailure("FRAME_TRANSACTION_ABORTED", 3)); }; tx.onerror = () => {};
+      tx.onabort = () => {
+        p.attempt.discard(); let error = rejected || new StorageFailure("FRAME_TRANSACTION_ABORTED", 3);
+        if (knownControl && error.state === 3) { error = new StorageFailure("FRAME_CONTROL_PERSIST_FAILED", knownControl.state); error.storageState = 3; error.durable = false; }
+        reject(error);
+      }; tx.onerror = () => {};
     });
   }
   return Object.freeze({ load, prepare, commitPrepared, close() { db.close(); } });

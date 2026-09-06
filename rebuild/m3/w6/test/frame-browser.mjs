@@ -26,6 +26,10 @@ try {
     let rejected = 0; try { F.parseStrictJson('{"x":1,"\\u0078":2}'); } catch { rejected++; }
     for (const size of [16, 24]) try { F.createFrameAttempt(new Uint8Array(size)); } catch { rejected++; }
     for (const size of [11, 13, 16]) try { F.decryptFrame(key, new Uint8Array(size), aad, sealed); } catch { rejected++; }
+    const disguised = new Uint8Array(16); Object.defineProperty(disguised, "length", { value: 32 }); try { F.createFrameAttempt(disguised); } catch { rejected++; }
+    const alias = new Uint8Array(32); Object.defineProperty(alias, "slice", { value: () => alias }); try { F.createFrameAttempt(alias); } catch { rejected++; }
+    const fakeNonce = new Uint8Array(8); Object.defineProperty(fakeNonce, "length", { value: 12 }); try { F.createFrameAttempt(key, { getRandomValues: () => fakeNonce }); } catch { rejected++; }
+    const decorated = new ArrayBuffer(8); Object.defineProperty(decorated, "byteLength", { value: 16 }); const decoratedRecord = F.record(); decoratedRecord.body.ciphertext = decorated; try { F.frameAad(decoratedRecord); } catch { rejected++; }
     const bodyKey = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]), frameKey = crypto.getRandomValues(new Uint8Array(32));
     const args = { databaseName: "synthetic-frame-browser", namespace: "synthetic-frame-browser", bodyKeyProvider: () => bodyKey,
       frameKeyProvider: () => ({ keyEpoch: 1, keyBytes: frameKey, revisionStart: 1 }), authorizeEnrollment: () => true, proofValidators: { "batch/1": () => true } };
@@ -45,7 +49,7 @@ try {
     const refused = await reopened.load(); if (toHex(new Uint8Array(refused.active.body.ciphertext)) !== toHex(new Uint8Array(after.active.body.ciphertext)) || refused.frame.U !== after.frame.U) throw new Error("control changed body/slots");
     reopened.close(); return { vectors: vectors.length, rejected, batch: batch.count, unproven: after.unproven };
   }, { vectors, generation: initial(), lease: O.lease("dev-A"), auth: O.AUTH_KEY });
-  assert.equal(result.vectors, 26); assert.equal(result.rejected, 6); assert(result.batch > 1); assert.equal(result.unproven, true);
-  console.log(`W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and six refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium ${browser.version()}`);
+  assert.equal(result.vectors, 26); assert.equal(result.rejected, 10); assert(result.batch > 1); assert.equal(result.unproven, true);
+  console.log(`W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and ten refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium ${browser.version()}`);
   console.log("W6 FRAME semantics / CLOCK / custody / phone BLOCKED — mechanical synthetic evidence only");
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

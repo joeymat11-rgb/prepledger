@@ -27,16 +27,24 @@ The26 committed AES256/counter-wrap public test vectors derive from RFC8452 C.2/
 
 ## Evidence and remaining work
 
-Focused codec+parser:16 tests PASS. Frame repository:9 tests PASS using actual T2 and fake IndexedDB. Entire current W6 suite:77 tests PASS/0fail, including unchanged35-law/56-vector defaults and original early-ack bite. Actual Chromium frame runner:
+Initial c238e7b had16 codec/parser tests and9 frame-repository tests. After coordinator review corrections, codec/parser17 and repository17 pass: entire current W6 suite **86 tests PASS/0fail**, including unchanged35-law/56-vector defaults and original early-ack bite. Actual Chromium frame runner:
 
 ```text
 W6 FRAME RFC8452 PASS — 26 AES256/counter-wrap vectors
-W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and six refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium 152.0.4191.66
+W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and ten refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium 152.0.4191.66
 W6 FRAME semantics / CLOCK / custody / phone BLOCKED — mechanical synthetic evidence only
 ```
 
 Reproduce from root: `node --test rebuild/m3/w6/test/*.test.mjs`; with W6_BROWSER_BIN set, `node rebuild/m3/w6/test/frame-browser.mjs`; `node rebuild/m3/w6/test/clean-build.mjs` under the existing W6 package-manager selection. No remote/account/phone action.
-Still required before this mechanics implementation is complete: its full old-tab/versionchange queued-write race; complete migration/crypto/key/control-failure fault cuts; explicit same-revision predecessor mutation at the transaction race; complete library import-pin sensitivity; additional effective mechanical mutations; exact-byte independent re-execution. These are remaining implementation tests, not waived gates.
+Coordinator witnesses found kind-tag charging bypasses, shadowed typed-array/ArrayBuffer size/copy methods, and an untyped malformed-previous error. All are now named regressions: kind2 publish is refused on existing bases; kind3 requires explicit valid v1 conversion; kind1 cannot add a local outbox/sequence and its positive case uses actual T2 synthetic incoming history (not a production signature proof). Captured intrinsic lengths/set copy plus closed instance properties enforce actual32/12 and private ownership in Node and browser. Null/primitive/malformed previous data gives18 during read and same-revision CAS.
+Additional executed cases: control quota failure retains known20 in-process with durable:false but cannot claim durable knowledge; invalidation/H/W_last cannot regress, and guard/checkpoint closure transitions remain unimplemented/refused. Missing historical body/frame keys refuse18. Same-revision predecessor changes fail at the transaction cut. Disposable partial-charge and predecessor-comparison mutations each demonstrably produce the wrong durable result and are restored byte-for-byte:
+
+```text
+W6 FRAME MUTANT DETECTED — partial-charge; actual wrong durable result witnessed; copy restored byte-for-byte
+W6 FRAME MUTANT DETECTED — predecessor-compare; actual wrong durable result witnessed; copy restored byte-for-byte
+```
+
+Still required before this mechanics implementation is complete: full old-tab/versionchange queued-write race; remaining migration/crypto/key-transition fault cuts; import-pin sensitivity; remaining effective mechanical mutations; exact-byte independent re-execution. These are remaining implementation tests, not waived gates.
 Still blocked beyond mechanics: production semantic proof/transition validators, owner/session/closed-ingress and child-obligation coordination, finite W5 time assumptions, reconciliation/renewal, actual final-cut allowance policy and knowledge-loss recovery, per-key security/custody/retained-body limits, supported Safari/phone evidence. The current main public factory still uses format1; integrating format2 into it is separate remaining W6 work after those contracts and mechanical review.
 
 NEXT: retain this first runnable mechanical checkpoint separately from the exact06d79f4 T2 review. Continue the named focused matrix and independent review under the same claim. No full FRAME, W6, CLOCK, private-use or M3 completion claim.

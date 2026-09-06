@@ -38,7 +38,7 @@ Complete original signed proofs remain in metadata and are reverified in later c
 
 ## Reproduction and evidence limits
 
-Use Node>=22 and real dependency directories. Install in this folder with `pnpm install --ignore-workspace --frozen-lockfile --ignore-scripts` using the committed W6 lock; do not change the root lock. From repository root:
+Use Node>=22 and real dependency directories. Install in this folder with `pnpm install --ignore-workspace --frozen-lockfile --ignore-scripts` using the committed W6 lock; do not change the root lock. The local `.npmrc` explicitly sets `lockfile=true` alongside npm's `package-lock=false`: pnpm10 otherwise interprets the latter as disabling its lock. Reproduction passed with pnpm10.33.0 and npm_config_lockfile unset, including a fresh frozen offline clean build after the ordinary dependency cache was populated. From repository root:
 
 ```text
 node --test rebuild/m3/w6/test/*.test.mjs
@@ -54,5 +54,6 @@ Unchanged W3 witnesses, conformance, selftest and strict package checks remain r
 
 ## NEXT and hard open dependencies
 
-The separate frame mechanics checkpoint adds fixed-format AEAD, complete predecessor binding, a strict JSON parser, actual final-frame/sample commits and synthetic compatibility tests. Current combined tests are77/77 with actual Chromium frame execution; its remaining fault/mutation/old-tab matrix is listed in `FRAME-IMPLEMENTATION-STATUS.md`. T2 checkpoint06d79f4 remains the earlier exact independent-review target, not inherited approval of subsequent bytes.
+The separate frame mechanics checkpoint adds fixed-format AEAD, complete predecessor binding, a strict JSON parser, actual final-frame/sample commits and synthetic compatibility tests. Current combined tests are86/86 with actual Chromium frame execution; its remaining fault/mutation/old-tab matrix is listed in `FRAME-IMPLEMENTATION-STATUS.md`. Cowork independently accepted T2 checkpoint06d79f4's scope with the pnpm reproducibility correction; this is not inherited approval of subsequent frame bytes or full W6.
+W7 presentation must distinguish unavailable permission evidence from proven expiry: optional invalid permission returns20 without establishing elapsed expiry. The retained T2 default copy can say “expired”; the future W6/W7 cause-aware presentation must instead name the verified reconnect action for unproved permission. No current screen or frozen copy is changed here; state17/18/19 causes and bounded allowance invalidation remain separate.
 Keep PR32 DRAFT and the same W6 claim for independent execution of this checkpoint. Sufficient W5 UTC-error/rate/freshness bounds, terminal history/standing reconciliation and renewal, final-time authenticated persistence, a proven knowledge-loss fence, production key custody/recovery, schema transitions, physical iPhone/one-hour lifecycle and W8/W9 evidence remain OPEN. Signed time alone earns no interval/checkpoint C, refill or CLOCK PASS. Ordinary expired sign-in remains11 where standing/lease permit it; bounded restart and coherent-old-restore residuals remain accepted rules. This checkpoint unblocks review and later integration work, never the owner's private import or M3 completion.

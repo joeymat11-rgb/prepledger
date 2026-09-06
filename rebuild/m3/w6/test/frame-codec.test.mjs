@@ -57,3 +57,10 @@ test("operational key revision window includes last boundary and excludes next, 
   for (let i = 0; i < 5; i++) { const attempt = createFrameAttempt(keyMaterial(material, 1, 1)); assert.throws(() => attempt.encrypt(new Uint8Array(), new Uint8Array())); }
   assert.equal(keyMaterial(material, 1, 1).length, 32, "aborted attempts do not consume revision window: security budget remains OPEN");
 });
+test("intrinsic sizes and owned copies refuse shadowed length/buffer/slice and decorated ciphertext buffers", () => {
+  const small = new Uint8Array(16); Object.defineProperty(small, "length", { value: 32 }); assert.throws(() => createFrameAttempt(small));
+  const key = new Uint8Array(32); Object.defineProperty(key, "slice", { value: () => key }); assert.throws(() => createFrameAttempt(key)); assert.equal(key.length, 32);
+  for (const field of ["buffer", "byteLength", "byteOffset", "slice"]) { const nonce = new Uint8Array(12); Object.defineProperty(nonce, field, { get() { throw new Error("must not invoke getter"); } }); assert.throws(() => createFrameAttempt(new Uint8Array(32), { getRandomValues: () => nonce }), e => e.state === 3); }
+  const buffer = new ArrayBuffer(16); Object.defineProperty(buffer, "byteLength", { value: 32 }); const r = record(); r.body.ciphertext = buffer; assert.throws(() => recordBytes(r), e => e.state === 18);
+  const tagged = new Uint8Array(32); tagged[Symbol("extra")] = true; assert.throws(() => createFrameAttempt(tagged));
+});

@@ -6,6 +6,11 @@ export const FRAME_BYTES = 352, FRAME_CIPHERTEXT_BYTES = 368, REVISION_WINDOW = 
 export const REF_NAMES = Object.freeze(["checkpointRef", "leaseRef", "batchRef", "guardRef", "sessionRef", "permissionRef", "standingRef", "recoveryRef"]);
 export const FRAME_KEYS = Object.freeze(["kind", "guard", "state", "allowanceInvalidated", "H", "W_last", "U", "leaseTimeHigh", "observationCounter", "firstSequence", "lastSequence", "batchCount", ...REF_NAMES]);
 const encoder = new TextEncoder(), MAX_TIME = 8640000000000000;
+const typedPrototype = Object.getPrototypeOf(Uint8Array.prototype);
+const realLength = Object.getOwnPropertyDescriptor(typedPrototype, "length").get;
+const realBuffer = Object.getOwnPropertyDescriptor(typedPrototype, "buffer").get;
+const realBufferLength = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, "byteLength").get;
+const typedSet = Uint8Array.prototype.set;
 export const fail = (code = "FRAME_INTEGRITY_UNPROVEN", state = 18) => { throw new StorageFailure(code, state); };
 export function exactObject(value, keys) {
   if (!value || typeof value !== "object" || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) fail();
@@ -15,8 +20,18 @@ export function exactObject(value, keys) {
   return value;
 }
 export function ownedBytes(value, length) {
-  if (!(value instanceof Uint8Array) || Object.getPrototypeOf(value) !== Uint8Array.prototype || !(value.buffer instanceof ArrayBuffer) || (length !== undefined && value.length !== length)) fail();
-  return value.slice();
+  if (!(value instanceof Uint8Array) || Object.getPrototypeOf(value) !== Uint8Array.prototype) fail();
+  let actual, buffer;
+  try { actual = Reflect.apply(realLength, value, []); buffer = Reflect.apply(realBuffer, value, []); } catch { fail(); }
+  bufferLength(buffer);
+  if (length !== undefined && actual !== length) fail();
+  const keys = Reflect.ownKeys(value);
+  if (keys.length !== actual || keys.some(key => typeof key !== "string" || !/^(0|[1-9][0-9]*)$/.test(key) || Number(key) >= actual)) fail();
+  const copied = new Uint8Array(actual); Reflect.apply(typedSet, copied, [value]); return copied;
+}
+function bufferLength(value) {
+  if (!(value instanceof ArrayBuffer) || Object.getPrototypeOf(value) !== ArrayBuffer.prototype || Reflect.ownKeys(value).length !== 0) fail();
+  try { return Reflect.apply(realBufferLength, value, []); } catch { fail(); }
 }
 export function safe(value, positive = false) { if (!Number.isSafeInteger(value) || value < (positive ? 1 : 0)) fail(); return value; }
 function time(value) { if (!Number.isSafeInteger(value) || Math.abs(value) > MAX_TIME) fail(); return value; }
@@ -70,7 +85,7 @@ const BODY_KEYS = ["format", "keyEpoch", "aadRevision", "iv", "ciphertext"];
 const RECORD_KEYS = ["format", "namespace", "commitRevision", "body", "frameKeyEpoch", "frameNonce", "frameCiphertext", "previousRecordDigest"];
 export function validateBodyRecord(body) {
   exactObject(body, BODY_KEYS); if (body.format !== 2) fail(); safe(body.keyEpoch, true); safe(body.aadRevision, true); ownedBytes(body.iv, 12);
-  if (!(body.ciphertext instanceof ArrayBuffer) || Object.getPrototypeOf(body.ciphertext) !== ArrayBuffer.prototype || body.ciphertext.byteLength < 16) fail(); return body;
+  if (bufferLength(body.ciphertext) < 16) fail(); return body;
 }
 export function validateRecord(record) {
   exactObject(record, RECORD_KEYS); if (record.format !== 2) fail(); namespaceBytes(record.namespace); safe(record.commitRevision, true); safe(record.frameKeyEpoch, true);
@@ -78,9 +93,11 @@ export function validateRecord(record) {
 }
 export function validateV1Record(record) {
   exactObject(record, ["format", "namespace", "revision", "iv", "ciphertext"]); if (record.format !== 1) fail(); namespaceBytes(record.namespace); safe(record.revision, true); ownedBytes(record.iv, 12);
-  if (!(record.ciphertext instanceof ArrayBuffer) || Object.getPrototypeOf(record.ciphertext) !== ArrayBuffer.prototype || record.ciphertext.byteLength < 16) fail(); return record;
+  if (bufferLength(record.ciphertext) < 16) fail(); return record;
 }
 export function recordBytes(record) {
+  const version = record && typeof record === "object" ? Object.getOwnPropertyDescriptor(record, "format")?.value : undefined;
+  if (version === 1) validateV1Record(record); else validateRecord(record);
   const ns = namespaceBytes(record.namespace);
   if (record.format === 1) { validateV1Record(record); return concat(encoder.encode("earned/local-record/v1"), integerBytes(1, 2), integerBytes(ns.length, 2), ns, integerBytes(record.revision, 8), record.iv, integerBytes(record.ciphertext.byteLength, 8), new Uint8Array(record.ciphertext)); }
   validateRecord(record); const b = record.body;
