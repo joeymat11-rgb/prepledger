@@ -46,6 +46,8 @@ jobs:
         run: node --test rebuild/m3/w0/test/public-conformance.test.cjs rebuild/m3/w0/test/scope-package.test.mjs
       - name: Accepted synchronous client restart witness
         run: node rebuild/t2/rig187.cjs
+      - name: Synthetic Today projection, UI and preview package
+        run: node --test rebuild/m3/w7-preview/test/model.test.cjs rebuild/m3/w7-preview/test/view.test.cjs rebuild/m3/w7-preview/test/package.test.cjs
       - name: Accepted extracted-engine writer and merge second gate
         run: node rebuild/engine/test/second-gate.mjs --candidate
       - name: Report the evidence boundary
