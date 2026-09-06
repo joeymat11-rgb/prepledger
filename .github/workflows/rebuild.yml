@@ -1,0 +1,52 @@
+name: rebuild
+
+on:
+  push:
+    branches: ['rebuild/**']
+  pull_request:
+    branches: ['rebuild/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rebuild-public-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  public-gates:
+    name: rebuild-public (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      MEASURED_TEST_NOW: '2026-09-03'
+      TZ: America/New_York
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+      - name: Check frozen files and actual old-app package
+        run: node rebuild/m3/w0/scope-package.mjs
+      - name: Public law, mutant, adapter and archived-artifact checks
+        run: node rebuild/m3/w0/public-conformance.cjs
+      - name: Unchanged public oracle and frozen-engine witnesses
+        run: node rebuild/m3/w0/public-oracle.mjs
+      - name: Prove the new checks fail closed
+        run: node --test rebuild/m3/w0/test/public-conformance.test.cjs rebuild/m3/w0/test/scope-package.test.mjs
+      - name: Accepted synchronous client restart witness
+        run: node rebuild/t2/rig187.cjs
+      - name: Accepted extracted-engine writer and merge second gate
+        run: node rebuild/engine/test/second-gate.mjs --candidate
+      - name: Report the evidence boundary
+        run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"
