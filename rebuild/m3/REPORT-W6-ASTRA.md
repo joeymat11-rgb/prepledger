@@ -6,7 +6,7 @@ This is a reviewable **partial W6 implementation**, not W6 completion or permiss
 
 Branch `rebuild/m3-w6-browser-bridge`; integration base `df09f438a93cb9548ef3f66b28b39deecc7fb347`. This base records cowork's acceptance of BRIEF-W6 v1.1 (`c31592b5e7fcbb5169075de6c23afbb7d037fd9b`) and the retained **24 observed hours / 64 operation slots**, rollback allowance invalidation, conditional lease mapping, hard knowledge-loss blocker and corrected18/17/19 table. These rules are not implemented by preserving a metadata object. No budget, CLOCK or full standing acceptance is claimed here.
 
-The local storage contract was committed before implementation as `7e14ec72a9ab78b861c9a3e913edbb5a467af93d`. During this build W5 published `d44706123d4be8844db6f919a8238255b73e3fb2`; I read its `w5/WIRE.md` and `w5/fixtures/contract-v1.json` directly at that commit. No W5 file was copied or changed. There are no T2, frozen-app, engine, existing-law/oracle/runner, W3 or seeded-soak changes.
+The local storage contract was committed before implementation as `7e14ec72a9ab78b861c9a3e913edbb5a467af93d`. During this build W5 published `d44706123d4be8844db6f919a8238255b73e3fb2`; I read its `w5/WIRE.md` and `w5/fixtures/contract-v1.json` directly at that commit. Post-checkpoint correction: its callable `public-client.cjs` implementation already exists at the same SHA; I have now read that implementation and pinned its exact factory/sinks in the concrete amendment proposal. The earlier statement that publication was still needed was too cautious. No W5 file was copied or changed. There are no T2, frozen-app, engine, existing-law/oracle/runner, W3 or seeded-soak changes.
 
 ## Module map and compatibility
 
@@ -18,8 +18,8 @@ The local storage contract was committed before implementation as `7e14ec72a9ab7
 | `w6/t2-stage.cjs` | Node-only adapter calls the actual unchanged T2 client/memory backend. Requires its surviving valid inner checkpoint and integrity before boot; allowlisted real actions are weighIn, logSet, logSession and finishSession. No copied committer or simulated browser crypto. Existing public synthetic HMAC test material stays in Node tests; it is not a phone authority-key design. |
 | `w6/bridge.mjs` | Serializes commands/reopen per instance; independent instances rely on stored CAS. Clones submission, staging result and published result/view. No candidate is exposed while commit waits. Thrown or returned18 clears truth; failed writes retain typed input. Final validator is mandatory and synchronous. |
 | W5 wire now known | Every route is POST JSON, version `earned/w5-http/v1`; ES256 P-256/SHA-256, low-S 64-byte P1363 and canonical base64url/domain fixtures. This slice invokes none of its transport APIs and does not pretend Node T2's shared-HMAC verifier accepts P-256. |
-| W5 still OPEN | Callable verifier implementation must be published/pinned before binding. `/enrol` is a preprovisioned lookup, `/lease` supplies current capability. No combined terminal/WAITING/history/head/standing/lease-history reconciliation or renewal proof; no sufficient production UTC-error/rate/qualified-RTT bounds. No checkpointC, `[Tlo,Thi]`, refill or CLOCK PASS follows from signed time alone. |
-| `w6/T2-AMENDMENT-PROPOSAL.md` | NOT ACCEPTED: precise narrow change areas for independent review before any T2 edit. Separate permission evidence from athlete timestamps; retain operation preimages, actual batch count/range and optional crypto/verifier defaults. Exact callable signatures/dependency require the published W5 API review. |
+| W5 still OPEN | Its callable public API is pinned, but `/enrol` is a preprovisioned lookup and `/lease` supplies current capability. No combined terminal/WAITING/history/head/standing/lease-history reconciliation or renewal proof; no sufficient production UTC-error/rate/qualified-RTT bounds. No checkpoint C, `[Tlo,Thi]`, refill or CLOCK PASS follows from signed time alone. |
+| `w6/T2-AMENDMENT-PROPOSAL.md` | PENDING REVIEW: exact index/lease/sync allowlist, factory signatures, unchanged defaults, actual batch/final-cut metadata and W6-local @noble/hashes 2.2.0 / esbuild 0.28.1 dependency proposal. W5 sink normalization preserves underlying states 17/18/19/20. BRIEF-W6 references the proposal; no T2 edit or dependency installation/build is authorized by publication alone. |
 
 ## Executed gates, with their actual boundary
 
@@ -67,6 +67,8 @@ All checks passed. Safe to ship.
 
 The strict tail concerns the unchanged existing app package; it does not certify W6 for private use. `git diff --check` passed. Linux/both-OS CI and independent cowork execution are NOT RUN by this builder.
 
+Post-checkpoint independent evidence, relayed by the coordinator: cowork re-executed exact `e934f9b` on Linux, reporting 28/28 storage tests, 39/39 W3 and 6/6 browser cases on Chromium 141. Cowork's separate disabled-CAS bite was detected by the Node and browser tests and restored. It reported no checkpoint defects while expressly withholding full W6 acceptance and keeping PR32 DRAFT. This independent storage review does not accept the new T2 amendment; its verdict is still pending. The docs-only follow-up leaves all submitted product/test bytes unchanged.
+
 | Required acceptance | Current verdict |
 |---|---|
 | IDB-187 full browser-T2 / physical matrix | INCOMPLETE;28 preliminary Node cases and6 real browser repository cases above; no full IDB-187 PASS claimed |
@@ -106,4 +108,4 @@ The contract commit at 2026-09-06 07:09:31 UTC precedes this report checkpoint a
 
 ## NEXT
 
-Actual claim remains **W6** on this branch; this is the storage foundation for later W7 integration/W9 testing, not a completed predecessor or private-port unblock. Root obtains independent cowork review of this slice and a concrete narrow BRIEF-W6/T2 amendment, then pins the published W5 callable verifier API for continued work on this same claim. W5 time/reconciliation/renewal, W4 custody, knowledge-loss fencing and W8/W9 remain explicit dependencies. No next implementation stream or merge is claimed by this report.
+Actual claim remains **W6** on this branch; this is the storage foundation for later W7 integration/W9 testing, not a completed predecessor or private-port unblock. The storage checkpoint has cowork's preliminary re-execution; root obtains the separate independent verdict on the now-published concrete BRIEF-W6/T2 amendment before any T2 or dependent build work, using the pinned W5 callable API. W5 time/reconciliation/renewal, W4 custody, knowledge-loss fencing and W8/W9 remain explicit dependencies. Original base is preserved; no next implementation stream, full W6 acceptance or merge is claimed by this report.
