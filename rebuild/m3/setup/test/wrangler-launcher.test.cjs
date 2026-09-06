@@ -90,18 +90,50 @@ test('planSpawn: uses process.execPath, an argument ARRAY, shell:false, and disa
   assert.equal(plan.options.env.PATH, '/nowhere', 'caller env is forwarded, not replaced');
 });
 
-// ---- end-to-end against the REAL pinned install, under a network tripwire -------------------------------
-const TRIPWIRE_ENV = (() => {
-  const env = { ...process.env };
-  for (const k of Object.keys(env)) {
-    if (/^(CLOUDFLARE_|CF_|WRANGLER_)/i.test(k)) delete env[k];   // no credential, account or wrangler config reaches the child
+// ---- end-to-end against the REAL pinned install, in a MINIMAL child environment + proxy tripwire ----------
+// The child gets a built-from-scratch environment (NOT a copy of ours): only the platform essentials, with HOME /
+// USERPROFILE / APPDATA / LOCALAPPDATA / XDG_* pointed at a disposable temp directory so wrangler's own config and
+// cache never touch the real profile, and NO credential-shaped variable at all. The proxy variables are a TRIPWIRE:
+// an HTTP(S) client that honours them fails fast against a closed local port. This is not universal network
+// interdiction (a client that ignores proxy settings could still connect); it is a fail-fast canary plus the
+// assertion that no credential exists for such a request to carry.
+const DISPOSABLE_HOME = fs.mkdtempSync(path.join(os.tmpdir(), 'earned-launcher-home-'));
+const MINIMAL_ENV = (() => {
+  const env = {
+    PATH: process.env.PATH || '',
+    HOME: DISPOSABLE_HOME,
+    USERPROFILE: DISPOSABLE_HOME,
+    APPDATA: path.join(DISPOSABLE_HOME, 'AppData', 'Roaming'),
+    LOCALAPPDATA: path.join(DISPOSABLE_HOME, 'AppData', 'Local'),
+    XDG_CONFIG_HOME: path.join(DISPOSABLE_HOME, '.config'),
+    XDG_CACHE_HOME: path.join(DISPOSABLE_HOME, '.cache'),
+    XDG_DATA_HOME: path.join(DISPOSABLE_HOME, '.local', 'share'),
+    TMPDIR: DISPOSABLE_HOME, TEMP: DISPOSABLE_HOME, TMP: DISPOSABLE_HOME,
+    HTTPS_PROXY: 'http://127.0.0.1:9', HTTP_PROXY: 'http://127.0.0.1:9',
+    https_proxy: 'http://127.0.0.1:9', http_proxy: 'http://127.0.0.1:9',
+    NO_PROXY: '', no_proxy: '',
+    WRANGLER_SEND_METRICS: 'false',
+    CI: '1',
+  };
+  for (const k of ['SystemRoot', 'SYSTEMROOT', 'ComSpec', 'COMSPEC', 'PATHEXT', 'SystemDrive', 'SYSTEMDRIVE', 'windir', 'WINDIR', 'PROGRAMFILES', 'ProgramFiles', 'LANG', 'LC_ALL', 'TERM']) {
+    if (process.env[k] !== undefined) env[k] = process.env[k];   // platform essentials only
   }
-  // any network attempt goes to a closed local port and fails fast
-  env.HTTPS_PROXY = env.HTTP_PROXY = env.https_proxy = env.http_proxy = 'http://127.0.0.1:9';
-  env.NO_PROXY = env.no_proxy = '';
-  env.WRANGLER_SEND_METRICS = 'false';
+  for (const d of [env.APPDATA, env.LOCALAPPDATA, env.XDG_CONFIG_HOME, env.XDG_CACHE_HOME, env.XDG_DATA_HOME]) fs.mkdirSync(d, { recursive: true });
   return env;
 })();
+const TRIPWIRE_ENV = MINIMAL_ENV;
+const CREDENTIAL_KEY = /^(CLOUDFLARE_|CF_|WRANGLER_(?!SEND_METRICS$)|CLERK_|GH_TOKEN|GITHUB_TOKEN|NETLIFY_|AWS_|NPM_TOKEN|.*SECRET.*|.*PASSWORD.*|.*API_KEY.*)/i;
+
+test('child environment: built from scratch — platform essentials only, disposable profile, no credential-shaped key', () => {
+  const keys = Object.keys(MINIMAL_ENV);
+  assert.equal(keys.filter((k) => CREDENTIAL_KEY.test(k)).length, 0, 'no credential-shaped variable in the child env');
+  assert.equal(MINIMAL_ENV.HOME, DISPOSABLE_HOME);
+  assert.notEqual(MINIMAL_ENV.HOME, process.env.HOME, 'the child never sees the real HOME');
+  assert.ok(MINIMAL_ENV.XDG_CONFIG_HOME.startsWith(DISPOSABLE_HOME) && MINIMAL_ENV.APPDATA.startsWith(DISPOSABLE_HOME));
+  assert.ok(keys.length <= 32, `child env stays minimal (${keys.length} keys)`);
+  // sanity: if the parent had CLERK_SECRET_KEY or CLOUDFLARE_API_TOKEN set, they must not have leaked in
+  for (const k of ['CLERK_SECRET_KEY', 'CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID', 'GH_TOKEN']) assert.equal(k in MINIMAL_ENV, false, `${k} absent`);
+});
 
 function realInstalled() {
   try { L.resolveWrangler(); return true; } catch { return false; }

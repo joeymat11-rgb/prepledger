@@ -52,7 +52,18 @@ reports a missing permission on first use, the exact name is in wrangler's error
 If the window says PowerShell scripts are disabled, stop and report the exact sentence; do not change any policy and do not ask
 for an administrator — that is a decision for the owner, not a step in this file.
 
-**Then the real hand-over (only after the OK line exists):**
+**Second PC-session action, still dummy-only — the FRESH-PROCESS proof (required before any token exists):**
+- Double-click **`store-secret-freshproof-arm.cmd`**. It writes a temporary variable `EARNED_FRESHPROOF_<random>` with a dummy
+  marker value into your USER environment and prints ONE line with its NAME and a HASH (never the value). Keep the window open or
+  note the two words.
+- **Close every Claude Code window and every terminal. Open Claude Code again FRESH from the Start menu or taskbar.** In that fresh
+  session the integrator runs `store-secret.cmd --verify-fresh-proof NAME HASH` and reports the one printed line: `fresh-proof OK`
+  means a freshly started program really inherits what the helper stored; `FAIL — … not started fresh` means the window was opened
+  from a stale parent, not that anything is broken — close everything and start again. Then `store-secret.cmd --cleanup-fresh-proof
+  NAME HASH` removes the dummy variable (only if its value still hashes to HASH; anything else is left alone and reported).
+Both dummy steps prove the mechanism (persistence + fresh-process visibility) without any real secret.
+
+**Then the real hand-over (only after BOTH dummy proofs have their OK lines):**
 1. Create the token (§2). Cloudflare shows the value ONCE. Do not paste it into any chat.
 2. In `rebuild\m3\setup\` **double-click `store-secret.cmd`**.
 3. A small window asks which secret → choose **CLOUDFLARE_API_TOKEN** → Next. (If a value already exists it asks whether to replace
@@ -65,10 +76,13 @@ for an administrator — that is a decision for the owner, not a step in this fi
 The same file stores **CLERK_SECRET_KEY** later (choose it in step 3).
 
 What the file does and does not do: it writes exactly one Windows user environment variable (HKCU\Environment) through
-`[Environment]::SetEnvironmentVariable(name, value, 'User')`, verifies by reading it back and comparing, and prints only the NAME and
-an OUTCOME word (stored / unverified / failed / cancelled). It never echoes the value or its length, never writes a file, never
+`[Environment]::SetEnvironmentVariable(name, value, 'User')`, verifies by reading it back and comparing, and prints only FIXED
+sentences with an allowlisted name and an OUTCOME word (stored / unverified / failed / cancelled). It never echoes the value, its
+length, or ANY argument it was given (a misplaced secret typed as an argument cannot reach the screen), never writes a file, never
 touches the repo, refuses any variable name not on its two-name allow-list, and never overwrites an existing value without asking.
-If Windows accepts the write but returns something different on read-back, it says UNVERIFIED — it does not claim success.
+If Windows accepts the write but returns something different on read-back, it says UNVERIFIED — it does not claim success. Its
+dummy variables (`EARNED_SELFTEST_*`, `EARNED_FRESHPROOF_*`) are removed only when they still hold the EXACT value it wrote; a
+changed value is never deleted, only reported.
 **Where the value lives:** the Windows USER environment is part of your Windows profile, protected only by your Windows sign-in. It
 is NOT an encrypted vault. Anything that runs as you can read it; that is the accepted trade-off for "no terminal, no file".
 
@@ -78,10 +92,10 @@ could be executed there. The launcher in §4 was tested on Linux; the PowerShell
 PC's script policy; that says nothing about the owner-run double-click route, which has NOT been tried. Until the owner's OK line
 exists, treat the mechanism as written-not-proven, and create no token.
 
-## 4. After the token is in place (integrator, one FRESH session)
+## 4. After the token is in place (integrator, one FRESH session — the dummy fresh-process proof in §3 must already have passed)
 ```
 node rebuild/m3/setup/wrangler.cjs --launcher-check        # resolves the pinned wrangler 4.129.0; spawns nothing
-node rebuild/m3/setup/wrangler.cjs whoami                  # proves the token works; report only "success/failure" + the client version
+node rebuild/m3/setup/wrangler.cjs whoami                  # AUTHENTICATION proof (separate from the fresh-process proof): report only "success/failure" + the client version
 ```
 `wrangler.cjs` is a small reviewed launcher: it finds the installed package under `rebuild/m3/tooling`, checks it is exactly
 wrangler 4.129.0, and runs it with the same `node` that runs the launcher (argument array, no shell). It never installs or fetches
