@@ -1,0 +1,8 @@
+{
+  "name": "earned-w6-storage-slice",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node --test test/*.test.mjs" },
+  "devDependencies": { "fake-indexeddb": "6.2.5" }
+}
