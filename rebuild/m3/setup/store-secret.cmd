@@ -15,9 +15,10 @@ REM  is process-scoped (this one PowerShell process only) and changes no machine
 REM
 REM  Dummy-only self-test (no real secret):  double-click store-secret-selftest.cmd
 REM                                          (or from a terminal:  store-secret.cmd --selftest)
-REM  Fresh-process proof (dummy only):       double-click store-secret-freshproof-arm.cmd, then in a FRESH process:
-REM                                          store-secret.cmd --verify-fresh-proof NAME HASH
-REM                                          store-secret.cmd --cleanup-fresh-proof NAME HASH
+REM  Fresh-process proof (dummy only):       double-click store-secret-freshproof-arm.cmd (prints a NAME), then in a
+REM                                          FRESH process:  store-secret.cmd --verify-fresh-proof [NAME]
+REM                                          afterwards double-click store-secret-freshproof-cleanup.cmd
+REM                                          (or:  store-secret.cmd --cleanup-fresh-proof [NAME])
 REM  Pick the variable up front:             store-secret.cmd --name CLERK_SECRET_KEY
 REM  Every argument is forwarded to the PowerShell helper unchanged; its exit code is returned. The helper never
 REM  echoes an argument back (a misplaced secret cannot reach the screen); only fixed sentences and allowlisted or
@@ -26,11 +27,10 @@ REM  Exit codes: 0 ok · 1 failed/unverified · 2 cancelled · 3 refused name ·
 REM ============================================================================
 setlocal
 set "HERE=%~dp0"
-set "ARGS=%*"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%HERE%store-secret.ps1" %*
 set "RC=%ERRORLEVEL%"
 echo.
 echo store-secret: exit code %RC%
 if not "%RC%"=="0" pause
-if "%ARGS%"=="" pause
+if "%~1"=="" pause
 endlocal & exit /b %RC%

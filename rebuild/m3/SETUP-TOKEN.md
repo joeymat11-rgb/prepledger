@@ -53,17 +53,28 @@ If the window says PowerShell scripts are disabled, stop and report the exact se
 for an administrator — that is a decision for the owner, not a step in this file.
 
 **Second PC-session action, still dummy-only — the FRESH-PROCESS proof (required before any token exists):**
-- Double-click **`store-secret-freshproof-arm.cmd`**. It writes a temporary variable `EARNED_FRESHPROOF_<random>` with a dummy
-  marker value into your USER environment and prints ONE line with its NAME and a HASH (never the value). Keep the window open or
-  note the two words.
-- **Close every Claude Code window and every terminal. Open Claude Code again FRESH from the Start menu or taskbar.** In that fresh
-  session the integrator runs `store-secret.cmd --verify-fresh-proof NAME HASH` and reports the one printed line: `fresh-proof OK`
-  means a freshly started program really inherits what the helper stored; `FAIL — … not started fresh` means the window was opened
-  from a stale parent, not that anything is broken — close everything and start again. Then `store-secret.cmd --cleanup-fresh-proof
-  NAME HASH` removes the dummy variable (only if its value still hashes to HASH; anything else is left alone and reported).
+- Double-click **`store-secret-freshproof-arm.cmd`**. It writes a temporary variable `EARNED_FRESHPROOF_<random>` with a dummy value
+  into your USER environment and prints ONE line with its NAME (never a value). The dummy value is derived from that NAME, so the
+  NAME is the only thing to relay. The window stays open until you press a key.
+- **Close every Claude Code window and every terminal. Open Claude Code again FRESH from the Start menu or taskbar** (this is the
+  LOCAL Claude Code on the PC — see "Which integrator process" below). In that fresh session the integrator runs
+  `store-secret.cmd --verify-fresh-proof NAME` (the NAME may be omitted when only one is armed) and reports the one printed line:
+  `fresh-proof OK` means a freshly started program really inherits what the helper stored; `FAIL — … not started fresh` means the
+  window was opened from a stale parent, not that anything is broken — close everything and start again.
+- Afterwards double-click **`store-secret-freshproof-cleanup.cmd`** (or the integrator runs `store-secret.cmd --cleanup-fresh-proof`).
+  It removes armed dummy variables only when their value is EXACTLY the expected one; anything else is left alone and named.
 Both dummy steps prove the mechanism (persistence + fresh-process visibility) without any real secret.
 
-**Then the real hand-over (only after BOTH dummy proofs have their OK lines):**
+**Which integrator process (authentication reality, W4-READY-PACKET §2):** the proofs above, the `whoami` in §4 and the D1 steps run
+in the **LOCAL Claude Code installed on the PC** (2.1.221 as of 2026-09-06), because only a process on the PC can inherit the Windows
+USER environment. The cloud Claude Code session that integrates PRs cannot see it and must never be sent the variable, its value or
+any private data. On 2026-09-06 the local install's `claude auth status --json` returned exit 1 / `loggedIn: false` (no credential
+file inspected, no account detail printed, no login attempted). So the same PC appointment includes, BEFORE token creation and
+before the fresh-process proof counts: the owner signs the LOCAL Claude Code in the ordinary way (existing account, no new plan or
+purchase), and the integrator makes one harmless real request in that fresh local session and reports only success/failure and the
+client version. No new owner action is requested now — it is bundled into the one appointment.
+
+**Then the real hand-over (only after BOTH dummy proofs have their OK lines and the local sign-in has worked):**
 1. Create the token (§2). Cloudflare shows the value ONCE. Do not paste it into any chat.
 2. In `rebuild\m3\setup\` **double-click `store-secret.cmd`**.
 3. A small window asks which secret → choose **CLOUDFLARE_API_TOKEN** → Next. (If a value already exists it asks whether to replace
