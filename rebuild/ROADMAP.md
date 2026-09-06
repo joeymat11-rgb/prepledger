@@ -1,25 +1,24 @@
 # EARNED — REBUILD ROADMAP v2.0 (2026-09-06)
 
 The durable plan. A chat can die; this file cannot. Every Claude Code handoff that changes the plan updates this file.
-Owner: Joe (rules). THE SPLIT (owner ruling 2026-09-05, after the M3-plan test — rebuild/m3/DECISION-MEMO context in
-rebuild/DECISIONS.md): ASTRA (OpenAI Codex / GPT-6) writes the technical plans and briefs and builds modules against the
-suite; COWORK (Claude) is the owner's project manager of record — relay, plain language, execution audits, the decision
-ledger, and the cross-family check by execution (every claim re-run, never read); CLAUDE CODE (on the owner's PC) is the
-integrator seat — secrets, private-golden custody, merges, releases — a ROLE with a runbook, not a model. Sol = the blind reviewer (one round per milestone,
-told to disagree) and the tie-breaker on disputes about cowork's own judgment; Grok is retired from the standing loop
-(2026-09-04 ruling; the T3 pre-registration promised two blind reviewers — this is a RECORDED change of plan, not its
-fulfilment). The integrator seat (secrets, private-golden custody, releases) is a ROLE with a runbook, not a model; a
-backup-integrator rehearsal is queued for M3. Dad = first real user.
+Owner: Joe (rules). ROLE RULING (2026-09-06, superseding the earlier split where they differ; rebuild/DECISIONS.md):
+ASTRA (OpenAI Codex / GPT-6) owns technical delivery and routine task selection, writes plans/briefs and builds.
+COWORK (Claude) is the independent acceptance verifier by execution and keeps the ledger. CLAUDE CODE is the
+integrator seat — secrets, private-golden custody, verified merges and approved releases — a ROLE with a runbook,
+not a model. The owner retains product-rule, spending and private-data-release decisions and performs necessary
+account/phone actions from exact instructions. Sol remains the blind reviewer (one round per milestone, told to
+disagree) and tie-breaker on disputes about cowork's judgment; Grok was retired by the 2026-09-04 ruling. The earlier
+T3 two-reviewer pre-registration is not thereby fulfilled. Backup-integrator rehearsal remains an M3 gate. Dad = first real user.
 
 ## Now (status only — the task index moved to rebuild/QUEUE.md on 2026-09-06)
-- M2 EXTRACTION COMPLETE (2026-09-05): modules 1–7 accepted (rebuild/m2/SCORECARD-M2-1…7); BOTH gates GREEN — the census on three blobs × two clocks AND the complete second gate re-pointed at rebuild/engine (engine-test 3072/0, surface byte-identical, sync-laws 18/59/0). CHECKPOINT (proposed 09-11) answered early: engine ready → real port in week 2 per PLAN-M3-v1, AFTER the audit's pre-port items. NOW = the POST-EXTRACTION AUDIT: Astra's AUDIT REGISTER (D1–D45 → plain statement · four-part bar · LIVE-triggered? · red-first law seed under rebuild/conform/v4/ · fix estimate · recommendation) → cowork verifies by execution → OWNER RULING PACK (batched by theme) → fixes in the modules, laws turn GREEN → suite v4 → M2 CLOSES. ACCELERATION (Astra-corrected, 2026-09-05): dependent streams start from a PUBLISHED contract (W6 from REPORT-W5's wire table), cowork verifies in parallel, nothing merges unverified; I1 synthetic Today = preview only; all 45 defects retained, BAR/LIVE prioritise; the owner's PC step is token + `us` database + Clerk production; target (not forecast) for the owner's own use ≈ mid-September. In parallel (M3 week one per the plan): Astra W5 (D1 staged bridge, Worker auth/HTTP, P-256 public-signature boundary) then W6 (browser bridge; C1/C11 RULED 2026-09-05: bounded — budgeted offline writes after an unproven restart; Astra proposes the budget in BRIEF-W6, Sol reviews it as a sheet refinement).
+- M2 EXTRACTION COMPLETE (2026-09-05): modules 1–7 accepted (rebuild/m2/SCORECARD-M2-1…7); BOTH gates GREEN — the census on three blobs × two clocks AND the complete second gate re-pointed at rebuild/engine (engine-test 3072/0, surface byte-identical, sync-laws 18/59/0). CHECKPOINT (proposed 09-11) answered early: engine ready → real port in week 2 per PLAN-M3-v1, AFTER the audit's pre-port items. NOW = the POST-EXTRACTION AUDIT: Astra's AUDIT REGISTER (D1–D45 → plain statement · four-part bar · LIVE-triggered? · red-first law seed under rebuild/conform/v4/ · fix estimate · recommendation) → cowork verifies by execution → OWNER RULING PACK (batched by theme) → fixes in the modules, laws turn GREEN → suite v4 → M2 CLOSES. ACCELERATION (Astra-corrected, 2026-09-05): dependent streams start from a PUBLISHED contract (W6 from REPORT-W5's wire table), cowork verifies in parallel, nothing merges unverified; accepted W7 preview = preliminary preparation only; full I1 requires synthetic offline/durable use through the real backend and two physical phones; all 45 defects retained, BAR/LIVE prioritise; the owner's PC step is token + `us` database + Clerk production; target (not forecast) for the owner's own use ≈ mid-September. In parallel (M3 week one per the plan): Astra W5 (D1 staged bridge, Worker auth/HTTP, P-256 public-signature boundary) then W6 (browser bridge; C1/C11 RULED 2026-09-05: bounded — budgeted offline writes after an unproven restart; BRIEF-W6 v1.1 accepted/integrated at df09f43: 24 observed hours/64 slots adopted; CLOCK still requires sufficient published W5 time bounds and a proven knowledge-loss fence).
 - M3 DAY ONE — DONE 2026-09-05 by the owner: Cloudflare account, Workers Paid, $5 budget alert, domain earnedcoach.com (Cloudflare
   Registrar, auto-renew). Phone: iPhone 17 Pro, iOS 26.6.1. Second test phone: none yet (week 2).
 - M3 SOAK RUNNING: seeded 2026-09-05T01:04:21Z on the owner's iPhone 17 Pro (receipt rebuild/m3/SOAK-1.md); earliest readback 2026-10-05; pressure window to book in week 2. Host: https://earned-soak.netlify.app (.github/workflows/soak.yml).
 - M3 W3 DONE (PR #20): clock/lease continuity spike → RED WITNESS C1-C11-RESTART → RULED 2026-09-05 "bounded" (DECISIONS.md); iPhone hand test + DST NOT RUN (W3-HOST → O-CLOCK). THE QUEUE OF RECORD IS NOW rebuild/QUEUE.md (Astra, accepted by cowork 2026-09-06): §Now no longer lists tasks — read the queue.
 - M3 W4 setup · Claude Code prepares the deploy-token permission list + a no-terminal secret-entry method for the owner; creates D1 `earned-us` with `--jurisdiction=us`.
 - Sol: blind T3 read (in flight) → then PROCESS AUDIT 1 + cowork's answers for the F8/F9 tie-break.
-- Owner rulings open: (1) is the source-ingestion protocol required for beta? (2) defect log D1–D22 (one ruling pass after module 3).
+- Owner rulings open: (1) is the source-ingestion protocol required for beta? (2) all preserved defects D1–D45 (verified register → theme-batched owner ruling pack → recorded dispositions; no omitted IDs).
 
 ## Where we are (2026-09-04, evening)
 - FROZEN APP (Measured): PROGRESSION-1 merged (main 8610bd1), v7.56.0 LIVE and tail-verified; CDN denylist on main
