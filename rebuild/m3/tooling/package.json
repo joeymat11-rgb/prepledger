@@ -1,6 +1,6 @@
 {
   "name": "earned-m3-tooling",
   "private": true,
-  "description": "wrangler for the M3 setup steps (rebuild branch only; the frozen app package.json is untouched)",
-  "devDependencies": { "wrangler": "^4" }
+  "description": "wrangler for the M3 setup steps (rebuild branch only; the frozen app package.json and root package-lock.json are untouched). Exact pin: the launcher rebuild/m3/setup/wrangler.cjs refuses any other version. A direct pin is not a transitive dependency lock — .npmrc keeps package-lock=false on purpose.",
+  "devDependencies": { "wrangler": "4.129.0" }
 }
