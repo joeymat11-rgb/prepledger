@@ -6,7 +6,8 @@ const cases=['COMPLETE','FOCUSED','RESOURCE','REGRESSION'];
 const environments=['local','synthetic-remote','owner-phone','isolated-restore'];
 const tests=['r1-core-crypto.test.cjs','r1-issuer-bridge.test.cjs','r1-effective-bites.test.cjs',
   'r1-recovery.test.cjs','r1-snapshot-race.test.cjs','r1-transport.test.cjs',
-  'r1-boundary-audit.test.cjs','r1-limits-inventory.test.cjs','r1-base64-allocation.test.cjs'];
+  'r1-boundary-audit.test.cjs','r1-limits-inventory.test.cjs','r1-base64-allocation.test.cjs',
+  'r1-streaming-digest.test.cjs','r1-scoped-read.test.cjs','r1-population-diagnostic.test.cjs'];
 function execute(label,args,env={...process.env}){
   const result=spawnSync(process.execPath,args,{cwd:root,env,encoding:'utf8',windowsHide:true,
     timeout:1200000,maxBuffer:16*1024*1024});

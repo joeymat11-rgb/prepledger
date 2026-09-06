@@ -113,9 +113,17 @@ function createBridge(config) {
     return value;
   }
   async function executeR1(action, principal, request, context, seed) {
+    const reconcileSubject = action === 'reconcile' ? principal?.subject : undefined;
     for (let attempt = 0; attempt < retries; attempt++) {
       let loaded;
-      try { loaded = await db.batch([
+      // BRIEF-W5-R1 v1.2: only reconciliation scopes this consistent read.
+      // Both subject predicates use the captured authenticated principal; a
+      // missing mapping selects zero rows, never a global fallback snapshot.
+      try { loaded = await db.batch(action === 'reconcile' ? [
+        db.prepare('SELECT revision FROM authority_revision WHERE id = 1'),
+        db.prepare('SELECT subject, athlete FROM authority_subjects WHERE subject = ?').bind(reconcileSubject ?? null),
+        db.prepare('SELECT athlete, collection, row_id, value FROM authority_rows WHERE athlete = (SELECT athlete FROM authority_subjects WHERE subject = ?)').bind(reconcileSubject ?? null),
+      ] : [
         db.prepare('SELECT revision FROM authority_revision WHERE id = 1'),
         db.prepare('SELECT athlete, collection, row_id, value FROM authority_rows'),
         db.prepare('SELECT subject, athlete FROM authority_subjects'),
@@ -123,15 +131,16 @@ function createBridge(config) {
         if (!transient(cause)) return unavailable();
         await backoff(attempt); continue;
       }
-      const [revisionResult, rowResult, subjectResult] = loaded;
+      const [revisionResult, rowResult, subjectResult] = action === 'reconcile' ? [loaded[0],loaded[2],loaded[1]] : loaded;
       if (revisionResult.results.length !== 1 || !Number.isSafeInteger(revisionResult.results[0].revision)) I.error('UNAVAILABLE', 503, true);
       const revision = revisionResult.results[0].revision;
       if (action === 'reconcile') {
-        // A complete proof is read-only. Keep the same global snapshot and
-        // integrity/scope checks without constructing a writer backend, cloning
+        // A complete proof is read-only. Keep the global revision guard and
+        // own-account integrity/scope checks without constructing a writer backend, cloning
         // every row or booting the admission core for each proof page.
         const subjects = new Map(subjectResult.results.map(r => [r.subject,r.athlete]));
-        const athlete = principal && subjects.get(principal.subject), actor = principal && principal.device;
+        const athlete = principal && subjects.get(reconcileSubject), actor = principal && principal.device;
+        if (!principal || !athlete) denied();
         const standingRows = new Map(), needed = new Set(['metadata','accountRegistry','deviceIssuance','issuedLeases','revocations']);
         try {
           for (const row of rowResult.results) {
@@ -139,10 +148,9 @@ function createBridge(config) {
             if (row.athlete === athlete && needed.has(row.collection)) standingRows.set(rowKey(row.athlete,row.collection,row.row_id),value);
           }
         } catch (_) { I.error('RETAINED_INTEGRITY'); }
-        if (!principal || !athlete) denied();
         const reader = { get:key => standingRows.get(key) };
         I.registry(reader,athlete); I.device(reader,athlete,actor,authorityKey);
-        const scopeDigest = C.scopeDigest({...trustedContext(context),subject:principal.subject,athleteId:athlete,actorDeviceId:actor});
+        const scopeDigest = C.scopeDigest({...trustedContext(context),subject:reconcileSubject,athleteId:athlete,actorDeviceId:actor});
         const result = {...project({rawRows:rowResult.results,athleteId:athlete,actorDeviceId:actor,request:request.request,scopeDigest}),scopeDigest};
         if (request.expectedPayloadDigest !== undefined && result.payloadDigest !== request.expectedPayloadDigest) I.error('SNAPSHOT_CHANGED',409);
         const statements = [db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision),

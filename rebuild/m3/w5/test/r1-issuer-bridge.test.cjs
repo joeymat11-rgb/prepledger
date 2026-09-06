@@ -112,14 +112,19 @@ test('complete guarded projection preserves persisted JSON bytes and contains on
   await assert.rejects(f.bridge.reconcileScoped('subject1',a.device,request(),nonce()),{code:'SNAPSHOT_CHANGED'});
 });
 
-test('guarded read projection never constructs the writer core and still checks foreign JSON integrity',async t=>{
+test('guarded read projection never constructs the writer core; foreign malformed rows isolate while own integrity still refuses',async t=>{
   const f=await fixture(t),a=await enroll(f),before=await rows(f.runtime.db);
   const reader=createBridge({...f.config,core:{createAuthority(){throw Error('writer core must not run for a proof');}}});
-  assert.equal((await reader.reconcileScoped('subject1',a.device,request())).payload.scope.actor_device_id,a.device);
+  const query=request(),proof=await reader.reconcileScoped('subject1',a.device,query);
+  assert.equal(proof.payload.scope.actor_device_id,a.device);
   assert.deepEqual(await rows(f.runtime.db),before);
+  const malformed='{"devices":{},"devices":{},"initialPlan":{"steps":9000}}';
   await f.runtime.db.prepare("UPDATE authority_rows SET value=? WHERE athlete='second' AND collection='metadata' AND row_id='state'")
-    .bind('{"devices":{},"devices":{},"initialPlan":{"steps":9000}}').run();
-  await assert.rejects(reader.reconcileScoped('subject1',a.device,request()),{code:'RETAINED_INTEGRITY'});
+    .bind(malformed).run();
+  assert.deepEqual(await reader.reconcileScoped('subject1',a.device,query),proof);
+  await f.runtime.db.prepare("UPDATE authority_rows SET value=? WHERE athlete='first' AND collection='metadata' AND row_id='state'")
+    .bind(malformed).run();
+  await assert.rejects(reader.reconcileScoped('subject1',a.device,query),{code:'RETAINED_INTEGRITY'});
 });
 test('missing registry, unknown subject, mixed scope and closure cannot fall through legacy routes',async t=>{
   const f=await fixture(t),a=await enroll(f);
