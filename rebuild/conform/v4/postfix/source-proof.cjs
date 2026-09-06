@@ -5,6 +5,9 @@ const {sha,fail}=require('./target.cjs');
 const {object}=require('./legacy-gates.cjs');
 const REQUIRED=['dataLossGuard','isPristineSeed','migrate','_unionCorrLog','_replayCorrections'];
 const FILE='rebuild/engine/migrate.cjs';
+const STEP_FILE='rebuild/engine/energy.cjs';
+const STEP_BEFORE='const slopePer1k = den ? +((num / den) * 1000).toFixed(3) : 0;';
+const STEP_AFTER='const slopePer1k = den ? +(num / den).toFixed(3) : 0;';
 function declarationRanges(source){
   const marks=[...source.matchAll(/\/\/ Copied from frozen src\/app\.jsx @ fe516c1:\d+-\d+\.\n/g)],out={};
   for(let i=0;i<marks.length;i++){const start=marks[i].index+marks[i][0].length,end=i+1<marks.length?marks[i+1].index:source.lastIndexOf('\nreturn {')+1;
@@ -41,17 +44,39 @@ function proposeSourceChanges(before,after){
   if(applySourceChanges(before,changes)!==after)fail('UNAPPROVED-SOURCE-DELTA');return changes;
 }
 function verifyProductSources({root,baseline,acceptance,gitHead=true}){
+  const step=acceptance.packageId==='M2-STEP-EFFICACY';
+  if(!step&&acceptance.packageId!=='M2-IMPORT-GUARDS')fail('PACKAGE-INVENTORY');
+  const parent=step?require('./acceptance.cjs').verifyAcceptedParent(root,acceptance,{gitHead}):null;
   const pins=acceptance.baseline.engine,inventory=acceptance.candidateEngine;
   if(JSON.stringify(Object.keys(pins).sort())!==JSON.stringify(Object.keys(inventory).sort()))fail('CANDIDATE-MODULE-INVENTORY');
   const files=fs.readdirSync(path.join(root,'rebuild/engine'),{withFileTypes:true}).filter(x=>x.isFile()&&x.name.endsWith('.cjs')).map(x=>x.name).sort();
   if(JSON.stringify(files)!==JSON.stringify(Object.keys(pins).sort()))fail('CANDIDATE-MODULE-INVENTORY');
   for(const [file,hash]of Object.entries(pins)){
     const relative='rebuild/engine/'+file,old=object(baseline,acceptance.baseline.auditCommit,relative);if(sha(old)!==hash)fail('ORIGINAL-PRODUCT-PIN');
-    const expected=file==='migrate.cjs'?Buffer.from(applySourceChanges(old.toString('utf8'),acceptance.sourceChanges)):old;
+    const expected=file==='migrate.cjs'?Buffer.from(applySourceChanges(old.toString('utf8'),step?acceptance.sourceChanges.slice(0,5):acceptance.sourceChanges)):
+      step&&file==='energy.cjs'?Buffer.from(applyStepEfficacyChange(old.toString('utf8'),acceptance.sourceChanges[5])):old;
+    if(step){const accepted=object(root,acceptance.acceptedParent.candidateCommit,relative);if(sha(accepted)!==parent.candidateEngine[file])fail('ACCEPTED-PARENT-PRODUCT-PIN');if(file==='energy.cjs'&&!accepted.equals(old)||file!=='energy.cjs'&&!accepted.equals(expected))fail('UNAPPROVED-PARENT-SOURCE-DELTA');}
     if(sha(expected)!==inventory[file])fail('CANDIDATE-POSTIMAGE-PIN');
     if(!fs.readFileSync(path.join(root,relative)).equals(expected))fail('UNAPPROVED-SOURCE-DELTA');
     if(gitHead&&!object(root,'HEAD',relative).equals(expected))fail('UNCOMMITTED-PRODUCT-PIN');
   }
   return {inventory,changes:acceptance.sourceChanges};
 }
-module.exports={REQUIRED,FILE,declarationRanges,applySourceChanges,proposeSourceChanges,verifyProductSources};
+function validateStepChange(d){
+  const keys=['id','file','declaration','start','end','before','after','beforeSha256','afterSha256'];
+  if(!d||Object.keys(d).sort().join('|')!==keys.sort().join('|')||d.id!=='source-stepEfficacy'||d.file!==STEP_FILE||d.declaration!=='stepEfficacy'||!Number.isSafeInteger(d.start)||!Number.isSafeInteger(d.end)||d.start<0||d.end<=d.start||typeof d.before!=='string'||typeof d.after!=='string'||sha(d.before)!==d.beforeSha256||sha(d.after)!==d.afterSha256||d.before.split(STEP_BEFORE).length!==2||d.after!==d.before.replace(STEP_BEFORE,STEP_AFTER))fail('STEP-EXPRESSION-SCOPE');
+  return d;
+}
+function applyStepEfficacyChange(before,d){
+  validateStepChange(d);const r=declarationRanges(before).stepEfficacy;
+  if(!r||r.start!==d.start||r.end!==d.end||r.bytes!==d.before)fail('STEP-DECLARATION-SCOPE');
+  return before.slice(0,d.start)+d.after+before.slice(d.end);
+}
+// Source-only proposal: the ONLY allowed postimage follows the accepted literal
+// expression. No observed candidate output supplies an expectation or authority.
+function proposeStepEfficacyChange(before,after){
+  const r=declarationRanges(before).stepEfficacy;if(!r)fail('STEP-DECLARATION-SCOPE');
+  const changed=r.bytes.replace(STEP_BEFORE,STEP_AFTER),d={id:'source-stepEfficacy',file:STEP_FILE,declaration:'stepEfficacy',start:r.start,end:r.end,before:r.bytes,after:changed,beforeSha256:sha(r.bytes),afterSha256:sha(changed)};
+  const expected=applyStepEfficacyChange(before,d);if(after!==undefined&&after!==expected)fail('UNAPPROVED-SOURCE-DELTA');return d;
+}
+module.exports={REQUIRED,FILE,STEP_FILE,STEP_BEFORE,STEP_AFTER,declarationRanges,applySourceChanges,proposeSourceChanges,validateStepChange,applyStepEfficacyChange,proposeStepEfficacyChange,verifyProductSources};
