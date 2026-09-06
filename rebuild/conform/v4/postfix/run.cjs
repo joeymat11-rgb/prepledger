@@ -171,5 +171,6 @@ function main(args=process.argv.slice(2)) {
   console.log('POSTFIX TOTAL '+m.inventory.filter(x=>x.disposition==='UNRULED').length+' UNRULED / '+m.inventory.filter(x=>x.disposition==='APPROVED-FIX').length+' APPROVED-FIX / '+m.inventory.filter(x=>x.implementation==='PRESENT').length+' PRESENT / '+m.inventory.filter(x=>x.disposition==='KEEP').length+' KEEP / '+m.inventory.filter(x=>x.disposition==='DEFER').length+' DEFER / 15 non-D OPEN; theme cases and deltas PENDING');
   console.log('BASELINE PASS / FIXES PENDING');return 0;
 }
-if(require.main===module)try{process.exitCode=main();}catch(e){const blocked=['REQUIRED-PRIVATE-PREPARATION-MISSING','REQUIRED-DISPOSITION-RECEIPT-MISSING','BASELINE-ESBUILD-MISSING','INTEGRATION-FETCH-BLOCKED'].includes(e.code);console.error('POSTFIX '+(blocked?'BLOCKED ':'FAIL ')+(e.code||e.name));process.exitCode=blocked?2:1;}
+// Publish shared gate exports before CLI dispatch can require this module again.
 module.exports={REQUIRED,NON_D,GATES,validate,preflight,packagePending,gateRun,parse,main};
+if(require.main===module)try{process.exitCode=main();}catch(e){const blocked=['REQUIRED-PRIVATE-PREPARATION-MISSING','REQUIRED-DISPOSITION-RECEIPT-MISSING','BASELINE-ESBUILD-MISSING','INTEGRATION-FETCH-BLOCKED'].includes(e.code);console.error('POSTFIX '+(blocked?'BLOCKED ':'FAIL ')+(e.code||e.name));process.exitCode=blocked?2:1;}
