@@ -1,4 +1,4 @@
-# store-secret.ps1 — companion of store-secret.cmd (Windows). Stores ONE secret as a Windows USER environment variable.
+﻿# store-secret.ps1 — companion of store-secret.cmd (Windows). Stores ONE secret as a Windows USER environment variable.
 #   · the value is typed into a MASKED box (dots), never shown, never echoed, never logged, never measured
 #   · written with [Environment]::SetEnvironmentVariable(name, value, 'User') → HKCU\Environment, nothing else.
 #     That store is the current user's profile, protected by the Windows account only — it is NOT an encrypted vault.

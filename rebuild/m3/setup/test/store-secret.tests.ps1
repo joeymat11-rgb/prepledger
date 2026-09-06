@@ -1,4 +1,4 @@
-# store-secret.tests.ps1 — exercises the ACTUAL core of ..\store-secret.ps1 (dot-sourced in library mode)
+﻿# store-secret.tests.ps1 — exercises the ACTUAL core of ..\store-secret.ps1 (dot-sourced in library mode)
 # against in-memory DUMMY facades. No Windows environment variable is read or written by these tests,
 # no WinForms window opens, no value or length is ever printed.
 #
