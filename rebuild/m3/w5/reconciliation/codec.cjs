@@ -26,7 +26,7 @@ function text(value) { try { const b=bytes(value); const s=new TextDecoder('utf-
 function encode(value) { const s=JSON.stringify(value); if (s===undefined) fail(); return bytes(s); }
 function encode64(value) { const b=bytes(value);let out='';for(let i=0;i<b.length;i+=8192)out+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(out).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function decode64(value,max=LIMITS.payload) { if(typeof value!=='string'||!/^[A-Za-z0-9_-]*$/.test(value)||value.length%4===1||Math.floor(value.length*3/4)>max)fail();try{const s=atob(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4));const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);if(b.length>max||encode64(b)!==value)fail();return b;}catch(_){fail();} }
-const digest = (tag,value) => { const a=bytes(tag+'\0'),b=bytes(value),c=new Uint8Array(a.length+b.length);c.set(a);c.set(b,a.length);return encode64(sha256(c)); };
+const digest = (tag,value) => { const a=bytes(tag+'\0'),b=bytes(value);return encode64(sha256.create().update(a).update(b).digest()); };
 const hash = (tag,value) => digest(TAGS[tag]||tag,value);
 function sameBytes(a,b){a=bytes(a);b=bytes(b);return a.length===b.length&&a.every((v,i)=>v===b[i]);}
 function compareText(a,b){const x=bytes(a),y=bytes(b);for(let i=0;i<Math.min(x.length,y.length);i++)if(x[i]!==y[i])return x[i]-y[i];return x.length-y.length;}

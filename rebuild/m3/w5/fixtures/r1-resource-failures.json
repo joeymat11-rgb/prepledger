@@ -394,6 +394,135 @@
         "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1."
       ],
       "failure": null
+    },
+    {
+      "name": "r1-resource-1m-streaming-digest-fail.json",
+      "rawEvidenceSha256": "e43b9665e3233997da4749f8e22b9883614dc2267a81e27747a829a445ae843b",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "payloadCap": 1048576,
+      "completedPages": 96,
+      "requiredBoundaryPages": 32,
+      "requiredOverlapPages": 64,
+      "sequentialPages": 32,
+      "overlapPages": [
+        32,
+        32
+      ],
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 110.125,
+        "p95CpuMs": 110.125,
+        "rowsRead": 4460,
+        "rowsWritten": 192,
+        "queryMs": 50,
+        "maxStatements": 5,
+        "domainWrites": 0
+      },
+      "population": {
+        "authority_rows": 41,
+        "value_utf8_bytes": 1052791,
+        "maximum_value_utf8_bytes": 380918,
+        "accounts": [
+          {
+            "athlete_id": "first",
+            "rows": 18,
+            "value_utf8_bytes": 649819
+          },
+          {
+            "athlete_id": "second",
+            "rows": 23,
+            "value_utf8_bytes": 402972
+          }
+        ],
+        "scope": "Synthetic authority_rows JSON values; excludes SQL indexes, subjects, revision and storage-engine overhead"
+      },
+      "phases": [
+        {
+          "name": "instrument-calibration",
+          "requestCount": 0,
+          "wholePhaseCpuMs": 156.25,
+          "observedPeakBytes": 31190072,
+          "sampleCount": 8
+        },
+        {
+          "name": "boundary-sequential",
+          "requestCount": 32,
+          "wholePhaseCpuMs": 1203.125,
+          "observedPeakBytes": 150521780,
+          "sampleCount": 70
+        },
+        {
+          "name": "two-overlapping-complete-attempts",
+          "requestCount": 64,
+          "wholePhaseCpuMs": 2218.75,
+          "observedPeakBytes": 176504664,
+          "sampleCount": 124
+        },
+        {
+          "name": "oversize-typed-refusal",
+          "requestCount": 1,
+          "wholePhaseCpuMs": 15.625,
+          "observedPeakBytes": 159708066,
+          "sampleCount": 5
+        }
+      ],
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 150521780
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 176504664
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 159708066
+        }
+      ],
+      "limitations": [
+        "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+        "Memory is maximum observed inspector allocation vector, not a universal native-memory bound.",
+        "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1.",
+        "One observed peak of 176504664 bytes versus the previous 180073345 bytes is not a statistically established improvement."
+      ],
+      "failure": null,
+      "runtimeFlagsPresent": false,
+      "sourcePins": [
+        {
+          "file": "bridge.cjs",
+          "sha256": "7d6a22c1793a9c71c603208c02ddec24e25f5bf24c2c9e32c465b5c5f191c666"
+        },
+        {
+          "file": "reconciliation/codec.cjs",
+          "sha256": "1150930b9aafa55e5321d9a74ecbb86b3c17a3b839ae0bf13165ce8200fcabe3"
+        },
+        {
+          "file": "test/r1-resource.test.cjs",
+          "sha256": "ebd715abb5755f3d7cadc6377b56aa36c957e592c4bcf6221e663aba2f8dfa2b"
+        },
+        {
+          "file": "test/r1-resource-meter.cjs",
+          "sha256": "9081e9d46f923dd304ea494c2e879fa486e9661b8f8da1aa175fa198e05ccc8e"
+        },
+        {
+          "file": "test/r1-workerd.cjs",
+          "sha256": "bc44eafffc16c0fc0282ff7c3c1d3851e5cb1c368f32c0d1d2054172dd177bc1"
+        },
+        {
+          "file": "test/r1-resource-fixture.cjs",
+          "sha256": "2d23042265eece70087875dba4ec8173b13c2c0c680bb8a9a7cef941eaa67e72"
+        },
+        {
+          "file": "test/r1-streaming-digest.test.cjs",
+          "sha256": "25b1d1d376900168538e39a02c6423dcc42ee791fcc410f69cf644417d69b52a"
+        }
+      ]
     }
   ]
 }
