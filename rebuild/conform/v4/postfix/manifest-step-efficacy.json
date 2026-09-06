@@ -1,7 +1,7 @@
 {
   "version": 2,
   "acceptanceFile": "rebuild/conform/v4/postfix/acceptance-step-efficacy.json",
-  "acceptanceSha256": "55f79eb6c5da8eaa85479aa21ca8dca272040553656adae894fd2277c5c40972",
+  "acceptanceSha256": "9080025e2ecdf3753ad3d7ac381b47e2fcdc8fdd1b444e8e6b66cb6e95f0d36a",
   "candidateBase": "a777f64318dfb9b4766fa336d623196d07b5fc00",
   "receipts": {
     "owner": {
