@@ -164,3 +164,13 @@ W6 CIPHER-PIN DETECTED — disposable wrong AES input hash refused actual browse
 
 Remaining mechanics: complete the accepted proposal's per-cut evidence map, any uncovered migration/key/control failure cuts and effective mutations, then independent execution of exact corrected bytes. Old-tab and import-pin checks above are now executed; earlier checkpoint paragraphs record their historical pending status only. Production semantic validators, closed ingress/knowledge fence, sufficient time and reconciliation bounds, key custody/security budget, main-public-client format2 integration and physical Safari/phone gates remain OPEN. No additional feature is inferred from these tests.
 Keep **W6** as the same actual claim and PR32 DRAFT. Continue the named remaining focused mechanics tests and independent review, not production permission integration. This prepares W7 integration and W9 physical testing but does not mark W6 done or unblock private import. W5 time/reconciliation/renewal, W4 custody/security budget, knowledge fencing and W8/W9 remain dependencies; no extra implementation stream or merge is claimed.
+
+Latest independent review: cowork accepted exact6032061 narrow mechanics/pnpm correction, reporting90 combined Node,21 focused frame, Chromium141 frame/old-tab and unchanged regressions PASS. Its effective reader-predecessor omission exposed a browser coverage gap; this subsequent test-only correction now detects the same omission in the actual browser, after separately checking altered and coherent-older retained predecessors. No product file changed. Full updated browser runner PASS on Chromium152.0.4191.66, with the expected disposable RED and exact restored hash:
+
+```text
+W6 FRAME-PREVIOUS PASS — altered retained predecessor and coherent older substitution refuse18 on actual IndexedDB; complete pair restored
+W6 FRAME-PREVIOUS FAIL — omitted reader predecessor recompute accepts coherent older substitution in actual browser (disposable mutant)
+W6 FRAME-PREVIOUS RESTORED — frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+```
+
+The exact bounded public research note is published as `w6/CLERK-INGRESS-RESEARCH.md` for K1 review. Current Clerk JS source has independent refresh/channel paths despite polling:false/touchSession:false. A no-SDK direct Frontend API adapter is a documented option and **unimplemented candidate only**; production cookies/CORS/challenges/JWT and cancellation/closure barriers are unproved. No protocol, account, secret, product exception or SDK dependency was introduced. Browser hardening plus report took approximately09:08–09:10UTC; independent re-execution of these latest tests remains next. Same PR32 DRAFT/claim, production dependencies unchanged.

@@ -54,3 +54,15 @@ Still required before this mechanics implementation is complete: map every accep
 Still blocked beyond mechanics: production semantic proof/transition validators, owner/session/closed-ingress and child-obligation coordination, finite W5 time assumptions, reconciliation/renewal, actual final-cut allowance policy and knowledge-loss recovery, per-key security/custody/retained-body limits, supported Safari/phone evidence. The current main public factory still uses format1; integrating format2 into it is separate remaining W6 work after those contracts and mechanical review.
 
 NEXT: retain this first runnable mechanical checkpoint separately from the exact06d79f4 T2 review. Continue the named focused matrix and independent review under the same claim. No full FRAME, W6, CLOCK, private-use or M3 completion claim.
+
+## Independent6032061 review and browser-chain hardening
+
+Cowork independently accepted exact6032061's **narrow mechanics and pnpm correction**:90 combined Node,21 focused frame cases, actual Chromium141 frame/old-tab execution and its stated unchanged regression gates. Its own reader-predecessor-recompute omission failed Node but escaped the earlier browser runner. That meaningful boundary gap now has a real-browser regression: alter retained previous body IV, then substitute a coherent older previous record; each must refuse18 before returning truth and the complete pair restores exactly. The identical comparison-omission mutation in a disposable source copy now fails that actual browser assertion. Product source is unchanged:
+
+```text
+W6 FRAME-PREVIOUS PASS — altered retained predecessor and coherent older substitution refuse18 on actual IndexedDB; complete pair restored
+W6 FRAME-PREVIOUS FAIL — omitted reader predecessor recompute accepts coherent older substitution in actual browser (disposable mutant)
+W6 FRAME-PREVIOUS RESTORED — frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+```
+
+The complete updated frame-browser runner also retains26 RFC vectors, ten refusal controls and the old-tab race PASS on Chromium152.0.4191.66. This subsequent test/doc change awaits independent re-execution;603's acceptance does not certify production permission. Next design input is `CLERK-INGRESS-RESEARCH.md`, copied exactly from the coordinator-reviewed bounded note; SDK settings do not close all ingress and direct FAPI is only a candidate requiring its own reviewed contract. No further protocol code or CLOCK claim was added.

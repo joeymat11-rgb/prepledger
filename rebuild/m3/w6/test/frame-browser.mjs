@@ -1,22 +1,21 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
-import { readFileSync, existsSync } from "node:fs";
-import { resolve, dirname, join } from "node:path";
+import { readFileSync, existsSync, cpSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
+import { resolve, dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createServer } from "node:http";
+import { createHash } from "node:crypto";
 import { buildBrowser } from "../build-browser.mjs";
 import { initial, config, O } from "./support.mjs";
 const require = createRequire(import.meta.url), here = resolve(dirname(fileURLToPath(import.meta.url)), ".."), { chromium } = require("playwright-core");
 if (!process.env.W6_BROWSER_BIN || !existsSync(process.env.W6_BROWSER_BIN)) { console.log("W6 FRAME-BROWSER BLOCKED — installed browser required"); process.exit(2); }
 const built = await buildBrowser({ outfile: join(here, ".tmp/browser/frame.js"), entryPoints: [join(here, "test/frame-browser-entry.mjs")] });
 const vectors = JSON.parse(readFileSync(new URL("fixtures/rfc8452-aes256.json", import.meta.url))).vectors;
-const server = createServer((request, response) => { response.setHeader("Cache-Control", "no-store"); if (request.url === "/frame.js") { response.setHeader("Content-Type", "text/javascript"); response.end(readFileSync(built.outfile)); } else { response.setHeader("Content-Type", "text/html"); response.end("<!doctype html><title>W6 synthetic frame test</title>"); } });
+const servedBundles = new Map([["/frame.js", built.outfile]]);
+const server = createServer((request, response) => { response.setHeader("Cache-Control", "no-store"); if (servedBundles.has(request.url)) { response.setHeader("Content-Type", "text/javascript"); response.end(readFileSync(servedBundles.get(request.url))); } else { response.setHeader("Content-Type", "text/html"); response.end("<!doctype html><title>W6 synthetic frame test</title>"); } });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve)); const origin = `http://127.0.0.1:${server.address().port}`; let browser;
-try {
-  browser = await chromium.launch({ executablePath: process.env.W6_BROWSER_BIN, headless: true }); const context = await browser.newContext();
-  await context.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort()); const page = await context.newPage(); await page.goto(origin);
-  const result = await page.evaluate(async ({ vectors, generation, lease, auth }) => {
-    const F = await import("/frame.js"), hex = x => Uint8Array.from(x.match(/../g) || [], n => parseInt(n, 16)), toHex = x => [...x].map(n => n.toString(16).padStart(2, "0")).join("");
+const runFrameContract = async ({ vectors, generation, lease, auth, bundle = "/frame.js" }) => {
+    const F = await import(bundle), hex = x => Uint8Array.from(x.match(/../g) || [], n => parseInt(n, 16)), toHex = x => [...x].map(n => n.toString(16).padStart(2, "0")).join("");
     for (const v of vectors) {
       if (toHex(F.gcmsiv(hex(v.key), hex(v.nonce), hex(v.aad)).encrypt(hex(v.plaintext))) !== v.ciphertext) throw new Error("RFC encrypt mismatch");
       if (toHex(F.gcmsiv(hex(v.key), hex(v.nonce), hex(v.aad)).decrypt(hex(v.ciphertext))) !== v.plaintext) throw new Error("RFC decrypt mismatch");
@@ -47,10 +46,55 @@ try {
     const control = await reopened.prepare(after, after.body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 });
     await reopened.commitPrepared(after, control, () => ({ kind: "control", state: 20, code: "SYNTHETIC", frameFields: F.frame({ state: 20, U: after.frame.U, H: after.frame.H, W_last: after.frame.W_last }) }));
     const refused = await reopened.load(); if (toHex(new Uint8Array(refused.active.body.ciphertext)) !== toHex(new Uint8Array(after.active.body.ciphertext)) || refused.frame.U !== after.frame.U) throw new Error("control changed body/slots");
-    reopened.close(); return { vectors: vectors.length, rejected, batch: batch.count, unproven: after.unproven };
-  }, { vectors, generation: initial(), lease: O.lease("dev-A"), auth: O.AUTH_KEY });
+    const changePrevious = value => new Promise((resolve, reject) => {
+      const request = indexedDB.open(args.databaseName, 2); request.onerror = () => reject(request.error);
+      request.onsuccess = () => { const db = request.result, tx = db.transaction("generations", "readwrite"); tx.objectStore("generations").put(value, "previous");
+        tx.oncomplete = () => { db.close(); resolve(); }; tx.onabort = () => { db.close(); reject(tx.error); }; };
+    });
+    const bytes = value => JSON.stringify(value, (_name, v) => v instanceof ArrayBuffer ? [...new Uint8Array(v)] : v instanceof Uint8Array ? [...v] : v);
+    let previousRefusals = 0;
+    try {
+      const alteredPrevious = structuredClone(refused.previous); alteredPrevious.body.iv[0] ^= 1;
+      for (const [name, previous] of [["altered-retained", alteredPrevious], ["coherent-older", basis.active]]) {
+        await changePrevious(previous); let state;
+        try { await reopened.load(); } catch (error) { state = error.state; }
+        if (state !== 18) throw new Error(`FRAME-PREVIOUS ASSERT ${name}: expected18, received${state ?? "successful-read"}`);
+        previousRefusals++;
+        await changePrevious(refused.previous); const restored = await reopened.load();
+        if (bytes({ active: restored.active, previous: restored.previous }) !== bytes({ active: refused.active, previous: refused.previous })) throw new Error("FRAME-PREVIOUS restore changed complete pair");
+      }
+    } finally { await changePrevious(refused.previous); reopened.close(); }
+    return { vectors: vectors.length, rejected, batch: batch.count, unproven: after.unproven, previousRefusals };
+};
+try {
+  browser = await chromium.launch({ executablePath: process.env.W6_BROWSER_BIN, headless: true }); const context = await browser.newContext();
+  await context.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort()); const page = await context.newPage(); await page.goto(origin);
+  const inputs = { vectors, generation: initial(), lease: O.lease("dev-A"), auth: O.AUTH_KEY };
+  const result = await page.evaluate(runFrameContract, inputs);
   assert.equal(result.vectors, 26); assert.equal(result.rejected, 10); assert(result.batch > 1); assert.equal(result.unproven, true);
+  assert.equal(result.previousRefusals, 2);
   console.log(`W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and ten refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium ${browser.version()}`);
+  console.log("W6 FRAME-PREVIOUS PASS — altered retained predecessor and coherent older substitution refuse18 on actual IndexedDB; complete pair restored");
+  const original = readFileSync(join(here, "frame-repository.mjs")), source = original.toString("utf8"), needle = "!sameBytes(active.previousRecordDigest, expected) || ";
+  assert.equal(source.split(needle).length, 2);
+  const scratch = mkdtempSync(join(here, ".tmp/frame-browser-mutant-"));
+  assert(resolve(scratch).startsWith(resolve(here, ".tmp") + sep));
+  let mutantContext;
+  try {
+    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs"]) cpSync(join(here, file), join(scratch, file));
+    writeFileSync(join(scratch, "frame-repository.mjs"), source.replace(needle, ""));
+    writeFileSync(join(scratch, "entry.mjs"), `export * from ${JSON.stringify(join(here, "test/frame-browser-entry.mjs").replaceAll("\\", "/"))};\nexport { openFrameRepository } from "./frame-repository.mjs";\n`);
+    const mutant = await buildBrowser({ outfile: join(scratch, "mutant.js"), entryPoints: [join(scratch, "entry.mjs")] }); servedBundles.set("/mutant-frame.js", mutant.outfile);
+    mutantContext = await browser.newContext(); await mutantContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const mutantPage = await mutantContext.newPage(); await mutantPage.goto(origin);
+    await assert.rejects(mutantPage.evaluate(runFrameContract, { ...inputs, bundle: "/mutant-frame.js" }), /FRAME-PREVIOUS ASSERT coherent-older: expected18, receivedsuccessful-read/);
+    console.log("W6 FRAME-PREVIOUS FAIL — omitted reader predecessor recompute accepts coherent older substitution in actual browser (disposable mutant)");
+  } finally {
+    await mutantContext?.close(); servedBundles.delete("/mutant-frame.js");
+    writeFileSync(join(scratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(scratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
+    console.log(`W6 FRAME-PREVIOUS RESTORED — frame-repository.mjs sha256 ${createHash("sha256").update(original).digest("hex")}`);
+    rmSync(scratch, { recursive: true, force: true });
+  }
   const upgradeKeys = await page.evaluate(async generation => {
     const F = await import("/frame.js"), key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
     let reached, changed; const state = { reached: new Promise(r => { reached = r; }), changed: new Promise(r => { changed = r; }), hold: true, armed: false };
