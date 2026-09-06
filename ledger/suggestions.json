@@ -1,46 +1,46 @@
 {
-  "gen": "2026-09-04T09:05:56.967Z",
+  "gen": "2026-09-06T09:40:00.000Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-09-04_confirmread",
+      "sid": "sug_2026-09-06_lowerday",
       "rank": 1,
-      "title": "Weigh in Friday and Saturday — Thursday's 161.1 is the lowest read on file, and one morning can't confirm itself",
+      "title": "Monday: the full lower sheet — calves haven't trained in four weeks, hams and abs in three",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Day-to-day scale weight moves with water, not fat — sodium and carbohydrate alone can swing it a pound or more overnight — so a single morning is a data point, not a verdict; the trend only moves when consecutive clean mornings agree. (Juraschek 2020, DASH-Sodium; Powers 2003)",
-        "data": "Thu 9/03 read 161.1 — lowest in the file (prior low 161.8 on 8/20) and 2.2 lb under your 163.3 trend. Wed 9/02 had no read. Your app damped it as a spike; so did I. Your own day-to-day noise is ±1.46 lb.",
-        "relationship": "Two mornings at or under the low 162s pull the trend down most of a pound and settle the August fat-or-water question for good; two mornings back near 163 file Thursday as water leaving. Either way the rate — which neither your app nor I can price on a half-blank window — comes back on the board. My lean: confirm, about 60/40."
+        "science": "Two weeks off costs a trained lifter almost no strength; by three to four weeks it starts to show — reps before load — and it comes back within a session or two of resuming (Bosquet 2013; Mujika & Padilla 2000). In a deficit the lifting is what tells the body to keep the muscle: defend load, don't chase volume (Schoenfeld 2017).",
+        "data": "Last outings on file: calves 8/10 (320 × 11,11,10,8) · ham curl 8/14 (125 × 11,9,9) · crunch 8/14 (100 × 14,14,14) · leg raise 8/14 (7,6) · hack 8/21 (200 × 8,7,8) · hip thrust 8/21 (90 × 7,8,7) · extension 8/21 (160 × 8,8). Friday's lower day did not run. Thursday's upper day held every load with the back halves 13% short.",
+        "relationship": "Thursday showed the layoff shape — first sets match, later sets go. The legs are one to two weeks further out, so expect more of it: hack, extension and hip thrust first sets within a rep or two; calves, hams and abs two to three short. That's a baseline, not a decline. A hold only comes from a zero-reps-in-reserve opener that misses — open at two."
       },
-      "predict": "Both mornings logged: the trend lands 162.5–163.0 by Saturday if the reads confirm, or holds near 163.3 if they don't — I'm calling confirm. Neither morning logged by Sunday 9/06: this files as a miss on the ask, not a read on you, and the card retires.",
+      "predict": "A lower session logged by Tuesday 9/08 with all seven lifts at the loads on file and 2-RIR openers: hack, extension and hip thrust first sets within two reps of 8/21, no hold flags; calves, ham and crunch first sets two to three reps under their last outing. If any of those three matches outright, the rust is smaller than I think and I'll say so. No lower session by 9/09: miss on the ask, and three straight lower days missed becomes a coach flag, not a card.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-08-30_foodforward",
+      "sid": "sug_2026-09-06_quadsets",
       "rank": 2,
-      "title": "Keep logging food forward — three days in, the maintenance math is already settling; give it four more",
+      "title": "The app's quad card (10 → 12 sets): not before Monday's lower day has run once at the current sets",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Consistent self-monitoring is the strongest single predictor of fat-loss success; gaps, not metabolism, explain most stalls. (Alhassan 2008; Burke 2011)",
-        "data": "8/31 2,150 · 9/01 2,275 · 9/02 2,300 kcal; protein 175 / 175 / 200 g; steps 20,000 / 19,500 / 19,000. Across those days the app's maintenance estimate moved 2,429 → 2,353 → 2,321 and its range tightened from ~270 to ~200 kcal wide (36 matched days). 9/03 has no food yet.",
-        "relationship": "Every matched day reprices the fit — it moved 76, then 32, then 0. The first few days make it jump; the next few make it settle. The band is the app's call; the only input you control is whether the day exists."
+        "science": "No trial has found that more volume during a deficit buys more muscle (Roth 2023; Nait-Yahia 2026 — the card's own citations). Returns per set flatten past roughly 5–10 weekly sets (Pelland 2025), and in a cut each extra set is paid for out of recovery you don't have.",
+        "data": "The card fired 9/04 on 'scale stalled, lifts not falling, recovery green, sleep clean.' Sleep: real — 8.17, 8.08, 8.25 h on 8/31–9/02. Stall: three morning reads in fifteen days. Lifts: one upper session, six of seven short on reps. Extension last trained 8/21 (160 × 8,8). The same day, the app printed 'volume band sits above the high-return region — tighten to 6–12.'",
+        "relationship": "A third extension set on its first outing in seventeen days can't be read — the set, or the rust — which is the exact problem the August 10 hand-back you approved was built to avoid. Run Monday at two sets, get one clean read, then decide. Not a no — a not-yet, and a coach conversation either way."
       },
-      "predict": "Five of the seven days 9/02–9/08 logged with food: the range stays ~200 kcal wide or tighter and no single day moves the estimate more than ~50 kcal. Fewer than three logged by 9/09: this files as a miss on the ask, not on you.",
+      "predict": "Monday runs at the current two extension sets and the first set lands at or near 8 at 160: 'lifts not falling' is confirmed on a real read and the card can be judged next week on clean ground. If a third set goes in before that read, expect extension entries of 3 on the session and a 'did not convert' verdict within two lower days that neither of us can assign a cause. No lower session: nothing to grade, rides.",
       "confidence": "medium",
-      "gate": "approve"
+      "gate": "coach"
     },
     {
-      "sid": "sug_2026-09-02_tapone",
+      "sid": "sug_2026-09-06_mondayread",
       "rank": 3,
-      "title": "Last call: tap Approve or Dismiss on one card — you were in the app four days this week and no card was touched",
+      "title": "Monday morning, before legs: one scale read — Friday and Saturday were blank and the 161.1 is still unanswered",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Only graded predictions sharpen a model; an untested proposal teaches nothing either way. This is about the feedback loop, not your body.",
-        "data": "Your decision log ends 8/14 (24 entries). Contact days since: 8/31, 9/01, 9/02, 9/03 — reads, three food days and a full session all carried by the sync. Every card issued since 8/14 is undecided.",
-        "relationship": "A working pipe carried everything except decisions. If the buttons work and you're choosing not to tap, fine — I stop counting silence against my record. If they don't work, that's a bug worth one line to the developer. One tap, even Dismiss, answers it. This is a hunch about the app, not a read on you."
+        "science": "A single morning read is noise around a slow trend — for you, ±1.46 lb day to day — which is why one read never decides anything and why the trend needs a steady supply of them. The rate of loss, the thing this whole cut steers on, can't be measured across a window that's mostly blank.",
+        "data": "Reads since 8/21: 8/31 164.0 · 9/01 163.4 · 9/03 161.1 — three in fifteen days; 9/04 and 9/05 blank. Your app shows 162.9, I show 163.1, both carrying on the 161.1 with nothing since. The app's rate line prints 0.03 lb/wk — a placeholder.",
+        "relationship": "Thursday's 161.1 was the lowest read in the file, two pounds under the trend, and both instruments damped it as a spike. Low 162s or under on Monday and the trend follows it down — August was fat. 163 to 164 and it was a light morning. Either answer is fine; no answer keeps the rate unpriceable and the maintenance estimate shrinking."
       },
-      "predict": "Any decision dated 9/02 or later in the log by tomorrow's run: the channel works and the freeze was a choice — I stop grading non-decisions. Nothing by 9/05: I report the button as likely broken in the brief and retire this card.",
+      "predict": "A read dated 9/07 or 9/08 lands. At or under 162.5: your app's trend moves under 162.9 within two reads and I call August's drop mostly fat. 163.0–164.0: the trend holds 162.9–163.3 and Thursday was a light morning. No read by 9/09: miss on the ask, and scale asks move into the brief only until a contact-day pattern returns.",
       "confidence": "low",
       "gate": "approve"
     }
