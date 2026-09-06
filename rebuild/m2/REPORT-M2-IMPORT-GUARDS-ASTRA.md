@@ -1,6 +1,6 @@
 # M2 import guards — ASTRA implementation report
 
-IN PROGRESS. One coordinated package on `rebuild/m2-import-guards`; three repairs are implemented and initial preservation gates pass. The complete PACKAGE and independent acceptance remain pending.
+READY FOR INDEPENDENT EXECUTION REVIEW. One coordinated package on `rebuild/m2-import-guards`; all local repair and preservation checks completed. The full PACKAGE deliberately returns REVIEW-PENDING/exit2 until the dedicated independent artifact receipt exists; no acceptance or merge is claimed.
 
 ## 1. Module map
 
@@ -33,9 +33,26 @@ All checks passed. Safe to ship.
 The last line is the original strict gate's exact output, not permission to ship this incomplete package. Merge/writer runners also executed their frozen/trap modes. Legacy-carrier unit tests16/16 PASS; original baseline migration differential126 cases in each Date mode and D33–D36 witnesses4/4 were independently re-executed before successor adaptation.
 All five successor carriers also passed against committed product5b1281d in both Date modes: MIGRATE-SOURCE, MERGE-SOURCE, WRITERS-SOURCE, DEFECT-WITNESSES-5 and MIGRATE-DIFFERENTIAL. They preserve every original assertion outside the five scoped source/outcome changes, retain D36 unchanged, and account for all126 original migration cases plus one genuine filed-strike positive. No original test file is edited.
 The raw three-way check completed45 defects ×4 configurations ×3 engines: literal frozen vs accepted baseline180/180 exact, other42 current traces168/168 exact, selected3 RED→GREEN12/12. D27/D44's four nondefault fixture outcomes receive the explicit accounting in §6. Twelve selected-output comparisons pass; twelve extra-output mutations are refused. Eleven actual scoped product mutants execute across all four configurations:44/44 EFFECTIVE, with V8 coverage at the edited declaration/site, named assertion failures and fresh unmutated GREEN before and after each fault.
-The assembled artifact is `rebuild/conform/v4/postfix/acceptance-import-guards.json`,3,396,977 bytes/SHA256 `17d23387e922b1eb6a92f4b5bf06a76939118672f04c9170868e94858ea1a0c0`:208 cases,832 expectations,11 mutants and27 execution pins. Final infrastructure tests183/183 pass; all27 execution files use exact LF bytes. Artifact case arrays must equal the independently pinned fixture exactly. Its operational review status remains PENDING/null; no independent artifact acceptance receipt exists yet. Required results remain the entire accepted brief's gate inventory; missing receipt or private preparation is BLOCKED, never a partial PASS. The final combined PACKAGE remains pending.
+The assembled artifact is `rebuild/conform/v4/postfix/acceptance-import-guards.json`,3,396,977 bytes/SHA256 `17d23387e922b1eb6a92f4b5bf06a76939118672f04c9170868e94858ea1a0c0`:208 cases,832 expectations,11 mutants and27 execution pins. Final infrastructure tests183/183 pass; all27 execution files use exact LF bytes. Artifact case arrays must equal the independently pinned fixture exactly. Its operational review status remains PENDING/null; no independent artifact acceptance receipt exists yet. Required results remain the entire accepted brief's gate inventory; missing receipt or private preparation is BLOCKED, never a partial PASS. The final combined CLI run is complete as recorded below; independent artifact acceptance remains pending.
 
-The first combined run cleared all three direct families and their effective mutations, then failed POSTFIX FAIL TypeError at the legacy-gate loop: the CLI invoked main before exporting GATES, so package-runner received an incomplete circular import. The minimal repair publishes exports before CLI dispatch. A cold actual-entrypoint test reproduces the prior TypeError/GATES warning in a disposable copy and traverses all19 gates with explicitly synthetic dependencies after restoration; it proves initialization only, never product acceptance. Its pending path exits2 with no PASS word. Infrastructure now183/183 PASS; product and independently authored fixture bytes are unchanged. The failed log is retained locally; a fresh complete PACKAGE is required.
+The first combined run cleared all three direct families and their effective mutations, then failed POSTFIX FAIL TypeError at the legacy-gate loop: the CLI invoked main before exporting GATES, so package-runner received an incomplete circular import. The minimal repair publishes exports before CLI dispatch. A cold actual-entrypoint test reproduces the prior TypeError/GATES warning in a disposable copy and traverses all19 gates with explicitly synthetic dependencies after restoration; it proves initialization only, never product acceptance. Its pending path exits2 with no PASS word. Infrastructure now183/183 PASS; product and independently authored fixture bytes are unchanged. The failed log is retained locally. The fresh complete CLI PACKAGE then ran from committed corrected source `212f0dfb807d032aa48493a07c1164a1c40c72db`, with no product, fixture or execution-file edits during the run. All19 gate identities completed; stdout contains no PASS word, as required for PENDING evidence. The runner child returned2; the launch wrapper printed PACKAGE PROCESS EXIT 2. Exact final verdicts:
+
+```text
+POSTFIX PACKAGE REVIEW-PENDING acceptanceSha256=17d23387e922b1eb6a92f4b5bf06a76939118672f04c9170868e94858ea1a0c0 candidateBase=947369caeb9fea2d6bcb04b0447857de35ba887b
+D33 RED-frozen / GREEN-candidate-direct / preserved OBSERVED
+D34 RED-frozen / GREEN-candidate-direct / preserved OBSERVED
+D35 RED-frozen / GREEN-candidate-direct / preserved OBSERVED
+OBSERVED M2-5 actual full oracle Date=frozen: all ten required law IDs; all three blobs
+OBSERVED M2-5 actual full oracle Date=unfrozen: all ten required law IDs; all three blobs
+LEGACY migrate-full OBSERVED | OBSERVED M2-5 full migration gate: actual full oracle and exact post-state supplement; all three raw blobs; both Date modes
+LEGACY second-gate OBSERVED | SECOND GATE candidate: OBSERVED; exact original harnesses; July lazy-clock bridge; closed synthetic I/O; manifest .tmp/m2-second-gate/candidate-manifest.json
+INFO 9 engine-track rig185: W1 OBSERVED, W2 OBSERVED
+LEGACY conformance OBSERVED | SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+LEGACY selftest OBSERVED | SELFTEST OBSERVED
+LEGACY strict OBSERVED | All checks passed. Safe to ship.
+POSTFIX TOTAL 45 APPROVED-FIX / 3 PRESENT / 42 PENDING / 15 non-D OPEN; 180 raw comparisons / 832 direct case-mode executions / 44 effective mutation executions
+REVIEW-PENDING: complete evidence collected; independent artifact acceptance required
+```
 
 ## 3. Clock, ID, storage and mutable ownership
 
@@ -74,9 +91,9 @@ Other42 repairs, fixed15 non-D obligations, complete suite v4 and M2 closure rem
 
 ## 8. Wall-clock and token accounting
 
-Implementation dispatch: 2026-09-06 15:21 UTC. Completion and active gate intervals will be recorded from actual execution. Estimates are13 engineering hours for the product repairs plus18–26 for PACKAGE infrastructure; these are not measured agent duration. No separate token budget was requested.
+Implementation dispatch: 2026-09-06 15:21 UTC. Final local evidence confirmed complete at 2026-09-06T16:32:10.447Z (about71 minutes elapsed, including implementation, disclosed failures, corrections and testing). Corrected CLI source committed at16:24:33 UTC; the fresh run followed immediately and finished before this confirmation. Independent review/integration duration is not included. Estimates are13 engineering hours for the product repairs plus18–26 for PACKAGE infrastructure; these are not measured agent duration. No separate token budget was requested.
 
 ## 9. DEFECT LOG and NEXT
 
 D33, D34, D35: APPROVED-FIX / implemented, acceptance PENDING. All45 owner dispositions remain recorded; this report does not mark any accepted repair. No additional product repair is included.
-NEXT: finish the complete direct/legacy trace inventory and effective mutants; publish one reviewable repair PR and exact acceptance artifact. Cowork executes independently; the integrator records the dedicated artifact receipt, then the final authorized PACKAGE reruns. No repeated owner approval is needed.
+NEXT: PR39 is ready for Cowork to execute the exact code/artifact independently. If accepted, the integrator records its dedicated artifact receipt on a docs-only integration base; this branch incorporates that actual receipt and updates operational coordinates, then the final authorized PACKAGE reruns before integration. Astra next advances the published R1 completion brief (draft PR40), with its merge held until this receipt sequence is finished. No repeated owner approval is needed.
