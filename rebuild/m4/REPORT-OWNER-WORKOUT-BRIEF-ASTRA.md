@@ -1,6 +1,35 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.11 generation-history binding — 2026-09-07
+## Current v0.12 live-start normalizer mapping — 2026-09-07
+
+Same retained PR46 at `413a3d54d800f160da0f7c7fb0d6dcc9e010f5ac`; scope is exactly the existing brief/report. V0.12 adds a source-backed information/qualification map immediately after the proposed generation-history binding: immutable start/scope, signed accepted transition, version-specific slot and effective fields, governing basis, liveness/target lineage, separate set/completion evidence, and accepted/pending/rejected decision applicability. It distinguishes observed mutable-view defaults from the proposed authenticated decoder, preventing those shortcuts from becoming accidental schema rules.
+
+The relevance classifier must compare ruled live-start/relationship changes, not just the sorted member set. A source-derived, unexecuted edge example makes that distinction concrete without choosing effective-time correction semantics. Accepted/rejected pending-C controls remain explicitly separate from the existing supplied-tombstoned-view diagnostic; old-answer revalidation, offline/current-frontier treatment, exact version-specific decoding and rule activation still require technical acceptance. No new training decision or product implementation is selected.
+
+Source preparation is `work/workout-schema-prep/LIVE-START-NORMALIZER-CONTRACT.md`, SHA256 `6f8b3449dc535d52649037f7ceb09f3386b91f7077e4ca6b46b0a5c0064e303a`, with public implementation coordinates folded into the addendum. The retained product inventory remains `rebuild/m4/spec/partition-generation-pins.json`, SHA256 `c96734eaf7974a168ae37c0e8a0f21982f8b01d4d429c3f13973021a24d59aac`; diagnostic self-pin `afb21cc9da2b68cb6d7e098666381d68b68448a5591cd238edbda15f85632d8b` is unchanged. The mapping preparation checked the14 source pins; this publication edit does not claim another product execution or independent acceptance.
+
+No diagnostic/model, product/core/engine/schema, original suite or seeded-soak bytes changed. No existing witness was repeated for credit, and no new product PASS follows. The previous v0.11 gate results below remain historical for this proposed document revision. The coordinator will run its required combined candidate checks and obtain exact-commit CI/independent review; this preparation runs no gates and performs no commit, push, integration or private-data action.
+
+NEXT: review the version-specific accepted-history decoder/relevant-transition classifier and decision-applicability joins under the existing Stage A claim. Preserve PR46's separate exact-revision verdict, existing private-use gates and current implementation streams. A storage transaction or matching member list cannot replace those unresolved technical contracts.
+
+### Current binding publication gates
+
+Final same-family read-only QA found no material insertion issue: exact corrected draft/source limits preserved; no independent acceptance inferred. Reviewed document SHA256cb11c53ce18e0f3d4879e6d649403a4fa14187925792517c15327bb818952c2f. Only the proposal/report changed; product and standalone diagnostic/model bytes are unchanged, so their prior focused runs are historical and were not repeated for credit.
+
+Fresh original Windows/Node24.19.0 package: all five preparation/gate subprocesses exited0, with real dependencies, explicit frozen ENGINE_MAIN/ENGINE_OLD and checkout client; fixed2026-09-03/America-New_York conformance/selftest, strict test clock/PL overrides unset. Private preparation was local/verdict-only with public pins unchanged. Logs: `work/workout-active-gates-2026-09-07T21-27-36-199Z`; scope0.207s,conformance8.570s,selftest25.488s,strict47.946s. These are measured local check durations, not app/savings estimates.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+Two-document scope/whitespace PASS. Exact new-commit Windows/Linux CI is checked after publication. No original gate waiver, updated private-use verdict or independent product acceptance follows; the strict closing line is old-app validation. PR47's assigned peer review remains separate and its policy requires designated integration.
+
+## Previous v0.11 generation-history binding — 2026-09-07
 
 Same retained PR46 atd5847839f004fdc70e68d71a9b2a5973d35829f6; exactly the existing brief/report change. The owner directed eligible development to continue during the separately authorized PR47-only Opus review. That assignment supplies no PR46 acceptance. All four nonshipping model/diagnostic files, product/core/engine/schema, frozen suite and seeded-soak source remain unchanged.
 
@@ -12,7 +41,7 @@ The corrected scratch proposal was reviewed for membership-versus-relation chang
 
 NEXT: obtain the designated independent Stage A verdict on this exact proposal separately from PR47. The smallest remaining code blocker is the closed versioned accepted-history normalizer plus its reviewed decision applicability, not Store atomicity. Preserve all current claims and gates; no owner relay, model promotion, private import or new schedule.
 
-### Current binding publication gates
+### v0.11 binding publication gates
 
 Final same-family read-only QA found no material insertion issue: exact corrected draft/source limits preserved; no independent acceptance inferred. Reviewed document SHA2562035f257561aa12e29f01b3891478da14dc0e859feb7a10c714ef9398c2c76d3. Only the proposal/report changed; product and standalone diagnostic/model bytes are unchanged, so their prior focused runs are historical and were not repeated for credit.
 
