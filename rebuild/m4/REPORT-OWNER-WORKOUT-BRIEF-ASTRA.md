@@ -1,6 +1,45 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.9 causal-correction checkpoint — 2026-09-07
+## Current v0.10 automatic partition-generation witness — 2026-09-07
+
+Same retained PR46 at5cae1ae8392d2c82661027afef040d64cf2ff4ea; the existing brief/report change and two public nonshipping diagnostic/pin files are added under `rebuild/m4/spec/`. This explicit §0 scope amendment makes the regression executable from the PR without another attachment relay. The two existing model files and every product/core/schema/engine/frozen-suite/soak byte stay unchanged. The previous v0.9 head passed exact-head Windows/Linux CI: push34156928718 and pull_request34156932198. Those runs are historical for this new candidate, not its acceptance.
+
+The new scratch diagnostic exercises actual unchanged T2 `receiveSessionStarts`, `resolveAmbiguity`, `ambiguity`, `face`, backend and fresh-process reconstruction against14 pinned public modules. It generates synthetic keys in memory, never prints them and uses no private data or network. Its local decision is the real pending operation/outbox write; no accepted decision or direct model edit is fabricated, and `advanceGeneration` is never called.
+
+```text
+PARTITION-GENERATION DIAGNOSTIC: 6/6 controls PASS; 3/3 current requirement witnesses RED; 1 fresh process; no manual generation advance
+```
+
+The required REDs are `UNRESOLVED-MACHINE-OUTPUT`, `SAME-MEMBERS-OLD-ANSWER-REVIVES` and `FRESH-CLIENT-OLD-ANSWER-REVIVES`. R557–559 forbids an affected next-load result while unresolved; R563–570 supersedes a question whenever its live component changes. Resolve{s1,s2} → receive compatible s3 → receive s3 tombstoned returns to the same membership and incorrectly reuses the old answer, re-enabling progressionBearing and removing state14. Crucially, the pending local decision still withdraws the supplied dependency-tagged output AFTER revival. Actual visible-output exposure is separately witnessed BEFORE that local decision. No broader product-output claim is made.
+
+Controls preserve exact received original views, complete actual decision operation/outbox, decision record and whole plan snapshot; retain the tombstoned s3 view; and make identical view replay a no-op. Received accepted views and the folded tombstone are explicit assumptions at this client seam. No admission/HTTP/D1/IndexedDB/phone, signed original-start projection, effective-time membership rule, canonical generation allocation or schema repair is proved. Existing generation-law coverage manually advances generation and does not test this join.
+
+Reproduce from the repository root: `node rebuild/m4/spec/partition-generation-diagnostic.cjs`; normal execution writes nothing and returns expected native2 for requirement-RED,3 for HARNESS_ERROR. For optional evidence use `node rebuild/m4/spec/partition-generation-diagnostic.cjs . --evidence <NEW_PATH>`; the positional repository argument is required before that flag. Publication adapts the coordinator default-root literal and excludes the independently self-pinned diagnostic itself from the product-module cache check; all14 product pins and behavioral assertions remain exact. Tracked script SHAafb21cc9da2b68cb6d7e098666381d68b68448a5591cd238edbda15f85632d8b. Original scratch result61.3626ms/native2; script SHA3e55ffd5507ddcac3870ef85f4dfe906f4194b7075bba7f8cf15e713a90fe704, result SHA99db3fbeb70988bee9281bd58c70d3f19079324aa8a782ad1ec0f346d0bcaa94. Same-family QA independently reproduced every row and preserved fresh evidence; its outer PowerShell status1 was not claimed as a measured native status. An initial author harness used the wrong snapshot store location and failed before credit; that retained failure was corrected only in the diagnostic. Product and fixed source pins stayed unchanged.
+
+Tracked publication execution reproduced all rows, measured native2 and65.5672ms. Two packaging attempts failed before credit: omitted positional repository argument gave ENOENT; the newly tracked diagnostic then counted itself as an unpinned product module. Only invocation and self-exclusion were corrected, with its independent self-pin retained. No predicate, expected outcome or product source changed.
+
+Minimal repair needs a deterministic, durable family-generation/invalidation history and reconstructable input basis, atomically joined with received views and decisions. A counter alone is unsafe: current receive input lacks a shared change/W identity and can overwrite historical view evidence, while current generation state is memory-only. Close replay/reorder, split/rejoin and missing-history behavior before implementing. The state14 output guard must target affected dependencies; neither pending-outbox withdrawal nor blanket suppression supplies that contract. This is a named Stage A technical join, not a new D-number or owner training ruling.
+
+NEXT: independently review this exact contract separately from PR47; preserve the existing implementation streams. Continue the deterministic schema/projection join within the current Stage A claim. Original mandatory candidate gates and independent acceptance remain required; no repair, acceptance, reviewer activation or private-use permission is claimed here.
+
+### v0.10 final publication checks
+
+Same-family QA compared the tracked diagnostic to its original scratch source: exactly the two deployment adaptations above; all14 product pins and every behavioral assertion unchanged; no private material introduced. The independently self-pinned diagnostic remains protected. Original scratch/author/QA receipts were preserved. The tracked native2 is expected evidence of missing behavior, not a failed original conformance gate or an application acceptance PASS.
+
+Final candidate package: all five processes exited0 under Node v24.19.0/Windows, real dependencies, explicit frozen ENGINE_MAIN/ENGINE_OLD and checkout client; fixed2026-09-03/America-New_York conformance/selftest and unset strict test clock/PL overrides. Private preparation stayed local/verdict-only and public pins unchanged. Logs: `work/workout-active-gates-2026-09-07T20-13-12-429Z`; selftest22.324s,strict47.525s. Earlier20:08 documentation-only package also passed but does not substitute for this final diagnostic-file candidate. No savings claim follows.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+Final scope: two existing documents plus two explicitly allowed new nonshipping diagnostic/pin files; original model files unchanged. Whitespace/source scope PASS. No original suite/CI wiring changes; the new diagnostic is an explicit reviewer command. Exact-head CI follows publication. Strict's final line grants no rebuild/private-use or independent approval.
+
+## Previous v0.9 causal-correction checkpoint — 2026-09-07
 
 Same retained PR46, source head `6b0966e341a0d08144c7e16b23f6e265a76329d3`, accepted integration213300c unchanged. Four existing proposal files change: brief/report and the two NON-SHIPPING specification files. This closes the brief's explicitly named sequential correction-chain fixture gap. A later correction still targets the original set and must cover all earlier same-target edits in actual transitive causal ancestry; a later removal must cover the complete edit lineage. Receipt order is not a substitute for causality. No product/core/schema/engine/private/soak or frozen-suite change.
 
