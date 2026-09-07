@@ -1,6 +1,35 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
-## Current K1 retained-proof closure checkpoint — 2026-09-07
+## Current K1 authentication/context capture binding — 2026-09-07
+
+Same retained draft PR32 atbb70d54264a024efddbc61413504c13c2e006ab4; exactly the existing K1 proposal/report change. New §2.4 publishes the already prepared, QA-corrected AUTH_EXCHANGE/CONTEXT_SWITCH outer descriptor, field/reference/null and source-scope rules. This is the specific authorable binding named by the preceding checkpoint, completed while the separately authorized PR47-only review runs. It grants no W6 independent acceptance or product authority.
+
+AUTH requests bind a nonnull request commitment and the original child/source scope. A context switch's final SCOPE_BOUND capture stays evidence of its originating obligation; it cannot move the old proof to another athlete or authorize target truth. Protected header/body references name complete custody records, not bare hashes: UNREAD has no body record; COMPLETE retains one even for an empty body; READ_FAILED retains any observed prefix with incomplete status. A token flag, caller response or source ID cannot supply origin/ownership proof.
+
+Credential/body material remains excluded from public reports, logs and hashes. The provider profile, actual JWT acceptance, protected-record kinds/encodings/decoders, custody/erasure, first-ever sign-in bootstrap, native source retirement/acquisition/barriers and qualified C1 recovery remain explicit unresolved contracts. The enrolled-scope root cannot invent an initial athlete/device/key. Existing11/17/18 and known19/20 outcomes remain unchanged. Dispatch, semantic use and phase advancement stay blocked on the referenced definitions; no provider or browser assumption is silently accepted.
+
+All18 existing public source pins match. Product/test source remains identical to1a5098d; prior135 Node/actual Edge and24 partial graph checks were not rerun and do not cover any new auth/context schema or edge. All12 manager groups remain NOT RUN. No SDK, HTTP/provider, account, phone, secret or seed interaction. Fresh original candidate checks and final focused diff QA follow below; no gate reuse/conditional deferral operates before PR47 acceptance/integration.
+
+NEXT: the remaining concrete binding is the complete selected FAPI transport/action profile plus protected header/body custody records, reference kinds/decoders and actual ownership/bootstrap/C1 evidence. Obtain the exact-profile independent verdict before implementation. Continue within the same retained claim and continuation; no extra review stream, purchase or owner relay. Whole-app acceptance remains3/10.
+
+### Current binding publication gates
+
+Final same-family read-only QA found no material insertion issue: exact corrected draft/source limits preserved; no independent acceptance inferred. Reviewed document SHA256f2ba0cd03a9e0185920a9aed45bb57e5d515d971114a9651969a88657de25f92. Only the proposal/report changed; product and standalone diagnostic/model bytes are unchanged, so their prior focused runs are historical and were not repeated for credit.
+
+Fresh original Windows/Node24.19.0 package: all five preparation/gate subprocesses exited0, with real dependencies, explicit frozen ENGINE_MAIN/ENGINE_OLD and checkout client; fixed2026-09-03/America-New_York conformance/selftest, strict test clock/PL overrides unset. Private preparation was local/verdict-only with public pins unchanged. Logs: `work/w6-active-gates-2026-09-07T21-00-16-561Z`; scope0.205s,conformance8.646s,selftest25.361s,strict48.558s. These are measured local check durations, not app/savings estimates.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+Two-document scope/whitespace PASS. Exact new-commit Windows/Linux CI is checked after publication. No original gate waiver, updated private-use verdict or independent product acceptance follows; the strict closing line is old-app validation. PR47's assigned peer review remains separate and its policy requires designated integration.
+
+## Previous K1 retained-proof closure checkpoint — 2026-09-07
 
 Same retained draft PR32 atc5696458b97028bb5ea181bac883d8a49aa1047b; exactly the existing K1 contract/report change. §2.3 now specifies the known complete proof graph and conservative historical retention rule. All published proof tuples and relative order remain, including unselected historical negative evidence. Existing terminal outbox transitions remain permitted; outer grandparent retirement does not authorize inner history deletion. Active and previous bodies validate separately. No count cap, compaction, archive/import deletion or new checkpoint policy is introduced.
 
