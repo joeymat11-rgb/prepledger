@@ -174,3 +174,50 @@ W6 FRAME-PREVIOUS RESTORED — frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b
 ```
 
 The exact bounded public research note is published as `w6/CLERK-INGRESS-RESEARCH.md` for K1 review. Current Clerk JS source has independent refresh/channel paths despite polling:false/touchSession:false. A no-SDK direct Frontend API adapter is a documented option and **unimplemented candidate only**; production cookies/CORS/challenges/JWT and cancellation/closure barriers are unproved. No protocol, account, secret, product exception or SDK dependency was introduced. Browser hardening plus report took approximately09:07–09:09UTC; independent re-execution of these latest tests remains next. Same PR32 DRAFT/claim, production dependencies unchanged.
+
+## Browser key-transition follow-up — 2026-09-07, test-only
+
+The retained branch starts this follow-up at `6f62455bda53f21310c69cd313235d1f5825f062`; original base/dependencies above are retained. Accepted `FRAME-AMENDMENT-PROPOSAL.md` sections4–7 already require historical key lookup, complete retained-pair authentication, no success before transaction completion and effective failure witnesses. Node already covered key loss; the browser runner did not. This follow-up changes only that runner plus this report and the existing frame implementation status. Product/source/dependencies/frozen app/original laws/oracle/goldens/soak remain byte-identical to the retained head.
+
+The new actual-IndexedDB cases execute a T2 multi-operation session with its nonempty outbox, then: abort epoch2 rotation after the active put succeeds but before transaction complete; prove exact old pair after reopening; complete the rotation and reopen both epochs; remove historical body/frame keys separately and require18 without returned plaintext or stored mutation; restore each identical key and recover; and publish a control with frame epoch3 while retaining the epoch2 body exactly. Complete body/metadata/proofs/ops/outbox/U are compared, not only counts. `unproven:true`, no checkpoint and state18 remain explicit throughout.
+
+Environment: Windows/Node24; real dependency directories; installed **Chrome151.0.7922.174** via `W6_BROWSER_BIN`; pnpm10.33.0 via `W6_PNPM_JS`, `npm_config_lockfile` unset. W6 dependency lock is unchanged. Private/reference preparation revalidated reused commit-verified main/old bundles and regenerated ignored fixtures/goldens locally; committed public pins were compared unchanged. This is not a claim that the Windows frozen-engine builder was rerun. No private values, counts, dates, receipts or state hashes leave local preparation.
+
+Reproduction from repo root: enumerate the W6 `test/*.test.mjs` files for `node --test` (Windows needs explicit argument expansion); run `build-browser.mjs`, `test/browser-contract.mjs`, `test/browser-check.mjs`, `test/frame-browser.mjs`, `test/clean-build.mjs` under `rebuild/m3/w6/`; then the unchanged W3 two-file command, W0 `scope-package.mjs`, `rebuild/conform/run.cjs`, `--selftest`, and `scripts/check.mjs --strict`. Conformance uses explicit ENGINE_MAIN/ENGINE_OLD/EARNED_CLIENT_DIR, MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York; strict unsets MEASURED_TEST_NOW. Root's complete local gate run was **01:25:13–01:26:37UTC, approximately84 seconds**, after the focused browser run. All commands exited0; earlier evidence remains historical rather than silently overwritten.
+
+```text
+W6 Node: tests90; pass90; fail0
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors; accepted T2 baseline cb5580a3c3b778e614127026a3769d383f07611b
+W6 BROWSER BUILD PASS — 33 pinned local inputs; exact client crypto importers only
+W6 BROWSER-T2 PASS — 56 exact Node/browser action/state/clock vectors; 6 signed surfaces +36 tamper/domain refusals; actual T2 session/finish persisted in IndexedDB; Chromium 151.0.7922.174
+W6 BROWSER-PUBLIC-SINK PASS — verified P-256 disposition through actual T2 and IndexedDB, forged response no drain, original proof retained, final20 abort preserves generation
+W6 BROWSER-REPOSITORY PASS — 6/6 real IndexedDB cases; Chromium 151.0.7922.174; persistent process reopen, two-tab CAS, abort and tamper18
+W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and ten refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium 151.0.7922.174
+W6 FRAME-KEY-BROWSER PASS — actual IndexedDB rotation abort after request success; epoch2 complete/reopen; two historical-key refusals and same-key recoveries; exact T2 ops/outbox and retained pairs; independent body/frame epochs; unproven remains true
+W6 FRAME-KEY-BROWSER FAIL — omitted previous-record unsealing returns a decoded snapshot with missing historical body key in actual browser (disposable mutant)
+W6 FRAME-KEY-BROWSER RESTORED PASS — full key contract rerun; frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+W6 FRAME-OLD-TAB PASS — queued v1 write commits before version2 upgrade; complete conversion retains it; old tab cannot write after conversion
+W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph
+W6 CIPHER-PIN DETECTED — disposable wrong AES input hash refused actual browser build; manifest restored byte-for-byte
+W3: tests39; pass39; fail0
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+PASS  APP_V 7.56.0 === sw cache earned-v7.56.0
+PASS  18 files ship; ledger/, src/, tools/, scripts/, docs/ and rebuild/ stay off the CDN
+All checks passed. Safe to ship.
+W6 FRAME semantics / CLOCK / custody / phone BLOCKED — mechanical synthetic evidence only
+```
+
+Bite: omit `await unseal(previous)` only in a disposable copied repository; the new browser case specifically observes a successful read with the historical body key missing. It must fail that assertion; a build/import failure earns nothing. Restore copied source byte-for-byte, rebuild and rerun the full key contract. Real repository SHA stays `0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0`. Existing predecessor-comparison, partial-charge, early-ack and cipher-pin witnesses remain. One retained helper implemented the bounded test; another reviewed its actual diff/accepted scope without edits. This is same-family assistance, not cowork acceptance.
+
+Seams/unknowns: the new key test reopens repository objects, not an operating-system process; its keys, proof validators and finalizer are synthetic. It demonstrates adapter completion timing, not UI Saved timing. Existing public-browser tests separately exercise the real T2/signature sink. No supported Safari/iPhone, production key custody, permission, time-bound or knowledge-fence verdict follows. CI's existing public jobs do not execute the new browser runner; local Chromium evidence and later independent browser execution must remain explicit. Full accepted per-cut mechanics mapping is still incomplete.
+
+Separately, a local scratch diagnostic exercised a genuine P-256 REJECTED disposition through the existing public client/T2 plus an outer fake-IDB quota abort, with the fixture's declared no-op observation guard. Its12 controls passed, but current state3/stale contribution and fresh-client recovery without18 reproduce the still-missing K1 manager obligations (19 now,18 after unresolved relaunch). This is executed evidence for an already-known integration hole, not a new guard design, a production failure claim, or a reason to weaken acceptance. It changed no tracked source and earns no CLOCK/standing PASS; the retained diagnostic remains local for the next K1 contract review.
+
+## NEXT — current follow-up
+
+Same claimed item **W6**, same draft PR32, no merge. The named browser key-mechanics gap now has executable coverage; independent exact-candidate acceptance is pending. W7 integration/W9 physical preparation gain test evidence, but no production dependency becomes DONE. Next eligible work remains accepted mechanical coverage under this claim; production W6/workout integration still needs R1/T1/K1/P1/W4 and the existing reviewer/integrator. No new approval request, stream, model, schedule or account action.

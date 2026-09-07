@@ -66,3 +66,17 @@ W6 FRAME-PREVIOUS RESTORED — frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b
 ```
 
 The complete updated frame-browser runner also retains26 RFC vectors, ten refusal controls and the old-tab race PASS on Chromium152.0.4191.66. This subsequent test/doc change awaits independent re-execution;603's acceptance does not certify production permission. Next design input is `CLERK-INGRESS-RESEARCH.md`, copied exactly from the coordinator-reviewed bounded note; SDK settings do not close all ingress and direct FAPI is only a candidate requiring its own reviewed contract. No further protocol code or CLOCK claim was added.
+
+## Browser key-transition coverage — 2026-09-07
+
+From retained `6f62455bda53f21310c69cd313235d1f5825f062`, only `test/frame-browser.mjs` and existing evidence documents change. The accepted mechanical key/transaction scope now runs in actual IndexedDB on installed Chrome151.0.7922.174. An active-record request succeeds before an injected transaction abort; no commit success is returned and the complete stored pair remains exact. A later epoch1-to-epoch2 rotation commits, closes and reopens with the same complete T2 operations/outbox/proofs. Historical body and frame keys are withheld separately: each load refuses18, mutates no stored bytes, and recovers using the same original key. A control-only update proves independent body/frame epochs and exact retained body/U.
+
+```text
+W6 FRAME-KEY-BROWSER PASS — actual IndexedDB rotation abort after request success; epoch2 complete/reopen; two historical-key refusals and same-key recoveries; exact T2 ops/outbox and retained pairs; independent body/frame epochs; unproven remains true
+W6 FRAME-KEY-BROWSER FAIL — omitted previous-record unsealing returns a decoded snapshot with missing historical body key in actual browser (disposable mutant)
+W6 FRAME-KEY-BROWSER RESTORED PASS — full key contract rerun; frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+```
+
+The disposable mutant fails the behavioral assertion, not an import pin; the restored copy is rebuilt and the complete new contract reruns. The actual repository source remains byte-identical. Synthetic key providers/validators and unproven18 remain explicit; reopen here means a new repository instance, not an OS restart. This is neither production key recovery nor a CLOCK/iPhone/permission verdict. Full W6 Node90/90, existing actual-browser runners, W3 39/39, fresh offline build, unchanged conformance/selftest/strict and frozen/package checks pass locally; the builder report records commands and limits. Exact candidate independent execution is pending. No production code, new key profile, private material or seeded-soak access.
+
+NEXT: same W6/PR32 claim. This closes the named browser key-mechanics coverage gap and supplies review evidence for W9; it does not unblock W7 production integration or owner use. Continue only already-authorized mechanical coverage while K1/T1/P1/R1/W4 and independent acceptance remain unresolved.

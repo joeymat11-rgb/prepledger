@@ -66,6 +66,106 @@ const runFrameContract = async ({ vectors, generation, lease, auth, bundle = "/f
     } finally { await changePrevious(refused.previous); reopened.close(); }
     return { vectors: vectors.length, rejected, batch: batch.count, unproven: after.unproven, previousRefusals };
 };
+// Real IndexedDB mechanics with synthetic providers only; no production key custody or checkpoint.
+const runFrameKeyContract = async ({ generation, lease, auth, bundle = "/frame.js" }) => {
+  const F = await import(bundle), bodies = new Map(), frames = new Map(), requests = [];
+  const check = (condition, label) => { if (!condition) throw new Error(`FRAME-KEY ASSERT ${label}`); };
+  const bytes = value => JSON.stringify(value, (_name, v) => v instanceof ArrayBuffer ? { ArrayBuffer: [...new Uint8Array(v)] } : v instanceof Uint8Array ? { Uint8Array: [...v] } : v);
+  const same = (left, right) => bytes(left) === bytes(right);
+  for (const epoch of [1, 2]) bodies.set(epoch, await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]));
+  for (const epoch of [1, 2, 3]) frames.set(epoch, crypto.getRandomValues(new Uint8Array(32)));
+  const cut = { armed: false, requestSucceeded: false, published: false, earlyPublication: false, aborts: 0, completes: 0, puts: [] };
+  const wrapped = { open(...args) { const request = indexedDB.open(...args); request.addEventListener("success", () => {
+    const db = request.result, transaction = db.transaction.bind(db);
+    db.transaction = (...args) => {
+      const tx = transaction(...args); if (!cut.armed || args[1] !== "readwrite") return tx;
+      tx.addEventListener("abort", () => { cut.aborts++; }); tx.addEventListener("complete", () => { cut.completes++; });
+      const store = tx.objectStore("generations"), put = store.put.bind(store), objectStore = tx.objectStore.bind(tx);
+      store.put = (value, key) => {
+        cut.puts.push(key); const written = put(value, key);
+        if (key === "active") written.addEventListener("success", () => {
+          cut.requestSucceeded = true; cut.earlyPublication = cut.published; tx.abort();
+        });
+        return written;
+      };
+      tx.objectStore = name => name === "generations" ? store : objectStore(name); return tx;
+    };
+  }); return request; } };
+  const args = { indexedDB: wrapped, databaseName: "synthetic-frame-key-browser", namespace: "synthetic-frame-key-browser",
+    bodyKeyProvider: ({ keyEpoch }) => { requests.push(["body", keyEpoch]); return bodies.get(keyEpoch); },
+    frameKeyProvider: ({ keyEpoch }) => { requests.push(["frame", keyEpoch]); return { keyEpoch, keyBytes: frames.get(keyEpoch), revisionStart: 1 }; },
+    authorizeEnrollment: () => true, proofValidators: { "batch/1": () => true } };
+  const storedPair = () => new Promise((resolve, reject) => {
+    const request = indexedDB.open(args.databaseName, 2); request.onerror = () => reject(new Error("FRAME-KEY raw open failed"));
+    request.onsuccess = () => {
+      const db = request.result, tx = db.transaction("generations", "readonly"), store = tx.objectStore("generations"); let active, previous;
+      store.get("active").onsuccess = event => { active = event.target.result; };
+      store.get("previous").onsuccess = event => { previous = event.target.result; };
+      tx.oncomplete = () => { db.close(); resolve({ active, previous }); }; tx.onabort = () => { db.close(); reject(new Error("FRAME-KEY raw read aborted")); };
+    };
+  });
+  let repo = await F.openFrameRepository(args);
+  try {
+    const body = { format: 2, collections: generation.collections, retainedMetadata: generation.metadata, proofs: [] };
+    await repo.commitPrepared(null, await repo.prepare(null, body, { bodyKeyEpoch: 1, frameKeyEpoch: 1 }), () => ({ kind: "publish", frameFields: F.frame() }), { enrollmentEvidence: "synthetic-only" });
+    const seed = await repo.load(), stage = F.Stage.createT2Stage(() => ({ deviceId: "dev-A", athleteId: "ath-1", identityKey: "synthetic-identity", authorityKey: auth, lease,
+      clock: { now: () => "2026-09-04T00:00:00Z", today: () => "2026-09-04", monotonicMs: () => 0 } }));
+    const candidate = stage({ collections: seed.body.collections, metadata: seed.body.retainedMetadata }, "logSession", { sets: [{ exercise: "squat", reps: 5, load: 100 }, { exercise: "squat", reps: 5, load: 100 }] });
+    check(candidate.result.acknowledged, "actual T2 staging failed"); const batch = candidate.commit.batch;
+    const proof = F.makeProof("batch", 1, new TextEncoder().encode(JSON.stringify(batch))), nextBody = { format: 2, collections: candidate.generation.collections, retainedMetadata: candidate.generation.metadata, proofs: [proof] };
+    const batchFields = F.frame({ kind: 0, U: batch.count, batchCount: batch.count, firstSequence: batch.firstSequence, lastSequence: batch.lastSequence, batchRef: proof.digest });
+    await repo.commitPrepared(seed, await repo.prepare(seed, nextBody, { bodyKeyEpoch: 1, frameKeyEpoch: 1, batch }), () => ({ kind: "publish", frameFields: batchFields }));
+    let basis = await repo.load(); const beforePair = await storedPair(), expectedBody = bytes(basis.body);
+    check(batch.count > 1 && Object.keys(basis.body.collections.ops).length === batch.count && Object.keys(basis.body.collections.outbox).length === batch.count, "nonempty actual T2 batch/outbox required");
+    const unchangedTruth = loaded => {
+      check(bytes(loaded.body) === expectedBody, "actual T2 collections/metadata/proofs changed");
+      check(loaded.frame.U === batch.count && loaded.unproven === true && loaded.frame.checkpointRef === null && loaded.frame.guard === 0 && loaded.frame.state === 18, "rotation claimed checkpoint/permission or changed U");
+    };
+    unchangedTruth(basis);
+    const rotationFields = () => F.frame({ kind: 1, U: batch.count });
+    const abortedCapability = await repo.prepare(basis, basis.body, { bodyKeyEpoch: 2, frameKeyEpoch: 2 });
+    cut.armed = true; let refusal;
+    try { await repo.commitPrepared(basis, abortedCapability, () => ({ kind: "publish", frameFields: rotationFields() })); cut.published = true; }
+    catch (error) { refusal = error.state; }
+    cut.armed = false;
+    check(refusal === 3 && !cut.published && !cut.earlyPublication && cut.requestSucceeded && cut.aborts === 1 && cut.completes === 0 && same(cut.puts, ["previous", "active"]), "rotation abort/ack cut not exercised");
+    check(same(await storedPair(), beforePair), "aborted rotation changed stored pair");
+    repo.close(); repo = await F.openFrameRepository(args); basis = await repo.load(); unchangedTruth(basis);
+    check(same({ active: basis.active, previous: basis.previous }, beforePair), "aborted rotation reopen changed pair");
+    const rotated = await repo.commitPrepared(basis, await repo.prepare(basis, basis.body, { bodyKeyEpoch: 2, frameKeyEpoch: 2 }), () => ({ kind: "publish", frameFields: rotationFields() }));
+    check(rotated.durable === true && rotated.stored === true, "rotation success not durable");
+    const rotationPair = await storedPair();
+    check(rotationPair.active.body.keyEpoch === 2 && rotationPair.active.frameKeyEpoch === 2 && rotationPair.previous.body.keyEpoch === 1 && rotationPair.previous.frameKeyEpoch === 1 && same(rotationPair.previous, beforePair.active), "rotation epoch/predecessor mismatch");
+    repo.close(); repo = await F.openFrameRepository(args); basis = await repo.load(); unchangedTruth(basis);
+    check(same({ active: basis.active, previous: basis.previous }, rotationPair), "rotation reopen changed pair");
+    let keyRefusals = 0, keyRestorations = 0;
+    for (const [name, map] of [["body", bodies], ["frame", frames]]) {
+      const saved = map.get(1); map.delete(1); requests.length = 0; repo.close(); repo = await F.openFrameRepository(args);
+      let state, returned = false;
+      try { await repo.load(); returned = true; } catch (error) { state = error.state; }
+      try {
+        check(!returned && state === 18, `missing-historical-${name}: expected18, received${state ?? "successful-read"}`);
+        check(requests.some(([kind, epoch]) => kind === name && epoch === 1), `missing-historical-${name} was not consulted`);
+        check(same(await storedPair(), rotationPair), `missing-historical-${name} changed stored pair`); keyRefusals++;
+      } finally { map.set(1, saved); }
+      repo.close(); repo = await F.openFrameRepository(args); basis = await repo.load(); unchangedTruth(basis);
+      check(map.get(1) === saved && same({ active: basis.active, previous: basis.previous }, rotationPair), `same-key ${name} recovery changed pair`); keyRestorations++;
+    }
+    // The prepared body's epoch is not the reused body's epoch on a control-only update.
+    const controlCapability = await repo.prepare(basis, basis.body, { bodyKeyEpoch: 1, frameKeyEpoch: 3 }); let preparedEpoch;
+    const control = await repo.commitPrepared(basis, controlCapability, context => {
+      preparedEpoch = context.preparedBody.keyEpoch;
+      return { kind: "control", state: 18, code: "SYNTHETIC_KEY_CONTROL", frameFields: F.frame({ kind: 2, U: batch.count }) };
+    });
+    check(control.kind === "control" && control.durable === true && preparedEpoch === 1, "control did not stage distinct body epoch");
+    const controlPair = await storedPair();
+    check(controlPair.active.frameKeyEpoch === 3 && controlPair.active.body.keyEpoch === 2 && same(controlPair.active.body, rotationPair.active.body) && same(controlPair.previous, rotationPair.active), "control did not retain exact body with independent frame epoch");
+    requests.length = 0; repo.close(); repo = await F.openFrameRepository(args); basis = await repo.load(); unchangedTruth(basis);
+    check(same({ active: basis.active, previous: basis.previous }, controlPair) && requests.some(([kind, epoch]) => kind === "body" && epoch === 2) && requests.some(([kind, epoch]) => kind === "frame" && epoch === 3) && requests.some(([kind, epoch]) => kind === "frame" && epoch === 2), "control reopen did not use actual retained epochs");
+    check(!requests.some(([_kind, epoch]) => epoch === 1), "control reopen consulted discarded/staged epoch");
+    return { aborts: cut.aborts, requestSuccessBeforeAbort: cut.requestSucceeded, keyRefusals, keyRestorations, independentEpochControl: true, t2Ops: batch.count, unproven: basis.unproven };
+  } finally { cut.armed = false; repo.close(); }
+};
 try {
   browser = await chromium.launch({ executablePath: process.env.W6_BROWSER_BIN, headless: true }); const context = await browser.newContext();
   await context.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort()); const page = await context.newPage(); await page.goto(origin);
@@ -94,6 +194,39 @@ try {
     writeFileSync(join(scratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(scratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
     console.log(`W6 FRAME-PREVIOUS RESTORED — frame-repository.mjs sha256 ${createHash("sha256").update(original).digest("hex")}`);
     rmSync(scratch, { recursive: true, force: true });
+  }
+  const keyContext = await browser.newContext();
+  let keyResult;
+  try {
+    await keyContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const keyPage = await keyContext.newPage(); await keyPage.goto(origin); keyResult = await keyPage.evaluate(runFrameKeyContract, inputs);
+    assert.deepEqual(keyResult, { aborts: 1, requestSuccessBeforeAbort: true, keyRefusals: 2, keyRestorations: 2, independentEpochControl: true, t2Ops: result.batch, unproven: true });
+    console.log("W6 FRAME-KEY-BROWSER PASS — actual IndexedDB rotation abort after request success; epoch2 complete/reopen; two historical-key refusals and same-key recoveries; exact T2 ops/outbox and retained pairs; independent body/frame epochs; unproven remains true");
+  } finally { await keyContext.close(); }
+  const keyNeedle = "else await unseal(previous); // Own stored parent digest is authenticated; no third generation is required.";
+  assert.equal(source.split(keyNeedle).length, 2);
+  const keyScratch = mkdtempSync(join(here, ".tmp/frame-key-browser-mutant-"));
+  assert(resolve(keyScratch).startsWith(resolve(here, ".tmp") + sep));
+  let keyMutantContext, keyRestoredContext;
+  try {
+    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs"]) cpSync(join(here, file), join(keyScratch, file));
+    writeFileSync(join(keyScratch, "frame-repository.mjs"), source.replace(keyNeedle, "else { /* disposable missing predecessor authentication */ }"));
+    writeFileSync(join(keyScratch, "entry.mjs"), `export * from ${JSON.stringify(join(here, "test/frame-browser-entry.mjs").replaceAll("\\", "/"))};\nexport { openFrameRepository } from "./frame-repository.mjs";\n`);
+    const altered = await buildBrowser({ outfile: join(keyScratch, "mutant.js"), entryPoints: [join(keyScratch, "entry.mjs")] }); servedBundles.set("/mutant-key-frame.js", altered.outfile);
+    keyMutantContext = await browser.newContext(); await keyMutantContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const keyMutantPage = await keyMutantContext.newPage(); await keyMutantPage.goto(origin);
+    await assert.rejects(keyMutantPage.evaluate(runFrameKeyContract, { ...inputs, bundle: "/mutant-key-frame.js" }), /FRAME-KEY ASSERT missing-historical-body: expected18, receivedsuccessful-read/);
+    console.log("W6 FRAME-KEY-BROWSER FAIL — omitted previous-record unsealing returns a decoded snapshot with missing historical body key in actual browser (disposable mutant)");
+    writeFileSync(join(keyScratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(keyScratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
+    const restored = await buildBrowser({ outfile: join(keyScratch, "restored.js"), entryPoints: [join(keyScratch, "entry.mjs")] }); servedBundles.set("/restored-key-frame.js", restored.outfile);
+    keyRestoredContext = await browser.newContext(); await keyRestoredContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const keyRestoredPage = await keyRestoredContext.newPage(); await keyRestoredPage.goto(origin);
+    assert.deepEqual(await keyRestoredPage.evaluate(runFrameKeyContract, { ...inputs, bundle: "/restored-key-frame.js" }), keyResult);
+    console.log(`W6 FRAME-KEY-BROWSER RESTORED PASS — full key contract rerun; frame-repository.mjs sha256 ${createHash("sha256").update(original).digest("hex")}`);
+  } finally {
+    await keyMutantContext?.close(); await keyRestoredContext?.close(); servedBundles.delete("/mutant-key-frame.js"); servedBundles.delete("/restored-key-frame.js");
+    writeFileSync(join(keyScratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(keyScratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
+    assert(resolve(keyScratch).startsWith(resolve(here, ".tmp") + sep)); rmSync(keyScratch, { recursive: true, force: true });
   }
   const upgradeKeys = await page.evaluate(async generation => {
     const F = await import("/frame.js"), key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
