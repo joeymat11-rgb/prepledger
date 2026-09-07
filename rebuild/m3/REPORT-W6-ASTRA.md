@@ -1,5 +1,37 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Current publication checkpoint — 2026-09-07
+
+The retained SIX-file follow-up from `e01daf9d96d97e096231156486791f554373f7a6` now passes every missing local publication gate. Normal Git, compiler and installed-browser access work in this session; earlier access failures below are historical evidence, not current blockers. No source/test change was needed to pass these fresh gates. The follow-up preserves the complete-pair/key-window/source-fault tests and the previously prepared public-client schema/alias/unknown-proof-family corrections. It changes no frozen app, suite, root lockfile, W5 core or seeded-soak bytes.
+
+Executed with bundled Node v24.19.0, installed Edge Chromium152.0.4191.66, real dependency directories, explicit frozen ENGINE_MAIN/ENGINE_OLD and this checkout's EARNED_CLIENT_DIR. Conformance uses MEASURED_TEST_NOW=2026-09-03 and TZ=America/New_York; strict unsets the test clock and both PL overrides. Private preparation was local and verdict-only, public pins preserved, with no Git trust override. Browser profiles and test state were disposable and synthetic; network traffic was localhost only. Clean-build uses the existing frozen W6 lockfile and offline package store.
+
+```text
+W6 Node: 135/135 PASS; 0 failed; 0 skipped
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors
+FRAME source faults: 5/5 original/behavioral-RED/restored cases PASS
+W3: 39/39 PASS
+W6 BROWSER BUILD PASS — 33 pinned local inputs; exact client crypto importers only
+W6 BROWSER-T2 PASS — 56 exact Node/browser action/state/clock vectors; 6 signed surfaces +36 tamper/domain refusals; actual T2 session/finish persisted in IndexedDB; Chromium 152.0.4191.66
+W6 BROWSER-PUBLIC-SINK PASS — verified P-256 disposition through actual T2 and IndexedDB, forged response no drain, original proof retained, final20 abort preserves generation
+W6 BROWSER-REPOSITORY PASS — 6/6 real IndexedDB cases; Chromium 152.0.4191.66; persistent process reopen, two-tab CAS, abort and tamper18
+W6 FRAME-BROWSER PASS — 26 RFC8452 vectors, fixed frame/AAD and ten refusal controls; actual T2 multi-op final sample, IndexedDB reopen and body-preserving control; Chromium 152.0.4191.66
+W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph
+W6 CIPHER-PIN DETECTED — disposable wrong AES input hash refused actual browser build; manifest restored byte-for-byte
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+FROZEN-PATHS PASS
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP bytes verified
+PASS engine suite — 3072 assertions passed
+PASS APP_V 7.56.0 === sw cache earned-v7.56.0
+All checks passed. Safe to ship.
+```
+
+The last line is the unchanged old-app check, not rebuild release permission. FRAME-PREVIOUS, FRAME-KEY-BROWSER, FRAME-MIGRATION-BROWSER, FRAME-NONCE-BROWSER and FRAME-OLD-TAB also pass in this run. The first three include an effective disposable browser mutation and literal restoration followed by the passing contract; their expected FAIL lines are sensitivity evidence, not failing restored gates. Existing CAS, key-window and other Node bites also pass. Complete new logs/results and source hashes are retained in coordinator `work/w6-publication-20260907/` and `work/w6-publication-browser-20260907/`; historical logs remain untouched. All gate subprocess exits were 0. Local durations: Node1.353s, W3 0.133s, conformance6.716s, SELFTEST22.217s, strict48.460s; all five browser/build commands together5.987s. The whole continuation was not separately timed.
+
+Product hashes remain `public-client.mjs` SHA256 `43395ee9244c27357c492d0fc909d64bfcf09526e0089f623203bf239b49f3ec` and `frame-repository.mjs` SHA256 `0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0`. Exact-head CI and independent acceptance are separate publication/review steps. Production clock/standing/fence/custody/remote/phone evidence is still BLOCKED; no FRAME/W6/M3 or usable private-app completion is claimed. The sections below retain the chronological evidence and earlier limits; this section supersedes only their current publication/access status.
+
 ## What changed and why
 
 This is a reviewable **partial W6 implementation**, not W6 completion or permission to import the owner's data. The actual T2 client can acknowledge a Promise-backed save before it finishes. W6 runs that client against an isolated candidate and publishes its view/acknowledgement only after IndexedDB complete. Abort retains the entry, previous generation and sequence; unproven stored truth refuses18. The new checkpoint also executes actual T2 in a browser, verifies W5 public signatures before durable sinks, preserves original signed proofs and keeps network waits outside the short local staging queue.
@@ -270,3 +302,150 @@ Seams/unknowns: v1 is synthetic compatibility evidence, not a deployed private m
 ## NEXT — migration and nonce follow-up
 
 Same W6 claim, same draft PR32, no merge or owner action. These two accepted mechanical coverage gaps are now executed and ready for independent review; next eligible work is the remaining explicit mechanical evidence matrix, not another run of these completed cases. W7/W9 receive preparation evidence only; production W6 and the complete workout app remain dependent on the existing contract, review, backend and physical gates. No new process, branch, model, paid usage or schedule.
+
+## Complete pair CAS — 2026-09-07, local test-only follow-up
+
+Start from retained e01daf9d96d97e096231156486791f554373f7a6 on the same W6 branch/draft PR32. Accepted frame amendment sections5/7 require every current/previous record field and absence marker to participate in the final transaction comparison. Existing complete predecessor mutations ran on load; commit-time checks covered nonce/malformed cases only. Add the missing matrix to test/frame-repository.test.mjs and update this report/coverage map. Product frame repository, dependencies, original laws/oracle/goldens, frozen app and seeded soak remain unchanged.
+
+The matrix primes actual T2 operations with a nonempty outbox, prepares the next batch, then changes the raw pair without any intervening load. It separately tests all ten mutable fields on active and previous: namespace, commitRevision, frameKeyEpoch, frameNonce, frameCiphertext, previousRecordDigest, body.keyEpoch, body.aadRevision, body.iv and body.ciphertext. Both stored AAD revisions exceed one before their decrement, so these are structurally valid cuts. A changed valid active revision yields STALE_REVISION/state3/retryable; the other19 field changes yield FRAME_HEAD_CHANGED_WITHOUT_REVISION/state18. Two absence-marker transitions and a genuinely saved coherent older predecessor also give18. Four format-tag changes have no shape-valid single-field alternative and earn structural-refusal evidence only, not CAS credit.
+
+Each refusal asserts no finalizer/publication, zero record-write calls, one aborted transaction, and an unchanged complete injected pair. Restore the synthetic pair byte-exactly, prove the used capability cannot start a new transaction, then reload/restage a fresh actual T2 batch and verify durable success, complete body/previous/U, and still-unproven state18. That control prevents an always-refuse implementation from passing. These are synthetic validators and fake-IDB transactions, not browser/iPhone or production permission evidence.
+
+Effective bite: remove only the exact pairToken comparison from a disposable native-ESM copy. A valid changed previous nonce then permits the actual T2 batch to publish durably: finalizer1, two record writes, transaction complete, exact staged body. The same new refusal assertion fails for that success; no import/compiler/source-pin failure earns credit. Restore copied bytes and rerun all27 matrix rows. Real source remains SHA256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0.
+
+Executed Windows/Node24 commands: node --test --test-reporter=tap --test-name-pattern="full-pair CAS" rebuild/m3/w6/test/frame-repository.test.mjs; then node --test --test-reporter=tap rebuild/m3/w6/test/*.test.mjs (literal glob handled by Node24.19.0). Final exits both0, no skipped tests. Retained local logs: work/w6-full-pair-evidence/focused-final.tap and full-node-final.tap. The original conformance/SELFTEST and W3 commands use MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York and explicit unchanged ENGINE_MAIN/ENGINE_OLD, with EARNED_CLIENT_DIR pinned to this worktree. Direct scope-package execution avoids the already-observed nested Git ownership issue without changing Git settings.
+
+```text
+W6 focused full-pair CAS: tests29; pass29; fail0; skipped0
+W6 Node: tests119; pass119; fail0; skipped0
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors; accepted T2 baseline cb5580a3c3b778e614127026a3769d383f07611b
+W6 FRAME CAS BITE RED — previous.frameNonce comparison omission permitted actual durable publication
+W6 FRAME CAS RESTORED — 20 shape-valid field cuts + 2 absent-marker cuts + 1 older predecessor + 4 structural cuts; source SHA256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+W3: tests39; pass39; fail0
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implementation evidence remain release gates
+```
+
+Run history: the first fixture assertion compared decoded plain JSON objects with T2's internal null-prototype dictionaries and failed; it was corrected to complete serialized JSON equality, without weakening record-byte assertions or changing product behavior. Its captured failure excerpt is retained and explicitly not a full raw log. The first28/28 targeted and118/118 full run passed before read-only QA found the explicit older-whole-predecessor CAS requirement; that row was added, then the final29/29 and119/119 runs passed. Same-family QA supplements implementation; it is not independent acceptance. Final targeted duration1.061seconds; final full Node1.272seconds; original conformance7.050seconds and SELFTEST23.085seconds. End-to-end wall-clock was not instrumented; approximately15minutes for this bounded continuation including preparation, same-family review, reporting and packaging (estimate, excluding later independent review). The exact measured test durations above are separate; no full-app completion estimate is inferred.
+
+Remaining gates: this local patch is not committed/published. The common Git metadata is outside the session's writable roots and remote HTTPS support is unavailable; preserve retained ownership and do not bypass those controls. The current compiler environment already fails ancestor-directory access in the unchanged strict path on the companion retained branches. No repeated identical compiler attempt or substituted full-build/browser/strict PASS is claimed here; these mandatory checks, exact-revision both-OS CI and independent review remain outstanding before acceptance. Older e01daf9 browser/strict/CI evidence above remains historical. C/I are currently quota-stopped; no paid retry, fallback qualification or model change was made.
+
+## NEXT — complete pair CAS follow-up
+
+Same W6 claim and draft PR32; the named full-pair CAS coverage obligation is locally executed. Publish and independently review this exact patch through the existing route when available. Other accepted source-fault and whole-repository epoch-window coverage remains; R1/T1/K1/P1/W4 and physical/private joins still gate production W6 and the complete workout app. No product-rule change, new schedule, merge or owner action.
+
+## Repository key window and effective faults — 2026-09-07, local test-only follow-up
+
+Same retained e01daf9d96d97e096231156486791f554373f7a6/draft PR32, with preceding local CAS changes preserved. Accepted FRAME-AMENDMENT sections7.3/7.6 name the integrated key-window boundary and effective mechanical source faults. Append to the existing repository test, add test/frame-source-faults.test.mjs and update only this report/status map. Product, dependencies, frozen app, original laws/oracle/goldens and seeded soak remain unchanged. No publication/merge or new branch/stream.
+
+The window fixture encrypts two actual-T2 synthetic generations under exact unchanged v1 AAD at authored revisions2^24−2/2^24−1. Both original v1 and v2 compatibility loaders authenticate them and create genuine trusted snapshots. Real migration writes the last epoch1 revision2^24. The next old-epoch prepare refuses FRAME_KEY_WINDOW/state3, nonretryable, before any capability/finalizer/write transaction, preserving the complete pair. Next independent epoch2 starts at2^24+1, publishes the complete unchanged body via the actual inbound write path, and retains the last epoch1 active as previous. Reopen actually requests both frame/body epochs; removing either historical key separately refuses18 without returning combined truth or changing storage, and reinstating that same key restores exact reads. Epoch1 material/window is never relabelled. This is an authenticated synthetic boundary fixture, not millions of executed commits or a cryptographic invocation-budget proof.
+
+The window bite omits only the exact keyMaterial window condition. The mutant durably writes epoch1 at the first forbidden revision; the constant no-publication assertion goes RED, while an unmutated reader refuses that stored record18. Restore actual mutated bytes, then use a fresh directory/module graph so cached mutated dependencies cannot contaminate the restored test. The full integrated boundary contract passes again.
+
+Five other effective source faults run original source, one exact-site coherent mutation, a constant behavioral law, literal byte/hash restoration of the actual mutated file and fresh restored module graph. Import/fixture/crypto setup failures cannot count as detection:
+- FRAME-ATTEMPT-SINGLE-USE: second encryption after success and after throw refuses3; removing the consumed guard permits actual second encryption. The first attempt cleared its copied key, so this is API single-use evidence, not same-key nonce reuse.
+- FRAME-CONTROL-BODY: a real T2 batch is staged over already saved operations/outbox. Omitting all three prior-body/entries/digest selections publishes the entire staged body under refusal20 with unchanged U. Exact raw-body comparison precedes load; the bad record reopens, so later decryption failure cannot conceal the hidden commit. Original/restored retain complete prior body/history.
+- FRAME-BODY-DIGEST-BINDING: omit only body ciphertext digest from frame AAD. Using its own synthetic key, the fixture creates another valid same-size ciphertext with identical IV/AAD/epochs, changing only a legitimate unknown-collection value. Original refuses specifically at frame authentication; mutant accepts that mixed body with the unchanged frame, predecessor and T2 history. This deliberately test-key-authenticated ciphertext is a component-binding witness, not a production forgery or permission claim.
+- FRAME-UNKNOWN-VERSION: an authentic frame carries binary schema2 with other decoded fields unchanged. Removing just the version predicate admits its body/frame; original/restored refuse18. This covers the version predicate, not every possible unknown field or validator. Legitimate unknown collections remain supported.
+- FRAME-FINALIZER-SAMPLE: after actual batch preparation, a finalizer supplies later synthetic H/W_last. The fault serializes prior values instead, while storing the complete T2 batch and correct U. Independent raw-frame decryption exposes stale values; original/restored preserve the exact supplied values. This establishes faithful serialization only, not elapsed-time proof, clock freshness or write eligibility.
+
+Final commands on Windows/Node24.19.0: focused node --test --test-reporter=tap --test-name-pattern="repository key window" rebuild/m3/w6/test/frame-repository.test.mjs; focused node --test rebuild/m3/w6/test/frame-source-faults.test.mjs; combined direct node --test --test-reporter=tap rebuild/m3/w6/test/*.test.mjs. The direct combined run uses MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, explicit unchanged ENGINE_MAIN/ENGINE_OLD and worktree-pinned EARNED_CLIENT_DIR. Original conformance/SELFTEST and W3 use the same clock/pins; direct scope-package verifies frozen files and the actual old-app archive. Private artifacts remain local and only verdicts are reported.
+
+```text
+W6 repository key-window focused: tests2; pass2; fail0; skipped0
+W6 source-fault focused: tests5; pass5; fail0; skipped0
+W6 combined Node: tests126; pass126; fail0; skipped0
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors; accepted T2 baseline cb5580a3c3b778e614127026a3769d383f07611b
+W6 FRAME WINDOW BITE RED — omitted window allowed epoch1 durable publication at first forbidden revision
+W6 FRAME WINDOW RESTORED — exact integrated boundary contract; format SHA256 c2b062eeb075894b9adc173feddd1c4bb56739ee8aedef2056d5642bd9676e61; repository SHA256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+FRAME-ATTEMPT-SINGLE-USE ORIGINAL PASS source-sha256=72ead7a77bed7eb61d0a6aebfa7c354a84ec0564cba04458c88cf42fc3b43ac2
+FRAME-ATTEMPT-SINGLE-USE BEHAVIORAL-RED mutant-DETECTED source-sha256=3d79a4ecaa016005e26ed37c249e668b85d4e8f718771916901cb5b656b63046
+FRAME-ATTEMPT-SINGLE-USE RESTORED PASS source-sha256=72ead7a77bed7eb61d0a6aebfa7c354a84ec0564cba04458c88cf42fc3b43ac2
+FRAME-CONTROL-BODY ORIGINAL PASS source-sha256=0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+FRAME-CONTROL-BODY BEHAVIORAL-RED mutant-DETECTED source-sha256=2637b5d491c6eceac69cdc78141e29979a95f1cd7ae5a82ac761a0cb38256494
+FRAME-CONTROL-BODY RESTORED PASS source-sha256=0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+FRAME-BODY-DIGEST-BINDING ORIGINAL PASS source-sha256=c2b062eeb075894b9adc173feddd1c4bb56739ee8aedef2056d5642bd9676e61
+FRAME-BODY-DIGEST-BINDING BEHAVIORAL-RED mutant-DETECTED source-sha256=4a387d3834446c86b8826b448ad3556c95e3282d1d1eb6ca8a8a210fdb91c95f
+FRAME-BODY-DIGEST-BINDING RESTORED PASS source-sha256=c2b062eeb075894b9adc173feddd1c4bb56739ee8aedef2056d5642bd9676e61
+FRAME-UNKNOWN-VERSION ORIGINAL PASS source-sha256=c2b062eeb075894b9adc173feddd1c4bb56739ee8aedef2056d5642bd9676e61
+FRAME-UNKNOWN-VERSION BEHAVIORAL-RED mutant-DETECTED source-sha256=c4dbe3115a131d181af2263cda919e605f94daf84284226010ce4e8ea17901fe
+FRAME-UNKNOWN-VERSION RESTORED PASS source-sha256=c2b062eeb075894b9adc173feddd1c4bb56739ee8aedef2056d5642bd9676e61
+FRAME-FINALIZER-SAMPLE ORIGINAL PASS source-sha256=0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+FRAME-FINALIZER-SAMPLE BEHAVIORAL-RED mutant-DETECTED source-sha256=943ed0657a1615e4a7e74e5997043f8138b741cb24f17ad76745e829b8de4da3
+FRAME-FINALIZER-SAMPLE RESTORED PASS source-sha256=0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+W3: tests39; pass39; fail0
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implementation evidence remain release gates
+```
+
+Evidence/history: work/w6-remaining-mechanics-evidence retains focused results and exact source/test hashes, final w6-node-direct.log/result.json and original-regression logs. Window first execution2/2 passed; the source-fault setup initially compared decoded JSON with T2 null-prototype dictionaries (no mutant credit), corrected to exact serialized plaintext while preserving raw-byte assertions. The earlier four-case pass preceded literal-copy restoration refinement and the finalizer case; it remains labelled intermediate. Root's nested-supervisor combined run125/126 failed only at baseline Git ownership lookup; the unchanged direct test command then passed126/126. No test, expected outcome, Git trust setting or product protection was changed to resolve that environment failure.
+
+Timings: focused window192.2ms, source faults349.1173ms, final combined Node1352.104ms; original conformance7.146s and SELFTEST22.869s. This bounded continuation took approximately15minutes including preparation, same-family implementation/review, focused debugging, reports and packaging (estimated wall time; independent review/publication wait excluded). Same-family QA found no remaining concrete mismatch after the named refinements; it is not C acceptance.
+
+Remaining seams: operational key-window enforcement is distinct from OPEN live owner/session/observation epochs. No source test invents a manager for those epochs, production proof validators, sufficient W5 time bounds, the K1 learned-invalidity fence or P1 custody/recovery. No new browser/strict/locked-build/CI verdict is claimed; mandatory full-package completion and independent exact-candidate review remain pending in the retained environment, with the previously documented compiler access and Git-publication limits. Existing reviewer/integrator usage stop was not retried; models, paid use and schedules are unchanged. Prior e01daf9 browser/CI evidence does not accept this local four-file patch.
+
+## NEXT — key-window/source-fault follow-up
+
+Same W6 claim/draft PR32. Keep the combined local CAS/window/fault patch intact for the existing publication and independent-review route. These implemented mechanical gaps now have execution evidence; do not repeat them or convert OPEN production semantics into fixture-only success. Production W6 and full workout development still require the named R1/T1/K1/P1/W4, accepted workout interfaces, real backend/device/recovery/import gates and qualifying C3 evidence. The full EARNED goal remains unachieved.
+# Local schema-capability guard follow-up — 2026-09-07
+
+Retained HEAD `e01daf9d96d97e096231156486791f554373f7a6`, same PR32 and ownership. This local follow-up adds a real public-boundary correction to the prior CAS/window/fault tests: `public-client.mjs` now synchronously copies the staged candidate and checks every emitted operation's schema against the already verified lease. A mismatch refuses state20 before sealing, the final commit callback or durable publication, retaining the full entered command and existing generation. No T2/default/schema-version/lease-renewal/clock/frame change. The governing existing requirement is A2:132–140, a capability bound to device/schema; no new training or data-schema authority is claimed.
+
+RED-first: a valid synthetic schema2 P-256 lease plus matching factory configuration let actual unchanged T2 emit schema1 and release Saved. The new test failed with `AssertionError: a verified lease for another schema cannot authorize the actual schema1 T2 writer; true !== false`. This is a future-configuration witness, not an observed owner-data loss or a statement that schema2 is implemented. Actual browser storage here is fake IndexedDB in Node; existing actual-browser evidence belongs to its earlier revision.
+Six new public test cases cover single/multiple operations, a mixed batch whose first operation matches but a later one does not, unchanged disk/sequence/outbox/input and no final cut; known standing17 precedence before execution and session17/observation18 precedence when the real stage changes context; existing default-schema mismatch18; and a supplied stage's queued post-inspection mutation. The implementation captures the actual candidate rather than hardcoding a currently supported version or stamping a new one onto old operations. General malformed-batch checks and the required external production validator remain. Same-family read-only QA identified the alias and mixed-member controls; it is not independent acceptance.
+
+```text
+W6 public boundary:22/22 PASS
+W6 full Node:132/132 PASS,0fail,0skip
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors
+W6-SCHEMA-BITES 4/4 EFFECTIVE: missing guard / first-member-only / post-check alias / staging-context priority
+Restored public-client.mjs SHA25600b0eecb7fccb117ca4cc3d0e905a13acf49ccebce8e6312471ab3effe356f3f
+W3:39/39 PASS
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implementation evidence remain release gates
+```
+
+Each temporary product bite caused the ordinary assertion to fail behaviorally; literal bytes were restored in finally before the final focused/full package. No missing-module, syntax, source-pin failure or merely altered implementation text earned mutation credit. Omitted guard and first-member-only returned Saved incorrectly; omitted synchronous copy durably stored schema2 despite a checked schema1 candidate. Final full-node duration1554.5338ms; times are local evidence, not a performance promise. Logs/source pins/bite runner are retained in `work/w6-schema-guard-evidence` in the coordinator workspace. The complete continuation was not separately timed.
+
+Final same-family QA found a staging-time precedence cut: real T2 staging changed the session or observation epoch before returning an otherwise successful mismatched candidate. Both tests failed RED (`20 !== 17`, `20 !== 18`). The schema refusal now checks the existing context-failure policy first; both pass with unchanged durable bytes and no final validator call. Removing that recheck is the fourth effective behavioral bite. This is a scoped correction at the new refusal branch; it does not implement a production observation guard or knowledge-loss fence. All mandatory runnable local checks above were repeated on the final corrected source.
+
+Current limits: no fresh bundle/browser/strict/CI, publication or C acceptance. The existing compiler/filesystem and Git-metadata restrictions remain; unchanged failing compiler setup was not retried or replaced. Mandatory missing checks remain prerequisites of acceptance/integration. No service/account/private/soak interaction. The cumulative public patch now covers SIX files and supersedes the old four-file W6 patch; preserve the earlier artifact and do not apply both. Existing frame source and accepted core/laws stay intact.
+NEXT: independently review this small existing-capability correction with the retained W6 packet; complete missing build/browser/strict and exact-head CI through the authorized route. Continue the real workout schema/projection and R1/T1/K1/P1/production joins; do not treat this fix or132tests as owner-workout/private-import readiness. No new queue, schedule, model or implementation stream.
+
+## Local historical-proof dispatch repair — 2026-09-07
+
+Same retained head e01daf9/PR32 and SIX cumulative local files. The new product delta is confined to `public-client.mjs` `verifiedHistory`: accept a persisted proof-family name only when it is an own entry in the declared disposition/pull/snapshot/lease/time method map. Previously an own JSON key named constructor/toString/__proto__ found Object.prototype values. An empty unknown family bypassed verification; a populated one could throw and produce ordinary save failure3, leaving earlier published truth visible, instead of integrity refusal18. This implements the existing unknown-proof/integrity contract; no new schema, signed bytes, time/fence policy, frame format or accepted T2/authority semantics.
+RED-first used the existing fixture pattern: the test owns its synthetic sealing key and writes an outer-valid generation with invalid inner proof metadata, after a successful prior paint. It is not a forged ciphertext, private-data exploit or observed owner-ledger corruption. New ordinary assertions failed: empty map `true !== false` (Saved), populated map `3 !== 18`. The fix returns the existing `HISTORICAL_PROOF_UNPROVEN`18 before any final permission callback, preserves complete durable generation/input, hides old truth and refuses a fresh reopen.
+Three new tests cover four unknown family names in both empty/populated forms and all five allowed empty-family maps. Existing authentic disposition/pull/snapshot/lease/time and bad-signature tests remain. This does not claim a complete schema for the optional outer wireProofs value: the existing contract permits generic JSON metadata and its producer uses maps, but does not yet expressly settle every empty/falsy outer representation. Same-family QA recommended keeping that distinct from the proven unknown-family error; no broad extra refusal was added.
+
+```text
+W6 public boundary:25/25 PASS
+W6 full Node:135/135 PASS,0fail,0skip
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors
+W6-PROOF-FAMILY BITE EFFECTIVE — unknown empty family Saved; populated family3 instead of18
+W6-SCHEMA-BITES 4/4 EFFECTIVE: missing guard / first-member-only / post-check alias / staging-context priority
+Restored public-client.mjs SHA25643395ee9244c27357c492d0fc909d64bfcf09526e0089f623203bf239b49f3ec
+W3:39/39 PASS
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implementation evidence remain release gates
+```
+
+The new own-entry-check omission reproduces both ordinary assertion failures. All four previous public-client bites were also re-executed on this final source after the new change; each source restoration is literal and focused25/25 pass. No missing dependency, syntax/pin error or merely changed source text earned mutation credit. Focused test duration222.7102ms; combined Node1421.3142ms; these are local execution timings, not a speed guarantee. The full continuation was not separately timed; the manifest records the observed evidence/packaging window. Same-family source/test review is preparation QA, never the mandated independent acceptance.
+Evidence is retained under coordinator `work/w6-proof-family-evidence`: red-first, final public/full Node, original conformance/selftest/W3/scope outputs, source hashes and five restored behavioral bites. Full Node and original regressions used explicit ENGINE_MAIN/ENGINE_OLD, gate date2026-09-03, America/New_York and this checkout's client. Logs stayed outside the repository. No new browser/build/strict/exact CI/publication/independent verdict is claimed; unchanged compiler-access failures were not retried or bypassed. Private, remote and seeded-soak state were untouched.
+NEXT: the current SIX-file W6 patch supersedes the earlier SIX-file patch from EARNED-next-workout-step.zip; do not stack them. Fresh local build/browser/strict and all other mandatory publication gates now PASS as recorded at the top. Publish on the retained PR32, verify exact-head CI and request independent execution of this bounded checkpoint; the builder does not merge. This supplies W6/W9 review evidence, not W7/OWNER-TODAY permission. Astra retains the same W6 claim and takes only the next contract-ready workout dependency after its own prerequisites resolve; otherwise record the exact blocker. PR46 v0.6 and PR47 have separate acceptance paths. Production/storage/clock/custody and full-workout contracts still gate owner use. No new task, model setting, schedule, purchase or owner relay.

@@ -10,7 +10,7 @@ const clone = value => structuredClone(value);
 async function setup(options = {}) {
   const signingKey = Signer.generateSigningKey("public-run"), key = Signer.publicKeyOf(signingKey);
   const f = await fixture(options.repository || {});
-  const lease = Signer.signLease({ ...O.lease("dev-A"), schema_version: 1, signature: undefined }, signingKey);
+  const lease = Signer.signLease({ ...O.lease("dev-A"), schema_version: options.leaseSchemaVersion ?? 1, signature: undefined }, signingKey);
   const seed = initial(); seed.metadata.authorityLease = lease;
   await f.repo.initialize(seed, "synthetic-enrollment-only");
   const status = { session: 1, observation: 1 };
@@ -26,6 +26,98 @@ async function setup(options = {}) {
   const pull = (receipts, extra = {}) => Signer.signPull({ athlete_id: "ath-1", device_id: "dev-A", after: 0, through: receipts.length,
     receipts, wire_version: W5.WIRE_VERSION, key_epoch: key.kid, ...extra }, signingKey);
   return { ...f, c, args, status, signingKey, key, lease, response, accepted, pull };
+}
+test("actual T2 batch with a different schema than its verified lease refuses20 before durability, retaining input", async () => {
+  for (const [command, args, mixed] of [["weighIn", { lb: 170 }], ["logSession", { sets: [{ load: 100, reps: 8 }, { load: 90, reps: 7 }] }],
+    ["logSession", { sets: [{ load: 100, reps: 8 }] }, true]]) {
+    let finalCuts = 0;
+    const baseStage = createT2Stage(config, { allowInbound: true });
+    const stage = (...values) => {
+      const candidate = baseStage(...values);
+      if (mixed && candidate.commit?.batch) {
+        const first = candidate.commit.batch.operations[0]; first.schema_version = 2;
+        first.canonical_content_commitment = require("../../../client/ops.cjs").commitmentOf(first, config().identityKey);
+        candidate.generation.collections.ops[first.op_id] = clone(first);
+      }
+      return candidate;
+    };
+    const f = await setup({ stage, leaseSchemaVersion: 2, client: { schemaVersion: 2 }, validateCommit() { finalCuts++; return null; } });
+    try {
+      const before = await f.repo.load();
+      const result = await f.c.execute(command, args);
+      assert.equal(result.acknowledged, false, "a verified lease for another schema cannot authorize the actual schema1 T2 writer");
+      assert.equal(result.state, 20);
+      assert.equal(result.code, "OPERATION_SCHEMA_MISMATCH");
+      assert.equal(finalCuts, 0, "refuse before preparing the durable write cut");
+      assert.deepEqual(await f.repo.load(), before, "full prior generation, sequence and outbox remain unchanged");
+      assert.deepEqual(f.c.current().retainedInput, { command, args });
+    } finally { f.repo.close(); }
+  }
+});
+test("a supplied stage cannot change its candidate after schema inspection while the bridge awaits", async () => {
+  const baseStage = createT2Stage(config, { allowInbound: true }); let changed = false;
+  const stage = (...values) => {
+    const candidate = baseStage(...values);
+    if (candidate.commit?.batch) queueMicrotask(() => {
+      const op = candidate.commit.batch.operations[0]; op.schema_version = 2;
+      op.canonical_content_commitment = require("../../../client/ops.cjs").commitmentOf(op, config().identityKey);
+      candidate.generation.collections.ops[op.op_id] = clone(op); changed = true;
+    });
+    return candidate;
+  };
+  const f = await setup({ stage });
+  try {
+    const saved = await f.c.execute("weighIn", { lb: 170 });
+    assert.equal(changed, true); assert.equal(saved.acknowledged, true);
+    const actual = (await f.repo.load()).generation.collections.ops[saved.op_id];
+    assert.equal(actual.schema_version, 1, "only the synchronously captured candidate can become durable");
+    assert.equal(actual.canonical_content_commitment, require("../../../client/ops.cjs").commitmentOf(actual, config().identityKey));
+  } finally { f.repo.close(); }
+});
+test("default configured schema still rejects a differently versioned signed lease with existing18", async () => {
+  const f = await setup({ leaseSchemaVersion: 2 });
+  try {
+    const before = await f.repo.load(), result = await f.c.execute("weighIn", { lb: 170 });
+    assert.equal(result.state, 18); assert.equal(result.code, "LEASE_PROOF_UNPROVEN");
+    assert.deepEqual(await f.repo.load(), before);
+  } finally { f.repo.close(); }
+});
+test("known session loss retains17 precedence over an unsupported writer schema", async () => {
+  const f = await setup({ leaseSchemaVersion: 2, client: { schemaVersion: 2 } });
+  try {
+    const before = await f.repo.load(); f.status.session = 2;
+    const result = await f.c.execute("weighIn", { lb: 170 });
+    assert.equal(result.state, 17); assert.notEqual(result.acknowledged, true);
+    assert.deepEqual(await f.repo.load(), before); assert.equal(f.c.current().view, null);
+  } finally { f.repo.close(); }
+});
+for (const [kind, state, code] of [["session", 17, "SESSION_CHANGED"], ["observation", 18, "OBSERVATION_CHANGED"]]) {
+  test(`staging-time ${kind} epoch loss takes precedence over the actual writer schema mismatch`, async () => {
+    const baseStage = createT2Stage(config, { allowInbound: true });
+    let status, stageCalls = 0, finalCuts = 0;
+    const stage = (...values) => {
+      const candidate = baseStage(...values);
+      assert.equal(candidate.result.acknowledged, true, "the real T2 writer produced a successful staged candidate");
+      assert.equal(candidate.commit.batch.operations[0].schema_version, 1);
+      stageCalls++; status[kind]++;
+      return candidate;
+    };
+    const f = await setup({ stage, leaseSchemaVersion: 2, client: { schemaVersion: 2 },
+      validateCommit() { finalCuts++; return null; } });
+    status = f.status;
+    try {
+      const before = await f.repo.load(), args = { lb: 170 };
+      const result = await f.c.execute("weighIn", args);
+      assert.equal(stageCalls, 1); assert.equal(finalCuts, 0);
+      assert.deepEqual(await f.repo.load(), before, "epoch loss must preserve the whole prior durable generation");
+      assert.equal(result.acknowledged, false);
+      assert.equal(result.state, state, "known context loss outranks the schema allowance refusal");
+      assert.equal(result.code, code);
+      const current = f.c.current();
+      assert.equal(current.view, null); assert.equal(current.refusal.state, state);
+      assert.deepEqual(current.retainedInput, kind === "session" ? null : { command: "weighIn", args });
+    } finally { f.repo.close(); }
+  });
 }
 test("structural candidate grants allow repeated checks and clones, then retire; stale epoch and changed signed bytes fail", () => {
   let current = true; const lease = { signature: "synthetic", x: 1 }, op = { op_id: "a", n: 1 }, disposition = { authority_signature: "synthetic", op_id: "a" }, scope = { namespace: "n", epoch: 1 };
@@ -127,6 +219,52 @@ test("historical signed proof is reverified in a new client/key context, never r
   await f.repo.commit(before, altered); // Valid outer seal, invalid inner signed proof.
   const fresh = createDurablePublicClient(f.args), result = await fresh.reopen();
   assert.equal(result.refusal.state, 18); assert.equal(result.view, null); f.repo.close();
+});
+
+for (const populated of [false, true]) {
+  test(`unknown historical proof families refuse18 and hide prior truth (${populated ? "nonempty" : "empty"} record maps)`, async () => {
+    for (const family of ["constructor", "toString", "__proto__", "not-a-proof-family"]) {
+      let finalCuts = 0;
+      const f = await setup({ validateCommit() { finalCuts++; return null; } });
+      try {
+        assert.equal((await f.c.execute("weighIn", { lb: 170 })).acknowledged, true);
+        assert(f.c.current().view, "a successful prior paint must exist before the integrity failure");
+        const loaded = await f.repo.load(), altered = clone(loaded.generation);
+        // Valid outer seal, unknown JSON-owned family. This fixture owns its key;
+        // it does not model forging another installation's encryption.
+        altered.metadata.wireProofs = JSON.parse(JSON.stringify({ [family]: populated ? { proof: {} } : {} }));
+        assert.equal(Object.hasOwn(altered.metadata.wireProofs, family), true);
+        await f.repo.commit(loaded, altered);
+        const before = await f.repo.load(), args = { lb: 171 }; finalCuts = 0;
+        const result = await f.c.execute("weighIn", args);
+        assert.equal(result.acknowledged, false, family);
+        assert.equal(result.state, 18, family + " is invalid stored proof metadata, not an ordinary save error");
+        assert.equal(result.code, "HISTORICAL_PROOF_UNPROVEN");
+        assert.equal(finalCuts, 0, "no final write permission request after known invalid history");
+        assert.deepEqual(await f.repo.load(), before, "all prior operations/outbox/proofs and durable revision survive");
+        const current = f.c.current();
+        assert.equal(current.view, null, "stale truth must be hidden");
+        assert.equal(current.refusal.state, 18);
+        assert.deepEqual(current.retainedInput, { command: "weighIn", args });
+        const fresh = createDurablePublicClient(f.args), reopened = await fresh.reopen();
+        assert.equal(reopened.refusal.state, 18); assert.equal(reopened.view, null);
+        assert.deepEqual(await f.repo.load(), before);
+      } finally { f.repo.close(); }
+    }
+  });
+}
+
+test("all five declared historical proof families permit empty maps without replacing signature checks", async () => {
+  const f = await setup();
+  try {
+    const before = await f.repo.load(), next = clone(before.generation);
+    next.metadata.wireProofs = Object.fromEntries(["disposition", "pull", "snapshot", "lease", "time"].map(kind => [kind, {}]));
+    await f.repo.commit(before, next);
+    const result = await f.c.execute("weighIn", { lb: 170 });
+    assert.equal(result.acknowledged, true);
+    assert(f.c.current().view);
+    assert.deepEqual((await f.repo.load()).generation.metadata.wireProofs, next.metadata.wireProofs);
+  } finally { f.repo.close(); }
 });
 test("new known runtime evidence invalidates a sealed candidate even without a newer durable revision", async () => {
   const f = await setup(), started = deferred(), released = deferred(), original = f.setup.crypto.subtle.encrypt.bind(f.setup.crypto.subtle);

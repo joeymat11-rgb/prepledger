@@ -37,8 +37,10 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
   }
   async function verifiedHistory(generation) {
     const families = generation.metadata.wireProofs || {};
+    const methods = { disposition: "verifyDisposition", pull: "verifyPull", snapshot: "verifySnapshot", lease: "verifyLease", time: "verifyServerTime" };
     for (const [kind, records] of Object.entries(families)) {
-      const method = { disposition: "verifyDisposition", pull: "verifyPull", snapshot: "verifySnapshot", lease: "verifyLease", time: "verifyServerTime" }[kind];
+      if (!Object.hasOwn(methods, kind)) return false;
+      const method = methods[kind];
       if (!method || !records || typeof records !== "object" || Array.isArray(records)) return false;
       for (const record of Object.values(records)) {
         if (!await verifier[method](record)) return false;
@@ -82,7 +84,16 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       try { sample = permissionNowIso(); } catch { sample = undefined; }
       config.permissionNowIso = () => sample;
     }
-    const candidate = stage(generation, command, args, { config, record: activeProof?.record, proof: activeProof?.proof });
+    const candidate = copy(stage(generation, command, args, { config, record: activeProof?.record, proof: activeProof?.proof }));
+    // The configured/verifying schema is not evidence of the actual writer's schema.
+    // Inspect the immutable candidate before any sealing, durable write or Saved.
+    if (candidate.result?.acknowledged === true && candidate.commit?.kind === "local-operation" &&
+        Array.isArray(candidate.commit.batch?.operations) &&
+        candidate.commit.batch.operations.some(op => op.schema_version !== lease.schema_version)) {
+      const failure = contextFailure(epoch);
+      if (failure) throw new StorageFailure(failure.code, failure.state);
+      throw new StorageFailure("OPERATION_SCHEMA_MISMATCH", 20);
+    }
     return { ...candidate, context: { namespace, sessionEpoch, observationEpoch: epoch } };
   } });
   async function sink(command, record) {
