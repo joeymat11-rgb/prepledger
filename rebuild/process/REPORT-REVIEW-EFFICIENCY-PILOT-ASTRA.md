@@ -1,15 +1,17 @@
 # Proportionate delivery controls — ASTRA implementation-preparation report
 
 ## 1. What and why
+Owner follow-through, 2026-09-07: the retained Opus5/High session has one PR47-only public independent assignment; no general qualification, PR46/W6 acceptance, merge or private custody follows. The owner separately authorizes existing designated Fable5.1 integrator session01PX76XwKAECD9cfRpxzFmhE at session-local High, one prepared unblocking assignment at a time using already available credits. Before Thursday, first the prepared PR47 handoff or a specific I-only check needed to complete its review; later only ready workout/storage acceptance or integration that concretely unlocks implementation, after accounting for remaining credits. Ordinary preparation/development stays with Earned. Verify balance/controls once before dispatch and consumption afterwards; preserve monetary caps and no-purchase/no-auto-reload limits. No paid polling/restart loop or global model change. This work allocation applies now; changed acceptance/reuse/deferral rules still require final technical acceptance plus designated integration.
+Final PR47 public peer verdict at `2a4728f260b1b99617ea1b5d1ecbc2fd30de02eb`: scoped ACCEPT from retained Opus5/High session `01SAJZorAhzfSEv3oE6xibr9`, with the disclosed vacuous D5 assertion corrected and seven transportable evidence files plus their archive collected. Exact evidence and unexecuted limits follow below. This successor changes administrative/current-status clauses and makes the existing handoff executable; helper/test bytes remain unchanged. Author factual replay passed as recorded below; final successor exact-revision peer verdict and I integration remain PENDING.
 The owner authorized implementation of the completed process-proportionality audit, including two conditional first-owner deferrals. This existing PR47 now prepares the exact contract and a narrow evidence selector; existing PR46 is reconciled in place. No further research, model comparison, stream, tracker, schedule or owner relay was created.
 **Owner direction APPROVED; technical acceptance, integration and operation under changed gates PENDING.** This is a substantive acceptance-contract amendment even where its files are documentation. Existing mandatory gates remain effective. The next delivery is the complete workout, not a Today-only substitute.
 Retained baseline `213300c6c49f772dcb2ff859e1c1375dd571b837`; previous PR47 head `6ee0b0bc7773fb31daea85ff85878eda3cf63c47`. R1, D12, W6 and all other worktrees/ownership are preserved. No product/training rule, dependency/lock, frozen suite/oracle/golden, accepted postfix artifact, private fixture commitment or seeded soak change.
 
 **Current update, 2026-09-07:** owner adopted the development-process audit recommendations. Coordination repair applies now; this substantive technical proposal still needs independent acceptance. Existing QUEUE and DECISIONS are reconciled from integration213300c: original queue acceptance retained, four repaired/41 pending/15 non-D; R1 scoped checkpoint accepted but resource FAIL/hosted proof and OPEN-BYTE-PREFLIGHT remain. Original audit-baseline RED requirements are distinguished from approved repaired-candidate successor outcomes. The owner's direction is recorded as a direction, not a builder-authored acceptance receipt. Shared PR46/47 review means separate exact-commit verdicts, never an all-or-nothing dependency.
 
-The current checkpoint was reduced from35,447 bytes to approximately5KB/600words with the previous bytes archived intact; no second maintained tracker. Latest bounded Opus assessment remains INCOMPLETE, not promoted. The existing integrator was checked once and remains usage-blocked; no repeated attempt, model change or new schedule. Retained selector/test bytes are unchanged by this operating repair. Historical failures below remain evidence; the fresh gate results below supersede their local permission blocker, not missing independent review.
+Historical repair checkpoint: reduced35,447 bytes to approximately5KB/600words with prior bytes archived intact. Earlier incomplete trials/quota failure remain history. Current scoped PR47 review and owner-authorized existing-credit I route are recorded above and in section7; no broad promotion or erased failure.
 
-Fresh execution on Windows, bundled Node24.19.0, normal Git without a trust override: explicit ENGINE_MAIN/ENGINE_OLD, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York and checkout-pinned client; strict unsets MEASURED_TEST_NOW/PL_ENGINE/PL_LAWS_LIB. Private preparation regenerated locally with verdict-only output and unchanged committed public pins. Fresh logs are retained outside the branch under work/process-repair-evidence; prior logs were not overwritten.
+Previous published-candidate execution on Windows, bundled Node24.19.0, normal Git without a trust override: explicit ENGINE_MAIN/ENGINE_OLD, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York and checkout-pinned client; strict unsets MEASURED_TEST_NOW/PL_ENGINE/PL_LAWS_LIB. Private preparation regenerated locally with verdict-only output and unchanged committed public pins. Those logs remain outside the branch under work/process-repair-evidence; prior logs were not overwritten.
 
 ```text
 FROZEN-PATHS PASS — pinned authorized base; committed and working copy
@@ -25,15 +27,38 @@ helper tests: 70 PASS / 0 FAIL / 0 skipped
 D12 EVIDENCE APPLICABILITY UNKNOWN (exit2; missing original provenance, no reuse)
 ```
 
-Scope/conformance/selftest/strict elapsed0.212/6.727/22.724/48.429s; selector98.151s. These are executed local durations, not savings or full-app estimates. Final diff/protected-path checks are required before commit; exact-commit Windows/Linux CI, independent technical acceptance and integrator checks remain pending at report preparation. Earlier unrelated source states or old CI are not substituted. Public PR body carries the published head and subsequent CI state.
+That previous scope/conformance/selftest/strict elapsed0.212/6.727/22.724/48.429s; selector98.151s. These are executed local durations, not savings or full-app estimates. Earlier source states or old CI do not certify this successor. Public PR body carries the published head and subsequent CI state.
+
+### Collected scoped peer evidence and current handoff
+
+The reviewer reports main challenges28/28/native0, corrected supplemental challenges9/9/native0 (including real pre/post D5 comparison), helper70/70/native0, scope/actual package, public-conformance, public-oracle, W0 negatives, rig187, preview tests, CI second gate and strict PASS. Collected outputs support those counts; `gates-public.log` records each public command and native status, `suite70.log` records70/70, and `strict.log` ends STRICT_EXIT=0. Real D12 applicability remains UNKNOWN/exit2, not reuse. The public reviewer did **not** execute the original full conformance, SELFTEST or private preparation/custody; designated I must supply those required exact-source/composition receipts under §7. A public scoped ACCEPT is neither activation nor a PR46/W6/private-use verdict.
+
+Preserved review failures: the initial D5 self-comparison was vacuous and earns no credit; its corrected9-case result is the replacement evidence. Two W0 setup attempts failed because the dispatch environment set EARNED_CLIENT_DIR; the public wrappers require it UNSET. A shallow checkout lacked public object0c3e7ce; obtaining the missing public history resolved that setup failure. These are disclosed reviewer/dispatch setup failures, not product defects or successful tests. Final logs do not purport to contain the earlier attempts; their retained review-session history remains the provenance. Author factual replay then executed the byte-identical scripts against a new public detached checkout at2a4728f on Windows/Node24.19.0:28/28/native0 in35.050s (zero THREW results) and9/9/native0 in37.602s; both stderr streams empty and target checkout clean. Git global/system configuration was disabled for these synthetic repositories only, with LF, signing off and empty hooks/template. Original bytes/logs remain intact; separate local output is in work/pr47-independent-review/windows-replay. This factual replay does not replace independent acceptance. Coverage labels are bounded: N1 commits its transitive drift rather than testing uncommitted disk-only drift; N22 supplies a wrong expected SHA; D3 checks direct helper source, not a claim that transitive validators never invoke Git.
+
+The byte-identical public archive is tracked at `rebuild/process/evidence/pr47-opus-2a4728f.tar.gz` so the designated reviewer/integrator can reproduce the evidence without an owner relay. Its seven members are immutable review outputs, not shipped code or a maintained tracker. Local originals remain in `work/pr47-independent-review/`. All eight byte lengths/SHA256 values match the collected manifest; inspect the seven allowlisted regular-file members before extraction into a fresh disposable directory.
+
+| File | Bytes | SHA256 |
+|---|---:|---|
+| challenge.cjs | 8763 | f45fe79b7baa790a9394fcc53480f46d9496e4fc74e14ab43df8bc54dbe4bb60 |
+| challenge-out.json | 4126 | 204ec5bd6494f336cf3531241d9b5cdc3fb9e95d33681d1dca36dd27e58fe353 |
+| challenge2.cjs | 5502 | fa715b17abe363f0112e9b8a772ea191f76f5c8e4d94cf9a407b3773687df725 |
+| challenge2-out.txt | 1292 | 4331818e7a4a42b4778ce1c276f3660ef45834a7137b1cfdafb47cf6eaf846fa |
+| gates-public.log | 11122 | 096c524413e2fcdad59bf80a83e7254291fa4e120a8b8978b4e4d34560caeac4 |
+| strict.log | 2080 | 491d970cdd08448c286e913de734835a73e2e6ae3b0118dbe0ce184bb08d82d8 |
+| suite70.log | 11640 | 477e1f0fba97cf58bc6ee7ab7ac2beb1d1a17e1496130b26075e5932cc2aa40d |
+| pr47-review-evidence.tar.gz | 12813 | be60ffd3f155483153d79e0eb8a87b9c001351b1f8d1bb65e5342906d20d8fc0 |
+
+Reproduce the reviewer challenges from a fresh disposable evidence copy, preserving these originals: `node <evidence-copy>/challenge.cjs <exact-reviewed-checkout>` and `node <evidence-copy>/challenge2.cjs <exact-reviewed-checkout>`; both accept an explicit checkout argument and use synthetic disposable test state. Then `node --test rebuild/process/test/evidence-applicability.test.cjs` from that checkout. `gates-public.log` supplies the exact remaining public commands: MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York, EARNED_CLIENT_DIR UNSET for W0; strict's clock/PL overrides remain unset. Capture native statuses and fresh logs separately. The full/private integrator commands and accepting/composition receipt fields are §7; the final successor and I receipts are still PENDING.
+
+Current original local package is separately recorded in `work/process-active-gates-2026-09-07T21-32-37-577Z/results.json`: preparation/scope/conformance/SELFTEST/strict all native0 on Node24.19.0, with explicit reference engines and checkout client; conformance/selftest use the fixed clock/TZ, strict unsets the test clock/PL overrides. Source pins/private preparation were checked locally, verdict-only. Scope/conformance/selftest/strict elapsed203.4509/6735.3558/22710.5819/48452.0224ms. Root's separate helper run returned70/70/native0 in98334.1907ms in its tool receipt; no separate helper log file is claimed. These are author-side mandatory checks, not replay of the reviewer challenge packet or a designated I receipt. This evidence-status edit itself reruns no gate; final changed-revision review, exact-commit CI and combined integration remain required.
 
 ## 2. Scope, evidence reuse and review status
-Updated this existing brief/report; reconciled `rebuild/ROADMAP.md`, `rebuild/FINISH-PROMPT.md`, `rebuild/m3/PLAN-M3-v1.md`, `rebuild/QUEUE.md` and the owner-direction line in `rebuild/DECISIONS.md`; retained `rebuild/process/evidence-applicability.cjs` and its focused synthetic test. PR46 retains its two existing files. Substantive governing replacements remain pending independent acceptance/integration; full D8/D9/HANDOFF/M3 verdicts are never manufactured from conditional first-owner readiness.
+Updated this existing brief/report; reconciled `rebuild/ROADMAP.md`, `rebuild/FINISH-PROMPT.md`, `rebuild/m3/PLAN-M3-v1.md`, `rebuild/QUEUE.md` and the owner-direction line in `rebuild/DECISIONS.md`; retained `rebuild/process/evidence-applicability.cjs` and its focused synthetic test. This successor additionally retains the unchanged public peer-evidence archive named above; no executable helper/test or product byte changes. PR46 retains its separate existing work. Substantive governing replacements remain pending independent acceptance/integration; full D8/D9/HANDOFF/M3 verdicts are never manufactured from conditional first-owner readiness.
 Review risk follows behavior: routine feature/UI gets one accountable independent peer plus focused journey/regressions/fast CI; substantive boundaries retain semantic review, fresh adversarial execution and relevant reference/integration/backend/device evidence. Cheap repository protections remain. This change does not optimize the measured roughly84-second routine package.
 The selector is an additive adapter to existing receipt/source/pin validation, including the actually loaded verifier modules when the mapped checkout differs. It never edits the pinned postfix tree, rewrites accepted evidence, dispatches/skips a gate or claims a new PACKAGE PASS. Its closed D12 profile requires verified original success, complete applicability and authentic reviewer receipt; no receipt/unknown environment means no reuse. Relevant merged composition/environment/assumption changes require fresh affected evidence.
 D12 real mapping: executed accepted candidate `0a7abebc71b861a10334f70782d2bea2f729cc4b` → report-only successor `b98ed15d6759e0e56690b2f528091123d1759ff1`, artifact `ff164b8620ee0ab7851e7d9283b32d1b330b261fad1f02178d4266131cfcabb1`,47 execution/15 engine pins, accepted ledger receipt at `348993f71c448f612a6c462a408e56ebea0b6afa`:71. Public reports do not establish every original dependency/runtime/custody fact; automatic reuse is UNKNOWN. Earlier904d35d/c545824 exit2 REVIEW-PENDING executions remain ineligible. The original required full runs were valid work, not retrospectively wasted effort.
-Fallback status is recorded once in the brief: existing C/I retain acceptance/custody, last observed quota-stopped; Opus5/High calibration6fault/6clean succeeded but its real PR46 challenge yielded three withdrawn findings and a truncated-search method error, so no qualification; Sonnet5/High refused twice and remains stopped. Neither is promoted or restarted. No paid usage, settings/caps/defaults or secrets changed. Same-family helper work is preparation QA only.
-A technically accepted fallback may cover only its demonstrated independent role; mechanical integration competence is separate from private custody/release. No currently qualified alternate acceptance receipt exists. This is a pending independent-review dependency, not a repeated owner approval request.
+Historical fallback assessment: Opus's older calibration/withdrawn PR46 findings and Sonnet's two refusals remain closed evidence, not general qualification. Current PR47-only assignment and I credit/effort authorization supersede stale availability statements only within their explicit scope. Same-family work is preparation QA.
+A technically accepted scoped reviewer covers only the demonstrated assignment; mechanical integration/private custody/release remain distinct. Use the existing report section7 completion path rather than a new model trial or repeated owner request.
 
 ## 3. One-time first-owner dependency map
 This bounded mapping reuses `AUDIT-REGISTER.md` (AR), `OWNER-RULING-PACK-M2.md`, ledger60/72 and the accepted import/step artifacts. WB means PR46's original workout brief at `bbbdc0266ad1342066c106d267dbc8f61bd0e611`; its coordinates below remain source-base coordinates. W=workout, I=import, R=recovery/replay, A=advice; privacy is named explicitly where relevant.
@@ -95,11 +120,91 @@ error: Cannot read directory "../../../../../..": Access is denied.
 DEPENDENCY MAP PASS — all45 unique defects; all15 exact fixed non-D IDs; no exclusion claimed
 ```
 
-Strict's test clock/PL_ENGINE/PL_LAWS_LIB were unset. A direct unchanged-entry-point reproduction failed with the same filesystem access condition on each branch; no further retries, compiler substitutions, frozen edits or waiver. Thus this is **not an all-gates-green candidate**. Initial package window02:45:51–02:46:49UTC; conformance9.453/9.489s and selftest29.277/29.320s; strict stopped around18s on access failure, not a successful faster build. Old published-head CI cannot certify these local updates.
+Strict's test clock/PL_ENGINE/PL_LAWS_LIB were unset. A direct unchanged-entry-point reproduction failed with the same filesystem access condition on each branch; no further retries, compiler substitutions, frozen edits or waiver. At that historical failed execution this was **not an all-gates-green candidate**; section1 records the later successful local package. Initial package window02:45:51–02:46:49UTC; conformance9.453/9.489s and selftest29.277/29.320s; strict stopped around18s on access failure, not a successful faster build. Old published-head CI cannot certify these local updates.
 
-Publication is also pending: the current session cannot write the repository's common Git metadata outside its writable area; an ordinary remote read additionally reports the HTTPS helper unavailable. No commit/push/merge is claimed and no permission bypass was attempted. Local changes are retained as exact public patches for the existing PR47/PR46 heads; independently run strict and both-OS CI in the authorized integration environment before acceptance. The patch bundle is delivery packaging, not another maintained plan.
+At that historical failed attempt publication was also pending: the session could not write the repository's common Git metadata outside its writable area, and an ordinary remote read reported the HTTPS helper unavailable. No commit/push/merge or permission bypass occurred in that attempt. Its retained public patches preserve the evidence. Subsequent normal Git publication at2a4728f and successful local/CI checks superseded those access blockers; the final successor still requires its own recorded review and integration. The patch bundle was delivery packaging, not another maintained plan.
 Historical PR47 preparation at6ee0b0b executed scope/actual18-file package, conformance/rig185, SELFTEST and strict, all exit0 in77.894seconds total. Historical PR46 atbbbdc02 also passed its four local gates and both-OS CI. These old runs are retained provenance, not the new amendment's evidence and not authority to skip its required checks.
 
 ## 6. Measurement, limits and NEXT
 This bounded amendment preparation resumed approximately `2026-09-07T02:29Z`; exact local validation timing is recorded with its output. Preparation/helper tests/review/rework and waiting are separate; no attributable cost or percentage saving is asserted. Existing calibration records and the next-three-comparable-change pilot remain, with D12 carryover rather than a new sample. No new model comparison or tracker.
-NEXT: local mandatory gates now PASS; publish the retained amendments through existing PR47/PR46 and verify exact-commit CI. Coordinate one review packet with separate independent verdicts; either proceeds when its own dependencies permit. No changed acceptance policy operates before technical acceptance/integration. Existing C/I requests remain; no quota retry or automatic promotion. Continue the first eligible complete-workout dependency under sufficiently closed published interfaces; preserve OPEN-BYTE-PREFLIGHT and R1/T1/K1/P1/W4 joins. Same coordinator, ownership, worktrees/models and existing paused continuation; no new process mechanism or schedule.
+NEXT: final-revision PR47 review and designated I composition/integration follow section7; no new policy operates before those receipts. Keep ordinary workout/storage work in retained claims, original gates and unresolved R1/T1/K1/P1/W4 joins. Existing continuation ACTIVE; no new mechanism.
+
+## 7. Close this amendment through the existing review and integration route
+
+**Final technical verdict: PENDING. Final candidate/accepting receipt/integration
+SHA and combined-check evidence: PENDING until actually supplied.** The active
+review is PR47 only. PR46 proceeds independently under its own unchanged gates.
+Owner direction is not technical acceptance and publication is not integration.
+
+1. The existing reviewer returns scoped findings against the exact candidate.
+   Astra fixes actionable findings in this retained PR, records each disposition
+   and actual new evidence, then returns the final diff to that SAME scoped review.
+   A changed final revision needs its own exact-commit verdict; earlier review
+   narration or separate branch greens do not cover it. Preserve unresolved items
+   honestly. No new reviewer council, qualification trial or owner relay is added.
+   If completing review requires an I-only private/custody check, the owner allows
+   that precise bounded I assignment earlier; do not create a circular wait.
+   Its receipt does not authorize integration/activation before final acceptance.
+2. Close clause concordance: process brief §§1–5 must agree with ROADMAP role/
+   principles/M2 text, FINISH-PROMPT §§3–5/9, and M3 plan §1, §5 steps19/28, §6
+   TELEMETRY-COST/HANDOFF. Until the amendment is independently accepted AND
+   integrated, old mandatory gates apply. Conditional first-owner entries never
+   award D8/D9/HANDOFF or full M3/beta PASS; usable independent data-and-key restore,
+   first-deploy/import/rollback, pending-local loss/time objectives, C3/OPEN-M1/M5
+   and all45/15 accounted obligations remain. Receipt reuse is not a PACKAGE run;
+   merged composition/changed or unknown applicable inputs require fresh checks.
+3. I verifies the actual final candidate commit, its reviewed artifact/file scope,
+   authentic accepting role/receipt, fresh intended integration SHA, ancestry and
+   final diff before integration. If that accepted base changed, assess the new
+   composition and obtain affected review/evidence instead of assuming equality.
+   Record candidate, accepting receipt, merge and final checked SHA separately.
+   Existing documented integration authorization applies; this paragraph grants
+   no new merge, private release, provider or spending authority.
+4. Execute the existing mandatory candidate/combined checks on their exact source.
+   Do not let this still-pending reuse helper skip its own amendment's checks.
+   From the checked repository root, actual commands are:
+
+   ```text
+   node rebuild/m3/w0/scope-package.mjs
+   node rebuild/conform/run.cjs
+   node rebuild/conform/run.cjs --selftest
+   node --test rebuild/process/test/evidence-applicability.test.cjs
+   node rebuild/process/evidence-applicability.cjs --map-d12 --root <verified-accepted-D12-checkout>
+   node scripts/check.mjs --strict
+   git diff --check
+   ```
+
+   For conformance/selftest set MEASURED_TEST_NOW=2026-09-03,
+   TZ=America/New_York, ENGINE_MAIN/ENGINE_OLD to the explicitly verified absolute
+   fe516c1/a0009c3 reference bundle paths, and EARNED_CLIENT_DIR to THIS checkout's
+   rebuild/client. Record runtime/OS/dependency identity; no inherited alternative
+   client or unrecorded PL_ENGINE/PL_LAWS_LIB override. Strict runs with
+   MEASURED_TEST_NOW, PL_ENGINE and PL_LAWS_LIB absent. Keep its real entry point.
+   Use AGENTS §4's existing authorized local preparation, restoring committed
+   public pins and verifying the private golden as prescribed; never commit or
+   display private inputs/goldens, their values/counts/hashes or credentials.
+   Require FROZEN-PATHS/actual18-file OLD-PACKAGE, CONSISTENT with rig185 W1/W2,
+   SELFTEST, strict and the actual selector tests. The current missing-provenance
+   D12 mapping must remain UNKNOWN/exit2; that is honest ineligibility, not PASS.
+   Record exact native statuses and fresh verdict evidence, including any failure.
+   Exact-final-commit `.github/workflows/rebuild.yml` must also pass its existing
+   Windows and Linux jobs, including public oracle/negative/rig187/preview and
+   accepted M2 second-gate commands. Public CI cannot replace full local custody.
+5. The public-only review can assess this contract/helper but C/I's designated
+   private preparation/custody checks remain local and separately evidenced.
+   Do not claim that a public reviewer executed them, that historical private
+   provenance was reconstructed, or that technical PR47 acceptance permits import.
+6. I records the actual scoped acceptance and checked integration in existing
+   DECISIONS, links it through existing queue IDs and reconciles the one compact
+   checkpoint. Existing accepted IDs are **OPEN-DISPATCH** (coordination route)
+   and **W11** (SHA-bound independent review); affected conditional-release rows
+   are **O-LIMITS, O-RECOVERY, W8, W10a, W10b**. **M3-CLOSED** retains its original
+   full done-line and is not completed here. There is no accepted PR47-specific
+   queue ID; do not invent one or mark W11's final milestone DONE. Keep the
+   current factual queue refresh distinct from its accepted predecessor at
+  7f9533d/DECISIONS:67 and from the actual eventual integration receipt.
+
+Closure requires clause concordance, actual final scoped technical acceptance,
+all applicable candidate/combined evidence, verified integration and the recorded
+operating transition. Any missing item stays PENDING; safe independent development
+continues through existing ownership instead of waiting on an unrelated PR.
