@@ -1,6 +1,38 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
-## Current K1 authentication/context capture binding — 2026-09-07
+## Current K1 FAPI source and protected-record binding — 2026-09-07
+
+Same retained draft PR32 at90a3787c5b36eee80a6e6826dc0c3cfe8dad50a7; exactly the existing K1 proposal/report change. §§2.5–2.6 close another authorable gap: exact source-defined fields/statuses/response references for the five selected email-code/session-token/session-end actions, followed by proposed protected header/body-or-prefix records and parser-result lineage. No product code, dependency, SDK/provider test, credential/config read, actual token, private/soak interaction or new protocol adoption.
+
+The source mapping uses immutable Clerk OpenAPI7987d1b776258d5ddd9163e1a03d256b5ac4d64a/fapi/2026-05-12.yml, SHA2561b16fc8d2886210d8f23175bd3113e7c20c24fdb408347a1219994d413104c57. All47 transitive schema references resolve in that public file; the source extraction remains scratch only (FAPI-SELECTED-ACTIONS.json SHA25638b7a7a62f32a2ab8081c5599ac0dbb299db8b35336c57b855146443c4b6e044), not a new tracked fixture or response oracle. Form-body conditional fields/absent-null distinctions, redirect/error responses, pending/challenge/task states and the actual unchanged W5 verifier are explicit. The token response does not guarantee the configured W5 issuer/audience/azp/key join.
+
+QA corrections are preserved: email_code implies identifier required only when that strategy is selected, not universally or in reverse; SessionTask has no declared payload semantics but does not prohibit undeclared fields; the global server/security citation is S33–44. auth-body.headersRef is the exact header reference selected by its originating raw response, with captureId equality; matching common fields alone cannot substitute another header proof. All raw paths are raw.capture.response.*, not a fabricated top-level bodyState. The parser's five emitted codes are pinned; catch-all TextDecoder/JSON.parse failures mean reproduced UTF8/SYNTAX codes are mechanical observations, not proof that provider bytes were invalid or every native/resource error is distinguishable. No parser change is proposed.
+
+The proposed records retain complete protected bytes and original root/child/request/profile/source scope, distinguish UNREAD/COMPLETE/READ_FAILED prefix, and bind replay to one exact raw/body/parser profile. Parsing a prefix is not permitted; no second persisted decoded-secret copy, generic trusted boolean, cross-scope re-homing or unbound result supplies authority. Actual custody permission/retention/erasure/unlock and first-sign-in bootstrap remain OPEN; history retention cannot be silently traded for credential deletion, hashes, GC or new caps. Provider transport/version/error/task/challenge, actual ownership/delivery, effects and qualified C1 remain unresolved. These shapes do not authorize their own storage, dispatch or positive permission.
+
+Source scope: the existing18 public source pins remain unchanged; the actual public W5 auth.cjs policy is now an additional pin, SHA25694e5afbf4f0d3d59e8b8ac6642d97e59435a36abee0dd162ced2a278937e8945. All19 listed file hashes match by read-only source comparison. No product source or existing model/diagnostic changes. Prior24 partial graph checks do not cover ANY new auth/custody wrapper/decoder/edge; they were not rerun or expanded. The original12 named manager acceptance groups remain NOT RUN with unchanged inventory. This batch has no behavioral execution, producer PASS, C1/CLOCK/phone/private-use or independent acceptance claim. Fresh required original/scope/CI gates and final diff QA remain the coordinator's publication work; no prior gate is represented as the new candidate's result.
+
+NEXT: review the concrete missing custodyProfileRef policy/payload against the named sensitive response/request material and immutable-history/recovery obligations, plus the still-missing production/task/bootstrap/owner bindings. This is authorable technical work, not an automatic new owner question or permission to retain bearer/OTP material. Continue the same claim/models; root integrates no unaccepted product scope.
+
+
+### Current binding publication gates
+
+Final same-family read-only QA found no material insertion issue: exact corrected draft/source limits preserved; no independent acceptance inferred. Reviewed document SHA256bee2bb5133f67ef6022bfff60d85f5b3b210f5d9f61937d62961c97709510082. Only the proposal/report changed; product and standalone diagnostic/model bytes are unchanged, so their prior focused runs are historical and were not repeated for credit.
+
+Fresh original Windows/Node24.19.0 package: all five preparation/gate subprocesses exited0, with real dependencies, explicit frozen ENGINE_MAIN/ENGINE_OLD and checkout client; fixed2026-09-03/America-New_York conformance/selftest, strict test clock/PL overrides unset. Private preparation was local/verdict-only with public pins unchanged. Logs: `work/w6-active-gates-2026-09-07T21-27-36-199Z`; scope0.209s,conformance8.572s,selftest25.572s,strict48.182s. These are measured local check durations, not app/savings estimates.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+Two-document scope/whitespace PASS. Exact new-commit Windows/Linux CI is checked after publication. No original gate waiver, updated private-use verdict or independent product acceptance follows; the strict closing line is old-app validation. PR47's assigned peer review remains separate and its policy requires designated integration.
+
+## Previous K1 authentication/context capture binding — 2026-09-07
 
 Same retained draft PR32 atbb70d54264a024efddbc61413504c13c2e006ab4; exactly the existing K1 proposal/report change. New §2.4 publishes the already prepared, QA-corrected AUTH_EXCHANGE/CONTEXT_SWITCH outer descriptor, field/reference/null and source-scope rules. This is the specific authorable binding named by the preceding checkpoint, completed while the separately authorized PR47-only review runs. It grants no W6 independent acceptance or product authority.
 
