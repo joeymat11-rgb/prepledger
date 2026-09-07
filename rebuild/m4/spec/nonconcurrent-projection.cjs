@@ -71,10 +71,19 @@ function project(input) {
   }
   need(positions.size === input.watermark && Array.from({length: input.watermark}, (_, i) => positions.has(i + 1)).every(Boolean), 'PARTIAL_GRAPH');
   const ordered = [...positions.values()].sort((a, b) => a.receipt.athlete_log_seq - b.receipt.athlete_log_seq);
-  for (const row of ordered) for (const id of row.op.causal_parents) {
-    const parent = identities.get(id); need(parent, 'MISSING_DEPENDENCY');
-    need(parent.receipt.athlete_log_seq < row.receipt.athlete_log_seq, 'INVALID_CAUSAL_GRAPH');
+  const ancestry = new Map();
+  for (const row of ordered) {
+    const parents = new Set();
+    for (const id of row.op.causal_parents) {
+      const parent = identities.get(id); need(parent, 'MISSING_DEPENDENCY');
+      need(parent.receipt.athlete_log_seq < row.receipt.athlete_log_seq, 'INVALID_CAUSAL_GRAPH');
+      parents.add(id); for (const ancestor of ancestry.get(id)) parents.add(ancestor);
+    }
+    ancestry.set(row.op.op_id, parents);
   }
+  // Receipt positions validate this assumed accepted DAG; they do not establish
+  // edit causality. Each prior same-target edit must be in actual parent closure.
+  const coversEdits = (op, fact) => fact.provenance.correction_op_ids.every(id => ancestry.get(op.op_id).has(id));
   const starts = new Map(), facts = new Map(), slots = new Set();
   for (const row of ordered) {
     const op = row.op;
@@ -103,13 +112,13 @@ function project(input) {
       need(shape(op.payload, ['replacement_fields']) && shape(op.payload.replacement_fields, [], ['load', 'reps', 'reserve']) &&
         Object.keys(op.payload.replacement_fields).length > 0, 'UNSUPPORTED_REPLACEMENT');
       need(observations({...fact.observations, ...op.payload.replacement_fields}), 'UNSUPPORTED_REPLACEMENT');
-      need(fact.included && fact.provenance.correction_op_ids.length === 0, 'UNSUPPORTED_CONFLICT');
+      need(fact.included && coversEdits(op, fact), 'UNSUPPORTED_CONFLICT');
       Object.assign(fact.observations, clone(op.payload.replacement_fields)); // MUTATION: ignore-correction
       fact.provenance.correction_op_ids.push(op.op_id);
     } else {
       need(shape(op.payload, ['reason']) && text(op.payload.reason), 'MALFORMED');
       need(fact.included && fact.provenance.tombstone_op_ids.length === 0, 'UNSUPPORTED_CONFLICT');
-      need(fact.provenance.correction_op_ids.every(id => op.causal_parents.includes(id)), 'UNSUPPORTED_CONFLICT');
+      need(coversEdits(op, fact), 'UNSUPPORTED_CONFLICT');
       fact.included = false; fact.provenance.tombstone_op_ids.push(op.op_id);
     }
   }

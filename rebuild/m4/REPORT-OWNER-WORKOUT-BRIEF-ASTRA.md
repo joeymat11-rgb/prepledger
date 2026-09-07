@@ -1,6 +1,45 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.8 observation-overlay checkpoint — 2026-09-07
+## Current v0.9 causal-correction checkpoint — 2026-09-07
+
+Same retained PR46, source head `6b0966e341a0d08144c7e16b23f6e265a76329d3`, accepted integration213300c unchanged. Four existing proposal files change: brief/report and the two NON-SHIPPING specification files. This closes the brief's explicitly named sequential correction-chain fixture gap. A later correction still targets the original set and must cover all earlier same-target edits in actual transitive causal ancestry; a later removal must cover the complete edit lineage. Receipt order is not a substitute for causality. No product/core/schema/engine/private/soak or frozen-suite change.
+
+```text
+NONCONCURRENT-PROJECTION PREPARATION FAIL — UNSUPPORTED_CONFLICT
+MODEL-FAULT ignore-correction: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT delete-original: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT change-plan: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT ignore-causal-edit-coverage: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+NONCONCURRENT-OBSERVATION OVERLAYS: 13/13 exact cases; 7/7 nonempty field subsets; 7/7 original effort variants; alias detachment PASS
+NONCONCURRENT-CAUSAL CHAINS: 3/3 exact cases; 6480 delivery permutations; transitive edit/removal coverage PASS; concurrent refusal PASS
+NONCONCURRENT-PROJECTION PREPARATION: 101/101 checks PASS; 6720 delivery permutations; 9 fresh processes; 4/4 effective model faults; MODEL ONLY
+```
+
+The first line is the new chain fixture against the previous model (SHA968298d…): native exit1 before this change; subsequent lines are the candidate, native exit0. Handwritten complete DTO expectations preserve originals, receipts, plan, unrelated set, untouched fields and lineage through same-field/disjoint/transitive edits, removal, replay and fresh reconstruction. Same-family QA caught one initial coverage gap: delivery permutations do not change accepted receipt positions. The final test additionally constructs two concurrent same-target edits from separate internally consistent device chains and refuses both accepted-log orders with unchanged inputs. The new mutation demonstrably returns a receipt-order winner, then its expected refusal fails; literal source restoration passes. This is model preparation, not authenticated transport or independent acceptance.
+
+Full schema/legacy/engine mapping, effective-time/generation, clearing, concurrent winner policy, qualified storage/phone/CLOCK and actual existing-client RED witnesses remain open. No model value becomes an athlete fact or prescribed plan. Run the same standalone command; optional `--evidence` writes only to an explicitly supplied new file. Final focused evidence and mandatory gate tails follow after execution; earlier publication gates below are historical. Whole-app acceptance remains3/10 (30% of that fixed checklist, not engineering time).
+
+NEXT: keep the same retained claims; independently review this Stage A proposal separately from PR47. Continue only named authorable schema/legacy/effective-time joins while C is unavailable; I integrates accepted revisions. No extra relay, reviewer promotion, new schedule, production change or private-use authority.
+
+### v0.9 executed publication gates
+
+Same-family QA independently executed the final101-check command and confirmed both genuine concurrent receipt orders refuse; no remaining model blocker found. Coordinator evidence: `work/workout-correction-traces/causal-chain-20260907.json`, Node v24.19.0,584.4612ms focused duration, source SHA170c2c8a1e9b9c62aee7f8ca2657371d0e23741ce32cb784c8bacbdc991500ab and test SHA2ae2e929a2be577bca2687c6d98bc861112b3dbe84afa6d54cb379c6017335c7. An initial evidence-output path typo returned ENOENT after assertions; correcting only the explicit path gave native exit0. That harness error earned no behavioral-fault credit.
+
+Fresh Windows original gates with real dependencies, explicit ENGINE_MAIN/ENGINE_OLD/client path, fixed2026-09-03/America-New_York conformance/selftest and unset strict test clock/PL overrides all exited0. Local private preparation matched its required pins with verdict-only output; public pins unchanged. Logs: `work/workout-active-gates-2026-09-07T19-41-55-990Z`; scope0.210s, conformance8.627s, selftest25.801s, strict47.974s. These are executed durations, not app-delivery or savings estimates.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+```
+
+The original suite/CI remains unchanged and does not execute this standalone model automatically. Four-file scope/diff check PASS; current-commit CI is checked after publication. Strict's final wording is not rebuild release permission. Full product/phone/private/independent gates remain effective.
+
+## Previous v0.8 observation-overlay checkpoint — 2026-09-07
 
 Same retained PR46, source head `974e85a5179184181840d56becc2bc16370f056e`, unchanged accepted integration213300c. Exactly the existing four proposal files change: brief, report and two NON-SHIPPING SPECIFICATION files. The pure model now applies every nonempty load/reps/reserve subset while preserving original bytes, untouched observations, causal removal provenance and an opaque accepted-plan string. It uses the brief's already proposed structural types; no app imports, accepted product/schema, training engine, core, frozen suite, private record, dependency, queue or soak change.
 

@@ -120,6 +120,46 @@ function overlayExpected(x, original, observed, count) {
     facts: [{...originalA, original: copy(original), observations: copy(observed), included: count < 5,
       provenance: {...originalA.provenance, correction_op_ids: count >= 4 ? ['correction-A'] : [], tombstone_op_ids: count >= 5 ? ['removal-A'] : []}}, originalB]};
 }
+// Each edit still targets the ORIGINAL set. Later edits cite the immediately
+// preceding edit, so closure (not receipt order alone) supplies older ancestry.
+function chainInput(replacement, third = false) {
+  const x = input(4);
+  function append(id, kind, payload, seq, predecessor, parents) {
+    const op = {...JSON.parse(C.operationBytes), op_id: id, canonical_content_commitment: 'MODEL-ONLY-COMMITMENT-' + id,
+      device_id: 'device-B', device_seq: seq, device_predecessor_op_id: predecessor, causal_parents: parents, kind, payload};
+    x.records.push({operationBytes: ' \n' + JSON.stringify(op, null, 1) + '\n', receiptBytes: JSON.stringify({op_id: id,
+      canonical_content_commitment: op.canonical_content_commitment, athlete_log_seq: x.records.length + 1,
+      accepted_at: 'MODEL-NOT-A-SIGNED-TIME'})});
+  }
+  append('correction-B', 'correction', {replacement_fields: copy(replacement)}, 3, 'correction-A', ['set-A', 'correction-A']);
+  if (third) append('correction-C', 'correction', {replacement_fields: {load: {value: 43, unit: 'lb'}}}, 4,
+    'correction-B', ['set-A', 'correction-B']);
+  const last = third ? 'correction-C' : 'correction-B';
+  append('removal-chain', 'tombstone', {reason: 'Synthetic mistaken set'}, third ? 5 : 4, last, ['set-A', last]);
+  x.watermark = x.records.length; return x;
+}
+const chainReplacements = {reps: {value: 7, unit: 'rep'}, reserve: {tag: 'at_least', value: 3, unit: 'rep'}};
+const chains = [
+  ['disjoint-fields', chainInput(chainReplacements),
+    {load: {value: 41, unit: 'lb'}, reps: {value: 7, unit: 'rep'}, reserve: {tag: 'at_least', value: 3, unit: 'rep'}},
+    ['correction-A', 'correction-B']],
+  ['same-field-later-edit', chainInput({load: {value: 43, unit: 'lb'}}),
+    {load: {value: 43, unit: 'lb'}, reps: {value: 6, unit: 'rep'}}, ['correction-A', 'correction-B']],
+  ['transitive-correction-and-removal', chainInput(chainReplacements, true),
+    {load: {value: 43, unit: 'lb'}, reps: {value: 7, unit: 'rep'}, reserve: {tag: 'at_least', value: 3, unit: 'rep'}},
+    ['correction-A', 'correction-B', 'correction-C']]
+];
+function chainExpected(x, observed, ids, removed = true) {
+  return {model: 'REVIEW_MODEL_ONLY', watermark: x.watermark, planBytes, retained: copy(x.records),
+    facts: [{...originalA, observations: copy(observed), included: !removed,
+      provenance: {...originalA.provenance, correction_op_ids: ids.slice(), tombstone_op_ids: removed ? ['removal-chain'] : []}}, originalB]};
+}
+function changeChain(x, index, change) {
+  const next = copy(x), op = JSON.parse(next.records[index].operationBytes); change(op);
+  next.records[index].operationBytes = JSON.stringify(op); return next;
+}
+const concurrentChain = changeChain(chains[1][1], 4, op => { op.causal_parents = ['set-A']; });
+let chainPermutations = 0;
 const start = performance.now();
 try {
   check('COMPLETE-OBSERVATION-SUBSET-INVENTORY', () => assert.deepEqual(
@@ -171,6 +211,75 @@ try {
     assert.equal(JSON.stringify(x), before); assert.deepEqual(M.project(x), wanted);
     const z = M.project(x); z.facts[0].original.reserve.tag = 'unknown'; assert.deepEqual(z.facts[0].observations, observed);
   });
+  for (const [id, x, observed, ids] of chains) {
+    const wanted = chainExpected(x, observed, ids);
+    check('CAUSAL-CHAIN-EXACT-' + id, () => {
+      const before = JSON.stringify(x);
+      const active = {...copy(x), watermark: x.watermark - 1, records: copy(x.records.slice(0, -1))};
+      assert.deepEqual(M.project(active), chainExpected(active, observed, ids, false));
+      assert.deepEqual(M.project(x), wanted); assert.equal(JSON.stringify(x), before);
+      // Complete DTO comparison includes original bytes/receipts, unchanged plan,
+      // unrelated set, untouched fields, identities and full correction lineage.
+    });
+    check('CAUSAL-CHAIN-REPLAY-' + id, () => {
+      const replay = copy(x); replay.records.push(...copy(x.records), ...copy(x.records));
+      assert.deepEqual(M.project(replay), wanted);
+    });
+    check('CAUSAL-CHAIN-FRESH-PROCESS-' + id, () => fresh(x, wanted));
+    check('CAUSAL-CHAIN-PERMUTATIONS-' + id, () => {
+      for (const order of orders(x.records)) {
+        assert.deepEqual(M.project({...x, records: order}), wanted); permutations++; chainPermutations++;
+      }
+    });
+  }
+  check('CAUSAL-CHAIN-ALIASES-DETACHED', () => {
+    const [, x, observed, ids] = chains[2], wanted = chainExpected(x, observed, ids), before = JSON.stringify(x);
+    const y = M.project(x); y.facts[0].observations.reserve.value = 999;
+    y.facts[0].provenance.correction_op_ids.push('MODEL-OUTPUT-ONLY');
+    assert.deepEqual(y.facts[0].original, originalA.original); assert.deepEqual(y.facts[1], originalB);
+    assert.equal(JSON.stringify(x), before); assert.deepEqual(M.project(x), wanted);
+  });
+  refusal('CHAIN-CONCURRENT-EDIT-NOT-LOG-ORDER', concurrentChain, 'UNSUPPORTED_CONFLICT');
+  // These siblings have separate valid transport chains and no semantic edge
+  // between them. Changing receipt positions is different from delivery order.
+  const siblings = changeChain(chains[1][1], 4, op => {
+    op.device_id = 'device-A'; op.device_seq = 3; op.device_predecessor_op_id = 'set-A'; op.causal_parents = ['set-A'];
+  });
+  siblings.records.pop(); siblings.watermark = 5;
+  const reversedSiblings = copy(siblings);
+  for (const [index, position] of [[3, 5], [4, 4]]) {
+    const receipt = JSON.parse(reversedSiblings.records[index].receiptBytes); receipt.athlete_log_seq = position;
+    reversedSiblings.records[index].receiptBytes = JSON.stringify(receipt);
+  }
+  check('CONCURRENT-SIBLINGS-VALID-DISTINCT-CHAINS', () => {
+    for (const x of [siblings, reversedSiblings]) {
+      const rows = x.records.map(row => ({op: JSON.parse(row.operationBytes), receipt: JSON.parse(row.receiptBytes)}));
+      assert.notEqual(rows[3].op.device_id, rows[4].op.device_id);
+      for (const row of rows.slice(3)) {
+        const parent = rows.find(p => p.op.op_id === row.op.device_predecessor_op_id);
+        assert.equal(parent.op.device_id, row.op.device_id); assert.equal(parent.op.device_seq + 1, row.op.device_seq);
+        assert.ok(parent.receipt.athlete_log_seq < row.receipt.athlete_log_seq);
+        assert.deepEqual(row.op.causal_parents, ['set-A']);
+      }
+    }
+  });
+  refusal('CONCURRENT-SIBLINGS-ACCEPTED-LOG-A-THEN-B', siblings, 'UNSUPPORTED_CONFLICT');
+  refusal('CONCURRENT-SIBLINGS-ACCEPTED-LOG-B-THEN-A', reversedSiblings, 'UNSUPPORTED_CONFLICT');
+  refusal('CHAIN-TRANSPORT-PREDECESSOR-NOT-CAUSALITY', changeChain(chains[2][1], 5,
+    op => { op.causal_parents = ['set-A', 'correction-A']; }), 'UNSUPPORTED_CONFLICT');
+  refusal('CHAIN-TOMBSTONE-MISSING-LATEST-EDIT', changeChain(chains[2][1], 6,
+    op => { op.causal_parents = ['set-A', 'correction-B']; }), 'UNSUPPORTED_CONFLICT');
+  refusal('CHAIN-MISSING-ANCESTOR', changeChain(chains[2][1], 5,
+    op => { op.causal_parents = ['set-A', 'missing']; }), 'MISSING_DEPENDENCY');
+  refusal('CHAIN-CYCLE-NOT-A-VALID-ORDER', changeChain(chains[2][1], 3,
+    op => { op.causal_parents = ['set-A', 'correction-C']; }), 'INVALID_CAUSAL_GRAPH');
+  const afterRemoval = changeChain(chains[2][1], 6, op => {
+    op.kind = 'correction'; op.payload = {replacement_fields: {load: {value: 47, unit: 'lb'}}};
+  });
+  const removedBefore = JSON.parse(afterRemoval.records[5].operationBytes);
+  removedBefore.kind = 'tombstone'; removedBefore.payload = {reason: 'Synthetic removal before edit'};
+  afterRemoval.records[5].operationBytes = JSON.stringify(removedBefore);
+  refusal('CHAIN-CORRECTION-CANNOT-REVIVE-REMOVAL', afterRemoval, 'UNSUPPORTED_CONFLICT');
   refusal('ASSUMPTION-NOT-AUTH', {...input(5), assumption: 'VERIFIED-BY-NOTHING'}, 'ASSUMPTION_REQUIRED');
   refusal('MISSING-IDENTITY', alter(1, op => delete op.op_id), 'UNSUPPORTED_FIELDS');
   const different = input(5); different.records.push({...A, operationBytes: A.operationBytes + ' '});
@@ -205,7 +314,6 @@ try {
   assert.equal(nonfinite.records[3].operationBytes.split('"value":7').length, 2);
   nonfinite.records[3].operationBytes = nonfinite.records[3].operationBytes.replace('"value":7', '"value":1e999');
   refusal('REPS-NONFINITE-JSON-NUMBER', nonfinite, 'UNSUPPORTED_REPLACEMENT');
-  refusal('CAUSAL-SECOND-CORRECTION-UNSUPPORTED', alter(4, op => { op.kind = 'correction'; op.payload = {replacement_fields: {reps: {value: 7, unit: 'rep'}}}; }), 'UNSUPPORTED_CONFLICT');
   refusal('SET-COLLISION', alter(2, op => { op.logical_set_slot = 'slot-A'; op.lift_lineage_id = 'lineage-A'; }), 'UNSUPPORTED_CONFLICT');
   refusal('EDIT-OF-EDIT', alter(4, op => op.target_op_id = 'correction-A'), 'UNSUPPORTED_TARGET');
   const changes = [
@@ -224,17 +332,36 @@ try {
     assert.deepEqual(observations(load(disposable)), expected.get(5));
     faults.push(id); console.log('MODEL-FAULT ' + id + ': ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS');
   }
+  {
+    const id = 'ignore-causal-edit-coverage';
+    const before = 'const coversEdits = (op, fact) => fact.provenance.correction_op_ids.every(id => ancestry.get(op.op_id).has(id));';
+    const after = 'const coversEdits = (op, fact) => true;';
+    const mustRefuseConcurrent = model => assert.throws(() => model.project(concurrentChain), error => error.code === 'UNSUPPORTED_CONFLICT');
+    assert.equal(source.split(before).length, 2, 'unique causal coverage mutation site');
+    mustRefuseConcurrent(load(source));
+    let disposable = source.replace(before, after); const mutated = load(disposable);
+    // The mutation must admit a concrete concurrent same-field replacement and
+    // return its unproved receipt-order winner, not merely throw or fail to load.
+    assert.deepEqual(copy(mutated.project(concurrentChain)), chainExpected(concurrentChain,
+      {load: {value: 43, unit: 'lb'}, reps: {value: 6, unit: 'rep'}}, ['correction-A', 'correction-B']));
+    assert.throws(() => mustRefuseConcurrent(mutated), {name: 'AssertionError'});
+    disposable = disposable.replace(after, before); assert.equal(disposable, source); assert.equal(hash(disposable), hash(source));
+    mustRefuseConcurrent(load(disposable));
+    faults.push(id); console.log('MODEL-FAULT ' + id + ': ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS');
+  }
   assert.equal(fs.readFileSync(filename, 'utf8'), source);
   const result = {status: 'REVIEW_PREPARATION_PASS', modelOnly: true, productAcceptance: false, checks, permutations, freshProcesses,
     observationOverlays: overlays.length, originalEffortVariants: effortTypes.length, replacementFieldSubsets: 7,
+    causalChains: chains.length, chainPermutations,
     effectiveFaults: faults, sourceSha256: hash(source), testSha256: hash(fs.readFileSync(__filename)), node: process.version, elapsedMs: performance.now() - start,
     limitations: ['Authentication and complete accepted input are assumptions, not verified.', 'Identifiers, commitments, receipts, lease and schema are model-only placeholders.',
-      'Only one observation correction per original set followed by causal tombstone is covered; unsupported cases refuse.',
+      'Observation corrections target an original set and must cover all prior edits in causal ancestry; removal must cover the full edit lineage.',
       'Reps integer/range domain and reserve prompt eligibility remain OPEN; these checks validate the explicitly proposed structure only.',
-      'No legacy numeric effort conversion, clearing, effective-time/generation policy or concurrent/chained edit policy is implemented.',
+      'No legacy numeric effort conversion, clearing, effective-time/generation policy or concurrent winner policy is implemented.',
       'Fresh Node reconstruction is not IndexedDB, crash durability or a phone test.', 'No training engine, plan writer, authority, transport or canonical implementation runs.']};
   const args = process.argv.slice(2);
   if (args.length) { assert.equal(args.length, 2); assert.equal(args[0], '--evidence'); fs.writeFileSync(path.resolve(args[1]), JSON.stringify(result, null, 2) + '\n', {flag: 'wx'}); }
   console.log(`NONCONCURRENT-OBSERVATION OVERLAYS: ${overlays.length}/${overlays.length} exact cases; 7/7 nonempty field subsets; ${effortTypes.length}/7 original effort variants; alias detachment PASS`);
-  console.log(`NONCONCURRENT-PROJECTION PREPARATION: ${checks.length}/${checks.length} checks PASS; ${permutations} delivery permutations; ${freshProcesses} fresh processes; 3/3 effective model faults; MODEL ONLY`);
+  console.log(`NONCONCURRENT-CAUSAL CHAINS: ${chains.length}/${chains.length} exact cases; ${chainPermutations} delivery permutations; transitive edit/removal coverage PASS; concurrent refusal PASS`);
+  console.log(`NONCONCURRENT-PROJECTION PREPARATION: ${checks.length}/${checks.length} checks PASS; ${permutations} delivery permutations; ${freshProcesses} fresh processes; ${faults.length}/${faults.length} effective model faults; MODEL ONLY`);
 } catch (error) { console.error('NONCONCURRENT-PROJECTION PREPARATION FAIL — ' + (error.code || error.name)); process.exitCode = 1; }
