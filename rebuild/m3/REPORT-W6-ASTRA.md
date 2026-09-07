@@ -1,6 +1,34 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
-## Current K1 authoring checkpoint — 2026-09-07
+## Current K1 W5-binding checkpoint — 2026-09-07
+
+Retained PR32, source head `8233f892fe8547deedce3a79c9940b519b042505`. Exactly the existing K1 proposal and this report change. The new §2.1 specifies each published W5 route's request/null combinations, complete signed result, raw browser-visible capture and unsigned error treatment. It pins the actual wire document, fixture, worker, verifier, crypto and canonical implementation alongside the original five sources. No product/core/test/schema, original suite, dependency, frozen app or seeded-soak bytes change.
+
+The proposed manager binds pull.after to the original request and always supplies the existing snapshot expectedWatermark argument. /time requires an OPEN child before beginTimeChallenge's own sample, then durable storage of the returned challenge/request binding before fetch. Its proof cannot resurrect private pendingTime after restart or turn observed timeout into a UTC bound. Genuine configured-service403 retains the published scope17 meaning; arbitrary/error JSON cannot establish standing or a terminal operation result. Invalid/incomplete/failed responses never drain the original outbox or establish clean reconciliation. This does not add renewal, restore, provisioning or combined-recovery APIs.
+
+All new manager/producer cases remain NOT RUN. AUTH/UI/local-sample schemas, origin/custody/ownership barriers, C1 interrupted arms, proof retention and complete replay/closure remain OPEN. The fixed whole-app reporting checklist stays3/10 independently accepted; this is useful authoring, not another accepted app checkpoint. Same-family review is preparation QA, never the designated independent verdict. Fresh source-pin/original-gate evidence and any review correction are recorded below when completed; no full-development time or savings claim.
+
+NEXT: publish this bounded contract update on the existing draft PR32; continue the named authorable auth/UI/local-sample/closure gaps and preserve unresolved C1 evidence. Existing C independently reviews the exact profile; I integrates accepted revisions only. No owner relay, new schedule/model, product rule, private-use or release authority follows.
+
+### K1 W5-binding review and current gates
+
+Same-family QA checked the actual route/signature/state joins and required four wording corrections, incorporated before publication: distinguish signed-message preimage from signature bytes; explicitly reject fetch redirects and retain Response.redirected while never treating captured flags as origin proof; retain immutable queued envelopes on400/413; apply new closed-field rules to K1 wrappers without replacing inherited signed-record validators or dropping extras. This is source review, not an executed manager or independent acceptance.
+
+K1 PUBLIC SOURCE PINS11/11 PASS. Fresh original gates ran on Windows/Node v24.19.0 with real dependencies, explicit frozen ENGINE_MAIN/ENGINE_OLD and this checkout's EARNED_CLIENT_DIR. Conformance/SELFTEST used2026-09-03 and America/New_York; strict unset the test clock and PL overrides. Private preparation remained local/verdict-only and preserved public pins. Every preparation/gate process exited0; log directory `work/w6-k1-w5-gates-20260907`.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+```
+
+Measured scope0.203s, conformance6.651s, SELFTEST22.083s, strict47.916s; these are local gate durations only. Two-file whitespace/scope check PASS. The strict tail is old-app validation, not rebuild release permission. Twelve proposed manager case groups remain NOT RUN; no new browser/phone/CLOCK/production acceptance. Exact-head CI remains a publication check.
+
+## Previous K1 authoring checkpoint — 2026-09-07
 
 Retained PR32, source checkpoint `1a5098d44e7cc4202bf3387f22681491bc13714d`. This continuation adds only `w6/K1-MANAGED-INGRESS-CONTRACT.md` and this report. The proposal identifies concrete current gaps: caller-owned responses arrive before the guard, and execute/reopen permission samples are not owned by that guard. It specifies proposed producer ownership, durable root/child records, earliest informative cuts, atomic outcomes, concurrent-write preservation, closure/transfer obligations and ten NOT RUN acceptance groups. The existing source and tests remain byte-identical; no production fence or CLOCK completion is claimed.
 
