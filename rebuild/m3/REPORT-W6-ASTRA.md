@@ -1,6 +1,41 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
-## Current K1 LOCAL-binding checkpoint — 2026-09-07
+## Current K1 retained-proof closure checkpoint — 2026-09-07
+
+Same retained draft PR32 atc5696458b97028bb5ea181bac883d8a49aa1047b; exactly the existing K1 contract/report change. §2.3 now specifies the known complete proof graph and conservative historical retention rule. All published proof tuples and relative order remain, including unselected historical negative evidence. Existing terminal outbox transitions remain permitted; outer grandparent retirement does not authorize inner history deletion. Active and previous bodies validate separately. No count cap, compaction, archive/import deletion or new checkpoint policy is introduced.
+
+The proposed graph distinguishes actual references from request/children digests, operation commitments and identifiers. Known wrapper/target kinds are declared; owner/session/basis/effects/barrier and other unknown schemas remain OPEN. Current frame-repository checks individual proofs and direct selected references, not a complete K1 body graph; the precise production integration is still unimplemented. Product and test source remain identical to1a5098d, and all12 manager groups remain NOT RUN. Prior135 Node/actual Edge evidence is historical and cannot prove this proposal's manager, C1 or CLOCK.
+
+Nonshipping scratch `work/k1-knowledge-prep/proof-closure-contract-v2.mjs` uses the actual pinned makeProof, digest helper and strict parser against invented finite records, with six exact leaf records explicitly ASSUMED. It checks transitive omission, retained unselected history, shared dependencies, forbidden cross-generation lookup, non-reference hashes and declared kind mismatches. Original18-check fixture/result are preserved: same-family QA found it lacked transitive wrapper/target-kind checks. V2 adds five valid-byte wrong-kind negatives plus a control refusing to invent an owner kind; it is the superseding24-check fixture. This fixes a model coverage gap, not a product defect.
+
+```text
+K1 PARTIAL GRAPH 24/24 | omission fault EFFECTIVE | production source unchanged true
+No semantic, lifecycle, GC, IDB, C1 or CLOCK acceptance.
+```
+
+The omission fault accepts a graph whose required outcome effect bytes are missing; the unchanged expectation detects it. Only scratch code is mutated. Five actual graph/helper/source pins remained exact. V2 fixture SHA292c0f69868bddab413292f883f20e3cda08a3fbe39cf2fdf1445bb0b41aa53a; result SHA3d6d320a66534c4b00cb5b33cbcfdf6a5a219eab500361cc706fae7ba7448a9d. Reproduce in a disposable coordinator-layout copy so its output files do not replace the retained author receipt. The fixture's assumed leaves and limited wrapper checks are not full semantic validators, producers, lifetime barriers or real storage evidence.
+
+Previous c569645 exact-head CI passed Windows/Linux: push34156931298 and pull_request34156934017. Final same-family QA independently ran the byte-identical v2 fixture in a fresh disposable copy:24/24 PASS, effective omission fault, actual sources unchanged; unknown same-kind subtypes and lifecycle/signature semantics remain unproved. Fresh original candidate gates and full public pin verification are recorded below. No independent acceptance is inferred; old CI is not reused as a new candidate result. Authoring interval is recorded in existing local logs; no savings or whole-app-date promise. Whole-app acceptance remains3/10.
+
+NEXT: close the actual remaining producer/lifetime/semantic schemas inside this same W6 claim and obtain exact-profile independent review before product adoption. C1 clean-control recovery, T1, P1 custody, real backend/phone and every private-use gate remain explicit. No new stream, schedule, model or owner relay.
+
+
+### Retained-proof appendix publication gates
+
+Fresh original Windows gates on this candidate all exited0: local private preparation/verdict-only with public pins unchanged, frozen paths/actual18-file ZIP, conformance/rig185, SELFTEST and strict with its clock unset. Explicit original engine paths and checkout client, fixed2026-09-03/America-New_York conformance/selftest; no suite/fixture/dependency substitution. Logs: `work/w6-active-gates-2026-09-07T20-08-33-551Z`; scope0.214s,conformance8.779s,selftest25.621s,strict48.406s. K1 PUBLIC SOURCE PINS18/18 PASS. No overall speed-saving claim.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+Two-document scope/diff PASS; exact new-commit CI remains a publication check. Original CI does not execute this scratch partial graph fixture. Strict's literal final line grants no rebuild/private-use approval. Independent review and all K1/C1/T1/P1/physical gates remain unchanged.
+
+## Previous K1 LOCAL-binding checkpoint — 2026-09-07
 
 Same retained draft PR32, source head `d9c1bd21add03533ba16625fb1fca9997b2fa8b8`; exactly the existing K1 contract and report change. §2.2 now supplies the proposed local permission-sample and final-sign-out request/null/capture forms, with the actual public-client/T2/face/lease call sites pinned. Strings retain every UTF-16 code unit without surrogate replacement; invalid objects/functions/promises and thrown values produce finite refusal tags without getters, coercion or private exception capture. An omitted optional provider remains the existing unbound clock fallback, not a claimed returned-undefined sample. No product/core/test/accepted schema/suite/soak change.
 
