@@ -1,6 +1,40 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.7 checkpoint — 2026-09-07
+## Current v0.8 observation-overlay checkpoint — 2026-09-07
+
+Same retained PR46, source head `974e85a5179184181840d56becc2bc16370f056e`, unchanged accepted integration213300c. Exactly the existing four proposal files change: brief, report and two NON-SHIPPING SPECIFICATION files. The pure model now applies every nonempty load/reps/reserve subset while preserving original bytes, untouched observations, causal removal provenance and an opaque accepted-plan string. It uses the brief's already proposed structural types; no app imports, accepted product/schema, training engine, core, frozen suite, private record, dependency, queue or soak change.
+
+```text
+MODEL-FAULT ignore-correction: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT delete-original: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT change-plan: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+NONCONCURRENT-OBSERVATION OVERLAYS: 13/13 exact cases; 7/7 nonempty field subsets; 7/7 original effort variants; alias detachment PASS
+NONCONCURRENT-PROJECTION PREPARATION: 80/80 checks PASS; 240 delivery permutations; 6 fresh processes; 3/3 effective model faults; MODEL ONLY
+```
+
+Run the same explicit model command from v0.7. Handwritten expected observations preserve absent effort, exact zero, lower-bound three and unknown/skipped/not_asked separately. Every refusal checks unchanged input. Output edits cannot mutate original observations or another projection. Clearing, concurrent/chained changes, effective-time/generation, legacy numeric conversion and malformed variants refuse within this limited model. It does not verify cryptographic commitments or accepted-graph completeness, determine reps' integer/range domain, certify prompt eligibility or repair current real-client RED witnesses. Existing three model faults exercise returned wrong behavior and literal restoration; no product mutation or independent acceptance claim follows.
+
+Evidence: coordinator `work/workout-correction-traces/observation-overlays-20260907.json` records source/runtime pins and focused duration. Current mandatory publication gates are recorded below when executed; previous runs remain historical. The owner requested continuous useful work with percentage updates: the whole-app reporting checklist stays3/10 independently accepted (30% of that checklist, not engineering/time). This model contributes preparation, not another accepted feature. No separately measured full-development duration or savings claim.
+
+NEXT: existing C reviews this exact Stage A proposal separately from PR47 policy; Astra closes remaining schema/version/legacy and effective-time/concurrency joins within the retained claim. I integrates accepted revisions only. Same coordinator/settings/continuation, no owner relay, duplicate task, model promotion or private-use permission.
+
+### v0.8 current publication gates
+
+Same-family QA independently reran the explicit model command and checked handwritten expectations, faithful counts and limited claims; no blocking issue found. This is author-side QA, not designated acceptance. Focused test duration263.3775ms, Node v24.19.0. Fresh original gates used Windows, real node_modules, explicit ENGINE_MAIN/ENGINE_OLD and this checkout's EARNED_CLIENT_DIR; conformance/SELFTEST use2026-09-03 and America/New_York, strict unsets test-clock/PL overrides. Local private preparation matched required pins with verdict-only output; tracked public pins stayed unchanged. All five preparation/gate processes exited0.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+```
+
+Logs: coordinator `work/owner-workout-v08-gates-2026-09-07T19-05-26-297Z`; four-file scope/whitespace PASS. The standalone model command is not wired into the unchanged suite/CI. The literal strict tail is not rebuild release permission. Exact-head CI and independent contract acceptance remain separate steps; no fresh browser/phone/private-app result is claimed.
+
+## Previous v0.7 checkpoint — 2026-09-07
 
 Retained branch/PR46, prior published head `a9dabeca1dc3e667f5e482a2a79e707afe5e9220`, integration base unchanged. The owner's direction permits constructive preparation while C/I is unavailable. This explicitly amends the builder's docs-only proposal: the two documents now include exactly two NON-SHIPPING SPECIFICATION files, `rebuild/m4/spec/nonconcurrent-projection.cjs` and `rebuild/m4/spec/nonconcurrent-projection.test.cjs`. No accepted product/core, frozen suite, schema, training behavior, gate, queue, ledger, dependency or seeded-soak file changes. Nothing is imported into the app.
 

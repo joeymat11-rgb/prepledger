@@ -3,6 +3,8 @@
 // Inputs explicitly ASSUME an authenticated, accepted, complete synthetic graph.
 // This module does not verify signatures, admit operations, allocate a schema,
 // run a training engine, persist data, or implement concurrent correction policy.
+// Proposed observation types: BRIEF-OWNER-WORKOUT lines59/64/105. Reps' complete
+// integer/range domain and reserve prompt eligibility remain OPEN, not inferred.
 const ASSUMPTION = 'ASSUMED_AUTHENTICATED_ACCEPTED_COMPLETE_SYNTHETIC_GRAPH';
 class Refusal extends Error {
   constructor(code) { super(code); this.name = 'ProjectionRefusal'; this.code = code; }
@@ -20,6 +22,16 @@ function parse(raw) {
 }
 const clone = x => JSON.parse(JSON.stringify(x));
 const quantity = (q, unit) => shape(q, ['value', 'unit']) && Number.isFinite(q.value) && q.unit === unit;
+function reserve(value) {
+  if (!map(value)) return false;
+  if (['unknown', 'skipped', 'not_asked'].includes(value.tag)) return shape(value, ['tag']);
+  return shape(value, ['tag', 'value', 'unit']) && value.unit === 'rep' &&
+    (value.tag === 'exact' ? [0, 1, 2].includes(value.value) : value.tag === 'at_least' && value.value === 3);
+}
+function observations(value) {
+  return shape(value, ['load', 'reps'], ['reserve']) && quantity(value.load, 'lb') && value.load.value > 0 &&
+    quantity(value.reps, 'rep') && (!Object.hasOwn(value, 'reserve') || reserve(value.reserve));
+}
 const COMMON = ['op_id', 'canonical_content_commitment', 'athlete_id', 'device_id', 'device_seq',
   'device_predecessor_op_id', 'causal_parents', 'class', 'kind', 'effective', 'schema_version', 'lease_id', 'payload'];
 const EXTRA = {
@@ -71,8 +83,7 @@ function project(input) {
       need(starts.size === 0, 'UNSUPPORTED_WORKOUT_RELATIONSHIP'); starts.set(op.op_id, op); continue;
     }
     if (op.kind === 'session-set') {
-      need(shape(op.payload, ['load', 'reps']) && quantity(op.payload.load, 'lb') && op.payload.load.value > 0 &&
-        quantity(op.payload.reps, 'rep'), 'UNSUPPORTED_SET_FIELDS');
+      need(observations(op.payload), 'UNSUPPORTED_SET_FIELDS');
       need(EXTRA['session-set'].every(k => text(op[k])), 'MALFORMED');
       const start = starts.get(op.session_start_op_id); need(start, 'MISSING_DEPENDENCY');
       need(op.causal_parents.includes(start.op_id), 'MISSING_CAUSAL_EDGE');
@@ -89,11 +100,11 @@ function project(input) {
     const fact = facts.get(op.target_op_id); need(fact, 'INVALID_CAUSAL_GRAPH');
     need(op.lift_lineage_id === fact.lift_lineage_id && op.causal_parents.includes(op.target_op_id), 'MISSING_CAUSAL_EDGE');
     if (op.kind === 'correction') {
-      need(shape(op.payload, ['replacement_fields']) && shape(op.payload.replacement_fields, ['load']) &&
-        quantity(op.payload.replacement_fields.load, fact.original.load.unit) && op.payload.replacement_fields.load.value > 0,
-      'UNSUPPORTED_REPLACEMENT');
+      need(shape(op.payload, ['replacement_fields']) && shape(op.payload.replacement_fields, [], ['load', 'reps', 'reserve']) &&
+        Object.keys(op.payload.replacement_fields).length > 0, 'UNSUPPORTED_REPLACEMENT');
+      need(observations({...fact.observations, ...op.payload.replacement_fields}), 'UNSUPPORTED_REPLACEMENT');
       need(fact.included && fact.provenance.correction_op_ids.length === 0, 'UNSUPPORTED_CONFLICT');
-      fact.observations.load = clone(op.payload.replacement_fields.load); // MUTATION: ignore-correction
+      Object.assign(fact.observations, clone(op.payload.replacement_fields)); // MUTATION: ignore-correction
       fact.provenance.correction_op_ids.push(op.op_id);
     } else {
       need(shape(op.payload, ['reason']) && text(op.payload.reason), 'MALFORMED');
