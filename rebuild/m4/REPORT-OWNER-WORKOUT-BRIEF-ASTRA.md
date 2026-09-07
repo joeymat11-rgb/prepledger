@@ -1,5 +1,42 @@
 # ASTRA — owner workout contract preparation
 
+## Current v0.7 checkpoint — 2026-09-07
+
+Retained branch/PR46, prior published head `a9dabeca1dc3e667f5e482a2a79e707afe5e9220`, integration base unchanged. The owner's direction permits constructive preparation while C/I is unavailable. This explicitly amends the builder's docs-only proposal: the two documents now include exactly two NON-SHIPPING SPECIFICATION files, `rebuild/m4/spec/nonconcurrent-projection.cjs` and `rebuild/m4/spec/nonconcurrent-projection.test.cjs`. No accepted product/core, frozen suite, schema, training behavior, gate, queue, ledger, dependency or seeded-soak file changes. Nothing is imported into the app.
+
+The concrete model demonstrates lossless load correction and causal removal while preserving two independent sets' original operation/receipt bytes and an opaque accepted-plan string. Expected views are handwritten. It assumes authentication and a complete accepted synthetic graph; illustrative identities/commitments/leases/receipts are not cryptographic evidence. Model-domain refusal does not replace the product's missing-parent waiting semantics. Unknown effort, general replacements, effective-time/generation changes, concurrent folds, complete schema activation and the previously executed actual-client RED witnesses remain unresolved.
+
+Run `node rebuild/m4/spec/nonconcurrent-projection.test.cjs` from the repository root. Default execution writes no files; optional `--evidence <new-path>` writes only an explicitly selected new result and refuses overwriting. Reordered delivery covers a complete graph, not incremental network recovery. Fresh Node processes prove model reconstruction only, not IndexedDB or phone durability.
+
+```text
+MODEL-FAULT ignore-correction: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT delete-original: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+MODEL-FAULT change-plan: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+NONCONCURRENT-PROJECTION PREPARATION: 25/25 checks PASS; 120 delivery permutations; 3 fresh processes; 3/3 effective model faults; MODEL ONLY
+```
+
+Each disposable in-memory source fault must return its specifically wrong value, fail the handwritten full-view comparison, and then restore literal source bytes and the passing view. Import/syntax/pin failures earn no mutation credit. Same-family helper review is preparation QA, never the independent acceptance verdict. Current publication gates and exact-head CI are recorded below when executed; earlier sections remain historical evidence. Full continuation wall-clock was not separately instrumented; test and gate runtimes are recorded by their runners. No savings or app-delivery promise.
+
+NEXT: existing C reviews PR46's exact contract/spec revision separately from PR47's policy proposal. Astra continues the named Stage A authoring joins; I integrates only accepted revisions. This model does not close WORKOUT-CORRECT or OWNER-WORKOUT. Preserve retained W6/R1 claims, coordinator, settings and the existing continuation; no owner file relay or new schedule.
+
+### v0.7 original gates
+
+Fresh Windows/Node v24.19.0 execution with real dependency directories: explicit frozen ENGINE_MAIN/ENGINE_OLD and this checkout's EARNED_CLIENT_DIR; conformance/SELFTEST MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York; strict unsets MEASURED_TEST_NOW/PL overrides. Local private preparation matched its required pins, emitted verdicts only and left all tracked public oracle inputs unchanged. All five preparation/gate subprocesses exited0.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+```
+
+The last line is the old-app tool's literal verdict, not rebuild release permission. Logs: coordinator `work/owner-workout-v07-gates-2026-09-07T18-33-29-385Z`; the separate nonshipping model is not wired into the original frozen suite. CI does not replace running its explicit command. Earlier sealed patches remain historical evidence; do not stack them over this branch. Exact-head CI and independent acceptance remain separate publication/review steps.
+
+## Historical preparation record
+
 2026-09-06 · branch `rebuild/owner-workout-brief` · exact integration base `213300c6c49f772dcb2ff859e1c1375dd571b837`. Two new documents only: this report and `BRIEF-OWNER-WORKOUT.md`. No product, accepted gate/artifact, queue/ledger, dependency/lockfile or soak changes. Proposed, not independently accepted; no release or private-import permission follows.
 
 ## Current amendment reconciliation — 2026-09-07
