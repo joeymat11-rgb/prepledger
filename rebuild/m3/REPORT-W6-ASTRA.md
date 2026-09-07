@@ -1,6 +1,34 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
-## Current publication checkpoint — 2026-09-07
+## Current K1 authoring checkpoint — 2026-09-07
+
+Retained PR32, source checkpoint `1a5098d44e7cc4202bf3387f22681491bc13714d`. This continuation adds only `w6/K1-MANAGED-INGRESS-CONTRACT.md` and this report. The proposal identifies concrete current gaps: caller-owned responses arrive before the guard, and execute/reopen permission samples are not owned by that guard. It specifies proposed producer ownership, durable root/child records, earliest informative cuts, atomic outcomes, concurrent-write preservation, closure/transfer obligations and ten NOT RUN acceptance groups. The existing source and tests remain byte-identical; no production fence or CLOCK completion is claimed.
+
+The document deliberately retains authorable OPEN bindings: each producer's exact capture/null schema, local-sample/C1 crash comparison, complete source allowlist, ownership/UI/cancellation barriers and proof retention. Web Lock/no-SDK selection remains a proposed profile requiring technical review; actual FAPI/T1/R1/P1/phone evidence is separate. These are Astra authoring responsibilities, not work that inherently requires Fable to draft. The K1 file is a concrete reviewable partial contract, not implementation-ready closure of every binding or permission to alter accepted product semantics. Independent adoption and actual boundary execution remain required.
+
+Source hashes are pinned in the contract; same-family review is preparation QA only. Fresh mandatory original-suite/package/strict results are recorded below when executed. Earlier browser/135-test evidence applies to the unchanged source checkpoint and is not relabelled a new K1 run. Full continuation time was not separately instrumented; no cost or delivery-date guarantee.
+
+NEXT: publish this two-file follow-up on the existing draft PR32. Astra closes the remaining authorable K1 bindings within the retained claim; C independently reviews the exact profile and checkpoint, I integrates accepted revisions only. Keep W6/R1 ownership, model settings and existing coordinator/continuation. No production setup, private use, merge, new stream or owner relay follows.
+
+### K1 authoring validation
+
+All five public source pins in the contract match. Same-family QA found that pre-arming an enabled but unpressed sign-out/switch control can leave OPEN on an idle kill just like intent plus failed persistence. The document now records that concrete C1 comparison and labels preservation of clean bounded restart REQUIRED BUT UNPROVED. It does not invent a new rule or claim the ten proposed K1 cases were executed.
+
+Fresh original gates used Node v24.19.0/Windows, real dependency directories, explicit frozen ENGINE_MAIN/ENGINE_OLD and this checkout's client; conformance/SELFTEST use2026-09-03 and America/New_York, strict unsets the test clock and PL overrides. Normal Git private preparation passed with verdict-only output and unchanged public pins. Every preparation/gate subprocess exited0; log directory `work/w6-k1-gates-20260907`.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+```
+
+Scope0.214s, conformance8.659s, SELFTEST25.673s, strict48.405s. These are gate durations, not full engineering time. The strict tail is the old-app verdict only. Unchanged browser/product tests retain their prior evidence; no K1 manager, production/profile validation, independent review or release is newly claimed. Exact-head CI remains a publication check.
+
+## Prior source publication checkpoint — 2026-09-07
 
 The retained SIX-file follow-up from `e01daf9d96d97e096231156486791f554373f7a6` now passes every missing local publication gate. Normal Git, compiler and installed-browser access work in this session; earlier access failures below are historical evidence, not current blockers. No source/test change was needed to pass these fresh gates. The follow-up preserves the complete-pair/key-window/source-fault tests and the previously prepared public-client schema/alias/unknown-proof-family corrections. It changes no frozen app, suite, root lockfile, W5 core or seeded-soak bytes.
 
