@@ -1,6 +1,36 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
-## Current K1 W5-binding checkpoint — 2026-09-07
+## Current K1 LOCAL-binding checkpoint — 2026-09-07
+
+Same retained draft PR32, source head `d9c1bd21add03533ba16625fb1fca9997b2fa8b8`; exactly the existing K1 contract and report change. §2.2 now supplies the proposed local permission-sample and final-sign-out request/null/capture forms, with the actual public-client/T2/face/lease call sites pinned. Strings retain every UTF-16 code unit without surrogate replacement; invalid objects/functions/promises and thrown values produce finite refusal tags without getters, coercion or private exception capture. An omitted optional provider remains the existing unbound clock fallback, not a claimed returned-undefined sample. No product/core/test/accepted schema/suite/soak change.
+
+Sign-out capture requires the actual owned control/lifetime and completed OPEN-root/ARMED-child evidence; a caller flag or event.isTrusted alone cannot prove it. A genuine unexpected intent still establishes17 rather than disappearing because its descriptor is absent. The earlier duplicated expiry/failed-persistence diagnostic was deliberately NOT repeated: it already established that gap and would add no implementation evidence.
+
+Same-family QA confirmed the current source joins and identified two corrected schema details: use OPEN for root phase and ARMED for child phase; preserve original parsing environment/interpretation as an explicitly OPEN replay dependency because noncanonical Date.parse strings can vary with runtime/timezone. Unproved replay cannot erase potentially learned expiry and remains18. This does not impose a new canonical-time rule or claim the interpretation binding is implemented.
+
+Fifteen public source pins now name the concrete relevant source. All twelve proposed manager acceptance groups remain NOT RUN. AUTH_EXCHANGE/CONTEXT_SWITCH and other producers, complete provider/parser/T1 basis, real native ownership/delivery/closure, proof retention/custody and qualified-original-C interrupted-arm comparison remain OPEN. There is no new CLOCK/phone/private-use or independent acceptance; whole-app checklist remains3/10. Fresh original-gate results and measured batch evidence follow when complete.
+
+NEXT: continue concrete remaining schema/closure preparation within this claim, with exact-profile independent review before product adoption. Do not rerun a duplicate boundary merely to generate output. I integrates only accepted revisions; same coordinator/workers/models/continuation, no owner relay or new stream.
+
+### K1 LOCAL validation
+
+K1 PUBLIC SOURCE PINS15/15 PASS; same-family source QA corrections above incorporated. A separate synthetic Node v24.19.0 probe confirmed identical noncanonical date text has two different finite interpretations in UTC and America/New_York: `SYNTHETIC PARSE-CONTEXT WITNESS PASS: identical text; different timezone interpretations; no real clock proof`. Reproduction is coordinator `work/k1-knowledge-prep/parse-context-diagnostic.cjs`; it is a language-runtime example, not an executed W6 ingress/CLOCK case. Earlier failed inline shell quoting ran no probe and earned no result.
+
+Fresh original gates used real dependency directories, explicit frozen ENGINE_MAIN/ENGINE_OLD and branch client, fixed2026-09-03/TZ America/New_York for conformance/selftest, strict test clock/PL overrides unset. Private preparation stayed local/verdict-only and public pins unchanged. All five processes exited0. Logs: `work/w6-active-gates-2026-09-07T19-41-56-149Z`; scope0.209s, conformance8.610s, selftest25.812s, strict48.499s. No overall usage/savings estimate follows.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+```
+
+Two-file scope/whitespace PASS. Product/test source remains unchanged from1a5098d; original browser/135-node evidence is historical, not a new manager run. Twelve K1 groups remain NOT RUN; current-commit CI and independent acceptance remain distinct. The strict tail supplies no private-use/release authorization.
+
+## Previous K1 W5-binding checkpoint — 2026-09-07
 
 Retained PR32, source head `8233f892fe8547deedce3a79c9940b519b042505`. Exactly the existing K1 proposal and this report change. The new §2.1 specifies each published W5 route's request/null combinations, complete signed result, raw browser-visible capture and unsigned error treatment. It pins the actual wire document, fixture, worker, verifier, crypto and canonical implementation alongside the original five sources. No product/core/test/schema, original suite, dependency, frozen app or seeded-soak bytes change.
 
