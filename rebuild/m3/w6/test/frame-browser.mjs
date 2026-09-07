@@ -7,6 +7,8 @@ import { createServer } from "node:http";
 import { createHash } from "node:crypto";
 import { buildBrowser } from "../build-browser.mjs";
 import { initial, config, O } from "./support.mjs";
+import { runFrameMigrationContract } from "./frame-browser-migration.mjs";
+import { runFrameNonceBrowser } from "./frame-nonce-browser.mjs";
 const require = createRequire(import.meta.url), here = resolve(dirname(fileURLToPath(import.meta.url)), ".."), { chromium } = require("playwright-core");
 if (!process.env.W6_BROWSER_BIN || !existsSync(process.env.W6_BROWSER_BIN)) { console.log("W6 FRAME-BROWSER BLOCKED — installed browser required"); process.exit(2); }
 const built = await buildBrowser({ outfile: join(here, ".tmp/browser/frame.js"), entryPoints: [join(here, "test/frame-browser-entry.mjs")] });
@@ -228,6 +230,45 @@ try {
     writeFileSync(join(keyScratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(keyScratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
     assert(resolve(keyScratch).startsWith(resolve(here, ".tmp") + sep)); rmSync(keyScratch, { recursive: true, force: true });
   }
+  const migrationContext = await browser.newContext(); let migrationResult;
+  try {
+    await migrationContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const migrationPage = await migrationContext.newPage(); await migrationPage.goto(origin);
+    migrationResult = await migrationPage.evaluate(runFrameMigrationContract, inputs);
+    assert.deepEqual(migrationResult, { upgradeAborts: 1, conversionAborts: 1, requestSuccessBeforeAbort: true, consumedCapability: true,
+      versionBefore: 1, versionAfter: 2, missingActiveRefusals: 2, exactPrevious: true, t2Ops: result.batch, unproven: true });
+    console.log("W6 FRAME-MIGRATION-BROWSER PASS — real versionchange abort preserves version1/whole pair; database2 before conversion refuses18; conversion abort after request success preserves both legacy records and consumes capability; fresh retry/reopen preserves exact T2 ops/outbox, unknown/history and legacy predecessor; missing active refuses without fallback/reseed; unproven remains true");
+  } finally { await migrationContext.close(); }
+  const migrationNeedle = 'if (active !== undefined) store.put(active, "previous"); store.put(record, "active");';
+  assert.equal(source.split(migrationNeedle).length, 2);
+  const migrationScratch = mkdtempSync(join(here, ".tmp/frame-migration-browser-mutant-"));
+  assert(resolve(migrationScratch).startsWith(resolve(here, ".tmp") + sep));
+  let migrationMutantContext, migrationRestoredContext;
+  try {
+    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs"]) cpSync(join(here, file), join(migrationScratch, file));
+    writeFileSync(join(migrationScratch, "frame-repository.mjs"), source.replace(migrationNeedle, 'if (active !== undefined && !p.compatibility) store.put(active, "previous"); store.put(record, "active");'));
+    writeFileSync(join(migrationScratch, "entry.mjs"), `export * from ${JSON.stringify(join(here, "test/frame-browser-entry.mjs").replaceAll("\\", "/"))};\nexport { openFrameRepository } from "./frame-repository.mjs";\n`);
+    const altered = await buildBrowser({ outfile: join(migrationScratch, "mutant.js"), entryPoints: [join(migrationScratch, "entry.mjs")] }); servedBundles.set("/mutant-migration-frame.js", altered.outfile);
+    migrationMutantContext = await browser.newContext(); await migrationMutantContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const mutantPage = await migrationMutantContext.newPage(); await mutantPage.goto(origin);
+    await assert.rejects(mutantPage.evaluate(runFrameMigrationContract, { ...inputs, bundle: "/mutant-migration-frame.js" }), /FRAME-MIGRATION ASSERT conversion did not publish exact legacy active as previous/);
+    console.log("W6 FRAME-MIGRATION-BROWSER FAIL — omitted legacy predecessor publish fails exact stored-pair assertion before unseal in actual browser (disposable mutant)");
+    writeFileSync(join(migrationScratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(migrationScratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
+    const restored = await buildBrowser({ outfile: join(migrationScratch, "restored.js"), entryPoints: [join(migrationScratch, "entry.mjs")] }); servedBundles.set("/restored-migration-frame.js", restored.outfile);
+    migrationRestoredContext = await browser.newContext(); await migrationRestoredContext.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    const restoredPage = await migrationRestoredContext.newPage(); await restoredPage.goto(origin);
+    assert.deepEqual(await restoredPage.evaluate(runFrameMigrationContract, { ...inputs, bundle: "/restored-migration-frame.js" }), migrationResult);
+    console.log(`W6 FRAME-MIGRATION-BROWSER RESTORED PASS — full migration matrix rerun; frame-repository.mjs sha256 ${createHash("sha256").update(original).digest("hex")}`);
+  } finally {
+    await migrationMutantContext?.close(); await migrationRestoredContext?.close(); servedBundles.delete("/mutant-migration-frame.js"); servedBundles.delete("/restored-migration-frame.js");
+    writeFileSync(join(migrationScratch, "frame-repository.mjs"), original); assert.deepEqual(readFileSync(join(migrationScratch, "frame-repository.mjs")), original); assert.deepEqual(readFileSync(join(here, "frame-repository.mjs")), original);
+    assert(resolve(migrationScratch).startsWith(resolve(here, ".tmp") + sep)); rmSync(migrationScratch, { recursive: true, force: true });
+  }
+  const nonceResult = await runFrameNonceBrowser({ browser, origin, inputs });
+  assert.deepEqual(nonceResult, { pages: 2, realms: 3, frameAttempts: 6, frameNonceDraws: 6, bodyIvDraws: 6, staleCasRefusals: 1,
+    consumedCapabilityRefusals: 2, requestSuccessAborts: 1, freshRealmRetries: 1, repositoryReopens: 1, missingRngRefusals: 1,
+    finalRevision: 4, finalU: 9, unproven: true });
+  console.log("W6 FRAME-NONCE-BROWSER PASS — two real pages and three realms; six observed frame/body draw pairs across CAS loss, fresh-realm retry, request-success abort and reopen; consumed capabilities cannot write; absent RNG refuses3 without effect; exact T2 history/outbox/U; synthetic draws are not a uniqueness or security-budget proof");
   const upgradeKeys = await page.evaluate(async generation => {
     const F = await import("/frame.js"), key = await crypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
     let reached, changed; const state = { reached: new Promise(r => { reached = r; }), changed: new Promise(r => { changed = r; }), hold: true, armed: false };

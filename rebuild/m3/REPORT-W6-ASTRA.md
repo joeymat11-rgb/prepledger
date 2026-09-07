@@ -221,3 +221,52 @@ Separately, a local scratch diagnostic exercised a genuine P-256 REJECTED dispos
 ## NEXT — current follow-up
 
 Same claimed item **W6**, same draft PR32, no merge. The named browser key-mechanics gap now has executable coverage; independent exact-candidate acceptance is pending. W7 integration/W9 physical preparation gain test evidence, but no production dependency becomes DONE. Next eligible work remains accepted mechanical coverage under this claim; production W6/workout integration still needs R1/T1/K1/P1/W4 and the existing reviewer/integrator. No new approval request, stream, model, schedule or account action.
+
+## Browser migration and nonce lifecycle — 2026-09-07, test-only
+
+This continuation starts from retained `8e7e1b00658f273874c9fe840aadb233a6a83693`. Accepted frame amendment sections5/7 require interruption-safe conversion and fresh attempts across concurrent/retried writes. Existing Node conversion-abort and primitive attempt tests did not exercise those complete browser paths. Add two host test helpers (`test/frame-browser-migration.mjs`, `test/frame-nonce-browser.mjs`) and invoke them from the existing frame browser runner; update only this report and the existing status/coverage map. No product, dependency, T2, frozen app, law/oracle, W5/W3 or seeded-soak bytes change.
+
+Migration: create distinct complete v1 active/previous generations carrying actual T2 operations/outbox and synthetic unknown collection/history. Observe an actual1→2 versionchange abort, then prove database1/stores/both records and v1 decode unchanged. After a successful database2 upgrade but before conversion, ordinary reads/writes refuse18 and leave records unchanged; only explicit compatibility reads expose historical material. Abort conversion after the active put succeeds, require3/no completion and a consumed capability, reopen and compare the entire legacy pair, then prepare a fresh conversion. Success retains the exact legacy active as previous and the complete old body; the frame remains unproven18 with no invented checkpoint/allowance. Missing active with surviving previous refuses both load modes without fallback/reseeding; the synthetic pair restores exactly.
+
+Nonce lifecycle: two actual same-origin pages with separate JS realms stage actual T2 batches against identical pair tokens. Exactly one CAS wins; the loser is retryable and its capability consumed. Reload that page, verify the same winning pair, restage, then exercise an active-request-success abort, consumed aborted capability and repository reopen/fresh retry. Six preparations use six observed frame nonce/body IV pairs, matched to actual stored or aborted record fields; failed cuts preserve complete body/pair/U. Missing RNG refuses preparation3 without durable effect while existing data still authenticates. Draws are deterministic test inputs with separate realm prefixes; they demonstrate calls and value routing, not a production random source/global nonce uniqueness/security budget. Six preparations are not six successful or synchronous frame-encryption invocations.
+
+The effective migration bite omits publishing the legacy active as previous in a disposable repository copy. The full successful conversion then fails its **raw exact-predecessor assertion before unseal**, rather than merely hitting a source pin or generic load error. Restore the copy byte-for-byte, rebuild and rerun the entire migration matrix. Actual `frame-repository.mjs` remains SHA256 `0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0`. Existing key/predecessor/charge/early-ack/pin witnesses remain unchanged. The nonce helper adds no new source-fault coverage claim.
+
+```text
+W6 FRAME-MIGRATION-BROWSER PASS — real versionchange abort preserves version1/whole pair; database2 before conversion refuses18; conversion abort after request success preserves both legacy records and consumes capability; fresh retry/reopen preserves exact T2 ops/outbox, unknown/history and legacy predecessor; missing active refuses without fallback/reseed; unproven remains true
+W6 FRAME-MIGRATION-BROWSER FAIL — omitted legacy predecessor publish fails exact stored-pair assertion before unseal in actual browser (disposable mutant)
+W6 FRAME-MIGRATION-BROWSER RESTORED PASS — full migration matrix rerun; frame-repository.mjs sha256 0a3cbfc9e69cd8853c01b6c290fc67adae2cbe6ca809ee17169d31cf570841b0
+W6 FRAME-NONCE-BROWSER PASS — two real pages and three realms; six observed frame/body draw pairs across CAS loss, fresh-realm retry, request-success abort and reopen; consumed capabilities cannot write; absent RNG refuses3 without effect; exact T2 history/outbox/U; synthetic draws are not a uniqueness or security-budget proof
+W6 FRAME semantics / CLOCK / custody / phone BLOCKED — mechanical synthetic evidence only
+```
+
+Reproduce with the same commands/environment listed in the preceding follow-up. The new helpers run automatically from `node rebuild/m3/w6/test/frame-browser.mjs`; no extra build target or dependency. Windows/Node24, real dependency directories, Chrome151.0.7922.174, pnpm10.33.0 and no npm_config_lockfile override. Ignored private fixtures were regenerated locally and public/reference pins revalidated using the disclosed reused commit-verified bundles; no private output or committed golden changes. All required local checks exited0:
+
+```text
+W6 Node: tests90; pass90; fail0
+W6 DEFAULT PARITY PASS — 35/35 client laws and56 exact action/state/clock vectors; accepted T2 baseline cb5580a3c3b778e614127026a3769d383f07611b
+W6 BROWSER BUILD PASS — 33 pinned local inputs; exact client crypto importers only
+W6 BROWSER-T2 PASS — 56 exact Node/browser action/state/clock vectors; 6 signed surfaces +36 tamper/domain refusals; actual T2 session/finish persisted in IndexedDB; Chromium 151.0.7922.174
+W6 BROWSER-PUBLIC-SINK PASS — verified P-256 disposition through actual T2 and IndexedDB, forged response no drain, original proof retained, final20 abort preserves generation
+W6 BROWSER-REPOSITORY PASS — 6/6 real IndexedDB cases; Chromium 151.0.7922.174; persistent process reopen, two-tab CAS, abort and tamper18
+W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph
+W6 CIPHER-PIN DETECTED — disposable wrong AES input hash refused actual browser build; manifest restored byte-for-byte
+W3: tests39; pass39; fail0
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+PASS  APP_V 7.56.0 === sw cache earned-v7.56.0
+PASS  18 files ship; ledger/, src/, tools/, scripts/, docs/ and rebuild/ stay off the CDN
+All checks passed. Safe to ship.
+```
+
+Timing/evidence: unchanged regression commands ran01:51:00–01:52:22UTC (~82seconds) while the separate nonce helper was finalized; its final integrated frame runner ran01:53:22–01:53:24UTC (~2seconds). Node/product/browser-build inputs of the earlier checks did not change afterwards. The migration helper's prior focused run and the first integrated nonce run both succeeded without unexpected harness failures. One retained agent implemented each bounded helper; a third read their exact source and root executed the integrated runner. This is same-family assistance, not independent acceptance. Root's approximate implementation/review/preparation interval was01:39–01:55UTC (~16minutes), excluding publication/CI and eventual cowork execution.
+
+Seams/unknowns: v1 is synthetic compatibility evidence, not a deployed private migration. IDB abort, repository reopen and page reload do not prove operating-system crash, device reboot or iPhone storage survival. The new six-row section7 coverage index in `FRAME-IMPLEMENTATION-STATUS.md` distinguishes executed mechanics from remaining source-fault/whole-repository epoch/CAS-field checks and production semantics. K1 diagnostic remains RED and was not rerun or changed. T1/P1/R1/W4, production frame integration, independent exact-candidate review and phone/private gates remain open. CI public jobs still do not run these new browser cases; report their local boundary separately from CI.
+
+## NEXT — migration and nonce follow-up
+
+Same W6 claim, same draft PR32, no merge or owner action. These two accepted mechanical coverage gaps are now executed and ready for independent review; next eligible work is the remaining explicit mechanical evidence matrix, not another run of these completed cases. W7/W9 receive preparation evidence only; production W6 and the complete workout app remain dependent on the existing contract, review, backend and physical gates. No new process, branch, model, paid usage or schedule.
