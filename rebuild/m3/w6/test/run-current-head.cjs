@@ -13,7 +13,7 @@ const unpack=cp.spawnSync('tar',['-xf',archive,'-C',output],{windowsHide:true});
 // W6 already owns three reviewed T2 browser-boundary additions. Replacing its
 // client with R1's older T2 would silently remove those hooks, not compose them.
 const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client','rebuild/m4/workout']).toString().trim().split(/\r?\n/));
-for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/browser-panel.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
+for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/browser-panel.mjs','test/panel-extension.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
 for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs'])names.add('rebuild/m4/workout/'+name);
 const pins={};
 for(const name of names){
@@ -45,7 +45,8 @@ if(process.argv.includes('--bite')){
 }
 const testDir=path.join(output,'rebuild/m3/w6/test');
 const namesToRun=process.argv.includes('--all')?fs.readdirSync(testDir).filter(n=>n.endsWith('.test.mjs')).sort():['current-head.test.mjs'];
-const args=['--test','--test-timeout=30000',...namesToRun.map(n=>path.join(testDir,n))];
+// Bound test-file workers; races inside each test still run unchanged.
+const args=['--test','--test-concurrency=2','--test-timeout=30000',...namesToRun.map(n=>path.join(testDir,n))];
 // The unchanged baseline test reads an accepted historical client via ls-tree/show.
 // Supply the retained object database for those read-only commands; do not copy or
 // create an index, merge a branch, or substitute today's client for that baseline.

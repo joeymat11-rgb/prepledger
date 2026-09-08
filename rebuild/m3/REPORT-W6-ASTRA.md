@@ -1,5 +1,86 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Multi-slot workout panel — successor to accepted f74a815, 2026-09-08
+
+### What / why and exact scope
+Extend the SAME exported `mountWorkoutCommandPanel` with optional `additionalSlots`.
+Omitting it preserves the accepted single-slot behavior; an explicit array (including
+empty) enables multi-slot controls. Each entry supplies logical_set_slot,
+lift_lineage_id and label as nonblank primitives. Malformed/sparse/duplicate IDs
+refuse before Start. Unique slot IDs across this host list are a conservative UI
+constraint, not a new authority identity law; the qualified partition join remains.
+Source WORKOUT-PANEL-02 adopted byte-for-byte SHA256
+29f7f66ed8522696f93499ef5c68af987562cce45667a478c2b9297206dde7f6.
+Executes the bounded PANEL02 brief and existing PR46 owner-workout requirements.
+
+One acknowledged Start serves every Set/Skip/Close. Acknowledged Set or explicit
+reasoned Skip completes the current slot; only explicit Next changes selection and
+clears those completed-slot controls. Blank values never become skipped/zero facts.
+Skip carries actual skip_scope:set. Explicit Finish early carries completion_kind:
+early, freezes this mount after acknowledgment and keeps remaining typed work
+visible and unlogged. No normal Finish is offered: this synthetic selection does
+not establish complete prescribed/accepted partitions or the skipped/completed
+policy. The brief permits early-only here; required normal finish stays in the full
+app, not silently removed. Correction/removal, resume and corrected history remain.
+
+Readback lists only exact requests acknowledged locally in this visit, with their
+operation identity internal. It is not a remote receipt, current/corrected history,
+captured prescription or plan-completion claim. Missing acknowledged op identity,
+uncertain durable outcome, throwing response or lost standing requires host recovery,
+never blind retry. Existing single-slot refusal semantics and 16px input treatment
+remain. Disposal cannot cancel an already issued durable write; Opus90's known
+dispose/remount duplicate-Start concern remains a host reconciliation requirement.
+
+### Executed evidence
+Actual retained R1 bec056d + W6/T2/P256/AES-GCM composition: 204/204, native0;
+35 client-law traces and56 baseline vectors unchanged. Source inventory and logs:
+Temp/earned-w6-current-head-fC9pej and work/panel-extension-bounded-full.log.
+Tracked browser-panel imports the actual compiled graph, verifies source hashes,
+and now calls tracked panel-extension.mjs, not the helper's standalone entry.
+
+PANEL DOM PASS — 57 focused checks (controlled outcomes; not durable evidence)
+PANEL EXTENSION DOM PASS — 38 focused checks
+PANEL EXTENSION DURABLE PASS — one Start, mixed-load Sets, explicit Skip, early Close; native delayed/quota Set/Skip/Close; preserved originals/drafts/unlogged slot after encrypted reopen
+PANEL DURABLE BROWSER PASS — actual retained W6/T2/P256/AES-GCM/native IndexedDB, pending atomic commit, keyboard start/set, exact payload/reference, preserved draft and encrypted reopen; synthetic guard/unissued2, not lifecycle acceptance
+
+Native Chromium proof: one Start,40.5lb/8/3+ then35lb/6/unrecorded, explicit Skip,
+early Close; the fourth slot's typed20lb/4 remains unlogged. Exact5 operations and
+outbox, shared Start, original first Start/Set bytes, unrelated draft/session metadata
+survive encrypted reopen. Held native transactions and injected quota failures on
+Set/Skip/Close cannot advance or paint a new fact before acknowledgment. Root viewed
+the actual390px multiple-closed.png: labels/readback fit; no physical-phone verdict.
+
+Effective bite, disposable copy ONLY: change Skip's session_start_op_id from startId
+to 'wrong-start'. RED line: `page.evaluate: Error: Extension check failed: all slots reference one acknowledged Start`.
+Exact restored source SHA25629f7f66ed8522696f93499ef5c68af987562cce45667a478c2b9297206dde7f6;
+restored57+38/native tests PASS. Raw panel-extension-bite-red.log and
+panel-extension-restored.log retained in that composition. Retained source unmutated.
+
+Failure disclosed: first full run reported177 tests/174 pass/3 fail when concurrent
+Node test-file workers failed at startup with fatal out-of-memory (including frame
+repository and HTTP test processes). No product test assertion was waived. The
+existing runner now bounds test-file workers to2; all assertions, per-test timeout,
+and races INSIDE tests are unchanged. Full rerun204/204 passed, including actual
+HTTP. No user process killed, memory limit raised, or R1 resource gate waived.
+Original failure work/panel-extension-full.log/Temp/earned-w6-current-head-O8sbGu.
+Publication gates all native0 at work/w6-current-head-gates-2026-09-08T22-31-38-915Z:
+fresh private preparation/verdict only/public pins, frozen18 actual ZIP,
+SUITE CONSISTENT99/99/29/70 + rig185W1/W2, SELFTEST PASS, strict(clock unset), diff.
+W6 CLEAN BUILD PASS — frozen W6 lockfile, fresh dependency directory, no copied root node_modules, offline install and actual browser graph
+W6 CIPHER-PIN DETECTED — disposable wrong AES input hash refused actual browser build; manifest restored byte-for-byte
+No private-release meaning attaches to the old strict runner's Safe to ship tail.
+
+### Seams / uncertainty / NEXT
+Prior Opus90 ACCEPT f74 applies to the original bounded panel; successor independent
+review and CI pending. Synthetic guard/unissued schema2 remains test-only. Complete
+manifest, real issuance, original-instruction capture, normal finish/refresh/resume,
+corrected history/engine join, CLOCK/K1, private port/recovery/integration and Joe/Dad
+device qualification remain. No private use, merge, outcome-superiority claim or new
+prescription. Full approved goal remains; this is another portion of its workout flow.
+Root adoption/evidence approximately20minutes, plus separately retained helper work;
+not a measured causal speedup. NEXT: review this same-component extension, then join
+qualified capture/history and host lifecycle; preserve all existing first-use gates.
+
 ## Mounted workout panel — successor to accepted9296897, 2026-09-08
 
 ### What / why and exact scope

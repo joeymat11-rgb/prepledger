@@ -1,3 +1,4 @@
+import { runExtensionDom, runExtensionDurable } from './panel-extension.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -149,6 +150,8 @@ try {
     return checks;
   });
   console.log(`PANEL DOM PASS — ${dom.length} focused checks (controlled outcomes; not durable evidence)`);
+  const extensionDom=await runExtensionDom(page);
+  console.log(`PANEL EXTENSION DOM PASS — ${extensionDom.length} focused checks`);
   const cfg = config(); delete cfg.clock; delete cfg.authorityKey; cfg.identityKey = randomBytes(32).toString('hex');
   await page.evaluate(async ({ seed, cfg, key, lease }) => {
     const W = await import('/retained-w6.js'), { mountWorkoutCommandPanel } = await import('/retained-w6.js');
@@ -215,9 +218,12 @@ try {
   assert.equal(await page.evaluate(async()=>{proof.restorePut();return proof.beforeFault===JSON.stringify(await proof.repo.load());}),true);
   await page.screenshot({path:join(artifacts,'refused.png'),fullPage:true});
   await page.evaluate(()=>proof.repo.close());
+  const extensionDurable=await runExtensionDurable(page,{seed:initial(),cfg,key,lease},join(artifacts,'multiple-closed.png'));
+  console.log('PANEL EXTENSION DURABLE PASS — one Start, mixed-load Sets, explicit Skip, early Close; native delayed/quota Set/Skip/Close; preserved originals/drafts/unlogged slot after encrypted reopen');
   assert.deepEqual(errors,[]);
   for (const input of built.inventory) assert.equal(createHash('sha256').update(readFileSync(join(source,input.path))).digest('hex'),input.sha256,'Source changed during panel proof');
   const result={source:source,bundleInputs:built.inventory,browser:await browser.version(),domChecks:dom,durableChecks:['actual retained bundle','runtime P256 lease verification','native AES-GCM and IndexedDB','keyboard Start and Log set','native transaction held: Saving only','commit completion then Saved','two persisted ops and outbox entries','exact returned start reference and schema2','40.5lb/8reps/at_least3','unrelated draft preserved','encrypted repository reopen identical','native quota refusal: previous generation identical and typed 35.5/0 retained'],limits:['synthetic unissued schema2 lease','synthetic observation guard and fixed clock','same-runtime controller only','repository reopen is not UI refresh/resume or custody proof','no host adoption or independent acceptance']};
+  result.extensionDom=extensionDom; result.extensionDurable=extensionDurable;
   writeFileSync(join(artifacts,'evidence.json'),JSON.stringify(result,null,2)+'\n');
   console.log('PANEL DURABLE BROWSER PASS — actual retained W6/T2/P256/AES-GCM/native IndexedDB, pending atomic commit, keyboard start/set, exact payload/reference, preserved draft and encrypted reopen; synthetic guard/unissued2, not lifecycle acceptance');
   await context.close();context=null;await browser.close();
