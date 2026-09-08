@@ -214,3 +214,13 @@ Closure requires clause concordance, actual final scoped technical acceptance,
 all applicable candidate/combined evidence, verified integration and the recorded
 operating transition. Any missing item stays PENDING; safe independent development
 continues through existing ownership instead of waiting on an unrelated PR.
+
+## Factual prerequisite-record successor — 2026-09-07
+
+Owner-authorized builder correction only. The clean author branch was fast-forwarded from 2dd1bfe489833677237f62185275f6ea2a175eaf to already-published integration db044538f63ebc85dd34432e7a4d7ffa8991c959; no new integration or merge commit was made. DECISIONS:80 now names “the prerequisites specified in brief §4” instead of incorrectly substituting two deferred conditions. FINISH-PROMPT:132 now records the accepted/integrated controls while expressly retaining execution of every following condition. Those condition bodies and the substantive brief are unchanged.
+
+DECISIONS:80's pre-exhaustion integration/CI attribution belongs to historical db044538, not the commit carrying this correction. I stopped before a final handoff receipt. The coordinator separately verified db044538's exact-head Ubuntu and Windows CI, run34173016626, plus suite/preview success. This successor supplies no new I receipt, activation, release permission or independent acceptance.
+
+Fresh local evidence on this docs-only successor: FROZEN-PATHS and actual 18-file OLD-PACKAGE PASS (native0); no-record D12 applicability UNKNOWN (native2); strict PASS (native0, 48,326 ms, Node v24.19.0/Windows, test clock and PL overrides absent); exact two-replacement/unchanged-condition scope assertions and whitespace check PASS. Raw logs and machine-readable statuses are retained under .tmp/pr47-factual-correction-20260907. The generic strict footer is not whole-app release acceptance. No D12 evidence reuse is claimed, and no full private/conformance/selftest or selector suite was repeated for this literal editorial restoration; their earlier execution remains historical evidence. All product, helper, artifact, envelope, fixture, dependency and workflow bytes remain unchanged.
+
+Next: publish this author-branch correction for the existing review/integration route. The coordinator opens its PR; the builder does not merge or commission another paid run. Its own final-head review/CI and I handoff remain unexecuted here.
