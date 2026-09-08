@@ -1,5 +1,26 @@
 # ASTRA — owner workout contract preparation
 
+## v0.28 — actual selected-version workout command path
+
+Source inspection uses retained W6cdf698d and R1bec056d, not older copies here.
+W6public-client:96,116–124 already verifies the granted schema and checks actual
+prepared operation versions before durability; existing tests correctly refuse20.
+T2commitBatch:150–158 still omits selected schema_version at Ops.build, and the
+staging allowlist has only four legacy commands. The next change supplies actual
+workout actions to that same committer and preserves its outer guard. §6 publishes
+the exact scope/interface/error precedence and real composition/fault gates.
+
+This is not a complete immutable manifest or activation. Source review also
+confirms broader required forms cannot merely inherit the six-kind predicate:
+old validate.cjs has payload/quantity assumptions, issue machinery uses legacy
+response aliases, and full correction/partition/capture and nonnumeric-load joins
+remain. They stay required before first use. B15 explicitly declares causal order
+plus athlete_log_seq as concurrency tie-break; do not invent device-clock order.
+Legacy root/target qualification from Message82 and author3/3 remains OPEN.
+No product or rule changes in this publication. Tests proposed in §6 are NOT RUN. Fresh required publication gates all native0 atwork/owner-workout-v08-gates-2026-09-08T20-45-15-077Z: private preparation verdict/public pins unchanged, frozen/18-file actual ZIP, conformance99/99/29/70+rig185, SELFTEST, strict3072(clock unset), diff. New-head CI and affected boundary review pending.
+NEXT: affected source review, then real retained W6 command implementation and
+its actual encrypted-store/HTTP proof; continue remaining schema/capture joins.
+
 ## v0.27 — actual authority acceptance; preserve cross-version qualification
 
 Retained R1bec056d6b8f86069c500d958e86f212bd6e5f392 implements corrected92d48fd §5.
