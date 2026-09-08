@@ -1,5 +1,11 @@
 # ASTRA — owner workout contract preparation
 
+## v0.32 — actual panel status and bounded prescription/capture evidence
+Current implementation status aligns to PR32 f74a815: actual mounted Start→Set,204 composed,57 controlled plus native durable panel, effective/restored acknowledgement bite, mandatory publication and terminal7SUCCESS/3SKIP bothOS. Panel independent review pending;929 Opus88 acceptance remains on its own bytes. Existing full PRODUCT-GOAL v3 and first-use requirements preserved. No product/rule/private edits here.
+PRESCRIPTION-QUALITY-01 was read and assessed as material preparation for the existing effort-policy decision. The brief incorporates two primary full-text links, limitations and three explicitly UNEXECUTED synthetic comparisons (change, maintain, unknown profile); APM independently checked source methods/attrition. Root does not claim a new independent literature replication, clinical qualification, accepted policy or implemented outcome improvement. No repeated broad research or extra review stage.
+Focused source inspection grounds the already-known capture gap: local generation storage exists; current R1 closed retained collection profile has no prescription capture, and inspected D1 JSON boundaries have no P1 payload codec. This identifies the exact existing joining work without inventing a wire key, adding a new requirement, editing the immutable start payload, expanding custody or silently accepting a local-only snapshot. One source lookup guessed nonexistent schema.sql/authority ops.cjs; exact files were subsequently enumerated; no source modification resulted.
+No additional queue, schedule, scope, paid fallback or owner action. NEXT: panel review/extension and exact capture recovery contract; existing effort-policy review uses this evidence once. Current docs publication gates all native0 at work/owner-workout-v08-gates-2026-09-08T22-03-40-990Z: fresh private preparation/verdict only/public pins, frozen18 actual ZIP, conformance99/99/29/70+rig185, SELFTEST, strict(clock unset), diff. New-head CI pending.
+
 ## v0.31 — comparative owner goal, within existing feature work
 
 Read IMPLEMENTATION-AMENDMENT §27 and full canonical PRODUCT-GOAL v3; verified
