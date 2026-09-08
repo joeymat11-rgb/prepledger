@@ -1,5 +1,26 @@
 # ASTRA — owner workout contract preparation
 
+## v0.31 — comparative owner goal, within existing feature work
+
+Read IMPLEMENTATION-AMENDMENT §27 and full canonical PRODUCT-GOAL v3; verified
+SHA076a2b7eb32d7d04be022dd24679d6f8132ff74b67e5c7249e05282394d83e7c.
+All prior coordinated-plan scope and first-use priority remain. Existing brief now
+connects four affected features to reference behavior, intended improvement, actual
+evidence and remaining gap: performed loads, resume provenance, daily workflow and
+already-open terminal effort. No invented measured usability or superior outcomes;
+no new blanket audit/gate, old-app rewrite or long outcome-study delay. The inherited
+sound rule may remain when evidence supports it. Existing verdicts stay valid.
+
+APM's two exclusive helpers: WORKOUT-PANEL-01 candidate and PRESCRIPTION-QUALITY-01
+bounded existing effort-question preparation; no product rule/custody/model/funding
+change or duplicated independent review. FIRST-USE-CUT map already adopted at958f319;
+first actual visible workout portion remains the next integration. Do not wait for
+science preparation to finish unrelated eligible UI/storage work.
+Required docs-publication gates all native0 atwork/owner-workout-v08-gates-2026-09-08T21-40-11-533Z: preparation/privateverdict/publicpins,frozen18actualZIP,conformance99/99/29/70+rig185W1W2,SELFTEST,strict3072(clockunset),diff. No new product implementation or clinical
+recommendation in this change. NEXT: assess/adopt panel with real retained W6,
+then extend the same tangible journey and its capture/history/prescription joins.
+
+
 ## v0.30 — actual client acceptance and tangible first-use integration
 
 Read/adopted IMPLEMENTATION-AMENDMENT.md §26 at the normal boundary while preserving
