@@ -1,5 +1,108 @@
 # ASTRA — owner workout contract preparation
 
+## v0.18 — accepted dependency evidence and executable schema-transition boundary
+
+Retained PR46/base499d2aa53af7d2e545cb0e9cbc256f292fe32518. Three changed files:
+existing brief/report plus one NON-SHIPPING public diagnostic under spec/.
+History reader/projection/UI, engine/client/authority/W5/W6, frozen suite,
+dependencies, private inputs and seeded soak are unchanged. Full owner goal v2
+remains byte-identical; the brief/checkpoint retain all seven coordinated areas
+with the smallest dependable private workout slice first. No new queue/research,
+scope/model decision, merge or feature activation.
+
+Retained Opus Message60: R1 producer/public verifier atd26795a ACCEPT bounded;
+previously unrun PR46 desktop browser checks now4/4 PASS/native0 against499d2aa,
+originalR1 baseline003c816 and exact separate W6 package0d7f5e0. No phone claim.
+Archive17983bytes/SHA4c888525018f8e92ced425d2180a1483e67ba617276fe420cfdacc698bfa7792,
+all11 manifest entries MATCH; original17-challenge actualD1/HTTP script reproduced
+17/17 native0 on Windows. Coordinator spotted C4's missing device selector:
+the reverse-domain control used403 instead of signed legacy history. Separate
+corrected copy requires200/verifyPull=true and passes17/17. Reviewer independently
+re-executed that correction in Message64 and kept bounded ACCEPT. Originals and
+the earlier failed compatibility test stay preserved; no product repair resulted.
+Evidence: coordinator work/current-head-implementation/opus-review/ASSESSMENT.md.
+Six review holds remain: actualW6sink, knowledge-loss fence, resourceFAIL,
+CLOCK/physical freshness, issuance/Q1 and contract cases6/7.
+
+New portable schema-transition-diagnostic.cjs executes against pinned R1d26795a
+with real localD1/core/P256 and synthetic rows/keys only. Its source version was
+first run locally, then the published-path script reproduced native0:
+
+```text
+SCHEMA TRANSITION new-v2-enrollment-refuses-without-domain-writes CONFIRMED
+SCHEMA TRANSITION v1-enrollment-control CONFIRMED
+SCHEMA TRANSITION v2-renewal-refuses-without-domain-writes CONFIRMED
+SCHEMA TRANSITION low-level-builder-retains-explicit-version CONFIRMED
+SCHEMA TRANSITION old-v1-operation-and-exact-replay-survive-refused-upgrade CONFIRMED
+SCHEMA TRANSITION ordinary-v1-renewal-preserves-old-replay CONFIRMED
+SCHEMA TRANSITION DIAGNOSTIC: 6/6 CONFIRMED; v2 activation NOT IMPLEMENTED
+```
+
+These are checks of current behavior, not a new-version acceptance test. Seven
+named public source files pinned; no complete transitive-pin claim. The brief
+now names each issuer/admission/client/storage join. It corrects stale registry
+and range language: immutable issuedLeases and schema-bound intent digests already
+exist; accepted ranges extend from1 and may overlap. Do not recreate them or
+require disjoint ranges; preserve unique device sequence and original bytes.
+Repetition-domain and complete-schema decisions stay explicit OPEN items.
+No arbitrary numeric version, new data rule or canonicalization is adopted.
+
+Helpers: EFFORT-03 fresh candidate76PASS/original25 intended failures, but whole
+patch integration BLOCKED because both resumed draft forms can borrow current
+hold without historical evidence. HEAD-IDB-01 actualW6/AES-GCM/fakeIDB/T2 plus
+synthetic head adapter14PASS, with one effective omitted-revision adapter fault.
+It demonstrates preserving the captured revision through CAS retry, not a product
+K1/normalizer/issuance implementation. Existing W6 guards execute and are retained.
+Both helpers terminal; no product patch incorporated. APM disclosed HEAD-IDB-01
+inherited XHigh rather than intended High; no rerun or further work on that
+session. Future helper settings are explicitly verified; retained model choices
+and credits/reloadOFF are unchanged. Added usage is permitted, savings unproven.
+
+NEXT: implement the real W6 current-head proof-family/durable-revision join in the
+retained stream with an explicit source delta and applicable review; close the
+selected workout schema/activation before issuing its capability; then connect
+complete workout interactions and preserved prescriptions. Persistent knowledge,
+legacy provenance/normalization, Q1, science/applicability, resource/deployment,
+import/recovery and actual Joe/Dad phone gates remain. No full-app% or release
+date is inferred.
+
+Fresh publication gates: Windows Node24.19.0, real dependency directory, explicit
+frozen engines and checkout client; conformance/selftest fixed2026-09-03 and
+America/New_York, strict with MEASURED_TEST_NOW unset. All five preparation/gate
+children native0. Logs: work/owner-workout-v08-gates-2026-09-08T17-01-06-389Z.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+The strict closing line validates the frozen app, not private-release permission.
+Full new-PWA packaging remains PENDING. The published-path diagnostic passed6/6;
+unchanged history/browser/product tests were not repeated for this documentary
+successor. Full gates above remain executed, not waived by the proposed process
+amendment. Exact-head CI follows publication. Approximate bounded continuation:
+16:49–17:05UTC, including evidence receipt/correction, helper incorporation,
+source reconciliation, portable diagnostic and mandatory gates; not build-time
+or release-date prediction.
+
+September8 delivery alignment: canonical product-goal v2 remains byte-identical
+(SHA43ebdeed5986e238969c9cdf759a40f02f7066b630c2eb6af54bc1c6fe5ad5c5).
+The existing brief now maps the next actual W6 joins from0d7f5e0 source; no W6
+product edit or new implementation claim. Retained R1 draft PR43 published the
+current-head capability atd26795a47d638ec1e67840455273cc05eeca9926: focused28/28,
+four effective/restored faults, corrected owned R1 regression179/179, original
+W5/frozen gates and bothOS CI PASS; scoped independent implementation review ACCEPT (Message60/64). Initial compatibility-test failure retained and corrected without losing
+old assertions, as its own report explains. ResourceFAIL remains. This is a
+dependency update, not acceptance or a feature activation in PR46. PR46 reviewed
+499d2aa product bytes stay unchanged; these documentary additions await its next
+normal publication. Checkpoint and brief preserve accurate port, complete justified
+workouts and the full coherent plan; read-only history alone never means done.
+
 ## Current v0.17 — visible history and reviewed consumer repairs
 
 Same parent3b88b52/retained PR46. Twelve-file candidate: six workout UI/test/README
@@ -50,17 +153,40 @@ pins unchanged. New-PWA/full-M3 scope PENDING. Literal final lines:
 `SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families`,
 `SELFTEST PASS`, `All checks passed. Safe to ship.` The strict phrase is not release
 authorization; final report reconciliation changes no executed code.
-Corrective independent acceptance and exact successor CI remain separate. No merge.
+Post-publication receipt at499d2aa: Opus Message54 independently ACCEPTS F1–F3
+repairs and the read-only panel contract for subsequent integration, with no
+material finding. Original22409byte archive SHA256
+`8decf8f8e50dff5328f1e25dae82d402696d8fbeb70d851516f03a0e0e8d1fc8`
+and13 manifest members verified;71 source pins checked before/after the unchanged
+author replay:22/22 independent challenges native0 on Windows Node24 (reviewer
+Node22). Original source/output/verdict preserved in coordinator
+`work/workout-schema-prep/opus-ui-review/`. No broad PR/private/I acceptance.
+Reviewer did not run browser cases because its checkout lacked installed W6
+playwright-core; exact published dependency0d7f5e0/rebuild/m3/w6 is now identified
+for the next affected review. Author Chromium evidence is not independent or
+physical evidence. Exact-head CI completed7SUCCESS/3expected deploymentSKIP,
+including bothOS PR/push and suites. No merge.
+
+EFFORT-01/02 preparation is incorporated into the existing brief's rule inventory.
+The actual source join narrows the direct wording finding: generated/resumed cards
+omit holdFlag, so the direct held sentence is not proved on normal Gym. Actual
+public synthetic engine shows held single-set2→0 after that projection; user-live
+and mounted-pilot applicability remain unproved. APM replay19 outputs attributed;
+Astra checked actual source join. No rule/frozen/module/receipt correction made.
+One helper reused for concrete findings, not independent acceptance; no measured
+cost or speed benefit. Broader goal/staging unchanged.
 
 Goal v2 and accurate existing-data carryover remain aligned. Amendment23's five
 existing first-use outcomes now anchor regular plain-language status; percentage
-uncalibrated, neither phone ready. Amendment24's single EFFORT-01 helper is running
-under the assistant PM on the existing rationale question, while Astra implements
-this slice. No duplicate assignment, new stream, review stage, funding or model
-change. Acceleration START, usefulness not yet established. NEXT: publish final
-tested repairs/UI for focused independent assessment, then continue actual
-complete-workout command/engine/storage integration and incorporate the helper's
-evidence through the existing rule/acceptance process.
+uncalibrated, neither phone ready. Amendments24–25 put helper dispatch with the
+assistant PM and integration with Astra. EFFORT-01/02 useful evidence is adopted
+with corrected applicability; no measured net savings. Same helper now performs
+bounded author-side QA on the next current-head candidate while Astra packages
+it. No second helper, new stream, acceptance stage, funding or model change.
+NEXT: preserve the reviewed499d2aa UI and original evidence; build the already
+reviewed current-head producer/consumer contract in the retained R1 stream, with
+actual local D1/HTTP races, effective faults and existing acceptance gates.
+Complete-workout schema, durable storage, justified prescription and phones remain.
 
 ## v0.17 initial UI preparation before Message52 — preserved provenance
 
