@@ -17,5 +17,5 @@ test('parent source pin is mandatory for the only permitted successor import',as
 // Fail before source execution: path-specific policy has exactly one allowed import.
 for(const request of ['node:fs','./unknown.cjs','../helpers/import-guards-frozen.cjs'])test('direct arbitrary import remains forbidden: '+request,()=>{
  const source=fs.readFileSync(path.join(root,'rebuild/conform/v4/postfix/target.cjs'),'utf8');const start=source.indexOf('const successor='),end=source.indexOf('const law=mod.laws',start);const body=source.slice(start,end);
- const compile=(_file,req)=>req(request);assert.throws(()=>new Function('path','input','compile','pinnedHelper','fail',body)(path,{caseFile:path.join(root,'rebuild/conform/v4/postfix/laws/step-efficacy.cjs'),helperRoot:root},compile,()=>{throw Error('UNEXPECTED-HELPER');},code=>{throw Error(code);}),/DIRECT-CASE-IMPORT/);
+ const compile=(_file,req)=>req(request);assert.throws(()=>new Function('eraCase','path','input','compile','pinnedHelper','fail',body)(false,path,{caseFile:path.join(root,'rebuild/conform/v4/postfix/laws/step-efficacy.cjs'),helperRoot:root},compile,()=>{throw Error('UNEXPECTED-HELPER');},code=>{throw Error(code);}),/DIRECT-CASE-IMPORT/);
 });

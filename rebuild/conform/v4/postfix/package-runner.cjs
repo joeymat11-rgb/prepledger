@@ -18,7 +18,8 @@ function checkPins(root,a){
   }
   for(const [file,hash]of Object.entries(a.executionPins)){
     if(file===artifact||file===envelope)T.fail('CIRCULAR-EXECUTION-PIN');
-    if(T.sha(fs.readFileSync(path.join(root,file)))!==hash||T.sha(L.object(root,'HEAD',file))!==hash)T.fail('EXECUTION-PIN');
+    const gitBytes=era&&file==='rebuild/conform/v4/postfix/fixtures/set-one-era-deltas.json'?require('./helpers/set-one-era-git-bytes.cjs').object(root,'HEAD',file):L.object(root,'HEAD',file);
+    if(T.sha(fs.readFileSync(path.join(root,file)))!==hash||T.sha(gitBytes)!==hash)T.fail('EXECUTION-PIN');
   }
   const files=fs.readdirSync(path.join(root,'rebuild/conform/v4/postfix'),{recursive:true,withFileTypes:true}).filter(x=>x.isFile()).map(x=>path.relative(root,path.join(x.parentPath,x.name)).split(path.sep).join('/')).filter(x=>x!==artifact&&x!==envelope).sort();
   if(files.some(f=>!Object.hasOwn(a.executionPins,f)))T.fail('EXECUTION-INVENTORY');
@@ -60,7 +61,7 @@ function main({manifestFile,baseline,candidate}){
   const {envelope:e,acceptance:a,bytes}=A.load(root,manifestFile);
   A.fetchIntegration(root);
   A.ancestry(root,a,e);const accepted=A.verifyReceipts(root,a,e,bytes);
-  if(accepted&&!L.object(root,'HEAD',A.artifactFile(a)).equals(bytes))T.fail('UNCOMMITTED-ACCEPTANCE-ARTIFACT');
+  if(accepted&&!(A.profile(a).id==='M2-SET-ONE-ERA'?require('./helpers/set-one-era-git-bytes.cjs').object(root,'HEAD',A.artifactFile(a)):L.object(root,'HEAD',A.artifactFile(a))).equals(bytes))T.fail('UNCOMMITTED-ACCEPTANCE-ARTIFACT');
   // Pending evidence must never look like final acceptance, including inherited
   // gate tails. Exact original gate output remains in local-only gate logs.
   let custody=null;const emit=line=>{const text=accepted?line:line.replace(/\bPASS\b/g,'OBSERVED');if(custody)custody.assertSafePublicText(text);console.log(text);};

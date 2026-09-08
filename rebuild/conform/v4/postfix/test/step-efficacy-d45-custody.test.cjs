@@ -7,10 +7,11 @@ const C=require('../helpers/step-efficacy-d45-custody.cjs'),A=require('../accept
 const a=JSON.parse(fs.readFileSync(path.join(P,'acceptance-step-efficacy.json'),'utf8'));
 a.executionPins[C.PROJECTOR]=T.sha(fs.readFileSync(path.join(root,C.PROJECTOR)));
 a.inventory.find(r=>r.defect==='D45').consequence=C.descriptor(a.executionPins[C.PROJECTOR]);
+const candidateContext=require('../helpers/step-candidate-test-context.cjs').stepCandidateContext({root,stepAcceptance:a});
 const source=B.createFrozenSource({root}),row=a.inventory.find(r=>r.defect==='D45'),bundles=require('../legacy-gates.cjs').publicReferences({baseline:root,scratch:path.join(root,'.tmp/postfix/custody-test-package-reference'),sourcePins:a.baseline.buildSources});
 const custody=C.prepareCustody({root,baseline:root,bundles,acceptance:a});
 const scratchParent=path.join(root,'.tmp/postfix/d45-custody-tests');fs.mkdirSync(scratchParent,{recursive:true});const scratch=fs.mkdtempSync(path.join(scratchParent,'run-'));
-const trace=r=>({frames:r.frames,detail:r.detail}),call=(cell,candidate=path.join(root,'rebuild/engine'),inventory=a.candidateEngine)=>T.runRaw({baseline:root,law:row.law,...cell,traceProfile:2,candidate,inventory});
+const trace=r=>({frames:r.frames,detail:r.detail}),call=(cell,candidate=path.join(root,'rebuild/engine'),inventory=candidateContext.candidateInventory)=>T.runRaw({baseline:root,law:row.law,...cell,traceProfile:2,candidate,inventory});
 const originals=new Map(a.matrix.map(cell=>[cell.mode+'/'+cell.day,T.runRaw({kind:'raw-frozen',baseline:root,law:row.law,...cell,traceProfile:2,bundle:source.bundle,bundleSha256:source.bundleSha256,helperRoot:root,helperPins:a.baseline.publicPins})]));
 const old=cell=>originals.get(cell.mode+'/'+cell.day);
 const rejects=(fn,code)=>assert.throws(fn,e=>e.code===code);
@@ -31,7 +32,7 @@ test('actual candidate raw D45 four cells remain RED and match whole runtime sou
 });
 
 test('real restore-times1000 source fault is detected by comparison, not pin or syntax',()=>{
- const dir=path.join(scratch,'restore'),inventory={...a.candidateEngine};fs.mkdirSync(dir);
+ const dir=path.join(scratch,'restore'),inventory={...candidateContext.candidateInventory};fs.mkdirSync(dir);
  for(const file of Object.keys(inventory))fs.copyFileSync(path.join(root,'rebuild/engine',file),path.join(dir,file));
  const file=path.join(dir,'energy.cjs'),original=fs.readFileSync(file,'utf8'),d=row.consequence;
  assert.equal(original.split(d.newExpression).length,2);const changed=original.replace(d.newExpression,d.oldExpression);fs.writeFileSync(file,changed);inventory['energy.cjs']=T.sha(changed);
@@ -40,7 +41,7 @@ test('real restore-times1000 source fault is detected by comparison, not pin or 
 });
 
 test('real extra caller-state cell is detected with valid updated source inventory and RED verdict',()=>{
- const dir=path.join(scratch,'extra'),inventory={...a.candidateEngine};fs.mkdirSync(dir);
+ const dir=path.join(scratch,'extra'),inventory={...candidateContext.candidateInventory};fs.mkdirSync(dir);
  for(const file of Object.keys(inventory))fs.copyFileSync(path.join(root,'rebuild/engine',file),path.join(dir,file));
  const file=path.join(dir,'writers.cjs'),original=fs.readFileSync(file,'utf8'),anchor='function askContext(s, docs) {';
  assert.equal(original.split(anchor).length,2);const changed=original.replace(anchor,anchor+'\n  s.__custodyExtraCell = true;');fs.writeFileSync(file,changed);inventory['writers.cjs']=T.sha(changed);
@@ -60,8 +61,8 @@ test('all original witness-7 assertions and writer differential modes/clock/alia
 });
 
 test('actual successor child dispatch preserves both witness modes and all three differential modes',()=>{
- const carrier=require('../legacy-step-efficacy-carriers.cjs');
- for(const [id,modes]of [['defect-witnesses-7',['frozen','native']],['writers-differential',['frozen','native','trap']]])for(const mode of modes){const result=carrier.runCarrier({id,mode,root,baseline:root,bundles,acceptance:a});assert.equal(result.status,'PASS');assert.equal(result.id,id);assert.equal(result.mode,mode);custody.assertSafePublicText(JSON.stringify(result));}
+ const carrier=candidateContext.carrier;
+ for(const [id,modes]of [['defect-witnesses-7',['frozen','native']],['writers-differential',['frozen','native','trap']]])for(const mode of modes){const result=carrier.runCarrier({id,mode,root,baseline:root,bundles,acceptance:candidateContext.acceptance});assert.equal(result.status,'PASS');assert.equal(result.id,id);assert.equal(result.mode,mode);custody.assertSafePublicText(JSON.stringify(result));}
 });
 
 test('a new custody authoring session refuses after an actual candidate was loaded; disposal clears private expectations',()=>{

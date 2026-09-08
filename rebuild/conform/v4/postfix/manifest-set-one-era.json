@@ -1,7 +1,7 @@
 {
   "version": 2,
   "acceptanceFile": "rebuild/conform/v4/postfix/acceptance-set-one-era.json",
-  "acceptanceSha256": "ecea33059a267692f26ce183b140916062f43b77b0c1f53a26384dc916db4e6f",
+  "acceptanceSha256": "95d84daf114034efc79d5d80820df9f11612860d970c57f9ffe2ddf39b0ad727",
   "candidateBase": "28ff3be3a0c47fa76b642015ac3757da5c76548c",
   "receipts": {
     "owner": {

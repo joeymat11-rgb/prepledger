@@ -13,6 +13,7 @@ for(const file of ['run.cjs','package-runner.cjs'])write(pfx+'/'+file,fs.readFil
 write(pfx+'/target.cjs',`const c=require('node:crypto');exports.sha=b=>c.createHash('sha256').update(b).digest('hex');exports.fail=code=>{const e=Error(code);e.code=code;throw e;};`);
 write(pfx+'/strict-json.cjs',`exports.parseExact=b=>JSON.parse(b);`);
 write(pfx+'/helpers/set-one-era-compact-json.cjs',`exports.parseCompactExact=b=>JSON.parse(b);`);
+write(pfx+'/helpers/set-one-era-git-bytes.cjs',`const fs=require('node:fs'),path=require('node:path');exports.object=(root,ref,file)=>fs.readFileSync(path.join(root,file));`);
 write(pfx+'/structural-delta.cjs',`exports.compareStructural=()=>{throw Error('SYNTHETIC-UNEXPECTED-COMPARE');};`);
 write(pfx+'/source-proof.cjs',`exports.verifyProductSources=()=>({synthetic:true});`);
 // Synthetic dispatch substitute only; real protected custody is tested separately.
