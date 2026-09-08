@@ -2,8 +2,10 @@
 /* Actual T2 runs against an isolated memory backend. Browser crypto is resolved only
    by the declared build boundary; optional trusted integration never substitutes a committer. */
 const Client = require("../../client/index.cjs");
+const {createWorkoutCommands}=require("../../m4/workout/commands.cjs");
+const workoutCommands=createWorkoutCommands();
 const clone = value => structuredClone(value);
-const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession"]);
+const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout"]);
 
 function snapshotBackend(backend, seededNames = []) {
   const collections = Object.create(null);
@@ -31,7 +33,7 @@ function createT2Stage(configProvider, { allowInbound = false } = {}) {
     const trusted = allowInbound && integration ? integration : {};
     const observe = config.onPreparedBatch;
     // No transport is installed: this slice must not observe inbound authority facts.
-    const client = Client.createClient({ ...config, ...trusted.config, backend, transport: undefined,
+    const client = Client.createClient({ ...config, ...trusted.config, backend, transport: undefined, workoutCommands,
       onPreparedBatch(batch) { prepared = batch; if (observe) return observe(batch); } });
     client.boot();
     const metadata = clone(generation.metadata);

@@ -3,22 +3,28 @@
 // No branch merge, dependency install, original suite edit or private input.
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'../../../..'),r1=path.resolve(process.argv[2]||'');
-const base='d26795a47d638ec1e67840455273cc05eeca9926';
+const base='bec056d6b8f86069c500d958e86f212bd6e5f392';
 if(!process.argv[2])throw Error('Usage: node test/run-current-head.cjs <retained-R1-repo> [--all] [--browser] [--bite]');
 const output=fs.mkdtempSync(path.join(os.tmpdir(),'earned-w6-current-head-'));
 function git(args,cwd=root){const p=cp.spawnSync('git',args,{cwd,windowsHide:true,maxBuffer:64e6});if(p.status!==0)throw Error('Public source preparation failed: '+args[0]);return p.stdout;}
 const archive=path.join(output,'public-dependency.tar');
-fs.writeFileSync(archive,git(['archive',base,'rebuild/authority','rebuild/client','rebuild/m3/w5','rebuild/m3/rigs','rebuild/conform/lib','rebuild/conform/adapters/client.cjs','rebuild/conform/laws/sheet-B-client.cjs'],r1));
+fs.writeFileSync(archive,git(['archive',base,'rebuild/authority','rebuild/m4/workout','rebuild/client','rebuild/m3/w5','rebuild/m3/rigs','rebuild/conform/lib','rebuild/conform/adapters/client.cjs','rebuild/conform/laws/sheet-B-client.cjs'],r1));
 const unpack=cp.spawnSync('tar',['-xf',archive,'-C',output],{windowsHide:true});if(unpack.status!==0)throw Error('Public dependency extraction failed');
 // W6 already owns three reviewed T2 browser-boundary additions. Replacing its
 // client with R1's older T2 would silently remove those hooks, not compose them.
-const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client']).toString().trim().split(/\r?\n/));
-for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs'])names.add('rebuild/m3/w6/'+name);
+const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client','rebuild/m4/workout']).toString().trim().split(/\r?\n/));
+for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
+for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs'])names.add('rebuild/m4/workout/'+name);
 const pins={};
 for(const name of names){
-  if(!(name.startsWith('rebuild/m3/w6/')||name.startsWith('rebuild/client/'))||name.includes('..'))throw Error('Unexpected candidate path');
+  if(!(name.startsWith('rebuild/m3/w6/')||name.startsWith('rebuild/client/')||name.startsWith('rebuild/m4/workout/'))||name.includes('..'))throw Error('Unexpected candidate path');
   const raw=fs.readFileSync(path.join(root,name)),dest=path.join(output,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,raw);
   pins[name]=crypto.createHash('sha256').update(raw).digest('hex');
+}
+// Accepted schema/profile are copied byte-for-byte; fail instead of silently drifting.
+for(const name of ['schema.cjs','authority-profile.cjs']){
+ const source='rebuild/m4/workout/'+name;
+ if(!fs.readFileSync(path.join(root,source)).equals(git(['show',base+':'+source],r1)))throw Error('Accepted shared source differs: '+source);
 }
 // Disposable runner only: use the already installed locked dependency trees.
 // The retained worktrees themselves still have real node_modules directories.

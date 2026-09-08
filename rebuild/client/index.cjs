@@ -153,9 +153,35 @@ function createClient(config) {
     const first = model.ownSeq + 1; const lastSeq = model.ownSeq + actions.length;
     const l = leaseNow(first); const l2 = l.valid ? leaseNow(lastSeq) : l;
     if (!l.valid || !l2.valid) { const bad = l.valid ? l2 : l; return { acknowledged: false, state: 20, copy: bad.reason === "no lease" || bad.reason === "lease signature does not verify" ? COPY.LEASE_MISSING : COPY.LEASE_EXPIRED(bad.not_after ? String(bad.not_after).slice(0, 10) : null), reason: bad.reason }; }
+    const workout = actions.length === 1 && Object.hasOwn(actions[0], "workout");
+    if (workout && cfg.lease.schema_version !== 2) return { acknowledged: false, state: 20,
+      copy: "Reconnect before saving this workout.", reason: "workout schema unavailable" };
     const ops = []; let pred = model.lastOwnOpId;
+    const invalidWorkout = value => {
+      try { Promise.prototype.then.call(value, undefined, () => {}); } catch (_) {}
+      throw new Error("WORKOUT_INPUT_INVALID");
+    };
     try {
-      actions.forEach((a, i) => { const seq = first + i; const op = Ops.build({ op_id: "op-" + model.deviceId + "-" + seq, athlete_id: model.athleteId, device_id: model.deviceId, device_seq: seq, predecessor: pred, parents: a.parents, class: a.class, kind: a.kind, target: a.target, effective: a.effective || effectiveOn(), lease_id: l.lease_id, payload: a.payload, plan: a.plan, undo: a.undo, extra: a.extra }, K); ops.push(op); pred = op.op_id; });
+      if (workout) {
+        try {
+          if (!cfg.workoutCommands || cfg.workoutCommands.schemaVersion !== 2 ||
+            typeof cfg.workoutCommands.prepare !== "function" || typeof cfg.workoutCommands.validate !== "function") invalidWorkout();
+          const action = cfg.workoutCommands.prepare(actions[0].workout);
+          if (!action || typeof action !== "object" || Array.isArray(action) || typeof action.then === "function") invalidWorkout(action);
+          const reserved = ["op_id","athlete_id","device_id","device_seq","device_predecessor_op_id","causal_parents",
+            "class","kind","effective","schema_version","lease_id","payload","canonical_content_commitment","target_op_id"];
+          if (action.extra && Object.keys(action.extra).some(key => reserved.includes(key))) invalidWorkout();
+          actions = [action];
+        } catch (_) { invalidWorkout(); }
+      }
+      actions.forEach((a, i) => { const seq = first + i; const op = Ops.build({ op_id: "op-" + model.deviceId + "-" + seq, athlete_id: model.athleteId, device_id: model.deviceId, device_seq: seq, predecessor: pred, parents: a.parents, class: a.class, kind: a.kind, target: a.target, effective: a.effective || effectiveOn(), lease_id: l.lease_id, schema_version: workout ? 2 : undefined, payload: a.payload, plan: a.plan, undo: a.undo, extra: a.extra }, K);
+        if (workout) {
+          try {
+            const valid = cfg.workoutCommands.validate(op, id => model.rejected.has(id) ? undefined : deepCopy(model.ops.get(id)));
+            if (valid !== true) invalidWorkout(valid);
+          } catch (_) { invalidWorkout(); }
+        }
+        ops.push(op); pred = op.op_id; });
     } catch (e) { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(e.message), invalid: e.validation || [e.message] }; }
     if (cfg.onPreparedBatch) {
       try {
@@ -181,6 +207,7 @@ function createClient(config) {
   const api = {
     boot, restart, store, model,
     /* named actions (sheet 318–320) */
+    workout: value => commitBatch([{ field: "workout", value, workout: value }]),
     weighIn: ({ date, lb }) => { if (typeof lb !== "number" || !Number.isFinite(lb)) { model.fields.weighIn = lb; return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID("A weight is required.") }; } return commit({ field: "weighIn", value: lb, kind: "fact", class: "reading", payload: { lb: q(lb, "lb"), source: "athlete" }, effective: effectiveOn(date) }); },
     logSet: (p) => commit({ field: "logSet", value: p, kind: "session-set", class: "session", payload: setPayload(p, activeSession()), also: (t) => { t.del("drafts", "active"); }, after: () => { model.draft = null; } }),
     decision: (p) => { const payload = { answer: p.answer }; if (p.proposal != null) payload.proposal_id = p.proposal; return commit({ field: "decision", value: p, kind: "proposal-response", class: "plan", payload, copy: COPY.RESOLUTION_SAVED }); },

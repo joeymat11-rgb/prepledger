@@ -10,6 +10,7 @@ const child = (...parts) => join(isolated, ...parts);
 function copy(relative) { const destination = child(relative); mkdirSync(dirname(destination), { recursive: true }); cpSync(join(root, relative), destination); }
 try {
   for (const name of readdirSync(join(root, "rebuild/client"))) if (name.endsWith(".cjs")) copy(`rebuild/client/${name}`);
+  for (const name of ["schema.cjs", "authority-profile.cjs", "commands.cjs"]) copy(`rebuild/m4/workout/${name}`);
   copy("rebuild/authority/canonical.cjs"); copy("rebuild/m3/w5/public-client.cjs");
   for (const name of readdirSync(here)) if (/\.(?:mjs|cjs)$/.test(name) || ["package.json", "pnpm-lock.yaml", "cipher-imports.json", ".npmrc"].includes(name)) copy(`rebuild/m3/w6/${name}`);
   const destination = child("rebuild/m3/w6");

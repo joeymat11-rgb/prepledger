@@ -1,5 +1,133 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Actual workout command component — 2026-09-08, successor to cdf698d
+
+Executes PR46 BRIEF-OWNER-WORKOUT v0.29 / WORKOUT-BASIC-SCHEMA §6 at
+8aafb0450c52b5138c8fcd33f7f6d13b81161f23, including Opus84 R-1–R-3 and all four
+precision items BEFORE retained source adoption. Actual base W6cdf698d43bc027ab6f1c075e179b42b133d9cfcf;
+composed actual R1bec056d6b8f86069c500d958e86f212bd6e5f392. Same retained PR32.
+This is a command/admission component, not a complete workout app, manifest or activation.
+
+### What / why
+
+Adds client.workout({action,input}) for explicit start/set/skip/close/correct/remove
+through the ACTUAL T2 commitBatch and W6 P-256/AES-GCM/IndexedDB path. The closed
+static mapper supplies exact envelope fields, literal empty start payload and
+unchanged quantities. Every target and explicit causal parent is locally known,
+non-rejected and same-athlete; pending same-athlete dependencies remain admissible.
+No same-device restriction. References supplied to validation are copies.
+The static profile is pinned AFTER provider/trusted spreads. All six actions leave
+drafts/active metadata and original operations unchanged. No captured instruction
+or plan consent is fabricated. The same Ops.build call explicitly selects version2
+ONLY for the new command; original command construction/canonical/HMAC bytes remain.
+Known standing/integrity/lease priority remains before preparation, retained input
+survives refusal, and selected version comes from VERIFIED cfg.lease, not Lease.check.
+Missing/broken/async profile refuses3 with no effect or raw callback error; old lease
+refuses20. Existing outer OPERATION_SCHEMA_MISMATCH guard remains unchanged.
+No authority/R1/issuer/SQL/codec/public-client/repository, original conformance law,
+engine/frozen app, dependency/lock, private data or seeded-soak modification.
+
+### Executed evidence and exact limits
+
+Actual disposable composition202/202 native0: all149 existing tests plus52 focused
+command/fault/relationship cases and1 real R1 Worker/D1/HTTP journey. Original35/35
+client-law traces and56 full default action/state/clock vectors remain byte-equal
+to accepted cb5580a3. Mixed-load sets, exact0/absence/unknown/bounded effort, later
+effort correction, skip/early-close/removal, immutable original bytes and draft
+retention survive encrypted reopen. Quota/abort/delayed transaction and two actual
+public clients racing one IDB revision preserve whole ops/outbox/sequence and slots.
+Some local relationship negatives explicitly seed the actual T2 model; they are
+NOT claims of authenticated delivery. The separate actual HTTP case supplies that
+proof: other-device target REFUSES before signed pull, WORKS after verified delivery.
+
+WORKOUT ACTUAL CLIENT/R1 HTTP PASS — exact local commands, both C6 cuts, one effect, signed disposition/receipt, delayed durable drain, second-device reference; issuer/recovery still REFUSE
+WORKOUT ACTUAL CORE PASS — 34/34; synthetic capabilities, NOT ACTIVATED
+WORKOUT R1 HTTP PASS — 9/9; artificial unissued capability, full recovery NOT QUALIFIED
+WORKOUT BROWSER PASS — native IndexedDB/WebCrypto/T2 start/set/early-close, schema2, malformed refusal, preserved draft, reopen, atomic quota refusal; synthetic guard, not Safari/K1
+
+Actual Node HTTP preserves one accepted effect after a deliberately discarded reply,
+verifies signed dispositions before outbox drain, rejects a forged signature without
+changing disk, and delays the drain until real IDB transaction completion. Both
+same-athlete devices use actual client-created envelopes. The test deliberately
+installs an UNISSUED schema2 historical capability, as accepted for R1 admission;
+real issuer still refuses schema2 and full recovery still returns RETAINED_INTEGRITY.
+No synthetic transaction/committer replaces actual production code. Keys per run.
+
+Existing composed browser: current-head5/5, Node/browser56 exact vectors, original
+six signature surfaces/36 tamper-domain refusals, actual public sink/IDB; native0.
+New browser test runs Chromium152.0.4191.66, blocks non-loopback network and uses
+native IndexedDB/WebCrypto. Observation guard is explicitly synthetic, NOT K1/CLOCK
+or Safari/iPhone evidence. Clean offline pinned-dependency browser build PASS with
+only the three new M4 transitive sources added to dependency copying; cipher-pin
+mutation DETECTED/restored. Root/dependency locks unchanged; real node_modules in
+retained worktrees, temporary composition junctions only.
+
+### Effective bite / preparation failures preserved
+
+WORKOUT SCHEMA BITE DETECTED — actual encrypted workout save fails when selected schema is omitted; native1
+WORKOUT SCHEMA RESTORED PASS — 3273b883d62cdc97c898f0fd6ece0eef0544b3dd1b963bc4de4f4da513e2ed2f; full focused client cases native0
+
+Tracked test/workout-bite.cjs requires a pinned temporary composition. Omitting ONLY
+the shared builder's schema selection makes the valid actual encrypted save fail
+(false !== true). Existing outer schema guard refuses20; no guard is removed.
+Restored source bytes/hash exactly; all52 focused cases then PASS. Accepted shared
+schema/profile source is pinned byte-for-byte to R1bec by the composition runner.
+
+Initial unchanged-client preparation3/6 exposed unsupported commands; draft6/6,
+then49/49. First52-case run51/52: the CAS TEST wrapped the synchronous public stage
+in an async function, so even start refused. Fixed test gates competing repository
+commits while retaining the genuine synchronous stage; targeted CAS1/1 then full202
+PASS. First HTTP draft reached its final duplicate check then called nonexistent
+authority method pull; changed that TEST to the actual /pull HTTP route, then PASS.
+Evidence wrapper initially named absent workout-profile.test.cjs; corrected to
+tracked workout-core.test.cjs and ran34/34+9/9. No product fix inferred from these
+harness failures. Original outputs remain in coordinator records/disposable logs.
+
+Evidence: coordinator work/workout-client-before.log, workout-client-full.log,
+workout-client-clean-build.log; disposable earned-w6-current-head-FXfNvi contains
+source-manifest, native stdout/stderr, focused bite/red/restored, browser and actual
+core/HTTP logs. These are synthetic/public evidence, not integration/private replay.
+Mandatory retained publication gates all native0 atwork/w6-current-head-gates-2026-09-08T21-09-28-936Z:
+preparation/private fixture verdict/public pins, frozen paths/actual18-file ZIP,
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SELFTEST PASS
+Strict clock-unset3072 assertions and All checks passed. Safe to ship.; diff PASS.
+These checks do not override the release holds. Independent implementation review
+and new-head CI remain pending, not inherited from Opus84 design permission.
+
+Reproduce with a REAL node_modules directory in both retained source trees:
+node rebuild/m3/w6/test/run-current-head.cjs <R1-repo-containing-bec056d> --all
+Then use the printed temporary composition as cwd to run test/browser-workout.mjs,
+test/browser-contract.mjs (W6_BROWSER_BIN points at installed Chromium), and
+node <retained-W6>/rebuild/m3/w6/test/workout-bite.cjs <printed-composition>.
+The browser scripts are under rebuild/m3/w6/test; no network except loopback.
+Original workout-core.test.cjs/workout-http.test.cjs under rebuild/m3/w5/test
+also run in that composition. clean-build.mjs uses the locally installed pinned
+package manager through W6_PNPM_JS and an OFFLINE frozen-lockfile install.
+The reported3273... restoration hash is the exact Windows working bytes; the
+runner pins and restores each platform's actual original bytes, with canonical
+source identity also tied to the reviewed Git commit. No line-ending waiver of
+byte-exact restoration within a run.
+
+### Seams / remaining full goal
+
+Still NOT enabled: full immutable schema/issuer/renewal and recovery qualification,
+non-workout schema2 and richer edit/clearing/effective-time/partition/lineage/consent
+records, nonnumeric loads, explicit legacy start/target qualification, corrected-state
+fold and same-generation recoverable prescription capture. New actions deliberately
+do not reuse legacy implicit-current-session or draft-deletion behavior. Capture,
+resumed workouts and useful UI are still open. K1 knowledge fence, currentness/time
+bounds, CLOCK, P1/T1/Q1/contract6–7, R1 resource FAIL162050118 vs96MiB, provider,
+private import/recovery, integrator replay and Joe/Dad phones remain applicable holds.
+No scientific/training rule change, scope reduction or progress percentage claimed.
+
+NEXT: independent affected implementation review + exact-head CI; then complete
+manifest/legacy qualification and prescription-capture joins through retained
+coordinator. Full dependable, scientifically justified private workout/plan goal
+remains ACTIVE. Wall-clock: started20:28:57Z; publication preparation completed21:13Z, approximately44minutes. Review/CI time is separate.
+
+
 ## Composed browser evidence — successor to ffaeaad, 2026-09-08
 
 Product files and their hashes in the next section are UNCHANGED. This follow-up changes only the existing browser-contract test, composition runner and report; eight cumulative files from0d7f5e0. The independently requested product review remains pinned to ffaeaad. No original frozen suite, validator, identity/signature contract or historical assertion changes.
