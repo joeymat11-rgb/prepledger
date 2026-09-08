@@ -27,6 +27,13 @@ Schema1 START's existing `payload.slot` is read without inventing a default;
 missing plan basis and the unimplemented liveness/eligibility fold remain explicit.
 Other effects/unsupported shapes are retained with interpretation issues, not
 silently treated as no-ops. `decisionReady` is always false in this cut. A consumer
+must join each `starts` entry to `issues` by `opId`: a slotless START or one with
+unsupported fields/effective formatting is still present in `starts`, whereas an
+unsupported operation shape or schema is excluded from that interpretation list.
+Neither membership in `starts` nor absence of one particular issue qualifies it.
+The original record remains in `facts` in either case. This is partial decoding,
+not a validated START domain; consumers must preserve the issues and unknowns.
+A consumer
 may not use raw retained facts as a resolved workout/prescription or assume that
 an old signed prefix is the current head. No progression, answer applicability,
 operation, frontier, outbox, authority admission or durable state is changed.
@@ -37,6 +44,10 @@ the actual qualified fold, currentness and storage joins; unknown remains unknow
 
 From the repository root with Node24, pass a separate checkout at the exact R1
 revision, with its existing dependency installation. No private preparation needed:
+The dependency manifest is specifically `<R1 checkout>/rebuild/m3/w5/package.json`
+and its pinned `pnpm-lock.yaml`, not the repository-root package. Where missing,
+install there with `pnpm install --ignore-workspace --frozen-lockfile --ignore-scripts`
+using the declared package-manager version. No dependency file change is needed.
 
 ```text
 node rebuild/m4/spec/r1-history-reader.test.cjs <checkout-at-003c816> <new-result-json>

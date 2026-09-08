@@ -1,5 +1,37 @@
 # ASTRA — owner workout contract preparation
 
+## v0.16 signed legacy observation projection — September 8
+
+Parent01cb2ed, same retained branch/PR and ownership. Three new nonshipping modules/test and one README expose original workout events and supported corrected historical observations through the actual accepted-reader boundary. No new writer, schema, engine rule, frozen/core/suite/dependency or seeded-soak behavior is changed. The view preserves the original rows; the projection applies explicit causal load/reps corrections and removal, with affected unsupported/concurrent cases unresolved and no partial observations. This is not currentness, workout eligibility or prescription qualification. Both factories always return decisionReady=false.
+
+Published-path `legacy-workout-projection.test.cjs <R1-checkout> <new-result>`: **20/20 PASS**, native0, two effective source faults (invented effort, ignored correction). Actual T2 writers and P256 authority admission feed the actual signed R1 projector/verifier; chain/removal/unsupported cases additionally use the real Ops builder. Both concurrent acceptance orders remain unresolved; each read preserves retained backend rows. Per-set loads/reps, two devices, historyCount2, tombstone exclusion and exact originals are asserted. Source pins hold before/after. Registry/genesis and separate legacy-local HMAC leases are synthetic fixtures, not actual issuer/phone code; no D1/HTTP/IDB/private/device qualification is claimed.
+
+Original13/19-case results and earlier failures remain in coordinator `work/workout-schema-prep/legacy-workout-view/`. Published adaptations only rename local files, require explicit R1 checkout/result paths and build into an OS temp directory. Ancestor traversal queries required edit ancestry instead of materializing every operation's transitive closure; effect targets are indexed once. No resource/latency bound is claimed. Newly applicable mandatory publication gates/CI are recorded after execution below, separately from the earlier unchanged gates.
+
+Owner goal version2, SHA256 `43ebdeed5986e238969c9cdf759a40f02f7066b630c2eb6af54bc1c6fe5ad5c5`, is now the canonical reference in the existing brief's seven-area scope table. One coherent plan, justified maintain/change guidance and approved actual-plan changes with evaluation criteria are retained across pilot/later scope. No marketing parity task, new stream, blanket release requirement or extra review stage follows. NEXT: necessary scoped review of this actual observation profile and its joins, then retained full workout integration and material prescription resolution. Full private phone use remains incomplete.
+
+Fresh v0.16 publication gates on Windows/Node24 with a real node_modules directory: preparation, frozen/package scope, conformance, SELFTEST, strict and diff check all native0. Logs `work/owner-workout-v08-gates-2026-09-08T15-08-16-406Z` retain full results (helper name is historical). Explicit frozen ENGINE_MAIN/OLD and pinned client path, MEASURED_TEST_NOW=2026-09-03/TZ=America/New_York for conformance; strict unsets MEASURED_TEST_NOW. Public pins unchanged, private preparation verdict only. New-PWA/full-M3 scope remains PENDING. Exact-head CI and new-profile independent acceptance are separate, not inferred here. This turn continues an active goal with concrete implementation/test evidence; no milestone or complete-app percentage is awarded.
+
+```text
+LEGACY WORKOUT VIEW: 20/20 PASS; actual writer/core/history; no product changes
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+## Local successor preparation after scoped v0.15 review — September 8
+
+Opus Message50 accepted the exact01cb2ed nonshipping reader/consumer contract, and separately accepted the new pilot policy text with the material effort-rationale resolution still open. Original archive24452bytes SHA256 `f389228b8caa6b7a148a0e5d4fdf8914169372cd8799ef7169464fe1c20d2913`, 11/11 member hashes verified; unchanged independent challenges replayed15/15 and documentary checks8/8, native0. Reviewer Node22 versus author replay Node24 is disclosed. Exact originals, assessment and replay outputs remain in coordinator `work/workout-schema-prep/opus-history-review/`. This is scoped acceptance, not full PR, integration, private-data, schema, currentness or phone authorization.
+
+Local documentary corrections name the required partial-START/issues join, W5's separate dependency manifest, all three effort callers and both conflicting comments. Corpus “Refalo2024” source identity remains explicitly unresolved rather than renamed or counted twice. The literal default-ladder evidence does not override the existing alarm floor. Owner amendment21's full purpose/reference and7-area pilot/later/unresolved disposition are adopted in the existing brief/checkpoint; that later addition does not inherit the already pinned review.
+
+New scratch consumer evidence: `LEGACY WORKOUT VIEW: 13/13 PASS; actual writer/core/history; no product changes`. Actual T2 writers on two synthetic devices feed unchanged operations into the actual authority with its P256 boundary, then actual R1 signed projection/verifier and the accepted reader. Per-set loads/reps, both devices, exact original row bytes and a WAITING→ACCEPTED disposition at historyCount2 survive. Missing effort and plan basis remain unknown; the view is original events, never a current corrected workout or prescription. One effective invented-effort source fault is caught. This uses synthetic genesis/registry fixtures and a separate local HMAC test lease for the legacy T2 boundary; not issuer/D1/HTTP/IDB/phone evidence.
+
+Initial harness errors and original source copies remain in `work/workout-schema-prep/legacy-workout-view/`. Actual SET without an arrived transport predecessor accepts; only explicit parent/target causes the demonstrated waiting case. A legacy class-reading correction targeting a session must remain visible. An actual accepted null START exposed a new-view TypeError; its red-first test now passes with original bytes retained and explicit unsupported-payload status. No source rule or protected suite expectation changed. The new scratch view/test and these successor documents are not yet published or independently accepted; the01cb2ed executable reader stays unchanged. NEXT: promote only the reviewed supported history boundary into the retained workout integration, closing actual correction/plan/currentness joins and preserving applicable tests/review before use.
+
 ## Current v0.15 first-use reader and rule-triage candidate — 2026-09-08
 
 Parent87366ae; retained PR46/branch and existing ownership. This candidate adds the nonshipping R1 history reader/test/README and updates only this brief/report. No actual engine, authority, W5/W6, frozen app, suite, private artifact, dependency or seeded-soak change. The reader verifies actual signed R1 projection before interpretation and preserves the exact retained row bytes. It has no state-mutating callback; captured prefix and missing plan provenance never become a prescription/currentness permission. The existing21-case assumption-only decoder is preserved, not renamed as implementation.
