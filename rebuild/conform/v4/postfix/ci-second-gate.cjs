@@ -4,6 +4,7 @@
 // fixed-clock domain. No protected helper text is forwarded to public output.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const PROFILE='M2-STEP-EFFICACY';
+const ERA_PROFILE='M2-SET-ONE-ERA';
 const HELPER='rebuild/conform/v4/postfix/step-efficacy-second-gate.cjs';
 const HELPER_SHA='f608d2eac7047632bce4c97e920c59e09669ecf86179e39a7169ff11721aecb4';
 const CUSTODY='rebuild/conform/v4/postfix/helpers/step-efficacy-d45-custody.cjs';
@@ -12,7 +13,7 @@ const SURFACE=['2026-08-06/stepEfficacy/resolved','2026-08-06/stepEfficacy/slope
 const LEGACY=['4818:PASS','4820:PASS','4821:PASS','4822:PASS','4825:PASS','4826:PASS'];
 const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 function fail(code){const e=Error(code);e.code=code;throw e;}
-function args(argv){if(argv.length!==2||argv[0]!=='--profile'||argv[1]!==PROFILE)fail('CI-PROFILE');return PROFILE;}
+function args(argv){if(argv.length!==2||argv[0]!=='--profile'||![PROFILE,ERA_PROFILE].includes(argv[1]))fail('CI-PROFILE');return argv[1];}
 function requirePinnedHelper(root,a){const file=path.join(root,HELPER);if(a.executionPins[HELPER]!==HELPER_SHA||crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')!==HELPER_SHA)fail('CI-CUSTODY-PIN');if(!Object.hasOwn(a.executionPins,CUSTODY)||!fs.existsSync(path.join(root,CUSTODY)))fail('CI-CUSTODY-PENDING');return require(file);}
 function validateEvidence(r){
   if(!r||r.id!=='second-gate'||r.mode!=='frozen'||r.status!=='PASS'||r.candidateKind!=='rebuild/engine via second-gate-adapter.mjs')fail('CI-ACTUAL-CANDIDATE');
@@ -48,29 +49,32 @@ function finish({result,error,captured},guard){
   if(error)fail('CI-SECOND-GATE-FAILED');return validateEvidence(result);
 }
 function run({root,profile}){
-  if(profile!==PROFILE)fail('CI-PROFILE');root=fs.realpathSync(root);
+  if(![PROFILE,ERA_PROFILE].includes(profile))fail('CI-PROFILE');root=fs.realpathSync(root);
   return quiet(captured=>{
     let custody,work,result,error;
     try{
       const A=require('./acceptance.cjs'),P=require('./package-runner.cjs'),S=require('./source-proof.cjs');
-      const {acceptance:a,envelope:e,bytes}=A.load(root,A.envelopeFile(PROFILE));A.validate(a);
-      if(a.packageId!==PROFILE)fail('CI-PROFILE');
+      const {acceptance:a,envelope:e,bytes}=A.load(root,A.envelopeFile(profile));A.validate(a);
+      if(a.packageId!==profile)fail('CI-PROFILE');
       P.checkPins(root,a);S.verifyProductSources({root,baseline:root,acceptance:a,gitHead:true});
       // PENDING review is allowed for CI evidence; actual recorded owner/theme
       // and inherited acceptance receipts are still checked before execution.
       A.verifyReceipts(root,a,e,bytes);
+      // Reuse only the exact immutable STEP expectation/custody descriptor;
+      // source verification above still checks the entire actual ERA candidate.
+      const descriptor=profile===ERA_PROFILE?A.stepParentArtifact(root):a;
       const I=requirePinnedHelper(root,a),D=require(path.join(root,CUSTODY));
       if(typeof D.prepareCustody!=='function')fail('CI-CUSTODY-PENDING');
       const parent=path.join(root,'.tmp/postfix/ci-second-gate');fs.mkdirSync(parent,{recursive:true});work=fs.mkdtempSync(path.join(parent,'run-'));
       const frozen=I.buildReferenceBundle({root,baseline:root,dir:path.join(work,'frozen'),projected:false}),bundles={main:frozen.file};
-      custody=D.prepareCustody({root,baseline:root,bundles,acceptance:a});
+      custody=D.prepareCustody({root,baseline:root,bundles,acceptance:descriptor});
       if(!custody||typeof custody.assertSafePublicText!=='function'||typeof custody.dispose!=='function')fail('CI-CUSTODY-PENDING');
-      result=I.runSecondGate({root,baseline:root,bundles,acceptance:a,mode:'frozen',prototypeCandidateAdapter:false});
+      result=I.runSecondGate({root,baseline:root,bundles,acceptance:descriptor,mode:'frozen',prototypeCandidateAdapter:false});
     }catch(e){error=e;}
     try{if(!custody)fail('CI-PREFLIGHT-FAILED');return finish({result,error,captured},text=>custody.assertSafePublicText(text));}
     finally{try{custody?.dispose();}finally{if(work){const parent=path.join(root,'.tmp/postfix/ci-second-gate');if(!path.resolve(work).startsWith(parent+path.sep))fail('CI-SCRATCH-PATH');fs.rmSync(work,{recursive:true,force:true});}}}
   });
 }
 function publicLine(counts){if(!equal(counts,{reference:3072,candidate:3072,surface:4,legacy:6,fixedClockRuns:1}))fail('CI-PUBLIC-COUNTS');return 'CI SECOND GATE PASS; 3072 reference / 3072 candidate assertions; 4 surface cells; 6 legacy sites; 1 fixed-clock run';}
-module.exports={PROFILE,HELPER,HELPER_SHA,CUSTODY,args,requirePinnedHelper,validateEvidence,quiet,finish,run,publicLine};
+module.exports={PROFILE,ERA_PROFILE,HELPER,HELPER_SHA,CUSTODY,args,requirePinnedHelper,validateEvidence,quiet,finish,run,publicLine};
 if(require.main===module){try{const profile=args(process.argv.slice(2));const counts=run({root:path.resolve(__dirname,'../../../..'),profile});console.log(publicLine(counts));}catch(_){console.error('CI SECOND GATE FAIL');process.exitCode=1;}}

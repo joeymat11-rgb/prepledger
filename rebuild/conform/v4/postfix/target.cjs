@@ -103,7 +103,7 @@ function rawLaw(baseline, descriptor) {
 }
 function wrapFactory(factory,{day='2026-09-03',traceProfile=1,boundaryDateProfile=false},frames,loaded=[]) {
   if(![1,2].includes(traceProfile))fail('TRACE-PROFILE');
-  const encode=traceProfile===2?graphEncoderV2({boundaryDateProfile}):graphEncoder();let instance=0;
+  const encode=traceProfile===2?graphEncoderV2({boundaryDateProfile}):graphEncoder(),tables=new WeakMap();let instance=0;
   function engine(options={}) {
     if(!options||typeof options!=='object'||Array.isArray(options))fail('TARGET-OPTIONS');
     const c=options.clock||clock(day), idProvider=options.ids||ids(c), drafts=options.drafts||Object.freeze({length:0,key:()=>null});
@@ -115,10 +115,11 @@ function wrapFactory(factory,{day='2026-09-03',traceProfile=1,boundaryDateProfil
       try {const result=Reflect.apply(fn,table,args);frames.push({instance:n,name,before,after:encode({args,result})});return result;}
       catch(e){frames.push({instance:n,name,before,after:encode({args,error:e})});throw e;}
     };
-    return facade;
+    tables.set(facade,table);return facade;
   }
   function record(name,value){if(typeof name!=='string'||!name)fail('OBSERVATION-NAME');frames.push({observation:name,value:encode(value)});}
-  return {engine,record,legacy:Object.freeze({kind:'candidate',clock,engine(value=day){return engine({clock:typeof value==='string'?clock(value):value});}}),loaded};
+  function tableFor(facade){if(!tables.has(facade))fail('TARGET-ENGINE-IDENTITY');return tables.get(facade);}
+  return {engine,record,tableFor,legacy:Object.freeze({kind:'candidate',clock,engine(value=day){return engine({clock:typeof value==='string'?clock(value):value});}}),loaded};
 }
 function createTarget(input,frames=[]){const loaded=[];return wrapFactory(loadCandidate(input.candidate,input.inventory,loaded),input,frames,loaded);}
 function pinnedHelper(input,file){
@@ -137,10 +138,11 @@ async function worker(input) {
   process.env.TZ='America/New_York';
   if(!['frozen','native'].includes(input.mode))fail('DATE-MODE');
   if(input.mode==='frozen') { const c=clock(input.day); globalThis.Date=class FrozenDate extends NativeDate {constructor(...a){super(...(a.length?a:[c.nowMs()]));}static now(){return c.nowMs();}}; }
-  const before=globalThis.Date,frames=[];let target;
+  const before=globalThis.Date,frames=[];let target,frozenModule;
+  const eraCase=typeof input.caseFile==='string'&&path.resolve(input.caseFile)===path.resolve(input.helperRoot||'.','rebuild/conform/v4/postfix/laws/set-one-era.cjs');
   if(input.kind==='direct-frozen'){
     if(!input.bundle||sha(fs.readFileSync(input.bundle))!==input.bundleSha256)fail('FROZEN-BUNDLE-PIN');
-    const helper=pinnedHelper(input,input.frozenHelper);
+    const helper=pinnedHelper(input,input.frozenHelper);frozenModule=helper;
     target=wrapFactory(options=>{const table=helper.createFrozenEngine({...options,bundle:input.bundle,root:input.helperRoot});return table.__test?table:{__test:table};},{...input,boundaryDateProfile:true},frames);
   }else if(input.kind==='raw-frozen'){
     if(!input.bundle||sha(fs.readFileSync(input.bundle))!==input.bundleSha256)fail('FROZEN-BUNDLE-PIN');
@@ -152,13 +154,15 @@ async function worker(input) {
     if(sha(fs.readFileSync(input.caseFile))!==input.caseSha256)fail('DIRECT-CASE-PIN');
     const successor=path.resolve(input.caseFile)===path.resolve(input.helperRoot||'.','rebuild/conform/v4/postfix/laws/step-efficacy.cjs');
     const mod=compile(input.caseFile,request=>{
+      if(eraCase&&request==='./step-efficacy.cjs')return pinnedHelper(input,'rebuild/conform/v4/postfix/laws/step-efficacy.cjs');
+      if(eraCase&&request==='../helpers/set-one-era-cases.cjs')return pinnedHelper(input,'rebuild/conform/v4/postfix/helpers/set-one-era-cases.cjs');
       if(!successor||request!=='./import-guards.cjs')fail('DIRECT-CASE-IMPORT');
       return pinnedHelper(input,'rebuild/conform/v4/postfix/laws/import-guards.cjs');
     });
     const law=mod.laws.find(x=>x.id===input.lawId);
     if(!law||law.implementation!=='PRESENT'||typeof law.run!=='function')fail('DIRECT-CASE-PENDING');
     const api={engine:target.engine,record:target.record,caseId:input.caseId,day:input.day,clock:()=>clock(input.day)};
-    if(input.hostsHelper){const helper=pinnedHelper(input,input.hostsHelper);api.createHosts=engine=>helper.createHosts({engine,record:target.record,clock:clock(input.day),root:input.helperRoot});}
+    if(input.hostsHelper){const helper=eraCase&&frozenModule&&input.hostsHelper===input.frozenHelper?frozenModule:pinnedHelper(input,input.hostsHelper);api.createHosts=engine=>helper.createHosts({engine,record:target.record,clock:clock(input.day),root:input.helperRoot,...(eraCase?{candidate:input.kind==='direct'?input.candidate:null,inventory:input.kind==='direct'?input.inventory:null,dependencyTable:target.tableFor(engine)}:{})});}
     result=await law.run(Object.freeze(api));
   } else {
     const law=rawLaw(input.baseline,input.law); // Pin/import errors are outside the outcome catch.
