@@ -1,5 +1,44 @@
 # ASTRA — owner workout contract preparation
 
+## v0.27 — actual authority acceptance; preserve cross-version qualification
+
+Retained R1bec056d6b8f86069c500d958e86f212bd6e5f392 implements corrected92d48fd §5.
+Opus Message82 ACCEPTED actual implementation AND source-pin exception, no required
+corrections. Independent Linux core34/34, real R1 HTTP9/9, effective/restored bite,
+owned scoped-read9/9, own contract12/12 and pin-mutation6/6 all native0. Restored
+admitSHA95ecf1c7c25f16efeec2a2b4ead73edb53570e83ad13ec74020d8088fbfdadea matched.
+The artificial schema2 history remains unissued; actual issuer and full recovery
+refuse it. Original34430-byte archive attached, SHA69790f002fea677d3260157aafbdb891a49ac6b080aac932339716f2b789607f,
+13files+manifest; NOT locally received/hashed/replayed. No custody expansion.
+
+Author full gates/corrected179/179 and exactbec CI7SUCCESS/3SKIP bothOS pass;
+reviewer explicitly did not re-run that full package or claim CI. First178/179
+source-pin failure remains recorded; the owned test permits exactly two reviewed
+bindings, not arbitrary source changes. Additional disposable actualbec+retained
+W6cdf composition149/149/native0 passes (35 original client laws/56vectors remain).
+No W6 edit, merge or phone claim. Full R1 resourceFAIL remains unchanged.
+
+Nonblocking F-1 belongs to the next full-schema join, before activation. The actual
+version2 set can attach to a legacy start; author follow-up also finds version2
+edit can attach to a legacy set WITH a matching lineage extra. The reviewer's
+no-lineage legacy edit refusal is a valid fixture control, not a universal ban.
+Actual core observation3/3: legacy start without new basis ACCEPTED then new set
+ACCEPTED; legacy set with lineage ACCEPTED then new edit ACCEPTED; legacy set
+without lineage ACCEPTED then new edit MALFORMED. Synthetic local observation,
+not a new defect ruling, policy, adopted compatibility rule or private finding.
+§5 retains this exact OPEN question rather than inventing a blanket rejection.
+
+This successor changes three docs only; full approved product goal unchanged.
+Fresh required publication gates all native0 atwork/owner-workout-v08-gates-2026-09-08T20-22-04-993Z:
+private preparation verdict/public pins unchanged, frozen/18-file actual ZIP,
+conformance99/99/29/70+rig185W1/W2, SELFTEST, strict3072(clock unset), diff.
+This acceptance/status alignment changes no implemented requirement or code;
+the newly explicit compatibility question is OPEN, not an adopted rule.
+NEXT: resolve complete immutable schema/start-target compatibility and actual
+client commands alongside recoverable prescription capture in the retained streams.
+Scientific applicability, accurate isolated import/recovery and Joe/Dad phones
+remain first-use requirements. No owner relay, new schedule, spend or model change.
+
 ## v0.26 — preserve existing error priority before workout admission
 
 Retained Opus Message80 PERMISSION TO IMPLEMENT at1fe2e0908f26424056062d829b4f47f409699476 subject to C-1–C-4 and disclosureC-5, all incorporated in §5 before adopting accepted-core changes. Its independent scratch10/10/native0 established: a self-declared new version must not mask the existing granted-version mismatch; revocation/range/slot guards precede new shape; callback rejectionCode must be scrubbed or the existing attempt() path fabricates a rejection; Promise truthiness is insufficient; union precedence is stable; basic version2 alone rejects ordinary weight facts. These are substantive corrections, not cosmetic requests.
