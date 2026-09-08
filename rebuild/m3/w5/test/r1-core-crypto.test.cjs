@@ -241,7 +241,10 @@ test("historical capabilities retain original forged, schema, range and revocati
 
 test("all old signed surfaces and a new generic domain verify by exact historical kid after rotation", () => {
   const oldBoundary = loadCjs(baselineCryptoSource, boundaryPath);
-  for (const kind of Object.keys(C.DOMAINS)) {
+  // Compatibility covers every historical surface, including its exact domain.
+  // A new domain has no historical convenience method; test it separately below.
+  for (const kind of Object.keys(oldBoundary.DOMAINS)) {
+    assert.equal(C.DOMAINS[kind], oldBoundary.DOMAINS[kind]);
     const suffix = kind[0].toUpperCase() + kind.slice(1), field = kind === "lease" ? "signature" : "authority_signature";
     const old = oldBoundary["sign" + suffix]({ value: 3, text: "Café" }, oldKey);
     assert.equal(C["verify" + suffix](old, ring), true);
@@ -260,6 +263,23 @@ test("all old signed surfaces and a new generic domain verify by exact historica
   assert.equal(C.activeKeyId(ring), newKey.kid);
   assert.equal(json(C.publicKeyOf(ring)), json(newPin));
   assert.equal(C.verifyRecord(record, { activeSigningKey: newPin, verificationKeys: [oldPin, newPin] }, domain), true);
+});
+
+test("new current-head domain retains historical public verification across rotation without legacy-domain substitution", () => {
+  assert.equal(C.DOMAINS.currentHead, "earned/current-head/v1");
+  const old = C.signCurrentHead({ value: 3, text: "Café" }, oldKey);
+  const fresh = C.signCurrentHead({ value: 3, text: "Café" }, ring);
+  assert.equal(C.verifyCurrentHead(old, ring), true);
+  assert.equal(C.verifyCurrentHead(fresh, newPin), true);
+  assert(fresh.authority_signature.startsWith("ES256.r1-current."));
+  assert.equal(C.verifyCurrentHead(old, newPin), false);
+  assert.equal(C.verifyCurrentHead({ ...old, value: 4 }, ring), false);
+  assert.equal(C.verifyCurrentHead({ ...old, authority_signature: old.authority_signature.replace("r1-old", "r1-current") }, ring), false);
+  for (const kind of Object.keys(C.DOMAINS).filter(kind => kind !== "currentHead")) {
+    const suffix = kind[0].toUpperCase() + kind.slice(1);
+    assert.equal(C["verify" + suffix](fresh, newPin), false);
+    assert.equal(C.verifyCurrentHead(C["sign" + suffix]({ value: 3, text: "Café" }, ring), newPin), false);
+  }
 });
 
 test("malformed, missing, duplicate and private verification pins fail closed", () => {

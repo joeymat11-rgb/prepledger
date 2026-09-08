@@ -18,7 +18,7 @@ const AUTHORITY_METADATA = new Set([
 const DOMAINS = Object.freeze({
   disposition: "earned/disposition/v1", lease: "earned/lease/v1",
   serverTime: "earned/server-time/v1", receipt: "earned/receipt/v1",
-  pull: "earned/pull/v1", snapshot: "earned/snapshot/v1",
+  pull: "earned/pull/v1", snapshot: "earned/snapshot/v1", currentHead: "earned/current-head/v1",
 });
 const FIELDS = Object.freeze({ lease: "signature" });
 

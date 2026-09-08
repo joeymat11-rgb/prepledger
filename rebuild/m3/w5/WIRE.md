@@ -64,3 +64,27 @@ W6's failed-persistence knowledge-loss fence, production sealing/recovery custod
 ## Runner registration and offline reproduction
 
 Install W5's pinned package dependencies once (`pnpm --dir rebuild/m3/w5 install --frozen-lockfile`, or install package.json's exact versions); installation needs registry access. Tests require no account/token/network beyond loopback after dependencies are present. Node24 is the tested Windows runtime. Root frozen regression dependencies must also be present as a real node_modules directory. Build the signature-boundary bundle with `node rebuild/m3/w5/build.cjs`, then run `node rebuild/m3/rigs/run.cjs --env local`. Optional `--case AUTH-D1` or `--case HTTP-190` selects one case. Other recognized environments are synthetic-remote, owner-phone and isolated-restore: unrun dependencies emit BLOCKED/PENDING and exit2; failure exits1. Synthetic remote explicitly says `W4 remote database not yet created`; it is never simulated. W6 must add its runner registration in an integration-reviewed change, without concurrent edits to these W5-owned files.
+
+## Request-bound current head — candidate, existing R1 release holds remain
+
+Preserved proposed-text contract: CURRENT-HEAD-CONTRACT.md; implementation base
+003c816e695fce7e77e17665f25d8cdcc2435211. Its text verdict is not code acceptance.
+
+| Boundary | Exact new fields/API and consequence |
+|---|---|
+| POST /pull opt-in | Existing device_id/after plus history_profile=earned/challenge-head/v1 and challenge:32 random bytes canonical unpadded base64url (43characters). Unknown profile/noncanonical challenge400 MALFORMED_REQUEST; no request athlete selector. Legacy mode unchanged without history_profile. |
+| Signed response | wire_version,key_epoch,history_profile,challenge,athlete_id,device_id,after,through,head,receipts,authority_signature. Domain earned/current-head/v1; through=head. Full range/head come from the same revision-guarded R1 receipts result, not independent reads. Existing409 FRONTIER_AHEAD/state18 when after>head. |
+| beginHistoryChallenge | ({after,clientRevision,issuanceAttempt}) creates/replaces one pending observation request; returns only wire request. after/revision safe nonnegative integers; attempt nonempty string≤128 JS code units. Local revision/attempt never sent to server. |
+| acceptCurrentHead | Copies input; verifies current wire/key epoch, exact profile/domain/challenge/scope/after, safe head/through, contiguous individually signed receipts. Rechecks pending after awaits; consumes before any sink, preventing simultaneous replay. Legacy acceptPull/acceptSnapshot refuse a present reserved history_profile. |
+| Durable sink | client.receiveCurrentHead({envelope,context:{clientRevision,issuanceAttempt,athleteId,deviceId}}). W6 must atomically compare local revision/standing/knowledge and retain proof/basis before returning durable:true AND confirmed:true. Wrapper awaits this result; callbacks alone do not prove that implementation. |
+| Refusals | Invalid proof/missing request follows existing verification state12. Explicit sink refusals retain valid3/17/18/19/20; absent confirmation defaults3. A thrown sink reports verified:true,accepted:false,stored:false,state18 (unknown durable outcome), no raw exception. invalidateHistoryChallenge fences request and result publication; a durable result arriving after invalidation is unaccepted/state18 while truthfully retaining stored:true if the sink explicitly reported it. |
+| Lifetime | New valid request replaces prior; invalidation or new boundary/restart cannot revive it. Failed/consumed request requires another challenge. No physical-time bound, no automatic issuance, no reuse for unrelated future questions. Existing Q3 offline answers and OPEN Q1 are unchanged. |
+
+Reproduce from repo root: node rebuild/m3/w5/test/current-head.test.cjs. The default
+loads actual checked-out product files and writes synthetic evidence to an OS temp
+directory. Optional arguments are repo root, explicit candidate-source directory
+(for disposable source faults only), and output directory. The test executes actual
+local D1/HTTP, issuer/core/signatures; controlled durable callbacks and asynchronous
+scheduling are explicitly not IDB/CLOCK/issuance proof. Run
+node rebuild/m3/w5/test/current-head.bites.cjs for four effective source mutations,
+byte restoration and restored full focused test. Original mandatory gates remain.

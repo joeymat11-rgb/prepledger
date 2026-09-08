@@ -1,8 +1,8 @@
 "use strict";
 
 const { createAuthenticator, AuthenticationError } = require("./auth.cjs");
-const { signReceipt, signPull, signSnapshot, signServerTime, verifyLease, activeKeyId } = require("./crypto.cjs");
-const { WIRE_VERSION, TIME_PROFILE } = require("./public-client.cjs");
+const { signReceipt, signPull, signCurrentHead, signSnapshot, signServerTime, verifyLease, activeKeyId } = require("./crypto.cjs");
+const { WIRE_VERSION, TIME_PROFILE, HISTORY_PROFILE } = require("./public-client.cjs");
 const { handleR1, ROUTES: R1_ROUTES } = require("./reconciliation/http.cjs");
 
 const ROUTES = new Set(["/op", "/pull", "/time", "/lease", "/enrol", "/snapshot", "/import", "/restore"]);
@@ -94,6 +94,10 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
         }
         if (url.pathname === "/pull") {
           if (!watermark(body.after)) return error(400, "MALFORMED_REQUEST");
+          const challenged = Object.hasOwn(body, "history_profile");
+          if (challenged && (body.history_profile !== HISTORY_PROFILE || typeof body.challenge !== "string" ||
+              !/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(body.challenge)))
+            return error(400, "MALFORMED_REQUEST");
           const rows = await scoped("receipts", [athlete, 0]);
           if (!Array.isArray(rows)) return error(503, "UNAVAILABLE");
           const through = rows.length ? rows[rows.length - 1].seq : 0;
@@ -102,6 +106,9 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
             seq: row.seq, op_id: row.op.op_id, canonical_content_commitment: row.op.canonical_content_commitment,
             accepted_at: row.accepted_at, op: row.op,
           }, authorityKey));
+          if (challenged) return reply(200, signCurrentHead({ wire_version: WIRE_VERSION,
+            key_epoch: activeKeyId(authorityKey), history_profile: HISTORY_PROFILE, challenge: body.challenge,
+            athlete_id: athlete, device_id: device, after: body.after, through, head: through, receipts }, authorityKey));
           return reply(200, signPull({ wire_version: WIRE_VERSION, key_epoch: activeKeyId(authorityKey),
             athlete_id: athlete, device_id: device, after: body.after, through, receipts }, authorityKey));
         }

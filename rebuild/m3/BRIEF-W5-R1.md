@@ -113,3 +113,37 @@ Total29–44 engineering hours; do not add a second diagnostic-only PR to that p
 Targeted tracked search rechecked at `947369caeb9fea2d6bcb04b0447857de35ba887b` found runtime:599 and PLAN-M3-v1:68 referring to a D2 recovery/erasure contract, client README's generic `clear(collection)` erasure capability, and knowledge-fence discussions. It found NO accepted sign-out retention/erasure matrix or owner choice in the ledger/plan/roadmap/backend packet/client-authority READMEs/GOALS/NEXT. M2's approved defect D2 is unrelated to privacy D2 and is not that ruling. This is a scoped repository finding, not proof that no off-repo ruling exists.
 Coordinator checks for an already recorded external ruling first. If none, the smallest owner choice is: keep encrypted local history/pending entries locked for same-account recovery after sign-out (recommended), or erase the local copy after an explicit unsynced-loss warning. Do not silently choose or ask twice; account-deletion/erasure obligations need the same supplied matrix. This blocks the corresponding private sign-out behavior, not R1 construction/tests under synthetic fixtures; no question is being sent by this brief.
 This publication adds this brief and `REPORT-R1-BRIEF-ASTRA.md` and updates `rebuild/QUEUE.md`: three Markdown files, with separate queue-status and R1 contract/core-amendment verdicts still required. The M2 receipt/code-integration sequence is complete at verified integration `cd984c70aa51e2480e5543f8a511c5e37f88ff8e`; no R1 acceptance follows from it. After recorded queue acceptance and independent acceptance of this exact combined contract/two-file amendment, the coordinator records one R1 implementation branch claim in the retained W6 delivery slot, explicitly pauses W6 code and keeps the M2 slot independent. Do not claim C/CLOCK or private readiness merely because R1-COMPLETE passes.
+
+## Current-head implementation addendum — September 8, retained R1 claim
+
+Owner's continuing private-app delivery instruction and the independently accepted
+proposed contract in PR46 authorize this bounded implementation, not release. Base
+003c816e695fce7e77e17665f25d8cdcc2435211. Preserve the original contract bytes in
+w5/CURRENT-HEAD-CONTRACT.md (SHA256
+0f8e8c10ca0766b0ce875ab3fd11926056756f5240f180d4c468440e7a6201f1).
+Its old NOT ACCEPTED header is superseded only by the recorded Opus proposed-text
+verdict in PR46 current-head-review/AMENDMENT.md; implementation needs a new verdict.
+
+Allowed delta: w5/worker.cjs opt-in pull, crypto.cjs new domain, public-client.cjs
+challenge lifecycle/verification/sink API and reserved-field guards; new
+test/current-head.test.cjs and current-head.bites.cjs, preserved contract, existing
+WIRE/brief/report. Also permit the owned r1-core-crypto.test.cjs compatibility loop
+to enumerate the historical boundary's domains (preserving all old assertions and
+asserting unchanged domain names), plus explicit new-domain rotation/rejection
+coverage. Its original failure is retained; no frozen conformance test is edited.
+No authority/client/W6/bridge/schema/lease/core-rule change. The
+actual R1 invokeScoped delegates to executeR1 (bridge319), whose consistent snapshot,
+account/device validation, revision guard and retry are reused. The older contract
+text's execute-path description is provenance, not a new implementation requirement.
+Existing global-read/resource qualifications are unchanged; no R1-COMPLETE claim.
+
+Implement contract rows and disclosed API in WIRE. Require real local D1/HTTP
+profile/scope/range/replay checks and revisioned head/ownership/revocation races;
+missing/throwing/early/unconfirmed sink cannot yield wrapper acceptance. Controlled
+callbacks are not actual W6 durability or an issuance transaction. Run four effective
+disposable source faults and byte restoration. Preserve original AUTH-D1/HTTP-190,
+R1 regression, conformance/SELFTEST/strict, scope/CI and independent exact-source
+review. Current-head producer/public consumer alone does not satisfy the contract's
+real-IDB/knowledge-loss/normalizer/attempt-bound issuance cases, Q1, CLOCK, remote
+resource, private port or phone acceptance. Never interpret it as an elapsed-time
+guarantee or reusable permission for future questions. No merge.

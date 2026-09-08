@@ -1,5 +1,50 @@
 # W5-R1 implementation — ASTRA
 
+## September 8 current-head candidate — implementation, not R1 completion
+
+Retained branch/base 003c816e695fce7e77e17665f25d8cdcc2435211; no new product stream.
+Implements the separately accepted proposed current-head contract at the narrow
+worker/crypto/public-client boundary. Preserved contract plus existing brief/WIRE
+explain exact API, request/domain/canonical nonce, pending lifecycle, callback
+acknowledgement and errors. No bridge/core/operation/schema/lease/W6 changes.
+Legacy original signed objects remain valid; reserved history_profile cannot
+upgrade a legacy-domain response. Existing R1-COMPLETE resource FAIL remains.
+
+Before tracked placement:28/28 actual local D1/HTTP and controlled-sink cases PASS;
+four disposable-file mutations fail behavioral assertions after7–21 controls,
+restored public-client SHAe692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74,
+restored28/28 PASS. Portable tracked-path runner also28/28 PASS. These are author
+focused evidence, not the pending full regression/publication/independent cut.
+An initial subject-remap fixture violated the existing unique binding constraint
+and got503; corrected by releasing the other synthetic binding before remap.
+Original failure retained. No product guard removed or expectation softened.
+
+HEAD-QA-01 author-side helper found no material issue, checked stable hashes and
+ran two actual-WebCrypto inner-receipt races. Its correction is adopted: wrapper
+refusal is not an actual issuance transaction. Actual R1 uses executeR1 at319,
+not the older proposed-text execute call path; same complete guard is reused.
+No independent acceptance, physical claim or measured usage saving follows.
+
+Tracked candidate validation: current-head28/28 and four effective/restored bites
+PASS; original AUTH-D134/34 plus10/10 effective breaks and HTTP-1905/5 PASS;
+conformance99reference/99STRONG/29absent/70present CONSISTENT, rig185W1/W2,
+SELFTEST, strict, frozen paths and old-package18actualZIP PASS. New PWA package
+remains PENDING. Original full run failed R1-FOCUSED177/178: the existing owned
+crypto test enumerated candidate domains, then called a historical convenience
+method that cannot exist for a new domain. Preserve that failed run. Enumerate
+every historical domain instead, add exact-domain equality, keep every original
+assertion, and separately check new-domain historical public verification,
+rotation, tamper/wrong-key rejection and cross-domain rejection. Focused crypto
+16/16 PASS. No production workaround or frozen conformance change. Full corrected
+R1-FOCUSED179/179 PASS in93.4seconds, native0; CI and independent review pending.
+Local logs: r1-current-head-gates-2026-09-08T16-22-20-406Z and
+current-head-implementation/r1-focused-corrected.log (synthetic; original retained).
+Real W6 atomic sink,
+knowledge-loss fence, normalized basis, Q1 and attempt-bound issuance remain open;
+as do provider/resource/deployment/private port/phone gates. Nothing merges.
+NEXT: publish the same R1 PR/claim with these candidate checks,
+obtain independent affected review, then join qualified producer to actual W6.
+
 Status: **R1-COMPLETE FAIL — resource ceiling unsatisfied**. Cowork independently accepted the scoped-read v1.2 checkpoint at9f08c01 after178/178 focused tests, full original regression and three own effective bites; this is not complete R1 acceptance. The proposed occupied-memory v2 metric was rejected. Neither1MiB successor nor a replacement resource gate is adopted. W6 remains paused; no release claim.
 
 ## Claim and authority
