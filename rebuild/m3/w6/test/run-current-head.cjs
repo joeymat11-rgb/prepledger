@@ -13,8 +13,8 @@ const unpack=cp.spawnSync('tar',['-xf',archive,'-C',output],{windowsHide:true});
 // W6 already owns three reviewed T2 browser-boundary additions. Replacing its
 // client with R1's older T2 would silently remove those hooks, not compose them.
 const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client','rebuild/m4/workout']).toString().trim().split(/\r?\n/));
-for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
-for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs'])names.add('rebuild/m4/workout/'+name);
+for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/browser-panel.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
+for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs'])names.add('rebuild/m4/workout/'+name);
 const pins={};
 for(const name of names){
   if(!(name.startsWith('rebuild/m3/w6/')||name.startsWith('rebuild/client/')||name.startsWith('rebuild/m4/workout/'))||name.includes('..'))throw Error('Unexpected candidate path');

@@ -9,3 +9,4 @@ export { createFrameAttempt, decryptFrame } from "./frame-crypto.mjs";
 export { encodeFrame, decodeFrame, frameAad } from "./frame-format.mjs";
 export { parseStrictJson } from "./strict-json.mjs";
 export { openFrameRepository, makeProof } from "./frame-repository.mjs";
+export { mountWorkoutCommandPanel } from "../../m4/workout/command-panel.mjs";

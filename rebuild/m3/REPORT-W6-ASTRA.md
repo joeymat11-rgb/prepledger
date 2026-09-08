@@ -1,5 +1,91 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Mounted workout panel — successor to accepted9296897, 2026-09-08
+
+### What / why and exact scope
+The existing browser graph now exports mountWorkoutCommandPanel(root,{client,selection}).
+It mounts a real Start -> one explicitly selected Set interaction using the accepted
+client.execute('workout',...) API. No replacement committer, default plan identity,
+lease/issuer, storage implementation or training prescription is introduced. The
+panel source is WORKOUT-PANEL-01 revision2, adopted byte-for-byte (working SHA256
+c163bbdfc602427b80ff8e49cffe48b98075f51bf35f4352643239313c244f41). The root inspected
+source, helper evidence, and the saved390px screenshot, then ran its adopted build.
+Executes current PR46 v0.31 f9fe635, amendments26/27 and existing schema §6. Same PR32.
+
+This is one useful bounded portion of the actual workout journey, explicitly
+synthetic. The approved complete app/individualized plan goal and first-use holds
+remain. A successful set exhausts only this demonstration's explicit slot; the host
+owns additional selection, history, original prescription capture and lifecycle.
+It does not manufacture a new start on refresh or claim resume/finish support.
+
+Entries are labelled16px, keyboard operable, and retained on failure. Optional effort
+keeps absence, exact0/1/2, at_least3, unknown and skipped distinct. Blank load/reps,
+fractional reps and malformed input refuse without coercing a workout fact. Supplied
+labels are text. The sole next enabled action follows acknowledged Start. Saving
+persists until the actual durable client acknowledges; no Synced claim. Explicit
+refusal3 allows retry,17/18/20 require host resolution. Stored/durable/committed but
+unacknowledged, a throw or unknown result requires reconciliation, never a blind
+retry or false assertion that nothing was written. Disposal retires handlers and
+late painting, not an already issued disk write.
+
+### Executed evidence
+Actual R1bec/W6 disposable composition:204/204 native0, unchanged35 client-law traces
+and56 baseline vectors. Evidence work/panel-adoption-full.log and
+Temp/earned-w6-current-head-K6q9tX/source-manifest.json and test stdout/stderr.
+Tracked test/browser-panel.mjs builds/imports the ACTUAL exported browser graph,
+records all source-input hashes, checks them unchanged, and uses caller-supplied
+existing W6_BROWSER_BIN. No machine-specific checkout/browser default or dependency
+install; clean-build and composition include the exact panel source. The helper's
+machine-bound preparation harness was adapted to this portable existing runner.
+
+PANEL DOM PASS — 57 focused checks (controlled outcomes; not durable evidence)
+PANEL DURABLE BROWSER PASS — actual retained W6/T2/P256/AES-GCM/native IndexedDB, pending atomic commit, keyboard start/set, exact payload/reference, preserved draft and encrypted reopen; synthetic guard/unissued2, not lifecycle acceptance
+
+The57 controlled cases include pending/double submission, 3/17/18/20 refusals,
+exact late-context {acknowledged:false,stored:true,durable:true,confirmed:false,
+committed:true,committedRevision,state} for Start/Set, unknown/throw, optional effort,
+exhausted slot, explicit new mount, disposal, labels/injection, input retention and
+numeric noncoercion. They do not claim a real late-context race was executed.
+Separate native Chromium151 proof uses actual T2/P256/AES-GCM and native IndexedDB:
+held readwrite transaction remains Saving; completion then Saved; exact returned
+start reference/empty start payload/typed40.5lb8reps3+; encrypted reopen identical;
+unrelated draft preserved; injected native quota preserves the previous generation
+and entered35.5lb0reps. Keys generated per run; browser context nonpersistent and
+network confined to the local test server. No private data or real key committed.
+
+Clean offline frozen-lockfile build PASS; cipher input mutation DETECTED/restored.
+Effective panel bite in the disposable copy only: replace
+`if (result?.acknowledged !== true)` with `if (false)`.
+PANEL ACK BITE DETECTED — ignored acknowledgement refusal; native exit 1; safe refusal 3 retains input FAILED
+PANEL RESTORED SHA256 c163bbdfc602427b80ff8e49cffe48b98075f51bf35f4352643239313c244f41
+Restored57/native browser PASS. Raw panel-bite-red.log/panel-restored.log and source
+inventory/synthetic screenshots remain in the disposable composition. No retained
+source was mutated for this bite. Mandatory current publication gates all native0 at work/w6-current-head-gates-2026-09-08T21-54-09-155Z: fresh private preparation/verdict only/public pins, frozen18 actual ZIP, conformance99/99/29/70+rig185W1W2, SELFTEST, strict(clock unset), diff. No app-release meaning is assigned to the old strict runner's Safe to ship tail.
+
+Preparation errors disclosed: one root Git diff was mistakenly called outside the
+retained repository (exit1, no modification); rerun in the proper worktree passed.
+One supplementary rg used wrong relative/glob paths; corrected focused script lookup
+found the existing pinned package manager. No product/test failure was hidden.
+The adopted browser harness initially named a nonexistent build.metafile property
+in evidence only; corrected to actual build.inventory and verified hashes before
+publication. The original executed panel assertions had already passed.
+
+### Seams / uncertainty / next
+Host selection must be qualified; no new identity/current-plan inference. The page
+is a same-runtime synthetic demonstration, not the private app. Real schema2 issuance,
+complete manifest, recoverable original prescription capture, panel refresh/resume,
+more slots/close/edit/skip/removal/readback, corrected history/engine projection,
+CLOCK/K1/custody, private port and Joe/Dad physical qualification remain open.
+Labels/layout demonstrate pending feedback, retained entries and one clear action;
+comparative mental-work reduction and superior outcomes are NOT established.
+Preserve the existing full first-use cut and broader product goal.
+Opus88 ACCEPT929 is prior scoped evidence, not acceptance of this new panel. Current
+panel independent review and new-head CI pending. Original reviews/archives retained.
+Implementation/adoption and focused evidence approximately15minutes; helper work
+separate, no claimed speedup or attributable dollar saving.
+NEXT: independent review of this actual mounted portion; extend the SAME journey
+with accepted remaining commands/readback and required capture/history/issuance joins.
+
 ## Callback diagnostic hardening — successor to accepted09f5bce
 
 Opus86 independently ACCEPTED09f5bce: Linux202/202, native workout browser, existing
