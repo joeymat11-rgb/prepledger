@@ -1,5 +1,17 @@
 # ASTRA — owner workout contract preparation
 
+## v0.19 — reconcile the accepted mechanical storage dependency
+
+Two-document successor to3653bb661a22dac518797d5e4ed3ddb075282e0b, same PR46/claim. No code/specification model/test/dependency change; full product goal and seven-area staging remain unchanged. The brief now distinguishes completed bounded current-head mechanics from remaining workout schema/activation, captured prescriptions, K1/knowledge loss, normalization/currentness/issuance/Q1, resource/provider, private/integrator and phone work. No stage/milestone/release acceptance is inferred.
+
+Actual retained W6 implementation is on PR32 atffaeaad2f243de47f028a0f66a01dee6416a2fee; cdf698d43bc027ab6f1c075e179b42b133d9cfcf adds browser tests/runner/report only, with all three product hashes unchanged. It uses published R1d26795a. Reviewer Opus5/High/fastoff Message66: bounded mechanical ACCEPT, author149/149 and two effective/restored faults reproduced, independent10/10 actual-consumer challenges including local D1/HTTP. Message68: unchanged product verdict, independent actual Chromium141 browser5/5, original six-domain/36-refusal coverage preserved, browser captured-revision fault effective/restored. Author used Chromium152. These are desktop/synthetic-guard checks, not physical-phone or knowledge-loss qualification. F-1 diagnostic-code propagation is nonblocking and remains recorded; no product change was made to address it.
+
+Review source is the retained session_01SAJZorAhzfSEv3oE6xibr9 Messages65–68 and its original attachments. The reviewer's reported archive pins are35848bytes/SHA2569fe64452db046a6ff9670ea56bea6ad7f6023bac92282739694c027c7c48596d and28527bytes/SHA256d8b757253f5341c93d81046b06f9d209b0766f873bf81121b98cce4bfd176669. They remain attached there; this document does not claim local receipt/hash verification or author replay of the reviewer's new10-case script. Earlier R1 archive/replay evidence is unchanged. W6 exact cdf698d CI is terminal7SUCCESS/3SKIP, both OS/push and PR jobs. No merge, paid credit, custody, private or seeded-store action.
+
+Fresh required local gates PASS/native0: local private preparation/verdict with public pins unchanged; frozen paths/actual18-file old-app ZIP; original conformance99/99/29/70 and rig185W1/W2; SELFTEST; strict3072 with test clock unset; diff-check. Logs work/owner-workout-v08-gates-2026-09-08T17-50-32-801Z. PRODUCT-GOAL.md v2 hash rechecked unchanged. No product test rerun is claimed as necessary evidence for the status wording itself; the existing original publication gate remains honored. Exact new-head CI is pending publication. This bounded reconciliation followed the approximately17:10–17:46Z W6 implementation/review checkpoint; no total cost or savings inference.
+
+NEXT: keep the existing brief/checkpoint aligned; continue the closed workout schema and captured-prescription/resume dependency, then actual integrated workout/import/recovery/phone evidence. This is required status reconciliation, not another plan, review stage, automatic prototype activation or owner relay. Prior executed source evidence is not relabeled as fresh execution of changed product.
+
 ## v0.18 — accepted dependency evidence and executable schema-transition boundary
 
 Retained PR46/base499d2aa53af7d2e545cb0e9cbc256f292fe32518. Three changed files:

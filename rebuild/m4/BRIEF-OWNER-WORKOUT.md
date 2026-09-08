@@ -1,4 +1,4 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.18
+# EARNED — complete owner workout slice — proposed technical brief v0.19
 
 ASTRA · 2026-09-08 · Original publication base `213300c6c49f772dcb2ff859e1c1375dd571b837`; v0.16 follows retained PR46 `01cb2edf8eaa3bde64f838b95fcfd433b2c4e971`. Its reader received scoped independent acceptance; this successor adds the actual signed legacy-observation projection candidate, documentary corrections and the owner's full coordinated-plan goal. Stage A as a whole remains unaccepted. Prior scoped technical-text verdicts remain attached to their actual revisions and do not close M3/M4/M5, authorize a private import, waive a gate or change a training rule. The document itself does not ship app behavior.
 Owner instruction, adopted at the retained checkpoint: prioritize the earliest qualified complete workout-logging app. Today and check-ins support that delivery; they are not its substitute. The existing coordinator, two implementation streams, retained worktrees, model settings, reviewer and integrator remain. This is an executable slice brief, not another maintained plan or work queue.
@@ -8,7 +8,7 @@ Sources: runtime sheet v1.7.38 at `rebuild/conform/gates/inputs/EARNED-RUNTIME-S
 
 ## 0. Claim, delivery and prerequisites
 
-v0.18 is a documentation/diagnostic successor to499d2aa, not a changed history UI. It records the completed scoped independent backend/browser evidence and narrows selected-schema activation using an executable public diagnostic. Prior implementation bytes and their exact review pins remain unchanged; no schema, writer, prescription or private-use behavior is activated by this publication.
+v0.19 is a two-document status successor to3653bb6. The real W6 current-head consumer is now published and independently accepted for its bounded storage mechanics; this brief no longer describes that consumer as missing. Its product source remains on retained PR32, not copied here. Stage A, schema activation, prescriptions, knowledge-loss/recovery and private/phone acceptance remain open. Full approved product scope and all prior implementation bytes/review pins are unchanged.
 
 Owner reaffirmation, September8: deliver the smallest dependable private app for Joe and Dad as soon as reasonably possible, including accurate transfer of Joe's existing data, reliable workouts and justified supported prescriptions. Full goal v2 below remains unchanged. v0.17 follows PR46 `3b88b52db33f43fafcb56de7cfba266c681de4f5` and adds the read-only history UI consumer; its dependency's scoped review remains pinned to that revision. The subsequent scoped review found three consumer gaps. This successor repairs only the nonshipping view/projection issue and reference joins; original reviewed bytes/verdict remain preserved. No accepted reader, writer, rule or private fixture changes.
 
@@ -234,7 +234,7 @@ Pending acceptance/rejection is a separate control, not the diagnostic's supplie
 
 ### Selected-schema activation — source-reconciled next implementation boundary
 
-**Proposed scope, not an issued new capability.** Retained R1 is now published at `d26795a47d638ec1e67840455273cc05eeca9926`; W6 remains `0d7f5e0cb5bd114ff87f699574fc45bb052703ea`. The issuer already retains immutable `issuedLeases`, binds renewal intent digests to the requested schema, and resolves an old operation's original lease. Do not rebuild that registry or intent mechanism. Correct the earlier blanket range wording: current R1 renewals intentionally extend overlapping `[1, high]` ranges; the requirement is never to reuse an operation's device sequence or rewrite its lease/identity, not to require disjoint issued ranges. A schema transition must preserve the accepted sequence/epoch rules and valid old entries, including late arrival and exact replay.
+**Proposed scope, not an issued new capability.** Retained R1 is published at `d26795a47d638ec1e67840455273cc05eeca9926`; W6 now publishes `cdf698d43bc027ab6f1c075e179b42b133d9cfcf` (consumer product pins unchanged fromffaeaad). Its current-head addition does not change the schema/lease boundary inspected at0d7f5e0. The issuer already retains immutable `issuedLeases`, binds renewal intent digests to the requested schema, and resolves an old operation's original lease. Do not rebuild that registry or intent mechanism. Correct the earlier blanket range wording: current R1 renewals intentionally extend overlapping `[1, high]` ranges; the requirement is never to reuse an operation's device sequence or rewrite its lease/identity, not to require disjoint issued ranges. A schema transition must preserve the accepted sequence/epoch rules and valid old entries, including late arrival and exact replay.
 
 Tracked diagnostic: `node rebuild/m4/spec/schema-transition-diagnostic.cjs <R1-at-d26795a> <synthetic-output-directory>`. Six actual local-D1/core/P-256 cases confirm: version2 enrollment refuses without domain writes; version1 enrolls; version2 renewal refuses without domain writes; low-level Ops.build retains an explicit version; old version1 admission/exact replay survives the refused upgrade; ordinary version1 renewal retains that replay. `SCHEMA TRANSITION DIAGNOSTIC: 6/6 CONFIRMED; v2 activation NOT IMPLEMENTED`. Version2 is a diagnostic input, not an adopted schema number or lease. Seven named input files are pinned; this is not a claim that every transitive dependency is individually pinned. No private fixture, simulated authority, W6 activation or phone evidence enters this diagnostic.
 
@@ -250,7 +250,7 @@ The closed workout schema must precede issuance: required/forbidden fields, fixe
 
 Required transition cases: unsupported enrollment/renewal has no effect; identical intent retries retain one issuance; simultaneous renewals obey the existing epoch guard; both old and new valid operations admit with their own capabilities; new malformed fields refuse locally and at authority; abort before/during local activation leaves the full old generation; lost reply/restart replays the original request safely; restored older local state cannot reset sequence or adopt a new capability implicitly. Include a retained old pending entry and subsequent new entry together, not an empty-outbox-only success. Compare complete signed rows, original operation bytes, dispositions and encrypted generation, not just counts. These new transition cases remain NOT IMPLEMENTED/NOT RUN; the six existing-behavior cases above do not satisfy them.
 
-**Current-head dependency:** independent Opus Message60 accepts only the producer/public-verifier capability at d26795a, with actual local-D1/HTTP17-challenge evidence. W6 still needs its real current-head response/proof family and final transaction comparison to the ORIGINAL captured client revision and issuance attempt. HEAD-IDB-01's14 author-side cases use actual W6 AES-GCM/fake-IDB/T2 mechanics plus an explicitly synthetic consumer adapter; the effective omitted-comparison fault confirms that a retry must not rebind the original capture to the newer snapshot. Its test-only metadata/attempt policy is not a production schema, K1 fence, normalizer or issuance. Whole-PR resourceFAIL, persistent knowledge-loss, T1/P1, contract cases6/7 and physical qualification remain open.
+**Current-head dependency:** Opus Message60's bounded producer acceptance atd26795a is now joined by Message66's bounded mechanical consumer ACCEPT atffaeaad and Message68's browser5/5 atcdf698d, with identical product pins. Actual W6 now retains complete signed envelopes, compares the ORIGINAL client revision/attempt in its final transaction, waits for durability and verifies historical reopen without fresh permission. Independent10/10 challenges include real local D1/HTTP; author and reviewer reproduce149/149 plus effective/restored revision faults. Desktop Chromium5/5 adds real IndexedDB/WebCrypto, with synthetic signer/transport/observation guard. HEAD-IDB-01 remains attributed preparation, not the product implementation. A nonblocking diagnostic-code propagation limitation is recorded. Whole-PR resourceFAIL, persistent knowledge-loss, production normalizer/currentness/issuance, Q1, CLOCK/T1/P1, contract cases6/7, private/integrator and physical qualification remain open.
 
 **Prescription carry-through:** EFFORT-03's disposable candidate gives76 focused passes after25 intended original failures, but the whole patch remains BLOCKED for integration. Adding a hold flag to fresh genSession cards also changes the shared sessionFromDraft path: both captured-ID and legacy reps-only drafts can inherit TODAY's hold when their historical hold was never captured. Do not apply this repair as fresh-only without separating those paths or resolving their capture contract. Existing rirPlan/alarm/sessionFromDraft function bytes are unchanged; that does not prove joined behavior unchanged. Resume must distinguish captured prescription evidence from current configuration; missing historical evidence remains unknown. The actual numeric effort policy and scientific/individual applicability remain the existing material review, not a conclusion from these code tests.
 
@@ -284,7 +284,7 @@ Evidence: `WORKOUT-PRESENTATION PREPARATION: 22/22 exact genSession parity; 22/2
 Browser access to the temporary localhost preview was explicitly denied by the browser permission system; no alternate browser, raw protocol or renderer was used to bypass it. Visual/responsive/keyboard verification remains NOT RUN. The temporary tab and server were closed; the saved static HTML remains available for authorized later review. Production build/asset audits and current required full/regression/independent gates remain pending for actual integration. This preparation does not close Stage A/B, per-set mapping, privacy-safe full composition or any owner-use gate.
 
 
-### Current-head producer and next durable join — September 8 checkpoint
+### Current-head producer and durable consumer — September 8 checkpoint
 
 Retained draft PR43 now publishes d26795a47d638ec1e67840455273cc05eeca9926 from
 003c816e695fce7e77e17665f25d8cdcc2435211. Implements the accepted proposed wire
@@ -292,10 +292,12 @@ text through actual R1 scoped D1 reads and the public verifier:28/28 focused,
 four effective/restored faults, existing R1 focused179/179 and original W5/full
 frozen gates PASS. Initial177/178 failure and owned compatibility-test correction
 are disclosed in REPORT-R1-ASTRA; no frozen suite edits. Both-OS CI green. Scoped
-independent implementation review is in flight; R1 resource FAIL remains.
+independent implementation review is ACCEPT for the bounded capability only; R1 resource FAIL remains.
 
-Next join uses actual W6 at0d7f5e0cb5bd114ff87f699574fc45bb052703ea, not a callback
-stub promoted to production. Source inspection found these exact unfinished joins:
+W6's actual consumer is now published on its development branch atcdf698d with product
+pins fromffaeaad. Opus66/68 independently accepted the scoped mechanics/browser
+evidence. The following table preserves the original0d7f5e0 implementation checklist;
+its first four rows now have bounded product evidence, while its K1 row remains open:
 
 | Actual retained source | Required affected work and proving case |
 |---|---|
@@ -305,10 +307,14 @@ stub promoted to production. Source inspection found these exact unfinished join
 | public-client.mjs sink/completedOutcome | Ordinary sink success currently has no confirmed:true; late context change explicitly returns confirmed:false. New wrapper requires durable:true AND confirmed:true. Map only a completed qualified observation for the captured attempt; do not blanket-add confirmation to every callback or call it issuance. |
 | K1-MANAGED-INGRESS-CONTRACT.md and observationGuard | The injected guard remains proposed/unsatisfied production knowledge-loss machinery. Arm before informative ingress; failed persistence/relaunch cannot erase learned negatives. An in-memory epoch or signed response is not the missing persistent fence. Keep its required acceptance and actual-store cases. |
 
-This is scoped implementation preparation under the existing R1/W6 ownership,
-not resumption of paused W6 product edits or a new claim. No normalizer, schema
-activation, Q1, T1/K1, CLOCK, phone or private-use acceptance is inferred. Preserve
-offline answer Q3; require a new challenged observation for a new issuance attempt.
+The coordinator resumed the retained W6 claim under its published CURRENT-HEAD-CONSUMER.md,
+without a new stream or dependency merge. Exact consumer CI is7SUCCESS/3SKIP on
+Windows/Linux; the PR remains draft and unmerged. Original product/reviewer pins
+and initial test failures remain in REPORT-W6-ASTRA.md and the reviewer attachments.
+No normalizer, schema activation, Q1, T1/K1, CLOCK, phone or private-use acceptance
+is inferred. Preserve offline answer Q3; require a new challenged observation for
+a new issuance attempt. Next work remains the closed workout schema/activation
+and captured prescriptions, followed by actual integrated workout/recovery/phone proof.
 
 ### Read-only signed-history UI consumer — v0.17
 
