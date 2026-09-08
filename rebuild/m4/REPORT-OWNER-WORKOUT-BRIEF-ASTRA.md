@@ -1,5 +1,21 @@
 # ASTRA — owner workout contract preparation
 
+## v0.21 — correct current safety modifiers; strengthen slot control
+
+Retained Opus5/High/fastoff Message70 reviewed49074071d493cfcb7274678db98d786004c24232: ACCEPT diagnostic evidence, one required obligation-text correction (F-1). Independently reproduced12/12/native0, recomputed all12 pins and ran six independent checks. It did not review intervening3653bb6/075f37c or relabel their evidence accepted. Original review and archive remain in session_01SAJZorAhzfSEv3oE6xibr9; reported8161bytes/SHA2566a078de712f5d69db565fa6809bcf164ea07ceecdef9fafc36e7271bd1794f50, five members plus manifest. No local archive receipt/hash verification or author replay of that separate six-check script is claimed.
+
+F-1 is valid under-specification, not a contradiction between historical truth and present permission: the unchanged actual alarm branch modifies effort while leaving the session valid. The prior required cases emphasized blocking and could omit that live modifier. Text now expressly requires a CURRENT modified instruction/reason distinct from immutable captured history, plus existing refusal cases. Captured history alone never authorizes training. No new numerical policy, product code, state, schema or wire activation. Reviewer V6 also correctly limits effort evidence: actual `rirPlan` computes the rendered ladder; no stored ladder is demonstrated.
+
+V3 was nonblocking but concrete: the original slot assertion always compared two-slot cases. Before reading the verdict, author scratch probe confirmed the real three-to-two preservation. The tracked diagnostic now requires current three-slot cards to resume with two captured slots in BOTH draft forms, with original draft values unchanged. Fresh run native0 retains all original12 dependency cases and last-only negative control, adding:
+
+```text
+RESUME CONTROL ids-and-reps: current three slots / captured two slots retained
+RESUME CONTROL legacy-reps-only: current three slots / captured two slots retained
+PRESCRIPTION RESUME DIAGNOSTIC: 12/12 actual-path differences CONFIRMED; observation/slot/read-only controls PASS; capture/qualification NOT IMPLEMENTED
+```
+
+Exactly three changed files relative4907407: brief/report/diagnostic. All product and original test bytes unchanged. Original4907407 CI terminal7SUCCESS/3SKIP both OS. Fresh mandatory corrective gates native0: preparation/private verdict and public pins unchanged; FROZEN-PATHS/actual18-file ZIP PASS; SUITE CONSISTENT99/99/29/70 plus rig185W1/W2; SELFTEST PASS; strict PASS with test clock unset; DIFF-CHECK PASS. Logs work/owner-workout-v08-gates-2026-09-08T18-24-03-610Z. New-head CI and narrowly affected re-review remain pending. Prior review evidence is preserved, not replaced by this correction. Whole-app and science/private/integrator/phone holds remain. NEXT stays exact capture/schema/atomic-command closure, then real W6/T2 implementation. Approximately18:24–18:26Z correction checkpoint; no cost/savings inference.
+
 ## v0.20 — actual resume dependencies and capture obligations
 
 Three-file successor to075f37c0e0cbe51ade41f42a667469cc4684cd0e, retained PR46: brief, this report and one nonshipping diagnostic. No engine/UI/schema/storage/dependency or original suite change. Full product goal remains unchanged. The new section specifies what a future atomic session capture must preserve, distinguishes historical instructions from current safety/permission, and preserves unknown legacy history without guessing or granting additional custody. It does not adopt a wire format or implement a resume repair.

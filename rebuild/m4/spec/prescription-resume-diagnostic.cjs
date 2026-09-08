@@ -45,6 +45,18 @@ const observations=[];
  const changed=copy(s);changed.exercises[0].last=[6,6];
  assert.deepEqual(presented(changed,E.genSession(changed,F.SYNTHETIC_DAY),id).targets,before.targets);
  console.log('RESUME CONTROL last-only change: target unchanged under actual anchor path');}
+// Non-vacuous slot-count control: current configuration has three slots, while
+// the actual resumed card must keep the two captured slots in each draft form.
+for(const form of ['ids-and-reps','legacy-reps-only']){
+ const s=state(),id=s.exercises[0].id,dr={reps:{[id]:[9,8]}};
+ if(form==='ids-and-reps')dr.ids=[id];
+ s.exercises[0].sets=3;s.exercises[0].std=[6,6,6];
+ const original=copy(dr),base=E.genSession(s,F.SYNTHETIC_DAY);
+ assert.equal(base.ex.find(e=>e.id===id).tgt.length,3);
+ const resumed=E.sessionFromDraft(s,F.SYNTHETIC_DAY,null,dr,base);
+ assert.equal(resumed.ex.find(e=>e.id===id).tgt.length,2);assert.deepEqual(dr,original);
+ console.log('RESUME CONTROL '+form+': current three slots / captured two slots retained');
+}
 for(const form of ['ids-and-reps','legacy-reps-only'])for(const [name,field,change]of changes){
  const initial=state(),id=initial.exercises[0].id,first=E.genSession(initial,F.SYNTHETIC_DAY),before=presented(initial,first,id);
  const draft={reps:{[id]:[9,8]}};if(form==='ids-and-reps')draft.ids=first.ex.map(e=>e.id);
