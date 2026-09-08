@@ -1,5 +1,31 @@
 # ASTRA — owner workout contract preparation
 
+## Current v0.15 first-use reader and rule-triage candidate — 2026-09-08
+
+Parent87366ae; retained PR46/branch and existing ownership. This candidate adds the nonshipping R1 history reader/test/README and updates only this brief/report. No actual engine, authority, W5/W6, frozen app, suite, private artifact, dependency or seeded-soak change. The reader verifies actual signed R1 projection before interpretation and preserves the exact retained row bytes. It has no state-mutating callback; captured prefix and missing plan provenance never become a prescription/currentness permission. The existing21-case assumption-only decoder is preserved, not renamed as implementation.
+
+Source reconciliation found existing R1 `resolveIssuedLease` and `issuedLeases` at003c816. The separate recently accepted lookup proposal concerned older87366ae; it is unnecessary on this retained path. No duplicate registry or new issuer is built. This corrects the earlier route table's overstatement of missing issuer work; its estimate is provisional and does not price already implemented mechanisms again. R1 resource/provider/transport qualification remains open.
+
+Published-path reader tests:16/16 PASS, native0, one effective invented-no-plan fault. Actual codec/projector/P-256 verifier execute against the tracked synthetic row fixture; no live issuer/D1/HTTP/IDB/phone or private data. Exact source hashes before/after and original first successful/publication results remain under coordinator `work/workout-schema-prep/r1-history-reader/`. Three earlier harness failures are preserved there and explained in the tracked README. They were fixed without weakening actual R1 validation, altering reader semantics or deleting a substantive failing case.
+
+Owner amendments17–19 are reflected in the existing brief: selected rebuild B; correct complete workouts AND individually justified prescription/progression; no invented Dad profile. Material pilot blockers, demonstrated tolerable bugs and technically accepted public-only exclusions are distinct. A flat41-outcome count is not the pilot release criterion; original M2/public gates/status remain separate. The current prototype16/16 is not a release decision. The existing owner/assistant-PM conversation is the privacy-safe version/expected/actual/reproduction feedback route; no new service or monitoring task.
+
+Initial material prescription triage traces the actual `rirPlan → GymMode` call. The code's terminal0 default and comment's occasional-failure policy need a concrete rationale/applicability check; two primary research-paper abstracts do not establish a universal terminal-failure optimum. Sources, policy/evidence distinction and limitations are in the brief. No training rule changed. Dates are review/forecast targets, not an app-release promise: September9–10 inventory/triage,10–12 eligible feature/prescription review,11 revised first-use forecast. Today's existing heartbeat was independently verified ACTIVE with end2026-09-09T03:59Z under the owner's later instruction; no duplicate schedule or paid fallback.
+
+Fresh publication gate: unchanged coordinator helper completed preparation/scope/conformance/SELFTEST/strict/diff, all native0. Original logs are `work/owner-workout-v08-gates-2026-09-08T14-29-31-170Z` (helper filename historical). Explicit ENGINE_MAIN/ENGINE_OLD and checkout-local EARNED_CLIENT_DIR; conformance date2026-09-03/TZ America/New_York; strict test clock unset. Private setup remains local/verdict-only and protected manifest/goldens unchanged. Final report status and edition wording were added afterward; no executable test input changed. Final exact-head CI remains required separately.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+New-PWA/full-M3 SCOPE-FREEZE remains PENDING. These are preparation/regression verdicts, not private-use permission. The new reader still needs scoped independent feature/contract review, and all applicable actual-boundary/private/phone conditions remain. NEXT: publish this complete candidate; carry the existing R1/W6 mechanisms into the closed consumer/fold contract; resolve the material effort-policy rationale in the necessary feature review. No new broad audit or owner relay.
+
 ## Current v0.14 current-head technical contract publication — 2026-09-08
 
 Retained PR46 parent `5e6d86e8c91f18ecde036515e4afed241f9ac3b9`; integration source comparison `28ff3be3a0c47fa76b642015ac3757da5c76548c`. This successor publishes the exact reviewed current-head proposal and four evidence files, and updates only the existing brief/report. No producer, consumer, core, engine, suite, dependency, queue/ledger or seeded-soak bytes change. It does not implement workout logging or activate any schema. PR48's previously stale status is corrected from the actual integration ledger: source647ce046, mergeee3de147, record58c2fc9.
