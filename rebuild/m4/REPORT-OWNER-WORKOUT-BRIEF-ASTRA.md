@@ -1,5 +1,37 @@
 # ASTRA — owner workout contract preparation
 
+## v0.20 — actual resume dependencies and capture obligations
+
+Three-file successor to075f37c0e0cbe51ade41f42a667469cc4684cd0e, retained PR46: brief, this report and one nonshipping diagnostic. No engine/UI/schema/storage/dependency or original suite change. Full product goal remains unchanged. The new section specifies what a future atomic session capture must preserve, distinguishes historical instructions from current safety/permission, and preserves unknown legacy history without guessing or granting additional custody. It does not adopt a wire format or implement a resume repair.
+
+Executed from the retained checkout with a real node_modules directory:
+`node rebuild/m4/spec/prescription-resume-diagnostic.cjs`
+
+```text
+RESUME CONTROL last-only change: target unchanged under actual anchor path
+RESUME DIAGNOSTIC ids-and-reps / configured-load: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC ids-and-reps / configured-targets: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC ids-and-reps / configured-setup: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC ids-and-reps / configured-name: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC ids-and-reps / current-alarm: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC ids-and-reps / current-opener-history: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC legacy-reps-only / configured-load: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC legacy-reps-only / configured-targets: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC legacy-reps-only / configured-setup: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC legacy-reps-only / configured-name: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC legacy-reps-only / current-alarm: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+RESUME DIAGNOSTIC legacy-reps-only / current-opener-history: CURRENT_CONFIGURATION_REUSED; captured observations unchanged
+PRESCRIPTION RESUME DIAGNOSTIC: 12/12 actual-path differences CONFIRMED; observation/slot/read-only controls PASS; capture/qualification NOT IMPLEMENTED
+```
+
+Native exit0. Twelve unchanged source files are compared byte-for-byte with the named base before loading the actual public read composition plus actual writers factory. Invented fixtures only; seed/index/migrate/merge/private data are not loaded. The script observes selected rendering inputs, not the whole engine object, a mounted workout, signed instructions or durable capture. The optional new-file-only evidence export contains public synthetic cases and code pins. The initial target hypothesis using `last` alone failed under the actual anchor path; it was corrected to changing configured `std`, and the refuting negative control remains. No source guard was stubbed to manufacture a finding. A trivial structuredClone premise was removed because it did not prove product behavior.
+
+Seams/unknowns: these twelve differences are not twelve new defect rulings; current safety may correctly change permission. Historical preservation and fresh prescription qualification are separate. Exact closed fields, authenticated basis/producer, atomic start/correction version, legacy recovery and custody mapping still need closure. Current W6 mechanical acceptance does not prove those joins, CLOCK/K1 or physical devices. No numerical training policy or scientific qualification was changed/claimed. Independent review and new-head CI are pending; no merge or first-use acceptance.
+
+Fresh mandatory publication gates native0: private preparation/verdict with committed public pins unchanged; FROZEN-PATHS PASS; OLD-PACKAGE PASS actual18-file ZIP; original SUITE CONSISTENT99reference/99STRONG/29absent/70present with rig185W1/W2; SELFTEST PASS; strict PASS with test clock unset; DIFF-CHECK PASS. Local log directory work/owner-workout-v08-gates-2026-09-08T18-15-01-802Z. SCOPE-FREEZE still explicitly PENDING for the new PWA archive/private/final implementation; a legacy strict tail is not permission to ship the new app. Full goal v2 SHA43ebdeed5986e238969c9cdf759a40f02f7066b630c2eb6af54bc1c6fe5ad5c5 rechecked unchanged.
+
+NEXT: close the exact capture/schema/command mapping in the retained workout stream, then implement against actual W6/T2 with atomic restart/correction and safety cases. Keep the separate accepted W6 mechanics and all private/integrator/phone gates. Work began approximately17:58Z; this report records this diagnostic checkpoint, not an estimate of total delivery cost.
+
 ## v0.19 — reconcile the accepted mechanical storage dependency
 
 Two-document successor to3653bb661a22dac518797d5e4ed3ddb075282e0b, same PR46/claim. No code/specification model/test/dependency change; full product goal and seven-area staging remain unchanged. The brief now distinguishes completed bounded current-head mechanics from remaining workout schema/activation, captured prescriptions, K1/knowledge loss, normalization/currentness/issuance/Q1, resource/provider, private/integrator and phone work. No stage/milestone/release acceptance is inferred.
