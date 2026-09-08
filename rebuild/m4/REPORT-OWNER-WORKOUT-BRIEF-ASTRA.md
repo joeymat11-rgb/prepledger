@@ -1,5 +1,15 @@
 # ASTRA — owner workout contract preparation
 
+## v0.22 — shared basic-workout shape interface for implementation
+
+Retained PR46/baseebba693859d23e3420f6799a8c5d794f56b95b4d. Prior Opus Message72 CLOSED F-1 and ACCEPTED the correction/control; modified diagnostic native0, independent3/3 slot controls; exact parent CI7SUCCESS/3SKIP. That verdict remains bounded and its original evidence retained in the same session. Full product goal v2 unchanged.
+
+Source inspection identifies two separable joins: the sheet fixes session-start payload to an empty map; existing W6 encrypted metadata does not itself supply authenticated cross-device/reinstall capture. Do not invent a payload field or a local-only substitute to bypass that requirement. The basic workout record shape can be closed independently so later client and authority use one validator rather than diverging handwritten checks.
+
+New spec/WORKOUT-BASIC-SCHEMA.md specifies the pure module interface, exact six-kind fields, proposed nonnegative safe-integer repetition count (explicit zero distinct from unlogged), existing effort variants, references, old-version preservation and an exact two-file implementation scope. The count domain is explicitly a proposal narrowing earlier finite-only examples, not attributed to an owner ruling or a physiological maximum. Unsupported nonnumeric loads and the complete wider schema remain required joins; no whole-workout support claim. No new module is built or registered by this publication. The review must assess the concrete interface before implementation; production wiring/issued version2 waits for the complete immutable schema and actual boundary gates.
+
+This publication changes only the new technical contract and existing brief/report. It does not change engine/client/authority/W6, original suite, dependencies, private inputs or seeded soak. Fresh mandatory gates native0: private preparation/verdict and public pins unchanged; frozen paths/actual18-file ZIP; conformance99/99/29/70+rig185W1/W2; SELFTEST; strict with test clock unset; diff. Logs work/owner-workout-v08-gates-2026-09-08T18-40-23-969Z. New-head CI and bounded technical review are pending. NEXT: accepted interface → actual shared shape module with real client/authority/canonical primitive tests and effective fault; then full selected-version command/activation and capture recovery mapping. No new branch, implementation stream, owner relay or broad research.
+
 ## v0.21 — correct current safety modifiers; strengthen slot control
 
 Retained Opus5/High/fastoff Message70 reviewed49074071d493cfcb7274678db98d786004c24232: ACCEPT diagnostic evidence, one required obligation-text correction (F-1). Independently reproduced12/12/native0, recomputed all12 pins and ran six independent checks. It did not review intervening3653bb6/075f37c or relabel their evidence accepted. Original review and archive remain in session_01SAJZorAhzfSEv3oE6xibr9; reported8161bytes/SHA2566a078de712f5d69db565fa6809bcf164ea07ceecdef9fafc36e7271bd1794f50, five members plus manifest. No local archive receipt/hash verification or author replay of that separate six-check script is claimed.
