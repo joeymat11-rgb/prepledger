@@ -1,5 +1,6 @@
 'use strict';
-// Standalone synthetic executable specification; NO product imports or keys.
+// Synthetic executable specification; only the unchanged, pinned candidateEdge
+// relation is imported from product code. No keys, decoder or product writes.
 // Default execution writes nothing. Optional: --evidence <new-output-json-path>.
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const crypto = require('node:crypto'), vm = require('node:vm'), {spawnSync} = require('node:child_process');
@@ -69,6 +70,140 @@ function fresh(x, wanted) {
   const child = spawnSync(process.execPath, ['-e', 'const fs=require("node:fs"),m=require(process.argv[1]);process.stdout.write(JSON.stringify(m.project(JSON.parse(fs.readFileSync(0,"utf8")))));', filename],
     {input: JSON.stringify(x), encoding: 'utf8', windowsHide: true});
   assert.equal(child.status, 0); assert.equal(child.stderr, ''); assert.deepEqual(JSON.parse(child.stdout), wanted); freshProcesses++;
+}
+function startClassifierCases() {
+  const relationFile = path.resolve(__dirname, '../../client/session.cjs');
+  const relationSha = 'dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3';
+  // Pin before import. A changed product helper must not silently bless a new
+  // relation. The old diagnostic manifest and its execution remain untouched.
+  assert.equal(hash(fs.readFileSync(relationFile)), relationSha);
+  const candidateEdge = require(relationFile).candidateEdge;
+  const classify = M.createStartClassifier(candidateEdge), ids = [], faults = [];
+  let permutations = 0, freshProcesses = 0;
+  const test = (id, fn) => { fn(); ids.push(id); };
+  const startView = (id, date, time, slot = 'AD_HOC') => ({id, athlete: scope, device: 'MODEL-DEVICE-' + id,
+    live: true, eligible: true, relation: {slot, date, time},
+    source: {opId: id, commitment: 'MODEL-ONLY-COMMITMENT-' + id, schemaVersion: 1,
+      operationBytes: ' \n{"modelOriginalStart":"' + id + '"}\n', receiptBytes: '{"modelReceipt":"' + id + '"}', planBasis: planBytes}});
+  const snapshot = starts => ({complete: true, supported: true, ruleVersion: 'MODEL-RULE-1', normalizerVersion: 'MODEL-NORMALIZER-1', starts: copy(starts)});
+  const transition = (before, after, cause = 'START_TRANSITION') => ({assumption: M.START_ASSUMPTION, athlete: scope, cause,
+    before: snapshot(before), after: snapshot(after)});
+  const a = startView('A', '2042-01-03', '23:30'), b = startView('B', '2042-01-04', '00:30');
+  const c = startView('C', '2042-01-04', '00:45'), d = startView('D', '2042-01-10', '09:00', 'MODEL-UNRELATED');
+  const changedC = copy(c); changedC.relation.time = '02:00';
+  const edgeInput = transition([a, b, c, d], [a, b, changedC, d]);
+  // Expected components/edges/reasons are handwritten, never computed by the
+  // classifier or candidateEdge. This helper formats those explicit vectors.
+  const view = (groups, edges, ruleVersion = 'MODEL-RULE-1', normalizerVersion = 'MODEL-NORMALIZER-1') =>
+    ({ruleVersion, normalizerVersion, components: groups.map(members => ({key: JSON.stringify(members), members})), edges});
+  const wanted = (before, after, affectedLineages, unchanged) => ({model: 'REVIEW_CLASSIFIER_ONLY', inputQualification: 'ASSUMPTION_ONLY',
+    before, after, affectedLineages, unchangedComponents: unchanged.map(members => ({key: JSON.stringify(members), members}))});
+  const full = view([['A', 'B', 'C'], ['D']], [['A', 'B'], ['A', 'C'], ['B', 'C']]);
+  const fewerEdges = view([['A', 'B', 'C'], ['D']], [['A', 'B'], ['B', 'C']]);
+  const edgeExpected = wanted(full, fewerEdges, [{members: ['A', 'B', 'C'], before: [['A', 'B', 'C']],
+    after: [['A', 'B', 'C']], reasons: ['EDGE_REMOVED', 'RELATION_INPUT']}], [['D']]);
+  const exact = (id, x, expected) => test(id, () => {
+    const original = JSON.stringify(x); assert.deepEqual(classify(x), expected); assert.equal(JSON.stringify(x), original);
+  });
+  const refuse = (id, x, code) => test(id, () => {
+    const original = JSON.stringify(x);
+    assert.throws(() => classify(x), error => error instanceof M.Refusal && error.code === code);
+    assert.equal(JSON.stringify(x), original);
+  });
+  exact('C1-SAME-MEMBERS-DIFFERENT-COMPLETE-EDGES', edgeInput, edgeExpected);
+  exact('C1-EXACT-REPLAY-NO-TRANSITION', transition([a, b, c, d], [a, b, c, d]), wanted(full, full, [], [['A', 'B', 'C'], ['D']]));
+  exact('C1-UNRELATED-READING-DOES-NOT-ADVANCE-STARTS', transition([a, b, c, d], [a, b, c, d], 'UNRELATED'),
+    wanted(full, full, [], [['A', 'B', 'C'], ['D']]));
+  exact('C1-SET-DISPLAY-DOES-NOT-REMAP-START', transition([a, b, c, d], [a, b, c, d], 'SET_DISPLAY_ONLY'),
+    wanted(full, full, [], [['A', 'B', 'C'], ['D']]));
+  refuse('C1-SET-DISPLAY-CANNOT-SMUGGLE-START-CHANGE', {...edgeInput, cause: 'SET_DISPLAY_ONLY'}, 'UNRELATED_START_CHANGE');
+  refuse('C1-UNRELATED-CANNOT-SMUGGLE-START-CHANGE', {...edgeInput, cause: 'UNRELATED'}, 'UNRELATED_START_CHANGE');
+  const ineligibleC = copy(c); ineligibleC.eligible = false;
+  exact('C1-ELIGIBILITY-CHANGES-BUT-LIVE-VERTEX-REMAINS', transition([a, b, c, d], [a, b, ineligibleC, d]),
+    wanted(full, full, [{members: ['A', 'B', 'C'], before: [['A', 'B', 'C']], after: [['A', 'B', 'C']], reasons: ['ELIGIBILITY']}], [['D']]));
+  const removedC = copy(c); removedC.live = false;
+  const split = view([['A', 'B'], ['D']], [['A', 'B']]);
+  exact('C1-REMOVAL-SPLIT-RETAINS-ORIGINAL', transition([a, b, c, d], [a, b, removedC, d]),
+    wanted(full, split, [{members: ['A', 'B', 'C'], before: [['A', 'B', 'C']], after: [['A', 'B']], reasons: ['EDGE_REMOVED', 'LIVENESS']}], [['D']]));
+  exact('C1-REJOIN-IS-A-RELEVANT-TRANSITION-NOT-OLD-ANSWER', transition([a, b, removedC, d], [a, b, c, d]),
+    wanted(split, full, [{members: ['A', 'B', 'C'], before: [['A', 'B']], after: [['A', 'B', 'C']], reasons: ['EDGE_ADDED', 'LIVENESS']}], [['D']]));
+  const pairBefore = [a, b, c, d].map((x, i) => ({...copy(x), relation: {slot: i < 2 ? 'X' : 'Y', date: '2042-01-03', time: '09:00'}}));
+  const pairAfter = copy(pairBefore); pairAfter[1].relation.slot = 'Y'; pairAfter[2].relation.slot = 'X';
+  exact('C1-BEFORE-AFTER-TRANSITIVE-LINEAGE-UNION', transition(pairBefore, pairAfter),
+    wanted(view([['A', 'B'], ['C', 'D']], [['A', 'B'], ['C', 'D']]), view([['A', 'C'], ['B', 'D']], [['A', 'C'], ['B', 'D']]),
+      [{members: ['A', 'B', 'C', 'D'], before: [['A', 'B'], ['C', 'D']], after: [['A', 'C'], ['B', 'D']],
+        reasons: ['EDGE_ADDED', 'EDGE_REMOVED', 'RELATION_INPUT']}], []));
+  exact('C1-LATE-COMPATIBLE-START', transition([a, b, d], [a, b, c, d]),
+    wanted(split, full, [{members: ['A', 'B', 'C'], before: [['A', 'B']], after: [['A', 'B', 'C']], reasons: ['EDGE_ADDED', 'START_ADDED']}], [['D']]));
+  for (const field of ['ruleVersion', 'normalizerVersion']) {
+    const x = transition([a, b, c, d], [a, b, c, d], 'VERSION_ACTIVATION'); x.after[field] += '-NEXT';
+    const afterView = copy(full); afterView[field] += '-NEXT';
+    exact('C1-VERSION-CHANGE-' + field, x, wanted(full, afterView,
+      [{members: ['A', 'B', 'C'], before: [['A', 'B', 'C']], after: [['A', 'B', 'C']], reasons: ['VERSION']},
+        {members: ['D'], before: [['D']], after: [['D']], reasons: ['VERSION']}], []));
+    refuse('C1-VERSION-NEEDS-EXPLICIT-ACTIVATION-' + field, {...x, cause: 'START_TRANSITION'}, 'VERSION_ACTIVATION_REQUIRED');
+  }
+  test('C1-PROPERTY-ORDER-IS-NOT-A-TRANSITION', () => {
+    const x = transition([a, b, c, d], [a, b, c, d]);
+    for (const row of x.after.starts) {
+      row.relation = Object.fromEntries(Object.entries(row.relation).reverse());
+      row.source = Object.fromEntries(Object.entries(row.source).reverse());
+    }
+    assert.deepEqual(classify(x), wanted(full, full, [], [['A', 'B', 'C'], ['D']]));
+  });
+  test('C1-DELIVERY-ORDER-INDEPENDENT', () => {
+    for (const oldOrder of orders(edgeInput.before.starts)) for (const newOrder of orders(edgeInput.after.starts)) {
+      const x = {...edgeInput, before: {...edgeInput.before, starts: oldOrder}, after: {...edgeInput.after, starts: newOrder}};
+      assert.deepEqual(classify(x), edgeExpected); permutations++;
+    }
+  });
+  test('C1-FRESH-PROCESS-RECONSTRUCTION', () => {
+    const code = 'const fs=require("node:fs"),c=require("node:crypto");if(c.createHash("sha256").update(fs.readFileSync(process.argv[2])).digest("hex")!==process.argv[3])throw Error("RELATION_PIN");const m=require(process.argv[1]),r=require(process.argv[2]).candidateEdge;process.stdout.write(JSON.stringify(m.createStartClassifier(r)(JSON.parse(fs.readFileSync(0,"utf8")))));';
+    const child = spawnSync(process.execPath, ['-e', code, filename, relationFile, relationSha],
+      {input: JSON.stringify(edgeInput), encoding: 'utf8', windowsHide: true});
+    assert.equal(child.status, 0); assert.equal(child.stderr, ''); assert.deepEqual(JSON.parse(child.stdout), edgeExpected); freshProcesses++;
+  });
+  test('C1-RESULT-ALIASES-DETACHED', () => {
+    const before = JSON.stringify(edgeInput), y = classify(edgeInput);
+    y.affectedLineages[0].members[0] = 'MODEL-OUTPUT-ONLY'; y.before.edges[0][0] = 'MODEL-OUTPUT-ONLY';
+    assert.equal(JSON.stringify(edgeInput), before); assert.deepEqual(classify(edgeInput), edgeExpected);
+  });
+  const delimited = [startView('a|b', '2042-01-03', '09:00', 'X'), startView('c', '2042-01-03', '09:00', 'X'),
+    startView('a', '2042-01-03', '09:00', 'Y'), startView('b|c', '2042-01-03', '09:00', 'Y')];
+  const distinct = view([['a', 'b|c'], ['a|b', 'c']], [['a', 'b|c'], ['a|b', 'c']]);
+  exact('C1-FULL-ARRAY-IDENTITY-NO-DELIMITER-COLLISION', transition(delimited, delimited), wanted(distinct, distinct, [], [['a', 'b|c'], ['a|b', 'c']]));
+  for (const [id, mutate, code] of [
+    ['MISSING-PROVENANCE', x => { delete x.after.starts[0].source.receiptBytes; }, 'NORMALIZATION_BLOCKED'],
+    ['CHANGED-ORIGINAL-BYTES', x => { x.after.starts[0].source.operationBytes += ' '; }, 'START_PROVENANCE_CHANGED'],
+    ['CHANGED-RECEIPT-BYTES', x => { x.after.starts[0].source.receiptBytes += ' '; }, 'START_PROVENANCE_CHANGED'],
+    ['CHANGED-ACCEPTED-PLAN-BASIS', x => { x.after.starts[0].source.planBasis += ' '; }, 'START_PROVENANCE_CHANGED'],
+    ['MISSING-RETAINED-START', x => { x.after.starts.pop(); }, 'MISSING_RETAINED_START'],
+    ['DUPLICATE-IDENTITY', x => { x.after.starts.push(copy(x.after.starts[0])); }, 'START_IDENTITY_CONFLICT'],
+    ['FOREIGN-ATHLETE', x => { x.after.starts[0].athlete = 'MODEL-OTHER'; }, 'NORMALIZATION_BLOCKED'],
+    ['PARTIAL-INPUT', x => { x.after.complete = false; }, 'NORMALIZATION_BLOCKED'],
+    ['UNSUPPORTED-NORMALIZER', x => { x.after.supported = false; }, 'NORMALIZATION_BLOCKED'],
+    ['MISSING-VERSION', x => { delete x.after.normalizerVersion; }, 'NORMALIZATION_BLOCKED'],
+    ['MISSING-TIME-NO-CLOCK-DEFAULT', x => { delete x.after.starts[0].relation.time; }, 'NORMALIZATION_BLOCKED'],
+    ['MALFORMED-DATE', x => { x.after.starts[0].relation.date = '2042-02-30'; }, 'NORMALIZATION_BLOCKED'],
+    ['CALLER-EDGE-SUBSET-NOT-ALLOWED', x => { x.after.edges = [['A', 'B']]; }, 'NORMALIZATION_BLOCKED']
+  ]) { const x = copy(edgeInput); mutate(x); refuse('C1-' + id, x, code); }
+  {
+    const before = 'const affected = ids.some(id => changed.has(id));';
+    const after = 'const affected = JSON.stringify(old) !== JSON.stringify(next);';
+    assert.equal(source.split(before).length, 2, 'unique member-only mutation site');
+    const observed = text => copy(load(text).createStartClassifier(candidateEdge)(edgeInput));
+    assert.deepEqual(observed(source), edgeExpected);
+    let disposable = source.replace(before, after), wrong = observed(disposable);
+    assert.deepEqual(wrong.affectedLineages, []); // Named escaped behavior, no import/throw credit.
+    assert.deepEqual(wrong.before.edges, edgeExpected.before.edges); assert.deepEqual(wrong.after.edges, edgeExpected.after.edges);
+    assert.throws(() => assert.deepEqual(wrong, edgeExpected), {name: 'AssertionError'});
+    disposable = disposable.replace(after, before); assert.equal(disposable, source); assert.equal(hash(disposable), hash(source));
+    assert.deepEqual(observed(disposable), edgeExpected); faults.push('membership-only-classifier');
+    console.log('CLASSIFIER-FAULT membership-only-classifier: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS');
+  }
+  assert.equal(hash(fs.readFileSync(relationFile)), relationSha);
+  return {checks: ids, permutations, freshProcesses, effectiveFaults: faults, relationSha256: relationSha,
+    limitation: 'Only candidateEdge runs in product; normalized provenance/history, version support and eligibility are explicit input assumptions. One relation proves version-label invalidation, not different-algorithm compatibility. Assumed live-view rejoin does not authorize tombstone resurrection. No generation assignment, answer applicability, decoder or schema adoption.'};
 }
 // Every original and resulting observation below is written independently of the
 // overlay implementation. Only the common expected DTO scaffolding is shared.
@@ -349,19 +484,21 @@ try {
     mustRefuseConcurrent(load(disposable));
     faults.push(id); console.log('MODEL-FAULT ' + id + ': ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS');
   }
+  const startClassifier = startClassifierCases();
   assert.equal(fs.readFileSync(filename, 'utf8'), source);
   const result = {status: 'REVIEW_PREPARATION_PASS', modelOnly: true, productAcceptance: false, checks, permutations, freshProcesses,
     observationOverlays: overlays.length, originalEffortVariants: effortTypes.length, replacementFieldSubsets: 7,
-    causalChains: chains.length, chainPermutations,
+    causalChains: chains.length, chainPermutations, startClassifier,
     effectiveFaults: faults, sourceSha256: hash(source), testSha256: hash(fs.readFileSync(__filename)), node: process.version, elapsedMs: performance.now() - start,
     limitations: ['Authentication and complete accepted input are assumptions, not verified.', 'Identifiers, commitments, receipts, lease and schema are model-only placeholders.',
       'Observation corrections target an original set and must cover all prior edits in causal ancestry; removal must cover the full edit lineage.',
       'Reps integer/range domain and reserve prompt eligibility remain OPEN; these checks validate the explicitly proposed structure only.',
       'No legacy numeric effort conversion, clearing, effective-time/generation policy or concurrent winner policy is implemented.',
-      'Fresh Node reconstruction is not IndexedDB, crash durability or a phone test.', 'No training engine, plan writer, authority, transport or canonical implementation runs.']};
+      'Fresh Node reconstruction is not IndexedDB, crash durability or a phone test.', 'Only the pinned candidateEdge relation runs in product; no training engine, plan writer, authority, transport or canonical implementation runs.']};
   const args = process.argv.slice(2);
   if (args.length) { assert.equal(args.length, 2); assert.equal(args[0], '--evidence'); fs.writeFileSync(path.resolve(args[1]), JSON.stringify(result, null, 2) + '\n', {flag: 'wx'}); }
   console.log(`NONCONCURRENT-OBSERVATION OVERLAYS: ${overlays.length}/${overlays.length} exact cases; 7/7 nonempty field subsets; ${effortTypes.length}/7 original effort variants; alias detachment PASS`);
   console.log(`NONCONCURRENT-CAUSAL CHAINS: ${chains.length}/${chains.length} exact cases; ${chainPermutations} delivery permutations; transitive edit/removal coverage PASS; concurrent refusal PASS`);
+  console.log(`START-RELEVANCE CLASSIFIER PREPARATION: ${startClassifier.checks.length}/${startClassifier.checks.length} checks PASS; ${startClassifier.permutations} input permutations; ${startClassifier.freshProcesses} fresh process; ${startClassifier.effectiveFaults.length}/1 effective classifier fault; PINNED RELATION / NORMALIZATION ASSUMED`);
   console.log(`NONCONCURRENT-PROJECTION PREPARATION: ${checks.length}/${checks.length} checks PASS; ${permutations} delivery permutations; ${freshProcesses} fresh processes; ${faults.length}/${faults.length} effective model faults; MODEL ONLY`);
 } catch (error) { console.error('NONCONCURRENT-PROJECTION PREPARATION FAIL — ' + (error.code || error.name)); process.exitCode = 1; }

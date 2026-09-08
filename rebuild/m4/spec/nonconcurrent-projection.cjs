@@ -128,4 +128,118 @@ function project(input) {
     retained: ordered.map(row => ({operationBytes: row.operationBytes, receiptBytes: row.receiptBytes})), // MUTATION: delete-original
     facts: [...facts.values()]};
 }
-module.exports = {ASSUMPTION, Refusal, project};
+// C1 NON-SHIPPING SPECIFICATION. This is NOT the missing authenticated decoder.
+// It assumes complete, supported normalized START views and their provenance.
+// The harness injects unchanged, source-pinned client/session.cjs candidateEdge;
+// the classifier derives EVERY edge itself, never trusts a caller edge subset.
+// No generation allocation, answer applicability (Q1/Q3), persistence or wire
+// schema is implemented. Returned classifications cannot qualify product output.
+// ONE pinned relation applies to both snapshots: changed version labels prove
+// invalidation, not compatibility across different relation implementations.
+// A live-view rejoin is assumed input, not permission to resurrect a tombstone.
+const START_ASSUMPTION = 'ASSUMED_AUTHENTICATED_COMPLETE_NORMALIZED_START_GRAPH';
+function createStartClassifier(candidateEdge) {
+  need(typeof candidateEdge === 'function', 'RELATION_REQUIRED');
+  const key = members => JSON.stringify(members); // Complete array, not delimiter joining.
+  const sorted = xs => xs.slice().sort();
+  const orderText = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+  const sameFields = (a, b, fields) => fields.every(k => a[k] === b[k]);
+  function snapshot(s, athlete) {
+    need(shape(s, ['complete', 'supported', 'ruleVersion', 'normalizerVersion', 'starts']) &&
+      s.complete === true && s.supported === true && text(s.ruleVersion) && text(s.normalizerVersion) &&
+      Array.isArray(s.starts), 'NORMALIZATION_BLOCKED');
+    const rows = new Map();
+    for (const x of s.starts) {
+      need(shape(x, ['id', 'athlete', 'device', 'live', 'eligible', 'relation', 'source']) &&
+        text(x.id) && x.athlete === athlete && text(x.device) &&
+        typeof x.live === 'boolean' && typeof x.eligible === 'boolean', 'NORMALIZATION_BLOCKED');
+      need(shape(x.relation, ['slot', 'date', 'time']) && Object.values(x.relation).every(text) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(x.relation.date) && /^([01]\d|2[0-3]):[0-5]\d$/.test(x.relation.time),
+      'NORMALIZATION_BLOCKED');
+      const day = Date.parse(x.relation.date + 'T00:00:00Z');
+      need(Number.isFinite(day) && new Date(day).toISOString().slice(0, 10) === x.relation.date, 'NORMALIZATION_BLOCKED');
+      need(shape(x.source, ['opId', 'commitment', 'schemaVersion', 'operationBytes', 'receiptBytes', 'planBasis']) &&
+        x.source.opId === x.id && text(x.source.commitment) && Number.isSafeInteger(x.source.schemaVersion) &&
+        x.source.schemaVersion > 0 && ['operationBytes', 'receiptBytes', 'planBasis'].every(k => text(x.source[k])),
+      'NORMALIZATION_BLOCKED');
+      need(!rows.has(x.id), 'START_IDENTITY_CONFLICT'); rows.set(x.id, clone(x));
+    }
+    // Eligibility is relevant metadata, never an invented live-vertex filter.
+    const members = sorted([...rows.values()].filter(x => x.live).map(x => x.id));
+    const edges = [], adjacent = new Map(members.map(id => [id, new Set()]));
+    for (let i = 0; i < members.length; i++) for (let j = i + 1; j < members.length; j++) {
+      const a = members[i], b = members[j];
+      const forward = candidateEdge(rows.get(a).relation, rows.get(b).relation);
+      const reverse = candidateEdge(rows.get(b).relation, rows.get(a).relation);
+      need(typeof forward === 'boolean' && forward === reverse, 'RELATION_BLOCKED');
+      if (forward) { edges.push([a, b]); adjacent.get(a).add(b); adjacent.get(b).add(a); }
+    }
+    const remaining = new Set(members), components = [];
+    for (const id of members) {
+      if (!remaining.delete(id)) continue;
+      const group = [id];
+      for (let i = 0; i < group.length; i++) for (const next of adjacent.get(group[i])) {
+        if (remaining.delete(next)) group.push(next);
+      }
+      const m = sorted(group); components.push({key: key(m), members: m});
+    }
+    return {rows, edges, components, ruleVersion: s.ruleVersion, normalizerVersion: s.normalizerVersion};
+  }
+  return function classifyStartTransition(input) {
+    need(shape(input, ['assumption', 'athlete', 'cause', 'before', 'after']) &&
+      input.assumption === START_ASSUMPTION && text(input.athlete), 'NORMALIZATION_BLOCKED');
+    need(['START_TRANSITION', 'VERSION_ACTIVATION', 'UNRELATED', 'SET_DISPLAY_ONLY'].includes(input.cause), 'NORMALIZATION_BLOCKED');
+    const before = snapshot(input.before, input.athlete), after = snapshot(input.after, input.athlete);
+    for (const [id, x] of before.rows) {
+      need(after.rows.has(id), 'MISSING_RETAINED_START');
+      const y = after.rows.get(id);
+      need(x.athlete === y.athlete && x.device === y.device && sameFields(x.source, y.source,
+        ['opId', 'commitment', 'schemaVersion', 'operationBytes', 'receiptBytes', 'planBasis']), 'START_PROVENANCE_CHANGED');
+    }
+    const versionChanged = before.ruleVersion !== after.ruleVersion || before.normalizerVersion !== after.normalizerVersion;
+    need(!versionChanged || input.cause === 'VERSION_ACTIVATION', 'VERSION_ACTIVATION_REQUIRED');
+    const reasons = new Map(), changed = new Set();
+    const note = (id, reason) => { changed.add(id); if (!reasons.has(id)) reasons.set(id, new Set()); reasons.get(id).add(reason); };
+    for (const [id, y] of after.rows) {
+      const x = before.rows.get(id);
+      if (!x) { note(id, 'START_ADDED'); continue; }
+      if (x.live !== y.live) note(id, 'LIVENESS');
+      if (x.eligible !== y.eligible) note(id, 'ELIGIBILITY');
+      if (!sameFields(x.relation, y.relation, ['slot', 'date', 'time'])) note(id, 'RELATION_INPUT');
+    }
+    const oldEdges = new Set(before.edges.map(key)), newEdges = new Set(after.edges.map(key));
+    for (const e of before.edges) if (!newEdges.has(key(e))) for (const id of e) note(id, 'EDGE_REMOVED');
+    for (const e of after.edges) if (!oldEdges.has(key(e))) for (const id of e) note(id, 'EDGE_ADDED');
+    if (versionChanged) for (const id of after.rows.keys()) note(id, 'VERSION');
+    if (['UNRELATED', 'SET_DISPLAY_ONLY'].includes(input.cause)) {
+      need(!changed.size, 'UNRELATED_START_CHANGE');
+    }
+    const all = [...before.components.map(c => ({side: 'before', ...c})), ...after.components.map(c => ({side: 'after', ...c}))];
+    const remaining = new Set(all.map((_, i) => i)), lineages = [], unchanged = [];
+    // Transitive overlap union includes BOTH snapshots: split/rejoin can connect
+    // components indirectly even when a changed endpoint is not their member.
+    for (let i = 0; i < all.length; i++) {
+      if (!remaining.delete(i)) continue;
+      const indices = [i], members = new Set(all[i].members);
+      for (let n = 0; n < indices.length; n++) for (const j of [...remaining]) {
+        if (all[j].members.some(id => members.has(id))) {
+          remaining.delete(j); indices.push(j); for (const id of all[j].members) members.add(id);
+        }
+      }
+      const old = indices.filter(j => all[j].side === 'before').map(j => all[j].members).sort((a, b) => orderText(key(a), key(b)));
+      const next = indices.filter(j => all[j].side === 'after').map(j => all[j].members).sort((a, b) => orderText(key(a), key(b)));
+      const ids = sorted([...members]);
+      const affected = ids.some(id => changed.has(id)); // MUTATION: membership-only-classifier
+      if (!affected) { unchanged.push(...old.map(m => ({key: key(m), members: m}))); continue; }
+      const why = sorted([...new Set(ids.flatMap(id => [...(reasons.get(id) || [])]))]);
+      lineages.push({members: ids, before: old, after: next, reasons: why});
+    }
+    const order = (a, b) => orderText(key(a.members), key(b.members));
+    lineages.sort(order); unchanged.sort(order);
+    return {model: 'REVIEW_CLASSIFIER_ONLY', inputQualification: 'ASSUMPTION_ONLY',
+      before: {ruleVersion: before.ruleVersion, normalizerVersion: before.normalizerVersion, components: before.components, edges: before.edges},
+      after: {ruleVersion: after.ruleVersion, normalizerVersion: after.normalizerVersion, components: after.components, edges: after.edges},
+      affectedLineages: lineages, unchangedComponents: unchanged};
+  };
+}
+module.exports = {ASSUMPTION, Refusal, project, START_ASSUMPTION, createStartClassifier};

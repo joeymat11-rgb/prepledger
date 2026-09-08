@@ -1,6 +1,44 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.12 live-start normalizer mapping — 2026-09-07
+## Current v0.13 scoped review response preparation — 2026-09-07
+
+Retained PR46 source `6d6f95454b8fca87edeb01b6166f5cdc5c193fcb`; successor changes exactly the existing brief/report and nonconcurrent spec/test pair. The original partition diagnostic, its pins and all product files remain unchanged. The owner authorized one retained Opus5/High public workout-contract review using included capacity. Its first verdict is CHANGES-REQUIRED: original public gates/strict exit0, model101/6720/9/4/native0, partition6 controls/3 requirement-REDs/native2, and10 reviewer challenges/native0. The coordinator verified the original public archive (9882 bytes; SHA256 `e9a5369de5951bd0f489a1b8b958fc48444be9110e5f4ca3f8d646fcb2f77911`) and all8 manifest entries under `work/pr46-independent-review/original`. NOTES records that the original challenge stdout was not saved; no replacement original log is claimed. These are review results on the old exact revision, not acceptance of this successor.
+
+The reviewer withdrew F1–F4 as contract defects: changed relations with unchanged members, old generation revival, delimiter-key collision and mutable-view clock/provenance loss remain real old-code repair obligations. Repairing that old code is not a prerequisite to reviewing its repair contract. The concrete SET-versus-START drafting mismatch is corrected: a set-time edit never remaps parent-start relation fields; only an actually changed reviewed relation/membership input affects its generation. No new time/training rule, ID alphabet or product fix is selected.
+
+C1 now has an executable pure relevance contract. The harness checks the exact unchanged `client/session.cjs` SHA256 `dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3` before importing `candidateEdge`; the model derives all edges, retains every live vertex regardless of eligibility, classifies before/after transitive lineages, and uses complete array identities with code-unit ordering. Handwritten full expected DTOs cover edge changes without member changes, eligibility, late/split/rejoin, unrelated controls, version-label invalidation, order independence, delimiter collision and missing/changed provenance. The member-only mutant really returns the wrong unchanged lineage while retaining the correct complete edges, then literal restoration passes. Existing correction/chain assertions remain101/6720/9/4; new classifier evidence is separately33/576/1/1.
+
+Q3 is clarified without a new owner rule: preserve uncommitted input when required ask-time basis was never established; an already-issued question remains offline-answerable under existing lease/standing/durability/known-change guards; preserve every existing immutable answer through normal reconciliation. There is no mandatory fresh network request before every commit and no invented pending wire operation. The source-backed producer/consumer gap remains explicit: a current-head authenticated complete sync plus qualified workout reduction and question issuance/local atomic recheck do not yet exist as a complete predicate. W5's requested-W snapshot proves only a prefix; W6's durable sink/revision/wire proofs do not create the missing issuance record. Q1 alone remains the pending owner choice about reusing a genuinely ACCEPTED prior answer after exact current-frontier/full-tuple verification; the diagnostic's pending answer does not settle it. Q1 does not block review/publication of independent C1/SET/Q3 clarifications, and no dependent applicability implementation is authorized.
+
+Fresh focused execution on Windows Node24.19.0: `node rebuild/m4/spec/nonconcurrent-projection.test.cjs --evidence <new-path>` exited0 in711.1891ms (runner measurement). Default execution writes nothing. Exact output and JSON are retained in `work/workout-correction-traces/c1-relevance-20260907-final.log` and `.json`; the earlier successful preparation output is preserved separately. `git diff --check` passed. No original diagnostic/full gate was repeated for credit.
+
+```text
+CLASSIFIER-FAULT membership-only-classifier: ORIGINAL PASS / BEHAVIORAL RED / RESTORED PASS
+START-RELEVANCE CLASSIFIER PREPARATION: 33/33 checks PASS; 576 input permutations; 1 fresh process; 1/1 effective classifier fault; PINNED RELATION / NORMALIZATION ASSUMED
+NONCONCURRENT-PROJECTION PREPARATION: 101/101 checks PASS; 6720 delivery permutations; 9 fresh processes; 4/4 effective model faults; MODEL ONLY
+NATIVE_EXIT=0
+```
+
+Final focused source SHA256: spec `cc05bf290481afffe2204440fb6662967a9d23af28c9c98675d320c5b8b9568a`; test `a812a83d2e9fbf89569e6b79d2a71d6c76b71dc6be598095765b4fe121968691`. Normalized authenticated history/provenance/support and effect validity remain input assumptions. One relation on both sides proves version-label invalidation, not migration between different algorithms. Assumed live-view rejoin is not authority to resurrect a tombstoned immutable start. No tuple allocation, answer applicability, schema decode/adoption, private data, storage or phone qualification is proved. The actual partition diagnostic still represents6 controls/3 requirement-REDs/native2 at its previously executed unchanged pin; no current product PASS replaces that result.
+
+Fresh original publication package, same source hashes: all five subprocesses native0 on Windows/Node24.19.0. Recorded results: `work/workout-active-gates-2026-09-08T02-31-57-440Z/results.json`; local preparation0.205s, scope0.228s, conformance7.910s, SELFTEST24.921s, strict48.910s. Reference artifacts were verified; authorized local private preparation remained verdict-only and committed public manifest/goldens stayed unchanged. `node rebuild/m3/w0/scope-package.mjs`, `node rebuild/conform/run.cjs`, its `--selftest`, and `node scripts/check.mjs --strict` ran with explicit `ENGINE_MAIN/ENGINE_OLD` from `work/m2-2-artifacts` and the checkout client, `TZ=America/New_York`, fixed `MEASURED_TEST_NOW=2026-09-03`; strict unsets that clock and PL_ENGINE/PL_LAWS_LIB remain unset throughout. Protected client/authority/engine/conform/soak delta is NONE; final diff check passes.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+```
+
+These are original regression/publication checks, not workout/private-use acceptance. Scope wrapper still reports `SCOPE-FREEZE PENDING` for the new PWA archive, full private suite and final M3 evidence. Exact successor CI and designated affected-revision review remain separate requirements.
+
+Process labels now reflect accepted PR47: source `2dd1bfe489833677237f62185275f6ea2a175eaf`, merge `927728a66d7f759c091339d743cec59bc911bdcb`, record `db044538f63ebc85dd34432e7a4d7ffa8991c959`, DECISIONS77–80. The accepted process brief §4 retains the exact substitute prerequisites; no full D8/D9/HANDOFF/M3/private-use verdict follows. Correction PR48 at `647ce0461f6d75474d7268ea163d082ab0752972` is published with green CI, integration/final I receipt pending. It repairs factual prerequisite examples and a stale process label, not those accepted requirements. The PR47 receipt and current compact checkpoint supply this factual reconciliation; no reviewer, model or merge authority is promoted.
+
+No product/core, original suite, partition diagnostic/pins, dependency, queue/ledger or seeded-soak bytes changed. Same-family preparation is not independent acceptance. Current publication remains the six existing nonshipping proposal/spec/diagnostic files; only four change in this successor on the retained PR46 branch. NEXT: obtain exact successor CI plus designated affected-revision review; the required local publication package above is complete. Review C1 and the clarified single-set/Q3 contracts without first requiring their old-code repairs; retain Q1 and versioned history/currentness/legacy activation joins explicitly OPEN. Stage A as a whole and Stage B product implementation are not approved by this partial contract/evidence. No merge or private-use acceptance is claimed.
+
+## Previous v0.12 live-start normalizer mapping — 2026-09-07
 
 Same retained PR46 at `413a3d54d800f160da0f7c7fb0d6dcc9e010f5ac`; scope is exactly the existing brief/report. V0.12 adds a source-backed information/qualification map immediately after the proposed generation-history binding: immutable start/scope, signed accepted transition, version-specific slot and effective fields, governing basis, liveness/target lineage, separate set/completion evidence, and accepted/pending/rejected decision applicability. It distinguishes observed mutable-view defaults from the proposed authenticated decoder, preventing those shortcuts from becoming accidental schema rules.
 
