@@ -1,5 +1,34 @@
 # ASTRA — owner workout contract preparation
 
+## v0.34 — reconcile accepted component and decision evidence
+Docs-only successor to caf1ab9. Full owner goal unchanged. Opus96 ACCEPT17fa69f
+multi-slot Set/Skip/early-Close/readback, no required corrections/regression; own9/9
+browser attacks,204/204 both bounded/default test-file concurrency,57+38 controlled,
+native durable and clean-build/bite proofs. OOM failure remains in author record;
+reviewer's first unbounded control lacked GIT_DIR and was corrected with provenance.
+Exact17faCI terminal7SUCCESS/
+3SKIP bothOS observed once. No normal-finish/capture/lifecycle/phone/private acceptance.
+Opus94 ACCEPTcaf AS DECISION EVIDENCE; original92REVISE135 preserved. Required six
+corrections closed; reviewer corrected its own claims with primary evidence. Two
+nonblocking source clarifications incorporated: misleading single-set hold why text
+is athlete-facing, and combined guards allow0/1/2/3. No code/rule/target changes,
+new literature review or repeated unchanged writer tests. Three comparisons remain
+UNEXECUTED, no personal or clinical/outcome qualification.
+Archives96:26938bytes SHAc6c93220c5b5bb3269d77a86c09e00a67ebff5004d30e8f3b32aa559bfba06fe;
+94:20353bytes SHAbb560237ce20d050f21f3d0d2a9d905c0f970a11bffc1ac8119357f4a77e43d8.
+Both attached NOT locallyreceived/rehashed/replayed; original92 and priors preserved.
+ExactcafCI terminal7SUCCESS/3SKIP bothOS. First docs-only gate22:43:03 failed on
+ENOSPC while writing the scope ZIP, then its log; original failed run retained.
+No files deleted. Small later free-space increase was unattributed; focused scope
+rerun passed. Complete docs gates22:56:59 all native0: fresh private preparation/
+verdict only/public pins, frozen18actualZIP,99/99/29/70+rig185W1/W2,SELFTEST,
+strict(clock unset),diff. Evidence work/owner-workout-v08-gates-2026-09-08T22-56-59-285Z.
+This is a small documentation publication; broader disk capacity remains unresolved. One retained helper prepares exact capture/P1 joining contract; no adopted
+protocol/accepted-boundary code edit. NEXT: qualified capture/history/issuer/lifecycle
+and existing private/integrator/phone gates through the same coordinator. Brief and
+compact checkpoint aligned, no new queue/schedule/model/custody/credit or owner relay.
+Status incorporation approximately5minutes; no claimed measured usage saving.
+
 ## v0.33 — substantive effort-evidence corrections after Opus92
 Original135a919 verdict REVISE retained: R1 missing main results, R2 omitted differential tolerability/feasibility, R3 ambiguous Refalo2024 label; C1 set-count wording, C2 single-set guard exception, C3 off-by-one project citation. All six addressed in the brief, preserving original code and policy. Reviewer independently fetched two PDFs, executed5/5 source-ladder checks and retained its failed access commands; it did not refetch the older four sources. Archive50520bytes SHAff47ea17b741ac60a01931fbc67e6a68def9c1128488c3f049444a964e572171 attached NOT locallyreceived/rehashed/replayed. No fake archive custody or independent acceptance of this successor.
 Root checked Robinson2025 public full PDF via web and Refalo2024 relevant full-PDF passages via bundled pypdf (web timed out twice; direct public-source download succeeded). Main results now accompany limitations; Refalo source explicitly says the RIR-strain participant restarted after recovery and all completed, so the review's study-ending shorthand is qualified. Robinson's non-failure lower-body modification and absence of clear longitudinal fatigue differences are retained as counterweights. No causal injury-rate, universal target, superiority or individual qualification claim. Source PDFs/extraction remain local public research evidence; no private records accessed.
