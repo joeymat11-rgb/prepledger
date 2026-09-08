@@ -1,5 +1,41 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Callback diagnostic hardening — successor to accepted09f5bce
+
+Opus86 independently ACCEPTED09f5bce: Linux202/202, native workout browser, existing
+current-head5/56/six36 browser checks, schema bite/restoration, core34/HTTP9 and11
+own challenges native0. It reconciled committedLF75a55737... with WindowsCRLF3273...
+and independently checked shared source equality. Original29413-byte archive SHA
+def370a612bc9bad4ce2ce77ae8e7b650ee4a0f8376d1af22dad1a40976bbead attached, NOT locally
+received/hashed/replayed. Original verdict retained. Exact09f5CI7SUCCESS/3SKIP bothOS
+terminal; no repoll. Reviewer publication/cleanbuild/Windows checks NOT RUN.
+
+Author final diagnostic found a separate narrow §6 requirement gap: a faulty
+configured prepare method can return an action whose payload GETTER throws.
+The actual Ops.build reads it after the inner prepare try/catch, so09f5 refused3
+with zero operations/outbox but exposed the synthetic callback marker in its error
+text. This is a direct configured-core fault; the actual pinned W6 static profile
+never returns that object and a provider cannot replace it. No request-exploitable
+path, saved-data failure or training-rule defect is claimed. The existing contract
+requires callback errors sanitized. New focused test RED/native1 before the fix;
+its paired helper-copy assertion passed (1/2 overall). Raw first output retained in
+work/workout-callback-red.log; a direct native-exit repetition confirmed1.
+
+Change only the new-workout outer build-error branch to a fixed diagnostic; legacy
+errors remain exact. Add the property-accessor regression and Opus86's nonblocking
+N1 assertion that the duplicated descriptor helper matches accepted schema code
+(CRLF/LF normalized for source-text comparison, no refactor). Focused10/10 native0;
+actual composed204/204 native0 (149existing+54focused+1HTTP), same baseline35/56.
+work/workout-client-callback-full.log and temporaryearned-w6-current-head-CANpaC
+retain actual outputs. Current-source schema bite DETECTED/native1; byte-restored WindowsworkingSHA bd340c32239413adf4752c68ca2b084b059777c5458641c833a4c3a40bbb75c1 with54focusedPASS, native browser workout PASS;
+original09f5 boundary acceptance remains attributed only to its own bytes.
+Required successor publication gates all native0 atwork/w6-current-head-gates-2026-09-08T21-25-09-509Z: preparation/private-verdict/public pins, frozen18actualZIP, conformance99/99/29/70+rig185W1W2, SELFTEST, strict3072(clockunset), diff. Affected independent re-review and new-head CI pending. Correction work approximately10minutes; review separate.
+No other source, interface, rule, scope, custody or existing release hold changes.
+NEXT: close this affected correction, then use APM FIRST-USE-CUT-01 findings to
+extend the smallest sufficientlyclosed actual workout journey, as amendment§26
+requires. Full goal remains; helper mapping is preparation, not an acceptance gate.
+
+
 ## Actual workout command component — 2026-09-08, successor to cdf698d
 
 Executes PR46 BRIEF-OWNER-WORKOUT v0.29 / WORKOUT-BASIC-SCHEMA §6 at

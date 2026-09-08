@@ -182,7 +182,10 @@ function createClient(config) {
           } catch (_) { invalidWorkout(); }
         }
         ops.push(op); pred = op.op_id; });
-    } catch (e) { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(e.message), invalid: e.validation || [e.message] }; }
+    } catch (e) {
+      if (workout) e = new Error("WORKOUT_INPUT_INVALID"); // Includes faulty prepared-action getters reached by Ops.build.
+      return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(e.message), invalid: e.validation || [e.message] };
+    }
     if (cfg.onPreparedBatch) {
       try {
         const descriptor = deepFreeze(deepCopy({ version: "earned/client-batch/v1", athleteId: model.athleteId, deviceId: model.deviceId,

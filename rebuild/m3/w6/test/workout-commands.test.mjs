@@ -146,7 +146,7 @@ test('provider cannot replace pinned static workout validation in actual W6 stag
  }finally{f.repo.close();}
 });
 
-for(const variant of ['missing','throw','promise','rejected-promise','nonboolean','prepare-promise','prepare-rejected','prepare-identity-override'])test(`broken ${variant} profile has no effects or unhandled rejection`,async()=>{
+for(const variant of ['missing','throw','promise','rejected-promise','nonboolean','prepare-promise','prepare-rejected','prepare-identity-override','prepare-property-throw'])test(`broken ${variant} profile has no effects or unhandled rejection`,async()=>{
  const original=createWorkoutCommands();let profile={...original};
  if(variant==='missing')profile=undefined;
  else if(variant==='throw')profile.validate=()=>{throw new Error('secret-bearing callback error');};
@@ -155,6 +155,7 @@ for(const variant of ['missing','throw','promise','rejected-promise','nonboolean
  else if(variant==='nonboolean')profile.validate=()=>({valid:true});
  else if(variant==='prepare-promise')profile.prepare=()=>Promise.resolve({});
  else if(variant==='prepare-rejected')profile.prepare=()=>Promise.reject(new Error('secret-bearing callback error'));
+ else if(variant==='prepare-property-throw')profile.prepare=r=>{const a=original.prepare(r);Object.defineProperty(a,'payload',{get(){throw Error('secret-bearing callback error');}});return a;};
  else profile.prepare=r=>({...original.prepare(r),extra:{op_id:'caller-overwrite'}});
  const {c}=direct({config:{workoutCommands:profile}});const r=c.workout(copy(start));
  assert.equal(r.acknowledged,false);assert.equal(r.state,3);assert.equal(c.outbox().length,0);assert.equal(c.model.ops.size,0);
@@ -206,4 +207,12 @@ test('mapper rejects getters, malformed wrappers and caller extras without invok
 test('readOperation gives copies; a validator cannot alter a known operation',()=>{
  const profile=createWorkoutCommands(),{c}=direct({config:{workoutCommands:{...profile,validate(op,read){const parent=read('parent');parent.kind='changed';return false;}}}});
  const original=reference('parent');seedReference(c,original);assert.equal(c.workout(start).acknowledged,false);assert.deepEqual(c.envelope('parent'),original);
+});
+
+
+test('copied descriptor helper stays identical to accepted shared shape code',()=>{
+ const fs=require('node:fs');
+ const source=name=>fs.readFileSync(new URL('../../../m4/workout/'+name,import.meta.url),'utf8').replaceAll('\r\n','\n');
+ const helper=text=>{const found=/function jsonData\(input\) \{[\s\S]*?\n\}/.exec(text);assert.ok(found);return found[0];};
+ assert.equal(helper(source('commands.cjs')),helper(source('schema.cjs')));
 });
