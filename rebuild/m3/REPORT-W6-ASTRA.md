@@ -1,5 +1,25 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Composed browser evidence — successor to ffaeaad, 2026-09-08
+
+Product files and their hashes in the next section are UNCHANGED. This follow-up changes only the existing browser-contract test, composition runner and report; eight cumulative files from0d7f5e0. The independently requested product review remains pinned to ffaeaad. No original frozen suite, validator, identity/signature contract or historical assertion changes.
+
+Running the existing browser test against the actual composed new dependency first failed with `verified:7/refused:49` versus its hardcoded historical `6/36`: it enumerated every newly added signer domain while expecting only the original six. The correction explicitly enumerates and verifies the immutable fixture's six historical domain strings, keeps their original six successes/36 tamper-domain refusals, and adds a separate current-head product path. This preserves original coverage rather than lowering its expected count or asserting a dynamically shrinking domain set. New profile absence is explicitly BLOCKED when testing the retained old W5; the composed dependency must supply it and the Node dependency check fails otherwise.
+
+Five new browser cases execute actual compiled public-client, WebCrypto, T2 stage and real IndexedDB: empty/nonempty reply retains the exact complete signed envelope and existing outbox; a newly created client verifies persisted history without fresh observation or a write; a valid outer envelope with damaged inner signature is refused12 with the complete prior state unchanged; an actual local write while reply delivery waits invalidates the original capture18 and preserves the competing write. Transport/signing and observation guard are explicitly synthetic in these browser cases. Reopen means a new client over the same repository/key, not a phone reboot or new key-recovery claim. The prior separate Node case uses actual R1/local-D1/HTTP.
+
+```text
+W6_BROWSER_BIN=<installed Chromium executable>
+node rebuild/m3/w6/test/run-current-head.cjs <R1-checkout> --all --browser
+149 tests;149 pass;0 fail; native exit0
+W6 BROWSER-CURRENT-HEAD PASS — 5/5 actual WebCrypto/T2/IndexedDB cases: empty/nonempty exact envelope+outbox, historical reopen, inner-signature refusal, real competing local write; synthetic signer/transport/observation guard; not phone/CLOCK
+W6 BROWSER-T2 PASS — 56 exact Node/browser action/state/clock vectors; 6 signed surfaces +36 tamper/domain refusals; actual T2 session/finish persisted in IndexedDB; Chromium 152.0.4191.66
+```
+
+The same disposable original-revision bite now fails BOTH Node tests and the actual browser local-write assertion (`true !== false`, browser-contract.mjs:169), browser native1; restored product bytes yield149/149 and5/5, both native0. Product/restoration hashes remain the next section's exact pins. The runner records separate browser native exits/stdout/stderr; its child environment does not change the retained checkout. The retained-old-W5 browser baseline also passes all original assertions and truthfully prints the new capability BLOCKED. Logs: work/w6-current-head-composed-browser-first.log, work/w6-current-head-browser-{bite,restored}.log and their printed disposable directories. First result remains preserved. This approximately17:39–17:43Z follow-up closes an author browser-evidence gap; independent execution, real Safari, knowledge fence, production joins and private/integrator gates remain open. NEXT remains the same bounded review and full-workout dependency work; no new stream or schedule.
+
+Fresh mandatory gates on this test/report successor PASS/native0: preparation/private-verdict and unchanged public pins; frozen paths/actual18-file ZIP; original conformance99/99/29/70 and rig185W1/W2; SELFTEST; strict3072 with test clock unset; diff-check. Logs work/w6-current-head-gates-2026-09-08T17-42-48-634Z. Product pins rechecked unchanged. Exact successor CI remains pending publication; the reviewer is asked to preserve its product assessment and inspect the added browser evidence separately.
+
 ## Current-head durable consumer — 2026-09-08
 
 Retained PR32, base `0d7f5e0cb5bd114ff87f699574fc45bb052703ea`; paired public dependency R1 `d26795a47d638ec1e67840455273cc05eeca9926`. The coordinator resumes the existing paused W6 claim for the bounded `w6/CURRENT-HEAD-CONSUMER.md` contract. This adds the actual durable consumer to the reviewed producer; it does not merge R1, relax its resource failure, implement question issuance, or establish private/phone readiness. Seven changed/added files: this report, that contract, public-client.mjs, t2-stage.cjs, history-proof.mjs and two owned test/runner files. Frozen app, original suite, existing T2/core, storage/clock implementation, dependencies and seeded soak remain unchanged.

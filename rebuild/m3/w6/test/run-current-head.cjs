@@ -4,7 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),cp=require('node:child_process'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'../../../..'),r1=path.resolve(process.argv[2]||'');
 const base='d26795a47d638ec1e67840455273cc05eeca9926';
-if(!process.argv[2])throw Error('Usage: node test/run-current-head.cjs <retained-R1-repo> [--all]');
+if(!process.argv[2])throw Error('Usage: node test/run-current-head.cjs <retained-R1-repo> [--all] [--browser] [--bite]');
 const output=fs.mkdtempSync(path.join(os.tmpdir(),'earned-w6-current-head-'));
 function git(args,cwd=root){const p=cp.spawnSync('git',args,{cwd,windowsHide:true,maxBuffer:64e6});if(p.status!==0)throw Error('Public source preparation failed: '+args[0]);return p.stdout;}
 const archive=path.join(output,'public-dependency.tar');
@@ -46,7 +46,13 @@ const args=['--test','--test-timeout=30000',...namesToRun.map(n=>path.join(testD
 const gitDir=git(['rev-parse','--absolute-git-dir']).toString().trim();
 const started=performance.now(),run=cp.spawnSync(process.execPath,args,{cwd:output,env:{...process.env,GIT_DIR:gitDir,GIT_WORK_TREE:output},windowsHide:true,encoding:'utf8',maxBuffer:32e6});
 fs.writeFileSync(path.join(output,'test.stdout.log'),run.stdout||'');fs.writeFileSync(path.join(output,'test.stderr.log'),run.stderr||'');
+let browser=null;
+if(process.argv.includes('--browser')){
+  browser=cp.spawnSync(process.execPath,[path.join(testDir,'browser-contract.mjs')],{cwd:output,env:process.env,windowsHide:true,encoding:'utf8',maxBuffer:32e6});
+  fs.writeFileSync(path.join(output,'browser.stdout.log'),browser.stdout||'');fs.writeFileSync(path.join(output,'browser.stderr.log'),browser.stderr||'');
+}
 for(const [name,hash]of Object.entries(pins))if(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex')!==hash)throw Error('Candidate changed during run');
-fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({node:process.version,exit:run.status,elapsedMs:performance.now()-started,tests:namesToRun,mutation},null,2));
+fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({node:process.version,exit:run.status,browserExit:browser?.status??null,elapsedMs:performance.now()-started,tests:namesToRun,mutation},null,2));
 console.log('COMPOSED W6 OUTPUT '+output);process.stdout.write(run.stdout||'');process.stderr.write(run.stderr||'');
-process.exitCode=run.status===0?0:1;
+if(browser){process.stdout.write(browser.stdout||'');process.stderr.write(browser.stderr||'');}
+process.exitCode=run.status===0&&(!browser||browser.status===0)?0:1;

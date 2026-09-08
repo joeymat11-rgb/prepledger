@@ -16,7 +16,10 @@ if (!process.env.W6_BROWSER_BIN || !existsSync(process.env.W6_BROWSER_BIN)) {
 }
 const built = await buildBrowser({ outfile: join(here, ".tmp/browser/contract.js"), entryPoints: [join(here, "test/browser-contract-entry.mjs")] });
 const key = Signer.generateSigningKey("w6-run"), publicKey = Signer.publicKeyOf(key);
-const records = Object.keys(Signer.DOMAINS).map(kind => {
+// Keep all six historical assertions fixed when a later dependency adds a domain.
+// The new current-head domain/consumer gets an explicit additional path below.
+for (const [kind, domain] of Object.entries(vectors.domains)) assert.equal(Signer.DOMAINS[kind], domain);
+const records = Object.keys(vectors.domains).map(kind => {
   const suffix = kind[0].toUpperCase() + kind.slice(1);
   const record = Signer[`sign${suffix}`]({ text: "Cafe\u0301", n: 3, causal_parents: ["b", "a", "b"] }, key);
   return { kind, record };
@@ -50,7 +53,7 @@ try {
       if (await verifier[name](record)) verified++;
       if (!await verifier[name]({ ...record, n: 4 })) refused++;
       for (const domain of Object.values(W6.W5.DOMAINS).filter(value => value !== W6.W5.DOMAINS[kind])) {
-        if (!await verifier.verifyRecord(record, domain, kind === "lease" ? "signature" : "authority_signature")) refused++;
+        if (Object.values(vectors.domains).includes(domain) && !await verifier.verifyRecord(record, domain, kind === "lease" ? "signature" : "authority_signature")) refused++;
       }
     }
     for (const vector of vectors.canonicalVectors) {
@@ -86,9 +89,10 @@ try {
     seed.metadata.authorityLease = lease; await publicRepo.initialize(seed, "synthetic-only");
     window.refusePublic = null;
     const stage = W6.Stage.createT2Stage(() => ({ ...cfg, clock: { now: () => "2026-09-04T00:00:00Z", today: () => "2026-09-04", tz: "+00:00", monotonicMs: () => 0 } }), { allowInbound: true });
-    window.publicClient = W6.createDurablePublicClient({ repository: publicRepo, stage, namespace: "synthetic/public-A", athleteId: "ath-1", deviceId: "dev-A", sessionEpoch: 1,
+    window.publicArgs = { repository: publicRepo, stage, namespace: "synthetic/public-A", athleteId: "ath-1", deviceId: "dev-A", sessionEpoch: 1,
       isCurrentSession: () => true, observationEpoch: () => 1, observationGuard: { run: async (_kind, action) => action() }, // Synthetic only, not the durable knowledge fence.
-      keys: [publicKey], validateCommit: () => refusePublic ? { state: refusePublic, code: "SYNTHETIC_FINAL_REFUSAL" } : null });
+      keys: [publicKey], validateCommit: () => refusePublic ? { state: refusePublic, code: "SYNTHETIC_FINAL_REFUSAL" } : null };
+    window.publicClient = W6.createDurablePublicClient(publicArgs);
     const write = await publicClient.execute("weighIn", { lb: 170.6 });
     return (await publicRepo.load()).generation.collections.ops[write.op_id];
   }, { seed: initial(), cfg, lease: publicLease, publicKey });
@@ -111,6 +115,61 @@ try {
     return { result, same: JSON.stringify(await publicRepo.load()) === JSON.stringify(before) };
   }, emptyPull);
   assert.equal(refused.result.state, 20); assert.equal(refused.result.result.durable, false); assert.equal(refused.same, true);
+  if (Signer.DOMAINS.currentHead !== undefined) {
+    assert.equal(Signer.DOMAINS.currentHead, "earned/current-head/v1");
+    let mode = "empty", lastHead;
+    const Ops = require("../../../client/ops.cjs");
+    await page.exposeFunction("syntheticHeadReply", request => {
+      const receipts = [];
+      if (mode !== "empty") {
+        const op = Ops.build({ op_id: "browser-remote-head", athlete_id: "ath-1", device_id: "dev-B", device_seq: 1,
+          parents: [], kind: "fact", class: "reading", effective: { local_date: "2026-09-04", local_time: "00:00", utc_offset: "+00:00" },
+          lease_id: "synthetic-remote", payload: { lb: { value: 160, unit: "lb" } } }, "synthetic-only");
+        const receipt = Signer.signReceipt({ seq: request.after + 1, op_id: op.op_id, canonical_content_commitment: op.canonical_content_commitment,
+          op, accepted_at: "2026-09-04T00:00:00Z" }, key);
+        if (mode === "bad-inner") receipt.op.payload.lb.value++;
+        receipts.push(receipt);
+      }
+      lastHead = Signer.signCurrentHead({ ...request, athlete_id: "ath-1", head: request.after + receipts.length,
+        through: request.after + receipts.length, receipts, wire_version: "earned/w5-http/v1", key_epoch: publicKey.kid }, key);
+      return { wireVersion: "earned/w5-http/v1", body: lastHead };
+    });
+    await page.evaluate(async () => { refusePublic = null; const r = await publicClient.execute("weighIn", { lb: 170.8 }); if (!r.acknowledged) throw Error("Local positive control failed"); });
+    for (const selected of ["empty", "nonempty"]) {
+      mode = selected;
+      const actual = await page.evaluate(async () => {
+        const before = await publicRepo.load();
+        const result = await publicClient.exchangeCurrentHead(q => syntheticHeadReply(q), { issuanceAttempt: "browser-head" });
+        return { before, result, after: await publicRepo.load() };
+      });
+      assert.equal(actual.result.accepted, true); assert.equal(actual.result.result.confirmed, true);
+      assert.equal(actual.after.revision, actual.before.revision + 1);
+      assert.deepEqual(actual.after.generation.metadata.wireProofs.currentHead[lastHead.authority_signature], lastHead);
+      assert.deepEqual(actual.after.generation.collections.outbox, actual.before.generation.collections.outbox);
+    }
+    const history = await page.evaluate(async () => {
+      const before = await publicRepo.load(), reopened = W6.createDurablePublicClient(publicArgs);
+      return { view: await reopened.reopen(), before, after: await publicRepo.load(), hasObservation: Object.hasOwn(reopened.current(), "observation") };
+    });
+    assert.equal(history.view.refusal, null); assert.equal(history.hasObservation, false); assert.deepEqual(history.after, history.before);
+    mode = "bad-inner";
+    const bad = await page.evaluate(async () => {
+      const before = await publicRepo.load(), result = await publicClient.exchangeCurrentHead(q => syntheticHeadReply(q), { issuanceAttempt: "bad-inner" });
+      return { before, result, after: await publicRepo.load() };
+    });
+    assert.equal(bad.result.accepted, false); assert.equal(bad.result.state, 12); assert.deepEqual(bad.after, bad.before);
+    mode = "empty";
+    const race = await page.evaluate(async () => {
+      let request, enter, release; const entered = new Promise(resolve => { enter = resolve; });
+      const pending = publicClient.exchangeCurrentHead(q => { request = q; enter(); return new Promise(resolve => { release = resolve; }); }, { issuanceAttempt: "browser-race" });
+      await entered; const write = await publicClient.execute("weighIn", { lb: 170.9 });
+      const afterWrite = await publicRepo.load(); release(await syntheticHeadReply(request));
+      return { write, afterWrite, result: await pending, after: await publicRepo.load() };
+    });
+    assert.equal(race.write.acknowledged, true); assert.equal(race.result.accepted, false); assert.equal(race.result.state, 18);
+    assert.deepEqual(race.after, race.afterWrite);
+    console.log("W6 BROWSER-CURRENT-HEAD PASS — 5/5 actual WebCrypto/T2/IndexedDB cases: empty/nonempty exact envelope+outbox, historical reopen, inner-signature refusal, real competing local write; synthetic signer/transport/observation guard; not phone/CLOCK");
+  } else console.log("W6 BROWSER-CURRENT-HEAD BLOCKED — retained old W5 dependency; use the explicitly pinned composition for this new capability");
   console.log(`W6 BROWSER-T2 PASS — 56 exact Node/browser action/state/clock vectors; 6 signed surfaces +36 tamper/domain refusals; actual T2 session/finish persisted in IndexedDB; Chromium ${context.browser().version()}`);
   console.log("W6 BROWSER-PUBLIC-SINK PASS — verified P-256 disposition through actual T2 and IndexedDB, forged response no drain, original proof retained, final20 abort preserves generation");
   console.log("W6 CLOCK / full STANDING / iPhone acceptance BLOCKED — time bounds, knowledge fence and phone evidence remain unproved");
