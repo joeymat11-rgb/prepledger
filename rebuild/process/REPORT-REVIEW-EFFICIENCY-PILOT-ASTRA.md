@@ -131,9 +131,15 @@ NEXT: final-revision PR47 review and designated I composition/integration follow
 
 ## 7. Close this amendment through the existing review and integration route
 
-**Final technical verdict: PENDING. Final candidate/accepting receipt/integration
-SHA and combined-check evidence: PENDING until actually supplied.** The active
-review is PR47 only. PR46 proceeds independently under its own unchanged gates.
+**Final technical verdict: scoped public ACCEPT at candidate
+2dd1bfe489833677237f62185275f6ea2a175eaf (retained Opus5/High session
+01SAJZorAhzfSEv3oE6xibr9, PR47-only). Integrated by the designated I at merge
+927728a66d7f759c091339d743cec59bc911bdcb (tree 3e53bf156bfa3fee36d7633bf075d51788ecea05)
+after combined checks on the merged tree: scope-package FROZEN-PATHS/OLD-PACKAGE PASS,
+SUITE CONSISTENT with rig185 W1/W2 PASS, SELFTEST PASS, selector tests 70/70,
+D12 mapping UNKNOWN/exit 2 (retained), strict PASS, archived reviewer replays
+28/28 + 9/9, private golden verified verdict-only; records DECISIONS:77–80.** The
+review was PR47 only. PR46 proceeds independently under its own unchanged gates.
 Owner direction is not technical acceptance and publication is not integration.
 
 1. The existing reviewer returns scoped findings against the exact candidate.
