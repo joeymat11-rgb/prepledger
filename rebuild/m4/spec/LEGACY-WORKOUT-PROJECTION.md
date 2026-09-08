@@ -6,6 +6,12 @@ Dependency: actual retained R1 `003c816e695fce7e77e17665f25d8cdcc2435211`.
 New files: `legacy-workout-view.cjs`, `legacy-workout-projection.cjs` and its test.
 These do not inherit the earlier reader's independent acceptance.
 
+Scoped review of `3b88b52` accepted the causal value fold with material consumer
+preconditions F1–F3. This successor retains omitted class-mixed session-kind facts
+and explicitly joins contextual issues/reference status on each set. The original
+verdict and13 independent challenges remain preserved. Corrective acceptance is
+still separate; no full-product/private-use acceptance is inferred.
+
 ## Consumer contract
 
 `createLegacyWorkoutView(reader)` and `createLegacyWorkoutProjection(reader)` link
@@ -22,6 +28,19 @@ It does not infer a causal relationship, session partition or consent from day,
 device, order or a legacy reference. Missing effort remains unknown and missing
 plan basis remains null; unsupported payloads stay uninterpreted. Legacy
 class-reading edits targeting session facts remain visible.
+
+Here each operation means workout-relevant captured facts, not unrelated readings.
+Session-class OR session-kind facts, and effects targeting either, remain visible.
+Legacy generic validation can admit a session-kind fact under another class:
+retain it UNINTERPRETED with UNSUPPORTED_SESSION_CLASS and exact bytes; do not
+discard it or qualify its numeric values. The recorded source still retains the
+full authenticated payload, including unrelated facts. Each projected set now
+carries `issues` joined from BOTH view and reader by opId, plus `association` from
+the view or UNRESOLVED. `unresolved` lists value-fold failures only: INCLUDED
+quantities may have incomplete context. Show relevant context with each entry.
+`sessionStartId` is a raw reference, not a resolved partition. Even
+RECORDED_REFERENCE identifies only a legacy START-shaped reference, not a
+complete, eligible or current workout. The supplied UI deliberately does not group.
 
 The observation projection supports schema1 original session-set quantities plus
 explicit causal corrections of load/reps and a subsequent targeted tombstone.
@@ -81,7 +100,13 @@ records were retained. Neither fix changed frozen/core behavior or expectations.
 Original13-case view evidence and initial19-case projection result remain; final20
 adds both concurrency orders and valid declared transport predecessor fixtures.
 
-Next: independently assess this profile and integrate its supported observations
+Consumer-repair successor:23/23 PASS, preserving all20 original cases/two faults.
+Three new actual-admission regressions retain an accepted class-mixed set, join
+unresolved START-reference context and carry extra-field warnings. Each desired
+assertion separately FAILS native1 on exact3b88b52 source in a disposable directory;
+all three PASS after the narrow repair. Core legacy validation is unchanged.
+
+Next: independently assess this corrected profile and integrate its observations
 into the complete workout path only with required schema/engine/currentness/storage
 and existing independent/phone gates. Do not rename this candidate a shipped logger,
 approved prescription engine or completed private pilot.

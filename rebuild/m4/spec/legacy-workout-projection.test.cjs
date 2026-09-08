@@ -92,6 +92,32 @@ const reader=f=>createReader({keys:[K.publicKeyOf(f.key)],subtle:crypto.webcrypt
     assert(e.readerIssues.some(i=>i.code==='MISSING_LEGACY_SLOT'));assert(e.readerIssues.some(i=>i.code==='UNSUPPORTED_START_FIELDS'));
     assert(r.view.issues.some(i=>i.opId===op.op_id&&i.code==='UNSUPPORTED_SESSION_PAYLOAD'));assert.equal(r.decisionReady,false);
   });
+  const legacySet=(id,klass,ref,fields={})=>Ops.build({op_id:id,athlete_id:f.athleteId,device_id:'device-a',device_seq:6,
+    predecessor:priorEdit,parents:[],class:klass,kind:'session-set',
+    effective:{local_date:'2026-09-06',local_time:'12:00',utc_offset:'-04:00'},lease_id:'lease-device-a',
+    payload:{load:{value:60,unit:'lb'},reps:{value:5,unit:'rep'},session_start_id:ref,...fields}},identity);
+  const consumerCases={
+    mixed:legacySet('class-mixed-set','reading',authored[0].op_id),
+    badref:legacySet('bad-start-reference','session',authored[1].op_id),
+    extra:legacySet('extra-set-field','session',authored[0].op_id,{tempo:'3-1-1'})
+  };
+  await check('ACCEPTED-CLASS-MIXED-SET-RETAINED-UNINTERPRETED',async()=>{
+    const r=await trial([consumerCases.mixed]),s=set(r,consumerCases.mixed.op_id);
+    assert(s,'Accepted session-kind fact must not vanish');assert.equal(s.state,'UNRESOLVED');assert.equal(s.observations,null);
+    assert.deepEqual(s.original,consumerCases.mixed.payload);assert(s.issues.some(i=>i.code==='UNSUPPORTED_SESSION_CLASS'));
+    assert(r.recorded.events.some(e=>e.id===s.id&&e.interpretation==='UNINTERPRETED'));
+  });
+  await check('SET-REFERENCE-CONTEXT-JOINS-PROJECTED-OBSERVATION',async()=>{
+    const r=await trial([consumerCases.badref]),s=set(r,consumerCases.badref.op_id);
+    assert.equal(s.state,'INCLUDED');assert.equal(s.association,'UNRESOLVED');assert.equal(s.sessionStartId,authored[1].op_id);
+    assert(s.issues.some(i=>i.code==='MISSING_OR_UNSUPPORTED_START_REFERENCE'));
+    assert.equal(s.observations.load.value,60);assert.equal(r.decisionReady,false);
+  });
+  await check('UNINTERPRETED-EXTRA-FIELDS-JOIN-PROJECTED-CONTEXT',async()=>{
+    const r=await trial([consumerCases.extra]),s=set(r,consumerCases.extra.op_id);
+    assert.equal(s.state,'INCLUDED');assert.equal(s.association,'RECORDED_REFERENCE');
+    assert(s.issues.some(i=>i.code==='UNINTERPRETED_SET_FIELDS'));assert.equal(s.original.tempo,'3-1-1');assert.equal(r.decisionReady,false);
+  });
   for(const[p,h]of Object.entries(pins))assert.equal(hash(fs.readFileSync(path.join(root,p))),h,p);
   if(out)fs.writeFileSync(out,JSON.stringify({ref,readerSha:hash(fs.readFileSync(readerPath)),viewSha:hash(fs.readFileSync(path.join(__dirname,'legacy-workout-view.cjs'))),projectionSha:hash(fs.readFileSync(path.join(__dirname,'legacy-workout-projection.cjs'))),scope:'actual T2 writer and P256-core admission/WAITING drain plus R1 signed projection and verifier; synthetic genesis/issuer rows and distinct local HMAC lease fixture; memory only, not D1/HTTP/IDB/phone/currentness/qualified workout fold',results,pins},null,2)+'\n',{flag:'wx'});
   console.log('LEGACY WORKOUT VIEW: '+results.length+'/'+results.length+' PASS; actual writer/core/history; no product changes');

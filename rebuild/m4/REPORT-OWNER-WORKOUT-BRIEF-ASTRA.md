@@ -1,5 +1,79 @@
 # ASTRA — owner workout contract preparation
 
+## Current v0.17 — visible history and reviewed consumer repairs
+
+Same parent3b88b52/retained PR46. Twelve-file candidate: six workout UI/test/README
+files, four legacy view/projection/test/README files, this report and existing
+brief. No frozen app, accepted reader, core, engine, original suite, dependency,
+private artifact or seeded-soak change. This remains an unconnected read-only
+component and historical observation profile, not a shipped private logger.
+
+Retained Opus Message52 accepted the causal fold at3b88b52 with three material
+consumer preconditions. Original17419byte archive SHA256
+`a093a729b00a8e465456ee1d1939dfee084779da9f420a3daea1f9df9c85f0bb`
+verified against all7 manifest members (review prose said6; actual manifest7).
+Its unchanged independently authored13 challenges reproduced13/13 native0 on
+Windows/Node24, confirming the findings before repair. Reviewer Node22 and its
+two corrected harness errors are disclosed in the original evidence. Source,
+original verdict, outputs and author assessment remain under coordinator
+`work/workout-schema-prep/opus-projection-review/`; no prior acceptance is expanded.
+
+F1: generic legacy validation admits a session-kind set in class reading. The old
+view omitted it. The repair retains all session-class OR session-kind facts and
+effects targeting either; a mixed-class original is UNINTERPRETED with exact bytes
+and no qualified numeric observation. F2/F3: every projected set now carries both
+view/reader context issues and its association status. Value-fold inclusion remains
+separate from missing context; no grouping by raw START reference is added. The UI
+shows relevant warnings on each card, including unsupported fields and unknown
+workout reference, rather than relying only on a page-wide caution. Causal fold,
+training rules, record authority and original dispositions remain unchanged.
+
+Three new desired assertions separately FAIL native1 on disposable exact3b88b52
+source with actual admission/signatures; all PASS on the repair. Original20 cases
+and two effective faults retained: **history23/23 PASS**. **DOM15/15 PASS** includes
+actual signed cases for each repair. **Chromium4/4 PASS** at390/320px and200% text;
+the earlier overflow failure remains preserved. Published-path corrected outputs:
+coordinator `work/workout-history-ui-prep/corrected-evidence/`. Actual UI module hash
+`cb974c5f7c92bfaf7629f0b1e9e0240b010c989b6da47198a75a8cd6fa8664d6`.
+Memory fixtures and explicit presentation-lifecycle stubs do not establish issuer,
+D1/HTTP/IDB, real account switching, iOS, VoiceOver or private-use qualification.
+
+Initial UI publication gates passed before these code repairs, logs
+`work/owner-workout-v08-gates-2026-09-08T15-27-52-116Z`; they are preserved baseline,
+not final-repair evidence. Final mandatory gates subsequently PASS on repaired code,
+Windows/Node24 with a real node_modules directory, logs
+`work/owner-workout-v08-gates-2026-09-08T15-37-45-140Z`. Preparation, frozen/package18
+actualZIP, conformance99reference/99STRONG/29absent/70present, rig185W1/W2, SELFTEST,
+strict and diff native0. Explicit ENGINE_MAIN/OLD, pinned client, fixed conformance
+date/TZ; strict unsets MEASURED_TEST_NOW. Private preparation verdict only, public
+pins unchanged. New-PWA/full-M3 scope PENDING. Literal final lines:
+`SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families`,
+`SELFTEST PASS`, `All checks passed. Safe to ship.` The strict phrase is not release
+authorization; final report reconciliation changes no executed code.
+Corrective independent acceptance and exact successor CI remain separate. No merge.
+
+Goal v2 and accurate existing-data carryover remain aligned. Amendment23's five
+existing first-use outcomes now anchor regular plain-language status; percentage
+uncalibrated, neither phone ready. Amendment24's single EFFORT-01 helper is running
+under the assistant PM on the existing rationale question, while Astra implements
+this slice. No duplicate assignment, new stream, review stage, funding or model
+change. Acceleration START, usefulness not yet established. NEXT: publish final
+tested repairs/UI for focused independent assessment, then continue actual
+complete-workout command/engine/storage integration and incorporate the helper's
+evidence through the existing rule/acceptance process.
+
+## v0.17 initial UI preparation before Message52 — preserved provenance
+
+Parent `3b88b52db33f43fafcb56de7cfba266c681de4f5`, same retained PR46/stream. Six new files under `rebuild/m4/workout/` plus this report/brief implement a small DOM history panel and its tests. It calls the trusted signed observation projection; supported corrections display actual per-set quantities with separate originals/changes. Removed/unresolved records never become guessed active values. It clears prior content before reads and fences delayed responses across replacement/clear/dispose. No save, sync, workout-completion or plan-application behavior is claimed. This narrows the actual records-to-visible-history join while preserving the supported contract and missing-context limits.
+
+Published-path execution: original signed-history20/20 PASS plus new DOM12/12 PASS. Actual T2/P256/R1 path runs; synthetic registry/genesis and memory-only limits remain. The original committed test executes in memory with one explicit extra UI callback before its final source-pin assertions; no assertion/source rewrite. Deferred async lifecycle and hostile-text cases are presentation stubs, separately described. Reader/projection/spec inputs under the retained Opus review stay byte-identical. UI module SHA256 `db001098f08efa2dc5aeb239a52423bdeb0961d8e1f22a35b5e8b10e9f8ba04e` matches the tested scratch source.
+
+Published browser reproduction: desktop Chromium at390/320px, keyboard detail expansion and200% text with all details open:4/4 PASS. Initial320px/200% check FAILED native1 (scroll332 vs viewport320). Focused diagnosis found long text, and overflow-wrap:anywhere fixed wrapping; no clipping or relaxed assertion. Pre-fix CSS/script/failure retained in coordinator `work/workout-history-ui-prep/`; final results and screenshot in `published-evidence/`. Static rendered preview has no scripts/network/inputs/storage. This is not iOS/VoiceOver/actual-account/phone acceptance. No production page imports the module yet.
+
+Owner reaffirmation and amendment23 adopted: canonical full PRODUCT-GOAL v2 remains intact, accurate existing-data carryover stays a first-use requirement, and the brief/checkpoint reuse five existing first-use outcomes for stable progress reporting. Percentage is not yet calibrated; historical3/10 is not app completion, and neither person's phone is ready. No new tracker, broad research, gate, stream, model or credit change. The current independent review is pinned to v0.16 Message51, included Opus5/High/fast off (preflight4%session57%weekly, credits/reloadOFF); it is not this UI's acceptance.
+
+New publication gates are PENDING until the ready candidate is run; prior passes do not transfer automatically. Frozen app/core/suite/dependencies/private data/seeded soak unchanged. NEXT: incorporate the scoped observation verdict, obtain applicable UI/composition acceptance, and continue the retained complete-workout command/engine/storage joins. No merge or private use is authorized by this report.
+
 ## v0.16 signed legacy observation projection — September 8
 
 Parent01cb2ed, same retained branch/PR and ownership. Three new nonshipping modules/test and one README expose original workout events and supported corrected historical observations through the actual accepted-reader boundary. No new writer, schema, engine rule, frozen/core/suite/dependency or seeded-soak behavior is changed. The view preserves the original rows; the projection applies explicit causal load/reps corrections and removal, with affected unsupported/concurrent cases unresolved and no partial observations. This is not currentness, workout eligibility or prescription qualification. Both factories always return decisionReady=false.

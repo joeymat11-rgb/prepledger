@@ -1,0 +1,15 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #e7e1d6; color: #1c1b18; font: 1rem/1.55 system-ui, sans-serif; overflow-wrap: anywhere; }
+header, main { max-width: 44rem; margin: auto; padding: 1.25rem; }
+header { padding-bottom: 0; }
+h1 { font-size: 1.75rem; line-height: 1.2; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.1rem; margin: 0; overflow-wrap: anywhere; }
+.history-set { background: #f4f0e8; border: 1px solid #b4ab9b; border-radius: 1rem; padding: 1.1rem; margin-block: 1rem; }
+.history-state { color: #364d38; font-weight: 650; margin-block: .3rem; }
+.history-values { font-size: 1.5rem; font-variant-numeric: tabular-nums; margin-block: .6rem; }
+.history-context { color: #514b40; }
+summary { min-height: 44px; padding-block: .6rem; cursor: pointer; }
+summary:focus-visible { outline: 3px solid #304b35; outline-offset: 2px; }
+.history-original { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 1rem; }
+button, input, select, textarea { font: inherit; min-height: 44px; }

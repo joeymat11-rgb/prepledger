@@ -66,6 +66,11 @@ function createLegacyWorkoutProjection(reader){
       }
       const unresolved=[...new Set(failures)];
       sets.push({id:event.id,sessionStartId:event.sessionStartId??null,logicalSlot:copy(event.logicalSlot??null),
+        association:event.association??'UNRESOLVED',
+        // Value-fold failures and context warnings are different. Consumers must
+        // retain this full issue join and must not treat a raw reference as a
+        // resolved workout partition, even for an INCLUDED quantity observation.
+        issues:copy([...recorded.issues.filter(i=>i.opId===event.id),...event.readerIssues]),
         lift:copy(event.lift??null),planBasis:null,reserve:copy(event.reserve??{tag:'unknown'}),original,
         state:unresolved.length?'UNRESOLVED':included?'INCLUDED':'REMOVED',
         // Never let a partially applied chain masquerade as current observations.

@@ -17,11 +17,15 @@ function createLegacyWorkoutView(reader) {
       // Legacy correction commands use class reading even when their target is
       // a session fact. Keep those effects visible rather than silently dropping
       // them and presenting an unqualified current workout.
-      if(o.class!=='session'&&byId.get(o.target_op_id)?.operation.class!=='session')continue;
+      const workoutLike=x=>x&&(x.class==='session'||typeof x.kind==='string'&&x.kind.startsWith('session-'));
+      if(!workoutLike(o)&&!workoutLike(byId.get(o.target_op_id)?.operation))continue;
       const event={id:o.op_id,position:fact.position,kind:o.kind,deviceId:o.device_id,
         effective:copy(o.effective),source:copy(fact.source),operation:copy(o),
         readerIssues:copy(history.issues.filter(i=>i.opId===o.op_id)),interpretation:'UNINTERPRETED'};
       const issue=code=>{issues.push({opId:o.op_id,code});};
+      if(o.class!=='session'&&typeof o.kind==='string'&&o.kind.startsWith('session-')){
+        issue('UNSUPPORTED_SESSION_CLASS');events.push(event);continue;
+      }
       if(o.schema_version!==1){issue('UNSUPPORTED_SCHEMA_VERSION');events.push(event);continue;}
       if(!o.payload||typeof o.payload!=='object'||Array.isArray(o.payload)){
         issue('UNSUPPORTED_SESSION_PAYLOAD');events.push(event);continue;
