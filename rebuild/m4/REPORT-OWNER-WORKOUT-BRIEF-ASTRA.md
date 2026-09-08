@@ -1,5 +1,22 @@
 # ASTRA — owner workout contract preparation
 
+## v0.35 — concrete P1 authority-storage proposal
+
+Docs-only successor to5a5eb69. New attachment spec/p1-authority-storage-v1.md closes one proposed server-storage decision required by the existing capture/recovery work: encrypt each complete original row, retain only a minimal authenticated SQL projection, decrypt before all actual ordinary/R1 consumers, and preserve signed/raw bytes and the original SQL constraints. Fresh one-use data keys, AES-GCM/AES-KW epoch provider, checked write-epoch rotation and isolated-copy conversion/recovery are specified. No new product rule, secret custody, service, worker or schedule. No implementation or independent acceptance claimed.
+
+Source inspected at actual R1bec and W6 17fa; original0001/0002 guards refuse an opaque registry replacement. The selected projection instead retains every required SQL field/index and encrypts the full lease/event content. Native platform documentation confirms Workers support for the primitives; actual pinned Worker/D1/resource execution is still required. Reproducible code is in the attachment, synthetic only, crypto keys generated in memory. Probe output:
+
+```
+P1 NATIVE CRYPTO PROBE PASS 18/18; context-omission model mutant DETECTED; no D1/bridge/provider/phone claim
+P1 SQL PROJECTION PROBE PASS 12/12; original guards/index intact; in-memory SQLite only
+```
+
+Original first crypto run: `P1 NATIVE CRYPTO PROBE FAIL`, native1; focused diagnostic found WebCrypto decrypt was given two arguments instead of three. Added the missing ciphertext argument; same18 checks then pass. One attempted patch matched no text and changed nothing. A guessed lease.cjs path and wrong-worktree issuer read failed without mutation; correct retained sources were inspected. No real-key/database/write failure was represented as a passing model.
+
+The native context-omission bite detects a disposable model's loss of binding, not a product-bridge mutant. SQL tests execute the original migration files against SQLite in memory; all six projection inserts succeed and six invalid update/delete/identity/ordinal attempts refuse with exact baseline retained. Actual P1 schema/provider, source conversion, race/cut/physical-resource and production custody gates remain NOT RUN. Current R1 resource FAIL remains; no budget relaxation. Mandatory docs publication23:23:26 all native0: private preparation/verdict-only/public pins, frozen18 actual ZIP, conformance99/99/29/70 and rig185 W1/W2, SELFTEST, strict with test clock unset, diff. Evidence work/owner-workout-v08-gates-2026-09-08T23-23-26-976Z. Exact new-head CI and independent contract review remain pending.
+
+Full approved goal, first-use cut and already accepted17fa/96 andcaf/94 evidence remain aligned. This server-storage proposal does not finish original-prescription capture, its identity/version/issuer registration, complete workout resume/history/finish, scientific individual qualification, import or physical phones. Same coordinator/APM ownership, retained worktrees and included reviewer; helpers idle because the next implementation boundary is not yet accepted and disk capacity remains constrained. No paid fallback or owner action requested here. NEXT: independent affected contract review; then implement the sufficient server boundary through retained R1 and complete capture/Start/outbox/recovery through retained W6. Preparation approximately25minutes; no measured savings or app-completion percentage claimed.
+
 ## v0.34 — reconcile accepted component and decision evidence
 Docs-only successor to caf1ab9. Full owner goal unchanged. Opus96 ACCEPT17fa69f
 multi-slot Set/Skip/early-Close/readback, no required corrections/regression; own9/9
