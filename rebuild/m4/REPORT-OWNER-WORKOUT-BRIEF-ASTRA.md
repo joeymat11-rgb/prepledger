@@ -1,6 +1,32 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.13 scoped review response preparation — 2026-09-07
+## Current v0.14 current-head technical contract publication — 2026-09-08
+
+Retained PR46 parent `5e6d86e8c91f18ecde036515e4afed241f9ac3b9`; integration source comparison `28ff3be3a0c47fa76b642015ac3757da5c76548c`. This successor publishes the exact reviewed current-head proposal and four evidence files, and updates only the existing brief/report. No producer, consumer, core, engine, suite, dependency, queue/ledger or seeded-soak bytes change. It does not implement workout logging or activate any schema. PR48's previously stale status is corrected from the actual integration ledger: source647ce046, mergeee3de147, record58c2fc9.
+
+One retained Opus5/High/fast-off public contract review returned CHANGES-REQUIRED, then **ACCEPT AS PROPOSED CONTRACT TEXT** after factual corrections. No model switch or general/private/integration qualification. Exact proposal SHA256 `0f8e8c10ca0766b0ce875ab3fd11926056756f5240f180d4c468440e7a6201f1`; original bytes preserved, including its pre-verdict NOT ACCEPTED header. `spec/current-head-review/README.md` records the later verdict and publication clarifications. Original archive7,942bytes/SHA256 `d923cf8e63b9406c1ae746312f73f008f7c3d1f035d2c7807533fd97a996566f`; amendment4,980bytes/SHA256 `3b26b2b08a715847fd5818faf144b54c5d39b686e35ce366cc70726151d3b027`. All4+3 manifest entries verified; originals remain in the retained handoff.
+
+The reviewer withdrew its missing-server-revision-guard finding after executing `bridge.execute`, corrected WIRE47 (domain table) to WIRE23 (local sink serialization/CAS), and withdrew wording permitting arbitrary future issuance from an old proof. Server D1 and client durable revisions stay distinct. The useful independent recommendation is adopted: a dedicated signature domain and exact history profile, no legacy fallback, captured issuance attempt, consume-before-sink, and durable conflict/knowledge-loss fences. Q3 offline answers and OPEN Q1 accepted-answer reuse remain unchanged. The evidence README corrects one author section coordinate and distinguishes response-mutation tests from a request-only nonce test; no original verdict or script is rewritten.
+
+Unchanged independent scripts were read and replayed by the author on Windows against the reviewed public source; both native0. Consumer challenge8/8 uses actual verification/signing with synthetic keys and callback stubs; bridge witness4/4 uses the actual bridge with synthetic D1/core stubs. Neither executes real D1/HTTP/IDB, the new mode, the nine future cases or a workout issuance reducer. Reproduction commands, hashes and limitations are tracked beside the scripts. These are factual author replays of independent evidence, not additional independent acceptance.
+
+Publication checks on this successor: both unchanged reviewer scripts pass again from their tracked paths, native0; all four published original-byte hashes match. The unchanged local publication helper `work/owner-workout-v08-validate.cjs` completed preparation, scope, conformance, SELFTEST, strict and diff checks with all native0. Its filename is historical; new original logs are under `work/owner-workout-v08-gates-2026-09-08T13-17-59-704Z`. Reference engines are explicitly pinned, EARNED_CLIENT_DIR points to this checkout, fixed test clock/TZ apply to conformance, and strict unsets MEASURED_TEST_NOW/PL_ENGINE/PL_LAWS_LIB. Private preparation stays local/verdict-only; committed public fixture/golden bytes remain unchanged.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+Scope's new-PWA/full-M3 verdict remains PENDING, as required. These regression/publication checks do not award workout or private-use acceptance. Exact-head CI and the designated whole-PR acceptance/integration remain separate; the scoped proposal-text verdict must not be promoted to those. No original gate was skipped because a reviewer stub passed.
+
+NEXT: complete publication of this retained PR46 successor, preserving the exact scoped verdict. Continue the existing Stage A normalizer/legacy-basis/schema joins; full implementation remains blocked on their closed contract and existing Q1. Retain R1/W6 ownership, independent acceptance, coordinator and continuation. No new owner relay, paid fallback, model change, schedule, merge or private-use permission.
+
+## Previous v0.13 scoped review response preparation — 2026-09-07
 
 Retained PR46 source `6d6f95454b8fca87edeb01b6166f5cdc5c193fcb`; successor changes exactly the existing brief/report and nonconcurrent spec/test pair. The original partition diagnostic, its pins and all product files remain unchanged. The owner authorized one retained Opus5/High public workout-contract review using included capacity. Its first verdict is CHANGES-REQUIRED: original public gates/strict exit0, model101/6720/9/4/native0, partition6 controls/3 requirement-REDs/native2, and10 reviewer challenges/native0. The coordinator verified the original public archive (9882 bytes; SHA256 `e9a5369de5951bd0f489a1b8b958fc48444be9110e5f4ca3f8d646fcb2f77911`) and all8 manifest entries under `work/pr46-independent-review/original`. NOTES records that the original challenge stdout was not saved; no replacement original log is claimed. These are review results on the old exact revision, not acceptance of this successor.
 
