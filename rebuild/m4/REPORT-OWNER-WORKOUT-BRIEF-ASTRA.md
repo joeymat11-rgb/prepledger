@@ -1,5 +1,24 @@
 # ASTRA — owner workout contract preparation
 
+## v0.29 — Opus84 client-command corrections before source adoption
+
+Opus reviewed c2d9817 against actual retained W6cdf and R1bec: PERMISSION TO
+IMPLEMENT subject to R-1–R-3 plus four precision items. All are in §6: validate
+every explicit causal parent, pin the static profile after provider spreads,
+and preserve drafts/active metadata for ALL six actions. Granted version comes
+from verified cfg.lease; the ONE Ops.build call preserves legacy bytes; start
+payload is literal {}; other-device references require authenticated local delivery.
+Reviewer independently executed 6/6 boundary and 3/3 legacy-target observations;
+its Message82 H2 overstatement is corrected with provenance, original ACCEPT intact.
+Original archive17115bytes SHA0744520d56d80409497c34434687eb927eba123cd09ebb6419ca41f09d0ec75e
+is attached to the retained session, NOT locally received/hashed/replayed.
+No product source adopted by this publication. Disposable actual-client preparation
+was initially3/6 and now6/6 after draft implementation; these are author preparation,
+not the full §6 gate or reviewer implementation acceptance. Required publication
+gates all native0 atwork/owner-workout-v08-gates-2026-09-08T20-57-32-922Z: preparation/privateverdict/publicpins, frozen/actual18ZIP, conformance99/99/29/70+rig185, SELFTEST, strict3072(clockunset), diff. No private-use or activation claim.
+NEXT: implement corrected §6 in the retained W6 stream, then full affected tests,
+mandatory gates and independent code review. Remaining full-schema/capture holds stay.
+
 ## v0.28 — actual selected-version workout command path
 
 Source inspection uses retained W6cdf698d and R1bec056d, not older copies here.

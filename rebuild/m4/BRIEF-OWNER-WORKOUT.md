@@ -1,4 +1,4 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.28
+# EARNED — complete owner workout slice — proposed technical brief v0.29
 
 ASTRA · 2026-09-08 · Original publication base `213300c6c49f772dcb2ff859e1c1375dd571b837`; v0.16 follows retained PR46 `01cb2edf8eaa3bde64f838b95fcfd433b2c4e971`. Its reader received scoped independent acceptance; this successor adds the actual signed legacy-observation projection candidate, documentary corrections and the owner's full coordinated-plan goal. Stage A as a whole remains unaccepted. Prior scoped technical-text verdicts remain attached to their actual revisions and do not close M3/M4/M5, authorize a private import, waive a gate or change a training rule. The document itself does not ship app behavior.
 Owner instruction, adopted at the retained checkpoint: prioritize the earliest qualified complete workout-logging app. Today and check-ins support that delivery; they are not its substitute. The existing coordinator, two implementation streams, retained worktrees, model settings, reviewer and integrator remain. This is an executable slice brief, not another maintained plan or work queue.
