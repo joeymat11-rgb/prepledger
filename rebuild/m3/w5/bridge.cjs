@@ -2,6 +2,9 @@
 // No I/O enters a synchronous transaction. Each invocation stages a complete
 // snapshot and publishes its delta only behind the database revision assertion.
 const { memoryBackend, rowKey } = require('../../authority/store.cjs');
+const { validateWorkoutShape } = require('../../m4/workout/schema.cjs');
+const { createWorkoutProfile } = require('../../m4/workout/authority-profile.cjs');
+const workoutProfile = createWorkoutProfile(validateWorkoutShape);
 const METHODS = new Set(['admit','log','receipts','frontier','disposition','dispositionHistory','revokeDevice',
   'exportSnapshot','plan','planTransactions','planState','planOfDomain','txnDigests','issue','apply','confirmBasis','instanceOf','instanceState']);
 const unavailable = () => ({ status: 'UNAVAILABLE', retry: true });
@@ -13,8 +16,8 @@ const denied = () => { const error = new Error('Scope denied'); error.code = 'SC
 function createBridge(config) {
   const { db, authorityKey, identityKeys, clock } = config;
   if (!db || !authorityKey || !identityKeys || !clock) throw new TypeError('D1, authority keys, identity keys and clock required');
-  // The production bundle supplies the unchanged core with only crypto.cjs
-  // replaced at its declared platform boundary. Tests may supply the same core
+  // The production bundle uses the declared crypto boundary and the reviewed
+  // reserved-workout profile seam. Tests may supply the same core
   // loaded from a disposable source copy; no mutation logic lives here.
   const core = config.core || require('./.generated/core.cjs');
   const retries = config.maxAttempts ?? 256;
@@ -42,7 +45,7 @@ function createBridge(config) {
         return table === 'metadata' && id === 'state' ? [[athlete, { devices: value.devices, plan: value.initialPlan }]] : [];
       }));
       const authority = core.createAuthority({ backend: config.backendFactory ? config.backendFactory(backend) : backend,
-        authorityKey, identityKeys, clock, athletes: { ...athletes, ...(seed ? seed.athletes : {}) } });
+        authorityKey, identityKeys, clock, workoutProfile, athletes: { ...athletes, ...(seed ? seed.athletes : {}) } });
       const scope = (subject, device) => {
         const athlete = subjects.get(subject);
         const state = athlete && backend.get(rowKey(athlete, 'metadata', 'state'));
@@ -173,7 +176,7 @@ function createBridge(config) {
         return table === 'metadata' && id === 'state' ? [[athlete,{devices:value.devices,plan:value.initialPlan}]] : [];
       }));
       const authority = core.createAuthority({ backend: config.backendFactory ? config.backendFactory(backend) : backend,
-        authorityKey, identityKeys, clock, athletes: { ...athletes, ...(seed ? seed.athletes : {}) },
+        authorityKey, identityKeys, clock, workoutProfile, athletes: { ...athletes, ...(seed ? seed.athletes : {}) },
         resolveIssuedLease: (tx, athlete, deviceId, leaseId) => {
           // Admission drains WAITING across the whole staged database. A
           // foreign account not yet converted to R1 must remain unavailable,

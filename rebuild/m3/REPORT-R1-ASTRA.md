@@ -1,5 +1,123 @@
 # W5-R1 implementation — ASTRA
 
+## September 8 workout admission — bounded component, not schema activation
+
+Actual retained base: d26795a47d638ec1e67840455273cc05eeca9926. PR46 published
+the source amendment at1fe2e090, received Opus Message80 PERMISSION TO IMPLEMENT
+with C-1–C-5, then published every correction at92d48fdd6cf09dbe5787559a4e6b5aec74d38a6e
+BEFORE these changes were adopted into the retained R1 source. The reviewer’s
+10/10 demonstration was scratch evidence, not the implementation adopted here.
+No new branch, issuer/codec/SQL/route/client/W6/dependency change or activation.
+
+The actual admission/index/bridge now accept a trusted static synchronous profile
+for lease-granted schema2. The exact accepted shared shape file is copied from
+PR46: SHA2564702fdeeb25fb958f7f89bdedfe12d513f575db06df25db938af2fa58d12155e.
+The static profile checks a declared start's same-athlete/session-start type and
+an edit target's same-athlete/session-set type and matching lift lineage. Core
+unions original causal parents, target and profile refs in first-occurrence order;
+WAITING/rejected/foreign dependencies retain their existing paths and drain.
+The new gate follows existing version equality, revocation, range and occupied
+slot checks. Missing/broken/nonboolean/Promise profile results throw fresh internal
+errors WITHOUT rejectionCode, yielding UNAVAILABLE with unchanged rows; valid
+boolean false means MALFORMED. Terminal exact replay is preserved. Native rejected
+Promises are observed only to prevent a later unhandled host rejection; they are
+still refused synchronously. No asynchronous authority transaction was added.
+
+Focused tracked commands (Node from repo root):
+`node rebuild/m3/w5/test/workout-core.test.cjs`,
+`node rebuild/m3/w5/test/workout-http.test.cjs`,
+`node rebuild/m3/w5/test/workout-bite.cjs`.
+The core test uses the actual authority/P-256/operation builder and all six kinds;
+it checks status AND unchanged rows on dependency failures, existing error order,
+mixed old/new exact retries, late arrival, waiting drain, second-device edits and
+missing/wrong-kind/foreign/rejected starts. HTTP uses actual local Worker/auth,
+P-256, R1 staged bridge, migrations and D1, with a healthy accountRegistry control.
+The existing local-workerd harness gains only an optional authorityRoot for the
+disposable bite; default callers retain the same source. Keys are ephemeral.
+
+```text
+WORKOUT ACTUAL CORE PASS — 34/34; synthetic capabilities, NOT ACTIVATED
+WORKOUT R1 HTTP PASS — 9/9; artificial unissued capability, full recovery NOT QUALIFIED
+WORKOUT BITE RED-core: FAIL rejected-start-terminal-dependency: ERR_ASSERTION
+WORKOUT BITE RED-http: FAIL http-rejected-start-child-terminal: ERR_ASSERTION
+WORKOUT ACTUAL CORE PASS — 34/34; synthetic capabilities, NOT ACTIVATED
+WORKOUT R1 HTTP PASS — 9/9; artificial unissued capability, full recovery NOT QUALIFIED
+WORKOUT BITE PASS — both boundaries detected; restored admit SHA256 95ecf1c7c25f16efeec2a2b4ead73edb53570e83ad13ec74020d8088fbfdadea
+```
+
+Both bites exited1 from named behavioral assertions, not harness failures; restored
+runs exited0. All real authority source pins remained unchanged during the bite.
+Removing only declared workout refs in the disposable core wrongly accepts a
+child of a rejected start: both actual core and HTTP tests detect this.
+
+Preparation failures are retained, not converted to successful product evidence:
+unchanged core4/18 and HTTP3/9 failed the proposed new-profile cases; these are
+not new frozen-engine defect rulings. Early scratch tests exposed a sparse refs
+array and an unhandled rejected Promise (21/22 plus host rejection), then the
+reviewer's placement/error requirements (24/31); corrected scratch passed31/31
+before actual adoption. Expanded actual source now passes34/34. One later HTTP
+setup failed ERR_ASSERTION before cases; no initial location trace was available.
+Inspection found raw base64url nonce could start with an invalid intent-ID prefix.
+Test intent/lease IDs now have a fixed valid prefix and enrollment requests pass
+the ACTUAL codec before HTTP. This removes that identifiable test hazard, but the
+original setup failure's exact cause is not established. No product guard relaxed.
+
+SEAMS: artificial signed historical schema2 capabilities are inserted ONLY by the
+synthetic test beside actual schema1 enrollment. The real issuer STILL refuses
+schema2; complete recovery STILL refuses the artificial registry with
+RETAINED_INTEGRITY. These two negative controls are required and pass. This is
+admission evidence, not legitimate issuance, complete registry, recovery, client
+Saved, full semantic admission or phone evidence. Ordinary readings under a
+schema2 lease are MALFORMED; schema1 coexistence uses R1's original-issued-lease
+resolver. The workout-only component cannot be activated as a complete app schema.
+Authenticated plan/lift registry, corrected-state fold/concurrent edit semantics,
+full manifest/issuer/activation, recoverable prescription capture, actual W6
+command/commit join, scientific applicability and all release gates remain open.
+R1 resource FAIL162050118 versus96MiB remains unchanged; no rerun/metric waiver.
+
+First mandatory run: R1-FOCUSED178/179/native1. The failing owned test requires
+non-reconcile construction source to equal the older pinned bridge exactly;
+the sole difference is the reviewed workoutProfile binding in each constructor.
+`r1-scoped-read.test.cjs` now requires exactly those two substitutions and no
+others. It retains the historical bridge/hash and all remaining source plus the
+exact two-statement revision guard. This is a disclosed owned source-pin update,
+not a frozen law/runner edit or removed behavioral check. Targeted test1/1 passes;
+the actual assertion also rejects three author synthetic changes to the read
+query, writer delta and revision guard. Full affected rerun179/179/native0 in
+92.7seconds; original failing run retained. No unrelated successful gate repeated
+after this test-only source-pin clarification. Mandatory package results:
+
+```text
+CURRENT-HEAD CANDIDATE: 28/28 PASS
+CURRENT-HEAD BITES: 4/4 EFFECTIVE; original candidates byte-identical; restored28/28 PASS
+R1-FOCUSED PASS
+AUTH-D1 PASS (34/34 mapped laws GREEN on local D1 + rig191 10/10 EFFECTIVE breaks)
+HTTP-190 PASS (5/5 over real local HTTP with the C6 cuts)
+run.cjs SUMMARY local: 2 PASS / 0 FAIL / 0 BLOCKED / 0 PENDING
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SELFTEST PASS
+PASS  engine suite — 3072 assertions passed
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+Private preparation emitted verdicts only; public pins unchanged. Strict ran with
+MEASURED_TEST_NOW unset; its release wording applies to the frozen old app only.
+The first package wrapper exits1 because it preserves the original178/179 result;
+the corrected full R1-FOCUSED separately exits0. Logs retained locally under
+r1-current-head-gates-2026-09-08T20-03-09-744Z and workout-r1-focused-corrected.log.
+New PWA package, private/release and resource gates remain open. CI and affected
+independent implementation review are pending at this publication.
+Wall-clock to publication: about45minutes from19:27Z, including proposal review,
+its required corrections, focused implementation and mandatory tests; not a
+claim of complete app progress or time needed for remaining review/integration.
+NEXT: review this actual delta on retained PR43, then
+continue complete manifest/command and prescription-recovery joins under PR46/W6.
+The full Joe/Dad workout-and-plan goal is unchanged; no merge or private use.
+
 ## September 8 current-head candidate — implementation, not R1 completion
 
 Retained branch/base 003c816e695fce7e77e17665f25d8cdcc2435211; no new product stream.

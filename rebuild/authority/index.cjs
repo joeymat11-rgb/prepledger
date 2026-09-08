@@ -35,7 +35,7 @@ function createAuthority(config) {
   };
   const api = {
     admit: makeAdmission({ store, authorityKey: config.authorityKey, identityKey, now, athleteIds,
-      resolveIssuedLease: config.resolveIssuedLease }),
+      resolveIssuedLease: config.resolveIssuedLease, workoutProfile: config.workoutProfile }),
     log: athlete => read(athlete, tx => reduce.receipts(tx).map(r => r.op)),
     receipts: (athlete, W = 0) => read(athlete, tx => reduce.receipts(tx).filter(r => r.seq > W)),
     frontier: athlete => read(athlete, reduce.frontier),

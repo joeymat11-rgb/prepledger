@@ -13,9 +13,9 @@ const directory = path.resolve(__dirname, ".."), dependency = createRequire(path
 const wrangler = createRequire(dependency.resolve("wrangler/package.json"));
 const NOW = "2026-09-04T16:00:00.000Z", NAME = "earned-r1-metered-application";
 
-async function createR1Runtime() {
+async function createR1Runtime({ authorityRoot } = {}) {
   if (wrangler("./package.json").version !== "4.129.0") throw Error("pinned Wrangler required");
-  await buildCore();
+  await buildCore(authorityRoot === undefined ? {} : { authorityRoot });
   const bundle = await dependency("esbuild").build({ stdin: { resolveDir: directory, sourcefile: "r1-metered-entry.mjs", contents: `
     import { createWorker } from './worker.cjs';
     import { createBridge } from './bridge.cjs';
