@@ -9,6 +9,12 @@ const BASE=JSON.parse(fs.readFileSync(path.join(__dirname,'manifest.json')));
 const REQUIRED=['D33','D34','D35'];
 const STEP_FILE='rebuild/conform/v4/postfix/acceptance-step-efficacy.json';
 const STEP_REQUIRED=['D12','D33','D34','D35'];
+const ERA_FILE='rebuild/conform/v4/postfix/acceptance-set-one-era.json';
+const ERA_REQUIRED=['D30','D12','D33','D34','D35'];
+const ERA_ANCHOR='28ff3be3a0c47fa76b642015ac3757da5c76548c';
+const ERA_CONTRACT={file:'rebuild/m2/BRIEF-SET-ONE-ERA.md',commit:'75ae6f1f456e4e16682c1fe65e01d17a50fc1205',sha256:'a2e88bed8edf566b4551d9a48b79282b9e367b2fd195bde5f1be41f13baa84b3'};
+const ERA_THEME_SHA='2862e7ab8aae34ec2817a9339020ed696959bbaf6cefb32a63d8f1d629d58bf2';
+const STEP_PARENT_PIN={artifact:{commit:'904d35ddfb81e1a9b4cfc1d6ccbb50b58651149c',file:STEP_FILE,sha256:'ff164b8620ee0ab7851e7d9283b32d1b330b261fad1f02178d4266131cfcabb1'},candidateCommit:'0a7abebc71b861a10334f70782d2bea2f729cc4b',receiptBase:'348993f71c448f612a6c462a408e56ebea0b6afa',operational:{commit:'0a7abebc71b861a10334f70782d2bea2f729cc4b',file:'rebuild/conform/v4/postfix/manifest-step-efficacy.json',sha256:'7c78a3b85cb8001bd9cf3c0076faa410a203e66cfdd9cde6598e3617a9c648ec'}};
 const STEP_CONTRACT={file:'rebuild/m2/BRIEF-STEP-EFFICACY.md',commit:'1e8a074e07ef4cd3cb0c8964ff4211ecf4193c17',sha256:'2a35a0ad0ed124d511a1f8ea9978a05f14fe4f28aab4cd6ce65540d33a694a31'};
 const PARENT_PIN={artifact:{commit:'d3fd31d4197083d6c6e1203bb124bb2852f1b50f',file:FILE,sha256:'01b8d0b3e784d0ea65fd565db97c87dd4ebddb045cd91cd94d68c15c92d27329'},candidateCommit:'6703623d123506962bf6be89b21adbb0923920d6',receiptBase:'d3d40713a5910e734e07797c2d39b7ef95cb42b7',operational:{commit:'6703623d123506962bf6be89b21adbb0923920d6',file:'rebuild/conform/v4/postfix/manifest-import-guards.json',sha256:'291b985d7ae14e9597d6963bc58151eea16535eae9e3635da6145a4bccca41ec'}};
 const eq=(a,b)=>JSON.stringify(a)===JSON.stringify(b),hash=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x),commit=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x);
@@ -16,7 +22,7 @@ function keys(o,n,code){if(!o||typeof o!=='object'||Array.isArray(o)||!eq(Object
 function relative(p){return typeof p==='string'&&p.length>0&&!p.includes('\\')&&!p.includes('*')&&!p.split('/').some(x=>x==='.'||x==='..'||x==='')&&!path.isAbsolute(p);}
 function pins(o){if(!o||typeof o!=='object'||Array.isArray(o)||!Object.keys(o).length||Object.entries(o).some(([p,h])=>!relative(p)||!hash(h)))fail('PIN-SCHEMA');}
 function receipt(r){keys(r,['commit','path','line','lineSha256'],'RECEIPT-SCHEMA');if(!commit(r.commit)||r.path!=='rebuild/DECISIONS.md'||typeof r.line!=='string'||!r.line||/[\r\n]/.test(r.line)||!hash(r.lineSha256)||sha(r.line)!==r.lineSha256)fail('RECEIPT-SCHEMA');}
-function envelope(e){keys(e,['version','acceptanceFile','acceptanceSha256','candidateBase','receipts'],'ENVELOPE-SCHEMA');if(e.version!==2||![FILE,STEP_FILE].includes(e.acceptanceFile)||!hash(e.acceptanceSha256)||!commit(e.candidateBase))fail('ENVELOPE-SCHEMA');keys(e.receipts,['owner','contract','theme','review'],'ENVELOPE-RECEIPTS');for(const key of ['owner','contract','theme'])receipt(e.receipts[key]);keys(e.receipts.review,['status','receipt'],'REVIEW-SCHEMA');if(!['PENDING','ACCEPTED'].includes(e.receipts.review.status)||(e.receipts.review.status==='PENDING')!==(e.receipts.review.receipt===null))fail('REVIEW-STATUS-CONTRADICTION');if(e.receipts.review.receipt)receipt(e.receipts.review.receipt);return e;}
+function envelope(e){keys(e,['version','acceptanceFile','acceptanceSha256','candidateBase','receipts'],'ENVELOPE-SCHEMA');if(e.version!==2||![FILE,STEP_FILE,ERA_FILE].includes(e.acceptanceFile)||!hash(e.acceptanceSha256)||!commit(e.candidateBase))fail('ENVELOPE-SCHEMA');keys(e.receipts,['owner','contract','theme','review'],'ENVELOPE-RECEIPTS');for(const key of ['owner','contract','theme'])receipt(e.receipts[key]);keys(e.receipts.review,['status','receipt'],'REVIEW-SCHEMA');if(!['PENDING','ACCEPTED'].includes(e.receipts.review.status)||(e.receipts.review.status==='PENDING')!==(e.receipts.review.receipt===null))fail('REVIEW-STATUS-CONTRADICTION');if(e.receipts.review.receipt)receipt(e.receipts.review.receipt);return e;}
 function delta(d){keys(d,['aliases','cells'],'DELTA-SCHEMA');if(!Array.isArray(d.aliases)||!Array.isArray(d.cells))fail('DELTA-SCHEMA');for(const c of d.cells){keys(c,Object.hasOwn(c,'afterPath')?['id','op','path','afterPath','before','after']:['id','op','path','before','after'],'DELTA-SCHEMA');if(typeof c.id!=='string'||!c.id||!['replace','add','remove'].includes(c.op)||!Array.isArray(c.path)||!c.path.length||c.path.some(k=>typeof k!=='string'||['*','__proto__','prototype','constructor'].includes(k)))fail('DELTA-SCHEMA');if(Object.hasOwn(c,'afterPath'))require('./structural-delta.cjs').validateAfterPath(c);}}
 function expectations(list,matrix){if(!Array.isArray(list))fail('EXPECTATION-SCHEMA');if(list.length&&!eq(list.map(x=>({mode:x.mode,day:x.day})),matrix))fail('EXPECTATION-MATRIX');for(const x of list){keys(x,['mode','day','originalTraceSha256','delta'],'EXPECTATION-SCHEMA');if(!hash(x.originalTraceSha256))fail('EXPECTATION-SCHEMA');delta(x.delta);}}
 function assertions(list){if(!Array.isArray(list)||!list.length||new Set(list.map(x=>x.id)).size!==list.length)fail('ASSERTION-INVENTORY');for(const a of list){keys(a,['id','count'],'ASSERTION-SCHEMA');if(typeof a.id!=='string'||!a.id||!Number.isSafeInteger(a.count)||a.count<1)fail('ASSERTION-SCHEMA');}}
@@ -93,7 +99,7 @@ function verifyReceiptsImport(root,a,e,bytes){
   if(!L.object(root,match[1],match[2]).equals(bytes))fail('REVIEW-ARTIFACT-GIT-PIN');
   return true;
 }
-function profile(value){const id=typeof value==='string'?value:value?.packageId;if(id==='M2-IMPORT-GUARDS')return {id,file:FILE,required:REQUIRED,newlySelected:REQUIRED,carried:[],sourceCount:5};if(id==='M2-STEP-EFFICACY')return {id,file:STEP_FILE,required:STEP_REQUIRED,newlySelected:['D12'],carried:REQUIRED,sourceCount:6};fail('PACKAGE-INVENTORY');}
+function profile(value){const id=typeof value==='string'?value:value?.packageId;if(id==='M2-IMPORT-GUARDS')return {id,file:FILE,required:REQUIRED,newlySelected:REQUIRED,carried:[],sourceCount:5};if(id==='M2-STEP-EFFICACY')return {id,file:STEP_FILE,required:STEP_REQUIRED,newlySelected:['D12'],carried:REQUIRED,sourceCount:6};if(id==='M2-SET-ONE-ERA')return {id,file:ERA_FILE,required:ERA_REQUIRED,newlySelected:['D30'],carried:STEP_REQUIRED,sourceCount:9};fail('PACKAGE-INVENTORY');}
 function artifactFile(value){return profile(value).file;}
 function envelopeFile(value){return artifactFile(value).replace('/acceptance-','/manifest-');}
 function requiredIds(value){return profile(value).required.slice();}
@@ -134,8 +140,55 @@ function validateStep(a){
   const inherited={...a,packageId:parent.packageId,requiredIds:parent.requiredIds,selectedApprovedFixIds:parent.selectedApprovedFixIds,contracts:parent.contracts,caseModule:parent.caseModule,helperFiles:parent.helperFiles,inventory:parent.inventory,sourceChanges:parent.sourceChanges,authorizations:parent.authorizations};
   delete inherited.newlySelectedIds;delete inherited.carriedAcceptedIds;delete inherited.acceptedParent;validateImport(inherited);return a;
 }
-function validate(a){return profile(a).id==='M2-STEP-EFFICACY'?validateStep(a):validateImport(a);}
+function stepParentArtifact(root=path.resolve(__dirname,'../../../..')){
+  const bytes=fs.readFileSync(path.join(root,STEP_PARENT_PIN.artifact.file));if(sha(bytes)!==STEP_PARENT_PIN.artifact.sha256)fail('ACCEPTED-STEP-PARENT-ARTIFACT-PIN');return validateStep(parseExact(bytes));
+}
+function stepParentBinding(root=path.resolve(__dirname,'../../../..')){
+  const bytes=fs.readFileSync(path.join(root,STEP_PARENT_PIN.operational.file));if(sha(bytes)!==STEP_PARENT_PIN.operational.sha256)fail('ACCEPTED-STEP-PARENT-ENVELOPE-PIN');const e=envelope(parseExact(bytes));
+  if(e.acceptanceFile!==STEP_FILE||e.acceptanceSha256!==STEP_PARENT_PIN.artifact.sha256||e.candidateBase!==STEP_PARENT_PIN.receiptBase||e.receipts.review.status!=='ACCEPTED')fail('ACCEPTED-STEP-PARENT-RECEIPT-PIN');
+  return {...structuredClone(STEP_PARENT_PIN),receipt:structuredClone(e.receipts.review.receipt)};
+}
+function validateEra(a){
+  keys(a,['version','phase','packageId','codeBaseAnchor','requiredIds','selectedApprovedFixIds','newlySelectedIds','carriedAcceptedIds','acceptedParent','baseline','candidateEngine','contracts','inventory','nonD','sourceChanges','executionPins','caseModule','helperFiles','matrix','gates','authorizations'],'ACCEPTANCE-SCHEMA');
+  if(a.version!==2||a.phase!=='PACKAGE'||a.packageId!=='M2-SET-ONE-ERA'||a.codeBaseAnchor!==ERA_ANCHOR||!eq(a.requiredIds,ERA_REQUIRED)||!eq(a.selectedApprovedFixIds,ERA_REQUIRED)||!eq(a.newlySelectedIds,['D30'])||!eq(a.carriedAcceptedIds,STEP_REQUIRED))fail('PACKAGE-INVENTORY');
+  const parent=stepParentArtifact();if(!eq(a.acceptedParent,stepParentBinding()))fail('ACCEPTED-PARENT-BINDING');
+  if(!eq(a.contracts,[...parent.contracts,ERA_CONTRACT]))fail('CONTRACT-PIN');
+  if(a.caseModule!=='rebuild/conform/v4/postfix/laws/set-one-era.cjs')fail('THEME-PATH');
+  keys(a.helperFiles,['hosts','frozen'],'HELPER-SCHEMA');if(a.helperFiles.hosts!=='rebuild/conform/v4/postfix/helpers/set-one-era-frozen.cjs'||a.helperFiles.frozen!==a.helperFiles.hosts)fail('HELPER-PATH');
+  if(!Array.isArray(a.inventory)||a.inventory.length!==45||!eq(a.inventory.map(r=>r.defect),parent.inventory.map(r=>r.defect)))fail('D-INVENTORY');
+  for(let i=0;i<45;i++)if(a.inventory[i].defect!=='D30'&&!eq(a.inventory[i],parent.inventory[i]))fail('CARRIED-OR-UNSELECTED-INVENTORY');
+  if(!Array.isArray(a.sourceChanges)||![6,9].includes(a.sourceChanges.length)||!eq(a.sourceChanges.slice(0,6),parent.sourceChanges))fail('INHERITED-SOURCE-CHANGES');
+  const r=a.inventory.find(r=>r.defect==='D30'),b=BASE.inventory.find(r=>r.defect==='D30');
+  keys(r,['defect','law','disposition','authorization','themeAcceptance','desiredClaim','implementation','dependencies','rawExpectations','sourceDeltas','outputDeltas','cases','mutants'],'D-SCHEMA');
+  if(!eq(r.law,b.law)||r.desiredClaim!==b.desiredClaim)fail('RAW-LAW-PIN');
+  if(r.disposition!=='APPROVED-FIX'||r.authorization!=='owner'||r.themeAcceptance!=='theme'||!['PENDING','PRESENT'].includes(r.implementation))fail('DISPOSITION-IMPLEMENTATION');
+  if(!eq(r.dependencies,b.dependencies))fail('DEPENDENCY-INVENTORY');rawExpectations(r,a.matrix,a);
+  for(const k of ['sourceDeltas','outputDeltas','cases','mutants'])if(!Array.isArray(r[k]))fail('CASE-DELTA-SCHEMA');
+  if(r.sourceDeltas.length&&!eq(r.sourceDeltas,['source-setOneRead','binding-forksOf','binding-sameEra']))fail('SOURCE-DELTA-ID-INVENTORY');expectations(r.outputDeltas,a.matrix);
+  if(new Set(r.cases.map(c=>c.id)).size!==r.cases.length)fail('CASE-INVENTORY');
+  for(const c of r.cases){keys(c,['id','assertions','originalFailures','expectations'],'CASE-SCHEMA');if(typeof c.id!=='string'||!c.id||!Array.isArray(c.originalFailures)||new Set(c.originalFailures).size!==c.originalFailures.length)fail('CASE-SCHEMA');assertions(c.assertions);if(c.originalFailures.some(id=>!c.assertions.some(x=>x.id===id)))fail('CASE-FAILURE-INVENTORY');expectations(c.expectations,a.matrix);}
+  for(const m of r.mutants){keys(m,['id','file','declaration','preimageHash','preimage','postimage','postimageHash','expectedFailures','caseId','scope'],'MUTANT-SCHEMA');keys(m.scope,['start','end','sha256'],'MUTANT-SCOPE');if(typeof m.id!=='string'||!m.id||m.file!=='volume.cjs'||m.declaration!=='setOneRead'||!hash(m.preimageHash)||!hash(m.postimageHash)||!hash(m.scope.sha256)||typeof m.preimage!=='string'||!m.preimage||typeof m.postimage!=='string'||m.preimage===m.postimage||!Array.isArray(m.expectedFailures)||!m.expectedFailures.length||!r.cases.some(c=>c.id===m.caseId))fail('MUTANT-SCHEMA');}
+  if(a.sourceChanges.length===9)require('./source-proof.cjs').validateSetOneEraChanges(a.sourceChanges.slice(6));
+  keys(a.authorizations,['owner','contract','theme','review'],'AUTHORIZATION-SCHEMA');
+  if(!eq(a.authorizations.owner,parent.authorizations.owner)||!eq(a.authorizations.contract,parent.authorizations.contract))fail('INHERITED-AUTHORIZATION');
+  const claim=a.authorizations.theme;keys(claim,['role','line','lineSha256'],'AUTHORIZATION-CLAIM');if(claim.role!=='cowork'||typeof claim.line!=='string'||/[\r\n]/.test(claim.line)||sha(claim.line)!==claim.lineSha256||claim.lineSha256!==ERA_THEME_SHA)fail('THEME-AUTHORIZATION-PIN');
+  if(!eq(a.authorizations.review,{role:'cowork',prefix:'POSTFIX-ACCEPTANCE M2-SET-ONE-ERA',terminal:'ACCEPTED'}))fail('REVIEW-CLAIM');
+  // Check all shared machinery through the unchanged, closed accepted STEP shape.
+  validateStep({...a,packageId:parent.packageId,codeBaseAnchor:parent.codeBaseAnchor,requiredIds:parent.requiredIds,selectedApprovedFixIds:parent.selectedApprovedFixIds,newlySelectedIds:parent.newlySelectedIds,carriedAcceptedIds:parent.carriedAcceptedIds,acceptedParent:parent.acceptedParent,contracts:parent.contracts,caseModule:parent.caseModule,helperFiles:parent.helperFiles,inventory:parent.inventory,sourceChanges:parent.sourceChanges,authorizations:parent.authorizations});return a;
+}
+function validate(a){const id=profile(a).id;return id==='M2-SET-ONE-ERA'?validateEra(a):id==='M2-STEP-EFFICACY'?validateStep(a):validateImport(a);}
 function verifyAcceptedParent(root,a,{gitHead=true}={}){
+  if(profile(a).id==='M2-SET-ONE-ERA'){
+    const p=stepParentBinding(root),parent=stepParentArtifact(root);if(!eq(a.acceptedParent,p))fail('ACCEPTED-PARENT-BINDING');
+    for(const pin of [p.artifact,p.operational]){const bytes=fs.readFileSync(path.join(root,pin.file));if(sha(L.object(root,pin.commit,pin.file))!==pin.sha256||gitHead&&!L.object(root,'HEAD',pin.file).equals(bytes))fail('ACCEPTED-PARENT-GIT-PIN');}
+    // Recursively verify the accepted import parent and the actual STEP receipt.
+    verifyAcceptedParent(root,parent,{gitHead});const bytes=fs.readFileSync(path.join(root,p.artifact.file)),e=envelope(parseExact(fs.readFileSync(path.join(root,p.operational.file))));
+    if(!verifyReceipts(root,parent,e,bytes))fail('ACCEPTED-PARENT-RECEIPT-PIN');
+    L.verifyReceipt(root,p.receiptBase,p.receipt,{role:'cowork'});L.verifyReceipt(root,a.codeBaseAnchor,{...p.receipt,commit:a.codeBaseAnchor},{role:'cowork'});
+    try{L.git(root,['merge-base','--is-ancestor',p.candidateCommit,a.codeBaseAnchor]);}catch{fail('ACCEPTED-PARENT-ANCESTRY');}
+    for(const [file,hash]of Object.entries(parent.candidateEngine))if(sha(L.object(root,p.candidateCommit,'rebuild/engine/'+file))!==hash)fail('ACCEPTED-PARENT-PRODUCT-PIN');
+    if(!eq(a.sourceChanges.slice(0,6),parent.sourceChanges)||STEP_REQUIRED.some(id=>!eq(a.inventory.find(r=>r.defect===id),parent.inventory.find(r=>r.defect===id))))fail('ACCEPTED-PARENT-INHERITANCE');return parent;
+  }
   if(profile(a).id!=='M2-STEP-EFFICACY')return null;
   const p=parentBinding(root);if(!eq(a.acceptedParent,p))fail('ACCEPTED-PARENT-BINDING');const parent=parentArtifact(root);
   for(const pin of [p.artifact,p.operational]){const bytes=fs.readFileSync(path.join(root,pin.file));if(sha(L.object(root,pin.commit,pin.file))!==pin.sha256||gitHead&&!L.object(root,'HEAD',pin.file).equals(bytes))fail('ACCEPTED-PARENT-GIT-PIN');}
@@ -151,13 +204,13 @@ function verifyAcceptedParent(root,a,{gitHead=true}={}){
 function verifyReceipts(root,a,e,bytes){
   if(e.acceptanceFile!==artifactFile(a))fail('ENVELOPE-PROFILE-MISMATCH');
   if(profile(a).id==='M2-IMPORT-GUARDS')return verifyReceiptsImport(root,a,e,bytes);
-  if(e.acceptanceFile!==STEP_FILE)fail('ENVELOPE-PROFILE-MISMATCH');verifyAcceptedParent(root,a);
+  if(![STEP_FILE,ERA_FILE].includes(e.acceptanceFile))fail('ENVELOPE-PROFILE-MISMATCH');verifyAcceptedParent(root,a);
   for(const key of ['owner','contract','theme']){const r=e.receipts[key],claim=a.authorizations[key];if(r.line!==claim.line||r.lineSha256!==claim.lineSha256)fail('AUTHORIZATION-CLAIM-MISMATCH');L.verifyReceipt(root,e.candidateBase,r,{role:claim.role});}
   if(e.receipts.review.status==='PENDING')return false;
   const r=e.receipts.review.receipt;L.verifyReceipt(root,e.candidateBase,r,{role:'cowork'});
-  const match=/^(?:- [^\r\n]+ · cowork · )?POSTFIX-ACCEPTANCE M2-STEP-EFFICACY ([a-f0-9]{40}) (rebuild\/conform\/v4\/postfix\/acceptance-step-efficacy\.json) ([a-f0-9]{64}) ACCEPTED$/.exec(r.line);
+  const match=(a.packageId==='M2-SET-ONE-ERA'?/^(?:- [^\r\n]+ · cowork · )?POSTFIX-ACCEPTANCE M2-SET-ONE-ERA ([a-f0-9]{40}) (rebuild\/conform\/v4\/postfix\/acceptance-set-one-era\.json) ([a-f0-9]{64}) ACCEPTED$/:/^(?:- [^\r\n]+ · cowork · )?POSTFIX-ACCEPTANCE M2-STEP-EFFICACY ([a-f0-9]{40}) (rebuild\/conform\/v4\/postfix\/acceptance-step-efficacy\.json) ([a-f0-9]{64}) ACCEPTED$/).exec(r.line);
   if(!match||match[2]!==e.acceptanceFile||match[3]!==e.acceptanceSha256)fail('REVIEW-EXACT-VERDICT');if(!L.object(root,match[1],match[2]).equals(bytes))fail('REVIEW-ARTIFACT-GIT-PIN');return true;
 }
-function load(root,manifestFile){const e=envelope(parseExact(fs.readFileSync(manifestFile))),bytes=fs.readFileSync(path.join(root,e.acceptanceFile));if(sha(bytes)!==e.acceptanceSha256)fail('ACCEPTANCE-BYTE-PIN');const a=validate(parseExact(bytes));if(artifactFile(a)!==e.acceptanceFile)fail('ENVELOPE-PROFILE-MISMATCH');return {envelope:e,acceptance:a,bytes};}
-function missing(a){const p=profile(a),out=[];for(const id of p.required){const r=a.inventory.find(r=>r.defect===id);if(r.implementation!=='PRESENT')out.push(id+' implementation pending');for(const k of ['cases','mutants','sourceDeltas','outputDeltas'])if(!r[k].length)out.push(id+' '+k+' pending');for(const c of r.cases)if(c.expectations.length!==a.matrix.length)out.push(c.id+' expectation matrix pending');}if(a.sourceChanges.length!==p.sourceCount)out.push(p.sourceCount===5?'five reviewed source changes pending':'one energy expression plus five inherited source changes pending');if(p.id==='M2-STEP-EFFICACY'&&!a.inventory.find(r=>r.defect==='D45').consequence)out.push('D45 runtime-only consequence descriptor pending');return out;}
-module.exports={FILE,BASE,REQUIRED,STEP_FILE,STEP_REQUIRED,STEP_CONTRACT,PARENT_PIN,profile,artifactFile,envelopeFile,requiredIds,parentArtifact,parentBinding,verifyAcceptedParent,keys,relative,validate,envelope,load,fetchIntegration,ancestry,verifyReceipts,missing,rawExpectations};
+function load(root,manifestFile){const e=envelope(parseExact(fs.readFileSync(manifestFile))),bytes=fs.readFileSync(path.join(root,e.acceptanceFile));if(sha(bytes)!==e.acceptanceSha256)fail('ACCEPTANCE-BYTE-PIN');const a=validate(e.acceptanceFile===ERA_FILE?require('./helpers/set-one-era-compact-json.cjs').parseCompactExact(bytes):parseExact(bytes));if(artifactFile(a)!==e.acceptanceFile)fail('ENVELOPE-PROFILE-MISMATCH');return {envelope:e,acceptance:a,bytes};}
+function missing(a){const p=profile(a),out=[];for(const id of p.required){const r=a.inventory.find(r=>r.defect===id);if(r.implementation!=='PRESENT')out.push(id+' implementation pending');for(const k of ['cases','mutants','sourceDeltas','outputDeltas'])if(!r[k].length)out.push(id+' '+k+' pending');for(const c of r.cases)if(c.expectations.length!==a.matrix.length)out.push(c.id+' expectation matrix pending');}if(a.sourceChanges.length!==p.sourceCount)out.push(p.sourceCount===5?'five reviewed source changes pending':p.sourceCount===9?'one volume declaration/two delegates plus six inherited source changes pending':'one energy expression plus five inherited source changes pending');if(p.id!=='M2-IMPORT-GUARDS'&&!a.inventory.find(r=>r.defect==='D45').consequence)out.push('D45 runtime-only consequence descriptor pending');return out;}
+module.exports={FILE,BASE,REQUIRED,STEP_FILE,STEP_REQUIRED,STEP_CONTRACT,PARENT_PIN,ERA_FILE,ERA_REQUIRED,ERA_ANCHOR,ERA_CONTRACT,ERA_THEME_SHA,STEP_PARENT_PIN,profile,artifactFile,envelopeFile,requiredIds,parentArtifact,parentBinding,stepParentArtifact,stepParentBinding,verifyAcceptedParent,keys,relative,validate,envelope,load,fetchIntegration,ancestry,verifyReceipts,missing,rawExpectations};

@@ -20,6 +20,8 @@ const recoveryIndex = (...args) => E.recoveryIndex(...args);
 const rirSetsOf = (...args) => E.rirSetsOf(...args);
 const sessionScore = (...args) => E.sessionScore(...args);
 const todayStart = (...args) => E.todayStart(...args);
+const forksOf = (...args) => E.forksOf(...args);
+const sameEra = (...args) => E.sameEra(...args);
 const windowFor = (...args) => E.windowFor(...args);
 
 // Copied from frozen src/app.jsx @ fe516c1:1398-1401.
@@ -189,8 +191,11 @@ function _blockSlope(pts9) {
 function setOneRead(s, exId) {
   const ex9 = (s.exercises || []).find((x) => x && x.id === exId);
   if (!ex9 || typeof ex9.w !== "number") return { status: "IDLE", exId };
+  const forks = forksOf(s, exId);
+  const at = forks.length ? isoOf(todayStart()) : null;
   const pts = [];
   for (const d of Object.keys(s.sessionLog || {}).sort()) {
+    if (!sameEra(forks, d, at)) continue;
     const sl = s.sessionLog[d];
     const en = (sl.entries || []).find((x) => x && x.id === exId);
     if (!en || !en.reps || !en.reps.length || String(en.w) !== String(ex9.w)) continue;
