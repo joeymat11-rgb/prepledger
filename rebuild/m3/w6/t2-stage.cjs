@@ -38,17 +38,19 @@ function createT2Stage(configProvider, { allowInbound = false } = {}) {
     let result, kind = "local-operation";
     if (command === null) result = { acknowledged: false, readOnly: true };
     else if (COMMANDS.has(command)) result = client[command](args);
-    else if (allowInbound && trusted.record && trusted.proof && ["@disposition", "@pull", "@snapshot", "@lease", "@time"].includes(command)) {
+    else if (allowInbound && trusted.record && trusted.proof && ["@disposition", "@pull", "@snapshot", "@lease", "@time", "@currentHead"].includes(command)) {
       kind = "inbound-proof";
       try {
         let actual;
         if (command === "@disposition") actual = client.deliverDisposition(trusted.record);
         if (command === "@pull") actual = client.deliverReceipts(trusted.record);
+        if (command === "@currentHead") actual = client.deliverReceipts(trusted.record.receipts);
         // A W5 accepted-log snapshot is history, never T2's derived product projection.
         if (command === "@snapshot") actual = client.deliverReceipts(trusted.record.entries);
         if (command === "@lease") { metadata.authorityLease = clone(trusted.record); actual = { stored: true }; }
         if (command === "@time") { metadata.authenticatedTimeSample = clone(trusted.record); actual = { stored: true }; }
-        const stored = command === "@pull" || command === "@snapshot" ? Number.isSafeInteger(actual) && actual >= 0 : actual?.stored === true;
+        const stored = command === "@currentHead" ? Number.isSafeInteger(actual) && actual === trusted.record.head :
+          command === "@pull" || command === "@snapshot" ? Number.isSafeInteger(actual) && actual >= 0 : actual?.stored === true;
         result = stored ? { stored: true, result: clone(actual) } : { stored: false, state: actual?.blocked ? 19 : 3, code: "T2_SINK_REFUSED", reason: "The verified update could not be staged." };
         if (stored) {
           const proofs = metadata.wireProofs || (metadata.wireProofs = {});

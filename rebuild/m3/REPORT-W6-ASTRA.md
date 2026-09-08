@@ -1,5 +1,62 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Current-head durable consumer — 2026-09-08
+
+Retained PR32, base `0d7f5e0cb5bd114ff87f699574fc45bb052703ea`; paired public dependency R1 `d26795a47d638ec1e67840455273cc05eeca9926`. The coordinator resumes the existing paused W6 claim for the bounded `w6/CURRENT-HEAD-CONSUMER.md` contract. This adds the actual durable consumer to the reviewed producer; it does not merge R1, relax its resource failure, implement question issuance, or establish private/phone readiness. Seven changed/added files: this report, that contract, public-client.mjs, t2-stage.cjs, history-proof.mjs and two owned test/runner files. Frozen app, original suite, existing T2/core, storage/clock implementation, dependencies and seeded soak remain unchanged.
+
+The new `exchangeCurrentHead(request, {issuanceAttempt})` captures the authenticated local revision/frontier and pending attempt, releases the queue while HTTP waits, then verifies through the actual R1 public boundary. The actual T2 receipt path stages one encrypted generation retaining the exact envelope, signed records and outbox. Conflicting retained operation content refuses18 rather than replacing an existing fact. The final repository validator compares the ORIGINAL captured revision, including after a real competing writer causes CAS restaging; a new revision cannot silently become the original observation. It checks context again after an injected final validator that might itself learn adverse information. Success is confirmed only after transaction completion. Post-validation cancellation after an unavoidable disk commit reports stored/durable but unconfirmed, hides old truth, and never claims rollback.
+
+`invalidateCurrentHead()` retires the pending request immediately. Replacement/replay/restart cannot reuse it. Reopen authenticates the complete historical profile, scope, key epoch, challenge encoding, range and all individual receipts, but does not reconstruct a pending challenge, permission or new question. Existing observationGuard/session/schema/lease protections are reused; a synthetic pass-through observation guard in these tests does not implement the production knowledge-loss fence.
+
+### Executed evidence and reproduction
+
+From the W6 repository root, with an existing checkout of the exact R1 commit and the already installed locked W5/W6 dependency directories:
+
+```text
+node rebuild/m3/w6/test/run-current-head.cjs <R1-checkout> --all
+CURRENT-HEAD REAL D1/HTTP/ENCRYPTED-CONSUMER PASS
+tests 149; pass 149; fail 0; skipped 0; native exit 0
+W6 DEFAULT PARITY PASS — 35/35 client laws and 56 exact action/state/clock vectors
+```
+
+Fourteen new cases run the actual consumer, T2 stage and AES-GCM repository against fake IndexedDB. They cover empty/nonempty exact proof retention, preserved outbox/unknown collection, separate-repository reopen, replay, quota/abort with a reached-write precondition, held completion, a local write during HTTP, an actual competing repository/CAS retry, two cancellation cuts, replacement, valid outer/invalid inner signature, conflicting retained identity, and authenticated malformed historical proof. The final case uses the actual R1 scoped authority, tracked six-statement migration0002, local D1, per-run keys/test issuer and real localhost HTTP; the accepted remote fact reaches the real encrypted consumer. A receipt alone still does not drain an outbox requiring a disposition. No private data or live provider was used.
+
+The tracked runner composes immutable R1 public files and this W6 candidate in a disposable directory; it records every copied W6/client hash and verifies the originals unchanged. It retains W6's existing client hooks rather than substituting R1's older client. The unchanged default-parity test needs historical Git objects: child-only GIT_DIR points to the retained object database and GIT_WORK_TREE to the disposable directory for its read-only ls-tree/show commands. Original law/lib/adapter files are copied unchanged. Existing installed dependencies are linked only in the disposable tree; the retained repository has a real node_modules directory. This is explicit test composition, not a merged or deployable package. Direct execution against the old W5 protocol fails with CURRENT_HEAD_DEPENDENCY_MISSING, never a simulated PASS; the public API returns typed unsupported12 there.
+
+Disclosed setup/debugging: the first composition replaced W6's T2 hooks with the older R1 client and failed before reaching the intended path; two early fault assertions lacked a reached-write precondition and were strengthened. Its blocked test child was stopped, with unrelated processes untouched. The second run was11/14: a test compared internal pending-input state as if it were unchanged published truth, the new refusal API lacked a consistent accepted:false marker, and the real-D1 fixture had not built the generated core. The assertion now checks actual published view/refusal; the public result is normalized; the fixture builds the actual core. The third focused run passed14/14. First full regression148/149 lacked the Git history needed by an unchanged baseline test; supplying the read-only history and original law/adapter dependencies yielded149/149. Failed outputs remain locally preserved. No original test or frozen law was weakened.
+
+```text
+node rebuild/m3/w6/test/run-current-head.cjs <R1-checkout> --bite
+FAIL local writes proceed while HTTP waits; their revision invalidates the captured request
+FAIL actual CAS retry compares the original capture, never the restaged revision
+tests 14; pass 12; fail 2; native exit 1
+RESTORED full regression: tests149; pass149; fail0; native exit0
+```
+
+The bite removes only the original-revision comparison in a disposable product copy. Both failures are false acceptance (`true !== false`), not syntax, missing dependency or source-pin failure. Original/restored public-client SHA256 `cc6b913a17e6f7515020bfbc3845a9d0275e4bfcd1ad2107660273dd04ae55c8`; mutant `958d9fc92375eb09b030763d54d5d47062b2c1952f4a5d1741530f130b569f43`. Root bytes never changed. history-proof SHA256 `9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114`; t2-stage `e487aaf8508e7d824d625e71ea1d3b5bfaf87b0075ac5ce822d43fd5f6e0f577`.
+
+Fresh retained-W6 browser regressions pass: browser build34 inputs; clean offline frozen-lock build and effective cipher-pin refusal; actual Chromium152.0.4191.66 T2 parity56 vectors, six signed surfaces/36 tamper-domain refusals, public disposition sink; repository6/6, frame/key/migration/nonce/old-tab checks and their restored existing bites. These existing browser checks use the retained older W5 and do not execute the new head exchange. Separately, the composed new-R1/new-W6 browser graph builds with34 inputs and no authority private implementation. New head behavior is Node WebCrypto plus fake-IDB/actual-local-HTTP evidence, not physical Safari evidence. W3 remains39/39.
+
+```text
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implementation evidence remain release gates
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+PASS engine suite — 3072 assertions passed
+PASS APP_V 7.56.0 === sw cache earned-v7.56.0
+PASS 18 files ship; ledger/, src/, tools/, scripts/, docs/ and rebuild/ stay off the CDN
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+Original gates use explicit ENGINE_MAIN/ENGINE_OLD and this W6 client, MEASURED_TEST_NOW=2026-09-03 and America/New_York; strict unsets the test clock. Locally regenerated private preparation matches its pins; only its PASS verdict is reported. Public goldens/manifest remain unchanged. Full regression2338ms and browser/build checks are local execution timings, not latency/phone guarantees. Retained continuation work ran approximately17:10–17:35Z through this publication preparation; earlier setup failures are included, no per-agent cost claim. Coordinator logs: work/w6-current-head-{first,second,third,regression,regression-fixed,bite,restored}.log, work/w6-current-head-browser-20260908 and work/w6-current-head-gates-2026-09-08T17-30-36-175Z.
+
+**Remaining seams:** K1 and persistent knowledge-loss fence; production observation/currentness and normalization; issuance eligibility/Q1 and contract cases6/7; schema activation and complete workout encoding/captured prescriptions; R1 resource/provider qualification; CLOCK/T1/P1, private port and real Joe/Dad phones. Historical proof is not fresh permission. Exact-head CI and affected independent execution are still pending at this authored checkpoint. The broader approved individualized training/nutrition/recovery/lifestyle/phase goal remains in the retained owner-workout brief; this storage slice supports it without substituting logging-only completion.
+
+**NEXT:** this publishes the W6 mechanical current-head consumer for independent review on the same PR32. Root takes the existing full-workout schema/activation and captured-prescription dependency next while review runs; no separate implementation stream or new schedule. Only applicable completed independent/integrator/recovery/phone evidence can close OWNER-TODAY. No merge or owner action requested.
+
 ## Current K1 FAPI source and protected-record binding — 2026-09-07
 
 Same retained draft PR32 at90a3787c5b36eee80a6e6826dc0c3cfe8dad50a7; exactly the existing K1 proposal/report change. §§2.5–2.6 close another authorable gap: exact source-defined fields/statuses/response references for the five selected email-code/session-token/session-end actions, followed by proposed protected header/body-or-prefix records and parser-result lineage. No product code, dependency, SDK/provider test, credential/config read, actual token, private/soak interaction or new protocol adoption.
