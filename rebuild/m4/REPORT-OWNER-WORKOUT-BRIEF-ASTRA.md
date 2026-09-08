@@ -1,5 +1,26 @@
 # ASTRA — owner workout contract preparation
 
+## v0.24 — preserve zero; reject negative-zero spelling in the new format
+
+Base2127fe95145b1c2cf3fd91b2d104dd9076010024, retained PR46. Opus Message76 independently ACCEPTED the actual pure module against the reviewed interface, reproduced83/83 and the effective restored bite on Linux, and passed12 own challenges. Its bounded F-3 noted that JSON-parsed negative zero passes JavaScript's integer/equality checks for reps and exact reserve. No wrong training action was proved; this was nonblocking. PM chose to reject that spelling now rather than normalize it. Ordinary zero stays valid, signed legacy history is untouched, and no training prescription or issued schema changes. InterfaceF-1/F-2 remain corrected. Parent CI terminal7SUCCESS/3SKIP both OS.
+
+Original reviewer archive remains attached to session_01SAJZorAhzfSEv3oE6xibr9, reported10361bytes/SHA25689de5fc3c49fea30f2068c0c353d09d0a15cf0ffe36d1ed42c4ceafd255a4176. NOT locally received/hash-verified/replayed. Reviewer's initial control with undefined properties was correctly rejected as non-JSON; reviewer corrected it and retained a separate undefined-rejection control. Earlier intervening3653bb6/075f37c are not retroactively accepted.
+
+Three tracked raw-JSON cases were added BEFORE changing module predicates. Unchanged original module produced native1:
+```text
+FAIL reject/negative-zero-reps: ERR_ASSERTION
+FAIL reject/negative-zero-reserve: ERR_ASSERTION
+WORKOUT BASIC SHAPE FAIL — 84/86 checks; 79 actual primitive/unchanged-byte controls; 40 shape differences (not all defect rulings); NOT ACTIVATED
+```
+Negative-zero load already refused; it is a passing control. Added Object.is(value,-0) refusal only to reps/reserve predicates. Existing ordinary-zero and input deep-value preservation controls remain. Same focused runner with --bite then native0:
+```text
+WORKOUT BASIC SHAPE PASS — 86/86 checks; 81 actual primitive/unchanged-byte controls; 42 shape differences (not all defect rulings); NOT ACTIVATED
+WORKOUT BASIC SHAPE BITE EFFECTIVE — FAIL reject/missing-reps; native1
+WORKOUT BASIC SHAPE RESTORED PASS — sha256 4702fdeeb25fb958f7f89bdedfe12d513f575db06df25db938af2fa58d12155e
+```
+
+Scope remains the same five files. This is representation refinement in an unactivated module, not production input repair, complete schema, durable logging or phone evidence. v0.23's first incomplete strict run stays unresolved and preserved; later unchanged success did not diagnose it. Fresh mandatory gates completed native0 in work/owner-workout-v08-gates-2026-09-08T19-15-26-166Z: preparation/private-verdict/public pins; FROZEN-PATHS/actual18-file ZIP; conformance99/99/29/70 with rig185W1/W2; SELFTEST; strict with test clock unset; diff. Strict completed on its first run at this successor, with no source/test/timeout workaround; its old-app package tail is not new-app release acceptance. Exact-head CI and focused F-3 review pending. NEXT: close this bounded correction, then selected-version commands/semantic admission under the complete published schema and captured-prescription recovery join. Full goal unchanged. F-3 checkpoint began19:12Z; remaining time is a checkpoint estimate, not a release promise.
+
 ## v0.23 — implement the independently reviewed shared shape interface
 
 Base66658ccc01b80633fb742b97f56ba41997b9d250, same retained PR46. Opus Message74 gave PERMISSION TO IMPLEMENT subject to two text corrections, both applied before code: F-1 removes the false implication that existing admit.cjs automatically covers session_start_op_id/lineage and requires the actual version2 relationship amendment; F-2 fixes precedence JSON → profile → common → kind fields → payload. Reviewer found no conflicting ratified count requirement for the proposed safe-integer count profile and preserved all wider activation/semantic/science/private/phone holds. Its original archive remains attached to session_01SAJZorAhzfSEv3oE6xibr9, reported6017bytes/SHA2562a13dcdce2cc904476614c27eec4eb2b376e26ea519aabe6e31cc7a96fd6151d; not locally received/hash-verified/replayed. Source parent CI terminal7SUCCESS/3SKIP both OS.

@@ -61,11 +61,12 @@ function keys(value, required, optional = []) {
 const quantity = (value, unit) => keys(value, ['value', 'unit']) &&
   Number.isFinite(value.value) && value.unit === unit;
 const load = value => quantity(value, 'lb') && value.value > 0;
-const reps = value => quantity(value, 'rep') && Number.isSafeInteger(value.value) && value.value >= 0;
+const reps = value => quantity(value, 'rep') && Number.isSafeInteger(value.value) && value.value >= 0 &&
+  !Object.is(value.value, -0);
 function reserve(value) {
   if (!map(value)) return false;
   if (['unknown', 'skipped', 'not_asked'].includes(value.tag)) return keys(value, ['tag']);
-  return keys(value, ['tag', 'value', 'unit']) && value.unit === 'rep' &&
+  return keys(value, ['tag', 'value', 'unit']) && value.unit === 'rep' && !Object.is(value.value, -0) &&
     (value.tag === 'exact' ? [0, 1, 2].includes(value.value) : value.tag === 'at_least' && value.value === 3);
 }
 function validSet(payload) {
