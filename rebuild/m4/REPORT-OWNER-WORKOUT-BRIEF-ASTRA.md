@@ -1,5 +1,35 @@
 # ASTRA — owner workout contract preparation
 
+## v0.30 — actual client acceptance and tangible first-use integration
+
+Read/adopted IMPLEMENTATION-AMENDMENT.md §26 at the normal boundary while preserving
+active W6 review/gates. Assessed APM FIRST-USE-CUT-01's entire source map: adopted
+all8groups into the EXISTING brief, each with actual failure, essential outcome versus
+chosen mechanism, source and next actor/minimum closure. No new release deferral
+was demonstrated; none adopted. Avoid duplicate schema forwarding/issuedLeases work.
+Helper used stable09f5/R1bec/8aafb public source and did not test or review product.
+Preparation is not an acceptance gate or proven usage/time saving.
+
+Concrete next integrated milestone: visible synthetic START→actual SET using retained
+W6, then extend SAME interaction through specified effort/edit/skip/close and original
+verified record readback; capture/current safety/qualified prescriptions/corrected
+history remain explicit joins. APM received exclusive WORKOUT-PANEL-01 file brief;
+no helper product adoption or acceptance claimed. Full PRODUCT-GOAL v2 remains exact.
+
+Opus86 ACCEPTS actualW609f5 component, reproduced202/browser/core34/HTTP9/bite plus11
+own challenges; originalarchive29413bytes SHAdef370a612bc9bad4ce2ce77ae8e7b650ee4a0f8376d1af22dad1a40976bbead
+attached NOT locallyreceived/hashed/replayed. Author publication/cleanbuild/Windows
+remain attributed; exact09f5 CIterminal7SUCCESS/3SKIP bothOS. Original schema doc's
+obsolete not-imported sentence now explicitly dates the old premise and current
+bounded composition. Small diagnostic successor9296897 is now Opus88 ACCEPTED, including7own challenges
+and204/browser/bite replay; exactCI7/3terminalbothOS. Normal API stable, no new rule
+or private activation. Original19770-byte archive SHA99ff5c5c528589cda561569bb0ee463f2a9eeb122afa634d4f32c4406a209f7b attached, NOT locallyreceived/hashed/replayed. Its author204/gates
+pass; neither its eventual acceptance nor this document closes the whole app.
+Required publication gates native0 atwork/owner-workout-v08-gates-2026-09-08T21-32-06-975Z: preparation/privateverdict/publicpins, frozen18actualZIP, conformance99/99/29/70+rig185W1W2,SELFTEST,strict3072(clockunset),diff. NEXT: adopt bounded panel after reconciliation,
+execute actual joined UI proof and independent review; extend capture/manifest/history
+against that same journey. No new queue/schedule/model/paid/custody or owner relay.
+
+
 ## v0.29 — Opus84 client-command corrections before source adoption
 
 Opus reviewed c2d9817 against actual retained W6cdf and R1bec: PERMISSION TO

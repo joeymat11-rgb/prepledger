@@ -1,4 +1,4 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.29
+# EARNED — complete owner workout slice — proposed technical brief v0.30
 
 ASTRA · 2026-09-08 · Original publication base `213300c6c49f772dcb2ff859e1c1375dd571b837`; v0.16 follows retained PR46 `01cb2edf8eaa3bde64f838b95fcfd433b2c4e971`. Its reader received scoped independent acceptance; this successor adds the actual signed legacy-observation projection candidate, documentary corrections and the owner's full coordinated-plan goal. Stage A as a whole remains unaccepted. Prior scoped technical-text verdicts remain attached to their actual revisions and do not close M3/M4/M5, authorize a private import, waive a gate or change a training rule. The document itself does not ship app behavior.
 Owner instruction, adopted at the retained checkpoint: prioritize the earliest qualified complete workout-logging app. Today and check-ins support that delivery; they are not its substitute. The existing coordinator, two implementation streams, retained worktrees, model settings, reviewer and integrator remain. This is an executable slice brief, not another maintained plan or work queue.
@@ -350,6 +350,46 @@ Enumerated delta: `rebuild/m4/workout/history-panel.cjs`, `history.css`, `README
 The consumer clears previous content before each async read, rejects late superseded responses, and exposes clear/dispose for the lifecycle owner. Its request generation is a display fence only; the future account owner must call it on context loss and supply the new account's trusted reader. This does not detect sign-out or close W6 knowledge-loss/durable recovery. Source strings render only as text; no raw errors or active record markup. No save/finish/apply control is offered before its actual producer/storage contract exists.
 
 Executed on synthetic data through the actual retained writer/core/signature/projection path: 23 history checks (all20 originals retained) plus15 DOM checks PASS. Three added desired consumer assertions separately fail on exact3b88b52 and pass after the repair. Four desktop Chromium checks at390/320px and200% text, including keyboard details, PASS after fixing an observed12px text overflow without clipping. Lifecycle and hostile-text stubs are labeled separately from signed-path evidence. Physical Safari/VoiceOver, qualified account switching and full workout joins remain open. README specifies exact reproduction and scope; applicable publication and independent acceptance are separate. The prototype supports the reliable-records pilot outcome; it does not turn partial logging or green unit tests into first use.
+
+### First-use dependency cut — amendment26 adopted, v0.30
+
+Adopted all eight source-grounded groups from APM FIRST-USE-CUT-01 (Astra High,
+public read-only preparation completed September8; no tests or acceptance verdict).
+Pins: W6 `09f5bce`, R1 `bec056d`, this brief's predecessor `8aafb04`. Actual command
+component09f5 is now independently ACCEPTED (Opus86, Linux202/202 and browser/core/HTTP
+plus11 own challenges). Its small9296897 diagnostic successor is also independently ACCEPTED by Opus88
+(own7challenges,204/204 and browser/bite replay); normal API unchanged. Exact929 CI
+is terminal7SUCCESS/3SKIP on both OS jobs. Reuse both the selected-schema builder and existing
+issuedLeases resolver. This cut establishes NO new first-use deferral or gate waiver.
+
+| First-use action / actual gap | Outcome versus mechanism; smallest closure | Source / next actor |
+|---|---|---|
+| Obtain permission for meaningful writes: real issuer still emits/refuses only1 while new workout commands need2 | Essential valid, compatible writes. Immutable registry/atomic activation is the selected mechanism: close the complete applicable schema, preserve old pending/replay and prove atomic activation/abort. Do not repeat already implemented version forwarding. | R1 codec:53, issuer:16,116; W6 client:150–200/public-client:96–97 at pinned bases. Retained R1/W6 Astra, C review, I integration. |
+| Resume original instructions: no start/capture coupling or recoverable encoding | Essential historical instructions distinct from current safety. Reuse existing whole-generation storage; define exact P1 custody/recovery mapping and preserve start/capture/outbox atomically through failure/recovery. Empty start payload remains {}. | W6 commands:43–67, client:196,210, repository:104–168; capture obligations above. W6/M4 Astra, C; I existing custody. |
+| Reopen corrected cross-device history: legacy read views group raw own-device sets | Essential accurate facts/status. Join authenticated history to the actual correction/partition fold, preserving originals, pending/rejected and concurrent/clearing/effective-time semantics. Admission alone is insufficient. | W6 client:87,113–114; correction/projection obligations above. M4 Astra, C. |
+| Receive an appropriate next prescription: legacy writer flattens per-set load/effort; resume borrows current hold | Essential applicable, scientifically justified instructions. Preserve rich facts, close their lossless engine representation/eligibility and fresh/resume boundary, then the existing rationale/individual-applicability review. No new ladder rule or invented Dad profile. | Engine source analysis in §2 and EFFORT-03 hold above. M2/M4 Astra, C, I. |
+| Resolve choices, safety or ambiguity: basic commands omit consent/undo/partition/pain/Re-entry | Essential when reachable. Implement sufficiently closed existing contracts and reconcile any material rule question through its assigned actor; valid offline capability and enrolled-device behavior remain. No future-only deferral established by this cut. | Current-head/Q1/Q3 and §3 obligations. R1/M4 Astra, C; O only unresolved rulings. |
+| Use workout controls: real command API exists but the joined mounted journey remains incomplete | Essential truthful usable flow. Mount START→actual SET first with the real durable client, then extend SAME interaction to effort/correction/removal/skip/close and reopened original records/dispositions; finally qualified capture/engine/corrected history. | W6 stage:8,36–66/public-client:181–184; §3 below. W6/M4 Astra, C. |
+| Trust save/recovery/isolation: component storage proof is not a persistent knowledge fence or operational recovery | Essential durable truth and account isolation. Reuse accepted mechanics; finish actual K1/T1/P1, time/currentness, resource/provider, isolated restore/key/account recovery evidence under existing custody. A mechanism replacement requires equivalent guarantees proved, not renamed failure. | W6 repository:142–144; existing M3/brief recovery gates. R1/W6 Astra, I, C. |
+| Use Joe/Dad installations with accurate port: private import and actual phones not yet qualified | Essential faithful data and actual-use proof. Complete authorized isolated import/rollback, independent integration and each person's whole physical journey/configuration. No inferred Dad profile or public demo substituted. | §3 and retained checkpoint's private/integrator/phone gates. I/C/O. |
+
+**Next runnable integrated deliverable:** a mounted, clearly SYNTHETIC workout
+interaction using the actual accepted durable command path; START→SET is the first
+sufficiently closed portion, then the remaining already-specified commands and
+verified original-record readback. Current unissued schema2 test capability and
+synthetic observation guard remain explicitly unqualified. This is useful intermediate
+work, not private enrollment, complete Gym, corrected history or prescription evidence.
+No new application/architecture: use retained components and existing Gym interaction
+patterns. Build this portion while necessary capture/manifest closure continues;
+do not postpone it for unrelated public-facing scope. The full coherent-plan purpose
+and scientific/first-use bar remain unchanged.
+
+APM owns exclusive WORKOUT-PANEL-01 candidate preparation (file brief supplied),
+with no retained product edits, new committer, independent-review replacement or
+recursive agents. Coordinator adopts after source/API reconciliation and applicable
+gates; helper output is not automatically accepted. FIRST-USE-CUT-01 findings were
+adopted as the map above, not a new audit, queue or acceptance gate. Credit/custody,
+retained ownership/settings and the existing continuation schedule are unchanged.
 
 ## 2. Actual engine, projection and public package
 
