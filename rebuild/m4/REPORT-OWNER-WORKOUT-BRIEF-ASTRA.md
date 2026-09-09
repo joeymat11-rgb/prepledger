@@ -1,5 +1,13 @@
 # ASTRA — owner workout contract preparation
 
+## v0.39 — activate consolidated owner decisions in the substantive capture checkpoint
+
+Read and incorporated APM CURRENT-PRODUCT-DECISIONS revision1 and its affected approved additions/quality/RECOVERY-NUTRITION sources. BRIEF §0 now records P1–P6 precedence, current placement, concrete next dependencies and separate approval/implementation/qualification states. The existing scope table now moves the bounded full daily macro-plan view and necessary recovery connections earlier, replacing blanket nutrition-later wording. Completed assessment is no longer called in flight. This preserves PRODUCT-GOALv3; no extra tracker, broad audit, gate, private data, prescription constant or implementation claim.
+
+This is paired with the substantive actual-capture/Start checkpoint PR32 b37366b (17 focused/282 composed/10 native browser; successor review pending), not a new status-only PR. Parent b176 contract corrections were independently ACCEPTED110; parent capture component9563 independently ACCEPTED112. References retain their exact source scope; no archived evidence is represented as locally received. The owner-approved static design remains fictional, not the product or a personal prescription.
+
+Only this report and BRIEF changed; git diff check PASS. Existing parent code/gate evidence is unchanged; per the owner's bounded consolidation instruction, no unrelated code tests or duplicate independent audit were rerun for this documentary placement update. Affected implementation still requires all existing gates/review. NEXT: root owns the actual producer/basis/authority/recovery joins; dated safety/non-workout and explicit macro-plan contracts are the next prerequisites for the early nutrition/recovery increment. No independent UI-only helper should fabricate their payloads or physiological interpretation.
+
 ## v0.38 — reviewed capture corrections and owner design integration slot
 
 From PR46 `07ee2d96d7fe9af7a926a5e962c9f0d47b1e5de0`, Opus108 PERMISSION TO IMPLEMENT subject to R-1–R-3 / G-1–G-7. The reviewer independently reproduced the 26-check probe and two current rejection gaps, added 15 boundary attacks plus collection/row/stamp AAD refusals, and identified Unicode canonical equivalence. Archive14312bytes SHA256 `9e185273f844fa4466d1e69709858f30c145bfae7dfd79df878c3acbb0753412` remains ATTACHED, not locally received/rehashed/replayed. Exact07ee CI terminal7SUCCESS/3SKIP on both OS was observed; it is not this successor's CI.
