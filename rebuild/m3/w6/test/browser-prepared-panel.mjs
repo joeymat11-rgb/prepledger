@@ -100,6 +100,9 @@ try{
    const reloaded=W.mountPreparedWorkoutPanel(root,{client:W.createDurablePublicClient({...f.args,repository:fresh}),plannedSplitSlotId:'synthetic-slot'});
    ok((await reloaded.ready).code==='WORKOUT_HISTORY_RECONCILIATION_REQUIRED'&&!root.querySelector('button')&&root.textContent.includes('saved workout needs to be recovered'),'fresh client mount refuses duplicate Start from actual retained workout');
    ok(JSON.stringify(await fresh.load())===JSON.stringify(after)&&f.produced()===1,'reload refusal changes neither stored facts nor original prescription');reloaded.dispose();fresh.close();
+   const recoveredRepo=await W.openRepository(f.setup),recoveredClient=W.createDurablePublicClient({...f.args,repository:recoveredRepo});
+   const history=await recoveredClient.readWorkoutHistory();
+   ok(history.read===true&&JSON.stringify(history.history.sessions[0].original)===original&&history.history.sessions[0].records[0].operation.payload.load.value===40.5&&history.history.continuation.allowed===false&&JSON.stringify(await recoveredRepo.load())===JSON.stringify(after)&&f.produced()===1,'fresh native client recovers original instructions and stored set without changing history or granting resume');recoveredRepo.close();
    const lost=await fixture(true),lh=W.mountPreparedWorkoutPanel(root,{client:lost.client,plannedSplitSlotId:'synthetic-slot'});await lh.ready;submit();
    await wait(()=>root.querySelector('.wcp-status').textContent.startsWith('Saved'));
    ok(lost.writes()===1&&lost.produced()===1&&Object.keys((await lost.repo.load()).generation.collections.ops).length===1,'lost reply reconciles one actual disk Start without rebuild/write');
@@ -133,7 +136,7 @@ try{
  assert.equal(await page.locator('.wcp-last-record').textContent(),lastRecord);await page.getByLabel('Weight (lb)',{exact:true}).fill('');
  presentation.push('unsaved typing cannot rewrite the last acknowledged fact');
  await page.screenshot({path:join(artifacts,'actual-prepared-panel.png'),fullPage:true});
- for(const [width,fontSize] of [[390,16],[320,16],[390,32]]){
+ for(const [width,fontSize] of [[390,16],[320,16],[390,32],[320,32]]){
   await page.setViewportSize({width,height:844});await page.evaluate(size=>document.documentElement.style.fontSize=size+'px',fontSize);
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'prepared screen fits viewport');
   const target=await page.locator('.prepared-active-slot').boundingBox(),entry=await page.locator('.wcp-entry').boundingBox();
@@ -148,7 +151,7 @@ try{
  await page.getByRole('button',{name:'Finish early',exact:true}).click();
  assert.equal(await page.evaluate(()=>document.activeElement.name),'closeChoice');assert((await page.locator('.wcp-status').textContent()).includes('Choose early finish'));
  presentation.push('early-close confirmation stays visible and focuses the real choice');
- const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,27);assert.deepEqual(errors,[]);
+ const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,28);assert.deepEqual(errors,[]);
  const observer=await page.evaluate(async()=>{
   const W=await import('/app.js'),root=document.querySelector('#root'),seen=[];
   const selection={planned_split_slot_id:'AD_HOC',plan_basis:'NO_ACCEPTED_PLAN',logical_set_slot:'one',lift_lineage_id:'same',label:'Same label'};
@@ -167,8 +170,8 @@ try{
   handle.dispose();next.click();check(seen.length===2&&root.children.length===0,'disposed Next cannot notify or paint');return 7;
  });assert.equal(observer,7);assert.deepEqual(errors,[]);
  for(const input of built.inventory)assert.equal(createHash('sha256').update(readFileSync(join(source,input.path))).digest('hex'),input.sha256,'source changed during proof');
- writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,presentation,observerChecks:observer,activeLayouts:['390/16','320/16','390/32'],browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
+ writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,presentation,observerChecks:observer,activeLayouts:['390/16','320/16','390/32','320/32'],browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
  console.log('UI DISCLOSURES PASS — '+presentation.length+' native presentation checks; keyboard, correction focus, saved-only feedback and blank performed fields');
  console.log('ACTIVE SLOT PASS — 5 actual prepared-display checks + 7 controlled observer checks; exact slot identity, frozen original values, no prefill/write, blocked advancement and failed-display refusal');
- console.log('PREPARED PANEL PASS — 27 native lifecycle/display checks plus keyboard original-instructions disclosure; actual prepared Start/Set/next, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen and fresh-client duplicate refusal; synthetic producer/guard, not phone/qualified prescription');
+ console.log('PREPARED PANEL PASS — 28 native lifecycle/display/history checks plus keyboard original-instructions disclosure; actual prepared Start/Set/next, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen, fresh-client duplicate refusal and original-fact recovery; synthetic producer/guard, not phone/qualified prescription');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

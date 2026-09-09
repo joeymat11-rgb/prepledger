@@ -39,6 +39,57 @@ const start=(f,p,extra={})=>f.c.startPreparedWorkout({preparedId:p.preparedId,..
 const operations=async f=>(await f.repo.load()).generation.collections.ops||{};
 const recreate=f=>createDurablePublicClient({...f.args,repository:f.repo});
 const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_op_id:id,completion_kind:'early',causal_parents:[id]}});
+test('fresh client recovers exact original workout and stored Set/edit/Skip/Close facts without a new Start or producer',async()=>{
+ const f=await setup();try{
+ const a=await start(f,await prepare(f)),set=await f.c.execute('workout',{action:'set',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-0',lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'at_least',value:3,unit:'rep'},causal_parents:[a.op_id]}});assert.equal(set.acknowledged,true);
+ const edit=await f.c.execute('workout',{action:'correct',input:{target_op_id:set.op_id,lift_lineage_id:'same-lineage',replacement_fields:{reps:{value:9,unit:'rep'}},causal_parents:[set.op_id]}});assert.equal(edit.acknowledged,true);
+ const skip=await f.c.execute('workout',{action:'skip',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-1',lift_lineage_id:'same-lineage',skip_scope:'set',reason:'Time',causal_parents:[a.op_id]}});assert.equal(skip.acknowledged,true);
+ assert.equal((await close(f,a.op_id)).acknowledged,true);
+ const before=await f.repo.load(),fresh=await f.fresh();try{
+ const c=createDurablePublicClient({...f.args,repository:fresh.repository}),r=await c.readWorkoutHistory();assert.equal(r.read,true,JSON.stringify(r));
+ assert.equal(r.source_revision,before.revision);assert.equal(r.history.sessions.length,1);const session=r.history.sessions[0];
+ assert.deepEqual(session.original,before.generation.collections.ops[a.op_id].prescription_capture);
+ assert.deepEqual(session.records.map(x=>x.operation.kind),['session-set','correction','session-skip','session-close']);
+ assert.equal(session.records[0].operation.payload.reps.value,8);assert.equal(session.records[1].operation.payload.replacement_fields.reps.value,9);
+ assert(session.records.every(x=>x.status==='stored-on-this-device'));assert.equal(r.history.continuation.allowed,false);
+ session.original.slots[0].load.display='external mutation';assert.equal((await c.readWorkoutHistory()).history.sessions[0].original.slots[0].load.display,'40 lb');
+ assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+test('history distinguishes actual signed accepted prefix from local pending facts',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),op=(await operations(f))[a.op_id];
+ const receipt=Sign.signReceipt({seq:1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey);
+ const pull=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:0,through:1,receipts:[receipt],wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey);
+ assert.equal((await f.c.acceptResponse('pull',{wireVersion:Wire.WIRE_VERSION,body:pull})).accepted,true);
+ assert.equal((await close(f,a.op_id)).acknowledged,true);const before=await f.repo.load(),r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true,JSON.stringify(r));
+ assert.equal(r.history.frontier,1);assert.equal(r.history.sessions[0].start.status,'accepted-through-frontier');assert.equal(r.history.sessions[0].records[0].status,'stored-on-this-device');
+ assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('invented stored receipt/frontier cannot promote an unsigned operation to accepted history',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),snapshot=await f.repo.load(),op=snapshot.generation.collections.ops[a.op_id];
+ snapshot.generation.collections.receipts={'1':{seq:1,op_id:a.op_id,canonical_content_commitment:op.canonical_content_commitment}};snapshot.generation.collections.sync.frontier={W:1,authorityW:1};
+ await f.repo.commit(snapshot,snapshot.generation,()=>null);const before=await f.repo.load(),r=await recreate(f).readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.state,18);assert.equal(r.code,'WORKOUT_PREFIX_UNPROVEN');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('standing lost during history authentication never exposes the stored workout',async()=>{
+ let f;f=await setup({wrapStage:stage=>(...args)=>{const r=stage(...args);if(args[1]===null&&f)f.scope.session=2;return r;}});try{
+ const r=await f.c.readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.state,17);assert.equal(r.history,undefined);assert.equal(f.produced(),0);
+ }finally{f.repo.close();}
+});
+test('interleaved durable change retires a history read instead of returning mixed generations',async()=>{
+ let armed=false,reads=0;const f=await setup({wrapRepository:repo=>({...repo,async load(){
+  const s=await repo.load();if(armed&&++reads===2){const next=structuredClone(s.generation);next.metadata.concurrentSynthetic=true;await repo.commit(s,next,()=>null);return repo.load();}return s;
+ }})});try{await start(f,await prepare(f));armed=true;
+ const r=await f.c.readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.code,'WORKOUT_HISTORY_CHANGED');assert.equal(r.history,undefined);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+test('malformed receipt index is an integrity refusal, never an empty workout',async()=>{
+ const f=await setup();try{await start(f,await prepare(f));const s=await f.repo.load();s.generation.collections.receipts={bad:null};await f.repo.commit(s,s.generation,()=>null);
+ const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.state,18);assert.equal(r.code,'WORKOUT_RECEIPT_INDEX_INVALID');assert.equal(r.history,undefined);
+ }finally{f.repo.close();}
+});
 for(const loss of ['missing','rewritten'])test(`actual stored receipt index with a ${loss} operation refuses integrity before preparing`,async()=>{
  const f=await setup();try{const a=await start(f,await prepare(f)),op=(await operations(f))[a.op_id];
  const receipt=Sign.signReceipt({seq:1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey);

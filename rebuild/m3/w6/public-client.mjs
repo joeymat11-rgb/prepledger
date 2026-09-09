@@ -5,6 +5,7 @@ import { createCandidateGrant } from "./candidate-grant.mjs";
 import Canonical from "../../authority/canonical.cjs";
 import { verifyHistoricalHead, sameRecordedValue } from "./history-proof.mjs";
 import WorkoutSchema from "../../m4/workout/schema.cjs";
+import {storedWorkoutHistory} from "../../m4/workout/stored-history.mjs";
 const copy = value => structuredClone(value);
 const refusal = (state, code, reason) => ({ stored: false, durable: false, state, code, reason });
 const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment recovery.", 18: "Stored truth needs recovery before it can be used.",
@@ -337,6 +338,27 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     finally { activeGrant?.retire(); activeGrant = null; activeProof = null; }
   }
   return Object.freeze({
+    readWorkoutHistory() { return enqueue(async()=>{
+      try {
+        if (!captureEnabled) return workoutRefusal("WORKOUT_PREPARATION_NOT_CONFIGURED");
+        if (lateRefusal) return {...lateRefusal,read:false};
+        return await observationGuard.run("workout-history",async()=>{
+          const failure=contextFailure(null);if(failure)return {...failure,read:false};
+          const snapshot=await repository.load();
+          // Validate/assemble privately before T2 consumes indexes. Nothing is
+          // returned until the same snapshot passes signature/standing checks.
+          const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
+          const candidate=await stageVerified(copy(snapshot.generation),null,null);
+          if(!candidate.view||candidate.result?.state)return {...candidate.result,read:false};
+          const changed=contextFailure(candidate.context.observationEpoch);if(changed)return {...changed,read:false};
+          const latest=await repository.load(),lastFailure=contextFailure(candidate.context.observationEpoch);
+          if(lastFailure)return {...lastFailure,read:false};
+          if(latest.revision!==snapshot.revision||latest.token!==snapshot.token)return {...workoutRefusal("WORKOUT_HISTORY_CHANGED"),read:false};
+          return {read:true,source_revision:snapshot.revision,history:copy(history)};
+        });
+      }catch(error){const changed=contextFailure(null);if(changed)return {...changed,read:false};const state=[17,18,19,20].includes(error.state)?error.state:3;return {...refusal(state,error.code||"WORKOUT_HISTORY_UNAVAILABLE",reasonFor(state)),read:false};}
+      finally{activeGrant?.retire();activeGrant=null;}
+    }); },
     prepareWorkout(request) { const input = submittedWorkout(request), lifetime = preparationEpoch; return enqueue(() => prepareWorkout(input, lifetime)); },
     startPreparedWorkout(request) { const input = submittedWorkout(request, true); return enqueue(() => startPreparedWorkout(input)); },
     retireWorkoutPreparations() {

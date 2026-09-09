@@ -14,7 +14,7 @@ const unpack=cp.spawnSync('tar',['-xf',archive,'-C',output],{windowsHide:true});
 // client with R1's older T2 would silently remove those hooks, not compose them.
 const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client','rebuild/m4/workout']).toString().trim().split(/\r?\n/));
 for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/browser-panel.mjs','test/panel-extension.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
-for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs'])names.add('rebuild/m4/workout/'+name);
+for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs','stored-history.mjs'])names.add('rebuild/m4/workout/'+name);
 const pins={};
 for(const name of names){
   if(!(name.startsWith('rebuild/m3/w6/')||name.startsWith('rebuild/client/')||name.startsWith('rebuild/m4/workout/'))||name.includes('..'))throw Error('Unexpected candidate path');
@@ -37,6 +37,14 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
 }
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
+if(process.argv.includes('--stored-history-bite')){
+ if(['--bite','--prepared-bite','--host-bite','--history-bite','--receipt-bite'].some(flag=>process.argv.includes(flag)))throw Error('Select one mutation only');
+ const file=path.join(output,'rebuild/m4/workout/stored-history.mjs'),raw=fs.readFileSync(file,'utf8');
+ const target='const signed=proofs.get(index+1),op=ops[r.op_id];';
+ if(raw.split(target).length!==2)throw Error('Exact stored-history proof bite target missing');
+ fs.writeFileSync(file,raw.replace(target,'const signed=proofs.get(index+1)||{...r,op:ops[r.op_id]},op=ops[r.op_id];'));preparedRestore={file,raw};
+ mutation={name:'trust-unsigned-stored-receipt-index',originalSha256:pins['rebuild/m4/workout/stored-history.mjs'],mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+}
 if(process.argv.includes('--receipt-bite')){
  if(['--bite','--prepared-bite','--host-bite','--history-bite'].some(flag=>process.argv.includes(flag)))throw Error('Select one mutation only');
  const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
@@ -82,7 +90,7 @@ if(process.argv.includes('--bite')){
     mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
 }
 const testDir=path.join(output,'rebuild/m3/w6/test');
-const namesToRun=['--history-bite','--receipt-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
+const namesToRun=['--history-bite','--receipt-bite','--stored-history-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
  process.argv.includes('--all')?fs.readdirSync(testDir).filter(n=>n.endsWith('.test.mjs')).sort():['current-head.test.mjs'];
 // Bound test-file workers; races inside each test still run unchanged.
 const args=['--test','--test-concurrency=2','--test-timeout=30000',...namesToRun.map(n=>path.join(testDir,n))];
