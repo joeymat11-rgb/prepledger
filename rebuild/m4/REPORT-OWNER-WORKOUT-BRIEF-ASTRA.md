@@ -1,5 +1,9 @@
 # ASTRA — owner workout contract preparation
 
+## v0.40 — keep usable-workout recovery and approved design aligned
+
+Updated the current-precedence section for actual bounded ACCEPT118 and its reproduced fresh-client duplicate-Start gap. Prioritize the already-required retained-history repair and usable active-workout reconstruction; refusal is not resume. Recorded APM's owner-directed UI-INTEGRATION-01 ownership and P3 clarification: styling adoption is not complete approved-layout implementation, and synthetic engineering screenshots are not new mocks. PRODUCT-GOALv3, first-use quality/private/device gates, current model/credit limits and retained coordinator are unchanged. No new prescription, private datum, scope, helper dispatch, schedule or broad assessment. Docs-only alignment; implementation verdicts remain in the W6 report.
+
 ## v0.39 — activate consolidated owner decisions in the substantive capture checkpoint
 
 Read and incorporated APM CURRENT-PRODUCT-DECISIONS revision1 and its affected approved additions/quality/RECOVERY-NUTRITION sources. BRIEF §0 now records P1–P6 precedence, current placement, concrete next dependencies and separate approval/implementation/qualification states. The existing scope table now moves the bounded full daily macro-plan view and necessary recovery connections earlier, replacing blanket nutrition-later wording. Completed assessment is no longer called in flight. This preserves PRODUCT-GOALv3; no extra tracker, broad audit, gate, private data, prescription constant or implementation claim.
