@@ -63,7 +63,16 @@ async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,req
  for(const device of devices){const last=await val('lastAccepted',device);check((last?.seq||0)===(maximum.get(device)||0));if(last)check(C.safe(last.seq,1));const revoked=await val('revocations',device);if(revoked)check(C.safe(revoked.barrier)&&revoked.declared_loss===true);}
  await each('lastAccepted',id=>check(hasDevice(id)));await each('revocations',id=>check(hasDevice(id)));
  await each('transactions',async(id,t)=>{const o=await val('operations',t.op_id);check(o&&o.disposition.status==='ACCEPTED'&&t.txn_id===id&&t.seq===o.disposition.athlete_log_seq);});
- await each('operations',async(_,r)=>{if(r.disposition.status==='ACCEPTED'&&['plan-mutation','conflict-selection'].includes(r.op.kind))check((await val('transactions',r.op.requested_transaction_id))?.op_id===r.op.op_id);});
+ await each('operations',async(_,r)=>{
+  const o=r.op,d=r.disposition;if(d.status!=='ACCEPTED'||!['plan-mutation','conflict-selection'].includes(o.kind))return;
+  // Acceptance retains a stale selection request, but the authority explicitly
+  // applies no plan transaction. A5/state4 distinguish the receipt from effect.
+  if(o.kind==='conflict-selection'&&d.applied===false){
+   check(d.reason_code==='BASIS_STALE'&&!await some('transactions',(_,t)=>t.op_id===o.op_id));return;
+  }
+  if(o.kind==='conflict-selection')check(d.applied===true&&d.plan_transaction_id===o.requested_transaction_id);
+  check((await val('transactions',o.requested_transaction_id))?.op_id===o.op_id);
+ });
  await each('standingEvents',async(_,x)=>{exact(x,['kind','athlete_id','device_id','account_epoch','creation_epoch','evidence']);check(['PROFILE_GENESIS','DEVICE_ENROLLED','LEASE_RENEWED','DEVICE_REVOKED','ACCOUNT_CLOSED'].includes(x.kind)&&x.athlete_id===athlete&&C.safe(x.account_epoch,1)&&x.account_epoch<=registry.account_epoch&&C.object(x.evidence));
   if(x.kind==='PROFILE_GENESIS')check(x.device_id===null&&x.creation_epoch===null&&x.evidence.history_origin==='PROFILE_GENESIS');else if(x.kind==='ACCOUNT_CLOSED')check(x.device_id===null&&x.creation_epoch===null&&x.evidence.state==='CLOSED');
   else{check(hasDevice(x.device_id)&&C.safe(x.creation_epoch,1));if(x.kind==='DEVICE_REVOKED')check(C.fullEqual(x.evidence,await val('revocations',x.device_id)));else{const l=await val('issuedLeases',pair(x.device_id,x.evidence.lease_id));check(l&&l.creation_epoch===x.creation_epoch&&(x.kind==='DEVICE_ENROLLED'?l.issue_ordinal===1:l.issue_ordinal>1));}}

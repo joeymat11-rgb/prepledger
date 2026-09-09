@@ -1,5 +1,32 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Candidate correction retained for the next coherent integration review — September9
+
+The accepted inactive-candidate chunk47df30f has independent ACCEPT141 (123/123, native29, both assembly bites and16 own checks). Its scope remains an inactive base projection. Archive4041bytes SHA256b59a9c5d58d1073906dc03b41cd4a12896b375cc13f947c0c45a77b0542a8c70 is attached only, not locally received/rehashed/replayed. No new reviewer request is issued solely for the small correction below. Publication gates and independent acceptance apply to the final combined integration change; the candidate correction is not yet published or accepted.
+
+Actual authority plan inspection exposed a false recovery requirement. authority/plan.cjs:143–145 retains a stale conflict selection as ACCEPTED with applied:false/BASIS_STALE and no plan transaction. The prior W6 indexed profile required a transaction for every accepted selection. A tracked test creates two devices and concurrent direct edits through the actual local D1/P1 authority, submits the stale selection, verifies the governing plan and two retained transactions, then runs actual signed HTTP recovery through the actual public client. It reached complete inventory validation but failed before the fix:
+
+```
+not ok 1 - real accepted stale conflict selection remains recoverable without inventing a plan transaction
+Recovery of a retained non-applied selection: TRANSPORT_EXHAUSTED / RETAINED_INTEGRITY
+```
+
+The profile now distinguishes this exact no-effect outcome from direct edits and applied selections. A non-applied selection requires BASIS_STALE and no transaction with that op identity. Applied selection requires applied:true, the matching declared transaction ID and its retained transaction; direct edits still require their transaction. Both current and historical profile interpretation use the correction. No authority/training rule changes: this follows the accepted writer's behavior. The old capped R1 project.cjs has the same broader assumption; that legacy path is unchanged and is not used as a correctness oracle for this newly witnessed case.
+
+Final focused7/7 and combined130/130 PASS,0skip (13.97s), native existing29 PASS. The real case retains the exact stale request in a synthetic local outbox through the real Store, recovers/drains its terminal request in the inactive candidate without applying a plan, then successfully recovers a genuinely applied selection. Additional captured-synthetic-row relational tests reject missing direct/applied transactions, a phantom effect for the non-applied request, unrecognized no-effect reason and a string instead of boolean applied marker. These relational mutations are below page-signature validation; they preserve/verify generated original signatures and do not claim forged live HTTP evidence. Actual signed HTTP positive cases and internal semantic mutations are kept distinct.
+
+```
+RECOVERY PLAN BITE RED — phantom transaction accepted for a non-applied selection; native exit1
+LOCAL RECOVERY BITE RESTORED PASS — native exit0; SHA256 5212a5c9a5d6caa5b74a3f877b032247f26b6e81c074c9f1c93bc09b645dc375
+LOCAL RECOVERY NATIVE PASS — 29 checks; actual public client, IndexedDB, P1/D1 HTTP, inactive candidate, historical authentication and changed-original refusal
+```
+
+Bite AKZ6RW removes only the no-effect reason/absence guard, detects the phantom transaction, restores exact product bytes and passes7/7. Logs work/recovery-plan-{red-first,first-green,focused,bite,full,native}.log; native RiSWOV. Only recovery-profile product semantics changed; new plan.test.mjs and runner selection are tracked. Initial red-first proof preceded the correction, not a post-hoc claim. Whole-turn wall clock was not instrumented; recorded full suite13.97s and native4.59s are execution durations, not delivery estimates. No mandatory publication gate or independent verdict for these new bytes is claimed yet.
+
+Owner-approved decisions revision3 is adopted at the natural boundary. The next concrete demonstration is the actual retained host: open/log sets/close-relaunch/resume the same Start/normal Finish/reopen history. The exact immediate blocker is its missing guarded continuation connection: same-client remount refuses WORKOUT_HOST_RECONCILIATION_REQUIRED; fresh-client Start refuses an open prior workout; readWorkoutHistory returns continuation.allowed=false/CURRENT_SAFETY_AND_COMPLETE_HISTORY_REQUIRED. Existing read/within-visit components do not close this round trip. Root will join validated original history/current safety to the same controls and committer, with explicitly synthetic identity/data until private/device qualification. This recovery correction stays in that coherent integration review or the next necessary dependency review; no unrelated filler or review per tiny helper.
+
+The existing M4 brief's working draftv0.42 reflects that demonstration and blocker; no status-only PR is created. The compact checkpoint is replaced with one authoritative continuation and historical pointers. Full product goal/P1–P6, corrected-history/next-prescription/design/private/phone requirements, K1/96MiB/default-runtime and all mandatory gates remain. No new agents/model/effort/schedule/funding/custody decision, merge or private activation.
+
 ## Inactive recovery candidate — successor to 865ef2c, 2026-09-09
 
 The next actual recovery phase now assembles original accepted records, receipt indexes and exact local pending-work outcomes in an isolated T2 memory backend. `comparison.assemble()` returns a held, inspectable candidate with projectionPending and no activation/checkpoint/complete claim. Its source is the already authenticated local basis and complete current indexed profile, not a fixture or a request-selected ledger. Original signed archives remain retained for historical authentication. No active repository writes occur. README contract: `w6/RECOVERY-STAGING.md`.
