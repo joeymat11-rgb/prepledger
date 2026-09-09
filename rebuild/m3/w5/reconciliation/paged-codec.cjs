@@ -65,7 +65,10 @@ function finish(record,signed=true){common(record,'finish',signed);check(C.encod
 function parseManifest(input){return freeze(manifest(snapshot(input,LIMITS.metadata)));}
 function parseCursor(input){return freeze(cursor(snapshot(input,LIMITS.request)));}
 function parseResponse(input){
- const result=snapshot(input,LIMITS.response),terminal=Object.hasOwn(result||{},'finish');
+ return response(snapshot(input,LIMITS.response));
+}
+function response(result){
+ const terminal=Object.hasOwn(result||{},'finish');
  C.exact(result,['manifest','page',...(terminal?['finish']:[])],{ordered:true});manifest(result.manifest);page(result.page);
  const m=result.manifest,p=result.page,md=manifestDigest(m);check(p.manifest_digest===md,'ROWS_MANIFEST_BINDING');
  p.cumulative_counts.forEach((n,i)=>check(n<=m.collection_counts[i][1],'ROWS_COUNTS'));
@@ -75,6 +78,29 @@ function parseResponse(input){
    for(const k of ['revision','storage_control_digest','context_id','scope_digest','nonce','claim_set_digest'])check(f[k]===m[k],'ROWS_FINISH_BINDING');
  }
  return freeze(result);
+}
+// The bridge owns this closed, JSON-only result graph. Preserve JSON's distinct
+// object/array occurrences without copying its potentially large immutable
+// base64 strings through UTF-8 -> JSON text -> parsed strings a second time.
+// Network/caller bytes MUST still enter through parseResponse, including its
+// duplicate-key and UTF-8 checks. This function is only a server assembly seam.
+function finishOwnedResponse(input){
+ const out={},todo=[[input,out,false]],ancestors=new WeakSet();
+ while(todo.length){const [source,target,exit]=todo.pop();
+  if(exit){ancestors.delete(source);continue;}
+  check(source&&typeof source==='object'&&!ancestors.has(source),'ROWS_OWNED_VALUE');
+  check(Object.getPrototypeOf(source)===(Array.isArray(source)?Array.prototype:Object.prototype),'ROWS_OWNED_VALUE');
+  if(Array.isArray(source))check(Object.keys(source).length===source.length&&Array.from({length:source.length},(_,i)=>Object.hasOwn(source,i)).every(Boolean),'ROWS_OWNED_VALUE');
+  ancestors.add(source);todo.push([source,target,true]);
+  for(const name of Object.keys(source)){
+   const descriptor=Object.getOwnPropertyDescriptor(source,name);check(Object.hasOwn(descriptor,'value'),'ROWS_OWNED_VALUE');const value=descriptor.value;
+   if(value&&typeof value==='object'){
+    const child=Array.isArray(value)?[]:{};Object.defineProperty(target,name,{value:child,enumerable:true,writable:true,configurable:true});todo.push([value,child,false]);
+   }else{check(value===null||typeof value==='string'||typeof value==='boolean'||typeof value==='number'&&Number.isFinite(value),'ROWS_OWNED_VALUE');Object.defineProperty(target,name,{value,enumerable:true,writable:true,configurable:true});}
+  }
+ }
+ if(C.encode(out).length>LIMITS.response)C.fail('RECONCILE_LIMIT',413);
+ return response(out);
 }
 function decodeRequest(input){
  const raw=C.bytes(input);check(raw.length<=LIMITS.request,'ROWS_REQUEST_LIMIT');const value=C.parse(raw,LIMITS.request);
@@ -131,5 +157,5 @@ function createRowsVerifier({keys,subtle}={}){
   }catch(error){return {verified:false,code:error.code||'INVALID_ROWS_PROOF'};}
  }});
 }
-module.exports={LIMITS,DOMAINS,FIELDS,COLLECTIONS,hash,cursorReference,manifestDigest,parseManifest,parseCursor,parseResponse,decodeRequest,
+module.exports={LIMITS,DOMAINS,FIELDS,COLLECTIONS,hash,cursorReference,manifestDigest,parseManifest,parseCursor,parseResponse,finishOwnedResponse,decodeRequest,
  makeManifest,makePage,makeFinish,createRowsVerifier};

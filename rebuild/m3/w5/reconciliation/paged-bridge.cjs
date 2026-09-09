@@ -84,7 +84,7 @@ function createPagedBridge({db,storage:config,authorityKey,r1}={}){
    collectionCounts,chainSeed:randomBytes(32).toString('base64url')}));
   const page=P.makePage({manifest,previousCursor:previous,rawRows:selected,sign});
   const result={manifest,page,...(!selected.length?{finish:P.makeFinish({manifest,page,sign})}:{})};
-  return P.parseResponse(C.encode(result));
+  return P.finishOwnedResponse(result);
  }});
 }
 module.exports={createPagedBridge};
