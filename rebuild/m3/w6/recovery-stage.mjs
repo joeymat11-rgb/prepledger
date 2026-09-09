@@ -2,7 +2,7 @@
 // No enrollment, active-generation write, receipt sink or permission is provided.
 const PROFILE='earned/recovery-rows/v1',STORE='generations',HEAD=[PROFILE,'head'];
 const clone=x=>structuredClone(x),utf8=new TextEncoder();
-export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,StorageFailure}){
+export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,keyRange,StorageFailure}){
  const fail=(code,state=18,retryable=false)=>{throw new StorageFailure(code,state,retryable);};
  if(!db||!namespace||!crypto?.subtle||typeof key!=='function'||!protocol?.createRowsVerifier||!codec?.parse||typeof validateContext!=='function')fail('RECOVERY_STAGE_CONFIGURATION');
  const P=protocol,C=codec,verifier=P.createRowsVerifier({keys:verificationKeys,subtle:crypto.subtle});
@@ -68,6 +68,14 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
   return value;
  }
  async function unchanged(basis){const [now]=await read([HEAD]);if(token(now)!==basis.token)fail('RECOVERY_STAGE_CHANGED',18,true);}
+ function indexKeys(attempt,collection,after){return new Promise((resolve,reject)=>{
+  if(!keyRange?.bound){reject(new StorageFailure('RECOVERY_STAGE_CURSOR_UNAVAILABLE',18));return;}
+  let tx;const found=[],prefix=[PROFILE,attempt,'scan',collection];
+  try{tx=db.transaction(STORE,'readonly');const r=tx.objectStore(STORE).openKeyCursor(keyRange.bound(after||prefix,[...prefix,[]],Boolean(after),false));
+   r.onsuccess=()=>{const cursor=r.result;if(!cursor)return;found.push(cursor.key);if(found.length<32)cursor.continue();};
+  }catch{reject(new StorageFailure('RECOVERY_STAGE_READ_FAILED',18));return;}
+  tx.oncomplete=()=>resolve(found);tx.onabort=()=>reject(new StorageFailure('RECOVERY_STAGE_READ_FAILED',18));tx.onerror=()=>{};
+ });}
  return Object.freeze({
   async start({expected,explicitRetry=false}={}){
    const prior=await loaded();if(prior&&!explicitRetry)fail('RECOVERY_STAGE_EXPLICIT_RETRY_REQUIRED');
@@ -105,12 +113,32 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
     const k=indexKey(h.attempt,row.collection,id),value={collection:row.collection,id_b64:row.row_id_b64,page:index,position:i};
     entries.push([k,await seal(value,'index:'+row.collection+':'+rowDigest(id),h.attempt,index)]);
    }
+   for(const collection of new Set(response.page.rows.map(row=>row.collection)))entries.push([[PROFILE,h.attempt,'scan',collection,index],await seal({collection,page:index},'scan:'+collection,h.attempt,index)]);
    const next={...h,manifest:response.manifest,cursor:response.page.next_cursor,pages:index,terminal:Boolean(response.finish)};
    return publish(basis.token,await seal(next,'head',h.attempt,index+1),entries);
   },
   async inventory(){
    const basis=await loaded();if(!basis?.h.terminal)fail('RECOVERY_STAGE_INCOMPLETE');const h=basis.h;
-   return Object.freeze({
+   const view={
+    async bindings(){await unchanged(basis);return {manifest:clone(h.manifest),expected:clone(h.expected)};},
+    async scan(collection,visitor){
+     if(!P.COLLECTIONS.includes(collection)||typeof visitor!=='function')fail('RECOVERY_STAGE_ROW_QUERY');
+     let after=null,count=0;const expected=h.manifest.collection_counts.find(([c])=>c===collection)[1];
+     for(;;){const keys=await indexKeys(h.attempt,collection,after);if(!keys.length)break;
+      for(const k of keys){if(!Array.isArray(k)||k.length!==5||!safe(k[4])||k[4]<1||k[4]>h.pages)fail('RECOVERY_STAGE_INDEX_UNPROVEN');
+       const [record]=await read([k]);if(!record||record.attempt!==h.attempt)fail('RECOVERY_STAGE_INDEX_UNPROVEN');
+       const ref=await open(record,'scan:'+collection);if(!exact(ref,['collection','page'])||ref.collection!==collection||ref.page!==k[4]||record.revision!==k[4])fail('RECOVERY_STAGE_INDEX_UNPROVEN');
+       const previous=ref.page===1?null:(await open((await read([pageKey(h.attempt,ref.page-1)]))[0],'page')).page.next_cursor;
+       const response=await signedPage(h,ref.page,previous);let members=0;
+       for(let position=0;position<response.page.rows.length;position++){const row=response.page.rows[position];if(row.collection!==collection)continue;members++;
+        const id=C.text(C.decode64(row.row_id_b64,P.LIMITS.row)),index=await indexFor(h,collection,id);
+        if(!index||index.page!==ref.page||index.position!==position||++count>expected)fail('RECOVERY_STAGE_INDEX_UNPROVEN');
+        await visitor({collection,row_id:id,value:C.text(C.decode64(row.value_b64,P.LIMITS.row))});
+       }if(!members)fail('RECOVERY_STAGE_INDEX_UNPROVEN');
+      }after=keys.at(-1);
+     }
+     if(count!==expected)fail('RECOVERY_STAGE_INDEX_UNPROVEN');await unchanged(basis);return count;
+    },
     async readRow(collection,id){
      if(!P.COLLECTIONS.includes(collection)||typeof id!=='string')fail('RECOVERY_STAGE_ROW_QUERY');
      const item=await indexFor(h,collection,id);if(!item){await unchanged(basis);return undefined;}
@@ -135,7 +163,7 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
      await unchanged(basis);return {inventoryVerified:true,complete:false,activated:false};
     },
     assertCurrent:()=>unchanged(basis),
-   });
+   };return Object.freeze(view);
   },
  });
 }

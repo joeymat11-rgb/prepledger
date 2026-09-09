@@ -16,15 +16,26 @@ const manifest=sign(P.makeManifest({keyEpoch:authority.kid,scopeDigest:h,request
 const a=P.makePage({manifest,rawRows:[raw[0]],sign}),b=P.makePage({manifest,previousCursor:a.next_cursor,rawRows:[raw[1]],sign}),end=P.makePage({manifest,previousCursor:b.next_cursor,rawRows:[],sign});
 const replies=[{manifest,page:a},{manifest,page:b},{manifest,page:end,finish:P.makeFinish({manifest,page:end,sign})}];
 const expected={scopeDigest:h,nonce:h,contextId:h,requestDigest:C.hash('request',C.encode(request)),basisDigest:h,claimSetDigest:P.hash('claims',[]),mode:'CURRENT_DEVICE'};
-const bundled=await build({stdin:{contents:`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import P from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};window.StageTest={openRepository,P,C};`,resolveDir:root},bundle:true,platform:'browser',format:'iife',write:false,logLevel:'silent'});
+const bundled=await build({stdin:{contents:`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {validateRecoveryProfile} from ${JSON.stringify(join(root,'recovery-profile.mjs'))};import Public from ${JSON.stringify(join(r1,'rebuild/m3/w5/public-client.cjs'))};import P from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};window.StageTest={openRepository,P,C,Public,validateRecoveryProfile};`,resolveDir:root},bundle:true,platform:'browser',format:'iife',write:false,logLevel:'silent'});
+const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true}),profileReplies=[];
+let profileExpected,profileKey;
+try{
+ await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});
+ const enrolled=await runtime.bridge.enrollScoped('subject-first',{intent_id:'native-profile',schema_version:1,nonce:h}),lease=enrolled.payload.issuance.lease;
+ for(let n=1;n<=2;n++){const op=require('../../client/ops.cjs').build({op_id:'native-profile-'+n,athlete_id:'first',device_id:lease.device_id,device_seq:n,predecessor:n===1?null:'native-profile-1',parents:[],kind:'fact',class:'reading',lease_id:lease.lease_id,effective:{local_date:'2026-09-06',local_time:'08:00',utc_offset:'-04:00'},payload:{lb:{value:160,unit:'lb'}}},runtime.identityKeys.first);assert.equal((await runtime.bridge.invokeScoped('subject-first',lease.device_id,'admit',['first',op])).status,'ACCEPTED');}
+ profileExpected={...expected,scopeDigest:C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:lease.device_id})};
+ let body={profile:P.DOMAINS.begin,device_id:lease.device_id,request,basis_digest:h};
+ for(let i=0;i<16;i++){const reply=await runtime.request('/reconcile/rows',body);assert.equal(reply.status,200);profileReplies.push(reply.body);if(reply.body.finish)break;body={profile:P.DOMAINS.continue,device_id:lease.device_id,manifest:reply.body.manifest,cursor:reply.body.page.next_cursor};}
+ assert(profileReplies.at(-1).finish);profileExpected={stage:profileExpected,consumer:{athleteId:'first',actorDeviceId:lease.device_id,scopeDigest:profileExpected.scopeDigest,basisDigest:h}};profileKey=S.publicKeyOf(runtime.authorityKey);
+}finally{await runtime.close();}
 const out=await mkdtemp(join(tmpdir(),'earned-native-recovery-'));
 const server=createServer((req,res)=>{res.setHeader('Cache-Control','no-store');if(req.url==='/bundle.js'){res.setHeader('Content-Type','application/javascript');res.end(bundled.outputFiles[0].text);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta charset="utf-8"><script src="/bundle.js"></script>');}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true,executablePath:process.env.W6_BROWSER_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 try{
  const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);
- const checks=await page.evaluate(async({replies,expected,publicKey,raw})=>{
-  const {openRepository,P,C}=window.StageTest,checks=[];
+ const checks=await page.evaluate(async({replies,expected,publicKey,raw,profileReplies,profileExpected,profileKey,request})=>{
+  const {openRepository,P,C,Public,validateRecoveryProfile}=window.StageTest,checks=[];
   const ok=(value,name)=>{if(!value)throw Error(name);checks.push(name);};
   const gate={mode:null,release:false,denied:false,put:null},key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
   const indexed={open(...args){const request=indexedDB.open(...args);request.addEventListener('success',()=>{
@@ -58,9 +69,13 @@ try{
   ok(JSON.stringify(rows)===JSON.stringify(raw),'native staged visitor preserves exact original strings');
   ok(verdict.inventoryVerified&&!verdict.complete&&!verdict.activated,'native complete inventory is not account activation');
   ok(JSON.stringify(await inventory.readRow('history','a'))===JSON.stringify(raw[0]),'native encrypted indexed row lookup returns the verified original');
-  ok(JSON.stringify(await fresh.load())===JSON.stringify(before),'active generation, token and unsynced outbox are byte-identical');fresh.close();return checks;
- },{replies,expected,publicKey:S.publicKeyOf(authority),raw});
- assert.equal(checks.length,11);await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['desktop Chromium, not owner iPhone','signed synthetic inventory, not complete-profile validation','no activation or phone key-custody qualification']},null,2));
- console.log('RECOVERY STAGE NATIVE PASS — 11 checks; actual IndexedDB/P-256/AES-GCM, held transaction, quota abort, context cut, reopen, indexes and untouched active outbox; NOT full profile or phone acceptance');
+  ok(JSON.stringify(await fresh.load())===JSON.stringify(before),'active generation, token and unsynced outbox are byte-identical');
+  const scanned=[];ok(await inventory.scan('history',row=>scanned.push(row))===2,'native bounded key cursor checks exact collection cardinality');ok(scanned.every(row=>raw.some(r=>JSON.stringify(r)===JSON.stringify(row))),'native collection cursor returns exact signed originals');
+  const profileStage=fresh.recovery({...config,verificationKeys:[profileKey]});await profileStage.start({expected:profileExpected.stage,explicitRetry:true});for(const reply of profileReplies)await profileStage.append(C.encode(reply));
+  const profile=await validateRecoveryProfile({inventory:await profileStage.inventory(),codec:C,protocol:P,publicVerifier:Public.createPublicVerifier({keys:[profileKey],subtle:crypto.subtle}),requestBytes:C.encode(request),expected:profileExpected.consumer});
+  ok(profile.profileVerified&&(await profile.summary()).W===2,'actual Worker/D1/P1 HTTP originals validate relationally with original signatures in native browser');ok(profile.complete===false&&profile.activated===false,'native profile interpretation does not grant activation');ok(JSON.stringify(await fresh.load())===JSON.stringify(before),'native complete profile interpretation leaves active outbox and generation untouched');fresh.close();return checks;
+ },{replies,expected,publicKey:S.publicKeyOf(authority),raw,profileReplies,profileExpected,profileKey,request});
+ assert.equal(checks.length,16);await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['desktop Chromium, not owner iPhone','synthetic complete account, not private port','no activation or phone key-custody qualification']},null,2));
+ console.log('RECOVERY PROFILE NATIVE PASS — 16 checks; actual Worker/D1/P1 HTTP originals, native IndexedDB/P-256/AES-GCM, indexed relational validation and untouched active outbox; NOT activation or phone acceptance');
  console.log('Evidence '+out);
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

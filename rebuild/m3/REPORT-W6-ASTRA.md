@@ -1,5 +1,44 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Indexed recovery profile interpretation — successor to40709c2, 2026-09-09
+
+Implements `recovery-profile.mjs` over the actual inactive repository inventory: required records, every original operation/history/log relation, ownership/slots/transactions, device/lease/intent/standing links, accepted1..W, original disposition/lease public signatures, current-device scope and the exact manifest-bound claims/requested leases. Original values remain indexed; no whole-account payload/stringify/map is created. Lazy history results preserve the five existing claim outcomes without multiplying history arrays. The returned profile interpretation remains `complete:false,activated:false`; no active-generation switch, outbox drain or present-day permission is exported. Full approved goalv3 / delivery briefv0.41 remain intact; this advances accurate recovery before qualified workout resume.
+
+Encrypted collection/page markers now publish in the original page transaction. A key-only cursor reads at most32 marker keys and verifies page ordinal, original row index/position and exact collection cardinality. Collection scans do not traverse unrelated page payloads. Missing/substituted markers refuse rather than silently dropping originals. Previously staged attempts without markers require explicit retry for populated collections; the active generation is retained. `keyRange` uses the native browser IDBKeyRange, explicitly injected in fake-IDB tests. No schema upgrade, private data, new custody, service-worker/soak or frozen source/law change.
+
+Executed final evidence:
+
+```
+run-recovery-stage.cjs <retained-R1>: 59 tests; 59 pass; 0 fail; 0 skipped
+RECOVERY PROFILE NATIVE PASS — 16 checks; actual Worker/D1/P1 HTTP originals, native IndexedDB/P-256/AES-GCM, indexed relational validation and untouched active outbox; NOT activation or phone acceptance
+run-current-head.cjs <retained-R1> --all: 312 tests; 312 pass; 0 fail; 0 skipped
+RECOVERY PROFILE BITE RED — forged original disposition accepted after signature bypass; native exit1
+RECOVERY ORDINAL BITE RED — coherent signed log gap accepted after contiguous-log bypass; native exit1
+RECOVERY PROFILE BITE RESTORED PASS — native exit0; SHA256 b614a0b47a9ec1ddabc5d505a8fa741515435ffdd485f50dfba74609f839dca8
+RECOVERY STAGE BITE RED — known standing loss committed when final context guard bypassed; native exit1
+RECOVERY STAGE BITE RESTORED PASS — native exit0; SHA256 f8cd4753a683fb4fe68331d9ab6d32eb8eb6123a02cb0cd3e7b8c3ab1c5e871c
+```
+
+The59 include the12 storage/actual-transport tests plus47 named old-oracle comparisons. The full local HTTP/P1 account exceeds the old1MiB whole-payload limit and validates through actual indexed storage. For exact compatibility, an under-cap synthetic prefix retains two writer-created signed originals and adjusts its metadata/last-accepted prefix; the unchanged old projector and `verify.assemble` are TEST ORACLES. Forty-one adversarial comparisons reject on both implementations, including a coherent signed1..W gap with unchanged counts, forged originals, absent history/ownership/slots, bad lease origins and standing. Positive comparisons cover claim/lease bytes and signed synthetic WAITING/renewal/second-device interpretations; these constructed states are not additional authority-admission or real two-phone claims. Negative comparisons use a test-only memory view to isolate semantics; actual transport/storage and native-browser positives are separate evidence. No claim that every negative vector was replayed through IndexedDB or real HTTP.
+
+Final signature-bite restored run59/59 in8.17s; ordinal-bite restored59/59 in8.12s. Evidence directories: `earned-stage-bite-5b16qC`, `earned-stage-bite-YiA92J`, `earned-stage-bite-fvElOn`; final native `earned-native-recovery-wLZkck`. All three bites are disposable and restored byte-for-byte. Native16 includes the prior durability/failure checks, indexed cursor checks and an actual Worker/D1/P1 HTTP two-operation account interpreted inside real Chromium/WebCrypto. Existing312 composed regression stays green. The first implementation passed54; additions for WAITING/renewal/second-device/marker tampering and the coherent signed gap bring the final count to59. No failed semantic vector was removed or weakened.
+
+Mandatory `capture-publication-gates-2026-09-09T07-53-19-126Z`: preparation/private verdict/public pins, frozen paths and actual18-file ZIP, conformance, selftest, strict with measured clock unset, diff all native0. Conformance uses explicit engine paths/client directory, fixed2026-09-03 and America/New_York. Exact lines:
+
+```
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+The strict tail is its existing wording, not release approval; new-PWA packaging/final evidence remains pending. Parent407 independently ACCEPTED134, reproduced11/312/native11/bite and26 additional checks; one namespace check was explicitly source-anchored, not executed. Archive6,984bytes SHA05564c51db2c531e48c4cce6ee490659e7c78dec974acb45e11fe3bf9a82c5b0 ATTACHED, not locally received/rehashed/replayed. Parent407 CI terminal7SUCCESS/3SKIP both OS; neither its review nor CI covers this successor.
+
+SEAMS/UNSURE: the actual finite transport/live negative-ingress controller, final current-source/local-generation fence, local-original/outbox reconciliation and atomic activation are still owed. This validator interprets snapshot truth, not current standing/safety. Frame-format2 integration/cleanup, original96MiB/default-runtime/CPU resource workloads, CLOCK/key recovery, accurate private port/rollback, integrator and Joe/Dad phone gates remain. Lease ordinal/origin validation uses repeated indexed passes (potential quadratic lease-history cost); no performance/resource acceptance is claimed. Metadata/device keys and the bounded original request remain in memory; full history does not. `RECOVERY-STAGING.md` maps the old conditions to the new reads. No product-rule judgement was silently changed.
+
+NEXT: connect finite actual recovery transport and live negative ingress to this indexed interpretation, reconcile local originals and final source/current-generation fences, then execute original resource/activation gates. Continue the actual qualified Start → multiple Sets → leave/reopen/resume SAME session → normal Finish → corrected history → next-prescription journey; no first-use claim from profile validation alone.
+
 ## Inactive encrypted recovery staging — successor to914b79c, 2026-09-09
 
 This increment connects the independently reviewed R1 rows-v3 codec at734986a688366293349145e6feb80fd4130d3702 to the actual W6 `openRepository().recovery(...)` boundary. It stores verified original pages and encrypted row indexes in the existing version1 database, with one transaction per page/index/head and a final context guard. Active/previous generations and the unsynced outbox remain untouched. It implements inactive inventory storage, not complete semantic recovery, active-generation switching or qualified workout resume. The approved PRODUCT-GOALv3 and M4 briefv0.41 remain unchanged; this supports accurate port/recovery on the first-use path.

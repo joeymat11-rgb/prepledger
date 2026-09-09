@@ -4,6 +4,9 @@ import {webcrypto} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
 import {fixture,initial,deferred} from '../support.mjs';
+import {IDBKeyRange} from 'fake-indexeddb';
+import {validateRecoveryProfile} from '../../recovery-profile.mjs';
+import {profileVectors} from './profile-vectors.mjs';
 if(!process.env.EARNED_ROWS_R1_ROOT)throw Error('Run through run-recovery-stage.cjs with the pinned public R1 dependency');
 const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
 const P=require('./reconciliation/paged-codec.cjs'),C=require('./reconciliation/codec.cjs'),Sign=require('./crypto.cjs');
@@ -19,7 +22,7 @@ function frames(inputRows){
  const last=P.makePage({manifest,previousCursor:second.next_cursor,rawRows:[],sign});
  const replies=[{manifest,page:first},{manifest,page:second},{manifest,page:last,finish:P.makeFinish({manifest,page:last,sign})}];
  const expected={scopeDigest:h,nonce:h,contextId:h,requestDigest:C.hash('request',C.encode(request)),basisDigest:h,claimSetDigest:P.hash('claims',[]),mode:'CURRENT_DEVICE'};
- return {authority,sign,rows,replies,expected,options:{protocol:P,codec:C,verificationKeys:[Sign.publicKeyOf(authority)],validateContext:()=>null}};
+ return {authority,sign,rows,replies,expected,options:{protocol:P,codec:C,verificationKeys:[Sign.publicKeyOf(authority)],validateContext:()=>null,keyRange:IDBKeyRange}};
 }
 async function setup(t){const f=await fixture();await f.seed();t.after(()=>f.repo.close());const wire=frames(),stage=f.repo.recovery(wire.options);return {...f,...wire,stage};}
 async function raw(f,action){const db=await new Promise((resolve,reject)=>{const r=f.indexedDB.open(f.setup.databaseName,1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});try{return await new Promise((resolve,reject)=>{const tx=db.transaction('generations','readwrite'),store=tx.objectStore('generations');let value;action(store,x=>{value=x;});tx.oncomplete=()=>resolve(value);tx.onabort=()=>reject(tx.error);});}finally{db.close();}}
@@ -79,7 +82,7 @@ test('actual Worker/D1/P1 inventory over real HTTP stages durably and matches th
  }
  const request={version:C.REQUEST_VERSION,nonce:h,context_id:h,mode:'CURRENT_DEVICE',claims:[],requested_lease_ids:[]};
  const expected={scopeDigest:C.scopeDigest({issuer:r.issuer.config.issuer,origin:r.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:actor}),nonce:h,contextId:h,requestDigest:C.hash('request',C.encode(request)),basisDigest:h,claimSetDigest:P.hash('claims',[]),mode:'CURRENT_DEVICE'};
- const stage=f.repo.recovery({protocol:P,codec:C,verificationKeys:[Sign.publicKeyOf(r.authorityKey)],validateContext:()=>null});await stage.start({expected});
+ const stage=f.repo.recovery({protocol:P,codec:C,verificationKeys:[Sign.publicKeyOf(r.authorityKey)],validateContext:()=>null,keyRange:IDBKeyRange});await stage.start({expected});
  let body={profile:P.DOMAINS.begin,device_id:actor,request,basis_digest:h},terminal=false;
  for(let n=0;n<64;n++){
   const reply=await r.request('/reconcile/rows',body);assert.equal(reply.status,200);assert.equal((await stage.append(C.encode(reply.body))).complete,false);
@@ -90,6 +93,9 @@ test('actual Worker/D1/P1 inventory over real HTTP stages durably and matches th
  // Test oracle only. Product staging never collects all rows or calls this
  // whole-history validator; the bounded complete-profile consumer is still owed.
  const original=require('./reconciliation/project.cjs').validateRetained(rows,'first');assert.equal(original.metadata.seq,8);
+ const profile=await validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier:require('./public-client.cjs').createPublicVerifier({keys:[Sign.publicKeyOf(r.authorityKey)],subtle:webcrypto.subtle}),requestBytes:C.encode(request),expected:{athleteId:'first',actorDeviceId:actor,scopeDigest:expected.scopeDigest,basisDigest:h}});
+ assert.equal(profile.profileVerified,true);assert.equal(profile.complete,false);assert.deepEqual(await profile.summary(),{W:8,account_epoch:original.registry.account_epoch,history_origin:original.registry.history_origin});
+ await profileVectors(t,{allRows:rows,C,P,Sign,require,authority:r.authorityKey,identityKey:r.identityKeys.first,request,expected:{athleteId:'first',actorDeviceId:actor,scopeDigest:expected.scopeDigest,basisDigest:h}});
  for(const row of rows)assert.deepEqual(await inventory.readRow(row.collection,row.row_id),{collection:row.collection,row_id:row.row_id,value:row.value});
  assert.deepEqual((await f.repo.load()).generation,initial());
 });
@@ -110,4 +116,12 @@ test('near-row-limit control-character ID remains bounded by base64 in the encry
  const stage=f.repo.recovery(wire.options);await stage.start({expected:wire.expected});for(const response of wire.replies)await stage.append(C.encode(response));
  const view=await stage.inventory();assert.deepEqual(await view.readRow('history',row.row_id),row);
  const seen=[];await view.visit(x=>seen.push(x));assert.deepEqual(seen,wire.rows);assert.deepEqual((await f.repo.load()).generation,initial());
+});
+
+test('collection cursor checks marker cardinality and refuses deleted or substituted marker evidence',async t=>{
+ const f=await setup(t);await seedAll(f);const view=await f.stage.inventory(),rows=[];assert.equal(await view.scan('history',row=>rows.push(row)),2);assert.deepEqual(rows,f.rows.filter(r=>r.collection==='history'));
+ const state=await f.stage.progress();await raw(f,store=>store.delete(['earned/recovery-rows/v1',state.attempt,'scan','history',1]));
+ await assert.rejects(view.scan('history',()=>{}),e=>e.state===18);
+ await raw(f,store=>{const r=store.get(['earned/recovery-rows/v1',state.attempt,'scan','metadata',2]);r.onsuccess=()=>store.put(r.result,['earned/recovery-rows/v1',state.attempt,'scan','history',1]);});
+ await assert.rejects(view.scan('history',()=>{}),e=>e.state===18);assert.deepEqual((await f.repo.load()).generation,initial());
 });

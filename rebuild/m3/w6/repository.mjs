@@ -147,8 +147,8 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
     });
   }
   return {
-    recovery({protocol,codec,verificationKeys,validateContext}={}) {
-      return createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,StorageFailure});
+    recovery({protocol,codec,verificationKeys,validateContext,keyRange=globalThis.IDBKeyRange}={}) {
+      return createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,keyRange,StorageFailure});
     },
     async load() {
       const { active } = await readRecords();
