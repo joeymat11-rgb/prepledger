@@ -44,6 +44,51 @@ const perform=(f,id,slot='slot-0')=>f.c.execute('workout',{action:'set',input:{s
 const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct',input:{target_op_id:target,lift_lineage_id:'same-lineage',replacement_fields:fields,...(parents?{causal_parents:parents}:{})}});
 const prepareEdit=(c,id)=>c.prepareWorkoutEdit({target_op_id:id});
 const correctPrepared=(c,p,change)=>c.commitWorkoutEdit({editId:p.editId,action:'correct',change});
+const syntheticFacts=({source_revision})=>({profile:'earned/workout-facts/v1',source_revision,sessions:[],incomplete_sessions:[],progression_eligible:false});
+
+test('configured history projection is private to authenticated preparation and isolated between callbacks',async()=>{
+ let f,seen;f=await setup({client:{projectWorkoutHistory:input=>{assert.equal(input.history.sessions.length,0);input.generation.metadata.syntheticMutation=true;return syntheticFacts(input);},
+  resolveWorkoutBasis:(_g,_input,context)=>{context.workoutFacts.sessions.push('basis mutation');return {plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic-input',causal_parents:[]};},
+  workoutProducer:(g,context)=>{seen=context.workoutFacts;assert.equal(g.metadata.syntheticMutation,undefined);return prescription(context);}}});
+ try{const before=await f.repo.load(),p=await prepare(f);assert.equal(p.prepared,true,p.code);assert.deepEqual(seen.sessions,[]);
+  assert.equal(seen.source_revision,before.revision);assert.equal(p.workoutFacts,undefined);assert.deepEqual(await f.repo.load(),before);
+  const forged=await f.c.prepareWorkout({planned_split_slot_id:'synthetic-slot',workoutFacts:syntheticFacts({source_revision:1})});assert.notEqual(forged.prepared,true);
+ }finally{f.repo.close();}
+});
+
+for(const bad of ['revision','throw'])test(`unavailable history ${bad} prevents basis and producer callbacks`,async()=>{
+ let calls=0;const f=await setup({client:{projectWorkoutHistory:x=>{if(bad==='throw')throw Error('Synthetic unavailable original layout');return {...syntheticFacts(x),source_revision:x.source_revision+1};},
+  resolveWorkoutBasis:()=>{calls++;throw Error('Must not reach');},workoutProducer:()=>{calls++;throw Error('Must not reach');}}});
+ try{const before=await f.repo.load(),r=await prepare(f);assert.notEqual(r.prepared,true);assert.equal(r.preparedId,undefined);assert.equal(r.view,undefined);assert.equal(calls,0);assert.deepEqual(await f.repo.load(),before);}finally{f.repo.close();}
+});
+
+test('changed stored original cannot reach the configured history projector',async()=>{
+ const f=await setup();try{const started=await start(f,await prepare(f)),set=await perform(f,started.op_id);assert.equal((await close(f,started.op_id)).acknowledged,true);
+  const snapshot=await f.repo.load(),changed=structuredClone(snapshot.generation);changed.collections.ops[set.op_id].payload.reps.value=99;
+  await f.repo.commit(snapshot,changed,()=>null);const before=await f.repo.load();let projected=0,produced=0;
+  const c=createDurablePublicClient({...f.args,projectWorkoutHistory:x=>{projected++;return syntheticFacts(x);},workoutProducer:(_g,x)=>{produced++;return prescription(x);}});
+  const r=await c.prepareWorkout({planned_split_slot_id:'synthetic-slot'});assert.notEqual(r.prepared,true);assert.equal(r.preparedId,undefined);assert.equal(r.view,undefined);
+  assert.equal(projected,0);assert.equal(produced,0);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+for(const change of ['revision','token','observation','retirement'])test(`history-based preparation checks ${change} again before publishing instructions`,async()=>{
+ const f=await setup();let c,reads=0;try{
+  const repo={...f.repo,async load(){if(++reads===2){
+   const s=await f.repo.load();
+   if(change==='revision')await f.repo.commit(s,s.generation,()=>null);
+   if(change==='token'){const iv=webcrypto.getRandomValues(new Uint8Array(12)),aad=new TextEncoder().encode(JSON.stringify(['earned/local-generation/v1',1,f.setup.namespace,s.revision]));
+    const ciphertext=await webcrypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:aad,tagLength:128},f.key,new TextEncoder().encode(JSON.stringify(s.generation)));
+    await mutateActive(f.indexedDB,record=>({...record,iv,ciphertext}));}
+   if(change==='observation')f.scope.observation++;
+   if(change==='retirement')c.retireWorkoutPreparations();
+  }return f.repo.load();}};
+  c=createDurablePublicClient({...f.args,repository:repo,projectWorkoutHistory:syntheticFacts});
+  const r=await c.prepareWorkout({planned_split_slot_id:'synthetic-slot'});assert.notEqual(r.prepared,true);assert.equal(r.preparedId,undefined);assert.equal(r.view,undefined);
+  assert.equal(r.code,change==='observation'?'OBSERVATION_CHANGED':change==='retirement'?'WORKOUT_PREPARATION_RETIRED':'WORKOUT_PREPARATION_STALE');
+  assert.equal(Object.keys(await operations(f)).length,0);
+ }finally{f.repo.close();}
+});
 
 test('finished partial workout preserves captured terminal identity and bounded opener through removal and fresh read',async()=>{
  // Actual stored client/projection evidence for the rich-reader join. This

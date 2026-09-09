@@ -20,7 +20,7 @@ const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment
 export function createDurablePublicClient({ repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit, keys, subtle, crypto, monotonicMs,
   maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso, workoutProducer, workoutProducerIdentity,
-  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy } = {}) {
+  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy, projectWorkoutHistory } = {}) {
   if (!repository || typeof stage !== "function" || !namespace || !athleteId || !deviceId || sessionEpoch === undefined ||
       typeof isCurrentSession !== "function" || typeof observationEpoch !== "function" || typeof observationGuard?.run !== "function" || typeof validateCommit !== "function") throw new TypeError("Explicit durable client scope, staging, observation guard and validator required");
   const verifier = W5.createPublicVerifier({ keys, subtle });
@@ -32,11 +32,23 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     throw new TypeError("Complete static workout preparation configuration required");
   const producerIdentity = captureEnabled ? copy(workoutProducerIdentity) : null;
   if(workoutResumePolicy!==undefined&&(!captureEnabled||typeof workoutResumePolicy!=='function'))throw new TypeError('Static workout resume policy requires capture configuration');
+  if(projectWorkoutHistory!==undefined&&(!captureEnabled||typeof projectWorkoutHistory!=='function'))throw new TypeError('Static workout history projector requires capture configuration');
   const resumptions=new Map();let activeResume=null;
   const workoutEdits=new Map();let activeEdit=null;
   const resumeCommands=WorkoutCommands.createWorkoutCommands();
   const preparations = new Map(); let activeWorkout = null, unresolvedWorkout = null, preparationEpoch = 0;
   const workoutHistories = new WeakMap();
+  function producerHistory(snapshot,candidate){
+    if(projectWorkoutHistory===undefined)return {};
+    // Only this candidate's authenticated history may enter the configured
+    // internal mapping. Renderer inputs cannot replace its source or revision.
+    const history=workoutHistories.get(candidate);
+    if(!history)throw new StorageFailure('WORKOUT_HISTORY_PROJECTION_UNAVAILABLE',18);
+    const facts=projectWorkoutHistory({history:copy(history),generation:copy(snapshot.generation),source_revision:snapshot.revision});
+    if(!facts||facts.profile!=='earned/workout-facts/v1'||facts.source_revision!==snapshot.revision)
+      throw new StorageFailure('WORKOUT_HISTORY_PROJECTION_UNAVAILABLE',18);
+    return {workoutFacts:copy(facts)};
+  }
   const current = () => isCurrentSession(sessionEpoch) === true;
   const enqueue = action => { const task = tail.then(action); tail = task.catch(() => {}); return task; };
   function contextFailure(epoch) {
@@ -267,11 +279,13 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if(!candidate.view||candidate.result?.state)return {...candidate.result,prepared:false};
       const history=workoutHistories.get(candidate);
       const resumed=workoutContinuation(history,snapshot.generation,input.session_start_op_id);
-      const resolved=closedInput(resolveWorkoutBasis(copy(snapshot.generation),{planned_split_slot_id:resumed.planned_split_slot_id}),['plan_basis','input_basis','causal_parents']);
+      const beforePolicy=contextFailure(candidate.context.observationEpoch);if(beforePolicy)return {...beforePolicy,prepared:false};
+      const facts=producerHistory(snapshot,candidate);
+      const resolved=closedInput(resolveWorkoutBasis(copy(snapshot.generation),{planned_split_slot_id:resumed.planned_split_slot_id},copy(facts)),['plan_basis','input_basis','causal_parents']);
       const basis={plan_basis:resolved.plan_basis,input_basis:resolved.input_basis,source_revision:snapshot.revision};
       // Trusted configured producer, never a renderer-supplied clearance flag.
       // Its science/input qualification remains an independent first-use gate.
-      const decision=closedInput(workoutResumePolicy(copy(snapshot.generation),{...copy(resumed),producer:copy(producerIdentity),basis:copy(basis)}),['allowed_actions','reason','current_capture']);
+      const decision=closedInput(workoutResumePolicy(copy(snapshot.generation),{...copy(resumed),producer:copy(producerIdentity),basis:copy(basis),...copy(facts)}),['allowed_actions','reason','current_capture']);
       if(!Array.isArray(decision.allowed_actions)||new Set(decision.allowed_actions).size!==decision.allowed_actions.length||
         !decision.allowed_actions.every(a=>['set','skip','close'].includes(a))||typeof decision.reason!=='string'||!decision.reason.trim())throw new StorageFailure('WORKOUT_RESUME_POLICY_INVALID',3);
       const currentCapture=prescriptionCapture.prepare(decision.current_capture,{producer:producerIdentity,basis});
@@ -366,20 +380,24 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (unresolvedWorkout) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
       const input = closedInput(request, ["planned_split_slot_id"]);
       if (typeof input.planned_split_slot_id !== "string" || !input.planned_split_slot_id.trim()) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
-      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null, { requireCurrentProjection: true });
+      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null, { requireCurrentProjection: true, authenticateWorkoutHistory: projectWorkoutHistory!==undefined });
       if (!candidate.view || candidate.result?.state) return { ...candidate.result, acknowledged: false };
       const historyFailure = workoutHistoryFailure(snapshot.generation);
       if (historyFailure) return historyFailure;
       const scope = copy(candidate.context);
-      const resolved = closedInput(resolveWorkoutBasis(copy(snapshot.generation), copy(input)), ["plan_basis", "input_basis", "causal_parents"]);
+      const beforeProducer=contextFailure(scope.observationEpoch);if(beforeProducer)return {...beforeProducer,prepared:false};
+      const facts=producerHistory(snapshot,candidate);
+      const resolved = closedInput(resolveWorkoutBasis(copy(snapshot.generation), copy(input),copy(facts)), ["plan_basis", "input_basis", "causal_parents"]);
       const parents = copy(resolved.causal_parents);
       if (!Array.isArray(parents) || Reflect.ownKeys(parents).length !== parents.length + 1 ||
           !parents.every(x => typeof x === "string" && x.trim()) || new Set(parents).size !== parents.length)
         throw new StorageFailure("WORKOUT_BASIS_INVALID", 3);
       const basis = { plan_basis: resolved.plan_basis, input_basis: resolved.input_basis, source_revision: snapshot.revision };
       const capture = prescriptionCapture.prepare(workoutProducer(copy(snapshot.generation),
-        { ...copy(input), producer: copy(producerIdentity), basis: copy(basis) }), { producer: producerIdentity, basis });
+        { ...copy(input), producer: copy(producerIdentity), basis: copy(basis),...copy(facts) }), { producer: producerIdentity, basis });
       const changed = contextFailure(scope.observationEpoch); if (changed) return { ...changed, acknowledged: false };
+      const latest=await repository.load();if(latest.revision!==snapshot.revision||latest.token!==snapshot.token)return workoutRefusal('WORKOUT_PREPARATION_STALE');
+      const last=contextFailure(scope.observationEpoch);if(last)return {...last,prepared:false};
       if (lifetime !== preparationEpoch) return workoutRefusal("WORKOUT_PREPARATION_RETIRED");
       const bytes = (crypto || globalThis.crypto).getRandomValues(new Uint8Array(24));
       const id = Array.from(bytes, x => x.toString(16).padStart(2, "0")).join("");
