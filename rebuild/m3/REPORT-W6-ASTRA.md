@@ -1,5 +1,30 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Durable original archive references — successor to 3f1e5b2, 2026-09-09
+
+Recovered-generation assembly needs original signed source records after the next recovery attempt begins. The old stage retained pages but offered only a current-head lookup. `recovery-stage.mjs` now commits an encrypted archive anchor in the same transaction as the terminal page/head. `inventory.archiveReference()` exports a small snapshot reference; `stage.openArchive(reference)` reopens bounded indexed originals through the same database/key/namespace after later attempts or a repository reopen. The anchor has its own encryption role and binds attempt/manifest/terminal proof. No whole-server map, second domain ledger, new key profile or active-generation change is introduced. The additional record is head-sized (including the bounded cursor), not constant-size or a passed memory gate.
+
+Historical views explicitly report historicalOnly and always refuse assertCurrent with RECOVERY_HISTORICAL_ONLY (18). They cannot pass current-profile validation or supply standing, current safety, permission or activation. Their assertIntact checks only the anchor; existing signed row/full-visit verification still checks the actual originals and indexes. Current views still become stale after a new attempt. A missing pre-upgrade anchor is an explicit refusal, not silent regeneration; existing data stays retained and explicit retry/reverification is required. The reference is for a qualified consumer under its session/knowledge guard, not a new authorization boundary. Final active client assembly and semantic proof integration are still unimplemented.
+
+Executed: combined 99/99 PASS, 0 skip (13.38s); native 17 actual-browser checks with real IndexedDB/WebCrypto/public client/live local Worker/D1/P1 (prior12 plus archive/new-attempt/reopen/currentness/original/active-preservation checks); composed 312/312, 0 skip (4.71s). Node additions prove reference/key/anchor/tamper refusal, full exact archived source rows including the existing over-1MiB fixture, rollback of terminal page/head/anchor on failed archive write, and refusal to use historical rows as current complete-profile evidence. A final added namespace-substitution assertion passes its focused test (1/1, 0.15s); the 99 run preceded that assertion. All normal runs passed. Standing/authentication remain synthetic and browser evidence is desktop, not either phone.
+
+```
+LOCAL RECOVERY NATIVE PASS — 17 checks; actual public client, IndexedDB, P1/D1 HTTP, original/outbox comparison, stale-generation refusal and historical archive reopen
+RECOVERY ARCHIVE BITE RED — historical snapshot accepted as current recovery evidence; native exit1
+RECOVERY STAGE BITE RESTORED PASS — native exit0; SHA256 49514a52f8cc4587f76e66a220ef894dea2c8be7b9709e834538ea5a25896f29
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+Effective historical/current mutation: disposable earned-stage-bite-aihjah; removes only historical assertCurrent refusal, and the actual D1/P1/HTTP profile assertion turns RED, then restored fixture PASS with literal original bytes. Native evidence earned-native-local-recovery-8x0Nwv. Coordinator logs recovery-archive-first/native/bite/regression/scope. Mandatory publication directory capture-publication-gates-2026-09-09T09-29-56-839Z: preparation/private verdict/public pins/frozen18 actual ZIP/conformance/selftest/strict-unset/diff all native0. Product source final before gates; later namespace assertion/documentation only. SCOPE-FREEZE still PENDING new PWA/private/final M3; strict wording is not release approval.
+
+Parent 3f1e5b2 independent138 CLOSED G-1. Reviewer reproduced95/two new bites and repeated each omission against the complete suite:95 tests,93 pass/2 fail with either guard absent; restored source unchanged. Archive1453bytes SHA256ef4cd0331ddf1dc5a18ee2ccaca0e8e2ea672642fbc38af569864a89ad5c776e ATTACHEDNOTlocallyreceived/rehashed/replayed. Root observed parent CI terminal7SUCCESS/3SKIP, both OS jobs. This successor still requires its own CI/independent review.
+
+NEXT: use the now-addressable originals in the bounded recovered-client assembly; do not collect all signed server payload into giant JSON or confuse archive transport integrity with recovered semantic truth. Active T2/repository whole-generation consumption remains a concrete integration seam. Production K1/clean-offline-restart, final source/current-local-generation/atomic activation, explicit mismatch recovery, frame2/cleanup, original96MiB/default-runtime resource gate, CLOCK/keys/private port/rollback/drills and full workout resume/next prescription/both phones remain open. Full PRODUCT-GOALv3 / decisionsrev2 / deliverybriefv0.41 unchanged. Same coordinator, claims, model/credit/custody settings; no merge/private activation, new schedule, broad redesign or scope reduction.
+
 ## Independent 137 G-1 — terminal/rejection consistency evidence, successor to 76c4f6c, 2026-09-09
 
 Tests/documentation only; product source is byte-identical to 76c4f6c. Independent Opus 5 / High / fast off accepted the comparison prerequisite WITH G-1: the previous 92 tests did not fail when either terminal/rejected-cache consistency guard was removed. No product defect was reported. This successor supplies a complete real D1/P1/HTTP inventory paired with independently divergent local cached disposition and rejected records. Actual public-client write/identity, signed acceptance, durable drain, fresh client, positive control and cache-restoration controls all execute. The deliberate local corruption uses the actual Store and encrypted repository; it is not a stand-in inventory, lawful server transition or normal UI write. Each refusal reaches its exact comparison guard after full profile validation and leaves the local generation unchanged. No recovered truth, outbox drain, checkpoint or activation is published.

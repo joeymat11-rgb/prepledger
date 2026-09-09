@@ -10,6 +10,7 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
  const digest=x=>P.hash('local-stage',x);
  const rowDigest=id=>P.hash('local-stage-row-id',C.encode64(id));
  const pageKey=(id,n)=>[PROFILE,id,'page',n],indexKey=(id,c,k)=>[PROFILE,id,'row',c,rowDigest(k)];
+ const archiveKey=id=>[PROFILE,id,'archive'];
  const aad=(role,id,n)=>bytes([PROFILE,namespace,role,id,n]);
  const exact=(v,fields)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===fields.length&&fields.every(k=>Object.hasOwn(v,k));
  const safe=n=>Number.isSafeInteger(n)&&n>=0;
@@ -54,6 +55,16 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
   return h;
  }
  async function loaded(){const [record]=await read([HEAD]);if(record===undefined)return null;const h=validHead(await open(record,'head'),record);return {record,h,token:token(record)};}
+ async function archived(reference){
+  if(!exact(reference,['profile','attempt','manifestDigest'])||reference.profile!==PROFILE||typeof reference.attempt!=='string'||!/^[a-f0-9]{32}$/.test(reference.attempt)||!C.digestValue(reference.manifestDigest))fail('RECOVERY_ARCHIVE_REFERENCE');
+  const ref=clone(reference),[record]=await read([archiveKey(ref.attempt)]);if(!record)fail('RECOVERY_ARCHIVE_MISSING');
+  const h=validHead(await open(record,'archive'),record);
+  if(!h.terminal||h.attempt!==ref.attempt||P.manifestDigest(h.manifest)!==ref.manifestDigest)fail('RECOVERY_ARCHIVE_BINDING');
+  const previous=h.pages===1?null:(await open((await read([pageKey(h.attempt,h.pages-1)]))[0],'page')).page.next_cursor;
+  const terminal=await signedPage(h,h.pages,previous);
+  if(!terminal.finish||P.cursorReference(terminal.page.next_cursor)!==P.cursorReference(h.cursor))fail('RECOVERY_ARCHIVE_INCOMPLETE');
+  return {record,h,token:token(record),reference:ref};
+ }
  async function signedPage(h,index,previous){
   const [record]=await read([pageKey(h.attempt,index)]);if(!record||record.attempt!==h.attempt||record.revision!==index)fail('RECOVERY_STAGE_PAGE_MISSING');
   const response=await open(record,'page'),result=await verifier.verify(bytes(response),{expected:h.expected,previousCursor:previous});
@@ -127,13 +138,29 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
    }
    for(const collection of new Set(response.page.rows.map(row=>row.collection)))entries.push([[PROFILE,h.attempt,'scan',collection,index],await seal({collection,page:index},'scan:'+collection,h.attempt,index)]);
    const next={...h,manifest:response.manifest,cursor:response.page.next_cursor,pages:index,terminal:Boolean(response.finish)};
+   // The original signed snapshot stays addressable after another attempt starts.
+   // Archive and terminal page/head are one transaction; neither is an activation.
+   if(next.terminal)entries.push([archiveKey(h.attempt),await seal(next,'archive',h.attempt,index+1)]);
    return publish(basis.token,await seal(next,'head',h.attempt,index+1),entries);
   },
-  async inventory(){
-   const basis=await loaded();if(!basis?.h.terminal)fail('RECOVERY_STAGE_INCOMPLETE');const h=basis.h;
+  async inventory(){return readInventory(await loaded(),false);},
+  async openArchive(reference){return readInventory(await archived(reference),true);},
+ });
+ async function readInventory(basis,historical){
+   if(!basis?.h.terminal)fail('RECOVERY_STAGE_INCOMPLETE');const h=basis.h;
+   const stable=async()=>{
+    if(!historical){await unchanged(basis);return;}
+    const [now]=await read([archiveKey(h.attempt)]);if(token(now)!==basis.token)fail('RECOVERY_ARCHIVE_CHANGED');
+   };
    const view={
-    async bindings(){await unchanged(basis);return {manifest:clone(h.manifest),expected:clone(h.expected)};},
+    historicalOnly:historical,
+    async archiveReference(){
+     await stable();const ref={profile:PROFILE,attempt:h.attempt,manifestDigest:P.manifestDigest(h.manifest)};
+     await archived(ref);await stable();return ref;
+    },
+    async bindings(){await stable();return {manifest:clone(h.manifest),expected:clone(h.expected),...(historical?{historicalOnly:true}:{})};},
     async scan(collection,visitor){
+     await stable();
      if(!P.COLLECTIONS.includes(collection)||typeof visitor!=='function')fail('RECOVERY_STAGE_ROW_QUERY');
      let after=null,count=0;const expected=h.manifest.collection_counts.find(([c])=>c===collection)[1];
      for(;;){const keys=await indexKeys(h.attempt,collection,after);if(!keys.length)break;
@@ -149,17 +176,19 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
        }if(!members)fail('RECOVERY_STAGE_INDEX_UNPROVEN');
       }after=keys.at(-1);
      }
-     if(count!==expected)fail('RECOVERY_STAGE_INDEX_UNPROVEN');await unchanged(basis);return count;
+     if(count!==expected)fail('RECOVERY_STAGE_INDEX_UNPROVEN');await stable();return count;
     },
     async readRow(collection,id){
+     await stable();
      if(!P.COLLECTIONS.includes(collection)||typeof id!=='string')fail('RECOVERY_STAGE_ROW_QUERY');
-     const item=await indexFor(h,collection,id);if(!item){await unchanged(basis);return undefined;}
+     const item=await indexFor(h,collection,id);if(!item){await stable();return undefined;}
      const previous=item.page===1?null:(await open((await read([pageKey(h.attempt,item.page-1)]))[0],'page')).page.next_cursor;
      const response=await signedPage(h,item.page,previous),row=response.page.rows[item.position];
      if(P.manifestDigest(response.manifest)!==P.manifestDigest(h.manifest)||row?.collection!==collection||C.text(C.decode64(row.row_id_b64,P.LIMITS.row))!==id)fail('RECOVERY_STAGE_INDEX_UNPROVEN');
-     await unchanged(basis);return {collection,row_id:id,value:C.text(C.decode64(row.value_b64,P.LIMITS.row))};
+     await stable();return {collection,row_id:id,value:C.text(C.decode64(row.value_b64,P.LIMITS.row))};
     },
     async visit(visitor){
+     await stable();
      if(typeof visitor!=='function')fail('RECOVERY_STAGE_VISITOR');let previous=null;
      for(let index=1;index<=h.pages;index++){
       const response=await signedPage(h,index,previous);
@@ -172,10 +201,10 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
       previous=response.page.next_cursor;
      }
      if(P.cursorReference(previous)!==P.cursorReference(h.cursor))fail('RECOVERY_STAGE_INVENTORY_UNPROVEN');
-     await unchanged(basis);return {inventoryVerified:true,complete:false,activated:false};
+     await stable();return {inventoryVerified:true,complete:false,activated:false,...(historical?{historicalOnly:true}:{})};
     },
-    assertCurrent:()=>unchanged(basis),
+    assertCurrent:()=>historical?Promise.reject(new StorageFailure('RECOVERY_HISTORICAL_ONLY',18)):unchanged(basis),
+    assertIntact:stable,
    };return Object.freeze(view);
-  },
- });
+ }
 }

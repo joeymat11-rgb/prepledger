@@ -4,8 +4,9 @@ import {webcrypto} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
 import {fixture,initial,deferred} from '../support.mjs';
-import {IDBKeyRange} from 'fake-indexeddb';
+import {IDBKeyRange,IDBFactory} from 'fake-indexeddb';
 import {validateRecoveryProfile} from '../../recovery-profile.mjs';
+import {openRepository} from '../../repository.mjs';
 import {profileVectors} from './profile-vectors.mjs';
 if(!process.env.EARNED_ROWS_R1_ROOT)throw Error('Run through run-recovery-stage.cjs with the pinned public R1 dependency');
 const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
@@ -98,6 +99,13 @@ test('actual Worker/D1/P1 inventory over real HTTP stages durably and matches th
  await t.test('cancellation stops actual indexed profile validation at the first observed row',async()=>{const aborter=new AbortController();let rows=0;const wrapped={...inventory,visit:visitor=>inventory.visit(row=>{rows++;aborter.abort();return visitor(row);})};await assert.rejects(validateRecoveryProfile({inventory:wrapped,codec:C,protocol:P,publicVerifier:require('./public-client.cjs').createPublicVerifier({keys:[Sign.publicKeyOf(r.authorityKey)],subtle:webcrypto.subtle}),requestBytes:C.encode(request),expected:{athleteId:'first',actorDeviceId:actor,scopeDigest:expected.scopeDigest,basisDigest:h},signal:aborter.signal}),e=>e.code==='RECOVERY_VALIDATION_ABORTED');assert.equal(rows,1);});
  await profileVectors(t,{allRows:rows,C,P,Sign,require,authority:r.authorityKey,identityKey:r.identityKeys.first,request,expected:{athleteId:'first',actorDeviceId:actor,scopeDigest:expected.scopeDigest,basisDigest:h}});
  for(const row of rows)assert.deepEqual(await inventory.readRow(row.collection,row.row_id),{collection:row.collection,row_id:row.row_id,value:row.value});
+ await t.test('historical archive cannot replace the current complete-profile evidence',async()=>{
+  const reference=await inventory.archiveReference();await stage.start({expected,explicitRetry:true});
+  const reopened=await f.fresh();t.after(()=>reopened.repository.close());const archive=await reopened.repository.recovery({protocol:P,codec:C,verificationKeys:[Sign.publicKeyOf(r.authorityKey)],validateContext:()=>null,keyRange:IDBKeyRange}).openArchive(reference);
+  const originals=[];await archive.visit(row=>originals.push({athlete:'first',...row}));assert.deepEqual(originals,rows);
+  await assert.rejects(validateRecoveryProfile({inventory:archive,codec:C,protocol:P,publicVerifier:require('./public-client.cjs').createPublicVerifier({keys:[Sign.publicKeyOf(r.authorityKey)],subtle:webcrypto.subtle}),requestBytes:C.encode(request),expected:{athleteId:'first',actorDeviceId:actor,scopeDigest:expected.scopeDigest,basisDigest:h}}),e=>e.code==='RECOVERY_HISTORICAL_ONLY'&&e.state===18);
+  await assert.rejects(inventory.assertCurrent(),e=>e.code==='RECOVERY_STAGE_CHANGED');
+ });
  assert.deepEqual((await f.repo.load()).generation,initial());
 });
 test('a surviving attempt requires explicit retry; new attempt preserves active data and invalidates old view',async t=>{
@@ -105,6 +113,54 @@ test('a surviving attempt requires explicit retry; new attempt preserves active 
  await assert.rejects(f.stage.start({expected:f.expected}),e=>e.code==='RECOVERY_STAGE_EXPLICIT_RETRY_REQUIRED');
  await f.stage.start({expected:f.expected,explicitRetry:true});assert.notEqual((await f.stage.progress()).attempt,old.attempt);
  await assert.rejects(view.assertCurrent(),e=>e.code==='RECOVERY_STAGE_CHANGED');assert.deepEqual((await f.repo.load()).generation,initial());
+});
+
+test('archived original rows survive later attempts and repository reopen without becoming current',async t=>{
+ const f=await setup(t);await seedAll(f);const before=await f.repo.load(),current=await f.stage.inventory(),reference=await current.archiveReference();
+ assert.equal(current.historicalOnly,false);assert.equal(reference.manifestDigest,P.manifestDigest(f.replies[0].manifest));
+ assert.equal((await f.stage.append(C.encode(f.replies[2]))).duplicate,true);assert.deepEqual(await current.archiveReference(),reference);
+ await f.stage.start({expected:f.expected,explicitRetry:true});await assert.rejects(current.assertCurrent(),e=>e.code==='RECOVERY_STAGE_CHANGED');
+ f.repo.close();const fresh=await f.fresh();t.after(()=>fresh.repository.close());const stage=fresh.repository.recovery(f.options),archive=await stage.openArchive(reference);
+ assert.equal(archive.historicalOnly,true);await archive.assertIntact();await assert.rejects(archive.assertCurrent(),e=>e.code==='RECOVERY_HISTORICAL_ONLY'&&e.state===18);
+ const got=[];assert.deepEqual(await archive.visit(row=>got.push(row)),{inventoryVerified:true,complete:false,activated:false,historicalOnly:true});assert.deepEqual(got,f.rows);
+ const scanned=[];assert.equal(await archive.scan('history',row=>scanned.push(row)),2);assert.deepEqual(scanned,f.rows.filter(x=>x.collection==='history'));
+ assert.deepEqual(await archive.readRow('history','a'),f.rows[0]);assert.equal(await archive.readRow('history','absent'),undefined);
+ assert.deepEqual(await archive.archiveReference(),reference);assert.equal((await archive.bindings()).historicalOnly,true);assert.deepEqual(await fresh.repository.load(),before);
+ await assert.rejects(stage.inventory(),e=>e.code==='RECOVERY_STAGE_INCOMPLETE');
+});
+
+test('archive references, original signatures and encrypted archive identity cannot be substituted',async t=>{
+ const f=await setup(t);await seedAll(f);const current=await f.stage.inventory(),reference=await current.archiveReference(),archive=await f.stage.openArchive(reference);
+ for(const ref of [{...reference,manifestDigest:P.hash('wrong','manifest')},{...reference,attempt:'0'.repeat(32)},{...reference,extra:true}])await assert.rejects(f.stage.openArchive(ref),e=>e.state===18);
+ const other=Sign.generateSigningKey(f.authority.kid),wrongVerifier=f.repo.recovery({...f.options,verificationKeys:[Sign.publicKeyOf(other)]});
+ await assert.rejects(wrongVerifier.openArchive(reference),e=>e.code==='RECOVERY_STAGE_PROOF_UNPROVEN');
+ const wrongScope=await openRepository({...f.setup,namespace:'different-synthetic-athlete/device'});t.after(()=>wrongScope.close());
+ await assert.rejects(wrongScope.recovery(f.options).openArchive(reference),e=>e.state===18);
+ await f.stage.start({expected:f.expected,explicitRetry:true});for(const response of f.replies)await f.stage.append(C.encode(response));
+ const newer=await(await f.stage.inventory()).archiveReference();assert.notEqual(newer.attempt,reference.attempt);
+ const key=['earned/recovery-rows/v1',reference.attempt,'archive'];
+ const original=await raw(f,(store,finish)=>{const r=store.get(key);r.onsuccess=()=>finish(r.result);});
+ await raw(f,store=>{const r=store.get(['earned/recovery-rows/v1',newer.attempt,'archive']);r.onsuccess=()=>store.put(r.result,key);});
+ await assert.rejects(f.stage.openArchive(reference),e=>e.code==='RECOVERY_ARCHIVE_BINDING');await assert.rejects(archive.assertIntact(),e=>e.code==='RECOVERY_ARCHIVE_CHANGED');
+ await raw(f,store=>store.put(original,key));await archive.assertIntact();
+ await raw(f,store=>{const corrupted=structuredClone(original);new Uint8Array(corrupted.ciphertext)[0]^=1;store.put(corrupted,key);});
+ await assert.rejects(f.stage.openArchive(reference),e=>e.state===18);await assert.rejects(archive.readRow('history','a'),e=>e.code==='RECOVERY_ARCHIVE_CHANGED');
+ assert.deepEqual((await f.repo.load()).generation,initial());
+});
+
+test('failed terminal archive write rolls back the page, indexes and head together',async t=>{
+ const factory=new IDBFactory();let armed=false;
+ const indexedDB={open(...args){const r=factory.open(...args);r.addEventListener('success',()=>{
+  const db=r.result,transaction=db.transaction.bind(db);db.transaction=(...txArgs)=>{const tx=transaction(...txArgs),objectStore=tx.objectStore.bind(tx);
+   tx.objectStore=name=>{const store=objectStore(name),put=store.put.bind(store);store.put=(value,key)=>{if(armed&&Array.isArray(key)&&key[0]==='earned/recovery-rows/v1'&&key[2]==='archive')throw new DOMException('Synthetic archive quota fault','QuotaExceededError');return put(value,key);};return store;};return tx;};
+ });return r;}};
+ const f=await fixture({indexedDB});await f.seed();t.after(()=>f.repo.close());const wire=frames(),stage=f.repo.recovery(wire.options);
+ await stage.start({expected:wire.expected});await stage.append(C.encode(wire.replies[0]));await stage.append(C.encode(wire.replies[1]));const before=await stage.progress(),active=await f.repo.load();
+ armed=true;await assert.rejects(stage.append(C.encode(wire.replies[2])),e=>e.state===3);assert.deepEqual(await stage.progress(),before);
+ const record=await raw(f,(store,finish)=>{const r=store.get(['earned/recovery-rows/v1',before.attempt,'page',3]);r.onsuccess=()=>finish(r.result);});assert.equal(record,undefined);
+ await assert.rejects(stage.openArchive({profile:'earned/recovery-rows/v1',attempt:before.attempt,manifestDigest:P.manifestDigest(wire.replies[0].manifest)}),e=>e.code==='RECOVERY_ARCHIVE_MISSING');
+ assert.deepEqual(await f.repo.load(),active);armed=false;await stage.append(C.encode(wire.replies[2]));
+ const reference=await(await stage.inventory()).archiveReference();assert.equal((await stage.openArchive(reference)).historicalOnly,true);assert.deepEqual(await f.repo.load(),active);
 });
 test('stored page/index payloads remain encrypted and the database schema stays version1',async t=>{
  const f=await setup(t);await seedAll(f);const records=await raw(f,(store,finish)=>{const r=store.getAll();r.onsuccess=()=>finish(r.result);});
