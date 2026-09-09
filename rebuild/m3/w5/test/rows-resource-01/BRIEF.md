@@ -1,0 +1,29 @@
+# OPUS-RECOVERY-RESOURCE-01 — replacement-route resource qualification
+
+Owner approved September 9. APM dispatches one separate Opus High builder; fast mode off, included capacity only. Earned has confirmed this test-only lane is unowned. This is independent of the active engine review. Earned owns product changes, final integration, client staging/activation and the prescription/workout join.
+
+## Exact source and ownership
+
+Repository joeymat11-rgb/prepledger; source commit 734986a688366293349145e6feb80fd4130d3702 (PR43). Fetch that exact public commit if absent; do not substitute main or an older protocol. Work in an isolated checkout/branch codex/opus-recovery-resource-01. If the hosted environment requires its own branch prefix, use its isolated task branch and report it; never write a shared existing branch. Read NEXT.md then rebuild/ROADMAP.md for context, then this brief governs the bounded assignment. Save this attached brief under rebuild/m3/w5/test/rows-resource-01/BRIEF.md before implementation so the assignment remains file-backed.
+
+Exclusive new files ONLY under rebuild/m3/w5/test/rows-resource-01/. Add a runnable adapter, focused adapter tests, small synthetic evidence/manifest if useful, and ONE REPORT.md. Preserve every existing product, runner, meter, fixture, conformance law, package lock and report byte. Never read or transmit ledger/, private fixtures, credentials, signing secrets or personal data. Generate synthetic keys locally; never output keys. No merge, deploy, provider/account/settings change, paid overage or additional agents. Return one draft PR if publishing is supported; otherwise a precise patch plus report and explain the publication limitation. Do not run private gates or claim whole-repository acceptance.
+
+## Concrete question and source evidence
+
+Does the implemented /reconcile/rows route meet the existing server resource budget on complete, valid synthetic recovery inventories, including sequential and overlapping attempts? The old r1-resource.test.cjs drives /reconcile, whose projection repeatedly materializes complete history. The new reconciliation/paged-bridge.cjs bounds selected rows, but functional HTTP success is not memory qualification.
+
+Read existing test/r1-resource.test.cjs, r1-resource-meter.cjs, r1-resource-fixture.cjs, p1-resource.cjs, r1-workerd.cjs, r1-paged-http.test.cjs; reconciliation/PAGED-RECOVERY-PROPOSAL.md section 6 and RESOURCE-LIMITS.md; actual paged bridge/codec and relevant runtime ingress. Use this existing machinery rather than inventing a new profiler. No broad architecture or repeated heap investigation.
+
+## Required implementation and evidence
+
+Create a separate wrapper for the NEW route using unchanged actual Worker/D1/P1/signing/runtime/meter modules. Preserve default pinned runtime, the original simultaneous totalSize + embedderHeapUsedSize + backingStorageSize memory formula and 96 MiB ceiling, CPU accounting/calibration, 1000 ms CPU, 1000 statements, batches below 30 seconds and zero domain writes. Keep limitations and platform attribution explicit. No forced GC, heap limits, per-page runtime restarts, CPU-to-wall-time substitution, hidden warmup or changed sample formula.
+
+Reuse the existing valid synthetic workload where meaningful; explicitly map old workload to new protocol semantics. Complete history must be preserved and signed terminal finish reached, with byte identity/completeness checked independently of candidate output. Do not shrink account/history to obtain a PASS. Run one complete sequential attempt and two overlapping attempts under the same runtime model, covering actual row/page byte boundaries, large valid history and supported near-row/key limits. Distinguish generic extreme key/row fixtures from valid cross-record accounts. Preserve old-profile extra-byte refusal as an old-profile requirement; do not invent that refusal for rows-v3, which has no corresponding whole-history cap. Never relabel new-route results as old-route PASS.
+
+Separate fixture setup from the measured workload exactly as justified by the existing meter; prove the real application isolate is selected, not a setup or proxy isolate. Include focused negative calibration showing that the wrapper detects an exceeded resource limit and refuses incomplete or invalid recovery instead of reporting success. Avoid an exhaustive new mutation campaign. Streaming output/checks on the test driver must not create an unbounded retention experiment or replace the actual consumer with an unrealistic no-op.
+
+Report the commands actually run, exact source and new-file pins, workload mapping, platform, all attempt completion, peak measured allocation, CPU/SQL results, pass/fail/incomplete, and one concrete next action. A server PASS does not establish client memory, complete staged-profile validation, atomic activation, current permission, phone fit or private recovery. If it fails, preserve the failure and identify any code-supported suspect narrowly; do not change product or cycle through speculative variants. If environment limitations prevent measurements, deliver the runnable wrapper and exact blocker; never invent numbers or relax measurement.
+
+## Time and integration
+
+Aim for the first concrete runnable result within 30–45 minutes; this is a checkpoint, not permission to abandon correctness. Stop for APM with a precise blocker if the task requires product edits, shared-file changes or a materially larger fixture redesign. Do not repeatedly retry unchanged environmental failures. Root will reproduce necessary host-specific evidence and adopt the reviewed wrapper in the next R1 replacement-route qualification cut. Independent review of this builder's output must be performed by someone else. Leave the existing engine reviewer and Earned's primary work undisturbed.
