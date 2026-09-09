@@ -1,3 +1,4 @@
+import { createRecoveryStage } from './recovery-stage.mjs';
 const FORMAT = 1;
 const STORE = "generations";
 const clone = value => structuredClone(value);
@@ -146,6 +147,9 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
     });
   }
   return {
+    recovery({protocol,codec,verificationKeys,validateContext}={}) {
+      return createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,StorageFailure});
+    },
     async load() {
       const { active } = await readRecords();
       if (active === undefined) throw new StorageFailure("STORE_MISSING", 18);

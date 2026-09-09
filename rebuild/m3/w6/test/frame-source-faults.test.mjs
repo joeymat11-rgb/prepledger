@@ -12,7 +12,7 @@ import Stage from "../t2-stage.cjs";
 // Mechanical source faults only. The injected batch validator establishes no
 // production permission, signed-time, custody, epoch or knowledge-loss contract.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), ".."), encoder = new TextEncoder();
-const files = ["frame-repository.mjs", "frame-crypto.mjs", "frame-format.mjs", "strict-json.mjs", "repository.mjs"];
+const files = ["frame-repository.mjs", "frame-crypto.mjs", "frame-format.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs"];
 const originals = new Map(files.map(name => [name, readFileSync(join(root, name))]));
 const sha = value => createHash("sha256").update(value).digest("hex"), jsonBytes = value => encoder.encode(JSON.stringify(value));
 function unchanged() { for (const [name, bytes] of originals) assert.deepEqual(readFileSync(join(root, name)), bytes, `real source changed: ${name}`); }

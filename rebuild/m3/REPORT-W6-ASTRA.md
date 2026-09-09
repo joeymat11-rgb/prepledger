@@ -1,5 +1,47 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Inactive encrypted recovery staging — successor to914b79c, 2026-09-09
+
+This increment connects the independently reviewed R1 rows-v3 codec at734986a688366293349145e6feb80fd4130d3702 to the actual W6 `openRepository().recovery(...)` boundary. It stores verified original pages and encrypted row indexes in the existing version1 database, with one transaction per page/index/head and a final context guard. Active/previous generations and the unsynced outbox remain untouched. It implements inactive inventory storage, not complete semantic recovery, active-generation switching or qualified workout resume. The approved PRODUCT-GOALv3 and M4 briefv0.41 remain unchanged; this supports accurate port/recovery on the first-use path.
+
+`RECOVERY-STAGING.md` gives the API and remaining obligations. Pinned public codec dependencies are injected; no authority signing key, private fixture, new key provider, database upgrade, service worker, seeded-soak edit or product-rule change. Row indexes retain base64 IDs to bound control-character expansion and address original values without collecting the complete account. A near-row-limit synthetic NUL-key case proves that representation; it is not a profile-valid account claim. The complete-account test instead uses real Worker/D1/P1 enrolment/admission and real local HTTP. Its whole-history relational comparison is a TEST ORACLE only, never a product staging operation.
+
+Executed from the retained W6 tree with the explicit retained R1 path:
+
+```
+node rebuild/m3/w6/test/run-recovery-stage.cjs ../m3-w5-r1
+11 tests; 11 pass; 0 fail; 0 skipped
+node rebuild/m3/w6/test/run-recovery-stage.cjs ../m3-w5-r1 --browser
+RECOVERY STAGE NATIVE PASS — 11 checks; actual IndexedDB/P-256/AES-GCM, held transaction, quota abort, context cut, reopen, indexes and untouched active outbox; NOT full profile or phone acceptance
+node rebuild/m3/w6/test/run-current-head.cjs ../m3-w5-r1 --all
+312 tests; 312 pass; 0 fail; 0 skipped
+node rebuild/m3/w6/test/run-recovery-stage.cjs ../m3-w5-r1 --bite
+RECOVERY STAGE BITE RED — known standing loss committed when final context guard bypassed; native exit1
+RECOVERY STAGE BITE RESTORED PASS — native exit0; SHA256 37d87c2c5bbe8fd97d50b819063a0abb58716cdf8fd164355ad90bc1f76bb78e
+```
+
+The browser run uses actual desktop Chrome IndexedDB/WebCrypto and a disposable loopback origin. It holds a transaction to check no early progress, aborts quota failure after a queued page write, changes known standing during the IDB reads before the final write cut, reopens storage, and compares the active generation/outbox unchanged. Final native evidence directory `earned-native-recovery-nsKyvj`; bite `earned-stage-bite-kKffvn`. Focused run6.69s, composed run4.74s; these are test durations, not a whole-app delivery estimate.
+
+Initial composed regression was303/312: nine disposable mutation tests could not import the newly referenced `recovery-stage.mjs`. Their explicit public-source copy inventories now include that dependency; every original mutation/assertion/restoration remains. No frozen suite edit, skipped case or weakened gate. Final312/312 and native11 were rerun after the correction. During focused development, the context guard was placed at the final put cut after IDB slot reads, row indexes changed from raw JSON IDs to base64, and indexed reads gained actual page-signature verification; the published results cover those final bytes.
+
+Mandatory publication gate logs: `capture-publication-gates-2026-09-09T07-31-07-988Z`; preparation, scope/package, conformance, selftest, strict and diff all native exit0. Regenerated private inputs stayed local; their verdict passed and committed public pins remained unchanged. Explicit engine paths, `EARNED_CLIENT_DIR`, `MEASURED_TEST_NOW=2026-09-03` and `TZ=America/New_York` were used for conformance; strict ran with `MEASURED_TEST_NOW` unset.
+
+```
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+The strict script's final wording is its existing verdict, not owner-release approval. `SCOPE-FREEZE PENDING` still applies to the new PWA archive, full private suite and final implementation evidence. Independent review/CI for this new W6 increment are not claimed by these local runs. R1 server prerequisite734 independently ACCEPTED133 with39 additional checks and terminal CI7SUCCESS/3SKIP on both OS jobs; its acceptance does not extend to this new storage code. Reviewer archive4345f3e1cb54d8f2b62b8317086bcc8bb0e82c64412ce5dac95ef170b35688c1 is attached, not locally received/rehashed/replayed.
+
+SEAMS: this component does not implement the bounded complete-profile/claims/original-signature validator, finite network controller, live negative-ingress join, final current-active-generation fence/switch or frame-format2 support. The caller must bind current authenticated scope; staged progress is never positive standing. `visit` callbacks are validation inputs, not permission to paint data before the terminal/final-head checks. Superseded inactive attempts remain retained; safe cleanup/capacity is still owed. Original96MiB resource failures remain open and unwaived. Private port/rollback, currentness/CLOCK/key custody, independent integration, full workout journey and Joe/Dad phone gates remain. Nothing was merged or privately activated.
+
+NEXT: complete bounded profile/claim/original-signature validation and finite transport/negative-ingress integration, then original resource and activation checks. Keep the first-use target Start → multiple Sets → leave/reopen/resume the same session → normal Finish → corrected history → qualified next prescription; preserve broader coherent plan scope without gating first use on every future capability.
+
 ## Current-head history verification coverage — successor to73b0de9, 2026-09-09
 
 Independent128 **ACCEPT WITH ONE OPEN GATE G-1** reproduced the parent44/309/native32+7+7, both effective bites and51 additional checks. It found no product defect in that increment, but demonstrated that the history-specific currentHead identity exemption had no positive execution or effective mutation coverage. This successor changes only the focused tests, their disposable composition runner and this report; all product bytes remain identical to73b0de9.
