@@ -13,7 +13,7 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
   if(!root?.ownerDocument||!nonblank(plannedSplitSlotId)||
       !['prepareWorkout','startPreparedWorkout','retireWorkoutPreparations','execute'].every(k=>typeof client?.[k]==='function'))
     throw new TypeError('Prepared workout host configuration required');
-  if(enableContinuation&&!['readWorkoutHistory','prepareWorkoutContinuation','executeResumedWorkout'].every(k=>typeof client[k]==='function'))throw new TypeError('Interpreted continuation client required');
+  if(enableContinuation&&!['readWorkoutHistory','prepareWorkoutContinuation','executeResumedWorkout','prepareWorkoutEdit','commitWorkoutEdit'].every(k=>typeof client[k]==='function'))throw new TypeError('Interpreted continuation client required');
   roots.get(root)?.dispose();clients.get(client)?.dispose();
   const doc=root.ownerDocument,el=(tag,text)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
   const shell=el('section');shell.className='prepared-workout-host';shell.setAttribute('aria-label','Prepared synthetic workout');
@@ -36,17 +36,73 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
         return {mounted:false,code:'WORKOUT_HOST_RECONCILIATION_REQUIRED'};
       }
       let continuation=null,history=null;
-      const renderHistory=(parent,sessions)=>{
+      const renderHistory=(parent,sessions,editable=false)=>{
         const historyPanel=el('section');historyPanel.className='prepared-history';historyPanel.setAttribute('aria-label','Recovered workout history');
-        historyPanel.append(el('h2','Recorded workout'),el('p','Recovered from authenticated storage. Local and accepted facts remain distinct; this does not assert progression eligibility.'));
+        historyPanel.append(el('style',`.prepared-history{padding:24px;background:#F4F0E8;color:#1C1B18;font:1rem/1.5 'Instrument Sans',Arial,sans-serif}.prepared-history li{padding:16px 0;border-bottom:1px solid #D8D0C2}.prepared-history button,.prepared-history summary{min-height:44px;font:inherit;cursor:pointer}.prepared-history button{padding:10px 16px;background:#1C1B18;color:#F4F0E8;border:0;border-radius:10px;margin:8px 8px 0 0}.prepared-history label{display:grid;gap:6px;margin:14px 0}.prepared-history input,.prepared-history select{box-sizing:border-box;min-height:48px;width:100%;font:inherit;font-size:max(16px,1em);padding:10px;background:#FAF7F1;color:#1C1B18;border:1px solid #6F6759;border-radius:8px}.prepared-history [hidden]{display:none}.prepared-history :focus-visible{outline:3px solid #2E5A3C;outline-offset:3px}`));
+        historyPanel.append(el('style',`.prepared-workout-host{max-width:38rem;margin-inline:auto;background:#F4F0E8;color:#1C1B18;font:1rem/1.5 'Instrument Sans',Arial,sans-serif;overflow-wrap:anywhere}.prepared-workout-host>p{padding:18px 24px 0;margin:0;color:#5A5348}.prepared-workout-host>button{min-height:44px;margin:0 24px 24px;padding:12px 16px;font:inherit;border:1px solid #6F6759;border-radius:10px;background:#FAF7F1;color:#1C1B18}`));
+        historyPanel.append(el('h2','Recorded workout'),el('p','Test workout history. Review your recorded sets and corrections below; original entries remain available.'));
+        let editorOpen=false;
+        const format=v=>v?`${v.load.value} ${v.load.unit} × ${v.reps.value} ${v.reps.unit}`:'Not established';
+        const effort=v=>!v?'Unrecorded':v.tag==='exact'?String(v.value):v.tag==='at_least'?'3+':v.tag==='unknown'?'Not sure':v.tag==='skipped'?'Question skipped':'Not asked';
+        const recordedStatus=s=>({'stored-on-this-device':'Saved on this device','accepted-through-frontier':'Confirmed by server',rejected:'Rejected — needs attention'}[s]||'Status needs review');
         for(const s of sessions){
           const list=el('ol');
           for(const f of s.projection.facts){
             const v=f.current,slot=s.original?.slots.find(x=>x.logical_set_slot===f.logical_set_slot&&x.lift_lineage_id===f.lift_lineage_id);
-            list.append(el('li',`${slot?.label||'Recorded set'} — ${f.included===false?'excluded from current interpretation':v?`${v.load.value} ${v.load.unit} × ${v.reps.value} ${v.reps.unit}`:'interpretation required'} (${f.current_status||f.source_status})`));
+            const item=el('li');item.className='prepared-history-set';
+            item.append(el('p',`${slot?.label||'Recorded set'} — ${f.included===false?'excluded from current interpretation':v?format(v):'interpretation required'} (${recordedStatus(f.current_status||f.source_status)})`));
+            if(f.included===true&&v)item.append(el('p','Clean reps left: '+effort(v.reserve)));
+            const original=el('details');original.append(el('summary','Original recorded entry'),el('p',format(f.original)+'; clean reps left: '+effort(f.original.reserve)));item.append(original);
+            if(f.edit_op_ids.length)item.append(el('p','Recorded changes are retained with the original entry.'));
+            if(f.issues.includes('SET_SLOT_RESOLUTION_REQUIRED'))item.append(el('p','Another recorded entry shares this set position. Correcting this fact does not by itself resolve the workout.'));
+            if(editable&&f.included===true&&f.issues.every(code=>code==='SET_SLOT_RESOLUTION_REQUIRED')&&v){
+              const edit=el('button','Correct this set');edit.type='button';item.append(edit);
+              edit.addEventListener('click',async()=>{
+                if(disposed||editorOpen)return;editorOpen=true;edit.disabled=true;const message=el('p','Reading the current record…');message.className='history-edit-status';message.setAttribute('role','status');message.setAttribute('aria-live','polite');item.append(message);
+                let p;try{p=await client.prepareWorkoutEdit({target_op_id:f.source_op_id});}catch{}
+                if(disposed)return;
+                if(p?.prepared!==true){message.textContent='This record cannot currently be corrected. Reopen the workout to review its latest history.';editorOpen=false;edit.disabled=false;return;}
+                const form=el('form');form.className='history-editor';form.noValidate=true;
+                form.append(el('h3','Correct the recorded set'),el('p','Change what was recorded. The original remains in history. This does not change your plan.'));
+                const field=(name,label,value)=>{const wrapper=el('label',label),input=el('input');input.name=name;input.type='text';input.inputMode=name==='correctedLoad'?'decimal':'numeric';input.value=String(value);wrapper.append(input);form.append(wrapper);return input;};
+                const load=field('correctedLoad','Recorded weight (lb)',p.view.current.load.value),reps=field('correctedReps','Recorded repetitions',p.view.current.reps.value);
+                const reserveLabel=el('label','Recorded clean reps left'),reserve=el('select');reserve.name='correctedReserve';
+                for(const [value,label]of [['keep','Keep current: '+effort(p.view.current.reserve)],['0','0'],['1','1'],['2','2'],['3+','3+'],['unknown','Not sure'],['skipped','Question skipped'],['not_asked','Not asked']]){const o=el('option',label);o.value=value;reserve.append(o);}reserveLabel.append(reserve);form.append(reserveLabel);
+                const save=el('button','Save correction');save.type='submit';const cancel=el('button','Cancel');cancel.type='button';form.append(save,cancel);
+                const removal=el('details');removal.append(el('summary','Remove a mistaken entry'));const reasonLabel=el('label','Reason for removal'),reason=el('input');reason.name='removalReason';reasonLabel.append(reason);const remove=el('button','Remove recorded entry');remove.type='button';removal.append(reasonLabel,el('p','This keeps the original in history and excludes it from the current interpretation.'),remove);form.append(removal);
+                let pending=false,retired=false;const disable=()=>{for(const control of form.querySelectorAll('input,select,button'))control.disabled=pending||retired;};
+                const submit=async(action,change)=>{
+                  if(disposed||pending||retired)return;pending=true;message.textContent='Saving…';disable();
+                  let r;try{r=await client.commitWorkoutEdit({editId:p.editId,action,change});}catch{r={acknowledged:false,outcomeUnknown:true};}
+                  if(disposed)return;pending=false;retired=true;disable();
+                  if(r?.acknowledged!==true){message.textContent=r?.outcomeUnknown?'Update not confirmed. Your entered values remain here. Reopen the workout to check its history before trying again.':r?.code==='WORKOUT_EDIT_STALE'?'History changed while this editor was open. Your entered values remain here. Reopen the workout and review the latest entry.':'Could not save this change. Your entered values remain here. Reopen the workout to resolve its current recovery state.';return;}
+                  let read;try{read=await client.readWorkoutHistory();}catch{}
+                  if(disposed)return;
+                  if(read?.read!==true){message.textContent='Saved on this device. The updated history needs recovery before it can be shown.';return;}
+                  historyPanel.remove();renderHistory(parent,read.history.sessions.filter(x=>x.start.operation.planned_split_slot_id===plannedSplitSlotId&&x.start.status!=='rejected'),true);
+                  status.textContent=action==='remove'?'Saved — mistaken entry excluded; its original remains in history.':'Saved — correction recorded on this device. The original and later entries remain in history.';
+                };
+                form.addEventListener('submit',event=>{event.preventDefault();if(disposed||pending||retired)return;
+                  const weight=Number(load.value.trim()),count=Number(reps.value.trim());
+                  if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(load.value.trim())||!Number.isFinite(weight)||weight<=0){message.textContent='Enter a recorded weight greater than zero.';load.focus();return;}
+                  if(!/^\d+$/.test(reps.value.trim())||!Number.isSafeInteger(count)){message.textContent='Enter recorded repetitions as a whole number, including zero.';reps.focus();return;}
+                  const change={};if(weight!==p.view.current.load.value)change.load={value:weight,unit:'lb'};if(count!==p.view.current.reps.value)change.reps={value:count,unit:'rep'};
+                  if(['0','1','2'].includes(reserve.value))change.reserve={tag:'exact',value:Number(reserve.value),unit:'rep'};
+                  else if(reserve.value==='3+')change.reserve={tag:'at_least',value:3,unit:'rep'};
+                  else if(['unknown','skipped','not_asked'].includes(reserve.value))change.reserve={tag:reserve.value};
+                  else if(reserve.value!=='keep'){message.textContent='Choose a listed clean-reps-left answer.';return;}
+                  if(change.reserve&&JSON.stringify(change.reserve)===JSON.stringify(p.view.current.reserve))delete change.reserve;
+                  if(!Object.keys(change).length){message.textContent='No changes to save.';return;}void submit('correct',change);
+                });
+                remove.addEventListener('click',()=>{if(!reason.value.trim()){message.textContent='Enter the reason this entry was mistaken.';reason.focus();return;}void submit('remove',reason.value.trim());});
+                cancel.addEventListener('click',()=>{if(pending||retired)return;retired=true;form.remove();message.remove();editorOpen=false;edit.disabled=false;edit.focus();});
+                item.append(form);message.textContent='Review the recorded values, then explicitly save a correction or cancel.';load.focus();
+              });
+            }
+            list.append(item);
           }
-          for(const row of s.records.filter(r=>r.operation.kind==='session-skip'))list.append(el('li',`Skipped entry — ${row.operation.payload.reason} (${row.status})`));
-          for(const close of s.projection.close_records)list.append(el('li',`${close.kind==='normal'?'Workout finished':'Workout ended early'} (${close.status})`));
+          for(const row of s.records.filter(r=>r.operation.kind==='session-skip'))list.append(el('li',`Skipped entry — ${row.operation.payload.reason} (${recordedStatus(row.status)})`));
+          for(const close of s.projection.close_records)list.append(el('li',`${close.kind==='normal'?'Workout finished':'Workout ended early'} (${recordedStatus(close.status)})`));
           historyPanel.append(list);
         }parent.append(historyPanel);
       };
@@ -62,7 +118,7 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
           if(continuation?.prepared!==true){status.textContent='This saved workout cannot yet continue. Resolve its current assessment or recovery state; no new workout was created.';return {mounted:false,code:continuation?.code||'WORKOUT_RESUME_UNAVAILABLE',state:continuation?.state};}
           needsReconciliation.delete(client);startIssued=true;
         }else if(matching.length&&!prepareNewWorkout){
-          status.textContent='Workout history recovered. Finished and skipped entries remain distinct.';renderHistory(shell,matching);
+          status.textContent='Workout history recovered. Finished and skipped entries remain distinct.';renderHistory(shell,matching,true);
           const again=el('button','Prepare another workout');again.type='button';again.addEventListener('click',()=>{if(!disposed)mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enableContinuation:true,prepareNewWorkout:true});});shell.append(again);
           return {mounted:true,history:true};
         }

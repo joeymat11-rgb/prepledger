@@ -42,6 +42,80 @@ const recreate=f=>createDurablePublicClient({...f.args,repository:f.repo});
 const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_op_id:id,completion_kind:'early',causal_parents:[id]}});
 const perform=(f,id,slot='slot-0')=>f.c.execute('workout',{action:'set',input:{session_start_op_id:id,logical_set_slot:slot,lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'}}});
 const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct',input:{target_op_id:target,lift_lineage_id:'same-lineage',replacement_fields:fields,...(parents?{causal_parents:parents}:{})}});
+const prepareEdit=(c,id)=>c.prepareWorkoutEdit({target_op_id:id});
+const correctPrepared=(c,p,change)=>c.commitWorkoutEdit({editId:p.editId,action:'correct',change});
+
+test('actual prepared correction/removal chain preserves the original, later sets and finished session on reopen',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),one=await perform(f,a.op_id),two=await perform(f,a.op_id,'slot-1');await close(f,a.op_id);
+ const before=await operations(f),p=await prepareEdit(f.c,one.op_id);assert.equal(p.prepared,true,JSON.stringify(p));assert.equal(p.view.current.load.value,42.5);
+ p.view.target_op_id=two.op_id;p.view.current.load.value=999;const c1=await correctPrepared(f.c,p,{load:{value:45,unit:'lb'},reserve:{tag:'at_least',value:3,unit:'rep'}});assert.equal(c1.acknowledged,true,JSON.stringify(c1));
+ assert.equal((await correctPrepared(f.c,p,{reps:{value:10,unit:'rep'}})).code,'WORKOUT_EDIT_REQUIRED');
+ const fresh=recreate(f),p2=await prepareEdit(fresh,one.op_id),c2=await correctPrepared(fresh,p2,{reps:{value:10,unit:'rep'}});assert.equal(c2.acknowledged,true);
+ const ops=await operations(f);for(const [id,op]of Object.entries(before))assert.deepEqual(ops[id],op);assert.equal(ops[c1.op_id].target_op_id,one.op_id);assert.deepEqual(ops[c2.op_id].causal_parents,[one.op_id,c1.op_id]);
+ let h=await fresh.readWorkoutHistory(),fact=h.history.sessions[0].projection.facts.find(x=>x.source_op_id===one.op_id);assert.deepEqual(fact.current,{load:{value:45,unit:'lb'},reps:{value:10,unit:'rep'},reserve:{tag:'at_least',value:3,unit:'rep'}});assert.deepEqual(fact.original,before[one.op_id].payload);
+ const p3=await prepareEdit(fresh,one.op_id),removed=await fresh.commitWorkoutEdit({editId:p3.editId,action:'remove',change:'Mistaken entry'});assert.equal(removed.acknowledged,true);
+ h=await recreate(f).readWorkoutHistory();const s=h.history.sessions[0];assert.equal(s.projection.facts.find(x=>x.source_op_id===one.op_id).included,false);assert.deepEqual(s.projection.facts.find(x=>x.source_op_id===two.op_id).current,before[two.op_id].payload);assert.equal(s.projection.close_records.length,1);assert.equal((await prepareEdit(fresh,one.op_id)).code,'WORKOUT_EDIT_INTERPRETATION_REQUIRED');
+ }finally{f.repo.close();}
+});
+
+for(const changed of ['revision','retired','session','observation'])test(`prepared correction refuses changed ${changed} without rewriting history`,async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id);
+ if(changed==='revision'){const s=await f.repo.load();s.generation.metadata.syntheticOtherWrite=true;await f.repo.commit(s,s.generation,()=>null);}
+ if(changed==='retired')f.c.retireWorkoutPreparations();if(changed==='session')f.scope.session++;if(changed==='observation')f.scope.observation++;
+ const before=await f.repo.load(),r=await correctPrepared(f.c,p,{reps:{value:11,unit:'rep'}});assert.equal(r.acknowledged,false,JSON.stringify(r));assert.deepEqual(await f.repo.load(),before);
+ assert.equal(r.code,changed==='retired'?'WORKOUT_EDIT_REQUIRED':changed==='session'?'SESSION_CHANGED':changed==='observation'?'OBSERVATION_CHANGED':'WORKOUT_EDIT_STALE');
+ }finally{f.repo.close();}
+});
+
+test('ambiguous, missing and incomplete known history cannot issue a prepared correction',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id);assert.equal((await prepareEdit(f.c,'missing')).code,'WORKOUT_EDIT_TARGET_UNAVAILABLE');
+ await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});await editSet(f,set.op_id,{reps:{value:10,unit:'rep'}});assert.equal((await prepareEdit(f.c,set.op_id)).code,'WORKOUT_EDIT_INTERPRETATION_REQUIRED');
+ const s=await f.repo.load();s.generation.collections.sync.frontier.authorityW=1;await f.repo.commit(s,s.generation,()=>null);assert.equal((await prepareEdit(f.c,set.op_id)).code,'WORKOUT_EDIT_PREFIX_INCOMPLETE');
+ }finally{f.repo.close();}
+});
+
+test('prepared correction lost acknowledgement is one actual fact after fresh history reconciliation',async()=>{
+ let lose=false;const f=await setup({wrapRepository:repo=>({...repo,async commit(...args){const r=await repo.commit(...args);if(lose){lose=false;throw Error('synthetic lost acknowledgement');}return r;}})});
+ try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id);lose=true;
+ const r=await correctPrepared(f.c,p,{reps:{value:12,unit:'rep'}});assert.equal(r.acknowledged,false);assert.equal(r.outcomeUnknown,true);assert.equal((await correctPrepared(f.c,p,{reps:{value:12,unit:'rep'}})).code,'WORKOUT_EDIT_REQUIRED');
+ const h=await recreate(f).readWorkoutHistory();assert.equal(h.history.sessions[0].projection.facts[0].current.reps.value,12);assert.equal(Object.values(await operations(f)).filter(o=>o.kind==='correction').length,1);
+ }finally{f.repo.close();}
+});
+
+test('prepared correction refuses a substituted payload at the final transaction cut',async()=>{
+ const f=await setup({wrapStage:stage=>(...args)=>{const r=stage(...args);if(args[1]==='workout'&&args[2]?.action==='correct'&&r.result?.acknowledged)for(const op of r.commit.batch.operations){op.payload.replacement_fields.reps.value=999;r.generation.collections.ops[op.op_id].payload.replacement_fields.reps.value=999;}return r;}});
+ try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id),before=await f.repo.load(),r=await correctPrepared(f.c,p,{reps:{value:9,unit:'rep'}});
+ assert.equal(r.acknowledged,false);assert.equal(r.code,'WORKOUT_EDIT_COMMAND_MISMATCH');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+test('prepared correction rejects nested getters and caller-supplied target fields',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id);let called=0;
+ const change={};Object.defineProperty(change,'reps',{enumerable:true,get(){called++;return {value:10,unit:'rep'};}});const before=await f.repo.load();assert.equal((await correctPrepared(f.c,p,change)).acknowledged,false);assert.equal(called,0);
+ assert.equal((await f.c.commitWorkoutEdit({editId:p.editId,action:'correct',change:{reps:{value:10,unit:'rep'}},target_op_id:'foreign'})).acknowledged,false);assert.deepEqual(await f.repo.load(),before);
+ const malformed={};Object.defineProperty(malformed,'nested',{enumerable:true,get(){called++;return 'target';}});assert.notEqual((await prepareEdit(f.c,malformed)).prepared,true);assert.equal(called,0);
+ }finally{f.repo.close();}
+});
+
+test('a mistaken duplicate can be removed by its exact identity without deleting the other attempt',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),one=await perform(f,a.op_id),two=await perform(f,a.op_id);await close(f,a.op_id);
+ let h=await f.c.readWorkoutHistory();assert(h.history.sessions[0].projection.facts.every(x=>x.issues.includes('SET_SLOT_RESOLUTION_REQUIRED')));
+ const p=await prepareEdit(f.c,one.op_id);assert.equal(p.prepared,true,JSON.stringify(p));const r=await f.c.commitWorkoutEdit({editId:p.editId,action:'remove',change:'Duplicate entry'});assert.equal(r.acknowledged,true);
+ h=await recreate(f).readWorkoutHistory();const facts=h.history.sessions[0].projection.facts;assert.equal(facts.find(x=>x.source_op_id===one.op_id).included,false);assert.equal(facts.find(x=>x.source_op_id===two.op_id).included,true);assert.deepEqual(facts.find(x=>x.source_op_id===two.op_id).issues,[]);assert.equal(h.history.sessions[0].projection.progression_eligible,false);
+ }finally{f.repo.close();}
+});
+
+test('late retirement during correction validation prevents the durable effect',async()=>{
+ let armed=false,f;f=await setup({validateCommit:()=>{if(armed)f.c.retireWorkoutPreparations();return null;}});try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id),before=await f.repo.load();armed=true;
+ const r=await correctPrepared(f.c,p,{reps:{value:10,unit:'rep'}});assert.equal(r.acknowledged,false);assert.equal(r.code,'WORKOUT_EDIT_STALE');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+test('correction history guard refusal is typed, not a successful preparation or escaped exception',async()=>{
+ let blocked=false;const f=await setup({client:{observationGuard:{run:async(_kind,fn)=>{if(blocked){const e=new Error('synthetic lost guard');e.state=18;throw e;}return fn();}}}});try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),before=await f.repo.load();blocked=true;
+ const p=await prepareEdit(f.c,set.op_id);assert.notEqual(p.prepared,true);assert.equal(p.state,18);assert.equal(p.code,'WORKOUT_EDIT_GUARD_UNAVAILABLE');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
 
 // Explicit synthetic safety producer: exercises custody/binding, not a personal
 // recommendation or the production issuer's scientific qualification.
