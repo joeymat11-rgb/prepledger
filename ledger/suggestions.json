@@ -1,47 +1,47 @@
 {
-  "gen": "2026-09-06T09:40:00.000Z",
+  "gen": "2026-09-09T09:40:00.000Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-09-06_lowerday",
+      "sid": "sug_2026-09-09_rowsback",
       "rank": 1,
-      "title": "Monday: the full lower sheet — calves haven't trained in four weeks, hams and abs in three",
+      "title": "Thursday: rows go back on — 180 for 9 and 8 is where you left them",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Two weeks off costs a trained lifter almost no strength; by three to four weeks it starts to show — reps before load — and it comes back within a session or two of resuming (Bosquet 2013; Mujika & Padilla 2000). In a deficit the lifting is what tells the body to keep the muscle: defend load, don't chase volume (Schoenfeld 2017).",
-        "data": "Last outings on file: calves 8/10 (320 × 11,11,10,8) · ham curl 8/14 (125 × 11,9,9) · crunch 8/14 (100 × 14,14,14) · leg raise 8/14 (7,6) · hack 8/21 (200 × 8,7,8) · hip thrust 8/21 (90 × 7,8,7) · extension 8/21 (160 × 8,8). Friday's lower day did not run. Thursday's upper day held every load with the back halves 13% short.",
-        "relationship": "Thursday showed the layoff shape — first sets match, later sets go. The legs are one to two weeks further out, so expect more of it: hack, extension and hip thrust first sets within a rep or two; calves, hams and abs two to three short. That's a baseline, not a decline. A hold only comes from a zero-reps-in-reserve opener that misses — open at two."
+        "science": "On a cut, the hard sets a muscle gets each week are what keep it — ten or more is the floor — and the back's biggest lift is the cheapest way to get there. Skipping the compound costs more than skipping an isolation lift (Schoenfeld 2017; Robinson 2024).",
+        "data": "Rows skipped Sunday 9/06 — two skips in your last four upper days (8/16, 9/06). Last done Thursday 9/03: 180 × 9, 8 at two reps in reserve, top of its window.",
+        "relationship": "Back work this week was pulldowns twice and rows once. Rows at 180 for 9 and 8 again is the repeat the app said it wants before it moves the load; skip it again and the back is on half rations for a second week while everything else on the sheet is climbing."
       },
-      "predict": "A lower session logged by Tuesday 9/08 with all seven lifts at the loads on file and 2-RIR openers: hack, extension and hip thrust first sets within two reps of 8/21, no hold flags; calves, ham and crunch first sets two to three reps under their last outing. If any of those three matches outright, the rust is smaller than I think and I'll say so. No lower session by 9/09: miss on the ask, and three straight lower days missed becomes a coach flag, not a card.",
+      "predict": "Next upper day (Thursday 9/10) has rows on file at 180, first set 8 or more, opener at 1–2 in reserve, no hold. Skipped again → miss, and rows joins the rear-delt conversation as a named pattern.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-09-06_quadsets",
+      "sid": "sug_2026-09-09_extsets",
       "rank": 2,
-      "title": "The app's quad card (10 → 12 sets): not before Monday's lower day has run once at the current sets",
+      "title": "Friday: leg extension at the set count on your sheet — three, or undo to two, but not one",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "No trial has found that more volume during a deficit buys more muscle (Roth 2023; Nait-Yahia 2026 — the card's own citations). Returns per set flatten past roughly 5–10 weekly sets (Pelland 2025), and in a cut each extra set is paid for out of recovery you don't have.",
-        "data": "The card fired 9/04 on 'scale stalled, lifts not falling, recovery green, sleep clean.' Sleep: real — 8.17, 8.08, 8.25 h on 8/31–9/02. Stall: three morning reads in fifteen days. Lifts: one upper session, six of seven short on reps. Extension last trained 8/21 (160 × 8,8). The same day, the app printed 'volume band sits above the high-return region — tighten to 6–12.'",
-        "relationship": "A third extension set on its first outing in seventeen days can't be read — the set, or the rust — which is the exact problem the August 10 hand-back you approved was built to avoid. Run Monday at two sets, get one clean read, then decide. Not a no — a not-yet, and a coach conversation either way."
+        "science": "Under a deficit, extra sets don't buy extra muscle, but the sets on the plan have to actually happen for the muscle to have a reason to stay — and a lift's progress read only means something at a steady set count (Schoenfeld 2017; Grgic 2021).",
+        "data": "Sunday 9/06 you approved the app's quad push — extension 2 → 3 sets. Monday 9/07 extension logged one set: 160 × 9 at two in reserve. Friday 9/04 it was two sets, 160 × 9, 7.",
+        "relationship": "The app restarted extension's trend window on the push and said the next quad call waits for that read. One set can't be read as the third set converting or not — it just delays the answer. Three sets Friday, or an honest undo to two, gives the app and me the first clean read on the push."
       },
-      "predict": "Monday runs at the current two extension sets and the first set lands at or near 8 at 160: 'lifts not falling' is confirmed on a real read and the card can be judged next week on clean ground. If a third set goes in before that read, expect extension entries of 3 on the session and a 'did not convert' verdict within two lower days that neither of us can assign a cause. No lower session: nothing to grade, rides.",
+      "predict": "Friday 9/11 (or the next lower day) has extension logged at the set count the sheet shows that day — three, or two if you've undone the push — with the first set 8 or more at 160. If three: a third set at 5 or better is the push holding; 4 or under says the deficit is paying for it. One set again → miss.",
       "confidence": "medium",
-      "gate": "coach"
+      "gate": "approve"
     },
     {
-      "sid": "sug_2026-09-06_mondayread",
+      "sid": "sug_2026-09-09_sulek",
       "rank": 3,
-      "title": "Monday morning, before legs: one scale read — Friday and Saturday were blank and the 161.1 is still unanswered",
+      "title": "Retire the wrist curl — four skips in a row, last done August 9",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "A single morning read is noise around a slow trend — for you, ±1.46 lb day to day — which is why one read never decides anything and why the trend needs a steady supply of them. The rate of loss, the thing this whole cut steers on, can't be measured across a window that's mostly blank.",
-        "data": "Reads since 8/21: 8/31 164.0 · 9/01 163.4 · 9/03 161.1 — three in fifteen days; 9/04 and 9/05 blank. Your app shows 162.9, I show 163.1, both carrying on the 161.1 with nothing since. The app's rate line prints 0.03 lb/wk — a placeholder.",
-        "relationship": "Thursday's 161.1 was the lowest read in the file, two pounds under the trend, and both instruments damped it as a spike. Low 162s or under on Monday and the trend follows it down — August was fat. 163 to 164 and it was a light morning. Either answer is fine; no answer keeps the rate unpriceable and the maintenance estimate shrinking."
+        "science": "Forearm isolation is the lowest-return set on a cut; the forearms already get loaded on every row, pulldown and curl. A lift you don't do adds nothing but noise to the skip count.",
+        "data": "Sulek wrist curl skipped 8/16, 8/20, 9/03, 9/06 — every upper day since it was last logged on 8/09 at 87.5 × 14, 13.",
+        "relationship": "Each skip prints a skip row and pads the session's lifts-down count. Retiring it — the app has the path; you used it for the pronated curl on 8/12 — makes the upper sheet eight lifts you do instead of nine you mostly do."
       },
-      "predict": "A read dated 9/07 or 9/08 lands. At or under 162.5: your app's trend moves under 162.9 within two reads and I call August's drop mostly fat. 163.0–164.0: the trend holds 162.9–163.3 and Thursday was a light morning. No read by 9/09: miss on the ask, and scale asks move into the brief only until a contact-day pattern returns.",
-      "confidence": "low",
+      "predict": "By the 9/13 run: sulek appears in retirements, or is done Thursday. Either converts. Skipped a fifth time with no retirement → miss.",
+      "confidence": "high",
       "gate": "approve"
     }
   ]
