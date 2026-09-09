@@ -16,11 +16,40 @@
     "reconciliation/codec.cjs": "2336594b9fab772c818834531122c639debd8977adee5c12fd5b3d92ba6bd192",
     "storage/database.cjs": "f0e89e738903abe5f0d19ff4e596507bd897068442f25b8f68564007d015fed7",
     "worker.cjs": "e10643f7dbdf3b429a52b559b16b8fcae255a07dcc8f3f0ceffadd099e003a5d",
-    "test/rows-resource-01/rows-resource.cjs": "713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c",
-    "test/rows-resource-01/rows-resource.test.cjs": "2f5f017889cfc73b0b5f45f9809ee8da30196eb82687e7402141c76625a3d2b8"
+    "test/rows-resource-01/rows-resource.cjs": "c2ab4a75c92c9be8a81d3a43444f49f6f200e9256d54d1c2e13d2c394c0839c7",
+    "test/rows-resource-01/rows-resource.test.cjs": "a00c8b45408d1d574b94978c5bd49279eb982834c2dd9ba38714d313fb74cbdf"
+  },
+  "runAttribution": {
+    "executedWrapperPin": "713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c",
+    "currentWrapperPin": "c2ab4a75c92c9be8a81d3a43444f49f6f200e9256d54d1c2e13d2c394c0839c7",
+    "note": "Both recorded runs below were executed by the wrapper at pin 713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c. The acceptance-gating and report corrections changed the wrapper pin afterwards; NO measurement was re-run for them, so every recorded number stays attributable to the version that produced it.",
+    "excludedRun": "An earlier run of a superseded revision predating the ordering control (sequential 56,329,746 B / overlapping 74,374,147 B / near-limit 151,260,366 B) is cited in REPORT.md as variance context only. Its source hash was not retained, so it is deliberately NOT recorded here."
+  },
+  "gatingCorrection": {
+    "defect": "run() set resourceAcceptance from verdict===PASS alone, so a diagnostic, partial or relaxed configuration (--only-near-limit, altered ceilings, non-default workload counts) could in principle have carried the flag over a workload that was never the qualification workload.",
+    "realized": false,
+    "realizedNote": "Both recorded runs are FAIL, so resourceAcceptance was false in each and no mislabelled result was ever emitted. The defect was latent.",
+    "fix": "qualificationEligibility() gates the flag on the original ceilings, the default workload counts, one complete sequential and exactly two complete overlapping attempts each with a signed terminal finish and independent byte identity, and no ceiling violation.",
+    "regression": "Focused adapter tests, 12/12, including a near-only configuration with a PASS verdict and zero violations asserted ineligible.",
+    "wiringExecuted": false,
+    "wiringNote": "The three-line wiring into run() was reviewed by reading, not executed, because the memory experiments were deliberately not re-run for a label fix. It prints on the next real run and should be confirmed there."
+  },
+  "causalScope": {
+    "established": "The near-row/key-limit workload exceeds the 96 MiB ceiling in every run of it, including the --only-near-limit control, so the preceding sequential and overlapping traversals are not required to produce it.",
+    "notEstablished": [
+      "That a single row alone is sufficient or causal — the control inserts BOTH a 1,200,024-byte key row and a 1,400,018-byte value row.",
+      "That setup or accumulation effects are excluded — the control still runs calibration, the complete fixture build including the old-route refusal, and the full 42-chunk/640-row account traversal in the same isolate.",
+      "That no collection occurs — no forced GC does not mean no GC; these runs observe neither collections nor their absence.",
+      "Any attribution of the peak to a specific request — the meter samples on a 5 ms timer with no request correlation."
+    ],
+    "notProposed": "Shrinking the supported row or history limits. Currently supported records stay supported; any protocol or limit change is a separate review."
   },
   "qualificationRun": {
+    "runLabel": "qualification (default configuration)",
+    "executedByWrapperPin": "713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c",
+    "reMeasuredForTheGatingCorrection": false,
     "verdict": "FAIL",
+    "resourceAcceptance": false,
     "finishedUTC": "2026-09-09T15:42:54.635Z",
     "platform": "linux",
     "nodeVersion": "v22.22.2",
@@ -369,7 +398,11 @@
     ]
   },
   "nearLimitIsolationControl": {
+    "runLabel": "--only-near-limit ordering control (DIAGNOSTIC, not a qualification verdict)",
+    "executedByWrapperPin": "713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c",
+    "reMeasuredForTheGatingCorrection": false,
     "verdict": "FAIL",
+    "resourceAcceptance": false,
     "finishedUTC": "2026-09-09T15:40:20.156Z",
     "platform": "linux",
     "nodeVersion": "v22.22.2",

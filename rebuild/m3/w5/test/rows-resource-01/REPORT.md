@@ -17,7 +17,7 @@ the unchanged 100,663,296 B ceiling.
 
 **The wrapper's overall verdict is nonetheless `FAIL`,** because a separately-labelled generic near-row/key-limit
 probe on the *same* route peaked at **175,669,412 B**, over the ceiling. That failure is preserved, not explained
-away, and §"Narrow suspect" records what the code supports.
+away, and §"What the preserved failure does and does not establish" records exactly how far the evidence reaches.
 
 This is a **local rows-v3 server result only.** It is **not** an old-route (`/reconcile`) PASS, not client memory,
 not complete staged-profile validation, not atomic activation, not current permission, not phone fit, and not
@@ -29,7 +29,7 @@ private recovery.
 pnpm install --frozen-lockfile                                   # in rebuild/m3/w5; lock byte-unchanged
 node test/rows-resource-01/rows-resource.cjs                     # the qualification run
 node test/rows-resource-01/rows-resource.cjs --only-near-limit   # the isolation control (ordering only)
-node --test test/rows-resource-01/rows-resource.test.cjs         # focused adapter tests — 7/7 pass
+node --test test/rows-resource-01/rows-resource.test.cjs         # focused adapter tests — 12/12 pass
 node --test test/r1-paged-http.test.cjs                          # pre-existing route test — 10/10 pass, undisturbed
 ```
 
@@ -50,11 +50,16 @@ Machine evidence is written to the ignored `rebuild/m3/w5/.generated/`; the sani
 | `reconciliation/codec.cjs` | `2336594b9fab772c818834531122c639debd8977adee5c12fd5b3d92ba6bd192` |
 | `storage/database.cjs` | `f0e89e738903abe5f0d19ff4e596507bd897068442f25b8f68564007d015fed7` |
 | `worker.cjs` | `e10643f7dbdf3b429a52b559b16b8fcae255a07dcc8f3f0ceffadd099e003a5d` |
-| **new** `test/rows-resource-01/rows-resource.cjs` | `713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c` |
-| **new** `test/rows-resource-01/rows-resource.test.cjs` | `2f5f017889cfc73b0b5f45f9809ee8da30196eb82687e7402141c76625a3d2b8` |
+| **new** `test/rows-resource-01/rows-resource.cjs` | `c2ab4a75c92c9be8a81d3a43444f49f6f200e9256d54d1c2e13d2c394c0839c7` |
+| **new** `test/rows-resource-01/rows-resource.test.cjs` | `a00c8b45408d1d574b94978c5bd49279eb982834c2dd9ba38714d313fb74cbdf` |
 
 Every existing product, runner, meter, fixture, conformance law, package lock and report byte is unchanged;
 `git status` shows only the four new files under `test/rows-resource-01/`.
+
+The two new-file pins above are **current**. The recorded measurements were executed by the superseded wrapper pin
+`713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c`; the acceptance-gating and report corrections
+changed the wrapper afterwards and **no measurement was re-run for them**. `EVIDENCE.json` records the executed pin
+against each run.
 
 ## Workload mapping — old profile to rows-v3
 
@@ -125,6 +130,14 @@ Run-to-run, across the three runs performed: sequential 51.2 / 56.3 MB, overlapp
 175.7 / 151.3 MB and 127.4 MB in the isolation control. The valid-account phases stayed inside the ceiling in every
 run; the near-limit phase exceeded it in every run.
 
+**Run attribution.** The qualification run (51.2 / 74.7 / 175.7 MB) and the isolation control (127.4 MB) were both
+executed by wrapper pin `713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c`, and both are recorded in
+`EVIDENCE.json` under that pin. The third figures (56.3 / 74.4 / 151.3 MB) come from an **earlier, superseded**
+wrapper revision that predates the ordering control; its source hash was not retained, so it is reported here as
+variance context only and is deliberately **excluded** from `EVIDENCE.json`. The acceptance-gating and report
+corrections in this commit changed the wrapper pin; **no measurement was re-run for them**, so every recorded number
+remains attributable to the version that produced it.
+
 ### CPU and SQL — 159 measured requests
 
 | metric | observed | ceiling |
@@ -157,29 +170,41 @@ produced **2 single-row-over-budget chunks**, a 1,400,041-byte page and a 3,202,
   manifest, a dropped row, a wrong byte count and a tampered digest each raise their own typed refusal. Live over
   HTTP: a forged cursor returns `400` with no page, and a foreign subject reusing a signed actor-bound continuation
   returns `403` state 17.
-* The seven focused adapter tests cover the same paths without spinning workerd, including that `CEILINGS` still
-  equals the original agreed values.
+* The twelve focused adapter tests cover the same paths without spinning workerd, including that `CEILINGS` still
+  equals the original agreed values and that no diagnostic or relaxed configuration can earn `resourceAcceptance`.
 
-## Narrow suspect for the preserved failure
+## What the preserved failure does and does not establish
 
-Stated narrowly and only as far as the code supports; **no product change was made and no speculative variants were
-tried.**
+Stated only as far as the evidence supports. **No product change was made, and none is proposed here.**
 
-`reconciliation/paged-bridge.cjs` bounds a chunk by `running_bytes <= 262144` **or** `position = 1`. That second
-clause is a deliberate escape so a single oversized row can still be served — but it means the worst-case material
-in one chunk is `P.LIMITS.row` (2,000,000 B), **7.6× the per-chunk byte budget**, and `P.LIMITS.response` permits
-6,000,000 B. Base64 plus JSON plus signing over such a row multiplies that again: the observed 1.4 MB row produced a
-3.2 MB response.
+**Established.** The generic near-row/key-limit workload exceeds the 96 MiB observed-allocation ceiling, in every run
+of it (175,669,412 B and 151,260,366 B in full runs; 127,399,301 B in the `--only-near-limit` control). In that
+control the breach occurs **without the preceding sequential and overlapping traversals** — so those two traversals
+are not required to produce it. At that peak the vector is dominated by committed heap and live data
+(`totalSize` 102,543,360 B, `usedSize` 53,035,824 B) rather than backing buffers alone.
 
-The one competing explanation — that the near-limit phase simply ran last, in an isolate with no forced collection —
-was tested and **ruled out**. The `--only-near-limit` control runs that probe as the first measured phase in a fresh
-runtime, changing only ordering (no ceiling, no formula, no workload change): it still peaked at **127,399,301 B**,
-over the ceiling. The peak vector is dominated by committed heap and live data (`totalSize` 102,543,360 B,
-`usedSize` 53,035,824 B), not by backing buffers alone.
+**Not established, and previously overstated in this report.** The control is not a single-row experiment and does
+not isolate one cause. `--only-near-limit` still runs the instrument calibration, builds the **complete** fixture
+(populate at `C.LIMITS.payload`, the old-route extra-byte refusal, then all 126 admitted facts), inserts **both** a
+1,200,024-byte key row **and** a 1,400,018-byte value row, and then traverses the **entire** account — 42 chunks,
+640 rows, 6,360,674 row-value bytes. Therefore:
 
-So: **bounded SQL for ordinary rows does not bound a single supported near-limit row**, and that alone is sufficient
-to breach the 96 MiB ceiling on this host. This is a finding about the limit constants and the `position = 1` escape,
-not about the valid-account paging path, which stayed comfortably inside every ceiling.
+* it does **not** show that one row alone is sufficient or causal;
+* it does **not** rule out accumulation or setup effects, since calibration, fixture growth and the old-route
+  refusal all precede it inside the same isolate;
+* **"no forced GC" does not mean no collection occurs** — the runtime may collect on its own schedule, and this
+  experiment observes neither collections nor their absence.
+
+**Where the code is relevant, as context rather than as a diagnosis.** `reconciliation/paged-bridge.cjs` bounds a
+chunk by `running_bytes <= 262144` **or** `position = 1`, and `P.LIMITS.row` is 2,000,000 B with
+`P.LIMITS.response` at 6,000,000 B — so a chunk carrying one large row can exceed the ordinary per-chunk budget, and
+the observed 1.4 MB row produced a 3.2 MB response. That describes the shape of the workload the route is being
+asked to serve. It is **not** evidence that the limits are the fault, and **shrinking the supported row or history
+limits is not proposed**: the currently supported records are preserved, and any protocol or limit change belongs in
+a separate review, not in a resource qualification.
+
+The measurement as it stands cannot attribute the peak to a specific request: the meter samples periodically on a
+5 ms timer and its samples carry no request correlation. That is the gap the next action closes.
 
 ## Verdict
 
@@ -188,10 +213,30 @@ not about the valid-account paging path, which stayed comfortably inside every c
 | rows-v3 on the complete valid cross-record account — 1 sequential + 2 overlapping complete attempts | **PASS** on this workload and host: all five ceilings held, all attempts reached a signed terminal finish, byte identity confirmed against an independent D1 read |
 | rows-v3 on the generic near-row/key-limit probe | **FAIL** — 175,669,412 B (isolation control 127,399,301 B) against the 96 MiB ceiling |
 | wrapper verdict as run | **FAIL** — one `OBSERVED_ALLOCATION_CEILING` violation, preserved |
+| `resourceAcceptance` flag | **false**, and now gated: see "Acceptance gating" below |
 | old profile (`/reconcile`) | **not re-qualified here.** Only the extra-byte `413` control was asserted. The five recorded old-profile FAILs in `RESOURCE-LIMITS.md` stand; nothing here is relabelled as an old-route PASS |
 
 A rows-v3 server PASS does not establish client memory, complete staged-profile validation, atomic activation,
 current permission, phone fit or private recovery.
+
+### Acceptance gating
+
+A green verdict is necessary but **not sufficient** for `resourceAcceptance`. The wrapper previously set the flag
+from `verdict === 'PASS'` alone, which meant a diagnostic, partial or relaxed configuration — `--only-near-limit`,
+altered ceilings, non-default workload counts — could in principle have carried it over a workload that was never
+the qualification workload. The recorded runs were both `FAIL`, so **no mislabelled result was ever emitted**; the
+defect was latent, and it is now closed.
+
+`qualificationEligibility()` requires, all together: the original ceilings unmodified, the default workload counts,
+one complete sequential attempt and exactly two complete overlapping attempts — each reaching a signed terminal
+finish **and** independent byte identity — and no ceiling violation. Anything else records typed reasons
+(`VALID_ACCOUNT_ATTEMPTS_SKIPPED`, `CEILINGS_NOT_ORIGINAL`, `WORKLOAD_COUNTS_NOT_DEFAULT`,
+`SEQUENTIAL_ATTEMPT_INCOMPLETE`, `OVERLAPPING_ATTEMPTS_INCOMPLETE`, `VERDICT_NOT_PASS`) and leaves the flag false.
+
+The gate is a pure exported function and is regressed by the focused adapter tests, including **a near-only
+configuration with a `PASS` verdict and zero violations, which is asserted ineligible.** Its three-line wiring into
+`run()` was reviewed by reading and not executed here, because the memory experiments were deliberately not re-run
+for a label fix; it prints on the next real run and should be confirmed there.
 
 ## Limitations
 
@@ -205,15 +250,20 @@ current permission, phone fit or private recovery.
 * The near-limit fixture is deliberately a **generic** extreme key/row inventory shape, not a profile-valid history
   event; it is kept distinct from the valid cross-record account and `validateRetained()` is deliberately not run
   against it.
-* Three runs are not a peak distribution.
+* **No forced collection does not mean no collection.** The runtime may collect on its own schedule; these runs
+  observe neither collections nor their absence, and draw no conclusion about collectible memory.
+* Three runs are not a peak distribution, and no run isolates a single variable.
 
 ## One concrete next action
 
-**Root reproduces the `--only-near-limit` isolation control on the deployment-representative host, and rules on the
-limit constants** — whether `P.LIMITS.row` (2,000,000) should be brought toward the 262,144-byte per-chunk budget, or
-the `position = 1` single-row escape separately bounded. The valid-account PASS above cannot be adopted into the R1
-replacement-route cut while one supported row can breach the ceiling on its own. **No product edit was made here and
-none should be made before that ruling.**
+**Locate the peak: correlate the allocation samples with the specific request and chunk that carry them**, then look
+at materialization, encoding and copies on that path — how many times a large row's bytes exist simultaneously as a
+D1 string, a decoded buffer, a base64 string and a signed JSON body. The meter's periodic samples currently carry no
+request correlation, so the peak cannot yet be attributed to a request; that correlation is the prerequisite for any
+further reasoning, and it needs no product edit.
+
+**Not proposed:** shrinking the supported row or history limits. The currently supported records stay supported, and
+any protocol or limit change is a separate review, not an outcome of this qualification.
 
 ## Scope and process notes
 

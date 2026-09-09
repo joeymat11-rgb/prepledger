@@ -61,6 +61,32 @@ function phaseViolations(ceilings,phase){
 }
 const verdictFor=violations=>violations.length?'FAIL':'PASS';
 
+// QUALIFICATION ELIGIBILITY. A verdict of PASS is necessary but NOT sufficient
+// for resourceAcceptance. A diagnostic, partial or relaxed configuration —
+// skipped valid-account attempts, altered ceilings, non-default workload counts,
+// a missing or incomplete required attempt — can produce a green verdict over a
+// workload that was never the qualification workload, so it must never be able
+// to award the acceptance flag. Pure and exported so the focused adapter tests
+// can regress a PASSING near-only configuration.
+function qualificationEligibility({ceilings,skipValidAccountAttempts,largeExtensionFacts,smallExtensionFacts,
+  attempts=[],verdict}={}){
+  const reasons=[],keys=Object.keys(CEILINGS);
+  if(!ceilings||Object.keys(ceilings).length!==keys.length||!keys.every(k=>ceilings[k]===CEILINGS[k]))
+    reasons.push('CEILINGS_NOT_ORIGINAL');
+  if(skipValidAccountAttempts)reasons.push('VALID_ACCOUNT_ATTEMPTS_SKIPPED');
+  if(largeExtensionFacts!==LARGE_EXTENSION_FACTS||smallExtensionFacts!==SMALL_EXTENSION_FACTS)
+    reasons.push('WORKLOAD_COUNTS_NOT_DEFAULT');
+  const complete=a=>Boolean(a)&&a.signedTerminalFinish===true&&a.byteIdentityAgainstIndependentD1Read===true;
+  const sequential=attempts.filter(a=>a.label==='sequential');
+  const overlapping=attempts.filter(a=>a.label==='overlap-a'||a.label==='overlap-b');
+  if(sequential.length!==1||!complete(sequential[0]))reasons.push('SEQUENTIAL_ATTEMPT_INCOMPLETE');
+  if(overlapping.length!==2||!overlapping.every(complete))reasons.push('OVERLAPPING_ATTEMPTS_INCOMPLETE');
+  if(verdict!=='PASS')reasons.push('VERDICT_NOT_PASS');
+  return {eligible:reasons.length===0,reasons,
+    requires:'the original ceilings, the default workload counts, one complete sequential attempt and two complete '+
+      'overlapping attempts each reaching a signed terminal finish with independent byte identity, and no ceiling violation'};
+}
+
 // ---------------------------------------------------------------------------
 // Bounded streaming consumer. Every returned row is decoded and folded into a
 // length-framed running digest; rows are NOT retained. This is a realistic
@@ -331,11 +357,14 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
     const attemptArgs={actor,subject,context,athleteId,verifier,expectedInventory:inventory};
 
     // ---- measured: one complete sequential attempt --------------------------
-    // skipValidAccountAttempts is an ORDERING/ISOLATION control only. It changes
-    // no ceiling, no sample formula and no workload construction: it runs the
-    // near-row/key-limit probe in a fresh isolate as the FIRST measured phase,
-    // so a phase-order/accumulation explanation can be separated from the row
-    // itself. It is never used to obtain the qualification verdict.
+    // skipValidAccountAttempts is an ORDERING control only. It changes no
+    // ceiling, no sample formula and no workload construction: it runs the
+    // near-row/key-limit probe in a fresh isolate as the FIRST measured phase.
+    // It shows only whether a result persists WITHOUT the preceding sequential
+    // and overlapping traversals. It still performs calibration, the complete
+    // fixture build and the full account traversal, so it isolates no single
+    // cause and rules out neither setup nor accumulation effects. It is a
+    // DIAGNOSTIC: qualificationEligibility() refuses it the acceptance flag.
     let sequential=null,overlaps=[];
     if(!skipValidAccountAttempts){
       const sequentialPhase=await beginPhase('rows-v3-sequential-complete-attempt');
@@ -425,7 +454,11 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
       statement:'The wrapper refuses incomplete or invalid recovery instead of reporting success.'};
 
     evidence.verdict=verdictFor(evidence.violations);
-    evidence.resourceAcceptance=evidence.verdict==='PASS';
+    // PASS alone never awards acceptance; the configuration must also be an
+    // eligible qualification run.
+    evidence.qualificationEligibility=qualificationEligibility({ceilings,skipValidAccountAttempts,
+      largeExtensionFacts,smallExtensionFacts,attempts:evidence.attempts,verdict:evidence.verdict});
+    evidence.resourceAcceptance=evidence.qualificationEligibility.eligible;
     evidence.isolationControl=skipValidAccountAttempts
       ?'NEAR-LIMIT-ONLY isolation control: valid-account attempts deliberately not run; not a qualification verdict.':null;
     evidence.attemptsCompleted={sequential:sequential?1:0,overlapping:overlaps.length,nearRowKeyLimit:1,
@@ -456,7 +489,9 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
   }
 }
 
-module.exports={run,CEILINGS,requestViolations,phaseViolations,verdictFor,createInventoryFold,assertCompleteInventory};
+module.exports={run,CEILINGS,DEFAULT_WORKLOAD:Object.freeze({largeExtensionFacts:LARGE_EXTENSION_FACTS,
+  smallExtensionFacts:SMALL_EXTENSION_FACTS}),requestViolations,phaseViolations,verdictFor,qualificationEligibility,
+  createInventoryFold,assertCompleteInventory};
 
 if(require.main===module)run({skipValidAccountAttempts:process.argv.includes('--only-near-limit'),
   outputFile:process.argv.includes('--only-near-limit')
@@ -465,6 +500,9 @@ if(require.main===module)run({skipValidAccountAttempts:process.argv.includes('--
     (result.summary?.requests??0)+' measured requests; peak '+(result.summary?.peakObservedAllocationBytes??'n/a')+
     ' bytes vs '+result.ceilings.observedAllocationBytes+'; '+result.violations.length+' resource violations'+
     (result.failure?'; '+result.failure.phase+': '+result.failure.message:''));
+  console.log('resourceAcceptance='+result.resourceAcceptance+
+    (result.qualificationEligibility&&!result.qualificationEligibility.eligible
+      ?' — NOT an eligible qualification run: '+result.qualificationEligibility.reasons.join(', '):''));
   console.log('NOT old-route (/reconcile) acceptance; not client memory, staged-profile validation, activation, permission, phone fit or private recovery.');
   process.exitCode=result.verdict==='PASS'?0:result.verdict==='BLOCKED'?2:1;
 }).catch(e=>{console.error('ROWS-V3-RESOURCE FAIL — harness termination:',errorText(e));process.exitCode=1;});

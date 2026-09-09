@@ -29,12 +29,15 @@ test('ROWS-V3 ADAPTER — every ceiling class is actually detected',()=>{
   assert.equal(A.verdictFor(memory),'FAIL');
 });
 
-test('ROWS-V3 ADAPTER — the observed 151,260,366-byte peak is detected, not passed',()=>{
-  // The value actually measured by the near-row/key-limit attempt.
-  const v=A.phaseViolations(A.CEILINGS,{name:'rows-v3-near-row-key-limit-attempt',observedPeakBytes:151260366});
-  assert.equal(v.length,1);assert.equal(A.verdictFor(v),'FAIL');
-  // and the valid-account peaks are genuinely inside the same ceiling
-  for(const peak of [56329746,74374147])assert.deepEqual(A.phaseViolations(A.CEILINGS,{name:'p',observedPeakBytes:peak}),[]);
+test('ROWS-V3 ADAPTER — the observed 175,669,412-byte peak is detected, not passed',()=>{
+  // Values actually measured under wrapper pin 713d9973...: the qualification
+  // run's near-row/key-limit peak, and the --only-near-limit control's peak.
+  for(const peak of [175669412,127399301]){
+    const v=A.phaseViolations(A.CEILINGS,{name:'rows-v3-near-row-key-limit-attempt',observedPeakBytes:peak});
+    assert.equal(v.length,1);assert.equal(A.verdictFor(v),'FAIL');
+  }
+  // and the same run's valid-account peaks are genuinely inside the same ceiling
+  for(const peak of [51213841,74684730])assert.deepEqual(A.phaseViolations(A.CEILINGS,{name:'p',observedPeakBytes:peak}),[]);
 });
 
 test('ROWS-V3 ADAPTER — the inventory fold is order- and boundary-sensitive',()=>{
@@ -67,4 +70,53 @@ test('ROWS-V3 ADAPTER — a false finish that under-reports counts cannot pass',
   assert.throws(()=>A.assertCompleteInventory({manifest:{collection_counts:[['history',5]]},
     cumulativeCounts:[2],observed:{rows:2,bytes:10,digest:'D'},expected:{rows:2,bytes:10,digest:'D'}}),
     e=>e.message==='ROWS_INCOMPLETE_history');
+});
+
+// --- qualification eligibility -------------------------------------------
+// PASS is necessary but not sufficient. These regress the specific defect that
+// a diagnostic, partial or relaxed configuration could award resourceAcceptance.
+const done=label=>({label,signedTerminalFinish:true,byteIdentityAgainstIndependentD1Read:true});
+const eligibleConfig=over=>({ceilings:A.CEILINGS,skipValidAccountAttempts:false,
+  largeExtensionFacts:A.DEFAULT_WORKLOAD.largeExtensionFacts,smallExtensionFacts:A.DEFAULT_WORKLOAD.smallExtensionFacts,
+  attempts:[done('sequential'),done('overlap-a'),done('overlap-b'),done('near-limit')],verdict:'PASS',...over});
+
+test('ROWS-V3 ADAPTER — a complete default run at the original ceilings is eligible',()=>{
+  const e=A.qualificationEligibility(eligibleConfig());
+  assert.deepEqual(e.reasons,[]);assert.equal(e.eligible,true);
+});
+
+test('ROWS-V3 ADAPTER — a PASSING near-only control never earns resourceAcceptance',()=>{
+  // The exact defect: --only-near-limit skips both required valid-account
+  // attempts, so even a green verdict over zero violations must not qualify.
+  const e=A.qualificationEligibility(eligibleConfig({skipValidAccountAttempts:true,
+    attempts:[done('near-limit')],verdict:'PASS'}));
+  assert.equal(e.eligible,false);
+  assert.deepEqual(e.reasons,['VALID_ACCOUNT_ATTEMPTS_SKIPPED','SEQUENTIAL_ATTEMPT_INCOMPLETE','OVERLAPPING_ATTEMPTS_INCOMPLETE']);
+});
+
+test('ROWS-V3 ADAPTER — relaxed ceilings or workload counts never earn resourceAcceptance',()=>{
+  const relaxed={...A.CEILINGS,observedAllocationBytes:512*1024*1024};
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({ceilings:relaxed})).reasons,['CEILINGS_NOT_ORIGINAL']);
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({ceilings:{...A.CEILINGS,domainWrites:5}})).reasons,['CEILINGS_NOT_ORIGINAL']);
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({ceilings:undefined})).reasons,['CEILINGS_NOT_ORIGINAL']);
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({largeExtensionFacts:1})).reasons,['WORKLOAD_COUNTS_NOT_DEFAULT']);
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({smallExtensionFacts:0})).reasons,['WORKLOAD_COUNTS_NOT_DEFAULT']);
+});
+
+test('ROWS-V3 ADAPTER — a missing, unfinished or unverified attempt never earns resourceAcceptance',()=>{
+  const reasons=over=>A.qualificationEligibility(eligibleConfig(over)).reasons;
+  assert.deepEqual(reasons({attempts:[done('sequential'),done('overlap-a')]}),['OVERLAPPING_ATTEMPTS_INCOMPLETE']);
+  assert.deepEqual(reasons({attempts:[done('overlap-a'),done('overlap-b')]}),['SEQUENTIAL_ATTEMPT_INCOMPLETE']);
+  assert.deepEqual(reasons({attempts:[{...done('sequential'),signedTerminalFinish:false},done('overlap-a'),done('overlap-b')]}),
+    ['SEQUENTIAL_ATTEMPT_INCOMPLETE']);
+  assert.deepEqual(reasons({attempts:[done('sequential'),{...done('overlap-a'),byteIdentityAgainstIndependentD1Read:false},done('overlap-b')]}),
+    ['OVERLAPPING_ATTEMPTS_INCOMPLETE']);
+  // a duplicated sequential attempt is not two attempts' worth of evidence
+  assert.deepEqual(reasons({attempts:[done('sequential'),done('sequential'),done('overlap-a'),done('overlap-b')]}),
+    ['SEQUENTIAL_ATTEMPT_INCOMPLETE']);
+});
+
+test('ROWS-V3 ADAPTER — a ceiling violation still blocks acceptance outright',()=>{
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({verdict:'FAIL'})).reasons,['VERDICT_NOT_PASS']);
+  assert.deepEqual(A.qualificationEligibility(eligibleConfig({verdict:'BLOCKED'})).reasons,['VERDICT_NOT_PASS']);
 });
