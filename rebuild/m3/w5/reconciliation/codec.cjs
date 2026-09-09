@@ -43,7 +43,11 @@ function compareText(a,b){const x=bytes(a),y=bytes(b);for(let i=0;i<Math.min(x.l
 // Parse JSON grammar directly so duplicate DECODED keys cannot be erased by
 // JSON.parse. Numeric value conversion remains ordinary JSON/JavaScript; safe
 // control integers are checked separately, never imposed on old op payloads.
-function parse(value,max=16777216){const b=bytes(value);if(b.length>max)fail('RECONCILE_LIMIT',413);let s;try{s=ownedText(b);}catch(_){fail();}const stack=[];let i=0;
+function parse(value,max=16777216){const b=bytes(value);if(b.length>max)fail('RECONCILE_LIMIT',413);let s;try{s=ownedText(b);}catch(_){fail();}return parseOwnedText(s);}
+// Internal immutable, already UTF-8-valid JSON text. Storage validates the
+// string before this call; network input still uses parse's snapshot/size/UTF-8
+// boundary. Keep ONE unchanged duplicate-key scanner/native grammar parser.
+function parseOwnedText(s){if(typeof s!=='string')fail();const stack=[];let i=0;
   // Iterative duplicate-key scan, followed by the native JSON grammar/value
   // parser. No new nesting-depth restriction is imposed on old envelopes.
   while(i<s.length){const c=s[i];if(c==='"'){const start=i++;while(i<s.length){if(s[i]==='\\'){i+=2;continue;}if(s[i++]==='"')break;}const top=stack.at(-1);if(top?.object&&top.key){let token;try{token=JSON.parse(s.slice(start,i));}catch(_){fail();}if(top.keys.has(token))fail();top.keys.add(token);top.key=false;}}
@@ -67,4 +71,4 @@ function makeManifest({keyEpoch,scopeDigest:sd,requestBytes,snapshotId,payloadBy
 function makePage({keyEpoch,manifestBytes,payloadBytes,index}){const m=parse(manifestBytes,LIMITS.request),p=bytes(payloadBytes);if(!safe(index)||index>=m.page_count||p.length!==m.payload_bytes||hash('payload',p)!==m.payload_digest)fail();const offset=index*LIMITS.page,chunk=p.slice(offset,offset+LIMITS.page);return {profile:DOMAINS.page,key_epoch:keyEpoch,manifest_digest:hash('manifest',manifestBytes),index,offset,bytes:chunk.length,page_digest:hash('page',chunk),data_b64:encode64(chunk)};}
 function makeResult({keyEpoch,profile,scopeDigest:sd,nonce:n,intentDigest:id,payload}){if(![DOMAINS.enrollment,DOMAINS.renewal,DOMAINS.replay].includes(profile)||!identifier(keyEpoch)||!digestValue(sd)||!digestValue(id))fail();nonce(n);const p=encode(payload);if(p.length>LIMITS.payload)fail('RECONCILE_LIMIT',413);return {profile,key_epoch:keyEpoch,scope_digest:sd,nonce:n,intent_digest:id,payload_digest:hash('result',p),payload_bytes:p.length,data_b64:encode64(p)};}
 function fullEqual(a,b){if(Object.is(a,b))return true;if(typeof a==='number'&&typeof b==='number')return false;if(Array.isArray(a)||Array.isArray(b))return Array.isArray(a)&&Array.isArray(b)&&a.length===b.length&&a.every((v,i)=>fullEqual(v,b[i]));if(object(a)&&object(b)){const ka=Object.keys(a),kb=Object.keys(b);return ka.length===kb.length&&ka.every(k=>Object.hasOwn(b,k)&&fullEqual(a[k],b[k]));}return false;}
-module.exports={LIMITS,PROFILE,REQUEST_VERSION,DOMAINS,TAGS,FIELDS,R1Error,fail,object,bytes,text,encode,encode64,decode64,hash,sameBytes,compareText,parse,exact,safe,identifier,nonempty,digestValue,nonce,operationFromClaim,validateClaims,validateRequest,decodeRequest,validateRouteRequest,scopeDigest,intentDigest,makeManifest,makePage,makeResult,fullEqual};
+module.exports={LIMITS,PROFILE,REQUEST_VERSION,DOMAINS,TAGS,FIELDS,R1Error,fail,object,bytes,text,encode,encode64,decode64,hash,sameBytes,compareText,parse,parseOwnedText,exact,safe,identifier,nonempty,digestValue,nonce,operationFromClaim,validateClaims,validateRequest,decodeRequest,validateRouteRequest,scopeDigest,intentDigest,makeManifest,makePage,makeResult,fullEqual};

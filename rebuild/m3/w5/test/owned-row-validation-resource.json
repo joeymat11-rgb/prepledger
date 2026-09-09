@@ -1,0 +1,102 @@
+{
+  "profile": "earned/owned-row-validation-evidence/v1",
+  "base": "37e14a5ea26e778e8b9f62f0bac01dd13fc7da9e",
+  "witnessCommit": "9c7cca64a365161bf865243ae4b0090415a02c96",
+  "sourceSha256": {
+    "reconciliation/codec.cjs": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+    "reconciliation/paged-codec.cjs": "3c5d31e76e17c8ee7799508987354d256357e8dda1573ad3af9b3d520e9444e5",
+    "reconciliation/paged-bridge.cjs": "9c4e86f6ca9507c70d4e4f7215f4d82027600aa8c153693a625116dfaf23cb80",
+    "storage/row-codec.cjs": "3de2b636dfe395f1d2e2cf8a8c31cdeb08d53854cab5829d5104a331193a4a19",
+    "test/row-string-allocation.test.cjs": "57bb297fe26e3c3e4d2964ad8cd1adf5642dfc1ac83d92445810e7a031bcf81d",
+    "test/rows-utf8-allocation.test.cjs": "9dcd9539e7d4ad5c414d9c41e2a2a2e148920942514bada86e805712ad1c4e68",
+    "test/rows-resource-01/rows-resource.cjs": "4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd",
+    "test/r1-resource-meter.cjs": "9081e9d46f923dd304ea494c2e879fa486e9661b8f8da1aa175fa198e05ccc8e",
+    "test/r1-resource-fixture.cjs": "3235510964bc64fe6618221c2d7dc25df98683de2f762c10647952d363e8b0b4"
+  },
+  "verdict": "PASS",
+  "resourceAcceptance": true,
+  "rawLocalEvidenceSha256": "dfcea097a7f98cd6f730199d07957604c686084a82d0aacb02af9dc2e3fbecb0",
+  "finishedUTC": "2026-09-09T17:58:39.490Z",
+  "host": "Windows",
+  "nodeVersion": "v24.19.0",
+  "pinnedRuntime": {
+    "worker": "earned-r1-metered-application",
+    "defaultRuntimeFlags": true,
+    "v8FlagsChanged": false,
+    "forcedCollection": false,
+    "heapLimitChanged": false,
+    "perPageRuntimeRestart": false,
+    "hiddenWarmup": false,
+    "sampleFormulaChanged": false
+  },
+  "qualification": "Original default workload/ceilings/meter, no extra boundary sampling, near-only flags, forced GC or heap/runtime variants",
+  "completeAttempts": 4,
+  "allReachedSignedTerminalFinish": true,
+  "allExactAgainstIndependentD1Read": true,
+  "qualificationEligibility": {
+    "eligible": true,
+    "reasons": [],
+    "requires": "the original ceilings, the default workload counts, one complete sequential attempt and two complete overlapping attempts each reaching a signed terminal finish with independent byte identity, and no ceiling violation"
+  },
+  "summary": {
+    "requests": 159,
+    "maxCpuMs": 219.5,
+    "p95CpuMs": 63.25,
+    "peakObservedAllocationBytes": 74900814,
+    "rowsRead": 376190,
+    "rowsWritten": 159,
+    "queryMs": 275,
+    "maxStatements": 6,
+    "maxBatchWallMs": 20,
+    "domainWrites": 0
+  },
+  "ceilings": {
+    "cpuMs": 1000,
+    "observedAllocationBytes": 100663296,
+    "statements": 1000,
+    "batchMs": 30000,
+    "domainWrites": 0
+  },
+  "violations": [],
+  "previousFailedCandidates": [
+    {
+      "stage": "owned-response",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "finishedUTC": "2026-09-09T17:30:30.957Z",
+      "peakObservedAllocationBytes": 169337066,
+      "rawLocalEvidenceSha256": "b96f15d02e42c4f1c0a819867a6e185a91a9560fb79671b0cefefd1f488ee5b6"
+    },
+    {
+      "stage": "row-string",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "finishedUTC": "2026-09-09T17:43:37.167Z",
+      "peakObservedAllocationBytes": 122541806,
+      "rawLocalEvidenceSha256": "faa0d10e411c041032e0352a20d139957800289b802767cf50dc189941f51d24"
+    },
+    {
+      "stage": "owned-json-text",
+      "verdict": "FAIL",
+      "resourceAcceptance": false,
+      "finishedUTC": "2026-09-09T17:48:08.607Z",
+      "peakObservedAllocationBytes": 121493162,
+      "rawLocalEvidenceSha256": "06e2e95ba59d656e9d3ef3eebd8f291082bb07cf8e82b10e504b4adfeda6a3dd"
+    }
+  ],
+  "tests": {
+    "focused": {
+      "pass": 70,
+      "fail": 0,
+      "skip": 0
+    },
+    "http": {
+      "namedCases": 9,
+      "nodeTests": 10,
+      "pass": true
+    },
+    "bite": "ROWS UTF8 BITE RED: actual missing decoder flush fails PAGE_TRUNCATED_UTF8_REFUSAL",
+    "restoredPagedCodecSha256": "3c5d31e76e17c8ee7799508987354d256357e8dda1573ad3af9b3d520e9444e5"
+  },
+  "scope": "One local server rows-v3 qualification. Not a universal allocation guarantee, controlled baseline saving, old-route acceptance, client memory, staged-profile validation/activation, phone/science/private-use approval. Mandatory regression and independent verdict recorded separately in REPORT-R1-ASTRA.md."
+}

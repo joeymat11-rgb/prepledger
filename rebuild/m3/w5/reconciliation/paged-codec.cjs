@@ -19,10 +19,20 @@ const check=(value,code)=>{if(!value)fail(code);};
 const hash=(kind,value)=>C.hash(domain(kind),C.encode(value));
 const same=(a,b)=>C.fullEqual(a,b);
 function freeze(value){const stack=[value];while(stack.length){const x=stack.pop();if(x&&typeof x==='object'&&!Object.isFrozen(x)){for(const v of Object.values(x))if(v&&typeof v==='object')stack.push(v);Object.freeze(x);}}return value;}
-function snapshot(input,limit){return C.parse(C.bytes(input),limit);}
+function snapshot(input,limit){return C.parse(input,limit);}
+// Private freshly decoded bytes: validate with the SAME fatal native UTF-8
+// decoder, but discard bounded text chunks instead of allocating a complete
+// decoded string (and defensive byte copy) solely for a validity check.
+function utf8(bytes){
+ if(bytes.length>=3&&bytes[0]===0xef&&bytes[1]===0xbb&&bytes[2]===0xbf)C.fail();
+ try{const decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
+  for(let offset=0;offset<bytes.length;offset+=8192)decoder.decode(bytes.subarray(offset,offset+8192),{stream:true});
+  decoder.decode();
+ }catch(_){C.fail();}
+}
 function key(value){
  if(value===null)return null;C.exact(value,['collection','row_id_b64'],{ordered:true});check(COLLECTIONS.includes(value.collection));
- const bytes=C.decode64(value.row_id_b64,LIMITS.row);check(bytes.length>0);C.text(bytes);return bytes;
+ const bytes=C.decode64(value.row_id_b64,LIMITS.row);check(bytes.length>0);utf8(bytes);return bytes;
 }
 function compareKey(a,b){if(a.collection!==b.collection)return C.compareText(a.collection,b.collection);const x=C.decode64(a.row_id_b64,LIMITS.row),y=C.decode64(b.row_id_b64,LIMITS.row);for(let i=0;i<Math.min(x.length,y.length);i++)if(x[i]!==y[i])return x[i]-y[i];return x.length-y.length;}
 function counts(value){check(Array.isArray(value)&&value.length===COLLECTIONS.length&&value.every(n=>C.safe(n)),'ROWS_COUNTS');}
@@ -47,7 +57,7 @@ const manifestDigest=record=>hash('manifest-bytes',record);
 function rows(value){
  check(Array.isArray(value)&&value.length<=LIMITS.rows,'ROWS_BATCH_SIZE');let bytes=0,prior=null;
  for(const row of value){C.exact(row,['collection','row_id_b64','value_b64'],{ordered:true});const k={collection:row.collection,row_id_b64:row.row_id_b64};
-   bytes+=key(k).length;const raw=C.decode64(row.value_b64,LIMITS.row);C.text(raw);bytes+=raw.length;
+   bytes+=key(k).length;const raw=C.decode64(row.value_b64,LIMITS.row);utf8(raw);bytes+=raw.length;
    check(!prior||compareKey(prior,k)<0,'ROWS_ORDER');prior=k;
  }
  check(bytes<=(value.length>1?LIMITS.budget:LIMITS.row),'ROWS_BATCH_SIZE');return value;

@@ -24,15 +24,24 @@ function snapshot(value, fields) {
 }
 function string(value, nonempty = true) {
   if (typeof value !== 'string' || (nonempty && !value.length)) throw integrity();
-  // Reject unpaired JS surrogates instead of silently changing their UTF-8 bytes.
-  if (C.text(C.bytes(value)) !== value) throw integrity();
+  // Same round-trip validity as the former UTF-8 encode/copy/decode, without
+  // materializing multiple full buffers for an already-owned immutable string.
+  // Keep the decoder's existing leading-BOM refusal; embedded BOM/NUL and NFD
+  // remain literal data. Only unmatched UTF-16 surrogates would be replaced.
+  if (value.charCodeAt(0) === 0xfeff) throw integrity();
+  for (let i=0;i<value.length;i++) {
+    const code=value.charCodeAt(i);
+    if(code>=0xd800&&code<=0xdbff){
+      const next=value.charCodeAt(++i);
+      if(!(next>=0xdc00&&next<=0xdfff))throw integrity();
+    }else if(code>=0xdc00&&code<=0xdfff)throw integrity();
+  }
   return value;
 }
 function parse(value) {
   string(value, false);
-  const bytes = C.bytes(value);
   // Storage limits belong to the bridge; the R1 payload default is not a storage cap.
-  const parsed = C.parse(bytes, bytes.length);
+  const parsed = C.parseOwnedText(value);
   if (!C.object(parsed)) throw integrity();
   return parsed;
 }
@@ -150,7 +159,9 @@ function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThi
       try {
         const plaintext = await subtle.decrypt({ name: 'AES-GCM', iv,
           additionalData: aad(namespace, row, envelope), tagLength: 128 }, dek, ciphertext);
-        const value = C.text(plaintext);
+        // decrypt produced this private ArrayBuffer; no caller can mutate it.
+        // Fatal UTF-8 stays enforced; parse/string below retains BOM refusal.
+        const value = new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(plaintext);
         if (projection(row.collection, parse(value)) !== row.value) throw integrity();
         return { athlete: row.athlete, collection: row.collection, row_id: row.row_id, value };
       } catch (_) { throw integrity(); }

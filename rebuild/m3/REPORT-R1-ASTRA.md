@@ -1,5 +1,44 @@
 # W5-R1 implementation — ASTRA
 
+## Current owned-row validation — local rows resource PASS, September9
+
+Successor to local37e14a5ea26e778e8b9f62f0bac01dd13fc7da9e, on the same retained R1 branch. The product goal is unchanged: dependable private Joe/Dad use, accurate carryover, complete workout logging and justified supported prescriptions within the coherent individualized plan. This change removes unnecessary materialization at the actual recovery boundary; it does not add a prescription, import controller or private activation.
+
+Three runtime files change. `row-codec` checks immutable string UTF-16 validity directly, retaining leading-BOM refusal and literal NFD/NUL/embedded-BOM behavior, instead of allocating UTF-8 copies just to check a round trip. Fresh privately decrypted bytes use the same fatal native UTF-8 decoder directly. `codec.parseOwnedText` shares the EXACT existing iterative duplicate-decoded-key scanner and native JSON parser with the public byte parser; only the internal prevalidated immutable storage string uses this entry. `paged-codec` validates freshly decoded owned row/key bytes in 8192-byte native decoder chunks, including the mandatory final flush, instead of constructing an unused full text string. Its public snapshot still takes the existing parser's defensive copy, without a redundant second copy. No wire/signature/canonical/authority semantics, row limits, workload, fixture, meter or runtime flags change.
+
+Seventy focused Node tests PASS (zero fail/skip): all65536 individual UTF-16 units, boundary pairs and deterministic compound strings against the actual37e14 declaration; malformed UTF-8 and chunk-boundary/truncated sequences; exact shared JSON scanner, deep JSON/numeric spelling/duplicate keys; caller mutation, retained bytes, P1 row codec and actual response validation. An initial deep-graph comparison overflowed the test assertion library; replacing that harness comparison with an iterative exact comparison resolved it. This was not a product failure. Actual Worker/D1/P1 HTTP9/9 named cases PASS (10 Node tests), including large keys, foreign scope, retry/revision/standing and generated signatures. The attempted extra `p1.test.cjs` command argument named no file; it adds no test evidence. P1 codec coverage is from the tracked `row-codec.test.cjs` in the70 tests and actual HTTP path.
+
+The on-disk bite removed the actual native decoder's final flush. The actual public page parser then admitted a truncated UTF-8 value despite otherwise matching digests/signature bytes, so its named refusal assertion failed. Source was restored byte-for-byte; all six new UTF-8 tests passed again:
+
+    ROWS UTF8 BITE RED: actual missing decoder flush fails PAGE_TRUNCATED_UTF8_REFUSAL
+    RESTORED 3c5d31e76e17c8ee7799508987354d256357e8dda1573ad3af9b3d520e9444e5
+    R1 ROWS HTTP PASS — 9/9 cases; actual Worker/D1/P1 + generated signatures; complete writer-created inventory; NOT staged-profile, resource or activation acceptance
+    ROWS-V3-RESOURCE PASS — 4 complete attempts; 159 measured requests; peak 74900814 bytes vs 100663296; 0 resource violations
+    resourceAcceptance=true
+
+This was the UNCHANGED default qualification: one sequential, two overlapping and one near-row/key-limit attempt, all signed terminal finishes and exact independent D1 byte comparison. No extra boundary sampling/near-only flags, forced collection, smaller history, warmup, isolated-page restarts or ceiling change. Windows peak74,900,814B against96MiB; max guarded CPU219.5ms,6 statements,20ms batch,zero domain writes. Raw local evidence SHA256 `dfcea097a7f98cd6f730199d07957604c686084a82d0aacb02af9dc2e3fbecb0`. Sanitized `test/owned-row-validation-resource.json` pins every changed runtime/test plus the unchanged witness/meter/fixture, eligibility, runtime and all preceding failed candidates. It is one local qualification, not a universal memory bound or controlled measured saving.
+
+Preserved failures: response-only169,337,066B; string-validation122,541,806B; owned-JSON121,493,162B, each on the same original default workload with four completed attempts. Earlier Linux/diagnostic failures remain historical evidence. During root's final changes APM's separately owned MEMORY-PROFILE-02 sampled older37e14; it found repeated allocation churn, not live/peak savings. Its diagnostic is NOT this PASS and did not cause these independently developed changes. APM's reviewed disposition is to stop further allocation edits and use existing review/integration; optional future reuse is deferred.
+
+Reproduce from repository root: `node --test rebuild/m3/w5/test/rows-utf8-allocation.test.cjs rebuild/m3/w5/test/row-string-allocation.test.cjs rebuild/m3/w5/test/r1-owned-response.test.cjs rebuild/m3/w5/test/r1-owned-buffers.test.cjs rebuild/m3/w5/test/r1-codec.test.cjs rebuild/m3/w5/test/r1-paged-codec.test.cjs rebuild/m3/w5/test/row-codec.test.cjs`; `node --test rebuild/m3/w5/test/r1-paged-http.test.cjs`; `node rebuild/m3/w5/test/rows-resource-01/rows-resource.cjs` with no flags. Root logs `.tmp/owned-row-{current-focused,http,regression}.log`, `.tmp/rows-utf8-{bite,resource}.log`; raw `.tmp/rows-utf8-resource-evidence.json`. Node/runtime pins are in the sanitized evidence; use real installed dependency directories and no concurrent heavy measurements.
+
+Mandatory original regression completed on these exact runtime bytes (explicit frozen ENGINE_MAIN/ENGINE_OLD, MEASURED_TEST_NOW=2026-09-03, TZ=America/New_York; strict unsets MEASURED_TEST_NOW):
+
+    AUTH-D1 PASS (34/34 mapped laws GREEN on local D1 + rig191 10/10 EFFECTIVE breaks)
+    HTTP-190 PASS (5/5 over real local HTTP with the C6 cuts)
+    INFO 9 engine-track rig185: W1 PASS, W2 PASS
+    SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+    SELFTEST PASS
+    PASS  engine suite — 3072 assertions passed
+    All checks passed. Safe to ship.
+    R1-REGRESSION PASS
+
+The strict tail is the existing frozen-app gate's wording, not new-app shipping approval. No current independent acceptance/CI/integration is implied by local tests. No old `/reconcile` resource PASS, W6 memory/full-profile validation/atomic activation, phone/science/private-use qualification follows from this rows-route result. Protected-path diff against734986a is empty; frozen app, conformance, private fixtures and seeded soak unchanged. Reproduce regression with `node rebuild/m3/rigs/rig-r1.cjs --case REGRESSION --env local` after the existing AGENTS preparation.
+
+Wall-clock: allocation candidates and gates approximately17:35–18:03UTC, including the exclusive profiler pause; final resource finished17:58:39.490UTC. This is elapsed work, not billed usage or a release ETA. NEXT: pin this passing candidate, then the existing affected independent review/integration. Resume the retained recovery-to-staged-validation/activation and complete workout integration after its actual dependencies; preserve all prior failed evidence and the full goal. No new optimization campaign, helper, provider/model/credit/schedule change, root merge or private activation.
+
+## Historical candidate results
+
 ## Owned-response candidate — correctness PASS, required resource qualification FAIL, September9
 
 Natural root checkpoint after M4's imported-baseline reader join. The real import controller is still absent; repository inspection confirmed that adding another whole-generation import copy would not close the existing capacity blocker. Root used APM's released PR50 witness at9c7cca64a365161bf865243ae4b0090415a02c96 for ONE bounded response-construction candidate on retained R1 base734986a. No new helper, provider, metric, cap, fixture, credit or model change. The five witness files were copied verbatim and rechecked by Git blob identity5/5; their historical evidence/report remain their authors' prior runs, with APM's instrumentation/CPU qualifications retained.
