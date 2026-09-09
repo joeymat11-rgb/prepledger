@@ -66,7 +66,14 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         if (kind === "pull" || kind === "snapshot") {
           const receipts = kind === "pull" ? record.receipts : record.entries;
           if (!Array.isArray(receipts)) return false;
-          for (const receipt of receipts) if (!await verifier.verifyReceipt(receipt) || receipt.op?.athlete_id !== athleteId) return false;
+          for (const receipt of receipts) {
+            if (!await verifier.verifyReceipt(receipt) || receipt.op?.athlete_id !== athleteId) return false;
+            // T2 persists an index (op_id/commitment), not receipt.op. Original
+            // signed proof is retained separately; its acknowledged fact must
+            // still exist exactly in the authenticated operation collection.
+            const retained = generation.collections.ops?.[receipt.op_id];
+            if (!retained || !sameRecordedValue(retained, receipt.op)) return false;
+          }
         }
       }
     }

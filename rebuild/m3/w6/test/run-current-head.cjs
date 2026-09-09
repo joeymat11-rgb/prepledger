@@ -37,6 +37,15 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
 }
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
+if(process.argv.includes('--receipt-bite')){
+ if(['--bite','--prepared-bite','--host-bite','--history-bite'].some(flag=>process.argv.includes(flag)))throw Error('Select one mutation only');
+ const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
+ const target='if (!retained || !sameRecordedValue(retained, receipt.op)) return false;';
+ if(raw.split(target).length!==2)throw Error('Exact retained-receipt bite target missing');
+ fs.writeFileSync(file,raw.replace(target,'/* MUTANT: ignore retained operation versus signed proof */'));preparedRestore={file,raw};
+ mutation={name:'omit-signed-proof-retained-operation-comparison',originalSha256:pins['rebuild/m3/w6/public-client.mjs'],
+  mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+}
 if(process.argv.includes('--history-bite')){
  if(['--bite','--prepared-bite','--host-bite'].some(flag=>process.argv.includes(flag)))throw Error('Select one mutation only');
  const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
@@ -73,7 +82,7 @@ if(process.argv.includes('--bite')){
     mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
 }
 const testDir=path.join(output,'rebuild/m3/w6/test');
-const namesToRun=process.argv.includes('--history-bite')?['prepared-workout.test.mjs']:
+const namesToRun=['--history-bite','--receipt-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
  process.argv.includes('--all')?fs.readdirSync(testDir).filter(n=>n.endsWith('.test.mjs')).sort():['current-head.test.mjs'];
 // Bound test-file workers; races inside each test still run unchanged.
 const args=['--test','--test-concurrency=2','--test-timeout=30000',...namesToRun.map(n=>path.join(testDir,n))];

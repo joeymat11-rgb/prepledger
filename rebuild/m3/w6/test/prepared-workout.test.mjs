@@ -8,6 +8,7 @@ import Capture from '../../../m4/workout/capture.cjs';
 import Commands from '../../../m4/workout/commands.cjs';
 import Schema from '../../../m4/workout/schema.cjs';
 import Sign from '../../w5/crypto.cjs';
+import Wire from '../../w5/public-client.cjs';
 const capture=Capture.createPrescriptionCapture({parseStrictJson});
 const identity={app_build:'synthetic-app',engine_build:'synthetic-engine',rule_profile:'synthetic-rule',source_schema:'synthetic-source'};
 const unknown=()=>({state:'unknown',display:'Unknown',source_json:null});
@@ -31,13 +32,30 @@ async function setup(options={}){
  prescriptionCapture:capture,workoutProducerIdentity:identity,
  resolveWorkoutBasis:()=>({plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic-input',causal_parents:[]}),
  workoutProducer:(_generation,context)=>{produced++;lastCapture=prescription(context);return lastCapture;},...options.client};
- const c=createDurablePublicClient(args);return {...f,c,args,scope,commands,produced:()=>produced,lastCapture:()=>lastCapture};
+ const c=createDurablePublicClient(args);return {...f,c,args,scope,commands,signingKey,produced:()=>produced,lastCapture:()=>lastCapture};
 }
 const prepare=f=>f.c.prepareWorkout({planned_split_slot_id:'synthetic-slot'});
 const start=(f,p,extra={})=>f.c.startPreparedWorkout({preparedId:p.preparedId,...extra});
 const operations=async f=>(await f.repo.load()).generation.collections.ops||{};
 const recreate=f=>createDurablePublicClient({...f.args,repository:f.repo});
 const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_op_id:id,completion_kind:'early',causal_parents:[id]}});
+for(const loss of ['missing','rewritten'])test(`actual stored receipt index with a ${loss} operation refuses integrity before preparing`,async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),op=(await operations(f))[a.op_id];
+ const receipt=Sign.signReceipt({seq:1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey);
+ const pull=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:0,through:1,receipts:[receipt],wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey);
+ const accepted=await f.c.acceptResponse('pull',{wireVersion:Wire.WIRE_VERSION,body:pull});assert.equal(accepted.accepted,true,JSON.stringify(accepted));
+ const s=await f.repo.load();assert.equal(s.generation.collections.receipts['1'].op,undefined);assert.equal(s.generation.collections.receipts['1'].op_id,op.op_id);
+ // Synthetic authenticated-but-inconsistent generation: preserve the real signed
+ // proof and actual T2 receipt index; counts-only integrity must not mask lost truth.
+ if(loss==='missing'){
+  delete s.generation.collections.ops[op.op_id];delete s.generation.collections.outbox[op.op_id];s.generation.collections.meta.checkpoint.counts={ops:0,outbox:0};
+ }else s.generation.collections.ops[op.op_id].prescription_capture.session.instruction.display='Rewritten stored instruction';
+ await f.repo.commit(s,s.generation,()=>null);const before=await f.repo.load();
+ const r=await recreate(f).prepareWorkout({planned_split_slot_id:'next-slot'});
+ assert.equal(r.prepared,undefined);assert.equal(r.state,18);assert.equal(r.code,'HISTORICAL_PROOF_UNPROVEN');
+ assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
 test('fresh client cannot create another prepared Start over an unresolved durable workout',async()=>{
  let lose=true;const f=await setup({wrapRepository:repo=>({...repo,async commit(...args){const r=await repo.commit(...args);if(lose){lose=false;throw new Error('synthetic lost reply');}return r;}})});
  try{const p=await prepare(f),lost=await start(f,p);assert.equal(lost.outcomeUnknown,true);f.c.retireWorkoutPreparations();
