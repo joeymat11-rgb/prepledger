@@ -90,6 +90,7 @@ async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,req
   async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await assertStable();});}await assertStable();},
   async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await assertStable();},
   async operations(visitor){if(typeof visitor!=='function')C.fail('RECOVERY_PROFILE_VISITOR');await assertStable();await each('operations',async(_,row,original)=>visitor(row.op,row.disposition,original));await assertStable();},
+  async accepted(visitor){if(typeof visitor!=='function')C.fail('RECOVERY_PROFILE_VISITOR');await assertStable();for(let n=1;n<=metadata.seq;n++){abort();await visitor(await val('log',n));}await assertStable();},
   assertProofUnchanged:assertStable,
   assertCurrent,
  });

@@ -1,8 +1,10 @@
 import {StorageFailure} from './repository.mjs';
 import {validateRecoveryProfile} from './recovery-profile.mjs';
+import T2 from './t2-stage.cjs';
 
 // Internal consumer of a snapshot authenticated by public-client. This handle
-// compares evidence only; it cannot publish, drain, re-sign or activate anything.
+// compares evidence and assembles an inactive candidate only; it cannot publish,
+// drain the active queue, re-sign or activate anything.
 export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteId,deviceId,codec:C,protocol:P,scopeDigest,publicVerifier,assertContext}) {
   const saved=structuredClone(snapshot), collections=saved.generation.collections;
   const fail=code=>{throw new StorageFailure(code,18);};
@@ -61,12 +63,31 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
     });
     await profile.leases(async item=>{if(!item.issued_row)fail('LOCAL_PENDING_LEASE_UNPROVEN');});
     await check();
+    async function archiveProof(){
+      await check();const reference=await inventory.archiveReference();await check();
+      return {profile:'earned/local-recovery-proof/v1',reference,request_bytes_b64:C.encode64(requestBytes),
+        expected:{athleteId,actorDeviceId:deviceId,scopeDigest,basisDigest}};
+    }
     return Object.freeze({profileVerified:true,localCompared:true,complete:false,activated:false,checkpoint:false,sourceRevision:saved.revision,
       assertCurrent:check,
-      async archiveProof(){
-        await check();const reference=await inventory.archiveReference();await check();
-        return {profile:'earned/local-recovery-proof/v1',reference,request_bytes_b64:C.encode64(requestBytes),
-          expected:{athleteId,actorDeviceId:deviceId,scopeDigest,basisDigest}};
+      archiveProof,
+      async assemble(){
+        await check();
+        await profile.claims(claim=>{
+          assertContext();
+          if(claim.outcome==='ENVELOPE_MISMATCH')fail('RECOVERY_EXPLICIT_RESTORE_REQUIRED');
+          if(claim.outcome==='IDENTITY_CONFLICT')fail('RECOVERY_IDENTITY_CONFLICT');
+        });
+        const proof=await archiveProof(),summary=await profile.summary();
+        const candidate=await T2.prepareRecoveryProjection(saved.generation,{equal:C.fullEqual,fail,assertContext,
+          operations:profile.operations,accepted:profile.accepted,W:summary.W,athleteId,archiveProof:proof});
+        await check();
+        return Object.freeze({assembled:true,projectionPending:true,complete:false,activated:false,checkpoint:false,
+          sourceRevision:saved.revision,assertCurrent:check,
+          async inspect(visitor){
+            if(typeof visitor!=='function')throw TypeError('An inactive candidate consumer is required');
+            await check();await visitor(structuredClone(candidate));await check();
+          }});
       },
       async pending(visitor){
         if(typeof visitor!=='function')throw TypeError('A staged comparison consumer is required');await check();

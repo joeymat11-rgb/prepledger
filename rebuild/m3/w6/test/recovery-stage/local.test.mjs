@@ -89,6 +89,19 @@ for(const kind of ['WAITING','REJECTED','ENVELOPE_MISMATCH','IDENTITY_CONFLICT']
   assert(result.evidenceReady,result.code);const compared=[];await result.evidence.pending(x=>compared.push(x));assert.equal(compared.length,1);
   assert.equal(compared[0].action,{WAITING:'RETAIN_WAITING',REJECTED:'TERMINAL_EVIDENCE',ENVELOPE_MISMATCH:'EXPLICIT_RESTORE_REQUIRED',IDENTITY_CONFLICT:'IDENTITY_CONFLICT'}[kind]);
   assert.deepEqual(compared[0].original,local);assert.deepEqual(compared[0].authorityOperation,remote);assert.deepEqual(await f.repo.load(),before);
+  if(['ENVELOPE_MISMATCH','IDENTITY_CONFLICT'].includes(kind)) {
+    await assert.rejects(result.evidence.assemble(),e=>e.state===18&&e.code===(kind==='ENVELOPE_MISMATCH'?'RECOVERY_EXPLICIT_RESTORE_REQUIRED':'RECOVERY_IDENTITY_CONFLICT'));
+  } else {
+    const held=await result.evidence.assemble();let candidate;await held.inspect(x=>{candidate=x;});
+    const reference=Client.memoryBackend(before.generation.collections),sink=Client.createClient({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first,
+      backend:reference,authorityVerification:{verifyDisposition:d=>S.verifyDisposition(d,keys[0]),verifyLease:l=>S.verifyLease(l,keys[0])}});sink.boot();
+    assert.equal(sink.deliverDisposition(disposition).stored,true);
+    for(const name of ['ops','outbox','dispositions','rejected'])assert.deepEqual(candidate.collections[name]||{},structuredClone(T2.snapshotBackend(reference))[name]||{},name+' agrees with actual T2 disposition transaction');
+    assert.deepEqual(candidate.collections.sync.snapshot,before.generation.collections.sync.snapshot,'Admission is not a plan projection');
+    assert.deepEqual(candidate.metadata.budget,before.generation.metadata.budget);
+    assert(held.projectionPending&&!held.activated&&!held.complete&&!held.checkpoint);
+  }
+  assert.deepEqual(await f.repo.load(),before,'Candidate or refusal never changes the active generation');
 });
 
 test('actual public client captures and reconciles all local pending originals through D1 HTTP',async t=>{
@@ -110,6 +123,8 @@ test('actual public client captures and reconciles all local pending originals t
   const original=await f.repo.load(),ops=Object.values(original.generation.collections.ops).sort((a,b)=>a.device_seq-b.device_seq);
   assert.equal((await runtime.bridge.invokeScoped('subject-first',device,'admit',['first',ops[0]])).status,'ACCEPTED');
   assert.equal((await runtime.bridge.invokeScoped('subject-first',device,'admit',['first',ops[2]])).status,'ACCEPTED');
+  const uncreated=require('../../client/ops.cjs').build({...ops[2],op_id:'server-only-rejected',device_seq:lease.range[1]+1},runtime.identityKeys.first);
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',device,'admit',['first',uncreated])).status,'REJECTED');
   const prepared=await client.prepareLocalRecovery();assert(prepared.prepared,prepared.code);const basis=prepared.basis;
   const verifier=P.createRowsVerifier({keys,subtle:webcrypto.subtle});let nonce=0;
   const stage=f.repo.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null});
@@ -120,7 +135,7 @@ test('actual public client captures and reconciles all local pending originals t
   // Observer/standing control is explicitly synthetic. This test exercises real
   // signatures, HTTP, public client, local identity checks and IndexedDB only.
   const result=await createRowsRecovery(options).run();assert(result.evidenceReady,result.code);assert(result.evidence.localCompared);
-  let compared=[],retainedHistory;await result.evidence.pending((item,history)=>{compared.push(item);retainedHistory??=history;});
+  let compared=[],retainedHistory,heldCandidate;await result.evidence.pending((item,history)=>{compared.push(item);retainedHistory??=history;});
   await t.test('accepted and absent entries remain distinct without any active mutation',async()=>{
     assert.deepEqual(compared.map(x=>x.action),['TERMINAL_EVIDENCE','RETAIN_UNACKNOWLEDGED','TERMINAL_EVIDENCE']);
     assert.deepEqual(compared.map(x=>x.original),ops);assert.deepEqual(compared.map(x=>x.outboxEntry),Object.values(original.generation.collections.outbox));
@@ -132,6 +147,29 @@ test('actual public client captures and reconciles all local pending originals t
       const req=basis.request({nonce:hash('tamper'),contextId:hash('context')});change(req);assert.throws(()=>basis.expected(req));
     }
   });
+  await t.test('assembled candidate preserves unsent originals and matches actual T2 terminal and receipt sinks',async()=>{
+    heldCandidate=await result.evidence.assemble();let candidate;await heldCandidate.inspect(x=>{candidate=x;});
+    assert.deepEqual(Object.values(candidate.collections.ops),ops);
+    assert(!Object.hasOwn(candidate.collections.ops,uncreated.op_id),'Signed rejection of an uncreated request is archive evidence, not a new local operation');
+    assert.deepEqual(Object.keys(candidate.collections.outbox),[ops[1].op_id]);
+    const backend=Client.memoryBackend(original.generation.collections),sink=Client.createClient({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first,
+      backend,authorityVerification:{verifyDisposition:d=>S.verifyDisposition(d,keys[0]),verifyLease:l=>S.verifyLease(l,keys[0])}});sink.boot();
+    for(const item of compared.filter(x=>x.action==='TERMINAL_EVIDENCE')){
+      assert(sink.deliverDisposition(item.disposition).stored);
+      sink.deliverReceipts([{seq:item.disposition.athlete_log_seq,op_id:item.original.op_id,canonical_content_commitment:item.original.canonical_content_commitment,accepted_at:item.disposition.accepted_at,op:item.original}]);
+    }
+    const reference=structuredClone(T2.snapshotBackend(backend));
+    for(const name of ['ops','outbox','dispositions','receipts'])assert.deepEqual(candidate.collections[name],reference[name],name);
+    assert.deepEqual(candidate.collections.sync.frontier,reference.sync.frontier);
+    assert.deepEqual(candidate.collections.sync.snapshot,original.generation.collections.sync.snapshot);
+    assert.deepEqual(candidate.collections.futureCollection,original.generation.collections.futureCollection);
+    for(const [name,value]of Object.entries(original.generation.metadata))assert.deepEqual(candidate.metadata[name],value);
+    assert.deepEqual(candidate.metadata.recoveryArchives,[await result.evidence.archiveProof()]);
+    assert.equal(heldCandidate.projectionPending,true);assert.equal(heldCandidate.activated,false);assert.equal(heldCandidate.complete,false);assert.equal(heldCandidate.checkpoint,false);
+    candidate.collections.ops[ops[1].op_id].payload.lb.value=-1;candidate.metadata.recoveryArchives.length=0;
+    await heldCandidate.inspect(copy=>{assert.deepEqual(copy.collections.ops[ops[1].op_id],ops[1]);assert.equal(copy.metadata.recoveryArchives.length,1);});
+    assert.deepEqual(await f.repo.load(),original);
+  });
   await t.test('consumer edits never mutate retained originals or later comparison output',async()=>{
     compared[0].original.payload.lb.value=-1;compared[0].outboxEntry.op_id='wrong';const again=[];await result.evidence.pending(x=>again.push(x));assert.deepEqual(again.map(x=>x.original),ops);assert.deepEqual(await f.repo.load(),original);
   });
@@ -140,6 +178,8 @@ test('actual public client captures and reconciles all local pending originals t
     await assert.rejects(basis.assertCurrent(),e=>e.code==='LOCAL_RECOVERY_CHANGED');
     let called=false;await assert.rejects(result.evidence.pending(()=>{called=true;}),e=>e.code==='LOCAL_RECOVERY_CHANGED');assert.equal(called,false);
     await assert.rejects(retainedHistory(()=>{called=true;}),e=>e.code==='LOCAL_RECOVERY_CHANGED');assert.equal(called,false);
+    await assert.rejects(heldCandidate.inspect(()=>{called=true;}),e=>e.code==='LOCAL_RECOVERY_CHANGED');assert.equal(called,false);
+    await assert.rejects(result.evidence.assemble(),e=>e.code==='LOCAL_RECOVERY_CHANGED');
   });
   await t.test('already drained local originals are compared without queue recreation',async()=>{
     const disposition=await runtime.bridge.invokeScoped('subject-first',device,'admit',['first',ops[0]]);
