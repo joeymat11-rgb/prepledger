@@ -51,6 +51,12 @@ test('actual baseline prompt does not turn placeholder zero reps into a numeric 
  const slots=out.capture.slots.filter(s=>s.lift_lineage_id==='demo-press');assert(slots.every(s=>s.load.state==='not_prescribed'&&s.reps.state==='not_prescribed'));
  assert(slots.every(s=>s.load.source_json===null&&s.reps.source_json===null));assert.match(slots[0].reason.display,/DEBUT/);
 });
+test('an explicit zero prescribed load stays numeric and distinct from an absent baseline load',async()=>{
+ const {adapter,input}=await fixture();input.state.exercises[0].w=0;input.state.exercises[0].wSets=[0,0];
+ const slots=adapter.prepare(input).capture.slots.slice(0,2);
+ assert(slots.every(s=>s.load.state==='specified'));assert.deepEqual(slots.map(s=>JSON.parse(s.load.source_json)),[{value:0,unit:'lb'},{value:0,unit:'lb'}]);
+ input.state.exercises[0].wSets=[0,-0];assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
+});
 test('a one-set held lift retains its actual opener effort guard across the generated card boundary',async()=>{
  const {engine,adapter,input}=await fixture(),ex=input.state.exercises[0];ex.sets=1;ex.last=[10];ex.holdFlag=true;
  const card=engine.genSession(input.state,input.day).ex[0];assert.equal(card.holdFlag,undefined,'Actual card omits the guard');
@@ -61,6 +67,7 @@ test('incomplete per-set plan vectors cannot silently flatten to the scalar card
  const {adapter,input}=await fixture();input.state.exercises[0].wSets=[40];
  assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
  input.state.exercises[0].wSets=[40,NaN];assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
+ input.state.exercises[0].wSets=new Array(2);assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED'});
 });
 test('an actual selected debut keeps its supplied vector and does not reuse old or ambiguous loads',async()=>{
  const {engine,adapter,input}=await fixture();input.state.exercises[0].wSets=[40,35];

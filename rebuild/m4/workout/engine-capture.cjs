@@ -29,7 +29,7 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
    let loads;
    if(card.baselineAsk===true){if(card.w!==null&&card.w!==undefined)fail('ENGINE_CAPTURE_BASELINE_UNPROVEN');loads=card.tgt.map(()=>null);}
    else{
-    if(typeof card.w!=='number'||!Number.isFinite(card.w)||card.w<=0)fail('ENGINE_CAPTURE_LOAD_UNPROVEN');
+    if(typeof card.w!=='number'||!Number.isFinite(card.w)||card.w<0||Object.is(card.w,-0))fail('ENGINE_CAPTURE_LOAD_UNPROVEN');
     // genSession looks up the first unfinished matching move after choosing an
     // active lift. Multiple matching moves do not prove which load vector won.
     const selected=card.isDebutNow?input.queue.filter(q=>q.exId===card.id&&!q.done&&['debut','unlock'].includes(q.kind)):[];
@@ -38,7 +38,7 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
     if(q?.newWSets!==undefined){if(q.newW!==card.w)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');loads=copy(q.newWSets);}
     else if(original.wSets!==undefined){if(card.w!==original.w)fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');loads=copy(original.wSets);}
     else loads=card.tgt.map(()=>card.w);
-    if(!Array.isArray(loads)||loads.length!==card.tgt.length||!loads.every(x=>typeof x==='number'&&Number.isFinite(x)&&x>0))fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');
+    if(!Array.isArray(loads)||loads.length!==card.tgt.length||!Array.from(loads).every(x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&!Object.is(x,-0)))fail('ENGINE_CAPTURE_LOAD_MAPPING_REQUIRED');
    }
    for(let i=0;i<card.tgt.length;i++){
     const target=card.tgt[i],reserve=effort.plan[i];
