@@ -1,6 +1,16 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.49 continuation — semantic-order producer step joined to selected readers
+## Current v0.49 continuation — imported-baseline and post-activation reader join
+
+The retained graph step now accepts an internal import generation/activation reference and proves every native Start follows that accepted activation through actual causal ancestry. It refuses later-log/date-only assertions and unaccepted activation. The selected reader joins exact original legacy record objects to those ordered native records, bound to matching generation/activation and the same shared imported-log reference. Existing legacy ordering within its baseline is preserved. No old scalar is expanded into invented per-set values; native/legacy pairs do not manufacture a repeat. Full original input bytes stay unchanged, and a whole-view clone retains the required internal shared reference.
+
+    ENGINE ORDER: 20 tests PASS; 0 FAIL; 0 skip; 4 named in-memory semantic faults DETECTED
+    PERFORMED READER PROPOSAL native: 208 exact legacy cases; 97 rich checks; 12/12 named source sensitivities DETECTED; restored PASS
+    PERFORMED READER PROPOSAL frozen: 208 exact legacy cases; 97 rich checks; 12/12 named source sensitivities DETECTED; restored PASS
+
+First line summarizes actual Node output; other lines are verbatim. Current ordinary module SHA25661c79b2998df1452361ae5634b1d4e73651d667ac429091682b103107652dac9. Five new rich checks prove mixed-history retention/arithmetic, no cross-format pair, exact generation/snapshot binding and whole-view cloning; four new order cases prove required import ancestry. Existing commands/log paths below apply; proposal JSON includes producerOrderSha256. No private input or new authority schema/operation kind. The activation fixture is a declared synthetic graph reference, not proof that a production import is implemented. The actual controller still must bind the chosen immutable source to its authentic activation and protect/freeze the shared snapshot; identity checks here are not cryptographic verification or protection from an internal mutation. State14, remaining caller/history/as-of mappings, current safety/consent, scientific qualification and UI/phone joins remain. No runtime/accepted-artifact or frozen-suite changes; mandatory gates remain for the eventual delivered integration. Work interval17:13–17:19UTC, not measured billed/engineering time. NEXT: close actual import-controller and authenticated producer/caller binding using this tested mapping, preserving existing review/custody/credit limits.
+
+## Earlier v0.49 continuation — semantic-order producer step joined to selected readers
 
 Previous goal turn was progress: local3317354 committed the executable selected reader source and captured-target fix. This continuation adds `workout/engine-order.cjs` and its focused test, then uses that actual function to feed the selected reader. B15 sheet586–590 supplies the existing rule: causal_parents, with accepted athlete-log sequence breaking concurrent ties. Same-day sessions preserve immutable identity; device sequence/predecessor, effective date/time/zone and object order do not establish causality. Reached missing/cyclic/foreign ancestry, mismatched prefix/status and unaccepted concurrency fail explicitly. Known offline causal chains succeed. No state14 partition or scientific/plan/write permission is produced.
 

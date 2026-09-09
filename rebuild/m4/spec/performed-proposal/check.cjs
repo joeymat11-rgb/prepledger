@@ -4,6 +4,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),{pathToFileURL}=require('node:url');
 const S=require('./source.cjs'),NativeDate=Date,clone=structuredClone;
 const {orderWorkoutStarts}=require('../../workout/engine-order.cjs');
+const orderSourcePath=require.resolve('../../workout/engine-order.cjs'),orderSourceBytes=fs.readFileSync(orderSourcePath);
 const before=S.baseline(),candidate=S.construct(before),F=require('../../../m3/w7-preview/fixtures.cjs');
 const clock={today:()=>F.SYNTHETIC_DAY,nowMs:()=>NativeDate.UTC(2030,1,4,12),nowISO:()=> '2030-02-04T12:00:00.000Z',hour:()=>12,dow:()=>1};
 function engine(sources){const load=S.load(sources),E=load('rebuild/m3/w7-preview/browser-engine.cjs').createBrowserEngine({clock});
@@ -108,15 +109,19 @@ async function main(){
     effective:{local_date:F.SYNTHETIC_DAY},record:{entries:[open]}}]}},'demo-press'),/PERFORMED_COMPLETION_REQUIRED/,'PERFORMED_COMPLETION_NOT_INFERRED');});
   check('block-slope',()=>{const pts=[0,1,2,3].map(i=>({en:record({weights:[40,40,40],repetitions:[8+i,7,6],startId:'start'+i}).entry}));
    const legacyPts=[0,1,2,3].map(i=>({en:{w:40,reps:[8+i,7,6]}}));assert.deepEqual(E._blockSlope(pts),E._blockSlope(legacyPts),'PERFORMED_ACTUAL_SLOPE_UNIFORM_PARITY');});
-  const noiseState=(rows)=>{const state=F.createSyntheticState();state.sessionLog={};
+  const noiseState=(rows,{legacyLog,importAnchor}={})=>{const state=F.createSyntheticState();state.sessionLog=legacyLog||{};
    // Synthetic accepted source index. The host must authenticate its generation
    // before calling this same producer step; no signature is simulated here.
    const ops={},receipts={},sessions=[];let W=0;
+   if(importAnchor){const op={op_id:importAnchor.activation_op_id,athlete_id:'synthetic-athlete',kind:'fact',causal_parents:[]};
+    ops[op.op_id]=op;receipts[op.op_id]={op_id:op.op_id,seq:++W};}
    for(const row of rows){for(const [id,op]of Object.entries(row.ops)){ops[id]=clone(op);receipts[id]={op_id:id,seq:++W};}
+    if(importAnchor)ops[row.entry.start_op_id].causal_parents=[importAnchor.activation_op_id];
     const start=row.entry.start_op_id;sessions.push({start:{operation:clone(ops[start]),status:'accepted-through-frontier',receipt_sequence:receipts[start].seq}});}
-   const order=orderWorkoutStarts({frontier:W,sessions},{collections:{ops,receipts,sync:{frontier:{W}}}});
+   const order=orderWorkoutStarts({frontier:W,sessions},{collections:{ops,receipts,sync:{frontier:{W}}}},{importAnchor});
    state.workoutFacts={profile:'earned/workout-facts/v1',order,sessions:rows.map(r=>({
-    start_op_id:r.entry.start_op_id,effective:clone(r.ops[r.entry.start_op_id].effective),record:{entries:[clone(r.entry)]}}))};return state;};
+    start_op_id:r.entry.start_op_id,effective:clone(r.ops[r.entry.start_op_id].effective),record:{entries:[clone(r.entry)]}})),
+    ...(importAnchor?{legacy_baseline:{profile:'earned/imported-engine-history/v1',...importAnchor,session_log:state.sessionLog}}:{})};return state;};
   const reps=[[8,7,6],[9,7,7],[8,9,6],[10,8,8]],series=()=>reps.map((r,i)=>record({repetitions:r,startId:'noise'+i,day:F.dayOffset('2030-01-24',i)}));
   check('noise-positive',()=>{const input=noiseState(series()),original=clone(input);assert.deepEqual(E.typicalError(input,'demo-press'),{reps:0.94,n:9,src:"this lift's own repeats"},'PERFORMED_REAL_NOISE_POSITIVE');assert.deepEqual(input,original,'NOISE_PRESERVES_FACTS');});
   check('noise-correction',()=>{const rows=series();rows[2]=record({repetitions:reps[2],startId:'noise2',day:'2030-01-26',correctMiddle:true});
@@ -138,6 +143,22 @@ async function main(){
   check('noise-no-unproven-legacy-pair',()=>{const input=noiseState([record({day:'2030-01-25',startId:'native-only'})]);
    input.sessionLog['2030-01-24']={entries:[{id:'demo-press',w:40,reps:[8,8,8]}]};
    assert.throws(()=>E.typicalError(input,'demo-press'),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'PERFORMED_NO_INFERRED_LEGACY_CORRESPONDENCE');});
+  const importAnchor={source_generation_id:'synthetic-import-generation',activation_op_id:'synthetic-import-activation'};
+  const importedLog=()=>Object.fromEntries(reps.map((r,i)=>[F.dayOffset('2029-12-20',i),{entries:[{id:'demo-press',w:40,reps:clone(r)}]}]));
+  check('imported-and-native-positive',()=>{const legacyLog=importedLog(),input=noiseState(series(),{legacyLog,importAnchor}),before=JSON.stringify(input);
+   assert.deepEqual(E.typicalError(input,'demo-press'),{reps:0.91,n:18,src:"this lift's own repeats"},'PERFORMED_IMPORTED_AND_NATIVE_NOISE');
+   const output=E.performedHistoryRows(input);assert.equal(output.length,8,'IMPORTED_ROWS_RETAINED');
+   for(let i=0;i<4;i++)assert.equal(output[i].rec,legacyLog[Object.keys(legacyLog)[i]],'IMPORTED_RECORD_IDENTITY_RETAINED');
+   assert.equal(JSON.stringify(input),before,'IMPORTED_SOURCE_UNCHANGED');});
+  check('no-invented-cross-format-pair',()=>{const input=noiseState([record({startId:'new',weights:[40,40,40]})],{legacyLog:importedLog(),importAnchor});
+   assert.equal(E.typicalError(input,'demo-press').n,9,'NO_INVENTED_LEGACY_PER_SET_WEIGHTS');});
+  check('import-basis-mismatch',()=>{const input=noiseState(series(),{legacyLog:importedLog(),importAnchor});
+   input.workoutFacts.legacy_baseline.source_generation_id='another-generation';
+   assert.throws(()=>E.typicalError(input,'demo-press'),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'EXACT_IMPORTED_GENERATION_REQUIRED');});
+  check('imported-log-replacement',()=>{const input=noiseState(series(),{legacyLog:importedLog(),importAnchor});
+   input.sessionLog=clone(input.sessionLog);assert.throws(()=>E.typicalError(input,'demo-press'),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'EXACT_IMPORTED_SNAPSHOT_REQUIRED');});
+  check('import-basis-survives-whole-view-clone',()=>{const input=noiseState(series(),{legacyLog:importedLog(),importAnchor}),copy=clone(input);
+   assert.deepEqual(E.typicalError(copy,'demo-press'),E.typicalError(input,'demo-press'),'IMPORTED_WHOLE_VIEW_CLONE');});
   assert.equal(JSON.stringify(a),aBytes,'ALL_READERS_PRESERVE_SOURCE');return count;
  }
  const restore={...candidate.sources};for(const edit of candidate.changes.slice().reverse())restore[edit.file]=restore[edit.file].replace(edit.after,edit.before);
@@ -152,6 +173,9 @@ async function main(){
   ['ignore-paired-position','rebuild/engine/performed.cjs','x.position===bv[i].position&&','true&&','PERFORMED_NO_FALSE_SLOT_REPEAT'],
   ['invent-failure-target','rebuild/engine/performed.cjs','${last.prescribed_effort.target} reps left','${0} reps left','PERFORMED_ORIGINAL_TARGET_PROSE'],
   ['date-as-semantic-order','rebuild/engine/performed.cjs','rank.get(a.start_op_id)-rank.get(b.start_op_id)','a.d.localeCompare(b.d)','PERFORMED_SEMANTIC_ORDER'],
+  ['drop-imported-rows','rebuild/engine/performed.cjs','return legacy.concat(native);','return native;','PERFORMED_IMPORTED_AND_NATIVE_NOISE'],
+  ['replace-imported-generation','rebuild/engine/performed.cjs','baseline.source_generation_id!==anchor.source_generation_id','false','EXACT_IMPORTED_GENERATION_REQUIRED'],
+  ['replace-imported-snapshot','rebuild/engine/performed.cjs','baseline.session_log!==s.sessionLog','false','EXACT_IMPORTED_SNAPSHOT_REQUIRED'],
  ];
  const outcomes=[];
  try{for(const mode of ['native','frozen']){
@@ -167,8 +191,9 @@ async function main(){
   console.log(`PERFORMED READER PROPOSAL ${mode}: ${legacyCount} exact legacy cases; ${richCount} rich checks; ${detected.length}/${mutants.length} named source sensitivities DETECTED; restored PASS`);
  }}finally{globalThis.Date=NativeDate;}
  for(const file of Object.keys(before))assert.equal(fs.readFileSync(path.join(S.root,file),'utf8'),before[file],'RETAINED_PRODUCT_UNCHANGED');
+ assert(fs.readFileSync(orderSourcePath).equals(orderSourceBytes),'RETAINED_ORDER_PRODUCER_UNCHANGED');
  const output=process.argv[2];assert(output,'Explicit local evidence JSON path required');
- fs.writeFileSync(path.resolve(output),JSON.stringify({status:'PROPOSED; NOT SHIPPING OR QUALIFIED',base:S.base,pins:candidate.pins,w6Pin,w6Hashes,outcomes,
+ fs.writeFileSync(path.resolve(output),JSON.stringify({status:'PROPOSED; NOT SHIPPING OR QUALIFIED',base:S.base,pins:candidate.pins,w6Pin,w6Hashes,producerOrderSha256:S.sha(orderSourceBytes),outcomes,
   limits:['declared synthetic statuses; no signature/HTTP qualification','history enumeration/cross-session correspondence/producer not integrated','partial step result conditional on caller qualification','other typed-effort consumers and full assembly/gates remain','in-memory source sensitivities are not a delivered-product bite']},null,2)+'\n');
  console.log('RETAINED PRODUCT UNCHANGED; history/producer/scientific/private/phone qualification NOT COMPLETE');
 }

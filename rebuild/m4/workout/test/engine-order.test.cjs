@@ -72,6 +72,28 @@ test('diamond ancestry remains a DAG and each Start appears once',()=>{
  const x=input([['a',[],false],['left',['a'],false,'fact'],['right',['a'],false,'fact'],['b',['left','right'],false]]);
  assert.deepEqual(ids(x),['a','b']);
 });
+test('import checkpoint is joined only through actual causal ancestry',()=>{
+ const x=input([['activation',[],true,'fact'],['a',['activation']],['between',['a'],true,'session-set'],['b',['between'],false]]);
+ const anchor={source_generation_id:'synthetic-import-generation',activation_op_id:'activation'},before=JSON.stringify(x);
+ const result=orderWorkoutStarts(x.history,x.generation,{importAnchor:anchor});
+ assert.deepEqual(result.start_ids,['a','b']);assert.deepEqual(result.import_anchor,anchor);assert.equal(JSON.stringify(x),before);
+ result.import_anchor.source_generation_id='changed';assert.equal(anchor.source_generation_id,'synthetic-import-generation');
+});
+test('a later log position or date cannot impersonate import descent',()=>{
+ const x=input([['activation',[],true,'fact'],['later']]);
+ assert.throws(()=>orderWorkoutStarts(x.history,x.generation,{importAnchor:{source_generation_id:'synthetic-import',activation_op_id:'activation'}}),
+  {code:'WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN'});
+});
+test('all root Starts must descend from the selected import activation',()=>{
+ const x=input([['activation',[],true,'fact'],['a',['activation']],['unrelated'],['b',['a']]]);
+ assert.throws(()=>orderWorkoutStarts(x.history,x.generation,{importAnchor:{source_generation_id:'synthetic-import',activation_op_id:'activation'}}),
+  {code:'WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN'});
+});
+test('an unaccepted activation is not an import checkpoint',()=>{
+ const x=input([['activation',[],false,'fact'],['a',['activation'],false]]);
+ assert.throws(()=>orderWorkoutStarts(x.history,x.generation,{importAnchor:{source_generation_id:'synthetic-import',activation_op_id:'activation'}}),
+  {code:'WORKOUT_ORDER_IMPORT_ANCHOR_UNPROVEN'});
+});
 test('named semantic-order faults are behaviorally detected without changing retained source',()=>{
  const fs=require('node:fs'),Module=require('node:module'),filename=require.resolve('../engine-order.cjs'),original=fs.readFileSync(filename,'utf8');
  const faults=[
@@ -81,7 +103,11 @@ test('named semantic-order faults are behaviorally detected without changing ret
    const x=input([['a',[],false],['b',[],false]]);assert.throws(()=>f(x.history,x.generation),{code:'WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED'},'LOCAL_CONCURRENCY_NOT_ORDERED');}],
   ['if (starts.has(parent)) need.add(parent);','if (starts.has(parent)) { /* lost causal dependency */ }',f=>{
    const x=input([['a',[],false],['b',['a'],false]]);let result;assert.doesNotThrow(()=>{result=f(x.history,x.generation);},'CAUSAL_LOCAL_CHAIN_MUST_SUCCEED');
-   assert.deepEqual(result.start_ids,['a','b'],'CAUSAL_LOCAL_CHAIN_MUST_SUCCEED');}]
+   assert.deepEqual(result.start_ids,['a','b'],'CAUSAL_LOCAL_CHAIN_MUST_SUCCEED');}],
+  ["fail('WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN');",'void 0;',f=>{
+   const x=input([['activation',[],true,'fact'],['later']]);
+   assert.throws(()=>f(x.history,x.generation,{importAnchor:{source_generation_id:'synthetic-import',activation_op_id:'activation'}}),
+    {code:'WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN'},'IMPORT_DESCENT_REQUIRED');}]
  ];
  for(const [before,after,probe]of faults){assert.equal(original.split(before).length,2);const m=new Module(filename,module);
   m._compile(original.replace(before,after),filename);let failure;try{probe(m.exports.orderWorkoutStarts);}catch(error){failure=error;}

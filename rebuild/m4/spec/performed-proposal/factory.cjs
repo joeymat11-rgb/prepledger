@@ -120,14 +120,26 @@ module.exports=function createPerformed(){
   // The internal producer calls engine-order on the same authenticated source.
   // This field transports its result; it is neither a renderer input nor an
   // authentication/partition/eligibility grant. Old imports need their mapping.
-  if(rows.some(row=>row.source==='legacy'))unresolved('PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED');
+  const legacy=rows.filter(row=>row.source==='legacy'),native=rows.filter(row=>row.source==='performed');
   const order=s.workoutFacts.order;
   if(!order||order.profile!=='earned/workout-order/v1'||!Number.isSafeInteger(order.frontier)||order.frontier<0||
     !Array.isArray(order.start_ids)||order.start_ids.length!==starts.size||new Set(order.start_ids).size!==starts.size||
     order.start_ids.some(id=>!starts.has(id)))unresolved('PERFORMED_HISTORY_ORDER_UNRESOLVED');
+  if(legacy.length){
+   const baseline=s.workoutFacts.legacy_baseline,anchor=order.import_anchor;
+   // Internal shared immutable snapshot reference: do not duplicate/rewrite the
+   // imported log or manufacture per-set weights. The authenticated import
+   // controller owns the generation/activation binding; this is not a caller
+   // proof. B15 applies to new operations; preserve the old engine's own order
+   // within its imported baseline, then the proven post-activation native order.
+   if(!baseline||baseline.profile!=='earned/imported-engine-history/v1'||baseline.session_log!==s.sessionLog||
+     !anchor||!text(anchor.source_generation_id)||!text(anchor.activation_op_id)||
+     baseline.source_generation_id!==anchor.source_generation_id||baseline.activation_op_id!==anchor.activation_op_id)
+    unresolved('PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED');
+  }
   const rank=new Map(order.start_ids.map((id,i)=>[id,i]));
-  rows.sort((a,b)=>rank.get(a.start_op_id)-rank.get(b.start_op_id));
-  return rows;
+  native.sort((a,b)=>rank.get(a.start_op_id)-rank.get(b.start_op_id));
+  return legacy.concat(native);
  }
  return {performedEntry,performedRirSets,effortKnown,effortIs,effortText,performedRirReceipt,performedStepWhy,performedValues,performedPair,performedHistoryRows};
 };
