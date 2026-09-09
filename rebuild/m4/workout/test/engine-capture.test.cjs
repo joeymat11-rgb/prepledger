@@ -21,6 +21,7 @@ test('actual engine targets and per-set plan loads produce a validated complete 
  assert.deepEqual(slots.map(s=>JSON.parse(s.effort.source_json).target),engine.rirPlan(input.state,card).plan);
  assert.deepEqual(slots.map(s=>s.logical_set_slot),[JSON.stringify([card.id,1]),JSON.stringify([card.id,2])]);
  assert.equal(out.layout.correspondence_profile,PROFILE);assert.deepEqual(out.layout.slots.slice(0,2).map(s=>s.position),[1,2]);
+ assert.deepEqual(adapter.readLayout(out.capture),out.layout);
  assert(slots.every(s=>s.confidence.state==='unknown'));assert.deepEqual(input,before);
 });
 test('original layout reconstruction requires the complete original engine input and exact capture',async()=>{
@@ -42,6 +43,7 @@ test('clock-dependent alarm reconstruction uses the held original engine while c
  assert.deepEqual(captured.capture.slots.slice(0,2).map(s=>JSON.parse(s.effort.source_json).target),[2,1]);
  assert.throws(()=>current.adapter.resolveLayout({start,originalInput:original.input}),{code:'ENGINE_CAPTURE_ORIGINAL_DISAGREEMENT'},'Old day string cannot override the wrong injected clock');
  assert.deepEqual(original.adapter.resolveLayout({start,originalInput:original.input}),captured.layout);
+ assert.deepEqual(current.adapter.readLayout(start.prescription_capture),captured.layout,'Captured facts need neither original engine replay nor the current clock');
  const currentInput={...structuredClone(original.input),day:laterDay,basis:{...original.input.basis,source_revision:2}};
  const today=current.adapter.prepare(currentInput);assert.deepEqual(today.capture.slots.slice(0,2).map(s=>JSON.parse(s.effort.source_json).target),[2,0]);
  assert.deepEqual(original.input,originalBefore);assert.deepEqual(original.adapter.resolveLayout({start,originalInput:original.input}),captured.layout);
@@ -83,21 +85,22 @@ test('a rest day has no invented workout capture',async()=>{
  assert.throws(()=>adapter.prepare(input),{code:'ENGINE_CAPTURE_NO_WORKOUT'});
 });
 
-test('actual Start/correction/reopen resolves captured positions by reconstructing ORIGINAL engine inputs',async t=>{
+test('actual Start/correction/reopen reads registered captured positions without a second original-state store',async t=>{
  const {engine,adapter,input,prescriptionCapture,parseStrictJson}=await fixture(),load=p=>import(pathToFileURL(path.join(w6,p)));
+ input.state.sessionLog={}; // Explicit native-only fixture; no imported rows are discarded.
  const [{fixture:store,initial,config,O,createT2Stage},{createDurablePublicClient},{projectWorkoutRecords}]=await Promise.all([
   load('rebuild/m3/w6/test/support.mjs'),load('rebuild/m3/w6/public-client.mjs'),load('rebuild/m4/workout/project-history.mjs')]);
  const Sign=require(path.join(w6,'rebuild/m3/w5/crypto.cjs')),Commands=require(path.join(w6,'rebuild/m4/workout/commands.cjs'));
  const {webcrypto}=require('node:crypto'),{createEngineHistoryProjector}=require('../engine-history.cjs');
  const key=Sign.generateSigningKey('synthetic-engine-capture'),lease=Sign.signLease({...O.lease('dev-A'),schema_version:2},key),f=await store();t.after(()=>f.repo.close());
  const g=initial();g.metadata.authorityLease=lease;await f.repo.initialize(g,'synthetic-enrollment-only');
- // This test-owned immutable source map is explicit setup, NOT the missing
- // production import/controller or a trusted metadata/capture claim.
- const originals=new Map(),args={repository:f.repo,stage:createT2Stage(config,{allowInbound:true,workoutCommands:Commands.createWorkoutCommands({prescriptionCapture})}),
+ // Current engine inputs are synthetic. Historical layout comes only from the
+ // exact captured operation through the real authenticated history reader.
+ const args={repository:f.repo,stage:createT2Stage(config,{allowInbound:true,workoutCommands:Commands.createWorkoutCommands({prescriptionCapture})}),
   namespace:f.setup.namespace,athleteId:'ath-1',deviceId:'dev-A',sessionEpoch:1,isCurrentSession:x=>x===1,observationEpoch:()=>1,
   observationGuard:{run:async(_kind,fn)=>fn()},validateCommit:()=>null,keys:[Sign.publicKeyOf(key)],schemaVersion:2,crypto:webcrypto,prescriptionCapture,workoutProducerIdentity:producer,
   resolveWorkoutBasis:()=>({plan_basis:input.basis.plan_basis,input_basis:input.basis.input_basis,causal_parents:[]}),
-  workoutProducer:(_generation,context)=>{const original={...structuredClone(input),basis:context.basis};originals.set(context.basis.source_revision,structuredClone(original));return adapter.prepare(original).capture;}};
+  workoutProducer:(_generation,context)=>adapter.prepare({...structuredClone(input),basis:context.basis}).capture};
  const c=createDurablePublicClient(args),p=await c.prepareWorkout({planned_split_slot_id:'synthetic-upper'});assert(p.prepared,p.code);
  const started=await c.startPreparedWorkout({preparedId:p.preparedId});assert(started.acknowledged,started.code);
  const slot=p.view.slots[0],set=await c.execute('workout',{action:'set',input:{session_start_op_id:started.op_id,logical_set_slot:slot.logical_set_slot,lift_lineage_id:slot.lift_lineage_id,load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'at_least',value:3,unit:'rep'}}});assert(set.acknowledged,set.code);
@@ -106,8 +109,35 @@ test('actual Start/correction/reopen resolves captured positions by reconstructi
  input.state.exercises[0].w=60;input.state.exercises[0].sets=3; // Later plan cannot reconstruct the original capture.
  const fresh=await f.fresh();t.after(()=>fresh.repository.close());const read=await createDurablePublicClient({...args,repository:fresh.repository}).readWorkoutHistory();assert(read.read,read.code);
  const snapshot=await fresh.repository.load(),mapper=createEngineHistoryProjector({athleteId:'ath-1',deviceId:'dev-A',parseStrictJson,projectWorkoutRecords,
-  resolveCapturedLayout:({start})=>adapter.resolveLayout({start,originalInput:originals.get(start.prescription_capture.basis.source_revision)})});
+  resolveCapturedLayout:({start})=>adapter.readLayout(start.prescription_capture)});
  const facts=mapper.project(read.history,snapshot.generation,{sourceRevision:snapshot.revision}),entry=facts.sessions[0].record.entries.find(e=>e.lift_lineage_id===slot.lift_lineage_id);
  assert.equal(engine.sessionScore(entry),360);assert.equal(entry.slots.length,2);assert.equal(entry.slots[1].state,'unlogged');assert.equal(entry.slots[0].fact.original.reps.value,8);
  assert.deepEqual(entry.slots[0].fact.edit_op_ids,[corrected.op_id]);assert.deepEqual(read.history.sessions[0].original,p.view);
+ let seenFacts;
+ const next=createDurablePublicClient({...args,repository:fresh.repository,
+  resolveWorkoutBasis:()=>({plan_basis:'synthetic-current-plan',input_basis:'synthetic-current-input',causal_parents:[close.op_id,corrected.op_id]}),
+  projectWorkoutHistory:({history,generation,source_revision})=>mapper.project(history,generation,{sourceRevision:source_revision}),
+  workoutProducer:(_generation,context)=>{
+   seenFacts=structuredClone(context.workoutFacts);
+   return adapter.prepare({...structuredClone(input),state:{...structuredClone(input.state),workoutFacts:context.workoutFacts},basis:context.basis}).capture;
+  }});
+ const current=await next.prepareWorkout({planned_split_slot_id:'synthetic-next-upper'});assert(current.prepared,current.code);
+ assert.equal(seenFacts.sessions[0].record.entries[0].slots[0].fact.current.reps.value,9);
+ assert.equal(current.view.slots.filter(s=>s.lift_lineage_id===slot.lift_lineage_id).length,3);
+ assert.deepEqual(JSON.parse(current.view.slots[0].load.source_json),{value:60,unit:'lb'});
+ const nextStart=await next.startPreparedWorkout({preparedId:current.preparedId});assert(nextStart.acknowledged,nextStart.code);
+ const final=await f.fresh();t.after(()=>final.repository.close());const finalRead=await createDurablePublicClient({...args,repository:final.repository}).readWorkoutHistory();assert(finalRead.read,finalRead.code);
+ assert.deepEqual(finalRead.history.sessions.find(s=>s.start.operation.op_id===started.op_id).original,p.view);
+ assert.deepEqual(finalRead.history.sessions.find(s=>s.start.operation.op_id===nextStart.op_id).original,current.view);
+});
+test('registered capture interpretation rejects a foreign producer, tuple mismatch, repeated lift block and malformed effort',async()=>{
+ const {adapter,input}=await fixture(),{capture}=adapter.prepare(input);
+ for(const mutate of [c=>{c.producer.app_build='other-build';},c=>{c.slots[1].logical_set_slot='arbitrary-id';},
+  c=>{c.slots=[c.slots[0],c.slots[2],c.slots[1],c.slots[3]];},c=>{c.slots[0].effort.source_json='{"target":2,"unit":"rep","extra":1}';}]){
+  const changed=structuredClone(capture);mutate(changed);assert.throws(()=>adapter.readLayout(changed));
+ }
+ let invoked=0;const getter=structuredClone(capture);Object.defineProperty(getter,'basis',{enumerable:true,get(){invoked++;return capture.basis;}});
+ assert.throws(()=>adapter.readLayout(getter),{code:'ENGINE_CAPTURE_PROFILE_INVALID'});assert.equal(invoked,0);
+ const spelling=structuredClone(capture);spelling.slots[0].effort.source_json=' { "unit": "rep", "target": 2.00 } ';
+ const before=JSON.stringify(spelling);assert.deepEqual(adapter.readLayout(spelling),adapter.readLayout(capture));assert.equal(JSON.stringify(spelling),before,'Original instruction spelling/order stays unchanged');
 });

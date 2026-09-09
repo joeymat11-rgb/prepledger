@@ -65,6 +65,25 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
   if(!same(result.capture,start.prescription_capture))fail('ENGINE_CAPTURE_ORIGINAL_DISAGREEMENT');
   return result.layout;
  }
- return Object.freeze({prepare,resolveLayout});
+ function readLayout(originalCapture){
+  // Interpret only this exact registered producer's already authenticated
+  // original capture. This is format meaning, not engine execution attestation.
+  // Do not read a getter while obtaining the context for the shared validator.
+  const basis=Object.getOwnPropertyDescriptor(originalCapture||{},'basis');
+  if(!basis||!Object.hasOwn(basis,'value'))fail('ENGINE_CAPTURE_PROFILE_INVALID');
+  const capture=prescriptionCapture.prepare(originalCapture,{producer,basis:basis.value});
+  const slots=[],closed=new Set();let lift=null,position=0;
+  for(const slot of capture.slots){
+   if(slot.lift_lineage_id!==lift){if(lift!==null)closed.add(lift);lift=slot.lift_lineage_id;position=0;if(closed.has(lift))fail('ENGINE_CAPTURE_PROFILE_INVALID');}
+   position++;
+   if(slot.logical_set_slot!==JSON.stringify([lift,position])||slot.effort.state!=='specified')fail('ENGINE_CAPTURE_PROFILE_INVALID');
+   // Shared capture preparation already applied the configured strict parser.
+   const effort=JSON.parse(slot.effort.source_json);
+   if(!effort||Object.keys(effort).length!==2||effort.unit!=='rep'||!Number.isSafeInteger(effort.target)||effort.target<0||Object.is(effort.target,-0))fail('ENGINE_CAPTURE_PROFILE_INVALID');
+   slots.push({logical_set_slot:slot.logical_set_slot,lift_lineage_id:lift,position,prescribed_effort:{state:'specified',target:effort.target}});
+  }
+  return {profile:'earned/captured-lift-layout/v1',producer:copy(capture.producer),basis:copy(capture.basis),correspondence_profile:PROFILE,slots};
+ }
+ return Object.freeze({prepare,resolveLayout,readLayout});
 }
 module.exports={createEngineWorkoutCapture,PROFILE};
