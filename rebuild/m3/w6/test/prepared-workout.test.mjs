@@ -36,6 +36,61 @@ async function setup(options={}){
 const prepare=f=>f.c.prepareWorkout({planned_split_slot_id:'synthetic-slot'});
 const start=(f,p,extra={})=>f.c.startPreparedWorkout({preparedId:p.preparedId,...extra});
 const operations=async f=>(await f.repo.load()).generation.collections.ops||{};
+const recreate=f=>createDurablePublicClient({...f.args,repository:f.repo});
+const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_op_id:id,completion_kind:'early',causal_parents:[id]}});
+test('fresh client cannot create another prepared Start over an unresolved durable workout',async()=>{
+ let lose=true;const f=await setup({wrapRepository:repo=>({...repo,async commit(...args){const r=await repo.commit(...args);if(lose){lose=false;throw new Error('synthetic lost reply');}return r;}})});
+ try{const p=await prepare(f),lost=await start(f,p);assert.equal(lost.outcomeUnknown,true);f.c.retireWorkoutPreparations();
+ const before=await f.repo.load(),fresh=await f.fresh();try{
+ const c=createDurablePublicClient({...f.args,repository:fresh.repository});
+ const next=await c.prepareWorkout({planned_split_slot_id:'another-slot'});
+ assert.equal(next.prepared,undefined);assert.equal(next.code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED');
+ assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+test('confirmed Start also requires history reconciliation after recreating the client',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true);
+ const before=await f.repo.load(),r=await recreate(f).prepareWorkout({planned_split_slot_id:'another-slot'});
+ assert.equal(r.code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('a matching durable close allows the next preparation without rewriting the original',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f));const ended=await close(f,a.op_id);assert.equal(ended.acknowledged,true,JSON.stringify(ended));
+ const original=(await operations(f))[a.op_id],c=recreate(f),p=await c.prepareWorkout({planned_split_slot_id:'next-slot'});assert.equal(p.prepared,true);
+ const next=await c.startPreparedWorkout({preparedId:p.preparedId});assert.equal(next.acknowledged,true);assert.notEqual(next.op_id,a.op_id);
+ assert.deepEqual((await operations(f))[a.op_id],original);
+ }finally{f.repo.close();}
+});
+test('a rejected close cannot unlock a new Start',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),ended=await close(f,a.op_id);assert.equal(ended.acknowledged,true);
+ const s=await f.repo.load();s.generation.collections.rejected={[ended.op_id]:{op_id:ended.op_id}};await f.repo.commit(s,s.generation,()=>null);
+ assert.equal((await recreate(f).prepareWorkout({planned_split_slot_id:'next-slot'})).code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED');
+ }finally{f.repo.close();}
+});
+test('another workout close does not close the current Start',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f));await close(f,a.op_id);
+ f.c=recreate(f);const b=await start(f,await prepare(f));assert.equal(b.acknowledged,true);
+ const repeated=await close(f,a.op_id);assert.equal(repeated.acknowledged,true);
+ assert.equal((await recreate(f).prepareWorkout({planned_split_slot_id:'next-slot'})).code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED');
+ }finally{f.repo.close();}
+});
+test('two client instances prepared on one generation can durably start only once',async()=>{
+ const f=await setup();try{const c=recreate(f),[p,q]=await Promise.all([prepare(f),c.prepareWorkout({planned_split_slot_id:'another-slot'})]);
+ assert.equal(p.prepared,true);assert.equal(q.prepared,true);
+ const results=await Promise.all([start(f,p),c.startPreparedWorkout({preparedId:q.preparedId})]);
+ assert.equal(results.filter(r=>r.acknowledged===true).length,1);assert.equal(Object.keys(await operations(f)).length,1);
+ assert.equal((await recreate(f).prepareWorkout({planned_split_slot_id:'next-slot'})).code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED');
+ }finally{f.repo.close();}
+});
+test('receipt-only workout history is not mistaken for an empty local session list',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),s=await f.repo.load(),op=s.generation.collections.ops[a.op_id];
+ s.generation.collections.ops={};s.generation.collections.outbox={};s.generation.collections.meta.checkpoint.counts={ops:0,outbox:0};
+ s.generation.collections.receipts={1:{seq:1,op}};await f.repo.commit(s,s.generation,()=>null);
+ const r=await recreate(f).prepareWorkout({planned_split_slot_id:'next-slot'});
+ assert.equal(r.code,'WORKOUT_HISTORY_RECONCILIATION_REQUIRED');
+ }finally{f.repo.close();}
+});
 test('prepared actual Start stores the displayed original in one T2 batch and encrypted generation',async()=>{
  const f=await setup();try{
   const before=await f.repo.load(),p=await prepare(f);assert.equal(p.prepared,true);assert.deepEqual(await f.repo.load(),before);

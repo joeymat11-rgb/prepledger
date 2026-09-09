@@ -38,7 +38,9 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId}) {
       if(prepared?.prepared!==true||!nonblank(prepared.preparedId)){
         status.textContent=prepared?.state===17?'Sign-in or installation recovery is required before preparing this workout.':
           prepared?.state===18?'Stored information needs recovery before instructions can be shown.':
+          prepared?.state===19?'A rejected update needs recovery before starting another workout.':
           prepared?.state===20?'Reconnect through the host to restore the write allowance before preparing this workout.':
+          prepared?.code==='WORKOUT_HISTORY_RECONCILIATION_REQUIRED'?'A saved workout needs to be recovered before starting another. No new workout was created.':
           'Instructions could not be prepared. Return to the host to resolve the current plan or recovery state.';
         return {mounted:false,code:prepared?.code||'WORKOUT_PREPARATION_UNAVAILABLE',state:prepared?.state};
       }

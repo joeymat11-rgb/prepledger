@@ -4,6 +4,7 @@ import { StorageFailure } from "./repository.mjs";
 import { createCandidateGrant } from "./candidate-grant.mjs";
 import Canonical from "../../authority/canonical.cjs";
 import { verifyHistoricalHead, sameRecordedValue } from "./history-proof.mjs";
+import WorkoutSchema from "../../m4/workout/schema.cjs";
 const copy = value => structuredClone(value);
 const refusal = (state, code, reason) => ({ stored: false, durable: false, state, code, reason });
 const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment recovery.", 18: "Stored truth needs recovery before it can be used.",
@@ -84,6 +85,33 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     ...(["WORKOUT_START_OUTCOME_UNRESOLVED", "WORKOUT_START_UNRESOLVED"].includes(code) ? { outcomeUnknown: true } : {}),
     copy: "Start not confirmed. Your input is retained; resolve the indicated condition before trying again." });
   const capturedStart = context => context.batch?.operations?.some(op => op.kind === "session-start" && Object.hasOwn(op, "prescription_capture")) === true;
+  function workoutHistoryFailure(generation) {
+    // Negative guard over authenticated retained facts, not a resume projection or
+    // permission to ignore another device/legacy history. No instance-local flag
+    // can substitute for this read after reload. The existing revision+token CAS
+    // binds the preparation to this exact generation through durable Start.
+    const ops = generation.collections.ops || {}, rejected = generation.collections.rejected || {};
+    const needsHistory = () => ({ ...workoutRefusal("WORKOUT_HISTORY_RECONCILIATION_REQUIRED"),
+      copy: "A saved workout needs to be recovered before starting another. No new workout was created." });
+    const closedAfter = new Map();
+    for (const op of Object.values(ops)) if (op.kind === "session-close" && op.athlete_id === athleteId &&
+      op.device_id === deviceId && !rejected[op.op_id] && WorkoutSchema.validateWorkoutShape(op).valid)
+      closedAfter.set(op.session_start_op_id, Math.max(closedAfter.get(op.session_start_op_id) || 0, op.device_seq));
+    for (const receipt of Object.values(generation.collections.receipts || {})) {
+      const op = receipt.op;
+      if (op?.kind === "session-start" && (!ops[op.op_id] || !sameRecordedValue(ops[op.op_id], op))) return needsHistory();
+    }
+    for (const start of Object.values(ops)) {
+      if (start.kind !== "session-start") continue;
+      if (start.athlete_id !== athleteId) return { ...needsHistory(), state: 18 };
+      if (rejected[start.op_id]) return { ...needsHistory(), state: 19 };
+      // Legacy/other-device history needs the separately qualified projection;
+      // missing legacy capture is not itself corrupt storage (state 18).
+      if (start.device_id !== deviceId || start.schema_version !== 2) return needsHistory();
+      if (!(closedAfter.get(start.op_id) > start.device_seq)) return needsHistory();
+    }
+    return null;
+  }
   function workoutFailure(context) {
     if (!captureEnabled || context.command !== "workout" || context.args?.action !== "start")
       return capturedStart(context) ? workoutRefusal("WORKOUT_PREPARATION_REQUIRED") : null;
@@ -173,6 +201,8 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (typeof input.planned_split_slot_id !== "string" || !input.planned_split_slot_id.trim()) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
       const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null);
       if (!candidate.view || candidate.result?.state) return { ...candidate.result, acknowledged: false };
+      const historyFailure = workoutHistoryFailure(snapshot.generation);
+      if (historyFailure) return historyFailure;
       const scope = copy(candidate.context);
       const resolved = closedInput(resolveWorkoutBasis(copy(snapshot.generation), copy(input)), ["plan_basis", "input_basis", "causal_parents"]);
       const parents = copy(resolved.causal_parents);

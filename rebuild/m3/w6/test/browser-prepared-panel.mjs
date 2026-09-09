@@ -89,7 +89,10 @@ try{
    handle.dispose();ok(root.children.length===0,'dispose removes old content');
    const retry=W.mountPreparedWorkoutPanel(root,{client:f.client,plannedSplitSlotId:'synthetic-slot'});
    ok((await retry.ready).code==='WORKOUT_HOST_RECONCILIATION_REQUIRED'&&!root.querySelector('button'),'same-client remount cannot duplicate unresolved/active workout');retry.dispose();
-   f.repo.close();const fresh=await W.openRepository(f.setup);ok(JSON.stringify(await fresh.load())===JSON.stringify(after),'exact encrypted generation reopens');fresh.close();
+   f.repo.close();const fresh=await W.openRepository(f.setup);ok(JSON.stringify(await fresh.load())===JSON.stringify(after),'exact encrypted generation reopens');
+   const reloaded=W.mountPreparedWorkoutPanel(root,{client:W.createDurablePublicClient({...f.args,repository:fresh}),plannedSplitSlotId:'synthetic-slot'});
+   ok((await reloaded.ready).code==='WORKOUT_HISTORY_RECONCILIATION_REQUIRED'&&!root.querySelector('button')&&root.textContent.includes('saved workout needs to be recovered'),'fresh client mount refuses duplicate Start from actual retained workout');
+   ok(JSON.stringify(await fresh.load())===JSON.stringify(after)&&f.produced()===1,'reload refusal changes neither stored facts nor original prescription');reloaded.dispose();fresh.close();
    const lost=await fixture(true),lh=W.mountPreparedWorkoutPanel(root,{client:lost.client,plannedSplitSlotId:'synthetic-slot'});await lh.ready;submit();
    await wait(()=>root.querySelector('.wcp-status').textContent.startsWith('Saved'));
    ok(lost.writes()===1&&lost.produced()===1&&Object.keys((await lost.repo.load()).generation.collections.ops).length===1,'lost reply reconciles one actual disk Start without rebuild/write');
@@ -110,8 +113,8 @@ try{
  await page.locator('.prepared-original summary').press('Enter');
  assert.equal(await page.locator('.prepared-original').evaluate(x=>x.open),false);
  await page.screenshot({path:join(artifacts,'actual-prepared-panel.png'),fullPage:true});
- const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,20);assert.deepEqual(errors,[]);
+ const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,22);assert.deepEqual(errors,[]);
  for(const input of built.inventory)assert.equal(createHash('sha256').update(readFileSync(join(source,input.path))).digest('hex'),input.sha256,'source changed during proof');
  writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
- console.log('PREPARED PANEL PASS — 20 native lifecycle checks plus keyboard original-instructions disclosure; actual prepared Start/Set/next, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing and encrypted reopen; synthetic producer/guard, not phone/qualified prescription');
+ console.log('PREPARED PANEL PASS — 22 native lifecycle checks plus keyboard original-instructions disclosure; actual prepared Start/Set/next, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen and fresh-client duplicate refusal; synthetic producer/guard, not phone/qualified prescription');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}
