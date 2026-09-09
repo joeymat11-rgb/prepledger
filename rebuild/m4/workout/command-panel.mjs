@@ -33,6 +33,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-status { order:5; min-height:1.5em; padding:16px 0; font-weight:500; }
     .workout-command-panel[aria-busy=true] .wcp-status { color:#5A5348; }
     .workout-command-panel .wcp-next { order:6; margin-bottom:20px; }
+    .workout-command-panel .wcp-finish { order:6; margin-bottom:20px; }
     .workout-command-panel .wcp-skip,.workout-command-panel .wcp-close { display:grid; gap:12px; padding:18px 0; border-top:1px solid #D8D0C2; }
     .workout-command-panel .wcp-skip button,.workout-command-panel .wcp-close button { min-height:44px; padding:10px 0; width:auto; justify-self:start; border:0; border-radius:0; background:transparent; color:#1C1B18; font-weight:500; text-decoration:underline; text-decoration-color:#9B9284; text-underline-offset:5px; }
     .workout-command-panel .wcp-skip button:disabled,.workout-command-panel .wcp-close button:disabled { color:#6F6759; text-decoration-color:#D8D0C2; }
@@ -78,6 +79,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   for (const text of ['', ...skipReasons]) { const option = el('option', text || 'Choose a reason'); option.value = text; skipReason.append(option); }
   skipLabel.append(skipReason); const skipButton = el('button', 'Skip this set'); skipButton.type = 'submit'; skipForm.append(skipLabel, skipButton);
   const nextButton = el('button', 'Next'); nextButton.type = 'button';
+  const finishButton=el('button','Finish workout');finishButton.type='button';finishButton.className='wcp-finish';
   const closeForm = el('form'), closeLabel = el('label', 'End this workout'), closeChoice = el('select'); closeChoice.name = 'closeChoice';
   for (const [value, text] of [['', 'Keep this workout open'], ['early', 'Finish early']]) { const option = el('option', text); option.value = value; closeChoice.append(option); }
   closeLabel.append(closeChoice); const closeButton = el('button', 'Finish early'); closeButton.type = 'submit'; closeForm.append(closeLabel, el('p', 'Logged facts stay recorded. Remaining work stays not logged.'), closeButton);
@@ -93,9 +95,9 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   skipForm.className = 'wcp-skip'; closeForm.className = 'wcp-close'; readback.className = 'wcp-readback';
   // End appearance-only classes.
   const disclosure =
-    el('p', extended ? 'Synthetic workout entries for this visit only. Original instructions, when available, are supplied separately by the host. Refresh and resume and corrected history still need host support. Only early finish is available here; recorded or skipped entries do not establish that a training plan was fully performed.' : 'This visit records one start and one set. Refresh and resume, saved workout instructions, more sets and finishing a workout still need support from the host app.');
+    el('p', extended ? 'Synthetic workout entries for this visit only. Original instructions, when available, are supplied separately by the host. Refresh and resume and corrected history still need host support. Finish is explicit; recorded or skipped entries do not establish that a training plan was fully performed.' : 'This visit records one start and one set. Refresh and resume, saved workout instructions, more sets and finishing a workout still need support from the host app.');
   panel.append(style, el('p', 'Synthetic demonstration'), title, ...(extended ? [progress] : []), startForm, setForm, status,
-    ...(extended ? [lastRecord, nextButton, options, readback] : []), disclosure);
+    ...(extended ? [lastRecord, nextButton, finishButton, options, readback] : []), disclosure);
   root.append(panel);
   let disposed = false, pending = false, startId = null, finished = false, recovery = false, index = 0, slotDone = false;
   const acknowledgedEvents = []; // Only exact requests acknowledged in this mount; never a history projection.
@@ -122,6 +124,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     if (extended) {
       for (const control of [skipReason, skipButton]) control.disabled = blocked || slotDone;
       nextButton.hidden = !slotDone || index === slots.length - 1; nextButton.disabled = blocked || !slotDone;
+      finishButton.hidden=!slotDone||index!==slots.length-1||finished;finishButton.disabled=blocked||!slotDone;
       closeChoice.disabled = closeButton.disabled = blocked;
       progress.textContent = `Set entry ${index + 1} of ${slots.length}${slotDone ? ' — action recorded' : finished ? ' — not logged' : ''}`;
     }
@@ -164,7 +167,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
         if (!nonblank(result.op_id)) { recovery = true; tell('Start was acknowledged, but its reference is unavailable. Return to the host for recovery.'); return; }
         startId = result.op_id; tell('Saved — start recorded on this device. Enter the set you performed.');
       } else if (!extended) { finished = true; tell('Saved — set logged on this device. This demonstration is complete.'); }
-      else if (action === 'close') { finished = true; tell('Saved — workout ended early on this device. Remaining work stays not logged.'); }
+      else if (action === 'close') { finished = true; tell(entered.completion_kind==='normal'?'Saved — workout finished on this device. Recorded and skipped entries stay distinct.':'Saved — workout ended early on this device. Remaining work stays not logged.'); }
       else {
         slotDone = true;
         tell(action === 'skip' ? 'Saved — this set was explicitly skipped. No repetitions were recorded.' : 'Saved — set logged on this device.');
@@ -173,7 +176,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
         acknowledgedEvents.push({ action, input: entered, op_id: nonblank(result.op_id) ? result.op_id : null });
         let summary;
         if (action === 'start') summary = 'Workout start recorded.';
-        else if (action === 'close') summary = 'Workout ended early. Remaining work is not logged.';
+        else if (action === 'close') summary = entered.completion_kind==='normal'?'Workout finished. Recorded and skipped entries stay distinct.':'Workout ended early. Remaining work is not logged.';
         else if (action === 'skip') summary = `${displayLabel}: skipped — ${entered.reason}.`;
         else {
           const effort = entered.reserve;
@@ -232,12 +235,17 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     if (closeChoice.value !== 'early') { tell('Choose early finish to end this workout. Remaining work will stay not logged.'); options.open = true; closeChoice.focus(); return; }
     void execute('close', { session_start_op_id: startId, completion_kind: 'early' });
   };
+  const onFinish=()=>{
+    if(!extended||disposed||!valid||pending||recovery||finished||!startId||!slotDone||index!==slots.length-1)return;
+    void execute('close',{session_start_op_id:startId,completion_kind:'normal'});
+  };
   startForm.addEventListener('submit', onStart); setForm.addEventListener('submit', onSet);
-  if (extended) { skipForm.addEventListener('submit', onSkip); nextButton.addEventListener('click', onNext); closeForm.addEventListener('submit', onClose); }
+  if (extended) { skipForm.addEventListener('submit', onSkip); nextButton.addEventListener('click', onNext); finishButton.addEventListener('click',onFinish);closeForm.addEventListener('submit', onClose); }
   const handle = { dispose() {
     if (disposed) return;
     disposed = true; startForm.removeEventListener('submit', onStart); setForm.removeEventListener('submit', onSet);
     skipForm.removeEventListener('submit', onSkip); nextButton.removeEventListener('click', onNext); closeForm.removeEventListener('submit', onClose);
+    finishButton.removeEventListener('click',onFinish);
     panel.remove(); if (mounted.get(root) === handle) mounted.delete(root);
     // No cancellation: an already issued durable operation can still complete.
   } };

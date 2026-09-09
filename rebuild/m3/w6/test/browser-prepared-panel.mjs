@@ -114,6 +114,19 @@ try{
    const blocked=W.mountPreparedWorkoutPanel(root,{client:late.client,plannedSplitSlotId:'synthetic-slot'});ok((await blocked.ready).mounted===false,'post-disposal issued Start requires host reconciliation');blocked.dispose();late.repo.close();
    const signedOut=await fixture(),refused=W.mountPreparedWorkoutPanel(root,{client:W.createDurablePublicClient({...signedOut.args,isCurrentSession:()=>false}),plannedSplitSlotId:'synthetic-slot'});
    ok((await refused.ready).state===17&&root.textContent.includes('Sign-in')&&!root.querySelector('button')&&signedOut.produced()===0,'known standing loss keeps instructions and Start unavailable with named recovery');refused.dispose();signedOut.repo.close();
+   const normal=await fixture(),normalHost=W.mountPreparedWorkoutPanel(root,{client:normal.client,plannedSplitSlotId:'synthetic-slot'});await normalHost.ready;submit();await wait(()=>root.querySelector('.wcp-status').textContent.startsWith('Saved'));
+   const finish=root.querySelector('.wcp-finish');finish.dispatchEvent(new Event('click'));
+   ok(finish.hidden&&normal.writes()===1,'normal Finish unavailable before recorded entries and never commits implicitly');
+   for(let i=0;i<3;i++){
+    if(i===1){root.querySelector('.wcp-options summary').click();root.querySelector('[name=skipReason]').value='Time';root.querySelector('.wcp-skip').requestSubmit();await wait(()=>root.querySelector('.wcp-status').textContent.includes('explicitly skipped'));}
+    else{root.querySelector('[name=load]').value=String(40+i);root.querySelector('[name=reps]').value='8';root.querySelector('.wcp-entry').requestSubmit();await wait(()=>root.querySelector('.wcp-status').textContent.includes('set logged'));}
+    if(i<2)root.querySelector('.wcp-next').click();
+   }
+   ok(!finish.hidden&&!finish.disabled&&normal.writes()===4,'two actual Sets and one Skip expose explicit Finish without a hidden Close');
+   const finishHold=holdWrite();finish.click();await finishHold.entered;
+   ok(root.querySelector('.wcp-status').textContent==='Saving…'&&finish.disabled,'normal Finish waits for actual IndexedDB completion');finishHold.release();await wait(()=>root.querySelector('.wcp-status').textContent.includes('workout finished'));
+   finish.dispatchEvent(new Event('click'));const finalStore=await normal.repo.load(),normalHistory=await normal.client.readWorkoutHistory(),closes=Object.values(finalStore.generation.collections.ops).filter(x=>x.kind==='session-close');
+   ok(closes.length===1&&closes[0].payload.completion_kind==='normal'&&normal.writes()===5&&normal.produced()===1&&normalHistory.history.sessions[0].projection.facts.length===2&&normalHistory.history.sessions[0].projection.skipped_record_ids.length===1&&normalHistory.history.sessions[0].projection.close_records[0].kind==='normal','normal Finish persists once and preserves performed versus skipped history');normalHost.dispose();normal.repo.close();
    return checks;
   };
   return checks;
@@ -151,7 +164,7 @@ try{
  await page.getByRole('button',{name:'Finish early',exact:true}).click();
  assert.equal(await page.evaluate(()=>document.activeElement.name),'closeChoice');assert((await page.locator('.wcp-status').textContent()).includes('Choose early finish'));
  presentation.push('early-close confirmation stays visible and focuses the real choice');
- const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,28);assert.deepEqual(errors,[]);
+ const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,32);assert.deepEqual(errors,[]);
  const observer=await page.evaluate(async()=>{
   const W=await import('/app.js'),root=document.querySelector('#root'),seen=[];
   const selection={planned_split_slot_id:'AD_HOC',plan_basis:'NO_ACCEPTED_PLAN',logical_set_slot:'one',lift_lineage_id:'same',label:'Same label'};
@@ -173,5 +186,5 @@ try{
  writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,presentation,observerChecks:observer,activeLayouts:['390/16','320/16','390/32','320/32'],browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
  console.log('UI DISCLOSURES PASS — '+presentation.length+' native presentation checks; keyboard, correction focus, saved-only feedback and blank performed fields');
  console.log('ACTIVE SLOT PASS — 5 actual prepared-display checks + 7 controlled observer checks; exact slot identity, frozen original values, no prefill/write, blocked advancement and failed-display refusal');
- console.log('PREPARED PANEL PASS — 28 native lifecycle/display/history checks plus keyboard original-instructions disclosure; actual prepared Start/Set/next, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen, fresh-client duplicate refusal and original-fact recovery; synthetic producer/guard, not phone/qualified prescription');
+ console.log('PREPARED PANEL PASS — 32 native lifecycle/display/history checks plus keyboard original-instructions disclosure; actual prepared Start/multiple Sets/Skip/normal Finish, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen and original-fact recovery; synthetic producer/guard, resume still unqualified');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

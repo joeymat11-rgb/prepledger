@@ -39,6 +39,77 @@ const start=(f,p,extra={})=>f.c.startPreparedWorkout({preparedId:p.preparedId,..
 const operations=async f=>(await f.repo.load()).generation.collections.ops||{};
 const recreate=f=>createDurablePublicClient({...f.args,repository:f.repo});
 const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_op_id:id,completion_kind:'early',causal_parents:[id]}});
+const perform=(f,id,slot='slot-0')=>f.c.execute('workout',{action:'set',input:{session_start_op_id:id,logical_set_slot:slot,lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'}}});
+const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct',input:{target_op_id:target,lift_lineage_id:'same-lineage',replacement_fields:fields,...(parents?{causal_parents:parents}:{})}});
+
+for(const changed of ['producer','basis','performed','correction'])test(`resealed local ${changed} substitution cannot become original or corrected history`,async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),edit=await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});
+ const s=await f.repo.load(),ops=s.generation.collections.ops;
+ if(changed==='producer')ops[a.op_id].prescription_capture.producer.app_build='different-synthetic-build';
+ if(changed==='basis')ops[a.op_id].prescription_capture.basis.input_basis='different-synthetic-basis';
+ if(changed==='performed')ops[set.op_id].payload.reps.value=12;
+ if(changed==='correction')ops[edit.op_id].payload.replacement_fields.reps.value=12;
+ // A storage-key holder can reseal a generation, but has not reproduced the
+ // identity commitment made by the actual committer. Neither key is exported.
+ await f.repo.commit(s,s.generation,()=>null);const before=await f.repo.load();
+ const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.state,18);assert.equal(r.code,'LOCAL_HISTORY_IDENTITY_UNPROVEN');assert.equal(r.history,undefined);
+ assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+
+for(const identityKey of [undefined,'different-synthetic-identity'])test(`unavailable matching local identity key refuses history (${identityKey===undefined?'missing':'changed'})`,async()=>{
+ const f=await setup();try{await start(f,await prepare(f));const before=await f.repo.load();
+ const stage=createT2Stage(()=>({...config(),identityKey}),{allowInbound:true,workoutCommands:f.commands});
+ const r=await createDurablePublicClient({...f.args,stage}).readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.state,18);assert.equal(r.code,'LOCAL_HISTORY_IDENTITY_UNPROVEN');assert.equal(r.history,undefined);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+test('exact server-signed history remains readable without the original local identity key',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),op=(await operations(f))[a.op_id];
+ const receipt=Sign.signReceipt({seq:1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey);
+ const pull=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:0,through:1,receipts:[receipt],wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey);
+ assert.equal((await f.c.acceptResponse('pull',{wireVersion:Wire.WIRE_VERSION,body:pull})).accepted,true);const before=await f.repo.load();
+ const stage=createT2Stage(()=>({...config(),identityKey:'different-synthetic-current-identity'}),{allowInbound:true,workoutCommands:f.commands});
+ const r=await createDurablePublicClient({...f.args,stage}).readWorkoutHistory();assert.equal(r.read,true,JSON.stringify(r));assert.equal(r.history.sessions[0].start.status,'accepted-through-frontier');assert.deepEqual(r.history.sessions[0].original,op.prescription_capture);assert.deepEqual(await f.repo.load(),before);
+ const keyless=createT2Stage(()=>({...config(),identityKey:undefined}),{allowInbound:true,workoutCommands:f.commands});
+ const missing=await createDurablePublicClient({...f.args,stage:keyless}).readWorkoutHistory();assert.equal(missing.read,false);assert.equal(missing.state,18);assert.equal(missing.history,undefined);
+ }finally{f.repo.close();}
+});
+test('actual reference-only first correction projects without fabricating a causal edge or rewriting its original',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),edit=await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});assert.equal(edit.acknowledged,true);
+ const before=await f.repo.load();assert.deepEqual(before.generation.collections.ops[edit.op_id].causal_parents,[]);
+ const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true);const p=r.history.sessions[0].projection,fact=p.facts[0];
+ assert.equal(fact.original.reps.value,8);assert.equal(fact.current.reps.value,9);assert.equal(fact.current.load.value,42.5);assert.equal(Object.hasOwn(fact.current,'reserve'),false);
+ assert.deepEqual(fact.edit_op_ids,[edit.op_id]);assert.equal(fact.included,true);assert.equal(p.progression_eligible,false);assert.equal(p.continuation_allowed,false);
+ assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+test('actual causal edit chain and removal preserve originals and unrelated sets after reopen',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),other=await perform(f,a.op_id,'slot-1');
+ const c1=await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}}),c2=await editSet(f,set.op_id,{load:{value:45,unit:'lb'}},[c1.op_id]);
+ const c3=await editSet(f,set.op_id,{reserve:{tag:'at_least',value:3,unit:'rep'}},[c2.op_id]);assert.equal(c3.acknowledged,true);
+ let r=await recreate(f).readWorkoutHistory(),fact=r.history.sessions[0].projection.facts.find(x=>x.source_op_id===set.op_id);
+ assert.deepEqual(fact.current,{load:{value:45,unit:'lb'},reps:{value:9,unit:'rep'},reserve:{tag:'at_least',value:3,unit:'rep'}});assert.deepEqual(fact.edit_op_ids,[c1.op_id,c2.op_id,c3.op_id]);
+ const removed=await f.c.execute('workout',{action:'remove',input:{target_op_id:set.op_id,lift_lineage_id:'same-lineage',reason:'Mistaken set',causal_parents:[c3.op_id]}});assert.equal(removed.acknowledged,true);
+ const before=await f.repo.load();r=await recreate(f).readWorkoutHistory();const facts=r.history.sessions[0].projection.facts;fact=facts.find(x=>x.source_op_id===set.op_id);
+ assert.equal(fact.included,false);assert.equal(fact.original.reps.value,8);assert.equal(fact.current.reps.value,9);assert(fact.edit_op_ids.includes(removed.op_id));
+ assert.equal(facts.find(x=>x.source_op_id===other.op_id).included,true);assert.equal(facts.find(x=>x.source_op_id===other.op_id).current.reps.value,8);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('transport succession cannot silently resolve competing corrections in either stored arrival order',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id);await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});await editSet(f,set.op_id,{reps:{value:10,unit:'rep'}});
+ const read=async()=>{const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true);const fact=r.history.sessions[0].projection.facts[0];assert.equal(fact.current,null);assert.equal(fact.included,null);assert.deepEqual(fact.issues,['CONCURRENT_EDIT_INTERPRETATION_REQUIRED']);};
+ await read();const s=await f.repo.load();s.generation.collections.ops=Object.fromEntries(Object.entries(s.generation.collections.ops).reverse());await f.repo.commit(s,s.generation,()=>null);const before=await f.repo.load();await read();assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('colliding set records stay separate and a targeted removal cannot remove the other attempt',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),one=await perform(f,a.op_id),two=await perform(f,a.op_id);
+ let r=await recreate(f).readWorkoutHistory();let facts=r.history.sessions[0].projection.facts;assert.equal(facts.length,2);assert(facts.every(x=>x.issues.includes('SET_SLOT_RESOLUTION_REQUIRED')));
+ assert.equal((await f.c.execute('workout',{action:'remove',input:{target_op_id:one.op_id,lift_lineage_id:'same-lineage',reason:'Duplicate entry'}})).acknowledged,true);
+ r=await recreate(f).readWorkoutHistory();facts=r.history.sessions[0].projection.facts;assert.equal(facts.find(x=>x.source_op_id===one.op_id).included,false);
+ assert.equal(facts.find(x=>x.source_op_id===two.op_id).included,true);assert.deepEqual(facts.find(x=>x.source_op_id===two.op_id).issues,[]);assert.equal(r.history.continuation.allowed,false);
+ }finally{f.repo.close();}
+});
 test('fresh client recovers exact original workout and stored Set/edit/Skip/Close facts without a new Start or producer',async()=>{
  const f=await setup();try{
  const a=await start(f,await prepare(f)),set=await f.c.execute('workout',{action:'set',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-0',lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'at_least',value:3,unit:'rep'},causal_parents:[a.op_id]}});assert.equal(set.acknowledged,true);

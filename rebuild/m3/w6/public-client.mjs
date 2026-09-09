@@ -46,7 +46,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     if (result.durableRevision) visibleEpoch = activeContext?.observationEpoch ?? null;
     return result;
   }
-  async function verifiedHistory(generation) {
+  async function verifiedHistory(generation, signedOperationIds = null) {
     const families = generation.metadata.wireProofs || {};
     const methods = { disposition: "verifyDisposition", pull: "verifyPull", snapshot: "verifySnapshot", lease: "verifyLease", time: "verifyServerTime", currentHead: "verifyCurrentHead" };
     for (const [kind, records] of Object.entries(families)) {
@@ -56,6 +56,11 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       for (const record of Object.values(records)) {
         if (kind === "currentHead") {
           if (!await verifyHistoricalHead(verifier, record, athleteId, deviceId)) return false;
+          if (signedOperationIds) for (const receipt of record.receipts) {
+            const retained = generation.collections.ops?.[receipt.op_id];
+            if (!retained || !sameRecordedValue(retained, receipt.op)) return false;
+            signedOperationIds.add(receipt.op_id);
+          }
           continue;
         }
         if (!await verifier[method](record)) return false;
@@ -74,6 +79,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
             // still exist exactly in the authenticated operation collection.
             const retained = generation.collections.ops?.[receipt.op_id];
             if (!retained || !sameRecordedValue(retained, receipt.op)) return false;
+            signedOperationIds?.add(receipt.op_id);
           }
         }
       }
@@ -146,11 +152,12 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
         (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
   }, stage: stageVerified });
-  async function stageVerified(generation, command, args) {
+  async function stageVerified(generation, command, args, { authenticateLocalHistory = false } = {}) {
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
-    if (!await verifiedHistory(generation)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
+    const signedOperationIds = authenticateLocalHistory ? new Set() : null;
+    if (!await verifiedHistory(generation, signedOperationIds)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
     if (command === "@currentHead") {
       if (!activeHead || historyAttempt !== activeHead || epoch !== activeHead.observationEpoch)
         throw new StorageFailure("CURRENT_HEAD_BASIS_CHANGED", 18);
@@ -177,7 +184,8 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       try { sample = permissionNowIso(); } catch { sample = undefined; }
       config.permissionNowIso = () => sample;
     }
-    const candidate = copy(stage(generation, command, args, { config, record: activeProof?.record, proof: activeProof?.proof }));
+    const candidate = copy(stage(generation, command, args, { config, record: activeProof?.record, proof: activeProof?.proof,
+      ...(signedOperationIds ? { historyAuthentication: { signedOperationIds: [...signedOperationIds] } } : {}) }));
     // The configured/verifying schema is not evidence of the actual writer's schema.
     // Inspect the immutable candidate before any sealing, durable write or Saved.
     if (candidate.result?.acknowledged === true && candidate.commit?.kind === "local-operation" &&
@@ -348,7 +356,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
           // Validate/assemble privately before T2 consumes indexes. Nothing is
           // returned until the same snapshot passes signature/standing checks.
           const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
-          const candidate=await stageVerified(copy(snapshot.generation),null,null);
+          const candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true});
           if(!candidate.view||candidate.result?.state)return {...candidate.result,read:false};
           const changed=contextFailure(candidate.context.observationEpoch);if(changed)return {...changed,read:false};
           const latest=await repository.load(),lastFailure=contextFailure(candidate.context.observationEpoch);

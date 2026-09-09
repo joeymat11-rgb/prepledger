@@ -1,10 +1,12 @@
 import Schema from './schema.cjs';
 import {sameRecordedValue} from '../../m3/w6/history-proof.mjs';
+import {projectWorkoutRecords} from './project-history.mjs';
 
 // Assembled privately from an authenticated generation. The public client must
 // verify the same snapshot's historical signatures/standing before exposing it.
-// This recovers original facts, NOT a correction/liveness fold,
-// current authority head, active-workout selection or permission to continue.
+// This retains original facts and attaches only the nonconcurrent set-edit
+// projection. It supplies no full liveness/partition fold, current authority
+// head, active-workout selection or permission to continue.
 export function storedWorkoutHistory(generation,{athleteId,deviceId,prescriptionCapture}) {
   const fail=code=>{const e=new Error(code);e.state=18;e.code=code;throw e;};
   const c=generation.collections,ops=c.ops||{},indexes=c.receipts||{},proofs=new Map();
@@ -55,6 +57,7 @@ export function storedWorkoutHistory(generation,{athleteId,deviceId,prescription
     if(!session)fail('WORKOUT_START_REFERENCE_UNPROVEN');
     session.records.push(row);
   }
+  for(const session of sessions)session.projection=projectWorkoutRecords(session,ops);
   // No timestamp/arrival sort pretends to resolve causality or competing edits.
   return {frontier:W,sessions,interpretation:'original-facts-and-edits-unfolded',
     continuation:{allowed:false,reason:'CURRENT_SAFETY_AND_COMPLETE_HISTORY_REQUIRED'}};

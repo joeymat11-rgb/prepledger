@@ -2,6 +2,7 @@
 /* Actual T2 runs against an isolated memory backend. Browser crypto is resolved only
    by the declared build boundary; optional trusted integration never substitutes a committer. */
 const Client = require("../../client/index.cjs");
+const Ops = require("../../client/ops.cjs");
 const {createWorkoutCommands}=require("../../m4/workout/commands.cjs");
 const workoutCommands=createWorkoutCommands();
 const clone = value => structuredClone(value);
@@ -31,6 +32,26 @@ function createT2Stage(configProvider, { allowInbound = false, workoutCommands: 
     const config = configProvider(clone(generation.metadata));
     let prepared = null;
     const trusted = allowInbound && integration ? integration : {};
+    // The public boundary has verified these exact signed records. Everything
+    // else read as local history must still match the existing identity HMAC;
+    // authenticated storage alone cannot establish an immutable operation.
+    if (integration?.historyAuthentication) {
+      const signed = new Set(trusted.historyAuthentication?.signedOperationIds || []);
+      // T2 still needs its configured current identity for construction. Signed
+      // old records do not need to match that current key; unproved old local
+      // records require recovery of their matching identity before this read.
+      let verified = allowInbound && !!trusted.historyAuthentication && typeof config.identityKey === "string" && !!config.identityKey;
+      try {
+        for (const [id, op] of Object.entries(generation.collections.ops || {})) {
+          if (signed.has(id)) continue;
+          if (!op || id !== op.op_id || op.athlete_id !== config.athleteId || op.device_id !== config.deviceId ||
+              typeof config.identityKey !== "string" || !config.identityKey ||
+              Ops.commitmentOf(op, config.identityKey) !== op.canonical_content_commitment) { verified = false; break; }
+        }
+      } catch { verified = false; }
+      if (!verified) return { generation: clone(generation), result: { acknowledged: false, state: 18,
+        code: "LOCAL_HISTORY_IDENTITY_UNPROVEN", copy: Client.copy.RESTORE_REQUIRED }, view: null };
+    }
     const observe = config.onPreparedBatch;
     // No transport is installed: this slice must not observe inbound authority facts.
     const client = Client.createClient({ ...config, ...trusted.config, backend, transport: undefined, workoutCommands: selectedWorkoutCommands,
