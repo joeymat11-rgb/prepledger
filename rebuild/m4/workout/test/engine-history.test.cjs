@@ -149,3 +149,44 @@ test('detached source records, altered current values and omitted operations can
  const foreign=createEngineHistoryProjector({...f.dependencies,athleteId:'other-athlete'});
  assert.throws(()=>foreign.project(s.history,s.generation,{sourceRevision:s.sourceRevision}),{code:'WORKOUT_ENGINE_SCOPE_DISAGREEMENT'});
 });
+
+test('actual preparation passes reopened corrected facts through the host into the proposed real reader',async t=>{
+ const f=await fixture({terminal:'skipped'});t.after(()=>f.repo.close());
+ const p=await f.client.prepareWorkoutEdit({target_op_id:f.setIds[1]});assert(p.prepared,p.code);
+ const changed=await f.client.commitWorkoutEdit({editId:p.editId,action:'correct',change:{load:{value:25,unit:'lb'}}});assert(changed.acknowledged,changed.code);
+ const {createDurablePublicClient}=await load('rebuild/m3/w6/public-client.mjs'),fresh=await f.fresh();t.after(()=>fresh.repository.close());
+ let projected=0,basisFacts,producerFacts;
+ const c=createDurablePublicClient({...f.args,repository:fresh.repository,
+  projectWorkoutHistory:({history,generation,source_revision})=>{projected++;return f.mapper.project(history,generation,{sourceRevision:source_revision});},
+  resolveWorkoutBasis:(g,input,context)=>{basisFacts=structuredClone(context.workoutFacts);const close=Object.values(g.collections.ops).find(op=>op.kind==='session-close');
+   return {...f.args.resolveWorkoutBasis(g,input),causal_parents:[close.op_id,changed.op_id]};},
+  workoutProducer:(g,context)=>{producerFacts=structuredClone(context.workoutFacts);const out=f.args.workoutProducer(g,context);
+   const entry=context.workoutFacts.sessions[0].record.entries[0],E=engine();
+   // Exercise the real affected reader inside the actual configured callback;
+   // this is a synthetic factual explanation, not a qualified prescription.
+   out.session.reason={state:'specified',display:'Synthetic recorded accounting: '+E.sessionScore(entry),source_json:JSON.stringify({accounting:E.sessionScore(entry),effort:E.rirReceipt(entry)})};return out;}});
+ const before=await fresh.repository.load(),prepared=await c.prepareWorkout({planned_split_slot_id:'synthetic-next-slot'});
+ assert(prepared.prepared,prepared.code);assert.equal(projected,1);assert.deepEqual(basisFacts,producerFacts);
+ assert.equal(producerFacts.source_revision,before.revision);assert.equal(producerFacts.sessions[0].record.entries[0].slots[1].fact.original.load.value,35);
+ assert.deepEqual(producerFacts.sessions[0].record.entries[0].slots[1].fact.edit_op_ids,[changed.op_id]);
+ assert.deepEqual(JSON.parse(prepared.view.session.reason.source_json),{accounting:495,effort:'RIR at least 3→skipped'});
+ assert.deepEqual(await fresh.repository.load(),before,'Preparation projects without a write');
+ const started=await c.startPreparedWorkout({preparedId:prepared.preparedId});assert(started.acknowledged,started.code);
+ const reopened=await f.fresh();t.after(()=>reopened.repository.close());const reread=await createDurablePublicClient({...f.args,repository:reopened.repository}).readWorkoutHistory();assert(reread.read,reread.code);
+ assert.equal(reread.history.sessions.length,2);const next=reread.history.sessions.find(s=>s.start.operation.op_id===started.op_id);
+ assert.deepEqual(next.original,prepared.view,'Next Start keeps the exact history-based prepared capture after reopen');
+ const old=reread.history.sessions.find(s=>s.start.operation.op_id===f.start.op_id);
+ assert.equal(old.projection.facts.find(x=>x.source_op_id===f.setIds[1]).current.load.value,25);
+});
+
+test('actual resume policy receives full open facts without inserting them into the completed reader',async t=>{
+ const f=await fixture({open:true});t.after(()=>f.repo.close());const {createDurablePublicClient}=await load('rebuild/m3/w6/public-client.mjs');let policyFacts;
+ const c=createDurablePublicClient({...f.args,
+  projectWorkoutHistory:({history,generation,source_revision})=>f.mapper.project(history,generation,{sourceRevision:source_revision}),
+  workoutResumePolicy:(_g,context)=>{policyFacts=context.workoutFacts;return {allowed_actions:['set','skip','close'],reason:'Synthetic current policy',
+   current_capture:{...structuredClone(context.original),producer:context.producer,basis:context.basis}};}});
+ const prepared=await c.prepareWorkoutContinuation({session_start_op_id:f.start.op_id});assert(prepared.prepared,prepared.code);
+ assert.equal(policyFacts.sessions.length,0);assert.equal(policyFacts.incomplete_sessions[0].start_op_id,f.start.op_id);
+ assert.deepEqual(policyFacts.incomplete_sessions[0].record.entries[0].slots[0].fact.current.reserve,bound);
+ assert.equal(engine().performedHistoryRows({sessionLog:{},workoutFacts:policyFacts}).length,0);
+});
