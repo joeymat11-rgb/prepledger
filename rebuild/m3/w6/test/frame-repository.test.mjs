@@ -270,7 +270,7 @@ test("full-pair CAS: effective comparison omission fails behavior; byte-restored
   const scratch = mkdtempSync(join(here, ".tmp/frame-cas-mutant-"));
   assert(resolve(scratch).startsWith(resolve(here, ".tmp") + sep), "disposable directory must remain inside this worktree");
   try {
-    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs"]) cpSync(join(here, file), join(scratch, file));
+    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs", "import-custody.mjs"]) cpSync(join(here, file), join(scratch, file));
     const copy = join(scratch, "frame-repository.mjs");
     writeFileSync(copy, original.toString("utf8").replace(needle, ""));
     const changed = await import(pathToFileURL(copy).href + "?cas-omitted"), row = casCases.find(item => item.slot === "previous" && item.field === "frameNonce");
@@ -303,7 +303,7 @@ test("effective disposable frame mutations detect partial charging and omitted p
   for (const [name, needle] of [["partial-charge", "fields.U !== (p.basis?.frame.U || 0) + p.batch.count || "], ["predecessor-compare", "!sameBytes(active.previousRecordDigest, expected) || "]]) {
     assert.equal(original.split(needle).length, 2); const scratch = mkdtempSync(join(here, ".tmp/frame-mutant-"));
     try {
-      for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs"]) cpSync(join(here, file), join(scratch, file));
+      for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs", "import-custody.mjs"]) cpSync(join(here, file), join(scratch, file));
       writeFileSync(join(scratch, "frame-repository.mjs"), original.replace(needle, "")); const changed = await import(pathToFileURL(join(scratch, "frame-repository.mjs")));
       const f = await fixture({ factory: changed.openFrameRepository }), a = await staged(f);
       if (name === "partial-charge") {
@@ -505,7 +505,7 @@ test("repository key window: effective omitted window permits forbidden durable 
   assert(resolve(scratch).startsWith(resolve(here, ".tmp") + sep));
   const copy = join(scratch, "frame-format.mjs");
   try {
-    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs"]) cpSync(join(here, file), join(scratch, file));
+    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs", "import-custody.mjs"]) cpSync(join(here, file), join(scratch, file));
     writeFileSync(copy, original.toString("utf8").replace(needle, ""));
     const changed = await import(pathToFileURL(join(scratch, "frame-repository.mjs")).href), f = await windowFixture(changed.openFrameRepository);
     try {
@@ -524,7 +524,7 @@ test("repository key window: effective omitted window permits forbidden durable 
     // graph; changing only the repository URL would retain mutated format cache.
     const restoredDir = join(scratch, "restored");
     mkdirSync(restoredDir);
-    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs"]) cpSync(join(here, file), join(restoredDir, file));
+    for (const file of ["frame-repository.mjs", "frame-format.mjs", "frame-crypto.mjs", "strict-json.mjs", "repository.mjs", "recovery-stage.mjs", "import-custody.mjs"]) cpSync(join(here, file), join(restoredDir, file));
     const restored = await import(pathToFileURL(join(restoredDir, "frame-repository.mjs")).href);
     await runWindowContract(restored.openFrameRepository);
     console.log(`W6 FRAME WINDOW RESTORED — exact integrated boundary contract; format SHA256 ${sha(original)}; repository SHA256 ${sha(source)}`);

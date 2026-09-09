@@ -1,5 +1,9 @@
 # W6 v1.1 — browser storage, recovery and bounded offline saving
 
+## Active local import custody amendment — September9
+
+Under the current owner-workout/controller brief and M4 spec/IMPORT-CONTROLLER-v1.md atcf56b90, the W6 candidate now adds named inactive encrypted source/checkpoint custody to the existing generations store. See REPORT-W6-ASTRA.md's current section for exact API, local profile, source pins and executed evidence. This is an implementation candidate awaiting the coherent independent review, not an accepted wire/storage/recovery profile. No T2, issuer, authority inventory, P1 wire encoding or active-state format changes are included. The local custody record is separate from rotating active/previous and provides no activation, consent, export coverage, K1 or rollback verdict. All original broader gates remain; actual accepted source/activation and full recovery coverage are next. This section narrows the current edit scope; it grants no private port, merge or release permission.
+
 ## 0. Authority, purpose and scope
 
 For the owner: this work makes “Saved” mean the entry and its sending queue finished saving together. After the app restarts without internet, the allowance remains **24 observed hours and 64 new operation slots since its last reconciled connection**, whichever runs out first. A weigh-in uses one slot; a multi-part action can use several. Reopening does not refill the allowance. At the limit, or after a detected clock rollback invalidates that allowance, the app keeps the entered values and asks you to reconnect. The recorded rollback default is refusal until reconnect; the owner may override it.

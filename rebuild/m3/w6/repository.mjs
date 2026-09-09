@@ -1,4 +1,5 @@
 import { createRecoveryStage } from './recovery-stage.mjs';
+import { createImportCustody } from './import-custody.mjs';
 const FORMAT = 1;
 const STORE = "generations";
 const clone = value => structuredClone(value);
@@ -146,15 +147,23 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
       tx.onerror = () => {};
     });
   }
+  async function loadActive() {
+    const { active } = await readRecords();
+    if (active === undefined) throw new StorageFailure("STORE_MISSING", 18);
+    return unseal(active);
+  }
   return {
+    importCustody({parseStrictJson,validateContext}={}) {
+      return createImportCustody({db,namespace,crypto,key,loadActive,parseStrictJson,validateContext,StorageFailure,
+        activeToken(record) {
+          if (!validRecord(record,namespace)) throw new StorageFailure('STORED_INTEGRITY_UNPROVEN',18);
+          return token(record);
+        }});
+    },
     recovery({protocol,codec,verificationKeys,validateContext,keyRange=globalThis.IDBKeyRange}={}) {
       return createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,keyRange,StorageFailure});
     },
-    async load() {
-      const { active } = await readRecords();
-      if (active === undefined) throw new StorageFailure("STORE_MISSING", 18);
-      return unseal(active);
-    },
+    load: loadActive,
     async initialize(generation, evidence) {
       let allowed = false;
       try { allowed = typeof authorizeEnrollment === "function" && await authorizeEnrollment(evidence, { namespace, databaseName }); }

@@ -14,6 +14,7 @@ test("required disposable early-ack bite is effective and restored byte-for-byte
   const dir = fs.mkdtempSync(path.join(scratch, "early-ack-"));
   fs.copyFileSync(path.join(root, "repository.mjs"), path.join(dir, "repository.mjs"));
   fs.copyFileSync(path.join(root, "recovery-stage.mjs"), path.join(dir, "recovery-stage.mjs"));
+  fs.copyFileSync(path.join(root, "import-custody.mjs"), path.join(dir, "import-custody.mjs"));
   const target = path.join(dir, "bridge.mjs"); fs.writeFileSync(target, source);
   const old = "const commit = await repository.commit(snapshot, candidate.generation, () => validateCommit(context));";
   const replacement = "const pending = repository.commit(snapshot, candidate.generation, () => validateCommit(context)); pending.catch(() => {}); const commit = { revision: -1, durability: { actual: 'not-complete' } };";
