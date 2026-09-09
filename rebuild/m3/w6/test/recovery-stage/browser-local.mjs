@@ -15,8 +15,9 @@ try{
  await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});
  const lease=(await runtime.bridge.enrollScoped('subject-first',{intent_id:'native-local',schema_version:1,nonce:P.hash('synthetic','native-local')})).payload.issuance.lease;
  const other=(await runtime.bridge.enrollScoped('subject-first',{intent_id:'native-other',schema_version:1,nonce:P.hash('synthetic','native-other')})).payload.issuance.lease;
- const remote=require('../../client/ops.cjs').build({op_id:'synthetic-native-other',athlete_id:'first',device_id:other.device_id,device_seq:1,parents:[],kind:'fact',class:'reading',lease_id:other.lease_id,effective:{local_date:'2026-09-06',local_time:'08:00',utc_offset:'-04:00'},payload:{lb:{value:174,unit:'lb'}}},runtime.identityKeys.first);
+ const remote=require('../../client/ops.cjs').build({op_id:'synthetic-native-other',athlete_id:'first',device_id:other.device_id,device_seq:1,parents:[],kind:'plan-mutation',class:'plan',lease_id:other.lease_id,effective:{local_date:'2026-09-06',local_time:'08:00',utc_offset:'-04:00'},payload:null,plan:{domain:'protein',members:[{field:'protein_g',value:155,unit:'g/day',provenance:'athlete_edited'}]}},runtime.identityKeys.first);
  assert.equal((await runtime.bridge.invokeScoped('subject-first',other.device_id,'admit',['first',remote])).status,'ACCEPTED');
+ const expectedSourceState=await runtime.bridge.invokeScoped('subject-first',other.device_id,'planState',['first','protein']);
  const key=S.publicKeyOf(runtime.authorityKey),scopeDigest=C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:lease.device_id});
  const buildDir=await mkdtemp(join(tmpdir(),'earned-local-browser-build-')),entry=join(buildDir,'entry.mjs'),outfile=join(buildDir,'browser.js');
  await writeFile(entry,`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {createDurablePublicClient} from ${JSON.stringify(join(root,'public-client.mjs'))};import T2 from ${JSON.stringify(join(root,'t2-stage.cjs'))};import Client from ${JSON.stringify(resolve(root,'../../client/index.cjs'))};import {createRowsRecovery,createRowsFetcher} from ${JSON.stringify(join(root,'recovery-transport.mjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};import P from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};window.LocalTest={openRepository,createDurablePublicClient,T2,Client,createRowsRecovery,createRowsFetcher,C,P};`);
@@ -28,7 +29,7 @@ try{
  }res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta charset=utf-8><script type=module src=/bundle.js></script>');}catch{res.statusCode=500;res.end('synthetic harness failed');}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));browser=await chromium.launch({headless:true,executablePath:process.env.W6_BROWSER_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
  const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);
- const checks=await page.evaluate(async({lease,key,scopeDigest,identityKey,remote})=>{
+ const checks=await page.evaluate(async({lease,key,scopeDigest,identityKey,remote,expectedSourceState})=>{
   const {openRepository,createDurablePublicClient,T2,Client,createRowsRecovery,createRowsFetcher,C,P}=window.LocalTest,checks=[];
   const ok=(condition,name)=>{if(!condition)throw Error(name);checks.push(name);};
   const aes=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
@@ -45,6 +46,9 @@ try{
   ok(pending[0].action==='TERMINAL_EVIDENCE'&&pending[1].action==='RETAIN_UNACKNOWLEDGED','native comparison distinguishes accepted and unsent');ok(JSON.stringify(pending.map(x=>x.original))===JSON.stringify(ops),'native exact originals retained');ok(JSON.stringify(await repo.load())===JSON.stringify(before),'native active generation and both outbox entries untouched');
   const proof=await result.evidence.archiveProof();
   const assembled=await result.evidence.assemble();let assembledCopy;await assembled.inspect(x=>{assembledCopy=x;});
+  let sourcePlan;await assembled.inspectSourcePlan(x=>{sourcePlan=x;});
+  ok(assembled.sourcePlanProjected&&C.fullEqual(sourcePlan.plan,{protein_g:155})&&C.fullEqual(sourcePlan.domains.protein,expectedSourceState)&&sourcePlan.W===2,'native recovered source plan and public HMAC commitments match actual authority');
+  sourcePlan.plan.protein_g=999;await assembled.inspectSourcePlan(x=>{sourcePlan=x;});ok(sourcePlan.plan.protein_g===155,'native source-plan inspection cannot mutate retained projection');
   ok(assembled.assembled&&assembled.projectionPending&&!assembled.complete&&!assembled.activated&&!assembled.checkpoint,'native actual assembler remains inactive with plan projection pending');
   ok(Object.keys(assembledCopy.collections.outbox).length===1&&C.fullEqual(assembledCopy.collections.outbox[ops[1].op_id],before.generation.collections.outbox[ops[1].op_id]),'native candidate retains exact unacknowledged entry and drains only accepted entry');
   ok(C.fullEqual(assembledCopy.collections.ops[remote.op_id],remote)&&ops.every(op=>C.fullEqual(assembledCopy.collections.ops[op.op_id],op)),'native candidate imports exact foreign accepted original and preserves local originals');
@@ -74,9 +78,9 @@ try{
   ok((await consumer.prepareLocalRecovery()).prepared,'native fresh public client authenticates foreign-device original from archive');
   const held=await final.load();ok(JSON.stringify(held.generation.collections.ops[remote.op_id])===JSON.stringify(remote),'native historical foreign-device bytes remain exact');
   ok(JSON.stringify(held.generation.collections.outbox)===JSON.stringify(baseline.generation.collections.outbox),'native historical authentication preserves every pending local entry');
-  const changed=structuredClone(held.generation);changed.collections.ops[remote.op_id].payload.lb.value=999;await final.commit(held,changed);const corrupted=await final.load();
+  const changed=structuredClone(held.generation);changed.collections.ops[remote.op_id].members[0].value=999;await final.commit(held,changed);const corrupted=await final.load();
   const refused=await createDurablePublicClient({...args,repository:final}).prepareLocalRecovery();ok(!refused.prepared&&refused.state===18&&refused.code==='RECOVERY_ARCHIVE_ORIGINAL_CHANGED','native changed original cannot borrow historical proof');
   ok(JSON.stringify(await final.load())===JSON.stringify(corrupted),'native historical refusal publishes nothing');final.close();return checks;
- },{lease,key,scopeDigest,identityKey:runtime.identityKeys.first,remote});
- assert.equal(checks.length,29);const out=await mkdtemp(join(tmpdir(),'earned-native-local-recovery-'));await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['synthetic standing and test proxy authentication','actual inactive base assembler; plan projection/activation still pending','historical reopen phase uses separate synthetic recovered-generation fixture','desktop browser, not owner phones','no activation, checkpoint or production knowledge-loss policy']},null,2));console.log('LOCAL RECOVERY NATIVE PASS — 29 checks; actual public client, IndexedDB, P1/D1 HTTP, inactive candidate, historical authentication and changed-original refusal');console.log('Evidence '+out);
+ },{lease,key,scopeDigest,identityKey:runtime.identityKeys.first,remote,expectedSourceState});
+ assert.equal(checks.length,31);const out=await mkdtemp(join(tmpdir(),'earned-native-local-recovery-'));await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['synthetic standing and test proxy authentication','actual inactive base assembler; plan projection/activation still pending','historical reopen phase uses separate synthetic recovered-generation fixture','desktop browser, not owner phones','no activation, checkpoint or production knowledge-loss policy']},null,2));console.log('LOCAL RECOVERY NATIVE PASS — 31 checks; actual public client, IndexedDB, P1/D1 HTTP, inactive candidate, historical authentication and changed-original refusal');console.log('Evidence '+out);
 }finally{await browser?.close();if(server)await new Promise(r=>server.close(r));await runtime.close();}

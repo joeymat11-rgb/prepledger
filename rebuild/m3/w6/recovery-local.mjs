@@ -78,12 +78,16 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
           if(claim.outcome==='ENVELOPE_MISMATCH')fail('RECOVERY_EXPLICIT_RESTORE_REQUIRED');
           if(claim.outcome==='IDENTITY_CONFLICT')fail('RECOVERY_IDENTITY_CONFLICT');
         });
-        const proof=await archiveProof(),summary=await profile.summary();
+        const proof=await archiveProof(),summary=await profile.summary(),sourcePlan=await profile.sourcePlan();
         const candidate=await T2.prepareRecoveryProjection(saved.generation,{equal:C.fullEqual,fail,assertContext,
           operations:profile.operations,accepted:profile.accepted,W:summary.W,athleteId,archiveProof:proof});
         await check();
-        return Object.freeze({assembled:true,projectionPending:true,complete:false,activated:false,checkpoint:false,
+        return Object.freeze({assembled:true,sourcePlanProjected:true,projectionPending:true,complete:false,activated:false,checkpoint:false,
           sourceRevision:saved.revision,assertCurrent:check,
+          async inspectSourcePlan(visitor){
+            if(typeof visitor!=='function')throw TypeError('An inactive source-plan consumer is required');
+            await check();await visitor(structuredClone(sourcePlan));await check();
+          },
           async inspect(visitor){
             if(typeof visitor!=='function')throw TypeError('An inactive candidate consumer is required');
             await check();await visitor(structuredClone(candidate));await check();

@@ -1,5 +1,6 @@
 // Complete relational interpretation of an inactive rows-v3 inventory.
 // Indexed reads replace retained whole-account maps. No activation is exported.
+import RecoveryPlan from './recovery-plan.cjs';
 export function validateRecoveryProfile(args){return interpretProfile(args,false);}
 export function validateArchivedRecoveryProfile(args){return interpretProfile(args,true);}
 async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected,signal},historical){
@@ -96,6 +97,7 @@ async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,req
  const assertCurrent=async()=>{if(historical)C.fail('RECOVERY_HISTORICAL_ONLY');await assertStable();};
  return Object.freeze({profileVerified:true,complete:false,activated:false,...(historical?{historicalOnly:true}:{}),
   async summary(){await assertStable();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
+  async sourcePlan(){return RecoveryPlan.projectRecoveryPlan({initialPlan:metadata.initialPlan,each,assertStable,W:metadata.seq});},
   async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await assertStable();});}await assertStable();},
   async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await assertStable();},
   async operations(visitor){if(typeof visitor!=='function')C.fail('RECOVERY_PROFILE_VISITOR');await assertStable();await each('operations',async(_,row,original)=>visitor(row.op,row.disposition,original));await assertStable();},

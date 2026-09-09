@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {webcrypto} from 'node:crypto';
+import {webcrypto,createHash} from 'node:crypto';
+import {readFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {resolve} from 'node:path';
 import {IDBKeyRange} from 'fake-indexeddb';
@@ -13,6 +14,17 @@ if(!process.env.EARNED_ROWS_R1_ROOT)throw Error('Use the pinned recovery runner'
 const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
 const C=require('./reconciliation/codec.cjs'),P=require('./reconciliation/paged-codec.cjs'),S=require('./crypto.cjs'),Ops=require('../../client/ops.cjs');
 const hash=x=>P.hash('recovery-plan-test',x);
+
+test('browser plan reader preserves the pinned accepted pure source closure',()=>{
+ const source=readFileSync(new URL('../../../../authority/plan.cjs',import.meta.url),'utf8');
+ assert.equal(createHash('sha256').update(source).digest('hex'),'696c170f15c411ee0e7101032f6a508c7c3cb8eac4885241758c94331c01363a','accepted authority source changed: explicit requalification required');
+ const block=(start,end)=>{const a=source.indexOf(start),b=source.indexOf(end,a);assert(a>=0&&b>a);return source.slice(a,b);};
+ const declarations=['digest','basis','setField','fields'].map(name=>{const line=source.split('\n').find(l=>l.startsWith('const '+name+' ='));assert(line);return line+'\n';}).join('');
+ const closure=declarations+'\n'+block('function compareKeys(', '// All graph identities')+block('function ancestry(', 'function causalPlanParents(')+block('function projection(', 'function append(');
+ const reader=readFileSync(new URL('../../recovery-plan-reader.cjs',import.meta.url),'utf8');
+ const body=reader.slice(reader.indexOf('const digest ='),reader.lastIndexOf('return { plan, planState, planTransactions };'));
+ assert.equal(body,closure,'browser read closure differs from accepted authority');
+});
 
 test('real accepted stale conflict selection remains recoverable without inventing a plan transaction',async t=>{
  const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true});t.after(()=>runtime.close());
@@ -53,7 +65,19 @@ test('real accepted stale conflict selection remains recoverable without inventi
  const result=await createRowsRecovery(options).run();
  assert(entered,'Real complete signed inventory reaches the candidate profile');
  assert(result.evidenceReady,'Recovery of a retained non-applied selection: '+result.reason+' / '+diagnostic);
- const held=await result.evidence.assemble();await held.inspect(candidate=>{
+ const held=await result.evidence.assemble();
+ assert.equal(held.sourcePlanProjected,true);assert.equal(held.projectionPending,true);assert.equal(held.activated,false);
+ const expectedPlan=await invoke('plan'),expectedState=await invoke('planState',['protein']);
+ await held.inspectSourcePlan(projected=>{
+  assert.deepEqual(projected.plan,expectedPlan,'RECOVERY_SOURCE_PLAN_EXACT');
+  assert.deepEqual(projected.domains.protein,expectedState,'RECOVERY_SOURCE_CONFLICT_EXACT');
+  assert.equal(projected.W,3);
+  assert.deepEqual(projected.transactionIds,transactions.map(x=>x.txn_id));
+  assert(!projected.transactionIds.includes(stale.requested_transaction_id),'ACCEPTED_NO_EFFECT_IS_NOT_A_TRANSACTION');
+  projected.plan.protein_g=-1;
+ });
+ await held.inspectSourcePlan(projected=>assert.deepEqual(projected.plan,expectedPlan,'SOURCE_PLAN_INSPECTION_IS_OWNED'));
+ await held.inspect(candidate=>{
   assert.deepEqual(candidate.collections.dispositions[stale.op_id],terminal);assert.equal(candidate.collections.sync.frontier.W,3);
   assert(!Object.hasOwn(candidate.collections.outbox,stale.op_id),'Exact accepted no-effect request drains without inventing a plan effect');
   assert.equal(candidate.collections.planTxns,undefined);assert.equal(candidate.collections.plan,undefined);
@@ -65,7 +89,15 @@ test('real accepted stale conflict selection remains recoverable without inventi
    seen_conflict_basis:current.basis,chosen_alternative_commitment:current.memberSetCommitments[second.op_id]}});
  const applied=await invoke('admit',[selection]);assert.equal(applied.status,'ACCEPTED');assert.equal(applied.applied,true);assert.equal((await invoke('plan')).protein_g,165);
  const secondRecovery=await createRowsRecovery(options).run({explicitRetry:true});assert(secondRecovery.evidenceReady,secondRecovery.reason+' / '+diagnostic);
- const secondCandidate=await secondRecovery.evidence.assemble();await secondCandidate.inspect(candidate=>{
+ const secondCandidate=await secondRecovery.evidence.assemble();
+ const selectedPlan=await invoke('plan'),selectedState=await invoke('planState',['protein']);
+ await secondCandidate.inspectSourcePlan(projected=>{
+  assert.deepEqual(projected.plan,selectedPlan,'RECOVERY_APPLIED_SELECTION_EXACT');
+  assert.deepEqual(projected.domains.protein,selectedState);assert.equal(projected.W,4);
+  assert(projected.transactionIds.includes(selection.requested_transaction_id));
+  assert(!projected.transactionIds.includes(stale.requested_transaction_id));
+ });
+ await secondCandidate.inspect(candidate=>{
   assert.equal(candidate.collections.sync.frontier.W,4);assert.deepEqual(candidate.collections.dispositions[selection.op_id],applied);
   assert.deepEqual(candidate.collections.sync.snapshot,before.generation.collections.sync.snapshot);
  });assert.deepEqual(await f.repo.load(),before);
