@@ -1,6 +1,22 @@
 # ASTRA — owner workout contract preparation
 
-## v0.48 working — retained facts-to-reader construction
+## v0.49 working — executable selected reader source and truthful captured-target explanation
+
+This is nonshipping construction toward the complete private workout flow, using the same coordinator/ownership/credit limits and PRODUCT-GOALv3. Three new files under `spec/performed-proposal/` construct selected real reader replacements, the typed factual helper and executable checks. Thirteen public baseline inputs are pinned to accepted3e908d2; the retained engine, accepted artifact, frozen app/suite and seeded soak remain byte-identical. No private input is loaded. Existing accepted numeric gates are reused as historical evidence, not relabelled as a new candidate PASS.
+
+The test runs actual retained capture, shape validation and factual projection on synthetic Start/Set/Skip/Close and post-close edit/removal records. Explicit completion, original captured position and separately recorded effort target are retained. Current per-set loads feed the existing score; comparable current slots feed the existing noise arithmetic. Bound/unknown effort stays typed. Partial-terminal behavior is conditional on qualified caller eligibility, never a new permission to progress. Legacy numbers and entire reader outputs remain exact in the selected comparison matrix.
+
+    PERFORMED READER PROPOSAL native: 208 exact legacy cases; 90 rich checks; 8/8 named source sensitivities DETECTED; restored PASS
+    PERFORMED READER PROPOSAL frozen: 208 exact legacy cases; 90 rich checks; 8/8 named source sensitivities DETECTED; restored PASS
+    RETAINED PRODUCT UNCHANGED; history/producer/scientific/private/phone qualification NOT COMPLETE
+
+Reached red-first finding: `AssertionError [ERR_ASSERTION]: PERFORMED_ORIGINAL_TARGET_PROSE` when the saved terminal target differed from the reported result. Rich-only explanation now states both facts instead of falsely saying exactly-as-prescribed or inventing a failure target; numerical branch selection and legacy prose are unchanged. A preceding null-prototype object-comparison failure was a harness issue, corrected by exact before/after serialized-source comparison, and is not credited as the behavior witness. Eight deliberate source faults fail their named behavioral assertion; exact candidate reconstruction then passes. These in-memory proposed-source sensitivities are not the required eventual on-disk delivered-product bite.
+
+Seams: statuses/commitments are declared synthetic; actual retained projector correctness is exercised, but authenticated authority/HTTP, qualified producer, current-plan/effect/consent and physical storage are not supplied by this harness. Only selected readers are built; remaining downstream typed consumers, as-of/history enumeration, resolved same-day and rich/legacy correspondence, full assembly/source gates and scientific applicability need the real join. The explicit same-day unresolved case is an incomplete implementation, not an accepted ban on same-day workouts. Active unfinished logging remains separate from completed-performance qualification. No private migration/recovery or phone verdict follows.
+
+Reproduce from this checkout with `PERFORMED_W6_DIR` set to the retained W6 tree and `node rebuild/m4/spec/performed-proposal/check.cjs .tmp/performed-reader-proposal.json`. JSON records exact code pins, modes and fault hashes; log `.tmp/performed-reader-proposal.log`. Source construction/tests completed by17:01UTC September9, following the16:20UTC checkpoint; that approximately41-minute interval is wall-clock, not measured engineering or billed usage. Full app ETA and savings remain unmeasured. APM's existing resource helper is separately complete/idle at PR50 9c7cca6; its diagnostic correlation is not memory/CPU acceptance and changes no limit. NEXT: continue the qualified producer/history/caller and approved UI join in this retained stream; one affected review when concrete, no new helper campaign, owner relay or schedule. Existing integrator alone supplies the numeric component's actual ledger receipt when its authorized included route is available.
+
+## Historical v0.48 — retained facts-to-reader construction
 
 The approved PRODUCT-GOALv3/current decisions and smallest-qualified-private-release priority remain unchanged. M2-LOAD-WRITES is independently accepted at3e908d2/artifactd21fb7fa; its actual integrator receipt is pending under existing custody/credit limits. No accepted artifact/runtime or frozen suite bytes changed in this preparation. Earlier pending statements below apply to their historical snapshots, not the current component verdict.
 
