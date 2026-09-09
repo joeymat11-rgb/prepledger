@@ -97,7 +97,7 @@ export async function runExtensionDurable(page, fixture, screenshotPath) {
   await page.evaluate(async()=>{multi.originals=structuredClone((await multi.repo.load()).generation.collections.ops);});
   await page.getByRole('button',{name:'Next',exact:true}).click();await page.getByLabel('Weight (lb)',{exact:true}).fill('35');await page.getByLabel('Completed repetitions').fill('6');
   await page.getByRole('button',{name:'Log set',exact:true}).click();await page.waitForFunction(()=>document.querySelector('[role=status]').textContent.startsWith('Saved — set logged'));
-  await page.getByRole('button',{name:'Next',exact:true}).click();await page.getByLabel('Reason to skip this set').selectOption('Equipment unavailable');
+  await page.getByRole('button',{name:'Next',exact:true}).click();await page.locator('.wcp-options summary').click();await page.getByLabel('Reason to skip this set').selectOption('Equipment unavailable');
   await failed('Skip this set');assert.equal(await page.getByLabel('Reason to skip this set').inputValue(),'Equipment unavailable');await delayed('Skip this set','Saved — this set was explicitly skipped');
   await page.getByRole('button',{name:'Next',exact:true}).click();await page.getByLabel('Weight (lb)',{exact:true}).fill('20');await page.getByLabel('Completed repetitions').fill('4');await page.getByLabel('End this workout').selectOption('early');
   await failed('Finish early');assert.equal(await page.getByLabel('Weight (lb)',{exact:true}).inputValue(),'20');assert.equal(await page.getByLabel('Completed repetitions').inputValue(),'4');await delayed('Finish early','Saved — workout ended early');

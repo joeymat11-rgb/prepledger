@@ -225,7 +225,7 @@ try {
     await page.setViewportSize({width,height:844});
     const layout=await page.evaluate(size=>{
       const panel=document.querySelector('.workout-command-panel');panel.style.fontSize=size+'px';
-      const controls=[...panel.querySelectorAll('input,select,button')].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');
+      const controls=[...panel.querySelectorAll('input,select,button,summary')].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');
       return {overflow:document.documentElement.scrollWidth>innerWidth,
         controlsFit:controls.every(x=>{const r=x.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.height>=44;}),
         inputFont:parseFloat(getComputedStyle(panel.querySelector('input')).fontSize),statusRole:panel.querySelector('.wcp-status').getAttribute('role')};

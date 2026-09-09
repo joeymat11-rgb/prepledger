@@ -112,9 +112,29 @@ try{
  assert.equal(await page.locator('.prepared-original').evaluate(x=>x.open),true);
  await page.locator('.prepared-original summary').press('Enter');
  assert.equal(await page.locator('.prepared-original').evaluate(x=>x.open),false);
+ const presentation=[];
+ assert.equal(await page.locator('.wcp-start').isVisible(),false);presentation.push('acknowledged Start is retired visually');
+ const lastRecord=await page.locator('.wcp-last-record').textContent();assert(lastRecord.includes('40.5 lb × 8'));presentation.push('last acknowledged fact stays visible');
+ for(const name of ['wcp-options','wcp-readback']){
+  assert.equal(await page.locator('.'+name).evaluate(x=>x.open),false);
+  await page.locator('.'+name+' summary').focus();await page.locator('.'+name+' summary').press('Enter');
+  assert.equal(await page.locator('.'+name).evaluate(x=>x.open),true);
+  await page.locator('.'+name+' summary').press('Enter');assert.equal(await page.locator('.'+name).evaluate(x=>x.open),false);
+  presentation.push(name+' is initially collapsed and keyboard-operable');
+ }
+ await page.getByLabel('Weight (lb)',{exact:true}).fill('77');
+ assert.equal(await page.locator('.wcp-last-record').textContent(),lastRecord);await page.getByLabel('Weight (lb)',{exact:true}).fill('');
+ presentation.push('unsaved typing cannot rewrite the last acknowledged fact');
  await page.screenshot({path:join(artifacts,'actual-prepared-panel.png'),fullPage:true});
+ await page.locator('.wcp-options summary').click();await page.getByRole('button',{name:'Skip this set',exact:true}).click();
+ assert.equal(await page.evaluate(()=>document.activeElement.name),'skipReason');assert.equal(await page.locator('.wcp-options').evaluate(x=>x.open),true);
+ assert((await page.locator('.wcp-status').textContent()).includes('Choose a reason'));presentation.push('missing skip reason stays visible and focuses the real field');
+ await page.getByRole('button',{name:'Finish early',exact:true}).click();
+ assert.equal(await page.evaluate(()=>document.activeElement.name),'closeChoice');assert((await page.locator('.wcp-status').textContent()).includes('Choose early finish'));
+ presentation.push('early-close confirmation stays visible and focuses the real choice');
  const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,22);assert.deepEqual(errors,[]);
  for(const input of built.inventory)assert.equal(createHash('sha256').update(readFileSync(join(source,input.path))).digest('hex'),input.sha256,'source changed during proof');
- writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
+ writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,presentation,browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
+ console.log('UI DISCLOSURES PASS — '+presentation.length+' native presentation checks; keyboard, correction focus, saved-only feedback and blank performed fields');
  console.log('PREPARED PANEL PASS — 22 native lifecycle checks plus keyboard original-instructions disclosure; actual prepared Start/Set/next, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen and fresh-client duplicate refusal; synthetic producer/guard, not phone/qualified prescription');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

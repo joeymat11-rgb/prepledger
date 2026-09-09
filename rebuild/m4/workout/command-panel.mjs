@@ -38,7 +38,12 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-skip button,.workout-command-panel .wcp-close button { min-height:44px; padding:10px 0; width:auto; justify-self:start; border:0; border-radius:0; background:transparent; color:#1C1B18; font-weight:500; text-decoration:underline; text-decoration-color:#9B9284; text-underline-offset:5px; }
     .workout-command-panel .wcp-skip button:disabled,.workout-command-panel .wcp-close button:disabled { color:#6F6759; text-decoration-color:#D8D0C2; }
     .workout-command-panel .wcp-close p { color:#5A5348; font-size:.875em; }
-    .workout-command-panel .wcp-readback { order:9; border-top:1px solid #D8D0C2; margin-top:4px; padding-top:20px; }
+    .workout-command-panel .wcp-readback { order:9; border-top:1px solid #D8D0C2; margin-top:4px; padding-top:8px; }
+    .workout-command-panel .wcp-options { order:7; border-top:1px solid #D8D0C2; padding:8px 0; }
+    .workout-command-panel .wcp-options summary,.workout-command-panel .wcp-readback summary { box-sizing:border-box; min-height:44px; padding:10px 0; cursor:pointer; font-weight:500; }
+    .workout-command-panel .wcp-options .wcp-skip { border-top:0; }
+    .workout-command-panel .wcp-last-record { order:6; margin:0 0 18px; padding:12px 0; color:#2E5A3C; border-top:1px solid #D8D0C2; }
+    .workout-command-panel [hidden] { display:none; }
     .workout-command-panel .wcp-readback h3 { margin:0 0 8px; font-size:1.125em; font-weight:500; }
     .workout-command-panel .wcp-readback p { color:#5A5348; font-size:.875em; }
     .workout-command-panel .wcp-readback ol { margin:14px 0 0; padding-left:1.5em; }
@@ -76,8 +81,10 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   const closeForm = el('form'), closeLabel = el('label', 'End this workout'), closeChoice = el('select'); closeChoice.name = 'closeChoice';
   for (const [value, text] of [['', 'Keep this workout open'], ['early', 'Finish early']]) { const option = el('option', text); option.value = value; closeChoice.append(option); }
   closeLabel.append(closeChoice); const closeButton = el('button', 'Finish early'); closeButton.type = 'submit'; closeForm.append(closeLabel, el('p', 'Logged facts stay recorded. Remaining work stays not logged.'), closeButton);
-  const readback = el('section'); readback.setAttribute('aria-label', 'Recorded on this device during this visit');
-  const events = el('ol'); readback.append(el('h3', 'Recorded in this visit'), el('p', 'Acknowledged on this device. This list is not synced or corrected workout history.'), events);
+  const options = el('details'); options.className = 'wcp-options'; options.append(el('summary', 'Workout options'), skipForm, closeForm);
+  const readback = el('details'); readback.setAttribute('aria-label', 'Recorded on this device during this visit');
+  const events = el('ol'); readback.append(el('summary', 'Recorded in this visit'), el('p', 'Acknowledged on this device. This list is not synced or corrected workout history.'), events);
+  const lastRecord = el('p'); lastRecord.className = 'wcp-last-record'; lastRecord.hidden = true;
   // Appearance-only classes; command/state/event code remains unchanged.
   title.className = 'wcp-title'; progress.className = 'wcp-progress';
   startForm.className = 'wcp-start'; setForm.className = 'wcp-entry';
@@ -88,7 +95,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   const disclosure =
     el('p', extended ? 'Synthetic workout entries for this visit only. Original instructions, when available, are supplied separately by the host. Refresh and resume and corrected history still need host support. Only early finish is available here; recorded or skipped entries do not establish that a training plan was fully performed.' : 'This visit records one start and one set. Refresh and resume, saved workout instructions, more sets and finishing a workout still need support from the host app.');
   panel.append(style, el('p', 'Synthetic demonstration'), title, ...(extended ? [progress] : []), startForm, setForm, status,
-    ...(extended ? [nextButton, skipForm, closeForm, readback] : []), disclosure);
+    ...(extended ? [lastRecord, nextButton, options, readback] : []), disclosure);
   root.append(panel);
   let disposed = false, pending = false, startId = null, finished = false, recovery = false, index = 0, slotDone = false;
   const acknowledgedEvents = []; // Only exact requests acknowledged in this mount; never a history projection.
@@ -109,6 +116,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   title.textContent = nonblank(chosen.label) ? chosen.label : 'Workout selection required';
   const paintControls = () => {
     startButton.disabled = !valid || pending || recovery || startId !== null || finished;
+    startForm.hidden = startId !== null; // Retire only the already acknowledged Start from the visual flow.
     const blocked = !valid || pending || recovery || startId === null || finished;
     for (const control of [load, reps, reserve, setButton]) control.disabled = blocked || slotDone;
     if (extended) {
@@ -164,6 +172,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
           summary = `${displayLabel}: ${entered.load.value} lb × ${entered.reps.value} completed repetitions; ${effortText}.`;
         }
         events.append(el('li', summary));
+        if (action !== 'start') { lastRecord.textContent = 'Last recorded here: ' + summary; lastRecord.hidden = false; }
       }
     } catch {
       if (!disposed) { recovery = true; tell('Save not confirmed. Your entries remain here. Return to the host for recovery before retrying.'); }
@@ -198,7 +207,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   };
   const onSkip = event => {
     event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished || slotDone) return;
-    if (!skipReasons.includes(skipReason.value)) { tell('Choose a reason before explicitly skipping this set.'); skipReason.focus(); return; }
+    if (!skipReasons.includes(skipReason.value)) { tell('Choose a reason before explicitly skipping this set.'); options.open = true; skipReason.focus(); return; }
     void execute('skip', { session_start_op_id: startId, logical_set_slot: slot().logical_set_slot, lift_lineage_id: slot().lift_lineage_id, skip_scope: 'set', reason: skipReason.value });
   };
   const onNext = () => {
@@ -211,7 +220,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   };
   const onClose = event => {
     event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished) return;
-    if (closeChoice.value !== 'early') { tell('Choose early finish to end this workout. Remaining work will stay not logged.'); closeChoice.focus(); return; }
+    if (closeChoice.value !== 'early') { tell('Choose early finish to end this workout. Remaining work will stay not logged.'); options.open = true; closeChoice.focus(); return; }
     void execute('close', { session_start_op_id: startId, completion_kind: 'early' });
   };
   startForm.addEventListener('submit', onStart); setForm.addEventListener('submit', onSet);
