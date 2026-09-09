@@ -98,5 +98,39 @@
     "bite": "ROWS UTF8 BITE RED: actual missing decoder flush fails PAGE_TRUNCATED_UTF8_REFUSAL",
     "restoredPagedCodecSha256": "3c5d31e76e17c8ee7799508987354d256357e8dda1573ad3af9b3d520e9444e5"
   },
-  "scope": "One local server rows-v3 qualification. Not a universal allocation guarantee, controlled baseline saving, old-route acceptance, client memory, staged-profile validation/activation, phone/science/private-use approval. Mandatory regression and independent verdict recorded separately in REPORT-R1-ASTRA.md."
+  "scope": "One local server rows-v3 qualification. Not a universal allocation guarantee, controlled baseline saving, old-route acceptance, client memory, staged-profile validation/activation, phone/science/private-use approval. Mandatory regression and independent verdict recorded separately in REPORT-R1-ASTRA.md.",
+  "crossHostStatus": {
+    "sourceCommit": "34200f579dbade13c29f68e4a1375ac98c4d7ff3",
+    "review": 150,
+    "correctness": "ACCEPT",
+    "capacity": "OPEN",
+    "resourceAcceptance": false,
+    "localWindowsEvidencePreserved": true,
+    "linuxDefaultRuns": [
+      {
+        "host": "Linux",
+        "verdict": "FAIL",
+        "resourceAcceptance": false,
+        "completeAttempts": 4,
+        "requests": 159,
+        "peakObservedAllocationBytes": 114781051,
+        "ceilingBytes": 100663296,
+        "violationCount": 1
+      },
+      {
+        "host": "Linux",
+        "verdict": "FAIL",
+        "resourceAcceptance": false,
+        "completeAttempts": 4,
+        "requests": 159,
+        "peakObservedAllocationBytes": 132170224,
+        "ceilingBytes": 100663296,
+        "violationCount": 1
+      }
+    ],
+    "evidenceProvenance": "Independent terminal Review150; archive attached-only, not locally received/rehashed/replayed",
+    "archiveSha256": "b3414a32b0f36f842a76b19efa553351b042311ec3f35ea2127809db98fe0cbf",
+    "withdrawnRuns": "Wrong-function and old-route runs excluded",
+    "next": "APM retrieves existing correct-default phase/vector evidence before one bounded capacity response; no runtime/witness changes or new review"
+  }
 }

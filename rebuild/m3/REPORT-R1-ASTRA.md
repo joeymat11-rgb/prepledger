@@ -1,6 +1,14 @@
 # W5-R1 implementation — ASTRA
 
-## Current owned-row validation — local rows resource PASS, September9
+## Current Review150 — correctness ACCEPT, cross-host capacity OPEN, September9
+
+Independent Review150 accepted cumulative734986a→34200f579dbade13c29f68e4a1375ac98c4d7ff3 correctness, including37e14a5. The correct ORIGINAL DEFAULT Linux rows witness failed twice:114,781,051B and132,170,224B versus100,663,296B, one violation per run; each completed four attempts/159 requests. Windows74,900,814B remains a genuine host-local PASS only. Overall capacity is NOT QUALIFIED; source/runtime, workload, fixture, meter, ceilings and flags are unchanged.
+
+Exact342 CI was terminal7success/3skip including Windows/Linux public jobs; reviewer W5 suite287/288 included the resource failure. Initial reviewer wrong-function/old-route runs were withdrawn and earn no rows qualification or regression inference. Archive SHA256b3414a32b0f36f842a76b19efa553351b042311ec3f35ea2127809db98fe0cbf is ATTACHED ONLY, not locally received/rehashed/replayed. Existing Review150 is terminal/Idle. APM is retrieving already-produced correct-default phase/vector evidence before choosing one bounded capacity response; no new reviewer run or optional optimization is started. MEMORY-PROFILE-02 remains older-source allocation-churn evidence, not a peak/savings/leak proof.
+
+NEXT: coordinate the bounded Linux capacity response through APM while continuing retained W6 local/recovered-plan reconciliation before fresh-context activation. Preserve the full PRODUCT-GOALv3/P1–P6, approved design, first-use priority and independent/integrator/private/device gates. No runtime change, new helper/review campaign, merge or private activation.
+
+## Executed Windows owned-row validation — host-local rows resource PASS
 
 Successor to local37e14a5ea26e778e8b9f62f0bac01dd13fc7da9e, on the same retained R1 branch. The product goal is unchanged: dependable private Joe/Dad use, accurate carryover, complete workout logging and justified supported prescriptions within the coherent individualized plan. This change removes unnecessary materialization at the actual recovery boundary; it does not add a prescription, import controller or private activation.
 
@@ -33,9 +41,9 @@ Mandatory original regression completed on these exact runtime bytes (explicit f
     All checks passed. Safe to ship.
     R1-REGRESSION PASS
 
-The strict tail is the existing frozen-app gate's wording, not new-app shipping approval. No current independent acceptance/CI/integration is implied by local tests. No old `/reconcile` resource PASS, W6 memory/full-profile validation/atomic activation, phone/science/private-use qualification follows from this rows-route result. Protected-path diff against734986a is empty; frozen app, conformance, private fixtures and seeded soak unchanged. Reproduce regression with `node rebuild/m3/rigs/rig-r1.cjs --case REGRESSION --env local` after the existing AGENTS preparation.
+The strict tail is the existing frozen-app gate's wording, not new-app shipping approval. Review150 correctness acceptance and exact342 CI are recorded above; neither closes failed Linux capacity or implies integration. No old `/reconcile` resource PASS, W6 memory/full-profile validation/atomic activation, phone/science/private-use qualification follows from this rows-route result. Protected-path diff against734986a is empty; frozen app, conformance, private fixtures and seeded soak unchanged. Reproduce regression with `node rebuild/m3/rigs/rig-r1.cjs --case REGRESSION --env local` after the existing AGENTS preparation.
 
-Wall-clock: allocation candidates and gates approximately17:35–18:03UTC, including the exclusive profiler pause; final resource finished17:58:39.490UTC. This is elapsed work, not billed usage or a release ETA. NEXT: pin this passing candidate, then the existing affected independent review/integration. Resume the retained recovery-to-staged-validation/activation and complete workout integration after its actual dependencies; preserve all prior failed evidence and the full goal. No new optimization campaign, helper, provider/model/credit/schedule change, root merge or private activation.
+Wall-clock: allocation candidates and gates approximately17:35–18:03UTC, including the exclusive profiler pause; final resource finished17:58:39.490UTC. This is elapsed work, not billed usage or a release ETA. This candidate was published at34200f5 and received terminal Review150 above. Resume the retained recovery-to-staged-validation/activation and complete workout integration after its actual dependencies; preserve all prior failed evidence and the full goal. No new optimization campaign, helper, provider/model/credit/schedule change, root merge or private activation.
 
 ## Historical candidate results
 
