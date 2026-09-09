@@ -61,6 +61,7 @@ for(const mode of ['native','frozen'])test('installed load writes and canonical 
   const noop={...constructed,[S.EARN]:'module.exports = function(E) { return { earnWalk: function() {} }; };\n'},N=loadSources(noop)('rebuild/engine/index.cjs').createEngine(deps());
   assert.throws(()=>queued(N),/Reached real earnWalk/);assert.equal(union(N).queue.some(q=>q.kind==='debut'&&!q.done),false,'No-op cannot satisfy merge mint witness');
   const wrongOrder={...constructed,'rebuild/engine/index.cjs':S.replace(constructed['rebuild/engine/index.cjs'],'  require("./migrate.cjs"),\n  require("./earn.cjs"),\n','  require("./earn.cjs"),\n  require("./migrate.cjs"),\n','wrong assembly order')};
-  const loop=loadSources(wrongOrder)('rebuild/engine/index.cjs').createEngine(deps());assert.throws(()=>queued(loop),RangeError,'Wrong factory order reaches a recursive delegate');
+  const loop=loadSources(wrongOrder)('rebuild/engine/index.cjs').createEngine(deps());
+  assert.throws(()=>assert.equal(Function.prototype.toString.call(loop.earnWalk),Function.prototype.toString.call(require('../../engine/earn.cjs')(loop).earnWalk),'LW-ASSEMBLY-CANONICAL-EARN'),error=>error instanceof assert.AssertionError&&error.message.includes('LW-ASSEMBLY-CANONICAL-EARN'));
  }finally{globalThis.Date=NativeDate;}
 });

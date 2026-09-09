@@ -7,8 +7,8 @@ const A=require(path.join(P,'acceptance.cjs')),L=require(path.join(P,'legacy-gat
 const ID='M2-LOAD-WRITES',ARTIFACT='rebuild/m4/spec/acceptance-load-writes.json',REVIEW='rebuild/m4/spec/review-load-writes.json';
 const PARENT={artifact:'rebuild/conform/v4/postfix/acceptance-step-efficacy.json',sha256:'ff164b8620ee0ab7851e7d9283b32d1b330b261fad1f02178d4266131cfcabb1',envelope:'rebuild/conform/v4/postfix/manifest-step-efficacy.json',envelopeSha256:'7c78a3b85cb8001bd9cf3c0076faa410a203e66cfdd9cde6598e3617a9c648ec'};
 const REQUIRED=['D12','D33','D34','D35','D41','D43'];
-const HELPERS=['source','reference','expectations','traces','legacy','witnesses','source-carriers','cases','direct','parent-cases','inherited-carriers','profile','second','package'].map(n=>'rebuild/m4/spec/load-write-'+n+'.cjs');
-const FILES=[...HELPERS,'rebuild/m4/spec/load-write.test.cjs','rebuild/m4/spec/load-write-profile.test.cjs',...['model','view','package'].map(n=>'rebuild/m3/w7-preview/test/'+n+'.test.cjs'),'.github/workflows/rebuild.yml'];
+const HELPERS=['source','reference','expectations','traces','legacy','witnesses','source-carriers','cases','direct','parent-cases','inherited-carriers','profile','second','package','errors'].map(n=>'rebuild/m4/spec/load-write-'+n+'.cjs');
+const FILES=[...HELPERS,'rebuild/m4/spec/load-write.test.cjs',...['profile','assembly','errors'].map(n=>'rebuild/m4/spec/load-write-'+n+'.test.cjs'),...['model','view','package'].map(n=>'rebuild/m3/w7-preview/test/'+n+'.test.cjs'),'.github/workflows/rebuild.yml'];
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),keys=(o,list)=>assert.deepEqual(Object.keys(o).sort(),list.slice().sort(),'Closed profile keys');
 function parent(){
  assert.equal(S.sha(fs.readFileSync(path.join(root,PARENT.artifact))),PARENT.sha256);assert.equal(S.sha(fs.readFileSync(path.join(root,PARENT.envelope))),PARENT.envelopeSha256);
