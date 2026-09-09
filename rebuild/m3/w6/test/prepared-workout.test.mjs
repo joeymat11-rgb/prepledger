@@ -82,6 +82,20 @@ test('prepared correction lost acknowledgement is one actual fact after fresh hi
  }finally{f.repo.close();}
 });
 
+test('authenticated rejected target refuses correction with state19 in-process and after relaunch',async()=>{
+ const f=await setup();try{
+  const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),op=(await operations(f))[set.op_id];
+  const disposition=Sign.signDisposition({op_id:op.op_id,device_id:op.device_id,device_seq:op.device_seq,
+   canonical_content_commitment:op.canonical_content_commitment,status:'REJECTED',athlete_log_seq:null,rejection_code:'LEASE_EXPIRED',decided_at:'2026-09-04T00:00:00Z'},f.signingKey);
+  const stored=await f.c.acceptResponse('disposition',{wireVersion:Wire.WIRE_VERSION,body:{disposition}});assert.equal(stored.accepted,true);assert.equal(stored.result.durable,true);
+  const before=await f.repo.load();assert.deepEqual(before.generation.collections.ops[op.op_id],op);
+  for(const c of [f.c,recreate(f)]){
+   const p=await prepareEdit(c,op.op_id);assert.notEqual(p.prepared,true);assert.equal(p.state,19);assert.equal(p.code,'WORKOUT_EDIT_TARGET_REJECTED');assert.equal(p.editId,undefined);
+   assert.deepEqual(await f.repo.load(),before,'Rejection read cannot rewrite the original, outbox, sequences or stored disposition');
+  }
+ }finally{f.repo.close();}
+});
+
 test('prepared correction refuses a substituted payload at the final transaction cut',async()=>{
  const f=await setup({wrapStage:stage=>(...args)=>{const r=stage(...args);if(args[1]==='workout'&&args[2]?.action==='correct'&&r.result?.acknowledged)for(const op of r.commit.batch.operations){op.payload.replacement_fields.reps.value=999;r.generation.collections.ops[op.op_id].payload.replacement_fields.reps.value=999;}return r;}});
  try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id),before=await f.repo.load(),r=await correctPrepared(f.c,p,{reps:{value:9,unit:'rep'}});

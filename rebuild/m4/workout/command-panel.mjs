@@ -23,13 +23,15 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-entry { order:4; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px 12px; padding-top:20px; border-top:1px solid #D8D0C2; }
     .workout-command-panel label { display:flex; flex-direction:column; justify-content:space-between; gap:8px; margin:0; min-width:0; color:#5A5348; }
     .workout-command-panel .wcp-effort,.workout-command-panel .wcp-log { grid-column:1 / -1; }
-    .workout-command-panel .wcp-entry-heading { grid-column:1 / -1; margin:0; font-size:1.125em; font-weight:500; }
+    .workout-command-panel .wcp-entry-heading { grid-column:1 / -1; margin:0; font-size:1.25em; font-weight:500; letter-spacing:-.015em; }
     .workout-command-panel .wcp-effort { color:#1C1B18; }
+    .workout-command-panel .wcp-effort select { min-height:52px; padding:12px 14px; border-radius:10px; }
     .workout-command-panel input,.workout-command-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:52px; padding:12px; border:1px solid #6F6759; border-radius:10px; background:#FAF7F1; color:#1C1B18; font:inherit; font-size:max(16px,1em); }
     .workout-command-panel .wcp-entry input { min-height:60px; font-weight:600; text-align:center; }
     .workout-command-panel input:disabled,.workout-command-panel select:disabled { opacity:1; color:#5A5348; -webkit-text-fill-color:#5A5348; background:transparent; border-color:#D8D0C2; }
     .workout-command-panel button { box-sizing:border-box; width:100%; min-height:56px; padding:14px 18px; border:1px solid #1C1B18; border-radius:14px; background:#1C1B18; color:#F4F0E8; font:600 1em/1.4 'Instrument Sans','Helvetica Neue',Helvetica,Arial,sans-serif; text-align:left; cursor:pointer; touch-action:manipulation; }
     .workout-command-panel button:disabled { opacity:1; min-height:44px; padding-block:10px; color:#6F6759; background:transparent; border-color:#D8D0C2; cursor:default; }
+    .workout-command-panel .wcp-log { min-height:60px; padding:16px 18px; border-radius:18px; font-size:1.125em; }
     .workout-command-panel .wcp-status { order:5; min-height:1.5em; padding:16px 0; font-weight:500; }
     .workout-command-panel[aria-busy=true] .wcp-status { color:#5A5348; }
     .workout-command-panel .wcp-next { order:6; margin-bottom:20px; }

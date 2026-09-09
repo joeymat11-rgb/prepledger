@@ -38,12 +38,15 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
 const editBites={'--edit-bite':'context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||',
+ '--edit-rejected-bite':"if(fact.source_status==='rejected')throw new StorageFailure('WORKOUT_EDIT_TARGET_REJECTED',19);",
  '--edit-target-bite':'op.target_op_id!==entry.targetId||','--edit-lineage-bite':'op.lift_lineage_id!==entry.lineage||',
  '--edit-parents-bite':'||!sameRecordedValue(op.causal_parents,entry.parents)'};
 const editBite=Object.keys(editBites).find(flag=>process.argv.includes(flag));
 if(editBite){
  if(process.argv.slice(2).filter(s=>s.endsWith('-bite')||s==='--bite').length!==1)throw Error('Select one mutation only');
- const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8'),begin=raw.indexOf('  function editFailure(context){'),end=raw.indexOf('  const bridge =',begin);
+ const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
+ const begin=raw.indexOf(editBite==='--edit-rejected-bite'?'  async function prepareWorkoutEdit(':'  function editFailure(context){');
+ const end=raw.indexOf(editBite==='--edit-rejected-bite'?'  async function commitWorkoutEdit(':'  const bridge =',begin);
  const part=raw.slice(begin,end),target=editBites[editBite];
  if(begin<0||end<0||part.split(target).length!==2)throw Error('Exact edit snapshot bite target missing');
  fs.writeFileSync(file,raw.slice(0,begin)+part.replace(target,'')+raw.slice(end));preparedRestore={file,raw};

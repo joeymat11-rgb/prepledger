@@ -20,7 +20,7 @@ function snapshotBackend(backend, seededNames = []) {
 function createT2Stage(configProvider, { allowInbound = false, workoutCommands: selectedWorkoutCommands = workoutCommands } = {}) {
   if (typeof configProvider !== "function") throw new Error("T2 configuration provider required");
   return (generation, command, args, integration) => {
-    const backend = Client.memoryBackend(clone(generation.collections));
+    const backend = Client.memoryBackend(generation.collections);
     const checkpoint = backend.get("meta", "checkpoint");
     let intact = false;
     try {
