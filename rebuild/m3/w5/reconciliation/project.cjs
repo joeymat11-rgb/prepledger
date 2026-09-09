@@ -6,12 +6,12 @@ const EVENTS=Object.freeze(['PROFILE_GENESIS','DEVICE_ENROLLED','LEASE_RENEWED',
 const integrity=()=>C.fail('RETAINED_INTEGRITY',500);
 const check=x=>{if(!x)integrity();};
 const pair=(a,b)=>JSON.stringify([a,b]);
-function rowDto(raw){return {collection:raw.collection,row_id:raw.row_id,value_b64:C.encode64(C.bytes(raw.value))};}
+function rowDto(raw){return {collection:raw.collection,row_id:raw.row_id,value_b64:C.encode64(raw.value)};}
 function readRow(dto){C.exact(dto,C.FIELDS.row,{ordered:true});if(!COLLECTIONS.includes(dto.collection)||!C.nonempty(dto.row_id))integrity();const raw=C.decode64(dto.value_b64);return C.parse(raw);}
 function validateRetained(rawRows,athleteId){
   if(!Array.isArray(rawRows)||!C.nonempty(athleteId))integrity();
   const maps=new Map(COLLECTIONS.map(k=>[k,new Map()])),kept=[];
-  for(const r of rawRows){if(r.athlete!==athleteId)continue;if(!COLLECTIONS.includes(r.collection))C.fail('PROFILE_UNSUPPORTED',409);check(C.nonempty(r.row_id)&&typeof r.value==='string');const m=maps.get(r.collection);check(!m.has(r.row_id));let v;try{v=C.parse(C.bytes(r.value));}catch(_){integrity();}check(C.object(v));const entry={raw:{athlete:r.athlete,collection:r.collection,row_id:r.row_id,value:r.value},value:v,dto:rowDto(r)};m.set(r.row_id,entry);kept.push(entry);}
+  for(const r of rawRows){if(r.athlete!==athleteId)continue;if(!COLLECTIONS.includes(r.collection))C.fail('PROFILE_UNSUPPORTED',409);check(C.nonempty(r.row_id)&&typeof r.value==='string');const m=maps.get(r.collection);check(!m.has(r.row_id));let v;try{v=C.parse(r.value);}catch(_){integrity();}check(C.object(v));const entry={raw:{athlete:r.athlete,collection:r.collection,row_id:r.row_id,value:r.value},value:v,dto:rowDto(r)};m.set(r.row_id,entry);kept.push(entry);}
   const table=k=>maps.get(k),get=(k,id)=>table(k).get(String(id)),val=(k,id)=>get(k,id)?.value;
   const metadata=val('metadata','state'),registry=val('accountRegistry','state');
   check(metadata&&C.safe(metadata.seq)&&C.object(metadata.devices)&&C.object(metadata.initialPlan));C.exact(metadata,['seq','devices','initialPlan'],{code:'RETAINED_INTEGRITY'});check(table('metadata').size===1&&table('accountRegistry').size===1);

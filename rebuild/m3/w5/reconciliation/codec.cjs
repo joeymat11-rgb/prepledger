@@ -22,10 +22,20 @@ class R1Error extends Error { constructor(code, status = 400, retryable = false)
 const fail = (code='INVALID_R1_REQUEST',status) => { throw new R1Error(code,status??({RETAINED_INTEGRITY:500,SCOPE_FORBIDDEN:403,HISTORY_INCOMPLETE:409,PROFILE_UNSUPPORTED:409,RECONCILE_LIMIT:413}[code]||400)); };
 const object = x => x !== null && typeof x === 'object' && !Array.isArray(x) && [Object.prototype,null].includes(Object.getPrototypeOf(x));
 function bytes(value) { if (typeof value === 'string') return new TextEncoder().encode(value); if (value instanceof Uint8Array) return new Uint8Array(value); if (value instanceof ArrayBuffer) return new Uint8Array(value.slice(0)); fail(); }
-function text(value) { try { const b=bytes(value); const s=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(b); if(s.charCodeAt(0)===0xfeff)fail(); return s; } catch (_) { fail(); } }
+// Internal helpers receive a freshly owned buffer. Public entry points still
+// take the same defensive snapshot, including shared/mutable caller views.
+function ownedText(b) { const s=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(b); if(s.charCodeAt(0)===0xfeff)fail(); return s; }
+function text(value) { try { return ownedText(bytes(value)); } catch (_) { fail(); } }
 function encode(value) { const s=JSON.stringify(value); if (s===undefined) fail(); return bytes(s); }
-function encode64(value) { const b=bytes(value);let out='';for(let i=0;i<b.length;i+=8192)out+=String.fromCharCode(...b.subarray(i,i+8192));return btoa(out).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
-function decode64(value,max=LIMITS.payload) { if(typeof value!=='string'||!/^[A-Za-z0-9_-]*$/.test(value)||value.length%4===1||Math.floor(value.length*3/4)>max)fail();try{const s=atob(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4));const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);if(b.length>max||encode64(b)!==value)fail();return b;}catch(_){fail();} }
+function ownedEncode64(b) { let out='';for(let i=0;i<b.length;i+=8192)out+=String.fromCharCode.apply(null,b.subarray(i,i+8192));return btoa(out).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function encode64(value) { return ownedEncode64(bytes(value)); }
+function decode64(value,max=LIMITS.payload) { if(typeof value!=='string'||!/^[A-Za-z0-9_-]*$/.test(value)||value.length%4===1||Math.floor(value.length*3/4)>max)fail();
+  // With the exact URL alphabet, no padding and valid length already checked,
+  // only nonzero unused bits can make an encoding noncanonical. Check those
+  // bits directly instead of allocating another complete encoding of the bytes.
+  const remainder=value.length%4;
+  if(remainder){const last='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'.indexOf(value[value.length-1]);if(last&(remainder===2?15:3))fail();}
+  try{const s=atob(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-remainder)%4));const b=new Uint8Array(s.length);for(let i=0;i<s.length;i++)b[i]=s.charCodeAt(i);if(b.length>max)fail();return b;}catch(_){fail();} }
 const digest = (tag,value) => { const a=bytes(tag+'\0'),b=bytes(value);return encode64(sha256.create().update(a).update(b).digest()); };
 const hash = (tag,value) => digest(TAGS[tag]||tag,value);
 function sameBytes(a,b){a=bytes(a);b=bytes(b);return a.length===b.length&&a.every((v,i)=>v===b[i]);}
@@ -33,7 +43,7 @@ function compareText(a,b){const x=bytes(a),y=bytes(b);for(let i=0;i<Math.min(x.l
 // Parse JSON grammar directly so duplicate DECODED keys cannot be erased by
 // JSON.parse. Numeric value conversion remains ordinary JSON/JavaScript; safe
 // control integers are checked separately, never imposed on old op payloads.
-function parse(value,max=16777216){const b=bytes(value);if(b.length>max)fail('RECONCILE_LIMIT',413);const s=text(b),stack=[];let i=0;
+function parse(value,max=16777216){const b=bytes(value);if(b.length>max)fail('RECONCILE_LIMIT',413);let s;try{s=ownedText(b);}catch(_){fail();}const stack=[];let i=0;
   // Iterative duplicate-key scan, followed by the native JSON grammar/value
   // parser. No new nesting-depth restriction is imposed on old envelopes.
   while(i<s.length){const c=s[i];if(c==='"'){const start=i++;while(i<s.length){if(s[i]==='\\'){i+=2;continue;}if(s[i++]==='"')break;}const top=stack.at(-1);if(top?.object&&top.key){let token;try{token=JSON.parse(s.slice(start,i));}catch(_){fail();}if(top.keys.has(token))fail();top.keys.add(token);top.key=false;}}

@@ -11,7 +11,8 @@ const CEILINGS=Object.freeze({cpuMs:1000,observedAllocationBytes:96*1024*1024,st
 const check=(condition,code)=>{if(!condition)throw Error(code);};
 const errorText=e=>String(e&&e.message||e).slice(0,320);
 const pct=(values,p)=>values.length?[...values].sort((a,b)=>a-b)[Math.min(values.length-1,Math.ceil(values.length*p)-1)]:null;
-async function run({preflightOnly=false,onProgress=message=>console.log(message)}={}){
+async function run({preflightOnly=false,onProgress=message=>console.log(message),
+  runtimeFactory=createR1Runtime,populateFixture=populate,outputFile}={}){
   const evidence={profile:'earned/r1/resource-local/v1',verdict:'BLOCKED',resourceAcceptance:false,ceilings:CEILINGS,
     requestVersion:C.REQUEST_VERSION,manifestProfile:C.DOMAINS.manifest,payloadCap:C.LIMITS.payload,
     platform:process.platform,phase:'initialization',calibration:[],requests:[],phases:[],violations:[],completedPages:0,
@@ -21,7 +22,7 @@ async function run({preflightOnly=false,onProgress=message=>console.log(message)
       'Local observations do not establish remote provider performance, spending limits, T1, K1 or P1.',
     ]};
   let runtime,meter,observing=false,measuredFailure=false;
-  const output=path.join(__dirname,'../.generated/r1-resource.json');
+  const output=outputFile||path.join(__dirname,'../.generated/r1-resource.json');
   const save=()=>{fs.mkdirSync(path.dirname(output),{recursive:true});fs.writeFileSync(output,JSON.stringify(evidence,null,2)+'\n');};
   async function request(route,body,subject='subject-first'){
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
@@ -83,7 +84,7 @@ async function run({preflightOnly=false,onProgress=message=>console.log(message)
     }
   }
   try{
-    runtime=await createR1Runtime();meter=await createResourceMeter(runtime.mf,runtime.name);evidence.method=meter.method;
+    runtime=await runtimeFactory();meter=await createResourceMeter(runtime.mf,runtime.name);evidence.method=meter.method;
     evidence.cpuGuardMs=process.platform==='win32'?32:2*meter.method.counterTickMs;
     const calibration=await beginPhase('instrument-calibration');
     for(let i=0;i<3;i++){
@@ -94,7 +95,7 @@ async function run({preflightOnly=false,onProgress=message=>console.log(message)
     await endPhase(calibration);
     onProgress('R1 resource instrumentation calibrated; preparing exact synthetic D1 boundary');
     evidence.phase='fixture-preparation';
-    const fixture=await populate({db:runtime.db,bridge:runtime.bridge,identityKey:runtime.identityKeys.first,
+    const fixture=await populateFixture({db:runtime.db,bridge:runtime.bridge,identityKey:runtime.identityKeys.first,
       athleteId:'first',subject:'subject-first',trustedContext:{issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0]},
       targetBytes:preflightOnly?262144:C.LIMITS.payload,foreign:{athleteId:'second',subject:'subject-second',identityKey:runtime.identityKeys.second}});
     evidence.population=fixture.population;evidence.fixtureBytes=fixture.payloadBytes.length;evidence.acceptedSyntheticFacts=fixture.acceptedSyntheticFacts;

@@ -17,7 +17,7 @@ function declaredPopulation(rows) {
     accounts:[...accounts.values()],scope:'Synthetic authority_rows JSON values; excludes SQL indexes, subjects, revision and storage-engine overhead'};
 }
 async function populate({db,bridge,identityKey,athleteId='first',subject='subject-first',trustedContext,
-  targetBytes=C.LIMITS.payload,foreign}) {
+  targetBytes=C.LIMITS.payload,foreign,readLogicalRows=readRows,writeLogicalRow}) {
   assert.ok(Number.isSafeInteger(targetBytes)&&targetBytes>=32768&&targetBytes<=C.LIMITS.payload+1);
   assert.ok(db&&bridge&&identityKey&&trustedContext);
   const setup={[athleteId]:{plan:{steps:8000,protein_g:150},devices:{}}},subjects={[subject]:athleteId};
@@ -55,7 +55,7 @@ async function populate({db,bridge,identityKey,athleteId='first',subject='subjec
     claims:[{claim_id:'resource-unknown',envelope_b64:C.encode64(C.encode(unknown))}],requested_lease_ids:[]};
   const baseline=await bridge.reconcileScoped(subject,deviceId,request,undefined,trustedContext);
   assert.ok(baseline.payloadBytes.length<targetBytes,'real accepted facts fit below target');
-  const baselineRows=await readRows(db),metadata=baselineRows.find(r=>r.athlete===athleteId&&r.collection==='metadata'&&r.row_id==='state');
+  const baselineRows=await readLogicalRows(db),metadata=baselineRows.find(r=>r.athlete===athleteId&&r.collection==='metadata'&&r.row_id==='state');
   const originalMetadata=metadata.value;
   const originalRawBytes=Buffer.byteLength(originalMetadata,'utf8');
   const dtoIndex=baseline.payload.retained_rows.findIndex(r=>r.collection==='metadata'&&r.row_id==='state');
@@ -77,13 +77,14 @@ async function populate({db,bridge,identityKey,athleteId='first',subject='subjec
     const value=originalMetadata+' '.repeat(selected.padding);
     assert.ok(Buffer.byteLength(value,'utf8')<2097152,'individual D1 JSON row below 2MiB');
     const revision=(await db.prepare('SELECT revision FROM authority_revision WHERE id=1').first()).revision;
-    await db.batch([
+    if(writeLogicalRow)await writeLogicalRow({athlete:athleteId,collection:'metadata',row_id:'state',value},revision);
+    else await db.batch([
       db.prepare('UPDATE authority_revision SET revision=CASE WHEN revision=? THEN revision ELSE -1 END WHERE id=1').bind(revision),
       db.prepare("UPDATE authority_rows SET value=? WHERE athlete=? AND collection='metadata' AND row_id='state'").bind(value,athleteId),
       db.prepare('UPDATE authority_revision SET revision=revision+1 WHERE id=1'),
     ]);
     const nextRequest={...request,claims:[{...request.claims[0],claim_id:request.claims[0].claim_id+'x'.repeat(selected.label)}]};
-    const actualRows=await readRows(db),validated=validateRetained(actualRows,athleteId);
+    const actualRows=await readLogicalRows(db),validated=validateRetained(actualRows,athleteId);
     assert.equal(validated.metadata.seq,count);
     const expected=structuredClone(baseline.payload);
     expected.claims[0].claim_id=nextRequest.claims[0].claim_id;
@@ -93,7 +94,7 @@ async function populate({db,bridge,identityKey,athleteId='first',subject='subjec
     if(bytes<=C.LIMITS.payload){actual=await bridge.reconcileScoped(subject,deviceId,nextRequest,undefined,trustedContext);
       assert.deepEqual(Buffer.from(actual.payloadBytes),Buffer.from(expectedBytes),'real D1 guarded projection bytes');}
     else await assert.rejects(bridge.reconcileScoped(subject,deviceId,nextRequest,undefined,trustedContext),{code:'RECONCILE_LIMIT',status:413});
-    assert.deepEqual(await readRows(db),actualRows,'query never rewrites domain data');
+    assert.deepEqual(await readLogicalRows(db),actualRows,'query never rewrites domain data');
     const population=declaredPopulation(actualRows);
     return {athleteId,subject,deviceId,lease,request:nextRequest,requestBytes:C.encode(nextRequest),
       payloadBytes:expectedBytes,payloadDigest:C.hash('payload',expectedBytes),population,

@@ -13,12 +13,13 @@ const directory = path.resolve(__dirname, ".."), dependency = createRequire(path
 const wrangler = createRequire(dependency.resolve("wrangler/package.json"));
 const NOW = "2026-09-04T16:00:00.000Z", NAME = "earned-r1-metered-application";
 
-async function createR1Runtime({ authorityRoot } = {}) {
+async function createR1Runtime({ authorityRoot, p1 = false } = {}) {
   if (wrangler("./package.json").version !== "4.129.0") throw Error("pinned Wrangler required");
   await buildCore(authorityRoot === undefined ? {} : { authorityRoot });
   const bundle = await dependency("esbuild").build({ stdin: { resolveDir: directory, sourcefile: "r1-metered-entry.mjs", contents: `
     import { createWorker } from './worker.cjs';
     import { createBridge } from './bridge.cjs';
+    import { storageFromTestBinding } from '../rigs/p1-workerd-provider.cjs';
     export default { async fetch(request, env) {
       // Test-only local calibration, never a production Worker route. Allocate
       // and touch a known backing store and do deterministic CPU work. The
@@ -48,7 +49,8 @@ async function createR1Runtime({ authorityRoot } = {}) {
       } };
       const authorityKey=JSON.parse(env.AUTHORITY_KEY), auth=JSON.parse(env.AUTH_CONFIG);
       const bridge=createBridge({db,authorityKey,identityKeys:JSON.parse(env.IDENTITY_KEYS),clock:()=>env.TEST_NOW,
-        reconciliationProfile:'earned/r1/v1',r1:{issuer:auth.issuer,origin:auth.origins[0]}});
+        reconciliationProfile:'earned/r1/v1',r1:{issuer:auth.issuer,origin:auth.origins[0]},
+        ...(env.P1_TEST_KEY ? {storage:await storageFromTestBinding(env.P1_TEST_KEY)} : {})});
       const response=await createWorker({bridge,authorityKey,auth,clock:()=>env.TEST_NOW}).fetch(request);
       const headers=new Headers(response.headers); headers.set('X-R1-Test-D1',JSON.stringify(stats));
       return new Response(response.body,{status:response.status,headers});
@@ -56,11 +58,13 @@ async function createR1Runtime({ authorityRoot } = {}) {
   ` }, bundle: true, platform:"node",format:"esm",write:false,logLevel:"silent",
     banner:{js:"import * as c from 'node:crypto'; const require = n => { if(n==='node:crypto') return c; throw Error('Unsupported bundled builtin'); };"} });
   const authorityKey=generateSigningKey("r1-resource-run"), identityKeys={first:randomBytes(32).toString("hex"),second:randomBytes(32).toString("hex")}, issuer=testIssuer();
+  const p1Bytes=p1 ? randomBytes(32) : null;
   const {Miniflare,Log,LogLevel,convertV4MiniflareOptions}=wrangler("miniflare");
   const mf=new Miniflare(await convertV4MiniflareOptions({name:NAME,modules:true,script:bundle.outputFiles[0].text,
     compatibilityDate:"2026-09-03",compatibilityFlags:["nodejs_compat"],host:"127.0.0.1",port:0,inspectorPort:0,
     d1Databases:{DB:"earned-r1-resource-local"},resourcePersistencePath:fs.mkdtempSync(path.join(os.tmpdir(),"earned-r1-meter-")),
-    bindings:{AUTHORITY_KEY:JSON.stringify(authorityKey),IDENTITY_KEYS:JSON.stringify(identityKeys),AUTH_CONFIG:JSON.stringify(issuer.config),TEST_NOW:NOW},
+    bindings:{AUTHORITY_KEY:JSON.stringify(authorityKey),IDENTITY_KEYS:JSON.stringify(identityKeys),AUTH_CONFIG:JSON.stringify(issuer.config),TEST_NOW:NOW,
+      ...(p1Bytes ? {P1_TEST_KEY:p1Bytes.toString('base64url')} : {})},
     log:new Log(LogLevel.ERROR),telemetry:{enabled:false},cf:false}));
   try {
     const db=await mf.getD1Database("DB");
@@ -69,9 +73,19 @@ async function createR1Runtime({ authorityRoot } = {}) {
     const second=sql("0002_reconciliation.sql"), statements=second.match(/CREATE TRIGGER[\s\S]*?^END;|CREATE UNIQUE INDEX[\s\S]*?;/gm)||[];
     if(statements.length!==6 || second.replace(/CREATE TRIGGER[\s\S]*?^END;|CREATE UNIQUE INDEX[\s\S]*?;/gm,"").trim()) throw Error("unconsumed migration");
     await db.batch(statements.map(s=>db.prepare(s)));
-    const bridge=createBridge({db,authorityKey,identityKeys,clock:()=>NOW,reconciliationProfile:"earned/r1/v1",r1:{issuer:issuer.config.issuer,origin:issuer.config.origins[0]}});
+    let storage;
+    if(p1Bytes){
+      const third=sql('0003_payload_storage.sql');
+      const parts=third.match(/CREATE TRIGGER[\s\S]*?^END;|(?:CREATE TABLE|INSERT INTO|DROP TABLE|ALTER TABLE)[\s\S]*?;/gm)||[];
+      if(parts.length!==8)throw Error('unconsumed P1 migration');
+      await db.batch(parts.map(s=>db.prepare(s)));
+      const P=require('../../rigs/p1-test-profile.cjs');
+      await db.prepare('INSERT INTO authority_storage VALUES(1,?,?,?)').bind(P.PROFILE,P.NAMESPACE,P.EPOCH).run();
+      storage=await P.createTestStorage(p1Bytes);
+    }
+    const bridge=createBridge({db,authorityKey,identityKeys,clock:()=>NOW,reconciliationProfile:"earned/r1/v1",r1:{issuer:issuer.config.issuer,origin:issuer.config.origins[0]},storage});
     const url=await mf.ready;
-    return {mf,db,bridge,authorityKey,identityKeys,issuer,name:NAME,url,NOW,close:()=>mf.dispose(),
+    return {mf,db,bridge,authorityKey,identityKeys,issuer,name:NAME,url,NOW,storage,close:()=>mf.dispose(),
       async request(route,body,subject="subject-first") {
         const response=await fetch(new URL(route,url),{method:"POST",headers:{"Content-Type":"application/json",Origin:issuer.config.origins[0],Authorization:"Bearer "+issuer.token(subject)},body:JSON.stringify(body)});
         const text=await response.text();
