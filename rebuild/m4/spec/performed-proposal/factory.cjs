@@ -28,8 +28,10 @@ module.exports=function createPerformed(){
    const error=new Error('PERFORMED_COMPLETION_REQUIRED');error.code=error.message;throw error;
   }
   const ids=new Set(),sourceIds=new Set();
+  if(entry.correspondence_profile!==undefined&&!text(entry.correspondence_profile))invalid();
   for(const [i,slot]of entry.slots.entries()){
-   if(!slot||slot.position!==i+1||slot.logical_set_slot!==JSON.stringify([entry.lift_lineage_id,i+1])||ids.has(slot.logical_set_slot)||!known.has(slot.state))invalid();
+   if(!slot||slot.position!==i+1||!text(slot.logical_set_slot)||
+    (entry.correspondence_profile===undefined&&slot.logical_set_slot!==JSON.stringify([entry.lift_lineage_id,i+1]))||ids.has(slot.logical_set_slot)||!known.has(slot.state))invalid();
    ids.add(slot.logical_set_slot);
    const target=slot.prescribed_effort;
    if(target&&!(target.state==='specified'&&Number.isSafeInteger(target.target)&&target.target>=0&&!Object.is(target.target,-0)||
@@ -42,13 +44,17 @@ module.exports=function createPerformed(){
       !Array.isArray(f.issues)||f.issues.length||!v||v.load?.unit!=='lb'||!Number.isFinite(v.load.value)||v.load.value<=0||
       v.reps?.unit!=='rep'||!Number.isSafeInteger(v.reps.value)||v.reps.value<0||Object.is(v.reps.value,-0))invalid();
     effort(v.reserve);
-   }else if(slot.state==='removed')removedFact(slot.fact,slot,entry);
+   }else if(slot.state==='removed'){if(slot.fact)removedFact(slot.fact,slot,entry);else if(!slot.removed_facts?.length)invalid();}
    else if(slot.state==='skipped'){
     if(!text(slot.skip_op_id))invalid();if(slot.fact)removedFact(slot.fact,slot,entry);
    }
    else if(slot.state==='unlogged'&&(slot.fact||slot.skip_op_id))invalid();
    else if(slot.state==='unresolved'&&(!Array.isArray(slot.issues)||!slot.issues.length||!slot.issues.every(text)))invalid();
    if(slot.fact){if(sourceIds.has(slot.fact.source_op_id))invalid();sourceIds.add(slot.fact.source_op_id);}
+   if(slot.removed_facts!==undefined){
+    if(!Array.isArray(slot.removed_facts))invalid();
+    for(const fact of slot.removed_facts){removedFact(fact,slot,entry);if(sourceIds.has(fact.source_op_id))invalid();sourceIds.add(fact.source_op_id);}
+   }
   }
   return entry; // Trusted producer supplies finite JSON; never mutate its facts.
  }
@@ -95,6 +101,7 @@ module.exports=function createPerformed(){
  }
  function performedPair(a,b){
   const A=performedEntry(a),B=performedEntry(b);if(!A||!B||A.start_op_id===B.start_op_id||A.lift_lineage_id!==B.lift_lineage_id)return null;
+  if(A.correspondence_profile!==B.correspondence_profile)return null;
   const av=performedValues(A),bv=performedValues(B);if(!av||!bv||!av.length||av.length!==bv.length)return null;
   if(!av.every((x,i)=>x.position===bv[i].position&&x.load===bv[i].load&&x.unit===bv[i].unit))return null;
   return {a:av.map(x=>x.reps),b:bv.map(x=>x.reps)};
@@ -111,7 +118,7 @@ module.exports=function createPerformed(){
    starts.add(session.start_op_id);const lifts=new Set();
    for(const entry of session.record.entries){const rich=performedEntry(entry);
     if(!rich||rich.start_op_id!==session.start_op_id||lifts.has(rich.lift_lineage_id))invalid();lifts.add(rich.lift_lineage_id);
-    for(const slot of rich.slots)if(slot.fact){if(sources.has(slot.fact.source_op_id))invalid();sources.add(slot.fact.source_op_id);}
+    for(const slot of rich.slots)for(const fact of [...(slot.fact?[slot.fact]:[]),...(slot.removed_facts||[])]){if(sources.has(fact.source_op_id))invalid();sources.add(fact.source_op_id);}
    }
    rows.push({d,rec:session.record,source:'performed',start_op_id:session.start_op_id});
   }

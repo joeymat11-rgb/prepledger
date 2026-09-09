@@ -64,6 +64,11 @@ test('unresolved standing/status is not translated into a missing workout',()=>{
 test('empty complete history yields an empty order, not a first-use declaration',()=>{
  assert.deepEqual(run(input([])),{profile:'earned/workout-order/v1',frontier:0,start_ids:[]});
 });
+test('actual unsynced absence of receipt collection is an empty prefix only at zero frontier',()=>{
+ const x=input([['offline',[],false]]);delete x.generation.collections.receipts;assert.deepEqual(ids(x),['offline']);
+ x.generation.collections.sync.frontier.W=x.history.frontier=1;assert.throws(()=>run(x),{code:'WORKOUT_ORDER_PREFIX_INCOMPLETE'});
+ const empty=input([]);delete empty.generation.collections.ops;delete empty.generation.collections.receipts;assert.deepEqual(ids(empty),[]);
+});
 test('accepted label alone without a receipt does not establish acceptance',()=>{
  const x=input([['a',[],false]]);x.history.sessions[0].start.status='accepted-through-frontier';
  assert.throws(()=>run(x),{code:'WORKOUT_ORDER_RECEIPT_INVALID'});

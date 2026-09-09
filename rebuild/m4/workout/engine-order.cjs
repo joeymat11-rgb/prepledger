@@ -6,7 +6,9 @@
 // Date, device sequence, object insertion order and Start spelling never do.
 function orderWorkoutStarts(history, generation, {importAnchor} = {}) {
   const fail = code => { const error = new Error(code); error.code = code; throw error; };
-  const ops = generation?.collections?.ops, receipts = generation?.collections?.receipts;
+  // A valid unsynced/empty repository has no persisted receipt collection yet.
+  const ops = generation?.collections?.ops === undefined ? {} : generation.collections.ops;
+  const receipts = generation?.collections?.receipts === undefined ? {} : generation.collections.receipts;
   const W = generation?.collections?.sync?.frontier?.W;
   if (!ops || !receipts || !Number.isSafeInteger(W) || W < 0 || history?.frontier !== W ||
       !Array.isArray(history.sessions)) fail('WORKOUT_ORDER_BASIS_INVALID');
