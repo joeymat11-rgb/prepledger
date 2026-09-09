@@ -13,15 +13,42 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   panel.className = 'workout-command-panel';
   panel.setAttribute('aria-label', 'Synthetic workout demonstration');
   const style = el('style', `
-    .workout-command-panel { box-sizing:border-box; max-width:34rem; padding:24px; background:#F4F0E8; color:#1C1B18; font:16px/1.5 'Instrument Sans','Helvetica Neue',Helvetica,Arial,sans-serif; }
-    .workout-command-panel h2 { font-size:28px; line-height:1.2; margin:8px 0 20px; }
-    .workout-command-panel p { margin:12px 0; }
-    .workout-command-panel label { display:flex; flex-direction:column; gap:6px; margin:16px 0; }
-    .workout-command-panel input,.workout-command-panel select { box-sizing:border-box; width:100%; min-height:48px; padding:10px 12px; border:1px solid #6F6759; border-radius:8px; background:#FFFDFA; color:#1C1B18; font:inherit; font-size:16px; }
-    .workout-command-panel button { width:100%; min-height:56px; padding:12px 20px; border:1.5px solid #1C1B18; border-radius:14px; background:#1C1B18; color:#F4F0E8; font-family:inherit; font-size:14px; font-weight:600; line-height:1.4; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; }
-    .workout-command-panel button:disabled { opacity:.55; cursor:default; }
-    .workout-command-panel :focus-visible { outline:3px solid #775D28; outline-offset:3px; }
-    .workout-command-panel [role=status] { min-height:3em; font-weight:500; }
+    .workout-command-panel { box-sizing:border-box; width:100%; max-width:38rem; margin-inline:auto; padding:28px 24px; display:flex; flex-direction:column; background:#F4F0E8; color:#1C1B18; font:1rem/1.5 'Instrument Sans','Helvetica Neue',Helvetica,Arial,sans-serif; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+    .workout-command-panel > * { box-sizing:border-box; min-width:0; }
+    .workout-command-panel p { margin:0; }
+    .workout-command-panel > p:first-of-type { order:0; color:#5A5348; font-size:.875em; letter-spacing:.03em; margin-bottom:16px; }
+    .workout-command-panel .wcp-title { order:1; font-family:'Instrument Serif',Georgia,'Times New Roman',serif; font-size:3em; font-weight:400; line-height:1.05; letter-spacing:-.025em; margin:0 0 18px; }
+    .workout-command-panel .wcp-progress { order:2; color:#2E5A3C; font-size:.9375em; padding:0 0 16px; }
+    .workout-command-panel .wcp-start { order:3; margin:0 0 20px; }
+    .workout-command-panel .wcp-entry { order:4; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px 12px; padding-top:20px; border-top:1px solid #D8D0C2; }
+    .workout-command-panel label { display:flex; flex-direction:column; justify-content:space-between; gap:8px; margin:0; min-width:0; color:#5A5348; }
+    .workout-command-panel .wcp-effort,.workout-command-panel .wcp-log { grid-column:1 / -1; }
+    .workout-command-panel .wcp-effort { color:#1C1B18; }
+    .workout-command-panel input,.workout-command-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:52px; padding:12px; border:1px solid #9B9284; border-radius:10px; background:#FAF7F1; color:#1C1B18; font:inherit; font-size:max(16px,1em); }
+    .workout-command-panel .wcp-entry input { min-height:60px; font-weight:600; text-align:center; }
+    .workout-command-panel input:disabled,.workout-command-panel select:disabled { opacity:1; color:#5A5348; -webkit-text-fill-color:#5A5348; background:transparent; border-color:#D8D0C2; }
+    .workout-command-panel button { box-sizing:border-box; width:100%; min-height:56px; padding:14px 18px; border:1px solid #1C1B18; border-radius:14px; background:#1C1B18; color:#F4F0E8; font:600 1em/1.4 'Instrument Sans','Helvetica Neue',Helvetica,Arial,sans-serif; text-align:left; cursor:pointer; touch-action:manipulation; }
+    .workout-command-panel button:disabled { opacity:1; min-height:44px; padding-block:10px; color:#6F6759; background:transparent; border-color:#D8D0C2; cursor:default; }
+    .workout-command-panel .wcp-status { order:5; min-height:1.5em; padding:16px 0; font-weight:500; }
+    .workout-command-panel[aria-busy=true] .wcp-status { color:#5A5348; }
+    .workout-command-panel .wcp-next { order:6; margin-bottom:20px; }
+    .workout-command-panel .wcp-skip { order:7; }
+    .workout-command-panel .wcp-close { order:8; }
+    .workout-command-panel .wcp-skip,.workout-command-panel .wcp-close { display:grid; gap:12px; padding:18px 0; border-top:1px solid #D8D0C2; }
+    .workout-command-panel .wcp-skip button,.workout-command-panel .wcp-close button { min-height:44px; padding:10px 0; width:auto; justify-self:start; border:0; border-radius:0; background:transparent; color:#1C1B18; font-weight:500; text-decoration:underline; text-decoration-color:#9B9284; text-underline-offset:5px; }
+    .workout-command-panel .wcp-skip button:disabled,.workout-command-panel .wcp-close button:disabled { color:#6F6759; text-decoration-color:#D8D0C2; }
+    .workout-command-panel .wcp-close p { color:#5A5348; font-size:.875em; }
+    .workout-command-panel .wcp-readback { order:9; border-top:1px solid #D8D0C2; margin-top:4px; padding-top:20px; }
+    .workout-command-panel .wcp-readback h3 { margin:0 0 8px; font-size:1.125em; font-weight:500; }
+    .workout-command-panel .wcp-readback p { color:#5A5348; font-size:.875em; }
+    .workout-command-panel .wcp-readback ol { margin:14px 0 0; padding-left:1.5em; }
+    .workout-command-panel .wcp-readback li { padding:10px 0; border-top:1px solid #D8D0C2; }
+    .workout-command-panel .wcp-readback li::marker { color:#2E5A3C; }
+    .workout-command-panel > p:last-of-type:not(:first-of-type) { order:10; margin-top:24px; padding-top:16px; border-top:1px solid #D8D0C2; color:#5A5348; font-size:.875em; }
+    .workout-command-panel :focus-visible { outline:3px solid #2E5A3C; outline-offset:4px; }
+    .workout-command-panel [aria-invalid=true] { border-color:#1C1B18; border-width:2px; }
+    @media (max-width:340px) { .workout-command-panel { padding:24px 18px; } .workout-command-panel .wcp-title { font-size:2.5em; } .workout-command-panel .wcp-entry { column-gap:10px; } }
+    @media (max-width:20em) { .workout-command-panel .wcp-entry { grid-template-columns:minmax(0,1fr); } }
   `);
   const title = el('h2');
   const status = el('p'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
@@ -51,6 +78,13 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   closeLabel.append(closeChoice); const closeButton = el('button', 'Finish early'); closeButton.type = 'submit'; closeForm.append(closeLabel, el('p', 'Logged facts stay recorded. Remaining work stays not logged.'), closeButton);
   const readback = el('section'); readback.setAttribute('aria-label', 'Recorded on this device during this visit');
   const events = el('ol'); readback.append(el('h3', 'Recorded in this visit'), el('p', 'Acknowledged on this device. This list is not synced or corrected workout history.'), events);
+  // Appearance-only classes; command/state/event code remains unchanged.
+  title.className = 'wcp-title'; progress.className = 'wcp-progress';
+  startForm.className = 'wcp-start'; setForm.className = 'wcp-entry';
+  reserveLabel.className = 'wcp-effort'; setButton.className = 'wcp-log';
+  status.className = 'wcp-status'; nextButton.className = 'wcp-next';
+  skipForm.className = 'wcp-skip'; closeForm.className = 'wcp-close'; readback.className = 'wcp-readback';
+  // End appearance-only classes.
   panel.append(style, el('p', 'Synthetic demonstration'), title, startForm, setForm, status,
     el('p', extended ? 'Synthetic workout entries for this visit only. Refresh and resume, saved instructions and corrected history still need host support. Only early finish is available here; recorded or skipped entries do not establish that a training plan was fully performed.' : 'This visit records one start and one set. Refresh and resume, saved workout instructions, more sets and finishing a workout still need support from the host app.'));
   if (extended) { panel.insertBefore(progress, setForm); panel.insertBefore(skipForm, status); panel.insertBefore(nextButton, status); panel.insertBefore(closeForm, status); panel.append(readback); }

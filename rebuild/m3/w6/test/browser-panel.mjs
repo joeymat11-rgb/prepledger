@@ -220,10 +220,25 @@ try {
   await page.evaluate(()=>proof.repo.close());
   const extensionDurable=await runExtensionDurable(page,{seed:initial(),cfg,key,lease},join(artifacts,'multiple-closed.png'));
   console.log('PANEL EXTENSION DURABLE PASS — one Start, mixed-load Sets, explicit Skip, early Close; native delayed/quota Set/Skip/Close; preserved originals/drafts/unlogged slot after encrypted reopen');
+  const layouts=[];
+  for(const [width,fontSize]of [[390,16],[320,16],[320,32]]){
+    await page.setViewportSize({width,height:844});
+    const layout=await page.evaluate(size=>{
+      const panel=document.querySelector('.workout-command-panel');panel.style.fontSize=size+'px';
+      const controls=[...panel.querySelectorAll('input,select,button')].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');
+      return {overflow:document.documentElement.scrollWidth>innerWidth,
+        controlsFit:controls.every(x=>{const r=x.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&r.height>=44;}),
+        inputFont:parseFloat(getComputedStyle(panel.querySelector('input')).fontSize),statusRole:panel.querySelector('.wcp-status').getAttribute('role')};
+    },fontSize);
+    assert.equal(layout.overflow,false);assert.equal(layout.controlsFit,true);assert(layout.inputFont>=fontSize);assert.equal(layout.statusRole,'status');
+    layouts.push({width,fontSize,...layout});await page.screenshot({path:join(artifacts,`layout-${width}-${fontSize}.png`),fullPage:true});
+  }
+  console.log('PANEL PRESENTATION PASS — actual compiled durable panel at390/320px and200% text; no horizontal overflow, >=44px controls, scaled inputs and status preserved');
   assert.deepEqual(errors,[]);
   for (const input of built.inventory) assert.equal(createHash('sha256').update(readFileSync(join(source,input.path))).digest('hex'),input.sha256,'Source changed during panel proof');
   const result={source:source,bundleInputs:built.inventory,browser:await browser.version(),domChecks:dom,durableChecks:['actual retained bundle','runtime P256 lease verification','native AES-GCM and IndexedDB','keyboard Start and Log set','native transaction held: Saving only','commit completion then Saved','two persisted ops and outbox entries','exact returned start reference and schema2','40.5lb/8reps/at_least3','unrelated draft preserved','encrypted repository reopen identical','native quota refusal: previous generation identical and typed 35.5/0 retained'],limits:['synthetic unissued schema2 lease','synthetic observation guard and fixed clock','same-runtime controller only','repository reopen is not UI refresh/resume or custody proof','no host adoption or independent acceptance']};
   result.extensionDom=extensionDom; result.extensionDurable=extensionDurable;
+  result.layouts=layouts;
   writeFileSync(join(artifacts,'evidence.json'),JSON.stringify(result,null,2)+'\n');
   console.log('PANEL DURABLE BROWSER PASS — actual retained W6/T2/P256/AES-GCM/native IndexedDB, pending atomic commit, keyboard start/set, exact payload/reference, preserved draft and encrypted reopen; synthetic guard/unissued2, not lifecycle acceptance');
   await context.close();context=null;await browser.close();
