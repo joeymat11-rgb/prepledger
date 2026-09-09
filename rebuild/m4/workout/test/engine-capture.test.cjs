@@ -130,6 +130,46 @@ test('actual Start/correction/reopen reads registered captured positions without
  assert.deepEqual(finalRead.history.sessions.find(s=>s.start.operation.op_id===started.op_id).original,p.view);
  assert.deepEqual(finalRead.history.sessions.find(s=>s.start.operation.op_id===nextStart.op_id).original,current.view);
 });
+test('actual corrected opener history changes next captured effort without rewriting previous captures',async t=>{
+ const {adapter,input,prescriptionCapture,parseStrictJson}=await fixture(),load=p=>import(pathToFileURL(path.join(w6,p)));
+ input.state.sessionLog={};
+ const [{fixture:store,initial,config,O,createT2Stage},{createDurablePublicClient},{projectWorkoutRecords}]=await Promise.all([
+  load('rebuild/m3/w6/test/support.mjs'),load('rebuild/m3/w6/public-client.mjs'),load('rebuild/m4/workout/project-history.mjs')]);
+ const Sign=require(path.join(w6,'rebuild/m3/w5/crypto.cjs')),Commands=require(path.join(w6,'rebuild/m4/workout/commands.cjs'));
+ const {webcrypto}=require('node:crypto'),{createEngineHistoryProjector}=require('../engine-history.cjs');
+ const key=Sign.generateSigningKey('synthetic-opener-capture'),lease=Sign.signLease({...O.lease('dev-A'),schema_version:2},key),f=await store();t.after(()=>f.repo.close());
+ const g=initial();g.metadata.authorityLease=lease;await f.repo.initialize(g,'synthetic-enrollment-only');
+ const mapper=createEngineHistoryProjector({athleteId:'ath-1',deviceId:'dev-A',parseStrictJson,projectWorkoutRecords,
+  resolveCapturedLayout:({start})=>adapter.readLayout(start.prescription_capture)});
+ let parents=[];
+ const args={repository:f.repo,stage:createT2Stage(config,{allowInbound:true,workoutCommands:Commands.createWorkoutCommands({prescriptionCapture})}),
+  namespace:f.setup.namespace,athleteId:'ath-1',deviceId:'dev-A',sessionEpoch:1,isCurrentSession:x=>x===1,observationEpoch:()=>1,
+  observationGuard:{run:async(_kind,fn)=>fn()},validateCommit:()=>null,keys:[Sign.publicKeyOf(key)],schemaVersion:2,crypto:webcrypto,prescriptionCapture,workoutProducerIdentity:producer,
+  resolveWorkoutBasis:()=>({plan_basis:input.basis.plan_basis,input_basis:input.basis.input_basis,causal_parents:parents}),
+  projectWorkoutHistory:({history,generation,source_revision})=>mapper.project(history,generation,{sourceRevision:source_revision}),
+  workoutProducer:(_g,context)=>adapter.prepare({...structuredClone(input),state:{...structuredClone(input.state),workoutFacts:context.workoutFacts},basis:context.basis}).capture};
+ const client=createDurablePublicClient(args),sets=[],originals=[];
+ for(let i=0;i<3;i++){
+  const p=await client.prepareWorkout({planned_split_slot_id:'synthetic-upper'});assert(p.prepared,p.code);originals.push(p.view);
+  const start=await client.startPreparedWorkout({preparedId:p.preparedId});assert(start.acknowledged,start.code);
+  const slot=p.view.slots[0],set=await client.execute('workout',{action:'set',input:{session_start_op_id:start.op_id,logical_set_slot:slot.logical_set_slot,lift_lineage_id:slot.lift_lineage_id,
+   load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'exact',value:0,unit:'rep'}}});assert(set.acknowledged,set.code);sets.push(set.op_id);
+  const close=await client.execute('workout',{action:'close',input:{session_start_op_id:start.op_id,completion_kind:'early',causal_parents:[start.op_id,set.op_id]}});assert(close.acknowledged,close.code);parents=[close.op_id];
+ }
+ const effort=p=>JSON.parse(p.view.slots[0].effort.source_json).target;
+ const hot=await client.prepareWorkout({planned_split_slot_id:'synthetic-upper'});assert(hot.prepared,hot.code);
+ assert.equal(effort(hot),3,'ACTUAL_CORRECTED_OPENER_HISTORY_REACHES_CAPTURE');
+ for(const id of sets.slice(0,2)){
+  const edit=await client.prepareWorkoutEdit({target_op_id:id});assert(edit.prepared,edit.code);
+  const correction=await client.commitWorkoutEdit({editId:edit.editId,action:'correct',change:{reserve:{tag:'at_least',value:3,unit:'rep'}}});assert(correction.acknowledged,correction.code);parents.push(correction.op_id);
+ }
+ const stale=await client.startPreparedWorkout({preparedId:hot.preparedId});assert.equal(stale.acknowledged,false,'Correction retires the previous current prescription');
+ const fresh=await f.fresh();t.after(()=>fresh.repository.close());const reopened=createDurablePublicClient({...args,repository:fresh.repository});
+ const current=await reopened.prepareWorkout({planned_split_slot_id:'synthetic-upper'});assert(current.prepared,current.code);assert.equal(effort(current),2);
+ const start=await reopened.startPreparedWorkout({preparedId:current.preparedId});assert(start.acknowledged,start.code);
+ const final=await f.fresh();t.after(()=>final.repository.close());const history=await createDurablePublicClient({...args,repository:final.repository}).readWorkoutHistory();assert(history.read,history.code);
+ assert.deepEqual(history.history.sessions.slice(0,3).map(s=>s.original),originals);assert.deepEqual(history.history.sessions.at(-1).original,current.view);
+});
 test('registered capture interpretation rejects a foreign producer, tuple mismatch, repeated lift block and malformed effort',async()=>{
  const {adapter,input}=await fixture(),{capture}=adapter.prepare(input);
  for(const mutate of [c=>{c.producer.app_build='other-build';},c=>{c.slots[1].logical_set_slot='arbitrary-id';},

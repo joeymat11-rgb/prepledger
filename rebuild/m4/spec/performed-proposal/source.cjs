@@ -71,6 +71,31 @@ function construct(input){
         ar = pair.a; br = pair.b;
       } else if (a.w == null || b.w == null || String(a.w) !== String(b.w) || a.reps.length !== b.reps.length) continue;
       br.forEach((x, j) => { const dlt = (Number(x) || 0) - (Number(ar[j]) || 0); pooled.push(dlt); if (id === exId) mine.push(dlt); });`);
+ edit('rebuild/engine/writers.cjs',`  const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
+  if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0)`,
+`  let hotOpenerHistory;
+  if (!s.workoutFacts) {
+    const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
+    hotOpenerHistory = opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0;
+  } else {
+    let known = 0, hot = 0;
+    for (const {rec} of E.performedHistoryRows(s)) for (const entry of rec.entries || []) {
+      const rich = E.performedEntry(entry);
+      if (rich) {
+        if (rich.lift_lineage_id !== ex.id) continue;
+        const opener = E.performedRirSets(rich)[0];
+        if (!E.effortKnown(opener)) continue;
+        known++; if (E.effortIs(opener, 'eq0')) hot++;
+      } else if (entry.id === ex.id && entry.rir != null) {
+        known++; if (entry.rir <= 0) hot++;
+      }
+    }
+    // The original upper-median <=0 rule is exactly a strict majority of
+    // known hot openers, with the same minimum three. A 3+ bound is known
+    // nonzero, never an exact rating; missing/removed openers stay missing.
+    hotOpenerHistory = known >= 3 && hot > Math.floor(known / 2);
+  }
+  if (hotOpenerHistory)`);
  edit(B,'  require("../../engine/progression.cjs"),','  require("../../engine/performed.cjs"),\n  require("../../engine/progression.cjs"),');
  sources['rebuild/engine/performed.cjs']=fs.readFileSync(path.join(__dirname,'factory.cjs'),'utf8');
  return {sources,changes,pins:Object.fromEntries(Object.entries(sources).map(([file,source])=>[file,{before:input[file]===undefined?null:sha(input[file]),after:sha(source)}]))};

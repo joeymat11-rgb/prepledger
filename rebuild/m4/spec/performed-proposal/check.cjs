@@ -34,7 +34,7 @@ async function main(){
  const capture=require(path.join(w6,w6Files[2])).createPrescriptionCapture({parseStrictJson});
  const exact=value=>({tag:'exact',value,unit:'rep'}),bound={tag:'at_least',value:3,unit:'rep'},absent=undefined;
  const reserves=[exact(0),exact(1),exact(2),bound,absent,{tag:'unknown'},{tag:'skipped'},{tag:'not_asked'}];
- function record({weights=[40,35,30],repetitions=[8,7,6],ratings=[exact(2),exact(0),bound],skipTerminal=false,skipPosition=null,correctMiddle=false,removeMiddle=false,startId='start',day=F.SYNTHETIC_DAY,terminalTarget=0}={}){
+ function record({weights=[40,35,30],repetitions=[8,7,6],ratings=[exact(2),exact(0),bound],skipTerminal=false,skipPosition=null,correctMiddle=false,removeMiddle=false,removeOpener=false,startId='start',day=F.SYNTHETIC_DAY,terminalTarget=0}={}){
   const ops={},keys=[],slot=i=>JSON.stringify(['demo-press',i+1]);
   const producer={app_build:'synthetic-reader-proposal',engine_build:S.base,rule_profile:'earned/lift-position/v1',source_schema:'2'};
   const basis={plan_basis:'synthetic-plan',input_basis:'synthetic-input',source_revision:1};
@@ -57,6 +57,7 @@ async function main(){
   op('session-close','close',{session_start_op_id:startId},{completion_kind:skipTerminal||skipPosition!==null?'early':'normal'},[startId]);
   if(correctMiddle)op('correction','edit',{target_op_id:'set1',lift_lineage_id:'demo-press'},{replacement_fields:{load:{value:25,unit:'lb'}}},['set1']);
   if(removeMiddle)op('tombstone','remove',{target_op_id:'set1',lift_lineage_id:'demo-press'},{reason:'Mistaken entry'},[correctMiddle?'edit':'set1']);
+  if(removeOpener)op('tombstone','remove-opener',{target_op_id:'set0',lift_lineage_id:'demo-press'},{reason:'Mistaken opener'},['set0']);
   const snapshot=JSON.stringify(ops),projection=projectWorkoutRecords({start:{status:'accepted-through-frontier'},records:keys.slice(1).map(id=>({operation:ops[id],status:'accepted-through-frontier'}))},ops);
   assert.equal(JSON.stringify(ops),snapshot,'PROJECTOR_DOES_NOT_REWRITE_SOURCE');
   // Proposed producer-owned mapping, NOT a qualified producer or proof that
@@ -159,11 +160,39 @@ async function main(){
    input.sessionLog=clone(input.sessionLog);assert.throws(()=>E.typicalError(input,'demo-press'),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'EXACT_IMPORTED_SNAPSHOT_REQUIRED');});
   check('import-basis-survives-whole-view-clone',()=>{const input=noiseState(series(),{legacyLog:importedLog(),importAnchor}),copy=clone(input);
    assert.deepEqual(E.typicalError(copy,'demo-press'),E.typicalError(input,'demo-press'),'IMPORTED_WHOLE_VIEW_CLONE');});
+  { const R=engine(before),ex={id:'demo-press',sets:3};
+  for(let n=0;n<=8;n++)for(let hot=0;hot<=n;hot++)check('opener-upper-median-parity',()=>{
+   const ratings=Array.from({length:n},(_,i)=>i<hot?exact(0):[exact(1),exact(2),bound][i%3]);
+   const input=noiseState(ratings.map((rating,i)=>record({startId:'opener'+i,ratings:[rating,exact(0),exact(0)]}))),saved=JSON.stringify(input);
+   const legacy=F.createSyntheticState();legacy.sessionLog={synthetic:{entries:ratings.map(r=>({id:ex.id,rir:r.tag==='at_least'?99:r.value}))}};
+   assert.deepEqual(E.rirPlan(input,ex),R.rirPlan(legacy,ex),'PERFORMED_OPENER_UPPER_MEDIAN_PARITY');
+   assert.deepEqual(E.rirPlan(legacy,ex),R.rirPlan(legacy,ex),'LEGACY_OPENER_WHOLE_OUTPUT');
+   assert.equal(JSON.stringify(input),saved,'OPENER_FACTS_UNCHANGED');
+  });
+  const openerRows=()=>[0,1,2].map(i=>record({startId:'known'+i,ratings:[exact(0),bound,bound]}));
+  for(const unknown of [undefined,{tag:'unknown'},{tag:'not_asked'},{tag:'skipped'}])check('opener-missing-not-vote',()=>{
+   const extra=[0,1,2,3].map(i=>record({startId:'missing'+i,ratings:[unknown,exact(0),exact(0)]}));
+   assert.equal(E.rirPlan(noiseState(openerRows().concat(extra)),ex).plan[0],3,'PERFORMED_UNKNOWN_OPENER_NOT_A_VOTE');
+  });
+  for(const options of [{skipPosition:0},{removeOpener:true},{weights:[],ratings:[]}])check('opener-role-not-promoted',()=>{
+   const rows=[0,1,2].map(i=>record({...options,startId:'role'+i,ratings:[exact(0),exact(0),exact(0)]}));
+   assert.equal(E.rirPlan(noiseState(rows),ex).plan[0],2,'PERFORMED_MISSING_OPENER_NOT_REPLACED');
+  });
+  check('opener-other-lift',()=>assert.equal(E.rirPlan(noiseState(openerRows()),{...ex,id:'other-lift'}).plan[0],2,'PERFORMED_OPENER_LIFT_SCOPE'));
+  check('opener-imported-and-native',()=>{
+   const legacyLog={synthetic:{entries:[{id:ex.id,rir:0},{id:ex.id,rir:0}]}},input=noiseState([record({startId:'mixed-opener',ratings:[bound,bound,bound]})],{legacyLog,importAnchor});
+   assert.equal(E.rirPlan(input,ex).plan[0],3,'PERFORMED_IMPORTED_OPENER_RETAINED');
+   input.workoutFacts.legacy_baseline.session_log=clone(legacyLog);
+   assert.throws(()=>E.rirPlan(input,ex),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'OPENER_IMPORTED_SNAPSHOT_REQUIRED');
+  });
+  }
   assert.equal(JSON.stringify(a),aBytes,'ALL_READERS_PRESERVE_SOURCE');return count;
  }
  const restore={...candidate.sources};for(const edit of candidate.changes.slice().reverse())restore[edit.file]=restore[edit.file].replace(edit.after,edit.before);
  for(const file of Object.keys(before))assert.equal(restore[file],before[file],'CLOSED_SOURCE_RECONSTRUCTION');
  const mutants=[
+  ['opener-upper-median','rebuild/engine/writers.cjs','hot > Math.floor(known / 2)','hot >= Math.floor(known / 2)','PERFORMED_OPENER_UPPER_MEDIAN_PARITY'],
+  ['opener-terminal-substitution','rebuild/engine/writers.cjs','E.performedRirSets(rich)[0]','E.performedRirSets(rich).at(-1)','PERFORMED_OPENER_UPPER_MEDIAN_PARITY'],
   ['first-load','rebuild/engine/progression.cjs','work += slot.fact.current.load.value * slot.fact.current.reps.value;','work += rich.slots.find(s => s.state === "performed").fact.current.load.value * slot.fact.current.reps.value;','PERFORMED_WEIGHTED_SCORE'],
   ['original-instead-of-correction','rebuild/engine/progression.cjs','work += slot.fact.current.load.value * slot.fact.current.reps.value;','work += slot.fact.original.load.value * slot.fact.current.reps.value;','PERFORMED_CORRECTION_SCORE'],
   ['bound-as-exact','rebuild/engine/performed.cjs',"return 'at least 3';","return '3';",'PERFORMED_BOUND_RECEIPT'],
