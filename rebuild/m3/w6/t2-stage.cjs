@@ -91,7 +91,7 @@ function createT2Stage(configProvider, { allowInbound = false, workoutCommands: 
 // and fully verified indexed source. This is NOT a durable repository commit,
 // a current-plan projection, a permission grant or an activation API.
 async function prepareRecoveryProjection(generation, source) {
-  const { equal, fail, assertContext, operations, accepted, W, athleteId, archiveProof } = source;
+  const { equal, fail, assertContext, operations, accepted, W, athleteId, archiveProof, sourcePlan } = source;
   assertContext();
   const backend = Client.memoryBackend(generation.collections), metadata = clone(generation.metadata);
   const checkpoint = backend.get("meta", "checkpoint"), frontier = backend.get("sync", "frontier");
@@ -141,14 +141,21 @@ async function prepareRecoveryProjection(generation, source) {
     });
     if (ordinal !== W || backend.keys("receipts").length !== W) fail("RECOVERY_RECEIPT_FRONTIER");
     backend.write(tx, "sync", "frontier", { ...frontier, W, authorityW: W });
-    // Preserve all other collections and fields, including local consent, plan,
-    // leases, budget and high-water. Those are not derived from an ACK here.
+    // Join the actual verified source reader, never a plan inferred from ACKs.
+    // Keep local consent/audit/suspension records for subsequent reconciliation.
+    // This candidate remains inactive and does not establish current permission.
+    if (!sourcePlan || sourcePlan.profile !== "earned/recovered-source-plan/v1" || sourcePlan.W !== W ||
+        !sourcePlan.plan || typeof sourcePlan.plan !== "object" || Array.isArray(sourcePlan.plan) ||
+        !Array.isArray(sourcePlan.transactionIds)) fail("RECOVERY_SOURCE_PLAN_REQUIRED");
+    backend.write(tx, "sync", "snapshot", { ...(backend.get("sync", "snapshot") || {}),
+      ...require("./recovery-snapshot.cjs").recoveredSnapshotFields(sourcePlan, archiveProof.reference) });
     backend.write(tx, "meta", "checkpoint", { ...checkpoint, counts: { ...checkpoint.counts,
       ops: backend.keys("ops").length, outbox: backend.keys("outbox").length } });
     const proofs = metadata.recoveryArchives || (metadata.recoveryArchives = []);
     if (!Array.isArray(proofs)) fail("RECOVERY_ARCHIVE_CONFIGURATION");
     const priorProof = proofs.find(p => equal(p.reference, archiveProof.reference));
     if (priorProof && !equal(priorProof, archiveProof)) fail("RECOVERY_ARCHIVE_DISAGREEMENT");
+    if (priorProof && priorProof !== proofs[proofs.length - 1]) fail("RECOVERY_ARCHIVE_REGRESSION");
     if (!priorProof) proofs.push(clone(archiveProof));
     assertContext();
     backend.commit(tx);

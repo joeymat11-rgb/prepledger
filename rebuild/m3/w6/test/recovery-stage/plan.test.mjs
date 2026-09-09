@@ -52,9 +52,10 @@ test('real accepted stale conflict selection remains recoverable without inventi
  generation.collections=T2.snapshotBackend(backend,Object.keys(generation.collections));
  await f.repo.initialize(generation,'synthetic-enrollment-only');const before=await f.repo.load();
  const scopeDigest=C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:device});
- const client=createDurablePublicClient({repository:f.repo,stage:createT2Stage(()=>({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first}),{allowInbound:true}),
+ const clientArgs={repository:f.repo,stage:createT2Stage(()=>({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first}),{allowInbound:true}),
   namespace:f.setup.namespace,athleteId:'first',deviceId:device,sessionEpoch:1,isCurrentSession:()=>true,observationEpoch:()=>1,observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,
-  keys,crypto:webcrypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,scopeDigest,keyRange:IDBKeyRange}});
+  keys,crypto:webcrypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,scopeDigest,keyRange:IDBKeyRange}};
+ const client=createDurablePublicClient(clientArgs);
  const prepared=await client.prepareLocalRecovery();assert(prepared.prepared,prepared.code);const basis=prepared.basis;
  const stage=f.repo.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null}),verifier=P.createRowsVerifier({keys,subtle:webcrypto.subtle});let diagnostic,entered=false;
  let requestBytes,requestNumber=0;
@@ -81,7 +82,10 @@ test('real accepted stale conflict selection remains recoverable without inventi
   assert.deepEqual(candidate.collections.dispositions[stale.op_id],terminal);assert.equal(candidate.collections.sync.frontier.W,3);
   assert(!Object.hasOwn(candidate.collections.outbox,stale.op_id),'Exact accepted no-effect request drains without inventing a plan effect');
   assert.equal(candidate.collections.planTxns,undefined);assert.equal(candidate.collections.plan,undefined);
-  assert.deepEqual(candidate.collections.sync.snapshot,before.generation.collections.sync.snapshot,'No plan or consent may be invented from the no-effect receipt');
+  assert.deepEqual(candidate.collections.sync.snapshot.plan,expectedPlan,'RECOVERY_VERIFIED_PLAN_JOINS_CANDIDATE');
+  assert.deepEqual(candidate.collections.sync.snapshot.planTransactionIds,transactions.map(x=>x.txn_id));
+  assert.equal(candidate.collections.sync.snapshot.planBasis,null,'No global proposal basis is inferred from historical domain bases');
+  assert.deepEqual(candidate.collections.sync.snapshot.reads,before.generation.collections.sync.snapshot.reads);
  });assert.deepEqual(await f.repo.load(),before);
  const current=await invoke('planState',['protein']);
  const selection=build(lease,'synthetic-current-selection',3,{kind:'conflict-selection',predecessor:stale.op_id,parents:[first.op_id,second.op_id],
@@ -97,9 +101,12 @@ test('real accepted stale conflict selection remains recoverable without inventi
   assert(projected.transactionIds.includes(selection.requested_transaction_id));
   assert(!projected.transactionIds.includes(stale.requested_transaction_id));
  });
+ let reconstructed;
  await secondCandidate.inspect(candidate=>{
+  reconstructed=candidate;
   assert.equal(candidate.collections.sync.frontier.W,4);assert.deepEqual(candidate.collections.dispositions[selection.op_id],applied);
-  assert.deepEqual(candidate.collections.sync.snapshot,before.generation.collections.sync.snapshot);
+  assert.deepEqual(candidate.collections.sync.snapshot.plan,selectedPlan);
+  assert(candidate.collections.sync.snapshot.planTransactionIds.includes(selection.requested_transaction_id));
  });assert.deepEqual(await f.repo.load(),before);
 
  // Relational fault tests over captured synthetic rows, below page-signature
@@ -131,5 +138,26 @@ test('real accepted stale conflict selection remains recoverable without inventi
   ['false applied marker hidden by another type',edited=>alterNoEffect(edited,d=>{d.applied='false';})],
  ])await t.test(name+' refuses rather than broadening the no-effect exception',async()=>{
   const edited=structuredClone(rows);mutate(edited);await assert.rejects(validate(edited),e=>e.code==='RETAINED_INTEGRITY');
+ });
+ await t.test('real source selection survives authenticated reopen and a new unsent edit remains governing',async()=>{
+  // Test-only placement of the inactive candidate. Production activation and
+  // its current-standing/K1 fences remain separate, unimplemented obligations.
+  await f.repo.commit(before,reconstructed);
+  const fresh=await f.fresh();t.after(()=>fresh.repository.close());
+  const reopened=createDurablePublicClient({...clientArgs,repository:fresh.repository});
+  const checked=await reopened.prepareLocalRecovery();assert(checked.prepared,checked.code);
+  const read=async()=>{const saved=await fresh.repository.load(),reader=Client.createClient({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first,backend:Client.memoryBackend(saved.generation.collections)});reader.boot();return reader.plan();};
+  assert.deepEqual(await read(),selectedPlan,'ACTUAL_SIGNED_SELECTION_SURVIVES_REOPEN');
+  // Plan-edit commands are not exposed by the W6 public writer yet. Exercise
+  // the existing actual T2 command, then place its result as a test fixture.
+  const beforeEdit=await fresh.repository.load(),editBackend=Client.memoryBackend(beforeEdit.generation.collections);
+  const writer=Client.createClient({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first,lease,backend:editBackend,
+   permissionNowIso:()=>lease.not_before,authorityVerification:{verifyLease:l=>S.verifyLease(l,keys[0]),verifyDisposition:d=>S.verifyDisposition(d,keys[0])}});writer.boot();
+  const edit=writer.planEdit({domain:'protein_g',value:180,unit:'g/day'});assert(edit.acknowledged,edit.code);
+  await fresh.repository.commit(beforeEdit,{collections:T2.snapshotBackend(editBackend,Object.keys(beforeEdit.generation.collections)),metadata:beforeEdit.generation.metadata});
+  assert.equal((await read()).protein_g,180,'NEW_UNSENT_EDIT_REMAINS_GOVERNING');
+  assert((await createDurablePublicClient({...clientArgs,repository:fresh.repository}).prepareLocalRecovery()).prepared);
+  const pending=await fresh.repository.load();assert.equal(Object.keys(pending.generation.collections.outbox).length,1);
+  assert.deepEqual(pending.generation.collections.sync.snapshot.plan,selectedPlan,'Pending edit does not rewrite authenticated history');
  });
 });

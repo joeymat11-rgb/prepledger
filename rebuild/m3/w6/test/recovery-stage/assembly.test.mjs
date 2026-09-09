@@ -17,6 +17,7 @@ function setup(){
   const disposition={op_id:op.op_id,status:'ACCEPTED',athlete_log_seq:1,accepted_at:'2026-09-06T12:00:00Z'};
   const row={seq:1,op,accepted_at:disposition.accepted_at},proof={reference:{attempt:'synthetic',manifestDigest:'synthetic'},request_bytes_b64:'synthetic'};
   const source={equal,fail:code=>{throw new StorageFailure(code,18);},assertContext(){},W:1,athleteId:'ath-1',archiveProof:proof,
+    sourcePlan:{profile:'earned/recovered-source-plan/v1',W:1,plan:{protein_g:155},transactionIds:[]},
     async operations(visit){await visit(op,disposition);},async accepted(visit){await visit(row);}};
   return {generation,source,op,disposition,row,proof};
 }
@@ -32,14 +33,19 @@ test('internal candidate excludes server-only nonaccepted rows from local sequen
 });
 test('internal candidate preserves extra local fields and identical proof without duplication',async()=>{
   const x=setup();x.generation.metadata.recoveryArchives=[x.proof];
+  Object.assign(x.generation.collections.sync.snapshot,{planVersion:'stale',planProvenance:'stale',planBasis:'stale'});
   x.generation.collections.meta.checkpoint.future='kept';x.generation.collections.sync.frontier.future='kept';
   x.generation.collections.receipts={'1':{seq:1,op_id:x.op.op_id,canonical_content_commitment:x.op.canonical_content_commitment,accepted_at:x.row.accepted_at,future:'kept',op:x.op}};
   const candidate=structuredClone(await T2.prepareRecoveryProjection(x.generation,x.source));
   assert.deepEqual(candidate.collections.receipts,x.generation.collections.receipts);
   assert.equal(candidate.collections.meta.checkpoint.future,'kept');assert.equal(candidate.collections.sync.frontier.future,'kept');assert.equal(candidate.metadata.recoveryArchives.length,1);
+  assert.deepEqual(candidate.collections.sync.snapshot.plan,{protein_g:155});
+  for(const field of ['planVersion','planProvenance','planBasis'])assert.equal(candidate.collections.sync.snapshot[field],null);
 });
 for(const [name,change,code]of[
   ['frontier regression',x=>{x.generation.collections.sync.frontier.W=2;},'RECOVERY_FRONTIER_REGRESSION'],
+  ['missing verified plan',x=>{delete x.source.sourcePlan;},'RECOVERY_SOURCE_PLAN_REQUIRED'],
+  ['plan frontier mismatch',x=>{x.source.sourcePlan.W=0;},'RECOVERY_SOURCE_PLAN_REQUIRED'],
   ['known head regression',x=>{x.generation.collections.sync.frontier.authorityW=2;},'RECOVERY_FRONTIER_REGRESSION'],
   ['terminal contradiction on queued original',x=>{x.generation.collections.dispositions={kept:{...x.disposition,status:'REJECTED'}};},'LOCAL_TERMINAL_DISAGREEMENT'],
   ['rejection contradiction',x=>{x.generation.collections.rejected={kept:{status:'REJECTED'}};},'LOCAL_REJECTION_DISAGREEMENT'],
@@ -49,6 +55,7 @@ for(const [name,change,code]of[
   ['missing final receipt',x=>{x.source.accepted=async()=>{};},'RECOVERY_RECEIPT_FRONTIER'],
   ['extra retained receipt',x=>{x.generation.collections.receipts={'99':{seq:99}};},'RECOVERY_RECEIPT_FRONTIER'],
   ['proof disagreement',x=>{x.generation.metadata.recoveryArchives=[{...x.proof,request_bytes_b64:'different'}];},'RECOVERY_ARCHIVE_DISAGREEMENT'],
+  ['reusing superseded proof',x=>{x.generation.metadata.recoveryArchives=[x.proof,{...x.proof,reference:{attempt:'newer',manifestDigest:'newer'}}];},'RECOVERY_ARCHIVE_REGRESSION'],
   ['missing integrity checkpoint',x=>{delete x.generation.collections.meta.checkpoint;},'RECOVERY_CANDIDATE_INTEGRITY'],
 ])test('internal candidate refuses '+name+' without partial publication',async()=>{
   const x=setup();change(x);const before=structuredClone(x.generation);

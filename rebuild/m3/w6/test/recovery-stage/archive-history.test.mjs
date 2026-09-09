@@ -15,7 +15,7 @@ const hash=x=>P.hash('archive-history-test',x);
 
 test('archive original authentication joins the actual public client across repository reopen',async t=>{
  const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true});t.after(()=>runtime.close());
- await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});
+ await runtime.bridge.initializeR1({first:{plan:{protein_g:155},devices:{}}},{'subject-first':'first'});
  const enroll=async id=>(await runtime.bridge.enrollScoped('subject-first',{intent_id:id,schema_version:1,nonce:hash(id)})).payload.issuance.lease;
  const lease=await enroll('archive-A'),other=await enroll('archive-B'),device=lease.device_id,keys=[S.publicKeyOf(runtime.authorityKey)];
  const remote=Ops.build({op_id:'synthetic-other-device-reading',athlete_id:'first',device_id:other.device_id,device_seq:1,parents:[],kind:'fact',class:'reading',lease_id:other.lease_id,
@@ -36,23 +36,33 @@ test('archive original authentication joins the actual public client across repo
  await t.test('archive proof retains exact request bytes after caller buffer mutation',async()=>{
   const original=C.bytes(submittedBytes);submittedBytes.fill(0);proof=await result.evidence.archiveProof();assert(C.sameBytes(C.decode64(proof.request_bytes_b64,C.LIMITS.request),original));submittedBytes.set(original);
  });assert.deepEqual(await f.repo.load(),before);
+ // Actual inactive assembler; the repository commit below is a TEST-ONLY
+ // activation fixture, not a production current-standing or K1 protocol.
+ let candidate;const held=await result.evidence.assemble();await held.inspect(g=>{candidate=g;});
+ assert.equal(held.activated,false);assert.equal(held.complete,false);
  await stage.start({expected:(await(await stage.inventory()).bindings()).expected,explicitRetry:true});await assert.rejects(result.evidence.archiveProof(),e=>e.code==='RECOVERY_STAGE_CHANGED');
- // Synthetic recovered-generation fixture using the actual T2 receipt sink.
- // This sets up the historical read boundary only: it is NOT a production
- // assembler/activation, current safety, enrollment or knowledge-loss protocol.
- const candidate=structuredClone(before.generation),backend=Client.memoryBackend(candidate.collections),sink=Client.createClient({...cfg(),backend});sink.boot();
- assert.equal(sink.deliverReceipts([{seq:1,op_id:remote.op_id,canonical_content_commitment:remote.canonical_content_commitment,accepted_at:disposition.accepted_at,op:remote}]),1);
- candidate.collections=T2.snapshotBackend(backend,Object.keys(candidate.collections));candidate.metadata.recoveryArchives=[proof];
  await f.repo.commit(before,candidate);const loaded=await f.repo.load();assert.deepEqual(loaded.generation.collections.outbox,before.generation.collections.outbox);
  const fresh=await f.fresh();t.after(()=>fresh.repository.close());const newClient=createDurablePublicClient({...args,repository:fresh.repository});
  const authenticated=await newClient.prepareLocalRecovery();assert(authenticated.prepared,authenticated.code);
+ const recovered=await fresh.repository.load(),reader=Client.createClient({...cfg(),backend:Client.memoryBackend(recovered.generation.collections)});reader.boot();
+ assert.deepEqual(reader.plan(),{protein_g:155},'Actual rebuilt source plan survives authenticated fresh boot');
  assert((await newClient.execute('weighIn',{lb:171})).acknowledged,'Existing writer works with authenticated historical originals under synthetic standing');
  const clean=await fresh.repository.load();assert.deepEqual(clean.generation.collections.ops[remote.op_id],remote);
  for(const [id,entry]of Object.entries(before.generation.collections.outbox))assert.deepEqual(clean.generation.collections.outbox[id],entry);
  const cases=[
   ['changed archived original refuses',g=>{g.collections.ops[remote.op_id].payload.lb.value=999;},'RECOVERY_ARCHIVE_ORIGINAL_CHANGED'],
   ['missing accepted archived original refuses',g=>{delete g.collections.ops[remote.op_id];},'RECOVERY_ARCHIVE_ORIGINAL_MISSING'],
-  ['missing archive proof cannot exempt foreign-device identity',g=>{delete g.metadata.recoveryArchives;},'LOCAL_HISTORY_IDENTITY_UNPROVEN'],
+  ['missing archive proof refuses recovered snapshot',g=>{delete g.metadata.recoveryArchives;},'RECOVERY_SNAPSHOT_PROOF_MISSING'],
+  ['changed recovered plan refuses',g=>{g.collections.sync.snapshot.plan.protein_g=999;},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['invented recovered transaction refuses',g=>{g.collections.sync.snapshot.planTransactionIds=['invented'];},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['invented historical proposal basis refuses',g=>{g.collections.sync.snapshot.planBasis='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['invented historical version refuses',g=>{g.collections.sync.snapshot.planVersion='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['invented historical provenance refuses',g=>{g.collections.sync.snapshot.planProvenance='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['changed source frontier refuses',g=>{g.collections.sync.snapshot.recoveryPlan.W=0;},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['changed source archive refuses',g=>{g.collections.sync.snapshot.recoveryPlan.reference.attempt='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['empty archive list refuses',g=>{g.metadata.recoveryArchives=[];},'RECOVERY_SNAPSHOT_PROOF_MISSING'],
+  ['missing snapshot binding refuses',g=>{delete g.collections.sync.snapshot.recoveryPlan;},'RECOVERY_SNAPSHOT_PROOF_MISSING'],
+  ['replaced snapshot refuses',g=>{g.collections.sync.snapshot={plan:{protein_g:999}};},'RECOVERY_SNAPSHOT_PROOF_MISSING'],
   ['foreign archive scope refuses',g=>{g.metadata.recoveryArchives[0].expected.actorDeviceId=other.device_id;},'RECOVERY_ARCHIVE_SCOPE'],
   ['replaced request bytes cannot borrow a valid archive',g=>{const req=C.decodeRequest(C.decode64(proof.request_bytes_b64,C.LIMITS.request));req.nonce=hash('wrong');g.metadata.recoveryArchives[0].request_bytes_b64=C.encode64(C.encode(req));},'RETAINED_INTEGRITY'],
  ];

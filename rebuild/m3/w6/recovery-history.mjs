@@ -1,13 +1,16 @@
 import {StorageFailure} from './repository.mjs';
 import {validateArchivedRecoveryProfile} from './recovery-profile.mjs';
+import Snapshot from './recovery-snapshot.cjs';
 
 // Historical authentication only. These records cannot establish current
 // standing, renewal, permission, a recovery activation or a completed import.
 export async function authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier,athleteId,deviceId,signedOperationIds,assertContext}){
  const proofs=generation.metadata.recoveryArchives;
- if(proofs===undefined)return;
  const fail=code=>{throw new StorageFailure(code,18);};
+ const snapshot=generation.collections.sync?.snapshot,binding=snapshot?.recoveryPlan;
+ if(proofs===undefined){if(binding!==undefined)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');return;}
  if(!Array.isArray(proofs)||!recovery?.codec||!recovery?.protocol||!recovery?.scopeDigest||typeof assertContext!=='function')fail('RECOVERY_ARCHIVE_CONFIGURATION');
+ if(!proofs.length||!binding)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');
  const C=recovery.codec,P=recovery.protocol,seen=new Set(),ops=generation.collections.ops||{};
  const archiveStore=repository.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:recovery.keyRange||globalThis.IDBKeyRange,
   validateContext:()=>{assertContext();return null;}});
@@ -31,6 +34,14 @@ export async function authenticateRecoveryArchives({generation,repository,recove
    if(!retained&&disposition.status==='ACCEPTED')fail('RECOVERY_ARCHIVE_ORIGINAL_MISSING');
    if(retained){if(!C.fullEqual(retained,op)||op.athlete_id!==athleteId)fail('RECOVERY_ARCHIVE_ORIGINAL_CHANGED');signedOperationIds?.add(op.op_id);}
   });
+  if(proof===proofs[proofs.length-1]){
+   // Recompute through the same pinned authority reader after verifying the
+   // retained signed pages. Locally encrypted derived fields are not proof.
+   const sourcePlan=await profile.sourcePlan();assertContext();
+   const expectedFields=Snapshot.recoveredSnapshotFields(sourcePlan,proof.reference);
+   for(const key of Object.keys(expectedFields))if(!C.fullEqual(snapshot[key],expectedFields[key]))fail('RECOVERY_SNAPSHOT_DISAGREEMENT');
+   if(!Number.isSafeInteger(generation.collections.sync.frontier?.W)||generation.collections.sync.frontier.W<sourcePlan.W)fail('RECOVERY_SNAPSHOT_DISAGREEMENT');
+  }
   await profile.assertProofUnchanged();assertContext();
  }
 }

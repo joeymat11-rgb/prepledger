@@ -80,7 +80,7 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
         });
         const proof=await archiveProof(),summary=await profile.summary(),sourcePlan=await profile.sourcePlan();
         const candidate=await T2.prepareRecoveryProjection(saved.generation,{equal:C.fullEqual,fail,assertContext,
-          operations:profile.operations,accepted:profile.accepted,W:summary.W,athleteId,archiveProof:proof});
+          operations:profile.operations,accepted:profile.accepted,W:summary.W,athleteId,archiveProof:proof,sourcePlan});
         await check();
         return Object.freeze({assembled:true,sourcePlanProjected:true,projectionPending:true,complete:false,activated:false,checkpoint:false,
           sourceRevision:saved.revision,assertCurrent:check,
