@@ -168,7 +168,7 @@ async function guardedOwnerRead(r, actor, factory) {
 test("effective disposable revision bite: a paused real-D1 snapshot cannot outlive an owner mapping change", async t => {
   const r = await fixture(t), actor = await enroll(r, "guarded-actor");
   const product = path.resolve(__dirname, "../bridge.cjs"), bytes = fs.readFileSync(product), source = bytes.toString("utf8");
-  const anchor = "const statements = [db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision),\n          db.prepare('UPDATE authority_revision SET revision = revision + 1 WHERE id = 1')];";
+  const anchor = "const statements = [(storage ? storage.guard(revision,storageControl) : db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision)),\n          db.prepare('UPDATE authority_revision SET revision = revision + 1 WHERE id = 1')];";
   const r1Start = source.indexOf("async function executeR1(");
   assert(r1Start > 0);
   assert.equal(source.slice(r1Start).split(anchor).length, 2, "exactly one guard in the R1 implementation");

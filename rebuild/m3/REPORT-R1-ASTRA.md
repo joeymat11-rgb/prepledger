@@ -1,5 +1,43 @@
 # W5-R1 implementation — ASTRA
 
+## September 9 P1 storage implementation — bounded component, not activation
+
+Retained base `bec056d6b8f86069c500d958e86f212bd6e5f392`; executes PR46 `e037e9322e3078f07a90d1377b0cd8b391692e18`, `spec/p1-authority-storage-v1.md` v1.1, independently accepted as a technical contract in Opus Message100. This implementation still requires its own independent review. The approved PRODUCT-GOAL v3 and retained owner-workout brief govern: this removes a privacy/recovery dependency for faithful records and dependable workouts; it is not a replacement for the full coordinated-plan goal or a qualified private release.
+
+`bridge.cjs` explicitly selects `storage` at construction. Undefined retains the legacy test path; selected P1 never falls back to plaintext or auto-migrates. `storage/database.cjs` loads control plus rows in the same revision snapshot, decrypts before ordinary/R1/issuer consumers, and checks revision AND unchanged profile/namespace/write epoch in the atomic publish batch. Missing control cannot silently match zero updates. All changed rows are freshly sealed/stamped; unchanged raw strings and historical envelopes remain unchanged. Native crypto is async before the existing durable commit; no staged success is returned early. No synchronous authority, frozen app, original conformance law/oracle or seed changes.
+
+`storage/row-codec.cjs` implements the accepted six minimal projections and fourteen constant projections over the existing twenty supported collections, exact original UTF-8 JSON bytes, strict envelope/base64/identity/projection checks, fresh per-seal AES-256-GCM keys/IVs and AES-256-KW wrapping epochs. `storage_revision` is authenticated physical metadata. Missing/unusable provider keys refuse as UNAVAILABLE; authenticated-storage damage refuses on the R1 integrity path. The provider must supply nonextractable AES-KW handles with the required usage. Native Node and actual pinned workerd both executed this implementation. The tracked rig provider is synthetic, ephemeral and explicitly not production custody.
+
+Migration `0003_payload_storage.sql` is applied as one batch to an EMPTY ISOLATED database after 0001/0002. It adds the envelope/stamp/control and structural/monotonic guards, retaining every original trigger/index. It never alters a nonempty source in place. Authenticated plaintext-copy and encrypted-restore tests retain original athlete identities, signatures, raw ordering/spacing, epochs and stamp rules. These are synthetic fixtures, not a production import/export command or disaster-recovery rehearsal.
+
+Executed new-boundary evidence (native exit0 unless stated):
+
+```text
+P1 CODEC PASS 32/32
+P1 local-D1 SQL tests: 2/2 PASS
+P1 joined local-D1 bridge tests: 7/7 PASS
+P1 AUTH-MAPPED PASS 34/34 through encrypted local D1
+P1 RIG191 PASS 10/10 EFFECTIVE breaks through encrypted local D1
+P1 HTTP-190 PASS 5/5 over real local HTTP with C6 cuts
+WORKER-WORKERD PASS (bundled Worker + nodejs_compat + local D1 + RS256 auth + P-256 signatures + replay)
+D1-RACE PASS 100 independent workerd invocations; foreign ownership and waiting drain; 100 unique contiguous accepted records across two athletes
+D1-CRASH PASS 11/11 atomic batch cuts; no partial rows; exact retry one effect
+D1-LOST-REPLY PASS durable write then fetch failure; fresh snapshot retry; original signed bytes and one plan effect
+D1-REOPEN PASS persisted rows and signed replay survive workerd close/reopen
+```
+
+Reproduce from the repo root with real dependency directories and pinned Wrangler4.129.0: `node rebuild/m3/w5/test/row-codec.test.cjs`; `node --test --test-concurrency=1 rebuild/m3/w5/test/p1-sql.test.cjs rebuild/m3/w5/test/p1-bridge.test.cjs`; `node rebuild/m3/rigs/run-p1.cjs`; `node rebuild/m3/w5/test/p1-bites.cjs`. The mapped/HTTP, Worker smoke and race portions were executed separately, and the tracked runner now calls those same portions. SQL-only placeholders are structural fixtures, never claimed as authentic ciphertext. Joined tests use real generated keys and D1. All fixtures are synthetic. No live account or network service is needed.
+
+Three disposable child-process mutations exercise the actual product boundary: remove the storage-control assertion; substitute parsed/reserialized original JSON; return the physical projection instead of authenticated original bytes. Each causes RED native1, followed by original PASS native0. `storage/database.cjs` stayed byte-identical throughout, SHA256 `f0e89e738903abe5f0d19ff4e596507bd897068442f25b8f68564007d015fed7`. Source is loaded into isolated child module caches; no live file is bitten. Separate new joined tests prove sealed-only/stamp replay and projection tamper refuse without a recovery result or new domain effects, plus exact isolated encrypted restore. The intentionally accepted full mutable-row+stamp DELETE/INSERT rollback residual remains reproducible; this is not K1 or a freshness fence.
+
+Original regression first run: 179 tests,177 PASS/2 FAIL,native1. Both failures were stale source-shape assertions: the old non-reconcile byte pin excluded newly authorized P1 seams, and the mutation's exact old guard anchor no longer existed. No runtime assertion was weakened. `p1-bridge-source-delta.json` records eight literal unique P1 hunks against bec; the pin removes ONLY those explicit hunks before running the same complete historical source comparison. The revision bite now targets the exact selected/legacy guard expression and still returns an actual stale owner-bound proof when removed. Focused correction 2/2 PASS; effective original revision bite RED then exact bridge restoration SHA256 `fbc48030ca20693b2f5e8cb2955f746220278913f2f10f344238caa4cbb48051`. The original failing log is retained; corrected full R1 regression179/179 PASS,native0,91.816s. First P1 bite-driver attempt also expected TAP while Node selected the spec reporter; explicit TAP fixed only the log parser, retaining the already-effective failure.
+
+Mandatory publication preparation and checks completed2026-09-09T00:27Z: locally regenerated private inputs/verdict-only, public pins unchanged; frozen paths and actual18-file ZIP PASS; conformance99 reference/99 STRONG/29 absent RED/70 present GREEN, rig185 W1/W2 PASS; SELFTEST PASS; strict with MEASURED_TEST_NOW unset PASS; diff check PASS. Exact original W5 regression also completed native0: AUTH-D1 PASS (34/34 mapped laws GREEN on local D1 + rig191 10/10 EFFECTIVE breaks); HTTP-190 PASS (5/5 over real local HTTP with the C6 cuts); run.cjs SUMMARY local: 2 PASS / 0 FAIL / 0 BLOCKED / 0 PENDING. Corrected R1-FOCUSED PASS179/179. These component/regression verdicts do not override resource or release holds.
+
+**Remaining acceptance limits:** original R1 resource FAIL remains unwaived. Physical ciphertext expansion, row/bind/batch limits, memory and latency still need the selected-P1 measurement on the existing corpus; this PR does not supply that resource acceptance. No production wrapping-key custody, scoped provider credentials, private migration, checkpoint/rollback preserving later writes/outbox, remote deployment, complete capture/schema/issuer activation, K1/CLOCK or Joe/Dad phone proof. Current isolated restore is component evidence only. Full-envelope/stamp rollback, missing/deleted rows and complete database rollback require the existing independent freshness/completeness/recovery controls. No budget, transport bound,96MiB limit or scientific/product rule changes.
+
+Ownership/accounting: same retained root/coordinator and included Opus reviewer. APM's bounded P1-CODEC01 helper supplied the codec byte-exact (SHA256 `5b0b2b947057570fefe1fc36b8e610887302a76a4cf90725ec5467bff6522981`); root directly imported its tests, independently ran32 groups and owns actual database/Worker integration. Component work started23:50Z September8; final prepublication evidence00:36Z September9, approximately46 minutes calendar including helper and gates, not measured engineering time. No measured speedup or dollar savings claim. Owner disk cleanup relieved the prior disk hold; original ENOSPC evidence is not relabeled. No further cleanup, new schedule, paid fallback or private transfer.
+
 ## September 8 workout admission — bounded component, not schema activation
 
 Actual retained base: d26795a47d638ec1e67840455273cc05eeca9926. PR46 published
@@ -293,4 +331,4 @@ Claim recorded2026-09-06T18:03:54Z; final regression completed by2026-09-06T19:5
 
 ## NEXT
 
-Current claim: W5-R1 implementation. Exact scoped-read functional/regression evidence is published for independent execution; resource acceptance remains FAIL. C reviews the explicit unadopted resource-v2 proposal and own-account preflight question before further implementation. No existing gate changes by publishing a proposal. W6 stays paused until the reviewed dependency permits resumption; its eventual durable sink must repeat recovery cases. D12 proceeds independently. No R1 merge or owner action requested by this report.
+Current claim: retained W5-R1/P1 storage component. NEXT: same independent reviewer assesses this actual implementation against PR46 e037 v1.1, including the explicit source-pin exception and real boundary evidence; scope remains bounded until resource/custody/operational gates close. Root next measures selected-P1 resource/expansion limits and continues the already-planned exact capture/Start/outbox/recovery join in retained W6 from sufficient published contracts. Complete workouts, faithful import, individualized prescriptions, K1 and both phones remain first-use obligations. Original resource-v2 metric replacement is unadopted, not a new decision request. Same coordinator/ownership/schedule/credit limits; no merge, private activation or owner relay requested.

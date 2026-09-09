@@ -25,10 +25,12 @@ async function run(options = {}) {
     stdin: { resolveDir: directory, sourcefile: "workerd-smoke-entry.mjs", contents: `
       import { createWorker } from './worker.cjs';
       import { createBridge } from './bridge.cjs';
-      export default { fetch(request, env) {
+      import { storageFromTestBinding } from '../rigs/p1-workerd-provider.cjs';
+      export default { async fetch(request, env) {
         const authorityKey = JSON.parse(env.AUTHORITY_KEY);
         const bridge = createBridge({ db: env.DB, authorityKey,
-          identityKeys: JSON.parse(env.IDENTITY_KEYS), clock: () => env.TEST_NOW });
+          identityKeys: JSON.parse(env.IDENTITY_KEYS), clock: () => env.TEST_NOW,
+          ...(env.P1_TEST_KEY ? {storage:await storageFromTestBinding(env.P1_TEST_KEY)} : {}) });
         return createWorker({ bridge, authorityKey, auth: JSON.parse(env.AUTH_CONFIG),
           clock: () => env.TEST_NOW }).fetch(request);
       } };
@@ -37,22 +39,26 @@ async function run(options = {}) {
   });
   const authorityKey = generateSigningKey("workerd-smoke-run");
   const identityKeys = { first: randomBytes(32).toString("hex") }, issuer = testIssuer();
+  const p1Bytes = options.p1 ? randomBytes(32) : null;
   const mf = new Miniflare(await convertV4MiniflareOptions({ modules: true, script: bundle.outputFiles[0].text,
     compatibilityDate: "2026-09-03", compatibilityFlags: ["nodejs_compat"],
     d1Databases: { DB: "earned-w5-workerd-smoke" },
     resourcePersistencePath: fs.mkdtempSync(path.join(os.tmpdir(), "earned-w5-workerd-")),
     bindings: { AUTHORITY_KEY: JSON.stringify(authorityKey), IDENTITY_KEYS: JSON.stringify(identityKeys),
-      AUTH_CONFIG: JSON.stringify(issuer.config), TEST_NOW: NOW },
+      AUTH_CONFIG: JSON.stringify(issuer.config), TEST_NOW: NOW,
+      ...(p1Bytes ? {P1_TEST_KEY:p1Bytes.toString('base64url')} : {}) },
     log: new Log(LogLevel.ERROR), telemetry: { enabled: false }, cf: false,
   }));
   try {
     const db = await mf.getD1Database("DB");
     const migration = fs.readFileSync(path.join(directory, "migrations/0001_authority.sql"), "utf8").replace(/--[^\n]*/g, "");
     await db.batch(migration.split(";").map(sql => sql.trim()).filter(Boolean).map(sql => db.prepare(sql)));
+    if(p1Bytes)await require('./p1-test-profile.cjs').provision(db);
+    const storage=p1Bytes ? await require('./p1-test-profile.cjs').createTestStorage(p1Bytes) : undefined;
     const lease = signLease({ lease_id: "lease-workerd", athlete_id: "first", device_id: "workerd",
       schema_version: 1, range: [1, 100], not_before: "2026-09-01T00:00:00.000Z",
       not_after: "2026-10-01T00:00:00.000Z", issued_server_time: "2026-09-01T00:00:00.000Z" }, authorityKey);
-    const bridge = createBridge({ db, authorityKey, identityKeys, clock: () => NOW });
+    const bridge = createBridge({ db, authorityKey, identityKeys, clock: () => NOW, storage });
     await bridge.initialize({ first: { plan: { protein_g: 150, steps: 8000 }, devices: { workerd: { lease } } } }, { "clerk-first": "first" });
     const operation = build({ op_id: "workerd-op-1", athlete_id: "first", device_id: "workerd", device_seq: 1,
       predecessor: null, parents: [], kind: "fact", class: "reading", lease_id: lease.lease_id,

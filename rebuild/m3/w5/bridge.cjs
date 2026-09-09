@@ -23,19 +23,31 @@ function createBridge(config) {
   const retries = config.maxAttempts ?? 256;
   const profile = config.reconciliationProfile;
   if (profile !== undefined && profile !== 'earned/r1/v1') throw new TypeError('Unsupported reconciliation profile');
+  const storage = config.storage === undefined ? null : require('./storage/database.cjs').createDatabaseStorage(db,config.storage);
+  const rowColumns = storage ? storage.rowColumns : 'athlete, collection, row_id, value';
+  const storageFailure = cause => {
+    if (profile === 'earned/r1/v1' && cause?.code === 'RETAINED_INTEGRITY') throw cause;
+    return unavailable();
+  };
   async function execute(method, args, principal, seed) {
     for (let attempt = 0; attempt < retries; attempt++) {
       let loaded;
       try { loaded = await db.batch([
         db.prepare('SELECT revision FROM authority_revision WHERE id = 1'),
-        db.prepare('SELECT athlete, collection, row_id, value FROM authority_rows'),
+        db.prepare('SELECT ' + rowColumns + ' FROM authority_rows'),
         db.prepare('SELECT subject, athlete FROM authority_subjects'),
+        ...(storage ? [storage.controlStatement()] : []),
       ]); } catch (error) {
         if (!transient(error)) return unavailable();
         await backoff(attempt); continue;
       }
       const [revisionResult, rowResult, subjectsResult] = loaded;
       const revision = revisionResult.results[0].revision;
+      let storageControl;
+      if (storage) {
+        try { storageControl = await storage.load(loaded[3],rowResult.results,revision); }
+        catch (cause) { return storageFailure(cause); }
+      }
       const snapshot = rowResult.results.map(r => [rowKey(r.athlete, r.collection, r.row_id), JSON.parse(r.value)]);
       const before = new Map(snapshot.map(([key, value]) => [key, JSON.stringify(value)]));
       const backend = memoryBackend(snapshot);
@@ -76,11 +88,16 @@ function createBridge(config) {
       }) : [];
       // Even a read-only successful result is authorized at a checked revision.
       // A stale scope/read cannot authorize a response after a concurrent change.
-      const statements = [db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision)];
+      const statements = [(storage ? storage.guard(revision,storageControl) : db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision))];
       for (const [key, value] of delta) {
         const [athlete, collection, id] = JSON.parse(key);
+        if (storage) {
+          try { statements.push(await storage.write({athlete,collection,row_id:id,value:JSON.stringify(value)},revision,storageControl)); }
+          catch (cause) { return storageFailure(cause); }
+        } else {
         statements.push(db.prepare('INSERT INTO authority_rows (athlete, collection, row_id, value) VALUES (?, ?, ?, ?) ON CONFLICT (athlete, collection, row_id) DO UPDATE SET value = excluded.value')
           .bind(athlete, collection, id, JSON.stringify(value)));
+        }
       }
       for (const [subject, athlete] of newSubjects) statements.push(db.prepare('INSERT INTO authority_subjects (subject, athlete) VALUES (?, ?)').bind(subject, athlete));
       statements.push(db.prepare('UPDATE authority_revision SET revision = revision + 1 WHERE id = 1'));
@@ -125,11 +142,13 @@ function createBridge(config) {
       try { loaded = await db.batch(action === 'reconcile' ? [
         db.prepare('SELECT revision FROM authority_revision WHERE id = 1'),
         db.prepare('SELECT subject, athlete FROM authority_subjects WHERE subject = ?').bind(reconcileSubject ?? null),
-        db.prepare('SELECT athlete, collection, row_id, value FROM authority_rows WHERE athlete = (SELECT athlete FROM authority_subjects WHERE subject = ?)').bind(reconcileSubject ?? null),
+        db.prepare('SELECT ' + rowColumns + ' FROM authority_rows WHERE athlete = (SELECT athlete FROM authority_subjects WHERE subject = ?)').bind(reconcileSubject ?? null),
+        ...(storage ? [storage.controlStatement()] : []),
       ] : [
         db.prepare('SELECT revision FROM authority_revision WHERE id = 1'),
-        db.prepare('SELECT athlete, collection, row_id, value FROM authority_rows'),
+        db.prepare('SELECT ' + rowColumns + ' FROM authority_rows'),
         db.prepare('SELECT subject, athlete FROM authority_subjects'),
+        ...(storage ? [storage.controlStatement()] : []),
       ]); } catch (cause) {
         if (!transient(cause)) return unavailable();
         await backoff(attempt); continue;
@@ -137,6 +156,11 @@ function createBridge(config) {
       const [revisionResult, rowResult, subjectResult] = action === 'reconcile' ? [loaded[0],loaded[2],loaded[1]] : loaded;
       if (revisionResult.results.length !== 1 || !Number.isSafeInteger(revisionResult.results[0].revision)) I.error('UNAVAILABLE', 503, true);
       const revision = revisionResult.results[0].revision;
+      let storageControl;
+      if (storage) {
+        try { storageControl = await storage.load(loaded[3],rowResult.results,revision); }
+        catch (cause) { return storageFailure(cause); }
+      }
       if (action === 'reconcile') {
         // A complete proof is read-only. Keep the global revision guard and
         // own-account integrity/scope checks without constructing a writer backend, cloning
@@ -156,7 +180,7 @@ function createBridge(config) {
         const scopeDigest = C.scopeDigest({...trustedContext(context),subject:reconcileSubject,athleteId:athlete,actorDeviceId:actor});
         const result = {...project({rawRows:rowResult.results,athleteId:athlete,actorDeviceId:actor,request:request.request,scopeDigest}),scopeDigest};
         if (request.expectedPayloadDigest !== undefined && result.payloadDigest !== request.expectedPayloadDigest) I.error('SNAPSHOT_CHANGED',409);
-        const statements = [db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision),
+        const statements = [(storage ? storage.guard(revision,storageControl) : db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision)),
           db.prepare('UPDATE authority_revision SET revision = revision + 1 WHERE id = 1')];
         try { await db.batch(statements); return result; }
         catch (cause) {
@@ -299,11 +323,16 @@ function createBridge(config) {
       }
       if (result?.status === 'UNAVAILABLE') return result;
       const delta = backend.snapshot().filter(([key,value]) => before.get(key) !== JSON.stringify(value));
-      const statements = [db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision)];
+      const statements = [(storage ? storage.guard(revision,storageControl) : db.prepare('UPDATE authority_revision SET revision = CASE WHEN revision = ? THEN revision ELSE -1 END WHERE id = 1').bind(revision))];
       for (const [key,value] of delta) {
         const [owner,collection,id] = JSON.parse(key);
+        if (storage) {
+          try { statements.push(await storage.write({athlete:owner,collection,row_id:id,value:JSON.stringify(value)},revision,storageControl)); }
+          catch (cause) { return storageFailure(cause); }
+        } else {
         statements.push(db.prepare('INSERT INTO authority_rows (athlete, collection, row_id, value) VALUES (?, ?, ?, ?) ON CONFLICT (athlete, collection, row_id) DO UPDATE SET value = excluded.value')
           .bind(owner,collection,id,JSON.stringify(value)));
+        }
       }
       for (const [subject,target] of newSubjects) statements.push(db.prepare('INSERT INTO authority_subjects (subject, athlete) VALUES (?, ?)').bind(subject,target));
       statements.push(db.prepare('UPDATE authority_revision SET revision = revision + 1 WHERE id = 1'));

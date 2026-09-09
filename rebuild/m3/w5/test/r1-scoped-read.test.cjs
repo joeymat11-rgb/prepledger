@@ -226,8 +226,18 @@ for(const change of ['subject-remap','actor-revocation','account-closure']) test
   assert.equal(db.calls.filter(c=>c.length===2).length,0,'failed actual guard must not record a successful batch');
 });
 
-test('non-reconcile source retains pinned bytes except the two reviewed workout bindings; exact guard unchanged',()=>{
-  const old=original.toString('utf8'),candidate=fs.readFileSync(path.resolve(__dirname,'../bridge.cjs'),'utf8');
+test('non-reconcile source retains pinned bytes except explicit P1 storage seams and two reviewed workout bindings',()=>{
+  const old=original.toString('utf8');
+  let candidate=fs.readFileSync(path.resolve(__dirname,'../bridge.cjs'),'utf8');
+  // PR46 e037, P1 spec v1.1 explicitly changes physical reads/writes and the
+  // control guard. Revert ONLY the tracked literal P1 delta before applying the
+  // previous complete source comparison; unrelated changes still fail it.
+  const delta=require('./p1-bridge-source-delta.json');
+  assert.equal(delta.base,'bec056d6b8f86069c500d958e86f212bd6e5f392');
+  for(const change of delta.changes){
+    assert.equal(candidate.split(change.after).length,2,'unique explicit P1 source seam');
+    candidate=candidate.replace(change.after,change.before);
+  }
   // PR46 92d48fdd §5 explicitly adds this dependency to BOTH constructors.
   // Keep the historical source/hash and allow exactly that text twice, nothing else.
   const binding='authorityKey, identityKeys, clock, workoutProfile, athletes:';
