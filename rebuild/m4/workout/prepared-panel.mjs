@@ -63,6 +63,24 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId}) {
       const instruction=el('p',view.session.instruction.display+(view.session.instruction.state==='specified'?'':view.session.instruction.state==='unknown'?' (unknown)':' (not prescribed)'));instruction.className='prepared-instruction';
       const controls=el('div');shell.append(style,instruction,controls,original);
       const first=view.slots[0];
+      const active=el('section');active.className='prepared-active-slot';active.setAttribute('aria-label','Original instructions for this set');
+      active.style.cssText='order:3;padding-bottom:16px';
+      style.textContent+=`.prepared-active-slot .prepared-strip{list-style:none;display:flex;flex-wrap:wrap;gap:7px;padding:0;margin:0 0 20px}.prepared-strip li{flex:1 1 3.5em;border-top:2px solid #D8D0C2;padding-top:7px;color:#5A5348;font-size:.875em}.prepared-strip li[aria-current=step]{border-color:#1C1B18;color:#1C1B18}.prepared-active-slot .prepared-targets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:8px 0 14px}.prepared-targets p{color:#5A5348;font-size:.875em}.prepared-targets .prepared-value{display:block;color:#1C1B18;font:400 1.7em/1.2 'Instrument Serif',Georgia,serif;margin-top:5px}.prepared-active-slot>.prepared-target-label{color:#5A5348;font-weight:400}`;
+      const displayActive=selection=>{
+        active.replaceChildren();
+        const selected=view.slots[selection.index];
+        if(!selected||selected.logical_set_slot!==selection.logical_set_slot||selected.lift_lineage_id!==selection.lift_lineage_id)
+          throw new Error('Original slot unavailable');
+        const strip=el('ol');strip.className='prepared-strip';strip.setAttribute('aria-label','Workout entry position');
+        view.slots.forEach((_slot,index)=>{const item=el('li','Entry '+(index+1));if(index===selection.index)item.setAttribute('aria-current','step');strip.append(item);});
+        const label=el('p','Original instructions for this set');label.className='prepared-target-label';
+        const targets=el('div');targets.className='prepared-targets';
+        for(const [key,name] of [['load','Weight'],['reps','Repetitions']]){
+          const cell=selected[key],line=el('p',name),value=el('span',cell.display+(cell.state==='specified'?'':cell.state==='unknown'?' (unknown)':' (not prescribed)'));
+          value.className='prepared-value';line.append(value);targets.append(line);
+        }
+        active.append(strip,label,targets);show(active,'Effort',selected.effort);
+      };
       const proxy={async execute(command,args){
         if(command!=='workout'||args.action!=='start')return client.execute(command,args);
         startIssued=true;
@@ -80,7 +98,8 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId}) {
       }};
       panel=mountWorkoutCommandPanel(controls,{client:proxy,selection:{planned_split_slot_id:plannedSplitSlotId,
         plan_basis:view.basis.plan_basis,logical_set_slot:first.logical_set_slot,lift_lineage_id:first.lift_lineage_id,label:first.label},
-        additionalSlots:view.slots.slice(1).map(({logical_set_slot,lift_lineage_id,label})=>({logical_set_slot,lift_lineage_id,label}))});
+        additionalSlots:view.slots.slice(1).map(({logical_set_slot,lift_lineage_id,label})=>({logical_set_slot,lift_lineage_id,label})),onActiveSlotChange:displayActive});
+      controls.querySelector('.wcp-progress').after(active);
       status.textContent='Synthetic prepared instructions. Performed weight and repetitions are entered separately below.';
       return {mounted:true};
     }catch{

@@ -4,7 +4,7 @@ const mounted = new WeakMap();
 const nonblank = value => typeof value === 'string' && value.trim().length > 0;
 const fields = ['planned_split_slot_id', 'plan_basis', 'lift_lineage_id', 'logical_set_slot', 'label'];
 
-export function mountWorkoutCommandPanel(root, { client, selection, additionalSlots } = {}) {
+export function mountWorkoutCommandPanel(root, { client, selection, additionalSlots, onActiveSlotChange } = {}) {
   if (!root?.ownerDocument || typeof root.append !== 'function') throw new TypeError('A DOM root is required');
   mounted.get(root)?.dispose();
   const doc = root.ownerDocument;
@@ -23,6 +23,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-entry { order:4; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px 12px; padding-top:20px; border-top:1px solid #D8D0C2; }
     .workout-command-panel label { display:flex; flex-direction:column; justify-content:space-between; gap:8px; margin:0; min-width:0; color:#5A5348; }
     .workout-command-panel .wcp-effort,.workout-command-panel .wcp-log { grid-column:1 / -1; }
+    .workout-command-panel .wcp-entry-heading { grid-column:1 / -1; margin:0; font-size:1.125em; font-weight:500; }
     .workout-command-panel .wcp-effort { color:#1C1B18; }
     .workout-command-panel input,.workout-command-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:52px; padding:12px; border:1px solid #6F6759; border-radius:10px; background:#FAF7F1; color:#1C1B18; font:inherit; font-size:max(16px,1em); }
     .workout-command-panel .wcp-entry input { min-height:60px; font-weight:600; text-align:center; }
@@ -32,8 +33,6 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-status { order:5; min-height:1.5em; padding:16px 0; font-weight:500; }
     .workout-command-panel[aria-busy=true] .wcp-status { color:#5A5348; }
     .workout-command-panel .wcp-next { order:6; margin-bottom:20px; }
-    .workout-command-panel .wcp-skip { order:7; }
-    .workout-command-panel .wcp-close { order:8; }
     .workout-command-panel .wcp-skip,.workout-command-panel .wcp-close { display:grid; gap:12px; padding:18px 0; border-top:1px solid #D8D0C2; }
     .workout-command-panel .wcp-skip button,.workout-command-panel .wcp-close button { min-height:44px; padding:10px 0; width:auto; justify-self:start; border:0; border-radius:0; background:transparent; color:#1C1B18; font-weight:500; text-decoration:underline; text-decoration-color:#9B9284; text-underline-offset:5px; }
     .workout-command-panel .wcp-skip button:disabled,.workout-command-panel .wcp-close button:disabled { color:#6F6759; text-decoration-color:#D8D0C2; }
@@ -59,6 +58,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   const status = el('p'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
   const startForm = el('form'), startButton = el('button', 'Start'); startButton.type = 'submit'; startForm.append(startButton);
   const setForm = el('form'); setForm.noValidate = true;
+  const entryHeading=el('h3','What you did');entryHeading.className='wcp-entry-heading';setForm.append(entryHeading);
   const makeInput = (name, label, mode) => {
     const wrapper = el('label', label), input = el('input'); input.name = name; input.type = 'text'; input.inputMode = mode;
     input.autocomplete = 'off'; input.required = true; wrapper.append(input); setForm.append(wrapper); return input;
@@ -130,6 +130,15 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   const tell = text => { if (!disposed) status.textContent = text; };
   tell(valid ? 'Start when you are ready to record this synthetic set.' : 'Choose a complete workout selection in the host before starting.');
   paintControls();
+  // Trusted synchronous display observer; primitive copies expose neither mutable
+  // selection nor command capability. Display failure disables further actions.
+  const notifyActiveSlot = () => {
+    if (!valid || disposed || onActiveSlotChange === undefined) return;
+    try { onActiveSlotChange(Object.freeze({ logical_set_slot: slot().logical_set_slot,
+      lift_lineage_id: slot().lift_lineage_id, index, count: slots.length })); }
+    catch { valid = false; tell('Instructions could not be displayed. Return to the host before continuing.'); paintControls(); }
+  };
+  notifyActiveSlot();
 
   function refusal(result) {
     // A changed context may have committed without acknowledgement. Never offer a
@@ -216,7 +225,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     // Only a completed slot's local controls reset on explicit navigation. No host draft/storage is touched.
     load.value = ''; reps.value = ''; reserve.value = ''; skipReason.value = ''; closeChoice.value = '';
     for (const control of [load, reps, reserve]) control.removeAttribute('aria-invalid');
-    paintControls(); tell('Enter the set you performed, or explicitly skip this set.'); load.focus();
+    paintControls(); tell('Enter the set you performed, or explicitly skip this set.'); notifyActiveSlot(); if (valid) load.focus();
   };
   const onClose = event => {
     event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished) return;
