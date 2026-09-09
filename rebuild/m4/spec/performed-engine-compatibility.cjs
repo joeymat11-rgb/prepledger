@@ -66,7 +66,7 @@ function legacyAttempt(facts){return {id:'demo-press',w:facts[0].current.load.va
    const b=project(changed),enA=legacyAttempt(a.facts),enB=legacyAttempt(b.facts);
    const first=E.completeSession(initial(),F.SYNTHETIC_DAY,[clone(enA)],{clean:true});
    const second=E.completeSession(initial(),F.SYNTHETIC_DAY,[clone(enB)],{clean:true});
-   check(mode+' / distinct performed vectors collapse in real writer',()=>{assert.notDeepEqual(enA,enB);assert.deepEqual(first,second);assert.equal(Object.hasOwn(first.s.sessionLog[F.SYNTHETIC_DAY].entries[0],'wSets'),false);});
+   check(mode+' / proposed extra-input vectors are ignored by legacy writer',()=>{assert.notDeepEqual(enA,enB);assert.deepEqual(first,second);assert.equal(Object.hasOwn(first.s.sessionLog[F.SYNTHETIC_DAY].entries[0],'wSets'),false);});
    check(mode+' / per-set effort and source identity omitted',()=>{const out=first.s.sessionLog[F.SYNTHETIC_DAY].entries[0];assert.deepEqual(out.rirSets,[2,null,0]);assert.equal(Object.hasOwn(out,'source_op_ids'),false);assert.notDeepEqual(out.rirSets,enA.rirSets);});
    check(mode+' / scalar score ignores performed-vector difference',()=>{assert.equal(E.sessionScore(enA),E.sessionScore(enB));assert.notEqual(a.facts.reduce((n,f)=>n+f.current.load.value*f.current.reps.value,0),b.facts.reduce((n,f)=>n+f.current.load.value*f.current.reps.value,0));});
    check(mode+' / tagged effort is not a drop-in legacy numeric value',()=>{
@@ -74,6 +74,8 @@ function legacyAttempt(facts){return {id:'demo-press',w:facts[0].current.load.va
     ex.lastMeta={reps:[8,8,8],rirSets:[2,null,3]};const numeric=E.progressStep(ex,s);
     ex.lastMeta.rirSets[2]={tag:'at_least',value:3,unit:'rep'};const tagged=E.progressStep(ex,s);
     assert.equal(numeric.add,3);assert.equal(tagged.add,1);assert.notEqual(tagged.why,numeric.why);
+    assert.match(tagged.why,/last set to failure exactly/);
+    ex.lastMeta.rirSets[2]=null;assert.match(E.progressStep(ex,s).why,/last set unrated/);
     // This diagnoses a proposed adapter's invalid coercion, not a claim that
     // the accepted old app currently stores tagged objects or that +3 is qualified.
    });
@@ -81,8 +83,30 @@ function legacyAttempt(facts){return {id:'demo-press',w:facts[0].current.load.va
     const entries=[{id:'demo-press',w:40,reps:[8],rir:2},{id:'demo-press',w:30,reps:[8],rir:0}];
     const out=E.completeSession(initial(),F.SYNTHETIC_DAY,clone(entries),{clean:true});
     const recorded=out.s.sessionLog[F.SYNTHETIC_DAY].entries;
-    assert.equal(recorded.length,2);assert.equal(recorded[0].w,recorded[1].w);
+    assert.equal(recorded.length,2);assert.deepEqual(recorded.map(e=>e.w),[30,30]);
     assert.notDeepEqual(recorded.map(e=>e.w),entries.map(e=>e.w));
+   });
+   check(mode+' / flattened contract-valid loads contaminate actual repeat-noise pool',()=>{
+    const s=initial();const actual=[];
+    for(const day of ['2030-01-25','2030-01-26','2030-01-27','2030-01-28']){
+     const entries=[{id:'demo-press',w:40,reps:[8],rir:2},{id:'demo-press',w:30,reps:[6],rir:0}];
+     const out=E.completeSession(initial(),day,clone(entries),{clean:true});
+     s.sessionLog[day]=out.s.sessionLog[day];actual.push(...entries);
+    }
+    // Apply only the source's pairing predicate to entered versus recorded rows.
+    // No copied estimator: the result below calls the actual typicalError reader.
+    assert.equal(actual.slice(1).filter((e,i)=>String(e.w)===String(actual[i].w)&&e.reps.length===actual[i].reps.length).length,0);
+    const noise=E.typicalError(s,'demo-press',F.SYNTHETIC_DAY);
+    assert.equal(noise.n,7);assert.equal(noise.src,"this lift's own repeats");
+    assert(noise.reps>0);
+   });
+   check(mode+' / short anchor and incomplete top-window are distinct legacy rules',()=>{
+    const s=initial(),ex=s.exercises[0];ex.w=40;ex.hi=12;
+    s.sessionLog['2030-02-03']={entries:[{id:ex.id,w:40,reps:[12,11]}]};
+    assert.deepEqual(E.progressAnchor(ex,s),[12,11]);
+    assert.equal(E.atTopOfWindow([12,11],ex,null),false);
+    // This disproves a blanket claim that the existing anchor refuses partial
+    // records. It does not decide rich-slot comparability or scientific validity.
    });
    const edits=clone(ops);edits.edit={op_id:'edit',kind:'correction',target_op_id:'set1',causal_parents:['set1'],payload:{replacement_fields:{load:{value:25,unit:'lb'},reserve:{tag:'unknown'}}}};
    const corrected=project(edits);

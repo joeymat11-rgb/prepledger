@@ -1,5 +1,41 @@
 # ASTRA — owner workout contract preparation
 
+## v0.46 — exact load-write source proposal and browser dependency
+
+This successor combines the Review145 response below with executable source construction. New spec/load-write-proposal.cjs SHA2562f5701e1eea58550ecbbef8c15420c8480c01a4f9037b29ddbdb4c3438db5fad compares the actual integrated writer preimage, eleven other public dependency files and the isolated earnWalk declaration. No product file is written. It compiles the complete three-literal writer postimage in memory and executes synthetic calls through actual factories. Before writer8b4cc4048d00e36845e2652ee939583d55ee06132e166701945cc64fde136d36; proposed008d92961d210ed07850ea881bd3a9f01ee873c1958f8b7d3a47506342c96bf5. Exact construction/cases and carrier requirements are in PERFORMED-ENGINE-v1 §6.
+
+The first attempt exposed E.earnWalk absent from the data-free browser assembly. This is an assembly error, not a counted behavioral RED. The accepted extraction parked earnWalk in migrate:191. The diagnostic subsequently compiled only its exact declaration, SHA256888af1dc693a4a0929b6883a7ce5393f908890cb633059e193fe92fd1bb212c3, with four late E delegates: loadRungs/nextLoad/typicalError/beatsNoise. No migration factory, seed or private fixture is loaded. The proposed production route is a static verbatim function move with one canonical implementation; it still requires exact source/delta review and full gates.
+
+Executed output (native and frozen ambient Date, explicit clock):
+
+    LOAD WRITE native: 4 intended behavior changes; 3 complete-output/receipt controls PASS
+    LOAD WRITE native D41-debut source reversion DETECTED
+    LOAD WRITE native D41-reset source reversion DETECTED
+    LOAD WRITE native D43-entry source reversion DETECTED
+    LOAD WRITE frozen: 4 intended behavior changes; 3 complete-output/receipt controls PASS
+    LOAD WRITE frozen D41-debut source reversion DETECTED
+    LOAD WRITE frozen D41-reset source reversion DETECTED
+    LOAD WRITE frozen D43-entry source reversion DETECTED
+    LOAD WRITE SOURCE PROPOSAL: 20/20 checks PASS; 3 exact proposed source replacements; product UNCHANGED; full gates NOT RUN
+
+The separate compatibility diagnostic remains20/20; do not add these into a claim of40 app tests. Syntax/diff PASS. The source reversions are proposed-source mutations in memory, not faults in an installed product. Ordinary and omitted-weight calls retain complete returned states/receipts; owned receipt lines stay byte-identical. The new varied-entry case is additional D43 coverage at its already-cited unconditional persistence site, not an owner training ruling.
+
+Local static preparation enumerated416 marked declarations in ten data-free modules. Its conservative token-reference closure grows118→218 when bare callback references are included; neither count is complete AST/runtime coverage. It revealed historical filtering/recovery/counting consumers that the original semantic table did not close. Source carrier and actual same-host producer applicability remain required before those rich-input changes are accepted. The completed EFFORT-03 source/routing findings were read; their work was not repeated or claimed accepted. APM authorized one bounded expected-case helper; root retains all live files and continues without waiting.
+
+Published parent a4a6126 remains independently145 DIRECTION SOUND/CIgreen. This successor has no independent acceptance yet and claims no full product/private gates, scientific qualification, private import or release. Same retained coordinator/ownership/model/credit limits. No broad research. Preparation started13:13 UTC approximately; exact end recorded in the compact checkpoint. NEXT follows the brief; source construction is an enabling part of the same real fact-to-engine integration, not a replacement app milestone.
+
+## v0.45 working revision — Review145 response, not published or accepted
+
+Independent145 on a4a6126: DIRECTION SOUND after three implementation-brief closures. Reproduced16/16/syntax/pins; twelve legacy files identical on integration28ff3be. Exact CI7success3skipbothOS terminal. Archive11d0c96a232cdb5711e18d37c72d1a55fee98a4457c64847aaaeaf0df29d07be ATTACHED ONLY, not received/rehashed/replayed. PR description records the actual verdict. This is not product or eligibility acceptance.
+
+Root reproduced the findings through actual code: valid scalar entries40/30 save30/30; four synthetic sessions admit seven false same-load residuals into actual typicalError and select own-repeat noise. D43's FIX already requires each persisted entry to take validated performed load, and its EVIDENCE cites unconditional writers:400. Repeated entries are additional regression coverage for that same write-site repair, not proof the original owned-standard law covered this case. Preserve the original law, exact delta accounting and no reconstruction of lost historical values. No live trigger is claimed.
+
+Root also corrected reviewer overreach by execution: progressAnchor returns a short record while the top-window check refuses an incomplete prefix. Equal performed count does not mean equal planned slots; beatsNoise computes common-prefix arithmetic but does not check loads. The working spec separates these rules and proposes explicit ordered slot/load/unit comparison with reviewed outcome accounting. D40 concerns calorie-conflict ties; it cannot authorize a workout comparison rule. No new owner question is needed for exact fact preservation; material training choices retain existing qualification/ruling requirements.
+
+Renamed the ignored-extra-fields diagnostic to avoid calling unsupported input an existing code defect; added exact incorrect-failure-prose and missing-rating controls for a hypothetical tagged-object adapter. Same diagnostic command now gives: PERFORMED ENGINE COMPATIBILITY: 20/20 diagnostics CONFIRMED; lossless writer/reader join NOT IMPLEMENTED; no eligibility or personal prescription granted. Both native/frozen Date modes execute, syntax/diff PASS. No product or private suite was rerun or claimed for this preparation. Changes remain local for the coherent implementation amendment, not another review solely for wording.
+
+Still open: complete integrated source/delegate/composition/expectation carrier; rich-to-legacy mapping; qualified producer/effect/applicability. W6 lacks the integrated postfix files: use integration28ff3be's accepted package/source-proof mechanism without reverting D12/import repairs. Diagnostic pin075f37c is not the implementation base. NEXT follows the brief's single current entry.
+
 ## v0.44 — corrected performed facts into the actual engine
 
 The same-host logging/resume/Finish/correction path is accepted through W6 PR32 `13946a1c7090296de1b11fd3e4381833163fb58a` / Review144, exact-head CI terminal7success/3skip on both OS jobs. This PR46 successor proposes the next compatibility direction and provides executable failure evidence; it does not implement a new engine, grant eligibility, complete M4 or authorize private use. Existing published PR46 parent `c6a878fb1a2cc727a64d465e1a69ee555b951acd` / Review126 remains scoped to its own content. Origin integration was freshly fetched at `28ff3be3a0c47fa76b642015ac3757da5c76548c`; no branch switched or merged.
