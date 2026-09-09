@@ -1,6 +1,15 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.51 checkpoint — correctness accepted, Linux capacity OPEN
+## Current v0.52 integration checkpoint
+
+Documentation reconciliation at the concrete W6 archive-to-workout-history cut4860312. Actual pending local workout capture, bounded effort and correction survive signed-prefix recovery and reopen; five new read/edit fault pairs refuse without leaked history or handles. Full recovery167/167, composition364/364, retained native host44checks and original conformance/selftest pass. Capability schema2 and test-only generation placement remain explicitly synthetic; accepted schema2 workout recovery, current safety/producer and private/phone qualification are not claimed. W6 REPORT-W6-ASTRA leading section contains exact source, evidence and limits.
+
+Briefv0.52 removes two superseded Review146 NEXT paragraphs and the obsolete initial Linux-response queue; the single active ordered continuation is the retained shared delivery checkpoint. Prior complete brief/report bytes are preserved under work/delivery-history/M4-{BRIEF,REPORT}-before-v052.md and109bc04. Existing contracts, eight groups, full P1–P6/design and private/science/device gates remain. The next positive join is corrected facts→performed-engine producer/caller/import/current basis. Numeric3e908/artifactd21 remains independently accepted with actual integrator receipt pending; rich reader9ac69ce preparation remains uninstalled. No engine/private source edit or rerun of unchanged numeric qualification.
+
+R1 runtime restored exact342 after all three failed microtrials; local02de388 only records results. Capacity OPEN. APM owns its current diagnosis after terminal Review153; no root memory experiment/new helper/reviewer stream. No push, merge, private activation or release claim.
+
+
+## Historical v0.51 checkpoint — correctness accepted, Linux capacity OPEN
 
 Independent Review150 accepted cumulative734986a→34200f579dbade13c29f68e4a1375ac98c4d7ff3 correctness, including37e14a5. The correct ORIGINAL DEFAULT Linux rows witness failed twice:114,781,051B and132,170,224B versus100,663,296B, one violation per run; each completed four attempts/159 requests. Windows74,900,814B remains a genuine host-local PASS only. Overall capacity is NOT QUALIFIED; source/runtime, workload, fixture, meter, ceilings and flags are unchanged.
 
