@@ -85,7 +85,7 @@ test('real accepted stale conflict selection remains recoverable without inventi
   assert.deepEqual(candidate.collections.sync.snapshot.plan,expectedPlan,'RECOVERY_VERIFIED_PLAN_JOINS_CANDIDATE');
   assert.deepEqual(candidate.collections.sync.snapshot.planTransactionIds,transactions.map(x=>x.txn_id));
   assert.equal(candidate.collections.sync.snapshot.planBasis,null,'No global proposal basis is inferred from historical domain bases');
-  assert.deepEqual(candidate.collections.sync.snapshot.reads,before.generation.collections.sync.snapshot.reads);
+  assert.deepEqual(candidate.metadata.recoveryPriorSnapshots[0].snapshot,before.generation.collections.sync.snapshot);
  });assert.deepEqual(await f.repo.load(),before);
  const current=await invoke('planState',['protein']);
  const selection=build(lease,'synthetic-current-selection',3,{kind:'conflict-selection',predecessor:stale.op_id,parents:[first.op_id,second.op_id],

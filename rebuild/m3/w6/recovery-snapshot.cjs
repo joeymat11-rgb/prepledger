@@ -1,6 +1,6 @@
 "use strict";
-// Historical plan fields only. Other snapshot projections remain unqualified;
-// no global proposal basis, current version or provenance follows from this.
+// Closed historical projection. Cached machine output belongs in retained
+// local history; no current instruction, basis or provenance follows from this.
 function recoveredSnapshotFields(sourcePlan, reference) {
   return structuredClone({
     plan: sourcePlan.plan,

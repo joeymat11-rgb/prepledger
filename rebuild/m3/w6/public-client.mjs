@@ -186,12 +186,18 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
         (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
   }, stage: stageVerified });
-  async function stageVerified(generation, command, args, { authenticateLocalHistory = false } = {}) {
+  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false } = {}) {
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
     const signedOperationIds = authenticateLocalHistory ? new Set() : null;
     if (!await verifiedHistory(generation, signedOperationIds)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
+    // Authenticate history first; a restored historical snapshot cannot grant
+    // a current prescription. A qualified projection/publish join is still
+    // required. History reads and performed-fact corrections do not require
+    // a current projection.
+    if (requireCurrentProjection && generation.collections.sync?.snapshot?.recoveryPlan?.profile === "earned/recovered-plan-snapshot/v1")
+      throw new StorageFailure("RECOVERY_PROJECTION_REQUIRED", 18);
     if (command === "@currentHead") {
       if (!activeHead || historyAttempt !== activeHead || epoch !== activeHead.observationEpoch)
         throw new StorageFailure("CURRENT_HEAD_BASIS_CHANGED", 18);
@@ -249,7 +255,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if(lifetime!==preparationEpoch)return workoutRefusal('WORKOUT_PREPARATION_RETIRED');
       const input=closedInput(request,['session_start_op_id']);
       if(typeof input.session_start_op_id!=='string'||!input.session_start_op_id.trim())throw new StorageFailure('WORKOUT_INPUT_INVALID',3);
-      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true});
+      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true,requireCurrentProjection:true});
       if(!candidate.view||candidate.result?.state)return {...candidate.result,prepared:false};
       const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
       const resumed=workoutContinuation(history,snapshot.generation,input.session_start_op_id);
@@ -352,7 +358,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (unresolvedWorkout) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
       const input = closedInput(request, ["planned_split_slot_id"]);
       if (typeof input.planned_split_slot_id !== "string" || !input.planned_split_slot_id.trim()) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
-      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null);
+      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null, { requireCurrentProjection: true });
       if (!candidate.view || candidate.result?.state) return { ...candidate.result, acknowledged: false };
       const historyFailure = workoutHistoryFailure(snapshot.generation);
       if (historyFailure) return historyFailure;

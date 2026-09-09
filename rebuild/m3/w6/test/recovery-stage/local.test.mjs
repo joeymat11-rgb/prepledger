@@ -98,7 +98,7 @@ for(const kind of ['WAITING','REJECTED','ENVELOPE_MISMATCH','IDENTITY_CONFLICT']
     assert.equal(sink.deliverDisposition(disposition).stored,true);
     for(const name of ['ops','outbox','dispositions','rejected'])assert.deepEqual(candidate.collections[name]||{},structuredClone(T2.snapshotBackend(reference))[name]||{},name+' agrees with actual T2 disposition transaction');
     assert.deepEqual(candidate.collections.sync.snapshot.plan,{},'Verified unchanged source plan is empty');
-    assert.deepEqual(candidate.collections.sync.snapshot.reads,before.generation.collections.sync.snapshot.reads);
+    assert.deepEqual(candidate.metadata.recoveryPriorSnapshots[0].snapshot,before.generation.collections.sync.snapshot);
     assert.deepEqual(candidate.metadata.budget,before.generation.metadata.budget);
     assert(held.projectionPending&&!held.activated&&!held.complete&&!held.checkpoint);
   }
@@ -163,7 +163,7 @@ test('actual public client captures and reconciles all local pending originals t
     for(const name of ['ops','outbox','dispositions','receipts'])assert.deepEqual(candidate.collections[name],reference[name],name);
     assert.deepEqual(candidate.collections.sync.frontier,reference.sync.frontier);
     assert.deepEqual(candidate.collections.sync.snapshot.plan,{});
-    assert.deepEqual(candidate.collections.sync.snapshot.reads,original.generation.collections.sync.snapshot.reads);
+    assert.deepEqual(candidate.metadata.recoveryPriorSnapshots[0].snapshot,original.generation.collections.sync.snapshot);
     assert.deepEqual(candidate.collections.futureCollection,original.generation.collections.futureCollection);
     for(const [name,value]of Object.entries(original.generation.metadata))assert.deepEqual(candidate.metadata[name],value);
     assert.deepEqual(candidate.metadata.recoveryArchives,[await result.evidence.archiveProof()]);

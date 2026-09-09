@@ -39,7 +39,7 @@ export async function authenticateRecoveryArchives({generation,repository,recove
    // retained signed pages. Locally encrypted derived fields are not proof.
    const sourcePlan=await profile.sourcePlan();assertContext();
    const expectedFields=Snapshot.recoveredSnapshotFields(sourcePlan,proof.reference);
-   for(const key of Object.keys(expectedFields))if(!C.fullEqual(snapshot[key],expectedFields[key]))fail('RECOVERY_SNAPSHOT_DISAGREEMENT');
+   if(!C.fullEqual(snapshot,expectedFields))fail('RECOVERY_SNAPSHOT_DISAGREEMENT');
    if(!Number.isSafeInteger(generation.collections.sync.frontier?.W)||generation.collections.sync.frontier.W<sourcePlan.W)fail('RECOVERY_SNAPSHOT_DISAGREEMENT');
   }
   await profile.assertProofUnchanged();assertContext();

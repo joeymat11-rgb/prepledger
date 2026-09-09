@@ -47,7 +47,16 @@ function createFace(ctx) {
     return n;
   }
   function layer2() {
-    const s = snapshot(); const missing = missingDates();
+    const s = snapshot();
+    // Signed history establishes the restored plan, not a qualified current
+    // machine projection. Do not derive freshness from a partial reading set.
+    if (s.recoveryPlan?.profile === "earned/recovered-plan-snapshot/v1") return {
+      label: null, trend: null, rate: null, maintenance: null, instruction: null,
+      outputs: [], proposals: [], actionLoci: [], displayedProposal: null,
+      paceCurrent: false, board: null, missingDates: null, projectionPending: true,
+      copy: ctx.contractObsolete() ? COPY.UPDATE_EARNED : COPY.RECOVERY_PENDING, syncLine: null
+    };
+    const missing = missingDates();
     const board = missing == null || missing < D7.staleFrom ? "NO_WEIGH_IN_TODAY" : missing < D7.reentryFrom ? "STALE" : "RE_ENTRY";
     const l2 = {
       label: s.asOf ? COPY.AS_OF(s.asOf) : null,
@@ -90,9 +99,9 @@ function createFace(ctx) {
     const livePlan = ctx.livePlan();
     const f = {
       paint: "TRUTHFUL", state: st,
-      layer1: { plan: livePlan, planProvenance: accepted ? accepted.provenance : null, label: ctx.outbox.size() ? COPY.SAVED : "", reads: ctx.reads(), notYetSyncedCount: revoked ? undefined : ctx.outbox.size() },
+      layer1: { plan: livePlan, planProvenance: accepted ? accepted.provenance : null, label: [ctx.outbox.size() ? COPY.SAVED : "", l2.projectionPending ? COPY.RECOVERY_PLAN : ""].filter(Boolean).join(" · "), reads: ctx.reads(), notYetSyncedCount: revoked ? undefined : ctx.outbox.size() },
       layer2: l2, answers: ctx.answers(), rejectedCount: rejectedN, rejectedLine: rejectedN ? COPY.REJECTED_LINE(rejectedN) : null,
-      today: !accepted ? (model.explicitNoPlan ? COPY.NO_PLAN : COPY.FIRST_USE) : (l2.instruction || COPY.PLAN_IN_EFFECT),
+      today: l2.projectionPending ? l2.copy : !accepted ? (model.explicitNoPlan ? COPY.NO_PLAN : COPY.FIRST_USE) : (l2.instruction || COPY.PLAN_IN_EFFECT),
       resolution: revoked ? COPY.DEVICE_REMOVED : null,
       acceptedPlan: accepted ? Object.assign({}, accepted.plan, { provenance: accepted.provenance, version: accepted.version }) : null,
       history: ctx.history(),

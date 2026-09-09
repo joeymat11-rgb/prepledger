@@ -10,7 +10,7 @@ import {isDeepStrictEqual as equal} from 'node:util';
 // runner exercise that authentication boundary against the actual Worker/D1.
 function setup(){
   const generation=initial(),op={op_id:'kept',athlete_id:'ath-1',device_id:'dev-A',device_seq:1,
-    canonical_content_commitment:'synthetic',kind:'fact',class:'reading',payload:{value:1}};
+    canonical_content_commitment:'synthetic',kind:'fact',class:'reading',effective:{local_date:'2026-09-06',local_time:'08:00',utc_offset:'-04:00'},payload:{lb:{value:171,unit:'lb'}}};
   const backend=Client.memoryBackend(generation.collections),store=new Client.Store(backend);
   assert(store.transaction(tx=>{tx.put('ops',op.op_id,op);tx.put('outbox',op.op_id,{op_id:op.op_id,order:1});}).ok);
   generation.collections=structuredClone(T2.snapshotBackend(backend,Object.keys(generation.collections)));
@@ -42,9 +42,30 @@ test('internal candidate preserves extra local fields and identical proof withou
   assert.deepEqual(candidate.collections.sync.snapshot.plan,{protein_g:155});
   for(const field of ['planVersion','planProvenance','planBasis'])assert.equal(candidate.collections.sync.snapshot[field],null);
 });
+test('recovery keeps the prior projection as history and never paints it as current guidance',async()=>{
+  const x=setup();Object.assign(x.generation.collections.sync.snapshot,{
+    plan:{protein_g:145},instruction:'Add another set today',trend:171,rate:-0.5,maintenance:2600,
+    outputs:[{value:2600}],proposals:[{id:'old'}],proposal:{id:'old'},actionLoci:[{id:'old'}],
+    reads:[{date:config().clock.today()}],asOf:config().clock.today(),futureProjection:{unknown:'retained'}});
+  const oldReader=Client.createClient({...config(),backend:Client.memoryBackend(x.generation.collections)});oldReader.boot();
+  assert.equal(oldReader.face().layer2.instruction,'Add another set today','Control cache would paint without recovered-view suppression');
+  const before=structuredClone(x.generation),candidate=structuredClone(await T2.prepareRecoveryProjection(x.generation,x.source));
+  const reader=Client.createClient({...config(),backend:Client.memoryBackend(candidate.collections)});reader.boot();const face=reader.face();
+  assert.equal(face.layer2.instruction,null);assert.equal(face.layer2.trend,null);assert.equal(face.layer2.rate,null);assert.equal(face.layer2.maintenance,null);
+  for(const field of ['outputs','proposals','actionLoci'])assert.deepEqual(face.layer2[field],[]);
+  assert.equal(face.layer2.displayedProposal,null);assert.equal(face.layer2.paceCurrent,false);assert.equal(face.layer2.board,null);assert.equal(face.layer2.missingDates,null);
+  assert.match(face.today,/Today’s instructions aren’t ready yet/);assert.match(face.layer1.label,/Restored plan/);
+  assert.equal(candidate.collections.sync.snapshot.instruction,undefined);assert.equal(candidate.collections.sync.snapshot.reads,undefined);
+  assert.deepEqual(candidate.metadata.recoveryPriorSnapshots[0].snapshot,before.collections.sync.snapshot);
+  assert.deepEqual(candidate.metadata.recoveryPriorSnapshots[0].reference,x.proof.reference);
+  assert.deepEqual(x.generation,before);
+  const again=structuredClone(await T2.prepareRecoveryProjection(candidate,x.source));
+  assert.deepEqual(again.metadata.recoveryPriorSnapshots,candidate.metadata.recoveryPriorSnapshots,'Repeated assembly retains history without duplication');
+});
 for(const [name,change,code]of[
   ['frontier regression',x=>{x.generation.collections.sync.frontier.W=2;},'RECOVERY_FRONTIER_REGRESSION'],
   ['missing verified plan',x=>{delete x.source.sourcePlan;},'RECOVERY_SOURCE_PLAN_REQUIRED'],
+  ['malformed prior projection archive',x=>{x.generation.metadata.recoveryPriorSnapshots=null;},'RECOVERY_PROJECTION_ARCHIVE_INVALID'],
   ['plan frontier mismatch',x=>{x.source.sourcePlan.W=0;},'RECOVERY_SOURCE_PLAN_REQUIRED'],
   ['known head regression',x=>{x.generation.collections.sync.frontier.authorityW=2;},'RECOVERY_FRONTIER_REGRESSION'],
   ['terminal contradiction on queued original',x=>{x.generation.collections.dispositions={kept:{...x.disposition,status:'REJECTED'}};},'LOCAL_TERMINAL_DISAGREEMENT'],

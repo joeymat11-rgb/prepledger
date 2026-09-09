@@ -8,6 +8,8 @@ import {fixture,initial,config,createT2Stage,Client} from '../support.mjs';
 import {createDurablePublicClient} from '../../public-client.mjs';
 import {createRowsRecovery,createRowsFetcher} from '../../recovery-transport.mjs';
 import T2 from '../../t2-stage.cjs';
+import Capture from '../../../../m4/workout/capture.cjs';
+import {parseStrictJson} from '../../strict-json.mjs';
 if(!process.env.EARNED_ROWS_R1_ROOT)throw Error('Use the pinned recovery runner');
 const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
 const C=require('./reconciliation/codec.cjs'),P=require('./reconciliation/paged-codec.cjs'),S=require('./crypto.cjs'),Ops=require('../../client/ops.cjs');
@@ -24,6 +26,9 @@ test('archive original authentication joins the actual public client across repo
  const f=await fixture({namespace:'first/'+device});t.after(()=>f.repo.close());const generation=initial();generation.metadata.authorityLease=lease;await f.repo.initialize(generation,'synthetic-enrollment-only');
  let session=1;const scopeDigest=C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:device});
  const cfg=()=>({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first});
+ const capture=Capture.createPrescriptionCapture({parseStrictJson});
+ const identity={app_build:'synthetic-app',engine_build:'synthetic-engine',rule_profile:'synthetic-rule',source_schema:'synthetic-source'};
+ let produced=0,resumeAssessed=0,basisResolved=0;
  const args={repository:f.repo,stage:createT2Stage(cfg,{allowInbound:true}),namespace:f.setup.namespace,athleteId:'first',deviceId:device,sessionEpoch:1,isCurrentSession:x=>session===x,observationEpoch:()=>1,
   observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys,crypto:webcrypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,scopeDigest,keyRange:IDBKeyRange}};
  const client=createDurablePublicClient(args);assert((await client.execute('weighIn',{lb:170})).acknowledged);const before=await f.repo.load();
@@ -48,8 +53,25 @@ test('archive original authentication joins the actual public client across repo
  assert.deepEqual(reader.plan(),{protein_g:155},'Actual rebuilt source plan survives authenticated fresh boot');
  assert((await newClient.execute('weighIn',{lb:171})).acknowledged,'Existing writer works with authenticated historical originals under synthetic standing');
  const clean=await fresh.repository.load();assert.deepEqual(clean.generation.collections.ops[remote.op_id],remote);
+ await t.test('historical recovery refuses current workout production and resume assessment before granting a lease',async()=>{
+  // Pinned R1 issuer enrolls schema1 only. Configure the schema2 consumer to
+  // prove the historical-view refusal precedes any schema/lease grant. This
+  // does not claim a qualified schema2 issuance or a resumed workout story.
+  const workoutClient=createDurablePublicClient({...args,repository:fresh.repository,schemaVersion:2,prescriptionCapture:capture,workoutProducerIdentity:identity,
+   resolveWorkoutBasis:()=>{basisResolved++;throw Error('Unexpected basis');},workoutProducer:()=>{produced++;throw Error('Unexpected producer');},
+   workoutResumePolicy:()=>{resumeAssessed++;throw Error('Unexpected current resume assessment');}});
+  const counts=[produced,basisResolved,resumeAssessed],before=await fresh.repository.load();
+  for(const result of [await workoutClient.prepareWorkout({planned_split_slot_id:'synthetic-slot'}),await workoutClient.prepareWorkoutContinuation({session_start_op_id:'synthetic-start'})]){
+   assert.equal(result.code,'RECOVERY_PROJECTION_REQUIRED');assert.notEqual(result.prepared,true);assert.equal(result.state,18);
+  }
+  assert.deepEqual([produced,basisResolved,resumeAssessed],counts,'No current producer, basis resolver or resume assessor called');
+  assert.deepEqual(await fresh.repository.load(),before,'Preparations publish no recovery generation');
+ });
  for(const [id,entry]of Object.entries(before.generation.collections.outbox))assert.deepEqual(clean.generation.collections.outbox[id],entry);
  const cases=[
+  ['injected cached instruction refuses',g=>{g.collections.sync.snapshot.instruction='Add another set today';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['injected derived trend refuses',g=>{g.collections.sync.snapshot.trend=171;},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['unknown extra projection refuses',g=>{g.collections.sync.snapshot.futureProjection={current:true};},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
   ['changed archived original refuses',g=>{g.collections.ops[remote.op_id].payload.lb.value=999;},'RECOVERY_ARCHIVE_ORIGINAL_CHANGED'],
   ['missing accepted archived original refuses',g=>{delete g.collections.ops[remote.op_id];},'RECOVERY_ARCHIVE_ORIGINAL_MISSING'],
   ['missing archive proof refuses recovered snapshot',g=>{delete g.metadata.recoveryArchives;},'RECOVERY_SNAPSHOT_PROOF_MISSING'],

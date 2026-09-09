@@ -148,8 +148,18 @@ async function prepareRecoveryProjection(generation, source) {
         !sourcePlan.plan || typeof sourcePlan.plan !== "object" || Array.isArray(sourcePlan.plan) ||
         !Array.isArray(sourcePlan.transactionIds) || !Array.isArray(sourcePlan.transactionSources) ||
         !Array.isArray(sourcePlan.suspendedTransactionIds)) fail("RECOVERY_SOURCE_PLAN_REQUIRED");
-    backend.write(tx, "sync", "snapshot", { ...(backend.get("sync", "snapshot") || {}),
-      ...require("./recovery-snapshot.cjs").recoveredSnapshotFields(sourcePlan, archiveProof.reference) });
+    const recoveredSnapshot = require("./recovery-snapshot.cjs").recoveredSnapshotFields(sourcePlan, archiveProof.reference);
+    const previousSnapshot = backend.get("sync", "snapshot");
+    // Preserve the complete local projection for future reconciliation. This
+    // archive is local history, never source evidence or a current instruction.
+    if (metadata.recoveryPriorSnapshots === undefined) metadata.recoveryPriorSnapshots = [];
+    const priorSnapshots = metadata.recoveryPriorSnapshots;
+    if (!Array.isArray(priorSnapshots)) fail("RECOVERY_PROJECTION_ARCHIVE_INVALID");
+    if (previousSnapshot && !equal(previousSnapshot, recoveredSnapshot)) {
+      const record = { profile: "earned/local-projection-archive/v1", reference: clone(archiveProof.reference), snapshot: clone(previousSnapshot) };
+      if (!priorSnapshots.some(prior => equal(prior, record))) priorSnapshots.push(record);
+    }
+    backend.write(tx, "sync", "snapshot", recoveredSnapshot);
     backend.write(tx, "meta", "checkpoint", { ...checkpoint, counts: { ...checkpoint.counts,
       ops: backend.keys("ops").length, outbox: backend.keys("outbox").length } });
     const proofs = metadata.recoveryArchives || (metadata.recoveryArchives = []);

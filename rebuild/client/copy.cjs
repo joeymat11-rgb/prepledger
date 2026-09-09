@@ -16,6 +16,8 @@ const COPY = {
   FIRST_USE: "first use, no accepted plan",
   NO_PLAN: "no accepted plan",
   PLAN_IN_EFFECT: "Accepted plan in effect",
+  RECOVERY_PLAN: "Restored plan · current instructions pending",
+  RECOVERY_PENDING: "Your plan is restored. Today’s instructions aren’t ready yet.",
   LAST_SYNCED: (time) => "last synced " + (time || ""),
   AS_OF: (time) => "as of " + time,
   /* state 3 — save failed (loud, blocking for that action) */
