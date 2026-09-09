@@ -8,6 +8,8 @@ import Canonical from "../../authority/canonical.cjs";
 import { verifyHistoricalHead, sameRecordedValue } from "./history-proof.mjs";
 import WorkoutSchema from "../../m4/workout/schema.cjs";
 import {storedWorkoutHistory} from "../../m4/workout/stored-history.mjs";
+import {workoutContinuation} from "../../m4/workout/continuation.mjs";
+import WorkoutCommands from "../../m4/workout/commands.cjs";
 const copy = value => structuredClone(value);
 const refusal = (state, code, reason) => ({ stored: false, durable: false, state, code, reason });
 const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment recovery.", 18: "Stored truth needs recovery before it can be used.",
@@ -18,7 +20,7 @@ const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment
 export function createDurablePublicClient({ repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit, keys, subtle, crypto, monotonicMs,
   maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso, workoutProducer, workoutProducerIdentity,
-  resolveWorkoutBasis, prescriptionCapture, recovery } = {}) {
+  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy } = {}) {
   if (!repository || typeof stage !== "function" || !namespace || !athleteId || !deviceId || sessionEpoch === undefined ||
       typeof isCurrentSession !== "function" || typeof observationEpoch !== "function" || typeof observationGuard?.run !== "function" || typeof validateCommit !== "function") throw new TypeError("Explicit durable client scope, staging, observation guard and validator required");
   const verifier = W5.createPublicVerifier({ keys, subtle });
@@ -29,6 +31,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       typeof prescriptionCapture?.prepare !== "function" || !workoutProducerIdentity || schemaVersion !== 2))
     throw new TypeError("Complete static workout preparation configuration required");
   const producerIdentity = captureEnabled ? copy(workoutProducerIdentity) : null;
+  if(workoutResumePolicy!==undefined&&(!captureEnabled||typeof workoutResumePolicy!=='function'))throw new TypeError('Static workout resume policy requires capture configuration');
+  const resumptions=new Map();let activeResume=null;
+  const resumeCommands=WorkoutCommands.createWorkoutCommands();
   const preparations = new Map(); let activeWorkout = null, unresolvedWorkout = null, preparationEpoch = 0;
   const current = () => isCurrentSession(sessionEpoch) === true;
   const enqueue = action => { const task = tail.then(action); tail = task.catch(() => {}); return task; };
@@ -148,12 +153,25 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     entry.operation = copy(op); // Known before the write; needed if the reply is lost.
     return null;
   }
+  function resumeFailure(context){
+    const entry=activeResume;if(!entry)return null;
+    if(entry.retired||context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||
+      context.sessionEpoch!==entry.sessionEpoch||context.observationEpoch!==entry.observationEpoch)return workoutRefusal('WORKOUT_RESUME_STALE');
+    const op=context.batch?.operations?.[0],kind={set:'session-set',skip:'session-skip',close:'session-close'}[entry.args.action];
+    if(context.command!=='workout'||context.batch?.operations?.length!==1||!op||op.kind!==kind||
+      op.session_start_op_id!==entry.startId||!sameRecordedValue(context.args,entry.args))return workoutRefusal('WORKOUT_RESUME_COMMAND_MISMATCH');
+    if(entry.args.action!=='close'&&(op.logical_set_slot!==entry.args.input.logical_set_slot||op.lift_lineage_id!==entry.args.input.lift_lineage_id))return workoutRefusal('WORKOUT_RESUME_COMMAND_MISMATCH');
+    const spec=entry.spec;
+    if(op.class!==spec.class||!sameRecordedValue(op.payload,spec.payload)||Object.entries(spec.extra).some(([key,value])=>!sameRecordedValue(op[key],value))||
+      spec.effective&&!sameRecordedValue(op.effective,spec.effective)||spec.parents&&!sameRecordedValue(op.causal_parents,spec.parents))return workoutRefusal('WORKOUT_RESUME_COMMAND_MISMATCH');
+    return null;
+  }
   const bridge = createBridge({ repository, validateCommit(context) {
     const failure = contextFailure(context.observationEpoch) || headFailure(context); if (failure) return failure;
     const decision = validateCommit(context);
     // The downstream synchronous validator can itself learn adverse context.
     // Recheck the captured head immediately before returning permission to IDB.
-    return decision || (context.command === "@currentHead" && (contextFailure(context.observationEpoch) || headFailure(context))) ||
+    return decision || (activeResume&&(contextFailure(context.observationEpoch)||resumeFailure(context))) || (context.command === "@currentHead" && (contextFailure(context.observationEpoch) || headFailure(context))) ||
       ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
         (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
   }, stage: stageVerified });
@@ -210,6 +228,60 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         !Object.hasOwn(descriptors[k], "value") || !descriptors[k].enumerable) || required.some(k => !Object.hasOwn(descriptors, k)))
       throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
     return Object.fromEntries(names.map(k => [k, descriptors[k].value]));
+  }
+  async function prepareWorkoutContinuation(request,lifetime){
+    try{
+      for(const entry of resumptions.values())entry.retired=true;resumptions.clear();
+      if(typeof workoutResumePolicy!=='function')return workoutRefusal('WORKOUT_RESUME_POLICY_UNAVAILABLE');
+      if(lateRefusal)return {...lateRefusal,prepared:false};
+      const failure=contextFailure(null);if(failure)return {...failure,prepared:false};
+      if(lifetime!==preparationEpoch)return workoutRefusal('WORKOUT_PREPARATION_RETIRED');
+      const input=closedInput(request,['session_start_op_id']);
+      if(typeof input.session_start_op_id!=='string'||!input.session_start_op_id.trim())throw new StorageFailure('WORKOUT_INPUT_INVALID',3);
+      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true});
+      if(!candidate.view||candidate.result?.state)return {...candidate.result,prepared:false};
+      const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
+      const resumed=workoutContinuation(history,snapshot.generation,input.session_start_op_id);
+      const resolved=closedInput(resolveWorkoutBasis(copy(snapshot.generation),{planned_split_slot_id:resumed.planned_split_slot_id}),['plan_basis','input_basis','causal_parents']);
+      const basis={plan_basis:resolved.plan_basis,input_basis:resolved.input_basis,source_revision:snapshot.revision};
+      // Trusted configured producer, never a renderer-supplied clearance flag.
+      // Its science/input qualification remains an independent first-use gate.
+      const decision=closedInput(workoutResumePolicy(copy(snapshot.generation),{...copy(resumed),producer:copy(producerIdentity),basis:copy(basis)}),['allowed_actions','reason','current_capture']);
+      if(!Array.isArray(decision.allowed_actions)||new Set(decision.allowed_actions).size!==decision.allowed_actions.length||
+        !decision.allowed_actions.every(a=>['set','skip','close'].includes(a))||typeof decision.reason!=='string'||!decision.reason.trim())throw new StorageFailure('WORKOUT_RESUME_POLICY_INVALID',3);
+      const currentCapture=prescriptionCapture.prepare(decision.current_capture,{producer:producerIdentity,basis});
+      if(currentCapture.slots.length!==resumed.slots.length||currentCapture.slots.some((s,i)=>s.logical_set_slot!==resumed.slots[i].logical_set_slot||s.lift_lineage_id!==resumed.slots[i].lift_lineage_id))throw new StorageFailure('WORKOUT_RESUME_SLOT_MAPPING_REQUIRED',3);
+      const changed=contextFailure(candidate.context.observationEpoch);if(changed)return {...changed,prepared:false};
+      const latest=await repository.load();if(latest.revision!==snapshot.revision||latest.token!==snapshot.token)return workoutRefusal('WORKOUT_RESUME_STALE');
+      const last=contextFailure(candidate.context.observationEpoch);if(last)return {...last,prepared:false};
+      if(lifetime!==preparationEpoch)return workoutRefusal('WORKOUT_PREPARATION_RETIRED');
+      const id=Array.from((crypto||globalThis.crypto).getRandomValues(new Uint8Array(24)),b=>b.toString(16).padStart(2,'0')).join('');
+      if(resumptions.has(id))throw new StorageFailure('WORKOUT_HANDLE_COLLISION',3);
+      resumptions.set(id,{revision:snapshot.revision,token:snapshot.token,...copy(candidate.context),startId:input.session_start_op_id,
+        resumed:copy(resumed),allowed:decision.allowed_actions.slice(),retired:false});
+      return {prepared:true,resumeId:id,view:{...copy(resumed),current:copy(currentCapture),allowed_actions:decision.allowed_actions.slice(),current_reason:decision.reason}};
+    }catch(error){const changed=contextFailure(null);if(changed)return {...changed,prepared:false};return {...workoutRefusal(error.code||'WORKOUT_RESUME_UNAVAILABLE'),state:error.state||3};}
+    finally{activeGrant?.retire();activeGrant=null;}
+  }
+  async function executeResumedWorkout(request){
+    let entry;
+    try{
+      const input=closedInput(request,['resumeId','action','input']);entry=resumptions.get(input.resumeId);
+      if(!entry||entry.retired)return workoutRefusal('WORKOUT_RESUME_REQUIRED');
+      entry.retired=true;resumptions.delete(input.resumeId); // One command attempt per prepared context.
+      const failure=contextFailure(entry.observationEpoch)||lateRefusal;if(failure)return {...failure,acknowledged:false};
+      if(!entry.allowed.includes(input.action))return workoutRefusal('WORKOUT_CURRENT_SAFETY_REFUSES');
+      const values=copy(input.input);if(!values||values.session_start_op_id!==entry.startId)return workoutRefusal('WORKOUT_RESUME_COMMAND_MISMATCH');
+      if(input.action==='set'||input.action==='skip'){
+        const slot=entry.resumed.slots.find(s=>s.logical_set_slot===values.logical_set_slot&&s.lift_lineage_id===values.lift_lineage_id);
+        if(!slot||slot.completion||input.action==='skip'&&values.skip_scope!=='set')return workoutRefusal('WORKOUT_RESUME_SLOT_UNAVAILABLE');
+      }else if(input.action==='close'){
+        if(values.completion_kind==='normal'&&entry.resumed.slots.some(s=>!s.completion))return workoutRefusal('WORKOUT_RESUME_INCOMPLETE');
+      }else return workoutRefusal('WORKOUT_RESUME_COMMAND_MISMATCH');
+      entry.args={action:input.action,input:values};entry.spec=resumeCommands.prepare(entry.args);entry.retired=false;activeResume=entry;
+      return completedOutcome(await bridge.execute('workout',entry.args));
+    }catch(error){return {...workoutRefusal(error.code||'WORKOUT_RESUME_COMMAND_UNAVAILABLE'),state:error.state||3};}
+    finally{if(entry)entry.retired=true;activeResume=null;activeGrant?.retire();activeGrant=null;}
   }
   async function prepareWorkout(request, lifetime) {
     try {
@@ -391,6 +463,8 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       finally{activeGrant?.retire();activeGrant=null;}
     }); },
     prepareWorkout(request) { const input = submittedWorkout(request), lifetime = preparationEpoch; return enqueue(() => prepareWorkout(input, lifetime)); },
+    prepareWorkoutContinuation(request){let input;try{input=copy(closedInput(request,['session_start_op_id']));}catch{input=null;}const lifetime=preparationEpoch;return enqueue(()=>prepareWorkoutContinuation(input,lifetime));},
+    executeResumedWorkout(request){let input;try{const raw=closedInput(request,['resumeId','action','input']);resumeCommands.prepare({action:raw.action,input:raw.input});input=copy(raw);}catch{input=null;}return enqueue(()=>executeResumedWorkout(input));},
     startPreparedWorkout(request) { const input = submittedWorkout(request, true); return enqueue(() => startPreparedWorkout(input)); },
     retireWorkoutPreparations() {
       preparationEpoch++;
@@ -399,6 +473,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         if (entry.phase === "starting" || entry.phase === "uncertain") unresolvedWorkout = entry;
       }
       preparations.clear(); // In-flight entries remain privately held by their attempt/unresolved fence.
+      for(const entry of resumptions.values())entry.retired=true;resumptions.clear();if(activeResume)activeResume.retired=true;
     },
     current() {
       const value = bridge.current(), failure = contextFailure(visibleEpoch) || lateRefusal;

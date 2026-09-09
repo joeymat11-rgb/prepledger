@@ -4,7 +4,7 @@ const mounted = new WeakMap();
 const nonblank = value => typeof value === 'string' && value.trim().length > 0;
 const fields = ['planned_split_slot_id', 'plan_basis', 'lift_lineage_id', 'logical_set_slot', 'label'];
 
-export function mountWorkoutCommandPanel(root, { client, selection, additionalSlots, onActiveSlotChange } = {}) {
+export function mountWorkoutCommandPanel(root, { client, selection, additionalSlots, onActiveSlotChange, continuation, canExecute } = {}) {
   if (!root?.ownerDocument || typeof root.append !== 'function') throw new TypeError('A DOM root is required');
   mounted.get(root)?.dispose();
   const doc = root.ownerDocument;
@@ -114,24 +114,39 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
       ids.add(item.logical_set_slot); slots.push({ logical_set_slot: item.logical_set_slot, lift_lineage_id: item.lift_lineage_id, label: item.label });
     }
   }
+  const completedSlots=new Set();
+  if(continuation!==undefined){
+    if(!extended||!nonblank(continuation?.session_start_op_id)||!Array.isArray(continuation?.completed_slots))valid=false;
+    else{
+      startId=continuation.session_start_op_id;
+      for(const item of continuation.completed_slots){
+        const i=slots.findIndex(s=>s.logical_set_slot===item?.logical_set_slot&&s.lift_lineage_id===item?.lift_lineage_id);
+        if(i<0||completedSlots.has(i))valid=false;else completedSlots.add(i);
+      }
+      index=slots.findIndex((_s,i)=>!completedSlots.has(i));if(index<0)index=slots.length-1;
+      slotDone=completedSlots.has(index);
+      disclosure.textContent='Synthetic workout recovered from authenticated storage. Earlier recorded values are shown separately. Original instructions and the current assessment remain distinct; recorded or skipped entries do not establish progression eligibility.';
+    }
+  }
   const slot = () => slots[index];
-  title.textContent = nonblank(chosen.label) ? chosen.label : 'Workout selection required';
+  title.textContent = nonblank(slot()?.label) ? slot().label : 'Workout selection required';
+  const permits=action=>{try{return canExecute===undefined||canExecute(action)===true;}catch{return false;}};
   const paintControls = () => {
     startButton.disabled = !valid || pending || recovery || startId !== null || finished;
     startForm.hidden = startId !== null; // Retire only the already acknowledged Start from the visual flow.
     const blocked = !valid || pending || recovery || startId === null || finished;
-    for (const control of [load, reps, reserve, setButton]) control.disabled = blocked || slotDone;
+    for (const control of [load, reps, reserve, setButton]) control.disabled = blocked || slotDone || !permits('set');
     if (extended) {
-      for (const control of [skipReason, skipButton]) control.disabled = blocked || slotDone;
+      for (const control of [skipReason, skipButton]) control.disabled = blocked || slotDone || !permits('skip');
       nextButton.hidden = !slotDone || index === slots.length - 1; nextButton.disabled = blocked || !slotDone;
-      finishButton.hidden=!slotDone||index!==slots.length-1||finished;finishButton.disabled=blocked||!slotDone;
-      closeChoice.disabled = closeButton.disabled = blocked;
+      finishButton.hidden=!slotDone||index!==slots.length-1||finished;finishButton.disabled=blocked||!slotDone||!permits('close');
+      closeChoice.disabled = closeButton.disabled = blocked || !permits('close');
       progress.textContent = `Set entry ${index + 1} of ${slots.length}${slotDone ? ' — action recorded' : finished ? ' — not logged' : ''}`;
     }
     panel.setAttribute('aria-busy', String(pending));
   };
   const tell = text => { if (!disposed) status.textContent = text; };
-  tell(valid ? 'Start when you are ready to record this synthetic set.' : 'Choose a complete workout selection in the host before starting.');
+  tell(valid ? startId ? 'Workout resumed. Earlier entries remain recorded; continue with the remaining work.' : 'Start when you are ready to record this synthetic set.' : 'Choose a complete workout selection in the host before starting.');
   paintControls();
   // Trusted synchronous display observer; primitive copies expose neither mutable
   // selection nor command capability. Display failure disables further actions.
@@ -152,6 +167,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     if (result.state === 17) { recovery = true; return 'Sign-in or installation recovery is required. Your entries remain here.'; }
     if (result.state === 18) { recovery = true; return 'Stored information needs recovery. Your entries remain here.'; }
     if (result.state === 20) { recovery = true; return 'Reconnect through the host to restore the write allowance. Your entries remain here.'; }
+    if (result.code === 'WORKOUT_CURRENT_SAFETY_REFUSES') return 'The current assessment does not permit this action. Your entered values remain here.';
     if (result.state === 3) return 'Could not save. Your entries remain here. You can try again.';
     recovery = true; return 'Save not confirmed. Your entries remain here. Return to the host for recovery.';
   }
@@ -170,6 +186,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
       else if (action === 'close') { finished = true; tell(entered.completion_kind==='normal'?'Saved — workout finished on this device. Recorded and skipped entries stay distinct.':'Saved — workout ended early on this device. Remaining work stays not logged.'); }
       else {
         slotDone = true;
+        completedSlots.add(index);
         tell(action === 'skip' ? 'Saved — this set was explicitly skipped. No repetitions were recorded.' : 'Saved — set logged on this device.');
       }
       if (extended) {
@@ -198,7 +215,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     void execute('start', { planned_split_slot_id: chosen.planned_split_slot_id, plan_basis: chosen.plan_basis });
   };
   const onSet = event => {
-    event.preventDefault(); if (disposed || !valid || pending || recovery || startId === null || finished || slotDone) return;
+    event.preventDefault(); if (disposed || !valid || pending || recovery || startId === null || finished || slotDone || !permits('set')) return;
     load.removeAttribute('aria-invalid'); reps.removeAttribute('aria-invalid'); reserve.removeAttribute('aria-invalid');
     const lbText = load.value.trim(), repsText = reps.value.trim();
     const lb = Number(lbText), count = Number(repsText);
@@ -218,25 +235,25 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     void execute('set', input);
   };
   const onSkip = event => {
-    event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished || slotDone) return;
+    event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished || slotDone || !permits('skip')) return;
     if (!skipReasons.includes(skipReason.value)) { tell('Choose a reason before explicitly skipping this set.'); options.open = true; skipReason.focus(); return; }
     void execute('skip', { session_start_op_id: startId, logical_set_slot: slot().logical_set_slot, lift_lineage_id: slot().lift_lineage_id, skip_scope: 'set', reason: skipReason.value });
   };
   const onNext = () => {
     if (!extended || disposed || !valid || pending || recovery || finished || !slotDone || index >= slots.length - 1) return;
-    index++; slotDone = false; title.textContent = slot().label;
+    do{index++;}while(index<slots.length-1&&completedSlots.has(index));slotDone=completedSlots.has(index);title.textContent = slot().label;
     // Only a completed slot's local controls reset on explicit navigation. No host draft/storage is touched.
     load.value = ''; reps.value = ''; reserve.value = ''; skipReason.value = ''; closeChoice.value = '';
     for (const control of [load, reps, reserve]) control.removeAttribute('aria-invalid');
     paintControls(); tell('Enter the set you performed, or explicitly skip this set.'); notifyActiveSlot(); if (valid) load.focus();
   };
   const onClose = event => {
-    event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished) return;
+    event.preventDefault(); if (!extended || disposed || !valid || pending || recovery || !startId || finished || !permits('close')) return;
     if (closeChoice.value !== 'early') { tell('Choose early finish to end this workout. Remaining work will stay not logged.'); options.open = true; closeChoice.focus(); return; }
     void execute('close', { session_start_op_id: startId, completion_kind: 'early' });
   };
   const onFinish=()=>{
-    if(!extended||disposed||!valid||pending||recovery||finished||!startId||!slotDone||index!==slots.length-1)return;
+    if(!extended||disposed||!valid||pending||recovery||finished||!startId||!slotDone||index!==slots.length-1||!permits('close'))return;
     void execute('close',{session_start_op_id:startId,completion_kind:'normal'});
   };
   startForm.addEventListener('submit', onStart); setForm.addEventListener('submit', onSet);

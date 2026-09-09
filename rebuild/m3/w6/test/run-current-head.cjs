@@ -37,6 +37,14 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
 }
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
+if(process.argv.includes('--resume-bite')){
+ if(process.argv.slice(2).filter(s=>s.endsWith('-bite')||s==='--bite').length!==1)throw Error('Select one mutation only');
+ const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
+ const target='context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||';
+ if(raw.split(target).length!==2)throw Error('Exact resume snapshot bite target missing');
+ fs.writeFileSync(file,raw.replace(target,''));preparedRestore={file,raw};
+ mutation={name:'omit-resume-snapshot-binding',originalSha256:pins['rebuild/m3/w6/public-client.mjs']};
+}
 if(process.argv.includes('--head-history-bite')){
  if(['--bite','--prepared-bite','--host-bite','--history-bite','--receipt-bite','--stored-history-bite','--projection-bite','--local-history-bite'].some(flag=>process.argv.includes(flag)))throw Error('Select one mutation only');
  const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
@@ -114,7 +122,7 @@ if(process.argv.includes('--bite')){
     mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
 }
 const testDir=path.join(output,'rebuild/m3/w6/test');
-const namesToRun=['--workout-history','--head-history-bite','--history-bite','--receipt-bite','--stored-history-bite','--projection-bite','--local-history-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
+const namesToRun=['--workout-history','--resume-bite','--head-history-bite','--history-bite','--receipt-bite','--stored-history-bite','--projection-bite','--local-history-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
  process.argv.includes('--all')?fs.readdirSync(testDir).filter(n=>n.endsWith('.test.mjs')).sort():['current-head.test.mjs'];
 // Bound test-file workers; races inside each test still run unchanged.
 const args=['--test','--test-concurrency=2','--test-timeout=30000',...namesToRun.map(n=>path.join(testDir,n))];
@@ -125,8 +133,8 @@ const gitDir=git(['rev-parse','--absolute-git-dir']).toString().trim();
 const started=performance.now(),run=cp.spawnSync(process.execPath,args,{cwd:output,env:{...process.env,GIT_DIR:gitDir,GIT_WORK_TREE:output},windowsHide:true,encoding:'utf8',maxBuffer:32e6});
 fs.writeFileSync(path.join(output,'test.stdout.log'),run.stdout||'');fs.writeFileSync(path.join(output,'test.stderr.log'),run.stderr||'');
 let browser=null;
-if(process.argv.includes('--browser')){
-  browser=cp.spawnSync(process.execPath,[path.join(testDir,'browser-contract.mjs')],{cwd:output,env:process.env,windowsHide:true,encoding:'utf8',maxBuffer:32e6});
+if(process.argv.includes('--browser')||process.argv.includes('--resume-browser')){
+  browser=cp.spawnSync(process.execPath,[path.join(testDir,process.argv.includes('--resume-browser')?'browser-resume.mjs':'browser-contract.mjs')],{cwd:output,env:process.env,windowsHide:true,encoding:'utf8',maxBuffer:32e6});
   fs.writeFileSync(path.join(output,'browser.stdout.log'),browser.stdout||'');fs.writeFileSync(path.join(output,'browser.stderr.log'),browser.stderr||'');
 }
 if(preparedRestore){fs.writeFileSync(preparedRestore.file,preparedRestore.raw);

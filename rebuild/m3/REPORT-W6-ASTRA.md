@@ -1,5 +1,35 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Same-workout reopen/Finish integration — September9 candidate
+
+Owner revision3's next demonstration now runs through the actual retained prepared host/public client/T2 committer/encrypted IndexedDB: open, Start, record two Sets, close page, reopen same Start and remaining slot, record another Set, normal Finish, close/reopen its history. Exact original capture, Start/slot identities and performed values survive; one Start and one normal Close. It uses explicitly synthetic identity, test-only key custody and a synthetic current-policy producer. It is an intermediate successful journey, not Joe/Dad/private/iPhone/science/design/full-goal acceptance. The full coordinated training/nutrition/recovery/lifestyle/phases goal remains unchanged.
+
+`rebuild/m4/workout/CONTINUATION.md` specifies the bounded path and its limits. The pure interpreter reuses the actual session candidate rule and requires a supported singleton, complete known prefix, captured slots and unambiguous nonconcurrent facts. The public client separately obtains a current policy/capture on the exact authenticated generation, binds an opaque one-attempt command to revision/token/session/observation and checks the exact performed payload/envelope at durable commit. The existing host displays original versus current instructions separately, reuses its controls, resumes the first remaining slot, and opens completed work as history. It never turns the old history read's continuation=false into permission. Multiple-device/legacy/generation/extra-slot interpretation remains named unfinished work; missing qualified current policy refuses.
+
+Executed final evidence:
+
+```
+COMPOSED W6: 331 tests / 331 PASS / 0 FAIL / 0 skip (4.73s)
+RECOVERY STAGE: 130 tests / 130 PASS / 0 FAIL / 0 skip (13.80s)
+WORKOUT RESUME PASS — 24 checks; actual retained host/client/encrypted IndexedDB; page close/reopen; same Start, three Sets, one normal Close, history
+PREPARED PANEL PASS — 32 native lifecycle/display/history checks plus keyboard original-instructions disclosure
+UI DISCLOSURES PASS — 7 native presentation checks
+ACTIVE SLOT PASS — 5 actual prepared-display checks + 7 controlled observer checks
+RESUME BITE RED — prepared continuation refuses revision change before a durable command (mutant wrongly acknowledged)
+RESUME BITE RESTORED — public-client SHA256 0087c3c1ea897e8879c3f9d125373ab694bb7c2d6759bd6038ac96ee2bc2c41d
+FROZEN-PATHS PASS — pinned authorized base; committed and working copy
+OLD-PACKAGE PASS — 18 allowlisted files; actual ZIP entries and bytes verified
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+strict: PASS; native exit 0; MEASURED_TEST_NOW unset
+All checks passed. Safe to ship.
+```
+
+Two added adversarial tests were first RED in the new draft: an otherwise matching staged batch substituted performed load, and structured cloning invoked a nested caller getter. The command now uses the existing descriptor-safe mapper before copying and verifies its exact payload/envelope at the final commit cut. They are GREEN alongside stale revision/context/retirement, known-prefix, ambiguous corrections, original/current separation, safety refusal, incomplete Finish and lost-acknowledgement/fresh-history tests. Pure second-Start candidate-rule tests are explicitly below the signature boundary; they do not claim signed remote or production partition evidence. A native negative-control initially timed out because its test queried an early-Finish button inside closed details; the test now opens the actual disclosure before checking it. No product rule was changed to resolve that harness issue.
+
+Coherent review scope includes the held d412fd3 no-effect recovery correction below. Final code keeps frozen app/conformance and seeded soak unchanged; no private activation, new custody, automatic merge or extra agent. Parent47df30f's ACCEPT141 does not accept these new bytes. Required independent review, integrator/publication/private/device gates remain. Stage A/current safety producer and original96MiB/default-runtime capacity are unqualified; no percentage or release ETA is inferred from test totals. See the single NEXT below for the continuing integration work.
+
 ## Candidate correction retained for the next coherent integration review — September9
 
 The accepted inactive-candidate chunk47df30f has independent ACCEPT141 (123/123, native29, both assembly bites and16 own checks). Its scope remains an inactive base projection. Archive4041bytes SHA256b59a9c5d58d1073906dc03b41cd4a12896b375cc13f947c0c45a77b0542a8c70 is attached only, not locally received/rehashed/replayed. No new reviewer request is issued solely for the small correction below. Publication gates and independent acceptance apply to the final combined integration change; the candidate correction is not yet published or accepted.
@@ -1524,4 +1554,4 @@ SCOPE-FREEZE PENDING — new PWA archive, full private suite and final M3 implem
 
 The new own-entry-check omission reproduces both ordinary assertion failures. All four previous public-client bites were also re-executed on this final source after the new change; each source restoration is literal and focused25/25 pass. No missing dependency, syntax/pin error or merely changed source text earned mutation credit. Focused test duration222.7102ms; combined Node1421.3142ms; these are local execution timings, not a speed guarantee. The full continuation was not separately timed; the manifest records the observed evidence/packaging window. Same-family source/test review is preparation QA, never the mandated independent acceptance.
 Evidence is retained under coordinator `work/w6-proof-family-evidence`: red-first, final public/full Node, original conformance/selftest/W3/scope outputs, source hashes and five restored behavioral bites. Full Node and original regressions used explicit ENGINE_MAIN/ENGINE_OLD, gate date2026-09-03, America/New_York and this checkout's client. Logs stayed outside the repository. No new browser/build/strict/exact CI/publication/independent verdict is claimed; unchanged compiler-access failures were not retried or bypassed. Private, remote and seeded-soak state were untouched.
-NEXT: the current SIX-file W6 patch supersedes the earlier SIX-file patch from EARNED-next-workout-step.zip; do not stack them. Fresh local build/browser/strict and all other mandatory publication gates now PASS as recorded at the top. Publish on the retained PR32, verify exact-head CI and request independent execution of this bounded checkpoint; the builder does not merge. This supplies W6/W9 review evidence, not W7/OWNER-TODAY permission. Astra retains the same W6 claim and takes only the next contract-ready workout dependency after its own prerequisites resolve; otherwise record the exact blocker. PR46 v0.6 and PR47 have separate acceptance paths. Production/storage/clock/custody and full-workout contracts still gate owner use. No new task, model setting, schedule, purchase or owner relay.
+NEXT: obtain independent execution of the coherent retained PR32 resume/Finish/history integration plus the held no-effect recovery correction, with exact-head CI and all publication gates. The successful synthetic same-workout round trip removes the former host-remount blocker; it does not qualify personal prescriptions or production recovery. Root then continues the existing corrected-history-to-qualified-next-prescription join at its exact issuer/basis/custody dependencies, preserving the explicit storage-capacity, K1/CLOCK, legacy/private-port and phone blockers. Keep the same coordinator/worktrees/ownership/settings; no automatic merge, new stream/schedule, history truncation or status-only PR.

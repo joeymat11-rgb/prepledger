@@ -9,6 +9,7 @@ import Commands from '../../../m4/workout/commands.cjs';
 import Schema from '../../../m4/workout/schema.cjs';
 import Sign from '../../w5/crypto.cjs';
 import Wire from '../../w5/public-client.cjs';
+import {workoutContinuation} from '../../../m4/workout/continuation.mjs';
 const capture=Capture.createPrescriptionCapture({parseStrictJson});
 const identity={app_build:'synthetic-app',engine_build:'synthetic-engine',rule_profile:'synthetic-rule',source_schema:'synthetic-source'};
 const unknown=()=>({state:'unknown',display:'Unknown',source_json:null});
@@ -41,6 +42,109 @@ const recreate=f=>createDurablePublicClient({...f.args,repository:f.repo});
 const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_op_id:id,completion_kind:'early',causal_parents:[id]}});
 const perform=(f,id,slot='slot-0')=>f.c.execute('workout',{action:'set',input:{session_start_op_id:id,logical_set_slot:slot,lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'}}});
 const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct',input:{target_op_id:target,lift_lineage_id:'same-lineage',replacement_fields:fields,...(parents?{causal_parents:parents}:{})}});
+
+// Explicit synthetic safety producer: exercises custody/binding, not a personal
+// recommendation or the production issuer's scientific qualification.
+const resumePolicy=(_generation,context)=>({allowed_actions:['set','skip','close'],reason:'Synthetic current assessment',current_capture:prescription(context)});
+const resume=(c,id)=>c.prepareWorkoutContinuation({session_start_op_id:id});
+const resumedSet=(c,p,id,slot='slot-1')=>c.executeResumedWorkout({resumeId:p.resumeId,action:'set',input:{session_start_op_id:id,logical_set_slot:slot,lift_lineage_id:'same-lineage',load:{value:47.5,unit:'lb'},reps:{value:9,unit:'rep'}}});
+
+test('continuation reopens the actual stored workout and finishes once with original capture and exact performed facts',async()=>{
+ const f=await setup({client:{workoutResumePolicy:(_g,c)=>{const r=resumePolicy(_g,c);r.current_capture.slots[1].load=cell('35 lb','{"value":35,"unit":"lb"}');return r;}}});
+ try{const a=await start(f,await prepare(f));assert.equal((await perform(f,a.op_id)).acknowledged,true);const original=(await operations(f))[a.op_id];
+ const fresh=await f.fresh();try{const c=createDurablePublicClient({...f.args,repository:fresh.repository});let p=await resume(c,a.op_id);
+ assert.equal(p.prepared,true,JSON.stringify(p));assert.equal(p.view.slots[0].completion.values.load.value,42.5);assert.equal(p.view.slots[1].completion,null);
+ assert.deepEqual(p.view.original,original.prescription_capture);assert.equal(p.view.current.slots[1].load.display,'35 lb');assert.equal(p.view.original.slots[1].load.display,'45 lb');
+ assert.equal((await resumedSet(c,p,a.op_id)).acknowledged,true);assert.equal((await resumedSet(c,p,a.op_id)).code,'WORKOUT_RESUME_REQUIRED');
+ p=await resume(c,a.op_id);const skip=await c.executeResumedWorkout({resumeId:p.resumeId,action:'skip',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-2',lift_lineage_id:'same-lineage',skip_scope:'set',reason:'Time'}});assert.equal(skip.acknowledged,true,JSON.stringify(skip));
+ p=await resume(c,a.op_id);assert(p.view.slots.every(s=>s.completion));const finish=await c.executeResumedWorkout({resumeId:p.resumeId,action:'close',input:{session_start_op_id:a.op_id,completion_kind:'normal'}});assert.equal(finish.acknowledged,true,JSON.stringify(finish));
+ assert.equal((await resume(c,a.op_id)).code,'WORKOUT_ALREADY_CLOSED');const history=await c.readWorkoutHistory();assert.equal(history.read,true);const s=history.history.sessions[0];
+ assert.deepEqual(s.original,original.prescription_capture);assert.equal(s.projection.close_records.length,1);assert.equal(s.projection.close_records[0].kind,'normal');
+ assert.deepEqual(s.projection.facts.map(x=>x.current.load.value),[42.5,47.5]);assert.equal(s.projection.skipped_record_ids.length,1);assert.equal(Object.values(await operations(f)).filter(o=>o.kind==='session-start').length,1);
+ }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+
+test('original capture is never current safety permission and normal Finish cannot hide remaining work',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f));assert.equal((await resume(f.c,a.op_id)).code,'WORKOUT_RESUME_POLICY_UNAVAILABLE');
+ const c=createDurablePublicClient({...f.args,workoutResumePolicy:(_g,ctx)=>({...resumePolicy(_g,ctx),allowed_actions:['skip','close']})});let p=await resume(c,a.op_id);const before=await f.repo.load();
+ assert.equal((await resumedSet(c,p,a.op_id)).code,'WORKOUT_CURRENT_SAFETY_REFUSES');p=await resume(c,a.op_id);
+ assert.equal((await c.executeResumedWorkout({resumeId:p.resumeId,action:'close',input:{session_start_op_id:a.op_id,completion_kind:'normal'}})).code,'WORKOUT_RESUME_INCOMPLETE');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+for(const change of ['revision','retired','standing','observation'])test(`prepared continuation refuses ${change} change before a durable command`,async()=>{
+ const f=await setup({client:{workoutResumePolicy:resumePolicy}});try{const a=await start(f,await prepare(f)),p=await resume(f.c,a.op_id);assert.equal(p.prepared,true,JSON.stringify(p));
+ if(change==='revision'){const s=await f.repo.load();s.generation.metadata.syntheticChange=true;await f.repo.commit(s,s.generation,()=>null);}
+ if(change==='retired')f.c.retireWorkoutPreparations();if(change==='standing')f.scope.session++;if(change==='observation')f.scope.observation++;
+ const before=await f.repo.load(),r=await resumedSet(f.c,p,a.op_id);assert.equal(r.acknowledged,false,JSON.stringify(r));assert.deepEqual(await f.repo.load(),before);
+ assert.equal(r.code,change==='revision'?'WORKOUT_RESUME_STALE':change==='retired'?'WORKOUT_RESUME_REQUIRED':change==='standing'?'SESSION_CHANGED':'OBSERVATION_CHANGED');
+ }finally{f.repo.close();}
+});
+
+for(const malformed of ['actions','reason','slot'])test(`continuation rejects malformed current safety ${malformed} without modifying stored original`,async()=>{
+ const f=await setup({client:{workoutResumePolicy:(_g,c)=>{const r=resumePolicy(_g,c);if(malformed==='actions')r.allowed_actions=['set','set'];if(malformed==='reason')r.reason='';if(malformed==='slot')r.current_capture.slots[0].logical_set_slot='substituted-slot';return r;}}});
+ try{const a=await start(f,await prepare(f)),before=await f.repo.load(),p=await resume(f.c,a.op_id);assert.notEqual(p.prepared,true);assert.equal(p.code,malformed==='slot'?'WORKOUT_RESUME_SLOT_MAPPING_REQUIRED':'WORKOUT_RESUME_POLICY_INVALID');assert.deepEqual(await f.repo.load(),before);}finally{f.repo.close();}
+});
+
+test('continuation refuses colliding facts, but actual targeted removal restores an unambiguous slot',async()=>{
+ const f=await setup({client:{workoutResumePolicy:resumePolicy}});try{const a=await start(f,await prepare(f)),one=await perform(f,a.op_id);await perform(f,a.op_id);
+ assert.equal((await resume(f.c,a.op_id)).code,'WORKOUT_SET_INTERPRETATION_REQUIRED');assert.equal((await f.c.execute('workout',{action:'remove',input:{target_op_id:one.op_id,lift_lineage_id:'same-lineage',reason:'Duplicate entry'}})).acknowledged,true);
+ const p=await resume(f.c,a.op_id);assert.equal(p.prepared,true,JSON.stringify(p));assert.equal(p.view.slots[0].completion.kind,'performed');
+ assert.equal((await resumedSet(f.c,p,a.op_id,'slot-0')).code,'WORKOUT_RESUME_SLOT_UNAVAILABLE');
+ }finally{f.repo.close();}
+});
+
+for(const [earlier,later,date,ambiguous] of [['12:00','13:00','2026-09-04',true],['23:00','01:00','2026-09-05',true],['22:59','01:00','2026-09-05',false],['23:00','01:01','2026-09-05',false]])test(`continuation uses actual session candidate rule: ${earlier}/${later}/${date}`,async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),h=(await f.c.readWorkoutHistory()).history,g=(await f.repo.load()).generation;
+ // Pure interpretation boundary only: authenticate the real first Start above,
+ // then introduce the second projected Start synthetically. No signature claim.
+ h.sessions[0].start.operation.effective.local_time=earlier;const other=structuredClone(h.sessions[0]);other.start.operation.op_id='synthetic-second-start';other.start.operation.device_id='dev-B';other.start.operation.effective.local_date=date;other.start.operation.effective.local_time=later;h.sessions.push(other);
+ if(ambiguous)assert.throws(()=>workoutContinuation(h,g,a.op_id),e=>e.code==='WORKOUT_SESSION_PARTITION_REQUIRED'&&e.state===14);
+ else assert.deepEqual(workoutContinuation(h,g,a.op_id).component_members,[a.op_id]);
+ }finally{f.repo.close();}
+});
+
+test('continuation cannot treat partial authority prefix or unresolved edits as permission',async()=>{
+ const f=await setup({client:{workoutResumePolicy:resumePolicy}});try{const a=await start(f,await prepare(f)),h=(await f.c.readWorkoutHistory()).history,g=(await f.repo.load()).generation;
+ g.collections.sync.frontier.authorityW=1;assert.throws(()=>workoutContinuation(h,g,a.op_id),e=>e.code==='WORKOUT_RESUME_PREFIX_INCOMPLETE'&&e.state===18);
+ const set=await perform(f,a.op_id);await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});await editSet(f,set.op_id,{reps:{value:10,unit:'rep'}});
+ assert.equal((await resume(f.c,a.op_id)).code,'WORKOUT_SET_INTERPRETATION_REQUIRED');
+ }finally{f.repo.close();}
+});
+
+test('resumed write lost acknowledgement is reconciled by actual fresh history, not a second set',async()=>{
+ let lose=false;const f=await setup({client:{workoutResumePolicy:resumePolicy},wrapRepository:repo=>({...repo,async commit(...args){const r=await repo.commit(...args);if(lose){lose=false;throw Error('synthetic lost response');}return r;}})});
+ try{const a=await start(f,await prepare(f)),p=await resume(f.c,a.op_id);lose=true;
+ const lost=await resumedSet(f.c,p,a.op_id);assert.equal(lost.acknowledged,false);assert.equal((await resumedSet(f.c,p,a.op_id)).code,'WORKOUT_RESUME_REQUIRED');
+ const c=recreate(f),next=await resume(c,a.op_id);assert.equal(next.prepared,true,JSON.stringify(next));assert.equal(next.view.slots[1].completion.values.load.value,47.5);
+ assert.equal((await resumedSet(c,next,a.op_id)).code,'WORKOUT_RESUME_SLOT_UNAVAILABLE');assert.equal(Object.values(await operations(f)).filter(o=>o.kind==='session-set').length,1);
+ }finally{f.repo.close();}
+});
+
+test('late downstream validator retirement refuses a resumed write at the actual commit cut',async()=>{
+ let armed=false,f;f=await setup({client:{workoutResumePolicy:resumePolicy},validateCommit:()=>{if(armed)f.c.retireWorkoutPreparations();return null;}});
+ try{const a=await start(f,await prepare(f)),p=await resume(f.c,a.op_id),before=await f.repo.load();armed=true;const result=await resumedSet(f.c,p,a.op_id);
+ assert.equal(result.acknowledged,false);assert.equal(result.code,'WORKOUT_RESUME_STALE');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+test('resumed final command guard rejects a substituted performed value in an otherwise matching batch',async()=>{
+ const f=await setup({client:{workoutResumePolicy:resumePolicy},wrapStage:stage=>(...args)=>{const c=stage(...args);if(args[1]==='workout'&&args[2]?.action==='set'&&c.result?.acknowledged){
+   for(const op of c.commit.batch.operations){op.payload.load.value=999;c.generation.collections.ops[op.op_id].payload.load.value=999;}
+ }return c;}});
+ try{const a=await start(f,await prepare(f)),p=await resume(f.c,a.op_id),before=await f.repo.load(),r=await resumedSet(f.c,p,a.op_id);
+ assert.equal(r.acknowledged,false);assert.equal(r.code,'WORKOUT_RESUME_COMMAND_MISMATCH');assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+
+test('resumed command rejects nested accessors before executing any caller getter',async()=>{
+ const f=await setup({client:{workoutResumePolicy:resumePolicy}});try{const a=await start(f,await prepare(f)),p=await resume(f.c,a.op_id);let called=0;
+ const load={unit:'lb'};Object.defineProperty(load,'value',{enumerable:true,get(){called++;return 47.5;}});
+ const before=await f.repo.load(),r=await f.c.executeResumedWorkout({resumeId:p.resumeId,action:'set',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-1',lift_lineage_id:'same-lineage',load,reps:{value:8,unit:'rep'}}});
+ assert.equal(called,0);assert.equal(r.acknowledged,false);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
 
 async function acceptedCurrentHead(f,op){
  assert.equal(typeof Sign.signCurrentHead,'function','CURRENT_HEAD_DEPENDENCY_MISSING: use run-current-head.cjs --workout-history');
