@@ -10,5 +10,6 @@ export { encodeFrame, decodeFrame, frameAad } from "./frame-format.mjs";
 export { parseStrictJson } from "./strict-json.mjs";
 export { openFrameRepository, makeProof } from "./frame-repository.mjs";
 export { mountWorkoutCommandPanel } from "../../m4/workout/command-panel.mjs";
+export { mountPreparedWorkoutPanel } from "../../m4/workout/prepared-panel.mjs";
 export { default as PrescriptionCapture } from "../../m4/workout/capture.cjs";
 export { default as WorkoutCommands } from "../../m4/workout/commands.cjs";

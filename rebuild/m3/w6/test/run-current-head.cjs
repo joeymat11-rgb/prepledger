@@ -37,6 +37,15 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
 }
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
+if(process.argv.includes('--host-bite')){
+ if(process.argv.includes('--bite')||process.argv.includes('--prepared-bite'))throw Error('Select one mutation only');
+ const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
+ const target='enqueue(() => prepareWorkout(input, lifetime))';
+ if(raw.split(target).length!==2)throw Error('Exact queued-lifetime bite target missing');
+ fs.writeFileSync(file,raw.replace(target,'enqueue(() => prepareWorkout(input, preparationEpoch))'));preparedRestore={file,raw};
+ mutation={name:'rebind-queued-preparation-after-retirement',originalSha256:pins['rebuild/m3/w6/public-client.mjs'],
+  mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+}
 if(process.argv.includes('--prepared-bite')){
  if(process.argv.includes('--bite'))throw Error('Select one mutation only');
  const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');

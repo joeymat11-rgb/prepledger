@@ -99,6 +99,7 @@ test('quota abort permits exact retry without recapture',async()=>{
 test('lost commit reply reconciles the actual stored Start, never another operation',async()=>{
  let lose=true;const f=await setup({wrapRepository:repo=>({...repo,async commit(...args){const result=await repo.commit(...args);if(lose){lose=false;throw new Error('synthetic lost reply');}return result;}})});
  try{const p=await prepare(f),lost=await start(f,p);assert.equal(lost.acknowledged,false);assert.equal(Object.keys(await operations(f)).length,1);
+ assert.equal(lost.outcomeUnknown,true);assert(!lost.copy.includes('not saved'));
  assert.equal((await prepare(f)).code,'WORKOUT_START_OUTCOME_UNRESOLVED');const recovered=await start(f,p);
  assert.equal(recovered.acknowledged,true);assert.equal(recovered.recovered,true);assert.equal(Object.keys(await operations(f)).length,1);assert.equal(f.produced(),1);
  }finally{f.repo.close();}
@@ -138,4 +139,14 @@ test('competing write before commit cannot silently recapture on a CAS retry',as
  // Inject the competing write at the actual repository commit boundary.
  let raced=false;const g=await setup({wrapRepository:repo=>({...repo,async commit(...args){if(!raced){raced=true;const current=await repo.load();await repo.commit(current,current.generation,()=>null);}return repo.commit(...args);}})});
  try{const p=await prepare(g),r=await start(g,p);assert.equal(r.acknowledged,false);assert.equal(r.code,'WORKOUT_PREPARATION_STALE');assert.equal(g.produced(),1);assert.equal(Object.keys(await operations(g)).length,0);}finally{g.repo.close();}
+});
+
+test('retirement also invalidates a preparation queued before disposal',async()=>{
+ const entered=deferred(),release=deferred();let hold=false;
+ const f=await setup({wrapRepository:repo=>({...repo,async load(){const s=await repo.load();if(hold){entered.resolve();await release.promise;}return s;}})});
+ try{hold=true;const first=prepare(f);await entered.promise;const queued=prepare(f);
+ f.c.retireWorkoutPreparations();release.resolve();
+ for(const result of await Promise.all([first,queued]))assert.equal(result.code,'WORKOUT_PREPARATION_RETIRED');
+ assert.equal(Object.keys(await operations(f)).length,0);
+ }finally{release.resolve();f.repo.close();}
 });

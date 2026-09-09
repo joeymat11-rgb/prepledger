@@ -80,7 +80,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     }
     return null;
   }
-  const workoutRefusal = code => ({ acknowledged: false, state: 3, code, copy: "Workout not started. Your input is retained; review the plan before trying again." });
+  const workoutRefusal = code => ({ acknowledged: false, state: 3, code,
+    ...(["WORKOUT_START_OUTCOME_UNRESOLVED", "WORKOUT_START_UNRESOLVED"].includes(code) ? { outcomeUnknown: true } : {}),
+    copy: "Start not confirmed. Your input is retained; resolve the indicated condition before trying again." });
   const capturedStart = context => context.batch?.operations?.some(op => op.kind === "session-start" && Object.hasOwn(op, "prescription_capture")) === true;
   function workoutFailure(context) {
     if (!captureEnabled || context.command !== "workout" || context.args?.action !== "start")
@@ -160,12 +162,12 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
     return Object.fromEntries(names.map(k => [k, descriptors[k].value]));
   }
-  async function prepareWorkout(request) {
-    const lifetime = preparationEpoch;
+  async function prepareWorkout(request, lifetime) {
     try {
       if (!captureEnabled) return workoutRefusal("WORKOUT_PREPARATION_NOT_CONFIGURED");
       if (lateRefusal) return { ...lateRefusal, acknowledged: false };
       const failure = contextFailure(null); if (failure) return { ...failure, acknowledged: false };
+      if (lifetime !== preparationEpoch) return workoutRefusal("WORKOUT_PREPARATION_RETIRED");
       if (unresolvedWorkout) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
       const input = closedInput(request, ["planned_split_slot_id"]);
       if (typeof input.planned_split_slot_id !== "string" || !input.planned_split_slot_id.trim()) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
@@ -225,12 +227,14 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (result.acknowledged === true && result.durableRevision) entry.phase = "committed";
       else if (entry.operation && !["TRANSACTION_ABORTED", "TRANSACTION_WRITE_FAILED"].includes(result.code)) {
         entry.phase = "uncertain"; unresolvedWorkout = entry;
+        result = { ...result, outcomeUnknown: true, copy: "Start save not confirmed. Reconcile this same preparation before another Start." };
       } else { entry.phase = "ready"; if (unresolvedWorkout === entry) unresolvedWorkout = null; }
       return result;
     } catch (error) {
       if (entry?.operation) { entry.phase = "uncertain"; unresolvedWorkout = entry; }
       else if (entry) entry.phase = "ready";
-      return { ...workoutRefusal(error instanceof StorageFailure ? error.code : "WORKOUT_START_UNRESOLVED"), state: error instanceof StorageFailure ? error.state : 3 };
+      return { ...workoutRefusal(error instanceof StorageFailure ? error.code : "WORKOUT_START_UNRESOLVED"), state: error instanceof StorageFailure ? error.state : 3,
+        ...(entry?.operation ? { outcomeUnknown: true, copy: "Start save not confirmed. Reconcile this same preparation before another Start." } : {}) };
     } finally { activeWorkout = null; activeGrant?.retire(); activeGrant = null; }
   }
   function submittedWorkout(request, start = false) {
@@ -296,7 +300,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     finally { activeGrant?.retire(); activeGrant = null; activeProof = null; }
   }
   return Object.freeze({
-    prepareWorkout(request) { const input = submittedWorkout(request); return enqueue(() => prepareWorkout(input)); },
+    prepareWorkout(request) { const input = submittedWorkout(request), lifetime = preparationEpoch; return enqueue(() => prepareWorkout(input, lifetime)); },
     startPreparedWorkout(request) { const input = submittedWorkout(request, true); return enqueue(() => startPreparedWorkout(input)); },
     retireWorkoutPreparations() {
       preparationEpoch++;
@@ -304,6 +308,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         entry.retired = true;
         if (entry.phase === "starting" || entry.phase === "uncertain") unresolvedWorkout = entry;
       }
+      preparations.clear(); // In-flight entries remain privately held by their attempt/unresolved fence.
     },
     current() {
       const value = bridge.current(), failure = contextFailure(visibleEpoch) || lateRefusal;

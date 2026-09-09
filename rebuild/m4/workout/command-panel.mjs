@@ -24,7 +24,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel label { display:flex; flex-direction:column; justify-content:space-between; gap:8px; margin:0; min-width:0; color:#5A5348; }
     .workout-command-panel .wcp-effort,.workout-command-panel .wcp-log { grid-column:1 / -1; }
     .workout-command-panel .wcp-effort { color:#1C1B18; }
-    .workout-command-panel input,.workout-command-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:52px; padding:12px; border:1px solid #9B9284; border-radius:10px; background:#FAF7F1; color:#1C1B18; font:inherit; font-size:max(16px,1em); }
+    .workout-command-panel input,.workout-command-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:52px; padding:12px; border:1px solid #6F6759; border-radius:10px; background:#FAF7F1; color:#1C1B18; font:inherit; font-size:max(16px,1em); }
     .workout-command-panel .wcp-entry input { min-height:60px; font-weight:600; text-align:center; }
     .workout-command-panel input:disabled,.workout-command-panel select:disabled { opacity:1; color:#5A5348; -webkit-text-fill-color:#5A5348; background:transparent; border-color:#D8D0C2; }
     .workout-command-panel button { box-sizing:border-box; width:100%; min-height:56px; padding:14px 18px; border:1px solid #1C1B18; border-radius:14px; background:#1C1B18; color:#F4F0E8; font:600 1em/1.4 'Instrument Sans','Helvetica Neue',Helvetica,Arial,sans-serif; text-align:left; cursor:pointer; touch-action:manipulation; }
@@ -85,9 +85,10 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   status.className = 'wcp-status'; nextButton.className = 'wcp-next';
   skipForm.className = 'wcp-skip'; closeForm.className = 'wcp-close'; readback.className = 'wcp-readback';
   // End appearance-only classes.
-  panel.append(style, el('p', 'Synthetic demonstration'), title, startForm, setForm, status,
-    el('p', extended ? 'Synthetic workout entries for this visit only. Refresh and resume, saved instructions and corrected history still need host support. Only early finish is available here; recorded or skipped entries do not establish that a training plan was fully performed.' : 'This visit records one start and one set. Refresh and resume, saved workout instructions, more sets and finishing a workout still need support from the host app.'));
-  if (extended) { panel.insertBefore(progress, setForm); panel.insertBefore(skipForm, status); panel.insertBefore(nextButton, status); panel.insertBefore(closeForm, status); panel.append(readback); }
+  const disclosure =
+    el('p', extended ? 'Synthetic workout entries for this visit only. Original instructions, when available, are supplied separately by the host. Refresh and resume and corrected history still need host support. Only early finish is available here; recorded or skipped entries do not establish that a training plan was fully performed.' : 'This visit records one start and one set. Refresh and resume, saved workout instructions, more sets and finishing a workout still need support from the host app.');
+  panel.append(style, el('p', 'Synthetic demonstration'), title, ...(extended ? [progress] : []), startForm, setForm, status,
+    ...(extended ? [nextButton, skipForm, closeForm, readback] : []), disclosure);
   root.append(panel);
   let disposed = false, pending = false, startId = null, finished = false, recovery = false, index = 0, slotDone = false;
   const acknowledgedEvents = []; // Only exact requests acknowledged in this mount; never a history projection.
@@ -125,7 +126,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   function refusal(result) {
     // A changed context may have committed without acknowledgement. Never offer a
     // blind retry after an uncertain outcome; the host must reconcile the identity.
-    if (result?.committed === true || result?.durable === true || result?.stored === true || result?.acknowledged !== false) {
+    if (result?.outcomeUnknown === true || result?.committed === true || result?.durable === true || result?.stored === true || result?.acknowledged !== false) {
       recovery = true; return 'Save not confirmed. Your entries remain here. Return to the host for recovery before retrying.';
     }
     if (result.state === 17) { recovery = true; return 'Sign-in or installation recovery is required. Your entries remain here.'; }
