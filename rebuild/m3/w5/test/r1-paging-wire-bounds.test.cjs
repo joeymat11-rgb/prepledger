@@ -7,13 +7,13 @@ const {createAuthorityRowCodec}=require('../storage/row-codec.cjs');
 const {COLLECTIONS}=require('../reconciliation/project.cjs');
 const C=require('../reconciliation/codec.cjs'),Sign=require('../crypto.cjs');
 const {createPublicVerifier}=require('../public-client.cjs');
-const ROW=2000000,BUDGET=262144,COUNT=32,META=8192,REQUEST=3000000,RESPONSE=6000000;
+const ROW=2000000,BUDGET=262144,COUNT=32,META=8192,ACTOR=1048576,REQUEST=4000000,RESPONSE=6000000;
 const profile=kind=>'earned/r1/rows-v3/'+kind;
 const encoded=value=>C.encode(value),size=value=>encoded(value).length;
 const b64=value=>C.encode64(value),digest=(tag,value)=>C.hash(profile(tag),encoded(value));
 const physicalSize=row=>['athlete','collection','row_id','value','sealed'].reduce((n,k)=>n+Buffer.byteLength(row[k]),8);
 const upper64=bytes=>4*Math.ceil(bytes/3);
-const requestBound=upper64(ROW)+META;
+const requestBound=upper64(ROW)+META+ACTOR;
 // Two variable base64 fields per row; sum of individual ceil operations costs
 // at most8*COUNT over ceil(sum/3). Last key is duplicated in its certificate.
 const responseBound=2*upper64(ROW)+8*COUNT+META;
@@ -39,7 +39,7 @@ test('R1 PAGING WIRE BOUNDS — proposed closed frame, generated P-256 and actua
    const page=sign({profile:profile('page'),key_epoch:signingKey.kid,manifest_digest:manifestDigest,index:Number.MAX_SAFE_INTEGER,
     previous_cursor_digest:h,rows_digest:rowsDigest,chain_digest:chain,cumulative_counts:cumulative,
     next_cursor_digest:cursorReference(cursor),rows:data,next_cursor:cursor});
-   const request={profile:profile('continue'),manifest,cursor};
+   const request={profile:profile('continue'),device_id:'synthetic-device',manifest,cursor};
    const finish=sign({profile:profile('finish'),key_epoch:signingKey.kid,manifest_digest:manifestDigest,
     final_cursor_digest:cursorReference(cursor),chain_digest:chain,cumulative_counts:cumulative,
     revision:manifest.revision,storage_control_digest:manifest.storage_control_digest,context_id:manifest.context_id,
@@ -52,6 +52,8 @@ test('R1 PAGING WIRE BOUNDS — proposed closed frame, generated P-256 and actua
  assert(size(metadataWorst.page)<=META);assert(size(metadataWorst.request)<=META);
  assert(size({manifest,page:metadataWorst.page})<=META,'First response includes its manifest too');
  assert(size(metadataWorst.finish)<=META);
+ const terminalMetadata=structuredClone(metadataWorst.page);terminalMetadata.rows=[];
+ assert(size({manifest,page:terminalMetadata,finish:metadataWorst.finish})<=META,'Terminal wrapper includes manifest, empty page and finish');
  const cases=[
   ['ordinary32',Array.from({length:32},(_,i)=>({athlete:'synthetic-a',collection:COLLECTIONS[0],row_id:'synthetic-'+i,value:JSON.stringify({seq:0,devices:{},initialPlan:{note:'x'.repeat(3000)}})}))],
   ['near-limit ASCII key',[{athlete:'synthetic-a',collection:'history',row_id:'k'.repeat(1995000),value:' {"synthetic":true} '}]],
@@ -70,6 +72,9 @@ test('R1 PAGING WIRE BOUNDS — proposed closed frame, generated P-256 and actua
    assert(size(request)<=requestBound);assert(size(page)<=responseBound);
    assert(size({manifest,page})<=responseBound);
    assert(size(request)<REQUEST);assert(size(page)<RESPONSE);
+   const actorWorst={...request,device_id:'x'.repeat(ACTOR-2)};
+   assert.equal(size(actorWorst.device_id),ACTOR);
+   assert(size(actorWorst)<=requestBound);assert(size(actorWorst)<REQUEST,'Maximum encoded actor and large cursor coexist within new-route bound');
    const pageMetadata=structuredClone(page);for(const row of pageMetadata.rows){row.row_id_b64='';row.value_b64='';}pageMetadata.next_cursor.last_key.row_id_b64='';
    const requestMetadata=structuredClone(request);requestMetadata.cursor.last_key.row_id_b64='';
    assert(size(pageMetadata)<=META);assert(size(requestMetadata)<=META);

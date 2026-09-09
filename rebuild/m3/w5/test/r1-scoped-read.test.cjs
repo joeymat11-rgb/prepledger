@@ -229,6 +229,18 @@ for(const change of ['subject-remap','actor-revocation','account-closure']) test
 test('non-reconcile source retains pinned bytes except explicit P1 storage seams and two reviewed workout bindings',()=>{
   const old=original.toString('utf8');
   let candidate=fs.readFileSync(path.resolve(__dirname,'../bridge.cjs'),'utf8');
+  // rows-v3 v0.4 adds exactly one separate reader export. The old writers and
+  // old reconciliation route still compare byte-for-byte below. This declared
+  // new seam awaits its own independent review; it does not inherit old approval.
+  const rowsExport=`    // New row-inventory profile requires explicit P1; the old complete proof
+    // route and its limits remain independent.
+    rowsScoped:(subject,raw,context) => {
+      if(!storage)throw new C.R1Error('PROFILE_UNSUPPORTED',409);
+      return require('./reconciliation/paged-bridge.cjs').createPagedBridge(config).read(subject,raw,context);
+    },
+`;
+  assert.equal(candidate.split(rowsExport).length,2,'Unique declared rows-v3 reader export');
+  candidate=candidate.replace(rowsExport,'');
   // PR46 e037, P1 spec v1.1 explicitly changes physical reads/writes and the
   // control guard. Revert ONLY the tracked literal P1 delta before applying the
   // previous complete source comparison; unrelated changes still fail it.

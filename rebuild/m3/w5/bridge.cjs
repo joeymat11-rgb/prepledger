@@ -352,6 +352,12 @@ function createBridge(config) {
     enrollScoped:(subject,request,context) => executeR1('enroll',{subject},request,context),
     renewScoped:(subject,device,request,context) => executeR1('renew',{subject,device},request,context),
     reconcileScoped:(subject,device,request,expectedPayloadDigest,context) => executeR1('reconcile',{subject,device},{request,expectedPayloadDigest},context),
+    // New row-inventory profile requires explicit P1; the old complete proof
+    // route and its limits remain independent.
+    rowsScoped:(subject,raw,context) => {
+      if(!storage)throw new C.R1Error('PROFILE_UNSUPPORTED',409);
+      return require('./reconciliation/paged-bridge.cjs').createPagedBridge(config).read(subject,raw,context);
+    },
     recoveryReplayScoped:(subject,device,request,context) => executeR1('recoveryReplay',{subject,device},request,context),
     closeAccount:(athlete) => executeR1('closeAccount',null,{athlete}),
   };

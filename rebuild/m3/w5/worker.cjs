@@ -10,12 +10,12 @@ const identifier = value => typeof value === "string" && /^[A-Za-z0-9][A-Za-z0-9
 const watermark = value => Number.isSafeInteger(value) && value >= 0;
 const MAX_REQUEST_BYTES = 262144;
 
-async function boundedBody(request, limit = MAX_REQUEST_BYTES) {
+async function boundedBody(request, limit = MAX_REQUEST_BYTES, preserveBOM = false) {
   const tooLarge = () => { const error = new Error("Request too large"); error.code = "REQUEST_TOO_LARGE"; throw error; };
   const declared = request.headers.get("content-length");
   if (declared !== null && /^\d+$/.test(declared) && Number(declared) > limit) tooLarge();
   if (!request.body) return "";
-  const reader = request.body.getReader(), decoder = new TextDecoder("utf-8", { fatal: true });
+  const reader = request.body.getReader(), decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: preserveBOM });
   let bytes = 0, text = "";
   try {
     while (true) {
@@ -47,19 +47,24 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
         // Authenticate every route before parsing a body or looking up its scope.
         const principal = authenticate(request, new Date(now()).getTime());
         const url = new URL(request.url);
-        r1 = R1_ROUTES.has(url.pathname);
+        const rowsRoute = url.pathname === '/reconcile/rows';
+        r1 = rowsRoute || R1_ROUTES.has(url.pathname);
         if (!ROUTES.has(url.pathname) && !r1) return error(404, "NOT_FOUND");
         if (request.method !== "POST") return error(405, "METHOD_NOT_ALLOWED");
         if (url.search || !(request.headers.get("content-type") || "").toLowerCase().startsWith("application/json"))
           return error(400, "MALFORMED_REQUEST");
         let raw;
-        try { raw = await boundedBody(request, r1 ? 1048576 : MAX_REQUEST_BYTES); }
+        try { raw = await boundedBody(request, rowsRoute ? require('./reconciliation/paged-codec.cjs').LIMITS.request : r1 ? 1048576 : MAX_REQUEST_BYTES, rowsRoute); }
         catch (cause) {
           if (r1) return reply(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400, { error: {
             code: cause.code === "REQUEST_TOO_LARGE" ? "RECONCILE_LIMIT" : "INVALID_R1_REQUEST", retryable: false } });
           return error(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400,
           cause.code === "REQUEST_TOO_LARGE" ? "REQUEST_TOO_LARGE" : "MALFORMED_REQUEST"); }
         if (r1) {
+          if(rowsRoute){
+            if(typeof bridge.rowsScoped!=='function')return reply(409,{error:{code:'PROFILE_UNSUPPORTED',retryable:false}});
+            return reply(200,await bridge.rowsScoped(principal.subject,raw,{issuer:auth.issuer,origin:principal.origin}));
+          }
           const result = await handleR1({ route: url.pathname, raw, principal, auth, bridge, authorityKey });
           return reply(result.status, result.body);
         }
