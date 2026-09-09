@@ -42,6 +42,43 @@ const close=(f,id)=>f.c.execute('workout',{action:'close',input:{session_start_o
 const perform=(f,id,slot='slot-0')=>f.c.execute('workout',{action:'set',input:{session_start_op_id:id,logical_set_slot:slot,lift_lineage_id:'same-lineage',load:{value:42.5,unit:'lb'},reps:{value:8,unit:'rep'}}});
 const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct',input:{target_op_id:target,lift_lineage_id:'same-lineage',replacement_fields:fields,...(parents?{causal_parents:parents}:{})}});
 
+async function acceptedCurrentHead(f,op){
+ assert.equal(typeof Sign.signCurrentHead,'function','CURRENT_HEAD_DEPENDENCY_MISSING: use run-current-head.cjs --workout-history');
+ const receipt=Sign.signReceipt({seq:1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey);
+ let signed;
+ const outcome=await f.c.exchangeCurrentHead(request=>({wireVersion:Wire.WIRE_VERSION,body:signed=Sign.signCurrentHead({...request,
+   athlete_id:'ath-1',head:1,through:1,receipts:[receipt],wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey)}),{issuanceAttempt:'synthetic-history-read'});
+ assert.equal(outcome.accepted,true,JSON.stringify(outcome));assert.equal(outcome.result.confirmed,true);
+ assert.deepEqual((await f.repo.load()).generation.metadata.wireProofs.currentHead[signed.authority_signature],signed);
+ return signed;
+}
+
+test('actual currentHead exchange persists original workout proof for a fresh history read with a different current key',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),op=(await operations(f))[a.op_id];await acceptedCurrentHead(f,op);
+ const before=await f.repo.load(),stage=createT2Stage(()=>({...config(),identityKey:'different-synthetic-current-identity'}),{allowInbound:true,workoutCommands:f.commands});
+ const fresh=await f.fresh();try{
+   const r=await createDurablePublicClient({...f.args,repository:fresh.repository,stage}).readWorkoutHistory();
+   assert.equal(r.read,true,JSON.stringify(r));assert.equal(r.history.frontier,1);assert.equal(r.history.sessions[0].start.status,'accepted-through-frontier');
+   assert.deepEqual(r.history.sessions[0].original,op.prescription_capture);assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+
+for(const alteration of ['rewritten','missing'])test(`currentHead identity exemption cannot conceal a ${alteration} record behind a lowered local frontier`,async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),op=(await operations(f))[a.op_id];await acceptedCurrentHead(f,op);
+ const snapshot=await f.repo.load(),c=snapshot.generation.collections;
+ // The attacker owns only the synthetic storage key. A lower local prefix
+ // takes this proof outside the assembly's prefix comparison, so the actual
+ // currentHead limb must still authenticate its retained record before exemption.
+ c.receipts={};c.sync.frontier={W:0,authorityW:1};
+ if(alteration==='rewritten')c.ops[a.op_id].prescription_capture.basis.input_basis='resealed-different-basis';
+ else{delete c.ops[a.op_id];delete c.outbox[a.op_id];c.meta.checkpoint.counts={ops:0,outbox:0};}
+ await f.repo.commit(snapshot,snapshot.generation,()=>null);const before=await f.repo.load();
+ const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,false);assert.equal(r.state,18);assert.equal(r.code,'HISTORICAL_PROOF_UNPROVEN');assert.equal(r.history,undefined);
+ assert.deepEqual(await f.repo.load(),before);assert.equal(f.produced(),1);
+ }finally{f.repo.close();}
+});
+
 for(const changed of ['producer','basis','performed','correction'])test(`resealed local ${changed} substitution cannot become original or corrected history`,async()=>{
  const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),edit=await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});
  const s=await f.repo.load(),ops=s.generation.collections.ops;
