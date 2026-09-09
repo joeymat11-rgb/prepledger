@@ -115,12 +115,18 @@ module.exports=function createPerformed(){
    }
    rows.push({d,rec:session.record,source:'performed',start_op_id:session.start_op_id});
   }
-  rows.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
-  for(let i=1;i<rows.length;i++)if(rows[i-1].d===rows[i].d){
-   const error=new Error('PERFORMED_HISTORY_ORDER_UNRESOLVED');error.code=error.message;throw error;
-  }
-  // No fabricated same-day order. The full resolved-history producer and its
-  // positive same-day case must replace this explicit incomplete join before use.
+  if(!starts.size)return rows;
+  const unresolved=code=>{const error=new Error(code);error.code=code;throw error;};
+  // The internal producer calls engine-order on the same authenticated source.
+  // This field transports its result; it is neither a renderer input nor an
+  // authentication/partition/eligibility grant. Old imports need their mapping.
+  if(rows.some(row=>row.source==='legacy'))unresolved('PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED');
+  const order=s.workoutFacts.order;
+  if(!order||order.profile!=='earned/workout-order/v1'||!Number.isSafeInteger(order.frontier)||order.frontier<0||
+    !Array.isArray(order.start_ids)||order.start_ids.length!==starts.size||new Set(order.start_ids).size!==starts.size||
+    order.start_ids.some(id=>!starts.has(id)))unresolved('PERFORMED_HISTORY_ORDER_UNRESOLVED');
+  const rank=new Map(order.start_ids.map((id,i)=>[id,i]));
+  rows.sort((a,b)=>rank.get(a.start_op_id)-rank.get(b.start_op_id));
   return rows;
  }
  return {performedEntry,performedRirSets,effortKnown,effortIs,effortText,performedRirReceipt,performedStepWhy,performedValues,performedPair,performedHistoryRows};

@@ -1,5 +1,17 @@
 # ASTRA — owner workout contract preparation
 
+## Current v0.49 continuation — semantic-order producer step joined to selected readers
+
+Previous goal turn was progress: local3317354 committed the executable selected reader source and captured-target fix. This continuation adds `workout/engine-order.cjs` and its focused test, then uses that actual function to feed the selected reader. B15 sheet586–590 supplies the existing rule: causal_parents, with accepted athlete-log sequence breaking concurrent ties. Same-day sessions preserve immutable identity; device sequence/predecessor, effective date/time/zone and object order do not establish causality. Reached missing/cyclic/foreign ancestry, mismatched prefix/status and unaccepted concurrency fail explicitly. Known offline causal chains succeed. No state14 partition or scientific/plan/write permission is produced.
+
+    ENGINE ORDER: 16 tests PASS; 0 FAIL; 0 skip; 3 named in-memory semantic faults DETECTED
+    PERFORMED READER PROPOSAL native: 208 exact legacy cases; 92 rich checks; 9/9 named source sensitivities DETECTED; restored PASS
+    PERFORMED READER PROPOSAL frozen: 208 exact legacy cases; 92 rich checks; 9/9 named source sensitivities DETECTED; restored PASS
+
+The first line summarizes the actual Node test output; the last two are verbatim. Ordinary module SHA25670fdf7c7e0c63f65cdb6da75ac352a97af22380d793bfdd18ed9f0444fb40464. Reproduce `node --test rebuild/m4/workout/test/engine-order.test.cjs`, then the proposal command below with explicit retained W6 path. Logs `.tmp/engine-order.log` and `.tmp/performed-reader-proposal.log`. A new date-sort sensitivity initially expected a later assertion; the earlier same-day assertion failed first. Its corrected named expectation then detects that behavioral fault; the first harness failure earned no credit. No fault remains in retained files.
+
+Limits: caller must be the existing authenticated host using storedWorkoutHistory and its exact generation. Tests declare synthetic accepted statuses/receipt positions; they are not signature/HTTP/phone evidence. The selected reader's positive same-day case proves ordering/arithmetic conditional on separately resolved physical-workout interpretation, not a fabricated athlete resolution. Imported legacy/native ordering remains an explicit required mapping; no new permanent restriction, legacy-history deletion or port deferral is authorized. This ordinary producer helper is not yet called by the production host/UI. Accepted runtime/artifactd21 reverified unchanged; no new full-suite, independent acceptance or private-use claim. Work interval17:03–17:11UTC, not measured billed/engineering time. NEXT: close imported-legacy ordering and qualified host/history/caller joins before the actual UI connection, preserving the existing coherent review, coordinator, ownership and credit limits.
+
 ## v0.49 working — executable selected reader source and truthful captured-target explanation
 
 This is nonshipping construction toward the complete private workout flow, using the same coordinator/ownership/credit limits and PRODUCT-GOALv3. Three new files under `spec/performed-proposal/` construct selected real reader replacements, the typed factual helper and executable checks. Thirteen public baseline inputs are pinned to accepted3e908d2; the retained engine, accepted artifact, frozen app/suite and seeded soak remain byte-identical. No private input is loaded. Existing accepted numeric gates are reused as historical evidence, not relabelled as a new candidate PASS.

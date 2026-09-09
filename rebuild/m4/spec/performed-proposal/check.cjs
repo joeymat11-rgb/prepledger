@@ -3,6 +3,7 @@
 // retained factual projector; no authority/producer/science/private acceptance.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),{pathToFileURL}=require('node:url');
 const S=require('./source.cjs'),NativeDate=Date,clone=structuredClone;
+const {orderWorkoutStarts}=require('../../workout/engine-order.cjs');
 const before=S.baseline(),candidate=S.construct(before),F=require('../../../m3/w7-preview/fixtures.cjs');
 const clock={today:()=>F.SYNTHETIC_DAY,nowMs:()=>NativeDate.UTC(2030,1,4,12),nowISO:()=> '2030-02-04T12:00:00.000Z',hour:()=>12,dow:()=>1};
 function engine(sources){const load=S.load(sources),E=load('rebuild/m3/w7-preview/browser-engine.cjs').createBrowserEngine({clock});
@@ -107,8 +108,15 @@ async function main(){
     effective:{local_date:F.SYNTHETIC_DAY},record:{entries:[open]}}]}},'demo-press'),/PERFORMED_COMPLETION_REQUIRED/,'PERFORMED_COMPLETION_NOT_INFERRED');});
   check('block-slope',()=>{const pts=[0,1,2,3].map(i=>({en:record({weights:[40,40,40],repetitions:[8+i,7,6],startId:'start'+i}).entry}));
    const legacyPts=[0,1,2,3].map(i=>({en:{w:40,reps:[8+i,7,6]}}));assert.deepEqual(E._blockSlope(pts),E._blockSlope(legacyPts),'PERFORMED_ACTUAL_SLOPE_UNIFORM_PARITY');});
-  const noiseState=(rows)=>{const state=F.createSyntheticState();state.sessionLog={};state.workoutFacts={profile:'earned/workout-facts/v1',sessions:rows.map(r=>({
-   start_op_id:r.entry.start_op_id,effective:clone(r.ops[r.entry.start_op_id].effective),record:{entries:[clone(r.entry)]}}))};return state;};
+  const noiseState=(rows)=>{const state=F.createSyntheticState();state.sessionLog={};
+   // Synthetic accepted source index. The host must authenticate its generation
+   // before calling this same producer step; no signature is simulated here.
+   const ops={},receipts={},sessions=[];let W=0;
+   for(const row of rows){for(const [id,op]of Object.entries(row.ops)){ops[id]=clone(op);receipts[id]={op_id:id,seq:++W};}
+    const start=row.entry.start_op_id;sessions.push({start:{operation:clone(ops[start]),status:'accepted-through-frontier',receipt_sequence:receipts[start].seq}});}
+   const order=orderWorkoutStarts({frontier:W,sessions},{collections:{ops,receipts,sync:{frontier:{W}}}});
+   state.workoutFacts={profile:'earned/workout-facts/v1',order,sessions:rows.map(r=>({
+    start_op_id:r.entry.start_op_id,effective:clone(r.ops[r.entry.start_op_id].effective),record:{entries:[clone(r.entry)]}}))};return state;};
   const reps=[[8,7,6],[9,7,7],[8,9,6],[10,8,8]],series=()=>reps.map((r,i)=>record({repetitions:r,startId:'noise'+i,day:F.dayOffset('2030-01-24',i)}));
   check('noise-positive',()=>{const input=noiseState(series()),original=clone(input);assert.deepEqual(E.typicalError(input,'demo-press'),{reps:0.94,n:9,src:"this lift's own repeats"},'PERFORMED_REAL_NOISE_POSITIVE');assert.deepEqual(input,original,'NOISE_PRESERVES_FACTS');});
   check('noise-correction',()=>{const rows=series();rows[2]=record({repetitions:reps[2],startId:'noise2',day:'2030-01-26',correctMiddle:true});
@@ -119,9 +127,17 @@ async function main(){
   check('noise-partial-positive',()=>{const rows=reps.map((r,i)=>record({repetitions:r,startId:'partial'+i,day:F.dayOffset('2030-01-24',i),skipTerminal:true}));
    assert.equal(E.typicalError(noiseState(rows),'demo-press').n,6,'PERFORMED_COMPARABLE_PARTIAL_NOT_VETOED');});
   check('noise-order-unresolved',()=>{const rows=[record({startId:'same-day-A'}),record({startId:'same-day-B'})];
-   assert.throws(()=>E.typicalError(noiseState(rows),'demo-press'),/PERFORMED_HISTORY_ORDER_UNRESOLVED/,'PROPOSED_ORDER_JOIN_STILL_REQUIRED');});
+   const state=noiseState(rows);delete state.workoutFacts.order;
+   assert.throws(()=>E.typicalError(state,'demo-press'),/PERFORMED_HISTORY_ORDER_UNRESOLVED/,'PRODUCER_ORDER_REQUIRED');});
+  check('same-day-ordered-positive',()=>{const rows=reps.map((r,i)=>record({repetitions:r,startId:'same-day-'+i})),state=noiseState(rows);
+   state.workoutFacts.sessions.reverse();assert.deepEqual(E.typicalError(state,'demo-press'),{reps:0.94,n:9,src:"this lift's own repeats"},'PERFORMED_SAME_DAY_READER_POSITIVE');
+   assert.deepEqual(E.performedHistoryRows(state).map(r=>r.start_op_id),rows.map(r=>r.entry.start_op_id),'PERFORMED_SEMANTIC_ORDER');});
+  check('effective-dates-do-not-change-semantic-order',()=>{const rows=series(),state=noiseState(rows);
+   state.workoutFacts.sessions[0].effective.local_date='2030-01-30';state.workoutFacts.sessions.reverse();
+   assert.deepEqual(E.performedHistoryRows(state).map(r=>r.start_op_id),rows.map(r=>r.entry.start_op_id),'PERFORMED_SEMANTIC_NOT_DATE_ORDER');});
   check('noise-no-unproven-legacy-pair',()=>{const input=noiseState([record({day:'2030-01-25',startId:'native-only'})]);
-   input.sessionLog['2030-01-24']={entries:[{id:'demo-press',w:40,reps:[8,8,8]}]};assert.equal(E.typicalError(input,'demo-press').n,0,'PERFORMED_NO_INFERRED_LEGACY_CORRESPONDENCE');});
+   input.sessionLog['2030-01-24']={entries:[{id:'demo-press',w:40,reps:[8,8,8]}]};
+   assert.throws(()=>E.typicalError(input,'demo-press'),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'PERFORMED_NO_INFERRED_LEGACY_CORRESPONDENCE');});
   assert.equal(JSON.stringify(a),aBytes,'ALL_READERS_PRESERVE_SOURCE');return count;
  }
  const restore={...candidate.sources};for(const edit of candidate.changes.slice().reverse())restore[edit.file]=restore[edit.file].replace(edit.after,edit.before);
@@ -135,6 +151,7 @@ async function main(){
   ['ignore-paired-load','rebuild/engine/performed.cjs','x.load===bv[i].load&&','true&&','PERFORMED_NO_FALSE_SAME_LOAD_REPEAT'],
   ['ignore-paired-position','rebuild/engine/performed.cjs','x.position===bv[i].position&&','true&&','PERFORMED_NO_FALSE_SLOT_REPEAT'],
   ['invent-failure-target','rebuild/engine/performed.cjs','${last.prescribed_effort.target} reps left','${0} reps left','PERFORMED_ORIGINAL_TARGET_PROSE'],
+  ['date-as-semantic-order','rebuild/engine/performed.cjs','rank.get(a.start_op_id)-rank.get(b.start_op_id)','a.d.localeCompare(b.d)','PERFORMED_SEMANTIC_ORDER'],
  ];
  const outcomes=[];
  try{for(const mode of ['native','frozen']){
