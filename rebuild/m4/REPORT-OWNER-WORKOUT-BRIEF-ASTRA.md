@@ -1,5 +1,14 @@
 # ASTRA — owner workout contract preparation
 
+## v0.41 — one real workout integration path; released macro read contract
+
+Adopts CURRENT-PRODUCT-DECISIONS revision2 into the current first-use cut and replaces obsolete NEXT: original prescription/current safety, Start/multiple Sets, same-session reopen/resume, normal Finish, corrected history and qualified next-prescription input. A read-only history component is groundwork, not successful resume. Root retains one primary task and actual prerequisites; no new queue, model, credit, gate or scope. R1 resource FAIL remains explicit with a bounded complete-history paging/materialization contract as next action, no repeated heap experiments or cap/history waiver. P3 matching-active-state comparison remains required within existing integration review.
+
+APM released MACRO-PLAN-CONTRACT-01; copied its DAILY-PLAN-CONTRACT-v1.md verbatim into spec/DAILY-PLAN-CONTRACT-v1.md, SHA256 232df6290a908e80e3b2dc5a969de9cb342aa372170517044ca332ce54e67ffb. Root inspected the candidate and actual current W6 read/stage sources; recent workout/history deltas do not supply its missing effective plan-group projection. Preserve U1–U5, proposed field/catalogue status, four macro meanings, recorded-versus-qualified distinction and intentional owner/public policy separation. No formula, physiology qualification or generalized catalogue infrastructure is selected. The helper’s single scalar-member predicate check is evidence only of that structural seam; no claim of authenticated plan admission. No new science search or duplicate review.
+
+Validation: exact handoff byte/hash equality; source/precedence reconciliation; git diff --check. Documentation does not execute the proposed contract or close full-workout/private/device gates. Current c77 ACCEPT124 stays bounded; pending successor evidence belongs to W6 report. Canonical PRODUCT-GOALv3 unchanged.
+
+
 ## v0.40 — keep usable-workout recovery and approved design aligned
 
 Updated the current-precedence section for actual bounded ACCEPT118 and its reproduced fresh-client duplicate-Start gap. Prioritize the already-required retained-history repair and usable active-workout reconstruction; refusal is not resume. Recorded APM's owner-directed UI-INTEGRATION-01 ownership and P3 clarification: styling adoption is not complete approved-layout implementation, and synthetic engineering screenshots are not new mocks. PRODUCT-GOALv3, first-use quality/private/device gates, current model/credit limits and retained coordinator are unchanged. No new prescription, private datum, scope, helper dispatch, schedule or broad assessment. Docs-only alignment; implementation verdicts remain in the W6 report.
