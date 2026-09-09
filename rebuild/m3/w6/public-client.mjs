@@ -1,6 +1,7 @@
 import W5 from "../w5/public-client.cjs";
 import { createBridge } from "./bridge.mjs";
 import { StorageFailure } from "./repository.mjs";
+import { createLocalRecoveryBasis } from "./recovery-local.mjs";
 import { createCandidateGrant } from "./candidate-grant.mjs";
 import Canonical from "../../authority/canonical.cjs";
 import { verifyHistoricalHead, sameRecordedValue } from "./history-proof.mjs";
@@ -16,7 +17,7 @@ const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment
 export function createDurablePublicClient({ repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit, keys, subtle, crypto, monotonicMs,
   maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso, workoutProducer, workoutProducerIdentity,
-  resolveWorkoutBasis, prescriptionCapture } = {}) {
+  resolveWorkoutBasis, prescriptionCapture, recovery } = {}) {
   if (!repository || typeof stage !== "function" || !namespace || !athleteId || !deviceId || sessionEpoch === undefined ||
       typeof isCurrentSession !== "function" || typeof observationEpoch !== "function" || typeof observationGuard?.run !== "function" || typeof validateCommit !== "function") throw new TypeError("Explicit durable client scope, staging, observation guard and validator required");
   const verifier = W5.createPublicVerifier({ keys, subtle });
@@ -346,6 +347,24 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     finally { activeGrant?.retire(); activeGrant = null; activeProof = null; }
   }
   return Object.freeze({
+    prepareLocalRecovery() { return enqueue(async()=>{
+      try {
+        if(!recovery?.codec||!recovery?.protocol||!recovery?.scopeDigest)throw new StorageFailure("RECOVERY_CONFIGURATION_REQUIRED",18);
+        if(lateRefusal)return {...lateRefusal,prepared:false};
+        return await observationGuard.run("local-recovery-basis",async()=>{
+          const failure=contextFailure(null);if(failure)return {...failure,prepared:false};
+          const snapshot=await repository.load();
+          const candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true});
+          if(!candidate.view||candidate.result?.state)return {...candidate.result,prepared:false};
+          const epoch=candidate.context.observationEpoch;
+          const assertContext=()=>{const changed=contextFailure(epoch)||lateRefusal;if(changed)throw new StorageFailure(changed.code,changed.state);};
+          const basis=createLocalRecoveryBasis({snapshot,repository,namespace,athleteId,deviceId,codec:recovery.codec,protocol:recovery.protocol,
+            scopeDigest:recovery.scopeDigest,publicVerifier:verifier,assertContext});
+          await basis.assertCurrent();return {prepared:true,basis};
+        });
+      }catch(error){const changed=contextFailure(null);if(changed)return {...changed,prepared:false};return {...refusal([17,18,19,20].includes(error.state)?error.state:18,error.code||"LOCAL_RECOVERY_UNPROVEN",reasonFor(error.state||18)),prepared:false};}
+      finally{activeGrant?.retire();activeGrant=null;}
+    }); },
     readWorkoutHistory() { return enqueue(async()=>{
       try {
         if (!captureEnabled) return workoutRefusal("WORKOUT_PREPARATION_NOT_CONFIGURED");

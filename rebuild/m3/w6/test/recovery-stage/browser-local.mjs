@@ -1,0 +1,48 @@
+import {buildBrowser} from '../../build-browser.mjs';
+import {chromium} from 'playwright-core';
+import {createServer} from 'node:http';
+import {createRequire} from 'node:module';
+import {join,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {mkdtemp,writeFile,readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const r1=process.env.EARNED_ROWS_R1_ROOT;if(!r1)throw Error('Use pinned recovery runner');
+const root=resolve(import.meta.dirname,'../..'),require=createRequire(join(r1,'rebuild/m3/w5/package.json'));
+const C=require('./reconciliation/codec.cjs'),P=require('./reconciliation/paged-codec.cjs'),S=require('./crypto.cjs');
+const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true});
+let server,browser;
+try{
+ await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});
+ const lease=(await runtime.bridge.enrollScoped('subject-first',{intent_id:'native-local',schema_version:1,nonce:P.hash('synthetic','native-local')})).payload.issuance.lease;
+ const key=S.publicKeyOf(runtime.authorityKey),scopeDigest=C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:lease.device_id});
+ const buildDir=await mkdtemp(join(tmpdir(),'earned-local-browser-build-')),entry=join(buildDir,'entry.mjs'),outfile=join(buildDir,'browser.js');
+ await writeFile(entry,`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {createDurablePublicClient} from ${JSON.stringify(join(root,'public-client.mjs'))};import T2 from ${JSON.stringify(join(root,'t2-stage.cjs'))};import {createRowsRecovery,createRowsFetcher} from ${JSON.stringify(join(root,'recovery-transport.mjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};import P from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};window.LocalTest={openRepository,createDurablePublicClient,T2,createRowsRecovery,createRowsFetcher,C,P};`);
+ await buildBrowser({entryPoints:[entry],outfile});const bundle=await readFile(outfile,'utf8');
+ server=createServer(async(req,res)=>{try{res.setHeader('Cache-Control','no-store');if(req.url==='/bundle.js'){res.setHeader('Content-Type','application/javascript');res.end(bundle);return;}if(req.method==='POST'){
+   const chunks=[];for await(const chunk of req)chunks.push(chunk);const body=Buffer.concat(chunks);
+   if(req.url==='/synthetic-admit'){const op=JSON.parse(body);const result=await runtime.bridge.invokeScoped('subject-first',lease.device_id,'admit',['first',op]);res.setHeader('Content-Type','application/json');res.end(JSON.stringify(result));return;}
+   if(req.url==='/reconcile/rows'){const reply=await fetch(new URL(req.url,runtime.url),{method:'POST',headers:{'Content-Type':'application/json',Origin:runtime.issuer.config.origins[0],Authorization:'Bearer '+runtime.issuer.token('subject-first')},body});res.statusCode=reply.status;res.setHeader('Content-Type',reply.headers.get('Content-Type')||'application/json');res.end(Buffer.from(await reply.arrayBuffer()));return;}
+ }res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta charset=utf-8><script type=module src=/bundle.js></script>');}catch{res.statusCode=500;res.end('synthetic harness failed');}});
+ await new Promise(r=>server.listen(0,'127.0.0.1',r));browser=await chromium.launch({headless:true,executablePath:process.env.W6_BROWSER_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+ const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);
+ const checks=await page.evaluate(async({lease,key,scopeDigest,identityKey})=>{
+  const {openRepository,createDurablePublicClient,T2,createRowsRecovery,createRowsFetcher,C,P}=window.LocalTest,checks=[];
+  const ok=(condition,name)=>{if(!condition)throw Error(name);checks.push(name);};
+  const aes=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  const setup={databaseName:'synthetic-native-local',namespace:'first/'+lease.device_id,keyProvider:()=>aes,authorizeEnrollment:e=>e==='synthetic'};
+  const repo=await openRepository(setup);await repo.initialize({collections:{meta:{checkpoint:{counts:{ops:0,outbox:0}}},sync:{snapshot:{plan:{},reads:[]},frontier:{W:0,authorityW:0}}},metadata:{authorityLease:lease}},'synthetic');
+  const args={repository:repo,stage:T2.createT2Stage(()=>({athleteId:'first',deviceId:lease.device_id,identityKey,clock:{now:()=>lease.not_before,today:()=>lease.not_before.slice(0,10),tz:'+00:00',monotonicMs:()=>0},lease,standing:'enrolled',online:false,contract:{client:'1',required:'1'}}),{allowInbound:true}),namespace:setup.namespace,athleteId:'first',deviceId:lease.device_id,sessionEpoch:1,isCurrentSession:()=>true,observationEpoch:()=>1,observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys:[key],crypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,scopeDigest}};
+  const client=createDurablePublicClient(args);ok((await client.execute('weighIn',{lb:170})).acknowledged,'native first operation acknowledged');ok((await client.execute('weighIn',{lb:171})).acknowledged,'native second operation acknowledged');
+  const before=await repo.load(),ops=Object.values(before.generation.collections.ops);const disposition=await(await fetch('/synthetic-admit',{method:'POST',body:JSON.stringify(ops[0])})).json();ok(disposition.status==='ACCEPTED','actual local D1 accepted first original');
+  const prepared=await client.prepareLocalRecovery();ok(prepared.prepared,'native public client authenticates recovery basis');const basis=prepared.basis;
+  const stage=repo.recovery({codec:C,protocol:P,verificationKeys:[key],validateContext:()=>null}),verifier=P.createRowsVerifier({keys:[key],subtle:crypto.subtle});
+  let observerFailure=null;const result=await createRowsRecovery({stage,codec:C,protocol:P,newRequest:async()=>{await basis.assertCurrent();return basis.request({nonce:C.encode64(crypto.getRandomValues(new Uint8Array(32))),contextId:P.hash('native-context','local')});},expected:r=>basis.expected(r),fetchPage:createRowsFetcher({baseURL:location.href,codec:C,protocol:P,headers:async()=>({})}),observeNegative:async(reply,context)=>{const checked=await verifier.verify(reply.bodyBytes,{expected:context.expected,previousCursor:context.previousCursor});if(!checked.verified){observerFailure={status:reply.status,code:checked.code};throw Error('unproved synthetic ingress');}},validateProfile:input=>basis.reconcile(input)}).run();
+  if(!result.evidenceReady)throw Error('Native local recovery refused '+JSON.stringify({code:result.code,reason:result.reason,observerFailure}));
+  ok(result.evidenceReady&&result.evidence.localCompared,'native full HTTP recovery compares local originals');const pending=[];await result.evidence.pending(x=>pending.push(x));
+  ok(pending[0].action==='TERMINAL_EVIDENCE'&&pending[1].action==='RETAIN_UNACKNOWLEDGED','native comparison distinguishes accepted and unsent');ok(JSON.stringify(pending.map(x=>x.original))===JSON.stringify(ops),'native exact originals retained');ok(JSON.stringify(await repo.load())===JSON.stringify(before),'native active generation and both outbox entries untouched');
+  const fresh=await openRepository(setup),reopened=createDurablePublicClient({...args,repository:fresh});ok((await reopened.prepareLocalRecovery()).prepared,'native fresh repository/client reauthenticates surviving originals');
+  ok((await reopened.execute('weighIn',{lb:172})).acknowledged,'native new local write remains possible under synthetic standing');let stale;try{await result.evidence.assertCurrent();}catch(e){stale=e;}ok(stale?.code==='LOCAL_RECOVERY_CHANGED','native competing local generation refuses stale comparison');
+  ok(result.evidence.complete===false&&result.evidence.activated===false&&result.evidence.checkpoint===false,'native comparison grants no activation/checkpoint');fresh.close();repo.close();return checks;
+ },{lease,key,scopeDigest,identityKey:runtime.identityKeys.first});
+ assert.equal(checks.length,12);const out=await mkdtemp(join(tmpdir(),'earned-native-local-recovery-'));await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['synthetic standing and test proxy authentication','desktop browser, not owner phones','no activation, checkpoint or production knowledge-loss policy']},null,2));console.log('LOCAL RECOVERY NATIVE PASS — 12 checks; actual public client, IndexedDB, P1/D1 HTTP, original/outbox comparison and stale-generation refusal');console.log('Evidence '+out);
+}finally{await browser?.close();if(server)await new Promise(r=>server.close(r));await runtime.close();}

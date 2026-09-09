@@ -1,5 +1,35 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Compare authenticated local originals with recovered history — successor to 4cc2efb, 2026-09-09
+
+`prepareLocalRecovery()` now captures an authenticated local generation through the actual public client. The internal `recovery-local.mjs` builds a complete bounded request from its outbox, binds the exact revision/token and scope, invokes the actual indexed profile verifier, compares all nonqueued originals and terminal/rejected knowledge, and streams the five pending outcomes with unchanged original envelopes and queue entries. It never drains, replaces, re-signs, activates or creates a checkpoint. New local writes, changed staging or session/observation invalidate the handle and its retained history callbacks. Full goal v3 / delivery brief v0.41 remain unchanged; this supplies the original-data comparison needed before qualified recovery and workout resume.
+
+Executed: 92/92 combined tests, 0 skips (10.72s); 13 focused local tests including the real public client/identity verification/IndexedDB/live local Worker/D1/P1; native 12 actual-browser checks using the approved build boundary and a test-authenticated proxy to that live local backend; existing composed 312/312, 0 skips (4.91s). Accepted, unknown, WAITING, REJECTED, full-envelope mismatch and identity-conflict cases retain local bytes and distinguish outcomes. Additional cases cover omitted/substituted/duplicated claims, queue-free retained originals, consumer mutation, stale local generations/history callbacks, resealed forged pending content and old-session request disclosure. Four outcome fixtures use explicitly synthetic Ops/Store-built originals, including an out-of-range rejected envelope; no claim that normal UI creates it. Standing/negative observers are synthetic, not production K1.
+
+```
+LOCAL RECOVERY NATIVE PASS — 12 checks; actual public client, IndexedDB, P1/D1 HTTP, original/outbox comparison and stale-generation refusal
+LOCAL RECOVERY BITE RED — stale local generation accepted; native exit1
+LOCAL RECOVERY BITE RESTORED PASS — native exit0; SHA256 7777778d449c37bf5cda7c57e77ed5adcd059e245bb799988353c078717e44a1
+```
+
+Effective stale-generation bite in disposable `earned-local-recovery-bite-fqyLmx`; an additional retained-original bite in `earned-local-recovery-bite-bhhGzV` removes only the original-presence check and fails the new missing-queue case; restored 13/13. restored native evidence `earned-native-local-recovery-A57jmb`. Public client SHA 4391e353fd63885c702e42d92f8e76176e0616eb40cf664faae9e074f34c6a6a. No frozen app, engine rule, original conformance law, seeded soak or private input changed.
+
+Failures corrected: first 80-test run had one wrong fixture expectation—an ordinary reading can be admitted across a device sequence gap; WAITING requires its actual causal dependency. The main test now asserts actual frozen semantics, and a separate real-admission WAITING fixture exercises that outcome. One test helper import and the first mutation-copy dependency inventory were incomplete; both corrected before final runs. Native harness initially omitted the approved Node-crypto substitution; it now calls the existing `buildBrowser`. Its proxy concatenated an origin ending in `/` with a route and got an actual 404; URL resolution fixed the test route. The new retained-original test initially expected its internal error as the outer transport reason; the accepted controller intentionally returns its generic TRANSPORT_EXHAUSTED reason. The test now proves both the real inner cause and the refused outer result; this diagnostic limitation remains disclosed. No product gate was weakened.
+
+Parent 4cc2efb independently ACCEPTED in review 136 for finite transport only: 79/312/native 20/two effective bites and 30 additional checks. Reviewer proved exact retry/restart limits, a 600-page watchdog exhaustion and 92-block maximum response assembly; ACTIVE may survive a timed-out closing-marker write, but still prevents any automatic retry. This is a diagnostics limitation, not a completed state label. Archive 9,549 bytes SHA ff358523d21471bfe0ed6b322a91b6b20c464533c06b0bca842645bb4a9ce582 ATTACHED, not locally received/rehashed/replayed. Parent exact CI completed: 7 SUCCESS / 3 SKIP, both OS jobs. Parent acceptance does not cover successor bytes.
+
+Mandatory publication logs `capture-publication-gates-2026-09-09T09-00-09-328Z`: private preparation verdict only and public pins unchanged; frozen paths/actual 18-file ZIP; conformance; SELFTEST; strict with measured clock unset; diff—all native exit 0. Product source was final before these gates. Last additions were targeted tests and documentation; final 92 includes the added retained-original case. No release approval is inferred from the strict script wording.
+
+```
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+LOCAL RETAINED BITE RED — original absent from queue and server ignored; native exit1
+LOCAL RECOVERY BITE RESTORED PASS — native exit0; SHA256 7777778d449c37bf5cda7c57e77ed5adcd059e245bb799988353c078717e44a1
+```
+SEAMS / NEXT: this is CURRENT_DEVICE with a surviving authenticated local generation. Lost-store/new-device bootstrap, copying complete recovered rows into the activation format, explicit mismatch restore/review and identity-conflict resolution remain separate. A comparison is not an applied rejection or proof of present-day standing. Production K1 remains blocked on the contract's explicit producer/custody/ownership and interrupted-arm/clean-restart questions; no permanent OPEN or invented clearing rule was implemented. Continue the bounded recovered-generation consumer while those contracts remain open. Final current-source and transaction-local generation/context checks, frame 2/cleanup, original 96 MiB/default-runtime resource gate, CLOCK/keys, complete qualified workout journey, private port/rollback/drills/integration and both phones still gate private use. No funding/model/schedule/ownership change or merge.
+
 ## Finite rows recovery through actual IndexedDB — successor to fe2d22a, 2026-09-09
 
 Adds `recovery-transport.mjs`, an actual rows-v3 adaptation of the accepted W5 finite transport. It uses the encrypted stage, indexed profile verifier and durable attempt metadata; no whole-download page array remains. `createRowsFetcher` retains bounded original HTTP bytes through strict decoding, with HTTPS/loopback restrictions, explicit authenticated headers, no ambient cookies/shared cache/redirects and the published request/response ceilings. Byte collection uses at most 92 fixed 64 KiB blocks rather than an object for every potentially tiny network chunk. This is a per-response bound, not resource-gate acceptance.
