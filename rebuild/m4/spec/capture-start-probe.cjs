@@ -38,6 +38,12 @@ async function main(argv=process.argv.slice(2)){
  const op=Ops.build(spec,key),original=JSON.stringify(op);
  check('one actual builder retains empty Start payload',()=>assert.deepEqual(op.payload,{}));
  check('actual client and authority commitment agree',()=>assert.equal(op.canonical_content_commitment,Authority.commitmentOf(op,key)));
+ const nfd=structuredClone(spec),nfc=structuredClone(spec);
+ nfd.extra.prescription_capture.slots[0].label='Cafe\u0301';nfc.extra.prescription_capture.slots[0].label='Caf\u00e9';
+ nfd.extra.prescription_capture.slots[0].load.source_json='"Cafe\u0301"';nfc.extra.prescription_capture.slots[0].load.source_json='"Caf\u00e9"';
+ const nfdOp=Ops.build(nfd,key),nfcOp=Ops.build(nfc,key);
+ check('NFD/NFC originals differ in bytes',()=>assert.notEqual(JSON.stringify(nfdOp),JSON.stringify(nfcOp)));
+ check('unchanged operation commitment binds NFC equivalence, not original Unicode bytes',()=>{assert.equal(nfdOp.canonical_content_commitment,nfcOp.canonical_content_commitment);assert.equal(Authority.commitmentOf(nfdOp,key),Authority.commitmentOf(nfcOp,key));});
  check('capture is included in existing commitment domain',()=>{const copy=structuredClone(op);delete copy.prescription_capture;assert.notEqual(Authority.commitmentOf(copy,key),op.canonical_content_commitment);});
  for(const field of ['label','load','reps','effort','setup','reason','confidence'])check('capture '+field+' tamper changes commitment',()=>{
   const copy=structuredClone(op);if(field==='label')copy.prescription_capture.slots[0][field]='different';else copy.prescription_capture.slots[0][field].display+=' altered';assert.notEqual(Authority.commitmentOf(copy,key),op.canonical_content_commitment);});
@@ -49,6 +55,10 @@ async function main(argv=process.argv.slice(2)){
  const kek=await webcrypto.subtle.importKey('raw',randomBytes(32),'AES-KW',false,['wrapKey','unwrapKey']);
  const options={namespace:'synthetic-capture-probe',crypto:webcrypto,getWrappingKey:async({namespace,epoch,purpose})=>{
   assert.equal(namespace,'synthetic-capture-probe');assert.equal(epoch,'synthetic-epoch');assert(['read','write'].includes(purpose));return kek;}};
+ const unicodeRaw={athlete:nfdOp.athlete_id,collection:'operations',row_id:nfdOp.op_id,value:JSON.stringify({op:nfdOp})};
+ const unicodePhysical=await createAuthorityRowCodec(options).seal(unicodeRaw,{revision:6,writeEpoch:'synthetic-epoch'});
+ const unicodeReopened=await createAuthorityRowCodec(options).open(unicodePhysical,{revision:7});
+ check('P1 keeps original NFD bytes despite NFC-equivalent commitment',()=>{assert.equal(unicodeReopened.value,unicodeRaw.value);assert.notEqual(unicodeReopened.value,JSON.stringify({op:nfcOp}));});
  for(const collection of ['operations','log']){
   assert(COLLECTIONS.includes(collection));
   // Structurally valid raw row for the storage codec, not an admitted authority record.
