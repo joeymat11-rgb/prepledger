@@ -16,7 +16,7 @@ const manifest=sign(P.makeManifest({keyEpoch:authority.kid,scopeDigest:h,request
 const a=P.makePage({manifest,rawRows:[raw[0]],sign}),b=P.makePage({manifest,previousCursor:a.next_cursor,rawRows:[raw[1]],sign}),end=P.makePage({manifest,previousCursor:b.next_cursor,rawRows:[],sign});
 const replies=[{manifest,page:a},{manifest,page:b},{manifest,page:end,finish:P.makeFinish({manifest,page:end,sign})}];
 const expected={scopeDigest:h,nonce:h,contextId:h,requestDigest:C.hash('request',C.encode(request)),basisDigest:h,claimSetDigest:P.hash('claims',[]),mode:'CURRENT_DEVICE'};
-const bundled=await build({stdin:{contents:`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {validateRecoveryProfile} from ${JSON.stringify(join(root,'recovery-profile.mjs'))};import Public from ${JSON.stringify(join(r1,'rebuild/m3/w5/public-client.cjs'))};import P from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};window.StageTest={openRepository,P,C,Public,validateRecoveryProfile};`,resolveDir:root},bundle:true,platform:'browser',format:'iife',write:false,logLevel:'silent'});
+const bundled=await build({stdin:{contents:`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {validateRecoveryProfile} from ${JSON.stringify(join(root,'recovery-profile.mjs'))};import {createRowsRecovery,createRowsFetcher} from ${JSON.stringify(join(root,'recovery-transport.mjs'))};import Public from ${JSON.stringify(join(r1,'rebuild/m3/w5/public-client.cjs'))};import P from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};window.StageTest={openRepository,P,C,Public,validateRecoveryProfile,createRowsRecovery,createRowsFetcher};`,resolveDir:root},bundle:true,platform:'browser',format:'iife',write:false,logLevel:'silent'});
 const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true}),profileReplies=[];
 let profileExpected,profileKey;
 try{
@@ -29,13 +29,13 @@ try{
  assert(profileReplies.at(-1).finish);profileExpected={stage:profileExpected,consumer:{athleteId:'first',actorDeviceId:lease.device_id,scopeDigest:profileExpected.scopeDigest,basisDigest:h}};profileKey=S.publicKeyOf(runtime.authorityKey);
 }finally{await runtime.close();}
 const out=await mkdtemp(join(tmpdir(),'earned-native-recovery-'));
-const server=createServer((req,res)=>{res.setHeader('Cache-Control','no-store');if(req.url==='/bundle.js'){res.setHeader('Content-Type','application/javascript');res.end(bundled.outputFiles[0].text);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta charset="utf-8"><script src="/bundle.js"></script>');}});
+const server=createServer((req,res)=>{res.setHeader('Cache-Control','no-store');if(req.url==='/reconcile/rows'&&req.method==='POST'){let body='';req.on('data',chunk=>body+=chunk);req.on('end',()=>{const input=JSON.parse(body),index=input.cursor?.index||0;res.setHeader('Content-Type','application/json');res.end(JSON.stringify(profileReplies[index]));});}else if(req.url==='/bundle.js'){res.setHeader('Content-Type','application/javascript');res.end(bundled.outputFiles[0].text);}else{res.setHeader('Content-Type','text/html');res.end('<!doctype html><meta charset="utf-8"><script src="/bundle.js"></script>');}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true,executablePath:process.env.W6_BROWSER_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
 try{
  const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port);
  const checks=await page.evaluate(async({replies,expected,publicKey,raw,profileReplies,profileExpected,profileKey,request})=>{
-  const {openRepository,P,C,Public,validateRecoveryProfile}=window.StageTest,checks=[];
+  const {openRepository,P,C,Public,validateRecoveryProfile,createRowsRecovery,createRowsFetcher}=window.StageTest,checks=[];
   const ok=(value,name)=>{if(!value)throw Error(name);checks.push(name);};
   const gate={mode:null,release:false,denied:false,put:null},key=await crypto.subtle.generateKey({name:'AES-GCM',length:256},false,['encrypt','decrypt']);
   const indexed={open(...args){const request=indexedDB.open(...args);request.addEventListener('success',()=>{
@@ -43,7 +43,7 @@ try{
    db.transaction=(...args)=>{
     const tx=transaction(...args);if(args[1]!=='readwrite'||!gate.mode)return tx;
     const store=tx.objectStore('generations'),put=store.put.bind(store),get=store.get.bind(store),objectStore=tx.objectStore.bind(tx);
-    store.put=(value,key)=>{if(Array.isArray(key)){gate.put?.();if(gate.mode==='quota'&&key[2]==='row')throw new DOMException('Synthetic quota','QuotaExceededError');}return put(value,key);};
+    store.put=(value,key)=>{if(Array.isArray(key)){gate.put?.();if(gate.mode==='quota'&&key[2]==='row'||gate.mode==='controlquota'&&key[1]==='transport')throw new DOMException('Synthetic quota','QuotaExceededError');}return put(value,key);};
     store.get=key=>{const request=get(key);if(gate.mode==='deny'&&Array.isArray(key)&&key[2]==='row')request.addEventListener('success',()=>{gate.denied=true;});return request;};
     tx.objectStore=name=>name==='generations'?store:objectStore(name);
     if(gate.mode==='hold'){const keep=()=>{if(!gate.release){try{get(['earned/recovery-rows/v1','head']).onsuccess=keep;}catch{}}};keep();}
@@ -71,11 +71,16 @@ try{
   ok(JSON.stringify(await inventory.readRow('history','a'))===JSON.stringify(raw[0]),'native encrypted indexed row lookup returns the verified original');
   ok(JSON.stringify(await fresh.load())===JSON.stringify(before),'active generation, token and unsynced outbox are byte-identical');
   const scanned=[];ok(await inventory.scan('history',row=>scanned.push(row))===2,'native bounded key cursor checks exact collection cardinality');ok(scanned.every(row=>raw.some(r=>JSON.stringify(r)===JSON.stringify(row))),'native collection cursor returns exact signed originals');
-  const profileStage=fresh.recovery({...config,verificationKeys:[profileKey]});await profileStage.start({expected:profileExpected.stage,explicitRetry:true});for(const reply of profileReplies)await profileStage.append(C.encode(reply));
-  const profile=await validateRecoveryProfile({inventory:await profileStage.inventory(),codec:C,protocol:P,publicVerifier:Public.createPublicVerifier({keys:[profileKey],subtle:crypto.subtle}),requestBytes:C.encode(request),expected:profileExpected.consumer});
-  ok(profile.profileVerified&&(await profile.summary()).W===2,'actual Worker/D1/P1 HTTP originals validate relationally with original signatures in native browser');ok(profile.complete===false&&profile.activated===false,'native profile interpretation does not grant activation');ok(JSON.stringify(await fresh.load())===JSON.stringify(before),'native complete profile interpretation leaves active outbox and generation untouched');fresh.close();return checks;
+  const profileStage=fresh.recovery({...config,verificationKeys:[profileKey]}),publicVerifier=Public.createPublicVerifier({keys:[profileKey],subtle:crypto.subtle}),rowVerifier=P.createRowsVerifier({keys:[profileKey],subtle:crypto.subtle});let calls=0,observed=0;
+  const fetcher=createRowsFetcher({baseURL:location.href,codec:C,protocol:P,headers:async()=>({})});
+  const flow={stage:profileStage,codec:C,protocol:P,newRequest:async()=>request,expected:async()=>({...profileExpected.stage,...profileExpected.consumer}),fetchPage:async(body,options)=>{calls++;return fetcher(body,options);},observeNegative:async(reply,context)=>{if(!(await rowVerifier.verify(reply.bodyBytes,{expected:context.expected,previousCursor:context.previousCursor})).verified)throw Error('unproved native ingress');observed++;},validateProfile:args=>validateRecoveryProfile({...args,codec:C,protocol:P,publicVerifier})};
+  gate.mode='controlquota';const refused=await createRowsRecovery(flow).run({explicitRetry:true});gate.mode=null;ok(!refused.evidenceReady&&calls===0,'native quota on durable attempt marker prevents any fetch');
+  const result=await createRowsRecovery(flow).run({explicitRetry:true}),profile=result.evidence;if(!result.evidenceReady)throw Error('Native flow refused '+JSON.stringify({reason:result.reason,calls,observed}));ok(result.evidenceReady&&result.complete===false&&result.activated===false,'native finite controller returns evidence without activation');ok(observed===calls&&calls===profileReplies.length,'native HTTP fetcher sends every response through signature ingress');
+  ok(profile.profileVerified&&(await profile.summary()).W===2,'actual Worker/D1/P1 HTTP originals validate relationally with original signatures in native browser');ok(profile.complete===false&&profile.activated===false,'native profile interpretation does not grant activation');
+  const priorCalls=calls;ok((await createRowsRecovery(flow).run()).reason==='EXPLICIT_RETRY_REQUIRED'&&calls===priorCalls,'native reopened controller cannot silently restart a surviving attempt');
+  ok(JSON.stringify(await fresh.load())===JSON.stringify(before),'native complete profile interpretation leaves active outbox and generation untouched');fresh.close();return checks;
  },{replies,expected,publicKey:S.publicKeyOf(authority),raw,profileReplies,profileExpected,profileKey,request});
- assert.equal(checks.length,16);await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['desktop Chromium, not owner iPhone','synthetic complete account, not private port','no activation or phone key-custody qualification']},null,2));
- console.log('RECOVERY PROFILE NATIVE PASS — 16 checks; actual Worker/D1/P1 HTTP originals, native IndexedDB/P-256/AES-GCM, indexed relational validation and untouched active outbox; NOT activation or phone acceptance');
+ assert.equal(checks.length,20);await writeFile(join(out,'evidence.json'),JSON.stringify({checks,browser:await browser.version(),limitations:['desktop Chromium, not owner iPhone','native fetcher uses loopback replay of actual Worker/D1/P1-produced signed originals','synthetic verified ingress callback, not durable production knowledge policy','no activation or phone key-custody qualification']},null,2));
+ console.log('RECOVERY TRANSPORT NATIVE PASS — 20 checks; actual Worker/D1/P1 originals through native HTTP fetcher/IndexedDB/crypto/controller, quota and retry fences; NOT production negative-ingress, activation or phone acceptance');
  console.log('Evidence '+out);
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

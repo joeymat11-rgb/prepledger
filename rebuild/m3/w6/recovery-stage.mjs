@@ -1,6 +1,6 @@
 // Inactive encrypted recovery inventory in the existing generations store.
 // No enrollment, active-generation write, receipt sink or permission is provided.
-const PROFILE='earned/recovery-rows/v1',STORE='generations',HEAD=[PROFILE,'head'];
+const PROFILE='earned/recovery-rows/v1',STORE='generations',HEAD=[PROFILE,'head'],CONTROL=[PROFILE,'transport'];
 const clone=x=>structuredClone(x),utf8=new TextEncoder();
 export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,keyRange,StorageFailure}){
  const fail=(code,state=18,retryable=false)=>{throw new StorageFailure(code,state,retryable);};
@@ -31,14 +31,14 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
   let tx;const values=[];try{tx=db.transaction(STORE,'readonly');const store=tx.objectStore(STORE);keys.forEach((k,i)=>{const request=store.get(k);request.onsuccess=()=>{values[i]=request.result;};});}catch{reject(new StorageFailure('RECOVERY_STAGE_READ_FAILED',18));return;}
   tx.oncomplete=()=>resolve(values);tx.onabort=()=>reject(new StorageFailure('RECOVERY_STAGE_READ_FAILED',18));tx.onerror=()=>{};
  });}
- function publish(expected,head,entries){return new Promise((resolve,reject)=>{
+ function publish(expected,head,entries,headKey=HEAD){return new Promise((resolve,reject)=>{
   let tx,refusal;const abort=error=>{refusal=error;try{tx.abort();}catch{}};
   try{tx=db.transaction(STORE,'readwrite',{durability:'strict'});}catch{reject(new StorageFailure('RECOVERY_STAGE_BEGIN_FAILED',3));return;}
-  const store=tx.objectStore(STORE),request=store.get(HEAD);
+  const store=tx.objectStore(STORE),request=store.get(headKey);
   request.onsuccess=()=>{try{
    if(token(request.result)!==expected)fail('RECOVERY_STAGE_CHANGED',3,true);
    let remaining=entries.length;
-   const write=()=>{const decision=validateContext();if(decision?.then)fail('RECOVERY_STAGE_ASYNC_GUARD',3);if(decision)fail(decision.code||'RECOVERY_STAGE_REFUSED',decision.state||18);for(const [k,v]of entries)store.put(v,k);store.put(head,HEAD);};
+   const write=()=>{const decision=validateContext();if(decision?.then)fail('RECOVERY_STAGE_ASYNC_GUARD',3);if(decision)fail(decision.code||'RECOVERY_STAGE_REFUSED',decision.state||18);for(const [k,v]of entries)store.put(v,k);store.put(head,headKey);};
    // Page/index slots are immutable within an attempt. A preexisting slot at a
    // new head is corruption, not permission to overwrite a previous original.
    if(!remaining){write();return;}
@@ -77,6 +77,18 @@ export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,veri
   tx.oncomplete=()=>resolve(found);tx.onabort=()=>reject(new StorageFailure('RECOVERY_STAGE_READ_FAILED',18));tx.onerror=()=>{};
  });}
  return Object.freeze({
+  attemptPersistence(){
+   let prior,loaded=false,busy=false;
+   const valid=value=>{if(!exact(value,['status','restarts','requests','page','reason'])||!['ACTIVE','EXHAUSTED','VALIDATED'].includes(value.status)||!safe(value.restarts)||value.restarts>2||!safe(value.requests)||!safe(value.page)||!(value.reason===null||typeof value.reason==='string'&&value.reason.length<=128))fail('RECOVERY_ATTEMPT_INTEGRITY');return value;};
+   return Object.freeze({
+    async load(){if(busy)fail('RECOVERY_ATTEMPT_RUNNING',3,true);busy=true;try{const [record]=await read([CONTROL]);prior=record;const value=record===undefined?null:valid(await open(record,'transport'));loaded=true;return clone(value);}finally{busy=false;}},
+    async save(value){if(!loaded||busy)fail('RECOVERY_ATTEMPT_UNPROVEN',18);busy=true;try{
+     const copied=valid(clone(value)),revision=prior?prior.revision+1:1;if(!safe(revision))fail('RECOVERY_ATTEMPT_INTEGRITY');
+     const attempt=prior?.attempt||Array.from(crypto.getRandomValues(new Uint8Array(16)),n=>n.toString(16).padStart(2,'0')).join('');
+     const record=await seal(copied,'transport',attempt,revision);await publish(token(prior),record,[],CONTROL);prior=record;return true;
+    }finally{busy=false;}},
+   });
+  },
   async start({expected,explicitRetry=false}={}){
    const prior=await loaded();if(prior&&!explicitRetry)fail('RECOVERY_STAGE_EXPLICIT_RETRY_REQUIRED');
    // A private copy is frozen by its encrypted head; caller mutation cannot

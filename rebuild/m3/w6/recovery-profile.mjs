@@ -1,16 +1,17 @@
 // Complete relational interpretation of an inactive rows-v3 inventory.
 // Indexed reads replace retained whole-account maps. No activation is exported.
-export async function validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected}){
+export async function validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected,signal}){
+ const abort=()=>{if(signal?.aborted)C.fail('RECOVERY_VALIDATION_ABORTED');};abort();
  const fail=(code='RETAINED_INTEGRITY')=>C.fail(code,code==='SCOPE_FORBIDDEN'?403:code==='HISTORY_INCOMPLETE'?409:500),check=x=>{if(!x)fail();};
  const req=C.decodeRequest(requestBytes),e=C.parse(C.encode(expected)),pair=(a,b)=>JSON.stringify([a,b]);
  check(inventory?.scan&&inventory?.readRow&&publicVerifier?.verifyDisposition&&publicVerifier?.verifyLease);
  check(C.nonempty(e.athleteId)&&C.nonempty(e.actorDeviceId)&&C.digestValue(e.scopeDigest)&&C.digestValue(e.basisDigest));
- await inventory.visit(()=>{});const {manifest:m}=await inventory.bindings();
+ await inventory.visit(()=>{abort();});abort();const {manifest:m}=await inventory.bindings();
  check(m.scope_digest===e.scopeDigest&&m.basis_digest===e.basisDigest&&m.nonce===req.nonce&&m.context_id===req.context_id&&m.mode===req.mode&&m.request_digest===C.hash('request',requestBytes)&&m.claim_set_digest===P.hash('claims',req.claims));
  const counts=new Map(m.collection_counts),athlete=e.athleteId;
- const parse=row=>{if(!row)return undefined;const v=C.parse(row.value,P.LIMITS.row);check(C.object(v));return v;};
- const raw=(c,id)=>inventory.readRow(c,String(id)),val=async(c,id)=>parse(await raw(c,id));
- const each=(c,fn)=>inventory.scan(c,async row=>fn(row.row_id,parse(row),row));
+ const parse=row=>{abort();if(!row)return undefined;const v=C.parse(row.value,P.LIMITS.row);check(C.object(v));return v;};
+ const raw=async(c,id)=>{abort();const row=await inventory.readRow(c,String(id));abort();return row;},val=async(c,id)=>parse(await raw(c,id));
+ const each=(c,fn)=>{abort();return inventory.scan(c,async row=>{const value=await fn(row.row_id,parse(row),row);abort();return value;});};
  const some=async(c,fn)=>{let found=false;await each(c,async(...args)=>{if(await fn(...args))found=true;});return found;};
  const exact=(v,f)=>C.exact(v,f,{code:'RETAINED_INTEGRITY'});
  // All collection values must be objects, including opaque auxiliary tables.
@@ -79,11 +80,11 @@ export async function validateRecoveryProfile({inventory,codec:C,protocol:P,publ
  }
  for(let i=0;i<req.claims.length;i++)await claimAt(i);
  for(const q of req.requested_lease_ids)if(!hasDevice(q.source_device_id)||req.mode==='CURRENT_DEVICE'&&q.source_device_id!==e.actorDeviceId)fail('SCOPE_FORBIDDEN');
- await inventory.assertCurrent();
+ const assertCurrent=async()=>{abort();await inventory.assertCurrent();abort();};await assertCurrent();
  return Object.freeze({profileVerified:true,complete:false,activated:false,
-  async summary(){await inventory.assertCurrent();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
-  async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await inventory.assertCurrent();});}await inventory.assertCurrent();},
-  async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await inventory.assertCurrent();},
-  assertCurrent:()=>inventory.assertCurrent(),
+  async summary(){await assertCurrent();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
+  async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await assertCurrent();});}await assertCurrent();},
+  async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await assertCurrent();},
+  assertCurrent,
  });
 }

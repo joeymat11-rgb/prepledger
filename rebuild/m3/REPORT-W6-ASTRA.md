@@ -1,5 +1,44 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Finite rows recovery through actual IndexedDB — successor to fe2d22a, 2026-09-09
+
+Adds `recovery-transport.mjs`, an actual rows-v3 adaptation of the accepted W5 finite transport. It uses the encrypted stage, indexed profile verifier and durable attempt metadata; no whole-download page array remains. `createRowsFetcher` retains bounded original HTTP bytes through strict decoding, with HTTPS/loopback restrictions, explicit authenticated headers, no ambient cookies/shared cache/redirects and the published request/response ceilings. Byte collection uses at most 92 fixed 64 KiB blocks rather than an object for every potentially tiny network chunk. This is a per-response bound, not resource-gate acceptance.
+
+The accepted 2 restarts / 2 retries / 30-second request timeout / 10-minute attempt watchdog are unchanged and source-pinned. Encrypted CAS-protected attempt markers commit before fetch; ACTIVE, EXHAUSTED and VALIDATED markers all require explicit Retry after reopening. Browser timer receivers are correct; monotonic boundaries are rechecked after awaits. Cancellation stops further positive profile reads/scans and later handle reads, while late raw replies still reach the mandatory negative-ingress callback. Quiet recovery returns `evidenceReady:true,complete:false,activated:false,checkpoint:false`; active generation, frontier and outbox remain untouched.
+
+**Production durable negative-ingress/knowledge-loss policy and its connection to every writer remain OPEN.** The callback is mandatory, but requiring it is not implementing that policy. Tests use declared synthetic callbacks, including real signature verification; no CLOCK/state 17/state 19 persistence claim is made. Final local-original/outbox reconciliation, current-source/current-generation fences and activation remain separate obligations. The full approved goal v3 and M4 delivery brief v0.41 are preserved; no private-use milestone is narrowed to a download.
+
+Final runs:
+
+```
+run-recovery-stage.cjs <retained-R1>: 79 tests; 79 pass; 0 fail; 0 skipped
+RECOVERY TRANSPORT NATIVE PASS — 20 checks; actual Worker/D1/P1 originals through native HTTP fetcher/IndexedDB/crypto/controller, quota and retry fences; NOT production negative-ingress, activation or phone acceptance
+run-current-head.cjs <retained-R1> --all: 312 tests; 312 pass; 0 fail; 0 skipped
+RECOVERY TRANSPORT BITE RED — late signed rejection discarded after request timeout; native exit1
+RECOVERY TIMER BITE RED — unbound browser timer receiver prevents native recovery; native exit1
+RECOVERY TRANSPORT BITE RESTORED PASS — native exit0; SHA256 4f73fa7d4adca2456ae3ecb94039bead6a92004eac891de7d80d44399b435b2f
+```
+
+The 79 include prior 59, actual indexed cancellation and 19 transport tests. Real local Worker/D1/P1 HTTP produces an account larger than the old whole-payload limit; the actual byte fetcher, durable controller and indexed verifier interpret it while preserving a pre-existing synthetic unsynced entry. Controller-unit cases explicitly substitute semantic success for their generic signed inventories; those are not additional complete-profile proofs. Native 20 uses a loopback replay of actual Worker/D1/P1-produced signed originals through native HTTP/IndexedDB/WebCrypto; it is not live Clerk production or a phone test. Native quota on the attempt transaction prevents any fetch; reopened VALIDATED state cannot silently restart. Separate cases enforce duplicate/BOM/parsed-only refusal, byte ceilings, same-controller exclusion, competing durable CAS, request-before-marker ordering, late signed 200 rejection observation and refresh semantics.
+
+Both new bites are effective in disposable copies and restored byte-for-byte: `earned-stage-bite-QROHNc` (late ingress) and `earned-stage-bite-agBsX4` (native timer), whose restored native 20 evidence is `earned-native-recovery-SrcyqC`. Final 79 took 8.24s; existing 312 took 4.83s. Final profile SHA 2b6b616c8cefb56c132b7a6363a74fdc0cc40644fa84929131385c9936a0aeb5, stage SHA cfc6d20b0645fe745ec6e4762050557d224a139c29802ae78556296d308b623b. Positive validation can no longer keep scanning after its abort signal; the actual indexed cancellation case stops at the first observed row.
+
+Failures and corrections retained: first combined run 72/74; the new observer was given extra consumer-context fields, which the exact seven-field wire verifier correctly refused. The wire context and separate athlete/device scope are now distinct. That made the late-observer test wait; its diagnostic wait now measures actual monotonic elapsed time instead of assuming 1 ms timer delivery. The new browser adaptation initially called native timers with the wrong receiver; native recovery failed before fetch. The corrected default wrappers pass native 20, and the timer bite reproduces that failure. Original raw HTTP bytes now reach the decoder instead of passing through JSON.parse first. These changes do not modify accepted W5/core/frozen source or a conformance law.
+
+Mandatory final logs `capture-publication-gates-2026-09-09T08-27-13-999Z`: preparation/private-verdict/public pins, frozen paths/actual 18-file ZIP, conformance, selftest, strict with measured clock unset and diff ALL native 0. Explicit engine/client paths, fixed 2026-09-03 and America/New_York were used for conformance. Private inputs stayed local and public pins remained unchanged.
+
+```
+INFO 9 engine-track rig185: W1 PASS, W2 PASS
+SUITE CONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+SELFTEST PASS
+All checks passed. Safe to ship.
+DIFF-CHECK PASS
+```
+
+The strict tail is not release approval. Parent fe2d independently ACCEPTED in review 135 for snapshot interpretation only, reproducing 59/312/native 16/three bites and relation-by-relation mapping; 16 additional checks included source-anchored resident-structure evidence and a withdrawn/misattributed probe. Archive 7,408 bytes SHA c9588bf58f83ed3c2c20b720b92874cc36cc8c5a615eef0c1af584f4a16e91db ATTACHED, not locally received/rehashed/replayed. Parent fe2d CI terminal 7 SUCCESS / 3 SKIP both OS. Two wording corrections to that review: there are five claim outcomes, and requested-lease scope already exists in old `project` (though not inside `claimsAgainst`). No acceptance of successor bytes is inherited.
+
+NEXT / SEAMS: implement the production durable negative-knowledge fence and connect every writer; reconcile local originals/outbox and final source/local-generation before activation. Keep frame 2/cleanup, original 96 MiB/default-runtime/CPU resource work, CLOCK/key custody, qualified same-session workout resume/next prescription, private port/rollback/drills, integrator and Joe/Dad phone gates. No provider, funding, model, schedule, product-rule or private-data change; no merge/activation. Remaining lease-history repeated-pass cost is unmeasured and unwaived.
+
 ## Indexed recovery profile interpretation — successor to40709c2, 2026-09-09
 
 Implements `recovery-profile.mjs` over the actual inactive repository inventory: required records, every original operation/history/log relation, ownership/slots/transactions, device/lease/intent/standing links, accepted1..W, original disposition/lease public signatures, current-device scope and the exact manifest-bound claims/requested leases. Original values remain indexed; no whole-account payload/stringify/map is created. Lazy history results preserve the five existing claim outcomes without multiplying history arrays. The returned profile interpretation remains `complete:false,activated:false`; no active-generation switch, outbox drain or present-day permission is exported. Full approved goalv3 / delivery briefv0.41 remain intact; this advances accurate recovery before qualified workout resume.
