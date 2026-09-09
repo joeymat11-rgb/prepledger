@@ -1,5 +1,39 @@
 # ASTRA — owner workout contract preparation
 
+## v0.44 — corrected performed facts into the actual engine
+
+The same-host logging/resume/Finish/correction path is accepted through W6 PR32 `13946a1c7090296de1b11fd3e4381833163fb58a` / Review144, exact-head CI terminal7success/3skip on both OS jobs. This PR46 successor proposes the next compatibility direction and provides executable failure evidence; it does not implement a new engine, grant eligibility, complete M4 or authorize private use. Existing published PR46 parent `c6a878fb1a2cc727a64d465e1a69ee555b951acd` / Review126 remains scoped to its own content. Origin integration was freshly fetched at `28ff3be3a0c47fa76b642015ac3757da5c76548c`; no branch switched or merged.
+
+`spec/PERFORMED-ENGINE-v1.md` specifies the private derived factual view, source identity/currentness boundary, typed effort predicates, actual reader/writer access points, separation of replayable facts from consented plan effects, and the coherent same-host integration/gate matrix. D41/D43 approved directions were verified at DECISIONS:60; no accepted theme implementation was found in the retained/integration writer history. Their prescription-vector/scalar repairs alone do not define this richer mapping. The proposal explicitly retains exact source/expectation closure, partial-slot/vector comparability and personal qualification as concrete questions before implementation. It is a direction for review, not blanket authority to alter all consumers.
+
+Executed from repo root: `node rebuild/m4/spec/performed-engine-compatibility.cjs <retained-W6-tree>`. All source pins matched: twelve data-free reader/writer/fixture files byte-identical to075f37c0e0cbe51ade41f42a667469cc4684cd0e, actual projector/schema byte-identical tof7e7e42; projector SHA256 `e66a4c738867586699fd090dd9cc23ca9d5462a5ca7a7172b35c40ea2a400a87`. These pins diagnose the legacy access contract; they are not a proposal to drop accepted later repairs. No seed/private blob was loaded. The actual basic shape validator checks synthetic operation envelopes, but synthetic acceptance statuses are declared: no authentication, signing, D1 or transport verdict is claimed for this diagnostic.
+
+```
+COMPATIBILITY native / rich facts survive unchanged projector CONFIRMED
+COMPATIBILITY native / distinct performed vectors collapse in real writer CONFIRMED
+COMPATIBILITY native / per-set effort and source identity omitted CONFIRMED
+COMPATIBILITY native / scalar score ignores performed-vector difference CONFIRMED
+COMPATIBILITY native / tagged effort is not a drop-in legacy numeric value CONFIRMED
+COMPATIBILITY native / repeated exercise entries do not preserve distinct loads CONFIRMED
+COMPATIBILITY native / correction keeps original and bounded-to-unknown distinction CONFIRMED
+COMPATIBILITY native / removal retains original and later corrected facts CONFIRMED
+COMPATIBILITY frozen / rich facts survive unchanged projector CONFIRMED
+COMPATIBILITY frozen / distinct performed vectors collapse in real writer CONFIRMED
+COMPATIBILITY frozen / per-set effort and source identity omitted CONFIRMED
+COMPATIBILITY frozen / scalar score ignores performed-vector difference CONFIRMED
+COMPATIBILITY frozen / tagged effort is not a drop-in legacy numeric value CONFIRMED
+COMPATIBILITY frozen / repeated exercise entries do not preserve distinct loads CONFIRMED
+COMPATIBILITY frozen / correction keeps original and bounded-to-unknown distinction CONFIRMED
+COMPATIBILITY frozen / removal retains original and later corrected facts CONFIRMED
+PERFORMED ENGINE COMPATIBILITY: 16/16 diagnostics CONFIRMED; lossless writer/reader join NOT IMPLEMENTED; no eligibility or personal prescription granted
+```
+
+The collision checks compare complete real writer returns, not only scores. The proposed extra writer fields intentionally demonstrate ignored inputs; they are not an adopted schema. Tagged effort objects are not valid legacy numeric input: the counterexample diagnoses a naive adapter, not an existing frozen-app use of those objects. Weight×reps is only an information-loss witness, not a scientific growth/readiness model. Both ambient Date modes restore global Date; all clock/ID inputs are explicit and an unexpected mint throws. Native/frozen here is the diagnostic process clock, not the full private two-mode port gate.
+
+Validation: diagnostic16/16, `node --check`, `git diff --check`; product/frozen/conformance/soak unchanged. No complete product suite rerun is claimed for this docs/diagnostic-only direction. All existing mandatory implementation/private/integrator/phone gates in the proposal remain required. No resource experiment, new private fixture, source-data hash or model/credit/custody change. Missing local acorn was not installed; one shell interruption returned no output and a later workspace check confirmed retained work intact. No parser result was used as evidence. Wall-clock: this bounded source/proposal pass is approximately25 minutes across the retained continuation, not an engineering implementation estimate or savings claim.
+
+NEXT: independently review the proposed compatibility direction and actual16-case witness, then close the named source/eligibility questions and implement corrected facts → actual engine → qualified next instruction in the same retained host. Full coordinated PRODUCT-GOALv3, decision revision3, daily-plan U1–U5, original resource failure and all scientific/private/device limits remain unchanged.
+
 ## v0.41 — one real workout integration path; released macro read contract
 
 Adopts CURRENT-PRODUCT-DECISIONS revision2 into the current first-use cut and replaces obsolete NEXT: original prescription/current safety, Start/multiple Sets, same-session reopen/resume, normal Finish, corrected history and qualified next-prescription input. A read-only history component is groundwork, not successful resume. Root retains one primary task and actual prerequisites; no new queue, model, credit, gate or scope. R1 resource FAIL remains explicit with a bounded complete-history paging/materialization contract as next action, no repeated heap experiments or cap/history waiver. P3 matching-active-state comparison remains required within existing integration review.
