@@ -1,0 +1,25 @@
+{
+  "reviewedManifestSha256": "c7dfdfe39ed26f78205ea76e718f944f34381fef9444a48d4f6741d69e4c8caf",
+  "originalFiles": {
+    "controller.cjs": "5c1ff6af01f34fac3b40579f5489834d00d9514b02b5964feb9d4596ab2fcc3a",
+    "session.cjs": "c55509506daab1c9824cfd4e5528686b64c212b883ffd435f47445095074afd4",
+    "snapshot.cjs": "be26858dfb11f2e26444d2c9362845d3943c071e491855f545d54491be35d5ab",
+    "supervisor.cjs": "e76bdac60014ecaed2021825b2a0148973eb239000988b8f161b8651aa38d3c2",
+    "child.cjs": "f9de38aca34c7b5041befbc467e74c0ac224bca49628095963b6aad1cd536a29",
+    "meter.cjs": "fc181ae89874c815fd29bb6156840ee261aafe12f74638780b64401e75c06ad1",
+    "templates/runtime.cjs": "e32c305d80e7cc73d1abebddb141d80ff5fede8fe1edee5a0aecd1a3ccc5ea05",
+    "templates/witness.cjs": "876e8b04a12e5aac077c4a16c9959e366ff1f7d8e639b95d2992257de1d8ffdd"
+  },
+  "unchanged": [
+    "controller.cjs",
+    "session.cjs",
+    "snapshot.cjs",
+    "templates/runtime.cjs",
+    "templates/witness.cjs"
+  ],
+  "adaptations": {
+    "supervisor.cjs": "Linux final direct-handle stop uses SIGKILL; deadline/handshake/cleanup unchanged.",
+    "child.cjs": "Pinned generated bundle/instrument loader and pnpm WebSocket path only.",
+    "meter.cjs": "Resolve WebSocket from the verified selected pnpm dependency tree; original loop/CPU semantics unchanged."
+  }
+}

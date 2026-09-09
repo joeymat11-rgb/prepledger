@@ -1,0 +1,67 @@
+{
+  "syntheticOnly": true,
+  "hostPlatform": "win32",
+  "linuxRuntimeExecuted": false,
+  "productWorkloadExecuted": false,
+  "resourceAcceptance": false,
+  "passed": 14,
+  "total": 14,
+  "results": [
+    {
+      "name": "proc stat parses embedded spaces/parentheses and exact field22 without numeric precision loss",
+      "pass": true
+    },
+    {
+      "name": "proc identity reads executable and stable parent/starttime across two reads",
+      "pass": true
+    },
+    {
+      "name": "Linux termination refuses PID reuse, changed parent/executable and uses one positive identity",
+      "pass": true
+    },
+    {
+      "name": "Linux direct handle cleanup survives proc ownership and receipt write failures",
+      "pass": true
+    },
+    {
+      "name": "pnpm internal links resolve and pin native/JS bytes without copying directories",
+      "pass": true
+    },
+    {
+      "name": "dependency links outside selected root, unresolved targets and ancestor cycles fail closed",
+      "pass": true
+    },
+    {
+      "name": "installed native byte change invalidates prelaunch dependency pins",
+      "pass": true
+    },
+    {
+      "name": "environment preserves parent and unrelated fields; rejects hooks and memory override drift",
+      "pass": true
+    },
+    {
+      "name": "Linux supervisor identity failure kills owned child before start handshake",
+      "pass": true
+    },
+    {
+      "name": "Linux supervisor write failure kills owned child before start handshake",
+      "pass": true
+    },
+    {
+      "name": "Linux supervisor timeout preserves bounded handshake then SIGKILL fallback",
+      "pass": true
+    },
+    {
+      "name": "instrument loader resolves unchanged relative imports at explicit original location",
+      "pass": true
+    },
+    {
+      "name": "static build cwd is explicitly scoped and restored on failure",
+      "pass": true
+    },
+    {
+      "name": "portable capture core and original templates retain reviewed exact bytes",
+      "pass": true
+    }
+  ]
+}

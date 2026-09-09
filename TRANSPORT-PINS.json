@@ -1,0 +1,27 @@
+{
+  "resourceAcceptance": false,
+  "preparationOnly": true,
+  "files": {
+    ".gitignore": "7f07fbfcaed8f9112b6d5176fec1a7d35d320fe5f62a19cc2039bd62cd0260b6",
+    "SOURCE-PINS.json": "ec0749d70ac707b5a5aa9510ea8f282cadc566356684f20a167fba15fdb5a12a",
+    "WINDOWS-REUSE-PINS.json": "a0aa33c7c97f3e76c416d875cfc18b3a2f9f5e1f62aa7ee7ebb19c947265572b",
+    "controller.cjs": "5c1ff6af01f34fac3b40579f5489834d00d9514b02b5964feb9d4596ab2fcc3a",
+    "session.cjs": "c55509506daab1c9824cfd4e5528686b64c212b883ffd435f47445095074afd4",
+    "snapshot.cjs": "be26858dfb11f2e26444d2c9362845d3943c071e491855f545d54491be35d5ab",
+    "supervisor.cjs": "4eb2513f674d072c689eacff39db8dc2773a129da9f3ab286694f20b93bb00fa",
+    "child.cjs": "10a86eec4a08df92d3c20290140eb613b6d7b02f1c31217d9ee89a4be1dd63e3",
+    "meter.cjs": "7b42028d30b14516b49846b1eae6266d8ac5056bcb87b38b0459503271f24dae",
+    "owned.cjs": "f5a8d502c63f4bf645aba059514e4c0975ebabbb17ea6128115f130697e8f442",
+    "paths.cjs": "44a7ca13add1955675546857e3d126daff1712e2fdd1ff64de3e4f1a6e998252",
+    "loader.cjs": "7b39f501dff58b9e818596957fc33703d6570e9d470718c9fcbc76780d116d60",
+    "pins.cjs": "bf28835cd2ad6df949afd9d441cb818bac6792be513e1dd24787ca3fb3565dfa",
+    "prepare.cjs": "2c8981ef2c199191748410c92bc7f1cd1d4c964ca80edebd1c5d4dae9e01b99b",
+    "launch.cjs": "afba36ed081093eda647ed071bcbf51a04b7e0889a72f51641458546eb18bb4b",
+    "synthetic-tests.cjs": "bffa7891febce8bc0e2077944c5c596bcb4f395a9d98c4e6e0a9ccd0b52d5d36",
+    "SYNTHETIC-RESULTS.json": "b5ec8aa7b5966c992f55cb7eec6fa6c994f3201368227ad4e674d9fc5e24dff6",
+    "RUN.md": "12f22c7dc1c98622550207b501fafd5cf1695e767fe9a7845c20af3469180c68",
+    "RESULT.md": "62a71e9eac4d4a3279e55d9a1dc36ae9dc25ea22520881a0c1ed669898d10aa5",
+    "templates/runtime.cjs": "e32c305d80e7cc73d1abebddb141d80ff5fede8fe1edee5a0aecd1a3ccc5ea05",
+    "templates/witness.cjs": "876e8b04a12e5aac077c4a16c9959e366ff1f7d8e639b95d2992257de1d8ffdd"
+  }
+}
