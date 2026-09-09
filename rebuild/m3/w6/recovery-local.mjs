@@ -39,6 +39,7 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
     return {athleteId,actorDeviceId:deviceId,scopeDigest,basisDigest,nonce:req.nonce,contextId:req.context_id,requestDigest:C.hash('request',C.encode(req)),claimSetDigest:P.hash('claims',req.claims),mode:req.mode};
   }
   async function reconcile({inventory,requestBytes,signal}){
+    requestBytes=C.bytes(requestBytes); // Own the exact verified request before any await.
     await assertCurrent();const req=C.decodeRequest(requestBytes), context=expected(req);
     const profile=await validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected:context,signal});
     const check=async()=>{await profile.assertCurrent();await assertCurrent();await profile.assertCurrent();};
@@ -62,6 +63,11 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
     await check();
     return Object.freeze({profileVerified:true,localCompared:true,complete:false,activated:false,checkpoint:false,sourceRevision:saved.revision,
       assertCurrent:check,
+      async archiveProof(){
+        await check();const reference=await inventory.archiveReference();await check();
+        return {profile:'earned/local-recovery-proof/v1',reference,request_bytes_b64:C.encode64(requestBytes),
+          expected:{athleteId,actorDeviceId:deviceId,scopeDigest,basisDigest}};
+      },
       async pending(visitor){
         if(typeof visitor!=='function')throw TypeError('A staged comparison consumer is required');await check();
         await profile.claims(async(claim,history)=>{

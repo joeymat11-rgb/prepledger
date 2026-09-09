@@ -2,6 +2,7 @@ import W5 from "../w5/public-client.cjs";
 import { createBridge } from "./bridge.mjs";
 import { StorageFailure } from "./repository.mjs";
 import { createLocalRecoveryBasis } from "./recovery-local.mjs";
+import { authenticateRecoveryArchives } from "./recovery-history.mjs";
 import { createCandidateGrant } from "./candidate-grant.mjs";
 import Canonical from "../../authority/canonical.cjs";
 import { verifyHistoricalHead, sameRecordedValue } from "./history-proof.mjs";
@@ -48,6 +49,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     return result;
   }
   async function verifiedHistory(generation, signedOperationIds = null) {
+    const epoch=observationEpoch();
+    await authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier:verifier,athleteId,deviceId,signedOperationIds,
+      assertContext:()=>{const changed=contextFailure(epoch)||lateRefusal;if(changed)throw new StorageFailure(changed.code,changed.state);}});
     const families = generation.metadata.wireProofs || {};
     const methods = { disposition: "verifyDisposition", pull: "verifyPull", snapshot: "verifySnapshot", lease: "verifyLease", time: "verifyServerTime", currentHead: "verifyCurrentHead" };
     for (const [kind, records] of Object.entries(families)) {

@@ -1,10 +1,13 @@
 // Complete relational interpretation of an inactive rows-v3 inventory.
 // Indexed reads replace retained whole-account maps. No activation is exported.
-export async function validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected,signal}){
+export function validateRecoveryProfile(args){return interpretProfile(args,false);}
+export function validateArchivedRecoveryProfile(args){return interpretProfile(args,true);}
+async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected,signal},historical){
  const abort=()=>{if(signal?.aborted)C.fail('RECOVERY_VALIDATION_ABORTED');};abort();
  const fail=(code='RETAINED_INTEGRITY')=>C.fail(code,code==='SCOPE_FORBIDDEN'?403:code==='HISTORY_INCOMPLETE'?409:500),check=x=>{if(!x)fail();};
  const req=C.decodeRequest(requestBytes),e=C.parse(C.encode(expected)),pair=(a,b)=>JSON.stringify([a,b]);
  check(inventory?.scan&&inventory?.readRow&&publicVerifier?.verifyDisposition&&publicVerifier?.verifyLease);
+ if(historical)check(inventory.historicalOnly===true&&typeof inventory.assertIntact==='function');
  check(C.nonempty(e.athleteId)&&C.nonempty(e.actorDeviceId)&&C.digestValue(e.scopeDigest)&&C.digestValue(e.basisDigest));
  await inventory.visit(()=>{abort();});abort();const {manifest:m}=await inventory.bindings();
  check(m.scope_digest===e.scopeDigest&&m.basis_digest===e.basisDigest&&m.nonce===req.nonce&&m.context_id===req.context_id&&m.mode===req.mode&&m.request_digest===C.hash('request',requestBytes)&&m.claim_set_digest===P.hash('claims',req.claims));
@@ -80,11 +83,14 @@ export async function validateRecoveryProfile({inventory,codec:C,protocol:P,publ
  }
  for(let i=0;i<req.claims.length;i++)await claimAt(i);
  for(const q of req.requested_lease_ids)if(!hasDevice(q.source_device_id)||req.mode==='CURRENT_DEVICE'&&q.source_device_id!==e.actorDeviceId)fail('SCOPE_FORBIDDEN');
- const assertCurrent=async()=>{abort();await inventory.assertCurrent();abort();};await assertCurrent();
- return Object.freeze({profileVerified:true,complete:false,activated:false,
-  async summary(){await assertCurrent();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
-  async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await assertCurrent();});}await assertCurrent();},
-  async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await assertCurrent();},
+ const assertStable=async()=>{abort();await(historical?inventory.assertIntact():inventory.assertCurrent());abort();};await assertStable();
+ const assertCurrent=async()=>{if(historical)C.fail('RECOVERY_HISTORICAL_ONLY');await assertStable();};
+ return Object.freeze({profileVerified:true,complete:false,activated:false,...(historical?{historicalOnly:true}:{}),
+  async summary(){await assertStable();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
+  async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await assertStable();});}await assertStable();},
+  async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await assertStable();},
+  async operations(visitor){if(typeof visitor!=='function')C.fail('RECOVERY_PROFILE_VISITOR');await assertStable();await each('operations',async(_,row,original)=>visitor(row.op,row.disposition,original));await assertStable();},
+  assertProofUnchanged:assertStable,
   assertCurrent,
  });
 }
