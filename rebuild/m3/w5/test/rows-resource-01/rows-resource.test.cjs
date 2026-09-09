@@ -120,3 +120,45 @@ test('ROWS-V3 ADAPTER — a ceiling violation still blocks acceptance outright',
   assert.deepEqual(A.qualificationEligibility(eligibleConfig({verdict:'FAIL'})).reasons,['VERDICT_NOT_PASS']);
   assert.deepEqual(A.qualificationEligibility(eligibleConfig({verdict:'BLOCKED'})).reasons,['VERDICT_NOT_PASS']);
 });
+
+// --- peak localization (diagnostic instrumentation) ----------------------
+const sample=(label,observedAllocation)=>({label,observedAllocation,usedSize:1,totalSize:1,
+  embedderHeapUsedSize:1,backingStorageSize:1});
+
+test('ROWS-V3 ADAPTER — boundary observations enable it, and it can never qualify',()=>{
+  const e=A.qualificationEligibility(eligibleConfig({observeBoundaries:true}));
+  assert.equal(e.eligible,false);
+  assert.deepEqual(e.reasons,['BOUNDARY_OBSERVATION_ENABLED']);
+});
+
+test('ROWS-V3 ADAPTER — ordered samples partition into request intervals',()=>{
+  const iv=A.summarizeIntervals([sample('start',1),sample('periodic',2),
+    sample('before:c-0',3),sample('periodic',9),sample('after:c-0',4),
+    sample('before:c-1',5),sample('periodic',6),sample('after:c-1',7),sample('end',8)]);
+  assert.deepEqual(iv.map(x=>x.from),['phase-start','before:c-0','after:c-0','before:c-1','after:c-1']);
+  assert.equal(iv[1].peak,9,'the in-request interval carries its own peak');
+  assert.equal(iv.reduce((n,x)=>n+x.samples,0),9,'every sample is attributed exactly once');
+});
+
+test('ROWS-V3 ADAPTER — a peak inside a request is attributed to that request',()=>{
+  const l=A.locatePeak([sample('start',1),sample('before:c-4',2),sample('periodic',99),
+    sample('after:c-4',3),sample('before:c-5',4),sample('after:c-5',5),sample('end',1)]);
+  assert.equal(l.observedPeakBytes,99);
+  assert.equal(l.attribution,'WITHIN the request c-4');
+  assert.equal(l.nearestPrecedingBoundary,'before:c-4');
+  assert.equal(l.nearestFollowingBoundary,'after:c-4');
+  assert.equal(l.peakSampleIsBoundaryObservation,false);
+});
+
+test('ROWS-V3 ADAPTER — a peak between requests is not attributed to one',()=>{
+  const l=A.locatePeak([sample('before:c-1',2),sample('after:c-1',3),sample('periodic',99),
+    sample('before:c-2',4),sample('after:c-2',5)]);
+  assert.equal(l.attribution,'BETWEEN requests, after c-1 and before c-2');
+});
+
+test('ROWS-V3 ADAPTER — an unbounded peak is reported unattributable, never guessed',()=>{
+  const l=A.locatePeak([sample('start',1),sample('periodic',99),sample('end',2)]);
+  assert.equal(l.attribution,'UNATTRIBUTABLE — no boundary observation surrounds the peak');
+  assert.equal(l.nearestPrecedingBoundary,null);
+  assert.equal(l.nearestFollowingBoundary,null);
+});

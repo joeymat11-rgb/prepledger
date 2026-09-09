@@ -69,11 +69,15 @@ const verdictFor=violations=>violations.length?'FAIL':'PASS';
 // to award the acceptance flag. Pure and exported so the focused adapter tests
 // can regress a PASSING near-only configuration.
 function qualificationEligibility({ceilings,skipValidAccountAttempts,largeExtensionFacts,smallExtensionFacts,
-  attempts=[],verdict}={}){
+  observeBoundaries,attempts=[],verdict}={}){
   const reasons=[],keys=Object.keys(CEILINGS);
   if(!ceilings||Object.keys(ceilings).length!==keys.length||!keys.every(k=>ceilings[k]===CEILINGS[k]))
     reasons.push('CEILINGS_NOT_ORIGINAL');
   if(skipValidAccountAttempts)reasons.push('VALID_ACCOUNT_ATTEMPTS_SKIPPED');
+  // Extra boundary observations add inspector round-trips and extra samples
+  // inside the measured window; they can only raise the observed peak, so an
+  // instrumented run is diagnostic and can never carry the acceptance flag.
+  if(observeBoundaries)reasons.push('BOUNDARY_OBSERVATION_ENABLED');
   if(largeExtensionFacts!==LARGE_EXTENSION_FACTS||smallExtensionFacts!==SMALL_EXTENSION_FACTS)
     reasons.push('WORKLOAD_COUNTS_NOT_DEFAULT');
   const complete=a=>Boolean(a)&&a.signedTerminalFinish===true&&a.byteIdentityAgainstIndependentD1Read===true;
@@ -115,6 +119,57 @@ function assertCompleteInventory({manifest,cumulativeCounts,observed,expected}){
 }
 
 // ---------------------------------------------------------------------------
+// PEAK LOCALIZATION (diagnostic). The meter's periodic samples carry no
+// timestamps, so only ORDER is available -- never interval duration. Labelled
+// boundary observations taken at request edges partition the ordered sample
+// list, so each periodic sample can be attributed to the interval it fell in.
+// A sample can be placed before / within / after a given chunk; it cannot be
+// placed in time within that interval.
+// ---------------------------------------------------------------------------
+const BOUNDARY=/^(?:before|after):/;
+function summarizeIntervals(samples){
+  const intervals=[];
+  let current={from:'phase-start',samples:0,peak:0,peakIndex:-1,peakLabel:null,firstIndex:0};
+  const close=()=>{if(current.samples)intervals.push(current);};
+  samples.forEach((sample,index)=>{
+    if(BOUNDARY.test(sample.label)){close();current={from:sample.label,samples:0,peak:0,peakIndex:-1,peakLabel:null,firstIndex:index};}
+    if(sample.observedAllocation>current.peak){current.peak=sample.observedAllocation;current.peakIndex=index;current.peakLabel=sample.label;}
+    current.samples++;current.lastIndex=index;
+  });
+  close();
+  return intervals;
+}
+function locatePeak(samples){
+  const intervals=summarizeIntervals(samples);
+  let peakIndex=-1,peak=-1;
+  samples.forEach((s,i)=>{if(s.observedAllocation>peak){peak=s.observedAllocation;peakIndex=i;}});
+  const sample=samples[peakIndex],owner=intervals.find(i=>peakIndex>=i.firstIndex&&peakIndex<=i.lastIndex);
+  const before=[...samples.slice(0,peakIndex)].reverse().find(s=>BOUNDARY.test(s.label));
+  const after=samples.slice(peakIndex+1).find(s=>BOUNDARY.test(s.label));
+  const inRequest=Boolean(before&&before.label.startsWith('before:')&&after&&after.label.startsWith('after:')&&
+    before.label.slice(7)===after.label.slice(6));
+  return {
+    observedPeakBytes:peak,peakSampleIndex:peakIndex,totalSamples:samples.length,
+    peakSampleLabel:sample?.label??null,peakSampleIsBoundaryObservation:Boolean(sample&&BOUNDARY.test(sample.label)),
+    nearestPrecedingBoundary:before?.label??null,nearestFollowingBoundary:after?.label??null,
+    attribution:!before&&!after?'UNATTRIBUTABLE — no boundary observation surrounds the peak'
+      :inRequest?'WITHIN the request '+before.label.slice(7)
+      :before&&before.label.startsWith('after:')?'BETWEEN requests, after '+before.label.slice(6)+
+        (after?' and before '+after.label.slice(7):' and the phase end')
+      :'AMBIGUOUS — peak lies between non-paired boundary observations',
+    peakVector:sample&&{usedSize:sample.usedSize,totalSize:sample.totalSize,
+      embedderHeapUsedSize:sample.embedderHeapUsedSize,backingStorageSize:sample.backingStorageSize,
+      observedAllocation:sample.observedAllocation},
+    ownerInterval:owner&&{from:owner.from,samples:owner.samples,peak:owner.peak},
+    topIntervals:[...intervals].sort((a,b)=>b.peak-a.peak).slice(0,12)
+      .map(i=>({from:i.from,samples:i.samples,peakBytes:i.peak,peakSampleIndex:i.peakIndex})),
+    orderedIntervalPeaks:intervals.map(i=>({from:i.from,samples:i.samples,peakBytes:i.peak})),
+    limitation:'Samples carry order only, never timestamps, so interval DURATION is unknown. Boundary observations '+
+      'add inspector round-trips and extra samples inside the measured window and can only RAISE the observed peak; '+
+      'this run is not comparable with an uninstrumented qualification run.'};
+}
+
+// ---------------------------------------------------------------------------
 // Proof that the measured isolate is the real application isolate, not a
 // setup, proxy, D1 or control isolate. Read-only; the meter is unmodified.
 // ---------------------------------------------------------------------------
@@ -131,7 +186,7 @@ async function proveApplicationIsolate(mf,workerName){
 
 async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,populateFixture=populate,
   outputFile,ceilings=CEILINGS,largeExtensionFacts=LARGE_EXTENSION_FACTS,smallExtensionFacts=SMALL_EXTENSION_FACTS,
-  skipValidAccountAttempts=false}={}){
+  skipValidAccountAttempts=false,observeBoundaries=false}={}){
   const evidence={profile:'earned/rows-v3/resource-local/v1',route:'/reconcile/rows',
     verdict:'BLOCKED',resourceAcceptance:false,ceilings,
     requestVersion:C.REQUEST_VERSION,rowsLimits:P.LIMITS,platform:process.platform,nodeVersion:process.version,
@@ -161,6 +216,9 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
     }finally{clearTimeout(timer);}
   }
   async function measuredRequest(label,route,body,subject){
+    // Boundary observations sit OUTSIDE meter.measure(), so the inspector
+    // round-trip is not charged to the request's own CPU delta.
+    if(observeBoundaries&&observing)await meter.observe('before:'+label);
     const measured=await meter.measure(async()=>{try{return await request(route,body,subject);}catch(error){return {failure:errorText(error)};}});
     const result=measured.value,entry={label,cpuMs:measured.cpuMs,cpuGuardMs:evidence.cpuGuardMs,
       guardedCpuMs:measured.cpuMs+evidence.cpuGuardMs,status:result.status??null,responseBytes:result.responseBytes??0,
@@ -172,6 +230,7 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
     for(const f of ['statements','batches','rowsRead','rowsWritten','queryMs','batchMaxWallMs','domainWrites'])
       check(Number.isFinite(result.stats[f]),'D1_METRICS_INCOMPLETE');
     evidence.violations.push(...requestViolations(ceilings,entry));
+    if(observeBoundaries&&observing)await meter.observe('after:'+label);
     return result;
   }
   async function beginPhase(name){evidence.phase=name;const before=await meter.sampleProcess();await meter.begin();observing=true;
@@ -181,6 +240,7 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
       wholePhaseCpuMs:(after.cpuTicks-phase.before.cpuTicks)*meter.method.counterTickMs,
       observedPeakBytes:memory.observedPeakBytes,sampleCount:memory.samples.length,
       peakVector:memory.samples.reduce((best,s)=>!best||s.observedAllocation>best.observedAllocation?s:best,null),
+      ...(observeBoundaries?{peakLocation:locatePeak(memory.samples)}:{}),
       processBefore:phase.before,processAfter:after};
     evidence.phases.push(entry);evidence.violations.push(...phaseViolations(ceilings,entry));return entry;}
 
@@ -457,8 +517,12 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
     // PASS alone never awards acceptance; the configuration must also be an
     // eligible qualification run.
     evidence.qualificationEligibility=qualificationEligibility({ceilings,skipValidAccountAttempts,
-      largeExtensionFacts,smallExtensionFacts,attempts:evidence.attempts,verdict:evidence.verdict});
+      largeExtensionFacts,smallExtensionFacts,observeBoundaries,attempts:evidence.attempts,verdict:evidence.verdict});
     evidence.resourceAcceptance=evidence.qualificationEligibility.eligible;
+    evidence.boundaryObservation=observeBoundaries
+      ?'DIAGNOSTIC peak-localization run: labelled observations at every request edge. Extra samples and inspector '+
+       'round-trips inside the measured window can only RAISE the observed peak. Not comparable with, and never a '+
+       'replacement for, the original qualification evidence.':null;
     evidence.isolationControl=skipValidAccountAttempts
       ?'NEAR-LIMIT-ONLY isolation control: valid-account attempts deliberately not run; not a qualification verdict.':null;
     evidence.attemptsCompleted={sequential:sequential?1:0,overlapping:overlaps.length,nearRowKeyLimit:1,
@@ -491,11 +555,15 @@ async function run({onProgress=m=>console.log(m),runtimeFactory=createR1Runtime,
 
 module.exports={run,CEILINGS,DEFAULT_WORKLOAD:Object.freeze({largeExtensionFacts:LARGE_EXTENSION_FACTS,
   smallExtensionFacts:SMALL_EXTENSION_FACTS}),requestViolations,phaseViolations,verdictFor,qualificationEligibility,
-  createInventoryFold,assertCompleteInventory};
+  createInventoryFold,assertCompleteInventory,summarizeIntervals,locatePeak};
 
-if(require.main===module)run({skipValidAccountAttempts:process.argv.includes('--only-near-limit'),
-  outputFile:process.argv.includes('--only-near-limit')
-    ?path.join(__dirname,'../../.generated/rows-resource-01-near-limit-isolation.json'):undefined}).then(result=>{
+const LOCATE=process.argv.includes('--locate-peak'),NEAR_ONLY=LOCATE||process.argv.includes('--only-near-limit');
+if(require.main===module)run({skipValidAccountAttempts:NEAR_ONLY,observeBoundaries:LOCATE,
+  outputFile:LOCATE?path.join(__dirname,'../../.generated/rows-resource-01-peak-location.json')
+    :NEAR_ONLY?path.join(__dirname,'../../.generated/rows-resource-01-near-limit-isolation.json'):undefined}).then(result=>{
+  const located=result.phases?.map(p=>p.peakLocation).filter(Boolean).at(-1);
+  if(located)console.log('PEAK LOCATION — '+located.attribution+'; peak '+located.observedPeakBytes+
+    ' B at sample '+located.peakSampleIndex+'/'+located.totalSamples+' (label '+located.peakSampleLabel+')');
   console.log('ROWS-V3-RESOURCE '+result.verdict+' — '+(result.attempts||[]).length+' complete attempts; '+
     (result.summary?.requests??0)+' measured requests; peak '+(result.summary?.peakObservedAllocationBytes??'n/a')+
     ' bytes vs '+result.ceilings.observedAllocationBytes+'; '+result.violations.length+' resource violations'+

@@ -29,7 +29,8 @@ private recovery.
 pnpm install --frozen-lockfile                                   # in rebuild/m3/w5; lock byte-unchanged
 node test/rows-resource-01/rows-resource.cjs                     # the qualification run
 node test/rows-resource-01/rows-resource.cjs --only-near-limit   # the isolation control (ordering only)
-node --test test/rows-resource-01/rows-resource.test.cjs         # focused adapter tests — 12/12 pass
+node test/rows-resource-01/rows-resource.cjs --locate-peak        # the bounded peak-localization diagnostic
+node --test test/rows-resource-01/rows-resource.test.cjs         # focused adapter tests — 17/17 pass
 node --test test/r1-paged-http.test.cjs                          # pre-existing route test — 10/10 pass, undisturbed
 ```
 
@@ -50,16 +51,16 @@ Machine evidence is written to the ignored `rebuild/m3/w5/.generated/`; the sani
 | `reconciliation/codec.cjs` | `2336594b9fab772c818834531122c639debd8977adee5c12fd5b3d92ba6bd192` |
 | `storage/database.cjs` | `f0e89e738903abe5f0d19ff4e596507bd897068442f25b8f68564007d015fed7` |
 | `worker.cjs` | `e10643f7dbdf3b429a52b559b16b8fcae255a07dcc8f3f0ceffadd099e003a5d` |
-| **new** `test/rows-resource-01/rows-resource.cjs` | `c2ab4a75c92c9be8a81d3a43444f49f6f200e9256d54d1c2e13d2c394c0839c7` |
-| **new** `test/rows-resource-01/rows-resource.test.cjs` | `a00c8b45408d1d574b94978c5bd49279eb982834c2dd9ba38714d313fb74cbdf` |
+| **new** `test/rows-resource-01/rows-resource.cjs` | `4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd` |
+| **new** `test/rows-resource-01/rows-resource.test.cjs` | `ead6e03551405765ca422446175d263bd88cb84af6fd96948f67cb3bade8c6b1` |
 
 Every existing product, runner, meter, fixture, conformance law, package lock and report byte is unchanged;
 `git status` shows only the four new files under `test/rows-resource-01/`.
 
-The two new-file pins above are **current**. The recorded measurements were executed by the superseded wrapper pin
-`713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c`; the acceptance-gating and report corrections
-changed the wrapper afterwards and **no measurement was re-run for them**. `EVIDENCE.json` records the executed pin
-against each run.
+The two new-file pins above are **current**. The two **qualification** measurements were executed by the superseded
+wrapper pin `713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c` and were **not** re-run for the
+acceptance-gating, report or diagnostic changes. The **peak-localization diagnostic** was executed by pin `4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd`.
+`EVIDENCE.json` records the executed pin against every run; no earlier result or pin was overwritten.
 
 ## Workload mapping — old profile to rows-v3
 
@@ -170,7 +171,7 @@ produced **2 single-row-over-budget chunks**, a 1,400,041-byte page and a 3,202,
   manifest, a dropped row, a wrong byte count and a tampered digest each raise their own typed refusal. Live over
   HTTP: a forged cursor returns `400` with no page, and a foreign subject reusing a signed actor-bound continuation
   returns `403` state 17.
-* The twelve focused adapter tests cover the same paths without spinning workerd, including that `CEILINGS` still
+* The seventeen focused adapter tests cover the same paths without spinning workerd, including that `CEILINGS` still
   equals the original agreed values and that no diagnostic or relaxed configuration can earn `resourceAcceptance`.
 
 ## What the preserved failure does and does not establish
@@ -234,9 +235,11 @@ finish **and** independent byte identity — and no ceiling violation. Anything 
 `SEQUENTIAL_ATTEMPT_INCOMPLETE`, `OVERLAPPING_ATTEMPTS_INCOMPLETE`, `VERDICT_NOT_PASS`) and leaves the flag false.
 
 The gate is a pure exported function and is regressed by the focused adapter tests, including **a near-only
-configuration with a `PASS` verdict and zero violations, which is asserted ineligible.** Its three-line wiring into
-`run()` was reviewed by reading and not executed here, because the memory experiments were deliberately not re-run
-for a label fix; it prints on the next real run and should be confirmed there.
+configuration with a `PASS` verdict and zero violations, which is asserted ineligible.** Its wiring into `run()` was
+previously reviewed by reading only; **the peak-localization diagnostic has since executed it end to end**, printing
+`resourceAcceptance=false — NOT an eligible qualification run: VALID_ACCOUNT_ATTEMPTS_SKIPPED,
+BOUNDARY_OBSERVATION_ENABLED, SEQUENTIAL_ATTEMPT_INCOMPLETE, OVERLAPPING_ATTEMPTS_INCOMPLETE, VERDICT_NOT_PASS`.
+That limitation is closed.
 
 ## Limitations
 
@@ -254,16 +257,75 @@ for a label fix; it prints on the next real run and should be confirmed there.
   observe neither collections nor their absence, and draw no conclusion about collectible memory.
 * Three runs are not a peak distribution, and no run isolates a single variable.
 
+## Bounded diagnostic — peak localization (DIAGNOSTIC, `resourceAcceptance` = false)
+
+Released scope: one bounded diagnostic, correlating the near-only failure with requests and chunks using the
+**unchanged** meter. No meter, product, source, limit or workload edit; no forced GC; no new isolate connection; no
+per-page restart. This run does **not** replace the original qualification evidence.
+
+**Method.** The meter already exposes `observe(label)` and returns ordered sample vectors from `end()`. The wrapper
+now takes a default-off `observeBoundaries` option that calls `observe('before:<label>')` and `observe('after:<label>')`
+at each request edge, **outside** `meter.measure()` so the inspector round-trip is not charged to the request's own
+CPU delta. Those labelled samples partition the ordered periodic samples, so each sample is attributable to the
+interval it fell in. Run once as `node test/rows-resource-01/rows-resource.cjs --locate-peak`.
+
+**Disclosed overhead and ambiguity.** Samples carry order only — **never timestamps** — so interval *duration* is
+unknown and nothing can be placed in time within an interval. The extra observations and round-trips occur inside
+the measured window and can only **raise** the observed peak, so this run's numbers are **not comparable** with the
+uninstrumented runs. Boundary observation is now itself an ineligibility reason (`BOUNDARY_OBSERVATION_ENABLED`), so
+an instrumented run can never carry the acceptance flag.
+
+**Result: the peak is attributable.** Global peak 144,745,729 B at sample 86 of 211, a periodic sample lying between
+`before:near-limit-chunk-15` and `after:near-limit-chunk-15` — **within** that request. Its vector is
+`usedSize` 53,069,736 / `totalSize` 119,889,920 / `embedderHeapUsedSize` 644,840 / `backingStorageSize` 24,210,969.
+
+**But the peak request is not where the allocation arrives.** Chunk 15 is an *ordinary* chunk — 2 rows, 132,430
+row-value bytes, 178,947 response bytes. The ordered per-interval trajectory shows the step changes happening
+earlier, at the two extreme-row requests, and never unwinding:
+
+| request | page rows | row-value bytes | response bytes | interval peak |
+|---|---:|---:|---:|---:|
+| chunk-0 … chunk-4 | 32 / 32 / 32 / 32 / 1 | ≤ 17,380 | ≤ 27,307 | 23.5–29.5 MB |
+| **chunk-5** (generic extreme **key**) | 1 | 1,200,045 | 3,202,414 | **79,472,936 B** |
+| **chunk-6** (generic extreme **value**) | 1 | 1,400,041 | 1,869,075 | **123,331,466 B** — first breach |
+| chunk-7 … chunk-31 (ordinary) | 2–22 | ≤ 147,280 | ≤ 199,795 | 89–145 MB, never back to baseline |
+| **chunk-15** (peak sample) | 2 | 132,430 | 178,947 | **144,745,729 B** |
+
+So the allocation steps up **at** the two extreme-row requests, crosses the ceiling at the second of them, and then
+stays in a 89–145 MB band across ordinary chunks that individually carry ~132 KB. This **corrects the framing this
+report carried before the diagnostic**: the largest *sample* is not in a large-row request at all.
+
+**What this does and does not show.** It identifies the requests at which the observed allocation steps up, and the
+request containing the largest sample. It does **not** establish causation: `observedAllocation` includes
+`totalSize`, which is committed heap and a high-water quantity, so a sustained band after chunk-6 is equally
+consistent with committed heap simply not being returned as with fresh allocation in each later chunk — and at the
+peak, live `usedSize` (53 MB) is well under half of `totalSize` (120 MB). No forced GC was used and **no conclusion
+is drawn about whether collection occurred**. A second, instrumentation-only observation: one request
+(`near-limit-chunk-6`, the extreme-value row) recorded 1,050 ms guarded CPU, over the 1,000 ms ceiling — but the
+uninstrumented runs measured 700 ms and 1,000 ms maxima, so this may be observation overhead and is **not** reported
+as a CPU finding.
+
+**Code-backed lead, by reading, not measured.** On the large-row response path the same row's bytes are materialized
+repeatedly and concurrently: `codec.open` produces a decrypted buffer and a plaintext string; `makePage` calls
+`C.encode64(row.value)`, which copies via `TextEncoder` and then builds a base64 string (4/3 inflation); `rows()`
+validation immediately decodes that base64 back to a fresh `Uint8Array` and `C.text()`s it to a fresh string;
+`hash('batch',…)` JSON-encodes the whole row array and re-`bytes()` it; `sign()` encodes the whole page including
+those rows; `page()` re-validates, decoding every row again; `parseResponse(C.encode(result))` encodes and re-parses
+the entire result; and the Worker's `reply()` `JSON.stringify`s it once more. For a 1.4 MB row that is several
+simultaneous multi-megabyte strings and buffers per request. **This is read-supported only — it has not been
+measured, and it is offered as where to look, not as a diagnosis.**
+
 ## One concrete next action
 
-**Locate the peak: correlate the allocation samples with the specific request and chunk that carry them**, then look
-at materialization, encoding and copies on that path — how many times a large row's bytes exist simultaneously as a
-D1 string, a decoded buffer, a base64 string and a signed JSON body. The meter's periodic samples currently carry no
-request correlation, so the peak cannot yet be attributed to a request; that correlation is the prerequisite for any
-further reasoning, and it needs no product edit.
+**Count the simultaneous copies on the large-row response path and reduce them**, starting at the two requests the
+diagnostic named — `near-limit-chunk-5` and `near-limit-chunk-6`, the generic extreme key and value rows, where the
+observed allocation steps from 23.5 MB to 79.5 MB to 123.3 MB. The read above lists the candidate materializations
+(encode64 copy, validation round-trip decode, batch-hash encode, signature encode, page re-validation,
+`parseResponse` re-encode, `reply` stringify); measuring which of those are live simultaneously is the next
+concrete step, and it needs no product edit to perform.
 
-**Not proposed:** shrinking the supported row or history limits. The currently supported records stay supported, and
-any protocol or limit change is a separate review, not an outcome of this qualification.
+**Not proposed:** any whole-history or row-limit reduction. The currently supported records stay supported, and any
+protocol or limit change is a separate review under root ownership — no product fix should be made before that.
 
 ## Scope and process notes
 

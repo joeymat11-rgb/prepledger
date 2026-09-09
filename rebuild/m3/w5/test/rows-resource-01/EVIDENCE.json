@@ -16,13 +16,13 @@
     "reconciliation/codec.cjs": "2336594b9fab772c818834531122c639debd8977adee5c12fd5b3d92ba6bd192",
     "storage/database.cjs": "f0e89e738903abe5f0d19ff4e596507bd897068442f25b8f68564007d015fed7",
     "worker.cjs": "e10643f7dbdf3b429a52b559b16b8fcae255a07dcc8f3f0ceffadd099e003a5d",
-    "test/rows-resource-01/rows-resource.cjs": "c2ab4a75c92c9be8a81d3a43444f49f6f200e9256d54d1c2e13d2c394c0839c7",
-    "test/rows-resource-01/rows-resource.test.cjs": "a00c8b45408d1d574b94978c5bd49279eb982834c2dd9ba38714d313fb74cbdf"
+    "test/rows-resource-01/rows-resource.cjs": "4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd",
+    "test/rows-resource-01/rows-resource.test.cjs": "ead6e03551405765ca422446175d263bd88cb84af6fd96948f67cb3bade8c6b1"
   },
   "runAttribution": {
     "executedWrapperPin": "713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c",
-    "currentWrapperPin": "c2ab4a75c92c9be8a81d3a43444f49f6f200e9256d54d1c2e13d2c394c0839c7",
-    "note": "Both recorded runs below were executed by the wrapper at pin 713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c. The acceptance-gating and report corrections changed the wrapper pin afterwards; NO measurement was re-run for them, so every recorded number stays attributable to the version that produced it.",
+    "currentWrapperPin": "4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd",
+    "note": "The two qualification runs below were executed by the wrapper at pin 713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c and are NOT re-measured. The peak-localization diagnostic was executed by pin 4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd. Each run records the pin that produced it; no earlier result or pin was overwritten.",
     "excludedRun": "An earlier run of a superseded revision predating the ordering control (sequential 56,329,746 B / overlapping 74,374,147 B / near-limit 151,260,366 B) is cited in REPORT.md as variance context only. Its source hash was not retained, so it is deliberately NOT recorded here."
   },
   "gatingCorrection": {
@@ -31,8 +31,8 @@
     "realizedNote": "Both recorded runs are FAIL, so resourceAcceptance was false in each and no mislabelled result was ever emitted. The defect was latent.",
     "fix": "qualificationEligibility() gates the flag on the original ceilings, the default workload counts, one complete sequential and exactly two complete overlapping attempts each with a signed terminal finish and independent byte identity, and no ceiling violation.",
     "regression": "Focused adapter tests, 12/12, including a near-only configuration with a PASS verdict and zero violations asserted ineligible.",
-    "wiringExecuted": false,
-    "wiringNote": "The three-line wiring into run() was reviewed by reading, not executed, because the memory experiments were deliberately not re-run for a label fix. It prints on the next real run and should be confirmed there."
+    "wiringExecuted": true,
+    "wiringNote": "Closed: the --locate-peak diagnostic executed the wiring end to end and printed resourceAcceptance=false with the typed reasons VALID_ACCOUNT_ATTEMPTS_SKIPPED, BOUNDARY_OBSERVATION_ENABLED, SEQUENTIAL_ATTEMPT_INCOMPLETE, OVERLAPPING_ATTEMPTS_INCOMPLETE, VERDICT_NOT_PASS."
   },
   "causalScope": {
     "established": "The near-row/key-limit workload exceeds the 96 MiB ceiling in every run of it, including the --only-near-limit control, so the preceding sequential and overlapping traversals are not required to produce it.",
@@ -676,5 +676,978 @@
       "The independent byte-identity oracle materializes the inventory in the Node harness, outside the measured isolate; it does not enter the memory metric.",
       "The old-profile extra-byte refusal is recorded as an OLD-PROFILE requirement only; rows-v3 has no corresponding whole-history cap and none is asserted for it."
     ]
+  },
+  "peakLocationDiagnostic": {
+    "runLabel": "--locate-peak boundary-observed peak localization (DIAGNOSTIC)",
+    "executedByWrapperPin": "4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd",
+    "diagnostic": true,
+    "resourceAcceptance": false,
+    "verdict": "FAIL",
+    "qualificationEligibilityReasons": [
+      "VALID_ACCOUNT_ATTEMPTS_SKIPPED",
+      "BOUNDARY_OBSERVATION_ENABLED",
+      "SEQUENTIAL_ATTEMPT_INCOMPLETE",
+      "OVERLAPPING_ATTEMPTS_INCOMPLETE",
+      "VERDICT_NOT_PASS"
+    ],
+    "doesNotReplace": "the original qualification evidence recorded above; boundary observations add samples and inspector round-trips inside the measured window and can only RAISE the observed peak, so these numbers are not comparable with the uninstrumented runs.",
+    "finishedUTC": "2026-09-09T16:08:07.496Z",
+    "platform": "linux",
+    "nodeVersion": "v22.22.2",
+    "ceilings": {
+      "cpuMs": 1000,
+      "observedAllocationBytes": 100663296,
+      "statements": 1000,
+      "batchMs": 30000,
+      "domainWrites": 0
+    },
+    "violations": [
+      {
+        "label": "near-limit-chunk-6",
+        "code": "CPU_CEILING",
+        "actual": 1050
+      },
+      {
+        "label": "rows-v3-near-row-key-limit-attempt",
+        "code": "OBSERVED_ALLOCATION_CEILING",
+        "actual": 144745729
+      }
+    ],
+    "summary": {
+      "requests": 42,
+      "maxCpuMs": 1050,
+      "p95CpuMs": 120,
+      "peakObservedAllocationBytes": 144745729,
+      "rowsRead": 99209,
+      "rowsWritten": 42,
+      "queryMs": 333,
+      "maxStatements": 6,
+      "maxBatchWallMs": 121,
+      "domainWrites": 0
+    },
+    "boundaryObservation": "DIAGNOSTIC peak-localization run: labelled observations at every request edge. Extra samples and inspector round-trips inside the measured window can only RAISE the observed peak. Not comparable with, and never a replacement for, the original qualification evidence.",
+    "phase": {
+      "name": "rows-v3-near-row-key-limit-attempt",
+      "requestCount": 42,
+      "observedPeakBytes": 144745729,
+      "sampleCount": 211
+    },
+    "peakLocation": {
+      "observedPeakBytes": 144745729,
+      "peakSampleIndex": 86,
+      "totalSamples": 211,
+      "peakSampleLabel": "periodic",
+      "peakSampleIsBoundaryObservation": false,
+      "nearestPrecedingBoundary": "before:near-limit-chunk-15",
+      "nearestFollowingBoundary": "after:near-limit-chunk-15",
+      "attribution": "WITHIN the request near-limit-chunk-15",
+      "peakVector": {
+        "usedSize": 53069736,
+        "totalSize": 119889920,
+        "embedderHeapUsedSize": 644840,
+        "backingStorageSize": 24210969,
+        "observedAllocation": 144745729
+      },
+      "ownerInterval": {
+        "from": "before:near-limit-chunk-15",
+        "samples": 3,
+        "peak": 144745729
+      },
+      "topIntervals": [
+        {
+          "from": "before:near-limit-chunk-15",
+          "samples": 3,
+          "peakBytes": 144745729,
+          "peakSampleIndex": 86
+        },
+        {
+          "from": "after:near-limit-chunk-15",
+          "samples": 2,
+          "peakBytes": 144745729,
+          "peakSampleIndex": 87
+        },
+        {
+          "from": "before:near-limit-chunk-16",
+          "samples": 3,
+          "peakBytes": 144745729,
+          "peakSampleIndex": 89
+        },
+        {
+          "from": "before:near-limit-chunk-12",
+          "samples": 3,
+          "peakBytes": 141882530,
+          "peakSampleIndex": 71
+        },
+        {
+          "from": "after:near-limit-chunk-12",
+          "samples": 2,
+          "peakBytes": 141882530,
+          "peakSampleIndex": 72
+        },
+        {
+          "from": "before:near-limit-chunk-13",
+          "samples": 3,
+          "peakBytes": 141882530,
+          "peakSampleIndex": 74
+        },
+        {
+          "from": "before:near-limit-chunk-17",
+          "samples": 3,
+          "peakBytes": 138320952,
+          "peakSampleIndex": 96
+        },
+        {
+          "from": "after:near-limit-chunk-17",
+          "samples": 2,
+          "peakBytes": 138320952,
+          "peakSampleIndex": 97
+        },
+        {
+          "from": "before:near-limit-chunk-18",
+          "samples": 3,
+          "peakBytes": 138320952,
+          "peakSampleIndex": 99
+        },
+        {
+          "from": "before:near-limit-chunk-30",
+          "samples": 3,
+          "peakBytes": 137577813,
+          "peakSampleIndex": 162
+        },
+        {
+          "from": "after:near-limit-chunk-30",
+          "samples": 2,
+          "peakBytes": 137577813,
+          "peakSampleIndex": 163
+        },
+        {
+          "from": "before:near-limit-chunk-31",
+          "samples": 3,
+          "peakBytes": 137577813,
+          "peakSampleIndex": 165
+        }
+      ],
+      "orderedIntervalPeaks": [
+        {
+          "from": "phase-start",
+          "samples": 2,
+          "peakBytes": 28566971
+        },
+        {
+          "from": "before:near-limit-chunk-0",
+          "samples": 3,
+          "peakBytes": 29515948
+        },
+        {
+          "from": "after:near-limit-chunk-0",
+          "samples": 2,
+          "peakBytes": 29515948
+        },
+        {
+          "from": "before:near-limit-chunk-1",
+          "samples": 3,
+          "peakBytes": 29515948
+        },
+        {
+          "from": "after:near-limit-chunk-1",
+          "samples": 2,
+          "peakBytes": 22358522
+        },
+        {
+          "from": "before:near-limit-chunk-2",
+          "samples": 3,
+          "peakBytes": 23749825
+        },
+        {
+          "from": "after:near-limit-chunk-2",
+          "samples": 2,
+          "peakBytes": 23749825
+        },
+        {
+          "from": "before:near-limit-chunk-3",
+          "samples": 2,
+          "peakBytes": 23954037
+        },
+        {
+          "from": "after:near-limit-chunk-3",
+          "samples": 2,
+          "peakBytes": 23954037
+        },
+        {
+          "from": "before:near-limit-chunk-4",
+          "samples": 3,
+          "peakBytes": 23954037
+        },
+        {
+          "from": "after:near-limit-chunk-4",
+          "samples": 1,
+          "peakBytes": 23515986
+        },
+        {
+          "from": "before:near-limit-chunk-5",
+          "samples": 5,
+          "peakBytes": 79472936
+        },
+        {
+          "from": "after:near-limit-chunk-5",
+          "samples": 5,
+          "peakBytes": 79472936
+        },
+        {
+          "from": "before:near-limit-chunk-6",
+          "samples": 5,
+          "peakBytes": 123331466
+        },
+        {
+          "from": "after:near-limit-chunk-6",
+          "samples": 3,
+          "peakBytes": 123331466
+        },
+        {
+          "from": "before:near-limit-chunk-7",
+          "samples": 3,
+          "peakBytes": 123331466
+        },
+        {
+          "from": "after:near-limit-chunk-7",
+          "samples": 2,
+          "peakBytes": 89839837
+        },
+        {
+          "from": "before:near-limit-chunk-8",
+          "samples": 3,
+          "peakBytes": 121780771
+        },
+        {
+          "from": "after:near-limit-chunk-8",
+          "samples": 3,
+          "peakBytes": 121780771
+        },
+        {
+          "from": "before:near-limit-chunk-9",
+          "samples": 3,
+          "peakBytes": 133423683
+        },
+        {
+          "from": "after:near-limit-chunk-9",
+          "samples": 2,
+          "peakBytes": 133423683
+        },
+        {
+          "from": "before:near-limit-chunk-10",
+          "samples": 3,
+          "peakBytes": 133423683
+        },
+        {
+          "from": "after:near-limit-chunk-10",
+          "samples": 2,
+          "peakBytes": 95606029
+        },
+        {
+          "from": "before:near-limit-chunk-11",
+          "samples": 3,
+          "peakBytes": 105966889
+        },
+        {
+          "from": "after:near-limit-chunk-11",
+          "samples": 2,
+          "peakBytes": 105966889
+        },
+        {
+          "from": "before:near-limit-chunk-12",
+          "samples": 3,
+          "peakBytes": 141882530
+        },
+        {
+          "from": "after:near-limit-chunk-12",
+          "samples": 2,
+          "peakBytes": 141882530
+        },
+        {
+          "from": "before:near-limit-chunk-13",
+          "samples": 3,
+          "peakBytes": 141882530
+        },
+        {
+          "from": "after:near-limit-chunk-13",
+          "samples": 2,
+          "peakBytes": 104781030
+        },
+        {
+          "from": "before:near-limit-chunk-14",
+          "samples": 3,
+          "peakBytes": 111271172
+        },
+        {
+          "from": "after:near-limit-chunk-14",
+          "samples": 2,
+          "peakBytes": 111271172
+        },
+        {
+          "from": "before:near-limit-chunk-15",
+          "samples": 3,
+          "peakBytes": 144745729
+        },
+        {
+          "from": "after:near-limit-chunk-15",
+          "samples": 2,
+          "peakBytes": 144745729
+        },
+        {
+          "from": "before:near-limit-chunk-16",
+          "samples": 3,
+          "peakBytes": 144745729
+        },
+        {
+          "from": "after:near-limit-chunk-16",
+          "samples": 2,
+          "peakBytes": 108682790
+        },
+        {
+          "from": "before:near-limit-chunk-17",
+          "samples": 3,
+          "peakBytes": 138320952
+        },
+        {
+          "from": "after:near-limit-chunk-17",
+          "samples": 2,
+          "peakBytes": 138320952
+        },
+        {
+          "from": "before:near-limit-chunk-18",
+          "samples": 3,
+          "peakBytes": 138320952
+        },
+        {
+          "from": "after:near-limit-chunk-18",
+          "samples": 2,
+          "peakBytes": 102108953
+        },
+        {
+          "from": "before:near-limit-chunk-19",
+          "samples": 3,
+          "peakBytes": 110276149
+        },
+        {
+          "from": "after:near-limit-chunk-19",
+          "samples": 2,
+          "peakBytes": 110276149
+        },
+        {
+          "from": "before:near-limit-chunk-20",
+          "samples": 3,
+          "peakBytes": 116767851
+        },
+        {
+          "from": "after:near-limit-chunk-20",
+          "samples": 2,
+          "peakBytes": 116767851
+        },
+        {
+          "from": "before:near-limit-chunk-21",
+          "samples": 3,
+          "peakBytes": 129881849
+        },
+        {
+          "from": "after:near-limit-chunk-21",
+          "samples": 3,
+          "peakBytes": 129881849
+        },
+        {
+          "from": "before:near-limit-chunk-22",
+          "samples": 3,
+          "peakBytes": 136847043
+        },
+        {
+          "from": "after:near-limit-chunk-22",
+          "samples": 2,
+          "peakBytes": 136847043
+        },
+        {
+          "from": "before:near-limit-chunk-23",
+          "samples": 3,
+          "peakBytes": 136847043
+        },
+        {
+          "from": "after:near-limit-chunk-23",
+          "samples": 2,
+          "peakBytes": 114128871
+        },
+        {
+          "from": "before:near-limit-chunk-24",
+          "samples": 3,
+          "peakBytes": 114128871
+        },
+        {
+          "from": "after:near-limit-chunk-24",
+          "samples": 2,
+          "peakBytes": 107722133
+        },
+        {
+          "from": "before:near-limit-chunk-25",
+          "samples": 3,
+          "peakBytes": 114241211
+        },
+        {
+          "from": "after:near-limit-chunk-25",
+          "samples": 2,
+          "peakBytes": 114241211
+        },
+        {
+          "from": "before:near-limit-chunk-26",
+          "samples": 3,
+          "peakBytes": 114241211
+        },
+        {
+          "from": "after:near-limit-chunk-26",
+          "samples": 3,
+          "peakBytes": 103960645
+        },
+        {
+          "from": "before:near-limit-chunk-27",
+          "samples": 2,
+          "peakBytes": 110608722
+        },
+        {
+          "from": "after:near-limit-chunk-27",
+          "samples": 2,
+          "peakBytes": 110608722
+        },
+        {
+          "from": "before:near-limit-chunk-28",
+          "samples": 3,
+          "peakBytes": 117135990
+        },
+        {
+          "from": "after:near-limit-chunk-28",
+          "samples": 2,
+          "peakBytes": 117135990
+        },
+        {
+          "from": "before:near-limit-chunk-29",
+          "samples": 3,
+          "peakBytes": 129805844
+        },
+        {
+          "from": "after:near-limit-chunk-29",
+          "samples": 2,
+          "peakBytes": 129805844
+        },
+        {
+          "from": "before:near-limit-chunk-30",
+          "samples": 3,
+          "peakBytes": 137577813
+        },
+        {
+          "from": "after:near-limit-chunk-30",
+          "samples": 2,
+          "peakBytes": 137577813
+        },
+        {
+          "from": "before:near-limit-chunk-31",
+          "samples": 3,
+          "peakBytes": 137577813
+        },
+        {
+          "from": "after:near-limit-chunk-31",
+          "samples": 2,
+          "peakBytes": 105476980
+        },
+        {
+          "from": "before:near-limit-chunk-32",
+          "samples": 2,
+          "peakBytes": 127655671
+        },
+        {
+          "from": "after:near-limit-chunk-32",
+          "samples": 2,
+          "peakBytes": 127655671
+        },
+        {
+          "from": "before:near-limit-chunk-33",
+          "samples": 3,
+          "peakBytes": 127865334
+        },
+        {
+          "from": "after:near-limit-chunk-33",
+          "samples": 1,
+          "peakBytes": 127865334
+        },
+        {
+          "from": "before:near-limit-chunk-34",
+          "samples": 3,
+          "peakBytes": 128203313
+        },
+        {
+          "from": "after:near-limit-chunk-34",
+          "samples": 1,
+          "peakBytes": 128203313
+        },
+        {
+          "from": "before:near-limit-chunk-35",
+          "samples": 3,
+          "peakBytes": 128412341
+        },
+        {
+          "from": "after:near-limit-chunk-35",
+          "samples": 1,
+          "peakBytes": 128412341
+        },
+        {
+          "from": "before:near-limit-chunk-36",
+          "samples": 3,
+          "peakBytes": 128412341
+        },
+        {
+          "from": "after:near-limit-chunk-36",
+          "samples": 1,
+          "peakBytes": 101704596
+        },
+        {
+          "from": "before:near-limit-chunk-37",
+          "samples": 3,
+          "peakBytes": 101955856
+        },
+        {
+          "from": "after:near-limit-chunk-37",
+          "samples": 1,
+          "peakBytes": 101955856
+        },
+        {
+          "from": "before:near-limit-chunk-38",
+          "samples": 3,
+          "peakBytes": 102206142
+        },
+        {
+          "from": "after:near-limit-chunk-38",
+          "samples": 1,
+          "peakBytes": 102206142
+        },
+        {
+          "from": "before:near-limit-chunk-39",
+          "samples": 3,
+          "peakBytes": 102456412
+        },
+        {
+          "from": "after:near-limit-chunk-39",
+          "samples": 1,
+          "peakBytes": 102456412
+        },
+        {
+          "from": "before:near-limit-chunk-40",
+          "samples": 3,
+          "peakBytes": 102655810
+        },
+        {
+          "from": "after:near-limit-chunk-40",
+          "samples": 1,
+          "peakBytes": 102655810
+        },
+        {
+          "from": "before:near-limit-chunk-41",
+          "samples": 3,
+          "peakBytes": 102778246
+        },
+        {
+          "from": "after:near-limit-chunk-41",
+          "samples": 2,
+          "peakBytes": 102778246
+        }
+      ],
+      "limitation": "Samples carry order only, never timestamps, so interval DURATION is unknown. Boundary observations add inspector round-trips and extra samples inside the measured window and can only RAISE the observed peak; this run is not comparable with an uninstrumented qualification run."
+    },
+    "chunkTrajectory": [
+      {
+        "request": "near-limit-chunk-0",
+        "pageIndex": 1,
+        "rows": 32,
+        "rowValueBytes": 16319,
+        "responseBytes": 25935,
+        "intervalPeakBytes": 29515948,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-1",
+        "pageIndex": 2,
+        "rows": 32,
+        "rowValueBytes": 17380,
+        "responseBytes": 27307,
+        "intervalPeakBytes": 29515948,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-2",
+        "pageIndex": 3,
+        "rows": 32,
+        "rowValueBytes": 17368,
+        "responseBytes": 27290,
+        "intervalPeakBytes": 23749825,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-3",
+        "pageIndex": 4,
+        "rows": 32,
+        "rowValueBytes": 17364,
+        "responseBytes": 27287,
+        "intervalPeakBytes": 23954037,
+        "samples": 2
+      },
+      {
+        "request": "near-limit-chunk-4",
+        "pageIndex": 5,
+        "rows": 1,
+        "rowValueBytes": 543,
+        "responseBytes": 3122,
+        "intervalPeakBytes": 23954037,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-5",
+        "pageIndex": 6,
+        "rows": 1,
+        "rowValueBytes": 1200045,
+        "responseBytes": 3202414,
+        "intervalPeakBytes": 79472936,
+        "samples": 5
+      },
+      {
+        "request": "near-limit-chunk-6",
+        "pageIndex": 7,
+        "rows": 1,
+        "rowValueBytes": 1400041,
+        "responseBytes": 1869075,
+        "intervalPeakBytes": 123331466,
+        "samples": 5
+      },
+      {
+        "request": "near-limit-chunk-7",
+        "pageIndex": 8,
+        "rows": 14,
+        "rowValueBytes": 141150,
+        "responseBytes": 191223,
+        "intervalPeakBytes": 123331466,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-8",
+        "pageIndex": 9,
+        "rows": 19,
+        "rowValueBytes": 145146,
+        "responseBytes": 196796,
+        "intervalPeakBytes": 121780771,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-9",
+        "pageIndex": 10,
+        "rows": 2,
+        "rowValueBytes": 132430,
+        "responseBytes": 178947,
+        "intervalPeakBytes": 133423683,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-10",
+        "pageIndex": 11,
+        "rows": 2,
+        "rowValueBytes": 132430,
+        "responseBytes": 178947,
+        "intervalPeakBytes": 133423683,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-11",
+        "pageIndex": 12,
+        "rows": 2,
+        "rowValueBytes": 132430,
+        "responseBytes": 178947,
+        "intervalPeakBytes": 105966889,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-12",
+        "pageIndex": 13,
+        "rows": 2,
+        "rowValueBytes": 132424,
+        "responseBytes": 178939,
+        "intervalPeakBytes": 141882530,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-13",
+        "pageIndex": 14,
+        "rows": 2,
+        "rowValueBytes": 132430,
+        "responseBytes": 178947,
+        "intervalPeakBytes": 141882530,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-14",
+        "pageIndex": 15,
+        "rows": 2,
+        "rowValueBytes": 132430,
+        "responseBytes": 178947,
+        "intervalPeakBytes": 111271172,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-15",
+        "pageIndex": 16,
+        "rows": 2,
+        "rowValueBytes": 132430,
+        "responseBytes": 178947,
+        "intervalPeakBytes": 144745729,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-16",
+        "pageIndex": 17,
+        "rows": 15,
+        "rowValueBytes": 142084,
+        "responseBytes": 192500,
+        "intervalPeakBytes": 144745729,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-17",
+        "pageIndex": 18,
+        "rows": 22,
+        "rowValueBytes": 147280,
+        "responseBytes": 199795,
+        "intervalPeakBytes": 138320952,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-18",
+        "pageIndex": 19,
+        "rows": 22,
+        "rowValueBytes": 147280,
+        "responseBytes": 199797,
+        "intervalPeakBytes": 138320952,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-19",
+        "pageIndex": 20,
+        "rows": 23,
+        "rowValueBytes": 147823,
+        "responseBytes": 200588,
+        "intervalPeakBytes": 110276149,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-20",
+        "pageIndex": 21,
+        "rows": 2,
+        "rowValueBytes": 133560,
+        "responseBytes": 180542,
+        "intervalPeakBytes": 116767851,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-21",
+        "pageIndex": 22,
+        "rows": 22,
+        "rowValueBytes": 160562,
+        "responseBytes": 217749,
+        "intervalPeakBytes": 129881849,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-22",
+        "pageIndex": 23,
+        "rows": 9,
+        "rowValueBytes": 143053,
+        "responseBytes": 193621,
+        "intervalPeakBytes": 136847043,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-23",
+        "pageIndex": 24,
+        "rows": 2,
+        "rowValueBytes": 133624,
+        "responseBytes": 180629,
+        "intervalPeakBytes": 136847043,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-24",
+        "pageIndex": 25,
+        "rows": 2,
+        "rowValueBytes": 133624,
+        "responseBytes": 180629,
+        "intervalPeakBytes": 114128871,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-25",
+        "pageIndex": 26,
+        "rows": 2,
+        "rowValueBytes": 133624,
+        "responseBytes": 180629,
+        "intervalPeakBytes": 114241211,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-26",
+        "pageIndex": 27,
+        "rows": 2,
+        "rowValueBytes": 133624,
+        "responseBytes": 180629,
+        "intervalPeakBytes": 114241211,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-27",
+        "pageIndex": 28,
+        "rows": 2,
+        "rowValueBytes": 133624,
+        "responseBytes": 180629,
+        "intervalPeakBytes": 110608722,
+        "samples": 2
+      },
+      {
+        "request": "near-limit-chunk-28",
+        "pageIndex": 29,
+        "rows": 2,
+        "rowValueBytes": 133624,
+        "responseBytes": 180629,
+        "intervalPeakBytes": 117135990,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-29",
+        "pageIndex": 30,
+        "rows": 15,
+        "rowValueBytes": 151037,
+        "responseBytes": 204618,
+        "intervalPeakBytes": 129805844,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-30",
+        "pageIndex": 31,
+        "rows": 22,
+        "rowValueBytes": 160410,
+        "responseBytes": 217531,
+        "intervalPeakBytes": 137577813,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-31",
+        "pageIndex": 32,
+        "rows": 22,
+        "rowValueBytes": 160410,
+        "responseBytes": 217533,
+        "intervalPeakBytes": 137577813,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-32",
+        "pageIndex": 33,
+        "rows": 32,
+        "rowValueBytes": 161085,
+        "responseBytes": 219028,
+        "intervalPeakBytes": 127655671,
+        "samples": 2
+      },
+      {
+        "request": "near-limit-chunk-33",
+        "pageIndex": 34,
+        "rows": 32,
+        "rowValueBytes": 2164,
+        "responseBytes": 7124,
+        "intervalPeakBytes": 127865334,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-34",
+        "pageIndex": 35,
+        "rows": 32,
+        "rowValueBytes": 2141,
+        "responseBytes": 7081,
+        "intervalPeakBytes": 128203313,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-35",
+        "pageIndex": 36,
+        "rows": 32,
+        "rowValueBytes": 2141,
+        "responseBytes": 7083,
+        "intervalPeakBytes": 128412341,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-36",
+        "pageIndex": 37,
+        "rows": 32,
+        "rowValueBytes": 2669,
+        "responseBytes": 7735,
+        "intervalPeakBytes": 128412341,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-37",
+        "pageIndex": 38,
+        "rows": 32,
+        "rowValueBytes": 3518,
+        "responseBytes": 8787,
+        "intervalPeakBytes": 101955856,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-38",
+        "pageIndex": 39,
+        "rows": 32,
+        "rowValueBytes": 3482,
+        "responseBytes": 8733,
+        "intervalPeakBytes": 102206142,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-39",
+        "pageIndex": 40,
+        "rows": 32,
+        "rowValueBytes": 3482,
+        "responseBytes": 8735,
+        "intervalPeakBytes": 102456412,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-40",
+        "pageIndex": 41,
+        "rows": 20,
+        "rowValueBytes": 2389,
+        "responseBytes": 6638,
+        "intervalPeakBytes": 102655810,
+        "samples": 3
+      },
+      {
+        "request": "near-limit-chunk-41",
+        "pageIndex": 42,
+        "rows": 0,
+        "rowValueBytes": 0,
+        "responseBytes": 3144,
+        "intervalPeakBytes": 102778246,
+        "samples": 3
+      }
+    ],
+    "findings": {
+      "peakAttributedTo": "WITHIN the request near-limit-chunk-15 — an ORDINARY chunk (2 rows, 132,430 row-value bytes, 178,947 response bytes), not an extreme-row chunk.",
+      "stepChangesAt": "near-limit-chunk-5 (generic extreme KEY row, 1,200,045 B -> 3,202,414 B response): 23.5 MB -> 79,472,936 B; near-limit-chunk-6 (generic extreme VALUE row, 1,400,041 B -> 1,869,075 B response): -> 123,331,466 B, the first ceiling breach.",
+      "afterwards": "The phase stays in an 89-145 MB band across ordinary ~132 KB chunks and never returns to the pre-extreme ~25 MB baseline.",
+      "notEstablished": [
+        "Causation. observedAllocation includes totalSize, which is committed heap and a high-water quantity; a sustained band after chunk-6 is equally consistent with committed heap not being returned as with fresh allocation per later chunk. At the peak, usedSize 53,069,736 was well under half of totalSize 119,889,920.",
+        "Whether collection occurred. No forced GC was used and none is inferred either way.",
+        "Interval duration or in-interval timing. Samples carry order only, never timestamps.",
+        "The 1,050 ms guarded CPU on near-limit-chunk-6 as a CPU finding: uninstrumented runs measured 700 ms and 1,000 ms maxima, so this may be observation overhead."
+      ],
+      "codeBackedLeadByReadingOnly": "On the large-row response path the same bytes are materialized repeatedly and concurrently: codec.open decrypted buffer + plaintext string; C.encode64 TextEncoder copy + base64 string (4/3 inflation); rows() validation decodes that base64 back to a fresh Uint8Array and C.text()s it; hash(batch) JSON-encodes the row array and re-bytes() it; sign() encodes the whole page including rows; page() re-validates and decodes every row again; parseResponse(C.encode(result)) encodes and re-parses the entire result; worker reply() JSON.stringifies it once more. NOT MEASURED — offered as where to look, not as a diagnosis.",
+      "nextAction": "Count which of those materializations are live simultaneously on the two named requests, and reduce them. No whole-history or row-limit reduction is proposed; any protocol or limit change is a separate review under root ownership."
+    }
   }
 }
