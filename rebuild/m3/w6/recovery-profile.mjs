@@ -63,7 +63,22 @@ async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,req
  await each('slots',async(id,x)=>{const o=(await val('operations',x.op_id))?.op;check(o&&id===pair(o.device_id,o.device_seq));});
  for(const device of devices){const last=await val('lastAccepted',device);check((last?.seq||0)===(maximum.get(device)||0));if(last)check(C.safe(last.seq,1));const revoked=await val('revocations',device);if(revoked)check(C.safe(revoked.barrier)&&revoked.declared_loss===true);}
  await each('lastAccepted',id=>check(hasDevice(id)));await each('revocations',id=>check(hasDevice(id)));
- await each('transactions',async(id,t)=>{const o=await val('operations',t.op_id);check(o&&o.disposition.status==='ACCEPTED'&&t.txn_id===id&&t.seq===o.disposition.athlete_log_seq);});
+ await each('transactions',async(id,t)=>{
+  const o=await val('operations',t.op_id);check(o&&o.disposition.status==='ACCEPTED'&&t.txn_id===id);
+  if(t.kind!=='consented'){check(t.seq===o.disposition.athlete_log_seq);return;}
+  // An apply may follow a paused response and a confirmed newer basis. Its
+  // effect uses the application frontier, not the response's admission ordinal.
+  // Prove that distinction with the original successful retained apply record.
+  const scalar=x=>C.object(x)&&Object.hasOwn(x,'value')?x.value:x;
+  const issuance=await val('issuances',scalar(o.op.payload?.issuance_id));
+  check(o.op.kind==='proposal-response'&&issuance&&issuance.issuance_id===scalar(o.op.payload?.issuance_id)&&C.nonempty(t.instance)&&t.instance===issuance.instance&&id==='txn-apply-'+t.instance&&
+   C.safe(t.seq,1)&&t.seq>=o.disposition.athlete_log_seq&&t.seq<=metadata.seq&&
+   t.domain===(issuance.conflict_domain_id||'protein')&&t.lineage===(issuance.conflict_domain_lineage_id||'lin-protein-1')&&
+   C.fullEqual(t.members,issuance.apply_members||[])&&(await val('instances',t.instance))?.effect===id);
+  check(await some('applies',(key,a)=>a.request?.apply_request_id===key&&a.request?.response_op_id===t.op_id&&a.instance===t.instance&&
+   a.result?.status==='effective'&&a.result?.reason_code==='APPLIED'&&a.result?.plan_transaction_id===id&&a.result?.evaluated_through_W===t.seq));
+ });
+ await each('suspensions',async(id,s)=>{exact(s,['suspended']);check(s.suspended===true&&await val('transactions',id));});
  await each('operations',async(_,r)=>{
   const o=r.op,d=r.disposition;if(d.status!=='ACCEPTED'||!['plan-mutation','conflict-selection'].includes(o.kind))return;
   // Acceptance retains a stale selection request, but the authority explicitly

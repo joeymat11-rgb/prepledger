@@ -5,6 +5,44 @@ import {initial,config,Client} from './support.mjs';
 import T2 from '../t2-stage.cjs';
 const require=createRequire(import.meta.url),Ops=require('../../../client/ops.cjs');
 
+for(const status of ['REJECTED','REJECTED_DEPENDENCY'])test('rejected initial-plan consent is retained in audit but cannot govern '+status,()=>{
+ const cfg=config(),generation=initial(),backend=Client.memoryBackend(generation.collections),client=Client.createClient({...cfg,backend});client.boot();
+ assert(client.logSet({lift:'Press',load:155,reps:5}).acknowledged);
+ const choice=client.acceptInitialPlan('from-session');assert(choice.acknowledged);
+ const op=client.envelope(choice.op_id),consent=backend.get('planTransactions',op.requested_transaction_id);
+ assert.equal(client.plan().press,155);
+ const d={op_id:op.op_id,device_id:op.device_id,device_seq:op.device_seq,canonical_content_commitment:op.canonical_content_commitment,status,rejection_code:'SYNTHETIC_REJECTION',decided_at:cfg.clock.now()};
+ d.authority_signature=Ops.signatureOver(cfg.authorityKey,'earned/disposition/v1',d,'authority_signature');
+ assert(client.deliverDisposition(d).rejected);client.restart();
+ assert.equal(Object.hasOwn(client.plan()||{},'press'),false,'REJECTED_CONSENT_CANNOT_GOVERN');
+ assert(!client.acceptedPlanTransactions().some(t=>t.op_id===op.op_id));
+ assert.deepEqual(backend.get('planTransactions',op.requested_transaction_id),consent);
+ assert.deepEqual(backend.get('ops',op.op_id),op);assert.equal(client.rejectedLedger().length,1);
+});
+
+test('verified source suspension covers old fallback without losing newer source fields or audit',()=>{
+ const x=setup(),backend=Client.memoryBackend(x.saved.collections),client=Client.createClient({...x.cfg,backend});client.boot();
+ client.planHistory([{txn_id:'synthetic-base',members:[{field:'protein_g',value:150,provenance:'athlete_edited'},{field:'sets',value:3,provenance:'athlete_edited'}],parents:[]},
+  {txn_id:x.op.requested_transaction_id,members:x.op.members,parents:['synthetic-base']}]);
+ assert(client.conflictSuspend(x.op.requested_transaction_id).suspended);
+ const retained=backend.get('suspensions',x.op.requested_transaction_id);
+ const source={plan:{protein_g:165,sets:5},planTransactionIds:[x.op.requested_transaction_id],planSuspendedTransactionIds:[x.op.requested_transaction_id],
+  planTransactionSources:[{txn_id:x.op.requested_transaction_id,op_id:x.op.op_id}],recoveryPlan:{profile:'earned/recovered-plan-snapshot/v1',W:1}};
+ assert(client.receiveSnapshot(source).stored);client.restart();
+ assert.deepEqual(client.plan(),source.plan,'SOURCE_SUSPENSION_CANNOT_REPLAY_OLD_WHOLE_PLAN');
+ assert.deepEqual(backend.get('suspensions',x.op.requested_transaction_id),retained);assert.equal(client.face().history.length,1);
+ assert(client.planEdit({domain:'protein_g',value:180,unit:'g/day'}).acknowledged);assert.equal(client.plan().protein_g,180);
+ for(const [name,change]of [
+  ['no source suspension',s=>{s.planSuspendedTransactionIds=[];}],
+  ['no effect source',s=>{delete s.planTransactionSources;}],
+  ['different source original',s=>{s.planTransactionSources[0].op_id='unrelated';}],
+  ['source before original',s=>{s.recoveryPlan.W=0;}],
+  ['source frontier not held',s=>{s.recoveryPlan.W=2;}],
+ ]){const changed=structuredClone(source);change(changed);assert(client.receiveSnapshot(changed).stored);client.restart();
+  assert.equal(client.plan().sets,3,'Uncovered local suspension retained: '+name);}
+ assert(client.receiveSnapshot(source).stored);client.restart();assert.deepEqual(client.plan(),{protein_g:180,sets:5});
+});
+
 // Actual T2 writes, receipt folding and fresh boot with synthetic source DTOs.
 // This is the read-side reconciliation boundary, not authentication/activation.
 function setup({fold=true,consent=false}={}){

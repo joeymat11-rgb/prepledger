@@ -55,6 +55,8 @@ test('archive original authentication joins the actual public client across repo
   ['missing archive proof refuses recovered snapshot',g=>{delete g.metadata.recoveryArchives;},'RECOVERY_SNAPSHOT_PROOF_MISSING'],
   ['changed recovered plan refuses',g=>{g.collections.sync.snapshot.plan.protein_g=999;},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
   ['invented recovered transaction refuses',g=>{g.collections.sync.snapshot.planTransactionIds=['invented'];},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['invented transaction source refuses',g=>{g.collections.sync.snapshot.planTransactionSources=[{txn_id:'invented',op_id:remote.op_id}];},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
+  ['invented suspension coverage refuses',g=>{g.collections.sync.snapshot.planSuspendedTransactionIds=['invented'];},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
   ['invented historical proposal basis refuses',g=>{g.collections.sync.snapshot.planBasis='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
   ['invented historical version refuses',g=>{g.collections.sync.snapshot.planVersion='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],
   ['invented historical provenance refuses',g=>{g.collections.sync.snapshot.planProvenance='invented';},'RECOVERY_SNAPSHOT_DISAGREEMENT'],

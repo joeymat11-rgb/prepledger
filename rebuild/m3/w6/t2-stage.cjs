@@ -146,7 +146,8 @@ async function prepareRecoveryProjection(generation, source) {
     // This candidate remains inactive and does not establish current permission.
     if (!sourcePlan || sourcePlan.profile !== "earned/recovered-source-plan/v1" || sourcePlan.W !== W ||
         !sourcePlan.plan || typeof sourcePlan.plan !== "object" || Array.isArray(sourcePlan.plan) ||
-        !Array.isArray(sourcePlan.transactionIds)) fail("RECOVERY_SOURCE_PLAN_REQUIRED");
+        !Array.isArray(sourcePlan.transactionIds) || !Array.isArray(sourcePlan.transactionSources) ||
+        !Array.isArray(sourcePlan.suspendedTransactionIds)) fail("RECOVERY_SOURCE_PLAN_REQUIRED");
     backend.write(tx, "sync", "snapshot", { ...(backend.get("sync", "snapshot") || {}),
       ...require("./recovery-snapshot.cjs").recoveredSnapshotFields(sourcePlan, archiveProof.reference) });
     backend.write(tx, "meta", "checkpoint", { ...checkpoint, counts: { ...checkpoint.counts,

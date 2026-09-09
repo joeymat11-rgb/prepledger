@@ -17,7 +17,7 @@ function setup(){
   const disposition={op_id:op.op_id,status:'ACCEPTED',athlete_log_seq:1,accepted_at:'2026-09-06T12:00:00Z'};
   const row={seq:1,op,accepted_at:disposition.accepted_at},proof={reference:{attempt:'synthetic',manifestDigest:'synthetic'},request_bytes_b64:'synthetic'};
   const source={equal,fail:code=>{throw new StorageFailure(code,18);},assertContext(){},W:1,athleteId:'ath-1',archiveProof:proof,
-    sourcePlan:{profile:'earned/recovered-source-plan/v1',W:1,plan:{protein_g:155},transactionIds:[]},
+    sourcePlan:{profile:'earned/recovered-source-plan/v1',W:1,plan:{protein_g:155},transactionIds:[],transactionSources:[],suspendedTransactionIds:[]},
     async operations(visit){await visit(op,disposition);},async accepted(visit){await visit(row);}};
   return {generation,source,op,disposition,row,proof};
 }

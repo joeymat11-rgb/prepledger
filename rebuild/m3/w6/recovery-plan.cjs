@@ -28,13 +28,16 @@ async function projectRecoveryPlan({ initialPlan, each, assertStable, W }) {
     }
   });
   const domains = [...new Set(transactions.map(row => row.value.domain))].sort();
+  const ordered = Plan.planTransactions(tx);
   const result = {
     profile: "earned/recovered-source-plan/v1", W,
     plan: Plan.plan(tx),
     domains: Object.fromEntries(domains.map(domain => [domain, Plan.planState(tx, domain)])),
     // IDs identify actual admitted effects; an accepted no-effect selection has
     // no transaction and must never appear here just because it was receipted.
-    transactionIds: Plan.planTransactions(tx).map(row => row.txn_id)
+    transactionIds: ordered.map(row => row.txn_id),
+    transactionSources: ordered.map(row => ({ txn_id: row.txn_id, op_id: row.op_id })),
+    suspendedTransactionIds: [...suspensions.keys()].sort()
   };
   await assertStable();
   return structuredClone(result);
