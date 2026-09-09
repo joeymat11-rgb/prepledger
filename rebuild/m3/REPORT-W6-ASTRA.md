@@ -1,5 +1,19 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Review143 G-1 coverage closure — September9
+
+Independent Review143 accepted the product delta WITH GATE G-1: target, lineage and causal-parent guard removals were not detected by the shipped tests. All three declared commands and11 own clean-product attacks passed. This successor changes tests/runner/documentation only; product bytes remain public-client `fb635f48bdb33df262b705888083b5a8b7912ded3e422b8619654dd3b49c1018`, prepared-panel `7f7be577bdd7bd304f9d44f12a82bd912ec52a6e97a721bd8fa55347276edc43`. Review143 archive SHA256 `a85b218bf3ba011d51447372b6210f4971cf06b24bcb0259f6ae2c0fcccd111f` is attached only, not locally downloaded, rehashed or replayed. The three new tests were implemented from the reported attacks using the existing tracked fixture; no archive execution is claimed.
+
+Each test substitutes one identity field in the real staged correction and its candidate generation before the final transaction guard. It requires the exact mismatch refusal, a byte-identical durable store, consumption of the failed handle, and a successful fresh preparation with the original target/lineage/full observed ancestry and every previous operation preserved. A prior real correction makes causal-parent truncation non-vacuous. Focused81/81 and full346/346 (0skip) pass; native WORKOUT RESUME/CORRECT PASS44 remains green. Three separate disposable mutations each produce exit1 and exactly their corresponding new test RED (80/81), then restore exact `fb635f48…`:
+
+| Runner flag | Only RED test suffix | Mutant SHA256 |
+|---|---|---|
+| --edit-target-bite | substituted target_op_id at the final transaction cut | 186471c38713a29601e3b3d39826eab2e95eaeb77bf94a7fae1a086ee8f3f29a |
+| --edit-lineage-bite | substituted lift_lineage_id at the final transaction cut | 8f6ff86c46966bbeab5a3f378a8cbdabf96a55f0493983dd89e22129d6fca30c |
+| --edit-parents-bite | substituted causal_parents at the final transaction cut | be63ffa0f207e3d81993f8b9fdd791a580aa1db0531695a41219f56d7caa296a |
+
+The runner now records mutant hashes for every edit bite (Review143 N-3). N-1 is a scope clarification: the older --edit-bite removes BOTH snapshot comparisons; its RED proves the combined binding is effective, not that revision and token each independently kill a mutant. N-2's rejected-target state19 distinguisher remains a disclosed nonblocking test gap; no caller behavior or state rule is changed. Fresh11:53 mandatory preparation/public-pins/FROZEN-PATHS/actual18-fileZIP/CONSISTENT99reference99STRONG29RED-first70adapter/rig185W1W2/SELFTEST/strict-unset/diff all PASS. Successor independent confirmation is required before G-1 is marked closed. Parentf7e7e42 CI is terminal7success/3skip with both OS jobs green; successor CI is not inferred from it. All private/science/K1/resource/phone/full-goal limits below remain open.
+
 ## Completed-workout correction in the same host — September9 successor
 
 Parentf7aea3f is independently ACCEPTED142 as an intermediate successful journey; root observed all10 exact-head CI jobs terminal (7success/3skip, including both OS rebuild jobs). Its reviewer reproduced331/130/native24 and both bites plus28 pure-interpreter checks. Archive5294bytesSHA898f3ce0051736e7d3a7796f82375b0472afc45541a8054bb75583c04ce21204 is attached only, not locally received/rehashed/replayed. That verdict does not accept this successor.

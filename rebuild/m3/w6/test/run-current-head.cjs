@@ -37,13 +37,17 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
 }
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
-if(process.argv.includes('--edit-bite')){
+const editBites={'--edit-bite':'context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||',
+ '--edit-target-bite':'op.target_op_id!==entry.targetId||','--edit-lineage-bite':'op.lift_lineage_id!==entry.lineage||',
+ '--edit-parents-bite':'||!sameRecordedValue(op.causal_parents,entry.parents)'};
+const editBite=Object.keys(editBites).find(flag=>process.argv.includes(flag));
+if(editBite){
  if(process.argv.slice(2).filter(s=>s.endsWith('-bite')||s==='--bite').length!==1)throw Error('Select one mutation only');
  const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8'),begin=raw.indexOf('  function editFailure(context){'),end=raw.indexOf('  const bridge =',begin);
- const part=raw.slice(begin,end),target='context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||';
+ const part=raw.slice(begin,end),target=editBites[editBite];
  if(begin<0||end<0||part.split(target).length!==2)throw Error('Exact edit snapshot bite target missing');
  fs.writeFileSync(file,raw.slice(0,begin)+part.replace(target,'')+raw.slice(end));preparedRestore={file,raw};
- mutation={name:'omit-edit-snapshot-binding',originalSha256:pins['rebuild/m3/w6/public-client.mjs']};
+ mutation={name:editBite.slice(2),originalSha256:pins['rebuild/m3/w6/public-client.mjs'],mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
 }
 if(process.argv.includes('--resume-bite')){
  if(process.argv.slice(2).filter(s=>s.endsWith('-bite')||s==='--bite').length!==1)throw Error('Select one mutation only');
@@ -130,7 +134,7 @@ if(process.argv.includes('--bite')){
     mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
 }
 const testDir=path.join(output,'rebuild/m3/w6/test');
-const namesToRun=['--workout-history','--edit-bite','--resume-bite','--head-history-bite','--history-bite','--receipt-bite','--stored-history-bite','--projection-bite','--local-history-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
+const namesToRun=[...Object.keys(editBites),'--workout-history','--resume-bite','--head-history-bite','--history-bite','--receipt-bite','--stored-history-bite','--projection-bite','--local-history-bite'].some(flag=>process.argv.includes(flag))?['prepared-workout.test.mjs']:
  process.argv.includes('--all')?fs.readdirSync(testDir).filter(n=>n.endsWith('.test.mjs')).sort():['current-head.test.mjs'];
 // Bound test-file workers; races inside each test still run unchanged.
 const args=['--test','--test-concurrency=2','--test-timeout=30000',...namesToRun.map(n=>path.join(testDir,n))];

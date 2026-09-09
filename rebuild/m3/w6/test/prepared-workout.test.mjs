@@ -89,6 +89,33 @@ test('prepared correction refuses a substituted payload at the final transaction
  }finally{f.repo.close();}
 });
 
+for(const field of ['target_op_id','causal_parents','lift_lineage_id'])test(`prepared correction refuses substituted ${field} at the final transaction cut`,async()=>{
+ let substitute=null,hits=0;
+ const f=await setup({wrapStage:stage=>(...args)=>{
+  const r=stage(...args);
+  if(substitute&&args[1]==='workout'&&args[2]?.action==='correct'&&r.result?.acknowledged){
+   for(const op of r.commit.batch.operations){op[field]=structuredClone(substitute);r.generation.collections.ops[op.op_id][field]=structuredClone(substitute);hits++;}
+  }
+  return r;
+ }});
+ try{
+  const a=await start(f,await prepare(f)),one=await perform(f,a.op_id),two=await perform(f,a.op_id,'slot-1');
+  const previous=await correctPrepared(f.c,await prepareEdit(f.c,one.op_id),{reps:{value:9,unit:'rep'}});assert.equal(previous.acknowledged,true);
+  const p=await prepareEdit(f.c,one.op_id);assert.equal(p.prepared,true);const before=await f.repo.load();
+  substitute=field==='target_op_id'?two.op_id:field==='causal_parents'?[one.op_id]:'synthetic-other-lineage';
+  const refused=await correctPrepared(f.c,p,{reps:{value:10,unit:'rep'}});
+  assert.equal(hits,1,'The substitution must reach the actual staged operation');
+  assert.equal(refused.acknowledged,false);assert.equal(refused.code,'WORKOUT_EDIT_COMMAND_MISMATCH');assert.deepEqual(await f.repo.load(),before);
+  // A consumed handle cannot retry; a fresh preparation still commits exactly
+  // the intended identity and full observed edit ancestry after the fault ends.
+  substitute=null;assert.equal((await correctPrepared(f.c,p,{reps:{value:10,unit:'rep'}})).code,'WORKOUT_EDIT_REQUIRED');
+  const yes=await correctPrepared(f.c,await prepareEdit(f.c,one.op_id),{reps:{value:10,unit:'rep'}});assert.equal(yes.acknowledged,true);
+  const ops=await operations(f);assert.equal(ops[yes.op_id].target_op_id,one.op_id);assert.equal(ops[yes.op_id].lift_lineage_id,'same-lineage');
+  assert.deepEqual(ops[yes.op_id].causal_parents,[one.op_id,previous.op_id]);
+  for(const [id,op]of Object.entries(before.generation.collections.ops))assert.deepEqual(ops[id],op);
+ }finally{f.repo.close();}
+});
+
 test('prepared correction rejects nested getters and caller-supplied target fields',async()=>{
  const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),p=await prepareEdit(f.c,set.op_id);let called=0;
  const change={};Object.defineProperty(change,'reps',{enumerable:true,get(){called++;return {value:10,unit:'rep'};}});const before=await f.repo.load();assert.equal((await correctPrepared(f.c,p,change)).acknowledged,false);assert.equal(called,0);
