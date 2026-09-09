@@ -82,7 +82,7 @@ function replacement(payload) {
     (!own(fields, 'reserve') || reserve(fields.reserve));
 }
 
-function validateWorkoutShape(input) {
+function validateWorkoutShape(input, {prescriptionCapture} = {}) {
   let op;
   try { op = jsonData(input); } catch { return invalid('INVALID_JSON_SHAPE'); }
   if (op.schema_version !== 2 || op.class !== 'session' || typeof op.kind !== 'string' || !own(FIELDS, op.kind)) return invalid('UNSUPPORTED_PROFILE');
@@ -98,7 +98,15 @@ function validateWorkoutShape(input) {
     if (!['set', 'lift'].includes(op.skip_scope)) return invalid('INVALID_FIELDS');
     if (op.skip_scope === 'set') fields.push('logical_set_slot');
   }
-  if (!keys(op, [...COMMON, ...fields]) || !fields.every(key => text(op[key]))) return invalid('INVALID_FIELDS');
+  const captured = op.kind === 'session-start' && prescriptionCapture !== undefined;
+  if (!keys(op, [...COMMON, ...fields, ...(captured ? ['prescription_capture'] : [])]) || !fields.every(key => text(op[key]))) return invalid('INVALID_FIELDS');
+  if (captured) {
+    try {
+      const value = op.prescription_capture;
+      prescriptionCapture.prepare(value, {producer: value.producer, basis: value.basis});
+      if (value.basis.plan_basis !== op.plan_basis) return invalid('CAPTURE_BASIS_MISMATCH');
+    } catch { return invalid('INVALID_PRESCRIPTION_CAPTURE'); }
+  }
   let valid = false;
   if (op.kind === 'session-start') valid = keys(op.payload, []);
   if (op.kind === 'session-set') valid = validSet(op.payload);

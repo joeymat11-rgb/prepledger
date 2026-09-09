@@ -16,7 +16,7 @@ function snapshotBackend(backend, seededNames = []) {
   }
   return collections;
 }
-function createT2Stage(configProvider, { allowInbound = false } = {}) {
+function createT2Stage(configProvider, { allowInbound = false, workoutCommands: selectedWorkoutCommands = workoutCommands } = {}) {
   if (typeof configProvider !== "function") throw new Error("T2 configuration provider required");
   return (generation, command, args, integration) => {
     const backend = Client.memoryBackend(clone(generation.collections));
@@ -33,7 +33,7 @@ function createT2Stage(configProvider, { allowInbound = false } = {}) {
     const trusted = allowInbound && integration ? integration : {};
     const observe = config.onPreparedBatch;
     // No transport is installed: this slice must not observe inbound authority facts.
-    const client = Client.createClient({ ...config, ...trusted.config, backend, transport: undefined, workoutCommands,
+    const client = Client.createClient({ ...config, ...trusted.config, backend, transport: undefined, workoutCommands: selectedWorkoutCommands,
       onPreparedBatch(batch) { prepared = batch; if (observe) return observe(batch); } });
     client.boot();
     const metadata = clone(generation.metadata);

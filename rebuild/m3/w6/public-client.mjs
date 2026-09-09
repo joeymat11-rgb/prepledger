@@ -13,12 +13,19 @@ const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment
 // a reviewed guard covering verification through durable outcome; tests label theirs synthetic.
 export function createDurablePublicClient({ repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit, keys, subtle, crypto, monotonicMs,
-  maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso } = {}) {
+  maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso, workoutProducer, workoutProducerIdentity,
+  resolveWorkoutBasis, prescriptionCapture } = {}) {
   if (!repository || typeof stage !== "function" || !namespace || !athleteId || !deviceId || sessionEpoch === undefined ||
       typeof isCurrentSession !== "function" || typeof observationEpoch !== "function" || typeof observationGuard?.run !== "function" || typeof validateCommit !== "function") throw new TypeError("Explicit durable client scope, staging, observation guard and validator required");
   const verifier = W5.createPublicVerifier({ keys, subtle });
   let tail = Promise.resolve(), activeProof = null, activeGrant = null, activeContext = null, visibleEpoch = null, lateRefusal = null, timeInFlight = false;
   let historyAttempt = null, activeHead = null;
+  const captureEnabled = [workoutProducer, workoutProducerIdentity, resolveWorkoutBasis, prescriptionCapture].some(x => x !== undefined);
+  if (captureEnabled && (typeof workoutProducer !== "function" || typeof resolveWorkoutBasis !== "function" ||
+      typeof prescriptionCapture?.prepare !== "function" || !workoutProducerIdentity || schemaVersion !== 2))
+    throw new TypeError("Complete static workout preparation configuration required");
+  const producerIdentity = captureEnabled ? copy(workoutProducerIdentity) : null;
+  const preparations = new Map(); let activeWorkout = null, unresolvedWorkout = null, preparationEpoch = 0;
   const current = () => isCurrentSession(sessionEpoch) === true;
   const enqueue = action => { const task = tail.then(action); tail = task.catch(() => {}); return task; };
   function contextFailure(epoch) {
@@ -73,13 +80,35 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     }
     return null;
   }
+  const workoutRefusal = code => ({ acknowledged: false, state: 3, code, copy: "Workout not started. Your input is retained; review the plan before trying again." });
+  const capturedStart = context => context.batch?.operations?.some(op => op.kind === "session-start" && Object.hasOwn(op, "prescription_capture")) === true;
+  function workoutFailure(context) {
+    if (!captureEnabled || context.command !== "workout" || context.args?.action !== "start")
+      return capturedStart(context) ? workoutRefusal("WORKOUT_PREPARATION_REQUIRED") : null;
+    const entry = activeWorkout;
+    if (!entry || entry.retired || entry.phase !== "starting") return workoutRefusal("WORKOUT_PREPARATION_REQUIRED");
+    if (context.snapshotRevision !== entry.revision || context.snapshotToken !== entry.token ||
+        context.sessionEpoch !== entry.sessionEpoch || context.observationEpoch !== entry.observationEpoch)
+      return workoutRefusal("WORKOUT_PREPARATION_STALE");
+    const operations = context.batch?.operations, op = operations?.[0];
+    if (operations?.length !== 1 || op.kind !== "session-start" || op.planned_split_slot_id !== entry.plannedSlot ||
+        op.plan_basis !== entry.capture.basis.plan_basis ||
+        JSON.stringify(op.prescription_capture) !== JSON.stringify(entry.capture) ||
+        JSON.stringify(op.causal_parents) !== JSON.stringify(entry.parents))
+      return workoutRefusal("WORKOUT_PREPARATION_MISMATCH");
+    entry.operation = copy(op); // Known before the write; needed if the reply is lost.
+    return null;
+  }
   const bridge = createBridge({ repository, validateCommit(context) {
     const failure = contextFailure(context.observationEpoch) || headFailure(context); if (failure) return failure;
     const decision = validateCommit(context);
     // The downstream synchronous validator can itself learn adverse context.
     // Recheck the captured head immediately before returning permission to IDB.
-    return decision || (context.command === "@currentHead" && (contextFailure(context.observationEpoch) || headFailure(context))) || decision;
-  }, stage: async (generation, command, args) => {
+    return decision || (context.command === "@currentHead" && (contextFailure(context.observationEpoch) || headFailure(context))) ||
+      ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
+        (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
+  }, stage: stageVerified });
+  async function stageVerified(generation, command, args) {
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
@@ -121,7 +150,101 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       throw new StorageFailure("OPERATION_SCHEMA_MISMATCH", 20);
     }
     return { ...candidate, context: { namespace, sessionEpoch, observationEpoch: epoch } };
-  } });
+  }
+  function closedInput(value, required, optional = []) {
+    if (!value || typeof value !== "object" || Array.isArray(value) ||
+        ![Object.prototype, null].includes(Object.getPrototypeOf(value))) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
+    const descriptors = Object.getOwnPropertyDescriptors(value), names = Reflect.ownKeys(value);
+    if (names.some(k => typeof k !== "string" || ![...required, ...optional].includes(k) ||
+        !Object.hasOwn(descriptors[k], "value") || !descriptors[k].enumerable) || required.some(k => !Object.hasOwn(descriptors, k)))
+      throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
+    return Object.fromEntries(names.map(k => [k, descriptors[k].value]));
+  }
+  async function prepareWorkout(request) {
+    const lifetime = preparationEpoch;
+    try {
+      if (!captureEnabled) return workoutRefusal("WORKOUT_PREPARATION_NOT_CONFIGURED");
+      if (lateRefusal) return { ...lateRefusal, acknowledged: false };
+      const failure = contextFailure(null); if (failure) return { ...failure, acknowledged: false };
+      if (unresolvedWorkout) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
+      const input = closedInput(request, ["planned_split_slot_id"]);
+      if (typeof input.planned_split_slot_id !== "string" || !input.planned_split_slot_id.trim()) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
+      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null);
+      if (!candidate.view || candidate.result?.state) return { ...candidate.result, acknowledged: false };
+      const scope = copy(candidate.context);
+      const resolved = closedInput(resolveWorkoutBasis(copy(snapshot.generation), copy(input)), ["plan_basis", "input_basis", "causal_parents"]);
+      const parents = copy(resolved.causal_parents);
+      if (!Array.isArray(parents) || Reflect.ownKeys(parents).length !== parents.length + 1 ||
+          !parents.every(x => typeof x === "string" && x.trim()) || new Set(parents).size !== parents.length)
+        throw new StorageFailure("WORKOUT_BASIS_INVALID", 3);
+      const basis = { plan_basis: resolved.plan_basis, input_basis: resolved.input_basis, source_revision: snapshot.revision };
+      const capture = prescriptionCapture.prepare(workoutProducer(copy(snapshot.generation),
+        { ...copy(input), producer: copy(producerIdentity), basis: copy(basis) }), { producer: producerIdentity, basis });
+      const changed = contextFailure(scope.observationEpoch); if (changed) return { ...changed, acknowledged: false };
+      if (lifetime !== preparationEpoch) return workoutRefusal("WORKOUT_PREPARATION_RETIRED");
+      const bytes = (crypto || globalThis.crypto).getRandomValues(new Uint8Array(24));
+      const id = Array.from(bytes, x => x.toString(16).padStart(2, "0")).join("");
+      if (preparations.has(id)) throw new StorageFailure("WORKOUT_HANDLE_COLLISION", 3);
+      preparations.set(id, { id, phase: "ready", retired: false, capture, parents, plannedSlot: input.planned_split_slot_id,
+        revision: snapshot.revision, token: snapshot.token, sessionEpoch: scope.sessionEpoch, observationEpoch: scope.observationEpoch });
+      return { prepared: true, preparedId: id, view: copy(capture) };
+    } catch (error) {
+      const failure = contextFailure(null); if (failure) return { ...failure, acknowledged: false };
+      return { ...workoutRefusal(error instanceof StorageFailure ? error.code : "WORKOUT_PREPARATION_INVALID"), state: error instanceof StorageFailure ? error.state : 3 };
+    } finally { activeGrant?.retire(); activeGrant = null; }
+  }
+  async function startPreparedWorkout(request) {
+    let entry;
+    try {
+      const failure = contextFailure(null); if (failure) return { ...failure, acknowledged: false };
+      if (lateRefusal) return { ...lateRefusal, acknowledged: false };
+      const input = closedInput(request, ["preparedId"], ["effective"]);
+      entry = preparations.get(input.preparedId);
+      if (!entry || entry.retired) return workoutRefusal("WORKOUT_PREPARATION_REQUIRED");
+      const changed = contextFailure(entry.observationEpoch); if (changed) return { ...changed, acknowledged: false };
+      if (entry.phase === "committed" || entry.phase === "uncertain") {
+        const snapshot = await repository.load();
+        if (!await verifiedHistory(snapshot.generation)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
+        const after = contextFailure(entry.observationEpoch); if (after) return { ...after, acknowledged: false };
+        if (entry.retired) return workoutRefusal("WORKOUT_PREPARATION_RETIRED");
+        const op = snapshot.generation.collections.ops?.[entry.operation?.op_id];
+        if (!op || JSON.stringify(op) !== JSON.stringify(entry.operation)) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
+        // A committed-but-unconfirmed attempt is resolved from authenticated disk,
+        // never by rebuilding/re-sending Start. Existing rejected records are not Saved.
+        if (snapshot.generation.collections.rejected?.[op.op_id]) return { ...workoutRefusal("WORKOUT_START_REJECTED"), state: 19 };
+        entry.phase = "committed"; if (unresolvedWorkout === entry) unresolvedWorkout = null;
+        return { acknowledged: true, op_id: op.op_id, op_ids: [op.op_id], durableRevision: snapshot.revision, recovered: true };
+      }
+      if (unresolvedWorkout) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
+      entry.phase = "starting"; entry.operation = null; activeWorkout = entry;
+      const args = { action: "start", input: { planned_split_slot_id: entry.plannedSlot, plan_basis: entry.capture.basis.plan_basis,
+        prescription_capture: entry.capture, causal_parents: entry.parents, ...(Object.hasOwn(input, "effective") ? { effective: input.effective } : {}) } };
+      let result = completedOutcome(await bridge.execute("workout", args));
+      if (entry.retired && result.durableRevision) result = { ...workoutRefusal("WORKOUT_PREPARATION_RETIRED"),
+        committed: true, committedRevision: result.durableRevision, durableRevision: result.durableRevision };
+      if (result.acknowledged === true && result.durableRevision) entry.phase = "committed";
+      else if (entry.operation && !["TRANSACTION_ABORTED", "TRANSACTION_WRITE_FAILED"].includes(result.code)) {
+        entry.phase = "uncertain"; unresolvedWorkout = entry;
+      } else { entry.phase = "ready"; if (unresolvedWorkout === entry) unresolvedWorkout = null; }
+      return result;
+    } catch (error) {
+      if (entry?.operation) { entry.phase = "uncertain"; unresolvedWorkout = entry; }
+      else if (entry) entry.phase = "ready";
+      return { ...workoutRefusal(error instanceof StorageFailure ? error.code : "WORKOUT_START_UNRESOLVED"), state: error instanceof StorageFailure ? error.state : 3 };
+    } finally { activeWorkout = null; activeGrant?.retire(); activeGrant = null; }
+  }
+  function submittedWorkout(request, start = false) {
+    try {
+      const value = closedInput(request, start ? ["preparedId"] : ["planned_split_slot_id"], start ? ["effective"] : []);
+      const id = value[start ? "preparedId" : "planned_split_slot_id"];
+      if (typeof id !== "string") throw new Error();
+      if (Object.hasOwn(value, "effective")) {
+        value.effective = closedInput(value.effective, ["local_date", "local_time", "utc_offset"]);
+        if (!Object.values(value.effective).every(x => typeof x === "string")) throw new Error();
+      }
+      return value;
+    } catch { return null; } // Typed refusal happens inside the scoped queue.
+  }
   async function sink(command, record) {
     try {
       if (!current()) return refusal(17, "SESSION_CHANGED", reasonFor(17));
@@ -173,6 +296,15 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     finally { activeGrant?.retire(); activeGrant = null; activeProof = null; }
   }
   return Object.freeze({
+    prepareWorkout(request) { const input = submittedWorkout(request); return enqueue(() => prepareWorkout(input)); },
+    startPreparedWorkout(request) { const input = submittedWorkout(request, true); return enqueue(() => startPreparedWorkout(input)); },
+    retireWorkoutPreparations() {
+      preparationEpoch++;
+      for (const entry of preparations.values()) {
+        entry.retired = true;
+        if (entry.phase === "starting" || entry.phase === "uncertain") unresolvedWorkout = entry;
+      }
+    },
     current() {
       const value = bridge.current(), failure = contextFailure(visibleEpoch) || lateRefusal;
       if (failure) return { view: null, retainedInput: failure.state === 17 ? null : value.retainedInput, refusal: copy(failure) };

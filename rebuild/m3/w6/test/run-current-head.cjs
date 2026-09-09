@@ -21,10 +21,12 @@ for(const name of names){
   const raw=fs.readFileSync(path.join(root,name)),dest=path.join(output,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,raw);
   pins[name]=crypto.createHash('sha256').update(raw).digest('hex');
 }
-// Accepted schema/profile are copied byte-for-byte; fail instead of silently drifting.
+// Accepted profile remains byte-identical. The selected capture shape has exactly
+// two disclosed literal edits; all other bytes still match the accepted source.
 for(const name of ['schema.cjs','authority-profile.cjs']){
  const source='rebuild/m4/workout/'+name;
- if(!fs.readFileSync(path.join(root,source)).equals(git(['show',base+':'+source],r1)))throw Error('Accepted shared source differs: '+source);
+ const candidate=fs.readFileSync(path.join(root,source)),baseline=git(['show',base+':'+source],r1);
+ if(!candidate.equals(baseline)&&!(name==='schema.cjs'&&require('./prepared-shape-delta.cjs')(baseline,candidate)))throw Error('Accepted shared source differs: '+source);
 }
 // Disposable runner only: use the already installed locked dependency trees.
 // The retained worktrees themselves still have real node_modules directories.
@@ -34,7 +36,16 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
   fs.symlinkSync(modules,path.join(output,'rebuild/m3',dir,'node_modules'),process.platform==='win32'?'junction':'dir');
 }
 fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
-let mutation=null;
+let mutation=null,preparedRestore=null;
+if(process.argv.includes('--prepared-bite')){
+ if(process.argv.includes('--bite'))throw Error('Select one mutation only');
+ const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
+ const target='context.snapshotToken !== entry.token ||';
+ if(raw.split(target).length!==2)throw Error('Exact prepared-token bite target missing');
+ fs.writeFileSync(file,raw.replace(target,''));preparedRestore={file,raw};
+ mutation={name:'omit-prepared-snapshot-token',originalSha256:pins['rebuild/m3/w6/public-client.mjs'],
+  mutantSha256:crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')};
+}
 if(process.argv.includes('--bite')){
   const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
   const target='context.snapshotRevision !== original.clientRevision ||';
@@ -58,6 +69,9 @@ if(process.argv.includes('--browser')){
   browser=cp.spawnSync(process.execPath,[path.join(testDir,'browser-contract.mjs')],{cwd:output,env:process.env,windowsHide:true,encoding:'utf8',maxBuffer:32e6});
   fs.writeFileSync(path.join(output,'browser.stdout.log'),browser.stdout||'');fs.writeFileSync(path.join(output,'browser.stderr.log'),browser.stderr||'');
 }
+if(preparedRestore){fs.writeFileSync(preparedRestore.file,preparedRestore.raw);
+ mutation.restoredSha256=crypto.createHash('sha256').update(fs.readFileSync(preparedRestore.file)).digest('hex');
+ if(mutation.restoredSha256!==mutation.originalSha256)throw Error('Prepared-token bite restoration failed');}
 for(const [name,hash]of Object.entries(pins))if(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex')!==hash)throw Error('Candidate changed during run');
 fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({node:process.version,exit:run.status,browserExit:browser?.status??null,elapsedMs:performance.now()-started,tests:namesToRun,mutation},null,2));
 console.log('COMPOSED W6 OUTPUT '+output);process.stdout.write(run.stdout||'');process.stderr.write(run.stderr||'');

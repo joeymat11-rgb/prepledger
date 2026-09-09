@@ -37,7 +37,7 @@ export function createBridge({ repository, stage, validateCommit, maxAttempts = 
           }
         }
         const nextView = clone(candidate.view), nextResult = clone(candidate.result);
-        const context = clone({ command, args, snapshotRevision: snapshot.revision, kind: candidate.commit?.kind || "local-operation",
+        const context = clone({ command, args, snapshotRevision: snapshot.revision, snapshotToken: snapshot.token, kind: candidate.commit?.kind || "local-operation",
           batch: candidate.commit?.batch || null, basisMetadata: snapshot.generation.metadata, candidateMetadata: candidate.generation.metadata,
           namespace: candidate.context?.namespace, sessionEpoch: candidate.context?.sessionEpoch, observationEpoch: candidate.context?.observationEpoch });
         const freeze = value => { if (value && typeof value === "object") { Object.values(value).forEach(freeze); Object.freeze(value); } return value; };

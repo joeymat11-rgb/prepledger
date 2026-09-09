@@ -2,7 +2,6 @@
 // Closed workout command mapping; no issuer, activation, capture or training rule.
 const {validateWorkoutShape}=require('./schema.cjs');
 const {createWorkoutProfile}=require('./authority-profile.cjs');
-const profile=createWorkoutProfile(validateWorkoutShape);
 const own=(value,key)=>Object.hasOwn(value,key);
 const map=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 // Exact descriptor-copy helper from the accepted shared shape module. No getter runs.
@@ -48,12 +47,13 @@ const ROWS=Object.freeze({
   correct:['correction',['target_op_id','lift_lineage_id'],['replacement_fields']],
   remove:['tombstone',['target_op_id','lift_lineage_id'],['reason']],
 });
-function prepare(request) {
+function prepare(request, prescriptionCapture) {
   const value=jsonData(request);
   if(!map(value)||Object.keys(value).length!==2||!own(value,'action')||!own(value,'input')||
     typeof value.action!=='string'||!own(ROWS,value.action)||!map(value.input))throw new TypeError('WORKOUT_INPUT_INVALID');
   const [kind,envelope,payloadFields]=ROWS[value.action],input=value.input;
-  const allowed=[...envelope,...payloadFields,'effective','causal_parents'];
+  const captured=value.action==='start'&&prescriptionCapture!==undefined;
+  const allowed=[...envelope,...payloadFields,'effective','causal_parents',...(captured?['prescription_capture']:[])];
   if(Object.keys(input).some(key=>!allowed.includes(key)))throw new TypeError('WORKOUT_INPUT_INVALID');
   if(own(input,'effective')&&!map(input.effective))throw new TypeError('WORKOUT_INPUT_INVALID');
   if(own(input,'causal_parents')&&!Array.isArray(input.causal_parents))throw new TypeError('WORKOUT_INPUT_INVALID');
@@ -62,11 +62,18 @@ function prepare(request) {
     if(key==='target_op_id')action.target=input[key];else action.extra[key]=input[key];
   }
   for(const key of payloadFields)if(own(input,key))action.payload[key]=input[key];
+  if(captured){
+    const value=input.prescription_capture;
+    action.extra.prescription_capture=prescriptionCapture.prepare(value,{producer:value?.producer,basis:value?.basis});
+  }
   if(own(input,'effective'))action.effective=input.effective;
   if(own(input,'causal_parents'))action.parents=input.causal_parents;
   return action;
 }
-function createWorkoutCommands(){return Object.freeze({schemaVersion:2,prepare,
+function createWorkoutCommands({prescriptionCapture}={}){
+ if(prescriptionCapture!==undefined&&typeof prescriptionCapture?.prepare!=='function')throw new TypeError('Static prescription capture validator required');
+ const profile=createWorkoutProfile(op=>validateWorkoutShape(op,{prescriptionCapture}));
+ return Object.freeze({schemaVersion:2,prepare:request=>prepare(request,prescriptionCapture),
   validate(op,readOperation) {
     if(!profile.validateShape(op))return false;
     for(const id of op.causal_parents){
