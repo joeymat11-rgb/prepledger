@@ -36,6 +36,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
   const workoutEdits=new Map();let activeEdit=null;
   const resumeCommands=WorkoutCommands.createWorkoutCommands();
   const preparations = new Map(); let activeWorkout = null, unresolvedWorkout = null, preparationEpoch = 0;
+  const workoutHistories = new WeakMap();
   const current = () => isCurrentSession(sessionEpoch) === true;
   const enqueue = action => { const task = tail.then(action); tail = task.catch(() => {}); return task; };
   function contextFailure(epoch) {
@@ -54,10 +55,11 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     if (result.durableRevision) visibleEpoch = activeContext?.observationEpoch ?? null;
     return result;
   }
-  async function verifiedHistory(generation, signedOperationIds = null) {
+  async function verifiedHistory(generation, signedOperationIds = null, recoveryReceipts = null) {
     const epoch=observationEpoch();
-    await authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier:verifier,athleteId,deviceId,signedOperationIds,
+    const receipts=await authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier:verifier,athleteId,deviceId,signedOperationIds,collectReceipts:recoveryReceipts!==null,
       assertContext:()=>{const changed=contextFailure(epoch)||lateRefusal;if(changed)throw new StorageFailure(changed.code,changed.state);}});
+    if(recoveryReceipts)for(const receipt of receipts)recoveryReceipts.push(receipt);
     const families = generation.metadata.wireProofs || {};
     const methods = { disposition: "verifyDisposition", pull: "verifyPull", snapshot: "verifySnapshot", lease: "verifyLease", time: "verifyServerTime", currentHead: "verifyCurrentHead" };
     for (const [kind, records] of Object.entries(families)) {
@@ -186,18 +188,22 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
         (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
   }, stage: stageVerified });
-  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false } = {}) {
+  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false, authenticateWorkoutHistory = false } = {}) {
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
-    const signedOperationIds = authenticateLocalHistory ? new Set() : null;
-    if (!await verifiedHistory(generation, signedOperationIds)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
+    const signedOperationIds = authenticateLocalHistory || authenticateWorkoutHistory ? new Set() : null;
+    const recoveryReceipts = authenticateWorkoutHistory ? [] : null;
+    if (!await verifiedHistory(generation, signedOperationIds, recoveryReceipts)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
     // Authenticate history first; a restored historical snapshot cannot grant
     // a current prescription. A qualified projection/publish join is still
     // required. History reads and performed-fact corrections do not require
     // a current projection.
     if (requireCurrentProjection && generation.collections.sync?.snapshot?.recoveryPlan?.profile === "earned/recovered-plan-snapshot/v1")
       throw new StorageFailure("RECOVERY_PROJECTION_REQUIRED", 18);
+    // Build the factual history only after source proofs, before T2 reads its
+    // indexes or a grant exists. The result remains private to this candidate.
+    const history=authenticateWorkoutHistory?storedWorkoutHistory(generation,{athleteId,deviceId,prescriptionCapture,recoveryReceipts}):null;
     if (command === "@currentHead") {
       if (!activeHead || historyAttempt !== activeHead || epoch !== activeHead.observationEpoch)
         throw new StorageFailure("CURRENT_HEAD_BASIS_CHANGED", 18);
@@ -235,7 +241,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (failure) throw new StorageFailure(failure.code, failure.state);
       throw new StorageFailure("OPERATION_SCHEMA_MISMATCH", 20);
     }
-    return { ...candidate, context: { namespace, sessionEpoch, observationEpoch: epoch } };
+    const staged={ ...candidate, context: { namespace, sessionEpoch, observationEpoch: epoch } };
+    if(history)workoutHistories.set(staged,history);
+    return staged;
   }
   function closedInput(value, required, optional = []) {
     if (!value || typeof value !== "object" || Array.isArray(value) ||
@@ -255,9 +263,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if(lifetime!==preparationEpoch)return workoutRefusal('WORKOUT_PREPARATION_RETIRED');
       const input=closedInput(request,['session_start_op_id']);
       if(typeof input.session_start_op_id!=='string'||!input.session_start_op_id.trim())throw new StorageFailure('WORKOUT_INPUT_INVALID',3);
-      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true,requireCurrentProjection:true});
+      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateWorkoutHistory:true,requireCurrentProjection:true});
       if(!candidate.view||candidate.result?.state)return {...candidate.result,prepared:false};
-      const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
+      const history=workoutHistories.get(candidate);
       const resumed=workoutContinuation(history,snapshot.generation,input.session_start_op_id);
       const resolved=closedInput(resolveWorkoutBasis(copy(snapshot.generation),{planned_split_slot_id:resumed.planned_split_slot_id}),['plan_basis','input_basis','causal_parents']);
       const basis={plan_basis:resolved.plan_basis,input_basis:resolved.input_basis,source_revision:snapshot.revision};
@@ -287,9 +295,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       const failure=contextFailure(null)||lateRefusal;if(failure)return {...failure,prepared:false};
       if(lifetime!==preparationEpoch)return workoutRefusal('WORKOUT_PREPARATION_RETIRED');
       const input=closedInput(request,['target_op_id']);if(typeof input.target_op_id!=='string'||!input.target_op_id.trim())throw new StorageFailure('WORKOUT_INPUT_INVALID',3);
-      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true});
+      const snapshot=await repository.load(),candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateWorkoutHistory:true});
       if(!candidate.view||candidate.result?.state)return {...candidate.result,prepared:false};
-      const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
+      const history=workoutHistories.get(candidate);
       if(snapshot.generation.collections.sync?.frontier?.authorityW!==history.frontier)throw new StorageFailure('WORKOUT_EDIT_PREFIX_INCOMPLETE',18);
       const session=history.sessions.find(s=>s.projection.facts.some(f=>f.source_op_id===input.target_op_id));
       const fact=session?.projection.facts.find(f=>f.source_op_id===input.target_op_id);
@@ -514,11 +522,11 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         return await observationGuard.run("workout-history",async()=>{
           const failure=contextFailure(null);if(failure)return {...failure,read:false};
           const snapshot=await repository.load();
-          // Validate/assemble privately before T2 consumes indexes. Nothing is
-          // returned until the same snapshot passes signature/standing checks.
-          const history=storedWorkoutHistory(snapshot.generation,{athleteId,deviceId,prescriptionCapture});
-          const candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateLocalHistory:true});
+          // Authenticate source archives and assemble privately before T2
+          // consumes indexes. No history is exposed before standing checks.
+          const candidate=await stageVerified(copy(snapshot.generation),null,null,{authenticateWorkoutHistory:true});
           if(!candidate.view||candidate.result?.state)return {...candidate.result,read:false};
+          const history=workoutHistories.get(candidate);
           const changed=contextFailure(candidate.context.observationEpoch);if(changed)return {...changed,read:false};
           const latest=await repository.load(),lastFailure=contextFailure(candidate.context.observationEpoch);
           if(lastFailure)return {...lastFailure,read:false};

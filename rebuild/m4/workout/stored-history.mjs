@@ -7,9 +7,19 @@ import {projectWorkoutRecords} from './project-history.mjs';
 // This retains original facts and attaches only the nonconcurrent set-edit
 // projection. It supplies no full liveness/partition fold, current authority
 // head, active-workout selection or permission to continue.
-export function storedWorkoutHistory(generation,{athleteId,deviceId,prescriptionCapture}) {
+export function storedWorkoutHistory(generation,{athleteId,deviceId,prescriptionCapture,recoveryReceipts=[]}) {
   const fail=code=>{const e=new Error(code);e.state=18;e.code=code;throw e;};
   const c=generation.collections,ops=c.ops||{},indexes=c.receipts||{},proofs=new Map();
+  // Private verifier result for this SAME authenticated generation. Never
+  // read receipt claims from metadata, a renderer or an encrypted index alone.
+  // Archive verification already compared each full original; only its small
+  // position/identity tuple is carried here to avoid copying every op again.
+  for(const receipt of recoveryReceipts){
+    const op=ops[receipt?.op_id];
+    if(!receipt||!Number.isSafeInteger(receipt.seq)||receipt.seq<1||!op||op.op_id!==receipt.op_id||
+        op.athlete_id!==athleteId||op.canonical_content_commitment!==receipt.canonical_content_commitment||proofs.has(receipt.seq))fail('WORKOUT_RECOVERY_RECEIPT_INVALID');
+    proofs.set(receipt.seq,{...receipt,op});
+  }
   for(const kind of ['pull','snapshot','currentHead'])for(const bundle of Object.values(generation.metadata.wireProofs?.[kind]||{})){
     for(const receipt of kind==='snapshot'?bundle.entries:bundle.receipts){
       const previous=proofs.get(receipt.seq);

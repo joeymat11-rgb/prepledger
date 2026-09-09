@@ -9,6 +9,7 @@ import {createDurablePublicClient} from '../../public-client.mjs';
 import {createRowsRecovery,createRowsFetcher} from '../../recovery-transport.mjs';
 import T2 from '../../t2-stage.cjs';
 import Capture from '../../../../m4/workout/capture.cjs';
+import Commands from '../../../../m4/workout/commands.cjs';
 import {parseStrictJson} from '../../strict-json.mjs';
 if(!process.env.EARNED_ROWS_R1_ROOT)throw Error('Use the pinned recovery runner');
 const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
@@ -31,7 +32,23 @@ test('archive original authentication joins the actual public client across repo
  let produced=0,resumeAssessed=0,basisResolved=0;
  const args={repository:f.repo,stage:createT2Stage(cfg,{allowInbound:true}),namespace:f.setup.namespace,athleteId:'first',deviceId:device,sessionEpoch:1,isCurrentSession:x=>session===x,observationEpoch:()=>1,
   observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys,crypto:webcrypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,scopeDigest,keyRange:IDBKeyRange}};
- const client=createDurablePublicClient(args);assert((await client.execute('weighIn',{lb:170})).acknowledged);const before=await f.repo.load();
+ const client=createDurablePublicClient(args);assert((await client.execute('weighIn',{lb:170})).acknowledged);
+ // Local schema2 writer capability is deliberately synthetic. The actual R1
+ // issuer stays schema1, and these workout originals are never admitted there.
+ // This proves retained pending workouts can join a real recovered prefix;
+ // it is not schema2 issuance/activation or accepted-workout recovery evidence.
+ const syntheticLease=S.signLease({...lease,schema_version:2},runtime.authorityKey);
+ const replaceLease=async(repository,value)=>{const loaded=await repository.load(),g=structuredClone(loaded.generation);g.metadata.authorityLease=value;await repository.commit(loaded,g);};
+ const commands=Commands.createWorkoutCommands({prescriptionCapture:capture}),unknown=()=>({state:'unknown',display:'Unknown',source_json:null});
+ const workoutArgs={...args,stage:createT2Stage(cfg,{allowInbound:true,workoutCommands:commands}),schemaVersion:2,prescriptionCapture:capture,workoutProducerIdentity:identity,
+  resolveWorkoutBasis:()=>({plan_basis:'synthetic-plan',input_basis:'synthetic-input',causal_parents:[]}),
+  workoutProducer:(_g,context)=>({profile:capture.profile,producer:context.producer,basis:context.basis,session:{instruction:unknown(),reason:unknown(),confidence:unknown()},
+   slots:[0,1].map(i=>({logical_set_slot:'synthetic-slot-'+i,lift_lineage_id:'synthetic-lift',label:'Synthetic lift',load:unknown(),reps:unknown(),effort:unknown(),setup:unknown(),reason:unknown(),confidence:unknown()}))})};
+ await replaceLease(f.repo,syntheticLease);const writer=createDurablePublicClient(workoutArgs),preparedWorkout=await writer.prepareWorkout({planned_split_slot_id:'synthetic-workout'});assert(preparedWorkout.prepared,preparedWorkout.code);
+ const started=await writer.startPreparedWorkout({preparedId:preparedWorkout.preparedId});assert(started.acknowledged,started.code);
+ const performed=await writer.execute('workout',{action:'set',input:{session_start_op_id:started.op_id,logical_set_slot:'synthetic-slot-0',lift_lineage_id:'synthetic-lift',load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'at_least',value:3,unit:'rep'}}});assert(performed.acknowledged,performed.code);
+ const originalStart=(await f.repo.load()).generation.collections.ops[started.op_id];
+ await replaceLease(f.repo,lease);const before=await f.repo.load();
  const p=await client.prepareLocalRecovery();assert(p.prepared,p.code);const basis=p.basis,stage=f.repo.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null}),verifier=P.createRowsVerifier({keys,subtle:webcrypto.subtle});
  let submittedBytes;
  const result=await createRowsRecovery({stage,codec:C,protocol:P,newRequest:async()=>basis.request({nonce:hash('request'),contextId:hash('context')}),expected:req=>basis.expected(req),
@@ -53,6 +70,44 @@ test('archive original authentication joins the actual public client across repo
  assert.deepEqual(reader.plan(),{protein_g:155},'Actual rebuilt source plan survives authenticated fresh boot');
  assert((await newClient.execute('weighIn',{lb:171})).acknowledged,'Existing writer works with authenticated historical originals under synthetic standing');
  const clean=await fresh.repository.load();assert.deepEqual(clean.generation.collections.ops[remote.op_id],remote);
+ await t.test('real archive prefix joins retained pending workout history and correction on reopen',async t=>{
+  await replaceLease(fresh.repository,syntheticLease);
+  const c=createDurablePublicClient({...workoutArgs,repository:fresh.repository});
+  const read=await c.readWorkoutHistory();assert.equal(read.read,true,read.code);
+  const session=read.history.sessions.find(s=>s.start.operation.op_id===started.op_id);assert(session);
+  assert.deepEqual(session.original,originalStart.prescription_capture);assert.equal(session.start.status,'stored-on-this-device');
+  assert.deepEqual(session.projection.facts[0].current.reserve,{tag:'at_least',value:3,unit:'rep'});
+  const authenticated=await fresh.repository.load();
+  const historyFaults=[
+   ['changed archived original',g=>{g.collections.ops[remote.op_id].payload.lb.value=999;},'RECOVERY_ARCHIVE_ORIGINAL_CHANGED'],
+   ['missing archived original',g=>{delete g.collections.ops[remote.op_id];},'RECOVERY_ARCHIVE_ORIGINAL_MISSING'],
+   ['conflicting receipt index',g=>{g.collections.receipts['1'].canonical_content_commitment='invented';},'WORKOUT_PREFIX_UNPROVEN'],
+   ['changed pending workout original',g=>{g.collections.ops[performed.op_id].payload.reps.value=99;},'LOCAL_HISTORY_IDENTITY_UNPROVEN'],
+   ['local receipt claims cannot replace deleted archive proof',g=>{delete g.metadata.recoveryArchives;delete g.collections.sync.snapshot.recoveryPlan;g.metadata.recoveryReceipts=[{seq:1,op_id:remote.op_id,canonical_content_commitment:remote.canonical_content_commitment}];},'WORKOUT_PREFIX_UNPROVEN']
+  ];
+  for(const [name,mutate,code]of historyFaults)await t.test('new read/edit path refuses '+name,async()=>{
+   const current=await fresh.repository.load(),g=structuredClone(authenticated.generation);mutate(g);
+   const b=Client.memoryBackend(g.collections);assert(new Client.Store(b).transaction(()=>{}).ok);g.collections=T2.snapshotBackend(b,Object.keys(g.collections));
+   await fresh.repository.commit(current,g);const before=await fresh.repository.load();
+   const refused=await c.readWorkoutHistory();assert.equal(refused.read,false);assert.equal(refused.state,18);assert.equal(refused.code,code);assert.equal(refused.history,undefined);
+   const edit=await c.prepareWorkoutEdit({target_op_id:performed.op_id});assert.notEqual(edit.prepared,true);assert.equal(edit.state,18);assert.equal(edit.code,code);assert.equal(edit.editId,undefined);
+   assert.deepEqual(await fresh.repository.load(),before);await fresh.repository.commit(before,structuredClone(authenticated.generation));
+  });
+  const edit=await c.prepareWorkoutEdit({target_op_id:performed.op_id});assert(edit.prepared,edit.code);
+  const saved=await c.commitWorkoutEdit({editId:edit.editId,action:'correct',change:{reps:{value:9,unit:'rep'}}});assert(saved.acknowledged,saved.code);
+  const reopened=await f.fresh();try{
+   const again=await createDurablePublicClient({...workoutArgs,repository:reopened.repository}).readWorkoutHistory();assert(again.read,again.code);
+   const fact=again.history.sessions[0].projection.facts[0];assert.equal(fact.current.reps.value,9);assert.equal(fact.original.reps.value,8);assert.deepEqual(fact.edit_op_ids,[saved.op_id]);
+  }finally{reopened.repository.close();}
+  // The same position may also arrive in an ordinary signed pull. It must
+  // agree with the archive, and must not duplicate or discard pending facts.
+  const pulled=await runtime.request('/pull',{device_id:device,after:0},'subject-first');assert.equal(pulled.status,200);
+  const received=await c.acceptResponse('pull',{wireVersion:require('./public-client.cjs').WIRE_VERSION,body:pulled.body});assert(received.accepted,received.code);
+  const mixed=await c.readWorkoutHistory();assert(mixed.read,mixed.code);assert.equal(mixed.history.frontier,1);assert.equal(mixed.history.sessions.length,1);
+  assert.equal(mixed.history.sessions[0].projection.facts[0].current.reps.value,9);
+  // Restore the existing test-only generation for the independent fault table.
+  const current=await fresh.repository.load();await fresh.repository.commit(current,structuredClone(clean.generation));
+ });
  await t.test('historical recovery refuses current workout production and resume assessment before granting a lease',async()=>{
   // Pinned R1 issuer enrolls schema1 only. Configure the schema2 consumer to
   // prove the historical-view refusal precedes any schema/lease grant. This

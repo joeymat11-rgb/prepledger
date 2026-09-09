@@ -4,14 +4,15 @@ import Snapshot from './recovery-snapshot.cjs';
 
 // Historical authentication only. These records cannot establish current
 // standing, renewal, permission, a recovery activation or a completed import.
-export async function authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier,athleteId,deviceId,signedOperationIds,assertContext}){
+export async function authenticateRecoveryArchives({generation,repository,recovery,keys,publicVerifier,athleteId,deviceId,signedOperationIds,assertContext,collectReceipts=false}){
  const proofs=generation.metadata.recoveryArchives;
  const fail=code=>{throw new StorageFailure(code,18);};
  const snapshot=generation.collections.sync?.snapshot,binding=snapshot?.recoveryPlan;
- if(proofs===undefined){if(binding!==undefined)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');return;}
+ if(proofs===undefined){if(binding!==undefined)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');return [];}
  if(!Array.isArray(proofs)||!recovery?.codec||!recovery?.protocol||!recovery?.scopeDigest||typeof assertContext!=='function')fail('RECOVERY_ARCHIVE_CONFIGURATION');
  if(!proofs.length||!binding)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');
  const C=recovery.codec,P=recovery.protocol,seen=new Set(),ops=generation.collections.ops||{};
+ const receipts=collectReceipts?new Map():null;
  const archiveStore=repository.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:recovery.keyRange||globalThis.IDBKeyRange,
   validateContext:()=>{assertContext();return null;}});
  for(const proof of proofs){
@@ -34,6 +35,15 @@ export async function authenticateRecoveryArchives({generation,repository,recove
    if(!retained&&disposition.status==='ACCEPTED')fail('RECOVERY_ARCHIVE_ORIGINAL_MISSING');
    if(retained){if(!C.fullEqual(retained,op)||op.athlete_id!==athleteId)fail('RECOVERY_ARCHIVE_ORIGINAL_CHANGED');signedOperationIds?.add(op.op_id);}
   });
+  if(receipts)await profile.accepted(async row=>{
+   assertContext();
+   // The full original was just compared with this same generation. Carry
+   // its authenticated position/identity, not another copy of the whole op.
+   const receipt={seq:row.seq,op_id:row.op.op_id,canonical_content_commitment:row.op.canonical_content_commitment};
+   const previous=receipts.get(row.seq);
+   if(previous&&!C.fullEqual(previous,receipt))fail('RECOVERY_ARCHIVE_RECEIPT_CONFLICT');
+   receipts.set(row.seq,receipt);
+  });
   if(proof===proofs[proofs.length-1]){
    // Recompute through the same pinned authority reader after verifying the
    // retained signed pages. Locally encrypted derived fields are not proof.
@@ -44,4 +54,7 @@ export async function authenticateRecoveryArchives({generation,repository,recove
   }
   await profile.assertProofUnchanged();assertContext();
  }
+ // No receipt is returned until every archive and the historical snapshot
+ // have passed their final unchanged/current-context checks.
+ return receipts?[...receipts.values()]:[];
 }
