@@ -1,0 +1,647 @@
+{
+  "assignment": "OPUS-RECOVERY-RESOURCE-01 — replacement-route resource qualification",
+  "brief": "rebuild/m3/w5/test/rows-resource-01/BRIEF.md",
+  "briefCommit": "2bfa66ee8e67f453ba10bf7081c23bd76715ace2",
+  "productParentCommit": "734986a688366293349145e6feb80fd4130d3702",
+  "branch": "codex/opus-recovery-resource-01",
+  "statement": "Sanitized synthetic evidence. No ledger, private fixture, credential, signing secret or personal data. All keys were generated per run and held only in memory; no key material is recorded here.",
+  "sourcePins": {
+    "test/r1-workerd.cjs": "314beed62e0ad7ecbc2798d6fd9e31a55792c25441bd8e6ecf12464b752f5347",
+    "test/r1-resource-meter.cjs": "9081e9d46f923dd304ea494c2e879fa486e9661b8f8da1aa175fa198e05ccc8e",
+    "test/r1-resource-fixture.cjs": "3235510964bc64fe6618221c2d7dc25df98683de2f762c10647952d363e8b0b4",
+    "test/r1-resource.test.cjs": "c31f58f4f33ddf029dab2fae75cc92e7b369092c0af5eb24eca56769b783ba2a",
+    "test/r1-paged-http.test.cjs": "02ffd4ba728c00fdc840bb83b903b0bead7104b1b123172e47ad1706c0d29388",
+    "reconciliation/paged-bridge.cjs": "ede215943a08616197ab7d48cc573b075f269f6211a4bf18adee4a7454b70295",
+    "reconciliation/paged-codec.cjs": "c02e947c0b6df6905a7cfb1fa43ed6aaa90b6cac2109165e6aab500f51fc2748",
+    "reconciliation/codec.cjs": "2336594b9fab772c818834531122c639debd8977adee5c12fd5b3d92ba6bd192",
+    "storage/database.cjs": "f0e89e738903abe5f0d19ff4e596507bd897068442f25b8f68564007d015fed7",
+    "worker.cjs": "e10643f7dbdf3b429a52b559b16b8fcae255a07dcc8f3f0ceffadd099e003a5d",
+    "test/rows-resource-01/rows-resource.cjs": "713d9973ab97c817587d85f839ffc5a1b50f70cf00d341755685b5266aaa243c",
+    "test/rows-resource-01/rows-resource.test.cjs": "2f5f017889cfc73b0b5f45f9809ee8da30196eb82687e7402141c76625a3d2b8"
+  },
+  "qualificationRun": {
+    "verdict": "FAIL",
+    "finishedUTC": "2026-09-09T15:42:54.635Z",
+    "platform": "linux",
+    "nodeVersion": "v22.22.2",
+    "ceilings": {
+      "cpuMs": 1000,
+      "observedAllocationBytes": 100663296,
+      "statements": 1000,
+      "batchMs": 30000,
+      "domainWrites": 0
+    },
+    "cpuGuardMs": 20,
+    "violations": [
+      {
+        "label": "rows-v3-near-row-key-limit-attempt",
+        "code": "OBSERVED_ALLOCATION_CEILING",
+        "actual": 175669412
+      }
+    ],
+    "summary": {
+      "requests": 159,
+      "maxCpuMs": 700,
+      "p95CpuMs": 110,
+      "peakObservedAllocationBytes": 175669412,
+      "rowsRead": 376190,
+      "rowsWritten": 159,
+      "queryMs": 405,
+      "maxStatements": 6,
+      "maxBatchWallMs": 51,
+      "domainWrites": 0
+    },
+    "phases": [
+      {
+        "name": "instrument-calibration",
+        "requestCount": 0,
+        "observedPeakBytes": 30979993,
+        "sampleCount": 6,
+        "wholePhaseCpuMs": 410,
+        "peakVector": {
+          "usedSize": 1729784,
+          "totalSize": 4718592,
+          "embedderHeapUsedSize": 386904,
+          "backingStorageSize": 25874497,
+          "observedAllocation": 30979993
+        }
+      },
+      {
+        "name": "rows-v3-sequential-complete-attempt",
+        "requestCount": 39,
+        "observedPeakBytes": 51213841,
+        "sampleCount": 108,
+        "wholePhaseCpuMs": 1320,
+        "peakVector": {
+          "usedSize": 17913976,
+          "totalSize": 36438016,
+          "embedderHeapUsedSize": 515872,
+          "backingStorageSize": 14259953,
+          "observedAllocation": 51213841
+        }
+      },
+      {
+        "name": "rows-v3-two-overlapping-complete-attempts",
+        "requestCount": 78,
+        "observedPeakBytes": 74684730,
+        "sampleCount": 82,
+        "wholePhaseCpuMs": 2500,
+        "peakVector": {
+          "usedSize": 30898596,
+          "totalSize": 52707328,
+          "embedderHeapUsedSize": 1160712,
+          "backingStorageSize": 20816690,
+          "observedAllocation": 74684730
+        }
+      },
+      {
+        "name": "rows-v3-near-row-key-limit-attempt",
+        "requestCount": 42,
+        "observedPeakBytes": 175669412,
+        "sampleCount": 118,
+        "wholePhaseCpuMs": 2380,
+        "peakVector": {
+          "usedSize": 82227904,
+          "totalSize": 132341760,
+          "embedderHeapUsedSize": 2063488,
+          "backingStorageSize": 41264164,
+          "observedAllocation": 175669412
+        }
+      }
+    ],
+    "attempts": [
+      {
+        "label": "sequential",
+        "chunks": 39,
+        "rows": 638,
+        "rowValueBytes": 3760588,
+        "inventoryDigest": "paKQn7thXST7RuMaiQxP0UCS6bgbD31u3ZS1wrsmvCM",
+        "revision": 138,
+        "signedTerminalFinish": true,
+        "byteIdentityAgainstIndependentD1Read": true,
+        "maxRowsInOnePage": 32,
+        "maxPageRowValueBytes": 161085,
+        "maxResponseBytes": 219028,
+        "rowCountBoundPages": 12,
+        "singleRowOverBudgetPages": 0
+      },
+      {
+        "label": "overlap-b",
+        "chunks": 39,
+        "rows": 638,
+        "rowValueBytes": 3760588,
+        "inventoryDigest": "paKQn7thXST7RuMaiQxP0UCS6bgbD31u3ZS1wrsmvCM",
+        "revision": 138,
+        "signedTerminalFinish": true,
+        "byteIdentityAgainstIndependentD1Read": true,
+        "maxRowsInOnePage": 32,
+        "maxPageRowValueBytes": 161085,
+        "maxResponseBytes": 219028,
+        "rowCountBoundPages": 12,
+        "singleRowOverBudgetPages": 0
+      },
+      {
+        "label": "overlap-a",
+        "chunks": 39,
+        "rows": 638,
+        "rowValueBytes": 3760588,
+        "inventoryDigest": "paKQn7thXST7RuMaiQxP0UCS6bgbD31u3ZS1wrsmvCM",
+        "revision": 138,
+        "signedTerminalFinish": true,
+        "byteIdentityAgainstIndependentD1Read": true,
+        "maxRowsInOnePage": 32,
+        "maxPageRowValueBytes": 161085,
+        "maxResponseBytes": 219028,
+        "rowCountBoundPages": 12,
+        "singleRowOverBudgetPages": 0
+      },
+      {
+        "label": "near-limit",
+        "chunks": 42,
+        "rows": 640,
+        "rowValueBytes": 6360674,
+        "inventoryDigest": "RuzQsrr4qvqskS6jcQEe0oswOvrh3bisB98uxVOdS0s",
+        "revision": 139,
+        "signedTerminalFinish": true,
+        "byteIdentityAgainstIndependentD1Read": true,
+        "maxRowsInOnePage": 32,
+        "maxPageRowValueBytes": 1400041,
+        "maxResponseBytes": 3202414,
+        "rowCountBoundPages": 12,
+        "singleRowOverBudgetPages": 2
+      }
+    ],
+    "attemptsCompleted": {
+      "sequential": 1,
+      "overlapping": 2,
+      "nearRowKeyLimit": 1,
+      "allReachedSignedTerminalFinish": true
+    },
+    "workloadMapping": {
+      "reusedOldFixture": "test/r1-resource-fixture.cjs populate() at targetBytes = C.LIMITS.payload — the identical construction the old /reconcile experiment measured.",
+      "oldSemantics": "One request materialized the COMPLETE history as a single 1048576-byte signed payload, transported as 32 fixed pages; one extra byte was a typed 413.",
+      "newSemantics": "/reconcile/rows selects rows AT a checked cut, bounded per chunk by 32 rows and 262144 stored bytes, cursor-chained to a signed terminal finish. There is no whole-history cap.",
+      "extension": "The same account was then GROWN through the real bridge admit path by 24 large and 100 small valid facts, so the complete inventory exceeds the old transport cap. Nothing was shrunk.",
+      "admittedSyntheticFacts": 126,
+      "completeInventoryRows": 638,
+      "completeInventoryRowValueBytes": 3760588,
+      "oldTransportCapBytes": 1048576,
+      "largerThanOldTransportCap": true,
+      "collections": [
+        [
+          "accountRegistry",
+          1
+        ],
+        [
+          "deviceIssuance",
+          1
+        ],
+        [
+          "enrollmentIntents",
+          1
+        ],
+        [
+          "history",
+          126
+        ],
+        [
+          "issuedLeases",
+          1
+        ],
+        [
+          "lastAccepted",
+          1
+        ],
+        [
+          "log",
+          126
+        ],
+        [
+          "metadata",
+          1
+        ],
+        [
+          "operations",
+          126
+        ],
+        [
+          "ownership",
+          126
+        ],
+        [
+          "slots",
+          126
+        ],
+        [
+          "standingEvents",
+          2
+        ]
+      ],
+      "independentOracle": "Direct D1 read through the real storage codec plus validateRetained(); the digest is computed from stored rows, never from route output."
+    },
+    "boundaryCoverage": {
+      "pageRowLimit": 32,
+      "pageByteBudget": 262144,
+      "fromAttempt": "sequential",
+      "rowCountBoundPagesObserved": 12,
+      "singleRowOverBudgetPagesObserved": 0,
+      "maxPageRowValueBytesObserved": 161085,
+      "byteBudgetBoundPagesObserved": 26,
+      "largestSingleRowStoredBytes": 66812,
+      "note": "Coverage is reported as OBSERVED page shapes, not asserted by construction."
+    },
+    "nearRowKeyLimit": {
+      "fixtureClass": "GENERIC_EXTREME_KEY_AND_ROW — deliberately not a profile-valid history event",
+      "distinctFromValidAccount": true,
+      "profileValidated": false,
+      "extremeKeyBytes": 1200024,
+      "extremeRowValueBytes": 1400018,
+      "rowLimit": 2000000,
+      "maxResponseBytes": 3202414,
+      "statement": "Supported near-row/key limits transported intact. This is an inventory-shape probe, not an account-validity result."
+    },
+    "oldProfileControl": {
+      "route": "/reconcile",
+      "oldProfilePayloadBytes": 1048576,
+      "extraBytePayloadBytes": 1048577,
+      "observed": "413 RECONCILE_LIMIT",
+      "statement": "Old-profile whole-history cap still enforced. Unmeasured semantic control; not a rows-v3 requirement and not an old-route resource PASS."
+    },
+    "negativeCalibration": {
+      "exceededLimitDetected": {
+        "ceilingsUsed": {
+          "cpuMs": 0,
+          "observedAllocationBytes": 1,
+          "statements": 0,
+          "batchMs": 1,
+          "domainWrites": -1
+        },
+        "requestViolations": [
+          {
+            "label": "sequential-chunk-0",
+            "code": "CPU_CEILING",
+            "actual": 90
+          },
+          {
+            "label": "sequential-chunk-0",
+            "code": "STATEMENT_CEILING",
+            "actual": 6
+          },
+          {
+            "label": "sequential-chunk-0",
+            "code": "BATCH_CEILING",
+            "actual": 5
+          },
+          {
+            "label": "sequential-chunk-0",
+            "code": "DOMAIN_WRITE",
+            "actual": 0
+          }
+        ],
+        "phaseViolations": [
+          {
+            "label": "instrument-calibration",
+            "code": "OBSERVED_ALLOCATION_CEILING",
+            "actual": 30979993
+          }
+        ],
+        "verdict": "FAIL",
+        "statement": "Detection was calibrated against the REAL measured samples with deliberately unreachable ceilings. The agreed ceilings were never altered for the verdict."
+      },
+      "incompleteRefused": true,
+      "shortCumulativeCountsRefused": true,
+      "tamperedByteIdentityRefused": true,
+      "forgedCursorHttpStatus": 400,
+      "foreignSubjectHttpStatus": 403,
+      "statement": "The wrapper refuses incomplete or invalid recovery instead of reporting success."
+    },
+    "isolateProof": {
+      "selectedTitle": "workerd: worker core:user:earned-r1-metered-application",
+      "selectionRule": "title.includes(workerName) — resolves to exactly one target",
+      "allInspectorTargets": [
+        "workerd: worker core:user:earned-r1-metered-application",
+        "workerd: worker outbound:0",
+        "workerd: worker cache:0",
+        "workerd: worker cache:cache",
+        "workerd: worker d1:db:entry",
+        "workerd: worker d1:db",
+        "workerd: worker core:entry",
+        "workerd: worker MINIFLARE_DEV_CONTROL",
+        "workerd: worker email:store"
+      ],
+      "rejectedSetupOrProxyIsolates": [
+        "workerd: worker outbound:0",
+        "workerd: worker cache:0",
+        "workerd: worker cache:cache",
+        "workerd: worker d1:db:entry",
+        "workerd: worker d1:db",
+        "workerd: worker core:entry",
+        "workerd: worker MINIFLARE_DEV_CONTROL",
+        "workerd: worker email:store"
+      ]
+    },
+    "pinnedRuntime": {
+      "worker": "earned-r1-metered-application",
+      "defaultRuntimeFlags": true,
+      "v8FlagsChanged": false,
+      "forcedCollection": false,
+      "heapLimitChanged": false,
+      "perPageRuntimeRestart": false,
+      "hiddenWarmup": false,
+      "sampleFormulaChanged": false
+    },
+    "method": {
+      "platform": "Linux /proc owned workerd user+kernel ticks; process-wide inclusive measurement",
+      "counterTickMs": 10,
+      "cpu": "owned workerd process user+kernel delta covering full response; includes competing D1/isolate/inspector work; conservative accounting guard required, never wall-time CPU substitution",
+      "memory": "maximum observed simultaneous totalSize + embedderHeapUsedSize + backingStorageSize; no usedSize double count; native allocations outside these reported categories unmeasured",
+      "overlap": "per-request windows include competing work; whole-attempt delta is reported separately, never sum overlapping windows"
+    },
+    "isolationControl": null,
+    "limitations": [
+      "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+      "Memory is the maximum observed simultaneous inspector allocation vector, not a universal native-memory bound.",
+      "Sampling can miss a peak; these fields do not cover every native allocation.",
+      "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1.",
+      "A rows-v3 server result is not client memory, staged-profile validation, atomic activation, current permission, phone fit or private recovery.",
+      "The independent byte-identity oracle materializes the inventory in the Node harness, outside the measured isolate; it does not enter the memory metric.",
+      "The old-profile extra-byte refusal is recorded as an OLD-PROFILE requirement only; rows-v3 has no corresponding whole-history cap and none is asserted for it."
+    ]
+  },
+  "nearLimitIsolationControl": {
+    "verdict": "FAIL",
+    "finishedUTC": "2026-09-09T15:40:20.156Z",
+    "platform": "linux",
+    "nodeVersion": "v22.22.2",
+    "ceilings": {
+      "cpuMs": 1000,
+      "observedAllocationBytes": 100663296,
+      "statements": 1000,
+      "batchMs": 30000,
+      "domainWrites": 0
+    },
+    "cpuGuardMs": 20,
+    "violations": [
+      {
+        "label": "rows-v3-near-row-key-limit-attempt",
+        "code": "OBSERVED_ALLOCATION_CEILING",
+        "actual": 127399301
+      }
+    ],
+    "summary": {
+      "requests": 42,
+      "maxCpuMs": 1000,
+      "p95CpuMs": 140,
+      "peakObservedAllocationBytes": 127399301,
+      "rowsRead": 99209,
+      "rowsWritten": 42,
+      "queryMs": 232,
+      "maxStatements": 6,
+      "maxBatchWallMs": 85,
+      "domainWrites": 0
+    },
+    "phases": [
+      {
+        "name": "instrument-calibration",
+        "requestCount": 0,
+        "observedPeakBytes": 30979993,
+        "sampleCount": 6,
+        "wholePhaseCpuMs": 430,
+        "peakVector": {
+          "usedSize": 1684040,
+          "totalSize": 4718592,
+          "embedderHeapUsedSize": 386904,
+          "backingStorageSize": 25874497,
+          "observedAllocation": 30979993
+        }
+      },
+      {
+        "name": "rows-v3-near-row-key-limit-attempt",
+        "requestCount": 42,
+        "observedPeakBytes": 127399301,
+        "sampleCount": 121,
+        "wholePhaseCpuMs": 3330,
+        "peakVector": {
+          "usedSize": 53035824,
+          "totalSize": 102543360,
+          "embedderHeapUsedSize": 644840,
+          "backingStorageSize": 24211101,
+          "observedAllocation": 127399301
+        }
+      }
+    ],
+    "attempts": [
+      {
+        "label": "near-limit",
+        "chunks": 42,
+        "rows": 640,
+        "rowValueBytes": 6360674,
+        "inventoryDigest": "IAi5ZyurcSOxqXGAodc6n9RYlV5DJxlBtnmTLHl45Y8",
+        "revision": 139,
+        "signedTerminalFinish": true,
+        "byteIdentityAgainstIndependentD1Read": true,
+        "maxRowsInOnePage": 32,
+        "maxPageRowValueBytes": 1400041,
+        "maxResponseBytes": 3202414,
+        "rowCountBoundPages": 12,
+        "singleRowOverBudgetPages": 2
+      }
+    ],
+    "attemptsCompleted": {
+      "sequential": 0,
+      "overlapping": 0,
+      "nearRowKeyLimit": 1,
+      "allReachedSignedTerminalFinish": true
+    },
+    "workloadMapping": {
+      "reusedOldFixture": "test/r1-resource-fixture.cjs populate() at targetBytes = C.LIMITS.payload — the identical construction the old /reconcile experiment measured.",
+      "oldSemantics": "One request materialized the COMPLETE history as a single 1048576-byte signed payload, transported as 32 fixed pages; one extra byte was a typed 413.",
+      "newSemantics": "/reconcile/rows selects rows AT a checked cut, bounded per chunk by 32 rows and 262144 stored bytes, cursor-chained to a signed terminal finish. There is no whole-history cap.",
+      "extension": "The same account was then GROWN through the real bridge admit path by 24 large and 100 small valid facts, so the complete inventory exceeds the old transport cap. Nothing was shrunk.",
+      "admittedSyntheticFacts": 126,
+      "completeInventoryRows": 638,
+      "completeInventoryRowValueBytes": 3760588,
+      "oldTransportCapBytes": 1048576,
+      "largerThanOldTransportCap": true,
+      "collections": [
+        [
+          "accountRegistry",
+          1
+        ],
+        [
+          "deviceIssuance",
+          1
+        ],
+        [
+          "enrollmentIntents",
+          1
+        ],
+        [
+          "history",
+          126
+        ],
+        [
+          "issuedLeases",
+          1
+        ],
+        [
+          "lastAccepted",
+          1
+        ],
+        [
+          "log",
+          126
+        ],
+        [
+          "metadata",
+          1
+        ],
+        [
+          "operations",
+          126
+        ],
+        [
+          "ownership",
+          126
+        ],
+        [
+          "slots",
+          126
+        ],
+        [
+          "standingEvents",
+          2
+        ]
+      ],
+      "independentOracle": "Direct D1 read through the real storage codec plus validateRetained(); the digest is computed from stored rows, never from route output."
+    },
+    "boundaryCoverage": {
+      "pageRowLimit": 32,
+      "pageByteBudget": 262144,
+      "fromAttempt": "near-limit",
+      "rowCountBoundPagesObserved": 12,
+      "singleRowOverBudgetPagesObserved": 2,
+      "maxPageRowValueBytesObserved": 1400041,
+      "byteBudgetBoundPagesObserved": 26,
+      "largestSingleRowStoredBytes": 66812,
+      "note": "Coverage is reported as OBSERVED page shapes, not asserted by construction."
+    },
+    "nearRowKeyLimit": {
+      "fixtureClass": "GENERIC_EXTREME_KEY_AND_ROW — deliberately not a profile-valid history event",
+      "distinctFromValidAccount": true,
+      "profileValidated": false,
+      "extremeKeyBytes": 1200024,
+      "extremeRowValueBytes": 1400018,
+      "rowLimit": 2000000,
+      "maxResponseBytes": 3202414,
+      "statement": "Supported near-row/key limits transported intact. This is an inventory-shape probe, not an account-validity result."
+    },
+    "oldProfileControl": {
+      "route": "/reconcile",
+      "oldProfilePayloadBytes": 1048576,
+      "extraBytePayloadBytes": 1048577,
+      "observed": "413 RECONCILE_LIMIT",
+      "statement": "Old-profile whole-history cap still enforced. Unmeasured semantic control; not a rows-v3 requirement and not an old-route resource PASS."
+    },
+    "negativeCalibration": {
+      "exceededLimitDetected": {
+        "ceilingsUsed": {
+          "cpuMs": 0,
+          "observedAllocationBytes": 1,
+          "statements": 0,
+          "batchMs": 1,
+          "domainWrites": -1
+        },
+        "requestViolations": [
+          {
+            "label": "near-limit-chunk-0",
+            "code": "CPU_CEILING",
+            "actual": 70
+          },
+          {
+            "label": "near-limit-chunk-0",
+            "code": "STATEMENT_CEILING",
+            "actual": 6
+          },
+          {
+            "label": "near-limit-chunk-0",
+            "code": "BATCH_CEILING",
+            "actual": 5
+          },
+          {
+            "label": "near-limit-chunk-0",
+            "code": "DOMAIN_WRITE",
+            "actual": 0
+          }
+        ],
+        "phaseViolations": [
+          {
+            "label": "instrument-calibration",
+            "code": "OBSERVED_ALLOCATION_CEILING",
+            "actual": 30979993
+          }
+        ],
+        "verdict": "FAIL",
+        "statement": "Detection was calibrated against the REAL measured samples with deliberately unreachable ceilings. The agreed ceilings were never altered for the verdict."
+      },
+      "incompleteRefused": true,
+      "shortCumulativeCountsRefused": true,
+      "tamperedByteIdentityRefused": true,
+      "forgedCursorHttpStatus": 400,
+      "foreignSubjectHttpStatus": 403,
+      "statement": "The wrapper refuses incomplete or invalid recovery instead of reporting success."
+    },
+    "isolateProof": {
+      "selectedTitle": "workerd: worker core:user:earned-r1-metered-application",
+      "selectionRule": "title.includes(workerName) — resolves to exactly one target",
+      "allInspectorTargets": [
+        "workerd: worker core:user:earned-r1-metered-application",
+        "workerd: worker outbound:0",
+        "workerd: worker cache:0",
+        "workerd: worker cache:cache",
+        "workerd: worker d1:db:entry",
+        "workerd: worker d1:db",
+        "workerd: worker core:entry",
+        "workerd: worker MINIFLARE_DEV_CONTROL",
+        "workerd: worker email:store"
+      ],
+      "rejectedSetupOrProxyIsolates": [
+        "workerd: worker outbound:0",
+        "workerd: worker cache:0",
+        "workerd: worker cache:cache",
+        "workerd: worker d1:db:entry",
+        "workerd: worker d1:db",
+        "workerd: worker core:entry",
+        "workerd: worker MINIFLARE_DEV_CONTROL",
+        "workerd: worker email:store"
+      ]
+    },
+    "pinnedRuntime": {
+      "worker": "earned-r1-metered-application",
+      "defaultRuntimeFlags": true,
+      "v8FlagsChanged": false,
+      "forcedCollection": false,
+      "heapLimitChanged": false,
+      "perPageRuntimeRestart": false,
+      "hiddenWarmup": false,
+      "sampleFormulaChanged": false
+    },
+    "method": {
+      "platform": "Linux /proc owned workerd user+kernel ticks; process-wide inclusive measurement",
+      "counterTickMs": 10,
+      "cpu": "owned workerd process user+kernel delta covering full response; includes competing D1/isolate/inspector work; conservative accounting guard required, never wall-time CPU substitution",
+      "memory": "maximum observed simultaneous totalSize + embedderHeapUsedSize + backingStorageSize; no usedSize double count; native allocations outside these reported categories unmeasured",
+      "overlap": "per-request windows include competing work; whole-attempt delta is reported separately, never sum overlapping windows"
+    },
+    "isolationControl": "NEAR-LIMIT-ONLY isolation control: valid-account attempts deliberately not run; not a qualification verdict.",
+    "limitations": [
+      "CPU is the owned workerd process user+kernel delta, inclusive of D1, inspector and overlapping requests.",
+      "Memory is the maximum observed simultaneous inspector allocation vector, not a universal native-memory bound.",
+      "Sampling can miss a peak; these fields do not cover every native allocation.",
+      "Local observations do not establish remote provider performance, spending limits, T1, K1 or P1.",
+      "A rows-v3 server result is not client memory, staged-profile validation, atomic activation, current permission, phone fit or private recovery.",
+      "The independent byte-identity oracle materializes the inventory in the Node harness, outside the measured isolate; it does not enter the memory metric.",
+      "The old-profile extra-byte refusal is recorded as an OLD-PROFILE requirement only; rows-v3 has no corresponding whole-history cap and none is asserted for it."
+    ]
+  }
+}
