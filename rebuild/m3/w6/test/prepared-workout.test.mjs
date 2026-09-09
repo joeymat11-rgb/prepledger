@@ -45,6 +45,42 @@ const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct'
 const prepareEdit=(c,id)=>c.prepareWorkoutEdit({target_op_id:id});
 const correctPrepared=(c,p,change)=>c.commitWorkoutEdit({editId:p.editId,action:'correct',change});
 
+test('finished partial workout preserves captured terminal identity and bounded opener through removal and fresh read',async()=>{
+ // Actual stored client/projection evidence for the rich-reader join. This
+ // supplies no progression eligibility or scientific recommendation.
+ const f=await setup();try{
+  const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true);
+  const set=async(slot,reserve)=>f.c.execute('workout',{action:'set',input:{session_start_op_id:a.op_id,
+   logical_set_slot:slot,lift_lineage_id:'same-lineage',load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve}});
+  const opener=await set('slot-0',{tag:'at_least',value:3,unit:'rep'}),middle=await set('slot-1',{tag:'exact',value:0,unit:'rep'});
+  assert.equal(opener.acknowledged,true);assert.equal(middle.acknowledged,true);
+  const skip=await f.c.execute('workout',{action:'skip',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-2',
+   lift_lineage_id:'same-lineage',skip_scope:'set',reason:'Time'}});assert.equal(skip.acknowledged,true);
+  const finished=await close(f,a.op_id);assert.equal(finished.acknowledged,true);
+  const originalOps=await operations(f),fresh=await f.fresh();try{
+   const c=createDurablePublicClient({...f.args,repository:fresh.repository});
+   const read=await c.readWorkoutHistory();assert.equal(read.read,true);
+   const s=read.history.sessions.find(x=>x.start.operation.op_id===a.op_id);
+   assert.deepEqual(s.original.slots.map(x=>x.logical_set_slot),['slot-0','slot-1','slot-2']);
+   assert.deepEqual(s.projection.facts.map(x=>[x.source_op_id,x.logical_set_slot]),[[opener.op_id,'slot-0'],[middle.op_id,'slot-1']]);
+   assert.deepEqual(s.projection.facts[0].current.reserve,{tag:'at_least',value:3,unit:'rep'});
+   assert.deepEqual(s.projection.facts[1].current.reserve,{tag:'exact',value:0,unit:'rep'});
+   assert.equal(s.projection.facts.some(x=>x.logical_set_slot==='slot-2'),false,'A skipped terminal has no performed measurement');
+   assert.deepEqual(s.projection.skipped_record_ids,[skip.op_id]);
+   assert.equal(s.records.find(x=>x.operation.op_id===skip.op_id).operation.logical_set_slot,'slot-2');
+   assert.equal(s.projection.progression_eligible,false,'Factual history cannot grant training eligibility');
+   const p=await prepareEdit(c,middle.op_id);assert.equal(p.prepared,true);
+   const removed=await c.commitWorkoutEdit({editId:p.editId,action:'remove',change:'Mistaken middle entry'});assert.equal(removed.acknowledged,true);
+   const reread=createDurablePublicClient({...f.args,repository:fresh.repository}),next=await reread.readWorkoutHistory();assert.equal(next.read,true);
+   const after=next.history.sessions.find(x=>x.start.operation.op_id===a.op_id);
+   assert.deepEqual(after.original,s.original);assert.deepEqual(after.projection.skipped_record_ids,[skip.op_id]);
+   assert.deepEqual(after.projection.facts.filter(x=>x.included).map(x=>x.logical_set_slot),['slot-0']);
+   assert.deepEqual(after.projection.facts.find(x=>x.source_op_id===middle.op_id).original,{load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{tag:'exact',value:0,unit:'rep'}});
+   const now=(await fresh.repository.load()).generation.collections.ops;for(const [id,op]of Object.entries(originalOps))assert.deepEqual(now[id],op);
+  }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+
 test('actual prepared correction/removal chain preserves the original, later sets and finished session on reopen',async()=>{
  const f=await setup();try{const a=await start(f,await prepare(f)),one=await perform(f,a.op_id),two=await perform(f,a.op_id,'slot-1');await close(f,a.op_id);
  const before=await operations(f),p=await prepareEdit(f.c,one.op_id);assert.equal(p.prepared,true,JSON.stringify(p));assert.equal(p.view.current.load.value,42.5);

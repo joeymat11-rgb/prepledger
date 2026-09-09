@@ -1,5 +1,11 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Partial terminal source control — September9 retained local preparation
+
+One additional actual-client test supports the next rich-reader join: Start → bounded opener → exact-zero middle → reasoned terminal skip → early Close → fresh repository/client read → prepared middle removal → fresh client read. The complete captured slot order, exact opener bound, skipped terminal reference, original removed measurement and all earlier immutable operations remain intact. A missing terminal has no fabricated performed value; the factual history still grants no progression eligibility. Synthetic producer/identity/observation guard only: this does not qualify science, real HTTP, K1 or physical phones.
+
+Existing composition command `node rebuild/m3/w6/test/run-current-head.cjs ../m3-w5-r1 --workout-history`:83/83PASS,0skip. Log `.tmp/w6-partial-terminal-source.log`. This is a focused new-case run, not a claimed348-test/full-browser rerun. Product files are unchanged from the retained local9cd219f successor; the prior347/44 evidence below stays attributed to that cut. Keep this test with the next coherent W6/facts integration review, not a separate helper review campaign. No merge, publication, private use, credit/model or ownership change.
+
 ## Prepared copy reduction and workout hierarchy — September9 local successor
 
 Integrated the two completed APM-reviewed helpers into the retained13946a1 working tree for the next coherent W6 cut. CAPACITY-COPY-01 removes one redundant preliminary collection clone in t2-stage.cjs; the actual memory backend still copies every entry synchronously before any configuration callback or writer, and getters/writes retain their own copies. Production callers supply copied, authenticated, parsed finite-JSON repository generations. The frame repository separately enforces plain finite-JSON/own-value descriptors. This is not an equivalence claim for arbitrary direct JavaScript objects: callable toJSON inputs differ and are outside this accepted caller boundary. No input validation, transaction, clock, eligibility or data-protection rule was relaxed. No server96MiB resource PASS, measured latency/heap saving or release acceleration is claimed.
