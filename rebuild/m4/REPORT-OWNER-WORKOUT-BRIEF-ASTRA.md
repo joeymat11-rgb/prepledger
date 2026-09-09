@@ -1,6 +1,14 @@
 # ASTRA — owner workout contract preparation
 
-## Current v0.50 checkpoint — recovery capacity qualifies locally
+## Current v0.51 checkpoint — correctness accepted, Linux capacity OPEN
+
+Independent Review150 accepted cumulative734986a→34200f579dbade13c29f68e4a1375ac98c4d7ff3 correctness, including37e14a5. The correct ORIGINAL DEFAULT Linux rows witness failed twice:114,781,051B and132,170,224B versus100,663,296B, one violation per run; each completed four attempts/159 requests. Windows74,900,814B remains a genuine host-local PASS only. Overall capacity is NOT QUALIFIED; source/runtime, workload, fixture, meter, ceilings and flags are unchanged.
+
+Exact342 CI was terminal7success/3skip including Windows/Linux public jobs; reviewer W5 suite287/288 included the resource failure. Initial reviewer wrong-function/old-route runs were withdrawn and earn no rows qualification or regression inference. Archive SHA256b3414a32b0f36f842a76b19efa553351b042311ec3f35ea2127809db98fe0cbf is ATTACHED ONLY, not locally received/rehashed/replayed. Existing Review150 is terminal/Idle. APM is retrieving already-produced correct-default phase/vector evidence before choosing one bounded capacity response; no new reviewer run or optional optimization is started. MEMORY-PROFILE-02 remains older-source allocation-churn evidence, not a peak/savings/leak proof.
+
+BRIEF-OWNER-WORKOUTv0.51 reconciles both current capacity paragraphs. Accepted engine3e908/artifactd21 and richer local reader bytes are unchanged; the real integrated numeric ledger receipt remains pending. Replacement coordinator01a08773-ca87-73d0-a550-6c87fcbde1cc verified the released retained heads and assumed ownership; old coordinator remains read-only. Validation: status-only diff; no new runtime test or independent acceptance attributed. NEXT: coordinate the bounded Linux capacity response through APM while continuing retained W6 local/recovered-plan reconciliation before fresh-context activation. Preserve the full PRODUCT-GOALv3/P1–P6, approved design, first-use priority and independent/integrator/private/device gates. No runtime change, new helper/review campaign, merge or private activation.
+
+## Historical v0.50 checkpoint — Windows capacity qualified locally
 
 Docs-only successor to61c703e8256a0155b0a31b4dd81a8c7b34082aaa; no M4 reader/engine change or new acceptance. R1 published34200f579dbade13c29f68e4a1375ac98c4d7ff3 now passes the original default rows-route memory workload: four complete attempts,159requests,74,900,814B against100,663,296B,zero violations. Seventy focused tests, actual HTTP9/9, original AUTH-D1/HTTP-190,99-law conformance, rig185W1/W2, SELFTEST and strict3072 PASS on those bytes. An actual missing-final-decoder-flush bite fails and is restored byte-for-byte. R1 REPORT-R1-ASTRA and owned-row-validation-resource.json are the exact public evidence/source pins; this report does not rerun or independently accept them.
 
