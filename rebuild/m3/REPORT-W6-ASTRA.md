@@ -1,5 +1,23 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Independent 137 G-1 — terminal/rejection consistency evidence, successor to 76c4f6c, 2026-09-09
+
+Tests/documentation only; product source is byte-identical to 76c4f6c. Independent Opus 5 / High / fast off accepted the comparison prerequisite WITH G-1: the previous 92 tests did not fail when either terminal/rejected-cache consistency guard was removed. No product defect was reported. This successor supplies a complete real D1/P1/HTTP inventory paired with independently divergent local cached disposition and rejected records. Actual public-client write/identity, signed acceptance, durable drain, fresh client, positive control and cache-restoration controls all execute. The deliberate local corruption uses the actual Store and encrypted repository; it is not a stand-in inventory, lawful server transition or normal UI write. Each refusal reaches its exact comparison guard after full profile validation and leaves the local generation unchanged. No recovered truth, outbox drain, checkpoint or activation is published.
+
+Executed: focused 16/16 PASS (13.17s); combined 95/95 PASS, 0 skipped (13.25s). Both new mutations are effective in separate disposable copies; their restored focused consistency fixture passes. No prior source or assertion was relaxed. No test failed during this successor's normal runs. The new focused bite selector intentionally excludes unrelated tests; this is separate from the unfiltered 95/95 run.
+
+```
+LOCAL TERMINAL BITE RED — contradictory local terminal disposition accepted; native exit1
+LOCAL REJECTION BITE RED — contradictory local rejection accepted; native exit1
+LOCAL RECOVERY BITE RESTORED PASS — native exit0; SHA256 7777778d449c37bf5cda7c57e77ed5adcd059e245bb799988353c078717e44a1
+```
+
+Evidence: coordinator logs `recovery-consistency-local.log`, `recovery-consistency-full.log`, `recovery-consistency-terminalbite.log`, `recovery-consistency-rejectionbite.log`; disposable mutation evidence `earned-local-recovery-bite-gCJezy` and `earned-local-recovery-bite-hqHL6t`. Public-client SHA remains 4391e353fd63885c702e42d92f8e76176e0616eb40cf664faae9e074f34c6a6a. Diff check PASS. Prior mandatory 09:00 publication gates, native 12 and composed 312 evidence below apply to identical product bytes; they were not redundantly rerun for this test/documentation-only delta. New exact-head CI and independent G-1 closure remain required and are not claimed here.
+
+Independent 137 reproduced the prior six commands (92/13/native 12/two effective bites/312) and added 17 checks across six attacks; archive 8,766 bytes SHA256 9b62931046143fef17d25299642485bea0f9d31f431f3c7088c1443edae24027 is ATTACHED only, not locally received/rehashed/replayed. Reviewer explicitly withdrew two overreaching coverage claims and reported G-1 instead. Lease repeated-pass cost and the stale ACTIVE diagnostics label remain open nonblockers. Production K1, activation, original resource gate, keys/private port/drills/qualified workout resume/next prescription/both phones remain open release gates.
+
+NEXT: independent reviewer re-executes the G-1 delta on this head; existing coordinator retains dispatch. Recovery assembly must obey the accepted indexed-storage requirement in R1 PAGED-RECOVERY-PROPOSAL §5. Current active T2/repository consumes whole-generation objects; a successful staged comparison does not supply a bounded active client, final source observation or production knowledge-loss fence. Resolve that concrete consumer seam without collecting all server history into a giant JSON object or weakening activation. PRODUCT-GOAL v3 and delivery brief v0.41 remain unchanged; no new scope, schedule, model, credit or custody setting.
+
 ## Compare authenticated local originals with recovered history — successor to 4cc2efb, 2026-09-09
 
 `prepareLocalRecovery()` now captures an authenticated local generation through the actual public client. The internal `recovery-local.mjs` builds a complete bounded request from its outbox, binds the exact revision/token and scope, invokes the actual indexed profile verifier, compares all nonqueued originals and terminal/rejected knowledge, and streams the five pending outcomes with unchanged original envelopes and queue entries. It never drains, replaces, re-signs, activates or creates a checkpoint. New local writes, changed staging or session/observation invalidate the handle and its retained history callbacks. Full goal v3 / delivery brief v0.41 remain unchanged; this supplies the original-data comparison needed before qualified recovery and workout resume.

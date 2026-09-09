@@ -13,6 +13,56 @@ const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/
 const C=require('./reconciliation/codec.cjs'),P=require('./reconciliation/paged-codec.cjs'),S=require('./crypto.cjs');
 const hash=value=>P.hash('local-recovery-test',value);
 
+test('complete signed inventory cannot replace a divergent local terminal cache',async t=>{
+  const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true});t.after(()=>runtime.close());
+  await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});
+  const lease=(await runtime.bridge.enrollScoped('subject-first',{intent_id:'consistency-guards',schema_version:1,nonce:hash('consistency-enroll')})).payload.issuance.lease;
+  const device=lease.device_id,keys=[S.publicKeyOf(runtime.authorityKey)],f=await fixture({namespace:'first/'+device});t.after(()=>f.repo.close());
+  const generation=initial();generation.metadata.authorityLease=lease;await f.repo.initialize(generation,'synthetic-enrollment-only');
+  const scopeDigest=C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:device});
+  const args={repository:f.repo,stage:createT2Stage(()=>({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first}),{allowInbound:true}),
+    namespace:f.setup.namespace,athleteId:'first',deviceId:device,sessionEpoch:1,isCurrentSession:()=>true,observationEpoch:()=>1,
+    observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys,crypto:webcrypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,scopeDigest}};
+  const client=createDurablePublicClient(args);assert((await client.execute('weighIn',{lb:170})).acknowledged);
+  const original=Object.values((await f.repo.load()).generation.collections.ops)[0];
+  const accepted=await runtime.bridge.invokeScoped('subject-first',device,'admit',['first',original]);assert.equal(accepted.status,'ACCEPTED');
+  const stored=await client.acceptResponse('disposition',{wireVersion:require('./public-client.cjs').WIRE_VERSION,body:{disposition:accepted}});assert(stored.accepted,stored.code);
+  const clean=await f.repo.load();assert(!Object.hasOwn(clean.generation.collections.outbox,original.op_id));
+  assert.deepEqual(clean.generation.collections.dispositions[original.op_id],accepted);
+  const stage=f.repo.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null}),verifier=P.createRowsVerifier({keys,subtle:webcrypto.subtle});
+  let nonce=0;
+  async function compare(explicitRetry){
+    const fresh=createDurablePublicClient(args),prepared=await fresh.prepareLocalRecovery();assert(prepared.prepared,prepared.code);
+    const basis=prepared.basis;let diagnostic=null,profileEntered=false;
+    const result=await createRowsRecovery({stage,codec:C,protocol:P,newRequest:async()=>{await basis.assertCurrent();return basis.request({nonce:hash(['consistency',++nonce]),contextId:hash('consistency-context')});},expected:req=>basis.expected(req),
+      fetchPage:createRowsFetcher({baseURL:runtime.url,codec:C,protocol:P,headers:async()=>({Origin:runtime.issuer.config.origins[0],Authorization:'Bearer '+runtime.issuer.token('subject-first')})}),
+      observeNegative:async(reply,context)=>{assert.equal(reply.status,200);assert((await verifier.verify(reply.bodyBytes,{expected:context.expected,previousCursor:context.previousCursor})).verified);},
+      validateProfile:async input=>{profileEntered=true;try{return await basis.reconcile(input);}catch(error){diagnostic={code:error.code,state:error.state};throw error;}}
+    }).run({explicitRetry});
+    assert(profileEntered,'A complete staged inventory must reach local comparison');return {result,diagnostic};
+  }
+  // Positive control uses an actual public-client write, signed D1 acceptance,
+  // authenticated durable drain, fresh public client and complete HTTP inventory.
+  const control=await compare(false);assert(control.result.evidenceReady,control.result.reason);assert.equal(control.diagnostic,null);
+  for(const field of ['dispositions','rejected'])await t.test(field==='dispositions'?'divergent terminal disposition refuses only after full profile validation':'divergent rejected entry refuses only after full profile validation',async()=>{
+    const before=await f.repo.load(),changed=structuredClone(clean.generation),backend=Client.memoryBackend(changed.collections),store=new Client.Store(backend);
+    // Deliberate cached-local corruption, resealed through the real repository.
+    // The original operation, its valid signed wire proof and the entire server
+    // inventory stay unchanged. This is NOT a lawful authority state transition
+    // or evidence that the normal UI writes an invented rejection.
+    assert(store.transaction(tx=>tx.put(field,original.op_id,field==='dispositions'?{...accepted,status:'REJECTED'}:
+      {op_id:original.op_id,commitment:original.canonical_content_commitment,reason:'SYNTHETIC_CACHE_CONTRADICTION',status:'REJECTED',decided_at:null,kind:original.kind,class:original.class})).ok);
+    changed.collections=T2.snapshotBackend(backend,Object.keys(changed.collections));await f.repo.commit(before,changed);const divergent=await f.repo.load();
+    const checked=await compare(true);assert.equal(checked.result.evidenceReady,false);assert.equal(checked.result.evidence,undefined);
+    assert.equal(checked.result.reason,'TRANSPORT_EXHAUSTED');
+    assert.deepEqual(checked.diagnostic,{code:field==='dispositions'?'LOCAL_TERMINAL_DISAGREEMENT':'LOCAL_REJECTION_DISAGREEMENT',state:18});
+    assert.deepEqual(await f.repo.load(),divergent,'Refusal cannot overwrite the contradictory original or publish recovered truth');
+    await f.repo.commit(divergent,structuredClone(clean.generation));
+    const restored=await compare(true);assert(restored.result.evidenceReady,restored.result.reason);assert.equal(restored.diagnostic,null);
+    const queue=[];await restored.result.evidence.pending(entry=>queue.push(entry));assert.deepEqual(queue,[]);
+  });
+});
+
 for(const kind of ['WAITING','REJECTED','ENVELOPE_MISMATCH','IDENTITY_CONFLICT'])test(`actual signed recovery preserves ${kind} local original without choosing or applying an outcome`,async t=>{
   const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true});t.after(()=>runtime.close());
   await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});

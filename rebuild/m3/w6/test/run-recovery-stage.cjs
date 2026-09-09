@@ -6,22 +6,23 @@ for(const name of ['reconciliation/paged-codec.cjs','reconciliation/codec.cjs','
  const relative='rebuild/m3/w5/'+name,expected=cp.spawnSync('git',['show',pin+':'+relative],{cwd:source,windowsHide:true,maxBuffer:16e6});
  if(expected.status!==0||!expected.stdout.equals(fs.readFileSync(path.join(source,relative))))throw Error('Pinned R1 dependency mismatch: '+relative);
 }
-if(process.argv.includes('--local-bite')||process.argv.includes('--retained-bite')){
- const retained=process.argv.includes('--retained-bite');
+if(['--local-bite','--retained-bite','--terminal-bite','--rejection-bite'].some(flag=>process.argv.includes(flag))){
+ const retained=process.argv.includes('--retained-bite'),terminal=process.argv.includes('--terminal-bite'),rejection=process.argv.includes('--rejection-bite');
  const root=path.resolve(__dirname,'../../../..'),out=fs.mkdtempSync(path.join(os.tmpdir(),'earned-local-recovery-bite-'));
  const listing=cp.spawnSync('git',['ls-files','-z','--','rebuild/m3/w6','rebuild/m3/w5/public-client.cjs','rebuild/client','rebuild/authority','rebuild/m4/workout','rebuild/conform/lib'],{cwd:root,windowsHide:true});
  if(listing.status!==0)throw Error('Public source listing failed');
  for(const name of listing.stdout.toString().split('\0').filter(Boolean)){if(name.includes('..')||!name.startsWith('rebuild/'))throw Error('Unexpected source path');const dest=path.join(out,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(root,name),dest);}
  fs.symlinkSync(path.join(root,'rebuild/m3/w6/node_modules'),path.join(out,'rebuild/m3/w6/node_modules'),process.platform==='win32'?'junction':'dir');
- const file=path.join(out,'rebuild/m3/w6/recovery-local.mjs'),original=fs.readFileSync(file),needle=retained?"if(!remote||!C.fullEqual(remote.op,op))fail('LOCAL_RETAINED_ORIGINAL_UNPROVEN');":"if(current.revision!==saved.revision||current.token!==saved.token)fail('LOCAL_RECOVERY_CHANGED');";
+ const file=path.join(out,'rebuild/m3/w6/recovery-local.mjs'),original=fs.readFileSync(file),needle=terminal?"if(disposition&&['ACCEPTED','REJECTED','REJECTED_DEPENDENCY'].includes(disposition.status)&&!C.fullEqual(disposition,remote.disposition))fail('LOCAL_TERMINAL_DISAGREEMENT');":rejection?"if(rejected&&!['REJECTED','REJECTED_DEPENDENCY'].includes(remote.disposition.status))fail('LOCAL_REJECTION_DISAGREEMENT');":retained?"if(!remote||!C.fullEqual(remote.op,op))fail('LOCAL_RETAINED_ORIGINAL_UNPROVEN');":"if(current.revision!==saved.revision||current.token!==saved.token)fail('LOCAL_RECOVERY_CHANGED');";
  if(original.toString().split(needle).length!==2)throw Error('Exact local recovery mutation cut missing');
- fs.writeFileSync(file,original.toString().replace(needle,'/* disposable stale local generation bypass */'));
- const args=['--test','--test-reporter=tap',path.join(out,'rebuild/m3/w6/test/recovery-stage/local.test.mjs')],env={...process.env,EARNED_ROWS_R1_ROOT:source};
+ fs.writeFileSync(file,original.toString().replace(needle,'/* disposable local consistency guard bypass */'));
+ const args=['--test','--test-reporter=tap',...(terminal||rejection?['--test-name-pattern','complete signed inventory']:[]),path.join(out,'rebuild/m3/w6/test/recovery-stage/local.test.mjs')],env={...process.env,EARNED_ROWS_R1_ROOT:source};
  const red=cp.spawnSync(process.execPath,args,{env,encoding:'utf8',windowsHide:true});fs.writeFileSync(path.join(out,'red.log'),red.stdout+red.stderr);
- if(red.status!==1||!(retained?/not ok \d+ - a resealed missing queue record/.test(red.stdout):/not ok \d+ - new local operation invalidates/.test(red.stdout)))throw Error('Local recovery bite was not effective');
+ const expectedFailure=terminal?/not ok \d+ - divergent terminal disposition refuses only after full profile validation/:rejection?/not ok \d+ - divergent rejected entry refuses only after full profile validation/:retained?/not ok \d+ - a resealed missing queue record/:/not ok \d+ - new local operation invalidates/;
+ if(red.status!==1||!expectedFailure.test(red.stdout))throw Error('Local recovery bite was not effective; evidence '+out);
  fs.writeFileSync(file,original);const green=cp.spawnSync(process.execPath,args,{env,encoding:'utf8',windowsHide:true});fs.writeFileSync(path.join(out,'restored.log'),green.stdout+green.stderr);
  if(green.status!==0||!fs.readFileSync(file).equals(original)||!fs.readFileSync(path.join(root,'rebuild/m3/w6/recovery-local.mjs')).equals(original))throw Error('Restored local recovery did not pass byte-identically');
- console.log(retained?'LOCAL RETAINED BITE RED — original absent from queue and server ignored; native exit1':'LOCAL RECOVERY BITE RED — stale local generation accepted; native exit1');console.log('LOCAL RECOVERY BITE RESTORED PASS — native exit0; SHA256 '+crypto.createHash('sha256').update(original).digest('hex'));console.log('Evidence '+out);process.exit(0);
+ console.log(terminal?'LOCAL TERMINAL BITE RED — contradictory local terminal disposition accepted; native exit1':rejection?'LOCAL REJECTION BITE RED — contradictory local rejection accepted; native exit1':retained?'LOCAL RETAINED BITE RED — original absent from queue and server ignored; native exit1':'LOCAL RECOVERY BITE RED — stale local generation accepted; native exit1');console.log('LOCAL RECOVERY BITE RESTORED PASS — native exit0; SHA256 '+crypto.createHash('sha256').update(original).digest('hex'));console.log('Evidence '+out);process.exit(0);
 }
 if(process.argv.includes('--bite')||process.argv.includes('--profile-bite')||process.argv.includes('--ordinal-bite')||process.argv.includes('--transport-bite')||process.argv.includes('--timer-bite')){
  const timerBite=process.argv.includes('--timer-bite'),transportBite=process.argv.includes('--transport-bite')||timerBite,ordinalBite=process.argv.includes('--ordinal-bite'),profileBite=process.argv.includes('--profile-bite')||ordinalBite;
