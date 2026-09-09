@@ -87,7 +87,20 @@ function createClient(config) {
   const ownOps = () => Array.from(model.ops.values()).filter((o) => o.device_id === model.deviceId && !model.rejected.has(o.op_id)).sort((a, b) => a.device_seq - b.device_seq);
   const tombstoned = () => new Set(ownOps().filter((o) => o.kind === "tombstone").map((o) => o.target_op_id));
   const reducedThroughW = (op) => { const d = model.dispositions.get(op.op_id); return !!(d && d.status === "ACCEPTED" && Number.isInteger(d.athlete_log_seq) && d.athlete_log_seq <= model.W); };
-  const folded = (op) => { const pt = model.planTxns.get(op.op_id); return !!(pt && pt.committed && pt.effective && pt.received); };
+  // A complete source projection already contains these admitted transactions,
+  // including effects later superseded by another device. Replaying a retained
+  // applied/consented record would override that source on fresh boot. Membership
+  // alone cannot suppress an unsent edit: require its exact accepted original
+  // through the locally held frontier. Snapshot authentication remains upstream.
+  function coveredBySnapshot(opId, txnId) {
+    const op = model.ops.get(opId), d = model.dispositions.get(opId), s = model.snapshot;
+    return !!(s && s.plan && Array.isArray(s.planTransactionIds) && typeof txnId === "string" &&
+      op && op.kind === "plan-mutation" && op.requested_transaction_id === txnId &&
+      d && d.op_id === opId && d.status === "ACCEPTED" && d.canonical_content_commitment === op.canonical_content_commitment &&
+      Number.isSafeInteger(d.athlete_log_seq) && d.athlete_log_seq > 0 && d.athlete_log_seq <= model.W &&
+      s.planTransactionIds.includes(txnId));
+  }
+  const folded = (op) => { const pt = model.planTxns.get(op.op_id); return coveredBySnapshot(op.op_id, op.requested_transaction_id) || !!(pt && pt.committed && pt.effective && pt.received); };
   function reads() {
     const dead = tombstoned(); const corrections = ownOps().filter((o) => o.kind === "correction");
     return ownOps().filter((o) => o.kind === "fact" && o.class === "reading" && !dead.has(o.op_id)).map((o) => { let lb = o.payload && o.payload.lb && o.payload.lb.value; for (const c of corrections) if (c.target_op_id === o.op_id && c.payload && c.payload.replacement_fields && c.payload.replacement_fields.lb) lb = c.payload.replacement_fields.lb.value; return { date: o.effective.local_date, lb, op_id: o.op_id }; });
@@ -99,8 +112,8 @@ function createClient(config) {
   function acceptedPlan() {
     const s = model.snapshot; const lp = model.localPlan; let out = null;
     if (s && s.plan) out = { plan: Object.assign({}, s.plan), provenance: s.planProvenance || null, version: s.planVersion || null, transactions: (s.planTransactionIds || []).slice() };
-    for (const a of model.appliedPlan) { if (!out) out = { plan: {}, provenance: "authored", version: a.op_id, transactions: [] }; out.plan = Plan.project(out.plan, a.members); out.version = a.txn_id || a.op_id; out.transactions.push(a.txn_id || a.op_id); out.provenance = a.provenance || out.provenance; }
-    if (lp) { if (!out) out = { plan: {}, provenance: null, version: null, transactions: [] }; out.plan = Plan.project(out.plan, lp.members); out.provenance = lp.provenance; out.version = lp.version || lp.txn_id; out.transactions.push(lp.txn_id); }
+    for (const a of model.appliedPlan) { if (coveredBySnapshot(a.op_id, a.txn_id)) continue; if (!out) out = { plan: {}, provenance: "authored", version: a.op_id, transactions: [] }; out.plan = Plan.project(out.plan, a.members); out.version = a.txn_id || a.op_id; out.transactions.push(a.txn_id || a.op_id); out.provenance = a.provenance || out.provenance; }
+    if (lp && !coveredBySnapshot(lp.op_id, lp.txn_id)) { if (!out) out = { plan: {}, provenance: null, version: null, transactions: [] }; out.plan = Plan.project(out.plan, lp.members); out.provenance = lp.provenance; out.version = lp.version || lp.txn_id; out.transactions.push(lp.txn_id); }
     return out;
   }
   function livePlan() {
@@ -227,7 +240,7 @@ function createClient(config) {
     /* face */
     face: face.face, faceLabel: sync.faceLabel, stateOf: face.governing, conflictFace: face.conflictFace,
     plan: () => (acceptedPlan() ? livePlan() : null),
-    acceptedPlanTransactions: () => { const out = []; const s = model.snapshot; if (s && s.plan) out.push({ source: "authority", version: s.planVersion || null, provenance: s.planProvenance || null, plan: Object.assign({}, s.plan) }); for (const a of model.appliedPlan) out.push({ txn_id: a.txn_id, provenance: a.provenance, plan: Plan.project({}, a.members), op_id: a.op_id }); if (model.localPlan) out.push({ txn_id: model.localPlan.txn_id, provenance: model.localPlan.provenance, plan: Plan.project({}, model.localPlan.members), op_id: model.localPlan.op_id }); return out; },
+    acceptedPlanTransactions: () => { const out = []; const s = model.snapshot; if (s && s.plan) out.push({ source: "authority", version: s.planVersion || null, provenance: s.planProvenance || null, plan: Object.assign({}, s.plan) }); for (const a of model.appliedPlan) if (!coveredBySnapshot(a.op_id, a.txn_id)) out.push({ txn_id: a.txn_id, provenance: a.provenance, plan: Plan.project({}, a.members), op_id: a.op_id }); if (model.localPlan && !coveredBySnapshot(model.localPlan.op_id, model.localPlan.txn_id)) out.push({ txn_id: model.localPlan.txn_id, provenance: model.localPlan.provenance, plan: Plan.project({}, model.localPlan.members), op_id: model.localPlan.op_id }); return out; },
     proposals: () => { const out = face.layer2().proposals.slice(); if (!acceptedPlan() && !model.explicitNoPlan) { const offer = Plan.initialPlanOffer(sessionFacts()); if (offer) out.push(offer); } return out; },
     acceptInitialPlan: (choiceId) => {
       if (choiceId === "no-plan") { const r = store.transaction((t) => { t.put("plan", "choice", { id: "no-plan", at: clock.now() }); }); if (r.ok) model.explicitNoPlan = true; return { acknowledged: r.ok, choice: choiceId }; }
