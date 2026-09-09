@@ -33,6 +33,7 @@ try{
  const env={...process.env,NODE_OPTIONS:'',NODE_V8_COVERAGE:'',TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',ENGINE_MAIN:bundles.main,ENGINE_OLD:bundles.old,EARNED_CLIENT_DIR:path.join(root,'rebuild/client')};
  for(const key of ['PL_ENGINE','PL_LAWS_LIB','CONFORM_MUTATE_LAWS','CONFORM_ADAPTERS_DIR'])delete env[key];
  child('focused',['--test','--test-reporter=tap','rebuild/m4/spec/load-write.test.cjs'],env,'# pass 3');
+ child('browser-package',['--test','--test-reporter=tap',...['model','view','package'].map(n=>'rebuild/m3/w7-preview/test/'+n+'.test.cjs')],env,'# pass 19');
  child('profile-refusals',['--test','--test-reporter=tap','rebuild/m4/spec/load-write-profile.test.cjs'],env,'# pass 8');
  // Every affected source/witness check is also public CI evidence. The full
  // inherited cases/mutants run in FULL; their omission here remains explicit.

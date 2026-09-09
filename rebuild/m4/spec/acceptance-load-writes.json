@@ -73,10 +73,11 @@
     "rebuild/engine/writers.cjs": "008d92961d210ed07850ea881bd3a9f01ee873c1958f8b7d3a47506342c96bf5",
     "rebuild/m3/w7-preview/browser-engine.cjs": "9b0ae9234e11127115db2e99e6b1809544aa3a531fa3c204df5f89324e0755fb",
     "rebuild/m3/w7-preview/fixtures.cjs": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+    "rebuild/m3/w7-preview/build.mjs": "d6c5253c067441e8578d1765757c7cb3ecdc8d1f34b95728b2dbecb54b21fab5",
     "rebuild/engine/earn.cjs": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
   },
   "executionPins": {
-    "rebuild/m4/spec/load-write-source.cjs": "8be294f29fa4f3f4378bb99a1e19005b8854888c280823c2f5ff59057695408c",
+    "rebuild/m4/spec/load-write-source.cjs": "77bd6b7116f42b7e676473ec00cb57a13b86ec4d6daa30aa3514f90ad01a24d0",
     "rebuild/m4/spec/load-write-reference.cjs": "dfc836b34e5d48b06105fdf097db6e6154a25e145220d47569bab269ea6778df",
     "rebuild/m4/spec/load-write-expectations.cjs": "f7dc11d9207809d1c3fb73621007713f2758b73e5fe4883e3eed2031b1b9484e",
     "rebuild/m4/spec/load-write-traces.cjs": "d8003bcc37d9d2f25fc52845d047871c395c251a572907f39be196e19bc9859c",
@@ -87,11 +88,14 @@
     "rebuild/m4/spec/load-write-direct.cjs": "1514683b2b38605574665e14000ed0a8dbe5258540452c9561b86bd1ae483a55",
     "rebuild/m4/spec/load-write-parent-cases.cjs": "e1e55ee0251b48e188d13f49e254a08798cd5e3541c831459be9349a79043131",
     "rebuild/m4/spec/load-write-inherited-carriers.cjs": "687fffd15080964da3c29a6cea9e7a0c2bb144adae3091c0967ae74ad603400c",
-    "rebuild/m4/spec/load-write-profile.cjs": "dd585bd99382ad66c02929b0c1e9f4efd10291bb02682b255d871b09bebf1cd8",
+    "rebuild/m4/spec/load-write-profile.cjs": "322b31363769a38683d889be537ed9632f499e94385e46b720883e3eb40316fa",
     "rebuild/m4/spec/load-write-second.cjs": "58f9edb2985c4f90b8f1f62e15e69eca709e242b50e293e2781332fccc90c204",
-    "rebuild/m4/spec/load-write-package.cjs": "568cba144a34aa9324aae9e5956a85a705e7f3d43b71b50661a6eebc9b7fb9c3",
+    "rebuild/m4/spec/load-write-package.cjs": "c3c5239503985c2bbbff91ae8ee0c2ef6bc1d6947cdf7e033c3a45e95739e67d",
     "rebuild/m4/spec/load-write.test.cjs": "c55e9438e0a016f2c1c9ab40897c936167c92dd118283ea43df1f3dc641d35cc",
     "rebuild/m4/spec/load-write-profile.test.cjs": "d0a262dc92a3ae63596ecf831916c073e1e07fbaea55ee2bc6edb15c94085652",
+    "rebuild/m3/w7-preview/test/model.test.cjs": "65ba869ce3bd66f71b463fc9f2c61e98aba8081a59d4ccc82b9cc3a063b424e8",
+    "rebuild/m3/w7-preview/test/view.test.cjs": "2788a2d97d92c028337739bb6e964bc315ed7702ba1350aaf131e5b7d5ce97a1",
+    "rebuild/m3/w7-preview/test/package.test.cjs": "e755ddba975e0d9d64f889a23f2faf1f67510dc16fc0226755e830ab0824942c",
     ".github/workflows/rebuild.yml": "1b90a2d86213329c9ed13f82e2d8f5ac63ca08d5bd7f4c5261b450ce8862e9f3"
   }
 }
