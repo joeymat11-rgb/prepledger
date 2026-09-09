@@ -13,6 +13,7 @@ const modules = [
   require("../../engine/policy.cjs"),
   require("../../engine/today.cjs"),
   require("../../engine/volume.cjs"),
+  require("../../engine/earn.cjs"),
 ];
 
 function createBrowserEngine({ clock } = {}) {

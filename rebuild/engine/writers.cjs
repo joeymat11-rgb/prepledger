@@ -259,7 +259,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
     /* debut lands */
     if (q && en.isDebutNow) {
       q.done = true; q.state = "ESTABLISH";
-      if (q.newW != null) { ex.w = q.newW; ex.wAt = clock.nowISO(); }   /* SPLIT: the debut-land writer stamps */
+      if (q.newW != null) { ex.w = q.newW; ex.wAt = clock.nowISO(); } if (Array.isArray(q.newWSets)) ex.wSets = q.newWSets.slice();   /* SPLIT: the debut-land writer stamps */
       if (ex.id === "hack" && ex.pendingThird) { ex.pendingThird = false; ex.sets = 3; ex.setsAt = clock.nowISO(); }
       ex.last = r.slice(); ex.own = false; ex.std = null;
       q.gate = `Debuted ${r.join(",")}`;
@@ -397,7 +397,7 @@ function completeSession(state, iso, entries, slp, extras = {}) {
   /* `pace` — see PACE_NOTE. Written on every session from here on; deliberately
      NOT back-filled onto older ones, because there is nothing to back-fill and
      law 12 forbids a field that buys no attribution. Absent reads as unknown. */
-  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: ex2 && typeof ex2.w === "number" ? ex2.w : null, ...(e.wKey != null ? { wKey: e.wKey } : {}), ...(e.og != null ? { og: e.og } : {}) }; }), at: clock.nowMs(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [], pace: extras.pace === "rushed" || extras.pace === "normal" ? extras.pace : null };
+  s.sessionLog[iso] = { entries: entries.map((e) => { const ex2 = s.exercises.find((x) => x.id === e.id); return { id: e.id, reps: e.reps, rir: e.rir ?? null, rirSets: buildRirSets(e), w: typeof e.w === "number" ? e.w : ex2 && typeof ex2.w === "number" ? ex2.w : null, ...(e.wKey != null ? { wKey: e.wKey } : {}), ...(e.og != null ? { og: e.og } : {}) }; }), at: clock.nowMs(), note: extras.note || "", niggles, dips: dipCount, skipped: extras.skipped || [], pace: extras.pace === "rushed" || extras.pace === "normal" ? extras.pace : null };
   if (extras.pace === "rushed") push("RUSHED SESSION — LOGGED AS SUCH", "reps still count; this day cannot count toward a stall, because short rest lowers volume load on the later sets");
   if ((extras.skipped || []).length) push("SKIPPED — " + extras.skipped.map((k) => { const ex3 = exById(s, k.id); return ex3 ? ex3.n : k.id; }).join(", "), "your call, on the record — zero phantom reps, nothing counted");
   const cutoff = isoOf(new Date(mk(iso).getTime() - 21 * DAY));
@@ -2292,7 +2292,7 @@ function applyAgentProposal(state, ap, tISO) {
     if (ex7) { ex7.sets = Math.max(1, (ex7.sets || 1) + ap.dir); ex7.setsAt = clock.nowISO();   /* AUDIT G — every sets mutator stamps, or the merge reverts the change */ s.feed.unshift({ d: tISO, at: clock.nowISO(), t: `VOLUME ${ap.dir > 0 ? "+1" : "−1"} — ${ap.mg.toUpperCase()} via ${ex7.n} (now ${ex7.sets} sets)`, how: "the volume ledger proposed, you consented — two weeks of data before this muscle is revisited" }); }
   } else if (ap.kind === "reset" && ap.exId && ap.newW) {
     const ex3 = s.exercises.find((x) => x.id === ap.exId);
-    if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.wAt = clock.nowISO(); ex3.last = null; s.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); }
+    if (ex3) { const oldW = ex3.w; ex3.w = ap.newW; ex3.wAt = clock.nowISO(); if (Array.isArray(ex3.wSets) && typeof oldW === "number") ex3.wSets = ex3.wSets.map(w => w + ex3.w - oldW); ex3.last = null; s.feed.unshift({ d: tISO, t: "RESET APPLIED — " + ex3.n + " " + oldW + " → " + ap.newW, how: "3-session stall, evidence-based back-off, your consent — rebuild starts next session" }); }
   } else if (ap.kind === "trial") {
     const rec = ap.custom ? { custom: ap.custom, started: tISO } : { tplId: ap.tplId, started: tISO };
     s.trials = [...(s.trials || []), rec];

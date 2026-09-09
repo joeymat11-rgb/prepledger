@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "packageId": "M2-LOAD-WRITES",
+  "sourceBase": "28ff3be3a0c47fa76b642015ac3757da5c76548c",
+  "parent": {
+    "artifact": "rebuild/conform/v4/postfix/acceptance-step-efficacy.json",
+    "sha256": "ff164b8620ee0ab7851e7d9283b32d1b330b261fad1f02178d4266131cfcabb1",
+    "envelope": "rebuild/conform/v4/postfix/manifest-step-efficacy.json",
+    "envelopeSha256": "7c78a3b85cb8001bd9cf3c0076faa410a203e66cfdd9cde6598e3617a9c648ec"
+  },
+  "requiredIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "matrix": [
+    {
+      "mode": "frozen",
+      "day": "2026-09-03"
+    },
+    {
+      "mode": "native",
+      "day": "2026-09-03"
+    },
+    {
+      "mode": "frozen",
+      "day": "2026-09-07"
+    },
+    {
+      "mode": "native",
+      "day": "2026-09-07"
+    }
+  ],
+  "gates": [
+    "migrate-source",
+    "merge-source",
+    "writers-source",
+    "witnesses-1",
+    "witnesses-2",
+    "witnesses-3",
+    "witnesses-4",
+    "witnesses-5",
+    "witnesses-6",
+    "witnesses-7",
+    "migrate-differential",
+    "merge-differential",
+    "writers-differential",
+    "merge-laws",
+    "migrate-full",
+    "second-gate",
+    "conformance",
+    "selftest",
+    "strict"
+  ],
+  "product": {
+    "rebuild/engine/constants.cjs": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+    "rebuild/engine/dates.cjs": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+    "rebuild/engine/energy.cjs": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+    "rebuild/engine/index.cjs": "2f6e35e6499845510a3ed6bd5f51866da29029435a5a0377502ccfcdb1fc97eb",
+    "rebuild/engine/merge.cjs": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+    "rebuild/engine/migrate.cjs": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+    "rebuild/engine/oracle-shim.cjs": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+    "rebuild/engine/plan.cjs": "2b834933ce0b93164064a7be36462f68683eb48a31d57c17a41cd81ed32c45b7",
+    "rebuild/engine/policy.cjs": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+    "rebuild/engine/progression.cjs": "adeb1b103260278452bd840185d7dfecd2642c4744955bf06bb0b495e02f9d4e",
+    "rebuild/engine/seed.cjs": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+    "rebuild/engine/sleep.cjs": "2dde4a082ba72d61f0c1cfa3c98fa8c9038d639ce5349078023874ae29cc0407",
+    "rebuild/engine/today.cjs": "af4c65d2998c2fd588d6251a220262db5395e7ca5410ad36fe314826a04cbe0d",
+    "rebuild/engine/volume.cjs": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+    "rebuild/engine/writers.cjs": "008d92961d210ed07850ea881bd3a9f01ee873c1958f8b7d3a47506342c96bf5",
+    "rebuild/m3/w7-preview/browser-engine.cjs": "9b0ae9234e11127115db2e99e6b1809544aa3a531fa3c204df5f89324e0755fb",
+    "rebuild/m3/w7-preview/fixtures.cjs": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+    "rebuild/engine/earn.cjs": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
+  },
+  "executionPins": {
+    "rebuild/m4/spec/load-write-source.cjs": "8be294f29fa4f3f4378bb99a1e19005b8854888c280823c2f5ff59057695408c",
+    "rebuild/m4/spec/load-write-reference.cjs": "dfc836b34e5d48b06105fdf097db6e6154a25e145220d47569bab269ea6778df",
+    "rebuild/m4/spec/load-write-expectations.cjs": "f7dc11d9207809d1c3fb73621007713f2758b73e5fe4883e3eed2031b1b9484e",
+    "rebuild/m4/spec/load-write-traces.cjs": "d8003bcc37d9d2f25fc52845d047871c395c251a572907f39be196e19bc9859c",
+    "rebuild/m4/spec/load-write-legacy.cjs": "569fd983d4860033cc0266515598503c39cd7ec27258aee6f454851b57256090",
+    "rebuild/m4/spec/load-write-witnesses.cjs": "626ec3c9af037b27439231ae45cb363683aadb07380ae21599a43ccac1f5893e",
+    "rebuild/m4/spec/load-write-source-carriers.cjs": "a197c760b735c805833a3bb39bac78ad0c2d8d36aba31ab7cb37df00aa6c7305",
+    "rebuild/m4/spec/load-write-cases.cjs": "93c9c165e7085a73e686192f812190b53810c6a1d6f180a529b9b649307984ae",
+    "rebuild/m4/spec/load-write-direct.cjs": "1514683b2b38605574665e14000ed0a8dbe5258540452c9561b86bd1ae483a55",
+    "rebuild/m4/spec/load-write-parent-cases.cjs": "e1e55ee0251b48e188d13f49e254a08798cd5e3541c831459be9349a79043131",
+    "rebuild/m4/spec/load-write-inherited-carriers.cjs": "687fffd15080964da3c29a6cea9e7a0c2bb144adae3091c0967ae74ad603400c",
+    "rebuild/m4/spec/load-write-profile.cjs": "dd585bd99382ad66c02929b0c1e9f4efd10291bb02682b255d871b09bebf1cd8",
+    "rebuild/m4/spec/load-write-second.cjs": "58f9edb2985c4f90b8f1f62e15e69eca709e242b50e293e2781332fccc90c204",
+    "rebuild/m4/spec/load-write-package.cjs": "568cba144a34aa9324aae9e5956a85a705e7f3d43b71b50661a6eebc9b7fb9c3",
+    "rebuild/m4/spec/load-write.test.cjs": "c55e9438e0a016f2c1c9ab40897c936167c92dd118283ea43df1f3dc641d35cc",
+    "rebuild/m4/spec/load-write-profile.test.cjs": "d0a262dc92a3ae63596ecf831916c073e1e07fbaea55ee2bc6edb15c94085652",
+    ".github/workflows/rebuild.yml": "1b90a2d86213329c9ed13f82e2d8f5ac63ca08d5bd7f4c5261b450ce8862e9f3"
+  }
+}
