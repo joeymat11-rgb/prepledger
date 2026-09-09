@@ -1,5 +1,13 @@
 # ASTRA — owner workout contract preparation
 
+## Current v0.50 checkpoint — recovery capacity qualifies locally
+
+Docs-only successor to61c703e8256a0155b0a31b4dd81a8c7b34082aaa; no M4 reader/engine change or new acceptance. R1 published34200f579dbade13c29f68e4a1375ac98c4d7ff3 now passes the original default rows-route memory workload: four complete attempts,159requests,74,900,814B against100,663,296B,zero violations. Seventy focused tests, actual HTTP9/9, original AUTH-D1/HTTP-190,99-law conformance, rig185W1/W2, SELFTEST and strict3072 PASS on those bytes. An actual missing-final-decoder-flush bite fails and is restored byte-for-byte. R1 REPORT-R1-ASTRA and owned-row-validation-resource.json are the exact public evidence/source pins; this report does not rerun or independently accept them.
+
+BRIEF-OWNER-WORKOUTv0.50 updates the two stale capacity paragraphs: stop allocation changes and proceed through existing affected independent review/integration, then actual staged recovery/activation, import and complete-workout joins. It retains the full PRODUCT-GOALv3/P1–P6, all imported-baseline mappings, the unchanged accepted numeric engine/artifact, and broader explicit plan. Earlier server failures stay preserved; one new local rows qualification is not a universal bound, old-route pass, W6 memory, full recovery, private/science/phone approval. Numericengine integrator receipt and all applicable custody/qualification/consent/device gates still apply. No new provider/funding/model/helper/schedule/owner action.
+
+Validation: docs-only diff; original goal SHA076a2b7eb32d7d04be022dd24679d6f8132ff74b67e5c7249e05282394d83e7c reverified unchanged. NEXT: existing affected R1 review/integration, then retained product join; no optional profiler-driven prerelease optimization. Brief/checkpoint reflect the measured progress without narrowing the complete useful app to a logger or requiring every future capability before first use.
+
 ## Current v0.49 continuation — imported-baseline and post-activation reader join
 
 The retained graph step now accepts an internal import generation/activation reference and proves every native Start follows that accepted activation through actual causal ancestry. It refuses later-log/date-only assertions and unaccepted activation. The selected reader joins exact original legacy record objects to those ordered native records, bound to matching generation/activation and the same shared imported-log reference. Existing legacy ordering within its baseline is preserved. No old scalar is expanded into invented per-set values; native/legacy pairs do not manufacture a repeat. Full original input bytes stay unchanged, and a whole-view clone retains the required internal shared reference.
