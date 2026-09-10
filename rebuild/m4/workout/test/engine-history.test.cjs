@@ -65,6 +65,23 @@ test('actual stored arbitrary slot IDs reach the proposed real reader with exact
  assert.equal(E.rirReceipt(entry),'RIR at least 3→1');assert.equal(facts.progression_eligible,false);
  assert.deepEqual(entry.slots.map(s=>s.fact.source_op_id),f.setIds);
 });
+
+test('shared nested edits and corrected completion reach the same actual reopened engine reader',async t=>{
+ const f=await fixture();t.after(()=>f.repo.close());const E=engine(),original=await f.map(),capture=structuredClone(original.sessions[0].capture);
+ const correct=(target,fields,parents)=>f.client.execute('workout',{action:'correct',input:{target_op_id:target,lift_lineage_id:'demo-press',replacement_fields:fields,causal_parents:parents||[]}});
+ const one=await correct(f.setIds[0],{load:{value:10,unit:'lb'}});assert(one.acknowledged,one.code);
+ const two=await correct(f.setIds[0],{load:{value:20,unit:'lb'}},[one.op_id]);assert(two.acknowledged,two.code);
+ const nested=await correct(one.op_id,{replacement_fields:{load:{value:30,unit:'lb'}}},[two.op_id]);assert(nested.acknowledged,nested.code);
+ let facts=await f.map(),entry=facts.sessions[0].record.entries[0];assert.equal(E.sessionScore(entry),585);assert.equal(entry.slots[0].fact.original.load.value,40);assert(entry.slots[0].fact.edit_op_ids.includes(nested.op_id));
+ const removed=await f.client.execute('workout',{action:'remove',input:{target_op_id:two.op_id,lift_lineage_id:'demo-press',reason:'Mistaken edit',causal_parents:[nested.op_id]}});assert(removed.acknowledged,removed.code);
+ facts=await f.map();assert.equal(E.sessionScore(facts.sessions[0].record.entries[0]),665);assert.deepEqual(facts.sessions[0].capture,capture);
+ const date=await f.client.execute('workout',{action:'correct',input:{target_op_id:f.start.op_id,replacement_fields:{effective:{local_date:'2026-09-02',local_time:'12:00',utc_offset:'-04:00'}}}});assert(date.acknowledged,date.code);
+ facts=await f.map();assert.equal(facts.sessions[0].effective.local_date,'2026-09-02');assert.deepEqual(facts.sessions[0].capture,capture);
+ const source=await f.source(),close=source.history.sessions[0].records.find(r=>r.operation.kind==='session-close').operation;
+ const unfinish=await f.client.execute('workout',{action:'remove',input:{target_op_id:close.op_id,reason:'Not finished'}});assert(unfinish.acknowledged,unfinish.code);
+ facts=await f.map();assert.equal(facts.sessions.length,0);assert.equal(facts.incomplete_sessions.length,1);assert.deepEqual(facts.incomplete_sessions[0].capture,capture);
+ assert.equal(facts.progression_eligible,false);
+});
 test('actual correction and removal reopen into reader accounting without compacting captured positions',async t=>{
  const f=await fixture({terminal:'skipped'});t.after(()=>f.repo.close());
  const p=await f.client.prepareWorkoutEdit({target_op_id:f.setIds[1]});assert(p.prepared,p.code);

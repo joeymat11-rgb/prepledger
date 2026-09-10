@@ -1,4 +1,10 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.70 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.71 (working implementation)
+
+## Current v0.71 actual shared edit/history candidate
+
+Message65 independently accepted the corrected9e14919 model/amendment, and APM accepted the exact W6/R1 pre-edit source boundary before this implementation. The SAME typed edit-values/edit-history modules now drive actual W6 stored history/projection/resume and M4 factual engine history. Shape/target relations admit the closed replacement variants, conditional rooted lift lineage and real effective domain, while recorded clear remains invalid. Original captures/operations remain unchanged. Accepted edits and unresolved pending effects are separate; nested changes retain original positions and removal restoration works. Corrected Start/Skip/Close inform resume and factual completion; removed Finish cannot unlock another Start. Full source-prefix/standing/context/token guards remain.
+
+Actual saved/reopened tests, signed accepted-tie witness, existing native journey, M4 reader and R1 admission pass; reports pin exact evidence. This is a local runtime candidate, not full schema/legacy/currentness/private/scientific qualification. Full C1–C4/issuance, legacy correspondence, extension/configured loads, source/current guidance and existing release/device/resource/integrator gates remain. Canonical EARNED-DELIVERY-STATUS.md remains the sole NEXT. Earlier version sections below are chronology.
 
 ## Current v0.70 retained workout presentation integration
 

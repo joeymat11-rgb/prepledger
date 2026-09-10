@@ -34,6 +34,11 @@ function orderWorkoutStarts(history, generation, {importAnchor} = {}) {
     if (!op || typeof op.op_id !== 'string' || op.kind !== 'session-start' || starts.has(op.op_id) ||
         !ops[op.op_id] || JSON.stringify(ops[op.op_id]) !== JSON.stringify(op)) fail('WORKOUT_ORDER_START_INVALID');
     if (row.status === 'rejected') continue; // Original stays visible in factual history.
+    if(session.projection?.start_record){
+      const current=session.projection.start_record;
+      if(current.included===false)continue;
+      if(current.included!==true||current.issues.length)fail('WORKOUT_ORDER_START_INTERPRETATION_REQUIRED');
+    }
     if (!['accepted-through-frontier', 'stored-on-this-device'].includes(row.status)) fail('WORKOUT_ORDER_STATUS_UNRESOLVED');
     if (athlete === undefined) athlete = op.athlete_id;
     if (!athlete || op.athlete_id !== athlete) fail('WORKOUT_ORDER_SCOPE_INVALID');

@@ -3,6 +3,7 @@
 // boundary. Install only with the actual projector and a trusted resolver of
 // the ORIGINAL captured plan inputs. The host owns source token/context checks.
 const {orderWorkoutStarts}=require('./engine-order.cjs');
+const {normalizeWorkoutHistory}=require('./edit-history.cjs');
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const known=row=>['accepted-through-frontier','stored-on-this-device'].includes(row?.status);
 const text=x=>typeof x==='string'&&x.length>0;
@@ -13,6 +14,13 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   if(!Number.isSafeInteger(sourceRevision)||sourceRevision<1)fail('WORKOUT_ENGINE_SOURCE_REVISION_REQUIRED');
   const order=orderWorkoutStarts(history,generation,{importAnchor}),ops=generation.collections.ops||{};
   const accepted=new Map(Object.values(generation.collections.receipts||{}).filter(r=>r.seq<=history.frontier).map(r=>[r.op_id,r.seq]));
+  const rows=Object.values(ops).map(op=>{
+   const seq=accepted.get(op.op_id),rejected=generation.collections.rejected?.[op.op_id];
+   if(rejected&&seq!==undefined)fail('WORKOUT_ENGINE_STATUS_DISAGREEMENT');
+   const status=rejected?'rejected':seq!==undefined?'accepted-through-frontier':op.device_id===deviceId&&Object.hasOwn(generation.collections.outbox||{},op.op_id)?'stored-on-this-device':'stored-status-unresolved';
+   return {operation:op,status,...(seq!==undefined?{receipt_sequence:seq}:{})};
+  });
+  const normalized=normalizeWorkoutHistory(rows,history.frontier),interpreted=new Map(normalized.records.map(r=>[r.id,r])),rowById=new Map(rows.map(r=>[r.operation.op_id,r]));
   const all=new Set(),byStart=new Map();
   // Reject a detached/edited or incomplete view rather than accepting renderer
   // values. Signature and complete-generation authentication remain upstream.
@@ -24,21 +32,27 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
     if(rejected&&seq!==undefined)fail('WORKOUT_ENGINE_STATUS_DISAGREEMENT');
     const status=rejected?'rejected':seq!==undefined?'accepted-through-frontier':op.device_id===deviceId&&Object.hasOwn(generation.collections.outbox||{},op.op_id)?'stored-on-this-device':'stored-status-unresolved';
     if(row.status!==status||(seq!==undefined?row.receipt_sequence!==seq:Object.hasOwn(row,'receipt_sequence')))fail('WORKOUT_ENGINE_STATUS_DISAGREEMENT');
-    if(row!==session.start){const target=['correction','tombstone'].includes(op.kind)?ops[op.target_op_id]:op;
-     if(target?.session_start_op_id!==session.start.operation.op_id)fail('WORKOUT_ENGINE_SESSION_DISAGREEMENT');}
+    if(row!==session.start){const target=ops[interpreted.get(op.op_id)?.root_id];
+     if((target?.kind==='session-start'?target.op_id:target?.session_start_op_id)!==session.start.operation.op_id)fail('WORKOUT_ENGINE_SESSION_DISAGREEMENT');}
     all.add(op.op_id);
    }
-   if(!same(session.projection,projectWorkoutRecords(session,ops)))fail('WORKOUT_ENGINE_PROJECTION_DISAGREEMENT');
+   if(!same(session.projection,projectWorkoutRecords(session,ops,{normalized})))fail('WORKOUT_ENGINE_PROJECTION_DISAGREEMENT');
    byStart.set(session.start.operation.op_id,session);
   }
-  for(const [id,op]of Object.entries(ops))if(op.class==='session'&&!all.has(id))fail('WORKOUT_ENGINE_HISTORY_INCOMPLETE');
+  for(const row of history.other_records||[]){
+   const op=row.operation,expected=rowById.get(op?.op_id);
+   if(!expected||all.has(op.op_id)||!same(row.operation,expected.operation)||row.status!==expected.status||row.receipt_sequence!==expected.receipt_sequence)fail('WORKOUT_ENGINE_HISTORY_DISAGREEMENT');
+   if(interpreted.has(op.op_id))fail('WORKOUT_ENGINE_LEGACY_OR_UNASSOCIATED_MAPPING_REQUIRED');
+   all.add(op.op_id);
+  }
+  for(const id of interpreted.keys())if(!all.has(id))fail('WORKOUT_ENGINE_HISTORY_INCOMPLETE');
   const sessions=[],incomplete=[];
   for(const id of order.start_ids){
    const session=byStart.get(id),start=session.start.operation,capture=session.original;
    if(!capture||!same(capture,start.prescription_capture))fail('WORKOUT_ENGINE_CAPTURE_REQUIRED');
    if(session.records.some(row=>row.status!=='rejected'&&!known(row)))fail('WORKOUT_ENGINE_RECORD_STATUS_UNRESOLVED');
    const completion=session.projection.close_records;
-   const completed=completion.length===1&&known(completion[0])&&['normal','early'].includes(completion[0].kind);
+   const completed=completion.length===1&&completion[0].included===true&&!completion[0].issues.length&&known(completion[0])&&['normal','early'].includes(completion[0].kind);
    const layout=resolveCapturedLayout({start:structuredClone(start),sourceRevision});
    if(!layout||layout.profile!=='earned/captured-lift-layout/v1'||!same(layout.producer,capture.producer)||!same(layout.basis,capture.basis)||
      !text(layout.correspondence_profile)||!Array.isArray(layout.slots)||layout.slots.length!==capture.slots.length)fail('WORKOUT_CAPTURE_LAYOUT_UNPROVEN');
@@ -66,11 +80,13 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
     const slot=slots.get(fact.logical_set_slot);if(!slot||slot.lift!==fact.lift_lineage_id)fail('WORKOUT_EXTRA_SLOT_MAPPING_REQUIRED');
     if(!facts.has(fact.logical_set_slot))facts.set(fact.logical_set_slot,[]);facts.get(fact.logical_set_slot).push(fact);
    }
-   for(const row of session.records){
-    const op=row.operation;if(op.kind!=='session-skip'||row.status==='rejected')continue;
-    const matching=[...slots.values()].filter(s=>s.lift===op.lift_lineage_id&&(op.skip_scope==='lift'||s.slot.logical_set_slot===op.logical_set_slot));
+   for(const row of session.projection.skip_records){
+    if(row.included===false)continue;
+    if(row.included!==true||row.issues.length)fail('WORKOUT_SKIP_INTERPRETATION_REQUIRED');
+    const op=row.current;
+    const matching=[...slots.values()].filter(s=>s.lift===row.lift_lineage_id&&(op.skip_scope==='lift'||s.slot.logical_set_slot===op.logical_set_slot));
     if(!matching.length)fail('WORKOUT_EXTRA_SLOT_MAPPING_REQUIRED');
-    for(const {slot}of matching){if(!skips.has(slot.logical_set_slot))skips.set(slot.logical_set_slot,[]);skips.get(slot.logical_set_slot).push(op.op_id);}
+    for(const {slot}of matching){if(!skips.has(slot.logical_set_slot))skips.set(slot.logical_set_slot,[]);skips.get(slot.logical_set_slot).push(row.source_op_id);}
    }
    for(const {slot}of slots.values()){
     const rows=facts.get(slot.logical_set_slot)||[],live=rows.filter(f=>f.included===true),removed=rows.filter(f=>f.included===false&&f.source_status!=='rejected'&&!f.issues.length);
@@ -86,7 +102,7 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
     else if(removed.length)slot.state='removed';
    }
    for(const entry of entries.values())entry.slots.sort((a,b)=>a.position-b.position);
-   const record={start_op_id:id,effective:structuredClone(start.effective),plan_basis:start.plan_basis,capture:structuredClone(capture),
+   const record={start_op_id:id,effective:structuredClone(session.projection.start_record.current.effective),plan_basis:start.plan_basis,capture:structuredClone(capture),
     completion_state:completed?'completed':completion.length?'unresolved':'open',completion_records:structuredClone(completion),
     source_record_ids:session.records.map(row=>row.operation.op_id),record:{entries:[...entries.values()]}};
    (completed?sessions:incomplete).push(record);
@@ -96,7 +112,7 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   // neither becomes a completed workout nor erases earlier completed facts.
   return {profile:'earned/workout-facts/v1',source_revision:sourceRevision,source_order:order,
    order:{...order,start_ids:sessions.map(s=>s.start_op_id)},sessions,incomplete_sessions:incomplete,
-   excluded_start_ids:history.sessions.filter(s=>s.start.status==='rejected').map(s=>s.start.operation.op_id),
+   excluded_start_ids:history.sessions.filter(s=>s.start.status==='rejected'||s.projection.start_record.included===false).map(s=>s.start.operation.op_id),
    interpretation:'captured-positions-and-factual-edits',progression_eligible:false};
  }
  return Object.freeze({project});

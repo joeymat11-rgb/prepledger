@@ -180,6 +180,7 @@ if (process.argv.includes('--bite')) {
   assert.equal(option, -1, '--bite cannot be combined with --candidate');
   const before = fs.readFileSync(originalModule), hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'earned-workout-shape-')), file = path.join(dir, 'schema.cjs');
+  fs.copyFileSync(path.join(__dirname,'../edit-values.cjs'),path.join(dir,'edit-values.cjs'));
   const needle = "return keys(payload, ['load', 'reps'], ['reserve'])";
   assert.equal(before.toString().split(needle).length, 2, 'Effective fault site changed');
   fs.writeFileSync(file, before.toString().replace(needle, "return !own(payload, 'reps') || keys(payload, ['load', 'reps'], ['reserve'])"));
