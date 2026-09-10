@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.71 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.72 (working implementation)
+
+## Current v0.72 actual legacy recorded-history integration
+
+APM accepted the exact shared legacy boundary and reached W6 host rendering/selection addition before edits. The same shared edit-history module now preserves supported schema1 quantities separately from unknown original prescription/context. Explicit-target causal direct edits compose; accepted concurrent, post-removal, nested/unsupported effects remain contained. Raw lift/slot and Close flags do not acquire schema2 meaning; reserve remains unknown. W6 actual host shows associated older records separately without current-split association or legacy controls. Seven signed durable cases, combined406/native65 and unchanged M4 reader/capture/order47 pass; conformance/selftest/strict pass. Existing report pins evidence. Qualified legacy/source correspondence, full schema/issuance/currentness and next prescription remain open; this is no private/scientific/release qualification. Existing immutable runtime review continues through Manager with a precise successor delta. Canonical EARNED-DELIVERY-STATUS.md remains the one NEXT.
 
 ## Current v0.71 actual shared edit/history candidate
 

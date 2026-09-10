@@ -1,5 +1,11 @@
 # ASTRA — owner workout contract preparation
 
+## Shared legacy recorded-history integration — September10
+
+Successor to9524515; W6 basef2e5594/R12e2ac5f. APM accepted the exact existing-module legacy scope and W6 reached host addition before product edits. The SAME edit-history.cjs is byte-identical in M4/W6, SHA9d29d72c069f090dc7c22259da12d1f20427b1ea49d77778443c33fafef34b4b. It interprets actual schema1 load/reps separately from missing capture/context, preserves unknown effort and raw lift/slot/end flags, and requires explicit target causality plus causal direct edit chains. Accepted order cannot resolve old concurrent edits; unsupported target effects remain attached and block only the affected root. No separate legacy fold, installed engine/schema/core/issuer/source or authority change.
+
+M4 actual reader/capture/order47 PASS (.tmp/legacy-history-engine-final.log). W6 actual T2 constructors/signed durable reopen7 PASS; first5 desired failures on previous runtime retained. Actual native host missing-history witness failed before rendering fix. Combined exact W6/R1 composition406/native65 PASS, including visible corrected legacy values/originals and unknown completion after encrypted page reopen,320px/200percent text and no extra Start/producer call. Conformance/selftest/strict PASS, with final source/log pins in W6 REPORT-W6-ASTRA.md and current delivery checkpoint. Earlier schema/core qualification retains its unchanged scope. These synthetic identities/issuer assumptions are explicit; genuine legacy-to-engine prescription correspondence remains unavailable, including missing original capture and source/currentness. No private/device/resource/integrator/release gate is claimed closed.
+
 ## Shared actual edit/history integration — September10
 
 Successor to3ecb8fc with W6 base48ddeeba/R1 base98c1405. Message65 independently accepted9e14919's bounded corrections/amendment; APM accepted the exact W6/R1 pre-edit implementation scope. Runtime acceptance remains pending. Briefv0.71, history-joinv0.3 and complete-schemav0.7 reconcile current candidate status without changing the full C1–C4/issuance/private/scientific requirements.
