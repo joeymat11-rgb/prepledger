@@ -129,6 +129,52 @@ test('actual admission WAITING drain is included in the bound post-frontier and 
   const state=f.state((await f.proof()).rows);assert.equal(state.frontier.W,2);
   assert.equal((await f.bridge.invokeScoped(subject,f.b.device_id,'disposition',['first',child.device_id,child.device_seq])).status,'ACCEPTED');
 });
+
+test('indexed source recovery checks actual bound records, drained prefix, rollback and immutable handles',async t=>{
+  const f=await fixture(t),s=await f.stage(),activation=f.intent(s),child=f.op(f.b,{parents:[activation.op_id]});
+  assert.equal((await f.bridge.invokeScoped(subject,f.b.device_id,'admit',['first',child])).status,'WAITING');
+  assert.equal((await f.send(f.request('activate',{source_id:s.sourceId,expected:s.expected,operation:activation}))).status,200);
+  const active=await f.current(),rollback=f.intent(s,'rollback',f.a,activation.op_id);
+  assert.equal((await f.send(f.request('rollback',{target_activation_id:activation.op_id,expected:active.frontier,operation:rollback}))).status,200);
+  const raw=(await f.proof()).rows,expected=f.state(raw),W=expected.frontier.W;
+  // Only this small synthetic test adapter collects rows. Product recovery
+  // uses its authenticated encrypted index and checks that same cut throughout.
+  const records=()=>raw.map(r=>({...r,value:C.parse(r.value)}));
+  function adapter(rows,assertStable=async()=>{},onGet=()=>{}){
+    return {W,assertStable,each:async(collection,visit)=>{for(const r of rows)if(r.collection===collection)await visit(r.row_id,structuredClone(r.value));},
+      get:async(collection,id)=>{await onGet(collection,id);return structuredClone(rows.find(r=>r.collection===collection&&r.row_id===id)?.value);}};
+  }
+  const reader=await S.validateIndexedSource(adapter(records()));
+  assert.deepEqual(await reader.selection(),{current:expected.current,frontier:expected.frontier});
+  assert.deepEqual(await reader.readMaterial(s.sourceId),s.material);
+  const copy=await reader.selection();copy.current.source_id='caller-changed';copy.frontier.W=900;
+  const content=await reader.readMaterial(s.sourceId);content.source_json='{"caller":"changed"}';
+  assert.deepEqual(await reader.selection(),{current:expected.current,frontier:expected.frontier});
+  assert.deepEqual(await reader.readMaterial(s.sourceId),s.material,'Caller changes cannot alter indexed originals');
+  const sourceRow=(rows,id)=>rows.find(r=>r.collection===S.COLLECTION&&r.row_id===id).value;
+  const cases=[
+    ['missing selected chunk','SOURCE_INCOMPLETE',rows=>rows.filter(r=>r.collection!==S.COLLECTION||r.row_id!==S.id('chunk',s.sourceId,0))],
+    ['changed source chunk','SOURCE_CHUNK_DIGEST',rows=>{const c=sourceRow(rows,S.id('chunk',s.sourceId,0)),bytes=C.decode64(c.data_b64);bytes[5]^=1;c.data_b64=C.encode64(bytes);return rows;}],
+    ['changed component commitment','SOURCE_COMPONENT_DIGEST',rows=>{sourceRow(rows,S.id('manifest',s.sourceId)).manifest.component_digests.source_json=h;return rows;}],
+    ['changed original prefix','SOURCE_FRONTIER',rows=>{sourceRow(rows,S.id('manifest',s.sourceId)).manifest.basis.log_digest=h;sourceRow(rows,S.id('selection',activation.op_id)).before.log_digest=h;return rows;}],
+    ['changed drained prefix','SOURCE_FRONTIER',rows=>{sourceRow(rows,S.id('selection',activation.op_id)).after.log_digest=h;return rows;}],
+    ['changed rollback target','SOURCE_INTENT',rows=>{sourceRow(rows,S.id('selection',rollback.op_id)).target_activation_id=rollback.op_id;return rows;}],
+    ['missing issuing device','SOURCE_INTEGRITY',rows=>rows.filter(r=>r.collection!=='deviceIssuance')],
+    ['different accepted original','SOURCE_INTEGRITY',rows=>{rows.find(r=>r.collection==='log'&&r.row_id==='1').value.op.payload.interval.end='2026-09-05';return rows;}],
+  ];
+  for(const [name,code,alter]of cases)await t.test(name,async()=>{
+    await assert.rejects(S.validateIndexedSource(adapter(alter(records()))),{code},name);
+  });
+  let current=true,changeOnRead=false;
+  const stable=async()=>{if(!current)C.fail('RECOVERY_STAGE_CHANGED');};
+  const guarded=await S.validateIndexedSource(adapter(records(),stable,async(collection,id)=>{
+    if(changeOnRead&&collection===S.COLLECTION&&id===S.id('chunk',s.sourceId,0))current=false;
+  }));
+  changeOnRead=true;
+  await assert.rejects(guarded.readMaterial(s.sourceId),{code:'RECOVERY_STAGE_CHANGED'},'Changed cut during indexed material read refuses');
+  await assert.rejects(guarded.selection(),{code:'RECOVERY_STAGE_CHANGED'},'Stale handle cannot expose selection');
+  await assert.rejects(S.validateIndexedSource(adapter(records(),stable)),{code:'RECOVERY_STAGE_CHANGED'},'Retired input refuses before reading');
+});
 test('prepublication failure discards binding, and ambiguous committed reply retries exactly once',async t=>{
   const f=await fixture(t),s=await f.stage(),op=f.intent(s),request=f.request('activate',{source_id:s.sourceId,expected:s.expected,operation:op});
   const wrap=(callback)=>{const stmt=(sql,inner)=>({sql,inner,bind(...args){return stmt(sql,inner.bind(...args));}});
