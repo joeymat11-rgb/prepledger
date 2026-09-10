@@ -119,6 +119,12 @@ async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,req
   async summary(){await assertStable();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
   async sourcePlan(){return RecoveryPlan.projectRecoveryPlan({initialPlan:metadata.initialPlan,each,assertStable,W:metadata.seq});},
   async sourceImport(){await assertStable();return source?source.selection():null;},
+  async sourceSelection(intentId){
+    await assertStable();if(!source||typeof intentId!=='string'||!intentId)fail('SOURCE_SELECTION_REQUIRED');
+    const selection=await val('sourceImports',JSON.stringify(['selection',intentId]));
+    if(!selection||selection.type!=='selection'||selection.intent_op_id!==intentId)fail('SOURCE_SELECTION_UNKNOWN');
+    await assertStable();return C.parse(C.encode(selection));
+  },
   async sourceMaterial(sourceId){await assertStable();if(!source)fail('SOURCE_PROFILE_REQUIRED');return source.readMaterial(sourceId);},
   async claims(visitor){for(let i=0;i<req.claims.length;i++){const result=await claimAt(i),id=result.op_id,count=result.history_count;await visitor(result,async visitHistory=>{for(let n=1;n<=count;n++)await visitHistory(await raw('history',pair(id,n)));await assertStable();});}await assertStable();},
   async leases(visitor){for(const q of req.requested_lease_ids)await visitor({...q,issued_row:await raw('issuedLeases',pair(q.source_device_id,q.lease_id))||null});await assertStable();},

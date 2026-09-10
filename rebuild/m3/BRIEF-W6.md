@@ -1,5 +1,11 @@
 # W6 v1.1 — browser storage, recovery and bounded offline saving
 
+## Prior selected-source inspection — local lineage join
+
+The current source/native engine reproduction needs the previous selected material at the same verified cut. Add only guarded profile.sourceSelection(intentId) and candidate.inspectSelectedSource(intentId,visitor): read the already validated source-selection row and its exact source material from the SAME complete signed inventory, with the original inventory/local revision/token/current-context checks before and after every asynchronous access and visitor. An uploaded but unselected source or unknown selection is not selectable through this API. Return copies, no mutation, selection change, activation, clock or permission. Existing current-source and v1/v2 archive semantics remain unchanged; no T2/R1/issuer/wire/schema change.
+
+M4 source-reading lineage reproduces a prior native local_json from its predecessor source and the authenticated accepted checkpoint cut, then compares exact bytes. Later corrections/removals of inherited facts reconstruct the earlier effects before replaying the recorded merge; new native facts after that cut follow it. Rollback uses the target activation's original material/checkpoint, never the rollback request's later before. Existing full-current producer/consent/atomic/private/science/device/resource gates remain; this inactive accessor grants none of them. Actual second-import/accepted-edit/rollback/pending/reopen evidence and retained guard/default checks are required in the same candidate.
+
 ## Factual-reading T2 join — pre-edit amendment reviewed; local candidate
 
 APM bounded amendment review, September9: the exact seam is justified and implementation may proceed within this disclosed scope; this is not full candidate acceptance. Required added condition: face.missingDates consumes readings and affects machine board/paceCurrent and exposure of old snapshot values. Its new projection-enabled path must use qualified accepted dates; pending presence/removal/correction may suppress but MUST NOT restore stale/re-entry machine output. Exercise this through actual face code. Default seam-absent behavior stays exact. This receipt resolves pre-edit amendment review, not the larger independent/integrator gates.

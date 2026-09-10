@@ -165,6 +165,60 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert.deepEqual(record.effects.map(e=>e.original),[correction,removal]);assert.equal(removed.layer1.reads.length,5);assert.equal(removed.layer2.projectionPending,true);
   const removedCalculation=await calculate();assert.deepEqual(removedCalculation.accepted_state,prepared.candidateState());
   assert.equal(removedCalculation.coverage.steps[0].state,'removed');assert.equal(removedCalculation.reading_history.records.length,6);
+  // A second real import contains a local image actually produced from the
+  // previous selected source. Subsequent edits must reconstruct that lineage.
+  const at=day=>({local_date:day,local_time:'08:00',utc_offset:'-04:00'});
+  const nativeBefore=remoteOp({lb:{value:179,unit:'lb'}},{effective:at('2026-09-05')});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeBefore])).status,'ACCEPTED');
+  await publishHistorical();const priorCalculation=await calculate(),nativeCheckpoint=await repo.load();
+  const priorEvidence=await recover(),priorSource=await priorEvidence.sourceImport(),nextId='synthetic-second-source';
+  const incoming=JSON.parse(material.source_json);incoming.dailyLogs['2026-08-30'].cal=2400;
+  const incomingBytes=new TextEncoder().encode(JSON.stringify(incoming)),nativeBytes=new TextEncoder().encode(JSON.stringify(priorCalculation.accepted_state));
+  const nextPrepared=require(resolve(m4,'rebuild/m4/import/prepare.cjs')).createImportPreparation({engine:engineFor({day:'2026-09-05',hour:12}),parseStrictJson}).prepare(incomingBytes,{localBytes:nativeBytes});
+  const nextCustody=repo.importCustody({parseStrictJson,validateContext:()=>null});
+  await nextCustody.stage(nextId,nativeCheckpoint,{sourceBytes:incomingBytes,candidateBytes:nextPrepared.candidateBytes(),localBytes:nativeBytes,
+    engineContextJson:JSON.stringify({build:'synthetic-installed-engine',clock:'2026-09-05'})});
+  const nextHeld=await nextCustody.load(nextId),nextMaterial={source_json:text(nextHeld.sourceBytes),candidate_json:text(nextHeld.candidateBytes),local_json:text(nextHeld.localBytes),checkpoint_json:JSON.stringify(nextHeld.checkpoint),engine_context_json:nextHeld.engineContextJson};
+  const nextStaged=S.prepareMaterial(nextId,nextMaterial,priorSource.frontier);
+  await send(sourceRequest('manifest',{manifest:nextStaged.manifest}));
+  for(let index=0;index<nextStaged.chunks.length;index++)await send(sourceRequest('chunk',{source_id:nextId,index,data_b64:nextStaged.chunks[index]}));
+  const nextActivation=remoteOp({...intentPayload,source_id:nextId,material_digest:nextStaged.manifest.material_digest},{effective:at('2026-09-05')});
+  await send(sourceRequest('activate',{source_id:nextId,expected:priorSource.frontier,operation:nextActivation}));
+  await publishHistorical();
+  async function calculateLineage(){
+    const evidence=await recover(),candidate=await evidence.assemble(),source=await evidence.sourceImport();let generation;
+    await candidate.inspect(x=>{generation=x;});
+    const value=await replay.projectLineage({selectionId:source.current.intent_op_id,generation,asOf:'2026-09-07',assertCurrent:candidate.assertCurrent,
+      readSelectedSource:async id=>{let value;await candidate.inspectSelectedSource(id,x=>{value=x;});return value;}});
+    assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.activated,false);assert.equal(value.qualified,false);
+    await assert.rejects(candidate.inspectSelectedSource('not-a-selected-source',()=>assert.fail('Unknown source cannot reach visitor')),{code:'SOURCE_SELECTION_UNKNOWN'});
+    await candidate.inspectSelectedSource(activation.op_id,x=>{assert.deepEqual(x.material,material);x.material.source_json='changed caller copy';});
+    await candidate.inspectSelectedSource(activation.op_id,x=>assert.deepEqual(x.material,material));
+    return {value,source,candidate,generation};
+  }
+  let lineage=await calculateLineage();assert.deepEqual(lineage.value.accepted_state,nextPrepared.candidateState());
+  const nativeAfter=remoteOp({lb:{value:180,unit:'lb'}},{effective:at('2026-09-06')});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeAfter])).status,'ACCEPTED');
+  const inheritedEdit=remoteOp({replacement_fields:{lb:{value:178,unit:'lb'}}},{kind:'correction',target:nativeBefore.op_id,parents:[nativeBefore.op_id],effective:at('2026-09-06')});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',inheritedEdit])).status,'ACCEPTED');
+  await publishHistorical();lineage=await calculateLineage();
+  assert.equal(lineage.value.accepted_state.reads.find(r=>r.d==='2026-09-05').w,178);
+  assert.deepEqual(lineage.value.coverage.steps.map(x=>x.op_id),[remote.op_id,nativeBefore.op_id,nativeAfter.op_id]);
+  assert.equal(lineage.value.coverage.source_lineage.length,1);assert.equal(Object.keys(lineage.generation.collections.outbox).length,5);
+  const finalRollback=remoteOp({...intentPayload,type:'source-rollback-intent',target_activation_id:activation.op_id},{effective:at('2026-09-06')});
+  await send(sourceRequest('rollback',{target_activation_id:activation.op_id,expected:lineage.source.frontier,operation:finalRollback}));
+  await publishHistorical();await assert.rejects(lineage.candidate.inspectSelectedSource(activation.op_id,()=>assert.fail('Retired inventory must refuse')),{code:'RECOVERY_STAGE_CHANGED'});
+  repo.close();const finalOpen=await f.fresh();repo=finalOpen.repository;t.after(()=>repo.close());client=createDurablePublicClient({...args,repository:repo});
+  lineage=await calculateLineage();
+  let rollbackExpected=engineFor({day:'2026-09-05',hour:8}).applyRead(prepared.candidateState(),'2026-09-05',178,{hour:8});
+  rollbackExpected=engineFor({day:'2026-09-06',hour:8}).applyRead(rollbackExpected,'2026-09-06',180,{hour:8});
+  assert.deepEqual(lineage.value.accepted_state,rollbackExpected);assert.equal(lineage.value.coverage.selected_intent_id,finalRollback.op_id);
+  assert.equal(Object.keys(lineage.generation.collections.outbox).length,5);
+  assert.deepEqual(lineage.generation.collections.ops[nativeBefore.op_id],nativeBefore);assert.deepEqual(lineage.generation.collections.ops[nativeAfter.op_id],nativeAfter);
+  const nextSaved=(await repo.importCustody({parseStrictJson,validateContext:()=>null}).load(nextId));assert.deepEqual(nextSaved.checkpoint,nativeCheckpoint);
+  await assert.rejects(lineage.candidate.inspectSelectedSource(activation.op_id,async()=>{
+    const snapshot=await repo.load();await repo.commit(snapshot,snapshot.generation);
+  }),{code:'LOCAL_RECOVERY_CHANGED'},'A local revision changed during the visitor retires selected material');
   // Resealing a changed local original does not authenticate its identity.
   const intact=await repo.load(),changed=structuredClone(intact.generation),localId=Object.keys(changed.collections.outbox)[0];
   changed.collections.ops[localId].payload.lb.value=999;await repo.commit(intact,changed);
