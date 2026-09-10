@@ -1,6 +1,18 @@
-# Import preparation and controller boundary v1.1 — September 9, 2026
+# Import preparation and controller boundary v1.2 — September 9, 2026
 
-Status: local preparation and named encrypted local custody implemented; authority activation, signed cross-device custody/recovery, replay/rollback and qualified current-state publication remain unimplemented. This is not an accepted wire/schema amendment, port authorization or IMPORT-ROLLBACK PASS. The single execution queue remains the retained `outputs/EARNED-DELIVERY-STATUS.md`.
+## Authority source transaction amendment — local candidate, not accepted or deployed
+
+Use an explicit `earned/source-import/v1` R1 transaction. Existing schema1 `fact/event` records only the athlete's import or rollback intent; its unchanged admission receipt ALONE never activates anything. An immutable source selection binding, written in the SAME staged database/CAS publication as real admission, binds the exact intent, commitment, accepted sequence, chosen source material and before/after accepted frontier. An already recorded ordinary `/op` intent without the exact binding refuses promotion. Exact lost-response retry returns the retained binding; a changed request conflicts. Original schema1 leases, canonical/HMAC bytes, WAITING behavior and schema2 workout limitations remain unchanged.
+
+The named `sourceImports` collection contains closed manifest, chunk and selection records. Source material preserves exact source/candidate/local JSON text, complete W6 checkpoint JSON and engine context JSON. Chunks are at most32768 bytes; total material at most16MiB. These are candidate transport bounds, not a resource qualification. Manifest and chunks are immutable; uploads are inactive and resumable. Activation checks completeness, lengths and domain-separated digests, original checkpoint/frontier and prior selection. Rollback appends a new selection of an earlier activation's ORIGINAL checkpoint; no operation, source or database row is erased or rewound.
+
+Actual `admit()` drains WAITING operations. Bind its actual resulting complete frontier, and require the client to replay ALL accepted records after the source checkpoint plus ALL retained local pending records before current projection publication. Never assume the intent alone advances the frontier. A stale starting frontier/selection requires reconciliation before a new preparation; a storage/key/context/CAS failure publishes no partial binding.
+
+Signed inventory uses an explicit `earned/r1/rows-v4/*` extension with21 collections, including `sourceImports`; rows-v3 remains exactly20 and refuses unsupported source rows. The existing P1 encrypted-row algorithm and collection-bound AAD stay unchanged; a trusted, explicit source-profile capability permits this new collection. Default P1 source support stays off. Recovery must verify complete signed inventory AND retained semantic binding/chunk/history coherence before source use. Neither an inventory chunk nor a source receipt grants a fresh clock/lease, current prescription, consent, K1 closure or private activation. Legacy complete-proof/replay APIs must refuse unsupported source inventories until explicitly joined; they cannot silently omit them.
+
+This amendment authorizes local candidate code under existing R1 paths and this spec, not a T2 edit, provider/deployment configuration change, private import or independent acceptance. The next actual vertical witness must use real authority admission, encrypted durable custody, complete signed recovery and later-operation-preserving rollback. Qualified current-state publication and the physical/private/integrator/scientific/resource gates remain open.
+
+Status: local preparation and named encrypted local custody implemented. R1 now has a tested LOCAL CANDIDATE for authoritative source selection/rollback and complete signed rows-v4 source recovery. W6 pending-work replay, durable source publication and qualified current-state production remain unimplemented. This is not an accepted wire/schema amendment, port authorization or IMPORT-ROLLBACK PASS. The single execution queue remains the retained `outputs/EARNED-DELIVERY-STATUS.md`.
 
 ## Existing authority
 
@@ -8,7 +20,7 @@ Status: local preparation and named encrypted local custody implemented; authori
 
 `rebuild/m2/BRIEF-POSTFIX-GATE.md` §4 supplies the actual composition: capture independent remoteBefore/localBefore before any call; consume `migrate(remoteArg)`, then `mergeState(rm, localArg)`, then `migrate(merged)`; guard BOTH pre-call images against the final result. The accepted D33/D35 implementation and its original gates remain unchanged. An imported correction log is not external authentication.
 
-R1 `rebuild/m3/w5/worker.cjs` still answers `/import` and `/restore` with 501 NOT_IMPLEMENTED. W6 `rebuild/m3/w6/repository.mjs` atomically seals/publishes a complete active generation against the loaded revision/token, but that storage primitive does not define an accepted import operation. Its recovery-stage profiles preserve their existing meaning. M4 `workout/engine-order.cjs` checks an import anchor's causal relationship only; it neither creates nor authenticates the controller's source/activation binding.
+R1 `rebuild/m3/w5/worker.cjs` answers `/import` with501 unless explicit source capability is configured, when its new local candidate handles the transaction. `/restore` remains501. W6 `rebuild/m3/w6/repository.mjs` atomically seals/publishes a complete active generation against the loaded revision/token, but that primitive does not authenticate an import binding. M4 `workout/engine-order.cjs` checks anchor causality only; W6 still must join the actual source binding and complete recovered inventory.
 
 ## Implemented preparation
 
