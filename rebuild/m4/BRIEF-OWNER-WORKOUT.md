@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.73 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.74 (working implementation)
+
+## Current v0.74 accepted native source membership
+
+The existing §5d source/capture scope now reconstructs accepted workout originals and current effects across source checkpoints, subsequent imports and rollback. Native facts remain ephemeral, separate from the immutable imported/local engine state; no completed-workout plan writer or receipt is replayed. The private source-input registration supplies the same derived facts and shared imported baseline to the single producer input clone. APM's reached imported-workoutFacts forwarding finding is fixed without modifying original import data.77 affected checks and conformance/selftest PASS; exact logs and scope are in REPORT-OWNER-WORKOUT-BRIEF-ASTRA.md and PERFORMED-ENGINE-v1.md v1.10. The signed source/native journey, mixed chronology and qualified current rules remain open. Actual schema1-only issuer/actor checks prevent simply reusing the unissued schema2 workout-http fixture for passing recovery; no bypass or runtime issuer/core change is authorized by the test-only fixture discussion. Canonical EARNED-DELIVERY-STATUS.md remains the one NEXT.
 
 ## Current v0.73 actual imported-workout source binding
 

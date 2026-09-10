@@ -14,9 +14,9 @@ function generation(accepted=[],pending=[]){return {collections:{ops:Object.from
   dispositions:Object.fromEntries(accepted.map((o,i)=>[o.op_id,{op_id:o.op_id,canonical_content_commitment:o.canonical_content_commitment,status:'ACCEPTED',athlete_log_seq:i+1}])),
   receipts:Object.fromEntries(accepted.map((o,i)=>[String(i+1),{seq:i+1,op_id:o.op_id,canonical_content_commitment:o.canonical_content_commitment}])),
   outbox:Object.fromEntries(pending.map(o=>[o.op_id,{op_id:o.op_id}])),rejected:{},sync:{frontier:{W:accepted.length,authorityW:accepted.length}}},metadata:{}};}
-async function fixture(){
+async function fixture(extra={}){
   const {parseStrictJson}=await import(pathToFileURL(path.join(w6,'rebuild/m3/w6/strict-json.mjs'))),{createReadingProjector}=await import(pathToFileURL(path.join(w6,'rebuild/m3/w6/reading-history.mjs')));
-  const original=Buffer.from(JSON.stringify(F.createSyntheticState(day))),prep=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(original,{localBytes:original});
+  const original=Buffer.from(JSON.stringify({...F.createSyntheticState(day),...extra})),prep=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(original,{localBytes:original});
   const material={source_json:original.toString(),candidate_json:prep.candidateBytes().toString(),local_json:original.toString(),checkpoint_json:JSON.stringify({revision:1,token:'synthetic',generation:generation()}),engine_context_json:JSON.stringify({build,clock:day})};
   const producer=createReadingReplay({engineFor,projectReadings:createReadingProjector({athleteId:'first',deviceId:'local'}),parseStrictJson,producerIdentity:'synthetic-actual-installed-factories',importBuild:build,deviceId:'local'});
   return {producer,material,parseStrictJson,base:prep.candidateState(),input:{sourceId:'synthetic-source',material,generation:generation(),asOf:'2026-09-07'}};
@@ -82,8 +82,8 @@ test('changed candidate or supplied checkpoint coverage must reproduce actual so
   assert.throws(()=>f.producer.project(input),{code:'SOURCE_PREPARATION_REPRODUCTION_MISMATCH'});
 });
 
-async function lineageFixture(){
-  const f=await fixture(),sourceOp=(source_id,type='source-import-intent',target_activation_id)=>Ops.build({op_id:'source-'+(++n),athlete_id:'first',device_id:'remote',device_seq:n,parents:[],kind:'fact',class:'event',lease_id:'synthetic-lease',
+async function lineageFixture(extra={}){
+  const f=await fixture(extra),sourceOp=(source_id,type='source-import-intent',target_activation_id)=>Ops.build({op_id:'source-'+(++n),athlete_id:'first',device_id:'remote',device_seq:n,parents:[],kind:'fact',class:'event',lease_id:'synthetic-lease',
     effective:{local_date:'2026-09-04',local_time:'08:00',utc_offset:'-04:00'},payload:{type,source_id,...(target_activation_id?{target_activation_id}:{}),interval:{start:'2026-09-04',end:'2026-09-04'},material_digest:'synthetic-unverified'}},key);
   const first=sourceOp(f.input.sourceId),a=op(),pending=op({device:'local',value:188}),before=generation([first,a],[pending]);
   const old=f.producer.project({...f.input,generation:before,asOf:'2026-09-04'});assert.equal(old.ready,true);
@@ -99,6 +99,31 @@ async function lineageFixture(){
   return {...f,first,second,a,b,edit,pending,nodes,material,incoming,g,sourceOp,selection,
     input:{selectionId:second.op_id,generation:g,asOf:'2026-09-07',readSelectedSource:async id=>structuredClone(nodes.get(id)),assertCurrent:async()=>{}}};
 }
+test('source-aware capture accepts no derived workout facts from imported unknown fields, including zero native sessions',async()=>{
+ const Capture=require(path.join(w6,'rebuild/m4/workout/capture.cjs')),Source=require(path.join(process.env.EARNED_SOURCE_R1_ROOT,'rebuild/m3/w5/source/codec.cjs'));
+ const Adapter=require('../../workout/engine-capture.cjs'),injected={profile:'synthetic-imported-unproved-view',sessions:[{start_op_id:'forged-native'}]};
+ let ordinaryCapture;
+ for(const extra of [{},{workoutFacts:injected}]){
+  const f=await lineageFixture(extra),before=JSON.stringify([...f.nodes]),basis={W:f.g.collections.sync.frontier.W,selection_id:f.second.op_id,log_digest:Buffer.alloc(32,7).toString('base64url')};
+  const projection=await f.producer.projectLineage({...f.input,sourceBasis:basis,readSourceCuts:async bases=>bases.map(frontier=>({frontier,current:f.nodes.get(frontier.selection_id).selection}))});
+  assert.equal(projection.ready,true,JSON.stringify(projection.issues));const consumed=f.producer.workoutInput(projection,basis);
+  assert.equal(Object.hasOwn(consumed,'workoutFacts'),false,'No accepted native join exists in this fixture');
+  if(extra.workoutFacts){
+   assert.deepEqual(projection.accepted_state.workoutFacts,injected,'Actual import/merge retains unknown original fields');
+   for(const {material}of f.nodes.values())assert.deepEqual(JSON.parse(material.source_json).workoutFacts,injected);
+  }
+  const actual=engineFor({day:'2026-09-07',hour:12});let reached;
+  const adapter=Adapter.createEngineWorkoutCapture({sourceProjectionReader:f.producer,
+   prescriptionCapture:Capture.createPrescriptionCapture({parseStrictJson:f.parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:Source}),
+   producerIdentity:{app_build:'synthetic-import-field-boundary',engine_build:build,rule_profile:Adapter.PROFILE,source_schema:'synthetic'},
+   engine:{genSession(...args){reached=args[0];return actual.genSession(...args);},rirPlan:(...args)=>actual.rirPlan(...args)}});
+  const captured=adapter.prepare({sourceProjection:projection,source_basis:basis,day:'2026-09-07',basis:{plan_basis:'synthetic-plan',input_basis:'synthetic-input',source_revision:1}}).capture;
+  assert.equal(Object.hasOwn(reached,'workoutFacts'),false,'Unproved imported object must not enter the selected producer');
+  assert.deepEqual(reached.sessionLog,projection.accepted_state.sessionLog);assert.equal(JSON.stringify([...f.nodes]),before,'Original custody bytes remain unchanged');
+  if(ordinaryCapture)assert.deepEqual(captured.slots,ordinaryCapture.slots,'Ordinary legacy capture stays available');else ordinaryCapture=captured;
+ }
+});
+
 test('native local image is reproduced and inherited corrections rebuild before a subsequent merge',async()=>{
   const f=await lineageFixture(),value=await f.producer.projectLineage(f.input);assert.equal(value.ready,true,JSON.stringify(value.issues));
   let expected=engineFor({day:'2026-09-04',hour:8}).applyRead(f.base,'2026-09-04',181,{hour:8});

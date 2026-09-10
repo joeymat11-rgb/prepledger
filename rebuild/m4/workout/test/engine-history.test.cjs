@@ -232,7 +232,7 @@ async function capturedSourcesFixture(t){
  const read=async bases=>bases.map(cut=>({frontier:structuredClone(cut),current:cut.selection_id===null?null:structuredClone(selections.find(s=>s.intent_op_id===cut.selection_id))}));
  const options={sourceRevision:source.sourceRevision,readSourceCuts:read,assertCurrent:async()=>{}};
  const run=(generation=g,overrides={})=>mapper.projectWithSources(rebuild(generation),generation,{...options,...overrides});
- return {f,g,a,b,empty:basis(0),selections,rebuild,mapper,options,run};
+ return {f,g,a,b,empty:basis(0),selections,rebuild,mapper,validator,options,run};
 }
 
 test('source-aware factual mapping preserves delayed A capture after B and batches completed/open sources',async t=>{
@@ -283,4 +283,142 @@ test('source-aware projection has no partial result after guarded reader retirem
   readSourceCuts:async bases=>{const result=await x.options.readSourceCuts(bases);current=false;return result;}}),{code:'RECOVERY_STAGE_CHANGED'});
  await assert.rejects(x.run(x.g,{readSourceCuts:null}),{code:'WORKOUT_CAPTURE_SOURCE_READER_REQUIRED'});
  assert.equal(JSON.stringify((await x.run()).sessions[0].capture),JSON.stringify(x.rebuild().sessions[0].original),'Retry reads the exact original');
+});
+
+test('accepted native view excludes pending nested edits and completion changes while retaining local originals',async t=>{
+ const x=await capturedSourcesFixture(t),beforeCut=x.g.collections.sync.frontier.W;
+ const correct=(id,fields,parents=[])=>x.f.client.execute('workout',{action:'correct',input:{target_op_id:id,lift_lineage_id:'demo-press',replacement_fields:fields,causal_parents:parents}});
+ const first=await correct(x.f.setIds[0],{load:{value:25,unit:'lb'}});assert(first.acknowledged,first.code);
+ const nested=await correct(first.op_id,{replacement_fields:{load:{value:20,unit:'lb'}}},[first.op_id]);assert(nested.acknowledged,nested.code);
+ const close=Object.values(x.g.collections.ops).find(op=>op.kind==='session-close');
+ const removed=await x.f.client.execute('workout',{action:'remove',input:{target_op_id:close.op_id,reason:'Not complete'}});assert(removed.acknowledged,removed.code);
+ const secondStart=Object.values(x.g.collections.ops).find(op=>op.kind==='session-start'&&op.op_id!==x.f.start.op_id);
+ const newSet=await x.f.client.execute('workout',{action:'set',input:{session_start_op_id:secondStart.op_id,
+  logical_set_slot:secondStart.prescription_capture.slots[1].logical_set_slot,lift_lineage_id:'demo-press',load:{value:30,unit:'lb'},reps:{value:6,unit:'rep'}}});assert(newSet.acknowledged,newSet.code);
+ const newClose=await x.f.client.execute('workout',{action:'close',input:{session_start_op_id:secondStart.op_id,completion_kind:'early'}});assert(newClose.acknowledged,newClose.code);
+ // Carry actual newly emitted local operations into the explicitly synthetic
+ // accepted inventory fixture without altering any of its retained originals.
+ const current=await x.f.source();for(const [id,op]of Object.entries(current.generation.collections.ops))if(!Object.hasOwn(x.g.collections.ops,id)){
+  x.g.collections.ops[id]=structuredClone(op);x.g.collections.outbox[id]=structuredClone(current.generation.collections.outbox[id]);
+ }
+ const history=x.rebuild(),before=JSON.stringify({g:x.g,history}),local=await x.mapper.projectWithSources(history,x.g,x.options);
+ let accepted=await x.mapper.projectAcceptedWithSources(history,x.g,x.options);
+ const localFirst=local.incomplete_sessions.find(s=>s.start_op_id===x.f.start.op_id);
+ assert.equal(localFirst.record.entries[0].slots[0].fact.current.load.value,20);
+ assert.equal(local.sessions[0].start_op_id,secondStart.op_id,'Pending Close is visible only in the local layer');
+ assert.equal(accepted.sessions[0].start_op_id,x.f.start.op_id,'Pending removal cannot undo accepted completion');
+ assert.equal(accepted.sessions[0].record.entries[0].slots[0].fact.current.load.value,40);
+ assert.equal(accepted.incomplete_sessions[0].start_op_id,secondStart.op_id);
+ assert.deepEqual(accepted.sessions[0].capture,localFirst.capture);assert.deepEqual(accepted.sessions[0].original_source,localFirst.original_source);
+ assert.equal(JSON.stringify({g:x.g,history}),before,'Both projections leave all local originals and source fields untouched');
+ // Accept the original correction, leaving its nested edit pending. Earlier
+ // checkpoint reproduction still excludes this later accepted effect.
+ const op=x.g.collections.ops[first.op_id],seq=beforeCut+1;
+ x.g.collections.receipts[String(seq)]={seq,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment};x.g.collections.sync.frontier.W=seq;
+ const later=x.rebuild();accepted=await x.mapper.projectAcceptedWithSources(later,x.g,x.options);
+ assert.equal(accepted.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);
+ assert.deepEqual(accepted.sessions[0].record.entries[0].slots[0].fact.edit_op_ids,[first.op_id]);
+ const original=await x.mapper.projectAcceptedWithSources(later,x.g,{...x.options,through:beforeCut});
+ assert.equal(original.sessions[0].record.entries[0].slots[0].fact.current.load.value,40);
+ assert.equal(original.source_order.frontier,beforeCut);assert.deepEqual(original.sessions[0].capture,accepted.sessions[0].capture);
+ assert.equal((await x.mapper.projectWithSources(later,x.g,x.options)).incomplete_sessions[0].record.entries[0].slots[0].fact.current.load.value,20);
+ for(const [i,id]of [newSet.op_id,newClose.op_id].entries()){
+  const added=x.g.collections.ops[id],position=seq+i+1;x.g.collections.receipts[String(position)]={seq:position,op_id:id,canonical_content_commitment:added.canonical_content_commitment};
+  x.g.collections.sync.frontier.W=position;
+ }
+ const newest=x.rebuild(),all=await x.mapper.projectAcceptedWithSources(newest,x.g,x.options);
+ assert.equal(all.sessions.length,2);assert.equal(all.sessions[1].record.entries[0].slots[1].state,'performed');
+ const inherited=await x.mapper.projectAcceptedWithSources(newest,x.g,{...x.options,originalThrough:beforeCut});
+ assert.equal(inherited.original_through,beforeCut);assert.equal(inherited.source_order.frontier,x.g.collections.sync.frontier.W);
+ assert.equal(inherited.sessions[0].record.entries[0].slots[0].fact.current.load.value,25,'Current accepted correction applies to the inherited original');
+ assert.equal(inherited.incomplete_sessions[0].record.entries[0].slots[1].state,'unlogged','Later original Set is not falsely inherited');
+ assert.equal(inherited.incomplete_sessions[0].completion_state,'open','Later original Close is not falsely inherited');
+ assert(!inherited.incomplete_sessions[0].source_record_ids.includes(newSet.op_id));assert(!inherited.incomplete_sessions[0].source_record_ids.includes(newClose.op_id));
+ const historical=await x.mapper.projectAcceptedWithSources(newest,x.g,{...x.options,through:beforeCut,originalThrough:beforeCut});
+ assert.equal(historical.sessions[0].record.entries[0].slots[0].fact.current.load.value,40,'Original image excludes the later correction as well');
+});
+
+test('accepted-only projection keeps an all-local workout outside the prefix and rejects malformed historical cuts',async t=>{
+ const f=await fixture();t.after(()=>f.repo.close());const source=await f.source(),before=JSON.stringify(source);
+ const accepted=f.mapper.projectAccepted(source.history,source.generation,{sourceRevision:source.sourceRevision});
+ assert.equal(accepted.sessions.length,0);assert.equal(accepted.incomplete_sessions.length,0);assert.equal(accepted.source_order.frontier,0);
+ assert.equal(JSON.stringify(source),before);assert.equal((await f.map()).sessions.length,1);
+ for(const through of [-1,0.5,1])assert.throws(()=>f.mapper.projectAccepted(source.history,source.generation,{sourceRevision:source.sourceRevision,through}),{code:'WORKOUT_ACCEPTED_CUT_INVALID'});
+ const x=await capturedSourcesFixture(t),broken=structuredClone(x.g);delete broken.collections.receipts['1'];
+ assert.throws(()=>x.mapper.projectAccepted(x.rebuild(),broken,{sourceRevision:x.options.sourceRevision,through:0}),{code:'WORKOUT_ORDER_PREFIX_INCOMPLETE'},'Selecting zero cannot hide a broken authenticated input prefix');
+});
+
+test('actual source reconstruction carries accepted native membership across later import, correction and rollback without plan writes',async t=>{
+ const x=await capturedSourcesFixture(t),{createReadingReplay}=require('../../import/reading-replay.cjs'),{createImportPreparation}=require('../../import/prepare.cjs');
+ const {createEngine}=require('../../../engine/index.cjs'),F=require('../../../m3/w7-preview/fixtures.cjs');
+ const {createReadingProjector}=await load('rebuild/m3/w6/reading-history.mjs'),{storedWorkoutHistory}=await load('rebuild/m4/workout/stored-history.mjs');
+ const day='2026-09-01',build='synthetic-native-source',engineFor=({day,hour})=>createEngine({clock:{today:()=>day,nowISO:()=>day+'T12:00:00.000Z',hour:()=>hour},ids:{fresh:name=>name+'synthetic'}});
+ const native=Object.values(x.g.collections.ops).filter(op=>op.class==='session'),secondStart=native.findIndex(op=>op.kind==='session-start'&&op.op_id!==x.f.start.op_id);
+ let accepted=[x.g.collections.ops['source-1'],...native.slice(0,secondStart),x.g.collections.ops['source-2'],...native.slice(secondStart)];
+ const secondSeq=secondStart+2,cut=secondSeq-1;
+ x.b.W=secondSeq;x.selections[1].seq=secondSeq;
+ for(const op of native)if(op.kind==='session-start'&&op.op_id!==x.f.start.op_id)op.prescription_capture.source_basis=structuredClone(x.b);
+ function inventory(){
+  x.g.collections.ops={...x.g.collections.ops,...Object.fromEntries(accepted.map(op=>[op.op_id,op]))};
+  x.g.collections.receipts=Object.fromEntries(accepted.map((op,i)=>[String(i+1),{seq:i+1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment}]));
+  x.g.collections.dispositions=Object.fromEntries(accepted.map((op,i)=>[op.op_id,{op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,status:'ACCEPTED',athlete_log_seq:i+1}]));
+  x.g.collections.sync.frontier={W:accepted.length,authorityW:accepted.length};return structuredClone(x.g);
+ }
+ function prefix(g,W){const result=structuredClone(g),keep=new Set(Object.values(result.collections.receipts).filter(r=>r.seq<=W).map(r=>r.op_id));
+  for(const name of ['ops','dispositions'])result.collections[name]=Object.fromEntries(Object.entries(result.collections[name]).filter(([id])=>keep.has(id)));
+  result.collections.receipts=Object.fromEntries(Object.entries(result.collections.receipts).filter(([,r])=>r.seq<=W));result.collections.outbox={};result.collections.rejected={};result.collections.sync.frontier={W,authorityW:W};return result;
+ }
+ const g=inventory(),root=prefix(g,0),parseStrictJson=x.f.dependencies.parseStrictJson;
+ const bytes=Buffer.from(JSON.stringify(F.createSyntheticState(day))),prep=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(bytes,{localBytes:bytes});
+ const material={source_json:bytes.toString(),candidate_json:prep.candidateBytes().toString(),local_json:bytes.toString(),checkpoint_json:JSON.stringify({revision:1,token:'synthetic',generation:root}),engine_context_json:JSON.stringify({build,clock:day})};
+ const nodes=new Map([['source-1',{selection:{...x.selections[0],before:{W:0,selection_id:null},target_activation_id:null},material}]]);
+ const reader=g=>storedWorkoutHistory(g,{athleteId:'ath-1',deviceId:'dev-A',prescriptionCapture:x.validator,recoveryReceipts:Object.values(g.collections.receipts).filter(r=>r.seq<=g.collections.sync.frontier.W)});
+ const dependencies={engineFor,parseStrictJson,producerIdentity:'synthetic-source-reconstruction',importBuild:build,deviceId:'dev-A',projectReadings:createReadingProjector({athleteId:'ath-1',deviceId:'dev-A'})};
+ const replay=createReadingReplay({...dependencies,workoutHistoryReader:reader,workoutProjector:x.mapper});
+ const sourceBasis=(W,selection_id)=>({W,selection_id,log_digest:Buffer.alloc(32,W).toString('base64url')});
+ const readSourceCuts=async bases=>bases.map(basis=>({frontier:structuredClone(basis),current:structuredClone(nodes.get(basis.selection_id)?.selection||null)}));
+ const readSelectedSource=async id=>structuredClone(nodes.get(id));
+ const options={asOf:'2026-09-07',sourceRevision:20,assertCurrent:async()=>{},readSourceCuts,readSelectedSource};
+ const beforeB=prefix(g,cut),first=await replay.projectLineage({...options,selectionId:'source-1',generation:beforeB,sourceBasis:sourceBasis(cut,'source-1')});
+ assert.equal(first.ready,true,JSON.stringify(first.issues));assert.equal(first.workout_history.sessions.length,1);
+ assert.equal(Object.hasOwn(first.accepted_state,'workoutFacts'),false,'Native read state is never written into the immutable legacy/local image');
+ const localBytes=Buffer.from(JSON.stringify(first.accepted_state)),incoming=F.createSyntheticState(day),extraDay='2026-07-01';
+ incoming.sessionLog[extraDay]=structuredClone(Object.values(incoming.sessionLog)[0]);incoming.sessionLog[extraDay].entries[0].reps[0]=4;
+ const incomingBytes=Buffer.from(JSON.stringify(incoming)),merged=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(incomingBytes,{localBytes});
+ nodes.set('source-2',{selection:{...x.selections[1],before:{W:cut,selection_id:'source-1'},target_activation_id:null},material:{source_json:incomingBytes.toString(),candidate_json:merged.candidateBytes().toString(),local_json:localBytes.toString(),checkpoint_json:JSON.stringify({revision:20,token:'synthetic',generation:beforeB}),engine_context_json:JSON.stringify({build,clock:day})}});
+ const pending=await x.f.client.execute('workout',{action:'correct',input:{target_op_id:x.f.setIds[0],lift_lineage_id:'demo-press',replacement_fields:{load:{value:25,unit:'lb'}}}});assert(pending.acknowledged,pending.code);
+ const live=await x.f.source(),edit=live.generation.collections.ops[pending.op_id];x.g.collections.ops[edit.op_id]=structuredClone(edit);x.g.collections.outbox[edit.op_id]=structuredClone(live.generation.collections.outbox[edit.op_id]);
+ const currentBefore=inventory(),withPending=await replay.projectLineage({...options,selectionId:'source-2',generation:currentBefore,sourceBasis:sourceBasis(accepted.length,'source-2')});
+ assert.equal(withPending.ready,true,JSON.stringify(withPending.issues));assert.equal(withPending.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,40);
+ accepted.push(edit);const current=inventory(),immutable=JSON.stringify({current,nodes:[...nodes]});
+ const value=await replay.projectLineage({...options,selectionId:'source-2',generation:current,sourceBasis:sourceBasis(accepted.length,'source-2')});
+ assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);
+ assert.equal(value.workout_history.incomplete_sessions.length,1);assert.equal(value.workout_history.source_members.filter(row=>row.op_id===edit.op_id).length,1);
+ assert.equal(JSON.stringify({current,nodes:[...nodes]}),immutable);
+ const nativeStep=value.coverage.source_lineage[0].native_membership;
+ assert.equal(nativeStep.original_through,cut);assert.notEqual(nativeStep.original_facts_sha256,nativeStep.reconstructed_facts_sha256);
+ assert(!nativeStep.original.source_members.some(row=>row.op_id===edit.op_id));assert(nativeStep.reconstructed.source_members.some(row=>row.op_id===edit.op_id));
+ assert(!nativeStep.reconstructed.source_members.some(row=>row.op_id===native[secondStart].op_id),'New original after import is not inherited through its earlier checkpoint');
+ assert.deepEqual(value.accepted_state,merged.candidateState(),'No completed-workout plan writer/receipt is replayed');
+ const consumed=replay.workoutInput(value,value.source_basis);assert.strictEqual(consumed.workoutFacts,value.workout_history);assert.strictEqual(consumed.workoutFacts.legacy_baseline.session_log,consumed.state.sessionLog);
+ assert(Object.isFrozen(consumed.workoutFacts));assert.equal(Object.hasOwn(consumed.state,'workoutFacts'),false);
+ const CaptureEngine=require('../engine-capture.cjs'),actualEngine=engineFor({day:'2026-09-07',hour:12});let reached;
+ const adapter=CaptureEngine.createEngineWorkoutCapture({engine:{genSession(...args){reached=args[0];return actualEngine.genSession(...args);},rirPlan:(...args)=>actualEngine.rirPlan(...args)},
+  prescriptionCapture:x.validator,producerIdentity:{app_build:'synthetic-source-input-reach',engine_build:S.base,rule_profile:CaptureEngine.PROFILE,source_schema:'synthetic'},sourceProjectionReader:replay});
+ const captureInput={sourceProjection:value,source_basis:value.source_basis,day:'2026-09-07',basis:{plan_basis:'synthetic-plan',input_basis:'synthetic-input',source_revision:20}};
+ const captured=adapter.prepare(captureInput).capture;
+ assert.deepEqual(reached.workoutFacts,consumed.workoutFacts);assert.notStrictEqual(reached.workoutFacts,consumed.workoutFacts);
+ assert.strictEqual(reached.workoutFacts.legacy_baseline.session_log,reached.sessionLog,'Existing single input clone preserves the source/native alias');
+ assert.deepEqual(JSON.parse(JSON.stringify(captured.source_basis)),value.source_basis);assert.equal(Object.hasOwn(value.accepted_state,'workoutFacts'),false);
+ // Input reach is mechanical only: this installed legacy producer is not a
+ // qualified rich-reader/guard implementation, and mixed chronology stays open.
+ assert.throws(()=>engine().performedHistoryRows({...consumed.state,workoutFacts:consumed.workoutFacts}),{code:'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED'});
+ const rollback={...structuredClone(accepted[0]),op_id:'source-rollback',canonical_content_commitment:'synthetic-rollback',payload:{type:'source-rollback-intent',source_id:x.selections[0].source_id,target_activation_id:'source-1'}};
+ accepted.push(rollback);const rolled=inventory();nodes.set(rollback.op_id,{selection:{intent_op_id:rollback.op_id,source_id:rollback.payload.source_id,seq:accepted.length,action:'rollback',commitment:rollback.canonical_content_commitment,target_activation_id:'source-1'},material});
+ const after=await replay.projectLineage({...options,selectionId:rollback.op_id,generation:rolled,sourceBasis:sourceBasis(accepted.length,rollback.op_id)});
+ assert.equal(after.ready,true,JSON.stringify(after.issues));assert.equal(Object.hasOwn(after.accepted_state.sessionLog,extraDay),false);
+ assert.equal(after.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);assert.equal(after.workout_history.incomplete_sessions.length,1);
+ assert.deepEqual(after.workout_history.sessions[0].capture,value.workout_history.sessions[0].capture);assert.equal(after.workout_history.source_members.filter(row=>row.op_id===edit.op_id).length,1);
+ const missing=createReadingReplay(dependencies),unmapped=await missing.projectLineage({...options,selectionId:rollback.op_id,generation:rolled,sourceBasis:sourceBasis(accepted.length,rollback.op_id)});
+ assert.equal(unmapped.ready,false);assert(unmapped.issues.some(issue=>issue.code==='ACCEPTED_ENGINE_CONTEXT_UNMAPPED'));
 });

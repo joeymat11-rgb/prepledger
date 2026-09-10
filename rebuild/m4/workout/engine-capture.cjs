@@ -33,15 +33,23 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
   fail('ENGINE_CAPTURE_PROFILE_INVALID');
  }
  function prepare({state,day,sleep,basis,sourceProjection,source_basis}={}){
+  let workoutFacts;
   if(sourceAware){
    const consumed=sourceProjectionReader.workoutInput(sourceProjection,source_basis);
    if(state!==undefined&&state!==consumed.state)fail('ENGINE_CAPTURE_SOURCE_INPUT_DISAGREEMENT');
-   state=consumed.state;source_basis=consumed.source_basis;
+   state=consumed.state;source_basis=consumed.source_basis;workoutFacts=consumed.workoutFacts;
   }
   if(!state||!Array.isArray(state.exercises)||!Array.isArray(state.queue)||typeof day!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(day))fail('ENGINE_CAPTURE_INPUT_REQUIRED');
   // All reads share one owned clone, preserving any shared imported-log member.
   // This clone is not evidence that the caller supplied an authentic snapshot.
-  const input=copy(state),before=JSON.stringify(input),session=engine.genSession(input,day,sleep);
+  let captureState=state;
+  if(sourceAware){
+   // Import preserves unknown fields. Only the registered derived view may
+   // supply this ephemeral input, even when it contains no native sessions.
+   captureState={...state};delete captureState.workoutFacts;
+   if(workoutFacts)captureState.workoutFacts=workoutFacts;
+  }
+  const input=copy(captureState),before=JSON.stringify(input),session=engine.genSession(input,day,sleep);
   if(!session)fail('ENGINE_CAPTURE_NO_WORKOUT');
   if(!Array.isArray(session.ex)||!session.ex.length)fail('ENGINE_CAPTURE_SESSION_INVALID');
   const slots=[],layout=[],lifts=new Set();

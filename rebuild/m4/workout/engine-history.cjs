@@ -10,10 +10,13 @@ const text=x=>typeof x==='string'&&x.length>0;
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
 function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,resolveCapturedLayout,parseStrictJson,prescriptionCapture}={}){
  if(!text(athleteId)||!text(deviceId)||[projectWorkoutRecords,resolveCapturedLayout,parseStrictJson].some(f=>typeof f!=='function'))throw new TypeError('Scoped trusted history projector, captured-plan resolver and strict parser required');
- function project(history,generation,{sourceRevision,importAnchor}={}){
+ function project(history,generation,{sourceRevision,importAnchor,originalThrough}={}){
   if(!Number.isSafeInteger(sourceRevision)||sourceRevision<1)fail('WORKOUT_ENGINE_SOURCE_REVISION_REQUIRED');
-  const order=orderWorkoutStarts(history,generation,{importAnchor}),ops=generation.collections.ops||{};
+  const allOrder=orderWorkoutStarts(history,generation,{importAnchor}),ops=generation.collections.ops||{};
   const accepted=new Map(Object.values(generation.collections.receipts||{}).filter(r=>r.seq<=history.frontier).map(r=>[r.op_id,r.seq]));
+  if(originalThrough!==undefined&&(!Number.isSafeInteger(originalThrough)||originalThrough<0||originalThrough>history.frontier))fail('WORKOUT_ACCEPTED_CUT_INVALID');
+  const originalIncluded=id=>originalThrough===undefined||accepted.has(id)&&accepted.get(id)<=originalThrough;
+  const order=originalThrough===undefined?allOrder:{...allOrder,start_ids:allOrder.start_ids.filter(originalIncluded)};
   const rows=Object.values(ops).map(op=>{
    const seq=accepted.get(op.op_id),rejected=generation.collections.rejected?.[op.op_id];
    if(rejected&&seq!==undefined)fail('WORKOUT_ENGINE_STATUS_DISAGREEMENT');
@@ -48,7 +51,10 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   for(const id of interpreted.keys())if(!all.has(id))fail('WORKOUT_ENGINE_HISTORY_INCOMPLETE');
   const sessions=[],incomplete=[];
   for(const id of order.start_ids){
-   const session=byStart.get(id),start=session.start.operation,capture=session.original;
+   const sourceSession=byStart.get(id),session=originalThrough===undefined?sourceSession:{...sourceSession,
+    records:sourceSession.records.filter(row=>originalIncluded(interpreted.get(row.operation.op_id)?.root_id))};
+   if(originalThrough!==undefined)session.projection=projectWorkoutRecords(session,ops,{normalized});
+   const start=session.start.operation,capture=session.original;
    if(!capture||!same(capture,start.prescription_capture))fail('WORKOUT_ENGINE_CAPTURE_REQUIRED');
    if(session.records.some(row=>row.status!=='rejected'&&!known(row)))fail('WORKOUT_ENGINE_RECORD_STATUS_UNRESOLVED');
    const completion=session.projection.close_records;
@@ -111,11 +117,54 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   // Open/ambiguous completion evidence stays explicit for each caller; it
   // neither becomes a completed workout nor erases earlier completed facts.
   return {profile:'earned/workout-facts/v1',source_revision:sourceRevision,source_order:order,
+   ...(originalThrough!==undefined?{original_through:originalThrough,
+    source_members:[...interpreted].filter(([,record])=>originalIncluded(record.root_id)).map(([op_id,record])=>({op_id,root_id:record.root_id}))}:{}),
    order:{...order,start_ids:sessions.map(s=>s.start_op_id)},sessions,incomplete_sessions:incomplete,
-   excluded_start_ids:history.sessions.filter(s=>s.start.status==='rejected'||s.projection.start_record.included===false).map(s=>s.start.operation.op_id),
+   excluded_start_ids:history.sessions.filter(s=>originalIncluded(s.start.operation.op_id)&&(s.start.status==='rejected'||s.projection.start_record.included===false)).map(s=>s.start.operation.op_id),
    interpretation:'captured-positions-and-factual-edits',progression_eligible:false};
  }
- async function projectWithSources(history,generation,{sourceRevision,readSourceCuts,assertCurrent}={}){
+ function acceptedSnapshot(history,generation,through){
+  const source=structuredClone({history,generation}),c=source.generation?.collections,W=c?.sync?.frontier?.W;
+  if(!Number.isSafeInteger(W)||W<0||source.history?.frontier!==W||!Array.isArray(source.history.sessions))fail('WORKOUT_ACCEPTED_SOURCE_INVALID');
+  const cut=through===undefined?W:through;
+  if(!Number.isSafeInteger(cut)||cut<0||cut>W)fail('WORKOUT_ACCEPTED_CUT_INVALID');
+  const all=Object.values(c.receipts||{});
+  if(all.some(r=>!r||!Number.isSafeInteger(r.seq)||r.seq<1))fail('WORKOUT_ORDER_RECEIPT_INVALID');
+  const prefix=all.filter(r=>r.seq<=W).sort((a,b)=>a.seq-b.seq),ids=new Set();
+  if(prefix.length!==W)fail('WORKOUT_ORDER_PREFIX_INCOMPLETE');
+  for(const [i,r]of prefix.entries()){
+   if(r.seq!==i+1||!c.ops?.[r.op_id]||ids.has(r.op_id))fail('WORKOUT_ORDER_PREFIX_INCOMPLETE');
+   ids.add(r.op_id);
+  }
+  const kept=new Set(prefix.filter(r=>r.seq<=cut).map(r=>r.op_id));
+  // This is an owned read view of the accepted prefix, never a replacement
+  // repository or evidence that pending operations were rejected/applied.
+  c.ops=Object.fromEntries(Object.entries(c.ops||{}).filter(([id])=>kept.has(id)));
+  c.receipts=Object.fromEntries(Object.entries(c.receipts||{}).filter(([,r])=>r.seq<=cut));
+  c.outbox={};c.rejected=Object.fromEntries(Object.entries(c.rejected||{}).filter(([id])=>kept.has(id)));
+  c.sync.frontier={...c.sync.frontier,W:cut};
+  const sequence=new Map(prefix.filter(r=>r.seq<=cut).map(r=>[r.op_id,r.seq]));
+  const rows=Object.values(c.ops).map(operation=>({operation,status:'accepted-through-frontier',receipt_sequence:sequence.get(operation.op_id)}));
+  const normalized=normalizeWorkoutHistory(rows,cut);
+  source.history.frontier=cut;
+  source.history.sessions=source.history.sessions.filter(s=>kept.has(s.start?.operation?.op_id)).map(s=>{
+   s.records=s.records.filter(r=>kept.has(r.operation?.op_id));
+   // Reexecute the same fold without pending/later inputs. Never transplant a
+   // local current value or rewrite its status to pretend it was accepted.
+   s.projection=projectWorkoutRecords(s,c.ops,{normalized});return s;
+  });
+  source.history.other_records=(source.history.other_records||[]).filter(r=>kept.has(r.operation?.op_id));
+  return source;
+ }
+ function projectAccepted(history,generation,{sourceRevision,through,originalThrough}={}){
+  const source=acceptedSnapshot(history,generation,through);
+  return project(source.history,source.generation,{sourceRevision,originalThrough:originalThrough??source.history.frontier});
+ }
+ async function projectAcceptedWithSources(history,generation,{through,...options}={}){
+  const source=acceptedSnapshot(history,generation,through);
+  return projectWithSources(source.history,source.generation,{...options,originalThrough:options.originalThrough??source.history.frontier});
+ }
+ async function projectWithSources(history,generation,{sourceRevision,readSourceCuts,assertCurrent,originalThrough}={}){
   if(typeof readSourceCuts!=='function'||typeof assertCurrent!=='function'||typeof prescriptionCapture?.read!=='function')
    fail('WORKOUT_CAPTURE_SOURCE_READER_REQUIRED');
   // Own one factual snapshot before yielding. The caller authenticates this
@@ -123,7 +172,7 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   // nor this calculation grants current permission or import replay membership.
   const snapshot=structuredClone({history,generation});
   await assertCurrent();
-  const facts=project(snapshot.history,snapshot.generation,{sourceRevision});
+  const facts=project(snapshot.history,snapshot.generation,{sourceRevision,originalThrough});
   const ops=snapshot.generation.collections.ops||{},W=facts.source_order.frontier;
   const accepted=new Map(Object.values(snapshot.generation.collections.receipts||{}).filter(r=>r.seq<=W).map(r=>[r.op_id,r.seq]));
   const pending=[],bases=[];
@@ -161,6 +210,6 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   await assertCurrent();
   return facts;
  }
- return Object.freeze({project,projectWithSources});
+ return Object.freeze({project,projectWithSources,projectAccepted,projectAcceptedWithSources});
 }
 module.exports={createEngineHistoryProjector};

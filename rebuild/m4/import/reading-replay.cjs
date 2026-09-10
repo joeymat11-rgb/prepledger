@@ -13,13 +13,16 @@ const json=x=>{const s=JSON.stringify(x);if(!isDeepStrictEqual(JSON.parse(s),x))
 const date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d+'T00:00:00Z'))&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d;
 function freezeOwned(value){const stack=[value];while(stack.length){const item=stack.pop();if(!item||typeof item!=='object'||Object.isFrozen(item))continue;
   for(const child of Object.values(item))stack.push(child);Object.freeze(item);}return value;}
-function createReadingReplay({engineFor,projectReadings,parseStrictJson,producerIdentity,importBuild,deviceId}={}){
+function createReadingReplay({engineFor,projectReadings,parseStrictJson,producerIdentity,importBuild,deviceId,workoutHistoryReader,workoutProjector}={}){
   if([engineFor,projectReadings,parseStrictJson].some(f=>typeof f!=='function')||typeof producerIdentity!=='string'||!producerIdentity||typeof importBuild!=='string'||!importBuild)
     throw TypeError('Actual scoped engine factory, reading projector, parser and producer identity required');
+  if((workoutHistoryReader!==undefined||workoutProjector!==undefined)&&
+    (typeof workoutHistoryReader!=='function'||typeof workoutProjector?.projectAccepted!=='function'||typeof workoutProjector?.projectAcceptedWithSources!=='function'))
+    throw TypeError('Actual stored workout reader and accepted factual projector required');
   // Private correspondence for the producer's actual consumed source image.
   // Retains the SAME immutable state reference; no second state or permission.
   const workoutSources=new WeakMap();
-  function evaluate({sourceId,material,generation,asOf}={},internal=null){
+  function evaluate({sourceId,material,generation,asOf}={},internal=null,native=null){
     if(typeof sourceId!=='string'||!sourceId||!material||!generation?.collections||!date(asOf))fail('READING_REPLAY_INPUT');
     const input=copy(material),g=copy(generation),c=g.collections;
     if(Object.keys(input).length!==5||!['source_json','candidate_json','checkpoint_json','engine_context_json'].every(k=>typeof input[k]==='string')||
@@ -57,6 +60,7 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
     }
     for(const row of facts.records)if(row.status==='pending-local'&&seenDates.has(row.date)&&!inheritedDates.has(row.date))issue('PENDING_SOURCE_OVERLAP_UNRESOLVED',row.op_id);
     const byId=new Map(allRecords.map(r=>[r.op_id,r]));
+    const nativeIds=new Set(native?.recognizedIds||[]);
     for(const receipt of accepted){
       const op=c.ops[receipt.op_id];
       if(op.class==='reading'){
@@ -67,8 +71,17 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
         if(op.kind==='fact'){
           const row=byId.get(op.op_id);if(!row?.accepted||row.accepted.state==='unresolved')issue('ACCEPTED_DAILY_UNRESOLVED',op.op_id);
         }else if(!['correction','tombstone'].includes(op.kind)||!byId.get(op.target_op_id)?.accepted)issue('ACCEPTED_DAILY_EFFECT_UNMAPPED',op.op_id);
+      }else if(nativeIds.has(op.op_id)){
+        // Workout observations are rebuilt by the shared factual interpreter.
+        // Their admission is not consent to invoke completeSession/plan effects.
       }else if(!(op.schema_version===1&&op.class==='event'&&op.kind==='fact'&&['source-import-intent','source-rollback-intent'].includes(op.payload?.type)))
         issue('ACCEPTED_ENGINE_CONTEXT_UNMAPPED',op.op_id);
+    }
+    if(native){
+      coverage.native_workouts={original_limit:native.facts.original_through,source_members:copy(native.facts.source_members),
+        source_order:copy(native.facts.source_order)};
+      if([...native.facts.sessions,...native.facts.incomplete_sessions].some(session=>session.completion_state==='unresolved'||
+          session.record.entries.some(entry=>entry.slots.some(slot=>slot.state==='unresolved'))))issue('ACCEPTED_WORKOUT_UNRESOLVED');
     }
     // Admission order is the retained execution order for this candidate. A
     // backdated insertion or same-date choice needs an explicit governing rule.
@@ -129,17 +142,18 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       coverage.state_sha256=hash(json(state));coverage.calculation_sha256=hash(json(calculation));
     }else state=null;
     const result={profile:PROFILE,ready:!issues.length,qualified:false,activated:false,issues,coverage,
-      accepted_state:state,accepted_calculation:calculation,reading_history:facts,daily_history:daily};
+      accepted_state:state,accepted_calculation:calculation,reading_history:facts,daily_history:daily,
+      ...(native?{workout_history:copy(native.facts)}:{})};
     // Callers can compare a saved candidate only by reproducing this function
     // over the original source and complete current accepted inputs again.
     return copy(result);
   }
   function project(input){return evaluate(input);}
   function reproduce(input,saved){const actual=project(input);if(!isDeepStrictEqual(actual,saved))fail('READING_REPLAY_CHECKPOINT_MISMATCH');return actual;}
-  async function projectLineage({selectionId,generation,asOf,readSelectedSource,assertCurrent,sourceBasis,readSourceCuts}={}){
+  async function projectLineage({selectionId,generation,asOf,readSelectedSource,assertCurrent,sourceBasis,readSourceCuts,sourceRevision}={}){
     if(typeof readSelectedSource!=='function'||typeof assertCurrent!=='function'||typeof selectionId!=='string'||!generation?.collections||!date(asOf))fail('SOURCE_LINEAGE_INPUT');
     const original=copy(generation),W=original.collections.sync?.frontier?.W,nodes=new Map(),cache=new Map();
-    const receiptIndex=new Map(Object.values(original.collections.receipts||{}).map(r=>[r.seq,r]));
+    const receiptIndex=new Map(Object.values(original.collections.receipts||{}).map(r=>[r.seq,r])),nativeCache=new Map();
     await assertCurrent();
     let sourceContext=null;
     if(sourceBasis!==undefined){
@@ -150,6 +164,23 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
         fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
       sourceContext=cuts[0];
     }else if(readSourceCuts!==undefined)fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
+    async function nativeAt(g,limit){
+      const through=g.collections.sync.frontier.W;
+      if(!workoutProjector||!Object.values(g.collections.receipts||{}).some(r=>r.seq<=through&&g.collections.ops[r.op_id]?.class==='session'))return null;
+      if(!sourceContext||!Number.isSafeInteger(sourceRevision)||sourceRevision<1)fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
+      let cached=nativeCache.get(through);
+      if(!cached){
+        await assertCurrent();const history=workoutHistoryReader(copy(g));await assertCurrent();
+        const facts=await workoutProjector.projectAcceptedWithSources(history,g,{sourceRevision,readSourceCuts,assertCurrent});
+        cached={history,facts};nativeCache.set(through,cached);
+      }
+      const facts=limit===through?copy(cached.facts):workoutProjector.projectAccepted(cached.history,g,{sourceRevision,originalThrough:limit});
+      if(limit!==through){
+        const sources=new Map([...cached.facts.sessions,...cached.facts.incomplete_sessions].map(row=>[row.start_op_id,row.original_source]));
+        for(const row of [...facts.sessions,...facts.incomplete_sessions])row.original_source=copy(sources.get(row.start_op_id));
+      }
+      await assertCurrent();return {facts,recognizedIds:cached.facts.source_members.map(row=>row.op_id)};
+    }
     async function node(id){
       if(nodes.has(id))return nodes.get(id);
       await assertCurrent();const value=copy(await readSelectedSource(id));await assertCurrent();
@@ -188,10 +219,10 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       let result;
       if(previous===null){
         // Original roots retain the existing opaque-local-image refusal.
-        if(limit===g.collections.sync.frontier.W)result=evaluate(input);
+        if(limit===g.collections.sync.frontier.W)result=evaluate(input,null,await nativeAt(g,limit));
         else{
           const base=evaluate({...input,generation:prefix(g,0)});if(!base.ready)return base;
-          result=evaluate(input,{state:base.accepted_state,inheritedIds:[],steps:[],lineage:[],originalLimit:limit});
+          result=evaluate(input,{state:base.accepted_state,inheritedIds:[],steps:[],lineage:[],originalLimit:limit},await nativeAt(g,limit));
         }
       }else{
         const prior=await node(previous);if(prior.selection.seq>cut||prior.selection.seq>=s.seq)fail('SOURCE_LINEAGE_ORDER');
@@ -213,8 +244,11 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
           {localBytes:Buffer.from(json(inheritedView.accepted_state))}).candidateState();}catch{fail('SOURCE_LINEAGE_RECONSTRUCTION_FAILED');}
         const lineage=(inheritedView.coverage.source_lineage||[]).concat([{selection_id:s.intent_op_id,previous_selection_id:previous,checkpoint_W:cut,
           local_image_sha256:hash(m.local_json),reproduced_local_sha256:hash(json(baseline.accepted_state)),
-          reconstructed_local_sha256:hash(json(inheritedView.accepted_state)),reconstructed_merge_sha256:hash(json(merged))}]);
-        result=evaluate(input,{state:merged,inheritedIds,steps:inheritedView.coverage.steps,lineage,originalLimit:limit});
+          reconstructed_local_sha256:hash(json(inheritedView.accepted_state)),reconstructed_merge_sha256:hash(json(merged)),
+          ...(baseline.workout_history||inheritedView.workout_history?{native_membership:{original_through:cut,
+            original:copy(baseline.coverage.native_workouts||null),reconstructed:copy(inheritedView.coverage.native_workouts||null),
+            original_facts_sha256:hash(json(baseline.workout_history||null)),reconstructed_facts_sha256:hash(json(inheritedView.workout_history||null))}}:{})}]);
+        result=evaluate(input,{state:merged,inheritedIds,steps:inheritedView.coverage.steps,lineage,originalLimit:limit},await nativeAt(g,limit));
       }
       if(result.ready){result.coverage.original_limit=limit;result.coverage.selected_intent_id=id;}
       cache.set(key,copy(result));return result;
@@ -232,6 +266,7 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       if(!log||typeof log!=='object'||Array.isArray(log))fail('SOURCE_WORKOUT_HISTORY_UNSUPPORTED');
       result.workout_baseline={profile:'earned/imported-engine-history/v1',source_generation_id:source.source_id,
         activation_op_id:source.intent_op_id,session_log:log};
+      if(result.workout_history)result.workout_history.legacy_baseline=result.workout_baseline;
       result.coverage.workout_source={source_id:source.source_id,activation_op_id:source.intent_op_id,selected_intent_id:selectionId,
         selected_action:selected.selection.action,original_checkpoint_W:source.before.W,material_sha256:result.coverage.material_sha256};
       if(sourceContext)result.source_basis=copy(sourceContext.frontier);
@@ -240,8 +275,8 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
     // state and its baseline. Nothing is published after a changed context.
     await assertCurrent();
     if(result.ready&&result.source_basis){
-      freezeOwned(result.accepted_state);freezeOwned(result.workout_baseline);freezeOwned(result.source_basis);
-      workoutSources.set(result,{basis:copy(result.source_basis),state:result.accepted_state,baseline:result.workout_baseline});
+      freezeOwned(result.accepted_state);freezeOwned(result.workout_baseline);freezeOwned(result.source_basis);freezeOwned(result.workout_history);
+      workoutSources.set(result,{basis:copy(result.source_basis),state:result.accepted_state,baseline:result.workout_baseline,facts:result.workout_history});
       Object.freeze(result);
     }
     return result;
@@ -253,7 +288,7 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       fields.some(k=>descriptors[k].value!==held.basis[k]))fail('SOURCE_WORKOUT_INPUT_DISAGREEMENT');
     // The engine adapter takes its one owned copy. This is source correspondence,
     // not a new authentication, currentness or qualified-plan boundary.
-    return {state:held.state,source_basis:copy(held.basis),workout_baseline:held.baseline};
+    return {state:held.state,source_basis:copy(held.basis),workout_baseline:held.baseline,...(held.facts?{workoutFacts:held.facts}:{})};
   }
   return Object.freeze({project,reproduce,projectLineage,workoutInput});
 }
