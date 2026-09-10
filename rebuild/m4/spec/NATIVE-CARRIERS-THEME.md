@@ -5,9 +5,13 @@ Package `M2-NATIVE-CARRIERS`. Successor of `M2-LOAD-WRITES`
 `5073977b3f612f0e6212f4d47ddc5f45f044897f0dc51b1d81b4840f6b099d82`, receipt at
 `rebuild/DECISIONS.md` line 86). sourceBase `189523bdb2fa37187ce9e08b93c4e6dc27d41efd`.
 
-This document is the theme the PM accepts; the profile binds the resulting ledger
-line. Until that line exists the profile carries `THEME_PENDING` and
-`native-carriers-profile.cjs` **refuses to award acceptance**.
+This document is the theme the PM accepted. The resulting ledger line is
+`rebuild/DECISIONS.md` **line 93** (role `cowork`, NATIVE-CARRIERS THEME ACCEPTED,
+sha256 `5fc93a7c4bf5ac60a4fe9a1819b51a6fd339c98c9f4dfc8f02d52d1d456c901d`), and the
+profile now binds it in place of the earlier `THEME_PENDING` sentinel. The owner
+authority is **line 92** (role `owner`, SLICE RATIFICATION, sha256
+`0c2aed9fec3202b074256d0e25f5406c65f1bb3497b7db7ed4e21fda984be621`). Both stand on
+`origin/rebuild/t2-client-core` @ `cb900a62b70997b534de40d5329d8cd6e2dae769`.
 
 ## 1. What is adopted, and its exact bytes
 
@@ -194,9 +198,15 @@ byte was silently changed.**
   is verified against the candidate's own published pins but the reconstruction itself
   is a builder act and should be reviewed.
 
-## 7. What the PM is asked to accept
+## 7. Status
 
-The behaviour above, as the delta contract for `M2-NATIVE-CARRIERS`, and then to write the
-ledger line (role `cowork`, one line, containing `M2-NATIVE-CARRIERS`, ending ` · ACCEPTED`)
-that `native-carriers-profile.cjs` binds in place of `THEME_PENDING`. No receipt, execution,
-product acceptance or merge follows from this document.
+Accepted by the PM at `rebuild/DECISIONS.md` line 93, with conditions C1 (independent review of
+the recovered ACCEPTED preimage / test-support reconstruction), C2 (`run-current-head --all`
+435/435 reproduced in the joined tree at the package head — **done: 435/435, 0 fail, 0 skipped**),
+C3 (`today.cjs:92` `e.id === "hack"` recorded as register item H1 for Track B, byte-untouched here)
+and C4 (FULL including the private oracle is the PM's own execution before any receipt).
+No receipt, execution, product acceptance or merge follows from this document.
+
+The bytes line 93 reviewed are this file **as of `f8cbf98face943b34ccfc1ecffb1e608a56084b6`**.
+The only later edits are this status section and the authority header above; §§1–6 — the
+behaviour/delta substance the line accepted — are unchanged.

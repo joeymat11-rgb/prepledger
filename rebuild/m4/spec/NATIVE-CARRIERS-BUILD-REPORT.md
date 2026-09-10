@@ -9,7 +9,7 @@ Nothing private was read or run; `--full` was **not** run; no install; nothing m
 ## 1. Profile facts
 
 - `packageId` `M2-NATIVE-CARRIERS`; artifact `rebuild/m4/spec/acceptance-native-carriers.json`
-  sha256 `c271a07960d9e0adb9ef9666ddd1083e08bed4358d43cdc6cf5cbe0bfa8809d1`;
+  sha256 `aad93d4a8f562e623c22b934346dfcc7ad1d29dea07fd86d3f58fc136e224623`;
   review `rebuild/m4/spec/review-native-carriers.json` = `{version:1,status:"PENDING",receipt:null}`.
 - `parent` = the accepted M2-LOAD-WRITES artifact `rebuild/m4/spec/acceptance-load-writes.json`
   sha256 `5073977b3f612f0e6212f4d47ddc5f45f044897f0dc51b1d81b4840f6b099d82` — **verified**, and its
@@ -31,26 +31,24 @@ Nothing private was read or run; `--full` was **not** run; no install; nothing m
 | slot | binding | why |
 |---|---|---|
 | `contract` | inherited byte-equal from the parent artifact (ledger line 49) | precedent: the successor inherits the gate contract |
-| `owner.delegation` | `rebuild/DECISIONS.md` line 26, role **owner** — "ROLE RULING … ASTRA owns technical delivery and routine task selection" — sha256 `ae65fb8ced10f5cad3b1b46b8c678bfb9eae8b7c9512ffaf1e3518c3a09f7d16` | the only owner-role line that authorizes this class of engine work |
-| `owner.speed` | `rebuild/DECISIONS.md` line 88, role **cowork** — records the owner's 2026-09-10 "Do it" speed plan, incl. *two-tier rigor (engine full gate …)* — sha256 `2fdbd9d2745e0caf83313db2ce8659f49ff9004bb667add0c39f3826a3f8543b` | the ruling that puts an engine package under the FULL gate now |
-| `theme` | **`THEME_PENDING`** sentinel | the PM has not yet written the line; `verify()` refuses acceptance while it stands |
+| `owner` | `rebuild/DECISIONS.md` **line 92**, role **owner** — SLICE RATIFICATION, the owner's exact words with provenance — sha256 `0c2aed9fec3202b074256d0e25f5406c65f1bb3497b7db7ed4e21fda984be621` | PM judgement of 2026-09-10; the line names Track A0 = the native next-target carriers |
+| `theme` | `rebuild/DECISIONS.md` **line 93**, role **cowork** — NATIVE-CARRIERS THEME ACCEPTED — sha256 `5fc93a7c4bf5ac60a4fe9a1819b51a6fd339c98c9f4dfc8f02d52d1d456c901d` | the accepted behaviour/delta contract; replaces the earlier THEME_PENDING sentinel |
 | `review` | `{role:'cowork', prefix:'POSTFIX-ACCEPTANCE M2-NATIVE-CARRIERS', terminal:'ACCEPTED'}` | precedent |
 
-Both owner citations are pinned by sha256 in `rebuild/m4/spec/native-carriers-authorizations.json`
-(sha256 `6d50f842d3c8821259331453e9919f7f11980bc9c796b8fe008bbfd9dde4f32f`) and are re-verified with
-`L.verifyReceipt` **at their own roles** at receipt time.
-
-**Disclosed, unproven:** no owner-role ledger line names "native next targets". I searched every
-`owner` line in `rebuild/DECISIONS.md` and the M4 brief; line 88 is the closest ruling but its role
-is `cowork`, so it cannot be bound as an owner-role claim. The delegation + speed pair is my
-judgement, not a found citation, and the PM/reviewer should confirm it is the intended owner
-authority before any receipt.
+Both lines stand on `origin/rebuild/t2-client-core` @ `cb900a62b70997b534de40d5329d8cd6e2dae769`
+(ledger 93 lines). Their exact bytes are pinned in
+`rebuild/m4/spec/native-carriers-authorizations.json` (sha256
+`0409c6945e5455a4fb722379fdef90875b65a89bab6c4e173989d1f5043be872`). `verify()` requires the owner
+line to contain `SLICE RATIFICATION` and the theme line to contain `M2-NATIVE-CARRIERS` and end
+` · ACCEPTED`, and in the ACCEPTED branch re-verifies **both** at the receipt base through
+`L.verifyReceipt` under their own roles, exactly as `load-write-profile.cjs` does. The earlier
+delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
 
 ## 2. Commands and totals (all on this branch)
 
 | # | command | result |
 |---|---|---|
-| 1 | `node rebuild/m4/spec/native-carriers-profile.cjs --seal` | exit 0 — SEALED, THEME_PENDING, review PENDING |
+| 1 | `node rebuild/m4/spec/native-carriers-profile.cjs --seal` | exit 0 — SEALED, owner line 92 + theme line 93 bound, review PENDING |
 | 2 | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | **exit 0 — PUBLIC CI EVIDENCE PASS** |
 | 3 | ↳ child `focused` — the three adopted L tests | **15 pass / 0 fail / 1 skipped** |
 | 4 | ↳ child `browser-package` — w7-preview model/view/package | **19 pass / 0 fail** |
@@ -66,6 +64,7 @@ authority before any receipt.
 | 14 | `node --test rebuild/m3/w0/test/public-conformance.test.cjs rebuild/m3/w0/test/scope-package.test.mjs` | exit 0 |
 | 15 | `node rebuild/t2/rig187.cjs` | exit 0 |
 | 16 | `node rebuild/m4/spec/native-carriers-reference.cjs` | exit 0 — 6/6 ACCEPTED preimages recovered and pin-verified; 14 retained import-engine files |
+| 17 | **(C2)** `node rebuild/m3/w6/test/run-current-head.cjs . --all` (the **joined tree itself** as argv[2], at the package head) | **exit 0 — 435 tests / 435 pass / 0 fail / 0 skipped / 0 cancelled / 0 todo**, incl. `WORKOUT ACTUAL CLIENT/R1 HTTP PASS` |
 
 Effective mutants (mutant → detector): `performed-hole-state`→focused,
 `progression-governing-last`→focused, `plan-era-fresh-native`→focused,
@@ -111,12 +110,12 @@ them again before exiting.
    entry is replaced — the same supersession M2-LOAD-WRITES applied to M2-STEP-EFFICACY. Requirement
    "keep the parent's `--ci` PASS" is therefore **not met and cannot be met**; the reviewer should
    rule on the supersession rather than on that command.
-2. **`node rebuild/m3/w6/test/run-current-head.cjs <R1> --all` could not be executed** in this
-   environment, so the "unchanged 435/435" figure is **not** reproduced here. It requires a retained
-   R1 checkout whose `rebuild/m4/workout/schema.cjs` matches the joined tip (`9d18cce9…`); the R1
-   trees on this machine carry `6038b32e…`. A clean **base** worktree at `189523b` fails identically
-   at the same line (`Shared edit candidate source differs: rebuild/m4/workout/schema.cjs`) before
-   any engine code loads, so the carriers are not implicated — but this is unverified, not proven.
+2. **(C2) RESOLVED — `run-current-head.cjs . --all` is 435/435 at the package head.** My first
+   attempt pointed argv[2] at a separate R1 worktree, whose `rebuild/m4/workout/schema.cjs`
+   (`6038b32e…`) differs from the joined tip (`9d18cce9…`), so it refused before any engine code
+   loaded; the untouched base failed identically. Run the way the JOIN reviewer ran it — with the
+   **joined tree itself** as argv[2] — it is 435 tests / 435 pass / 0 fail / 0 skipped on this
+   branch, unchanged from the JOIN's own 435/435 at `189523b`.
 3. The `legacy` differential is 9 comparisons over one synthetic profile and three alarm branches.
    It is real but thin; a wider legacy corpus is the obvious strengthening.
 4. `direct` covers the carriers' structure exhaustively and their behaviour only where it can be

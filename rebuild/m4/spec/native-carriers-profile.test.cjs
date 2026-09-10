@@ -18,12 +18,20 @@ test('the sealed artifact verifies as it stands', () => {
  assert.equal(context.manifest.packageId,Profile.ID);
  assert.equal(context.manifest.sourceBase,S.BASE);
  assert.equal(context.accepted,false,'No receipt is claimed');
- assert.equal(context.themePending,true,'THEME_PENDING stands until the PM binds the line');
+ assert.equal(context.themePending,false,'The theme ledger line is bound');
 });
-test('a THEME_PENDING profile can never be ACCEPTED', () => {
+test('the owner and theme ledger lines are bound by exact text and sha256', () => {
  const a=require(ART);
- assert.equal(a.authorizations.theme.pending,'THEME_PENDING');
- assert.throws(()=>Profile.checkAuthorizations(a.authorizations,Profile.parent()),/THEME-AUTHORIZATION-UNAVAILABLE/);
+ assert.equal(a.authorizations.owner.role,'owner');
+ assert.equal(a.authorizations.owner.ledgerLine,92);
+ assert.equal(a.authorizations.owner.lineSha256,Profile.OWNER_SHA);
+ assert(a.authorizations.owner.line.includes('SLICE RATIFICATION'));
+ assert.equal(a.authorizations.theme.role,'cowork');
+ assert.equal(a.authorizations.theme.ledgerLine,93);
+ assert.equal(a.authorizations.theme.lineSha256,Profile.THEME_SHA);
+ assert(a.authorizations.theme.line.includes('M2-NATIVE-CARRIERS'));
+ assert(a.authorizations.theme.line.endsWith(' · ACCEPTED'));
+ assert.throws(()=>Profile.citation({...a.authorizations.theme,line:a.authorizations.theme.line+' x'},{role:'cowork',mustInclude:[]}));
 });
 test('an altered artifact byte is refused', () => {
  withEdit(ART,text=>text.replace('"version": 1','"version": 2'),refuses);

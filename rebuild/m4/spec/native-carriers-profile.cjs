@@ -23,13 +23,15 @@ const PARENT={
 // explicitly instead of leaning on an APPROVED-FIX id.
 const REQUIRED=[];
 const AUTHORIZATIONS='rebuild/m4/spec/native-carriers-authorizations.json';
-const AUTHORIZATIONS_SHA='6d50f842d3c8821259331453e9919f7f11980bc9c796b8fe008bbfd9dde4f32f';
-// THEME_PENDING. The PM has not yet written the theme ledger line this profile
-// must bind (precedent: the load-write profile before its M3 citation binding).
-// verify() REFUSES while this sentinel stands; replacing it with the actual
-// {role:'cowork', line, lineSha256} is the PM's act, not the builder's.
-const THEME_PENDING=Object.freeze({pending:'THEME_PENDING',note:'Replace with the accepted NATIVE-CARRIERS THEME ledger line (role cowork, single line, ending " · ACCEPTED") after the PM accepts rebuild/m4/spec/NATIVE-CARRIERS-THEME.md.'});
-const THEME=THEME_PENDING;
+const AUTHORIZATIONS_SHA='0409c6945e5455a4fb722379fdef90875b65a89bab6c4e173989d1f5043be872';
+// THEME_PENDING is retired. The PM's own ledger lines are now bound by exact text
+// and sha256: owner = rebuild/DECISIONS.md line 92 (role owner, SLICE RATIFICATION)
+// and theme = line 93 (role cowork, NATIVE-CARRIERS THEME ACCEPTED), both standing
+// on origin/rebuild/t2-client-core @ cb900a62b70997b534de40d5329d8cd6e2dae769.
+// Their bytes live in the sha-pinned citation file beside this profile; the
+// ACCEPTED branch re-verifies each at the receipt base under its own role.
+const OWNER_SHA='0c2aed9fec3202b074256d0e25f5406c65f1bb3497b7db7ed4e21fda984be621';
+const THEME_SHA='5fc93a7c4bf5ac60a4fe9a1819b51a6fd339c98c9f4dfc8f02d52d1d456c901d';
 const REVIEW_CLAIM={role:'cowork',prefix:'POSTFIX-ACCEPTANCE M2-NATIVE-CARRIERS',terminal:'ACCEPTED'};
 const HELPERS=['source','reference','errors','traces','direct','legacy','witnesses','cases','profile','package'].map(n=>'rebuild/m4/spec/native-carriers-'+n+'.cjs');
 const FILES=[
@@ -66,40 +68,44 @@ function parent(){
  }
  return a;
 }
+function citation(claim,{role,mustInclude,mustEndWith}){
+ keys(claim,['ledgerLine','role','line','lineSha256']);
+ assert(Number.isInteger(claim.ledgerLine)&&claim.ledgerLine>0,'Ledger line number');
+ assert(claim.role===role,'Citation role');
+ assert(typeof claim.line==='string'&&!/[\r\n]/.test(claim.line),'Single ledger line');
+ assert.equal(S.sha(claim.line),claim.lineSha256,'Ledger line sha256');
+ assert(new RegExp(' · '+role+' · ').test(claim.line),'Ledger line carries its role');
+ for(const needle of mustInclude)assert(claim.line.includes(needle),'Citation content: '+needle);
+ if(mustEndWith)assert(claim.line.endsWith(mustEndWith),'Citation terminal');
+ return claim;
+}
 function authorizations(){
  const raw=fs.readFileSync(path.join(root,AUTHORIZATIONS));
  assert.equal(S.sha(raw),AUTHORIZATIONS_SHA,'Pinned authorization citations');
  const value=J.parseExact(raw);
- keys(value,['profile','owner']);
- assert.equal(value.profile,'earned/native-carriers-authorizations/v1','Authorization profile');
- keys(value.owner,['delegation','speed']);
- for(const [name,claim]of Object.entries(value.owner)){
-  keys(claim,['ledgerLine','role','line','lineSha256']);
-  assert(typeof claim.line==='string'&&!/[\r\n]/.test(claim.line)&&S.sha(claim.line)===claim.lineSha256,'Owner citation shape: '+name);
- }
- // The delegation is an owner-role ruling; the speed ruling is the cowork line
- // that records the owner's 2026-09-10 "Do it" plan and its engine-full-gate
- // tier. Neither names "native next targets": that gap is disclosed in
- // NATIVE-CARRIERS-THEME.md and is the PM's to close, not the builder's.
- assert.equal(value.owner.delegation.role,'owner','Owner delegation role');
- assert(value.owner.delegation.line.includes('ROLE RULING'),'Owner delegation content');
- assert.equal(value.owner.speed.role,'cowork','Speed ruling role');
- assert(value.owner.speed.line.includes('engine full gate'),'Speed ruling content');
- return value.owner;
+ keys(value,['profile','ledgerCommit','owner','theme']);
+ assert.equal(value.profile,'earned/native-carriers-authorizations/v2','Authorization profile');
+ assert(/^[a-f0-9]{40}$/.test(value.ledgerCommit),'Ledger commit');
+ // owner = the owner's own SLICE RATIFICATION line; theme = the PM's accepted
+ // NATIVE-CARRIERS THEME line. Both by exact text and sha256.
+ const owner=citation(value.owner,{role:'owner',mustInclude:['SLICE RATIFICATION']});
+ assert.equal(owner.lineSha256,OWNER_SHA,'Owner ledger line pin');
+ const theme=citation(value.theme,{role:'cowork',mustInclude:['M2-NATIVE-CARRIERS'],mustEndWith:' · ACCEPTED'});
+ assert.equal(theme.lineSha256,THEME_SHA,'Theme ledger line pin');
+ return {owner,theme};
 }
 function checkAuthorizations(auth,a){
  keys(auth,['owner','contract','theme','review']);
  assert(same(auth.contract,a.authorizations.contract),'INHERITED-CONTRACT-AUTHORIZATION');
- assert(same(auth.owner,authorizations()),'OWNER-AUTHORIZATION-PIN');
- assert(!auth.theme||auth.theme.pending!=='THEME_PENDING','THEME-AUTHORIZATION-UNAVAILABLE');
- const theme=auth.theme;keys(theme,['role','line','lineSha256']);
- assert(theme.role==='cowork'&&typeof theme.line==='string'&&!/[\r\n]/.test(theme.line)&&S.sha(theme.line)===theme.lineSha256&&
-  theme.line.includes('M2-NATIVE-CARRIERS')&&theme.line.endsWith(' · ACCEPTED'),'THEME-AUTHORIZATION-PIN');
+ const bound=authorizations();
+ assert(same(auth.owner,bound.owner),'OWNER-AUTHORIZATION-PIN');
+ assert(same(auth.theme,bound.theme),'THEME-AUTHORIZATION-PIN');
  assert(same(auth.review,REVIEW_CLAIM),'REVIEW-AUTHORIZATION');
 }
 function proposed(){
- const a=parent();
- const auth={owner:authorizations(),contract:a.authorizations.contract,theme:THEME,review:REVIEW_CLAIM};
+ const a=parent(),bound=authorizations();
+ const auth={owner:bound.owner,contract:a.authorizations.contract,theme:bound.theme,review:REVIEW_CLAIM};
+ checkAuthorizations(auth,a);
  return {version:1,packageId:ID,sourceBase:S.BASE,parent:PARENT,requiredIds:REQUIRED,matrix:a.matrix,gates:a.gates,
   authorizations:auth,product:S.verify(root),
   executionPins:Object.fromEntries(FILES.map(file=>[file,S.sha(fs.readFileSync(path.join(root,file)))]))};
@@ -111,15 +117,15 @@ function verify(){
  const a=parent();
  const review=J.parseExact(fs.readFileSync(path.join(root,REVIEW)));
  keys(review,['version','status','receipt']);assert.equal(review.version,1);assert(['PENDING','ACCEPTED'].includes(review.status));
- // A sealed THEME_PENDING profile can be executed and CI-evidenced, but it can
- // never be ACCEPTED: the theme binding must be real before any receipt counts.
- const themePending=!!(m.authorizations.theme&&m.authorizations.theme.pending==='THEME_PENDING');
+ const themePending=false;
+ checkAuthorizations(m.authorizations,a);
  let accepted=false;
  if(review.status==='PENDING')assert.equal(review.receipt,null);
  else{
-  checkAuthorizations(m.authorizations,a);
   const r=review.receipt;assert(r&&typeof r.commit==='string','Missing independent receipt');L.verifyReceipt(root,r.commit,r,{role:'cowork'});
-  for(const claim of [m.authorizations.owner.delegation,m.authorizations.owner.speed,m.authorizations.theme])
+  // Both authority lines must actually stand at the receipt base, each under its
+  // own role, exactly as load-write-profile.cjs re-verifies owner and theme.
+  for(const claim of [m.authorizations.owner,m.authorizations.theme])
    L.verifyReceipt(root,r.commit,{commit:r.commit,path:'rebuild/DECISIONS.md',line:claim.line,lineSha256:claim.lineSha256},{role:claim.role});
   const match=/^(?:- [^\r\n]+ · cowork · )?POSTFIX-ACCEPTANCE M2-NATIVE-CARRIERS ([a-f0-9]{40}) (rebuild\/m4\/spec\/acceptance-native-carriers\.json) ([a-f0-9]{64}) ACCEPTED$/.exec(r.line);
   assert(match&&match[2]===ARTIFACT&&match[3]===S.sha(raw),'Exact independent verdict');
@@ -132,12 +138,12 @@ function verify(){
  }
  return {root,manifest:m,parent:a,accepted,themePending,artifactSha256:S.sha(raw)};
 }
-module.exports={ID,ARTIFACT,REVIEW,PARENT,REQUIRED,FILES,SUPERSEDED,THEME_PENDING,REVIEW_CLAIM,parent,authorizations,checkAuthorizations,proposed,verify};
+module.exports={ID,ARTIFACT,REVIEW,PARENT,REQUIRED,FILES,SUPERSEDED,OWNER_SHA,THEME_SHA,REVIEW_CLAIM,parent,citation,authorizations,checkAuthorizations,proposed,verify};
 if(require.main===module){try{
  assert.deepEqual(process.argv.slice(2),['--seal']);
  const reviewFile=path.join(root,REVIEW);
  if(fs.existsSync(reviewFile))assert.equal(JSON.parse(fs.readFileSync(reviewFile)).status,'PENDING','Never reseal an accepted artifact');
  fs.writeFileSync(path.join(root,ARTIFACT),JSON.stringify(proposed(),null,2)+'\n');
  if(!fs.existsSync(reviewFile))fs.writeFileSync(reviewFile,JSON.stringify({version:1,status:'PENDING',receipt:null},null,2)+'\n');
- console.log('NATIVE CARRIERS PROFILE SEALED: public source hashes only; THEME_PENDING stands; independent acceptance PENDING');
+ console.log('NATIVE CARRIERS PROFILE SEALED: public source hashes only; owner line 92 and theme line 93 bound; independent acceptance PENDING');
 }catch(_){console.error('NATIVE CARRIERS PROFILE SEAL FAIL; details withheld');process.exitCode=1;}}
