@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.85 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.86 (working implementation)
+
+## Current v0.86 typed performed-reader candidate
+
+APM confirmed exact candidate functions after reading factory/source and scalar consumers; scope is recorded first in PERFORMED-ENGINE-v1. The new spec/typed-performed-candidate constructor uses the actual prior performed reader/source assembly and accepted entered-load predicate. It validates performed-lift/v2 original targets independently of original/current performed values, preserves valid v2 effort/history APIs and exposes every typed slot. Numeric projection, comparison and sessionScore explicitly reject unknown configured magnitude, preventing the actual volume null-filter from discarding it. Original v1 behavior and numeric v2 outputs remain equivalent in the exercised cases. Five focused groups PASS using the actual stored-history candidate. No retained factory/engine/runtime change, active history-review or Fable UI overlap, scientific comparability or qualified prescription claim. Legacy trend enumeration still requires its actual native-history join before enabling; full schema/issuer/currentness/consent and review gates remain. Current report/checkpoint carry exact evidence and next action.
 
 ## Current v0.85 configured-load history and parallel UI
 
