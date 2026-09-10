@@ -1,5 +1,9 @@
 # BRIEF-W5-R1 — complete reconciliation, lease history and device recovery
 
+## Source inner-identity evidence — confirmed test-only seam, September10
+
+APM confirmed M4 WORKOUT-SCHEMA-V2 §3a.2 after inspecting the actual authenticated request/transaction boundaries. Add only the existing source-import.test.cjs case for actual enrolled v1 source requests: valid outer actor with recomputed inner foreign athlete/device operation, scope before new/existing-binding retry, exact403/SCOPE_FORBIDDEN, unchanged both-account rows/revision/frontier and successful original/exact-retry controls. This brief/report and that test are the complete R1 delta; no source codec, issuer, authority, bridge, schema copy or default profile change. Genuine schema2/full mixed recovery still requires the complete accepted contract and transition.
+
 ## Rev164 context value/schema candidate — precise boundary, September10
 
 The shared schema file adds internal validateContextShape/validateContextRelations exports and imports identical context-values from M4/W6, reusing unchanged edit-values helpers. It checks actual original family/target identity and keeps physiological context edits distinct from source controls. Default createWorkoutProfile/validateWorkoutShape remains workout-only; no source dispatch, bound-source reference/athlete gate, authority constructor/core, source codec, manifest or issuer changes. R1 does not gain a history fold. The finite rev164 contract permits this separable candidate but is not independent runtime/complete C1–C4 acceptance. Exact sources, final M4/W6 evidence and limitations are in REPORT-R1-ASTRA and the M4 report.

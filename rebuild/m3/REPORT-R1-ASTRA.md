@@ -1,5 +1,11 @@
 # W5-R1 implementation — ASTRA
 
+## Source inner-identity HTTP evidence — September10
+
+APM confirmed the exact test-only §3a.2 seam. Added one retained source-import.test.cjs case using the existing actual loopback Worker/D1/P1 fixture and genuinely issued v1 leases. Three identity substitutions (isolated athlete, actual other athlete, same-athlete other device), each before new binding and against existing binding ID, recompute actual commitment and retain the correct authenticated outer device. All6 return exact403/SCOPE_FORBIDDEN and preserve byte-identical encrypted rows for BOTH athletes, authority revision and source frontier. Successful original/exact retry retains one binding and byte-identical rows. Existing bridge advances CAS revision on successful empty deltas; that is explicitly asserted, not mistaken for a duplicate fact.
+
+Executed only the named new case: `node --test --test-name-pattern="authenticated source inner athlete" rebuild/m3/w5/test/source-import.test.cjs`,1/1PASS in5.2477seconds, `.tmp/source-inner-scope-final.log` SHA73bd4400c16c1b8248716099c861172cd5a53f58ed03de9b635f3fba9d5879a2. Initial `.tmp/source-inner-scope.log` failed an overstrict successful-retry revision assertion; the actual bridge's unconditional successful CAS explained it. Required refusal invariance was kept. The isolated athlete-only case intentionally does not supply a matching foreign lease, and demands the earlier scope code; other cases use real corresponding leases. No product runtime/fixture bypass, v2 issuance or signed mixed-history evidence follows. Default profile/issuer/codec unchanged; M4 new internal source shape/helper are not adopted into R1. Independent affected review remains pending.
+
 ## Shared contextual values and shape — unenabled candidate, September10
 
 R1 receives only shared context-values.cjs and schema.cjs's internal contextual validation exports, plus this precise brief/report. These bytes match M4/W6; unchanged edit-values supplies the existing effective/clear primitives with no circular dependency. Actual original target validation refuses source-control originals and nested aliases even though both use class:event. Default workout-only profile and all actual authority/issuer/source-codec paths are unchanged. R1 has no new edit-history module.

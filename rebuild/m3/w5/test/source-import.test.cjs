@@ -120,6 +120,46 @@ test('missing/changed source, ordinary accepted intent, stale preparation and wr
   assert.equal((await f.send(f.request('activate',{source_id:staged.sourceId,expected:staged.expected,operation:candidate}))).body.error?.code,'SOURCE_STALE_BASIS');
   assert.equal((await f.current()).current,null);
 });
+test('authenticated source inner athlete and device scope precede new binding and existing binding retry',async t=>{
+  const f=await fixture(t),s=await f.stage('scope-source'),original=f.intent(s);
+  const originalRequest=f.request('activate',{source_id:s.sourceId,expected:s.expected,operation:original});
+  const {commitmentOf}=require('../../../authority/crypto.cjs');
+  function committed(value,patch={}){
+    const op={...structuredClone(value),...patch};
+    op.canonical_content_commitment=commitmentOf(op,f.identityKeys[op.athlete_id]);
+    assert.equal(commitmentOf(op,f.identityKeys[op.athlete_id]),op.canonical_content_commitment);
+    return op;
+  }
+  const foreign=f.intent(s,'activate',f.other),otherDevice=f.intent(s,'activate',f.b);
+  // Athlete-only isolates that guard. Its lease intentionally does not match
+  // the changed athlete; a later lease/commitment refusal cannot earn this pass.
+  const substitutions=[['athlete-only',committed(original,{athlete_id:f.other.athlete_id})],
+    ['other enrolled athlete',committed(foreign)],['same athlete, other enrolled device',committed(otherDevice)]];
+  const durable=async()=>({rows:(await f.db.prepare('SELECT * FROM authority_rows ORDER BY athlete,collection,row_id').all()).results,
+    revision:(await f.db.prepare('SELECT revision FROM authority_revision WHERE id=1').all()).results});
+  async function refuse(label,operation){
+    const before=await durable(),frontier=(await f.current()).frontier;
+    const result=await f.send({...originalRequest,operation});
+    assert.equal(originalRequest.device_id,f.a.device_id,'Outer request retains authenticated actor');
+    assert.equal(result.status,403,label);assert.equal(result.body.error?.code,'SCOPE_FORBIDDEN',label);
+    assert.deepEqual(await durable(),before,label+' must not change either account or revision');
+    assert.deepEqual((await f.current()).frontier,frontier,label+' must not change source frontier');
+  }
+  for(const [label,operation]of substitutions)await refuse(label,operation);
+  assert.equal((await f.current()).current,null);
+  const accepted=await f.send(originalRequest);assert.equal(accepted.status,200,JSON.stringify(accepted.body));
+  assert.equal(accepted.body.status,'BOUND');assert.equal(accepted.body.binding.intent_op_id,original.op_id);
+  const bound=await durable();assert.deepEqual((await f.send(originalRequest)).body,accepted.body);
+  const retried=await durable();
+  assert.deepEqual(retried.rows,bound.rows,'Exact same-athlete retry must not create another binding');
+  // The retained bridge commits its CAS even for an empty successful delta.
+  // Scope refusals above still must leave both rows AND revision unchanged.
+  assert.equal(retried.revision[0].revision,bound.revision[0].revision+1);
+  for(const [label,operation]of substitutions)await refuse('existing binding: '+label,committed(operation,{op_id:original.op_id}));
+  assert.deepEqual((await f.send(originalRequest)).body,accepted.body);
+  assert.equal((await f.current()).selections.length,1);
+});
+
 test('actual admission WAITING drain is included in the bound post-frontier and survives recovery',async t=>{
   const f=await fixture(t),s=await f.stage(),op=f.intent(s),child=f.op(f.b,{parents:[op.op_id]});
   assert.equal((await f.bridge.invokeScoped(subject,f.b.device_id,'admit',['first',child])).status,'WAITING');
