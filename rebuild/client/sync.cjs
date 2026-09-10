@@ -25,7 +25,15 @@ function createSync(ctx) {
     if (!STATUSES.has(d.status)) return { ok: false, reason: "unknown disposition status " + d.status };
     const op = model.ops.get(d.op_id);
     if (!op || op.device_id !== model.deviceId) return { ok: false, reason: "unknown op_id" };
-    if (typeof d.authority_signature !== "string" || d.authority_signature !== signatureOver(authorityKey, DISPOSITION_DOMAIN, d, "authority_signature")) return { ok: false, reason: "signature does not verify" };
+    let signatureValid;
+    if (ctx.verifyDisposition !== undefined) {
+      try {
+        const verified = typeof d.authority_signature === "string" && ctx.verifyDisposition(d, op);
+        if (verified && typeof verified.then === "function") Promise.resolve(verified).catch(() => {});
+        signatureValid = verified === true;
+      } catch { signatureValid = false; }
+    } else signatureValid = typeof d.authority_signature === "string" && d.authority_signature === signatureOver(authorityKey, DISPOSITION_DOMAIN, d, "authority_signature");
+    if (!signatureValid) return { ok: false, reason: "signature does not verify" };
     if (d.canonical_content_commitment !== op.canonical_content_commitment) return { ok: false, reason: "commitment mismatch" };
     if (d.device_id !== undefined && d.device_id !== op.device_id) return { ok: false, reason: "device mismatch" };
     if (d.device_seq !== undefined && d.device_seq !== op.device_seq) return { ok: false, reason: "device_seq mismatch" };

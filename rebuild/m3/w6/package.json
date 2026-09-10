@@ -1,0 +1,9 @@
+{
+  "name": "earned-w6-storage-slice",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": { "test": "node --test test/*.test.mjs", "test:browser": "node test/browser-check.mjs" },
+  "dependencies": { "@noble/ciphers": "2.4.0", "@noble/hashes": "2.2.0" },
+  "devDependencies": { "esbuild": "0.28.1", "fake-indexeddb": "6.2.5", "playwright-core": "1.62.1" }
+}

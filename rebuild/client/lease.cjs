@@ -9,14 +9,22 @@ const DOMAIN = "earned/lease/v1";
 
 const parseTime = (iso) => { const t = Date.parse(iso); if (Number.isNaN(t)) throw new Error("lease: unparseable time " + iso); return t; };
 
-function verifySignature(lease, authorityKey) {
+function verifySignature(lease, authorityKey, verifyLease) {
+  if (verifyLease !== undefined) {
+    try {
+      if (!lease || typeof lease.signature !== "string") return false;
+      const verified = verifyLease(lease);
+      if (verified && typeof verified.then === "function") Promise.resolve(verified).catch(() => {});
+      return verified === true;
+    } catch { return false; }
+  }
   return !!lease && typeof lease.signature === "string" && lease.signature === signatureOver(authorityKey, DOMAIN, lease, "signature");
 }
 
 /* check(lease, { authorityKey, deviceId, athleteId, nowIso, nextSeq }) → { valid, reason, not_after } */
 function check(lease, ctx) {
   if (!lease) return { valid: false, reason: "no lease", not_after: null };
-  if (!verifySignature(lease, ctx.authorityKey)) return { valid: false, reason: "lease signature does not verify", not_after: lease.not_after || null };
+  if (!verifySignature(lease, ctx.authorityKey, ctx.verifyLease)) return { valid: false, reason: "lease signature does not verify", not_after: lease.not_after || null };
   if (ctx.deviceId && lease.device_id !== ctx.deviceId) return { valid: false, reason: "lease issued to another device", not_after: lease.not_after };
   if (ctx.athleteId && lease.athlete_id && lease.athlete_id !== ctx.athleteId) return { valid: false, reason: "lease issued for another athlete", not_after: lease.not_after };
   const now = parseTime(ctx.nowIso);

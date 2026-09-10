@@ -11,6 +11,9 @@
      standing           — "enrolled" | "revoked" (a device that already knows it was removed)
      signInRequired     — the authentication session is known to be expired (state 11)
      backoff            — outbox retry schedule (default [0, 1000, 2000, 4000] ms)
+     authorityVerification — optional complete synchronous { verifyLease, verifyDisposition } pair
+     permissionNowIso   — optional permission-only ISO sample; never replaces athlete effective timestamps
+     onPreparedBatch    — optional synchronous observer of actual immutable whole-batch envelopes
    }
    Everything the athlete does is a durable operation written with its outbox entry in ONE local transaction
    (durability rule). Everything the face shows is derived from the store's read model, rebuilt on boot(). The
@@ -28,12 +31,17 @@ const COPY = require("./copy.cjs");
 const Canonical = require("./canonical.cjs");
 
 const deepCopy = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
+const deepFreeze = (v) => { if (v && typeof v === "object") { Object.values(v).forEach(deepFreeze); Object.freeze(v); } return v; };
 const localTime = (iso, tz) => { const m = /^([+-])(\d\d):(\d\d)$/.exec(tz || "+00:00"); const off = m ? (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3])) : 0; const t = new Date(Date.parse(iso) + off * 60000); return t.toISOString().slice(11, 16); };
 const q = (value, unit) => ({ value, unit });
 
 function createClient(config) {
   const cfg = config || {};
-  for (const k of ["deviceId", "identityKey", "authorityKey", "clock"]) if (!cfg[k]) throw new Error("createClient: config." + k + " is required");
+  const verification = cfg.authorityVerification;
+  if (verification !== undefined && (!verification || typeof verification.verifyLease !== "function" || typeof verification.verifyDisposition !== "function")) throw new Error("createClient: authorityVerification needs verifyLease() and verifyDisposition()");
+  for (const k of ["deviceId", "identityKey", ...(verification === undefined ? ["authorityKey"] : []), "clock"]) if (!cfg[k]) throw new Error("createClient: config." + k + " is required");
+  if (cfg.onPreparedBatch !== undefined && typeof cfg.onPreparedBatch !== "function") throw new Error("createClient: onPreparedBatch must be a function");
+  if (cfg.readingProjector !== undefined && typeof cfg.readingProjector !== "function") throw new Error("createClient: readingProjector must be a function");
   if (typeof cfg.clock.now !== "function" || typeof cfg.clock.today !== "function" || typeof cfg.clock.monotonicMs !== "function") throw new Error("createClient: clock needs now(), today(), monotonicMs()");
   const clock = cfg.clock; const K = cfg.identityKey; const tz = clock.tz || "+00:00";
   const store = new Store(cfg.backend || memoryBackend());
@@ -80,10 +88,58 @@ function createClient(config) {
   const ownOps = () => Array.from(model.ops.values()).filter((o) => o.device_id === model.deviceId && !model.rejected.has(o.op_id)).sort((a, b) => a.device_seq - b.device_seq);
   const tombstoned = () => new Set(ownOps().filter((o) => o.kind === "tombstone").map((o) => o.target_op_id));
   const reducedThroughW = (op) => { const d = model.dispositions.get(op.op_id); return !!(d && d.status === "ACCEPTED" && Number.isInteger(d.athlete_log_seq) && d.athlete_log_seq <= model.W); };
-  const folded = (op) => { const pt = model.planTxns.get(op.op_id); return !!(pt && pt.committed && pt.effective && pt.received); };
+  // A complete source projection already contains these admitted transactions,
+  // including effects later superseded by another device. Replaying a retained
+  // applied/consented record would override that source on fresh boot. Membership
+  // alone cannot suppress an unsent edit: require its exact accepted original
+  // through the locally held frontier. Snapshot authentication remains upstream.
+  function coveredBySnapshot(opId, txnId) {
+    const op = model.ops.get(opId), d = model.dispositions.get(opId), s = model.snapshot;
+    return !!(s && s.plan && Array.isArray(s.planTransactionIds) && typeof txnId === "string" &&
+      op && (op.kind === "plan-mutation" ? op.requested_transaction_id === txnId :
+        ["proposal-response", "conflict-selection", "undo-request"].includes(op.kind) && Array.isArray(s.planTransactionSources) &&
+        s.planTransactionSources.some(t => t.txn_id === txnId && t.op_id === opId)) &&
+      d && d.op_id === opId && d.status === "ACCEPTED" && d.canonical_content_commitment === op.canonical_content_commitment &&
+      Number.isSafeInteger(d.athlete_log_seq) && d.athlete_log_seq > 0 && d.athlete_log_seq <= model.W &&
+      (!s.recoveryPlan || Number.isSafeInteger(s.recoveryPlan.W) && d.athlete_log_seq <= s.recoveryPlan.W && s.recoveryPlan.W <= model.W) && s.planTransactionIds.includes(txnId));
+  }
+  function rejectedPlanRecord(record) {
+    const op = model.ops.get(record.op_id), d = model.dispositions.get(record.op_id), rejected = model.rejected.get(record.op_id);
+    return !!(op && d && rejected && d.op_id === op.op_id && d.canonical_content_commitment === op.canonical_content_commitment &&
+      rejected.op_id === op.op_id && rejected.commitment === op.canonical_content_commitment && rejected.status === d.status &&
+      ["REJECTED", "REJECTED_DEPENDENCY"].includes(d.status));
+  }
+  const coveredPlanRecord = record => rejectedPlanRecord(record) || coveredBySnapshot(record.op_id, record.txn_id);
+  function coveredSuspension(record) {
+    // Local reduction labels are not source watermarks. Only the verified
+    // source's explicit suspension and exact admitted effect can cover this.
+    const s = model.snapshot;
+    if (s?.recoveryPlan?.profile !== "earned/recovered-plan-snapshot/v1" || !Array.isArray(s.planSuspendedTransactionIds) ||
+        !s.planSuspendedTransactionIds.includes(record.txn_id) || !Array.isArray(s.planTransactionSources)) return false;
+    const source = s.planTransactionSources.find(t => t.txn_id === record.txn_id);
+    return !!(source && coveredBySnapshot(source.op_id, record.txn_id));
+  }
+  const folded = (op) => { const pt = model.planTxns.get(op.op_id); return coveredBySnapshot(op.op_id, op.requested_transaction_id) || !!(pt && pt.committed && pt.effective && pt.received); };
   function reads() {
+    const projected = readingProjection(); if (projected) return projected.reads;
     const dead = tombstoned(); const corrections = ownOps().filter((o) => o.kind === "correction");
     return ownOps().filter((o) => o.kind === "fact" && o.class === "reading" && !dead.has(o.op_id)).map((o) => { let lb = o.payload && o.payload.lb && o.payload.lb.value; for (const c of corrections) if (c.target_op_id === o.op_id && c.payload && c.payload.replacement_fields && c.payload.replacement_fields.lb) lb = c.payload.replacement_fields.lb.value; return { date: o.effective.local_date, lb, op_id: o.op_id }; });
+  }
+  // Optional static factual interpreter. W6 authenticates the same generation
+  // before installing it. Use the current model, including just-created ops.
+  function readingProjection() {
+    if (cfg.readingProjector === undefined) return null;
+    const table = name => Object.fromEntries(store.keys(name).map(key => [key, store.get(name, key)]));
+    const value = cfg.readingProjector(deepCopy({ operations: Object.fromEntries(model.ops),
+      dispositions: Object.fromEntries(model.dispositions), rejected: Object.fromEntries(model.rejected),
+      receipts: table("receipts"), outbox: table("outbox"), frontier: { W: model.W, authorityW: model.authorityW } }));
+    const fields = ["profile", "frontier", "records", "reads", "acceptedReads", "days", "acceptedDays", "machineProjection"];
+    if (!value || Object.keys(value).length !== fields.length || fields.some(k => !Object.hasOwn(value, k)) ||
+        value.profile !== "earned/reading-projection/v1" || value.frontier !== model.W || value.machineProjection !== false ||
+        ["records", "reads", "acceptedReads", "days", "acceptedDays"].some(k => !Array.isArray(value[k]))) {
+      const error = new Error("READING_PROJECTION_INVALID"); error.code = error.message; throw error;
+    }
+    return deepCopy(value);
   }
   function liveEdits() { return ownOps().filter((o) => o.kind === "plan-mutation" && !folded(o)); }
   /* the dependency names a Layer-1 operation touches: a plan edit → its domain and member fields; a fact → "fact:<class>" —
@@ -92,13 +148,13 @@ function createClient(config) {
   function acceptedPlan() {
     const s = model.snapshot; const lp = model.localPlan; let out = null;
     if (s && s.plan) out = { plan: Object.assign({}, s.plan), provenance: s.planProvenance || null, version: s.planVersion || null, transactions: (s.planTransactionIds || []).slice() };
-    for (const a of model.appliedPlan) { if (!out) out = { plan: {}, provenance: "authored", version: a.op_id, transactions: [] }; out.plan = Plan.project(out.plan, a.members); out.version = a.txn_id || a.op_id; out.transactions.push(a.txn_id || a.op_id); out.provenance = a.provenance || out.provenance; }
-    if (lp) { if (!out) out = { plan: {}, provenance: null, version: null, transactions: [] }; out.plan = Plan.project(out.plan, lp.members); out.provenance = lp.provenance; out.version = lp.version || lp.txn_id; out.transactions.push(lp.txn_id); }
+    for (const a of model.appliedPlan) { if (coveredPlanRecord(a)) continue; if (!out) out = { plan: {}, provenance: "authored", version: a.op_id, transactions: [] }; out.plan = Plan.project(out.plan, a.members); out.version = a.txn_id || a.op_id; out.transactions.push(a.txn_id || a.op_id); out.provenance = a.provenance || out.provenance; }
+    if (lp && !coveredPlanRecord(lp)) { if (!out) out = { plan: {}, provenance: null, version: null, transactions: [] }; out.plan = Plan.project(out.plan, lp.members); out.provenance = lp.provenance; out.version = lp.version || lp.txn_id; out.transactions.push(lp.txn_id); }
     return out;
   }
   function livePlan() {
     const acc = acceptedPlan(); let plan = acc ? Object.assign({}, acc.plan) : {};
-    for (const sus of model.suspensions.values()) plan = Object.assign({}, sus.fallback);   /* state 5: the fallback projection governs while suspended */
+    for (const sus of model.suspensions.values()) if (!coveredSuspension(sus)) plan = Object.assign({}, sus.fallback);   /* state 5: uncovered local knowledge still governs; source-covered fallback is already projected */
     for (const o of liveEdits()) for (const m of o.members) plan[m.field] = m.value;        /* the athlete's direct edit is the sole current plan for that domain */
     return plan;
   }
@@ -109,7 +165,17 @@ function createClient(config) {
   const bumpReductions = (t) => { t.put("sync", "reductions", { n: model.reductions + 1 }); };
 
   /* ---------- lease + contract ---------- */
-  const leaseNow = (nextSeq) => Lease.check(cfg.lease, { authorityKey: cfg.authorityKey, deviceId: model.deviceId, athleteId: model.athleteId, nowIso: clock.now(), nextSeq });
+  const leaseNow = (nextSeq) => {
+    let nowIso;
+    if (cfg.permissionNowIso !== undefined) {
+      try {
+        nowIso = cfg.permissionNowIso();
+        if (nowIso && typeof nowIso.then === "function") Promise.resolve(nowIso).catch(() => {});
+        if (typeof nowIso !== "string" || !Number.isFinite(Date.parse(nowIso))) throw new Error();
+      } catch { return { valid: false, reason: "permission time unavailable", not_after: cfg.lease && cfg.lease.not_after || null }; }
+    } else nowIso = clock.now();
+    return Lease.check(cfg.lease, { authorityKey: cfg.authorityKey, verifyLease: verification && verification.verifyLease, deviceId: model.deviceId, athleteId: model.athleteId, nowIso, nextSeq });
+  };
   const contractObsolete = () => { const c = cfg.contract; if (!c) return false; if (typeof c.obsolete === "boolean") return c.obsolete; return !!(c.required && c.client && String(c.required) !== String(c.client)); };
 
   /* ---------- sessions (state 14) ---------- */
@@ -125,8 +191,8 @@ function createClient(config) {
   /* fold an effective, received plan transaction into the local accepted projection (inside the same transaction) */
   const onFold = (t, op_id) => { const op = model.ops.get(op_id); if (!op || op.kind !== "plan-mutation") return; const list = model.appliedPlan.filter((a) => a.op_id !== op_id).concat([{ op_id, txn_id: op.requested_transaction_id, members: op.members, provenance: op.group_provenance || "authored" }]); t.put("plan", "applied", { list }); return list; };
   const onFolded = (op_id, list) => { if (list) model.appliedPlan = list; };
-  const sync = createSync({ store, model, outbox, authorityKey: cfg.authorityKey, clock, transport: cfg.transport, isOnline: () => model.online, isPaused: () => model.signInRequired || model.standing === "revoked" || model.restoreRequired, onFold, onFolded });
-  const face = createFace({ model, outbox, sync, leaseNow: () => leaseNow(), contractObsolete, ambiguity, reads, touched, acceptedPlan, livePlan, answers, history, today: () => clock.today(), persistedSnapshot: () => store.get("sync", "snapshot") });
+  const sync = createSync({ store, model, outbox, authorityKey: cfg.authorityKey, verifyDisposition: verification && verification.verifyDisposition, clock, transport: cfg.transport, isOnline: () => model.online, isPaused: () => model.signInRequired || model.standing === "revoked" || model.restoreRequired, onFold, onFolded });
+  const face = createFace({ model, outbox, sync, leaseNow: () => leaseNow(), contractObsolete, ambiguity, reads, readingProjection, touched, acceptedPlan, livePlan, answers, history, today: () => clock.today(), persistedSnapshot: () => store.get("sync", "snapshot") });
 
   /* ---------- the durability rule: ONE local transaction writes the operation(s) and the outbox entry(ies) ---------- */
   const effectiveOn = (date) => ({ local_date: date || clock.today(), local_time: localTime(clock.now(), tz), utc_offset: tz });
@@ -136,10 +202,48 @@ function createClient(config) {
     const first = model.ownSeq + 1; const lastSeq = model.ownSeq + actions.length;
     const l = leaseNow(first); const l2 = l.valid ? leaseNow(lastSeq) : l;
     if (!l.valid || !l2.valid) { const bad = l.valid ? l2 : l; return { acknowledged: false, state: 20, copy: bad.reason === "no lease" || bad.reason === "lease signature does not verify" ? COPY.LEASE_MISSING : COPY.LEASE_EXPIRED(bad.not_after ? String(bad.not_after).slice(0, 10) : null), reason: bad.reason }; }
+    const workout = actions.length === 1 && Object.hasOwn(actions[0], "workout");
+    if (workout && cfg.lease.schema_version !== 2) return { acknowledged: false, state: 20,
+      copy: "Reconnect before saving this workout.", reason: "workout schema unavailable" };
     const ops = []; let pred = model.lastOwnOpId;
+    const invalidWorkout = value => {
+      try { Promise.prototype.then.call(value, undefined, () => {}); } catch (_) {}
+      throw new Error("WORKOUT_INPUT_INVALID");
+    };
     try {
-      actions.forEach((a, i) => { const seq = first + i; const op = Ops.build({ op_id: "op-" + model.deviceId + "-" + seq, athlete_id: model.athleteId, device_id: model.deviceId, device_seq: seq, predecessor: pred, parents: a.parents, class: a.class, kind: a.kind, target: a.target, effective: a.effective || effectiveOn(), lease_id: l.lease_id, payload: a.payload, plan: a.plan, undo: a.undo, extra: a.extra }, K); ops.push(op); pred = op.op_id; });
-    } catch (e) { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(e.message), invalid: e.validation || [e.message] }; }
+      if (workout) {
+        try {
+          if (!cfg.workoutCommands || cfg.workoutCommands.schemaVersion !== 2 ||
+            typeof cfg.workoutCommands.prepare !== "function" || typeof cfg.workoutCommands.validate !== "function") invalidWorkout();
+          const action = cfg.workoutCommands.prepare(actions[0].workout);
+          if (!action || typeof action !== "object" || Array.isArray(action) || typeof action.then === "function") invalidWorkout(action);
+          const reserved = ["op_id","athlete_id","device_id","device_seq","device_predecessor_op_id","causal_parents",
+            "class","kind","effective","schema_version","lease_id","payload","canonical_content_commitment","target_op_id"];
+          if (action.extra && Object.keys(action.extra).some(key => reserved.includes(key))) invalidWorkout();
+          actions = [action];
+        } catch (_) { invalidWorkout(); }
+      }
+      actions.forEach((a, i) => { const seq = first + i; const op = Ops.build({ op_id: "op-" + model.deviceId + "-" + seq, athlete_id: model.athleteId, device_id: model.deviceId, device_seq: seq, predecessor: pred, parents: a.parents, class: a.class, kind: a.kind, target: a.target, effective: a.effective || effectiveOn(), lease_id: l.lease_id, schema_version: workout ? 2 : undefined, payload: a.payload, plan: a.plan, undo: a.undo, extra: a.extra }, K);
+        if (workout) {
+          try {
+            const valid = cfg.workoutCommands.validate(op, id => model.rejected.has(id) ? undefined : deepCopy(model.ops.get(id)));
+            if (valid !== true) invalidWorkout(valid);
+          } catch (_) { invalidWorkout(); }
+        }
+        ops.push(op); pred = op.op_id; });
+    } catch (e) {
+      if (workout) e = new Error("WORKOUT_INPUT_INVALID"); // Includes faulty prepared-action getters reached by Ops.build.
+      return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID(e.message), invalid: e.validation || [e.message] };
+    }
+    if (cfg.onPreparedBatch) {
+      try {
+        const descriptor = deepFreeze(deepCopy({ version: "earned/client-batch/v1", athleteId: model.athleteId, deviceId: model.deviceId,
+          count: actions.length, firstSequence: first, lastSequence: lastSeq, leaseId: l.lease_id, operations: ops }));
+        const observed = cfg.onPreparedBatch(descriptor);
+        if (observed && typeof observed.then === "function") Promise.resolve(observed).catch(() => {});
+        if (observed !== undefined) throw new Error("batch observer must return undefined");
+      } catch { return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED, reason: "prepared batch observer failed" }; }
+    }
     const entries = ops.map((op, i) => ({ op_id: op.op_id, order: outbox.nextOrder() + i, enqueued: clock.now() }));
     const r = store.transaction((t) => { ops.forEach((op, i) => { t.put("ops", op.op_id, op); t.put("outbox", op.op_id, entries[i]); }); t.put("meta", "device", { device_id: model.deviceId, athlete_id: model.athleteId, seq: lastSeq }); return batch.also ? batch.also(t, ops) : undefined; });
     if (!r.ok) { model.lastSaveFailed = true; return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED, reason: r.error && r.error.message }; }
@@ -155,6 +259,7 @@ function createClient(config) {
   const api = {
     boot, restart, store, model,
     /* named actions (sheet 318–320) */
+    workout: value => commitBatch([{ field: "workout", value, workout: value }]),
     weighIn: ({ date, lb }) => { if (typeof lb !== "number" || !Number.isFinite(lb)) { model.fields.weighIn = lb; return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID("A weight is required.") }; } return commit({ field: "weighIn", value: lb, kind: "fact", class: "reading", payload: { lb: q(lb, "lb"), source: "athlete" }, effective: effectiveOn(date) }); },
     logSet: (p) => commit({ field: "logSet", value: p, kind: "session-set", class: "session", payload: setPayload(p, activeSession()), also: (t) => { t.del("drafts", "active"); }, after: () => { model.draft = null; } }),
     decision: (p) => { const payload = { answer: p.answer }; if (p.proposal != null) payload.proposal_id = p.proposal; return commit({ field: "decision", value: p, kind: "proposal-response", class: "plan", payload, copy: COPY.RESOLUTION_SAVED }); },
@@ -171,7 +276,7 @@ function createClient(config) {
     /* face */
     face: face.face, faceLabel: sync.faceLabel, stateOf: face.governing, conflictFace: face.conflictFace,
     plan: () => (acceptedPlan() ? livePlan() : null),
-    acceptedPlanTransactions: () => { const out = []; const s = model.snapshot; if (s && s.plan) out.push({ source: "authority", version: s.planVersion || null, provenance: s.planProvenance || null, plan: Object.assign({}, s.plan) }); for (const a of model.appliedPlan) out.push({ txn_id: a.txn_id, provenance: a.provenance, plan: Plan.project({}, a.members), op_id: a.op_id }); if (model.localPlan) out.push({ txn_id: model.localPlan.txn_id, provenance: model.localPlan.provenance, plan: Plan.project({}, model.localPlan.members), op_id: model.localPlan.op_id }); return out; },
+    acceptedPlanTransactions: () => { const out = []; const s = model.snapshot; if (s && s.plan) out.push({ source: "authority", version: s.planVersion || null, provenance: s.planProvenance || null, plan: Object.assign({}, s.plan) }); for (const a of model.appliedPlan) if (!coveredPlanRecord(a)) out.push({ txn_id: a.txn_id, provenance: a.provenance, plan: Plan.project({}, a.members), op_id: a.op_id }); if (model.localPlan && !coveredPlanRecord(model.localPlan)) out.push({ txn_id: model.localPlan.txn_id, provenance: model.localPlan.provenance, plan: Plan.project({}, model.localPlan.members), op_id: model.localPlan.op_id }); return out; },
     proposals: () => { const out = face.layer2().proposals.slice(); if (!acceptedPlan() && !model.explicitNoPlan) { const offer = Plan.initialPlanOffer(sessionFacts()); if (offer) out.push(offer); } return out; },
     acceptInitialPlan: (choiceId) => {
       if (choiceId === "no-plan") { const r = store.transaction((t) => { t.put("plan", "choice", { id: "no-plan", at: clock.now() }); }); if (r.ok) model.explicitNoPlan = true; return { acknowledged: r.ok, choice: choiceId }; }
