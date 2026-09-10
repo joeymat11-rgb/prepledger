@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.87 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.88 (working implementation)
+
+## Current v0.88 added-slot capture component
+
+APM confirms no accepted native hard/rushed/debt mapping or full daily/bodycomp domain ruling supplies current qualification. Preserve the actual context refusal; no invented flags or repeated old witness. While independent UI and combined reader/trend reviews proceed, advance the already-specified added-slot/reference/fixed-Skip technical dependency. The exact initial capture seam is recorded in LOAD-AND-SLOT-EXTENSION and confirmed by APM before implementation. New spec/added-slot-candidate constructor adds createExtensionCapture to the actual W6 capture source in scratch, reusing private copyData and existing common cell/producer/basis validation. It stores only immutable extension indices, preserves literal source strings, and does not retain validation placeholders. Five focused groups and63 unchanged original capture controls pass. No installed source or new operation kind; no source-frontier proof from original-profile validation. Next is the named shared shape/definition-reference/fixed-Skip/edit/partition/history join, then coherent acceptance; do not dispatch a standalone capture review or partial issuer.
 
 ## Current v0.87 native trend connection and coherent adoption
 
