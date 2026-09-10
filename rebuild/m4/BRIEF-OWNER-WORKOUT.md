@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.76 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.77 (working implementation)
+
+## Current v0.77 executable factual context proposal
+
+WORKOUT-SCHEMA-V2 v0.10 §3b and context-values-proposal.cjs define the next concrete C1 prerequisite: independent observed sleep hours/quality, explicit night date, date-only event/illness/pain intervals, complete effective edits, optional clears and all-cleared sleep history. The later approved recovery UI requires a proposed v2 at-least-one-observation exception to A4's required-hours row; APM confirmed that direction without another owner permission request.13 author checks pass, including actual unchanged v1 validation and installed night-date reader correspondence. This is a nonshipping executable value contract; it does not authenticate/order history, change frozen laws, connect current advice, or qualify physiology. Exact sources, limitations and next shared-normalizer adoption boundary are in the existing spec/report. Product runtime remains a779bae.
 
 ## Current v0.76 guarded supported-baseline order
 
