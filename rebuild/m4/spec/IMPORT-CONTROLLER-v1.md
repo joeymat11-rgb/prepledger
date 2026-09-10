@@ -1,4 +1,10 @@
-# Import preparation and controller boundary v1.7 — September 10, 2026
+# Import preparation and controller boundary v1.8 — September 10, 2026
+
+## Context interpretation is a qualified input contract — v1.8
+
+The actual context-compatibility.cjs witness demonstrates that legacy dayWeather event classification does not change actual currentRate/observedTDEE, and that directly copied native typed intervals throw while guessed start-date conversion invents a three-day exclusion. NO_EXERCISE_ATTESTATION must not be assumed to mean a social-event seal. Manual illness flags and cleanAtDate's true result for an empty night list cannot establish current safety/rest. Exact source values and facts remain separate from the governing interpretation. Report binds9 executed compatibility checks and full source pins; no new policy or engine edit is implemented.
+
+The runtime sheet's reference to the spine's event-exclusion/post-gap rules is not itself a complete typed interval/date normalizer. APM's bounded source search could not attest an exact local ratified source. This is a specific unresolved current-guidance dependency, not permission to copy legacy fields or suppress guidance permanently. Obtain or prepare the complete governing interpretation for the existing affected review; preserve pending guard behavior and historical/current consent boundaries. Meanwhile complete the actual schema2 manifest/issuance/transition prerequisite for captured workouts under WORKOUT-BASIC-SCHEMA.md; do not enable its reserved basic component as the full schema.
 
 ## Mixed food/steps/reading source execution — v1.7
 

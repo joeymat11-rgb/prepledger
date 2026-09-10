@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.62 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.63 (working implementation)
+
+## Current v0.63 context interpretation and complete schema boundary
+
+The actual installed-reader context witness now records9 compatibility checks: legacy event classification is not consumed by currentRate/observedTDEE, raw typed native intervals cannot be placed in legacy events, guessing a date creates unrelated exclusion, illness flags are not current safety, and absent nights are not rested evidence. Report and IMPORT-CONTROLLER-v1.md v1.8 preserve exact evidence. APM could not locate a ratified detailed interval normalizer/spine in its bounded search; do not invent the missing mapping. Current guidance remains blocked on that interpretation. Continue the complete immutable schema2/real issuance/transition prerequisite under WORKOUT-BASIC-SCHEMA.md, which explicitly forbids enabling only its basic six actions as a complete schema. No runtime, issuer, T2 or engine edits/activation in this diagnostic checkpoint; sole NEXT remains canonical EARNED-DELIVERY-STATUS.md.
 
 ## Current v0.62 mixed accepted source inputs
 
