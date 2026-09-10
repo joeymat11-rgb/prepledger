@@ -17,6 +17,7 @@ function bundledWorker() {
     const result = await dependency("esbuild").build({
       stdin: { resolveDir: w5Directory, sourcefile: "workerd-race-rig-entry.mjs", contents: `
         import { createBridge } from './bridge.cjs';
+        import { storageFromTestBinding } from '../rigs/p1-workerd-provider.cjs';
         export default { async fetch(request, env) {
           const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
           if (request.method !== 'POST' || new URL(request.url).pathname !== '/rig-invoke')
@@ -26,7 +27,8 @@ function bundledWorker() {
             if (!input || typeof input.method !== 'string' || !Array.isArray(input.args))
               return new Response(JSON.stringify({ error: 'RIG_BAD_REQUEST' }), { status: 400, headers });
             const bridge = createBridge({ db: env.DB, authorityKey: JSON.parse(env.AUTHORITY_KEY),
-              identityKeys: JSON.parse(env.IDENTITY_KEYS), clock: () => env.CLOCK_ISO });
+              identityKeys: JSON.parse(env.IDENTITY_KEYS), clock: () => env.CLOCK_ISO,
+              ...(env.P1_TEST_KEY ? {storage:await storageFromTestBinding(env.P1_TEST_KEY)} : {}) });
             const result = await bridge.invoke(input.method, input.args);
             return new Response(JSON.stringify({ result }), { status: 200, headers });
           } catch (_) {
@@ -42,7 +44,7 @@ function bundledWorker() {
   return bundlePromise;
 }
 
-async function createRaceRuntime({ authorityKey, identityKeys, clockISO }) {
+async function createRaceRuntime({ authorityKey, identityKeys, clockISO, p1TestKey }) {
   if (!authorityKey || !identityKeys || typeof identityKeys !== "object" || Array.isArray(identityKeys) ||
       typeof clockISO !== "string" || !Number.isFinite(Date.parse(clockISO)))
     throw new TypeError("Race runtime requires per-run signing key, athlete identity-key map and ISO clock");
@@ -54,7 +56,8 @@ async function createRaceRuntime({ authorityKey, identityKeys, clockISO }) {
     // Use the same resource identity as local-d1.cjs, so its explicit disk
     // reopen check can inspect this database after the Worker is disposed.
     d1Databases: { DB: "earned-w5-local" }, resourcePersistencePath: directory,
-    bindings: { AUTHORITY_KEY: JSON.stringify(authorityKey), IDENTITY_KEYS: JSON.stringify(identityKeys), CLOCK_ISO: clockISO },
+    bindings: { AUTHORITY_KEY: JSON.stringify(authorityKey), IDENTITY_KEYS: JSON.stringify(identityKeys), CLOCK_ISO: clockISO,
+      ...(p1TestKey ? {P1_TEST_KEY:p1TestKey} : {}) },
     log: new Log(LogLevel.ERROR), telemetry: { enabled: false }, cf: false,
   }));
   let closed = false;
@@ -63,6 +66,7 @@ async function createRaceRuntime({ authorityKey, identityKeys, clockISO }) {
     const db = await mf.getD1Database("DB");
     const migration = fs.readFileSync(path.join(w5Directory, "migrations/0001_authority.sql"), "utf8").replace(/--[^\n]*/g, "");
     await db.batch(migration.split(";").map(sql => sql.trim()).filter(Boolean).map(sql => db.prepare(sql)));
+    if(p1TestKey)await require('./p1-test-profile.cjs').provision(db);
     return { db, directory, close,
       async invoke(method, args = []) {
         if (closed) throw new Error("Race runtime is closed");

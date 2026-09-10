@@ -20,8 +20,11 @@ async function run(options = {}) {
   const { createLocalD1 } = require("../w5/local-d1.cjs");
   const { createBridge } = require("../w5/bridge.cjs");
   const authorityKey = generateSigningKey("race-d1-run"), verificationKey = publicKeyOf(authorityKey);
+  const p1Bytes=options.p1 ? require('node:crypto').randomBytes(32) : null;
+  const storage=p1Bytes ? await require('./p1-test-profile.cjs').createTestStorage(p1Bytes) : undefined;
   const runtime = await require('./worker-race-runtime.cjs').createRaceRuntime({ authorityKey,
-    identityKeys: { 'ath-1': O.K_IDENTITY, 'ath-2': O.K_IDENTITY }, clockISO: NOW });
+    identityKeys: { 'ath-1': O.K_IDENTITY, 'ath-2': O.K_IDENTITY }, clockISO: NOW,
+    ...(p1Bytes ? {p1TestKey:p1Bytes.toString('base64url')} : {}) });
   const databaseErrors = new Set();
   const observedDb = { prepare: sql => runtime.db.prepare(sql), async batch(statements) {
     try { return await runtime.db.batch(statements); }
@@ -32,7 +35,7 @@ async function run(options = {}) {
       throw error;
     }
   } };
-  const config = { db: observedDb, authorityKey, identityKeys: () => O.K_IDENTITY, clock: () => NOW };
+  const config = { db: observedDb, authorityKey, identityKeys: () => O.K_IDENTITY, clock: () => NOW, storage };
   const lease = (athlete, device) => {
     const { signature, ...record } = O.lease(device);
     return signLease({ ...record, athlete_id: athlete }, authorityKey);
@@ -138,9 +141,13 @@ async function run(options = {}) {
         const call = ++lostCalls;
         const result = await runtime.db.batch(statements);
         if (call === 2) {
-          const rows = await runtime.db.prepare("SELECT value FROM authority_rows WHERE athlete = ? AND collection = 'operations' AND row_id = ?")
+          const columns=storage ? 'athlete,collection,row_id,value,sealed,storage_revision' : 'value';
+          const rows = await runtime.db.prepare("SELECT "+columns+" FROM authority_rows WHERE athlete = ? AND collection = 'operations' AND row_id = ?")
             .bind("ath-1", lostOperation.op_id).all();
-          durableDispositionBytes = JSON.stringify(JSON.parse(rows.results[0].value).disposition);
+          let row=rows.results[0];
+          if(storage){const revision=(await runtime.db.prepare('SELECT revision FROM authority_revision WHERE id=1').first()).revision;
+            row=await require('../w5/storage/row-codec.cjs').createAuthorityRowCodec(storage).open(row,{revision});}
+          durableDispositionBytes = JSON.stringify(JSON.parse(row.value).disposition);
           replyDropped = true;
           throw new Error("fetch failed");
         }

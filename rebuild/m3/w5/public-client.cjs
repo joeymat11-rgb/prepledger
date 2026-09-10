@@ -6,11 +6,12 @@
 // before the first callback capable of draining an outbox or moving a frontier.
 const { canonicalEncode } = require("../../authority/canonical.cjs");
 const WIRE_VERSION = "earned/w5-http/v1";
+const HISTORY_PROFILE = "earned/challenge-head/v1";
 const TIME_PROFILE = "earned/challenge-time/v1";
 const MAX_TIME_ROUND_TRIP_MS = 30000;
 const ORDER = BigInt("0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551");
 const DOMAINS = Object.freeze({ disposition: "earned/disposition/v1", receipt: "earned/receipt/v1",
-  pull: "earned/pull/v1", snapshot: "earned/snapshot/v1", lease: "earned/lease/v1", serverTime: "earned/server-time/v1" });
+  currentHead: "earned/current-head/v1", pull: "earned/pull/v1", snapshot: "earned/snapshot/v1", lease: "earned/lease/v1", serverTime: "earned/server-time/v1" });
 const STATUSES = new Set(["WAITING", "ACCEPTED", "REJECTED", "REJECTED_DEPENDENCY"]);
 const copy = value => JSON.parse(JSON.stringify(value));
 const unsigned = (record, field) => Object.fromEntries(Object.keys(record).filter(k => k !== field).map(k => [k, record[k]]));
@@ -83,6 +84,7 @@ function createPublicBoundary({ keys, athleteId, deviceId, client = {}, subtle, 
   if (!Number.isSafeInteger(schemaVersion) || schemaVersion < 1) throw new TypeError("supported schema version required");
   const verifier = createPublicVerifier({ keys, subtle });
   let pendingTime = null;
+  let pendingHistory = null, historyGeneration = 0;
   const scoped = record => record.athlete_id === athleteId && record.device_id === deviceId;
   const currentEnvelope = record => record.wire_version === WIRE_VERSION &&
     decodeSignature(record.authority_signature)?.kid === record.key_epoch;
@@ -125,7 +127,7 @@ function createPublicBoundary({ keys, athleteId, deviceId, client = {}, subtle, 
     }),
     acceptPull: safely(async input => {
       const envelope = copy(input);
-      if (!scoped(envelope) || !currentEnvelope(envelope) || !Number.isSafeInteger(envelope.after) || envelope.after < 0 ||
+      if (Object.hasOwn(envelope, "history_profile") || !scoped(envelope) || !currentEnvelope(envelope) || !Number.isSafeInteger(envelope.after) || envelope.after < 0 ||
           !Number.isSafeInteger(envelope.through) || envelope.through < envelope.after ||
           !await verifier.verifyPull(envelope) || !await validReceipts(envelope.receipts, envelope.after, envelope.through))
         return fail("pull envelope or receipts do not verify");
@@ -133,7 +135,7 @@ function createPublicBoundary({ keys, athleteId, deviceId, client = {}, subtle, 
     }),
     acceptSnapshot: safely(async (input, expectedWatermark) => {
       const snapshot = copy(input);
-      if (!scoped(snapshot) || !currentEnvelope(snapshot) || !Number.isSafeInteger(snapshot.W) || snapshot.W < 0 ||
+      if (Object.hasOwn(snapshot, "history_profile") || !scoped(snapshot) || !currentEnvelope(snapshot) || !Number.isSafeInteger(snapshot.W) || snapshot.W < 0 ||
           (expectedWatermark !== undefined && snapshot.W !== expectedWatermark) || snapshot.records !== snapshot.W ||
           !Array.isArray(snapshot.entries) || snapshot.entries.length !== snapshot.W ||
           !await verifier.verifySnapshot(snapshot) || !await validReceipts(snapshot.entries, 0, snapshot.W))
@@ -149,6 +151,48 @@ function createPublicBoundary({ keys, athleteId, deviceId, client = {}, subtle, 
           Date.parse(lease.not_before) > Date.parse(lease.not_after) || !await verifier.verifyLease(lease))
         return fail("lease signature, scope, schema or range does not verify");
       return forward("receiveLease", lease);
+    }),
+    // A current-head observation is scoped to one issuance attempt. It carries
+    // no elapsed-time guarantee and is never a reusable permission to prescribe.
+    beginHistoryChallenge: ({ after, clientRevision, issuanceAttempt } = {}) => {
+      if (!Number.isSafeInteger(after) || after < 0 || !Number.isSafeInteger(clientRevision) || clientRevision < 0 ||
+          typeof issuanceAttempt !== "string" || !issuanceAttempt || issuanceAttempt.length > 128 ||
+          !crypto || typeof crypto.getRandomValues !== "function") throw new TypeError("history request and local issuance context required");
+      const request = { history_profile: HISTORY_PROFILE, challenge: encode64(crypto.getRandomValues(new Uint8Array(32))),
+        device_id: deviceId, after };
+      pendingHistory = { request, clientRevision, issuanceAttempt, generation: ++historyGeneration };
+      return copy(request); // Local revision and attempt identity never go on the wire.
+    },
+    invalidateHistoryChallenge: () => { pendingHistory = null; historyGeneration++; },
+    acceptCurrentHead: safely(async input => {
+      const pending = pendingHistory, envelope = copy(input);
+      if (!pending || !object(envelope) || !scoped(envelope) || !currentEnvelope(envelope) ||
+          envelope.history_profile !== HISTORY_PROFILE || envelope.challenge !== pending.request.challenge ||
+          envelope.after !== pending.request.after || !Number.isSafeInteger(envelope.head) || envelope.head < envelope.after ||
+          envelope.through !== envelope.head || !await verifier.verifyCurrentHead(envelope) ||
+          !await validReceipts(envelope.receipts, envelope.after, envelope.through))
+        return fail("current-head proof, scope, challenge or receipts do not verify");
+      if (pendingHistory !== pending) return fail("history request was replaced or consumed");
+      pendingHistory = null; // Consume before any state-moving callback, including concurrent replays.
+      if (typeof client.receiveCurrentHead !== "function") return fail("durable current-head sink is not installed");
+      let result;
+      try {
+        result = await client.receiveCurrentHead({ envelope, context: {
+          clientRevision: pending.clientRevision, issuanceAttempt: pending.issuanceAttempt,
+          athleteId, deviceId } });
+      } catch (_) {
+        // Authentication succeeded, but the durable outcome is unknown. A new
+        // request cannot by itself repair a failed integrity/knowledge fence.
+        return { accepted: false, verified: true, stored: false, state: 18,
+          reason: "current-head durable outcome is unknown" };
+      }
+      const stored = object(result) && result.durable === true;
+      if (historyGeneration !== pending.generation)
+        return { accepted: false, verified: true, stored, state: 18, reason: "history context changed during durable handoff" };
+      if (!stored || result.confirmed !== true)
+        return { accepted: false, verified: true, stored, state: object(result) && [3,17,18,19,20].includes(result.state) ? result.state : 3,
+          reason: "current-head durable handoff is unconfirmed" };
+      return { accepted: true, verified: true, stored: true, result };
     }),
     beginTimeChallenge: () => {
       const started = monotonicMs();
@@ -178,4 +222,4 @@ function createPublicBoundary({ keys, athleteId, deviceId, client = {}, subtle, 
 }
 
 module.exports = { createPublicVerifier, createPublicBoundary, canonicalBytes, decodeSignature, DOMAINS,
-  WIRE_VERSION, TIME_PROFILE, MAX_TIME_ROUND_TRIP_MS };
+  WIRE_VERSION, TIME_PROFILE, HISTORY_PROFILE, MAX_TIME_ROUND_TRIP_MS };

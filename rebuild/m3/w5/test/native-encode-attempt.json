@@ -1,0 +1,141 @@
+{
+  "profile": "earned/native-encode-attempt/v1",
+  "disposition": "NOT ADOPTED",
+  "baseline": "34200f579dbade13c29f68e4a1375ac98c4d7ff3",
+  "preserved": {
+    "base": "d5f64b7bdacfefec16e6dad4dc885186f166b10d",
+    "experimentCommit": "b734538e6b23e3a5bf01f9bcfa6fd0ec53a8bb3b",
+    "experimentRef": "refs/heads/experiment/r1-native-encode-20260909",
+    "filesSha256": {
+      "rebuild/m3/w5/reconciliation/codec.cjs": "f5c12b31d655b66eabb7a6bcf1d9c5cbc860d23f1a9854cf4cc4139d7bc21849",
+      "rebuild/m3/w5/test/native-encode/run.cjs": "1cc47b4bd8e66a0f9a4fc8464da6ff18755505c1d44a85bfa4ef1f3d76f6d35f",
+      "rebuild/m3/w5/test/native-encode/worker-test.cjs": "e4119ed5bd2124601ef113212122be0711a9aaec5649caab58c9733f53434a85",
+      "rebuild/m3/w5/test/native-encode/corpus.cjs": "2da95179aa8fc03e4902f00e9334ed40720e0d10913836b870aa0d074b98c1d4",
+      "rebuild/m3/w5/test/native-encode/codec.original.cjs": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e"
+    },
+    "rawEvidenceSha256": "b6ad6b3f43cd9a734c34c9c6159d2935cfe29c06ab0413b0707653ab04123d85",
+    "status": "NOT ADOPTED: one original DEFAULT Windows FAIL; no further resource or broad gate run",
+    "restoredRuntimeSha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+    "gitBlobSha256": {
+      "rebuild/m3/w5/reconciliation/codec.cjs": "f5c12b31d655b66eabb7a6bcf1d9c5cbc860d23f1a9854cf4cc4139d7bc21849",
+      "rebuild/m3/w5/test/native-encode/run.cjs": "d2784a08c8d3ec4ae33a5b940e7fe77258253290975eb3a313e22a4f73294472",
+      "rebuild/m3/w5/test/native-encode/worker-test.cjs": "43b00c5d2c48dd36e92aee0912c0deeec928d16cc72f5d40978f99bb32f58a63",
+      "rebuild/m3/w5/test/native-encode/corpus.cjs": "3f7d4fdf1546151d8077c3bf55370d1415904e1b35d5bbfbff23e5ffa2f829c5",
+      "rebuild/m3/w5/test/native-encode/codec.original.cjs": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e"
+    }
+  },
+  "pins": {
+    "sourceBase": "d5f64b7bdacfefec16e6dad4dc885186f166b10d",
+    "sourceSha256": {
+      "reconciliation/paged-codec.cjs": "3c5d31e76e17c8ee7799508987354d256357e8dda1573ad3af9b3d520e9444e5",
+      "reconciliation/paged-bridge.cjs": "9c4e86f6ca9507c70d4e4f7215f4d82027600aa8c153693a625116dfaf23cb80",
+      "reconciliation/codec.cjs": "f5c12b31d655b66eabb7a6bcf1d9c5cbc860d23f1a9854cf4cc4139d7bc21849",
+      "storage/row-codec.cjs": "3de2b636dfe395f1d2e2cf8a8c31cdeb08d53854cab5829d5104a331193a4a19",
+      "test/native-encode/run.cjs": "1cc47b4bd8e66a0f9a4fc8464da6ff18755505c1d44a85bfa4ef1f3d76f6d35f",
+      "test/native-encode/worker-test.cjs": "e4119ed5bd2124601ef113212122be0711a9aaec5649caab58c9733f53434a85",
+      "test/native-encode/corpus.cjs": "2da95179aa8fc03e4902f00e9334ed40720e0d10913836b870aa0d074b98c1d4",
+      "test/native-encode/codec.original.cjs": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+      "test/rows-resource-01/rows-resource.cjs": "4564fa133db37b89edf7887dedbdba3e2381c5feb8a1c250b6dc535e058f14bd",
+      "test/r1-resource-meter.cjs": "9081e9d46f923dd304ea494c2e879fa486e9661b8f8da1aa175fa198e05ccc8e",
+      "test/r1-resource-fixture.cjs": "3235510964bc64fe6618221c2d7dc25df98683de2f762c10647952d363e8b0b4",
+      "test/r1-workerd.cjs": "314beed62e0ad7ecbc2798d6fd9e31a55792c25441bd8e6ecf12464b752f5347",
+      "package.json": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
+      "pnpm-lock.yaml": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec"
+    },
+    "nodeVersion": "v24.19.0",
+    "nodeBinarySha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237",
+    "platform": "win32",
+    "workerdVersion": "1.20260903.1",
+    "workerdBinarySha256": "c6750d8d9c40046a4c431d8cd3175a48acff75e67ca497a363a6b04523efcb6b",
+    "startedUTC": "2026-09-09T19:58:35.199Z",
+    "command": "node rebuild/m3/w5/test/rows-resource-01/rows-resource.cjs (no flags)",
+    "runtimeChanged": false,
+    "evidenceSha256": "b6ad6b3f43cd9a734c34c9c6159d2935cfe29c06ab0413b0707653ab04123d85",
+    "exit": 1,
+    "finishedUTC": "2026-09-09T19:59:56.392Z"
+  },
+  "verdict": "FAIL",
+  "resourceAcceptance": false,
+  "ceilings": {
+    "cpuMs": 1000,
+    "observedAllocationBytes": 100663296,
+    "statements": 1000,
+    "batchMs": 30000,
+    "domainWrites": 0
+  },
+  "summary": {
+    "requests": 159,
+    "maxCpuMs": 188.25,
+    "p95CpuMs": 78.875,
+    "peakObservedAllocationBytes": 165656217,
+    "rowsRead": 376190,
+    "rowsWritten": 159,
+    "queryMs": 299,
+    "maxStatements": 6,
+    "maxBatchWallMs": 22,
+    "domainWrites": 0
+  },
+  "attemptCount": 4,
+  "phases": [
+    {
+      "name": "instrument-calibration",
+      "requests": 0,
+      "observedPeakBytes": 30989368,
+      "peakVector": {
+        "label": "periodic",
+        "usedSize": 1752620,
+        "totalSize": 4722688,
+        "embedderHeapUsedSize": 386904,
+        "backingStorageSize": 25879776,
+        "observedAllocation": 30989368
+      }
+    },
+    {
+      "name": "rows-v3-sequential-complete-attempt",
+      "requests": 39,
+      "observedPeakBytes": 50526502,
+      "peakVector": {
+        "label": "periodic",
+        "usedSize": 15548540,
+        "totalSize": 38408192,
+        "embedderHeapUsedSize": 515872,
+        "backingStorageSize": 11602438,
+        "observedAllocation": 50526502
+      }
+    },
+    {
+      "name": "rows-v3-two-overlapping-complete-attempts",
+      "requests": 78,
+      "observedPeakBytes": 52694947,
+      "peakVector": {
+        "label": "periodic",
+        "usedSize": 24195880,
+        "totalSize": 39374848,
+        "embedderHeapUsedSize": 1418648,
+        "backingStorageSize": 11901451,
+        "observedAllocation": 52694947
+      }
+    },
+    {
+      "name": "rows-v3-near-row-key-limit-attempt",
+      "requests": 42,
+      "observedPeakBytes": 165656217,
+      "peakVector": {
+        "label": "periodic",
+        "usedSize": 72059552,
+        "totalSize": 138256384,
+        "embedderHeapUsedSize": 1676584,
+        "backingStorageSize": 25723249,
+        "observedAllocation": 165656217
+      }
+    }
+  ],
+  "violations": [
+    {
+      "label": "rows-v3-near-row-key-limit-attempt",
+      "code": "OBSERVED_ALLOCATION_CEILING",
+      "actual": 165656217
+    }
+  ],
+  "limitations": "One original DEFAULT Windows measurement only. No cross-run savings, regression or host-cause inference. Signed byte-identical inventories do not close memory. No broad gates, Linux or further resource run after failure. Live codec restored exact342. Measured working test bytes and normalized git blobs separately pinned."
+}
