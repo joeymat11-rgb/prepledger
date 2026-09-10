@@ -1,0 +1,290 @@
+[
+ {
+  "id": "plan-erafresh-1",
+  "file": "rebuild/engine/plan.cjs",
+  "before": "  if (eraIdx(fks, ref) === 0) return false;\n  for (const d of Object.keys((s && s.sessionLog) || {})) {",
+  "after": "  if (eraIdx(fks, ref) === 0) return false;\n  /* NATIVE-NEXT-TARGETS — a registered native session of the same era before\n     the reference day also ends freshness; the rows come from the one factual\n     history in causal order. Legacy-only inputs read the log exactly as before. */\n  if (s && s.workoutFacts) {\n    for (const row of E.performedHistoryRows(s)) {\n      const native = row.source === \"performed\";\n      if (row.d < ref && sameEra(fks, row.d, ref) && (((row.rec || {}).entries) || []).some((e) => e && (native ? e.lift_lineage_id === exId && !!(E.performedLine(e) || {}).originals : e.id === exId))) return false;\n    }\n    return true;\n  }\n  for (const d of Object.keys((s && s.sessionLog) || {})) {"
+ },
+ {
+  "id": "progression-1",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "     longer freeze what he lifts. */\n  const rs = ex.lastMeta ? rirSetsOf(ex.lastMeta) : [];\n  const term = rs.length > 1 ? rs[rs.length - 1] : null;",
+  "after": "     longer freeze what he lifts. */\n  const meta9 = governingMeta(ex, s);\n  const rich = E.performedEntry(meta9);\n  const rs = meta9 ? (rich ? E.performedOriginalRirSets(rich) : rirSetsOf(meta9)) : [];\n  const term = rs.length > 1 ? rs[rs.length - 1] : null;"
+ },
+ {
+  "id": "progression-2",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const open = rs.length ? rs[0] : null;\n  if (term != null) {\n    if (term >= 3) return { add: 3, why: `you finished the last set with ${term} reps still in the tank, on the set the taper sends to failure — that is unspent stimulus, so the step is real` };\n    if (term === 2) return { add: 2, why: \"two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it\" };\n    if (term === 1) return { add: 2, why: \"one rep short of failure on the last set — close enough that the next step can be more than a token\" };\n    return { add: 1, why: \"you took the last set to failure exactly as prescribed — one rep is the honest step from there\" };\n  }\n  if (open != null) {\n    if (open >= 3) return { add: 2, why: `opener at ${open} RIR and no last-set rating — the opener alone says there was headroom` };\n    if (open === 2) return { add: 1, why: \"opener at the prescribed 2 RIR, last set unrated — one rep until the terminal set is on file to say otherwise\" };\n    return { add: 1, why: \"opener ran at 1 RIR or hotter — the step holds at one rep\" };\n  }\n  return { add: 1, why: \"nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper\" };\n}",
+  "after": "  const open = rs.length ? rs[0] : null;\n  if (rich ? E.effortKnown(term) : term != null) {\n    if (rich ? E.effortIs(term, \"gte3\") : term >= 3) return { add: 3, why: rich ? E.performedStepWhy(rich, \"terminal-ge3\") : `you finished the last set with ${term} reps still in the tank, on the set the taper sends to failure — that is unspent stimulus, so the step is real` };\n    if (rich ? E.effortIs(term, \"eq2\") : term === 2) return { add: 2, why: rich ? E.performedStepWhy(rich, \"terminal-eq2\") : \"two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it\" };\n    if (rich ? E.effortIs(term, \"eq1\") : term === 1) return { add: 2, why: rich ? E.performedStepWhy(rich, \"terminal-eq1\") : \"one rep short of failure on the last set — close enough that the next step can be more than a token\" };\n    return { add: 1, why: rich ? E.performedStepWhy(rich, \"terminal-zero\") : \"you took the last set to failure exactly as prescribed — one rep is the honest step from there\" };\n  }\n  if (rich ? E.effortKnown(open) : open != null) {\n    if (rich ? E.effortIs(open, \"gte3\") : open >= 3) return { add: 2, why: rich ? E.performedStepWhy(rich, \"opener-ge3\") : `opener at ${open} RIR and no last-set rating — the opener alone says there was headroom` };\n    if (rich ? E.effortIs(open, \"eq2\") : open === 2) return { add: 1, why: rich ? E.performedStepWhy(rich, \"opener-eq2\") : \"opener at the prescribed 2 RIR, last set unrated — one rep until the terminal set is on file to say otherwise\" };\n    return { add: 1, why: rich ? E.performedStepWhy(rich, \"opener-low\") : \"opener ran at 1 RIR or hotter — the step holds at one rep\" };\n  }\n  return { add: 1, why: rich ? E.performedStepWhy(rich, \"no-rating\") : \"nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper\" };\n}"
+ },
+ {
+  "id": "progression-3",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "\n// Copied from frozen src/app.jsx @ fe516c1:970-995.",
+  "after": "\n/* NATIVE-NEXT-TARGETS — ONE source-owned governing read. With a registered\n   native view (s.workoutFacts) the values the prescription reads come from the\n   factual history in its established causal order (E.performedHistoryRows),\n   never from the exercise.last/lastMeta cache. Three consumer rules stay\n   separate: latest factual metadata (governingMeta), the eligible anchor line\n   (progressAnchor: same era, not rushed, same load at every performed\n   position) and the progression-bearing count (_loadTenure). Legacy-only\n   inputs (no workoutFacts) keep every original read byte for byte. */\nfunction _nativeView(s) { return !!(s && s.workoutFacts); }\nfunction _rowsFor(s, exId) {\n  const rows = [];\n  for (const row of E.performedHistoryRows(s)) {\n    const native = row.source === \"performed\";\n    const en = ((row.rec || {}).entries || []).find((e) => e && (native ? e.lift_lineage_id : e.id) === exId);\n    if (!en) continue;\n    if (native) { const line9 = E.performedLine(en); if (line9 && !line9.originals) continue; }\n    rows.push({ d: row.d, source: row.source, start_op_id: row.start_op_id, rec: row.rec, en, native });\n  }\n  return rows;\n}\nfunction _lineOf(row) {\n  if (row.native) { const line = E.performedLine(row.en); return line ? line.reps.slice() : []; }\n  return Array.isArray(row.en.reps) ? row.en.reps.slice() : [];\n}\nfunction _prescribedLoads(ex) {\n  return Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));\n}\nfunction _rowAtCurrentLoad(row, ex) {\n  if (row.native) return E.performedLoadMatches(row.en, _prescribedLoads(ex));\n  if (typeof ex.w === \"number\") return String(row.en.w) === String(ex.w);\n  return row.en.wKey === String(ex.w);\n}\nfunction _rowRushed(s, row) { return row.native ? E.performedTrendContext(s, row).rushed : paceRushed(row.rec); }\nfunction _rowDebt(s, row) {\n  if (row.native) return E.performedTrendContext(s, row).debt;\n  try { return !cleanAtDate(s, row.d); } catch (e) { return false; }\n}\n/* A consented reset writes ex.last = null and a dated RESET APPLIED feed line.\n   Rows after that day set the line again; rows before it never undo the reset;\n   a row ON that day is an unproved cross-reset mapping and refuses. */\nfunction _resetAfter(ex, s) {\n  const names9 = _formerNames(ex).map((n9) => \"RESET APPLIED — \" + n9);\n  let at = null;\n  for (const f9 of ((s && s.feed) || [])) {\n    if (!f9 || typeof f9.t !== \"string\" || !names9.some((n9) => f9.t.indexOf(n9) === 0) || !f9.d) continue;\n    if (at == null || String(f9.d) > at) at = String(f9.d);\n  }\n  return at;\n}\n/* Rows for this lift under the registered view. When the history carries no\n   row of any source for the lift, the imported cache is the undisputed\n   baseline and stands. Once any row exists (a removed native session still\n   counts as a row), the rows alone decide: a stale or contradictory cache is\n   never revived, and a removed contributor is recomputed from what remains. */\nfunction _governingRows(ex, s) {\n  const all = _rowsFor(s, ex.id);\n  if (!all.length) return null;\n  const rows = all.filter((row) => _lineOf(row).length);\n  if (ex.last !== null) return rows;\n  const at = _resetAfter(ex, s);\n  if (at == null) return rows;\n  if (rows.some((row) => String(row.d) === at)) { const e = new Error(\"PROGRESSION_RESET_MAPPING_REQUIRED\"); e.code = e.message; e.reset_at = at; throw e; }\n  return rows.filter((row) => String(row.d) > at);\n}\nfunction governingLast(ex, s) {\n  if (!_nativeView(s)) return ex.last;\n  const rows = _governingRows(ex, s);\n  if (rows === null) return ex.last;\n  return rows.length ? _lineOf(rows[rows.length - 1]) : null;\n}\nfunction governingMeta(ex, s) {\n  if (!_nativeView(s)) return ex.lastMeta;\n  const rows = _governingRows(ex, s);\n  if (rows === null) return ex.lastMeta;\n  if (!rows.length) return null;\n  const row = rows[rows.length - 1];\n  if (row.native) return row.en;\n  const en = row.en;\n  return { d: row.d, w: en.w, reps: en.reps.slice(), rir: en.rir ?? null, rirSets: rirSetsOf(en), debt: _rowDebt(s, row) };\n}\n\n// Copied from frozen src/app.jsx @ fe516c1:970-995."
+ },
+ {
+  "id": "progression-4",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "     entries never match and the fallback stays ex.last. */\n  const base = (ex.last || []).slice();\n  if (!s || !base.length) return base;",
+  "after": "     entries never match and the fallback stays ex.last. */\n  const base = (governingLast(ex, s) || []).slice();\n  if (!s || !base.length) return base;"
+ },
+ {
+  "id": "progression-5",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const numericCfg = typeof ex.w === \"number\";\n  const days9 = Object.keys(s.sessionLog || {}).sort();\n  const fkA = forksOf(s, ex.id);",
+  "after": "  const numericCfg = typeof ex.w === \"number\";\n  const fkA = forksOf(s, ex.id);"
+ },
+ {
+  "id": "progression-6",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const atA = isoOf(todayStart());\n  for (let i = days9.length - 1; i >= 0; i--) {",
+  "after": "  const atA = isoOf(todayStart());\n  if (_nativeView(s)) {\n    const rows = _governingRows(ex, s) || [];\n    for (let i = rows.length - 1; i >= 0; i--) {\n      const row = rows[i];\n      if (!sameEra(fkA, row.d, atA)) continue;\n      if (_rowRushed(s, row)) continue;\n      if (!_rowAtCurrentLoad(row, ex)) continue;\n      return _lineOf(row);\n    }\n    return base;\n  }\n  const days9 = Object.keys(s.sessionLog || {}).sort();\n  for (let i = days9.length - 1; i >= 0; i--) {"
+ },
+ {
+  "id": "progression-7",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const all9 = [];\n  for (const d9 of Object.keys((s && s.sessionLog) || {}).sort()) {",
+  "after": "  const all9 = [];\n  if (_nativeView(s)) {\n    /* native view: the same rows, in causal order, each carrying its performed\n       prefix as the line; the tenure is the suffix at the current load vector */\n    for (const row of _rowsFor(s, ex.id)) {\n      const d9 = row.d, line9 = _lineOf(row);\n      if (ref != null && d9 > String(ref)) continue;\n      if (fks && fks.length && !sameEra(fks, d9, ref)) continue;\n      if (line9.length) all9.push([d9, row.en, line9, row]);\n    }\n    let i0 = all9.length;\n    while (i0 > 0 && _rowAtCurrentLoad(all9[i0 - 1][3], ex)) i0--;\n    return { all: all9, tenure: all9.slice(i0) };\n  }\n  for (const d9 of Object.keys((s && s.sessionLog) || {}).sort()) {"
+ },
+ {
+  "id": "progression-8",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);\n    if (en9) all9.push([d9, en9]);\n  }",
+  "after": "    const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);\n    if (en9) all9.push([d9, en9, en9.reps.slice()]);\n  }"
+ },
+ {
+  "id": "progression-9",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  if (ex.reclaim) return fitN(ex.reclaim);\n  if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();\n  const t = progressAnchor(ex, s).slice(0, ex.sets);",
+  "after": "  if (ex.reclaim) return fitN(ex.reclaim);\n  if (!governingLast(ex, s)) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();\n  const t = progressAnchor(ex, s).slice(0, ex.sets);"
+ },
+ {
+  "id": "progression-10",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    const setsAtTime9 = (d9) => _setsAtTime(ex.sets, volDeltas9, d9);\n    for (const [d9, en9] of tenure9) {\n      if (en9.reps.length >= setsAtTime9(d9)) return Math.min(ex.sets, en9.reps.length);\n    }",
+  "after": "    const setsAtTime9 = (d9) => _setsAtTime(ex.sets, volDeltas9, d9);\n    for (const [d9, , line9] of tenure9) {\n      if (line9.length >= setsAtTime9(d9)) return Math.min(ex.sets, line9.length);\n    }"
+ },
+ {
+  "id": "progression-11",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "function rirSetsOf(en) {\n  if (!en) return [];",
+  "after": "function rirSetsOf(en) {\n  const rich = E.performedRirSets(en); if (rich) return rich;\n  if (!en) return [];"
+ },
+ {
+  "id": "progression-12",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "function rirReceipt(en) {\n  const arr = rirSetsOf(en);",
+  "after": "function rirReceipt(en) {\n  if (E.performedEntry(en)) return E.performedRirReceipt(en);\n  const arr = rirSetsOf(en);"
+ },
+ {
+  "id": "progression-13",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const fkOf = (id9) => (id9 in fkCache ? fkCache[id9] : (fkCache[id9] = forksOf(s, id9)));\n  Object.keys((s && s.sessionLog) || {}).sort().forEach((d) =>\n    ((s.sessionLog[d] || {}).entries || []).forEach((e) => {\n      if (!(e && e.reps && e.reps.length)) return;\n      if (!sameEra(fkOf(e.id), d, at9)) return;   /* v7.53.0 (b) — pairs from a different technique era are a different lift's noise */\n      (byId[e.id] = byId[e.id] || []).push(e);\n    }));\n  const pooled = [], mine = [];",
+  "after": "  const fkOf = (id9) => (id9 in fkCache ? fkCache[id9] : (fkCache[id9] = forksOf(s, id9)));\n  for (const { d, rec } of E.performedHistoryRows(s)) {\n    for (const e of (rec || {}).entries || []) {\n      const rich = E.performedEntry(e);\n      if (!rich && !(e && e.reps && e.reps.length)) continue;\n      const id = rich ? rich.lift_lineage_id : e.id;\n      if (!sameEra(fkOf(id), d, at9)) continue;\n      (byId[id] = byId[id] || []).push(e);\n    }\n  }\n  const pooled = [], mine = [];"
+ },
+ {
+  "id": "progression-14",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "      const a = rs[i - 1], b = rs[i];\n      if (a.w == null || b.w == null || String(a.w) !== String(b.w) || a.reps.length !== b.reps.length) continue;\n      b.reps.forEach((x, j) => { const dlt = (Number(x) || 0) - (Number(a.reps[j]) || 0); pooled.push(dlt); if (id === exId) mine.push(dlt); });\n    }",
+  "after": "      const a = rs[i - 1], b = rs[i];\n      let ar = a.reps, br = b.reps;\n      if (E.performedEntry(a) || E.performedEntry(b)) {\n        const pair = E.performedPair(a, b); if (!pair) continue;\n        ar = pair.a; br = pair.b;\n      } else if (a.w == null || b.w == null || String(a.w) !== String(b.w) || a.reps.length !== b.reps.length) continue;\n      br.forEach((x, j) => { const dlt = (Number(x) || 0) - (Number(ar[j]) || 0); pooled.push(dlt); if (id === exId) mine.push(dlt); });\n    }"
+ },
+ {
+  "id": "progression-15",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    for (const p9 of tenure9) {\n      const d9 = p9[0], en9 = p9[1];\n      if (start9 != null && d9 < start9) continue;",
+  "after": "    for (const p9 of tenure9) {\n      const d9 = p9[0], en9 = { reps: p9[2] };\n      if (start9 != null && d9 < start9) continue;"
+ },
+ {
+  "id": "progression-16",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "function sessionScore(entry) {\n  if (!entry) return null;",
+  "after": "function sessionScore(entry) {\n  const rich = E.performedNumericEntry(entry);\n  if (rich) {\n    if (rich.slots.some(slot => slot.state === \"unresolved\")) return null;\n    let work = 0;\n    for (const slot of rich.slots) if (slot.state === \"performed\") {\n      work += slot.fact.current.load.value * slot.fact.current.reps.value;\n      if (!Number.isFinite(work)) return null;\n    }\n    return work > 0 ? work : null;\n  }\n  if (!entry) return null;"
+ },
+ {
+  "id": "progression-17",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const log = (s && s.sessionLog) || {};\n  const days = Object.keys(log).sort();\n  const fkT = forksOf(s, exId);",
+  "after": "  const log = (s && s.sessionLog) || {};\n  const rows = s?.workoutFacts ? E.performedHistoryRows(s) : Object.keys(log).sort().map(d=>({d,rec:log[d],source:'legacy'}));\n  const fkT = forksOf(s, exId);"
+ },
+ {
+  "id": "progression-18",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const pts = [];\n  for (const d of days) {\n    if (!sameEra(fkT, d, atT)) continue;\n    const rec = log[d] || {};\n    const en = (rec.entries || []).find((e) => e && e.id === exId);\n    if (!en) continue;\n    const sc = sessionScore(en);\n    if (sc == null) continue;",
+  "after": "  const pts = [];\n  for (const row of rows) {\n    const {d}=row;\n    if (!sameEra(fkT, d, atT)) continue;\n    const rec = row.rec || {};\n    const native = row.source === 'performed';\n    const en = (rec.entries || []).find((e) => e && (native ? e.lift_lineage_id : e.id) === exId);\n    if (!en) continue;\n    const observation = native ? E.performedTrendObservation(s,row,en) : null;\n    const sc = native ? observation.sc : sessionScore(en);\n    if (sc == null) continue;"
+ },
+ {
+  "id": "progression-19",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    let hard = false, rushed = false, debt = false;\n    try { hard = !!dayWeather(s, d).hardSession; } catch (e) { hard = false; }   /* R17 — the SESSION question, not the food one */",
+  "after": "    let hard = false, rushed = false, debt = false;\n    if(native){({hard,rushed,debt}=observation);}else{\n    try { hard = !!dayWeather(s, d).hardSession; } catch (e) { hard = false; }   /* R17 — the SESSION question, not the food one */"
+ },
+ {
+  "id": "progression-20",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    try { debt = !cleanAtDate(s, d); } catch (e) { debt = false; }\n    /* EXCLUDE hard only. hard is a DATA-QUALITY flag (declared estimate day, event",
+  "after": "    try { debt = !cleanAtDate(s, d); } catch (e) { debt = false; }\n    }\n    /* EXCLUDE hard only. hard is a DATA-QUALITY flag (declared estimate day, event"
+ },
+ {
+  "id": "progression-21",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    if (cleanOnly && (rushed || debt)) continue;   /* the DOWNGRADE test re-estimates on clean SESSIONS, which is what the comment always promised */\n    pts.push({ d, y: sc, soft: rushed || debt, k: ((en.reps || []).length) });\n  }",
+  "after": "    if (cleanOnly && (rushed || debt)) continue;   /* the DOWNGRADE test re-estimates on clean SESSIONS, which is what the comment always promised */\n    pts.push({ d, y: sc, soft: rushed || debt, k: native ? observation.k : ((en.reps || []).length), ...(native?{start_op_id:row.start_op_id}:{}) });\n  }"
+ },
+ {
+  "id": "progression-22",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const nSoft = use.filter((p) => p.soft).length;\n  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use, k: lastK, resetAt: cutAt > 0 ? series[0].d : null };\n}",
+  "after": "  const nSoft = use.filter((p) => p.soft).length;\n  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use, k: lastK, resetAt: cutAt > 0 ? series[0].d : null, ...(cutAt>0&&series[0].start_op_id?{reset_start_op_id:series[0].start_op_id}:{}) };\n}"
+ },
+ {
+  "id": "progression-23",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const log = (s && s.sessionLog) || {};\n  const days = Object.keys(log).sort();\n  const seen = [];\n  for (const d of days) for (const e of (log[d].entries || [])) if (e && e.id && seen.indexOf(e.id) < 0) seen.push(e.id);\n  let nExcludedNonNumeric = 0;",
+  "after": "  const log = (s && s.sessionLog) || {};\n  const rows = s?.workoutFacts ? E.performedHistoryRows(s) : Object.keys(log).sort().map(d=>({d,rec:log[d],source:'legacy'}));\n  const seen = [];\n  for(const row of rows)for(const e of (row.rec.entries||[])){\n    const id=row.source==='performed'?e.lift_lineage_id:e?.id;\n    if(id&&seen.indexOf(id)<0)seen.push(id);\n  }\n  let nExcludedNonNumeric = 0;"
+ },
+ {
+  "id": "progression-24",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  const setAsideDays = Object.keys(log).filter((d) => { try { return !!dayWeather(s, d).hardSession; } catch (e) { return false; } }).sort();\n  const trends = [];",
+  "after": "  const setAsideDays = Object.keys(log).filter((d) => { try { return !!dayWeather(s, d).hardSession; } catch (e) { return false; } }).sort();\n  const setAsideWorkouts=[];\n  for(const row of rows)if(row.source==='performed'&&E.performedTrendContext(s,row).hard){\n    setAsideWorkouts.push({d:row.d,start_op_id:row.start_op_id});\n    if(!setAsideDays.includes(row.d))setAsideDays.push(row.d);\n  }\n  const trends = [];"
+ },
+ {
+  "id": "progression-25",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "    let any = false, scored = false;\n    for (const d of days) {\n      const en = (log[d].entries || []).find((e) => e && e.id === id);\n      if (!en) continue;",
+  "after": "    let any = false, scored = false;\n    for (const row of rows) {\n      const native=row.source==='performed';\n      const en = (row.rec.entries || []).find((e) => e && (native?e.lift_lineage_id:e.id) === id);\n      if (!en) continue;"
+ },
+ {
+  "id": "progression-26",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "      any = true;\n      if (sessionScore(en) != null) { scored = true; break; }\n    }",
+  "after": "      any = true;\n      if ((native?E.performedTrendObservation(s,row,en).sc:sessionScore(en)) != null) { scored = true; break; }\n    }"
+ },
+ {
+  "id": "progression-27",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "  }\n  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, setAsideDays: setAsideDays.slice().sort(), lifts: trends };\n  if (trends.length < TREND_MIN_LIFTS) return { ...base, state: \"unknown\", pct: null, lo: null, hi: null, why: \"only \" + trends.length + \" lift(s) carry a usable trend — \" + TREND_MIN_LIFTS + \" needed before this reads anything\" };",
+  "after": "  }\n  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, setAsideDays: setAsideDays.slice().sort(), lifts: trends, ...(s?.workoutFacts?{setAsideWorkouts}:{}) };\n  if (trends.length < TREND_MIN_LIFTS) return { ...base, state: \"unknown\", pct: null, lo: null, hi: null, why: \"only \" + trends.length + \" lift(s) carry a usable trend — \" + TREND_MIN_LIFTS + \" needed before this reads anything\" };"
+ },
+ {
+  "id": "progression-28",
+  "file": "rebuild/engine/progression.cjs",
+  "before": "return {\n  progressStep, progressAnchor, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend\n};",
+  "after": "return {\n  progressStep, progressAnchor, governingLast, governingMeta, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend\n};"
+ },
+ {
+  "id": "sleep-alarm-signal-1",
+  "file": "rebuild/engine/sleep.cjs",
+  "before": "  const estToday = wx.est;\n  const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarm === \"function\" ? bodyAlarm(s, slp2) : null);\n  const ex2 = s.exercises.find((x) => x.id === exId);",
+  "after": "  const estToday = wx.est;\n  /* NATIVE-NEXT-TARGETS — the default alarm read is the shared signal/tier; no\n     presentation (lab/canary/history) is built just to test truthiness or tier.\n     An explicit opts.alarm keeps its original meaning. */\n  const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarmSignal === \"function\" ? bodyAlarmSignal(s) : null);\n  const ex2 = s.exercises.find((x) => x.id === exId);"
+ },
+ {
+  "id": "sleep-alarm-signal-2",
+  "file": "rebuild/engine/sleep.cjs",
+  "before": "// Copied from frozen src/app.jsx @ fe516c1:7817-7875.\nfunction bodyAlarm(s, slp) {\n  const tI = isoOf(todayStart());",
+  "after": "// Copied from frozen src/app.jsx @ fe516c1:7817-7875.\n/* NATIVE-NEXT-TARGETS — ONE shared body-alarm signal. Detection and tier are\n   extracted verbatim from bodyAlarm: same thresholds, pulse/pattern logic and\n   null/RED/AMBER semantics. It returns exactly the intermediate fields the\n   full presentation needs; it builds no lines, reads no lab, canary or\n   HISTORY, and is what rirPlan and liftCall's default path consume. */\nfunction bodyAlarmSignal(s) {\n  const tI = isoOf(todayStart());"
+ },
+ {
+  "id": "sleep-alarm-signal-3",
+  "file": "rebuild/engine/sleep.cjs",
+  "before": "  const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7 && todaySpike >= 7) || (lastNight && lastNight.h < 6));\n  const t = dayType(tI, s);",
+  "after": "  const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7 && todaySpike >= 7) || (lastNight && lastNight.h < 6));\n  return { tier: red ? \"RED\" : \"AMBER\", red: !!red, tI, yISO, pr5, lastNight, todaySpike, prevSpike, partial, patParts, patternHot, pulseTrig };\n}\n\n// Copied from frozen src/app.jsx @ fe516c1:7817-7875 (presentation over bodyAlarmSignal).\nfunction bodyAlarm(s, slp) {\n  const sig = bodyAlarmSignal(s);\n  if (!sig) return null;\n  const { tI, yISO, pr5, lastNight, todaySpike, prevSpike, partial, patParts, pulseTrig, red } = sig;\n  const t = dayType(tI, s);"
+ },
+ {
+  "id": "sleep-alarm-signal-4",
+  "file": "rebuild/engine/sleep.cjs",
+  "before": "\nreturn { cleanAtDate, nightsBefore, atSleepTarget, sleepMean3At, sleepInfo, owedNights, owedLedger, sleepAnchor, recoveryIndex, bodyAlarm, dayWeather, weekWeather, nextEvent, lastEvent, eventFocus, weekDay, blackoutOn, hmToMin, medOf, sdOf, minToHM, pulseRead, labGroupsM, lightsOutT, fmt12, labGroups, medianSOL, labAnalytics, labAnalytics2, sleepLab, shelfItems, ciOf, ciLine, nextDow, chanceWords, tCrit, coFlagRate, twoTail, nextMonthFirst, prophetGrades, trialProposals, trialVerdict, tempRead, liftCall, normSf, TRIAL_TPL, trialTpl, todayMeds, readyLowFor };\n};",
+  "after": "\nreturn { cleanAtDate, nightsBefore, atSleepTarget, sleepMean3At, sleepInfo, owedNights, owedLedger, sleepAnchor, recoveryIndex, bodyAlarmSignal, bodyAlarm, dayWeather, weekWeather, nextEvent, lastEvent, eventFocus, weekDay, blackoutOn, hmToMin, medOf, sdOf, minToHM, pulseRead, labGroupsM, lightsOutT, fmt12, labGroups, medianSOL, labAnalytics, labAnalytics2, sleepLab, shelfItems, ciOf, ciLine, nextDow, chanceWords, tCrit, coFlagRate, twoTail, nextMonthFirst, prophetGrades, trialProposals, trialVerdict, tempRead, liftCall, normSf, TRIAL_TPL, trialTpl, todayMeds, readyLowFor };\n};"
+ },
+ {
+  "id": "today-governing-1",
+  "file": "rebuild/engine/today.cjs",
+  "before": "const targetsFor = (...args) => E.targetsFor(...args);\nconst todayStart = (...args) => E.todayStart(...args);",
+  "after": "const targetsFor = (...args) => E.targetsFor(...args);\nconst governingLast = (...args) => E.governingLast(...args);\nconst governingMeta = (...args) => E.governingMeta(...args);\nconst todayStart = (...args) => E.todayStart(...args);"
+ },
+ {
+  "id": "today-governing-2",
+  "file": "rebuild/engine/today.cjs",
+  "before": "    const w = q && q.newW != null ? q.newW : e.w;\n    let tgt, note, baselineAsk = false;",
+  "after": "    const w = q && q.newW != null ? q.newW : e.w;\n    /* NATIVE-NEXT-TARGETS — the card reads the governing last line and metadata\n       through the shared source-owned helpers (legacy-only: the same cache). */\n    const last9 = governingLast(e, s), meta9 = governingMeta(e, s);\n    let tgt, note, baselineAsk = false;"
+ },
+ {
+  "id": "today-governing-3",
+  "file": "rebuild/engine/today.cjs",
+  "before": "    else if (e.id === \"hack\" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = \"DEBUT — third set banks whatever it gives\"; }\n    else if (q && q.kind === \"debut\" && e.last) {\n      /* C12 — FIT THE PRIOR LINE TO THE SET COUNT FIRST. e.last is the line at the OLD",
+  "after": "    else if (e.id === \"hack\" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = \"DEBUT — third set banks whatever it gives\"; }\n    else if (q && q.kind === \"debut\" && last9) {\n      /* C12 — FIT THE PRIOR LINE TO THE SET COUNT FIRST. e.last is the line at the OLD"
+ },
+ {
+  "id": "today-governing-4",
+  "file": "rebuild/engine/today.cjs",
+  "before": "         every target still floors at 1. */\n      const base9 = e.last.slice(0, e.sets);\n      while (base9.length < e.sets) base9.push(Math.max(1, _padFrom9(base9, e.hi) - 1));",
+  "after": "         every target still floors at 1. */\n      const base9 = last9.slice(0, e.sets);\n      while (base9.length < e.sets) base9.push(Math.max(1, _padFrom9(base9, e.hi) - 1));"
+ },
+ {
+  "id": "today-governing-5",
+  "file": "rebuild/engine/today.cjs",
+  "before": "    }\n    else if (q && !e.last) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }\n    else { tgt = targetsFor(e, s); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? \"RECLAIM — the exact standard\" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }",
+  "after": "    }\n    else if (q && !last9) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }\n    else { tgt = targetsFor(e, s); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? \"RECLAIM — the exact standard\" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }"
+ },
+ {
+  "id": "today-governing-6",
+  "file": "rebuild/engine/today.cjs",
+  "before": "    const realloc9 = SET_REALLOCATIONS.find((x) => x.id === e.id && String(e.setsAt || \"\") === x.setsAt);\n    if (realloc9 && e.sets < ((e.last || []).length || 0)) note = realloc9.line;\n    if (e.holdFlag) note = \"HELD — opener ran 0 RIR twice · one honest session releases it\";",
+  "after": "    const realloc9 = SET_REALLOCATIONS.find((x) => x.id === e.id && String(e.setsAt || \"\") === x.setsAt);\n    if (realloc9 && e.sets < ((last9 || []).length || 0)) note = realloc9.line;\n    if (e.holdFlag) note = \"HELD — opener ran 0 RIR twice · one honest session releases it\";"
+ },
+ {
+  "id": "today-governing-7",
+  "file": "rebuild/engine/today.cjs",
+  "before": "      if (e.reclaim) return `reclaim the exact ${e.reclaim.join(\",\")} — ${e.reclaim.reduce((a, b) => a + b, 0)} honest reps buys the increment`;\n      if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${e.last ? e.last[e.ladder.set] : \"?\"} → ${e.ladder.top} finishes the rung`;\n      return `chase ${tgt.join(\",\")} — ${progressStep(e, s).why}`;",
+  "after": "      if (e.reclaim) return `reclaim the exact ${e.reclaim.join(\",\")} — ${e.reclaim.reduce((a, b) => a + b, 0)} honest reps buys the increment`;\n      if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${last9 ? last9[e.ladder.set] : \"?\"} → ${e.ladder.top} finishes the rung`;\n      return `chase ${tgt.join(\",\")} — ${progressStep(e, s).why}`;"
+ },
+ {
+  "id": "today-governing-8",
+  "file": "rebuild/engine/today.cjs",
+  "before": "         it names the arming condition instead of implying tonight can earn. */\n      const base9 = e.last && e.last.length ? e.last : tgt;\n      if (e.last && e.last.length && e.sets && e.last.length < e.sets) return \"arming: \" + e.last.length + \" of \" + e.sets + \" sets on file — the window reads only a full \" + e.sets + \"-set session; log one and the runway prices itself\";\n      const dist9 = base9.reduce((a9, v9, i9) => a9 + Math.max(0, ((win9.hi || 0) - i9) - (v9 || 0)), 0);",
+  "after": "         it names the arming condition instead of implying tonight can earn. */\n      const base9 = last9 && last9.length ? last9 : tgt;\n      if (last9 && last9.length && e.sets && last9.length < e.sets) return \"arming: \" + last9.length + \" of \" + e.sets + \" sets on file — the window reads only a full \" + e.sets + \"-set session; log one and the runway prices itself\";\n      const dist9 = base9.reduce((a9, v9, i9) => a9 + Math.max(0, ((win9.hi || 0) - i9) - (v9 || 0)), 0);"
+ },
+ {
+  "id": "today-governing-9",
+  "file": "rebuild/engine/today.cjs",
+  "before": "    })();\n    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, ...(baselineAsk ? { baselineAsk: true } : {}), setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : e.lastMeta };   /* FIX 3c — a fresh era has no \"last time\" to beat; the baseline banner carries the why */\n  });",
+  "after": "    })();\n    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, ...(baselineAsk ? { baselineAsk: true } : {}), setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : meta9 };   /* FIX 3c — a fresh era has no \"last time\" to beat; the baseline banner carries the why */\n  });"
+ },
+ {
+  "id": "writers-1",
+  "file": "rebuild/engine/writers.cjs",
+  "before": "const bodyAlarm = (...args) => E.bodyAlarm(...args);\nconst buildRirSets = (...args) => E.buildRirSets(...args);",
+  "after": "const bodyAlarm = (...args) => E.bodyAlarm(...args);\nconst bodyAlarmSignal = (...args) => E.bodyAlarmSignal(...args);\nconst buildRirSets = (...args) => E.buildRirSets(...args);"
+ },
+ {
+  "id": "writers-2",
+  "file": "rebuild/engine/writers.cjs",
+  "before": "     what he delivers still counts and still banks. */\n  try { const al9p = bodyAlarm(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1)); why.push(\"alarm day — every 0 becomes a 1; delivered reps still count and bank\"); } } catch (e) {}\n  /* v7.53.0 JOB 1 — the failure A/B's terminal-set cap is RETIRED with the",
+  "after": "     what he delivers still counts and still banks. */\n  /* NATIVE-NEXT-TARGETS — the floor reads the shared detection signal only. The\n     old call built the full presentation (lab groups, canary, HISTORY) merely to\n     test truthiness, and a presentation failure after a real signal silently\n     became an all-clear. Detection failure on an invalid state still yields no\n     floor, exactly as before; presentation can no longer drop the effect. */\n  try { const al9p = bodyAlarmSignal(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1)); why.push(\"alarm day — every 0 becomes a 1; delivered reps still count and bank\"); } } catch (e) {}\n  /* v7.53.0 JOB 1 — the failure A/B's terminal-set cap is RETIRED with the"
+ },
+ {
+  "id": "writers-3",
+  "file": "rebuild/engine/writers.cjs",
+  "before": "     everywhere, an occasional all-out last set as the honesty tool. */\n  const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);\n  if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push(\"your openers run hot on this lift — bank one early\"); }\n  return { plan, why };",
+  "after": "     everywhere, an occasional all-out last set as the honesty tool. */\n  let hotOpenerHistory;\n  if (!s.workoutFacts) {\n    const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);\n    hotOpenerHistory = opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0;\n  } else {\n    let known = 0, hot = 0;\n    for (const {rec} of E.performedHistoryMembers(s)) for (const entry of rec.entries || []) {\n      const rich = E.performedEntry(entry);\n      if (rich) {\n        if (rich.lift_lineage_id !== ex.id) continue;\n        const opener = E.performedOriginalRirSets(rich)[0];\n        if (!E.effortKnown(opener)) continue;\n        known++; if (E.effortIs(opener, 'eq0')) hot++;\n      } else if (entry.id === ex.id && entry.rir != null) {\n        known++; if (entry.rir <= 0) hot++;\n      }\n    }\n    // The original upper-median <=0 rule is exactly a strict majority of\n    // known hot openers, with the same minimum three. A 3+ bound is known\n    // nonzero, never an exact rating; missing/removed openers stay missing.\n    hotOpenerHistory = known >= 3 && hot > Math.floor(known / 2);\n  }\n  if (hotOpenerHistory) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push(\"your openers run hot on this lift — bank one early\"); }\n  return { plan, why };"
+ },
+ {
+  "id": "index-composition-1",
+  "file": "rebuild/engine/index.cjs",
+  "before": "  require(\"./seed.cjs\"),\n  require(\"./plan.cjs\"),",
+  "after": "  require(\"./seed.cjs\"),\n  require(\"./entered-load.cjs\"),\n  require(\"./performed.cjs\"),\n  require(\"./plan.cjs\"),"
+ },
+ {
+  "id": "preview-composition-1",
+  "file": "rebuild/m3/w7-preview/browser-engine.cjs",
+  "before": "  require(\"../../engine/constants.cjs\"),\n  require(\"../../engine/plan.cjs\"),",
+  "after": "  require(\"../../engine/constants.cjs\"),\n  // NATIVE-CARRIERS: the source-owned performed helpers the adopted\n  // plan/progression/today/writers carriers read. Registered before them.\n  require(\"../../engine/entered-load.cjs\"),\n  require(\"../../engine/performed.cjs\"),\n  require(\"../../engine/plan.cjs\"),"
+ },
+ {
+  "id": "preview-build-inputs-1",
+  "file": "rebuild/m3/w7-preview/build.mjs",
+  "before": "  \"rebuild/engine/earn.cjs\",\n]);",
+  "after": "  \"rebuild/engine/earn.cjs\",\n  // NATIVE-CARRIERS: the adopted progression/today/plan/writers carriers read the\n  // source-owned performed helpers, so the two native files are browser inputs too.\n  \"rebuild/engine/performed.cjs\",\n  \"rebuild/engine/entered-load.cjs\",\n]);"
+ }
+]

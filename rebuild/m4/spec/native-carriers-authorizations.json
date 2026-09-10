@@ -1,0 +1,17 @@
+{
+  "profile": "earned/native-carriers-authorizations/v1",
+  "owner": {
+    "delegation": {
+      "ledgerLine": 26,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · ROLE RULING (supersedes the 2026-09-05 split where they differ): ASTRA owns technical delivery and routine task selection (chooses the next work, writes the instructions, coordinates building, explains progress); COWORK = independent acceptance verifier (checks by execution whether work actually passes; keeps the ledger); CLAUDE CODE = integrator (combines verified changes, deploys); OWNER retains product-rule, spending and private-data-release decisions and performs account/phone actions with exact instructions · owner's message in the Earned task, forwarded to cowork 2026-09-06 · in effect",
+      "lineSha256": "ae65fb8ced10f5cad3b1b46b8c678bfb9eae8b7c9512ffaf1e3518c3a09f7d16"
+    },
+    "speed": {
+      "ledgerLine": 88,
+      "role": "cowork",
+      "line": "- 2026-09-10 · cowork · DESIGN OF RECORD RE-PINNED (owner: \"Fix the repo pin now so PM has the right design\") — rebuild/m1/MOCK.md now pins the owner-approved 2026-09-08 design: Refinement A (Today plan-first + workout logging; owner \"Yes that looks good\") and Additions C (Today · Nutrition · Recovery check-in · Coach; owner \"Phenomenal, I love it now. Let's do it\"), copied byte-for-byte into rebuild/m1/approved-2026-09-08/ (Earned-additions-C-approved.html sha256 caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45 = the handoff's authoritative reference; Earned-refinement-A.html sha256 fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031; handoffs/notes/PNGs alongside). The M1 clickable mock (65168842…) becomes historical provenance and the fallback for uncovered screens. Docs-only; no engine, client or gate change; all prototype numbers fictional. Companion owner ruling 2026-09-10 \"Do it\" (speed plan): thin vertical slice now on these screens, two-tier rigor (engine full gate; screens/plumbing one reviewer + CI), batch the 39 remaining approved defect fixes, defer hosted sync / two-phone / native host until Joe and Dad are using it, parallel subagents under the PM.",
+      "lineSha256": "2fdbd9d2745e0caf83313db2ce8659f49ff9004bb667add0c39f3826a3f8543b"
+    }
+  }
+}

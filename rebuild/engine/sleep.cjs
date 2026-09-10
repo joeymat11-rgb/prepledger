@@ -111,7 +111,10 @@ function liftCall(s, exId, opts = {}) {
   const wx = dayWeather(s, tISO3);
   const postRf = wx.flags.some((f) => f.k === "postrefeed");
   const estToday = wx.est;
-  const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarm === "function" ? bodyAlarm(s, slp2) : null);
+  /* NATIVE-NEXT-TARGETS — the default alarm read is the shared signal/tier; no
+     presentation (lab/canary/history) is built just to test truthiness or tier.
+     An explicit opts.alarm keeps its original meaning. */
+  const alarm = opts.alarm !== undefined ? opts.alarm : (typeof bodyAlarmSignal === "function" ? bodyAlarmSignal(s) : null);
   const ex2 = s.exercises.find((x) => x.id === exId);
   /* verdict ladder — most protective first */
   if (alarm && alarm.tier === "RED") return { verdict: "STAND-DOWN", vel, n: clean.length, why: "Body alarm is RED. Skip the iron today — walk, eat, sleep, and come back tomorrow ahead.", receipts: R2.concat(["Body alarm: RED — the pattern held a second day."]) };
@@ -1614,7 +1617,12 @@ function labGroups(s) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:7817-7875.
-function bodyAlarm(s, slp) {
+/* NATIVE-NEXT-TARGETS — ONE shared body-alarm signal. Detection and tier are
+   extracted verbatim from bodyAlarm: same thresholds, pulse/pattern logic and
+   null/RED/AMBER semantics. It returns exactly the intermediate fields the
+   full presentation needs; it builds no lines, reads no lab, canary or
+   HISTORY, and is what rirPlan and liftCall's default path consume. */
+function bodyAlarmSignal(s) {
   const tI = isoOf(todayStart());
   const yISO = isoOf(new Date(todayStart().getTime() - DAY));
   const pr5 = pulseRead(s);
@@ -1647,6 +1655,14 @@ function bodyAlarm(s, slp) {
 
   const pulseTrig = todaySpike != null || partial;
   const red = todaySpike != null && (todaySpike >= 10 || (prevSpike != null && prevSpike >= 7 && todaySpike >= 7) || (lastNight && lastNight.h < 6));
+  return { tier: red ? "RED" : "AMBER", red: !!red, tI, yISO, pr5, lastNight, todaySpike, prevSpike, partial, patParts, patternHot, pulseTrig };
+}
+
+// Copied from frozen src/app.jsx @ fe516c1:7817-7875 (presentation over bodyAlarmSignal).
+function bodyAlarm(s, slp) {
+  const sig = bodyAlarmSignal(s);
+  if (!sig) return null;
+  const { tI, yISO, pr5, lastNight, todaySpike, prevSpike, partial, patParts, pulseTrig, red } = sig;
   const t = dayType(tI, s);
   const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
   let canaryName = null;
@@ -1938,5 +1954,5 @@ const nextDow = (dow, from = todayStart()) => {
 // Copied from frozen src/app.jsx @ fe516c1:14550-14550.
 const nextMonthFirst = (from = todayStart()) => isoOf(new Date(from.getFullYear(), from.getMonth() + 1, 1));
 
-return { cleanAtDate, nightsBefore, atSleepTarget, sleepMean3At, sleepInfo, owedNights, owedLedger, sleepAnchor, recoveryIndex, bodyAlarm, dayWeather, weekWeather, nextEvent, lastEvent, eventFocus, weekDay, blackoutOn, hmToMin, medOf, sdOf, minToHM, pulseRead, labGroupsM, lightsOutT, fmt12, labGroups, medianSOL, labAnalytics, labAnalytics2, sleepLab, shelfItems, ciOf, ciLine, nextDow, chanceWords, tCrit, coFlagRate, twoTail, nextMonthFirst, prophetGrades, trialProposals, trialVerdict, tempRead, liftCall, normSf, TRIAL_TPL, trialTpl, todayMeds, readyLowFor };
+return { cleanAtDate, nightsBefore, atSleepTarget, sleepMean3At, sleepInfo, owedNights, owedLedger, sleepAnchor, recoveryIndex, bodyAlarmSignal, bodyAlarm, dayWeather, weekWeather, nextEvent, lastEvent, eventFocus, weekDay, blackoutOn, hmToMin, medOf, sdOf, minToHM, pulseRead, labGroupsM, lightsOutT, fmt12, labGroups, medianSOL, labAnalytics, labAnalytics2, sleepLab, shelfItems, ciOf, ciLine, nextDow, chanceWords, tCrit, coFlagRate, twoTail, nextMonthFirst, prophetGrades, trialProposals, trialVerdict, tempRead, liftCall, normSf, TRIAL_TPL, trialTpl, todayMeds, readyLowFor };
 };

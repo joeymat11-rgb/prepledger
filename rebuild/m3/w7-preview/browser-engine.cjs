@@ -6,6 +6,10 @@
 const modules = [
   require("../../engine/dates.cjs"),
   require("../../engine/constants.cjs"),
+  // NATIVE-CARRIERS: the source-owned performed helpers the adopted
+  // plan/progression/today/writers carriers read. Registered before them.
+  require("../../engine/entered-load.cjs"),
+  require("../../engine/performed.cjs"),
   require("../../engine/plan.cjs"),
   require("../../engine/progression.cjs"),
   require("../../engine/sleep.cjs"),
