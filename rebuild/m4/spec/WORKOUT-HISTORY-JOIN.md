@@ -1,4 +1,6 @@
-# Shared workout-history integration — pre-edit source amendment v0.1
+# Shared workout-history integration — pre-edit source amendment v0.2
+
+Message63 correction: use WORKOUT-EDIT-NORMALIZATION.md v0.2 for proposed per-root interpretation containment, original editable-value validation, final-result Skip validity and explicit inert unsupported session records/effects. Caller/proof/prefix failures remain distinct global refusals. Preserve original typed values and all named issues at this actual source boundary. A last-effect position is provenance only, not the full current generation. Pending separation does not yet implement a pending overlay. The corrected model requires affected acceptance; none of these requirements authorizes a runtime edit. The following source diagnostic and bases remain unchanged historical evidence.
 
 September10, M4 base87277ff, W6 base667e34d, R1 base98c1405. This pins the actual input/output boundary needed to implement the edit contract after its affected acceptance. It is not acceptance of the model, an installed normalizer, a full schema or permission to edit the client core. The active cd543b7 review packet remains unchanged. No new normalizer or alternative authentication layer is implemented here.
 

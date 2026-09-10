@@ -29,6 +29,13 @@ async function main(){
  const check=(name,fn)=>{fn();results.push(name);console.log('PASS '+name);};
  const input=ops=>({assumption:ASSUMPTION,athleteId:'ath-1',watermark:ops.length,records:ops.map((o,i)=>({sequence:i+1,operationBytes:JSON.stringify(o)}))});
  const run=ops=>model.project(input(ops)),fact=(out,id='s')=>out.workouts.find(r=>r.id===id);
+ const contained=(ops,id,code,label='CONTRADICTION_CONTAINED')=>{
+  let out;assert.doesNotThrow(()=>{out=run(ops);},label);
+  const row=fact(out,id);assert.equal(row.current,null,label);assert.equal(row.active,null,label);
+  if(code)assert(row.issues.includes(code),label+': '+JSON.stringify(row.issues));
+  for(const effect of row.effects){assert.equal(effect.current,null,label);assert.equal(effect.active,null,label);assert.deepEqual(effect.issues,row.issues,label);}
+  return out;
+ };
  check('clear removes optional reserve without manufacturing unknown',()=>{
   const out=run([start(),set(),correction('c','s',{reserve:{clear:true}})]);
   assert.equal(Object.hasOwn(fact(out).current,'reserve'),false,'CLEAR_IS_ABSENCE');
@@ -39,10 +46,10 @@ async function main(){
   const out=run([start(),set(),correction('c','s',{load:quantity(45)})]);
   assert.deepEqual(fact(out).current.reserve,{tag:'exact',value:0,unit:'rep'});
  });
- check('invalid clears and forbidden identity/capture replacements refuse',()=>{
+ check('invalid clears and forbidden identity/capture replacements are contained',()=>{
   for(const fields of [{load:{clear:true}},{reserve:{clear:false}},{reserve:{clear:true,extra:1}},{reserve:null},{session_start_op_id:'other'},{prescription_capture:{}}])
-   assert.throws(()=>run([start(),set(),correction('c','s',fields)]));
-  assert.throws(()=>run([start(),correction('c','start',{plan_basis:'new-basis'})]));
+   contained([start(),set(),correction('c','s',fields)],'s');
+  contained([start(),correction('c','start',{plan_basis:'new-basis'})],'start','REPLACEMENT_FIELD_FORBIDDEN');
  });
  check('concurrent named patches preserve unrelated fields and accepted tie order',()=>{
   const a=correction('a','s',{load:quantity(45)}),b=correction('b','s',{reps:quantity(10,'rep')}),c=correction('c','s',{load:quantity(47.5)});
@@ -96,8 +103,8 @@ async function main(){
   const ops=[start(),set(),correction('c','start',{effective:replacement,planned_split_slot_id:'slot-other'})];
   const out=run(ops);assert.equal(fact(out,'start').id,'start');assert.deepEqual(fact(out,'start').current.effective,replacement);
   assert.deepEqual(JSON.parse(out.originals[0].operationBytes).effective,date);
-  assert.throws(()=>run([start(),correction('c','start',{effective:{...replacement,local_date:'2026-02-30'}})]),{code:'EFFECTIVE_INVALID'});
-  assert.throws(()=>run([start(),correction('c','start',{effective:{local_date:'2026-09-10'}})]),{code:'EFFECTIVE_INVALID'});
+  contained([start(),correction('c','start',{effective:{...replacement,local_date:'2026-02-30'}})],'start','EFFECTIVE_INVALID');
+  contained([start(),correction('c','start',{effective:{local_date:'2026-09-10'}})],'start','EFFECTIVE_INVALID');
  });
  check('Skip and Close corrections/removals have distinct factual effects',()=>{
   const skip=op('skip','session-skip',{session_start_op_id:'start',lift_lineage_id:'lift-1',skip_scope:'set',logical_set_slot:'slot-1',payload:{reason:'Mistake'}});
@@ -106,7 +113,7 @@ async function main(){
    correction('cc','close',{completion_kind:'normal'}),tombstone('tc','close')]);
   assert.equal(fact(out,'skip').current.skip_scope,'lift');assert.equal(Object.hasOwn(fact(out,'skip').current,'reason'),false);
   assert.equal(fact(out,'close').current.completion_kind,'normal');assert.equal(fact(out,'close').active,false);
-  assert.throws(()=>run([start(),skip,correction('bad','skip',{logical_set_slot:{clear:true}})]),{code:'SKIP_RESULT_INVALID'});
+  contained([start(),skip,correction('bad','skip',{logical_set_slot:{clear:true}})],'skip','SKIP_RESULT_INVALID');
  });
  check('actual candidate relation consumes corrected dates without losing change provenance',()=>{
   const {candidateEdge}=require(path.join(w6,'rebuild/client/session.cjs'));
@@ -159,6 +166,79 @@ async function main(){
   assert.equal(new Set(encoded).size,5);
   const data=input([start(),set()]);data.records[0].operationBytes=' \n'+data.records[0].operationBytes+'\n';
   const out=model.project(data);assert.equal(out.originals[0].operationBytes,data.records[0].operationBytes,'LITERAL_ORIGINAL_BYTES');
+ });
+ check('invalid original and nested correction preserve unrelated history and all issue reasons',()=>{
+  const bad=op('skip','session-skip',{skip_scope:'lift',logical_set_slot:'slot-1'});
+  const first=contained([start(),set(),bad],'skip','SKIP_RESULT_INVALID');
+  assert.equal(fact(first).current.load.value,40,'UNRELATED_HISTORY_RETAINED');
+  const ops=[start(),set(),set('good'),correction('a','s',{load:quantity(45)}),
+   correction('b','a',{replacement_fields:{load:{clear:true}}})];
+  const out=contained(ops,'s','CLEAR_REQUIRED_FIELD');
+  assert.equal(fact(out,'good').current.load.value,40,'UNRELATED_HISTORY_RETAINED');
+  assert.deepEqual(out.originals.map(r=>r.operationBytes),ops.map(JSON.stringify));
+  // The fault can be discovered after newer effects were tentatively visited.
+  const badOriginal=set('s',{payload:{load:quantity(-1),reps:quantity(8,'rep')}});
+  contained([start(),badOriginal,correction('fix','s',{load:quantity(45)})],'s','LOAD_INVALID','ORIGINAL_VALUES_VALIDATED');
+ });
+ check('Skip validates only the final variant across split edits in either accepted order',()=>{
+  const skip=op('skip','session-skip',{skip_scope:'set',logical_set_slot:'slot-1'});
+  const scope=correction('scope','skip',{skip_scope:'lift'}),slot=correction('slot','skip',{logical_set_slot:{clear:true}});
+  const expected=fact(run([start(),skip,correction('both','skip',{skip_scope:'lift',logical_set_slot:{clear:true}})]),'skip').current;
+  for(const changes of [[scope,slot],[slot,scope]]){
+   let out;assert.doesNotThrow(()=>{out=run([start(),skip,...changes]);},'FINAL_SKIP_VARIANT');
+   assert.deepEqual(fact(out,'skip').current,expected,'FINAL_SKIP_VARIANT');assert.equal(fact(out,'skip').active,true);
+  }
+  contained([start(),skip,scope],'skip','SKIP_RESULT_INVALID');
+  contained([start(),skip,slot],'skip','SKIP_RESULT_INVALID');
+ });
+ check('original recorded values use edited domains and never interpret clear as an observation',()=>{
+  const {validateWorkoutShape}=require(path.join(w6,'rebuild/m4/workout/schema.cjs'));
+  assert.equal(validateWorkoutShape(set()).valid,true,'ACTUAL_WORKOUT_SCHEMA_CONTROL');
+  for(const [fields,code]of [
+   [{reserve:{clear:true}},'RECORDED_CLEAR_FORBIDDEN'],[{load:quantity(-1)},'LOAD_INVALID'],
+   [{reps:quantity('eight','rep')},'REPS_INVALID'],[{reserve:{tag:'exact',value:3,unit:'rep'}},'RESERVE_INVALID']]){
+   const original=set('s',{payload:{...set().payload,...fields}});
+   // Generic Ops.build creates this envelope; the actual workout schema refuses it.
+   assert.equal(validateWorkoutShape(original).valid,false,'ACTUAL_WORKOUT_SCHEMA_REFUSES');
+   const out=contained([start(),original,set('good')],'s',code,'ORIGINAL_VALUES_VALIDATED');
+   assert.equal(fact(out,'good').current.load.value,40);
+  }
+  contained([op('start','session-start',{planned_split_slot_id:''})],'start','TEXT_REQUIRED','ORIGINAL_VALUES_VALIDATED');
+  contained([set('s',{effective:{...date,local_date:'2026-02-30'}})],'s','EFFECTIVE_INVALID','ORIGINAL_VALUES_VALIDATED');
+  contained([op('close','session-close',{payload:{completion_kind:'maybe'}})],'close','COMPLETION_INVALID','ORIGINAL_VALUES_VALIDATED');
+  contained([set('s',{payload:{load:quantity(40)}})],'s','ROOT_FIELDS_INVALID','ORIGINAL_VALUES_VALIDATED');
+  contained([set('s',{payload:{...set().payload,extra:1}})],'s','ROOT_FIELDS_INVALID','ORIGINAL_VALUES_VALIDATED');
+  contained([set('s',{payload:null})],'s','PAYLOAD','ORIGINAL_VALUES_VALIDATED');
+  const legacy=set('s',{schema_version:1,payload:{load:quantity(-1),reps:quantity(8,'rep')}});
+  assert.equal(fact(run([legacy])).current.load.value,-1,'LEGACY_RECORDED_DOMAIN_UNCHANGED');
+ });
+ check('unsupported session originals and descendant effects remain explicit and inert',()=>{
+  const ops=[start(),set(),op('resolution','set-slot-resolution'),correction('c','resolution',{choice:'x'}),tombstone('t','c'),
+   op('relationship','session-relationship-resolution'),op('reading','fact',{class:'reading'}),correction('foreign','reading',{value:quantity(1)})];
+  const out=run(ops),rows=out.unhandled_records;
+  assert.deepEqual(rows?.map(r=>r.id),['resolution','c','t','relationship','foreign'],'UNHANDLED_RECORDS_VISIBLE');
+  for(const row of rows){assert.equal(row.current,null);assert.equal(row.active,null);
+   assert.equal(row.operationBytes,JSON.stringify(ops.find(o=>o.op_id===row.id)));
+   assert.deepEqual(row.issues,[['resolution','relationship'].includes(row.id)?'UNHANDLED_SESSION_KIND':'EDIT_OF_UNHANDLED_TARGET']);}
+  assert.equal(rows.find(r=>r.id==='t').root_id,'resolution');
+  assert.equal(fact(out).current.load.value,40);assert.deepEqual(out.originals.map(r=>r.operationBytes),ops.map(JSON.stringify));
+ });
+ check('effect sequence advances through restoration and removal without duplicate field views',()=>{
+  const initial=[start(),set()],a=correction('a','s',{load:quantity(45)}),b=correction('b','s',{load:quantity(40)});
+  const rows=[run(initial),run([...initial,a]),run([...initial,a,b]),run([...initial,a,b,tombstone('t','b')])].map(out=>fact(out));
+  assert.deepEqual(rows.map(r=>r.last_effect_sequence),[0,3,4,5],'EFFECT_PROVENANCE_ADVANCES');
+  assert.deepEqual(rows[0].current,rows[2].current);assert.equal(rows[3].current.load.value,45);
+  for(const row of rows)assert.equal(Object.hasOwn(row,'effective_fields'),false,'ONE_CURRENT_FIELD_VIEW');
+ });
+ check('pending types are checked before accepted interpretation and remain uninterpreted strings',()=>{
+  assert.throws(()=>model.project({...input([start()]),pending:[{}],records:[{sequence:1,operationBytes:'broken JSON'}]}),{code:'PENDING_BYTES_REQUIRED'});
+  const out=model.project({...input([start(),set()]),pending:['not parsed or ordered']});assert.deepEqual(out.pending,['not parsed or ordered']);
+  assert.throws(()=>model.project({...input([]),assumption:'untrusted'}),{code:'ASSUMPTION_REQUIRED'});
+  assert.throws(()=>model.project({...input([]),watermark:-1}),{code:'INPUT'});
+  assert.throws(()=>model.project({...input([start()]),records:[{}]}),{code:'RECORD'});
+  assert.throws(()=>run([{...start(),athlete_id:'other'}]),{code:'OPERATION'});
+  const data=input([start(),set()]);data.records[1].sequence=1;
+  assert.throws(()=>model.project(data),{code:'POSITION_CONFLICT'});
  });
  const output=fs.mkdtempSync(path.join(os.tmpdir(),'earned-workout-edit-model-'));
  const evidence={modelPath,modelSha256:sha(fs.readFileSync(modelPath)),testSha256:sha(fs.readFileSync(__filename)),w6,results,

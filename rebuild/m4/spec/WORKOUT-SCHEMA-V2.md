@@ -1,4 +1,6 @@
-# Complete app schema 2 and capability transition — candidate v0.5
+# Complete app schema 2 and capability transition — candidate v0.6
+
+v0.6 over M4fbdb698 records the Message63 bounded REJECT and corrected edit proposal: contain unsupported post-admission interpretation per original root, validate final Skip after all live patches, enforce original editable-value domains without interpreting clear as an observation, and expose unhandled session records/effects. WORKOUT-EDIT-NORMALIZATIONv0.2 and WORKOUT-HISTORY-JOINv0.2 carry those requirements into the proposed common history boundary.25 author checks/12 effective faults/restored25 pass; independent correction verdict and all original C1–C4 conditions remain open. The existing shared workout shape already refuses the malformed Set recording examples; generic Ops.build is not full admission. No runtime or issuance changed. Older version notes below retain their dated input/review state.
 
 September10, 2026. **PRE-EDIT PROPOSAL; NOT REGISTERED, ISSUABLE OR ACCEPTED.** This is the complete scope and transition contract for closing the already-required workout capability. It is not a claim that all wire forms or interpretation rules are closed. The explicit closure items in §6 prevent publication of the final immutable manifest. They are prerequisites inside the existing Earned delivery task, not another queue. No issuer, T2, accepted engine or runtime is changed by this document.
 

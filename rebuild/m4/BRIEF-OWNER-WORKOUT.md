@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.68 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.69 (working implementation)
+
+## Current v0.69 corrected edit/history review candidate
+
+Message63 accepted cd543b7's semantic core but rejected sufficient enforcement for the proposed shared history amendment. The same nonshipping model now contains interpretation contradictions to each original root and all descendant effects, validates original editable recording domains, validates Skip only after final live patches and exposes unsupported session kinds/targets as inert named issues. Full caller-prefix errors remain global.25 author checks/12 effective faults/restored25 pass; runtime remains ce56b67, W6667e34d/R198c1405 unchanged. Full schema/legacy/currentness and affected pre-edit source acceptance remain mandatory before actual normalizer adoption. WORKOUT-EDIT-NORMALIZATIONv0.2, WORKOUT-HISTORY-JOINv0.2 and WORKOUT-SCHEMA-V2v0.6 state the exact limits. APM transferred terminal Opus operation exclusively to Manager; return ONE corrected candidate plus exact missing old inputs through that same lane, with configured-load/extension preparation explicitly scoped as context rather than automatically accepted. The refined full goal is verified ACTIVE: use the complete retained-app workout journey as the organizing milestone. Sole NEXT remains canonical EARNED-DELIVERY-STATUS.md. Older sections below retain their checkpoint chronology.
 
 ## Current v0.68 actual shared-history adoption boundary
 

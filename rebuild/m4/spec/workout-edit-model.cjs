@@ -37,6 +37,7 @@ function createWorkoutEditModel({parseStrictJson}){
   function project({assumption,athleteId,watermark,records,pending=[]}){
     need(assumption===ASSUMPTION,'ASSUMPTION_REQUIRED');
     need(text(athleteId)&&Number.isSafeInteger(watermark)&&watermark>=0&&Array.isArray(records)&&Array.isArray(pending),'INPUT');
+    need(pending.every(raw=>typeof raw==='string'),'PENDING_BYTES_REQUIRED');
     const byId=new Map(),bySeq=new Map();
     for(const row of records){
       need(exact(row,['sequence','operationBytes'])&&Number.isSafeInteger(row.sequence)&&row.sequence>0&&typeof row.operationBytes==='string','RECORD');
@@ -49,21 +50,23 @@ function createWorkoutEditModel({parseStrictJson}){
     }
     need(bySeq.size===watermark&&[...bySeq.keys()].every(n=>n<=watermark),'PREFIX_INCOMPLETE');
     const ordered=[...bySeq.values()].sort((a,b)=>a.sequence-b.sequence);
-    const rootFor=new Map();
+    const rootFor=new Map(),unhandled=new Map();
     for(const node of ordered){
       const op=node.op;
       for(const id of op.causal_parents)need(byId.has(id)&&byId.get(id).sequence<node.sequence,'CAUSAL_PREFIX');
-      if(roots.has(op.kind)){need(op.class==='session','ROOT_CLASS');rootFor.set(op.op_id,op.op_id);}
+      if(roots.has(op.kind))rootFor.set(op.op_id,op.op_id);
       else if(edits.has(op.kind)){
         const target=byId.get(op.target_op_id);
         need(target&&target.sequence<node.sequence,'TARGET_PREFIX');
         if(rootFor.has(op.target_op_id))rootFor.set(op.op_id,rootFor.get(op.target_op_id));
+        else if(op.class==='session'){rootFor.set(op.op_id,op.op_id);unhandled.set(op.op_id,'EDIT_OF_UNHANDLED_TARGET');}
       }
+      else if(op.class==='session'){rootFor.set(op.op_id,op.op_id);unhandled.set(op.op_id,'UNHANDLED_SESSION_KIND');}
     }
     const blocked=new Map();
     const block=(id,reason)=>{if(!blocked.has(id))blocked.set(id,new Set());blocked.get(id).add(reason);};
     for(const node of ordered){
-      const op=node.op,rootId=rootFor.get(op.op_id);if(!rootId||!edits.has(op.kind))continue;
+      const op=node.op,rootId=rootFor.get(op.op_id);if(!rootId||unhandled.has(rootId)||!edits.has(op.kind))continue;
       const original=byId.get(rootId).op,target=byId.get(op.target_op_id).op;
       if(op.schema_version!==original.schema_version||op.schema_version!==target.schema_version)
         block(rootId,original.schema_version===1?'LEGACY_BRIDGE_REQUIRED':'MIXED_SCHEMA_EDIT_BRIDGE_REQUIRED');
@@ -91,12 +94,12 @@ function createWorkoutEditModel({parseStrictJson}){
       }
       return v;
     }
-    function validatePatch(patch,target,trail=new Set()){
+    function validatePatch(patch,target,trail=new Set(),allowClear=true){
       need(object(patch)&&Object.keys(patch).length>0&&fields[target.kind],'REPLACEMENT_FIELDS');
       need(!trail.has(target.op_id),'EDIT_CYCLE');trail.add(target.op_id);
       for(const [field,value]of Object.entries(patch)){
         need(fields[target.kind].includes(field),'REPLACEMENT_FIELD_FORBIDDEN');
-        if(clear(value)){need((optional[target.kind]||[]).includes(field),'CLEAR_REQUIRED_FIELD');continue;}
+        if(clear(value)){need(allowClear,'RECORDED_CLEAR_FORBIDDEN');need((optional[target.kind]||[]).includes(field),'CLEAR_REQUIRED_FIELD');continue;}
         if(field==='effective')need(effective(value),'EFFECTIVE_INVALID');
         else if(field==='load')need(q(value,'lb')&&(target.schema_version===1||value.value>0),'LOAD_INVALID');
         else if(field==='reps')need(q(value,'rep')&&(target.schema_version===1||Number.isSafeInteger(value.value)&&value.value>=0&&!Object.is(value.value,-0)),'REPS_INVALID');
@@ -108,21 +111,29 @@ function createWorkoutEditModel({parseStrictJson}){
       }
       trail.delete(target.op_id);
     }
+    function validateOriginal(op,current){
+      need(op.class==='session','ROOT_CLASS');
+      if(op.schema_version===1)return; // Never assign new recording domains to old bytes.
+      const allowed={'session-start':[],'session-set':['load','reps','reserve'],'session-skip':['reason'],'session-close':['completion_kind']};
+      const required={'session-start':['effective','planned_split_slot_id'],'session-set':['effective','load','reps'],
+        'session-skip':['effective','skip_scope'],'session-close':['effective','completion_kind']};
+      need(Object.keys(op.payload).every(k=>allowed[op.kind].includes(k))&&required[op.kind].every(k=>own(current,k)),'ROOT_FIELDS_INVALID');
+      // Same value domains as patches, without allowing an edit instruction to
+      // become a recorded observation. Cross-field Skip validity is FINAL only.
+      validatePatch(current,op,new Set(),false);
+    }
     // Every target is earlier in the accepted prefix. Reverse traversal therefore
     // resolves removals and revised edit contents before that edit contributes.
     for(const node of ordered.slice().reverse()){
-      const op=node.op;if(!rootFor.has(op.op_id))continue;
-      if(blocked.has(rootFor.get(op.op_id))){
-        result.set(op.op_id,{id:op.op_id,sequence:node.sequence,kind:op.kind,active:null,current:null,correction_ids:[],removal_ids:[]});
-        continue;
-      }
+      const op=node.op,rootId=rootFor.get(op.op_id);if(!rootId||unhandled.has(rootId)||blocked.has(rootId))continue;
+      try{
       const current=originalFields(op),changes=(corrections.get(op.op_id)||[]).slice().sort((a,b)=>a.sequence-b.sequence);
+      if(roots.has(op.kind))validateOriginal(op,current);
       for(const change of changes){
         validatePatch(change.patch,op);
         for(const [field,value]of Object.entries(change.patch)){
           if(clear(value))delete current[field];else current[field]=copy(value);
         }
-        if(op.kind==='session-skip'&&op.schema_version===2)need(current.skip_scope==='set'?text(current.logical_set_slot):current.skip_scope==='lift'&&!own(current,'logical_set_slot'),'SKIP_RESULT_INVALID');
       }
       const removedBy=(removals.get(op.op_id)||[]).slice().sort((a,b)=>a.sequence-b.sequence);
       const active=removedBy.length===0;
@@ -137,6 +148,24 @@ function createWorkoutEditModel({parseStrictJson}){
       }
       result.set(op.op_id,{id:op.op_id,sequence:node.sequence,kind:op.kind,active,current,
         correction_ids:changes.map(c=>c.id),removal_ids:removedBy.map(r=>r.id)});
+      }catch(error){
+        // Post-admission interpretation contradictions affect this original
+        // root and its edits, not every unrelated record in the accepted log.
+        if(typeof error.code!=='string')throw error;
+        block(rootId,error.code);
+      }
+    }
+    // A contradiction discovered while visiting an older target also contains
+    // any newer edits already visited. Never leak their tentative current state.
+    for(const node of ordered){const rootId=rootFor.get(node.op.op_id);if(!rootId||!blocked.has(rootId))continue;
+      result.set(node.op.op_id,{id:node.op.op_id,sequence:node.sequence,kind:node.op.kind,active:null,current:null,
+        correction_ids:[],removal_ids:[],issues:[...blocked.get(rootId)]});
+    }
+    const unhandledRecords=[];
+    for(const node of ordered){const rootId=rootFor.get(node.op.op_id);if(!rootId||!unhandled.has(rootId))continue;
+      const issue=node.op.op_id===rootId?unhandled.get(rootId):'EDIT_OF_UNHANDLED_TARGET';
+      unhandledRecords.push({id:node.op.op_id,sequence:node.sequence,kind:node.op.kind,root_id:rootId,
+        operationBytes:node.operationBytes,active:null,current:null,issues:[issue]});
     }
     const workouts=[];
     for(const node of ordered)if(roots.has(node.op.kind)){
@@ -145,15 +174,14 @@ function createWorkoutEditModel({parseStrictJson}){
       if(op.schema_version===1){
         issues.push('LEGACY_CONTEXT_UNQUALIFIED');
       }
-      const p=op.payload;
+      const p=object(op.payload)?op.payload:{};
       workouts.push({...copy(value),source_schema:op.schema_version,issues,
         source_context:op.schema_version===1?{session_start_id:p.session_start_id??null,lift:p.lift??null,slot:p.slot??null,plan_basis:null,capture:null}:
           {session_start_id:op.session_start_op_id??null,lift_lineage_id:op.lift_lineage_id??null,logical_set_slot:op.logical_set_slot??null,plan_basis:op.plan_basis??null,capture:copy(op.prescription_capture??null)},
-        effective_fields:copy(value.current),
+        last_effect_sequence:effects.length?effects.at(-1).sequence:0,
         effects:effects.map(e=>copy(result.get(e.op.op_id)))});
     }
-    need(pending.every(raw=>typeof raw==='string'),'PENDING_BYTES_REQUIRED');
-    return {model:'PROPOSED_WORKOUT_EDIT_NORMALIZATION',watermark,workouts,
+    return {model:'PROPOSED_WORKOUT_EDIT_NORMALIZATION',watermark,workouts,unhandled_records:unhandledRecords,
       originals:ordered.map(n=>({sequence:n.sequence,operationBytes:n.operationBytes})),pending:pending.slice(),
       interpretationOnly:true,authenticated:false,progressionEligible:false,activated:false};
   }
