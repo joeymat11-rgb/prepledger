@@ -1,4 +1,10 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.86 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.87 (working implementation)
+
+## Current v0.87 native trend connection and coherent adoption
+
+The exact APM-confirmed PERFORMED-ENGINE-v1 seam is now implemented in spec/native-trend-candidate/{construct,check}.cjs over the typed-reader assembly. Native liftTrend/progressionTrend enumerate actual performedHistoryRows order and lift lineage, preserve distinct same-date Start identities and actual performed count/reset/set-aside provenance. Native context requires the internal resolver to bind Start/current source revision/exact effective tuple and explicit hard/rushed/debt; missing/mismatch/throw refuses. Configured magnitude, unresolved slots, no performed observations and valid zero-work remain distinct unavailable outcomes. Legacy-only results and original statistical/era/window/downside formulas stay unchanged. Seven focused groups pass with actual stored multiple-workout histories, real count changes, reopened corrections and four-lift pooling. Test context is explicitly assumed, not real host qualification.
+
+Rev169 scoped history ACCEPT is adopted with G1–G5 in adapter/schema/report. Next coherent increment is combined typed-reader/trend independent review, coordinated with the completed Fable UI candidate's independent review. After affected acceptance, reconcile accepted shared value/history/UI/reader sources through the existing adoption process and run the joined retained workout/history path. The immediate interpretation blocker is a qualified real source/context resolver and applicable numeric/configuration scientific mapping; a renderer callback or fake authority lease cannot supply it. Complete C1–C4/issuer remains required before genuine enrollment. Do not create another separate product lane solely because these broader dependencies remain; PM owns the joined increment, APM adoption, Manager independent review/integrator. No merge/deploy/private activation.
 
 ## Current v0.86 typed performed-reader candidate
 
