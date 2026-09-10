@@ -1,4 +1,12 @@
-# Import preparation and controller boundary v1.4 — September 9, 2026
+# Import preparation and controller boundary v1.5 — September 9, 2026
+
+## Reproducible reading-engine candidate — v1.5
+
+import/reading-replay.cjs now executes actual preparation reproduction and accepted reading/effect reconstruction against the same authenticated recovered source/generation. The caller owns authentication and current revision/context binding. Exact immutable source/local preparation must reproduce candidate_json; a saved candidate/coverage list cannot skip operations. Rebuild from the immutable basis each time, never call undoRead against a current state and assume later effects survived. Pending remains a separate local factual view. Actual installed applyRead/currentRate execution produces inspectable input/output coverage and qualified:false/activated:false; this is not active state or consent.
+
+Legacy source rows retain their original source member and position, not fake operation correspondence. Native accepted reading IDs/effects retain authenticated original identity. Different native local images, source/pending overlap, same-date collisions, backdated order, unmapped context and unsupported effective-time input remain unresolved calculation prerequisites. Original-day/hour is explicitly injected for the existing writer; runtime timezone/Node and producer are bound to the returned candidate. A later publication must revalidate the source/generation/producer/context and actual applicable policy, never merely trust these fields. First imports, subsequent native source checkpoints and rollback require the full lineage rules; below-W/list membership or an empty engine context never proves application.
+
+9 focused actual-engine checks,8 effective faults/restored9 and the actual signed W6 source→calculation→admitted correction/removal→five pending/reopen witness PASS; exact receipts in REPORT-OWNER-WORKOUT-BRIEF-ASTRA.md. This Node-only calculation candidate is not a second advice engine and is not mounted in the browser. Next extend the SAME qualified producer to complete accepted context and source/native lineage, then accepted-plan/consent reconciliation and guarded atomic publication. All full-app/P1–P6/private/science/device/resource gates remain.
 
 ## Current projection requirements — reached implementation witnesses
 

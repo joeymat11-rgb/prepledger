@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.59 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.60 (working implementation)
+
+## Current v0.60 source/current producer integration
+
+The same retained integration objective now has an actual source-reading calculation candidate at import/reading-replay.cjs. It reproduces original source/local preparation, rebuilds accepted reading corrections/removals through unchanged installed engine calls, keeps pending outside machine input, and exposes actual executed coverage. It grants no current plan/consent or activation.9focused/8effective faults/restored9 and signed W6 recovery/correction/removal/reopen join plus required conformance/strict PASS; exact report and IMPORT-CONTROLLER-v1.md v1.5 preserve scope and unresolved source/native/context/same-date cases. W6 changes in this slice are test/manifest evidence only; installed engine, R1 and frozen paths unchanged. Continue the same full source/current engine/atomic publication and complete owner app goal; the sole execution queue is canonical EARNED-DELIVERY-STATUS.md.
 
 ## Current v0.59 source-preserving import preparation
 
