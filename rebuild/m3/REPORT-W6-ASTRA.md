@@ -1,5 +1,11 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Actual imported-workout source binding witness — September10
+
+W6 runtime remains exactly1752068; this successor changes only source-import.test.mjs/run-source-import.cjs and this report. M4 reading-replay adds the APM-approved guarded imported-workout baseline. The existing actual prepared source/encrypted custody/R1 binding/indexed signed recovery/second-import/rollback/reopen test verifies original activation rather than rollback request, exact shared sessionLog, original checkpoint/material evidence, and exact row enumeration through the existing performed reader. A workout introduced only in the second source disappears on rollback; all later accepted effects/five pending bodies survive. The runner now explicitly pins both reached M4 reader modules before/after execution.
+
+Before the M4 implementation the actual joined test failed SOURCE_WORKOUT_BASELINE_REQUIRED with native exit1 in45.3seconds, .tmp/source-workout-binding-before.log. Final test passes native0 in166.9seconds, .tmp/source-workout-binding-first.log; composition C:/Users/joeym/AppData/Local/Temp/earned-source-recovery-fMi1NI. M4 focused22 and three targeted source-binding faults/restored22 PASS; exact evidence in its report/current checkpoint. Existing406/native65 workout checks and prior schema/core checks retain their original scopes; no unchanged runtime campaign repeated. Conformance/selftest/strict are recorded in the final checkpoint. No actual deployment/private source, generic source-event committer, native schema2 issuance, current prescription, complete C2 or phone/resource qualification is implied. This witness uses actual local workerd/SQLite-backed D1 with synthetic identities/inputs and Node-only inactive calculation.
+
 ## Legacy observations in the retained reader and host — September10
 
 Successor to f2e5594, with identical shared interpreter in M4 above9524515; R1 remains2e2ac5f. APM accepted the precise legacy interpretation boundary and the reached prepared-panel rendering/selection addition before those edits. No core/schema/issuer/engine or release authority change. Prior immutable runtime review remains separate and pending.

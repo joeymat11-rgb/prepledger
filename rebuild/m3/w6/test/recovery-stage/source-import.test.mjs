@@ -178,6 +178,10 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   await publishHistorical();const priorCalculation=await calculate(),nativeCheckpoint=await repo.load();
   const priorEvidence=await recover(),priorSource=await priorEvidence.sourceImport(),nextId='synthetic-second-source';
   const incoming=JSON.parse(material.source_json);incoming.dailyLogs['2026-08-30'].cal=2400;
+  // Distinct imported workout proves second-source selection and rollback do
+  // not borrow the latest source's training history by coincidental identity.
+  const addedWorkoutDay='2026-07-01';incoming.sessionLog[addedWorkoutDay]=structuredClone(Object.values(incoming.sessionLog)[0]);
+  incoming.sessionLog[addedWorkoutDay].entries[0].reps[0]=4;
   const incomingBytes=new TextEncoder().encode(JSON.stringify(incoming)),nativeBytes=new TextEncoder().encode(JSON.stringify(priorCalculation.accepted_state));
   const nextPrepared=require(resolve(m4,'rebuild/m4/import/prepare.cjs')).createImportPreparation({engine:engineFor({day:'2026-09-05',hour:12}),parseStrictJson}).prepare(incomingBytes,{localBytes:nativeBytes});
   const nextCustody=repo.importCustody({parseStrictJson,validateContext:()=>null});
@@ -196,12 +200,25 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     const value=await replay.projectLineage({selectionId:source.current.intent_op_id,generation,asOf:'2026-09-07',assertCurrent:candidate.assertCurrent,
       readSelectedSource:async id=>{let value;await candidate.inspectSelectedSource(id,x=>{value=x;});return value;}});
     assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.activated,false);assert.equal(value.qualified,false);
+    const baseline=value.workout_baseline;assert(baseline,'SOURCE_WORKOUT_BASELINE_REQUIRED');
+    assert.equal(baseline.profile,'earned/imported-engine-history/v1');assert.strictEqual(baseline.session_log,value.accepted_state.sessionLog);
+    assert.equal(baseline.source_generation_id,source.current.source_id);
+    assert.equal(baseline.activation_op_id,source.current.action==='rollback'?source.current.target_activation_id:source.current.intent_op_id);
+    assert.equal(value.coverage.workout_source.selected_intent_id,source.current.intent_op_id);
+    const order=require(resolve(m4,'rebuild/m4/workout/engine-order.cjs')).orderWorkoutStarts({frontier:generation.collections.sync.frontier.W,sessions:[]},generation,
+      {importAnchor:{source_generation_id:baseline.source_generation_id,activation_op_id:baseline.activation_op_id}});
+    const engineInput=structuredClone({state:value.accepted_state,baseline});engineInput.state.workoutFacts={profile:'earned/workout-facts/v1',sessions:[],order,legacy_baseline:engineInput.baseline};
+    const actualRows=require(resolve(m4,'rebuild/m4/spec/performed-proposal/factory.cjs'))().performedHistoryRows(engineInput.state);
+    assert(actualRows.length>0);assert.deepEqual(actualRows,Object.keys(value.accepted_state.sessionLog).sort().map(d=>({d,rec:value.accepted_state.sessionLog[d],source:'legacy'})));
+    assert.strictEqual(engineInput.state.workoutFacts.legacy_baseline.session_log,engineInput.state.sessionLog);
     await assert.rejects(candidate.inspectSelectedSource('not-a-selected-source',()=>assert.fail('Unknown source cannot reach visitor')),{code:'SOURCE_SELECTION_UNKNOWN'});
     await candidate.inspectSelectedSource(activation.op_id,x=>{assert.deepEqual(x.material,material);x.material.source_json='changed caller copy';});
     await candidate.inspectSelectedSource(activation.op_id,x=>assert.deepEqual(x.material,material));
     return {value,source,candidate,generation};
   }
   let lineage=await calculateLineage();assert.deepEqual(lineage.value.accepted_state,nextPrepared.candidateState());
+  assert(Object.hasOwn(lineage.value.workout_baseline.session_log,addedWorkoutDay));
+  assert.equal(lineage.value.coverage.workout_source.original_checkpoint_W,nativeCheckpoint.generation.collections.sync.frontier.W);
   const nativeAfter=remoteOp({lb:{value:180,unit:'lb'}},{effective:at('2026-09-06')});
   assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeAfter])).status,'ACCEPTED');
   const inheritedEdit=remoteOp({replacement_fields:{lb:{value:178,unit:'lb'}}},{kind:'correction',target:nativeBefore.op_id,parents:[nativeBefore.op_id],effective:at('2026-09-06')});
@@ -224,6 +241,9 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   rollbackExpected=engineFor({day:'2026-09-05',hour:8}).writeDaily(rollbackExpected,'2026-09-05',{cal:2300,pro:150});
   rollbackExpected=engineFor({day:'2026-09-06',hour:8}).applyRead(rollbackExpected,'2026-09-06',180,{hour:8});
   assert.deepEqual(lineage.value.accepted_state,rollbackExpected);assert.equal(lineage.value.coverage.selected_intent_id,finalRollback.op_id);
+  assert.equal(Object.hasOwn(lineage.value.workout_baseline.session_log,addedWorkoutDay),false,'Rollback must not retain newer-source workout');
+  assert.equal(lineage.value.coverage.workout_source.original_checkpoint_W,before.generation.collections.sync.frontier.W);
+  assert.deepEqual(lineage.value.workout_baseline.session_log,prepared.candidateState().sessionLog);
   assert.equal(Object.keys(lineage.generation.collections.outbox).length,5);
   assert.deepEqual(lineage.generation.collections.ops[nativeBefore.op_id],nativeBefore);assert.deepEqual(lineage.generation.collections.ops[nativeAfter.op_id],nativeAfter);
   for(const op of [nativeFood,nativeSteps,nativeFoodComplete,foodEdit,stepsRemoval])assert.deepEqual(lineage.generation.collections.ops[op.op_id],op);
