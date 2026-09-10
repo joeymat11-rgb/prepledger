@@ -11,9 +11,14 @@ const fail=code=>{const e=new Error(code);e.code=code;throw e;};
 const hash=x=>createHash('sha256').update(x).digest('hex');
 const json=x=>{const s=JSON.stringify(x);if(!isDeepStrictEqual(JSON.parse(s),x))fail('READING_REPLAY_LOSSY_JSON');return s;};
 const date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d+'T00:00:00Z'))&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d;
+function freezeOwned(value){const stack=[value];while(stack.length){const item=stack.pop();if(!item||typeof item!=='object'||Object.isFrozen(item))continue;
+  for(const child of Object.values(item))stack.push(child);Object.freeze(item);}return value;}
 function createReadingReplay({engineFor,projectReadings,parseStrictJson,producerIdentity,importBuild,deviceId}={}){
   if([engineFor,projectReadings,parseStrictJson].some(f=>typeof f!=='function')||typeof producerIdentity!=='string'||!producerIdentity||typeof importBuild!=='string'||!importBuild)
     throw TypeError('Actual scoped engine factory, reading projector, parser and producer identity required');
+  // Private correspondence for the producer's actual consumed source image.
+  // Retains the SAME immutable state reference; no second state or permission.
+  const workoutSources=new WeakMap();
   function evaluate({sourceId,material,generation,asOf}={},internal=null){
     if(typeof sourceId!=='string'||!sourceId||!material||!generation?.collections||!date(asOf))fail('READING_REPLAY_INPUT');
     const input=copy(material),g=copy(generation),c=g.collections;
@@ -131,11 +136,20 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
   }
   function project(input){return evaluate(input);}
   function reproduce(input,saved){const actual=project(input);if(!isDeepStrictEqual(actual,saved))fail('READING_REPLAY_CHECKPOINT_MISMATCH');return actual;}
-  async function projectLineage({selectionId,generation,asOf,readSelectedSource,assertCurrent}={}){
+  async function projectLineage({selectionId,generation,asOf,readSelectedSource,assertCurrent,sourceBasis,readSourceCuts}={}){
     if(typeof readSelectedSource!=='function'||typeof assertCurrent!=='function'||typeof selectionId!=='string'||!generation?.collections||!date(asOf))fail('SOURCE_LINEAGE_INPUT');
     const original=copy(generation),W=original.collections.sync?.frontier?.W,nodes=new Map(),cache=new Map();
     const receiptIndex=new Map(Object.values(original.collections.receipts||{}).map(r=>[r.seq,r]));
     await assertCurrent();
+    let sourceContext=null;
+    if(sourceBasis!==undefined){
+      const requested=copy(sourceBasis);
+      if(typeof readSourceCuts!=='function'||requested?.W!==W||requested.selection_id!==selectionId)fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
+      const cuts=copy(await readSourceCuts([requested]));await assertCurrent();
+      if(!Array.isArray(cuts)||cuts.length!==1||!isDeepStrictEqual(cuts[0]?.frontier,requested)||cuts[0]?.current?.intent_op_id!==selectionId)
+        fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
+      sourceContext=cuts[0];
+    }else if(readSourceCuts!==undefined)fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
     async function node(id){
       if(nodes.has(id))return nodes.get(id);
       await assertCurrent();const value=copy(await readSelectedSource(id));await assertCurrent();
@@ -207,22 +221,40 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
     }
     const result=copy(await calculate(selectionId,original,W,asOf));
     result.workout_baseline=null;
+    result.source_basis=null;
     if(result.ready){
       // The guarded selected-source lineage, not a bare imported DTO or a
       // workout label, supplies this binding. Rollback keeps its original
       // activation/checkpoint separate from the newer selection operation.
       const selected=await node(selectionId),activation=selected.selection.action==='rollback'?await node(selected.selection.target_activation_id):selected;
+      if(sourceContext&&!isDeepStrictEqual(sourceContext.current,selected.selection))fail('SOURCE_WORKOUT_BASIS_UNPROVEN');
       const source=activation.selection,log=result.accepted_state?.sessionLog;
       if(!log||typeof log!=='object'||Array.isArray(log))fail('SOURCE_WORKOUT_HISTORY_UNSUPPORTED');
       result.workout_baseline={profile:'earned/imported-engine-history/v1',source_generation_id:source.source_id,
         activation_op_id:source.intent_op_id,session_log:log};
       result.coverage.workout_source={source_id:source.source_id,activation_op_id:source.intent_op_id,selected_intent_id:selectionId,
         selected_action:selected.selection.action,original_checkpoint_W:source.before.W,material_sha256:result.coverage.material_sha256};
+      if(sourceContext)result.source_basis=copy(sourceContext.frontier);
     }
     // The owned result keeps one shared sessionLog reference across the source
     // state and its baseline. Nothing is published after a changed context.
-    await assertCurrent();return result;
+    await assertCurrent();
+    if(result.ready&&result.source_basis){
+      freezeOwned(result.accepted_state);freezeOwned(result.workout_baseline);freezeOwned(result.source_basis);
+      workoutSources.set(result,{basis:copy(result.source_basis),state:result.accepted_state,baseline:result.workout_baseline});
+      Object.freeze(result);
+    }
+    return result;
   }
-  return Object.freeze({project,reproduce,projectLineage});
+  function workoutInput(projection,expectedBasis){
+    const held=workoutSources.get(projection);
+    const descriptors=Object.getOwnPropertyDescriptors(expectedBasis||{}),fields=['W','log_digest','selection_id'];
+    if(!held||Reflect.ownKeys(descriptors).length!==3||fields.some(k=>!Object.hasOwn(descriptors[k]||{},'value')||!descriptors[k].enumerable)||
+      fields.some(k=>descriptors[k].value!==held.basis[k]))fail('SOURCE_WORKOUT_INPUT_DISAGREEMENT');
+    // The engine adapter takes its one owned copy. This is source correspondence,
+    // not a new authentication, currentness or qualified-plan boundary.
+    return {state:held.state,source_basis:copy(held.basis),workout_baseline:held.baseline};
+  }
+  return Object.freeze({project,reproduce,projectLineage,workoutInput});
 }
 module.exports={createReadingReplay,PROFILE};

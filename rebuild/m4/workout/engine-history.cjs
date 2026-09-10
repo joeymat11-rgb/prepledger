@@ -8,7 +8,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const known=row=>['accepted-through-frontier','stored-on-this-device'].includes(row?.status);
 const text=x=>typeof x==='string'&&x.length>0;
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
-function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,resolveCapturedLayout,parseStrictJson}={}){
+function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,resolveCapturedLayout,parseStrictJson,prescriptionCapture}={}){
  if(!text(athleteId)||!text(deviceId)||[projectWorkoutRecords,resolveCapturedLayout,parseStrictJson].some(f=>typeof f!=='function'))throw new TypeError('Scoped trusted history projector, captured-plan resolver and strict parser required');
  function project(history,generation,{sourceRevision,importAnchor}={}){
   if(!Number.isSafeInteger(sourceRevision)||sourceRevision<1)fail('WORKOUT_ENGINE_SOURCE_REVISION_REQUIRED');
@@ -115,6 +115,52 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
    excluded_start_ids:history.sessions.filter(s=>s.start.status==='rejected'||s.projection.start_record.included===false).map(s=>s.start.operation.op_id),
    interpretation:'captured-positions-and-factual-edits',progression_eligible:false};
  }
- return Object.freeze({project});
+ async function projectWithSources(history,generation,{sourceRevision,readSourceCuts,assertCurrent}={}){
+  if(typeof readSourceCuts!=='function'||typeof assertCurrent!=='function'||typeof prescriptionCapture?.read!=='function')
+   fail('WORKOUT_CAPTURE_SOURCE_READER_REQUIRED');
+  // Own one factual snapshot before yielding. The caller authenticates this
+  // generation and supplies its guarded indexed source reader; neither a DTO
+  // nor this calculation grants current permission or import replay membership.
+  const snapshot=structuredClone({history,generation});
+  await assertCurrent();
+  const facts=project(snapshot.history,snapshot.generation,{sourceRevision});
+  const ops=snapshot.generation.collections.ops||{},W=facts.source_order.frontier;
+  const accepted=new Map(Object.values(snapshot.generation.collections.receipts||{}).filter(r=>r.seq<=W).map(r=>[r.op_id,r.seq]));
+  const pending=[],bases=[];
+  for(const record of [...facts.sessions,...facts.incomplete_sessions]){
+   const capture=prescriptionCapture.read(record.capture);
+   record.original_source=null; // v1 has unknown original source, never a null-selection proof.
+   if(capture.profile==='earned/workout-prescription/v1')continue;
+   if(capture.profile!=='earned/workout-prescription/v2')fail('WORKOUT_CAPTURE_SOURCE_UNPROVEN');
+   const basis=capture.source_basis,seq=accepted.get(record.start_op_id);
+   if(basis.W>W||seq!==undefined&&basis.W>=seq)fail('WORKOUT_CAPTURE_SOURCE_POSITION_UNPROVEN');
+   pending.push(record);bases.push(structuredClone(basis));
+  }
+  await assertCurrent();
+  // One call batches all original cuts, including duplicates, through the same
+  // authenticated inventory. Do not reauthenticate/copy the prefix per Start.
+  const cuts=bases.length?structuredClone(await readSourceCuts(structuredClone(bases))):[];
+  await assertCurrent();
+  if(!Array.isArray(cuts)||cuts.length!==bases.length)fail('WORKOUT_CAPTURE_SOURCE_UNPROVEN');
+  for(const [i,record]of pending.entries()){
+   const basis=bases[i],cut=cuts[i],selection=cut?.current;
+   if(!cut?.frontier||!['W','log_digest','selection_id'].every(k=>cut.frontier[k]===basis[k]))fail('WORKOUT_CAPTURE_SOURCE_UNPROVEN');
+   if(basis.selection_id===null){if(selection!==null)fail('WORKOUT_CAPTURE_SOURCE_UNPROVEN');}
+   else{
+    const op=ops[basis.selection_id],seq=accepted.get(basis.selection_id);
+    if(!selection||selection.intent_op_id!==basis.selection_id||seq===undefined||seq>basis.W||selection.seq!==seq||
+       !op||op.athlete_id!==athleteId||selection.commitment!==op.canonical_content_commitment||selection.source_id!==op.payload?.source_id||
+       !['activate','rollback'].includes(selection.action)||op.schema_version!==1||op.class!=='event'||op.kind!=='fact'||
+       op.payload.type!==(selection.action==='activate'?'source-import-intent':'source-rollback-intent'))fail('WORKOUT_CAPTURE_SOURCE_SCOPE_UNPROVEN');
+   }
+   record.original_source={basis:structuredClone(basis),selection:structuredClone(selection)};
+  }
+  // Causal native order remains independent of today's selected baseline.
+  // No import_anchor is manufactured: the mixed reader still needs its actual
+  // replay/chronology join before it can consume legacy plus native records.
+  await assertCurrent();
+  return facts;
+ }
+ return Object.freeze({project,projectWithSources});
 }
 module.exports={createEngineHistoryProjector};

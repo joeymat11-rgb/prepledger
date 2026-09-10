@@ -9,9 +9,11 @@ const fail=code=>{const error=new Error(code);error.code=code;throw error;};
 const unknown=()=>({state:'unknown',display:'Unavailable',source_json:null});
 const textCell=value=>typeof value==='string'&&value.length?{state:'specified',display:value,source_json:JSON.stringify(value)}:unknown();
 const valueCell=(display,value)=>({state:'specified',display,source_json:JSON.stringify(value)});
-function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity}={}){
+function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity,sourceProjectionReader}={}){
  if(typeof engine?.genSession!=='function'||typeof engine?.rirPlan!=='function'||typeof prescriptionCapture?.prepare!=='function'||![PROFILE,CONFIGURATION_PROFILE].includes(producerIdentity?.rule_profile))
   throw new TypeError('Explicit engine readers, capture validator and registered producer profile required');
+ const sourceAware=prescriptionCapture.profile==='earned/workout-prescription/v2';
+ if(sourceAware&&typeof sourceProjectionReader?.workoutInput!=='function')throw new TypeError('Actual source projection consumer required');
  const producer=copy(producerIdentity);
  const configured=producer.rule_profile===CONFIGURATION_PROFILE,layoutProfile=configured?'earned/captured-lift-layout/v2':'earned/captured-lift-layout/v1';
  const number=x=>typeof x==='number'&&Number.isFinite(x)&&x>=0&&!Object.is(x,-0);
@@ -30,7 +32,12 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
   if(exact(source,['kind','configuration_key'])&&source.kind==='configuration'&&configuration(source.configuration_key)&&cell.display===source.configuration_key)return {state:'specified',source};
   fail('ENGINE_CAPTURE_PROFILE_INVALID');
  }
- function prepare({state,day,sleep,basis}={}){
+ function prepare({state,day,sleep,basis,sourceProjection,source_basis}={}){
+  if(sourceAware){
+   const consumed=sourceProjectionReader.workoutInput(sourceProjection,source_basis);
+   if(state!==undefined&&state!==consumed.state)fail('ENGINE_CAPTURE_SOURCE_INPUT_DISAGREEMENT');
+   state=consumed.state;source_basis=consumed.source_basis;
+  }
   if(!state||!Array.isArray(state.exercises)||!Array.isArray(state.queue)||typeof day!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(day))fail('ENGINE_CAPTURE_INPUT_REQUIRED');
   // All reads share one owned clone, preserving any shared imported-log member.
   // This clone is not evidence that the caller supplied an authentic snapshot.
@@ -81,7 +88,8 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
   }
   if(JSON.stringify(input)!==before)fail('ENGINE_CAPTURE_READER_MUTATED_INPUT');
   const capture=prescriptionCapture.prepare({profile:prescriptionCapture.profile,producer,basis:copy(basis),
-   session:{instruction:textCell(session.name),reason:textCell(session.structural),confidence:unknown()},slots},{producer,basis});
+   ...(sourceAware?{source_basis:copy(source_basis)}:{}),
+   session:{instruction:textCell(session.name),reason:textCell(session.structural),confidence:unknown()},slots},{producer,basis,...(sourceAware?{source_basis}:{})});
   return {capture,layout:{profile:layoutProfile,producer:copy(producer),basis:copy(basis),correspondence_profile:producer.rule_profile,slots:layout}};
  }
  function resolveLayout({start,originalInput}={}){
@@ -98,7 +106,8 @@ function createEngineWorkoutCapture({engine,prescriptionCapture,producerIdentity
   // Do not read a getter while obtaining the context for the shared validator.
   const basis=Object.getOwnPropertyDescriptor(originalCapture||{},'basis');
   if(!basis||!Object.hasOwn(basis,'value'))fail('ENGINE_CAPTURE_PROFILE_INVALID');
-  const capture=prescriptionCapture.prepare(originalCapture,{producer,basis:basis.value});
+  const capture=typeof prescriptionCapture.read==='function'?prescriptionCapture.read(originalCapture):prescriptionCapture.prepare(originalCapture,{producer,basis:basis.value});
+  if(!same(capture.producer,producer))fail('ENGINE_CAPTURE_PROFILE_INVALID');
   const slots=[],closed=new Set();let lift=null,position=0;
   for(const slot of capture.slots){
    if(slot.lift_lineage_id!==lift){if(lift!==null)closed.add(lift);lift=slot.lift_lineage_id;position=0;if(closed.has(lift))fail('ENGINE_CAPTURE_PROFILE_INVALID');}

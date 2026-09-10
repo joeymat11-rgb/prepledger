@@ -207,3 +207,80 @@ test('actual resume policy receives full open facts without inserting them into 
  assert.deepEqual(policyFacts.incomplete_sessions[0].record.entries[0].slots[0].fact.current.reserve,bound);
  assert.equal(engine().performedHistoryRows({sessionLog:{},workoutFacts:policyFacts}).length,0);
 });
+
+// Conditional internal-source tests: real retained factual/layout/capture code,
+// explicitly synthetic accepted inventories/cuts. No signature or issuance proof.
+async function capturedSourcesFixture(t){
+ const f=await fixture();t.after(()=>f.repo.close());await f.startNext();
+ const source=await f.source(),{storedWorkoutHistory}=await load('rebuild/m4/workout/stored-history.mjs');
+ const C=require(path.join(w6,'rebuild/m4/workout/capture.cjs'));
+ const Source=require(path.join(process.env.EARNED_SOURCE_R1_ROOT||path.resolve(w6,'../m3-w5-r1'),'rebuild/m3/w5/source/codec.cjs'));
+ const validator=C.createPrescriptionCapture({parseStrictJson:f.dependencies.parseStrictJson,profile:C.SOURCE_PROFILE,sourceCodec:Source});
+ const basis=n=>({W:n,log_digest:Buffer.alloc(32,n).toString('base64url'),selection_id:n?'source-'+n:null});
+ const a=basis(1),b=basis(2),g=structuredClone(source.generation),native=Object.values(g.collections.ops);
+ const selections=[a,b].map((cut,i)=>({intent_op_id:cut.selection_id,source_id:'synthetic-material-'+i,seq:cut.W,action:'activate',commitment:'synthetic-source-commitment-'+i}));
+ const sourceOps=selections.map(s=>({op_id:s.intent_op_id,athlete_id:'ath-1',device_id:'dev-A',schema_version:1,class:'event',kind:'fact',
+  causal_parents:[],canonical_content_commitment:s.commitment,payload:{type:'source-import-intent',source_id:s.source_id}}));
+ let n=0;for(const op of native)if(op.kind==='session-start'){
+  op.prescription_capture={...op.prescription_capture,profile:C.SOURCE_PROFILE,source_basis:structuredClone(n++?b:a)};
+ }
+ g.collections.ops=Object.fromEntries([...sourceOps,...native].map(op=>[op.op_id,op]));
+ g.collections.receipts=Object.fromEntries([...sourceOps,...native].map((op,i)=>[String(i+1),{seq:i+1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment}]));
+ g.collections.sync.frontier.W=sourceOps.length+native.length;
+ const rebuild=(generation=g)=>storedWorkoutHistory(generation,{athleteId:'ath-1',deviceId:'dev-A',prescriptionCapture:validator,recoveryReceipts:Object.values(generation.collections.receipts)});
+ const mapper=createEngineHistoryProjector({...f.dependencies,prescriptionCapture:validator});
+ const read=async bases=>bases.map(cut=>({frontier:structuredClone(cut),current:cut.selection_id===null?null:structuredClone(selections.find(s=>s.intent_op_id===cut.selection_id))}));
+ const options={sourceRevision:source.sourceRevision,readSourceCuts:read,assertCurrent:async()=>{}};
+ const run=(generation=g,overrides={})=>mapper.projectWithSources(rebuild(generation),generation,{...options,...overrides});
+ return {f,g,a,b,empty:basis(0),selections,rebuild,mapper,options,run};
+}
+
+test('source-aware factual mapping preserves delayed A capture after B and batches completed/open sources',async t=>{
+ const x=await capturedSourcesFixture(t),before=JSON.stringify(x.g),original=x.rebuild(),expected=x.mapper.project(original,x.g,{sourceRevision:x.options.sourceRevision});let calls=0;
+ const facts=await x.run(x.g,{readSourceCuts:async bases=>{calls++;assert.deepEqual(bases,[x.a,x.b]);return x.options.readSourceCuts(bases);}});
+ assert.equal(calls,1);assert.equal(JSON.stringify(x.g),before);
+ assert.deepEqual(facts.source_order,expected.source_order,'Native B15 order does not depend on selected import');
+ assert.deepEqual(facts.sessions[0].capture,expected.sessions[0].capture);assert.deepEqual(facts.incomplete_sessions[0].capture,expected.incomplete_sessions[0].capture);
+ assert.deepEqual(facts.sessions[0].original_source.basis,x.a);assert.deepEqual(facts.incomplete_sessions[0].original_source.basis,x.b);
+ assert.equal(facts.sessions[0].original_source.selection.source_id,x.selections[0].source_id,'Delayed A Start is not relabeled B');
+ assert(x.g.collections.receipts['3'].op_id===facts.sessions[0].start_op_id,'A Start accepted after both source operations');
+ assert.equal(facts.progression_eligible,false);assert.equal(facts.order.import_anchor,undefined);
+ assert.throws(()=>engine().performedHistoryRows({sessionLog:{'2026-09-01':{entries:[]}},workoutFacts:facts}),{code:'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED'},'Source association is not global legacy/native chronology');
+ facts.sessions[0].original_source.selection.source_id='changed';assert.equal(x.selections[0].source_id,'synthetic-material-0');
+});
+
+test('unknown v1 original remains distinct from a proved empty source and pending v2 may use current cut',async t=>{
+ const x=await capturedSourcesFixture(t),starts=Object.values(x.g.collections.ops).filter(op=>op.kind==='session-start');
+ starts[0].prescription_capture.profile='earned/workout-prescription/v1';delete starts[0].prescription_capture.source_basis;
+ let facts=await x.run();assert.equal(facts.sessions[0].original_source,null);assert.deepEqual(facts.incomplete_sessions[0].original_source.basis,x.b);
+ starts[0].prescription_capture.profile='earned/workout-prescription/v2';starts[0].prescription_capture.source_basis=structuredClone(x.empty);
+ facts=await x.run();assert.deepEqual(facts.sessions[0].original_source,{basis:x.empty,selection:null});
+ x.g.collections.receipts=Object.fromEntries(Object.entries(x.g.collections.receipts).filter(([key])=>Number(key)<=2));x.g.collections.sync.frontier.W=2;
+ facts=await x.run();assert.deepEqual(facts.incomplete_sessions[0].original_source.basis,x.b,'Pending Start may be prepared at the current authenticated cut');
+});
+
+test('captured source cuts reject future/equal accepted positions and mismatched or foreign returned selections',async t=>{
+ const x=await capturedSourcesFixture(t),start=Object.values(x.g.collections.ops).find(op=>op.kind==='session-start');
+ for(const W of [3,x.g.collections.sync.frontier.W+1]){
+  const altered=structuredClone(x.g);altered.collections.ops[start.op_id].prescription_capture.source_basis.W=W;
+  await assert.rejects(x.run(altered),{code:'WORKOUT_CAPTURE_SOURCE_POSITION_UNPROVEN'});
+ }
+ for(const change of [cuts=>{cuts.pop();},cuts=>{cuts[0].frontier.log_digest=x.b.log_digest;},cuts=>{cuts[0].frontier.selection_id=x.b.selection_id;}]){
+  await assert.rejects(x.run(x.g,{readSourceCuts:async bases=>{const cuts=await x.options.readSourceCuts(bases);change(cuts);return cuts;}}),{code:'WORKOUT_CAPTURE_SOURCE_UNPROVEN'});
+ }
+ for(const change of [s=>{s.intent_op_id='source-2';},s=>{s.seq=2;},s=>{s.source_id='wrong-material';},s=>{s.commitment='wrong-original';}]){
+  await assert.rejects(x.run(x.g,{readSourceCuts:async bases=>{const cuts=await x.options.readSourceCuts(bases);change(cuts[0].current);return cuts;}}),{code:'WORKOUT_CAPTURE_SOURCE_SCOPE_UNPROVEN'});
+ }
+ const foreign=structuredClone(x.g);foreign.collections.ops['source-1'].athlete_id='other-athlete';
+ // The actual factual reader itself rejects the foreign inventory before source mapping.
+ assert.throws(()=>x.rebuild(foreign),{code:'WORKOUT_RECOVERY_RECEIPT_INVALID'});
+ await assert.rejects(x.mapper.projectWithSources(x.rebuild(),foreign,x.options),{code:'WORKOUT_HISTORY_SCOPE'});
+});
+
+test('source-aware projection has no partial result after guarded reader retirement',async t=>{
+ const x=await capturedSourcesFixture(t);let current=true;
+ await assert.rejects(x.run(x.g,{assertCurrent:async()=>{if(!current){const e=new Error('retired');e.code='RECOVERY_STAGE_CHANGED';throw e;}},
+  readSourceCuts:async bases=>{const result=await x.options.readSourceCuts(bases);current=false;return result;}}),{code:'RECOVERY_STAGE_CHANGED'});
+ await assert.rejects(x.run(x.g,{readSourceCuts:null}),{code:'WORKOUT_CAPTURE_SOURCE_READER_REQUIRED'});
+ assert.equal(JSON.stringify((await x.run()).sessions[0].capture),JSON.stringify(x.rebuild().sessions[0].original),'Retry reads the exact original');
+});
