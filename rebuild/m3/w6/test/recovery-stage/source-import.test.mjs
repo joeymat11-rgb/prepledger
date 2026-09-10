@@ -141,9 +141,14 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     // generation. A reproduced candidate calculation grants no publication.
     const evidence=await recover(),candidate=await evidence.assemble();let selectedSource,verifiedGeneration;
     await candidate.inspectSourceImport(x=>{selectedSource=x;});await candidate.inspect(x=>{verifiedGeneration=x;});
-    const input={sourceId,material:selectedSource.material,generation:verifiedGeneration,asOf:'2026-09-07'},value=replay.project(input);
+    const bare={sourceId,material:selectedSource.material,generation:verifiedGeneration,asOf:'2026-09-07'};
+    assert.equal(replay.project(bare).ready,false,'Authenticated material alone supplies no bound-control correspondence');
+    const input={selectionId:selectedSource.source.current.intent_op_id,generation:verifiedGeneration,asOf:'2026-09-07',assertCurrent:candidate.assertCurrent,
+      readSourceSelection:async id=>{let value;await candidate.inspectSourceSelection(id,x=>{value=x;});return value;},
+      readSelectedSource:async id=>{let value;await candidate.inspectSelectedSource(id,x=>{value=x;});return value;}};
+    const value=await replay.projectLineage(input);
     assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.qualified,false);assert.equal(value.activated,false);
-    assert.deepEqual(replay.reproduce(input,value),value);assert.equal(Object.keys(verifiedGeneration.collections.outbox).length,5);
+    assert.deepEqual(await replay.projectLineage(input),value);assert.equal(Object.keys(verifiedGeneration.collections.outbox).length,5);
     return value;
   }
   const initialCalculation=await calculate();assert.equal(initialCalculation.coverage.steps.length,1);
@@ -205,6 +210,7 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     await candidate.inspect(x=>{generation=x;});
     const value=await replay.projectLineage({selectionId:source.current.intent_op_id,generation,asOf:'2026-09-07',assertCurrent:candidate.assertCurrent,
       sourceBasis:source.frontier,readSourceCuts:async bases=>{let cuts;await candidate.inspectSourceCuts(bases,x=>{cuts=x;});return cuts;},
+      readSourceSelection:async id=>{let value;await candidate.inspectSourceSelection(id,x=>{value=x;});return value;},
       readSelectedSource:async id=>{let value;await candidate.inspectSelectedSource(id,x=>{value=x;});return value;}});
     assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.activated,false);assert.equal(value.qualified,false);
     const baseline=value.workout_baseline;assert(baseline,'SOURCE_WORKOUT_BASELINE_REQUIRED');
@@ -235,6 +241,9 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     assert(actualRows.length>0);assert.deepEqual(actualRows,Object.keys(value.accepted_state.sessionLog).sort().map(d=>({d,rec:value.accepted_state.sessionLog[d],source:'legacy'})));
     assert.strictEqual(engineInput.state.workoutFacts.legacy_baseline.session_log,engineInput.state.sessionLog);
     await assert.rejects(candidate.inspectSelectedSource('not-a-selected-source',()=>assert.fail('Unknown source cannot reach visitor')),{code:'SOURCE_SELECTION_UNKNOWN'});
+    await assert.rejects(candidate.inspectSourceSelection('not-a-selected-source',()=>assert.fail('Unknown metadata cannot reach visitor')),{code:'SOURCE_SELECTION_UNKNOWN'});
+    let originalSelection;await candidate.inspectSourceSelection(activation.op_id,x=>{originalSelection=structuredClone(x);x.source_id='changed caller copy';assert.equal(Object.hasOwn(x,'material'),false);});
+    await candidate.inspectSourceSelection(activation.op_id,x=>assert.deepEqual(x,originalSelection));
     await candidate.inspectSelectedSource(activation.op_id,x=>{assert.deepEqual(x.material,material);x.material.source_json='changed caller copy';});
     await candidate.inspectSelectedSource(activation.op_id,x=>assert.deepEqual(x.material,material));
     return {value,source,candidate,generation,capture};
@@ -282,6 +291,12 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   await assert.rejects(lineage.candidate.inspectSelectedSource(activation.op_id,async()=>{
     const snapshot=await repo.load();await repo.commit(snapshot,snapshot.generation);
   }),{code:'LOCAL_RECOVERY_CHANGED'},'A local revision changed during the visitor retires selected material');
+  const metadataCandidate=await (await recover()).assemble();let metadataVisits=0;
+  await assert.rejects(metadataCandidate.inspectSourceSelection(activation.op_id,async()=>{
+    metadataVisits++;const snapshot=await repo.load();await repo.commit(snapshot,snapshot.generation);
+  }),{code:'LOCAL_RECOVERY_CHANGED'},'A local revision changed during the metadata visitor must refuse');
+  assert.equal(metadataVisits,1,'Metadata reached the visitor before the final revision refusal');
+  await assert.rejects(metadataCandidate.inspectSourceSelection(activation.op_id,()=>assert.fail('Retired metadata cannot reach visitor')),{code:'LOCAL_RECOVERY_CHANGED'});
   // Resealing a changed local original does not authenticate its identity.
   const intact=await repo.load(),changed=structuredClone(intact.generation),localId=Object.keys(changed.collections.outbox)[0];
   changed.collections.ops[localId].payload.lb.value=999;await repo.commit(intact,changed);

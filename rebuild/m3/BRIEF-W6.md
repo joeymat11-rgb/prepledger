@@ -1,5 +1,11 @@
 # W6 v1.1 — browser storage, recovery and bounded offline saving
 
+## Bound source-control metadata amendment (2026-09-10)
+
+PM read/hash-verified the actual rev165 report15086 bytes,SHA4ead90ccc8eed8bdbc8e0bc72fc63222e49869927460a97d416cb7212e57cbd4 and adopted finite context runtime at W6eaeafd3/M467aaae9/R12d96080 plus the uninstalled U-1 lexical-point contract. This later metadata/replay change is outside that accepted delta; all source/full-profile/issuer/currentness/private gates remain.
+
+APM accepted the exact guarded metadata-forwarding seam after source inspection. In recovery-local.mjs add an inactive inspectSourceSelection consumer backed by the SAME verified profile.sourceSelection method, with existing checks before/after lookup and visitor; no source material assembly. The M4 v0.79 replay amendment consumes exact selection/accepted-operation/receipt correspondence, including nontraversed B after rollback A. Update the actual recovery-stage/source-import.test.mjs integration to use that method and prove missing lookup, caller-copy isolation and final revision refusal. Do not widen the source codec, default profile or issuer; no new authority, current guidance, private activation or signed-v2 claim. The dispatched context review packet is unchanged; this following delta needs affected independent acceptance.
+
 ## Rev164 context-history adoption — precise candidate boundary, September10
 
 The accepted finite §3b contract now extends the shared context-values/schema/edit-history modules and actual stored-history.mjs. Schema exports a descriptor-safe internal contextual family and actual-root target check; createWorkoutProfile/default issued capabilities remain unchanged. The ONE full-prefix fold exposes separate context_records with original/effective/current/effects and accepted/local state, including all-cleared sleep as no observation. Source-control originals cannot acquire physiological edits; unqualified source/legacy rows remain visible. No new caller, F2 shortcut, native workout membership, issuer, source codec or current-guidance change. M4/W6 share the identical fold; R1 shares schema/context-values only.
