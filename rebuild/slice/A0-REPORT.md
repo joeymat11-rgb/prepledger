@@ -55,21 +55,62 @@ a separate, reviewed way to obtain a bundled engine.
 
 ---
 
+## 0b. Review round 1 — what changed after `A0-HOST-ASSEMBLY-REVIEW.md`
+
+The independent review returned **CHANGES** on
+`db5e986814bbec634474970e5b089de1d5e746e9`
+(`WORKOUT-EDIT-SEMANTICS-01/A0-HOST-ASSEMBLY-REVIEW.md`). Applied exactly, as
+new commits, nothing else touched:
+
+* **R1 (consequential) — the fallback-week bypass was conditional.** The
+  reviewer's probe P1 showed that with `split.from` one day *after* the host
+  day, `createCleanInitState` accepts the state and `prepareWorkout` serves the
+  fallback's Friday-L. Fixed at the seam that has both the state and the day:
+  `workoutProducer` in `workout-host.mjs` now refuses
+  `WORKOUT_SPLIT_NOT_IN_FORCE` on every preparation whose day no split entry
+  covers, before anything is registered or stored. P1 is journey step 15, and a
+  negative control (guard line removed) shows step 15 fails without it. The
+  overclaiming comment in `athlete-state.cjs` is rewritten to say exactly what
+  that file does and does not guarantee.
+* **R2 (honesty) — invented vocabulary.** `plan.mode: 'bodycomp'` is removed;
+  no engine reader reads `plan.mode`. `v: 60` is now `SCHEMA_V`, cited to
+  `rebuild/engine/constants.cjs:9`. `plan.autonomy: 'propose'` is kept as the
+  engine's own most-supervised floor and is now documented as a deliberate
+  policy floor rather than implied to be an empty value, cited to
+  `constants.cjs:270` and `migrate.cjs:944`. Journey step 16 asserts both
+  literals against the engine's own values, so a drift fails a test.
+* **Hygiene.** `materializeEngineRoot()` now registers a `process.on('exit')`
+  removal for its `mkdtemp` directory and returns a `cleanup()`; verified a
+  journey run now leaves **0** `earned-native-engine-*` directories in `%TEMP%`
+  (was 9 — those 9, plus 2 stray `a0-probe-*` directories from my own probe,
+  were deleted). `rebuild/m3/w6/host/.tmp/` was **already** ignored:
+  `git check-ignore -v` reports `rebuild/m3/w6/.gitignore:2:.tmp/`, so no
+  `.gitignore` change was needed.
+
+Not changed, because the review did not ask and they remain true: the engine
+carrier blocker (§0), the literal-require rewrite (§4), and every limit in §8.
+
+---
+
 ## 1. What was built
 
 | file | sha256 |
 |---|---|
-| `rebuild/m3/w6/host/workout-host.mjs` | `9f8341f9b657dbcb10a3bac0778fdf9104d1f0b646575e807dccb51d76fc64fd` |
+| `rebuild/m3/w6/host/workout-host.mjs` | `7943b184801a99ca3ced1cfb304108936c4ef9e6d5c9ceeff4989c5b1e92091a` |
 | `rebuild/m3/w6/host/host-entry.mjs` | `c4fe5f2d07170c4b89923907bf6e2ef4b93ac71f39e8e5a7486d3448637b163d` |
 | `rebuild/m3/w6/host/index.html` | `5dbef56656fbf91fdaf6ab091963878e606d89103df197f87c678d284f6cb370` |
 | `rebuild/m3/w6/host/build-host.mjs` | `a07562cfbe752b835a28e1c339825407958bc9722826d1e0cedd8808ad7f93ae` |
 | `rebuild/m3/w6/host/esbuild-probe.mjs` | `d81f82cd5c57ae055f9e058081b691df49144f2f5b3f7e0ded6e714e47c794a4` |
-| `rebuild/m3/w6/host/test/journey.test.mjs` | `4848ceb22a6e67e63c30b5063f5540df809726a61aae54f76b732d45e717b376` |
-| `rebuild/m4/workout/athlete-state.cjs` | `7274db127d45ec269ec8881bdb7d77352f33459092f638cb5ca3dadaa490adef` |
+| `rebuild/m3/w6/host/test/journey.test.mjs` | `4895a8b25bc370adf67926dc1fe3c2c3c62994311890c6f75e092c8c726977b3` |
+| `rebuild/m4/workout/athlete-state.cjs` | `dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c` |
 | `rebuild/m4/workout/workout-basis.cjs` | `e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664` |
 | `rebuild/m4/workout/resume-policy.cjs` | `7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f` |
-| `rebuild/m4/spec/native-next-target-candidate/engine-root.cjs` | `5d4ac334359473fef17926fc9a232a5fe1a22b571ebac9443444725029b40de6` |
+| `rebuild/m4/spec/native-next-target-candidate/engine-root.cjs` | `982df138b1c2f1d5affaf636e290469f3a3bb82c6c46a72b9ad66a96ed0a7ec0` |
 | `rebuild/slice/A0-REPORT.md` | this file |
+
+Hashes above are after review round 1 (§0b). The four files it changed were
+`workout-host.mjs`, `journey.test.mjs`, `athlete-state.cjs` and
+`engine-root.cjs`; nothing else on the branch moved.
 
 Changed (one file, one change): `rebuild/m4/workout/engine-runtime.cjs`
 `9be21897…` → `4d48a9b13557072284cc017c132b32cc15ea08c9107120baf6fa85c496ea50f0`
@@ -84,11 +125,22 @@ seed, import, merge or migration. Every member is either copied from `setup`
 or the empty value of that member. There is no default lift, no default load,
 no default week, and nothing of Joe's.
 
-* **`split` is required.** `rebuild/engine/plan.cjs` `dayType(iso, s)` falls
-  back to a fixed Mon/Thu = U, Tue/Fri = L, Wed = REFEED week when no split
-  entry covers the day. That is one athlete's week. Refusing means the
-  fallback is never consulted. The journey test's day (2026-09-04, a Friday)
-  is chosen so the fallback and this athlete's split **disagree** — see §3.
+* **`split` is required, and it must be in force on the day.**
+  `rebuild/engine/plan.cjs` `dayType(iso, s)` picks the last split entry whose
+  `from <= iso` and, finding none, falls back to a fixed Mon/Thu = U,
+  Tue/Fri = L, Wed = REFEED week. That is one athlete's week.
+  `createCleanInitState` requires a well-formed split, but it has **no clock**,
+  so that alone is not enough: a split whose `from` is still in the future is
+  well formed and would leave `dayType` on the fallback for today (**review R1
+  / probe P1**). The guard that closes it needs both the state and the day and
+  therefore lives at the only seam that has both — `workoutProducer` in
+  `workout-host.mjs`, which refuses **`WORKOUT_SPLIT_NOT_IN_FORCE`** on every
+  preparation whose day no split entry covers, before anything is registered
+  or stored. It runs per preparation, not once at construction, because the
+  clock moves. Journey step 15 is probe P1 and shows both halves: unguarded
+  the engine really does serve the fallback's Friday-L (`['leg-press']`), and
+  the host refuses and stores nothing. The journey test's day (2026-09-04, a
+  Friday) is chosen so the fallback and this athlete's split **disagree**.
 * **Every exercise starts `w: null`,** so `today.cjs` takes the DEBUT path:
   `baselineAsk: true`, all targets 0, and the "DEBUT — find the working
   weight" note, which the adapter renders as "Find a working load" /
@@ -101,6 +153,20 @@ no default week, and nothing of Joe's.
   Disclosed honestly: a content search of `rebuild/engine` found **no reader
   on the `genSession`/`rirPlan` path that consumes them**. They are carried
   with the athlete's state, not acted on. Nothing was invented to consume them.
+* **Two literals are the engine's own, and they are cited and cross-checked**
+  (**review R2**). `v: SCHEMA_V` is `rebuild/engine/constants.cjs:9`
+  `const SCHEMA_V = 60;` — the engine's schema tag. `plan.autonomy: 'propose'`
+  is the engine's most-supervised level and its own default
+  (`constants.cjs:270` `AUTONOMY_LEVELS = ["propose","autonotice","runit"]`;
+  `migrate.cjs:944` "default: most supervised (never auto-promote)"); it is
+  written deliberately as the floor, is not taken from `setup` because nothing
+  yet lets an athlete raise it, and the header says so rather than pretending
+  it is an empty value. Both are repeated as literals so the file keeps its
+  "no `rebuild/engine` import" property, and **journey step 16 asserts they
+  equal the engine's own values**, so a drift is a test failure, never a
+  silent divergence. `plan.mode: 'bodycomp'` has been **removed**: it was
+  invented vocabulary — no engine reader reads `plan.mode` (`energy.cjs` reads
+  `plan.apMode`).
 * Which members the readers actually touch was **measured**, not assumed: with
   every other member deleted in turn, only `exercises` and `queue` are
   structurally required for `genSession` on a clean-init state.
@@ -149,7 +215,7 @@ registered projection.
 
 ## 3. The journey test — `rebuild/m3/w6/host/test/journey.test.mjs`
 
-`node --test rebuild/m3/w6/host/test/journey.test.mjs` → **15 / 15 pass, 0 fail.**
+`node --test rebuild/m3/w6/host/test/journey.test.mjs` → **17 / 17 pass, 0 fail.**
 
 | # | step | result |
 |---|---|---|
@@ -167,8 +233,13 @@ registered projection.
 | 12 | next-target capture produced, started, saved, reopened byte-identically; second session visible | PASS |
 | 13 | the unavailable providers refuse explicitly and **store nothing** (string-lane basis; native trend context; a non-zero-import generation; a string claim with no string lane) | PASS |
 | 14 | the composed engine root is candidate L at its pinned bytes | PASS |
+| 15 | **(review R1 / probe P1)** a split whose `from` is one day after the host day: the state is accepted and the engine unguarded really serves the fallback's Friday-L (`['leg-press']`); the host refuses `WORKOUT_SPLIT_NOT_IN_FORCE` and **stores nothing**; the same split, once in force, is served normally | PASS |
+| 16 | **(review R2)** `v` equals the engine's `SCHEMA_V` and the autonomy floor equals `AUTONOMY_LEVELS[0]`, read from the engine itself; `plan` has exactly one key and no `mode` | PASS |
 
-**Negative controls** (run, then reverted — the test file is back at its
+Step 15 runs on its own clean store so it depends on nothing the journey left
+behind.
+
+**Negative controls** (run, then reverted — the files are back at their
 committed bytes):
 
 * moving this athlete's own U day off Friday so the state is invalid →
@@ -177,9 +248,12 @@ committed bytes):
   fallback) → step 4 reads `['leg-press']` and **11 of 15 fail**. So the "which
   lifts appear" assertions genuinely discriminate the athlete's own split from
   the fallback week; they are not vacuous.
+* **removing the R1 guard line** from `workoutProducer` → step 15 fails
+  (**15 pass / 2 fail**). The guard is load-bearing, and step 15 is not
+  vacuous.
 
 Not done: no mutation campaign against the host or the providers beyond these
-two controls.
+three controls.
 
 ---
 
@@ -238,7 +312,7 @@ in that file changed.
 | `node rebuild/m3/w6/test/run-current-head.cjs <tree> --all` (**after**) | **435 pass / 0 fail** — no delta |
 | `node rebuild/m4/spec/load-write-package.cjs --ci` (**baseline**) | `LOAD PUBLIC CI EVIDENCE PASS`, exit 0 |
 | `node rebuild/m4/spec/load-write-package.cjs --ci` (**after**) | `LOAD PUBLIC CI EVIDENCE PASS`, exit 0 |
-| `node --test rebuild/m3/w6/host/test/journey.test.mjs` | **15 pass / 0 fail** |
+| `node --test rebuild/m3/w6/host/test/journey.test.mjs` | **17 pass / 0 fail** |
 | `node --test rebuild/m4/workout/test/native-next-targets{,-assembly,-correction}.test.cjs` | **0 pass / 3 fail** — all `Cannot find module '../../engine/performed.cjs'` (§0) |
 | `node rebuild/m3/w6/host/build-host.mjs` | PASS, 77 pinned inputs, 0 engine inputs |
 | `node rebuild/m3/w6/host/esbuild-probe.mjs` | 62 errors / 21 files → 1 error / 1 file (§4) |
@@ -319,5 +393,21 @@ all at their accepted L bytes.
     behaviour itself (targets, effort plan, progression) is candidate L's,
     reviewed there, not re-litigated here.
 13. **One athlete, one day, one split shape.** The journey exercises a single
-    U day for a single synthetic athlete. Multi-day, REST-day, retirement,
-    queue/debut-move and skip paths are untested by this test.
+    U day for a single synthetic athlete. Multi-day, REST-day, REFEED,
+    retirement, queue/debut-move and skip paths are untested by this test.
+14. **The R1 guard is a host guard, not an engine fix.** The Joe-shaped
+    fallback week still lives in `rebuild/engine/plan.cjs` and is still
+    reachable by any other caller that hands the engine a state whose split is
+    not in force. A0 only makes it unreachable *from this host*. Removing or
+    gating the fallback in the engine is B0 / candidate-L owner territory.
+15. **The clean-init constructor still has no clock**, by design, so it cannot
+    itself refuse a future-dated split. Anything that builds a state and calls
+    the engine without going through `composeWorkoutHost` gets no R1
+    protection.
+16. **`plan.autonomy` cannot be chosen by the athlete yet.** It is pinned at
+    the engine's most-supervised floor. Raising it needs a real consent
+    surface, which does not exist.
+17. **The `SCHEMA_V` / `AUTONOMY_LEVELS` literals are duplicated, not
+    imported.** The cross-check in journey step 16 turns a drift into a test
+    failure, but the duplication is real and is a deliberate trade for keeping
+    `athlete-state.cjs` free of any `rebuild/engine` import.

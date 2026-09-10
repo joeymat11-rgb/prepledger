@@ -35,8 +35,25 @@ const ENTERED_LOAD = 'rebuild/m4/spec/configured-load-candidate/entered-load.cjs
 const ENTERED_LOAD_SHA = '2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3';
 const sha = buffer => crypto.createHash('sha256').update(buffer).digest('hex');
 
+// A0 review hygiene. The scratch root must not outlive the process that made
+// it. It cannot be deleted before the caller has required the runtime out of
+// it, so removal is registered on process exit; `cleanup()` is also returned
+// for a caller that wants it gone sooner. Both are idempotent and never throw.
+const staged = new Set();
+function removeStaged(dir) {
+  if (!staged.delete(dir)) return;
+  try { fs.rmSync(dir, { recursive: true, force: true }); } catch { /* best effort */ }
+}
+let exitHookInstalled = false;
+function installExitHook() {
+  if (exitHookInstalled) return;
+  exitHookInstalled = true;
+  process.on('exit', () => { for (const dir of [...staged]) removeStaged(dir); });
+}
+
 function materializeEngineRoot() {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'earned-native-engine-'));
+  staged.add(out); installExitHook();
   fs.mkdirSync(path.join(out, 'rebuild/engine'), { recursive: true });
   fs.mkdirSync(path.join(out, 'rebuild/m4/workout'), { recursive: true });
   const pins = {};
@@ -56,7 +73,8 @@ function materializeEngineRoot() {
   // the changed bytes. That change needs the L owner's re-review.
   put(path.join(ROOT, 'rebuild/m4/workout/engine-runtime.cjs'), 'rebuild/m4/workout/engine-runtime.cjs',
     '4d48a9b13557072284cc017c132b32cc15ea08c9107120baf6fa85c496ea50f0');
-  return { root: out, pins, runtimeModule: path.join(out, 'rebuild/m4/workout/engine-runtime.cjs') };
+  return { root: out, pins, runtimeModule: path.join(out, 'rebuild/m4/workout/engine-runtime.cjs'),
+    cleanup: () => removeStaged(out) };
 }
 
 module.exports = { materializeEngineRoot, L_CARRIERS, RETAINED, ENTERED_LOAD, ROOT, sha };
