@@ -1,4 +1,10 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.79 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.80 (working implementation)
+
+## Current v0.80 numerical profile preparation (M3 only)
+
+APM directs the exact §5 preparation from actual NUMERIC-M1-COWORK-2026-09-10-HANDOFF.md,23434 bytes,SHA3120d98e0585b621b69a3c702fd88c1c97b6ffae6dd0f2655fbbd59fe5758be3, fully read/hash-verified by PM. Sections0/6 numeric theme are accepted with profile conditions; no package receipt or wider rich-input acceptance. In load-write-profile.cjs inherit parent owner/contract claims exactly, bind the real integrated theme line/hash and fixed review claim, check D41/D43 owner scope, verify owner/theme at receipt base, and require sourceBase ancestry on ACCEPTED. An explicitly unavailable theme constant must block proposed/seal/verification; no final artifact reseal until genuine evidence exists. Prepare acceptance-load-writes.json only when that prerequisite is real. No invented ledger line, receipt or publication.
+
+Add one actual-writer NON-DYADIC reset case with100.1/95.2,100.1→90.1, literal expected vector[90.1,85.20000000000002], preserving queue/plan/receipt/input controls and complete graph recording. The original reviewer example's85.1000000000001 was arithmetically wrong; retain the original report and await its own correction. This additional case requires load-write-direct.cjs's explicit frozen failure inventory plus44→48 case-mode total and the matching load-write-package.cjs verdict needle only. All original gate execution,20mutants, public/FULL and receipt semantics stay unchanged. Prepare only these profile/case/direct/count edits plus focused test evidence/report. No engine literal, rounding/domain rule, parent/frozen artifact/law/private input or broad numeric campaign. M2 execution and actual receipt integration remain APM/Manager-owned after the completed source and documentation handoff.
 
 ## Current v0.79 bound source-control correspondence
 

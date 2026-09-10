@@ -12,7 +12,7 @@ const trace=r=>JSON.stringify({frames:r.frames,detail:r.detail});
 const expectations=id=>Cases.ASSERTION_INVENTORY.filter(x=>x.caseId===id).map(x=>({id:x.id,count:1}));
 function input(test,cell){return {kind:'direct',baseline:root,candidate:path.join(root,'rebuild/engine'),caseFile,caseSha256:T.sha(fs.readFileSync(caseFile)),lawId:'V4-'+test.defect+'-LOAD-WRITES',caseId:test.id,...cell,traceProfile:2,helperRoot:root,helperPins:{...a.baseline.publicPins,...a.executionPins},frozenHelper:a.helperFiles.frozen};}
 const expectedFailures={
- 'LW41-DEBUT':['vector'],'LW41-RESET-VECTOR':['vector'],'LW43-OWNED':['loads'],'LW43-REPEATED':['loads']
+ 'LW41-DEBUT':['vector'],'LW41-RESET-VECTOR':['vector'],'LW41-RESET-NON-DYADIC':['vector'],'LW43-OWNED':['loads'],'LW43-REPEATED':['loads']
 };
 let phase='source expectations',n=0,m=0,stage='start',failureIds=[];
 try{
@@ -39,6 +39,6 @@ try{
   mutation('earn-no-mint','earn.cjs','earnWalk','function earnWalk(s, ex, en, r, prevMeta, push, dEarn) {','function earnWalk(s, ex, en, r, prevMeta, push, dEarn) { return;','LW41-MERGE-MINT',['mint'])
  ];
  for(const mutant of mutants)for(const cell of a.matrix){phase=mutant.id+'/'+cell.mode+'/'+cell.day;const test=Cases.CASES.find(t=>t.id===mutant.caseId);const result=L.faultRun({candidate:path.join(root,'rebuild/engine'),inventory,scratch:path.join(root,'.tmp/load-write-mutants'),mutant,caseInput:{...input(test,cell),inventory},expected:expectations(test.id)});assert.equal(result.status,'EFFECTIVE');m++;console.log('LOAD MUTANT '+phase+': EFFECTIVE; exact named failure and executed site; restored '+result.restoredSha256);}
- assert.equal(n,44);assert.equal(m,20);console.log('LOAD WRITE DIRECT: 44/44 complete comparisons; 20/20 disposable module mutants EFFECTIVE/restored; PACKAGE receipt PENDING');
+ assert.equal(n,48);assert.equal(m,20);console.log('LOAD WRITE DIRECT: 48/48 complete comparisons; 20/20 disposable module mutants EFFECTIVE/restored; PACKAGE receipt PENDING');
 }catch(_){console.error('LOAD WRITE DIRECT FAIL at '+phase+' / '+stage+'; failed authored assertions '+JSON.stringify(failureIds.filter(id=>Cases.ASSERTION_INVENTORY.some(row=>row.id===id)))+'; protected context withheld');process.exitCode=1;}
 finally{sealed.clear();failures.clear();}

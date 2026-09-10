@@ -7,7 +7,7 @@ const {sha}=require('../../conform/v4/postfix/target.cjs');
 const args=process.argv.slice(2);assert(args.length===1&&['--full','--ci'].includes(args[0]),'Explicit --full or --ci');const ci=args[0]==='--ci';
 let context,root,a,m,logDir;
 const names=['source-carriers','traces','direct','parent-cases','inherited-carriers','witnesses','legacy','second'];
-const verdicts={'source-carriers':'LOAD SOURCE CARRIERS: 6/6 PASS','traces':'LOAD WRITE TRACES: 180/180','direct':'LOAD WRITE DIRECT: 44/44','parent-cases':'LOAD PARENT CASES: 1180 complete inherited comparisons PASS; 68 effective inherited mutants;','inherited-carriers':'LOAD INHERITED CARRIERS: 6/6 PASS','witnesses':'LOAD WRITE WITNESSES: 10/10','legacy':'LOAD WRITE LEGACY DIFFERENTIAL: 3/3 Date/trap modes PASS;','second':'CI SECOND GATE PASS; 3072 reference / 3072 candidate assertions;'};
+const verdicts={'source-carriers':'LOAD SOURCE CARRIERS: 6/6 PASS','traces':'LOAD WRITE TRACES: 180/180','direct':'LOAD WRITE DIRECT: 48/48','parent-cases':'LOAD PARENT CASES: 1180 complete inherited comparisons PASS; 68 effective inherited mutants;','inherited-carriers':'LOAD INHERITED CARRIERS: 6/6 PASS','witnesses':'LOAD WRITE WITNESSES: 10/10','legacy':'LOAD WRITE LEGACY DIFFERENTIAL: 3/3 Date/trap modes PASS;','second':'CI SECOND GATE PASS; 3072 reference / 3072 candidate assertions;'};
 const covered=['migrate-source','merge-source','writers-source','witnesses-2','witnesses-5','migrate-differential','witnesses-7','writers-differential','second-gate'];
 function child(name,argv,env,needle){
  const r=cp.spawnSync(process.execPath,argv,{cwd:root,env,encoding:'utf8',windowsHide:true,timeout:1200000,maxBuffer:8*1024*1024});

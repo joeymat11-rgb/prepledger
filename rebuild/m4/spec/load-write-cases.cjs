@@ -18,6 +18,15 @@ for(const kind of ['VECTOR','NULL','ABSENT','OLD-NULL'])add('LW41-RESET-'+kind,'
  const ap={id:'synthetic-reset',kind:'reset',exId:'synthetic_press',newW:90,title:'Synthetic reset'};s.agentProposals=[ap];const before=clone(s),out=c.T.applyAgentProposal(s,ap,c.day);
  c.check('vector',kind==='ABSENT'?!Object.hasOwn(out.exercises[0],'wSets'):equal(out.exercises[0].wSets,kind==='NULL'?null:kind==='OLD-NULL'?[100,95]:[90,85]));c.check('scalar',out.exercises[0].w===90);c.check('input',equal(s,before));c.record({s,out});
 });
+add('LW41-RESET-NON-DYADIC','D41',['vector','scalar','input','controls'],c=>{
+ const s=state();s.exercises[0].w=100.1;s.exercises[0].wSets=[100.1,95.2];
+ const ap={id:'synthetic-decimal-reset',kind:'reset',exId:'synthetic_press',newW:90.1,title:'Synthetic decimal reset'};
+ s.agentProposals=[ap];const before=clone(s),out=c.T.applyAgentProposal(s,ap,c.day);
+ c.check('vector',equal(out.exercises[0].wSets,[90.1,85.20000000000002]));c.check('scalar',out.exercises[0].w===90.1);c.check('input',equal(s,before));
+ c.check('controls',equal(out.plan,before.plan)&&equal(out.queue,before.queue)&&out.agentProposals.length===0&&equal(out.feed,[{
+  d:c.day,t:'RESET APPLIED — Synthetic press 100.1 → 90.1',how:'3-session stall, evidence-based back-off, your consent — rebuild starts next session'}]));
+ c.record({s,out});
+});
 for(const kind of ['OWNED','REPEATED','ORDINARY','OMITTED'])add('LW43-'+kind,'D43',['loads','input'],c=>{
  const s=state();if(kind==='OWNED'){s.exercises[0].own=true;s.exercises[0].std=[8,8];}
  const rows=kind==='REPEATED'?[entry({w:110,reps:[8]}),entry({w:90,reps:[6]})]:[entry({w:kind==='OWNED'?110:100,reps:[8,8]})];if(kind==='OMITTED')delete rows[0].w;
