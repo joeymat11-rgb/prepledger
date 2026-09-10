@@ -50,7 +50,7 @@ try{
   'rebuild/m4/workout/test/native-next-targets-assembly.test.cjs',
   'rebuild/m4/workout/test/native-next-targets-correction.test.cjs'],env,'# pass 15');
  child('browser-package',['--test','--test-reporter=tap',...['model','view','package'].map(n=>'rebuild/m3/w7-preview/test/'+n+'.test.cjs')],env,'# pass 19');
- child('profile-refusals',['--test','--test-reporter=tap','rebuild/m4/spec/native-carriers-profile.test.cjs'],env,'# pass 7');
+ child('profile-refusals',['--test','--test-reporter=tap','rebuild/m4/spec/native-carriers-profile.test.cjs'],env,'# pass 9');
  for(const name of names)child(name,['rebuild/m4/spec/native-carriers-'+name+'.cjs'],env,verdicts[name]);
  if(ci){console.log('NATIVE CARRIERS PUBLIC CI EVIDENCE PASS; the inherited full gate matrix, the private oracle, all FULL gates and independent acceptance remain separate');process.exitCode=0;}
  else{

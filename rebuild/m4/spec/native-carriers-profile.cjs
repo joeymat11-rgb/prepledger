@@ -40,6 +40,11 @@ const FILES=[
  AUTHORIZATIONS,
  ...Object.keys(S.SUPPORT),
  'rebuild/m4/spec/native-carriers-profile.test.cjs',
+ // Review F1: the theme the authorization binds and the report that states the
+ // totals and limits are evidence, so their bytes belong inside the closed
+ // profile. Without this a one-character edit to either left verify() happy.
+ 'rebuild/m4/spec/NATIVE-CARRIERS-THEME.md',
+ 'rebuild/m4/spec/NATIVE-CARRIERS-BUILD-REPORT.md',
  '.github/workflows/rebuild.yml',
 ];
 // Files this package changes relative to the parent's own pins. The parent's

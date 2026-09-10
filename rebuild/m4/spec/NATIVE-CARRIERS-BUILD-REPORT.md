@@ -8,9 +8,11 @@ Nothing private was read or run; `--full` was **not** run; no install; nothing m
 
 ## 1. Profile facts
 
-- `packageId` `M2-NATIVE-CARRIERS`; artifact `rebuild/m4/spec/acceptance-native-carriers.json`
-  sha256 `aad93d4a8f562e623c22b934346dfcc7ad1d29dea07fd86d3f58fc136e224623`;
+- `packageId` `M2-NATIVE-CARRIERS`; artifact `rebuild/m4/spec/acceptance-native-carriers.json`;
   review `rebuild/m4/spec/review-native-carriers.json` = `{version:1,status:"PENDING",receipt:null}`.
+  The artifact's own sha256 is deliberately **not** quoted here: since review F1 this document is
+  itself pinned in `executionPins`, so quoting the hash it feeds would never converge. The runner
+  prints it (`POSTFIX M2-NATIVE-CARRIERS … artifact=…`) and the commit message records it.
 - `parent` = the accepted M2-LOAD-WRITES artifact `rebuild/m4/spec/acceptance-load-writes.json`
   sha256 `5073977b3f612f0e6212f4d47ddc5f45f044897f0dc51b1d81b4840f6b099d82` — **verified**, and its
   `review-load-writes.json` is ACCEPTED with a receipt verified through `L.verifyReceipt`
@@ -52,7 +54,7 @@ delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
 | 2 | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | **exit 0 — PUBLIC CI EVIDENCE PASS** |
 | 3 | ↳ child `focused` — the three adopted L tests | **15 pass / 0 fail / 1 skipped** |
 | 4 | ↳ child `browser-package` — w7-preview model/view/package | **19 pass / 0 fail** |
-| 5 | ↳ child `profile-refusals` | **7 pass / 0 fail** |
+| 5 | ↳ child `profile-refusals` | **9 pass / 0 fail** (incl. the two F1 one-character document edits) |
 | 6 | ↳ child `traces` | 7/7 census laws GREEN on both clocks; 2/2 goldens byte-identical; W0 public-oracle 5/5 PASS lines incl. rig185 W1/W2; 6/6 helpers composed |
 | 7 | ↳ child `direct` | **713/713** |
 | 8 | ↳ child `legacy` | **9/9** legacy-only comparisons identical, 3 alarm branches; 6/6 ACCEPTED preimages recovered |
@@ -66,10 +68,26 @@ delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
 | 16 | `node rebuild/m4/spec/native-carriers-reference.cjs` | exit 0 — 6/6 ACCEPTED preimages recovered and pin-verified; 14 retained import-engine files |
 | 17 | **(C2)** `node rebuild/m3/w6/test/run-current-head.cjs . --all` (the **joined tree itself** as argv[2], at the package head) | **exit 0 — 435 tests / 435 pass / 0 fail / 0 skipped / 0 cancelled / 0 todo**, incl. `WORKOUT ACTUAL CLIENT/R1 HTTP PASS` |
 
+### B0 review amendments (NATIVE-CARRIERS-B0-REVIEW.md `2a5bb39a…`, ACCEPT with F1 required)
+
+- **F1 (required)** — `NATIVE-CARRIERS-THEME.md` and `NATIVE-CARRIERS-BUILD-REPORT.md` are now in
+  the profile's `FILES`/`executionPins`, so their bytes are part of the closed profile. Two new
+  refusal cases prove a **one-character** edit to either document makes `verify()` refuse
+  (profile-refusals is now 9/9). Consequence, stated plainly: this report is self-referential —
+  editing it changes the artifact, so it is resealed with every edit.
+- **F3** — the `sleep-alarm-signal` mutant is now a **threshold-flipping value** mutant
+  (`pr5.spike >= 7` → `>= 70`) rather than a returned-object shape change, and it is still caught
+  by a behaviour detector.
+- **F4** — `native-carriers-reference.cjs removeImportEngine()` removes **only** the exact
+  directory that same process created (recorded at creation, asserted to be `<root>/test-support`
+  sitting directly under the repository, cleared before the `rmSync`). A directory that already
+  existed is never recorded and can never be removed by us, so a child process that re-stages the
+  snapshot leaves the parent to clean it up; with no recorded path the function is a no-op.
+
 Effective mutants (mutant → detector): `performed-hole-state`→focused,
 `progression-governing-last`→focused, `plan-era-fresh-native`→focused,
 `today-governing-prev`→focused, `writers-alarm-floor`→legacy-behaviour,
-`sleep-alarm-signal`→focused, `index-performed-composition`→direct-behaviour.
+`sleep-alarm-signal`→direct-behaviour, `index-performed-composition`→direct-behaviour.
 The byte-level carrier check is **excluded** from mutant detection (`--behaviour` mode), so every
 mutant above was refused by a behaviour check, not by noticing its own text.
 

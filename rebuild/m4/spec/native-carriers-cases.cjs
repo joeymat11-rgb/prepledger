@@ -23,7 +23,10 @@ const MUTANTS=[
  ['plan-era-fresh-native','rebuild/engine/plan.cjs','  if (s && s.workoutFacts) {\n    for (const row of E.performedHistoryRows(s)) {','  if (false && s && s.workoutFacts) {\n    for (const row of E.performedHistoryRows(s)) {'],
  ['today-governing-prev','rebuild/engine/today.cjs','prev: eraFresh(s, e.id) ? null : meta9 }','prev: eraFresh(s, e.id) ? null : e.lastMeta }'],
  ['writers-alarm-floor','rebuild/engine/writers.cjs','try { const al9p = bodyAlarmSignal(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1));','try { const al9p = bodyAlarmSignal(s); if (al9p) { plan = plan.map((r) => Math.max(r, 0));'],
- ['sleep-alarm-signal','rebuild/engine/sleep.cjs','  return { tier: red ? "RED" : "AMBER", red: !!red,','  return { tier: red ? "RED" : "AMBER", red: !!red, mutated: true,'],
+ // Review F3: a THRESHOLD-flipping value mutant, not a shape mutant — the extracted
+ // detection must be the presentation's own, so moving its firing threshold has to
+ // be caught by behaviour, not by a changed object shape.
+ ['sleep-alarm-signal','rebuild/engine/sleep.cjs','pr5.spike != null && pr5.spike >= 7 ? pr5.spike : null;','pr5.spike != null && pr5.spike >= 70 ? pr5.spike : null;'],
  ['index-performed-composition','rebuild/engine/index.cjs','  require("./performed.cjs"),\n','  '],
 ];
 function run(spec,env){

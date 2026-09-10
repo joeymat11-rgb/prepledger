@@ -65,18 +65,35 @@ function materializePacket(dir){
  }
  return pins;
 }
+// Review F4: removal is scoped to the EXACT directory THIS PROCESS created, recorded
+// here at creation time. A directory that already existed when we arrived is never
+// recorded and therefore can never be removed by us — a child process that re-writes
+// the snapshot its parent staged leaves the parent to clean it up. removeImportEngine()
+// is a no-op unless it holds a recorded path to undo.
+let created=null;
+const IMPORT_ROOT=()=>path.resolve(ROOT,'test-support');
 function materializeImportEngine(){
- const dir=path.join(ROOT,'test-support/import-engine'),pins={};
+ const rootDir=IMPORT_ROOT(),dir=path.join(rootDir,'import-engine'),pins={};
+ assert.equal(path.dirname(rootDir),path.resolve(ROOT),'Import-engine root sits directly under the repository');
+ const preexisting=fs.existsSync(rootDir);
+ fs.mkdirSync(dir,{recursive:true});
+ if(!preexisting)created=rootDir;
  for(const file of [...IMPORT_ENGINE,IMPORT_FIXTURES]){
   const bytes=show(BASE,file),out=path.join(dir,file);
+  assert(path.resolve(out).startsWith(dir+path.sep),'Import-engine file stays inside its own directory');
   fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,bytes);pins[file]=sha(bytes);
  }
  return {dir,pins};
 }
 function removeImportEngine(){
- const dir=path.join(ROOT,'test-support');
- assert(path.resolve(dir).startsWith(path.resolve(ROOT)+path.sep),'Scoped removal');
+ if(created===null)return false;
+ const dir=created;
+ assert.equal(dir,IMPORT_ROOT(),'Removal target is exactly the directory this module created');
+ assert.equal(path.dirname(dir),path.resolve(ROOT),'Removal target sits directly under the repository');
+ assert.equal(path.basename(dir),'test-support','Removal target name');
+ created=null;
  fs.rmSync(dir,{recursive:true,force:true});
+ return true;
 }
 function create(root){
  assert.equal(path.resolve(root),path.resolve(ROOT),'One repository root');
@@ -91,5 +108,6 @@ if(require.main===module){
   const made=create(ROOT);
   console.log('NATIVE CARRIERS REFERENCE: '+Object.keys(made.packetPins).length+'/6 ACCEPTED preimages recovered and pin-verified; '+Object.keys(made.importEnginePins).length+' retained import-engine files at '+BASE);
   console.log('EARNED_NATIVE_PACKET_ROOT='+made.packet);
+  console.log('NOTE: '+made.importEngine+' is transient — remove test-support/ before committing or running the W0 frozen-path gate.');
  }catch(error){console.error('NATIVE CARRIERS REFERENCE FAIL: '+error.message);process.exitCode=1;}
 }

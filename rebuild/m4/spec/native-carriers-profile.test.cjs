@@ -48,3 +48,17 @@ test('an altered owner citation is refused', () => {
 test('an altered literal carrier list is refused', () => {
  withEdit(CHANGES,text=>text.replace('"id"','"ID"'),refuses);
 });
+// Review F1: the theme document the owner/theme authorization binds is evidence,
+// so a ONE-CHARACTER edit to it must refuse — not merely be noticed by a reader.
+test('a one-character edit to the theme document is refused', () => {
+ const theme=path.join(root,'rebuild/m4/spec/NATIVE-CARRIERS-THEME.md');
+ withEdit(theme,text=>{
+  const at=text.indexOf('# NATIVE-CARRIERS THEME');
+  assert(at>=0,'theme heading');
+  return text.slice(0,at+1)+' '+text.slice(at+1);
+ },refuses);
+});
+test('a one-character edit to the build report is refused', () => {
+ const report=path.join(root,'rebuild/m4/spec/NATIVE-CARRIERS-BUILD-REPORT.md');
+ withEdit(report,text=>text+' ',refuses);
+});

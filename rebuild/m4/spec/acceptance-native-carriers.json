@@ -97,15 +97,15 @@
   },
   "executionPins": {
     "rebuild/m4/spec/native-carriers-source.cjs": "e16228d89c78896255bfed7dcd4d5a2742d7016aadec100f6f73b15f227f6ef8",
-    "rebuild/m4/spec/native-carriers-reference.cjs": "bdd0638dc15f97387c65c41b5a8d0ca6e1f6be58bf0e321ba048172a31f18db8",
+    "rebuild/m4/spec/native-carriers-reference.cjs": "b55479cb5acecc4f8edc9f13bd64ab8f7c145530e5b61efd46c6992729a557ed",
     "rebuild/m4/spec/native-carriers-errors.cjs": "ddcfa7d212a6291e7c84c50106813c4f9c1ead46bb11723bb505e58e423e51c7",
     "rebuild/m4/spec/native-carriers-traces.cjs": "d7c2e9024e6e7bde743c6409512b8bc9af518f310716000475272e8a37d846db",
     "rebuild/m4/spec/native-carriers-direct.cjs": "e48a8545667fffb39459dfd530e58575782754a0009b2b0b9084be63b0cd66d1",
     "rebuild/m4/spec/native-carriers-legacy.cjs": "21c078c326cb3b2652ba0a83ebe5fcb61ea12f5e2cd82a543b0cb10bcba7f346",
     "rebuild/m4/spec/native-carriers-witnesses.cjs": "dde7f2fdb53669148d011097df3d08a2c1cd65545e8aedc84047a8860c2ed28b",
-    "rebuild/m4/spec/native-carriers-cases.cjs": "21e676fbf358d8cea2f8d51889dbc4dd9155a0f4061fca1217f69e107bccd659",
-    "rebuild/m4/spec/native-carriers-profile.cjs": "f1ca1fb36bb58a92e35adce9510b1610288e2c35ab1f20bf6643c3e8d32669a3",
-    "rebuild/m4/spec/native-carriers-package.cjs": "52942e5d00c1a03ece40e1a3aeee60c99cd6af01aa1362a465783c65015a8395",
+    "rebuild/m4/spec/native-carriers-cases.cjs": "d9e74be7aa1556d17efe302a9f8d1a6138aa8487e38a4cdf7d2f144646789311",
+    "rebuild/m4/spec/native-carriers-profile.cjs": "2e092941a52d69142e47447399aae7b9b3da840e1648ff751a96fd3d014c9314",
+    "rebuild/m4/spec/native-carriers-package.cjs": "e11d1975cff2e54ca403f6229e9b23088f145020425acdd64fbaa28ccf289062",
     "rebuild/m4/spec/native-carriers-changes.json": "9e6f608a322ac0773275fdd3916df6655c9f9b6ac975a88023907b3f877438c5",
     "rebuild/m4/spec/native-carriers-authorizations.json": "0409c6945e5455a4fb722379fdef90875b65a89bab6c4e173989d1f5043be872",
     "rebuild/m4/spec/native-next-target-candidate/fixture.cjs": "2554ae6ecd553df70473cc417676512e7e7188bdbcb150497698568e81df86a9",
@@ -117,7 +117,9 @@
     "rebuild/m4/workout/test/native-next-targets.test.cjs": "8ab8ac5b7e1a35a9006e952f07ce170a2bb58ce962e213f18ee2bd385b6b3a41",
     "rebuild/m4/workout/test/native-next-targets-assembly.test.cjs": "eb75529047b1f9fad7f362bff4c3a5d649f3d27470bfd158102190f73e610c14",
     "rebuild/m4/workout/test/native-next-targets-correction.test.cjs": "ffed53fdee84e587507485e8883c34cf11d63c5489d48e770bc76b5ccab4aea1",
-    "rebuild/m4/spec/native-carriers-profile.test.cjs": "3950ca246186f9d987da8896c49d1d1b2ce4df2cd272938e7d9b140c1e2e58c1",
+    "rebuild/m4/spec/native-carriers-profile.test.cjs": "549681a51b4d3c75a9919d65dc34dc30d42eb0cf9c7438417552b25239fee126",
+    "rebuild/m4/spec/NATIVE-CARRIERS-THEME.md": "4f128b7b7f8f89ef312c8ea1c547a82d114489a1dd3fd380b4fc3c739c759221",
+    "rebuild/m4/spec/NATIVE-CARRIERS-BUILD-REPORT.md": "005a5c0e064c893d95b7a7592ebeae55f27845c5b2b8c11f7cd8a5304249af6e",
     ".github/workflows/rebuild.yml": "30ef309ec2cc3a7bf983be005c989f7a9085cff66bd1d2dec5f18d8f1139e272"
   }
 }
