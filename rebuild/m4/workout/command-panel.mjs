@@ -1,6 +1,7 @@
 // Preparation only: one explicitly selected synthetic start and set in one runtime.
 // The host owns client qualification, selection, capture, recovery and later slots.
 import {installWorkoutTypography} from './typography.mjs';
+import {MODES, readLoadEntry, formatLoad} from './load-field.mjs';
 const mounted = new WeakMap();
 const nonblank = value => typeof value === 'string' && value.trim().length > 0;
 const fields = ['planned_split_slot_id', 'plan_basis', 'lift_lineage_id', 'logical_set_slot', 'label'];
@@ -25,6 +26,8 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-entry { order:4; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px 12px; padding-top:20px; border-top:1px solid #D8D0C2; }
     .workout-command-panel label { display:flex; flex-direction:column; justify-content:space-between; gap:8px; margin:0; min-width:0; color:#5A5348; }
     .workout-command-panel .wcp-effort,.workout-command-panel .wcp-log { grid-column:1 / -1; }
+    .workout-command-panel .wcp-load-mode { grid-column:1 / -1; color:#1C1B18; }
+    .workout-command-panel .wcp-load-mode select { min-height:52px; padding:12px 14px; border-radius:10px; }
     .workout-command-panel .wcp-entry-heading { grid-column:1 / -1; margin:0; font-size:1.25em; font-weight:500; letter-spacing:-.015em; }
     .workout-command-panel .wcp-effort { color:#1C1B18; }
     .workout-command-panel .wcp-effort select { min-height:52px; padding:12px 14px; border-radius:10px; }
@@ -68,7 +71,16 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     const wrapper = el('label', label), input = el('input'); input.name = name; input.type = 'text'; input.inputMode = mode;
     input.autocomplete = 'off'; input.required = true; wrapper.append(input); setForm.append(wrapper); return input;
   };
-  const load = makeInput('load', 'Weight (lb)', 'decimal');
+  // Explicit recorded-as choice. Weight keeps the familiar fast numeric entry;
+  // Configuration records an exact opaque setup key (BW, hold, a band label).
+  // ONE load field serves both: only its label and keyboard change, so the
+  // entry keeps its two inputs, its tab order and its existing selectors.
+  const modeLabel = el('label', 'Recorded as'), mode = el('select'); mode.name = 'loadMode';
+  for (const [value, text] of [[MODES.weight, 'Weight'], [MODES.configuration, 'Configuration']]) { const option = el('option', text); option.value = value; mode.append(option); }
+  modeLabel.append(mode); modeLabel.className = 'wcp-load-mode'; setForm.append(modeLabel);
+  const load = makeInput('load', 'Weight (lb)', 'decimal'), loadLabel = load.parentNode.firstChild;
+  const configured = () => mode.value === MODES.configuration;
+  const paintMode = () => { loadLabel.nodeValue = configured() ? 'Configuration' : 'Weight (lb)'; load.inputMode = configured() ? 'text' : 'decimal'; };
   const reps = makeInput('reps', 'Completed repetitions', 'numeric');
   const reserveLabel = el('label', 'Clean reps left (optional)'), reserve = el('select'); reserve.name = 'reserve';
   for (const [value, text] of [['', 'Leave unrecorded'], ['0', '0'], ['1', '1'], ['2', '2'], ['3+', '3+'], ['unknown', 'Not sure'], ['skipped', 'Skip this question']]) {
@@ -142,7 +154,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     // saved summary and explicit next action. Pending/refused entry stays visible.
     setForm.hidden = extended && (slotDone || finished);
     const blocked = !valid || pending || recovery || startId === null || finished;
-    for (const control of [load, reps, reserve, setButton]) control.disabled = blocked || slotDone || !permits('set');
+    for (const control of [mode, load, reps, reserve, setButton]) control.disabled = blocked || slotDone || !permits('set');
     if (extended) {
       for (const control of [skipReason, skipButton]) control.disabled = blocked || slotDone || !permits('skip');
       nextButton.hidden = !slotDone || index === slots.length - 1; nextButton.disabled = blocked || !slotDone;
@@ -206,7 +218,8 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
         else {
           const effort = entered.reserve;
           const effortText = !effort ? 'clean reps left unrecorded' : effort.tag === 'at_least' ? `${effort.value}+ clean reps left` : effort.tag === 'exact' ? `${effort.value} clean reps left` : effort.tag === 'unknown' ? 'clean reps left: not sure' : 'clean-reps-left question skipped';
-          summary = `${displayLabel}: ${entered.load.value} lb × ${entered.reps.value} completed repetitions; ${effortText}.`;
+          // Numeric keeps "<value> lb"; a configuration reads back as its exact key.
+          summary = `${displayLabel}: ${formatLoad(entered.load)} × ${entered.reps.value} completed repetitions; ${effortText}.`;
         }
         events.append(el('li', summary));
         if (action !== 'start') { lastRecord.textContent = 'Last recorded here: ' + summary; lastRecord.hidden = false; }
@@ -234,16 +247,21 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   const onSet = event => {
     event.preventDefault(); if (disposed || !valid || pending || recovery || startId === null || finished || slotDone || !permits('set')) return;
     load.removeAttribute('aria-invalid'); reps.removeAttribute('aria-invalid'); reserve.removeAttribute('aria-invalid');
-    const lbText = load.value.trim(), repsText = reps.value.trim();
-    const lb = Number(lbText), count = Number(repsText);
-    if (!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(lbText) || !Number.isFinite(lb) || lb <= 0) {
-      load.setAttribute('aria-invalid', 'true'); tell('Enter a weight in pounds greater than zero.'); load.focus(); return;
+    // The chosen mode decides how the one field is read: Weight parses a positive
+    // number exactly as before; Configuration takes the text exactly as typed and
+    // refuses only a blank or whitespace-only key, without altering the field.
+    const entry = readLoadEntry({ mode: mode.value, weightText: load.value, configurationText: load.value });
+    if (!entry.ok) {
+      load.setAttribute('aria-invalid', 'true');
+      tell(entry.field === 'configuration' ? 'Enter the setup you used, such as BW, hold or a band label.' : 'Enter a weight in pounds greater than zero.');
+      load.focus(); return;
     }
+    const repsText = reps.value.trim(), count = Number(repsText);
     if (!/^\d+$/.test(repsText) || !Number.isSafeInteger(count)) {
       reps.setAttribute('aria-invalid', 'true'); tell('Enter completed repetitions as a whole number, including zero if you completed none.'); reps.focus(); return;
     }
     const input = { session_start_op_id: startId, logical_set_slot: slot().logical_set_slot, lift_lineage_id: slot().lift_lineage_id,
-      load: { value: lb, unit: 'lb' }, reps: { value: count, unit: 'rep' } };
+      load: entry.load, reps: { value: count, unit: 'rep' } };
     const effort = reserve.value;
     if (['0', '1', '2'].includes(effort)) input.reserve = { tag: 'exact', value: Number(effort), unit: 'rep' };
     else if (effort === '3+') input.reserve = { tag: 'at_least', value: 3, unit: 'rep' };
@@ -260,7 +278,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     if (!extended || disposed || !valid || pending || recovery || finished || !slotDone || index >= slots.length - 1) return;
     do{index++;}while(index<slots.length-1&&completedSlots.has(index));slotDone=completedSlots.has(index);title.textContent = slot().label;
     // Only a completed slot's local controls reset on explicit navigation. No host draft/storage is touched.
-    load.value = ''; reps.value = ''; reserve.value = ''; skipReason.value = ''; closeChoice.value = '';
+    mode.value = MODES.weight; paintMode(); load.value = ''; reps.value = ''; reserve.value = ''; skipReason.value = ''; closeChoice.value = '';
     for (const control of [load, reps, reserve]) control.removeAttribute('aria-invalid');
     paintControls(); tell('Enter the set you performed, or explicitly skip this set.'); notifyActiveSlot(); if (valid) load.focus();
   };
@@ -273,11 +291,12 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     if(!extended||disposed||!valid||pending||recovery||finished||!startId||!slotDone||index!==slots.length-1||!permits('close'))return;
     void execute('close',{session_start_op_id:startId,completion_kind:'normal'});
   };
-  startForm.addEventListener('submit', onStart); setForm.addEventListener('submit', onSet);
+  const onMode = () => { if (disposed) return; paintMode(); load.removeAttribute('aria-invalid'); if (!load.disabled) load.focus(); };
+  startForm.addEventListener('submit', onStart); setForm.addEventListener('submit', onSet); mode.addEventListener('change', onMode);
   if (extended) { skipForm.addEventListener('submit', onSkip); nextButton.addEventListener('click', onNext); finishButton.addEventListener('click',onFinish);closeForm.addEventListener('submit', onClose); }
   const handle = { dispose() {
     if (disposed) return;
-    disposed = true; startForm.removeEventListener('submit', onStart); setForm.removeEventListener('submit', onSet);
+    disposed = true; startForm.removeEventListener('submit', onStart); setForm.removeEventListener('submit', onSet); mode.removeEventListener('change', onMode);
     skipForm.removeEventListener('submit', onSkip); nextButton.removeEventListener('click', onNext); closeForm.removeEventListener('submit', onClose);
     finishButton.removeEventListener('click',onFinish);
     panel.remove(); if (mounted.get(root) === handle) mounted.delete(root);

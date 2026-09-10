@@ -2,6 +2,7 @@ import {mountWorkoutCommandPanel} from './command-panel.mjs';
 import Capture from './capture.cjs';
 import {parseStrictJson} from '../../m3/w6/strict-json.mjs';
 import {installWorkoutTypography} from './typography.mjs';
+import {MODES,readLoadEntry,formatLoad,loadEntryFrom,sameLoad} from './load-field.mjs';
 
 const roots=new WeakMap(),clients=new WeakMap(),needsReconciliation=new WeakSet();
 const validator=Capture.createPrescriptionCapture({parseStrictJson});
@@ -47,7 +48,9 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
           'Original instructions and clean-reps-left answers were not recorded. These entries need interpretation before they can guide a workout.':
           'Test workout history. Review your recorded sets and corrections below; original entries remain available.'));
         let editorOpen=false;
-        const format=v=>v&&Number.isFinite(v.load?.value)&&Number.isFinite(v.reps?.value)&&v.load.unit==='lb'&&v.reps.unit==='rep'?`${v.load.value} ${v.load.unit} × ${v.reps.value} ${v.reps.unit}`:'Not established';
+        // Numeric keeps the existing "<value> lb × <reps> rep"; a configuration shows its exact key, no suffix.
+        const format=v=>{const loadText=v?formatLoad(v.load):null;return loadText!==null&&Number.isFinite(v.reps?.value)&&v.reps.unit==='rep'?`${loadText} × ${v.reps.value} ${v.reps.unit}`:'Not established';};
+        const prescribedText=slot=>slot?slot.load.display+(slot.load.state==='specified'?'':slot.load.state==='unknown'?' (unknown)':' (not prescribed)'):null;
         const effort=v=>!v?'Unrecorded':v.tag==='exact'?String(v.value):v.tag==='at_least'?'3+':v.tag==='unknown'?'Not sure':v.tag==='skipped'?'Question skipped':'Not asked';
         const recordedStatus=s=>({'stored-on-this-device':'Saved on this device','accepted-through-frontier':'Confirmed by server',rejected:'Rejected — needs attention'}[s]||'Status needs review');
         for(const s of sessions){
@@ -57,6 +60,7 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
             const item=el('li');item.className='prepared-history-set';
             const label=slot?.label||(nonblank(f.legacy_context?.lift)?f.legacy_context.lift+' (recorded label)':'Recorded set');
             item.append(el('p',`${label} — ${f.included===false?'excluded from current interpretation':v?format(v):'interpretation required'} (${recordedStatus(f.current_status||f.source_status)})`));
+            if(prescribedText(slot)!==null){const prescribed=el('p','Prescribed: '+prescribedText(slot));prescribed.className='prepared-history-prescribed';item.append(prescribed);}
             if(f.included===true&&v)item.append(el('p','Clean reps left: '+(legacy?'not recorded':effort(v.reserve))));
             const original=el('details');original.append(el('summary','Original recorded entry'),el('p',format(f.original)+'; clean reps left: '+(legacy?'not recorded':effort(f.original?.reserve))));item.append(original);
             if(f.edit_op_ids.length)item.append(el('p','Recorded changes are retained with the original entry.'));
@@ -70,8 +74,21 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
                 if(p?.prepared!==true){message.textContent='This record cannot currently be corrected. Reopen the workout to review its latest history.';editorOpen=false;edit.disabled=false;return;}
                 const form=el('form');form.className='history-editor';form.noValidate=true;
                 form.append(el('h3','Correct the recorded set'),el('p','Change what was recorded. The original remains in history. This does not change your plan.'));
-                const field=(name,label,value)=>{const wrapper=el('label',label),input=el('input');input.name=name;input.type='text';input.inputMode=name==='correctedLoad'?'decimal':'numeric';input.value=String(value);wrapper.append(input);form.append(wrapper);return input;};
-                const load=field('correctedLoad','Recorded weight (lb)',p.view.current.load.value),reps=field('correctedReps','Recorded repetitions',p.view.current.reps.value);
+                // Prescribed, originally recorded and currently recorded stay visible and distinct while correcting.
+                const reference=el('div');reference.className='history-edit-reference';
+                reference.append(el('p','Prescribed: '+(prescribedText(slot)??'not available')),el('p','Originally recorded: '+format(f.original)),el('p','Currently recorded: '+format(p.view.current)));form.append(reference);
+                const field=(name,label,value,inputMode)=>{const wrapper=el('label',label),input=el('input');input.name=name;input.type='text';input.inputMode=inputMode;input.value=String(value);wrapper.append(input);form.append(wrapper);return input;};
+                // One recorded-load field: the explicit Recorded-as choice only swaps its label and keyboard,
+                // so the editor keeps its existing field names, order and selectors.
+                const prefill=loadEntryFrom(p.view.current.load);
+                const modeLabel=el('label','Recorded as'),mode=el('select');mode.name='correctedLoadMode';
+                for(const [value,text] of [[MODES.weight,'Weight'],[MODES.configuration,'Configuration']]){const o=el('option',text);o.value=value;mode.append(o);}
+                mode.value=prefill.mode;modeLabel.append(mode);form.append(modeLabel);
+                const load=field('correctedLoad','Recorded weight (lb)',prefill.mode===MODES.configuration?prefill.configurationText:prefill.weightText,'decimal'),loadLabel=load.parentNode.firstChild;
+                const paintMode=()=>{const c=mode.value===MODES.configuration;loadLabel.nodeValue=c?'Recorded configuration':'Recorded weight (lb)';load.inputMode=c?'text':'decimal';};paintMode();
+                const activeLoad=()=>load;
+                mode.addEventListener('change',()=>{paintMode();if(!load.disabled)load.focus();});
+                const reps=field('correctedReps','Recorded repetitions',p.view.current.reps.value,'numeric');
                 const reserveLabel=el('label','Recorded clean reps left'),reserve=el('select');reserve.name='correctedReserve';
                 for(const [value,label]of [['keep','Keep current: '+effort(p.view.current.reserve)],['0','0'],['1','1'],['2','2'],['3+','3+'],['unknown','Not sure'],['skipped','Question skipped'],['not_asked','Not asked']]){const o=el('option',label);o.value=value;reserve.append(o);}reserveLabel.append(reserve);form.append(reserveLabel);
                 const save=el('button','Save correction');save.type='submit';const cancel=el('button','Cancel');cancel.type='button';form.append(save,cancel);
@@ -89,10 +106,12 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
                   status.textContent=action==='remove'?'Saved — mistaken entry excluded; its original remains in history.':'Saved — correction recorded on this device. The original and later entries remain in history.';
                 };
                 form.addEventListener('submit',event=>{event.preventDefault();if(disposed||pending||retired)return;
-                  const weight=Number(load.value.trim()),count=Number(reps.value.trim());
-                  if(!/^(?:\d+(?:\.\d+)?|\.\d+)$/.test(load.value.trim())||!Number.isFinite(weight)||weight<=0){message.textContent='Enter a recorded weight greater than zero.';load.focus();return;}
+                  // The chosen mode's exact value flows through the same existing correction API; a whole-load change in either direction.
+                  const entry=readLoadEntry({mode:mode.value,weightText:load.value,configurationText:load.value});
+                  if(!entry.ok){message.textContent=entry.field==='configuration'?'Enter the recorded setup, such as BW, hold or a band label.':'Enter a recorded weight greater than zero.';activeLoad().focus();return;}
+                  const count=Number(reps.value.trim());
                   if(!/^\d+$/.test(reps.value.trim())||!Number.isSafeInteger(count)){message.textContent='Enter recorded repetitions as a whole number, including zero.';reps.focus();return;}
-                  const change={};if(weight!==p.view.current.load.value)change.load={value:weight,unit:'lb'};if(count!==p.view.current.reps.value)change.reps={value:count,unit:'rep'};
+                  const change={};if(!sameLoad(entry.load,p.view.current.load))change.load=entry.load;if(count!==p.view.current.reps.value)change.reps={value:count,unit:'rep'};
                   if(['0','1','2'].includes(reserve.value))change.reserve={tag:'exact',value:Number(reserve.value),unit:'rep'};
                   else if(reserve.value==='3+')change.reserve={tag:'at_least',value:3,unit:'rep'};
                   else if(['unknown','skipped','not_asked'].includes(reserve.value))change.reserve={tag:reserve.value};
@@ -102,7 +121,7 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
                 });
                 remove.addEventListener('click',()=>{if(!reason.value.trim()){message.textContent='Enter the reason this entry was mistaken.';reason.focus();return;}void submit('remove',reason.value.trim());});
                 cancel.addEventListener('click',()=>{if(pending||retired)return;retired=true;form.remove();message.remove();editorOpen=false;edit.disabled=false;edit.focus();});
-                item.append(form);message.textContent='Review the recorded values, then explicitly save a correction or cancel.';load.focus();
+                item.append(form);message.textContent='Review the recorded values, then explicitly save a correction or cancel.';activeLoad().focus();
               });
             }
             list.append(item);
