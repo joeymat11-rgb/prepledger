@@ -1,5 +1,9 @@
 # ASTRA — owner workout contract preparation
 
+## Reserved source-control schema prerequisite — proposal readback, September10
+
+WORKOUT-SCHEMA-V2 v0.9 §3a now incorporates the APM-reviewed isolated SOURCE-CONTROL-V2-01 result. PM verified the result/patch/terminal hashes and read their exact contents. Two closed fact/event variants preserve existing source/profile/hash domains; version2 rollback requires explicit hidden target_activation_id reference extraction in the complete dispatcher. Different schema envelopes still produce different commitments/prefixes. The one-line version predicate candidate is NOT installed: shared intent validation affects transaction prevalidation as well as sync/indexed history.19 component checks and exact v1 byte evidence are attributed to the helper/APM; no duplicate run. The upstream wrong-athlete negative was not run, and the fixture's explicit target causal parent does not exercise future automatic reference extraction. Complete temporal/schema/issuer/standing and affected technical acceptance remain open; no runtime adoption, schema freeze or independent full-journey verdict follows.
+
 ## Guarded supported-baseline order — local candidate, September10
 
 Successor tof0b9467; unchanged R1/W6. APM checked the actual final replay and order kernel and accepted this existing §5d join. projectAccepted now explicitly forwards internal importAnchor. Final guarded replay reuses cached current history through the accepted-only projector, resolves the selected baseline to its original activation, and attaches order only after exact completed Start order/membership equality. Only WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN retains unanchored membership; all other errors propagate. No reader/engine rule, signature/profile/issuer, source relabeling or global chronology change.
