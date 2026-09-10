@@ -1,5 +1,9 @@
 # ASTRA — owner workout contract preparation
 
+## Controller spec v1.4 — remote factual gap reached and fixed
+
+M4 adds the synthetic source-projection-witness.cjs and updates IMPORT-CONTROLLER-v1.md. Historical W6 76b714d witness reaches a remote-reading RED after actual signed recovery/reopen; the reviewed W6 factual seam now makes it GREEN. Both receipts are retained in the spec. The witness still executes the unchanged installed engine: same-date applyRead returns unchanged, and source custody allows engine_context_json:{}; neither proves source/effect coverage. Actual installed engine and all M4 runtime remain untouched. W6 report records12 focused/395 suite/6 reached faults/36 native and required conformance gates; no M4 runtime gates repeated for documentation. Qualified source/current-engine projection, consent and atomic active publication remain the next actual join in canonical EARNED-DELIVERY-STATUS.md.
+
 ## Controller spec v1.3 — actual W6 source recovery checkpoint
 
 Documentation successor to60e4d5a; M4 runtime, installed engine and preparation are unchanged. spec/IMPORT-CONTROLLER-v1.md now records the completed LOCAL R1 98c140514db7aee3c175d1a7ec1ce6d73f14a046 / W6 76b714dc7e2a00ca21849f8e3e1af4ec9ede06fb recovery join: shared indexed source semantics, preserved v1/v2 archives and shared transport budget, actual source/rollback selection, later remote fact, actual T2 pending replay and five surviving queued originals through reopen. Native Chrome28, source15, original recovery167 and composed W6 383 checks plus four effective source/head/budget faults are recorded in the affected R1/W6 reports with exact evidence. The actual M4 preparation ran in those synthetic joins; no full seeded engine entered the browser.
