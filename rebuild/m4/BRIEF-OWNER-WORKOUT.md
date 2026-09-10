@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.66 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.67 (working implementation)
+
+## Current v0.67 durable added-slot representation proposal
+
+LOAD-AND-SLOT-EXTENSION.md v0.2 / WORKOUT-SCHEMA-V2.md v0.4 now define original extension indices, disjoint derived slot IDs and exact lift-Skip coverage so later additions are not silently skipped. The nonshipping added-slot-model executes14 checks/seven effective faults/restored14 against actual W6 parser/capture/canonical/command boundaries. It does not authenticate history, enable the proposed17th kind, implement edit/partition/currentness or prove durable replay. Runtime unchanged fromce56b67; its56/seven-fault capture checks and conformance remain attributed unchanged evidence. Same complete workout/schema goal, no new queue. Joe's approved CLAUDE-COORDINATION.md in the APM directory now governs dispatch: APM completes the active cd543b7 Opus assignment before explicit session handoff; subsequent Claude packets go through Manager01a08966-23e7-7fd2-96d3-82f79651516e, with PM sole writer and APM scope/helper/adoption owner. No duplicate review, paid usage or changed release/private authority.
 
 ## Current v0.66 configured-load capture and added-slot representation
 
