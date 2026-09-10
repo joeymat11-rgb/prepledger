@@ -14,7 +14,7 @@ function createDatabaseStorage(db, config) {
   const codec = createAuthorityRowCodec({namespace,getWrappingKey:config.getWrappingKey,crypto:config.crypto ?? globalThis.crypto,sourceProfile:config.sourceProfile});
   const controlStatement = () => db.prepare('SELECT profile, namespace, write_epoch FROM authority_storage WHERE id = 1');
 
-  async function load(controlResult, rows, revision) {
+  async function load(controlResult, rows, revision, inventoryBytes = false) {
     if (!C.safe(revision)) fail();
     if (revision === Number.MAX_SAFE_INTEGER) C.fail('UNAVAILABLE',503);
     if (!controlResult || !Array.isArray(controlResult.results) || controlResult.results.length !== 1 || !Array.isArray(rows)) fail();
@@ -24,7 +24,7 @@ function createDatabaseStorage(db, config) {
     const control = Object.freeze({profile:PROFILE,namespace,write_epoch:row.write_epoch});
     // Replace each owned D1-result slot as it is decoded. Do not retain a second
     // complete plaintext/ciphertext result array during an account reconciliation.
-    for (let i=0;i<rows.length;i++) rows[i] = await codec.open(rows[i],{revision});
+    for (let i=0;i<rows.length;i++) rows[i] = await codec.open(rows[i],{revision},inventoryBytes);
     return control;
   }
 

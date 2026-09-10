@@ -6,8 +6,10 @@
 // scalar arithmetic. The staged authority persists signed dispositions before
 // replying, so exact accepted replays return those same durable signature bytes.
 const { createHmac, createPrivateKey, createPublicKey, generateKeyPairSync,
-  sign, verify } = require("node:crypto");
+  sign, verify, createSign, createVerify } = require("node:crypto");
 const { canonicalEncode } = require("../../authority/canonical.cjs");
+const rowsDomain=(domain,field)=>field==='authority_signature'&&/^earned\/r1\/rows-v[34]\/(page|cursor)$/.test(domain);
+const updateRows=(sink,record,domain,field)=>require('./reconciliation/server-bytes.cjs').update(sink,without(record,new Set([field])),{canonical:true,domain});
 
 const PROFILE = "earned/p256-sha256-p1363-low-s/v1";
 const ORDER = BigInt("0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551");
@@ -113,9 +115,11 @@ function signatureOver(record, key, domain, field = "authority_signature") {
     throw new TypeError("active private key must match its public verification pin");
   // workerd rejects a KeyObject nested in sign/verify options. Native PEM
   // export is an in-memory adapter; no key bytes enter a response or fixture.
-  const bytes = sign("sha256", canonicalBytes(record, domain, field), {
+  const options = {
     key: signingKey.export({ format: "pem", type: "pkcs8" }), dsaEncoding: "ieee-p1363",
-  });
+  };
+  const bytes = rowsDomain(domain,field)?updateRows(createSign('sha256'),record,domain,field).sign(options)
+    :sign("sha256", canonicalBytes(record, domain, field), options);
   return "ES256." + key.kid + "." + lowS(bytes).toString("base64url");
 }
 function verifyRecord(record, key, domain, field = "authority_signature") {
@@ -130,8 +134,10 @@ function verifyRecord(record, key, domain, field = "authority_signature") {
     }
     checkKid(key);
     const raw = parseSignature(record[field], key.kid);
-    return !!raw && verify("sha256", canonicalBytes(record, domain, field),
-      { key: keyObject(key, false).export({ format: "pem", type: "spki" }), dsaEncoding: "ieee-p1363" }, raw);
+    if(!raw)return false;
+    const options={ key: keyObject(key, false).export({ format: "pem", type: "spki" }), dsaEncoding: "ieee-p1363" };
+    return rowsDomain(domain,field)?updateRows(createVerify('sha256'),record,domain,field).verify(options,raw)
+      :verify("sha256", canonicalBytes(record, domain, field),options,raw);
   } catch (_) { return false; }
 }
 function publicKeyOf(key) {

@@ -129,7 +129,7 @@ function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThi
           value: row.value, sealed: JSON.stringify(envelope), storage_revision: row.storage_revision };
       } catch (_) { throw unavailable(); }
     },
-    async open(physicalRow, context) {
+    async open(physicalRow, context, inventoryBytes = false) {
       let row, envelope, wrapped, iv, ciphertext;
       try {
         row = snapshot(physicalRow, PHYSICAL);
@@ -164,7 +164,11 @@ function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThi
         // Fatal UTF-8 stays enforced; parse/string below retains BOM refusal.
         const value = new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(plaintext);
         if (projection(row.collection, parse(value)) !== row.value) throw integrity();
-        return { athlete: row.athlete, collection: row.collection, row_id: row.row_id, value };
+        // Recovery carries the authenticated original bytes past this scope;
+        // its JSON/projection validation finishes here before bytes can escape.
+        // Ordinary storage readers preserve their original text interface.
+        return { athlete: row.athlete, collection: row.collection, row_id: row.row_id,
+          value: inventoryBytes ? new Uint8Array(plaintext) : value };
       } catch (_) { throw integrity(); }
     }
   });

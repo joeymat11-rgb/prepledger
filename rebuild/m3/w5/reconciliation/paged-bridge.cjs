@@ -40,6 +40,7 @@ function createPagedBridge({db,storage:config,authorityKey,r1,sourceProfile}={})
  const storage=createDatabaseStorage(db,config);
  const sign=record=>({...record,authority_signature:Sign.signatureOver(record,authorityKey,record.profile)});
  return Object.freeze({async read(subject,raw,context){
+  const P=require('./paged-codec.cjs').createServerRowsCodec(sourceProfile===undefined?3:4,require('./server-bytes.cjs'));
   const request=P.decodeRequest(raw),actor=request.device_id;
   if(!C.nonempty(subject)||!context||context.issuer!==r1.issuer||!(r1.origins||[r1.origin]).includes(context.origin))fail('SCOPE_FORBIDDEN',403);
   const continued=request.profile===P.DOMAINS.continue,m=continued?request.manifest:null,previous=continued?request.cursor:null;
@@ -66,7 +67,7 @@ function createPagedBridge({db,storage:config,authorityKey,r1,sourceProfile}={})
   },0);
   if(selected.length>1&&physical>P.LIMITS.budget)fail('RETAINED_INTEGRITY',500);
   const control=await storage.load(controlResult,standingRows,revision);
-  await storage.load(controlResult,selected,revision);
+  await storage.load(controlResult,selected,revision,true);
   const standing=new Map(standingRows.map(row=>[rowKey(row.athlete,row.collection,row.row_id),C.parse(C.bytes(row.value))]));
   I.device({get:key=>standing.get(key)},meta.athlete,actor,authorityKey);
   const scope=C.scopeDigest({issuer:context.issuer,origin:context.origin,subject,athleteId:meta.athlete,actorDeviceId:actor});

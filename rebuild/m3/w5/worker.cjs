@@ -32,7 +32,7 @@ async function boundedBody(request, limit = MAX_REQUEST_BYTES, preserveBOM = fal
 function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toISOString() }) {
   const authenticate = createAuthenticator(auth);
   const now = () => typeof clock === "function" ? clock() : clock.now();
-  const reply = (status, body) => new Response(JSON.stringify(body), { status, headers: {
+  const reply = (status, body) => new Response(require('./reconciliation/server-bytes.cjs').responseBody(body), { status, headers: {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "private, no-store, max-age=0",
     "CDN-Cache-Control": "no-store", "Cloudflare-CDN-Cache-Control": "no-store",

@@ -6,7 +6,9 @@ const {COLLECTIONS:BASE_COLLECTIONS}=require('./project.cjs');
 const {createPublicVerifier,decodeSignature}=require('../public-client.cjs');
 // Closed version selection. Default v3 bytes, domains and 20-count inventory
 // remain exact; source-enabled v4 cannot be consumed as an old proof.
-function createPagedCodec(version=3) {
+function createPagedCodec(version=3,server=null) {
+const S=server;
+const C=server?S.codec():require('./codec.cjs');
 if(version!==3&&version!==4)throw new TypeError('Unsupported row inventory');
 const COLLECTIONS=version===3?BASE_COLLECTIONS:Object.freeze([...BASE_COLLECTIONS,'sourceImports']);
 const LIMITS=Object.freeze({row:2000000,rows:32,budget:262144,metadata:8192,begin:1048576,request:4000000,response:6000000});
@@ -21,10 +23,11 @@ const FIELDS=Object.freeze({
 for(const fields of Object.values(FIELDS))Object.freeze(fields);
 const fail=code=>C.fail(code||'INVALID_ROWS_PROOF',400);
 const check=(value,code)=>{if(!value)fail(code);};
-const hash=(kind,value)=>C.hash(domain(kind),C.encode(value));
+const hash=(kind,value)=>server?S.hashJSON(domain(kind),value):C.hash(domain(kind),C.encode(value));
 const same=(a,b)=>C.fullEqual(a,b);
 function freeze(value){const stack=[value];while(stack.length){const x=stack.pop();if(x&&typeof x==='object'&&!Object.isFrozen(x)){for(const v of Object.values(x))if(v&&typeof v==='object')stack.push(v);Object.freeze(x);}}return value;}
 function snapshot(input,limit){return C.parse(input,limit);}
+function ownedSnapshot(value,limit){if(!server)return snapshot(C.encode(value),limit);if(S.length(value)>limit)C.fail('RECONCILE_LIMIT',413);return value;}
 // Private freshly decoded bytes: validate with the SAME fatal native UTF-8
 // decoder, but discard bounded text chunks instead of allocating a complete
 // decoded string (and defensive byte copy) solely for a validity check.
@@ -114,12 +117,12 @@ function finishOwnedResponse(input){
    }else{check(value===null||typeof value==='string'||typeof value==='boolean'||typeof value==='number'&&Number.isFinite(value),'ROWS_OWNED_VALUE');Object.defineProperty(target,name,{value,enumerable:true,writable:true,configurable:true});}
   }
  }
- if(C.encode(out).length>LIMITS.response)C.fail('RECONCILE_LIMIT',413);
- return response(out);
+ if((server?S.length(out):C.encode(out).length)>LIMITS.response)C.fail('RECONCILE_LIMIT',413);
+ const result=response(out);return server?S.markResponse(result):result;
 }
 function decodeRequest(input){
- const raw=C.bytes(input);check(raw.length<=LIMITS.request,'ROWS_REQUEST_LIMIT');const value=C.parse(raw,LIMITS.request);
- if(value?.profile===DOMAINS.begin){check(raw.length<=LIMITS.begin,'ROWS_REQUEST_LIMIT');C.exact(value,['profile','device_id','request','basis_digest']);check(C.nonempty(value.device_id)&&C.digestValue(value.basis_digest));C.validateRequest(value.request);}
+ const raw=server&&typeof input==='string'?input:C.bytes(input),rawLength=typeof raw==='string'?Buffer.byteLength(raw):raw.length;check(rawLength<=LIMITS.request,'ROWS_REQUEST_LIMIT');const value=C.parse(raw,LIMITS.request);
+ if(value?.profile===DOMAINS.begin){check(rawLength<=LIMITS.begin,'ROWS_REQUEST_LIMIT');C.exact(value,['profile','device_id','request','basis_digest']);check(C.nonempty(value.device_id)&&C.digestValue(value.basis_digest));C.validateRequest(value.request);}
  else{C.exact(value,['profile','device_id','manifest','cursor']);check(value.profile===DOMAINS.continue,'ROWS_PROFILE');check(C.nonempty(value.device_id)&&C.encode(value.device_id).length<=LIMITS.begin,'ROWS_ACTOR');manifest(value.manifest);cursor(value.cursor);check(value.cursor.manifest_digest===manifestDigest(value.manifest),'ROWS_MANIFEST_BINDING');}
  return freeze(value);
 }
@@ -131,7 +134,7 @@ function makeManifest({keyEpoch,scopeDigest,request,basisDigest,revision,storage
  return freeze(manifest(snapshot(C.encode(m),LIMITS.metadata),false));
 }
 function makePage({manifest:input,previousCursor=null,rawRows,sign}){
- const m=parseManifest(C.encode(input)),previous=previousCursor===null?null:parseCursor(C.encode(previousCursor));
+ const m=freeze(manifest(ownedSnapshot(input,LIMITS.metadata))),previous=previousCursor===null?null:freeze(cursor(ownedSnapshot(previousCursor,LIMITS.request)));
  if(previous)check(previous.manifest_digest===manifestDigest(m),'ROWS_MANIFEST_BINDING');
  const data=rawRows.map(row=>({collection:row.collection,row_id_b64:C.encode64(row.row_id),value_b64:C.encode64(row.value)}));rows(data);
  const cumulative=previous?previous.cumulative_counts.slice():COLLECTIONS.map(()=>0),index=previous?previous.index+1:1;
@@ -145,10 +148,10 @@ function makePage({manifest:input,previousCursor=null,rawRows,sign}){
  return freeze(p);
 }
 function makeFinish({manifest:input,page:pageInput,sign}){
- const m=parseManifest(C.encode(input)),p=page(snapshot(C.encode(pageInput),LIMITS.response));check(p.rows.length===0,'ROWS_FINISH_REQUIRED');
+ const m=freeze(manifest(ownedSnapshot(input,LIMITS.metadata))),p=page(ownedSnapshot(pageInput,LIMITS.response));check(p.rows.length===0,'ROWS_FINISH_REQUIRED');
  const f=sign({profile:DOMAINS.finish,key_epoch:m.key_epoch,manifest_digest:manifestDigest(m),final_cursor_digest:cursorReference(p.next_cursor),chain_digest:p.chain_digest,
   cumulative_counts:p.cumulative_counts,revision:m.revision,storage_control_digest:m.storage_control_digest,context_id:m.context_id,scope_digest:m.scope_digest,nonce:m.nonce,claim_set_digest:m.claim_set_digest});
- return parseResponse(C.encode({manifest:m,page:p,finish:f})).finish;
+ return (server?response({manifest:m,page:p,finish:f}):parseResponse(C.encode({manifest:m,page:p,finish:f}))).finish;
 }
 function createRowsVerifier({keys,subtle}={}){
  const verifier=createPublicVerifier({keys,subtle});
@@ -175,4 +178,4 @@ function createRowsVerifier({keys,subtle}={}){
 return Object.freeze({LIMITS,DOMAINS,FIELDS,COLLECTIONS,hash,cursorReference,manifestDigest,parseManifest,parseCursor,parseResponse,finishOwnedResponse,decodeRequest,
  makeManifest,makePage,makeFinish,createRowsVerifier});
 }
-module.exports={...createPagedCodec(),createSourceRowsCodec:()=>createPagedCodec(4)};
+module.exports={...createPagedCodec(),createSourceRowsCodec:()=>createPagedCodec(4),createServerRowsCodec:(version,server)=>createPagedCodec(version,server)};
