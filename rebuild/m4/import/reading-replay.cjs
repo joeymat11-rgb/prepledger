@@ -266,7 +266,22 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       if(!log||typeof log!=='object'||Array.isArray(log))fail('SOURCE_WORKOUT_HISTORY_UNSUPPORTED');
       result.workout_baseline={profile:'earned/imported-engine-history/v1',source_generation_id:source.source_id,
         activation_op_id:source.intent_op_id,session_log:log};
-      if(result.workout_history)result.workout_history.legacy_baseline=result.workout_baseline;
+      if(result.workout_history){
+        result.workout_history.legacy_baseline=result.workout_baseline;
+        // Restore only the existing proved baseline-before-native relationship.
+        // Pending records stay outside the SAME accepted-only projector; a
+        // later selected source cannot be assumed to precede older Starts.
+        const current=nativeCache.get(W);let ordered;
+        if(!current)fail('SOURCE_WORKOUT_ORDER_UNPROVEN');
+        try{
+          ordered=workoutProjector.projectAccepted(current.history,original,{sourceRevision,
+            importAnchor:{source_generation_id:source.source_id,activation_op_id:source.intent_op_id}}).order;
+        }catch(error){if(error?.code!=='WORKOUT_ORDER_IMPORT_DESCENT_UNPROVEN')throw error;}
+        if(ordered){
+          if(!isDeepStrictEqual(ordered.start_ids,result.workout_history.order.start_ids))fail('SOURCE_WORKOUT_ORDER_DISAGREEMENT');
+          result.workout_history.order=ordered;
+        }
+      }
       result.coverage.workout_source={source_id:source.source_id,activation_op_id:source.intent_op_id,selected_intent_id:selectionId,
         selected_action:selected.selection.action,original_checkpoint_W:source.before.W,material_sha256:result.coverage.material_sha256};
       if(sourceContext)result.source_basis=copy(sourceContext.frontier);

@@ -156,9 +156,9 @@ function createEngineHistoryProjector({athleteId,deviceId,projectWorkoutRecords,
   source.history.other_records=(source.history.other_records||[]).filter(r=>kept.has(r.operation?.op_id));
   return source;
  }
- function projectAccepted(history,generation,{sourceRevision,through,originalThrough}={}){
+ function projectAccepted(history,generation,{sourceRevision,through,originalThrough,importAnchor}={}){
   const source=acceptedSnapshot(history,generation,through);
-  return project(source.history,source.generation,{sourceRevision,originalThrough:originalThrough??source.history.frontier});
+  return project(source.history,source.generation,{sourceRevision,importAnchor,originalThrough:originalThrough??source.history.frontier});
  }
  async function projectAcceptedWithSources(history,generation,{through,...options}={}){
   const source=acceptedSnapshot(history,generation,through);

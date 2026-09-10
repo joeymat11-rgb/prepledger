@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.75 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.76 (working implementation)
+
+## Current v0.76 guarded supported-baseline order
+
+The actual guarded replay now connects the existing §5d single-baseline/post-activation order through the accepted-only history kernel. Original A and a proven rollback to A gain the original activation anchor; B cannot place older A Starts after itself. Exact completed membership/order must match, pending facts stay outside accepted inputs, and only unproved import descent falls back to unanchored members.78 affected checks pass, including the actual registered A/B/rollback reader path and explicit pending/prefix controls. Full general mixed chronology and current-policy/schema/qualification dependencies remain; no installed engine, issuer or public-host guard changed. Existing spec/report/checkpoint carry evidence and the separate APM source-control compatibility prerequisite.
 
 ## Current v0.75 bounded opener membership consumer
 

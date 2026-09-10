@@ -348,12 +348,37 @@ test('accepted-only projection keeps an all-local workout outside the prefix and
  assert.throws(()=>x.mapper.projectAccepted(x.rebuild(),broken,{sourceRevision:x.options.sourceRevision,through:0}),{code:'WORKOUT_ORDER_PREFIX_INCOMPLETE'},'Selecting zero cannot hide a broken authenticated input prefix');
 });
 
+test('accepted import ordering excludes a command-built synthetic pending Start and preserves hard prefix errors',async t=>{
+ const x=await capturedSourcesFixture(t),first=x.g.collections.ops[x.f.start.op_id];first.causal_parents.push('source-1');
+ const {O}=await load('rebuild/m3/w6/test/support.mjs'),Ops=require(path.join(w6,'rebuild/client/ops.cjs')),
+  Commands=require(path.join(w6,'rebuild/m4/workout/commands.cjs')).createWorkoutCommands({prescriptionCapture:x.f.args.prescriptionCapture});
+ const live=await x.f.source(),original=live.generation.collections.ops[x.f.start.op_id],native=Object.values(x.g.collections.ops).filter(op=>op.class==='session');
+ const action=Commands.prepare({action:'start',input:{planned_split_slot_id:'synthetic-unrelated-pending',plan_basis:original.plan_basis,
+  prescription_capture:original.prescription_capture,causal_parents:[]}});
+ const pending=Ops.build({...action,op_id:'synthetic-unrelated-pending-start',athlete_id:'ath-1',device_id:'dev-A',device_seq:Math.max(...native.map(op=>op.device_seq))+1,
+  predecessor:native.at(-1).op_id,schema_version:2,lease_id:original.lease_id,effective:original.effective},O.K_IDENTITY);
+ assert(Commands.validate(pending,id=>x.g.collections.ops[id]));
+ // Conditional reader input only; this does not claim the current public host
+ // permits creating an unrelated Start over its known completed history.
+ x.g.collections.ops[pending.op_id]=pending;x.g.collections.outbox[pending.op_id]={op_id:pending.op_id};
+ const history=x.rebuild(),before=JSON.stringify(x.g),importAnchor={source_generation_id:x.selections[0].source_id,activation_op_id:'source-1'};
+ const value=x.mapper.projectAccepted(history,x.g,{sourceRevision:x.options.sourceRevision,importAnchor});
+ assert.deepEqual(value.order.import_anchor,importAnchor);assert(!value.source_order.start_ids.includes(pending.op_id));
+ assert.equal(JSON.stringify(x.g),before);assert(Object.hasOwn(x.g.collections.outbox,pending.op_id));
+ assert.throws(()=>x.mapper.project(history,x.g,{sourceRevision:x.options.sourceRevision,importAnchor}),{code:'WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED'},'Using raw local history would incorrectly poison this accepted-only proof');
+ const broken=structuredClone(x.g);delete broken.collections.receipts['1'];
+ assert.throws(()=>x.mapper.projectAccepted(history,broken,{sourceRevision:x.options.sourceRevision,importAnchor}),{code:'WORKOUT_ORDER_PREFIX_INCOMPLETE'});
+});
+
 test('actual source reconstruction carries accepted native membership across later import, correction and rollback without plan writes',async t=>{
  const x=await capturedSourcesFixture(t),{createReadingReplay}=require('../../import/reading-replay.cjs'),{createImportPreparation}=require('../../import/prepare.cjs');
  const {createEngine}=require('../../../engine/index.cjs'),F=require('../../../m3/w7-preview/fixtures.cjs');
  const {createReadingProjector}=await load('rebuild/m3/w6/reading-history.mjs'),{storedWorkoutHistory}=await load('rebuild/m4/workout/stored-history.mjs');
  const day='2026-09-01',build='synthetic-native-source',engineFor=({day,hour})=>createEngine({clock:{today:()=>day,nowISO:()=>day+'T12:00:00.000Z',hour:()=>hour},ids:{fresh:name=>name+'synthetic'}});
  const native=Object.values(x.g.collections.ops).filter(op=>op.class==='session'),secondStart=native.findIndex(op=>op.kind==='session-start'&&op.op_id!==x.f.start.op_id);
+ // This conditional source fixture explicitly includes the source dependency
+ // that the source-aware host requires; it is still not a signed wire witness.
+ native[0].causal_parents.push('source-1');native[secondStart].causal_parents.push('source-2');
  let accepted=[x.g.collections.ops['source-1'],...native.slice(0,secondStart),x.g.collections.ops['source-2'],...native.slice(secondStart)];
  const secondSeq=secondStart+2,cut=secondSeq-1;
  x.b.W=secondSeq;x.selections[1].seq=secondSeq;
@@ -383,6 +408,7 @@ test('actual source reconstruction carries accepted native membership across lat
  const options={asOf:'2026-09-07',sourceRevision:20,assertCurrent:async()=>{},readSourceCuts,readSelectedSource};
  const beforeB=prefix(g,cut),first=await replay.projectLineage({...options,selectionId:'source-1',generation:beforeB,sourceBasis:sourceBasis(cut,'source-1')});
  assert.equal(first.ready,true,JSON.stringify(first.issues));assert.equal(first.workout_history.sessions.length,1);
+ assert.deepEqual(first.workout_history.order.import_anchor,{source_generation_id:x.selections[0].source_id,activation_op_id:'source-1'},'Existing causal single-baseline order must reach the actual source consumer');
  assert.equal(Object.hasOwn(first.accepted_state,'workoutFacts'),false,'Native read state is never written into the immutable legacy/local image');
  const localBytes=Buffer.from(JSON.stringify(first.accepted_state)),incoming=structuredClone(synthetic),extraDay='2026-07-01';
  incoming.sessionLog[extraDay]=structuredClone(Object.values(incoming.sessionLog)[0]);incoming.sessionLog[extraDay].entries[0].reps[0]=4;
@@ -395,6 +421,7 @@ test('actual source reconstruction carries accepted native membership across lat
  accepted.push(edit);const current=inventory(),immutable=JSON.stringify({current,nodes:[...nodes]});
  const value=await replay.projectLineage({...options,selectionId:'source-2',generation:current,sourceBasis:sourceBasis(accepted.length,'source-2')});
  assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);
+ assert.equal(value.workout_history.order.import_anchor,undefined,'Older A Start cannot be placed after the new B baseline');
  assert.equal(value.workout_history.incomplete_sessions.length,1);assert.equal(value.workout_history.source_members.filter(row=>row.op_id===edit.op_id).length,1);
  assert.equal(JSON.stringify({current,nodes:[...nodes]}),immutable);
  const nativeStep=value.coverage.source_lineage[0].native_membership;
@@ -433,6 +460,10 @@ test('actual source reconstruction carries accepted native membership across lat
  assert.equal(after.ready,true,JSON.stringify(after.issues));assert.equal(Object.hasOwn(after.accepted_state.sessionLog,extraDay),false);
  assert.equal(after.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);assert.equal(after.workout_history.incomplete_sessions.length,1);
  assert.deepEqual(after.workout_history.sessions[0].capture,value.workout_history.sessions[0].capture);assert.equal(after.workout_history.source_members.filter(row=>row.op_id===edit.op_id).length,1);
+ assert.deepEqual(after.workout_history.order.import_anchor,first.workout_history.order.import_anchor,'Rollback resolves original A activation, not the later rollback receipt');
+ const rolledInput={...after.accepted_state,workoutFacts:after.workout_history};
+ assert.deepEqual(proposed.performedHistoryRows(rolledInput).map(row=>row.source),['legacy','performed']);
+ assert.doesNotThrow(()=>proposed.typicalError(rolledInput,'demo-press'),'Existing supported ordered reader is available again after proven rollback');
  const afterCapture=memberAdapter.prepare({...captureInput,sourceProjection:after,source_basis:after.source_basis}).capture;
  assert.equal(JSON.parse(afterCapture.slots[0].effort.source_json).target,2,'Rollback removes only the later imported rating; original native capture remains unchanged');
  const missing=createReadingReplay(dependencies),unmapped=await missing.projectLineage({...options,selectionId:rollback.op_id,generation:rolled,sourceBasis:sourceBasis(accepted.length,rollback.op_id)});
