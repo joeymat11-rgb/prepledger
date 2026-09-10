@@ -2,10 +2,15 @@
 // Row-inventory transport only. A verified chunk is NOT a complete R1 profile,
 // current write permission, recovered key, frontier advance or activation.
 const C=require('./codec.cjs');
-const {COLLECTIONS}=require('./project.cjs');
+const {COLLECTIONS:BASE_COLLECTIONS}=require('./project.cjs');
 const {createPublicVerifier,decodeSignature}=require('../public-client.cjs');
+// Closed version selection. Default v3 bytes, domains and 20-count inventory
+// remain exact; source-enabled v4 cannot be consumed as an old proof.
+function createPagedCodec(version=3) {
+if(version!==3&&version!==4)throw new TypeError('Unsupported row inventory');
+const COLLECTIONS=version===3?BASE_COLLECTIONS:Object.freeze([...BASE_COLLECTIONS,'sourceImports']);
 const LIMITS=Object.freeze({row:2000000,rows:32,budget:262144,metadata:8192,begin:1048576,request:4000000,response:6000000});
-const domain=kind=>'earned/r1/rows-v3/'+kind;
+const domain=kind=>'earned/r1/rows-v'+version+'/'+kind;
 const DOMAINS=Object.freeze(Object.fromEntries(['begin','continue','manifest','cursor','page','finish'].map(k=>[k,domain(k)])));
 const FIELDS=Object.freeze({
  manifest:['profile','key_epoch','scope_digest','nonce','context_id','request_digest','basis_digest','claim_set_digest','mode','revision','storage_control_digest','snapshot_id','collection_counts','chain_seed'],
@@ -163,9 +168,11 @@ function createRowsVerifier({keys,subtle}={}){
    check(same(p.cumulative_counts,count),'ROWS_COUNTS');
    check(p.chain_digest===hash('chain',[previous?previous.chain_digest:m.chain_seed,md,p.index,p.rows_digest,count]),'ROWS_CHAIN');
    if(!p.rows.length)check(same(p.next_cursor.last_key,previous?.last_key??null),'ROWS_CURSOR_KEY');
-   return {verified:true,kind:'rows-v3-inventory-chunk',terminal:Boolean(result.finish),value:result};
+   return {verified:true,kind:'rows-v'+version+'-inventory-chunk',terminal:Boolean(result.finish),value:result};
   }catch(error){return {verified:false,code:error.code||'INVALID_ROWS_PROOF'};}
  }});
 }
-module.exports={LIMITS,DOMAINS,FIELDS,COLLECTIONS,hash,cursorReference,manifestDigest,parseManifest,parseCursor,parseResponse,finishOwnedResponse,decodeRequest,
- makeManifest,makePage,makeFinish,createRowsVerifier};
+return Object.freeze({LIMITS,DOMAINS,FIELDS,COLLECTIONS,hash,cursorReference,manifestDigest,parseManifest,parseCursor,parseResponse,finishOwnedResponse,decodeRequest,
+ makeManifest,makePage,makeFinish,createRowsVerifier});
+}
+module.exports={...createPagedCodec(),createSourceRowsCodec:()=>createPagedCodec(4)};

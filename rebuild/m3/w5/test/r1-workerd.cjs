@@ -13,7 +13,8 @@ const directory = path.resolve(__dirname, ".."), dependency = createRequire(path
 const wrangler = createRequire(dependency.resolve("wrangler/package.json"));
 const NOW = "2026-09-04T16:00:00.000Z", NAME = "earned-r1-metered-application";
 
-async function createR1Runtime({ authorityRoot, p1 = false } = {}) {
+async function createR1Runtime({ authorityRoot, p1 = false, sourceProfile } = {}) {
+  if(sourceProfile!==undefined&&(sourceProfile!=='earned/source-import/v1'||!p1))throw Error('Explicit synthetic source/P1 profile required');
   if (wrangler("./package.json").version !== "4.129.0") throw Error("pinned Wrangler required");
   await buildCore(authorityRoot === undefined ? {} : { authorityRoot });
   const bundle = await dependency("esbuild").build({ stdin: { resolveDir: directory, sourcefile: "r1-metered-entry.mjs", contents: `
@@ -50,7 +51,8 @@ async function createR1Runtime({ authorityRoot, p1 = false } = {}) {
       const authorityKey=JSON.parse(env.AUTHORITY_KEY), auth=JSON.parse(env.AUTH_CONFIG);
       const bridge=createBridge({db,authorityKey,identityKeys:JSON.parse(env.IDENTITY_KEYS),clock:()=>env.TEST_NOW,
         reconciliationProfile:'earned/r1/v1',r1:{issuer:auth.issuer,origin:auth.origins[0]},
-        ...(env.P1_TEST_KEY ? {storage:await storageFromTestBinding(env.P1_TEST_KEY)} : {})});
+        ...(env.P1_TEST_KEY ? {storage:{...await storageFromTestBinding(env.P1_TEST_KEY),sourceProfile:env.SOURCE_PROFILE},
+          sourceProfile:env.SOURCE_PROFILE} : {})});
       const response=await createWorker({bridge,authorityKey,auth,clock:()=>env.TEST_NOW}).fetch(request);
       const headers=new Headers(response.headers); headers.set('X-R1-Test-D1',JSON.stringify(stats));
       return new Response(response.body,{status:response.status,headers});
@@ -64,6 +66,7 @@ async function createR1Runtime({ authorityRoot, p1 = false } = {}) {
     compatibilityDate:"2026-09-03",compatibilityFlags:["nodejs_compat"],host:"127.0.0.1",port:0,inspectorPort:0,
     d1Databases:{DB:"earned-r1-resource-local"},resourcePersistencePath:fs.mkdtempSync(path.join(os.tmpdir(),"earned-r1-meter-")),
     bindings:{AUTHORITY_KEY:JSON.stringify(authorityKey),IDENTITY_KEYS:JSON.stringify(identityKeys),AUTH_CONFIG:JSON.stringify(issuer.config),TEST_NOW:NOW,
+      ...(sourceProfile ? {SOURCE_PROFILE:sourceProfile} : {}),
       ...(p1Bytes ? {P1_TEST_KEY:p1Bytes.toString('base64url')} : {})},
     log:new Log(LogLevel.ERROR),telemetry:{enabled:false},cf:false}));
   try {
@@ -83,7 +86,13 @@ async function createR1Runtime({ authorityRoot, p1 = false } = {}) {
       await db.prepare('INSERT INTO authority_storage VALUES(1,?,?,?)').bind(P.PROFILE,P.NAMESPACE,P.EPOCH).run();
       storage=await P.createTestStorage(p1Bytes);
     }
-    const bridge=createBridge({db,authorityKey,identityKeys,clock:()=>NOW,reconciliationProfile:"earned/r1/v1",r1:{issuer:issuer.config.issuer,origin:issuer.config.origins[0]},storage});
+    if(sourceProfile){
+      const fourth=sql('0004_source_imports.sql'),parts=fourth.match(/CREATE TRIGGER[\s\S]*?^END;/gm)||[];
+      if(parts.length!==2)throw Error('Unconsumed source migration');
+      await db.batch(parts.map(s=>db.prepare(s)));
+      storage={...storage,sourceProfile};
+    }
+    const bridge=createBridge({db,authorityKey,identityKeys,clock:()=>NOW,reconciliationProfile:"earned/r1/v1",r1:{issuer:issuer.config.issuer,origin:issuer.config.origins[0]},storage,sourceProfile});
     const url=await mf.ready;
     return {mf,db,bridge,authorityKey,identityKeys,issuer,name:NAME,url,NOW,storage,close:()=>mf.dispose(),
       async request(route,body,subject="subject-first") {

@@ -73,9 +73,9 @@ function projection(collection, original) {
   }
   return JSON.stringify(out);
 }
-function identity(row) {
+function identity(row, sourceProfile) {
   for (const field of RAW) string(row[field], field !== 'value');
-  if (!supported.has(row.collection)) throw integrity();
+  if (!supported.has(row.collection) && !(sourceProfile === 'earned/source-import/v1' && row.collection === 'sourceImports')) throw integrity();
 }
 function aad(namespace, row, envelope) {
   return C.bytes(JSON.stringify(['earned/authority-row/aad/v1', namespace, row.athlete,
@@ -83,7 +83,8 @@ function aad(namespace, row, envelope) {
     envelope.key_epoch, row.value]));
 }
 
-function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThis.crypto }) {
+function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThis.crypto, sourceProfile }) {
+  if (sourceProfile !== undefined && sourceProfile !== 'earned/source-import/v1') throw integrity();
   try {
     string(namespace);
     if (typeof getWrappingKey !== 'function' || !crypto?.subtle || typeof crypto.getRandomValues !== 'function') throw unavailable();
@@ -109,7 +110,7 @@ function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThi
         const control = snapshot(context, ['revision', 'writeEpoch']);
         if (!C.safe(control.revision) || control.revision === Number.MAX_SAFE_INTEGER) throw integrity();
         writeEpoch = string(control.writeEpoch);
-        identity(row);
+        identity(row, sourceProfile);
         original = C.bytes(row.value);
         row.value = projection(row.collection, parse(row.value));
         row.storage_revision = control.revision + 1;
@@ -133,7 +134,7 @@ function createAuthorityRowCodec({ namespace, getWrappingKey, crypto = globalThi
       try {
         row = snapshot(physicalRow, PHYSICAL);
         const control = snapshot(context, ['revision']);
-        identity(row);
+        identity(row, sourceProfile);
         parse(row.value);
         if (!C.safe(control.revision) || !C.safe(row.storage_revision, 1) || row.storage_revision > control.revision) throw integrity();
         envelope = parse(row.sealed);

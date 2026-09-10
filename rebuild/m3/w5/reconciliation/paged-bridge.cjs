@@ -3,7 +3,7 @@
 // local activation, recovered credentials or current offline-write permission.
 const {randomBytes}=require('node:crypto');
 const {rowKey}=require('../../../authority/store.cjs');
-const C=require('./codec.cjs'),P=require('./paged-codec.cjs'),I=require('./issuer.cjs');
+const C=require('./codec.cjs'),I=require('./issuer.cjs');
 const Sign=require('../crypto.cjs');
 const {createDatabaseStorage}=require('../storage/database.cjs');
 const columns='r.athlete,r.collection,r.row_id,r.value,r.sealed,r.storage_revision';
@@ -26,13 +26,16 @@ const standingSQL=`SELECT ${columns} FROM authority_rows r WHERE athlete=${own} 
  (collection IN ('deviceIssuance','revocations') AND row_id=?) OR
  (collection='issuedLeases' AND row_id=json_array(?,(SELECT json_extract(value,'$.current_lease_id')
  FROM authority_rows WHERE athlete=${own} AND collection='deviceIssuance' AND row_id=?))))`;
-const names=P.COLLECTIONS.map(c=>"'"+c+"'").join(','); // Static source enums, never caller text.
-const countsSQL=`SELECT CASE WHEN collection IN (${names}) THEN collection ELSE 'UNSUPPORTED' END AS collection,COUNT(*) AS n
- FROM authority_rows WHERE athlete=${own} GROUP BY 1`;
 const metaSQL=`SELECT v.revision,s.athlete,c.profile,c.namespace,c.write_epoch FROM authority_revision v
  LEFT JOIN authority_subjects s ON s.subject=? LEFT JOIN authority_storage c ON c.id=1 WHERE v.id=1`;
 const fail=(code,status=400,retryable=false)=>{throw new C.R1Error(code,status,retryable);};
-function createPagedBridge({db,storage:config,authorityKey,r1}={}){
+function createPagedBridge({db,storage:config,authorityKey,r1,sourceProfile}={}){
+ if(sourceProfile!==undefined&&sourceProfile!=='earned/source-import/v1')throw TypeError('Unsupported source profile');
+ if(sourceProfile!==undefined&&config?.sourceProfile!==sourceProfile)throw TypeError('Explicit source storage required');
+ const P=sourceProfile===undefined?require('./paged-codec.cjs'):require('./paged-codec.cjs').createSourceRowsCodec();
+ const names=P.COLLECTIONS.map(c=>"'"+c+"'").join(','); // Closed source enums, never caller SQL.
+ const countsSQL=`SELECT CASE WHEN collection IN (${names}) THEN collection ELSE 'UNSUPPORTED' END AS collection,COUNT(*) AS n
+ FROM authority_rows WHERE athlete=${own} GROUP BY 1`;
  if(!db||!config||!authorityKey||!r1)throw TypeError('P1 database, signing key and pinned auth context required');
  const storage=createDatabaseStorage(db,config);
  const sign=record=>({...record,authority_signature:Sign.signatureOver(record,authorityKey,record.profile)});

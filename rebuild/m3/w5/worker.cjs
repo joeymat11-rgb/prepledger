@@ -48,19 +48,28 @@ function createWorker({ bridge, authorityKey, auth, clock = () => new Date().toI
         const principal = authenticate(request, new Date(now()).getTime());
         const url = new URL(request.url);
         const rowsRoute = url.pathname === '/reconcile/rows';
-        r1 = rowsRoute || R1_ROUTES.has(url.pathname);
+        const sourceRoute = url.pathname === '/import' && bridge.sourceProfile === 'earned/source-import/v1';
+        r1 = rowsRoute || sourceRoute || R1_ROUTES.has(url.pathname);
         if (!ROUTES.has(url.pathname) && !r1) return error(404, "NOT_FOUND");
         if (request.method !== "POST") return error(405, "METHOD_NOT_ALLOWED");
         if (url.search || !(request.headers.get("content-type") || "").toLowerCase().startsWith("application/json"))
           return error(400, "MALFORMED_REQUEST");
         let raw;
-        try { raw = await boundedBody(request, rowsRoute ? require('./reconciliation/paged-codec.cjs').LIMITS.request : r1 ? 1048576 : MAX_REQUEST_BYTES, rowsRoute); }
+        try { raw = await boundedBody(request, rowsRoute ? require('./reconciliation/paged-codec.cjs').LIMITS.request : sourceRoute ? MAX_REQUEST_BYTES : r1 ? 1048576 : MAX_REQUEST_BYTES, rowsRoute || sourceRoute); }
         catch (cause) {
           if (r1) return reply(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400, { error: {
             code: cause.code === "REQUEST_TOO_LARGE" ? "RECONCILE_LIMIT" : "INVALID_R1_REQUEST", retryable: false } });
           return error(cause.code === "REQUEST_TOO_LARGE" ? 413 : 400,
           cause.code === "REQUEST_TOO_LARGE" ? "REQUEST_TOO_LARGE" : "MALFORMED_REQUEST"); }
         if (r1) {
+          if(sourceRoute){
+            if(typeof bridge.sourceScoped!=='function')return error(501,'NOT_IMPLEMENTED');
+            const result=await bridge.sourceScoped(principal.subject,raw,{issuer:auth.issuer,origin:principal.origin});
+            if(result?.status==='UNAVAILABLE')return error(503,'UNAVAILABLE');
+            // The source result is an acknowledgement only. Activation evidence
+            // is its immutable binding in a COMPLETE signed rows-v4 inventory.
+            return reply(200,result);
+          }
           if(rowsRoute){
             if(typeof bridge.rowsScoped!=='function')return reply(409,{error:{code:'PROFILE_UNSUPPORTED',retryable:false}});
             return reply(200,await bridge.rowsScoped(principal.subject,raw,{issuer:auth.issuer,origin:principal.origin}));

@@ -23,6 +23,9 @@ function createBridge(config) {
   const retries = config.maxAttempts ?? 256;
   const profile = config.reconciliationProfile;
   if (profile !== undefined && profile !== 'earned/r1/v1') throw new TypeError('Unsupported reconciliation profile');
+  const sourceProfile = config.sourceProfile;
+  if (sourceProfile !== undefined && (sourceProfile !== 'earned/source-import/v1' || profile !== 'earned/r1/v1' ||
+      config.storage?.sourceProfile !== sourceProfile)) throw new TypeError('Explicit R1/P1 source profile required');
   const storage = config.storage === undefined ? null : require('./storage/database.cjs').createDatabaseStorage(db,config.storage);
   const rowColumns = storage ? storage.rowColumns : 'athlete, collection, row_id, value';
   const storageFailure = cause => {
@@ -259,6 +262,10 @@ function createBridge(config) {
           actor = issued.deviceId;
           result = { payload:{issuance:issued.issuance,current_standing:I.standing(backend,athlete,actor)},
             scopeDigest:C.scopeDigest(resultContext()),intentDigest:issued.intentDigest };
+        } else if (action === 'source') {
+          if (!principal || sourceProfile === undefined) I.error('PROFILE_UNSUPPORTED',409);
+          trustedContext(context);
+          result = require('./source/transaction.cjs').transact({backend,authority,athlete,actor,request,rawRows});
         } else if (action === 'recoveryReplay') {
           const scopeDigest = C.scopeDigest(resultContext());
           const envelopeBytes = C.bytes(request.envelopeBytes), envelope = C.parse(envelopeBytes,C.LIMITS.request);
@@ -345,6 +352,7 @@ function createBridge(config) {
     return unavailable();
   }
   return {
+    sourceProfile,
     initialize:(athletes,subjects={}) => execute(null,[],null,{athletes,subjects}),
     initializeR1:(athletes,subjects={}) => executeR1('initialize',null,null,null,{athletes,subjects}),
     invoke:(method,args=[]) => executeR1('invoke',null,{method,args}),
@@ -357,6 +365,11 @@ function createBridge(config) {
     rowsScoped:(subject,raw,context) => {
       if(!storage)throw new C.R1Error('PROFILE_UNSUPPORTED',409);
       return require('./reconciliation/paged-bridge.cjs').createPagedBridge(config).read(subject,raw,context);
+    },
+    sourceScoped:(subject,raw,context) => {
+      if(sourceProfile===undefined)throw new C.R1Error('PROFILE_UNSUPPORTED',409);
+      const request=require('./source/codec.cjs').decodeRequest(raw);
+      return executeR1('source',{subject,device:request.device_id},request,context);
     },
     recoveryReplayScoped:(subject,device,request,context) => executeR1('recoveryReplay',{subject,device},request,context),
     closeAccount:(athlete) => executeR1('closeAccount',null,{athlete}),

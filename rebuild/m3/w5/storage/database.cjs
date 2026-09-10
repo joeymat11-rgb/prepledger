@@ -11,7 +11,7 @@ function createDatabaseStorage(db, config) {
       typeof config.getWrappingKey !== 'function') throw new TypeError('Explicit P1 storage configuration required');
   const namespace = config.namespace;
   const { createAuthorityRowCodec } = require('./row-codec.cjs');
-  const codec = createAuthorityRowCodec({namespace,getWrappingKey:config.getWrappingKey,crypto:config.crypto ?? globalThis.crypto});
+  const codec = createAuthorityRowCodec({namespace,getWrappingKey:config.getWrappingKey,crypto:config.crypto ?? globalThis.crypto,sourceProfile:config.sourceProfile});
   const controlStatement = () => db.prepare('SELECT profile, namespace, write_epoch FROM authority_storage WHERE id = 1');
 
   async function load(controlResult, rows, revision) {

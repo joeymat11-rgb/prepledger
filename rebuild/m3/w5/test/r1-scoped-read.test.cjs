@@ -226,9 +226,32 @@ for(const change of ['subject-remap','actor-revocation','account-closure']) test
   assert.equal(db.calls.filter(c=>c.length===2).length,0,'failed actual guard must not record a successful batch');
 });
 
-test('non-reconcile source retains pinned bytes except explicit P1 storage seams and two reviewed workout bindings',()=>{
+test('old writers retain pinned bytes outside explicit P1, workout and optional source seams',()=>{
   const old=original.toString('utf8');
   let candidate=fs.readFileSync(path.resolve(__dirname,'../bridge.cjs'),'utf8');
+  // IMPORT-CONTROLLER v1.2 adds only this optional branch/config/export. Strip
+  // these exact literals before the SAME complete original writer comparison.
+  // This records the candidate delta; it grants no independent acceptance.
+  const sourceSeams=[
+    `  const sourceProfile = config.sourceProfile;
+  if (sourceProfile !== undefined && (sourceProfile !== 'earned/source-import/v1' || profile !== 'earned/r1/v1' ||
+      config.storage?.sourceProfile !== sourceProfile)) throw new TypeError('Explicit R1/P1 source profile required');
+`,
+    `        } else if (action === 'source') {
+          if (!principal || sourceProfile === undefined) I.error('PROFILE_UNSUPPORTED',409);
+          trustedContext(context);
+          result = require('./source/transaction.cjs').transact({backend,authority,athlete,actor,request,rawRows});
+`,
+    `    sourceProfile,
+`,
+    `    sourceScoped:(subject,raw,context) => {
+      if(sourceProfile===undefined)throw new C.R1Error('PROFILE_UNSUPPORTED',409);
+      const request=require('./source/codec.cjs').decodeRequest(raw);
+      return executeR1('source',{subject,device:request.device_id},request,context);
+    },
+`,
+  ];
+  for(const seam of sourceSeams){assert.equal(candidate.split(seam).length,2,'Unique explicit source-profile seam');candidate=candidate.replace(seam,'');}
   // rows-v3 v0.4 adds exactly one separate reader export. The old writers and
   // old reconciliation route still compare byte-for-byte below. This declared
   // new seam awaits its own independent review; it does not inherit old approval.
