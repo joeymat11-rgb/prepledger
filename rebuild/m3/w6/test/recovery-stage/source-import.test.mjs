@@ -1,0 +1,129 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {webcrypto} from 'node:crypto';
+import {createRequire} from 'node:module';
+import {resolve} from 'node:path';
+import {IDBKeyRange} from 'fake-indexeddb';
+import {fixture,initial,config,createT2Stage} from '../support.mjs';
+import {createDurablePublicClient} from '../../public-client.mjs';
+import {createRowsRecovery,createRowsFetcher} from '../../recovery-transport.mjs';
+import {parseStrictJson} from '../../strict-json.mjs';
+if(!process.env.EARNED_ROWS_R1_ROOT||!process.env.EARNED_IMPORT_M4_ROOT)throw Error('Use run-source-import.cjs');
+const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
+const C=require('./reconciliation/codec.cjs'),BaseP=require('./reconciliation/paged-codec.cjs'),P=BaseP.createSourceRowsCodec();
+const S=require('./source/codec.cjs'),Sign=require('./crypto.cjs'),Ops=require('../../client/ops.cjs');
+const hash=value=>P.hash('source-recovery-test',value);
+
+test('actual prepared source, encrypted W6 custody, R1 binding and indexed recovery preserve pending work through rollback/reopen',async t=>{
+  const runtime=await require('./test/r1-workerd.cjs').createR1Runtime({p1:true,sourceProfile:S.PROFILE});t.after(()=>runtime.close());
+  await runtime.bridge.initializeR1({first:{plan:{},devices:{}}},{'subject-first':'first'});
+  const enroll=async intent_id=>(await runtime.bridge.enrollScoped('subject-first',{intent_id,schema_version:1,nonce:hash(intent_id)})).payload.issuance.lease;
+  const localLease=await enroll('local'),remoteLease=await enroll('remote'),device=localLease.device_id;
+  const keys=[Sign.publicKeyOf(runtime.authorityKey)],f=await fixture({namespace:'first/'+device});t.after(()=>f.repo.close());
+  const generation=initial();generation.metadata.authorityLease=localLease;await f.repo.initialize(generation,'synthetic-enrollment-only');
+  const scopeDigest=C.scopeDigest({issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0],subject:'subject-first',athleteId:'first',actorDeviceId:device});
+  const recovery={codec:C,protocol:P,protocols:[BaseP,P],sourceCodec:S,scopeDigest,keyRange:IDBKeyRange};
+  const args={repository:f.repo,stage:createT2Stage(()=>({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first}),{allowInbound:true}),
+    namespace:f.setup.namespace,athleteId:'first',deviceId:device,sessionEpoch:1,isCurrentSession:()=>true,observationEpoch:()=>1,
+    observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys,crypto:webcrypto,permissionNowIso:()=>localLease.not_before,recovery};
+  let client=createDurablePublicClient(args),repo=f.repo;
+  // Preserve an actual old v3 archive before the source-enabled transition.
+  // This read uses the real old D1/P1 reader directly; new source recovery below
+  // uses workerd HTTP. No old schema/record is rewritten to a new profile.
+  const oldClient=createDurablePublicClient({...args,recovery:{...recovery,protocol:BaseP}});
+  const oldPrepared=await oldClient.prepareLocalRecovery();assert(oldPrepared.prepared,oldPrepared.code);const oldBasis=oldPrepared.basis;
+  const oldStage=repo.recovery({codec:C,protocol:BaseP,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null});
+  const oldReader=require('./reconciliation/paged-bridge.cjs').createPagedBridge({db:runtime.db,authorityKey:runtime.authorityKey,
+    storage:{...runtime.storage,sourceProfile:undefined},r1:{issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0]}});
+  const oldVerifier=BaseP.createRowsVerifier({keys,subtle:webcrypto.subtle});
+  const oldRecovery=await createRowsRecovery({stage:oldStage,codec:C,protocol:BaseP,newRequest:async()=>oldBasis.request({nonce:hash('old'),contextId:hash('old-context')}),
+    expected:req=>oldBasis.expected(req),fetchPage:async body=>({status:200,bodyBytes:C.encode(await oldReader.read('subject-first',C.encode(body),
+      {issuer:runtime.issuer.config.issuer,origin:runtime.issuer.config.origins[0]}))}),
+    observeNegative:async(reply,context)=>{assert((await oldVerifier.verify(reply.bodyBytes,{expected:context.expected,previousCursor:context.previousCursor})).verified);},
+    validateProfile:input=>oldBasis.reconcile(input)}).run();
+  assert(oldRecovery.evidenceReady,oldRecovery.reason);
+  const oldProof=await oldRecovery.evidence.archiveProof();assert.equal(oldProof.profile,'earned/local-recovery-proof/v1');
+  const originalBudget=await oldStage.attemptPersistence().load();
+  const newBudget=repo.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null}).attemptPersistence();
+  assert.deepEqual(await newBudget.load(),originalBudget,'Protocol change preserves the original recovery attempt accounting');
+  const oldCandidate=await oldRecovery.evidence.assemble();let oldGeneration;await oldCandidate.inspect(g=>{oldGeneration=g;});
+  await repo.commit(await repo.load(),oldGeneration);
+  const missingRegistry=await createDurablePublicClient({...args,recovery:{...recovery,protocols:[P]}}).prepareLocalRecovery();
+  assert.equal(missingRegistry.prepared,false);assert.equal(missingRegistry.code,'RECOVERY_ARCHIVE_PROTOCOL_UNAVAILABLE');
+  const sourceId='synthetic-engine-source',before=await repo.load();
+  const m4=process.env.EARNED_IMPORT_M4_ROOT;
+  const {createEngine}=require(resolve(m4,'rebuild/engine/index.cjs'));
+  const F=require(resolve(m4,'rebuild/m3/w7-preview/fixtures.cjs'));
+  const engine=createEngine({clock:{today:()=>F.SYNTHETIC_DAY,nowISO:()=>F.SYNTHETIC_DAY+'T12:00:00.000Z',hour:()=>12},ids:{fresh:p=>p+'synthetic'}});
+  const original=new TextEncoder().encode(JSON.stringify(F.createSyntheticState(),null,2)+'\r\n');
+  const prepared=require(resolve(m4,'rebuild/m4/import/prepare.cjs')).createImportPreparation({engine,parseStrictJson}).prepare(original,{localBytes:original});
+  const custody=repo.importCustody({parseStrictJson,validateContext:()=>null});
+  await custody.stage(sourceId,before,{sourceBytes:prepared.sourceBytes(),candidateBytes:prepared.candidateBytes(),localBytes:prepared.localBytes(),
+    engineContextJson:JSON.stringify({build:'synthetic-installed-engine',clock:F.SYNTHETIC_DAY})});
+  const held=await custody.load(sourceId),text=bytes=>new TextDecoder().decode(bytes);
+  const material={source_json:text(held.sourceBytes),candidate_json:text(held.candidateBytes),local_json:text(held.localBytes),
+    checkpoint_json:JSON.stringify(held.checkpoint),engine_context_json:held.engineContextJson};
+  const expected=S.frontier(()=>undefined,0),staged=S.prepareMaterial(sourceId,material,expected);
+  const sourceRequest=(action,fields)=>({profile:S.PROFILE,device_id:remoteLease.device_id,action,...fields});
+  const send=async body=>{const response=await runtime.request('/import',body);assert.equal(response.status,200,JSON.stringify(response.body));return response.body;};
+  await send(sourceRequest('manifest',{manifest:staged.manifest}));
+  for(let index=0;index<staged.chunks.length;index++)await send(sourceRequest('chunk',{source_id:sourceId,index,data_b64:staged.chunks[index]}));
+  let remoteSeq=0,predecessor=null;
+  const remoteOp=payload=>{const seq=++remoteSeq,op_id='source-remote-'+seq;const op=Ops.build({op_id,athlete_id:'first',device_id:remoteLease.device_id,
+    device_seq:seq,predecessor,parents:[],kind:'fact',class:payload.type?'event':'reading',lease_id:remoteLease.lease_id,
+    effective:{local_date:'2026-09-04',local_time:'12:00',utc_offset:'-04:00'},payload},runtime.identityKeys.first);predecessor=op_id;return op;};
+  const intentPayload={type:'source-import-intent',interval:{start:'2026-09-04',end:'2026-09-04'},source_id:sourceId,material_digest:staged.manifest.material_digest};
+  const activation=remoteOp(intentPayload),bound=await send(sourceRequest('activate',{source_id:sourceId,expected,operation:activation}));
+  assert.equal(bound.binding.seq,1);
+  const remote=remoteOp({lb:{value:177,unit:'lb'},note:'SYNTHETIC accepted after source'});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',remote])).status,'ACCEPTED');
+  for(const lb of [171,172,173])assert((await client.execute('weighIn',{lb})).acknowledged);
+  const later=await repo.load(),pending=structuredClone(later.generation.collections.outbox),localOps=structuredClone(later.generation.collections.ops);
+  assert.equal(Object.keys(pending).length,3);
+  let nonce=0,lastRecoveryInput;
+  async function recover(){
+    const p=await client.prepareLocalRecovery();assert(p.prepared,p.code);const basis=p.basis;
+    const stage=repo.recovery({codec:C,protocol:P,verificationKeys:keys,keyRange:IDBKeyRange,validateContext:()=>null});
+    const verifier=P.createRowsVerifier({keys,subtle:webcrypto.subtle});
+    const result=await createRowsRecovery({stage,codec:C,protocol:P,newRequest:async()=>basis.request({nonce:hash(++nonce),contextId:hash(['context',nonce])}),
+      expected:req=>basis.expected(req),fetchPage:createRowsFetcher({baseURL:runtime.url,codec:C,protocol:P,
+        headers:async()=>({Origin:runtime.issuer.config.origins[0],Authorization:'Bearer '+runtime.issuer.token('subject-first')})}),
+      observeNegative:async(reply,context)=>{assert.equal(reply.status,200);assert((await verifier.verify(reply.bodyBytes,{expected:context.expected,previousCursor:context.previousCursor})).verified);},
+      validateProfile:input=>{lastRecoveryInput=input;return basis.reconcile(input);}}).run({explicitRetry:true});
+    assert(result.evidenceReady,result.reason);return result.evidence;
+  }
+  const first=await recover(),selected=await first.sourceImport();assert.equal(selected.current.intent_op_id,activation.op_id);
+  const noSource=await createDurablePublicClient({...args,recovery:{...recovery,sourceCodec:undefined}}).prepareLocalRecovery();
+  assert(noSource.prepared,noSource.code);
+  await assert.rejects(noSource.basis.reconcile(lastRecoveryInput),{code:'SOURCE_PROFILE_REQUIRED'},'New source rows cannot pass as opaque auxiliary records');
+  const candidate=await first.assemble();let imported;
+  await candidate.inspectSourceImport(value=>{imported=value;});
+  assert.deepEqual(imported.material,material);assert.equal(imported.source.frontier.W,2);
+  imported.material.source_json='{"caller":"changed"}';imported.source.frontier.W=999;
+  selected.current.intent_op_id='caller-changed';
+  await candidate.inspectSourceImport(value=>{assert.deepEqual(value.material,material);assert.equal(value.source.current.intent_op_id,activation.op_id);});
+  await candidate.inspect(value=>{assert.deepEqual(value.collections.outbox,pending);for(const [id,op]of Object.entries(localOps))assert.deepEqual(value.collections.ops[id],op);
+    assert.deepEqual(value.collections.ops[remote.op_id],remote);assert.deepEqual(value.collections.ops[activation.op_id],activation);});
+  assert.deepEqual(await repo.load(),later,'Recovery handle alone publishes no active generation');
+  const rollback=remoteOp({...intentPayload,type:'source-rollback-intent',target_activation_id:activation.op_id});
+  await send(sourceRequest('rollback',{target_activation_id:activation.op_id,expected:selected.frontier,operation:rollback}));
+  const second=await recover(),rolled=await second.assemble();let historical;
+  await rolled.inspectSourceImport(value=>{assert.equal(value.source.current.action,'rollback');assert.deepEqual(value.material,material);});
+  await rolled.inspect(value=>{historical=value;assert.deepEqual(value.collections.outbox,pending);assert.equal(value.collections.sync.frontier.W,3);});
+  // Exercise the existing encrypted storage boundary for an INACTIVE historical
+  // recovery cache, not a qualified source/current-prescription controller.
+  assert.equal((await second.archiveProof()).profile,'earned/local-recovery-proof/v2');
+  assert.deepEqual(historical.metadata.recoveryArchives[0],oldProof,'Old proof remains byte-for-byte represented beside v4');
+  assert.equal(rolled.projectionPending,true);await repo.commit(await repo.load(),historical);
+  await assert.rejects(second.archiveProof(),{code:'LOCAL_RECOVERY_CHANGED'},'Publication retires the previous local basis');
+  await assert.rejects(rolled.inspectSourceImport(()=>assert.fail('Retired source must not reach visitor')),{code:'LOCAL_RECOVERY_CHANGED'});
+  repo.close();const reopened=await f.fresh();repo=reopened.repository;t.after(()=>repo.close());client=createDurablePublicClient({...args,repository:repo});
+  assert((await client.prepareLocalRecovery()).prepared,'Reopen authenticates the retained v4 archive/source without erasing pending work');
+  for(const lb of [174,175])assert((await client.execute('weighIn',{lb})).acknowledged);
+  const after=await repo.load();assert.equal(Object.keys(after.generation.collections.outbox).length,5);
+  const saved=await repo.importCustody({parseStrictJson,validateContext:()=>null}).load(sourceId);
+  assert.deepEqual(saved.checkpoint,before);assert(C.sameBytes(saved.sourceBytes,prepared.sourceBytes()),'Exact source bytes survive reopen');
+  const final=await recover(),finalCandidate=await final.assemble();
+  await finalCandidate.inspectSourceImport(value=>{assert.equal(value.source.current.intent_op_id,rollback.op_id);assert.deepEqual(value.material,material);});
+  await finalCandidate.inspect(value=>{assert.equal(Object.keys(value.collections.outbox).length,5);assert.deepEqual(value.collections.ops[remote.op_id],remote);});
+});

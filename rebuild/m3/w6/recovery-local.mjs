@@ -5,7 +5,7 @@ import T2 from './t2-stage.cjs';
 // Internal consumer of a snapshot authenticated by public-client. This handle
 // compares evidence and assembles an inactive candidate only; it cannot publish,
 // drain the active queue, re-sign or activate anything.
-export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteId,deviceId,codec:C,protocol:P,scopeDigest,publicVerifier,assertContext}) {
+export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteId,deviceId,codec:C,protocol:P,scopeDigest,publicVerifier,assertContext,sourceCodec}) {
   const saved=structuredClone(snapshot), collections=saved.generation.collections;
   const fail=code=>{throw new StorageFailure(code,18);};
   if(!C.digestValue(scopeDigest)||typeof assertContext!=='function')fail('LOCAL_RECOVERY_CONTEXT');
@@ -43,7 +43,7 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
   async function reconcile({inventory,requestBytes,signal}){
     requestBytes=C.bytes(requestBytes); // Own the exact verified request before any await.
     await assertCurrent();const req=C.decodeRequest(requestBytes), context=expected(req);
-    const profile=await validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected:context,signal});
+    const profile=await validateRecoveryProfile({inventory,codec:C,protocol:P,publicVerifier,requestBytes,expected:context,signal,sourceCodec});
     const check=async()=>{await profile.assertCurrent();await assertCurrent();await profile.assertCurrent();};
     const raw=async id=>{const row=await inventory.readRow('operations',id);return row?C.parse(row.value,P.LIMITS.row):null;};
     // Every locally retained original must be accounted for, not just outbox
@@ -65,12 +65,15 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
     await check();
     async function archiveProof(){
       await check();const reference=await inventory.archiveReference();await check();
-      return {profile:'earned/local-recovery-proof/v1',reference,request_bytes_b64:C.encode64(requestBytes),
+      return {...(P.DOMAINS.manifest==='earned/r1/rows-v4/manifest'?
+        {profile:'earned/local-recovery-proof/v2',inventory_profile:P.DOMAINS.manifest}:{profile:'earned/local-recovery-proof/v1'}),
+        reference,request_bytes_b64:C.encode64(requestBytes),
         expected:{athleteId,actorDeviceId:deviceId,scopeDigest,basisDigest}};
     }
     return Object.freeze({profileVerified:true,localCompared:true,complete:false,activated:false,checkpoint:false,sourceRevision:saved.revision,
       assertCurrent:check,
       archiveProof,
+      async sourceImport(){await check();const source=await profile.sourceImport();await check();return source;},
       async assemble(){
         await check();
         await profile.claims(claim=>{
@@ -84,6 +87,12 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
         await check();
         return Object.freeze({assembled:true,sourcePlanProjected:true,projectionPending:true,complete:false,activated:false,checkpoint:false,
           sourceRevision:saved.revision,assertCurrent:check,
+          async inspectSourceImport(visitor){
+            if(typeof visitor!=='function')throw TypeError('An inactive source consumer is required');
+            await check();const source=await profile.sourceImport();
+            const material=source?.current?await profile.sourceMaterial(source.current.source_id):null;
+            await check();await visitor({source,material});await check();
+          },
           async inspectSourcePlan(visitor){
             if(typeof visitor!=='function')throw TypeError('An inactive source-plan consumer is required');
             await check();await visitor(structuredClone(sourcePlan));await check();

@@ -1,11 +1,15 @@
 // Inactive encrypted recovery inventory in the existing generations store.
 // No enrollment, active-generation write, receipt sink or permission is provided.
-const PROFILE='earned/recovery-rows/v1',STORE='generations',HEAD=[PROFILE,'head'],CONTROL=[PROFILE,'transport'];
+const PROFILE='earned/recovery-rows/v1',STORE='generations',CONTROL=[PROFILE,'transport'];
 const clone=x=>structuredClone(x),utf8=new TextEncoder();
 export function createRecoveryStage({db,namespace,crypto,key,protocol,codec,verificationKeys,validateContext,keyRange,StorageFailure}){
  const fail=(code,state=18,retryable=false)=>{throw new StorageFailure(code,state,retryable);};
  if(!db||!namespace||!crypto?.subtle||typeof key!=='function'||!protocol?.createRowsVerifier||!codec?.parse||typeof validateContext!=='function')fail('RECOVERY_STAGE_CONFIGURATION');
  const P=protocol,C=codec,verifier=P.createRowsVerifier({keys:verificationKeys,subtle:crypto.subtle});
+ // A new wire decoder must not parse the retained old head as its own frame.
+ // Share the ORIGINAL transport budget record across versions; only the live
+ // page head is versioned. Immutable archives retain their original format.
+ const HEAD=P.DOMAINS.manifest==='earned/r1/rows-v4/manifest'?[PROFILE,'head','rows-v4']:[PROFILE,'head'];
  const bytes=x=>utf8.encode(JSON.stringify(x));
  const digest=x=>P.hash('local-stage',x);
  const rowDigest=id=>P.hash('local-stage-row-id',C.encode64(id));

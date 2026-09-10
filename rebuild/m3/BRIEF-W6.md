@@ -1,5 +1,13 @@
 # W6 v1.1 — browser storage, recovery and bounded offline saving
 
+## Local signed source recovery amendment — September9
+
+Compose retained R1 source320b899 and its source codec successor with W6's existing protocol-injected encrypted recovery stage. New rows-v4 MUST receive the explicit configured source codec and execute its shared indexed source rules; sourceImports cannot pass as opaque rows. Preserve original source/candidate/checkpoint/context bytes, full accepted prefix and selection/rollback binding. Expose source material only through the same checked inactive recovery handle, after signed complete inventory, relational validation and local comparison; no activation/permission or current engine projection is implied.
+
+Use a versioned local archive proof for rows-v4 that records its inventory profile. Retained v1/rows-v3 archives keep their original schema/meaning and are read through an explicitly configured protocol registry; never reinterpret an old proof as v4 or silently omit an unsupported archive. Original recovery-source/plan/receipt behavior, exact original bodies, pending operations and final revision/token/context fencing remain. No T2 client, issuer, current-state producer or engine-policy edits in this amendment. Existing W6-local staging seams may compose source evidence without changing accepted core semantics. No private port/merge/deploy/science/K1/full IMPORT-ROLLBACK acceptance; independent review remains for the coherent candidate.
+
+Actual mixed-version execution found the live v3 page head cannot be decoded as v4. Version only the v4 live-head key inside the SAME generations store; retain immutable archive record/AAD format and the ORIGINAL SHARED transport-budget control. A protocol transition must not erase history or reset the recovery attempt allowance.
+
 ## Active local import custody amendment — September9
 
 Under the current owner-workout/controller brief and M4 spec/IMPORT-CONTROLLER-v1.md atcf56b90, the W6 candidate now adds named inactive encrypted source/checkpoint custody to the existing generations store. See REPORT-W6-ASTRA.md's current section for exact API, local profile, source pins and executed evidence. This is an implementation candidate awaiting the coherent independent review, not an accepted wire/storage/recovery profile. No T2, issuer, authority inventory, P1 wire encoding or active-state format changes are included. The local custody record is separate from rotating active/previous and provides no activation, consent, export coverage, K1 or rollback verdict. All original broader gates remain; actual accepted source/activation and full recovery coverage are next. This section narrows the current edit scope; it grants no private port, merge or release permission.

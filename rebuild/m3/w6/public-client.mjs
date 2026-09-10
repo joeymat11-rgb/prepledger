@@ -527,7 +527,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
           const epoch=candidate.context.observationEpoch;
           const assertContext=()=>{const changed=contextFailure(epoch)||lateRefusal;if(changed)throw new StorageFailure(changed.code,changed.state);};
           const basis=createLocalRecoveryBasis({snapshot,repository,namespace,athleteId,deviceId,codec:recovery.codec,protocol:recovery.protocol,
-            scopeDigest:recovery.scopeDigest,publicVerifier:verifier,assertContext});
+            scopeDigest:recovery.scopeDigest,publicVerifier:verifier,assertContext,sourceCodec:recovery.sourceCodec});
           await basis.assertCurrent();return {prepared:true,basis};
         });
       }catch(error){const changed=contextFailure(null);if(changed)return {...changed,prepared:false};return {...refusal([17,18,19,20].includes(error.state)?error.state:18,error.code||"LOCAL_RECOVERY_UNPROVEN",reasonFor(error.state||18)),prepared:false};}
