@@ -1,5 +1,11 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Source recovery reaches actual reading calculations — test-only successor
+
+Runtime remains84000e3. Existing actual source test now supplies a chronologically earlier synthetic import and08:00 remote reading, then sends the SAME guarded source material and complete recovered generation into M4 import/reading-replay.cjs. Actual installed preparation and reading/currentRate execution reproduce identically; admitted correction changes rate, admitted removal returns exactly to source, and all five pending readings stay separate. No browser engine, qualified current guidance or publication. Earlier original archive/source/local/late-context assertions remain. M4's noon test preserves the actual late-read branch independently.
+
+.tmp/source-engine-reading-pinned.log PASS, composition C:/Users/joeym/AppData/Local/Temp/earned-source-recovery-EaC3m5, source-manifest.json SHAff8385679c85518fdd360c214138fb1bf887fa9c903fb20be46aa938eea87588. The runner hashes consumed external M4 code (including original installed engine) and verifies it unchanged after execution; no seeded engine bytes are copied to public composition/browser. M4 report/specv1.5 hold9focused/8faults/restored9 and conformance/strict evidence. Original W6 runtime395/6fault/36native evidence remains scoped as recorded below; it is not a native calculation or full IMPORT-ROLLBACK verdict. All source/native lineage, mixed context, science/current-plan/consent/atomic/private/device/K1/schema2 gates remain open. No merge/push/deploy/private activation.
+
 ## Complete factual reading view — September9 local candidate
 
 Base76b714dc7e2a00ca21849f8e3e1af4ec9ede06fb; R1 remains98c140514db7aee3c175d1a7ec1ce6d73f14a046; M4 installed engine/preparation unchanged. APM independently reviewed the exact BRIEF-W6 amendment BEFORE index/face edits. The configured static reading projector consumes copied ACTUAL current T2 operations/dispositions/receipts/frontier/outbox/rejections after W6 authenticates signed remote originals and remaining local identities. It runs against the current model so newly committed local readings immediately appear. It supplies factual provenance only, never a plan, clock, permission, source coverage or machine result. Default absent-seam behavior is preserved.

@@ -56,12 +56,13 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   const m4=process.env.EARNED_IMPORT_M4_ROOT;
   const {createEngine}=require(resolve(m4,'rebuild/engine/index.cjs'));
   const F=require(resolve(m4,'rebuild/m3/w7-preview/fixtures.cjs'));
-  const engine=createEngine({clock:{today:()=>F.SYNTHETIC_DAY,nowISO:()=>F.SYNTHETIC_DAY+'T12:00:00.000Z',hour:()=>12},ids:{fresh:p=>p+'synthetic'}});
-  const original=new TextEncoder().encode(JSON.stringify(F.createSyntheticState(),null,2)+'\r\n');
+  const sourceDay='2026-09-01',engineFor=({day,hour})=>createEngine({clock:{today:()=>day,nowISO:()=>day+'T12:00:00.000Z',hour:()=>hour},ids:{fresh:p=>p+'synthetic'}});
+  const engine=engineFor({day:sourceDay,hour:12});
+  const original=new TextEncoder().encode(JSON.stringify(F.createSyntheticState(sourceDay),null,2)+'\r\n');
   const prepared=require(resolve(m4,'rebuild/m4/import/prepare.cjs')).createImportPreparation({engine,parseStrictJson}).prepare(original,{localBytes:original});
   const custody=repo.importCustody({parseStrictJson,validateContext:()=>null});
   await custody.stage(sourceId,before,{sourceBytes:prepared.sourceBytes(),candidateBytes:prepared.candidateBytes(),localBytes:prepared.localBytes(),
-    engineContextJson:JSON.stringify({build:'synthetic-installed-engine',clock:F.SYNTHETIC_DAY})});
+    engineContextJson:JSON.stringify({build:'synthetic-installed-engine',clock:sourceDay})});
   const held=await custody.load(sourceId),text=bytes=>new TextDecoder().decode(bytes);
   const material={source_json:text(held.sourceBytes),candidate_json:text(held.candidateBytes),local_json:text(held.localBytes),
     checkpoint_json:JSON.stringify(held.checkpoint),engine_context_json:held.engineContextJson};
@@ -73,7 +74,7 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   let remoteSeq=0,predecessor=null;
   const remoteOp=(payload,extra={})=>{const seq=++remoteSeq,op_id='source-remote-'+seq;const op=Ops.build({op_id,athlete_id:'first',device_id:remoteLease.device_id,
     device_seq:seq,predecessor,parents:[],kind:'fact',class:payload.type?'event':'reading',lease_id:remoteLease.lease_id,
-    effective:{local_date:'2026-09-04',local_time:'12:00',utc_offset:'-04:00'},payload,...extra},runtime.identityKeys.first);predecessor=op_id;return op;};
+    effective:{local_date:'2026-09-04',local_time:'08:00',utc_offset:'-04:00'},payload,...extra},runtime.identityKeys.first);predecessor=op_id;return op;};
   const intentPayload={type:'source-import-intent',interval:{start:'2026-09-04',end:'2026-09-04'},source_id:sourceId,material_digest:staged.manifest.material_digest};
   const activation=remoteOp(intentPayload),bound=await send(sourceRequest('activate',{source_id:sourceId,expected,operation:activation}));
   assert.equal(bound.binding.seq,1);
@@ -128,6 +129,20 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert.equal(displayed.view.readingHistory.records.length,6,'Remote accepted and five pending originals are visible');
   assert.deepEqual(displayed.view.readingHistory.acceptedReads.map(row=>row.op_id),[remote.op_id],'Pending values never enter accepted machine inputs');
   assert.equal(displayed.view.layer2.projectionPending,true,'Complete factual display alone grants no current guidance');
+  const replay=require(resolve(m4,'rebuild/m4/import/reading-replay.cjs')).createReadingReplay({engineFor,projectReadings:args.projectReadings,parseStrictJson,
+    producerIdentity:'synthetic-actual-installed-factories',importBuild:'synthetic-installed-engine'});
+  async function calculate(){
+    // The SAME inactive verified handle supplies material and complete recovered
+    // generation. A reproduced candidate calculation grants no publication.
+    const evidence=await recover(),candidate=await evidence.assemble();let selectedSource,verifiedGeneration;
+    await candidate.inspectSourceImport(x=>{selectedSource=x;});await candidate.inspect(x=>{verifiedGeneration=x;});
+    const input={sourceId,material:selectedSource.material,generation:verifiedGeneration,asOf:'2026-09-07'},value=replay.project(input);
+    assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.qualified,false);assert.equal(value.activated,false);
+    assert.deepEqual(replay.reproduce(input,value),value);assert.equal(Object.keys(verifiedGeneration.collections.outbox).length,5);
+    return value;
+  }
+  const initialCalculation=await calculate();assert.equal(initialCalculation.coverage.steps.length,1);
+  assert.equal(initialCalculation.accepted_state.reads.at(-1).w,177);assert.equal(initialCalculation.reading_history.records.length,6);
   const saved=await repo.importCustody({parseStrictJson,validateContext:()=>null}).load(sourceId);
   assert.deepEqual(saved.checkpoint,before);assert(C.sameBytes(saved.sourceBytes,prepared.sourceBytes()),'Exact source bytes survive reopen');
   const final=await recover(),finalCandidate=await final.assemble();
@@ -140,11 +155,16 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   async function publishHistorical(){const evidence=await recover(),candidate=await evidence.assemble();let value;await candidate.inspect(x=>{value=x;});await repo.commit(await repo.load(),value);return (await client.reopen()).view;}
   const corrected=await publishHistorical();assert(corrected);const reading=corrected.readingHistory.records.find(r=>r.op_id===remote.op_id);
   assert.equal(reading.accepted.quantity.value,178);assert.deepEqual(reading.original,remote);assert.deepEqual(reading.effects[0].original,correction);
+  const correctedCalculation=await calculate();assert.equal(correctedCalculation.accepted_state.reads.at(-1).w,178);
+  assert.notDeepEqual(correctedCalculation.accepted_calculation.rate,initialCalculation.accepted_calculation.rate);
+  assert.deepEqual(correctedCalculation.coverage.steps[0].accepted_effect_ids,[correction.op_id]);
   const removal=remoteOp({reason:'Synthetic remote removal'},{kind:'tombstone',target:remote.op_id,parents:[remote.op_id,correction.op_id]});
   assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',removal])).status,'ACCEPTED');
   const removed=await publishHistorical(),record=removed.readingHistory.records.find(r=>r.op_id===remote.op_id);
   assert.equal(record.accepted.state,'removed');assert.equal(removed.readingHistory.acceptedReads.length,0);
   assert.deepEqual(record.effects.map(e=>e.original),[correction,removal]);assert.equal(removed.layer1.reads.length,5);assert.equal(removed.layer2.projectionPending,true);
+  const removedCalculation=await calculate();assert.deepEqual(removedCalculation.accepted_state,prepared.candidateState());
+  assert.equal(removedCalculation.coverage.steps[0].state,'removed');assert.equal(removedCalculation.reading_history.records.length,6);
   // Resealing a changed local original does not authenticate its identity.
   const intact=await repo.load(),changed=structuredClone(intact.generation),localId=Object.keys(changed.collections.outbox)[0];
   changed.collections.ops[localId].payload.lb.value=999;await repo.commit(intact,changed);
