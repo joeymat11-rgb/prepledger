@@ -1,5 +1,9 @@
 # ASTRA — owner workout contract preparation
 
+## Rev166 finite source-binding adoption
+
+Actual BOUND-SOURCE-REV166-REVIEW.md13867 bytes,SHAda9448f183e383ae2fb2b75f7b7ffc655fd3cd7c4884bba7f6a9ba94622f26b0 fully read/hash-verified by PM. Adopt ACCEPT at M4a3f8c642dea4f61189072f0ed7429484c0df7cfa/W654533449e4bd4d63523ae043d7fc1dd9e314f163/R12d96080unchanged. Independent53 pins/four actual candidate cases PASS under disclosed public seed-free engine derivative; the additional isolated predicate probes are not live call-path tests. Author95, canonical predecessor RED and198.8second signed source witness were not independently rerun. The bare reserved-type prerequisite is closed for v1 only. Visitor metadata may be copied/retained; undefined method return does not mean no metadata escapes, and retained metadata grants no currentness/authority. Source rollback hidden refs/authenticated-athlete P2/P3, realv2/fullsource/native/F2/private/device/integrator/release remain. Later numerical M3 preparation remains separately unaccepted/unavailable until actual theme evidence; this adoption changes no runtime bytes.
+
 ## M3 numerical profile preparation — pending real theme citation
 
 PM fully read/hash-verified actual23434-byte NUMERIC-M1-COWORK-2026-09-10-HANDOFF.md,SHA3120d98e0585b621b69a3c702fd88c1c97b6ffae6dd0f2655fbbd59fe5758be3 and APM's appended reconciliation. Its scoped theme ACCEPT requires exact authorization binding, sourceBase ancestry and one non-dyadic control. Under briefv0.80, the profile now prepares inherited owner/contract claims, fixed review claim, exact theme/hash/ruling checks, receipt-base owner/theme verification and ACCEPTED sourceBase ancestry. THEME is explicitly null until the real integrated line exists: verification and proposed sealing input refuse THEME-AUTHORIZATION-UNAVAILABLE. This is deliberately unfinished preparation, not an available successor artifact or package verdict.
