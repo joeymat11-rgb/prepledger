@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 import {createDurablePublicClient} from '../public-client.mjs';
 import {parseStrictJson} from '../strict-json.mjs';
-import {fixture,initial,config,O,createT2Stage,faultDatabase,mutateActive,deferred} from './support.mjs';
+import {fixture,initial,config,O,Client,createT2Stage,faultDatabase,mutateActive,deferred} from './support.mjs';
 import Capture from '../../../m4/workout/capture.cjs';
 import Commands from '../../../m4/workout/commands.cjs';
 import Schema from '../../../m4/workout/schema.cjs';
@@ -45,6 +45,85 @@ const editSet=(f,target,fields,parents)=>f.c.execute('workout',{action:'correct'
 const prepareEdit=(c,id)=>c.prepareWorkoutEdit({target_op_id:id});
 const correctPrepared=(c,p,change)=>c.commitWorkoutEdit({editId:p.editId,action:'correct',change});
 const syntheticFacts=({source_revision})=>({profile:'earned/workout-facts/v1',source_revision,sessions:[],incomplete_sessions:[],progression_eligible:false});
+
+// Actual old T2 constructors; signed synthetic authority history is then saved
+// through W6 and read after opening a fresh encrypted repository connection.
+function legacyWriter(){
+ const c=Client.createClient({...config(),deviceId:'dev-B',lease:O.lease('dev-B'),backend:Client.memoryBackend(initial().collections),transport:{}});
+ c.boot();assert.equal(c.logSession({date:'2026-09-03',sets:[{lift:'old label',slot:'first',load:45,reps:8},{lift:'old label',slot:'second',load:-5,reps:1.5}]}).acknowledged,true);
+ assert.equal(c.finishSession().acknowledged,true);return c;
+}
+async function readLegacy(f,ops){
+ const receipts=ops.map((op,i)=>Sign.signReceipt({seq:i+1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey));
+ const pull=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:0,through:receipts.length,receipts,wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey);
+ const accepted=await f.c.acceptResponse('pull',{wireVersion:Wire.WIRE_VERSION,body:pull});assert.equal(accepted.accepted,true,JSON.stringify(accepted));
+ const fresh=await f.fresh();try{const r=await createDurablePublicClient({...f.args,repository:fresh.repository}).readWorkoutHistory();assert.equal(r.read,true,JSON.stringify(r));return r.history;}finally{fresh.repository.close();}
+}
+function legacyEdit(ops,{id='legacy-extra',target=ops[1].op_id,parents=[target],kind='correction',fields={reps:{value:11,unit:'rep'}}}={}){
+ return Client.ops.build({op_id:id,athlete_id:'ath-1',device_id:'dev-C',device_seq:1,predecessor:null,parents,class:'reading',kind,target,
+  effective:ops[1].effective,lease_id:'synthetic-legacy-lease',payload:kind==='correction'?{replacement_fields:fields}:{reason:'Mistaken entry'}},O.K_IDENTITY);
+}
+test('legacy history: actual old writer observations and correction survive signed durable reopen without invented capture',async()=>{
+ const f=await setup();try{const c=legacyWriter();assert.equal(c.correction('op-dev-B-2',{load:{value:40,unit:'lb'}}).acknowledged,true);
+  const ops=[...c.model.ops.values()],original=structuredClone(ops),h=await readLegacy(f,ops),s=h.sessions[0],p=s.projection;
+  assert.equal(p.facts[0].current?.load.value,40);assert.equal(p.facts[0].original.load.value,45);assert.equal(p.facts[1].current.load.value,-5);assert.equal(p.facts[1].current.reps.value,1.5);
+  assert.deepEqual(p.facts[0].current.reserve,{tag:'unknown',reason:'NOT_RECORDED_BY_SCHEMA1_WRITER'});
+  assert.equal(p.facts[0].association,'RECORDED_REFERENCE');assert.deepEqual(p.facts[0].legacy_context,{lift:'old label',slot:'first',session_start_id:'op-dev-B-1'});
+  assert.equal(Object.hasOwn(p.facts[0],'lift_lineage_id'),false);assert.equal(Object.hasOwn(p.facts[0],'logical_set_slot'),false);
+  assert.equal(p.facts[0].issues.includes('SET_SLOT_RESOLUTION_REQUIRED'),false);assert(p.facts[0].issues.includes('LEGACY_CONTEXT_UNQUALIFIED'));
+  assert.equal(s.original,null);assert.equal(Object.hasOwn(p.start_record.current,'planned_split_slot_id'),false);assert.equal(p.start_record.current.recorded_slot,'AD_HOC');
+  assert.equal(p.close_records[0].kind,null);assert.deepEqual(p.close_records[0].current.closed,{value:1,unit:'flag'});assert.equal(p.progression_eligible,false);
+  assert.deepEqual(ops,original);assert.deepEqual(s.records.find(r=>r.operation.op_id===ops[4].op_id).operation,ops[4]);
+  assert.notEqual((await f.c.prepareWorkoutContinuation({session_start_op_id:ops[0].op_id})).prepared,true);
+ }finally{f.repo.close();}
+});
+test('legacy history: accepted concurrent corrections remain unresolved while unrelated sets stay readable',async()=>{
+ const f=await setup();try{const c=legacyWriter();c.correction('op-dev-B-2',{load:{value:40,unit:'lb'}});c.correction('op-dev-B-2',{reps:{value:9,unit:'rep'}});
+  const h=await readLegacy(f,[...c.model.ops.values()]),facts=h.sessions[0].projection.facts;
+  assert.equal(facts[1].current?.load.value,-5);assert.equal(facts[0].current,null);assert.equal(facts[0].accepted.current,null);assert(facts[0].issues.includes('CONCURRENT_TARGET_EDITS'));
+ }finally{f.repo.close();}
+});
+test('legacy history: causal correction chain and removal work but an edit after removal stays unresolved',async()=>{
+ for(const phase of ['corrected','removed','after-removal']){const afterRemoval=phase==='after-removal',f=await setup();try{const c=legacyWriter();c.correction('op-dev-B-2',{load:{value:40,unit:'lb'}});const ops=[...c.model.ops.values()],target=ops[1].op_id;
+  const next=legacyEdit(ops,{id:'causal-edit',parents:[target,ops[4].op_id]});ops.push(next);
+  const removal=legacyEdit(ops,{id:'causal-removal',kind:'tombstone',parents:[target,next.op_id]});if(phase!=='corrected')ops.push(removal);
+  if(afterRemoval)ops.push(legacyEdit(ops,{id:'after-removal',parents:[target,removal.op_id]}));
+  const fact=(await readLegacy(f,ops)).sessions[0].projection.facts[0];
+  assert.equal(fact.included,phase==='corrected'?true:afterRemoval?null:false);
+  if(phase==='corrected'){assert.equal(fact.current.load.value,40);assert.equal(fact.current.reps.value,11);}else assert.equal(fact.current,null);
+  assert.equal(fact.original.load.value,45);
+  if(afterRemoval)assert(fact.issues.includes('EDIT_AFTER_REMOVAL_UNSUPPORTED'));
+ }finally{f.repo.close();}}
+});
+test('legacy history: unrecognized effort and raw slot remain original context instead of new schema meaning',async()=>{
+ const f=await setup();try{const ops=[...legacyWriter().model.ops.values()];ops[1].payload.reserve={tag:'exact',value:0,unit:'rep'};ops[1].payload.slot={arbitrary:'legacy value'};
+  ops[1].canonical_content_commitment=Client.ops.commitmentOf(ops[1],O.K_IDENTITY);
+  const fact=(await readLegacy(f,ops)).sessions[0].projection.facts[0];assert.equal(fact.current?.reserve.tag,'unknown');assert(fact.issues.includes('UNINTERPRETED_SET_FIELDS'));
+  assert.deepEqual(fact.legacy_context.slot,{arbitrary:'legacy value'});assert.equal(fact.original.reserve.value,0);
+ }finally{f.repo.close();}
+});
+test('legacy history: missing explicit target causality cannot be replaced by a signed accepted position',async()=>{
+ const f=await setup();try{const ops=[...legacyWriter().model.ops.values()];ops.push(legacyEdit(ops,{parents:[]}));
+  const fact=(await readLegacy(f,ops)).sessions[0].projection.facts[0];assert(fact.issues.includes('MISSING_EXPLICIT_TARGET_CAUSAL_EDGE'));assert.equal(fact.current,null);
+ }finally{f.repo.close();}
+});
+test('legacy history: unsupported target effects remain attached and cannot silently leave a usable set',async()=>{
+ const f=await setup();try{const ops=[...legacyWriter().model.ops.values()],target=ops[1].op_id;
+  const effect=Client.ops.build({op_id:'legacy-reclassification',athlete_id:'ath-1',device_id:'dev-C',device_seq:1,predecessor:null,parents:[target],class:'reading',kind:'reclassification',target,
+   effective:ops[1].effective,lease_id:'synthetic-legacy-lease',payload:{classification:'unspecified'}},O.K_IDENTITY);ops.push(effect);
+  const s=(await readLegacy(f,ops)).sessions[0],fact=s.projection.facts[0];assert(fact.issues.includes('UNSUPPORTED_TARGET_EFFECT'));assert.equal(fact.current,null);assert(fact.edit_op_ids.includes(effect.op_id));
+  assert.deepEqual(s.records.find(r=>r.operation.op_id===effect.op_id).operation,effect);assert.equal(s.projection.facts[1].current.load.value,-5);
+ }finally{f.repo.close();}
+});
+test('legacy history: absent or malformed Start context preserves original observations and named mapping needs',async()=>{
+ for(const payload of [null,{load:{value:45,unit:'lb'},reps:{value:8,unit:'rep'},session_start_id:'missing-start'}]){const f=await setup();try{
+  const ops=[...legacyWriter().model.ops.values()];ops[1].payload=payload;ops[1].canonical_content_commitment=Client.ops.commitmentOf(ops[1],O.K_IDENTITY);
+  const h=await readLegacy(f,ops),row=h.other_records.find(r=>r.operation.op_id===ops[1].op_id);assert(row);assert.deepEqual(row.operation,ops[1]);
+  if(payload){assert.equal(row.interpretation.local.current.load.value,45);assert(row.interpretation.local.issues.includes('MISSING_OR_UNSUPPORTED_START_REFERENCE'));}
+  else{assert.equal(row.interpretation.local.current,null);assert(row.interpretation.local.issues.includes('UNSUPPORTED_SESSION_PAYLOAD'));}
+  assert.equal(h.sessions[0].projection.facts[0].current.load.value,-5);
+ }finally{f.repo.close();}}
+});
 
 test('shared edit history: nested replacement and removal restoration survive actual durable reopen',async()=>{
  const f=await setup();try{

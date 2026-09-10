@@ -39,12 +39,15 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
       }
       let continuation=null,history=null;
       const renderHistory=(parent,sessions,editable=false)=>{
-        const historyPanel=el('section');historyPanel.className='prepared-history';historyPanel.setAttribute('aria-label','Recovered workout history');
+        const legacy=sessions.length>0&&sessions.every(s=>s.start.operation.schema_version===1);
+        const historyPanel=el('section');historyPanel.className='prepared-history';historyPanel.setAttribute('aria-label',legacy?'Older workout records':'Recovered workout history');
         historyPanel.append(el('style',`.prepared-history{padding:24px;background:#F4F0E8;color:#1C1B18;font:1rem/1.5 'Instrument Sans',Arial,sans-serif}.prepared-history h2{margin:0 0 12px;font:400 2.5em/1.05 'Instrument Serif',Georgia,serif;letter-spacing:-.025em}.prepared-history>p{color:#5A5348}.prepared-history p{margin:0 0 10px}.prepared-history ol{padding-left:1.25em;margin:20px 0 0}.prepared-history li{padding:20px 0;border-bottom:1px solid #D8D0C2}.prepared-history li::marker{color:#5A5348}.prepared-history details{margin:8px 0}.prepared-history summary{padding:8px 0;color:#5A5348}.prepared-history button,.prepared-history summary{min-height:44px;font:inherit;cursor:pointer}.prepared-history button{padding:10px 16px;background:transparent;color:#1C1B18;border:1px solid #6F6759;border-radius:10px;margin:8px 8px 0 0;max-width:100%;overflow-wrap:anywhere}.prepared-history button[type=submit]{background:#1C1B18;color:#F4F0E8;border-color:#1C1B18;font-weight:600}.prepared-history button:disabled{background:transparent;color:#6F6759;border-color:#D8D0C2;cursor:default}.prepared-history .history-editor{margin-top:16px;padding-top:16px;border-top:1px solid #D8D0C2}.prepared-history .history-editor h3{margin:0 0 10px;font-size:1.25em;font-weight:500}.prepared-history .history-edit-status{margin-top:12px;color:#5A5348}.prepared-history label{display:grid;gap:6px;margin:14px 0}.prepared-history input,.prepared-history select{box-sizing:border-box;min-height:48px;width:100%;font:inherit;font-size:max(16px,1em);padding:10px;background:#FAF7F1;color:#1C1B18;border:1px solid #6F6759;border-radius:8px}@media(max-width:340px){.prepared-history h2{font-size:1.75em}}.prepared-history [hidden]{display:none}.prepared-history :focus-visible{outline:3px solid #2E5A3C;outline-offset:3px}`));
         historyPanel.append(el('style',`.prepared-workout-host{max-width:38rem;margin-inline:auto;background:#F4F0E8;color:#1C1B18;font:1rem/1.5 'Instrument Sans',Arial,sans-serif;overflow-wrap:anywhere}.prepared-workout-host>p{padding:18px 24px 0;margin:0;color:#5A5348}.prepared-workout-host>button{min-height:44px;margin:0 24px 24px;padding:12px 16px;font:inherit;border:1px solid #6F6759;border-radius:10px;background:#FAF7F1;color:#1C1B18}`));
-        historyPanel.append(el('h2','Recorded workout'),el('p','Test workout history. Review your recorded sets and corrections below; original entries remain available.'));
+        historyPanel.append(el('h2',legacy?'Older workout records':'Recorded workout'),el('p',legacy?
+          'Original instructions and clean-reps-left answers were not recorded. These entries need interpretation before they can guide a workout.':
+          'Test workout history. Review your recorded sets and corrections below; original entries remain available.'));
         let editorOpen=false;
-        const format=v=>v?`${v.load.value} ${v.load.unit} × ${v.reps.value} ${v.reps.unit}`:'Not established';
+        const format=v=>v&&Number.isFinite(v.load?.value)&&Number.isFinite(v.reps?.value)&&v.load.unit==='lb'&&v.reps.unit==='rep'?`${v.load.value} ${v.load.unit} × ${v.reps.value} ${v.reps.unit}`:'Not established';
         const effort=v=>!v?'Unrecorded':v.tag==='exact'?String(v.value):v.tag==='at_least'?'3+':v.tag==='unknown'?'Not sure':v.tag==='skipped'?'Question skipped':'Not asked';
         const recordedStatus=s=>({'stored-on-this-device':'Saved on this device','accepted-through-frontier':'Confirmed by server',rejected:'Rejected — needs attention'}[s]||'Status needs review');
         for(const s of sessions){
@@ -52,9 +55,10 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
           for(const f of s.projection.facts){
             const v=f.current,slot=s.original?.slots.find(x=>x.logical_set_slot===f.logical_set_slot&&x.lift_lineage_id===f.lift_lineage_id);
             const item=el('li');item.className='prepared-history-set';
-            item.append(el('p',`${slot?.label||'Recorded set'} — ${f.included===false?'excluded from current interpretation':v?format(v):'interpretation required'} (${recordedStatus(f.current_status||f.source_status)})`));
-            if(f.included===true&&v)item.append(el('p','Clean reps left: '+effort(v.reserve)));
-            const original=el('details');original.append(el('summary','Original recorded entry'),el('p',format(f.original)+'; clean reps left: '+effort(f.original.reserve)));item.append(original);
+            const label=slot?.label||(nonblank(f.legacy_context?.lift)?f.legacy_context.lift+' (recorded label)':'Recorded set');
+            item.append(el('p',`${label} — ${f.included===false?'excluded from current interpretation':v?format(v):'interpretation required'} (${recordedStatus(f.current_status||f.source_status)})`));
+            if(f.included===true&&v)item.append(el('p','Clean reps left: '+(legacy?'not recorded':effort(v.reserve))));
+            const original=el('details');original.append(el('summary','Original recorded entry'),el('p',format(f.original)+'; clean reps left: '+(legacy?'not recorded':effort(f.original?.reserve))));item.append(original);
             if(f.edit_op_ids.length)item.append(el('p','Recorded changes are retained with the original entry.'));
             if(f.issues.includes('SET_SLOT_RESOLUTION_REQUIRED'))item.append(el('p','Another recorded entry shares this set position. Correcting this fact does not by itself resolve the workout.'));
             if(editable&&f.included===true&&f.issues.every(code=>code==='SET_SLOT_RESOLUTION_REQUIRED')&&v){
@@ -104,14 +108,18 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
             list.append(item);
           }
           for(const row of s.records.filter(r=>r.operation.kind==='session-skip'))list.append(el('li',`Skipped entry — ${row.operation.payload.reason} (${recordedStatus(row.status)})`));
-          for(const close of s.projection.close_records)list.append(el('li',`${close.kind==='normal'?'Workout finished':'Workout ended early'} (${recordedStatus(close.status)})`));
+          for(const close of s.projection.close_records)list.append(el('li',`${close.kind==='normal'?'Workout finished':close.kind==='early'?'Workout ended early':'Workout end recorded — completion type unknown'} (${recordedStatus(close.status)})`));
           historyPanel.append(list);
         }parent.append(historyPanel);
       };
       if(enableContinuation){
         const read=await client.readWorkoutHistory();if(disposed)return {mounted:false,code:'WORKOUT_HOST_DISPOSED'};
         if(read?.read!==true){status.textContent='Stored workout information needs recovery before continuing.';return {mounted:false,code:read?.code||'WORKOUT_HISTORY_UNAVAILABLE',state:read?.state};}
-        history=read.history;const matching=history.sessions.filter(s=>s.start.operation.planned_split_slot_id===plannedSplitSlotId&&s.start.status!=='rejected');
+        history=read.history;
+        // A recorded old reference does not associate it with today's split.
+        // Show its observations without enabling any current-schema action.
+        const older=history.sessions.filter(s=>s.start.operation.schema_version===1);if(older.length)renderHistory(shell,older);
+        const matching=history.sessions.filter(s=>s.start.operation.planned_split_slot_id===plannedSplitSlotId&&s.start.status!=='rejected');
         const open=matching.filter(s=>!s.projection.close_records.length);
         if(open.length>1){status.textContent='More than one workout needs interpretation before continuing. No new workout was created.';return {mounted:false,code:'WORKOUT_SESSION_PARTITION_REQUIRED',state:14};}
         if(open.length===1){

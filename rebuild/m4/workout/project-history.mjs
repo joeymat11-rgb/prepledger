@@ -17,9 +17,18 @@ export function projectWorkoutRecords(session,operations,{normalized,rows,fronti
  const start=base(session.start);
  if(session.capture_issues?.length)start.issues.push(...session.capture_issues);
  const facts=session.records.filter(r=>r.operation.kind==='session-set').map(row=>{
-  const op=row.operation,fact={...base(row),logical_set_slot:op.logical_set_slot,lift_lineage_id:op.lift_lineage_id,original:structuredClone(op.payload)};
+  const op=row.operation,legacy=op.schema_version===1,fact={...base(row),original:structuredClone(op.payload)};
+  if(legacy){
+   fact.legacy_context={lift:structuredClone(op.payload?.lift??null),slot:structuredClone(op.payload?.slot??null),session_start_id:structuredClone(op.payload?.session_start_id??null)};
+   fact.association=session.start.operation.schema_version===1&&op.payload?.session_start_id===session.start.operation.op_id?'RECORDED_REFERENCE':'UNRESOLVED';
+  }else{fact.logical_set_slot=op.logical_set_slot;fact.lift_lineage_id=op.lift_lineage_id;}
   if(fact.current){fact.effective=fact.current.effective;delete fact.current.effective;}
-  if(start.included!==true||start.issues.length){fact.current=null;fact.included=row.status==='rejected'?false:null;fact.issues.push('START_STATUS_UNRESOLVED');}
+  if(legacy){
+   // Missing prescription/Start context does not erase a supported observation.
+   // Context issues still prohibit interpreting it as qualified performed input.
+   if(start.included!==true)fact.issues.push('START_STATUS_UNRESOLVED');
+   if(fact.included!==true)fact.current=null;
+  }else if(start.included!==true||start.issues.length){fact.current=null;fact.included=row.status==='rejected'?false:null;fact.issues.push('START_STATUS_UNRESOLVED');}
   return fact;
  });
  const skips=session.records.filter(r=>r.operation.kind==='session-skip').map(row=>({
@@ -28,7 +37,7 @@ export function projectWorkoutRecords(session,operations,{normalized,rows,fronti
  const closes=session.records.filter(r=>r.operation.kind==='session-close').map(row=>{
   const value=base(row);return {...value,op_id:row.operation.op_id,kind:value.current?.completion_kind??null,status:value.current_status};
  }).filter(r=>r.included!==false);
- const slots=new Map();for(const fact of facts)if(fact.included!==false){const key=JSON.stringify([fact.lift_lineage_id,fact.logical_set_slot]);if(!slots.has(key))slots.set(key,[]);slots.get(key).push(fact);}
+ const slots=new Map();for(const fact of facts)if(!fact.legacy_context&&fact.included!==false){const key=JSON.stringify([fact.lift_lineage_id,fact.logical_set_slot]);if(!slots.has(key))slots.set(key,[]);slots.get(key).push(fact);}
  for(const collision of slots.values())if(collision.length>1)for(const fact of collision)fact.issues.push('SET_SLOT_RESOLUTION_REQUIRED');
  return {start_record:start,facts,skip_records:skips,skipped_record_ids:skips.filter(r=>r.included!==false).map(r=>r.source_op_id),close_records:closes,
   interpretation:'shared-typed-workout-edits',progression_eligible:false,continuation_allowed:false,

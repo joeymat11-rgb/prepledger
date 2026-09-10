@@ -6,7 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {createServer} from 'node:http';
 import {randomBytes} from 'node:crypto';
 import {buildBrowser} from '../build-browser.mjs';
-import {O,initial,config} from './support.mjs';
+import {O,initial,config,Client} from './support.mjs';
 const require=createRequire(import.meta.url),here=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const Sign=require('../../w5/crypto.cjs'),{chromium}=require('playwright-core');
 if(!process.env.W6_BROWSER_BIN||!existsSync(process.env.W6_BROWSER_BIN)){console.log('WORKOUT RESUME BLOCKED — W6_BROWSER_BIN required');process.exit(2);}
@@ -130,6 +130,30 @@ try{
  await page.getByText('Remove a mistaken entry',{exact:true}).click();await page.locator('[name=removalReason]').fill('Mistaken duplicate record');await page.getByRole('button',{name:'Remove recorded entry',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.prepared-workout-host>p').textContent.startsWith('Saved — mistaken'));
  await page.close();page=await open(false);check((await page.locator('.prepared-history-set').first().innerText()).includes('excluded from current interpretation'),'mistaken entry removal survives reopen without deleting its original');
  check((await page.locator('.prepared-history-set').nth(2).innerText()).includes('36 lb × 11 rep'),'later correction survives the earlier entry removal');
+ // Feed actual historical T2 constructor output through signed pull, actual
+ // browser storage and a fresh page. This is a synthetic authority, not issuance.
+ const legacy=Client.createClient({...config(),deviceId:'dev-B',lease:O.lease('dev-B'),backend:Client.memoryBackend(initial().collections),transport:{}});legacy.boot();
+ check(legacy.logSession({date:'2026-09-03',sets:[{lift:'Historical row',load:45,reps:8,slot:'first'}]}).acknowledged,'actual old T2 writer records legacy set');
+ check(legacy.finishSession().acknowledged,'actual old T2 writer records legacy Close');
+ check(legacy.correction('op-dev-B-2',{load:{value:40,unit:'lb'}}).acknowledged,'actual old T2 writer records direct legacy correction');
+ const oldOps=[...legacy.model.ops.values()],prior=await snapshot(page),allOps=[...prior.ops,...oldOps];
+ const receipts=allOps.map((op,i)=>Sign.signReceipt({seq:i+1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},signing));
+ const wireVersion=require('../../w5/public-client.cjs').WIRE_VERSION;
+ const signed=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:0,through:receipts.length,receipts,wire_version:wireVersion,key_epoch:signing.kid},signing);
+ const accepted=await page.evaluate(async response=>globalThis.__resumeTest.client.acceptResponse('pull',response),{wireVersion,body:signed});check(accepted.accepted,'actual browser saves signed mixed legacy/current history');
+ await page.close();page=await open(false);
+ const older=page.getByRole('region',{name:'Older workout records'});await older.waitFor();
+ const olderText=await older.innerText();
+ check(olderText.includes('Historical row (recorded label)')&&olderText.includes('40 lb × 8 rep'),'fresh actual host visibly shows corrected legacy observations and their recorded label');
+ check(olderText.includes('not recorded')&&olderText.includes('completion type unknown')&&!olderText.includes('Workout ended early'),'legacy missing instructions effort and Close type are explicit without invented completion');
+ check(await older.getByRole('button',{name:'Correct this set',exact:true}).count()===0,'legacy view does not enable unqualified current-schema correction');
+ await older.getByText('Original recorded entry',{exact:true}).click();check((await older.innerText()).includes('45 lb × 8 rep'),'legacy original quantity remains reachable in actual host');
+ const restored=await snapshot(page);check(restored.ops.length===allOps.length&&restored.produced===0,'legacy display does not create a Start or produce new instructions');
+ check(JSON.stringify(restored.ops.filter(o=>oldOps.some(old=>old.op_id===o.op_id)))===JSON.stringify(oldOps),'legacy originals remain unchanged through native signed save and reopen');
+ await page.screenshot({path:join(artifacts,'legacy-history-390.png'),fullPage:true});
+ await page.setViewportSize({width:320,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),'legacy history fits320px');
+ await page.evaluate(()=>document.documentElement.style.fontSize='32px');check(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth),'legacy history fits320px at200percent text');
+ await page.screenshot({path:join(artifacts,'legacy-history-320-large-text.png'),fullPage:true});
  check(errors.length===0,'no browser page errors');await context.close();
  console.log(`WORKOUT RESUME/CORRECT PASS — ${checks.length} checks; actual retained host/client/encrypted IndexedDB; same Start/normal Close; corrected history, immutable originals and later facts`);
  for(const name of checks)console.log('PASS '+name);
