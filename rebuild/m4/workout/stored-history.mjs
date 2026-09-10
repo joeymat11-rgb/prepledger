@@ -55,7 +55,8 @@ export function storedWorkoutHistory(generation,{athleteId,deviceId,prescription
   for(const [id,row] of rows)if(row.operation.class==='session'&&row.operation.kind==='session-start'){
     const op=row.operation;let original=null;const captureIssues=[];
     if(op.schema_version===2&&Object.hasOwn(op,'prescription_capture'))try{
-      original=prescriptionCapture.prepare(op.prescription_capture,{producer:op.prescription_capture.producer,basis:op.prescription_capture.basis});
+      original=typeof prescriptionCapture.read==='function'?prescriptionCapture.read(op.prescription_capture):
+        prescriptionCapture.prepare(op.prescription_capture,{producer:op.prescription_capture.producer,basis:op.prescription_capture.basis});
     }catch{captureIssues.push('ORIGINAL_CAPTURE_UNINTERPRETABLE');}
     const session={start:row,original,records:[],capture_issues:captureIssues};sessions.push(session);byStart.set(id,session);associated.add(id);
   }

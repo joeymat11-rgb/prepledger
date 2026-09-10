@@ -1,11 +1,19 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomBytes} from 'node:crypto';
+import {createRequire} from 'node:module';
+import {resolve} from 'node:path';
 import {parseStrictJson} from '../strict-json.mjs';
 import Capture from '../../../m4/workout/capture.cjs';
 import Ops from '../../../client/ops.cjs';
 import Authority from '../../../authority/crypto.cjs';
+import Schema from '../../../m4/workout/schema.cjs';
+import Commands from '../../../m4/workout/commands.cjs';
 const {createPrescriptionCapture}=Capture;
+// The direct focused run names the actual R1 dependency explicitly; the
+// retained composition runner copies and pins these same source-codec bytes.
+const require=createRequire(import.meta.url);
+const Source=require(process.env.EARNED_SOURCE_R1_ROOT?resolve(process.env.EARNED_SOURCE_R1_ROOT,'rebuild/m3/w5/source/codec.cjs'):'../../w5/source/codec.cjs');
 const boundary=createPrescriptionCapture({parseStrictJson});
 const cell=(display,source)=>({state:'specified',display,source_json:source});
 const unknown=()=>({state:'unknown',display:'Unknown in synthetic source',source_json:null});
@@ -15,6 +23,39 @@ function fixture(){return {profile:'earned/workout-prescription/v1',producer:{ap
 const expected=()=>{const f=fixture();return {producer:f.producer,basis:f.basis};};
 const prepare=(f=fixture(),e=expected())=>boundary.prepare(f,e);
 const rejects=(value,e=expected())=>assert.throws(()=>prepare(value,e),{code:'WORKOUT_CAPTURE_INVALID',message:'WORKOUT_CAPTURE_INVALID'});
+test('v2 capture binds the existing source frontier while preserving v1 original history',()=>{
+ const v2=createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:Source});
+ const source={W:4,log_digest:Source.hash('synthetic-capture-source',new Uint8Array()),selection_id:'source-A'},f={...fixture(),profile:Capture.SOURCE_PROFILE,source_basis:source};
+ const context={...expected(),source_basis:structuredClone(source)},value=v2.prepare(f,context),raw=JSON.stringify(value);
+ assert.equal(value.source_basis.W,4);assert(Object.isFrozen(value.source_basis));source.W=9;assert.equal(JSON.stringify(value),raw);
+ assert.equal(JSON.stringify(v2.read(fixture())),JSON.stringify(fixture()));assert(!Object.hasOwn(v2.read(fixture()),'source_basis'));
+ assert.throws(()=>boundary.read(value),{code:'WORKOUT_CAPTURE_INVALID'});
+ assert.throws(()=>v2.prepare(fixture(),expected()),{code:'WORKOUT_CAPTURE_INVALID'});
+ for(const [key,bad]of [['W',5],['log_digest',Source.hash('synthetic-other-source',new Uint8Array())],['selection_id','source-B']]){
+   const wrong=structuredClone(context);wrong.source_basis[key]=bad;
+   assert.throws(()=>v2.prepare(JSON.parse(raw),wrong),{code:'WORKOUT_CAPTURE_INVALID'});
+ }
+ const empty=Source.frontier(()=>undefined,0),noSource={...fixture(),profile:Capture.SOURCE_PROFILE,source_basis:empty};
+ assert.equal(v2.prepare(noSource,{...expected(),source_basis:empty}).source_basis.selection_id,null);
+ let getterCalls=0;const hostile=JSON.parse(raw);Object.defineProperty(hostile.source_basis,'W',{enumerable:true,get(){getterCalls++;return 4;}});
+ assert.throws(()=>v2.read(hostile),{code:'WORKOUT_CAPTURE_INVALID'});assert.equal(getterCalls,0);
+ for(const change of [x=>delete x.source_basis,x=>x.source_basis.W=-1,x=>x.source_basis.extra=true,x=>x.source_basis.log_digest='bad']){
+   const bad=JSON.parse(raw);change(bad);assert.throws(()=>v2.read(bad),{code:'WORKOUT_CAPTURE_INVALID'});
+ }
+});
+test('v2 source selection is an actual command/shape dependency and remains in the original signed capture',()=>{
+ const v2=createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:Source});
+ const source_basis={W:4,log_digest:Source.hash('synthetic-capture-source',new Uint8Array()),selection_id:'source-A'};
+ const capture=v2.prepare({...fixture(),profile:Capture.SOURCE_PROFILE,source_basis},{...expected(),source_basis});
+ const commands=Commands.createWorkoutCommands({prescriptionCapture:v2});
+ const action=commands.prepare({action:'start',input:{planned_split_slot_id:'AD_HOC',plan_basis:capture.basis.plan_basis,prescription_capture:capture,causal_parents:['source-A']}});
+ const key=randomBytes(32).toString('hex');
+ const op=Ops.build({op_id:'synthetic-source-start',athlete_id:'synthetic-athlete',device_id:'synthetic-device',device_seq:1,predecessor:null,parents:['source-A'],class:action.class,kind:action.kind,effective:{local_date:'2026-09-09',local_time:'08:00',utc_offset:'-04:00'},schema_version:2,lease_id:'synthetic-unissued',payload:action.payload,extra:action.extra},key);
+ const shape=Schema.validateWorkoutShape(op,{prescriptionCapture:v2});assert(shape.valid,shape.errors.join(','));assert.deepEqual(shape.references,['source-A']);
+ assert.equal(JSON.stringify(op.prescription_capture),JSON.stringify(capture));assert.equal(Authority.commitmentOf(op,key),op.canonical_content_commitment);
+ const absent=structuredClone(op);absent.prescription_capture.source_basis.selection_id=null;
+ assert.deepEqual(Schema.validateWorkoutShape(absent,{prescriptionCapture:v2}).references,[],'Shape does not invent an operation for no selection');
+});
 test('private frozen copy preserves exact JSON, order, aliases and Unicode without changing caller',()=>{
  const f=fixture();f.slots[0].label='Cafe\u0301';f.slots[0].reason=f.session.reason;
  const raw=JSON.stringify(f),out=prepare(f);assert.equal(JSON.stringify(out),raw);assert.notEqual(out,f);assert.notEqual(out.slots,f.slots);assert.equal(out.slots[0].reason,out.session.reason);

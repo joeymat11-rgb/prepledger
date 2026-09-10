@@ -21,6 +21,14 @@ for(const name of names){
   const raw=fs.readFileSync(path.join(root,name)),dest=path.join(output,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,raw);
   pins[name]=crypto.createHash('sha256').update(raw).digest('hex');
 }
+// Source-aware capture uses the existing frontier validator, not a new local
+// digest/shape implementation. Disclose current R1 additions to the old base.
+const r1CandidateSources={};
+for(const name of ['rebuild/m3/w5/source/codec.cjs','rebuild/m3/w5/reconciliation/codec.cjs']){
+ const raw=fs.readFileSync(path.join(r1,name)),dest=path.join(output,name);
+ fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,raw);
+ r1CandidateSources[name]=crypto.createHash('sha256').update(raw).digest('hex');
+}
 // Message65 successor: exact shared candidate sources must match the retained
 // R1 composition and explicit candidate pins. This does not claim old acceptance.
 const editPins=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m3/w6/test/shared-edit-source-pins.json'),'utf8'));
@@ -39,7 +47,7 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
   if(!fs.statSync(modules).isDirectory())throw Error('Existing dependencies required');
   fs.symlinkSync(modules,path.join(output,'rebuild/m3',dir,'node_modules'),process.platform==='win32'?'junction':'dir');
 }
-fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,w6SourceRoot:root,pins},null,2));
+fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,r1SourceRoot:r1,r1CandidateSources,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
 const editBites={'--edit-bite':'context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||',
  '--edit-rejected-bite':"if(fact.source_status==='rejected')throw new StorageFailure('WORKOUT_EDIT_TARGET_REJECTED',19);",
@@ -160,6 +168,8 @@ if(preparedRestore){fs.writeFileSync(preparedRestore.file,preparedRestore.raw);
  mutation.restoredSha256=crypto.createHash('sha256').update(fs.readFileSync(preparedRestore.file)).digest('hex');
  if(mutation.restoredSha256!==mutation.originalSha256)throw Error('Prepared-token bite restoration failed');}
 for(const [name,hash]of Object.entries(pins))if(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex')!==hash)throw Error('Candidate changed during run');
+for(const [name,hash]of Object.entries(r1CandidateSources))for(const base of [r1,output])
+ if(crypto.createHash('sha256').update(fs.readFileSync(path.join(base,name))).digest('hex')!==hash)throw Error('Selected R1 source changed during run');
 fs.writeFileSync(path.join(output,'result.json'),JSON.stringify({node:process.version,exit:run.status,browserExit:browser?.status??null,elapsedMs:performance.now()-started,tests:namesToRun,mutation},null,2));
 console.log('COMPOSED W6 OUTPUT '+output);process.stdout.write(run.stdout||'');process.stderr.write(run.stderr||'');
 if(browser){process.stdout.write(browser.stdout||'');process.stderr.write(browser.stderr||'');}

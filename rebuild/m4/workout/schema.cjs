@@ -98,7 +98,8 @@ function validateWorkoutShape(input, {prescriptionCapture} = {}) {
   if (captured) {
     try {
       const value = op.prescription_capture;
-      prescriptionCapture.prepare(value, {producer: value.producer, basis: value.basis});
+      if(typeof prescriptionCapture.read==='function')prescriptionCapture.read(value);
+      else prescriptionCapture.prepare(value, {producer: value.producer, basis: value.basis});
       if (value.basis.plan_basis !== op.plan_basis) return invalid('CAPTURE_BASIS_MISMATCH');
     } catch { return invalid('INVALID_PRESCRIPTION_CAPTURE'); }
   }
@@ -111,6 +112,8 @@ function validateWorkoutShape(input, {prescriptionCapture} = {}) {
   if (op.kind === 'tombstone') valid = keys(op.payload, ['reason']) && text(op.payload.reason);
   if (!valid) return invalid('INVALID_PAYLOAD');
   const references = op.kind === 'session-start' ? [] : [op.target_op_id ?? op.session_start_op_id];
+  if(captured&&op.prescription_capture.profile==='earned/workout-prescription/v2'&&op.prescription_capture.source_basis.selection_id!==null)
+    references.push(op.prescription_capture.source_basis.selection_id);
   return {valid: true, errors: [], references};
 }
 

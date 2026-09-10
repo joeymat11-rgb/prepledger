@@ -22,7 +22,7 @@ for(const [base,name]of [[r1,'rebuild/m3/w5/node_modules'],[root,'rebuild/m3/w6/
 // composition or into a browser bundle. These are code pins, not fixture data.
 const externalPins={};
 for(const name of ['index','dates','constants','seed','plan','progression','sleep','energy','policy','today','volume','migrate','earn','merge','writers'].map(n=>'rebuild/engine/'+n+'.cjs')
-  .concat(['rebuild/m4/import/prepare.cjs','rebuild/m3/w7-preview/fixtures.cjs'],process.argv.includes('--browser')?[]:['rebuild/m4/import/reading-replay.cjs','rebuild/m4/import/daily-history.cjs','rebuild/m4/workout/engine-order.cjs','rebuild/m4/spec/performed-proposal/factory.cjs']))
+  .concat(['rebuild/m4/import/prepare.cjs','rebuild/m3/w7-preview/fixtures.cjs'],process.argv.includes('--browser')?[]:['rebuild/m4/import/reading-replay.cjs','rebuild/m4/import/daily-history.cjs','rebuild/m4/workout/engine-order.cjs','rebuild/m4/workout/engine-capture.cjs','rebuild/m4/spec/performed-proposal/factory.cjs']))
   externalPins[name]=createHash('sha256').update(fs.readFileSync(path.join(m4,name))).digest('hex');
 function verifyExternal(){for(const [name,pin]of Object.entries(externalPins))assert.equal(createHash('sha256').update(fs.readFileSync(path.join(m4,name))).digest('hex'),pin,'M4 source changed during execution '+name);}
 fs.writeFileSync(path.join(dir,'source-manifest.json'),JSON.stringify({r1Root:r1,w6Root:root,m4Root:m4,pins,externalPins},null,2));

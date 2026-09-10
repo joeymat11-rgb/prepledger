@@ -98,6 +98,11 @@ export function createLocalRecoveryBasis({snapshot,repository,namespace,athleteI
             await check();const selection=await profile.sourceSelection(intentId),material=await profile.sourceMaterial(selection.source_id);
             await check();await visitor({selection,material});await check();
           },
+          async inspectSourceCuts(bases,visitor){
+            if(typeof visitor!=='function')throw TypeError('An inactive historical-source consumer is required');
+            await check();const values=await profile.sourceSelectionsAt(bases);
+            await check();await visitor(values);await check();
+          },
           async inspectSourcePlan(visitor){
             if(typeof visitor!=='function')throw TypeError('An inactive source-plan consumer is required');
             await check();await visitor(structuredClone(sourcePlan));await check();

@@ -2,6 +2,7 @@
 // Shared representation boundary. This does not qualify the producer, register a
 // schema, authorize Start, or replace the actual repository token/commit fence.
 const PROFILE='earned/workout-prescription/v1';
+const SOURCE_PROFILE='earned/workout-prescription/v2';
 const own=(value,key)=>Object.hasOwn(value,key);
 const map=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const keys=(value,names)=>map(value)&&Reflect.ownKeys(value).length===names.length&&names.every(k=>own(value,k));
@@ -45,8 +46,11 @@ function copyData(input){
 }
 // parseStrictJson is a trusted synchronous installation dependency (W6's existing
 // parser, or the qualified server counterpart), never supplied by a UI call.
-function createPrescriptionCapture({parseStrictJson}={}){
+function createPrescriptionCapture({parseStrictJson,profile=PROFILE,sourceCodec}={}){
   if(typeof parseStrictJson!=='function')throw new TypeError('Trusted strict JSON parser required');
+  if(![PROFILE,SOURCE_PROFILE].includes(profile)||profile===SOURCE_PROFILE&&
+    (sourceCodec?.PROFILE!=='earned/source-import/v1'||typeof sourceCodec.basis!=='function'))
+    throw new TypeError('Closed capture profile and existing source frontier validator required');
   function cell(value){
     if(!keys(value,CELL)||!['specified','unknown','not_prescribed'].includes(value.state)||!text(value.display))fail();
     if(value.state==='specified'){
@@ -57,11 +61,13 @@ function createPrescriptionCapture({parseStrictJson}={}){
   }
   function producer(value){if(!keys(value,PRODUCER)||!PRODUCER.every(k=>text(value[k])))fail();}
   function basis(value){if(!keys(value,BASIS)||!text(value.plan_basis)||!text(value.input_basis)||!Number.isSafeInteger(value.source_revision)||value.source_revision<1||Object.is(value.source_revision,-0))fail();}
-  function prepare(input,expected){
+  function prepareAs(input,expected,selected){
     try{
       const copied=copyData(input),capture=copied.value;
-      if(!keys(capture,['profile','producer','basis','session','slots'])||capture.profile!==PROFILE)fail();
+      const source=selected===SOURCE_PROFILE;
+      if(!keys(capture,['profile','producer','basis','session','slots',...(source?['source_basis']:[])])||capture.profile!==selected)fail();
       producer(capture.producer);basis(capture.basis);
+      if(source&&sourceCodec.basis(capture.source_basis)!==capture.source_basis)fail();
       if(!keys(capture.session,SESSION))fail();for(const k of SESSION)cell(capture.session[k]);
       if(!Array.isArray(capture.slots)||capture.slots.length===0)fail();
       const slots=new Set();for(const slot of capture.slots){
@@ -71,11 +77,22 @@ function createPrescriptionCapture({parseStrictJson}={}){
       // Trusted producer/basis equality is necessary, not proof of qualification.
       // The caller integrating this component must bind these to its real snapshot.
       const context=copyData(expected).value;
-      if(!keys(context,['producer','basis']))fail();producer(context.producer);basis(context.basis);
+      if(!keys(context,['producer','basis',...(source?['source_basis']:[])]))fail();producer(context.producer);basis(context.basis);
       if(!PRODUCER.every(k=>capture.producer[k]===context.producer[k])||!BASIS.every(k=>capture.basis[k]===context.basis[k]))fail();
+      if(source&&(sourceCodec.basis(context.source_basis)!==context.source_basis||
+        !['W','log_digest','selection_id'].every(k=>capture.source_basis[k]===context.source_basis[k])))fail();
       return copied.freeze();
     }catch{fail();}
   }
-  return Object.freeze({profile:PROFILE,prepare});
+  function prepare(input,expected){return prepareAs(input,expected,profile);}
+  function read(input){
+    // Closed historical dispatch preserves v1; it never upgrades an old capture
+    // or treats its absent source as a proved no-selection frontier.
+    const value=copyData(input).value;
+    if(value.profile!==PROFILE&&!(profile===SOURCE_PROFILE&&value.profile===SOURCE_PROFILE))fail();
+    return prepareAs(value,{producer:value.producer,basis:value.basis,
+      ...(value.profile===SOURCE_PROFILE?{source_basis:value.source_basis}:{})},value.profile);
+  }
+  return Object.freeze({profile,prepare,read});
 }
-module.exports={createPrescriptionCapture};
+module.exports={createPrescriptionCapture,PROFILE,SOURCE_PROFILE};

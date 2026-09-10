@@ -2,7 +2,7 @@
   "files": {
     "authority-profile.cjs": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
     "edit-values.cjs": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
-    "schema.cjs": "3265d5bfe303c10fef752f970b98a57b21891496c46b6c9f7d6d4c1c29500561",
+    "schema.cjs": "9dcad5a4e9400a64a78e983543009069a9058047bbae47dc10f3290dfb284d1c",
     "edit-history.cjs": "9d29d72c069f090dc7c22259da12d1f20427b1ea49d77778443c33fafef34b4b"
   },
   "profile": "earned/shared-workout-edit-candidate/v1"

@@ -9,6 +9,7 @@ import Commands from '../../../m4/workout/commands.cjs';
 import Schema from '../../../m4/workout/schema.cjs';
 import Sign from '../../w5/crypto.cjs';
 import Wire from '../../w5/public-client.cjs';
+import Source from '../../w5/source/codec.cjs';
 import {workoutContinuation} from '../../../m4/workout/continuation.mjs';
 const capture=Capture.createPrescriptionCapture({parseStrictJson});
 const identity={app_build:'synthetic-app',engine_build:'synthetic-engine',rule_profile:'synthetic-rule',source_schema:'synthetic-source'};
@@ -23,14 +24,15 @@ async function setup(options={}){
  const signingKey=Sign.generateSigningKey('synthetic-capture'),lease=Sign.signLease({...O.lease('dev-A'),schema_version:2,signature:undefined},signingKey);
  const f=await fixture(options.repository||{}),generation=initial();generation.metadata.authorityLease=lease;
  await f.repo.initialize(generation,'synthetic-enrollment-only');
- const commands=Commands.createWorkoutCommands({prescriptionCapture:capture});
+ const selectedCapture=options.capture||capture;
+ const commands=Commands.createWorkoutCommands({prescriptionCapture:selectedCapture});
  const stage=createT2Stage(()=>({...config(),...options.config}),{allowInbound:true,workoutCommands:commands});
  let produced=0,lastCapture;const scope={session:1,observation:1};
  const args={repository:options.wrapRepository?options.wrapRepository(f.repo):f.repo,stage:options.wrapStage?options.wrapStage(stage):stage,
  namespace:f.setup.namespace,athleteId:'ath-1',deviceId:'dev-A',sessionEpoch:1,isCurrentSession:x=>x===scope.session,
  observationEpoch:()=>scope.observation,observationGuard:{run:async(_kind,fn)=>fn()}, // Synthetic, not K1/CLOCK qualification.
  validateCommit:options.validateCommit||(()=>null),keys:[Sign.publicKeyOf(signingKey)],schemaVersion:2,crypto:webcrypto,
- prescriptionCapture:capture,workoutProducerIdentity:identity,
+ prescriptionCapture:selectedCapture,workoutProducerIdentity:identity,
  resolveWorkoutBasis:()=>({plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic-input',causal_parents:[]}),
  workoutProducer:(_generation,context)=>{produced++;lastCapture=prescription(context);return lastCapture;},...options.client};
  const c=createDurablePublicClient(args);return {...f,c,args,scope,commands,signingKey,produced:()=>produced,lastCapture:()=>lastCapture};
@@ -833,4 +835,126 @@ test('retirement also invalidates a preparation queued before disposal',async()=
  for(const result of await Promise.all([first,queued]))assert.equal(result.code,'WORKOUT_PREPARATION_RETIRED');
  assert.equal(Object.keys(await operations(f)).length,0);
  }finally{release.resolve();f.repo.close();}
+});
+
+// Host-only v2 fixture. The real source codec validates frontier representation;
+// synthetic signed reference operations and a static metadata resolver below do
+// NOT authenticate a source selection, register an engine projection, qualify
+// the producer/current policy, or establish schema2 authority issuance.
+const sourceCapture=Capture.createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:Source});
+const emptySource=()=>Source.frontier(()=>undefined,0);
+const sourcePrescription=context=>({...prescription(context),profile:sourceCapture.profile,source_basis:context.source_basis});
+const sourceResumePolicy=(_g,context)=>({allowed_actions:['set','skip','close'],reason:'Synthetic v2 current assessment',current_capture:sourcePrescription(context)});
+function sourceBasis(generation){const source_basis=structuredClone(generation.metadata.syntheticWorkoutSource||emptySource());return {
+ plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic-input',causal_parents:source_basis.selection_id===null?[]:[source_basis.selection_id],source_basis};}
+const sourceSetup=(options={})=>setup({...options,capture:sourceCapture,client:{resolveWorkoutBasis:sourceBasis,
+ workoutProducer:(_g,context)=>sourcePrescription(context),workoutResumePolicy:sourceResumePolicy,...options.client}});
+async function selectSyntheticSource(f,label){
+ const before=await f.repo.load(),seq=before.generation.collections.sync.frontier.W+1;
+ const op=Client.ops.build({op_id:'synthetic-source-'+label,athlete_id:'ath-1',device_id:'dev-B',device_seq:seq,
+  predecessor:before.generation.metadata.syntheticWorkoutSource?.selection_id||null,parents:[],class:'event',kind:'fact',
+  effective:{local_date:'2026-09-04',local_time:'08:00',utc_offset:'-04:00'},lease_id:'synthetic-source-reference-only',
+  payload:{type:'source-import-intent',interval:{start:'2026-09-04',end:'2026-09-04'},source_id:'synthetic-'+label,
+   material_digest:Source.hash('synthetic-host-material-'+label,new Uint8Array())}},O.K_IDENTITY);
+ const receipt=Sign.signReceipt({seq,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey);
+ const pull=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:seq-1,through:seq,receipts:[receipt],wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey);
+ const accepted=await f.c.acceptResponse('pull',{wireVersion:Wire.WIRE_VERSION,body:pull});assert.equal(accepted.accepted,true,JSON.stringify(accepted));
+ const snapshot=await f.repo.load(),source={W:seq,log_digest:Source.hash('synthetic-host-cut-'+label,new Uint8Array()),selection_id:op.op_id};
+ snapshot.generation.metadata.syntheticWorkoutSource=source;await f.repo.commit(snapshot,snapshot.generation,()=>null);return structuredClone(source);
+}
+
+test('v2 host owns resolved source and exact capture through atomic Start and durable reopen',async()=>{
+ let resolved,produced,seen,productions=0;
+ const f=await sourceSetup({client:{resolveWorkoutBasis:g=>(resolved=sourceBasis(g)),workoutProducer:(_g,context)=>{productions++;seen=context;return produced=sourcePrescription(context);}}});
+ try{const source=await selectSyntheticSource(f,'A'),before=await f.repo.load(),p=await prepare(f);assert.equal(p.prepared,true,JSON.stringify(p));
+  assert.deepEqual(seen.source_basis,source);assert.notEqual(seen.source_basis,resolved.source_basis);assert.deepEqual(p.view.source_basis,source);
+  const original=JSON.stringify(p.view);p.view.source_basis.W=999;resolved.source_basis.selection_id='later resolver mutation';produced.source_basis.W=777;
+  const [a,b]=await Promise.all([start(f,p),start(f,p)]);assert.equal(a.acknowledged,true,JSON.stringify(a));assert.equal(b.op_id,a.op_id);assert.equal(productions,1);
+  const saved=await f.repo.load(),op=saved.generation.collections.ops[a.op_id];assert.equal(JSON.stringify(op.prescription_capture),original);
+  assert.deepEqual(op.causal_parents,[source.selection_id]);assert.deepEqual(Schema.validateWorkoutShape(op,{prescriptionCapture:sourceCapture}).references,[source.selection_id]);
+  assert.equal(saved.revision,before.revision+1);assert.equal(Object.keys(saved.generation.collections.outbox).length,1);
+  const fresh=await f.fresh();try{const read=await createDurablePublicClient({...f.args,repository:fresh.repository}).readWorkoutHistory();assert.equal(read.read,true,JSON.stringify(read));assert.equal(JSON.stringify(read.history.sessions[0].original),original);}finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+
+for(const field of ['W','log_digest','selection_id','missing','extra'])test(`v2 host refuses producer source ${field} mismatch before a handle or write`,async()=>{
+ const f=await sourceSetup({client:{workoutProducer:(_g,context)=>{const value=sourcePrescription(context);
+  if(field==='W')value.source_basis.W++;if(field==='log_digest')value.source_basis.log_digest=Source.hash('synthetic-other-cut',new Uint8Array());
+  if(field==='selection_id')value.source_basis.selection_id='synthetic-other-selection';if(field==='missing')delete value.source_basis;if(field==='extra')value.source_basis.clearance=true;return value;}}});
+ try{const before=await f.repo.load(),p=await prepare(f);assert.notEqual(p.prepared,true);assert.equal(p.code,'WORKOUT_PREPARATION_INVALID');assert.equal(p.preparedId,undefined);assert.equal(p.view,undefined);assert.deepEqual(await f.repo.load(),before);}finally{f.repo.close();}
+});
+for(const change of ['missing','extra','getter'])test(`v2 host refuses ${change} static source basis without invoking the producer`,async()=>{
+ let calls=0,getters=0;const f=await sourceSetup({client:{resolveWorkoutBasis:g=>{const value=sourceBasis(g);
+  if(change==='missing')delete value.source_basis;if(change==='extra')value.source_basis.clearance=true;
+  if(change==='getter')Object.defineProperty(value.source_basis,'W',{enumerable:true,get(){getters++;return 0;}});return value;},
+  workoutProducer:(_g,context)=>{calls++;return sourcePrescription(context);}}});
+ try{const before=await f.repo.load(),p=await prepare(f);assert.notEqual(p.prepared,true);assert.equal(p.code,'WORKOUT_INPUT_INVALID');assert.equal(calls,0);assert.equal(getters,0);assert.deepEqual(await f.repo.load(),before);}finally{f.repo.close();}
+});
+test('v2 host requires the selected reference as a parent and actual Start refuses its absence from stored operations',async()=>{
+ for(const listed of [false,true]){const f=await sourceSetup({client:{resolveWorkoutBasis:g=>{const value=sourceBasis(g);value.source_basis.selection_id='synthetic-missing-selection';value.causal_parents=listed?[value.source_basis.selection_id]:[];return value;}}});
+  try{const before=await f.repo.load(),p=await prepare(f);
+   if(listed){assert.equal(p.prepared,true,JSON.stringify(p));assert.equal((await start(f,p)).acknowledged,false);}
+   else{assert.notEqual(p.prepared,true);assert.equal(p.code,'WORKOUT_BASIS_INVALID');}
+   assert.deepEqual(await f.repo.load(),before);
+  }finally{f.repo.close();}}
+});
+test('v1 host keeps its closed resolver and source-free producer context',async()=>{
+ let context;const f=await setup({client:{workoutProducer:(_g,c)=>{context=c;return prescription(c);}}});
+ try{const p=await prepare(f);assert.equal(p.prepared,true);assert.equal(Object.hasOwn(context,'source_basis'),false);assert.equal(Object.hasOwn(p.view,'source_basis'),false);assert.equal((await start(f,p)).acknowledged,true);}finally{f.repo.close();}
+ const extra=await setup({client:{resolveWorkoutBasis:sourceBasis}});try{assert.equal((await prepare(extra)).code,'WORKOUT_INPUT_INVALID');}finally{extra.repo.close();}
+});
+
+for(const override of ['source_basis','allowed_actions','clearance'])test(`v2 public prepare Start and resume reject renderer ${override}`,async()=>{
+ const f=await sourceSetup();try{const value=override==='source_basis'?emptySource():true,before=await f.repo.load();
+  assert.equal((await f.c.prepareWorkout({planned_split_slot_id:'synthetic-slot',[override]:value})).code,'WORKOUT_INPUT_INVALID');
+  const p=await prepare(f);assert.equal(p.prepared,true,JSON.stringify(p));assert.equal((await start(f,p,{[override]:value})).code,'WORKOUT_INPUT_INVALID');assert.deepEqual(await f.repo.load(),before);
+  const a=await start(f,p);assert.equal(a.acknowledged,true,JSON.stringify(a));const saved=await f.repo.load();
+  assert.equal((await f.c.prepareWorkoutContinuation({session_start_op_id:a.op_id,[override]:value})).code,'WORKOUT_INPUT_INVALID');
+  const r=await resume(f.c,a.op_id);assert.equal(r.prepared,true,JSON.stringify(r));
+  assert.equal((await f.c.executeResumedWorkout({resumeId:r.resumeId,action:'close',input:{session_start_op_id:a.op_id,completion_kind:'early'},[override]:value})).acknowledged,false);
+  assert.deepEqual(await f.repo.load(),saved);
+ }finally{f.repo.close();}
+});
+
+test('v2 source change between preparation and Start refuses through the actual revision fence without recapture',async()=>{
+ let calls=0;const f=await sourceSetup({client:{workoutProducer:(_g,c)=>{calls++;return sourcePrescription(c);}}});
+ try{await selectSyntheticSource(f,'A');const p=await prepare(f);assert.equal(p.prepared,true,JSON.stringify(p));await selectSyntheticSource(f,'B');const before=await f.repo.load(),r=await start(f,p);
+  assert.equal(r.acknowledged,false);assert.equal(r.code,'WORKOUT_PREPARATION_STALE');assert.equal(calls,1);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('v2 source change at the actual Start commit cut refuses the CAS retry without recapture',async()=>{
+ let raced=false,calls=0;const f=await sourceSetup({client:{workoutProducer:(_g,c)=>{calls++;return sourcePrescription(c);}},
+  wrapRepository:repo=>({...repo,async commit(...args){if(!raced){raced=true;const s=await repo.load();s.generation.metadata.syntheticWorkoutSource={...emptySource(),log_digest:Source.hash('synthetic-interleaved-source',new Uint8Array())};await repo.commit(s,s.generation,()=>null);}return repo.commit(...args);}})});
+ try{const p=await prepare(f);assert.equal(p.prepared,true,JSON.stringify(p));const r=await start(f,p);assert.equal(r.code,'WORKOUT_PREPARATION_STALE');assert.equal(r.acknowledged,false);assert.equal(calls,1);assert.equal(Object.keys(await operations(f)).length,0);}finally{f.repo.close();}
+});
+
+for(const oldProfile of ['v2','v1'])test(`v2 current resume source B preserves exact ${oldProfile} original without recapturing`,async()=>{
+ let policyContext,productions=0;const f=await (oldProfile==='v2'?sourceSetup:setup)();
+ try{if(oldProfile==='v2')await selectSyntheticSource(f,'A');const p=await prepare(f),a=await start(f,p);assert.equal(a.acknowledged,true,JSON.stringify(a));
+  const original=JSON.stringify((await operations(f))[a.op_id].prescription_capture);assert.equal((await perform(f,a.op_id)).acknowledged,true);
+  const sourceB=await selectSyntheticSource(f,'B'),fresh=await f.fresh();try{
+   const c=createDurablePublicClient({...f.args,repository:fresh.repository,prescriptionCapture:sourceCapture,resolveWorkoutBasis:sourceBasis,
+    workoutProducer:()=>{productions++;throw Error('Original must never be regenerated');},workoutResumePolicy:(_g,context)=>{policyContext=context;const value=sourceResumePolicy(_g,context);value.current_capture.slots[1].load=cell('35 lb',' {"value":35.00,"unit":"lb"} ');context.original.slots[0].load.display='policy mutation';return value;}});
+   const before=await fresh.repository.load(),r=await resume(c,a.op_id);assert.equal(r.prepared,true,JSON.stringify(r));assert.deepEqual(policyContext.source_basis,sourceB);assert.deepEqual(r.view.current.source_basis,sourceB);
+   assert.equal(JSON.stringify(r.view.original),original);assert.equal(r.view.current.slots[1].load.display,'35 lb');assert.equal(r.view.original.slots[1].load.display,'45 lb');assert.equal(productions,0);
+   if(oldProfile==='v1'){assert.equal(r.view.original.profile,capture.profile);assert.equal(Object.hasOwn(r.view.original,'source_basis'),false);}else assert.notEqual(r.view.original.source_basis.selection_id,sourceB.selection_id);
+   assert.deepEqual(await fresh.repository.load(),before);r.view.current.source_basis.W=999;policyContext.source_basis.selection_id='later policy mutation';
+   assert.equal((await resumedSet(c,r,a.op_id)).acknowledged,true);const read=await c.readWorkoutHistory();assert.equal(read.read,true);assert.equal(JSON.stringify(read.history.sessions[0].original),original);
+  }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+for(const field of ['W','log_digest','selection_id','missing'])test(`v2 resume refuses current source ${field} mismatch while preserving original`,async()=>{
+ const f=await sourceSetup();try{await selectSyntheticSource(f,'A');const a=await start(f,await prepare(f));assert.equal(a.acknowledged,true,JSON.stringify(a));await selectSyntheticSource(f,'B');
+  const c=createDurablePublicClient({...f.args,workoutResumePolicy:(_g,context)=>{const value=sourceResumePolicy(_g,context);
+   if(field==='W')context.source_basis.W=context.original.source_basis.W;if(field==='log_digest')context.source_basis.log_digest=context.original.source_basis.log_digest;
+   if(field==='selection_id')context.source_basis.selection_id=context.original.source_basis.selection_id;if(field==='missing')delete value.current_capture.source_basis;return value;}});
+  const before=await f.repo.load(),r=await resume(c,a.op_id);assert.notEqual(r.prepared,true);assert.equal(r.code,'WORKOUT_CAPTURE_INVALID');assert.equal(r.resumeId,undefined);assert.deepEqual(await f.repo.load(),before);
+ }finally{f.repo.close();}
+});
+test('v2 uncertain Start reconciles its same stored capture once without invoking the producer again',async()=>{
+ let lose=true,calls=0;const f=await sourceSetup({client:{workoutProducer:(_g,c)=>{calls++;return sourcePrescription(c);}},wrapRepository:repo=>({...repo,async commit(...args){const r=await repo.commit(...args);if(lose){lose=false;throw Error('Synthetic lost v2 reply');}return r;}})});
+ try{const p=await prepare(f);assert.equal(p.prepared,true,JSON.stringify(p));const original=JSON.stringify(p.view),lost=await start(f,p);assert.equal(lost.acknowledged,false);assert.equal(lost.outcomeUnknown,true);
+  assert.equal((await prepare(f)).code,'WORKOUT_START_OUTCOME_UNRESOLVED');const recovered=await start(f,p);assert.equal(recovered.acknowledged,true);assert.equal(recovered.recovered,true);assert.equal(calls,1);
+  const ops=await operations(f);assert.equal(Object.keys(ops).length,1);assert.equal(JSON.stringify(ops[recovered.op_id].prescription_capture),original);
+ }finally{f.repo.close();}
 });

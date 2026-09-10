@@ -131,6 +131,11 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert.equal(displayed.view.layer2.projectionPending,true,'Complete factual display alone grants no current guidance');
   const replay=require(resolve(m4,'rebuild/m4/import/reading-replay.cjs')).createReadingReplay({engineFor,projectReadings:args.projectReadings,parseStrictJson,
     producerIdentity:'synthetic-actual-installed-factories',importBuild:'synthetic-installed-engine',deviceId:device});
+  const Capture=require('../../m4/workout/capture.cjs');
+  const sourceCapture=Capture.createPrescriptionCapture({parseStrictJson,profile:Capture.SOURCE_PROFILE,sourceCodec:S});
+  const captureAdapter=require(resolve(m4,'rebuild/m4/workout/engine-capture.cjs')).createEngineWorkoutCapture({
+    engine:engineFor({day:'2026-09-07',hour:12}),prescriptionCapture:sourceCapture,sourceProjectionReader:replay,
+    producerIdentity:{app_build:'synthetic-source-capture',engine_build:'synthetic-installed-engine',rule_profile:'earned/engine-workout-capture/v1',source_schema:'2'}});
   async function calculate(){
     // The SAME inactive verified handle supplies material and complete recovered
     // generation. A reproduced candidate calculation grants no publication.
@@ -177,6 +182,7 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeFoodComplete])).status,'ACCEPTED');
   await publishHistorical();const priorCalculation=await calculate(),nativeCheckpoint=await repo.load();
   const priorEvidence=await recover(),priorSource=await priorEvidence.sourceImport(),nextId='synthetic-second-source';
+  const originalSourceInput=await calculateLineage(),originalCaptureBytes=JSON.stringify(originalSourceInput.capture);
   const incoming=JSON.parse(material.source_json);incoming.dailyLogs['2026-08-30'].cal=2400;
   // Distinct imported workout proves second-source selection and rollback do
   // not borrow the latest source's training history by coincidental identity.
@@ -198,6 +204,7 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     const evidence=await recover(),candidate=await evidence.assemble(),source=await evidence.sourceImport();let generation;
     await candidate.inspect(x=>{generation=x;});
     const value=await replay.projectLineage({selectionId:source.current.intent_op_id,generation,asOf:'2026-09-07',assertCurrent:candidate.assertCurrent,
+      sourceBasis:source.frontier,readSourceCuts:async bases=>{let cuts;await candidate.inspectSourceCuts(bases,x=>{cuts=x;});return cuts;},
       readSelectedSource:async id=>{let value;await candidate.inspectSelectedSource(id,x=>{value=x;});return value;}});
     assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.activated,false);assert.equal(value.qualified,false);
     const baseline=value.workout_baseline;assert(baseline,'SOURCE_WORKOUT_BASELINE_REQUIRED');
@@ -205,6 +212,22 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     assert.equal(baseline.source_generation_id,source.current.source_id);
     assert.equal(baseline.activation_op_id,source.current.action==='rollback'?source.current.target_activation_id:source.current.intent_op_id);
     assert.equal(value.coverage.workout_source.selected_intent_id,source.current.intent_op_id);
+    assert.deepEqual(value.source_basis,source.frontier);
+    // This is the actual mechanical engine capture from the consumed guarded
+    // source. Plan/input identifiers remain explicitly unqualified fixtures;
+    // no native Start, schema2 capability or current guidance is issued here.
+    const captureInput={sourceProjection:value,source_basis:source.frontier,day:'2026-09-07',
+      basis:{plan_basis:'synthetic-plan-only',input_basis:'synthetic-unqualified-input',source_revision:candidate.sourceRevision}};
+    const capture=captureAdapter.prepare(captureInput).capture;
+    assert.deepEqual(JSON.parse(JSON.stringify(capture.source_basis)),source.frontier);
+    assert.throws(()=>captureAdapter.prepare({...captureInput,state:structuredClone(value.accepted_state)}),{code:'ENGINE_CAPTURE_SOURCE_INPUT_DISAGREEMENT'},
+      'A separate state image cannot accompany this verified source frontier');
+    assert.throws(()=>captureAdapter.prepare({...captureInput,sourceProjection:structuredClone(value)}),{code:'SOURCE_WORKOUT_INPUT_DISAGREEMENT'},
+      'A copied DTO cannot impersonate the registered consumed source projection');
+    assert.throws(()=>{value.accepted_state.trend++;},TypeError,'The actual consumed source state is immutable');
+    const substituted=structuredClone(value);substituted.accepted_state.trend++;
+    assert.throws(()=>captureAdapter.prepare({...captureInput,sourceProjection:substituted}),{code:'SOURCE_WORKOUT_INPUT_DISAGREEMENT'},'Changed source material cannot keep its valid frontier');
+    assert.equal(JSON.stringify(captureAdapter.prepare(captureInput).capture),JSON.stringify(capture));
     const order=require(resolve(m4,'rebuild/m4/workout/engine-order.cjs')).orderWorkoutStarts({frontier:generation.collections.sync.frontier.W,sessions:[]},generation,
       {importAnchor:{source_generation_id:baseline.source_generation_id,activation_op_id:baseline.activation_op_id}});
     const engineInput=structuredClone({state:value.accepted_state,baseline});engineInput.state.workoutFacts={profile:'earned/workout-facts/v1',sessions:[],order,legacy_baseline:engineInput.baseline};
@@ -214,9 +237,12 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
     await assert.rejects(candidate.inspectSelectedSource('not-a-selected-source',()=>assert.fail('Unknown source cannot reach visitor')),{code:'SOURCE_SELECTION_UNKNOWN'});
     await candidate.inspectSelectedSource(activation.op_id,x=>{assert.deepEqual(x.material,material);x.material.source_json='changed caller copy';});
     await candidate.inspectSelectedSource(activation.op_id,x=>assert.deepEqual(x.material,material));
-    return {value,source,candidate,generation};
+    return {value,source,candidate,generation,capture};
   }
   let lineage=await calculateLineage();assert.deepEqual(lineage.value.accepted_state,nextPrepared.candidateState());
+  const secondSourceBasis=structuredClone(lineage.source.frontier);
+  assert.notDeepEqual(lineage.capture.source_basis,originalSourceInput.capture.source_basis);
+  assert.equal(JSON.stringify(originalSourceInput.capture),originalCaptureBytes,'Second import cannot rewrite original instructions or their source cut');
   assert(Object.hasOwn(lineage.value.workout_baseline.session_log,addedWorkoutDay));
   assert.equal(lineage.value.coverage.workout_source.original_checkpoint_W,nativeCheckpoint.generation.collections.sync.frontier.W);
   const nativeAfter=remoteOp({lb:{value:180,unit:'lb'}},{effective:at('2026-09-06')});
@@ -237,6 +263,11 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   await publishHistorical();await assert.rejects(lineage.candidate.inspectSelectedSource(activation.op_id,()=>assert.fail('Retired inventory must refuse')),{code:'RECOVERY_STAGE_CHANGED'});
   repo.close();const finalOpen=await f.fresh();repo=finalOpen.repository;t.after(()=>repo.close());client=createDurablePublicClient({...args,repository:repo});
   lineage=await calculateLineage();
+  await lineage.candidate.inspectSourceCuts([originalSourceInput.source.frontier,secondSourceBasis,lineage.source.frontier],cuts=>{
+    assert.equal(cuts[0].current.source_id,sourceId);assert.equal(cuts[1].current.source_id,nextId);assert.equal(cuts[2].current.source_id,sourceId);
+  });
+  assert.equal(JSON.stringify(originalSourceInput.capture),originalCaptureBytes,'Rollback retains the original captured source, not its new selected frontier');
+  assert.deepEqual(captureAdapter.readLayout(originalSourceInput.capture).basis,JSON.parse(JSON.stringify(originalSourceInput.capture.basis)));
   let rollbackExpected=engineFor({day:'2026-09-05',hour:8}).applyRead(prepared.candidateState(),'2026-09-05',178,{hour:8});
   rollbackExpected=engineFor({day:'2026-09-05',hour:8}).writeDaily(rollbackExpected,'2026-09-05',{cal:2300,pro:150});
   rollbackExpected=engineFor({day:'2026-09-06',hour:8}).applyRead(rollbackExpected,'2026-09-06',180,{hour:8});

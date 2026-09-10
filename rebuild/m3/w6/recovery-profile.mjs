@@ -119,6 +119,10 @@ async function interpretProfile({inventory,codec:C,protocol:P,publicVerifier,req
   async summary(){await assertStable();return {W:metadata.seq,account_epoch:registry.account_epoch,history_origin:registry.history_origin};},
   async sourcePlan(){return RecoveryPlan.projectRecoveryPlan({initialPlan:metadata.initialPlan,each,assertStable,W:metadata.seq});},
   async sourceImport(){await assertStable();return source?source.selection():null;},
+  async sourceSelectionsAt(bases){
+    await assertStable();if(typeof source?.selectionsAt!=='function')fail('SOURCE_PROFILE_REQUIRED');
+    const values=await source.selectionsAt(bases);await assertStable();return values;
+  },
   async sourceSelection(intentId){
     await assertStable();if(!source||typeof intentId!=='string'||!intentId)fail('SOURCE_SELECTION_REQUIRED');
     const selection=await val('sourceImports',JSON.stringify(['selection',intentId]));

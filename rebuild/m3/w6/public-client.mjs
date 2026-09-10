@@ -31,6 +31,8 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       typeof prescriptionCapture?.prepare !== "function" || !workoutProducerIdentity || schemaVersion !== 2))
     throw new TypeError("Complete static workout preparation configuration required");
   const producerIdentity = captureEnabled ? copy(workoutProducerIdentity) : null;
+  const sourceCaptureEnabled = captureEnabled && prescriptionCapture.profile === 'earned/workout-prescription/v2';
+  const workoutBasisFields = ['plan_basis','input_basis','causal_parents',...(sourceCaptureEnabled?['source_basis']:[])];
   if(workoutResumePolicy!==undefined&&(!captureEnabled||typeof workoutResumePolicy!=='function'))throw new TypeError('Static workout resume policy requires capture configuration');
   if(projectWorkoutHistory!==undefined&&(!captureEnabled||typeof projectWorkoutHistory!=='function'))throw new TypeError('Static workout history projector requires capture configuration');
   if(projectReadings!==undefined&&typeof projectReadings!=='function')throw new TypeError('Static reading projector required');
@@ -275,6 +277,10 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
     return Object.fromEntries(names.map(k => [k, descriptors[k].value]));
   }
+  function workoutCaptureContext(resolved,revision){
+    return {producer:producerIdentity,basis:{plan_basis:resolved.plan_basis,input_basis:resolved.input_basis,source_revision:revision},
+      ...(sourceCaptureEnabled?{source_basis:copy(closedInput(resolved.source_basis,['W','log_digest','selection_id']))}:{})};
+  }
   async function prepareWorkoutContinuation(request,lifetime){
     try{
       for(const entry of resumptions.values())entry.retired=true;resumptions.clear();
@@ -290,14 +296,16 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       const resumed=workoutContinuation(history,snapshot.generation,input.session_start_op_id);
       const beforePolicy=contextFailure(candidate.context.observationEpoch);if(beforePolicy)return {...beforePolicy,prepared:false};
       const facts=producerHistory(snapshot,candidate);
-      const resolved=closedInput(resolveWorkoutBasis(copy(snapshot.generation),{planned_split_slot_id:resumed.planned_split_slot_id},copy(facts)),['plan_basis','input_basis','causal_parents']);
-      const basis={plan_basis:resolved.plan_basis,input_basis:resolved.input_basis,source_revision:snapshot.revision};
+      const resolved=closedInput(resolveWorkoutBasis(copy(snapshot.generation),{planned_split_slot_id:resumed.planned_split_slot_id},copy(facts)),workoutBasisFields);
+      // Current assessment uses today's resolved source; the stored original
+      // remains independent, including historical v1 without a source basis.
+      const expected=workoutCaptureContext(resolved,snapshot.revision);
       // Trusted configured producer, never a renderer-supplied clearance flag.
       // Its science/input qualification remains an independent first-use gate.
-      const decision=closedInput(workoutResumePolicy(copy(snapshot.generation),{...copy(resumed),producer:copy(producerIdentity),basis:copy(basis),...copy(facts)}),['allowed_actions','reason','current_capture']);
+      const decision=closedInput(workoutResumePolicy(copy(snapshot.generation),{...copy(resumed),...copy(expected),...copy(facts)}),['allowed_actions','reason','current_capture']);
       if(!Array.isArray(decision.allowed_actions)||new Set(decision.allowed_actions).size!==decision.allowed_actions.length||
         !decision.allowed_actions.every(a=>['set','skip','close'].includes(a))||typeof decision.reason!=='string'||!decision.reason.trim())throw new StorageFailure('WORKOUT_RESUME_POLICY_INVALID',3);
-      const currentCapture=prescriptionCapture.prepare(decision.current_capture,{producer:producerIdentity,basis});
+      const currentCapture=prescriptionCapture.prepare(decision.current_capture,expected);
       if(currentCapture.slots.length!==resumed.slots.length||currentCapture.slots.some((s,i)=>s.logical_set_slot!==resumed.slots[i].logical_set_slot||s.lift_lineage_id!==resumed.slots[i].lift_lineage_id))throw new StorageFailure('WORKOUT_RESUME_SLOT_MAPPING_REQUIRED',3);
       const changed=contextFailure(candidate.context.observationEpoch);if(changed)return {...changed,prepared:false};
       const latest=await repository.load();if(latest.revision!==snapshot.revision||latest.token!==snapshot.token)return workoutRefusal('WORKOUT_RESUME_STALE');
@@ -396,14 +404,16 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       const scope = copy(candidate.context);
       const beforeProducer=contextFailure(scope.observationEpoch);if(beforeProducer)return {...beforeProducer,prepared:false};
       const facts=producerHistory(snapshot,candidate);
-      const resolved = closedInput(resolveWorkoutBasis(copy(snapshot.generation), copy(input),copy(facts)), ["plan_basis", "input_basis", "causal_parents"]);
+      const resolved = closedInput(resolveWorkoutBasis(copy(snapshot.generation), copy(input),copy(facts)), workoutBasisFields);
       const parents = copy(resolved.causal_parents);
       if (!Array.isArray(parents) || Reflect.ownKeys(parents).length !== parents.length + 1 ||
           !parents.every(x => typeof x === "string" && x.trim()) || new Set(parents).size !== parents.length)
         throw new StorageFailure("WORKOUT_BASIS_INVALID", 3);
-      const basis = { plan_basis: resolved.plan_basis, input_basis: resolved.input_basis, source_revision: snapshot.revision };
+      const expected = workoutCaptureContext(resolved,snapshot.revision);
+      if(sourceCaptureEnabled && expected.source_basis.selection_id!==null && !parents.includes(expected.source_basis.selection_id))
+        throw new StorageFailure('WORKOUT_BASIS_INVALID',3);
       const capture = prescriptionCapture.prepare(workoutProducer(copy(snapshot.generation),
-        { ...copy(input), producer: copy(producerIdentity), basis: copy(basis),...copy(facts) }), { producer: producerIdentity, basis });
+        { ...copy(input), ...copy(expected),...copy(facts) }), expected);
       const changed = contextFailure(scope.observationEpoch); if (changed) return { ...changed, acknowledged: false };
       const latest=await repository.load();if(latest.revision!==snapshot.revision||latest.token!==snapshot.token)return workoutRefusal('WORKOUT_PREPARATION_STALE');
       const last=contextFailure(scope.observationEpoch);if(last)return {...last,prepared:false};

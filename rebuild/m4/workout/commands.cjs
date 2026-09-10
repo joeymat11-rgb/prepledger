@@ -64,7 +64,8 @@ function prepare(request, prescriptionCapture) {
   for(const key of payloadFields)if(own(input,key))action.payload[key]=input[key];
   if(captured){
     const value=input.prescription_capture;
-    action.extra.prescription_capture=prescriptionCapture.prepare(value,{producer:value?.producer,basis:value?.basis});
+    action.extra.prescription_capture=prescriptionCapture.prepare(value,{producer:value?.producer,basis:value?.basis,
+      ...(prescriptionCapture.profile==='earned/workout-prescription/v2'?{source_basis:value?.source_basis}:{})});
   }
   if(own(input,'effective'))action.effective=input.effective;
   if(own(input,'causal_parents'))action.parents=input.causal_parents;
