@@ -130,6 +130,8 @@ Reserved source control strings refuse this physiological value decoder. Only th
 
 Executed: `node --test rebuild/m4/spec/context-values-proposal.test.cjs` —13 author checks PASS. Covers the required-field amendment versus the unchanged actual v1 authority, original bytes/commitment, zero/unknown/clear/restoration, distinct effective/night correction, leap/year/DST labels in UTC/New York/Auckland, inclusive interval edges, unresolved end/close/reopen, pain reference/scope refusals, reserved-control refusal and the actual installed night reader. Log `.tmp/context-values-proposal-verified.log` SHA256 `e24d3260418fe713ff5d7330a5dfc846515a3047bdf2bceeebd96573ca3e7d06`. No full accepted-history, signed recovery, UI save, source/current-input, physiology or complete C1 qualification is claimed.
 
+Portable review harness: the thirteenth check now calls the SAME nightsBefore from the unchanged public sleep module directly, without the seeded engine entry.13/13 PASS in `.tmp/context-values-proposal-portable.log`, SHA256 `4db7fd48bdf60da3f5c53316591eb1e1611cde4565dd11992c3895405565c796`. The earlier whole-factory log above remains historical. No value/policy function changed.
+
 Next adoption boundary: affected technical review of these precise domains/calendar/edit choices, then the exact shared value/shape/target/history amendment and complete registry work under §5. Existing schema/issuer release conditions remain. Do not ask the owner to repeat the approved independent sleep-input direction or infer a physiological rule from it.
 
 ## 4. Real issuance, renewal and atomic local transition

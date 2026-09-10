@@ -127,9 +127,9 @@ test('historical unknown shapes stay original evidence and future versions refus
  fails(()=>C.patch('sleep',current,{safety_clearance:true}),'CONTEXT_PATCH_FIELD');
 });
 test('proposed night label corresponds to the actual installed nightsBefore reader without changing source',()=>{
- const {createEngine}=require('../../engine/index.cjs');
- const E=createEngine({clock:{today:()=>effective.local_date,nowISO:()=>effective.local_date+'T12:00:00.000Z',hour:()=>12},
-  ids:{fresh:p=>p+'public-synthetic'}});
+ // This actual reader has no external dependency. Instantiate only its public
+ // module so the portable review packet never needs the seeded engine entry.
+ const E=require('../../engine/sleep.cjs')({},{clock:{today:()=>effective.local_date},ids:{fresh:()=> 'public-synthetic'}});
  const mapped=C.legacyCorrespondence('sleep',values(sleep())).candidate;
  const source={sleep:{nights:[mapped]}},bytes=JSON.stringify(source);
  assert.deepEqual(E.nightsBefore(source,'2026-09-09'),[]);
