@@ -130,7 +130,7 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert.deepEqual(displayed.view.readingHistory.acceptedReads.map(row=>row.op_id),[remote.op_id],'Pending values never enter accepted machine inputs');
   assert.equal(displayed.view.layer2.projectionPending,true,'Complete factual display alone grants no current guidance');
   const replay=require(resolve(m4,'rebuild/m4/import/reading-replay.cjs')).createReadingReplay({engineFor,projectReadings:args.projectReadings,parseStrictJson,
-    producerIdentity:'synthetic-actual-installed-factories',importBuild:'synthetic-installed-engine'});
+    producerIdentity:'synthetic-actual-installed-factories',importBuild:'synthetic-installed-engine',deviceId:device});
   async function calculate(){
     // The SAME inactive verified handle supplies material and complete recovered
     // generation. A reproduced candidate calculation grants no publication.
@@ -170,6 +170,11 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   const at=day=>({local_date:day,local_time:'08:00',utc_offset:'-04:00'});
   const nativeBefore=remoteOp({lb:{value:179,unit:'lb'}},{effective:at('2026-09-05')});
   assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeBefore])).status,'ACCEPTED');
+  const nativeFood=remoteOp({kcal:{value:2200,unit:'kcal'}},{class:'food-day',effective:at('2026-09-05')});
+  const nativeSteps=remoteOp({count:{value:8000,unit:'step'}},{class:'steps',effective:at('2026-09-05')});
+  for(const op of [nativeFood,nativeSteps])assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',op])).status,'ACCEPTED');
+  const nativeFoodComplete=remoteOp({replacement_fields:{protein_g:{value:150,unit:'g'}}},{class:'food-day',kind:'correction',target:nativeFood.op_id,parents:[nativeFood.op_id],effective:at('2026-09-05')});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeFoodComplete])).status,'ACCEPTED');
   await publishHistorical();const priorCalculation=await calculate(),nativeCheckpoint=await repo.load();
   const priorEvidence=await recover(),priorSource=await priorEvidence.sourceImport(),nextId='synthetic-second-source';
   const incoming=JSON.parse(material.source_json);incoming.dailyLogs['2026-08-30'].cal=2400;
@@ -201,9 +206,14 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',nativeAfter])).status,'ACCEPTED');
   const inheritedEdit=remoteOp({replacement_fields:{lb:{value:178,unit:'lb'}}},{kind:'correction',target:nativeBefore.op_id,parents:[nativeBefore.op_id],effective:at('2026-09-06')});
   assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',inheritedEdit])).status,'ACCEPTED');
+  const foodEdit=remoteOp({replacement_fields:{kcal:{value:2300,unit:'kcal'}}},{class:'food-day',kind:'correction',target:nativeFood.op_id,parents:[nativeFood.op_id,nativeFoodComplete.op_id],effective:at('2026-09-06')});
+  const stepsRemoval=remoteOp({reason:'Synthetic step removal'},{class:'steps',kind:'tombstone',target:nativeSteps.op_id,parents:[nativeSteps.op_id],effective:at('2026-09-06')});
+  for(const op of [foodEdit,stepsRemoval])assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',op])).status,'ACCEPTED');
   await publishHistorical();lineage=await calculateLineage();
   assert.equal(lineage.value.accepted_state.reads.find(r=>r.d==='2026-09-05').w,178);
-  assert.deepEqual(lineage.value.coverage.steps.map(x=>x.op_id),[remote.op_id,nativeBefore.op_id,nativeAfter.op_id]);
+  assert.deepEqual(lineage.value.coverage.steps.map(x=>x.op_id),[remote.op_id,nativeBefore.op_id,nativeFood.op_id,nativeSteps.op_id,nativeAfter.op_id]);
+  assert.deepEqual(lineage.value.accepted_state.dailyLogs['2026-09-05'],{cal:2300,pro:150});
+  assert.equal(lineage.value.daily_history.records.find(r=>r.op_id===nativeSteps.op_id).accepted.state,'removed');
   assert.equal(lineage.value.coverage.source_lineage.length,1);assert.equal(Object.keys(lineage.generation.collections.outbox).length,5);
   const finalRollback=remoteOp({...intentPayload,type:'source-rollback-intent',target_activation_id:activation.op_id},{effective:at('2026-09-06')});
   await send(sourceRequest('rollback',{target_activation_id:activation.op_id,expected:lineage.source.frontier,operation:finalRollback}));
@@ -211,10 +221,12 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   repo.close();const finalOpen=await f.fresh();repo=finalOpen.repository;t.after(()=>repo.close());client=createDurablePublicClient({...args,repository:repo});
   lineage=await calculateLineage();
   let rollbackExpected=engineFor({day:'2026-09-05',hour:8}).applyRead(prepared.candidateState(),'2026-09-05',178,{hour:8});
+  rollbackExpected=engineFor({day:'2026-09-05',hour:8}).writeDaily(rollbackExpected,'2026-09-05',{cal:2300,pro:150});
   rollbackExpected=engineFor({day:'2026-09-06',hour:8}).applyRead(rollbackExpected,'2026-09-06',180,{hour:8});
   assert.deepEqual(lineage.value.accepted_state,rollbackExpected);assert.equal(lineage.value.coverage.selected_intent_id,finalRollback.op_id);
   assert.equal(Object.keys(lineage.generation.collections.outbox).length,5);
   assert.deepEqual(lineage.generation.collections.ops[nativeBefore.op_id],nativeBefore);assert.deepEqual(lineage.generation.collections.ops[nativeAfter.op_id],nativeAfter);
+  for(const op of [nativeFood,nativeSteps,nativeFoodComplete,foodEdit,stepsRemoval])assert.deepEqual(lineage.generation.collections.ops[op.op_id],op);
   const nextSaved=(await repo.importCustody({parseStrictJson,validateContext:()=>null}).load(nextId));assert.deepEqual(nextSaved.checkpoint,nativeCheckpoint);
   await assert.rejects(lineage.candidate.inspectSelectedSource(activation.op_id,async()=>{
     const snapshot=await repo.load();await repo.commit(snapshot,snapshot.generation);
