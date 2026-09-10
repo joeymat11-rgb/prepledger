@@ -105,6 +105,11 @@ test('native local image is reproduced and inherited corrections rebuild before 
   expected=createImportPreparation({engine:engineFor({day:'2026-09-04',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(Buffer.from(JSON.stringify(f.incoming)),{localBytes:Buffer.from(JSON.stringify(expected))}).candidateState();
   expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',180,{hour:8});
   assert.deepEqual(value.accepted_state,expected);assert.deepEqual(value.coverage.steps.map(x=>x.op_id),[f.a.op_id,f.b.op_id]);
+  assert.equal(value.workout_baseline?.source_generation_id,f.second.payload.source_id);
+  assert.equal(value.workout_baseline.activation_op_id,f.second.op_id);
+  assert.strictEqual(value.workout_baseline.session_log,value.accepted_state.sessionLog);
+  const cloned=structuredClone(value);assert.strictEqual(cloned.workout_baseline.session_log,cloned.accepted_state.sessionLog);
+  assert.equal(value.coverage.workout_source.original_checkpoint_W,2);
   assert.equal(value.coverage.source_lineage.length,1);assert.equal(value.reading_history.records.length,3);
   assert.deepEqual(await f.producer.projectLineage(f.input),value);assert.equal(value.activated,false);assert.equal(value.qualified,false);
 });
@@ -114,6 +119,11 @@ test('rollback selects the target activation source and preserves all later acce
   let value;await assert.doesNotReject(async()=>{value=await f.producer.projectLineage({...f.input,selectionId:rollback.op_id,generation:g});},'Actual rollback must resolve its original activation');assert.equal(value.ready,true,JSON.stringify(value.issues));
   let expected=engineFor({day:'2026-09-04',hour:8}).applyRead(f.base,'2026-09-04',181,{hour:8});expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',180,{hour:8});
   assert.deepEqual(value.accepted_state,expected);assert.equal(value.coverage.selected_intent_id,rollback.op_id);assert.equal(value.coverage.accepted_originals.length,6);
+  assert.equal(value.workout_baseline?.activation_op_id,f.first.op_id,'Rollback binds original activation, not later intent');
+  assert.equal(value.workout_baseline.source_generation_id,f.first.payload.source_id);
+  assert.strictEqual(value.workout_baseline.session_log,value.accepted_state.sessionLog);
+  assert.deepEqual(value.coverage.workout_source,{source_id:f.first.payload.source_id,activation_op_id:f.first.op_id,selected_intent_id:rollback.op_id,
+    selected_action:'rollback',original_checkpoint_W:0,material_sha256:value.coverage.material_sha256});
   assert.equal(value.reading_history.records.length,3);assert.deepEqual(g.collections.ops[f.pending.op_id],f.pending);
 });
 test('different local bytes and checkpoint originals refuse native lineage even with a supplied selection',async()=>{
@@ -122,6 +132,16 @@ test('different local bytes and checkpoint originals refuse native lineage even 
   await assert.rejects(f.producer.projectLineage(f.input),{code:'SOURCE_LINEAGE_LOCAL_IMAGE_MISMATCH'});entry.material.local_json=before;entry.material.candidate_json=oldCandidate;
   const cp=JSON.parse(entry.material.checkpoint_json);cp.generation.collections.ops[f.a.op_id].payload.lb.value=999;entry.material.checkpoint_json=JSON.stringify(cp);
   await assert.rejects(f.producer.projectLineage(f.input),{code:'SOURCE_LINEAGE_CHECKPOINT_ORIGINAL'});
+});
+test('workout source binding cannot arise from bare material or an unmapped accepted context; returned aliases stay owned',async()=>{
+  const plain=await fixture(),bare=plain.producer.project(plain.input);assert.equal(bare.ready,true);assert.equal(bare.workout_baseline,undefined);
+  const f=await lineageFixture(),before=structuredClone(f.nodes),result=await f.producer.projectLineage(f.input),day=Object.keys(result.accepted_state.sessionLog)[0];
+  const originalWeight=result.accepted_state.sessionLog[day].entries[0].w;
+  result.workout_baseline.session_log[day].entries[0].w=999;assert.equal(result.accepted_state.sessionLog[day].entries[0].w,999,'One owned returned snapshot');
+  const fresh=await f.producer.projectLineage(f.input);assert.equal(fresh.workout_baseline.session_log[day].entries[0].w,originalWeight);assert.deepEqual(f.nodes,before);
+  const unsupported=op();unsupported.class='sleep';const g=generation([f.first,f.a,f.second,f.b,f.edit,unsupported],[f.pending]);
+  const refused=await f.producer.projectLineage({...f.input,generation:g});assert.equal(refused.ready,false);assert.equal(refused.accepted_state,null);assert.equal(refused.workout_baseline,null);
+  assert(refused.issues.some(i=>i.code==='ACCEPTED_ENGINE_CONTEXT_UNMAPPED'));
 });
 test('lineage requires exact checkpoint receipt prefix and an unchanged final context',async()=>{
   const f=await lineageFixture(),entry=f.nodes.get(f.second.op_id),before=entry.material.checkpoint_json,cp=JSON.parse(before);

@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.72 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.73 (working implementation)
+
+## Current v0.73 actual imported-workout source binding
+
+APM accepted the exact reading-replay/actual-source-test boundary before edits. The existing guarded projectLineage now supplies the imported baseline required by the workout reader from the real selected source, resolving rollback to its original activation/checkpoint and sharing the same returned reconstructed sessionLog. Actual signed source/second-import/rollback/reopen preserves exact original workout rows, removes the newer source's added workout on rollback and keeps later accepted/five pending records; the existing performed reader enumerates exact imported rows.22 checks/three effective source-binding faults/restored22 and joined execution pass. No W6 runtime, schema/core/issuer/source codec/installed engine/active publication change. Full native workout/source correspondence and C1–C4/currentness/qualified next prescription remain. Rev162 and rev163 scoped ACCEPT readbacks are now read: prior shared runtime and1752068/739bcfc legacy interpretation/host accepted within their explicit limits; the new imported-source binding still requires affected acceptance. Canonical checkpoint remains the one NEXT.
 
 ## Current v0.72 actual legacy recorded-history integration
 

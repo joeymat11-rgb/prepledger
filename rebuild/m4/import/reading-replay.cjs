@@ -205,7 +205,23 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       if(result.ready){result.coverage.original_limit=limit;result.coverage.selected_intent_id=id;}
       cache.set(key,copy(result));return result;
     }
-    const result=await calculate(selectionId,original,W,asOf);await assertCurrent();return copy(result);
+    const result=copy(await calculate(selectionId,original,W,asOf));
+    result.workout_baseline=null;
+    if(result.ready){
+      // The guarded selected-source lineage, not a bare imported DTO or a
+      // workout label, supplies this binding. Rollback keeps its original
+      // activation/checkpoint separate from the newer selection operation.
+      const selected=await node(selectionId),activation=selected.selection.action==='rollback'?await node(selected.selection.target_activation_id):selected;
+      const source=activation.selection,log=result.accepted_state?.sessionLog;
+      if(!log||typeof log!=='object'||Array.isArray(log))fail('SOURCE_WORKOUT_HISTORY_UNSUPPORTED');
+      result.workout_baseline={profile:'earned/imported-engine-history/v1',source_generation_id:source.source_id,
+        activation_op_id:source.intent_op_id,session_log:log};
+      result.coverage.workout_source={source_id:source.source_id,activation_op_id:source.intent_op_id,selected_intent_id:selectionId,
+        selected_action:selected.selection.action,original_checkpoint_W:source.before.W,material_sha256:result.coverage.material_sha256};
+    }
+    // The owned result keeps one shared sessionLog reference across the source
+    // state and its baseline. Nothing is published after a changed context.
+    await assertCurrent();return result;
   }
   return Object.freeze({project,reproduce,projectLineage});
 }

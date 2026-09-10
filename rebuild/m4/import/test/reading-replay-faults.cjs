@@ -25,10 +25,13 @@ const faults=[
  ['daily-pending-enters-accepted',"(layer==='local'||status(op)==='accepted')",'true','daily-history.cjs'],
  ['daily-causal-edge-ignored',"if(!ancestry(op.op_id).has(original.op_id))issues.push('DAILY_TARGET_CAUSAL_EDGE_REQUIRED');",'/* omitted */','daily-history.cjs'],
  ['daily-native-source-overlap-ignored',"if(Object.hasOwn(incoming.dailyLogs?.[date]||{},field))",'if(false)'],
- ['removed-daily-added-field-forgotten',"for(const effect of row.effects)if(effect.status==='accepted'&&effect.original.kind==='correction')","for(const effect of [])if(false)"]
+ ['removed-daily-added-field-forgotten',"for(const effect of row.effects)if(effect.status==='accepted'&&effect.original.kind==='correction')","for(const effect of [])if(false)"],
+ ['workout-binding-uses-rollback-intent','activation_op_id:source.intent_op_id,session_log:log','activation_op_id:selectionId,session_log:log'],
+ ['workout-binding-copies-another-log','activation_op_id:source.intent_op_id,session_log:log','activation_op_id:source.intent_op_id,session_log:copy(log)'],
+ ['workout-binding-loses-material','material_sha256:result.coverage.material_sha256',"material_sha256:'unbound'"]
 ];
 const evidence={profile:'earned/reading-replay-faults/v1',directory:dir,source_sha256:sha(original),daily_source_sha256:sha(dailyOriginal),faults:[]};
-for(const [name,needle,replacement,file='reading-replay.cjs']of faults){
+for(const [name,needle,replacement,file='reading-replay.cjs']of faults.filter(f=>!process.argv.includes('--workout-source-only')||f[0].startsWith('workout-binding-'))){
  const bytes=file==='daily-history.cjs'?dailyOriginal:original,mutantTarget=path.join(dir,file),source=bytes.toString();assert.equal(source.split(needle).length,2,'Unique mutation '+name);const mutant=source.replace(needle,replacement);let r;
  try{fs.writeFileSync(mutantTarget,mutant);r=run(name);}finally{fs.writeFileSync(mutantTarget,bytes);}
  assert.equal(r.status,1,'Reached fault '+name+' '+dir);assert.match(r.stdout,/code: 'ERR_ASSERTION'/);assert.match(r.stdout,/not ok /);
