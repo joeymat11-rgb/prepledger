@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.67 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.68 (working implementation)
+
+## Current v0.68 actual shared-history adoption boundary
+
+WORKOUT-HISTORY-JOIN.md pins the actual W6 verifiedHistory → complete-prefix assembly → private normalizer → T2 standing → context/revision/token exposure order and exact prospective shared edit-history/source consumers. Three actual source checks establish typed operation values versus literal source_json/raw custody: the review model's JSON-string input is not a drop-in original-byte production API. WORKOUT-SCHEMA-V2v0.5 reconciles its explicit extension/Skip rows. No runtime, new normalizer, current review input or issuance changed; affected pre-edit acceptance and full schema conditions remain. Canonical EARNED-DELIVERY-STATUS.md is compacted to current authority/state/NEXT/evidence pointers, with its full prior contents archived. CLAUDE-COORDINATION governs future dispatch after APM's current review handoff; sole product writer and release/data boundaries unchanged.
 
 ## Current v0.67 durable added-slot representation proposal
 
