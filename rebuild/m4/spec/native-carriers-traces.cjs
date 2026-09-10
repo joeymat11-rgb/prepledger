@@ -34,8 +34,15 @@ function censusLaws(){
 function census(mode){
  const args=mode==='frozen'?['--import',require('node:url').pathToFileURL(path.join(root,'tools/_fixed-now.mjs')).href]:[];
  const text=run([...args,path.join(C,'oracle/port-oracle.cjs'),'check',path.join(root,'rebuild/engine/oracle-shim.cjs'),'candidate','main']);
- const green=[...text.matchAll(/^GREEN\s+(\S+)/gm)].map(m=>m[1]).sort();
- assert.match(text,/7 GREEN · 0 RED-as-specified · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR/,'Candidate census clean ('+mode+')');
+ // The oracle also runs its 3 PRIVATE live laws whenever the gitignored fixture
+ // exists (the PM's FULL tree). They are counted, never named: the PUBLIC claim
+ // is always exactly 7 laws and the run must have no RED/FAIL/DEFECT anywhere.
+ const all=[...text.matchAll(/^GREEN\s+(\S+)/gm)].map(m=>m[1]).sort();
+ const green=all.filter(name=>!/^PORT-live-/.test(name));
+ const privateLaws=all.length-green.length;
+ assert.equal(privateLaws,fs.existsSync(path.join(C,'private/live.json'))?3:0,'Private law count matches fixture presence');
+ assert.match(text,new RegExp((7+privateLaws)+' GREEN · 0 RED-as-specified · 0 FAIL · 0 DEFECT · 0 HARNESS_ERROR'),'Candidate census clean ('+mode+')');
+ assert.equal(green.length,7,'Exactly 7 public census laws GREEN ('+mode+')');
  for(const name of GOLDENS)assert(text.includes('PORT-'+name+'-census-v2-required-identical-to-golden'),'Census law present '+name);
  assert(/byte-identical required census/.test(text),'Byte-identical census claimed');
  return green;

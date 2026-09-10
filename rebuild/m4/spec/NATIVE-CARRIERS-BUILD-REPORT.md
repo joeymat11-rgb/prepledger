@@ -60,6 +60,11 @@ delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
 | 8 | ↳ child `legacy` | **9/9** legacy-only comparisons identical, 3 alarm branches; 6/6 ACCEPTED preimages recovered |
 | 9 | ↳ child `witnesses` | 6/6 input/alarm branches; 30 delegates reached, 1 writer function reached, 90 composed-but-unreached; **0 lab/history reach** |
 | 10 | ↳ child `cases` | **7/7 effective mutants**, one per carrier file, all restored |
+| 10a | ↳ child `source-carriers` (covers migrate/merge/writers-source) | **6/6 PASS**; 4 declared carriers proved over the frozen prior bytes per program |
+| 10b | ↳ child `inherited-carriers` (covers witnesses-2/-5, migrate-differential) | **6/6 PASS**; 127 + 4 + 11 original/accepted cases, both clocks |
+| 10c | ↳ child `defect-witnesses` (covers witnesses-7) | **10/10 complete comparisons PASS** |
+| 10d | ↳ child `writers-differential` (covers writers-differential) | **3/3 Date/trap modes PASS**; 84 scenarios / 314 call cuts / 27 methods each |
+| 10e | ↳ child `second-gate` (covers second-gate) | **CI SECOND GATE PASS**; 3072 reference / 3072 candidate assertions; 4 surface cells; 6 legacy sites |
 | 11 | `node rebuild/m3/w0/scope-package.mjs` | exit 0 — FROZEN-PATHS PASS, OLD-PACKAGE PASS (18 files) |
 | 12 | `node rebuild/m3/w0/public-conformance.cjs` | exit 0 — 99 reference GREEN, 99 STRONG (141 mutants), 70 adapter GREEN |
 | 13 | `node rebuild/m3/w0/public-oracle.mjs` | exit 0 — 7/7 + 9/9 + candidate 7/7 frozen and native + ENGINE-TRACK |
@@ -83,6 +88,48 @@ delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
   sitting directly under the repository, cleared before the `rmSync`). A directory that already
   existed is never recorded and can never be removed by us, so a child process that re-stages the
   snapshot leaves the parent to clean it up; with no recorded path the function is a no-op.
+
+### PM FULL-execution defects (found at `821234e` in the only tree where FULL can run)
+
+- **F-PM-1 (traces child, blocking)** — `native-carriers-traces.cjs census()` asserted the literal
+  `7 GREEN · 0 RED…` summary. With the private fixture present the oracle also runs its three
+  `PORT-live-*` laws and the line reads `10 GREEN`, so the child could never pass inside FULL.
+  Fixed: the PUBLIC laws are counted exactly (names not starting with `PORT-live-`, must be 7), the
+  private laws are counted but **never named or detailed**, the total is required to be
+  `7 + (3 if rebuild/conform/private/live.json exists else 0)`, and `0 RED/FAIL/DEFECT/HARNESS_ERROR`
+  is still required. The verdict needle stays `7/7 public census laws GREEN`, derived from the
+  public list alone.
+- **F-PM-2 (original-gate coverage, blocking)** — the wrapper ran all 19 originals with an empty
+  `done`. Nine of them compare the engine against the FROZEN `fe516c1` source or its frozen
+  expectations and were already RED by design in the accepted parents (D12, D33–D35, D41, D43).
+  The parent covered them with its own substitute children, which cannot run at the B0 inventory
+  ("Closed engine file inventory"). B0 now carries its own successors, and the wrapper seeds `done`
+  from the artifact's `coverage` record so the closed "no missing or extra original gate" assertion
+  still holds over all 19. A covered gate maps to EVIDENCE, never to a skip:
+
+| covered original | B0 successor child | what it proves at the B0 inventory |
+|---|---|---|
+| `migrate-source` | `native-carriers-source-carriers` | the original program, unedited, over the B0 tree |
+| `merge-source` | `native-carriers-source-carriers` | same, incl. the expected engine composition |
+| `writers-source` | `native-carriers-source-carriers` | same, incl. the writers header and declarations |
+| `witnesses-2` | `native-carriers-inherited-carriers` | 11 D11–D21 reproductions, both clocks |
+| `witnesses-5` | `native-carriers-inherited-carriers` | 4 original/accepted cases, both clocks |
+| `migrate-differential` | `native-carriers-inherited-carriers` | 127 original/accepted cases, both clocks |
+| `witnesses-7` | `native-carriers-defect-witnesses` | 10 complete source-derived witness comparisons |
+| `writers-differential` | `native-carriers-writers-differential` | 84 scenarios / 314 call cuts / 27 methods × 3 modes |
+| `second-gate` | `native-carriers-second-gate` | 3072 reference / 3072 candidate assertions, 4 surface cells, 6 legacy sites |
+
+  The seam is `native-carriers-parent-source.cjs`, which exposes the parent's source API unchanged
+  and replaces only its verifier with a strictly stronger one: the parent's exact construction still
+  runs at the parent's own BASE, every file of that accepted product must still be byte-identical
+  (in the tree if B0 does not carry it, at B0's sourceBase if it does), and the tree must be B0's own
+  construction. Where an original re-reads a carried module or rebuilds the composition or the
+  writers header, the comparison is **routed, not dropped**: `priorModule()` requires the frozen
+  bytes to be the declared preimage hash, applies exactly the carriers
+  `native-carriers-changes.json` declares for that module, and requires the result to be the declared
+  postimage hash and byte-identical to the tree. Nothing under `rebuild/engine/test`,
+  `rebuild/conform` or any original gate was edited. `second-gate` takes its custody/helper pins from
+  the immutable M2-STEP-EFFICACY envelope (verified receipts), exactly as the parent's child did.
 
 Effective mutants (mutant → detector): `performed-hole-state`→focused,
 `progression-governing-last`→focused, `plan-era-fresh-native`→focused,
@@ -141,9 +188,12 @@ them again before exiting.
    tests (15 pass), which are author tests, not independent acceptance.
 5. One subtest of `native-next-targets-correction.test.cjs` is SKIPPED (no static extension capture
    in this root), matching the L author's own native-root result.
-6. The parent's `second`-gate and `parent-cases` children were **not** re-implemented: they load
-   `load-write-profile.cjs`, which now refuses (limit 1). Their obligations are carried by the
-   inherited 19-gate matrix, which runs in `--full` only. `--full` has **not** been run by me.
+6. Five of the parent's substitute children now HAVE B0 successors (F-PM-2 above): source-carriers,
+   inherited-carriers, defect-witnesses, writers-differential and second-gate. The parent's
+   `parent-cases` child is still not re-implemented — its inherited full case/mutant package is the
+   grandparent's own, unchanged by B0, and is exercised by the ten originals the wrapper still
+   re-executes. `--full` has **not** been run by me; it is the PM's, in the only tree that has the
+   private fixture (C4).
 7. `nativeTrendContext` remains a declared test assumption; N175-1, N175-2, the unbuilt host
    assembly and the string-lane echo are unchanged open boundaries (theme §6).
 8. Two carriers (`index.cjs`, `browser-engine.cjs`/`build.mjs`) are **not** L bytes. They are

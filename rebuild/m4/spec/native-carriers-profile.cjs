@@ -33,7 +33,27 @@ const AUTHORIZATIONS_SHA='0409c6945e5455a4fb722379fdef90875b65a89bab6c4e173989d1
 const OWNER_SHA='0c2aed9fec3202b074256d0e25f5406c65f1bb3497b7db7ed4e21fda984be621';
 const THEME_SHA='5fc93a7c4bf5ac60a4fe9a1819b51a6fd339c98c9f4dfc8f02d52d1d456c901d';
 const REVIEW_CLAIM={role:'cowork',prefix:'POSTFIX-ACCEPTANCE M2-NATIVE-CARRIERS',terminal:'ACCEPTED'};
-const HELPERS=['source','reference','errors','traces','direct','legacy','witnesses','cases','profile','package'].map(n=>'rebuild/m4/spec/native-carriers-'+n+'.cjs');
+const HELPERS=['source','parent-source','reference','errors','traces','direct','legacy','witnesses','cases',
+ 'source-carriers','inherited-carriers','defect-witnesses','writers-differential','second-gate',
+ 'profile','package'].map(n=>'rebuild/m4/spec/native-carriers-'+n+'.cjs');
+// The nine original gates that compare the engine against the FROZEN fe516c1
+// source or its frozen expectations. They were already RED by design in the
+// accepted parents (the D12/D33-D35/D41/D43 repairs), and the parent package
+// covered them with its own substitute children. Those parent children cannot run
+// at the B0 inventory, so B0 carries successors — exactly as M2-LOAD-WRITES
+// carried successors of the IMPORT-GUARDS children. A covered gate maps to
+// EVIDENCE, never to a skip.
+const COVERAGE=Object.freeze({
+ 'migrate-source':'source-carriers',
+ 'merge-source':'source-carriers',
+ 'writers-source':'source-carriers',
+ 'witnesses-2':'inherited-carriers',
+ 'witnesses-5':'inherited-carriers',
+ 'migrate-differential':'inherited-carriers',
+ 'witnesses-7':'defect-witnesses',
+ 'writers-differential':'writers-differential',
+ 'second-gate':'second-gate',
+});
 const FILES=[
  ...HELPERS,
  'rebuild/m4/spec/native-carriers-changes.json',
@@ -111,13 +131,21 @@ function proposed(){
  const a=parent(),bound=authorizations();
  const auth={owner:bound.owner,contract:a.authorizations.contract,theme:bound.theme,review:REVIEW_CLAIM};
  checkAuthorizations(auth,a);
+ const covered=Object.keys(COVERAGE).sort();
+ assert(covered.every(gate=>a.gates.includes(gate)),'Every covered gate is an original gate');
  return {version:1,packageId:ID,sourceBase:S.BASE,parent:PARENT,requiredIds:REQUIRED,matrix:a.matrix,gates:a.gates,
+  coverage:{covered,run:a.gates.filter(gate=>!Object.hasOwn(COVERAGE,gate)).sort(),byChild:COVERAGE},
   authorizations:auth,product:S.verify(root),
   executionPins:Object.fromEntries(FILES.map(file=>[file,S.sha(fs.readFileSync(path.join(root,file)))]))};
 }
 function verify(){
  const raw=fs.readFileSync(path.join(root,ARTIFACT)),m=J.parseExact(raw);
- keys(m,['version','packageId','sourceBase','parent','requiredIds','matrix','gates','authorizations','product','executionPins']);
+ keys(m,['version','packageId','sourceBase','parent','requiredIds','matrix','gates','coverage','authorizations','product','executionPins']);
+ keys(m.coverage,['covered','run','byChild']);
+ assert.deepEqual([...m.coverage.covered,...m.coverage.run].sort(),m.gates.slice().sort(),'Covered plus run is exactly the original gate matrix');
+ assert.equal(m.coverage.covered.length,9,'Nine originals are covered by successor children');
+ for(const [gate,child]of Object.entries(m.coverage.byChild))
+  assert(m.executionPins['rebuild/m4/spec/native-carriers-'+child+'.cjs'],'Covered gate '+gate+' maps to a pinned child');
  assert(same(m,proposed()),'Exact closed cumulative profile and all input hashes');
  const a=parent();
  const review=J.parseExact(fs.readFileSync(path.join(root,REVIEW)));
@@ -143,7 +171,7 @@ function verify(){
  }
  return {root,manifest:m,parent:a,accepted,themePending,artifactSha256:S.sha(raw)};
 }
-module.exports={ID,ARTIFACT,REVIEW,PARENT,REQUIRED,FILES,SUPERSEDED,OWNER_SHA,THEME_SHA,REVIEW_CLAIM,parent,citation,authorizations,checkAuthorizations,proposed,verify};
+module.exports={ID,ARTIFACT,REVIEW,PARENT,REQUIRED,FILES,SUPERSEDED,COVERAGE,OWNER_SHA,THEME_SHA,REVIEW_CLAIM,parent,citation,authorizations,checkAuthorizations,proposed,verify};
 if(require.main===module){try{
  assert.deepEqual(process.argv.slice(2),['--seal']);
  const reviewFile=path.join(root,REVIEW);

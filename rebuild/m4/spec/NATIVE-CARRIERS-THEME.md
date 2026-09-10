@@ -205,6 +205,16 @@ the recovered ACCEPTED preimage / test-support reconstruction), C2 (`run-current
 435/435 reproduced in the joined tree at the package head — **done: 435/435, 0 fail, 0 skipped**),
 C3 (`today.cjs:92` `e.id === "hack"` recorded as register item H1 for Track B, byte-untouched here)
 and C4 (FULL including the private oracle is the PM's own execution before any receipt).
+
+**C4 note.** The PM's first FULL execution at `821234e` found two PACKAGE-TOOLING defects — engine
+bytes were never in question. F-PM-1: the traces child asserted the public `7 GREEN` summary
+literally, which the private fixture's three additional `PORT-live-*` laws made unreachable inside
+FULL; it now counts the public laws exactly and the private ones only as a count, naming none.
+F-PM-2: the wrapper re-ran all 19 originals, nine of which compare against the FROZEN `fe516c1`
+source and were already RED by design in the accepted parents; those nine are now carried by five
+named B0 successor children (build report §2), and the wrapper seeds `done` from the artifact's own
+`coverage` record so the closed 19-gate assertion still holds. No original gate, `rebuild/engine/test`
+file or `rebuild/conform` file was edited, and no covered gate maps to a skip.
 No receipt, execution, product acceptance or merge follows from this document.
 
 The bytes line 93 reviewed are this file **as of `f8cbf98face943b34ccfc1ecffb1e608a56084b6`**.
