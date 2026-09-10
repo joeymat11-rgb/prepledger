@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.69 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.70 (working implementation)
+
+## Current v0.70 retained workout presentation integration
+
+Owner-approved Refinement A now advances in the SAME W6 host: per-exercise set strip from original identity plus interpreted/acknowledged recorded or skipped facts; actual saved state yields to explicit Next/Finish with keyboard focus; Next restores blank performed fields; setup/reason/confidence remain nearby. All changed current-guidance cells stay foreground. A failed fresh assessment withdraws stale current fields and gives recovery guidance while preserving original capture and entered values. W6 report pins395 composed/52 native reopen-correction checks, prepared38 and existing delayed/quota/keyboard/responsive checks, three historical/negative witnesses and restored current result, conformance/selftest/strict. No core/schema/engine/custody/permission change. Full design, qualified advice, actual schema issuance/private/phone gates remain. The fixed9e14919 review is with the same Opus session via Manager; presentation does not change its inputs or imply adoption. Sole NEXT remains canonical EARNED-DELIVERY-STATUS.md.
 
 ## Current v0.69 corrected edit/history review candidate
 
