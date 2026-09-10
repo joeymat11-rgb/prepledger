@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.80 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.81 (working implementation)
+
+## Current v0.81 final PENDING numerical profile
+
+APM accepted actual CC37 report a76a4b2637c1b085aff337d5a9591e83d0942578842f25ef414e0cbed29666c3 as local-only theme provenance and authorized final PENDING reseal. Exact corrected cowork line/hash9117a07f17d945ec3e0c1c971681886214eede3b025e0fe74ee4755e8c960f70 now replaces null; no placeholder or independent PM ledger append. Integrator-local5149cb7 exists according to its verified actual report; local-PC object custody and origin reachability were not assumed. Stable artifactSHA5073977b3f612f0e6212f4d47ddc5f45f044897f0dc51b1d81b4840f6b099d82 verifies accepted:false with PENDING/null review,19 unchanged product/23 current execution pins. Existing profile refusals8PASS and final targeted4PASS, including actual private checker with real theme constant exposed only in memory and actual writer non-dyadic controls/faults. No --ci/--full campaign or accepted receipt/ancestry claim. APM read/hash-verified the result; one finite M3 affected review through its existing accepting lane is next. The v0.80 unavailable preparation below is historical and remains preserved.
 
 ## Current v0.80 numerical profile preparation (M3 only)
 
