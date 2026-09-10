@@ -1,6 +1,8 @@
-# Complete app schema 2 and capability transition — candidate v0.2
+# Complete app schema 2 and capability transition — candidate v0.3
 
 September10, 2026. **PRE-EDIT PROPOSAL; NOT REGISTERED, ISSUABLE OR ACCEPTED.** This is the complete scope and transition contract for closing the already-required workout capability. It is not a claim that all wire forms or interpretation rules are closed. The explicit closure items in §6 prevent publication of the final immutable manifest. They are prerequisites inside the existing Earned delivery task, not another queue. No issuer, T2, accepted engine or runtime is changed by this document.
+
+v0.3 over M4cd543b7 adds LOAD-AND-SLOT-EXTENSION.md: the actual engine's exact wKey representation, an opt-in M4 mechanical capture/layoutv2 candidate (10 focused/7 effective faults/restored10; combined56) and the proposed durable session-extension/slot-definition reference. The latter would explicitly ADD a17th kind to the existing16-kind inventory below; it is not accepted, issued or implicitly included by a legacy generic variant. Its edit/partition/order closure remains required. Configured performed facts/rich-reader mapping and all prior C1–C4/manifest conditions remain open. No issuer/T2 or default profile adoption follows from the capture candidate.
 
 v0.2 over M4425528d adds the concrete WORKOUT-EDIT-NORMALIZATION.md candidate and executable model for C1/C2: clearing, dates, all four workout fact variants, nested edits/removals, original logical position and protected legacy interpretation.19 checks/six effective faults/restored19 pass, including actual legacy commands and candidate relation. These choices still require affected technical acceptance; the full legacy bridge, remaining field families and all complete-manifest conditions remain open. The original source-boundary evidence below is unchanged.
 

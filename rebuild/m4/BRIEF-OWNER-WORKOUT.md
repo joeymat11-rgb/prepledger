@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.65 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.66 (working implementation)
+
+## Current v0.66 configured-load capture and added-slot representation
+
+spec/LOAD-AND-SLOT-EXTENSION.md closes the local mechanical capture representation for the actual engine's opaque configuration keys using explicit opt-in engine-workout-capture/v2 and captured-lift-layout/v2. Old profile behavior stays exact; current history refuses the new layout until its typed mapping is reviewed/implemented.10 actual-reader checks/seven effective faults/restored10 and combined56 capture/history/order checks pass. The same document proposes an explicit new session-extension kind and definition references for durable later-added slots without rewriting Start or inventing an unperformed Set. It is pre-edit schema preparation, not accepted/new issuance. Configured entered facts, complete normalizer/legacy/context, extension edit/partition, rich-reader/scientific and all real transition/recovery gates remain. APM has the prior edit-model in the SAME existing High/included reviewer lane; product continues independent scope closure. No W6/T2/R1/installed engine, private/default activation or new helper changes. Sole NEXT remains canonical EARNED-DELIVERY-STATUS.md.
 
 ## Current v0.65 executable workout-edit normalization
 
