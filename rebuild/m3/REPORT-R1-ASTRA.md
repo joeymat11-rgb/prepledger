@@ -1,5 +1,13 @@
 # W5-R1 implementation — ASTRA
 
+## Shared workout edit-domain candidate — September10
+
+Successor to98c1405 under the exact Message65 W6/R1 pre-edit amendment, accepted for implementation by the existing APM task before runtime edits. Shared schema.cjs/authority-profile.cjs/edit-values.cjs are copied exactly from the sole W6 product implementation. R1 consumes no duplicate history reducer. Real effective-time domains, replacement-only optional clear, six target-specific variants and rooted conditional lift lineage use the existing operation dependency reader. Authority core, signature/lease/revocation/slot/replay/WAITING ordering, issuer, bridge transactions, source intent, SQL and codecs remain unchanged.
+
+Actual core39/39 PASS: .tmp/shared-edit-core-first.log. New cases prove nested target WAITING/drain through the existing authority, Start/Close edits without fictional lift identity, clear only on optional replacement paths, invalid date/time and own edit-class refusal, Skip scope and target-specific field/lineage refusal. Existing exact replay/refusal/transaction controls remain. Full actual W6/R1 HTTP composition399 and native52 pass; W6 report pins the shared source manifest and exact logs. Original conformance99 reference/99 strong/29 specified absent-family RED/70 present-family GREEN, rig185 and SELFTEST PASS: .tmp/shared-edit-history-{conform,selftest}.log.
+
+These are local author checks, not independent runtime acceptance or real schema2 issuance/recovery. Test-installed capabilities remain synthetic. Full C1–C4/legacy/configured-load/extension/currentness/source and private/device/scientific/resource/integrator gates stay open. No memory-gate change, production/provider action, merge, push, deployment or private activation. Existing original96MiB memory failure remains separately owned by APM.
+
 ## Shared indexed source interpretation — September9 local successor
 
 Base320b899e2b83fbd1fb5d69b13e38e502b13d247a. source/codec.cjs now expresses source-record, material and selection-chain semantics through one shared generator. The existing synchronous authority reader and the new asynchronous indexed W6 reader execute those SAME rules. The browser reads one bounded material at a time from its already authenticated encrypted inventory; it does not collect a second whole-account/source map. This reader does not authenticate a signature or make a current projection. Streaming prefix hashing preserves the exact prior domain + JSON-array bytes; an independent Node SHA256 test covers every cut, Unicode/combining forms/NUL/numeric spelling/key order and nonconsuming reads. No operation, issuer, transaction, P1 or wire shape changed in this successor.

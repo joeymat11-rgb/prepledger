@@ -71,6 +71,42 @@ async function main() {
   const option = process.argv.indexOf('--authority-root');
   const output = await buildCore({outfile: path.join(scratch, 'core.cjs'), ...(option < 0 ? {} : {authorityRoot:path.resolve(process.argv[option+1])})});
   core = require(output);
+  check('nested-edit-dependency-waits-and-drains-through-real-admission',()=>{
+    const f=fixture(),start=f.op('session-start',{id:'start'}),set=f.op('session-set',{id:'set'});
+    const edit=f.op('correction',{id:'first-edit',target:'set'}),nested=f.op('correction',{target:'first-edit',payload:{replacement_fields:{replacement_fields:{load:{value:45,unit:'lb'}}}}});
+    for(const op of [nested,edit,set])assert.equal(f.admit(op).status,'WAITING');
+    assert.equal(f.admit(start).status,'ACCEPTED');
+    for(const op of [set,edit,nested])assert.equal(f.admit(op).status,'ACCEPTED');
+    assert.equal(f.authority.frontier('athlete-A'),4);assert.deepEqual(f.admit(nested),f.admit(nested));
+  });
+  check('Start-and-Close-replacements-require-no-fictitious-lift',()=>{
+    const f=fixture(),start=f.op('session-start',{id:'start'}),close=f.op('session-close',{id:'close'});
+    assert.equal(f.admit(start).status,'ACCEPTED');assert.equal(f.admit(close).status,'ACCEPTED');
+    for(const [target,fields]of [['start',{effective:{local_date:'2026-09-02',local_time:'23:45',utc_offset:'-04:00'},planned_split_slot_id:'corrected'}],['close',{completion_kind:'early'}]]){
+      const op=f.op('correction',{target,payload:{replacement_fields:fields}});delete op.lift_lineage_id;f.resign(op);assert.equal(f.admit(op).status,'ACCEPTED');
+      const wrong=f.op('correction',{target,payload:{replacement_fields:fields}});assert.equal(f.admit(wrong).rejection_code,'MALFORMED');
+    }
+  });
+  check('replacement-clear-does-not-relax-recorded-reserve-or-required-reason',()=>{
+    const f=fixture();assert.equal(f.admit(f.op('session-start',{id:'start'})).status,'ACCEPTED');
+    assert.equal(f.admit(f.op('session-set',{id:'set'})).status,'ACCEPTED');
+    assert.equal(f.admit(f.op('correction',{payload:{replacement_fields:{reserve:{clear:true}}}})).status,'ACCEPTED');
+    assert.equal(f.admit(f.op('session-set',{payload:{load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{clear:true}}})).rejection_code,'MALFORMED');
+    assert.equal(f.admit(f.op('tombstone',{id:'removed'})).status,'ACCEPTED');
+    assert.equal(f.admit(f.op('correction',{target:'removed',payload:{replacement_fields:{reason:{clear:true}}}})).rejection_code,'MALFORMED');
+  });
+  check('effective-domain-and-own-edit-class-enforced-at-admission',()=>{
+    const f=fixture();assert.equal(f.admit(f.op('session-start',{id:'start'})).status,'ACCEPTED');assert.equal(f.admit(f.op('session-set',{id:'set'})).status,'ACCEPTED');
+    const time=f.op('correction');time.effective.local_time='25:99';f.resign(time);assert.equal(f.admit(time).rejection_code,'MALFORMED');
+    const date=f.op('correction',{payload:{replacement_fields:{effective:{local_date:'2026-02-30',local_time:'12:00',utc_offset:'-04:00'}}}});assert.equal(f.admit(date).rejection_code,'MALFORMED');
+    const wrong=f.op('correction');wrong.class='reading';f.resign(wrong);assert.equal(f.admit(wrong).rejection_code,'MALFORMED');
+  });
+  check('Skip-scope-and-target-specific-fields-use-actual-reference',()=>{
+    const f=fixture();assert.equal(f.admit(f.op('session-start',{id:'start'})).status,'ACCEPTED');assert.equal(f.admit(f.op('session-skip',{id:'skip'})).status,'ACCEPTED');
+    assert.equal(f.admit(f.op('correction',{target:'skip',payload:{replacement_fields:{skip_scope:'lift',logical_set_slot:{clear:true}}}})).status,'ACCEPTED');
+    assert.equal(f.admit(f.op('correction',{target:'skip',payload:{replacement_fields:{load:{value:40,unit:'lb'}}}})).rejection_code,'MALFORMED');
+    const wrong=f.op('correction',{target:'skip',lineage:'wrong'});assert.equal(f.admit(wrong).rejection_code,'MALFORMED');
+  });
   check('all-six-basic-kinds-pass-actual-admission', () => {
     const f=fixture();
     for(const [kind,id] of [['session-start','start'],['session-set','set'],['session-skip','skip'],

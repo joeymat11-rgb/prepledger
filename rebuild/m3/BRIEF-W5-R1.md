@@ -1,5 +1,13 @@
 # BRIEF-W5-R1 — complete reconciliation, lease history and device recovery
 
+## Message65 shared workout edit/history adoption — pre-edit boundary, September10
+
+The existing APM task read and accepted the exact affected boundary before runtime edits. Shared schema/profile/edit-values now implement the scoped candidate;39 actual-core checks pass, including real WAITING drain for nested targets. edit-history is consumed in W6/M4 and is not installed unnecessarily in R1. No authority-core/issuer/source transaction change or runtime acceptance is claimed.
+
+Base98c1405, W6 48ddeeba/M4 3ecb8fc. The exact 'Message65 shared edit/history adoption' amendment in retained W6 rebuild/m3/BRIEF-W6.md governs the shared-module candidate after APM affected-scope readback. R1 scope is identical workout/schema.cjs, authority-profile.cjs, new edit-values.cjs and any statically consumed edit-history.cjs, with existing workout-core/workout-http tests, build source inventory pins and this report/brief. No authority-core, bridge transaction, issuer, source intent, codec, SQL, route, memory gate or capability activation change.
+
+Preserve existing envelope/lease equality, signature, revocation, slot, terminal replay and WAITING dependency checks before target-specific validation. The exact closed replacement variants, shared effective domain and conditional rooted lift lineage follow Manager's Message65 acceptance limits. Direct declared target remains a dependency; accepted target ancestry is traversed through the existing same-transaction operation reader, never a caller target-kind assertion. Full C1–C4 schema/legacy/issuance and existing independent/integrator/private/device/resource gates remain open. Synthetic test-installed schema2 capabilities are explicitly not real issuance. Copy shared sources from the single PM implementation with exact hashes, never independently fork the validator or reduce this to an admission-only completion claim. No runtime edits before the bounded amendment readback.
+
 ## September9 local source-transaction candidate amendment
 
 Successor over320b899 shares the SAME source semantic generators between synchronous R1 and asynchronous W6 indexed recovery. Prefix hashing must remain byte-identical to the existing accepted-log JSON-array digest. Indexed source handles are inactive, bounded per material, isolated and guarded by the authenticated inventory lifetime. No new transaction/wire/issuer or authority-core change is included. The companion M4 controller specv1.3 records the current local recovery join and still-open current projection; it does not confer independent acceptance.
