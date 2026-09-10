@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.63 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.64 (working implementation)
+
+## Current v0.64 complete schema/transition preparation
+
+spec/WORKOUT-SCHEMA-V2.md v0.1 now records the complete16-kind/11-class action scope and prospective real-issued-capability/atomic local transition. This is pre-edit preparation, not the final immutable manifest or permission to enable only six actions. Its C1–C4 name the remaining exact variant, normalizer, legacy basis, decisions and source-control compatibility contracts. Nine executed existing-source assertions establish the actual captured W6/basic R1 mismatch, absent daily-v2 dispatch and v1-only enrollment/source-intent validation. The source amendment and all wider actions must close through the existing affected review before issuer/T2 edits. Report preserves exact artifact and limitations. Runtime/engine/source/storage unchanged, full goal active and no activation. Sole NEXT remains canonical EARNED-DELIVERY-STATUS.md.
 
 ## Current v0.63 context interpretation and complete schema boundary
 
