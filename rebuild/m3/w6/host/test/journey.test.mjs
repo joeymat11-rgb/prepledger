@@ -11,6 +11,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
+import { join } from 'node:path';
 import { webcrypto } from 'node:crypto';
 import { fixture, initial, config, O, createT2Stage } from '../../test/support.mjs';
 import { createDurablePublicClient } from '../../public-client.mjs';
@@ -26,7 +27,7 @@ const Commands = require('../../../../m4/workout/commands.cjs');
 const Adapter = require('../../../../m4/workout/engine-capture.cjs');
 const History = require('../../../../m4/workout/engine-history.cjs');
 const SourceProjection = require('../../../../m4/workout/source-projection.cjs');
-const { createCleanInitState } = require('../../../../m4/workout/athlete-state.cjs');
+const { createCleanInitState, SCHEMA_V, AUTONOMY_FLOOR } = require('../../../../m4/workout/athlete-state.cjs');
 const { createNullLaneWorkoutBasis, createUnavailableStringLaneResolver } = require('../../../../m4/workout/workout-basis.cjs');
 const { createWorkoutResumePolicy } = require('../../../../m4/workout/resume-policy.cjs');
 const { materializeEngineRoot } = require('../../../../m4/spec/native-next-target-candidate/engine-root.cjs');
@@ -53,7 +54,7 @@ const PLAN_BASIS = 'NO_ACCEPTED_PLAN';
 const INPUT_BASIS = 'native-only/zero-import';
 const SLOT = 'synthetic-slot';
 
-const { runtimeModule, pins } = materializeEngineRoot();
+const { root: engineRoot, runtimeModule, pins } = materializeEngineRoot();
 const { createEngineRuntime } = require(runtimeModule);
 const emptyPrefix = () => Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
 const clockFor = day => ({ today: () => day, nowISO: () => day + 'T12:00:00.000Z',
@@ -369,6 +370,68 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     // engine-runtime.cjs carries this branch's single literal-require change
     // (accepted L bytes were 9be21897…); see its SLICE-A0 comment.
     assert.equal(pins['rebuild/m4/workout/engine-runtime.cjs'], '4d48a9b13557072284cc017c132b32cc15ea08c9107120baf6fa85c496ea50f0');
+  });
+
+  // A0 review R1 / reviewer probe P1. A split whose `from` is one day AFTER
+  // the host's day is well formed, so createCleanInitState accepts it — and
+  // rebuild/engine/plan.cjs dayType finds no entry with from <= today and
+  // falls back to a fixed Mon/Thu=U, Tue/Fri=L, Wed=REFEED week. On 2026-09-04
+  // (a Friday) that fallback serves 'leg-press'. This step proves both halves:
+  // the fallback really is what the engine would serve, and the host refuses
+  // before it can be served.
+  await t.test('15. a split not yet in force is refused, not served from the fallback week', async () => {
+    // Its own clean store, so this step depends on nothing the journey left behind.
+    const own = await scaffold();
+    const basisFor = () => createNullLaneWorkoutBasis({ sourceCodec: Source,
+      planBasis: PLAN_BASIS, inputBasis: INPUT_BASIS, causalParents: () => [] });
+    try {
+      const future = structuredClone(SETUP);
+      future.split.from = '2026-09-05';           // one day after DAY
+      const futureState = createCleanInitState({ setup: future });
+      assert.equal(futureState.split[0].from, '2026-09-05', 'the state itself is well formed and accepted');
+
+      // What the engine would do unguarded: the fallback week's Friday = L.
+      const unguarded = own.parents.engine.genSession(structuredClone(futureState), DAY, undefined);
+      assert(unguarded, 'the fallback week does produce a session');
+      assert.deepEqual(unguarded.ex.map(card => card.id), ['leg-press'],
+        'unguarded, the engine serves the fallback week, not this athlete\'s Friday');
+
+      // What the host does: refuse, and store nothing.
+      const before = await opsOf(own.f.repo);
+      const guarded = hostOver(own.f.repo, { engineState: futureState,
+        resolveWorkoutBasis: basisFor(), parents: own.parents, stage: own.stage });
+      assert.throws(() => guarded.workoutProducer({ collections: {} }, { basis: {}, source_basis: emptyPrefix() }),
+        { code: 'WORKOUT_SPLIT_NOT_IN_FORCE' }, 'the producer refuses directly');
+      const refused = await guarded.client.prepareWorkout({ planned_split_slot_id: SLOT });
+      assert.notEqual(refused.prepared, true, 'prepareWorkout does not prepare a fallback-week session');
+      assert(refused.code, 'the refusal names a code');
+      assert.deepEqual(await opsOf(own.f.repo), before, 'the refusal stored nothing');
+
+      // The same split, once in force, is served normally — the guard is about
+      // the day, not about rejecting this athlete.
+      const inForce = structuredClone(SETUP);
+      inForce.split.from = DAY;                    // in force exactly today
+      const okHost = hostOver(own.f.repo, { engineState: createCleanInitState({ setup: inForce }),
+        resolveWorkoutBasis: basisFor(), parents: own.parents, stage: own.stage });
+      const prepared = await okHost.client.prepareWorkout({ planned_split_slot_id: SLOT });
+      assert(prepared.prepared, prepared.code);
+      assert.deepEqual([...new Set(prepared.view.slots.map(s => s.lift_lineage_id))], ['db-bench', 'lat-pulldown']);
+    } finally { own.f.repo.close(); }
+  });
+
+  // A0 review R2. The two engine-owned literals in athlete-state.cjs are
+  // checked against the engine itself, so a drift is a test failure rather
+  // than a silent divergence. athlete-state.cjs still imports no engine file.
+  await t.test('16. the clean-init state\'s engine-owned literals match the engine', () => {
+    const constants = require(join(engineRoot, 'rebuild/engine/constants.cjs'))({}, {});
+    assert.equal(SCHEMA_V, constants.SCHEMA_V, 'v is the engine\'s SCHEMA_V (constants.cjs)');
+    assert.equal(createCleanInitState({ setup: SETUP }).v, constants.SCHEMA_V);
+    assert.equal(AUTONOMY_FLOOR, constants.AUTONOMY_LEVELS[0],
+      'the autonomy floor is the engine\'s most-supervised level (constants.cjs AUTONOMY_LEVELS)');
+    const plan = createCleanInitState({ setup: SETUP }).plan;
+    assert.deepEqual(Object.keys(plan), ['autonomy'], 'no invented plan member');
+    assert.equal(plan.autonomy, 'propose');
+    assert(!Object.hasOwn(plan, 'mode'), 'plan.mode is not engine vocabulary and is not written');
   });
 
   repository.close();

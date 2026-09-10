@@ -14,8 +14,36 @@
 // The split is REQUIRED. rebuild/engine/plan.cjs `dayType(iso, s)` falls back
 // to a fixed Mon/Thu=U, Tue/Fri=L, Wed=REFEED week when the state carries no
 // `split` entry covering the day; that fallback is one athlete's week, not a
-// property of a new athlete. Refusing here means the fallback is never
-// consulted for a clean-init state.
+// property of a new athlete.
+//
+// This constructor has NO clock, so requiring a split here is necessary but
+// NOT sufficient: a split whose `from` is still in the future is well formed
+// and would leave `dayType` on the fallback for today (A0 review R1, probe P1).
+// The guard that closes that hole needs both the state and the day and
+// therefore lives at the seam that has both — `workoutProducer` in
+// rebuild/m3/w6/host/workout-host.mjs, which refuses
+// WORKOUT_SPLIT_NOT_IN_FORCE on every preparation whose day no split entry
+// covers. This file only guarantees that a split exists and is well formed.
+//
+// Two literals below are the ENGINE's own values, not this module's choices:
+//   * `v: SCHEMA_V` — rebuild/engine/constants.cjs:9 `const SCHEMA_V = 60;`,
+//     the engine's schema tag, the same number rebuild/engine/migrate.cjs
+//     stamps as it walks a state forward. It is repeated as a literal rather
+//     than imported so this file keeps its "no rebuild/engine import" property;
+//     rebuild/m3/w6/host/test/journey.test.mjs asserts the two agree, so a
+//     drift is a test failure, never a silent divergence.
+//   * `plan.autonomy: 'propose'` — the engine's most-supervised level and its
+//     own default (rebuild/engine/constants.cjs:270
+//     `AUTONOMY_LEVELS = ["propose","autonotice","runit"]`;
+//     rebuild/engine/migrate.cjs:944 forces `propose` for any unrecognised
+//     value, "default: most supervised (never auto-promote)"). It is written
+//     here deliberately, as the floor, so a new athlete starts at the level
+//     that proposes and never acts alone. It is NOT taken from `setup`,
+//     because nothing yet lets an athlete raise it, and it is NOT an empty
+//     value — hence this note.
+// Nothing else is written that the athlete did not supply. In particular there
+// is no `plan.mode`: no engine reader reads that member (`energy.cjs` reads
+// `plan.apMode`), and this module invents no vocabulary.
 //
 // Every exercise starts with `w:null`. rebuild/engine/today.cjs genSession
 // takes the DEBUT path for `e.w == null`: `baselineAsk:true`, all targets 0
@@ -23,6 +51,11 @@
 // renders as "Find a working load" / "Record the reps performed" with no
 // numeric prescription. That is the accepted behaviour for a lift that has
 // never been performed; nothing here invents a starting load.
+// rebuild/engine/constants.cjs:9 — the engine's own schema tag. Cross-checked
+// against the engine by rebuild/m3/w6/host/test/journey.test.mjs.
+const SCHEMA_V = 60;
+// rebuild/engine/constants.cjs:270 AUTONOMY_LEVELS[0]; rebuild/engine/migrate.cjs:944.
+const AUTONOMY_FLOOR = 'propose';
 const REQUIRED_SETUP = ['athlete_label', 'split', 'exercises', 'priority_muscles'];
 const REQUIRED_EXERCISE = ['id', 'n', 'mg', 'day', 'sets', 'hi', 'inc', 'steps'];
 const DAY_KINDS = ['U', 'L'];
@@ -112,7 +145,7 @@ function createCleanInitState({ setup } = {}) {
   const exOrder = Object.fromEntries(DAY_KINDS.map(kind =>
     [kind, exercises.filter(e => e.day === kind).map(e => e.id)]));
   const state = {
-    v: 60,
+    v: SCHEMA_V,
     athlete_label: setup.athlete_label,
     // Carried verbatim from setup. No engine reader on the genSession/rirPlan
     // path consumes this member; it is the athlete's stated emphasis, kept
@@ -122,7 +155,10 @@ function createCleanInitState({ setup } = {}) {
     reads: [], dailyLogs: {}, sessionLog: {},
     exercises, exOrder,
     sleep: { nights: [] },
-    targets: {}, plan: { autonomy: 'propose', mode: 'bodycomp' },
+    targets: {},
+    // The engine's own most-supervised floor, written deliberately and cited
+    // in the header. No `mode` member: that vocabulary does not exist.
+    plan: { autonomy: AUTONOMY_FLOOR },
     queue: [], feed: [], weekly: [], events: [], proposals: [], agentProposals: [],
     adjustments: [], forecasts: [], accepted: [], retirements: {},
     split: [split],
@@ -131,4 +167,5 @@ function createCleanInitState({ setup } = {}) {
 }
 
 const PROFILE = 'earned/clean-init-state/v1';
-module.exports = { createCleanInitState, PROFILE, REQUIRED_SETUP, REQUIRED_EXERCISE };
+module.exports = { createCleanInitState, PROFILE, REQUIRED_SETUP, REQUIRED_EXERCISE,
+  SCHEMA_V, AUTONOMY_FLOOR };

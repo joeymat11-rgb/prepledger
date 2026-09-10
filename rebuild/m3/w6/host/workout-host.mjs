@@ -24,6 +24,29 @@
 const V2_CAPTURE_PROFILE = 'earned/workout-prescription/v2';
 const need = name => { throw new TypeError('composeWorkoutHost requires an injected ' + name); };
 
+// A0 review R1. rebuild/engine/plan.cjs dayType(iso, s) picks the LAST split
+// entry whose `from <= iso`; when it finds none it falls back to a fixed
+// Mon/Thu = U, Tue/Fri = L, Wed = REFEED week. That fallback is one athlete's
+// week. A state can carry a perfectly valid split whose `from` is still in the
+// future — a plan that starts next Monday — and on today's date the engine
+// would silently serve the fallback instead.
+//
+// Only this seam holds BOTH the state and the day, so the guard lives here and
+// runs on every preparation rather than once at construction: as the clock
+// moves, a split that was not yet in force becomes in force, and nothing else
+// re-checks. A state whose split is not yet in force is refused; the host
+// never serves a day the athlete's own split did not name.
+function splitInForceOn(state, day) {
+  const entries = Array.isArray(state?.split) ? state.split : [];
+  return entries.some(entry => entry && typeof entry.from === 'string' && entry.from <= day);
+}
+function refuseSplitNotInForce(day) {
+  const error = new Error('WORKOUT_SPLIT_NOT_IN_FORCE');
+  error.code = 'WORKOUT_SPLIT_NOT_IN_FORCE';
+  error.reason = 'no split entry has from <= ' + day + ', so the engine would fall back to a week this athlete never chose';
+  throw error;
+}
+
 // The honest refusal for a provider this branch cannot qualify. Handing this
 // to createEngineRuntime is not a stub that answers: every call throws, and
 // rebuild/engine/performed.cjs contains the throw as
@@ -116,8 +139,14 @@ export function composeWorkoutHost({
   // supplied state through the null registrar and lets the adapter consume ONLY
   // the registered projection.
   function workoutProducer(generation, context) {
+    const day = clock.today();
+    // R1: refuse before anything is registered or prepared, so the engine's
+    // fallback week is unreachable from this host on a day the athlete's own
+    // split does not cover. The throw is contained by the client's
+    // prepareWorkout / prepareWorkoutContinuation and stores nothing.
+    if (!splitInForceOn(engineState, day)) refuseSplitNotInForce(day);
     lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts });
-    return adapter.prepare({ day: clock.today(), basis: context.basis,
+    return adapter.prepare({ day, basis: context.basis,
       sourceProjection: lastProjection, source_basis: context.source_basis }).capture;
   }
   const workoutResumePolicy = createWorkoutResumePolicy({ produceCapture: workoutProducer, reason: resumeReason });
