@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.60 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.61 (working implementation)
+
+## Current v0.61 source/native lineage integration
+
+The SAME actual source-reading producer now reconstructs prior native local images from authenticated original source selections/checkpoints and actual accepted effects. Subsequent imports, later inherited corrections, multi-ancestor merges and rollback to the original activation preserve all originals and pending work without double application. W6 exposes only guarded inactive selected-source material; no new T2 edit.14 focused/12 effective faults/restored14, the actual signed second-import/correction/rollback/reopen journey, final visitor revision fault,167 old recovery/395 W6 and required conformance/selftest/strict PASS. See current report and IMPORT-CONTROLLER-v1.md v1.6 for exact evidence and limitations. Qualified current-plan/consent, mixed accepted context and guarded active publication remain next under the SAME full objective; no browser/private/science acceptance or new work queue.
 
 ## Current v0.60 source/current producer integration
 

@@ -13,9 +13,13 @@ const faults=[
  ['skip-checkpoint-listed-original',".filter(r=>r?.original.kind==='fact');",".filter(r=>r?.original.kind==='fact'&&!Object.hasOwn(checkpoint.generation.collections.ops||{},r.op_id));"],
  ['removed-original-kept',"if(effect.state==='included'){","if(effect.state==='removed')state=engineFor({day:row.date,hour:8}).applyRead(state,row.date,row.original.payload.lb.value,{hour:8});\n        if(effect.state==='included'){"],
  ['current-clock-reclassifies-history','engineFor({day:row.date,hour}).applyRead','engineFor({day:asOf,hour}).applyRead'],
- ['pending-source-overlap-ignored',"if(row.status==='pending-local'&&seenDates.has(row.date))issue('PENDING_SOURCE_OVERLAP_UNRESOLVED',row.op_id);",'if(false){}'],
+ ['pending-source-overlap-ignored',"if(row.status==='pending-local'&&seenDates.has(row.date)&&!inheritedDates.has(row.date))issue('PENDING_SOURCE_OVERLAP_UNRESOLVED',row.op_id);",'if(false){}'],
  ['saved-coverage-trusted','if(!isDeepStrictEqual(actual,saved))', 'if(false)'],
- ['merged-native-image-assumed-covered',"if(input.local_json!==null&&input.local_json!==input.source_json&&Object.keys(checkpoint?.generation?.collections?.ops||{}).length)",'if(false)']
+ ['merged-native-image-assumed-covered',"if(!internal&&input.local_json!==null&&input.local_json!==input.source_json&&Object.keys(checkpoint?.generation?.collections?.ops||{}).length)",'if(false)'],
+ ['prior-native-image-assumed','if(json(baseline.accepted_state)!==m.local_json)', 'if(false)'],
+ ['inherited-correction-not-rebuilt','const inheritedView=await calculate(previous,g,cut,context.clock,next);','const inheritedView=baseline;'],
+ ['rollback-uses-later-request-cut','activation=await node(entry.selection.target_activation_id);','activation=entry;'],
+ ['checkpoint-original-comparison-omitted','if(!isDeepStrictEqual(op,original.collections.ops?.[id]))','if(false)']
 ];
 const evidence={profile:'earned/reading-replay-faults/v1',directory:dir,source_sha256:sha(original),faults:[]};
 for(const [name,needle,replacement]of faults){

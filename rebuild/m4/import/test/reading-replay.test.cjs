@@ -81,3 +81,67 @@ test('changed candidate or supplied checkpoint coverage must reproduce actual so
   const wrong=JSON.parse(f.material.candidate_json);wrong.trend=999;f.material.candidate_json=JSON.stringify(wrong);
   assert.throws(()=>f.producer.project(input),{code:'SOURCE_PREPARATION_REPRODUCTION_MISMATCH'});
 });
+
+async function lineageFixture(){
+  const f=await fixture(),sourceOp=(source_id,type='source-import-intent',target_activation_id)=>Ops.build({op_id:'source-'+(++n),athlete_id:'first',device_id:'remote',device_seq:n,parents:[],kind:'fact',class:'event',lease_id:'synthetic-lease',
+    effective:{local_date:'2026-09-04',local_time:'08:00',utc_offset:'-04:00'},payload:{type,source_id,...(target_activation_id?{target_activation_id}:{}),interval:{start:'2026-09-04',end:'2026-09-04'},material_digest:'synthetic-unverified'}},key);
+  const first=sourceOp(f.input.sourceId),a=op(),pending=op({device:'local',value:188}),before=generation([first,a],[pending]);
+  const old=f.producer.project({...f.input,generation:before,asOf:'2026-09-04'});assert.equal(old.ready,true);
+  const incoming=JSON.parse(f.material.source_json);incoming.dailyLogs['2026-08-30'].cal=2400;
+  const imported=Buffer.from(JSON.stringify(incoming)),local=Buffer.from(JSON.stringify(old.accepted_state)),nextDay='2026-09-04';
+  const prep=createImportPreparation({engine:engineFor({day:nextDay,hour:12}),parseStrictJson:f.parseStrictJson}).prepare(imported,{localBytes:local});
+  const material={source_json:imported.toString(),local_json:local.toString(),candidate_json:prep.candidateBytes().toString(),checkpoint_json:JSON.stringify({revision:2,token:'synthetic',generation:before}),engine_context_json:JSON.stringify({build,clock:nextDay})};
+  const second=sourceOp('second-source'),b=op({date:'2026-09-05',value:180}),edit=op({date:'2026-09-06',kind:'correction',target:a.op_id,parents:[a.op_id],value:181});
+  const selection=(operation,seq,before,action='activate',target_activation_id=null)=>({type:'selection',action,source_id:operation.payload.source_id,intent_op_id:operation.op_id,commitment:operation.canonical_content_commitment,seq,before,target_activation_id});
+  const nodes=new Map([[first.op_id,{selection:selection(first,1,{W:0,selection_id:null}),material:f.material}],
+    [second.op_id,{selection:selection(second,3,{W:2,selection_id:first.op_id}),material}]]);
+  const g=generation([first,a,second,b,edit],[pending]);
+  return {...f,first,second,a,b,edit,pending,nodes,material,incoming,g,sourceOp,selection,
+    input:{selectionId:second.op_id,generation:g,asOf:'2026-09-07',readSelectedSource:async id=>structuredClone(nodes.get(id)),assertCurrent:async()=>{}}};
+}
+test('native local image is reproduced and inherited corrections rebuild before a subsequent merge',async()=>{
+  const f=await lineageFixture(),value=await f.producer.projectLineage(f.input);assert.equal(value.ready,true,JSON.stringify(value.issues));
+  let expected=engineFor({day:'2026-09-04',hour:8}).applyRead(f.base,'2026-09-04',181,{hour:8});
+  expected=createImportPreparation({engine:engineFor({day:'2026-09-04',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(Buffer.from(JSON.stringify(f.incoming)),{localBytes:Buffer.from(JSON.stringify(expected))}).candidateState();
+  expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',180,{hour:8});
+  assert.deepEqual(value.accepted_state,expected);assert.deepEqual(value.coverage.steps.map(x=>x.op_id),[f.a.op_id,f.b.op_id]);
+  assert.equal(value.coverage.source_lineage.length,1);assert.equal(value.reading_history.records.length,3);
+  assert.deepEqual(await f.producer.projectLineage(f.input),value);assert.equal(value.activated,false);assert.equal(value.qualified,false);
+});
+test('rollback selects the target activation source and preserves all later accepted and pending originals',async()=>{
+  const f=await lineageFixture(),rollback=f.sourceOp(f.first.payload.source_id,'source-rollback-intent',f.first.op_id),g=generation([f.first,f.a,f.second,f.b,f.edit,rollback],[f.pending]);
+  f.nodes.set(rollback.op_id,{selection:f.selection(rollback,6,{W:5,selection_id:f.second.op_id},'rollback',f.first.op_id),material:f.nodes.get(f.first.op_id).material});
+  let value;await assert.doesNotReject(async()=>{value=await f.producer.projectLineage({...f.input,selectionId:rollback.op_id,generation:g});},'Actual rollback must resolve its original activation');assert.equal(value.ready,true,JSON.stringify(value.issues));
+  let expected=engineFor({day:'2026-09-04',hour:8}).applyRead(f.base,'2026-09-04',181,{hour:8});expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',180,{hour:8});
+  assert.deepEqual(value.accepted_state,expected);assert.equal(value.coverage.selected_intent_id,rollback.op_id);assert.equal(value.coverage.accepted_originals.length,6);
+  assert.equal(value.reading_history.records.length,3);assert.deepEqual(g.collections.ops[f.pending.op_id],f.pending);
+});
+test('different local bytes and checkpoint originals refuse native lineage even with a supplied selection',async()=>{
+  const f=await lineageFixture(),entry=f.nodes.get(f.second.op_id),before=entry.material.local_json,oldCandidate=entry.material.candidate_json,changed=JSON.parse(before);changed.trend=999;entry.material.local_json=JSON.stringify(changed);
+  entry.material.candidate_json=createImportPreparation({engine:engineFor({day:'2026-09-04',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(Buffer.from(entry.material.source_json),{localBytes:Buffer.from(entry.material.local_json)}).candidateBytes().toString();
+  await assert.rejects(f.producer.projectLineage(f.input),{code:'SOURCE_LINEAGE_LOCAL_IMAGE_MISMATCH'});entry.material.local_json=before;entry.material.candidate_json=oldCandidate;
+  const cp=JSON.parse(entry.material.checkpoint_json);cp.generation.collections.ops[f.a.op_id].payload.lb.value=999;entry.material.checkpoint_json=JSON.stringify(cp);
+  await assert.rejects(f.producer.projectLineage(f.input),{code:'SOURCE_LINEAGE_CHECKPOINT_ORIGINAL'});
+});
+test('lineage requires exact checkpoint receipt prefix and an unchanged final context',async()=>{
+  const f=await lineageFixture(),entry=f.nodes.get(f.second.op_id),before=entry.material.checkpoint_json,cp=JSON.parse(before);
+  delete cp.generation.collections.receipts['1'];entry.material.checkpoint_json=JSON.stringify(cp);
+  await assert.rejects(f.producer.projectLineage(f.input),{code:'SOURCE_LINEAGE_CHECKPOINT_PREFIX'});entry.material.checkpoint_json=before;
+  let retired=false;const readSelectedSource=async id=>{const value=structuredClone(f.nodes.get(id));retired=true;return value;};
+  await assert.rejects(f.producer.projectLineage({...f.input,readSelectedSource,assertCurrent:async()=>{if(retired){const e=new Error('retired');e.code='LOCAL_RECOVERY_CHANGED';throw e;}}}),{code:'LOCAL_RECOVERY_CHANGED'});
+});
+test('a third selected source reproduces both ancestors before applying a later inherited correction',async()=>{
+  const f=await lineageFixture(),previous=await f.producer.projectLineage(f.input),incoming=JSON.parse(f.nodes.get(f.first.op_id).material.source_json);
+  incoming.dailyLogs['2026-08-29'].cal=2500;const source=Buffer.from(JSON.stringify(incoming)),local=Buffer.from(JSON.stringify(previous.accepted_state));
+  const prepared=createImportPreparation({engine:engineFor({day:'2026-09-06',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(source,{localBytes:local});
+  const third=f.sourceOp('third-source'),later=op({date:'2026-09-07',kind:'correction',target:f.a.op_id,parents:[f.a.op_id,f.edit.op_id],value:180});
+  f.nodes.set(third.op_id,{selection:f.selection(third,6,{W:5,selection_id:f.second.op_id}),material:{source_json:source.toString(),candidate_json:prepared.candidateBytes().toString(),local_json:local.toString(),
+    checkpoint_json:JSON.stringify({revision:3,token:'synthetic',generation:f.g}),engine_context_json:JSON.stringify({build,clock:'2026-09-06'})}});
+  const value=await f.producer.projectLineage({...f.input,selectionId:third.op_id,generation:generation([f.first,f.a,f.second,f.b,f.edit,third,later],[f.pending])});
+  assert.equal(value.ready,true,JSON.stringify(value.issues));assert.equal(value.coverage.source_lineage.length,2);
+  assert.deepEqual(value.coverage.steps.map(x=>x.op_id),[f.a.op_id,f.b.op_id]);assert.equal(value.accepted_state.reads.find(r=>r.d==='2026-09-04').w,180);
+  let expected=engineFor({day:'2026-09-04',hour:8}).applyRead(f.base,'2026-09-04',180,{hour:8});
+  const merge=(source,local,day)=>createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson:f.parseStrictJson}).prepare(Buffer.from(JSON.stringify(source)),{localBytes:Buffer.from(JSON.stringify(local))}).candidateState();
+  expected=merge(f.incoming,expected,'2026-09-04');expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',180,{hour:8});expected=merge(incoming,expected,'2026-09-06');
+  assert.deepEqual(value.accepted_state,expected);
+});

@@ -1,4 +1,12 @@
-# Import preparation and controller boundary v1.5 — September 9, 2026
+# Import preparation and controller boundary v1.6 — September 9, 2026
+
+## Reproduced source/native lineage — v1.6
+
+projectLineage now consumes the SAME W6 guarded selected-source chain and authenticated generation. Match every original checkpoint operation and exact contiguous receipt/disposition prefix; calculate the previous source at its original accepted cut and require exact equality to local_json. Reproduce the original immutable preparation independently. Later accepted effects rebuild inherited native state through the same actual producer before the next actual merge, and only later original facts apply afterward. Derive inherited identities from executed steps, never supplied coverage/frontier membership. Reconstruct multiple ancestors recursively. Rollback resolves its target activation's original source/checkpoint and reconciles all later accepted and pending work; it never adopts the rollback request's later cut as the source basis.
+
+Source provenance records distinguish original candidate positions from reconstructed-basis positions. Incoming legacy/native date collisions remain explicit unresolved correspondence. Opaque root local images, mixed accepted context, unsupported same-date/backdated interpretation and current prescription/consent remain unfinished; the lineage join does not waive those refusals or scientific qualification. Caller supplies actual authenticated selected-source readers and current-context guards, checked after asynchronous reads and final calculation. W6's inactive inspectSelectedSource checks the same inventory and local revision both before and after its visitor. It grants no active publication or browser-engine capability.
+
+Current report binds14 focused/12 effective faults/restored14, actual signed second-source/inherited-correction/rollback/reopen/five-pending journey, reached/restored final-visitor guard fault,167/395 regressions and required gates. All original source/local/checkpoint/context bytes remain immutable; qualified:false and activated:false remain mandatory. Next complete mixed accepted context, applicable actual current producer and accepted-plan/consent reconciliation before the guarded atomic publication. Further T2 core changes require precise independent pre-edit amendment review. Historical sections below retain their original scope; this v1.6 supersedes their source/native-lineage TODO only.
 
 ## Reproducible reading-engine candidate — v1.5
 
