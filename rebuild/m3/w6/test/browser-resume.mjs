@@ -10,7 +10,7 @@ import {O,initial,config} from './support.mjs';
 const require=createRequire(import.meta.url),here=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const Sign=require('../../w5/crypto.cjs'),{chromium}=require('playwright-core');
 if(!process.env.W6_BROWSER_BIN||!existsSync(process.env.W6_BROWSER_BIN)){console.log('WORKOUT RESUME BLOCKED — W6_BROWSER_BIN required');process.exit(2);}
-const artifacts=join(here,'.tmp/workout-resume');mkdirSync(artifacts,{recursive:true});
+const artifacts=process.env.W6_UI_ARTIFACT_DIR?join(resolve(process.env.W6_UI_ARTIFACT_DIR),'workout-resume'):join(here,'.tmp/workout-resume');mkdirSync(artifacts,{recursive:true});
 const built=await buildBrowser({outfile:join(artifacts,'app.js'),entryPoints:[join(here,'browser-entry.mjs')]});
 const signing=Sign.generateSigningKey('resume-synthetic'),key=Sign.publicKeyOf(signing),lease=Sign.signLease({...O.lease('dev-A'),schema_version:2},signing);
 // Test-run-only custody survives page disposal. Never a production key bootstrap:
@@ -47,7 +47,7 @@ try{
     workoutProducerIdentity:{app_build:'synthetic',engine_build:'synthetic',rule_profile:'synthetic',source_schema:'synthetic'},
     resolveWorkoutBasis:()=>({plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic',causal_parents:[]}),
     workoutProducer:(_g,c)=>{produced++;return prescription(c);},
-    workoutResumePolicy:(_g,c)=>{const now=prescription(c);now.slots[2].load=cell(35);return {allowed_actions:options.refuseSets?['skip','close']:['set','skip','close'],reason:'Synthetic current assessment; not a personal prescription',current_capture:now};}});
+    workoutResumePolicy:(_g,c)=>{if(globalThis.__resumeTest?.assessmentLost)throw Error('Synthetic assessment unavailable');const now=prescription(c);now.slots[2].load=cell(35);return {allowed_actions:options.refuseSets?['skip','close']:['set','skip','close'],reason:'Synthetic current assessment; not a personal prescription',current_capture:now};}});
    const handle=W.mountPreparedWorkoutPanel(document.querySelector('#root'),{client,plannedSplitSlotId:'synthetic-slot',enableContinuation:true});
    globalThis.__resumeTest={repo,client,produced:()=>produced,handle};return handle.ready;
   },{first,seed:initial(),cfg,key,lease,rawKey,options});
@@ -57,6 +57,7 @@ try{
  const waitStatus=(page,text)=>page.waitForFunction(t=>document.querySelector('.wcp-status')?.textContent.includes(t),text);
  async function log(page,weight,reps){await page.locator('input[name=load]').fill(String(weight));await page.locator('input[name=reps]').fill(String(reps));await page.getByRole('button',{name:'Log set',exact:true}).click();await waitStatus(page,'set logged');}
  let page=await open(true);await page.getByRole('button',{name:'Start',exact:true}).click();await waitStatus(page,'start recorded');
+ check(!await page.locator('.prepared-current-instructions').evaluate(x=>x.open),'unchanged current details are available without repeating the original target');
  await log(page,41.5,8);await page.getByRole('button',{name:'Next',exact:true}).click();await log(page,46,9);
  const before=await snapshot(page),start=before.ops.find(o=>o.kind==='session-start');check(before.ops.filter(o=>o.kind==='session-set').length===2,'two actual sets durably recorded before close');
  const original=JSON.stringify(start.prescription_capture);await page.close();
@@ -72,8 +73,20 @@ try{
  check((await page.locator('.wcp-progress').innerText()).includes('3 of 3'),'resume selects first remaining set, not a completed entry');
  check((await page.locator('.prepared-history').innerText()).includes('41.5 lb × 8 rep')&&(await page.locator('.prepared-history').innerText()).includes('46 lb × 9 rep'),'earlier performed values visibly recovered');
  check((await page.locator('.prepared-active-slot').innerText()).includes('50 lb')&&(await page.locator('.prepared-active-slot').innerText()).includes('35 lb'),'original and separately labelled current instructions both shown');
+ check(await page.locator('.prepared-current-instructions').evaluate(x=>x.open),'changed current guidance opens automatically on resume');
+ check((await page.locator('.prepared-strip [data-slot="slot-0"]').innerText()).includes('8 reps recorded')&&(await page.locator('.prepared-strip [data-slot="slot-1"]').innerText()).includes('9 reps recorded'),'resumed strip is rebuilt from interpreted recorded values');
+ await page.screenshot({path:join(artifacts,'resumed-current-guidance-390.png'),fullPage:true});
  check((await page.locator('input[name=load]').inputValue())==='','resumed performed input is empty, never fabricated from prescription');
  check(await page.locator('.wcp-finish').isHidden(),'normal Finish unavailable while a set remains');
+ await page.evaluate(()=>{globalThis.__resumeTest.assessmentLost=true;});
+ await page.locator('input[name=load]').fill('36');await page.locator('input[name=reps]').fill('10');
+ await page.getByRole('button',{name:'Log set',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.prepared-current-reason')?.textContent.startsWith('Current assessment unavailable'));
+ check(await page.locator('.prepared-current-instructions').count()===0&&(await page.locator('.prepared-active-slot').innerText()).includes('50 lb')&&!(await page.locator('.prepared-active-slot').innerText()).includes('35 lb'),'failed current assessment withdraws its old instructions and preserves the original');
+ check(await page.locator('input[name=load]').inputValue()==='36'&&await page.locator('.wcp-entry').isVisible()&&await page.getByRole('button',{name:'Log set',exact:true}).isDisabled(),'assessment failure preserves visible entered values and disables further logging');
+ check((await page.locator('.wcp-status').innerText()).includes('Reopen the workout to recover')&&!(await page.locator('.wcp-status').innerText()).includes('try again'),'unavailable assessment gives recovery guidance rather than an unavailable retry');
+ check((await snapshot(page)).revision===before.revision,'failed fresh assessment cannot append a Set');
+ await page.screenshot({path:join(artifacts,'assessment-unavailable-390.png'),fullPage:true});
+ await page.close();page=await open(false);
  await log(page,36,10);await page.getByRole('button',{name:'Finish workout',exact:true}).click();await waitStatus(page,'workout finished');
  const finished=await snapshot(page);check(finished.ops.filter(o=>o.kind==='session-start').length===1,'round trip retains exactly one Start');
  check(finished.ops.filter(o=>o.kind==='session-close').length===1&&finished.ops.find(o=>o.kind==='session-close').payload.completion_kind==='normal','one normal Close durably recorded');

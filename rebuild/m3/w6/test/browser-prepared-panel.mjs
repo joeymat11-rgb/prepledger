@@ -10,7 +10,7 @@ import {O,initial,config} from './support.mjs';
 const require=createRequire(import.meta.url),here=resolve(dirname(fileURLToPath(import.meta.url)),'..'),source=resolve(here,'../../..');
 const Sign=require('../../w5/crypto.cjs'),{chromium}=require('playwright-core');
 if(!process.env.W6_BROWSER_BIN||!existsSync(process.env.W6_BROWSER_BIN)){console.log('PREPARED PANEL BLOCKED — W6_BROWSER_BIN required');process.exit(2);}
-const artifacts=join(here,'.tmp/prepared-panel');mkdirSync(artifacts,{recursive:true});
+const artifacts=process.env.W6_UI_ARTIFACT_DIR?join(resolve(process.env.W6_UI_ARTIFACT_DIR),'prepared-panel'):join(here,'.tmp/prepared-panel');mkdirSync(artifacts,{recursive:true});
 const built=await buildBrowser({outfile:join(artifacts,'app.js'),entryPoints:[join(here,'browser-entry.mjs')]});
 const signing=Sign.generateSigningKey('prepared-panel-synthetic'),key=Sign.publicKeyOf(signing),lease=Sign.signLease({...O.lease('dev-A'),schema_version:2},signing);
 const server=createServer((request,response)=>{
@@ -24,6 +24,9 @@ try{
  const context=await browser.newContext({viewport:{width:390,height:844}});
  await context.route('**/*',route=>new URL(route.request().url()).origin===origin?route.continue():route.abort());
  const page=await context.newPage(),errors=[];page.on('pageerror',()=>errors.push('pageerror'));await page.goto(origin);
+ await page.exposeFunction('capturePreparedState',async name=>{
+  assert(['saving','saved'].includes(name));await page.screenshot({path:join(artifacts,`${name}-390.png`),fullPage:true});
+ });
  const cfg=config();delete cfg.clock;
  const checks=await page.evaluate(async({seed,cfg,key,lease})=>{
   const W=await import('/app.js'),root=document.querySelector('#root'),checks=[];
@@ -45,7 +48,7 @@ try{
     resolveWorkoutBasis:()=>({plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic',causal_parents:[]}),
     workoutProducer:(_g,c)=>{produced++;return latest={profile:capture.profile,producer:c.producer,basis:c.basis,
      session:{instruction:{state:'specified',display:'Synthetic instructions <script>bad</script>',source_json:'"synthetic"'},reason:unknown(),confidence:unknown()},
-     slots:[40,45,40].map((n,i)=>({logical_set_slot:'slot-'+i,lift_lineage_id:'same',label:'Cafe\u0301 '+i,
+     slots:[40,45,40].map((n,i)=>({logical_set_slot:'slot-'+i,lift_lineage_id:i<2?'same':'other',label:'Cafe\u0301 '+i,
       load:{state:'specified',display:n+' lb',source_json:` {"value":${n}.00,"unit":"lb"} `},reps:unknown(),
       effort:{state:'specified',display:'At least 3',source_json:'{"tag":"at_least","value":3,"unit":"rep"}'},setup:unknown(),reason:unknown(),confidence:unknown()}))};}};
    return {repo,setup,args,client:W.createDurablePublicClient(args),produced:()=>produced,latest:()=>latest,writes:()=>writeCalls};
@@ -71,6 +74,7 @@ try{
   const active=()=>root.querySelector('.prepared-active-slot')?.textContent;
   ok(active()?.includes('40 lb')&&!active().includes('45 lb'),'current instructions select exact first slot, not the entire workout');
   ok(active().includes('Unknown (unknown)')&&active().includes('At least 3'),'unknown and bounded effort remain original display values');
+  ok(root.querySelectorAll('.prepared-strip li').length===2&&!root.querySelector('.prepared-strip [data-slot="slot-2"]'),'set strip follows exact lift lineage without mixing the next exercise');
   f.latest().slots[0].load.display='producer mutation';
   const hold=holdWrite();submit();await hold.entered;
   ok(root.querySelector('.wcp-status').textContent==='Saving…','actual held transaction has no early Saved');
@@ -83,13 +87,19 @@ try{
   ok(JSON.stringify(op.prescription_capture)===original,'exact original capture saved despite later producer mutation');
   ok(root.querySelector('.prepared-original summary').textContent==='Original instructions — saved on this device','saved caption follows actual commit');
   const inputs=root.querySelectorAll('.wcp-entry input');inputs[0].value='40.5';inputs[1].value='8';root.querySelector('.wcp-effort select').value='3+';
-  root.querySelector('.wcp-entry').requestSubmit();await wait(()=>root.querySelector('.wcp-status').textContent.includes('set logged'));
+  const setHold=holdWrite();root.querySelector('.wcp-entry').requestSubmit();await setHold.entered;
+  ok(!root.querySelector('.wcp-entry').hidden&&!root.querySelector('.prepared-strip [data-recorded]'),'held actual Set keeps entry visible and does not mark a recorded set');
+  await window.capturePreparedState('saving');setHold.release();await wait(()=>root.querySelector('.wcp-status').textContent.includes('set logged'));
   const after=await f.repo.load(),set=Object.values(after.generation.collections.ops).find(x=>x.kind==='session-set');
   ok(set?.payload.load.value===40.5&&set.payload.reps.value===8&&set.payload.reserve.tag==='at_least','actual performed facts distinct from prescription');
   ok(set.session_start_op_id===op.op_id&&set.logical_set_slot==='slot-0','set references exact captured Start/slot');
+  ok(root.querySelector('.wcp-entry').hidden&&!root.querySelector('.wcp-next').hidden&&!root.querySelector('.wcp-next').disabled&&document.activeElement===root.querySelector('.wcp-next'),'only acknowledged Set yields to saved feedback and focused explicit Next');
+  ok(root.querySelector('.prepared-strip [data-recorded="performed"]').textContent==='Set 1 8 reps recorded','saved strip uses actual completed repetitions, not the original target');
+  await window.capturePreparedState('saved');
   root.querySelector('.wcp-next').click();ok(root.querySelector('.wcp-title').textContent==='Cafe\u0301 1','same panel advances to next captured slot');
   ok(active()?.includes('45 lb')&&!active().includes('40 lb'),'explicit Next selects original next-set load within the same lineage');
   ok([...root.querySelectorAll('.wcp-entry input')].every(x=>x.value==='')&&f.produced()===1&&f.writes()===2,'display advance neither prefills performed facts nor regenerates or writes');
+  ok(!root.querySelector('.wcp-entry').hidden&&root.querySelector('.prepared-strip [data-slot="slot-0"]').getAttribute('data-recorded')==='performed','explicit Next reopens empty entry and retains the acknowledged earlier set');
   window.panelProof={handle,f,original,after};
   // Keep the actual mounted state for a screenshot, then run remaining lifecycle cases separately.
   window.continuePanelProof=async()=>{
@@ -120,6 +130,7 @@ try{
    for(let i=0;i<3;i++){
     if(i===1){root.querySelector('.wcp-options summary').click();root.querySelector('[name=skipReason]').value='Time';root.querySelector('.wcp-skip').requestSubmit();await wait(()=>root.querySelector('.wcp-status').textContent.includes('explicitly skipped'));}
     else{root.querySelector('[name=load]').value=String(40+i);root.querySelector('[name=reps]').value='8';root.querySelector('.wcp-entry').requestSubmit();await wait(()=>root.querySelector('.wcp-status').textContent.includes('set logged'));}
+    if(i===1)ok(root.querySelector('.prepared-strip [data-slot="slot-1"]').textContent==='Set 2 Skipped'&&root.querySelector('.prepared-strip [data-slot="slot-1"]').getAttribute('data-recorded')==='skipped','explicit Skip remains distinct from performed repetitions in the set strip');
     if(i<2)root.querySelector('.wcp-next').click();
    }
    ok(!finish.hidden&&!finish.disabled&&normal.writes()===4,'two actual Sets and one Skip expose explicit Finish without a hidden Close');
@@ -154,7 +165,7 @@ try{
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'prepared screen fits viewport');
   const target=await page.locator('.prepared-active-slot').boundingBox(),entry=await page.locator('.wcp-entry').boundingBox();
   assert(target.y+target.height<=entry.y+1,'original instructions precede performed entry');
-  assert.equal(await page.locator('.prepared-strip [aria-current=step]').textContent(),'Entry 2');
+  assert.equal(await page.locator('.prepared-strip [aria-current=step]>span').textContent(),'Set 2');
   await page.screenshot({path:join(artifacts,`active-${width}-${fontSize}.png`),fullPage:true});
  }
  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>document.documentElement.style.fontSize='16px');
@@ -164,7 +175,7 @@ try{
  await page.getByRole('button',{name:'Finish early',exact:true}).click();
  assert.equal(await page.evaluate(()=>document.activeElement.name),'closeChoice');assert((await page.locator('.wcp-status').textContent()).includes('Choose early finish'));
  presentation.push('early-close confirmation stays visible and focuses the real choice');
- const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,32);assert.deepEqual(errors,[]);
+ const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,38);assert.deepEqual(errors,[]);
  const observer=await page.evaluate(async()=>{
   const W=await import('/app.js'),root=document.querySelector('#root'),seen=[];
   const selection={planned_split_slot_id:'AD_HOC',plan_basis:'NO_ACCEPTED_PLAN',logical_set_slot:'one',lift_lineage_id:'same',label:'Same label'};
@@ -186,5 +197,5 @@ try{
  writeFileSync(join(artifacts,'evidence.json'),JSON.stringify({checks:all,presentation,observerChecks:observer,activeLayouts:['390/16','320/16','390/32','320/32'],browser:await browser.version(),inputs:built.inventory,limits:['synthetic producer/guard/unissued profile','desktop Chromium, not iPhone','same-client remount refuses until external host reconciliation','no normal Finish/corrections/authority recovery qualification']},null,2)+'\n');
  console.log('UI DISCLOSURES PASS — '+presentation.length+' native presentation checks; keyboard, correction focus, saved-only feedback and blank performed fields');
  console.log('ACTIVE SLOT PASS — 5 actual prepared-display checks + 7 controlled observer checks; exact slot identity, frozen original values, no prefill/write, blocked advancement and failed-display refusal');
- console.log('PREPARED PANEL PASS — 32 native lifecycle/display/history checks plus keyboard original-instructions disclosure; actual prepared Start/multiple Sets/Skip/normal Finish, held IndexedDB/no early Saved, original capture, lost-reply reconciliation, disposal/standing, encrypted reopen and original-fact recovery; synthetic producer/guard, resume still unqualified');
+ console.log('PREPARED PANEL PASS — '+all.length+' native lifecycle/display/history checks plus keyboard original-instructions disclosure; actual prepared Start, held IndexedDB/no early Saved, recorded-set feedback, exact per-lift strip, original capture, lost-reply reconciliation, disposal/standing and encrypted reopen; synthetic producer/guard, complete resume is a separate proof');
 }finally{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));}

@@ -16,7 +16,7 @@ if (!binary || !existsSync(binary)) { console.log('PANEL BROWSER BLOCKED: W6_BRO
 const { buildBrowser } = await import(pathToFileURL(join(w6, 'build-browser.mjs')));
 const { O, initial, config } = await import(pathToFileURL(join(here, 'support.mjs')));
 const Sign = require('../w5/crypto.cjs');
-const artifacts = join(w6, '.tmp/panel'); mkdirSync(artifacts, { recursive: true });
+const artifacts = process.env.W6_UI_ARTIFACT_DIR ? join(resolve(process.env.W6_UI_ARTIFACT_DIR), 'panel') : join(w6, '.tmp/panel'); mkdirSync(artifacts, { recursive: true });
 const built = await buildBrowser({ outfile: join(artifacts, 'retained-w6.js'), entryPoints: [join(w6, 'browser-entry.mjs')] });
 // Keys are generated for this isolated run only. No static signing key or secret is written.
 const signing = Sign.generateSigningKey('panel-synthetic'), key = Sign.publicKeyOf(signing);

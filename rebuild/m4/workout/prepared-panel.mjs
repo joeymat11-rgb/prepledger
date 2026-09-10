@@ -137,7 +137,11 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
       // A fresh immutable display copy; shape equality is not producer/basis authorization.
       const view=validator.prepare(prepared.view,{producer:prepared.view.producer,basis:prepared.view.basis});
       let currentView=continuation?.view.current||view,allowedActions=continuation?.view.allowed_actions||['set','skip','close'];
-      let currentSelection=null;
+      let currentSelection=null,currentAvailable=true;
+      const slotKey=slot=>JSON.stringify([slot.lift_lineage_id,slot.logical_set_slot]);
+      // Display-only facts from the host's interpreted continuation or an exact
+      // acknowledged local action. No accepted-order or eligibility inference.
+      const displayedCompletions=new Map((continuation?.view.slots||[]).filter(s=>s.completion).map(s=>[slotKey(s),structuredClone(s.completion)]));
       const original=el('details'),caption=el('summary','Prepared instructions — not yet saved');
       if(continuation)caption.textContent='Original instructions — recovered unchanged';
       original.className='prepared-original';original.setAttribute('aria-label','Original workout instructions');original.append(caption);
@@ -161,6 +165,7 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
       const active=el('section');active.className='prepared-active-slot';active.setAttribute('aria-label','Original instructions for this set');
       active.style.cssText='order:3;padding-bottom:16px';
       style.textContent+=`.prepared-active-slot .prepared-strip{list-style:none;display:flex;flex-wrap:wrap;gap:7px;padding:0;margin:0 0 20px}.prepared-strip li{flex:1 1 3.5em;border-top:2px solid #D8D0C2;padding-top:7px;color:#5A5348;font-size:.875em}.prepared-strip li[aria-current=step]{border-color:#1C1B18;color:#1C1B18}.prepared-active-slot .prepared-targets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin:8px 0 14px}.prepared-targets p{color:#5A5348;font-size:.875em}.prepared-targets .prepared-value{display:block;color:#1C1B18;font:400 2em/1.15 'Instrument Serif',Georgia,serif;margin-top:5px}.prepared-active-slot>.prepared-target-label{color:#5A5348;font-weight:400}`;
+      style.textContent+=`.prepared-strip .prepared-strip-value{display:block;margin-top:4px;font-size:1.125em;font-weight:500;line-height:1.35}.prepared-strip li[data-recorded]{border-color:#2E5A3C;color:#2E5A3C}.prepared-active-slot details{border-top:1px solid #D8D0C2;margin-top:16px;padding-top:4px}.prepared-active-slot summary{min-height:44px;box-sizing:border-box;padding:10px 0;cursor:pointer;color:#5A5348}.prepared-active-slot .prepared-current-instructions[open]{border-top:2px solid #2E5A3C}.prepared-active-slot .prepared-current-instructions[open]>summary{color:#2E5A3C;font-weight:500}.prepared-workout-host .workout-command-panel .wcp-entry input{font-size:max(1.5em,16px)}.prepared-workout-host .workout-command-panel .wcp-entry-heading{font-size:1.125em}`;
       const displayActive=selection=>{
         currentSelection=selection;
         active.replaceChildren();
@@ -168,7 +173,16 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
         if(!selected||selected.logical_set_slot!==selection.logical_set_slot||selected.lift_lineage_id!==selection.lift_lineage_id)
           throw new Error('Original slot unavailable');
         const strip=el('ol');strip.className='prepared-strip';strip.setAttribute('aria-label','Workout entry position');
-        view.slots.forEach((_slot,index)=>{const item=el('li','Entry '+(index+1));if(index===selection.index)item.setAttribute('aria-current','step');strip.append(item);});
+        const liftSlots=view.slots.map((slot,index)=>({slot,index})).filter(row=>row.slot.lift_lineage_id===selected.lift_lineage_id);
+        strip.setAttribute('aria-label','Sets for this exercise');
+        liftSlots.forEach(({slot,index},position)=>{
+          const item=el('li'),name=el('span','Set '+(position+1)),done=displayedCompletions.get(slotKey(slot));
+          item.setAttribute('data-slot',slot.logical_set_slot);item.append(name,doc.createTextNode(' '));
+          const detail=done?.kind==='skipped'?'Skipped':done?.kind==='performed'?`${done.values.reps.value} reps recorded`:slot.reps.display+(slot.reps.state==='specified'?'':slot.reps.state==='unknown'?' (unknown)':' (not prescribed)');
+          const value=el('strong',detail);value.className='prepared-strip-value';item.append(value);
+          if(done)item.setAttribute('data-recorded',done.kind);
+          if(index===selection.index)item.setAttribute('aria-current','step');strip.append(item);
+        });
         const label=el('p','Original instructions for this set');label.className='prepared-target-label';
         const targets=el('div');targets.className='prepared-targets';
         for(const [key,name] of [['load','Weight'],['reps','Repetitions']]){
@@ -176,22 +190,40 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
           value.className='prepared-value';line.append(value);targets.append(line);
         }
         active.append(strip,label,targets);show(active,'Effort',selected.effort);
-        if(enableContinuation){const now=currentView.slots[selection.index];active.append(el('h3','Current instructions'));for(const key of ['load','reps','effort','reason','confidence'])show(active,key[0].toUpperCase()+key.slice(1),now[key]);}
+        const originalDetails=el('details');originalDetails.className='prepared-set-details';originalDetails.append(el('summary','Setup and prescription details'));
+        for(const key of ['setup','reason','confidence'])show(originalDetails,key[0].toUpperCase()+key.slice(1),selected[key]);active.append(originalDetails);
+        if(enableContinuation&&!currentAvailable){
+          active.append(el('p','Current instructions unavailable. Recover this workout before continuing.'));
+        }else if(enableContinuation){
+          const now=currentView.slots[selection.index],changed=['load','reps','effort','setup','reason','confidence'].some(key=>JSON.stringify(now[key])!==JSON.stringify(selected[key]));
+          const assessment=el('details');assessment.className='prepared-current-instructions';assessment.open=changed;
+          assessment.append(el('summary',changed?'Current instructions differ':'Current instructions and assessment'));
+          for(const key of ['load','reps','effort','setup','reason','confidence'])show(assessment,key[0].toUpperCase()+key.slice(1),now[key]);active.append(assessment);
+        }
       };
       const refreshCurrent=async startId=>{
-        const p=await client.prepareWorkoutContinuation({session_start_op_id:startId});
+        let p;try{p=await client.prepareWorkoutContinuation({session_start_op_id:startId});}
+        catch{p={prepared:false,code:'WORKOUT_RESUME_UNAVAILABLE'};}
         if(disposed)return {acknowledged:false,code:'WORKOUT_HOST_DISPOSED',state:3};
-        if(p?.prepared!==true){allowedActions=[];currentReason.hidden=false;currentReason.textContent='Current assessment unavailable. Recover this workout before continuing.';return p;}
-        currentView=p.view.current;allowedActions=p.view.allowed_actions.slice();currentReason.hidden=false;currentReason.textContent='Current assessment: '+p.view.current_reason;
+        if(p?.prepared!==true){currentAvailable=false;allowedActions=[];currentReason.hidden=false;currentReason.textContent='Current assessment unavailable. Recover this workout before continuing.';if(currentSelection)displayActive(currentSelection);return p;}
+        currentAvailable=true;currentView=p.view.current;allowedActions=p.view.allowed_actions.slice();currentReason.hidden=false;currentReason.textContent='Current assessment: '+p.view.current_reason;
         if(currentSelection)displayActive(currentSelection);return p;
       };
       const proxy={async execute(command,args){
         if(command!=='workout'||args.action!=='start'){
-          if(!enableContinuation)return client.execute(command,args);
-          const p=await refreshCurrent(args.input.session_start_op_id);if(p?.prepared!==true)return {...p,acknowledged:false};
+          const displayInput=structuredClone(args.input);
+          const recordDisplay=result=>{
+            if(!disposed&&result?.acknowledged===true&&nonblank(result.op_id)&&['set','skip'].includes(args.action)){
+              displayedCompletions.set(slotKey(displayInput),args.action==='set'?{kind:'performed',op_id:result.op_id,values:displayInput}:{kind:'skipped',op_id:result.op_id});
+              if(currentSelection)displayActive(currentSelection);
+            }
+            return result;
+          };
+          if(!enableContinuation)return recordDisplay(await client.execute(command,args));
+          const p=await refreshCurrent(args.input.session_start_op_id);if(p?.prepared!==true)return {...p,acknowledged:false,code:'WORKOUT_CURRENT_ASSESSMENT_UNAVAILABLE'};
           const result=await client.executeResumedWorkout({resumeId:p.resumeId,action:args.action,input:args.input});
           if(!disposed&&result?.acknowledged===true&&args.action!=='close')await refreshCurrent(args.input.session_start_op_id);
-          return result;
+          return recordDisplay(result);
         }
         startIssued=true;
         let result=await client.startPreparedWorkout({preparedId:prepared.preparedId});

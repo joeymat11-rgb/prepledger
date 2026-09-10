@@ -44,7 +44,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     .workout-command-panel .wcp-options { order:7; border-top:1px solid #D8D0C2; padding:8px 0; }
     .workout-command-panel .wcp-options summary,.workout-command-panel .wcp-readback summary { box-sizing:border-box; min-height:44px; padding:10px 0; cursor:pointer; font-weight:500; }
     .workout-command-panel .wcp-options .wcp-skip { border-top:0; }
-    .workout-command-panel .wcp-last-record { order:6; margin:0 0 18px; padding:12px 0; color:#2E5A3C; border-top:1px solid #D8D0C2; }
+    .workout-command-panel .wcp-last-record { order:5; margin:0 0 18px; padding:18px 0; color:#2E5A3C; border-top:1px solid #D8D0C2; border-bottom:1px solid #D8D0C2; }
     .workout-command-panel [hidden] { display:none; }
     .workout-command-panel .wcp-readback h3 { margin:0 0 8px; font-size:1.125em; font-weight:500; }
     .workout-command-panel .wcp-readback p { color:#5A5348; font-size:.875em; }
@@ -136,6 +136,9 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   const paintControls = () => {
     startButton.disabled = !valid || pending || recovery || startId !== null || finished;
     startForm.hidden = startId !== null; // Retire only the already acknowledged Start from the visual flow.
+    // Retain the actual fields in the DOM while a recorded slot yields to the
+    // saved summary and explicit next action. Pending/refused entry stays visible.
+    setForm.hidden = extended && (slotDone || finished);
     const blocked = !valid || pending || recovery || startId === null || finished;
     for (const control of [load, reps, reserve, setButton]) control.disabled = blocked || slotDone || !permits('set');
     if (extended) {
@@ -170,6 +173,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
     if (result.state === 18) { recovery = true; return 'Stored information needs recovery. Your entries remain here.'; }
     if (result.state === 20) { recovery = true; return 'Reconnect through the host to restore the write allowance. Your entries remain here.'; }
     if (result.code === 'WORKOUT_CURRENT_SAFETY_REFUSES') return 'The current assessment does not permit this action. Your entered values remain here.';
+    if (result.code === 'WORKOUT_CURRENT_ASSESSMENT_UNAVAILABLE') { recovery = true; return 'Current assessment unavailable. Your entries remain here. Reopen the workout to recover before continuing.'; }
     if (result.state === 3) return 'Could not save. Your entries remain here. You can try again.';
     recovery = true; return 'Save not confirmed. Your entries remain here. Return to the host for recovery.';
   }
@@ -209,7 +213,16 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
       if (!disposed) { recovery = true; tell('Save not confirmed. Your entries remain here. Return to the host for recovery before retrying.'); }
     } finally {
       pending = false;
-      if (!disposed) { paintControls(); if (startId !== null && !finished && !recovery && !slotDone) load.focus(); }
+      if (!disposed) {
+        paintControls();
+        if (startId !== null && !finished && !recovery) {
+          if (!slotDone) load.focus();
+          else if (extended) {
+            if (!nextButton.hidden && !nextButton.disabled) nextButton.focus();
+            else if (!finishButton.hidden && !finishButton.disabled) finishButton.focus();
+          }
+        }
+      }
     }
   }
   const onStart = event => {
