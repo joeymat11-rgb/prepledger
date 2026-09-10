@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.77 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.78 (working implementation)
+
+## Current v0.78 shared context history and U-1 proposal
+
+Rev164's actual report is read/hash-verified: finite context/source contract ACCEPT, with U-1 and P1–P5 boundaries. Separable context adoption now extends the ONE existing root/effect fold, descriptor-safe context shape and actual original target validation; stored history exposes distinct context_records without adding them to workout engine membership. All-cleared sleep remains existing history without an observation; pending/concurrent edits, removal/restore, source-type discrimination and original bytes retain their limits. Default workout-only profile/issuer and source codec remain unchanged.91 affected M4,86 schema and431 composed W6 plus actual Chromium checks PASS. Six additional model/subset checks cover the new explicitly prospective U-1 point-of-declared-intent rule, awaiting its technical verdict. Exact paths, evidence, invocation failures and unqualified source/current-input boundaries are in the report and WORKOUT-SCHEMA-V2 v0.11. No numeric/memory rerun or private activation.
 
 ## Current v0.77 executable factual context proposal
 
