@@ -86,19 +86,67 @@ async function lineageFixture(extra={}){
   const f=await fixture(extra),sourceOp=(source_id,type='source-import-intent',target_activation_id)=>Ops.build({op_id:'source-'+(++n),athlete_id:'first',device_id:'remote',device_seq:n,parents:[],kind:'fact',class:'event',lease_id:'synthetic-lease',
     effective:{local_date:'2026-09-04',local_time:'08:00',utc_offset:'-04:00'},payload:{type,source_id,...(target_activation_id?{target_activation_id}:{}),interval:{start:'2026-09-04',end:'2026-09-04'},material_digest:'synthetic-unverified'}},key);
   const first=sourceOp(f.input.sourceId),a=op(),pending=op({device:'local',value:188}),before=generation([first,a],[pending]);
-  const old=f.producer.project({...f.input,generation:before,asOf:'2026-09-04'});assert.equal(old.ready,true);
+  const selection=(operation,seq,before,action='activate',target_activation_id=null)=>({type:'selection',action,source_id:operation.payload.source_id,material_digest:operation.payload.material_digest,intent_op_id:operation.op_id,commitment:operation.canonical_content_commitment,seq,before,target_activation_id});
+  const firstEntry={selection:selection(first,1,{W:0,selection_id:null}),material:f.material};
+  const old=await f.producer.projectLineage({selectionId:first.op_id,generation:before,asOf:'2026-09-04',assertCurrent:async()=>{},
+    readSourceSelection:async()=>structuredClone(firstEntry.selection),readSelectedSource:async()=>structuredClone(firstEntry)});assert.equal(old.ready,true);
   const incoming=JSON.parse(f.material.source_json);incoming.dailyLogs['2026-08-30'].cal=2400;
   const imported=Buffer.from(JSON.stringify(incoming)),local=Buffer.from(JSON.stringify(old.accepted_state)),nextDay='2026-09-04';
   const prep=createImportPreparation({engine:engineFor({day:nextDay,hour:12}),parseStrictJson:f.parseStrictJson}).prepare(imported,{localBytes:local});
   const material={source_json:imported.toString(),local_json:local.toString(),candidate_json:prep.candidateBytes().toString(),checkpoint_json:JSON.stringify({revision:2,token:'synthetic',generation:before}),engine_context_json:JSON.stringify({build,clock:nextDay})};
   const second=sourceOp('second-source'),b=op({date:'2026-09-05',value:180}),edit=op({date:'2026-09-06',kind:'correction',target:a.op_id,parents:[a.op_id],value:181});
-  const selection=(operation,seq,before,action='activate',target_activation_id=null)=>({type:'selection',action,source_id:operation.payload.source_id,intent_op_id:operation.op_id,commitment:operation.canonical_content_commitment,seq,before,target_activation_id});
   const nodes=new Map([[first.op_id,{selection:selection(first,1,{W:0,selection_id:null}),material:f.material}],
     [second.op_id,{selection:selection(second,3,{W:2,selection_id:first.op_id}),material}]]);
   const g=generation([first,a,second,b,edit],[pending]);
   return {...f,first,second,a,b,edit,pending,nodes,material,incoming,g,sourceOp,selection,
-    input:{selectionId:second.op_id,generation:g,asOf:'2026-09-07',readSelectedSource:async id=>structuredClone(nodes.get(id)),assertCurrent:async()=>{}}};
+    input:{selectionId:second.op_id,generation:g,asOf:'2026-09-07',readSourceSelection:async id=>structuredClone(nodes.get(id)?.selection),readSelectedSource:async id=>structuredClone(nodes.get(id)),assertCurrent:async()=>{}}};
 }
+
+test('reserved source prose alone cannot exempt an unbound accepted control',async()=>{
+ const f=await fixture(),control=Ops.build({op_id:'unbound-source-'+(++n),athlete_id:'first',device_id:'remote',device_seq:n,parents:[],
+  kind:'fact',class:'event',lease_id:'synthetic-lease',effective:{local_date:'2026-09-04',local_time:'08:00',utc_offset:'-04:00'},
+  payload:{type:'source-import-intent',source_id:'unbound',material_digest:'unbound',interval:{start:'2026-09-04',end:'2026-09-04'}}},key);
+ const input={...f.input,generation:generation([control])},before=structuredClone(input),value=f.producer.project(input);
+ assert.equal(value.ready,false,'Bare source type must not qualify accepted engine coverage');
+ assert(value.issues.some(issue=>issue.code==='ACCEPTED_ENGINE_CONTEXT_UNMAPPED'&&issue.op_id===control.op_id));
+ assert.equal(value.accepted_state,null);assert.deepEqual(input,before);
+});
+
+test('rollback binds nontraversed source B through metadata without assembling its material',async()=>{
+ const f=await lineageFixture(),rollback=f.sourceOp(f.first.payload.source_id,'source-rollback-intent',f.first.op_id);
+ const g=generation([f.first,f.a,f.second,f.b,f.edit,rollback],[f.pending]);
+ f.nodes.set(rollback.op_id,{selection:f.selection(rollback,6,{W:5,selection_id:f.second.op_id},'rollback',f.first.op_id),material:f.nodes.get(f.first.op_id).material});
+ const metadata=[],materials=[],before=structuredClone(g);
+ const result=await f.producer.projectLineage({...f.input,selectionId:rollback.op_id,generation:g,
+  readSourceSelection:async id=>{metadata.push(id);return f.input.readSourceSelection(id);},
+  readSelectedSource:async id=>{materials.push(id);assert.notEqual(id,f.second.op_id,'Rollback must not load nontraversed B material');return f.input.readSelectedSource(id);}});
+ assert.equal(result.ready,true,JSON.stringify(result.issues));assert.deepEqual(metadata,[f.first.op_id,f.second.op_id,rollback.op_id]);
+ assert.equal(new Set(materials).size,2);assert.deepEqual(g,before);
+ assert(result.coverage.accepted_originals.some(row=>row.op_id===f.second.op_id));
+});
+
+test('source metadata binding rejects absent or mismatched exact accepted correspondence',async()=>{
+ const f=await lineageFixture();
+ await assert.rejects(f.producer.projectLineage({...f.input,readSourceSelection:undefined}),{code:'SOURCE_LINEAGE_SELECTION_UNPROVEN'});
+ for(const change of [()=>undefined,s=>({...s,type:'manifest'}),s=>({...s,intent_op_id:f.second.op_id}),s=>({...s,seq:s.seq+1}),
+   s=>({...s,commitment:'different'}),s=>({...s,source_id:'different'}),s=>({...s,material_digest:'different'}),
+   s=>({...s,action:'rollback'}),s=>({...s,target_activation_id:'different'})]){
+  await assert.rejects(f.producer.projectLineage({...f.input,readSourceSelection:async id=>change(await f.input.readSourceSelection(id))}),{code:'SOURCE_LINEAGE_SELECTION_UNPROVEN'});
+ }
+ const bad=structuredClone(f.g);bad.collections.dispositions[f.first.op_id].canonical_content_commitment='different';
+ await assert.rejects(f.producer.projectLineage({...f.input,generation:bad}),{code:'SOURCE_LINEAGE_SELECTION_UNPROVEN'});
+ const wrongMaterial=async id=>{const value=await f.input.readSelectedSource(id);value.selection.before.W=99;return value;};
+ await assert.rejects(f.producer.projectLineage({...f.input,readSelectedSource:wrongMaterial}),{code:'SOURCE_LINEAGE_SELECTION_UNPROVEN'});
+});
+
+test('metadata read retirement refuses before source material or engine publication',async()=>{
+ const f=await lineageFixture();let retired=false,materialReads=0;
+ await assert.rejects(f.producer.projectLineage({...f.input,
+  readSourceSelection:async id=>{const value=await f.input.readSourceSelection(id);retired=true;return value;},
+  readSelectedSource:async id=>{materialReads++;return f.input.readSelectedSource(id);},
+  assertCurrent:async()=>{if(retired){const error=new Error('retired');error.code='LOCAL_RECOVERY_CHANGED';throw error;}}}),{code:'LOCAL_RECOVERY_CHANGED'});
+ assert.equal(materialReads,0);
+});
 test('source-aware capture accepts no derived workout facts from imported unknown fields, including zero native sessions',async()=>{
  const Capture=require(path.join(w6,'rebuild/m4/workout/capture.cjs')),Source=require(path.join(process.env.EARNED_SOURCE_R1_ROOT,'rebuild/m3/w5/source/codec.cjs'));
  const Adapter=require('../../workout/engine-capture.cjs'),injected={profile:'synthetic-imported-unproved-view',sessions:[{start_op_id:'forged-native'}]};

@@ -1,4 +1,10 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.78 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.79 (working implementation)
+
+## Current v0.79 bound source-control correspondence
+
+PM adopted the actual rev165 finite context runtime and U-1 CONTRACT ACCEPT after reading all15086 bytes and verifying SHA4ead90ccc8eed8bdbc8e0bc72fc63222e49869927460a97d416cb7212e57cbd4. Exact accepted heads remain67aaae9/eaeafd3/2d96080. Shared P1/P4/P5 and pain P2 closure does not close source P2/P3/full issuer; lexical point spelling/optional seconds/inherited+23:59 and F2 remain. The bound-source work below is a separate candidate, not rev165 acceptance.
+
+APM independently inspected and accepted this implementation seam after the v0.78 review dispatch. Replace reading-replay.cjs's bare reserved-type exemption with exact accepted operation/receipt/selection correspondence from the SAME guarded recovery profile. W6 recovery-local.mjs may forward metadata only through existing profile.sourceSelection, with checks before/after lookup and visitor. Do not assemble source material per accepted control or treat the selected-lineage node cache as the complete accepted source inventory: historical B must remain recognized after rollback A. Ordinary project/reproduce without bound evidence must refuse source controls. Bind original ID, commitment, accepted sequence, action, source/material and rollback target at the requested prefix; changed revision, missing/mismatched metadata and substituted material-reader selection must refuse. Use existing tests in M4 import/test/reading-replay.test.cjs and workout/test/engine-history.test.cjs, and W6 test/recovery-stage/source-import.test.mjs for actual guarded recovery. Update this brief, W6 brief and their reports; no R1 source codec/profile/issuer change or new signed-v2 qualification. The independently reviewed context packet remains immutable; this subsequent delta needs its own affected acceptance.
 
 ## Current v0.78 shared context history and U-1 proposal
 

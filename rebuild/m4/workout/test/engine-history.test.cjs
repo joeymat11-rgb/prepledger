@@ -218,9 +218,9 @@ async function capturedSourcesFixture(t){
  const validator=C.createPrescriptionCapture({parseStrictJson:f.dependencies.parseStrictJson,profile:C.SOURCE_PROFILE,sourceCodec:Source});
  const basis=n=>({W:n,log_digest:Buffer.alloc(32,n).toString('base64url'),selection_id:n?'source-'+n:null});
  const a=basis(1),b=basis(2),g=structuredClone(source.generation),native=Object.values(g.collections.ops);
- const selections=[a,b].map((cut,i)=>({intent_op_id:cut.selection_id,source_id:'synthetic-material-'+i,seq:cut.W,action:'activate',commitment:'synthetic-source-commitment-'+i}));
+ const selections=[a,b].map((cut,i)=>({type:'selection',intent_op_id:cut.selection_id,source_id:'synthetic-material-'+i,material_digest:'synthetic-material-digest-'+i,seq:cut.W,action:'activate',target_activation_id:null,commitment:'synthetic-source-commitment-'+i}));
  const sourceOps=selections.map(s=>({op_id:s.intent_op_id,athlete_id:'ath-1',device_id:'dev-A',schema_version:1,class:'event',kind:'fact',
-  causal_parents:[],canonical_content_commitment:s.commitment,payload:{type:'source-import-intent',source_id:s.source_id}}));
+  causal_parents:[],canonical_content_commitment:s.commitment,payload:{type:'source-import-intent',source_id:s.source_id,material_digest:s.material_digest}}));
  let n=0;for(const op of native)if(op.kind==='session-start'){
   op.prescription_capture={...op.prescription_capture,profile:C.SOURCE_PROFILE,source_basis:structuredClone(n++?b:a)};
  }
@@ -405,7 +405,7 @@ test('actual source reconstruction carries accepted native membership across lat
  const sourceBasis=(W,selection_id)=>({W,selection_id,log_digest:Buffer.alloc(32,W).toString('base64url')});
  const readSourceCuts=async bases=>bases.map(basis=>({frontier:structuredClone(basis),current:structuredClone(nodes.get(basis.selection_id)?.selection||null)}));
  const readSelectedSource=async id=>structuredClone(nodes.get(id));
- const options={asOf:'2026-09-07',sourceRevision:20,assertCurrent:async()=>{},readSourceCuts,readSelectedSource};
+ const options={asOf:'2026-09-07',sourceRevision:20,assertCurrent:async()=>{},readSourceCuts,readSelectedSource,readSourceSelection:async id=>structuredClone(nodes.get(id)?.selection)};
  const beforeB=prefix(g,cut),first=await replay.projectLineage({...options,selectionId:'source-1',generation:beforeB,sourceBasis:sourceBasis(cut,'source-1')});
  assert.equal(first.ready,true,JSON.stringify(first.issues));assert.equal(first.workout_history.sessions.length,1);
  assert.deepEqual(first.workout_history.order.import_anchor,{source_generation_id:x.selections[0].source_id,activation_op_id:'source-1'},'Existing causal single-baseline order must reach the actual source consumer');
@@ -454,8 +454,8 @@ test('actual source reconstruction carries accepted native membership across lat
  assert.equal(JSON.parse(joinedCapture.slots[0].effort.source_json).target,3,'Actual registered native rating joins two imported hot openers under the existing rule');
  const members=proposed.performedHistoryMembers(reached);assert.equal(members.length,3);assert.equal(members.filter(row=>row.source==='performed').length,1);
  assert.throws(()=>proposed.typicalError(reached,'demo-press'),{code:'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED'},'Count support grants no mixed noise adjacency');
- const rollback={...structuredClone(accepted[0]),op_id:'source-rollback',canonical_content_commitment:'synthetic-rollback',payload:{type:'source-rollback-intent',source_id:x.selections[0].source_id,target_activation_id:'source-1'}};
- accepted.push(rollback);const rolled=inventory();nodes.set(rollback.op_id,{selection:{intent_op_id:rollback.op_id,source_id:rollback.payload.source_id,seq:accepted.length,action:'rollback',commitment:rollback.canonical_content_commitment,target_activation_id:'source-1'},material});
+ const rollback={...structuredClone(accepted[0]),op_id:'source-rollback',canonical_content_commitment:'synthetic-rollback',payload:{type:'source-rollback-intent',source_id:x.selections[0].source_id,material_digest:x.selections[0].material_digest,target_activation_id:'source-1'}};
+ accepted.push(rollback);const rolled=inventory();nodes.set(rollback.op_id,{selection:{type:'selection',intent_op_id:rollback.op_id,source_id:rollback.payload.source_id,material_digest:rollback.payload.material_digest,seq:accepted.length,action:'rollback',commitment:rollback.canonical_content_commitment,target_activation_id:'source-1'},material});
  const after=await replay.projectLineage({...options,selectionId:rollback.op_id,generation:rolled,sourceBasis:sourceBasis(accepted.length,rollback.op_id)});
  assert.equal(after.ready,true,JSON.stringify(after.issues));assert.equal(Object.hasOwn(after.accepted_state.sessionLog,extraDay),false);
  assert.equal(after.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);assert.equal(after.workout_history.incomplete_sessions.length,1);
