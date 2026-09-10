@@ -1,6 +1,7 @@
 'use strict';
 const EditValues = require('./edit-values.cjs');
 const ContextValues = require('./context-values.cjs');
+const SourceControlValues = require('./source-control-values.cjs');
 
 // Shared basic shape only. No capability registration, signature verification,
 // relationship/admission check, prescription qualification or durable command.
@@ -155,4 +156,19 @@ function validateContextRelations(input,readOperation){
   }return true;
  }catch(error){if(typeof error.code!=='string')throw error;return false;}
 }
-module.exports = {validateWorkoutShape,validateContextShape,validateContextRelations};
+// Internal source family only. Upstream authentication, actual source bindings,
+// target relations and complete installed version dispatch remain mandatory.
+function validateSourceControlShape(input){
+ let op;try{op=jsonData(input);}catch{return invalid('INVALID_JSON_SHAPE');}
+ if(op.schema_version!==2||op.class!=='event'||op.kind!=='fact')return invalid('UNSUPPORTED_PROFILE');
+ if(!COMMON.every(key=>own(op,key))||
+  !['op_id','athlete_id','device_id','lease_id','canonical_content_commitment'].every(key=>text(op[key]))||
+  !Number.isSafeInteger(op.device_seq)||op.device_seq<1||
+  !(op.device_predecessor_op_id===null||text(op.device_predecessor_op_id))||
+  !Array.isArray(op.causal_parents)||!op.causal_parents.every(text)||new Set(op.causal_parents).size!==op.causal_parents.length||
+  !EditValues.effective(op.effective))return invalid('INVALID_COMMON');
+ if(!keys(op,COMMON))return invalid('INVALID_FIELDS');
+ if(!SourceControlValues.validate(op))return invalid('INVALID_SOURCE_CONTROL');
+ return {valid:true,errors:[],references:op.payload.type==='source-rollback-intent'?[op.payload.target_activation_id]:[]};
+}
+module.exports = {validateWorkoutShape,validateContextShape,validateContextRelations,validateSourceControlShape};

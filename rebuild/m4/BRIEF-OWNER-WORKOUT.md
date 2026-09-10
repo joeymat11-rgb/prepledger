@@ -1,6 +1,14 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.81 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.82 (working implementation)
+
+## Current v0.82 source shape/reference and upstream scope evidence
+
+APM read §3a.2 and the actual upstream source/codec boundaries and confirmed this exact pre-edit seam. M4 now has the internal descriptor-safe source-control shape/reference export and accepted U1 value helper; R1 changes only its existing actual HTTP test plus brief/report.19 combined source/context checks and86 unchanged workout shape controls PASS; actual source inner-scope test1PASS exercises six refusals, genuine v1 enrollment and exact retry. No default profile, R1/W6 runtime, codec version, issuer or complete manifest switch. The actual R1 identifier/digest domains remain, including canonical base64url unused-bit restrictions. This candidate needs affected independent acceptance; source relations and the real mixed workout journey remain open.
+
+PM fully read/hash-verified actual NUMERIC-M3-COWORK-2026-09-10-REVIEW.md13015B/SHAfc49b124a23b2b4d441cfc3e649b73e7c7d01c3b2056d04f484440d96d600766: ACCEPT exact source overlay/PENDING state, no required changes. Adopt that finite verdict; no changes for its two nonblocking nits. Artifact5073977b and all numerical pins remain unchanged. Reviewer did not hold3731e0e Git object or accept revised product documents/full campaign/package receipt/origin; APM owns the remaining execution disposition.
 
 ## Current v0.81 final PENDING numerical profile
+
+WORKOUT-SCHEMA-V2 §3a.2 specifies the finite source P2/P3 scope confirmed by APM and implemented under v0.82. Complete profile/registry/issuer and the original mixed source/native journey remain the objective. No new queue or partial grant is introduced.
 
 APM accepted actual CC37 report a76a4b2637c1b085aff337d5a9591e83d0942578842f25ef414e0cbed29666c3 as local-only theme provenance and authorized final PENDING reseal. Exact corrected cowork line/hash9117a07f17d945ec3e0c1c971681886214eede3b025e0fe74ee4755e8c960f70 now replaces null; no placeholder or independent PM ledger append. Integrator-local5149cb7 exists according to its verified actual report; local-PC object custody and origin reachability were not assumed. Stable artifactSHA5073977b3f612f0e6212f4d47ddc5f45f044897f0dc51b1d81b4840f6b099d82 verifies accepted:false with PENDING/null review,19 unchanged product/23 current execution pins. Existing profile refusals8PASS and final targeted4PASS, including actual private checker with real theme constant exposed only in memory and actual writer non-dyadic controls/faults. No --ci/--full campaign or accepted receipt/ancestry claim. APM read/hash-verified the result; one finite M3 affected review through its existing accepting lane is next. The v0.80 unavailable preparation below is historical and remains preserved.
 
