@@ -1,5 +1,11 @@
 # ASTRA — owner workout contract preparation
 
+## Controller spec v1.3 — actual W6 source recovery checkpoint
+
+Documentation successor to60e4d5a; M4 runtime, installed engine and preparation are unchanged. spec/IMPORT-CONTROLLER-v1.md now records the completed LOCAL R1 98c140514db7aee3c175d1a7ec1ce6d73f14a046 / W6 76b714dc7e2a00ca21849f8e3e1af4ec9ede06fb recovery join: shared indexed source semantics, preserved v1/v2 archives and shared transport budget, actual source/rollback selection, later remote fact, actual T2 pending replay and five surviving queued originals through reopen. Native Chrome28, source15, original recovery167 and composed W6 383 checks plus four effective source/head/budget faults are recorded in the affected R1/W6 reports with exact evidence. The actual M4 preparation ran in those synthetic joins; no full seeded engine entered the browser.
+
+The qualified source/current engine-state projection and guarded active publication remain unimplemented. Synthetic harnesses still issue the actual source intents; no generic T2 committer was added. Historical/current permission, source targets versus consent, original capture, private carryover and all independent/integrator/science/device/resource gates remain distinct. No M4 runtime gate was repeated solely for this documentation. Follow the sole NEXT in EARNED-DELIVERY-STATUS.md, not a duplicate component queue.
+
 ## Current v0.59 source-preserving import preparation
 
 September9, after the owner lifted the account-transfer hold. Same root/APM roles and full PRODUCT-GOALv3/P1–P6 remain active. M4 base f9299f7; W6 4eba747 and R1 02de388 unchanged. The new import/prepare.cjs is a LOCAL IN-MEMORY adapter, not a mounted importer or durable controller. It copies source and optional independent local bytes before any engine call, invokes actual installed migrate → mergeState → migrate, consumes actual returns, and checks dataLossGuard against BOTH pre-call snapshots. Original bytes/states stay separately readable through isolated copies. Strict W6 JSON parsing, supported-schema boundaries, lossless candidate JSON and private exception redaction are enforced. Historical accepted/targets remain source provenance; activation stays pending. No source-generation or activation receipt is fabricated.
