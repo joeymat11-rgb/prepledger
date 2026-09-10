@@ -474,3 +474,104 @@ test('active and adoption records are sealed from ONE snapshot despite caller mu
   assert.equal(adoption.revision, stored.revision,
     'both records were sealed at the same revision');
 });
+
+// ─── K1 correction-04: a commit may not adopt without usable evidence ───────
+// Correction-03 binds adoption evidence to the first commit carrying
+// well-formed proofs. The independent review of that correction (finding 3.4)
+// named the residual same-device gap: a keyed caller that commits the
+// assembled candidate with its proofs already STRIPPED, or with a MALFORMED
+// `reference.attempt`, produced no evidence at all and the commit went
+// through, so a later commit erasing the remaining marker reached exactly the
+// silent state K1 describes. `commit` now refuses both shapes, before
+// publish() opens its transaction, so nothing at all is written.
+//
+// Scope, stated plainly: the refusal applies while the lineage still has NO
+// adoption evidence, which is the only state in which the omission can
+// launder recovered content. Once evidence exists it cannot be removed by any
+// repository method, so a stripped generation committed afterwards is already
+// fail-closed on the read path — the boundary subtest below asserts that
+// unchanged behaviour rather than hiding it.
+
+test('commit refuses to adopt recovered content that carries no usable evidence', async t => {
+  const { f, args, before, candidate } = await baselineOnlyRecovery(t, { sameDevice: true, label: 'unevidenced-adoption', adopt: false });
+  const client = () => createDurablePublicClient({ ...args, repository: f.repo });
+  assert.equal(await f.repo.recoveryAdoption(), null, 'precondition: this lineage has adopted nothing yet');
+  assert.equal(candidate.metadata.recoveryArchives.length, 1, 'precondition: the assembled candidate carries its archive proof');
+  assert.equal(typeof candidate.metadata.recoveryArchives[0].reference.attempt, 'string');
+  assert.notEqual(candidate.collections.sync.snapshot.recoveryPlan, undefined, 'precondition: the candidate declares the recovery');
+  assert.deepEqual(await f.repo.load(), before, 'precondition: the prior ordinary generation is still head');
+
+  const refusals = [
+    ['a non-string reference attempt', g => { g.metadata.recoveryArchives[0].reference.attempt = 42; }, 'RECOVERY_ADOPTION_REFERENCE_MALFORMED'],
+    ['an empty reference attempt', g => { g.metadata.recoveryArchives[0].reference.attempt = ''; }, 'RECOVERY_ADOPTION_REFERENCE_MALFORMED'],
+    ['a proof with no reference at all', g => { delete g.metadata.recoveryArchives[0].reference; }, 'RECOVERY_ADOPTION_REFERENCE_MALFORMED'],
+    ['a proof whose reference is not an object', g => { g.metadata.recoveryArchives[0].reference = 'attempt'; }, 'RECOVERY_ADOPTION_REFERENCE_MALFORMED'],
+    ['a proof list that is not a list', g => { g.metadata.recoveryArchives = { reference: { attempt: 'borrowed' } }; }, 'RECOVERY_ADOPTION_REFERENCE_MALFORMED'],
+    ['declared recovery with the proofs stripped', g => { delete g.metadata.recoveryArchives; }, 'RECOVERY_ADOPTION_PROOFS_STRIPPED'],
+    ['declared recovery with an emptied proof list', g => { g.metadata.recoveryArchives = []; }, 'RECOVERY_ADOPTION_PROOFS_STRIPPED'],
+  ];
+
+  for (const [name, mutate, code] of refusals) await t.test('commit refuses ' + name, async () => {
+    const head = await f.repo.load();
+    const unusable = structuredClone(candidate); mutate(unusable);
+    await assert.rejects(f.repo.commit(head, unusable),
+      error => error.name === 'StorageFailure' && error.code === code && error.state === 18,
+      `commit must refuse ${name} with ${code}`);
+    // Nothing at all was written: no active/previous pair and no adoption record.
+    assert.deepEqual(await f.repo.load(), before, 'a refused adoption publishes nothing');
+    assert.equal(await f.repo.recoveryAdoption(), null, 'a refused adoption writes no adoption record');
+    const prepared = await client().prepareLocalRecovery();
+    assert(prepared.prepared, `the prior generation must still prepare after the refusal (code ${prepared.code})`);
+    assert.deepEqual(await f.repo.load(), before, 'the prior generation is unchanged by the refusal');
+  });
+
+  await t.test('positive control: the unmutated candidate still adopts and records evidence', async () => {
+    const head = await f.repo.load();
+    assert.deepEqual(head, before, 'every refusal above left the prior generation as head');
+    await f.repo.commit(head, structuredClone(candidate));
+    const adoption = await f.repo.recoveryAdoption();
+    assert(adoption, 'a well-formed adoption still writes evidence');
+    assert.deepEqual(adoption.references.map(reference => reference.attempt),
+      candidate.metadata.recoveryArchives.map(proof => proof.reference.attempt),
+      'the evidence names the adopted archive attempts');
+    const prepared = await client().prepareLocalRecovery();
+    assert(prepared.prepared, `the genuinely adopted generation must prepare (code ${prepared.code})`);
+  });
+
+  await t.test('boundary: an already-evidenced lineage keeps its existing commit behaviour and fails closed on read', async () => {
+    const adopted = await f.repo.recoveryAdoption();
+    assert(adopted, 'precondition: this lineage is now evidenced');
+    const clean = await f.repo.load();
+    // Deliberately NOT refused: the evidence written above cannot be removed by
+    // any repository method, so this generation can no longer launder anything.
+    const installed = await commitMutated(f.repo, clean.generation, g => { delete g.metadata.recoveryArchives; });
+    const refused = await client().prepareLocalRecovery();
+    assert.equal(refused.prepared, false, 'a declared recovery with no proofs must refuse on read');
+    assert.equal(refused.state, 18);
+    assert.equal(refused.code, 'RECOVERY_SNAPSHOT_PROOF_MISSING');
+    assert.deepEqual(await f.repo.load(), installed, 'a refusal publishes nothing');
+    assert.deepEqual(await f.repo.recoveryAdoption(), adopted, 'the adoption evidence survived the stripping commit');
+    await f.repo.commit(await f.repo.load(), structuredClone(clean.generation));
+    assert((await client().prepareLocalRecovery()).prepared, 'restoring the proofs prepares again');
+  });
+});
+
+test('correction-04 control: an ordinary never-recovered commit is unaffected', async t => {
+  // The path taken by every profile that never recovered anything: no archive
+  // proof, no snapshot binding, no adoption record, and no new refusal.
+  const { f, args } = await enrolledProfile(t, 'correction04-ordinary');
+  const head = await f.repo.load();
+  assert.equal(head.generation.metadata.recoveryArchives, undefined, 'never-recovered: no archive proof exists');
+  assert.equal(head.generation.collections.sync?.snapshot?.recoveryPlan, undefined, 'never-recovered: no snapshot binding exists');
+  assert.equal(await f.repo.recoveryAdoption(), null, 'never-recovered: no adoption evidence exists');
+  const ordinary = structuredClone(head.generation);
+  ordinary.metadata.correction04OrdinaryControl = true;
+  const published = await f.repo.commit(head, ordinary);
+  assert.equal(published.revision, head.revision + 1, 'an ordinary commit still publishes');
+  assert.equal(await f.repo.recoveryAdoption(), null, 'an ordinary commit writes no adoption record');
+  const stored = await f.repo.load();
+  assert.equal(stored.generation.metadata.correction04OrdinaryControl, true, 'the ordinary commit is the one that landed');
+  assert((await createDurablePublicClient({ ...args, repository: f.repo }).execute('weighIn', { lb: 172 })).acknowledged, 'ordinary writer keeps working');
+  const prepared = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+  assert(prepared.prepared, `never-recovered profile still prepares (code ${prepared.code})`);
+});

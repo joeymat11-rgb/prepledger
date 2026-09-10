@@ -84,9 +84,13 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
       throw new StorageFailure("SEAL_FAILED", 3);
     }
   }
-  function adoptedReferences(generation) {
-    const proofs = generation?.metadata?.recoveryArchives;
-    if (!Array.isArray(proofs) || !proofs.length) return null;
+  function recoveryDeclared(generation) {
+    // The snapshot binding written beside every archive proof by
+    // prepareRecoveryProjection (t2-stage.cjs:160,165). Its presence is the
+    // generation's own declaration that its content came from a recovery.
+    return generation?.collections?.sync?.snapshot?.recoveryPlan !== undefined;
+  }
+  function proofReferences(proofs) {
     const references = [];
     for (const proof of proofs) {
       const reference = proof?.reference;
@@ -95,10 +99,51 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
     }
     return references;
   }
+  // K1 correction-04 — adoption evidence must not be silently skippable.
+  // A commit is the only adoption event, so a generation that CARRIES or
+  // DECLARES recovered content but yields no usable reference used to fall
+  // through as `null` and commit anyway, leaving recovered facts standing as
+  // ordinary local truth with no evidence at all. Two shapes did that: a
+  // proof whose `reference`/`reference.attempt` is malformed, and a candidate
+  // whose proofs were stripped while its snapshot binding still declares the
+  // recovery. Both are refused here, before publish() opens its transaction,
+  // so neither active/previous nor the adoption record is written.
+  //
+  // The refusal is scoped to a lineage that has NO adoption evidence yet,
+  // because that is the only state in which the omission can launder
+  // recovered content: no repository method can remove an adoption record, so
+  // once one exists every later read of a proof-less generation already fails
+  // closed on it (recovery-history.mjs, both-absent branch). A lineage that is
+  // already evidenced therefore keeps its existing commit behaviour exactly,
+  // including the stored-state fixtures that install a stripped generation in
+  // order to prove the read path refuses it.
+  async function lineageAdopted() {
+    try { return (await openAdoption(await readKey(ADOPTION))) !== null; }
+    catch (error) {
+      if (error instanceof StorageFailure && error.code === "DECRYPTION_UNAVAILABLE") throw error;
+      // Unreadable evidence is not evidence.
+      return false;
+    }
+  }
+  async function refuseUnevidenced(code) {
+    if (await lineageAdopted()) return null;
+    throw new StorageFailure(code, 18);
+  }
+  async function adoptedReferences(generation) {
+    const proofs = generation?.metadata?.recoveryArchives;
+    if (proofs === undefined) {
+      // Ordinary commit: nothing recovered is carried and nothing declared.
+      if (!recoveryDeclared(generation)) return null;
+      return refuseUnevidenced("RECOVERY_ADOPTION_PROOFS_STRIPPED");
+    }
+    if (!Array.isArray(proofs)) return refuseUnevidenced("RECOVERY_ADOPTION_REFERENCE_MALFORMED");
+    if (!proofs.length) return refuseUnevidenced("RECOVERY_ADOPTION_PROOFS_STRIPPED");
+    return proofReferences(proofs) || refuseUnevidenced("RECOVERY_ADOPTION_REFERENCE_MALFORMED");
+  }
   // Sealed under the same namespace/revision-bound AAD as the generation, so
   // it is neither a caller-supplied claim nor a rewritable plain marker.
   async function sealAdoption(generation, revision) {
-    const references = adoptedReferences(generation);
+    const references = await adoptedReferences(generation);
     if (!references) return null;
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const bytes = new TextEncoder().encode(JSON.stringify({ profile: ADOPTION_PROFILE, revision, references }));
@@ -254,6 +299,10 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
       // synchronously, before any await, and both records are sealed from it.
       const snapshot = clone(generation);
       const record = await seal(snapshot, basis.revision + 1);
+      // May refuse (RECOVERY_ADOPTION_REFERENCE_MALFORMED /
+      // RECOVERY_ADOPTION_PROOFS_STRIPPED). Both refusals happen here, before
+      // publish() opens its transaction, so no record of any kind is written
+      // and the prior generation stays exactly as it was.
       const adoption = await sealAdoption(snapshot, basis.revision + 1);
       return publish(basis, record, validate, false, adoption);
     },
