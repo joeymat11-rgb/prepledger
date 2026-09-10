@@ -1,5 +1,9 @@
 # BRIEF-W5-R1 — complete reconciliation, lease history and device recovery
 
+## Rev164 context value/schema candidate — precise boundary, September10
+
+The shared schema file adds internal validateContextShape/validateContextRelations exports and imports identical context-values from M4/W6, reusing unchanged edit-values helpers. It checks actual original family/target identity and keeps physiological context edits distinct from source controls. Default createWorkoutProfile/validateWorkoutShape remains workout-only; no source dispatch, bound-source reference/athlete gate, authority constructor/core, source codec, manifest or issuer changes. R1 does not gain a history fold. The finite rev164 contract permits this separable candidate but is not independent runtime/complete C1–C4 acceptance. Exact sources, final M4/W6 evidence and limitations are in REPORT-R1-ASTRA and the M4 report.
+
 ## Message65 shared workout edit/history adoption — pre-edit boundary, September10
 
 The existing APM task read and accepted the exact affected boundary before runtime edits. Shared schema/profile/edit-values now implement the scoped candidate;39 actual-core checks pass, including real WAITING drain for nested targets. edit-history is consumed in W6/M4 and is not installed unnecessarily in R1. No authority-core/issuer/source transaction change or runtime acceptance is claimed.

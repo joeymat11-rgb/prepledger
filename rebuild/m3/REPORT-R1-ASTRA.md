@@ -1,5 +1,11 @@
 # W5-R1 implementation — ASTRA
 
+## Shared contextual values and shape — unenabled candidate, September10
+
+R1 receives only shared context-values.cjs and schema.cjs's internal contextual validation exports, plus this precise brief/report. These bytes match M4/W6; unchanged edit-values supplies the existing effective/clear primitives with no circular dependency. Actual original target validation refuses source-control originals and nested aliases even though both use class:event. Default workout-only profile and all actual authority/issuer/source-codec paths are unchanged. R1 has no new edit-history module.
+
+M4 final91 affected checks,86 original workout schema controls and W6 composed431/actual Chromium checks pass; exact hashes and logs are in M4 REPORT-OWNER-WORKOUT-BRIEF-ASTRA and W6 REPORT-W6-ASTRA. That HTTP/browser composition uses old R1bec056d plus current codecs/W6 overlay, so it does not qualify this complete R1 tree. Source-codec widening is uninstalled and U-1 remains a separate proposed declared-intent-point rule awaiting its finite verdict. P2/P3 complete source reference/athlete work, full registry/issuer/currentness/science/private/device/independent-integrator gates remain. No memory/numeric rerun, merge, push or deployment.
+
 ## Captured historical source cuts — local candidate, September10
 
 Based on92327ad. APM accepted reuse of the existing source frontier in explicit capture v2. validateIndexedSource.selectionsAt now batches original cuts through the same validated chain, rejects incomplete activation/drain and future/mismatched cuts, reuses same-reader material validation, copies results and keeps initial/final retirement guards. Shared capture schema reference extraction is mirrored byte-identically with W6/M4; no issuer/core switch. Historical source9/9 PASS including guard retirement. Actual source/producer prerequisite1/1 PASS at earned-source-recovery-kCJ839,270 copied/22 external pins verified.
