@@ -106,7 +106,7 @@ module.exports=function createPerformed(){
   if(!av.every((x,i)=>x.position===bv[i].position&&x.load===bv[i].load&&x.unit===bv[i].unit))return null;
   return {a:av.map(x=>x.reps),b:bv.map(x=>x.reps)};
  }
- function performedHistoryRows(s){
+ function performedHistory(s,chronology){
   const rows=Object.keys(s?.sessionLog||{}).sort().map(d=>({d,rec:s.sessionLog[d],source:'legacy'}));
   if(!s?.workoutFacts)return rows;
   if(s.workoutFacts.profile!=='earned/workout-facts/v1'||!Array.isArray(s.workoutFacts.sessions))invalid();
@@ -140,13 +140,19 @@ module.exports=function createPerformed(){
    // proof. B15 applies to new operations; preserve the old engine's own order
    // within its imported baseline, then the proven post-activation native order.
    if(!baseline||baseline.profile!=='earned/imported-engine-history/v1'||baseline.session_log!==s.sessionLog||
-     !anchor||!text(anchor.source_generation_id)||!text(anchor.activation_op_id)||
-     baseline.source_generation_id!==anchor.source_generation_id||baseline.activation_op_id!==anchor.activation_op_id)
+     !text(baseline.source_generation_id)||!text(baseline.activation_op_id))
+    unresolved('PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED');
+   if(chronology&&(!anchor||!text(anchor.source_generation_id)||!text(anchor.activation_op_id)||
+     baseline.source_generation_id!==anchor.source_generation_id||baseline.activation_op_id!==anchor.activation_op_id))
     unresolved('PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED');
   }
   const rank=new Map(order.start_ids.map((id,i)=>[id,i]));
   native.sort((a,b)=>rank.get(a.start_op_id)-rank.get(b.start_op_id));
   return legacy.concat(native);
  }
- return {performedEntry,performedRirSets,effortKnown,effortIs,effortText,performedRirReceipt,performedStepWhy,performedValues,performedPair,performedHistoryRows};
+ const performedHistoryRows=s=>performedHistory(s,true);
+ // Fixed internal consumer: the existing hot-opener count needs membership,
+ // not cross-format placement. The returned list grants no chronology.
+ const performedHistoryMembers=s=>performedHistory(s,false);
+ return {performedEntry,performedRirSets,effortKnown,effortIs,effortText,performedRirReceipt,performedStepWhy,performedValues,performedPair,performedHistoryRows,performedHistoryMembers};
 };

@@ -369,7 +369,9 @@ test('actual source reconstruction carries accepted native membership across lat
   result.collections.receipts=Object.fromEntries(Object.entries(result.collections.receipts).filter(([,r])=>r.seq<=W));result.collections.outbox={};result.collections.rejected={};result.collections.sync.frontier={W,authorityW:W};return result;
  }
  const g=inventory(),root=prefix(g,0),parseStrictJson=x.f.dependencies.parseStrictJson;
- const bytes=Buffer.from(JSON.stringify(F.createSyntheticState(day))),prep=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(bytes,{localBytes:bytes});
+ const synthetic=F.createSyntheticState(day),legacyDay=Object.keys(synthetic.sessionLog).sort()[0];
+ synthetic.sessionLog={[legacyDay]:synthetic.sessionLog[legacyDay]};for(const entry of synthetic.sessionLog[legacyDay].entries)entry.rir=0;
+ const bytes=Buffer.from(JSON.stringify(synthetic)),prep=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(bytes,{localBytes:bytes});
  const material={source_json:bytes.toString(),candidate_json:prep.candidateBytes().toString(),local_json:bytes.toString(),checkpoint_json:JSON.stringify({revision:1,token:'synthetic',generation:root}),engine_context_json:JSON.stringify({build,clock:day})};
  const nodes=new Map([['source-1',{selection:{...x.selections[0],before:{W:0,selection_id:null},target_activation_id:null},material}]]);
  const reader=g=>storedWorkoutHistory(g,{athleteId:'ath-1',deviceId:'dev-A',prescriptionCapture:x.validator,recoveryReceipts:Object.values(g.collections.receipts).filter(r=>r.seq<=g.collections.sync.frontier.W)});
@@ -382,7 +384,7 @@ test('actual source reconstruction carries accepted native membership across lat
  const beforeB=prefix(g,cut),first=await replay.projectLineage({...options,selectionId:'source-1',generation:beforeB,sourceBasis:sourceBasis(cut,'source-1')});
  assert.equal(first.ready,true,JSON.stringify(first.issues));assert.equal(first.workout_history.sessions.length,1);
  assert.equal(Object.hasOwn(first.accepted_state,'workoutFacts'),false,'Native read state is never written into the immutable legacy/local image');
- const localBytes=Buffer.from(JSON.stringify(first.accepted_state)),incoming=F.createSyntheticState(day),extraDay='2026-07-01';
+ const localBytes=Buffer.from(JSON.stringify(first.accepted_state)),incoming=structuredClone(synthetic),extraDay='2026-07-01';
  incoming.sessionLog[extraDay]=structuredClone(Object.values(incoming.sessionLog)[0]);incoming.sessionLog[extraDay].entries[0].reps[0]=4;
  const incomingBytes=Buffer.from(JSON.stringify(incoming)),merged=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(incomingBytes,{localBytes});
  nodes.set('source-2',{selection:{...x.selections[1],before:{W:cut,selection_id:'source-1'},target_activation_id:null},material:{source_json:incomingBytes.toString(),candidate_json:merged.candidateBytes().toString(),local_json:localBytes.toString(),checkpoint_json:JSON.stringify({revision:20,token:'synthetic',generation:beforeB}),engine_context_json:JSON.stringify({build,clock:day})}});
@@ -413,12 +415,26 @@ test('actual source reconstruction carries accepted native membership across lat
  // Input reach is mechanical only: this installed legacy producer is not a
  // qualified rich-reader/guard implementation, and mixed chronology stays open.
  assert.throws(()=>engine().performedHistoryRows({...consumed.state,workoutFacts:consumed.workoutFacts}),{code:'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED'});
+ // The nonshipping opener count needs this exact membership, not a global
+ // source/native order. Other rule inputs and the clock stay fixed here.
+ const loader=S.load(candidate.sources),fixedClock={...clock,today:()=> '2026-09-07',nowISO:()=> '2026-09-07T12:00:00.000Z',dow:()=>1};
+ const proposed=loader('rebuild/m3/w7-preview/browser-engine.cjs').createBrowserEngine({clock:fixedClock});
+ Object.assign(proposed,loader('rebuild/engine/writers.cjs')(proposed,{clock:fixedClock,ids:{next(){throw Error('Unexpected writer');}},drafts:{length:0,key:()=>null}}));
+ const memberAdapter=CaptureEngine.createEngineWorkoutCapture({engine:proposed,prescriptionCapture:x.validator,sourceProjectionReader:replay,
+  producerIdentity:{app_build:'synthetic-source-membership-capture',engine_build:S.base,rule_profile:CaptureEngine.PROFILE,source_schema:'synthetic'}});
+ const joinedCapture=memberAdapter.prepare(captureInput).capture;
+ assert.equal(JSON.parse(captured.slots[0].effort.source_json).target,2,'Two legacy ratings alone do not meet the existing minimum three');
+ assert.equal(JSON.parse(joinedCapture.slots[0].effort.source_json).target,3,'Actual registered native rating joins two imported hot openers under the existing rule');
+ const members=proposed.performedHistoryMembers(reached);assert.equal(members.length,3);assert.equal(members.filter(row=>row.source==='performed').length,1);
+ assert.throws(()=>proposed.typicalError(reached,'demo-press'),{code:'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED'},'Count support grants no mixed noise adjacency');
  const rollback={...structuredClone(accepted[0]),op_id:'source-rollback',canonical_content_commitment:'synthetic-rollback',payload:{type:'source-rollback-intent',source_id:x.selections[0].source_id,target_activation_id:'source-1'}};
  accepted.push(rollback);const rolled=inventory();nodes.set(rollback.op_id,{selection:{intent_op_id:rollback.op_id,source_id:rollback.payload.source_id,seq:accepted.length,action:'rollback',commitment:rollback.canonical_content_commitment,target_activation_id:'source-1'},material});
  const after=await replay.projectLineage({...options,selectionId:rollback.op_id,generation:rolled,sourceBasis:sourceBasis(accepted.length,rollback.op_id)});
  assert.equal(after.ready,true,JSON.stringify(after.issues));assert.equal(Object.hasOwn(after.accepted_state.sessionLog,extraDay),false);
  assert.equal(after.workout_history.sessions[0].record.entries[0].slots[0].fact.current.load.value,25);assert.equal(after.workout_history.incomplete_sessions.length,1);
  assert.deepEqual(after.workout_history.sessions[0].capture,value.workout_history.sessions[0].capture);assert.equal(after.workout_history.source_members.filter(row=>row.op_id===edit.op_id).length,1);
+ const afterCapture=memberAdapter.prepare({...captureInput,sourceProjection:after,source_basis:after.source_basis}).capture;
+ assert.equal(JSON.parse(afterCapture.slots[0].effort.source_json).target,2,'Rollback removes only the later imported rating; original native capture remains unchanged');
  const missing=createReadingReplay(dependencies),unmapped=await missing.projectLineage({...options,selectionId:rollback.op_id,generation:rolled,sourceBasis:sourceBasis(accepted.length,rollback.op_id)});
  assert.equal(unmapped.ready,false);assert(unmapped.issues.some(issue=>issue.code==='ACCEPTED_ENGINE_CONTEXT_UNMAPPED'));
 });

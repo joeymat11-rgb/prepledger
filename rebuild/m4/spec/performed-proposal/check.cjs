@@ -25,10 +25,18 @@ function legacy(E,R){
 }
 async function main(){
  const w6=process.env.PERFORMED_W6_DIR;assert(w6,'Explicit PERFORMED_W6_DIR is required');
- const w6Pin='f7e7e42f35a2128e753b0f6cef4d9f6b954a29b1';
- const w6Files=['rebuild/m4/workout/project-history.mjs','rebuild/m4/workout/schema.cjs','rebuild/m4/workout/capture.cjs','rebuild/m3/w6/strict-json.mjs'];
+ // Current retained shared projector includes its actual edit-history/value
+ // dependencies. Advance the closed test input, never bypass its byte check.
+ const w6Pin='3d5f8eb88d973633e6826e357993a6a7fb8dbc7e';
+ const w6Files=['rebuild/m4/workout/project-history.mjs','rebuild/m4/workout/schema.cjs','rebuild/m4/workout/capture.cjs','rebuild/m3/w6/strict-json.mjs',
+  'rebuild/m4/workout/edit-history.cjs','rebuild/m4/workout/edit-values.cjs'];
+ // This exact retained projector has one CRLF absent from its normalized Git
+ // blob. Preserve it and pin its bytes explicitly; all other files match Git.
+ const retainedBytes={'rebuild/m4/workout/project-history.mjs':'dddbd330b9dd6de79a3bdd3e7448781e36015f1c2b007ca9a38430408df7d7c1'};
  const w6Hashes={};for(const file of w6Files){const bytes=fs.readFileSync(path.join(w6,file)),p=cp.spawnSync('git',['show',w6Pin+':'+file],{cwd:S.root,windowsHide:true,maxBuffer:8e6});
-  assert.equal(p.status,0);assert(bytes.equals(p.stdout),'Pinned retained projector/schema');w6Hashes[file]=S.sha(bytes);}
+  assert.equal(p.status,0);
+  if(Object.hasOwn(retainedBytes,file)){assert.equal(S.sha(bytes),retainedBytes[file],'Exact retained projector bytes');assert.equal(bytes.toString().replaceAll('\r\n','\n'),p.stdout.toString(),'Declared Git newline-only difference');}
+  else assert(bytes.equals(p.stdout),'Pinned retained projector/schema');w6Hashes[file]=S.sha(bytes);}
  const {projectWorkoutRecords}=await import(pathToFileURL(path.join(w6,w6Files[0]))),{validateWorkoutShape}=require(path.join(w6,w6Files[1]));
  const {parseStrictJson}=await import(pathToFileURL(path.join(w6,w6Files[3])));
  const capture=require(path.join(w6,w6Files[2])).createPrescriptionCapture({parseStrictJson});
@@ -58,7 +66,8 @@ async function main(){
   if(correctMiddle)op('correction','edit',{target_op_id:'set1',lift_lineage_id:'demo-press'},{replacement_fields:{load:{value:25,unit:'lb'}}},['set1']);
   if(removeMiddle)op('tombstone','remove',{target_op_id:'set1',lift_lineage_id:'demo-press'},{reason:'Mistaken entry'},[correctMiddle?'edit':'set1']);
   if(removeOpener)op('tombstone','remove-opener',{target_op_id:'set0',lift_lineage_id:'demo-press'},{reason:'Mistaken opener'},['set0']);
-  const snapshot=JSON.stringify(ops),projection=projectWorkoutRecords({start:{status:'accepted-through-frontier'},records:keys.slice(1).map(id=>({operation:ops[id],status:'accepted-through-frontier'}))},ops);
+  const snapshot=JSON.stringify(ops),rows=keys.map((id,i)=>({operation:ops[id],status:'accepted-through-frontier',receipt_sequence:i+1}));
+  const projection=projectWorkoutRecords({start:rows[0],records:rows.slice(1),original:captured},ops,{rows,frontier:rows.length});
   assert.equal(JSON.stringify(ops),snapshot,'PROJECTOR_DOES_NOT_REWRITE_SOURCE');
   // Proposed producer-owned mapping, NOT a qualified producer or proof that
   // arbitrary historical strings have this meaning. No chronology is inferred.
@@ -184,6 +193,27 @@ async function main(){
    assert.equal(E.rirPlan(input,ex).plan[0],3,'PERFORMED_IMPORTED_OPENER_RETAINED');
    input.workoutFacts.legacy_baseline.session_log=clone(legacyLog);
    assert.throws(()=>E.rirPlan(input,ex),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'OPENER_IMPORTED_SNAPSHOT_REQUIRED');
+  });
+  check('opener-membership-without-cross-format-order',()=>{
+   const legacyLog={synthetic:{entries:[{id:ex.id,rir:0},{id:ex.id,rir:0}]}},input=noiseState([record({startId:'unordered-opener',ratings:[bound,bound,bound]})],{legacyLog,importAnchor});
+   const expected=E.rirPlan(input,ex);delete input.workoutFacts.order.import_anchor;
+   const saved=JSON.stringify(input);
+   assert.doesNotThrow(()=>assert.deepEqual(E.rirPlan(input,ex),expected),'OPENER_MEMBERSHIP_DOES_NOT_REQUIRE_MIXED_CHRONOLOGY');
+   assert.throws(()=>E.typicalError(input,ex.id),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'NOISE_RETAINS_MIXED_CHRONOLOGY_REQUIREMENT');
+   assert.equal(JSON.stringify(input),saved,'MEMBERSHIP_READ_PRESERVES_INPUT');
+   for(const change of [x=>{delete x.workoutFacts.legacy_baseline;},x=>{x.workoutFacts.legacy_baseline.session_log=clone(x.sessionLog);},
+    x=>{x.workoutFacts.legacy_baseline.activation_op_id='';},x=>{x.workoutFacts.legacy_baseline.source_generation_id='';}]){
+    const bad=clone(input);change(bad);assert.throws(()=>E.rirPlan(bad,ex),/PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED/,'OPENER_MEMBERSHIP_STILL_REQUIRES_IMPORTED_BINDING');
+   }
+   const duplicate=clone(input);duplicate.workoutFacts.sessions.push(clone(duplicate.workoutFacts.sessions[0]));
+   assert.throws(()=>E.rirPlan(duplicate,ex),/PERFORMED_ENTRY_INVALID/,'OPENER_MEMBERSHIP_NOT_DUPLICATED');
+  });
+  check('opener-membership-permutation',()=>{
+   const legacyLog={a:{entries:[{id:ex.id,rir:0}]},b:{entries:[{id:ex.id,rir:0}]}},input=noiseState([
+    record({startId:'permutation-a',ratings:[exact(0),bound,bound]}),record({startId:'permutation-b',ratings:[bound,bound,bound]})],{legacyLog,importAnchor});
+   const expected=E.rirPlan(input,ex);delete input.workoutFacts.order.import_anchor;
+   input.workoutFacts.sessions.reverse();const log=input.sessionLog;input.sessionLog={b:log.b,a:log.a};input.workoutFacts.legacy_baseline.session_log=input.sessionLog;
+   assert.doesNotThrow(()=>assert.deepEqual(E.rirPlan(input,ex),expected),'OPENER_MEMBERSHIP_PERMUTATION_INVARIANT');
   });
   }
   assert.equal(JSON.stringify(a),aBytes,'ALL_READERS_PRESERVE_SOURCE');return count;

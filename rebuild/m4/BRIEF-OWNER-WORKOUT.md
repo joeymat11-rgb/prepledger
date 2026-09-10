@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.74 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.75 (working implementation)
+
+## Current v0.75 bounded opener membership consumer
+
+APM accepted the precise reader-specific seam before source edits. The existing nonshipping rirPlan hot-opener count now consumes common validated membership without requiring cross-format chronology; performedHistoryRows/typicalError retain their order and adjacency requirements. Actual registered source replay→capture and rollback exercise the unchanged rule with fixed other context, while original captures and the mixed noise refusal remain.77 affected checks plus208 exact legacy/153 rich/14 named sensitivities each native/frozen PASS. Exact current W6 test dependencies and setup failures are disclosed in the report. No installed engine, public override, schema issuer, physiological rule or current/private guidance activation changed. Existing §5d and canonical checkpoint retain the remaining chronology, safety, full-schema and qualification dependencies.
 
 ## Current v0.74 accepted native source membership
 

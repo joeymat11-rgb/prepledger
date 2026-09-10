@@ -79,7 +79,7 @@ function construct(input){
     hotOpenerHistory = opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0;
   } else {
     let known = 0, hot = 0;
-    for (const {rec} of E.performedHistoryRows(s)) for (const entry of rec.entries || []) {
+    for (const {rec} of E.performedHistoryMembers(s)) for (const entry of rec.entries || []) {
       const rich = E.performedEntry(entry);
       if (rich) {
         if (rich.lift_lineage_id !== ex.id) continue;
