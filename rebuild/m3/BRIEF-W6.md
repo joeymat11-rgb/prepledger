@@ -2,6 +2,8 @@
 
 ## Bound source-control metadata amendment (2026-09-10)
 
+Rev166 actual13867-byte report SHAda9448f183e383ae2fb2b75f7b7ffc655fd3cd7c4884bba7f6a9ba94622f26b0 fully read/hash-verified by PM; finite v1 bound-source ACCEPT at W65453344/M4a3f8c64/R12d96080 adopted. Public derivative four-case execution and isolated predicate probes retain their exact limits; author95/signed witness were not independently rerun. Copied visitor metadata can be retained, but conveys no current authority after retirement. No full source/v2/issuer/private qualification.
+
 PM read/hash-verified the actual rev165 report15086 bytes,SHA4ead90ccc8eed8bdbc8e0bc72fc63222e49869927460a97d416cb7212e57cbd4 and adopted finite context runtime at W6eaeafd3/M467aaae9/R12d96080 plus the uninstalled U-1 lexical-point contract. This later metadata/replay change is outside that accepted delta; all source/full-profile/issuer/currentness/private gates remain.
 
 APM accepted the exact guarded metadata-forwarding seam after source inspection. In recovery-local.mjs add an inactive inspectSourceSelection consumer backed by the SAME verified profile.sourceSelection method, with existing checks before/after lookup and visitor; no source material assembly. The M4 v0.79 replay amendment consumes exact selection/accepted-operation/receipt correspondence, including nontraversed B after rollback A. Update the actual recovery-stage/source-import.test.mjs integration to use that method and prove missing lookup, caller-copy isolation and final revision refusal. Do not widen the source codec, default profile or issuer; no new authority, current guidance, private activation or signed-v2 claim. The dispatched context review packet is unchanged; this following delta needs affected independent acceptance.

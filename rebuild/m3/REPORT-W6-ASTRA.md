@@ -1,5 +1,9 @@
 # W6 — storage, T2 staging and public browser integration, ASTRA
 
+## Rev166 finite bound-source ACCEPT adopted
+
+PM read complete actual13867-byte BOUND-SOURCE-REV166-REVIEW.md and verified SHAda9448f183e383ae2fb2b75f7b7ffc655fd3cd7c4884bba7f6a9ba94622f26b0. ACCEPT applies to W654533449e4bd4d63523ae043d7fc1dd9e314f163/M4a3f8c642dea4f61189072f0ed7429484c0df7cfa/R12d96080unchanged: bare-type prerequisite closed for v1. Independent53-file pins/four candidate tests used disclosed public seed-free engine derivative; extra probes extracted the private predicate verbatim and do not establish live recovery call-path execution. Author95/canonical RED/actual signed198.8second witness remain author evidence. The visitor receives metadata it may copy/retain; the method's undefined return grants no non-escape or revocation guarantee. Existing before/after guards and caller scope, source P2/P3/full manifest/issuer/F2/current/private/device/integrator requirements remain. This is docs-only adoption; no runtime/source codec changed.
+
 ## Bound source metadata and rev165 adoption — September10
 
 PM read/hash-verified actual rev165 report15086 bytes,SHA4ead90ccc8eed8bdbc8e0bc72fc63222e49869927460a97d416cb7212e57cbd4 and adopted finite context runtime atW6eaeafd3/M467aaae9/R12d96080 plus the U-1 lexical-point CONTRACT. No source codec/issuer/default-profile change; full source P2/P3 and current/private qualification remain. Optional seconds/+23:59 must retain exact spelling without an RFC3339 parser.
