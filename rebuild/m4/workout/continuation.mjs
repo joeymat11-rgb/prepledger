@@ -9,15 +9,18 @@ export function workoutContinuation(history,generation,startId){
  const target=history.sessions.find(s=>s.start.operation.op_id===startId);
  if(!target)fail('WORKOUT_RESUME_START_MISSING',18);
  if(!known(target.start))fail('WORKOUT_RESUME_START_UNRESOLVED',target.start.status==='rejected'?19:18);
+ if(target.projection.start_record.included!==true||target.projection.start_record.issues.length)fail('WORKOUT_RESUME_START_UNRESOLVED');
  if(!target.original)fail('WORKOUT_ORIGINAL_INSTRUCTIONS_UNKNOWN');
  const frontier=generation.collections.sync?.frontier;
  if(!frontier||frontier.authorityW!==history.frontier)fail('WORKOUT_RESUME_PREFIX_INCOMPLETE',18);
- const starts=history.sessions.filter(s=>s.start.status!=='rejected').map(s=>{
+ const starts=history.sessions.filter(s=>s.start.status!=='rejected'&&s.projection.start_record.included!==false).map(s=>{
   if(!known(s.start))fail('WORKOUT_RESUME_HISTORY_UNRESOLVED',18);
-  const op=s.start.operation,date=op.effective.local_date,time=op.effective.local_time;
+  const current=s.projection.start_record;
+  if(current.included!==true||current.issues.length)fail('WORKOUT_RESUME_START_UNRESOLVED');
+  const op=s.start.operation,date=current.current.effective.local_date,time=current.current.effective.local_time;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(Date.parse(date+'T00:00:00Z'))||
      new Date(date+'T00:00:00Z').toISOString().slice(0,10)!==date||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time))fail('WORKOUT_SESSION_TIME_MAPPING_REQUIRED');
-  return {start:op.op_id,slot:op.planned_split_slot_id,date,time,device:op.device_id};
+  return {start:op.op_id,slot:current.current.planned_split_slot_id,date,time,device:op.device_id};
  });
  const component=Session.candidateComponents(starts).find(c=>c.members.includes(startId));
  // No external generation defaults authorize a decision. Only a singleton has
@@ -34,16 +37,18 @@ export function workoutContinuation(history,generation,startId){
   if(slot.completion)fail('WORKOUT_SET_INTERPRETATION_REQUIRED');
   slot.completion={kind:'performed',op_id:fact.source_op_id,values:structuredClone(fact.current)};
  }
- for(const row of target.records){
-  const op=row.operation;if(op.kind!=='session-skip'||row.status==='rejected')continue;
-  const matching=[...slots.values()].filter(slot=>slot.lift_lineage_id===op.lift_lineage_id&&(op.skip_scope==='lift'||slot.logical_set_slot===op.logical_set_slot));
+ for(const row of target.projection.skip_records){
+  if(row.included===false)continue;
+  if(row.included!==true||row.issues.length)fail('WORKOUT_SKIP_INTERPRETATION_REQUIRED');
+  const op=row.current;
+  const matching=[...slots.values()].filter(slot=>slot.lift_lineage_id===row.lift_lineage_id&&(op.skip_scope==='lift'||slot.logical_set_slot===op.logical_set_slot));
   if(!matching.length)fail('WORKOUT_ADDED_SLOT_MAPPING_REQUIRED');
   for(const slot of matching){
    if(slot.completion?.kind==='performed')fail('WORKOUT_SET_INTERPRETATION_REQUIRED');
-   slot.completion={kind:'skipped',op_id:op.op_id,reason:op.payload.reason};
+   slot.completion={kind:'skipped',op_id:row.source_op_id,reason:op.reason};
   }
  }
- return {session_start_op_id:startId,planned_split_slot_id:target.start.operation.planned_split_slot_id,
+ return {session_start_op_id:startId,planned_split_slot_id:target.projection.start_record.current.planned_split_slot_id,
   original:structuredClone(target.original),slots:[...slots.values()],records:structuredClone(target.records),
   component_members:component.members.slice(),interpretation:'known-singleton-captured-session',progression_eligible:false};
 }

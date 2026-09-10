@@ -46,6 +46,79 @@ const prepareEdit=(c,id)=>c.prepareWorkoutEdit({target_op_id:id});
 const correctPrepared=(c,p,change)=>c.commitWorkoutEdit({editId:p.editId,action:'correct',change});
 const syntheticFacts=({source_revision})=>({profile:'earned/workout-facts/v1',source_revision,sessions:[],incomplete_sessions:[],progression_eligible:false});
 
+test('shared edit history: nested replacement and removal restoration survive actual durable reopen',async()=>{
+ const f=await setup();try{
+  const a=await start(f,await prepare(f)),set=await perform(f,a.op_id),other=await perform(f,a.op_id,'slot-1');
+  const one=await editSet(f,set.op_id,{load:{value:10,unit:'lb'}});
+  const two=await editSet(f,set.op_id,{load:{value:20,unit:'lb'}},[one.op_id]);
+  const revised=await editSet(f,one.op_id,{replacement_fields:{load:{value:30,unit:'lb'}}},[two.op_id]);
+  assert.equal(revised.acknowledged,true,'actual command must save a correction of an earlier correction');
+  const read=async()=>{const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true,r.code);return r.history.sessions[0].projection.facts.find(x=>x.source_op_id===set.op_id);};
+  assert.equal((await read()).current.load.value,20,'revising an earlier correction preserves its logical position');
+  const removed=await f.c.execute('workout',{action:'remove',input:{target_op_id:two.op_id,lift_lineage_id:'same-lineage',reason:'Mistaken edit',causal_parents:[revised.op_id]}});
+  assert.equal(removed.acknowledged,true);assert.equal((await read()).current.load.value,30);
+  const restored=await f.c.execute('workout',{action:'remove',input:{target_op_id:removed.op_id,lift_lineage_id:'same-lineage',reason:'Restore the edit',causal_parents:[removed.op_id]}});
+  assert.equal(restored.acknowledged,true);assert.equal((await read()).current.load.value,20);
+  const fresh=await f.fresh();try{const r=await createDurablePublicClient({...f.args,repository:fresh.repository}).readWorkoutHistory();assert.equal(r.read,true,r.code);
+   const facts=r.history.sessions[0].projection.facts,first=facts.find(x=>x.source_op_id===set.op_id);
+   assert.equal(first.original.load.value,42.5);assert.equal(first.current.load.value,20);
+   assert.equal(facts.find(x=>x.source_op_id===other.op_id).current.load.value,42.5);
+   assert(first.edit_op_ids.includes(revised.op_id));assert(first.edit_op_ids.includes(restored.op_id));
+  }finally{fresh.repository.close();}
+ }finally{f.repo.close();}
+});
+
+test('shared edit history: reserve clear is a durable correction and never a recorded observation',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id);
+  const rated=await editSet(f,set.op_id,{reserve:{tag:'exact',value:0,unit:'rep'}});
+  const cleared=await editSet(f,set.op_id,{reserve:{clear:true}},[rated.op_id]);
+  assert.equal(cleared.acknowledged,true,'actual correction path must support optional clearing');
+  const r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true,r.code);
+  assert.equal(Object.hasOwn(r.history.sessions[0].projection.facts[0].current,'reserve'),false);
+  const before=await f.repo.load();
+  const bad=await f.c.execute('workout',{action:'set',input:{session_start_op_id:a.op_id,logical_set_slot:'slot-1',lift_lineage_id:'same-lineage',load:{value:40,unit:'lb'},reps:{value:8,unit:'rep'},reserve:{clear:true}}});
+  assert.notEqual(bad.acknowledged,true);assert.deepEqual((await f.repo.load()).generation.collections.ops,before.generation.collections.ops);
+ }finally{f.repo.close();}
+});
+
+test('shared edit history: corrected Start Skip and Close drive actual resume and next-Start refusal',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),original=structuredClone((await operations(f))[a.op_id]);
+  const correction=await f.c.execute('workout',{action:'correct',input:{target_op_id:a.op_id,replacement_fields:{effective:{local_date:'2026-09-03',local_time:'11:00',utc_offset:'-04:00'},planned_split_slot_id:'corrected-slot'}}});
+  assert.equal(correction.acknowledged,true,'Start correction does not require fictitious lift lineage');
+  const skipped=await f.c.execute('workout',{action:'skip',input:{session_start_op_id:a.op_id,lift_lineage_id:'same-lineage',skip_scope:'lift',reason:'Time'}});assert.equal(skipped.acknowledged,true);
+  const scoped=await editSet(f,skipped.op_id,{skip_scope:'set',logical_set_slot:'slot-1'});assert.equal(scoped.acknowledged,true);
+  let r=await recreate(f).readWorkoutHistory();assert.equal(r.read,true,r.code);let s=r.history.sessions[0];
+  assert.deepEqual(s.start.operation,original);assert.deepEqual(s.original,original.prescription_capture);
+  assert.equal(s.projection.start_record.current.effective.local_date,'2026-09-03');
+  let state=workoutContinuation(r.history,(await f.repo.load()).generation,a.op_id);
+  assert.equal(state.planned_split_slot_id,'corrected-slot');assert.equal(state.slots[0].completion,null);assert.equal(state.slots[1].completion.kind,'skipped');assert.equal(state.slots[2].completion,null);
+  const unskip=await f.c.execute('workout',{action:'remove',input:{target_op_id:skipped.op_id,lift_lineage_id:'same-lineage',reason:'Resume lift',causal_parents:[scoped.op_id]}});assert.equal(unskip.acknowledged,true);
+  const finished=await close(f,a.op_id);assert.equal(finished.acknowledged,true);
+  const finishEdit=await f.c.execute('workout',{action:'correct',input:{target_op_id:finished.op_id,replacement_fields:{completion_kind:'normal'}}});assert.equal(finishEdit.acknowledged,true);
+  r=await recreate(f).readWorkoutHistory();s=r.history.sessions[0];assert.equal(s.projection.close_records[0].kind,'normal');assert.equal(s.records.find(x=>x.operation.op_id===finished.op_id).operation.payload.completion_kind,'early');
+  const unfinish=await f.c.execute('workout',{action:'remove',input:{target_op_id:finished.op_id,reason:'Workout not finished',causal_parents:[finishEdit.op_id]}});assert.equal(unfinish.acknowledged,true);
+  assert.notEqual((await prepare(f)).prepared,true,'removed Finish must not unlock another Start');
+  r=await recreate(f).readWorkoutHistory();state=workoutContinuation(r.history,(await f.repo.load()).generation,a.op_id);assert(state.slots.every(slot=>slot.completion===null));
+  const removeStart=await f.c.execute('workout',{action:'remove',input:{target_op_id:a.op_id,reason:'Mistaken workout',causal_parents:[correction.op_id]}});assert.equal(removeStart.acknowledged,true);
+  r=await recreate(f).readWorkoutHistory();assert.equal(r.history.sessions[0].projection.start_record.included,false);assert(r.history.sessions[0].records.some(x=>x.operation.op_id===finished.op_id));
+  const removedSnapshot=await f.repo.load();assert.throws(()=>workoutContinuation(r.history,removedSnapshot.generation,a.op_id),error=>error.code==='WORKOUT_RESUME_START_UNRESOLVED');
+ }finally{f.repo.close();}
+});
+
+test('shared edit history: signed accepted ties resolve while a concurrent pending edit remains separate',async()=>{
+ const f=await setup();try{const a=await start(f,await prepare(f)),set=await perform(f,a.op_id);
+  await editSet(f,set.op_id,{reps:{value:9,unit:'rep'}});await editSet(f,set.op_id,{reps:{value:10,unit:'rep'}});
+  let r=await recreate(f).readWorkoutHistory();assert.equal(r.history.sessions[0].projection.facts[0].current,null);
+  const ops=Object.values(await operations(f)),receipts=ops.map((op,i)=>Sign.signReceipt({seq:i+1,op_id:op.op_id,canonical_content_commitment:op.canonical_content_commitment,accepted_at:'2026-09-04T00:00:00Z',op},f.signingKey));
+  const pull=Sign.signPull({athlete_id:'ath-1',device_id:'dev-A',after:0,through:receipts.length,receipts,wire_version:Wire.WIRE_VERSION,key_epoch:f.signingKey.kid},f.signingKey);
+  assert.equal((await f.c.acceptResponse('pull',{wireVersion:Wire.WIRE_VERSION,body:pull})).accepted,true);
+  r=await recreate(f).readWorkoutHistory();let fact=r.history.sessions[0].projection.facts[0];assert.equal(fact.current.reps.value,10);assert.equal(fact.accepted.current.reps.value,10);
+  const pending=await editSet(f,set.op_id,{reps:{value:11,unit:'rep'}});assert.equal(pending.acknowledged,true);
+  r=await recreate(f).readWorkoutHistory();fact=r.history.sessions[0].projection.facts[0];assert.equal(fact.current,null);assert.equal(fact.accepted.current.reps.value,10);assert(fact.issues.includes('CONCURRENT_EDIT_INTERPRETATION_REQUIRED'));
+  const before=await f.repo.load();assert.equal(Object.values(before.generation.collections.receipts).some(x=>x.op_id===pending.op_id),false);
+ }finally{f.repo.close();}
+});
+
 test('configured history projection is private to authenticated preparation and isolated between callbacks',async()=>{
  let f,seen;f=await setup({client:{projectWorkoutHistory:input=>{assert.equal(input.history.sessions.length,0);input.generation.metadata.syntheticMutation=true;return syntheticFacts(input);},
   resolveWorkoutBasis:(_g,_input,context)=>{context.workoutFacts.sessions.push('basis mutation');return {plan_basis:'NO_ACCEPTED_PLAN',input_basis:'synthetic-input',causal_parents:[]};},
@@ -295,7 +368,7 @@ for(const [earlier,later,date,ambiguous] of [['12:00','13:00','2026-09-04',true]
  const f=await setup();try{const a=await start(f,await prepare(f)),h=(await f.c.readWorkoutHistory()).history,g=(await f.repo.load()).generation;
  // Pure interpretation boundary only: authenticate the real first Start above,
  // then introduce the second projected Start synthetically. No signature claim.
- h.sessions[0].start.operation.effective.local_time=earlier;const other=structuredClone(h.sessions[0]);other.start.operation.op_id='synthetic-second-start';other.start.operation.device_id='dev-B';other.start.operation.effective.local_date=date;other.start.operation.effective.local_time=later;h.sessions.push(other);
+ h.sessions[0].projection.start_record.current.effective.local_time=earlier;const other=structuredClone(h.sessions[0]);other.start.operation.op_id='synthetic-second-start';other.start.operation.device_id='dev-B';other.projection.start_record.current.effective.local_date=date;other.projection.start_record.current.effective.local_time=later;h.sessions.push(other);
  if(ambiguous)assert.throws(()=>workoutContinuation(h,g,a.op_id),e=>e.code==='WORKOUT_SESSION_PARTITION_REQUIRED'&&e.state===14);
  else assert.deepEqual(workoutContinuation(h,g,a.op_id).component_members,[a.op_id]);
  }finally{f.repo.close();}

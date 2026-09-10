@@ -21,12 +21,16 @@ for(const name of names){
   const raw=fs.readFileSync(path.join(root,name)),dest=path.join(output,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,raw);
   pins[name]=crypto.createHash('sha256').update(raw).digest('hex');
 }
-// Accepted profile remains byte-identical. The selected capture shape has exactly
-// two disclosed literal edits; all other bytes still match the accepted source.
-for(const name of ['schema.cjs','authority-profile.cjs']){
+// Message65 successor: exact shared candidate sources must match the retained
+// R1 composition and explicit candidate pins. This does not claim old acceptance.
+const editPins=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m3/w6/test/shared-edit-source-pins.json'),'utf8'));
+const editNames=['schema.cjs','authority-profile.cjs','edit-values.cjs','edit-history.cjs'];
+if(editPins.profile!=='earned/shared-workout-edit-candidate/v1'||Object.keys(editPins.files).length!==editNames.length)throw Error('Shared edit candidate manifest invalid');
+for(const name of editNames){
  const source='rebuild/m4/workout/'+name;
- const candidate=fs.readFileSync(path.join(root,source)),baseline=git(['show',base+':'+source],r1);
- if(!candidate.equals(baseline)&&!(name==='schema.cjs'&&require('./prepared-shape-delta.cjs')(baseline,candidate)))throw Error('Accepted shared source differs: '+source);
+ const candidate=fs.readFileSync(path.join(root,source));
+ const authorityMatches=name==='edit-history.cjs'||candidate.equals(fs.readFileSync(path.join(r1,source)));
+ if(!authorityMatches||crypto.createHash('sha256').update(candidate).digest('hex')!==editPins.files[name])throw Error('Shared edit candidate source differs: '+source);
 }
 // Disposable runner only: use the already installed locked dependency trees.
 // The retained worktrees themselves still have real node_modules directories.
@@ -104,7 +108,7 @@ if(process.argv.includes('--receipt-bite')){
 if(process.argv.includes('--history-bite')){
  if(['--bite','--prepared-bite','--host-bite'].some(flag=>process.argv.includes(flag)))throw Error('Select one mutation only');
  const file=path.join(output,'rebuild/m3/w6/public-client.mjs'),raw=fs.readFileSync(file,'utf8');
- const target='const historyFailure = workoutHistoryFailure(snapshot.generation);';
+ const target='const historyFailure = workoutHistoryFailure(snapshot.generation,workoutHistories.get(candidate));';
  if(raw.split(target).length!==2)throw Error('Exact retained-history bite target missing');
  fs.writeFileSync(file,raw.replace(target,'const historyFailure = null;'));preparedRestore={file,raw};
  mutation={name:'omit-retained-workout-history-guard',originalSha256:pins['rebuild/m3/w6/public-client.mjs'],

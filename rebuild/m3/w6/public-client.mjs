@@ -125,7 +125,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     ...(["WORKOUT_START_OUTCOME_UNRESOLVED", "WORKOUT_START_UNRESOLVED"].includes(code) ? { outcomeUnknown: true } : {}),
     copy: "Start not confirmed. Your input is retained; resolve the indicated condition before trying again." });
   const capturedStart = context => context.batch?.operations?.some(op => op.kind === "session-start" && Object.hasOwn(op, "prescription_capture")) === true;
-  function workoutHistoryFailure(generation) {
+  function workoutHistoryFailure(generation, history) {
     // Negative guard over authenticated retained facts, not a resume projection or
     // permission to ignore another device/legacy history. No instance-local flag
     // can substitute for this read after reload. The existing revision+token CAS
@@ -134,9 +134,16 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     const needsHistory = () => ({ ...workoutRefusal("WORKOUT_HISTORY_RECONCILIATION_REQUIRED"),
       copy: "A saved workout needs to be recovered before starting another. No new workout was created." });
     const closedAfter = new Map();
-    for (const op of Object.values(ops)) if (op.kind === "session-close" && op.athlete_id === athleteId &&
-      op.device_id === deviceId && !rejected[op.op_id] && WorkoutSchema.validateWorkoutShape(op).valid)
-      closedAfter.set(op.session_start_op_id, Math.max(closedAfter.get(op.session_start_op_id) || 0, op.device_seq));
+    if(!history)return needsHistory();
+    for(const session of history.sessions){
+      if(session.start.status==='rejected')return {...needsHistory(),state:19};
+      if(session.projection.start_record.included!==true||session.projection.start_record.issues.length)return needsHistory();
+      const closes=session.projection.close_records;
+      if(closes.length!==1||closes[0].included!==true||closes[0].issues.length||!['normal','early'].includes(closes[0].kind))continue;
+      const op=ops[closes[0].op_id];
+      if(op.athlete_id===athleteId&&op.device_id===deviceId&&!rejected[op.op_id]&&WorkoutSchema.validateWorkoutShape(op).valid)
+        closedAfter.set(op.session_start_op_id,op.device_seq);
+    }
     for (const receipt of Object.values(generation.collections.receipts || {})) {
       const op = receipt.op;
       if (op?.kind === "session-start" && (!ops[op.op_id] || !sameRecordedValue(ops[op.op_id], op))) return needsHistory();
@@ -382,9 +389,9 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       if (unresolvedWorkout) return workoutRefusal("WORKOUT_START_OUTCOME_UNRESOLVED");
       const input = closedInput(request, ["planned_split_slot_id"]);
       if (typeof input.planned_split_slot_id !== "string" || !input.planned_split_slot_id.trim()) throw new StorageFailure("WORKOUT_INPUT_INVALID", 3);
-      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null, { requireCurrentProjection: true, authenticateWorkoutHistory: projectWorkoutHistory!==undefined });
+      const snapshot = await repository.load(), candidate = await stageVerified(copy(snapshot.generation), null, null, { requireCurrentProjection: true, authenticateWorkoutHistory: true });
       if (!candidate.view || candidate.result?.state) return { ...candidate.result, acknowledged: false };
-      const historyFailure = workoutHistoryFailure(snapshot.generation);
+      const historyFailure = workoutHistoryFailure(snapshot.generation,workoutHistories.get(candidate));
       if (historyFailure) return historyFailure;
       const scope = copy(candidate.context);
       const beforeProducer=contextFailure(scope.observationEpoch);if(beforeProducer)return {...beforeProducer,prepared:false};

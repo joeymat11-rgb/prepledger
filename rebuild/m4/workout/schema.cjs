@@ -1,4 +1,5 @@
 'use strict';
+const EditValues = require('./edit-values.cjs');
 
 // Shared basic shape only. No capability registration, signature verification,
 // relationship/admission check, prescription qualification or durable command.
@@ -10,8 +11,8 @@ const FIELDS = Object.freeze({
   'session-set': ['session_start_op_id', 'logical_set_slot', 'lift_lineage_id'],
   'session-skip': ['session_start_op_id', 'lift_lineage_id', 'skip_scope'],
   'session-close': ['session_start_op_id'],
-  correction: ['target_op_id', 'lift_lineage_id'],
-  tombstone: ['target_op_id', 'lift_lineage_id'],
+  correction: ['target_op_id'],
+  tombstone: ['target_op_id'],
 });
 const own = (value, key) => Object.hasOwn(value, key);
 const map = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -64,10 +65,7 @@ const load = value => quantity(value, 'lb') && value.value > 0;
 const reps = value => quantity(value, 'rep') && Number.isSafeInteger(value.value) && value.value >= 0 &&
   !Object.is(value.value, -0);
 function reserve(value) {
-  if (!map(value)) return false;
-  if (['unknown', 'skipped', 'not_asked'].includes(value.tag)) return keys(value, ['tag']);
-  return keys(value, ['tag', 'value', 'unit']) && value.unit === 'rep' && !Object.is(value.value, -0) &&
-    (value.tag === 'exact' ? [0, 1, 2].includes(value.value) : value.tag === 'at_least' && value.value === 3);
+  return EditValues.reserve(value);
 }
 function validSet(payload) {
   if (!map(payload)) return false;
@@ -75,11 +73,7 @@ function validSet(payload) {
     (!own(payload, 'reserve') || reserve(payload.reserve));
 }
 function replacement(payload) {
-  if (!keys(payload, ['replacement_fields'])) return false;
-  const fields = payload.replacement_fields;
-  if (!map(fields) || Object.keys(fields).length === 0 || !keys(fields, [], ['load', 'reps', 'reserve'])) return false;
-  return (!own(fields, 'load') || load(fields.load)) && (!own(fields, 'reps') || reps(fields.reps)) &&
-    (!own(fields, 'reserve') || reserve(fields.reserve));
+  return keys(payload, ['replacement_fields']) && EditValues.unionPatch(payload.replacement_fields);
 }
 
 function validateWorkoutShape(input, {prescriptionCapture} = {}) {
@@ -91,15 +85,16 @@ function validateWorkoutShape(input, {prescriptionCapture} = {}) {
       !Number.isSafeInteger(op.device_seq) || op.device_seq < 1 ||
       !(op.device_predecessor_op_id === null || text(op.device_predecessor_op_id)) ||
       !Array.isArray(op.causal_parents) || !op.causal_parents.every(text) || new Set(op.causal_parents).size !== op.causal_parents.length ||
-      !keys(op.effective, ['local_date', 'local_time', 'utc_offset']) || !Object.values(op.effective).every(text) ||
-      !/^[+-]\d{2}:\d{2}$/.test(op.effective.utc_offset)) return invalid('INVALID_COMMON');
+      !EditValues.effective(op.effective)) return invalid('INVALID_COMMON');
   const fields = FIELDS[op.kind].slice();
   if (op.kind === 'session-skip') {
     if (!['set', 'lift'].includes(op.skip_scope)) return invalid('INVALID_FIELDS');
     if (op.skip_scope === 'set') fields.push('logical_set_slot');
   }
   const captured = op.kind === 'session-start' && prescriptionCapture !== undefined;
-  if (!keys(op, [...COMMON, ...fields, ...(captured ? ['prescription_capture'] : [])]) || !fields.every(key => text(op[key]))) return invalid('INVALID_FIELDS');
+  const edit = op.kind === 'correction' || op.kind === 'tombstone';
+  if (!keys(op, [...COMMON, ...fields, ...(captured ? ['prescription_capture'] : [])], edit ? ['lift_lineage_id'] : []) ||
+      !fields.every(key => text(op[key])) || edit && own(op,'lift_lineage_id') && !text(op.lift_lineage_id)) return invalid('INVALID_FIELDS');
   if (captured) {
     try {
       const value = op.prescription_capture;

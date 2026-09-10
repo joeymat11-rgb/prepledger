@@ -1,12 +1,11 @@
-import Schema from './schema.cjs';
 import {sameRecordedValue} from '../../m3/w6/history-proof.mjs';
 import {projectWorkoutRecords} from './project-history.mjs';
+import EditHistory from './edit-history.cjs';
 
 // Assembled privately from an authenticated generation. The public client must
 // verify the same snapshot's historical signatures/standing before exposing it.
-// This retains original facts and attaches only the nonconcurrent set-edit
-// projection. It supplies no full liveness/partition fold, current authority
-// head, active-workout selection or permission to continue.
+// This retains original facts and the shared accepted/local edit interpretation.
+// It supplies no current authority head, full session partition or permission.
 export function storedWorkoutHistory(generation,{athleteId,deviceId,prescriptionCapture,recoveryReceipts=[]}) {
   const fail=code=>{const e=new Error(code);e.state=18;e.code=code;throw e;};
   const c=generation.collections,ops=c.ops||{},indexes=c.receipts||{},proofs=new Map();
@@ -42,33 +41,34 @@ export function storedWorkoutHistory(generation,{athleteId,deviceId,prescription
   const rows=new Map();
   for(const [id,op] of Object.entries(ops)){
     if(!op||typeof op!=='object'||op.athlete_id!==athleteId||id!==op.op_id)fail('WORKOUT_RECORD_SCOPE_INVALID');
-    if(op.class!=='session')continue;
-    // Legacy absence is a mapping requirement, not corrupt storage or first use.
-    if(op.schema_version!==2){const e=new Error('WORKOUT_LEGACY_MAPPING_REQUIRED');e.state=3;e.code=e.message;throw e;}
-    const captured=op.kind==='session-start'&&Object.hasOwn(op,'prescription_capture');
-    if(!Schema.validateWorkoutShape(op,captured?{prescriptionCapture}:{}).valid)fail('WORKOUT_RECORD_INVALID');
+    // Shape/domain contradictions are contained by the shared interpreter;
+    // scope, typed identity and proof contradictions above remain global.
     const rejected=c.rejected?.[id],seq=accepted.get(id);
     if(rejected&&seq!==undefined)fail('WORKOUT_ACCEPTANCE_CONFLICT');
     const status=rejected?'rejected':seq!==undefined?'accepted-through-frontier':op.device_id===deviceId&&Object.hasOwn(c.outbox||{},id)?'stored-on-this-device':'stored-status-unresolved';
-    rows.set(id,{operation:structuredClone(op),status,...(seq!==undefined?{receipt_sequence:seq}:{})});
+    // The input generation is already privately owned; normalization never
+    // mutates it. Public exposure is copied after the outer context/token fence.
+    rows.set(id,{operation:op,status,...(seq!==undefined?{receipt_sequence:seq}:{})});
   }
-  const sessions=[],byStart=new Map();
-  for(const [id,row] of rows)if(row.operation.kind==='session-start'){
-    const op=row.operation,original=Object.hasOwn(op,'prescription_capture')?
-      prescriptionCapture.prepare(op.prescription_capture,{producer:op.prescription_capture.producer,basis:op.prescription_capture.basis}):null;
-    const session={start:row,original,records:[]};sessions.push(session);byStart.set(id,session);
+  const normalized=EditHistory.normalizeWorkoutHistory([...rows.values()],W),interpreted=new Map(normalized.records.map(r=>[r.id,r]));
+  const sessions=[],byStart=new Map(),associated=new Set();
+  for(const [id,row] of rows)if(row.operation.class==='session'&&row.operation.kind==='session-start'){
+    const op=row.operation;let original=null;const captureIssues=[];
+    if(op.schema_version===2&&Object.hasOwn(op,'prescription_capture'))try{
+      original=prescriptionCapture.prepare(op.prescription_capture,{producer:op.prescription_capture.producer,basis:op.prescription_capture.basis});
+    }catch{captureIssues.push('ORIGINAL_CAPTURE_UNINTERPRETABLE');}
+    const session={start:row,original,records:[],capture_issues:captureIssues};sessions.push(session);byStart.set(id,session);associated.add(id);
   }
   for(const [id,row] of rows){
-    const op=row.operation;if(op.kind==='session-start')continue;
-    const edit=op.kind==='correction'||op.kind==='tombstone';
-    const target=edit?rows.get(op.target_op_id)?.operation:null;
-    if(edit&&(!target||target.kind!=='session-set'||target.lift_lineage_id!==op.lift_lineage_id))fail('WORKOUT_EDIT_TARGET_UNPROVEN');
-    const session=byStart.get(edit?target.session_start_op_id:op.session_start_op_id);
-    if(!session)fail('WORKOUT_START_REFERENCE_UNPROVEN');
-    session.records.push(row);
+    if(associated.has(id)||!interpreted.has(id))continue;
+    const root=rows.get(interpreted.get(id).root_id)?.operation;
+    const startId=root?.kind==='session-start'?root.op_id:root?.schema_version===1?root.payload?.session_start_id:root?.session_start_op_id;
+    const session=byStart.get(startId);
+    if(session){session.records.push(row);associated.add(id);}
   }
-  for(const session of sessions)session.projection=projectWorkoutRecords(session,ops);
+  for(const session of sessions)session.projection=projectWorkoutRecords(session,ops,{normalized});
   // No timestamp/arrival sort pretends to resolve causality or competing edits.
-  return {frontier:W,sessions,interpretation:'original-facts-and-edits-unfolded',
+  return {frontier:W,sessions,other_records:[...rows].filter(([id])=>!associated.has(id)&&interpreted.has(id)).map(([id,row])=>({
+      ...row,...(interpreted.has(id)?{interpretation:structuredClone(interpreted.get(id))}:{})})),interpretation:'shared-typed-workout-edits',
     continuation:{allowed:false,reason:'CURRENT_SAFETY_AND_COMPLETE_HISTORY_REQUIRED'}};
 }

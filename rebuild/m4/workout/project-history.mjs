@@ -1,67 +1,36 @@
-// Factual nonconcurrent edit projection on the actual stored-history read. Named
-// Start/target references identify records; they do NOT fabricate causal parents.
-// Concurrent edit interpretation, session/slot partitions, current safety and
-// progression eligibility remain separate requirements, never inferred here.
-export function projectWorkoutRecords(session,operations) {
-  const unavailable=code=>{const e=new Error(code);e.projectionCode=code;throw e;};
-  const cache=new Map();
-  function ancestors(id){
-    if(cache.has(id))return cache.get(id);
-    const colors=new Map(),result=new Set(),stack=[[id,false]];
-    while(stack.length){
-      const [key,exit]=stack.pop();
-      if(exit){colors.set(key,2);continue;}
-      if(colors.get(key)===1)unavailable('CAUSAL_GRAPH_INVALID');
-      if(colors.get(key)===2)continue;
-      const op=operations[key];
-      if(!op||!Array.isArray(op.causal_parents))unavailable('CAUSAL_REFERENCE_UNAVAILABLE');
-      colors.set(key,1);stack.push([key,true]);
-      for(const parent of op.causal_parents){
-        if(typeof parent!=='string')unavailable('CAUSAL_GRAPH_INVALID');
-        result.add(parent);stack.push([parent,false]);
-      }
-    }
-    result.delete(id);cache.set(id,result);return result;
-  }
-  const sets=session.records.filter(r=>r.operation.kind==='session-set');
-  const edits=session.records.filter(r=>['correction','tombstone'].includes(r.operation.kind)&&r.status!=='rejected');
-  const facts=sets.map(row=>{
-    const op=row.operation,change=edits.filter(r=>r.operation.target_op_id===op.op_id);
-    const fact={source_op_id:op.op_id,logical_set_slot:op.logical_set_slot,lift_lineage_id:op.lift_lineage_id,
-      source_status:row.status,original:structuredClone(op.payload),current:null,current_status:null,included:null,edit_op_ids:[],issues:[]};
-    if(['rejected','stored-status-unresolved'].includes(session.start.status)){fact.issues.push('START_STATUS_UNRESOLVED');return fact;}
-    if(row.status==='rejected'){fact.included=false;fact.issues.push('REJECTED_SOURCE');return fact;}
-    if(row.status==='stored-status-unresolved'||change.some(r=>r.status==='stored-status-unresolved')){fact.issues.push('RECORD_STATUS_UNRESOLVED');return fact;}
-    try{
-      for(const edit of change)ancestors(edit.operation.op_id);
-      for(let i=0;i<change.length;i++)for(let j=i+1;j<change.length;j++){
-        const a=change[i].operation.op_id,b=change[j].operation.op_id;
-        if(!ancestors(a).has(b)&&!ancestors(b).has(a))unavailable('CONCURRENT_EDIT_INTERPRETATION_REQUIRED');
-      }
-      change.sort((a,b)=>a===b?0:ancestors(a.operation.op_id).has(b.operation.op_id)?1:-1);
-      let current=structuredClone(op.payload),included=true;
-      for(const row of change){
-        const edit=row.operation;
-        if(!included)unavailable('EDIT_AFTER_REMOVAL_REQUIRES_INTERPRETATION');
-        if(edit.kind==='tombstone')included=false;
-        else Object.assign(current,structuredClone(edit.payload.replacement_fields));
-      }
-      fact.current=current;fact.included=included;fact.edit_op_ids=change.map(r=>r.operation.op_id);
-      fact.current_status=[row,...change].some(r=>r.status==='stored-on-this-device')?'stored-on-this-device':'accepted-through-frontier';
-    }catch(error){fact.issues.push(error.projectionCode||'EDIT_PROJECTION_UNAVAILABLE');}
-    return fact;
-  });
-  // A stored skip or Close is an attested fact, not evidence that every planned
-  // set happened or that any workout is progression-bearing.
-  const skips=session.records.filter(r=>r.operation.kind==='session-skip'&&r.status!=='rejected').map(r=>r.operation.op_id);
-  const closes=session.records.filter(r=>r.operation.kind==='session-close'&&r.status!=='rejected').map(r=>({op_id:r.operation.op_id,kind:r.operation.payload.completion_kind,status:r.status}));
-  const slots=new Map();
-  for(const fact of facts)if(fact.included!==false){
-    const key=JSON.stringify([fact.lift_lineage_id,fact.logical_set_slot]);
-    if(!slots.has(key))slots.set(key,[]);slots.get(key).push(fact);
-  }
-  for(const collision of slots.values())if(collision.length>1)for(const fact of collision)fact.issues.push('SET_SLOT_RESOLUTION_REQUIRED');
-  return {facts,skipped_record_ids:skips,close_records:closes,
-    interpretation:'nonconcurrent-set-edits-only',progression_eligible:false,
-    continuation_allowed:false,remaining:['SESSION_AND_SLOT_PARTITION','CURRENT_SAFETY_AND_COMPLETE_HISTORY']};
+import EditHistory from './edit-history.cjs';
+
+// Adapter only: all edit semantics live in the shared typed fold. The stored
+// reader passes its complete result; engine correspondence reruns the SAME fold.
+export function projectWorkoutRecords(session,operations,{normalized,rows,frontier}={}){
+ const view=normalized||EditHistory.normalizeWorkoutHistory(rows,frontier),byId=new Map(view.records.map(r=>[r.id,r]));
+ const sourceRows=new Map([session.start,...session.records].map(r=>[r.operation.op_id,r]));
+ const base=row=>{
+  const op=row.operation,n=byId.get(op.op_id),local=n?.local;
+  const effects=(n?.effect_ids||[]).filter(id=>sourceRows.get(id)?.status!=='rejected');
+  return {source_op_id:op.op_id,source_status:row.status,included:local?.active??null,
+   current:local?.current?structuredClone(local.current):null,
+   current_status:[row,...effects.map(id=>sourceRows.get(id)).filter(Boolean)].some(r=>r.status==='stored-on-this-device')?'stored-on-this-device':row.status,
+   edit_op_ids:effects,issues:local?.issues.slice()||['RECORD_STATUS_UNRESOLVED'],
+   accepted:n?.accepted?structuredClone(n.accepted):null,last_effect_sequence:n?.last_effect_sequence||0};
+ };
+ const start=base(session.start);
+ if(session.capture_issues?.length)start.issues.push(...session.capture_issues);
+ const facts=session.records.filter(r=>r.operation.kind==='session-set').map(row=>{
+  const op=row.operation,fact={...base(row),logical_set_slot:op.logical_set_slot,lift_lineage_id:op.lift_lineage_id,original:structuredClone(op.payload)};
+  if(fact.current){fact.effective=fact.current.effective;delete fact.current.effective;}
+  if(start.included!==true||start.issues.length){fact.current=null;fact.included=row.status==='rejected'?false:null;fact.issues.push('START_STATUS_UNRESOLVED');}
+  return fact;
+ });
+ const skips=session.records.filter(r=>r.operation.kind==='session-skip').map(row=>({
+  ...base(row),lift_lineage_id:row.operation.lift_lineage_id,original:{...structuredClone(row.operation.payload),skip_scope:row.operation.skip_scope,
+   ...(Object.hasOwn(row.operation,'logical_set_slot')?{logical_set_slot:row.operation.logical_set_slot}:{})}}));
+ const closes=session.records.filter(r=>r.operation.kind==='session-close').map(row=>{
+  const value=base(row);return {...value,op_id:row.operation.op_id,kind:value.current?.completion_kind??null,status:value.current_status};
+ }).filter(r=>r.included!==false);
+ const slots=new Map();for(const fact of facts)if(fact.included!==false){const key=JSON.stringify([fact.lift_lineage_id,fact.logical_set_slot]);if(!slots.has(key))slots.set(key,[]);slots.get(key).push(fact);}
+ for(const collision of slots.values())if(collision.length>1)for(const fact of collision)fact.issues.push('SET_SLOT_RESOLUTION_REQUIRED');
+ return {start_record:start,facts,skip_records:skips,skipped_record_ids:skips.filter(r=>r.included!==false).map(r=>r.source_op_id),close_records:closes,
+  interpretation:'shared-typed-workout-edits',progression_eligible:false,continuation_allowed:false,
+  remaining:['SESSION_AND_SLOT_PARTITION','CURRENT_SAFETY_AND_COMPLETE_HISTORY']};
 }
