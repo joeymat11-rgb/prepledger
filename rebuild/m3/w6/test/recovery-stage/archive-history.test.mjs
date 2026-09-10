@@ -83,15 +83,21 @@ test('archive original authentication joins the actual public client across repo
    ['missing archived original',g=>{delete g.collections.ops[remote.op_id];},'RECOVERY_ARCHIVE_ORIGINAL_MISSING'],
    ['conflicting receipt index',g=>{g.collections.receipts['1'].canonical_content_commitment='invented';},'WORKOUT_PREFIX_UNPROVEN'],
    ['changed pending workout original',g=>{g.collections.ops[performed.op_id].payload.reps.value=99;},'LOCAL_HISTORY_IDENTITY_UNPROVEN'],
-   ['local receipt claims cannot replace deleted archive proof',g=>{delete g.metadata.recoveryArchives;delete g.collections.sync.snapshot.recoveryPlan;g.metadata.recoveryReceipts=[{seq:1,op_id:remote.op_id,canonical_content_commitment:remote.canonical_content_commitment}];},'WORKOUT_PREFIX_UNPROVEN']
+   ['local receipt claims cannot replace deleted archive proof',g=>{delete g.metadata.recoveryArchives;delete g.collections.sync.snapshot.recoveryPlan;g.metadata.recoveryReceipts=[{seq:1,op_id:remote.op_id,canonical_content_commitment:remote.canonical_content_commitment}];},'RECOVERY_SNAPSHOT_PROOF_MISSING']  /* This fault deletes the archive proof AND the snapshot binding. Each deletion applied singly already expects RECOVERY_SNAPSHOT_PROOF_MISSING in the cases table below, and every other entry here names its own injected fault. WORKOUT_PREFIX_UNPROVEN was a downstream symptom that only surfaced first while the both-absent branch returned [] silently — the K1 defect itself. The refusal is unchanged: read=false, state=18. */
   ];
   for(const [name,mutate,code]of historyFaults)await t.test('new read/edit path refuses '+name,async()=>{
    const current=await fresh.repository.load(),g=structuredClone(authenticated.generation);mutate(g);
    const b=Client.memoryBackend(g.collections);assert(new Client.Store(b).transaction(()=>{}).ok);g.collections=T2.snapshotBackend(b,Object.keys(g.collections));
    await fresh.repository.commit(current,g);const before=await fresh.repository.load();
-   const refused=await c.readWorkoutHistory();assert.equal(refused.read,false);assert.equal(refused.state,18);assert.equal(refused.code,code);assert.equal(refused.history,undefined);
-   const edit=await c.prepareWorkoutEdit({target_op_id:performed.op_id});assert.notEqual(edit.prepared,true);assert.equal(edit.state,18);assert.equal(edit.code,code);assert.equal(edit.editId,undefined);
-   assert.deepEqual(await fresh.repository.load(),before);await fresh.repository.commit(before,structuredClone(authenticated.generation));
+   // Guaranteed restoration: a failed assertion here must never leave the
+   // shared fixture mutated for the edit/lease cases that run after this loop.
+   try{
+    const refused=await c.readWorkoutHistory();assert.equal(refused.read,false);assert.equal(refused.state,18);assert.equal(refused.code,code);assert.equal(refused.history,undefined);
+    const edit=await c.prepareWorkoutEdit({target_op_id:performed.op_id});assert.notEqual(edit.prepared,true);assert.equal(edit.state,18);assert.equal(edit.code,code);assert.equal(edit.editId,undefined);
+    assert.deepEqual(await fresh.repository.load(),before);
+   }finally{
+    await fresh.repository.commit(await fresh.repository.load(),structuredClone(authenticated.generation));
+   }
   });
   const edit=await c.prepareWorkoutEdit({target_op_id:performed.op_id});assert(edit.prepared,edit.code);
   const saved=await c.commitWorkoutEdit({editId:edit.editId,action:'correct',change:{reps:{value:9,unit:'rep'}}});assert(saved.acknowledged,saved.code);
@@ -151,8 +157,13 @@ test('archive original authentication joins the actual public client across repo
   // rather than claiming an earlier count-only failure tested the target guard.
   const b=Client.memoryBackend(changed.collections);assert(new Client.Store(b).transaction(()=>{}).ok);changed.collections=T2.snapshotBackend(b,Object.keys(changed.collections));
   await fresh.repository.commit(current,changed);const corrupted=await fresh.repository.load();
-  const refused=await createDurablePublicClient({...args,repository:fresh.repository}).prepareLocalRecovery();assert.equal(refused.prepared,false);assert.equal(refused.state,18);assert.equal(refused.code,code);
-  assert.deepEqual(await fresh.repository.load(),corrupted);await fresh.repository.commit(corrupted,structuredClone(clean.generation));
+  // Same restoration guarantee as the history-fault loop above.
+  try{
+   const refused=await createDurablePublicClient({...args,repository:fresh.repository}).prepareLocalRecovery();assert.equal(refused.prepared,false);assert.equal(refused.state,18);assert.equal(refused.code,code);
+   assert.deepEqual(await fresh.repository.load(),corrupted);
+  }finally{
+   await fresh.repository.commit(await fresh.repository.load(),structuredClone(clean.generation));
+  }
   assert((await createDurablePublicClient({...args,repository:fresh.repository}).prepareLocalRecovery()).prepared);
  });
  await t.test('session change during real archive open refuses without publishing old truth',async()=>{
@@ -160,4 +171,306 @@ test('archive original authentication joins the actual public client across repo
   const refused=await createDurablePublicClient({...args,repository}).prepareLocalRecovery();assert.equal(refused.prepared,false);assert.equal(refused.state,17);assert.deepEqual(await fresh.repository.load(),before);
  });
  assert.equal((await newClient.prepareLocalRecovery()).state,17);
+});
+
+// ─── K1 correction-02: adoption-bound witnesses and controls ────────────────
+// The fixture in the test above cannot serve as the K1 witness: it admits an
+// other-device reading AND performs a local weighIn AND a local workout
+// start + set, so its generation is neither baseline-only nor zero-workout.
+// Each test below builds its OWN generation with no local write at all.
+//
+//   zero-workout  = no workout rows, but local operations may exist.
+//   baseline-only = no local operations at all; every fact came from the
+//                   recovered baseline, so the outbox is empty too.
+//
+// APM's qualified local run established the RED:
+//   same-device  -> prepareLocalRecovery returned prepared:true after both
+//                   proofs were erased. That is the K1 defect.
+//   cross-device -> already refused prepared:false / state 18 via the
+//                   documented safe branch LOCAL_HISTORY_IDENTITY_UNPROVEN
+//                   (t2-stage.cjs:53). Cross-device was never unsafe.
+// Same-device escapes that branch precisely because the recovered originals
+// carry THIS device's id, so local-history identity is satisfiable without
+// the archive proof.
+//
+// TERMINAL COMPLETION IS NOT ADOPTION. recovery-stage.mjs:146 states that the
+// archive and the terminal page/head are one transaction and NEITHER IS AN
+// ACTIVATION; :147 writes the archive at the terminal page. The archive
+// therefore exists as soon as the recovery completes, BEFORE any generation
+// adopts it — as this fixture itself shows: evidenceReady, then assemble()
+// reporting activated:false/complete:false, and only then a separate
+// repo.commit. Evidence of adoption is therefore taken from the COMMIT of a
+// generation carrying archive proofs, never from the archive's existence.
+//
+// Controls are independent subtests, and the fault subtest restores in a
+// finally, so source-preservation and restoration controls EXECUTE even when
+// the fault assertion fails.
+//
+// Synthetic/test-only boundaries retained: 'synthetic-enrollment-only'
+// enrollment evidence, the repository commit as a TEST-ONLY activation
+// fixture, R1 issuer at schema 1. No currentness, issuance or activation.
+
+const baselineSpecs = n => Array.from({ length: n }, (_, i) => ({
+  seq: i + 1, local_date: '2026-09-0' + (6 + i), lb: 170 + i,
+}));
+
+async function enrolledRuntime(t, label) {
+  const runtime = await require('./test/r1-workerd.cjs').createR1Runtime({ p1: true });
+  t.after(() => runtime.close());
+  await runtime.bridge.initializeR1({ first: { plan: { protein_g: 155 }, devices: {} } }, { 'subject-first': 'first' });
+  const enroll = async id => (await runtime.bridge.enrollScoped('subject-first', { intent_id: id, schema_version: 1, nonce: hash(id) })).payload.issuance.lease;
+  return { runtime, enroll, lease: await enroll(label + '-recovering') };
+}
+
+function clientArgs({ runtime, f, lease, keys, scopeDigest, isCurrent }) {
+  const device = lease.device_id;
+  const cfg = () => ({ ...config(), athleteId: 'first', deviceId: device, identityKey: runtime.identityKeys.first });
+  return {
+    repository: f.repo, stage: createT2Stage(cfg, { allowInbound: true }), namespace: f.setup.namespace,
+    athleteId: 'first', deviceId: device, sessionEpoch: 1, isCurrentSession: isCurrent, observationEpoch: () => 1,
+    observationGuard: { run: async (_kind, action) => action() }, validateCommit: () => null, keys, crypto: webcrypto,
+    permissionNowIso: () => lease.not_before, recovery: { codec: C, protocol: P, scopeDigest, keyRange: IDBKeyRange },
+  };
+}
+
+async function enrolledProfile(t, label) {
+  const { runtime, enroll, lease } = await enrolledRuntime(t, label);
+  const device = lease.device_id, keys = [S.publicKeyOf(runtime.authorityKey)];
+  const f = await fixture({ namespace: 'first/' + device });
+  t.after(() => f.repo.close());
+  const generation = initial(); generation.metadata.authorityLease = lease;
+  await f.repo.initialize(generation, 'synthetic-enrollment-only');
+  const scopeDigest = C.scopeDigest({ issuer: runtime.issuer.config.issuer, origin: runtime.issuer.config.origins[0], subject: 'subject-first', athleteId: 'first', actorDeviceId: device });
+  return { runtime, enroll, lease, device, keys, f, args: clientArgs({ runtime, f, lease, keys, scopeDigest, isCurrent: () => true }) };
+}
+
+// Runs an ACTUAL recovery to its terminal page. `adopt:false` stops before the
+// commit, leaving the completed archive present but unadopted.
+async function baselineOnlyRecovery(t, { sameDevice, label, adopt = true }) {
+  const profile = await enrolledProfile(t, label);
+  const { runtime, enroll, lease, device, keys, f, args } = profile;
+  const producer = sameDevice ? lease : await enroll(label + '-producer');
+
+  const producedBy = new Map();
+  for (const spec of baselineSpecs(2)) {
+    const op = Ops.build({
+      op_id: `${label}-baseline-${spec.seq}`, athlete_id: 'first', device_id: producer.device_id, device_seq: spec.seq,
+      parents: [], kind: 'fact', class: 'reading', lease_id: producer.lease_id,
+      effective: { local_date: spec.local_date, local_time: '08:00', utc_offset: '-04:00' },
+      payload: { lb: { value: spec.lb, unit: 'lb' } },
+    }, runtime.identityKeys.first);
+    const disposition = await runtime.bridge.invokeScoped('subject-first', producer.device_id, 'admit', ['first', op]);
+    assert.equal(disposition.status, 'ACCEPTED', `baseline fact ${op.op_id} must be accepted by the actual authority`);
+    producedBy.set(op.op_id, producer.device_id);
+  }
+
+  const empty = await f.repo.load();
+  assert.deepEqual(Object.keys(empty.generation.collections.ops || {}), [], 'baseline-only precondition: no local operations before recovery');
+  assert.deepEqual(Object.keys(empty.generation.collections.outbox || {}), [], 'baseline-only precondition: no local outbox before recovery');
+
+  const prepared = await createDurablePublicClient(args).prepareLocalRecovery();
+  assert(prepared.prepared, `baseline-only prepareLocalRecovery must prepare with no local history (code ${prepared.code})`);
+
+  const basis = prepared.basis;
+  const stage = f.repo.recovery({ codec: C, protocol: P, verificationKeys: keys, keyRange: IDBKeyRange, validateContext: () => null });
+  const verifier = P.createRowsVerifier({ keys, subtle: webcrypto.subtle });
+  const result = await createRowsRecovery({
+    stage, codec: C, protocol: P,
+    newRequest: async () => basis.request({ nonce: hash(label + '-request'), contextId: hash(label + '-context') }),
+    expected: request => basis.expected(request),
+    fetchPage: createRowsFetcher({ baseURL: runtime.url, codec: C, protocol: P, headers: async () => ({ Origin: runtime.issuer.config.origins[0], Authorization: 'Bearer ' + runtime.issuer.token('subject-first') }) }),
+    observeNegative: async (reply, context) => assert((await verifier.verify(reply.bodyBytes, { expected: context.expected, previousCursor: context.previousCursor })).verified),
+    validateProfile: input => basis.reconcile(input),
+  }).run();
+  assert(result.evidenceReady, result.reason);
+
+  // The terminal archive now exists. assemble() still reports activated:false
+  // and complete:false — completion is not adoption.
+  const before = await f.repo.load();
+  let candidate; const held = await result.evidence.assemble(); await held.inspect(g => { candidate = g; });
+  assert.equal(held.activated, false); assert.equal(held.complete, false);
+
+  const ctx = { ...profile, producer, producedBy, before, candidate };
+  if (!adopt) return ctx;
+  await f.repo.commit(before, candidate);
+  return { ...ctx, recovered: await f.repo.load() };
+}
+
+function assertBaselineOnly(recovered, { producedBy, device, sameDevice }) {
+  const g = recovered.generation;
+  const ops = g.collections.ops || {}, outbox = g.collections.outbox || {};
+  const shape = {
+    frontierW: g.collections.sync?.frontier?.W ?? null,
+    recoveredPlanW: g.collections.sync?.snapshot?.recoveryPlan?.W ?? null,
+    acceptedOperationIds: Object.keys(ops).sort(),
+    outboxIds: Object.keys(outbox).sort(),
+    factDevices: Object.fromEntries(Object.entries(ops).map(([id, op]) => [id, op.device_id])),
+    classes: [...new Set(Object.values(ops).map(op => op.class))].sort(),
+    archiveProofs: (g.metadata.recoveryArchives || []).length,
+    recoveryPlanProfile: g.collections.sync?.snapshot?.recoveryPlan?.profile ?? null,
+  };
+  assert.deepEqual(shape.outboxIds, [], 'baseline-only: recovered generation carries no local outbox entry');
+  assert.deepEqual(shape.acceptedOperationIds, [...producedBy.keys()].sort(), 'baseline-only: retained ops are exactly the admitted baseline facts');
+  assert.deepEqual(shape.classes, ['reading'], 'no workout prefix: only reading facts were recovered');
+  for (const [id, op] of Object.entries(ops)) {
+    assert.equal(op.payload?.session_start_op_id, undefined, 'no workout prefix: no set row');
+    assert.equal(op.device_id, producedBy.get(id), `fact ${id} keeps its producing device`);
+    if (sameDevice) assert.equal(op.device_id, device, 'same-device recovery: the recovering device produced this fact');
+    else assert.notEqual(op.device_id, device, 'cross-device baseline: another device produced this fact');
+  }
+  assert.equal(shape.archiveProofs, 1, 'genuinely recovered: one archive proof written by prepareRecoveryProjection');
+  assert.equal(shape.recoveryPlanProfile, 'earned/recovered-plan-snapshot/v1', 'genuinely recovered: snapshot binding written by the product');
+  assert(Number.isSafeInteger(shape.frontierW) && shape.frontierW >= shape.recoveredPlanW, 'frontier covers the recovered source plan');
+  return shape;
+}
+
+async function commitMutated(repo, cleanGeneration, mutate) {
+  const current = await repo.load(), changed = structuredClone(cleanGeneration);
+  mutate(changed);
+  const b = Client.memoryBackend(changed.collections);
+  assert(new Client.Store(b).transaction(() => {}).ok);
+  changed.collections = T2.snapshotBackend(b, Object.keys(changed.collections));
+  await repo.commit(current, changed);
+  return repo.load();
+}
+
+for (const sameDevice of [false, true]) {
+  const label = sameDevice ? 'same-device' : 'cross-device';
+  test(`baseline-only ${label} recovery: both-proof loss cannot regain permission`, async t => {
+    const ctx = await baselineOnlyRecovery(t, { sameDevice, label });
+    const { f, args, producedBy, device } = ctx;
+    const shape = assertBaselineOnly(ctx.recovered, { producedBy, device, sameDevice });
+    assert.equal(shape.acceptedOperationIds.length, 2, 'two baseline facts recovered');
+    const clean = await f.repo.load();
+
+    await t.test('positive control: authentic recovered generation still prepares', async () => {
+      const again = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+      assert(again.prepared, `authentic recovered baseline must still prepare (code ${again.code})`);
+      assert.deepEqual(await f.repo.load(), clean, 'a positive preparation publishes nothing');
+    });
+
+    await t.test('K1 fault: erasing BOTH proofs must not downgrade recovered truth', async () => {
+      let erased;
+      try {
+        erased = await commitMutated(f.repo, clean.generation, g => {
+          delete g.metadata.recoveryArchives;
+          delete g.collections.sync.snapshot.recoveryPlan;
+        });
+        const refused = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+        assert.equal(refused.prepared, false, 'baseline-only recovered truth with both proofs erased must refuse');
+        assert.equal(refused.state, 18);
+        // The adoption evidence written with the adopting commit survives the
+        // erasure, so both branches now refuse here. Unrepaired, cross-device
+        // still refused safely one layer later with
+        // LOCAL_HISTORY_IDENTITY_UNPROVEN and same-device did not refuse.
+        assert.equal(refused.code, 'RECOVERY_SNAPSHOT_PROOF_MISSING');
+        assert.deepEqual(await f.repo.load(), erased, 'a refusal publishes nothing');
+      } finally {
+        if (erased) await f.repo.commit(await f.repo.load(), structuredClone(clean.generation));
+      }
+    });
+
+    await t.test('restoration control: the same source restores and prepares again', async () => {
+      const restored = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+      assert(restored.prepared, `restored source must prepare again (code ${restored.code})`);
+      const now = await f.repo.load();
+      assert.deepEqual(now.generation.collections.outbox || {}, {}, 'outbox unchanged by the fault cycle');
+      assert.deepEqual(Object.keys(now.generation.collections.ops || {}).sort(), shape.acceptedOperationIds, 'retained originals unchanged by the fault cycle');
+      assert.equal((now.generation.metadata.recoveryArchives || []).length, 1, 'archive proof restored');
+    });
+  });
+}
+
+test('completed terminal recovery that was never committed does not block the ordinary generation', async t => {
+  // recovery-stage.mjs:146 — the archive and the terminal head are one
+  // transaction and NEITHER IS AN ACTIVATION. The archive exists now; nothing
+  // has adopted it. The ordinary generation must stay usable AND unchanged.
+  const { f, args, before } = await baselineOnlyRecovery(t, { sameDevice: true, label: 'terminal-uncommitted', adopt: false });
+  assert.deepEqual(await f.repo.load(), before, 'a completed but uncommitted recovery publishes nothing');
+  const prepared = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+  assert(prepared.prepared, `a terminal-but-uncommitted recovery must not block the profile (code ${prepared.code})`);
+  assert.deepEqual(await f.repo.load(), before, 'the prior ordinary generation is unchanged');
+  assert((await createDurablePublicClient({ ...args, repository: f.repo }).execute('weighIn', { lb: 173 })).acknowledged, 'ordinary writer keeps working');
+});
+
+test('failed adoption leaves the prior ordinary generation usable and unchanged', async t => {
+  // Adoption evidence is written inside the SAME transaction as the active
+  // record, so a refused commit writes neither. An abandoned or failed
+  // adoption of a completed recovery must not block anything.
+  const { f, args, before, candidate } = await baselineOnlyRecovery(t, { sameDevice: true, label: 'failed-adoption', adopt: false });
+  await assert.rejects(
+    f.repo.commit(before, candidate, () => ({ code: 'SYNTHETIC_ADOPTION_REFUSED', state: 18 })),
+    error => error.code === 'SYNTHETIC_ADOPTION_REFUSED');
+  assert.deepEqual(await f.repo.load(), before, 'a refused adoption publishes nothing');
+  const prepared = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+  assert(prepared.prepared, `a failed adoption must not block the prior generation (code ${prepared.code})`);
+  assert.deepEqual(await f.repo.load(), before, 'the prior ordinary generation is unchanged');
+  assert((await createDurablePublicClient({ ...args, repository: f.repo }).execute('weighIn', { lb: 174 })).acknowledged, 'ordinary writer keeps working');
+});
+
+test('ordinary never-recovered profile stays usable and is never blocked', async t => {
+  const { f, args } = await enrolledProfile(t, 'never-recovered');
+  const client = createDurablePublicClient(args);
+  assert((await client.execute('weighIn', { lb: 170 })).acknowledged, 'ordinary local write works');
+  const prepared = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+  assert(prepared.prepared, `never-recovered profile must still prepare (code ${prepared.code})`);
+  const live = await f.repo.load();
+  assert.equal(live.generation.metadata.recoveryArchives, undefined, 'never-recovered: no archive proof exists');
+  assert.equal(live.generation.collections.sync?.snapshot?.recoveryPlan, undefined, 'never-recovered: no snapshot binding exists');
+  assert((await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery()).prepared, 'never-recovered profile is not blanket-blocked');
+  assert((await createDurablePublicClient({ ...args, repository: f.repo }).execute('weighIn', { lb: 171 })).acknowledged, 'ordinary writer keeps working');
+});
+
+test('an incomplete recovery attempt never blocks a profile', async t => {
+  // A basis is prepared, so an attempt exists, but the recovery is never run
+  // to a terminal page and nothing is committed. No adoption evidence exists.
+  const { f, args } = await enrolledProfile(t, 'incomplete-attempt');
+  assert((await createDurablePublicClient(args).execute('weighIn', { lb: 169 })).acknowledged);
+  const attempt = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+  assert(attempt.prepared, `attempt must prepare (code ${attempt.code})`);
+  const after = await createDurablePublicClient({ ...args, repository: f.repo }).prepareLocalRecovery();
+  assert(after.prepared, `an incomplete attempt must not block the profile (code ${after.code})`);
+  assert((await createDurablePublicClient({ ...args, repository: f.repo }).execute('weighIn', { lb: 170 })).acknowledged, 'ordinary writer still works after an incomplete attempt');
+});
+
+test('active and adoption records are sealed from ONE snapshot despite caller mutation', async t => {
+  // The commit path seals two records. If the active record were sealed from a
+  // clone and the adoption record then read the caller's still-mutable
+  // generation, a caller mutating between the two awaits would produce records
+  // describing DIFFERENT generations. The clone is taken once, synchronously,
+  // before any await, so both records must describe the same snapshot.
+  const { f } = await baselineOnlyRecovery(t, { sameDevice: true, label: 'snapshot-divergence' });
+  const clean = await f.repo.load();
+  const proof = clean.generation.metadata.recoveryArchives[0];
+  const originalAttempt = proof.reference.attempt;
+  assert.equal(typeof originalAttempt, 'string');
+  assert(originalAttempt.length > 0, 'the adopted archive reference carries an attempt id');
+
+  const live = structuredClone(clean.generation);
+  const current = await f.repo.load();
+  // Start the commit but do NOT await: the synchronous prefix (including the
+  // clone) has run, and the seals are still pending.
+  const pending = f.repo.commit(current, live);
+  // Mutate the caller's object while those seals are in flight. A second read
+  // of `live` after the first await would capture this substituted reference.
+  const substituted = 'ffffffffffffffffffffffffffffffff';
+  live.metadata.recoveryArchives = [{ ...proof, reference: { ...proof.reference, attempt: substituted } }];
+  live.metadata.mutatedDuringSeal = true;
+  await pending;
+
+  const stored = await f.repo.load();
+  const adoption = await f.repo.recoveryAdoption();
+  assert(adoption, 'the adopting commit wrote adoption evidence');
+
+  // Both records describe the pre-mutation snapshot.
+  assert.equal(stored.generation.metadata.recoveryArchives[0].reference.attempt, originalAttempt,
+    'active record describes the snapshot taken at call time');
+  assert.equal(stored.generation.metadata.mutatedDuringSeal, undefined,
+    'the caller mutation did not reach the sealed active record');
+  assert.deepEqual(adoption.references.map(reference => reference.attempt), [originalAttempt],
+    'adoption record describes the SAME snapshot as the active record, not the mutated caller object');
+  assert.notEqual(adoption.references[0].attempt, substituted,
+    'the substituted reference never became adoption evidence');
+  assert.equal(adoption.revision, stored.revision,
+    'both records were sealed at the same revision');
 });

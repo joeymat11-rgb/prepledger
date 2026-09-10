@@ -8,7 +8,27 @@ export async function authenticateRecoveryArchives({generation,repository,recove
  const proofs=generation.metadata.recoveryArchives;
  const fail=code=>{throw new StorageFailure(code,18);};
  const snapshot=generation.collections.sync?.snapshot,binding=snapshot?.recoveryPlan;
- if(proofs===undefined){if(binding!==undefined)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');return [];}
+ if(proofs===undefined){
+  if(binding!==undefined)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');
+  // K1 — BOTH erasable markers are absent. They live in the same sealed
+  // generation, so neither can vouch for the other and their joint absence is
+  // not evidence that this generation never adopted a recovery. The adoption
+  // record is written in the same transaction as the adopting commit, under a
+  // separate key and the repository's namespace/revision-bound AAD, so it
+  // survives erasure of the generation's own markers and cannot be forged by
+  // a caller. A terminal archive is NOT consulted: completion is not adoption.
+  //
+  // Absent adoption evidence means no generation here ever adopted a
+  // recovery, so a never-recovered profile, a completed but uncommitted
+  // recovery and a failed adoption are all unaffected.
+  //
+  // Fail closed rather than skip: this evidence is required, never optional.
+  if(typeof repository?.recoveryAdoption!=='function')fail('RECOVERY_ADOPTION_EVIDENCE_UNAVAILABLE');
+  const check=typeof assertContext==='function'?assertContext:()=>{};
+  check();const adopted=await repository.recoveryAdoption();check();
+  if(adopted)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');
+  return [];
+ }
  if(!Array.isArray(proofs)||!recovery?.codec||!recovery?.protocol||!recovery?.scopeDigest||typeof assertContext!=='function')fail('RECOVERY_ARCHIVE_CONFIGURATION');
  if(!proofs.length||!binding)fail('RECOVERY_SNAPSHOT_PROOF_MISSING');
  const C=recovery.codec,seen=new Set(),ops=generation.collections.ops||{};

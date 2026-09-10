@@ -2,6 +2,14 @@ import { createRecoveryStage } from './recovery-stage.mjs';
 import { createImportCustody } from './import-custody.mjs';
 const FORMAT = 1;
 const STORE = "generations";
+// K1 — adoption evidence. recovery-stage.mjs states that the archive and the
+// terminal page/head are one transaction and NEITHER IS AN ACTIVATION, so a
+// completed archive is not evidence that any generation adopted it. Adoption
+// is the COMMIT of a generation carrying archive proofs, and this record is
+// written in that same transaction. It lives outside the sealed generation,
+// so erasing the generation's own markers cannot remove it.
+const ADOPTION = "recovery-adoption";
+const ADOPTION_PROFILE = "earned/local-recovery-adoption/v1";
 const clone = value => structuredClone(value);
 
 export class StorageFailure extends Error {
@@ -76,6 +84,62 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
       throw new StorageFailure("SEAL_FAILED", 3);
     }
   }
+  function adoptedReferences(generation) {
+    const proofs = generation?.metadata?.recoveryArchives;
+    if (!Array.isArray(proofs) || !proofs.length) return null;
+    const references = [];
+    for (const proof of proofs) {
+      const reference = proof?.reference;
+      if (!object(reference) || typeof reference.attempt !== "string" || !reference.attempt) return null;
+      references.push({ profile: typeof reference.profile === "string" ? reference.profile : null, attempt: reference.attempt });
+    }
+    return references;
+  }
+  // Sealed under the same namespace/revision-bound AAD as the generation, so
+  // it is neither a caller-supplied claim nor a rewritable plain marker.
+  async function sealAdoption(generation, revision) {
+    const references = adoptedReferences(generation);
+    if (!references) return null;
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const bytes = new TextEncoder().encode(JSON.stringify({ profile: ADOPTION_PROFILE, revision, references }));
+    try {
+      const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: aad(revision), tagLength: 128 }, await key(), bytes);
+      return { format: FORMAT, namespace, revision, iv, ciphertext };
+    } catch (error) {
+      if (error instanceof StorageFailure) throw error;
+      throw new StorageFailure("SEAL_FAILED", 3);
+    }
+  }
+  async function openAdoption(record) {
+    if (record === undefined) return null;
+    if (!validRecord(record, namespace)) throw new StorageFailure("RECOVERY_ADOPTION_INTEGRITY", 18);
+    try {
+      const bytes = await crypto.subtle.decrypt({ name: "AES-GCM", iv: record.iv, additionalData: aad(record.revision), tagLength: 128 }, await key(), record.ciphertext);
+      const value = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+      if (!object(value) || value.profile !== ADOPTION_PROFILE || value.revision !== record.revision ||
+        !Array.isArray(value.references) || !value.references.length ||
+        !value.references.every(reference => object(reference) && typeof reference.attempt === "string" && reference.attempt)) {
+        throw new StorageFailure("RECOVERY_ADOPTION_INTEGRITY", 18);
+      }
+      return { revision: value.revision, references: value.references };
+    } catch (error) {
+      if (error instanceof StorageFailure && error.code === "DECRYPTION_UNAVAILABLE") throw error;
+      throw new StorageFailure("RECOVERY_ADOPTION_INTEGRITY", 18);
+    }
+  }
+  function readKey(storedKey) {
+    return new Promise((resolve, reject) => {
+      let tx, value;
+      try {
+        tx = db.transaction(STORE, "readonly");
+        const request = tx.objectStore(STORE).get(storedKey);
+        request.onsuccess = () => { value = request.result; };
+      } catch { reject(new StorageFailure("DATABASE_READ_FAILED", 18)); return; }
+      tx.oncomplete = () => resolve(value);
+      tx.onabort = () => reject(new StorageFailure("DATABASE_READ_FAILED", 18));
+      tx.onerror = () => {};
+    });
+  }
   async function unseal(record) {
     if (!validRecord(record, namespace)) throw new StorageFailure("STORED_INTEGRITY_UNPROVEN", 18);
     try {
@@ -103,7 +167,7 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
       tx.onerror = () => {};
     });
   }
-  function publish(expected, record, validate, initializing = false) {
+  function publish(expected, record, validate, initializing = false, adoption = null) {
     return new Promise((resolve, reject) => {
       let tx, refusal = null, requestedStrict = true;
       try { tx = db.transaction(STORE, "readwrite", { durability: "strict" }); }
@@ -139,6 +203,12 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
           if (decision) throw new StorageFailure(decision.code || "COMMIT_REFUSED", decision.state || 3);
           if (current) store.put(current, "previous");
           store.put(record, "active");
+          // Same transaction as the active write: a refused or aborted
+          // adoption writes neither, and a completed but uncommitted
+          // recovery leaves no adoption evidence at all. Never cleared by a
+          // later commit that omits the proofs, or dropping them would
+          // become a way to discard the evidence.
+          if (adoption) store.put(adoption, ADOPTION);
         } catch (error) { abort(error instanceof StorageFailure ? error : new StorageFailure("TRANSACTION_WRITE_FAILED", 3)); }
       }
       tx.oncomplete = () => resolve({ revision: record.revision, token: token(record), durability: {
@@ -177,9 +247,20 @@ export async function openRepository({ indexedDB = globalThis.indexedDB, crypto 
         throw new StorageFailure("INVALID_EXPECTED_REVISION", 18);
       }
       const basis = Object.freeze({ revision: expected.revision, token: expected.token });
-      const record = await seal(clone(generation), basis.revision + 1);
-      return publish(basis, record, validate);
+      // ONE immutable snapshot for both records. Sealing the active record and
+      // then reading the caller's still-mutable generation for the adoption
+      // record let a caller mutate between the two awaits, so the two records
+      // could describe different generations. The clone is taken once,
+      // synchronously, before any await, and both records are sealed from it.
+      const snapshot = clone(generation);
+      const record = await seal(snapshot, basis.revision + 1);
+      const adoption = await sealAdoption(snapshot, basis.revision + 1);
+      return publish(basis, record, validate, false, adoption);
     },
+    // Authenticated evidence that a generation in THIS namespace's lineage
+    // actually adopted a recovery. Absent for a never-recovered profile, for
+    // a completed but uncommitted recovery, and for a failed adoption.
+    async recoveryAdoption() { return openAdoption(await readKey(ADOPTION)); },
     close() { db.close(); },
   };
 }
