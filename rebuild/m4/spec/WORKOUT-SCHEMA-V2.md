@@ -1,6 +1,8 @@
-# Complete app schema 2 and capability transition — candidate v0.1
+# Complete app schema 2 and capability transition — candidate v0.2
 
 September10, 2026. **PRE-EDIT PROPOSAL; NOT REGISTERED, ISSUABLE OR ACCEPTED.** This is the complete scope and transition contract for closing the already-required workout capability. It is not a claim that all wire forms or interpretation rules are closed. The explicit closure items in §6 prevent publication of the final immutable manifest. They are prerequisites inside the existing Earned delivery task, not another queue. No issuer, T2, accepted engine or runtime is changed by this document.
+
+v0.2 over M4425528d adds the concrete WORKOUT-EDIT-NORMALIZATION.md candidate and executable model for C1/C2: clearing, dates, all four workout fact variants, nested edits/removals, original logical position and protected legacy interpretation.19 checks/six effective faults/restored19 pass, including actual legacy commands and candidate relation. These choices still require affected technical acceptance; the full legacy bridge, remaining field families and all complete-manifest conditions remain open. The original source-boundary evidence below is unchanged.
 
 ## 1. Source authority and reached boundary
 

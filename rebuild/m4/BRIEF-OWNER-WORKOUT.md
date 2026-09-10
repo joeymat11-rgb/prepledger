@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.64 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.65 (working implementation)
+
+## Current v0.65 executable workout-edit normalization
+
+spec/WORKOUT-EDIT-NORMALIZATION.md provides concrete proposed clearing/date/nested-edit/removal semantics for the complete schema2 join. Its review model executes19 checks/six effective faults/restored19 using actual legacy T2 command bytes and candidateEdge, while authentication/accepted positions remain explicitly assumed. Original bytes/capture/plan basis/identity and pending work remain separate; the new clearing syntax cannot reinterpret permissive v1 bytes. Scope/transition spec is nowv0.2. This is pre-edit contract preparation for existing affected review, not an installed reducer, final immutable schema, issuer/T2 permission or private qualification. Report records exact evidence and the corrected initial candidate gap. Continue remaining added-slot/nonnumeric/context/legacy/source-control and decision joins in the SAME canonical NEXT; no new queue or runtime change.
 
 ## Current v0.64 complete schema/transition preparation
 
