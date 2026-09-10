@@ -16,6 +16,7 @@ const READ_INPUTS = ["dates", "constants", "plan", "progression", "sleep", "ener
 const ALLOWED_INPUTS = new Set([
   ...PREVIEW_INPUTS.map((name) => `rebuild/m3/w7-preview/${name}`),
   ...READ_INPUTS.map((name) => `rebuild/engine/${name}.cjs`),
+  "rebuild/engine/earn.cjs",
 ]);
 
 export function assertBundleInputs(inputs) {

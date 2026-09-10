@@ -1,0 +1,20 @@
+{
+  "format": "PARTITION-GENERATION-DIAGNOSTIC-1",
+  "scriptSha256": "afb21cc9da2b68cb6d7e098666381d68b68448a5591cd238edbda15f85632d8b",
+  "sources": {
+    "rebuild/client/bodycomp.cjs": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+    "rebuild/client/canonical.cjs": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+    "rebuild/client/copy.cjs": "973368cb1efb51744a1f3cdeed739b935cf7b6947d68fdda2649ee7336d78236",
+    "rebuild/client/face.cjs": "68e36207a376c7b7a703dfb5d9889e3a672d724121b222eaf2c5a7763b8567a8",
+    "rebuild/client/index.cjs": "b4ea04403a0a82f2a5028fae6e6d0e57c761387a4398d0c435d3d14df474afff",
+    "rebuild/client/lease.cjs": "f3a17e190e76d6db3349c8ff5b47cc4b1cb2195568977cf254a30c3dda1929cf",
+    "rebuild/client/ops.cjs": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+    "rebuild/client/outbox.cjs": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+    "rebuild/client/plan.cjs": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+    "rebuild/client/session.cjs": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+    "rebuild/client/store.cjs": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+    "rebuild/client/sync.cjs": "af12351a55307ecea6174adc3ef8823ce379493d553692e8171cfdaa301a2fba",
+    "rebuild/authority/crypto.cjs": "c6c2571277a0d71be3ad99138228f4d1f10064a04e13ac96f1e75c99c09d3d21",
+    "rebuild/authority/canonical.cjs": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc"
+  }
+}

@@ -12,6 +12,7 @@ const modules = [
   require("./today.cjs"),
   require("./volume.cjs"),
   require("./migrate.cjs"),
+  require("./earn.cjs"),
   require("./merge.cjs"),
   require("./writers.cjs"),
 ];
