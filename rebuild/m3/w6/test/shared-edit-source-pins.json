@@ -1,9 +1,10 @@
 {
   "files": {
+    "schema.cjs": "6038b32e702c0ff4d5a71f4aa48bd25b4c6b718e9f2f741dc0e44905b3306c61",
     "authority-profile.cjs": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
     "edit-values.cjs": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
-    "schema.cjs": "9dcad5a4e9400a64a78e983543009069a9058047bbae47dc10f3290dfb284d1c",
-    "edit-history.cjs": "9d29d72c069f090dc7c22259da12d1f20427b1ea49d77778443c33fafef34b4b"
+    "context-values.cjs": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+    "edit-history.cjs": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2"
   },
   "profile": "earned/shared-workout-edit-candidate/v1"
 }

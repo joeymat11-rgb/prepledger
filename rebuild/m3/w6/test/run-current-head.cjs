@@ -14,7 +14,7 @@ const unpack=cp.spawnSync('tar',['-xf',archive,'-C',output],{windowsHide:true});
 // client with R1's older T2 would silently remove those hooks, not compose them.
 const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client','rebuild/m4/workout']).toString().trim().split(/\r?\n/));
 for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/browser-panel.mjs','test/panel-extension.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
-for(const name of ['schema.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs','stored-history.mjs','project-history.mjs'])names.add('rebuild/m4/workout/'+name);
+for(const name of ['schema.cjs','context-values.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs','stored-history.mjs','project-history.mjs'])names.add('rebuild/m4/workout/'+name);
 const pins={};
 for(const name of names){
   if(!(name.startsWith('rebuild/m3/w6/')||name.startsWith('rebuild/client/')||name.startsWith('rebuild/m4/workout/'))||name.includes('..'))throw Error('Unexpected candidate path');
@@ -32,7 +32,7 @@ for(const name of ['rebuild/m3/w5/source/codec.cjs','rebuild/m3/w5/reconciliatio
 // Message65 successor: exact shared candidate sources must match the retained
 // R1 composition and explicit candidate pins. This does not claim old acceptance.
 const editPins=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m3/w6/test/shared-edit-source-pins.json'),'utf8'));
-const editNames=['schema.cjs','authority-profile.cjs','edit-values.cjs','edit-history.cjs'];
+const editNames=['schema.cjs','authority-profile.cjs','edit-values.cjs','context-values.cjs','edit-history.cjs'];
 if(editPins.profile!=='earned/shared-workout-edit-candidate/v1'||Object.keys(editPins.files).length!==editNames.length)throw Error('Shared edit candidate manifest invalid');
 for(const name of editNames){
  const source='rebuild/m4/workout/'+name;

@@ -1,5 +1,6 @@
 'use strict';
 const EditValues = require('./edit-values.cjs');
+const ContextValues = require('./context-values.cjs');
 
 // Shared basic shape only. No capability registration, signature verification,
 // relationship/admission check, prescription qualification or durable command.
@@ -117,4 +118,41 @@ function validateWorkoutShape(input, {prescriptionCapture} = {}) {
   return {valid: true, errors: [], references};
 }
 
-module.exports = {validateWorkoutShape};
+// Internal factual family only; the existing workout-only profile remains
+// unchanged. Complete source/registry/issuer dispatch is a separate prerequisite.
+function validateContextShape(input){
+ let op;try{op=jsonData(input);}catch{return invalid('INVALID_JSON_SHAPE');}
+ if(op.schema_version!==2||!ContextValues.classes.has(op.class)||!['fact','correction','tombstone'].includes(op.kind))return invalid('UNSUPPORTED_PROFILE');
+ if(!COMMON.every(key=>own(op,key))||
+  !['op_id','athlete_id','device_id','lease_id','canonical_content_commitment'].every(key=>text(op[key]))||
+  !Number.isSafeInteger(op.device_seq)||op.device_seq<1||
+  !(op.device_predecessor_op_id===null||text(op.device_predecessor_op_id))||
+  !Array.isArray(op.causal_parents)||!op.causal_parents.every(text)||new Set(op.causal_parents).size!==op.causal_parents.length||
+  !EditValues.effective(op.effective))return invalid('INVALID_COMMON');
+ const edit=op.kind!=='fact';
+ if(!keys(op,[...COMMON,...(edit?['target_op_id']:[])])||edit&&!text(op.target_op_id))return invalid('INVALID_FIELDS');
+ try{
+  let references;
+  if(op.kind==='fact'){const value=ContextValues.decode(op).current;references=ContextValues.references(op.class,value);}
+  else{
+   if(op.kind==='correction'){
+    if(!keys(op.payload,['replacement_fields'])||!ContextValues.unionPatch(op.class,op.payload.replacement_fields))return invalid('INVALID_PAYLOAD');
+   }else if(!keys(op.payload,['reason'])||!text(op.payload.reason))return invalid('INVALID_PAYLOAD');
+   references=[op.target_op_id];
+  }
+  return {valid:true,errors:[],references};
+ }catch(error){if(typeof error.code!=='string')throw error;return invalid(error.code);}
+}
+function validateContextRelations(input,readOperation){
+ let op;try{op=jsonData(input);}catch{return false;}
+ if(!validateContextShape(op).valid||typeof readOperation!=='function')return false;
+ // Own the validated data before following the caller's target lookup.
+ try{
+  if(op.kind==='fact')ContextValues.validateReferences(op,ContextValues.decode(op).current,readOperation);
+  else{
+   ContextValues.rootOf(op,readOperation);
+   if(op.kind==='correction')ContextValues.assertPatch(op.payload.replacement_fields,readOperation(op.target_op_id),readOperation);
+  }return true;
+ }catch(error){if(typeof error.code!=='string')throw error;return false;}
+}
+module.exports = {validateWorkoutShape,validateContextShape,validateContextRelations};

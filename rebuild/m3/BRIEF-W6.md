@@ -1,5 +1,11 @@
 # W6 v1.1 — browser storage, recovery and bounded offline saving
 
+## Rev164 context-history adoption — precise candidate boundary, September10
+
+The accepted finite §3b contract now extends the shared context-values/schema/edit-history modules and actual stored-history.mjs. Schema exports a descriptor-safe internal contextual family and actual-root target check; createWorkoutProfile/default issued capabilities remain unchanged. The ONE full-prefix fold exposes separate context_records with original/effective/current/effects and accepted/local state, including all-cleared sleep as no observation. Source-control originals cannot acquire physiological edits; unqualified source/legacy rows remain visible. No new caller, F2 shortcut, native workout membership, issuer, source codec or current-guidance change. M4/W6 share the identical fold; R1 shares schema/context-values only.
+
+The existing composition runner and shared-edit-source-pins add the new context-values dependency. Final431 composed tests and actual Chromium current-head5/56 vectors/signed-surface/public-sink checks pass;91 M4 affected and86 original workout shape checks pass. Exact final logs/hashes/composition scope are in REPORT-W6-ASTRA and the M4 report. The initial deliberate --bite invocation/missing browser path remains disclosed. Full bound-source recognition, C1–C4 and independent runtime/device/release acceptance remain open; the actual rev164 contract is not that runtime verdict.
+
 ## Legacy recorded-history integration — affected boundary, September10
 
 APM readback received in task01a077e8: ACCEPT exact boundary, carrying the original legacy projection's quantity/context separation and causal semantics. Independent runtime acceptance remains separate.

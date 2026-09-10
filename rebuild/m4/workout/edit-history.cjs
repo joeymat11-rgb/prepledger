@@ -3,6 +3,7 @@
 // original-value/signature/complete-prefix checks. This grants no permission.
 const V=require('./edit-values.cjs');
 const Schema=require('./schema.cjs');
+const Context=require('./context-values.cjs');
 const {own,object,text,exact,clear,roots,edits,need,quantity}=V;
 const copy=structuredClone;
 // Closed schema1 interpretation from the actual historical T2 writers. These
@@ -49,7 +50,8 @@ function normalizeWorkoutHistory(rows,watermark){
  }
  need(positions.size===watermark,'WORKOUT_HISTORY_PREFIX');
  const accepted=[];for(let n=1;n<=watermark;n++){need(positions.has(n),'WORKOUT_HISTORY_PREFIX');accepted.push(positions.get(n));}
- const dependencies=op=>[...new Set([...op.causal_parents,...(edits.has(op.kind)||op.schema_version===1&&text(op.target_op_id)?[op.target_op_id]:[])])];
+ const dependencies=op=>[...new Set([...op.causal_parents,...(edits.has(op.kind)||op.schema_version===1&&text(op.target_op_id)?[op.target_op_id]:[]),
+  ...(op.schema_version===2&&op.kind==='fact'&&op.class==='pain-attestation'&&op.payload?.scope==='session-only'&&text(op.payload.session_start_op_id)?[op.payload.session_start_op_id]:[])])];
  for(const id of accepted){const row=byId.get(id);
   for(const dep of dependencies(row.operation)){const parent=byId.get(dep);need(parent?.status==='accepted-through-frontier'&&parent.receipt_sequence<row.receipt_sequence,'WORKOUT_HISTORY_CAUSAL_PREFIX');}
  }
@@ -72,10 +74,11 @@ function normalizeWorkoutHistory(rows,watermark){
  }
  const rootFor=new Map(),unhandled=new Map(),members=new Map();
  for(const id of ordered){const op=byId.get(id).operation;
-  if(roots.has(op.kind))rootFor.set(id,id);
+  if(roots.has(op.kind)||op.kind==='fact'&&Context.classes.has(op.class))rootFor.set(id,id);
   else if(edits.has(op.kind)&&rootFor.has(op.target_op_id))rootFor.set(id,rootFor.get(op.target_op_id));
   else if(op.schema_version===1&&rootFor.has(op.target_op_id))rootFor.set(id,rootFor.get(op.target_op_id));
   else if(op.class==='session'||typeof op.kind==='string'&&op.kind.startsWith('session-')){rootFor.set(id,id);unhandled.set(id,edits.has(op.kind)?'EDIT_OF_UNHANDLED_TARGET':'UNHANDLED_SESSION_KIND');}
+  else if(Context.classes.has(op.class)){rootFor.set(id,id);unhandled.set(id,edits.has(op.kind)?'EDIT_OF_UNHANDLED_TARGET':'UNHANDLED_CONTEXT_KIND');}
   const root=rootFor.get(id);if(root){if(!members.has(root))members.set(root,[]);members.get(root).push(id);}
  }
  const read=id=>byId.get(id)?.operation;
@@ -91,8 +94,10 @@ function normalizeWorkoutHistory(rows,watermark){
    if(id!==root&&!edits.has(op.kind)){block(root,'UNSUPPORTED_TARGET_EFFECT');continue;}
    if(!edits.has(op.kind))continue;
    const source=read(root),target=read(op.target_op_id);
-   if(op.schema_version===2&&op.class!=='session')block(root,'EDIT_CLASS_INVALID');
+   const context=Context.classes.has(source.class);
+   if(op.schema_version===2&&op.class!==(context?source.class:'session'))block(root,'EDIT_CLASS_INVALID');
    if(op.schema_version!==source.schema_version||op.schema_version!==target?.schema_version)block(root,source.schema_version===1?'LEGACY_BRIDGE_REQUIRED':'MIXED_SCHEMA_EDIT_BRIDGE_REQUIRED');
+   if(context&&op.schema_version===1){block(root,'LEGACY_CONTEXT_UNQUALIFIED');continue;}
    if(op.schema_version===1){const patch=op.payload?.replacement_fields;
     const supported=['session','reading'].includes(op.class)&&target?.schema_version===1&&target.kind==='session-set'&&(op.kind==='tombstone'?exact(op.payload,['reason'])&&text(op.payload.reason):
      exact(op.payload,['replacement_fields'])&&object(patch)&&Object.keys(patch).length>0&&Object.entries(patch).every(([k,v])=>k==='load'?quantity(v,'lb'):k==='reps'&&quantity(v,'rep')));
@@ -108,25 +113,29 @@ function normalizeWorkoutHistory(rows,watermark){
   }
   for(const id of ids.slice().reverse()){
    const op=read(id),root=rootFor.get(id);if(!root||blocked.has(root)||unhandled.has(root))continue;
+   const context=Context.classes.has(read(root).class),values=context?Context:V;
    try{
     need([1,2].includes(op.schema_version),'UNSUPPORTED_SCHEMA_VERSION');
     if(op.schema_version===2){
      const shape={...op};if(op.kind==='session-start')delete shape.prescription_capture;
-     need(Schema.validateWorkoutShape(shape).valid,'WORKOUT_ORIGINAL_SHAPE_INVALID');
+     need((context?Schema.validateContextShape(shape):Schema.validateWorkoutShape(shape)).valid,context?'CONTEXT_ORIGINAL_SHAPE_INVALID':'WORKOUT_ORIGINAL_SHAPE_INVALID');
      if(edits.has(op.kind)){
-      const original=V.rootOf(op,read),lift=['session-set','session-skip'].includes(original.kind);
+      const original=values.rootOf(op,read),lift=!context&&['session-set','session-skip'].includes(original.kind);
       need(lift?text(original.lift_lineage_id)&&op.lift_lineage_id===original.lift_lineage_id:!own(op,'lift_lineage_id'),'EDIT_LINEAGE_INVALID');
      }
     }
-    const current=op.schema_version===1?legacyFields(op):V.originalFields(op),changes=(corrections.get(id)||[]).slice().sort((a,b)=>rank.get(a.id)-rank.get(b.id));
+    const current=context?Context.originalFields(op):op.schema_version===1?legacyFields(op):V.originalFields(op),changes=(corrections.get(id)||[]).slice().sort((a,b)=>rank.get(a.id)-rank.get(b.id));
     if(roots.has(op.kind)&&op.schema_version===2)V.assertOriginal(op,current,read);
-    for(const change of changes){V.assertPatch(change.patch,op,read);for(const [field,value]of Object.entries(change.patch)){
+    for(const change of changes){values.assertPatch(change.patch,op,read);for(const [field,value]of Object.entries(change.patch)){
      if(clear(value))delete current[field];else current[field]=copy(value);
     }}
     const removed=(removals.get(id)||[]).slice().sort((a,b)=>rank.get(a)-rank.get(b)),active=removed.length===0;
     if(op.kind==='session-skip'&&op.schema_version===2)need(current.skip_scope==='set'?text(current.logical_set_slot):current.skip_scope==='lift'&&!own(current,'logical_set_slot'),'SKIP_RESULT_INVALID');
+    if(context&&op.kind==='fact'){
+     Context.validateValues(op.class,current);Context.validateReferences(op,current,read);
+    }
     if(op.kind==='correction'){
-     need(exact(op.payload,['replacement_fields']),'CORRECTION_PAYLOAD');V.assertPatch(current.replacement_fields,read(op.target_op_id),read);
+     need(exact(op.payload,['replacement_fields']),'CORRECTION_PAYLOAD');values.assertPatch(current.replacement_fields,read(op.target_op_id),read);
      if(active)add(corrections,op.target_op_id,{id,patch:current.replacement_fields});
     }else if(op.kind==='tombstone'){
      need(exact(op.payload,['reason'])&&text(current.reason),'REMOVAL_REASON');if(active)add(removals,op.target_op_id,id);
@@ -137,7 +146,7 @@ function normalizeWorkoutHistory(rows,watermark){
   for(const id of ids){const root=rootFor.get(id);if(!root)continue;
    const issues=unhandled.has(root)?[id===root?unhandled.get(root):'EDIT_OF_UNHANDLED_TARGET']:[...(blocked.get(root)||[])];
    if(issues.length)result.set(id,{active:null,current:null,correction_ids:[],removal_ids:[],issues});
-   if(read(root).schema_version===1&&result.has(id))result.get(id).issues.push(...legacyContext(read(root),read));
+   if(read(root).schema_version===1&&!Context.classes.has(read(root).class)&&result.has(id))result.get(id).issues.push(...legacyContext(read(root),read));
   }
   return result;
  }
@@ -158,12 +167,23 @@ function normalizeWorkoutHistory(rows,watermark){
   }
   if(issues.length)for(const id of ids)localView.set(id,{active:null,current:null,correction_ids:[],removal_ids:[],issues:issues.slice()});
  }
- return {profile:'earned/typed-workout-edit-history/v1',frontier:watermark,
-  records:ordered.filter(id=>rootFor.has(id)).map(id=>{
+ const records=ordered.filter(id=>rootFor.has(id)).map(id=>{
    const row=byId.get(id),root=rootFor.get(id),effects=id===root?members.get(root).filter(x=>x!==root):[];
    const rejected=row.status==='rejected'?{active:false,current:null,correction_ids:[],removal_ids:[],issues:['REJECTED_SOURCE']}:null;
    return {id,root_id:root,kind:row.operation.kind,accepted:acceptedView.get(id)||null,local:rejected||localView.get(id)||null,
     effect_ids:id===root?effects:[],last_effect_sequence:id===root?effects.reduce((max,x)=>Math.max(max,byId.get(x).receipt_sequence||0),0):0};
-  }),progression_eligible:false};
+  });
+ // ONE fold, separate factual families. Context is never silently admitted to
+ // native workout source_members or engine history by sharing this interpreter.
+ const context_records=records.filter(row=>Context.classes.has(read(row.root_id).class));
+ for(const row of context_records)if(row.id===row.root_id&&read(row.id).kind==='fact'){
+  for(const layer of ['accepted','local'])if(row[layer]){
+   // local can share accepted references when no pending work exists: add the
+   // same deterministic factual label, never a physiological guard or default.
+   row[layer].observation_state=Context.observationState(read(row.id).class,row[layer]);
+  }
+ }
+ return {profile:'earned/typed-workout-edit-history/v1',frontier:watermark,
+  records:records.filter(row=>!Context.classes.has(read(row.root_id).class)),context_records,progression_eligible:false};
 }
 module.exports={normalizeWorkoutHistory};

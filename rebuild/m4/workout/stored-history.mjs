@@ -71,5 +71,6 @@ export function storedWorkoutHistory(generation,{athleteId,deviceId,prescription
   // No timestamp/arrival sort pretends to resolve causality or competing edits.
   return {frontier:W,sessions,other_records:[...rows].filter(([id])=>!associated.has(id)&&interpreted.has(id)).map(([id,row])=>({
       ...row,...(interpreted.has(id)?{interpretation:structuredClone(interpreted.get(id))}:{})})),interpretation:'shared-typed-workout-edits',
+    context_records:normalized.context_records.map(record=>({...rows.get(record.id),interpretation:structuredClone(record)})),
     continuation:{allowed:false,reason:'CURRENT_SAFETY_AND_COMPLETE_HISTORY_REQUIRED'}};
 }
