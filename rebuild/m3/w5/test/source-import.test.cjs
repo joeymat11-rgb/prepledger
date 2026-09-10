@@ -147,6 +147,32 @@ test('indexed source recovery checks actual bound records, drained prefix, rollb
   const reader=await S.validateIndexedSource(adapter(records()));
   assert.deepEqual(await reader.selection(),{current:expected.current,frontier:expected.frontier});
   assert.deepEqual(await reader.readMaterial(s.sourceId),s.material);
+  const empty=S.frontier(()=>undefined,0),original={current:active.current,frontier:active.frontier};
+  assert.deepEqual(await reader.selectionsAt([active.frontier,empty,expected.frontier,active.frontier]),
+    [original,{current:null,frontier:empty},{current:expected.current,frontier:expected.frontier},original],
+    'Original selected cut survives rollback and repeated requested cuts');
+  const old=await reader.selectionsAt([active.frontier]);old[0].current.source_id='changed';
+  assert.deepEqual(await reader.selectionsAt([active.frontier]),[original],'Historical results do not mutate authenticated reader state');
+  for(const altered of [{...active.frontier,W:W+1},{...active.frontier,log_digest:h},{...active.frontier,selection_id:'foreign-selection'}])
+    await assert.rejects(reader.selectionsAt([altered]),{code:'SOURCE_CAPTURE_BASIS_UNPROVEN'});
+  const partial=S.frontier((collection,id)=>records().find(r=>r.collection===collection&&r.row_id===id)?.value,1,activation.op_id);
+  await assert.rejects(reader.selectionsAt([partial]),{code:'SOURCE_FRONTIER'},'Activation before its WAITING drain completes is not a captured cut');
+  let historicalReads=0,materialReads=0;
+  const batched=await S.validateIndexedSource(adapter(records(),async()=>{},async(collection)=>{
+    if(collection==='log')historicalReads++;if(collection===S.COLLECTION)materialReads++;
+  }));
+  historicalReads=materialReads=0;
+  await batched.selectionsAt([active.frontier,active.frontier,empty,expected.frontier]);
+  assert.equal(historicalReads,active.frontier.W,'One historical traversal for all Starts, with current result reused');
+  assert.equal(materialReads,active.frontier.W,'Historical traversal reads selections, without reassembling validated material');
+  let cutCurrent=true,changeCutOnRead=false;
+  const cutStable=async()=>{if(!cutCurrent)C.fail('RECOVERY_STAGE_CHANGED');};
+  const cutGuarded=await S.validateIndexedSource(adapter(records(),cutStable,async collection=>{
+    if(changeCutOnRead&&collection==='log')cutCurrent=false;
+  }));
+  changeCutOnRead=true;
+  await assert.rejects(cutGuarded.selectionsAt([active.frontier]),{code:'RECOVERY_STAGE_CHANGED'},'Final guard retires a historical read changed during traversal');
+  await assert.rejects(cutGuarded.selectionsAt([expected.frontier]),{code:'RECOVERY_STAGE_CHANGED'},'A retired handle cannot reuse its cached current result');
   const copy=await reader.selection();copy.current.source_id='caller-changed';copy.frontier.W=900;
   const content=await reader.readMaterial(s.sourceId);content.source_json='{"caller":"changed"}';
   assert.deepEqual(await reader.selection(),{current:expected.current,frontier:expected.frontier});

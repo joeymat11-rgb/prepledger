@@ -143,16 +143,25 @@ function* readSourceMaterial(sourceId){
   }
   return material(bytes,m);
 }
-function* validateSelectionChain(W){
+function* validateSelectionChain(W,{cuts,validatedMaterials=new Set()}={}){
   check(C.safe(W),'SOURCE_INTEGRITY',500);
   const prefix=createPrefixHasher();let current=null,pending=null;
+  const historical=cuts?new Map():null;
+  const captureCut=seq=>{
+    if(!cuts?.has(seq))return;
+    check(!pending,'SOURCE_FRONTIER',500);
+    historical.set(seq,{current,frontier:{W:seq,log_digest:prefix.digest(),selection_id:current?.intent_op_id||null}});
+  };
+  captureCut(0);
   for(let seq=1;seq<=W;seq++){
     const log=yield ['log',String(seq)];check(log?.seq===seq&&C.object(log.op),'SOURCE_INTEGRITY',500);
     const selected=yield [COLLECTION,id('selection',log.op.op_id)];
     if(selected){
       check(!pending&&selected.seq===seq&&same(selected.before,{W:seq-1,log_digest:prefix.digest(),
         selection_id:current?.intent_op_id||null}),'SOURCE_FRONTIER',500);
-      yield* readSourceMaterial(selected.source_id);
+      if(!validatedMaterials.has(selected.source_id)){
+        yield* readSourceMaterial(selected.source_id);validatedMaterials.add(selected.source_id);
+      }
       current=selected;pending=selected;
     }
     prefix.append(log);
@@ -160,9 +169,10 @@ function* validateSelectionChain(W){
       check(same(pending.after,{W:seq,log_digest:prefix.digest(),selection_id:pending.intent_op_id}),'SOURCE_FRONTIER',500);
       pending=null;
     }
+    captureCut(seq);
   }
   check(!pending,'SOURCE_FRONTIER',500);
-  return {current,frontier:{W,log_digest:prefix.digest(),selection_id:current?.intent_op_id||null}};
+  return {current,frontier:{W,log_digest:prefix.digest(),selection_id:current?.intent_op_id||null},...(historical?{historical}:{})};
 }
 function runReads(program,get){let step=program.next();while(!step.done)step=program.next(get(...step.value));return step.value;}
 async function runIndexedReads(program,get){let step=program.next();while(!step.done)step=program.next(await get(...step.value));return step.value;}
@@ -183,9 +193,26 @@ async function validateIndexedSource({each,get,W,assertStable}){
   check(typeof each==='function'&&typeof get==='function'&&typeof assertStable==='function');
   await assertStable();
   await each(COLLECTION,(key,value)=>runIndexedReads(validateSourceRecord(key,value,W),get));
-  const result=await runIndexedReads(validateSelectionChain(W),get);await assertStable();
+  // These IDs denote material already validated through THIS guarded inventory.
+  // No bytes/history or result survive the lifetime of this reader.
+  const validatedMaterials=new Set();
+  const result=await runIndexedReads(validateSelectionChain(W,{validatedMaterials}),get);await assertStable();
   return Object.freeze({
     async selection(){await assertStable();return C.parse(C.encode(result));},
+    async selectionsAt(bases){
+      await assertStable();check(Array.isArray(bases),'SOURCE_CAPTURE_BASIS');
+      const requested=C.parse(C.encode(bases)),cuts=new Set();
+      for(const value of requested){basis(value);check(value.W<=W,'SOURCE_CAPTURE_BASIS_UNPROVEN',409);cuts.add(value.W);}
+      // All original captures resolve together; never rescan per Start or copy
+      // the complete source history. Only requested small frontier records live.
+      const past=new Set([...cuts].filter(cut=>cut!==W));
+      let last=0;for(const cut of past)if(cut>last)last=cut;
+      const found=past.size?(await runIndexedReads(validateSelectionChain(last,{cuts:past,validatedMaterials}),get)).historical:new Map();
+      found.set(W,result);
+      const values=requested.map(value=>{const actual=found.get(value.W);
+        check(actual&&same(actual.frontier,value),'SOURCE_CAPTURE_BASIS_UNPROVEN',409);return actual;});
+      await assertStable();return C.parse(C.encode(values));
+    },
     async readMaterial(sourceId){await assertStable();const value=await runIndexedReads(readSourceMaterial(sourceId),get);
       await assertStable();return value;},
   });
