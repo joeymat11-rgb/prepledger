@@ -28,7 +28,7 @@ try{
   const prepared=require(join(m4,'rebuild/m4/import/prepare.cjs')).createImportPreparation({engine,parseStrictJson}).prepare(original,{localBytes:original});
   const input={source:Array.from(prepared.sourceBytes()),candidate:Array.from(prepared.candidateBytes()),local:Array.from(prepared.localBytes())};
   const entry=join(dir,'entry.mjs'),outfile=join(dir,'browser.js');
-  await writeFile(entry,`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {createDurablePublicClient} from ${JSON.stringify(join(root,'public-client.mjs'))};import T2 from ${JSON.stringify(join(root,'t2-stage.cjs'))};import {parseStrictJson} from ${JSON.stringify(join(root,'strict-json.mjs'))};import {createRowsRecovery,createRowsFetcher} from ${JSON.stringify(join(root,'recovery-transport.mjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};import BaseP from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};import S from ${JSON.stringify(join(r1,'rebuild/m3/w5/source/codec.cjs'))};window.SourceTest={openRepository,createDurablePublicClient,T2,parseStrictJson,createRowsRecovery,createRowsFetcher,C,P:BaseP.createSourceRowsCodec(),S};`);
+  await writeFile(entry,`import {openRepository} from ${JSON.stringify(join(root,'repository.mjs'))};import {createDurablePublicClient} from ${JSON.stringify(join(root,'public-client.mjs'))};import T2 from ${JSON.stringify(join(root,'t2-stage.cjs'))};import {parseStrictJson} from ${JSON.stringify(join(root,'strict-json.mjs'))};import {createRowsRecovery,createRowsFetcher} from ${JSON.stringify(join(root,'recovery-transport.mjs'))};import C from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/codec.cjs'))};import BaseP from ${JSON.stringify(join(r1,'rebuild/m3/w5/reconciliation/paged-codec.cjs'))};import S from ${JSON.stringify(join(r1,'rebuild/m3/w5/source/codec.cjs'))};import {createReadingProjector} from ${JSON.stringify(join(root,'reading-history.mjs'))};window.SourceTest={createReadingProjector,openRepository,createDurablePublicClient,T2,parseStrictJson,createRowsRecovery,createRowsFetcher,C,P:BaseP.createSourceRowsCodec(),S};`);
   const build=await buildBrowser({entryPoints:[entry],outfile});const bundle=await readFile(outfile);
   let sequence=0,previous=null,sourceId='native-synthetic-source',staged,activation,remote,rollback;
   const operation=payload=>{const seq=++sequence,op_id='native-source-'+seq,op=Ops.build({op_id,athlete_id:'first',device_id:other.device_id,device_seq:seq,
@@ -64,7 +64,7 @@ try{
   const url='http://127.0.0.1:'+server.address().port,userDataDir=join(dir,'chrome-profile');
   const launch=()=>chromium.launchPersistentContext(userDataDir,{headless:true,executablePath:process.env.W6_BROWSER_BIN||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
   const flow=async({phase,lease,key,scopeDigest,identityKey,input,previous})=>{
-    const {openRepository,createDurablePublicClient,T2,parseStrictJson,createRowsRecovery,createRowsFetcher,C,P,S}=window.SourceTest;
+    const {createReadingProjector,openRepository,createDurablePublicClient,T2,parseStrictJson,createRowsRecovery,createRowsFetcher,C,P,S}=window.SourceTest;
     const checks=[],ok=(condition,name)=>{if(!condition)throw Error(name);checks.push(name);};
     // Fixed test-only key permits a fresh browser process. No production key or
     // account lifecycle qualification is claimed by this storage witness.
@@ -74,7 +74,7 @@ try{
     if(phase===1)await repo.initialize({collections:{meta:{checkpoint:{counts:{ops:0,outbox:0}}},sync:{snapshot:{plan:{},reads:[]},frontier:{W:0,authorityW:0}}},metadata:{authorityLease:lease}},'synthetic');
     const args={repository:repo,stage:T2.createT2Stage(()=>({athleteId:'first',deviceId:lease.device_id,identityKey,clock:{now:()=>lease.not_before,today:()=>lease.not_before.slice(0,10),tz:'+00:00',monotonicMs:()=>0},lease,standing:'enrolled',online:false,contract:{client:'1',required:'1'}}),{allowInbound:true}),
       namespace:setup.namespace,athleteId:'first',deviceId:lease.device_id,sessionEpoch:1,isCurrentSession:()=>true,observationEpoch:()=>1,
-      observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys:[key],crypto,permissionNowIso:()=>lease.not_before,recovery:{codec:C,protocol:P,sourceCodec:S,scopeDigest}};
+      observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys:[key],crypto,permissionNowIso:()=>lease.not_before,projectReadings:createReadingProjector({athleteId:'first',deviceId:lease.device_id}),recovery:{codec:C,protocol:P,sourceCodec:S,scopeDigest}};
     const client=createDurablePublicClient(args),custody=repo.importCustody({parseStrictJson,validateContext:()=>null}),sourceId='native-synthetic-source';
     const recover=async()=>{
       const prepared=await client.prepareLocalRecovery();ok(prepared.prepared,'native basis authenticates '+phase);const basis=prepared.basis;
@@ -111,6 +111,10 @@ try{
       await assembled.inspectSourceImport(x=>ok(C.fullEqual(x.material,material)&&x.source.current.intent_op_id===rollback.op_id,'fresh browser authenticates source rollback and exact material'));
       await assembled.inspect(x=>ok(C.fullEqual(x.collections.outbox,before.generation.collections.outbox)&&C.fullEqual(x.collections.ops[originals.remote.op_id],originals.remote),'fresh browser retains remote and all pending originals'));
     }
+    const displayed=await client.reopen();ok(!!displayed.view,'native reading view authenticates '+phase);
+    ok(displayed.view.layer1.reads.some(r=>r.op_id===originals.remote.op_id),'native remote reading visible '+phase);
+    ok(displayed.view.readingHistory.records.length===6&&displayed.view.readingHistory.acceptedReads.length===1,'native accepted/pending reading separation '+phase);
+    ok(displayed.view.layer2.projectionPending===true,'native factual display grants no machine guidance '+phase);
     repo.close();return {checks,material,originals,checkpoint,rollback};
   };
   const args={lease,key,scopeDigest,identityKey:runtime.identityKeys.first,input};

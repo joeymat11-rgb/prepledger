@@ -8,6 +8,7 @@ import {fixture,initial,config,createT2Stage} from '../support.mjs';
 import {createDurablePublicClient} from '../../public-client.mjs';
 import {createRowsRecovery,createRowsFetcher} from '../../recovery-transport.mjs';
 import {parseStrictJson} from '../../strict-json.mjs';
+import {createReadingProjector} from '../../reading-history.mjs';
 if(!process.env.EARNED_ROWS_R1_ROOT||!process.env.EARNED_IMPORT_M4_ROOT)throw Error('Use run-source-import.cjs');
 const require=createRequire(resolve(process.env.EARNED_ROWS_R1_ROOT,'rebuild/m3/w5/package.json'));
 const C=require('./reconciliation/codec.cjs'),BaseP=require('./reconciliation/paged-codec.cjs'),P=BaseP.createSourceRowsCodec();
@@ -25,7 +26,8 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   const recovery={codec:C,protocol:P,protocols:[BaseP,P],sourceCodec:S,scopeDigest,keyRange:IDBKeyRange};
   const args={repository:f.repo,stage:createT2Stage(()=>({...config(),athleteId:'first',deviceId:device,identityKey:runtime.identityKeys.first}),{allowInbound:true}),
     namespace:f.setup.namespace,athleteId:'first',deviceId:device,sessionEpoch:1,isCurrentSession:()=>true,observationEpoch:()=>1,
-    observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys,crypto:webcrypto,permissionNowIso:()=>localLease.not_before,recovery};
+    observationGuard:{run:async(_kind,action)=>action()},validateCommit:()=>null,keys,crypto:webcrypto,permissionNowIso:()=>localLease.not_before,recovery,
+    projectReadings:createReadingProjector({athleteId:'first',deviceId:device})};
   let client=createDurablePublicClient(args),repo=f.repo;
   // Preserve an actual old v3 archive before the source-enabled transition.
   // This read uses the real old D1/P1 reader directly; new source recovery below
@@ -69,9 +71,9 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   await send(sourceRequest('manifest',{manifest:staged.manifest}));
   for(let index=0;index<staged.chunks.length;index++)await send(sourceRequest('chunk',{source_id:sourceId,index,data_b64:staged.chunks[index]}));
   let remoteSeq=0,predecessor=null;
-  const remoteOp=payload=>{const seq=++remoteSeq,op_id='source-remote-'+seq;const op=Ops.build({op_id,athlete_id:'first',device_id:remoteLease.device_id,
+  const remoteOp=(payload,extra={})=>{const seq=++remoteSeq,op_id='source-remote-'+seq;const op=Ops.build({op_id,athlete_id:'first',device_id:remoteLease.device_id,
     device_seq:seq,predecessor,parents:[],kind:'fact',class:payload.type?'event':'reading',lease_id:remoteLease.lease_id,
-    effective:{local_date:'2026-09-04',local_time:'12:00',utc_offset:'-04:00'},payload},runtime.identityKeys.first);predecessor=op_id;return op;};
+    effective:{local_date:'2026-09-04',local_time:'12:00',utc_offset:'-04:00'},payload,...extra},runtime.identityKeys.first);predecessor=op_id;return op;};
   const intentPayload={type:'source-import-intent',interval:{start:'2026-09-04',end:'2026-09-04'},source_id:sourceId,material_digest:staged.manifest.material_digest};
   const activation=remoteOp(intentPayload),bound=await send(sourceRequest('activate',{source_id:sourceId,expected,operation:activation}));
   assert.equal(bound.binding.seq,1);
@@ -121,9 +123,36 @@ test('actual prepared source, encrypted W6 custody, R1 binding and indexed recov
   assert((await client.prepareLocalRecovery()).prepared,'Reopen authenticates the retained v4 archive/source without erasing pending work');
   for(const lb of [174,175])assert((await client.execute('weighIn',{lb})).acknowledged);
   const after=await repo.load();assert.equal(Object.keys(after.generation.collections.outbox).length,5);
+  const displayed=await client.reopen();assert(displayed.view,displayed.refusal?.code);
+  assert.equal(displayed.view.layer1.reads.some(row=>row.op_id===remote.op_id),true,'SOURCE_CURRENT_PROJECTION_REMOTE_READING');
+  assert.equal(displayed.view.readingHistory.records.length,6,'Remote accepted and five pending originals are visible');
+  assert.deepEqual(displayed.view.readingHistory.acceptedReads.map(row=>row.op_id),[remote.op_id],'Pending values never enter accepted machine inputs');
+  assert.equal(displayed.view.layer2.projectionPending,true,'Complete factual display alone grants no current guidance');
   const saved=await repo.importCustody({parseStrictJson,validateContext:()=>null}).load(sourceId);
   assert.deepEqual(saved.checkpoint,before);assert(C.sameBytes(saved.sourceBytes,prepared.sourceBytes()),'Exact source bytes survive reopen');
   const final=await recover(),finalCandidate=await final.assemble();
   await finalCandidate.inspectSourceImport(value=>{assert.equal(value.source.current.intent_op_id,rollback.op_id);assert.deepEqual(value.material,material);});
   await finalCandidate.inspect(value=>{assert.equal(Object.keys(value.collections.outbox).length,5);assert.deepEqual(value.collections.ops[remote.op_id],remote);});
+  // Actual remote admission and complete recovery of reading edits. Transport
+  // succession alone is not edit causality; the explicit parent chain is kept.
+  const correction=remoteOp({replacement_fields:{lb:{value:178,unit:'lb'}}},{kind:'correction',target:remote.op_id,parents:[remote.op_id]});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',correction])).status,'ACCEPTED');
+  async function publishHistorical(){const evidence=await recover(),candidate=await evidence.assemble();let value;await candidate.inspect(x=>{value=x;});await repo.commit(await repo.load(),value);return (await client.reopen()).view;}
+  const corrected=await publishHistorical();assert(corrected);const reading=corrected.readingHistory.records.find(r=>r.op_id===remote.op_id);
+  assert.equal(reading.accepted.quantity.value,178);assert.deepEqual(reading.original,remote);assert.deepEqual(reading.effects[0].original,correction);
+  const removal=remoteOp({reason:'Synthetic remote removal'},{kind:'tombstone',target:remote.op_id,parents:[remote.op_id,correction.op_id]});
+  assert.equal((await runtime.bridge.invokeScoped('subject-first',remoteLease.device_id,'admit',['first',removal])).status,'ACCEPTED');
+  const removed=await publishHistorical(),record=removed.readingHistory.records.find(r=>r.op_id===remote.op_id);
+  assert.equal(record.accepted.state,'removed');assert.equal(removed.readingHistory.acceptedReads.length,0);
+  assert.deepEqual(record.effects.map(e=>e.original),[correction,removal]);assert.equal(removed.layer1.reads.length,5);assert.equal(removed.layer2.projectionPending,true);
+  // Resealing a changed local original does not authenticate its identity.
+  const intact=await repo.load(),changed=structuredClone(intact.generation),localId=Object.keys(changed.collections.outbox)[0];
+  changed.collections.ops[localId].payload.lb.value=999;await repo.commit(intact,changed);
+  const refused=await client.reopen();assert.equal(refused.view,null);assert.equal(refused.refusal.code,'LOCAL_HISTORY_IDENTITY_UNPROVEN');
+  await repo.commit(await repo.load(),intact.generation);assert((await client.reopen()).view,'Restore original synthetic generation');
+  let epoch=1;const unchanged=await repo.load(),project=args.projectReadings;
+  const retiring=createDurablePublicClient({...args,repository:repo,observationEpoch:()=>epoch,
+    projectReadings:input=>{const value=project(input);epoch++;return value;}});
+  const late=await retiring.reopen();assert.equal(late.view,null);assert.equal(late.refusal.code,'OBSERVATION_CHANGED');
+  assert.deepEqual(await repo.load(),unchanged,'A view from a changed observation context publishes nothing');
 });

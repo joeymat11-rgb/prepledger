@@ -41,6 +41,7 @@ function createClient(config) {
   if (verification !== undefined && (!verification || typeof verification.verifyLease !== "function" || typeof verification.verifyDisposition !== "function")) throw new Error("createClient: authorityVerification needs verifyLease() and verifyDisposition()");
   for (const k of ["deviceId", "identityKey", ...(verification === undefined ? ["authorityKey"] : []), "clock"]) if (!cfg[k]) throw new Error("createClient: config." + k + " is required");
   if (cfg.onPreparedBatch !== undefined && typeof cfg.onPreparedBatch !== "function") throw new Error("createClient: onPreparedBatch must be a function");
+  if (cfg.readingProjector !== undefined && typeof cfg.readingProjector !== "function") throw new Error("createClient: readingProjector must be a function");
   if (typeof cfg.clock.now !== "function" || typeof cfg.clock.today !== "function" || typeof cfg.clock.monotonicMs !== "function") throw new Error("createClient: clock needs now(), today(), monotonicMs()");
   const clock = cfg.clock; const K = cfg.identityKey; const tz = clock.tz || "+00:00";
   const store = new Store(cfg.backend || memoryBackend());
@@ -120,8 +121,25 @@ function createClient(config) {
   }
   const folded = (op) => { const pt = model.planTxns.get(op.op_id); return coveredBySnapshot(op.op_id, op.requested_transaction_id) || !!(pt && pt.committed && pt.effective && pt.received); };
   function reads() {
+    const projected = readingProjection(); if (projected) return projected.reads;
     const dead = tombstoned(); const corrections = ownOps().filter((o) => o.kind === "correction");
     return ownOps().filter((o) => o.kind === "fact" && o.class === "reading" && !dead.has(o.op_id)).map((o) => { let lb = o.payload && o.payload.lb && o.payload.lb.value; for (const c of corrections) if (c.target_op_id === o.op_id && c.payload && c.payload.replacement_fields && c.payload.replacement_fields.lb) lb = c.payload.replacement_fields.lb.value; return { date: o.effective.local_date, lb, op_id: o.op_id }; });
+  }
+  // Optional static factual interpreter. W6 authenticates the same generation
+  // before installing it. Use the current model, including just-created ops.
+  function readingProjection() {
+    if (cfg.readingProjector === undefined) return null;
+    const table = name => Object.fromEntries(store.keys(name).map(key => [key, store.get(name, key)]));
+    const value = cfg.readingProjector(deepCopy({ operations: Object.fromEntries(model.ops),
+      dispositions: Object.fromEntries(model.dispositions), rejected: Object.fromEntries(model.rejected),
+      receipts: table("receipts"), outbox: table("outbox"), frontier: { W: model.W, authorityW: model.authorityW } }));
+    const fields = ["profile", "frontier", "records", "reads", "acceptedReads", "days", "acceptedDays", "machineProjection"];
+    if (!value || Object.keys(value).length !== fields.length || fields.some(k => !Object.hasOwn(value, k)) ||
+        value.profile !== "earned/reading-projection/v1" || value.frontier !== model.W || value.machineProjection !== false ||
+        ["records", "reads", "acceptedReads", "days", "acceptedDays"].some(k => !Array.isArray(value[k]))) {
+      const error = new Error("READING_PROJECTION_INVALID"); error.code = error.message; throw error;
+    }
+    return deepCopy(value);
   }
   function liveEdits() { return ownOps().filter((o) => o.kind === "plan-mutation" && !folded(o)); }
   /* the dependency names a Layer-1 operation touches: a plan edit → its domain and member fields; a fact → "fact:<class>" —
@@ -174,7 +192,7 @@ function createClient(config) {
   const onFold = (t, op_id) => { const op = model.ops.get(op_id); if (!op || op.kind !== "plan-mutation") return; const list = model.appliedPlan.filter((a) => a.op_id !== op_id).concat([{ op_id, txn_id: op.requested_transaction_id, members: op.members, provenance: op.group_provenance || "authored" }]); t.put("plan", "applied", { list }); return list; };
   const onFolded = (op_id, list) => { if (list) model.appliedPlan = list; };
   const sync = createSync({ store, model, outbox, authorityKey: cfg.authorityKey, verifyDisposition: verification && verification.verifyDisposition, clock, transport: cfg.transport, isOnline: () => model.online, isPaused: () => model.signInRequired || model.standing === "revoked" || model.restoreRequired, onFold, onFolded });
-  const face = createFace({ model, outbox, sync, leaseNow: () => leaseNow(), contractObsolete, ambiguity, reads, touched, acceptedPlan, livePlan, answers, history, today: () => clock.today(), persistedSnapshot: () => store.get("sync", "snapshot") });
+  const face = createFace({ model, outbox, sync, leaseNow: () => leaseNow(), contractObsolete, ambiguity, reads, readingProjection, touched, acceptedPlan, livePlan, answers, history, today: () => clock.today(), persistedSnapshot: () => store.get("sync", "snapshot") });
 
   /* ---------- the durability rule: ONE local transaction writes the operation(s) and the outbox entry(ies) ---------- */
   const effectiveOn = (date) => ({ local_date: date || clock.today(), local_time: localTime(clock.now(), tz), utc_offset: tz });

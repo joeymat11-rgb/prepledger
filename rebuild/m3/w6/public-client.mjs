@@ -20,7 +20,7 @@ const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment
 export function createDurablePublicClient({ repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit, keys, subtle, crypto, monotonicMs,
   maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso, workoutProducer, workoutProducerIdentity,
-  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy, projectWorkoutHistory } = {}) {
+  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy, projectWorkoutHistory, projectReadings } = {}) {
   if (!repository || typeof stage !== "function" || !namespace || !athleteId || !deviceId || sessionEpoch === undefined ||
       typeof isCurrentSession !== "function" || typeof observationEpoch !== "function" || typeof observationGuard?.run !== "function" || typeof validateCommit !== "function") throw new TypeError("Explicit durable client scope, staging, observation guard and validator required");
   const verifier = W5.createPublicVerifier({ keys, subtle });
@@ -33,6 +33,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
   const producerIdentity = captureEnabled ? copy(workoutProducerIdentity) : null;
   if(workoutResumePolicy!==undefined&&(!captureEnabled||typeof workoutResumePolicy!=='function'))throw new TypeError('Static workout resume policy requires capture configuration');
   if(projectWorkoutHistory!==undefined&&(!captureEnabled||typeof projectWorkoutHistory!=='function'))throw new TypeError('Static workout history projector requires capture configuration');
+  if(projectReadings!==undefined&&typeof projectReadings!=='function')throw new TypeError('Static reading projector required');
   const resumptions=new Map();let activeResume=null;
   const workoutEdits=new Map();let activeEdit=null;
   const resumeCommands=WorkoutCommands.createWorkoutCommands();
@@ -204,7 +205,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
-    const signedOperationIds = authenticateLocalHistory || authenticateWorkoutHistory ? new Set() : null;
+    const signedOperationIds = authenticateLocalHistory || authenticateWorkoutHistory || projectReadings !== undefined ? new Set() : null;
     const recoveryReceipts = authenticateWorkoutHistory ? [] : null;
     if (!await verifiedHistory(generation, signedOperationIds, recoveryReceipts)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
     // Authenticate history first; a restored historical snapshot cannot grant
@@ -237,6 +238,7 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     activeGrant = createCandidateGrant({ lease, disposition, expectedOperation, scope, isCurrent: () => current() && epoch === observationEpoch() });
     const grant = activeGrant;
     const config = { authorityKey: undefined, lease, authorityVerification: { verifyLease: grant.verifyLease, verifyDisposition: grant.verifyDisposition } };
+    if(projectReadings!==undefined)config.readingProjector=source=>projectReadings(copy(source));
     if (permissionNowIso !== undefined) {
       let sample;
       try { sample = permissionNowIso(); } catch { sample = undefined; }
