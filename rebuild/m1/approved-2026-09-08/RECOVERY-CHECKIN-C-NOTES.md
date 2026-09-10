@@ -1,0 +1,17 @@
+# Check-in refinement C
+
+Owner requested more informative recovery inputs with little burden. Preview-only refinement of the hosted recovery screen; no production engine changes or new release gate. Existing A and B source records and B PDF stay intact; PDF link is labeled original overview.
+
+Routine inputs: approximate sleep duration and sleep quality as separate signals; current energy, muscle soreness and stress. All blank initially; tapping a selected answer again clears it. None/zero is never inferred from absence. This is a custom proposed UI, not a validated scale or readiness algorithm. Estimated short completion time is a design objective, not a measured result.
+
+Conditional detail: soreness asks location and functional impact; pain separately asks location/movement, new/worse/ongoing/improving, and functional impact; illness asks symptoms and onset; interruption asks duration and optional reason. No routine numerical pain score, body diagram, mandatory note, wearable dependency or lengthy questionnaire. A selected issue needs its own qualified safety workflow before production; this static preview gives no clearance or medical advice. Hidden details cannot be treated as active facts after an issue is deselected. A later real producer must preserve dates, provenance, completeness, corrections and the difference between not reported, denied, unknown and unresolved.
+
+Principles: stable wording over time, individual reference patterns with uncertainty, fatigue and soreness distinguished from pain, gradual trend interpretation against actual workload/performance. Neither bad self-report alone nor good performance alone is universal clearance. Justify each signal's allowed effect: context, comparability, or plan/safety decision. No blind composite score or unsupported causal diagnosis.
+
+Avoid duplication in the eventual app: reuse dated existing sleep/training records with visible provenance and confirmation when needed. Never silently carry yesterday's symptom denial into today. Nutrition adherence/hunger and broad lifestyle context belong in relevant review flows, not every pre-workout check-in. Return a short truthful statement about any actual plan consequence or unchanged plan, with rationale, rather than merely collecting data.
+
+Evidence: Saw et al. (2016), https://pmc.ncbi.nlm.nih.gov/articles/PMC4789708/ supports subjective reporting as useful monitoring context, not this custom instrument's validity. Duignan et al. (2020), https://pmc.ncbi.nlm.nih.gov/articles/PMC7534939/ reports variability and limitations of single-item wellness measures in team sports; generalization to Joe/Dad and direct training prescriptions is limited. Walsh et al. (2021), https://pubmed.ncbi.nlm.nih.gov/33144349/ distinguishes sleep quantity and quality and individual needs; this does not qualify a one-night restriction rule. Sources inspected through search/indexed abstracts; direct PubMed opens were limited by access responses.
+
+Product implementation and affected rule qualification still follow RECOVERY-NUTRITION-01. This preview is an interface proposal, not evidence of physiological benefit or installed app readiness.
+
+Owner approval: The owner approved this refinement and requested implementation on 2026-09-08 ET. See EARNED-APPROVED-HANDOFF.md for the authoritative design pin and integration boundaries. It remains a preview until production integration is verified.
