@@ -1,5 +1,10 @@
 {
   "version": 1,
-  "status": "PENDING",
-  "receipt": null
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "810c63972131e4bcb7600c1f7b00ed395b5cc627",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-10 · cowork · POSTFIX-ACCEPTANCE M2-LOAD-WRITES f34332ef6f5033a11574cc027264750ba52a2f3b rebuild/m4/spec/acceptance-load-writes.json 5073977b3f612f0e6212f4d47ddc5f45f044897f0dc51b1d81b4840f6b099d82 ACCEPTED",
+    "lineSha256": "b3bedd8c51348c627492669a43fd32141421ee2a328994fbe99e3c657732a507"
+  }
 }
