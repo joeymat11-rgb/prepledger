@@ -1,4 +1,10 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.84 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.85 (working implementation)
+
+## Current v0.85 configured-load history and parallel UI
+
+APM confirmed the exact source seam now recorded in LOAD-AND-SLOT-EXTENSION: prepare actual engine-history.project layoutv2/typed original prescribed-load correspondence in public scratch, preserving existing guards and old output. Dedicated constructor/tests execute actual retained W6 encrypted local storage/capture/readLayout/normalizer and same candidate dependencies; five targeted checks and three existing numeric controls PASS, with synthetic IDB/enrollment limits in the report. No retained runtime/engine/issuer adoption or numeric consumer widening. PM owns history; separately dispatched Fable owns W6 configured-load entry/prepared correction/history panels under W6's exact brief, independent review required.
+
+Rev168 actual report1d594a345572b47522e24aa7b3edbb2300d99ad15db6781cf1d3baabbbb3fd7c fully read/hash-verified; adopt finite wire/value candidate ACCEPT only. Carry F1 baseline-specific refusal/candidate positive, F2 pre-existing unionPatch version distinction, F3 actual NFC dedup/conflict/source/raw custody trace, and F4 actual production strict-parser dependency before adoption. No frozen canonical rewrite or automatic key trimming. Complete typed reader/comparability/full schema/source/issuer/science/currentness/consent remains required for the real journey. M2 complete executed evidence is accepted; no numeric failure/repeat campaign, formal package/integrator/release steps remain separately owned. Use the concise current checkpoint for changing heads/next action.
 
 ## Current v0.84 configured-load actual-source candidate and rev167 adoption
 
