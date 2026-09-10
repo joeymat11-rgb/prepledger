@@ -1,6 +1,7 @@
 import {mountWorkoutCommandPanel} from './command-panel.mjs';
 import Capture from './capture.cjs';
 import {parseStrictJson} from '../../m3/w6/strict-json.mjs';
+import {installWorkoutTypography} from './typography.mjs';
 
 const roots=new WeakMap(),clients=new WeakMap(),needsReconciliation=new WeakSet();
 const validator=Capture.createPrescriptionCapture({parseStrictJson});
@@ -16,6 +17,7 @@ export function mountPreparedWorkoutPanel(root,{client,plannedSplitSlotId,enable
   if(enableContinuation&&!['readWorkoutHistory','prepareWorkoutContinuation','executeResumedWorkout','prepareWorkoutEdit','commitWorkoutEdit'].every(k=>typeof client[k]==='function'))throw new TypeError('Interpreted continuation client required');
   roots.get(root)?.dispose();clients.get(client)?.dispose();
   const doc=root.ownerDocument,el=(tag,text)=>{const n=doc.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
+  installWorkoutTypography(doc);
   const shell=el('section');shell.className='prepared-workout-host';shell.setAttribute('aria-label','Prepared synthetic workout');
   const status=el('p','Preparing instructions…');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   shell.append(status);root.append(shell);

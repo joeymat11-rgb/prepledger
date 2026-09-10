@@ -1,0 +1,46 @@
+{
+  "files": [
+    {
+      "size": 88784,
+      "name": "InstrumentSans-Variable.woff2",
+      "url": "https://raw.githubusercontent.com/Instrument/instrument-sans/7fa22308a3d0c94ee2b3cd537a1196b65db34a3e/fonts/webfonts/InstrumentSans%5Bwdth,wght%5D.woff2",
+      "commit": "7fa22308a3d0c94ee2b3cd537a1196b65db34a3e",
+      "sha256": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+      "gitBlob": "6cc0b91654167b4f5a8205ecad6edd79cbca3e5b",
+      "upstreamPath": "fonts/webfonts/InstrumentSans[wdth,wght].woff2",
+      "repository": "instrument-sans"
+    },
+    {
+      "size": 27440,
+      "name": "InstrumentSerif-Regular.woff2",
+      "url": "https://raw.githubusercontent.com/Instrument/instrument-serif/65c0ef225f386a3c7e87570a4aa9cc0262c2fd81/fonts/webfonts/InstrumentSerif-Regular.woff2",
+      "commit": "65c0ef225f386a3c7e87570a4aa9cc0262c2fd81",
+      "sha256": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+      "gitBlob": "cc85579b2b1dd30bff51d7113ecda29c84ac4407",
+      "upstreamPath": "fonts/webfonts/InstrumentSerif-Regular.woff2",
+      "repository": "instrument-serif"
+    },
+    {
+      "size": 4403,
+      "name": "OFL-InstrumentSans.txt",
+      "url": "https://raw.githubusercontent.com/Instrument/instrument-sans/7fa22308a3d0c94ee2b3cd537a1196b65db34a3e/OFL.txt",
+      "commit": "7fa22308a3d0c94ee2b3cd537a1196b65db34a3e",
+      "sha256": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+      "gitBlob": "26bd2f954bfa282d235370728095db97d8a36f6f",
+      "upstreamPath": "OFL.txt",
+      "repository": "instrument-sans"
+    },
+    {
+      "size": 4405,
+      "name": "OFL-InstrumentSerif.txt",
+      "url": "https://raw.githubusercontent.com/Instrument/instrument-serif/65c0ef225f386a3c7e87570a4aa9cc0262c2fd81/OFL.txt",
+      "commit": "65c0ef225f386a3c7e87570a4aa9cc0262c2fd81",
+      "sha256": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+      "gitBlob": "669ce7917bec662fcf7244d37f49c4277f6fbd73",
+      "upstreamPath": "OFL.txt",
+      "repository": "instrument-serif"
+    }
+  ],
+  "license": "SIL Open Font License 1.1; each original notice included",
+  "schema": "earned/local-typography/v1"
+}

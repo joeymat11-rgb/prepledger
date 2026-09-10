@@ -1,5 +1,6 @@
 // Preparation only: one explicitly selected synthetic start and set in one runtime.
 // The host owns client qualification, selection, capture, recovery and later slots.
+import {installWorkoutTypography} from './typography.mjs';
 const mounted = new WeakMap();
 const nonblank = value => typeof value === 'string' && value.trim().length > 0;
 const fields = ['planned_split_slot_id', 'plan_basis', 'lift_lineage_id', 'logical_set_slot', 'label'];
@@ -8,6 +9,7 @@ export function mountWorkoutCommandPanel(root, { client, selection, additionalSl
   if (!root?.ownerDocument || typeof root.append !== 'function') throw new TypeError('A DOM root is required');
   mounted.get(root)?.dispose();
   const doc = root.ownerDocument;
+  installWorkoutTypography(doc);
   const el = (tag, text) => { const node = doc.createElement(tag); if (text !== undefined) node.textContent = text; return node; };
   const panel = el('section');
   panel.className = 'workout-command-panel';

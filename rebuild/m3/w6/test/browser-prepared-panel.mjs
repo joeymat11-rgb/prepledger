@@ -27,6 +27,7 @@ try{
  await page.exposeFunction('capturePreparedState',async name=>{
   assert(['saving','saved'].includes(name));await page.screenshot({path:join(artifacts,`${name}-390.png`),fullPage:true});
  });
+ await page.exposeFunction('disconnectTypographyNetwork',()=>context.setOffline(true));
  const cfg=config();delete cfg.clock;
  const checks=await page.evaluate(async({seed,cfg,key,lease})=>{
   const W=await import('/app.js'),root=document.querySelector('#root'),checks=[];
@@ -64,8 +65,13 @@ try{
     const hold=()=>{if(release)return;try{store.get('active').onsuccess=hold;}catch{}};hold();return tx;};
    return {entered,release(){release=true;IDBDatabase.prototype.transaction=original;}};
   }
-  const f=await fixture(),handle=W.mountPreparedWorkoutPanel(root,{client:f.client,plannedSplitSlotId:'synthetic-slot'});
+  const f=await fixture();await window.disconnectTypographyNetwork();
+  const handle=W.mountPreparedWorkoutPanel(root,{client:f.client,plannedSplitSlotId:'synthetic-slot'});
   ok((await handle.ready).mounted,'actual host mounts from one actual preparation');
+  await document.fonts.load('400 16px "Instrument Sans"');await document.fonts.load('400 32px "Instrument Serif"');await document.fonts.ready;
+  const faces=[...document.fonts].filter(f=>f.family.includes('Instrument'));
+  ok(faces.length===2&&faces.every(f=>f.status==='loaded'),'both exact bundled typefaces decode with browser networking disabled');
+  ok(document.querySelectorAll('style[data-earned-typography]').length===1,'host and command panel share one static typography stylesheet');
   const original=JSON.stringify(f.latest());
   ok(f.produced()===1&&f.writes()===0,'preparation renders without writing');
   ok(root.textContent.includes('40 lb')&&root.textContent.includes('45 lb')&&root.textContent.includes('At least 3'),'ordered per-set prescriptions rendered');
@@ -175,7 +181,7 @@ try{
  await page.getByRole('button',{name:'Finish early',exact:true}).click();
  assert.equal(await page.evaluate(()=>document.activeElement.name),'closeChoice');assert((await page.locator('.wcp-status').textContent()).includes('Choose early finish'));
  presentation.push('early-close confirmation stays visible and focuses the real choice');
- const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,38);assert.deepEqual(errors,[]);
+ const all=await page.evaluate(()=>window.continuePanelProof());assert.equal(all.length,40);assert.deepEqual(errors,[]);
  const observer=await page.evaluate(async()=>{
   const W=await import('/app.js'),root=document.querySelector('#root'),seen=[];
   const selection={planned_split_slot_id:'AD_HOC',plan_basis:'NO_ACCEPTED_PLAN',logical_set_slot:'one',lift_lineage_id:'same',label:'Same label'};
