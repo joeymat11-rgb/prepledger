@@ -5,12 +5,13 @@
 const {createHash}=require('node:crypto');
 const {isDeepStrictEqual}=require('node:util');
 const {createImportPreparation}=require('./prepare.cjs');
+const {projectDaily,dailyPatch}=require('./daily-history.cjs');
 const PROFILE='earned/source-reading-replay/v1',copy=structuredClone;
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
 const hash=x=>createHash('sha256').update(x).digest('hex');
 const json=x=>{const s=JSON.stringify(x);if(!isDeepStrictEqual(JSON.parse(s),x))fail('READING_REPLAY_LOSSY_JSON');return s;};
 const date=d=>typeof d==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d+'T00:00:00Z'))&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d;
-function createReadingReplay({engineFor,projectReadings,parseStrictJson,producerIdentity,importBuild}={}){
+function createReadingReplay({engineFor,projectReadings,parseStrictJson,producerIdentity,importBuild,deviceId}={}){
   if([engineFor,projectReadings,parseStrictJson].some(f=>typeof f!=='function')||typeof producerIdentity!=='string'||!producerIdentity||typeof importBuild!=='string'||!importBuild)
     throw TypeError('Actual scoped engine factory, reading projector, parser and producer identity required');
   function evaluate({sourceId,material,generation,asOf}={},internal=null){
@@ -20,6 +21,7 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
         !(input.local_json===null||typeof input.local_json==='string'))fail('READING_REPLAY_MATERIAL');
     let context,checkpoint;try{context=parseStrictJson(input.engine_context_json);checkpoint=parseStrictJson(input.checkpoint_json);}catch{fail('READING_REPLAY_CONTEXT');}
     const facts=projectReadings({operations:c.ops||{},dispositions:c.dispositions||{},receipts:c.receipts||{},frontier:c.sync?.frontier,outbox:c.outbox||{},rejected:c.rejected||{}});
+    const daily=projectDaily(g,deviceId),allRecords=facts.records.concat(daily.records),isDaily=row=>['food-day','steps'].includes(row.original.class);
     const issues=[],issue=(code,op_id)=>issues.push({code,...(op_id?{op_id}:{})});
     if(!context||context.build!==importBuild||!date(context.clock))issue('SOURCE_PREPARATION_CONTEXT_UNPROVEN');
     // A different local engine image beside native operations may already
@@ -49,13 +51,17 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
       seenDates.add(row.d);last=row.d;
     }
     for(const row of facts.records)if(row.status==='pending-local'&&seenDates.has(row.date)&&!inheritedDates.has(row.date))issue('PENDING_SOURCE_OVERLAP_UNRESOLVED',row.op_id);
-    const byId=new Map(facts.records.map(r=>[r.op_id,r]));
+    const byId=new Map(allRecords.map(r=>[r.op_id,r]));
     for(const receipt of accepted){
       const op=c.ops[receipt.op_id];
       if(op.class==='reading'){
         if(op.kind==='fact'){
           const row=byId.get(op.op_id);if(!row?.accepted||row.accepted.state==='unresolved')issue('ACCEPTED_READING_UNRESOLVED',op.op_id);
         }else if(!['correction','tombstone'].includes(op.kind)||!byId.get(op.target_op_id)?.accepted)issue('ACCEPTED_READING_EFFECT_UNMAPPED',op.op_id);
+      }else if(['food-day','steps'].includes(op.class)){
+        if(op.kind==='fact'){
+          const row=byId.get(op.op_id);if(!row?.accepted||row.accepted.state==='unresolved')issue('ACCEPTED_DAILY_UNRESOLVED',op.op_id);
+        }else if(!['correction','tombstone'].includes(op.kind)||!byId.get(op.target_op_id)?.accepted)issue('ACCEPTED_DAILY_EFFECT_UNMAPPED',op.op_id);
       }else if(!(op.schema_version===1&&op.class==='event'&&op.kind==='fact'&&['source-import-intent','source-rollback-intent'].includes(op.payload?.type)))
         issue('ACCEPTED_ENGINE_CONTEXT_UNMAPPED',op.op_id);
     }
@@ -63,15 +69,36 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
     // backdated insertion or same-date choice needs an explicit governing rule.
     const ordered=accepted.map(r=>byId.get(r.op_id)).filter(r=>r?.original.kind==='fact');
     const selected=ordered.filter(row=>!inherited.has(row.op_id)&&(!internal||c.dispositions[row.op_id].athlete_log_seq<=internal.originalLimit));
+    const dailyKeys=row=>{try{
+      const values={...dailyPatch(row.original.class,row.original.payload)};
+      // Removed observations still own fields introduced by accepted edits.
+      // Their identity must survive a later source merge or rollback.
+      for(const effect of row.effects)if(effect.status==='accepted'&&effect.original.kind==='correction')
+        Object.assign(values,dailyPatch(row.original.class,effect.original.payload.replacement_fields,{partial:true}));
+      return Object.keys(values);
+    }catch{return [];}};
+    const inheritedDaily=new Set(daily.records.filter(r=>inherited.has(r.op_id)).flatMap(row=>dailyKeys(row).map(field=>JSON.stringify([row.date,field]))));
+    const seenDaily=new Set();coverage.legacy_daily=[];
+    if(state)for(const [day,values]of Object.entries(state.dailyLogs||{}))for(const [field,value]of Object.entries(values)){
+      const key=JSON.stringify([day,field]);seenDaily.add(key);
+      if(!inheritedDaily.has(key))coverage.legacy_daily.push({source_id:sourceId,member:internal?'reconstructed_basis.dailyLogs':'candidate_json.dailyLogs',date:day,field,original:copy(value)});
+    }
+    for(const row of daily.records)if(row.status==='pending-local')for(const field of dailyKeys(row)){
+      const key=JSON.stringify([row.date,field]);if(seenDaily.has(key)&&!inheritedDaily.has(key))issue('PENDING_DAILY_SOURCE_OVERLAP_UNRESOLVED',row.op_id);
+    }
     for(const row of selected){
-      if(seenDates.has(row.date))issue('SOURCE_OR_DAILY_READING_OVERLAP',row.op_id);
-      if(last&&row.date<=last)issue('READING_REPLAY_ORDER_UNRESOLVED',row.op_id);
-      seenDates.add(row.date);last=row.date;
+      if(isDaily(row)){
+        for(const field of dailyKeys(row)){const key=JSON.stringify([row.date,field]);if(seenDaily.has(key))issue('SOURCE_OR_DAILY_FIELD_OVERLAP',row.op_id);seenDaily.add(key);}
+      }else{
+        if(seenDates.has(row.date))issue('SOURCE_OR_DAILY_READING_OVERLAP',row.op_id);
+        if(last&&row.date<=last)issue('READING_REPLAY_ORDER_UNRESOLVED',row.op_id);
+        seenDates.add(row.date);last=row.date;
+      }
       const eff=row.original.effective;
       if(!date(row.date)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(eff?.local_time||'')||!/^([+-])(0\d|1[0-4]):[0-5]\d$/.test(eff?.utc_offset||''))issue('READING_EFFECTIVE_CONTEXT_UNPROVEN',row.op_id);
       if(row.date>asOf)issue('READING_AFTER_CALCULATION_DAY',row.op_id);
       if(date(context?.clock)&&row.date<context.clock)issue('READING_BEFORE_SOURCE_CONTEXT_UNPROVEN',row.op_id);
-      if(row.accepted?.state==='included'&&!(row.accepted.quantity.value>0))issue('READING_ENGINE_VALUE_UNSUPPORTED',row.op_id);
+      if(!isDaily(row)&&row.accepted?.state==='included'&&!(row.accepted.quantity.value>0))issue('READING_ENGINE_VALUE_UNSUPPORTED',row.op_id);
     }
     if(!issues.length){
       // Replay resolved ACCEPTED values, not current local corrections. Removing
@@ -80,19 +107,24 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
         const before=hash(json(state)),effect=row.accepted;
         if(effect.state==='included'){
           const hour=Number(row.original.effective.local_time.slice(0,2));
-          try{state=engineFor({day:row.date,hour}).applyRead(state,row.date,effect.quantity.value,{hour});}
+          try{state=isDaily(row)?engineFor({day:row.date,hour}).writeDaily(state,row.date,effect.values):engineFor({day:row.date,hour}).applyRead(state,row.date,effect.quantity.value,{hour});}
           catch{fail('READING_ENGINE_EXECUTION_FAILED');}
-          const applied=state.reads.filter(r=>r.d===row.date);
-          if(applied.length!==1||applied[0].w!==effect.quantity.value)fail('READING_ENGINE_EFFECT_MISSING');
+          if(isDaily(row)){
+            for(const [field,value]of Object.entries(effect.values))if(state.dailyLogs?.[row.date]?.[field]!==value)fail('DAILY_ENGINE_EFFECT_MISSING');
+          }else{
+            const applied=state.reads.filter(r=>r.d===row.date);
+            if(applied.length!==1||applied[0].w!==effect.quantity.value)fail('READING_ENGINE_EFFECT_MISSING');
+          }
         }
-        coverage.steps.push({op_id:row.op_id,accepted_effect_ids:effect.effect_ids.slice(),state:effect.state,before_sha256:before,after_sha256:hash(json(state))});
+        coverage.steps.push({op_id:row.op_id,accepted_effect_ids:effect.effect_ids.slice(),state:effect.state,before_sha256:before,after_sha256:hash(json(state)),
+          ...(isDaily(row)?{daily_fields:dailyKeys(row)}:{})});
       }
       try{calculation={trend:state.trend,rate:engineFor({day:asOf,hour:12}).currentRate(state)};json(calculation);}
       catch{fail('READING_ENGINE_CALCULATION_FAILED');}
       coverage.state_sha256=hash(json(state));coverage.calculation_sha256=hash(json(calculation));
     }else state=null;
     const result={profile:PROFILE,ready:!issues.length,qualified:false,activated:false,issues,coverage,
-      accepted_state:state,accepted_calculation:calculation,reading_history:facts};
+      accepted_state:state,accepted_calculation:calculation,reading_history:facts,daily_history:daily};
     // Callers can compare a saved candidate only by reproducing this function
     // over the original source and complete current accepted inputs again.
     return copy(result);
@@ -157,8 +189,12 @@ function createReadingReplay({engineFor,projectReadings,parseStrictJson,producer
         // calculation reproduces its accepted cut, never trusts its skip list.
         const inheritedView=await calculate(previous,g,cut,context.clock,next);if(!inheritedView.ready)return inheritedView;
         const inheritedIds=inheritedView.coverage.steps.map(x=>x.op_id),incoming=parseStrictJson(m.source_json);
-        const nativeDates=new Set(inheritedIds.map(id=>g.collections.ops[id].effective.local_date));
+        const nativeDates=new Set(inheritedIds.filter(id=>g.collections.ops[id].class==='reading').map(id=>g.collections.ops[id].effective.local_date));
         if((incoming.reads||[]).some(r=>nativeDates.has(r.d)))fail('SOURCE_NATIVE_IMPORT_OVERLAP_UNRESOLVED');
+        for(const step of inheritedView.coverage.steps)for(const field of step.daily_fields||[]){
+          const date=g.collections.ops[step.op_id].effective.local_date;
+          if(Object.hasOwn(incoming.dailyLogs?.[date]||{},field))fail('SOURCE_NATIVE_DAILY_IMPORT_OVERLAP_UNRESOLVED');
+        }
         let merged;try{merged=createImportPreparation({engine:engineFor({day:context.clock,hour:12}),parseStrictJson}).prepare(Buffer.from(m.source_json),
           {localBytes:Buffer.from(json(inheritedView.accepted_state))}).candidateState();}catch{fail('SOURCE_LINEAGE_RECONSTRUCTION_FAILED');}
         const lineage=(inheritedView.coverage.source_lineage||[]).concat([{selection_id:s.intent_op_id,previous_selection_id:previous,checkpoint_W:cut,

@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.61 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.62 (working implementation)
+
+## Current v0.62 mixed accepted source inputs
+
+The same source/current producer now reconstructs accepted food and steps with readings through unchanged actual writeDaily/applyRead. Partial corrections preserve unnamed fields; null/absent/zero stay distinct; pending effects never enter accepted engine state. Source/native lineage, later corrections/removals and rollback retain all originals, including field coverage introduced by a correction before removal.21 focused/17 effective faults/restored21, actual signed partial-food/steps/second-import/correction/rollback/reopen and required conformance/selftest/strict PASS. Report and IMPORT-CONTROLLER-v1.md v1.7 bind exact evidence. Current-plan/consent, remaining context, qualified producer/publication and all first-use gates remain required. No installed engine, W6 runtime/T2/R1 change or activation; no new work queue.
 
 ## Current v0.61 source/native lineage integration
 

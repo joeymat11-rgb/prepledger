@@ -18,7 +18,7 @@ async function fixture(){
   const {parseStrictJson}=await import(pathToFileURL(path.join(w6,'rebuild/m3/w6/strict-json.mjs'))),{createReadingProjector}=await import(pathToFileURL(path.join(w6,'rebuild/m3/w6/reading-history.mjs')));
   const original=Buffer.from(JSON.stringify(F.createSyntheticState(day))),prep=createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson}).prepare(original,{localBytes:original});
   const material={source_json:original.toString(),candidate_json:prep.candidateBytes().toString(),local_json:original.toString(),checkpoint_json:JSON.stringify({revision:1,token:'synthetic',generation:generation()}),engine_context_json:JSON.stringify({build,clock:day})};
-  const producer=createReadingReplay({engineFor,projectReadings:createReadingProjector({athleteId:'first',deviceId:'local'}),parseStrictJson,producerIdentity:'synthetic-actual-installed-factories',importBuild:build});
+  const producer=createReadingReplay({engineFor,projectReadings:createReadingProjector({athleteId:'first',deviceId:'local'}),parseStrictJson,producerIdentity:'synthetic-actual-installed-factories',importBuild:build,deviceId:'local'});
   return {producer,material,parseStrictJson,base:prep.candidateState(),input:{sourceId:'synthetic-source',material,generation:generation(),asOf:'2026-09-07'}};
 }
 // Synthetic receipt fixtures are not authentication; the actual W6 joined
@@ -144,4 +144,87 @@ test('a third selected source reproduces both ancestors before applying a later 
   const merge=(source,local,day)=>createImportPreparation({engine:engineFor({day,hour:12}),parseStrictJson:f.parseStrictJson}).prepare(Buffer.from(JSON.stringify(source)),{localBytes:Buffer.from(JSON.stringify(local))}).candidateState();
   expected=merge(f.incoming,expected,'2026-09-04');expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',180,{hour:8});expected=merge(incoming,expected,'2026-09-06');
   assert.deepEqual(value.accepted_state,expected);
+});
+function dailyOp({cls='food-day',payload={kcal:{value:2200,unit:'kcal'},protein_g:{value:150,unit:'g'}},date='2026-09-04',kind='fact',target,parents=[],device='remote'}={}){
+ return Ops.build({op_id:'daily-'+(++n),athlete_id:'first',device_id:device,device_seq:n,parents,kind,class:cls,target,lease_id:'synthetic-lease',
+  effective:{local_date:date,local_time:'08:00',utc_offset:'-04:00'},payload},key);
+}
+test('accepted food and steps use the actual partial daily writer alongside readings; pending never enters it',async()=>{
+ const f=await fixture(),food=dailyOp(),steps=dailyOp({cls:'steps',payload:{count:{value:8000,unit:'step'}}}),read=op({date:'2026-09-05'}),
+  pending=dailyOp({device:'local',kind:'correction',target:food.op_id,parents:[food.op_id],payload:{replacement_fields:{kcal:{value:999,unit:'kcal'}}}});
+ const input={...f.input,generation:generation([food,steps,read],[pending])},before=structuredClone(input),v=f.producer.project(input);
+ assert.equal(v.ready,true,JSON.stringify(v.issues));let expected=engineFor({day:'2026-09-04',hour:8}).writeDaily(f.base,'2026-09-04',{cal:2200,pro:150});
+ expected=engineFor({day:'2026-09-04',hour:8}).writeDaily(expected,'2026-09-04',{steps:8000});
+ expected=engineFor({day:'2026-09-05',hour:8}).applyRead(expected,'2026-09-05',177,{hour:8});
+ assert.deepEqual(v.accepted_state,expected);assert.deepEqual(v.coverage.steps.map(x=>x.op_id),[food.op_id,steps.op_id,read.op_id]);
+ assert.equal(v.daily_history.records[0].local.values.cal,999);assert.equal(v.daily_history.records[0].accepted.values.cal,2200);
+ assert.deepEqual(input,before);assert.deepEqual(f.producer.reproduce(input,v),v);assert.equal(v.qualified,false);
+});
+test('daily partial correction preserves missing members and explicit zero/null values',async()=>{
+ const f=await fixture(),food=dailyOp(),correction=dailyOp({kind:'correction',target:food.op_id,parents:[food.op_id],payload:{replacement_fields:{protein_g:{value:0,unit:'g'}}}});
+ let v=f.producer.project({...f.input,generation:generation([food,correction])});assert.equal(v.ready,true);
+ assert.deepEqual(v.accepted_state.dailyLogs['2026-09-04'],{cal:2200,pro:0});
+ assert.deepEqual(v.accepted_state,engineFor({day:'2026-09-04',hour:8}).writeDaily(f.base,'2026-09-04',{cal:2200,pro:0}));
+ const cleared=dailyOp({kind:'correction',target:food.op_id,parents:[food.op_id,correction.op_id],payload:{replacement_fields:{protein_g:null}}});
+ v=f.producer.project({...f.input,generation:generation([food,correction,cleared])});assert.equal(v.ready,true);assert.deepEqual(v.accepted_state.dailyLogs['2026-09-04'],{cal:2200,pro:null});
+ const onlyCal=dailyOp({payload:{kcal:{value:0,unit:'kcal'}}});v=f.producer.project({...f.input,generation:generation([onlyCal])});
+ assert.equal(v.ready,true);assert.deepEqual(v.accepted_state.dailyLogs['2026-09-04'],{cal:0});assert(!Object.hasOwn(v.accepted_state.dailyLogs['2026-09-04'],'pro'));
+});
+test('removing an earlier daily fact rebuilds later writer side effects and keeps unrelated same-day fields',async()=>{
+ const f=await fixture(),food=dailyOp({payload:{protein_g:{value:0,unit:'g'}}}),later=dailyOp({date:'2026-09-05',payload:{protein_g:{value:300,unit:'g'}}}),
+ steps=dailyOp({cls:'steps',payload:{count:{value:0,unit:'step'}}}),remove=dailyOp({kind:'tombstone',target:food.op_id,parents:[food.op_id],payload:{reason:'Synthetic correction'}});
+ const v=f.producer.project({...f.input,generation:generation([food,steps,later,remove])});assert.equal(v.ready,true);
+ let expected=engineFor({day:'2026-09-04',hour:8}).writeDaily(f.base,'2026-09-04',{steps:0});expected=engineFor({day:'2026-09-05',hour:8}).writeDaily(expected,'2026-09-05',{pro:300});
+ assert.deepEqual(v.accepted_state,expected);assert.equal(v.coverage.steps[0].state,'removed');assert.equal(v.daily_history.records[0].original.op_id,food.op_id);
+ assert.deepEqual(v.accepted_state.dailyLogs['2026-09-04'],{steps:0});
+});
+test('daily concurrent edits, missing causal target, unsupported units/status and duplicate fields remain unresolved',async()=>{
+ const f=await fixture(),food=dailyOp(),edit=dailyOp({kind:'correction',target:food.op_id,parents:[food.op_id],payload:{replacement_fields:{kcal:{value:2000,unit:'kcal'}}}}),
+ other=dailyOp({kind:'correction',target:food.op_id,parents:[food.op_id],payload:{replacement_fields:{kcal:{value:2100,unit:'kcal'}}}});
+ for(const ops of [[food,edit,other],[food,dailyOp({kind:'correction',target:food.op_id,payload:{replacement_fields:{kcal:{value:2100,unit:'kcal'}}}})],
+  [dailyOp({payload:{kcal:{value:2200,unit:'kJ'}}})],[dailyOp({payload:{missing_total_status:'not-observed'}})],[food,dailyOp()],
+  [dailyOp({cls:'steps',payload:{count:{value:1.5,unit:'step'}}})]]){
+  const v=f.producer.project({...f.input,generation:generation(ops)});assert.equal(v.ready,false);assert.equal(v.accepted_state,null);assert(v.daily_history.records.length);
+ }
+});
+test('daily source overlap and foreign pending records cannot be guessed into the engine',async()=>{
+ const f=await fixture(),date=Object.keys(f.base.dailyLogs)[0],food=dailyOp({date,payload:{kcal:{value:2200,unit:'kcal'}}});
+ let v=f.producer.project({...f.input,generation:generation([food])});assert.equal(v.ready,false);assert(v.issues.some(x=>x.code==='SOURCE_OR_DAILY_FIELD_OVERLAP'));
+ const local=dailyOp({date,device:'local',payload:{kcal:{value:2200,unit:'kcal'}}});
+ v=f.producer.project({...f.input,generation:generation([],[local])});assert.equal(v.ready,false);assert(v.issues.some(x=>x.code==='PENDING_DAILY_SOURCE_OVERLAP_UNRESOLVED'));
+ const foreign=dailyOp({device:'another-device'});v=f.producer.project({...f.input,generation:generation([],[foreign])});
+ assert.equal(v.daily_history.records[0].status,'unresolved');assert.deepEqual(v.accepted_state,f.base);
+});
+
+test('removed daily originals retain fields introduced by an accepted correction in their lineage coverage',async()=>{
+ const f=await fixture(),food=dailyOp({payload:{kcal:{value:2200,unit:'kcal'}}}),
+ edit=dailyOp({kind:'correction',target:food.op_id,parents:[food.op_id],payload:{replacement_fields:{protein_g:{value:150,unit:'g'}}}}),
+ remove=dailyOp({kind:'tombstone',target:food.op_id,parents:[food.op_id,edit.op_id],payload:{reason:'Synthetic removal'}});
+ const v=f.producer.project({...f.input,generation:generation([food,edit,remove])});assert.equal(v.ready,true);
+ assert.deepEqual(v.coverage.steps[0].daily_fields,['cal','pro'],'REMOVED_DAILY_LINEAGE_KEEPS_ACCEPTED_ADDED_FIELDS');
+ assert.deepEqual(v.accepted_state,f.base);
+});
+test('native daily lineage reproduces original local image then rebuilds a later correction/removal before the next merge',async()=>{
+ const f=await lineageFixture(),accepted=Object.values(f.g.collections.receipts).map(r=>f.g.collections.ops[r.op_id]),
+ food=dailyOp({date:'2026-09-06'}),steps=dailyOp({cls:'steps',date:'2026-09-06',payload:{count:{value:8000,unit:'step'}}}),before=generation([...accepted,food,steps],[f.pending]);
+ const prior=await f.producer.projectLineage({...f.input,generation:before});assert.equal(prior.ready,true,JSON.stringify(prior.issues));
+ const incoming=JSON.parse(f.nodes.get(f.first.op_id).material.source_json);incoming.dailyLogs['2026-08-29'].cal=2400;
+ const source=Buffer.from(JSON.stringify(incoming)),local=Buffer.from(JSON.stringify(prior.accepted_state)),prep=createImportPreparation({engine:engineFor({day:'2026-09-06',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(source,{localBytes:local});
+ const third=f.sourceOp('third-daily-source'),cut=accepted.length+2;
+ f.nodes.set(third.op_id,{selection:f.selection(third,cut+1,{W:cut,selection_id:f.second.op_id}),material:{source_json:source.toString(),candidate_json:prep.candidateBytes().toString(),local_json:local.toString(),
+  checkpoint_json:JSON.stringify({revision:3,token:'synthetic',generation:before}),engine_context_json:JSON.stringify({build,clock:'2026-09-06'})}});
+ const edit=dailyOp({date:'2026-09-07',kind:'correction',target:food.op_id,parents:[food.op_id],payload:{replacement_fields:{kcal:{value:2300,unit:'kcal'}}}}),
+ remove=dailyOp({cls:'steps',date:'2026-09-07',kind:'tombstone',target:steps.op_id,parents:[steps.op_id],payload:{reason:'Synthetic removal'}});
+ const g=generation([...accepted,food,steps,third,edit,remove],[f.pending]);
+ const v=await f.producer.projectLineage({...f.input,selectionId:third.op_id,generation:g});assert.equal(v.ready,true,JSON.stringify(v.issues));
+ let expected=(await f.producer.projectLineage(f.input)).accepted_state;
+ expected=engineFor({day:'2026-09-06',hour:8}).writeDaily(expected,'2026-09-06',{cal:2300,pro:150});
+ expected=createImportPreparation({engine:engineFor({day:'2026-09-06',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(source,{localBytes:Buffer.from(JSON.stringify(expected))}).candidateState();
+ assert.deepEqual(v.accepted_state,expected);assert.deepEqual(v.coverage.steps.map(s=>s.op_id),[f.a.op_id,f.b.op_id,food.op_id,steps.op_id]);
+ assert.equal(v.coverage.source_lineage.length,2);assert(!Object.hasOwn(v.accepted_state.dailyLogs['2026-09-06'],'steps'));
+ assert.deepEqual(await f.producer.projectLineage({...f.input,selectionId:third.op_id,generation:g}),v);
+ const collided=f.nodes.get(third.op_id).material,incomingCollision=JSON.parse(collided.source_json);
+ incomingCollision.dailyLogs['2026-09-06']={cal:2000};collided.source_json=JSON.stringify(incomingCollision);
+ collided.candidate_json=createImportPreparation({engine:engineFor({day:'2026-09-06',hour:12}),parseStrictJson:f.parseStrictJson}).prepare(Buffer.from(collided.source_json),{localBytes:local}).candidateBytes().toString();
+ await assert.rejects(f.producer.projectLineage({...f.input,selectionId:third.op_id,generation:g}),{code:'SOURCE_NATIVE_DAILY_IMPORT_OVERLAP_UNRESOLVED'});
 });

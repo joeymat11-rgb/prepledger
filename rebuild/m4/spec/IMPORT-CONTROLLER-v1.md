@@ -1,4 +1,12 @@
-# Import preparation and controller boundary v1.6 — September 9, 2026
+# Import preparation and controller boundary v1.7 — September 10, 2026
+
+## Mixed food/steps/reading source execution — v1.7
+
+The existing reading replay now sends accepted food-day and steps through actual writeDaily in the same accepted-order/source-lineage execution. Map only observed kcal/kcal→cal, protein_g/g→pro, count/step→steps; preserve partial fields, null/absent/zero and all original/effect identities. Accepted causal corrections and removals reconstruct from original source; pending effects remain local. Complete-generation validation runs before the internal daily interpreter; deviceId scopes pending status. Same-field or source/native collisions, unsupported units, missing-total semantics, concurrent edits and unsupported effects explicitly remain unresolved.
+
+Native lineage tracks each daily field introduced by any accepted correction even after removal. Reproduce prior local_json at the exact checkpoint, then reconstruct with current accepted effects before a subsequent merge. Incoming legacy fields cannot silently take native correspondence. Actual signed partial-food/protein-addition/steps/import/later-correction/removal/rollback/reopen and21 focused/17 effective faults/restored21/required gates are in the current report. qualified:false/activated:false, Node-only/unmounted remain.
+
+The recovered authority plan is an admitted transaction projection; direct edits and historical imported targets are not automatically new machine consent. Actual applyProposal consumes a proposal/delta and rechecks premises, so it is not an arbitrary absolute-plan-field writer. Complete remaining context, actual qualified plan/history/consent inputs and final guarded publication under the existing authority. No new engine policy, training threshold, default athlete, source schema or T2 permission is inferred. Historical sections retain their original scope; this revision supersedes their food/steps mapping TODO only.
 
 ## Reproduced source/native lineage — v1.6
 
