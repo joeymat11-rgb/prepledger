@@ -1,0 +1,346 @@
+{
+  "scope": "Synthetic local P1 runs only. All FAIL under the original unchanged resource meter and limits. Variants are diagnostic observations, not paired causal estimates or acceptance.",
+  "baseline": "575cd8cce561c597d3317541b7d459eba7468127",
+  "runs": [
+    {
+      "variant": "published575",
+      "evidence_sha256": "7f86a8fbec4832418d2a279f78ff1e8e5960b2b89c9c7b03c685d3e5399517e0",
+      "physical_evidence_sha256": "f28bb4cc5921b730465e318646ecce1267fedfe3094c67549d0aeea86623e79a",
+      "verdict": "FAIL",
+      "ceilings": {
+        "cpuMs": 1000,
+        "observedAllocationBytes": 100663296,
+        "statements": 1000,
+        "batchMs": 30000,
+        "domainWrites": 0
+      },
+      "completedPages": 96,
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 188.25,
+        "p95CpuMs": 157,
+        "rowsRead": 2519,
+        "rowsWritten": 192,
+        "queryMs": 55,
+        "maxStatements": 6,
+        "domainWrites": 0
+      },
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 174633690
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 226440951
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 203867065
+        }
+      ],
+      "physical": {
+        "profile": "earned/authority-row/v1",
+        "measurements": [
+          {
+            "rows": 41,
+            "physicalBytes": 914768,
+            "logicalBytes": 672409,
+            "maxPhysicalRowBytes": 89419,
+            "maxSealedBytes": 89211
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          }
+        ],
+        "note": "Synthetic JSON bytes excluding SQL pages/index overhead; generated key material omitted. Existing resource metric/ceilings unchanged."
+      }
+    },
+    {
+      "variant": "owned-buffers",
+      "evidence_sha256": "0dbafa58a5610658feab65d9cbc09dd7116ea50e24aa7eea25ed335ec48bde81",
+      "physical_evidence_sha256": "f28bb4cc5921b730465e318646ecce1267fedfe3094c67549d0aeea86623e79a",
+      "verdict": "FAIL",
+      "ceilings": {
+        "cpuMs": 1000,
+        "observedAllocationBytes": 100663296,
+        "statements": 1000,
+        "batchMs": 30000,
+        "domainWrites": 0
+      },
+      "completedPages": 96,
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 172.625,
+        "p95CpuMs": 157,
+        "rowsRead": 2519,
+        "rowsWritten": 192,
+        "queryMs": 62,
+        "maxStatements": 6,
+        "domainWrites": 0
+      },
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 172965909
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 225035313
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 200818659
+        }
+      ],
+      "physical": {
+        "profile": "earned/authority-row/v1",
+        "measurements": [
+          {
+            "rows": 41,
+            "physicalBytes": 914768,
+            "logicalBytes": 672409,
+            "maxPhysicalRowBytes": 89419,
+            "maxSealedBytes": 89211
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          }
+        ],
+        "note": "Synthetic JSON bytes excluding SQL pages/index overhead; generated key material omitted. Existing resource metric/ceilings unchanged."
+      }
+    },
+    {
+      "variant": "indexed-base64",
+      "evidence_sha256": "e2b2fa394bffad55a43382d3c7df469d81658a170f7cdee08c108fab6514505d",
+      "physical_evidence_sha256": "f28bb4cc5921b730465e318646ecce1267fedfe3094c67549d0aeea86623e79a",
+      "verdict": "FAIL",
+      "ceilings": {
+        "cpuMs": 1000,
+        "observedAllocationBytes": 100663296,
+        "statements": 1000,
+        "batchMs": 30000,
+        "domainWrites": 0
+      },
+      "completedPages": 96,
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 172.625,
+        "p95CpuMs": 125.75,
+        "rowsRead": 2519,
+        "rowsWritten": 192,
+        "queryMs": 56,
+        "maxStatements": 6,
+        "domainWrites": 0
+      },
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 149670289
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 140810207
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 135587681
+        }
+      ],
+      "physical": {
+        "profile": "earned/authority-row/v1",
+        "measurements": [
+          {
+            "rows": 41,
+            "physicalBytes": 914768,
+            "logicalBytes": 672409,
+            "maxPhysicalRowBytes": 89419,
+            "maxSealedBytes": 89211
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          }
+        ],
+        "note": "Synthetic JSON bytes excluding SQL pages/index overhead; generated key material omitted. Existing resource metric/ceilings unchanged."
+      }
+    },
+    {
+      "variant": "canonical-unused-bits",
+      "evidence_sha256": "0ac67722cb9eda10ab168b28e3074f93ad0ba21f19f6a49456bc2c8726a884ea",
+      "physical_evidence_sha256": "f28bb4cc5921b730465e318646ecce1267fedfe3094c67549d0aeea86623e79a",
+      "verdict": "FAIL",
+      "ceilings": {
+        "cpuMs": 1000,
+        "observedAllocationBytes": 100663296,
+        "statements": 1000,
+        "batchMs": 30000,
+        "domainWrites": 0
+      },
+      "completedPages": 96,
+      "oversizeRefusal": "413 RECONCILE_LIMIT",
+      "summary": {
+        "requests": 97,
+        "maxCpuMs": 141.375,
+        "p95CpuMs": 125.75,
+        "rowsRead": 2519,
+        "rowsWritten": 192,
+        "queryMs": 46,
+        "maxStatements": 6,
+        "domainWrites": 0
+      },
+      "violations": [
+        {
+          "label": "boundary-sequential",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 165399602
+        },
+        {
+          "label": "two-overlapping-complete-attempts",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 168072956
+        },
+        {
+          "label": "oversize-typed-refusal",
+          "code": "OBSERVED_ALLOCATION_CEILING",
+          "actual": 138831503
+        }
+      ],
+      "physical": {
+        "profile": "earned/authority-row/v1",
+        "measurements": [
+          {
+            "rows": 41,
+            "physicalBytes": 914768,
+            "logicalBytes": 672409,
+            "maxPhysicalRowBytes": 89419,
+            "maxSealedBytes": 89211
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421944,
+            "logicalBytes": 1052791,
+            "maxPhysicalRowBytes": 508256,
+            "maxSealedBytes": 508095
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          },
+          {
+            "rows": 41,
+            "physicalBytes": 1421947,
+            "logicalBytes": 1052792,
+            "maxPhysicalRowBytes": 508259,
+            "maxSealedBytes": 508097
+          }
+        ],
+        "note": "Synthetic JSON bytes excluding SQL pages/index overhead; generated key material omitted. Existing resource metric/ceilings unchanged."
+      }
+    }
+  ],
+  "final_source_sha256": {
+    "reconciliation/codec.cjs": "2336594b9fab772c818834531122c639debd8977adee5c12fd5b3d92ba6bd192",
+    "reconciliation/project.cjs": "7ee8836332a721b78b43e2f5a816127ea634117b2fa20d7fc67c8bd28390580d",
+    "test/p1-resource.cjs": "3347a1824ea02cebb0cd287ae7a215f3da05143eec6bead7e7978eb6c2f06759",
+    "test/r1-resource.test.cjs": "c31f58f4f33ddf029dab2fae75cc92e7b369092c0af5eb24eca56769b783ba2a",
+    "test/r1-resource-fixture.cjs": "3235510964bc64fe6618221c2d7dc25df98683de2f762c10647952d363e8b0b4",
+    "test/r1-workerd.cjs": "314beed62e0ad7ecbc2798d6fd9e31a55792c25441bd8e6ecf12464b752f5347"
+  }
+}

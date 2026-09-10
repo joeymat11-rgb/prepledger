@@ -40,14 +40,36 @@ function createFace(ctx) {
   }
 
   /* ---- D7: missing dates counted back from today over snapshot reads + local reads ---- */
-  function missingDates() {
-    const dates = new Set((snapshot().reads || []).map((r) => (typeof r === "string" ? r : r.date)).concat(ctx.reads().map((r) => r.date)));
+  function missingDates(projected = ctx.readingProjection?.()) {
+    const dates = new Set((snapshot().reads || []).map((r) => (typeof r === "string" ? r : r.date)).concat(projected ? [] : ctx.reads().map((r) => r.date)));
+    if (projected) {
+      // A factual view cannot establish that any new date/effect was reduced
+      // into the old machine snapshot. It may only suppress snapshot dates.
+      for (const row of projected.records) if (row.status === "accepted" &&
+          (row.accepted?.state !== "included" || row.local?.state !== "included" || row.effects.some(e => e.status !== "rejected"))) dates.delete(row.date);
+      for (const day of [...projected.acceptedDays, ...projected.days]) if (day.op_ids.length > 1) dates.delete(day.date);
+    }
     if (!dates.size) return null;
     let n = 0; for (let d = ctx.today(); n < D7.horizon; d = addDays(d, -1)) { if (dates.has(d)) break; n++; }
     return n;
   }
-  function layer2() {
-    const s = snapshot(); const missing = missingDates();
+  function layer2(projected = ctx.readingProjection?.()) {
+    const s = snapshot();
+    // Signed history establishes the restored plan, not a qualified current
+    // machine projection. Do not derive freshness from a partial reading set.
+    if (s.recoveryPlan?.profile === "earned/recovered-plan-snapshot/v1") return {
+      label: null, trend: null, rate: null, maintenance: null, instruction: null,
+      outputs: [], proposals: [], actionLoci: [], displayedProposal: null,
+      paceCurrent: false, board: null, missingDates: null, projectionPending: true,
+      copy: ctx.contractObsolete() ? COPY.UPDATE_EARNED : COPY.RECOVERY_PENDING, syncLine: null
+    };
+    const missing = missingDates(projected);
+    if (projected && missing === null) return {
+      label: s.asOf ? COPY.AS_OF(s.asOf) : null, trend: null, rate: null, maintenance: null, instruction: null,
+      outputs: [], proposals: [], actionLoci: [], displayedProposal: null,
+      paceCurrent: false, board: null, missingDates: null, readingResolutionRequired: true,
+      copy: "Reading inputs need review before these estimates can be shown.", syncLine: null
+    };
     const board = missing == null || missing < D7.staleFrom ? "NO_WEIGH_IN_TODAY" : missing < D7.reentryFrom ? "STALE" : "RE_ENTRY";
     const l2 = {
       label: s.asOf ? COPY.AS_OF(s.asOf) : null,
@@ -60,6 +82,13 @@ function createFace(ctx) {
     if (board === "RE_ENTRY") { l2.trend = null; l2.rate = null; l2.maintenance = null; l2.proposals = []; l2.instruction = null; l2.actionLoci = []; }
     /* DEPENDENCY-AWARE WITHDRAWAL: a Layer-1 operation that touches an output's declared dependency set suppresses it */
     const touched = ctx.touched();
+    // An earlier reading can affect the entire trend/maintenance estimate.
+    // Removing only that day's freshness cannot establish input coverage.
+    const readingChanged = projected && projected.records.some(row => row.status === "pending-local" || row.status === "unresolved" ||
+      row.status === "accepted" && (row.accepted?.state !== "included" || row.effects.some(e => e.status !== "rejected")));
+    if (readingChanged) {
+      touched.add("fact:reading"); l2.trend = null; l2.rate = null; l2.maintenance = null; l2.paceCurrent = false;
+    }
     if (touched.size) {
       const touches = (deps) => (deps || []).some((d) => touched.has(d));
       l2.outputs = l2.outputs.filter((o) => !touches(o.deps)); l2.proposals = l2.proposals.filter((p) => !touches(p.deps)); l2.actionLoci = l2.actionLoci.filter((a) => !touches(a.deps));
@@ -85,17 +114,18 @@ function createFace(ctx) {
     if (!model.booted) return skeleton();
     if (model.restoreRequired) return blocked(18);
     if (!ctx.sync.recover()) return { ...blocked(governing()), copy: COPY.REJECTED_BLOCKED };
-    const st = governing(); const l2 = layer2(); const s = snapshot();
+    const st = governing(); const projected = ctx.readingProjection?.(); const l2 = layer2(projected); const s = snapshot();
     const revoked = model.standing === "revoked"; const accepted = ctx.acceptedPlan(); const rejectedN = model.rejected.size;
     const livePlan = ctx.livePlan();
     const f = {
       paint: "TRUTHFUL", state: st,
-      layer1: { plan: livePlan, planProvenance: accepted ? accepted.provenance : null, label: ctx.outbox.size() ? COPY.SAVED : "", reads: ctx.reads(), notYetSyncedCount: revoked ? undefined : ctx.outbox.size() },
+      layer1: { plan: livePlan, planProvenance: accepted ? accepted.provenance : null, label: [ctx.outbox.size() ? COPY.SAVED : "", l2.projectionPending ? COPY.RECOVERY_PLAN : ""].filter(Boolean).join(" · "), reads: projected ? projected.reads : ctx.reads(), notYetSyncedCount: revoked ? undefined : ctx.outbox.size() },
       layer2: l2, answers: ctx.answers(), rejectedCount: rejectedN, rejectedLine: rejectedN ? COPY.REJECTED_LINE(rejectedN) : null,
-      today: !accepted ? (model.explicitNoPlan ? COPY.NO_PLAN : COPY.FIRST_USE) : (l2.instruction || COPY.PLAN_IN_EFFECT),
+      today: l2.projectionPending ? l2.copy : !accepted ? (model.explicitNoPlan ? COPY.NO_PLAN : COPY.FIRST_USE) : (l2.instruction || COPY.PLAN_IN_EFFECT),
       resolution: revoked ? COPY.DEVICE_REMOVED : null,
       acceptedPlan: accepted ? Object.assign({}, accepted.plan, { provenance: accepted.provenance, version: accepted.version }) : null,
       history: ctx.history(),
+      ...(projected ? { readingHistory: projected } : {}),
     };
     if (revoked) f.layer1.label = ctx.outbox.size() ? COPY.RETAINED_NO_SYNC : "";   /* no label that promises a future sync */
     return f;

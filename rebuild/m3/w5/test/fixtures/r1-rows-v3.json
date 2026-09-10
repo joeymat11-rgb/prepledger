@@ -1,0 +1,7 @@
+{
+  "note": "Public synthetic exact-byte vectors; no signing key or private data. Existing ES256 low-S signature encoding is reused.",
+  "rows": [{"collection":"history","row_id_b64":"ZcyBAA","value_b64":"IHsibiI6MS4wMH0g"}],
+  "batch_json": "[{\"collection\":\"history\",\"row_id_b64\":\"ZcyBAA\",\"value_b64\":\"IHsibiI6MS4wMH0g\"}]",
+  "batch_digest": "l_19vl0BUEMttlacoBbsJFTdamHy5yIJDX60c7K_bMk",
+  "empty_batch_digest": "q1rIRmg1PIkyhJ9d4e4oMjYhDPAE3mbALCIFYOIBHA0"
+}

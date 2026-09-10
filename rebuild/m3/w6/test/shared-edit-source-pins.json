@@ -1,0 +1,10 @@
+{
+  "files": {
+    "schema.cjs": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+    "authority-profile.cjs": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+    "edit-values.cjs": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+    "context-values.cjs": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+    "edit-history.cjs": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2"
+  },
+  "profile": "earned/shared-workout-edit-candidate/v1"
+}

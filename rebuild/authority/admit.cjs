@@ -6,11 +6,49 @@ const plan = require("./plan.cjs");
 const issue = require("./issue.cjs");
 
 const slotId = op => JSON.stringify([op.device_id, op.device_seq]);
-function makeAdmission({ store, authorityKey, identityKey, now, athleteIds }) {
+function makeAdmission({ store, authorityKey, identityKey, now, athleteIds, resolveIssuedLease, workoutProfile }) {
+  if (resolveIssuedLease !== undefined && typeof resolveIssuedLease !== "function")
+    throw new TypeError("resolveIssuedLease must be a synchronous function");
   const signed = (op, status, extra = {}) => signDisposition({
     op_id: op.op_id, canonical_content_commitment: op.canonical_content_commitment,
     device_id: op.device_id, device_seq: op.device_seq, status, decided_at: now(), ...extra,
   }, authorityKey);
+
+  function workoutInvalid(value, message) {
+    // An accidental native Promise is still refused synchronously. Observe its
+    // rejection so a broken configured dependency cannot crash the host later.
+    try { Promise.prototype.then.call(value, undefined, () => {}); } catch (_) {}
+    throw new TypeError(message);
+  }
+  function workoutBoolean(method, op, readOperation) {
+    try {
+      if (!workoutProfile || typeof workoutProfile[method] !== "function")
+        throw new TypeError("Workout profile unavailable");
+      const value = workoutProfile[method](op, readOperation);
+      if (typeof value !== "boolean") workoutInvalid(value, "Workout profile must be synchronous boolean");
+      return value;
+    } catch (_) {
+      // Never pass a dependency's rejectionCode to attempt()'s terminal path.
+      throw new TypeError("Workout profile unavailable");
+    }
+  }
+  function workoutReferences(op) {
+    try {
+      if (!workoutProfile || typeof workoutProfile.references !== "function")
+        throw new TypeError("Workout profile unavailable");
+      const value = workoutProfile.references(op);
+      if (!Array.isArray(value)) workoutInvalid(value, "Workout references must be synchronous identifiers");
+      const refs = [];
+      for (let i = 0; i < value.length; i++) {
+        if (!Object.hasOwn(value, i) || typeof value[i] !== "string" || !value[i].trim())
+          workoutInvalid(value, "Workout references must be dense identifiers");
+        refs.push(value[i]);
+      }
+      return refs;
+    } catch (_) {
+      throw new TypeError("Workout profile unavailable");
+    }
+  }
 
   function retain(tx, op, disposition) {
     const previous = tx.get("operations", op.op_id);
@@ -39,7 +77,16 @@ function makeAdmission({ store, authorityKey, identityKey, now, athleteIds }) {
     if (digest !== op.canonical_content_commitment) return reject(tx, op, "MALFORMED");
     if (op.kind === "plan-mutation" && op.member_set_commitment !== hmac(key, "earned/members/v1" + canonicalEncode(op.members)))
       return reject(tx, op, "MALFORMED");
-    const device = state.devices[op.device_id], lease = device && device.lease;
+    const device = state.devices[op.device_id];
+    // The optional resolver reads this same staged transaction. Reconsidered
+    // WAITING entries reach this identical cut; renewal never substitutes a
+    // different capability for the operation's original lease identifier.
+    const lease = device && (resolveIssuedLease === undefined ? device.lease
+      : resolveIssuedLease(tx, athlete, op.device_id, op.lease_id));
+    if (resolveIssuedLease !== undefined && device && lease !== undefined &&
+        (!lease || typeof lease !== "object" || Array.isArray(lease) ||
+         typeof lease.then === "function" || typeof lease.lease_id !== "string" || !lease.lease_id))
+      throw new TypeError("issued lease resolver returned an invalid synchronous result");
     if (!lease || lease.lease_id !== op.lease_id) return reject(tx, op, "LEASE_UNKNOWN");
     if (!verifyLease(lease, authorityKey) || lease.device_id !== op.device_id || lease.athlete_id !== athlete)
       return reject(tx, op, "LEASE_FORGED");
@@ -50,7 +97,10 @@ function makeAdmission({ store, authorityKey, identityKey, now, athleteIds }) {
     // Expiry gates LOCAL commitment. Late delivery cannot revoke an acknowledged save.
     const occupied = tx.get("slots", slotId(op));
     if (occupied && occupied.op_id !== op.op_id) return reject(tx, op, "DEVICE_SEQ_REUSE");
-    const refs = [...op.causal_parents, ...(op.target_op_id ? [op.target_op_id] : [])];
+    const workout = lease.schema_version === 2;
+    if (workout && !workoutBoolean("validateShape", op)) return reject(tx, op, "MALFORMED");
+    const refs = [...new Set([...op.causal_parents, ...(op.target_op_id ? [op.target_op_id] : []),
+      ...(workout ? workoutReferences(op) : [])])];
     let pending = false;
     for (const ref of refs) {
       const parent = tx.get("operations", ref);
@@ -60,6 +110,8 @@ function makeAdmission({ store, authorityKey, identityKey, now, athleteIds }) {
     }
     if (pending) return known ? known.disposition : retain(tx, op, signed(op, "WAITING"));
     if (op.kind === "reclassification" && !validReclassification(op, tx.get("operations", op.target_op_id).op)) return reject(tx, op, "MALFORMED");
+    if (workout && !workoutBoolean("validateRelations", op, id => tx.get("operations", id)?.op))
+      return reject(tx, op, "MALFORMED");
     const seq = state.seq + 1, accepted_at = now();
     tx.insert("log", String(seq), { seq, op, accepted_at });
     tx.put("metadata", "state", { ...state, seq });

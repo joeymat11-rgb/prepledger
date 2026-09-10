@@ -1,0 +1,20 @@
+'use strict';
+// Isolated child module cache: neither tracked product nor other workers change.
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {spawnSync}=require('node:child_process'),{createHash}=require('node:crypto'),assert=require('node:assert/strict');
+const file=path.resolve(__dirname,'../reconciliation/paged-codec.cjs'),original=fs.readFileSync(file,'utf8');
+const sha=x=>createHash('sha256').update(x).digest('hex');
+const target='check(await verifier.verifyRecord(record,record.profile),\'ROWS_SIGNATURE\');';
+assert.equal(original.split(target).length,2,'Exactly one real public-verification seam');
+const mutated=original.replace(target,"check(true,'ROWS_SIGNATURE');");
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'earned-rows-bite-')),preload=path.join(dir,'preload.cjs');
+fs.writeFileSync(preload,`const M=require('node:module'),p=require('node:path'),f=${JSON.stringify(file)};const m=new M(f,module);m.filename=f;m.paths=M._nodeModulePaths(p.dirname(f));require.cache[f]=m;m._compile(${JSON.stringify(mutated)},f);`);
+const args=['--test','--test-reporter=tap',path.join(__dirname,'r1-paged-codec.test.cjs')];
+const red=spawnSync(process.execPath,['--require',preload,...args],{encoding:'utf8',windowsHide:true});
+fs.writeFileSync(path.join(dir,'red.log'),red.stdout+red.stderr);
+assert.equal(red.status,1,red.stdout+red.stderr);assert.match(red.stdout,/not ok \d+ - a valid-looking signature from another private key/);
+console.log('R1 ROWS BITE RED — forged same-key-id signature accepted after public verification bypass; native exit 1');
+const green=spawnSync(process.execPath,args,{encoding:'utf8',windowsHide:true});fs.writeFileSync(path.join(dir,'restored.log'),green.stdout+green.stderr);
+assert.equal(green.status,0,green.stdout+green.stderr);assert.equal(sha(fs.readFileSync(file)),sha(original));
+console.log('R1 ROWS BITE RESTORED PASS — native exit 0; source SHA256 '+sha(original));
+console.log('R1 ROWS BITE logs '+dir);
