@@ -77,3 +77,18 @@ test('unchanged status and capture-source guards still reject detached history a
  assert.throws(()=>History.createEngineHistoryProjector(f.dependencies).project(s.history,s.generation,{sourceRevision:s.sourceRevision}),{code:'WORKOUT_ENGINE_STATUS_DISAGREEMENT'});
  await assert.rejects(f.map(History,{resolveCapturedLayout:args=>{const layout=f.dependencies.resolveCapturedLayout(args);layout.slots[0].logical_set_slot='foreign-slot';return layout;}}),{code:'WORKOUT_CAPTURE_LAYOUT_UNPROVEN'});
 });
+test('NFC-equivalent configuration spellings remain exact through storage, correction and original-target matching',async t=>{
+ const composed=configuration('caf\u00e9'),decomposed=configuration('cafe\u0301');
+ const Canonical=mod('rebuild/client/canonical.cjs'),Codec=mod('rebuild/m3/w5/reconciliation/codec.cjs');
+ assert.equal(Canonical.encode(composed),Canonical.encode(decomposed),'Inherited canonical equivalence is unchanged');
+ assert.equal(Codec.fullEqual(composed,decomposed),false,'Actual recovery envelope equality retains literal distinction');
+ assert.deepEqual(Codec.parse(Codec.encode(decomposed)),decomposed);
+ assert.throws(()=>Codec.parse('{"kind":"configuration","configuration_key":"BW","configuration_key":"hold"}'));
+ const f=await fixture({targets:[composed,pounds(20),null],values:[composed,pounds(20),configuration('hold')]});t.after(f.close);
+ const p=await f.client.prepareWorkoutEdit({target_op_id:f.ids[0]});assert(p.prepared,p.code);
+ const r=await f.client.commitWorkoutEdit({editId:p.editId,action:'correct',change:{load:decomposed}});assert(r.acknowledged,r.code);
+ const view=await f.map(),slot=view.sessions[0].record.entries[0].slots[0];
+ assert.deepEqual(slot.fact.original.load,composed);assert.deepEqual(slot.fact.current.load,decomposed);assert.deepEqual(slot.prescribed_load.source,composed);
+ assert(slot.fact.edit_op_ids.includes(r.op_id));
+ await assert.rejects(f.map(History,{resolveCapturedLayout:args=>{const layout=f.dependencies.resolveCapturedLayout(args);layout.slots[0].prescribed_load.source=decomposed;return layout;}}),{code:'WORKOUT_CAPTURE_LOAD_DISAGREEMENT'});
+});
