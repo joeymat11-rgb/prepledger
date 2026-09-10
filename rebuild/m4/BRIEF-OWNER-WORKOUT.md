@@ -1,4 +1,8 @@
-# EARNED — complete owner workout slice — proposed technical brief v0.82 (working implementation)
+# EARNED — complete owner workout slice — proposed technical brief v0.83 (working implementation)
+
+## Current v0.83 configured-load wire preparation
+
+While APM's one existing source review covers immutable2129f07/bb2fd67, the next C1/C2 representation dependency is specified in LOAD-AND-SLOT-EXTENSION v0.3: an exact numeric/configuration union for performed Set and targeted load replacement, explicit entry independent of the original target, whole-value correction and preserved original/effective values. Five nonshipping value/boundary checks PASS, including actual current schema/edit refusal and strict parser/Ops/NFC behavior; no configured-load runtime or scientific reader is enabled. This wire choice still requires affected technical acceptance before adoption. WORKOUT-SCHEMA-V2 §5 now names the actual schema1-only M4 source replay path for eventual complete transition and records reuse of the already verified rollback binding guards. No duplicate store/callback, source runtime widening, new tracker or current source-review scope change.
 
 ## Current v0.82 source shape/reference and upstream scope evidence
 
