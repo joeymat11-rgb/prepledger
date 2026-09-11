@@ -1,3 +1,59 @@
+REVIEWED NAVIGATION / QUALIFIER JOIN — 2026-09-11
+Current source:11ba8e804ce9e2b1719d19a950c7ade19a20978e.
+COMBINED VISIBLE BROWSER SOURCE PASS. FINAL PACKAGE NOT QUALIFIED.
+Assignment: ASTRA-OWNER-REVIEWED-DELTA-JOIN.md at PMbcfaf5b.
+Distinct original integrator; root scoped-accepted both candidates and remains
+sole PM. Read full independent navigationf9d722232b088d29a2cd7397730d2e6027f81290
+and qualification427d38c4be330169c21dbd8e74deff15a7ff8582 reports.
+
+From clean d450ee70891bfe7cfb253eb97f5a73821b7eabca, mechanical --no-ff joins:
+  a157d3dca009205b0e796f9a73f97e10256a0d83 -> c7b2a691341dffe51b50713f8c955e107299d256
+  5d350c8dc4239202d72e54da51fe3723b7831fb6 -> 11ba8e804ce9e2b1719d19a950c7ade19a20978e
+No conflict or manual resolution. Original source histories/reports preserved.
+Byte-equivalence checks: all five changed navigation product/test paths equal
+accepted a157; entire lane-b/spec/rebuild.yml paths equal accepted5d350. Both
+git diff --exit-code checks returned0. No B1, first-use setup or other pending
+work joined; no product fix, policy/source re-pin or qualification assertion.
+
+Actual committed rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs
+executed against the combined source, using existing Node24.19.0/Chrome,
+retained dependencies, W7_BROWSER_BIN, NODE_PATH=W6, TZ=America/New_York,
+MEASURED_TEST_NOW=2026-09-03. No install. Output:
+  OWNER WORKOUT NAVIGATION BROWSER PASS: visible keyboard training without
+  weight; exact sets before any reading; resume/review; later real weight; reload.
+Exit0, first invocation. Actual build/default owner boot/current browser clock,
+public synthetic enrollment, no model/day/basis injection or app.render shortcut.
+Cancel weight; visible Start UPPER responds to native focus/Enter. Real UI saves
+40x10 before any reading, Back to Today offers Resume, another40x10 is saved,
+explicit Finish exposes Review; then UI170.5 weight/reload. Exact final5 ops:
+one Start, two Sets, one Close, one reading. Both full Set identities/contents
+survive reload, finished phase retained, no duplicates or page errors. One
+large primary remains. Inspected actual390x844 navigation-ready.png: workout
+action visible beside UPPER before weight, approved layout/style preserved.
+This closes the prior integration probe's navigation limitation in this scope.
+Reuse earlier day09-11/14/18 progression, setup/cache and independent component
+evidence; no repeated broad suite or full/private campaign, no phone/kill claim.
+
+Read-only exact preflight correctly refuses stale view.test.mjs child bytes.
+Three declared product pins differ: today/test/view.test.mjs, today/today-app.cjs,
+and w6/test/local-owner-entry.test.mjs (all under rebuild/m3). New
+w6/test/local-owner-workout-navigation-browser.mjs is not declared in current
+product map; changed today/screens.template.html also needs applicable exact
+resource/build closure. These are expected final-qualification dependencies.
+Next builder takes immutable11ba8e8 or this report-only descendant, refreshes
+actual source/test/resource graph, spec/policy/workflow pins and exact children.
+Execute actual wrappers: owner-entry expected67 must be proved; old journeys237
+must be remeasured after added8 view cells and changed joined tests, never guessed
+or replaced by a lower bound. Retain all material-review427d38c controls, complete
+final-policy tests,19 tooling controls, original13+child4 and inherited gates.
+New exact independently reviewed policy/digest plus genuine fixed-chain PM
+authority, full/private/second gates, both-OS CI and receipt/rerun remain pending.
+No old614 authority. No source counter/needle was changed by this integrator.
+git diff --check PASS; only this ONE integration report updated. No actual
+integration branch, remote ref, push, publication, deploy, secrets/private input,
+install, purchase, destructive action or protected-soak access.
+
+PRIOR JOIN — HISTORICAL EVIDENCE, CURRENT DISPOSITION ABOVE
 OWNER-USE LOCAL INTEGRATION UPDATE — 2026-09-11
 Current source:3a73b0d3ee0c21711a1dc8d77fd2425f05adf1bd.
 COMBINED BUILT-BROWSER SOURCE PASS. FINAL PACKAGE NOT QUALIFIED.
