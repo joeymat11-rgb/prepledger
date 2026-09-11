@@ -1,0 +1,14 @@
+# Fresh owner use: bounded implementation brief preparation
+
+Root temporary PM assignment, September 11. Purpose: unblock actual fresh S2 daily use for Joe and Dad without claiming demo fixtures are their app. Read NEXT.md, ROADMAP.md, LANES and DECISIONS:100,109–111, plus approved design under rebuild/m1/approved-2026-09-08. Current integrated base is 7b1678a; pending B-NTC join0876043 supplies reviewed default trend context. No product scope reduction.
+
+In a separate codex/astra-fresh-owner-plan worktree from 7b1678a, inspect the current clean-init constructor, local enrollment/store, Today entry/model, first working-load input and the proposed Dad first-run brief in work/lane-c/dad. Do not modify product or other worktrees yet. Produce ONE factual report with a concrete implementation brief suitable for immediate builder dispatch, exact file ownership, required behavior and focused proof targets.
+
+Resolve four questions with code or small synthetic execution, not a generic architecture essay:
+
+1. How does a real setup persist as authoritative information through restart and derived-cache loss? local-client currently places cleanInit only in derived at enrollment; determine whether another existing durable authoritative carrier covers it. Do not treat an invalidatable cache as the sole source of a person's setup or quietly replace it with a fixture.
+2. How to select current local calendar consistently across Today, writes, lease and gym/check-in, preserving explicit test clocks and actual C4 clock rules? Include midnight/reopen behavior and keep demo data separate from owner mode.
+3. Can a fresh exercise with w:null actually record its first performed load and then progress? Reviewer noted repeat-workout fixtures supply starting loads, so that proof does not establish the real empty-profile path. Execute the smallest meaningful fresh first-set journey if necessary and identify the exact missing seam.
+4. What owner-facing onboarding can reuse approved design without claiming the pending Dad six-screen mock was approved? Distinguish explicit user facts, initial plan choices and unsupported nutrition/recovery capabilities. Avoid hardcoded athlete facts, arbitrary recommendations or a setup that requires Dad to design the whole coaching system himself. Name any actual product decision the existing evidence cannot resolve; do useful implementation preparation first.
+
+Output should be short and actionable, preserving full product ambitions and prioritizing fresh daily-use dependencies. No broad memory review, no historical-data read/export/import, no installs, pushes, merges, deploys, frozen-law edits or purchases. Source and synthetic public fixtures only; verdicts and source references, no private contents. Commit ONE report in rebuild/lanes/c/ASTRA-FRESH-OWNER-PLAN.md and send commit plus next buildable slice to PM. You are a preparer, not its future independent acceptance reviewer.
