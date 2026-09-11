@@ -125,8 +125,16 @@ the strings: `"This morning — not logged yet"` -> `"This morning: not logged y
 ### Left alone, on purpose
 `console.log` lines in `browser-check.mjs` / `gym-check.mjs` / `checkin-check.mjs` / `serve.mjs`, assertion messages,
 code comments and test names keep their dashes. The brief says they are not user-facing and tells the builder not to
-churn them. The literal survey after the sweep finds 18 dashed string literals still in `today/**`; every one of them
-is a console line or a developer assertion message, and none is in a file the page bundles.
+churn them.
+
+The literal survey after the sweep finds **18 dashed string literals in the non-test modules of `today/**`**
+(`browser-check.mjs` 5, `gym-check.mjs` 8, `checkin-check.mjs` 4, `serve.mjs` 1): every one is a `console.log` line
+or a developer assertion message, and none is in a file the page bundles. Counting `test/` as well the figure is
+**125** (corrected in Round 2 after the reviewer measured it: the earlier draft of this sentence said "18 dashed
+string literals still in `today/**`", which was the non-test figure stated for the whole-folder scope). The other
+107 are test names, assertion messages and the deliberate dash fixtures `copy.test.mjs`, `checkin.test.mjs`,
+`gym.test.mjs`, `view.test.mjs`, `design.test.cjs` and `adapter.test.mjs` need in order to do their job. None is
+user-facing and none is bundled.
 
 ---
 
@@ -443,3 +451,163 @@ No token or secret printed, logged or committed. Nothing under `ledger/`, `rebui
 on `rebuild/polish-p1` only. `work/t2-client-core-pm` and every other worktree were left untouched; all work happened
 in `work/pm-p1`, whose `node_modules` are junctions to the CI-faithful `earned-ci` tree (gitignored;
 `git status --porcelain` clean apart from the tracked changes above).
+
+---
+---
+
+# ROUND 2 — the fixes for `P1-REVIEW.md` (REJECT at f06631b)
+
+Reviewer's file: `rebuild/slice/P1-REVIEW.md` @ 9bb5620. Five items came back; all five are done. Everything below
+was executed on the owner's Windows PC after the fixes, at the new head.
+
+## R2.1 Finding 1 (BLOCKING) — the two A5 title pins, and A5's own no-dash rule
+
+The reviewer is right and the finding is mine to own: the sweep changed A1's tab title, and `rebuild/slice/pwa`
+pins that title as a literal in two places to catch exactly this kind of upstream edit. It did its job; CI went red
+on both runners at `f06631b` on `A5 — the PWA shell's lockfile-only suites` and `A5 — the built deploy folder
+itself`. The base `5c6766e` was green on both. P1 changed no file outside `today/**`, so this was a dependency the
+brief did not anticipate and I did not look for.
+
+Custody for this fix was widened by the PM to **those two test files only**. Both pins are corrected to the exact new
+title and both stay LITERAL titles, because failing when A1's shell moves is the whole point of them:
+
+| file:line | before | after |
+|---|---|---|
+| `rebuild/slice/pwa/test/pwa.test.cjs:630` | `assert(html.includes("<title>Earned — Today</title>"))` | `assert(html.includes("<title>Earned: Today</title>"))` |
+| `rebuild/slice/pwa/test/package.test.cjs:189` | marker `"<title>Earned — Today</title>"` | marker `"<title>Earned: Today</title>"` |
+
+And the reviewer's second obligation, the rule itself over what A5 ships, added to both suites:
+
+* `pwa.test.cjs` — a new test sweeps A1's shell as A5 reads it, the web manifest, the preflight markup, stylesheet
+  and script, and the installable HTML A5 emits, each outside its comments, and is red-first (a planted dash in the
+  title is caught).
+* `package.test.cjs` — a new test sweeps **every text file A5 actually deploys** (13 files, `app.js` excluded for
+  the reason A1's own build guard states), also red-first.
+
+**A5 owns two user-facing dashes of its own, and they are NOT fixed here — this is the "say so in the report" case
+the reviewer named.** They are:
+
+| file | string |
+|---|---|
+| `rebuild/slice/pwa/preflight.html` | `<p><strong>Offline launch</strong> — <span data-pwa="state">…</span></p>` |
+| `rebuild/slice/pwa/preflight.js` | `'All ' + status.total + ' files of this build are stored on this device — everything the launch needs is here.'` |
+
+Rewriting those is editing A5's source, which the PM's ruling does not cover (it widened custody to the two TEST
+files only), so instead of hiding them the two new tests **PIN them at exactly one each**: a third A5-owned dash
+fails both suites, and the page A5 emits is asserted to carry that one dash and no other, located and checked to be
+the "Offline launch" line rather than anything of A1's. **A5-lane item, named here so it cannot be forgotten:**
+those two strings need the same sweep (label suffix -> a colon), in A5's custody.
+
+```
+> node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
+ℹ tests 44
+ℹ pass 44
+ℹ fail 0                                        (exit 0;  base at f06631b: 43 tests, 1 fail)
+
+> node rebuild/slice/pwa/build-pwa.mjs            (exit 0)
+> node --test rebuild/slice/pwa/test/package.test.cjs
+ℹ tests 11
+ℹ pass 11
+ℹ fail 0                                        (exit 0;  base at f06631b: 10 tests, 1 fail)
+```
+
+Each suite gained exactly one test: the new no-dash sweep.
+
+## R2.2 Finding 2 — the last-chance status line punctuates its cause
+
+The defect was real and mine: `cause` carried its own leading space, so the machine's sentence ran into the next one.
+The two sentences are now `bootFailureCopy.host()` / `.status()` in `today-entry.mjs`, exported so the three cases can
+be asserted without staging a boot failure. Executed, in `copy.test.mjs`:
+
+| case | status line |
+|---|---|
+| a plain cause | `Today did not open: IDB_OPEN_FAILED. Nothing was recorded.` |
+| a cause the normaliser rewrote (`T2 lease not found — sign in again`) | `Today did not open: T2 lease not found: sign in again. Nothing was recorded.` |
+| a cause it refused (`lease—gone`) | `Today did not open. Nothing was recorded.` |
+
+and the host line for the plain case: `Today could not open on this device. Nothing was changed or recorded.
+IDB_OPEN_FAILED.` A cause that already ends in a stop is not given a second one. All four strings are asserted
+dash-free.
+
+## R2.3 Finding 3 — fail closed per SLOT, not per screen (PM: required)
+
+I take the reviewer's trade, and the PM required it. `plain-copy.cjs` gains `plainOrDrop(value, where, fallback)`:
+it calls `plainCopy`, and on an `AI_DASH_IN_UI` refusal it returns the fallback (empty by default) and writes the
+offending text to `console.error`. Any other error still propagates. Every render-boundary write in `today-app.cjs`
+(12), `gym-app.mjs` (7), `checkin-app.mjs` (6) and `today-entry.mjs`'s two status writes now goes through it; the
+boot-failure cause keeps bare `plainCopy` inside its own try/catch, which already drops.
+
+**Blank, not "Not available yet".** The engine does have a value in that slot; the page simply would not print it.
+Saying "not available" would be a claim about the engine that is not true, and `recovery-state` already renders blank
+when it has nothing to say. Documented in the function.
+
+The proof, in `copy.test.mjs` (`P1 — a refused string costs its own slot, never the whole of Today`): a word-joined
+dash is planted in `nowModel.move.title` on the view DTO on its way to the view — `rebuild/engine` is not edited, and
+this is exactly the shape a future engine package would take. Asserted: `plainCopy` refuses that string; the
+`instruction` slot renders `""`; all ten of `date`, `instruction-why`, `kcal`, `kcal-note`, `protein`,
+`workout-title`, `workout-count`, `morning`, `trend`, `primary-label` are non-empty, with `kcal-note` equal to its
+normal bound value; the page did NOT fall into "could not open"; the whole screen sweeps dash-free; and exactly one
+refusal reached the console, naming the slot and the text. A second test pins `plainOrDrop`'s own contract, including
+that it rethrows a non-dash error.
+
+## R2.4 Finding 4 — the §2 count
+
+Corrected in §2 above, measured with the builder's own scanner over `today/**`: **18 in the non-test modules, 125
+including `test/`** (the reviewer measured 116 at f06631b; Round 2's new tests add the difference, and the figure is
+re-measured here at the new head). The conclusion is unchanged and the reviewer verified it independently: none of
+them is user-facing and none is bundled.
+
+## R2.5 Item 5 (optional, taken) — "No, answer it here"
+
+`No: answer it here` -> `No, answer it here` in `screens.template.html` and in `design.cjs`'s `PREVIEW_COPY`, with a
+comment citing DECISIONS:114's own list ("a colon, comma, full stop or a new sentence"). The reviewer is right that
+a comma reads better before an imperative. `copy.test.mjs` taps the button by its new label, so the check-in branch
+test proves the string really is what the screen renders.
+
+## R2.6 THE FULL BAR, RE-RUN AT THE NEW HEAD
+
+```
+> node --test <the seven today test files>
+ℹ tests 192
+ℹ pass 192
+ℹ fail 0
+
+per file:  adapter 20 · checkin 28 · copy 36 · design 11 · gym 64 · package 10 · view 23   (all fail=0)
+           -> today 64 UNCHANGED · gym 64 UNCHANGED · checkin 28 UNCHANGED · copy 36 (was 33, +3 for R2.2/R2.3)
+
+> node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs
+ℹ tests 22   ℹ pass 22   ℹ fail 0                                            (exit 0)
+
+> node rebuild/m4/spec/native-carriers-package.cjs --ci
+NATIVE CARRIERS PUBLIC CI EVIDENCE PASS; the inherited full gate matrix, the private oracle, all FULL gates and independent acceptance remain separate
+                                                                             (exit 0)
+
+> node rebuild/m3/w7-preview/today/build.mjs
+A1 TODAY BUILD PASS: 3 assets; 94 pinned inputs (13 engine, 12 client); approved design pinned; 68 bound classes;
+2 pinned typefaces inlined; no literal figure in the template; 3/3 assets scanned and free of any network reference;
+no em/en dash in any text the athlete can see (904 frozen-source strings carry one and reach the screen only through
+plainCopy; 1 harvested approved term(s) dash-normalised)
+
+> node rebuild/slice/pwa/test/pwa.test.cjs + workflow.test.cjs   44/44 fail 0   (exit 0)
+> node rebuild/slice/pwa/build-pwa.mjs                                          (exit 0)
+> node rebuild/slice/pwa/test/package.test.cjs                  11/11 fail 0   (exit 0)
+
+msedge, W7_BROWSER_BIN set, after a build:
+> browser-check.mjs   A1 TODAY BROWSER CHECK PASS   ... 11 screen states swept dash-free   (exit 0)
+> gym-check.mjs       A2 GYM BROWSER CHECK PASS     ... 12 screen states swept dash-free   (exit 0)
+> checkin-check.mjs   A3 CHECK-IN BROWSER CHECK PASS ... 8 screen states swept dash-free   (exit 0)
+```
+
+31 real-browser screen states, unchanged from Round 1. `git status --porcelain` empty at the commit.
+
+## R2.7 WHAT IS STILL OPEN AFTER ROUND 2
+
+1. **CI on the new head has not run yet.** The reviewer's proof obligation 4 (`ci-status.js` showing `rebuild` and
+   `pipeline` completed/success at the new sha on BOTH runners) can only be checked after the push. The two red
+   steps are reproduced green locally above; that is not the same thing, and the integrator should not take it as
+   such.
+2. **A5's own two preflight dashes** (R2.1) are pinned, not fixed, and need an A5-lane change.
+3. **`rebuild.yml` still cannot enumerate `copy.test.mjs`** (custody; unchanged from Round 1, needs the next
+   re-seal). `checkin.test.mjs` is in the same position and was before this brief.
+4. The residual the reviewer accepted as non-blocking stands and is now narrower: with fail-closed-per-slot, a future
+   engine package that writes a word-joined dash into a rendered slot costs that line, not the screen.
