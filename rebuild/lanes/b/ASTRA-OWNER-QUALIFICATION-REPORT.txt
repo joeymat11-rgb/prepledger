@@ -1,198 +1,170 @@
-FINAL COHERENT QUALIFICATION — INTERMEDIATE SOURCE CHECKPOINT
-September 11, 2026. Author only. Final policy deliberately NOT frozen.
-Base d450ee70891bfe7cfb253eb97f5a73821b7eabca; integrated source
-3a73b0d3ee0c21711a1dc8d77fd2425f05adf1bd. Isolated final worktree/branch
-astra-owner-qualification-final / codex/astra-owner-qualification-final.
-The containing commit identifies this intermediate source exactly.
+FINAL COHERENT OWNER QUALIFICATION — PROPOSED POLICY REPORT
+September 11, 2026. Builder result, not independent acceptance or a receipt.
+Branch/worktree: codex/astra-owner-qualification-policy /
+work/astra-owner-qualification-policy. This report's containing commit is the
+final report-only descendant of the tested candidate below.
+Assignments: ASTRA-QUALIFICATION-FINAL-NAVIGATION.md at PM5b6f4bf;
+ASTRA-OWNER-QUALIFICATION-PREP.md; unchanged-dependency supplement7e7ccbb.
 
-Accepted entry46a8127 and preparation41f9 were mechanically joined by the
-independent integrator, whose committed report gives actual default-browser
-save/reload and scheduled 40x10 -> 40x10 -> 45x9 -> 45x10 evidence. Reuse
-independent preparationd6c582b and component reviews; no self-acceptance.
-Root subsequently held final policy for a separately assigned visible workout
-navigation disposition. That source has not joined; no B1 join or product edit.
+1. EXACT SOURCE AND ORDERING
+Base ca57649b3cc9189dca8d006ceb6bac17c842bea6, distinct integrated source
+11ba8e804ce9e2b1719d19a950c7ade19a20978e. Root accepted material5d350c8 on
+independent427d38c and navigationa157d3d on independentf9d7222. This builder
+reviews neither its own tooling nor final package. Prior preparationd6c582b,
+setup/native-baseline/entry and integrator evidence retain their scoped meaning.
+No active first-use setup or B1 source joined.
 
-Current delta
-- Refresh actual calendar/entry/test pins: 108-file build-resolved inventory,
-  148 product entries, 19 children. All reviewed17 declarations are preserved;
-  additions are actual entry/calendar execution and final qualification controls.
-- Entry wrapper executes local-owner-entry.test.mjs and the changed
-  local-today-journey.test.mjs: exactly66 pass, zero fail/skip/cancel.
-  Both are explicitly enumerated in the existing two-OS workflow; final
-  qualification controls have a separate explicit step. Browser remains separate.
-- Browser probe/build imports are inventoried. Its generated page URLs are
-  explicitly limited to /app.js three times and /enroll.js once, all imported
-  by the exact probe. They are browser URLs, not omitted filesystem modules.
-  Three build warnings are bound exactly to the unchanged journey's intentional
-  IDENTITY_KEY/ENROLMENT_EVIDENCE/AUTHORITY_KID nonexport assertions. All other
-  unresolved imports/warnings still refuse. No product loader form was added.
-- Refresh proposed v1.3 and historical three-overlay/two-SUPPORT wording.
+Final immutable source anchor:
+2b3ce525671f0081de8345ea2454796e4601e9dc
+Final policy/runner/spec commit tested:
+d5e6964f5be9c8c1d394bb868dffcc44b0023d59
+Navigation source/count closure was first committed096c9ae; two concrete stale
+execution fixtures were corrected at2b3ce52. Final policy was then generated
+from the already committed source. Its193 source pins include all160 product
+postimages, original inherited proof sources, exact brief, parent artifact and
+review, plus both tooling regression sources. No source pin points forward.
+Runner/policy/spec metadata are outside this source map to avoid circular hashes:
+compiled policy digest checks policy on disk AND HEAD; spec pins final runner on
+disk AND HEAD; genuine sealed envelope must later bind final spec/runner/policy.
+Those existing checks, exact CLI selector and actual CHAIN_REF are unchanged.
 
-Material runner correction authorized by supplement
-ASTRA-QUALIFICATION-UNCHANGED-DEPENDENCIES.md at PM7e7ccbb authorizes a narrow
-accounting correction. Actual old product() against the real current map reported
-47 post / 80 pre / 20 parent-carried / zero drift = PARTIAL, because truthful
-newly inventoried dependencies have pre===post. The correction only considers
-BNTC role:new with nonnull pre===post===disk. It validates the complete fixed
-policy, requires the individual immutable policy source pin, and checks the
-actual Git sourceBase preimage. It reports these as existing/present separately
-from changed implementation. Parent PRODUCT/EXECUTION classification and preimage
-checks, pre-before-post handling for edited/superseded files, and phase formula
-are unchanged. No general role, root, selector, authority or receipt exception.
+2. FINAL MECHANICAL SHA256
+Proposed b-ntc-successors.json policy:
+07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393
+b-package.cjs runner:
+77c1cd9a10cbb8d23e493fff5a9185b61a837398c6a3efa8c27a132d0c57c7aa
+packages/B-NTC.json spec:
+936f6481b855202a67973b60bb44f7d61f5a36ea8034029b032b2a790510652f
+Proposed BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md v1.3:
+5fc945dff19692983d2af533f54238c257120afa043d695e0356e1058ee604e4
+b-ntc-runtime-closure.cjs:
+1f392e28b6aabfa492f980215d6ee76dc3aaedfc5cb24c1db66a43624d6355b1
+b-ntc-runtime-closure.json:
+3af583a42c2cddddf28333c275389759c42097742c56bdac0766cebd80a57673
+b-ntc-journeys.cjs:
+4b63909d21baf846646214fef3c496adedc38b339cd651fc7692502a906d6bbe
+b-ntc-owner-entry-tests.cjs:
+c93b5c3167bd56727c0387e272028918f01dd2ed98d8c310abdc08ba47b3b088
+b-ntc-owner-final.test.cjs:
+d70516bf18cbb78ef9a34b9db55eae02c764b09f79b41e99f6792ff616d32c58
+.github/workflows/rebuild.yml:
+ad9d6480026c3474135cc5a33139ffb80661a3aad10a2b07ad16ae0caa8a17d0
 
-Executed focused evidence on this intermediate source
-- Actual entry/calendar wrapper66/66, zero fail/skip/cancel.
-- Unchanged actual setup/baseline wrapper49/49, zero fail/skip/cancel.
-- Final calendar/entry/browser disk drift and missing-pin controls5/5 (filtered
-  run; the four final-policy tests are deliberately pending final policy).
-- Reviewed owner source closure controls8/8 rerun on integrated entry source.
-- Ten isolated actual-runner unchanged-dependency controls passed (8 plus2
-  focused tests): old PARTIAL/new IMPLEMENTED; missing/changed disk; falsebase;
-  absent/wrong policy and changed declaration; parent mislabels; unchanged
-  edited/superseded parent remains PARTIAL; absent new implementation remains
-  PARTIAL; other package unchanged; missing individual source pin refuses;
-  existing dependencies alone remain NOT-IMPLEMENTED. Fixtures only replace the
-  compiled fixed policy digest with their synthetic policy's digest, preserving
-  all real validation functions/Git checks. They create no real chain authority.
-- Tooling regression equality counts follow exact19; all five real helper-as-test
-  substitutions remain. Legacy original execution restoration now also restores
-  the exact third projection pin. Full accepted19 tooling controls will rerun
-  once the final proposed source policy exists; no result claimed early.
-- diff --check clean. Product/frozen source diff against base is empty.
+3. CHANGED QUALIFICATION SCOPE
+120-file runtime/test/resource/dependency inventory,160 product entries,
+193 policy source pins,19 actual child declarations. The same nine inherited
+gate/name mappings and moves={} remain; MOVES_RULING=null. No assertion or
+child is dropped. Only measured durable-journeys/owner-entry terminals change
+from237/66 to245/67; final refusal count becomes21 with two added resource drifts.
+Original13 and actual-child4 targets are unchanged, respectively
+b-ntc-profile-refusals.test.cjs and b-ntc-successors.test.cjs. Reuse independent
+preparation evidence for those unchanged controls, setup49 and archived/actual
+proof separation; those are not new executions claimed here.
 
-Initial inventory attempts correctly refused browser page URLs, then the three
-intentional nonexport warnings, then detected the actual three /app.js imports.
-The scanner was narrowed to those exact reviewed constructs above; no test body
-or runtime was changed. An early wrapper invocation refused absent entry pins
-because inventory generation had stopped. The final66/49 executions succeeded.
+Added navigation browser imports and exact generated URL occurrences: original
+owner probe has three /app.js plus one /enroll.js; navigation probe has two
+/app.js plus one /enroll.js. Only those exact files/paths/counts are allowed.
+The same three intentional authority-nonexport warnings remain exact; there is
+no generic unresolved-import/warning exception. Source-declared design readers
+supply screens.template.html, preview.css and index.shell.html; approved
+references, view sources, font manifest/files and cipher-imports.json are also
+closed. Fonts come from the exact build declaration and matching manifest.
+This is an exact-source inventory, not a claim to parse arbitrary future loaders
+or verify installed package integrity. Package/lock inputs stay pinned unchanged.
 
-Current mechanical SHA256 (not a final policy)
-runner: 2f0fb155225c0bf947cc28a2036fabcce6f7b13aae7d35f97de486245325540b
-closure code: 9c9772979e2e4ff23edde4cd7e23465568b0252b750882895edc6f7764faf53f
-closure map: cf77ee949cbd2359ab559296b99fd141eeda8dca635561cf2ce4d96052662036
-entry wrapper: 73ccd933108380a5a494fae2d2f40809b6e9f2df5bafe13e8748f24beaccc0c9
-final controls: 541221e5d6e0a74355d2234a06f263032377486ce417e38cad2551e26518fd51
-existing controls: 1da30a38873bb09fefc3c2e0c3f493d035717ba536a70767cbd857e76024fe81
-proposed brief: 4160d581c9a667ca865dce1ac56f9c13511cd4f462a39bd0827c55166bf46d9a
-Old policy6147178 remains unchanged and cannot authorize this source.
+The existing two-OS workflow retains all affected explicit Today/setup/calendar
+vectors and final controls, and now explicitly names both tooling regression
+files with test-concurrency1. Browser proof remains separate: reuse the actual
+combined visible browser execution in integratorca57649, not a Node/phone claim.
+No product, stylesheet, engine, host, setup, frozen law or golden bytes changed.
+The proposed brief describes accepted navigation and preserves factual-baseline,
+unequal/configured mapping, B2/D7, unavailable fresh nutrition/trend and phone
+limits; pending first-use setup UI and B1 are explicitly outside this source.
 
-Pending: independently reviewed navigation source/disposition, narrow source
-join and refresh, committed coherent source followed by proposed policy and
-mechanical runner/spec hash update (no circular self-pin), real-map corrected
-product proof and all final policy/altered declaration/old tooling controls.
-Then independent material-runner/final-delta review, root PM exact brief/theme
-ruling, and genuine authority integration on both fixed CHAIN_REF and candidate.
-No new PM line is invented. Current actual CHAIN_REF remains7b1678a.
-Full/private/CI/45 laws/19 gates/second gate/fidelity/mutations/final receipt and
-physical-phone obligations remain. No install/private/FULL/push/PR/deployment.
+4. EXECUTED ON THE FINAL CANDIDATE
+Existing Node24.19.0 and retained root/W6/W5 dependency junctions, no install.
+Actual raw entry vector and its pinned wrapper:67 pass,0 fail/skip/cancel.
+Actual ten-file durable vector and pinned wrapper:245 pass,0 fail/skip/cancel.
+No count was inferred from test-file additions. Actual b-package.children()
+then ran both final declarations, checked their real argv targets, exit0 and
+exact67/245 terminal needles. All inherited test targets in that vector remain.
 
-HISTORICAL REUSABLE PREPARATION REPORT — CURRENT DISPOSITION ABOVE
+node --test --test-concurrency=1 --test-reporter=tap
+  rebuild/m4/spec/b-ntc-owner-final.test.cjs
+21 pass,0 fail/skip/cancel: six actual source/resource drifts plus missing pins;
+four final real-policy tests; ten unchanged-dependency fixtures. The correct
+committed definition passes; helper-as-test argv, short needle, missing/changed/
+misclassified source and absent real PM authority refuse. Synthetic accounting
+fixtures exercise actual old/corrected functions and Git checks, never real
+chain authority. Existing-only files cannot stand in for changed implementation;
+parent roles/preimages, falsebase, missing policy/source pin and absent new code
+retain their independent refusals or NOT-IMPLEMENTED/PARTIAL outcomes.
 
-ASTRA OWNER QUALIFICATION — REUSABLE PREPARATION CHECKPOINT
-2026-09-11; author only; not package acceptance or deployment.
+node --test --test-concurrency=1 --test-reporter=tap
+  rebuild/lanes/b/tooling/test/execution-targets.test.cjs
+  rebuild/lanes/b/tooling/test/successor-authority.test.cjs
+19 pass,0 fail/skip/cancel:9 actual execution/argv/role/root controls plus10
+source/chain/authority/original-execution controls. All FIVE real helper-as-test
+substitutions execute with19 declarations retained; old runner falsely covers
+nine gates, current exact-policy selector refuses before counting. Genuine
+source-carriers successor and exact original legacy child actually execute;
+wrong/missing execution and mere printed needles cannot satisfy source policy.
 
-Source
-Base df226c76cda5605d5a8548227464e460d0808bbc, isolated branch
-codex/astra-owner-qualification. This report's containing commit identifies the
-exact preparation candidate. Base includes the distinct product/tool join
-fbc24209f732db31eadec4c5fc48cca0d28e85e6, accepted setup 9e779f6,
-native baseline b843a7b, B-NTC/F1 71fb2f1 and tooling 85f7d56.
-Assignment: ASTRA-OWNER-QUALIFICATION-PREP.md in the PM worktree.
+Actual exported runner functions before its campaign boundary, no substitutions:
+spec(), parent(), product(), fidelity(), policy validation and children().
+Actual parent artifact/review/single-chain checks pass on the real fixed ref.
+PRODUCT IMPLEMENTED:52 changed postimages,0 preimages,20 parent-carried,
+88 newly inventoried existing dependencies (present, not changed implementation),
+zero unlisted drift, all20 parent products and three exact execution supersessions.
+Fidelity:38 changed inventoried paths; sourceBase7b1678a ancestor; final runner/
+spec exact;16/18 PIN_PATHS present, two explicitly absent/vacuous. This component
+fidelity result is not the full historical/mutation campaign.
+False/nonexistent sourceBase, altered product map, old614 policy and unissued
+real PM theme all refuse. Actual authority() separately verifies owner/contract
+at parent receipt b045e612d23651ccc9638b3200fa46fe25d31fbe, theme/brief null.
+Ignored reproducible actual-map probe .tmp/final-actual-map.cjs SHA256:
+4dede9c529de21334e1c5567c491fcea56484310c1d6d999e01e461706fc335e.
 
-Changes
-Proposed v1.3 brief explicitly supersedes historical section 13 O1's exclusion
-for factual native-baseline reconstruction using existing engine predicates.
-It includes authoritative stored setup and pending current-calendar composition;
-unequal/configured mappings, future-history B2/D7 limits and missing phone proof
-remain explicit. No product behavior changed by this preparation.
+5. DISCLOSED INTERMEDIATE FAILURES
+The first refresh script selected nonexistent child name journeys instead of
+actual durable-journeys; generation stopped and both wrappers correctly refused
+stale pins. Corrected selection, then actual vectors/wrappers passed.
+Initial provisional policy1e99f355f00360afdf2fee8a4c07b6601aa1202c3ef7b7d2b5ac62bce3276350
+at7739275 is SUPERSEDED and must not be used for PM acceptance. Final owner21
+passed there, but tooling17/19 exposed two old fixture assumptions: current
+schedule asserted5 instead of19; a purported genuinely-new positive used
+pre===post without a policy. Corrected exact19 and retained explicit unchanged/
+no-policy refusal, then supplied empty preimage for the truly new positive.
+No runner semantics changed in this correction. Corrected nine tests passed;
+source/digest were rebound and complete final21+19 were rerun successfully.
+Only final07f74495 above is proposed for independent review.
 
-source-projection.cjs is declared superseded-by-child from parent preimage
-fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e.
-The module-private archived verifier reads exactly three reviewed-parent pins:
-runtime, projection and workflow. Actual-child proof checks all declared disk
-postimages and substitutes exactly the runtime/projection SUPPORT literals in
-the original privately compiled source verifier. Original profile assertions,
-original executable origin checks and actual-child gate execution remain intact.
-No global filesystem/loader/cache patch or accepted-parent edit was introduced.
+6. GENUINE AUTHORITY AND REMAINING QUALIFICATION
+Status remains PROPOSED; brief.acceptedLedgerLine and authorizations.theme are
+null. No receipt or accepted child envelope exists. Actual fixed
+refs/remotes/origin/rebuild/t2-client-core remains
+7b1678a4a8449053000d52a0a8e9e070f32a240e; no remote ref was changed.
+After independent exact final-delta/policy review, root PM must issue the real
+scoped amended-brief acceptance naming package M2-B-NTC-NATIVE-TREND-CONTEXT,
+full brief path above and exact5fc945df digest, ending in ACCEPTED. The actual
+cowork-role theme line must explicitly name that package and
+B-NTC-SUCCESSORS 07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393
+and end in ' · ACCEPTED', with truthful temporary Astra PM attribution.
+This describes required content; it does not fabricate or issue either line.
 
-A build-resolved import inventory records 101 public runtime/test/dependency
-files, including local-client, initial-setup, athlete-state and native-baseline.
-It derives runtime factories from the exact source declaration, resolves static
-imports and literal relative createRequire dependencies, and pins package/lock
-inputs. It does not execute its generated bundles. Verification rebuilds that
-inventory, compares its exact manifest and requires every source postimage in
-the product map. The current map contains 139 sources and 17 child declarations.
-All 15 prior child declarations and the complete coverage map are byte-equivalent
-as JSON values to the base. The two additions execute real setup/baseline tests
-and meaningful source/closure refusals through existing allowed spec roots.
-
-The workflow's existing two-OS job explicitly enumerates the three current
-setup/baseline tests and new closure refusal tests. Existing package invocation
-remains gated; its label identifies candidate evidence. No source policy was
-issued or accepted CI receipt claimed. moves={} and MOVES_RULING=null remain.
-
-Executed focused evidence (existing dependencies; no private inputs)
-- b-ntc-owner-tests.cjs: 49 pass, 0 fail, 0 skipped, 0 cancelled. These are actual
-  Node --test targets: local-initial-setup.test.mjs, native-baseline.test.cjs and
-  native-baseline-journey.test.mjs. The wrapper requires the exact count and pins.
-- b-ntc-owner-qualification.test.cjs: 8 pass, 0 fail. Five real source drifts
-  (projection/baseline/local-client/initial-setup/athlete-state), absent dependency
-  declarations and a shortened/re-pinned manifest refuse; restored actual source
-  verifies and global loader/filesystem functions remain unchanged.
-- Original b-ntc-profile-refusals.test.cjs: all 13 unchanged tests pass.
-- Existing b-ntc-successors.test.cjs: all 4 unchanged tests pass.
-- Actual b-ntc-source-carriers.cjs: 6/6 assertions at each original clock; candidate
-  terminal receipt remains PENDING. Archived and actual source checks both ran.
-- Actual runner validateSuccessorDefinition with the current real spec refuses
-  unchanged policy 6147178 for changed owner sources/declarations. It cannot
-  authorize this candidate. All 15 previous children and coverage were compared
-  against base; runner and old policy bytes were compared against base unchanged.
-- Fresh runtime closure verification: 101 files; all product postimages agree.
-- git diff --check: clean.
-
-One initial setup/baseline execution lacked fake-indexeddb resolution in the
-native-baseline journey's CJS createRequire context. It failed with that precise
-missing-module error. The wrapper now explicitly sets NODE_PATH to the existing
-W6 dependency directory; the final 49-test run passed. No install or product fix.
-Local ignored dependency junctions reuse existing integration/W6/W5 dependencies.
-
-Mechanical SHA-256 pins
-b-ntc-successors.cjs
-  2f2689770353d6efc71708c619d8f7ca5354d5c50aaae49cd66198d75ab93933
-b-ntc-runtime-closure.cjs
-  7fcea6563a9744e544a4dc19a36d86a371621e069fa006b74a82929c7ea245d3
-b-ntc-runtime-closure.json
-  3097d5edd693f6e0578f190a91a4c8e3087d6d19aa1b31f965ee4a0bcb5a500a
-b-ntc-owner-tests.cjs
-  cf62e93d5e4d15ad22f751a253c8ec6450b2b9234cedfbd16b99dc6fee6729fc
-b-ntc-owner-qualification.test.cjs
-  8f8f482baa0e318018caf244bb8f2572474ab31e18673f36a7f351e7d4366aca
-.github/workflows/rebuild.yml
-  54ca0281f5482472d5beb14e880935dad26a9ccbbc96891618fb6a861f385968
-Unchanged b-package.cjs
-  ca0419e61beac8ffe9c89971e11fd1f3cfb0913af1d2d5d05ddbdf12c057f484
-Unchanged old b-ntc-successors.json policy
-  614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee
-
-Precise remaining dependency and acceptance steps
-Owner-entry candidate d05876fbc01765f7958f6e5a1a58e06e9a53f263 was inspected
-read-only at its committed report/file list; it has NOT joined this checkpoint.
-Root must first provide independently reviewed/accepted entry source. Then join
-that exact source, refresh the calendar/entry runtime graph and affected test
-inventory, add its real execution accounting and both-OS workflow enumeration,
-refresh all exact spec postimages, and independently review that narrow delta.
-
-The resulting coherent immutable source commit, product map, closure and child
-declarations need a NEW independently reviewed source policy/digest. The old
-6147178 policy binds 71fb2f1 and remains unissued for this changed owner build.
-Mechanically update the runner's reviewed policy pin/spec hash only after that
-step. Root must issue actual amended brief/theme acceptance with exact new policy
-digest, and a distinct integrator must place those citations on the fixed accepted
-CHAIN_REF and candidate ancestry. Local-only PM lines are not chain authority.
-
-No FULL, private custody/materialization, mutation campaign, complete second gate,
-45-register-law/19-gate campaign, both-OS CI, final exact-artifact receipt or phone
-proof was executed here. Those preserved qualification obligations remain before
-acceptance. This checkpoint also makes no fresh nutrition/trend completion claim.
-No install, lockfile change, frozen law/product change, push, PR, integration-branch
-merge or deployment. Root remains sole PM; distinct review remains required.
+A separately authorized integrator must place the exact real ledger bytes on
+the actual accepted chain and candidate ancestry. Bind each citation to full
+immutable commit, exact ledger line/number and line SHA256; it must descend from
+the parent receipt and be ancestor of BOTH candidate HEAD and fixed CHAIN_REF.
+Parent owner/contract remain bound to their old receipt. Set BRIEF-ACCEPTED only
+with the genuine brief citation; this changes spec SHA and its later envelope.
+After that integration the public validation command on the actual candidate is:
+  node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+FULL/private custody,45 register laws/19 gates, complete second gate, historical
+fidelity/mutations, both-OS CI, independent exact-artifact receipt and authorized
+rerun still require their assigned integrator and genuine evidence. No command
+here waives them. Physical-phone proof and separate first-use product work remain.
+No FULL/private/remote/CI campaign, install, push, PR, integration-branch merge,
+publication, deployment, private data or protected-soak action. Product/frozen
+path diff againstca57649 empty; diff --check and tracked status clean before
+this report. One updated builder report; independent review remains required.
