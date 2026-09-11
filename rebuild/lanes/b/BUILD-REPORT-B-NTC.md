@@ -95,6 +95,8 @@ $ git checkout -- rebuild/m3/w7-preview/today/gym-host.mjs        -> status for 
 ```
 
 **`gym-host.mjs` is NOT committed and is byte-identical to the tip on this branch.**
+*(SUPERSEDED by §0.7 — the PM lifted lane C's licence for this one hunk in `DECISIONS:108`
+(b), and the second fix pass applied it. The sentence above is true of the r1 fix pass only.)*
 
 With the patch applied in the scratch copy:
 
@@ -168,6 +170,190 @@ Q2, brief O9.
   checkout.
 * Files committed by this pass: `native-trend-context.cjs`, its test, `workout-host.mjs`,
   the brief, `packages/B-NTC.json`, and the new `rebuild/lanes/b/ntc/gym-host.wiring.patch`.
+
+---
+
+## 0.7 SECOND FIX PASS — THE WIRING APPLIED UNDER `DECISIONS:108` (b)
+
+`DECISIONS:108` (b) **lifts lane C's licence for the ONE `gym-host.mjs` hunk**: "lane B
+applies it on `rebuild/lane-b-ntc` with A2's 59 gym tests green; whichever of B-NTC / lane
+C's one-store adapter merges second rebases onto the first". This section is that pass. It
+is the ONLY part of this report written after the tip was merged in.
+
+> **`DECISIONS:109` LANDED MID-PASS, AND THIS SECTION IS WRITTEN AGAINST IT.** The pass was
+> dispatched under `:108` with the instruction "keep the option OFF by default (Q1 not yet
+> ruled)". While it ran, the PM published **LANE B RULINGS 3**: Q1 = **PATH A**, implemented
+> **inside** the M2-B-NTC child package (the child re-pins `engine-runtime.cjs` / the
+> `EXPOSED` set and `rebuild.yml`; no separate NATIVE-CARRIERS re-seal), with the mapping as
+> **shipped behaviour and no OFF option**, fail-closed per night; B-NTC must prove **both**
+> (i) the fresh zero-night athlete opening day+3 of the same lift group and (ii) the 28-night
+> product state with the mapping on; the `rebuild.yml` enumeration and the `# pass 19`
+> retirement ride in the same seal; and **G7/O10 is routed to lane C's C4**, not to A2.
+>
+> What that means for this commit, stated plainly so nothing is assumed:
+> * **Obligation (i) is DISCHARGED AND COMMITTED here**, in exactly the words `:109` uses —
+>   delta cell **G5**: day+3 `READY`, started, every set logged, closed (§0.7c).
+> * **Obligation (ii), removing the option, the `EXPOSED` / `engine-runtime.cjs` re-pin, the
+>   `rebuild.yml` enumeration and the `# pass 19` retirement are NOT in this commit.** They
+>   are the next B-NTC pass. This pass held `:108`'s boundary and touched no
+>   `rebuild/m4/spec`, `.github` or `rebuild/engine` byte, which is what its licence allowed.
+>   The option therefore remains `false` here; `:109` makes removing it the next pass's job,
+>   not a reason to flip it inside a licence that did not cover the re-pin.
+> * **G7/O10 is re-addressed to lane C**, and the unapplied hunk (§0.7e) already does what
+>   `:109` asks of C4.
+
+### 0.7a The merge (done FIRST, so the hunk lands on the current `gym-host.mjs`)
+
+```
+$ git fetch origin && git reset --hard origin/rebuild/lane-b-ntc   -> a701ac5
+$ git merge origin/rebuild/t2-client-core                          -> 9f68d0a
+  Merge made by the 'ort' strategy. 61 files changed, 15899 insertions(+), 78 deletions(-)
+  NO CONFLICT — nothing to resolve, conservatively or otherwise.
+  merge commit 93b23edb5c09073b4723a97368aa17c367ce6873
+```
+
+**The tip moved again while the gates ran**, so there are TWO merges, both clean:
+
+```
+$ git fetch origin  (the remote-tracking ref had already moved under a shared .git)
+$ git merge origin/rebuild/t2-client-core                          -> e6b812e
+  3 files changed, 4 insertions(+)   — DECISIONS.md line 109, STATUS.md, REQUESTS.md
+  merge commit 6d61deb…
+  ONE CONFLICT, in rebuild/lanes/REQUESTS.md ONLY, and only because both sides
+  appended a line at end-of-file. RESOLVED CONSERVATIVELY: both the PM's two new
+  lines and lane B's are kept, in that order; nothing was rewritten or dropped.
+  No code file conflicted in either merge.
+```
+
+What came in: the CI re-seal (`DECISIONS:105`), lane C C1/C2/C2b/C3 (`:106`), slice A3
+recovery check-in (`:107`), the `LANE B RULINGS 2` docs line (`:108`) and, in the second
+merge, `LANE B RULINGS 3` (`:109`, the block above).
+`git diff HEAD origin/rebuild/t2-client-core -- rebuild/m3/w7-preview/today/gym-host.mjs`
+was **empty before the merge**: lane C's C1–C3 left `gym-host.mjs` byte-untouched exactly as
+`DECISIONS:107` records, so the patch's context lines were still current and no hand-application
+was needed.
+
+### 0.7b The apply
+
+```
+$ git apply --check rebuild/lanes/b/ntc/gym-host.wiring.patch   -> exit 0
+$ git apply        rebuild/lanes/b/ntc/gym-host.wiring.patch    -> exit 0
+$ git diff --stat   -> rebuild/m3/w7-preview/today/gym-host.mjs | 64 ++++++---
+                       1 file changed, 59 insertions(+), 5 deletions(-)
+```
+
+**The option stays OFF.** `mapRecordedDaysWithEnginePredicates` defaults to `false` and the
+shipped page (`today-entry.mjs`) passes nothing, so PM question **Q1 is still open and is not
+pre-empted by this pass**. `trendDayReader()` on every host built in this tree reports
+`{enginePredicates:false, enginePredicatesAvailable:false, optionRequested:false}` — measured,
+not assumed (delta cell G3).
+
+### 0.7c The delta cells, now COMMITTED
+
+`rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs` (**NEW**) — six cells, the six of the
+patch's own §9.1 table, each measured on the merged tip with the option OFF:
+
+| cell | claim | measured |
+|---|---|---|
+| **G1** | the product athlete's day+3 wall is UNCHANGED (`gym.test.mjs:621`) | `blocked` / `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` / `resolver_failed`, Start refused, ops stay 12. The athlete carries **28 recorded nights**, asserted in the cell |
+| **G2** | every day after the wall is UNCHANGED (`gym.test.mjs:639`) | day+4,5,6,7,10,14 → the measured code sequence, history still reads, 2 sessions, ops 12 throughout |
+| **G3** | `lastProducerRefusal()` UNCHANGED, and the composed reader says why (`gym.test.mjs:657`) | same code + reason; `trendDayReader()` all-false; `trendBinding.resolve` outside a window → `no_bound_source_facts` |
+| **G5** | **A2's spike: day+3 on the SAME lift group no longer refuses** — the fresh-athlete path, option OFF | day+0 `ready`→closed ops 0→7; day+1 ops 7→12; day+2 `ENGINE_CAPTURE_NO_WORKOUT` (a rest day); **day+3 `ready`**, `lastProducerRefusal()` `null`, lift group `db-bench` ×2 = day+0's own; conducted end to end, **ops 12→19**, 3 durable sessions, none stranded |
+| **G6** | previous performance survives the bind window (review r1 F3/C3) | `model.previous().size === 2`; each `prev` is the engine's own `earned/performed-lift/v1` record and its performed slots equal, value for value, the sets day+0 actually logged. Control: the same resolver outside a window refuses `no_bound_source_facts` |
+| **G7/O10** | the printed "Last time" line is STILL absent — **A2 custody** | data present (`slots[0].fact.current.load.value` is a number, unit `lb`); `typeof prev.w === 'undefined'`; `view.previous === null`. See §0.7e |
+
+**RED-FIRST, executed.** With `gym-host.mjs` reverted to the merge commit and the cell file
+unchanged: **6 tests · 2 pass · 4 fail** — G3, G5, G6 and G7 are red without the wiring, and
+G1/G2 stay green on both sides because "unchanged" is exactly what they claim. `gym-host.mjs`
+was restored byte-for-byte afterwards (sha256 re-checked, `git status` verified).
+
+### 0.7d Every gate, re-run on THIS tree (merge + wiring + cells)
+
+| # | command | outcome |
+|---|---|---|
+| 0.7d-1 | `node --test …/today/test/gym.test.mjs` | **tests 59 · pass 59 · fail 0**, exit 0 — the condition `DECISIONS:108` (b) attaches to the licence |
+| 0.7d-2 | `node --test` over the five today files **+ `ntc-h6-delta.test.mjs`** | **tests 129 · pass 129 · fail 0** — the PM's figure, reproduced on the merged tip |
+| 0.7d-3 | the same **plus A3's `checkin.test.mjs`** (the merged tree's real today suite) | **tests 157 · pass 157 · fail 0** (151 = `DECISIONS:107`'s figure, + the 6 cells) |
+| 0.7d-4 | `node --test …/journey.test.mjs …/engine-equivalence.test.cjs` | **tests 23 · pass 23 · fail 0**, exit 0 — unmoved |
+| 0.7d-5 | `node --test rebuild/m4/workout/test/native-trend-context.test.cjs` | **tests 36 · pass 36 · fail 0**, exit 0 — unmoved |
+| 0.7d-6 | `node rebuild/m3/w7-preview/today/build.mjs` | **`A1 TODAY BUILD PASS`**: 3 assets; **88** pinned inputs (13 engine, 12 client); 68 bound classes; 2 typefaces inlined; 3/3 assets free of any network reference. *(84 → 88 is A3's check-in modules arriving in the merge, not this hunk.)* esbuild resolves the DEFAULT CJS import in the browser bundle |
+| 0.7d-7 | `node rebuild/conform/v4/run-defect-laws.cjs` | `TOTAL 45 laws · **45 RED-frozen** · **39 RED-candidate** · 89 GREEN repair controls · 97/104 mutant executions DETECTED · **0 HARNESS_ERROR** · AUDIT RED-FIRST FAIL` — **45/39 unmoved**, exit 1 as before |
+| 0.7d-8 | `node rebuild/conform/run.cjs`, then again with the three paths held out of the tree, then restored | both runs **85 lines**, `Compare-Object` → **0 differing rows**; terminal line on both `SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families`. **Census identical**; `git status` identical before and after |
+| 0.7d-9 | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | `POSTFIX M2-NATIVE-CARRIERS AUTHORIZED artifact=`**`e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a`** (the re-sealed artifact `DECISIONS:105` names), **13/13 children `OBSERVED; exit 0 and exact declared verdict`**, terminal `NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`, **exit 0** (89.2 s) |
+
+### 0.7e G7 / O10 — written out, NOT applied
+
+`DECISIONS:108` (b) lifts the licence for the `gym-host.mjs` hunk and names **no other file**.
+`gym-model.mjs` is A2's, so this pass did **not** edit it. The fix is
+`rebuild/lanes/b/ntc/gym-model.previousLine.patch` (`git apply --check` → **exit 0**), with the
+measurement both ways taken in a temporary edit that was reverted before commit:
+
+```
+WITHOUT it   view.previous = null   for every set, on the day the provider opens
+WITH it      db-bench set 1/2/3 -> "Last time: 35 lb x 8"
+             lat-pulldown set 1 -> "Last time: 60 lb x 10"
+             today suite + cells: 157 tests, 156 pass, 1 fail — the failure is delta cell G7
+             itself, which locks the current absence on purpose; its positive replacement is
+             written in the patch file
+```
+
+`git status` after the measurement lists `gym-model.mjs` as unmodified. The patch file carries
+the REQUESTS line text verbatim for the PM to route.
+
+### 0.7f Boundaries honoured in this pass
+
+* **Never opened:** `ledger/`, `rebuild/conform/private/`.
+* **Never edited:** `rebuild/engine/**`, `rebuild/conform/**`, `rebuild/m4/spec/**`,
+  `.github/**` (including `rebuild.yml` — see the residual below), `src/**`, `package.json`,
+  `package-lock.json`, frozen laws/witnesses/tools/goldens, **`gym-model.mjs`** and every other
+  A2/A3/lane-C file. No other worktree was created, moved, removed or written to.
+* **Files this pass commits (7, plus the two merges):**
+  `rebuild/m3/w7-preview/today/gym-host.mjs`
+  (the licensed hunk, 59 insertions / 5 deletions; 21 808 B,
+  `e08481a29fba03da376930bd04334208b4dcc9b1819fe041a5ced14fb71254ab`);
+  `rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs` (**NEW**, 19 697 B,
+  `e423184f976c5c66ae629925b5020bec5cdfd10f25ffd259894fb6b161ef9106`);
+  `rebuild/lanes/b/ntc/gym-model.previousLine.patch` (**NEW**, 9 480 B,
+  `4b35c142e8fd6f20be6c4249c68962c78ab75f7a2dfdbd43db239f5238feeb7e`);
+  `rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md` (the §6 H6 STATUS block, the §7.5 and
+  §9.1 notes, the O10 update — nothing withdrawn; 93 188 B,
+  `60838907f0d205b1259ea9b0e1e4b76d48db5339409e314413280ed1140a8dd6`);
+  `rebuild/lanes/b/tooling/packages/B-NTC.json` (**`brief.sha256` re-pinned to that hash**, and
+  the parent pin RE-TAKEN at the merge as its own note said it would be: `295762f0…`/receipt 96
+  → **`e940359b…`/receipt 104**, the value `DECISIONS:108` (e) CONFIRMS, verified against the
+  artifact on disk in the merged tree. `product` stays byte-for-byte all-carried —
+  `git diff 12cfdb9 origin/rebuild/t2-client-core -- rebuild/engine rebuild/conform
+  rebuild/m4/workout rebuild/m3/w6/host` is EMPTY — and standing rule **X1** holds:
+  `coverage.moves` is still `{}`); `rebuild/lanes/REQUESTS.md` (one appended line, the G7/O10
+  ask). And this report.
+* **`rebuild/lanes/b/ntc/gym-host.wiring.patch` is NOT edited** — it stays at 14 626 B /
+  `91cf70bd…`, so the patch the PM read is the patch that landed, byte for byte.
+* **RESIDUAL, unchanged and now larger:** `ntc-h6-delta.test.mjs` has **no CI home**. The
+  A1/A2 step in `.github/workflows/rebuild.yml:89` enumerates five files by name and that file
+  is pinned by the accepted `M2-NATIVE-CARRIERS` artifact, so adding a sixth is a re-seal, not
+  a lane-B edit. It joins A3's `checkin.test.mjs` (`DECISIONS:107` SEAMS) and review r1's **C9**
+  in the next batched re-seal — **which `DECISIONS:109` has now placed inside B-NTC's own seal**
+  ("enumerate `rebuild/m3/w7-preview/today/test/checkin.test.mjs` (and any today/gym test files
+  not yet listed) in `rebuild.yml`, and retire the old memory-only w7-preview child (`# pass
+  19`)"). `ntc-h6-delta.test.mjs` is precisely one of the "not yet listed" files, so the next
+  pass must enumerate it.
+* **RESIDUAL:** `DECISIONS:108` (b) says whichever of B-NTC / lane C's one-store adapter merges
+  second rebases onto the first. This branch now carries the hunk; if lane C's adapter merges
+  first, it rebases — the hunk is local and does not touch the causal-frontier block lane C
+  will move (patch header, "Apply").
+* **RESIDUAL, and now RULED:** PM question **Q1**. The option is OFF in this commit, so B-NTC
+  still does not open the **product's own** 28-night athlete. What §0.7c G5 proves is narrower
+  and exactly what `DECISIONS:108` (a) asked to be proven: the **fresh** athlete's day+3 no
+  longer refuses, without any `EXPOSED` widening, because a fresh athlete has no recorded
+  night to map. **`DECISIONS:109` then ruled Q1 = PATH A**: the mapping becomes shipped
+  behaviour with **no option at all**, the child package re-pins `engine-runtime.cjs` /
+  `EXPOSED`, and the 28-night state must be proven too. That is the next pass's work and is
+  named as such here so no reader mistakes this commit for it. `:109`'s obligation (i) is the
+  one this commit discharges.
+* **RESIDUAL, unowned (review r1 O1):** nothing in the product writes `w` back for a native
+  athlete, so the G5 fixture sets one working load per lift from each lift's own declared
+  `steps` and says so in the file. Until that is routed, which REAL days reach this seam is
+  still unknown.
 
 ---
 

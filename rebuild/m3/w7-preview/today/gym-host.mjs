@@ -25,7 +25,7 @@ import { openRepository } from '../../w6/repository.mjs';
 import { createDurablePublicClient } from '../../w6/public-client.mjs';
 import { parseStrictJson } from '../../w6/strict-json.mjs';
 import { projectWorkoutRecords } from '../../../m4/workout/project-history.mjs';
-import { composeWorkoutHost, createUnavailableNativeTrendContext } from '../../w6/host/workout-host.mjs';
+import { composeWorkoutHost } from '../../w6/host/workout-host.mjs';
 // CommonJS collaborators are taken as DEFAULT imports, the way the accepted
 // host entry (rebuild/m3/w6/host/host-entry.mjs) takes them: createRequire is a
 // Node builtin and the accepted browser build refuses every Node import.
@@ -37,12 +37,14 @@ import History from '../../../m4/workout/engine-history.cjs';
 import SourceProjection from '../../../m4/workout/source-projection.cjs';
 import WorkoutBasis from '../../../m4/workout/workout-basis.cjs';
 import ResumePolicy from '../../../m4/workout/resume-policy.cjs';
+import NativeTrend from '../../../m4/workout/native-trend-context.cjs';
 import HostRuntime from '../../w6/host/engine-runtime-host.cjs';
 import T2Stage from '../../w6/t2-stage.cjs';
 import Canonical from '../../../authority/canonical.cjs';
 
 const { createNullLaneWorkoutBasis } = WorkoutBasis;
 const { createWorkoutResumePolicy } = ResumePolicy;
+const { createNativeTrendContextBinding, createDayFactsReader } = NativeTrend;
 const { createT2Stage } = T2Stage;
 
 /* Synthetic, public, non-secret preview labels — the same posture and the same
@@ -223,7 +225,16 @@ export function startOrderRefusalOf(generation, resolvedParents) {
 /* One live host over one repository handle, with every provider named here and
    only here. composeWorkoutHost binds them; it invents nothing. */
 export async function createGymHost({ day, engineState, indexedDB, crypto, deviceKeys,
-  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId } = {}) {
+  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId,
+  /* B-NTC, the S2 path — OFF by default and off on the shipped page.
+     With it false (or with the engine's two day predicates absent from the
+     pinned EXPOSED surface, which is the case on this tree) the qualified
+     provider uses the empty-history day reader, so an athlete carrying recorded
+     nights or events refuses exactly as he does today. With it true AND a
+     runtime that exposes dayWeather + cleanAtDate, recorded nights and events
+     are mapped through the ENGINE's own predicates. Nothing here decides that;
+     it reports which reader it got on the handle below. */
+  mapRecordedDaysWithEnginePredicates = false } = {}) {
   const web = crypto || globalThis.crypto;
   const idb = indexedDB || globalThis.indexedDB;
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('createGymHost requires day');
@@ -255,9 +266,44 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
     clock, lease, online: false, contract: { client: '1', required: '1' }, standing: 'enrolled' }),
     { allowInbound: true, workoutCommands });
 
-  const engine = HostRuntime.createEngineRuntime({
+  /* B-NTC — THE QUALIFIED nativeTrendContext PROVIDER, wired here and nowhere
+     else. A0's createUnavailableNativeTrendContext always threw, which is why a
+     fresh athlete's second day on a trained lift could not be prepared at all
+     (DECISIONS:102). This composes the real provider instead: a binding whose
+     window says WHICH facts object an engine read is over, and a day reader
+     that derives hard/debt from a fact the athlete recorded — or refuses.
+
+     The day reader needs the runtime (for the engine's own two predicates) and
+     the runtime needs the resolver, so the reader is late-bound through one
+     thunk that REFUSES until composition finishes. Composition is synchronous,
+     so no caller can observe the gap. */
+  let dayReader = null;
+  const trendBinding = createNativeTrendContextBinding({
+    dayFacts: iso => {
+      if (!dayReader) throw new Error('GYM_NATIVE_TREND_DAY_READER_UNCOMPOSED');
+      return dayReader.dayFacts(iso);
+    } });
+  const runtime = HostRuntime.createEngineRuntime({
     clock: { today: () => day, hour: () => 8, now: () => new Date(day + 'T13:00:00.000Z'), stamp: () => day + 'T13:00:00.000Z' },
-    nativeTrendContext: createUnavailableNativeTrendContext() });
+    nativeTrendContext: trendBinding.resolve });
+  dayReader = createDayFactsReader({ state: engineState, engine: runtime,
+    mapRecordedDaysWithEnginePredicates });
+
+  /* THE BIND WINDOW, AROUND EVERY ENGINE READ OVER THE SAME FACTS — not just
+     the producer's (review r1, F3). gym-model.readPrevious() re-runs this very
+     reader over the reconstructed lastProjection() input AFTER the producer has
+     returned; with a window that lived only inside workoutProducer, that read
+     threw PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED, gym-model.mjs:136 swallowed
+     it, and the card showed no previous performance on exactly the days this
+     package unblocks. So the window travels with the engine handle.
+
+     It opens only when the state being read carries facts of its own, and
+     `withFacts` RESTORES the previous window rather than clearing it, so the
+     producer's own window is not disarmed by a nested read. */
+  const scoped = (facts, run) => (facts ? trendBinding.withFacts(facts, run) : run());
+  const engine = Object.freeze({
+    genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(s, iso, slp)),
+    rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(s, ex, slp)) });
 
   /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION.
      ----------------------------------------------------------------------
@@ -300,7 +346,7 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
     createWorkoutResumePolicy, parseStrictJson, projectWorkoutRecords,
     prescriptionCapture, sourceCodec: Source, engine, engineState, clock: { today: () => day },
     workoutProducerIdentity: PRODUCER, resolveWorkoutBasis, resumeReason: RESUME_REASON,
-    plannedSplitSlotId });
+    plannedSplitSlotId, nativeTrendBinding: trendBinding });
 
   /* The guard, over the live store, against the parents the accepted resolver
      produced most recently — which, at both call sites (right after the probe's
@@ -311,6 +357,14 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
   }
 
   return Object.freeze({ host, repository, engine, day, plannedSplitSlotId, device,
+    /* The trend binding and WHICH day reader it got, so a caller can report the
+       truth instead of assuming it. `enginePredicates` is false on this tree
+       because EXPOSED is ['genSession','rirPlan']; it becomes true only if a
+       re-seal adds dayWeather + cleanAtDate AND the option above is on. */
+    trendBinding, trendDayReader: () => Object.freeze({
+      enginePredicates: dayReader.enginePredicates,
+      enginePredicatesAvailable: dayReader.enginePredicatesAvailable,
+      optionRequested: dayReader.optionRequested }),
     // The causal parents the accepted resolver last derived, for tests and for
     // the report. Reading it never changes it; it is not a store.
     causalParents: () => lastResolved.slice(),

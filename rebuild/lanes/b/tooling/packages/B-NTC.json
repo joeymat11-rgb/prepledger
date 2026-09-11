@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
-    "sha256": "3e8fa02ba58fafea3cb12c40f46c2bed3ff91500e4436330b660cb947828df3c",
+    "sha256": "60838907f0d205b1259ea9b0e1e4b76d48db5339409e314413280ed1140a8dd6",
     "acceptedLedgerLine": null
   },
   "sourceBase": "12cfdb9d58fbcab10faacdaff8ef886ca79ab9c2",
@@ -20,10 +20,10 @@
       {
         "id": "NATIVE-CARRIERS",
         "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
-        "sha256": "295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1",
+        "sha256": "e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a",
         "review": "rebuild/m4/spec/review-native-carriers.json",
-        "receiptLedgerLine": 96,
-        "note": "Chain head at sourceBase 12cfdb9 (DECISIONS:96/97). SUPERSEDED UPSTREAM: the PM’s CI re-seal (DECISIONS:105) re-sealed the same artifact to e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a at origin tip da63053; whichever is head when B-NTC is rebased is the parent, and this pin is re-taken then."
+        "receiptLedgerLine": 104,
+        "note": "RE-TAKEN at the merge, exactly as the previous wording of this note said it would be. The pin was 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1 with receiptLedgerLine 96, the chain head at sourceBase 12cfdb9 (DECISIONS:96/97); the PM's CI re-seal (DECISIONS:105) re-sealed the same artifact to e940359b… with receipt line 104, and DECISIONS:108 (e) CONFIRMED that as B-NTC's parent. This branch merged origin/rebuild/t2-client-core at 93b23edb5c09073b4723a97368aa17c367ce6873, where rebuild/m4/spec/acceptance-native-carriers.json hashes to e940359b… on disk (verified), so the pin above is the head artifact and not a prediction. sourceBase stays 12cfdb9: `git diff 12cfdb9 origin/rebuild/t2-client-core -- rebuild/engine rebuild/conform rebuild/m4/workout rebuild/m3/w6/host` is EMPTY, so every product pre-image sha below is still exact at the merge."
       }
     ]
   },
@@ -165,9 +165,10 @@
     "B-NTC edits NOTHING under rebuild/engine, rebuild/conform or rebuild/m4/spec: every parent-pinned product file is role \"carried\" (pre === post, byte-identical on disk, verified by this generator).",
     "dIds and laws are EMPTY on purpose. B-NTC registers no D-ID (DECISIONS:93 — feature work under the ratified slice plan takes no register D-ID); it turns an accepted open boundary into a provider.",
     "RUNNER: at rebuild/lane-b-tooling @ 572a8c2 (the tip when v1 was written) b-package.cjs closed its package list to B1|B2|B3|B4 and refused this id in one line with exit 1. At 477b025 its usage line is “--ci|--full --package <B-NTC|B-LOM|B1|B2|B3|B4>”, so B-NTC is accepted by the guard. The exact terminal line and exit code of the v1.1 run are in rebuild/lanes/b/BUILD-REPORT-B-NTC.md §3.6, reported verbatim. Note that 477b025 also carries its OWN packages/B-NTC.json (21 159 B); two specs for one id will collide at merge — PM question Q2.",
-    "runnerSha256 and every authorization stay null until the tooling PR is accepted and the PM accepts this brief with a ledger line; a declared acceptance that stands in no ledger refuses the run by design. brief.sha256 IS set, and is the sha256 of BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md v1.1 on this branch (review r1 C8: the previous wording of this note contradicted the file).",
+    "runnerSha256 and every authorization stay null until the tooling PR is accepted and the PM accepts this brief with a ledger line; a declared acceptance that stands in no ledger refuses the run by design. brief.sha256 IS set, and is the sha256 of BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md as it stands on this branch (review r1 C8: the previous wording of this note contradicted the file). It moved 0ba59cca… (v1, the brief DECISIONS:108 (a) accepts by name) -> 3e8fa02b… (v1.1, the r1 fix pass) -> 60838907f0d205b1259ea9b0e1e4b76d48db5339409e314413280ed1140a8dd6 (the second fix pass: the §6 H6 STATUS block incl. its DECISIONS:109 paragraph, the §9.1 and §7.5 notes and the O10 update — no claim in the brief was withdrawn, only the applied/measured status added).",
     "artifact.file / artifact.review name rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json and review-b-ntc-native-trend-context.json, NEITHER OF WHICH EXISTS ON THIS BRANCH — and that is correct, not a slip (review r1 C8/F8): b-package.cjs:300-303 DERIVES exactly those two paths from this package id and asserts the spec names them. They are written by the PM at acceptance, after an independent review; a PROPOSED package cannot carry them.",
     "children[] is empty: B-NTC declares no package child yet, so no gate is covered and the coverage bound is inherited-only.",
+    "SECOND FIX PASS (DECISIONS:108 (b)): the branch merged origin/rebuild/t2-client-core (merge 93b23ed, no conflict) and then APPLIED rebuild/lanes/b/ntc/gym-host.wiring.patch to rebuild/m3/w7-preview/today/gym-host.mjs under the lifted one-hunk licence, with six committed delta cells at rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs. Neither file is parent-pinned product, so product[] is still byte-for-byte all-carried and dIds/laws/witnessFlips/coverage are untouched. The mapRecordedDaysWithEnginePredicates option remains FALSE on every shipped path, so PM question Q1 is not pre-empted. G7/O10 (gym-model.previousLine) was NOT applied — gym-model.mjs is A2's and the lifted licence names gym-host.mjs only; the hunk sits unapplied at rebuild/lanes/b/ntc/gym-model.previousLine.patch. DECISIONS:109 landed during the pass (merged in as 6d61deb): Q1 = PATH A implemented INSIDE this child package, which re-pins engine-runtime.cjs / EXPOSED and rebuild.yml and removes the option, and B-NTC must prove the 28-night product state too. Obligation (i) — the fresh zero-night athlete's day+3 READY/started/sets/closed — is DISCHARGED by delta cell G5 in this commit. Obligation (ii), the option removal, the EXPOSED and rebuild.yml re-pins and the `# pass 19` retirement are the NEXT pass: they are re-pins this spec must carry, and :108's one-hunk licence did not cover them, so no rebuild/m4/spec, .github or rebuild/engine byte moved here. :109 also routes G7/O10 to lane C's C4.",
     "v1.1 (post review r1): the provider gained a content digest binding (identity is unenforceable at this seam — engine-capture.cjs:52 clones), a re-entrant withFacts window, a two-holder pace read, a refusing bind(null), and the S2 day reader createEnginePredicateDayFacts behind createDayFactsReader's mapRecordedDaysWithEnginePredicates option, which is FALSE by default and inert unless the engine exposes dayWeather + cleanAtDate. product[] is unchanged and still all-carried: no rebuild/engine byte moves."
   ]
 }

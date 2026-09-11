@@ -765,7 +765,48 @@ Allowed by `DECISIONS:103` (4). Its own sha256 is recorded in
 in `brief.sha256`, so stating the spec's hash inside the brief would be circular. See §10.2
 for the honest `--ci` result.
 
-### H6 — STILL NOT MADE, and now a PATCH FILE: `rebuild/lanes/b/ntc/gym-host.wiring.patch`
+### H6 — **APPLIED** under `DECISIONS:108` (b). *(Status line added by the second fix pass; the rest of this section is v1.1's and is left as written, so the sequencing it describes stays readable.)*
+
+> **STATUS, 2026-09-11 — LANDED ON THIS BRANCH.** `DECISIONS:108` (b) **lifts lane C's
+> licence for this ONE hunk**: "lane B applies it on `rebuild/lane-b-ntc` with A2's 59 gym
+> tests green; whichever of B-NTC / lane C's one-store adapter merges second rebases onto the
+> first (PM resolves any conflict at merge)." So the sequencing below is superseded on its
+> third and fourth steps only. What was done: the branch merged
+> `origin/rebuild/t2-client-core` first (merge `93b23ed`, **no conflict**; lane C's C1–C3 left
+> `gym-host.mjs` byte-untouched, `DECISIONS:107`), then `git apply` landed the patch
+> unmodified (`--check` exit 0; 59 insertions, 5 deletions, one file), and the six §9.1 cells
+> below were committed as
+> `rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs`. **The option is still OFF** and
+> the shipped page passes nothing, so PM question **Q1 is not pre-empted**.
+>
+> Measured on the merged tip: gym **59/59**; today five + cells **129/129**; with A3's
+> check-in suite too **157/157**; journey + equivalence **23/23**; `native-trend-context`
+> cells **36/36**; `build.mjs` **A1 TODAY BUILD PASS**; v4 **45 RED-frozen / 39 RED-candidate**
+> unmoved; census **0 differing rows**; `native-carriers --ci` **PASS** (artifact
+> `e940359b…`). RED-first: with the hunk reverted the cell file is **2 pass / 4 fail**.
+>
+> **§9.1 G5 is now PROVEN in the form `DECISIONS:108` (a) asked for** — on the FRESH
+> (clean-init) athlete, with the option OFF and **no `EXPOSED` widening**: day+3, the second
+> day on day+0's own lift group, is `ready`, is conducted end to end, and moves the durable
+> log 12 → 19 ops. It is *not* proven for the product's 28-night preview athlete — that is
+> still Q1, and G1/G2/G3 stay **NOT OBSERVED** exactly as measured below.
+>
+> **G7 / O10 is NOT fixed here.** The lifted licence names `gym-host.mjs` and no other file;
+> `gym-model.mjs` is A2's. The hunk is written out, unapplied and measured both ways, at
+> `rebuild/lanes/b/ntc/gym-model.previousLine.patch` (`git apply --check` exit 0), with the
+> REQUESTS line text for the PM to route. Full record: BUILD-REPORT-B-NTC §0.7.
+>
+> **`DECISIONS:109` landed while this pass ran, and changes what comes next.** Q1 is RULED
+> **PATH A**, implemented **inside** the M2-B-NTC child package (the child re-pins
+> `engine-runtime.cjs` / `EXPOSED` and `rebuild.yml`), with the mapping as **shipped
+> behaviour and no OFF option**, and B-NTC must prove BOTH the fresh zero-night athlete and
+> the 28-night product state. **Obligation (i) is discharged and committed by this pass** —
+> delta cell G5 is day+3 `READY` → started → sets → closed on the fresh athlete, in `:109`'s
+> own words. **Obligation (ii), removing the option, and the `EXPOSED` / `rebuild.yml`
+> re-pins are the NEXT pass**: they need the child-package re-pin, which `:108`'s one-hunk
+> licence did not cover, so this pass did not touch `rebuild/m4/spec`, `.github` or
+> `rebuild/engine`. `:109` also routes **G7/O10 to lane C's C4**, not to A2 — the unapplied
+> patch above is addressed accordingly.
 
 `gym-host.mjs` is **not edited on this branch**: `DECISIONS:106` (b) grants **lane C** an
 explicit licence to edit it for the local-era move, and review r1 §7 Q4 sequences the landing
@@ -916,7 +957,7 @@ them**, which is the only place they are meant to run.
 |---|---|---|
 | the parent package gate | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | **`NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`, exit 0**, artifact `295762f0…` AUTHORIZED, all 13 children OBSERVED incl. `second-gate` |
 | public conformance census | `node rebuild/conform/run.cjs` | `99 reference GREEN · 99 STRONG · 29 RED-first · 70 GREEN` — **byte-identical to base**, §9.2 |
-| A1 + A2 screens | `node --test rebuild/m3/w7-preview/today/test/*` | **123 / 123 pass** (unchanged — B-NTC does not wire the gym card, §6 H6) |
+| A1 + A2 screens | `node --test rebuild/m3/w7-preview/today/test/*` | **123 / 123 pass** (unchanged — B-NTC does not wire the gym card, §6 H6). **SECOND FIX PASS, `DECISIONS:108` (b):** the wiring IS applied now and the row reads **129 / 129** (the same 123, plus the six committed §9.1 delta cells), or **157 / 157** with A3's `checkin.test.mjs` on the merged tip. A2's own `gym.test.mjs` alone: **59 / 59** |
 | the provider's own cells (v1.1) | `node --test rebuild/m4/workout/test/native-trend-context.test.cjs` | **36 / 36 pass**, exit 0 |
 | the A0 journey (v1.1) | `node --test …/journey.test.mjs …/engine-equivalence.test.cjs` | **23 / 23 pass**, exit 0 |
 | `rebuild/m4/workout` unit tests | 9 files incl. the new one | 62 tests, 56 pass, **6 fail** — all six in the three files that `throw Error('Explicit retained PERFORMED_W6_DIR required')` at require time (`engine-history`, `history-panel`, `source-control`). Environmental and pre-existing; B-NTC touches nothing they read |
@@ -965,6 +1006,17 @@ own check, because it never touches it.
 ## 9. Expected delta cells — what changes, and what must NOT
 
 ### 9.1 What changes for the gym card when H6 lands — **REWRITTEN TO THE MEASUREMENT (C2)**
+
+> **SECOND FIX PASS (`DECISIONS:108` (b)): these cells are no longer a scratch table — they
+> are COMMITTED, as `rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs`, six of them,
+> re-measured on the merged tip with the wiring applied and the option OFF. Every row below
+> reproduced unchanged, with ONE correction: G5. v1.1 measured G5 on the 28-night preview
+> athlete and concluded the S2 milestone needs the `EXPOSED` re-seal. On the FRESH
+> (clean-init) athlete `DECISIONS:100` actually describes, it does not: with the option OFF
+> and no re-seal at all, day+3 on day+0's own lift group is `ready`, is conducted through the
+> gym card end to end, and moves the durable log 12 → 19 ops. Both statements are true and
+> they are about different athletes — which is precisely what PM question Q1 has to settle.
+> See BUILD-REPORT-B-NTC §0.7c.**
 
 **v1 of this section was wrong, and the review caught it.** v1 predicted that G1, G2 and G3
 flip and that G5 (the S2 milestone) is delivered the moment the wiring lands. Measured, with
@@ -1257,6 +1309,15 @@ the one lane B recommends. The PM confirms who lands it; the patch is ready eith
   `previousLine()` reads the LEGACY shape `{w, reps}` and a native `prev` is an
   `earned/performed-lift/v1` record. Found while measuring G6; not lane B's file, and named
   so it is not mistaken for a refusal of this package's.
+  **SECOND FIX PASS: still open, and now WRITTEN OUT.** `DECISIONS:108` (b) lifted the licence
+  for `gym-host.mjs` and no other file, so `gym-model.mjs` was NOT edited. The exact hunk is
+  `rebuild/lanes/b/ntc/gym-model.previousLine.patch` (`git apply --check` exit 0), measured
+  both ways — without it `view.previous` is `null` on every set of an opened day; with it the
+  card reads `"Last time: 35 lb × 8"` / `"Last time: 60 lb × 10"`. Committed delta cell
+  **G7** locks the current absence so landing the patch is a visible change.
+  **ROUTED by `DECISIONS:109`: to lane C's C4 one-store re-pin (`today/` custody), not to A2.**
+  The patch file is addressed accordingly, and the ask is filed in
+  `rebuild/lanes/REQUESTS.md` (2026-09-11 12:05 ET, `B → PM/C`).
 
 ---
 
