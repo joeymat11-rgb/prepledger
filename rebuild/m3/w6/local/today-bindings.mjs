@@ -465,6 +465,90 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     return Object.freeze(handle);
   }
 
+  /* -------------------------------------------------------- the first run
+     A4 (DECISIONS:117 (1)). Dad's first run writes ONE operation into THIS
+     generation, through the same producer hook the check-in uses: the page
+     hands its own `commands` (setup-commands.mjs) and the profile its fact
+     carries, because w6 must not import w7-preview.
+
+     ONE OP, ONCE. The question "has this device been set up?" is answered by
+     the DURABLE record read back out of this generation by profile equality,
+     never by a flag and never by localStorage. So a second tap, a second tab
+     and a reinstall over the same store all find the op that is already there
+     and write nothing: `save()` refuses before it reaches the client, and the
+     client's own compare-and-swap over the generation is what makes that
+     refusal a fact rather than an optimism. */
+  async function createSetupHost(options = {}) {
+    assertOpen();
+    reconcile("createSetupHost", options);
+    const { day, commands, profile } = options;
+    if (typeof day !== "string" || !DAY_RE.test(day)) throw new TypeError("createSetupHost requires day");
+    if (!commands || typeof commands !== "object") throw new TypeError("createSetupHost requires commands");
+    if (typeof profile !== "string" || !profile) throw new TypeError("createSetupHost requires profile");
+
+    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day) });
+    const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
+    const setupClient = createDurablePublicClient({ ...bindings,
+      schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
+    const opened = await setupClient.reopen();
+    let alive = true;
+
+    /* The read-back, narrowed by profile equality exactly as checkInsIn is. In
+       ONE generation that equality is what keeps a weigh-in (class "reading"),
+       a workout set (class "session") and a recovery check-in (a different
+       profile) out of this list. */
+    function setupsIn(generation) {
+      const collections = generation?.collections || {};
+      const rejected = collections.rejected || {};
+      const dead = new Set(Object.values(collections.ops || {})
+        .filter(op => op && op.kind === "tombstone" && typeof op.target_op_id === "string")
+        .map(op => op.target_op_id));
+      return Object.values(collections.ops || {})
+        .filter(op => op && op.kind === "fact" && op.class === "event"
+          && op.payload && op.payload.profile === profile
+          && op.payload.setup && typeof op.payload.setup === "object"
+          && !rejected[op.op_id] && !dead.has(op.op_id))
+        .sort((a, b) => (a.device_seq || 0) - (b.device_seq || 0) || (a.op_id < b.op_id ? -1 : 1))
+        .map(op => Object.freeze({
+          op_id: op.op_id,
+          date: op.effective && op.effective.local_date ? op.effective.local_date : null,
+          time: op.effective && op.effective.local_time ? op.effective.local_time : null,
+          setup: JSON.parse(JSON.stringify(op.payload.setup)),
+        }));
+    }
+
+    const handle = {
+      repository: bindings.repository, client: setupClient, day, namespace, databaseName, lease,
+      device: null, deviceKeyCustody: "local-keys.mjs",
+      openedRefusal: opened && opened.refusal ? { ...opened.refusal } : null,
+      async all() { return setupsIn((await bindings.repository.load()).generation); },
+      /* THE FIRST-RUN QUESTION, answered by the record. */
+      async enrolled() { return (await handle.all()).length > 0; },
+      async save(setup) {
+        if (!alive) return { ok: false, state: 3, copy: null, code: "LOCAL_CLIENT_CLOSED", op_id: null };
+        /* First run happens ONCE (BUILD-BRIEF 2.3, S13). Re-read the generation
+           immediately before the write: a second tap or a second tab that got
+           this far finds the op already there and writes nothing. */
+        if (await handle.enrolled()) {
+          return { ok: false, state: 0, copy: null, code: "SETUP_ALREADY_RECORDED", op_id: null };
+        }
+        const result = await setupClient.execute("workout", { action: "first-run-setup", input: { setup } });
+        return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
+          code: result.code || null, op_id: result.op_id || null };
+      },
+      async restart() { return setupClient.reopen(); },
+      face() { const current = setupClient.current(); return current && current.view ? current.view : null; },
+      blockedCopy() {
+        const view = handle.face();
+        if (!view) return null;
+        return (view.layer2 && view.layer2.copy) || (view.layer1 && view.layer1.label) || null;
+      },
+      // Detaches THIS handle only — see createReadingHost().close().
+      close() { alive = false; },
+    };
+    return Object.freeze(handle);
+  }
+
   return Object.freeze({
     client, databaseName, namespace, athleteId, deviceId,
     // What C1's boot() reported about this installation: the era window, the
@@ -474,7 +558,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       ops: booted.ops, derivedStale: booted.derivedStale, derivedCode: booted.derivedCode,
       importRebaseRequired: booted.importRebaseRequired === true,
       leaseRenewedUntil: booted.leaseRenewedUntil || null }),
-    createReadingHost, createGymHost, createCheckInHost,
+    createReadingHost, createGymHost, createCheckInHost, createSetupHost,
     /* C4b-D1. The day this installation's OWN writes (the weigh-in path, the
        lease window, the enrolment stamp) are stamped with, right now. Every host
        stamps its own `day` instead; see createGymHost. */
