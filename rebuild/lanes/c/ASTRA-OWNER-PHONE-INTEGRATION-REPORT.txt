@@ -1,0 +1,76 @@
+RESPONSIVE PHONE SHELL — DISTINCT LOCAL INTEGRATION
+September 11, 2026. FILE ASTRA-OWNER-PHONE-SHELL-JOIN.md at PM 9e761a5.
+Mechanical assembly PASS; actual emitted-artifact byte-equivalence PASS.
+This is not source-policy/package/CI/physical-phone qualification.
+
+(1) EXACT SOURCE
+Integrator /root/owner_release_integrator; neither source author, independent
+reviewer nor PM. Read NEXT then ROADMAP, LANES, AGENTS, owner rulings, full
+candidate/first-use integration reports and independent scoped reviews
+8479fa0c2319626527a92514594568762ef40ae6 and
+90c026337bbb139014b8eb12ab555bc73c1e2b00. Root accepted their bounded source.
+Branch codex/astra-owner-phone-integration; isolated worktree
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-phone-integration.
+Mechanical --no-ff merge 0f1c1ef79812a3f10eb1e4006975ef995e962c91:
+first parent bcbb985af9d7a36bef6aab775251732b4f8cedfe;
+second parent edc9a7f50e253f2191e2587682e0960afc18e948
+(phone product 4d570024cd485aed53cdd695a8c998e15cdb9292).
+Zero conflicts or manual resolution; seven accepted phone files joined.
+Executed git diff --quiet: pwa/**, Today/**, W6/**, engine/** and workout/**
+equal exact accepted edc9a7f. m3/**, engine/**, m4/**, conform/**, workflows,
+frozen app paths and root package-lock.json remain equal bcbb985.
+No integrator product/test edit. Original candidate report/history preserved.
+
+(2) REAL BUILDS AND DIRECT EQUALITY
+Existing Node v24.19.0; retained m3-w6-browser-bridge/rebuild/m3/w6/node_modules
+through ignored root/W6/W5 junctions. No dependency installation.
+Created separate detached public-source worktree astra-owner-phone-accepted-build
+at exact edc9a7f; no other active worktree's existing output overwritten.
+Executed node rebuild/slice/pwa/build-pwa.mjs once in each of these two trees.
+Both: A5 PWA BUILD PASS, exit 0; 13 files, 11 precached/pinned assets,
+13 exact header rules, approved colors, no network references in shipped bytes,
+10 credential-shape and four private-root guards across 13 files.
+No private input was used. Both output folders were newly created locally.
+
+Compared sorted complete directory inventories and actual file Buffers using
+Buffer.equals, not screenshots or only source hashes:
+DIRECT BUFFER EQUALITY PASS: .tmp/slice-pwa-dist 13/13 files;
+DIRECT BUFFER EQUALITY PASS: .tmp/w7-today-dist 3/3 files.
+No extra/missing files. All executable/served bytes, images, manifest,
+service worker and response headers are identical. Total compared 3,200,360
+bytes includes the separately retained three Today artifacts.
+Ignored per-file size/SHA256 inventory: .tmp/phone-artifact-equality.json;
+inventory SHA256 dbd165d7e901cd3ca5404ba12c3f427cce560886d4ad0c2020660f41b1fbc285.
+Common cache: earned-slice-016872f83be1f4ebbd8743b9b2c2a133.
+App SHA256 d170749ffa7beb08f0553c975dd56ca4276a5dffb5ece094961eeac7568f52e6.
+Index SHA256 9f597875a0db81d91838d8112621219672085e419f29a2dd9f0f8bc2ad4ba760.
+Headers SHA256 ecd1c27a3dec006764b6bf3f85881db71e596cfd81eb701ae69fbfa55ead2487.
+Deployable local folder in the integration tree: .tmp/slice-pwa-dist/.
+
+(3) VALIDATED EVIDENCE REUSE
+Actual artifact equality plus identical source validates reuse of independent
+8479fa0's 54/54 A5 tests and actual setup/seven-exercise review/four-set workout,
+weight save, offline reload/new page, current-assets update and postcommit
+refusal browser proof, including its separate overflow, keyboard-focus and
+dated-draft calendar probes. These were not rerun or claimed as new execution.
+No changed executable/served byte requires a new joined browser behavior probe.
+No screenshot-only comparison or duplicate whole campaign was substituted.
+
+(4) RESIDUALS / BOUNDARIES
+The inherited lifecycle result remains 15/16, one obsolete fresh-page input
+expectation failing; the assigned narrow successor is separate. No lifecycle
+test was changed or rerun here. No PR51/1a17510, final BNTC 413a54e/07f policy,
+publication guard or qualification delta was joined. Entry/build/setup/phone
+resources still require the explicitly accepted successor qualification scope.
+This source assembly does not establish hosted/two-OS CI or daily-use release.
+Known old/new populated-cache retention remains unclassified and uncorrected;
+the independent review established controller/current-assets behavior only.
+Seven supported bilateral exercise families and positive-pound upper/lower/rest
+remain bounded coverage. Nutrition, recovery, progression, full individual
+routine/load-family support and preference effects are not established here.
+Physical iOS keyboard/zoom/safe-area/Home Screen, kill/reboot/pressure, recovery,
+protected soak, M3/beta and other retained obligations remain pending.
+No private files, frozen-law edits, engine campaign, source pins, policy/runner/
+workflow edits, package-lock churn, secrets, remote integration, push, PR or
+deployment. No protected-soak access or data deletion. git diff --check PASS;
+only this report is added beyond the mechanical source merge.
