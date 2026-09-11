@@ -69,7 +69,9 @@ const PREVIEW_COPY = Object.freeze([
      approved prototype stores nothing, so it can never have a record to reuse and
      has no words for confirming one. */
   "Yes, that’s right",
-  "No: answer it here",
+  /* P1 review, optional item 5, taken: a comma reads better here than a colon, and
+     DECISIONS:114 allows "a colon, comma, full stop or a new sentence". */
+  "No, answer it here",
 ]);
 // Static copy that MUST come from the approved references.
 const APPROVED_COPY = Object.freeze([

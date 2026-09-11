@@ -65,7 +65,32 @@ function plainCopy(value, where) {
   return text;
 }
 
-module.exports = { plainCopy, hasAiDash, AiDashRefused, AI_DASH, AI_DASH_ALL };
+/* FAIL CLOSED PER SLOT, not per screen (P1 review Finding 3, required by the PM).
+
+   plainCopy REFUSES a dash it has no rule for, and that refusal is the point: the
+   character never renders. But a throw inside one slot's binding used to take the whole
+   of Today down through boot()'s last-chance handler, so one unrewritable engine sentence
+   cost the athlete every other line on the screen.
+
+   This is the render boundary's handling of that refusal: the slot that would have shown
+   the text renders NOTHING and the rest of the screen is painted normally. Blank rather
+   than the page's "Not available yet": the engine does have a value here, the page simply
+   would not print it, and saying "not available" would be a claim about the engine that
+   is not true. The offending text goes to the console, which is not the athlete's. */
+function plainOrDrop(value, where, fallback = "") {
+  try {
+    return plainCopy(value, where);
+  } catch (error) {
+    if (!error || error.code !== "AI_DASH_IN_UI") throw error;
+    try {
+      console.error("AI_DASH_IN_UI: " + (where || "a slot") + " was not rendered (DECISIONS:114): "
+        + String(value));
+    } catch (_) { /* a console is a convenience, never a dependency */ }
+    return fallback;
+  }
+}
+
+module.exports = { plainCopy, plainOrDrop, hasAiDash, AiDashRefused, AI_DASH, AI_DASH_ALL };
 
 /* ---------------------------------------------------------------------------
    THE BUILD-TIME REFUSAL (P1 amendment, DECISIONS:117 (1)).

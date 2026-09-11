@@ -39,9 +39,10 @@ import { mountGym } from '../gym-app.mjs';
 import { createCheckInHost } from '../checkin-host.mjs';
 import { createCheckInModel } from '../checkin-model.mjs';
 import { mountCheckIn } from '../checkin-app.mjs';
+import { bootFailureCopy } from '../today-entry.mjs';
 import Engine from '../../../../engine/index.cjs';
 
-const { plainCopy, hasAiDash, scanBuiltAssets, AiDashInBuild } = PlainCopy;
+const { plainCopy, plainOrDrop, hasAiDash, scanBuiltAssets, AiDashInBuild } = PlainCopy;
 const { mountToday } = TodayApp;
 const { createTodayModel, createBasisState, engineClockFor, SYNTHETIC_DAY } = TodayModel;
 const { createEngine } = Engine;
@@ -483,7 +484,7 @@ test('P1 — the recovery check-in renders every branch without a dash', async (
     if (view.sleepRecord) {
       assert(kit.doc.querySelector('[data-slot="sleep-known"]').hidden === false, 'the record is offered');
       assertNoDashOnScreen(kit.doc, 'the sleep record offered');
-      optionByLabel(kit.doc, 'No: answer it here').click();
+      optionByLabel(kit.doc, 'No, answer it here').click();
       await settle(20);
       assertNoDashOnScreen(kit.doc, 'after answering the sleep question here');
     }
@@ -556,6 +557,90 @@ test('P1 — every word of a dashed sentence survives the rewrite', () => {
     const words = before.split(/[\s–—]+/).filter(Boolean);
     for (const word of words) assert(plainCopy(before).includes(word), word);
   }
+});
+
+/* ==========================================================================
+   5. ROUND 2: the review's three required changes.
+   ========================================================================== */
+
+/* Finding 2: the last-chance screen punctuates the cause instead of running it into the
+   next sentence. Three cases: a plain cause, a cause the normaliser rewrote, and one it
+   refused. */
+test('P1 — the last-chance boot screen punctuates the cause it shows', () => {
+  const plain = plainCopy('IDB_OPEN_FAILED');
+  assert.equal(bootFailureCopy.status(plain), 'Today did not open: IDB_OPEN_FAILED. Nothing was recorded.');
+  assert.equal(bootFailureCopy.host(plain),
+    'Today could not open on this device. Nothing was changed or recorded. IDB_OPEN_FAILED.');
+
+  const rewritten = plainCopy('T2 lease not found — sign in again');
+  assert.equal(rewritten, 'T2 lease not found: sign in again');
+  assert.equal(bootFailureCopy.status(rewritten),
+    'Today did not open: T2 lease not found: sign in again. Nothing was recorded.');
+
+  // A cause the normaliser refuses is dropped; both sentences still read.
+  assert.throws(() => plainCopy('lease—gone'), (e) => e.code === 'AI_DASH_IN_UI');
+  assert.equal(bootFailureCopy.status(''), 'Today did not open. Nothing was recorded.');
+  assert.equal(bootFailureCopy.host(''),
+    'Today could not open on this device. Nothing was changed or recorded.');
+
+  // A cause that already ends in a stop is not given a second one.
+  assert.equal(bootFailureCopy.status('It did not open.'),
+    'Today did not open: It did not open. Nothing was recorded.');
+  for (const cause of ['', plain, rewritten, 'It did not open.']) {
+    assert(!DASH.test(bootFailureCopy.status(cause)) && !DASH.test(bootFailureCopy.host(cause)));
+  }
+});
+
+/* Finding 3: fail closed per SLOT, not per screen. */
+test('P1 — a refused string costs its own slot, never the whole of Today', async () => {
+  const kit = await todayScreen();
+  const real = kit.model.read();
+  kit.close();
+
+  /* A word-joined dash, which the normaliser has no rule for, in the ENGINE string Today
+     puts in its headline. rebuild/engine is not edited: the view DTO is poisoned on its
+     way to the view, which is exactly what a future engine package would do. */
+  const poisoned = JSON.parse(JSON.stringify(real));
+  poisoned.nowModel.move.title = 'NOTHING TO FIX—HOLD THE LINE';
+  assert.throws(() => plainCopy(poisoned.nowModel.move.title), (e) => e.code === 'AI_DASH_IN_UI');
+
+  const doc = dom();
+  const errors = [];
+  const console_ = globalThis.console;
+  globalThis.console = { ...console_, error: (...args) => errors.push(args.join(' ')) };
+  try {
+    mountToday(doc, { read: () => poisoned, weighIn: async () => ({ ok: false, copy: 'no' }) }, {});
+  } finally { globalThis.console = console_; }
+
+  const slot = (name) => doc.querySelector(`[data-slot="${name}"]`);
+  assert.equal(slot('instruction').textContent, '', 'the refused slot renders nothing');
+  // ... and every other slot on Today is intact.
+  for (const name of ['date', 'instruction-why', 'kcal', 'kcal-note', 'protein', 'workout-title',
+    'workout-count', 'morning', 'trend', 'primary-label']) {
+    assert(slot(name).textContent.trim().length > 0, 'slot lost with the refusal: ' + name);
+  }
+  assert.equal(slot('kcal-note').textContent, plainCopy(real.calorieTarget
+    ? 'Today\'s target ' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(real.calorieTarget.lo)
+      + ' to ' + new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(real.calorieTarget.hi) + ' kcal'
+    : ''), 'the rest of the screen is bound exactly as before');
+  assert(!/could not open/.test(doc.getElementById('phone').textContent), 'Today still opened');
+  assertNoDashOnScreen(doc, 'Today with one refused engine slot');
+  // The refusal is not silent: it goes to the console, which is not the athlete's.
+  assert.equal(errors.length, 1, 'exactly one refusal logged: ' + JSON.stringify(errors));
+  assert.match(errors[0], /AI_DASH_IN_UI: instruction was not rendered/);
+  assert.match(errors[0], /NOTHING TO FIX/);
+});
+
+test('P1 — plainOrDrop drops only an AI-dash refusal, and rethrows anything else', () => {
+  assert.equal(plainOrDrop('spike — damped in trend', 'x'), 'spike: damped in trend');
+  const console_ = globalThis.console;
+  globalThis.console = { ...console_, error: () => {} };
+  try {
+    assert.equal(plainOrDrop('a—b', 'x'), '');
+    assert.equal(plainOrDrop('a—b', 'x', 'fallback'), 'fallback');
+  } finally { globalThis.console = console_; }
+  const boom = { toString() { throw new TypeError('not a string'); } };
+  assert.throws(() => plainOrDrop(boom, 'x'), TypeError);
 });
 
 /* The design binding's ONE dash-normalised term, named here so a second one cannot be

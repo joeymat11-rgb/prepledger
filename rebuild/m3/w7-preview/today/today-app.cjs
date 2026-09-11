@@ -15,10 +15,13 @@
 
 const { createTodayModel } = require("./today-model.cjs");
 /* THE RENDER BOUNDARY for the owner's no-dashes rule (DECISIONS:114 (1)). Every string
-   this file writes into the DOM goes through plainCopy() on the way, because most of
+   this file writes into the DOM goes through the normaliser on the way, because most of
    them are the engine's words and rebuild/engine is frozen for this brief. A dash it
-   cannot rewrite is refused rather than shown. */
-const { plainCopy } = require("./plain-copy.cjs");
+   cannot rewrite is REFUSED: that one slot renders nothing and the refusal goes to the
+   console, while the rest of the screen paints normally (P1 review, Finding 3). The
+   character never reaches the athlete, and one unrewritable sentence never costs them
+   the whole of Today. */
+const { plainOrDrop } = require("./plain-copy.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -48,7 +51,7 @@ function calorieBand(calorieTarget) {
    own reconciliation of a reading with the trend beside it, and it is SHOWN (review F1).
    The app never writes a note of its own and never suppresses one; it does take the
    engine's dash out of it on the way to the screen (DECISIONS:114 (1)), which is what
-   plainCopy() at every slot below does. */
+   plainOrDrop() at every slot below does. */
 function morningLine(view) {
   if (!view.morningRead) return "This morning: not logged yet";
   const line = "This morning ✓ " + pounds(view.morningRead.lb) + " lb";
@@ -160,7 +163,7 @@ function mountToday(doc, model, options = {}) {
   function put(map, name, text) {
     const el = map.get(name);
     if (!el) throw new Error("Today preview: template slot missing: " + name);
-    el.textContent = plainCopy(text === null || text === undefined || text === "" ? NOT_AVAILABLE : String(text), name);
+    el.textContent = plainOrDrop(text === null || text === undefined || text === "" ? NOT_AVAILABLE : String(text), name);
     return el;
   }
   function arrows(root) {
@@ -178,12 +181,12 @@ function mountToday(doc, model, options = {}) {
       target.focus();
     }
   }
-  function tell(text) { if (status) status.textContent = plainCopy(text, "today-status"); }
+  function tell(text) { if (status) status.textContent = plainOrDrop(text, "today-status"); }
 
   /* ---------------- Today ---------------- */
   function renderToday(focus) {
     const view = model.read();
-    if (chrome) chrome.textContent = plainCopy(view.storageNote, "today-storage");
+    if (chrome) chrome.textContent = plainOrDrop(view.storageNote, "today-storage");
     const root = template("t-today");
     const map = slots(root);
     put(map, "date", dayLabel(view.today));
@@ -245,7 +248,7 @@ function mountToday(doc, model, options = {}) {
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
-    map.get("recovery-state").textContent = plainCopy(recoveryState(), "recovery-state");
+    map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -338,7 +341,7 @@ function mountToday(doc, model, options = {}) {
       catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + (error_ && error_.message ? error_.message : "") }; }
       submit.disabled = false;
       if (!result.ok) {
-        error.textContent = plainCopy(result.copy || "This weight could not be recorded, and nothing was recorded.", "weigh-error");
+        error.textContent = plainOrDrop(result.copy || "This weight could not be recorded, and nothing was recorded.", "weigh-error");
         input.focus();
         return;
       }
@@ -361,11 +364,11 @@ function mountToday(doc, model, options = {}) {
         const block = doc.createElement("div");
         block.className = "macro-row";
         const head = doc.createElement("strong");
-        head.textContent = plainCopy(section.heading, "why-heading");
+        head.textContent = plainOrDrop(section.heading, "why-heading");
         head.setAttribute("role", "heading");
         head.setAttribute("aria-level", "2");
         const body = doc.createElement("p");
-        body.textContent = plainCopy(section.body, "why-body");
+        body.textContent = plainOrDrop(section.body, "why-body");
         block.append(head, body);
         host.append(block);
       }
@@ -393,13 +396,13 @@ function mountToday(doc, model, options = {}) {
       const top = doc.createElement("div");
       top.className = "row";
       const name = doc.createElement("strong");
-      name.textContent = plainCopy(label, "macro-label");
+      name.textContent = plainOrDrop(label, "macro-label");
       const figure = doc.createElement("span");
       if (value === null) { figure.className = "unit"; figure.textContent = "Not prescribed"; }
       else {
         const big = doc.createElement("span");
         big.className = "number";
-        big.textContent = plainCopy(value, "macro-value");
+        big.textContent = plainOrDrop(value, "macro-value");
         const u = doc.createElement("span");
         u.className = "unit";
         u.textContent = " " + unit;
@@ -407,7 +410,7 @@ function mountToday(doc, model, options = {}) {
       }
       top.append(name, figure);
       const note = doc.createElement("p");
-      note.textContent = plainCopy(copy, "macro-note");
+      note.textContent = plainOrDrop(copy, "macro-note");
       row.append(top, note);
       host.append(row);
     }
