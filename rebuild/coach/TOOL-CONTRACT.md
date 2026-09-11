@@ -435,3 +435,22 @@ transcript: no urgency, streaks, gamification, nudging or dark patterns. Matchin
 is word-boundary, not substring — "explain" contains "xp" and a lint that fires
 on that is a lint nobody keeps. Misses are stated plainly: the tests assert no
 refusal is softened with sorry / unfortunately / great news / don't worry.
+
+## No dashes in the UI
+
+DECISIONS:114 (1), owner verbatim: **"no ai dashes are allowed in the ui"**. The
+coach's spoken text is the UI, so no en dash (U+2013) and no em dash (U+2014)
+appears in anything this lane writes for the athlete: a template's own words, a
+tier-3 explanation, a refusal sentence, a cap or opt-in reason, a scripted
+question. A colon, a comma or a new sentence says the same thing. Code comments
+are not UI and keep theirs. `test/no-dashes.test.cjs` holds the line: a source
+scan with comments stripped, a scan of every template's own literals, a sweep of
+every reachable refusal and every cap/opt-in reason, and the full 25-turn
+transcript with the tool results subtracted so what is measured is the coach's
+own connective text.
+
+**Engine prose is carried verbatim and still carries dashes.** That is the
+existing rule (a refusal or a reason travels unedited, because inventing a
+friendlier sentence is how a guess starts) and `rebuild/engine` is outside this
+lane. The transcript's residual is counted and pinned so it cannot drift upward
+unnoticed; clearing it is a `rebuild/engine` change.

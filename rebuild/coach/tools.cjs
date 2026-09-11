@@ -304,7 +304,7 @@ function charterViolations(transcriptText) {
 /* ------------------------------------------------- tier 3: never via coach -- */
 
 const NEVER_VIA_COACH = Object.freeze({
-  phase: "Phase is a detector output, not a choice — not yours and not mine. It moves when the evidence moves, and it changes in settings, never in a conversation.",
+  phase: "Phase is a detector output, not a choice. It is not yours and it is not mine. It moves when the evidence moves, and it changes in settings, never in a conversation.",
   calorie_floor: "The calorie floor is derived from your lean mass by the energy-availability formula, not set by hand. I can tell you the number and the reasoning behind it; I cannot move it.",
   protein_floor: "The protein floor is derived from your measured lean mass. I can read it out and explain it; changing it is an owner decision in settings.",
   progression_rules: "How the next target is worked out is a rule in the engine, not a setting in this conversation. I can explain what it did and why; I cannot rewrite it.",
@@ -798,7 +798,7 @@ function createCoachTools(world) {
     if (!REPLAN_FACTS.includes(fact)) {
       return unavailable("request_replan", TIER.PROPOSAL, turn_id, CODES.REPLAN_ENTRY_ABSENT,
         "No accepted engine entry point re-plans on that kind of fact yet. The engine re-plans on: " + REPLAN_FACTS.join(", ") + ".",
-        "rebuild/engine — no accepted replan-on-coach-facts producer exists");
+        "rebuild/engine: no accepted replan-on-coach-facts producer exists");
     }
     if (carriesNumber(args, 0)) {
       return unavailable("request_replan", TIER.PROPOSAL, turn_id, CODES.PROPOSAL_NOT_ENGINE_ISSUED,
@@ -959,7 +959,7 @@ function verifyCostCap(record, options) {
       return { ok: false, code: CODES.COST_CAP_INVALID, reason: k + " must be a positive number" };
     }
   }
-  if (record.verified !== true) return { ok: false, code: CODES.COST_CAP_INVALID, reason: "verified must be exactly true — a cap nobody checked is not a cap" };
+  if (record.verified !== true) return { ok: false, code: CODES.COST_CAP_INVALID, reason: "verified must be exactly true. A cap nobody checked is not a cap." };
   const blob = JSON.stringify(record);
   for (const shape of CREDENTIAL_SHAPES) {
     if (shape.test(blob)) return { ok: false, code: CODES.COST_CAP_INVALID, reason: "the cap record carries something credential-shaped; a cap record is a receipt, never a key" };
@@ -993,7 +993,7 @@ function verifyOptIn(optIn, user) {
   }
   if (!optIn || typeof optIn !== "object" || Array.isArray(optIn)) {
     return no("A bare yes is not an opt-in. " + user + " opts in on a screen, and the record of that screen "
-      + "— who, when, which wording — is what opens this gate.");
+      + "saying who, when and which wording, is what opens this gate.");
   }
   const missing = OPT_IN_REQUIRED.filter((k) => optIn[k] === undefined || optIn[k] === null || optIn[k] === "");
   if (missing.length) return no("The opt-in record is missing: " + missing.join(", ") + ".");
@@ -1008,7 +1008,7 @@ function verifyOptIn(optIn, user) {
     [/\btext\b|transcript/i, "the text"], [/leav|sent|send|goes|go to/i, "that it leaves the phone"]];
   const unnamed = names.filter(([re]) => !re.test(wording)).map(([, what]) => what);
   if (unnamed.length) {
-    return no("The opt-in wording must name what actually happens — it does not name: " + unnamed.join(", ")
+    return no("The opt-in wording must name what actually happens. It does not name: " + unnamed.join(", ")
       + ". A yes to words that hide the transfer is not consent to the transfer.");
   }
   return { ok: true, code: null, reason: null, user };

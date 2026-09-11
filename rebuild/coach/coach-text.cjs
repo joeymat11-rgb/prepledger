@@ -60,7 +60,7 @@ const TEMPLATES = Object.freeze({
   ]),
   protein: (v) => join([
     has(v.proteinG)
-      ? "At least " + d(v.proteinG, "g") + " grams. It is a floor, not a bullseye — over it is not a miss."
+      ? "At least " + d(v.proteinG, "g") + " grams. It is a floor, not a bullseye. Over it is not a miss."
       : "I do not have a protein target for you today.",
   ]),
   why_calories: (v) => join([has(v.body) ? d(v.body, "text") : "The engine gave no reasoning for that number.",

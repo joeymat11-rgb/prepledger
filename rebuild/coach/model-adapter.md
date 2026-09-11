@@ -140,6 +140,12 @@ and both are reversible without touching the tool contract.
 - Reword an engine or client refusal. The code and the sentence travel verbatim.
 - Fill a blank. Blank is unknown — never zero, never normal, never "fine".
 - Add urgency, streaks, gamification or encouragement to a miss.
+- Write an en dash (U+2013) or an em dash (U+2014) in anything the athlete sees.
+  DECISIONS:114 (1), owner verbatim: "no ai dashes are allowed in the ui". Use a
+  colon, a comma or a new sentence. `test/no-dashes.test.cjs` is the check, and
+  it applies to a model's drafted answer exactly as it applies to a template.
+  (Engine prose is carried verbatim and is the one exception, because rewording
+  an engine sentence is how a guess starts.)
 - Promise a plan consequence. After a real save, state the actual consequence the
   engine reports, or "unchanged, because …". "Saved" alone is not evidence the
   engine used the answer.
