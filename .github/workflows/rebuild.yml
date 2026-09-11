@@ -76,10 +76,10 @@ jobs:
         run: node --test rebuild/m3/w0/test/public-conformance.test.cjs rebuild/m3/w0/test/scope-package.test.mjs
       - name: Accepted synchronous client restart witness
         run: node rebuild/t2/rig187.cjs
-      - name: Synthetic Today projection, UI and preview package
-        run: node --test rebuild/m3/w7-preview/test/model.test.cjs rebuild/m3/w7-preview/test/view.test.cjs rebuild/m3/w7-preview/test/package.test.cjs
-      - name: Cumulative extracted-engine native-carrier and legacy-census evidence
-        run: node rebuild/m4/spec/native-carriers-package.cjs --ci
+      # B-NTC succeeds the memory-only preview with the executed durable Today,
+      # gym and check-in suites below. Historical preview tests remain in Git.
+      - name: Cumulative B-NTC native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -93,7 +93,6 @@ jobs:
       # today/gym test files" rides the B-NTC seal, so both are named here. The
       # rule the step already stated is kept: every file is named rather than
       # globbed, so the same set runs on both runners whatever the shell does.
-      # Measured locally on this branch: 158 tests, 158 pass, 0 fail.
       - name: A1/A2/A3 — the rebound Today page, the gym card, the check-in and the B-NTC delta cells
         run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
       - name: A5 — the PWA shell's lockfile-only suites

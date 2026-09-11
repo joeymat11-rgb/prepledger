@@ -60,7 +60,7 @@ import { StorageFailure } from "../repository.mjs";
 import { createDurablePublicClient } from "../public-client.mjs";
 import { parseStrictJson } from "../strict-json.mjs";
 import { projectWorkoutRecords } from "../../../m4/workout/project-history.mjs";
-import { composeWorkoutHost, createUnavailableNativeTrendContext } from "../host/workout-host.mjs";
+import { composeWorkoutHost } from "../host/workout-host.mjs";
 // CommonJS collaborators taken as DEFAULT imports, the way the accepted host
 // entry and the page's own gym-host.mjs take them.
 import Source from "../../w5/source/codec.cjs";
@@ -72,6 +72,7 @@ import SourceProjection from "../../../m4/workout/source-projection.cjs";
 import WorkoutBasis from "../../../m4/workout/workout-basis.cjs";
 import ResumePolicy from "../../../m4/workout/resume-policy.cjs";
 import HostRuntime from "../host/engine-runtime-host.cjs";
+import NativeTrend from "../../../m4/workout/native-trend-context.cjs";
 
 const { createNullLaneWorkoutBasis } = WorkoutBasis;
 const { createWorkoutResumePolicy } = ResumePolicy;
@@ -320,8 +321,23 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
        the next read refused it WORKOUT_HISTORY_RECONCILIATION_REQUIRED forever. */
     const bindings = await client.hostBindings({ workoutCommands, clock: clientClockFor(day) });
     let alive = true;
-    const engine = HostRuntime.createEngineRuntime({ clock: engineClockFor(day),
-      nativeTrendContext: nativeTrendContext || createUnavailableNativeTrendContext() });
+    // B-NTC's qualified default lives at C4's actual shared-store composition.
+    // An explicitly injected resolver remains the caller's; storage, clocks,
+    // causal parents and commit validation still come from the local era.
+    let dayReader = null;
+    const trendBinding = NativeTrend.createNativeTrendContextBinding({ dayFacts: iso => {
+      if (!dayReader) throw new Error("GYM_NATIVE_TREND_DAY_READER_UNCOMPOSED");
+      return dayReader.dayFacts(iso);
+    } });
+    const runtime = HostRuntime.createEngineRuntime({ clock: engineClockFor(day),
+      nativeTrendContext: nativeTrendContext || trendBinding.resolve });
+    dayReader = NativeTrend.createDayFactsReader({ state: engineState, engine: runtime });
+    // readPrevious runs after the producer returns. Scope each engine read to
+    // its own facts, restoring a surrounding window after nested reads.
+    const scoped = (facts, run) => facts ? trendBinding.withFacts(facts, run) : run();
+    const engine = Object.freeze({
+      genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(s, iso, slp)),
+      rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(s, ex, slp)) });
 
     /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION —
        A2 review round 2's finding, kept exactly: nothing is remembered across
@@ -358,6 +374,9 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
 
     return Object.freeze({ host, repository: bindings.repository, engine, day, plannedSplitSlotId,
       device: null, deviceKeyCustody: "local-keys.mjs", bindings,
+      trendBinding, trendDayReader: () => Object.freeze({
+        enginePredicates: dayReader.enginePredicates,
+        enginePredicatesAvailable: dayReader.enginePredicatesAvailable }),
       causalParents: () => lastResolved.slice(),
       causalTipsNow: async () => causalTips((await bindings.repository.load()).generation),
       startOrderRefusal,

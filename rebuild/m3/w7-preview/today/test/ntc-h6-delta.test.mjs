@@ -55,7 +55,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import { faultDatabase } from '../../../w6/test/support.mjs';
-import { createGymHost, AUTHORITY_KID } from '../gym-host.mjs';
+import { createGymHost } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
 import TodayModel from '../today-model.cjs';
 import AthleteState from '../../../../m4/workout/athlete-state.cjs';
@@ -91,23 +91,14 @@ function productAthlete() {
   return state;
 }
 
-async function deviceKeys() {
-  const pair = await webcrypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-  const jwk = await webcrypto.subtle.exportKey('jwk', pair.publicKey);
-  const storeKey = await webcrypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  return { kid: AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-    publicKey: { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y, key_ops: ['verify'], ext: true } };
-}
-
 /* `on(day)` is A PAGE LOAD — a new host over the SAME device storage and key
    store, the way A2's own lane() does it. Nothing is carried in memory between
    days, so a cell that says "day+3 prepares" is saying it about a real reopen. */
 async function lane(state, label) {
   const fault = faultDatabase();
-  const keys = await deviceKeys();
   return { async on(day) {
     const host = await createGymHost({ day, engineState: state, indexedDB: fault.indexedDB,
-      crypto: webcrypto, deviceKeys: keys, plannedSplitSlotId: 'slot', databaseName: 'ntc-h6-' + label });
+      crypto: webcrypto, plannedSplitSlotId: 'slot', databaseName: 'ntc-h6-' + label });
     return { host, model: createGymModel({ gymHost: host, sessionTitle: 'T' }) };
   } };
 }
@@ -375,17 +366,12 @@ test('B-NTC G6 — previous performance survives the bind window on the day the 
 });
 
 /* ---------------------------------------------------------------------------
-   G7 / O10 — NOT FIXED HERE, AND NAMED SO IT IS NOT MISTAKEN FOR A REFUSAL.
-   The data reaches gym-model (G6). The printed line does not, because
-   previousLine() (gym-model.mjs:142-148) reads the LEGACY prev shape
-   {w:number, reps:number[]}. gym-model.mjs is A2's file and is NOT covered by
-   the DECISIONS:108 (b) licence, which names the gym-host.mjs hunk only — so the
-   fix is written out, unapplied, in rebuild/lanes/b/ntc/gym-model.previousLine.patch
-   and requested of the A2 builder. This cell locks the CURRENT behaviour so that
-   landing that patch is a visible, deliberate change.
+   G7 / O10 — C4's accepted reader now displays the native performed record.
+   This positive join cell uses the shipped default provider and the actual
+   local-era key custody. The historical absence witness remains in a1d8252.
    --------------------------------------------------------------------------- */
 
-test('B-NTC G7/O10 — the "Last time" line is still absent: previousLine() reads the LEGACY shape (A2 custody)', async () => {
+test('B-NTC G7/O10 — C4 Last time reads the performed shape on the default qualified local-era path', async () => {
   const { L } = await trainedFreshLane('g7');
   const handle = await L.on(offsetDay(FRESH_DAY, 3));
   assert.equal((await handle.model.read()).phase, 'ready');
@@ -402,12 +388,9 @@ test('B-NTC G7/O10 — the "Last time" line is still absent: previousLine() read
   assert.equal(typeof prev.slots[0].fact.current.load.value, 'number');
   assert.equal(prev.slots[0].fact.current.load.unit, 'lb');
   assert.equal(typeof prev.slots[0].fact.current.reps.value, 'number');
-  /* … and the reader cannot see it, because it looks for the legacy shape. */
+  /* No legacy scalar fields are invented to make the display work. */
   assert.equal(typeof prev.w, 'undefined', 'a native prev has no scalar `w`');
   assert.equal(Array.isArray(prev.reps), false, 'a native prev has no `reps` array');
-  assert.equal(active.previous, null,
-    'so the card prints no "Last time" line — O10, A2 custody. IF THIS CELL IS RED, '
-    + 'rebuild/lanes/b/ntc/gym-model.previousLine.patch has landed: replace this cell with the '
-    + 'positive one that patch carries (the line reads "Last time: 35 lb × 8").');
+  assert.equal(active.previous, 'Last time: 35 lb × 8');
   handle.host.close();
 });

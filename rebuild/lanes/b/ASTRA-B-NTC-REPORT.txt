@@ -1,0 +1,106 @@
+EARNED — B-NTC ASTRA CONTINUATION, CANDIDATE PREPARATION
+2026-09-11. Builder output, not independent acceptance or a package verdict.
+Branch codex/astra-b-ntc. Base a1d8252747de2d1286e83c781f018ff4d8f791fe.
+Assembly merges: accepted C4 7b1678a4a8449053000d52a0a8e9e070f32a240e
+at 9eb46bd; tooling7748880701ef62246c8362c43f760ee10f86c2cc at 4e992b9.
+Tooling7748880 is NOT accepted; its independent reviewer found two blockers.
+Original Claude worktrees preserved. No push, integration merge or deploy.
+
+(1) PRODUCT JOIN
+C4 moved gym composition from today/gym-host.mjs into w6/local/today-bindings.mjs.
+PM approved relocating B-NTC's qualified default and scoped engine reads there.
+The page uses C4's shared repository, local-era keys, clock and causal frontier.
+Explicit nativeTrendContext injection remains supported. No storage changes.
+Both zero-night and 28-night product paths use the shipped default day predicates.
+Day+3 opens, starts, logs every set and closes. C4's Last time reader is retained;
+the positive fresh-athlete cell displays "Last time: 35 lb × 8".
+Clean-init fixture still declares one working load from each lift's own ladder:
+the product's first-working-load writer remains an existing separate limitation.
+
+(2) EXACT SUCCESSOR MAPPING — PROPOSED, REQUIRES INDEPENDENT REVIEW
+Parent artifact acceptance-native-carriers.json e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a.
+Archived parent source origin b95ccca879e371b5ba225ad12cae612ec89469ba.
+All original native-carriers-* files and original native-next-target tests remain
+byte-identical. New files carry prefix rebuild/m4/spec/b-ntc-.
+
+Original gate IDs                       Child name / new wrapper
+migrate-source, merge-source,
+  writers-source                        source-carriers / b-ntc-source-carriers.cjs
+witnesses-2, witnesses-5,
+  migrate-differential                   inherited-carriers / b-ntc-inherited-carriers.cjs
+witnesses-7                             defect-witnesses / b-ntc-defect-witnesses.cjs
+writers-differential                    writers-differential / b-ntc-writers-differential.cjs
+second-gate                             second-gate / b-ntc-second-gate.cjs
+
+The other five original native children (traces/direct/legacy/witnesses/cases)
+also execute through correspondingly named b-ntc wrappers. Changes to execution:
+a. Unmodified original Profile.verify runs with a PRIVATE module-scoped,
+   read-only archived overlay for ONLY runtime and rebuild.yml, whose exact
+   parent bytes are read from Git at b95ccca. Every original profile assertion,
+   parent/grandparent pin, authorization, receipt and real ancestry check runs.
+   This proves the ARCHIVED parent; it is never represented as child acceptance.
+b. Actual-child preflight independently checks all parent pins on disk, refuses
+   any unlisted drift, checks every declared child postimage, then runs original
+   source construction with ONLY the runtime SUPPORT hash changed to the child's
+   exact declared hash. The real engine files remain byte-identical.
+c. Private compilation invokes each original CLI entry guard; test bodies stay.
+d. Composition witnesses retain all six original reach branches and exact
+   forbidden-import checks. One exact EXPOSED equality expects four readers.
+e. b-ntc-native-next-targets.test.cjs executes the original ten tests, changing
+   only Object.keys(runtime)'s exact expected list to add dayWeather/cleanAtDate.
+   Original assembly/correction tests remain direct targets. The cases child's
+   focused detector points to this ten-test successor; no detector is omitted.
+f. Original second-gate body runs on the ACTUAL child root after both preflights.
+   Its parent-context adapter explicitly returns accepted:false for this child.
+No global fs hook, global loader hook, require.cache replacement or candidate
+module substitution is used. Independent review must check this separation.
+
+(3) EXECUTED CHECKS — NODE24, AMERICA/NEW_YORK, MEASURED_TEST_NOW=2026-09-03
+Default-path gym + delta + provider: 110/110 PASS (provider 39, delta 7).
+Dedicated durable-journeys wrapper: 237/237 PASS; all seven Today files,
+  A0 journey/equivalence and C4 local-today journey, each real file pinned.
+Today build: A1 TODAY BUILD PASS; 3 assets, 94 inputs, 3/3 network-free scans.
+Successor source carriers 6/6; inherited carriers 6/6; defect witnesses 10/10;
+  writers differential 3/3 Date/trap modes: PASS.
+Second gate: CI SECOND GATE PASS; 3072 reference / 3072 candidate assertions;
+  4 surface cells, 6 legacy sites, one fixed-clock run.
+Traces: 7/7 public census laws both clocks; 2/2 public goldens byte-identical;
+  W0 oracle 5/5 lines. Direct 713/713; legacy differential 9/9: PASS.
+Composition witnesses: 6/6; 0 lab/history reach. Native focused: 15/15 PASS.
+Original native cases: 7/7 effective behavioral mutants, all bytes restored.
+Child pin refusal tests: 4/4 PASS; runtime/workflow/provider drift refused;
+  full two-stage preflight passes after restoration; global hooks unchanged.
+Own default-provider removal bite: 7/7 delta cells FAIL; restored 7/7 PASS.
+git diff 7b1678a -- engine/conform/frozen-app paths: empty after mutations.
+
+(4) CI/PACKAGE PREPARATION AND LIMITS
+Workflow enumerates all seven Today tests and points to b-package --ci B-NTC.
+Old memory-only preview CI step is retired in this candidate; its source tests
+and original parent wrapper remain unchanged historical evidence. The child's
+replacement is the executed 237-assertion durable journey wrapper, not a waiver.
+The original parent profile-refusal suite is retained historically; four new
+child-pin tests supplement actual preflight. Reviewer must judge this successor.
+Do not integrate this workflow before the child is publicly qualified and sealed.
+
+NO formal --ci/--full, seal, receipt, private census or authorized rerun attempted
+in this continuation: public gate preparation does not establish those verdicts.
+Blockers: (a) tooling7748880 argv/role defects; separate fixer/reviewer owns them;
+(b) exact successor mapping needs reviewed tooling support/PM ledger disposition:
+  current inherited coverage requires a parent-pinned executable, so these new
+  wrappers are not accepted by it. No extra trailing argv or fake proof supplied;
+(c) exact brief/theme citations need a valid accepted-chain anchor: semantic
+  rulings108/109 do not match tooling's required terminal citation format and
+  occur after the pinned parent receipt base. No citation/ancestry is invented;
+(d) independent changed-code review, closed child artifact and real custody
+  remain required before FULL and acceptance. M2/S2/phone readiness not claimed.
+Tooling fix c7b7133 was reported by its separate author; not incorporated here
+because its independent review was still pending at this report.
+
+(5) NEXT CONCRETE VALIDATION
+From this candidate worktree with Node24 and existing linked locked dependencies:
+  node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs
+  node rebuild/m4/spec/b-ntc-journeys.cjs
+After independently accepted tooling, mapping and citation handling are joined:
+  node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+Stop on actual failed/unresolved evidence. FULL/private custody is a later PM
+assignment, not authorized by a successful public command.

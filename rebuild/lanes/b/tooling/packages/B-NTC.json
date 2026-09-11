@@ -8,7 +8,7 @@
     "sha256": "89cc1c3a30b97fe7f78f581e09bed056bdc99939e1004baef77c819e460667b6",
     "acceptedLedgerLine": null
   },
-  "sourceBase": "5dc92543e3a179e74fd72ea1a9a3ab41f6db4e18",
+  "sourceBase": "7b1678a4a8449053000d52a0a8e9e070f32a240e",
   "dIds": [],
   "laws": {},
   "carriedAcceptedIds": [
@@ -31,13 +31,13 @@
         "review": "rebuild/m4/spec/review-native-carriers.json",
         "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
         "receiptLedgerLine": 104,
-        "note": "RE-TAKEN at the merge, exactly as the previous wording of this note said it would be. The pin was 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1 with receiptLedgerLine 96, the chain head at sourceBase 12cfdb9 (DECISIONS:96/97); the PM's CI re-seal (DECISIONS:105) re-sealed the same artifact to e940359b… with receipt line 104, and DECISIONS:108 (e) CONFIRMED that as B-NTC's parent. This branch merged origin/rebuild/t2-client-core at 93b23edb5c09073b4723a97368aa17c367ce6873, where rebuild/m4/spec/acceptance-native-carriers.json hashes to e940359b… on disk (verified), so the pin above is the head artifact and not a prediction. sourceBase stays 12cfdb9: `git diff 12cfdb9 origin/rebuild/t2-client-core -- rebuild/engine rebuild/conform rebuild/m4/workout rebuild/m3/w6/host` is EMPTY, so every product pre-image sha below is still exact at the merge."
+        "note": "Accepted parent e940359b at reviewed b95ccca; origin remote ancestry is checked unchanged by tooling. Candidate assembly base is integrated C4 7b1678a. Tooling 7748880 pending review; no seal or receipt claimed."
       }
     ]
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
+    "runnerSha256": "cadde14fd93d2774a12909871d75e0907bd08814b5310fe231a0ea1737d5f92f"
   },
   "product": {
     "rebuild/engine/plan.cjs": {
@@ -152,18 +152,153 @@
     },
     "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "8cf038efb19e1c6758233b2bb8974610c3d55b046df3870a2661ad51e7c9c600",
+      "post": "ec950730038c9a1f43c9a7933547537dce43fe51f708830dc219e4d41b5abcbc",
       "role": "new"
     },
     "rebuild/m4/workout/engine-runtime.cjs": {
       "pre": "9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23",
       "post": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
-      "role": "edited"
+      "role": "superseded-by-child"
     },
     ".github/workflows/rebuild.yml": {
       "pre": "f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8",
-      "post": "3a8d46ce64d5c55b37f4c4f384a140e1962dc19dff96ff9c3ca0343102704ca7",
-      "role": "edited"
+      "post": "5b84ef71f97453ecf03fa4ed2f9510ac3ab39ea4398a6c4d3c20b6f08a9756d1",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m4/spec/b-ntc-successors.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "4ac0780cb82d27bd56ba5177a73def4642d57bede4e9d96055a995e6c6518f8c",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-traces.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "58a44e3118ae30fb5740df902efca496a13dff591db071047e08e61937fa4799",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-direct.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "89c7f6864911ea10ce5b11584c5c1af2e78cf999b91c04758f20de83d4d07376",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-legacy.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "c9acd1ecdd7fbaa850b26a84aa9c4058fa8d0e0697d51123c830d01b6124a9d9",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "0d7635eed730dcaa6ba80a2d72d645d9171cb3f95cd94c017ba8ae4b81a678f7",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-cases.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d47a03acbdc971d7ba1e58fa3f9553cce21a165078ceb118c24bc3edd3c2cdb1",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "3ee1ae61c658e0c79bd4dcc30294e07c2fe484880574f58b71547ce5d19132e2",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "f5f8c2757acc62113bb46ace8232b8750be942933101a63641a0300e7e1feedd",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "4ebe1bccc9d27a2206b97ca66b79933b5e456ced31585aae5e7f32f187fa8ca8",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "5a21c36a18ced0b847700651e5fab349fbba7977eec432df94d278037e5272ef",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "0ecd0f85e56d2858a18b74e44f252451543bf4e4f3774c2d6c3a69a6a55131e0",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/today-bindings.mjs": {
+      "pre": "f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff",
+      "post": "b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": {
+      "pre": "114411b1a075c2354eccb552b5855007d06a1a3fe788b5ae0991a6eb3d08309e",
+      "post": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b",
+      "post": "262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "57566afd36ea913da4b9eaeed8f7a358479381606a9b6f92fc5e562d85d58cda",
+      "post": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
+      "pre": "be31fed87150c4d64545e2bcbeec12d0d106218135d78f2b78a854160f935e45",
+      "post": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-journeys.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-focused.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
+      "pre": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "post": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
+      "pre": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
+      "post": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": {
+      "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "post": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": {
+      "pre": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "post": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": {
+      "pre": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "post": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
+      "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": {
+      "pre": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+      "post": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "3cec74af09a930abec79464fe37a2fc1e073c3bf93d04d9c1db22ea31f0219d6",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "new"
     }
   },
   "coverage": {
@@ -214,37 +349,72 @@
   },
   "children": [
     {
+      "name": "traces",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-traces.cjs"
+      ],
+      "needle": "NATIVE CARRIER TRACES:"
+    },
+    {
+      "name": "direct",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-direct.cjs"
+      ],
+      "needle": "NATIVE CARRIERS DIRECT:"
+    },
+    {
+      "name": "legacy",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-legacy.cjs"
+      ],
+      "needle": "NATIVE CARRIERS LEGACY DIFFERENTIAL:"
+    },
+    {
+      "name": "witnesses",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-witnesses.cjs"
+      ],
+      "needle": "NATIVE CARRIERS WITNESSES:"
+    },
+    {
+      "name": "cases",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-cases.cjs"
+      ],
+      "needle": "NATIVE CARRIERS CASES:"
+    },
+    {
       "name": "source-carriers",
       "argv": [
-        "rebuild/m4/spec/native-carriers-source-carriers.cjs"
+        "rebuild/m4/spec/b-ntc-source-carriers.cjs"
       ],
-      "needle": "NATIVE SOURCE CARRIERS: 6/6 PASS;"
+      "needle": "NATIVE SOURCE CARRIERS:"
     },
     {
       "name": "inherited-carriers",
       "argv": [
-        "rebuild/m4/spec/native-carriers-inherited-carriers.cjs"
+        "rebuild/m4/spec/b-ntc-inherited-carriers.cjs"
       ],
-      "needle": "NATIVE INHERITED CARRIERS: 6/6 PASS;"
+      "needle": "NATIVE INHERITED CARRIERS:"
     },
     {
       "name": "defect-witnesses",
       "argv": [
-        "rebuild/m4/spec/native-carriers-defect-witnesses.cjs"
+        "rebuild/m4/spec/b-ntc-defect-witnesses.cjs"
       ],
-      "needle": "NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;"
+      "needle": "NATIVE DEFECT WITNESSES:"
     },
     {
       "name": "writers-differential",
       "argv": [
-        "rebuild/m4/spec/native-carriers-writers-differential.cjs"
+        "rebuild/m4/spec/b-ntc-writers-differential.cjs"
       ],
-      "needle": "NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;"
+      "needle": "NATIVE WRITERS DIFFERENTIAL:"
     },
     {
       "name": "second-gate",
       "argv": [
-        "rebuild/m4/spec/native-carriers-second-gate.cjs"
+        "rebuild/m4/spec/b-ntc-second-gate.cjs"
       ],
       "needle": "NATIVE SECOND GATE:"
     },
@@ -256,21 +426,39 @@
         "rebuild/m4/workout/test/native-trend-context.test.cjs"
       ],
       "needle": "# pass 39"
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-focused.cjs"
+      ],
+      "needle": "B-NTC FOCUSED: 15/15 PASS;"
+    },
+    {
+      "name": "durable-journeys",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-journeys.cjs"
+      ],
+      "needle": "B-NTC DURABLE JOURNEYS: 237/237 PASS;"
+    },
+    {
+      "name": "child-pin-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-successors.test.cjs"
+      ],
+      "needle": "# pass 4"
     }
   ],
   "notes": [
-    "B-NTC edits NO byte under rebuild/engine, rebuild/conform or rebuild/m4/spec: every parent-pinned product file is role \"carried\" (pre === post, byte-identical on disk, verified by this runner).",
-    "dIds and laws are EMPTY on purpose. B-NTC registers no D-ID (DECISIONS:93 — feature work under the ratified slice plan takes no register D-ID); it turns an accepted open boundary into a provider. That is why the runner puts it in NO_REGISTER_IDS, and why TOOLING-REVIEW-r4's Y1 applies to it.",
-    "Y1 (TOOLING-REVIEW-r4 §7), APPLIED AS FAR AS THE RUNNER ALLOWS. Y1: \"a package with an empty dIds inventory may not be sealed unless at least one declared child executes one of its own role:'new' product files.\" The child `ntc-provider-cells` does exactly that: it executes rebuild/m4/workout/test/native-trend-context.test.cjs, which is declared in product[] with role \"new\" and is this package's own authored cell file (39 cells, needle \"# pass 39\" at line start in TAP). The five carrier children above it are the parent's own covered set, named exactly as the parent artifact's coverage.byChild names them — coverage.inherited now resolves to DECLARED children, which it did not before this revision.",
-    "Y1 RESIDUE — A RUNNER LIMIT, NOT A SPEC CHOICE, AND IT IS A STOP. The dispatch asked for the journey and the gym/today suites to be declared children too. They CANNOT be declared against b-package.cjs @ 636aeaa: CHILD_ROOTS (b-package.cjs:73) is the closed list [rebuild/m4/spec/, rebuild/conform/v4/postfix/, rebuild/engine/test/, rebuild/m4/workout/test/, rebuild/m3/w7-preview/test/], and it contains NEITHER rebuild/m3/w6/host/test/ (the A0 journey, 23/23) NOR rebuild/m3/w7-preview/today/test/ (A2 gym 59/59, today 130/130, 158/158 with A3). CHILD_ROOTS is fixed in the runner by design (W7: \"a spec can never nominate its own exempt path\"), so widening it is a reviewed TOOLING change on rebuild/lane-b-tooling, not something this spec may do. Until it lands, those three suites are evidence in the BUILD-REPORT and in .github/workflows/rebuild.yml, and are NOT declared children here.",
-    "product[] role \"new\" PRE-IMAGES. The three files this package authored did not exist at sourceBase, so there is no pre-image byte to pin; their `pre` is the sha256 of the empty byte string (e3b0c442…), which the runner accepts as a 64-hex and which is stated here rather than disguised as a real pin. Their `post` is the disk sha256 on the sealing branch.",
-    "THE CHILD RE-PIN (DECISIONS:109). The two files whose PARENT EXECUTION PINS this child supersedes — rebuild/m4/workout/engine-runtime.cjs and .github/workflows/rebuild.yml — are in the parent artifact's executionPins, NOT in its product map, so they are recorded in protectedSurfaces above rather than in product[]: adding a non-parent-product file to product[] would force role \"new\" on a file that is edited, which would be false. A reviewer checks the re-pin by diffing those two files against the parent artifact's executionPins.",
-    "artifact.file / artifact.review name rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json and review-b-ntc-native-trend-context.json, NEITHER OF WHICH EXISTS ON THIS BRANCH — and that is correct, not a slip (review r1 C8/F8): b-package.cjs:300-303 DERIVES exactly those two paths from this package id and asserts the spec names them. They are written by the PM at acceptance, after an independent review; a PROPOSED package cannot carry them.",
-    "runnerSha256 IS NOW SET to the reviewed runner at rebuild/lane-b-tooling @ 636aeaa (TOOLING-REVIEW-r4: ACCEPT WITH CHANGES, \"usable for sealing YES for B-NTC/B-LOM once Y1 is in force\"). The runner does not exist on rebuild/lane-b-ntc, so `--ci` is run in a scratch copy that carries this branch's tree plus the 636aeaa tooling folder; the exit code and the terminal lines of that run are reported verbatim in rebuild/lanes/b/BUILD-REPORT-B-NTC.md. Every authorization stays null until the PM accepts this brief with a ledger line: a declared acceptance that stands in no ledger refuses the run by design.",
-    "brief.sha256 is the sha256 of BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md at v1.2 on this branch. It moved 0ba59cca… (v1, the brief DECISIONS:108 (a) accepts by name) -> 3e8fa02b… (v1.1, the r1 fix pass) -> 60838907… (the :108 (b) wiring pass) -> 89cc1c3a… (v1.2, this pass: the §v1.2 section applying DECISIONS:109). No claim was withdrawn in v1.2; §12 Q1 is marked ANSWERED and the \"behind an option\" wording is superseded.",
-    "THIS PASS (DECISIONS:109, obligation (ii)). EXPOSED widened to [genSession, rirPlan, dayWeather, cleanAtDate] at engine-runtime.cjs:30 and its host mirror :45, with both returned handles gaining the two forwarders; mapRecordedDaysWithEnginePredicates REMOVED from createDayFactsReader and from createGymHost (the handle no longer even reports optionRequested); createDayFactsReader now REFUSES a runtime without both predicates instead of downgrading. Obligation (ii) DISCHARGED: the 28-night createTodayModel({}).stateFromOps() athlete prepares day+3 on day+0's lift group, Starts, logs every set and closes, ops 12 -> 18, three durable sessions (delta cells G1-G4). Obligation (i) still holds and now rides the SAME reader (G5, ops 12 -> 19). Suites on the committed tree: A2 gym 59/59, today 130/130, 158/158 with A3's check-in, journey+equivalence 23/23, provider cells 39/39, A1 TODAY BUILD PASS, v4 45 RED-frozen / 39 RED-candidate unmoved, census byte-identical (same sha256, 0 differing rows).",
-    "THE PARENT NOW REFUSES, BY DESIGN. `node rebuild/m4/spec/native-carriers-package.cjs --ci` exits 1 on this branch with \"NATIVE CARRIERS PACKAGE FAIL; required evidence missing or failed; local diagnostics withheld\"; the named assertion behind that withheld line is \"Adopted support bytes: rebuild/m4/workout/engine-runtime.cjs\" expecting 9be21897… and finding c03732e8…. DECISIONS:109 says that refusal is the child's to supersede and that no separate parent re-seal is wanted, so it is REPORTED here, not repaired.",
-    "G7/O10 is lane C's (DECISIONS:109 routes it to C4): the unapplied hunk is at rebuild/lanes/b/ntc/gym-model.previousLine.patch and gym-model.mjs is byte-untouched on this branch. Delta cell G7 still LOCKS the current absence, so when C4 lands the fix that one cell goes red on purpose and its positive replacement is in the patch file.",
-    ":109's THIRD BUNDLED ITEM IS HALF DONE, AND SAID SO. The rebuild.yml enumeration IS applied; the `# pass 19` retirement is written as a real verified diff at rebuild/lanes/b/ntc/pass19-retirement.patch (git apply --check exit 0) and NOT applied — it was outside this pass's dispatch, it deletes executed evidence nothing this package owns covers, and \"successor evidence named\" is a judgment recorded in the PM's own wrapper file."
+    "Candidate preparation only. Tooling7748880 is not accepted; independent review found argv-accounting and product-role defects. No artifact, receipt, private run, remote ancestry substitution or PACKAGE PASS is claimed.",
+    "The engine and frozen laws are byte-identical to integrated C4 7b1678a. New B-NTC successors under m4/spec execute immutable parent carrier bodies. Archived-parent preflight has a two-file historical overlay only; actual-child source proof substitutes one exact runtime SUPPORT pin. Original assertions remain; CLI entry guards are invoked explicitly by private compilation.",
+    "Role new means introduced to this parent profile; some host/test files existed at sourceBase but were not parent-pinned. Their pre is the real sourceBase bytes, or empty-byte SHA only where absent. The runtime and rebuild.yml use superseded-by-child with exact parent execution preimages.",
+    "The qualified provider is relocated to C4 actual composition in w6/local/today-bindings.mjs with PM authorization. One-store storage, clocks, causal tips and explicit resolver injection are preserved. Both fresh zero-night and 28-night default paths and C4 Last time are positive journey cells.",
+    "Inherited coverage retains exact parent gate->child names; argv now targets dedicated successors. This requires an independently reviewed explicit mapping and tooling support: current7748880 correctly refuses the wrappers as non-parent-pinned executables. coverage.moves stays empty; no fake coverage is claimed.",
+    "Historical memory-only pass19 tests and original parent wrapper remain unchanged. The child substitutes 237 executed durable journey assertions; workflow points to B-NTC preparation and enumerates all seven Today test files. Do not integrate workflow until child public qualification and acceptance are complete.",
+    "Own behavior children: 39 provider cells and 237 durable journey assertions; inherited focused15 and all ten original carrier children retained. Child-pin refusal tests supplement the archived parent preflight. The original parent profile-refusal test suite remains historical; successor equivalence and acceptance review are still required.",
+    "Exact brief/theme acceptance citations and final independent child envelope are pending. The semantic PM rulings108/109 exist but do not match the tooling required terminal citation format at its parent receipt base. No citation is invented."
   ]
 }
