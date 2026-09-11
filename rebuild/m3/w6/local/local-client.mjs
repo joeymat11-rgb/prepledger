@@ -30,6 +30,10 @@ import { createLocalEra, localEraConfig, readLocalEra, publicEra,
 // C1b. host-bindings.mjs imports this module back; the cycle is safe because
 // neither side touches the other's bindings at module-evaluation time.
 import { localHostBindings } from "./host-bindings.mjs";
+// C2b. Same deliberate cycle, same rule: nothing is read at module-evaluation
+// time. import-bundle.mjs is the phone side of Joe's PC port — it adopts a
+// sealed bundle into THIS installation and never replays an operation.
+import { importInternals, importSummaries, importRebaseCode } from "./import-bundle.mjs";
 
 // The marker host-bindings.mjs recognises as "this is the factory's own internal
 // scope", so nothing outside this closure can assemble one.
@@ -301,9 +305,18 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     }
     const basis = opsBasis(snapshot.generation), sidecar = snapshot.generation.collections[DERIVED];
     const unusable = sidecarFailure(sidecar, basis);
+    // C2b. An import that landed on a generation that ALREADY held operations
+    // cannot seed the cache — that would discard everything logged since the
+    // fresh start (DECISIONS:100). So it leaves derived.value alone and says so
+    // here, through the signal C1 already defined for "rebuild from ops". A more
+    // specific sidecar fault keeps its own code: that names damage, this names
+    // work outstanding, and the host does the same thing about either.
+    const rebaseCode = importRebaseCode(snapshot.generation);
     const payload = { view: reopened.view, revision: snapshot.revision, ops: basis.opCount,
       derived: unusable || sidecar?.value === undefined ? null : clone(sidecar.value),
-      derivedStale: sidecarStale(sidecar, basis), derivedCode: unusable ? unusable.code : null,
+      derivedStale: sidecarStale(sidecar, basis) || rebaseCode !== null,
+      derivedCode: unusable ? unusable.code : rebaseCode,
+      imports: importSummaries(snapshot.generation), importRebaseRequired: rebaseCode !== null,
       leaseRenewedUntil: renewedUntil, leaseRenewalCode: renewalCode, ...publicEra(era) };
     // Readable but not writable: the era lapsed, which takes 400 days of not
     // opening the app. Named, never a bare state 20 with status() saying "ready".
@@ -380,6 +393,17 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     // has reported ready, because boot() is where the era's lease self-renewal runs
     // and the public client's own bridge never calls it.
     hostBindings(options) { return localHostBindings(internalScope(), options); },
+    // C2b. Joe's PC port, adopted into THIS installation. Additive: a client
+    // that never calls these is exactly the C1/C1b client. importBundle is ONE
+    // durable commit (custody keeps the original first, immutably and by name);
+    // imports()/importOriginal() are reads; markImportRebased() is the host's
+    // acknowledgement that it rebuilt engine state after a port landed on top
+    // of existing ops. None of them replays an operation — that is the
+    // projector's job, and C2b has no engine.
+    importBundle(options) { return importInternals.runImport(internalScope(), options); },
+    imports() { return importInternals.runImports(internalScope()); },
+    importOriginal(name) { return importInternals.runImportOriginal(internalScope(), name); },
+    markImportRebased(name) { return importInternals.runMarkRebased(internalScope(), name); },
     close() {
       if (closed) return;
       closed = true; pending = null; booted = false;
