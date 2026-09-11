@@ -750,11 +750,21 @@ test('A3 — MUTANT 5: a check-in cannot enter the workout or the weigh-in lane'
   assert.notEqual(intoCheckIn.acknowledged, true, 'the check-in lane accepted a workout Start');
   assert.deepEqual(await kindsIn(kit.host.repository), before, 'the refusal stored nothing');
 
-  // ONE database, ONE namespace, ONE lease across all three lanes.
+  /* ONE database, ONE namespace, ONE lease across all three lanes.
+
+     C4d, review round 3: the third line here used to read
+     `new Set([kit.host.databaseName, readings.databaseName,
+       gymHost.repository.databaseName || kit.host.databaseName]).size === 1`.
+     `repository` carries no `databaseName`, so that third term was ALWAYS the
+     first one and the set was always a singleton — a tautology that would have
+     passed with the gym lane in a different database entirely. The gym lane's
+     answer is the identity already asserted above (`kit.host.repository ===
+     gymHost.repository`), which is stronger than any name comparison; the two
+     lanes that DO publish a name are checked against the era's own constants. */
   assert.equal(kit.host.databaseName, LOCAL_DATABASE);
   assert.equal(kit.host.namespace, LOCAL_NAMESPACE);
-  assert.equal(new Set([kit.host.databaseName, readings.databaseName, gymHost.repository.databaseName
-    || kit.host.databaseName]).size, 1);
+  assert.equal(readings.databaseName, LOCAL_DATABASE, 'the weigh-in lane names the same database');
+  assert.equal(readings.namespace, LOCAL_NAMESPACE);
   assert.equal(new Set((await opsOf(kit.host.repository)).map(op => op.lease_id)).size, 1,
     'one lease_id across both write paths that wrote');
 

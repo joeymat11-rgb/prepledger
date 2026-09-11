@@ -184,6 +184,17 @@ try {
   assert.match(plan, /^\d+(\.\d+)? lb × \d+ reps$/, "the active set shows the engine's prescription: " + plan);
   assert.match(effortTarget, /^Aim to finish with \d+ clean reps left\.$/, effortTarget);
   assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 1");
+  /* C4d — B-NTC G7 / O10. "Last time" is on the ACTIVE SET, and it is the engine's
+     own comparison for this position, printed by gym-model.previousLine(). This
+     athlete's comparison is the LEGACY shape (their ported session log); the
+     NATIVE shape — an `earned/performed-lift/v1` entry the app itself recorded —
+     is what previousLine() could not read before this release, and it is proved in
+     gym.test.mjs, because reaching it needs a QUALIFIED nativeTrendContext and the
+     one this page composes is deliberately the unavailable one until lane B's
+     provider is wired (that hunk is NOT applied here). */
+  const lastTime = await text(page, '[data-slot="previous"]');
+  assert.match(lastTime, /^Last time: \d+(\.\d+)? lb × \d+$/,
+    "the active set prints the engine's own previous performance: " + JSON.stringify(lastTime));
   const prescribedLoad = await page.inputValue("#gym-weight");
   const prescribedReps = await page.inputValue("#gym-reps");
   assert.equal(plan, prescribedLoad + " lb × " + prescribedReps + " reps",
@@ -368,6 +379,15 @@ try {
 
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
+  /* C4d — day 2 is this athlete's OTHER training day, on lifts this fresh basis has
+     never trained, so the engine reports no governing comparison for them and the
+     card prints NOTHING. Measured, not assumed: `card.prev` is null for both of
+     day 2's lifts. That is the honest absence the whole reader exists to preserve —
+     a line here would be invented — so it is asserted as an empty slot rather than
+     left unchecked. The day that DOES carry a native comparison is the second day
+     on the SAME lifts, and reaching it needs a qualified nativeTrendContext. */
+  assert.equal(await text(page, '[data-slot="previous"]'), "",
+    "day 2's lifts have no comparable on file, and nothing is invented for them");
   let dayTwoGuard = 0;
   while (await seen(page, '[data-slot="log"]')) {
     if (dayTwoGuard++ > 20) throw new Error("day 2 never finished");
@@ -493,6 +513,8 @@ try {
     + "generation under ONE lease — 14 workout and both mornings; each Start stamped on its own day; the "
     + "workout order is KIND-AWARE (C4c), so day 1's Start opens it and day 2's descends from day 1's close "
     + "and the Undo's tombstone, and every causal parent of a Start is a workout operation. "
+    + "\"Last time\" prints on day 1's active set from the engine's own comparison (C4d), and day 2's "
+    + "lifts, which have none on file, print nothing rather than an invented one. "
     + "localStorage holds nothing. Headroom: "
     + notes.join(", ")
     + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");

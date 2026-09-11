@@ -21,6 +21,10 @@ import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
+// C4d only: the era factory, so this file can open an installation with a
+// QUALIFIED nativeTrendContext of its own. gym-host.mjs is untouched — lane B's
+// wiring hunk for a production provider lives on rebuild/lane-b-ntc.
+import { openTodayInstallation, WORKOUT_ORDER_CLASS } from '../../../w6/local/today-bindings.mjs';
 import { createGymHost, causalTips, startOrderRefusalOf } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, effortWords, prescriptionLine, effortInstruction } from '../gym-model.mjs';
 import { mountGym, NO_REST_PRESCRIBED, COULD_NOT_PREPARE } from '../gym-app.mjs';
@@ -360,6 +364,108 @@ test('A2 — previous performance is the engine\'s own, or nothing at all', asyn
     assert.equal(kit.model.previous().get(view.set.lift) || null, null);
     assert.equal(view.previous, null, 'no previous performance is invented');
     kit.gymHost.close();
+  });
+});
+
+/* ---------------------------------------------------------------------------
+   C4d — B-NTC G7 / O10, routed to lane C by DECISIONS:109.
+
+   `card.prev` arrives in TWO shapes, because `governingMeta`
+   (rebuild/engine/progression.cjs:126-134) hands back whichever history governs
+   the lift: the LEGACY `{ w, reps[] }` cache (:134), or — for a native row —
+   `row.en` itself (:132), the whole `earned/performed-lift/v1` entry the app
+   recorded. `previousLine()` read the legacy shape only, so on exactly the days
+   a native athlete has a native comparison the card printed nothing.
+
+   WHY IT COULD NOT BE SEEN UNTIL NOW, measured on this branch before the fix:
+   with no qualified `nativeTrendContext` the second day on a trained lift refuses
+   PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED inside `genSession`, `readPrevious()`
+   catches it, and the map is EMPTY — so the reader was never reached. Lane B's
+   qualified provider (DECISIONS:108 (b), on rebuild/lane-b-ntc) is what opens
+   that day; its wiring hunk is NOT applied here and gym-host.mjs is untouched.
+   This lane therefore supplies its own resolver, in `performed.cjs:192-205`'s own
+   terms — it echoes the binding it is handed and answers three booleans, and it
+   invents no flag — so the reader can be proved against the record the engine
+   really produces.
+   --------------------------------------------------------------------------- */
+const qualifiedTrendContext = request => ({ start_op_id: request.start_op_id,
+  source_revision: request.source_revision, effective: request.effective,
+  hard: false, rushed: false, debt: false });
+
+test('A2/C4d — a prior NATIVE session prints "Last time" with the engine\'s own numbers', async t => {
+  const fresh = createTodayModel({}).stateFromOps();
+  fresh.sessionLog = {};
+  const fault = faultDatabase();
+  const on = async day => {
+    const era = await openTodayInstallation({ indexedDB: fault.indexedDB, crypto: webcrypto,
+      databaseName: 'c4d-native', namespace: 'earned/c4d-native', athleteId: 'owner', day,
+      nativeTrendContext: qualifiedTrendContext });
+    const host = await era.createGymHost({ day, engineState: fresh, plannedSplitSlotId: 'slot' });
+    return { era, host, model: createGymModel({ gymHost: host, sessionTitle: 'T' }),
+      close() { host.close(); era.close(); } };
+  };
+
+  let lift = null, recorded = null;
+
+  await t.test('THE NEGATIVE CONTROL: with no comparable on file the line is absent, not invented', async () => {
+    const handle = await on(DAY);
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'ready', view.code || '');
+    assert.equal(handle.model.previous().get(view.set.lift) || null, null,
+      'the engine reports no governing comparison for this lift yet');
+    assert.equal(view.previous, null, 'so the card prints nothing at all');
+    lift = view.set.lift;
+    // Conduct the whole day, so that the NEXT day on this lift has a native one.
+    assert.equal((await handle.model.start()).ok, true);
+    const last = await logEverySet(handle.model);
+    recorded = last.total;
+    assert.equal((await handle.model.finish({ startId: last.startId })).ok, true);
+    handle.close();
+  });
+
+  await t.test('the next day on that lift, the comparison the engine hands over IS the native entry', async () => {
+    const handle = await on(offsetDay(DAY, 3));
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'ready', 'the qualified resolver opens the day: ' + (view.code || ''));
+    assert.equal(view.set.lift, lift, 'day+3 is this athlete\'s second day on the same lifts');
+
+    const prev = handle.model.previous().get(lift);
+    assert(prev, 'the engine reports a governing comparison');
+    assert.equal(typeof prev.w, 'undefined', 'and it is NOT the legacy {w,reps} shape');
+    assert.match(prev.profile, /^earned\/performed-lift\//,
+      'it is the entry the app itself recorded: ' + prev.profile);
+    assert.equal(prev.slots.length, 2, 'one slot per set the athlete logged FOR THIS LIFT');
+    assert.equal(recorded, 4, 'the day itself was two lifts of two sets');
+
+    /* The line is the ENGINE'S OWN numbers for THIS position — read out of the
+       same entry, never restated and never averaged across positions. */
+    const first = prev.slots[0].fact.current;
+    assert.deepEqual(first.load, { value: 40, unit: 'lb' });
+    assert.deepEqual(first.reps, { value: 11, unit: 'rep' });
+    assert.deepEqual(first.reserve, CHOSEN, 'carrying the effort the athlete actually gave');
+    assert.equal(view.previous, 'Last time: 40 lb × 11', view.previous);
+    assert.equal(view.previous, 'Last time: ' + first.load.value + ' lb × ' + first.reps.value,
+      'the printed line is those values, verbatim');
+
+    /* And it is on the ACTIVE SET, which is where the athlete reads it. */
+    assert.equal((await handle.model.start()).ok, true);
+    const active = await handle.model.read();
+    assert.equal(active.phase, 'active');
+    assert.equal(active.set.position, 1);
+    assert.equal(active.previous, 'Last time: 40 lb × 11', 'the active set carries the line');
+
+    /* PER POSITION, not per session: set 2 reads slot 2. The legacy branch reads
+       `prev.reps[position - 1]`; this is the same key with the same meaning. */
+    const logged = await logCurrent(handle.model, active, CHOSEN);
+    assert.equal(logged.ok, true, logged.code);
+    handle.model.forget();
+    const second = await handle.model.read();
+    assert.equal(second.set.position, 2);
+    const slotTwo = prev.slots[1].fact.current;
+    assert.deepEqual(slotTwo.reps, { value: 10, unit: 'rep' }, 'the second set really did differ');
+    assert.equal(second.previous, 'Last time: ' + slotTwo.load.value + ' lb × ' + slotTwo.reps.value,
+      'set 2 reads its own position, never set 1\'s: ' + second.previous);
+    handle.close();
   });
 });
 
@@ -916,6 +1022,53 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
     assert.deepEqual(causalTips(wellnessOnly), []);
     assert.equal(startOrderRefusalOf(wellnessOnly, []), null,
       'and the first Start of the day descends from nothing, exactly as on an empty store');
+  });
+
+  /* C4d — THE CONVERSE GUARD (C4c review round 3). Everything above asks that a
+     non-workout op is never a workout tip. That is only half the claim: if the
+     workout lane ever wrote an op WITHOUT class 'session', class-scoping would
+     drop it out of its own order silently and the frontier would go stale with
+     nothing red. So this conducts a whole real session — Start, every set, an
+     Undo and its replacement, and the close — and asserts that every operation
+     the workout lane put on disk carries the class the order is scoped to. It
+     runs against the durable store, not a fixture. */
+  await t.test('CONVERSE: every op the workout lane writes carries class \'session\'', async () => {
+    const fresh = createTodayModel({}).stateFromOps();
+    fresh.sessionLog = {};
+    const L = await lane(fresh, 'converse');
+    const handle = await L.on(DAY);
+    assert.equal((await handle.model.start()).ok, true);
+    const first = await handle.model.read();
+    const logged = await logCurrent(handle.model, first, CHOSEN);
+    assert.equal(logged.ok, true, logged.code);
+    const undone = await handle.model.undo({ startId: first.startId, opId: logged.opId });
+    assert.equal(undone.ok, true, 'an Undo writes too: ' + undone.code);
+    handle.model.forget();
+    const again = await handle.model.read();
+    assert.equal((await logCurrent(handle.model, again, CHOSEN)).ok, true);
+    handle.model.forget();
+    const last = await logEverySet(handle.model);
+    assert.equal((await handle.model.finish({ startId: last.startId })).ok, true);
+
+    const ops = Object.values(await opsIn(handle.host));
+    assert(ops.length >= 6, 'a whole session, an Undo and its replacement: ' + ops.length);
+    const kinds = [...new Set(ops.map(op => op.kind))].sort();
+    assert(kinds.includes('session-start') && kinds.includes('session-set')
+      && kinds.includes('session-close') && kinds.includes('tombstone'),
+      'every workout kind this journey can write is present: ' + JSON.stringify(kinds));
+    assert.deepEqual([...new Set(ops.map(op => op.class))], [WORKOUT_ORDER_CLASS],
+      'the workout lane writes ONE class, and it is the one causalTips is scoped to: '
+      + JSON.stringify(ops.map(op => [op.kind, op.class])));
+    /* And the frontier really does see what was just written: every tip is one
+       of these operations — never an id from outside the workout order — and the
+       close is among them, so the next day descends from a finished session. */
+    const tips = causalTips((await handle.host.repository.load()).generation);
+    const byId = new Map(ops.map(op => [op.op_id, op]));
+    assert(tips.length > 0, 'a store holding a whole session has a workout tip');
+    for (const id of tips) assert.equal((byId.get(id) || {}).class, WORKOUT_ORDER_CLASS, id);
+    assert(tips.includes(ops.find(op => op.kind === 'session-close').op_id),
+      'the close is a tip: ' + JSON.stringify(tips.map(id => byId.get(id).kind)));
+    handle.host.close();
   });
 
   await t.test('the tip of a store holding two closed sessions is the LAST close, and nothing else', () => {
