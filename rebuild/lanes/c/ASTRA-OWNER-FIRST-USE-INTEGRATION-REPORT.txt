@@ -1,0 +1,82 @@
+FIRST-USE OWNER SOURCE — DISTINCT LOCAL INTEGRATION
+September11,2026. FILE ASTRA-OWNER-FIRST-USE-JOIN.md at PMcd6962f.
+Visible setup/workout/reload PASS; current legacy lifecycle check15 PASS/1 FAIL.
+This candidate is NOT source-policy/package/CI/phone qualified.
+
+(1) EXACT SOURCE
+Branch codex/astra-owner-first-use-integration, isolated worktree
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-first-use-integration.
+Mechanical --no-ff merge62beea165831d8bc9c2a06ad62be25d805770413:
+first parent ca57649b3cc9189dca8d006ceb6bac17c842bea6;
+second parent55063f89a553af777a702f218b47b649cc11bb9b.
+No conflict or manual source resolution. Read full independent
+90c026337bbb139014b8eb12ab555bc73c1e2b00; root scoped-accepted the source.
+Byte-equivalence diff checks: setup/**,build.mjs,today-entry.mjs equal550;
+w6,workout,engine,conform,today-app/screens.template/view tests equalca57649.
+Original reports/history preserved; no product or test edited by integrator.
+
+(2) EXECUTED ON THE COMBINED BUILD
+Existing Node24.19.0, Chrome headless, retained root/W6/W5 dependency junctions;
+no install. NODE_PATH=W6; TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03.
+node --test setup/setup.test.mjs + today/test/design.test.cjs:
+24 pass,0 fail,0 skipped/cancelled. Real enrollment/first-run/failure controls.
+W7_BROWSER_BIN=existing Chrome; node today/setup/browser-check.mjs:
+FIRST-USE BROWSER setup/review/enroll/first-set/close/reload PASS, exit0.
+Visible fresh form captures explicit synthetic name/schedule, press1/hack2,
+ceiling10, increment2.5, entered20/22.5/25/30/40 equipment and confirmations.
+Cancel/edit/review retains values. Save reopens normal Today from stored setup;
+setup alone creates no workout operation. Visible Start UPPER, actual40x10,
+effort0, normal Finish; reload preserves exact setup, device identity and all
+collections including original Start/Set/Close. Readback uses enroll:false;
+no test-hook enrollment, manufactured operation or basis injection. No page
+exceptions/off-origin requests. Inspected final screenshot: recorded workout/
+Review shown, nutrition/trend honestly unavailable, inherited development frame.
+This remains desktop browser evidence, not physical phone/crash/recovery proof.
+
+Additional affected join check: node --test w6/test/local-owner-entry.test.mjs.
+15 pass,1 fail,0 skipped/cancelled, exit1. Exact failing old assertion at:59:
+fresh.document.querySelector('input') expected null, actual HTMLInputElement.
+The accepted first-use form deliberately has inputs. This is an obsolete
+fresh-page expectation, not evidence of lost acknowledged setup. The remainder
+of this combined fresh/legacy/damaged test is not reached in that invocation;
+independent90c0263 supplies separate damaged/setup boundaries. No pass relabeled.
+Other15 lifecycle cases pass. Static inspection also finds both old browser
+probes local-owner-browser.mjs and local-owner-workout-navigation-browser.mjs
+still waiting for literal heading Setup required; they were not rerun here.
+Their old public synthetic-enrollment prelude is not the new visible first-use
+flow. Route only that changed prelude/assertion to its author; retain exact
+new-operation/reload, damaged/no-setup and visible-navigation controls.
+
+(3) ACTUAL POLICY/CI SEAM AND NEXT BOUNDED ROUTE
+Final413a54e policy remains separately byte-stable at
+07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393.
+Read-only comparison finds these changed pinned m3 source bytes:
+today/today-entry.mjs: f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593
+ ->624f02a05334fe37f27bbf573a4455fa44a0f3a1c0d8837055cdece7192ebc95
+today/build.mjs:96bf93e652b13a47742b3e06266437606fe12f3c566e5da32b1b3ab0811af279
+ ->2e4e055a260cd9ac11611c92086794472f3edae091f6a9198e9044050162a1ce.
+Both paths are under rebuild/m3/w7-preview/. Final policy has zero setup/**
+entries; new imported setup modules, CSS resource, tests/probe and build edges
+require explicit current closure. Existing entry wrapper/CI executes the now
+failing legacy assertion. Setup tests/browser also need their actual CI home.
+No final qualifier/runner/policy/brief/spec or real authority branch was changed.
+
+Smallest correct route: keep413 and PR51 authority publication/qualification
+stable. Separately assign the narrow setup-era test correction/CI integration,
+reuse accepted550 product evidence and run actual affected vectors. After the
+stable parent is properly qualified, explicitly scope its next child/execution
+pin update for this screens delta (and separately reviewed phone shell when
+assigned), retaining inherited proof obligations and exact runtime/resource/
+test declarations. Do not call07f proof of this new entry or silently update its
+accepted digest. Any required engine/full/private/second/receipt obligations
+remain; ordinary plumbing review/CI does not itself waive pinned execution
+obligations. Root/package owner must authorize that successor scope, not this
+integrator. No extra review chain for unchanged accepted550 source is needed.
+
+Seven explicitly supported bilateral families/positive-pound equipment and
+upper/lower/rest are limited coverage, not complete Joe/Dad routine suitability.
+Unsupported required exercises must not be omitted; priorities have no proved
+prescription effect. Nutrition, broader routines and physical phone remain open.
+git diff --check PASS; one report only beyond mechanical merge, clean at commit.
+No private data, frozen app change, install/lock churn, push, PR/remote merge,
+deployment/site setting, actual authority mutation or protected-soak access.
