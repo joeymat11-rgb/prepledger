@@ -1900,9 +1900,12 @@ function weekWeather(s, days) {
 // Copied from frozen src/app.jsx @ fe516c1:14453-14458.
 function sleepInfo(s) {
   const n = s.sleep.nights;
-  const tomorrow = plusDays(isoOf(todayStart()), 1);
+  const today9 = isoOf(todayStart());
+  const tomorrow = plusDays(today9, 1);
   const t = atSleepTarget(s, null);
-  return { run: t.run, atTarget: t.at, clean: cleanAtDate(s, tomorrow), last: n[n.length - 1], need: s.sleep.needed };
+  return { run: t.run, atTarget: t.at,
+    clean: cleanAtDate(s, today9) && cleanAtDate(s, tomorrow),   /* D8xD21 — the current night is the one bed-dated YESTERDAY, or a same-date row if one exists */
+    last: n[n.length - 1], need: s.sleep.needed };
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:14459-14462.

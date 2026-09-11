@@ -1,6 +1,8 @@
 # LANE B — B1 GRADING & TIME WINDOW — BUILD REPORT (speculative implementation)
 
 **Status: SPECULATIVE. The brief is NOT accepted. Nothing here is merged or proposed for merge.**
+
+> **SUPERSEDED IN ONE PLACE — read §7 first.** The independent review `rebuild/lanes/b/reviews/B1-REVIEW-r1.md` returned **ACCEPT WITH CHANGES**. §4.1's blocking finding was upheld, but **the remedy this report proposed in §4.1 was rejected** and a different one applied. §7 "POST-REVIEW r1" records what changed, every run re-executed by a third agent (the lane-B fixer, neither builder nor reviewer), and the new sha256s. Where §7 and §§0–6 disagree, **§7 wins**. §§0–6 are otherwise left exactly as the builder wrote them, as the record of what was measured at `ffa4243`.
 Parallel authoring per `rebuild/DECISIONS.md:100` ("Lane B begins speculative implementation of B1 and B2 on candidate branches (parallel authoring per DECISIONS:94); nothing merges before brief acceptance") and `rebuild/lanes/LANES.md` Amendments → SPECULATIVE AUTHORING.
 
 **Contract implemented:** `rebuild/lanes/b/BRIEF-B1-GRADING-TIME-WINDOW-v1.1.md` (420 lines, 82 899 bytes) — PROPOSED, NOT ACCEPTED.
@@ -533,3 +535,371 @@ b1-scratch/q5.js  + census.js                the Q5 no-op proof and the date-sit
 Every harness that touches the worktree restores the four files in a `finally`-equivalent step and re-prints their sha256s; the restored hashes are `b51f3f1e0e94 / 6be0c6fb35fe / 4d6c244efa6b / f8d0397abd75`, matching §1 exactly at the end of every run.
 
 **No frozen law was edited.** `rebuild/conform/v4/laws-clock-and-as-of.cjs` `cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c`, `laws-receipt-truth.cjs` `871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1`, `laws-state-shape-and-failure.cjs` `104803f6ab038ee9b29404cd37b454f3b2f870c6cca81b94f25b835d39c5ed3a`, `helpers.cjs` `a9c03c7a…`, `run-defect-laws.cjs` `2819a7e0683158bb0f146cfd38dbb967960a2148ecc4664fcae5660a02a2a54c`, `postfix/run.cjs` `654288e073ea6815ce699c1eacb61c7030b0de0781b277477f3800fa06eb245a` — all byte-identical to the brief's §0 table. Where the brief and the code disagreed, the code was followed and the disagreement recorded in §4.
+
+---
+
+# 7. POST-REVIEW r1 — the fix pass
+
+**Author:** lane-B fixer (Opus), a third agent — not the builder of `ffa4243`, not the reviewer of `B1-REVIEW-r1.md`.
+**Input:** `rebuild/lanes/b/reviews/B1-REVIEW-r1.md` — **ACCEPT WITH CHANGES**, eight enumerated changes, C1/C2/C7 blocking.
+**Worktree:** `work/lane-b/b1`, reset hard to `origin/rebuild/lane-b-b1` @ `db9fe59` (clean tree) before any edit. Base for every comparison below: `acd3b67`.
+**Node:** `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe` v24.19.0. `TZ=America/New_York`, `MEASURED_TEST_NOW=2026-09-03`. `package-lock.json` and `package.json` untouched (`git diff --name-only acd3b67 -- package-lock.json package.json` = empty).
+**Privacy:** `rebuild/conform/private/` does not exist on this tree and was not created; `ledger/` was never opened; no `--full` was run. Private-touching gates are verdict-only.
+**Scratch:** all helper scripts live **outside** the worktree, in `work/lane-b/fx1/`; build products in `fx1/.tmp/` (outside the repo). Nothing generated is committed.
+
+## 7.1 What changed, and what did not
+
+| review item | disposition |
+|---|---|
+| **C1** amend `sleepInfo` to the two-anchor form; do NOT narrow D8's guard; do NOT adopt §4.1's remedy | **APPLIED** — §7.2 |
+| **C2** brief amendment carrying C1 + a purpose-written D8×D21 cross-case cell | **APPLIED** — `BRIEF-B1-GRADING-TIME-WINDOW-v1.2.md` §0.0 A1/A2 and `rebuild/engine/test/b1-delta-cells.cjs` |
+| **C3** correct the mutant table (32 not 31; `D25-1` → `2/4`; `D23-1` → the surviving `TypeError`; `D27-3` → `2026-08-12`) | **APPLIED** — brief v1.2 §0.0 A4 items 1–4, each re-measured here (§7.5) |
+| **C4** D10 needs a positive source/alias assertion — `D10-2` is behaviourally unkillable | **RECORDED as a contract requirement** — brief v1.2 §0.0 A4 item 5; independently re-confirmed here (§7.5). The assertion itself belongs to the package artifact (C7) and is **not** authored by lane B |
+| **C5** enumerated delta cells for D16's `dueISO` and D24's `yISO` | **APPLIED** — `rebuild/engine/test/b1-delta-cells.cjs`, with executed bite proof (§7.7) |
+| **C6** settle §4.5 (the `policy.cjs:554` rider) and the delegate/declaration placements | **SETTLED** — brief v1.2 §0.0 A4 items 6–7: rider **OUT**, §0.1 item 2 correct, §5.4's "3+1+2" wrong; the arithmetic is 3+1+1 = **5** new delegate lines. No code change (the rider was already out) |
+| **C7** author the `rebuild/m4/spec` half | **NOT DONE, by lane boundary** (`LANES.md` ownership table). Unchanged from the builder's position. B1 still has no gate that can say PASS |
+| **C8** escalate `@noble/*` | **DOCUMENTED ONLY** — §7.10. `package.json` deliberately **not** changed |
+
+**Exactly one engine byte-change was made in this pass**, plus one new test file:
+
+```
+ M rebuild/engine/sleep.cjs                      (sleepInfo only; +3 lines, 1957 -> 1963)
+?? rebuild/engine/test/b1-delta-cells.cjs        (new, 106 lines)
+ M rebuild/lanes/b/BUILD-REPORT-B1.md            (this section)
+ A rebuild/lanes/b/BRIEF-B1-GRADING-TIME-WINDOW-v1.2.md
+```
+
+`dates.cjs`, `policy.cjs`, `today.cjs` and `legacy-b1-carriers.cjs` are **byte-identical to `db9fe59`** — their sha256s in §1's AFTER column are unchanged. The other nine hunks are untouched.
+
+## 7.2 The C1 hunk, exactly as applied
+
+`rebuild/engine/sleep.cjs`, `sleepInfo` (frozen counterpart `fe516c1:14453-14458`):
+
+```js
+// before (shipped at db9fe59)
+function sleepInfo(s) {
+  const n = s.sleep.nights;
+  const tomorrow = plusDays(isoOf(todayStart()), 1);
+  const t = atSleepTarget(s, null);
+  return { run: t.run, atTarget: t.at, clean: cleanAtDate(s, tomorrow), last: n[n.length - 1], need: s.sleep.needed };
+}
+// after
+function sleepInfo(s) {
+  const n = s.sleep.nights;
+  const today9 = isoOf(todayStart());
+  const tomorrow = plusDays(today9, 1);
+  const t = atSleepTarget(s, null);
+  return { run: t.run, atTarget: t.at,
+    clean: cleanAtDate(s, today9) && cleanAtDate(s, tomorrow),   /* D8xD21 — the current night is the one bed-dated YESTERDAY, or a same-date row if one exists */
+    last: n[n.length - 1], need: s.sleep.needed };
+}
+```
+
+D8's guard in `cleanAtDate` is **not** narrowed. §4.1's proposed remedy (`cleanAtDate(s, plusDays(<newest night date>, 1))`) is **not** adopted: the reviewer's executed `rem1` showed it makes `plusDays(iso, −1) === newest.d` identically, switching D8 off at the call site and reinstating the carry-forward the owner's ruling removes.
+
+## 7.3 The frozen bundle (built by this pass, from the repo's own recipe)
+
+`build-engines.mjs` is still Windows-broken (§4.8, unfixed — not lane B's file). Built with `legacy-gates.publicReferences({baseline, scratch, sourcePins: manifest.baseline.buildSources})`, 10 source pins:
+
+```
+sourcePins entries: 10
+main -> fx1/.tmp/main/engine.cjs  bytes=813681  sha256=180de4e25cb16f302f9ff83acdad9aedaf906e5932ba9d9ca2cae764bb88ae3a
+old  -> fx1/.tmp/old/engine.cjs   bytes=792791  sha256=7e4e9dab74023659ef89dd52a5281149149202d609ab8668816cbd1b3d3a1a99
+```
+
+Byte count and sha differ from the builder's (813 696) and the reviewer's (813 681 / different path) purely by esbuild entry-path length, exactly as `build-engines.mjs` documents. `fe516c1:src/app.jsx` is verified at blob `f98671d8…` by `helpers.cjs:17` on every run.
+
+## 7.4 The 45 laws — 10 rows move, not 11, and D22's trace parity is back
+
+One harness, two runs, the four engine files restored from `acd3b67` for the base run and rewritten from memory afterwards (sha256s re-printed and matched at the end).
+
+```
+[cand] TOTAL 45 laws · 45 RED-frozen · 29 RED-candidate · 89 GREEN repair controls · 87/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+[base] TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+
+ROWS MOVED 10 · UNCHANGED 35 · moved ids: D8,D10,D16,D17,D19,D21,D23,D24,D25,D27
+printed lines: base=47 cand=47 differing=11   (the ten rows + the TOTAL line)
+```
+
+Every moved row reads `RED-frozen / GREEN-candidate / AUDIT-FAIL`, and `RED-frozen / RED-candidate / mutant-DETECTED` on base. **`D22` is no longer in the list** — it is one of the 35 byte-identical rows.
+
+Per-law `inspect()` on the three variants, from one harness that swaps only `sleep.cjs`:
+
+```
+sleep.cjs fixed    sha256=77ced98c0b31c085e04da348592e936ce79dc85496a9df3febaef27e77380ffd
+[fixed  ] D22 raw RED/RED · ctl GREEN/GREEN · mut RED · detailParity=true · framesParity=TRUE   · frames 2/2
+[fixed  ] D21 raw RED/GREEN · ctl GREEN/GREEN · framesParity=false · frames 1/2 [sleepInfo] -> [sleepInfo>cleanAtDate]
+[fixed  ] D8  raw RED/GREEN · ctl GREEN/GREEN · framesParity=false · frames 3/3
+sleep.cjs shipped sha256=6be0c6fb35fe31955833cba1140f8afbfe9be3f82749da1f2532c5a1aa4068ef
+[shipped] D22 raw RED/RED · ctl GREEN/GREEN · mut RED · detailParity=true · framesParity=FALSE  · frames 2/2
+[shipped] D21 ... framesParity=false · frames 1/2 [sleepInfo] -> [sleepInfo>cleanAtDate]
+sleep.cjs base    sha256=3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0
+[base   ] D22 raw RED/RED · framesParity=true · frames 2/2
+[base   ] D21 raw RED/RED · framesParity=true · frames 1/1 [sleepInfo] -> [sleepInfo]
+```
+
+**The second `cleanAtDate` call adds no traced frame**: D21's frame list is `[sleepInfo] → [sleepInfo>cleanAtDate]` on the **shipped** candidate *and* on the fixed one — identical. D8's and D21's `framesParity=false` is by construction (they are the repaired laws; their product values are supposed to differ from frozen) and is unchanged from the shipped candidate. The only frames-parity movement anywhere in the 45 is D22's, back to `true`.
+
+The cross-case, measured directly on the three variants (all fixtures invented):
+
+```
+                                            base acd3b67   shipped db9fe59   FIXED
+A newest night bed-dated YESTERDAY, h=2      clean=false    clean=TRUE        clean=false   <- the regression, repaired
+B a night bed-dated TODAY, h=2               clean=false    clean=false       clean=false   (D21's case, control holds)
+C newest night 3 DAYS OLD, h=2               clean=false    clean=true        clean=true    (D8 clause 1: no carry-forward)
+D D21 witness (today 2026-11-01, night 2026-11-01 h=1)
+                                             clean=true     clean=false       clean=false   (the D21 flip survives)
+E empty history                              clean=true     clean=true        clean=true
+```
+
+Line D is the one that decides the carrier: because it still reads `false`, the substitution `B1-D21-fall-back-same-date-night-counts` is **unchanged**.
+
+## 7.5 Mutants — 32 named re-run, plus one the fixer added
+
+Same harness design as the reviewer's: each mutant is an exact **single-occurrence** string edit applied in place, the four engine files restored between runs, and then (a) the defect's own v4 law, (b) **D22's frames parity** (added by this pass — the detector the shipped candidate needed and nobody had), (c) all three B1 witness carriers and (d) a 90-cell value battery are re-measured against the unmutated repaired baseline. A syntax error or missing target earns **no** kill. The three `D21-*` anchors were re-pointed at the new `plusDays(today9, 1)` line; their semantics are unchanged.
+
+```
+BASELINE law statuses: {"D8":"GREEN","D10":"GREEN","D16":"GREEN","D17":"GREEN","D19":"GREEN","D21":"GREEN",
+                        "D22":"RED","D22_framesParity":"true","D22_mutants":"RED","D23":"GREEN","D24":"GREEN",
+                        "D25":"GREEN","D27":"GREEN"}
+BASELINE carrier      : {"defect-witnesses":"PASS","defect-witnesses-2":"PASS","defect-witnesses-3":"PASS"}
+BASELINE probe count  : 90
+
+MUTANTS 33 · CAUGHT 32 · NOT CAUGHT 1 · HARNESS 0
+  of which the BRIEF's 32 named: 32 · CAUGHT 31 · NOT CAUGHT 1
+  plus 1 fixer-authored (D21-4 drop-the-today-anchor): CAUGHT
+```
+
+**`D10-2 utc-stamp-substitution` — NOT CAUGHT, NOTHING MOVED.** Third independent confirmation (builder, reviewer, fixer). Not one of the 90 battery cells, not one law row, not one carrier. C4 stands.
+
+**The three corrected killers, re-measured here, each the *sole* detector that moved:**
+
+```
+CAUGHT   D25-1 require-a-majority             own cells D25.two_of_4            <- the 2/4 cell, not 1/2 and not 6/7
+CAUGHT   D23-1 default-slp-to-empty-object    carrier defect-witnesses-3        <- the surviving TypeError, per the builder
+CAUGHT   D27-3 gate-on-programme-week-and-phase   own cells D27.week9_cut       <- START + 63 days = 2026-08-12
+```
+
+`D25.two_of_4` = repaired `caution`, mutant `good`. `D27.week9_cut` = `2026-08-12 | weeks=9 | wk=10 | rung=calories` repaired, `rung=break` mutated. `D23-1`'s detector is the carrier because `defect-witnesses-3.cjs:41` (`assert.throws(() => genSession(s,'2026-09-03'), TypeError)`) is the only assertion that distinguishes the defaulted parameter — the assertion the brief itself lists as a **non-flip**.
+
+**The fixer's own mutant:**
+
+```
+CAUGHT   D21-4 drop-the-today-anchor
+     D22 framesParity true->false
+     own cells D21.xD8_lastNightShort
+     cross cells X.clean_lastNightYesterdayShort, X.recovery_lastNightYesterdayShort
+```
+
+This is the mutant the shipped candidate could not have carried, because the shipped candidate *was* it.
+
+## 7.6 Hunk-revert bites — the reviewer's 13, re-run, plus a 14th
+
+Every one of B1's hunks reverted to its frozen form, one at a time, measured against the defect's v4 law, D22's frames parity, all three carriers and the 90-cell battery. The D21 revert was re-expressed for the v1.2 hunk (the whole `sleepInfo` body goes back).
+
+```
+HUNK REVERTS 14 · CAUGHT 14 · NOT CAUGHT 0 · HARNESS 0
+```
+
+| revert | detected by |
+|---|---|
+| D10 `weeksBetween` | law D10 GREEN→RED · carrier `defect-witnesses` · 3 cells |
+| D8 guard | law D8 GREEN→RED · carrier `defect-witnesses` · 6 cells incl. `X.clean_threeDaysOldShort` |
+| **D21 `sleepInfo` hunk (v1.2 two-anchor)** | law D21 GREEN→RED · **D22 framesParity true→false** · carrier `defect-witnesses-2` · 5 cells |
+| **D8×D21 second anchor only (back to the shipped form) — the fixer's 14th bite** | **D22 framesParity true→false** · 3 cells (`D21.xD8_lastNightShort`, `X.clean_lastNightYesterdayShort`, `X.recovery_lastNightYesterdayShort`) — **no law, no carrier** |
+| D19 `resumeISO` | law D19 · carrier `defect-witnesses-2` · 7 cells |
+| D19 one-based break day | law D19 · carrier `defect-witnesses-2` · 3 cells |
+| D16 grace + eligibility filter | law D16 · carrier `defect-witnesses-2` · 5 cells |
+| **D16 `dueISO` calendar** | **no law, no carrier** — only `D16.C1_2026-11-07`, `D16.C1_2026-11-09` |
+| D17 `!a.undone` | law D17 · carrier `defect-witnesses-2` · 2 cells |
+| D24 calorie predicate | law D24 · carrier `defect-witnesses-3` · 1 cell |
+| **D24 `yISO` calendar** | **no law, no carrier** — only `D24.msKiller_0309` |
+| D25 first-success | law D25 · carrier `defect-witnesses-3` · 1 cell |
+| D27 phase gate | law D27 · carrier `defect-witnesses-3` · 3 cells |
+| D23 workout scan | law D23 · carrier `defect-witnesses-3` · 4 cells |
+
+The three bolded rows are the three hunks with no law and no carrier behind them. All three now have a committed cell (§7.7); until this pass, all three rested on scratch files that were never committed.
+
+## 7.7 The new purpose-written cells — `rebuild/engine/test/b1-delta-cells.cjs`
+
+New file, 106 lines, 6 855 bytes, sha256 `f887c59c78f1417006aff0674ba9bf1ce292c704d2fa683f309f5a1ae329c429`. It edits nothing: no frozen law, no golden, no witness byte, no existing test. It asserts the **repaired** behaviour (it is not a defect witness), and each fixture sits on a date where a 24-hour step and a calendar step disagree, so a cell cannot pass for the wrong reason.
+
+```
+$ TZ=America/New_York MEASURED_TEST_NOW=2026-09-03 node rebuild/engine/test/b1-delta-cells.cjs
+CELL B1-D16-due-date-is-seven-calendar-days-not-168-hours
+CELL B1-D24-yesterday-is-the-previous-calendar-date-not-24-hours-ago
+CELL B1-D8xD21-a-short-last-night-still-restricts-recovery
+B1 DELTA CELLS: 3/3 hold; D16 dueISO, D24 yISO and the D8xD21 cross-case
+exit=0
+```
+
+The D8×D21 assertion, in one line:
+
+```js
+assert.equal(T.sleepInfo(withNights([...recent, { d: "2026-09-02", h: 2 }])).clean, false);   // today = 2026-09-03
+```
+
+with four controls beside it: `recoveryIndex(...)` must read `band === "WATCH"` with a `sleep reset…` factor; a 3-day-old 2 h night and empty history must read `clean === true` (D8 clause 1); a same-date night must read `clean === false` at `2026-09-03` and at the fall-back `2026-11-01` (D21 survives).
+
+**Executed bite proof — a cell that cannot fail is not evidence:**
+
+```
+repaired candidate (expect exit=0)                        exit=0  cellsPassed=3/3  ALL HOLD
+base acd3b67 (expect NON-zero)                            exit=1  cellsPassed=0/3  FAILS at cell 1  TypeError: T.plusDays is not a function
+REVERT D16 dueISO calendar (expect NON-zero)              exit=1  cellsPassed=0/3  FAILS at cell 1  AssertionError
+REVERT D24 yISO calendar (expect NON-zero)                exit=1  cellsPassed=1/3  FAILS at cell 2  AssertionError
+REVERT D8xD21 second anchor (shipped form)                exit=1  cellsPassed=2/3  FAILS at cell 3  AssertionError
+REVERT D8 guard                                           exit=1  cellsPassed=2/3  FAILS at cell 3  AssertionError
+```
+
+On base the file fails at cell 1 with `T.plusDays is not a function` rather than an assertion, because the primitive does not exist pre-B1 — an honest RED against an absent export, stated here rather than presented as a behavioural kill.
+
+## 7.8 The carrier and the witness flips — both unchanged
+
+```
+PACKAGE_ID   : M2-B1-GRADING-TIME-WINDOW
+COVERS       : witnesses-1, witnesses-2, witnesses-3
+substitutions declared: 18
+  defect-witnesses.cjs   on disk sha256=557c12e7…  pin=557c12e7…  MATCH=true
+  defect-witnesses-2.cjs on disk sha256=833db043…  pin=833db043…  MATCH=true
+  defect-witnesses-3.cjs on disk sha256=f5169beb…  pin=f5169beb…  MATCH=true
+  PASS  defect-witnesses   [native]  reproduced=10  tail="DEFECT WITNESSES: 10/10"    edits=3  carrierHash=c2ea4423ec9b014a
+  PASS  defect-witnesses   [frozen]  reproduced=10  tail="DEFECT WITNESSES: 10/10"    edits=3  carrierHash=c2ea4423ec9b014a
+  PASS  defect-witnesses-2 [native]  reproduced=11  tail="DEFECT WITNESSES 2: 11/11"  edits=8  carrierHash=a766bfe0abffc05d
+  PASS  defect-witnesses-2 [frozen]  reproduced=11  tail="DEFECT WITNESSES 2: 11/11"  edits=8  carrierHash=a766bfe0abffc05d
+  PASS  defect-witnesses-3 [native]  reproduced=5   tail="DEFECT WITNESSES 3: 5/5"    edits=9  carrierHash=de59fa01b12e73ef
+  PASS  defect-witnesses-3 [frozen]  reproduced=5   tail="DEFECT WITNESSES 3: 5/5"    edits=9  carrierHash=de59fa01b12e73ef
+B1 CARRIER: 6/6 PASS   total in-memory edits applied across the 6 runs = 40
+```
+
+**Flips re-measured against base `acd3b67`** on a non-throwing assert observer, the witness files never modified on disk:
+
+```
+defect-witnesses.cjs    pre=21 post=21   tails both "DEFECT WITNESSES: 10/10 …"
+defect-witnesses-2.cjs  pre=40 post=40   tails both "DEFECT WITNESSES 2: 11/11 …"
+defect-witnesses-3.cjs  pre=24 post=24   tails both "DEFECT WITNESSES 3: 5/5 …"
+ASSERTIONS compared: 85 · FLIPS (pass->fail): 18
+FLIP LINES: defect-witnesses.cjs:61,71,72 · defect-witnesses-2.cjs:93,94,103,127,128,159 ·
+            defect-witnesses-3.cjs:48,49,50,58,59,72,100,101,102
+```
+
+**The count did not change: still 18, at exactly the same 18 lines as §3.4.** So the carrier's substitutions required **no** edit — `legacy-b1-carriers.cjs` is byte-identical to `db9fe59` (`d8d98b24…`). Both predicted non-flips still hold (`defect-witnesses-2.cjs:95`, `defect-witnesses-3.cjs:41`), and the two pre-existing D12 failures at `:51`/`:53` still fail on **both** engines. The 6/6 PASS is itself the proof that each substituted expectation now equals the repaired value — `defect-witnesses-2.cjs:159`'s `sleepInfo(s).clean → false` included.
+
+## 7.9 The gates, the conform suite and the second gate
+
+**19 original gates, repaired vs base `acd3b67`** (`postfix/run.cjs` GATES, own harness):
+
+```
+gates moved by B1 (r1-fixed): 2 of 19
+  witnesses-1  base exit=0 needle=Y  ->  repaired exit=1 needle=N   (base terminal: DEFECT WITNESSES: 10/10 reproduced)
+  witnesses-3  base exit=0 needle=Y  ->  repaired exit=1 needle=N   (base terminal: DEFECT WITNESSES 3: 5/5 reproduced)
+```
+
+Exactly the two the brief predicts, both carried GREEN by `legacy-b1-carriers.cjs`. **The new `b1-delta-cells.cjs` file moves no gate.** Every other gate's exit code and needle are identical on both trees, `migrate-full` included (verdict-only).
+
+**Conform suite and second gate — identical to pristine, 0 differing lines in all four streams.** Both were run from the *same* worktree with only the four engine files swapped, which removes the two absolute-path lines the reviewer saw:
+
+```
+[conform cand] exit=1 stdout=82 stderr=1   terminal: SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+[conform base] exit=1 stdout=82 stderr=1   terminal: (the same line, byte for byte)
+[secgate cand] exit=1 stdout=7 stderr=4
+   SECOND GATE I/O tripwire: PASS — a caught unmocked request fails the process; zero delegated requests
+   SECOND GATE reference FINAL108: 3072 passed, 0 failed
+   SECOND GATE reference condition-origin counts: {"runtime-derived-expression":2629,"source-and-runtime-mixed":9,"runtime-capability-or-mixed":69,"source-or-asset-expression":337,"carrier-or-mixed":17,"fixture-or-local-harness":11}
+   SECOND GATE reference vacuity gate — 9 known hit(s), baseline matched, nothing new
+   SECOND GATE reference SYNC-LAWS: 18 laws hold across 59 committed seeds · superset exemption taken 8×
+   SECOND GATE reference surface: byte-identical to committed baseline (123077 bytes)
+   [stderr] FAIL second gate candidate engine-test: exit=1 / FAILED ASSERTION tools/engine-test.jsx:106 /
+            SECOND GATE candidate: FAIL — second gate failed; inspect ignored public diagnostic logs
+[secgate base] exit=1 stdout=7 stderr=4   (the same seven and four lines)
+
+conform stdout    : base=82 cand=82 DIFFERING=0
+conform stderr    : base=1  cand=1  DIFFERING=0
+second-gate stdout: base=7  cand=7  DIFFERING=0
+second-gate stderr: base=4  cand=4  DIFFERING=0
+```
+
+**The three refusals, re-measured on the fixed tree:**
+
+```
+native-carriers-profile.verify()  REFUSED  code=ERR_ASSERTION  message=Unchanged parent pin: rebuild/engine/dates.cjs
+load-write-package.cjs --ci       exit=1   LOAD PACKAGE FAIL; required evidence missing or failed; local diagnostics withheld
+native-carriers-package.cjs --ci  exit=1   NATIVE CARRIERS PACKAGE FAIL; required evidence missing or failed; local diagnostics withheld
+```
+
+The first is B1's own and is correct — it is the mechanical proof that B1 needs its own closed successor profile (C7). The other two are pre-existing and identical on base (`DECISIONS:98` already records `load-write-package --ci` as superseded on this tip).
+
+## 7.10 `@noble/*` — documented, not fixed (C8)
+
+`package.json` on this branch declares dependencies `react 19.2.8`, `react-dom 19.2.8` and devDependencies `esbuild 0.28.1`, `jsdom 30.0.0`, `yaml 2.9.0` — **no `@noble/hashes`, no `@noble/ciphers`** — while **11 files under `rebuild/` import them**: `rebuild/m3/w5/reconciliation/codec.cjs:4`, `rebuild/m3/w5/source/codec.cjs:5`, `rebuild/m3/w5/test/r1-streaming-digest.test.cjs:4`, `rebuild/m3/w6/frame-crypto.mjs:1`, `rebuild/m3/w6/frame-format.mjs:1-2`, `rebuild/m3/w6/node-sha256-browser.mjs:1-3`, `rebuild/m3/w6/test/frame-browser-entry.mjs:2`, `rebuild/m3/w6/test/frame-codec.test.mjs:4-5`, `rebuild/m3/w6/build-browser.mjs:50`, `rebuild/m3/w7-preview/today/build.mjs:88`, `rebuild/m3/w7-preview/today/test/package.test.cjs:72`. `package-lock.json` mentions `@noble/hashes` only as another package's `^1.8.0 || ^2.0.0` requirement (lines 658, 661), and `Test-Path node_modules\@noble` → **False**.
+
+**`package.json` was deliberately NOT changed.** It is pinned by the accepted NATIVE-CARRIERS artifact, and a dependency declaration is an integrator/tooling decision, not an engine-package one. Proposed cross-lane request line, for the PM to file verbatim in `rebuild/lanes/REQUESTS.md` (not written there by this pass: that file is cross-lane and would collide with other lanes' lines):
+
+```
+2026-09-11 · B → PM/tooling · DECLARE @noble/hashes and @noble/ciphers in package.json (11 requirers under rebuild/; npm ci --include=dev installs 44 packages and no node_modules/@noble) · the ACCEPTED parent gate native-carriers-package --ci cannot be reproduced from a clean clone on ANY tree, so neither builder, reviewer nor fixer could demonstrate that B1 leaves the parent package intact — and DECISIONS:98's recorded --ci PASS depended on a pre-existing node_modules; also consider fixing build-engines.mjs's Windows ERR_UNSUPPORTED_ESM_URL_SCHEME break, since the owner's PC is the --full host
+```
+
+## 7.11 sha256 of every file this branch touches, after the fix
+
+| file | sha256 @ base `acd3b67` | sha256 @ shipped `db9fe59` | **sha256 now** | bytes | lines |
+|---|---|---|---|---|---|
+| `rebuild/engine/dates.cjs` | `19e9ce7e…3dff6` | `b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067` | **unchanged** | 1 343 | 29 |
+| `rebuild/engine/sleep.cjs` | `3dd34e11…45da0` | `6be0c6fb35fe31955833cba1140f8afbfe9be3f82749da1f2532c5a1aa4068ef` | **`77ced98c0b31c085e04da348592e936ce79dc85496a9df3febaef27e77380ffd`** | 185 554 | 1 963 |
+| `rebuild/engine/policy.cjs` | `a1d21404…3768d` | `4d6c244efa6b34daed02e194dbbd5b7064abcde2d93fd28974a5f2df519187e1` | **unchanged** | 56 859 | 830 |
+| `rebuild/engine/today.cjs` | `397532ec…bdbb8` | `f8d0397abd75c02dd570741191124c32e26ab850702607826943d4394fda2e00` | **unchanged** | 47 093 | 641 |
+| `rebuild/conform/v4/postfix/legacy-b1-carriers.cjs` | *(absent)* | `d8d98b247271d9b4f5ac50f2b7205b1820db4ff72ad6bb53ee2e0d6ccbb002bf` | **unchanged** | 12 838 | 187 |
+| `rebuild/engine/test/b1-delta-cells.cjs` | *(absent)* | *(absent)* | **`f887c59c78f1417006aff0674ba9bf1ce292c704d2fa683f309f5a1ae329c429`** | 6 855 | 106 |
+| `rebuild/lanes/b/BRIEF-B1-GRADING-TIME-WINDOW-v1.2.md` | *(absent)* | *(absent)* | **`b248bc4bc4e4306a7c7e813b8afdfea3194c034ecf76cbf707aaf1ef20e89b7f`** | 104 383 | 569 |
+
+(v1.1 is left in place, byte-identical, as the document the review was written against. This report's own sha256 is not listed because writing it changes it; `git show` on the commit is the authority.)
+
+**Untouched, verified by sha256 on disk rather than by claim:**
+
+```
+rebuild/conform/v4/laws-clock-and-as-of.cjs        cf1774660a73e9ee9186913a93cfd7604750c8f0ace9e7e15fb4e28f1bb6581c
+rebuild/conform/v4/laws-receipt-truth.cjs          871a5fcad74a50e6d2c5ca29a3ecb229c391cb1c289cac50dff0bfc8df8547d1
+rebuild/conform/v4/laws-state-shape-and-failure.cjs 104803f6ab038ee9b29404cd37b454f3b2f870c6cca81b94f25b835d39c5ed3a
+rebuild/conform/v4/run-defect-laws.cjs             2819a7e0683158bb0f146cfd38dbb967960a2148ecc4664fcae5660a02a2a54c
+rebuild/conform/v4/postfix/run.cjs                 654288e073ea6815ce699c1eacb61c7030b0de0781b277477f3800fa06eb245a
+rebuild/engine/test/defect-witnesses.cjs           557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644
+rebuild/engine/test/defect-witnesses-2.cjs         833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2
+rebuild/engine/test/defect-witnesses-3.cjs         f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6
+package.json                                       a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c
+package-lock.json                                  b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608
+```
+
+`git diff --name-only acd3b67 -- <the three laws files> tools rebuild/conform/goldens <the three witnesses> package-lock.json package.json` = **empty**.
+
+## 7.12 What this pass could NOT do
+
+1. **C7 — the `rebuild/m4/spec` half is still unauthored** (`acceptance-b1-grading-time-window.json`, `b1-grading-package.cjs`, `b1-inherited-carriers.cjs`, the `witnesses-1`/`witnesses-3` `coverage.run → coverage.covered` move). PM/tooling territory per `LANES.md`. **There is still no gate that can say PASS for B1**, and the new `b1-delta-cells.cjs` must be added to that artifact's required list alongside the carrier.
+2. **C4's source/alias assertion for D10 is specified, not implemented** — it belongs to the package artifact (C7). `D10-2` remains unkilled.
+3. **`--full` and the private census are unrun**, by design (`DECISIONS:92`, `:93` C4). D16 is B1's only LIVE-TRIGGERED defect; a census change on any of the other nine is a RED stop, and only the owner's PC with the private fixture can tell.
+4. **Browser/host surfaces unexercised** — `D24`'s `nowFocus` and `D23`'s `workout` are rendered surfaces and nothing here drives the phone bundle or the W7 Today page.
+5. **`build-engines.mjs`'s Windows break is not fixed** (not lane B's file, not in the brief).
+6. **The UNKNOWN-recovery question is not closed.** A missing or stale last night still makes `recoveryIndex` read GREEN/100 with zero flags in every variant. The owner's D8 word was *UNKNOWN*; the flag model has no third state. PM ruling needed.
+7. **`STATUS.md` was not edited** (instructed), and `REQUESTS.md` was not edited (cross-lane; the proposed line is quoted in §7.10 instead).
+
+## 7.13 Reproduction
+
+All helper scripts live in `work/lane-b/fx1/`, outside the worktree; build products in `fx1/.tmp/`. Nothing generated is committed.
+
+```
+node  = C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe   (v24.19.0)
+env   = TZ=America/New_York  MEASURED_TEST_NOW=2026-09-03  ENGINE_MAIN=<main>  ENGINE_OLD=<old>
+
+fx1/build-frozen.js    frozen fe516c1 bundle via legacy-gates.publicReferences        (§7.3)
+fx1/runboth.js         45 laws on candidate + restored-base, row-by-row diff          (§7.4)
+fx1/frames-compare.js  + frames-child.js   D8/D21/D22 inspect() on 3 sleep.cjs variants, and the cross-case  (§7.4)
+fx1/battery-child.js   90-cell battery + 11 law statuses + D22 frames parity + 3 carriers, as JSON
+fx1/reverts-run.js     14 single-hunk reverts                                          (§7.6)
+fx1/mutants-run.js     32 named mutants + the fixer's D21-4                            (§7.5)
+fx1/run-carrier.js     the B1 carrier, 3 files x 2 Date modes                          (§7.8)
+fx1/witness-flips.js   non-throwing assert observer over the 3 witness programs        (§7.8)
+fx1/cells-bite.js      the new cell file against base and 4 single-hunk reverts        (§7.7)
+fx1/gates.js           all 19 original gates, repaired vs base                         (§7.9)
+fx1/suite-both.js      conform + second gate, line-for-line diff                       (§7.9)
+fx1/profile-verify.js  native-carriers-profile.verify() attribution                    (§7.9)
+```
+
+Every harness that mutates the worktree restores the four engine files in a `finally` and re-prints their sha256s; the restored hashes are `b51f3f1e0e94 / 77ced98c0b31 / 4d6c244efa6b / f8d0397abd75` at the end of every run, and `git status` shows only the intended files.
