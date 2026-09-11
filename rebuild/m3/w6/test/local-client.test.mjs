@@ -8,14 +8,18 @@ import { createRequire } from "node:module";
 import { faultDatabase } from "./support.mjs";
 import { openRepository } from "../repository.mjs";
 import { openLocalDurableClient, COLLECTIONS, DERIVED, opsBasis, sidecarFailure, sidecarStale,
-  markerDatabaseName } from "../local/local-client.mjs";
+  commitFailure, markerDatabaseName } from "../local/local-client.mjs";
 import { openLocalKeys, keysDatabaseName, keysPresent, probeRecord } from "../local/local-keys.mjs";
-import { localEraLeaseId, readLocalEra } from "../local/local-era.mjs";
+import { localEraLeaseId, readLocalEra, LOCAL_ERA_DAYS } from "../local/local-era.mjs";
 const require = createRequire(import.meta.url);
 const Lease = require("../../../client/lease.cjs");
 
 const DB = "earned-local-test", NS = "joe/phone-A", DEVICE = "dev-phone-A", ATHLETE = "ath-1";
-const clock = () => ({ now: () => "2026-09-11T08:00:00.000Z", today: () => "2026-09-11", tz: "+00:00", monotonicMs: () => 0 });
+const ENROLLED_AT = "2026-09-11T08:00:00.000Z", DAY_MS = 86_400_000;
+const dayIso = days => new Date(Date.parse(ENROLLED_AT) + days * DAY_MS).toISOString();
+const clockAt = (days = 0) => ({ now: () => dayIso(days), today: () => dayIso(days).slice(0, 10),
+  tz: "+00:00", monotonicMs: () => 0 });
+const clock = () => clockAt(0);
 const base = (indexedDB, extra = {}) => ({ indexedDB, crypto: webcrypto, databaseName: DB, namespace: NS,
   athleteId: ATHLETE, deviceId: DEVICE, clock: clock(), ...extra });
 
@@ -272,7 +276,7 @@ test("a different namespace over the same database is state18, not a fresh insta
   back.close();
 });
 
-test("the derived sidecar rides the same commit, reports staleness, and a basis ahead of the ops is refused", async () => {
+test("the derived sidecar rides the same commit, reports staleness, and never vetoes a save", async () => {
   const indexedDB = new IDBFactory();
   const seen = [];
   const projector = (generation, { command, args, ops }) => {
@@ -300,26 +304,88 @@ test("the derived sidecar rides the same commit, reports staleness, and a basis 
   assert.equal(after.derivedStale, true);
   plain.close();
 
-  // Plant a cache claiming operations the generation does not have.
+  // Plant a cache claiming operations the generation does not have. OPS ARE TRUTH:
+  // the save must go through anyway, and boot must call the cache unusable rather
+  // than reporting it as the current derived state.
   const raw = await rawRepository(indexedDB);
   const snapshot = await raw.repository.load();
   const tampered = structuredClone(snapshot.generation);
   tampered.collections[DERIVED].basis = { opCount: 99, lastOpId: "op-dev-phone-A-99" };
   const planted = await raw.repository.commit(snapshot, tampered, null);
   const guard = await openLocalDurableClient(base(indexedDB));
-  const refused = await guard.execute("weighIn", { lb: 170.8 });
-  assert.equal(refused.acknowledged, false);
-  assert.equal(refused.state, 3);
-  assert.equal(refused.code, "DERIVED_BASIS_AHEAD_OF_OPS");
-  const still = await raw.repository.load();
-  assert.equal(still.revision, planted.revision);
-  assert.equal(Object.keys(still.generation.collections.ops).length, 2);
+  const carried = await guard.execute("weighIn", { lb: 170.8 });
+  assert.equal(carried.acknowledged, true);
+  assert.equal(carried.durableRevision, planted.revision + 1);
+  const reported = await guard.boot();
+  assert.equal(reported.ready, true);
+  assert.equal(reported.derived, null);
+  assert.equal(reported.derivedStale, true);
+  assert.equal(reported.derivedCode, "DERIVED_BASIS_AHEAD_OF_OPS");
+  // The host's own record is still on disk, untouched — C1 never rewrites a value
+  // it did not produce; it only refuses to report it as current.
+  assert.deepEqual((await raw.repository.load()).generation.collections[DERIVED], tampered.collections[DERIVED]);
+  // And it never becomes a brick: three more saves in a row.
+  for (const lb of [171.0, 171.1, 171.2]) assert.equal((await guard.execute("weighIn", { lb })).acknowledged, true);
+  assert.equal((await guard.boot()).ops, 6);
   guard.close();
-  // A projector refreshes the basis, so the same installation saves again.
+  // A projector replaces the cache, and it reads fresh again.
   const fixed = await openLocalDurableClient(base(indexedDB, { projector }));
   assert.equal((await fixed.execute("weighIn", { lb: 170.9 })).acknowledged, true);
-  assert.equal((await fixed.boot()).derivedStale, false);
+  const healed = await fixed.boot();
+  assert.equal(healed.derivedStale, false);
+  assert.equal(healed.derivedCode, null);
   fixed.close(); raw.close();
+});
+
+test("a malformed derived cache never vetoes a save and never reads fresh", async () => {
+  const indexedDB = new IDBFactory();
+  const { client } = await enrolledClient(indexedDB);
+  assert.equal((await client.execute("weighIn", { lb: 170.6 })).acknowledged, true);
+  client.close();
+  const raw = await rawRepository(indexedDB);
+  const snapshot = await raw.repository.load();
+  const tampered = structuredClone(snapshot.generation);
+  delete tampered.collections[DERIVED].value;   // a valid object, simply missing `value`
+  await raw.repository.commit(snapshot, tampered, null);
+  const plain = await openLocalDurableClient(base(indexedDB));
+  const booted = await plain.boot();
+  assert.equal(booted.derived, null);
+  assert.equal(booted.derivedStale, true);      // must never report a malformed cache as fresh
+  assert.equal(booted.derivedCode, "DERIVED_SIDECAR_MALFORMED");
+  for (const lb of [170.7, 170.8, 170.9]) assert.equal((await plain.execute("weighIn", { lb })).acknowledged, true);
+  assert.equal((await plain.boot()).ops, 4);
+  plain.close(); raw.close();
+});
+
+test("a corrupt cache rides a CAS retry: racing factories lose no operation, projector or not", async () => {
+  const indexedDB = new IDBFactory();
+  const { client } = await enrolledClient(indexedDB);
+  assert.equal((await client.execute("weighIn", { lb: 170.6 })).acknowledged, true);
+  client.close();
+  const raw = await rawRepository(indexedDB);
+  const snapshot = await raw.repository.load();
+  const tampered = structuredClone(snapshot.generation);
+  tampered.collections[DERIVED].basis = { opCount: 99, lastOpId: "op-dev-phone-A-99" };
+  await raw.repository.commit(snapshot, tampered, null);
+  const a = await openLocalDurableClient(base(indexedDB));
+  const b = await openLocalDurableClient(base(indexedDB));
+  const plain = await Promise.all([a.execute("weighIn", { lb: 171.1 }), b.execute("weighIn", { lb: 171.2 })]);
+  assert.deepEqual(plain.map(result => result.acknowledged), [true, true]);
+  a.close(); b.close();
+  // With projectors each retry re-stages, so the surviving basis describes the
+  // final operations exactly and the cache reads fresh again.
+  const projector = () => ({ profile: "host-derived/v1" });
+  const c = await openLocalDurableClient(base(indexedDB, { projector }));
+  const d = await openLocalDurableClient(base(indexedDB, { projector }));
+  const projected = await Promise.all([c.execute("weighIn", { lb: 171.3 }), d.execute("weighIn", { lb: 171.4 })]);
+  assert.deepEqual(projected.map(result => result.acknowledged), [true, true]);
+  const final = await c.boot();
+  assert.equal(final.ops, 5);
+  assert.equal(final.derivedStale, false);
+  assert.equal(final.derivedCode, null);
+  const stored = (await raw.repository.load()).generation.collections[DERIVED];
+  assert.deepEqual(stored.basis, { opCount: 5, lastOpId: "op-dev-phone-A-5" });
+  c.close(); d.close(); raw.close();
 });
 
 test("sidecar helpers: malformed and ahead-of-ops refusals, behind-ops staleness", () => {
@@ -334,6 +400,10 @@ test("sidecar helpers: malformed and ahead-of-ops refusals, behind-ops staleness
   assert.equal(sidecarStale({ basis: { opCount: 2, lastOpId: "op-2" }, value: null }, basis), false);
   assert.equal(sidecarStale({ basis: { opCount: 1, lastOpId: "op-1" }, value: null }, basis), true);
   assert.equal(sidecarStale(undefined, basis), true);
+  // Anything sidecarFailure refuses is also stale: boot can never call it fresh.
+  assert.equal(sidecarStale({ basis: { opCount: 2, lastOpId: "op-2" } }, basis), true);
+  assert.equal(sidecarStale({ basis: { opCount: 3, lastOpId: "op-2" }, value: null }, basis), true);
+  assert.equal(sidecarStale({ value: null }, basis), true);
   assert.deepEqual(opsBasis({ collections: { ops: { "op-b": { device_seq: 2 }, "op-a": { device_seq: 1 } } } }),
     { opCount: 2, lastOpId: "op-b", opIds: ["op-a", "op-b"] });
 });
@@ -368,4 +438,169 @@ test("no era key material reaches anything the factory returns", async () => {
   assert.equal(surface.includes(era.lease.signature), false);
   assert.equal(surface.includes(era.eraId), true);
   client.close();
+});
+
+test("commitFailure: which checks can fire, and on what", () => {
+  const basis = { opCount: 1, lastOpId: "op-1", opIds: ["op-1"] };
+  const batch = { operations: [{ op_id: "op-1" }] };
+  const good = { id: 7, basis, authored: true, sidecar: { basis: { opCount: 1, lastOpId: "op-1" }, value: null } };
+  assert.equal(commitFailure({ staged: good, attempt: 7, batch }), null);
+  // Fails closed when the record is not this attempt's.
+  assert.equal(commitFailure({ staged: null, attempt: 7, batch }).code, "LOCAL_SIDECAR_UNPROVEN");
+  assert.equal(commitFailure({ staged: { ...good, id: 6 }, attempt: 7, batch }).code, "LOCAL_SIDECAR_UNPROVEN");
+  // A CARRIED sidecar is never judged, however broken — ops are truth.
+  assert.equal(commitFailure({ staged: { id: 7, basis, authored: false, sidecar: null }, attempt: 7, batch }), null);
+  assert.equal(commitFailure({ staged: { id: 7, basis, authored: false,
+    sidecar: { basis: { opCount: 99, lastOpId: "op-99" }, value: null } }, attempt: 7, batch }), null);
+  // An AUTHORED sidecar must describe this candidate AND this batch.
+  assert.equal(commitFailure({ staged: { ...good, sidecar: { basis: { opCount: 2, lastOpId: "op-1" }, value: null } },
+    attempt: 7, batch }).code, "DERIVED_BASIS_AHEAD_OF_OPS");
+  assert.equal(commitFailure({ staged: { ...good, sidecar: { basis: { opCount: 1, lastOpId: null }, value: null } },
+    attempt: 7, batch }).code, "DERIVED_BASIS_NOT_THE_COMMITTED_BATCH");
+  assert.equal(commitFailure({ staged: { ...good, sidecar: { basis: { opCount: 1, lastOpId: "op-1" } } },
+    attempt: 7, batch }).code, "DERIVED_SIDECAR_MALFORMED");
+  assert.equal(commitFailure({ staged: good, attempt: 7, batch: null }).code, "DERIVED_BASIS_WITHOUT_BATCH");
+});
+
+test("a day's gap: the entry is there tomorrow and tomorrow's save continues the sequence", async () => {
+  const indexedDB = new IDBFactory();
+  const { client } = await enrolledClient(indexedDB);
+  assert.equal((await client.execute("weighIn", { lb: 170.6 })).acknowledged, true);
+  client.close();
+  const next = await openLocalDurableClient(base(indexedDB, { clock: clockAt(1) }));
+  const booted = await next.boot();
+  assert.equal(booted.ready, true);
+  assert.equal(booted.revision, 2);
+  assert.deepEqual(booted.view.layer1.reads, [{ date: "2026-09-11", lb: 170.6, op_id: "op-dev-phone-A-1" }]);
+  const tomorrow = await next.execute("weighIn", { lb: 170.4 });
+  assert.equal(tomorrow.acknowledged, true);
+  assert.equal(tomorrow.op_id, "op-dev-phone-A-2");
+  const raw = await rawRepository(indexedDB);
+  const ops = Object.values((await raw.repository.load()).generation.collections.ops);
+  assert.deepEqual(ops.map(op => op.effective.local_date).sort(), ["2026-09-11", "2026-09-12"]);
+  raw.close(); next.close();
+});
+
+test("the lease window is exactly 400 days and boot renews it, so opening the app keeps writing alive", async () => {
+  const indexedDB = new IDBFactory();
+  const { client, era } = await enrolledClient(indexedDB);
+  const raw = await rawRepository(indexedDB);
+  const first = readLocalEra((await raw.repository.load()).generation.metadata).lease;
+  assert.equal(Date.parse(first.not_after) - Date.parse(first.not_before), LOCAL_ERA_DAYS * DAY_MS);
+  assert.equal(first.not_before, ENROLLED_AT);
+  assert.equal((await client.execute("weighIn", { lb: 170.6 })).acknowledged, true);
+  client.close();
+
+  // Day 199 — 201 days of window left, so nothing is renewed and saving works.
+  const early = await openLocalDurableClient(base(indexedDB, { clock: clockAt(199) }));
+  const earlyBoot = await early.boot();
+  assert.equal(earlyBoot.ready, true);
+  assert.equal(earlyBoot.leaseRenewedUntil, null);
+  assert.equal(earlyBoot.notAfter, first.not_after);
+  assert.equal((await early.execute("weighIn", { lb: 170.7 })).acknowledged, true);
+  early.close();
+
+  // Day 201 — inside the last 200 days, so boot re-signs for another 400 and
+  // commits it durably. Same lease_id, same range, not_before untouched.
+  const renewing = await openLocalDurableClient(base(indexedDB, { clock: clockAt(201) }));
+  const renewedBoot = await renewing.boot();
+  assert.equal(renewedBoot.ready, true);
+  assert.equal(renewedBoot.leaseRenewalCode, null);
+  assert.equal(renewedBoot.leaseRenewedUntil, dayIso(601));
+  assert.equal(renewedBoot.leaseId, era.leaseId);
+  const renewed = readLocalEra((await raw.repository.load()).generation.metadata);
+  assert.equal(renewed.lease.lease_id, first.lease_id);
+  assert.equal(renewed.lease.not_before, first.not_before);
+  assert.deepEqual(renewed.lease.range, first.range);
+  assert.equal(renewed.lease.schema_version, first.schema_version);
+  assert.notEqual(renewed.lease.signature, first.signature);
+  // Still a real signature under the UNCHANGED client lease.cjs, and only the
+  // era's own authority key verifies it.
+  assert.equal(Lease.check(renewed.lease, { authorityKey: renewed.authorityKey, deviceId: DEVICE,
+    athleteId: ATHLETE, nowIso: dayIso(201), nextSeq: 3 }).valid, true);
+  assert.equal(Lease.verifySignature(renewed.lease, "not-the-local-authority-key"), false);
+  assert.equal((await renewing.execute("weighIn", { lb: 170.8 })).acknowledged, true);
+  renewing.close();
+
+  // Day 402 — PAST the original cliff. Saving works because day 201 renewed, and
+  // this boot renews again (199 days of the new window left).
+  const past = await openLocalDurableClient(base(indexedDB, { clock: clockAt(402) }));
+  assert.deepEqual(past.status(), { state: "ready", code: "LOCAL_PRESENT" });
+  const pastBoot = await past.boot();
+  assert.equal(pastBoot.ready, true);
+  assert.equal(pastBoot.leaseRenewedUntil, dayIso(802));
+  assert.equal((await past.execute("weighIn", { lb: 170.9 })).acknowledged, true);
+  past.close();
+
+  // Day 500 — inside the day-802 window, so nothing is renewed and saving works.
+  const later = await openLocalDurableClient(base(indexedDB, { clock: clockAt(500) }));
+  const laterBoot = await later.boot();
+  assert.equal(laterBoot.ready, true);
+  assert.equal(laterBoot.leaseRenewedUntil, null);
+  assert.equal((await later.execute("weighIn", { lb: 171.0 })).acknowledged, true);
+  // Every operation across 500 days still carries the SAME era lease id.
+  const ops = Object.values((await raw.repository.load()).generation.collections.ops);
+  assert.equal(ops.length, 5);
+  assert.deepEqual([...new Set(ops.map(op => op.lease_id))], [era.leaseId]);
+  later.close(); raw.close();
+});
+
+test("an era left unopened for 400 days lapses, is named LOCAL_LEASE_EXPIRED, and never reseeds", async () => {
+  const indexedDB = new IDBFactory();
+  const { client } = await enrolledClient(indexedDB);
+  assert.equal((await client.execute("weighIn", { lb: 170.6 })).acknowledged, true);
+  client.close();
+
+  // Day 401, with no boot in between: the only route to the cliff.
+  const lapsed = await openLocalDurableClient(base(indexedDB, { clock: clockAt(401) }));
+  assert.deepEqual(lapsed.status(), { state: "restore-required", code: "LOCAL_LEASE_EXPIRED" });
+  const booted = await lapsed.boot();
+  assert.equal(booted.ready, false);
+  assert.equal(booted.leaseExpired, true);
+  assert.equal(booted.readable, true);
+  assert.equal(booted.state, 20);
+  assert.equal(booted.code, "LOCAL_LEASE_EXPIRED");
+  assert.equal(booted.revision, 2);
+  // The data is intact and still readable; only writing is refused.
+  assert.deepEqual(booted.view.layer1.reads.map(read => read.lb), [170.6]);
+  assert.equal(booted.leaseRenewedUntil, null);      // an expired lease is never renewed
+  const refused = await lapsed.execute("weighIn", { lb: 170.8 });
+  assert.equal(refused.acknowledged, false);
+  assert.equal(refused.state, 20);
+  assert.equal(refused.code, "LOCAL_LEASE_EXPIRED");
+  assert.deepEqual(lapsed.status(), { state: "restore-required", code: "LOCAL_LEASE_EXPIRED" });
+  assert.equal((await lapsed.enroll()).enrolled, false);
+  assert.equal((await lapsed.resumeAfterKill()).ghost, false);
+  lapsed.close();
+
+  // Day 500: the same, and nothing has been written in the meantime.
+  const later = await openLocalDurableClient(base(indexedDB, { clock: clockAt(500) }));
+  assert.deepEqual(later.status(), { state: "restore-required", code: "LOCAL_LEASE_EXPIRED" });
+  assert.equal((await later.execute("weighIn", { lb: 170.9 })).code, "LOCAL_LEASE_EXPIRED");
+  assert.equal((await later.boot()).revision, 2);
+  later.close();
+});
+
+test("a lease that lapses while the client is open is named by the client's own refusal", async () => {
+  const indexedDB = new IDBFactory();
+  let day = 0;
+  const moving = { now: () => dayIso(day), today: () => dayIso(day).slice(0, 10), tz: "+00:00", monotonicMs: () => 0 };
+  const { client } = await enrolledClient(indexedDB, { clock: moving });
+  assert.equal((await client.boot()).ready, true);
+  assert.equal((await client.execute("weighIn", { lb: 170.6 })).acknowledged, true);
+  // The clock crosses the window with the client already open and status "ready",
+  // so the refusal comes from the real client's own lease check, not from a probe.
+  day = 401;
+  const refused = await client.execute("weighIn", { lb: 170.7 });
+  assert.equal(refused.acknowledged, false);
+  assert.equal(refused.state, 20);
+  // The client's own refusal carries neither a code nor a reason here — the face's
+  // write-state precedence answers before lease.cjs is asked — so the name comes
+  // from C1 reading the sealed lease.
+  assert.equal(refused.code, "LOCAL_LEASE_EXPIRED");
+  assert.match(refused.copy, /saved entries are intact/);
+  assert.deepEqual(client.status(), { state: "restore-required", code: "LOCAL_LEASE_EXPIRED" });
+  const raw = await rawRepository(indexedDB);
+  assert.equal(Object.keys((await raw.repository.load()).generation.collections.ops).length, 1);
+  raw.close(); client.close();
 });

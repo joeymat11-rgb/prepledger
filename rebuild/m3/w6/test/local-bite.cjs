@@ -1,7 +1,7 @@
 "use strict";
 // local-bite.cjs — proves the LOCAL-ERA tests are not vacuous.
 //
-// Two guards are removed one at a time from a DISPOSABLE variant of
+// Four guards are removed one at a time from a DISPOSABLE variant of
 // local/local-client.mjs and the matching case must go RED. The original bytes
 // are copied aside before the first mutation and restored in a finally, with the
 // sha256 printed before and after so the restoration is checkable (the same
@@ -12,8 +12,15 @@
 //            defect the bridge exists to prevent (the real T2 acknowledges
 //            before the transaction completes), so the mid-transaction case
 //            must stop being able to see the abort.
-//   bite 2 — the commit validator's sidecar check, so a derived cache claiming
-//            operations the candidate does not have would reach disk.
+//   bite 2 — the stage's basis: computed from the SNAPSHOT instead of the
+//            candidate, so an authored cache would describe the commit before
+//            this one. The validator's DERIVED_BASIS_NOT_THE_COMMITTED_BATCH
+//            check must catch it inside the transaction. This is how the
+//            validator's remaining branches are shown to be load-bearing: they
+//            are invariant assertions that fire when the stage is wrong.
+//   bite 3 — the sidecar self-heal: a carried cache judged again, so a
+//            malformed one would veto the athlete's save (ops are truth).
+//   bite 4 — the lease self-renewal, so the era would hit the day-401 cliff.
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
 const { spawnSync } = require("node:child_process");
 
@@ -32,15 +39,21 @@ console.log("LOCAL BITE SOURCE — " + before);
 const text = original.toString("utf8");
 const BITES = [
   { name: "durability-gate", pattern: "kill mid-transaction",
-    needle: "      return bridge.execute(command, args).then(result => {\n" +
-      "        if (result?.state === 18) status = { state: \"restore-required\", code: result.code || \"RESTORE_UNPROVEN\" };\n" +
-      "        return result;\n" +
-      "      });",
-    replacement: "      const running = bridge.execute(command, args); running.catch(() => {});\n" +
-      "      return repository.load().then(snapshot => stage(snapshot.generation, command, args).result);" },
-  { name: "sidecar-validator", pattern: "derived sidecar rides the same commit",
-    needle: "    return sidecarFailure(staged.sidecar, staged.basis);",
-    replacement: "    return null;" },
+    needle: "      return bridge.execute(command, args).then(async result => {",
+    // The durable path still runs; nothing waits for it. The result handed back is
+    // the stage's own, which is the defect the bridge's completion gate prevents.
+    replacement: "      const early = bridge.execute(command, args); early.catch(() => {});\n" +
+      "      return repository.load().then(snapshot => stage(snapshot.generation, command, args).result);\n" +
+      "      return early.then(async result => {" },
+  { name: "stage-basis", pattern: "derived sidecar rides the same commit",
+    needle: "    const basis = opsBasis(candidate.generation);",
+    replacement: "    const basis = opsBasis(generation);" },
+  { name: "sidecar-self-heal", pattern: "malformed derived cache never vetoes a save",
+    needle: "  if (!staged.authored) return null;",
+    replacement: "  if (!staged.authored) return sidecarFailure(staged.sidecar, staged.basis);" },
+  { name: "lease-self-renewal", pattern: "lease window is exactly 400 days",
+    needle: "    if (!leaseExpired(era.lease, nowIso) && leaseRenewalDue(era.lease, nowIso)) {",
+    replacement: "    if (false && !leaseExpired(era.lease, nowIso) && leaseRenewalDue(era.lease, nowIso)) {" },
 ];
 for (const bite of BITES) {
   if (text.split(bite.needle).length !== 2) throw Error("Unique bite target absent: " + bite.name);

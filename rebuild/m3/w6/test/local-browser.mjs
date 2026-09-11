@@ -48,20 +48,22 @@ const SETUP = { databaseName: "earned-local-browser", namespace: "joe/phone-A", 
 
 let context = null, cases = 0;
 const passed = () => { cases++; };
-async function open() {
+async function open(dayOffset = 0) {
   context = await chromium.launchPersistentContext(profile, { executablePath, headless: true });
   await context.route("**/*", route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
-  return attach(await context.newPage());
+  return attach(await context.newPage(), dayOffset);
 }
-async function attach(page) {
+async function attach(page, dayOffset = 0) {
   await page.goto(origin);
-  await page.evaluate(async setup => {
+  await page.evaluate(async ({ setup, dayOffset }) => {
     const { openLocalDurableClient } = await import("/local.js");
     // The clock is built here: functions cannot cross the evaluate boundary.
+    // dayOffset moves this context's wall clock forward, which is how the lease
+    // self-renewal is exercised against a real durable commit.
+    const at = () => new Date(Date.now() + dayOffset * 86400000).toISOString();
     window.client = await openLocalDurableClient({ ...setup,
-      clock: { now: () => new Date().toISOString(), today: () => new Date().toISOString().slice(0, 10),
-        tz: "+00:00", monotonicMs: () => performance.now() } });
-  }, SETUP);
+      clock: { now: at, today: () => at().slice(0, 10), tz: "+00:00", monotonicMs: () => performance.now() } });
+  }, { setup: SETUP, dayOffset });
   return page;
 }
 try {
@@ -112,8 +114,31 @@ try {
   assert.equal(resumed.line, "No sets saved yet.");
   assert.equal(resumed.ghost, false); passed();
 
-  console.log(`W6 LOCAL-BROWSER PASS — ${cases}/6 real IndexedDB cases; ${version}; ` +
-    `enroll + durable save, whole-context reopen, two-tab race, third-context read; ${built.inventory.length} pinned bundle inputs`);
+  // Day 201 in a real browser: the still-valid lease is re-signed for another 400
+  // days and that renewal is a genuine durable commit on this profile.
+  await context.close(); context = null;
+  page = await open(201);
+  const renewed = await page.evaluate(() => client.boot());
+  assert.equal(renewed.ready, true);
+  assert.equal(renewed.leaseRenewalCode, null);
+  assert.equal(typeof renewed.leaseRenewedUntil, "string");
+  assert.ok(Date.parse(renewed.leaseRenewedUntil) > Date.parse(final.notAfter));
+  assert.equal(renewed.leaseId, enrolled.leaseId);
+  assert.equal(renewed.revision, final.revision + 1);
+  assert.equal((await page.evaluate(() => client.execute("weighIn", { lb: 171.3 }))).acknowledged, true); passed();
+
+  // Day 402 — past the original cliff, on a real browser, with the renewal durable.
+  await context.close(); context = null;
+  page = await open(402);
+  assert.deepEqual(await page.evaluate(() => client.status()), { state: "ready", code: "LOCAL_PRESENT" });
+  const past = await page.evaluate(() => client.boot());
+  assert.equal(past.ready, true);
+  assert.equal(past.ops, 4);
+  assert.equal((await page.evaluate(() => client.execute("weighIn", { lb: 171.4 }))).acknowledged, true); passed();
+
+  console.log(`W6 LOCAL-BROWSER PASS — ${cases}/8 real IndexedDB cases; ${version}; ` +
+    `enroll + durable save, whole-context reopen, two-tab race, third-context read, durable lease renewal past day 401; ` +
+    `${built.inventory.length} pinned bundle inputs`);
   console.log("W6 iPhone / iOS Safari acceptance NOT RUN — Chromium-family evidence only (C3)");
 } catch (error) {
   console.log("W6 LOCAL-BROWSER FAIL — " + (error?.message || error?.name || "Error"));
