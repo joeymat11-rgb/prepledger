@@ -7,7 +7,8 @@ or a plan transaction. Local construction and commit are tested before use. Host
 The candidate uses one immutable complete assertion, `kind: "fact"`,
 `class: "setup-note"`, schema 1 through the same accepted C1 mixed-schema route as weighIn on the schema-2 local-era lease. The
 new narrow T2 nutritionInputs command constructs the standard A3 envelope; the
-host supplies actual athlete/device/sequence/lease/commitment/effective context.
+host supplies actual athlete/device/sequence/lease/commitment; the reviewed
+proposal supplies the explicit athlete-attested effective date/time/offset.
 Payload is closed:
 
 ```text
@@ -51,7 +52,7 @@ Unknown, cleared, no existing plan, unavailable field and not-prescribed field
 are distinct. None means numeric zero. No target/minimum/range is derived from
 another. There is no calorie allowance, ratio, body model or default phase.
 
-Future save/read semantics: review binds one complete copied assertion and exact
+Save/read semantics: review binds one complete copied assertion and exact
 repository revision/token. Supersession must remain within the same authenticated
 athlete and nutrition profile. Concurrent unrelated heads are unresolved, never
 combined field by field or selected by array order. An update retains the prior
@@ -59,6 +60,26 @@ record; a clear is another explicit complete assertion. A goal change must retai
 the recorded plan's actual fields, source and agreed date unless the person also
 explicitly changes that plan. Reads resolve authenticated original operations,
 not derived cache, and must expose accepted and pending-local standing separately.
+
+The actual Today installation exposes `readNutritionInputs()`,
+`prepareNutritionInputs({expectedRevision, proposal})` and
+`commitNutritionInputs({preparedId})`. Proposal is exactly
+`{effective, change, supersedes, inputs}`; preparation returns that immutable
+review. The ID reuses the existing local session epoch, and the private binding
+holds the repository revision/token. No new lease, durable collection or polling
+protocol exists. Concurrent writes make the review stale; commit-time validation
+compares the actual prepared batch to the reviewed values. Invalid input and
+failed commits consume no durable sequence. Quota failure can retry the same
+review. A successful retry of an already committed review returns the original
+operation. If context closes after commit, the result marks the disk commit and
+does not acknowledge Saved; reopening reads the original operation.
+
+The guarded read authenticates the current local-era originals and checks the
+repository revision again before exposing a result. Damaged or wrong-scope input
+is a refusal, not an empty setup. Reading and dropping derived cache never reseed
+or write. The generic `execute` entry cannot bypass the nutrition review guard.
+The factual reader preserves all original assertions, rejects partial/current
+conflict blends, and gives no authority-accepted plan or nutrition recommendation.
 
 U1/U2 remain open: these factual assertions cannot become effective complete
 intake plan groups by relabeling them. The later actual plan producer still needs

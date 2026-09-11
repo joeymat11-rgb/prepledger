@@ -24,6 +24,7 @@ import { openRepository, StorageFailure } from "../repository.mjs";
 import { createBridge } from "../bridge.mjs";
 import Stage from "../t2-stage.cjs";
 import Client from "../../../client/index.cjs";
+import NutritionInputs from '../../../m4/nutrition/inputs-boundary.cjs';
 import { openLocalKeys, probeRecord, keysPresent } from "./local-keys.mjs";
 import { createLocalEra, localEraConfig, readLocalEra, publicEra,
   leaseExpired, leaseRenewalDue, renewLocalEraLease } from "./local-era.mjs";
@@ -48,7 +49,7 @@ const MARKER_VERSION = 1;
 export const LOCAL_GENERATION_PROFILE = "earned/local-generation-metadata/v1";
 export const markerDatabaseName = databaseName => `${databaseName}-local`;
 export const DERIVED = "derived";
-const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout"]);
+const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout", "nutritionInputs"]);
 // Every collection rebuild/client/README.md lists. enroll() seals all of them
 // EMPTY so a fresh install and a migrated one have the same shape.
 export const COLLECTIONS = ["ops", "outbox", "dispositions", "rejected", "receipts", "planTxns", "plan",
@@ -225,9 +226,14 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
 
   // Synchronous, reject-only, inside the durable transaction. It can refuse; it
   // can never write, and it never returns a promise (repository refuses one).
-  const validateCommit = context => commitFailure({ staged: pending, attempt, batch: context.batch });
+  const validateCommit = context => commitFailure({ staged: pending, attempt, batch: context.batch }) || nutritionInputs.validateCommit(context);
 
   const bridge = createBridge({ repository, stage, validateCommit });
+  const nutritionInputs = NutritionInputs.createInputsBoundary({ repository,
+    execute: (command, args) => api.execute(command, args), scope: { athleteId, deviceId, sessionEpoch },
+    localConfig: metadata => localEraConfig(metadata, { athleteId, deviceId, clock }),
+    currentFailure: () => closed ? { acknowledged: false, prepared: false, read: false, state: 3, code: 'LOCAL_CLIENT_CLOSED' } :
+      status.state !== 'ready' ? { acknowledged: false, prepared: false, read: false, state: status.code === 'LOCAL_LEASE_EXPIRED' ? 20 : 18, code: status.code } : null });
 
   // The null-lane clean init on the T2 side: every collection present and EMPTY,
   // an intact checkpoint, this device's record, and the era sealed in metadata.
@@ -407,6 +413,9 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
       });
     },
     current: () => bridge.current(),
+    readNutritionInputs: () => nutritionInputs.read(),
+    prepareNutritionInputs: request => nutritionInputs.prepare(request),
+    commitNutritionInputs: request => nutritionInputs.commit(request),
     // The client's own resume face, read from the freshly loaded generation. A
     // read: it builds the unchanged client over the loaded collections and never
     // commits, so no repository write and no sequence is consumed.

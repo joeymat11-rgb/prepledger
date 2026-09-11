@@ -6,7 +6,7 @@ const Ops = require("../../client/ops.cjs");
 const {createWorkoutCommands}=require("../../m4/workout/commands.cjs");
 const workoutCommands=createWorkoutCommands();
 const clone = value => structuredClone(value);
-const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout"]);
+const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout", "nutritionInputs"]);
 
 function snapshotBackend(backend, seededNames = []) {
   const collections = Object.create(null);
