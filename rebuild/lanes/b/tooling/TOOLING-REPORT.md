@@ -584,7 +584,15 @@ carriers to absorb gates they never ran.
 
 B07d is the control that matters as much as the refusals: the bound is not "refuse every
 move", it is "a move must carry the gate's own work". A legitimate move is accepted and
-prints its reason on the `COVERAGE <gate> <- child … MOVED, carries <original>` line.
+prints its reason on the `COVERAGE <gate> <- child …` line.
+
+> **Corrected in r3 (X4).** As written at r2 that line said `MOVED, carries <original>`,
+> and r3's N3-05 showed the claim was false in the one configuration that mattered: the
+> covering file *named* the original in a `require` specifier that stood after
+> `process.exit(0)`, so the original never ran and the runner still said it was carried.
+> The line now reads `MOVED, declared against <original> and observed emitting that gate's
+> own needle`, and under X3 the second half is an executed fact, not a restatement of the
+> first. See §r3.3. Under X1 no move is admitted at all, so today the line never prints.
 
 ## r2.2 N2 — every inline-code form refuses, by allow-list
 
@@ -879,6 +887,13 @@ COVERAGE 9/19 original gate(s) covered by 5 executed child(ren)
    executable); 10 re-execute under --full
 ```
 
+> **Corrected in r3 (X4).** `each bound to its own original executable` said more than the
+> runner had verified: at r2 the binding was a `require` **specifier** in the covering
+> file's text, which does not establish that the specifier is reachable, let alone called.
+> The clause now reads `each naming its own original executable in a relative require
+> specifier and each proved by that gate's own needle out of R.GATES in the child's
+> stdout`, and the same correction is made in the `SPEC OBSERVED` line. See §r3.3.
+
 (`9 inherited, unverified` on B3/B4, which document no sealed parent). The open counts are
 unchanged from r2 at 5/5/10/10 — the two obligations N4 and N5 concern are still open,
 and now they cannot be closed by declaration. **0 lines containing a bare `PASS` in any of
@@ -951,3 +966,431 @@ with the mechanism. **`package-lock.json` is untouched.**
    are answered by this fix rather than by a ruling. The single parent, the brief
    acceptance lines, the theme lines, H1, and who runs and judges the FULL gate all remain
    open and are the PM's.
+
+---
+
+# post-review r3 — X1–X4 closed, the id list widened, the parent re-pinned
+
+`TOOLING-REVIEW-r3.md` (lane-b-reviewer3, ACCEPT WITH CHANGES) found W1–W7 and N1–N5 closed
+under 61 controls of its own, and required four changes: **X1** `coverage.moves` must be
+`{}` at every seal; **X2** close R3-B, the unpinned parent review; **X3** prove a move by
+the gate's own needle instead of by a `require` specifier; **X4** make two overstated
+sentences say what was verified. This section is the executed proof for all four, plus the
+two things the brief added on top: the id list widened to **B-NTC** and **B-LOM**, and every
+spec re-pinned at the **DECISIONS:104** re-seal.
+
+Everything below was executed on the owner's PC (Windows, PowerShell), worktree
+`work/lane-b/tooling` on `rebuild/lane-b-tooling`, with
+`C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`
+(**Node v24.19.0**). Outcomes are recorded as they happened.
+
+**Delivered bytes at this revision** (measure these, don't trust them — r3's residual R1
+says a sealed package is reviewed by *diffing* the runner and its spec, not by running them):
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 812 | 65367 | `6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b` |
+| `packages/B-NTC.json` | 259 | 21159 | `e1724ca697a202d73da5d18f216cbb2529a5ecd3aa1018f74014f4ab725a56e9` |
+| `packages/B-LOM.json` | 89 | 12235 | `cd5950916af094fae957d00a5c76360a6c812a5c361180fbb5251dcdbe225871` |
+| `packages/B1.json` | 392 | 24383 | `eef1885c8bfa5ccd90737747a524cec13b67f6fa997e93475b6f367745d7b2ae` |
+| `packages/B2.json` | 377 | 25289 | `6b80bc0d69bc1c685a0d33c0eec991fbb50b4204d2dfc0302912d887816fa70c` |
+| `packages/B3.json` | 274 | 19958 | `b504ecf37588dacfe329d226e77c78c5f1fd370fe04532da69409a3ea4acd76d` |
+| `packages/B4.json` | 264 | 19369 | `506b380a2fbb2d22b9101cb73e72c5b140726ddf20f2fe863ab501619101f6cb` |
+
+(The runner was `eaa731a1…`, 684 lines / 53 683 bytes at r3's review commit `572a8c2`.)
+
+## r3.0 The base moved first, and it had to
+
+The r3 review ran at `572a8c2` with `sourceBase 87eddad` and the **DECISIONS:96** seal
+`295762f0…` on disk. Between then and now the PM re-sealed the same artifact for the
+`rebuild.yml` execution pin:
+
+| | old | new |
+|---|---|---|
+| `acceptance-native-carriers.json` | `295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1` | `e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a` |
+| `review-native-carriers.json` | `2de0203aa6443f7b83eb6be797dc5a3f236c6a8a30b2eca39824ae95b7c2cbfc` | `9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb` |
+| receipt | `DECISIONS:96`, base `f6aa4a2` | **`DECISIONS:104`**, base `b045e61` |
+| reviewed at | `84d8f28` | `b95ccca` |
+
+`rebuild/lane-b-tooling` had diverged from `rebuild/t2-client-core` at `acd3b67`, so the new
+bytes were not on the branch at all. **The tip is therefore merged in first**
+(`origin/rebuild/t2-client-core @ e9c50e1`, its own commit), because `option()` reads the
+parent artifact from **disk** and `fidelity()` requires `sourceBase` to be an ancestor of
+HEAD — a re-pin without the merge would have been a pin to bytes this branch does not have.
+The merge is clean, brings **no** `package.json` / `package-lock.json` change, and after it
+
+```
+git diff --name-only e9c50e1 HEAD -- rebuild/engine rebuild/conform rebuild/m4/spec rebuild/lanes/b/tooling
+  rebuild/lanes/b/tooling/{README.md, TOOLING-REPORT.md, b-package.cjs, packages/B1..B4.json}
+```
+
+— seven files, every one already in the runner's own fixed `TOOLING_FILES` inventory, plus
+the two new package specs. This branch authors nothing outside `rebuild/lanes/b/tooling`.
+
+**What was re-taken, and what was not.** The two artifacts differ in **three**
+`executionPins` and in nothing else: `.github/workflows/rebuild.yml`,
+`NATIVE-CARRIERS-THEME.md`, `NATIVE-CARRIERS-BUILD-REPORT.md`. The parent `product` map is
+byte-identical across the re-seal, so **B1's and B2's own product pre-images did not move**
+and were not re-typed; they were re-verified — all 51 parent pins and all 23 un-superseded
+grandparent pins resolve at `e9c50e1` **and** on disk, 0 mismatches. Those pre-images are
+the parent's pins carried forward, not an independent measurement of either lane's work:
+**B1 and B2 re-verify them, and re-take them if the engine moves under them, at seal time.**
+B3's and B4's briefs arrived with the merge, so their `brief.sha256` — `null` until now —
+is taken from the bytes on the branch (`17fb21e4…`, `325e7a23…`); had it been left `null`
+the run would have failed on `Brief bytes`, because the file now exists to hash.
+
+## r3.1 X1 — `coverage.moves` is `{}`, and the runner is what says so
+
+The reviewer's own words: *"`coverage.moves` must be `{}` in every B package sealed until X3
+lands … **The sealer must re-check this line at seal time, not trust it from here.**"* That
+re-check is now mechanical. `MOVES_RULING` is a runner constant holding the PM ruling that
+would admit a move; it is `null`, and a non-empty `moves` refuses in `spec()` — before any
+output — and again in `envelope()` before the ACCEPTED branch.
+
+**Why a flat refusal is the right answer to R3-A, and not a tighter bound.** r3's R3-A is a
+composite: a declared child that never runs a gate's original could clear the old evidence
+rule (a `require` specifier in the covering file's *text*, plus ≥ 200 bytes of stdout) and
+still be reported `MOVED, carries <original>` — `DECISIONS:97` F-PM-2's defect class through
+the move door. Every component of it enters through a non-empty `moves`. With `moves`
+refused **the wrapper attack has no reach at all** — not a narrower reach, none — and the
+reviewer's own summary already said so: *"With `moves` empty the hole has **no reach at
+all**."* X1 turns that observation from a property of today's four specs into a property of
+the runner. The move machinery is kept whole, is still checked, and is still exercised by
+the controls below, so it stays reviewable; it simply cannot be reached.
+
+| # | control | exit | fired |
+|---|---|---|---|
+| X1-1 | one well-formed move (`migrate-full` onto a new carrier) | **1** | `COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING migrate-full` |
+| X1-2 | a move onto an **inherited** child | **1** | same |
+| X1-3 | a move whose reason is five characters | **1** | same |
+| X1-4 | a move declared as a bare string | **1** | same |
+| X1-5 | two moves (`migrate-full` + `merge-laws`) onto ONE child | **1** | same, naming both |
+| X1-6 | **all ten free gates onto ONE child** | **1** | same, naming all ten |
+| X1-7 | the one `run.cjs`-grouped pair (`conformance` + `selftest`) through a child root that cannot reach `rebuild/conform/run.cjs` | **1** | `CHILD-ARGV-TARGET` (r3's B07e, still first) |
+| X1-7b | the same pair through a wrapper under `rebuild/m4/workout/test/` that **does** `require` `run.cjs` | **1** | `COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING conformance selftest` |
+| X1-8 | a gate both inherited **and** moved | **1** | `COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING migrate-source` |
+
+X1-7b is the one that matters most: at r2 this exact configuration was **accepted** (exit 2)
+because `run.cjs` itself groups those two gates on one executable. It is refused now. Every
+one of r3's own N1 move controls is subsumed — the gate that fires is X1's, before theirs.
+
+**The gate is the ruling flag, not a broken code path.** X3-a..d below run the same
+machinery with `MOVES_RULING` temporarily set in a debug copy beside the runner; moves are
+then admitted and the *specific* move checks decide. So X1 is a policy switch that a PM
+ruling flips, not a dead branch.
+
+## r3.2 X2 — the parent's review is byte-pinned and chain-anchored (R3-B closed)
+
+R3-B, in r3's words: `option()` *"does **not** pin the parent's **review** file … and takes
+`review.receipt.commit` as `receiptBase` — the very base `authority()` then uses."* Its
+C-COMMIT-3 wrote a review file **inside the tooling directory**, pointed it at a local
+scratch commit carrying forged theme and brief lines, and the runner cleared two obligations
+and printed that those lines were *"found in Git"*.
+
+Both halves of X2 are implemented, because they fail independently:
+
+1. `parent.options[].reviewSha256` pins the review file **by bytes**, asserted against disk
+   and against the bytes standing on `refs/remotes/origin/rebuild/t2-client-core`.
+2. `L.git(root, ['merge-base','--is-ancestor', r.commit, CHAIN_REF])` — the receipt base
+   must stand on the real chain branch. `CHAIN_REF` is a runner constant read from Git refs;
+   **nothing the spec says can name it.**
+
+Both are **additions**. The check that was already there — `L.verifyReceipt` finding the
+parent's receipt line as exact bytes in `rebuild/DECISIONS.md` in Git at that base, under
+role `cowork`, mentioning the artifact path and hash — is unchanged and still runs. X2
+decides *where* the base may be; `L.verifyReceipt` decides *what must stand there*. Neither
+substitutes for the other, and a reviewer diffing this revision should see both in
+`option()`. (They nearly did not: the first draft of this fix rewrote `option()` whole and
+dropped the `L.verifyReceipt` call. It was caught by diffing the runner against `5b04f21`
+line by line before the push — which is precisely the reading residual R1 demands of a
+reviewer, applied by the author to his own work, and it is recorded here rather than
+quietly corrected.)
+
+One implementation note a future reviewer should not rediscover as a finding: the review
+file is authored **after** the commit its own receipt names as reviewed (it carries the
+receipt of the line that accepts the artifact), so its bytes do **not** stand at that
+commit — asking for them there fails on the genuine article. They are resolved on the chain
+branch instead, which is the stronger anchor anyway. A side effect worth naming: a parent
+pin that upstream has **superseded** now stops verifying rather than passing quietly. That
+is exactly what `DECISIONS:104` did to the `:96` seal, and X2-4 executes it.
+
+| # | control | exit | fired |
+|---|---|---|---|
+| X2-1 | `reviewSha256` present but wrong | **1** | `PARENT-REVIEW-BYTES-NOT-THE-PINNED-REVIEW NATIVE-CARRIERS` |
+| X2-2 | `reviewSha256` key removed | **1** | `Parent option NATIVE-CARRIERS` (closed option keys) |
+| X2-3 | an **unsealed** option carrying a review pin | **1** | `An unsealed parent option pins no review bytes B2` |
+| X2-4 | the **stale** `:96` pin re-declared (`295762f0…`, line 96) | **1** | `Parent artifact bytes NATIVE-CARRIERS` |
+| **X2-5** | **C-COMMIT-3 reproduced**: a dangling commit carrying forged theme + brief lines; a canonical review file in the tooling directory naming it as `receipt.commit`; `reviewSha256` set to that file's **real** bytes; both forged lines cited by the spec | **1** | `Command failed: git merge-base --is-ancestor debc7238a9311040293630849bab5e586a4b6d88 refs/remotes/origin/rebuild/t2-client-core` |
+| X2-6 | the same forged review but with the **genuine on-chain** receipt base `b045e61` | **1** | `Command failed: git show refs/remotes/origin/rebuild/t2-client-core:rebuild/lanes/b/tooling/r3fix-review.json` |
+| X2-7 | control on the control: the two forged lines really do stand at the scratch commit, and that commit really is off the chain | — | **2/2 found at `debc7238`; `on the chain branch? NO`** |
+
+X2-7 is what makes X2-5 evidence rather than an accident: the forged lines are genuinely in
+Git at that commit, so the refusal is the **ancestry check** firing and not a line that was
+never written. X2-6 shows the byte-pin biting on its own with a perfectly valid base.
+
+`debc7238a9311040293630849bab5e586a4b6d88` is reproducible: it is parented on the chain tip
+`e9c50e1` (not on HEAD, so that its sha does not depend on the commit this file is part of),
+with fixed author and committer dates of `2026-09-11T00:00:00 +0000`, and it was built with
+`hash-object` / `read-tree` / `write-tree` / `commit-tree` against a **temporary index** —
+**no branch was created, the worktree and the real index were never touched, and nothing was
+pushed**. It is unreachable, and `git branch --list '*scratch*'` is empty. An earlier run of
+the same control parented on HEAD refused identically.
+
+## r3.3 X3 — a move is proved by the gate's own needle (and one correction to the review)
+
+`R.GATES` carries each gate's expected output string, and `run.cjs`'s own `gateRun()` is the
+authority on how to use it:
+
+```
+const [id,file,needle,arg]=gate;
+…
+if(result.error||result.status!==0||!result.stdout.includes(needle))fail('LEGACY-GATE-'+id);
+```
+
+`GATE_NEEDLE` is built from that same array and a moving child is held to that same test.
+**For a moving child the ≥ 200-byte floor is no longer evidence at all**; non-moving children
+keep it, because they cover nothing by themselves.
+
+> **Two corrections to X3 as written, recorded deliberately.**
+> 1. X3 says to build the map from `R.GATES[i][2][0]`. That is the **first character** of
+>    the needle — `"M"` for `migrate-source`, `"P"` for `migrate-full` — and implementing it
+>    literally would have *weakened* the check to almost nothing. The needle is `g[2]`. The
+>    runner uses `g[2]`.
+> 2. X3 says the needle must stand **at line start**. Two of the nineteen needles stand
+>    mid-line in their own gate's output — `preserved writer defects;` (witnesses-7) and
+>    `PASS exact sync-laws source` (merge-laws) — so a line-start rule would refuse gates
+>    that really ran. The runner matches with `includes()`, the original's own criterion.
+
+Executed with `MOVES_RULING` temporarily set to a test ruling in a debug copy beside the
+runner (deleted afterwards), so that the move path is live and X3 is what decides:
+
+| # | control | exit | outcome |
+|---|---|---|---|
+| **X3-a** | **r3's N3-05 verbatim**: the `require` of `migrate-full.cjs` stands **after** `process.exit(0)`, and a fabricated `LEGACY migrate-full PASS` verdict line is padded past 200 bytes | **1** | `COVERAGE-MOVE-CHILD-DID-NOT-EMIT-THE-ORIGINAL-GATE-NEEDLE r3fix-move migrate-full; 341 byte(s) of stdout without "PASS M2-5 full migration gate"` |
+| **X3-b** | **r3's N3-07**: 283 bytes of `z`, declared needle at line start, no gate line | **1** | same refusal, `303 byte(s) of stdout without "PASS M2-5 full migration gate"` |
+| X3-c | a wrapper that **prints the gate needle literally** and never runs the gate | **2** | **accepted** — see R3-C below |
+| **X3-d** | **POSITIVE**: a wrapper that really `require`s and runs `rebuild/engine/test/defect-witnesses.cjs`, moving `witnesses-1` | **2** | **accepted**, 880 bytes, needle observed |
+
+Both of r3's headline accepts are now refusals, and the positive control shows the rule is
+not "refuse every move". X3-d's own lines, verbatim:
+
+```
+B PACKAGE B1 CHILD r3fix-move OBSERVED; exit 0, 880 bytes of stdout, exact declared verdict
+  at line start; ran rebuild/m4/workout/test/r3fix-real.cjs; and emitted the original gate
+  needle(s) witnesses-1
+B PACKAGE B1 COVERAGE 10/19 original gate(s) covered by 6 executed child(ren) (9 inherited,
+  the parent map byte-for-byte; 1 moved, each naming its own original executable in a
+  relative require specifier and each proved by that gate's own needle out of R.GATES in
+  the child's stdout); 9 re-execute under --full
+B PACKAGE B1 COVERAGE witnesses-1 <- child r3fix-move executed in this run; exit 0 and exact
+  declared verdict; MOVED, declared against rebuild/engine/test/defect-witnesses.cjs and
+  observed emitting that gate's own needle — this package re-homes the witness gate onto its
+  own successor carrier
+```
+
+Compare the same line in r3 §5's N3-05 transcript — `MOVED, carries
+rebuild/engine/test/migrate-full.cjs` — on a run where `migrate-full.cjs` never executed.
+
+## r3.4 X4 — the sentences, and the label defect
+
+Three text changes, all of them now backed by the check they describe:
+
+| was | is |
+|---|---|
+| `SPEC OBSERVED … N declared move(s), each bound to its own original executable` | `… each naming its own original executable in a relative require specifier` (plus `(moves are refused outright under this runner — TOOLING-REVIEW-r3 X1)` while `MOVES_RULING` is absent) |
+| `COVERAGE … N moved, each bound to its own original executable` | `… each naming its own original executable in a relative require specifier and each proved by that gate's own needle out of R.GATES in the child's stdout` |
+| `COVERAGE <gate> <- child <c> … MOVED, carries <original>` | `… MOVED, declared against <original> and observed emitting that gate's own needle` |
+
+and the one `assert` r3 asked for:
+
+| # | control | exit | fired |
+|---|---|---|---|
+| X4-e | `status: "BRIEF-ACCEPTED"` with `brief.acceptedLedgerLine: null` | **1** | `BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE: status says the brief is accepted and brief.acceptedLedgerLine is null` |
+
+It cleared nothing before — the implication was only checked line-implies-status — but a
+verdict file must not carry a word its own evidence denies.
+
+## r3.5 The id list: B-NTC and B-LOM
+
+`DECISIONS:103 (1)` ruled the chain order: **B-NTC first** (the qualified
+`nativeTrendContext` provider, the S2 blocker), then B1, B2, B4, B3, with **B-LOM** behind
+B-NTC because the legacy order-mapping provider is *not* the same seam. Lane B's STATUS of
+2026-09-11 05:50 ET recorded the consequence: `b-package --package B-NTC REFUSED (closed id
+list) -> tooling fixer widens it`. The list is now
+`--ci|--full --package B-NTC|B-LOM|B1|B2|B3|B4`, case-exact.
+
+Two runner changes came with it, both fixed **in the runner** where every other exemption
+lives (W7), so no spec can grant itself either:
+
+* `NO_REGISTER_IDS = {B-NTC, B-LOM}` — the only ids allowed an empty `dIds`/`laws`
+  inventory. `DECISIONS:93`: feature work under the ratified slice plan takes no register
+  D-ID. Control **ID-2**: emptying `dIds` on B1 refuses (`D-id inventory`), exit 1.
+* `packageId` must now be `M2-<the id on the command line>-…`, not merely `M2-B[1-4]-…`.
+  Control **ID-1**: B1.json carrying `M2-B2-TARGETS-IDENTITY-ERA` refuses
+  (`Package id shape`), exit 1 — so a spec cannot claim another package's artifact path.
+
+`packages/B-NTC.json` — `PROPOSED`, parent `NATIVE-CARRIERS` **decided** (the PM has named
+it), 24 product files, 5 declared children, `moves {}`. Its product is the 20 parent-pinned
+files carried byte-identical, plus the four the package brings into the inventory: the
+provider `rebuild/m4/workout/native-trend-context.cjs` and its 22-cell test
+`rebuild/m4/workout/test/native-trend-context.test.cjs` (neither authored on this branch —
+role `new`, `post: null`, pre-image `e3b0c442…`, the sha256 of the empty byte string), and
+the two host wiring files the brief names, `rebuild/m3/w6/host/workout-host.mjs` and
+`rebuild/m3/w6/host/test/journey.test.mjs` (present, pinned at their real bytes at
+`sourceBase`, `post: null`). **Every `post` is null**, which is what makes the run read
+`PRODUCT NOT-IMPLEMENTED`; the post-images are taken when the carrier lands. The bytes
+authored on `rebuild/lane-b-ntc @ 68fbca4` are recorded in the spec's own notes **and
+asserted by nothing** — they are a note for the re-take, not a claim.
+
+`packages/B-LOM.json` — `SKELETON`. Parent = the ACCEPTED B-NTC artifact, `sha256: null`,
+`reviewSha256: null`, `receiptLedgerLine: null`; empty `product`, empty `coverage.inherited`,
+no children, no brief. Every coordinate is taken when B-NTC is sealed. It runs, and it is
+open on everything — which is the honest state of a package nobody has written yet.
+
+## r3.6 The tip demo — six ids, two modes, and the refusals
+
+| run | exit | terminal line |
+|---|---|---|
+| `--ci --package B-NTC` | **2** | `CI REVIEW-PENDING: 4 open obligation(s); public evidence only; no PASS is claimed` |
+| `--ci --package B-LOM` | **2** | same, **10** open |
+| `--ci --package B1` | **2** | same, **5** open |
+| `--ci --package B2` | **2** | same, **5** open |
+| `--ci --package B3` | **2** | same, **9** open |
+| `--ci --package B4` | **2** | same, **9** open |
+| `--full --package <each of the six>` | **2** ×6 | `BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING` |
+| no args / `--ci --package b-ntc` / `--ci --package B5` / `b1` / `--ci --full` / `--seal` / `--package B1` alone | **1** ×7 | `B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|B-LOM|B1|B2|B3|B4` |
+
+All twelve real runs executed **45/45** register laws with **0 HARNESS_ERROR**
+(`TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls ·
+97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL`) — identical to
+the figure the B-NTC build report measured at `12cfdb9`, so the re-pin and the merge moved
+no law.
+
+**Bare `PASS` lines: 0.** Across all twelve logs the word appears on **24** lines and every
+one is a negation — `… is not sealed yet — no PASS word is available` (12),
+`theme NULL — no PASS word is available` (6), `no PASS is claimed` (6). No run reached
+exit 0.
+
+B3 and B4 dropped from 10 open obligations to 9: their briefs arrived with the merge and are
+now pinned and present, so `brief … not authored` no longer stands. B-NTC's 4 are the
+smallest count in the set because it carries no D-id and no carrier successor — brief not
+authored on this branch, product NOT-IMPLEMENTED, theme null, brief not accepted.
+
+B-NTC's parent lines, verbatim, are the clearest single view of X2:
+
+```
+B PACKAGE B-NTC PARENT OPTION NATIVE-CARRIERS M2-NATIVE-CARRIERS
+  rebuild/m4/spec/acceptance-native-carriers.json
+  e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a ACCEPTED at
+  b95ccca879e371b5ba225ad12cae612ec89469ba (DECISIONS:104); artifact byte-identical on disk,
+  in Git at that commit and on refs/remotes/origin/rebuild/t2-client-core; review
+  rebuild/m4/spec/review-native-carriers.json 9b0918d6172d byte-identical on disk and on
+  that branch; receipt base b045e61 is an ancestor of it
+B PACKAGE B-NTC PARENT BOUND NATIVE-CARRIERS … single-parent chain holds
+```
+
+## r3.7 The 68 controls, and where they refused
+
+56 in part 1 + 12 in part 2, **68/68 at the expected exit**, each attributed to a named
+check rather than inferred from an exit code. Attribution used a copy of the runner placed
+**beside** it (`b-package-debug.cjs`, so `__dirname`, `root`, `SPEC_DIR` and the `RUNNER`
+pin all still resolve to the real runner's bytes) differing only by one `console.error` in
+the terminal catch — the same instrument r3 built, and deleted the same way.
+
+| group | n | all refused at |
+|---|---|---|
+| W1-01..07 | 7 | runner bytes on disk / in Git at HEAD, tooling pin, closed keys, self-nominated artifact, non-canonical bytes, duplicate key |
+| N1-08, N1-10, N1-11b | 3 | `INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET` ×2, `COVERAGE-CHILD-NOT-DECLARED` |
+| W3-a/b/c | 3 | `CHILD-NEEDLE-EMPTY` |
+| N2 (24 argv probes incl. one positive) | 24 | `CHILD-ARGV-INLINE-CODE` ×10, `…SHORT-CIRCUITS-EXECUTION` ×4, `…STDIN-OR-END-OF-OPTIONS` ×2, `…FLAG-NOT-ALLOWED` ×2, `…FLAG-AFTER-FILE`, `…TARGET` ×4; the positive `['--test','--test-reporter=tap',<pinned child>]` cleared `childArgv` and failed later on the needle |
+| N4/N5 + X4-e | 5 | `RECEIPT-EXACT-LINE-MISSING` ×2, `Authorization claim brief acceptance`, `LEDGER-LINE-SHA256`, `BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE` |
+| N3-a/b/c | 3 | `CHILD-NEEDLE-NOT-A-TERMINAL-LINE`, `CHILD-DID-NOT-REALLY-EXECUTE`, and N3-07 **accepted as a non-moving child** (exit 2) — correct: it covers nothing |
+| X1-1..8, X1-7b | 9 | `COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING` ×8, `CHILD-ARGV-TARGET` ×1 |
+| X2-1..7 | 7 | the four pin/key/ancestry refusals, C-COMMIT-3, the on-chain-base variant, and the control on the control |
+| X3-a..d | 4 | two `COVERAGE-MOVE-CHILD-DID-NOT-EMIT-THE-ORIGINAL-GATE-NEEDLE`, one honest accept (X3-c), one positive accept (X3-d) |
+| ID-1, ID-2 | 2 | `Package id shape`, `D-id inventory` |
+
+r3's W4/W5/W6 are observations rather than bites and are observed on every clean run: 31
+parent + 23 grandparent pins re-asserted, `ENVELOPE-CHANGED-DURING-THE-RUN` evaluated twice
+with `key` compared, owner `DECISIONS:60` and contract `DECISIONS:49` found as exact line
+bytes — now at `b045e61`, the **new** receipt base, with the contract still byte-equal to
+the parent artifact's.
+
+## r3.8 Residual risks
+
+1. **R1 (unchanged, and r3 scoped it correctly).** Pre-seal the runner and the spec can be
+   co-edited and the Git-at-HEAD pin falls to anyone who can commit (r3's C-COMMIT-1). No
+   PASS is reachable pre-seal. **A sealed B package must be reviewed by diffing
+   `b-package.cjs` and `packages/<id>.json` at the reviewed commit, not merely by running
+   them.** This is still the single most important thing a reviewer of a sealed package does.
+2. **R3-A — CLOSED by removal of reach, not by narrowing.** `moves` cannot be non-empty.
+   When a PM ruling lands, X3 is what guards it, and X3-a/X3-b show it refuses both of r3's
+   headline configurations.
+3. **R3-B — CLOSED.** X2-5, X2-6 and X2-7 executed.
+4. **R3-C (new, this round, and it is the honest limit of X3).** X3 replaces a *text* test
+   with an *output* test, and an output test is still a test on a **string**. X3-c executed
+   it: a wrapper that never runs the gate but prints
+   `PASS M2-5 full migration gate` on its own was **accepted** (exit 2). X3 is strictly
+   stronger than the specifier test — a covering file can no longer name the original and
+   never call it — but it does not prove execution, and no rule that reads only a child's
+   stdout can. What would: run the gate through `R.gateRun` itself rather than accepting a
+   child's transcript of it. That is a larger change to the coverage model and belongs with
+   the first real `legacy-b<N>-carriers.cjs`, under a PM ruling that admits moves at all.
+   **Until then X1 makes R3-C unreachable as well**, for exactly the same reason it makes
+   R3-A unreachable.
+5. **R3-D (new).** `CHAIN_REF` is a *moving* ref. Pinning the parent's artifact and review
+   bytes on `refs/remotes/origin/rebuild/t2-client-core` means the pins must be re-taken
+   whenever upstream re-seals — which is the point, and which is what X2-4 proves — but it
+   also means **a run is only as correct as the last `git fetch`**. A stale remote-tracking
+   ref can refuse a pin that is in fact current. The refusal direction is the safe one, and
+   the fix is `git fetch origin` before a seal run; it is recorded so a future reviewer
+   reads the refusal correctly.
+6. **R4 (inherited from `run.cjs`, unchanged).** Two of the 18 `PIN_PATHS`
+   (`rebuild/conform/goldens`, `rebuild/conform/manifest.json`) do not exist in this tree, so
+   "18 PIN_PATHS byte-identical" is nominal; 16 live, 2 missing.
+7. **R5 (unchanged, and it bounds this round too).** The ACCEPTED branch of `envelope()` has
+   still never executed. The artifact path is derived as
+   `rebuild/m4/spec/acceptance-<slug>.json` and this brief forbids writing there, so every
+   post-seal check here is by reading. The PM's first `--full` on a sealed B package remains
+   an unrehearsed first execution of `L.checkSources` end to end: **treat it as a rehearsal,
+   and write the receipt after it, not before.**
+8. **R6 (unchanged).** `gates()` and `historical()` are unexecuted on any machine without
+   the private fixture (`DECISIONS:97`). The coverage accounting they consume runs on every
+   `--ci`.
+9. **R7 (unchanged).** `--ci` still is not wired into `.github/workflows/rebuild.yml`. That
+   file is a NATIVE-CARRIERS execution pin and moved in the `:104` re-seal; the wiring
+   belongs to the batched re-seal item `DECISIONS:103 (5)` names.
+10. **R8 (unchanged from r2, with r3's narrowing recorded).** `fidelity()` still exempts
+    every file a declared child executes. r3 also observed that two of the five `CHILD_ROOTS`
+    (`rebuild/m4/workout/test/`, `rebuild/m3/w7-preview/test/`) sit outside `fidelity()`'s
+    change scan entirely, so there the exemption is not even reached; and an untracked file
+    beside the runner is invisible to `fidelity()` because `TOOLING_FILES` is a fixed list
+    and the runner never enumerates its own directory. Both are still true. Both are why the
+    debug copy and every wrapper built here were deleted and `git status
+    --porcelain --untracked-files=all` was re-checked.
+11. **`L.verifyBase` is still not used** (r3 §2). `envelope()` asserts
+    `merge-base --is-ancestor r.commit CHAIN_REF` where the original pins
+    `merge-base HEAD CHAIN_REF === expected` (`CANDIDATE-BASE-STALE`). Weaker, but anchored
+    on the real remote branch — and X2 now applies the same anchor one level up, to the
+    parent's receipt base, which is where r3 found it missing.
+
+## r3.9 Restoration, verified
+
+```
+git status --porcelain --untracked-files=all                       (empty)
+git status ... -- rebuild/m4 rebuild/conform rebuild/engine .github \
+                  rebuild/m3 rebuild/DECISIONS.md                  (empty)
+git branch --list 'r3fix*' / '*scratch*'                           (empty)
+rebuild/m4/workout/test/r3fix-*                                    (none)
+rebuild/lanes/b/tooling/{*debug*, r3fix-*}                         (none)
+rebuild/conform/private/                                           absent, never created
+rebuild/lanes/b/tooling/  9 files, no others
+```
+
+The scratch commit `debc7238` is dangling: no branch ever pointed at it, it was never pushed,
+and it was built through `commit-tree` against a temporary index so the worktree and the
+real index were never touched. `ledger/` and `rebuild/conform/private/` were never opened.
+No `package.json` or `package-lock.json` change was made or committed.
+
+The whole control set was run **twice**: once before the `L.verifyReceipt` restoration
+described in §r3.2, and once after, on the bytes that ship. Both runs were 68/68.

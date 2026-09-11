@@ -8,7 +8,7 @@
     "sha256": "bda40faaea2f24223ac69b48480ebd0b9c9d07c0b3c7ff931fa05bd4a41c9c4c",
     "acceptedLedgerLine": null
   },
-  "sourceBase": "87eddad7e9e7141e28ea575b3b99038eac61585a",
+  "sourceBase": "e9c50e109d3f60ea6da3d538c129a601b346bef4",
   "dIds": [
     "D10",
     "D8",
@@ -51,16 +51,18 @@
       {
         "id": "NATIVE-CARRIERS",
         "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
-        "sha256": "295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1",
+        "sha256": "e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a",
         "review": "rebuild/m4/spec/review-native-carriers.json",
-        "receiptLedgerLine": 96,
-        "note": "Chain head on disk. Use this if the PM rules B1 FIRST in the B chain (recommended by BRIEF-B1 v1.1 section 5.3: NATIVE-CARRIERS -> B1 -> B2 -> B4 -> B3)."
+        "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
+        "receiptLedgerLine": 104,
+        "note": "Chain head on disk at sourceBase e9c50e1. Re-pinned at the CI re-seal DECISIONS:104 (receipt base b045e61, reviewed at b95ccca), which supersedes DECISIONS:96 / 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1: same 20-file product map, three executionPins moved (.github/workflows/rebuild.yml, NATIVE-CARRIERS-THEME.md, NATIVE-CARRIERS-BUILD-REPORT.md). reviewSha256 pins the review file by bytes (TOOLING-REVIEW-r3 X2)."
       },
       {
         "id": "B2",
         "artifact": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
         "sha256": null,
         "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+        "reviewSha256": null,
         "receiptLedgerLine": null,
         "note": "Use this if the PM rules B2 first (PLAN-TRACK-B-PACKAGES-v1.md:146 proposes B2 -> B1). Then every pre-image sha256 in this spec is re-taken at B2's accepted head."
       }
@@ -68,7 +70,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "eaa731a143438dd0238925397c5ff3450fc8e1bafee5220f0332150a1460b81d"
+    "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
   },
   "product": {
     "rebuild/engine/dates.cjs": {
@@ -381,6 +383,10 @@
     "witnesses-2 and second-gate already fail bare at this tip on the accepted STEP-EFFICACY D12 repair; both are inherited coverage.covered and must NOT be 'fixed' by B1.",
     "coverage.moves is empty: the two gates B1 intends to move (witnesses-1, witnesses-3) become covered only when rebuild/conform/v4/postfix/legacy-b1-carriers.cjs exists and is declared in children[] with its own exact verdict. Until then both re-execute under --full. A gate is never covered by a file that merely exists (TOOLING-REVIEW-r1 W2; DECISIONS:97 F-PM-2).",
     "children[] re-executes the five accepted NATIVE-CARRIERS successor children in this process, each with its exact declared verdict; those executions are what cover the nine inherited originals.",
-    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT."
+    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT.",
+    "PARENT RE-PINNED (TOOLING-REPORT §r3 C): parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal e940359b… in place of the DECISIONS:96 seal 295762f0…, and sourceBase is re-taken at the chain tip e9c50e1. The parent product map did not change across the re-seal, so the pre-image sha256s below are unchanged and were re-verified against the NEW artifact and against the bytes at that sourceBase.",
+    "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the product pre-images in this spec are the parent’s own pins carried forward. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
+    "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
+    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B)."
   ]
 }

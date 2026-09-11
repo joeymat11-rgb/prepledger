@@ -1,6 +1,6 @@
 'use strict';
-// LANE B closed-package tooling — ONE generic runner for B1..B4.
-// Usage: node rebuild/lanes/b/tooling/b-package.cjs --ci|--full --package <B1|B2|B3|B4>
+// LANE B closed-package tooling — ONE generic runner for B-NTC, B-LOM and B1..B4.
+// Usage: node rebuild/lanes/b/tooling/b-package.cjs --ci|--full --package <B-NTC|B-LOM|B1|B2|B3|B4>
 //
 // The SUBSTANTIVE requirements live in the spec packages/<id>.json, bound BY BYTES — the
 // split BRIEF-IMPORT-GUARDS.md §3 requires: the reviewed spec pins THIS FILE's sha256
@@ -24,7 +24,23 @@
 // that line's exact bytes found IN GIT at the parent's receipt base, never by declaration.
 // No POSTFIX PACKAGE PASS without an ACCEPTED envelope naming the exact artifact bytes
 // (DECISIONS:86-87); --ci's own PUBLIC CI EVIDENCE PASS is public evidence only and is
-// qualified in its own sentence. README.md carries the long form.
+// qualified in its own sentence.
+//
+// TOOLING-REVIEW r3 (X1-X4). X1: coverage.moves must be {} in every package this runner
+// admits. The move code path below is kept whole and is gated behind MOVES_RULING, an
+// explicit PM ruling that DOES NOT EXIST — a non-empty moves refuses in spec() and again
+// in envelope() before any ACCEPTED branch. That is what closes R3-A: r3's move/needle
+// composite (a declared child that never runs the gate's original still being reported
+// "MOVED, carries <original>") needs a non-empty moves to reach anything at all, so with
+// moves refused the wrapper has NO REACH — not a narrower one, none. X2: a parent option
+// pins its REVIEW file by sha256 as well as its artifact, and the receipt base that review
+// names must be an ancestor of the real chain branch, resolved from Git refs (CHAIN_REF)
+// and never from the spec — that closes R3-B, where a spec could point at a scratch commit
+// and have the runner report forged ledger lines as "found in Git". X3: a move is proved
+// by the ORIGINAL GATE'S OWN needle out of R.GATES appearing in the moving child's stdout
+// — the >=200-byte floor is no longer evidence for a moving child. X4: the two sentences
+// that said more than was verified now say what was verified, and BRIEF-ACCEPTED implies a
+// non-null acceptedLedgerLine. README.md carries the long form.
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../../../..'), P = path.join(root, 'rebuild/conform/v4/postfix');
 const R = require(path.join(P, 'run.cjs')), L = require(path.join(P, 'legacy-gates.cjs')), J = require(path.join(P, 'strict-json.cjs'));
@@ -32,7 +48,25 @@ const { sha } = require(path.join(P, 'target.cjs'));
 const BLOCKED = require(path.join(root, 'rebuild/m4/spec/native-carriers-errors.cjs')).codes; // the original closed BLOCKED list
 const Reference = require(path.join(root, 'rebuild/m4/spec/load-write-reference.cjs'));
 const TOOLING = 'rebuild/lanes/b/tooling', RUNNER = TOOLING + '/b-package.cjs';
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B1', 'B2', 'B3', 'B4'];
+// The closed package-id list. Case-exact, ordered as the PM ruled the chain
+// (DECISIONS:103 (1): B-NTC first, then B1, B2, B4, B3; B-LOM follows B-NTC if the legacy
+// order-mapping seam turns out not to be the same seam). Widening this list is the ONLY
+// way a new package id becomes runnable — a spec can never nominate its own id.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'B-LOM', 'B1', 'B2', 'B3', 'B4'];
+// The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
+// ancestry assertion that decides whether a commit is on the accepted chain names THIS.
+const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
+// X1. The PM ruling that would admit a gate MOVE. It does not exist, so every non-empty
+// coverage.moves refuses — see the header. Setting this to anything other than null is a
+// reviewed tooling change, not a spec change, and it must not land before X3's needle
+// proof has been exercised on a real move.
+const MOVES_RULING = null;
+// Packages that register no D-ID at all. DECISIONS:93: feature work under the ratified
+// slice plan takes no register D-ID, and DECISIONS:103 (1) rules B-NTC (and B-LOM behind
+// it) exactly that kind of package — it turns an accepted open boundary into a provider.
+// Fixed HERE, like every other exemption (W7): a repair package can never empty its own
+// D-id inventory to dodge the law-agreement accounting.
+const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM']);
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
@@ -64,6 +98,19 @@ for (const [id, file] of GATE_FILE) GATE_GROUP.set(file, [...(GATE_GROUP.get(fil
 // be an execution must carry one of these or it did not run anything.
 const GATE_TERMINAL = new RegExp('^LEGACY (?:' + GATE_IDS.join('|') + ') PASS \\| ', 'm');
 const NEEDLE_FLOOR = 200; // bytes of stdout below which a child cannot have executed a gate file
+// X3. Each original gate's OWN expected output needle, read out of R.GATES and never
+// re-typed: gateRun() destructures `[id,file,needle,arg]=gate` and refuses the gate unless
+// `result.stdout.includes(needle)`. A MOVING child is held to that same original test, so
+// "the child executes the gate's original" stops being a text test over require specifiers
+// and becomes an output test taken from the immutable original. (TOOLING-REVIEW-r3 X3
+// writes `R.GATES[i][2][0]`; that is one CHARACTER of the needle — the needle itself is
+// `g[2]`, and taking `[0]` would have weakened the check to almost nothing. Corrected
+// here, and recorded in TOOLING-REPORT.md §r3.) The needle is matched with includes(), the
+// original's own criterion, NOT at line start: two of the nineteen needles stand mid-line
+// in their own gate's output ("preserved writer defects;", "PASS exact sync-laws source"),
+// so a line-start rule would refuse gates that really ran.
+const GATE_NEEDLE = new Map(R.GATES.map(g => [g[0], g[2]]));
+for (const [id, needle] of GATE_NEEDLE) assert(typeof needle === 'string' && needle.length >= 8, 'Original gate needle ' + id);
 // run.cjs exports GATES and gateRun but not its PIN_PATHS inventory; derive it from the
 // immutable source the way native-carriers-errors.cjs derives the blocked code list.
 const PIN_PATHS = (() => {
@@ -75,7 +122,7 @@ const PIN_PATHS = (() => {
 const args = process.argv.slice(2);
 // Exactly two modes, exactly one package; no third mode, no defaulting, case-exact ids.
 if (!(args.length === 3 && ['--full', '--ci'].includes(args[0]) && args[1] === '--package' && IDS.includes(args[2]))) {
-  console.error('B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B1|B2|B3|B4'); process.exit(1);
+  console.error('B PACKAGE USAGE REFUSED; exactly: --ci|--full --package ' + IDS.join('|')); process.exit(1);
 }
 const ci = args[0] === '--ci', ID = args[2];
 const say = line => console.log('B PACKAGE ' + ID + ' ' + line);
@@ -138,7 +185,9 @@ function spec() {
   const s = J.parseExact(specRaw); // exact reviewed bytes + duplicate-decoded-key refusal
   keys(s, SPEC_KEYS, 'Closed package-spec keys');
   assert.equal(s.version, 1); assert.equal(s.lanePackage, ID);
-  assert(/^M2-B[1-4]-[A-Z0-9-]+$/.test(s.packageId), 'Package id shape');
+  // The package id is BOUND to the id on the command line, not merely shaped like one: a
+  // spec filed as B1.json cannot carry M2-B2-…'s id and so cannot claim B2's artifact path.
+  assert(new RegExp('^M2-' + escapeRe(ID) + '-[A-Z0-9-]+$').test(s.packageId), 'Package id shape');
   assert(['SKELETON', 'PROPOSED', 'BRIEF-ACCEPTED'].includes(s.status), 'Spec status');
   // N4. The brief acceptance is a ledger CITATION, shaped exactly like owner/contract/theme
   // — never a bare integer a spec can invent. Its bytes are resolved in Git by authority().
@@ -149,8 +198,17 @@ function spec() {
     assert(s.brief.acceptedLedgerLine.line.includes(s.packageId) && s.brief.acceptedLedgerLine.line.includes(s.brief.file) &&
       /(?:^|[ ·])ACCEPTED$/.test(s.brief.acceptedLedgerLine.line), 'Brief acceptance line names this package and brief and ends in the ACCEPT terminal word');
   }
+  // X4. r3's label defect: the status field was only checked line-implies-status, so
+  // `status: 'BRIEF-ACCEPTED'` with `acceptedLedgerLine: null` was accepted and printed. It
+  // cleared nothing, but a verdict file must not carry a word its own evidence denies.
+  assert(s.status !== 'BRIEF-ACCEPTED' || s.brief.acceptedLedgerLine !== null,
+    'BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE: status says the brief is accepted and brief.acceptedLedgerLine is null');
   assert(/^[a-f0-9]{40}$/.test(s.sourceBase), 'sourceBase is a commit');
-  assert(Array.isArray(s.dIds) && s.dIds.length && new Set(s.dIds).size === s.dIds.length && s.dIds.every(d => /^D([1-9]|[1-3][0-9]|4[0-5])$/.test(d)) &&
+  // A repair package must register at least one D-id. The only packages allowed an empty
+  // inventory are the ones the runner itself names in NO_REGISTER_IDS — the exemption is
+  // fixed in this file (W7), so no spec can empty its own inventory to dodge the accounting.
+  assert(Array.isArray(s.dIds) && (s.dIds.length || NO_REGISTER_IDS.has(ID)) && new Set(s.dIds).size === s.dIds.length &&
+    s.dIds.every(d => /^D([1-9]|[1-3][0-9]|4[0-5])$/.test(d)) &&
     !s.dIds.some(d => CARRIED.includes(d)), 'D-id inventory: unique, in range, never a already-repaired id');
   assert.deepEqual(Object.keys(s.laws).sort(), s.dIds.slice().sort(), 'Exactly one law id per D-id');
   assert.deepEqual(s.carriedAcceptedIds, CARRIED, 'Carried accepted ids');
@@ -193,6 +251,18 @@ function spec() {
   // executable; and one child may carry more than one gate only where run.cjs itself groups
   // those gates on a single executable. "All 19 by one child" satisfies none of the three.
   keys(s.coverage, ['inherited', 'moves'], 'Coverage block');
+  // X1 — BLOCKING, and it is the FIRST thing decided about coverage. r3's residual R3-A is
+  // the move/needle composite: a declared child that never ran the gate's original could
+  // still be reported as carrying a moved gate. Every part of that finding enters through a
+  // non-empty coverage.moves. MOVES_RULING is the PM ruling that would admit one, and it
+  // does not exist — so `moves` must be `{}`, the finding has NO REACH, and the reviewer's
+  // "the sealer must re-check this line at seal time" is now the runner's job, not a human's.
+  // The whole move code path below is kept intact and is re-tested by the bites; it becomes
+  // live the day a ruling is recorded here, and X3's needle proof guards it when it does.
+  assert(MOVES_RULING === null || (typeof MOVES_RULING === 'string' && MOVES_RULING.length >= 16), 'MOVES-RULING-SHAPE');
+  assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
+    'COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING ' + Object.keys(s.coverage.moves).join(' ') +
+    '; coverage.moves must be {} under this runner (TOOLING-REVIEW-r3 X1)');
   for (const [gate, child] of Object.entries(s.coverage.inherited)) {
     assert(GATE_IDS.includes(gate), 'Covered gate is an original gate: ' + gate);
     assert(typeof child === 'string' && names.has(child), 'COVERAGE-CHILD-NOT-DECLARED ' + gate + ' ' + child);
@@ -234,7 +304,9 @@ function spec() {
   say('SPEC OBSERVED packages/' + ID + '.json ' + sha(specRaw) + '; runner ' + s.tooling.runnerSha256 + ' byte-identical on disk and in Git at HEAD; status=' + s.status +
     '; ' + s.dIds.length + ' D-ids ' + s.dIds.join('>') + '; ' + Object.keys(s.product).length + ' declared product files; ' +
     s.children.length + ' declared child(ren), argv file-first under ' + CHILD_ROOTS.length + ' fixed root(s) with only ' +
-    [...ARGV_ALLOWED].join(' ') + ' permitted; ' + Object.keys(s.coverage.moves).length + ' declared move(s), each bound to its own original executable');
+    [...ARGV_ALLOWED].join(' ') + ' permitted; ' + Object.keys(s.coverage.moves).length +
+    ' declared move(s), each naming its own original executable in a relative require specifier' +
+    (MOVES_RULING === null ? ' (moves are refused outright under this runner — TOOLING-REVIEW-r3 X1)' : ''));
   if (fs.existsSync(rel(s.brief.file))) assert.equal(diskSha(s.brief.file), s.brief.sha256, 'Brief bytes');
   else note('brief ' + s.brief.file + ' not authored');
   return s;
@@ -246,20 +318,56 @@ const RECEIPT = /^(?:- [^\r\n]+ )?POSTFIX-ACCEPTANCE (\S+) ([a-f0-9]{40}) (\S+) 
 // envelope, the receipt line by its own sha256 at its base, and — W4 — the artifact bytes
 // as they stand IN GIT at the commit that receipt names as reviewed.
 function option(o) {
-  keys(o, ['id', 'artifact', 'sha256', 'review', 'receiptLedgerLine', 'note'], 'Parent option ' + o.id);
-  if (!o.sha256) { say('PARENT OPTION ' + o.id + ' ' + o.artifact + ' NOT-YET-SEALED (' + o.note + ')'); return null; }
+  keys(o, ['id', 'artifact', 'sha256', 'review', 'reviewSha256', 'receiptLedgerLine', 'note'], 'Parent option ' + o.id);
+  if (!o.sha256) {
+    assert.equal(o.reviewSha256, null, 'An unsealed parent option pins no review bytes ' + o.id);
+    say('PARENT OPTION ' + o.id + ' ' + o.artifact + ' NOT-YET-SEALED (' + o.note + ')'); return null;
+  }
   const raw = fs.readFileSync(rel(o.artifact));
   assert.equal(sha(raw), o.sha256, 'Parent artifact bytes ' + o.id);
-  const acceptance = J.parseExact(raw), review = J.parseExact(fs.readFileSync(rel(o.review)));
+  // X2 / R3-B, half one. The parent's REVIEW file is where receiptBase comes from, and
+  // receiptBase is the base every ledger obligation is resolved at. Unpinned, a spec could
+  // hand the runner any review file it liked — r3's C-COMMIT-3 wrote one inside the tooling
+  // directory, pointed at a scratch commit carrying forged theme and brief lines, and the
+  // runner reported them "found in Git" and dropped two open obligations. So the review
+  // file is pinned BY BYTES beside the artifact, and re-read from Git at the artifact's own
+  // reviewed commit exactly as the artifact is.
+  assert(/^[a-f0-9]{64}$/.test(o.reviewSha256), 'Parent review sha256 ' + o.id);
+  const reviewRaw = fs.readFileSync(rel(o.review));
+  assert.equal(sha(reviewRaw), o.reviewSha256, 'PARENT-REVIEW-BYTES-NOT-THE-PINNED-REVIEW ' + o.id);
+  const acceptance = J.parseExact(raw), review = J.parseExact(reviewRaw);
   assert.equal(review.status, 'ACCEPTED', 'Parent independently accepted ' + o.id);
   const r = review.receipt; assert(r && typeof r.commit === 'string', 'Parent receipt ' + o.id);
+  // X2 / R3-B, half two — the decisive one. The receipt base must stand on the REAL chain
+  // branch, resolved from Git refs here (CHAIN_REF) and never from anything the spec says.
+  // envelope() already demands this of the package's OWN receipt; nothing demanded it of
+  // the parent's, which is how a local scratch commit could become the ledger anchor.
+  L.git(root, ['merge-base', '--is-ancestor', r.commit, CHAIN_REF]);
+  // W6/N4, unchanged and load-bearing: the receipt line itself is found as EXACT LINE BYTES
+  // in rebuild/DECISIONS.md in Git at that base, under role cowork, mentioning this
+  // artifact path and this hash. X2 decides WHERE that base may be; this decides WHAT must
+  // stand there. Both are required — neither substitutes for the other.
   L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [o.sha256, o.artifact] });
   const m = RECEIPT.exec(r.line);
   assert(m && m[1] === acceptance.packageId && m[3] === o.artifact && m[4] === o.sha256, 'Parent receipt content ' + o.id);
   assert.equal(sha(L.object(root, m[2], o.artifact)), o.sha256, 'Parent artifact bytes in Git at its reviewed commit ' + o.id);
+  // The review file is authored AFTER the commit its own receipt names as reviewed — it
+  // carries the receipt of the ledger line that accepts the artifact — so its bytes do not
+  // stand at m[2] and asking for them there would be asking for the impossible. The anchor
+  // that actually closes R3-B is the REAL CHAIN BRANCH: a review file a spec wrote beside
+  // this runner (r3's C-COMMIT-3) does not exist on origin/rebuild/t2-client-core at all,
+  // and no local commit can put it there. Both parent files are resolved there, which has a
+  // second effect worth naming: a parent pin that upstream has since superseded — exactly
+  // what DECISIONS:104 did to the DECISIONS:96 seal — stops verifying instead of passing
+  // quietly, so a stale parent must be re-taken rather than carried.
+  assert.equal(sha(L.object(root, CHAIN_REF, o.artifact)), o.sha256, 'PARENT-ARTIFACT-BYTES-NOT-ON-THE-CHAIN-BRANCH ' + o.id);
+  assert.equal(sha(L.object(root, CHAIN_REF, o.review)), o.reviewSha256, 'PARENT-REVIEW-BYTES-NOT-ON-THE-CHAIN-BRANCH ' + o.id);
   L.git(root, ['merge-base', '--is-ancestor', m[2], 'HEAD']);
+  L.git(root, ['merge-base', '--is-ancestor', m[2], CHAIN_REF]);
   say('PARENT OPTION ' + o.id + ' ' + acceptance.packageId + ' ' + o.artifact + ' ' + o.sha256 + ' ACCEPTED at ' + m[2] +
-    ' (DECISIONS:' + o.receiptLedgerLine + '); bytes identical on disk and in Git');
+    ' (DECISIONS:' + o.receiptLedgerLine + '); artifact byte-identical on disk, in Git at that commit and on ' + CHAIN_REF +
+    '; review ' + o.review + ' ' + o.reviewSha256.slice(0, 12) + ' byte-identical on disk and on that branch; receipt base ' +
+    r.commit.slice(0, 7) + ' is an ancestor of it');
   return { option: o, acceptance, reviewedCommit: m[2], receiptBase: r.commit };
 }
 function parent(s) {
@@ -462,6 +570,11 @@ function carriers(s) {
 // verdict. The returned map is the only evidence a gate may be counted as covered by.
 function children(s, env) {
   const ran = new Map();
+  // X3. Which gates, if any, this child is declared to MOVE — the gate ids in
+  // coverage.moves already say which original each moving child must prove it ran, so no
+  // new spec shape is needed. Empty under X1; the code path is exercised by the bites.
+  const movedGates = new Map();
+  for (const [gate, move] of Object.entries(s.coverage.moves)) movedGates.set(move.child, [...(movedGates.get(move.child) || []), gate]);
   if (!s.children.length) {
     say('CHILDREN PENDING; the package declares no own children yet (source carriers, traces, direct cases, witnesses, mutants, bites, second gate)');
     note('package children not authored'); return ran;
@@ -477,10 +590,23 @@ function children(s, env) {
     // printed a handful of bytes did not execute a gate file: `node --version` exits 0 and
     // prints its own eight characters at line start, so the floor is what refuses it.
     assert(new RegExp('^' + escapeRe(c.needle), 'm').test(out), 'CHILD-NEEDLE-NOT-A-TERMINAL-LINE ' + c.name);
-    assert(bytes >= NEEDLE_FLOOR || GATE_TERMINAL.test(out),
+    // X3. A MOVING child is held to the ORIGINAL GATE'S OWN test, not to a byte count. r3's
+    // N3-05 and N3-07 both cleared the >=200-byte floor while the original never ran — 283
+    // bytes of `z`, and a fabricated verdict line printed before the require. Neither can
+    // produce the gate's own needle, because only the gate's own code prints it. So for a
+    // moving child the floor is not evidence at all: the needle out of R.GATES is, matched
+    // the way run.cjs matches it. A non-moving child keeps the floor — it covers nothing by
+    // itself; its executions are what the inherited map already binds.
+    const moved = movedGates.get(c.name) || [];
+    for (const gate of moved)
+      assert(out.includes(GATE_NEEDLE.get(gate)),
+        'COVERAGE-MOVE-CHILD-DID-NOT-EMIT-THE-ORIGINAL-GATE-NEEDLE ' + c.name + ' ' + gate + '; ' + bytes +
+        ' byte(s) of stdout without ' + JSON.stringify(GATE_NEEDLE.get(gate)) + ' — the byte floor is not evidence for a moving child');
+    if (!moved.length) assert(bytes >= NEEDLE_FLOOR || GATE_TERMINAL.test(out),
       'CHILD-DID-NOT-REALLY-EXECUTE ' + c.name + '; ' + bytes + ' byte(s) of stdout and no original gate terminal line');
-    ran.set(c.name, { ok: true, needle: c.needle, bytes, targets });
-    say('CHILD ' + c.name + ' OBSERVED; exit 0, ' + bytes + ' bytes of stdout, exact declared verdict at line start; ran ' + targets[0]);
+    ran.set(c.name, { ok: true, needle: c.needle, bytes, targets, moved });
+    say('CHILD ' + c.name + ' OBSERVED; exit 0, ' + bytes + ' bytes of stdout, exact declared verdict at line start; ran ' + targets[0] +
+      (moved.length ? '; and emitted the original gate needle(s) ' + moved.join(' ') : ''));
   }
   return ran;
 }
@@ -509,14 +635,16 @@ function coverage(s, bound, ran) {
   assert.equal(covered.size, Object.keys(s.coverage.inherited).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
   say('COVERAGE ' + covered.size + '/' + GATE_IDS.length + ' original gate(s) covered by ' + new Set(covered.values()).size + ' executed child(ren) (' +
     Object.keys(s.coverage.inherited).length + ' inherited' + (byChild ? ', the parent map byte-for-byte' : ', unverified') + '; ' +
-    Object.keys(s.coverage.moves).length + ' moved, each bound to its own original executable); ' +
+    Object.keys(s.coverage.moves).length + ' moved, each naming its own original executable in a relative require specifier' +
+    ' and each proved by that gate’s own needle out of R.GATES in the child’s stdout); ' +
     (GATE_IDS.length - covered.size) + ' re-execute under --full');
   // The declared verdict is never echoed: it carries the word PASS, and a REVIEW-PENDING
   // run must print that word only inside its own two negations.
   for (const [gate, child] of covered) {
     const move = s.coverage.moves[gate];
     say('COVERAGE ' + gate + ' <- child ' + child + ' executed in this run; exit 0 and exact declared verdict' +
-      (move ? '; MOVED, carries ' + GATE_FILE.get(gate) + ' — ' + move.reason : '; inherited from ' + (bound ? bound.option.id : 'the parent the PM has not named yet')));
+      (move ? '; MOVED, declared against ' + GATE_FILE.get(gate) + ' and observed emitting that gate’s own needle — ' + move.reason
+        : '; inherited from ' + (bound ? bound.option.id : 'the parent the PM has not named yet')));
   }
   return covered;
 }
@@ -535,7 +663,9 @@ function proposed(s, bound) {
   const covered = [...Object.keys(s.coverage.inherited), ...Object.keys(s.coverage.moves)].sort(), o = bound.option;
   return {
     version: 1, lanePackage: ID, packageId: s.packageId, sourceBase: s.sourceBase,
-    parent: { id: o.id, artifact: o.artifact, sha256: o.sha256, review: o.review, receiptLedgerLine: o.receiptLedgerLine, reviewedCommit: bound.reviewedCommit },
+    // X2: the parent's review byte-pin travels INTO the sealed artifact, so a later reader
+    // of the artifact can re-take it without trusting the spec that produced it.
+    parent: { id: o.id, artifact: o.artifact, sha256: o.sha256, review: o.review, reviewSha256: o.reviewSha256, receiptLedgerLine: o.receiptLedgerLine, reviewedCommit: bound.reviewedCommit },
     spec: { file: TOOLING + '/packages/' + ID + '.json', sha256: sha(specRaw) }, runner: { file: RUNNER, sha256: diskSha(RUNNER) },
     dIds: s.dIds, laws: s.laws, carriedAcceptedIds: s.carriedAcceptedIds, privateLiveTriggered: s.privateLiveTriggered,
     gates: GATE_IDS.slice().sort(),
@@ -569,6 +699,12 @@ function envelope(s, bound) {
     return { authorized: false, said, sealed: m, key: 'PENDING:' + hash };
   }
   const r = review.receipt; assert(r && typeof r.commit === 'string', 'Missing independent receipt');
+  // X1, re-asserted AT THE SEAL. spec() already refused a non-empty coverage.moves, so this
+  // can only fire if a future edit loosens that gate without loosening this one; it is here
+  // because the reviewer's requirement is literally "must be {} at every seal", and the seal
+  // is this branch. Nothing below it is reachable with a move declared.
+  assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
+    'COVERAGE-MOVES-REFUSED-AT-SEAL-WITHOUT-A-PM-RULING ' + Object.keys(s.coverage.moves).join(' '));
   assert(s.authorizations.theme, 'THEME-AUTHORIZATION-UNAVAILABLE'); // no PASS before the brief's own ledger line is bound
   assert(s.brief.acceptedLedgerLine && s.status === 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-UNAVAILABLE'); // N4: no PASS on an unaccepted brief
   L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [s.packageId, ARTIFACT, hash] });
@@ -587,7 +723,7 @@ function envelope(s, bound) {
   for (const [file, pin] of Object.entries(m.product)) reviewed[file] = pin.post || pin.pre;
   L.checkSources(root, v[1], reviewed); // the original routine: Git at the reviewed commit AND the worktree
   L.git(root, ['merge-base', '--is-ancestor', v[1], 'HEAD']);
-  L.git(root, ['merge-base', '--is-ancestor', r.commit, 'refs/remotes/origin/rebuild/t2-client-core']);
+  L.git(root, ['merge-base', '--is-ancestor', r.commit, CHAIN_REF]); // the real chain branch, from Git refs, never from the spec
   L.git(root, ['merge-base', '--is-ancestor', s.sourceBase, 'HEAD']);
   out('ENVELOPE AUTHORIZED artifact=' + hash + ' reviewed at ' + v[1] + '; receipt base ' + r.commit + '; spec ' + m.spec.sha256 +
     ' and runner ' + m.runner.sha256 + ' pinned inside the artifact and re-read from Git');

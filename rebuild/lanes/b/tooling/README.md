@@ -1,15 +1,20 @@
-# LANE B — closed-package tooling for B1..B4
+# LANE B — closed-package tooling for B-NTC, B-LOM and B1..B4
 
 Reusable machinery so each engine-fix package does **not** re-invent the closed-package
 mechanism. Lane-B-owned (`rebuild/lanes/LANES.md`: lane B owns `rebuild/lanes/b/*`).
 
 ```
-node rebuild/lanes/b/tooling/b-package.cjs --ci  --package B1
+node rebuild/lanes/b/tooling/b-package.cjs --ci  --package B-NTC
 node rebuild/lanes/b/tooling/b-package.cjs --full --package B1
 ```
 
 Two modes, **no third**. Anything else refuses in one line with exit 1
-(`B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B1|B2|B3|B4`).
+(`B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|B-LOM|B1|B2|B3|B4`).
+
+The id list is **case-exact and closed in the runner** — `b-ntc` refuses exactly as `B5`
+does. Widening it is a reviewed change to `b-package.cjs`; a spec can never nominate its
+own id, and the id on the command line must be the one the spec's `packageId` names
+(`M2-<ID>-…`), so a spec filed as `B1.json` cannot claim B2's artifact path.
 
 ## Where the final artifacts live — read this first
 
@@ -77,7 +82,7 @@ canonical JSON with exactly these keys, in this order:
 
 ```
 version, lanePackage, packageId, sourceBase,
-parent {id, artifact, sha256, review, receiptLedgerLine, reviewedCommit},
+parent {id, artifact, sha256, review, reviewSha256, receiptLedgerLine, reviewedCommit},
 spec {file, sha256}, runner {file, sha256},
 dIds, laws, carriedAcceptedIds, privateLiveTriggered,
 gates (the 19, sorted), coverage {covered, run, moves, byChild},
@@ -115,10 +120,17 @@ character the run refuses.
    **in Git at the parent's receipt base** before the obligation closes. A declared
    acceptance that is not in the ledger refuses the run; a `null` one simply leaves the
    obligation open. The open-obligation count is therefore evidence again: neither the
-   brief nor the theme can be struck off it by declaration.
+   brief nor the theme can be struck off it by declaration. The implication runs **both
+   ways** since r3 X4: `status: "BRIEF-ACCEPTED"` with `acceptedLedgerLine: null` refuses
+   (`BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE`). It cleared nothing before, but a verdict
+   file must not carry a word its own evidence denies.
 2. **`dIds`** in package order; **`laws`** maps each D-id to its law id. The runner
    cross-checks every law id against the **executed** live inventory, not a table — a
-   renamed or mistyped law id fails the run (control C3).
+   renamed or mistyped law id fails the run (control C3). `dIds` must be **non-empty** for
+   a repair package; the only ids allowed an empty inventory are the ones the runner itself
+   lists in `NO_REGISTER_IDS` (`B-NTC`, `B-LOM`), because `DECISIONS:93` rules that feature
+   work under the ratified slice plan takes no register D-ID. Like every exemption, that
+   list lives in `b-package.cjs` and nowhere else.
 3. **`product`** maps each file to `{pre, post, role}` and must list **every file the
    parent artifact pins in its own `product` map** — the repair files with role `edited`
    (or `new`), the rest with role `carried` (`pre === post`, byte-identical on disk).
@@ -128,8 +140,15 @@ character the run refuses.
    is neither `pre` nor `post`, a pre-image that is not the parent's pin, and a
    parent-pinned file **missing from the inventory** are all `UNLISTED-PRODUCT-DRIFT`
    and fail (controls C2, C6, C7).
-4. **`parent`** carries `decided`, `chosen` and every documented `options` entry. See the
-   chain rule below.
+
+   A file the parent never pinned must carry role `new` — *new to the pinned inventory*,
+   which is not the same as "does not exist". Where it genuinely does not exist yet
+   (`post: null`, absent on disk), its `pre` is the sha256 of the empty byte string,
+   `e3b0c442…`, and the runner counts it at the pre-image without reading anything. Where
+   it exists, `pre` is its real bytes at `sourceBase`. `B-NTC.json` uses both forms.
+4. **`parent`** carries `decided`, `chosen` and every documented `options` entry, each
+   `{id, artifact, sha256, review, reviewSha256, receiptLedgerLine, note}`. An unsealed
+   option carries `sha256: null` **and** `reviewSha256: null`. See the chain rule below.
 5. **`coverage`** is `{inherited, moves}`, and **both halves are bounded** — the covered
    set is not something a spec can grow.
 
@@ -140,8 +159,24 @@ character the run refuses.
    file the **parent artifact itself pins**
    (`INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE`).
 
-   **`coverage.moves` maps a gate to `{child, reason}`** — never a bare child name. A move
-   is accepted only when all of the following hold:
+   **`coverage.moves` must be `{}`.** `TOOLING-REVIEW-r3` X1 is blocking: the runner
+   refuses any non-empty `moves` while its `MOVES_RULING` constant is `null`, in `spec()`
+   and again at the seal in `envelope()`
+   (`COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING`). `MOVES_RULING` is the PM ruling that
+   would admit a move; it does not exist, and setting it is a reviewed change to
+   `b-package.cjs`, not to a spec.
+
+   **Why a flat refusal and not a tighter bound.** r3's residual **R3-A** is a composite: a
+   declared child that never runs a gate's original could still satisfy the old evidence
+   rule (a `require` specifier in the covering file's text, plus ≥ 200 bytes of stdout) and
+   be reported as `MOVED, carries <original>` — `DECISIONS:97` F-PM-2's defect class reached
+   through the move door. Every part of it enters through a non-empty `moves`. With `moves`
+   refused the finding has **no reach at all** — not a narrower one, none — and "the sealer
+   must re-check this line at seal time" becomes the runner's job instead of a human's.
+
+   The move machinery below is **kept whole** and still checked, so it is reviewable and
+   testable; it simply cannot be reached today. When a ruling does land, a move is accepted
+   only when all of the following hold:
    * `reason` is a stated, single-line, non-trivial sentence (`COVERAGE-MOVE-REASON-MISSING`);
    * the child's `argv` names **the gate's own original executable** as `run.cjs` records
      it in `GATES`, or a file whose **bytes** carry a `require`/`import` of that executable
@@ -153,7 +188,27 @@ character the run refuses.
      `rebuild/conform/run.cjs`
      (`COVERAGE-MOVE-CHILD-COVERS-MORE-GATES-THAN-run.cjs-GROUPS`);
    * the child is not also an inherited child
-     (`COVERAGE-MOVE-CHILD-IS-AN-INHERITED-CHILD`).
+     (`COVERAGE-MOVE-CHILD-IS-AN-INHERITED-CHILD`);
+   * **the moving child's own stdout carries that gate's own needle out of `R.GATES`**
+     (`COVERAGE-MOVE-CHILD-DID-NOT-EMIT-THE-ORIGINAL-GATE-NEEDLE`), matched with
+     `includes()` — the criterion `run.cjs`'s own `gateRun()` applies
+     (`if(...||!result.stdout.includes(needle))fail('LEGACY-GATE-'+id)`). This is
+     `TOOLING-REVIEW-r3` X3, and it replaces a **text** test with an **output** test: the
+     old rule read the covering file's bytes for a `require` specifier, which says nothing
+     about whether the specifier is reachable, let alone called. **For a moving child the
+     ≥ 200-byte floor is not evidence at all** — r3's N3-05 (a fabricated verdict line
+     printed before the `require`) and N3-07 (283 bytes of `z`) both cleared it while the
+     original never ran; neither can print the gate's own needle, because only the gate's
+     own code prints it. Non-moving children keep the floor: they cover nothing by
+     themselves.
+
+     *Correction to r3, recorded because a future reader will hit it:* X3 writes
+     `R.GATES[i][2][0]`. That is one **character** of the needle (`"M"` for
+     `migrate-source`); the needle is `g[2]`, and `[0]` would have weakened the check to
+     almost nothing. The runner uses `g[2]`. r3's "at line start" is also not used: two of
+     the nineteen needles stand mid-line in their own gate's output
+     (`preserved writer defects;`, `PASS exact sync-laws source`), so a line-start rule
+     would refuse gates that really ran.
 
    A gate is inherited-covered or moved, never both, and the total is asserted closed:
    `covered == parent byChild + declared moves` (`COVERED-SET-BOUND`) — the generic form of
@@ -238,17 +293,35 @@ its immutable parent. Two packages cannot claim the same parent — the chain ha
 ```
 acceptance-import-guards.json -> acceptance-step-efficacy.json ff164b86...
   -> acceptance-load-writes.json 5073977b...   (receipt DECISIONS:86)
-  -> acceptance-native-carriers.json 295762f0... (receipt DECISIONS:96)  <- head
+  -> acceptance-native-carriers.json e940359b... (receipt DECISIONS:104) <- head
 ```
 
+The head was **re-sealed** by the PM's CI re-seal: `DECISIONS:104` (receipt base `b045e61`,
+reviewed at `b95ccca`) supersedes `DECISIONS:96` / `295762f0…` for the same artifact path.
+The product map did not change; three `executionPins` did
+(`.github/workflows/rebuild.yml`, `NATIVE-CARRIERS-THEME.md`, `NATIVE-CARRIERS-BUILD-REPORT.md`).
+Every spec here pins the new bytes. **A stale parent pin no longer passes quietly** — see
+the chain-branch check below.
+
+`DECISIONS:103 (1)` then ruled the order: **B-NTC first** (it is the S2 blocker), then B1,
+B2, B4, B3, with **B-LOM** behind B-NTC because the legacy order-mapping provider is not the
+same seam. So `B-NTC.json` carries `decided: true, chosen: NATIVE-CARRIERS`.
 `PLAN §2` and `DECISIONS:94` say "B2 ∥ B1"; `PLAN §4.3` proposes B2 -> B1. Those are
 incompatible for the artifact chain, so **B1.json and B2.json each carry both options with
 `decided: false`, and the PM names one.** The runner:
 
-* verifies **every** sealed option (artifact bytes by sha256 on disk **and in Git at the
-  commit that option's own receipt names as reviewed**, that commit an ancestor of HEAD,
-  review `ACCEPTED`, the receipt line by its own sha256 at its base, the line naming this
-  artifact and hash and ending ` ACCEPTED`) and prints one line per option;
+* verifies **every** sealed option — artifact bytes by sha256 on disk, **in Git at the
+  commit that option's own receipt names as reviewed**, and **on the chain branch itself**;
+  that commit an ancestor of HEAD and of the chain branch; review `ACCEPTED`; the receipt
+  line by its own sha256 at its base; the line naming this artifact and hash and ending
+  ` ACCEPTED` — and prints one line per option;
+* **pins the option's review file by its own sha256** (`reviewSha256`) and resolves those
+  bytes on the chain branch too, **and requires the receipt base that review names to be an
+  ancestor of `refs/remotes/origin/rebuild/t2-client-core`**, a ref read from Git and never
+  from the spec. That is `TOOLING-REVIEW-r3` X2, closing R3-B: the parent's review is where
+  `receiptBase` comes from, and `receiptBase` is where every ledger obligation is resolved,
+  so an unpinned review let a spec choose the ledger anchor. A review file written beside
+  this runner and pointed at a local scratch commit now refuses three separate ways;
 * **re-asserts every parent pin and every un-superseded grandparent pin at run time** —
   the parent's `product` ∪ `executionPins` (the product half through the inventory above),
   then the grandparent artifact's own bytes, its ACCEPTED envelope and receipt, and its
@@ -367,7 +440,15 @@ step 3 starts again (that is exactly what happened to NATIVE-CARRIERS at
 | a child's argv carries any flag but `--test` / `--test-reporter=tap` | FAIL exit 1 |
 | a child's argv carries inline code, a short-circuit flag, stdin, or a flag after the file | FAIL exit 1 |
 | a child's needle is not at the head of a line of its stdout | FAIL exit 1 |
-| a child's stdout is under 200 bytes with no original gate terminal line | FAIL exit 1 |
+| a **non-moving** child's stdout is under 200 bytes with no original gate terminal line | FAIL exit 1 |
+| a **moving** child's stdout does not carry the moved gate's own `R.GATES` needle (the byte floor is not evidence here) | FAIL exit 1 |
+| `coverage.moves` is non-empty and no PM ruling is recorded in the runner | FAIL exit 1 |
+| a parent option carries no `reviewSha256`, or the review bytes are not the pinned bytes | FAIL exit 1 |
+| a parent option's artifact or review bytes do not stand on the chain branch | FAIL exit 1 |
+| a parent option's receipt base is not an ancestor of the chain branch | FAIL exit 1 |
+| `status: BRIEF-ACCEPTED` with `brief.acceptedLedgerLine: null` | FAIL exit 1 |
+| `packageId` is not `M2-<the id on the command line>-…` | FAIL exit 1 |
+| `dIds` is empty for an id the runner does not list in `NO_REGISTER_IDS` | FAIL exit 1 |
 | an owner/contract/theme line is not exact bytes in the ledger at its base | FAIL exit 1 |
 | a declared brief acceptance is not exact bytes in the ledger at its base | FAIL exit 1 |
 | a theme or brief acceptance is declared with no sealed parent to anchor it at | FAIL exit 1 |
@@ -409,9 +490,13 @@ appears before an authorized envelope; no private value, count, hash or prose ev
 
 ```
 rebuild/lanes/b/tooling/
-  b-package.cjs        the generic runner (2 modes, 4 packages)
+  b-package.cjs        the generic runner (2 modes, 6 packages)
   README.md            this file
   TOOLING-REPORT.md    the executed proof that the runner runs
+  packages/B-NTC.json  PROPOSED, from BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md (chain first,
+                       DECISIONS:103 (1); parent NATIVE-CARRIERS, decided)
+  packages/B-LOM.json  SKELETON, the legacy order-mapping provider; parent = the ACCEPTED
+                       B-NTC artifact, TBD
   packages/B1.json     PROPOSED, from BRIEF-B1-GRADING-TIME-WINDOW-v1.1.md
   packages/B2.json     PROPOSED, from BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md
   packages/B3.json     SKELETON, from PLAN-TRACK-B-PACKAGES-v1.md §B3
@@ -420,16 +505,34 @@ rebuild/lanes/b/tooling/
 
 Logs are written under `.tmp/b-package/<id>/` (local only, never forwarded).
 
-All four specs currently declare the **five accepted NATIVE-CARRIERS successor children**
+**B-NTC** is the package `DECISIONS:103 (1)` ruled first: it turns the accepted open
+boundary `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` into a qualified provider, and it is the
+S2 blocker. Its implementation is speculative and lives on `rebuild/lane-b-ntc @ 68fbca4`;
+the spec here is the tooling side, authored so the runner admits the id — lane B's STATUS of
+2026-09-11 05:50 ET recorded `--package B-NTC REFUSED (closed id list) -> tooling fixer
+widens it`. **B-LOM** is a skeleton only: the legacy order-mapping provider is *not* the same
+seam (B-NTC binds `performed.cjs:193`; B-LOM is data-fed at `performed.cjs:176-183`), so it
+is its own package behind B-NTC, and every coordinate in it is taken when B-NTC is sealed.
+
+B-NTC and B-LOM declare **no D-id and no law**, which the runner allows *only* because it
+names them in its own `NO_REGISTER_IDS` set: `DECISIONS:93` rules that feature work under
+the ratified slice plan takes no register D-ID. The exemption is fixed in `b-package.cjs`
+like every other one — a repair package can never empty its own inventory.
+
+B-NTC, B1, B2, B3 and B4 declare the **five accepted NATIVE-CARRIERS successor children**
 (`source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`,
 `second-gate`) and inherit the nine gates those children cover. That is what makes the
 coverage real: the children run in every `--ci` and every `--full`, and the nine gates are
-counted only because of those executions. `coverage.moves` is empty in all four — a move
-becomes real when the package's own `legacy-b<N>-carriers.cjs` exists, is declared in
-`children[]` with its own exact verdict, **and its argv executes the moved gate's own
-original executable or a file whose bytes require it**, not before. The emptiness is no
-longer what makes the gate matrix safe: the bound is enforced whether `moves` is empty or
-not.
+counted only because of those executions. B-LOM declares none — its parent is not sealed,
+so there is no `byChild` map to inherit and all nineteen gates re-execute under `--full`.
+
+`coverage.moves` is `{}` in **all six**, and under X1 it cannot be anything else. What the
+runner would verify of a move if a PM ruling admitted one is listed in §5 above: a reason, a
+relative `require` specifier naming the gate's own original, one gate per child unless
+`run.cjs` groups them, not an inherited child — **and the gate's own needle in the child's
+own stdout**. The evidence sentence the runner prints now says exactly that and no more:
+`MOVED, declared against <original> and observed emitting that gate's own needle`, never
+`MOVED, carries <original>` (`TOOLING-REVIEW-r3` X4).
 
 **Revision history.**
 
@@ -444,3 +547,15 @@ not.
   (superseded pins re-read from Git at `sourceBase`, un-superseded ones from Git at HEAD).
   `TOOLING-REPORT.md` §"post-review r2" carries the executed proof, including the r2
   reviewer's own bite list re-run against the fixed runner.
+* `TOOLING-REVIEW-r3.md` (ACCEPT WITH CHANGES) found W1–W7 and N1–N5 closed by its own 61
+  controls, and required four changes. **X1**: `coverage.moves` must be `{}` at every seal —
+  now refused outright behind the absent `MOVES_RULING`, which is what removes residual
+  **R3-A** from reach entirely rather than bounding it. **X2**: the parent option's review
+  file is byte-pinned (`reviewSha256`) and its receipt base must be an ancestor of the chain
+  branch read from Git refs — closing **R3-B**, where a spec could choose the ledger anchor
+  and have a verdict file report forged lines as "found in Git". **X3**: a move is proved by
+  the original gate's own needle out of `R.GATES` in the moving child's stdout, and the
+  byte floor is no longer evidence for a moving child. **X4**: the two overstated sentences
+  now say what was verified, and `status: BRIEF-ACCEPTED` implies a cited ledger line.
+  The same revision widens the id list to `B-NTC|B-LOM|B1|B2|B3|B4` and re-pins every spec
+  at the `DECISIONS:104` re-seal. `TOOLING-REPORT.md` §r3 carries the executed proof.

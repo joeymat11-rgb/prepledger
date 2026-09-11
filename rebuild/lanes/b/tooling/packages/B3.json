@@ -5,10 +5,10 @@
   "status": "SKELETON",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B3-MERGE-RECEIPTS-SYNC.md",
-    "sha256": null,
+    "sha256": "17fb21e4dffefb9bbd644a5f6cc0f4370e5254b2e1dc39ae3dc977d98cfc4943",
     "acceptedLedgerLine": null
   },
-  "sourceBase": "87eddad7e9e7141e28ea575b3b99038eac61585a",
+  "sourceBase": "e9c50e109d3f60ea6da3d538c129a601b346bef4",
   "dIds": [
     "D45",
     "D36",
@@ -51,6 +51,7 @@
         "artifact": "rebuild/m4/spec/acceptance-b4-numbers-cache-identity.json",
         "sha256": null,
         "review": "rebuild/m4/spec/review-b4-numbers-cache-identity.json",
+        "reviewSha256": null,
         "receiptLedgerLine": null,
         "note": "Recommended: PLAN-TRACK-B-PACKAGES-v1.md:113 merge order puts B3 last, after B4."
       },
@@ -59,6 +60,7 @@
         "artifact": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
         "sha256": null,
         "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+        "reviewSha256": null,
         "receiptLedgerLine": null,
         "note": "Alternative: B3 straight after B2 (PLAN section 2 says B3 goes after B2 because of the shared progression.cjs/volume.cjs surfaces)."
       }
@@ -66,7 +68,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "eaa731a143438dd0238925397c5ff3450fc8e1bafee5220f0332150a1460b81d"
+    "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
   },
   "product": {
     "rebuild/engine/writers.cjs": {
@@ -263,6 +265,10 @@
     "D22's fix straddles the migrate.cjs boundary and the sleep.cjs readers in one change; the register FIX line warns 'do not silently replace recorded nights with an empty list' (AUDIT-REGISTER.md:344) — the highest lost-fact risk in the lane.",
     "coverage.moves is empty only because the witness-flip measurement has not been done. Measure it before the brief, as B1 and B2 did.",
     "children[] re-executes the five accepted NATIVE-CARRIERS successor children in this process, each with its exact declared verdict; those executions are what cover the nine inherited originals. Once the PM names B4 or B2 as the parent, the inherited set is re-taken from THAT artifact and these children are replaced by its own successors.",
-    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT."
+    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT.",
+    "PARENT RE-PINNED (TOOLING-REPORT §r3 C): parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal e940359b… in place of the DECISIONS:96 seal 295762f0…, and sourceBase is re-taken at the chain tip e9c50e1. The parent product map did not change across the re-seal, so the pre-image sha256s below are unchanged and were re-verified against the NEW artifact and against the bytes at that sourceBase.",
+    "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the product pre-images in this spec are the parent’s own pins carried forward. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
+    "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
+    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B)."
   ]
 }

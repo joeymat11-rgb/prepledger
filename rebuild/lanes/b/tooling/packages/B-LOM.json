@@ -1,30 +1,16 @@
 {
   "version": 1,
-  "lanePackage": "B4",
-  "packageId": "M2-B4-NUMBERS-CACHE-IDENTITY",
+  "lanePackage": "B-LOM",
+  "packageId": "M2-B-LOM-LEGACY-ORDER-MAPPING",
   "status": "SKELETON",
   "brief": {
-    "file": "rebuild/lanes/b/BRIEF-B4-NUMBERS-CACHE-IDENTITY.md",
-    "sha256": "325e7a23639718398e37b29391b99d911ef22606121d8d7e6858d64a266a9b8c",
+    "file": "rebuild/lanes/b/BRIEF-B-LOM-LEGACY-ORDER-MAPPING.md",
+    "sha256": null,
     "acceptedLedgerLine": null
   },
   "sourceBase": "e9c50e109d3f60ea6da3d538c129a601b346bef4",
-  "dIds": [
-    "D14",
-    "D11",
-    "D15",
-    "D13",
-    "D20",
-    "D26"
-  ],
-  "laws": {
-    "D14": "E-D14-current-rate-uses-missing-drip-default",
-    "D11": "E-D11-gain-interval-is-ordered-and-zero-drift-never-promoted",
-    "D15": "E-D15-session-frequency-does-not-change-with-food-row-density",
-    "D13": "E-D13-energy-density-cache-tracks-relevant-state",
-    "D20": "E-D20-forecast-refreshes-after-an-observed-rate-change",
-    "D26": "E-D26-today-model-refreshes-when-the-calendar-day-changes"
-  },
+  "dIds": [],
+  "laws": {},
   "carriedAcceptedIds": [
     "D12",
     "D33",
@@ -39,22 +25,13 @@
     "chosen": null,
     "options": [
       {
-        "id": "B2",
-        "artifact": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
+        "id": "B-NTC",
+        "artifact": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
         "sha256": null,
-        "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+        "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
         "reviewSha256": null,
         "receiptLedgerLine": null,
-        "note": "Recommended under the chain NATIVE-CARRIERS -> B1 -> B2 -> B4 -> B3 (BRIEF-B1 v1.1 section 5.3)."
-      },
-      {
-        "id": "B1",
-        "artifact": "rebuild/m4/spec/acceptance-b1-grading-time-window.json",
-        "sha256": null,
-        "review": "rebuild/m4/spec/review-b1-grading-time-window.json",
-        "reviewSha256": null,
-        "receiptLedgerLine": null,
-        "note": "Alternative: B4 straight after B1, which is the only hard ordering constraint PLAN section B4 states (shared today.cjs/policy.cjs)."
+        "note": "TBD. DECISIONS:103 (1): the legacy order-mapping provider goes inside B-NTC only if it is the same seam; the lane-B STATUS of 2026-09-11 05:50 ET records that it is NOT (B-NTC binds performed.cjs:193, B-LOM is data-fed at performed.cjs:176-183), so B-LOM follows as its own package with the ACCEPTED B-NTC artifact as its parent. Every coordinate here — sha256, reviewSha256, receiptLedgerLine — is taken when B-NTC is sealed and receipted, and not before."
       }
     ]
   },
@@ -62,127 +39,15 @@
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
     "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
   },
-  "product": {
-    "rebuild/engine/energy.cjs": {
-      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
-      "post": null,
-      "role": "edited"
-    },
-    "rebuild/engine/policy.cjs": {
-      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
-      "post": null,
-      "role": "edited"
-    },
-    "rebuild/engine/today.cjs": {
-      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
-      "post": null,
-      "role": "edited"
-    },
-    "rebuild/engine/plan.cjs": {
-      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
-      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
-      "role": "carried"
-    },
-    "rebuild/engine/progression.cjs": {
-      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
-      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
-      "role": "carried"
-    },
-    "rebuild/engine/sleep.cjs": {
-      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
-      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
-      "role": "carried"
-    },
-    "rebuild/engine/writers.cjs": {
-      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
-      "post": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
-      "role": "carried"
-    },
-    "rebuild/engine/index.cjs": {
-      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
-      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
-      "role": "carried"
-    },
-    "rebuild/m3/w7-preview/browser-engine.cjs": {
-      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
-      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
-      "role": "carried"
-    },
-    "rebuild/m3/w7-preview/build.mjs": {
-      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
-      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
-      "role": "carried"
-    },
-    "rebuild/engine/performed.cjs": {
-      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
-      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
-      "role": "carried"
-    },
-    "rebuild/engine/entered-load.cjs": {
-      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
-      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
-      "role": "carried"
-    },
-    "rebuild/engine/constants.cjs": {
-      "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
-      "post": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
-      "role": "carried"
-    },
-    "rebuild/engine/dates.cjs": {
-      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
-      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
-      "role": "carried"
-    },
-    "rebuild/engine/earn.cjs": {
-      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
-      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
-      "role": "carried"
-    },
-    "rebuild/engine/merge.cjs": {
-      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
-      "post": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
-      "role": "carried"
-    },
-    "rebuild/engine/migrate.cjs": {
-      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
-      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
-      "role": "carried"
-    },
-    "rebuild/engine/oracle-shim.cjs": {
-      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
-      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
-      "role": "carried"
-    },
-    "rebuild/engine/seed.cjs": {
-      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
-      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
-      "role": "carried"
-    },
-    "rebuild/engine/volume.cjs": {
-      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
-      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
-      "role": "carried"
-    }
-  },
+  "product": {},
   "coverage": {
-    "inherited": {
-      "migrate-source": "source-carriers",
-      "merge-source": "source-carriers",
-      "writers-source": "source-carriers",
-      "witnesses-2": "inherited-carriers",
-      "witnesses-5": "inherited-carriers",
-      "migrate-differential": "inherited-carriers",
-      "witnesses-7": "defect-witnesses",
-      "writers-differential": "writers-differential",
-      "second-gate": "second-gate"
-    },
+    "inherited": {},
     "moves": {}
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
   "protectedSurfaces": [
-    "tools/engine-test.jsx:8790-8793 (second gate P6 cells)",
-    "rebuild/conform/goldens and the frozen app fe516c1:src/app.jsx",
+    "rebuild/conform/goldens (public census and frozen goldens)",
     "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
   ],
   "authorizations": {
@@ -201,61 +66,21 @@
     "theme": null,
     "review": {
       "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-B4-NUMBERS-CACHE-IDENTITY",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B-LOM-LEGACY-ORDER-MAPPING",
       "terminal": "ACCEPTED"
     }
   },
   "artifact": {
-    "file": "rebuild/m4/spec/acceptance-b4-numbers-cache-identity.json",
-    "review": "rebuild/m4/spec/review-b4-numbers-cache-identity.json"
+    "file": "rebuild/m4/spec/acceptance-b-lom-legacy-order-mapping.json",
+    "review": "rebuild/m4/spec/review-b-lom-legacy-order-mapping.json"
   },
-  "children": [
-    {
-      "name": "source-carriers",
-      "argv": [
-        "rebuild/m4/spec/native-carriers-source-carriers.cjs"
-      ],
-      "needle": "NATIVE SOURCE CARRIERS: 6/6 PASS;"
-    },
-    {
-      "name": "inherited-carriers",
-      "argv": [
-        "rebuild/m4/spec/native-carriers-inherited-carriers.cjs"
-      ],
-      "needle": "NATIVE INHERITED CARRIERS: 6/6 PASS;"
-    },
-    {
-      "name": "defect-witnesses",
-      "argv": [
-        "rebuild/m4/spec/native-carriers-defect-witnesses.cjs"
-      ],
-      "needle": "NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;"
-    },
-    {
-      "name": "writers-differential",
-      "argv": [
-        "rebuild/m4/spec/native-carriers-writers-differential.cjs"
-      ],
-      "needle": "NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;"
-    },
-    {
-      "name": "second-gate",
-      "argv": [
-        "rebuild/m4/spec/native-carriers-second-gate.cjs"
-      ],
-      "needle": "NATIVE SECOND GATE:"
-    }
-  ],
+  "children": [],
   "notes": [
-    "SKELETON from PLAN-TRACK-B-PACKAGES-v1.md section B4 (6 defects, 17 register hours, the smallest package). Not a brief.",
-    "The three policy.cjs / today.cjs pre-images here are the CURRENT tip values. B1 edits both files, so if B1 lands first these pre-images are stale and must be re-taken at B1's accepted head — the same re-pin rule the parent field records.",
-    "Scope inside the shared files is cache-only: policy.cjs the forecast cache, today.cjs the nowModel cache. Nothing else in either file may move.",
-    "Order inside the package matters for a measured reason: D20 and D26 both consume energy.cjs memoOnState, so the three value repairs (D14, D11, D15) precede the three cache repairs, and D13 (the memo itself) precedes its two consumers.",
-    "All six are plain Batch A FIX approvals at DECISIONS:60; none of the seven Batch B owner rules falls here, so there is no owner question in B4.",
-    "D13/D20/D26 are NOT APPLICABLE to LIVE (AUDIT-REGISTER.md:499,504,512), so privateLiveTriggered is empty and no private-census change is anticipated; a discovered one is a RED stop, not a golden regeneration.",
-    "coverage.moves is empty only because the witness-flip measurement has not been done. Measure it before the brief, as B1 and B2 did.",
-    "children[] re-executes the five accepted NATIVE-CARRIERS successor children in this process, each with its exact declared verdict; those executions are what cover the nine inherited originals. Once the PM names B2 or B1 as the parent, the inherited set is re-taken from THAT artifact and these children are replaced by its own successors.",
-    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT.",
+    "SKELETON. B-LOM exists here so the runner admits the id and so the chain’s shape is visible; it declares no product, no child and no D-id, and every run of it is REVIEW-PENDING with the whole inventory open. Nothing in this file is a claim about the legacy order-mapping seam.",
+    "product is EMPTY on purpose: B-LOM’s parent is the B-NTC artifact, which is not sealed, so there is no parent product map to inherit and no pre-image to pin. The inventory is taken whole at B-NTC’s accepted head. While the parent is unsealed the runner cannot verify inventory completeness at all and says so in its own line.",
+    "coverage.inherited is EMPTY and children[] is empty for the same reason: inherited coverage IS the parent artifact’s own gate->child map byte-for-byte, and there is no parent artifact yet. All nineteen original gates re-execute under --full.",
+    "dIds and laws are empty because B-LOM is named in the runner’s NO_REGISTER_IDS set (DECISIONS:93). If the PM later rules that B-LOM does carry register repairs, the exemption is removed from b-package.cjs — not worked around here.",
+    "The brief is not written yet, so brief.sha256 is null and the runner leaves \"brief not authored\" OPEN.",
     "PARENT RE-PINNED (TOOLING-REPORT §r3 C): parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal e940359b… in place of the DECISIONS:96 seal 295762f0…, and sourceBase is re-taken at the chain tip e9c50e1. The parent product map did not change across the re-seal, so the pre-image sha256s below are unchanged and were re-verified against the NEW artifact and against the bytes at that sourceBase.",
     "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the product pre-images in this spec are the parent’s own pins carried forward. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
     "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",

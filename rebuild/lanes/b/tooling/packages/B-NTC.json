@@ -1,46 +1,16 @@
 {
   "version": 1,
-  "lanePackage": "B2",
-  "packageId": "M2-B2-TARGETS-IDENTITY-ERA",
+  "lanePackage": "B-NTC",
+  "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
   "status": "PROPOSED",
   "brief": {
-    "file": "rebuild/lanes/b/BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md",
-    "sha256": "c8fb915265eafd0dc9c60a736ddd69eec76f0b485775e3b74f28e5b7c15b87cf",
+    "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
+    "sha256": "0ba59cca3bd70383330fa59a4ae86a971108a64594933d5c6388bca6c45e16b8",
     "acceptedLedgerLine": null
   },
   "sourceBase": "e9c50e109d3f60ea6da3d538c129a601b346bef4",
-  "dIds": [
-    "D9",
-    "D2",
-    "D1",
-    "D5",
-    "D6",
-    "D7",
-    "D3",
-    "D4",
-    "D29",
-    "D18",
-    "D28",
-    "D30",
-    "D31",
-    "D32"
-  ],
-  "laws": {
-    "D9": "E-D9-split-selects-latest-effective-date",
-    "D2": "E-D2-invalid-set-count-stays-quarantined",
-    "D1": "P-D1-first-targets-fit-current-set-count",
-    "D5": "P-D5-ladder-minimum-counts-distinct-rungs",
-    "D6": "P-D6-deload-preserves-absent-load",
-    "D7": "P-D7-anchor-and-trend-exclude-future-sessions",
-    "D3": "P-D3-volume-receipt-belongs-to-whole-lift-name",
-    "D4": "P-D4-other-lift-earn-cannot-spend-sightings",
-    "D29": "P-D29-designed-and-logged-front-delt-volume-use-the-same-indirect-credit",
-    "D18": "P-D18-structural-budget-sees-current-week-volume-receipts-beyond-display-prefix",
-    "D28": "E-D28-programme-volume-follows-the-current-effective-split",
-    "D30": "P-D30-first-set-trend-respects-the-recorded-technique-era",
-    "D31": "V4-volume-tolerance-post-change",
-    "D32": "V4-volume-replication-same-era"
-  },
+  "dIds": [],
+  "laws": {},
   "carriedAcceptedIds": [
     "D12",
     "D33",
@@ -49,12 +19,10 @@
     "D41",
     "D43"
   ],
-  "privateLiveTriggered": [
-    "D30"
-  ],
+  "privateLiveTriggered": [],
   "parent": {
-    "decided": false,
-    "chosen": null,
+    "decided": true,
+    "chosen": "NATIVE-CARRIERS",
     "options": [
       {
         "id": "NATIVE-CARRIERS",
@@ -63,16 +31,7 @@
         "review": "rebuild/m4/spec/review-native-carriers.json",
         "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
         "receiptLedgerLine": 104,
-        "note": "Chain head on disk at sourceBase e9c50e1. Re-pinned at the CI re-seal DECISIONS:104 (receipt base b045e61, reviewed at b95ccca), which supersedes DECISIONS:96 / 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1: same 20-file product map, three executionPins moved (.github/workflows/rebuild.yml, NATIVE-CARRIERS-THEME.md, NATIVE-CARRIERS-BUILD-REPORT.md). reviewSha256 pins the review file by bytes (TOOLING-REVIEW-r3 X2)."
-      },
-      {
-        "id": "B1",
-        "artifact": "rebuild/m4/spec/acceptance-b1-grading-time-window.json",
-        "sha256": null,
-        "review": "rebuild/m4/spec/review-b1-grading-time-window.json",
-        "reviewSha256": null,
-        "receiptLedgerLine": null,
-        "note": "Use this if the PM rules B1 first (BRIEF-B1 v1.1 section 5.3 recommends NATIVE-CARRIERS -> B1 -> B2 -> B4 -> B3). Then every pre-image sha256 here is re-taken at B1's accepted head."
+        "note": "Chain head on disk at sourceBase e9c50e1. Re-pinned at the CI re-seal DECISIONS:104 (receipt base b045e61, reviewed at b95ccca), which supersedes DECISIONS:96 / 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1: same 20-file product map, three executionPins moved (.github/workflows/rebuild.yml, NATIVE-CARRIERS-THEME.md, NATIVE-CARRIERS-BUILD-REPORT.md). reviewSha256 pins the review file by bytes (TOOLING-REVIEW-r3 X2). DECISIONS:103 (1) rules B-NTC FIRST in the B chain under this head, so parent.decided is true and parent.chosen names it — the single-parent chain has one head and the PM has named it."
       }
     ]
   },
@@ -83,18 +42,13 @@
   "product": {
     "rebuild/engine/plan.cjs": {
       "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
-      "post": null,
-      "role": "edited"
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
     },
     "rebuild/engine/progression.cjs": {
       "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
-      "post": null,
-      "role": "edited"
-    },
-    "rebuild/engine/volume.cjs": {
-      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
-      "post": null,
-      "role": "edited"
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
     },
     "rebuild/engine/sleep.cjs": {
       "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
@@ -180,6 +134,31 @@
       "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
       "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
       "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": null,
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": null,
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b",
+      "post": null,
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "57566afd36ea913da4b9eaeed8f7a358479381606a9b6f92fc5e562d85d58cda",
+      "post": null,
+      "role": "new"
     }
   },
   "coverage": {
@@ -196,105 +175,12 @@
     },
     "moves": {}
   },
-  "carrierSuccessor": {
-    "file": "rebuild/conform/v4/postfix/legacy-b2-carriers.cjs",
-    "parent": "rebuild/conform/v4/postfix/legacy-step-efficacy-carriers.cjs",
-    "witnessPins": {
-      "rebuild/engine/test/defect-witnesses.cjs": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
-      "rebuild/engine/test/defect-witnesses-2.cjs": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2",
-      "rebuild/engine/test/defect-witnesses-4.cjs": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7"
-    }
-  },
-  "witnessFlips": [
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D1 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D2 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D3 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D4 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D5 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D6 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D7 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses.cjs",
-      "line": "D9 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
-      "line": 106,
-      "from": "D18 cell reproduced (structural moves behind the 80-row display prefix)",
-      "to": "reviewed successor expectation; extends the accepted legacy-step-efficacy-carriers.cjs D12 substitutions, D11/D13-D17/D19-D21 preserved"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
-      "line": 47,
-      "from": "programmeVolume chest === 6",
-      "to": "programmeVolume chest === 3 (D28; first throw of the five-cell file)"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
-      "line": "D29 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
-      "line": "D30 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
-      "line": "D31 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    },
-    {
-      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
-      "line": "D32 cell",
-      "from": "reproduced on the unmodified tip",
-      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
-    }
-  ],
+  "carrierSuccessor": null,
+  "witnessFlips": [],
   "protectedSurfaces": [
-    "tools/engine-test.jsx:8790-8793 (second gate P6 cells, S6 = clP(SEED); no forks on ham, June-only sessions, so D30/D7 era cuts are structurally inert there)",
-    "the seeded set-one laboratory card (sleep.cjs labAnalytics2, setOneRead call at sleep.cjs:1286, the only engine consumer; frozen app.jsx:7407)",
-    "rebuild/conform/goldens, the original 45-law seeds, rebuild/conform/oracle, the original witness/differential/source test files and the seeded soak",
+    "rebuild/engine/performed.cjs (the seam at :193 is consumed through createPerformed(E,{nativeTrendContext}); performed.cjs is NOT edited)",
+    "rebuild/m3/w7-preview/today/gym-host.mjs and the A2 gym card (lane C holds the licence; B-NTC deliberately does not wire it)",
+    "rebuild/conform/goldens (public census and frozen goldens)",
     "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
   ],
   "authorizations": {
@@ -313,13 +199,13 @@
     "theme": null,
     "review": {
       "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-B2-TARGETS-IDENTITY-ERA",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B-NTC-NATIVE-TREND-CONTEXT",
       "terminal": "ACCEPTED"
     }
   },
   "artifact": {
-    "file": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
-    "review": "rebuild/m4/spec/review-b2-targets-identity-era.json"
+    "file": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
+    "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json"
   },
   "children": [
     {
@@ -359,16 +245,12 @@
     }
   ],
   "notes": [
-    "theme is null until the PM accepts BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md as a rebuild/DECISIONS.md ledger line; the runner refuses PASS while it is null.",
-    "CORRECTION to BRIEF-B2 v1.1 section 6: rebuild/engine/volume.cjs IS already in the accepted parent's product map (acceptance-native-carriers.json pins it at c32298e7...). B2 supersedes that pin rather than introducing a new product file.",
-    "D30 carries the two conditions accepted at DECISIONS:82: the law's control may serve as a result oracle but never as the clock-trace oracle; the P6 sites and the seeded set-one card are the named protected surfaces.",
-    "The register laws' own mutants go inert on a repaired candidate: detected mutant executions fall 97/104 -> 83/104 (exactly the fourteen laws' candidate-side mutants), and D29's control is non-idempotent (GREEN repair controls 89 -> 88). Only the named SOURCE mutants may serve as this package's fault mutants.",
-    "Executed public-census delta on the discarded repaired copy is exactly one primitive cell: deloadLoad for fly and hipthrust, 5 -> null (D6), at both matrix days. Anything else is a RED stop for a reviewed successor expectation.",
-    "Brief section 7 open questions for the PM: Q1 parent chain; Q2 volume.cjs:159 identity convention; Q3 reader-side exId (two lines); Q4 witnesses-1 carrier serialization with B1; Q5 witnesses-2 extension path.",
-    "witnesses-1 is the one carrier B1 and B2 share (B2's eight flips + B1's D8/D10 preserved in one file). Serialize on that file or accept one rebase pass.",
-    "coverage.moves is empty: the two gates B2 intends to move (witnesses-1, witnesses-4) become covered only when rebuild/conform/v4/postfix/legacy-b2-carriers.cjs exists and is declared in children[] with its own exact verdict. Until then both re-execute under --full. A gate is never covered by a file that merely exists (TOOLING-REVIEW-r1 W2; DECISIONS:97 F-PM-2).",
-    "children[] re-executes the five accepted NATIVE-CARRIERS successor children in this process, each with its exact declared verdict; those executions are what cover the nine inherited originals.",
-    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT.",
+    "B-NTC is the package DECISIONS:103 (1) ruled FIRST in the B chain: it turns the accepted open boundary PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED into a qualified provider. The implementation is speculative and lives on rebuild/lane-b-ntc @ 68fbca4; this spec is the tooling side of it and is authored here so the runner admits the id — STATUS 2026-09-11 05:50 ET recorded \"--package B-NTC REFUSED (closed id list) -> tooling fixer widens it\".",
+    "dIds and laws are EMPTY on purpose and the runner allows it only because B-NTC is named in the runner’s own NO_REGISTER_IDS set: DECISIONS:93 rules that feature work under the ratified slice plan takes no register D-ID. A repair package can never empty its own inventory — the exemption is fixed in b-package.cjs, not here.",
+    "PRODUCT ROLES. \"carried\" = the 20 files the parent artifact pins, byte-identical (pre === post). \"new\" = a file this package brings into the inventory that the parent never pinned. Two of the four are not authored on this branch at all (native-trend-context.cjs and its test cell), so their pre-image is the sha256 of the empty byte string and their post is null; two exist and carry their real bytes at sourceBase as the pre-image. EVERY post is null on this branch, which is what makes PRODUCT read NOT-IMPLEMENTED — the post-images are re-taken when the B-NTC carrier lands on the accepted head, and until then this spec claims nothing about them.",
+    "The authored bytes on rebuild/lane-b-ntc @ 68fbca4, recorded here for the re-take and asserted by NOTHING in this spec: native-trend-context.cjs cf8b50955ad0dca5ff91e528ae0abc48611cebeadc586e2759ec0ec587c22356 (12 375 B) · test/native-trend-context.test.cjs f0879ca2b6d2fd65cb125d2d013e64efd89f236a4893dcec7245bf460dc52559 (13 164 B) · workout-host.mjs 2d160c1c79fd7957febe964db523bc53dbb9a32fa571895f30e1a279a77fc480 · host/test/journey.test.mjs d4c68645474eb8f6b4acbd252b35b9f0ca31225f6269fea53416a8c8a712af96.",
+    "children[] re-executes the five accepted NATIVE-CARRIERS successor children, each with its exact declared verdict; those executions are what cover the nine inherited originals. B-NTC declares no child of its OWN yet: its test cell rebuild/m4/workout/test/native-trend-context.test.cjs is not on this branch, and a child whose argv target does not exist refuses (CHILD-ARGV-TARGET). The remaining ten gates re-execute under --full.",
+    "The brief is not authored on this branch either, so brief.sha256 is pinned at the bytes committed on rebuild/lane-b-ntc @ 68fbca4 (0ba59cca…, 56 010 B) and the runner leaves \"brief not authored\" OPEN until the file is here to hash. theme stays null until the PM accepts BRIEF-B-NTC with a rebuild/DECISIONS.md line; no PASS word is available while it is null (THEME-AUTHORIZATION-UNAVAILABLE).",
     "PARENT RE-PINNED (TOOLING-REPORT §r3 C): parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal e940359b… in place of the DECISIONS:96 seal 295762f0…, and sourceBase is re-taken at the chain tip e9c50e1. The parent product map did not change across the re-seal, so the pre-image sha256s below are unchanged and were re-verified against the NEW artifact and against the bytes at that sourceBase.",
     "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the product pre-images in this spec are the parent’s own pins carried forward. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
     "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
