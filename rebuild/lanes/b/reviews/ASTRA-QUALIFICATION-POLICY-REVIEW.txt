@@ -1,0 +1,118 @@
+FINAL SUCCESSOR POLICY - INDEPENDENT DELTA REVIEW
+September 11, 2026. Verdict: ACCEPT proposed source policy only.
+Candidate/report: 413a54e4837d837abd1be97a05de70ace1c56265
+Policy/runner/spec: d5e6964f5be9c8c1d394bb868dffcc44b0023d59
+Compared with combined base: ca57649b3cc9189dca8d006ceb6bac17c842bea6
+Policy source: 2b3ce525671f0081de8345ea2454796e4601e9dc
+Assignment: ASTRA-QUALIFICATION-POLICY-DELTA-REVIEW.md at PMe289911.
+Branch/worktree: codex/astra-qualification-policy-review /
+  work/astra-qualification-policy-review. Same nonauthor reviewer as427d38c.
+No package receipt, real authority, full/private, CI, browser or phone acceptance.
+
+(1) EXACT BINDING AND REUSE
+Read assignment, PM NEXT/ROADMAP and final-navigation brief; inspected12-file
+delta, proposed policy/map, resource readers, wrappers and fixture corrections.
+413a54e differs fromd5e6964 only by the builder report. Actual product/frozen/
+engine/conformance source equalsca57649. Reuse its independently accepted
+navigationf9d7222 and combined-browser evidence; no fresh browser claim here.
+Retain accepted427d38c andd6c582b preparation/material findings. Existing10
+fixture source, original13/child4 sources, setup49 wrapper and archived/actual
+adapter are unchanged; original13/child4/setup49 were not rerun in this delta.
+
+Verified disk and Git at HEAD SHA256:
+policy07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393
+runner77c1cd9a10cbb8d23e493fff5a9185b61a837398c6a3efa8c27a132d0c57c7aa
+spec936f6481b855202a67973b60bb44f7d61f5a36ea8034029b032b2a790510652f
+brief5fc945dff19692983d2af533f54238c257120afa043d695e0356e1058ee604e4
+Proposed brief: rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md v1.3.
+Policy193 source pins include every160 product postimage, inherited original
+proof sources, exact brief, parent artifact/review and tooling test sources.
+Actual validation checks pins at immutable2b3ce52, HEAD and disk. Source follows
+ca57649; sourceBase7b1678a precedes source, which precedesd5e6964 then413a54e.
+Runner/policy/spec are outside sourcePins, avoiding circular hashes. Their
+existing compiled policy/spec-runner checks and later sealed envelope remain.
+Superseded provisional1e99f355 is neither proposed nor accepted by this review.
+Only compiled policy SHA changes runner bytes from reviewed5d350c8.
+
+(2) SOURCE, RESOURCE AND COMMAND COVERAGE
+Independent lexical walk:103 source/test files,219 relative edges, then exact
+resource/dependency union equals120 closure entries. Added navigation probe
+imports actual buildBrowser/buildToday; generated enrollment imports resolve
+at their generated .tmp path into existing calendar/today bindings. Its two
+/app.js and one /enroll.js calls are page callbacks over generated assets;
+original probe retains three/one. Exact file/path/count allowlists remain.
+Three intentional authority-nonexport assertions/warnings remain unchanged.
+
+Executed actual design readers through a module-private fs observation facade:
+all14 files consumed by readApproved/readFonts/template/chrome/shell/appSource
+are in the17 resource declarations. Inspected buildBrowser's cipher-imports
+read and exact four font/license names; independently verified all four hashes
+against their manifest. Six view files overlap imported source; resources also
+include two approved HTML references, three page resources and font manifest.
+No count-only assumption or global fs/loader change. This is current-source
+coverage, not a general dynamic-loader or installed-package integrity proof.
+
+All19 child names and argv equal combined base. Only exact needles change:
+durable-journeys237->245, owner-entry-calendar66->67, final-refusals19->21.
+Nine inherited mappings remain exact; moves={} and MOVES_RULING=null.
+Ten durable raw targets remain: seven Today tests, host journey/equivalence and
+local-today journey; entry raw targets remain owner-entry plus local-today.
+Their wrappers actually execute those Node --test vectors. Existing two-OS
+workflow enumerates the vectors and now both tooling test files; no CI run claimed.
+Fixture corrections retain exact19 declarations instead of stale5, explicitly
+refuse unchanged pre===post without a policy, and use empty preimage only for
+the genuine newly-created positive. All five genuine helper substitutions remain.
+
+(3) EXECUTED EVIDENCE
+Existing Node24.19.0 and retained root/W6/W5 dependencies, ignored junctions;
+no install. Each test command used --test --test-concurrency=1 --test-reporter=tap:
+  rebuild/m4/spec/b-ntc-owner-final.test.cjs:21 pass,0 fail/skip/cancel.
+  rebuild/lanes/b/tooling/test/execution-targets.test.cjs and
+  rebuild/lanes/b/tooling/test/successor-authority.test.cjs:19 pass,0 fail/skip/cancel.
+These include all final policy positives/negatives, unchanged10 accounting
+fixtures,9 execution controls and10 successor controls. All five real helpers
+execute in the old-runner exploit; current exact selector refuses. Required
+real successor and legacy source-carrier executions passed within these controls;
+no additional original/private campaign was run.
+
+Independent actual runner functions, exported before campaign boundary with
+only log destination initialized: spec,parent,product,fidelity,authority,
+policy validation and children. Actual parent artifact/review/single-parent
+checks passed on unchanged refs/remotes/origin/rebuild/t2-client-core7b1678a.
+PRODUCT IMPLEMENTED:52 changed postimages,0 pre,20 parent-carried,88 existing
+dependencies,0 drift; all20 parent product pins and3 execution supersessions.
+Component fidelity passed:38 inventoried changes; sourceBase ancestor; exact
+runner/spec;16/18 PIN_PATHS present and clean, two named absent/vacuous.
+Actual owner/contract authority validates at parent receiptb045e61; real theme
+and brief acceptance remain null. successorSupport refuses unissued PM authority.
+Changed product map, false/absent sourceBase and old614 policy independently
+refuse. Fixed real chain/ref and authority were not rewritten or substituted.
+Actual children() scheduled durable and entry declarations:245 and67 pass,
+zero fail/skip/cancel, exact wrappers/argv/needles. These are real vector counts.
+
+Independent resource controls: missing preview.css in manifest/resources/product
+with recomputed manifest pin refuses; extra /app.js occurrence and undeclared
+/undeclared.js URL refuse. Changed CSS plus re-pinned manifest/product can
+describe the changed disk, but the exact final policy refuses that altered map.
+All temporary source/resource bytes restored; normal closure verifies afterward.
+Ignored reproducible scripts, SHA256:
+.tmp/independent-final-policy.cjs
+20a502e19e628a680928b33915b635433803e9dc32354e2c27196936bec69736
+.tmp/independent-resource-policy.cjs
+808d18475c4030f06707da8be635c56e49561f56a1f72e92c18280f367e45d67
+
+(4) REMAINING REAL AUTHORITY AND QUALIFICATION
+This accepts proposed07f74495 and the source/count/resource delta, not an
+accepted package. Genuine scoped v1.3 brief/theme citations must bind the exact
+brief above and B-NTC-SUCCESSORS 07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393
+under required role/line/hash rules at an immutable commit on BOTH actual fixed
+accepted chain and candidate ancestry. This text issues no ledger citation.
+A distinct authorized integrator must bind the genuine citations and preserve
+owner/contract/parent checks, then run actual public qualification. Full/private
+custody,45 register laws/19 gates, complete second gate, historical fidelity/
+mutations, both-OS CI and independent exact-artifact receipt remain required.
+No proof here substitutes for them. Physical-phone and separate first-use/B1
+work retain their independent boundaries. Root alone accepts scope.
+Tracked status and diff --check clean before report; only this report committed.
+No source fix, law/golden edit, private input, FULL/remote campaign, install,
+lock churn, push, PR, merge, deployment, publication or protected-soak action.
