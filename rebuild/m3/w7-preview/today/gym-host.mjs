@@ -145,6 +145,18 @@ export async function openDeviceKeys({ indexedDB, crypto, databaseName = KEY_DAT
   } finally { db.close(); }
 }
 
+/* The one offline-write lease this device issues itself, for the lane whose
+   operations carry `schemaVersion`. The durable public client verifies its
+   signature against the device's own public key and refuses any operation whose
+   schema differs from it, which is why the schema is a parameter and not a
+   constant: the workout lane is 2 and the reading lane is 1. */
+export function mintLease(schemaVersion) {
+  return { lease_id: 'synthetic-preview-lease', device_id: DEVICE_ID, athlete_id: ATHLETE_ID,
+    schema_version: schemaVersion, range: [1, 1000000],
+    not_before: '1970-01-01T00:00:00Z', not_after: '9999-12-31T00:00:00Z',
+    issued_server_time: '1970-01-01T00:00:00Z' };
+}
+
 export function initialGeneration(lease) {
   return { collections: { meta: { checkpoint: { counts: { ops: 0, outbox: 0 } } },
     sync: { snapshot: { plan: {}, reads: [] }, frontier: { W: 0, authorityW: 0 } } },
@@ -172,10 +184,7 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
   try { await repository.load(); }
   catch (error) {
     if (error?.code !== 'STORE_MISSING') { repository.close(); throw error; }
-    lease = await signRecord({ lease_id: 'synthetic-preview-lease', device_id: DEVICE_ID, athlete_id: ATHLETE_ID,
-      schema_version: 2, range: [1, 1000000],
-      not_before: '1970-01-01T00:00:00Z', not_after: '9999-12-31T00:00:00Z',
-      issued_server_time: '1970-01-01T00:00:00Z' },
+    lease = await signRecord(mintLease(2),
       { domain: LEASE_DOMAIN, field: 'signature', privateKey: device.signingKey, kid: device.kid, crypto: web });
     await repository.initialize(initialGeneration(lease), ENROLMENT_EVIDENCE);
   }

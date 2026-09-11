@@ -60,9 +60,11 @@ export function prescriptionLine(slot) {
   if (!slot) return null;
   const load = cell(slot.load), reps = cell(slot.reps);
   if (!load || !reps) return null;
-  const loadText = load.state === 'specified' ? load.display : load.display;
+  /* A cell the engine did not specify prints the cell's OWN words ("Find a working
+     load", "Record the reps performed"); a specified reps cell takes the approved
+     unit after it. The load cell already carries its unit. */
   const repsText = reps.state === 'specified' ? reps.display + ' reps' : reps.display;
-  return loadText + ' × ' + repsText;
+  return load.display + ' × ' + repsText;
 }
 
 /* The effort instruction, in the approved design's plain language, carrying the
@@ -95,9 +97,16 @@ export function createGymModel({ gymHost, sessionTitle } = {}) {
     const copy = (result && typeof result.copy === 'string' && result.copy) || null;
     const produced = typeof host.lastProducerRefusal === 'function' ? host.lastProducerRefusal() : null;
     if (code === 'WORKOUT_PREPARATION_INVALID' && produced && produced.code) {
-      return { code: produced.code, copy: produced.reason || produced.message || copy, clientCode: code };
+      /* Most of these refusals are thrown as `new Error(CODE)` with no `reason`, so
+         the Error's message IS the code. Repeating it as prose produced the
+         "CODE · CODE" line review B1 found: a refusal has a reason only when the
+         layer supplied one, and this never manufactures one. */
+      const reason = typeof produced.reason === 'string' && produced.reason.trim() ? produced.reason : null;
+      const message = typeof produced.message === 'string' && produced.message !== produced.code
+        ? produced.message : null;
+      return { code: produced.code, copy: reason || message, clientCode: code };
     }
-    return { code, copy };
+    return { code, copy: copy === code ? null : copy };
   };
   function remember(result) { message = refusalOf(result); return { ok: false, ...message }; }
 

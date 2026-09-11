@@ -21,16 +21,15 @@ import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createGymHost, signRecord, LEASE_DOMAIN, AUTHORITY_KID } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, effortWords, prescriptionLine, effortInstruction } from '../gym-model.mjs';
-import { mountGym, NO_REST_PRESCRIBED } from '../gym-app.mjs';
+import { mountGym, NO_REST_PRESCRIBED, COULD_NOT_PREPARE } from '../gym-app.mjs';
 import { createWorkoutEntry } from '../today-entry.mjs';
+import { createReadingHost } from '../reading-host.mjs';
 import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
-import Storage from '../web-storage-backend.cjs';
 import design from '../design.cjs';
 import EditValues from '../../../../m4/workout/edit-values.cjs';
 
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
-const { createMemoryStorage } = Storage;
 const DAY = SYNTHETIC_DAY;
 const SLOT = 'earned-today-preview/' + DAY;
 
@@ -47,7 +46,7 @@ async function deviceKeys() {
 async function device(options = {}) {
   const fault = faultDatabase();
   const keys = await deviceKeys();
-  const today = createTodayModel({ storage: createMemoryStorage() });
+  const today = createTodayModel({});
   const state = options.engineState || today.stateFromOps();
   async function open() {
     return createGymHost({ day: DAY, engineState: state, indexedDB: fault.indexedDB,
@@ -289,7 +288,7 @@ test('A2 — resume, relaunch and a process kill', async t => {
 
 test('A2 — the refusals the capture layer owns', async t => {
   await t.test('a split that is not in force today is refused and stores nothing', async () => {
-    const base = createTodayModel({ storage: createMemoryStorage() }).stateFromOps();
+    const base = createTodayModel({}).stateFromOps();
     const future = JSON.parse(JSON.stringify(base));
     future.split = [{ from: '2031-01-01', map: base.split[0].map }];
     const kit = await device({ engineState: future });
@@ -358,7 +357,7 @@ test('A2 — previous performance is the engine\'s own, or nothing at all', asyn
   });
 
   await t.test('an athlete the engine has no comparison for shows no previous line', async () => {
-    const base = createTodayModel({ storage: createMemoryStorage() }).stateFromOps();
+    const base = createTodayModel({}).stateFromOps();
     const fresh = JSON.parse(JSON.stringify(base));
     fresh.sessionLog = {};
     for (const exercise of fresh.exercises) delete exercise.last;
@@ -416,6 +415,27 @@ test('A2 — the gym screens render the capture, with nothing preselected', asyn
     assert.equal(doc.querySelector('[data-slot="primary-label"]').textContent, 'Ready for set 2');
   });
 
+  /* REVIEW B1 — a refusal that came from the accepted layer is shown in the layer's
+     own terms, with the code exactly once, and is NEVER described as a fault of this
+     device. The device sentence belongs only to a page that has no workout host. */
+  await t.test('a layer refusal on the gym screen names the layer, not the device', async () => {
+    const base = createTodayModel({}).stateFromOps();
+    const future = JSON.parse(JSON.stringify(base));
+    future.split = [{ from: '2031-01-01', map: base.split[0].map }];
+    const blocked = await device({ engineState: future });
+    const other = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+      { url: 'http://127.0.0.1:4178/' }).window.document;
+    await mountGym(other, other.getElementById('phone'), { model: blocked.model, onBack: () => {} });
+    const shown = other.getElementById('phone').textContent;
+    assert(shown.includes(COULD_NOT_PREPARE), 'the neutral lead is shown: ' + shown);
+    assert(!shown.includes(TodayApp.NO_LOCAL_STORE), 'an engine refusal never blames the device: ' + shown);
+    assert.equal(shown.split('WORKOUT_SPLIT_NOT_IN_FORCE').length, 2, 'the code appears exactly once: ' + shown);
+    assert(shown.includes('no split entry has from <='), 'and the layer\'s own reason is carried');
+    assert.doesNotMatch(shown.replace(/\d{4}-\d{2}-\d{2}/g, ''), /\d/,
+      'a refusal screen shows no prescription figure');
+    blocked.gymHost.close();
+  });
+
   await t.test('no figure appears on either gym screen that the layer did not supply', async () => {
     const view = await kit.model.read();
     const clone = phone.cloneNode(true);
@@ -434,16 +454,17 @@ test('A2 — Today reflects the durable workout state', async t => {
   const doc = dom.window.document;
   const fault = faultDatabase();
   const keys = await deviceKeys();
-  const today = createTodayModel({ storage: createMemoryStorage() });
+  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
+  const today = createTodayModel({ today: DAY, readings });
   const workout = await createWorkoutEntry(today, { indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
   const api = TodayApp.mountToday(doc, today, { workout });
   const slot = name => doc.querySelector(`[data-slot="${name}"]`);
 
-  await t.test('with no workout started, Today offers Start once the morning is recorded', () => {
+  await t.test('with no workout started, Today offers Start once the morning is recorded', async () => {
     // Before the weigh-in the single primary action is the engine's marching order
     // (A1's accepted hierarchy); the workout entry point opens after it.
     assert.match(slot('primary-label').textContent, /^Log the scale$/i);
-    today.weighIn(179.4);
+    assert((await today.weighIn(179.4)).ok);
     api.render('today');
     assert.match(slot('workout-count').textContent, /Your set targets are ready$/);
     assert.match(slot('primary-label').textContent, /^Start /);
@@ -466,7 +487,7 @@ test('A2 — Today reflects the durable workout state', async t => {
     // The unfinished session must never become unreachable. This state cannot be
     // reached through the UI (the workout opens only after a weigh-in), so it is
     // constructed here from the same durable log with a fresh Today store.
-    const owed = createTodayModel({ storage: createMemoryStorage() });
+    const owed = createTodayModel({});
     const other = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
       { url: 'http://127.0.0.1:4178/' }).window.document;
     TodayApp.mountToday(other, owed, { workout });
@@ -486,4 +507,109 @@ test('A2 — Today reflects the durable workout state', async t => {
   });
 
   workout.gymHost.close();
+  readings.close();
+});
+
+/* ---------------------------------------------------------------------------
+   REVIEW B1 — WHEN THE ACCEPTED LAYER WILL PREPARE A WORKOUT, AND WHEN IT WILL NOT.
+   Executed, not argued. These tests record the boundary A2 actually sits on, so
+   §9.1 of the report cannot drift from it.
+   --------------------------------------------------------------------------- */
+async function lane(state, label) {
+  const fault = faultDatabase();
+  const keys = await deviceKeys();
+  async function on(day) {
+    const host = await createGymHost({ day, engineState: state, indexedDB: fault.indexedDB, crypto: webcrypto,
+      deviceKeys: keys, plannedSplitSlotId: 'slot', databaseName: 'probe-' + label });
+    return { host, model: createGymModel({ gymHost: host, sessionTitle: 'T' }) };
+  }
+  return { on };
+}
+const offsetDay = (day, days) => {
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+};
+
+test('A2 — a FRESH athlete (DECISIONS:100, Joe at S2) records a session, and the layer says when it will not prepare another', async t => {
+  const fresh = createTodayModel({}).stateFromOps();
+  fresh.sessionLog = {};
+  const L = await lane(fresh, 'fresh');
+
+  let handle = await L.on(DAY);
+  await t.test('day 1 — the session is prepared, recorded and closed', async () => {
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'ready', view.code || '');
+    assert((await handle.model.start()).ok);
+    const last = await logEverySet(handle.model);
+    assert((await handle.model.finish({ startId: last.startId })).ok);
+    assert.equal((await handle.model.read()).phase, 'finished');
+  });
+  handle.host.close();
+
+  await t.test('a SECOND session on the same day is refused, with the layer\'s own code', async () => {
+    handle = await L.on(DAY);
+    const view = await handle.model.read();
+    // The day's session is closed, so the screen reports it as recorded rather
+    // than offering a Start that the layer would refuse.
+    assert.equal(view.phase, 'finished');
+    const prepared = await handle.host.host.client.prepareWorkout({ planned_split_slot_id: 'slot' });
+    assert.notEqual(prepared.prepared, true);
+    assert.equal(handle.host.host.lastProducerRefusal().code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
+    assert.equal(handle.host.host.lastProducerRefusal().reason, 'resolver_failed');
+    handle.host.close();
+  });
+
+  await t.test('the NEXT day prepares normally — its lifts have no app-recorded session yet', async () => {
+    handle = await L.on(offsetDay(DAY, 1));
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'ready', view.code || '');
+    assert.match(view.prescription.line, /^\d+(\.\d+)? lb × \d+ reps$/);
+    handle.host.close();
+  });
+
+  await t.test('a REST day is not a refusal: the engine simply schedules no session', async () => {
+    handle = await L.on(offsetDay(DAY, 2));
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'blocked');
+    assert.equal(view.code, 'ENGINE_CAPTURE_NO_WORKOUT');
+    handle.host.close();
+  });
+
+  /* The limit A2 sits on, stated as a test so it cannot be forgotten: the SECOND
+     session of a lift needs the numeric native trend context this host does not
+     compose (A0 §8.5). It is an engine-tier provider gap, for Track B. */
+  await t.test('the next session of the SAME lifts is refused: PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED', async () => {
+    handle = await L.on(offsetDay(DAY, 3));
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'blocked');
+    assert.equal(view.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
+    assert.equal(view.copy, 'resolver_failed', 'the layer\'s own reason, and no invented sentence');
+    assert.notEqual(view.copy, view.code, 'a refusal never prints its code twice');
+    handle.host.close();
+  });
+});
+
+test('A2 — an athlete carrying a LEGACY session log (Joe after the S3 port) is refused a second session outright', async t => {
+  const legacy = createTodayModel({}).stateFromOps();     // the fixture keeps its legacy sessionLog
+  assert(Object.keys(legacy.sessionLog).length > 0, 'this athlete really does carry a legacy log');
+  const L = await lane(legacy, 'legacy');
+
+  let handle = await L.on(DAY);
+  await t.test('the first session records and closes normally', async () => {
+    assert((await handle.model.start()).ok);
+    const last = await logEverySet(handle.model);
+    assert((await handle.model.finish({ startId: last.startId })).ok);
+  });
+  handle.host.close();
+
+  await t.test('every later scheduled day refuses PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED', async () => {
+    for (const offset of [1, 3, 4, 7]) {
+      handle = await L.on(offsetDay(DAY, offset));
+      const view = await handle.model.read();
+      assert.equal(view.phase, 'blocked', 'day+' + offset);
+      assert.equal(view.code, 'PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED', 'day+' + offset);
+      assert.equal(view.copy, null, 'this refusal carries no reason, and none is invented');
+      handle.host.close();
+    }
+  });
 });

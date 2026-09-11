@@ -108,6 +108,17 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Finish this workout",
   "Your workout could not be opened on this device, and nothing was recorded.",
   "Today’s workout is recorded on this device.",
+  /* Review B1: the layer can refuse to PREPARE a workout, which the prototype (which
+     prepares nothing) has no words for. The lead is neutral — it never says the
+     device is at fault — and the layer's own code follows it, once. */
+  "Today’s workout cannot open",
+  "Why today’s workout cannot open",
+  "Earned could not prepare today’s workout, and nothing was recorded.",
+  /* Review B2: the weigh-in's store of record is this device's encrypted local
+     store, and a device that cannot open one records nothing. The prototype saves
+     nothing, so it can never fail to save. */
+  "This device could not open its encrypted local store, so nothing can be recorded here.",
+  "Saved in this device's encrypted local store. It survives a reload, a restart, a reboot and a crash.",
 ]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -228,7 +239,7 @@ const SOURCE = __dirname;
 /* Every module that can put a word on the screen. A2 adds the gym card's view and
    its adapter, so the copy binding covers the gym screens exactly as it covers
    Today's. */
-const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs"]);
+const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs"]);
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
 const appSource = () => VIEW_SOURCES.map((name) => fs.readFileSync(path.join(SOURCE, name), "utf8")).join("\n");
 const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8");

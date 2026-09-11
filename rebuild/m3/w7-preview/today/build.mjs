@@ -63,6 +63,10 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/gym-host.mjs",
   "rebuild/m3/w7-preview/today/gym-model.mjs",
   "rebuild/m3/w7-preview/today/gym-app.mjs",
+  /* A2 review B2 — the weigh-in's store of record is the accepted encrypted
+     repository, not localStorage. A build that lost this module would be a page
+     whose readings can vanish on a hard kill. */
+  "rebuild/m3/w7-preview/today/reading-host.mjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
   "rebuild/m3/w6/public-client.mjs",

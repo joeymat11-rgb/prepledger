@@ -19,6 +19,7 @@
 //   node rebuild/m3/w7-preview/today/gym-check.mjs
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -70,6 +71,45 @@ async function launch() {
   await page.waitForSelector('[data-slot="primary-label"]');
   return { context, page };
 }
+
+/* A REAL PROCESS KILL (review B2). context.close() is a graceful shutdown: the
+   browser gets to flush everything it was holding, which is exactly the case that
+   HIDES the defect this check exists to catch. iOS terminating a backgrounded tab
+   does not ask politely, and neither does this: every chrome.exe whose command line
+   names this profile directory is killed with `taskkill /F /T`, and the kill is
+   verified before the next launch. Nothing the browser had not already committed to
+   disk survives it. */
+function chromeProcessesForProfile() {
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+    + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
+    + "Select-Object -ExpandProperty ProcessId";
+  try {
+    const out = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script],
+      { encoding: "utf8", timeout: 30000 });
+    return out.split(/\r?\n/).map(line => Number(line.trim())).filter(Number.isSafeInteger).filter(pid => pid > 0);
+  } catch (_) { return []; }
+}
+async function hardKill(context) {
+  const pids = chromeProcessesForProfile();
+  assert(pids.length > 0, "no chrome process was found for this profile — the kill would prove nothing");
+  for (const pid of pids) {
+    try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
+    catch (_) { /* a child may already be gone with its parent */ }
+  }
+  // The browser must really be dead before anything reopens the profile.
+  for (let tick = 0; tick < 100; tick++) {
+    if (chromeProcessesForProfile().length === 0) break;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  assert.equal(chromeProcessesForProfile().length, 0, "the browser survived taskkill /F /T");
+  // Playwright's handle is now pointing at a corpse; let it clean up quietly.
+  try { await context.close(); } catch (_) { /* already gone — that is the point */ }
+  kills += 1;
+  // A killed Chromium leaves its singleton lock behind; a fresh profile lock is
+  // what the next launch needs, and Chromium reclaims a stale one itself.
+  await new Promise(resolve => setTimeout(resolve, 250));
+}
+let kills = 0;
 const text = (page, selector) => page.textContent(selector).then((value) => (value || "").trim());
 const seen = (page, selector) => page.$(selector).then((handle) => !!handle);
 
@@ -104,11 +144,15 @@ try {
   let { context, page } = await launch();
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning — not logged yet",
     "a fresh profile holds no reading");
+  /* The sheet awaits a real encrypted-repository transaction now (review B2), so the
+     check waits for the sheet to close and the reading to appear, not for a selector
+     that was already on screen. */
   await page.click('[data-slot="primary"]');
   await page.waitForSelector("#morning-weight");
   await page.fill("#morning-weight", "179.4");
   await page.click('[role="dialog"] button[type="submit"]');
-  await page.waitForSelector('[data-slot="morning"]');
+  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   const startLabel = await text(page, '[data-slot="primary-label"]');
   assert.match(startLabel, /^Start /, "after the weigh-in the primary action starts today's workout: " + startLabel);
   const sessionTitle = startLabel.replace(/^Start /, "");
@@ -171,15 +215,17 @@ try {
   const firstFacts = await text(page, '[data-slot="saved-facts"]');
   assert.match(firstFacts, /clean reps left$/, firstFacts);
 
-  /* ---------- THE PROCESS KILL ---------- */
-  await context.close();
+  /* ---------- THE PROCESS KILL — taskkill /F /T, not a graceful close ---------- */
+  await hardKill(context);
   ({ context, page } = await launch());
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout in progress$/,
-    "Today knows a workout is in progress after the browser was killed");
+    "Today knows a workout is in progress after the browser was KILLED");
   const resumeLabel = await text(page, '[data-slot="primary-label"]');
   assert.equal(resumeLabel, "Resume " + sessionTitle, "the resume action is on Today: " + resumeLabel);
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning ✓ 179.4 lb",
-    "the morning reading survived the kill too");
+    "REVIEW B2: the morning reading survived the kill because it is in the encrypted store");
+  assert.match(await text(page, '[data-slot="trend"]'), /^Weight trend \d+\.\d lb/,
+    "and the engine recomputed the trend from that surviving reading");
 
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
@@ -221,26 +267,35 @@ try {
   await fresh.goto(url, { waitUntil: "load" });
   await fresh.waitForSelector('[data-slot="workout-count"]');
   assert.match(await text(fresh, '[data-slot="workout-count"]'), /Workout recorded$/, "a new page agrees");
-  await context.close();
+  await hardKill(context);
 
   ({ context, page } = await launch());
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
-    "the finished workout survived a second process kill");
+    "the finished workout survived a second REAL process kill");
+  assert.equal(await text(page, '[data-slot="morning"]'), "This morning ✓ 179.4 lb",
+    "and so did the morning reading");
   const finalText = await page.textContent("#phone");
   for (const figure of FICTIONAL) assert(!finalText.includes(figure), "prototype figure on screen: " + figure);
 
   // The durable store really is this device's own encrypted IndexedDB.
   const databases = await page.evaluate(() => indexedDB.databases().then((list) => list.map((d) => d.name)));
   assert(databases.includes("earned-today-preview-workout"), "the workout store is on this device: " + databases);
+  assert(databases.includes("earned-today-preview-readings"), "so is the weigh-in store: " + databases);
   assert(databases.includes("earned-today-preview-device-keys"), "this device kept its own keys: " + databases);
+  // Nothing of record is in localStorage any more (review B2).
+  const local = await page.evaluate(() => Object.keys(localStorage));
+  assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));
   await context.close();
 
+  assert.equal(kills, 2, "two REAL process kills were executed");
   assert.deepEqual(problems, [], "no page error, console error or offsite request");
   console.log("A2 GYM BROWSER CHECK PASS — Today -> Start -> active set (prescription shown separately from "
     + "editable performed values, no effort preselected) -> refusal without an effort answer -> logged with an "
     + "explicit unknown effort -> saved facts + Undo + rest + next set -> Undo removed it -> relogged -> "
-    + "PROCESS KILL -> resumed at the next set with the recorded set intact -> finished -> Today says recorded, "
-    + "through a reload, a new page and a second kill. Headroom: " + notes.join(", ")
+    + "REAL PROCESS KILL (taskkill /F /T on every chrome.exe of the persistent profile, kill verified) -> the "
+    + "weigh-in AND the in-progress workout both came back out of the encrypted store and the session resumed at "
+    + "the next set -> finished -> Today says recorded, through a reload, a new page and a SECOND real kill. "
+    + "localStorage holds nothing. Headroom: " + notes.join(", ")
     + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");
 } catch (error) {
   failures = 1;

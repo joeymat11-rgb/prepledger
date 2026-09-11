@@ -67,6 +67,11 @@ const NOT_WIRED = "— not wired yet";
 const WORKOUT_IN_PROGRESS = "Workout in progress";
 const WORKOUT_RECORDED_TODAY = "Workout recorded";
 const REVIEW_WORKOUT = "Review today’s workout";
+const WORKOUT_CANNOT_OPEN = "Today’s workout cannot open";
+const WHY_WORKOUT_CANNOT_OPEN = "Why today’s workout cannot open";
+/* The ONE sentence that is about this device. It is used only when the page has no
+   workout host at all — never for a refusal that came from the accepted layer. */
+const NO_LOCAL_STORE = "Your workout could not be opened on this device, and nothing was recorded.";
 
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
@@ -181,11 +186,18 @@ function mountToday(doc, model, options = {}) {
     put(map, "kcal-note", calorieBand(view.calorieTarget));
 
     put(map, "workout-title", view.workout.title);
-    /* The workout line carries the durable state of today's session — in progress or
-       recorded — beside the engine's own exercise count. A2. */
+    /* The workout line carries the durable state of today's session — in progress,
+       recorded, or refused — beside the engine's own exercise count. A2.
+       REVIEW B1: the state comes from a DRY PREPARATION through the accepted host
+       (gym-model.read() prepares without storing anything), so Today never offers
+       "ready" and "Start" for a workout the layer will refuse to prepare. A refusal
+       is shown in plain words with the layer's own code, exactly once, and is never
+       described as a fault of this device. */
     const today = session();
+    const refused = today && today.phase === "blocked" ? (today.code || null) : null;
     const sessionState = today && today.phase === "active" ? WORKOUT_IN_PROGRESS
-      : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY : null;
+      : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY
+      : refused ? WORKOUT_CANNOT_OPEN + " · " + refused : null;
     put(map, "workout-count", view.workout.exerciseCount === null
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
@@ -203,6 +215,7 @@ function mountToday(doc, model, options = {}) {
     const action = resuming ? "Resume " + view.workout.title
       : owed ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")
       : today && today.phase === "finished" ? REVIEW_WORKOUT
+      : refused ? WHY_WORKOUT_CANNOT_OPEN
       : "Start " + view.workout.title;
     put(map, "primary-label", action);
     primary.addEventListener("click", () => (owed && !resuming ? openWeighIn() : render("workout", true)));
@@ -254,14 +267,23 @@ function mountToday(doc, model, options = {}) {
     sheet.addEventListener("keydown", (event) => {
       if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
     });
-    sheet.addEventListener("submit", (event) => {
+    const submit = sheet.querySelector('button[type="submit"]');
+    sheet.addEventListener("submit", async (event) => {
       event.preventDefault();
       /* Hand the raw entry to the model. Everything that can refuse it — the form bound,
          then the client itself — answers in words, and those words are shown. An empty
          box becomes a non-number so the client's own "A weight is required." is what the
-         athlete reads; nothing is ever refused silently (review F8). */
+         athlete reads; nothing is ever refused silently (review F8).
+         AWAITED since review B2: the reading is durable in the encrypted repository
+         before this screen says anything, so the sheet cannot close on a save that did
+         not happen. The button is disabled while the transaction is in flight. */
+      if (submit.disabled) return;
+      submit.disabled = true;
       const raw = input.value.trim();
-      const result = model.weighIn(raw === "" ? raw : Number(raw));
+      let result;
+      try { result = await model.weighIn(raw === "" ? raw : Number(raw)); }
+      catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + (error_ && error_.message ? error_.message : "") }; }
+      submit.disabled = false;
       if (!result.ok) {
         error.textContent = result.copy || "This weight could not be recorded, and nothing was recorded.";
         input.focus();
@@ -369,9 +391,10 @@ function mountToday(doc, model, options = {}) {
       }
       /* No encrypted local workout store on this device: say exactly that, show no
          prescription, and record nothing. This is not a "not wired yet" screen — the
-         gym card is wired; this device cannot open its store. */
-      return renderStub("t-workout", focus,
-        "Your workout could not be opened on this device, and nothing was recorded.",
+         gym card is wired; this device cannot open its store. It is also NOT the
+         sentence used for a refusal that came from the accepted layer (review B1):
+         an engine refusal is never described as a fault of the device. */
+      return renderStub("t-workout", focus, NO_LOCAL_STORE,
         "This browser did not give the page an encrypted local store to keep a workout in.");
     }
     return renderToday(focus);
@@ -389,4 +412,5 @@ function mountToday(doc, model, options = {}) {
    tests without touching a document. */
 module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel,
   ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD,
-  WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT };
+  WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
+  WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE };

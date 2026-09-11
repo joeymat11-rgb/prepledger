@@ -73,9 +73,17 @@ test("the shipped template and view bind to the approved design", () => {
   assert(report.classes > 25, "the whole approved vocabulary is checked");
   assert.equal(report.copy, design.PREVIEW_COPY.length + design.APPROVED_COPY.length
     + design.RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
-  // A2: the binding covers every module that can put a word on the screen.
-  assert.deepEqual(design.VIEW_SOURCES, ["today-app.cjs", "gym-app.mjs", "gym-model.mjs"]);
-  for (const name of design.VIEW_SOURCES) assert(design.appSource().includes("\n"), name);
+  // A2: the binding covers every module that can put a word on the screen, and it
+  // really reads each of them — a module dropped from the list would take its copy
+  // out of the binding with it.
+  assert.deepEqual(design.VIEW_SOURCES,
+    ["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs"]);
+  const source = design.appSource();
+  for (const name of design.VIEW_SOURCES) {
+    const own = fs.readFileSync(path.join(design.SOURCE, name), "utf8");
+    const marker = own.split("\n").find((line) => line.trim().length > 40);
+    assert(source.includes(marker), name + " is not in the scanned view source");
+  }
 });
 
 /* A2 — the preview-owned runtime copy cannot be used to smuggle approved-looking
@@ -89,8 +97,6 @@ test("preview-owned runtime copy is absent from the approved references", () => 
     assert(view.includes(line), "declared but never said: " + line);
   }
   // A declared preview string that IS in the approved references fails the binding.
-  const design2 = { ...design };
-  void design2;
   assert.throws(() => design.assertDesignBinding(design.readApproved(), design.templateHtml(),
     view.replace("Your plan does not set a rest length.", "Take your rest.")), /COPY-BINDING FAIL/);
 });

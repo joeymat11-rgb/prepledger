@@ -13,10 +13,27 @@
 //   node rebuild/m3/w7-preview/today/browser-check.mjs
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
 import design from "./design.cjs";
+
+/* A2 review B2 — a REAL process kill needs the pids of the chrome processes that
+   opened a given profile directory. `context.close()` is a graceful shutdown and
+   hides exactly the defect this check exists to catch. */
+function chromeProcessesForProfile(profile) {
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+    + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
+    + "Select-Object -ExpandProperty ProcessId";
+  try {
+    const out = execFileSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script],
+      { encoding: "utf8", timeout: 30000 });
+    return out.split(/\r?\n/).map((line) => Number(line.trim())).filter(Number.isSafeInteger).filter((pid) => pid > 0);
+  } catch (_) { return []; }
+}
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const executablePath = process.env.W7_BROWSER_BIN;
@@ -38,6 +55,14 @@ const HEADLINES = design.headlineVocabulary();
 // tests prove slot by slot where every figure came from.
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb", "About 60 min", "9 exercises"];
 const VIEWPORT = { width: 390, height: 844 };
+
+/* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so the
+   check waits for the sheet to close and the reading to appear rather than for a
+   selector that was already on screen. */
+const recorded = async (page) => {
+  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  await page.waitForFunction(() => /\u2713/.test(document.querySelector('[data-slot="morning"]').textContent));
+};
 
 const server = await startServer({ port: 0 });
 const url = `http://127.0.0.1:${server.address().port}/`;
@@ -91,7 +116,7 @@ try {
   await page.waitForSelector("#morning-weight");
   await page.fill("#morning-weight", "179.4");
   await page.click('[role="dialog"] button[type="submit"]');
-  await page.waitForSelector('[data-slot="morning"]');
+  await recorded(page);
   const logged = (await page.textContent('[data-slot="morning"]')).trim();
   assert.equal(logged, "This morning ✓ 179.4 lb", "the weigh-in reached the screen");
   const trend = (await page.textContent('[data-slot="trend"]')).trim();
@@ -144,7 +169,7 @@ try {
   await sweepPage.click('[data-slot="primary"]');
   await sweepPage.fill("#morning-weight", "180.6");
   await sweepPage.click('[role="dialog"] button[type="submit"]');
-  await sweepPage.waitForSelector('[data-slot="morning"]');
+  await recorded(sweepPage);
   const sweptAfter = await sweep(sweepPage, "after a weigh-in");
   await sweepContext.close();
 
@@ -163,7 +188,7 @@ try {
   await spikePage.click('[data-slot="primary"]');
   await spikePage.fill("#morning-weight", "191.7");
   await spikePage.click('[role="dialog"] button[type="submit"]');
-  await spikePage.waitForSelector('[data-slot="morning"]');
+  await recorded(spikePage);
   const spikeLine = (await spikePage.textContent('[data-slot="morning"]')).trim();
   assert.match(spikeLine, /^This morning ✓ 191\.7 lb · .+/,
     "a spike reading shows the engine's note beside it, not a bare number: " + spikeLine);
@@ -177,6 +202,7 @@ try {
   await refusePage.click('[data-slot="primary"]');
   await refusePage.fill("#morning-weight", "10000");
   await refusePage.click('[role="dialog"] button[type="submit"]');
+  await refusePage.waitForFunction(() => document.querySelector("#weigh-error").textContent.trim().length > 0);
   const refusal = (await refusePage.textContent("#weigh-error")).trim();
   assert(refusal.length > 0, "an impossible weight is refused in words, not silently");
   assert.match(refusal, /Nothing was recorded/);
@@ -202,17 +228,68 @@ try {
   const fonts = await page.evaluate(() => document.fonts.size);
   assert(fonts >= 2, "both inlined typefaces are registered on the document");
 
-  // The storage really is this page's own local record.
-  const keys = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("earned.today")));
-  assert(keys.length > 0, "the durable record is in this origin's local storage");
-  assert(keys.some((k) => k.includes(":ops:")), "an operation is stored");
+  /* A2 review B2: the store of record is this origin's ENCRYPTED IndexedDB, and
+     localStorage holds nothing at all. */
+  const databases = await page.evaluate(() => indexedDB.databases().then((list) => list.map((d) => d.name)));
+  assert(databases.includes("earned-today-preview-readings"), "the reading store is on this device: " + databases);
+  assert(databases.includes("earned-today-preview-device-keys"), "this device kept its own keys: " + databases);
+  const local = await page.evaluate(() => Object.keys(localStorage));
+  assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));
+
+  /* THE REAL PROCESS KILL (review B2). Everything above ran on a throwaway context;
+     this runs on a PERSISTENT profile and kills every chrome.exe of it with
+     `taskkill /F /T` — no graceful flush, which is what an iOS tab termination is —
+     then relaunches and requires the reading to still be there. */
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), "a1-today-profile-"));
+  let killed = 0;
+  try {
+    const first = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
+    const killPage = first.pages()[0] || await first.newPage();
+    await killPage.goto(url, { waitUntil: "load" });
+    await killPage.waitForSelector('[data-slot="primary"]');
+    await killPage.click('[data-slot="primary"]');
+    await killPage.waitForSelector("#morning-weight");
+    await killPage.fill("#morning-weight", "178.9");
+    await killPage.click('[role="dialog"] button[type="submit"]');
+    await recorded(killPage);
+    const killedLine = (await killPage.textContent('[data-slot="morning"]')).trim();
+    const killedTrend = (await killPage.textContent('[data-slot="trend"]')).trim();
+
+    const pids = chromeProcessesForProfile(profile);
+    assert(pids.length > 0, "no chrome process was found for this profile — the kill would prove nothing");
+    for (const pid of pids) {
+      try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
+      catch (_) { /* a child may already be gone with its parent */ }
+    }
+    for (let tick = 0; tick < 100; tick++) {
+      if (chromeProcessesForProfile(profile).length === 0) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    assert.equal(chromeProcessesForProfile(profile).length, 0, "the browser survived taskkill /F /T");
+    killed = pids.length;
+    try { await first.close(); } catch (_) { /* already gone — that is the point */ }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    const second = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport: VIEWPORT });
+    const after = second.pages()[0] || await second.newPage();
+    await after.goto(url, { waitUntil: "load" });
+    await after.waitForSelector('[data-slot="morning"]');
+    assert.equal((await after.textContent('[data-slot="morning"]')).trim(), killedLine,
+      "the reading survived a REAL process kill");
+    assert.equal((await after.textContent('[data-slot="trend"]')).trim(), killedTrend,
+      "and the engine recomputed the same trend from it");
+    await second.close();
+  } finally {
+    try { fs.rmSync(profile, { recursive: true, force: true }); } catch (_) { /* temp dir */ }
+  }
 
   assert.deepEqual(problems, [], "no page error, console error or offsite request");
   console.log(`A1 TODAY BROWSER CHECK PASS — mounted, weighed in (${logged}), spike note shown, impossible weight `
     + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
     + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `
     + `${before.viewport - before.bottom}px and ${afterBox.viewport - afterBox.bottom}px of headroom); `
-    + `${keys.length} durable local records; no network request; no prototype figure on screen; `
+    + `the reading survived a REAL process kill (taskkill /F /T on ${killed} chrome.exe of a persistent profile, `
+    + `kill verified) and localStorage holds nothing; no network request; no prototype figure on screen; `
     + `${sweptBefore.count} engine headline titles swept in both states — worst headroom `
     + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after; `
     + `${sweptBefore.shrunk.length} title(s) fitted down to ${[...new Set(sweptBefore.shrunk.map((r) => r.size))].join("/") || "none"}px `
