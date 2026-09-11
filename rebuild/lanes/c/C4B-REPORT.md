@@ -694,12 +694,20 @@ confirmed by `git diff --stat 04c8cc9..HEAD`, which lists 18 files, all under
     `createGymHost({ day: other })` — the `hostForDay` path used to retire an
     abandoned session, and reachable only when no installation is injected —
     declares `other` and therefore moves the installation's own write day
-    backwards for as long as that transient host is open. The WORKOUT half is
-    unaffected (each host carries its own clock), and the move is RECORDED on
-    `clockAdoptions()` rather than silent, so it is visible; but a weigh-in
-    written in that window would be stamped the older day. The shipped page never
-    takes this path — `boot()` always injects an installation, so `hostForDay`
-    goes to `era.createGymHost` and touches no clock. Named, not fixed.
+    backwards **and leaves it there** — closing that transient host does not
+    restore it (the reviewer executed this: the live day stayed `2030-02-03`
+    after `close()`, so the first version of this entry, "for as long as that
+    transient host is open", understated the residual; corrected here, review
+    round 2 nit 3). The WORKOUT half is unaffected (each host carries its own
+    clock), and the move is RECORDED on `clockAdoptions()` rather than silent, so
+    it is visible. The first version of this entry also said a weigh-in written
+    in that window "would be stamped the older day". **It is not — it is
+    REFUSED**, which is better than was claimed and was likewise measured by the
+    reviewer (`weighIn ok=false`); nothing is misstamped, and the day-2 Start
+    afterwards is orderable with `startOrderRefusal()` null. The shipped page
+    never takes this path — `boot()` always injects an installation, so
+    `hostForDay` goes to `era.createGymHost` and touches no clock. Named, not
+    fixed.
 
 ---
 
@@ -731,3 +739,251 @@ Nothing was pushed.
 
 Residual 7 (the moving R1 pin) the review accepted as-is: declared, loud,
 deliberate. It is unchanged.
+
+---
+
+# 12. C4c — the rebase, the third lane, and an order that knows what a workout is
+
+PM instruction, `REQUESTS.md` 10:50 ET, on the tip `e73e28f`. Everything below is
+on `rebuild/lane-c-today`, committed, **not pushed**.
+
+## 12.1 The rebase onto `origin/rebuild/t2-client-core`
+
+`git fetch origin` then `git rebase origin/rebuild/t2-client-core`. The branch
+replayed onto the tip with **one** conflict.
+
+| file | expected | what happened |
+|---|---|---|
+| `rebuild/m3/w6/local/build.mjs` | add/add conflict | **no conflict.** The tip's version arrived with the merged C1; this branch's additions are strictly on top of it. Verified after the rebase: `git diff origin/rebuild/t2-client-core HEAD -- rebuild/m3/w6/local/build.mjs` is purely additive — no line of the tip's accepted content is changed or removed. |
+| `rebuild/m3/w7-preview/today/today-entry.mjs` | conflict against A3's edits | **conflicted, at `boot()`'s return statement.** Resolved keeping BOTH intents: the swap's `hosts` / `restoreRequired` / `readings` and A3's `checkin` are all returned, and A3's `createCheckInEntry` is kept whole with the injection point added to it. |
+
+Head after the rebase: `7221b22`.
+
+## 12.2 The check-in, folded into the ONE generation
+
+A3's `checkin-host.mjs` opened its own database, its own lease and its own
+generation. Its header gives the reason, and the reason is sound **about the
+lane it names**:
+
+> the check-in's operations are written through the client's producer-injected
+> command, which the client stamps `schema_version` 2 … so this lane's lease is
+> schema 2 and it cannot live in the reading lane (schema 1).
+
+That is an argument for a third generation only if the era's own lease is schema
+1. It is **schema 2** (`LOCAL_ERA_SCHEMA_VERSION`), which is exactly what a
+workout set rides. So a schema-2 producer command rides it too, and the check-in
+belongs here. The fold is `era.createCheckInHost({ day, commands, profile })` in
+`today-bindings.mjs`:
+
+* the **producer and the profile are arguments, never imports** — `w6` does not
+  depend on `w7-preview`, so the page passes its own `checkin-commands.cjs` and
+  the profile its facts carry;
+* the handle takes its **own** `client.hostBindings(...)`, like the gym card: a
+  fresh T2 stage closure over the same repository, so the three lanes serialise
+  on the repository's compare-and-swap and never share staging state;
+* A3's read-back is **carried, and narrowed by one clause**. The accepted client
+  publishes no face for a check-in (A3 seam S1), so the rows come out of the
+  authenticated generation as a FILTER. The profile match was already an exact
+  equality test; in ONE generation it is what keeps a weigh-in (class `reading`)
+  and a set (class `session`) out of the list. Folding the lane in cannot make a
+  check-in read anything that is not one;
+* `checkin-host.mjs` is now a 58-line wrapper. Nothing in `today/**` mints a key,
+  signs a lease or asserts an enrolment — the journey asserts that over four
+  files now, not three.
+
+## 12.3 `causalTips` is KIND-AWARE (A3 review F2)
+
+```js
+export const WORKOUT_ORDER_CLASS = 'session';
+const graphOps = generation => Object.values(generation?.collections?.ops || {})
+  .filter(op => op && typeof op.op_id === 'string' && Array.isArray(op.causal_parents)
+    && op.class === WORKOUT_ORDER_CLASS);
+```
+
+The workout order is not "everything on disk". It is the operations of class
+`session` — Start, set, close, and the Undo's tombstone, which the product writes
+as class `session` (checked empirically, not assumed). A morning reading is class
+`reading`; a check-in fact is class `event`. Both are in the generation, both are
+ordered by the device sequence, and neither causes a workout.
+
+**This moves a number C4b moved, back.** C4b's report §4 recorded that under one
+store day 1's Start descended from that morning's weigh-in, so no Start was an
+orphan. Under class scoping the first Start is an orphan again — the log of
+workouts genuinely begins there, which is what it was under two generations —
+and day 2's Start descends from day 1's close and the Undo's tombstone. That is
+the ordering claim that ever mattered. The three places that asserted the old
+shape are corrected, not weakened:
+
+| where | before | after |
+|---|---|---|
+| `gym-check.mjs` `orphanStarts` | `0` | `1`, with the reason named |
+| `gym-check.mjs` `startParents` | `[["fact"], ["fact","session-close","tombstone"]]` | `[[], ["session-close","tombstone"]]`, **plus** a new `startParentClasses` assertion that every parent of a Start is class `session` |
+| `gym-check.mjs` pass line | "day 1's Start descends from that morning's reading" | "the workout order is KIND-AWARE (C4c) … and every causal parent of a Start is a workout operation" — the copy is a rule too |
+
+And it is proved where a Start is actually composed, not only over fixtures. The
+two-day journey (`local-today-journey.test.mjs` block 10) and the Edge runner
+(`local-today-browser.mjs` case 6) both write:
+
+* a recovery check-in **between** the two sessions — after day 1's sets, before
+  day 2's Start; and
+* a second check-in on the **same day as a Start**, written **before** it.
+
+Each is the newest operation on disk at the moment a Start is composed, which is
+exactly the slot a kind-blind frontier would hand that Start as a parent. Both
+then assert: `startOrderRefusal()` is `null`; both check-ins are in the SAME
+generation, one per day; **no** Start has a check-in among its causal parents;
+every causal parent of a Start is class `session`; and the check-in lane still
+reads its own fact back off disk. The Edge runner does all of it through the
+BUILT page — `mod.boot({ today })` and `booted.checkin.host.save(...)`, the same
+calls the screen makes.
+
+A new fixture test in `gym.test.mjs` carries the negative control: in a
+generation holding a reading, a Start, a close, a check-in and a second reading,
+`causalTips()` is `['c1']` — the close, and nothing else — a Start ordered behind
+the check-in alone is refused `WORKOUT_START_ORDER_UNPROVEN`, and a generation
+holding only wellness operations has no workout tip at all, so the day's first
+Start descends from nothing exactly as it does on an empty store.
+
+## 12.4 One clock provider, covering the check-in host too
+
+`era.createCheckInHost` takes `client.hostBindings({ workoutCommands: commands,
+clock: clientClockFor(day) })` — the same per-HOST write clock the gym and
+reading hosts take, so a check-in is stamped on the day **its own host** stands
+on, in a page load that has moved to another day. It goes through the same
+`reconcile()`, so `LOCAL_ERA_CLOCK_MISMATCH` / state 3 applies to it unchanged:
+a caller that hands this lane a second store, crypto, database, namespace or
+clock is refused by name. The installation's live clock is one provider for all
+three lanes; the check-in host never opens or seeds an installation of its own.
+
+## 12.5 A3's and A2's tests — every edited line, disclosed
+
+A3's 28 check-in tests and A2's 60 gym tests are green. Nothing about product
+behaviour was weakened; here is every line that moved and why.
+
+**`today/test/checkin.test.mjs`** — the lane no longer has a store of its own, so
+the assertions that named one had to change. There are four edits:
+
+1. **Imports.** `CHECKIN_DATABASE`, `CHECKIN_NAMESPACE`, `READING_DATABASE` and
+   `AUTHORITY_KID` no longer exist — there is one database, one namespace and no
+   page-minted key. Replaced by `DATABASE as LOCAL_DATABASE` /
+   `NAMESPACE as LOCAL_NAMESPACE` from `gym-host.mjs`.
+2. **`deviceKeys()` deleted (7 lines), and `deviceKeys: keys` dropped from the
+   two `createCheckInHost` calls.** The page does not mint a key; C1 holds
+   custody. Nothing this test asserted about check-in behaviour depended on it.
+3. **MUTANT 5's header comment rewritten.** A3 proved lane separation with three
+   stores — "no store holds another store's operation". One store cannot make
+   that claim, and leaving the sentence would make the file lie. The claim is
+   restated where it always mattered.
+4. **MUTANT 5's body.** `kindsIn(checkin) === ['fact/event/…']`,
+   `kindsIn(readings) === ['fact/reading']`, `kindsIn(gym) === []` and the
+   "three databases / three namespaces" pair were replaced by, in order: the
+   three hosts share ONE repository handle (`===`, executed, not asserted about);
+   that one generation holds `['fact/event/…','fact/reading']` and nothing else;
+   that the check-in lane READS only the check-in; that the weigh-in lane reads
+   only the weigh-in; that `gymHost.causalTipsNow()` is `[]` — **the workout
+   order sees neither** (A3 review F2); one database, one namespace, one
+   `lease_id`. The two "the refusal stored nothing" assertions now compare
+   against a `before` snapshot of the shared generation instead of a per-store
+   literal, which is the same claim against the store that now exists.
+
+**`today/test/gym.test.mjs`** — two edits, one of them additive:
+
+1. **Four fixture factories gained `class: 'session'`** (`start`, `close`, `set`,
+   `tomb`). They omitted it while the workout owned a generation by itself.
+   Since `causalTips()` is class-scoped, a fixture without a class is not a
+   workout operation at all, so adding it makes the fixture describe what the
+   product actually writes. **Every assertion in that block is unchanged** —
+   only the fixtures are truthful now.
+2. **One new subtest** (26 lines), the F2 negative control described in §12.3.
+   60 cases, up from 59.
+
+Nothing in `today-app.cjs`, `today-model.cjs`, `gym-app.mjs`, `gym-model.mjs`,
+`checkin-app.mjs`, `checkin-model.mjs` or `checkin-commands.cjs` was touched.
+
+**Out of licence, minimal, and disclosed:** `today/checkin-check.mjs` (A3's
+browser check) had the literal `"chrome.exe"` in its CIM filter, so on the
+briefed `W7_BROWSER_BIN=msedge.exe` it found no process and failed on its own
+guard — the identical defect C4b review D3 closed in `gym-check.mjs` and
+`browser-check.mjs`. Three lines: `const PROCESS_NAME =
+path.basename(executablePath)`, the filter, and the "no … process was found"
+message. Nothing else in the file changed; it now runs green with 3 real kills.
+Item 5 of the instruction requires this check to run, and it could not.
+
+## 12.6 The review's four non-blocking nits — closed
+
+| nit | closed |
+|---|---|
+| 1. a **clock-only** second caller is silently dropped | `openTodayInstallation`'s `else if (day !== undefined …)` is now an `else` block: a second caller whose `clock` is not this installation's provider is RECORDED on `clockAdoptions()` as `{ from, to: null, adopted: false, why: "a second caller handed over its own clock provider; this installation already has one" }` — ignored and NAMED, for the same reason `deviceKeys` is. Refusing would strand the caller. Journey subtest: *"a clock-only second caller is RECORDED, exactly as a second deviceKeys is"*. |
+| 2. `liveDay()` misreports under a **declared provider** | the installation now answers with `dayNow()`, which asks the clock it is really using. With no declared provider the two are the same value by construction (`liveClockOver` reads `state.day`); with one, `state.day` is only a wall-clock seed the provider never agreed to. The same function is handed to `openTodayOverLocalEra` as `liveDay`. Journey subtest: *"liveDay() names the DECLARED provider's day, not the seed it was opened with"*. |
+| 3. §9.11's two wording corrections | §9 item 11 rewritten above: the live day is **not** restored when the transient host closes (it stays moved), and a weigh-in in that window is **REFUSED**, not "stamped the older day" — which is better than the report claimed. |
+| 4. the `ops === 9` message/comment mismatch | `gym-check.mjs` now makes the claim directly: `dayTwoOps === 0` — *"A REFUSED DAY WRITES NOTHING: no operation in the generation is stamped 2030-02-05"*. The composition of day one (`8` + `1` = `9`) keeps its own message, which is what those numbers actually say. |
+
+## 12.7 Everything re-run, after every edit
+
+| what | result |
+|---|---|
+| `today/test/{design.cjs,adapter,view,package}` | **64 / 64**, exit 0 |
+| `today/test/gym.test.mjs` | **60 / 60**, exit 0 (59 + the F2 control) |
+| `today/test/checkin.test.mjs` | **28 / 28**, exit 0 |
+| `w6/test/*.test.mjs` (the whole W6 suite) | **552 / 552**, exit 0 |
+| `w6/test/local-today-journey.test.mjs` | **51 / 51**, exit 0 |
+| `w6/host/test/{journey,engine-equivalence}` | **22 / 22**, exit 0 |
+| `w7-preview/test/{model,view,package}` | **19 / 19**, exit 0 |
+| `run-current-head.cjs <R1> --all` | **552 / 552**, exit 0 — composed-tree parity with the working tree, exactly |
+| `run-current-head.cjs <R1> --bite` | exit 1 (the mutant is caught, as designed) |
+| `m4/spec/native-carriers-package.cjs --ci` | PASS, exit 0 |
+| `today/build.mjs` | PASS — 3 assets, 93 pinned inputs |
+| `w6/test/local-today-browser.mjs` (Edge) | **6 / 6**, exit 0, 8 `msedge.exe` killed |
+| `today/browser-check.mjs` (Edge) | PASS, exit 0 |
+| `today/gym-check.mjs` (Edge) | PASS, exit 0 — three real kills, two training days |
+| `today/checkin-check.mjs` (Edge) | PASS, exit 0 — three real kills |
+
+Every browser run used `W6_BROWSER_BIN` / `W7_BROWSER_BIN` =
+`C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`, a fresh
+persistent profile under `%TEMP%`, and `taskkill /F /T` with the kill verified.
+Synthetic data only; nothing was pushed.
+
+## 12.8 The files, at this head
+
+| file | lines | sha256 |
+|---|---|---|
+| `rebuild/m3/w6/local/today-bindings.mjs` | 639 | `f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff` |
+| `rebuild/m3/w6/test/local-today-journey.test.mjs` | 1115 | `7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e` |
+| `rebuild/m3/w6/test/local-today-browser.mjs` | 370 | `1cf1aa35cc3f39b8e3b2d1f446d2ed6e80ddbb3f1439403fe42d765d86e9f6d1` |
+| `rebuild/m3/w7-preview/today/checkin-host.mjs` | 58 | `029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b` |
+| `rebuild/m3/w7-preview/today/today-entry.mjs` | 215 | `5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8` |
+| `rebuild/m3/w7-preview/today/gym-host.mjs` | 78 | `70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18` |
+| `rebuild/m3/w7-preview/today/reading-host.mjs` | 44 | `a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa` |
+| `rebuild/m3/w7-preview/today/gym-check.mjs` | 507 | `30816caca2d69a788777b78f6a8dae53f496190fc70adec092e88293251c41db` |
+| `rebuild/m3/w7-preview/today/checkin-check.mjs` | 371 | `fd0b3b59ee0cde2d426a257d0ab5a51a0ba026d3b7339fb75a65df8fc0aa9dc5` |
+| `rebuild/m3/w7-preview/today/test/checkin.test.mjs` | 780 | `1b0cce2307ae9d30daa538abd802914069ba636fdffd408adeea6df961934be6` |
+| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | 954 | `7ee49c4019dea8d60ed7c476959f1ac38b54dfca7f929eb3b09cd84e24f41f92` |
+
+`PAGE_PINS` in the journey pins the first four of the `today/**` files above —
+`today-entry.mjs`, `gym-host.mjs`, `reading-host.mjs` and, new in C4c,
+`checkin-host.mjs`: the four whose drift the W6 suite could not otherwise see,
+because every block here would still pass over an injected `hosts`. The same four
+are swept for `IDENTITY_KEY`, `ENROLMENT_EVIDENCE`, `AUTHORITY_KID`, `mintLease`,
+`initialGeneration`, `signRecord`, `openDeviceKeys` and `generateKey`.
+
+## 12.9 C4c commits
+
+| | |
+|---|---|
+| `7221b22` | (the rebase onto `origin/rebuild/t2-client-core`, replaying C4b + the committed review) |
+| `e381c44` | the check-in is the THIRD write path into the ONE local era; `causalTips` class-scoped; A3's and A2's tests carried |
+| `71494b3` | a check-in between the sessions and one on the same day as a Start — journey, Edge runner, `gym-check`, `checkin-check`; the clock nits' tests |
+| this | `C4B-REPORT.md` §12 and the §9.11 corrections |
+
+## 12.10 What I did NOT do
+
+* **Nothing was pushed.** `rebuild/lane-c-today` is local.
+* `gym-host.mjs` is **unchanged in C4c** — it carries no C4c edit at all and is
+  the same 78-line wrapper the accepted C4b head left (`70a59b5c…`), so lane B's
+  one hunk for B-NTC rebases onto it cleanly whichever way round.
+* `host/`, `client/`, `engine/`, `m4/`, `conform/`, `.github/` untouched; the
+  only file outside the granted list is the three-line `checkin-check.mjs` fix
+  in §12.5.
+* Still not run here: `rebuild.yml` end to end, the A5 suites, and the W6 browser
+  checks other than the Today runner. Residual 7 (the moving R1 pin) is
+  unchanged.
