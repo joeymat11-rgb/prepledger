@@ -92,7 +92,7 @@ async function scaffold() {
 const opsOf = async repository => Object.values((await repository.load()).generation.collections.ops || {});
 const kindsOf = ops => ops.map(o => o.kind).sort();
 
-test('host journey â€” clean init, record, relaunch, resume, finish, history, correct, next targets', async t => {
+test('host journey — clean init, record, relaunch, resume, finish, history, correct, next targets', async t => {
   const { f, stage, parents } = await scaffold();
   const engineState = createCleanInitState({ setup: SETUP });
   let parentIds = [];
@@ -153,7 +153,7 @@ test('host journey â€” clean init, record, relaunch, resume, finish, histor
       prescriptionCapture: Capture.createPrescriptionCapture({ parseStrictJson }) }), TypeError);
   });
 
-  await t.test('4. open today\'s workout â€” DEBUT asks for a working load', async () => {
+  await t.test('4. open today\'s workout — DEBUT asks for a working load', async () => {
     const prepared = await host.client.prepareWorkout({ planned_split_slot_id: SLOT });
     assert(prepared.prepared, prepared.code);
     const lifts = [...new Set(prepared.view.slots.map(s => s.lift_lineage_id))];
@@ -189,7 +189,7 @@ test('host journey â€” clean init, record, relaunch, resume, finish, histor
     const values = [
       { slot: 0, load: 35, reps: 9, reserve: { tag: 'exact', value: 2, unit: 'rep' } },
       { slot: 1, load: 35, reps: 8, reserve: { tag: 'at_least', value: 3, unit: 'rep' } },
-      { slot: 2, load: 35, reps: 7 },   // effort not recorded â€” an unknown effort, never a guessed one
+      { slot: 2, load: 35, reps: 7 },   // effort not recorded — an unknown effort, never a guessed one
     ];
     const prepared = host.adapter; void prepared;
     const view = JSON.parse(originalCapture);
@@ -220,7 +220,7 @@ test('host journey â€” clean init, record, relaunch, resume, finish, histor
       'the Start operation is byte-identical after relaunch');
   });
 
-  await t.test('8. resume the SAME session â€” no duplicate Start, instructions unchanged', async () => {
+  await t.test('8. resume the SAME session — no duplicate Start, instructions unchanged', async () => {
     const resumed = await host.client.prepareWorkoutContinuation({ session_start_op_id: startId });
     assert(resumed.prepared, resumed.code);
     assert.deepEqual(resumed.view.allowed_actions, ['set', 'skip', 'close']);
@@ -259,7 +259,7 @@ test('host journey â€” clean init, record, relaunch, resume, finish, histor
     assert(ops.filter(o => o.kind === 'session-set').every(o => o.session_start_op_id === startId));
   });
 
-  await t.test('10. reopen history on a fresh client â€” byte-identical reads', async () => {
+  await t.test('10. reopen history on a fresh client — byte-identical reads', async () => {
     repository.close();
     const fresh = await f.fresh();
     repository = fresh.repository;
@@ -372,7 +372,7 @@ test('host journey â€” clean init, record, relaunch, resume, finish, histor
   });
 
   // A0 review R1 / reviewer probe P1. A split whose `from` is one day AFTER
-  // the host's day is well formed, so createCleanInitState accepts it â€” and
+  // the host's day is well formed, so createCleanInitState accepts it — and
   // rebuild/engine/plan.cjs dayType finds no entry with from <= today and
   // falls back to a fixed Mon/Thu=U, Tue/Fri=L, Wed=REFEED week. On 2026-09-04
   // (a Friday) that fallback serves 'leg-press'. This step proves both halves:
@@ -406,7 +406,7 @@ test('host journey â€” clean init, record, relaunch, resume, finish, histor
       assert(refused.code, 'the refusal names a code');
       assert.deepEqual(await opsOf(own.f.repo), before, 'the refusal stored nothing');
 
-      // The same split, once in force, is served normally â€” the guard is about
+      // The same split, once in force, is served normally — the guard is about
       // the day, not about rejecting this athlete.
       const inForce = structuredClone(SETUP);
       inForce.split.from = DAY;                    // in force exactly today
