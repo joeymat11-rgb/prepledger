@@ -1,5 +1,5 @@
 'use strict';
-/* EARNED — LANE B · PACKAGE B2 — DELTA CELLS (post-review r1, extended post-review r2)
+/* EARNED — LANE B · PACKAGE B2 — DELTA CELLS (post-review r1, extended r2, extended r3)
  *
  * Witness-style cells for the delta sites the accepted-brief text does NOT
  * enumerate. Unlike rebuild/engine/test/defect-witnesses*.cjs these are NOT
@@ -266,24 +266,84 @@ cell('B2-Q2i  RESIDUAL — a SUFFIX-LESS legacy row is DOUBLE-OWNED, and order-d
   return { byShort, byLong, note: 'array-order-decided on every side — bounded residual, not a regression' };
 });
 
-/* The other half of the same residual, and the ONE behaviour the r2 former-name
- * term adds beyond restoring the lost move: when two lifts' NAME FAMILIES
- * collide on the same string, structuralMovesThisWeek now inherits the exact
- * ambiguity _volDeltas has always had (both claim it) instead of silently
- * preferring the current-name lift. Same residual class as B2-Q2i, recorded
- * here because it is a real order-dependence the shipped hunk introduces.   */
-cell('B2-Q2j  RESIDUAL — colliding NAME FAMILIES are double-owned, and order-decided with Q2', () => {
-  const cur = lift({ id: 'cur', n: 'Press', sets: 3 });
-  const old = lift({ id: 'old', n: 'Bench', sets: 3, renames: [{ prevN: 'Press' }] });
-  const row = 'VOLUME +1 — CHEST via Press (now 3 sets)';
+/* The other half of the same residual — r3 required change 4 / bite R3-A.
+ * When two lifts' NAME FAMILIES collide on the same string (one lift currently
+ * named `Bench`, another renamed AWAY from `Bench`), _volDeltas has always
+ * credited BOTH, on base too. What the reader must NOT do is let s.exercises
+ * order decide which one the move is charged to, because mgsTouched carries
+ * that lift's MUSCLE GROUP into the volumePush week budget and the Auto-Pilot
+ * tighten veto: the first shipped form of this hunk charged a receipt whose own
+ * text says CHEST to `back` when the array happened to be reversed (r3 §4 R3-A).
+ * The shipped hunk resolves the collision by C1 instead — ex.n is the LIVE
+ * display name, renames[].prevN is history, so the live name wins — which is
+ * order-independent and agrees with base on every side. This cell pins BOTH
+ * halves, exId AND mgsTouched, in BOTH array orders, on EVERY side.
+ * What it does NOT close, and pins as the bounded residual: `old` is still a
+ * legal owner to _volDeltas and is never a move, so this receipt is one of the
+ * three shapes §2 C6's bounded clause EXCLUDES.                              */
+const mgsOf = (exs, t) => T.structuralMovesThisWeek({ exercises: exs, adjustments: [], sessionLog: {},
+  feed: [{ d: '2026-09-01', t }] }).mgsTouched;
+cell('B2-Q2j  RESIDUAL — colliding NAME FAMILIES are double-owned; the LIVE name owns the move, in either order', () => {
+  const cur = lift({ id: 'cur', n: 'Bench', sets: 3, mg: 'chest' });
+  const old = lift({ id: 'old', n: 'Bench press', sets: 3, mg: 'chest', renames: [{ prevN: 'Bench' }] });
+  const row = 'VOLUME +1 — CHEST via Bench (now 3 sets)';
   const both = [T._volDeltas(cur, { feed: [{ d: '2026-09-01', t: row }] }),
     T._volDeltas(old, { feed: [{ d: '2026-09-01', t: row }] })];
-  assert.deepEqual(both, [[['2026-09-01', 1]], [['2026-09-01', 1]]]);   /* _volDeltas: both, on EVERY side */
+  assert.deepEqual(both, [[['2026-09-01', 1]], [['2026-09-01', 1]]]);   /* _volDeltas: BOTH, on EVERY side — the residual */
   const fwd = nestSets([cur, old], row);
   const rev = nestSets([old, cur], row);
-  assert.deepEqual(fwd, ['cur']);
-  assert.deepEqual(rev, q2pick({ 'BASE': ['cur'], 'CANDIDATE-NOT APPLIED': ['cur'], 'CANDIDATE-APPLIED': ['old'] }));
-  return { volDeltas: 'both', fwd, rev };
+  assert.deepEqual(fwd, ['cur']);                       /* every side */
+  assert.deepEqual(rev, ['cur']);                       /* every side — NOT decided by array order (r3 R3-A) */
+  /* the half the budget actually consumes: the receipt says CHEST, so CHEST is charged, in either order */
+  const curB = lift({ id: 'cur', n: 'Bench', sets: 3, mg: 'chest' });
+  const oldB = lift({ id: 'old', n: 'Bench press', sets: 3, mg: 'back', renames: [{ prevN: 'Bench' }] });
+  const mgFwd = mgsOf([curB, oldB], row);
+  const mgRev = mgsOf([oldB, curB], row);
+  assert.deepEqual(mgFwd, ['chest']);                   /* every side */
+  assert.deepEqual(mgRev, ['chest']);                   /* every side — never 'back' */
+  /* C2 stays terminal at this reader too: a structured owner field overrides the prose */
+  const byId = T.structuralMovesThisWeek({ exercises: [cur, old], adjustments: [], sessionLog: {},
+    feed: [{ d: '2026-09-01', exId: 'old', t: row }] }).sets.map((m) => m.exId);
+  assert.deepEqual(byId, q2pick({ 'BASE': ['cur'], 'CANDIDATE-NOT APPLIED': ['cur'], 'CANDIDATE-APPLIED': ['old'] }));
+  /* and the bounded residual itself: old is credited by _volDeltas and is never a move — C6 excludes this shape */
+  assert.equal(T._volDeltas(old, { feed: [{ d: '2026-09-01', t: row }] }).length > 0, true);
+  assert.equal(fwd.indexOf('old') < 0 && rev.indexOf('old') < 0, true);
+  return { volDeltas: 'both', fwd, rev, mgFwd, mgRev, byId };
+});
+
+/* r3 bite R3-B — a receipt whose tail is exactly " (now )", an EMPTY inner.
+ * " (now )" is a full delimiter to lastIndexOf, so an empty inner is
+ * indistinguishable from a legacy suffix-less row: the whole tail is a legal
+ * owner name AND the tail cut at the delimiter is a legal owner name. A writer
+ * emitting a nullish count produces exactly this. It is a THIRD instance of the
+ * B2-Q2i residual class — double-owned and array-order-decided on EVERY side
+ * INCLUDING BASE — and it is the third shape §2 C6's bounded clause excludes.
+ * B2 neither creates nor repairs it; this cell pins current behaviour, and the
+ * neighbours prove the boundary still fails CLOSED around it.                */
+cell('B2-Q2k  RESIDUAL — an EMPTY inner " (now )" is a full delimiter, so the row is double-owned', () => {
+  const pa = lift({ id: 'pa', n: 'Press', sets: 3 });
+  const pb = lift({ id: 'pb', n: 'Press (now )', sets: 3 });
+  const ROW_EMPTY = 'VOLUME +1 — CHEST via Press (now )';
+  const bare = { feed: [{ d: '2026-09-01', t: ROW_EMPTY }] };
+  assert.deepEqual(T._volDeltas(pa, bare), [['2026-09-01', 1]]);   /* every side */
+  assert.deepEqual(T._volDeltas(pb, bare), [['2026-09-01', 1]]);   /* every side — two owners, one receipt */
+  assert.deepEqual(nestSets([pa, pb], ROW_EMPTY), ['pa']);         /* every side */
+  assert.deepEqual(nestSets([pb, pa], ROW_EMPTY), ['pb']);         /* every side — array-order-decided on BASE too */
+  return { note: 'third instance of the B2-Q2i class — bounded residual, present on base, not a B2 regression' };
+});
+cell('B2-Q2k-b  and the boundary still fails CLOSED around it, on every side', () => {
+  const pa = lift({ id: 'pa', n: 'Press', sets: 3 });
+  const pb = lift({ id: 'pb', n: 'Press (now )', sets: 3 });
+  const nn = lift({ id: 'nn', n: '(now )', sets: 3 });
+  const got = {
+    emptyOwner: nestSets([pa, pb], 'VOLUME +1 — CHEST via  (now 3 sets)'),
+    noOwnerText: nestSets([pa, pb], 'VOLUME +1 — CHEST via (now )'),
+    emptyCount: nestSets([pa, pb], 'VOLUME +1 — CHEST via Press (now  sets)'),
+    passed: nestSets([pa, pb], 'VOLUME PASSED — nothing moved'),
+    litNowName: nestSets([pa, nn], 'VOLUME +1 — CHEST via (now )'),
+  };
+  assert.deepEqual(got, { emptyOwner: [], noOwnerText: [], emptyCount: ['pa'], passed: [], litNowName: ['nn'] });
+  return got;                                           /* identical on BASE and on both candidate variants */
 });
 
 /* ---- REGISTER CANDIDATE (r2 required change 4) ------------------------ *
