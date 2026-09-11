@@ -65,6 +65,14 @@ Both .github/workflows/rebuild.yml:91 and slice-host.yml:90 invoke the A5 pair
 directly without a fixed pass-count wrapper. This delta increases that pair
 from 43 to 45; joining the separately reviewed phone shell's additional PWA
 test would make it 46. Neither caller needs a count edit for this correction.
+Verified actual slice-host trigger consequence separately: this test path is
+under rebuild/slice/pwa/**, so a subsequent push/merge containing it on
+rebuild/t2-client-core matches the host workflow. The topic-branch push does
+not match its branch filter and pull_request is not a declared event. Unlike
+the original guard/docs-only change, this delta can therefore launch the host
+workflow on integration. Unchanged workflow bytes do not mean no future host
+run; its existing secret/no-op/deploy controls still apply. No host run was
+triggered by this local review (.tmp/guard-trigger.cjs).
 Scoped inspection at the PM's separate stable 413a54e found no direct
 workflow.test.cjs path pin in B-NTC.json, b-ntc-runtime-closure.json or
 b-ntc-successors.json. A5-REPORT.md contains a historical source digest/count,
