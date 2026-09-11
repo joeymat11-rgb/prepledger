@@ -139,7 +139,7 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={closure,successorGates,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_PACKAGES,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    '\nmodule.exports={closure,successorGates,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,failCode,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_PACKAGES,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -298,4 +298,16 @@ test('Z6 — the refusal vocabulary is derived from the runner and covers these 
   // It is a vocabulary, not an echo: a string an input could shape is not in it.
   assert(!api.FAIL_CODES.has('ARBITRARY-TEXT-FROM-A-CHILD-PROCESS'));
   assert(api.FAIL_CODES.size >= 40);
+  // And what the terminal prints is the CODE alone, never the rest of the message.
+  // assert.equal appends "\n\na !== b"; the token stops before it.
+  let thrown;
+  try { assert.equal(1, 2, 'SUCCESSOR-EXECUTED-VERDICT source-carriers; the successor is held'); } catch (e) { thrown = e; }
+  assert.equal(api.failCode(thrown.message), 'SUCCESSOR-EXECUTED-VERDICT');
+  try { assert.equal('a', 'b', 'SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT'); } catch (e) { thrown = e; }
+  assert.equal(api.failCode(thrown.message), 'SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT');
+  // An unnamed assertion and anything an input could shape return null, not an echo.
+  assert.equal(api.failCode('Child argv probe-child'), null);
+  assert.equal(api.failCode('NOT-A-REAL-CODE-AT-ALL something'), null);
+  assert.equal(api.failCode('ENOENT: no such file or directory'), null);
+  assert.equal(api.failCode(undefined), null);
 });

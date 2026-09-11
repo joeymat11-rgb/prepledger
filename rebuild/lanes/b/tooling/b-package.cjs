@@ -256,6 +256,15 @@ const FAIL_CODES = (() => {
   assert(out.size >= 40, 'REFUSAL-VOCABULARY-TOO-SMALL ' + out.size);
   return out;
 })();
+// The one function that decides what a refusal may say. It reads the LEADING RUN of code
+// characters and returns it only if it is already a name in this file; assert.equal appends
+// its own "a !== b" diff after a newline, and that diff (and every path, count and value
+// any message carries) stops at the first character a name cannot contain. Never returns
+// anything an input could have shaped, because an unrecognised token returns null.
+function failCode(message) {
+  const token = (/^([A-Z][A-Z0-9-]{7,})/.exec(typeof message === 'string' ? message : '') || [])[1];
+  return token && FAIL_CODES.has(token) ? token : null;
+}
 const args = process.argv.slice(2);
 // Exactly two modes, exactly one package; no third mode, no defaulting, case-exact ids.
 if (!(args.length === 3 && ['--full', '--ci'].includes(args[0]) && args[1] === '--package' && IDS.includes(args[2]))) {
@@ -323,12 +332,18 @@ function ownChildren(s) {
 // resolves one. This is read, never executed, and it is bounded — a closure that will not
 // close inside CLOSURE_LIMIT files is refused rather than truncated, because a truncated
 // closure would silently weaken every check built on it.
+// `stop` names files the walk must NOT enter or record. proveSuccessor() passes the parent's
+// own pinned originals: they are the accepted parent's bytes, held byte-identical by pins()
+// and by the two sha anchors below, and they are emphatically not the successor's code. If
+// they were in the closure, the copy check would see the original inside itself and the
+// replace-site check would be reading the parent's own library code. The closure is the
+// LANE's files, walked to fixpoint.
 const CLOSURE_LIMIT = 64;
-function closure(file) {
+function closure(file, stop = new Set()) {
   const seen = new Map(), queue = [file];
   while (queue.length) {
     const f = queue.shift();
-    if (seen.has(f)) continue;
+    if (seen.has(f) || (f !== file && stop.has(f))) continue;
     assert(seen.size < CLOSURE_LIMIT, 'SUCCESSOR-SOURCE-CLOSURE-TOO-LARGE ' + file);
     assert(fs.existsSync(rel(f)) && fs.statSync(rel(f)).isFile(), 'SUCCESSOR-SOURCE-CLOSURE-FILE-MISSING ' + f);
     const src = fs.readFileSync(rel(f), 'utf8');
@@ -1014,8 +1029,11 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
   assert.equal(sha(originalBytes), bound.acceptance.executionPins[original], 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + original);
   assert.equal(sha(originalBytes), gitSha(SUCCESSOR_PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
   const originalText = originalBytes.toString('utf8');
-  // (2) names it, and does not contain it.
-  const sources = closure(declared.successor);
+  // (2) names it, and does not contain it. The walk stops at the parent's own pinned
+  // files, so `sources` is the LANE's code and nothing else.
+  const parentOwn = new Set([...Object.keys(bound.acceptance.executionPins), ...Object.keys(bound.acceptance.product)]);
+  const sources = closure(declared.successor, parentOwn);
+  assert(!parentOwn.has(declared.successor), 'SUCCESSOR-IS-A-PARENT-PINNED-FILE ' + declared.successor);
   const body = [...sources.values()].join('\n');
   assert(body.includes(original), 'SUCCESSOR-DOES-NOT-NAME-THE-ORIGINAL ' + parentChild + ' ' + original);
   const subs = sup.substitutions.filter(x => x.original === original);
@@ -1342,9 +1360,7 @@ try {
   // name, and only when that word is already a name in this file (FAIL_CODES). Anything
   // else — an unnamed assertion, a runtime error, a message an input could shape — prints
   // the unchanged sentence and nothing more. Exit codes are unchanged in both branches.
-  const message = error && typeof error.message === 'string' ? error.message : '';
-  const token = (/^([A-Z][A-Z0-9-]{7,})(?:[ ;:]|$)/.exec(message) || [])[1];
-  const code = !blocked && token && FAIL_CODES.has(token) ? token : null;
+  const code = blocked ? null : failCode(error && error.message);
   console.error(blocked ? 'B PACKAGE ' + ID + ' BLOCKED ' + error.code
     : 'B PACKAGE ' + ID + ' FAIL' + (code ? ' ' + code : '') + '; required evidence missing or failed; local diagnostics withheld');
   process.exitCode = blocked ? 2 : 1;
