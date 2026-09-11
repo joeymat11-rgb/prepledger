@@ -104,7 +104,7 @@ test('inherited pinned original cannot become a trailing application argument', 
   // Reproduce r5's exact inherited names/map as well, without executing old gates.
   const inherited = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'rebuild/lanes/b/tooling/packages/B-NTC.json')));
   assert.equal(Object.keys(inherited.coverage.inherited).length, 9);
-  assert.equal(inherited.children.length, 5);
+  assert.equal(inherited.children.length, 19);
   for (const original of inherited.children) {
     for (const file of original.argv.filter(a => !a.startsWith('-'))) write(file, 'throw new Error("INHERITED ORIGINAL EXECUTED");');
     const forged = { ...original, argv: [pass, ...original.argv.filter(a => !a.startsWith('-'))], needle: 'PROBE PASS' };
@@ -146,6 +146,10 @@ test('parent execution role requires superseded and exact pre; genuinely new pas
   pin.role = 'superseded-by-child'; pin.pre = '0'.repeat(64);
   assert.throws(() => api.product(s, bound), /pre-image is not the parent execution pin/);
   pin.role = 'new'; pin.pre = sha(good); bound.acceptance.executionPins = {};
+  // Unchanged existing BNTC dependencies require their exact source policy.
+  assert.throws(() => api.product(s, bound), /ENOENT|SUCCESSOR-POLICY/);
+  // A genuinely new implementation has an empty preimage and actual post bytes.
+  pin.pre = crypto.createHash('sha256').update(Buffer.alloc(0)).digest('hex');
   api.product(s, bound);
 });
 test('two exact new roots execute real tests; adjacent and foreign roots refuse', () => {
