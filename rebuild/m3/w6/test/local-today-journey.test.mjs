@@ -27,12 +27,14 @@ import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { createDurablePublicClient } from '../public-client.mjs';
 import { openTodayOverLocalEra, openTodayInstallation, causalTips, startOrderRefusalOf,
-  PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER } from '../local/today-bindings.mjs';
+  PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER,
+  WORKOUT_ORDER_CLASS } from '../local/today-bindings.mjs';
 import { readLocalEra, localEraLeaseId, LOCAL_ERA_SCHEMA_VERSION } from '../local/local-era.mjs';
 import { markerDatabaseName } from '../local/local-client.mjs';
 import { keysDatabaseName } from '../local/local-keys.mjs';
 // The page's own modules, unmodified.
 import * as GymHost from '../../w7-preview/today/gym-host.mjs';
+import { PROFILE as CHECKIN_PROFILE } from '../../w7-preview/today/checkin-host.mjs';
 import * as Entry from '../../w7-preview/today/today-entry.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../../w7-preview/today/gym-model.mjs';
 import { mountGym } from '../../w7-preview/today/gym-app.mjs';
@@ -179,14 +181,19 @@ test('C4 — weigh-in, Start, sets, undo, finish, Today reflects — one generat
     assert.equal(start.kind, 'session-start');
     assert.equal(start.schema_version, 2, 'the workout lane is schema 2 — same lease, same generation');
     assert.equal(start.prescription_capture.profile, 'earned/workout-prescription/v2');
-    /* ONE STORE MAKES THE FRONTIER CROSS-LANE, and that is the truthful answer:
-       the morning weigh-in is the only op on this disk, so it is the only tip,
-       so the Start descends from it. In A2's two stores the workout generation
-       could not see the reading at all. Nothing in the accepted order resolver
-       reads a reading — startOrderRefusalOf only judges session-starts — and the
-       day+1 test below proves a later reading never displaces yesterday's close. */
+    /* C4c — THE FRONTIER IS THE WORKOUT ORDER'S, NOT THE GENERATION'S.
+       C4b let it be cross-lane and called that the truthful answer: the morning
+       weigh-in was the only op on this disk, so it was the only tip, so the Start
+       descended from it. A3 review F2 says why that is wrong the moment lanes
+       share a generation — a wellness answer would order a workout — and the
+       weigh-in was the same defect one lane early. causalTips() is class-scoped
+       now (WORKOUT_ORDER_CLASS), so the workout log is empty here and the first
+       Start of this device descends from NOTHING, exactly as it did in A2's own
+       generation. */
     const reading = ops.find(op => op.class === 'reading');
-    assert.deepEqual(start.causal_parents, [reading.op_id]);
+    assert(reading, 'the morning really is in this generation');
+    assert.deepEqual(start.causal_parents, [],
+      'the first Start descends from nothing — a reading is not a workout parent');
     assert.deepEqual(await gymHost.causalTipsNow(), [startId], 'and the Start is now the only tip');
   });
 
@@ -330,8 +337,14 @@ test('C4 — day+1 on a new page load descends from day 1\'s close, across a wei
     const weighed = await two.readings.weighIn({ date: offsetDay(DAY, 1), lb: 179.0 });
     assert.equal(weighed.ok, true, weighed.code);
     dayTwoReading = weighed.op_id;
-    assert.deepEqual(await two.gymHost.causalTipsNow(), [firstClose, dayTwoReading].sort(),
-      'both lanes leave a tip; the frontier carries BOTH');
+    /* C4c — the frontier is the WORKOUT ORDER's. This asserted that both lanes
+       leave a tip and the frontier carries BOTH; since causalTips() became
+       class-scoped (A3 review F2) the morning is not a workout tip, so the only
+       tip is yesterday's close. That is what the accepted order resolver needs
+       and all it needs — and the reading is still on disk, read by its own lane. */
+    assert.deepEqual(await two.gymHost.causalTipsNow(), [firstClose],
+      'the only workout tip is yesterday\'s close; this morning\'s reading is not one');
+    assert(dayTwoReading, 'the morning really was written first');
     const probe = await two.model.read();
     assert.equal(probe.phase, 'ready', probe.code || '');
     assert.equal(await two.gymHost.startOrderRefusal(), null,
@@ -339,8 +352,10 @@ test('C4 — day+1 on a new page load descends from day 1\'s close, across a wei
     const started = await two.model.start();
     assert.equal(started.ok, true, started.code);
     const start = (await opsOf(two.era)).find(op => op.op_id === started.opId);
-    assert(start.causal_parents.includes(firstClose), 'day 2 descends from day 1\'s close');
-    assert(start.causal_parents.includes(dayTwoReading), 'and from this morning\'s reading');
+    assert.deepEqual(start.causal_parents, [firstClose],
+      'day 2 descends from day 1\'s close, and from that alone');
+    assert.equal(start.causal_parents.includes(dayTwoReading), false,
+      'not from this morning\'s reading — a workout is never ordered behind one');
     const last = await logEverySet(two.model);
     assert.equal((await two.model.finish({ startId: last.startId })).ok, true);
     assert.equal((await opsOf(two.era)).length, 14, 'two whole sessions and two readings, one generation');
@@ -579,24 +594,26 @@ test('C4 — a weigh-in and a workout set committed concurrently both survive', 
 
    PAGE_PINS stays, re-pinned, with the corrected description review round 2
    asked for: it is NOT "every today/** file this branch depends on" — the
-   journey imports seven and pins three. It is THE THREE FILES WHOSE DRIFT THIS
-   SUITE COULD NOT OTHERWISE SEE. The other four (design.cjs, gym-app.mjs,
+   journey imports eight and pins four. It is THE FOUR FILES WHOSE DRIFT THIS
+   SUITE COULD NOT OTHERWISE SEE. The others (design.cjs, gym-app.mjs,
    gym-model.mjs, today-app.cjs, today-model.cjs) are DRIVEN by the blocks above,
-   so drift in them turns this suite red on its own. today-entry.mjs, gym-host.mjs
-   and reading-host.mjs are the three the swap rests on: if the entry point stops
-   defaulting to the local era, or either wrapper starts opening a store of its
-   own again, every block here would still pass over an injected `hosts`.
+   so drift in them turns this suite red on its own. today-entry.mjs, gym-host.mjs,
+   reading-host.mjs and — since C4c — checkin-host.mjs are the four the swap rests
+   on: if the entry point stops defaulting to the local era, or any wrapper starts
+   opening a store of its own again, every block here would still pass over an
+   injected `hosts`.
    =========================================================================== */
 export const PAGE_PINS = Object.freeze({
-  'today-entry.mjs': '4b9a0c218b1c333f9c3c49f418a3a14d9ad31458a00aa19732026fff84571595',
+  'today-entry.mjs': '5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8',
   'gym-host.mjs': '70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18',
   'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
+  'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
 });
 const pageFile = name => fileURLToPath(new URL('../../w7-preview/today/' + name, import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 
 test('C4b — the page and the drop-in are pinned to each other', async t => {
-  await t.test('the three files whose drift this suite could not otherwise see are unchanged', () => {
+  await t.test('the four files whose drift this suite could not otherwise see are unchanged', () => {
     for (const [name, expected] of Object.entries(PAGE_PINS)) {
       const actual = sha256(readFileSync(pageFile(name)));
       assert.equal(actual, expected,
@@ -621,7 +638,7 @@ test('C4b — the page and the drop-in are pinned to each other', async t => {
   });
 
   await t.test('nothing in today/** mints an identity, a lease or an enrolment any more', () => {
-    for (const name of ['today-entry.mjs', 'gym-host.mjs', 'reading-host.mjs']) {
+    for (const name of ['today-entry.mjs', 'gym-host.mjs', 'reading-host.mjs', 'checkin-host.mjs']) {
       const text = readFileSync(pageFile(name), 'utf8');
       for (const gone of ['IDENTITY_KEY', 'ENROLMENT_EVIDENCE', 'AUTHORITY_KID', 'mintLease',
         'initialGeneration', 'signRecord', 'openDeviceKeys', 'generateKey'])
@@ -879,6 +896,18 @@ test('C4b — boot() opens the local era BY DEFAULT, and takes an injected one w
    whether day 1's holder was released. Both must now reach a logged set on day 2
    and leave no Start for which startOrderRefusal() is non-null.
    =========================================================================== */
+/* C4c — a recovery check-in through the page's own entry, on whatever day the
+   boot stands on. `answers` is A3's own shape; the durable fact is what Today
+   reads back. */
+async function recordCheckIn(booted, answers = { energy: 'Low', stress: 'High' }) {
+  assert.equal(booted.checkin.summary().durable, true, 'the check-in lane opened');
+  const saved = await booted.checkin.host.save(answers);
+  assert.equal(saved.ok, true, 'check-in: ' + JSON.stringify(saved));
+  await booted.checkin.refresh();
+  assert.equal(booted.checkin.summary().recorded, true, 'and Today reads it back off disk');
+  return saved;
+}
+
 async function conductDayOne(booted) {
   assert.deepEqual(booted.failures, []);
   assert.equal((await booted.workout.gym.start()).ok, true);
@@ -896,6 +925,10 @@ async function twoDaysInOnePageLoad(releaseFirstHolder) {
   const day2 = offsetDay(DAY, 1);
   const first = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
   await conductDayOne(first);
+  /* C4c/F2 — a recovery check-in BETWEEN the two sessions. It is the newest op in
+     the generation when day 2's Start is composed, so a kind-blind frontier would
+     hand the Start a check-in as its causal parent. */
+  await recordCheckIn(first, { energy: 'Low', stress: 'High' });
   if (releaseFirstHolder) first.hosts.close();
 
   const fresh = createTodayModel({}).stateFromOps();
@@ -905,6 +938,9 @@ async function twoDaysInOnePageLoad(releaseFirstHolder) {
   assert.deepEqual(second.failures, []);
   assert.equal(second.hosts.client === first.hosts.client, !releaseFirstHolder,
     'the A and B runs must really differ in whether the installation was shared');
+
+  /* C4c/F2 — and a second check-in on the SAME DAY as a Start, written before it. */
+  await recordCheckIn(second, { sleep_quality: 'Good', soreness: 'None' });
 
   // The abandoned day-1 session is named and retired through the accepted close.
   if (second.workout.summary().unfinished) {
@@ -931,6 +967,27 @@ async function twoDaysInOnePageLoad(releaseFirstHolder) {
   assert.equal(starts.length, 2, 'one Start per day');
   assert.deepEqual(starts.map(op => op.effective.local_date).sort(), [DAY, day2],
     'each Start is stamped on the day its own host stood on — the invariant D1 broke');
+
+  /* C4c/F2 — THE WORKOUT ORDER IS KIND-AWARE. Three lanes share this generation
+     now, so a Start's causal parents must come from the workout order and from
+     nothing else. Both check-ins are the newest ops at the moment a Start is
+     composed; neither may appear as a parent of one, and the check-ins are still
+     there, unrejected, read back by their own lane. */
+  const checkIns = ops.filter(op => op.kind === 'fact' && op.class === 'event'
+    && op.payload && op.payload.profile === CHECKIN_PROFILE);
+  assert.equal(checkIns.length, 2, 'both check-ins are in the ONE generation');
+  assert.deepEqual(checkIns.map(op => op.effective.local_date).sort(), [DAY, day2],
+    'one between the sessions, one on the same day as a Start');
+  const checkInIds = new Set(checkIns.map(op => op.op_id));
+  for (const start of starts) for (const parent of start.causal_parents || [])
+    assert.equal(checkInIds.has(parent), false,
+      'a Start may not be caused by a check-in: ' + parent);
+  const byId = new Map(ops.map(op => [op.op_id, op]));
+  for (const start of starts) for (const parent of start.causal_parents || [])
+    assert.equal((byId.get(parent) || {}).class, WORKOUT_ORDER_CLASS,
+      'every causal parent of a Start belongs to the workout order');
+  assert.equal((await second.checkin.refresh()).recorded, true,
+    'and the check-in lane still reads its own fact back out of the shared generation');
   const liveDay = second.hosts.liveDay();
   second.hosts.close();
   if (!releaseFirstHolder) first.hosts.close();
@@ -973,6 +1030,34 @@ test('C4b-D1 — two training days in ONE page load, with and without releasing 
       return true;
     }, where);
     era.close();
+  });
+
+  /* C4c — the two clock nits review round 2 raised as non-blocking. */
+  const installation = (indexedDB, options) => openTodayInstallation({ indexedDB, crypto: webcrypto,
+    databaseName: GymHost.DATABASE, namespace: GymHost.NAMESPACE, ...options });
+
+  await t.test('a clock-only second caller is RECORDED, exactly as a second deviceKeys is', async () => {
+    const indexedDB = new IDBFactory();
+    const one = await installation(indexedDB, { day: DAY });
+    assert.deepEqual(one.clockAdoptions(), [], 'the first caller declares; it does not adopt');
+    const two = await installation(indexedDB, { clock: clockFor(offsetDay(DAY, 1)) });
+    assert.deepEqual(two.clockAdoptions(), [{ from: DAY, to: null, adopted: false,
+      why: 'a second caller handed over its own clock provider; this installation already has one' }],
+      'the second clock is named on the record, never dropped in silence');
+    assert.equal(two.liveDay(), DAY, 'and it did NOT move what this installation stamps');
+    two.close(); one.close();
+  });
+
+  await t.test('liveDay() names the DECLARED provider\'s day, not the seed it was opened with', async () => {
+    const indexedDB = new IDBFactory();
+    const declared = await installation(indexedDB, { clock: clockFor(DAY) });
+    assert.equal(declared.liveDay(), DAY,
+      'with a provider and no day, the seed is the WALL day — the provider is the answer');
+    const later = await installation(indexedDB, { day: offsetDay(DAY, 1) });
+    assert.deepEqual(later.clockAdoptions().map(one => one.adopted), [false],
+      'a declared provider is not this module\'s to move');
+    assert.equal(later.liveDay(), DAY, 'so the day it names is still the provider\'s');
+    later.close(); declared.close();
   });
 });
 

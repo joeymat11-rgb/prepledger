@@ -19,7 +19,9 @@
 //      still open — the shape the shipped page is actually in, because it
 //      auto-boots at module load and never releases it. Day 2 must recover the
 //      abandoned day-1 session, Start, and reach a LOGGED SET, leaving no Start
-//      the accepted resolver cannot order (C4b review D1);
+//      the accepted resolver cannot order (C4b review D1) — with a RECOVERY
+//      CHECK-IN between the two sessions and a second on the same day as a
+//      Start, in the same generation, causing neither of them (C4c, A3 review F2);
 //   5. PARTIAL ERASURE (the device key record removed under the page) is
 //      RESTORE-REQUIRED: the page prints rebuild/client's own copy, claims no
 //      reading, and never re-enrols over the record it could not read.
@@ -35,6 +37,7 @@ import { execFileSync } from "node:child_process";
 import { buildToday } from "../../w7-preview/today/build.mjs";
 import { startServer } from "../../w7-preview/today/serve.mjs";
 import { DATABASE, RESTORE_REQUIRED } from "../../w7-preview/today/gym-host.mjs";
+import { PROFILE as CHECKIN_PROFILE } from "../../w7-preview/today/checkin-host.mjs";
 import TodayModel from "../../w7-preview/today/today-model.cjs";
 import { EFFORT_CHOICES } from "../../w7-preview/today/gym-model.mjs";
 import { markerDatabaseName } from "../local/local-client.mjs";
@@ -221,13 +224,28 @@ try {
      startOrderRefusal() = WORKOUT_START_ORDER_UNPROVEN: a Start on disk no
      accepted resolver could order. It must now reach a logged set, and leave
      nothing stranded. */
-  const twoDays = await page.evaluate(async ({ nextDay, effort }) => {
+  const twoDays = await page.evaluate(async ({ day, nextDay, effort, checkInProfile }) => {
     const mod = await import(new URL("app.js", location.href).href);
+    const out = {};
+    /* C4c/F2 — A RECOVERY CHECK-IN BETWEEN THE SESSIONS, written through the
+       page's own entry on day 1, into the SAME installation and the SAME sealed
+       generation. It is the newest operation on disk when day 2's Start is
+       composed, which is exactly the position a kind-blind causal frontier would
+       hand to that Start as its parent. */
+    const dayOne = await mod.boot({ today: day });
+    out.checkInOne = await dayOne.checkin.host.save({ energy: "Low", stress: "High" });
+    out.checkInOneRead = (await dayOne.checkin.refresh()).recorded;
+    dayOne.hosts.close();
+
     const fresh = mod.createTodayModel({}).stateFromOps();
     fresh.sessionLog = {};
     const booted = await mod.boot({ today: nextDay, basisState: fresh });
-    const out = { failures: booted.failures, adoptions: booted.hosts.clockAdoptions(),
-      liveDay: booted.hosts.liveDay() };
+    out.failures = booted.failures;
+    out.adoptions = booted.hosts.clockAdoptions();
+    out.liveDay = booted.hosts.liveDay();
+    // And a second check-in on the SAME DAY as a Start, written before it.
+    out.checkInTwo = await booted.checkin.host.save({ sleep_quality: "Good", soreness: "None" });
+    out.checkInTwoRead = (await booted.checkin.refresh()).recorded;
     if (booted.workout.summary().unfinished) out.recover = await booted.workout.recover();
     out.summary = booted.workout.summary();
     out.start = await booted.workout.gym.start();
@@ -240,11 +258,22 @@ try {
     out.orderRefusal = await booted.workout.gymHost.startOrderRefusal();
     const generation = (await booted.hosts.generation()).generation;
     const ops = Object.values(generation.collections.ops);
-    out.startDays = ops.filter(op => op.kind === "session-start").map(op => op.effective.local_date).sort();
+    const starts = ops.filter(op => op.kind === "session-start");
+    out.startDays = starts.map(op => op.effective.local_date).sort();
     out.leases = [...new Set(ops.map(op => op.lease_id))].length;
+    /* C4c/F2 — the WORKOUT ORDER, read off the disk the page just wrote. */
+    const checkIns = ops.filter(op => op.kind === "fact" && op.class === "event"
+      && op.payload && op.payload.profile === checkInProfile);
+    out.checkInDays = checkIns.map(op => op.effective.local_date).sort();
+    const checkInIds = new Set(checkIns.map(op => op.op_id));
+    out.startsCausedByCheckIn = starts
+      .filter(start => (start.causal_parents || []).some(id => checkInIds.has(id))).length;
+    out.startParentClasses = starts.map(start => (start.causal_parents || [])
+      .map(id => { const parent = ops.find(op => op.op_id === id); return parent ? parent.class : "?"; }));
     booted.hosts.close();
     return out;
-  }, { nextDay: NEXT_DAY, effort: EFFORT_CHOICES.find(choice => choice.label === "2").reserve });
+  }, { day: DAY, nextDay: NEXT_DAY, checkInProfile: CHECKIN_PROFILE,
+    effort: EFFORT_CHOICES.find(choice => choice.label === "2").reserve });
   assert.deepEqual(twoDays.failures, [], JSON.stringify(twoDays.failures));
   assert.deepEqual(twoDays.adoptions, [{ from: DAY, to: NEXT_DAY, adopted: true }],
     "the later day is ADOPTED by name, never silently dropped: " + JSON.stringify(twoDays.adoptions));
@@ -258,7 +287,22 @@ try {
   assert.equal(twoDays.orderRefusal, null, "nothing on disk is a Start the resolver cannot order");
   assert.deepEqual(twoDays.startDays, [DAY, NEXT_DAY].sort(),
     "each Start is stamped on the day its own host stood on: " + JSON.stringify(twoDays.startDays));
-  assert.equal(twoDays.leases, 1, "still ONE lease across both days and both write paths");
+  assert.equal(twoDays.leases, 1, "still ONE lease across both days and all THREE write paths");
+  /* C4c/F2 — the check-ins are in the shared generation and are NOT causes of a
+     workout. Both were the newest operation on disk at the moment a Start was
+     composed, so a kind-blind frontier would have named one as a parent. */
+  assert.equal(twoDays.checkInOne.ok, true, "day 1's check-in: " + JSON.stringify(twoDays.checkInOne));
+  assert.equal(twoDays.checkInTwo.ok, true, "day 2's check-in: " + JSON.stringify(twoDays.checkInTwo));
+  assert.equal(twoDays.checkInOneRead, true, "and Today reads day 1's back off disk");
+  assert.equal(twoDays.checkInTwoRead, true, "and day 2's");
+  assert.deepEqual(twoDays.checkInDays, [DAY, NEXT_DAY].sort(),
+    "one check-in between the sessions and one on the same day as a Start, in the SAME generation: "
+    + JSON.stringify(twoDays.checkInDays));
+  assert.equal(twoDays.startsCausedByCheckIn, 0,
+    "no Start is caused by a check-in — the workout order is kind-aware");
+  assert.deepEqual(twoDays.startParentClasses.flat().filter(klass => klass !== "session"), [],
+    "every causal parent of a Start belongs to the workout order: "
+    + JSON.stringify(twoDays.startParentClasses));
   passed();
 
   /* 7. PARTIAL ERASURE. The device key record is removed under the page — the
@@ -310,7 +354,9 @@ try {
     + `process(es) with taskkill /F /T (${kills} kill); weigh-in + workout entered through the shipped UI `
     + `into ONE sealed generation, one lease, one checkpoint; TWO TRAINING DAYS in one page load with the `
     + `first holder still open (the later day ADOPTED by name, each Start stamped on its own day, `
-    + `startOrderRefusal() null); partial erasure is RESTORE_REQUIRED by name and never a re-enrolment; `
+    + `startOrderRefusal() null); a recovery check-in between the sessions and one on the same day as `
+    + `a Start, in the SAME generation, causing neither; `
+    + `partial erasure is RESTORE_REQUIRED by name and never a re-enrolment; `
     + `localStorage holds nothing.`);
   console.log("W6 iPhone / iOS Safari acceptance NOT RUN — Chromium-family evidence only (C3)");
 } catch (error) {

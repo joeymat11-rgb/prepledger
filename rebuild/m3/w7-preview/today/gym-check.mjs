@@ -310,7 +310,8 @@ try {
     const ops = Object.values((await booted.workout.gymHost.repository.load()).generation.collections.ops || {});
     return { summary: booted.workout.summary(), ops: ops.length,
       workoutOps: ops.filter((op) => op.class === "session").length,
-      readingOps: ops.filter((op) => op.class === "reading").length };
+      readingOps: ops.filter((op) => op.class === "reading").length,
+      dayTwoOps: ops.filter((op) => op.effective && op.effective.local_date === day).length };
   }, DAY_TWO);
   assert.equal(shippedDayTwo.summary.phase, "blocked", JSON.stringify(shippedDayTwo.summary));
   assert.equal(shippedDayTwo.summary.code, "PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED",
@@ -320,13 +321,23 @@ try {
      removal edit, the four sets that stand, and the close. It also logged one
      morning weigh-in, which before the swap lived in a second generation
      (earned-today-preview-readings) and is now in the SAME one — so the
-     generation holds 9. The claim being made here is "a refused day writes
-     NOTHING", so it is made against the count taken before the refused day
-     rather than against a literal that has to be re-derived every time the
-     journey above changes: the reading is counted separately and named. */
+     generation holds 9 — and every one of them is DAY ONE's.
+
+     C4c, review round 2 nit 4: this comment used to promise the claim was made
+     "against the count taken before the refused day" while the assertion under
+     it compared a literal 9 and carried the message "a refused day writes
+     nothing". 9 is the composition of day one, not evidence about day two, so
+     the message described something the assertion was not testing. The claim is
+     made directly now — nothing in the generation is stamped on the refused day
+     — and the composition of day one keeps its own message. */
+  assert.equal(shippedDayTwo.dayTwoOps, 0,
+    "A REFUSED DAY WRITES NOTHING: no operation in the generation is stamped "
+    + DAY_TWO + ", but " + shippedDayTwo.dayTwoOps + " are");
   assert.equal(shippedDayTwo.workoutOps, 8, "day 1's eight workout operations: " + shippedDayTwo.workoutOps);
   assert.equal(shippedDayTwo.readingOps, 1, "and the one morning, now in the SAME generation");
-  assert.equal(shippedDayTwo.ops, 9, "a refused day writes nothing: " + shippedDayTwo.ops);
+  assert.equal(shippedDayTwo.ops, 9,
+    "which is all there is — day one's eight sets-and-session operations plus its one morning: "
+    + shippedDayTwo.ops);
 
   /* Now the athlete S2 actually ships to. DECISIONS:100 has Joe starting FRESH, so
      the daily path that matters is the one without a ported log — same device, same
@@ -395,7 +406,9 @@ try {
       startDays: starts.map((op) => op.effective.local_date).sort(),
       orphanStarts: starts.filter((op) => (op.causal_parents || []).length === 0).length,
       startParents: starts.map((start) => (start.causal_parents || [])
-        .map((id) => { const parent = ops.find((op) => op.op_id === id); return parent ? parent.kind : "?"; })) };
+        .map((id) => { const parent = ops.find((op) => op.op_id === id); return parent ? parent.kind : "?"; })),
+      startParentClasses: starts.map((start) => (start.causal_parents || [])
+        .map((id) => { const parent = ops.find((op) => op.op_id === id); return parent ? parent.class : "?"; })) };
   }, DAY_TWO);
   assert.equal(bothDays.read, true, "the durable history still reads after the third REAL kill");
   assert.equal(bothDays.sessions, 2, "BOTH training days are on disk: " + bothDays.sessions);
@@ -414,21 +427,31 @@ try {
      accepted resolver could order. */
   assert.deepEqual(bothDays.startDays, [DAY_ONE, DAY_TWO].sort(),
     "each Start is stamped on its own day: " + JSON.stringify(bothDays.startDays));
-  /* C4b — THE THIRD NUMBER ONE STORE MOVED, and the most interesting one.
+  /* C4b/C4c — THE THIRD NUMBER ONE STORE MOVED, and the most interesting one.
      This used to read "exactly one Start descends from nothing — the first".
      Under TWO generations the workout log began with the first Start, so that
-     Start had no parent. Under ONE, day 1's morning weigh-in is written FIRST
-     and into the SAME causal graph, so the first Start descends from THE
-     MORNING and no Start is an orphan at all. The claim the old assertion made
-     — every Start is ordered, and day 2 descends from day 1 — is made directly
-     instead of through an orphan count: each Start's parents are named by kind. */
-  assert.equal(bothDays.orphanStarts, 0,
-    "no Start descends from nothing: under one store the first one descends from the first morning");
+     Start had no parent. C4b put the morning weigh-in in the SAME generation and
+     the first Start briefly descended from it.
+
+     C4c PUT THAT BACK, deliberately (A3 review F2). Three lanes now share this
+     generation — sets, weigh-ins and recovery check-ins — and the WORKOUT ORDER
+     is not "everything on disk": it is the ops of class `session`. A Start's
+     causal parents are drawn from that class alone, so a morning reading and a
+     check-in are in the generation, ordered by the device sequence, and are not
+     causes of a workout. Day 1's Start is therefore an orphan again — the log of
+     workouts genuinely begins there — and day 2's descends from day 1's close
+     and the Undo's tombstone, which is the ordering claim that matters. */
+  assert.equal(bothDays.orphanStarts, 1,
+    "exactly one Start descends from nothing — the first, because the workout order begins there: "
+    + bothDays.orphanStarts);
   assert.deepEqual(bothDays.startParents.map((kinds) => kinds.slice().sort()),
-    [["fact"], ["fact", "session-close", "tombstone"]],
-    "day 1's Start descends from that morning's reading; day 2's from every tip the log then "
-    + "held — day 1's close, the Undo's tombstone, and day 2's own morning: "
+    [[], ["session-close", "tombstone"]],
+    "day 1's Start opens the workout order; day 2's descends from every WORKOUT tip the log "
+    + "then held — day 1's close and the Undo's tombstone — and from no reading or check-in: "
     + JSON.stringify(bothDays.startParents));
+  assert.deepEqual(bothDays.startParentClasses.flat().filter((klass) => klass !== "session"), [],
+    "and every causal parent of a Start belongs to the workout order: "
+    + JSON.stringify(bothDays.startParentClasses));
   assert(bothDays.startParents[1].includes("session-close"),
     "and day 2 descends from day 1's close, which is the ordering claim that matters");
   assert.equal(bothDays.morning, 2, "both mornings are readable through the reading host");
@@ -467,8 +490,9 @@ try {
     + "says recorded, through a reload, a new page and a SECOND real kill. DAY 2 (" + DAY_TWO + ", the page's own "
     + "entry point over the same device storage): prepares -> weigh-in -> Start -> every set -> finished; a THIRD "
     + "real kill, and the history still reads with BOTH sessions. ONE STORE (C4b): 16 operations in ONE sealed "
-    + "generation under ONE lease — 14 workout and both mornings; each Start stamped on its own day; day 1's "
-    + "Start descends from that morning's reading and day 2's from day 1's close, so NO Start is unordered. "
+    + "generation under ONE lease — 14 workout and both mornings; each Start stamped on its own day; the "
+    + "workout order is KIND-AWARE (C4c), so day 1's Start opens it and day 2's descends from day 1's close "
+    + "and the Undo's tombstone, and every causal parent of a Start is a workout operation. "
     + "localStorage holds nothing. Headroom: "
     + notes.join(", ")
     + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");
