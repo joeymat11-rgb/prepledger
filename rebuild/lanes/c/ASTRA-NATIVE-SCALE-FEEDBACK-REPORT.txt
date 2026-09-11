@@ -1,0 +1,98 @@
+EARNED — NATIVE SCALE FEEDBACK, STAGE 1 CANDIDATE
+Date: 2026-09-11. Builder report; not an independent review or issued receipt.
+Brief: ASTRA-NATIVE-SCALE-FEEDBACK.md at PM93b6ca2; stage1 plan55efbc7.
+Branch: codex/astra-native-scale-feedback.
+Exact parent: ca57649b3cc9189dca8d006ceb6bac17c842bea6.
+Worktree: BASE/astra-native-scale-feedback; BASE is the work directory named in the brief.
+
+CHANGE
+Six files only: engine/energy.cjs delegates currentRate's scale arithmetic;
+engine/writers.cjs delegates its existing damped scale update; engine/scale.cjs
+holds that unchanged arithmetic; m4/nutrition/scale-feedback.mjs, CONTRACT.md and
+scale-feedback.test.mjs implement/document/test the new projection. This report
+is the seventh file. All paths above are beneath rebuild/.
+No frozen app/law, runtime export, host/Today, storage, initialSetup, BNTC policy,
+other worktree, private fixture or reference data was changed.
+
+RESULT
+Executable projectScaleFeedback invokes actual reading and stored-workout
+projectors over the same privately authenticated generation. Shared native edit
+fold preserves accepted/local closes even when a pending removal hides a close
+from the local projection. Output retains original observations/effects,
+effective date/time/offset, operation commitments/status/receipt references,
+explicit exclusions and separate accepted/local feedback. Output is immutable;
+projection performs no writes and uses no derived cache.
+First eligible reading directly seeds baseline/smoothing. Subsequent readings
+use the existing +/-1.5 clamp, 0.3 update and one-decimal rounding. Last-28/raw
+regression, 10-reading threshold and all uncertainty rules are unchanged. No
+weekly snapshots, baseline prior, model, fat rate or calorie plan is invented.
+
+SOURCE SEMANTICS
+Legacy energy.readWindow tests sessionLog[date] presence; writers.logSession
+creates that entry on completion. Native mapping is an included, interpretable
+schema2 normal/early close attached to an interpretable Start for that date.
+Open sets alone do not create a completed legacy entry. Actual C4 weighIn has
+no causal parents after a workout, but retains the same-device predecessor and
+sequence: those plus consistent effective timestamps prove recording chronology.
+The transport chain never resolves semantic edits. Equal timestamps use device
+order. Later closes do not retroactively exclude an earlier reading.
+As-of excludes future observations before daily grouping, while current resolved
+corrections apply to their original observation. It is not a historical receipt
+snapshot. Offsets resolve instants; local noon remains the eligibility boundary.
+Regression retains the actual legacy host-local-midnight axis, including DST;
+the output records the zone and used coordinates. Changing the runtime zone can
+change that established legacy axis; no historical timezone policy was invented.
+
+EXECUTED VERIFICATION
+Node v24.19.0; TZ=America/New_York. Retained dependency junctions only, no install.
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT both set to this candidate tree.
+node --test --test-reporter=dot
+  rebuild/m4/nutrition/scale-feedback.test.mjs
+  rebuild/m3/w6/test/reading-history.test.mjs
+  rebuild/m4/workout/test/native-baseline-journey.test.mjs
+  rebuild/m4/import/test/reading-replay.test.cjs
+PASS: 61/61, exit0. Focused nutrition spec rerun: 19/19, exit0.
+git diff --check: PASS.
+An initial neighboring-test run lacked EARNED_SOURCE_R1_ROOT and failed one
+fixture path lookup. Supplying the existing documented dependency root resolved
+it; no product change was made for that failure.
+
+Focused checks execute real encrypted C4 empty/late/eligible and workout+reading
+journeys, both relative orders and equal timestamps, durable reopen/cache-loss
+equivalence, and no mutation of the input generation. Boundary controls use
+actual T2 envelope builders and existing projectors with explicitly synthetic
+receipt fixtures: these are not signed authority campaign evidence.
+Quantity correction, rejected correction, concurrent corrections, unsupported
+reading reclassification, first/later/all removals, unresolved/rejected roots,
+same-day repeats, actual future cutoff, offset/DST boundaries and current edits
+after the observation cutoff all execute. Ten native readings yield 7 lb/week
+for the linear vector with ci0 and no body model; nine produce no rate.
+Legacy parity compares factories read from exact parent ca57649: currentRate
+JSON matches across 36 configured states (prior, weekly fallback, regression,
+28 cap, sealed/late exclusions and different model drips). applyRead full output
+matches across 64 configured combinations plus duplicate/no-mutation controls.
+Native regression also matches legacy across DST. Pre-change currentRate with
+10 readings and no model throws TypeError. The legacy fat API retains that
+behavior; the new shared scale-only path succeeds without a model.
+
+CONCRETE RED CASES / REMAINING WIRING
+1. Actual same-date reading facts: DAILY_READING_RESOLUTION_REQUIRED, no winner.
+   An unaffected next-day reading still seeds. Future same-day facts are first
+   excluded as-of and therefore do not fabricate a present repeat.
+2. Actual reading reclassification envelope: existing interpreter reports
+   READING_EFFECT_UNSUPPORTED; the native layer exposes READING_RESOLUTION_REQUIRED.
+   Native reading time reclassification has no supported mapping in this schema.
+3. Actual completed-workout output plus missing predecessor, unordered remote
+   reading or contradictory time/order: SCALE_TRAINING_CHRONOLOGY_REQUIRED.
+   Unresolved close status gives SCALE_TRAINING_INTERPRETATION_REQUIRED.
+4. Source codec prepareMaterial/intent validation plus an actual source-intent
+   envelope: SCALE_SOURCE_BLACKOUT_MAPPING_REQUIRED. No physiological blackout
+   comes from A3 sealed metadata. Connecting the actual selected imported source
+   projection remains needed; this candidate's calculable scope is fresh native
+   history without source imports. No fake blackout/model was supplied.
+5. Host/Today consumption, missing personal inputs, four-field daily plan,
+   progression/recovery integration and separate full engine qualification remain
+   outside this brief. The candidate grants no machine freshness or prescription
+   permission. Root must assign distinct implementation review and later wiring.
+
+No full/private engine campaign, purchase, push, PR, merge or deployment run.
