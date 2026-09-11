@@ -11,7 +11,16 @@
    WHAT IT NEVER DOES. It never prints a ledger value. Every line below is a
    path, a count, a hash or a verdict — the same rule port-oracle.cjs already
    enforces in code for the private blob. It never uploads anything. It never
-   writes inside the repository. It never overwrites an existing bundle.
+   writes inside the repository, inside any git working tree, or anywhere a
+   junction or an 8.3 short name leads back into one (see outRefusal: the first
+   version of that guard compared strings, and an independent reviewer walked
+   through it twice). It never overwrites an existing bundle.
+
+   THREE THINGS MUST AGREE BEFORE IT SEALS. (1) prepare.cjs's own dataLossGuard,
+   (2) a state-level counts check built on the port-oracle's own census counts()
+   — it covers exercises, queue, earned, debuts and events, which dataLossGuard
+   was measured NOT to protect — and (3) the frozen gate, GREEN in both Date
+   modes. Any one of them says no and nothing is written at all.
 
    WHAT IT REUSES, UNCHANGED (nothing here re-implements migration or merge):
      · rebuild/m4/import/prepare.cjs  createImportPreparation({engine, parseStrictJson})
@@ -42,6 +51,7 @@ const { createHash, createCipheriv, randomBytes, randomInt } = require('node:cry
 const { spawnSync } = require('node:child_process');
 const { pathToFileURL } = require('node:url');
 const { createImportPreparation } = require('../../../m4/import/prepare.cjs');
+const { counts: censusCounts } = require('../../../conform/oracle/census.cjs');
 const { PROFILE, KDF, CIPHER, TAG_BYTES, aadBytes, deriveKey } = require('./unseal.cjs');
 const { WORDS } = require('./wordlist.cjs');
 
@@ -83,27 +93,34 @@ const USAGE = [
   'usage: node rebuild/m3/setup/port/port.cjs --source <path-to-ledger-state.json> --out <dir>',
   '                                           [--local <phone-export.json>] [--engine <path>]',
   '',
-  '  --source  the ledger JSON to port (on the real run: the frozen app ledger/state.json)',
-  '  --out     a folder OUTSIDE the repository for the sealed bundle and the passphrase',
-  '  --local   optional second ledger to merge in (a phone export), through the same guard',
-  '  --engine  optional engine module (default rebuild/engine/oracle-shim.cjs)',
+  '  --source         the ledger JSON to port (on the real run: ledger/state.json)',
+  '  --out            a folder OUTSIDE the repository, outside any git working tree,',
+  '                   for the sealed bundle and the passphrase',
+  '  --local          optional second ledger to merge in (a phone export)',
+  '  --local-inspect  with --local: say what that file is and stop. Writes nothing.',
+  '  --local-confirm  with --local: the first 8 characters of the local file\'s sha256,',
+  '                   as --local-inspect prints them. Without it a merge will not run.',
+  '  --engine         optional engine module (default rebuild/engine/oracle-shim.cjs)',
   '',
-  '  exit 0 = sealed bundle written · exit 2 = the oracle gate was not GREEN, nothing written',
+  '  exit 0 = sealed bundle written.  exit 2 = a check said no, nothing written.',
 ].join('\n');
 
 /* Windows: a path may arrive with backslashes, forward slashes, spaces, or
    quotes the shell left on. path.resolve normalises all of it against cwd. */
 function parseArgs(argv) {
-  const out = { source: null, out: null, local: null, engine: null, help: false };
-  const takes = { '--source': 'source', '--out': 'out', '--local': 'local', '--engine': 'engine' };
+  const out = { source: null, out: null, local: null, engine: null, confirm: null, inspect: false, help: false };
+  const paths = { '--source': 'source', '--out': 'out', '--local': 'local', '--engine': 'engine' };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--help' || arg === '-h') { out.help = true; continue; }
-    const key = takes[arg];
-    if (!key) throw new PortError(`unknown argument ${arg}\n\n${USAGE}`);
+    if (arg === '--local-inspect') { out.inspect = true; continue; }
+    const key = paths[arg];
+    if (!key && arg !== '--local-confirm') throw new PortError(`unknown argument ${arg}\n\n${USAGE}`);
     const value = argv[++i];
     if (value === undefined) throw new PortError(`${arg} needs a value\n\n${USAGE}`);
-    out[key] = path.resolve(value.trim().replace(/^"(.*)"$/, '$1'));
+    const clean = value.trim().replace(/^"(.*)"$/, '$1');
+    if (key) out[key] = path.resolve(clean);
+    else out.confirm = clean.toLowerCase();
   }
   return out;
 }
@@ -220,9 +237,61 @@ function manifestPin(sourceSha256) {
   return null;
 }
 
-function insideRepo(dir) {
-  const rel = path.relative(REPO, dir);
-  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+/* --- WHERE THE BUNDLE MAY NOT GO -------------------------------------------
+   The first version of this guard compared path.resolve() strings. The reviewer
+   walked through it twice on Windows — once through a directory junction
+   (mklink /J, no admin), once through an 8.3 short name (DOCUME~1) — and landed
+   the sealed bundle AND the plaintext passphrase inside the tracked worktree of
+   a PUBLIC repository. path.resolve normalises "." and separators; it resolves
+   neither reparse points nor short names. fs.realpathSync.native does both.
+
+   So: realpath everything first, then refuse three ways over — this worktree,
+   ANY git working tree (a linked worktree's root carries a .git FILE, not a
+   directory, and a junction lands inside some other checkout just as easily),
+   and any path with a `rebuild` segment in it. Over-refusing costs Joe one
+   retry with a different folder. Under-refusing publishes his ledger. */
+function realPathOf(target) {
+  // --out usually does not exist yet, so realpath the nearest ancestor that does.
+  let probe = path.resolve(target);
+  const tail = [];
+  while (!fs.existsSync(probe)) {
+    const parent = path.dirname(probe);
+    if (parent === probe) return probe;
+    tail.unshift(path.basename(probe));
+    probe = parent;
+  }
+  let real;
+  try { real = fs.realpathSync.native(probe); } catch { real = probe; }
+  return tail.length ? path.resolve(real, ...tail) : real;
+}
+const REPO_REAL = realPathOf(REPO);
+
+function contains(parent, child) {
+  const rel = path.relative(parent, child);   // win32 path.relative is case-insensitive
+  return rel === '' || (!rel.startsWith('..' + path.sep) && rel !== '..' && !path.isAbsolute(rel));
+}
+
+function insideRepo(dir) { return contains(REPO_REAL, realPathOf(dir)); }
+
+/* A .git entry — directory (a normal clone) or file (a linked worktree) — marks
+   a working tree whose `git add` could sweep the bundle up. */
+function gitWorkingTreeAt(dir) {
+  let probe = dir;
+  for (;;) {
+    if (fs.existsSync(path.join(probe, '.git'))) return probe;
+    const parent = path.dirname(probe);
+    if (parent === probe) return null;
+    probe = parent;
+  }
+}
+
+function outRefusal(dir) {
+  const real = realPathOf(dir);
+  if (contains(REPO_REAL, real)) return `inside this repository (${real})`;
+  const tree = gitWorkingTreeAt(real);
+  if (tree) return `inside a git working tree (${tree}) - a commit there could publish it`;
+  if (real.split(path.sep).includes('rebuild')) return `inside a folder called "rebuild" (${real})`;
+  return null;
 }
 
 function localDate() {
@@ -231,12 +300,57 @@ function localDate() {
   return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
 }
 
+/* --- THE STATE-LEVEL COUNTS CHECK ------------------------------------------
+   dataLossGuard protects what it protects, and it was measured NOT to cover
+   exercises, queue, earned, debuts or events: drop all 18 queue entries and it
+   still answers {safe:true, lost:[]}. The port-oracle's counts law does cover
+   them — but the oracle only ever censuses the blobs pinned on disk, which on
+   the real run is a September snapshot, not the ledger being ported.
+
+   So this runs the oracle's OWN counts() (a public export of
+   rebuild/conform/oracle/census.cjs, called, never re-implemented) on the source
+   state and on the migrated state, and refuses to seal if any guarded class came
+   out smaller. It is a DECREASE rule, not the oracle's equality rule, because
+   migration legitimately mints queue entries and EARNED feed lines. `sets` is
+   printed but not gated: the oracle allows a decrease there for filed attested
+   strikes, and dataLossGuard's D33 clause already refuses an undeclared one. */
+const GUARDED = Object.freeze(['reads', 'nights', 'dailyLogs', 'sessionLog',
+  'exercises', 'queue', 'earned', 'debuts', 'events', 'waist']);
+const SHOWN = Object.freeze([...GUARDED, 'sets', 'feed', 'pendingDebuts', 'volume']);
+
+function countsCheck(label, before, after) {
+  const shrank = GUARDED.filter(k => (after[k] || 0) < (before[k] || 0))
+    .map(k => `${k} ${before[k]}->${after[k]}`);
+  return { label, before, after, shrank };
+}
+function censusLine(before, after) {
+  return SHOWN.map(k => `${k} ${before[k]}->${after[k]}`).join('  ');
+}
+
+/* --- IS THIS --local THE SAME LEDGER? --------------------------------------
+   HONEST LIMIT: the state carries no athlete, owner, install or device
+   identity — there is nothing to key on, and the two public fixtures differ by
+   less than two ledgers of the same man would. So this is a RELATEDNESS
+   heuristic, not an identity check: it catches the realistic accident (Joe
+   picks the wrong export and the ledger silently doubles into a fictional
+   history) and it cannot detect a different athlete in principle. */
+function relatedness(source, local, schemaV) {
+  const key = r => (r && r.d !== undefined && r.w !== undefined) ? `${r.d}|${r.w}` : null;
+  const mine = new Set((source.reads || []).map(key).filter(Boolean));
+  const shared = new Set((local.reads || []).map(key).filter(Boolean).filter(k => mine.has(k)));
+  // Same schema lineage: at or ahead of the source, never past what we can migrate.
+  const lineage = Number.isSafeInteger(local.v) && local.v >= source.v && local.v <= schemaV;
+  return { shared: shared.size, lineage, related: shared.size >= 1 && lineage };
+}
+
 async function run(argv) {
   const opts = parseArgs(argv);
   if (opts.help || (!opts.source && !opts.out)) { console.log(USAGE); return 0; }
   if (!opts.source) throw new PortError(`--source is required\n\n${USAGE}`);
-  if (!opts.out) throw new PortError(`--out is required\n\n${USAGE}`);
-  if (insideRepo(opts.out)) throw new PortError(`--out must be OUTSIDE the repository (got ${opts.out})`);
+  if (!opts.local && (opts.inspect || opts.confirm)) throw new PortError('--local-inspect and --local-confirm need --local');
+  if (!opts.out && !opts.inspect) throw new PortError(`--out is required\n\n${USAGE}`);
+  const refusal = opts.out ? outRefusal(opts.out) : null;
+  if (refusal) throw new PortError(`--out is ${refusal}.\nPick a plain folder such as your Desktop or Documents. Nothing was written.`);
   // The oracle's manifest pins these exactly; anything else fails the gate closed.
   for (const [name, want] of [['MEASURED_TEST_NOW', GATE.clock], ['TZ', GATE.tz]]) {
     if (process.env[name] && process.env[name] !== want) {
@@ -253,11 +367,41 @@ async function run(argv) {
   const sourceBytes = readInput('--source', opts.source);
   const sourceSha256 = sha256(sourceBytes);
   say('SOURCE', 'PASS', `${opts.source}  sha256=${sourceSha256}  bytes=${sourceBytes.length}`);
-  let localBytes, localSha256;
+  let localBytes, localSha256, localRelated = null;
   if (opts.local) {
     localBytes = readInput('--local', opts.local);
     localSha256 = sha256(localBytes);
-    say('LOCAL', 'PASS', `${opts.local}  sha256=${localSha256}  bytes=${localBytes.length}`);
+    const first8 = localSha256.slice(0, 8);
+    const parsed = raw => { try { return parseStrictJson(Buffer.from(raw)); } catch { return null; } };
+    const sourceHead = parsed(sourceBytes), localHead = parsed(localBytes);
+    const shaped = s => s && typeof s === 'object' && !Array.isArray(s) && Number.isSafeInteger(s.v);
+    if (!shaped(sourceHead) || !shaped(localHead)) {
+      say('LOCAL', 'FAIL', 'LOCAL_UNREADABLE  (not strict JSON, or no schema version)');
+      return 2;
+    }
+    localRelated = relatedness(sourceHead, localHead, engine.SCHEMA_V);
+    say('LOCAL', localRelated.related ? 'PASS' : 'FAIL', `${opts.local}  sha256=${localSha256}  bytes=${localBytes.length}`);
+    note(`schema ${localHead.v} (source ${sourceHead.v}, engine ${engine.SCHEMA_V})  lineage=${localRelated.lineage}  ` +
+      `readings this file has in common with the source: ${localRelated.shared}`);
+    if (opts.inspect) {
+      note(localRelated.related
+        ? `This looks like the same ledger. To merge it, run again with  --local-confirm ${first8}`
+        : 'LOCAL_UNRELATED  This does NOT look like the same ledger: no reading (same date AND same weight) is in both files.');
+      note('Nothing was written - --local-inspect only looks.');
+      return localRelated.related ? 0 : 2;
+    }
+    if (!localRelated.related) {
+      note('LOCAL_UNRELATED  No reading (same date AND same weight) is in both files' +
+        (localRelated.lineage ? '.' : ', and its schema is not in the source\'s lineage.'));
+      note('Merging it would invent a history that never happened. Nothing was written.');
+      note('Run again with --local-inspect to see what that file is.');
+      return 2;
+    }
+    if (opts.confirm !== first8) {
+      say('CONFIRM', 'FAIL', opts.confirm ? '--local-confirm does not match this file' : '--local-confirm is required before a merge');
+      note('Run again with --local-inspect to see what that file is and what to confirm. Nothing was written.');
+      return 2;
+    }
   }
 
   // b. prepare: migrate (and merge) through the accepted module, guard included
@@ -284,6 +428,21 @@ async function run(argv) {
   note(`dataLossGuard  safe=${guard.safe}  lost=${guard.lost.length}  (prepare re-ran it against every preimage)`);
   if (guard.safe !== true || guard.lost.length !== 0) {
     say('GUARD', 'FAIL', `${guard.lost.length} lost record classes (nothing written)`);
+    return 2;
+  }
+
+  // b2. the oracle's own counts(), applied to THESE states — the classes
+  //     dataLossGuard does not cover (exercises, queue, earned, debuts, events)
+  const migratedCounts = censusCounts(candidateState);
+  const checks = [countsCheck('source', censusCounts(sourceState), migratedCounts)];
+  if (localBytes) checks.push(countsCheck('local', censusCounts(prepared.localState()), migratedCounts));
+  const shrank = checks.filter(c => c.shrank.length);
+  say('COUNTS', shrank.length ? 'FAIL' : 'PASS',
+    `census counts(), ${GUARDED.length} guarded classes, ${checks.length === 1 ? 'source' : 'source and local'} -> migrated`);
+  for (const check of checks) note(`${check.label}  ${censusLine(check.before, check.after)}`);
+  if (shrank.length) {
+    for (const check of shrank) note(`SHRANK (${check.label}): ${check.shrank.join('  ')}`);
+    note('A record class came out smaller than it went in. NO BUNDLE WRITTEN.');
     return 2;
   }
 
@@ -325,16 +484,31 @@ async function run(argv) {
     migrated: { sha256: summary.candidate_sha256, state: candidateState },
     oracle,
     dataLoss: { safe: guard.safe, lost: guard.lost.length, before, after },
+    census: {
+      source: 'rebuild/conform/oracle/census.cjs counts()',
+      guarded: [...GUARDED],
+      rule: 'no guarded class may come out smaller',
+      counts: Object.fromEntries(checks.map(c => [c.label, c.before]).concat([['migrated', migratedCounts]])),
+    },
   };
-  if (localBytes) payload.local = { sha256: localSha256, bytes: localBytes.toString('base64') };
+  if (localBytes) {
+    payload.local = { sha256: localSha256, bytes: localBytes.toString('base64') };
+    payload.local.relatedness = { ...localRelated, note: 'relatedness heuristic - the state carries no athlete identity' };
+  }
   const passphrase = makePassphrase();
   const envelope = seal(payload, passphrase, sourceSha256);
   const bundleText = JSON.stringify(envelope, null, 1) + '\n';
   say('SEAL', 'PASS', `${KDF.name}-${KDF.hash} ${KDF.iterations} iterations -> ${CIPHER.name}-${CIPHER.keyBits}  ` +
     `${PASSPHRASE_WORDS} words out of ${WORDS.length}  sealed bytes=${bundleText.length}`);
 
-  // e. write
+  // e. write. The folder is checked AGAIN once it exists: only then can its own
+  //    realpath be read rather than its nearest existing ancestor's.
   fs.mkdirSync(opts.out, { recursive: true });
+  const secondLook = outRefusal(opts.out);
+  if (secondLook) {
+    try { fs.rmdirSync(opts.out); } catch { /* not empty, or not ours - leave it */ }
+    throw new PortError(`--out is ${secondLook}.\nNothing was written.`);
+  }
   const stampedDate = localDate();
   const bundleFile = path.join(opts.out, `earned-port-${stampedDate}.json`);
   const passFile = path.join(opts.out, `earned-port-${stampedDate}-PASSPHRASE.txt`);
@@ -379,4 +553,5 @@ if (require.main === module) {
   });
 }
 
-module.exports = { run, GATE, REPO, USAGE, makePassphrase, seal, runGate, engineDigest, PASSPHRASE_WORDS };
+module.exports = { run, GATE, REPO, REPO_REAL, USAGE, makePassphrase, seal, runGate, engineDigest,
+  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, GUARDED };
