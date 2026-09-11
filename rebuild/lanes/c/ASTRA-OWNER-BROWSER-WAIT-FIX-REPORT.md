@@ -1,0 +1,9 @@
+# Owner browser acknowledgment correction
+
+Candidate from d05876fbc01765f7958f6e5a1a58e06e9a53f263 on codex/astra-owner-browser-fix. Implements FILE ASTRA-OWNER-BROWSER-WAIT-FIX.md and F1 in independent report 009995ad898640a8f896b6a0797df54120551aa7. Candidate authoring only; independent recheck remains required.
+
+Only local-owner-browser.mjs changes. Replaced both async waitForFunction predicates with deadline-bounded polling that awaits real public repository observations. The set fence requires a new operation identity and actual 40 x 10 payload. The recovery fence requires a new event/fact identity, earned/recovery-checkin/v1 profile, and Moderate energy answer. Existing weight cannot satisfy it. Reload now also compares both complete saved operations by their exact identities; the original four-operation count and remaining journey assertions are preserved.
+
+Executed the actual built-browser journey using existing Node and Chrome, with W7_BROWSER_BIN pointing to the installed Chrome executable. Result: OWNER ENTRY BROWSER PASS, including ordinary default boot, synthetic public enrollment, UI weight/set/check-in, reload, original active session, demo isolation and no page errors. Before any recovery action, the same awaited helper timed out on the absent new Moderate operation with OWNER_OPERATION_TIMEOUT and at least two repository polls: OWNER OPERATION TIMEOUT CONTROL PASS. Build and browser execution exited 0. This is synthetic local browser evidence, not hosted or phone acceptance.
+
+Reused prior builder 241/lifecycle 15 and independent 120/product-calendar evidence as directed; no broad rerun. No product source edits, private data, dependency installation, source-policy changes, push, merge or deployment. Existing dependencies were reused through ignored local junctions; temporary build/probe output remains ignored.
