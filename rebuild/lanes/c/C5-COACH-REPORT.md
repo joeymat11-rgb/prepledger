@@ -17,16 +17,17 @@ task; the cap gate is built and proved instead.
 
 ## Files
 
-Refreshed after review **round 2** (see the two sections at the end). Rows changed
-in round 2 are marked **‡**; rows changed in round 1 and untouched since, **†**.
+Refreshed after review **round 3** (see the three sections at the end). Rows
+changed in round 3 are marked **§**; in round 2, **‡**; in round 1 and untouched
+since, **†**.
 
 | file | lines | sha256 |
 |---|---|---|
-| `rebuild/coach/TOOL-CONTRACT.md` **‡** | 438 | `1cda03c55d5cca676fca1684d2172f37f19edf3fad993594ea3992dcef587f16` |
-| `rebuild/coach/tools.cjs` **‡** | 1034 | `6616516cfc2fdb98e6a03cb816a1f22d615664d592fb21f5577ce847b3cf7a4f` |
+| `rebuild/coach/TOOL-CONTRACT.md` **§** | 457 | `3671604567c89b963fb33c1043c9cd2d68db2358898ceafce04c004b1d9f6417` |
+| `rebuild/coach/tools.cjs` **§** | 1034 | `6b8ed622f39428cb0cf6ccbde9e045da683a21406e281f326cf71dff3b230a74` |
 | `rebuild/coach/local-world.mjs` | 183 | `776c4f307007c0d41d7afc449f1357a2aebcd05a25dedf7d0ecb2e79e3abf632` |
-| `rebuild/coach/coach-text.cjs` **‡** | 269 | `116e08124af2078c0c082a1908f88648184910dc11b130db232b5d7d249d5604` |
-| `rebuild/coach/model-adapter.md` **‡** | 179 | `c0cc0eff64702534e2974fd729082a1fbbf9d0f510d4b009a13b453d511481aa` |
+| `rebuild/coach/coach-text.cjs` **§** | 269 | `1ec05a8c8f16261b3651db4a017b10b3fc2bbefcd1ffb43174d12a81cf8d7d3e` |
+| `rebuild/coach/model-adapter.md` **§** | 185 | `3f0b6702994e7dfd263176c4595905b912d7cdf28591064f5e40cefc4e382885` |
 | `rebuild/coach/scripts/questions.json` | 35 | `b50281309960805b00c7f9105616795388bdda9a17ed2e63869daa71dfdcee04` |
 | `rebuild/coach/cap.schema.json` | 26 | `8bdb19765cc8a0fa9607aae86fe0d9aa2dff6dc1dedf694d73ecf3c89ac690bf` |
 | `rebuild/coach/cap.example.json` | 14 | `341d8e4d01d9509d6a5e37876f9e1276c6335799d5b5402434f3b20b0a3b96da` |
@@ -35,6 +36,7 @@ in round 2 are marked **‡**; rows changed in round 1 and untouched since, **�
 | `rebuild/coach/test/local-era.test.cjs` | 225 | `304a310676a6c025f1d68f5da3e8d3044b9abc17c306d0e6db02608c3921e983` |
 | `rebuild/coach/test/cost-cap.test.cjs` **‡** | 240 | `ab4a6d0d868a348a7438a9605076f6601ecbd2266a81057c8ebfbbe463d3664d` |
 | `rebuild/coach/test/charter-and-gym-seam.test.cjs` | 152 | `868d8f19fa3e162a045c28914e1517cad364d1868b966b411de820afd0fc8281` |
+| `rebuild/coach/test/no-dashes.test.cjs` **§ NEW** | 188 | `c96679e282c844528acbbe960a53c4e480512f27af6e23425c071c5e1519a4c1` |
 | `rebuild/coach/VOICE-COACH-BRIEF.md` (unchanged) | 35 | `5d66dc611217f0a6f09dc12da721ee81d6bd4a6a2d706a4dfea84e8e966e3510` |
 
 ## Commands and counts (Windows, cmd.exe, node **v24.18.0**)
@@ -45,7 +47,7 @@ C6(ii)); the reviewer measured v24.18.0 too.
 
 ```
 node --test "rebuild/coach/test/*.test.cjs"
-    tests 58 · suites 0 · pass 58 · fail 0 · cancelled 0 · skipped 0 · todo 0
+    tests 64 · suites 0 · pass 64 · fail 0 · cancelled 0 · skipped 0 · todo 0
 ```
 (the quoted glob matters — `node --test rebuild/coach/test/` treats the directory
 as a single test file on this build and fails.)
@@ -64,6 +66,7 @@ It needs no dependency, no `package.json` and no install: the suite is plain
 | `local-era.test.cjs` | 9 | pass |
 | `cost-cap.test.cjs` | 12 | pass |
 | `charter-and-gym-seam.test.cjs` | 8 | pass |
+| `no-dashes.test.cjs` | 6 | pass |
 
 ```
 node rebuild/coach/coach-text.cjs
@@ -637,3 +640,82 @@ real client) remains proved by execution in `local-era.test.cjs`, which is
   is discarded exactly as "Eat 155 calories." is.
 - **R2's residuals** — no model, no voice, no UI, no cap on any account, no
   opt-in screen — are unchanged and still disclosed above.
+
+## Review round 3 — no-dashes rule (DECISIONS:114)
+
+Standing owner rule, DECISIONS:114 (1), owner verbatim: **"no ai dashes are
+allowed in the ui"**. The coach's spoken and rendered text IS athlete-facing, so
+no en dash (U+2013) and no em dash (U+2014) may appear in anything this lane
+writes for the athlete. Code comments are not UI and keep theirs.
+
+Suite: **58 → 64** tests, 64 pass / 0 fail. CLI unchanged at 25 turns ·
+0 untraceable · 0 charter violations. `node --check rebuild/coach/tools.cjs` OK.
+Isolation empty against the base.
+
+### RED first: measured before the sweep
+
+`node --test rebuild/coach/test/no-dashes.test.cjs` at `4126035`, before a single
+character was swept: **tests 6 · pass 0 · fail 6.** The counts it reported, each
+measured rather than estimated:
+
+| where | before | after |
+|---|---|---|
+| dashes in string literals in lane-owned source (`tools.cjs`, `coach-text.cjs`, `local-world.mjs`, comments stripped) | **6** | **0** |
+| dashes in `ALL_TEMPLATES` own string literals | **1** | **0** |
+| dashes in `NEVER_VIA_COACH` (the tier-3 explanations) | **1** | **0** |
+| dashes in `scripts/questions.json` | 0 | 0 |
+| dashes in the 25-turn transcript, TOTAL | **19** | **17** |
+| …of those, inside engine prose the coach carries verbatim | 18 | **17** |
+| …of those, **written by the coach itself** | **1** | **0** |
+
+The six offending literals, and what each became:
+
+| file | was | now |
+|---|---|---|
+| `coach-text.cjs:63` (`protein` template) | `It is a floor, not a bullseye — over it is not a miss.` | `It is a floor, not a bullseye. Over it is not a miss.` |
+| `tools.cjs` `NEVER_VIA_COACH.phase` | `not a choice — not yours and not mine.` | `not a choice. It is not yours and it is not mine.` |
+| `tools.cjs` `COACH_REPLAN_ENTRY_ABSENT` source | `rebuild/engine — no accepted replan-on-coach-facts producer exists` | `rebuild/engine: no accepted …` |
+| `tools.cjs` `verifyCostCap` | `verified must be exactly true — a cap nobody checked is not a cap` | `verified must be exactly true. A cap nobody checked is not a cap.` |
+| `tools.cjs` `verifyOptIn` (bare yes) | `the record of that screen — who, when, which wording — is what opens this gate.` | `the record of that screen saying who, when and which wording, is what opens this gate.` |
+| `tools.cjs` `verifyOptIn` (wording) | `must name what actually happens — it does not name:` | `must name what actually happens. It does not name:` |
+
+No wording was cut, only re-punctuated: every sentence says exactly what it said.
+
+### GREEN after: what the test holds
+
+`test/no-dashes.test.cjs` (new, 6 tests) is the standing check:
+
+1. **source scan** of `tools.cjs`, `coach-text.cjs`, `local-world.mjs` with block
+   and line comments stripped (`://` spared) — zero dashes anywhere outside a
+   comment, so a new refusal sentence cannot smuggle one in;
+2. **template scan** — every literal in every `ALL_TEMPLATES` function, comments
+   stripped first;
+3. **tier-3 explanations and every scripted question**;
+4. **every refusal the athlete can reach, executed**: all five tier-3 topics plus
+   two unknown ones, all five tier-1 tools with and without a yes, the four gym
+   and check-in reads with nothing composed, `request_replan` with no entry
+   point / no fact / a nested number, `accept_proposal` with an invented id and
+   with no consent surface, `why_this_instruction` on an unanswered topic — and
+   the sentence `ALL_TEMPLATES.unavailable` / `.refused` actually speaks for each;
+5. **every cost-cap and opt-in reason**, across 11 cap shapes and 8 session calls;
+6. **the full 25-turn transcript**, with every tagged value and carried refusal
+   subtracted from each answer so what is asserted is the coach's own connective
+   text. It asserts 0, and it pins the engine-prose residual at 17 so the number
+   cannot drift upward unnoticed.
+
+### The residual, stated rather than hidden
+
+**Engine prose still carries dashes, and this lane may not change it.** 17 of the
+transcript's dashes live inside sentences produced by `rebuild/engine` and the
+`rebuild/m3` adapters — the maintenance explanation, the volume proposal's
+reason, the five-lever details, the marching-order target line — and the coach
+carries those VERBATIM by design, because rewording an engine sentence is how a
+guess starts (`model-adapter.md` §7). `rebuild/engine` and `rebuild/m3` are
+outside this lane's write scope and are byte-untouched by this branch.
+
+So DECISIONS:114 is met for **everything this lane authors**, and the remainder is
+a `rebuild/engine` change that the owner rule also reaches. The test measures and
+pins that boundary rather than asserting a clean sweep that did not happen.
+`TOOL-CONTRACT.md` carries the rule and the exception; `model-adapter.md` §7 adds
+it to what an adapter must never do, so a model drafting free text is held to it
+exactly as a template is.
