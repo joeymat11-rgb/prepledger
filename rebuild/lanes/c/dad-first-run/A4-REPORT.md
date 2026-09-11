@@ -237,14 +237,14 @@ rebuild/m3/w7-preview/today/test/setup.test.mjs` at head 90727e7, 101 pass 0 fai
 | **S9** | PASS | HARVEST, not a list: `design.setupVocabulary()` reads COPY / VALIDATION / REFUSAL_SENTENCES out of `setup-model.mjs` at check time, and the test asserts every sentence the module holds is in the harvest. The build REFUSES an omission: M11 below. Plus `S9 - every class the first-run screen uses is a selector in the APPROVED stylesheets` and `S9 - the shipped first-run template carries NO literal figure` |
 | **S10** | PASS | measured in the browser: no sideways scroll at 390px on any of the six screens, and none at 320px. The suite adds a structural guard (no fixed width wider than a phone, no absolute positioning) |
 | **S11** | PASS | measured in the browser on all six screens (`reachable()`); the suite asserts exactly ONE primary per screen and that it names its action. Which screens scroll and why is in section 2 |
-| **S12** | PASS | measured in the browser: every input >= 16px, every visible `#phone button` >= 44px, on every screen. The suite asserts every control the view creates carries an approved tap-target class and every input sits in an approved field block |
+| **S12** | PASS | measured in the browser: every input >= 16px, every visible `#phone button` >= 44px, **on all six screens** (round 1 C3: the first version of this check measured screens 1, 3 and 4 only while its PASS line said "every screen". The three missing calls were added, the count in the PASS line is now DERIVED from the calls that actually ran - "MEASURED ON 6 OF THE SIX SCREENS" - and the real msedge run still passes). The suite asserts every control the view creates carries an approved tap-target class and every input sits in an approved field block |
 | **S13** | PASS | `S18 / M7 / M8` (one op), `S13 - a SECOND "Start using Earned" finds the op that is there and writes nothing` (`SETUP_ALREADY_RECORDED`, ops still 1), `S13 - a SECOND TAB over the same installation cannot enrol the device twice`, `S13 / M9 - once the record holds a first run, the setup ROUTE refuses and the tile is gone`. In the browser: the tile hidden, `?screen=setup` landing on Today, and exactly one operation after a reload, a new page and a real kill |
 | **S14** | PASS | `S14 - with NO store the first-run route is not offered, and nothing is enrolled` (a page that cannot ask does not guess: `firstRun()` is false) and `S14 - RESTORE_REQUIRED: boot offers no setup entry at all` (the setup lane is opened only inside `if (!restoreRequired)`). M9 turns it RED |
 | **S15** | PASS | `boot({basisState})` alone throws `SETUP_BASIS_STATE_REFUSED` and `#phone`'s innerHTML is byte-identical before and after; `boot({basisState, hosts, today})` works; a foreign `basisState` over an ALREADY ENROLLED installation is refused. See the deviation note in section 5 |
 | **S16** | PASS | `S16 - back never loses an answer` (1->6, back to 1, forward to 6, the answer object stringify-equal) and `S16 - changing one answer on screen 2 changes ONLY that answer` |
 | **S17** | PASS | `S17 - the first-run screens name no network address, and the CSP is unchanged` runs `build.assertNoNetworkReference` over the three BUILT assets, asserts `serve.mjs`'s CSP still carries `connect-src 'none'` and `default-src 'none'`, and greps the flow for `fetch` / `XMLHttpRequest` / `WebSocket` / an absolute URL. In the browser, every off-origin request is a recorded failure and none was recorded |
 | **S18** | PASS | over the real encrypted store: ONE operation with ONE outbox entry; a relaunch reads it back and writes nothing. In a real browser: a REAL `taskkill /F /T` MID-FLOW leaves ZERO operations and no partial athlete, and a second real kill after the write leaves exactly one |
-| **S19** | PARTIAL, disclosed | the Today he lands on is A1's own page with its own empty states, unchanged. What A4 does NOT do is make that Today stand on HIS athlete: see H3 in section 6. `S18 / S19` asserts the athlete the first run created is read back from the record with `reads: []`, `sessionLog: {}` and `w: null` on every lift |
+| **S19** | PARTIAL, and now SAID ON SCREEN (round 1 C1) | the Today he lands on still stands on the synthetic fixture, because the accepted engine cannot paint a clean-init athlete (H3, section 6). What round 1 closed is the half that was inside A4's licence: the landing Today now CARRIES ONE SENTENCE saying his week is saved and the numbers on the screen are still the preview's sample athlete, so the silent failure S19 names ("a fake dashboard greets a brand-new athlete") is no longer silent. Evidence: `S19 - after the first run, the landing Today SAYS the figures on it are not his yet` (absent before the first run, present after), `S19 - the sentence clears ITSELF the day Today really stands on his athlete`, and one assertion in the real browser. `S18 / S19` still asserts the athlete is read back from the record with `reads: []`, `sessionLog: {}` and `w: null` on every lift |
 | **S20** | PASS | `S20 - NO starting load is collected, anywhere, by design` - greps the flow, renders all six screens, asserts every lift arrives `w: null`, and asserts screen 6 carries the sentence. The browser check asserts `/starting (weight\|load)/i` does not appear on screen 4. M14 turns it RED |
 | **S21** | PASS | `S21 - no streaks, no countdown, no urgency, no percentage, and ONE skip` (the skip count is asserted to be exactly 1 on screen 5 and exactly 0 on the other five) and `S21 - the "n of 6" counter is the WHOLE of the progress reporting` (no `progress`, no `role="progressbar"`) |
 | **S22** | NOT RUN | the hand test is a human run. `HAND-TEST.md` exists; the reviewer performs it (`BUILD-BRIEF` 4.1). Not substitutable by a suite and NOT claimed here |
@@ -408,22 +408,34 @@ It is EXECUTED and pinned by a test, `H3 - the accepted engine still cannot pain
 Today for a clean-init athlete`, which goes green by asserting the gap and turns
 RED the day it is closed - which is the day the wiring can land.
 
-**REQUESTS line for the PM (A4 cannot write `rebuild/lanes/REQUESTS.md`, which is
-outside its custody):**
+**CORRECTED AT REVIEW ROUND 1 (C2).** The first version of this hand-off offered
+two fix shapes. The reviewer EXECUTED both and neither works, and the builder has
+since reproduced that independently, one throw at a time, patching the STATE and
+never the engine:
 
-> `C -> PM/B · RULING NEEDED (register item H3, engine tier, beside H1 and H2):
-> rebuild/m4/workout/athlete-state.cjs createCleanInitState writes no `blackout`
-> member, and rebuild/engine/energy.cjs:370 observedTDEE dereferences
-> s.blackout.until unguarded, so nowModel/calorieTarget THROW on a clean-init
-> athlete and Today cannot be painted for Dad from his own first-run state. A4
-> therefore leaves Today on the fixture basis and reads the athlete back through
-> setup.athleteState() only; the gap is executed by a test in
-> rebuild/m3/w7-preview/today/test/setup.test.mjs ("H3 - the accepted engine
-> still cannot paint Today for a clean-init athlete"). Which: (a) the constructor
-> gains a `blackout: {}` (or {until:null}) member - an m4/workout change, full
-> gate; (b) energy.cjs guards the dereference - an engine change, full gate;
-> (c) something else. Until it is closed, Dad's first run records his week but
-> Today shows the synthetic fixture's plan.`
+```
+> node -e "... createTodayModel({today: DAY, basisState: <state>}).read() ..."
+bare              -> THROWS Cannot read properties of undefined (reading 'until')     at observedTDEE (rebuild\engine\energy.cjs:370)
+blackout={}       -> THROWS Cannot read properties of undefined (reading 'split')     at mk (rebuild\engine\dates.cjs:8)
+blackout={until}  -> THROWS Cannot read properties of undefined (reading 'anchorISO') at bfEst (rebuild\engine\energy.cjs:84)
+blackout+model    -> PAINTS
+```
+
+So: **`blackout: {}` is not a fix shape** (`daysUntil(undefined)` reaches `mk()`),
+**`blackout` alone is not enough** (`bfEst` needs `s.model`), and **guarding
+`energy.cjs:370` alone only moves the throw** - `sleep.cjs:358`, `sleep.cjs:1913`
+(`blackoutOn`, which `writers.cjs` calls throughout) and `writers.cjs:427`,
+`:917`, `:1694` read it equally unguarded, while `today.cjs:228/:282/:409` are
+guarded. The honest minimal fix is the CONSTRUCTOR gaining BOTH members, which is
+a `rebuild/m4/workout` change at the full gate. All four rows above are asserted
+by name in the suite (`H3 - the accepted engine still cannot paint Today for a
+clean-init athlete`), including the "both present -> paints" row, so a partial
+engine fix cannot close the register item silently.
+
+**REQUESTS line for the PM, verbatim from the reviewer (A4 cannot write
+`rebuild/lanes/REQUESTS.md`, which is outside its custody):**
+
+> `C -> PM/B · RULING NEEDED (register item H3, engine tier, beside H1 and H2): rebuild/m4/workout/athlete-state.cjs createCleanInitState writes 22 members and neither `blackout` nor `model`, so the accepted engine THROWS on a clean-init athlete at rebuild/engine/energy.cjs:370 (observedTDEE, s.blackout.until) and then, once blackout is present, again at rebuild/engine/energy.cjs:84 (bfEst, s.model.anchorISO); the reviewer executed both and nowModel paints only when BOTH members are added, so `blackout: {}` is NOT a fix (daysUntil(undefined) throws at rebuild/engine/dates.cjs:8) and guarding energy.cjs:370 alone only moves the throw (sleep.cjs:358/:1913, writers.cjs:427/:917/:1694 are equally unguarded, while today.cjs:228/:282/:409 are guarded). MINIMAL FIX SHAPE: createCleanInitState gains `blackout: { until: <a past ISO date> }` and `model` with the members bfEst reads, both written by the constructor and closed by closed() - an m4/workout change, FULL GATE, in an engine package (the m4/workout package, not A4 and not any screens-tier lane). Until it closes, Dad's first run records his week and Today stands on the synthetic fixture; A4 carries S19 PARTIAL and a screen sentence saying so.`
 
 ---
 
@@ -664,3 +676,257 @@ Told to disagree, the three claims most worth attacking:
    enough for a man who has just told Earned what he does.
 
 Verdict file: `rebuild/lanes/c/dad-first-run/A4-REVIEW.md`.
+
+---
+
+## 14. REVIEW ROUND 1 - CONDITIONS APPLIED
+
+Verdict at `308f983`: **ACCEPT WITH CONDITIONS**
+(`rebuild/lanes/c/dad-first-run/A4-REVIEW.md`, reviewer commit `e1dc377` in
+`work/lane-c/review-a4`, brought into this worktree unchanged and committed
+beside this report). Every count in section 2 reproduced in the reviewer's own
+worktree; eighteen mutants (thirteen of the brief's, five of the reviewer's own)
+all killed; custody judged CLEAN, including the two files disclosed in 1.2 (f)
+and (g), both judged WITHIN LICENCE.
+
+Six conditions. Two BLOCKING, both closed below, red-first.
+
+### C1 (BLOCKING) - the landing Today must SAY the figures on it are not his
+
+The reviewer's finding, reproduced: after the first run the page still boots
+`createTodayModel` on the synthetic fixture, so a man who has just typed his real
+week taps "Start using Earned" and is shown a stranger's weight trend
+("This morning (check) 179.4 lb") with no sentence distinguishing it from his own.
+That is S19's named silent failure verbatim.
+
+**RED FIRST.** The two tests were written before the fix and run:
+
+```
+> node --test --test-name-pattern="S19|H3" .../test/setup.test.mjs
+not ok 2 - S19 - after the first run, the landing Today SAYS the figures on it are not his yet
+  error: 'the sentence exists'
+not ok 3 - S19 - the sentence clears ITSELF the day Today really stands on his athlete
+  error: 'needed is not a function'
+# pass 2 # fail 2
+```
+
+**THE FIX, inside the licence (`:117 (1)`), four hunks:**
+
+| file | hunk |
+|---|---|
+| `setup-model.mjs` | `+ COPY.notHisNumbersYet` - "Your week is saved on this device. The numbers on this screen are still the preview's sample athlete, not you. Nothing here was measured from anything you did." No U+2013/U+2014; harvested by `assertSetupBinding` like every other first-run sentence |
+| `screens.template.html` | `+ <p class="note" data-own data-slot="setup-note" hidden>` in `t-today`, between the intro and the food block, bound at runtime exactly as `setup-entry` is |
+| `today-app.cjs` | `+ SETUP_NOT_HIS_NUMBERS` (the same string; this module is a SETUP_SOURCE so the harvest sees it), `+ setupNoteNeeded(enrolled, athleteLabel, state)` exported, `+ setupNote(map)` bound beside `setupTile(map)` and called from `renderToday` |
+| `today-entry.mjs` | `refresh()` now reads the row rather than a boolean, so the entry knows WHOSE week the record holds; `+ athleteLabel()` |
+
+It is a PREDICATE, not a flag, and that is the part worth attacking: the sentence
+is owed while the record holds a first run AND the state Today is actually
+painting from does not carry that athlete's label. **The day H3 closes and
+`boot()` paints his own state, the two labels agree and the sentence disappears
+with no edit anywhere.** Both directions are asserted.
+
+**GREEN AFTER:**
+
+```
+> node --test --test-name-pattern="S19|H3" .../test/setup.test.mjs
+ok 1 - S18 / S19 - after the first run, the page opens on the REAL local era and reads the athlete back
+ok 2 - S19 - after the first run, the landing Today SAYS the figures on it are not his yet
+ok 3 - S19 - the sentence clears ITSELF the day Today really stands on his athlete
+ok 4 - H3 - the accepted engine still cannot paint Today for a clean-init athlete
+# pass 4 # fail 0
+```
+
+And in the REAL browser, on the Today the flow actually lands on:
+
+```
+  the landing Today says the figures on it are not his yet
+```
+
+(`setup-check.mjs` asserts the sentence's two halves by regex AND that
+`[data-slot="setup-note"]` is not hidden, immediately after "Start using Earned".)
+
+### C2 (BLOCKING) - the H3 hand-off text was wrong
+
+Closed. Section 6 now carries the reviewer's corrected one-liner **verbatim**, the
+builder's own independent reproduction of all four states
+(`bare -> 'until'`, `blackout={} -> 'split'` at `dates.cjs:8`,
+`blackout={until} -> 'anchorISO'` at `energy.cjs:84`, `blackout+model -> PAINTS`),
+and the note that guarding `energy.cjs:370` alone only moves the throw.
+
+The `H3` test was EXTENDED to assert both gaps by name plus the paints-when-both
+row, so a partial engine fix cannot close the register item silently. It was green
+when extended, which is the correct result for an assertion of an existing gap:
+its red-first evidence is that every one of the four rows above is an executed
+observation, printed in section 6, not an opinion. Mutating either new assertion's
+expectation (for example expecting `'until'` where the engine now throws
+`'anchorISO'`) turns it red.
+
+### C3 - `setup-check.mjs` measured 3 of 6 screens while claiming six
+
+Closed. The three missing `inputsAreLargeEnough` calls were added (screens 2, 5
+and 6), and the PASS line no longer asserts coverage from a constant: the count is
+DERIVED from the calls that actually ran.
+
+```
+every input >= 16px and every tap target >= 44px MEASURED ON 6 OF THE SIX SCREENS
+```
+
+Report section 3, S12 corrected to say so. The real msedge run still PASSES, so
+all six screens really do meet both floors; this was a coverage gap, not a defect.
+
+### C4 - merge order: P1 STILL has not merged
+
+```
+> git fetch origin && git log --oneline origin/rebuild/t2-client-core -5
+9abe32e lane B: STATUS - tooling r5 REJECT ... (docs-only)
+5c6766e merge rebuild/lane-c-handproof @ c4539a7 ...
+888a21d rebuild/DECISIONS + STATUS: ledger line 118 ...
+752af83 merge rebuild/lane-c-coach @ 67e9135 ...
+9dfc2c1 ledger: line 117 ...
+```
+
+No P1 merge on the tip. **RECORDED: `DECISIONS:117 (1)`'s "P1 merges FIRST" is
+REVERSED at this head.** A4 therefore ships its own scoped dash refusal in
+`design.cjs` (section 7), which is narrower than P1's page-wide one and does not
+duplicate it. **A4 rebases onto P1 when it lands**, keeps P1's mechanisms in
+`build.mjs` and `design.cjs`, and re-runs the whole suite; this report is amended
+with that rebase result. If A4 merges first, P1 picks up A4's screens in its sweep
+and A4's own scoped check keeps passing beside it.
+
+### C5 - tell the owner which dashes are not A4's, before he looks
+
+The builder's own scan of the three BUILT assets at this head:
+
+```
+index.html  raw 5  entities 0
+styles.css  raw 2  entities 0
+app.js      raw 67 entities 0
+RAW TOTAL 74   ENTITIES 0
+TITLE: "Earned — Today"
+A4 OWN DASHES 0
+```
+
+**74 U+2013/U+2014 occurrences in the built page** (the reviewer's own scanner
+counted 71; the difference is scanner scope, not content, and neither count
+contains an A4 string). **ZERO of them are A4's**: all five setup sources, the
+`t-setup` template section and all 56 harvested first-run sentences scan clean,
+and the six screens render clean in a real browser. They are A1/A2/A3 copy and the
+page `<title>`, which is the browser tab the owner will be looking at. **This is
+P1's item (`rebuild/slice/P1-NO-DASHES-BRIEF.md`) and the PM should say so before
+the look**, so the owner does not read the rule's outstanding residual as A4's.
+
+### C6 - S22, the hand test, is still owed
+
+Unchanged and NOT claimed. It is a human run on a person who has not seen the app;
+neither the builder, the suite nor the reviewer is a person.
+
+### Refreshed sha256 (round 1 head)
+
+The four files round 1 changed, plus the two it did not, re-hashed with
+`certutil -hashfile <file> SHA256`. These SUPERSEDE the table in section 1.1.
+
+| file | lines | sha256 |
+|---|---|---|
+| `setup-model.mjs` | 464 | `41e9288bfe5a656715f4f18d2677eafce1896e48c64283858fcc970c37faa60f` |
+| `setup-commands.mjs` | 83 | `0a54d4df85e682964a2502a3032686be8e130e17f57eed7af0ed101e5547a808` (unchanged) |
+| `setup-host.mjs` | 34 | `bba8b77a4ec36a4834dc4ac202d1976c115dead73b1f62532c64c8a370a86eb1` (unchanged) |
+| `setup-app.mjs` | 338 | `018cfdae2478bc274363510083a36ee2a6b41b2bc6a20bfd7288a0fb7cf2acd8` (unchanged) |
+| `setup-check.mjs` | 461 | `bd31d37e9c402204cea414ee9a0deb0bec79515c07434eb873819cdce64cff3d` |
+| `test/setup.test.mjs` | 1403 | `816533e2ad6ba39f30b46fbf62b7c3a03762cfc76a849f1177964838bab3ca0f` |
+
+`setup-commands.mjs`, `setup-host.mjs` and `setup-app.mjs` are byte-unchanged by
+round 1: the six screens themselves did not move. What moved is one sentence in
+the copy, one slot on Today, the predicate that decides it, and the check's
+coverage.
+
+### Counts after the conditions
+
+| suite | before | after |
+|---|---|---|
+| A1/A2 Today | 64 | **64** |
+| A2 gym | 64 | **64** |
+| A3 check-in | 28 | **28** |
+| **A4 first run** | 101 | **103** (`+2`: the two C1 subtests) |
+| all seven today files | 257 | **259** |
+| W6 | 552 | **552** |
+| W6 journey | 51 | **51** |
+| A0 host | 22 | **22** |
+| w7-preview | 19 | **19** |
+| native-carriers `--ci` | PASS | **PASS** |
+| build | PASS | **PASS** (98 pinned inputs, 68 bound classes) |
+| browser-check / gym-check / checkin-check / setup-check | PASS | **PASS** |
+
+Still zero regressions on the five enumerated today files.
+
+### What round 1 did NOT change
+
+The `basisState` key (5.2) stands as narrowed: the reviewer judged the brief's
+stated REASON met, verified `gym-check.mjs:360`/`:416` themselves, and recorded it
+as a residual rather than a condition. The landing screen (5.1) stands as Today,
+because closing it properly IS H3. `SETUP_SOURCES` (5.4) stands. The `.mjs`
+extension deviation (1.1) was judged immaterial, no condition.
+
+### The SERVED page, driven end to end after the conditions
+
+The server was restarted on the NEW build (the old one was serving the pre-round-1
+bytes) and detached, so it outlives the shell that started it:
+
+```
+> powershell Start-Process node 'rebuild/m3/w7-preview/today/serve.mjs' -PassThru
+PID 62284
+> Invoke-WebRequest http://127.0.0.1:4178/?screen=setup -> 200
+```
+
+**Server node process pid 62284**, 127.0.0.1 only. The bytes it serves were then
+checked, and the whole first run was driven THROUGH THAT SERVER in real msedge on
+a fresh 390x844 profile - not through the check's own ephemeral server, but
+through the one the owner will look at:
+
+```
+index.html has t-setup: true
+index.html has setup-note slot: true
+app.js has the C1 sentence: true
+tile before: Set up your week
+--- ON THE SERVED LANDING TODAY ---
+setup-note hidden: false
+setup-note text  : "Your week is saved on this device. The numbers on this screen are
+                    still the preview’s sample athlete, not you. Nothing here was
+                    measured from anything you did."
+first-run tile hidden: true
+SERVED-PAGE C1 CONFIRMED
+```
+
+- **The six screens:** `http://127.0.0.1:4178/?screen=setup`
+- **Today with the first-run tile:** `http://127.0.0.1:4178/`
+
+(As before: the page keeps a durable record on that origin, so a profile that has
+already finished the flow shows Today with the tile gone, the C1 sentence present
+and `?screen=setup` landing on Today. A private window starts fresh.)
+
+### Mutants re-run against the changed code
+
+Section 4's claim is only true of the code it was run against, so the whole set
+was re-executed at this head after the conditions:
+
+```
+M1..M20 all KILLED; MUTANTS 20/20 killed
+```
+
+Every restore hash in that run matches the refreshed sha256 table above
+(`setup-model.mjs 41e9288bfe5a`, `setup-app.mjs 018cfdae2478`, `today-entry.mjs
+5b7146601d3e`, `screens.template.html 36b318232569`, the suite `816533e2ad6b`),
+and `git status --porcelain` was clean afterwards.
+
+The red-first runs recorded under C1 are themselves the mutant for the new
+sentence: with the fix backed out, `S19 - after the first run, the landing Today
+SAYS the figures on it are not his yet` and `S19 - the sentence clears ITSELF ...`
+both go RED, and the browser check's `setup-note` assertion goes RED with them.
+
+### One more file moved: the W6 journey byte pin, again
+
+`PAGE_PINS['today-entry.mjs']` re-pinned `328be615...` -> `5b7146601d3e61a08fd07a888a886719a5b97fc6813b8360d69f6cfe14ce828c`,
+because C1 added `athleteLabel()` to the entry. Re-read against
+`today-bindings.mjs` at the re-pin, as the pin's own message instructs: `boot()`
+still opens the local era by default and no wrapper opens a store of its own. The
+other three pins are untouched, which is the check that the wrapper files really
+were not disturbed. Journey 51/51 green.
