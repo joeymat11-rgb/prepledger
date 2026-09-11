@@ -31,7 +31,7 @@
         "review": "rebuild/m4/spec/review-native-carriers.json",
         "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
         "receiptLedgerLine": 104,
-        "note": "Accepted parent e940359b at reviewed b95ccca; origin remote ancestry is checked unchanged by tooling. Candidate assembly base is integrated C4 7b1678a. Tooling 7748880 pending review; no seal or receipt claimed."
+        "note": "Accepted parent e940359b at reviewed b95ccca; remote ancestry is checked unchanged by tooling. Candidate assembly base is integrated C4 7b1678a. Tooling c7b7133 independently accepted at 4a842323 and joined locally; no child seal or receipt claimed."
       }
     ]
   },
@@ -167,7 +167,7 @@
     },
     "rebuild/m4/spec/b-ntc-successors.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "4ac0780cb82d27bd56ba5177a73def4642d57bede4e9d96055a995e6c6518f8c",
+      "post": "9ff617bbe7867d5c4b6a8854d3ba1740aa781a46626bbdfc88581783b24c33a1",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-traces.cjs": {
@@ -298,6 +298,11 @@
     "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
       "role": "new"
     }
   },
@@ -442,6 +447,15 @@
       "needle": "B-NTC DURABLE JOURNEYS: 237/237 PASS;"
     },
     {
+      "name": "profile-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs"
+      ],
+      "needle": "# pass 13"
+    },
+    {
       "name": "child-pin-refusals",
       "argv": [
         "--test",
@@ -452,13 +466,13 @@
     }
   ],
   "notes": [
-    "Candidate preparation only. Tooling7748880 is not accepted; independent review found argv-accounting and product-role defects. No artifact, receipt, private run, remote ancestry substitution or PACKAGE PASS is claimed.",
+    "Candidate preparation only. Tooling c7b7133 is independently accepted at review 4a842323 and locally joined with the newer package declaration preserved. No child artifact, receipt, private run, remote ancestry substitution or PACKAGE PASS is claimed.",
     "The engine and frozen laws are byte-identical to integrated C4 7b1678a. New B-NTC successors under m4/spec execute immutable parent carrier bodies. Archived-parent preflight has a two-file historical overlay only; actual-child source proof substitutes one exact runtime SUPPORT pin. Original assertions remain; CLI entry guards are invoked explicitly by private compilation.",
     "Role new means introduced to this parent profile; some host/test files existed at sourceBase but were not parent-pinned. Their pre is the real sourceBase bytes, or empty-byte SHA only where absent. The runtime and rebuild.yml use superseded-by-child with exact parent execution preimages.",
     "The qualified provider is relocated to C4 actual composition in w6/local/today-bindings.mjs with PM authorization. One-store storage, clocks, causal tips and explicit resolver injection are preserved. Both fresh zero-night and 28-night default paths and C4 Last time are positive journey cells.",
-    "Inherited coverage retains exact parent gate->child names; argv now targets dedicated successors. This requires an independently reviewed explicit mapping and tooling support: current7748880 correctly refuses the wrappers as non-parent-pinned executables. coverage.moves stays empty; no fake coverage is claimed.",
+    "Inherited coverage retains exact parent gate->child names; argv targets dedicated successors. Accepted tooling c7b7133 still requires parent-pinned inherited executables. Exact successor authority/tooling support needs independent review and PM ledger disposition; coverage.moves stays empty and MOVES_RULING remains null.",
     "Historical memory-only pass19 tests and original parent wrapper remain unchanged. The child substitutes 237 executed durable journey assertions; workflow points to B-NTC preparation and enumerates all seven Today test files. Do not integrate workflow until child public qualification and acceptance are complete.",
-    "Own behavior children: 39 provider cells and 237 durable journey assertions; inherited focused15 and all ten original carrier children retained. Child-pin refusal tests supplement the archived parent preflight. The original parent profile-refusal test suite remains historical; successor equivalence and acceptance review are still required.",
+    "Own behavior children: 39 provider cells and 237 durable journey assertions; inherited focused15 and all ten original carrier children retained. Dedicated profile-refusals executes the unchanged parent-pinned native-carriers-profile.test.cjs (13 tests) with isolated archived-parent validators. Separate child-pin-refusals executes four actual-child controls. The package runs these children sequentially; archived acceptance is never child acceptance.",
     "Exact brief/theme acceptance citations and final independent child envelope are pending. The semantic PM rulings108/109 exist but do not match the tooling required terminal citation format at its parent receipt base. No citation is invented."
   ]
 }

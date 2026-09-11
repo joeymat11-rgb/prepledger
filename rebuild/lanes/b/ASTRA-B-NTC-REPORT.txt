@@ -1,106 +1,143 @@
-EARNED — B-NTC ASTRA CONTINUATION, CANDIDATE PREPARATION
-2026-09-11. Builder output, not independent acceptance or a package verdict.
-Branch codex/astra-b-ntc. Base a1d8252747de2d1286e83c781f018ff4d8f791fe.
-Assembly merges: accepted C4 7b1678a4a8449053000d52a0a8e9e070f32a240e
-at 9eb46bd; tooling7748880701ef62246c8362c43f760ee10f86c2cc at 4e992b9.
-Tooling7748880 is NOT accepted; its independent reviewer found two blockers.
-Original Claude worktrees preserved. No push, integration merge or deploy.
+EARNED — B-NTC ORIGINAL REFUSAL SUCCESSOR CORRECTION
+2026-09-11. Builder output; independent delta acceptance remains required.
+Branch codex/astra-b-ntc. Correction base 0876043004d23eb1ae38dbdcb0e0f49fd45efc2f.
+Assignment ASTRA-NTC-FIX.md from PM worktree; final independent source review
+3501d1129607fac9d1a92757582c56d439d07d12, ASTRA-B-NTC-JOIN-REVIEW.txt §2 F1.
+Review coordinates: native-carriers-package.cjs:66 requires profile-refusals13;
+B-NTC.json:445/:461 at 0876043 incorrectly left those tests historical.
 
-(1) PRODUCT JOIN
-C4 moved gym composition from today/gym-host.mjs into w6/local/today-bindings.mjs.
-PM approved relocating B-NTC's qualified default and scoped engine reads there.
-The page uses C4's shared repository, local-era keys, clock and causal frontier.
-Explicit nativeTrendContext injection remains supported. No storage changes.
-Both zero-night and 28-night product paths use the shipped default day predicates.
-Day+3 opens, starts, logs every set and closes. C4's Last time reader is retained;
-the positive fresh-athlete cell displays "Last time: 35 lb × 8".
-Clean-init fixture still declares one working load from each lift's own ladder:
-the product's first-working-load writer remains an existing separate limitation.
+(1) DEPENDENCY AND DELTA
+Accepted tooling c7b7133f3611f0bff98f35c5626d14571b38fbb7 (independent ACCEPT
+4a842323f83e73c0b03b1ce89133d900dbf6de1f) cherry-picked locally as
+00aa51c. The runner and focused tooling tests are byte-identical to c7b7133.
+Git merged its one runnerSha256 change into the newer B-NTC declaration;
+no wholesale package replacement. Other package pins are the accepted dependency.
+This correction changes only the successor helper, adds one successor test entry,
+updates B-NTC's real product/children map, and updates this builder report.
+Product/store/provider/workflow bytes remain unchanged from 0876043.
 
-(2) EXACT SUCCESSOR MAPPING — PROPOSED, REQUIRES INDEPENDENT REVIEW
-Parent artifact acceptance-native-carriers.json e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a.
-Archived parent source origin b95ccca879e371b5ba225ad12cae612ec89469ba.
-All original native-carriers-* files and original native-next-target tests remain
-byte-identical. New files carry prefix rebuild/m4/spec/b-ntc-.
+b-ntc-successors.cjs adds profileRefusals(). It first runs the two-stage preflight,
+then privately compiles the ORIGINAL native-carriers-profile.test.cjs unchanged.
+Only its profile/source dependencies receive privately compiled archived validators.
+The original test receives real node:fs: every original mutation/refusal/restoration
+body runs. Validators overlay only engine-runtime.cjs and rebuild.yml reads at
+b95ccca879e371b5ba225ad12cae612ec89469ba, each hash-checked against parent pins.
+The original input/profile/source are checked against parent pins AND Git origin
+before compilation. No test text replacement, dropped assertion or forged context.
 
-Original gate IDs                       Child name / new wrapper
-migrate-source, merge-source,
-  writers-source                        source-carriers / b-ntc-source-carriers.cjs
-witnesses-2, witnesses-5,
-  migrate-differential                   inherited-carriers / b-ntc-inherited-carriers.cjs
-witnesses-7                             defect-witnesses / b-ntc-defect-witnesses.cjs
-writers-differential                    writers-differential / b-ntc-writers-differential.cjs
-second-gate                             second-gate / b-ntc-second-gate.cjs
+Dedicated b-ntc-profile-refusals.test.cjs registers the original thirteen tests.
+Its after hook reruns both preflights after restored inputs; verifies actual runtime
+postimage differs from parent; ordinary require exposes all four child readers;
+checks fs.readFileSync and Module._load identities. Archived parent acceptance
+remains archived-parent evidence. No child acceptance follows from it.
 
-The other five original native children (traces/direct/legacy/witnesses/cases)
-also execute through correspondingly named b-ntc wrappers. Changes to execution:
-a. Unmodified original Profile.verify runs with a PRIVATE module-scoped,
-   read-only archived overlay for ONLY runtime and rebuild.yml, whose exact
-   parent bytes are read from Git at b95ccca. Every original profile assertion,
-   parent/grandparent pin, authorization, receipt and real ancestry check runs.
-   This proves the ARCHIVED parent; it is never represented as child acceptance.
-b. Actual-child preflight independently checks all parent pins on disk, refuses
-   any unlisted drift, checks every declared child postimage, then runs original
-   source construction with ONLY the runtime SUPPORT hash changed to the child's
-   exact declared hash. The real engine files remain byte-identical.
-c. Private compilation invokes each original CLI entry guard; test bodies stay.
-d. Composition witnesses retain all six original reach branches and exact
-   forbidden-import checks. One exact EXPOSED equality expects four readers.
-e. b-ntc-native-next-targets.test.cjs executes the original ten tests, changing
-   only Object.keys(runtime)'s exact expected list to add dayWeather/cleanAtDate.
-   Original assembly/correction tests remain direct targets. The cases child's
-   focused detector points to this ten-test successor; no detector is omitted.
-f. Original second-gate body runs on the ACTUAL child root after both preflights.
-   Its parent-context adapter explicitly returns accepted:false for this child.
-No global fs hook, global loader hook, require.cache replacement or candidate
-module substitution is used. Independent review must check this separation.
+(2) EXECUTED FOCUSED EVIDENCE
+Node v24.19.0 from retained bundled runtime; Windows, TZ=America/New_York,
+MEASURED_TEST_NOW=2026-09-03. Original13 then actual-child4 run SEQUENTIALLY.
+node --test --test-reporter=tap rebuild/m4/spec/b-ntc-profile-refusals.test.cjs
+  => 13 pass, 0 fail, 0 skipped, 0 cancelled. Final isolation/restore hook passed.
+node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs
+  => 4 pass, 0 fail, 0 skipped, 0 cancelled.
+Own negative: append inert comment to original native-carriers-profile.test.cjs,
+execute dedicated successor in fresh Node process => nonzero before registration,
+Unlisted parent pin drift; original input restored byte-identically in finally.
+Exact original/helper/successor hash comparisons => all match declared pins.
+git diff --check => clean. Frozen engine/conform/app diff from 0876043 => empty.
 
-(3) EXECUTED CHECKS — NODE24, AMERICA/NEW_YORK, MEASURED_TEST_NOW=2026-09-03
-Default-path gym + delta + provider: 110/110 PASS (provider 39, delta 7).
-Dedicated durable-journeys wrapper: 237/237 PASS; all seven Today files,
-  A0 journey/equivalence and C4 local-today journey, each real file pinned.
-Today build: A1 TODAY BUILD PASS; 3 assets, 94 inputs, 3/3 network-free scans.
-Successor source carriers 6/6; inherited carriers 6/6; defect witnesses 10/10;
-  writers differential 3/3 Date/trap modes: PASS.
-Second gate: CI SECOND GATE PASS; 3072 reference / 3072 candidate assertions;
-  4 surface cells, 6 legacy sites, one fixed-clock run.
-Traces: 7/7 public census laws both clocks; 2/2 public goldens byte-identical;
-  W0 oracle 5/5 lines. Direct 713/713; legacy differential 9/9: PASS.
-Composition witnesses: 6/6; 0 lab/history reach. Native focused: 15/15 PASS.
-Original native cases: 7/7 effective behavioral mutants, all bytes restored.
-Child pin refusal tests: 4/4 PASS; runtime/workflow/provider drift refused;
-  full two-stage preflight passes after restoration; global hooks unchanged.
-Own default-provider removal bite: 7/7 delta cells FAIL; restored 7/7 PASS.
-git diff 7b1678a -- engine/conform/frozen-app paths: empty after mutations.
+The unchanged thirteen obligations actually executed:
+1 sealed artifact / acceptance-review agreement; 2 exact owner/theme text-role-SHA
+and altered-citation refusal; 3 artifact version; 4 product hash; 5 engine byte;
+6 owner role; 7 literal carrier list; 8 one-character theme edit; 9 report edit;
+10 covered-to-run mutation; 11 unpinned coverage remap; 12 grandparent version;
+13 changed parent grandparent pointer. Each negative refused; each edit restored.
+The separate four controls retain runtime/workflow/provider drift refusals and
+successful two-stage preflight after restoration. No counts combined or inflated.
 
-(4) CI/PACKAGE PREPARATION AND LIMITS
-Workflow enumerates all seven Today tests and points to b-package --ci B-NTC.
-Old memory-only preview CI step is retired in this candidate; its source tests
-and original parent wrapper remain unchanged historical evidence. The child's
-replacement is the executed 237-assertion durable journey wrapper, not a waiver.
-The original parent profile-refusal suite is retained historically; four new
-child-pin tests supplement actual preflight. Reviewer must judge this successor.
-Do not integrate this workflow before the child is publicly qualified and sealed.
+(3) EXACT PROPOSED EXECUTION / COVERAGE MAPPING
+Parent artifact e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a.
+Nine inherited gate IDs and child names remain the parent's byte-identical map.
+No new gate IDs proposed for coverage.moves; it stays {}, MOVES_RULING stays null.
+The requested narrow authority is recognition of these actual successor executables
+for those same inherited gate/child pairs, with exact parent-original and child
+postimage closure. This requires separately reviewed tooling and PM disposition.
+migrate-source -> source-carriers -> rebuild/m4/spec/b-ntc-source-carriers.cjs
+merge-source -> source-carriers -> rebuild/m4/spec/b-ntc-source-carriers.cjs
+writers-source -> source-carriers -> rebuild/m4/spec/b-ntc-source-carriers.cjs
+witnesses-2 -> inherited-carriers -> rebuild/m4/spec/b-ntc-inherited-carriers.cjs
+witnesses-5 -> inherited-carriers -> rebuild/m4/spec/b-ntc-inherited-carriers.cjs
+migrate-differential -> inherited-carriers -> rebuild/m4/spec/b-ntc-inherited-carriers.cjs
+witnesses-7 -> defect-witnesses -> rebuild/m4/spec/b-ntc-defect-witnesses.cjs
+writers-differential -> writers-differential -> rebuild/m4/spec/b-ntc-writers-differential.cjs
+second-gate -> second-gate -> rebuild/m4/spec/b-ntc-second-gate.cjs
 
-NO formal --ci/--full, seal, receipt, private census or authorized rerun attempted
-in this continuation: public gate preparation does not establish those verdicts.
-Blockers: (a) tooling7748880 argv/role defects; separate fixer/reviewer owns them;
-(b) exact successor mapping needs reviewed tooling support/PM ledger disposition:
-  current inherited coverage requires a parent-pinned executable, so these new
-  wrappers are not accepted by it. No extra trailing argv or fake proof supplied;
-(c) exact brief/theme citations need a valid accepted-chain anchor: semantic
-  rulings108/109 do not match tooling's required terminal citation format and
-  occur after the pinned parent receipt base. No citation/ancestry is invented;
-(d) independent changed-code review, closed child artifact and real custody
-  remain required before FULL and acceptance. M2/S2/phone readiness not claimed.
-Tooling fix c7b7133 was reported by its separate author; not incorporated here
-because its independent review was still pending at this report.
+All fifteen declared children and actual Node targets (the runner executes them
+sequentially). The thirteen-test successor is ADDED, not exchanged for child4.
+traces: node rebuild/m4/spec/b-ntc-traces.cjs | NATIVE CARRIER TRACES:
+direct: node rebuild/m4/spec/b-ntc-direct.cjs | NATIVE CARRIERS DIRECT:
+legacy: node rebuild/m4/spec/b-ntc-legacy.cjs | NATIVE CARRIERS LEGACY DIFFERENTIAL:
+witnesses: node rebuild/m4/spec/b-ntc-witnesses.cjs | NATIVE CARRIERS WITNESSES:
+cases: node rebuild/m4/spec/b-ntc-cases.cjs | NATIVE CARRIERS CASES:
+source-carriers: node rebuild/m4/spec/b-ntc-source-carriers.cjs | NATIVE SOURCE CARRIERS:
+inherited-carriers: node rebuild/m4/spec/b-ntc-inherited-carriers.cjs | NATIVE INHERITED CARRIERS:
+defect-witnesses: node rebuild/m4/spec/b-ntc-defect-witnesses.cjs | NATIVE DEFECT WITNESSES:
+writers-differential: node rebuild/m4/spec/b-ntc-writers-differential.cjs | NATIVE WRITERS DIFFERENTIAL:
+second-gate: node rebuild/m4/spec/b-ntc-second-gate.cjs | NATIVE SECOND GATE:
+ntc-provider-cells: node --test --test-reporter=tap rebuild/m4/workout/test/native-trend-context.test.cjs | # pass 39
+focused: node rebuild/m4/spec/b-ntc-focused.cjs | B-NTC FOCUSED: 15/15 PASS;
+durable-journeys: node rebuild/m4/spec/b-ntc-journeys.cjs | B-NTC DURABLE JOURNEYS: 237/237 PASS;
+profile-refusals: node --test --test-reporter=tap rebuild/m4/spec/b-ntc-profile-refusals.test.cjs | # pass 13
+child-pin-refusals: node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs | # pass 4
 
-(5) NEXT CONCRETE VALIDATION
-From this candidate worktree with Node24 and existing linked locked dependencies:
-  node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs
-  node rebuild/m4/spec/b-ntc-journeys.cjs
-After independently accepted tooling, mapping and citation handling are joined:
-  node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
-Stop on actual failed/unresolved evidence. FULL/private custody is a later PM
-assignment, not authorized by a successful public command.
+Complete new successor closure (each is a real spec product postimage):
+rebuild/m4/spec/b-ntc-successors.cjs 9ff617bbe7867d5c4b6a8854d3ba1740aa781a46626bbdfc88581783b24c33a1
+rebuild/m4/spec/b-ntc-traces.cjs 58a44e3118ae30fb5740df902efca496a13dff591db071047e08e61937fa4799
+rebuild/m4/spec/b-ntc-direct.cjs 89c7f6864911ea10ce5b11584c5c1af2e78cf999b91c04758f20de83d4d07376
+rebuild/m4/spec/b-ntc-legacy.cjs c9acd1ecdd7fbaa850b26a84aa9c4058fa8d0e0697d51123c830d01b6124a9d9
+rebuild/m4/spec/b-ntc-witnesses.cjs 0d7635eed730dcaa6ba80a2d72d645d9171cb3f95cd94c017ba8ae4b81a678f7
+rebuild/m4/spec/b-ntc-cases.cjs d47a03acbdc971d7ba1e58fa3f9553cce21a165078ceb118c24bc3edd3c2cdb1
+rebuild/m4/spec/b-ntc-source-carriers.cjs 3ee1ae61c658e0c79bd4dcc30294e07c2fe484880574f58b71547ce5d19132e2
+rebuild/m4/spec/b-ntc-inherited-carriers.cjs f5f8c2757acc62113bb46ace8232b8750be942933101a63641a0300e7e1feedd
+rebuild/m4/spec/b-ntc-defect-witnesses.cjs 4ebe1bccc9d27a2206b97ca66b79933b5e456ced31585aae5e7f32f187fa8ca8
+rebuild/m4/spec/b-ntc-writers-differential.cjs 5a21c36a18ced0b847700651e5fab349fbba7977eec432df94d278037e5272ef
+rebuild/m4/spec/b-ntc-second-gate.cjs 0ecd0f85e56d2858a18b74e44f252451543bf4e4f3774c2d6c3a69a6a55131e0
+rebuild/m4/spec/b-ntc-journeys.cjs ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55
+rebuild/m4/spec/b-ntc-focused.cjs 60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd
+rebuild/m4/spec/b-ntc-successors.test.cjs 3cec74af09a930abec79464fe37a2fc1e073c3bf93d04d9c1db22ea31f0219d6
+rebuild/m4/spec/b-ntc-native-next-targets.test.cjs 6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71
+rebuild/m4/spec/b-ntc-profile-refusals.test.cjs 6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9
+
+Direct archived refusal inputs, unchanged parent execution pins:
+rebuild/m4/spec/native-carriers-profile.test.cjs 95ef170a49de25688afebe0622870a79efe2140d27ff260b9f262bb2075286bd
+rebuild/m4/spec/native-carriers-profile.cjs a99fab0f8da1d202eef551def80466be3e98106ffc34aff95ee889618ae20b32
+rebuild/m4/spec/native-carriers-source.cjs e16228d89c78896255bfed7dcd4d5a2742d7016aadec100f6f73b15f227f6ef8
+Other original native-carriers bodies and their full transitive source/product
+closure remain bound by the immutable parent artifact and original Profile.verify.
+Original profile input stays parent-pinned, not relabeled new child product.
+Accepted runner e08580e7bb6b044d578f44f6bb685ff850f606d62e8043be6dbd2004dd39512c.
+Package spec SHA at this correction b074090943039c761b4b1f06f3872718f8a595c8984cc0a1a0817377da9a01f6.
+
+(4) REUSED EVIDENCE AND REMAINING CONDITIONS
+No repeat of unchanged product campaign. Evidence retained from builder0876043
+and independent3501d11: default-provider fresh/28-night paths, C4 reopen/shared store,
+Last time native reader, durable journeys237; source/inherited carriers and other
+carrier campaigns. Original parent bodies and child executable mappings stay intact.
+The independent review's focused result was 15 pass + 1 inherited skipped cell;
+this correction does not recast that inherited skipped cell as a new pass.
+
+Accepted c7b7133 fixes actual Node target accounting and parent product roles;
+it STILL refuses these non-parent-pinned successor executables for inherited
+coverage. Scoped successor recognition and independent delta review are required.
+The PM identified a separate citation-anchor tooling defect: parent receiptBase
+predates child theme/brief rulings. Existing owner/PM semantic approval is not
+missing owner permission; a valid mechanically verified accepted-chain citation
+anchor is still required. No authorization strings or receipt/envelope invented.
+
+The child remains PROPOSED. No formal b-package --ci/--full, public qualification,
+closed accepted child envelope, seal, receipt, authorized rerun, FULL/private census,
+CI on either OS, browser/device evidence or M2/S2 acceptance claimed here.
+Workflow still targets proposed B-NTC; do not integrate it before public qualification
+and child seal requirements are satisfied. Full/private custody remains a separate
+assignment. No private file read/export/import, dependency install, lockfile churn,
+push, integration merge, deployment, purchase or other-worktree edits performed.
+Next actor: independent delta reviewer, then sole PM's exact mapping/authority
+and seal disposition. The builder does not accept its own correction.

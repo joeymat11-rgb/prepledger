@@ -115,4 +115,16 @@ function run(name){
     }}):normal(n));
   Reference.removeImportEngine();
 }
-module.exports={run,preflight,NAMES};
+function profileRefusals(){
+  // Register the unchanged original thirteen tests against the archived parent.
+  // The tests use the real filesystem for their temporary edits; only the two
+  // superseded execution reads inside the private validators use archived bytes.
+  const {a}=preflight(),source=sourceModule(a,{archived:true});
+  const file='rebuild/m4/spec/native-carriers-profile.cjs';
+  const profile=compile(file,original(file,a),(name,normal)=>
+    name==='node:fs'?archivedFs(a):name==='./native-carriers-source.cjs'?source:normal(name));
+  const tests='rebuild/m4/spec/native-carriers-profile.test.cjs';
+  compile(tests,original(tests,a),(name,normal)=>
+    name==='./native-carriers-profile.cjs'?profile:name==='./native-carriers-source.cjs'?source:normal(name));
+}
+module.exports={run,preflight,profileRefusals,NAMES};
