@@ -1,0 +1,116 @@
+OWNER QUALIFIER MATERIAL DELTA - INDEPENDENT REVIEW
+September 11, 2026. Verdict: ACCEPT intermediate source correction only.
+Candidate: 5d350c8dc4239202d72e54da51fe3723b7831fb6
+Base: d450ee70891bfe7cfb253eb97f5a73821b7eabca
+Assignment: ASTRA-QUALIFICATION-MATERIAL-DELTA-REVIEW.md at PM917379d.
+Branch/worktree: codex/astra-qualification-material-review /
+  work/astra-qualification-material-review. Reviewer is not this candidate's author.
+Final policy, actual package, authority, browser, CI and phone are NOT accepted.
+
+(1) REVIEW AND REUSED EVIDENCE
+Read assignment first, PM NEXT/ROADMAP and both qualification briefs; inspected
+the eleven-file delta, actual runner/policy functions and new import edges.
+No product/frozen/conformance source diff against d450ee7. No source fix made.
+Preserve independently accepted d6c582b87a73793ccd85ddc5f28a8d1022fed197:
+49 setup/baseline and original13+child4 evidence is reused, not newly executed.
+Their test files/wrapper, original proof adapter and preparation8 control file
+are byte-identical to reviewed41f9. Product integration retains its separate
+component/entry reviews. All reviewed17 child declarations and the complete
+coverage map compare exactly as JSON values; the two additions are real entry
+execution and final controls. Fixed CLI selector, CHILD_ROOTS, CHAIN_REF,
+parent/role/preimage checks, moves={} and MOVES_RULING=null remain unchanged.
+The five helper-as-test exploit substitutions remain in the tooling controls;
+their child-count assertions change to exact19, never a lower-bound allowance.
+
+(2) NARROW ACCOUNTING
+New product() branch is only CLI B-NTC / role:new / nonnull pre===post===disk.
+It validates the complete fixed policy including immutable parent, full product,
+coverage and child declarations, source pins at policy sourceCommit and HEAD,
+and disk; then requires this file's source pin and its actual Git sourceBase
+preimage. Existing dependencies get their own count; they do not enter changed
+implementation. Parent product/execution classification still happens first;
+unchanged edited/superseded parents still enter pre. Phase calculation unchanged.
+Actual old runner against current148 map: PARTIAL,48 post/80 pre/20 carried,
+zero drift, all20 parent products and three superseded execution declarations.
+Actual current runner refuses that map under real old6147178 policy with
+SUCCESSOR-CHILD-DECLARATIONS. No real-map IMPLEMENTED or policy PASS is claimed.
+
+(3) CLOSURE AND EXECUTED RESULTS
+Existing Node24.19.0 and existing root/W6 dependencies through ignored junctions.
+Initial entry attempt refused missing jsdom because reviewer chose the W6
+junction at root; corrected to existing browser-bridge root dependencies.
+No install or tracked dependency change. Final executed commands/results:
+- node --test --test-concurrency=1 --test-reporter=tap
+  rebuild/m4/spec/b-ntc-existing-dependencies.test.cjs:10 pass,0 fail/skip/cancel.
+  Actual old/new product red/green; missing/changed disk; false preimage; absent/
+  wrong policy or declaration; parent mislabels; unchanged parent code; absent
+  new implementation; other package; unsourced dependency; existing-only package.
+  Fixtures replace only compiled fixed policy digest with synthetic policy SHA;
+  their module-local dependency resolver routes fixture imports to real code.
+  This exercises actual validation/Git logic, not real policy/chain authority.
+- node rebuild/m4/spec/b-ntc-owner-entry-tests.cjs:66 pass,0 fail/skip/cancel.
+  Actual runner children() separately scheduled the exact declared entry child,
+  exited0 and verified its exact66 terminal. Component execution only.
+- node --test --test-concurrency=1 --test-reporter=tap
+  --test-name-pattern='^(final closure refuses|calendar and entry tests)'
+  rebuild/m4/spec/b-ntc-owner-final.test.cjs:5 pass,0 fail/skip/cancel.
+  Four disk drift cases and missing calendar/entry product declarations refuse.
+
+Independent lexical walk from actual entry/local roots and six test roots:
+102 source/test files,215 relative edges,12 factory bindings; plus six package/
+lock inputs matches the108 manifest exactly, all with actual product postimages.
+Followed entry -> calendar, both tests' imports, browser -> buildBrowser/buildToday
+-> design, and createRequire support edges. Resolved generated enrollment imports
+at their actual .tmp module location; both target inventoried runtime files.
+Inspected three /app.js and one /enroll.js imports inside page callbacks and
+their generated asset definitions. Exact nonexport warnings correspond to the
+journey's IDENTITY_KEY/ENROLMENT_EVIDENCE/AUTHORITY_KID absence assertions.
+No concrete reachable import omission found. This is exact current-source import
+closure, not a general dynamic-loader/parser or installed-package integrity proof.
+
+Independent ignored scripts executed actual candidate functions:
+.tmp/independent-material-review.cjs SHA256
+337e6d76c94dcb952ba61ef60149654d5ab1adf5f303795e9bd0898cbcff2839
+- Remove calendar from BOTH manifest/product and re-pin manifest: refuses.
+- Replace one browser URL by /unlisted.js: real build resolution refuses.
+- Add fourth missing GymHost export use: exact warning allowance refuses.
+- Shorten real entry wrapper spawn to first target: actual15 pass, wrapper
+  refuses exact66 accounting. All changed bytes restored in finally.
+- Synthetic same-byte unrelated sourceBase passes product's byte check but
+  actual fidelity rejects ancestry; product alone confers no ancestry authority.
+- Nonexistent sourceBase and moved fixed policy independently refuse.
+.tmp/actual-material-runner.cjs SHA256
+c8351c03b84896347130d0c98e3daeb867a350ac5fc29a6047df46f5ce1e4826
+exports actual functions before campaign boundary, sets only log destination;
+executes old real-map accounting, real policy refusal and actual child scheduling.
+No loader/global/source-policy authority substitution in these actual-map probes.
+
+(4) NECESSARY NEXT DELTA - NOT EXECUTED/PASS HERE
+After independently accepted navigation is integrated, refresh its actual source/
+test/import closure and counts; create one exact immutable successor policy and
+review its new digest with mechanical runner/spec pins. No old614 authority.
+Run the COMPLETE rebuild/m4/spec/b-ntc-owner-final.test.cjs, including these four
+currently pending policy-dependent tests (plus5 closure and10 fixture controls):
+  real final policy validator accepts the exact committed proposed definition
+  actual entry helper-as-test argv or shortened verdict cannot retain policy coverage
+  missing, changed or wrongly classified final sources refuse the exact policy
+  correct source policy supplies no PM authority or child receipt
+Re-run accepted19 tooling controls with the final policy:
+  node --test --test-concurrency=1 --test-reporter=tap
+  rebuild/lanes/b/tooling/test/execution-targets.test.cjs
+  rebuild/lanes/b/tooling/test/successor-authority.test.cjs
+This means all9 execution/argv/own/parent-role/root controls and all10 successor
+chain/role/hash/policy/closure/real-execution/legacy controls, including all five
+real helper substitutions with the exact final child count. None is newly PASS
+here. Preserve their accepted historical results as historical evidence only.
+Final review must execute actual final-map product accounting, correct and false
+sourceBase controls, final children and closure before real qualification.
+Genuine amended-brief/theme citations must bind final bytes/digest at the fixed
+accepted chain and candidate ancestry; actual owner/contract/parent and artifact
+controls remain mandatory. Local-only PM lines are not remote chain authority.
+FULL/private custody,45 register laws/19 gates, complete second gate, fidelity/
+mutations, both-OS CI, genuine exact-artifact receipt and physical-phone proof
+remain outstanding. Browser evidence stays separate. No speculative campaign.
+diff --check and tracked status clean before this report; all temporary source
+mutations restored. Only this report committed. No private input, law change,
+install, lock churn, push, PR, merge, deployment or protected-soak action.
