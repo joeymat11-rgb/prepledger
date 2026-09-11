@@ -14,8 +14,11 @@ The independently checked components are stored setup9e779f6 (reviewf01ca87),
 native baselineb843a7b (reviewc100bda), B-NTC/F1 at71fb2f1 (reviews3501d11/79b8c44)
 and tooling85f7d56 (reviewa3ffd3c). The distinct local integration atdf226c7 retains
 their original histories and establishes one synthetic combined enrollment/reopen
-journey. It does not supply CI/FULL, a final child receipt, owner-entry acceptance,
-or a phone verdict. Final owner-entry/calendar source is a separate pending join.
+journey. Accepted owner-entry46a8127 (reviews009995ad/3650dbf) then joined at
+3a73b0d with the independently reviewed preparation41f9 (reviewd6c582b). The
+integrator proved actual default built-browser save/reload and scheduled-day
+40x10 -> 40x10 -> 45x9 -> 45x10, preserving stored setup and all eight operations.
+This is bounded browser/source evidence, not CI/FULL, a receipt or a phone verdict.
 
 ### Scope and preserved boundaries
 
@@ -43,11 +46,13 @@ scalar. Existing correction/undo and source-basis/identity guards remain require
 Future history retains the explicit B2/D7 as-of-consumer limitation and refusal;
 this amendment does not claim the downstream future-history defect is repaired.
 
-The actual owner entry must compose authoritative stored setup with current local
+The accepted actual owner entry composes authoritative stored setup with current local
 calendar dates and coherent timestamp/offset inputs. Explicit demo remains separate.
 Fresh open, midnight, retained draft and original Start identity/date handling must
-be checked against the separately reviewed owner-entry source. No fixed historical
-fixture date is an owner clock, and this preparation claims no phone/browser proof.
+be checked against the separately reviewed owner-entry source. This package pins
+and executes its actual Node entry/calendar tests separately from the integrator's
+browser evidence. Fresh nutrition and trend remain explicitly unavailable. No fixed
+historical fixture date is an owner clock; physical-phone proof remains absent.
 
 ### Qualification mechanics
 
@@ -71,7 +76,7 @@ MOVES_RULING=null remain. The unconditional B-NTC source-policy obligation, exac
 accepted original schedule checks and role/source/chain protections are unchanged.
 
 Policy6147178 binds the old71fb2f1 source and cannot authorize this changed source.
-After the reviewed owner entry joins, the coherent committed source needs one new
+The reviewed owner entry is joined; the coherent committed source needs one new
 independently reviewed exact policy digest, mechanical runner/spec pins and genuine
 PM brief/theme citations on both the fixed accepted chain and candidate ancestry.
 No local-only authority is treated as remote authority; no unsealed profile is

@@ -103,6 +103,10 @@ jobs:
         run: node --test rebuild/m3/w6/test/local-initial-setup.test.mjs rebuild/m4/workout/test/native-baseline.test.cjs rebuild/m4/workout/test/native-baseline-journey.test.mjs
       - name: Owner child source and dependency closure refusals
         run: node --test rebuild/m4/spec/b-ntc-owner-qualification.test.cjs
+      - name: Owner entry and calendar — explicit tests on both OS
+        run: node --test rebuild/m3/w6/test/local-owner-entry.test.mjs rebuild/m3/w6/test/local-today-journey.test.mjs
+      - name: Final owner policy and calendar source refusals
+        run: node --test rebuild/m4/spec/b-ntc-owner-final.test.cjs
       - name: A5 — the PWA shell's lockfile-only suites
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself

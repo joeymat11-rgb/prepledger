@@ -96,7 +96,7 @@ write(actual,policyRel,fs.readFileSync(path.join(sourceRoot,policyRel)));git(act
 const runner=api(actual);
 test('exact candidate definition and complete original/child source closure verify',()=>{
  assert.equal(runner.validateSuccessorDefinition(candidate,parentBound,policy),policy);
- assert.equal(Object.keys(policy.coverage.inherited).length,9);assert.equal(policy.children.length,15);
+ assert.equal(Object.keys(policy.coverage.inherited).length,9);assert.equal(policy.children.length,19);
  assert.throws(()=>runner.successorAuthorization(candidate,parentBound),/SUCCESSOR-PM-AUTHORITY-UNISSUED/);
 });
 test('map, package, parent, child target, original/source drift and altered policy refuse',()=>{
@@ -120,10 +120,10 @@ test('real exact successor executes; missing execution, wrong target and needle-
  }finally{fs.writeFileSync(file,bytes);}
  assert.doesNotThrow(()=>runner.validateSuccessorDefinition(candidate,parentBound,policy));
 });
-test('five real pinned helpers with all fifteen declarations bypass the old runner and refuse now',()=>{
+test('five real pinned helpers with all nineteen declarations bypass the old runner and refuse now',()=>{
  const malicious=clone(candidate),names=new Set(Object.values(malicious.coverage.inherited));
  for(const c of malicious.children)if(names.has(c.name)){c.argv=['--test','--test-reporter=tap','rebuild/m4/spec/native-carriers-source.cjs'];c.needle='# pass 1';}
- assert.equal(malicious.children.length,15);assert.equal(names.size,5);assert.equal(malicious.authorizations.theme,null);
+ assert.equal(malicious.children.length,19);assert.equal(names.size,5);assert.equal(malicious.authorizations.theme,null);
  assert.equal(sha(fs.readFileSync(path.join(actual,'rebuild/m4/spec/native-carriers-source.cjs'))),accepted.executionPins['rebuild/m4/spec/native-carriers-source.cjs']);
  const old=api(actual,cp.execFileSync('git',['show','7cd7a5b:'+runnerRel],{cwd:sourceRoot,encoding:'utf8',windowsHide:true}),'successorSupport,children,coverage');
  assert.equal(old.successorSupport(malicious,parentBound),null);
@@ -140,7 +140,7 @@ test('exact legacy parent schedule is source-bound and its genuine original chil
  const generic=api(actual,text,'inheritedExecutable,acceptedOriginalChildren,children','B1');
  const scheduled=generic.acceptedOriginalChildren(parentBound);assert.equal(scheduled.length,5);
  const c=scheduled.find(c=>c.name==='source-carriers'),s={...candidate,children:scheduled};
- const restored=['rebuild/m4/workout/engine-runtime.cjs','.github/workflows/rebuild.yml'].map(file=>[file,fs.readFileSync(path.join(actual,file))]);
+ const restored=['rebuild/m4/workout/engine-runtime.cjs','rebuild/m4/workout/source-projection.cjs','.github/workflows/rebuild.yml'].map(file=>[file,fs.readFileSync(path.join(actual,file))]);
  try{
   for(const [file]of restored)write(actual,file,cp.execFileSync('git',['show',reviewedCommit+':'+file],{cwd:sourceRoot,windowsHide:true}));
   const env={...process.env,NODE_OPTIONS:'',NODE_V8_COVERAGE:'',TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03'};delete env.NODE_TEST_CONTEXT;

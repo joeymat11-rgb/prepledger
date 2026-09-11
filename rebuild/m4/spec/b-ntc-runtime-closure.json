@@ -9,7 +9,10 @@
   "testRoots": [
     "rebuild/m3/w6/test/local-initial-setup.test.mjs",
     "rebuild/m4/workout/test/native-baseline.test.cjs",
-    "rebuild/m4/workout/test/native-baseline-journey.test.mjs"
+    "rebuild/m4/workout/test/native-baseline-journey.test.mjs",
+    "rebuild/m3/w6/test/local-owner-entry.test.mjs",
+    "rebuild/m3/w6/test/local-today-journey.test.mjs",
+    "rebuild/m3/w6/test/local-owner-browser.mjs"
   ],
   "runtimeFactoryImports": [
     "rebuild/engine/dates.cjs",
@@ -30,6 +33,24 @@
     "@noble/hashes/sha2.js",
     "@noble/hashes/utils.js",
     "node:crypto"
+  ],
+  "browserGeneratedImports": [
+    {
+      "file": "rebuild/m3/w6/test/local-owner-browser.mjs",
+      "path": "/app.js"
+    },
+    {
+      "file": "rebuild/m3/w6/test/local-owner-browser.mjs",
+      "path": "/app.js"
+    },
+    {
+      "file": "rebuild/m3/w6/test/local-owner-browser.mjs",
+      "path": "/app.js"
+    },
+    {
+      "file": "rebuild/m3/w6/test/local-owner-browser.mjs",
+      "path": "/enroll.js"
+    }
   ],
   "files": {
     "package-lock.json": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
@@ -68,18 +89,20 @@
     "rebuild/m3/w5/reconciliation/codec.cjs": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
     "rebuild/m3/w5/source/codec.cjs": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
     "rebuild/m3/w6/bridge.mjs": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+    "rebuild/m3/w6/build-browser.mjs": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
     "rebuild/m3/w6/candidate-grant.mjs": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
     "rebuild/m3/w6/history-proof.mjs": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
     "rebuild/m3/w6/host/engine-runtime-host.cjs": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
     "rebuild/m3/w6/host/workout-host.mjs": "885005d7879c5b8bee92a28145c88e6a8814a86a0311234319e0be5c1972de75",
     "rebuild/m3/w6/import-custody.mjs": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+    "rebuild/m3/w6/local/calendar.mjs": "8050704a3bbed549eeb67e2d03c870ec9a0dace2fa7837c214ce8eb598e92b1c",
     "rebuild/m3/w6/local/host-bindings.mjs": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
     "rebuild/m3/w6/local/import-bundle.mjs": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
     "rebuild/m3/w6/local/initial-setup.mjs": "89dd7b19cb9244b76152f3839c1b084f780bd69e31e682bd66e6128d6af4af6b",
     "rebuild/m3/w6/local/local-client.mjs": "fe2e853307813c08e5a899a5af4a272f557e39feb5f79b10bd57c75dc23a73a6",
     "rebuild/m3/w6/local/local-era.mjs": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
     "rebuild/m3/w6/local/local-keys.mjs": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
-    "rebuild/m3/w6/local/today-bindings.mjs": "26eea12a393c0853ee3a5e952db7f86540419ff20f5e4db20161408ca45b8a8e",
+    "rebuild/m3/w6/local/today-bindings.mjs": "e4d1058b1d7b0fb957d3b2dc83908eeb20a9c86005b4f775d66760ebe4812101",
     "rebuild/m3/w6/node-sha256-browser.mjs": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
     "rebuild/m3/w6/package.json": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494",
     "rebuild/m3/w6/pnpm-lock.yaml": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566",
@@ -95,21 +118,26 @@
     "rebuild/m3/w6/strict-json.mjs": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
     "rebuild/m3/w6/t2-stage.cjs": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
     "rebuild/m3/w6/test/local-initial-setup.test.mjs": "d84d19bbe2fae7557b3972c05dfa7f91253063c42a1ce7d6fbc40318de446db5",
+    "rebuild/m3/w6/test/local-owner-browser.mjs": "7db65dc045f40b35a8acef986b78de3d50229a4b56f885de3deba2429aa95c57",
+    "rebuild/m3/w6/test/local-owner-entry.test.mjs": "3886bb612894758510a119ed704de8a0f62e0857338ab403b0884ef6d24eb843",
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": "b52771c5f43fee2391b3e78e47cd96e67dddcecd4d235904aff98f448645fb6a",
     "rebuild/m3/w6/test/support.mjs": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
     "rebuild/m3/w7-preview/browser-engine.cjs": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
     "rebuild/m3/w7-preview/fixtures.cjs": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+    "rebuild/m3/w7-preview/today/build.mjs": "96bf93e652b13a47742b3e06266437606fe12f3c566e5da32b1b3ab0811af279",
     "rebuild/m3/w7-preview/today/checkin-app.mjs": "cfb2b12f6aabf0360f500b8a008867d5c3dd809f2d7a1ca1ed5ede9926b46612",
     "rebuild/m3/w7-preview/today/checkin-commands.cjs": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
     "rebuild/m3/w7-preview/today/checkin-host.mjs": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
     "rebuild/m3/w7-preview/today/checkin-model.mjs": "6334594edde87236959cf4a51989c5fc6c15345f47ac1ebd246af87cc9dc6270",
+    "rebuild/m3/w7-preview/today/design.cjs": "b4398841d5cee04565e9401232e30c3316f10a86f9458de1d0a015189d55a9b9",
     "rebuild/m3/w7-preview/today/gym-app.mjs": "2886130654e20001628379118fd74a3c739a48b977c6b3ae453f0b7f9e0e084c",
-    "rebuild/m3/w7-preview/today/gym-host.mjs": "70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18",
+    "rebuild/m3/w7-preview/today/gym-host.mjs": "a1604df4229d6f86f6a315733a86a60a67da30d78c266fa3e5074e9a5e345539",
     "rebuild/m3/w7-preview/today/gym-model.mjs": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
     "rebuild/m3/w7-preview/today/reading-host.mjs": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
-    "rebuild/m3/w7-preview/today/today-app.cjs": "daea4dddf3b5ebd6c8f22108bebb5e37eb065afbb167259a412cae31b13d2116",
+    "rebuild/m3/w7-preview/today/today-app.cjs": "8c67305f1ecbafb97147fe75c4634dcf3cfb9492a3f660e12ba4c8819d7fbf89",
     "rebuild/m3/w7-preview/today/today-engine.cjs": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
-    "rebuild/m3/w7-preview/today/today-entry.mjs": "5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8",
-    "rebuild/m3/w7-preview/today/today-model.cjs": "ef051efa8ae2b2e905aa76bc04c156c21e36c55ba219e634c7c0be85eb77be42",
+    "rebuild/m3/w7-preview/today/today-entry.mjs": "f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593",
+    "rebuild/m3/w7-preview/today/today-model.cjs": "5f3d32aaf0e1127013ceb8396adeb47b6bc675a3f363941172af11c99bb581b1",
     "rebuild/m4/workout/athlete-state.cjs": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
     "rebuild/m4/workout/authority-profile.cjs": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
     "rebuild/m4/workout/capture.cjs": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
