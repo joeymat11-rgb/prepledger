@@ -903,3 +903,259 @@ fx1/profile-verify.js  native-carriers-profile.verify() attribution             
 ```
 
 Every harness that mutates the worktree restores the four engine files in a `finally` and re-prints their sha256s; the restored hashes are `b51f3f1e0e94 / 77ced98c0b31 / 4d6c244efa6b / f8d0397abd75` at the end of every run, and `git status` shows only the intended files.
+
+---
+
+# 8. POST-REVIEW r2 — the second fix pass (C-r2-1)
+
+| | |
+|---|---|
+| **Branch** | `rebuild/lane-b-b1`, applied on top of `586a183` (r2 review commit) |
+| **Base** | `origin/rebuild/t2-client-core` @ `acd3b67` |
+| **Change required** | **C-r2-1 (BLOCKING, lane B's own file)** — "commit the missing delta cells into `rebuild/engine/test/b1-delta-cells.cjs`", so that every killable mutant is killed by an artifact that is *in the repository* |
+| **Author** | lane B fixer **r2** — not the builder, not either reviewer, not the r1 fixer |
+| **Date** | 2026-09-11 |
+| **Node** | `C:\Users\joeym\.cache\...\node.exe` v24.19.0 · `TZ=America/New_York` · `MEASURED_TEST_NOW=2026-09-03` |
+| **Scratch** | `work/lane-b/fx2/`, outside the worktree; build products in `fx2/.tmp/`; two throwaway worktrees `fx2/base` (@`acd3b67`) and `fx2/mut` (@`586a183`), removed after the run. No other worktree was touched. |
+| **C-r2-2** | **not taken** — it is the PM's (`rebuild/m4/spec`), and §8.6 restates it so it is not lost |
+
+## 8.0 What changed, and what did not
+
+**One file changed: `rebuild/engine/test/b1-delta-cells.cjs`,** which grows from 3 cells (106 lines) to **14 cells (478 lines, 29 231 bytes, sha256 `b401eeedc0f0e9b19e4433385c639f0342dac320d1765e37ebe3bfa7327d4835`)**. Plus this §8 and one paragraph of BRIEF v1.2 §A5.
+
+**No engine byte moved.** The four engine files are byte-identical to `586a183`, re-hashed after every run in this pass:
+
+```
+dates.cjs  b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067
+sleep.cjs  77ced98c0b31c085e04da348592e936ce79dc85496a9df3febaef27e77380ffd
+policy.cjs 4d6c244efa6b34daed02e194dbbd5b7064abcde2d93fd28974a5f2df519187e1
+today.cjs  f8d0397abd75c02dd570741191124c32e26ab850702607826943d4394fda2e00
+```
+
+`git diff --name-status 586a183` is exactly `M rebuild/engine/test/b1-delta-cells.cjs` plus the two documents. `git diff --name-only acd3b67 -- <scope>` is **EMPTY** for every one of 23 scopes checked, `tools`, `rebuild/conform/golden`, `rebuild/conform/laws`, `rebuild/conform/oracle`, `rebuild/conform/gates`, the three v4 law files, `helpers.cjs`, `run-defect-laws.cjs`, the three witness programs, `package.json`, `package-lock.json`, `.github`, `src`, `rebuild/m4/spec`, `STATUS.md`, `REQUESTS.md`, `DECISIONS.md`, `ledger` and `rebuild/conform/private` among them. **`ledger/` and `rebuild/conform/private/` were never opened; no `--full` was run; nothing in this section carries a private value, count, hash or phrase.**
+
+## 8.1 The eleven new cells, and the mutants they carry
+
+The file now runs **every** cell rather than aborting on the first failure, so a failure count is a measurement and not an artefact of ordering: it prints `HOLD`/`FAIL` per cell with the mutant ids that cell carries, then `B1 DELTA CELLS: h/14 hold`, and exits non-zero if `h < 14`.
+
+Two deliberate strengthenings over the r1-fixer version:
+
+* **The relative fixtures are built by an independent calendar oracle, not by `plusDays`.** A cell whose *fixture* cannot be constructed on the pre-B1 base proves nothing about behaviour. A local `shift(iso, n)` does the date arithmetic for every cell except the two that assert the primitive itself, and in those two the `plusDays` pin was moved to the **end** so the behavioural assertion is what fails first. Result: on base **all fourteen** cells now fail with an `AssertionError`, and none with `TypeError: T.plusDays is not a function` — the r1-fixer version reported three of that kind.
+* **`D27-3`'s fixture is expressed as `START + 63 days`, never as `2026-08-12`** (brief §A4 item 4; r1 residual risk 7). If `START` moves, the cell moves with it.
+
+| # | cell | mutant(s) it kills |
+|---|---|---|
+| 1 | `B1-D16-due-date-is-seven-calendar-days-not-168-hours` | `D16-4 calendar-add-by-milliseconds` |
+| 2 | `B1-D24-yesterday-is-the-previous-calendar-date-not-24-hours-ago` | `D24-1 require-every-field` · `D24-3 yesterday-by-milliseconds` |
+| 3 | `B1-D8xD21-a-short-last-night-still-restricts-recovery` | `D21-4 drop-the-today-anchor` |
+| **4** | `B1-D10-fractional-weeks-are-exact-sevenths-of-calendar-days` | `D10-1 round-the-week-not-the-days` |
+| **5** | `B1-D8-the-three-night-mean-still-runs-behind-the-recency-guard` | `D8-3 drop-the-three-night-mean` |
+| **6** | `B1-D16-a-late-read-leaves-the-call-ungraded-and-never-a-miss` | `D16-1 ungraded-counts-as-miss` |
+| **7** | `B1-D16-only-an-eligible-read-can-grade-a-forecast` | `D16-3 drop-the-eligibility-filter` |
+| **8** | `B1-D17-undone-moves-applied-only-and-a-clean-adjustment-still-reads-applied` | `D17-2 undone-means-auto` · `D17-3 applied-always-false` |
+| **9** | `B1-D25-good-needs-one-success-and-forgives-exactly-one-miss` | `D25-1 require-a-majority` · `D25-2 drop-the-one-miss-allowance` · `D25-3 zero-rows-becomes-caution` |
+| **10** | `B1-D19-the-cut-resumes-the-calendar-date-after-an-inclusive-break-end` | `D19-2 resume-plus-one-millisecond-day` |
+| **11** | `B1-D27-an-active-diet-break-is-not-a-cut` | `D27-2 read-plan-phase-directly` |
+| **12** | `B1-D27-long-cut-is-the-committed-phases-own-age-not-the-programme-week` | `D27-3 gate-on-programme-week-and-phase` |
+| **13** | `B1-D23-a-failed-derivation-is-neither-a-rest-day-nor-an-escaping-throw` | `D23-2 remove-the-catch` · `D23-3 rest-day-on-any-failure` |
+| **14** | `B1-D23-the-seven-day-scan-steps-calendar-dates` | `D23-4 week-step-by-milliseconds` |
+
+Rows 4–14 are new. **19 mutant ids are named in the file itself**, so the coverage claim is auditable by reading the artifact, not only this report.
+
+The killer values, all of them re-derived and re-executed in this pass:
+
+```
+D10-1  weeksBetween('2026-09-03','2026-09-06') = 0.42857142857142855   (mutant 0)
+       weeksBetween('2026-01-01','2027-01-01') = 52.142857142857146    (mutant 52)
+D8-3   three consecutive 6.6 h nights ending last night -> cleanAtDate false   (mutant true)
+D16-1  a read on 2026-08-10 (past the one grace date) -> {graded:0, hit:null, miss:FALSE}
+D16-3  a SEALED (and an offWindow) read ON the due date 2026-08-08 -> {graded:0, hit:null}
+D17-2  {undone:true, auto:true} -> auto STAYS true; {undone:true} -> auto stays FALSE
+D17-3  neither flag -> applied TRUE
+D25-1  2/4 -> "caution"  (mutant "good"); 1/2 and 6/7 do NOT move, exactly as brief §A4 item 2 says
+D25-2  1/2 -> "good" and 6/7 -> "good"  (mutant "caution")
+D25-3  no protein rows -> {state:"quiet", detail:"counting only"}
+D19-2  a break ENDING on the fall-back date 2026-11-01, read on its last active day:
+         next.when = "resumes Mon 11/2"  (mutant "resumes Sun 11/1", the 25-hour collapse)
+         line      = "Diet break — day 7 of 7, 0 to go. … the cut resumes Mon 11/2."
+D27-2  a stalled athlete with plan.phase="cut" INSIDE an active brk 2026-09-01..09-07:
+         phaseArc(s).key = "break" and theOneFix(s).rung = "hold"   (mutant "break")
+D27-3  START + 63 = 2026-08-12: phaseArc.weeks = 9, weekDay().wk = 10, rung = "calories"
+         (mutant "break"); control START + 70: weeks 10, wk 11, rung "break"
+D23-2  a scheduled L day whose derivation THROWS on day 0 and a U day on day 2:
+D23-3    nowModel(...).workout = {title:"UPPER BODY · SAT 9/5", today:false, iso:"2026-09-05"}
+         (D23-2 mutant: the throw escapes nowModel; D23-3 mutant: "REST DAY")
+D23-4  clock 2026-11-01, split map {1:"L"} -> {title:"LOWER BODY · TOMORROW", iso:"2026-11-02"}
+         and map {4:"L"} -> "LOWER BODY · THU 11/5", iso 2026-11-05 (the 7th day is still reached)
+```
+
+## 8.2 The cells on the candidate and on base — 14/14 and 0/14, cell by cell
+
+```
+candidate (this branch)   exit=0   B1 DELTA CELLS: 14/14 hold
+base acd3b67              exit=1   B1 DELTA CELLS:  0/14 hold
+```
+
+Every one of the fourteen fails **individually** on base, and every failure is an `AssertionError`:
+
+```
+FAIL B1-D16-due-date-…            Expected values to be strictly deep-equal   (base grades the 6th calendar day)
+FAIL B1-D24-yesterday-…           assert.ok(… .some(item => item.k === "yesterday"))   (base asks about 03-07)
+FAIL B1-D8xD21-…                  false !== true            (base carries the 3-day-old night forward)
+FAIL B1-D10-fractional-weeks-…    0.994047619047619 !== 1   (the spring-forward week)
+FAIL B1-D8-three-night-mean-…     false !== true            (base restricts on an 8-month-old night)
+FAIL B1-D16-a-late-read-…         deep-equal                (base grades a month-late read)
+FAIL B1-D16-only-an-eligible-…    deep-equal                (base grades a sealed read)
+FAIL B1-D17-undone-…              deep-equal                (base reports an undone adjustment as applied)
+FAIL B1-D25-good-needs-…          'good' !== 'caution'      (base calls 0/1 good)
+FAIL B1-D19-the-cut-resumes-…     'resumes Mon 11/7' family (base resumes on the last active day)
+FAIL B1-D27-an-active-diet-break… 'break' !== 'hold'        (base tells a man on his diet break to take one)
+FAIL B1-D27-long-cut-…            'break' !== 'calories'    (base gates on the programme week)
+FAIL B1-D23-a-failed-derivation…  'REST DAY' !== 'UPPER BODY · SAT 9/5'
+FAIL B1-D23-the-seven-day-scan…   'REST DAY' !== 'LOWER BODY · TOMORROW'
+```
+
+## 8.3 The mutant matrix, re-run against COMMITTED artifacts only — **32 of 33 caught**
+
+The harness is this pass's own (`fx2/mutants-run.js` + `fx2/probe-child.js`), on a throwaway worktree at `586a183`. Each of the 32 mutants BRIEF v1.2 §2 names, plus the r1-fixer's 33rd, is applied as an exact **single-occurrence** string edit; the six touchable engine files are restored between runs and in a process-exit handler. **A syntax error or a missing anchor earns NO kill** — all 33 anchors resolved exactly once, `HARNESS 0`.
+
+**The detector set is deliberately narrow: only what this branch commits.** The ten v4 laws plus D22's frames parity; the three witness carriers through `legacy-b1-carriers.cjs`; and `rebuild/engine/test/b1-delta-cells.cjs`, spawned as its own process and read cell by cell. **No scratch battery of any kind is consulted** — that is the whole point of C-r2-1.
+
+```
+BASELINE laws     : {"D8":"GREEN","D10":"GREEN","D16":"GREEN","D17":"GREEN","D19":"GREEN","D21":"GREEN",
+                    "D22":"RED","D22_framesParity":"true","D22_mutants":"RED","D23":"GREEN","D24":"GREEN",
+                    "D25":"GREEN","D27":"GREEN"}
+BASELINE carriers : {"defect-witnesses":"PASS","defect-witnesses-2":"PASS","defect-witnesses-3":"PASS"}
+BASELINE cells    : 14/14 hold, exit=0
+
+MUTANTS 33 · CAUGHT-by-committed-artifacts 32 · NOT CAUGHT 1 · HARNESS 0
+  of which the BRIEF's 32 named: 32 · CAUGHT 31 · NOT CAUGHT 1
+  plus 1 fixer-authored (D21-4 drop-the-today-anchor): CAUGHT
+  NOT CAUGHT: D10-2 utc-stamp-substitution
+```
+
+**r2 §4 measured 17 caught, 9 battery-only and 7 uncaught. This pass measures 32 caught and one survivor, and the survivor is `D10-2`.** Every detector below is a file in the repository.
+
+| mutant | committed detector(s) that moved |
+|---|---|
+| `D10-1 round-the-week-not-the-days` | cell 4 |
+| **`D10-2 utc-stamp-substitution`** | **NOTHING MOVED — the sole survivor, by design (§8.5)** |
+| `D10-3 plusdays-adds-milliseconds` | carrier `defect-witnesses-2`; cells 1, 2, 3, 4, 10, 14 |
+| `D8-1 stale-night-returns-false` | law D8 GREEN→RED; carrier `defect-witnesses`; cells 3, 5 |
+| `D8-2 age-window-instead-of-last-night` | cell 3 |
+| `D8-3 drop-the-three-night-mean` | cell 5 |
+| `D21-1 tomorrow-is-plus-two-days` | law D21; carrier `defect-witnesses-2`; cell 3 |
+| `D21-2 use-today-instead-of-tomorrow` | law D21; carrier `defect-witnesses-2`; cell 3 |
+| `D21-3 hardcode-fallback-date` | law D21; carrier `defect-witnesses-2`; cell 3 |
+| `D21-4 drop-the-today-anchor` | **D22 framesParity true→false**; cell 3 |
+| `D19-1 shift-daysSince-in-dietBreakState` | carrier `defect-witnesses-2` |
+| `D19-2 resume-plus-one-millisecond-day` | cell 10 |
+| `D19-3 off-by-one-both-ends` | law D19; carrier `defect-witnesses-2`; cell 10 |
+| `D16-1 ungraded-counts-as-miss` | cells 6, 7 |
+| `D16-2 grace-window-is-two-days` | law D16; cells 1, 6 |
+| `D16-3 drop-the-eligibility-filter` | cell 7 |
+| `D16-4 calendar-add-by-milliseconds` | cell 1 |
+| `D17-1 drop-undone-rows` | law D17; carrier `defect-witnesses-2`; cell 8 |
+| `D17-2 undone-means-auto` | cell 8 |
+| `D17-3 applied-always-false` | cell 8 |
+| `D24-1 require-every-field` | cell 2 |
+| `D24-2 drop-the-empty-ledger-guard` | carrier `defect-witnesses-3`; cells 11, 12 |
+| `D24-3 yesterday-by-milliseconds` | cell 2 |
+| `D25-1 require-a-majority` | cell 9 |
+| `D25-2 drop-the-one-miss-allowance` | cell 9 |
+| `D25-3 zero-rows-becomes-caution` | cell 9 |
+| `D27-1 gate-longcut-only` | carrier `defect-witnesses-3`; cell 11 |
+| `D27-2 read-plan-phase-directly` | cell 11 |
+| `D27-3 gate-on-programme-week-and-phase` | cell 12 |
+| `D23-1 default-slp-to-empty-object` | carrier `defect-witnesses-3` (the surviving `TypeError`, per brief §A4 item 3) |
+| `D23-2 remove-the-catch` | cell 13 |
+| `D23-3 rest-day-on-any-failure` | cell 13 |
+| `D23-4 week-step-by-milliseconds` | cell 14 |
+
+Three observations worth recording rather than smoothing over:
+
+1. **Nineteen mutants are killed by the delta cells and by nothing else** — `D10-1`, `D8-2`, `D8-3`, `D16-1`, `D16-3`, `D16-4`, `D17-2`, `D17-3`, `D19-2`, `D24-1`, `D24-3`, `D25-1`, `D25-2`, `D25-3`, `D27-2`, `D27-3`, `D23-2`, `D23-3`, `D23-4`. No law and no carrier moves for any of them. That is the measure of how much of B1 was unprotected before this pass, and it is why `b1-delta-cells.cjs` must be a **required** artifact of B1's closed profile (C-r2-2(a)): delete the file and B1's committed evidence falls back to 13 of 33.
+2. **`D19-1` and `D23-1` are killed by a carrier alone**, with no law and no cell. Both are already recorded as load-bearing (brief §A4 item 3 for `D23-1`); `D19-1` is the same shape and the PM should know the `defect-witnesses-2` carrier is the only thing standing behind it.
+3. **`D24-2`'s detectors include cells 11 and 12** — dropping the empty-ledger guard changes `nowFocus`'s owed set, which reaches `theOneFix` rung 3 and moves the D27 cells' rung. A cross-hunk kill is still a kill by a committed artifact, but it is a coincidence of the fixture, not a designed detector, and it is reported as such.
+
+## 8.4 Everything else re-run, and unmoved
+
+The frozen bundle was rebuilt by this pass from the repo's own recipe (`legacy-gates.publicReferences({baseline, scratch, sourcePins: manifest.baseline.buildSources})`, 10 source pins):
+
+```
+main -> fx2/.tmp/main/engine.cjs  bytes=813681  sha256=67a78bd790a8aff6cf3cdd56939915069e3768f1f3e75a87bf873b49df2d385f
+old  -> fx2/.tmp/old/engine.cjs   bytes=792791  sha256=4e09269fcd28520e68325ea9ee348c2d3856a34c71448dcb51ab86abbda29b37
+```
+
+(esbuild embeds input paths, so the byte count tracks the cwd, not the content — `build-engines.mjs` documents this and the builder, r1, the r1-fixer and r2 each got a different number. Equivalence is behavioural: the runner reproduces the base tip's terminal line exactly, below.)
+
+**The 45 v4 laws — still exactly 10 rows moved, and D22 is still not one of them.**
+
+```
+[cand] TOTAL 45 laws · 45 RED-frozen · 29 RED-candidate · 89 GREEN repair controls · 87/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+[base] TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+ROWS MOVED 10 · UNCHANGED 35 · moved ids: D8, D10, D16, D17, D19, D21, D23, D24, D25, D27
+```
+
+Each of the ten reads `RED-frozen / GREEN-candidate / AUDIT-FAIL` against `RED-frozen / RED-candidate / mutant-DETECTED` on base. **D22 is one of the 35 byte-identical rows**, and its frames parity measured `true` on the candidate in the mutant harness's own baseline. `AUDIT RED-FIRST FAIL` is the pristine terminal too. Ten of ten B1 laws GREEN-candidate.
+
+**The B1 carrier — 6/6 PASS, 18 substitutions, the three witness files byte-identical to their pins.**
+
+```
+PACKAGE_ID M2-B1-GRADING-TIME-WINDOW · COVERS witnesses-1, witnesses-2, witnesses-3
+substitutions declared: 18
+  defect-witnesses.cjs   on disk 557c12e72690c397…  pin 557c12e72690c397…  MATCH=true
+  defect-witnesses-2.cjs on disk 833db0431e656f86…  pin 833db0431e656f86…  MATCH=true
+  defect-witnesses-3.cjs on disk f5169bebd527ac13…  pin f5169bebd527ac13…  MATCH=true
+  PASS defect-witnesses   [native]/[frozen] reproduced=10 tail="DEFECT WITNESSES: 10/10"   edits=3 carrierHash=c2ea4423ec9b014a
+  PASS defect-witnesses-2 [native]/[frozen] reproduced=11 tail="DEFECT WITNESSES 2: 11/11" edits=8 carrierHash=a766bfe0abffc05d
+  PASS defect-witnesses-3 [native]/[frozen] reproduced=5  tail="DEFECT WITNESSES 3: 5/5"   edits=9 carrierHash=de59fa01b12e73ef
+B1 CARRIER: 6/6 PASS · total in-memory edits across the 6 runs = 40 · git status empty afterwards
+```
+
+**Conform suite and the second gate — identical to pristine, in all four streams.**
+
+```
+conform    : cand=79 base=79 stdout lines, DIFFERING=0 after normalising the worktree root; stderr 0/0
+             terminal, both trees:
+             SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families
+second gate: stdout cand=6 base=6 DIFFERING=0; stderr cand=9 base=9 DIFFERING=0
+             terminal, both trees: SECOND GATE candidate: FAIL — second gate failed; inspect ignored public diagnostic logs
+             (the pre-existing D12 abort at tools/engine-test.jsx:106; the reference half passes on both)
+```
+
+Two honest notes on that comparison. **(i)** Line counts here are non-blank lines; r1 and r2 counted differently (82, and 6+3), and the content is what matters — it is line-for-line identical between the trees. **(ii)** `rebuild/conform/engines/*.cjs` are **gitignored build products**, absent from a fresh worktree; the first base run therefore skipped `rig185` and differed in 34 lines for want of them. The candidate worktree's two artifacts were copied into the base worktree — they derive from `fe516c1:src/app.jsx` and are identical for both trees by construction — and the comparison was re-run. The `DIFFERING=0` above is that second run. Before normalisation the only two differing lines were the absolute worktree path inside the `engine artifacts present` diagnostic, which is exactly what r1 reported.
+
+## 8.5 What this pass did NOT do, and what it deliberately left as the sole survivor
+
+1. **`D10-2 utc-stamp-substitution` is still not killed, and must not be.** Fifth independent confirmation (builder, r1, the r1-fixer, r2, this pass): nothing moved — no law row, no carrier, no cell. `(Date.UTC(b) − Date.UTC(a)) / 604800000` is bit-identical to `Math.round((mk(b) − mk(a))/DAY)/7` on every date-only input. `BRIEF-IMPORT-GUARDS.md:88` forbids earning a kill from a refusal, so the kill is a **positive source/alias assertion** and it belongs to the package artifact (C4 / **C-r2-2(b)**), not to a behavioural cell. Writing a cell that "catches" it would be dishonest and this pass did not.
+2. **C-r2-2 is untouched — it is the PM's.** `rebuild/m4/spec` is the PM's directory per `LANES.md`. The two halves the PM still owes are (a) list `rebuild/engine/test/b1-delta-cells.cjs` as a **required** package artifact beside the carrier, and (b) carry C4's positive source/alias assertion for `D10`. §8.3 observation 1 is the argument for (a): without the file, committed coverage falls from 32/33 to 13/33.
+3. **C7 is still unauthored** (`acceptance-b1-grading-time-window.json`, `b1-grading-package.cjs`, `b1-inherited-carriers.cjs`, the `witnesses-1`/`witnesses-3` `coverage.run → coverage.covered` move). **There is still no gate that can say PASS for B1.**
+4. **The 19 original gates and `native-carriers-profile.verify()` were not re-run in this pass.** Nothing in this pass changes an engine byte, and both are functions of the engine bytes and the parent pins; r2's measurements (2 gates moved — `witnesses-1`, `witnesses-3`; `verify()` refuses on `Unchanged parent pin: rebuild/engine/dates.cjs`) stand unchanged and unrepeated. Stated so, rather than re-claimed.
+5. **`--full`, the private census and the browser/host surfaces are unexecuted**, by design (`DECISIONS:92`, `:93` C4). D16 is B1's only LIVE-TRIGGERED defect.
+6. **The `@noble/*` request is still only quoted, not filed** in `REQUESTS.md` (cross-lane, append-only; r2 §6 says the PM must file it, with r2 §7's refinement that the two packages *are* declared in `rebuild/m3/w5/package.json` and `rebuild/m3/w6/package.json`, just not at the root `npm ci` installs).
+7. **The UNKNOWN-recovery question is still open**, and `N1a` (a night bed-dated today restricts recovery on ordinary days, pre-existing) still wants one line of a PM ruling. Neither is a B1 blocker.
+8. **`STATUS.md`, `REQUESTS.md` and `DECISIONS.md` were not edited** (instructed / cross-lane).
+
+## 8.6 Reproduction
+
+All helper scripts live in `work/lane-b/fx2/`, outside the worktree; build products in `fx2/.tmp/`. Nothing generated is committed. The two throwaway worktrees were created with `git worktree add --detach` and removed afterwards; **no other worktree was read from or written to**, and the shared `b1` worktree was never mutated by the mutant harness — all 33 mutants were applied inside `fx2/mut`.
+
+```
+node  = C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe   (v24.19.0)
+env   = TZ=America/New_York  MEASURED_TEST_NOW=2026-09-03  ENGINE_MAIN=<main>  ENGINE_OLD=<old>
+
+fx2/probe1.js        fixture re-derivation for the eleven new cells, on the candidate tree
+fx2/build-frozen.js  frozen fe516c1 bundle via legacy-gates.publicReferences                (§8.4)
+fx2/probe-child.js   COMMITTED detectors only: 11 law statuses + D22 frames parity
+                     + 3 carriers + b1-delta-cells.cjs run as its own process, as JSON
+fx2/mutants-run.js   the brief's 32 mutants + the r1-fixer's D21-4, on fx2/mut              (§8.3)
+fx2/run-carrier.js   the B1 carrier, 3 files x 2 Date modes                                 (§8.4)
+fx2/s05-laws.ps1 + lawdiff.js    45 laws on candidate and base, row-by-row diff             (§8.4)
+fx2/s06/s08 + streamdiff.js      conform + second gate on both trees, line-for-line         (§8.4)
+fx2/s10-scopes.ps1   23 frozen-scope emptiness checks and the file hashes                   (§8.0)
+```
+
+`git status --porcelain` in the worktree showed only the intended files at every checkpoint, and the four engine sha256s were re-read after the carrier run and after the mutant run.
+
+**Privacy, verdict-only.** `rebuild/conform/private/` does not exist on this tree and was not created. `ledger/` was never opened. No `--full` was run. No private value, count, hash or prose appears anywhere in §8.

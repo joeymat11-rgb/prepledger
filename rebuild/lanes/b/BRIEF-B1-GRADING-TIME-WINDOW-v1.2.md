@@ -1,8 +1,9 @@
-# EARNED — B1 GRADING & TIME WINDOW — behaviour/delta brief **v1.2 (v1.1 + the r1 review amendment)** — PROPOSED, NOT ACCEPTED
+# EARNED — B1 GRADING & TIME WINDOW — behaviour/delta brief **v1.2 (v1.1 + the r1 review amendment + the r2 review amendment)** — PROPOSED, NOT ACCEPTED
 
 > **v1.2 = v1.1 verbatim, plus §0.0 below.** Nothing in v1.1 was deleted: every objection, every PM question, every measured table and both conditions C1/C2 are carried forward unchanged. Where §0.0 and a later section disagree, **§0.0 wins** — it is the only part of this document written after the independent review.
 > **Amendment author:** lane-B fixer (Opus), third agent — neither the builder of `ffa4243` nor the reviewer of `B1-REVIEW-r1.md`. Every number in §0.0 was re-executed on the owner's PC on the fixed branch; nothing was taken from either prior report on trust.
 > **Reviewed against:** `rebuild/lanes/b/reviews/B1-REVIEW-r1.md` (ACCEPT WITH CHANGES; C1, C2, C7 blocking).
+> **Second amendment (r2 fix pass, a fifth agent — not the builder, not either reviewer, not the r1 fixer).** `rebuild/lanes/b/reviews/B1-REVIEW-r2.md` returned **ACCEPT WITH CHANGES** with **C-r2-1 blocking and owned by lane B**: the kills for most of §2's mutants lived in un-committed scratch batteries, so only 17 of 33 were killed by anything this branch commits. **C-r2-1 is taken** — §A3 now carries **fourteen** committed delta cells and §A5 states the bar as *killed by a committed artifact*. **C-r2-2 is the PM's and is untaken**, restated in §A5 and in BUILD-REPORT §8.5. Every number added by that pass was re-executed on the owner's PC.
 
 Package **B1** (`rebuild/lanes/PLAN-TRACK-B-PACKAGES-v1.md:70–81`). Lane B builder output; research only — nothing in the repo was modified, committed or pushed by preparing it. Executed in a private worktree; `npm ci --include=dev` local, never committed.
 **Base tree:** `origin/rebuild/t2-client-core` @ `87eddad7e9e7141e28ea575b3b99038eac61585a` (`87eddad`) — the NATIVE-CARRIERS merge `52a74b6` plus the lane-B briefs commit. Every line number and sha256 below was re-read on that tree.
@@ -103,30 +104,56 @@ The reviewer's own bite proved that `REVERT D16 dueISO calendar` and `REVERT D24
 
 Bite proof: reverting D16's `dueISO` hunk fails **cell 1**; reverting D24's `yISO` hunk fails **cell 2**. These are B1's **only** detectors for those two hunks, so the accepted brief must list `rebuild/engine/test/b1-delta-cells.cjs` as a required package artifact alongside the carrier.
 
+**A3 (extended by review r2, C-r2-1 — BLOCKING, taken).** r2 measured the mutant matrix against **only** what this branch commits and found 17 of 33 caught: nine more were killed only by a cell in an un-committed scratch battery (`rv1/`, `fx1/`) and seven by nothing anyone had written. The same argument that produced the two cells above, applied to all ten hunks, produces **eleven more**. They are now in the same file, which holds **fourteen** cells:
+
+| # | cell | mutant(s) it kills |
+|---|---|---|
+| 4 | `B1-D10-fractional-weeks-are-exact-sevenths-of-calendar-days` | `D10-1` — `weeksBetween('2026-09-03','2026-09-06') = 0.42857142857142855`, `('2026-01-01','2027-01-01') = 52.142857142857146` |
+| 5 | `B1-D8-the-three-night-mean-still-runs-behind-the-recency-guard` | `D8-3` — three 6.6 h nights ending last night → `cleanAtDate` `false` |
+| 6 | `B1-D16-a-late-read-leaves-the-call-ungraded-and-never-a-miss` | `D16-1` — a read on `2026-08-10` → `{graded:0, hit:null, miss:false}` |
+| 7 | `B1-D16-only-an-eligible-read-can-grade-a-forecast` | `D16-3` — a `sealed` (and an `offWindow`) read ON the due date → `{graded:0, hit:null}` |
+| 8 | `B1-D17-undone-moves-applied-only-and-a-clean-adjustment-still-reads-applied` | `D17-2` — `{undone, auto}` keeps `auto:true`, `{undone}` keeps `auto:false`; `D17-3` — neither flag → `applied:true` |
+| 9 | `B1-D25-good-needs-one-success-and-forgives-exactly-one-miss` | `D25-1` — `2/4` → `caution`; `D25-2` — `1/2` and `6/7` → `good`; `D25-3` — no rows → `{quiet, "counting only"}` |
+| 10 | `B1-D19-the-cut-resumes-the-calendar-date-after-an-inclusive-break-end` | `D19-2` — break `2026-10-26..2026-11-01` read on its last active day → `next.when = "resumes Mon 11/2"` |
+| 11 | `B1-D27-an-active-diet-break-is-not-a-cut` | `D27-2` — a stalled `plan.phase="cut"` athlete inside `brk 2026-09-01..09-07` → `phaseArc.key="break"`, `rung="hold"` |
+| 12 | `B1-D27-long-cut-is-the-committed-phases-own-age-not-the-programme-week` | `D27-3` — `START + 63`: `weeks=9`, `weekDay().wk=10`, `rung="calories"`; control `START + 70` → `"break"` |
+| 13 | `B1-D23-a-failed-derivation-is-neither-a-rest-day-nor-an-escaping-throw` | `D23-2`, `D23-3` — day 0 throws, day 2 is a U day → `{"UPPER BODY · SAT 9/5", iso:"2026-09-05"}`, and `nowModel` does not throw |
+| 14 | `B1-D23-the-seven-day-scan-steps-calendar-dates` | `D23-4` — clock `2026-11-01`, map `{1:"L"}` → `{"LOWER BODY · TOMORROW", iso:"2026-11-02"}` |
+
+Two contract points that come with them. **(a)** Every fixture that is merely *dated relative to* another date is built by an oracle independent of `plusDays`, and `D27-3`'s is expressed as **`START + 63 days`**, never as the literal `2026-08-12` (§A4 item 4). **(b)** The file runs every cell and reports `h/14`, so `0/14 on base` is a per-cell measurement and not an artefact of aborting on the first failure: **14/14 hold on the candidate, 0/14 on base, and on base every one of the fourteen fails with an `AssertionError`, none against an absent export.**
+
 ### A4. Evidence corrections carried into the contract (review C3, C4, C6)
 
-1. **The mutant count is 32, not 31.** v1.1 §5.4 says "the 31 named in §2". §2 names D10 3 · D8 3 · D21 3 · D19 3 · D16 4 · D17 3 · D24 3 · D25 3 · D27 3 · D23 4 = **32**. Both the builder and the reviewer counted 32 independently; so did this pass. **Read §5.4 as 32.** Re-executed on the fixed branch: **32 named · 31 CAUGHT · 1 NOT CAUGHT · 0 HARNESS**, plus the fixer-authored `D21-4` (CAUGHT) for **33 · 32 · 1 · 0** overall.
+1. **The mutant count is 32, not 31.** v1.1 §5.4 says "the 31 named in §2". §2 names D10 3 · D8 3 · D21 3 · D19 3 · D16 4 · D17 3 · D24 3 · D25 3 · D27 3 · D23 4 = **32**. Both the builder and the reviewer counted 32 independently; so did this pass. **Read §5.4 as 32.** Re-executed on the fixed branch, and re-executed again by the r2 fix pass against **committed artifacts only**: **32 named · 31 CAUGHT · 1 NOT CAUGHT · 0 HARNESS**, plus the fixer-authored `D21-4` (CAUGHT) for **33 · 32 · 1 · 0** overall.
 2. **`D25-1 require-a-majority` — the brief's named killers do not kill.** `1/2` and `6/7` both read `good` on the repaired engine *and* under the mutant (repair `1 ≥ 1` / `6 ≥ 6`; majority `2 ≥ 2` / `12 ≥ 7`). **The killer cell is `2/4`** — repaired `caution`, mutant `good`. Re-measured here: the sole detector that moved was `D25.two_of_4`. Add `2/4` to §2 D25's cell list. (`1/2` and `6/7` remain correct killers for `D25-2 drop-the-one-miss-allowance`; the no-rows cell kills `D25-3`.)
 3. **`D23-1 default-slp-to-empty-object` — the killer is the surviving `TypeError`, per the builder.** v1.1 names the `last.h = 3` deferral cell; measured, it does not distinguish (the fixture's lift has `e.w == null`, so `genSession` takes the `baselineAsk` branch either way). The only detector is the assertion v1.1 itself lists as a **non-flip**: `defect-witnesses-3.cjs:41`, `assert.throws(() => genSession(s,'2026-09-03'), TypeError)` — repaired `TypeError`, mutant `NO THROW`. Re-measured here: the sole detector was `carrier defect-witnesses-3`. This makes the `defect-witnesses-3` carrier **load-bearing for D23-1**, not merely carried.
 4. **`D27-3 gate-on-programme-week-and-phase` needs the fixture v1.1 omits: `2026-08-12`.** For a committed `cut`, `phaseArc`'s `startOf.cut` is `START`, so `arc.weeks` and `weekDay().wk` agree on almost every date; they diverge only for `diff ∈ [63, 69)` days after `START = 2026-06-10`. At `clock.today() = 2026-08-12` (`diff = 63`): **`arc.weeks = 9`, `weekDay().wk = 10`, repaired `rung = "calories"`, mutant `rung = "break"`.** The builder and the reviewer derived this date independently and converged. **Express the cell as `START + 63 days`, not as the literal** — if `START` moves, the killer date moves with it (reviewer's residual risk 7).
-5. **`D10-2 utc-stamp-substitution` is behaviourally unkillable — this is now a contract requirement, not an observation.** Three independent harnesses (builder, reviewer, this pass) found **nothing moved**: not one of the 90 battery cells, not one of the 45 law rows, not one of the three carriers. `(Date.UTC(b) − Date.UTC(a)) / 604800000` is bit-identical to `Math.round((mk(b) − mk(a))/DAY)/7` on every date-only input because both endpoints are stamped consistently. Since `BRIEF-IMPORT-GUARDS.md:88` forbids earning a kill from a refusal, **B1's package must carry a positive source/alias assertion for `dates.cjs`** (e.g. `weeksBetween`'s declaration text contains no `Date.UTC`). Without it D10's mutant column is one short and should be declared so, not papered over.
+5. **`D10-2 utc-stamp-substitution` is behaviourally unkillable — this is now a contract requirement, not an observation.** Five independent harnesses (builder, review r1, the r1 fix pass, review r2, the r2 fix pass) found **nothing moved**: not one of the battery cells, not one of the 45 law rows, not one of the three carriers, and not one of the fourteen committed delta cells. `(Date.UTC(b) − Date.UTC(a)) / 604800000` is bit-identical to `Math.round((mk(b) − mk(a))/DAY)/7` on every date-only input because both endpoints are stamped consistently. Since `BRIEF-IMPORT-GUARDS.md:88` forbids earning a kill from a refusal, **B1's package must carry a positive source/alias assertion for `dates.cjs`** (e.g. `weeksBetween`'s declaration text contains no `Date.UTC`). Without it D10's mutant column is one short and should be declared so, not papered over.
 6. **§6 Q5 settled: the `policy.cjs:554` rider is OUT.** v1.1's §0.1 item 2 ("policy 23 → 24, 25 with the rider") and §5.4 ("3+1+2 new delegate lines") contradict each other. **§0.1 item 2 is correct and §5.4's "2" is wrong: `policy.cjs` gains ONE delegate (`plusDays`), so the delegate arithmetic is 3 (`today.cjs`) + 1 (`sleep.cjs`) + 1 (`policy.cjs`) = 5 new delegate lines**, and the built diff is byte-reproducible from this brief. The rider itself is a measured printed no-op (v1.1 §0.1 item 10; re-measured by the builder over 220 095 pairs: 0 printed differences, 0 `arc.weeks >= 10` decision differences), so leaving it out costs nothing and keeps `weeksBetween`'s 67 remaining sibling sites one consistent open question.
 7. **Delegate/declaration placements are now part of the contract** so the diff is byte-reproducible: `plusDays` is declared in `dates.cjs` **above** the `// Copied from frozen src/app.jsx @ fe516c1:311-311.` marker, never between the marker and `weeksBetween` (it has no frozen counterpart, and `source-proof.cjs:11 declarationRanges()` names each range by the first declaration after such a marker). `policy.cjs`'s delegate goes after `:16` as v1.1 says, accepting that this breaks that block's alphabetical order; `sleep.cjs`'s after `:21`.
 
 ### A5. The acceptance bar this contract now demands (review residual risk 1)
 
-v1.1 §7 item 5 measured **raw GREEN/RED statuses only** — "no other law moves" — and that is precisely the gap the shipped defect walked through. **v1.2 requires a full 45-row diff including `frames parity` and the printed verdict token, not raw statuses**, for every B-package that changes a shared helper's contract. Re-executed on the fixed branch, the bar is met:
+v1.1 §7 item 5 measured **raw GREEN/RED statuses only** — "no other law moves" — and that is precisely the gap the shipped defect walked through. **v1.2 requires a full 45-row diff including `frames parity` and the printed verdict token, not raw statuses**, for every B-package that changes a shared helper's contract.
+
+**And v1.2 requires, as of review r2's C-r2-1: every named mutant must be killed by a COMMITTED ARTIFACT — a law, a carrier, or a cell in `rebuild/engine/test/b1-delta-cells.cjs` — not merely by the harness.** A kill that lives only in a builder's, a reviewer's or a fixer's scratch battery is not evidence the repository holds: it vanishes with the agent that wrote it, and a future edit that reintroduces the defect turns every committed gate green. Where a mutant is genuinely unkillable by behaviour (`D10-2`, five independent confirmations), the package must say so and carry a **positive source/alias assertion** instead (§A4 item 5) — never a cell that pretends to catch it. The acceptance bar is therefore read as: **33 mutants run · 32 killed by a committed artifact · `D10-2` declared unkillable and carried by the package contract · 0 harness errors.**
+
+Re-executed on the fixed branch, the bar is met:
 
 ```
 45 laws            : 10 rows moved vs acd3b67 (D8,D10,D16,D17,D19,D21,D23,D24,D25,D27); 35 byte-identical
 D22 frames parity  : TRUE on the candidate (was FALSE on the shipped hunk)
 13 reviewer bites  : 13/13 CAUGHT   (+ 1 fixer bite "REVERT D8xD21 second anchor" CAUGHT) = 14/14
-32 named mutants   : 31 CAUGHT · D10-2 the sole survivor (+ D21-4 CAUGHT) = 33 run, 32 caught
+33 mutants, detectors = COMMITTED ARTIFACTS ONLY (10 laws + D22 frames parity + 3 carriers + the
+                     delta cells; NO scratch battery):  32 CAUGHT · D10-2 the sole survivor · 0 HARNESS
+                     — 19 of the 32 are killed by a delta cell and by nothing else
 B1 carrier         : 6/6 PASS · 18 substitutions unchanged · witness files byte-identical
-new delta cells    : 3/3 hold on the candidate; 0/3 on base; each hunk's revert fails its own cell
+delta cells        : 14/14 hold on the candidate; 0/14 on base, every cell failing on its own assertion
 19 original gates  : 2 move (witnesses-1, witnesses-3) — the two v1.1 predicts, and no more
-conform + 2nd gate : line-for-line identical to pristine (82/82 and 7+4 lines, 0 differing in all four streams)
+conform + 2nd gate : line-for-line identical to pristine, 0 differing in all four streams
 ```
+
+**Consequence for the package artifact (C-r2-2(a), the PM's).** `rebuild/engine/test/b1-delta-cells.cjs` is not a convenience: remove it and B1's committed evidence falls from 32/33 to 13/33. It must be listed as a **required** artifact of B1's closed profile beside the carrier.
 
 ### A6. Residual risks carried from the review, unclosed (the PM owns each)
 
