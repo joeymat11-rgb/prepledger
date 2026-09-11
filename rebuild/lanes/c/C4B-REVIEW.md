@@ -832,3 +832,244 @@ nits are closed, one of them better than asked. Four follow-ups remain, none of
 them able to lose, misstamp or strand anything.
 
 **FINAL VERDICT: ACCEPT at a403990**
+
+---
+---
+
+# ROUND 4 (C4d) — G7/O10: "Last time" reads the shape the engine hands over
+
+Head `8ef765c` (`3565d7b` the fix, `8ef765c` the report), rebased onto `5dc9254`.
+Worktree clean apart from this file.
+
+## 1. SCOPE
+
+`git diff --stat a403990 HEAD` = 9 files: `gym-model.mjs`, `gym-check.mjs`,
+`test/gym.test.mjs`, `test/checkin.test.mjs`, the report, this review, and the
+three lane-coordination files. Path-filtered against the base `5dc9254`:
+**nothing** under `rebuild/host`, `client`, `engine`, `m4`, `conform`, `.github`.
+
+`gym-host.mjs` sha256 is **`70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18`**
+— byte-identical to the value I verified in rounds 2 and 3. `today-bindings.mjs`
+is likewise unchanged since round 3 (`f1bb8bbb…`); C4d touches no `w6` file.
+
+## 2. COUNTS — every one reproduces
+
+| | claimed | measured |
+|---|---|---|
+| A1 today | 64 | **64/64** exit 0 |
+| A2 gym | 64 | **64/64** exit 0 (was 60; +4) |
+| A3 check-in | 28 | **28/28** exit 0 |
+| W6 suite | 552 | **552/552** exit 0 |
+| C4 journey | — | **51/51** exit 0 |
+| A0 host | 22 | **22/22** exit 0 |
+| w7-preview | 19 | **19/19** exit 0 |
+| `run-current-head --all` | 552/552 | **552/552** exit 0 |
+| `--bite` | bites | exit 1, 2 of 14 |
+| `native-carriers --ci` | PASS | **PASS** exit 0 |
+| `build.mjs` | PASS | **PASS** — 3 assets, 93 inputs, 68 bound classes |
+| Edge `local-today-browser.mjs` | 6/6 | **6/6** exit 0 |
+| `browser-check.mjs` msedge | PASS | **PASS** exit 0 |
+| `checkin-check.mjs` msedge | PASS | **PASS** exit 0 |
+| `gym-check.mjs` msedge | PASS | **PASS** exit 0 |
+
+`gym-check`'s pass line now carries the C4d claim: *""Last time" prints on day 1's
+active set from the engine's own comparison (C4d), and day 2's lifts, which have
+none on file, print nothing rather than an invented one."*
+
+## 3. IS THE PREFIX RULE THE ENGINE'S OWN RULE? — yes, and `slots.find` is not
+
+I read the engine before the fix, not after. `today.cjs:171` sets
+`prev: eraFresh(s, e.id) ? null : meta9` where `meta9 = governingMeta(e, s)`;
+`progression.cjs:126-134` returns `row.en` — the raw `earned/performed-lift/v1`
+entry — for a native row and the `{d,w,reps,rir,rirSets,debt}` cache otherwise;
+`_lineOf` (`:76-79`) is `performedLine(row.en).reps` for native and
+`row.en.reps` for legacy. `performedLine` (`performed.cjs:226-238`) walks slots in
+order, **skips `origin === 'added'` without counting or ending**, and the first
+non-`performed` ORIGINAL sets `stop` and ends the prefix. The builder's
+description of all four of those is accurate, line numbers included.
+
+Then I checked it rather than believing it — `%TEMP%\c4b-rev\r4-prefix-probe.mjs`
+drives the engine's real `performedLine` (the factory, `createPerformed`) and the
+product's reader over the same entries, and a reconstruction of lane B's
+`slots.find(position)` beside them:
+
+```
+plain 3 originals          engine reps=[11,10,9]           product 3/3 agree
+ADDED at position 3        engine reps=[11,10,8] added=1
+   p3: engine=8  product=40x8   laneB=99x3   <-- DIFFERS  (prints the ADDED set)
+   p4: engine=null product=null laneB=40x8   <-- DIFFERS  (prints past the line)
+SKIPPED original at 2      engine reps=[11] stop=skipped beyond=true
+   p3: engine=null product=null laneB=40x9   <-- DIFFERS  (prints PAST THE HOLE)
+ADDED first, then originals engine reps=[11,10] added=1
+   p1..p3: laneB off by one at every position   <-- DIFFERS x3
+
+product-vs-engine MISMATCHES: 0        laneB-vs-engine DIFFERENCES: 6
+```
+
+**Zero mismatches against the engine across every position of every case, and six
+reachable positions where `slots.find` would have printed something the engine
+would not** — an added set's numbers, and a set past a hole. So the fix was
+necessary and the rule chosen is the engine's, not a second opinion.
+
+Two things I checked that the brief did not ask for:
+
+* **The caller's index is the right one.** `gym-model.mjs:259` computes
+  `position = activeLift.slots.indexOf(active) + 1` — today's ordinal within the
+  lift's prescribed vector — and the reader returns the previous session's
+  *prefix* ordinal. That is the same pairing `_lineOf` feeds the progression, so
+  today's set N is compared against last time's Nth counted set. Correct.
+* **The reader is downstream of validation and does not re-validate.**
+  `_governingRows` (`progression.cjs:70`) already ran `performedLine(en)` — and so
+  `performedEntry` — before `governingMeta` can hand the entry over, so a
+  malformed entry never reaches `previousAt`. The reader's own per-field checks
+  (`unit 'lb'`, finite, `> 0`; `unit 'rep'`, safe integer, `>= 0`) mirror
+  `performedEntry`'s anyway. The comment's reason for not calling `performedLine`
+  directly is true: `m4/workout/engine-runtime.cjs:11` exposes only `genSession`
+  and `rirPlan`.
+
+## 4. LEGACY SHAPE — no regression, and nothing invented at the edges
+
+Same probe, plus `%TEMP%\c4b-rev\r4-edge-probe.mjs`:
+
+```
+legacy, numeric w                       p1 = 45x12   p3 = 45x10   p4 = null
+legacy, w null (a non-numeric config)   nothing        <- no guess, either shape
+legacy, wKey config, w null             nothing
+native, configuration load              nothing        <- performedNumericEntry's own refusal
+prev null / position 0 / position 1.5   nothing
+unknown object shape                    nothing
+v2 profile entry                        native branch entered
+```
+
+The legacy branch is entered only on `typeof prev.w === 'number'`, so a
+non-numeric configuration row (`progressAnchor`'s "en.w null") falls through both
+branches and prints nothing rather than a wrong number. Deliberate and right.
+
+## 5. THE DAY-2 "EMPTY" ASSERTION — honest absence, and I can tell the difference
+
+This was the one I most expected to be wrong, because the failure mode and the
+honest answer are indistinguishable from the slot's text: `readPrevious()`
+catches a `genSession` refusal and returns an EMPTY map, and an empty map prints
+exactly the same nothing as "no comparable on file". So I distinguished them at
+the map (`%TEMP%\c4b-rev\r4-day2-probe.mjs`), driving day 1 and day 2 through the
+real `boot()` exactly as `gym-check` does:
+
+```
+DAY 1  previous = "Last time: 40 lb x 12"   map.size=2   prev(lift) = LEGACY {w,reps}
+DAY 2  lift=demo-leg  previous = null
+       map.size=2  entries=[["demo-leg","null"],["demo-curl","null"]]
+       VERDICT: POPULATED, every value null -> the engine RAN and reported no
+                governing comparison. The empty slot is an HONEST ABSENCE.
+CONTROL day+3, same lifts, the page's own UNQUALIFIED provider:
+       map.size=0  -> EMPTY, which is what a refusal looks like
+```
+
+The control matters: it proves the discriminator is not blind. A refusal really
+does produce `size 0` on this same code path, and day 2 does not. **The
+`gym-check` assertion is true for the reason it claims**, and day 1 proves the
+legacy branch still prints in the shipped page.
+
+## 6. THE CONVERSE GUARD BITES — three mutations
+
+`%TEMP%\c4b-rev\r4-converse-probe.mjs` runs the guard's predicate *verbatim* from
+`gym.test.mjs` over a whole real session (Start, a set, an Undo, its replacement,
+every remaining set, the close) in a real era:
+
+```
+BASELINE  ops=8  kinds=[session-close,session-set,session-start,tombstone]
+          classes=["session"]                          -> guard problems: []
+MUTATION A  a REAL class="event" op, written by the real check-in producer into
+            the SAME generation the guard reads       -> RED
+MUTATION B  one real workout op re-classed "event"    -> RED
+MUTATION C  the session-CLOSE (a real tip) re-classed -> RED, and the frontier
+            goes from ["…-3","…-8"] to SIX tips — every op the close used to
+            claim becomes a tip again
+```
+
+Mutation C is the point: that silent frontier staleness is precisely the defect
+the guard exists to make loud, and the guard is red on it. **Disclosure about how
+I mutated:** A is a genuine client-written op; B and C flip one field on a real
+op at the point the assertion consumes it. I did not edit the writer's class —
+that is stamped inside `rebuild/client`, outside this branch's licence and
+outside what I may modify — so the strongest available mutation is A, and it
+bites.
+
+## 7. THE NATIVE TEST'S RESOLVER — a fair stand-in, and I checked why
+
+`gym.test.mjs` supplies its own `qualifiedTrendContext`. I read
+`performed.cjs:191-205` to see what that buys: the engine refuses unless the
+answer echoes `start_op_id`, `source_revision` and the **exact** `effective`
+object key-for-key, and supplies three booleans. The test's resolver does that
+and nothing else — it invents no flag and cannot grant eligibility. So it is the
+engine's own boundary, honoured, and the builder's description of it is accurate.
+
+**Named, not a defect:** because that resolver always answers
+`hard/rushed/debt = false`, the native path is proved here only for an unflagged
+session. That is sufficient for G7 — the reader's shape handling is orthogonal to
+the flags — and the real provider is lane B's (DECISIONS:108 (b)), whose wiring
+hunk is correctly NOT applied here.
+
+## 8. MY ROUND-3 FOLLOW-UPS — three of four closed
+
+| round-3 item | closed |
+|---|---|
+| 1. the allowlist had no converse guard | **closed** — a real session on disk, every kind present, `[...new Set(classes)] === ['session']`, plus a tips check; bites under three mutations (§6) |
+| 2. §9.1 should name the check-in as a second trigger lane | **closed** in the report's §9.1 |
+| 3. G7/O10 unmet | **closed** — this release, and it is the engine's own rule (§3) |
+| 4. the MUTANT 5 tautology | **closed** — and the builder confirms what I suspected: `repository` carries no `databaseName`, so the third term was always the first and the set was always a singleton. Replaced with `readings.databaseName/namespace` against the era's constants, resting the gym lane's answer on the `===` identity already asserted |
+
+## 9. WHERE I DISAGREE / RESIDUALS
+
+1. **The native branch is proved in `gym.test.mjs`, not in a browser.**
+   `gym-check` asserts the LEGACY line on day 1 and an EMPTY slot on day 2; the
+   NATIVE shape never reaches the shipped page because the page composes the
+   unavailable `nativeTrendContext` on purpose. That is correct and disclosed —
+   but it means the line an athlete will actually read once lane B lands has no
+   real-browser evidence yet. **Ask:** when B-NTC merges, one Edge assertion that
+   the native line prints on the second day of the same lift.
+2. **Unflagged sessions only** (§7).
+3. `readPrevious()` still collapses "genSession refused" and "no comparable" into
+   the same empty map. My probe had to reach past the product to tell them apart.
+   Nothing prints wrongly either way — but a one-field `previousUnavailable`
+   reason would make the next G7 visible from the model instead of from a
+   reviewer's probe. **Recommended, not required.**
+
+None of these can print a wrong number; all three are about evidence and
+observability.
+
+## 10. FILES REVIEWED IN ROUND 4 (sha256, at `8ef765c`)
+
+```
+6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3  w7-preview/today/gym-model.mjs
+70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18  w7-preview/today/gym-host.mjs   <- unchanged since ecdcc29
+48665c92a51464d5fdb179673cb7136e1925d57d8b49d9f13e22149c002aa81a  w7-preview/today/gym-check.mjs
+be31fed87150c4d64545e2bcbeec12d0d106218135d78f2b78a854160f935e45  w7-preview/today/test/gym.test.mjs
+bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be  w7-preview/today/test/checkin.test.mjs
+f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff  w6/local/today-bindings.mjs     <- unchanged since a403990
+d8a0a2fb0b7d8302472e107d6bef06fd3b42e7a3ce78ddb4ecd76e3e93b8132c  lanes/c/C4B-REPORT.md
+```
+
+Engine sources read for §3: `engine/progression.cjs:70-79,120-134`,
+`engine/performed.cjs:34-72,118-130,191-205,218-238`, `engine/today.cjs:74-80,171`.
+
+Nothing in the worktree was modified by this review; every probe under
+`%TEMP%\c4b-rev\`, every browser profile under `%TEMP%`, every `taskkill` scoped
+to one. No candidate file edited, nothing committed or pushed, nothing installed.
+Synthetic data only.
+
+## ROUND 4 DISPOSITION
+
+The rule the reader walks is the engine's own — checked against the engine's
+real `performedLine`, not against the report's description of it — and it agrees
+in every position of every case I could build, including the two that matter
+(an added set, a hole). Lane B's `slots.find(position)` differs in six reachable
+positions, so the fix was needed and the shape chosen was the right one. The
+legacy shape still prints and nothing is invented at any edge. The day-2 empty
+slot is an honest absence, proved at the map with a control that shows what a
+refusal would have looked like instead. The converse guard I asked for exists,
+reads the durable store, and goes red under three mutations including the one
+that silently re-opens the frontier. Three of my four round-3 follow-ups are
+closed and the fourth (G7) is this release. Three residuals remain, all about
+evidence rather than behaviour.
+
+**FINAL VERDICT: ACCEPT at 8ef765c**
