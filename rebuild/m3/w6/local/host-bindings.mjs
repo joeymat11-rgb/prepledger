@@ -226,13 +226,28 @@ async function refuseLapsedEra({ repository, clock }) {
 // The scope itself. Twelve members, no thirteenth: composeWorkoutHost names
 // every one of these and refuses a missing one by name, so anything extra here
 // would be a member nobody asked for.
-export async function buildLocalHostBindings(scope, { workoutCommands } = {}) {
-  const { repository, crypto, clock, namespace, athleteId, deviceId, sessionEpoch, alive, booted, client } = scope;
+export async function buildLocalHostBindings(scope, { workoutCommands, clock: hostClock } = {}) {
+  const { repository, crypto, namespace, athleteId, deviceId, sessionEpoch, alive, booted, client } = scope;
+  /* C4b-D1 — ONE CLOCK PER HOST, and the host is what declares it.
+     The stage below is what STAMPS every operation this host writes, and
+     composeWorkoutHost is handed a `clock.today()` that the accepted resume
+     policy compares those stamps against. If the two disagree — which they did
+     when the installation's clock was pinned to the first caller's day and a
+     later host stood on the next day — a Start is written stamped yesterday, the
+     very next read refuses it WORKOUT_HISTORY_RECONCILIATION_REQUIRED, and the
+     store is stranded with a Start no accepted resolver can order. So a caller
+     that composes a host for a particular day passes that day's clock HERE, and
+     the same day goes to composeWorkoutHost; nothing is inferred and nothing is
+     dropped. With no `clock` the installation's own is used, exactly as before. */
+  if (hostClock !== undefined && (typeof hostClock?.now !== "function" || typeof hostClock?.today !== "function"
+      || typeof hostClock?.monotonicMs !== "function")) throw new StorageFailure("LOCAL_HOST_CLOCK_INVALID", 18);
+  const clock = hostClock || scope.clock;
+  const scoped = hostClock ? { ...scope, clock } : scope;
   if (typeof booted !== "function" || booted() !== true) {
-    await refuseLapsedEra(scope);
+    await refuseLapsedEra(scoped);
     throw new StorageFailure("LOCAL_HOST_BINDINGS_BOOT_REQUIRED", 18);
   }
-  const install = await installHostAuthority(scope);
+  const install = await installHostAuthority(scoped);
   const commands = workoutCommands === undefined ? scope.workoutCommands : workoutCommands;
 
   // The real T2 stage over the local era's own configuration — the same

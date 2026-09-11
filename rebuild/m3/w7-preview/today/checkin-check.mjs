@@ -49,6 +49,12 @@ if (!executablePath) {
     + "This is not a pass.");
   process.exit(0);
 }
+/* C4c, minimal and disclosed (lane C): the process this check kills is the one
+   W7_BROWSER_BIN actually names. It was the literal "chrome.exe", so on a machine
+   whose Chromium is Edge the kill found nothing and the check failed on its own
+   guard — the same defect C4b review D3 fixed in gym-check.mjs and
+   browser-check.mjs. Nothing else in this file is touched. */
+const PROCESS_NAME = path.basename(executablePath);
 const require = createRequire(path.join(here, "../../w6/package.json"));
 const hereRequire = createRequire(import.meta.url);
 const { chromium } = require("playwright-core");
@@ -98,7 +104,7 @@ async function launch(query = "") {
    this check exists to catch. iOS terminating a backgrounded tab does not ask
    politely, and neither does this. */
 function chromeProcessesForProfile() {
-  const script = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='" + PROCESS_NAME + "'\" | "
     + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
     + "Select-Object -ExpandProperty ProcessId";
   try {
@@ -109,7 +115,8 @@ function chromeProcessesForProfile() {
 }
 async function hardKill(context) {
   const pids = chromeProcessesForProfile();
-  assert(pids.length > 0, "no chrome process was found for this profile — the kill would prove nothing");
+  assert(pids.length > 0,
+    "no " + PROCESS_NAME + " process was found for this profile — the kill would prove nothing");
   for (const pid of pids) {
     try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
     catch (_) { /* a child may already be gone with its parent */ }

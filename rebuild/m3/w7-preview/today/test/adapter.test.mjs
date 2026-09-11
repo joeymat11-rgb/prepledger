@@ -14,8 +14,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { webcrypto } from "node:crypto";
 import { faultDatabase } from "../../../w6/test/support.mjs";
-import { createReadingHost, READING_SCHEMA_VERSION } from "../reading-host.mjs";
-import { createGymHost, AUTHORITY_KID, openDeviceKeys } from "../gym-host.mjs";
+import { createReadingHost, READING_SCHEMA_VERSION, ERA_SCHEMA_VERSION } from "../reading-host.mjs";
+import { createGymHost, DATABASE } from "../gym-host.mjs";
+import { openLocalKeys, keysDatabaseName } from "../../../w6/local/local-keys.mjs";
 import Engine from "../../../../engine/index.cjs";
 import TodayModel from "../today-model.cjs";
 
@@ -23,25 +24,18 @@ const { createEngine } = Engine;
 const { createTodayModel, createBasisState, engineClockFor, SYNTHETIC_DAY, NO_STORE } = TodayModel;
 const DAY = SYNTHETIC_DAY;
 
-async function deviceKeys() {
-  const pair = await webcrypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, false, ["sign", "verify"]);
-  const jwk = await webcrypto.subtle.exportKey("jwk", pair.publicKey);
-  const storeKey = await webcrypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-  return { kid: AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-    publicKey: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y, key_ops: ["verify"], ext: true } };
-}
-
-/* One device: one IndexedDB factory and one key store, so a "relaunch" is a new
-   host over the same encrypted bytes, exactly as a new page load is. */
+/* ONE STORE (C4b). One IndexedDB factory is one device, so a "relaunch" is a new
+   host over the same encrypted bytes, exactly as a new page load is. Nothing is
+   minted here: the page no longer takes device keys, and the installation's own
+   custody (local-keys.mjs) is what these hosts open. */
 async function device(options = {}) {
   const fault = options.fault || faultDatabase();
-  const keys = options.keys || await deviceKeys();
   const day = options.day || DAY;
   async function open() {
-    return createReadingHost({ day, indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
+    return createReadingHost({ day, indexedDB: fault.indexedDB, crypto: webcrypto });
   }
   const readings = await open();
-  return { fault, keys, day, open, readings, model: createTodayModel({ today: day, readings }) };
+  return { fault, day, open, readings, model: createTodayModel({ today: day, readings }) };
 }
 const generationOf = async repository => (await repository.load()).generation;
 const opsOf = async repository => Object.values((await generationOf(repository)).collections.ops || {});
@@ -64,7 +58,11 @@ test("the screen cannot mint an operation id", async () => {
   const ops = await opsOf(kit.readings.repository);
   assert.equal(ops.length, 1);
   assert.equal(ops[0].op_id, result.op_id, "the id on screen is the id the CLIENT minted");
-  assert.match(ops[0].op_id, /^op-earned-today-preview-device-\d+$/);
+  /* C4b: the device is this installation's own — minted once at random and kept
+     with the local keys — so the id is pinned to THAT device, not to a constant
+     the page carried in its source. Stronger than the old shape match. */
+  assert.match(kit.readings.deviceId, /^device-[0-9a-f]{32}$/);
+  assert.equal(ops[0].op_id, "op-" + kit.readings.deviceId + "-1");
   kit.readings.close();
 });
 
@@ -214,7 +212,7 @@ test("an evicted store refuses rather than reseeding, and paints no number", asy
   await kit.model.weighIn(181.9);
   // Delete the active generation under the page, the way clearing site data does.
   await new Promise((resolve, reject) => {
-    const open = kit.fault.indexedDB.open("earned-today-preview-readings", 1);
+    const open = kit.fault.indexedDB.open(DATABASE, 1);
     open.onsuccess = () => {
       const db = open.result;
       const tx = db.transaction("generations", "readwrite");
@@ -275,12 +273,16 @@ test("the stored reading is the CLIENT's own projection, not this adapter's pars
   kit.readings.close();
 });
 
-/* REVIEW B2 — the executed reason the reading lane is its own generation. */
+/* REVIEW B2 — the executed reason the reading may NOT go through the workout's
+   public client. Unchanged by C4b, and it is the whole reason the one store has
+   two write paths rather than one: the PUBLIC client really does refuse a
+   schema-1 reading under a schema-2 lease. What changed is the conclusion drawn
+   from it — the refusal is the client's, not the store's, so the reading goes
+   through rebuild/client's own bridge into the SAME generation. */
 test("a weigh-in cannot ride the workout's schema-2 lane: the accepted layer refuses it", async () => {
   const fault = faultDatabase();
-  const keys = await deviceKeys();
   const gym = await createGymHost({ day: DAY, engineState: createBasisState(DAY),
-    indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys, plannedSplitSlotId: "slot/" + DAY });
+    indexedDB: fault.indexedDB, crypto: webcrypto, plannedSplitSlotId: "slot/" + DAY });
   const before = await opsOf(gym.repository);
   const refused = await gym.host.client.execute("weighIn", { date: DAY, lb: 179.4 });
   assert.equal(refused.acknowledged, false);
@@ -291,23 +293,34 @@ test("a weigh-in cannot ride the workout's schema-2 lane: the accepted layer ref
   gym.close();
 });
 
-test("the two lanes are separate generations under ONE on-device key store", async () => {
+/* C4b — WHAT REPLACED THE TWO LANES. One installation, one repository handle,
+   one self-issued era lease, and the weigh-in written into the same generation
+   the workout is in. */
+test("the two lanes are ONE generation of this device's own local era", async () => {
   const fault = faultDatabase();
-  const keys = await openDeviceKeys({ indexedDB: fault.indexedDB, crypto: webcrypto });
-  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
+  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
   const gym = await createGymHost({ day: DAY, engineState: createBasisState(DAY),
-    indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys, plannedSplitSlotId: "slot/" + DAY });
-  assert.equal(readings.databaseName, "earned-today-preview-readings");
-  assert.equal(readings.lease.schema_version, 1);
-  const gymLease = (await generationOf(gym.repository)).metadata.authorityLease;
-  assert.equal(gymLease.schema_version, 2);
-  assert(readings.lease.signature.startsWith("ES256." + AUTHORITY_KID + "."));
-  assert(gymLease.signature.startsWith("ES256." + AUTHORITY_KID + "."));
-  // One weigh-in and one workout Start land in DIFFERENT generations.
+    indexedDB: fault.indexedDB, crypto: webcrypto, plannedSplitSlotId: "slot/" + DAY });
+  assert.equal(readings.databaseName, DATABASE);
+  assert.equal(readings.repository, gym.repository, "one repository handle, not two");
+  assert.equal(readings.deviceId, gym.deviceId, "one device");
+  assert.equal(readings.athleteId, "owner", "one athlete, until Dad's first-run setup names a second");
+  // The era's own lease: schema 2, self-issued, and the ONLY one in the store.
+  assert.equal(readings.lease.schema_version, ERA_SCHEMA_VERSION);
+  assert.equal(readings.lease.schema_version, 2);
+  assert.match(readings.lease.lease_id, /^local-era:[0-9a-f]{32}$/);
+  assert.equal((await generationOf(gym.repository)).metadata.authorityLease.lease_id, readings.lease.lease_id);
+  // Nothing in this page holds a device key record any more.
+  assert.equal(readings.device, null);
+  assert.equal(readings.deviceKeyCustody, "local-keys.mjs");
+  // One weigh-in and one workout Start land in the SAME generation, on ONE lease.
   const model = createTodayModel({ today: DAY, readings });
   assert((await model.weighIn(179.4)).ok);
-  assert.equal((await opsOf(readings.repository)).length, 1);
-  assert.equal((await opsOf(gym.repository)).length, 0);
+  const ops = await opsOf(gym.repository);
+  assert.equal(ops.length, 1);
+  assert.equal(ops[0].class, "reading");
+  assert.equal(ops[0].schema_version, READING_SCHEMA_VERSION, "a schema-1 op under a schema-2 lease");
+  assert.equal(ops[0].lease_id, readings.lease.lease_id);
   readings.close();
   gym.close();
 });
@@ -324,13 +337,25 @@ test("with NO encrypted store the plan still renders and a weigh-in records noth
   assert.equal(model.read().hasReadToday, false);
 });
 
-test("the device key store keeps ONE enrolment across relaunches, and neither key can leave", async () => {
+/* C4b — the same claim, against the custody that replaced the page's own key
+   minting. The page holds no key record at all now (`device: null`), so the
+   claim is made where the key actually lives: local-keys.mjs. */
+test("the device key store keeps ONE enrolment across relaunches, and the key can never leave", async () => {
   const fault = faultDatabase();
-  const first = await openDeviceKeys({ indexedDB: fault.indexedDB, crypto: webcrypto });
-  const second = await openDeviceKeys({ indexedDB: fault.indexedDB, crypto: webcrypto });
-  assert.equal(first.kid, second.kid);
-  assert.deepEqual(first.publicKey, second.publicKey, "the same device authority comes back");
-  assert.equal(first.storeKey.extractable, false, "the store key can never leave this device");
-  assert.equal(first.signingKey.extractable, false, "nor can the signing key");
-  await assert.rejects(() => webcrypto.subtle.exportKey("raw", first.storeKey));
+  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  const leaseId = readings.lease.lease_id;
+  const deviceId = readings.deviceId;
+  readings.close();                                    // the last holder: a real relaunch follows
+
+  const again = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(again.lease.lease_id, leaseId, "the same era comes back — never a re-enrolment");
+  assert.equal(again.deviceId, deviceId, "and the same device identity");
+  again.close();
+
+  const keys = await openLocalKeys({ indexedDB: fault.indexedDB, crypto: webcrypto, databaseName: DATABASE });
+  assert.equal(await keys.present(), true, keysDatabaseName(DATABASE) + " holds the active key");
+  const key = await keys.keyProvider();
+  assert.equal(key.extractable, false, "the store key can never leave this device");
+  await assert.rejects(() => webcrypto.subtle.exportKey("raw", key));
+  keys.close();
 });

@@ -16,6 +16,17 @@ import { StorageFailure } from "../repository.mjs";
 
 const STORE = "keys";
 const ACTIVE = "active";
+/* C4b. THE DEVICE IDENTITY, kept beside the key it belongs to.
+   `localEraConfig` refuses an era whose sealed lease names another device
+   (LOCAL_ERA_SCOPE_MISMATCH), so the id a page opens with has to be the SAME id
+   on every launch — it cannot be minted per page load and it cannot be a
+   constant shared by every installation. It is therefore minted once, at random,
+   and persisted HERE: erasing it is already an erasure of key custody, which is
+   already restore-required, so there is no new way for an installation to lose
+   half of itself. It is an identifier, never a credential: it authorizes
+   nothing, and the keys in this store stay non-extractable and unexported. */
+const DEVICE = "device";
+const DEVICE_PREFIX = "device-";
 const VERSION = 1;
 export const keysDatabaseName = databaseName => `${databaseName}-keys`;
 
@@ -55,6 +66,19 @@ export async function probeRecord({ indexedDB, name, store, key }) {
 
 export function keysPresent({ indexedDB, databaseName }) {
   return probeRecord({ indexedDB, name: keysDatabaseName(databaseName), store: STORE, key: ACTIVE });
+}
+
+/* C4b-D5. The three first-run signals, read with the SAME non-creating probes
+   openLocalDurableClient uses and in the same shape, so that the device identity
+   below and C1's own status() cannot disagree about whether this is a first run.
+   The names are C1's: the generations store's active record, the key record, and
+   the enrolment marker in `<databaseName>-local`. */
+export async function firstRunSignals({ indexedDB, databaseName }) {
+  return {
+    store: await probeRecord({ indexedDB, name: databaseName, store: "generations", key: ACTIVE }),
+    keys: await keysPresent({ indexedDB, databaseName }),
+    marker: await probeRecord({ indexedDB, name: `${databaseName}-local`, store: "markers", key: "enrolled" }),
+  };
 }
 
 const usable = value => !!value && value.algorithm?.name === "AES-GCM" &&
@@ -114,4 +138,67 @@ export async function openLocalKeys({ indexedDB = globalThis.indexedDB, crypto =
     },
     close() { held = null; try { db.close(); } catch {} },
   };
+}
+
+/* THE DEVICE IDENTITY (C4b). Read it, or mint it once and persist it, in the
+   key database this installation already owns. Returns the SAME id on every
+   later call for the same database, which is what `localEraConfig` requires.
+   `minted` says which happened, so a caller can report a genuinely new install
+   without guessing. Nothing here reads, writes or touches the key record.
+
+   C4b REVIEW D5 — A REFUSED OPEN MUST NOT SEED AN IDENTITY. The first version
+   opened the key database (creating it) and minted before anything had decided
+   whether this installation may be opened at all, so erasing the key database
+   of a real installation put it straight back on disk with a fresh device id
+   while the page correctly said RESTORE_REQUIRED. Minting is now LAZY and
+   FIRST-RUN ONLY: the existing id is read through the non-creating probe, and a
+   new one is minted only when the caller's own three first-run signals — the
+   generation, the key record, the enrolment marker — are ALL absent, which is
+   the same observation C1's `openLocalDurableClient` makes before it will
+   enrol. Anything else throws C1's own code at state 18 and writes nothing. */
+export async function openLocalDeviceIdentity({ indexedDB = globalThis.indexedDB,
+  crypto = globalThis.crypto, databaseName, present } = {}) {
+  if (!indexedDB || typeof crypto?.getRandomValues !== "function" || !databaseName)
+    throw new StorageFailure("KEY_CONFIGURATION_REQUIRED", 18);
+  // Non-creating: a device that holds no key database still holds none after this.
+  const known = await probeRecord({ indexedDB, name: keysDatabaseName(databaseName), store: STORE, key: DEVICE });
+  if (!known) {
+    const signals = present || await firstRunSignals({ indexedDB, databaseName });
+    // Exactly C1's own verdict and its own precedence, so the page names the
+    // same code whether the refusal surfaces here or one call later.
+    if (signals.store || signals.keys || signals.marker)
+      throw new StorageFailure(!signals.store ? "STORE_MISSING"
+        : !signals.keys ? "KEY_MISSING" : "ENROLLMENT_MARKER_MISSING", 18);
+  }
+  const db = await new Promise((resolve, reject) => {
+    const request = indexedDB.open(keysDatabaseName(databaseName), VERSION);
+    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(STORE)) request.result.createObjectStore(STORE); };
+    request.onerror = () => reject(new StorageFailure("KEY_DATABASE_OPEN_FAILED", 18));
+    request.onblocked = () => reject(new StorageFailure("KEY_DATABASE_UPGRADE_BLOCKED", 18));
+    request.onsuccess = () => { request.result.onversionchange = () => request.result.close(); resolve(request.result); };
+  });
+  try {
+    const existing = await new Promise((resolve, reject) => {
+      let tx, value;
+      try { tx = db.transaction(STORE, "readonly"); const request = tx.objectStore(STORE).get(DEVICE); request.onsuccess = () => { value = request.result; }; }
+      catch { reject(new StorageFailure("KEY_READ_FAILED", 18)); return; }
+      tx.oncomplete = () => resolve(value);
+      tx.onabort = () => reject(new StorageFailure("KEY_READ_FAILED", 18));
+      tx.onerror = () => {};
+    });
+    if (typeof existing?.deviceId === "string" && existing.deviceId.startsWith(DEVICE_PREFIX))
+      return { deviceId: existing.deviceId, minted: false };
+    if (existing !== undefined) throw new StorageFailure("LOCAL_DEVICE_IDENTITY_UNUSABLE", 18);
+    const deviceId = DEVICE_PREFIX + Array.from(crypto.getRandomValues(new Uint8Array(16)),
+      byte => byte.toString(16).padStart(2, "0")).join("");
+    await new Promise((resolve, reject) => {
+      let tx;
+      try { tx = db.transaction(STORE, "readwrite"); tx.objectStore(STORE).put({ deviceId }, DEVICE); }
+      catch { reject(new StorageFailure("KEY_WRITE_FAILED", 18)); return; }
+      tx.oncomplete = () => resolve(true);
+      tx.onabort = () => reject(new StorageFailure("KEY_WRITE_FAILED", 18));
+      tx.onerror = () => {};
+    });
+    return { deviceId, minted: true };
+  } finally { try { db.close(); } catch {} }
 }

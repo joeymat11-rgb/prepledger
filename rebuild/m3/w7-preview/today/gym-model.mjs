@@ -139,12 +139,68 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
     return previousByLift;
   }
 
+  /* THE "LAST TIME" LINE, and the TWO shapes `card.prev` arrives in — because the
+     engine keeps two histories and hands back whichever one GOVERNS the lift
+     (`governingMeta`, rebuild/engine/progression.cjs:126-134):
+
+       * LEGACY — progression.cjs:134 builds `{ d, w, reps: [...], rir, rirSets, debt }`;
+       * NATIVE — progression.cjs:132, `if (row.native) return row.en;` — the whole
+         `earned/performed-lift/v1` entry the app itself recorded, whose per-position
+         load and reps sit at `slots[i].fact.current.{load,reps}.value`.
+
+     Until a qualified `nativeTrendContext` existed the native shape could not reach
+     this reader at all: a native athlete's second day on a trained lift refused
+     PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED before any card existed. With lane B's
+     provider wired the record DOES arrive, and this line printed nothing, because it
+     read the legacy shape only (B-NTC §9.1 G7 / O10, routed here by DECISIONS:109).
+
+     WHICH POSITIONS COUNT is not a choice made here. The engine's own governing line
+     is `_lineOf` (progression.cjs:76-79), which for a native row is
+     `performedLine(en).reps` — "the contiguous performed prefix of the ORIGINAL
+     positions" (performed.cjs:218-238): an ADDED position never enters it, and a
+     skipped, unlogged, removed or unresolved ORIGINAL position ENDS it, with no hole
+     filled and nothing compacted. For a legacy row `prev.reps` IS that same line. So
+     the prefix is walked here in exactly those terms and indexed by `position - 1` —
+     the same key with the same meaning in both shapes, which is what keeps this a
+     reader and not a second opinion.
+
+     It re-runs no engine and opens no second reader of the athlete's state: it reads
+     the entry `readPrevious()` already took off the same `genSession` call. It cannot
+     delegate to `performedLine` itself, because `rebuild/m4/workout/engine-runtime.cjs:11`
+     exposes `genSession` and `rirPlan` and deliberately nothing else.
+
+     A load with no numeric magnitude (`{ kind: 'configuration' }`, which only the v2
+     profile may carry — `performedEntry` requires `unit === 'lb'` for v1) prints
+     NOTHING rather than a guess: the same refusal `performedNumericEntry`
+     (performed.cjs:124-130) makes. Neither shape is reformatted, nothing is averaged
+     across positions, and neither falls back to the other. */
+  function previousAt(prev, position) {
+    if (!prev || typeof prev !== 'object') return null;
+    if (!Number.isSafeInteger(position) || position < 1) return null;
+    if (typeof prev.w === 'number' && Array.isArray(prev.reps)) {
+      const reps = prev.reps[position - 1];
+      return Number.isFinite(reps) ? { load: prev.w, reps } : null;
+    }
+    if (typeof prev.profile !== 'string' || !prev.profile.startsWith('earned/performed-lift/')
+      || !Array.isArray(prev.slots)) return null;
+    let seen = 0;
+    for (const slot of prev.slots) {
+      if (!slot || slot.origin === 'added') continue;   // an added set never enters the line
+      if (slot.state !== 'performed') return null;      // the first hole ENDS the line
+      seen += 1;
+      if (seen !== position) continue;
+      const current = slot.fact && slot.fact.current;
+      const load = current && current.load, reps = current && current.reps;
+      if (!load || load.unit !== 'lb' || !Number.isFinite(load.value) || load.value <= 0) return null;
+      if (!reps || reps.unit !== 'rep' || !Number.isSafeInteger(reps.value) || reps.value < 0) return null;
+      return { load: load.value, reps: reps.value };
+    }
+    return null;
+  }
+
   function previousLine(liftId, position) {
-    const prev = previousByLift.get(liftId);
-    if (!prev || typeof prev.w !== 'number' || !Array.isArray(prev.reps)) return null;
-    const reps = prev.reps[position - 1];
-    if (!Number.isFinite(reps)) return null;
-    return 'Last time: ' + prev.w + ' lb × ' + reps;
+    const at = previousAt(previousByLift.get(liftId), position);
+    return at ? 'Last time: ' + at.load + ' lb × ' + at.reps : null;
   }
 
   /* The host's pre-write order guard, in the shape every other refusal here

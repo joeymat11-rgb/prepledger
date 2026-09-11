@@ -35,6 +35,8 @@ if (!executablePath) {
 }
 const require = createRequire(path.join(here, "../../w6/package.json"));
 const { chromium } = require("playwright-core");
+// C4b review D3 — the kill must name THIS browser, not a hardcoded chrome.exe.
+const PROCESS_NAME = path.basename(executablePath);
 
 const VIEWPORT = { width: 390, height: 844 };
 // Figures out of the approved prototype. Its numbers are fictional; this synthetic
@@ -46,6 +48,8 @@ const FICTIONAL = ["135 lb", "9 reps", "2:30", "+30 seconds", "Exercise 1 of 9",
 // point takes the day; nothing about the product changes to reach it.
 const hereRequire = createRequire(import.meta.url);
 const DAY_ONE = hereRequire("./today-model.cjs").SYNTHETIC_DAY;
+// C4b: the ONE store's database name, taken from the page rather than restated.
+const { DATABASE: LOCAL_DATABASE } = await import("./gym-host.mjs");
 const DAY_TWO = (() => {
   const [y, m, d] = DAY_ONE.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
@@ -84,12 +88,18 @@ async function launch() {
 /* A REAL PROCESS KILL (review B2). context.close() is a graceful shutdown: the
    browser gets to flush everything it was holding, which is exactly the case that
    HIDES the defect this check exists to catch. iOS terminating a backgrounded tab
-   does not ask politely, and neither does this: every chrome.exe whose command line
-   names this profile directory is killed with `taskkill /F /T`, and the kill is
-   verified before the next launch. Nothing the browser had not already committed to
-   disk survives it. */
+   does not ask politely, and neither does this: every process of THIS BROWSER
+   whose command line names this profile directory is killed with `taskkill /F
+   /T`, and the kill is verified before the next launch. Nothing the browser had
+   not already committed to disk survives it.
+
+   C4b review D3: the name used to be the literal "chrome.exe", so on a machine
+   whose W7_BROWSER_BIN is Edge the check did not report NOT RUN — it FAILED at
+   the first kill, "no chrome process was found for this profile", before any of
+   the assertions below could run. It is derived from the executable now, exactly
+   as rebuild/m3/w6/test/local-today-browser.mjs already derives it. */
 function chromeProcessesForProfile() {
-  const script = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='" + PROCESS_NAME + "'\" | "
     + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
     + "Select-Object -ExpandProperty ProcessId";
   try {
@@ -100,7 +110,7 @@ function chromeProcessesForProfile() {
 }
 async function hardKill(context) {
   const pids = chromeProcessesForProfile();
-  assert(pids.length > 0, "no chrome process was found for this profile — the kill would prove nothing");
+  assert(pids.length > 0, "no " + PROCESS_NAME + " process was found for this profile — the kill would prove nothing");
   for (const pid of pids) {
     try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
     catch (_) { /* a child may already be gone with its parent */ }
@@ -174,6 +184,17 @@ try {
   assert.match(plan, /^\d+(\.\d+)? lb × \d+ reps$/, "the active set shows the engine's prescription: " + plan);
   assert.match(effortTarget, /^Aim to finish with \d+ clean reps left\.$/, effortTarget);
   assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 1");
+  /* C4d — B-NTC G7 / O10. "Last time" is on the ACTIVE SET, and it is the engine's
+     own comparison for this position, printed by gym-model.previousLine(). This
+     athlete's comparison is the LEGACY shape (their ported session log); the
+     NATIVE shape — an `earned/performed-lift/v1` entry the app itself recorded —
+     is what previousLine() could not read before this release, and it is proved in
+     gym.test.mjs, because reaching it needs a QUALIFIED nativeTrendContext and the
+     one this page composes is deliberately the unavailable one until lane B's
+     provider is wired (that hunk is NOT applied here). */
+  const lastTime = await text(page, '[data-slot="previous"]');
+  assert.match(lastTime, /^Last time: \d+(\.\d+)? lb × \d+$/,
+    "the active set prints the engine's own previous performance: " + JSON.stringify(lastTime));
   const prescribedLoad = await page.inputValue("#gym-weight");
   const prescribedReps = await page.inputValue("#gym-reps");
   assert.equal(plan, prescribedLoad + " lb × " + prescribedReps + " reps",
@@ -297,15 +318,37 @@ try {
   const shippedDayTwo = await page.evaluate(async (day) => {
     const mod = await import(new URL("app.js", location.href).href);
     const booted = await mod.boot({ today: day });
-    const ops = (await booted.workout.gymHost.repository.load()).generation.collections.ops || {};
-    return { summary: booted.workout.summary(), ops: Object.keys(ops).length };
+    const ops = Object.values((await booted.workout.gymHost.repository.load()).generation.collections.ops || {});
+    return { summary: booted.workout.summary(), ops: ops.length,
+      workoutOps: ops.filter((op) => op.class === "session").length,
+      readingOps: ops.filter((op) => op.class === "reading").length,
+      dayTwoOps: ops.filter((op) => op.effective && op.effective.local_date === day).length };
   }, DAY_TWO);
   assert.equal(shippedDayTwo.summary.phase, "blocked", JSON.stringify(shippedDayTwo.summary));
   assert.equal(shippedDayTwo.summary.code, "PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED",
     "the ported-log athlete is walled by the ENGINE, in its own words: " + shippedDayTwo.summary.code);
-  // Day 1 left 8 operations: a Start, the set that was logged and then undone,
-  // its removal edit, the four sets that stand, and the close.
-  assert.equal(shippedDayTwo.ops, 8, "a refused day writes nothing: " + shippedDayTwo.ops);
+  /* C4b — ONE STORE moved this number, and only this number. Day 1 left EIGHT
+     WORKOUT operations: a Start, the set that was logged and then undone, its
+     removal edit, the four sets that stand, and the close. It also logged one
+     morning weigh-in, which before the swap lived in a second generation
+     (earned-today-preview-readings) and is now in the SAME one — so the
+     generation holds 9 — and every one of them is DAY ONE's.
+
+     C4c, review round 2 nit 4: this comment used to promise the claim was made
+     "against the count taken before the refused day" while the assertion under
+     it compared a literal 9 and carried the message "a refused day writes
+     nothing". 9 is the composition of day one, not evidence about day two, so
+     the message described something the assertion was not testing. The claim is
+     made directly now — nothing in the generation is stamped on the refused day
+     — and the composition of day one keeps its own message. */
+  assert.equal(shippedDayTwo.dayTwoOps, 0,
+    "A REFUSED DAY WRITES NOTHING: no operation in the generation is stamped "
+    + DAY_TWO + ", but " + shippedDayTwo.dayTwoOps + " are");
+  assert.equal(shippedDayTwo.workoutOps, 8, "day 1's eight workout operations: " + shippedDayTwo.workoutOps);
+  assert.equal(shippedDayTwo.readingOps, 1, "and the one morning, now in the SAME generation");
+  assert.equal(shippedDayTwo.ops, 9,
+    "which is all there is — day one's eight sets-and-session operations plus its one morning: "
+    + shippedDayTwo.ops);
 
   /* Now the athlete S2 actually ships to. DECISIONS:100 has Joe starting FRESH, so
      the daily path that matters is the one without a ported log — same device, same
@@ -336,6 +379,15 @@ try {
 
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="log"]');
+  /* C4d — day 2 is this athlete's OTHER training day, on lifts this fresh basis has
+     never trained, so the engine reports no governing comparison for them and the
+     card prints NOTHING. Measured, not assumed: `card.prev` is null for both of
+     day 2's lifts. That is the honest absence the whole reader exists to preserve —
+     a line here would be invented — so it is asserted as an empty slot rather than
+     left unchecked. The day that DOES carry a native comparison is the second day
+     on the SAME lifts, and reaching it needs a qualified nativeTrendContext. */
+  assert.equal(await text(page, '[data-slot="previous"]'), "",
+    "day 2's lifts have no comparable on file, and nothing is invented for them");
   let dayTwoGuard = 0;
   while (await seen(page, '[data-slot="log"]')) {
     if (dayTwoGuard++ > 20) throw new Error("day 2 never finished");
@@ -363,20 +415,66 @@ try {
     fresh.sessionLog = {};
     const booted = await mod.boot({ today: day, basisState: fresh });
     const read = await booted.workout.gymHost.host.client.readWorkoutHistory();
-    const ops = (await booted.workout.gymHost.repository.load()).generation.collections.ops || {};
-    const starts = Object.values(ops).filter((op) => op.kind === "session-start");
+    const ops = Object.values((await booted.workout.gymHost.repository.load()).generation.collections.ops || {});
+    const starts = ops.filter((op) => op.kind === "session-start");
     return { read: read.read, sessions: read.read ? read.history.sessions.length : null,
       summary: booted.workout.summary(), morning: booted.readings ? (await booted.readings.reads()).length : null,
-      ops: Object.keys(ops).length,
-      orphanStarts: starts.filter((op) => op.causal_parents.length === 0).length };
+      ops: ops.length,
+      workoutOps: ops.filter((op) => op.class === "session").length,
+      readingOps: ops.filter((op) => op.class === "reading").length,
+      leases: [...new Set(ops.map((op) => op.lease_id))].length,
+      startDays: starts.map((op) => op.effective.local_date).sort(),
+      orphanStarts: starts.filter((op) => (op.causal_parents || []).length === 0).length,
+      startParents: starts.map((start) => (start.causal_parents || [])
+        .map((id) => { const parent = ops.find((op) => op.op_id === id); return parent ? parent.kind : "?"; })),
+      startParentClasses: starts.map((start) => (start.causal_parents || [])
+        .map((id) => { const parent = ops.find((op) => op.op_id === id); return parent ? parent.class : "?"; })) };
   }, DAY_TWO);
   assert.equal(bothDays.read, true, "the durable history still reads after the third REAL kill");
   assert.equal(bothDays.sessions, 2, "BOTH training days are on disk: " + bothDays.sessions);
   assert.equal(bothDays.summary.phase, "finished", "day 2 is still recorded: " + JSON.stringify(bothDays.summary));
-  assert.equal(bothDays.ops, 14, "day 1's eight operations plus day 2's six: " + bothDays.ops);
+  /* C4b — the second number ONE STORE moved. Day 1's eight workout operations
+     plus day 2's six is still 14; the two mornings used to be 2 operations in a
+     SECOND generation and are now in this one, so the generation holds 16 under
+     ONE lease. Both halves are asserted separately rather than as one literal,
+     so a future change to either journey says which half moved. */
+  assert.equal(bothDays.workoutOps, 14, "day 1's eight workout operations plus day 2's six: " + bothDays.workoutOps);
+  assert.equal(bothDays.readingOps, 2, "and both mornings, in the SAME generation: " + bothDays.readingOps);
+  assert.equal(bothDays.ops, 16, "ONE generation holds all of it: " + bothDays.ops);
+  assert.equal(bothDays.leases, 1, "under ONE lease_id across both write paths");
+  /* C4b review D1 — each Start is stamped on the day its own host stood on.
+     This is the invariant that, when it broke, left a Start on disk that no
+     accepted resolver could order. */
+  assert.deepEqual(bothDays.startDays, [DAY_ONE, DAY_TWO].sort(),
+    "each Start is stamped on its own day: " + JSON.stringify(bothDays.startDays));
+  /* C4b/C4c — THE THIRD NUMBER ONE STORE MOVED, and the most interesting one.
+     This used to read "exactly one Start descends from nothing — the first".
+     Under TWO generations the workout log began with the first Start, so that
+     Start had no parent. C4b put the morning weigh-in in the SAME generation and
+     the first Start briefly descended from it.
+
+     C4c PUT THAT BACK, deliberately (A3 review F2). Three lanes now share this
+     generation — sets, weigh-ins and recovery check-ins — and the WORKOUT ORDER
+     is not "everything on disk": it is the ops of class `session`. A Start's
+     causal parents are drawn from that class alone, so a morning reading and a
+     check-in are in the generation, ordered by the device sequence, and are not
+     causes of a workout. Day 1's Start is therefore an orphan again — the log of
+     workouts genuinely begins there — and day 2's descends from day 1's close
+     and the Undo's tombstone, which is the ordering claim that matters. */
   assert.equal(bothDays.orphanStarts, 1,
-    "exactly one Start descends from nothing — the first; day 2 descends from day 1's close");
-  assert.equal(bothDays.morning, 2, "both mornings are in the encrypted reading store");
+    "exactly one Start descends from nothing — the first, because the workout order begins there: "
+    + bothDays.orphanStarts);
+  assert.deepEqual(bothDays.startParents.map((kinds) => kinds.slice().sort()),
+    [[], ["session-close", "tombstone"]],
+    "day 1's Start opens the workout order; day 2's descends from every WORKOUT tip the log "
+    + "then held — day 1's close and the Undo's tombstone — and from no reading or check-in: "
+    + JSON.stringify(bothDays.startParents));
+  assert.deepEqual(bothDays.startParentClasses.flat().filter((klass) => klass !== "session"), [],
+    "and every causal parent of a Start belongs to the workout order: "
+    + JSON.stringify(bothDays.startParentClasses));
+  assert(bothDays.startParents[1].includes("session-close"),
+    "and day 2 descends from day 1's close, which is the ordering claim that matters");
+  assert.equal(bothDays.morning, 2, "both mornings are readable through the reading host");
 
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector('[data-slot="workout-count"]');
@@ -387,9 +485,15 @@ try {
 
   // The durable store really is this device's own encrypted IndexedDB.
   const databases = await page.evaluate(() => indexedDB.databases().then((list) => list.map((d) => d.name)));
-  assert(databases.includes("earned-today-preview-workout"), "the workout store is on this device: " + databases);
-  assert(databases.includes("earned-today-preview-readings"), "so is the weigh-in store: " + databases);
-  assert(databases.includes("earned-today-preview-device-keys"), "this device kept its own keys: " + databases);
+  /* C4b — ONE STORE. There is no second generation and no page-minted key store:
+     the weigh-in and the workout are both in this device's own local era
+     (rebuild/m3/w6/local/), with key custody in its `-keys` database and the
+     enrolment marker in its `-local` one. */
+  assert(databases.includes(LOCAL_DATABASE), "the one store is on this device: " + databases);
+  assert(databases.includes(LOCAL_DATABASE + "-keys"), "this device kept its own key: " + databases);
+  for (const gone of ["earned-today-preview-workout", "earned-today-preview-readings",
+    "earned-today-preview-device-keys"])
+    assert(!databases.includes(gone), "the page's old synthetic store must not exist: " + gone);
   // Nothing of record is in localStorage any more (review B2).
   const local = await page.evaluate(() => Object.keys(localStorage));
   assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));
@@ -401,12 +505,17 @@ try {
     + "Today -> weigh-in -> Start -> active set (prescription shown separately from editable performed values, "
     + "no effort preselected) -> refusal without an effort answer -> logged with an explicit unknown effort -> "
     + "saved facts + Undo + rest + next set -> Undo removed it -> relogged -> REAL PROCESS KILL (taskkill /F /T "
-    + "on every chrome.exe of the persistent profile, kill verified) -> the weigh-in AND the in-progress workout "
+    + "on every " + PROCESS_NAME + " of the persistent profile, kill verified) -> the weigh-in AND the in-progress workout "
     + "both came back out of the encrypted store and the session resumed at the next set -> finished -> Today "
     + "says recorded, through a reload, a new page and a SECOND real kill. DAY 2 (" + DAY_TWO + ", the page's own "
     + "entry point over the same device storage): prepares -> weigh-in -> Start -> every set -> finished; a THIRD "
-    + "real kill, and the history still reads with BOTH sessions (14 ops, exactly one Start descending from "
-    + "nothing) and both mornings still in the encrypted reading store. localStorage holds nothing. Headroom: "
+    + "real kill, and the history still reads with BOTH sessions. ONE STORE (C4b): 16 operations in ONE sealed "
+    + "generation under ONE lease — 14 workout and both mornings; each Start stamped on its own day; the "
+    + "workout order is KIND-AWARE (C4c), so day 1's Start opens it and day 2's descends from day 1's close "
+    + "and the Undo's tombstone, and every causal parent of a Start is a workout operation. "
+    + "\"Last time\" prints on day 1's active set from the engine's own comparison (C4d), and day 2's "
+    + "lifts, which have none on file, print nothing rather than an invented one. "
+    + "localStorage holds nothing. Headroom: "
     + notes.join(", ")
     + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");
 } catch (error) {

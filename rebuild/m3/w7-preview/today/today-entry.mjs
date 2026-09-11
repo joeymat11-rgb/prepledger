@@ -1,25 +1,33 @@
-// Page entry for the Today screen. It opens this device's durable stores, mounts
+// Page entry for the Today screen. It opens this device's durable store, mounts
 // the approved-design view over the real adapter and, if anything at all goes
 // wrong, says so — naming the cause — without painting a number.
 //
-// TWO DURABLE LANES, ONE DEVICE (review B2). Both are the accepted encrypted
-// IndexedDB repository under the accepted durable public client over
-// rebuild/client, under the same on-device key store:
-//   * reading-host.mjs  — the morning weigh-in, schema 1;
-//   * gym-host.mjs      — the workout, schema 2.
-// They are two generations because one generation carries one lease with one
-// schema_version and the accepted client refuses an operation whose schema differs
-// (OPERATION_SCHEMA_MISMATCH; there is a test). Nothing of record lives in
-// localStorage.
+// ONE STORE, ONE DEVICE (C4b/C4c, DECISIONS:106). The morning weigh-in, the
+// workout and the recovery check-in are THREE WRITE PATHS into ONE sealed
+// generation of this device's local era (rebuild/m3/w6/local/): the reading
+// through the local client's execute(), the workout through composeWorkoutHost
+// over the same client's hostBindings(), the check-in through a durable public
+// client over its own bindings with the page's own command producer.
+// They were three generations because one generation carries one lease with one
+// schema_version — but rebuild/client gates only a workout on that schema
+// (index.cjs:206), so the reading rides the era's lease into the same
+// generation, and the era's lease IS schema 2, which is what the check-in's
+// producer-injected command is stamped. There is a test:
+// rebuild/m3/w6/test/local-schema-probe.mjs. Nothing of record lives in
+// localStorage, and nothing here mints a key, signs a lease or asserts an
+// enrolment.
 import app from "./today-app.cjs";
 import TodayModel from "./today-model.cjs";
-import { createGymHost, openDeviceKeys } from "./gym-host.mjs";
+import { createGymHost, openTodayHosts, RESTORE_REQUIRED } from "./gym-host.mjs";
 import { createReadingHost } from "./reading-host.mjs";
 import { createGymModel } from "./gym-model.mjs";
 import { mountGym, newGymDraft } from "./gym-app.mjs";
-import { createCheckInHost } from "./checkin-host.mjs";
+import { createCheckInHost, PROFILE as CHECKIN_PROFILE } from "./checkin-host.mjs";
+import CheckInCommands from "./checkin-commands.cjs";
 import { createCheckInModel } from "./checkin-model.mjs";
 import { mountCheckIn } from "./checkin-app.mjs";
+
+const { createCheckInCommands } = CheckInCommands;
 
 const { mountToday, createTodayModel } = app;
 
@@ -29,8 +37,20 @@ const { mountToday, createTodayModel } = app;
 export async function createCheckInEntry(model, options = {}) {
   const day = model.today;
   let host = null;
-  try { host = await createCheckInHost({ day, ...options }); }
-  catch (error) { host = null; if (options.onFailure) options.onFailure(error); }
+  /* ONE STORE (C4c). `hosts` is the same injection point the workout entry
+     takes: a page that supplies an installation puts the check-in in the SAME
+     sealed generation as the weigh-in and the sets; a page that supplies none
+     gets that store anyway, through checkin-host.mjs, which opens this device's
+     installation itself. The producer and the profile are the page's own —
+     `era.createCheckInHost` takes them as arguments, because w6 does not depend
+     on this page. `onFailure` is not a store option and never reaches one. */
+  const { hosts, onFailure, ...lane } = options;
+  try {
+    host = hosts && hosts.createCheckInHost
+      ? await hosts.createCheckInHost({ day, commands: createCheckInCommands(), profile: CHECKIN_PROFILE })
+      : await createCheckInHost({ day, ...lane });
+  }
+  catch (error) { host = null; if (onFailure) onFailure(error); }
   const checkin = createCheckInModel({ host, day, engineState: model.stateFromOps() });
   let summary = { durable: !!host, recorded: false, date: null };
   let onRefresh = null;
@@ -55,12 +75,19 @@ export async function createCheckInEntry(model, options = {}) {
 export async function createWorkoutEntry(model, options = {}) {
   const view = model.read();
   const day = model.today;
-  const gymHost = await createGymHost({ day, engineState: model.stateFromOps(),
-    plannedSplitSlotId: "earned-today-preview/" + day, ...options });
+  /* ONE STORE. `hosts` is the only injection point: a page that supplies one
+     (rebuild/m3/w6/local/today-bindings.mjs openTodayOverLocalEra) puts the
+     weigh-in and the workout in ONE sealed generation; a page that supplies
+     none gets the SAME store through gym-host.mjs, which opens this device's
+     installation itself. There is no second behaviour left to fall back to. */
+  const { hosts, ...lane } = options;
+  const openGym = (hosts && hosts.createGymHost) || createGymHost;
+  const gymHost = await openGym({ day, engineState: model.stateFromOps(),
+    plannedSplitSlotId: "earned-today-preview/" + day, ...lane });
   /* A host standing on some OTHER day, over the same device storage. Used only to
      close a session abandoned on an earlier day (gym-model.closeUnfinished). */
-  const hostForDay = (other) => createGymHost({ day: other, engineState: model.stateFromOps(),
-    plannedSplitSlotId: "earned-today-preview/" + other, ...options });
+  const hostForDay = (other) => openGym({ day: other, engineState: model.stateFromOps(),
+    plannedSplitSlotId: "earned-today-preview/" + other, ...lane });
   const gym = createGymModel({ gymHost, hostForDay,
     sessionTitle: view.workout ? view.workout.title : null });
   let summary = null;
@@ -108,17 +135,37 @@ export async function boot(options = {}) {
   const doc = options.document || document;
   const failures = [];
   const day = options.today || undefined;
-  let device = options.deviceKeys;
   const idb = options.indexedDB || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
   const web = options.crypto || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
-  if (!device && idb && web) {
-    try { device = await openDeviceKeys({ indexedDB: idb, crypto: web }); }
-    catch (error) { failures.push("device keys: " + (error && error.message ? error.message : String(error))); }
+  /* `hosts` IS THE DEFAULT. An injected installation is used as given; with none,
+     this page opens its OWN — one local era, opened ONCE here and handed to both
+     hosts, so the weigh-in and the workout hold the same client rather than two
+     over one repository. No key is minted here and none is passed down;
+     `hosts.ignored()` is empty when that is honoured. There is no second
+     behaviour to fall back to: both branches are the same store. */
+  let hosts = options.hosts || null;
+  /* RESTORE-REQUIRED, NEVER A RE-ENROLMENT. C1 refuses an installation that is
+     no longer whole — a missing key database, a missing enrolment marker, a
+     generation that will not authenticate — with state 18 and its own code, and
+     it does NOT offer to start a second life over the record it could not read.
+     The page says what rebuild/client says (RESTORE_REQUIRED) and names the
+     code; it invents no sentence and re-opens nothing. First run is the other
+     side of the same call: C1 enrols only when it observed all three signals
+     absent, so a fresh phone opens silently and a damaged one never does. */
+  let restoreRequired = null;
+  if (!hosts) {
+    try { hosts = await openTodayHosts({ indexedDB: idb, crypto: web, day: day || TodayModel.SYNTHETIC_DAY }); }
+    catch (error) {
+      if (error && error.state === 18) restoreRequired = error.code || "RESTORE_UNPROVEN";
+      failures.push("device store: " + (error && error.message ? error.message : String(error)));
+    }
   }
-  const lane = { indexedDB: idb, crypto: web, ...(device ? { deviceKeys: device } : {}) };
+  const lane = hosts ? { hosts } : { indexedDB: idb, crypto: web };
 
   let readings = null;
-  try { readings = await createReadingHost({ day: day || TodayModel.SYNTHETIC_DAY, ...lane }); }
+  const openReading = (hosts && hosts.createReadingHost) || createReadingHost;
+  try { readings = await openReading({ day: day || TodayModel.SYNTHETIC_DAY,
+    ...(hosts ? {} : { indexedDB: idb, crypto: web }) }); }
   catch (error) { failures.push("weigh-in store: " + (error && error.message ? error.message : String(error))); }
 
   /* basisState joins today / model / indexedDB / crypto as an injection point.
@@ -149,9 +196,10 @@ export async function boot(options = {}) {
   /* Every cause is surfaced, not swallowed (review, non-blocking). The page still
      renders whatever it honestly can. */
   const status = doc.getElementById("today-status");
-  if (failures.length && status) status.textContent = "Not everything opened: " + failures.join("; ")
+  if (restoreRequired && status) status.textContent = RESTORE_REQUIRED + " (" + restoreRequired + ")";
+  else if (failures.length && status) status.textContent = "Not everything opened: " + failures.join("; ")
     + ". Nothing was recorded.";
-  return { api, workout, checkin, model, readings, failures };
+  return { api, workout, checkin, model, readings, hosts, restoreRequired, failures };
 }
 
 if (typeof document !== "undefined" && document.getElementById("phone")) {
