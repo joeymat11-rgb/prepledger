@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Earned — Today</title>
+  <!-- No font link. The two Instrument typefaces are the repository's own pinned files,
+       inlined into styles.css, so this page fetches nothing and launches with no network
+       (review F9). -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- The bundle is an ES module (the same browser build the phone host uses emits ESM). -->
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main class="stage">
+    <aside class="review">
+      <p><strong>Earned · Today</strong><br>Owner-approved 2026-09-08 design over the real engine and the real local operation log. Synthetic athlete; this is not an account.</p>
+      <p id="today-storage">Checking this device's local storage…</p>
+      <p id="today-status" role="status">Ready.</p>
+    </aside>
+    <section class="phone" aria-label="Earned Today">
+      <div class="view" id="phone">
+        <p class="note">Opening today…</p>
+        <noscript>Today needs JavaScript. Nothing has been recorded.</noscript>
+      </div>
+    </section>
+    <aside class="review">Weigh-in is the only wired action. The workout card, nutrition detail, recovery check-in and coach are entry points only and say so on screen.</aside>
+  </main>
+  <!-- APPROVED_TEMPLATES -->
+</body>
+</html>
