@@ -178,7 +178,7 @@ export async function openTodayOverLocalEra({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
   athleteId, deviceId, clock, liveDay,
-  enroll = true, cleanInit,
+  enroll = true, cleanInit, initialSetup,
   producerIdentity = PRODUCER, planBasis = PLAN_BASIS, inputBasis = INPUT_BASIS,
   resumeReason = RESUME_REASON, nativeTrendContext,
 } = {}) {
@@ -190,9 +190,12 @@ export async function openTodayOverLocalEra({
 
   try {
     const opening = client.status();
+    if (initialSetup !== undefined && opening.state === "ready")
+      throw new StorageFailure("LOCAL_INITIAL_SETUP_ALREADY_ENROLLED", 18);
     if (opening.state === "first-run") {
       if (!enroll) throw new StorageFailure("LOCAL_FIRST_RUN", 18);
-      const enrolled = await client.enroll(cleanInit);
+      const enrolled = initialSetup === undefined ? await client.enroll(cleanInit)
+        : await client.enrollSetup({ setup: initialSetup });
       if (enrolled.enrolled !== true) throw new StorageFailure(enrolled.code || "LOCAL_ENROLLMENT_FAILED", enrolled.state ?? 3);
     }
     const booted = await client.boot();
@@ -494,6 +497,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       importRebaseRequired: booted.importRebaseRequired === true,
       leaseRenewedUntil: booted.leaseRenewedUntil || null }),
     createReadingHost, createGymHost, createCheckInHost,
+    initialSetup: () => client.initialSetup(),
     /* C4b-D1. The day this installation's OWN writes (the weigh-in path, the
        lease window, the enrolment stamp) are stamped with, right now. Every host
        stamps its own `day` instead; see createGymHost. */
@@ -616,6 +620,8 @@ export async function openTodayInstallation({
     // A failed open must not be remembered: the next page load has to try again.
     entry.opening.catch(() => { if (byKey.get(key) === entry) byKey.delete(key); });
   } else {
+    if (rest.initialSetup !== undefined)
+      throw new StorageFailure("LOCAL_INITIAL_SETUP_ALREADY_ENROLLED", 18);
     /* A SECOND CALLER'S OWN CLOCK PROVIDER, recorded exactly as a second
        caller's own `deviceKeys` is (review round 2, nit 1). This installation
        already stands on one clock; it cannot take a second, and until now the

@@ -34,6 +34,8 @@ import { localHostBindings } from "./host-bindings.mjs";
 // time. import-bundle.mjs is the phone side of Joe's PC port — it adopts a
 // sealed bundle into THIS installation and never replays an operation.
 import { importInternals, importSummaries, importRebaseCode } from "./import-bundle.mjs";
+import { createInitialSetup, readInitialSetup, INITIAL_SETUP_COLLECTION,
+  INITIAL_SETUP_PROFILE } from "./initial-setup.mjs";
 
 // The marker host-bindings.mjs recognises as "this is the factory's own internal
 // scope", so nothing outside this closure can assemble one.
@@ -229,29 +231,40 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
 
   // The null-lane clean init on the T2 side: every collection present and EMPTY,
   // an intact checkpoint, this device's record, and the era sealed in metadata.
-  function seedGeneration(era, enrolledAt, cleanInit) {
+  function seedGeneration(era, enrolledAt, cleanInit, initialSetup) {
     const collections = {};
     for (const name of COLLECTIONS) collections[name] = {};
     collections.meta = { checkpoint: { counts: { ops: 0, outbox: 0 } },
       device: { device_id: deviceId, athlete_id: athleteId, seq: 0 } };
     collections[DERIVED] = { basis: { opCount: 0, lastOpId: null }, value: cleanInit === undefined ? null : clone(cleanInit) };
-    return { collections, metadata: { profile: LOCAL_GENERATION_PROFILE, namespace, enrolledAt, localEra: era } };
+    const metadata = { profile: LOCAL_GENERATION_PROFILE, namespace, enrolledAt, localEra: era };
+    if (initialSetup) {
+      collections[INITIAL_SETUP_COLLECTION] = { initial: initialSetup };
+      metadata.initialSetup = { profile: INITIAL_SETUP_PROFILE };
+    }
+    return { collections, metadata };
   }
 
-  async function enroll(cleanInit) {
+  let enrolling = false;
+  async function enrollInitial(cleanInit, setup, explicitSetup = false) {
     if (closed) return { enrolled: false, ...refusal(3, "LOCAL_CLIENT_CLOSED") };
+    if (enrolling) return { enrolled: false, ...refusal(3, "LOCAL_ENROLLMENT_IN_PROGRESS") };
+    if (explicitSetup && status.state === "ready")
+      return { enrolled: false, ...refusal(18, "LOCAL_INITIAL_SETUP_ALREADY_ENROLLED") };
     if (status.state !== "first-run") return { enrolled: false, ...refusal(18, status.code) };
     const enrolledAt = clock.now();
     if (typeof enrolledAt !== "string" || !Number.isFinite(Date.parse(enrolledAt)))
       return { enrolled: false, ...refusal(3, "LOCAL_CLOCK_UNUSABLE") };
+    enrolling = true;
     try {
+      const initialSetup = explicitSetup ? createInitialSetup({ setup, athleteId, deviceId, createdAt: enrolledAt }) : null;
       const era = createLocalEra({ crypto, athleteId, deviceId, enrolledAt });
       // Key generated in memory and persisted only AFTER revision 1 is sealed:
       // a failed initialize leaves no key beside no generation (still first run),
       // and a failed persist leaves a generation with no key (state 18), never a
       // second key and never a reseed.
       const key = await keys.generate();
-      await repository.initialize(seedGeneration(era, enrolledAt, cleanInit), firstRunEvidence);
+      await repository.initialize(seedGeneration(era, enrolledAt, cleanInit, initialSetup), firstRunEvidence);
       await keys.persist(key);
       await writeMarker({ indexedDB, databaseName, at: enrolledAt });
       status = { state: "ready", code: "LOCAL_ENROLLED" };
@@ -259,8 +272,11 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     } catch (error) {
       if (error instanceof StorageFailure && error.code === "ALREADY_INITIALIZED") status = { state: "restore-required", code: error.code };
       return { enrolled: false, ...refusal(error?.state ?? 3, error?.code || "LOCAL_ENROLLMENT_FAILED") };
-    }
+    } finally { enrolling = false; }
   }
+
+  const enroll = cleanInit => enrollInitial(cleanInit);
+  const enrollSetup = ({ setup } = {}) => enrollInitial(undefined, setup, true);
 
   async function boot() {
     // C1b. Any outcome other than ready retires the booted fact, so
@@ -281,6 +297,12 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     catch (error) {
       status = { state: "restore-required", code: error?.code || "STORED_INTEGRITY_UNPROVEN" };
       return { ready: false, ...refusal(error?.state ?? 18, status.code) };
+    }
+    let initialSetup;
+    try { initialSetup = readInitialSetup(snapshot.generation, { athleteId, deviceId }); }
+    catch (error) {
+      status = { state: "restore-required", code: error.code || "LOCAL_INITIAL_SETUP_INVALID" };
+      return { ready: false, ...refusal(18, status.code) };
     }
     // SELF-RENEWAL. Opening the app is what keeps writing alive: inside the last
     // 200 days the still-valid lease is re-signed for another 400 and committed
@@ -312,7 +334,7 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     // specific sidecar fault keeps its own code: that names damage, this names
     // work outstanding, and the host does the same thing about either.
     const rebaseCode = importRebaseCode(snapshot.generation);
-    const payload = { view: reopened.view, revision: snapshot.revision, ops: basis.opCount,
+    const payload = { view: reopened.view, revision: snapshot.revision, ops: basis.opCount, initialSetup,
       derived: unusable || sidecar?.value === undefined ? null : clone(sidecar.value),
       derivedStale: sidecarStale(sidecar, basis) || rebaseCode !== null,
       derivedCode: unusable ? unusable.code : rebaseCode,
@@ -341,7 +363,15 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
   api = Object.freeze({
     status: () => ({ ...status }),
     enroll,
+    enrollSetup,
     boot,
+    // Read the sealed authority afresh, never the boot result or derived sidecar.
+    async initialSetup() {
+      if (closed) return { configured: false, ...refusal(3, "LOCAL_CLIENT_CLOSED") };
+      if (status.state !== "ready") return { configured: false, ...refusal(18, status.code) };
+      try { return readInitialSetup((await repository.load()).generation, { athleteId, deviceId }); }
+      catch (error) { return { configured: false, ...refusal(error.state ?? 18, error.code || "LOCAL_INITIAL_SETUP_INVALID") }; }
+    },
     // The bridge's own result, unwrapped: acknowledged only after the IDB
     // transaction completed, with durableRevision and the reported durability.
     execute(command, args) {
