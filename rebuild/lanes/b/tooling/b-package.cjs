@@ -332,18 +332,22 @@ function ownChildren(s) {
 // resolves one. This is read, never executed, and it is bounded — a closure that will not
 // close inside CLOSURE_LIMIT files is refused rather than truncated, because a truncated
 // closure would silently weaken every check built on it.
-// `stop` names files the walk must NOT enter or record. proveSuccessor() passes the parent's
-// own pinned originals: they are the accepted parent's bytes, held byte-identical by pins()
-// and by the two sha anchors below, and they are emphatically not the successor's code. If
-// they were in the closure, the copy check would see the original inside itself and the
-// replace-site check would be reading the parent's own library code. The closure is the
-// LANE's files, walked to fixpoint.
+// `enter` decides which reached files belong to the closure. proveSuccessor() passes "the
+// files THIS PACKAGE declares as its own role:'new' product", because that is exactly the
+// lane's own code. Everything else a successor requires is either the accepted parent's own
+// pinned original (held byte-identical by pins() and by the two sha anchors below) or the
+// immutable conform/postfix library (held by PIN_PATHS); neither is the successor's code,
+// and walking into them would make the copy check see the original inside itself and the
+// replace-site check read someone else's library. Files at the boundary are still CHECKED —
+// proveSuccessor() refuses a boundary file that is neither pinned nor declared — they are
+// just not part of the successor's own source.
 const CLOSURE_LIMIT = 64;
-function closure(file, stop = new Set()) {
-  const seen = new Map(), queue = [file];
+function closure(file, enter = () => true) {
+  const seen = new Map(), queue = [file], boundary = new Set();
   while (queue.length) {
     const f = queue.shift();
-    if (seen.has(f) || (f !== file && stop.has(f))) continue;
+    if (seen.has(f)) continue;
+    if (f !== file && !enter(f)) { boundary.add(f); continue; }
     assert(seen.size < CLOSURE_LIMIT, 'SUCCESSOR-SOURCE-CLOSURE-TOO-LARGE ' + file);
     assert(fs.existsSync(rel(f)) && fs.statSync(rel(f)).isFile(), 'SUCCESSOR-SOURCE-CLOSURE-FILE-MISSING ' + f);
     const src = fs.readFileSync(rel(f), 'utf8');
@@ -357,6 +361,7 @@ function closure(file, stop = new Set()) {
         if (fs.existsSync(rel(cand)) && fs.statSync(rel(cand)).isFile()) { queue.push(cand); break; }
     }
   }
+  seen.boundary = boundary;
   return seen;
 }
 // Z1's derivation, and it is a DERIVATION: the gates a successor may carry are exactly the
@@ -1051,11 +1056,18 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
   assert.equal(sha(originalBytes), bound.acceptance.executionPins[original], 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + original);
   assert.equal(sha(originalBytes), gitSha(SUCCESSOR_PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
   const originalText = originalBytes.toString('utf8');
-  // (2) names it, and does not contain it. The walk stops at the parent's own pinned
-  // files, so `sources` is the LANE's code and nothing else.
+  // (2) names it, and does not contain it. The closure is the files THIS PACKAGE declares as
+  // its own role:"new" product — the lane's code and nothing else. Every file the walk stops
+  // at is then named and required to be either the accepted parent's own pin or the immutable
+  // conform library, so nothing leaves the closure unaccounted for.
   const parentOwn = new Set([...Object.keys(bound.acceptance.executionPins), ...Object.keys(bound.acceptance.product)]);
-  const sources = closure(declared.successor, parentOwn);
   assert(!parentOwn.has(declared.successor), 'SUCCESSOR-IS-A-PARENT-PINNED-FILE ' + declared.successor);
+  const own = new Set(Object.entries(s.product).filter(([, p]) => p.role === 'new').map(([f]) => f));
+  assert(own.has(declared.successor), 'SUCCESSOR-NOT-DECLARED-AS-THIS-PACKAGE-OWN-PRODUCT ' + declared.successor);
+  const sources = closure(declared.successor, f => own.has(f));
+  for (const f of sources.boundary)
+    assert(parentOwn.has(f) || PIN_PATHS.some(p => f === p || f.startsWith(p + '/')) || f.startsWith('rebuild/conform/v4/postfix/'),
+      'SUCCESSOR-CLOSURE-LEAVES-THE-PACKAGE ' + parentChild + ' ' + f + '; a successor may only reach its own new product, a parent pin, or the immutable conform library');
   const body = [...sources.values()].join('\n');
   assert(body.includes(original), 'SUCCESSOR-DOES-NOT-NAME-THE-ORIGINAL ' + parentChild + ' ' + original);
   // Lines the substitution list touches are excluded from the copy test, because the table
