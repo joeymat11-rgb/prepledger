@@ -10,13 +10,28 @@ This file is the BUILD brief: what the builder may touch, where every answer
 lands, and the acceptance bar written BEFORE the build (LANES amendment
 2026-09-10, `rebuild/lanes/LANES.md` "MECHANICAL INTEGRATION").
 
-Status: **BRIEF-READY**. The mock is NOT yet approved by the owner. Under
-`DECISIONS.md:100` SPECULATIVE AUTHORING the builder may start now on a
-candidate branch; nothing merges before the owner's look (§5).
+Status: **BRIEF-READY, REVISION 2.** The owner LOOKED at revision 1 of the mock
+and asked for changes (`rebuild/DECISIONS.md:114`), and the PM corrected one of
+them after checking the code (`:115`). All four are folded in below and the
+mock is re-issued; the PM shows the owner the revised mock before the build
+starts. Under `DECISIONS.md:100` SPECULATIVE AUTHORING the builder may start
+now on a candidate branch; nothing merges before that second look (§5).
 
-Base commit this brief was written against: `74c8412e87d9530ae5949a7330b8539fb569ea07`
+REVISION 2 changes, each traced to its ruling:
+1. **No em dash (U+2014) or en dash (U+2013) in any UI copy** (`:114` (1),
+   owner verbatim "no ai dashes are allowed in the ui"). Acceptance check S23.
+2. **Screen 3 proposes a named standard start** (3 sets, aim for 10 reps),
+   pre-filled and changeable; "I'm not sure" removed (`:114` (2)). Check S24.
+3. **The muscle chips are the engine's own labels** from `rebuild/engine/seed.cjs`,
+   stored unchanged, no seven-group list and no mapping (`:115`, replacing
+   `:114` (3)). Check S25.
+4. **Screen-2 copy** (`:114` (4)).
+Plus the standing lesson of `:115`: every vocabulary and number on the six
+screens states its engine source or is marked INVENTED. That is section 2.8.
+
+Base commit this revision was written against: `9e73d1c47b99025b1278e03f087a18f6ed3205ee`
 (`origin/rebuild/t2-client-core`; lane branch `rebuild/lane-c-dad` rebased onto
-it). Every line/count below was read on that tip.
+it; revision 1's base was `74c8412`). Every line/count below was read on that tip.
 
 All numbers in the mock and in every example here are FICTIONAL.
 
@@ -103,10 +118,10 @@ output is exactly these members, never a superset.
 |---|---|---|---|
 | `id` | non-empty string, unique across the array (`:99-103`) | 3 (slugged from `n`) | refusal |
 | `n` | non-empty string (`:99-101`) | 3 | refusal |
-| `mg` | non-empty string (`:99-101`) | 3 | refusal |
+| `mg` | non-empty string (`:99-101`); **any** label, nothing is enumerated engine-side | 3, from `seed.cjs`'s own labels or free text | refusal |
 | `day` | exactly `"U"` or `"L"` (`:104`) | 3 (the list he added it under) | n/a |
-| `sets` | `Number.isSafeInteger(x) && x > 0` (`:72`, `:105`) | 3, one answer for all lifts | refusal (Q1) |
-| `hi` | same positive-integer rule (`:106`) | 3, one answer for all lifts | refusal (Q1) |
+| `sets` | `Number.isSafeInteger(x) && x > 0` (`:72`, `:105`) | 3, one answer for all lifts | never blank: pre-filled at **3**, the standard start (`:114` (2)) |
+| `hi` | same positive-integer rule (`:106`) | 3, one answer for all lifts | never blank: pre-filled at **10**, the standard start (`:114` (2)) |
 | `inc` | finite number `> 0` (`:109`) | 4 | 5, DECLARED (Q3) |
 | `steps` | non-empty array, every element finite `> 0`, STRICTLY ascending (`:110-112`) | 4 | refusal |
 
@@ -261,6 +276,36 @@ as written, and A4 ships without it.
 > string satisfies `_bornValid` and matches no lever predicate — which is the
 > honest value, but it is a value, and the charter says blank is unknown.`
 
+### 2.8 PROVENANCE: every list and number on the six screens
+
+`DECISIONS.md:115` standing lesson: "a mock states where each vocabulary or
+number comes from in the engine (file:line) or says it is invented; the PM
+checks the citation before showing the owner." This table is that statement for
+A4. The builder keeps it true; the reviewer re-reads every citation.
+
+| what appears on screen | value(s) | source | verdict |
+|---|---|---|---|
+| **Muscle chips**, stored as `mg` | chest, back, delts, biceps, triceps, forearms, abs, quads, hams, glutes, calves | `rebuild/engine/seed.cjs` EXERCISES (`:14-60`): delts `:16`, back `:20`, biceps `:31`, chest `:33`, forearms `:39`, triceps `:41`, calves `:46`, abs `:48`, quads `:52`, glutes `:54`, hams `:58` | **SOURCED.** Stored verbatim; `athlete-state.cjs:98` accepts any non-empty string, so nothing is mapped |
+| **Gloss beside a chip** | "delts (shoulders)", "abs (core)", "quads (front of thigh)", "hams (hamstrings)" | none: the engine has no gloss table. `constants.cjs:333` `MG_LABEL` glosses only delt HEADS (delts_side / delts_rear / delts_front), which first-run does not collect | **INVENTED**, display-only, permitted by `:115` ("never a different stored value"). A check asserts no gloss is ever stored |
+| **"something else" free entry** | whatever he types | `athlete-state.cjs:98-101` (`mg` is any non-empty trimmed string) | **SOURCED.** Permitted explicitly by `:115` |
+| **Standard start: sets** | 3 | none. The accepted engine has no default set count for a new lift. Nearest engine numbers, cited and NOT used as a derivation: `constants.cjs:327` `VOL_BANDS {floor 6, lo 8, hi 14, ceil 22}` counts WEEKLY sets per muscle, not sets per exercise; the engine's own two newborn lifts carry `sets: 2` (`migrate.cjs:1651`) and `sets: 3` (`:1653`) | **INVENTED**, declared on screen as "Earned's standard start" (`:114` (2)). Never read off `seed.cjs`'s per-lift values, which are one athlete's (H1, `DECISIONS:93` C3) |
+| **Standard start: rep target** | 10 | none. `progression.cjs:426` carries `ex.hi || 8` as a guard clean-init never reaches (clean-init always supplies `hi`); the engine's own newborns carry `hi: 20` (`migrate.cjs:1651`) and `hi: 12` (`:1653`) | **INVENTED**, same declaration. Whether it should vary per exercise class is lane B's open question (REQUESTS 17:25 PM to B) |
+| **Standard step (`inc` fallback)** | 5 lb | `migrate.cjs:795` clamps any `inc` above 5 down to 5; the engine's two newborn lifts are minted with `inc: 5` (`:1651`, `:1653`) | **SOURCED.** Revision 1's citation ("the ruling is inc 5 default for new lifts") was wrong: no `DECISIONS.md` line mentions `inc` at all. Corrected here and in `BRIEF.md` Q3 |
+| **Day kinds** | "Upper body" / "Lower body" / rest | `athlete-state.cjs:61` `DAY_KINDS = ['U','L']`, `:88` (map values U / L / REST), `:104` (exercise `day`); `plan.cjs:16` `dayType` returns only these | **SOURCED.** Screen-2 sentence per `:114` (4) |
+| **Weekday keys** | "0".."6" | `athlete-state.cjs:82-87` | **SOURCED** |
+| **Sets chip options** | 2 / 3 / 4 | none | **INVENTED** (a range around the standard). The only engine bound is positive integer (`:72`, `:105`) |
+| **Rep chip options** | 6 / 8 / 10 / 12 | none | **INVENTED** (a range around the standard). Only engine bound: positive integer (`:106`) |
+| **"n of 6" counter** | 1..6 | the flow's own screen count | **INVENTED**, and exempt from the no-invented-numbers check by name (S8) |
+| **`split.from`** | today's local ISO date | `athlete-state.cjs:73`, `:79`; guard `workout-host.mjs:39-48` | **SOURCED** |
+| **Autonomy floor** | "propose", never shown | `athlete-state.cjs:161`; `constants.cjs:270` `AUTONOMY_LEVELS[0]`; `migrate.cjs:944` | **SOURCED**, written by the constructor, not by a screen |
+| **Starting load** | none collected | `athlete-state.cjs:111-113` (`w: null`, no member for one); `today.cjs:80-90` DEBUT path | **SOURCED.** The absence is the design (§5) |
+| **Rung list parsing** | any non-numeric separator | `progression.cjs:406-409` `parseRungs` | **SOURCED** |
+| **Priority muscles** | the same engine labels | `athlete-state.cjs:136-138`, `:150-153` (carried verbatim, no reader consumes it) | **SOURCED**, and the screen says it changes nothing yet |
+| **Every other number on screen** | none | he typed it | n/a |
+
+Nothing else on the six screens is a list or a number. If the builder adds one,
+it adds a row here first, or S8 fails.
+
 ---
 
 ## 3. ACCEPTANCE BAR — written BEFORE the build
@@ -271,10 +316,11 @@ are what the suite actually runs. The reviewer runs all of them independently.
 
 ### 3.1 New tests to add
 
-`rebuild/m3/w7-preview/today/test/setup.test.mjs` — **at least 45 named
-subtests**, with at least one per row of §2.1 (that is 14 member rows) and one
-per check S1-S16 below. A suite under 45 is a signal the builder collapsed
-cases; the reviewer counts them.
+`rebuild/m3/w7-preview/today/test/setup.test.mjs` — **at least 58 named
+subtests**, with at least one per row of §2.1 (14 member rows), one per row of
+§2.8 (20 provenance rows, asserting the citation or the INVENTED marking is
+still true), and one per check S1-S16 and S23-S25 below. A suite under 58 is a
+signal the builder collapsed cases; the reviewer counts them.
 
 `rebuild/m3/w7-preview/today/setup-check.mjs` — the real-browser check, run as
 `node rebuild/m3/w7-preview/today/setup-check.mjs` on msedge, printing the same
@@ -286,10 +332,10 @@ shape `checkin-check.mjs:369` prints.
 | S2 | **Closed-contract fidelity.** Assert `Object.keys(reducer.output)` deep-equals `REQUIRED_SETUP` imported from the module, and each exercise's keys deep-equal `REQUIRED_EXERCISE` — imported, never retyped | the contract grows a member and the flow keeps sending eight |
 | S3 | **Every refusal code maps to a screen sentence.** Enumerate the `CLEAN_INIT_*` codes out of `athlete-state.cjs` at test time and assert each has a sentence in the screen-6 refusal table; a new code fails the suite | the engine gains a refusal and Dad sees a raw code |
 | S4 | **Empty answer set: no construction, named refusal.** `createCleanInitState` is never called; the refusal names every missing member; the primary is disabled | a blank field becomes a default |
-| S5 | **"I'm not sure" is not a value.** Selecting it on sets and on reps produces NO `sets`/`hi` and two named refusals | the refusal marker silently becomes a number |
+| S5 | **The standard start is proposed, never asked** (`DECISIONS:114` (2)). On a freshly opened screen 3, `sets === 3` and `hi === 10` with both chips already selected; NO control matching /not sure/i exists anywhere in the flow; tapping the selected chip again leaves the value unchanged; choosing another value changes only that one; neither can reach null. The reducer's output always carries both | the removed refusal path leaves a blank that becomes a silent default, or a chip toggles the standard off and `createCleanInitState` throws |
 | S6 | **`split.from` <= today in three zones.** Build at 00:00:01 and 23:59:59 local in UTC, America/New_York and Pacific/Auckland (UTC+13); assert `splitInForceOn(state, todayISO)` (`workout-host.mjs:39-42`) is true and `dayType(todayISO, state)` (`plan.cjs:11-22`) equals the kind he chose — never the fallback week | a UTC date built at 8pm EDT lands tomorrow and the first gym visit refuses |
 | S7 | **`REST` written explicitly.** All seven weekday keys present; unchosen days are the string `"REST"`, not absent and not `null` | `map` misses a key and `:86-87` throws |
-| S8 | **The 5 lb step is the ONLY supplied number.** Render every screen in every state, scan text for digit runs, assert each is echoed from an answer, a date/weekday, the "n of 6" counter, or the single allowlist entry (5, with its `BRIEF.md` §9 Q3 citation in the test) | "typical 3 sets of 10" creeps into copy and reads as a prescription |
+| S8 | **Exactly TWO supplied numbers.** Render every screen in every state, scan text for digit runs, assert each is echoed from an answer, a date/weekday, the "n of 6" counter, or one of the two declared standards: the standard start (3 sets, 10 reps) and the 5 lb standard step. The allowlist is built IN THE TEST from §2.8's rows, each with its citation, and a third supplied number fails the suite | a number creeps into copy and reads as a prescription about him |
 | S9 | **Design fidelity by HARVEST, not by list.** Extend `design.cjs` the way A3 did (`design.cjs:228-293`, `recoveryVocabulary` / `assertRecoveryBinding`): harvest the approved vocabulary out of the pinned `Earned-additions-C-approved.html` (sha `caf9c2dc…`) at check time, and the **build refuses any omission**. Every class the screens use must be a selector in the approved stylesheets and every static sentence must occur verbatim there, except a short NAMED preview-owned list (`PREVIEW_COPY`) whose every entry is justified in the report | the first build of A3's screen shipped six approved placeholders missing (`design.cjs:234-237`) |
 | S10 | **390x844.** Every screen in every state at 390px wide: `scrollWidth <= clientWidth`; repeat at 320px | one long exercise name breaks the phone layout |
 | S11 | **Primary action reachable.** Its top edge inside the first 844px with no scrolling; where a screen legitimately scrolls (the approved recovery screen does — `checkin-check.mjs:17`), the primary is visible once scrolled to and the report says which screens scroll and why | Dad cannot find "Next" and stops |
@@ -300,9 +346,13 @@ shape `checkin-check.mjs:369` prints.
 | S16 | **Back never loses an answer.** 1->6, back to 1, forward to 6: the answer object is deep-equal. Change one answer on screen 2 and assert ONLY that answer changed | he corrects a typo and loses his exercise list |
 | S17 | **No network.** The build refuses any network reference; zero off-origin requests at runtime; typefaces inlined (`design.cjs:47-55`); CSP unchanged from A1/A5 | a font link makes setup depend on gym wifi |
 | S18 | **Durable across reload and a REAL kill.** In the C3 witness harness `rebuild/m3/w6/test/local-witnesses.mjs`: complete the flow, reload -> Today; complete the flow, `taskkill` the browser process, relaunch -> Today, one op, the same state. A graceful close is NOT a kill (A2 review B2) | the state lives in memory and the first crash erases the setup |
-| S19 | **Honest empty states on arrival.** The Today he lands on renders A1's own empty states and its "— not wired yet" wording (`today-app.cjs:59`, `:308`, `:332-336`); no figure appears that no reading produced | a fake dashboard greets a brand-new athlete |
+| S19 | **Honest empty states on arrival.** The Today he lands on renders A1's own empty states and its "not wired yet" wording (dash-swept per S23; the merged page's own sweep is the PM's P1 item, `rebuild/slice/P1-NO-DASHES-BRIEF.md`) (`today-app.cjs:59`, `:308`, `:332-336`); no figure appears that no reading produced | a fake dashboard greets a brand-new athlete |
 | S20 | **No starting load, by design.** Assert every exercise arrives with `w: null`, that no screen collects a load, and that the first session takes the DEBUT path (`today.cjs:80-90`, `baselineAsk: true`, targets 0). Screen 6 carries the sentence naming it | someone "helpfully" adds a starting-weight field and Dad guesses |
 | S21 | **No streaks, urgency or dark patterns.** The rendered text of every screen contains no countdown, no "don't lose", no progress percentage; the only skip-like affordance is on screen 5 | gamification arrives one copy edit at a time |
+| S23 | **NO EM DASH, NO EN DASH IN UI COPY** (`DECISIONS:114` (1), owner verbatim "no ai dashes are allowed in the ui"). Two passes. (a) Build time: zero U+2014 and zero U+2013 in every built HTML/JS/CSS asset of the setup screens, entities `&mdash;` and `&ndash;` counted as occurrences, and the build REFUSES rather than warns. (b) Render time: render every screen in every state (empty, filled, each validation, the refusal block, the landing Today) and assert zero U+2013/U+2014 in the DOM text, `placeholder`, `aria-label` and `title` of every node. Rewrite rules are P1's (`rebuild/slice/P1-NO-DASHES-BRIEF.md`): aside to a colon or a new sentence, range to the word "to", label suffix to a colon; a minus sign stays U+2212 or hyphen-minus. Code comments, test names and report files are NOT user-facing and keep theirs | the owner's rule is honoured once and erodes one copy edit at a time |
+| S23b | **The approved-design harvest is re-pinned WITH the sweep.** Where the pinned 2026-09-08 reference itself carries a dash in a harvested string, the owner's rule supersedes it (`:114` (1) says so in terms): the harvest comparison is DASH-NORMALISED, in one documented place citing `DECISIONS:114`, and the report LISTS every harvested term that needed normalising. Normalisation must not weaken any other harvested word: assert that a term differing by anything other than a dash still fails | the design check and the owner's rule contradict each other and one is silently switched off |
+| S24 | **The standard start never becomes one athlete's numbers** (H1, `DECISIONS:93` C3). Assert the two constants are literals declared in the page's own source with the §2.8 provenance comment beside them, and that no value in `rebuild/engine/seed.cjs` is read, imported or copied by any setup file. A grep-level check: the setup files import nothing from `rebuild/engine` | the standard quietly becomes "what Joe does", which is exactly what first-run exists to prevent |
+| S25 | **The chips are the engine's own labels** (`DECISIONS:115`). At test time, parse the distinct `mg` values out of `rebuild/engine/seed.cjs` and assert: every chip's STORED value is one of them; the stored set is exactly {chest, back, delts, biceps, triceps, forearms, abs, quads, hams, glutes, calves}; no chip stores a gloss (render "delts (shoulders)", store "delts"); "something else" stores its typed text verbatim and unmapped; and NO coarse-group vocabulary (chest/back/shoulders/arms/legs/glutes/core as a SEVEN-item list, or any table mapping a fine label to a coarse one) exists anywhere in the setup files. If `seed.cjs` gains a label upstream, this test tells the builder rather than drifting | the seven-group list `:115` deleted reappears, and per-muscle weekly volume (`sleep.cjs:894` `perMg`) and indirect credit (`constants.cjs:330` `INDIRECT`, which names triceps / delts / biceps / forearms) go blind |
 | S22 | **The hand test.** `HAND-TEST.md`, one human run per build, recorded. Not a unit test and not substitutable by one | the suite is green and the beta tester gives up |
 
 ### 3.2 Existing suites that must stay green — EXACT counts from the tip
@@ -365,8 +415,14 @@ ACCEPT-WITH-FIXES / REJECT, with its own executed counts.
 | M10 | accept `boot({basisState})` unkeyed | S15 |
 | M11 | delete one approved placeholder from the shipped template | S9 |
 | M12 | shrink one tap target to 40px / one input to 15px | S12 |
-| M13 | add "3 of 6 — almost there!" to the masthead | S21 |
+| M13 | add "3 of 6, almost there!" to the masthead | S21 |
 | M14 | render a starting-load field on screen 4 | S20 |
+| M15 | put one em dash back into one screen's copy, and one `&mdash;` entity into another | S23 (both passes) |
+| M16 | dash-normalise the harvest so that a term differing by a WORD also passes | S23b |
+| M17 | make a chip store its gloss ("delts (shoulders)") instead of "delts" | S25 |
+| M18 | add a seven-group list and map `biceps` onto `arms` before storing | S25 |
+| M19 | read the standard start out of `seed.cjs` (e.g. the first lift's `sets`) | S24 |
+| M20 | let the selected sets chip toggle back to null | S5 |
 
 A mutant that no check turns RED is a missing check, not a passing build.
 
@@ -421,9 +477,9 @@ not an architecture change, unless marked:
 
 | # | default taken | if the owner reverses it |
 |---|---|---|
-| **Q1** | the athlete picks `sets` (2/3/4) and `hi` (6/8/10/12) from unselected, explained choices, with "I'm not sure" as a refusal the summary names | the screen quotes a NAMED starting programme with attribution, and the "I'm not sure" branch points at it. Screen 3 copy + one cited source + S5 rewritten (the refusal becomes a documented value). No model change beyond the default's provenance field |
-| **Q2** | ship upper/lower only and SAY SO on screen 2 ("Earned plans two kinds of session so far") | a third day kind is an ENGINE change (`plan.cjs:16` returns only `U`/`L`/REST; `athlete-state.cjs:61`, `:88`, `:104` accept only those). It leaves the screens tier entirely and takes the full gate — A4 would ship as-is and the third kind becomes a Track B package |
-| **Q3** | 5 is offered as a NAMED standard, visible before he leaves the field and repeated in the summary ("jump: 5 lb — our standard step"), never pre-filled into the input | delete the fallback; `inc` joins the named-refusal list (the flow already handles that shape); the S8 allowlist becomes EMPTY, which is a strictly stronger check |
+| **Q1** | **RULED, not a default any more** (`DECISIONS:114` (2)): Earned PROPOSES a named standard start, 3 sets and a 10-rep target, pre-filled and changeable; "I'm not sure" is gone | Still open underneath it: whether the rep target should vary per exercise class, routed to lane B (REQUESTS 17:25 PM to B) with the engine evidence asked for. If lane B answers yes, the change is a SWITCH, not a redesign: the rep chip row moves from the shared block into the exercise row, `setup-model.cjs` stops broadcasting one `hi`, §2.8 gains one row per class with its source, and S5/S8 gain the per-class values. Screen 3's layout, copy frame and the "Earned proposes" principle are unchanged either way. If the owner reverses the ruling itself, revision 1's shape (unselected chips + "I'm not sure" as a named refusal) is recoverable from this file's git history |
+| **Q2** | ship upper/lower only and SAY SO on screen 2, in the owner's own wording (`:114` (4)): "Earned plans two kinds of day so far: upper body and lower body." | a third day kind is an ENGINE change (`plan.cjs:16` returns only `U`/`L`/REST; `athlete-state.cjs:61`, `:88`, `:104` accept only those). It leaves the screens tier entirely and takes the full gate — A4 would ship as-is and the third kind becomes a Track B package |
+| **Q3** | 5 is offered as a NAMED standard, visible before he leaves the field and repeated in the summary ("jump: 5 lb, Earned's standard step"), never pre-filled into the input. Sourced at last: `migrate.cjs:795` clamps any `inc` above 5 to 5, and the engine's own newborn lifts are minted with `inc: 5` (`:1651`, `:1653`). Revision 1 cited a ledger ruling that does not exist | delete the fallback; `inc` joins the named-refusal list (the flow already handles that shape); the S8 allowlist becomes EMPTY, which is a strictly stronger check |
 
 A fourth thing the owner may reverse without touching the build: the brief
 carries "**no starting load collected by design — the first session is the
@@ -454,4 +510,14 @@ probe**" (`BRIEF.md` §5; `athlete-state.cjs:111-113` has no member for one and
 - **`rebuild.yml`** — §4.3, handed to lane B's B-NTC seal.
 - **The `19` w7-preview child's retirement** — inside B-NTC (`DECISIONS:112`).
 - **The A2/C4 residuals** (`WORKOUT_RESUME_STALE` retry; `readPrevious()`
-  collapsing refused vs no-comparable) — PM queue items behind A4, not A4's.
+  collapsing refused vs no-comparable): PM queue items behind A4, not A4's.
+- **The dash sweep of the ALREADY-MERGED screens** (A1's "spike, damped in
+  trend", the "not wired yet" labels, A3's copy). That is the PM's own P1 item,
+  `rebuild/slice/P1-NO-DASHES-BRIEF.md`, on branch `rebuild/polish-p1`, with
+  its own reviewer. A4 owns only its own screens' copy (S23) and must not churn
+  P1's files. If P1 merges first, A4 rebases onto it and reuses its
+  `test/copy.test.mjs` harness rather than writing a second one; if A4 merges
+  first, P1 picks up A4's screens in its sweep. Whichever is second says so.
+- **The per-exercise rep-target question** (`DECISIONS:114` (2), REQUESTS
+  2026-09-11 17:25 PM to B). It is lane B's engine question. A4 ships ONE
+  standard and §5 records the switch that a yes would flip.

@@ -7,6 +7,24 @@ approves this by looking at `dad-first-run-mock.html` on an iPhone.
 Companion files: `dad-first-run-mock.html` (the clickable mock),
 `HAND-TEST.md` (the 5-minute script), `REPORT.md` (hashes, sources, decisions).
 
+REVISION 2 (2026-09-11, the owner's look: `rebuild/DECISIONS.md:114` and the
+correction `:115`). Four changes, all folded in below and into the re-issued
+mock: (1) no em dash (U+2014) or en dash (U+2013) in any UI copy; (2) screen 3
+PROPOSES a named standard start instead of asking, and "I'm not sure" is gone;
+(3) the muscle chips are the engine's own labels, no seven-group list and no
+mapping; (4) the screen-2 sentence is reworded. Every vocabulary and number on
+the six screens now states its engine source or is marked INVENTED: the table
+is `BUILD-BRIEF.md` section 2.8.
+
+Two dashes survive BELOW, both inside QUOTATIONS of code that already exists
+and that A4 does not own: A1's merged "— not wired yet" label
+(`today-app.cjs:332-336`) and the engine's own baseline-ask reason line
+(`today.cjs:132`). They are quoted exactly so the citation stays checkable.
+Neither is A4 copy: the merged page's sweep is the PM's P1 item
+(`rebuild/slice/P1-NO-DASHES-BRIEF.md`), which normalises engine text at the
+render boundary without editing the engine. A4's own screens carry zero dashes
+(acceptance check S23).
+
 All numbers in the mock and in every example below are FICTIONAL.
 
 ---
@@ -83,10 +101,10 @@ answer is missing — never a value.
 | 2 | 2 Days | which weekdays he trains | keys of `setup.split.map` set to `U`/`L`; the rest `REST` | `athlete-state.cjs:79-92`; `plan.cjs:16` | refusal (needs ≥1 training day, `:90-91`) |
 | 3 | 2 Days | upper or lower, per chosen day | the value at that weekday in `split.map` | `athlete-state.cjs:88` | refusal (a chosen day with no kind) |
 | — | 2 Days | *not asked* — the week starts today | `setup.split.from` = today's ISO date | `athlete-state.cjs:77`; guard `workout-host.mjs:39-48` | n/a, see §4 |
-| 4 | 3 Exercises | "How many sets of each exercise?" (one answer, all lifts) | `exercises[].sets` | `athlete-state.cjs:103` | refusal, see Q1 |
-| 5 | 3 Exercises | "How many reps are you aiming to reach?" (one answer, all lifts) | `exercises[].hi` | `athlete-state.cjs:104` | refusal, see Q1 |
+| 4 | 3 Exercises | "Sets of each exercise" (one answer, all lifts), PRE-FILLED at 3 | `exercises[].sets` | `athlete-state.cjs:103` | never blank: the standard start, see Q1 |
+| 5 | 3 Exercises | "Reps you aim to reach before the weight goes up" (one answer, all lifts), PRE-FILLED at 10 | `exercises[].hi` | `athlete-state.cjs:104` | never blank: the standard start, see Q1 |
 | 6 | 3 Exercises | the name of each exercise, per day | `exercises[].n`, and `exercises[].id` slugged from it | `athlete-state.cjs:98-101` | refusal (≥1 exercise, `:134-135`) |
-| 7 | 3 Exercises | "what does it work?" per exercise | `exercises[].mg` | `athlete-state.cjs:98-99` | refusal |
+| 7 | 3 Exercises | "what does it work?" per exercise, from the engine's own labels (`seed.cjs:16-58`) or free text | `exercises[].mg` | `athlete-state.cjs:98-99` | refusal |
 | — | 3 Exercises | *not asked* — the day he added it under | `exercises[].day` | `athlete-state.cjs:102`, `:142-146` | n/a |
 | 8 | 4 Loads | "lightest setting on this machine" | `exercises[].steps[0]` | `athlete-state.cjs:108-110` | refusal |
 | 9 | 4 Loads | "smallest jump up" | `exercises[].inc` | `athlete-state.cjs:107` | 5 lb, **stated on screen**, see Q3 |
@@ -124,8 +142,11 @@ and `:7`, which `rebuild/DECISIONS.md:88` pins as authoritative.
 - Nothing is mandatory-by-modal. Missing answers are collected and named once,
   on screen 6, with a tap back to the screen that owns each one.
 - No number appears on any screen that the athlete did not type, except the
-  date, the day names, the "2 of 6" counter, and the one declared standard in
-  Q3 below.
+  date, the day names, the "n of 6" counter, and the TWO declared standards:
+  the standard start (3 sets, 10 reps) on screen 3 and the 5 lb standard step
+  on screen 4. Each is named on the screen that uses it and repeated in the
+  screen-6 summary. Both are marked INVENTED or sourced in `BUILD-BRIEF.md`
+  section 2.8.
 
 ### Screen 1 — Name
 
@@ -136,7 +157,7 @@ and `:7`, which `rebuild/DECISIONS.md:88` pins as authoritative.
   there." · label "What should we call you?"
 - **Blank:** allowed to leave; carried to screen 6 as a named missing answer.
 - **Validation (only on leaving with something unusable):** "We need something
-  to call you — a first name is fine."
+  to call you. A first name is fine."
 - **Back / skip:** no back (first screen). "Skip" is not offered; Next with an
   empty field simply moves on and the omission is named at the end.
 
@@ -147,12 +168,13 @@ and `:7`, which `rebuild/DECISIONS.md:88` pins as authoritative.
   control: **Upper body** / **Lower body**. Any day left off is `REST`.
 - **Copy:** h1 "Which days?" · "Tap the days you'll be in the gym, then say
   what each one is. You can change this whenever your week changes." ·
-  "Earned plans two kinds of session so far — upper body and lower body."
-  (That last line is required honesty, not filler: see Q2.)
+  "Earned plans two kinds of day so far: upper body and lower body."
+  (Exact wording ruled at `DECISIONS.md:114` (4). It is required honesty, not
+  filler: see Q2.)
 - **Blank:** no day on → named at the end as "we don't know which days you
   train". A day on with no kind → named as "Tuesday has no session kind yet".
 - **Validation:** shown quietly under the day, in muted ink, only after he has
-  tried to move on: "Tell us what Tuesday is — upper or lower."
+  tried to move on: "Tell us what Tuesday is: upper or lower."
 - **What the engine does:** `dayType(iso, s)` (`plan.cjs:11-22`) takes the last
   `split` entry whose `from` ≤ the day and reads `map[weekday]`; `"U"` or
   `"L"` is the session, anything else is REST.
@@ -166,20 +188,46 @@ and `:7`, which `rebuild/DECISIONS.md:88` pins as authoritative.
 
 - **Question:** "What will you do on each day?" — a list per session kind, each
   row a name plus a "what does it work?" chip row.
-- **Shared programme setting, declared:** above the lists, in its own bordered
-  block labelled *"The same for every exercise"* — sets (choices 2 / 3 / 4)
-  and target reps (choices 6 / 8 / 10 / 12), both unselected, plus an explicit
-  **"I'm not sure"** on each.
+- **The standard start, declared and PRE-FILLED** (`DECISIONS.md:114` (2);
+  owner: Earned proposes, it does not ask): above the lists, in its own
+  bordered block headed *"Earned's standard start"*, reading
+  **"3 sets, aim for 10 reps."** Sets (2 / 3 / 4) and target reps
+  (6 / 8 / 10 / 12) are chip rows with the standard ALREADY SELECTED. There is
+  no "I'm not sure" and no empty state: tapping the selected chip again does
+  nothing, choosing another value makes the number his, and screen 6 says which
+  it is. The standard is a declared per-athlete-setup default exactly like the
+  5 lb standard step, and it is never read off another athlete (the H1 rule,
+  `DECISIONS.md:93` condition C3).
+  ONE standard for every exercise until lane B answers the per-exercise
+  question (REQUESTS 2026-09-11 17:25 PM to B: does the accepted engine take a
+  per-exercise `hi`, and is there a defensible standard by exercise class?).
+  A per-exercise target is then a SWITCH in the reducer, not a redesign: the
+  chip row moves from the shared block to the exercise row and `setup-model`
+  stops broadcasting one value. Until it is answered, one standard for all.
 - **Allowed answers:** exercise name is free text (it is his machine's label,
-  not ours). `mg` from a chip row — chest, back, shoulders, arms, legs, glutes,
-  core — or typed. Only the session kinds present in his split get a list.
+  not ours). `mg` from a chip row carrying THE ENGINE'S OWN LABELS, spelled
+  exactly as `rebuild/engine/seed.cjs` spells them (`DECISIONS.md:115`):
+  chest (`:33`), back (`:20`), delts (`:16`), biceps (`:31`),
+  triceps (`:41`), forearms (`:39`), abs (`:48`), quads (`:52`),
+  hams (`:58`), glutes (`:54`), calves (`:46`). A plain-language gloss may
+  be shown beside a label ("delts (shoulders)", "hams (hamstrings)"); the gloss
+  is display-only and the stored value is always the bare engine label. A
+  "something else" chip reveals a free text field stored verbatim, because
+  `athlete-state.cjs:98` accepts any non-empty string. There is NO seven-group
+  list and NO mapping of any kind: `:114` (3) proposed one and `:115`
+  replaced it after the PM checked the code and found the engine has no fixed
+  group list. Only the session kinds present in his split get a list.
 - **Copy:** h1 "What you'll do." · "Name what you actually use. A machine's own
-  label is a fine name." · "Don't add a weight yet — Earned asks for that at
-  the gym, on the day." · sets block: "How many sets of each exercise?" /
-  "How many reps are you aiming to reach before the weight goes up?"
-- **"I'm not sure" semantics:** it is a **refusal marker, not a value**. It
-  sets nothing, and screen 6 names it: "You told us you weren't sure how many
-  sets to do. Earned won't pick that for you." (See Q1.)
+  label is a fine name." · "Don't add a weight yet. Earned asks for that at
+  the gym, on the day." · standard block: "Earned's standard start" /
+  "3 sets, aim for 10 reps." / "That is where Earned starts every new lift, the
+  same for every exercise below. Change either one if you already know better."
+  · chip labels "Sets of each exercise" / "Reps you aim to reach before the
+  weight goes up".
+- **No refusal marker on this screen any more.** `DECISIONS.md:114` (2)
+  removes "I'm not sure": `sets` and `hi` can never be unknown, because
+  Earned supplies them and the athlete may only change them. Both leave the
+  screen-6 refusal list entirely. (See Q1, now RULED.)
 - **Blank:** no exercise under a session kind that is in the split → named at
   the end; the constructor would throw `CLEAN_INIT_SPLIT_REQUIRED` "no U day
   in the split for a U exercise" for the mirror case (`athlete-state.cjs:143-144`),
@@ -204,17 +252,18 @@ Joe-ism, register item H1 — first-run must not create another one).
 - **Copy:** h1 "What the weights do." · "This is about the machine, not about
   you. Look at the stack or the plates and tell us what it can make." ·
   per row, muted: "e.g. the lightest pin, and how far apart the pins are."
-- **Optional third answer:** a collapsed "My machine's jumps are uneven — let
+- **Optional third answer:** a collapsed "My machine's jumps are uneven: let
   me list them" that reveals one text field taking a list of numbers
   (`progression.cjs:406-409` `parseRungs` is the engine's own parser for
   exactly this input, and takes any non-numeric separator).
 - **Blank — lightest setting:** named at the end. Required: `steps` must be a
   non-empty ascending array (`athlete-state.cjs:108-110`).
-- **Blank — smallest jump:** falls to **5**, and the screen says so in the
-  field's own helper line before he leaves it: "Most stacks and racks move in
-  5 lb steps — change it if yours doesn't." Not silent, not pre-filled into
-  the box, and repeated in the screen-6 summary as "jump: 5 lb (our standard
-  step)". This is the only number the flow is allowed to supply. See Q3.
+- **Blank, smallest jump:** falls to **5**, and the screen says so in the
+  field's own helper line before he leaves it: "Leave the jump blank and Earned
+  uses 5 lb, its standard step. Change it if yours is different." Not silent,
+  not pre-filled into the box, and repeated in the screen-6 summary as
+  "jump: 5 lb (Earned's standard step)". It is one of exactly TWO numbers the
+  flow supplies, the other being the standard start on screen 3. See Q3.
 - **What the engine does:** with two or more rungs, `loadRungs`
   (`progression.cjs:346-350`) builds the ladder and `nextLoad` / `prevLoad` /
   `snapLoad` / `deloadLoad` walk the real rungs (`:368-369`, `:380-381`,
@@ -225,14 +274,16 @@ Joe-ism, register item H1 — first-run must not create another one).
   back to him once his own use shows the jumps are uneven. **The app discovers
   his equipment from use; the screen does not have to get it perfect.**
 
-- **Validation:** "That doesn't look like a weight — numbers only." /
+- **Validation:** "That doesn't look like a weight. Numbers only." /
   "The jump needs to be more than nothing." / if the listed rungs are not
   ascending: "Put them smallest first and we'll take it from there."
 
 ### Screen 5 — What matters most to you
 
 - **Question:** "Anything you especially want to work on?"
-- **Allowed answers:** the same muscle chips as screen 3, any number, or none.
+- **Allowed answers:** the same engine-label muscle chips as screen 3
+  (`seed.cjs:16-58`), any number, or none. No "something else" here: a
+  priority the engine has no label for would name nothing.
 - **Copy:** h1 "Anything in particular?" · "Tap what you care about most. You
   can leave this empty." · and the honest line, in muted ink:
   **"We'll keep this with your plan. It doesn't change your sessions yet."**
@@ -266,7 +317,6 @@ and numbers, and an honest list of what it still doesn't.
   - "We don't know which days you train." → screen 2
   - "Tuesday doesn't have a session kind yet." → screen 2
   - "Your upper-body day has no exercises in it." → screen 3
-  - "You weren't sure how many sets to do. Earned won't pick that for you." → screen 3
   - "Chest press has no lightest setting yet." → screen 4
   Nothing is guessed to get past this, and nothing already answered is lost.
   The engine's own refusal codes behind these lines are
@@ -376,7 +426,10 @@ silently otherwise.
 | A1 | **Every field lands in clean-init exactly.** Drive the flow's reducer with a fixture of answers; deep-equal the produced `setup` against the expected document; call `createCleanInitState({setup})`; assert the returned state's `athlete_label`, `split.from`, `split.map`, every exercise's `id/n/mg/day/sets/hi/inc/steps`, and `priority_muscles` equal the answers exactly (numbers compared as numbers, `steps` element-wise). | a screen silently coerces "10" to 10.0, drops a rung, or reorders exercises |
 | A2 | **Skipping everything yields a valid state or a NAMED refusal.** Submit an empty answer set: assert `createCleanInitState` is never called, that a refusal is rendered, and that it names each missing member. Separately, assert every code in `athlete-state.cjs` (`CLEAN_INIT_SETUP_REQUIRED`, `CLEAN_INIT_SPLIT_REQUIRED`, `CLEAN_INIT_EXERCISES_REQUIRED`, `CLEAN_INIT_EXERCISE_REQUIRED`, `CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED`) maps to a screen sentence — enumerate the codes from the module at test time so a new code fails the suite. | a blank field becomes a default, or the flow throws a raw code at Dad |
 | A3 | **`split.from` ≤ today.** Assert `splitInForceOn(state, todayISO)` is true (`workout-host.mjs:39-42`) for a state built at 00:00:01 and at 23:59:59 local, in at least UTC, America/New_York and a UTC+13 zone; and assert `dayType(todayISO, state)` equals the kind he chose for today's weekday — never the fallback week. | a UTC date built on a phone at 8pm EDT lands tomorrow, and the first gym visit refuses |
-| A4 | **No invented numbers on screen.** Render every screen in every state, scan the text content for digit runs, and assert each is (a) echoed from an answer, (b) a date / weekday / the "n of 6" counter, or (c) on a declared allowlist whose only entry is the 5 lb standard step with its source cited in the test. | a "typical 3 sets of 10" creeps into copy and reads as a prescription |
+| A4 | **No invented numbers on screen.** Render every screen in every state, scan the text content for digit runs, and assert each is (a) echoed from an answer, (b) a date / weekday / the "n of 6" counter, or (c) on a declared allowlist of exactly TWO entries, the standard start (3 sets, 10 reps) and the 5 lb standard step, each with its provenance cited in the test. | a number creeps into copy and reads as a prescription about him |
+| A4b | **No em dash or en dash in any UI copy** (`DECISIONS.md:114` (1), owner verbatim: "no ai dashes are allowed in the ui"). Build-time and render-time: zero U+2014 and zero U+2013 in every built asset and in the rendered DOM text of every screen in every state, entities `&mdash;`/`&ndash;` included. | an aside dash reads as machine-written copy, which the owner refused |
+| A4c | **The muscle chips are the engine's own labels** (`DECISIONS.md:115`). Read the distinct `mg` values out of `rebuild/engine/seed.cjs` at test time and assert every chip's STORED value is one of them, that no chip stores a gloss, and that a "something else" entry stores its text verbatim. | a coarse group list or a mapping layer reappears and the engine's per-muscle volume goes blind |
+| A4d | **The standard start is proposed, never asked** (`DECISIONS.md:114` (2)). `sets` and `hi` are non-null on a freshly opened screen 3, no "I'm not sure" control exists, neither can be emptied, and the screen-6 summary says whether the numbers are the standard or his own. | the removed refusal path leaves a blank that becomes a silent default |
 | A5 | **16px inputs.** Every `input`, `select` and `textarea` on every screen has a computed `font-size` ≥ 16px. | iOS zooms on focus and the page pans sideways mid-setup |
 | A6 | **390×844.** Each screen in each state renders at 390px wide with `scrollWidth <= clientWidth` (no horizontal scroll), and again at 320px. | one long exercise name breaks the layout on the phone the test is run on |
 | A7 | **Primary action in the first viewport.** For every screen and both empty and filled states, the primary button's top edge is < 844px with no scrolling — the same bar A1's Today had to clear (`DECISIONS.md:99`). | Dad cannot find "Next" and stops |
@@ -422,33 +475,45 @@ working. The fail is a silent default.
 Three, each with a default this brief has already taken. Nothing here blocks
 building the mock or reviewing it; all three block the **build's** copy.
 
-**Q1 — Who states `sets` and `hi`?** They are required positive integers
-(`athlete-state.cjs:103-104`), the engine has no default for them, and a
-beginner has no basis for either. Three candidates: the athlete picks from
-explained choices; the owner names a starting programme in a document the
-screen quotes with attribution; or the coach sets them later and first-run
-refuses without them.
-*Default taken:* the athlete picks, from unselected, plainly-explained choices,
-with "I'm not sure" as a refusal that the summary names — a screen never picks
-for him. If the owner prefers a named starting programme, it is a one-line copy
-change plus a cited source, and the "I'm not sure" branch points at it.
+**Q1 — Who states `sets` and `hi`? RULED by the owner, `DECISIONS.md:114` (2).**
+They are required positive integers (`athlete-state.cjs:103-104`) and the
+engine has no default for either (checked: the only near-neighbours are
+`progression.cjs:426`'s `ex.hi || 8` guard, which clean-init never reaches,
+and `constants.cjs:327` `VOL_BANDS`, which counts WEEKLY sets per muscle,
+not sets per exercise).
+*Owner ruling:* **Earned proposes, it does not ask.** Since the app prescribes
+volume changes, it must say where a new lift starts. Screen 3 shows a NAMED
+standard start, pre-filled and changeable; "I'm not sure" is removed. The
+standard is a declared per-athlete-setup default, never one athlete's numbers
+(H1, `DECISIONS.md:93` C3).
+*Still open, routed to lane B (REQUESTS 17:25 PM to B):* whether the rep target
+should differ per exercise class. Until lane B answers with engine evidence,
+ONE standard covers every exercise, and the per-exercise variant is a switch in
+the reducer rather than a new screen.
 
 **Q2 — Only two session kinds exist.** `dayType` returns only `U`, `L` or REST
 (`plan.cjs:16`), and clean-init accepts only those (`athlete-state.cjs:61`,
 `:88`, `:102`). A full-body, push/pull/legs or bro-split athlete cannot be set
 up truthfully; calling his full-body day "Upper" would be a lie in the data.
-*Default taken:* ship S4 upper/lower only and **say so on screen 2** ("Earned
-plans two kinds of session so far"). The alternative — a third day kind — is an
+*Default taken:* ship S4 upper/lower only and **say so on screen 2**, in the
+owner's own wording (`DECISIONS.md:114` (4)): "Earned plans two kinds of day
+so far: upper body and lower body." The alternative, a third day kind, is an
 engine change and leaves the screens tier entirely.
 
-**Q3 — May a screen supply the 5 lb step?** The ruling is "inc 5 default for
-new lifts", and the charter is "blank = unknown, never a default value". These
-pull against each other for exactly one field.
+**Q3 — May a screen supply the 5 lb step?** REVISION 2 correction: revision 1
+cited "the ruling is inc 5 default for new lifts", and no such ledger line
+exists (searched `DECISIONS.md` for `inc`: no match). The real engine
+evidence is `rebuild/engine/migrate.cjs:795`, which clamps any `inc` above
+5 down to 5, and the engine's own two newborn lifts, minted at
+`migrate.cjs:1651` and `:1653`, which both carry `inc: 5`. The charter is
+"blank = unknown, never a default value". These pull against each other for
+exactly one field.
 *Default taken:* 5 is offered as a **named standard, visible before he leaves
-the field and repeated in the summary** ("jump: 5 lb — our standard step"), never
-silently pre-filled into the input. It is the single entry on the A4 number
-allowlist. If the owner would rather nothing be supplied, delete the fallback
-and `inc` joins the named-refusal list — the flow already handles that shape.
+the field and repeated in the summary** ("jump: 5 lb, Earned's standard step"),
+never silently pre-filled into the input. With the standard start it is one of
+the two entries on the A4 number allowlist. If the owner would rather nothing
+be supplied, delete the fallback and `inc` joins the named-refusal list: the
+flow already handles that shape.
 
 **Not asked, recorded instead:** `genSession` passes an exercise's `setup`
 member through to the card (`today.cjs:171`), but `setup` is not a member of
