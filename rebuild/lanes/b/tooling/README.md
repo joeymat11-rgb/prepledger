@@ -588,6 +588,11 @@ rebuild/lanes/b/tooling/
   b-package.cjs        the generic runner (2 modes, 6 packages)
   README.md            this file
   TOOLING-REPORT.md    the executed proof that the runner runs
+  TOOLING-FIX-r5-REPORT.md   lane B's r5 fix pass: the two withdrawn commits and Z1-Z11
+  TOOLING-FIX-ASTRA-REPORT.md  a builder candidate report; provenance VOID (DECISIONS:112
+                       (2)), every claim in it re-measured elsewhere - binds nothing
+  test/execution-targets.test.cjs  the executed-target regression (9/9)
+  test/successor-moves.test.cjs    the DECISIONS:113 successor regression (8/8)
   packages/B-NTC.json  PROPOSED, from BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md (chain first,
                        DECISIONS:103 (1); parent NATIVE-CARRIERS, decided)
   packages/B-LOM.json  SKELETON, the legacy order-mapping provider; parent = the ACCEPTED
@@ -620,6 +625,66 @@ B-NTC, B1, B2, B3 and B4 declare the **five accepted NATIVE-CARRIERS successor c
 coverage real: the children run in every `--ci` and every `--full`, and the nine gates are
 counted only because of those executions. B-LOM declares none — its parent is not sealed,
 so there is no `byChild` map to inherit and all nineteen gates re-execute under `--full`.
+
+### Successor carriers — `coverage.successors` and `DECISIONS:113`
+
+A **successor carrier** is a child of this package that carries one of the parent's
+inherited gates by *loading the parent carrier's own original body* instead of executing
+the parent's file directly. It exists for exactly one reason: `DECISIONS:109` PATH A lets a
+child package supersede a parent **execution pin** (B-NTC re-pins
+`rebuild/m4/workout/engine-runtime.cjs`), and once that byte moves the parent's own carrier
+refuses it by design. The gate is still worth running — against the child's bytes.
+
+`DECISIONS:113 (1)` ratified `MOVES_RULING B-NTC-INHERITED-1` as written in
+`B-NTC-REVIEW-r2.md` §E.3, particularising `DECISIONS:112 (1)`. Its five conditions are
+what this runner enforces, and the shape it fixes matters: **`coverage.moves` stays `{}`**
+(condition a), so X1 is not widened for B-NTC or for anyone; the successors live in
+`coverage.inherited`, the map that is already held byte-for-byte to the parent artifact's
+own `coverage.byChild`. A successor changes **who executes a gate the parent already
+covered**; it never claims a gate the parent did not.
+
+The spec declares them in `coverage.successors` (`null` in five of the six packages):
+
+```json
+"successors": {
+  "ruling": "MOVES_RULING=DECISIONS:113 B-NTC-INHERITED-1",
+  "parentAcceptanceCommit": "b95ccca879e371b5ba225ad12cae612ec89469ba",
+  "carriers": { "<parent child name>": { "successor": "<file>", "original": "<file>" } },
+  "substitutions": [ { "original": "<file>", "from": "<exact text>", "to": "<exact text>",
+                       "why": "<why the re-target is unavoidable>" } ]
+}
+```
+
+Nothing in that block **admits** anything. `SUCCESSOR_RULING` is a constant in
+`b-package.cjs` — `DECISIONS:113 (1) (e)` says in terms that the tooling records the id and
+refuses a successor in any package that does not cite it — and `SUCCESSOR_PACKAGES` names
+`B-NTC` and nothing else. The admitted gates are **derived** at run time from the parent
+artifact's own `coverage.byChild` plus each parent carrier's own source closure: a gate
+whose carrier does not reach the superseded support file is not in the set, and nine names
+are never typed anywhere. Then, per gate, `successorCoverage()` proves a **relation**, not
+an identity:
+
+1. the original is the parent's own byte — equal to the parent artifact's `executionPins`
+   entry **and** to the Git blob at the parent's acceptance commit, which is itself
+   asserted to be on `CHAIN_REF` and behind `HEAD` (there is no policy `sourceCommit`
+   anywhere; a commit a file names is never trusted for provenance);
+2. the successor **names** that original and **does not contain it** — none of the
+   original's own long lines may stand verbatim in the successor's source closure, so a
+   successor that pastes the body instead of loading it refuses;
+3. the successor's replacements are exactly the spec's enumerated list: the successor
+   states them as one strict-JSON `SUBSTITUTIONS` literal, the runner deep-equals that
+   table against the spec's, requires every `from` to stand exactly once in the original
+   and `to` not at all, and requires every `replace()` call site in the closure to be
+   driven by the table. A retarget silently turned into `assert.ok(true)` is a table entry
+   the spec does not carry, and it refuses;
+4. the successor's declared verdict is the **parent wrapper's own accepted string in
+   full** — `NATIVE SOURCE CARRIERS: 6/6 PASS;`, never the prefix `NATIVE SOURCE CARRIERS:`
+   — read out of the pinned `native-carriers-package.cjs` `verdicts` table, never re-typed.
+
+What this does **not** prove is the successor's runtime semantics. It proves the body
+compiled is the parent's body, that the differences are exactly the enumerated ones, and
+that a reviewer who reads the substitution list in the spec has read all of them. That
+residual is real and is recorded in `B-NTC-REVIEW-r2` R12.
 
 `coverage.moves` is `{}` in **all six**, and under X1 it cannot be anything else. What the
 runner would verify of a move if a PM ruling admitted one is listed in §5 above: a reason, a
@@ -654,3 +719,37 @@ own stdout**. The evidence sentence the runner prints now says exactly that and 
   now say what was verified, and `status: BRIEF-ACCEPTED` implies a cited ledger line.
   The same revision widens the id list to `B-NTC|B-LOM|B1|B2|B3|B4` and re-pins every spec
   at the `DECISIONS:104` re-seal. `TOOLING-REPORT.md` §r3 carries the executed proof.
+* `TOOLING-REVIEW-r4.md` (ACCEPT WITH CHANGES) required four: **Y1**, the replacement
+  obligation for a package with no D-id — at least `MIN_OWN_CHILDREN` declared child(ren)
+  executing one of the package's own `role:"new"` product files, open on every run and
+  refusing at the seal, together with the fourth product role `superseded-by-child` for a
+  file the parent pins in `executionPins`; **Y2**, the single-parent scan read from Git at
+  HEAD as well as disk, plus the durable check against already-sealed artifacts on the
+  chain branch; **Y3**, spec-note text; **Y4**, the `PIN_PATHS` sentence counts the paths
+  that exist. All four landed at `7748880` and `TOOLING-REVIEW-r5` re-measured each with a
+  positive and a negative control.
+* `TOOLING-REVIEW-r5.md` (**REJECT** for the two successor commits, `c7b7133` ACCEPT)
+  found the successor mechanism bound to a theme `DECISIONS:112 (2)` had declared void,
+  unable to express the authority that had actually been granted, holding successors to
+  weakened prefix needles, verifying no relation between a successor and the parent's
+  original, and regressing B-NTC's own `--ci` from exit 2 to an opaque exit 1. Lane B
+  **withdrew both commits by `git revert`** rather than patch them — the history stays
+  honest — and re-authored the path in its own name under the ruling that has since been
+  made, `DECISIONS:113 (1)`. **Z1** the ruling id is the only admission and is a runner
+  constant; the admitted gates are derived from the parent artifact, never a hardcoded
+  nine; `coverage.moves` stays `{}` and X1 is unwidened. **Z2** `successorCoverage()`
+  proves the relation between successor and original (see the successor section above); a
+  copy, a dropped assertion or an unenumerated replacement all refuse. **Z3** the accepted
+  verdict is the parent wrapper's own string in full. **Z4** an authority that is merely
+  not yet issued is an OPEN obligation, never an assert — B-NTC exits 2 like every other
+  package. **Z5** there is no policy `sourceCommit`; pins are taken at HEAD and the
+  parent's acceptance commit is anchored on `CHAIN_REF`. **Z6** the catch names the
+  refusing assertion from a vocabulary derived from the runner's own source, on stderr,
+  never child output and never anything from the private census; the BLOCKED terminal is
+  unchanged. **Z7** the spec is pinned in Git at HEAD as the runner is. **Z8**
+  `test/execution-targets.test.cjs` builds its own inherited-map fixture and is 9/9 on
+  either lane branch. **Z9** the withdrawn Astra suite is gone; lane B's own
+  `test/successor-moves.test.cjs` is self-contained (its own temp Git repository, no
+  sibling worktree, no second branch) and is 8/8. **Z11** an UNDECIDED parent run now says
+  out loud that Y2's single-parent scan did not run. `TOOLING-FIX-r5-REPORT.md` carries the
+  executed proof for each.

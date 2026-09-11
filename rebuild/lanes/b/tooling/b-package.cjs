@@ -989,19 +989,23 @@ function children(s, env) {
 // None of that proves the successor's runtime behaviour. What it proves is that the body
 // compiled is the parent's body, that the differences are exactly the enumerated ones, and
 // that a reviewer reading four strings in the spec is reading all of them.
-function successorCoverage(s, bound, ran, gate, child, targets) {
+// Every DECLARED successor carrier is proved here, once per run, whether or not it carries
+// an inherited gate — a package that declares a successor over a parent original and then
+// claims nothing with it is still running the parent's code against its own bytes, and the
+// same four proofs apply. successorCoverage() then admits a GATE by looking the proof up.
+function successorProof(s, bound, ran) {
+  const proofs = new Map();
   const sup = s.coverage.successors;
-  // The ordinary rule, unchanged, for every package that does not carry the ruling.
-  assert(sup !== null, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
+  if (sup === null || !bound) return proofs;
   assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
-  const admitted = successorGates(bound);
-  assert(admitted.has(gate), 'SUCCESSOR-GATE-NOT-IN-THE-RULING ' + gate +
-    '; the parent artifact records ' + admitted.size + ' gate(s) whose carrier reaches ' + SUCCESSOR_SUPPORT);
-  const { child: parentChild, original } = admitted.get(gate);
-  const declared = sup.carriers[parentChild];
-  assert(declared, 'SUCCESSOR-CARRIER-NOT-DECLARED ' + gate + ' ' + parentChild);
-  assert.equal(declared.original, original, 'SUCCESSOR-ORIGINAL-IS-NOT-THE-PARENT-CARRIER ' + parentChild);
-  assert(targets.includes(declared.successor), 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + child + ' ' + declared.successor);
+  const accepted = acceptedVerdicts(bound);
+  for (const [parentChild, declared] of Object.entries(sup.carriers))
+    proofs.set(parentChild, proveSuccessor(s, bound, ran, parentChild, declared, accepted));
+  return proofs;
+}
+function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
+  const sup = s.coverage.successors, original = declared.original;
+  assert.equal(bound.acceptance.executionPins[original] !== undefined, true, 'SUCCESSOR-ORIGINAL-NOT-A-PARENT-EXECUTION-PIN ' + original);
   // (1) the original is the parent's own byte, on disk, in the parent's pin map, and in Git
   // at the parent's acceptance commit — which is on the chain and behind HEAD (Z5).
   L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, CHAIN_REF]);
@@ -1034,15 +1038,31 @@ function successorCoverage(s, bound, ran, gate, child, targets) {
       assert(line.includes(SUCCESSOR_TABLE) || /\bsub(?:stitution)?\b/.test(line),
         'SUCCESSOR-REPLACEMENT-NOT-DRIVEN-BY-THE-DECLARED-TABLE ' + file + ' ' + JSON.stringify(line.trim().slice(0, 72)));
     }
-  // (4) the parent's own accepted verdict, in full (Z3).
-  const accepted = acceptedVerdicts(bound);
+  // (4) the parent's own accepted verdict, in full (Z3), on the child that runs it.
   const want = accepted.get(parentChild);
   assert(want, 'SUCCESSOR-ACCEPTED-VERDICT-UNKNOWN ' + parentChild);
-  const declaredChild = s.children.find(c => c.name === child);
-  assert.equal(declaredChild.needle, want, 'SUCCESSOR-EXECUTED-VERDICT ' + parentChild +
+  const runners = s.children.filter(c => childArgv(c).includes(declared.successor));
+  assert.equal(runners.length, 1, 'SUCCESSOR-NOT-AN-EXECUTED-CHILD-TARGET ' + parentChild + ' ' + declared.successor);
+  assert.equal(runners[0].needle, want, 'SUCCESSOR-EXECUTED-VERDICT ' + parentChild +
     '; the successor is held to the parent\'s own accepted terminal string, not a prefix of it');
-  assert(ran.get(child).ok, 'SUCCESSOR-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
-  return { parentChild, original, successor: declared.successor, substitutions: subs.length, verdict: want };
+  assert(ran.get(runners[0].name) && ran.get(runners[0].name).ok, 'SUCCESSOR-CHILD-NOT-EXECUTED ' + parentChild + ' ' + runners[0].name);
+  return { parentChild, original, successor: declared.successor, child: runners[0].name, substitutions: subs.length, verdict: want };
+}
+// The per-GATE admission. The ordinary rule is unchanged for every package that does not
+// carry the ruling, and the ruled gate set is derived from the parent artifact's bytes.
+function successorCoverage(s, bound, proofs, gate, child, targets) {
+  assert(s.coverage.successors !== null, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
+  assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
+  const admitted = successorGates(bound);
+  assert(admitted.has(gate), 'SUCCESSOR-GATE-NOT-IN-THE-RULING ' + gate +
+    '; the parent artifact records ' + admitted.size + ' gate(s) whose carrier reaches ' + SUCCESSOR_SUPPORT);
+  const { child: parentChild, original } = admitted.get(gate);
+  const proof = proofs.get(parentChild);
+  assert(proof, 'SUCCESSOR-CARRIER-NOT-DECLARED ' + gate + ' ' + parentChild);
+  assert.equal(proof.original, original, 'SUCCESSOR-ORIGINAL-IS-NOT-THE-PARENT-CARRIER ' + parentChild);
+  assert.equal(proof.child, child, 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + child);
+  assert(targets.includes(proof.successor), 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + proof.successor);
+  return proof;
 }
 // W2. A gate is covered ONLY by a declared child that executed here with its exact
 // declared verdict — never by a file's existence. The inherited set must be exactly the
@@ -1051,6 +1071,9 @@ function coverage(s, bound, ran) {
   const covered = new Map([...Object.entries(s.coverage.inherited), ...Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])]);
   const carried = new Map(); // gate -> the successor proof, for the gates DECISIONS:113 admits
   for (const [gate, child] of covered) assert(ran.get(child) && ran.get(child).ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
+  // Every declared successor is proved before any gate is admitted by one, so a carrier
+  // that claims no gate is held to exactly the same four proofs as one that does.
+  const proofs = successorProof(s, bound, ran);
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   if (!byChild) { if (covered.size) note('inherited coverage unverified against a parent artifact until the PM names the parent'); }
   else {
@@ -1065,7 +1088,7 @@ function coverage(s, bound, ran) {
       // The ONLY other way in, and it is DECISIONS:113's: a successor proved against the
       // parent's own original. Without the ruling cited this throws the same code it
       // always threw, so X1's world is exactly as it was for every other package.
-      carried.set(gate, successorCoverage(s, bound, ran, gate, child, targets));
+      carried.set(gate, successorCoverage(s, bound, proofs, gate, child, targets));
     }
     // The closed bound the accepted original states as assert.equal(covered.length, 9):
     // exactly the parent's covered set plus this package's own declared, bounded moves.
@@ -1083,12 +1106,16 @@ function coverage(s, bound, ran) {
   // must not report "0 declared move(s) … refused outright" while successor executables
   // carry the parent's gates. Every successor-carried gate is named here with its parent
   // original, and the ruling id is printed once with the count it admitted.
-  if (carried.size) {
+  if (proofs.size) {
     const sup = s.coverage.successors;
-    say('SUCCESSORS ' + carried.size + ' inherited gate(s) carried by ' + new Set([...carried.values()].map(v => v.successor)).size +
-      ' successor executable(s) under MOVES_RULING=' + SUCCESSOR_RULING + ' (' + sup.ruling + '); coverage.moves stays {} and X1 is unwidened; each successor LOADS the parent carrier\'s own original, byte-equal to the parent execution pin AND to the Git blob at ' +
+    say('SUCCESSORS ' + proofs.size + ' declared successor executable(s) PROVED against the parent original, of which ' + carried.size +
+      ' carry an inherited gate under MOVES_RULING=' + SUCCESSOR_RULING + ' (' + sup.ruling + '); coverage.moves stays {} and X1 is unwidened; each successor LOADS the parent carrier\'s own original, byte-equal to the parent execution pin AND to the Git blob at ' +
       SUCCESSOR_PARENT_COMMIT.slice(0, 7) + ' (on ' + CHAIN_REF + ' and behind HEAD), contains none of its lines, replaces only through the declared table, and prints the parent\'s own accepted verdict in full; ' +
       sup.substitutions.length + ' enumerated substitution(s)');
+    for (const p of proofs.values())
+      say('SUCCESSOR ' + p.parentChild + ' <- ' + p.successor + ' loads ' + p.original + '; child ' + p.child + '; ' +
+        p.substitutions + ' substitution(s); verdict ' + JSON.stringify(p.verdict) +
+        (carried.size && [...carried.values()].includes(p) ? '; carries ' + [...carried.entries()].filter(([, v]) => v === p).map(([g]) => g).join(' ') : '; carries no inherited gate'));
     for (const sub of sup.substitutions)
       say('SUCCESSOR SUBSTITUTION ' + sub.original + '; ' + JSON.stringify(sub.from) + ' -> ' + JSON.stringify(sub.to) + '; ' + sub.why);
   }

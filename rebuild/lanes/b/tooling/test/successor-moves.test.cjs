@@ -139,7 +139,7 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={closure,successorGates,acceptedVerdicts,successorTable,successorCoverage,coverage,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_PACKAGES,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    '\nmodule.exports={closure,successorGates,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_PACKAGES,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -167,7 +167,9 @@ const spec = () => ({
     substitutions: JSON.parse(JSON.stringify(substitutions)) } },
 });
 const ran = () => new Map([[CHILD, { ok: true, needle: VERDICT, bytes: 400, targets: [SUCCESSOR], moved: [] }]]);
-const carry = (s = spec(), b = bound(), r = ran()) => api.successorCoverage(s, b, r, GATE, CHILD, [SUCCESSOR]);
+// The whole path a real run takes: prove every declared successor, then admit the gate.
+const carry = (s = spec(), b = bound(), r = ran()) =>
+  api.successorCoverage(s, b, api.successorProof(s, b, r), GATE, CHILD, [SUCCESSOR]);
 
 test('the faithful successor is admitted, and every derived fact is the parent\'s own', () => {
   const proof = carry();
