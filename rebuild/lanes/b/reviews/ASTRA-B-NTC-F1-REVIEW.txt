@@ -1,0 +1,64 @@
+EARNED — INDEPENDENT B-NTC F1 DELTA REVIEW
+2026-09-11. Reviewer did not author the correction.
+Source: 71fb2f1ae2bf48cc8f32ff3f9e905949e352914c, codex/astra-b-ntc.
+Review: work/astra-ntc-f1-review, codex/astra-ntc-f1-review, exact source base.
+Assignment: PM worktree rebuild/lanes/ASTRA-NTC-F1-REVIEW.md.
+
+(1) VERDICT: ACCEPT WITHIN THIS DELTA SCOPE; F1 CLOSED
+The missing original thirteen-test child now actually executes, unchanged,
+against the archived parent's real validators. The separate four actual-child
+tests remain required and execute. No required correction remains in this scope.
+This is not package acceptance, a receipt, final CI, FULL or a seal.
+
+(2) EXECUTED
+Existing Node v24.19.0; Windows PowerShell; TZ=America/New_York;
+MEASURED_TEST_NOW=2026-09-03. Original13 then child4, sequentially:
+node --test --test-reporter=tap rebuild/m4/spec/b-ntc-profile-refusals.test.cjs
+  13 pass, 0 fail, 0 skipped, 0 cancelled; after-hook isolation checks passed.
+node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs
+  4 pass, 0 fail, 0 skipped, 0 cancelled.
+All original obligations from review3501d11 F1 executed: sealed artifact/status;
+exact owner/theme citations; altered artifact version and product hash; changed
+engine byte; altered owner role; literal carrier list; theme/report one-character
+edits; covered-to-run mutation; unpinned coverage remap; grandparent acceptance
+version; changed grandparent pointer. Real filesystem mutations were restored.
+
+Own fresh-process negative controls appended an inert comment separately to:
+native-carriers-profile.test.cjs, b-ntc-successors.cjs, and the new
+b-ntc-profile-refusals.test.cjs. Each dedicated successor invocation exited
+nonzero before its original positive test: Unlisted parent pin drift for the
+original input; Exact declared child bytes for helper/successor. All three files
+were restored byte-identically in finally. No alternate product behavior authored.
+
+Own declaration/pin checks passed: profile-refusals directly executes the new
+test with --test and expects # pass 13; child-pin-refusals still expects # pass 4;
+helper/successor postimages match spec; original test/profile/source match parent
+execution pins; runnerSha256 matches the actual runner. Successful final preflight
+left original profile/source/test require.cache entries unchanged. Global
+fs.readFileSync and Module._load identities remained unchanged. Ordinary require
+loaded the actual four-reader child runtime; private source SUPPORT used the child
+runtime pin while ordinary native-carriers-source retained the parent pin.
+
+(3) SOURCE REVIEW
+profileRefusals() runs both preflights, verifies original input bytes against
+parent hashes AND Git origin, then privately compiles the original test text
+without replacement. Only its profile/source dependencies receive private archived
+validators. The original test receives real node:fs, so each original mutation,
+assertion and restoration runs. Archived validators overlay only the two previously
+reviewed runtime/workflow reads at b95ccca; no global hook/cache replacement.
+The positive acceptance assertion still reports the archived parent's review
+status. The new after hook rechecks actual-child pins/runtime independently.
+Neither that hook nor the successor presents archived acceptance as child acceptance.
+
+(4) REUSED EVIDENCE / BOUNDARIES
+git diff 0876043..71fb2f1 on m3, m4/workout, rebuild.yml, engine/conform and
+frozen-app paths: empty. Reuse independent3501d11 product/default-provider,
+zero-night/28-night repeat-workout, C4 Last time and 237-test journey acceptance.
+No product campaign repeated. Runner and execution-target test bytes match
+c7b7133 exactly; retain independent tooling acceptance4a842323, joined00aa51c.
+Separately authored successor-recognition/citation-anchor tooling is not accepted
+by this report. Package declaration remains PROPOSED; exact supported mapping,
+authority anchors, public/FULL/private qualification and genuine seal remain PM
+work. No private reads, install, broad historical campaign, push, merge or deploy.
+Before this report git diff --exit-code, git diff --check and status were clean.
+Only this report is committed; root remains sole PM.
