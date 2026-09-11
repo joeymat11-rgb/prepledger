@@ -28,6 +28,14 @@ Three definitions, used consistently below.
 - **NOT-PROVABLE-HERE** — no desktop browser can decide it. The harness prints
   the row with that verdict and one line of reason rather than skipping it.
   Some of these are the phone's (C3-HAND-PROOF.md); some are nobody's.
+- **BITES / DOES NOT BITE** — added after review. A row that passes on a correct
+  build proves nothing until it is shown to FAIL on a broken one. The review
+  mutated the tree nine ways and found 15 of 17 rows bite; the two that did not
+  are fixed here, and `node local-witnesses.mjs --bite` is now the standing
+  negative control for the one that matters most. **The bite mutates the BUILT
+  BUNDLE under `%TEMP%`, never the tree** — the candidate `bridge.mjs` is hashed
+  before and after and must be identical, and the mutation anchor's occurrence
+  count is asserted so a refactor BLOCKS the bite instead of silently passing it.
 
 The C1/C11 ruling of 2026-09-05 (DECISIONS:24) is **bounded**: after an unproven
 restart the phone keeps accepting offline writes, and the exposure that buys is
@@ -45,7 +53,7 @@ authority at all:
 | 2 | restored continuity flag ignored | There is no continuity flag to ignore. Nothing in `metadata` or `collections` records a boot identity, a wall high-water or a slot counter, so a restart is invisible in both directions — the client can neither distrust it nor trust it. |
 | 3 | whole local erasure becomes "fresh" | Presence is three independent signals (`local-client.mjs:139–155`). Any subset missing is `restore-required`; all three missing is `first-run`, which is what a new phone looks like. |
 | 4 | coherent old restore reuses a slot (T3 rejects IDENTITY_COLLISION) | A byte-exact old generation record, restored with the device key untouched, decrypts, verifies and boots. The next save re-issues a `device_seq` already spent on a different reading. Offline nothing can tell. |
-| 5 | exhaustion face disagrees with refusal | `status()` is synchronous and reflects the last observation (`local-client.mjs:148`, `:334–338`); the write path re-checks the lease. They can disagree for one command. The *exhaustion* half is unreachable: the self-issued lease range is `[1, 2**31−1]` and no 24 h / 64-slot allowance is implemented, because DECISIONS:24 bounds writes relative to the last **reconciled** connection and there is none. |
+| 5 | exhaustion face disagrees with refusal | `status()` is synchronous and reflects the last observation (`local-client.mjs:148`, `:334–338`); the write path re-checks the lease. They can disagree for one command. The *exhaustion* half is unreachable because no slot budget exists — **a residual against DECISIONS:24, not a browser limit**; see that row for the statement the PM is asked to rule on. |
 
 ## THE MATRIX
 
@@ -67,15 +75,37 @@ Every row below is an id in `local-witnesses.mjs`. Line citations are
   different process model and a different IndexedDB implementation.
 - **No browser:** nothing extra. This row is fully decidable.
 
-### W-KILL-AFTER-ACK — killed the instant "Saved" returned
+### W-KILL-AFTER-ACK — killed the instant "Saved" returned — **WITNESS-ONLY**
 
 - **The local era must:** have meant it. "Saved" is
   DURABLY-COMMITTED-ON-THIS-PHONE (`local-era.mjs:1–10`), and the bridge returns
   the post-commit result, never the stage's own. `local-bite.cjs`'s durability-gate
   bite is the negative proof that this module depends on that.
-- **Desktop proves:** yes — kill within milliseconds of the resolved promise and
-  assert the operation is there. This is the durability claim itself.
-- **Phone only:** the same claim against WebKit's transaction completion.
+- **Desktop proves:** that an operation whose `execute()` resolved is on disk
+  after a SIGKILL issued **1–2 ms later** — the pid list is resolved before the
+  save and the kill is `process.kill` (TerminateProcess), not a process-table
+  lookup followed by a `taskkill` spawn, which together cost ~450 ms and let any
+  transaction finish. **Review D1 found the earlier version of this row could not
+  tell an ack-before-durable bridge apart from a correct one, and said PASS
+  either way.**
+- **What it discriminates was MEASURED, and the answer is "not reliably".**
+  `--bite` rebuilds the page from an ack-early bundle (the bridge resolves
+  `execute()` without awaiting `repository.commit`) and runs the row five times.
+  Four recorded runs went **1/5, 0/5, 0/5 and 2/5 — three reds in twenty
+  attempts, about 15 %** at a ~1 ms kill, because the ack-early commit usually
+  finishes inside that millisecond anyway.
+  **A control that fires one attempt in seven is not a control.** So this row is
+  formally **WITNESS-ONLY**: it witnesses that an acknowledged save is on disk
+  after a hard kill, and it does **not** prove the publish-after-commit ordering.
+- **What DOES prove the ordering:** `local-bite.cjs`'s durability-gate bite, which
+  removes the gate — makes `execute()` return the T2 stage's own result instead of
+  the bridge's post-commit result — and watches C1's own mid-transaction case go
+  red, deterministically, every run. That is the citation to use. An earlier draft
+  of this file called the browser row "the durability claim itself"; it is not,
+  and `--bite` is what established that rather than an argument.
+- **Phone only:** the same claim against WebKit's transaction completion — and
+  weakly: iOS holds storage in a separate process, so swiping Safari away does not
+  reliably kill it. The phone's row 4 (reboot) carries that weight, not row 3.
 - **No browser:** that the bytes reached the flash rather than an OS cache. See
   W-POWER-LOSS.
 
@@ -88,11 +118,18 @@ Every row below is an id in `local-witnesses.mjs`. Line citations are
 - **Desktop proves:** the property, not the timing. **C1 exposes no
   slow-transaction hook and C3 did not add one** — a test hook in product code
   would be a worse defect than the one it measures. So the harness fires
-  `execute()` without awaiting it, kills immediately, and then asserts the
-  invariant that must hold whichever side of the commit the kill landed: op count
-  and revision move together or not at all, and the next save takes the next
-  sequence with no gap. The row prints which outcome it observed, because the race
-  is real and pretending otherwise would be the dishonest part.
+  `execute()` without awaiting it, kills immediately (pre-warmed pid list, as
+  above), and then asserts the invariant that must hold whichever side of the
+  commit the kill landed: op count and revision move together or not at all, and
+  the next save takes the next sequence with no gap. The row prints which side it
+  landed on and, explicitly, **which side it therefore did not observe**.
+- **What it does NOT show (review D3).** It does not test ordering — an ack-early
+  bridge leaves this row green, because atomicity is not what ack-early breaks;
+  that is `W-KILL-AFTER-ACK`'s job and `--bite` proves it. The landing side is not
+  chosen by the harness: with the ~450 ms kill it COMMITTED in 4 of 4 observed
+  runs, and with the pre-warmed 1–2 ms kill the ABSENT side became reachable. One
+  run is one sample of a race, and the evidence line says so rather than claiming
+  a distribution.
 - **Phone only:** the same race under WebKit, where the transaction scheduler
   differs.
 - **No browser:** a kill *guaranteed* to land inside the transaction. Without a
@@ -170,9 +207,18 @@ Every row below is an id in `local-witnesses.mjs`. Line citations are
   metadata is exactly `{profile, namespace, enrolledAt, localEra}` and `localEra`
   is exactly `{profile, eraId, identityKey, authorityKey, lease, enrolledAt}`
   (`local-era.mjs:33–43`). No boot identity, no wall high-water, no slot counter.
-- **Desktop proves:** yes, structurally — `boot()` reports no such field, and the
-  node case asserts the sealed key sets exactly, so a future field cannot be added
-  silently.
+- **Desktop proves:** two exact key sets, both asserted (**review D2 — the first
+  version of this row asserted nothing at all: it printed `Object.keys(boot())`
+  inside a fixed sentence, so a `boot()` carrying `continuityFlag` printed the
+  flag *inside the sentence denying it existed* and still said PASS**). The
+  browser row now pins `Object.keys(boot())` and the raw sealed record's own key
+  set (`ciphertext format iv namespace revision`), so a continuity field can
+  neither join the payload nor be parked beside the ciphertext.
+- **The node case proves the third set**, the one inside the ciphertext: it holds
+  the device key, so it asserts `metadata` is exactly
+  `{profile, namespace, enrolledAt, localEra}` and `localEra` exactly
+  `{profile, eraId, identityKey, authorityKey, lease, enrolledAt}`. The browser
+  has no way to read that and this row does not pretend to.
 - **Phone only:** nothing.
 - **No browser:** that this is *safe*. It is the accepted cost of the bounded
   ruling: a restart cannot be distrusted because it cannot be seen. BRIEF-W6 is
@@ -234,11 +280,25 @@ Every row below is an id in `local-witnesses.mjs`. Line citations are
   refusal path (`:346–355`), so a screen can say something true.
 - **Desktop proves:** the expiry half, end to end, in a real browser.
 - **Phone only:** nothing in kind.
-- **No browser:** the *exhaustion* half — it is unreachable here by construction
-  (range `[1, 2**31−1]`, no 24 h / 64-slot allowance, because DECISIONS:24 bounds
-  writes relative to the last **reconciled** connection and the local era has
-  none). The node case pins that, so if a slot budget ever arrives the row fails
-  and somebody has to prove the face agrees with it.
+- **The exhaustion half is a RESIDUAL, not an unprovability** (review disagreement
+  1, and it is right — an earlier draft filed it as "no browser can decide this",
+  which buried a gap against the owner's own ruling inside a row about browser
+  limits). Stated as it must be read:
+
+  > **RESIDUAL AGAINST DECISIONS:24.** The ruling bounds offline writes after an
+  > unproven restart by **a wall-clock *and* a sequence budget**. The local era
+  > implements the wall-clock half — the 400-day self-renewing lease — and **no
+  > slot budget at all**, by the lane lead's explicit C1 decision (C1-BRIEF
+  > non-goals; the REQUESTS line to the PM). The reasoning: the ruling bounds
+  > offline writes **relative to a reconciled authority**, and the local era has
+  > no authority to reconcile with, so a budget would eventually refuse the
+  > owner's own saves with nothing able to refill them. **The PM is asked to
+  > confirm or overrule.** Until then the exhaustion *face* is unreachable here,
+  > which is why no row can exercise it.
+
+  The node case pins the absence exactly (`range [1, 2**31−1]`, the checkpoint
+  holding counts and never a budget, `sync` empty), so it fails loudly the day a
+  slot budget arrives and somebody then has to prove the face agrees with it.
 
 ### W-TWO-TABS — two tabs of one installation
 
@@ -258,9 +318,18 @@ Every row below is an id in `local-witnesses.mjs`. Line citations are
 - **Desktop proves:** yes, and with the **browser's own** `QuotaExceededError`, not
   an injected fault: the origin quota is capped through CDP
   (`Storage.overrideQuotaForOrigin`) before the origin's first IndexedDB use, then
-  filled with junk down a ladder of chunk sizes until even 256 bytes fails. One
-  chunk size is not enough — filling with 1 MiB blocks leaves up to 1 MiB free,
-  which is far more than one sealed generation needs, and the save simply fits.
+  filled with junk down a ladder of chunk sizes. One chunk size is not enough —
+  filling with 1 MiB blocks leaves up to 1 MiB free, which is far more than one
+  sealed generation needs, and the save simply fits. The remaining headroom is
+  **confirmed by a final 256-byte probe that must also fail**, so "full to within
+  < 256 bytes" is measured rather than inferred from where the ladder stopped
+  (review D4).
+- **"Byte-exact" now means bytes** (review D4). The row hashes the raw sealed
+  record in the page — `format`, `namespace`, `revision`, `iv`, `ciphertext` —
+  before and after the refused save and requires the digests to match, and it
+  asserts `refused.code === "TRANSACTION_ABORTED"` rather than only printing it.
+  The earlier version asserted revision, op count and the layer-1 reads, which is
+  not the same claim.
 - **Phone only:** what iOS does when the *device* is full, which is eviction, not
   a clean refusal.
 - **No browser:** W6-KNOWLEDGE-LOSS (BRIEF-W6, HARD CLOCK BLOCKER). Quota failure
@@ -293,7 +362,7 @@ how a residual becomes a claim:
 | `W-POWER-LOSS` | `taskkill /F` ends a process; it does not cut power mid-`fsync`. The repository asks for `durability: "strict"` and reports `{requested, actual}` — whether the platform honoured it is the platform's claim, not ours, and the harness prints that pair rather than asserting it. |
 | `W-REAL-ELAPSED` | Days 1 / 201 / 401 / 402 are an injected page clock. Nothing has been left for a year, and no browser can prove how much time passed while the process was absent — that IS `C1-C11-RESTART`. |
 | `W-IOS-EVICTION` | A scripted `deleteDatabase` is not iOS deciding to reclaim site data. `W-ERASE-ALL` shows the SHAPE that results; nothing can force the decision, predict it, survive it, or tell the browser's erasure from the athlete's. |
-| `W-IOS-SAFARI` | Every desktop row is Chromium. WebKit's IndexedDB has its own transaction and eviction behaviour. This is the hand proof's entire reason to exist. |
+| `W-IOS-SAFARI` | Every desktop row is Chromium. WebKit's IndexedDB has its own transaction and eviction behaviour. This is the hand proof's entire reason to exist. **Caveat, from the review:** the pinned `playwright-core` can drive a *desktop WebKit* build. That is not iOS and not Safari, but it is a genuinely different IndexedDB implementation and would be real evidence. It was not taken because it needs a browser download and no install is permitted in this lane; it is filed as a REQUEST in C3-REPORT.md rather than left as "no browser can". |
 
 ## THE DEPENDENCY THAT DECIDES WHETHER THE PHONE RUN MEANS ANYTHING
 
@@ -364,8 +433,21 @@ worse, or because it needs the hosted half that DECISIONS:88 deferred.
 8. **Real DST and a real old-phone restore remain NOT RUN**, as they were at W3.
    Neither is in the hand proof: DST needs a date the calendar has not reached,
    and a device restore costs an hour and risks Joe's actual phone.
-9. **The exhaustion half of witness 5 is unreachable, not proved.** It returns the
-   day a slot budget does, and the node case will fail loudly when it does.
+9. **The sequence-budget half of DECISIONS:24 is absent, not merely unreachable.**
+   See the verbatim statement under W-FACE-DISAGREES / W-SEQ-EXHAUSTION: the local
+   era implements the wall-clock half and no slot budget, deliberately, and the PM
+   is asked to confirm or overrule. The node case fails the day one arrives.
+10. **`W-KILL-AFTER-ACK` is WITNESS-ONLY.** `--bite` measured 3 reds in 20 attempts
+    against an ack-early bundle at a ~1 ms kill, so the row cannot be relied on to tell
+    ack-before-durable apart. The deterministic proof of the ordering is
+    `local-bite.cjs`'s durability-gate bite, not this row. **No browser row can
+    close this**: the gap between an ack and a kill is bounded below by a CDP
+    round trip, and an IndexedDB commit of a small record is faster than that.
+11. **`W-CONTINUITY-FLAG` cannot see inside the ciphertext.** The browser row pins
+    the two key sets it can reach; the sealed metadata's own key set is the node
+    case's, because only it holds the device key.
+12. **A desktop WebKit run was available and not taken** (no install permitted).
+    It would be the one cheap step between Chromium and the phone.
 
 ## WHAT C3 DELIBERATELY DID NOT DO
 

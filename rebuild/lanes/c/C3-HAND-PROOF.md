@@ -12,12 +12,17 @@ Eight rows, about fifteen minutes of your time, spread over two days (row 6 is
 
 ## Before you start
 
-**1. The page.** Open the link you were sent for this test. It has to be the
-**local-era test page** — the one that says it saves to this phone. Do **not** run
-this against the normal Today page yet: Today still saves the old way
-(`localStorage`), so every row below would pass and none of it would mean
-anything. If you are not sure which page you have, ask before you start; that one
-question is worth more than the whole test.
+**1. The page — and this is a STOP, not advice.** Open the link you were sent for
+this test. It has to be the **local-era test page**. Do **not** run this against
+the normal Today page: Today still saves the old way (`localStorage`), so every
+row below would pass and none of it would mean anything.
+
+**You do not have to take anyone's word for which page you have — row 1 checks
+it.** The local-era page shows an **era id**, a long string of letters and
+numbers. Today has none, and cannot have one; it is produced by the storage this
+test is about and by nothing else. **If row 1 shows no era id, STOP. Do not do
+rows 2–8. Send a photo and say "no era id".** A green result on the wrong page is
+worse than no result, because it would be filed as evidence.
 
 **2. Synthetic numbers only.** Type made-up weights and sets. Nothing here should
 be your real log. Use 170.6, 171.1 and so on — they match what the PC test used,
@@ -57,6 +62,17 @@ there. Write down which happened.
 **You should see:** a first-run screen, or an empty entry list, and somewhere on
 the page a short code called the **era id** (a long string of letters and
 numbers). If the page offers a "start" or "enrol" button, tap it once.
+
+### 🛑 STOP CONDITION — read this before row 2
+
+**Is there an era id on this page, yes or no?**
+
+- **Yes** → carry on. Write the first six characters down; row 7 compares against
+  it.
+- **No** → **STOP HERE.** Do not do rows 2–8. Send Photo 1 and the words "no era
+  id". It means you are on a page that saves the old way, and all eight rows
+  would pass without testing anything this proof is about. Stopping is the
+  correct outcome, not a failure on your part.
 
 **📷 Photo 1:** the whole screen, including the era id.
 
@@ -102,6 +118,13 @@ say something like *"Last saved: Set 1 of squat."*
 
 **Something is wrong if:** either entry is gone, or a set you never logged
 appears.
+
+> **What this row is and is not.** On iOS the part of Safari that holds the data
+> runs in its own process, and swiping the card away does not reliably kill it.
+> So a pass here is real but modest — it says the data survived the app going
+> away. **Row 4 is the one that carries the weight**, because a reboot ends
+> every process there is. Do not let anyone read row 3 as the phone's version of
+> "killed the instant it said Saved"; nothing on the phone tests that.
 
 ---
 

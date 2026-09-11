@@ -22,6 +22,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { buildLocalBrowser } from "../local/build.mjs";
@@ -47,7 +48,33 @@ const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "w6-witness-"));
 const bundle = path.join(scratch, "local.js");
 const built = await buildLocalBrowser({ outfile: bundle });
 const INDEX = "<!doctype html><meta charset=\"utf-8\"><title>W6 local-era restart witnesses</title><main id=\"root\"></main>";
-const site = await startModuleServer({ root, files: { "/local.js": fs.readFileSync(bundle) }, index: INDEX });
+
+// ── --bite : the NEGATIVE CONTROL for W-KILL-AFTER-ACK (review D1) ────────────
+//
+// A row that says "an acknowledged save survives a kill" is worthless unless it
+// can tell that claim apart from "the app said Saved before it saved". So the
+// bite builds the page from an ACK-EARLY bundle — the bridge resolves execute()
+// without awaiting repository.commit — and requires the row to go RED.
+//
+// The mutation is applied to the BUILT BUNDLE under %TEMP%, never to the tree.
+// esbuild emits bridge.mjs verbatim, so the anchor below is the source line; the
+// count is asserted, so a refactor that moves it BLOCKS the bite instead of
+// silently passing. The candidate bridge.mjs is hashed before and after to prove
+// it was never opened for writing.
+const BITE = process.argv.includes("--bite");
+const BRIDGE = path.join(root, "bridge.mjs");
+const sha256 = value => createHash("sha256").update(value).digest("hex");
+const ANCHOR = "const commit = await repository.commit(snapshot, candidate.generation, () => validateCommit(context));";
+const ACK_EARLY = "const commit = { revision: snapshot.revision + 1, durability: { requested: \"strict\", actual: \"strict\" } };" +
+  " repository.commit(snapshot, candidate.generation, () => validateCommit(context)).catch(() => {});";
+const bridgeBefore = sha256(fs.readFileSync(BRIDGE));
+let source = fs.readFileSync(bundle, "utf8"), biteBlocked = null;
+if (BITE) {
+  const hits = source.split(ANCHOR).length - 1;
+  if (hits !== 1) biteBlocked = `the ack-ordering anchor appears ${hits} times in the built bundle, not once`;
+  else source = source.replace(ANCHOR, ACK_EARLY);
+}
+const site = await startModuleServer({ root, files: { "/local.js": source }, index: INDEX });
 const origin = site.origin;
 const DB = "earned-local-witness";
 const SETUP = { databaseName: DB, namespace: "joe/phone-A", athleteId: "ath-1", deviceId: "dev-phone-A" };
@@ -131,20 +158,40 @@ const pidsFor = dir => processTable().filter(entry => norm(entry.cmd).includes(n
 
 // SIGKILL, not a close. No beforeunload, no unload handler, no orderly IndexedDB
 // shutdown — the closest a desktop gets to iOS discarding a web view.
+//
+// REVIEW D1. The kill is split in two because LATENCY IS THE WHOLE POINT of
+// W-KILL-AFTER-ACK. `pidsFor()` spawns PowerShell and costs ~355 ms measured, and
+// `taskkill` is another ~97 ms per spawn: a kill that begins with a process-table
+// lookup lands about half a second after the event it is supposed to interrupt,
+// by which time any transaction has finished. So a row that cares about the
+// instant resolves its pid list FIRST and then calls `killPids`, which is
+// `process.kill` — TerminateProcess through libuv, an in-process syscall with no
+// spawn at all. `sweep()` is the slower belt-and-braces pass for anything the
+// first pass orphaned, and `settle()` runs it if the profile is still held.
+function killPids(pids) {
+  for (const pid of pids) { try { process.kill(pid, "SIGKILL"); } catch {} }
+  return pids;
+}
+function sweep(pids) {
+  if (!WIN) return killPids(pids);
+  for (const pid of pids) { try { execFileSync("taskkill", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore" }); } catch {} }
+  return pids;
+}
 function hardKill(session, dir) {
   const pids = pidsFor(dir);
-  for (const pid of pids) {
-    try {
-      if (WIN) execFileSync("taskkill", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore" });
-      else process.kill(pid, "SIGKILL");
-    } catch {}
-  }
+  killPids(pids); sweep(pids);
   if (session?.context) live.delete(session.context);
   return pids;
 }
 async function settle(dir, ms = 10000) {
-  const until = Date.now() + ms;
-  while (Date.now() < until && pidsFor(dir).length) await new Promise(resolve => setTimeout(resolve, 100));
+  const until = Date.now() + ms, sweepAt = Date.now() + ms * 0.3;
+  let swept = false;
+  while (Date.now() < until) {
+    const alive = pidsFor(dir);
+    if (!alive.length) return true;
+    if (!swept && Date.now() > sweepAt) { sweep(alive); swept = true; }
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
   return pidsFor(dir).length === 0;
 }
 const act = async (ids, body) => {
@@ -160,7 +207,71 @@ const act = async (ids, body) => {
   }
 };
 
+// The negative control — and, as it turned out, the MEASUREMENT that decided what
+// W-KILL-AFTER-ACK is allowed to claim.
+//
+// All five attempts always run: the point is the RATE, not a first success. Four
+// recorded runs went 1/5, 0/5, 0/5 and 2/5 — THREE REDS IN TWENTY, about 15 %.
+// A control that fires one attempt in seven is not a control, so this is not FAIL when
+// nothing goes red — it is NOT-PROVABLE-HERE, the same first-class outcome the
+// rest of this file uses, and the standing consequence is written into the row:
+// W-KILL-AFTER-ACK is WITNESS-ONLY, and local-bite.cjs's durability-gate bite is
+// what proves the ordering.
+async function runBite() {
+  if (biteBlocked) { record("BITE-KILL-AFTER-ACK", "FAIL", `bite BLOCKED — ${biteBlocked}`); return; }
+  console.log(`W6 WITNESS BITE — ack-early bundle; candidate bridge.mjs sha256 BEFORE ${bridgeBefore}`);
+  let red = 0, attempts = 0, lastGap = null, log = [];
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    const dir = profile(`bite-${attempt}`);
+    attempts = attempt;
+    let s = await launch(dir);
+    assert.equal((await s.page.evaluate(() => client.enroll({ profile: "host-clean-init" }))).enrolled, true);
+    const armed = pidsFor(dir);                       // pre-warmed: no lookup in the path
+    const acked = await s.page.evaluate(() => client.execute("weighIn", { lb: 170.6 }));
+    const resolved = Date.now();
+    killPids(armed);
+    lastGap = Date.now() - resolved;
+    live.delete(s.context);
+    assert.equal(await settle(dir), true);
+    s = await launch(dir);
+    const after = await s.page.evaluate(() => client.boot());
+    const held = acked.acknowledged === true && after.revision === acked.durableRevision && after.ops === 1;
+    if (!held) red++;
+    log.push(`attempt ${attempt}: ack rev ${acked.durableRevision}, kill +${lastGap} ms, relaunch rev ${after.revision} ops ${after.ops} -> ${held ? "survived" : "RED"}`);
+    console.log(`  ${log[log.length - 1]}`);
+    await shut(s);
+  }
+  const bridgeAfter = sha256(fs.readFileSync(BRIDGE));
+  console.log(`W6 WITNESS BITE — candidate bridge.mjs sha256 AFTER  ${bridgeAfter}`);
+  assert.equal(bridgeAfter, bridgeBefore, "the candidate bridge.mjs changed during the bite");
+  record("BITE-KILL-AFTER-ACK", red ? "PASS" : "NOT-PROVABLE-HERE",
+    `${red} of ${attempts} attempts went RED against an ack-early bundle at a ~${lastGap} ms kill. ` +
+    (red
+      ? `When it fires, the killed profile comes back WITHOUT the operation the app had already called Saved, so the row CAN discriminate ack-before-durable — but only some of the time, because the ack-early commit usually still finishes inside that millisecond. `
+      : `Every ack-early commit finished before the process died, so this run could not discriminate ack-before-durable at all. `) +
+    `MEASURED ACROSS THE RECORDED RUNS: 3 reds in 20 attempts, about 15%. A control that fires one attempt in seven is not a control, so W-KILL-AFTER-ACK is WITNESS-ONLY — it witnesses that an acknowledged save is on disk after a hard kill, and it does NOT prove the publish-after-commit ordering. That ordering is proved deterministically by local-bite.cjs's durability-gate bite, which removes the gate and watches C1's own case go red. ` +
+    (log.join(" | ")));
+  // The in-flight row asserts ATOMICITY, which ack-early does not break, so it is
+  // expected to stay green here. Running it anyway is how that is a measurement.
+  const dir = profile("bite-inflight");
+  let s = await launch(dir);
+  assert.equal((await s.page.evaluate(() => client.enroll({ profile: "host-clean-init" }))).enrolled, true);
+  const armed = pidsFor(dir);
+  await s.page.evaluate(() => { window.__pending = client.execute("weighIn", { lb: 171.9 }); return true; });
+  killPids(armed); live.delete(s.context);
+  assert.equal(await settle(dir), true);
+  s = await launch(dir);
+  const torn = await s.page.evaluate(() => client.boot());
+  const atomic = torn.ready && (torn.ops === 0 || torn.ops === 1) && (torn.ops === 1) === (torn.revision === 2);
+  record("BITE-KILL-INFLIGHT", atomic ? "PASS" : "FAIL", atomic
+    ? `ack-early bundle, killed in flight: ops ${torn.ops} revision ${torn.revision} — still atomic-or-absent, as EXPECTED. This row asserts atomicity, not ordering, so it does not and cannot discriminate ack-before-durable; that is W-KILL-AFTER-ACK's job and the bite above is its control`
+    : `ack-early bundle, killed in flight: ops ${torn.ops} revision ${torn.revision} — NOT atomic-or-absent`);
+  await shut(s);
+}
+
 try {
+  if (BITE) await runBite();
+  else {
   // ── ACT A — the kill rows, on one profile ────────────────────────────────────
   const pA = profile("kill");
   await act(["W-KILL-IDLE", "W-REBOOT-PROCESS", "W-CONTINUITY-FLAG", "W-KILL-AFTER-ACK", "W-KILL-INFLIGHT"], async () => {
@@ -189,25 +300,59 @@ try {
     assert.match(resumed.line, /squat/);
     record("W-KILL-IDLE", "PASS", `${killed.length} process(es) taskkill /F while idle; relaunch on the same profile: revision ${booted.revision}, ${booted.ops} operations, resume "${resumed.line}", ghost false; durability ${JSON.stringify(weigh.durability)}`);
     record("W-REBOOT-PROCESS", "PASS", `pids ${before.join(",")} -> ${after.join(",")} on one profile directory: not one process survived, every operation did — a reboot's NEW-PROCESS half, not its power-cycle half`);
-    record("W-CONTINUITY-FLAG", "PASS", `RED WITNESS 2 REPRODUCED — boot() reports [${Object.keys(booted).sort().join(" ")}]: no continuity flag, boot identity or wall high-water exists, so the restart is invisible to the client and there is nothing for it to ignore or trust`);
+    // REVIEW D2. This row used to PRINT the key list and assert nothing, so a
+    // boot() that grew `continuityFlag` printed it inside the sentence denying it
+    // existed — and passed. Both key sets are now EXACT: boot()'s payload, and the
+    // raw sealed record, so a continuity field cannot be added to the payload or
+    // parked beside the ciphertext. What is INSIDE the ciphertext is asserted by
+    // local-witnesses.test.mjs (it decrypts through the repository); the browser
+    // has no device key to read it with, and this row says so rather than implying
+    // it checked.
+    assert.deepEqual(Object.keys(booted).sort(), ["derived", "derivedCode", "derivedStale", "eraId", "leaseExpired",
+      "leaseId", "leaseRenewalCode", "leaseRenewedUntil", "notAfter", "notBefore", "ops", "ready", "revision", "view"]);
+    const sealed = await s.page.evaluate(db => new Promise((resolve, reject) => {
+      const request = indexedDB.open(db);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const handle = request.result, tx = handle.transaction("generations", "readonly");
+        const read = tx.objectStore("generations").get("active");
+        tx.oncomplete = () => { handle.close(); resolve(Object.keys(read.result).sort()); };
+        tx.onabort = () => { handle.close(); reject(tx.error); };
+      };
+    }), DB);
+    assert.deepEqual(sealed, ["ciphertext", "format", "iv", "namespace", "revision"]);
+    record("W-CONTINUITY-FLAG", "PASS", `RED WITNESS 2 REPRODUCED — boot() reports EXACTLY [${Object.keys(booted).sort().join(" ")}] and the sealed record EXACTLY [${sealed.join(" ")}], both asserted: no continuity flag, boot identity or wall high-water exists anywhere the browser can see, so the restart is invisible to the client and there is nothing for it to ignore or trust. The sealed METADATA's own key set is asserted by the node case, which has the device key`);
 
-    // Killed the instant execute() resolved Saved. The bridge publishes only after
-    // the IndexedDB transaction completed, so this is the durability claim itself.
+    // Killed the instant execute() resolved Saved. REVIEW D1: the pid list is
+    // resolved BEFORE the save, so the kill is one in-process TerminateProcess
+    // rather than a ~355 ms process-table lookup followed by a ~97 ms spawn. Run
+    // `--bite` for the negative control that decides what this row can tell apart.
+    const armed = pidsFor(pA);
     const acked = await s.page.evaluate(() => client.execute("weighIn", { lb: 171.1 }));
+    const resolvedAt = Date.now();
+    killPids(armed);
+    const gap = Date.now() - resolvedAt;
+    live.delete(s.context);
     assert.equal(acked.acknowledged, true);
-    hardKill(s, pA); assert.equal(await settle(pA), true);
+    assert.equal(await settle(pA), true);
     s = await launch(pA);
     const survived = await s.page.evaluate(() => client.boot());
     assert.equal(survived.revision, acked.durableRevision);
     assert.equal(survived.ops, seeded + opCount(acked));
-    record("W-KILL-AFTER-ACK", "PASS", `"Saved" at revision ${acked.durableRevision}, then taskkill /F with no close: the relaunched profile reads revision ${survived.revision} with ${survived.ops} operations — an acknowledged save survives a SIGKILL`);
+    record("W-KILL-AFTER-ACK", "PASS", `WITNESS-ONLY. "Saved" at revision ${acked.durableRevision}, then SIGKILL ${gap} ms later (pid list pre-warmed; process.kill, no spawn, no graceful close): the relaunched profile reads revision ${survived.revision} with ${survived.ops} operations — an acknowledged save is on disk after a hard kill. It does NOT prove publish-after-commit ORDERING: --bite measured 3 reds in 20 attempts (~15%) against an ack-early bundle, because the commit usually finishes inside the millisecond. The ordering is proved by local-bite.cjs's durability-gate bite`);
 
     // Killed with a commit IN FLIGHT: the promise is never awaited on this side.
-    // C1 exposes no slow-transaction hook, so the outcome is a genuine race. What
+    // C1 exposes no slow-transaction hook, so the landing side is not chosen. What
     // is asserted is the property that must hold either way: ATOMIC OR ABSENT.
+    // REVIEW D3: the landing side is a sample, not a schedule. With the review's
+    // ~450 ms kill it COMMITTED in 4 of 4 observed runs; with the pre-warmed 1-2 ms
+    // kill the ABSENT side became reachable. The row reports which side it landed
+    // on AND which side it therefore did not observe.
     const baseOps = survived.ops, baseRev = survived.revision;
+    const loaded = pidsFor(pA);
     await s.page.evaluate(() => { window.__pending = client.execute("weighIn", { lb: 171.9 }); return true; });
-    hardKill(s, pA); assert.equal(await settle(pA), true);
+    killPids(loaded); live.delete(s.context);
+    assert.equal(await settle(pA), true);
     s = await launch(pA);
     const torn = await s.page.evaluate(() => client.boot());
     assert.equal(torn.ready, true);
@@ -217,7 +362,7 @@ try {
     assert.equal(next.acknowledged, true);
     assert.equal(next.op_id, `op-dev-phone-A-${torn.ops + 1}`);
     const landed = torn.ops === baseOps + 1;
-    record("W-KILL-INFLIGHT", "PASS", `killed with a commit in flight: the batch ${landed ? "COMMITTED" : "did NOT commit"} (ops ${baseOps} -> ${torn.ops}, revision ${baseRev} -> ${torn.revision}) — atomic or absent, never half, and the next save takes ${next.op_id} with no gap. This proves IndexedDB transaction atomicity across a process kill; it does NOT prove power-loss durability (see W-POWER-LOSS)`);
+    record("W-KILL-INFLIGHT", "PASS", `killed with a commit in flight: the batch ${landed ? "COMMITTED" : "did NOT commit"} (ops ${baseOps} -> ${torn.ops}, revision ${baseRev} -> ${torn.revision}) — atomic or absent, never half, and the next save takes ${next.op_id} with no gap. WHAT IT SHOWS: op count and revision move together, and no sequence is stranded. WHAT IT DOES NOT: the ${landed ? "ABSENT" : "COMMITTED"} side has not been observed on this platform, the landing side is not chosen by the harness, ordering is not tested here (that is W-KILL-AFTER-ACK and --bite), and power-loss durability is not tested at all (W-POWER-LOSS)`);
     await shut(s);
   });
 
@@ -439,6 +584,27 @@ try {
     assert.equal((await s.page.evaluate(() => client.enroll({ profile: "host-clean-init" }))).enrolled, true);
     const seed = await s.page.evaluate(() => client.execute("weighIn", { lb: 170.6 }));
     assert.equal(seed.acknowledged, true);
+    // REVIEW D4. "Byte-exact" has to mean bytes. The sealed record is read raw and
+    // hashed in the page (iv + ciphertext + the envelope fields), before and after
+    // the refused save, and the two digests are compared.
+    const digest = () => s.page.evaluate(db => new Promise((resolve, reject) => {
+      const request = indexedDB.open(db);
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const handle = request.result, tx = handle.transaction("generations", "readonly");
+        const read = tx.objectStore("generations").get("active");
+        tx.oncomplete = async () => {
+          handle.close();
+          const record = read.result;
+          const bytes = new Blob([record.format, record.namespace, String(record.revision),
+            record.iv, record.ciphertext]);
+          const hash = await crypto.subtle.digest("SHA-256", await bytes.arrayBuffer());
+          resolve([...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, "0")).join(""));
+        };
+        tx.onabort = () => { handle.close(); reject(tx.error); };
+      };
+    }), DB);
+    const beforeBytes = await digest();
     const filled = await s.page.evaluate(async () => {
       const db = await new Promise((resolve, reject) => {
         const request = indexedDB.open("w6-quota-filler", 1);
@@ -449,37 +615,46 @@ try {
       // A ladder, not one chunk size. Filling with 1 MiB blocks leaves up to 1 MiB
       // free, which is far more than one sealed generation needs — the origin has
       // to be full to within less than a save, or the save simply fits.
-      let written = 0, error = null, floor = 0;
+      let written = 0, error = null, bottomedOut = false;
+      const put = async size => {
+        const chunk = new Uint8Array(size);
+        for (let at = 0; at < size; at += 65536) crypto.getRandomValues(chunk.subarray(at, Math.min(at + 65536, size)));
+        await new Promise((resolve, reject) => {
+          const tx = db.transaction("junk", "readwrite");
+          tx.objectStore("junk").put(chunk, `chunk-${size}-${written}-${Math.random()}`);
+          tx.oncomplete = () => resolve();
+          tx.onabort = () => reject(tx.error || new Error("abort"));
+          tx.onerror = () => {};
+        });
+        written += size;
+      };
       for (const size of [1048576, 131072, 16384, 2048, 256]) {
         let hit = false;
-        for (let i = 0; i < 400; i++) {
-          const chunk = new Uint8Array(size);
-          for (let at = 0; at < size; at += 65536) crypto.getRandomValues(chunk.subarray(at, Math.min(at + 65536, size)));
-          try {
-            await new Promise((resolve, reject) => {
-              const tx = db.transaction("junk", "readwrite");
-              tx.objectStore("junk").put(chunk, `chunk-${size}-${i}`);
-              tx.oncomplete = () => resolve();
-              tx.onabort = () => reject(tx.error || new Error("abort"));
-              tx.onerror = () => {};
-            });
-            written += size;
-          } catch (failure) { error = failure?.name || String(failure); hit = error === "QuotaExceededError"; break; }
+        for (let i = 0; i < 400 && !hit; i++) {
+          try { await put(size); }
+          catch (failure) { error = failure?.name || String(failure); hit = error === "QuotaExceededError"; }
         }
-        if (!hit) break;
-        floor = size;
+        if (!hit) { bottomedOut = true; break; }
       }
+      // REVIEW D4. The headroom claim is only true if the SMALLEST write still
+      // fails at the end, so it is confirmed rather than inferred from the ladder.
+      let headroom = null;
+      try { await put(256); headroom = ">= 256"; }
+      catch (failure) { headroom = (failure?.name === "QuotaExceededError") ? "< 256" : `unknown (${failure?.name})`; }
       db.close();
-      return { mib: +(written / 1048576).toFixed(2), error, floor };
+      return { mib: +(written / 1048576).toFixed(2), error, headroom, bottomedOut };
     });
 
-    if (filled.error !== "QuotaExceededError" || filled.floor > 2048) {
-      record("W-QUOTA", "NOT-PROVABLE-HERE", `wrote ${filled.mib} MiB of junk into the origin and could not fill it to within ${filled.floor || "any"} bytes (last error: ${filled.error || "none"}), so the capped quota was not enforced tightly enough to squeeze a save`);
+    if (filled.error !== "QuotaExceededError" || filled.headroom !== "< 256") {
+      record("W-QUOTA", "NOT-PROVABLE-HERE", `wrote ${filled.mib} MiB of junk into the origin; last error ${filled.error || "none"}, confirmed free space ${filled.headroom}${filled.bottomedOut ? ", ladder bottomed out without a final refusal" : ""} — the capped quota was not enforced tightly enough to squeeze a save, so this row decides nothing`);
       await shut(s); return;
     }
     const refused = await s.page.evaluate(() => client.execute("weighIn", { lb: 171.4 }));
     assert.equal(refused.acknowledged, false);
     assert.equal(refused.state, 3);
+    assert.equal(refused.code, "TRANSACTION_ABORTED");
+    const afterBytes = await digest();
+    assert.equal(afterBytes, beforeBytes, "the sealed generation changed across a refused save");
     const held = await s.page.evaluate(() => client.boot());
     assert.equal(held.revision, seed.durableRevision);
     assert.equal(held.ops, 1);
@@ -491,7 +666,7 @@ try {
     const next = await s.page.evaluate(() => client.execute("weighIn", { lb: 171.5 }));
     assert.equal(next.acknowledged, true);
     assert.equal(next.op_id, "op-dev-phone-A-2");
-    record("W-QUOTA", "PASS", `origin quota capped at 12 MiB and genuinely filled to within ${filled.floor} bytes (${filled.mib} MiB of junk, then the browser's OWN QuotaExceededError — no fault injected into product code): the save is refused ${refused.state}/${refused.code}, the generation holds at revision ${held.revision} with ${held.ops} operation and the 170.6 read intact, and once the junk is dropped the next save still takes ${next.op_id} — the refused batch spent no sequence`);
+    record("W-QUOTA", "PASS", `origin quota capped at 12 MiB and filled until a confirmed ${filled.headroom} bytes remained (${filled.mib} MiB of junk, then the browser's OWN QuotaExceededError — no fault injected into product code): the save is refused ${refused.state}/${refused.code}, the sealed record is BYTE-IDENTICAL across the refusal (sha256 ${beforeBytes.slice(0, 16)}… before and after), the generation holds at revision ${held.revision} with ${held.ops} operation and the 170.6 read intact, and once the junk is dropped the next save still takes ${next.op_id} — the refused batch spent no sequence`);
     try { await cdp.detach(); } catch {}
     await shut(s);
   });
@@ -510,7 +685,8 @@ try {
   record("W-PHONE-REBOOT", "NOT-PROVABLE-HERE",
     "W-REBOOT-PROCESS proves the new-process half on one machine. A phone reboot also power-cycles the storage stack and re-runs iOS's own recovery; only the phone row proves that");
   record("W-SEQ-EXHAUSTION", "NOT-PROVABLE-HERE",
-    "the exhaustion half of witness 5 is unreachable in the local era by construction: the self-issued lease range is [1, 2147483647] and there is no 64-slot allowance, because there is no authority to reconcile with. W-FACE-DISAGREES proves the same disagreement on the reachable axis, expiry");
+    "RESIDUAL AGAINST DECISIONS:24 — the ruling bounds offline writes after an unproven restart by a wall-clock AND a sequence budget. The local era implements the wall-clock half (the 400-day self-renewing lease) and NO slot budget, by the lane lead's explicit C1 decision: the ruling bounds writes RELATIVE TO A RECONCILED AUTHORITY, and the local era has no authority to reconcile with, so a budget would refuse the owner's own saves with nothing to refill them. The PM is asked to confirm or overrule. The exhaustion FACE is therefore unreachable here, and the node case pins that so it fails the day a budget arrives");
+  }
 } finally {
   for (const context of live) { try { await context.close(); } catch {} }
   await site.close();
@@ -525,7 +701,10 @@ const failed = rows.filter(row => row.verdict === "FAIL");
 const proved = rows.filter(row => row.verdict === "PASS");
 const open = rows.filter(row => row.verdict === "NOT-PROVABLE-HERE");
 if (noise.length) console.log(`(${noise.length} Playwright rejection(s) from the kills, ignored: ${[...new Set(noise)].slice(0, 3).join(" | ")})`);
-console.log(`W6 LOCAL-WITNESSES ${failed.length ? "FAIL" : "PASS"} — ${proved.length} proved, ${failed.length} failed, ` +
-  `${open.length} not provable in any desktop browser; ${version}; ${contexts} browser contexts; ${built.inventory.length} pinned bundle inputs`);
+console.log(BITE
+  ? `W6 LOCAL-WITNESSES BITE ${failed.length ? "INCONCLUSIVE" : "PASS"} — ${proved.length} control(s) as designed, ${failed.length} not; ` +
+    `candidate bridge.mjs unchanged (${bridgeBefore.slice(0, 12)}…); ${version}; ${contexts} browser contexts`
+  : `W6 LOCAL-WITNESSES ${failed.length ? "FAIL" : "PASS"} — ${proved.length} proved, ${failed.length} failed, ` +
+    `${open.length} not provable in any desktop browser; ${version}; ${contexts} browser contexts; ${built.inventory.length} pinned bundle inputs`);
 console.log("W6 iPhone / iOS Safari acceptance NOT RUN — Chromium-family evidence only; the phone rows are rebuild/lanes/c/C3-HAND-PROOF.md");
 process.exitCode = failed.length ? 1 : 0;
