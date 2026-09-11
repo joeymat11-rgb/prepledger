@@ -626,10 +626,23 @@ test("the built page becomes installable: a manifest, an icon, a worker and the 
   assert(html.includes('id="pwa-preflight"'));
   // The unhashed names are gone, so nothing can be served stale from a shared URL.
   assert(!html.includes('href="styles.css"') && !html.includes('src="app.js"'));
-  // A1's own page is otherwise byte-for-byte what it was.
+  // A1's app host and templates survive the release-only shell transformation.
   assert(html.includes('<div class="view" id="phone">'));
   assert(html.includes("<title>Earned — Today</title>"));
   assert.equal(html.split("<template").length, A1_SHELL.split("<template").length);
+});
+
+test("release shell preserves each live status consumer and app host while separating device context", () => {
+  const html = shell.installableHtml(A1_SHELL, NAMES);
+  assert(html.includes('<body class="release">'));
+  assert(html.includes('viewport-fit=cover,interactive-widget=resizes-content'));
+  for (const id of ['today-identity', 'today-storage', 'today-status', 'phone', 'pwa-preflight'])
+    assert.equal(html.split('id="' + id + '"').length - 1, 1, id);
+  assert(html.indexOf('id="today-status"') < html.indexOf('id="phone"'));
+  assert(html.indexOf('id="today-storage"') > html.indexOf('id="phone"'));
+  assert.match(html, /<p id="today-status" role="status">Ready\.<\/p>/);
+  assert.match(html, /<footer class="release-device" aria-label="This device">/);
+  assert.equal(html.slice(html.indexOf('<template')), A1_SHELL.slice(A1_SHELL.indexOf('<template')));
 });
 
 test("an upstream change to A1's shell fails this build instead of shipping a page with no worker", () => {
@@ -637,6 +650,8 @@ test("an upstream change to A1's shell fails this build instead of shipping a pa
     A1_SHELL.replace('<link rel="stylesheet" href="styles.css">', '<link rel="stylesheet" href="main.css">'),
     A1_SHELL.replace('<script type="module" src="app.js"></script>', "<script src=\"app.js\"></script>"),
     A1_SHELL.replace("</main>", "</div>"),
+    A1_SHELL.replace('id="today-status"', 'id="lost-status"'),
+    A1_SHELL.replace('width=device-width,initial-scale=1', 'width=390'),
     A1_SHELL + A1_SHELL,
   ]) {
     assert.throws(() => shell.installableHtml(broken, NAMES), /SHELL-EDIT FAIL/);

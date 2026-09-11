@@ -1,0 +1,36 @@
+/* Release-only layout. The approved page, controls and Instrument fonts remain
+   A1's bytes; the mock handset and review-stage dimensions belong only to preview.
+   One document scroll keeps long routines and forms reachable with reduced space. */
+body.release { background:var(--paper); }
+.release .stage {
+  display:flex; flex-direction:column; align-items:stretch; gap:0;
+  width:100%; max-width:420px; margin:0 auto;
+  min-height:100vh; min-height:100svh;
+  padding:env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+.release .phone {
+  width:100%; max-width:none; height:auto; min-width:0;
+  overflow:visible; border:0; border-radius:0; box-shadow:none;
+}
+.release .view { height:auto; overflow:visible; }
+.release .page { min-height:0; }
+.release .view > .screen { padding:25px 23px 20px; }
+.release .review { width:auto; padding:12px 23px; overflow-wrap:anywhere; }
+.release .release-status { border-bottom:1px solid var(--line); }
+.release #today-status { margin:0; }
+.release .release-device { margin-top:auto; border-top:1px solid var(--line); }
+.release .release-device .review p:last-child { margin-bottom:0; }
+.release #today-calendar:not(:empty) { padding:12px 23px; border-bottom:1px solid var(--line); }
+.release #today-calendar button { margin-top:8px; }
+.release input, .release select, .release textarea, .release button { scroll-margin-block:24px; }
+/* The existing modal remains a modal, but its bottom and scrollable content are
+   relative to the device rather than the former 844px mock handset. */
+.release .sheet-panel {
+  position:fixed; width:min(100%,420px); margin-inline:auto;
+  max-height:100vh; max-height:100dvh; overflow-y:auto;
+  padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+  padding-left:max(24px, env(safe-area-inset-left, 0px));
+  padding-right:max(24px, env(safe-area-inset-right, 0px));
+}
+
