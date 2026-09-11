@@ -600,12 +600,19 @@ msedge, W7_BROWSER_BIN set, after a build:
 
 31 real-browser screen states, unchanged from Round 1. `git status --porcelain` empty at the commit.
 
-## R2.7 WHAT IS STILL OPEN AFTER ROUND 2
+## R2.7 CI, AND WHAT IS STILL OPEN AFTER ROUND 2
 
-1. **CI on the new head has not run yet.** The reviewer's proof obligation 4 (`ci-status.js` showing `rebuild` and
-   `pipeline` completed/success at the new sha on BOTH runners) can only be checked after the push. The two red
-   steps are reproduced green locally above; that is not the same thing, and the integrator should not take it as
-   such.
+1. **CI: GREEN at the new head.** The reviewer's proof obligation 4, executed after the push:
+
+   ```
+   > node work/lane-c/tools/ci-status.js rebuild/polish-p1 8680e0ddb360ad2d6af00cbbf7763f1e844fcafe
+   8680e0d pipeline                     completed    success 34658721425 2026-09-11T23:36:51Z
+   8680e0d rebuild                      completed    success 34658721317 2026-09-11T23:36:51Z
+   ```
+
+   Both workflows, both runners (the `rebuild` workflow's `rebuild-public` job matrix is ubuntu-latest and
+   windows-latest; a failing job is what turned the workflow red at `f06631b`, and the tool prints the failing job
+   lines when there are any). The two A5 steps that were red at `f06631b` are green.
 2. **A5's own two preflight dashes** (R2.1) are pinned, not fixed, and need an A5-lane change.
 3. **`rebuild.yml` still cannot enumerate `copy.test.mjs`** (custody; unchanged from Round 1, needs the next
    re-seal). `checkin.test.mjs` is in the same position and was before this brief.
