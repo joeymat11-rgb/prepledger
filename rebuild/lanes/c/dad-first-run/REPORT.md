@@ -151,3 +151,29 @@ Three, all with defaults already taken, all set out in `BRIEF.md` §9: who
 states sets and reps (Q1); that only upper/lower sessions exist and the screen
 must say so (Q2); and whether a screen may supply the 5 lb standard step (Q3).
 None of them blocks looking at the mock and saying yes or no to it.
+
+## 7. BUILD-BRIEF (added 2026-09-11)
+
+| field | value |
+|---|---|
+| path | `rebuild/lanes/c/dad-first-run/BUILD-BRIEF.md` |
+| lines | 457 |
+| bytes | 30,971 (LF only, 0 CRLF) |
+| sha256 | `14ad2009619f4ac299231db2fa229825f23e9e025f177226527f546df34705de` |
+| base | `74c8412e87d9530ae5949a7330b8539fb569ea07` (`origin/rebuild/t2-client-core`) |
+
+The screens-tier BUILD brief for slice item A4, written so the build can start
+the moment the owner approves the mock by looking. Contents: custody (the six
+new `setup-*` files under `rebuild/m3/w7-preview/today/`, the lane-C one-store
+licence `DECISIONS:106(b)`/`:111`, the exact REQUESTS lines for everything
+out of scope); the six screens mapped member-by-member onto
+`athlete-state.cjs` clean-init with types, bounds and blank rules; the
+persistence path (ONE op into the ONE local-era generation through
+`today-bindings.mjs`, the A3 producer-hook precedent folded by C4); the
+`boot({basisState})` ruling (KEYED, not deleted — `DECISIONS:102`); the
+`e.setup` omission decided (A4 ships without it) with the traced consequences
+and the two exact PM questions; the acceptance bar S1–S22 with the existing
+suite counts pinned at the base; the review protocol with 14 mutants and the
+declared CI residual (`rebuild.yml:89` enumerates five today files and A4
+cannot add its own step — `DECISIONS:109`/`:112`); the owner-look dependency
+and what changes if each of Q1/Q2/Q3 is reversed; out of scope.
