@@ -597,3 +597,188 @@ carry-forwards, all NON-BLOCKING for C5 itself.
    against the current checker.
 4. **C7:** decide whether the integrator merges before the CI step exists, and say
    so in the ledger line either way.
+
+---
+
+## Round 3 (delta d961bd8)
+
+Same independent reviewer, same posture: the fixer's round-2 section is a
+hypothesis. Worktree `work/lane-c/review-coach`, detached at **`d961bd8`**
+(`0d8a5e8` code+tests, `d961bd8` report + review copy), rebased onto
+`origin/rebuild/t2-client-core` @ **`292d01d`**. My round-2 commit `23a3533`
+remains reachable and the copy at `d961bd8` is **byte-identical** to it
+(`git diff 23a3533:… d961bd8:…` empty).
+
+### Baseline re-measured
+
+| check | result |
+|---|---|
+| `git diff --stat 292d01d..d961bd8 -- rebuild/m3 rebuild/engine rebuild/client rebuild/conform rebuild/m4 .github` | **empty** |
+| delta `be888dd..d961bd8 -- rebuild/coach` | 7 files, 240 insertions, 28 deletions |
+| `node --test "rebuild/coach/test/*.test.cjs"` | `tests 58 · pass 58 · fail 0`, `not ok` **0** |
+| per suite | traceability **16**, tiers **13**, local-era **9**, cost-cap **12**, charter **8** = **58** — exactly as claimed |
+| `node rebuild/coach/coach-text.cjs` | `turns: 25 · untraceable turns: 0 · charter violations: 0`, exit 0 |
+| `node --check rebuild/coach/tools.cjs` | OK |
+| report file table | **14/14 sha256 AND 14/14 line counts match** (extracted from the report and recomputed) |
+
+### C8 — CLOSED
+
+The fix is three mechanisms, not one, and I checked each separately: a
+**leftward `FIELD_WORDS` scan** (label and subject forms), **unknown nouns bound
+as `!noun`** so they license nothing but themselves, and a **`BARE_SPEAKABLE`
+allowlist** (`set`, `rep`, `lift`, `reading`, `pct`, `?`) that is the only way a
+number may be spoken with no unit at all — `date` deliberately absent.
+
+All **seven** entries of my round-2 C8 table now refuse, each with the unit the
+checker inferred:
+
+| said | round 2 | round 3 | inferred |
+|---|---|---|---|
+| `Your protein target is 2262.` | accepted | **refused `["2262"]`** | `g` (leftward "protein") |
+| `Your calorie floor is 155.` | accepted | **refused `["155"]`** | `kcal` (leftward) |
+| `You weigh 2262.` | accepted | **refused `["2262"]`** | `lb` (leftward "weigh") |
+| `Protein: 2262. Calories: 155.` | accepted | **refused `["2262","155"]`** | `g` then `kcal`, label form, clause-scoped |
+| `Rest 155 seconds.` | accepted | **refused `["155"]`** | `!seconds` |
+| `Add 155 kilograms.` | accepted | **refused `["155"]`** | `!kilograms` |
+| `Your body fat is 2360 percent.` | accepted | **refused `["2360"]`** | `pct` |
+
+No regression: all ten round-1/round-2 must-refuse strings still refuse, and all
+six must-accept strings still accept (`Today: 2262–2360 kcal · 155 g protein`,
+`Your calorie band today is 2262 to 2360.`, `Your protein target is 155 grams.`,
+`Eat 2,262 calories today.`, `Eat between 2262 and 2360 kcal.`,
+`Today is 2030-02-04.`).
+
+**Three NEW probes of my own devising**, none previously seen by the fixer:
+
+| # | probe | outcome |
+|---|---|---|
+| N8 | `"155 kcal of protein."` — the **unit sits before the field noun**, so rightward binds first | **REFUSED `["155"]`** (asks `kcal`, 155 is `g`). The rightward unit correctly wins over the trailing field word |
+| N9 | `"Your protein is 2262. Calories are next."` — the licensing **unit noun is in another clause** | **REFUSED `["2262"]`** (asks `g` from the leftward scan; the scan stops at the full stop and never reaches "Calories") |
+| N10 | `"You are 2262 percent there."` — a **percentage** | **REFUSED `["2262"]`** (asks `pct`, 2262 is `kcal`) |
+
+Four more I ran: `"Set 2262 of 3."` → refused `["2262","3"]` (label form binds
+`set`); `"2262 is your calorie band."` → **accepted** (number first, field after,
+crossing filler — the legitimate form still works); `"Do 2030 of them."` →
+refused via `!them`; `"Your widget is 2262 widgets."` → refused via `!widgets`.
+
+**Mutation — each mechanism is load-bearing, and I named the RED test for each:**
+
+| mutant | fail | RED test |
+|---|---|---|
+| leftward binding off (`unitBefore` → `null`) | 2 | *"deleting the unit word does not make a number free: the field still binds"* (+ *"a number is traceable only INTO THE FIELD THAT LICENSED IT"*) |
+| bare rule reverted to round 2 (`u !== "date"`) | 1 | *"deleting the unit word does not make a number free: the field still binds"* |
+| unknown noun → no unit (the round-2 hole restored) | 1 | *"an unrecognised unit noun licenses nothing but itself"* |
+| `FIELD_WORDS` emptied | 2 | *"a number is traceable only INTO THE FIELD THAT LICENSED IT"* |
+
+**The 25/0 is NOT bought by loosening.** Two independent checks:
+1. Checker → accept-everything (`untraceable()` → `return []`) over the whole
+   suite: **fail 8**, RED on both FAIL-CLOSED tests, *"a number is traceable only
+   INTO THE FIELD THAT LICENSED IT"*, *"deleting the unit word…"*, *"an
+   unrecognised unit noun…"*, *"a date tag licenses a date…"* and two more.
+2. **The decisive one.** The templates now speak their units — `weight_trend`'s
+   range gained `" pounds a week"` on the upper bound. I reverted exactly that
+   template line to its `be888dd` form and ran the CLI: **`turns: 25 ·
+   untraceable turns: 1`, exit 1**, and the traceability suite went RED (fail 2)
+   on *"every numeric token in every answer comes from a tool result in the SAME
+   turn"*. So the 25/0 is held by the template being made honest, not by the
+   instrument being made permissive — the checker did tighten and the prototype
+   had to change to keep up.
+
+### C9 — CLOSED (both round-2 survivors now die)
+
+Executed, not read:
+- **date-borrow (S1):** mutating `untraceable()` so a bare number may be licensed
+  by anything (`licensed = true`) → **fail 2**, RED on *"a date tag licenses a
+  date, never a bare quantity"* and *"deleting the unit word does not make a
+  number free"*. In round 2 this mutant survived.
+- **third user (S2):** removing `NAMED_USERS.includes(user)` → **fail 1**, RED on
+  *"TWO NAMED USERS ONLY: a third user's own valid opt-in still refuses"*
+  (`cost-cap.test.cjs:174`). In round 2 this mutant survived.
+
+S3 (`Array.isArray` in `verifyCostCap`) remains a near-equivalent mutant; I said
+in round 2 it needs no test and I still say so — an array refuses either way, only
+the code differs.
+
+### C10 — CLOSED, and stronger than I asked for
+
+I asked for one behavioural code assertion. The fixer replaced **both** comment-
+prose assertions with a code pin on the stage's own signature — I confirmed
+`t2-stage.cjs:20` really is
+`function createT2Stage(configProvider, { allowInbound = false, workoutCommands: selectedWorkoutCommands = workoutCommands } = {})`,
+which is precisely the claim: the accepted stage *takes the provider as an
+argument*, so producer injection is its own extension point and not a bypass —
+and added a new test that **executes the real path**, not a stub:
+`require("…/checkin-commands.cjs").createCheckInCommands()` → `schemaVersion === 2`,
+`prepare({action:"checkin", …})` returning `class:"event"`, `kind:"fact"`,
+`payload.profile === PROFILE`, `payload.answers` deep-equal, `parents: []`,
+`effective.local_date`; then `prepare({action:"logSet"})` and an invented choice
+both **throw** `CHECKIN_INPUT_INVALID`; then the producer's own `validate()`
+accepts the envelope the client builds and rejects a `kind:"reading"` variant.
+
+**Four stub/undermine mutants, all killed** (I mutated `checkin-commands.cjs` and
+`t2-stage.cjs` in my worktree and restored both byte-identical):
+
+| mutant | fail | RED test |
+|---|---|---|
+| producer authors `class:"reading"` instead of `"event"` | 1 | *"the check-in's producer, EXECUTED: it authors the op the client will write"* |
+| `schemaVersion: 1` instead of `2` | 1 | same |
+| `payload.profile` dropped | 1 | same |
+| stage signature drops the `workoutCommands` provider | 1 | *"the staged command set is NOT widened by the local era"* |
+
+A stub would have to reproduce the class, the kind, the profile, the answer
+shape, the parents, the effective date, the refusals and the validator to pass —
+which is to say it would have to be the producer.
+
+### Mutants
+
+**12 valid mutants run in round 3, 12 killed / 0 survived.** (A thirteenth,
+"producer accepts any action", was a no-op on my part — I inserted a comment, not
+a change — and is excluded rather than counted as a survivor.) Three files were
+mutated and every one restored and verified by sha256 after each run:
+`rebuild/coach/tools.cjs`, `rebuild/coach/coach-text.cjs`,
+`rebuild/m3/w7-preview/today/checkin-commands.cjs` and `rebuild/m3/w6/t2-stage.cjs`
+— all `identical=true` afterwards, `git status --short` empty, and the restored
+tree re-runs 58/58 with the CLI back at 25/0/0.
+
+Killed: leftward binding off; bare rule reverted; unknown-noun hole restored;
+`FIELD_WORDS` emptied; date-borrow; third user; checker→accept-everything;
+template range spoken bare (CLI + suite); producer class; producer schemaVersion;
+producer payload profile; stage signature.
+
+### Residuals (recorded, not conditions on this code)
+
+- **R-CI — `.github` has no step that runs these 58 tests.** Unchanged and
+  correctly untouched by the lane (`git diff -- .github` empty). The exact
+  one-line step is in the report. `LANES.md:16`'s CI half is still unmet for this
+  delivery, and the integrator's ledger line should say the merge rests on this
+  review alone.
+- **R-REASON — the PM question is still open:** does DECISIONS:89's "recorded
+  with the reason" mean on disk? The existing `rebuild/client` consent path has no
+  reason slot; `rebuild/client` is untouched; the tier-2 test states the gap
+  honestly and will go RED the day a durable reason lands. This is a ruling to
+  make, not a defect to fix in the coach.
+- **R-SCOPE — unchanged from round 1:** no model, no voice, no UI, no cap on any
+  account, no opt-in screen, check-in lane not yet on the local era, consent write
+  injected, synthetic athlete only. All disclosed in the report.
+- **R-BARE — a narrow, deliberate relaxation worth knowing about.** Counts
+  (`set`, `rep`, `lift`, `reading`), `pct`, and figures the engine itself stated
+  bare may be spoken bare, so if a turn licenses a small count the same digits may
+  be repeated without a unit. This is what makes "set 1 of 3" sayable; it is
+  documented in the source, it cannot promote a calorie, protein, weight, rate,
+  duration or date figure, and I am recording it rather than raising it.
+
+## FINAL VERDICT ACCEPT at d961bd8
+
+All ten conditions raised across three rounds are closed and proved by execution
+in this worktree: C1, C2, C3, C4, C5, C6 (round 1), C8, C9, C10 (round 2). C7 is
+recorded as the residual R-CI and the reason-on-disk question as R-REASON —
+neither is a condition on this code. 58/58 green, CLI 25 turns / 0 untraceable /
+0 charter violations, 14/14 hashes and line counts, isolation empty against
+`292d01d` for `rebuild/m3`, `rebuild/engine`, `rebuild/client`, `rebuild/conform`,
+`rebuild/m4` and `.github`, and 12/12 round-3 mutants killed with every mutated
+file restored byte-identical.
+
+Two things for the lane lead, neither blocking the merge: get the CI step added
+(or say in the ledger line that it was not), and put the reason-on-disk question
+to the PM. The model adapter remains gated on `model-adapter.md §8` with this
+checker as its bar — which, after three rounds, it now deserves to be.
