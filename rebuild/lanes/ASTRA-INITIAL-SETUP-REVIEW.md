@@ -1,0 +1,9 @@
+# Independent initial setup review
+
+Review candidate3f1d17296b68a8d4ea44b4845616b9eaf06af0be, product7033afe, in separate work/astra-initial-setup-review on codex/astra-initial-setup-review. You did not build it. Read ASTRA-INITIAL-SETUP-BUILD.md and the candidate's rebuild/lanes/c/ASTRA-INITIAL-SETUP-REPORT.md. Existing B-NTC/provider/fault-test evidence remains attributed separately; only four product/test files change relative71fb2f1.
+
+Attack the meaningful new promise: an explicitly supplied programme survives loss of derived cache and all existing local writes, and cannot be silently replaced, promoted from an arbitrary cache, returned as configured after partial corruption or reported saved before durable enrollment succeeds. Check exact input/identity/profile/time binding, immutable detached API results, both independent-factory and same-client concurrent enrollment, marker/key failure boundaries, staged-write preservation and no destructive re-enrollment. New collection is authority, not a consented plan transaction or a coaching policy. No real-phone/complete-restore claim follows from synthetic cloning.
+
+Execute relevant authored20 cases plus focused independent fault/control probes and sufficient affected existing enrollment/Today tests for the actual delta (builder109/109 is a hypothesis, not your evidence). Verify B-NTC binding and unrelated engine/client/UI/workflow bytes unchanged. Preserve all meaningful prior C4 protection. Do not repeat engine/full campaigns for this plumbing slice.
+
+Commit ONE short independent report with ACCEPT or specific prioritized changes, exact source/evidence and limits. Reviewer does not edit product. No private input/export/import, install, push, merge, deployment, purchase or protected soak. CI on both OS and distinct integration remain subsequent conditions; do not claim this local review completes them.
