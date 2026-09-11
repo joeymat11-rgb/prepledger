@@ -41,6 +41,29 @@
 // — the >=200-byte floor is no longer evidence for a moving child. X4: the two sentences
 // that said more than was verified now say what was verified, and BRIEF-ACCEPTED implies a
 // non-null acceptedLedgerLine. README.md carries the long form.
+//
+// TOOLING-REVIEW r4 (Y1-Y4). Y1: a package in NO_REGISTER_IDS declares no D-id, so the
+// 45-law accounting — the only substantive behavioural obligation this runner imposes on
+// B1..B4 — imposes NOTHING on it, and its "45/45 rows agree" line would print on the day
+// the package is finished having proved nothing about it. The REPLACEMENT obligation is
+// its OWN executed children: at least MIN_OWN_CHILDREN declared child(ren) whose argv
+// executes a file this spec declares in product with role "new", each of which children()
+// already requires to run IN THIS PROCESS, exit 0, with its exact declared needle at line
+// start. It is an OPEN (--ci blocking) obligation from the first run and it REFUSES at the
+// seal, beside X1's re-assert — that is where it belongs, because before the carrier lands
+// the target file does not exist and CHILD-ARGV-TARGET refuses the declaration. STANDING,
+// like X1/X2 (DECISIONS:108 (d)). Y1 also gives the parent EXECUTION pin a role of its own:
+// DECISIONS:109 rules that a child package supersedes its parent's execution pins (B-NTC
+// re-pins .github/workflows/rebuild.yml inside its own seal), and under X-era roles such a
+// file could only enter product() as "new" — a false label. role "superseded-by-child"
+// says what is true, and product() now requires it for exactly the parent-executionPin
+// case and enforces the same pin.pre === parent-pin equality it enforces for parent
+// PRODUCT files. Y2: the single-parent rule read sibling packages/*.json FROM DISK only,
+// so an uncommitted edit to a sibling's `chosen` freed the parent (r4 G14); it now reads
+// the siblings IN GIT AT HEAD as well, and — the durable fact — refuses when an
+// already-sealed rebuild/m4/spec/acceptance-*.json ON THE CHAIN BRANCH already names the
+// same parent artifact. Y3 is spec-note text. Y4: the PIN_PATHS sentence counted 18 paths
+// where 16 exist in this tree; it now counts the ones that exist and says so.
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../../../..'), P = path.join(root, 'rebuild/conform/v4/postfix');
 const R = require(path.join(P, 'run.cjs')), L = require(path.join(P, 'legacy-gates.cjs')), J = require(path.join(P, 'strict-json.cjs'));
@@ -67,6 +90,23 @@ const MOVES_RULING = null;
 // Fixed HERE, like every other exemption (W7): a repair package can never empty its own
 // D-id inventory to dodge the law-agreement accounting.
 const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM']);
+// Y1 (TOOLING-REVIEW-r4 §5.1/§7) — the REPLACEMENT obligation for a package with no D-id,
+// and therefore no law obligation. Fixed HERE beside NO_REGISTER_IDS itself (W7), because
+// a package that can name its own exemption could otherwise name its own replacement: the
+// minimum number of DECLARED children that must execute one of this package's OWN
+// role:"new" product files. Every declared child is already required to run in this
+// process, exit 0, and print its exact declared needle at line start (children()); Y1 adds
+// that for a no-register package at least this many of them must be its own. It is an open
+// obligation on every run and a refusal at the seal.
+const MIN_OWN_CHILDREN = 1;
+// The closed product-role vocabulary. "superseded-by-child" is Y1's second half: the role
+// a file carries when the PARENT pinned it in executionPins (not in product) and this
+// package supersedes it inside its own seal — DECISIONS:109, "a child package supersedes
+// its parent's execution pins exactly as NATIVE-CARRIERS superseded LOAD-WRITES". Before
+// it, such a file could only be declared "new", which is false of a file the parent pins,
+// and the pin.pre === parent-pin equality product() enforces for parent PRODUCT files was
+// not enforced for it at all. Both are fixed by giving the case its own name.
+const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
@@ -168,6 +208,14 @@ function requiresOriginal(file, original) {
   }
   return false;
 }
+// Y1. The package's OWN children: the declared children whose argv executes a file THIS
+// spec declares in product with role "new" — its own new code, as opposed to the parent's
+// successor children, which are what the inherited coverage map already binds. Decided by
+// reading the spec's own product roles, never by a declaration of ownership; and a spec
+// cannot widen it, because role "new" is refused for any file the parent pins (product()).
+function ownChildren(s) {
+  return s.children.filter(c => argvFiles(c.argv).some(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new'));
+}
 let logDir, ARTIFACT, REVIEW, specRaw;
 
 // ---------------------------------------------------------------- 1. the spec
@@ -231,7 +279,7 @@ function spec() {
   for (const [file, pin] of Object.entries(s.product)) {
     keys(pin, ['pre', 'post', 'role'], 'Product pin ' + file);
     assert(/^[a-f0-9]{64}$/.test(pin.pre) && (pin.post === null || /^[a-f0-9]{64}$/.test(pin.post)), 'Product sha256 ' + file);
-    assert(['edited', 'carried', 'new'].includes(pin.role) && (pin.role !== 'carried' || pin.pre === pin.post), 'Product role ' + file);
+    assert(PRODUCT_ROLES.includes(pin.role) && (pin.role !== 'carried' || pin.pre === pin.post), 'Product role ' + file);
   }
   // W3 + N2/N3. Each declared child is schema-checked, its needle is non-empty, and its
   // argv carries only allow-listed flags and then real files under a fixed root — never
@@ -381,11 +429,39 @@ function parent(s) {
   }
   const bound = sealed.find(x => x.option.id === s.parent.chosen);
   assert(bound, 'Chosen parent is a sealed accepted artifact');
-  const rivals = fs.readdirSync(SPEC_DIR).filter(f => f.endsWith('.json') && f !== ID + '.json')
-    .map(f => J.parseExact(fs.readFileSync(path.join(SPEC_DIR, f))))
-    .filter(o => o.parent.chosen && o.parent.options.find(x => x.id === o.parent.chosen).artifact === bound.option.artifact);
-  assert(!rivals.length, 'SINGLE-PARENT-CHAIN: ' + bound.option.artifact + ' already claimed by ' + rivals.map(r => r.lanePackage).join(' '));
-  say('PARENT BOUND ' + bound.option.id + ' ' + bound.option.artifact + ' ' + bound.option.sha256 + '; single-parent chain holds');
+  // Y2 / r4 §5.2, half one. A sibling spec claims the same parent. This was read from DISK
+  // only, where nothing pins it: r4's G14 freed the sibling's `chosen` in an uncommitted
+  // edit and the check went silent — the tooling directory is not one of the PIN_PATHS,
+  // fidelity()'s scan reads commits, and a seal pins only the sealing package's own spec
+  // bytes. So the siblings are read from DISK **and** from GIT AT HEAD: the reviewed
+  // history, which an uncommitted hand cannot reach and a committed one cannot hide.
+  const claims = o => o && o.parent && o.parent.chosen && Array.isArray(o.parent.options) &&
+    (o.parent.options.find(x => x.id === o.parent.chosen) || {}).artifact === bound.option.artifact;
+  const rivals = [];
+  for (const f of fs.readdirSync(SPEC_DIR)) {
+    if (!f.endsWith('.json') || f === ID + '.json') continue;
+    const o = J.parseExact(fs.readFileSync(path.join(SPEC_DIR, f)));
+    if (claims(o)) rivals.push(o.lanePackage + ' (packages/' + f + ' on disk)');
+  }
+  for (const f of L.git(root, ['ls-tree', '--name-only', 'HEAD', TOOLING + '/packages/']).toString().split(/\r?\n/).filter(Boolean)) {
+    if (!f.endsWith('.json') || path.posix.basename(f) === ID + '.json') continue;
+    const o = J.parseExact(L.object(root, 'HEAD', f));
+    if (claims(o)) rivals.push(o.lanePackage + ' (' + f + ' in Git at HEAD)');
+  }
+  assert(!rivals.length, 'SINGLE-PARENT-CHAIN: ' + bound.option.artifact + ' already claimed by ' + rivals.join(' '));
+  // Y2 / r4 §5.2, half two — the durable one. The sibling scan is a fact about the specs as
+  // they stand; the CHAIN is a fact about what has been SEALED. An already-sealed
+  // acceptance-*.json that names this same artifact as its parent makes this claim a second
+  // head whatever the specs say, so the sealed artifacts are read out of Git on the REAL
+  // chain branch (CHAIN_REF, a runner constant nameable by no spec) and never from disk.
+  const sealedRivals = L.git(root, ['ls-tree', '--name-only', CHAIN_REF, 'rebuild/m4/spec/']).toString().split(/\r?\n/)
+    .filter(f => /^rebuild\/m4\/spec\/acceptance-[a-z0-9-]+\.json$/.test(f) && f !== ARTIFACT)
+    .filter(f => { const a = J.parseExact(L.object(root, CHAIN_REF, f)); return a && a.parent && a.parent.artifact === bound.option.artifact; });
+  assert(!sealedRivals.length, 'SINGLE-PARENT-CHAIN-SEALED: ' + bound.option.artifact +
+    ' is already named as the parent by the sealed ' + sealedRivals.join(' ') + ' on ' + CHAIN_REF);
+  say('PARENT BOUND ' + bound.option.id + ' ' + bound.option.artifact + ' ' + bound.option.sha256 +
+    '; single-parent chain holds — no sibling spec claims it on disk or in Git at HEAD, and no sealed artifact on ' +
+    CHAIN_REF + ' names it as parent');
   return { ...bound, decided: true };
 }
 // W4. Every parent pin still holds, and every grandparent pin the parent did not supersede
@@ -445,10 +521,26 @@ function baselineOf(bound) {
 // a pre-image that is not the parent's pinned byte, and a parent-pinned file this spec
 // drops from its inventory, are both UNLISTED-PRODUCT-DRIFT.
 function product(s, bound) {
-  const pmap = bound && bound.acceptance.product, at = { pre: [], post: [], carried: [], drift: [] };
+  const pmap = bound && bound.acceptance.product, epins = bound && bound.acceptance.executionPins;
+  const at = { pre: [], post: [], carried: [], drift: [], superseded: [] };
   for (const [file, pin] of Object.entries(s.product)) {
-    if (pmap && Object.hasOwn(pmap, file)) assert.equal(pin.pre, pmap[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
-    else assert(pin.role === 'new' || !pmap, 'UNLISTED-PRODUCT-DRIFT ' + file + ' is not parent-pinned and is not declared new');
+    if (pmap && Object.hasOwn(pmap, file)) {
+      assert.equal(pin.pre, pmap[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
+      assert(pin.role !== 'superseded-by-child', 'PRODUCT-ROLE-MISLABELLED ' + file + ' is a parent PRODUCT pin, not an execution pin');
+    } else if (epins && Object.hasOwn(epins, file)) {
+      // Y1 second half / r4 §5.4. The parent pinned this file in executionPins. DECISIONS:109
+      // rules that a child package supersedes those pins inside its own seal, and the only
+      // role that admitted such a file before was "new" — false of a file the parent pins,
+      // and it carried NO pre-image equality at all. Now the role says what is true and the
+      // same equality that binds a parent PRODUCT pre-image binds this one.
+      assert.equal(pin.role, 'superseded-by-child', 'PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED ' + file +
+        ' is pinned by the parent in executionPins; declare role "superseded-by-child" (DECISIONS:109), never "new"');
+      assert.equal(pin.pre, epins[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent execution pin: ' + file);
+      at.superseded.push(file);
+    } else {
+      assert(pin.role === 'new' || !pmap, 'UNLISTED-PRODUCT-DRIFT ' + file + ' is not parent-pinned and is not declared new');
+      assert(pin.role !== 'superseded-by-child' || !pmap, 'SUPERSEDED-BY-CHILD-IS-NOT-A-PARENT-PIN ' + file);
+    }
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
     const disk = diskSha(file);
     if (pin.role === 'carried') { assert.equal(disk, pin.pre, 'UNLISTED-PRODUCT-DRIFT ' + file); at.carried.push(file); }
@@ -462,7 +554,9 @@ function product(s, bound) {
     assert(Object.hasOwn(s.product, file), 'UNLISTED-PRODUCT-DRIFT ' + file + ' is pinned by the parent and is not in this product inventory');
   const phase = at.post.length === 0 ? 'NOT-IMPLEMENTED' : at.pre.length === 0 ? 'IMPLEMENTED' : 'PARTIAL';
   say('PRODUCT ' + phase + '; ' + at.post.length + ' at the declared post-image / ' + at.pre.length + ' at the pinned pre-image / ' + at.carried.length +
-    ' carried byte-identical from the parent / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : ''));
+    ' carried byte-identical from the parent / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
+    '; ' + at.superseded.length + ' declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte' +
+    (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : ''));
   if (phase !== 'IMPLEMENTED') note('product ' + phase + ' (' + at.pre.length + ' declared file(s) still at the pinned pre-image)');
   return phase;
 }
@@ -478,11 +572,19 @@ function fidelity(s, sealed) {
   assert.equal(diskSha(RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER');
   assert.equal(gitSha('HEAD', RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT');
   if (sealed) { assert.equal(sealed.runner.sha256, diskSha(RUNNER), 'SEALED-RUNNER-BYTES-CHANGED'); assert.equal(sealed.spec.sha256, sha(specRaw), 'SEALED-SPEC-BYTES-CHANGED'); }
+  // The whole inventory is handed to git status — a path that appears later is checked the
+  // day it appears — but Y4: the SENTENCE must count what actually exists. Two of the
+  // eighteen (rebuild/conform/goldens, rebuild/conform/manifest.json) are not in this tree,
+  // so "18 byte-identical" overstated by two; r3 recorded that as R4 and carried it. Say the
+  // number that was verified and name the shortfall.
   const dirty = L.git(root, ['status', '--porcelain', '--', ...PIN_PATHS]).toString().split(/\r?\n/).filter(Boolean);
   assert(!dirty.length, 'PIN-PATHS-GIT-DISK-DISAGREE ' + dirty.length + ' path(s)');
+  const present = PIN_PATHS.filter(p => fs.existsSync(rel(p))), absent = PIN_PATHS.filter(p => !fs.existsSync(rel(p)));
   say('FIDELITY OBSERVED; sourceBase ' + s.sourceBase.slice(0, 7) + ' ancestor of HEAD ' + L.git(root, ['rev-parse', '--short', 'HEAD']).toString().trim() + '; ' + changed.length +
     ' engine/conform/m4-spec/lane-b-tooling file(s) changed since sourceBase, all in the fixed inventory; runner ' + s.tooling.runnerSha256.slice(0, 12) + ' and spec ' +
-    sha(specRaw).slice(0, 12) + ' pinned' + (sealed ? ' inside the sealed artifact' : ' (artifact not sealed yet)') + '; ' + PIN_PATHS.length + ' PIN_PATHS byte-identical Git vs disk');
+    sha(specRaw).slice(0, 12) + ' pinned' + (sealed ? ' inside the sealed artifact' : ' (artifact not sealed yet)') + '; ' + present.length + ' of ' + PIN_PATHS.length +
+    ' PIN_PATHS present in this tree and byte-identical Git vs disk' +
+    (absent.length ? '; ' + absent.length + ' not in this tree and therefore vacuous (' + absent.join(' ') + ')' : ''));
 }
 // W6. The owner and contract ledger lines are found as EXACT LINE BYTES in
 // rebuild/DECISIONS.md at a real chain commit, under their own roles and with content
@@ -543,8 +645,15 @@ function laws(s, bundles, phase) {
       ' | declared RED-frozen / ' + expected + '-candidate' + (bad ? ' MISMATCH' : ''));
     if (bad) note('law ' + d + ' is ' + row.candidate + '-candidate where ' + expected + '-candidate is declared'); else agree++;
   }
+  // Y1 / r4 §5.1, the honesty half. For B1..B4 this sentence is the substantive obligation:
+  // a declared D-id only goes GREEN-candidate because the repair is really in the engine.
+  // For a NO_REGISTER_IDS package the same 45 rows are the REGISTER BASELINE and nothing
+  // more — they agree on the day the package is empty and on the day it is finished, and
+  // reporting them as "agreement with the spec" without saying so is an X4-class overstatement.
   say('LAWS DECLARED-STATE ' + agree + '/45 rows agree with the spec at product phase ' + phase +
-    '; the package D-ids must be GREEN-candidate / RED-frozen before any receipt');
+    (NO_REGISTER_IDS.has(ID)
+      ? '; this package declares NO D-id, so these rows are the register BASELINE and prove nothing about it — its obligation is the Y1 own-child rule reported below'
+      : '; the package D-ids must be GREEN-candidate / RED-frozen before any receipt'));
   return env;
 }
 
@@ -648,6 +757,23 @@ function coverage(s, bound, ran) {
   }
   return covered;
 }
+// Y1 (TOOLING-REVIEW-r4 §5.1/§7), the reporting half — the refusing half is in envelope(),
+// at the seal. A package in NO_REGISTER_IDS has no D-id and therefore no law obligation;
+// this is what stands in its place and it is OPEN until it is met, so a --ci run of an
+// unfinished no-register package cannot read as if nothing were owed. Nothing here is a
+// declaration: `own` is derived from the spec's own product roles (ownChildren) and
+// `executed` from the map children() built by actually spawning them in this process.
+function noRegister(s, ran) {
+  if (!NO_REGISTER_IDS.has(ID)) return;
+  const own = ownChildren(s), executed = own.filter(c => ran.get(c.name) && ran.get(c.name).ok);
+  say('NO-REGISTER OBLIGATION ' + ID + ' registers no D-id, so the 45-law accounting imposes nothing on it; in its place ' +
+    executed.length + ' of ' + own.length + ' declared child(ren) executing one of this package\'s own role:"new" product file(s) ran in this process, ' +
+    'exit 0, with their exact declared needle at line start — ' + MIN_OWN_CHILDREN + ' required at the seal (' + s.children.length +
+    ' child(ren) declared in total' + (own.length ? ': ' + own.map(c => c.name + ' -> ' + argvFiles(c.argv).filter(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new').join(' ')).join('; ') : '') + ')');
+  if (executed.length < MIN_OWN_CHILDREN)
+    note('no-register package: ' + executed.length + ' of the ' + MIN_OWN_CHILDREN +
+      ' required child(ren) executing this package\'s own new product file(s) ran (TOOLING-REVIEW-r4 Y1; the seal refuses while this stands)');
+}
 
 // ------------------------------------------- 6. the authorized-envelope gate (PASS)
 // W1. The sealed artifact IS the substantive package: it carries the spec bytes' sha256,
@@ -680,7 +806,7 @@ const ARTIFACT_KEYS = ['version', 'lanePackage', 'packageId', 'sourceBase', 'par
   'children', 'artifact', 'executionPins'];
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
-function envelope(s, bound) {
+function envelope(s, bound, ran) {
   const said = [], out = line => said.push('B PACKAGE ' + ID + ' ' + line);
   if (!fs.existsSync(rel(ARTIFACT)) || !fs.existsSync(rel(REVIEW))) {
     out('ENVELOPE ABSENT; ' + ARTIFACT + ' is not sealed yet — no PASS word is available');
@@ -705,6 +831,23 @@ function envelope(s, bound) {
   // is this branch. Nothing below it is reachable with a move declared.
   assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
     'COVERAGE-MOVES-REFUSED-AT-SEAL-WITHOUT-A-PM-RULING ' + Object.keys(s.coverage.moves).join(' '));
+  // Y1 — BLOCKING, and the seal is where it belongs. A package in NO_REGISTER_IDS carries
+  // no D-id, so nothing in the 45-law accounting is ever owed by it: want(d) is RED for
+  // every un-carried id and GREEN for the six carried ones whether the package is empty or
+  // finished. Without this, POSTFIX PACKAGE PASS would print on a run in which not one line
+  // of the package's own new code executed (r4 §5.1). It cannot live in spec(): before the
+  // carrier lands the target file does not exist and CHILD-ARGV-TARGET refuses the
+  // declaration — so it lives HERE, where the files exist by definition. MIN_OWN_CHILDREN
+  // and role "new" are both fixed in this file (W7), so no spec can declare its way past it.
+  // The execution half is enforced twice over: children() refuses any declared child that
+  // does not run in this process, exit 0, with its exact needle at line start, and the
+  // END-of-run re-evaluation re-asserts it here against the map that run actually produced.
+  const own = NO_REGISTER_IDS.has(ID) ? ownChildren(s) : [];
+  assert(!NO_REGISTER_IDS.has(ID) || own.length >= MIN_OWN_CHILDREN,
+    'NO-REGISTER-PACKAGE-SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT ' + ID + '; ' + s.children.length +
+    ' declared child(ren), ' + own.length + ' of them executing a role:"new" product file of this package, ' + MIN_OWN_CHILDREN + ' required');
+  if (ran) for (const c of own)
+    assert(ran.get(c.name) && ran.get(c.name).ok, 'NO-REGISTER-PACKAGE-OWN-CHILD-DID-NOT-EXECUTE ' + ID + ' ' + c.name);
   assert(s.authorizations.theme, 'THEME-AUTHORIZATION-UNAVAILABLE'); // no PASS before the brief's own ledger line is bound
   assert(s.brief.acceptedLedgerLine && s.status === 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-UNAVAILABLE'); // N4: no PASS on an unaccepted brief
   L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [s.packageId, ARTIFACT, hash] });
@@ -795,10 +938,13 @@ try {
   carriers(s);
   const ran = children(s, env);
   const covered = coverage(s, bound, ran);
+  noRegister(s, ran); // Y1: the replacement obligation for a package with no D-id
   if (!ci) { privateOracle(); historical(bound, bundles); gates(bundles, first.authorized, covered, ran); }
   // W5. Re-evaluate AFTER all evidence: an artifact, review, receipt, spec or runner
   // swapped mid-run changes `key` and refuses here, before any terminal word is printed.
-  const last = envelope(s, bound);
+  // `ran` is handed over so the Y1 seal assert can re-take the EXECUTION half against the
+  // map this run actually produced, not only the declaration half it could see at the top.
+  const last = envelope(s, bound, ran);
   assert.equal(last.key, first.key, 'ENVELOPE-CHANGED-DURING-THE-RUN');
   assert.equal(last.authorized, first.authorized, 'ENVELOPE-CHANGED-DURING-THE-RUN');
   if (!last.authorized) note(last.sealed === null ? 'closed cumulative profile not sealed' : 'independent exact-artifact acceptance PENDING', false);

@@ -989,7 +989,7 @@ says a sealed package is reviewed by *diffing* the runner and its spec, not by r
 
 | file | lines | bytes | sha256 |
 |---|---|---|---|
-| `b-package.cjs` | 812 | 65367 | `6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b` |
+| `b-package.cjs` | 820 | 65367 | `6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b` |
 | `packages/B-NTC.json` | 259 | 21159 | `e1724ca697a202d73da5d18f216cbb2529a5ecd3aa1018f74014f4ab725a56e9` |
 | `packages/B-LOM.json` | 89 | 12235 | `cd5950916af094fae957d00a5c76360a6c812a5c361180fbb5251dcdbe225871` |
 | `packages/B1.json` | 392 | 24383 | `eef1885c8bfa5ccd90737747a524cec13b67f6fa997e93475b6f367745d7b2ae` |
@@ -998,6 +998,11 @@ says a sealed package is reviewed by *diffing* the runner and its spec, not by r
 | `packages/B4.json` | 264 | 19369 | `506b380a2fbb2d22b9101cb73e72c5b140726ddf20f2fe863ab501619101f6cb` |
 
 (The runner was `eaa731a1…`, 684 lines / 53 683 bytes at r3's review commit `572a8c2`.)
+
+> **Corrected in r4 (Y3).** This table said the runner was **812** lines; it is **820**
+> newline-terminated lines at `6f69aa8e…`. The bytes and the sha256 were right, so nothing
+> was bound to the wrong thing — but a byte table is exactly the place a reader checks a
+> claim against the file, and it must not be off by eight. r4's reviewer re-measured 820.
 
 ## r3.0 The base moved first, and it had to
 
@@ -1394,3 +1399,394 @@ No `package.json` or `package-lock.json` change was made or committed.
 
 The whole control set was run **twice**: once before the `L.verifyReceipt` restoration
 described in §r3.2, and once after, on the bytes that ship. Both runs were 68/68.
+
+---
+
+# §r4 — closing Y1–Y4 from TOOLING-REVIEW-r4.md
+
+Fixer: **lane-b-fixer4**. Not the builder, not any reviewer, not the r1/r2/r3 fixers.
+Everything below was **executed on the owner's PC** (Windows, PowerShell, Node **v24.19.0**
+at `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`),
+worktree `work/lane-b/tooling` on `rebuild/lane-b-tooling`, starting from
+`636aeaa` (`git fetch origin && git reset --hard origin/rebuild/lane-b-tooling`).
+Outcomes are recorded as they happened, including the two that failed first.
+
+**Delivered bytes at this revision** (measure these, don't trust them — R1 says a sealed
+package is reviewed by *diffing* the runner and its spec, not by running them):
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 966 | 77 756 | `cadde14fd93d2774a12909871d75e0907bd08814b5310fe231a0ea1737d5f92f` |
+| `README.md` | 656 | 46 536 | `5bfe18ebad1aedb9dc9da796d052cb83c6d255136bf73e973ddfcfe67c951d0a` |
+| `packages/B-NTC.json` | 265 | 23 996 | `5adb9c7a1248efe7873a26a177e01da545cee406984ea24a4261e3577421d6ee` |
+| `packages/B-LOM.json` | 90 | 13 733 | `616f7794679f1d7ee17f766011f5e792090924a48c7ca07a2080b15bb68f641c` |
+| `packages/B1.json` | 393 | 25 083 | `22b2941d62695bae3056dcf8720d51edd4715ee011fc2d7676ce93ccbfc95429` |
+| `packages/B2.json` | 378 | 25 989 | `1e9af6784e5c4415d8a139a56416831352ec55f0ce7dc3710f2a8513ab829635` |
+| `packages/B3.json` | 275 | 20 982 | `774b3b8ec7a35201fbd748e2d3a9519f9f6149d83cb51fbe80c286ad349eed48` |
+| `packages/B4.json` | 265 | 20 449 | `7f6e0a188e87d79454a9578eb49aa010844997b076eee1305e89b99434193ac0` |
+
+(This file is the ninth of the nine and is not in the table — a file cannot carry its own
+hash; §r4.7 repeats the same eight rows as a plain block, generated from the bytes rather
+than typed. The runner was **820** lines / 65 367 bytes / `6f69aa8e…` at r4's review commit
+`477b025`.) The runner's sha256 is pinned by all six specs and re-resolved against Git at
+HEAD on every run; each spec's sha256 is the one its own `SPEC OBSERVED` line prints.
+
+## r4.1 What Y1 actually required, and where it had to live
+
+The review's §5.1 is the one finding that could have produced a forged-looking
+`POSTFIX PACKAGE PASS` without any forgery at all. For B1–B4 the substantive force of this
+runner is the 45-law accounting. For a package in `NO_REGISTER_IDS` that accounting owes
+**nothing**: `want(d)` is `RED` for every un-carried id and `GREEN` for the six carried ones
+whether the package is empty or finished, so `LAWS DECLARED-STATE 45/45 rows agree` prints
+either way. B-NTC's five declared children are the **parent's** NATIVE-CARRIERS successor
+cells; its own provider test cell is in `product` and in no `children[]` entry, and nothing
+required it to be. Seal that and the word prints on a run in which not one line of the new
+provider executed.
+
+The replacement obligation now in the runner, as `DECISIONS:108 (d)` recorded X1/X2 —
+**standing, and mechanical**:
+
+* `MIN_OWN_CHILDREN = 1` and `PRODUCT_ROLES` are constants in `b-package.cjs` (W7), so a
+  spec can no more declare its way past the replacement than it can grant itself the
+  `NO_REGISTER_IDS` exemption;
+* `ownChildren(s)` = the declared children whose `argv` executes a file **this spec declares
+  in `product` with role `new`**. Ownership is read out of the spec's own product roles,
+  never declared;
+* every one of those children is already subject to `children()`: it runs **in this
+  process**, exits 0, and prints its **exact declared needle at line start**;
+* `noRegister(s, ran)` prints `NO-REGISTER OBLIGATION <id> … n of m …` on every run and
+  records an **open (`--ci` blocking) obligation** while `n < MIN_OWN_CHILDREN`;
+* `envelope()` **refuses at the seal**, beside X1's re-assert and before the theme/brief
+  asserts: `NO-REGISTER-PACKAGE-SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT`. The end-of-run
+  re-evaluation is handed the `ran` map and re-takes the execution half as well
+  (`NO-REGISTER-PACKAGE-OWN-CHILD-DID-NOT-EXECUTE`).
+
+**Why the seal and not `spec()`.** The reviewer's reasoning is right and it is worth
+restating because it is the difference between a gate and an obstruction: before the carrier
+lands, `rebuild/m4/workout/test/native-trend-context.test.cjs` does not exist, and
+`CHILD-ARGV-TARGET` refuses a declaration whose target is absent. A `spec()`-level rule
+would refuse B-NTC and B-LOM outright today and block the lane instead of the forgery. At
+the seal the files exist by definition. So the tip demo still reads `CI REVIEW-PENDING`
+exit 2 for both ids — now with **one more open obligation each** (B-NTC 4 → 5, B-LOM
+10 → 11), which is the honest reading of their state.
+
+**And the sentence that overstated.** `LAWS DECLARED-STATE` now says, for these two ids
+only, that the 45 rows are the **register baseline** and prove nothing about the package,
+naming Y1 as what does. That is the same X4 standard applied to the one line §5.1 showed
+was being read as more than it was.
+
+## r4.2 Y1's second half — `superseded-by-child`, and a correction to §5.4
+
+`DECISIONS:109` rules it in the PM's own words: *"a child package supersedes its parent's
+execution pins exactly as NATIVE-CARRIERS superseded LOAD-WRITES"*, and *"Because B-NTC
+re-pins rebuild.yml and the wrapper anyway, the remaining tooling items ride in THIS seal."*
+Under the r3 runner such a file could enter a child's inventory only as role `new` — false
+of a file the parent pins — and the `pin.pre === parent pin` equality that binds a parent
+**product** pre-image did not reach it at all. `product()` now:
+
+* requires role `superseded-by-child` for any file pinned in the parent's `executionPins`
+  (`PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED`), and requires `pin.pre` to **be** that
+  execution pin's byte;
+* refuses the role on a parent **product** pin (`PRODUCT-ROLE-MISLABELLED`) and on a file
+  the parent pins nowhere (`SUPERSEDED-BY-CHILD-IS-NOT-A-PARENT-PIN`);
+* names the superseded files in the `PRODUCT` line instead of hiding them among the new ones.
+
+`B-NTC.json` declares `.github/workflows/rebuild.yml` this way,
+`pre f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8` — the parent's own
+execution pin, byte-identical on disk, at `sourceBase e9c50e1` and at HEAD, measured before
+the declaration was written. `pins()` needed no change: a file in `s.product` is already
+preserved the way `native-carriers-profile.cjs:96` preserves it, in Git at `sourceBase`, so
+the `PARENT PINS RE-ASSERTED` line moves it from the *kept* count to the *superseded* count
+(30 + 21 where r4 measured 51 + 20, the same 51 pins).
+
+**A correction to the review, made here rather than carried.** §5.4 says "B-NTC already uses
+the same workaround for `workout-host.mjs` and `journey.test.mjs`". It does not:
+`acceptance-native-carriers.json` pins **neither** of those — not in its 20-file `product`
+map and not in its 31 `executionPins` (re-measured; the executionPins are listed in full in
+the artifact). Those two really are outside the parent's pinned inventory and role `new` is
+the correct label for them. The one genuine case in this package is `rebuild.yml`, which is
+exactly the file `DECISIONS:109` names. Anything further B-NTC re-pins (`:109` also names
+`engine-runtime.cjs` and the EXPOSED set) is declared with the new role at seal time — the
+runner refuses `new` for it.
+
+## r4.3 Y2 — the single-parent rule, read where it is durable
+
+§5.2's finding has two halves and both are closed in `parent()`.
+
+**The sibling specs are read from Git at HEAD as well as from disk.** r4's G14 freed the
+sibling's `chosen` in an **uncommitted** edit and the check went silent: the tooling
+directory is not one of the `PIN_PATHS`, `fidelity()`'s change scan reads commits, and a
+seal pins only the sealing package's *own* spec bytes. Reading the siblings out of the
+reviewed history closes it — an uncommitted hand cannot reach Git at HEAD, and a committed
+one leaves the edit standing where the package's reviewer will diff it. The refusal now
+names which copy caught it: `… already claimed by B-NTC (packages/B-NTC.json on disk)
+B-NTC (rebuild/lanes/b/tooling/packages/B-NTC.json in Git at HEAD)`.
+
+**The sealed artifacts on the chain branch are read from Git.** This is the half the review
+called the one that actually matters: *"the durable fact — which artefact a sealed
+`acceptance-*.json` names as its parent — is never consulted."* `parent()` now
+`git ls-tree`s `rebuild/m4/spec/` on `CHAIN_REF`, parses every `acceptance-*.json` there
+with `J.parseExact` out of Git, and refuses on a `parent.artifact` match that is not this
+package's own artifact: `SINGLE-PARENT-CHAIN-SEALED`. `CHAIN_REF` is a runner constant
+resolved from Git refs and nameable by no spec, exactly as X2 uses it.
+
+Two properties worth naming because they are deliberate:
+
+* **An unreadable sealed artifact refuses the run rather than being skipped.** A
+  non-canonical `acceptance-*.json` on the chain branch dies at `JSON-NONCANONICAL-BYTES`
+  (control Y2-a2). Skipping it would hand a forger the evasion — write the rival artifact
+  with one space too many and the scan never sees it — so the fail-closed reading is the
+  right one. It couples every package's run to every sealed artifact's bytes being
+  canonical, which they are: the PM's integrator writes them and `parseExact` reads them
+  everywhere else too.
+* **The scan is bounded to `rebuild/m4/spec/`.** Every artifact a B package can name as a
+  parent lives there (`ARTIFACT` is derived as `rebuild/m4/spec/acceptance-<slug>.json` from
+  the package id), and so does every sealed child that could rival it. The grandparent
+  `acceptance-step-efficacy.json` under `rebuild/conform/v4/postfix/` is outside the scan;
+  no B spec can name it, and if the PM ever admits one, the bound moves with the option.
+
+## r4.4 Y3 and Y4 — the text, and the counts
+
+**Y3, three stale notes and one empty claim.** `B3.json`, `B4.json` and `B-LOM.json` each
+carried *"parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal …"* and
+**none of the three has a NATIVE-CARRIERS option** (B3: `[B4, B2]`; B4: `[B2, B1]`; B-LOM:
+`[B-NTC]`). The note was copy-pasted from B1/B2, where it is true. All three are now
+`PARENT OPTIONS, CORRECTED (TOOLING-REVIEW-r4 Y3)` and say what their own bytes contain,
+including where their pre-images actually came from (the NATIVE-CARRIERS map as it stands at
+`sourceBase`, which is **not** a claim that NATIVE-CARRIERS is their parent) and that with
+`chosen: null` the runner verifies them against disk and Git only. `B-LOM.json`'s
+*"the product pre-images in this spec are the parent's own pins carried forward"* with
+`product: {}` is replaced by `NO PRE-IMAGES TO RE-VERIFY`. `B-NTC.json`'s copy of the same
+note is now exact: 21 of its 25 pre-images are the parent's (20 product + 1 executionPin),
+four are its own new files. The r3 byte table's **812** is corrected to **820**, with the
+correction marked in place rather than silently overwritten.
+
+**Y4, the PIN_PATHS sentence.** It counted 18 where 16 exist. It now reads
+`16 of 18 PIN_PATHS present in this tree and byte-identical Git vs disk; 2 not in this tree
+and therefore vacuous (rebuild/conform/goldens rebuild/conform/manifest.json)` — the same
+number in all twelve tip runs. The whole inventory is still handed to `git status`, so a
+path that appears later is checked the day it appears; only the sentence changed.
+
+## r4.5 The controls — 19 executed, each attributed to a named check
+
+All mutation controls ran in a **scratch worktree of my own** (`AppData\Local\Temp\lb-fix4\wt`,
+detached at the fix commit) so the delivery worktree was never dirtied; it and its debug
+copies were removed afterwards (§r4.8). Attribution used a copy of the runner placed
+**beside** it (`b-package-dbg.cjs`, one `console.error` in the terminal catch), so
+`__dirname`, `root`, `SPEC_DIR` and the fixed `RUNNER` path still resolve to the **real**
+runner's bytes and its spec pin still binds. **The real runner decides every exit code
+below; the debug copy only says which check fired.**
+
+### Y1 at the seal (the EXECUTE controls the brief names)
+
+Reaching the ACCEPTED branch needs an artifact that **is** `proposed(s, bound)`
+byte-for-byte, so the artifact was emitted by the debug copy and re-serialised into
+`strict-json.cjs`'s canonical form (`JSON.stringify(parsed, null, 2) + '\n'` — the first
+attempt used indent 1 and died at `JSON-NONCANONICAL-BYTES`, recorded because it happened),
+then sealed with an `ACCEPTED` review. Both files existed only in the scratch worktree.
+
+| # | control | exit | fired at |
+|---|---|---|---|
+| **Y1-1** | a `NO_REGISTER_IDS` spec with **zero** children, consistently sealed (`children: []`, `coverage.inherited: {}`, artifact = `proposed()`, review ACCEPTED) | **1** | `NO-REGISTER-PACKAGE-SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT B-NTC; 0 declared child(ren), 0 of them executing a role:"new" product file of this package, 1 required` |
+| **Y1-2** | **B-NTC exactly as it ships** — five declared children, all the *parent's* successor cells, none of them its own — sealed the same way. This is §5.1's finding turned into a refusal | **1** | same check: `… 5 declared child(ren), 0 of them executing a role:"new" product file of this package, 1 required` |
+| **Y1-3** | POSITIVE, sealed: the carrier lands (a real cell under `rebuild/m4/workout/test/`, its `pre` taken from its bytes) and one declared child runs it | **1** | **Y1 passed**; the run continued to the next named check, `THEME-AUTHORIZATION-UNAVAILABLE` — Y1 is not a blanket refusal |
+| **Y1-4** | the execution half, unsealed: an own child declared whose **needle never appears** in its stdout | **1** | `CHILD-NEEDLE-NOT-A-TERMINAL-LINE ntc-provider-cell` |
+| **Y1-5** | POSITIVE, unsealed: the same own child printing its needle | **2** | **accepted** — `CHILD ntc-provider-cell OBSERVED; exit 0, 817 bytes of stdout, exact declared verdict at line start`; `NO-REGISTER OBLIGATION … 1 of 1 …`; the Y1 open obligation **closes** and the count falls 5 → 4; `CI REVIEW-PENDING` exit 2, no PASS word |
+
+### Y1's second half — the role
+
+| # | control | exit | fired at |
+|---|---|---|---|
+| **Y1-r1** | `.github/workflows/rebuild.yml` declared `role: "new"` (the pre-r4 workaround) | **1** | `PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED .github/workflows/rebuild.yml is pinned by the parent in executionPins; declare role "superseded-by-child" (DECISIONS:109), never "new"` |
+| **Y1-r2** | declared `superseded-by-child` with a pre-image one hex off the parent's execution pin | **1** | `UNLISTED-PRODUCT-DRIFT pre-image is not the parent execution pin: .github/workflows/rebuild.yml` |
+| **Y1-r3** | a parent **product** pin (`rebuild/engine/plan.cjs`) mislabelled `superseded-by-child` | **1** | `PRODUCT-ROLE-MISLABELLED rebuild/engine/plan.cjs is a parent PRODUCT pin, not an execution pin` |
+| **Y1-r4** | an unknown role (`"superseded"`) | **1** | `Product role .github/workflows/rebuild.yml` (the closed `PRODUCT_ROLES` vocabulary) |
+
+### Y2 — the single parent
+
+| # | control | exit | fired at |
+|---|---|---|---|
+| **Y2-a** | **the brief's control**: a sealed-looking `acceptance-b-lom-legacy-order-mapping.json` **committed** on a scratch branch on top of the **real chain tip**, claiming NATIVE-CARRIERS while B-NTC's spec claims it; `CHAIN_REF` redirected at the constant in a debug copy, because a fixer cannot push to `origin/rebuild/t2-client-core` | **1** | `SINGLE-PARENT-CHAIN-SEALED: rebuild/m4/spec/acceptance-native-carriers.json is already named as the parent by the sealed rebuild/m4/spec/acceptance-b-lom-legacy-order-mapping.json on refs/heads/r4f-chain` |
+| **Y2-a2** | the same rival written with **non-canonical** bytes | **1** | `JSON-NONCANONICAL-BYTES` — it is refused, not skipped (§r4.3) |
+| **Y2-a3** | baseline: the **shipped** runner, **real** `CHAIN_REF`, B-NTC unmodified | **2** | no refusal — `PARENT BOUND NATIVE-CARRIERS …; single-parent chain holds — no sibling spec claims it on disk or in Git at HEAD, and no sealed artifact on refs/remotes/origin/rebuild/t2-client-core names it as parent` |
+| **Y2-b** | **UNFORGED, on the real chain branch**: B-LOM names **LOAD-WRITES**, which the genuinely sealed `acceptance-native-carriers.json` already names as its parent. No scratch branch, no redirect, no debug constant — the rule bites on the real chain as it stands | **1** | `SINGLE-PARENT-CHAIN-SEALED: rebuild/m4/spec/acceptance-load-writes.json is already named as the parent by the sealed rebuild/m4/spec/acceptance-native-carriers.json on refs/remotes/origin/rebuild/t2-client-core` |
+| **Y2-c** | **the r4 G14 repeat**: B-LOM claims NATIVE-CARRIERS and the sibling `B-NTC.json` has its `chosen` freed **on disk** | **1** | `SINGLE-PARENT-CHAIN: … already claimed by B-NTC (rebuild/lanes/b/tooling/packages/B-NTC.json in Git at HEAD)` — the disk scan is silent, the Git scan is not |
+| **Y2-d** | the disk half still bites: the same claim with `B-NTC.json` untouched | **1** | `SINGLE-PARENT-CHAIN: … already claimed by B-NTC (packages/B-NTC.json on disk) B-NTC (… in Git at HEAD)` — both name it |
+
+### r3's rules, re-checked against the r4 runner
+
+| # | control | exit | fired at |
+|---|---|---|---|
+| **X1** | a non-empty `coverage.moves` on B1 | **1** | `COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING witnesses-1; coverage.moves must be {} under this runner (TOOLING-REVIEW-r3 X1)` |
+| **X2** | B-NTC's parent `reviewSha256` off by one hex | **1** | `PARENT-REVIEW-BYTES-NOT-THE-PINNED-REVIEW NATIVE-CARRIERS` |
+| **X4** | `status: BRIEF-ACCEPTED` with `acceptedLedgerLine: null` | **1** | `BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE` |
+| **W7** | B1 empties its own `dIds`/`laws` to self-grant the no-register exemption | **1** | `D-id inventory: unique, in range, never a already-repaired id` |
+
+**19 controls: 17 refusals at exit 1 and 2 at exit 2 — Y1-5 and Y2-a3, the two that were
+meant not to refuse.** (Y1-3 is a third positive in substance: it passes the Y1 assert and
+then refuses at the *next* named check, which is what shows the assert is a gate and not a
+wall.) Every refusal is attributed to a named check, not inferred from an exit code.
+
+## r4.6 The tip demo — six ids, two modes, and the refusals
+
+Twelve real runs plus seventeen malformed invocations on the unmodified delivery worktree,
+on the fix commit, with `b-package.cjs` and all six `packages/*.json` at exactly the bytes
+in the table above and `git status --porcelain --untracked-files=all` empty. (The demo was
+run twice: once before this section was written and once on the committed bytes; only the
+`FIDELITY` line's short HEAD differed. The one file edited after the second demo is
+**this** one, `TOOLING-REPORT.md`, which no spec pins and the runner never reads — a
+`--ci --package B-NTC` re-run on the final bytes reproduces `PARENT BOUND … single-parent
+chain holds`, `NO-REGISTER OBLIGATION … 0 of 0 … 1 required at the seal` and
+`CI REVIEW-PENDING: 5 open obligation(s)` at exit 2.)
+
+| run | exit | terminal line |
+|---|---|---|
+| `--ci --package B-NTC` | **2** | `CI REVIEW-PENDING: 5 open obligation(s); public evidence only; no PASS is claimed` |
+| `--ci --package B-LOM` | **2** | same, **11** open |
+| `--ci --package B1` / `B2` | **2** ×2 | same, **5** open each |
+| `--ci --package B3` / `B4` | **2** ×2 | same, **9** open each |
+| `--full --package <each of the six>` | **2** ×6 | stderr `B PACKAGE <id> BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING` |
+| 17 malformed invocations | **1** ×17 | `B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|B-LOM|B1|B2|B3|B4` |
+
+The seventeen are: no args, `--ci` alone, `--full` alone, `--ci --package` (no id), `B5`,
+`b1`, `b-ntc`, `B-ntc`, `BNTC`, `"B1 "` (trailing space), `--CI`, `--ci --full --package B1`,
+`--seal --package B1`, `--package B1` alone, a fourth argument after a valid triple, a
+repeated `--package`, and `-p` for `--package`.
+
+**All twelve ran the register audit: `45/45` laws executed, `0 HARNESS_ERROR`,** and the
+audit total line is **byte-identical in all twelve** —
+`TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant
+executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL` — the same line r3 and r4
+measured, so nothing in this fix moved a law. The two no-register ids additionally print the
+Y1 replacement (`NO-REGISTER OBLIGATION … 0 of 0 … 1 required at the seal`) and the
+qualified `LAWS DECLARED-STATE` sentence. All twelve print
+`16 of 18 PIN_PATHS present in this tree and byte-identical Git vs disk`.
+
+**Bare `PASS` lines: 0.** Across the twelve logs the word stands on **24** lines and every
+one of them is a negation: `… is not sealed yet — no PASS word is available`,
+`theme NULL — no PASS word is available`, `no PASS is claimed`. **No run reached exit 0**,
+in either mode, for any id.
+
+**The open counts moved, and only where Y1 says they should:** B-NTC 4 → 5, B-LOM 10 → 11.
+B1, B2 (5 each) and B3, B4 (9 each) are unchanged from r4's measurement.
+
+## r4.7 Delivered bytes, measured after the last edit
+
+The `MEASURED BYTES` block at the **end of this file** carries the same eight rows as the
+table at the head of §r4, generated from the bytes rather than typed, so the two can be
+checked against each other and against the files. Every sha256 there is reproducible with
+`Get-FileHash -Algorithm SHA256` (or `sha256sum`) on the committed bytes; the runner's is
+also the value all six specs pin in `tooling.runnerSha256` and the value every
+`SPEC OBSERVED` line prints for the runner.
+
+## r4.8 Residual risks carried forward, as r4 recorded them
+
+1. **R1 (unchanged; the most important thing a reviewer of a sealed package does).**
+   Pre-seal the runner and its spec can be co-edited and the Git-at-HEAD pin falls to anyone
+   who can commit. No PASS is reachable pre-seal. **A sealed B package must be reviewed by
+   *diffing* `b-package.cjs` and `packages/<id>.json` at the reviewed commit, not merely by
+   running them** — r4 §6 makes this precise: the artifact is a pure function of those two
+   files plus the bytes on disk, so reading them *is* reading the artifact. Y1 and Y2 do not
+   change this and are not meant to.
+2. **R3-A — closed by removal of reach** (X1; re-verified here as control X1).
+3. **R3-B — closed** (X2; re-verified here as control X2).
+4. **R3-C — open, correctly disclosed, unreachable.** A wrapper that prints a gate's needle
+   without running the gate is accepted by the move path, and the runner's sentence
+   (*"observed emitting that gate's own needle"*) is literally true of it. No rule that reads
+   only a child's stdout can prove execution; the real fix is to run the gate through
+   `R.gateRun`, and it belongs with the first real `legacy-b<N>-carriers.cjs` under the PM
+   ruling that admits moves at all. Under X1 it has **no reach**: `MOVES_RULING` is `null`,
+   so `coverage.moves` cannot be non-empty in `spec()` or at the seal.
+5. **R3-D — live, and it moved TWICE inside this one fix.** `origin/rebuild/t2-client-core`
+   was `9f68d0a` when r4 started, `e6b812e` when r4 finished, **`5dc9254`** when this fix
+   fetched at `636aeaa`, and **`7ae4face`** by the time the last verification ran — twice in
+   about half an hour, without my fetching it in between. This machine has other sessions.
+   Every movement was checked rather than assumed: the parent artifact
+   (`e940359b…`) and review (`9b0918d6…`) are byte-identical on the new tip and on disk, the
+   sealed set is still exactly two (`acceptance-load-writes.json` → step-efficacy;
+   `acceptance-native-carriers.json` → load-writes), and `--ci --package B-NTC` re-run at
+   `7ae4face` still reads `PARENT BOUND … single-parent chain holds` and `CI REVIEW-PENDING:
+   5 open obligation(s)` at exit 2. **A seal run must `git fetch origin` first, and a
+   refusal on a pin that looks current should be read as a stale remote-tracking ref before
+   anything else.** Y2 raises the stakes on this by name: the sealed-rival scan reads
+   `CHAIN_REF`, so a stale ref can both miss a rival that was sealed upstream and refuse on
+   an artifact that has since moved. It also means a sealer who does not fetch can be told
+   the chain has one head when it has two.
+6. **R4 — closed as a sentence, open as a fact (Y4).** 16 of 18 `PIN_PATHS` exist and the
+   line now says so. The two absent paths stay in the inventory handed to `git status` so
+   they bind the day they appear. `rebuild/m4/spec` is still **not** among the 18, so a
+   dirty worktree there is caught only by the artifact/review byte pins and by
+   `L.checkSources` at the seal.
+7. **R5 — half discharged, and kept honest.** r4 executed the ACCEPTED branch of
+   `envelope()` end to end on real bytes for the first time, including `L.checkSources` over
+   28 pins in Git and on disk, and this round drove the same branch four more times (Y1-1,
+   Y1-2, Y1-3, and the PENDING baseline) — so **the `--ci` envelope path is now exercised**,
+   with the new Y1 assert sitting on it. **The `--full` ACCEPTED path still awaits a real
+   receipt**: the PM's first `--full` on a sealed package is still the first execution of
+   `gates()` and `historical()` on this tooling. Treat *those* as the rehearsal and write the
+   receipt after them, not before.
+8. **R6 — unchanged.** `gates()` and `historical()` are unexecuted on any machine without the
+   private fixture (`DECISIONS:97`); `rebuild/conform/private/` does not exist on this PC and
+   was never created here. `privateOracle()` reports existence only, and all six `--full`
+   runs terminated on its BLOCKED line.
+9. **R7 — unchanged.** `--ci` is still not wired into `.github/workflows/rebuild.yml`. That
+   file is a NATIVE-CARRIERS execution pin, and `DECISIONS:109` puts its re-pin (plus the
+   `checkin.test.mjs` enumeration and the retirement of the `# pass 19` child) **inside the
+   B-NTC seal** — which is exactly why Y1's `superseded-by-child` role had to exist before
+   that seal, and why `B-NTC.json` declares the file now rather than at the last minute.
+10. **R8 — unchanged.** `fidelity()` still exempts every file a declared child executes; two
+    of the five `CHILD_ROOTS` sit outside its change scan entirely; an untracked file beside
+    the runner is invisible to it because `TOOLING_FILES` is a fixed list and the runner never
+    enumerates its own directory. My own debug copies lived in exactly that blind spot for
+    this whole round, unremarked, which is the demonstration rather than a complaint. They
+    were deleted and `git status --porcelain --untracked-files=all` re-checked (§r4.9).
+11. **`L.verifyBase` is still not used.** The accepted original pins
+    `merge-base HEAD CHAIN_REF === expected` (`CANDIDATE-BASE-STALE`); this runner asserts
+    ancestry instead, in three places, and Y2 adds a fourth read of `CHAIN_REF` that is a
+    tree read rather than an ancestry assertion. Weaker than the original, anchored on the
+    same branch, and r4 §6 shows it is the assertion the whole PASS hangs on.
+
+**One new residual, from Y2 itself.** The sealed-rival scan parses **every**
+`rebuild/m4/spec/acceptance-*.json` on the chain branch on every decided-parent run. That
+couples any B package's run to those artifacts being canonical JSON and to `CHAIN_REF`
+resolving — a non-canonical one refuses the run (deliberately; §r4.3), and an unfetched or
+missing `CHAIN_REF` was already fatal before this change through X2's reads. It adds no new
+network dependency: every read is from the local object store.
+
+## r4.9 Restoration, verified
+
+```
+git -C work/lane-b/tooling status --porcelain --untracked-files=all   (empty)
+git worktree list | grep lb-fix4                                      (empty — scratch removed)
+git branch --list 'r4*'                                               (empty — scratch branch deleted)
+rebuild/lanes/b/tooling/{*dbg*, *-chain*}                             (none)
+rebuild/m4/workout/test/native-trend-context.test.cjs                 (absent, as it is on this branch)
+rebuild/m4/spec/acceptance-b-ntc-*, review-b-ntc-*                    (never existed outside the scratch worktree)
+rebuild/conform/private/                                              absent, and never created
+origin/rebuild/t2-client-core                                         unchanged: 5dc9254 before and after
+```
+
+The scratch worktree (`AppData\Local\Temp\lb-fix4\wt`), its two debug copies, the scratch
+branch `r4f-chain` and the two commits on it were **local only and never pushed**; the branch
+was deleted with `git branch -D` and the commits are unreachable. The scratch worktree
+carried a `node_modules` **junction** to the delivery worktree's (the audit needs esbuild);
+it was removed as a reparse point only, and the target directory was counted before and after
+(39 entries, unchanged) before the worktree was deleted. Nothing was written under
+`rebuild/m4/spec`, `rebuild/conform` or `rebuild/engine` in the delivery worktree or on any
+pushed branch — the forged artifact and review of Y1-1/Y1-2/Y1-3 existed only inside the
+scratch worktree and were deleted with it. `ledger/` and `rebuild/conform/private/` were
+never opened. No `package.json` or `package-lock.json` change was made or committed.
+
+```
+MEASURED BYTES (r4 fix, taken after the last edit; TOOLING-REPORT.md itself is not in the table —
+a file cannot carry its own hash. Reproduce with Get-FileHash -Algorithm SHA256 on the committed bytes.)
+
+b-package.cjs         966 lines   77756 bytes  cadde14fd93d2774a12909871d75e0907bd08814b5310fe231a0ea1737d5f92f
+README.md             656 lines   46536 bytes  5bfe18ebad1aedb9dc9da796d052cb83c6d255136bf73e973ddfcfe67c951d0a
+packages/B-NTC.json   265 lines   23996 bytes  5adb9c7a1248efe7873a26a177e01da545cee406984ea24a4261e3577421d6ee
+packages/B-LOM.json    90 lines   13733 bytes  616f7794679f1d7ee17f766011f5e792090924a48c7ca07a2080b15bb68f641c
+packages/B1.json      393 lines   25083 bytes  22b2941d62695bae3056dcf8720d51edd4715ee011fc2d7676ce93ccbfc95429
+packages/B2.json      378 lines   25989 bytes  1e9af6784e5c4415d8a139a56416831352ec55f0ce7dc3710f2a8513ab829635
+packages/B3.json      275 lines   20982 bytes  774b3b8ec7a35201fbd748e2d3a9519f9f6149d83cb51fbe80c286ad349eed48
+packages/B4.json      265 lines   20449 bytes  7f6e0a188e87d79454a9578eb49aa010844997b076eee1305e89b99434193ac0
+```

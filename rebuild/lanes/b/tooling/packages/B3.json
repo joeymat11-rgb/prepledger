@@ -68,7 +68,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
+    "runnerSha256": "cadde14fd93d2774a12909871d75e0907bd08814b5310fe231a0ea1737d5f92f"
   },
   "product": {
     "rebuild/engine/writers.cjs": {
@@ -266,9 +266,10 @@
     "coverage.moves is empty only because the witness-flip measurement has not been done. Measure it before the brief, as B1 and B2 did.",
     "children[] re-executes the five accepted NATIVE-CARRIERS successor children in this process, each with its exact declared verdict; those executions are what cover the nine inherited originals. Once the PM names B4 or B2 as the parent, the inherited set is re-taken from THAT artifact and these children are replaced by its own successors.",
     "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT.",
-    "PARENT RE-PINNED (TOOLING-REPORT §r3 C): parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal e940359b… in place of the DECISIONS:96 seal 295762f0…, and sourceBase is re-taken at the chain tip e9c50e1. The parent product map did not change across the re-seal, so the pre-image sha256s below are unchanged and were re-verified against the NEW artifact and against the bytes at that sourceBase.",
-    "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the product pre-images in this spec are the parent’s own pins carried forward. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
+    "PARENT OPTIONS, CORRECTED (TOOLING-REVIEW-r4 Y3). B3’s parent.options are B4 and B2 — NEITHER is sealed, and NATIVE-CARRIERS is NOT an option of this spec. (The note that stood here through r3 asserted a NATIVE-CARRIERS option re-pinned at the DECISIONS:104 CI re-seal. It was copied from B1/B2, where that is true; here it was false of this spec's own bytes, so it is corrected rather than carried, and the false sentence is not reproduced.) What IS re-taken at the tip is sourceBase e9c50e1. The product pre-images below were taken from the accepted NATIVE-CARRIERS map as it stands at that sourceBase because that is the only sealed head in the tree — they are NOT a claim that NATIVE-CARRIERS is this package’s parent, and they are re-taken at whichever head the PM names.",
+    "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the 20 product pre-images in this spec are the bytes at sourceBase e9c50e1, which are also the accepted NATIVE-CARRIERS pins; with parent.chosen null the runner verifies them against disk and Git only, never against a parent map. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
     "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
-    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B)."
+    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B).",
+    "SINGLE PARENT, TWO WAYS (TOOLING-REVIEW-r4 Y2). parent.chosen is null and neither option (B4, B2) is sealed, so the rule is not yet engaged. When it is, parent() refuses if any sibling packages/*.json claims the same artifact — read BOTH from disk AND from Git at HEAD, so freeing a sibling’s `chosen` in an uncommitted edit no longer frees the parent (r4 G14) — and refuses again if an already-sealed rebuild/m4/spec/acceptance-*.json ON refs/remotes/origin/rebuild/t2-client-core names it."
   ]
 }

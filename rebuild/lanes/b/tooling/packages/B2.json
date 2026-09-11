@@ -78,7 +78,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
+    "runnerSha256": "cadde14fd93d2774a12909871d75e0907bd08814b5310fe231a0ea1737d5f92f"
   },
   "product": {
     "rebuild/engine/plan.cjs": {
@@ -372,6 +372,7 @@
     "PARENT RE-PINNED (TOOLING-REPORT §r3 C): parent.options NATIVE-CARRIERS now names the DECISIONS:104 CI re-seal e940359b… in place of the DECISIONS:96 seal 295762f0…, and sourceBase is re-taken at the chain tip e9c50e1. The parent product map did not change across the re-seal, so the pre-image sha256s below are unchanged and were re-verified against the NEW artifact and against the bytes at that sourceBase.",
     "PRE-IMAGE RE-VERIFICATION IS THE LANE’S, NOT THE TOOLING FIXER’S: the product pre-images in this spec are the parent’s own pins carried forward. This package’s lane re-verifies them, and re-takes them if the engine moves under it, at seal time — nothing here is an independent measurement of the lane’s work.",
     "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
-    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B)."
+    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B).",
+    "SINGLE PARENT, TWO WAYS (TOOLING-REVIEW-r4 Y2). parent.chosen is null here, so the rule is not yet engaged. When the PM names one, parent() refuses if any sibling packages/*.json claims the same artifact — read BOTH from disk AND from Git at HEAD, so freeing a sibling’s `chosen` in an uncommitted edit no longer frees the parent (r4 G14) — and refuses again if an already-sealed rebuild/m4/spec/acceptance-*.json ON refs/remotes/origin/rebuild/t2-client-core names it. Practical consequence for this spec: B-NTC already claims acceptance-native-carriers.json in Git at HEAD, so B2 naming NATIVE-CARRIERS refuses until the PM moves one of them; B1 is the other option and is not sealed."
   ]
 }

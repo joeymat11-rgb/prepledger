@@ -44,6 +44,17 @@ same applies to the witness carrier successor, which belongs under
 
 No gate, law, oracle, golden or frozen input is re-implemented here.
 
+**`PIN_PATHS`: 16 of 18, and the line says so (`TOOLING-REVIEW-r4` Y4, r3's residual R4).**
+The whole 18-path inventory is handed to `git status`, so a path that appears later is
+checked the day it appears — but two of them, `rebuild/conform/goldens` and
+`rebuild/conform/manifest.json`, **do not exist in this tree**, and the old sentence
+"18 PIN_PATHS byte-identical Git vs disk" therefore overstated by two. It now reads
+`16 of 18 PIN_PATHS present in this tree and byte-identical Git vs disk; 2 not in this tree
+and therefore vacuous (…)`, naming them. Note also what the inventory does **not** cover:
+`rebuild/m4/spec` is not among the 18, so a dirty worktree there is caught only by the
+artifact/review byte pins and by `L.checkSources` at the seal — which is why the
+chain-branch reads in the parent check are load-bearing rather than decorative.
+
 ## Which bytes bind which — the substantive/thin split
 
 `BRIEF-IMPORT-GUARDS.md` §3 puts **all substantive requirements** in the hashed artifact
@@ -131,6 +142,37 @@ character the run refuses.
    lists in `NO_REGISTER_IDS` (`B-NTC`, `B-LOM`), because `DECISIONS:93` rules that feature
    work under the ratified slice plan takes no register D-ID. Like every exemption, that
    list lives in `b-package.cjs` and nowhere else.
+
+   **`TOOLING-REVIEW-r4` Y1 — a no-register package owes its OWN executed children.
+   STANDING, beside X1 and X2 (`DECISIONS:108 (d)`).** For B1–B4 the substantive force of
+   this runner is the 45-law accounting: a declared D-id reads `RED-frozen /
+   GREEN-candidate` only because the repair is really in the engine. A package with an
+   empty `dIds` inventory is owed **nothing** by that accounting — `want(d)` is `RED` for
+   every un-carried id and `GREEN` for the six carried ones whether the package is empty or
+   finished, so `LAWS DECLARED-STATE 45/45 rows agree` would have printed on the day
+   `POSTFIX PACKAGE PASS` was claimed for a package none of whose own code had run (r4
+   §5.1). In its place the runner requires the package's **own** children:
+
+   * at least `MIN_OWN_CHILDREN` (**1**) declared `children[]` entries whose `argv`
+     executes a file **this spec declares in `product` with role `new`** — its own new
+     code, not the parent's successor cells;
+   * each of them subject to the rule every child is already subject to: it runs **in this
+     process**, exits 0, and prints its **exact declared needle at line start**
+     (`CHILD-NEEDLE-NOT-A-TERMINAL-LINE`).
+
+   Both numbers and the role vocabulary are fixed in `b-package.cjs` (W7), so a spec can no
+   more declare its way past the replacement than it can grant itself the exemption. The
+   runner prints `NO-REGISTER OBLIGATION <id> … n of m …` on every run and carries an
+   **open obligation** while `n < MIN_OWN_CHILDREN`; at the seal it **refuses**
+   (`NO-REGISTER-PACKAGE-SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT`), and the end-of-run
+   re-evaluation re-takes the execution half against the map the run actually produced
+   (`NO-REGISTER-PACKAGE-OWN-CHILD-DID-NOT-EXECUTE`). It lives at the seal and not in
+   `spec()` for a reason: before the carrier lands the target file does not exist and
+   `CHILD-ARGV-TARGET` refuses the declaration, so an earlier gate would block the lane
+   instead of the forgery. **B-NTC and B-LOM cannot be sealed today** — both report
+   `0 of 0` — and that is the intended state until each has a cell of its own that runs.
+   `LAWS DECLARED-STATE` says so in its own sentence for these two ids rather than
+   reporting the register baseline as agreement about the package.
 3. **`product`** maps each file to `{pre, post, role}` and must list **every file the
    parent artifact pins in its own `product` map** — the repair files with role `edited`
    (or `new`), the rest with role `carried` (`pre === post`, byte-identical on disk).
@@ -146,6 +188,31 @@ character the run refuses.
    (`post: null`, absent on disk), its `pre` is the sha256 of the empty byte string,
    `e3b0c442…`, and the runner counts it at the pre-image without reading anything. Where
    it exists, `pre` is its real bytes at `sourceBase`. `B-NTC.json` uses both forms.
+
+   **The fourth role, `superseded-by-child` (`TOOLING-REVIEW-r4` Y1 / r4 §5.4).** A parent
+   pins files in two places: `product` and `executionPins`. `DECISIONS:109` rules that a
+   child package **supersedes its parent's execution pins** inside its own seal — "exactly
+   as NATIVE-CARRIERS superseded LOAD-WRITES" — and puts B-NTC's `rebuild.yml` enumeration
+   and the retirement of the `# pass 19` child inside that seal. Before r4 the only role
+   that admitted such a file was `new`, which is **false of a file the parent pins**, and
+   it carried no pre-image equality at all: the `pin.pre === parent pin` check that binds a
+   parent **product** pre-image simply did not reach it. The role now says what is true and
+   the runner enforces it in both directions:
+
+   * a file pinned in the parent's `executionPins` and declared in `product` **must** carry
+     role `superseded-by-child` (`PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED`) and its
+     `pre` **must be that execution pin's byte** (`UNLISTED-PRODUCT-DRIFT pre-image is not
+     the parent execution pin`);
+   * a file pinned in the parent's `product` map may **not** carry it
+     (`PRODUCT-ROLE-MISLABELLED`), nor may a file the parent pins nowhere
+     (`SUPERSEDED-BY-CHILD-IS-NOT-A-PARENT-PIN`).
+
+   `pins()` already preserves such a file the way the accepted original does — its parent
+   byte must still stand **in Git at `sourceBase`** — so nothing is lost by declaring it,
+   and the `PRODUCT` line now names the superseded files rather than hiding them among the
+   new ones. `B-NTC.json` declares `.github/workflows/rebuild.yml` this way; any further
+   parent execution pin B-NTC re-pins (`DECISIONS:109` also names `engine-runtime.cjs` and
+   the EXPOSED set) is declared the same way at seal time.
 4. **`parent`** carries `decided`, `chosen` and every documented `options` entry, each
    `{id, artifact, sha256, review, reviewSha256, receiptLedgerLine, note}`. An unsealed
    option carries `sha256: null` **and** `reviewSha256: null`. See the chain rule below.
@@ -339,8 +406,29 @@ incompatible for the artifact chain, so **B1.json and B2.json each carry both op
   inventory and inherited-coverage checks while recording that it is not a claim on the
   chain. When no option is sealed (B3, B4 today) those three checks are impossible and
   each is recorded as its own open obligation instead of being skipped silently;
-* once `chosen` is set, scans every other spec in `packages/` and **fails** if another
-  package already claims that artifact (control C1);
+* once `chosen` is set, enforces the single parent **two ways** (`TOOLING-REVIEW-r4` Y2,
+  closing r4 §5.2):
+
+  1. **the sibling specs** — every other `packages/*.json`, read **from disk AND from Git
+     at HEAD**, and `SINGLE-PARENT-CHAIN` if any of them resolves its own `chosen` to this
+     same artifact. The disk half is the original control C1. The Git half is r4's: the
+     tooling directory is not one of the `PIN_PATHS`, `fidelity()`'s change scan reads
+     commits, and a seal pins only the sealing package's **own** spec bytes — so freeing a
+     sibling's `chosen` in an **uncommitted** edit silenced the check entirely (r4's G14).
+     Reading the siblings out of the reviewed history closes that: an uncommitted hand
+     cannot reach Git at HEAD, and a committed one leaves the edit standing where the
+     package's reviewer will diff it.
+  2. **the sealed chain** — every `rebuild/m4/spec/acceptance-*.json` that already stands
+     **on `refs/remotes/origin/rebuild/t2-client-core`**, read out of Git (never from
+     disk, never named by a spec), and `SINGLE-PARENT-CHAIN-SEALED` if one of them names
+     this same artifact in its own `parent.artifact`. This is the half that matters,
+     because "two packages cannot claim the same parent" is a fact about the **chain**,
+     not about whichever specs happen to sit in the worktree at run time, and a sealed
+     artifact is the only place that fact is durably written down. Today the branch
+     carries two: `acceptance-load-writes.json` (parent `acceptance-step-efficacy.json`)
+     and `acceptance-native-carriers.json` (parent `acceptance-load-writes.json`) — so a
+     spec naming **LOAD-WRITES** refuses on the real branch with no forgery at all, and
+     B-NTC's claim on NATIVE-CARRIERS stands because nothing sealed names it yet;
 * walks the chain to the artifact that still carries the audit `baseline` (the closed
   cumulative profiles do not; `acceptance-step-efficacy.json` does) for the historical
   audit snapshot.
@@ -416,7 +504,14 @@ step 3 starts again (that is exactly what happened to NATIVE-CARRIERS at
 
 | control | outcome |
 |---|---|
-| two packages claim one parent artifact | FAIL exit 1 |
+| two packages claim one parent artifact **on disk** | FAIL exit 1 |
+| two packages claim one parent artifact **in Git at HEAD**, whatever the disk copies say | FAIL exit 1 |
+| a **sealed** `acceptance-*.json` on the chain branch already names this parent | FAIL exit 1 |
+| a `NO_REGISTER_IDS` package is sealed with **no** declared child executing its own `role: "new"` product | FAIL exit 1 |
+| a `NO_REGISTER_IDS` package is sealed and one of its own children did not execute in this run | FAIL exit 1 |
+| a parent **execution** pin is declared in `product` with any role but `superseded-by-child` | FAIL exit 1 |
+| a `superseded-by-child` pre-image is not the parent's execution-pin byte | FAIL exit 1 |
+| a parent **product** pin, or a file the parent pins nowhere, is declared `superseded-by-child` | FAIL exit 1 |
 | a product byte is neither the declared pre nor post image | FAIL exit 1 |
 | a declared pre-image is not the parent artifact's pin | FAIL exit 1 |
 | a parent-pinned product file is dropped from the inventory | FAIL exit 1 |
