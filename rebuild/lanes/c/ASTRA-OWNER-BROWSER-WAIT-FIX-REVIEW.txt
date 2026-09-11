@@ -1,0 +1,51 @@
+OWNER BROWSER WAIT CORRECTION — INDEPENDENT DELTA REVIEW
+September 11, 2026. Same reviewer, not correction author.
+Source:46a81276ffd1f0d0049479ba101f52c4661b0e3b, parentd05876f.
+Branch/worktree: codex/astra-owner-browser-fix-review / astra-owner-browser-fix-review.
+FILE: PM ASTRA-OWNER-BROWSER-WAIT-FIX.md; prior review009995ad F1/P2.
+Verdict: ACCEPT. Original browser acknowledgment-wait finding is resolved.
+
+(1) EXACT SOURCE
+Only local-owner-browser.mjs and its one builder report differ fromd05876f.
+Both async waitForFunction predicates are removed. The replacement awaits each
+actual repository observation, bounds each observation and overall polling by
+a deadline, clears the timeout timer, and fails with OWNER_OPERATION_TIMEOUT.
+Set requires a new op identity, kind session-set, load40 and reps10. Recovery
+requires a new identity, event/fact, earned/recovery-checkin/v1 and Moderate.
+The existing four-operation count remains. After reload, both full operations
+must equal the saved records at their exact identities, strengthening the proof.
+No product or policy source changed; no prior assertions were weakened.
+
+(2) EXECUTED
+Existing Node24.19.0, Chrome and retained locked W6/W5 dependencies via ignored
+junctions; no install. Ran the exact committed local-owner-browser.mjs:
+  OWNER OPERATION TIMEOUT CONTROL PASS
+  OWNER ENTRY BROWSER PASS
+Exit0. Actual built default boot, synthetic public enrollment, UI weight/set/
+check-in, awaited saved identities, exact4 operations after reload, original
+active session, demo isolation and no page errors. Before recovery submission,
+the absent new Moderate operation times out after at least2 repository polls.
+
+Independent negative controls added only to a temporary copy of this same
+harness, using the same helper and real built-browser/public-store path:
+- Before recovery, use beforeIds:[] so the existing weight is eligible by
+  identity. It still cannot satisfy the recovery profile/answer predicate;
+  OWNER_OPERATION_TIMEOUT after at least2 polls.
+- After successful Moderate recovery, include every current op ID in beforeIds.
+  That exact existing matching recovery cannot satisfy another NEW-save fence;
+  OWNER_OPERATION_TIMEOUT after at least2 polls.
+Both negative controls passed, followed by successful actual saves/reload and
+the unchanged journey assertions. Temporary harness removed; candidate untouched.
+Built app.js, styles.css and index.html compared byte-identical to the previous
+independently reviewed owner-entry build.
+
+(3) ACCEPTANCE / LIMITS
+Reuse prior120 tests, product/source review and independently awaited actual
+UTC+13 midnight/draft/original-close/reload evidence from009995ad. No broad
+rerun. Together with this correction they support scoped owner-entry acceptance;
+no required correction remains in this delta. Affected both-OS CI/integration,
+setup UI/programme choice, nutrition/trend qualification, native-baseline
+package join and actual identified-build iPhone proof remain separate. This
+does not assert whole-app usability, hosted readiness, crash-kill or full gates.
+No product edits, private reads, installs, full campaign, push, PR, merge or
+deployment. git diff --check clean; only this independent report committed.
