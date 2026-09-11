@@ -1,0 +1,130 @@
+EARNED — LANE C PHONE READINESS REPORT
+2026-09-11. Bounded Astra documentation audit, not acceptance or delivery.
+Branch codex/astra-phone-readiness. Source 7b1678a4a8449053000d52a0a8e9e070f32a240e.
+Assignment: rebuild/lanes/ASTRA-RESUME.md in the separate astra-pm-resume worktree.
+
+(1) RESULT
+C4 one-store Today/gym/check-in and A5's PWA shell are integrated. The phone
+script is updated. S2 owner daily use is NOT ready at the inspected source.
+No current app URL or published build was verified. No phone test ran.
+
+(2) EXECUTED EVIDENCE
+Read AGENTS, NEXT, ROADMAP, LANES, latest DECISIONS (including 100, 103,
+106–111), C3/C4 reports, A5 report/workflow, actual Today/model/local host
+sources, accepted clean-init constructor, and lane-c-dad's design brief.
+
+Public, unauthenticated GitHub API GETs:
+  /repos/joeymat11-rgb/prepledger/actions/workflows/slice-host.yml/runs?per_page=3
+  /repos/joeymat11-rgb/prepledger/actions/runs/34602572527/jobs
+Latest returned slice-host run: 34602572527, created 2026-09-11T13:07:47Z,
+source 7b1678a4a8449053000d52a0a8e9e070f32a240e, completed/success.
+URL: https://github.com/joeymat11-rgb/prepledger/actions/runs/34602572527
+Build, A5 checks, package checks, staging, deploy-or-no-op step: success.
+Post-deploy phone-resource probe: SKIPPED. In this exact workflow its condition
+is SLICE_URL != '', and that value is written only after a ready deployment.
+Inference: this run did not establish a ready deployed URL; green is compatible
+with the intentional missing-secret no-op. Which secret is absent, whether a
+site already exists, and whether a different prior deployment exists are UNKNOWN.
+No account/secret lookup, logs containing secrets, or site provisioning performed.
+
+Executed Node constructor check using invented inline setup only:
+  fixture date 2030-02-04; 28 reads; 28 sleep nights; 9 legacy session dates.
+  createCleanInitState: 0 reads / 0 nights / 0 sessions, starting load null,
+  plan.autonomy = propose; exercise.setup absent. Exit 0.
+This verifies the two public state constructors, not a phone boot or full engine gate.
+
+Source facts:
+  today-entry.mjs: boot() is invoked with no arguments; day falls back to
+  TodayModel.SYNTHETIC_DAY in both host openings. basisState is harness injection.
+  today-model.cjs:105–108 defaults to SYNTHETIC_DAY and createBasisState(day).
+  fixtures.cjs:4 fixes that day to 2030-02-04; the basis is fictional history.
+  today-model.cjs:233–238 refuses a second recorded weight on the same date.
+  today-bindings.mjs exposes installation.eraId to code; Today does not render it.
+  C4 report/DECISIONS:111 retain WORKOUT_RESUME_STALE after a sibling write,
+  readPrevious refusal-vs-absence collapse, native Last time phone evidence pending.
+
+(3) MINIMUM NEXT BUILDER ASSIGNMENT — PM MUST BRIEF/REVIEW, NO IMPLEMENTATION HERE
+Wire a fresh-owner entry to the accepted clean-init contract and actual local
+calendar over the existing C4 installation. Do not redesign Today/gym/check-in,
+start a coach branch, import frozen history, or silently strip the synthetic basis
+and call that a fresh athlete. Preserve the preview as an explicitly labelled demo.
+
+Accepted constructor: rebuild/m4/workout/athlete-state.cjs:createCleanInitState({setup}).
+Exact setup: athlete_label; split {from,map}; exercises [{id,n,mg,day,sets,hi,inc,steps}];
+priority_muscles. History starts empty; w stays null until the first-session probe;
+autonomy starts propose. split.from must be <= the active local day to pass the
+existing workout host's guard. No invented Joe defaults or copied health data.
+
+Existing A4 design path: rebuild/lane-c-dad @ 810bc5439e9bbcf866d1070c838f732f483a2d91,
+rebuild/lanes/c/dad-first-run/{BRIEF.md,dad-first-run-mock.html,HAND-TEST.md,REPORT.md}.
+Its brief explicitly covers Joe's fresh S2 start as well as Dad. It is a DESIGN/MOCK,
+not an approved product implementation; owner look remains pending in the ledger.
+Use this existing path/approved visual references; PM must resolve its owner-look
+status or explicitly scope a minimum Joe setup before the builder implements it.
+Constructor omission of exercise.setup is already recorded at DECISIONS:106; do
+not add a ninth exercise field to the closed constructor without the owning brief.
+
+The narrow build must persist athlete-entered setup/basis in the existing local-era
+custody, restore it after reload/kill, and fail closed on partial storage loss.
+Feed ONE actual local day consistently into Today, gym, check-in and engine clocks;
+handle a page kept open across midnight, timezone/DST changes and unfinished prior-day
+sessions without writing yesterday's date. Test actual shipped boot (no injected
+basis/day), not only a harness passing options. Keep absence/UNKNOWN honest for a
+fresh athlete. Prove all three writes share the existing generation after restart.
+Check source pins and affected package ownership before editing; no frozen law change.
+
+Land independently reviewed/accepted B-NTC before calling this daily-use ready.
+It is the same-lift-group day+3 prerequisite; C4's reader does not supply the provider.
+Do not fold B-LOM/private port into fresh S2; legacy order mapping belongs before S3.
+Resolve or explicitly record the sibling-write WORKOUT_RESUME_STALE path with an
+exact no-duplicate/no-loss check. UI rendering native Last time needs a real journey
+once the provider is present. One screens/plumbing reviewer plus CI both OS remains
+the acceptance tier; builder cannot accept its own work.
+
+(4) HOST SETUP AND REPRODUCIBLE TEST PATH
+A5 source exists already. The integrator first inspects secret NAMES/site readiness
+without revealing values. Required repository secret names are NETLIFY_AUTH_TOKEN
+and SLICE_NETLIFY_SITE_ID. Reuse a confirmed separate slice site if it exists; only
+create/configure one later under appropriate authorization if actually absent.
+No Cloudflare/Clerk/backend setup is required for this deferred-sync local slice.
+Never target the frozen app or earned-soak.
+
+Workflow publish input = .tmp/slice-pwa-dist built by build-pwa.mjs. Qualifying push
+branch = rebuild/t2-client-core; path filters = rebuild/m3/w7-preview/today/**,
+rebuild/slice/pwa/**, .github/workflows/slice-host.yml. A docs-only C3 change does
+NOT trigger deploy. Re-running an existing run uses THAT run's SHA, not the latest
+tip: choose only a source already qualified for the intended phone test. The default-
+branch workflow-dispatch button limitation is recorded in A5; do not direct Joe to it.
+After authorized publish, verify PUBLISHED URL + exact SHA, ready deployment and the
+actual root/manifest/sw/icon requests, CSP, sw.js no-store and emitted cache identity.
+Keep the same origin for owner data; a new host origin means another local store.
+
+From a dependency-equipped checkout of the reviewed candidate, using the existing
+locked root/W6/W5 dependencies (no install or full campaign done in this doc audit):
+  node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
+  node rebuild/slice/pwa/build-pwa.mjs
+  node --test rebuild/slice/pwa/test/package.test.cjs
+For the bounded real-desktop launch check on this PC, set W7_BROWSER_BIN to the
+existing C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe, then:
+  node rebuild/slice/pwa/browser-offline-check.mjs
+The executable must exist; a NOT RUN result is not PASS. Existing Today/gym/check-in
+browser checks and local-today-journey should run on the new composition, with their
+own substantive changed-case tests; this report does not reuse historical counts as
+new passes. Browser runs remain Chromium evidence only.
+
+Then the PM supplies the verified receipt/link and C3-HAND-PROOF.md to Joe. Run on a
+disposable synthetic installation first, Safari and Home Screen contexts identified.
+Real phone rows cover install, three writes, swipe-kill, reboot, offline cold launch,
+actual next day and same-lift-group return, separate data-loss exercise, and two tabs.
+Do not perform the loss row on the owner's real installation. Once the tested build
+is qualified, start fresh on a clean owner installation without test history. The
+private port remains later S3 and needs the existing explicit owner ask/runbook.
+
+(5) FILES / LIMITS
+Changed: rebuild/lanes/c/C3-HAND-PROOF.md; this report only.
+No product, engine, law, workflow, lockfile or shared STATUS/REQUESTS/DECISIONS edit.
+No install, push, merge, deploy, purchase, secret change, account UI, data deletion,
+ledger/private read, port, protected soak, iPhone operation or broad FULL gate.
+Manual diff/whitespace checks executed; constructor output above executed.
+The doc retains total/partial loss distinction, clock/lease/old-restore limitations,
+C3's five reproduced desktop witnesses and the separate 2026-10-05 soak boundary.

@@ -1,261 +1,178 @@
-# C3 HAND PROOF — the 15-minute phone test
-
-**For Joe, on the iPhone.** Everything else in C3 ran on a PC in Microsoft Edge.
-Your phone is not Edge. Safari stores data its own way and clears it its own way,
-and there is no way to test that from a computer — so these eight rows are the
-only evidence that exists for the phone.
-
-Eight rows, about fifteen minutes of your time, spread over two days (row 6 is
-"open it again tomorrow morning"). One photo per row is enough.
-
----
-
-## Before you start
-
-**1. The page — and this is a STOP, not advice.** Open the link you were sent for
-this test. It has to be the **local-era test page**. Do **not** run this against
-the normal Today page: Today still saves the old way (`localStorage`), so every
-row below would pass and none of it would mean anything.
-
-**You do not have to take anyone's word for which page you have — row 1 checks
-it.** The local-era page shows an **era id**, a long string of letters and
-numbers. Today has none, and cannot have one; it is produced by the storage this
-test is about and by nothing else. **If row 1 shows no era id, STOP. Do not do
-rows 2–8. Send a photo and say "no era id".** A green result on the wrong page is
-worse than no result, because it would be filed as evidence.
-
-**2. Synthetic numbers only.** Type made-up weights and sets. Nothing here should
-be your real log. Use 170.6, 171.1 and so on — they match what the PC test used,
-which makes the photos easy to read.
-
-**3. Two rows need a throwaway.** Row 7 **deletes everything** and cannot be
-undone. Only do it on a test page you do not care about. If in doubt, skip row 7
-and say so — a skipped row is fine, a lost log is not.
-
-**4. What each row needs.**
-
-| row | works in Safari today | needs the installed app (Track A5) |
-|---|---|---|
-| 1 open it | yes | — |
-| 2 log a weigh-in and a set | yes | — |
-| 3 swipe-kill and reopen | yes | — |
-| 4 reboot the phone | yes, **if** the page still loads with signal | the offline launch half needs A5 |
-| 5 airplane mode | yes, once the page is already open | opening it fresh offline needs A5 |
-| 6 come back tomorrow | yes | — |
-| 7 clear website data | yes, **throwaway only** | — |
-| 8 two tabs | yes | — |
-
-Rows 4 and 5 have an asterisk: **Safari can only open a page it can reach.**
-Until the app is installable (Track A5 — the "Add to Home Screen" shell), a fresh
-launch with no signal may show Safari's "You are not connected" page. That is
-Safari, not lost data — reconnect, open it again, and the entries are still
-there. Write down which happened.
-
----
-
-## ROW 1 — open it (1 minute)
-
-1. Open **Safari**.
-2. Go to the test link.
-3. Wait for the page to finish loading.
-
-**You should see:** a first-run screen, or an empty entry list, and somewhere on
-the page a short code called the **era id** (a long string of letters and
-numbers). If the page offers a "start" or "enrol" button, tap it once.
-
-### 🛑 STOP CONDITION — read this before row 2
-
-**Is there an era id on this page, yes or no?**
-
-- **Yes** → carry on. Write the first six characters down; row 7 compares against
-  it.
-- **No** → **STOP HERE.** Do not do rows 2–8. Send Photo 1 and the words "no era
-  id". It means you are on a page that saves the old way, and all eight rows
-  would pass without testing anything this proof is about. Stopping is the
-  correct outcome, not a failure on your part.
-
-**📷 Photo 1:** the whole screen, including the era id.
-
-**Something is wrong if:** the page is blank, shows an error, or never finishes
-loading.
-
----
-
-## ROW 2 — log a weigh-in and one set (2 minutes)
-
-1. Enter a weigh-in of **170.6**. Tap save.
-2. Log one set: **squat, 200 lb, 5 reps**. Tap save.
-3. Look at the entry list.
-
-**You should see:** both entries listed. The era id has **not** changed.
-
-**📷 Photo 2:** the entry list with both entries visible.
-
-**Something is wrong if:** you get "Entry not saved", or an entry appears and then
-disappears when you scroll.
-
----
-
-## ROW 3 — swipe-kill and reopen (2 minutes)
-
-This is the important one. You are going to kill Safari the hard way — not close
-the tab, *kill the app*.
-
-1. Swipe up from the bottom of the screen and **stop in the middle**, then let go.
-   You will see all your open apps as cards. (On an iPhone with a Home button:
-   double-press the Home button.)
-2. Find the **Safari** card.
-3. **Swipe the Safari card up and off the top of the screen.** It disappears.
-   Safari is now killed — it was not asked to save anything first, which is the
-   whole point.
-4. Wait five seconds.
-5. Open Safari again and go back to the test page.
-
-**You should see:** both entries from row 2 still there. Somewhere the page should
-say something like *"Last saved: Set 1 of squat."*
-
-**📷 Photo 3:** the entry list after reopening.
-
-**Something is wrong if:** either entry is gone, or a set you never logged
-appears.
-
-> **What this row is and is not.** On iOS the part of Safari that holds the data
-> runs in its own process, and swiping the card away does not reliably kill it.
-> So a pass here is real but modest — it says the data survived the app going
-> away. **Row 4 is the one that carries the weight**, because a reboot ends
-> every process there is. Do not let anyone read row 3 as the phone's version of
-> "killed the instant it said Saved"; nothing on the phone tests that.
-
----
-
-## ROW 4 — reboot the phone (3 minutes)
-
-A swipe-kill ends the app. A reboot also restarts the phone's storage. They are
-not the same test.
-
-1. Hold the **side button + volume up** until "slide to power off" appears, then
-   slide it. (Or: Settings › General › Shut Down.)
-2. Wait until the screen is fully black, then hold the side button to turn it back
-   on.
-3. Unlock, open Safari, go back to the test page.
-
-**You should see:** both entries still there, exactly as in row 3.
-
-**📷 Photo 4:** the entry list after the reboot.
-
-**Something is wrong if:** anything is missing. If the page will not load at all,
-check you have signal — that is Safari not reaching the page, not lost data.
-
----
-
-## ROW 5 — airplane mode (2 minutes)
-
-1. With the test page **already open**, swipe down from the top-right corner to
-   open Control Centre and tap the **aeroplane** icon. It turns orange.
-2. Log a weigh-in of **171.1**.
-3. Turn airplane mode back off.
-
-**You should see:** the 171.1 saves normally, with no spinner, no error, and no
-"syncing" message. Nothing about this app needs the internet — there is no server
-yet.
-
-**📷 Photo 5:** the entry list with 171.1 on it, **with the orange aeroplane icon
-visible in the status bar**. That is what makes the photo evidence.
-
-**Something is wrong if:** the save is refused, or it appears and then changes
-when the network comes back.
-
----
-
-## ROW 6 — come back tomorrow morning (1 minute, next day)
-
-1. Tomorrow, open Safari and the test page again.
-2. Log a weigh-in of **170.4**.
-
-**You should see:** yesterday's three entries still listed, and the new one dated
-**today**, not yesterday.
-
-**📷 Photo 6:** the entry list showing both days.
-
-**Something is wrong if:** yesterday is gone, or today's entry is dated yesterday.
-
----
-
-## ROW 7 — clear website data — ⚠️ THROWAWAY ONLY (2 minutes)
-
-> **This deletes everything on that page and there is no undo.** There is no
-> recovery path in this build — the entries are gone for good. Only do this on the
-> test page. **Never** do it once your real log lives on this phone. If you are
-> not certain, skip this row and write "skipped" — that is a perfectly good answer.
-
-1. Take Photo 6 **first**, so the before state is recorded.
-2. Settings › **Safari** › scroll down › **Clear History and Website Data**.
-   (If it offers to clear for a specific site only, use that.) Confirm.
-3. Open Safari and go back to the test page.
-
-**You should see:** the app behaves as if it has never been used — a first-run
-screen, an empty list, and a **new** era id, different from Photo 1's.
-
-That is the correct behaviour, and it is worth understanding why it looks so
-blunt: when the data and the key are both gone, there is nothing left that could
-tell the app a history ever existed. It cannot warn you about something it has no
-evidence of, and an app that claimed to "recover" here would be making it up.
-
-**📷 Photo 7:** the first-run screen with the new era id.
-
-**Something is wrong if:** the app crashes, gets stuck, shows half a history, or
-claims anything was recovered.
-
----
-
-## ROW 8 — two tabs (2 minutes)
-
-1. Open the test page in a Safari tab.
-2. Tap the tabs button (bottom-right, the two squares) › **+** › open the test
-   page again in a second tab.
-3. In the **second** tab, log a weigh-in of **171.2**.
-4. Switch back to the **first** tab and reload it (pull down on the page).
-
-**You should see:** the first tab now shows 171.2 too, and nothing that was
-already there has gone.
-
-**📷 Photo 8:** the first tab's list after the reload.
-
-**Something is wrong if:** one tab's entry replaced the other's.
-
----
-
-## Sending the results
-
-Send the photos back however is easiest — a single message with all eight, in
-order, is ideal. For each one, one line is plenty:
-
-```
-1 ok
-2 ok
-3 ok
-4 ok
-5 ok
-6 ok
-7 skipped — not a throwaway
-8 ok
-```
-
-If a row went wrong, say **what you saw**, not what you think it means:
-"the 170.6 entry was gone after the reboot" is worth ten times more than "the
-save is broken". If something looked odd but you are not sure it counts, send it
-anyway — the odd ones are the useful ones.
-
-## What this does NOT test, so nobody claims it later
-
-- **A dead battery mid-save.** Killing an app is not the same as power failing at
-  the exact instant of a write. Nothing tests that, on any platform.
-- **A year going by.** The lease rows (days 201 / 401) were tested on the PC by
-  moving a clock. No real time has passed anywhere.
-- **iOS deciding to reclaim space on its own.** Row 7 is *you* clearing data. iOS
-  clearing it, because the phone is full and the app has not been opened in weeks,
-  cannot be triggered on purpose — it can only be waited for.
-- **Restoring the phone from an old iCloud backup.** That is a real risk and it is
-  written down (a restored backup can bring back an old copy of your log and
-  quietly overwrite newer entries), but it costs an hour and risks your real phone
-  state, so it is deliberately not in this script.
+# C3 HAND PROOF — integrated Today, gym and recovery check-in
+
+Revision: 2026-09-11, source `7b1678a4a8449053000d52a0a8e9e070f32a240e`.
+**Phone rows NOT RUN. This is the test script, not a phone-readiness verdict.**
+
+For Joe on the iPhone. Eight rows across two days, with an extra same-lift-group
+workout after B-NTC lands. Desktop Edge evidence cannot establish iPhone behaviour.
+
+## Before the PM sends a test link
+
+The integrated Today page now uses C4's ONE encrypted IndexedDB generation for
+weigh-ins, workout sets and recovery check-ins. The old instruction to avoid Today
+because it uses localStorage is obsolete. A visible era id is NOT a requirement:
+the integrated screen does not display one. Verify the deployed source/build before
+handing over the link; a screen photo alone cannot identify the storage implementation.
+
+**The current source remains a synthetic preview.** Its normal `boot()` supplies no
+options: Today defaults to **2030-02-04** and the fictional athlete in
+`rebuild/m3/w7-preview/fixtures.cjs`. Reopening tomorrow cannot establish a real
+change of date. The daily-use build must first wire the accepted clean-init setup
+and actual local calendar through all three hosts. See `PHONE-READINESS-REPORT.txt`.
+A5's PWA shell is already integrated; it does not need to be built again.
+
+The PM supplies a short test receipt before row 1:
+
+- HTTPS origin, source commit, successful deployment run and build/cache identity.
+- Whether this is the fixed-date preview or the reviewed fresh-use build. Row 6
+  remains BLOCKED on the preview; never change the phone clock to manufacture a pass.
+- A disposable test installation with invented inputs, separate from real daily logs.
+- Device/model, iOS version, test date/time and whether Safari or Home Screen was used.
+
+No current app URL was verified in the September 11 audit. A green `slice-host`
+job can be a no-op; the latest public run's post-deploy probe was skipped. Never
+substitute the frozen app or the protected `earned-soak` site for this test.
+Do not open, clear, reinstall or inspect the protected soak before its booked date.
+
+## Row 1 — open Safari, then install
+
+1. Open the verified test URL in Safari. Photograph the whole screen and date.
+   Today should load, with no storage error. A fresh installation enrols silently;
+   an explicit first-run button, empty preview history or era id is not promised.
+2. Find **Offline launch — offline-ready ✓**. Its detail must say all files of
+   this build are stored. If it says **not yet**, record the reason and reload
+   once while connected. Do not mark offline launch ready from a spinner or hope.
+3. Use Safari's Share menu → Add to Home Screen. Open **Earned** from that icon.
+   Record whether it opens standalone, without Safari chrome; check the icon,
+   paper background, readable status bar, and absence of install guidance.
+4. Check offline-ready again in this installed app. Safari and the installed
+   app's storage must not be assumed identical. Use the installed app for rows 2–6.
+
+A blank screen, error or wrong source/date is a recorded failure/blocker. Stop
+saving on an unverified build. Missing era id alone is not a failure.
+
+## Row 2 — record all three kinds of entry
+
+Use invented values only; no actual workout is required.
+
+1. On an unused test day, log morning weight **170.6** and wait for the saved
+   reading on Today. Take a photo. A second weight for that same date is currently
+   refused because the correction path is not wired; do not expect 171.1 to replace it.
+2. Open **How are you feeling today?** All unanswered choices should be unselected.
+   Choose an invented answer, clear it by tapping again, open a conditional branch,
+   and save a small invented check-in with **Add today's context**. Photograph its
+   recorded state. Reopen and verify the saved answers. Blank is not an answer.
+3. Open the workout card, Start, and enter a set for the exercise actually shown
+   (do not look for the old harness's arbitrary squat). Record exercise, load,
+   repetitions and the saved-set count; wait for **Set … logged**. Photograph it.
+4. Briefly exercise Undo, re-log the intended set, advance, and eventually Finish;
+   verify the saved count on Today. Keep an active session for row 3 first if useful.
+   Check keyboard access, readable inputs, reachable buttons and no sideways scroll.
+   The recovery form may need vertical scrolling to its save button.
+
+Returning from an UNSAVED check-in must not create a record or discard a half-entered
+set during that same page session. Unsaved set inputs are not promised across a kill.
+If saving a set after a reading/check-in returns `WORKOUT_RESUME_STALE`, record the
+exact message and counts. C4 names this residual; do not count a refused save as saved.
+
+## Row 3 — swipe-kill and reopen
+
+Swipe up and pause to show the app cards; swipe **Earned** away, wait five seconds,
+then reopen it from its Home Screen icon. Check the morning reading, saved workout
+count/set details and recorded check-in in their own screens; there is no combined
+entry list promised by this UI. Photograph them and note any missing or ghost set.
+
+Repeat in Safari separately if testing the Safari context; record which context
+contains which test entries. A swipe-kill may leave WebKit's storage process alive.
+This proves app-dismissal survival, not a process kill timed to the instant of save.
+
+## Row 4 — reboot the phone
+
+After the entries have visibly saved, shut the phone down, then restart it. Open
+Earned from the same icon and check all three recorded kinds again. First do this
+with a connection. Photograph the reading, workout count and check-in evidence.
+
+A reboot ends all processes, making it stronger than row 3, but does not test a
+battery failure mid-write. If the page cannot load, record a launch failure; once
+reconnected, check stored facts separately before concluding that data was lost.
+
+## Row 5 — airplane mode and a fresh offline launch
+
+1. With offline-ready confirmed, turn on airplane mode and ensure Wi-Fi is also off.
+2. Kill Earned and reopen it from Home Screen while still offline. Today, the gym
+   and check-in must load. Photograph the screen with the offline state visible.
+3. Log the next available test set and verify it saved; kill/reopen offline again.
+   The set count and facts must remain. A new morning weight is an alternative only
+   if that date has no reading yet; do not bypass the same-day refusal.
+4. Reconnect and reopen. No saved entry should vanish, duplicate, or claim a server
+   sync. This slice stores locally; hosted sync is deferred. The first download and
+   updates still require a connection.
+
+If the worker says it has not finished storing the build, record that message.
+It is not an offline-launch pass, even if a subsequent online reload works.
+
+## Row 6 — tomorrow's actual date (BLOCKED on the fixed-date preview)
+
+On the reviewed real-calendar build, leave the app overnight. Reopen the SAME
+installation tomorrow without changing the phone clock. Today must show the actual
+new local date. Save **170.4**, verify it belongs to the new date, and confirm the
+previously saved workout/reading evidence remains wherever the UI exposes it.
+Yesterday's recovery answers must not silently become today's answers; today's
+check-in starts unanswered. Photograph before/after dates and saved evidence.
+
+Also exercise the rollover while a page remains open overnight: it must refresh
+or explicitly require reopening before writing, never silently backdate a new log.
+An abandoned prior-day session must follow the app's recovery/close route without
+losing its saved sets. If the UI cannot expose older evidence, mark that aspect
+UNOBSERVABLE and have the reviewer supply a privacy-safe count/verdict; do not invent
+an entry list or ask Joe to extract IndexedDB.
+
+Daily use additionally needs B-NTC accepted and the next SAME lift group on day+3
+(or the actual chosen schedule) to open, start, record sets and finish. Verify native
+**Last time** against the known earlier test set. C4's native reader unit checks do
+not establish this real-phone path; B-NTC is absent from the audited integrated head.
+
+## Row 7 — website-data loss (separate disposable test only)
+
+**Not part of normal owner use. No deletion is authorized or executed by this audit.**
+Keep this loss requirement, but book a separate disposable-origin test before anyone
+uses a website-data removal control. Never clear all Safari history/data, the soak,
+the frozen app, or an installation holding real logs. If no verified disposable origin
+and explicit authorization are available, write **SKIPPED — no disposable origin**.
+
+The later test must identify the exact test origin and record its before state,
+then remove only that origin's data using the site's own scoped browser controls.
+If the control cannot isolate the test origin, stop. After total loss of data AND
+keys, a fresh empty installation is the expected limit: the app cannot know a prior
+history existed. There is no visible era id to compare on Today; record the visible
+fresh behaviour, and let a separate reviewer verify a new installation identity.
+Partial loss is different: surviving evidence with a missing key/marker must show
+restore-required, never silently re-enrol. Do not claim row 7 covers partial loss.
+A lost launch cache may require an online load before this can be observed.
+
+## Row 8 — two Safari tabs, one origin
+
+Use a separate disposable Safari test context; do not assume it shares the installed
+app's records. On a date with no reading, open the exact same origin in two Safari
+tabs. Save **171.2** in the second tab, then reload the first. It must show that same
+reading. Check any pre-existing saved workout/check-in counts remain unchanged.
+If the date already has a reading, use an available workout set instead; a second
+same-date weight must remain refused. This is cross-tab visibility after reload,
+not proof of simultaneous writes or automatic cross-tab refresh.
+
+## Results and limits
+
+Return photos labelled 1–8, the receipt from row 1, and one short result per row:
+PASS / FAIL with what appeared / BLOCKED with prerequisite / SKIPPED / UNOBSERVABLE.
+Keep real health values out of public reports. Saved facts must be compared in the
+same origin and launch context; do not treat a different browser store as data loss.
+
+Not established here: power loss during the exact write; an old whole-profile/iCloud
+restore (desktop witness can reuse a spent operation slot); wall-clock rollback and
+clock continuity; 400-day real elapsed lease behaviour; automatic iOS eviction;
+long idle survival/pressure; partial-key loss on the phone; hosted recovery or sync.
+C1's local era has a self-renewing 400-day lease and no slot budget, a recorded
+residual against DECISIONS:24. The existing C3 desktop harness reproduced limitations;
+its PASS rows do not mean those limitations were repaired. The protected 30-day soak
+remains a separate experiment, earliest readback **2026-10-05**. None of these eight
+rows replaces it or qualifies iOS storage merely because Chromium passed.
