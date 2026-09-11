@@ -428,7 +428,7 @@ function applyRead(state, iso, w, opts) {
   /* off-window: today's read after the window closed — accepted, never refused, but it
      rides beside the trend rather than inside it (the sealed precedent). */
   const offW = iso === isoOf(todayStart()) && !readWindow(s, opts && opts.hour).open && !readWindow(s, opts && opts.hour).hasRead && !sealed;
-  const dRaw = w - s.trend, dCl = Math.max(-1.5, Math.min(1.5, dRaw));
+  const update = require('./scale.cjs').scaleUpdate(s.trend, w), dRaw = update.rawDelta;
   const spike = Math.abs(dRaw) > 1.5;
   const clean = s.reads.filter((r) => !r.sealed && !r.offWindow);
   const dl = [];
@@ -449,7 +449,7 @@ function applyRead(state, iso, w, opts) {
      the line must not claim an hour it did not see. */
   s.feed = s.feed.filter((f) => !(f && f.op === "lateread:" + iso));
   if (offW) s.feed.unshift({ d: iso, op: "lateread:" + iso, t: "LATE READ — SET ASIDE", how: LATE_READ_HOW });
-  if (!sealed && !offW) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
+  if (!sealed && !offW) s.trend = update.next;
   return s;
 }
 
