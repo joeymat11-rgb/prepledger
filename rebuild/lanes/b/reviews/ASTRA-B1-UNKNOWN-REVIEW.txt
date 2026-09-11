@@ -1,0 +1,134 @@
+B1 UNKNOWN RECOVERY - INDEPENDENT DELTA REVIEW
+September 11, 2026. Reviewer did not author this candidate.
+Verdict: REQUEST CHANGES for R1 below.
+Candidate: 7594c7603a32d00231a374b58f54c485342d2d59
+Base: fe03ed0d5c4fa347807d8df7a611f408a4e10397
+Branch/worktree: codex/astra-b1-unknown-review / work/astra-b1-unknown-review
+Assignment: ASTRA-B1-UNKNOWN-REVIEW.md at PM aa06374.
+
+(1) R1 - MISSING HOURS STILL CREATE A SLEEP COST AND RESTRICTIONS
+The new brief expressly requires a finite current observation and says missing
+evidence creates no cost or restriction. A current row with h:null violates
+that contract. This is an admitted shape, not only a forged caller's band.
+
+Reproduction uses actual exported factories, no pricing/progression overrides:
+clock.today() = 2026-09-03, hour12; public synthetic state with four exercises,
+four flat same-load sessions per lift and25 constant180 scale/6000-step days.
+It has no pain, niggles, dips or independent adverse recovery factor. With
+sleep.nights=[], real progressionTrend is flat, recovery is UNKNOWN/null,
+volumePush returns PUSH and stepPush({accelerate:true}) returns PUSH.
+Set only sleep.nights=[{d:'2026-09-02',h:null}]. Actual source-projection.cjs
+createNullSelectionRegistrar.register({generation:{collections:{}},state})
+accepts it, and workoutInput(projection,projection.source_basis) retains it.
+The registrar's state-shape check at line47 requires an exercises array but
+does not reject this sleep shape. The actual source codec is used for basis.
+
+Actual recoveryIndex now returns band WATCH, score null,
+sleepEvidence:{state:'UNKNOWN',expectedDate:'2026-09-02',lastDate:'2026-09-02'},
+and a sole sleep flag costing30 (sleep reset,0 of3 clean nights). volumePush
+returns WITHHELD/veto recovery; stepPush returns WITHHELD/veto sleep.
+There was no measured short night. All input/source rows remain unchanged.
+
+Cause: sleep.cjs222-228 correctly excludes null from finite presence, but
+sleep.cjs1043's last.h < DEBT_LAST_H coerces null to zero. sleepInfo1928 uses
+that result, and recoveryIndex254 adds its sleep flag before applying the new
+UNKNOWN mapping at287-295. The resulting WATCH is then treated as independently
+observed adverse evidence by the corrected consumers. Merely changing the
+band/score would still leave the direct cleanAtDate step veto inconsistent.
+
+Required correction: apply one coherent qualified-observation interpretation
+at this admitted missing-hours boundary so missing hours cannot create the
+current sleep flag/debt veto or count as independently observed severity.
+Add an executed current-null regression through real model/direct consumers,
+including volume and step gates, and preserve real adverse factors. Do not
+coerce missing hours to zero or erase the stored record. Measured h:0 is a
+distinct positive adverse control: actual same registrar/model produces
+WATCH/70, sleep cost30 and valid volume/step vetoes; that behavior must remain.
+Undefined h currently returns UNKNOWN/null without a sleep flag, confirming
+the difference is numeric coercion rather than a ruled missing-data policy.
+
+(2) PASSED FOCUSED SOURCE AND BEHAVIOR
+Read required queue/roadmap, current PM amendment/dispositions, DECISIONS:110,
+candidate brief/report and all seven changed files. Reuse independent6529af0
+for unaffected previous B1 correction and25 cells; no old full matrix rerun.
+The new representation correctly handles absent arrays, stale numeric nights
+and future-only numeric nights as UNKNOWN/null. Actual WATCH/LOW from the
+existing named factors remains with null score and explicit incomplete sleep.
+Current valid sleep retains prior representation without sleepEvidence.
+
+Inventory by source search: recoveryIndex is consumed by liftCall,
+phaseProposal, volumeConversion, volumePush, runAdaptive and stepPush.
+Four non-GREEN conditions changed to explicit WATCH/LOW. stepPush's LOW-only
+mapping and cleanAtDate freshness are unchanged. No engine score arithmetic
+or recovery-result cache consumer found. General engine and browser factory
+exports expose recoveryIndex; the m3/m4 direct recovery uses found are test /
+compatibility/export bindings, not a completed recovery screen. Indirect
+lift-call/proposal receipts are consequential and included in this review.
+
+node --test --test-reporter=tap rebuild/engine/test/b1-unknown-recovery.test.cjs:
+17 pass,0 fail,0 skipped,0 cancelled. Existing Node24.19.0;
+TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03; synthetic data only.
+
+Independent ignored probe .tmp/independent-unknown.cjs, SHA256
+bc9d76fa8dba1ff9a3be5dca6cd3c57b28e9e41e5e1bdd603c89bdd9e394c618.
+It reuses only authored synthetic state constructors, stopping before test
+registration. It independently composes actual dates/constants/entered-load/
+performed/plan/progression/sleep/energy/policy/today/volume/earn/writers factories
+with a synthetic exById lookup and injected clock/IDs; no seed/migration is
+executed. No energy-pricing, trend, programme, recovery or decision substitute.
+
+- Four actual flat lift trends plus25 scale/step observations reach the earned
+  volume/step gates under UNKNOWN. Stalled lift stays REVIEW, four-session
+  falling conversion does not subtract from absence, and one low-energy cluster
+  signal does not invent a phase break. Actual adaptive sweep creates the
+  earned-volume receipt with no current sleep reading, no GREEN/clean claim.
+- Real recorded joints/holds/fair dips establish WATCH/LOW. Actual volume veto,
+  phase proposal, conversion subtraction and LOW-only step restriction remain;
+  the supported break proposal identifies incomplete sleep. No delegates hide
+  the surrounding energy or progression gates in these controls.
+- Restoring each old non-GREEN comparison in memory causes an actual RESET,
+  phase break, conversion subtraction or volume recovery veto for the same
+  UNKNOWN state. All four are behavioral counterexamples, not pin/syntax failures.
+- Original fe03ed0 factories reproduce absent GREEN/100 and the old stale-three-
+  night volume sleep veto. Candidate same old2h run ending Aug30 yields PUSH;
+  nights remain unchanged. A current three-night6.8h run still restricts volume
+  and steps. sleepMean3At also correctly crosses four spring/fall DST boundaries
+  (2025/2026), refuses the current short run, releases it next day, and preserves
+  the existing missing-middle-night run threshold.
+- At three fall-back dates (2025/2026/2027), yesterday AND same-day observations
+  of0/2/8h remain known and keep appropriate severity. Stale/future rows remain
+  UNKNOWN/null. D21's accepted two-anchor semantics survive.
+- Seven complete known-adequate outputs (recovery/lift/conversion/volume/steps/
+  phase/adaptive) equal original fe03ed0 under actual composition. The authored
+  42-output comparison is supplementary bounded evidence, not independently
+  re-executed42 or universal fidelity. No repeated broad campaign was necessary.
+
+(3) SEPARATE INHERITED OWNER-CALL RECEIPT DEBT
+Independent unmocked runAdaptive also reaches unchanged writers.cjs1889-1927
+OWNER_CALLS. Guard: no prior volpush_<muscle>_ proposal/adjustment, !sealed, and
+an exercise id ham/press/rearDelt. No supplied consent fact or live recovery
+predicate is required. One synthetic press with insufficient pooled trend,
+no nights and no proposals/adjustments generates an owner:true sets+1 proposal.
+ownerGate1903 and ownerCaveat1904 hard-code 'recovery reads WATCH', 'WATCH recovery'
+and 'you chose speed over waiting, on the record'. Actual model is UNKNOWN/null.
+The exact predecessor emits the same proposal while model is GREEN/100, proving
+this is pre-existing owner-specific logic, not a regression caused by UNKNOWN.
+It is a concrete current receipt/source-reachability obligation, separate from
+R1; this review does not approve that claim or expand into an unrelated audit.
+PM was informed and will route its bounded disposition. No proposal was applied.
+
+(4) LIMITS AND NEXT REVIEW
+The screens contract in the proposed brief is appropriate: no reading in
+secondary style, no numeric bar for null, incomplete-sleep qualifier with actual
+adverse flags, no automatic reduction from absence. Its UI join is unimplemented
+here and is not accepted by this report. Frozen legacy bar/tag consumers remain
+outside this source edit; eventual source-policy/screens accounting must cover
+them or prove their exclusion. No screen, browser or phone test was performed.
+
+After R1 correction, review that exact finite-evidence delta and its actual
+consumer controls; reuse unaffected results above. B1 still needs the proper
+cumulative BNTC parent, all downstream output/fidelity accounting, full/public/
+private/second-gate/mutation/CI qualification and genuine final receipt. Root
+alone owns PM acceptance. No source fix, source policy, private input, install,
+lock churn, broad campaign, push, PR, merge, deploy or protected-soak action.
+git diff --check passed. Only this report is committed; product bytes unchanged.
