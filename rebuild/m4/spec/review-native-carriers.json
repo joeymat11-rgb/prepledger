@@ -1,5 +1,10 @@
 {
   "version": 1,
-  "status": "PENDING",
-  "receipt": null
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "f6aa4a2b692aca4431c5a69cf9a55d06a2054733",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-11 · cowork · POSTFIX-ACCEPTANCE M2-NATIVE-CARRIERS 84d8f28892973b6cf68f37d2fe5ce80d97b1d165 rebuild/m4/spec/acceptance-native-carriers.json 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1 ACCEPTED",
+    "lineSha256": "b87cb13e3fa590aa1aac3be81fb4d053644d5ce48249c10f889ffbde7d9c40a8"
+  }
 }
