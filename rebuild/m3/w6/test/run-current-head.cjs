@@ -12,12 +12,43 @@ fs.writeFileSync(archive,git(['archive',base,'rebuild/authority','rebuild/m4/wor
 const unpack=cp.spawnSync('tar',['-xf',archive,'-C',output],{windowsHide:true});if(unpack.status!==0)throw Error('Public dependency extraction failed');
 // W6 already owns three reviewed T2 browser-boundary additions. Replacing its
 // client with R1's older T2 would silently remove those hooks, not compose them.
-const names=new Set(git(['ls-files','rebuild/m3/w6','rebuild/client','rebuild/m4/workout']).toString().trim().split(/\r?\n/));
+/* C4b — HARNESS SCOPING. `--all` runs every test/*.test.mjs in the composed
+   tree, and lane C's local-era suites reach outside the three candidate trees
+   this harness used to copy: local-host-journey.test.mjs requires
+   rebuild/m4/workout/engine-runtime.cjs (which composes rebuild/engine),
+   local-import.test.mjs spawns rebuild/m3/setup/port/port.cjs (which requires
+   rebuild/m4/import and rebuild/conform/oracle) over the public frozen fixture
+   rebuild/conform/fixtures/preimage-2026-08-15.json, and
+   local-today-journey.test.mjs imports the page under rebuild/m3/w7-preview.
+   The harness measured 462/464 for exactly that reason. These are copied from
+   the SAME source as the other overlays - this worktree, by `git ls-files` -
+   and every one of them is sha-pinned in `pins` and re-checked after the run. */
+const CANDIDATE_TREES=['rebuild/m3/w6','rebuild/client','rebuild/m4/workout',
+ 'rebuild/engine','rebuild/m3/setup/port','rebuild/m4/import',
+ 'rebuild/conform','rebuild/m3/w7-preview'];
+/* The R1 archive above already laid down the PUBLIC R1 conform dependency. Those
+   exact files are the pinned dependency, not a candidate, so they are never
+   overwritten by this worktree's copies; everything else under rebuild/conform
+   (the oracle the port's census reads, the law sheets its gate enumerates, the
+   PUBLIC frozen fixture) is missing from the tree entirely and is filled in here.
+   rebuild/conform/private is excluded outright and is never read by any test. */
+const R1_OWNED=[/^rebuild\/conform\/lib\//,/^rebuild\/conform\/adapters\/client\.cjs$/,
+ /^rebuild\/conform\/laws\/sheet-B-client\.cjs$/,/^rebuild\/conform\/private\//];
+const names=new Set(git(['ls-files',...CANDIDATE_TREES]).toString().trim().split(/\r?\n/)
+ .filter(name=>name&&!R1_OWNED.some(pattern=>pattern.test(name))));
 for(const name of ['history-proof.mjs','CURRENT-HEAD-CONSUMER.md','test/current-head.test.mjs','test/run-current-head.cjs','test/workout-commands.test.mjs','test/workout-http.test.mjs','test/browser-workout.mjs','test/browser-panel.mjs','test/panel-extension.mjs','test/workout-bite.cjs'])names.add('rebuild/m3/w6/'+name);
 for(const name of ['schema.cjs','context-values.cjs','authority-profile.cjs','commands.cjs','command-panel.mjs','stored-history.mjs','project-history.mjs'])names.add('rebuild/m4/workout/'+name);
+/* The ONE file outside rebuild/ the composed tree needs, named rather than
+   globbed: port.cjs runs the frozen half of the port-oracle gate as a second
+   Node process preloading ./tools/_fixed-now.mjs from the repository root (the
+   frozen clock; harness only, no engine code and no data). Without it that half
+   produced 0 laws and port.cjs refused to seal - "frozen 0/0 ... scope
+   UNEXPECTED". It is pinned like every other copied file. */
+const EXTRA_FILES=['tools/_fixed-now.mjs'];
+for(const name of EXTRA_FILES)names.add(name);
 const pins={};
 for(const name of names){
-  if(!(name.startsWith('rebuild/m3/w6/')||name.startsWith('rebuild/client/')||name.startsWith('rebuild/m4/workout/'))||name.includes('..'))throw Error('Unexpected candidate path');
+  if(!(CANDIDATE_TREES.some(tree=>name.startsWith(tree+'/'))||EXTRA_FILES.includes(name))||name.includes('..'))throw Error('Unexpected candidate path: '+name);
   const raw=fs.readFileSync(path.join(root,name)),dest=path.join(output,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,raw);
   pins[name]=crypto.createHash('sha256').update(raw).digest('hex');
 }
@@ -33,12 +64,26 @@ for(const name of ['rebuild/m3/w5/source/codec.cjs','rebuild/m3/w5/reconciliatio
 // R1 composition and explicit candidate pins. This does not claim old acceptance.
 const editPins=JSON.parse(fs.readFileSync(path.join(root,'rebuild/m3/w6/test/shared-edit-source-pins.json'),'utf8'));
 const editNames=['schema.cjs','authority-profile.cjs','edit-values.cjs','context-values.cjs','edit-history.cjs'];
-if(editPins.profile!=='earned/shared-workout-edit-candidate/v1'||Object.keys(editPins.files).length!==editNames.length)throw Error('Shared edit candidate manifest invalid');
+if(editPins.profile!=='earned/shared-workout-edit-candidate/v1'||Object.keys(editPins.files).length!==editNames.length
+ ||!editPins.r1||Object.keys(editPins.r1).length!==editNames.length)throw Error('Shared edit candidate manifest invalid');
+// C4b: BOTH sides are pinned, and neither is inferred. The retained R1 branch
+// moves on its own and the candidate has been carried forward past it (schema.cjs
+// is the tip superset, joined at 7ffe204), so demanding byte equality with R1's
+// WORKING TREE could only rot - it was already failing this harness at step one.
+// `files` pins the candidate, `r1` pins the exact R1 bytes the candidate was
+// checked against (null where R1 has no such file, as for edit-history.cjs, which
+// used to be a hardcoded name exemption). An UNDECLARED difference on either side
+// still fails, and both shas are recorded in source-manifest.json.
+const r1EditPins={};
 for(const name of editNames){
  const source='rebuild/m4/workout/'+name;
  const candidate=fs.readFileSync(path.join(root,source));
- const authorityMatches=name==='edit-history.cjs'||candidate.equals(fs.readFileSync(path.join(r1,source)));
- if(!authorityMatches||crypto.createHash('sha256').update(candidate).digest('hex')!==editPins.files[name])throw Error('Shared edit candidate source differs: '+source);
+ const candidateSha=crypto.createHash('sha256').update(candidate).digest('hex');
+ if(candidateSha!==editPins.files[name])throw Error('Shared edit candidate source differs: '+source+' ('+candidateSha+')');
+ const r1Path=path.join(r1,source);
+ const r1Sha=fs.existsSync(r1Path)?crypto.createHash('sha256').update(fs.readFileSync(r1Path)).digest('hex'):null;
+ if(r1Sha!==editPins.r1[name])throw Error('Retained R1 shared edit source differs: '+source+' ('+r1Sha+' vs declared '+editPins.r1[name]+')');
+ r1EditPins[name]=r1Sha;
 }
 // Disposable runner only: use the already installed locked dependency trees.
 // The retained worktrees themselves still have real node_modules directories.
@@ -47,7 +92,15 @@ for(const [dir,source]of [['w6',root],['w5',r1]]){
   if(!fs.statSync(modules).isDirectory())throw Error('Existing dependencies required');
   fs.symlinkSync(modules,path.join(output,'rebuild/m3',dir,'node_modules'),process.platform==='win32'?'junction':'dir');
 }
-fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,r1SourceRoot:r1,r1CandidateSources,w6SourceRoot:root,pins},null,2));
+/* C4b: the REPOSITORY's own locked tree too. In place, a test under
+   rebuild/m3/w6/test resolves jsdom by walking up to the repository root; the
+   composed tree had no root node_modules, so local-today-journey.test.mjs could
+   not find it. Same rule as the two above - an existing installed tree is
+   linked, never installed. */
+const rootModules=path.join(root,'node_modules');
+if(!fs.statSync(rootModules).isDirectory())throw Error('Existing dependencies required');
+fs.symlinkSync(rootModules,path.join(output,'node_modules'),process.platform==='win32'?'junction':'dir');
+fs.writeFileSync(path.join(output,'source-manifest.json'),JSON.stringify({r1:base,r1SourceRoot:r1,r1CandidateSources,r1EditPins,candidateTrees:CANDIDATE_TREES,w6SourceRoot:root,pins},null,2));
 let mutation=null,preparedRestore=null;
 const editBites={'--edit-bite':'context.snapshotRevision!==entry.revision||context.snapshotToken!==entry.token||',
  '--edit-rejected-bite':"if(fact.source_status==='rejected')throw new StorageFailure('WORKOUT_EDIT_TARGET_REJECTED',19);",
