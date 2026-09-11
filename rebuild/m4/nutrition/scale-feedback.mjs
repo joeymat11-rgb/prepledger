@@ -74,7 +74,9 @@ export function projectScaleFeedback({ generation, athleteId, deviceId, asOf, re
       }).filter(row => row.view?.active !== false && !(layer === 'accepted' && !row.view));
       if (closes.some(({ operation, view }) => {
         const time = instant(view?.current?.effective ?? operation.effective);
-        return time !== null && time > at && time <= cutoff && precedes(operation, reading);
+        // Current evidence can contradict recording order even beyond the
+        // effective contribution cutoff; as-of is not a knowledge snapshot.
+        return time !== null && time > at && precedes(operation, reading);
       })) return 'SCALE_TRAINING_CHRONOLOGY_REQUIRED';
       const relevant = closes.filter(({ operation, view }) => {
         const time = instant(view?.current?.effective ?? operation.effective);
@@ -159,6 +161,8 @@ export function projectScaleFeedback({ generation, athleteId, deviceId, asOf, re
   })) };
   return freeze({ profile: 'earned/native-scale-feedback/v1', asOf: copy(asOf), frontier: readingHistory.frontier, sourceRevision,
     sourceContext: sourceContextRequired ? 'SOURCE_BLACKOUT_MAPPING_REQUIRED' : 'NATIVE_NO_SOURCE_IMPORT',
-    readingHistory, workoutHistory, accepted: projectLayer('accepted'), local: projectLayer('local'),
+    // storedWorkoutHistory borrows operation references; own this exposed view
+    // before freezing it, without cloning the entire repository generation.
+    readingHistory, workoutHistory: copy(workoutHistory), accepted: projectLayer('accepted'), local: projectLayer('local'),
     machineProjection: false, prescriptionEligible: false });
 }

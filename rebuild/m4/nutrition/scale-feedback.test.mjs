@@ -250,3 +250,99 @@ test('shared native close correction/removal semantics keep accepted and local c
   const post = projectScaleFeedback({ ...args, asOf: effective('2026-09-11', '07:59'), generation: original });
   assert.deepEqual(reasons(post.local), ['READING_AFTER_AS_OF']);
 });
+
+test('C4 projection owns every frozen result reference and preserves caller descriptors and later mutation', async () => {
+  const produced = await journey(), g = structuredClone(produced.generation);
+  const start = Object.values(g.collections.ops).find(op => op.kind === 'session-start');
+  function objects(value, seen = new Set()) {
+    if (value && typeof value === 'object' && !seen.has(value)) {
+      seen.add(value);
+      for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(value))) objects(descriptor.value, seen);
+    }
+    return seen;
+  }
+  const input = [...objects(g)].map(value => ({ value, descriptors: Object.getOwnPropertyDescriptors(value),
+    extensible: Object.isExtensible(value), sealed: Object.isSealed(value), frozen: Object.isFrozen(value) }));
+  assert.equal(Object.isFrozen(start), false); assert.equal(Object.isFrozen(start.causal_parents), false);
+  const view = projectScaleFeedback({ ...produced.args, generation: g });
+  assert.equal(Object.isFrozen(start), false, 'projection must not freeze caller-owned Start');
+  for (const before of input) {
+    assert.deepEqual(Object.getOwnPropertyDescriptors(before.value), before.descriptors);
+    assert.equal(Object.isExtensible(before.value), before.extensible);
+    assert.equal(Object.isSealed(before.value), before.sealed);
+    assert.equal(Object.isFrozen(before.value), before.frozen);
+  }
+  const callerObjects = new Set(input.map(row => row.value));
+  for (const value of objects(view)) {
+    assert.equal(callerObjects.has(value), false, 'returned snapshot must own all frozen references');
+    assert.equal(Object.isFrozen(value), true, 'returned snapshot must remain recursively immutable');
+  }
+  const snapshot = structuredClone(view), returnedStart = view.workoutHistory.sessions[0].start.operation;
+  assert.notEqual(returnedStart, start);
+  assert.throws(() => { returnedStart.effective.local_time = '08:01'; }, TypeError);
+  assert.throws(() => { returnedStart.causal_parents.push('caller-only'); }, TypeError);
+  assert.doesNotThrow(() => {
+    start.callerNote = 'still caller-owned';
+    start.causal_parents.push('caller-only');
+    start.effective.local_time = '08:01';
+    g.collections.outbox.callerNote = { pending: true };
+  });
+  assert.equal(start.causal_parents.at(-1), 'caller-only');
+  assert.deepEqual(view, snapshot, 'later caller mutations cannot change the returned snapshot');
+});
+
+async function contradictoryCompletion({ causal = false } = {}) {
+  const { generation: original, args } = await journey();
+  const operations = Object.values(original.collections.ops).sort((a, b) => a.device_seq - b.device_seq);
+  const weight = operations.find(op => op.class === 'reading'), close = operations.find(op => op.kind === 'session-close');
+  const backdated = Client.ops.build({ op_id: 'cutoff-backdated-reading', athlete_id: args.athleteId, device_id: args.deviceId,
+    device_seq: weight.device_seq, predecessor: causal ? null : close.op_id, parents: causal ? [close.op_id] : [],
+    kind: 'fact', class: 'reading', lease_id: weight.lease_id, effective: effective('2026-09-11', '07:00'), payload: weight.payload }, cfg.identityKey);
+  assert.equal(close.effective.local_time, '08:00');
+  assert.equal(backdated.effective.local_time, '07:00');
+  if (causal) assert.deepEqual(backdated.causal_parents, [close.op_id]);
+  else { assert.equal(backdated.device_predecessor_op_id, close.op_id); assert.equal(backdated.device_seq, close.device_seq + 1); }
+  return { args, close, backdated, operations: operations.filter(op => op !== weight).concat(backdated) };
+}
+
+test('known contradictory completion stays a requirement before and after its effective cutoff in both layers', async () => {
+  for (const causal of [false, true]) {
+    const { args, operations } = await contradictoryCompletion({ causal });
+    for (const layer of ['local', 'accepted']) for (const time of ['07:30', '10:00']) {
+      const g = layer === 'local' ? generation([], operations) : generation(operations);
+      const v = projectScaleFeedback({ ...args, generation: g, asOf: effective('2026-09-11', time) });
+      assert.equal(v[layer].baseline, null, `${layer}/${time}: known contradictory Close must not seed baseline`);
+      assert.deepEqual(reasons(v[layer]), ['SCALE_TRAINING_CHRONOLOGY_REQUIRED']);
+      if (layer === 'local') assert.equal(v.accepted.baseline, null);
+    }
+  }
+});
+
+test('cutoff chronology retains current close removal/correction and accepted versus pending interpretation', async () => {
+  const { args, close, backdated, operations } = await contradictoryCompletion();
+  const edit = (kind, payload) => Client.ops.build({ op_id: `cutoff-close-${kind}`, athlete_id: args.athleteId,
+    device_id: args.deviceId, device_seq: backdated.device_seq + 1, predecessor: backdated.op_id,
+    parents: [close.op_id], target: close.op_id, kind, class: 'session', schema_version: 2,
+    lease_id: close.lease_id, effective: effective('2026-09-11', '10:00'), payload }, cfg.identityKey);
+  const removal = edit('tombstone', { reason: 'synthetic close removed' });
+  const correction = edit('correction', { replacement_fields: { completion_kind: 'early' } });
+  for (const time of ['07:30', '10:00']) {
+    const at = effective('2026-09-11', time);
+    const removed = projectScaleFeedback({ ...args, generation: generation(operations, [removal]), asOf: at });
+    assert.equal(removed.local.baseline.value, 170); assert.deepEqual(reasons(removed.local), []);
+    assert.equal(removed.accepted.baseline, null); assert.deepEqual(reasons(removed.accepted), ['SCALE_TRAINING_CHRONOLOGY_REQUIRED']);
+    const corrected = projectScaleFeedback({ ...args, generation: generation(operations, [correction]), asOf: at });
+    for (const layer of ['accepted', 'local']) assert.deepEqual(reasons(corrected[layer]), ['SCALE_TRAINING_CHRONOLOGY_REQUIRED']);
+  }
+});
+
+test('actual later C4 completion never retroactively excludes earlier reading, while future reading stays excluded', async () => {
+  const { generation: original, args } = await journey({ readingFirst: true });
+  const operations = Object.values(original.collections.ops).sort((a, b) => a.device_seq - b.device_seq);
+  for (const layer of ['local', 'accepted']) for (const time of ['07:30', '08:30', '10:00']) {
+    const g = layer === 'local' ? generation([], operations) : generation(operations);
+    const v = projectScaleFeedback({ ...args, generation: g, asOf: effective('2026-09-11', time) })[layer];
+    assert.equal(v.baseline?.value ?? null, time === '07:30' ? null : 170);
+    assert.deepEqual(reasons(v), time === '07:30' ? ['READING_AFTER_AS_OF'] : []);
+  }
+});

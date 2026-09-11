@@ -23,6 +23,10 @@ baseline, smoothed weight, scale rate, exclusions and requirements. Local means
 accepted plus pending own-device facts under the existing interpreters. It is
 factual feedback, not an authority-accepted machine receipt. `fatRate` is always
 null; `machineProjection` and `prescriptionEligible` remain false.
+Every frozen result reference is owned by the projection. Caller-owned objects,
+their descriptors and extensibility remain unchanged; later caller mutations
+cannot alter the returned snapshot. Only the exposed workout view is copied at
+that boundary, not the whole repository generation.
 
 ## Reading and training mapping
 
@@ -54,7 +58,11 @@ null; `machineProjection` and `prescriptionEligible` remain false.
   recording-chronology evidence only: it never overrides the semantic edit fold.
   Equal timestamps can be ordered by that chain. Missing/unordered cross-device
   evidence or contradictory recording/effective order requires
-  `SCALE_TRAINING_CHRONOLOGY_REQUIRED`. Unsupported/unresolved completion facts,
+  `SCALE_TRAINING_CHRONOLOGY_REQUIRED`. A known predecessor completion whose
+  effective instant contradicts that order remains a chronology requirement
+  even beyond the as-of cutoff. Current evidence is retained; a genuinely later
+  completion that does not precede the reading does not create this requirement.
+  Unsupported/unresolved completion facts,
   missing Start association and ambiguous closes require
   `SCALE_TRAINING_INTERPRETATION_REQUIRED` for the affected reading.
 * Current close corrections/removals are folded by the existing native schema.

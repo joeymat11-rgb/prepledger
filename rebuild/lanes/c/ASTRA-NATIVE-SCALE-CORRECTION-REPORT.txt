@@ -1,0 +1,83 @@
+EARNED — NATIVE SCALE CORRECTION CANDIDATE
+2026-09-11. Builder evidence only; independent delta review remains required.
+
+(1) EXACT SOURCE / SCOPE
+Brief: rebuild/lanes/ASTRA-NATIVE-SCALE-CORRECTION.md at PM 1f31d0c.
+Parent: 95c6a5423cf4de364e24fc24f8b1754a49dcbc91.
+Branch: codex/astra-native-scale-correction.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work
+Isolated worktree: BASE/astra-native-scale-correction, created from exact parent.
+Read NEXT/ROADMAP, AGENTS/LANES/owner rulings, original brief/contract/report,
+and independent report at 2d53a6ad56a2785e358b20fac96ba4bdf6877cb3 plus its probe.
+That final independent report contains F1/F2; no additional finding was added.
+Only scale-feedback.mjs, appended scale-feedback.test.mjs, concise CONTRACT.md
+correction and this sole report change. Existing 19 tests/assertions are intact;
+executed parent-prefix comparison confirms this after line-ending normalization.
+
+(2) CORRECTIONS
+F1: copy only the exposed storedWorkoutHistory result before recursive freeze.
+The internal reader can retain caller references; returned histories own theirs.
+No duplicate of the complete repository generation or change to shared readers.
+F2: the contradictory-predecessor check no longer requires closeTime <= cutoff.
+Known current recording-order evidence survives an effective contribution cutoff.
+The current close edit fold, active/status filters, original effective reading
+date, causal/consecutive-device evidence and actual future-reading filter remain.
+No shared scale arithmetic, coefficient, scientific rule or winner changed.
+
+(3) RED-FIRST EVIDENCE
+Before product edits, exact parent's original 19 tests: 19 PASS, 0 FAIL, exit 0.
+Appended four tests, leaving parent product bytes unchanged, then executed:
+  23 tests: 20 PASS, 3 FAIL, 0 skipped/cancelled, exit 1.
+F1 actual C4-produced Start/Set/Close/reading, independently cloned generation:
+  Start was mutable before projection; afterward Object.isFrozen(start) was
+  true, expected false: 'projection must not freeze caller-owned Start'.
+F2 actual C4 Close effective 08:00, subsequent reading rebuilt by actual T2
+  envelope builder with effective 07:00 and retained consecutive predecessor:
+  asOf 07:30 returned baseline 170, expected null with chronology requirement.
+  The new accepted/pending-removal control failed on the same 170 vs null.
+  The original contradictory-order assertion at asOf 10:00 already passed.
+The fourth added test, genuine reading-before-later-close plus future-reading
+exclusion, passed before the fix. The original 19 remained green in the red run.
+An initial new-fixture assertion incorrectly expected '08:00:00'; actual C4
+produces '08:00'. Corrected that test expectation before the red run above;
+it was test setup, not a product defect or claimed chronology witness.
+
+(4) EXACT COMMANDS / GREEN EVIDENCE
+PowerShell cwd: BASE/astra-native-scale-correction.
+Runtime node = C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe
+Executed runtime version: v24.19.0. No installs.
+Retained junctions in this tree only:
+  node_modules -> BASE/m3-w6-browser-bridge/node_modules
+  rebuild/m3/w6/node_modules -> BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules
+For every test command, environment was:
+  $env:TZ='America/New_York'
+  $env:NODE_PATH='C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/m3-w6-browser-bridge/rebuild/m3/w6/node_modules'
+  $env:EARNED_READING_W6_ROOT=(Get-Location).Path
+  $env:EARNED_SOURCE_R1_ROOT=(Get-Location).Path
+Original and red-first command (node denotes the full runtime path above):
+  node --test --test-reporter=spec rebuild/m4/nutrition/scale-feedback.test.mjs
+After both minimal fixes, executed joined command:
+  node --test --test-reporter=spec rebuild/m4/nutrition/scale-feedback.test.mjs rebuild/m3/w6/test/reading-history.test.mjs rebuild/m4/workout/test/native-baseline-journey.test.mjs rebuild/m4/import/test/reading-replay.test.cjs
+Result: 65 PASS, 0 FAIL, 0 skipped/cancelled, exit 0 (23 scale + 42 neighboring).
+git diff --check: PASS.
+
+F1 green checks every reachable caller object's property descriptors and
+extensibility/sealed/frozen state before/after, no output/input object aliases,
+recursive output immutability, rejection of output mutations, and successful
+caller Start/causal_parents/effective/outbox mutations with unchanged snapshot.
+F2 green checks both 07:30 and 10:00 cutoffs, accepted and local layers,
+consecutive-device and causal-parent evidence; pending removal restores only
+local eligibility, accepted contradiction persists, completion correction stays
+explicit. Genuine later C4 completion leaves the earlier reading useful at
+08:30 and 10:00; asOf 07:30 excludes that future reading in both layers.
+Synthetic receipt fixtures in boundary tests do not claim authority evidence.
+
+(5) LIMITS / HANDOFF
+No frozen app/laws/oracle/private material, shared engine, other worktree,
+storage/policy/runtime export or lockfile changed. No install, new agent,
+remote push/PR/merge/deploy, full/private campaign or self-acceptance performed.
+Retained original scope gaps: imported-source blackout mapping, unsupported
+reading time reclassification, host/Today wiring, personal goals/four-field
+nutrition plan, recovery/progression, full engine qualification and phone proof.
+Same independent nonauthor reviewer must verify this delta; a third person
+integrates. This report grants no package receipt or phone-ready status.
