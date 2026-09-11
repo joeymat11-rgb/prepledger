@@ -93,29 +93,113 @@
 </article>
 </template>
 
+<!-- A3 · the recovery check-in. ADDITIONS C's recovery screen (?screen=recovery),
+     structure for structure and word for word: its questions, its choices, its
+     conditional detail blocks, its optional collapsed note, its one primary action
+     and its caption. Two controls the approved prototype has no screen for are
+     preview-owned and declared as such in design.cjs: the pair that CONFIRMS an
+     existing dated sleep record instead of asking for it twice (the approved
+     handoff item 4 requires the reuse; the prototype stores nothing, so it can
+     never have a record to reuse). Every answer starts unselected; the view sets
+     no aria-pressed="true" and no <option> selected here. -->
 <template id="t-recovery">
 <article class="page checkin">
   <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
   <header class="detail-head">
     <h1>A quick check-in.</h1>
-    <p data-own data-slot="stub-note"></p>
+    <p>A few details to help put today’s training in context. Answer what you can; leave the rest blank.</p>
   </header>
+  <div class="followup" data-slot="recorded" hidden></div>
+
+  <fieldset class="question" data-slot="sleep-question"><legend>Last night’s sleep</legend>
+    <div class="followup" data-slot="sleep-known" hidden>
+      <p data-own data-slot="sleep-known-lead"></p>
+      <p data-own data-slot="sleep-known-fact"></p>
+      <div class="options">
+        <button class="option" type="button" data-confirm="sleep" aria-pressed="false" data-own>Yes, that’s right</button>
+        <button class="option" type="button" data-confirm="reject" aria-pressed="false" data-own>No — answer it here</button>
+      </div>
+    </div>
+    <div data-slot="sleep-ask">
+      <div class="sleep-line">
+        <input class="hours" id="sleep-hours" type="number" min="0" max="24" step="any" inputmode="decimal" placeholder="—" data-field="sleep_hours">
+        <label for="sleep-hours">hours asleep, approximately</label>
+      </div>
+    </div>
+    <p class="quality-label" id="quality-label">How was the quality?</p>
+    <div class="options" role="group" aria-labelledby="quality-label">
+      <button class="option" type="button" aria-pressed="false" data-group="sleep_quality">Poor</button>
+      <button class="option" type="button" aria-pressed="false" data-group="sleep_quality">Okay</button>
+      <button class="option" type="button" aria-pressed="false" data-group="sleep_quality">Good</button>
+    </div>
+  </fieldset>
+
   <fieldset class="question"><legend>Energy right now</legend><div class="options">
-    <button class="option" type="button" disabled aria-pressed="false">Low</button>
-    <button class="option" type="button" disabled aria-pressed="false">Moderate</button>
-    <button class="option" type="button" disabled aria-pressed="false">High</button>
+    <button class="option" type="button" aria-pressed="false" data-group="energy">Low</button>
+    <button class="option" type="button" aria-pressed="false" data-group="energy">Moderate</button>
+    <button class="option" type="button" aria-pressed="false" data-group="energy">High</button>
   </div></fieldset>
+
   <fieldset class="question"><legend>Muscle soreness right now</legend><div class="options">
-    <button class="option" type="button" disabled aria-pressed="false">None</button>
-    <button class="option" type="button" disabled aria-pressed="false">Mild</button>
-    <button class="option" type="button" disabled aria-pressed="false">Significant</button>
+    <button class="option" type="button" aria-pressed="false" data-group="soreness">None</button>
+    <button class="option" type="button" aria-pressed="false" data-group="soreness">Mild</button>
+    <button class="option" type="button" aria-pressed="false" data-group="soreness">Significant</button>
+  </div>
+  <div class="followup" data-follow="soreness" hidden>
+    <label for="sore-location">Which muscles?</label>
+    <input id="sore-location" data-field="soreness_location">
+    <label for="sore-impact">Does it affect your usual movement?</label>
+    <select id="sore-impact" data-field="soreness_impact">
+      <option value="">Leave unanswered</option><option>No</option><option>A little</option><option>Quite a lot</option><option>Not sure</option>
+    </select>
   </div></fieldset>
+
   <fieldset class="question"><legend>Stress right now</legend><div class="options">
-    <button class="option" type="button" disabled aria-pressed="false">Low</button>
-    <button class="option" type="button" disabled aria-pressed="false">Moderate</button>
-    <button class="option" type="button" disabled aria-pressed="false">High</button>
+    <button class="option" type="button" aria-pressed="false" data-group="stress">Low</button>
+    <button class="option" type="button" aria-pressed="false" data-group="stress">Moderate</button>
+    <button class="option" type="button" aria-pressed="false" data-group="stress">High</button>
   </div></fieldset>
-  <p class="fine" data-own>Every answer is blank, and blank means unknown. Nothing here is recorded.</p>
+
+  <fieldset class="question"><legend>Anything else affecting today?</legend><div class="options">
+    <button class="option" type="button" aria-pressed="false" data-issue="pain">Pain</button>
+    <button class="option" type="button" aria-pressed="false" data-issue="illness">Feeling ill</button>
+    <button class="option" type="button" aria-pressed="false" data-issue="away">Time away</button>
+  </div>
+  <div class="followup" data-follow="pain" hidden>
+    <p>Keep pain separate from ordinary muscle soreness.</p>
+    <label for="pain-location">Where, and during which movement?</label>
+    <input id="pain-location" data-field="pain_location">
+    <label for="pain-change">Is this new or changed?</label>
+    <select id="pain-change" data-field="pain_change">
+      <option value="">Leave unanswered</option><option>New</option><option>Worse than before</option><option>Ongoing, unchanged</option><option>Improving</option><option>Not sure</option>
+    </select>
+    <label for="pain-impact">How does it affect movement?</label>
+    <select id="pain-impact" data-field="pain_impact">
+      <option value="">Leave unanswered</option><option>No noticeable effect</option><option>I change how I move</option><option>I cannot do the movement</option><option>Not sure</option>
+    </select>
+  </div>
+  <div class="followup" data-follow="illness" hidden>
+    <label for="ill-note">What symptoms, and when did they start?</label>
+    <input id="ill-note" data-field="illness_note">
+  </div>
+  <div class="followup" data-follow="away" hidden>
+    <label for="away-days">About how many days away from training?</label>
+    <input id="away-days" type="number" min="0" step="1" inputmode="numeric" data-field="away_days">
+    <label for="away-reason">What was the reason?</label>
+    <input id="away-reason" data-field="away_reason">
+  </div></fieldset>
+
+  <details class="checkin-note"><summary>Add a note, if useful</summary>
+    <label class="note-label" for="recovery-note">Anything the answers missed?</label>
+    <textarea id="recovery-note" data-field="note"></textarea>
+  </details>
+
+  <p class="error" id="checkin-error" role="alert"></p>
+  <div class="bottom">
+    <button class="primary" type="button" data-slot="primary"><span data-slot="primary-label">Add today’s context</span><span data-arrow></span></button>
+    <p class="caption">Your answers belong alongside your training data.</p>
+    <p class="fine" data-own data-slot="fine"></p>
+  </div>
 </article>
 </template>
 
@@ -198,7 +282,9 @@
   </section>
   <div class="gym-actions">
     <button class="cta" type="button" data-slot="log"><span data-slot="log-label"></span><span data-check></span></button>
-    <div class="secondary-row"><button class="text-link" type="button" data-action="clean-rep">What counts as a clean rep?</button></div>
+    <!-- A3 · the check-in is reachable from the workout flow too, in the approved
+         design's own sentence. Hidden unless the page supplies the check-in entry. -->
+    <div class="secondary-row"><button class="text-link" type="button" data-action="clean-rep">What counts as a clean rep?</button><button class="text-link" type="button" data-action="checkin" hidden>How are you feeling today?</button></div>
     <div class="small quiet" data-slot="clean-rep-note" hidden></div>
   </div>
   <div class="next-lift">

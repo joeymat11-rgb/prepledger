@@ -62,7 +62,12 @@ const RUNTIME_CLASSES = Object.freeze(["macro-row", "row", "number", "unit", "ar
 // the approved prototype saves nothing and refuses nothing.
 const PREVIEW_COPY = Object.freeze([
   "Not now",
-  "Every answer is blank, and blank means unknown. Nothing here is recorded.",
+  /* A3 — the two controls that CONFIRM an existing dated sleep record instead of
+     asking for it twice. The approved handoff item 4 requires that reuse; the
+     approved prototype stores nothing, so it can never have a record to reuse and
+     has no words for confirming one. */
+  "Yes, that’s right",
+  "No — answer it here",
 ]);
 // Static copy that MUST come from the approved references.
 const APPROVED_COPY = Object.freeze([
@@ -75,6 +80,26 @@ const APPROVED_COPY = Object.freeze([
   "A quick check-in.", "Energy right now", "Muscle soreness right now", "Stress right now",
   "Low", "Moderate", "High", "None", "Mild", "Significant",
   "Ask your coach.", "Make sense of your plan and the progress behind it.",
+  /* A3 — every word of the approved recovery screen (?screen=recovery), question by
+     question, choice by choice, including the conditional detail the approved notes
+     enumerate. Each is asserted to occur verbatim in the approved references AND in
+     this page's template, so the screen can neither drift from the design nor lose a
+     branch of it silently. */
+  "A few details to help put today’s training in context. Answer what you can; leave the rest blank.",
+  "Last night’s sleep", "hours asleep, approximately", "How was the quality?",
+  "Poor", "Okay", "Good",
+  "Which muscles?", "Does it affect your usual movement?",
+  "Leave unanswered", "A little", "Quite a lot", "Not sure",
+  "Anything else affecting today?", "Pain", "Feeling ill", "Time away",
+  "Keep pain separate from ordinary muscle soreness.",
+  "Where, and during which movement?", "Is this new or changed?",
+  "New", "Worse than before", "Ongoing, unchanged", "Improving",
+  "How does it affect movement?",
+  "No noticeable effect", "I change how I move", "I cannot do the movement",
+  "What symptoms, and when did they start?",
+  "About how many days away from training?", "What was the reason?",
+  "Add a note, if useful", "Anything the answers missed?",
+  "Add today’s context", "Your answers belong alongside your training data.",
 ]);
 /* Approved copy the VIEW composes at runtime rather than carrying in the template,
    because it sits beside a bound value ("Weight trend 180.1 lb"). Each string is checked
@@ -89,6 +114,18 @@ const RUNTIME_COPY = Object.freeze([
   " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
   "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
   " recorded",
+]);
+/* A3 — the approved question wording the CHECK-IN composes at runtime, beside a
+   stored answer, when it reads today's recorded check-in back. Same rule as A1's and
+   A2's: verbatim in the approved references, and present in a view source. */
+const CHECKIN_RUNTIME_COPY = Object.freeze([
+  "Last night’s sleep", "How was the quality?", "Energy right now",
+  "Muscle soreness right now", "Which muscles?", "Does it affect your usual movement?",
+  "Stress right now", "Anything else affecting today?",
+  "Where, and during which movement?", "Is this new or changed?", "How does it affect movement?",
+  "What symptoms, and when did they start?", "About how many days away from training?",
+  "What was the reason?", "Anything the answers missed?",
+  "Pain", "Feeling ill", "Time away",
 ]);
 /* Copy this PREVIEW owns at runtime, exactly as PREVIEW_COPY is owned in the
    template. Each entry says something the approved prototype cannot, and each is
@@ -124,6 +161,25 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      prototype has no unfinished session and so no words for either. */
   "An earlier workout was never finished",
   "Close the unfinished workout",
+  /* A3 — the check-in. The approved prototype records nothing, reuses nothing and
+     refuses nothing, so it has no words for: a recorded check-in and its provenance,
+     an existing dated sleep record offered for confirmation, a blank sheet that has
+     recorded nothing yet, a form bound, a device with no store, or the plain
+     statement that these answers reach no training rule. Each is checked to be
+     ABSENT from the approved references. */
+  "Nothing is recorded yet. Every answer is blank, and blank means unknown — never none, never zero.",
+  "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+  "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
+  "This device could not open its encrypted local store, so no check-in can be recorded here.",
+  "Your sleep record already has last night.",
+  "From your sleep record for ",
+  "Recorded today at ",
+  "Your plan is unchanged: nothing in this check-in reaches a training rule yet.",
+  "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
+  "Days away from training is recorded as a whole number of days. Nothing was recorded.",
+  "This check-in could not be recorded on this device, and no part of it was recorded.",
+  "— recorded today",
+  "— not available on this device",
 ]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -191,7 +247,7 @@ function assertDesignBinding(approved, templateHtml, appSource) {
     assert(templateHtml.includes(line), `COPY-BINDING FAIL: declared approved copy missing from the template: "${line}"`);
   }
   if (appSource !== undefined) {
-    for (const line of RUNTIME_COPY) {
+    for (const line of [...RUNTIME_COPY, ...CHECKIN_RUNTIME_COPY]) {
       assert(approvedText.includes(line), `COPY-BINDING FAIL: declared runtime copy missing upstream: "${line}"`);
       assert(appSource.includes(line), `COPY-BINDING FAIL: declared runtime copy missing from the view: "${line}"`);
     }
@@ -206,7 +262,7 @@ function assertDesignBinding(approved, templateHtml, appSource) {
     assert(!/\d/.test(line), `NO-NUMBERS FAIL: the template carries a literal figure: "${line}"`);
   }
   return { classes: used.size, copy: PREVIEW_COPY.length + APPROVED_COPY.length
-    + (appSource === undefined ? 0 : RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
+    + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
 // The shipped stylesheet: the inlined pinned typefaces, then the approved bytes in order,
@@ -244,7 +300,10 @@ const SOURCE = __dirname;
 /* Every module that can put a word on the screen. A2 adds the gym card's view and
    its adapter, so the copy binding covers the gym screens exactly as it covers
    Today's. */
-const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs"]);
+const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs",
+  /* A3 — the check-in's view and its answer model, so every word the check-in can put
+     on screen is bound exactly as Today's and the gym card's are. */
+  "checkin-app.mjs", "checkin-model.mjs"]);
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
 const appSource = () => VIEW_SOURCES.map((name) => fs.readFileSync(path.join(SOURCE, name), "utf8")).join("\n");
 const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8");
@@ -252,7 +311,7 @@ const shellHtml = () => fs.readFileSync(path.join(SOURCE, "index.shell.html"), "
 
 module.exports = {
   ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
-  PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
+  CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,

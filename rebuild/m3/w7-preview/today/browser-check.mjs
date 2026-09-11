@@ -173,11 +173,15 @@ try {
   const sweptAfter = await sweep(sweepPage, "after a weigh-in");
   await sweepContext.close();
 
-  /* review D-2: the unwired entry points say so on Today's own face. */
-  for (const name of ["nutrition-state", "recovery-state", "coach-state"]) {
+  /* review D-2: the unwired entry points say so on Today's own face. A3 wired the
+     recovery check-in, so it is no longer one of them: its marker carries the durable
+     fact instead, and says NOTHING at all while nothing is recorded. */
+  for (const name of ["nutrition-state", "coach-state"]) {
     const text = (await page.textContent('[data-slot="' + name + '"]')).trim();
     assert.equal(text, "— not wired yet", name + " does not say so on Today's face");
   }
+  assert.equal((await page.textContent('[data-slot="recovery-state"]')).trim(), "",
+    "a blank check-in must be blank on Today's face, never 'none' and never 'not wired'");
 
   /* review F1: a spike reading must carry the engine's own note beside it. Checked on a
      second browser profile so it does not disturb the reading above. */

@@ -67,6 +67,13 @@ const REQUIRED_INPUTS = Object.freeze([
      repository, not localStorage. A build that lost this module would be a page
      whose readings can vanish on a hard kill. */
   "rebuild/m3/w7-preview/today/reading-host.mjs",
+  /* A3 — the recovery check-in really is the accepted encrypted repository under the
+     accepted durable public client over rebuild/client, in the page. A build that
+     lost any of these would be a page whose check-in answers go nowhere. */
+  "rebuild/m3/w7-preview/today/checkin-host.mjs",
+  "rebuild/m3/w7-preview/today/checkin-commands.cjs",
+  "rebuild/m3/w7-preview/today/checkin-model.mjs",
+  "rebuild/m3/w7-preview/today/checkin-app.mjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
   "rebuild/m3/w6/public-client.mjs",

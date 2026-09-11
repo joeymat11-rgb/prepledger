@@ -254,15 +254,26 @@ test("every screen this slice does not build says so and shows no invented value
   assert.match(rows[3], /Fat/);
   assert.doesNotMatch(rows[2] + rows[3], /\d/, "no carbohydrate or fat figure is invented");
 
+  /* A3 — the recovery check-in IS wired now, so it no longer says "not wired yet".
+     With no check-in lane on this device (which is what a jsdom mount with no host
+     is) the screen shows the approved questions, keeps every answer blank, makes
+     every control inert, and says in the capture layer's own terms that nothing here
+     can be recorded. It must never claim the feature is unbuilt. */
   doc.querySelector('[data-go="today"]').click();
   doc.querySelector('[data-go="recovery"]').click();
-  assert.match(phoneText(doc), /not wired yet/);
+  assert.doesNotMatch(phoneText(doc), /not wired yet/, "the check-in is wired");
+  assert.match(phoneText(doc), /no check-in can be recorded here/);
+  assert.match(phoneText(doc), /A quick check-in\./);
   const options = [...doc.querySelectorAll(".option")];
   assert(options.length >= 9);
   for (const option of options) {
     assert.equal(option.getAttribute("aria-pressed"), "false", "every answer starts blank");
     assert.equal(option.disabled, true, "nothing here can be recorded");
   }
+  for (const select of doc.querySelectorAll("#phone select")) {
+    assert.equal(select.value, "", "every conditional detail starts unanswered");
+  }
+  assert.doesNotMatch(phoneText(doc), /\d/, "no figure is shown on a blank check-in");
 
   doc.querySelector('[data-go="today"]').click();
   doc.querySelector('[data-go="coach"]').click();
@@ -428,7 +439,10 @@ test("every figure on Today equals the reference engine's own value, slot by slo
 test("every unwired entry point says so on Today's own face, in secondary text", async () => {
   const kit = await setup();
   const { doc } = kit;
-  for (const name of ["nutrition-state", "recovery-state", "coach-state"]) {
+  /* A3 — recovery is no longer in this list: the check-in is WIRED. Today's recovery
+     entry now carries the durable fact instead (see the assertion below), and with no
+     check-in lane at all it says that, never "not wired yet". */
+  for (const name of ["nutrition-state", "coach-state"]) {
     const el = slot(doc, name);
     assert(el, name + " is on Today");
     assert.equal(el.textContent, app.NOT_WIRED);
@@ -438,16 +452,26 @@ test("every unwired entry point says so on Today's own face, in secondary text",
   assert(slot(doc, "recovery-state").classList.contains("muted"));
   assert(slot(doc, "coach-state").closest(".sub"), "the coach marker is in the .sub line");
   const face = phoneText(doc);
-  for (const label of ["Your full nutrition plan", "How are you feeling today?", "Ask your coach"]) {
+  for (const label of ["Your full nutrition plan", "Ask your coach"]) {
     const at = face.indexOf(label);
     assert(at >= 0, label);
     assert(face.slice(at, at + 120).includes(app.NOT_WIRED), label + " is not marked on Today's face");
   }
-  for (const screen of ["nutrition", "recovery", "coach"]) {
+  /* A3 — the recovery entry is marked with the DURABLE fact, never "not wired yet".
+     With no check-in lane the marker names the device, and a lane that holds nothing
+     for today says NOTHING: a blank check-in is blank, never "none". */
+  assert.equal(slot(doc, "recovery-state").textContent, app.CHECKIN_NO_STORE_SHORT);
+  const at = face.indexOf("How are you feeling today?");
+  assert(at >= 0);
+  assert(!face.slice(at, at + 120).includes(app.NOT_WIRED), "the check-in is wired");
+  for (const screen of ["nutrition", "coach"]) {
     doc.querySelector(`[data-go="${screen}"]`).click();
     assert.match(phoneText(doc), /not wired yet/, screen);
     doc.querySelector('[data-go="today"]').click();
   }
+  doc.querySelector('[data-go="recovery"]').click();
+  assert.doesNotMatch(phoneText(doc), /not wired yet/, "recovery");
+  doc.querySelector('[data-go="today"]').click();
   kit.close();
 });
 

@@ -72,12 +72,13 @@ test("the shipped template and view bind to the approved design", () => {
   const report = design.assertDesignBinding(approved, design.templateHtml(), design.appSource());
   assert(report.classes > 25, "the whole approved vocabulary is checked");
   assert.equal(report.copy, design.PREVIEW_COPY.length + design.APPROVED_COPY.length
-    + design.RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
+    + design.RUNTIME_COPY.length + design.CHECKIN_RUNTIME_COPY.length + design.PREVIEW_RUNTIME_COPY.length);
   // A2: the binding covers every module that can put a word on the screen, and it
   // really reads each of them — a module dropped from the list would take its copy
-  // out of the binding with it.
+  // out of the binding with it. A3 adds the check-in's view and answer model.
   assert.deepEqual(design.VIEW_SOURCES,
-    ["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs"]);
+    ["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs",
+      "checkin-app.mjs", "checkin-model.mjs"]);
   const source = design.appSource();
   for (const name of design.VIEW_SOURCES) {
     const own = fs.readFileSync(path.join(design.SOURCE, name), "utf8");

@@ -75,6 +75,15 @@ const CLOSE_UNFINISHED_WORKOUT = "Close the unfinished workout";
    workout host at all — never for a refusal that came from the accepted layer. */
 const NO_LOCAL_STORE = "Your workout could not be opened on this device, and nothing was recorded.";
 
+/* A3 — what Today says about the recovery check-in. The check-in is WIRED now, so
+   the "not wired yet" sentence is gone from that entry; what stands in its place is
+   the DURABLE fact of whether today's check-in is recorded, read from the same
+   client lane the screen writes to. Nothing is said when nothing is recorded: a
+   blank check-in is blank, never "none" and never "normal". */
+const CHECKIN_RECORDED_TODAY = "— recorded today";
+const CHECKIN_NO_STORE_SHORT = "— not available on this device";
+const CHECKIN_NO_STORE = "This device could not open its encrypted local store, so no check-in can be recorded here.";
+
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
    down from C's 47px, one pixel at a time, ONLY until the primary action is back inside
@@ -111,6 +120,12 @@ function mountToday(doc, model, options = {}) {
   if (!phone) throw new Error("Today preview: no #phone host element");
   const workout = options.workout || null;
   const session = () => (workout && typeof workout.summary === "function" ? workout.summary() : null) || null;
+  /* A3 — the check-in entry, injected exactly as the workout entry is, so this
+     module keeps no import of the check-in's data layer:
+       summary()                  -> { recorded: boolean } read from the durable lane
+       open({ phone, doc, back })  -> mounts the check-in into the phone element */
+  const checkin = options.checkin || null;
+  const checkinSummary = () => (checkin && typeof checkin.summary === "function" ? checkin.summary() : null) || null;
 
   let screen = "today";
 
@@ -164,7 +179,8 @@ function mountToday(doc, model, options = {}) {
       put(map, "instruction-why", view.blockedCopy || "This device's local record could not be trusted, so nothing is shown.");
       for (const name of ["kcal", "kcal-unit", "protein", "protein-unit", "kcal-note",
         "workout-title", "workout-count", "morning", "trend", "primary-label"]) put(map, name, null);
-      for (const name of ["nutrition-state", "recovery-state", "coach-state"]) put(map, name, NOT_WIRED);
+      for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
+      put(map, "recovery-state", null);
       map.get("primary").disabled = true;
       wire(root);
       show(root, focus);
@@ -211,7 +227,11 @@ function mountToday(doc, model, options = {}) {
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
         + " · " + (sessionState || "Your set targets are ready"));
 
-    for (const name of ["nutrition-state", "recovery-state", "coach-state"]) put(map, name, NOT_WIRED);
+    for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
+    /* Written straight, not through put(): when nothing is recorded this slot says
+       NOTHING. An empty check-in is empty, and a placeholder sentence would be the
+       page inventing a state the athlete never entered. */
+    map.get("recovery-state").textContent = recoveryState();
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -382,17 +402,36 @@ function mountToday(doc, model, options = {}) {
     show(root, focus);
   }
 
-  function renderStub(id, focus, note, extra) {
+  function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
     const root = template(id);
     const map = slots(root);
     if (map.has("workout-title")) {
       const view = model.read();
       put(map, "workout-title", view.blocked ? NOT_AVAILABLE : view.workout.title);
     }
-    put(map, "stub-note", note);
+    put(map, noteSlot, note);
     if (extra && map.has("workout-detail")) put(map, "workout-detail", extra);
     wire(root);
     show(root, focus);
+    return root;
+  }
+
+  /* A3 — Today's one-line report on the check-in. It reads the DURABLE lane, never a
+     flag this page sets, and says nothing at all when nothing is recorded. */
+  function recoveryState() {
+    const summary = checkinSummary();
+    if (!summary || summary.durable !== true) return CHECKIN_NO_STORE_SHORT;
+    return summary.recorded ? CHECKIN_RECORDED_TODAY : "";
+  }
+
+  /* The check-in with no durable lane on this device. The approved questions are
+     still shown — they are the design — but every control is inert and the screen
+     says, in the capture layer's own terms, that nothing here can be recorded. It is
+     NOT a "not wired yet" screen: the check-in is wired; this device has no store. */
+  function renderCheckInWithoutStore(focus) {
+    const root = renderStub("t-recovery", focus, CHECKIN_NO_STORE, null, "fine");
+    for (const el of root.querySelectorAll("button.option, input, select, textarea, [data-slot='primary']")) el.disabled = true;
+    for (const el of root.querySelectorAll("[data-follow], [data-slot='sleep-known'], [data-slot='recorded']")) el.hidden = true;
   }
 
   function render(next, focus = false) {
@@ -400,13 +439,21 @@ function mountToday(doc, model, options = {}) {
     if (next === "today") return renderToday(focus);
     if (next === "why") return renderWhy(focus);
     if (next === "nutrition") return renderNutrition(focus);
-    if (next === "recovery") return renderStub("t-recovery", focus,
-      "The recovery check-in is not wired yet. Nothing on this screen is recorded, and no answer here reaches your plan.");
+    if (next === "recovery") {
+      if (checkin && typeof checkin.open === "function") {
+        return checkin.open({ doc, phone, back: () => render("today", true) });
+      }
+      return renderCheckInWithoutStore(focus);
+    }
     if (next === "coach") return renderStub("t-coach", focus,
       "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.");
     if (next === "workout") {
       if (workout && typeof workout.open === "function") {
-        return workout.open({ doc, phone, back: () => render("today", true) });
+        /* A3 — the check-in is reachable from the workout flow too, in the approved
+           design's own sentence. The gym card is handed the route, not the screen:
+           it never learns what a check-in is. */
+        return workout.open({ doc, phone, back: () => render("today", true),
+          ...(checkin ? { checkIn: () => render("recovery", true) } : {}) });
       }
       /* No encrypted local workout store on this device: say exactly that, show no
          prescription, and record nothing. This is not a "not wired yet" screen — the
@@ -433,4 +480,5 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD,
   WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
   WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,
-  UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT };
+  UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
+  CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE };

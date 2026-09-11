@@ -31,7 +31,7 @@ export const CLEAN_REP_HELP = [
   'Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.',
 ];
 
-export function mountGym(doc, phone, { model, onBack, onChanged } = {}) {
+export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
   let busy = false;
   let effort = null;          // NOTHING is preselected; the athlete states it
@@ -161,6 +161,15 @@ export function mountGym(doc, phone, { model, onBack, onChanged } = {}) {
         root.querySelector('#gym-error').textContent = '';
       });
       choices.append(button);
+    }
+
+    /* A3 — the approved design's own route to the check-in, from inside the workout
+       flow. It is shown only when the page actually gave the card that route; the
+       card itself knows nothing about check-ins. */
+    const toCheckIn = root.querySelector('[data-action="checkin"]');
+    if (toCheckIn) {
+      toCheckIn.hidden = typeof onCheckIn !== 'function';
+      if (typeof onCheckIn === 'function') toCheckIn.addEventListener('click', () => onCheckIn());
     }
 
     const help = root.querySelector('[data-action="clean-rep"]');

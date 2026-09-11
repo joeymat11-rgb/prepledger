@@ -17,8 +17,40 @@ import { createGymHost, openDeviceKeys } from "./gym-host.mjs";
 import { createReadingHost } from "./reading-host.mjs";
 import { createGymModel } from "./gym-model.mjs";
 import { mountGym } from "./gym-app.mjs";
+import { createCheckInHost } from "./checkin-host.mjs";
+import { createCheckInModel } from "./checkin-model.mjs";
+import { mountCheckIn } from "./checkin-app.mjs";
 
 const { mountToday, createTodayModel } = app;
+
+/* A3 — the recovery check-in entry, assembled exactly as the workout entry is: the
+   durable lane, the answer model over it, and an open() that mounts the screen. The
+   summary Today reads is the DURABLE fact, refreshed from disk, never a flag. */
+export async function createCheckInEntry(model, options = {}) {
+  const day = model.today;
+  let host = null;
+  try { host = await createCheckInHost({ day, ...options }); }
+  catch (error) { host = null; if (options.onFailure) options.onFailure(error); }
+  const checkin = createCheckInModel({ host, day, engineState: model.stateFromOps() });
+  let summary = { durable: !!host, recorded: false, date: null };
+  let onRefresh = null;
+  async function refresh() {
+    const row = await checkin.refresh();
+    summary = { durable: !!host, recorded: !!row, date: row ? row.date : null };
+    if (onRefresh) onRefresh();
+    return summary;
+  }
+  await refresh();
+  return {
+    summary: () => summary,
+    refresh,
+    setOnRefresh(fn) { onRefresh = fn; },
+    open({ doc, phone, back }) {
+      return mountCheckIn(doc, phone, { model: checkin, onBack: back, onChanged: refresh });
+    },
+    checkin, host,
+  };
+}
 
 export async function createWorkoutEntry(model, options = {}) {
   const view = model.read();
@@ -59,8 +91,8 @@ export async function createWorkoutEntry(model, options = {}) {
     refresh,
     recover,
     setOnRefresh(fn) { onRefresh = fn; },
-    open({ doc, phone, back }) {
-      return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh });
+    open({ doc, phone, back, checkIn }) {
+      return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh, onCheckIn: checkIn });
     },
     gym, gymHost,
   };
@@ -96,15 +128,24 @@ export async function boot(options = {}) {
   try { workout = await createWorkoutEntry(model, lane); }
   catch (error) { failures.push("workout store: " + (error && error.message ? error.message : String(error))); }
 
-  const api = mountToday(doc, model, workout ? { workout } : {});
+  /* A3 — the check-in lane. It never prevents the page opening: a device that cannot
+     give it a store gets the screen with its controls inert and the reason on it. */
+  let checkin = null;
+  try {
+    checkin = await createCheckInEntry(model, { ...lane,
+      onFailure: (error) => failures.push("check-in store: " + (error && error.message ? error.message : String(error))) });
+  } catch (error) { failures.push("check-in store: " + (error && error.message ? error.message : String(error))); }
+
+  const api = mountToday(doc, model, { ...(workout ? { workout } : {}), ...(checkin ? { checkin } : {}) });
   if (workout) workout.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
+  if (checkin) checkin.setOnRefresh(() => { if (api.screen() === "today") api.render("today"); });
 
   /* Every cause is surfaced, not swallowed (review, non-blocking). The page still
      renders whatever it honestly can. */
   const status = doc.getElementById("today-status");
   if (failures.length && status) status.textContent = "Not everything opened: " + failures.join("; ")
     + ". Nothing was recorded.";
-  return { api, workout, model, readings, failures };
+  return { api, workout, checkin, model, readings, failures };
 }
 
 if (typeof document !== "undefined" && document.getElementById("phone")) {
