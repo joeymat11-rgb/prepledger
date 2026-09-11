@@ -1,32 +1,32 @@
 {
-  "gen": "2026-09-09T09:40:00.000Z",
+  "gen": "2026-09-11T09:20:00.000Z",
   "analystVersion": "rebuild-1",
   "suggestions": [
     {
-      "sid": "sug_2026-09-09_rowsback",
+      "sid": "sug_2026-09-09_extsets",
       "rank": 1,
-      "title": "Thursday: rows go back on — 180 for 9 and 8 is where you left them",
+      "title": "Today: leg extension at the set count on your sheet — three, or undo to two, but not one",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "On a cut, the hard sets a muscle gets each week are what keep it — ten or more is the floor — and the back's biggest lift is the cheapest way to get there. Skipping the compound costs more than skipping an isolation lift (Schoenfeld 2017; Robinson 2024).",
-        "data": "Rows skipped Sunday 9/06 — two skips in your last four upper days (8/16, 9/06). Last done Thursday 9/03: 180 × 9, 8 at two reps in reserve, top of its window.",
-        "relationship": "Back work this week was pulldowns twice and rows once. Rows at 180 for 9 and 8 again is the repeat the app said it wants before it moves the load; skip it again and the back is on half rations for a second week while everything else on the sheet is climbing."
+        "science": "Under a deficit, extra sets don't buy extra muscle, but the sets on the plan have to actually happen for the muscle to have a reason to stay — and a lift's progress read only means something at a steady set count (Schoenfeld 2017; Grgic 2021).",
+        "data": "Sunday 9/06 you approved the app's quad push — extension 2 → 3 sets. Monday 9/07 extension logged one set: 160 × 9 at two in reserve. Friday 9/04 it was two sets, 160 × 9, 7. The sheet still says three.",
+        "relationship": "The app restarted extension's trend window on the push and said the next quad call waits for that read. One set can't be read as the third set converting or not — it just delays the answer. Three sets today, or an honest undo to two, gives the app and me the first clean read on the push. You're going in on one short night and a bigger deficit, so a first set a rep light is the week, not a hold — open at two in reserve."
       },
-      "predict": "Next upper day (Thursday 9/10) has rows on file at 180, first set 8 or more, opener at 1–2 in reserve, no hold. Skipped again → miss, and rows joins the rear-delt conversation as a named pattern.",
+      "predict": "Today 9/11 (or the next lower day) has extension logged at the set count the sheet shows that day — three, or two if you've undone the push — with the first set 8 or more at 160. If three: a third set at 5 or better is the push holding; 4 or under says the deficit is paying for it. One set again → miss.",
       "confidence": "medium",
       "gate": "approve"
     },
     {
-      "sid": "sug_2026-09-09_extsets",
+      "sid": "sug_2026-09-09_rowsback",
       "rank": 2,
-      "title": "Friday: leg extension at the set count on your sheet — three, or undo to two, but not one",
+      "title": "Rows back on at 180 for 9 and 8 — Thursday's sheet isn't on file yet; this stays up until it is",
       "apply": { "kind": "note" },
       "rationale": {
-        "science": "Under a deficit, extra sets don't buy extra muscle, but the sets on the plan have to actually happen for the muscle to have a reason to stay — and a lift's progress read only means something at a steady set count (Schoenfeld 2017; Grgic 2021).",
-        "data": "Sunday 9/06 you approved the app's quad push — extension 2 → 3 sets. Monday 9/07 extension logged one set: 160 × 9 at two in reserve. Friday 9/04 it was two sets, 160 × 9, 7.",
-        "relationship": "The app restarted extension's trend window on the push and said the next quad call waits for that read. One set can't be read as the third set converting or not — it just delays the answer. Three sets Friday, or an honest undo to two, gives the app and me the first clean read on the push."
+        "science": "On a cut, the hard sets a muscle gets each week are what keep it — ten or more is the floor — and the back's biggest lift is the cheapest way to get there. Skipping the compound costs more than skipping an isolation lift (Schoenfeld 2017; Robinson 2024).",
+        "data": "Rows skipped Sunday 9/06 — two skips in your last four upper days (8/16, 9/06). Last done Thursday 9/03: 180 × 9, 8 at two reps in reserve, top of its window. Thursday 9/10's session is not in the file as of this morning's sync — it reaches me on your next open.",
+        "relationship": "Back work last week was pulldowns twice and rows once. Rows at 180 for 9 and 8 again is the repeat the app said it wants before it moves the load; skip it again and the back is on half rations for a second week while everything else on the sheet is climbing."
       },
-      "predict": "Friday 9/11 (or the next lower day) has extension logged at the set count the sheet shows that day — three, or two if you've undone the push — with the first set 8 or more at 160. If three: a third set at 5 or better is the push holding; 4 or under says the deficit is paying for it. One set again → miss.",
+      "predict": "The next upper day on file (Thursday 9/10 once it syncs, otherwise Sunday 9/13) has rows at 180, first set 8 or more, opener at 1–2 in reserve, no hold. Skipped again → miss, and rows joins the rear-delt conversation as a named pattern.",
       "confidence": "medium",
       "gate": "approve"
     },
@@ -37,10 +37,10 @@
       "apply": { "kind": "note" },
       "rationale": {
         "science": "Forearm isolation is the lowest-return set on a cut; the forearms already get loaded on every row, pulldown and curl. A lift you don't do adds nothing but noise to the skip count.",
-        "data": "Sulek wrist curl skipped 8/16, 8/20, 9/03, 9/06 — every upper day since it was last logged on 8/09 at 87.5 × 14, 13.",
+        "data": "Sulek wrist curl skipped 8/16, 8/20, 9/03, 9/06 — every upper day since it was last logged on 8/09 at 87.5 × 14, 13. Not in retirements as of this morning.",
         "relationship": "Each skip prints a skip row and pads the session's lifts-down count. Retiring it — the app has the path; you used it for the pronated curl on 8/12 — makes the upper sheet eight lifts you do instead of nine you mostly do."
       },
-      "predict": "By the 9/13 run: sulek appears in retirements, or is done Thursday. Either converts. Skipped a fifth time with no retirement → miss.",
+      "predict": "By the 9/13 run: sulek appears in retirements, or was done Thursday. Either converts. Skipped a fifth time with no retirement → miss.",
       "confidence": "high",
       "gate": "approve"
     }
