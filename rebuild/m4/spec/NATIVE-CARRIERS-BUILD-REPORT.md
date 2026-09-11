@@ -73,6 +73,38 @@ delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
 | 16 | `node rebuild/m4/spec/native-carriers-reference.cjs` | exit 0 — 6/6 ACCEPTED preimages recovered and pin-verified; 14 retained import-engine files |
 | 17 | **(C2)** `node rebuild/m3/w6/test/run-current-head.cjs . --all` (the **joined tree itself** as argv[2], at the package head) | **exit 0 — 435 tests / 435 pass / 0 fail / 0 skipped / 0 cancelled / 0 todo**, incl. `WORKOUT ACTUAL CLIENT/R1 HTTP PASS` |
 
+### CI re-seal (2026-09-11, task CI-RESEAL, branch `rebuild/fix-ci-reseal`)
+
+`.github/workflows/rebuild.yml` is inside this profile's `executionPins`, so the artifact
+is re-sealed here for one reason: **on a clean CI checkout the package could not pass at
+all.** The `focused` child loads `rebuild/m4/spec/native-next-target-candidate/fixture.cjs`
+→ `rebuild/m3/w5/source/codec.cjs` → `rebuild/m3/w5/reconciliation/codec.cjs`, whose line 4
+is `require('@noble/hashes/sha2.js')`. Node resolves that by walking up from
+`rebuild/m3/w5/`, and the workflow's root `npm ci` never writes `rebuild/m3/w5/node_modules`,
+so all three native-next-target tests died with `MODULE_NOT_FOUND` — `# pass 0 / fail 3` —
+and the step reported `NATIVE CARRIERS PACKAGE FAIL`. Reproduced here in a clean worktree
+with only root `node_modules` (the CI shape) before the change, and PASS after it.
+(Lane C's 01:07 ET diagnosis named W6 as the missing install; the requiring file is in **W5**.
+Both are installed, because W6's `esbuild` and `fake-indexeddb` are what the suites below need.)
+The change is three added install steps on **both** runners — `npm install -g pnpm@9` (the
+version that wrote both `lockfileVersion: '9.0'` lockfiles, and the version `slice-host.yml`
+already uses), then `pnpm --dir rebuild/m3/w6 install --frozen-lockfile` and
+`pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace` —
+plus four added test steps that give the slice suites the CI home DECISIONS 99/101/102
+deferred to this re-seal (A0 host 22, A1/A2 Today + gym 123, A5 lockfile-only 43, A5 built
+folder 10), and `timeout-minutes` raised 15 → 30 now that the package actually runs to
+completion. `--frozen-lockfile` means no lockfile can drift in CI and no `package-lock.json`
+is written; `--ignore-workspace` is required because `rebuild/m3/w5/pnpm-workspace.yaml`
+carries only `allowBuilds:` and pnpm 9 refuses a workspace with no `packages:` key; W6 is
+installed *without* `--ignore-scripts` because esbuild's own postinstall has to run, exactly
+as `slice-host.yml` documents. **No existing step was removed or reordered**, the old
+memory-only preview child and every child of the package wrapper are untouched (that
+retirement stays with a later re-seal), and nothing under `rebuild/engine`, `rebuild/conform`,
+the pinned `w7-preview` tests or any product file changed. `slice-host.yml` took the same W5
+install: its run at `8d14ee4` failed at "Build the deployable folder" with
+`rebuild/m3/w5/source/codec.cjs:5:23: ERROR: Could not resolve "@noble/hashes/sha2.js"`,
+the same missing dependency reached through esbuild instead of Node.
+
 ### B0 review amendments (NATIVE-CARRIERS-B0-REVIEW.md `2a5bb39a…`, ACCEPT with F1 required)
 
 - **F1 (required)** — `NATIVE-CARRIERS-THEME.md` and `NATIVE-CARRIERS-BUILD-REPORT.md` are now in

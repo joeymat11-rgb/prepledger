@@ -220,6 +220,12 @@ source and were already RED by design in the accepted parents; those nine are no
 named B0 successor children (build report §2), and the wrapper seeds `done` from the artifact's own
 `coverage` record so the closed 19-gate assertion still holds. No original gate, `rebuild/engine/test`
 file or `rebuild/conform` file was edited, and no covered gate maps to a skip.
+
+**C4 note, 2026-09-11 CI re-seal.** The artifact was re-sealed to PENDING for the
+`.github/workflows/rebuild.yml` executionPin alone (the W5/W6 dependency installs that this
+package's own `focused` child needs on a clean CI checkout, plus the deferred slice-suite CI
+steps — build report §2 "CI re-seal"), so C4 is open again and a fresh PM FULL including the
+private oracle is required before the new receipt; no engine, conform, gate or product byte moved.
 No receipt, execution, product acceptance or merge follows from this document.
 
 The bytes line 93 reviewed are this file **as of `f8cbf98face943b34ccfc1ecffb1e608a56084b6`**.
