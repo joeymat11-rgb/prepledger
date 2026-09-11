@@ -1,0 +1,80 @@
+PUBLICATION GUARD CI SUCCESSOR — INDEPENDENT ACCEPT
+September 11, 2026. Source 050574dc262508d712f80f22d82132e3f7b2ce45;
+code 2e6f29c263587930b440fc57e107642e1c45d14b; base
+88d78c3b109f3cd6b9832591574c07651493f3e4. Isolated branch
+codex/astra-publication-guard-ci-review. Nonauthor reviewer. FILE
+ASTRA-PUBLICATION-GUARD-CI-REVIEW.md at PM 4de60a0 and its correction brief
+at 69bda70 read, along with NEXT/ROADMAP, source/report and prior independent
+guard review ce52f0aa04297073f96aec4cd2af1385dd77a509. That unchanged
+workflow-source review is reused; this is its bounded assertion successor.
+
+ACCEPT for this local test correction. No required source change found.
+The actual both-OS PR51 failure recorded by PM remains a failure until the
+accepted delta is joined and the required remote CI succeeds. This review
+neither ran GitHub Actions nor turns local evidence into that verdict.
+
+HISTORICAL PROTECTION, INDEPENDENTLY EXECUTED
+Loaded actual deploy.yml Git bytes at accepted
+7b1678a4a8449053000d52a0a8e9e070f32a240e and current candidate. Parsed both,
+deleted only jobs.preview.if from copies, and asserted deep equality of every
+remaining value. Independently serialized sorted object keys, preserving array
+order and all scalar/script values. Historical SHA256 is
+4abc65a2fb071ca130ecb8d5306704b82540370a956de8af5b87860a1e04095e,
+exactly the candidate constant. This was reconstructed from historical source,
+not inferred from the candidate's own matching digest. Triggers, permissions,
+job inventory, test/production, all targets and publication commands, preview
+steps and both test dependencies remain protected. A shallow CI checkout needs
+no historical Git object at runtime. Comments/mapping order are intentionally
+not pinned as behavior; ordered steps and command strings are pinned.
+
+The real original eighth workflow assertion from 88d78c3 was executed against
+the current approved workflow and failed with “deploy.yml was edited to know
+about the slice.” The first seven original test callback bodies are byte-equal
+to their successors. The eighth retains its existing slice-code/path and soak
+checks while replacing only the overbroad frozen-pipeline text prohibition.
+Two mutation tests were added; none of the original test obligations was
+silently deleted. The exact candidate delta is workflow.test.cjs and the
+builder's one report; no workflow, product, ledger or source-policy edit.
+
+EXECUTED CANDIDATE AND REFUSALS
+Existing Node 24.19.0 with retained root dependencies through an ignored
+junction; no install. Actual command:
+node --test --test-reporter=tap rebuild/slice/pwa/test/pwa.test.cjs
+rebuild/slice/pwa/test/workflow.test.cjs
+Result: 45 tests, 45 pass, 0 fail, 0 skipped/cancelled; 35 PWA plus 10 workflow.
+This executes the actual parsed condition's 144 branch/event/dependency
+scenarios and PR merge-ref controls, plus all seven authored mutations:
+removing either exclusion, altering the production target, removing production
+needs, removing a test step, inserting a slice publish step and adding a slice
+publish job. Each refusal is asserted by its meaningful failure category.
+
+Independent ignored .tmp/guard-ci-independent.cjs additionally invoked the
+candidate's actual frozenPipeline assertion over cloned YAML values. The
+historical workflow with its old unguarded preview fails; the real guarded
+workflow passes. Five independently chosen changes fail: exclude every codex
+branch, remove preview.needs, suppress the push trigger, add an unreviewed
+production command, or append unsupported expression syntax. No disk workflow
+was mutated. The parser supports exactly the inspected conjunction/equality/
+negated-startsWith syntax and refuses unsupported terms. Its case handling and
+implicit successful-dependency model match the official Actions semantics
+already checked in ce52f0a. It is a bounded local evaluator, not GitHub's
+interpreter or a proof about every possible future expression.
+
+DIRECT CALLERS / INTEGRATION
+Both .github/workflows/rebuild.yml:91 and slice-host.yml:90 invoke the A5 pair
+directly without a fixed pass-count wrapper. This delta increases that pair
+from 43 to 45; joining the separately reviewed phone shell's additional PWA
+test would make it 46. Neither caller needs a count edit for this correction.
+Scoped inspection at the PM's separate stable 413a54e found no direct
+workflow.test.cjs path pin in B-NTC.json, b-ntc-runtime-closure.json or
+b-ntc-successors.json. A5-REPORT.md contains a historical source digest/count,
+not an executable acceptance pin. No closure, wrapper, workflow or policy was
+re-sealed here; this observation does not qualify a later combined source.
+
+Logs/probe are retained under .tmp/guard-ci-review-tests.txt and
+.tmp/guard-ci-independent.cjs. git diff --check passes. Required next step is
+PM acceptance, exact PR51 update and actual required both-OS CI; no push, new
+PR, remote run, merge or deployment was performed by this reviewer. No
+private fixture/secret access, install, product/test fix, phone-candidate edit,
+full engine campaign or source qualification. Phone, lifecycle and final
+package acceptance remain separate. Only this independent report is committed.
