@@ -1,0 +1,11 @@
+# Fix successor policy bypass — exact review delta
+
+Read independent review9c95dee in work/astra-tooling-successors-review/rebuild/lanes/b/reviews/ASTRA-TOOLING-SUCCESSORS-REVIEW.txt and ASTRA-TOOLING-SUCCESSORS.md. Separate candidate work/astra-tooling-policy-fix on codex/astra-tooling-policy-fix from7cd7a5b. You are the tooling author; independent reviewer remains separate.
+
+Remove the candidate-declaration-dependent escape around exact B-NTC policy: five inherited child declarations can currently target the unchanged native-carriers-source.cjs helper through Node --test and claim # pass1. Real subprocesses run but no original gate assertions run, and successorSupport/inheritedExecutable still reports all9 inherited gates covered with theme=null. Require exact reviewed B-NTC policy based on its package/profile, not whether candidate argv happens to point at some parent-pinned file. Enforce this before actual campaign and at coverage/seal.
+
+If a genuine original-parent route remains for this or other packages, bind the exact accepted original child executable, argv and verdict to the exact parent/gate mapping. ANY parent pin is not evidence of the gate running. The accepted native-carriers-package.cjs has the real child names/verdicts and schedule; preserve that exact route or explicitly refuse unqualified routes, rather than introduce a generic heuristic. No blanket moves enablement, weaker own-child controls, authority/receipt bypass or policy change just to fit malicious declarations.
+
+Regression must execute the review's real five-helper-as-tests counterexample with all15 declarations retained and prove refusal before counting coverage; keep the positive genuine successor, original route if supported, altered policy/source/declaration controls and accepted-chain anchors. Reuse prior authority/closure evidence outside this changed selector, run affected focused controls once. No engine/full campaign. Preserve exact82-source policy unless an actual reviewed-source correction requires change; mechanical runner pins may change. No actual PM authority has been issued yet.
+
+Commit narrow runner/test/pin changes and ONE factual report, return exact candidate and relevant verdicts. No private data, install, push, integration merge, deploy, purchase or self-acceptance. Reviewer will execute the focused correction independently.
