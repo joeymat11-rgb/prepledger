@@ -156,6 +156,14 @@ The same four checks the brief names, run with the model in the loop:
    exact failure the check exists for. `allowedTokens()` is keyed on
    `unit:token`; every interpolation declares its unit; a `date` tag licenses a
    date and never a bare quantity.
+   **Deleting the unit word does not buy a free number** (review round 2, C8):
+   the field words to the LEFT bind too (`Protein: 2262`, `your calorie floor is
+   155`), an unrecognised noun (`seconds`, `kilograms`, `percent`) is a unit of
+   its own that licenses nothing, and a number with no unit and no field word at
+   all is refused unless its licensing unit is one of the declared
+   `BARE_SPEAKABLE` counts. **An adapter must therefore speak the unit.** A model
+   that emits "Your protein target is 2262." is discarded, exactly as one that
+   emits "Eat 155 calories."
 2. `test/tiers.test.cjs` — no yes leaves the durable store byte-identical; with a
    yes the accepted proposal equals the engine's exactly and the reason is stored
    **in this process**. It is NOT on disk: rebuild/client's proposal-response

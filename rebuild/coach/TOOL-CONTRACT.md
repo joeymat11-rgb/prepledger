@@ -104,9 +104,19 @@ ASKS FOR. A non-empty return is a **RED** transcript.
   travels only into a slot the engine computed *for that purpose*.
 - Engine prose (`unit: "text"`) is read with the same parser, so the prose's own
   unit words are what it licenses.
-- A number with no unit or field word around it is licensed by any quantity the
-  turn produced — but **never by a `date`**: the components of `2030-02-04` are
-  not a set count, a calorie band or a bodyweight.
+- The unit is read **both ways inside the clause**: rightward for the unit it is
+  spoken in (`155 grams`), leftward for the field it is spoken into
+  (`Protein: 2262`, `your calorie floor is 155`). Rightward wins where both
+  answer. Neither scan crosses `.`, `!`, `?` or `;`.
+- An **unrecognised noun** beside a number is a unit of its own (`!seconds`,
+  `!kilograms`), not "no unit". It licenses nothing unless the engine itself used
+  the same word: `155 seconds` is not `155 minutes` and `155 kilograms` is not
+  `155 lb`.
+- A number with **no unit and no field word at all** is refused unless its
+  licensing unit is in `BARE_SPEAKABLE` — `set`, `rep`, `lift`, `reading`, `pct`,
+  and a figure the engine itself stated bare. A calorie band, a protein floor, a
+  bodyweight, a rate, a duration and **a `date`** are never bare-speakable: the
+  components of `2030-02-04` are not a set count or a bodyweight.
 - On the answer side every interpolation declares its unit:
   `d(v.kcalLo, "kcal")` throws `COACH_UNIT_MISMATCH` if handed a gram value.
 

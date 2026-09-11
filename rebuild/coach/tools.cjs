@@ -102,21 +102,47 @@ const UNIT_WORDS = Object.freeze({
   h: "h", hr: "h", hrs: "h", hour: "h", hours: "h",
   min: "min", mins: "min", minute: "min", minutes: "min",
   week: "wk", weeks: "wk", wk: "wk",
+  percent: "pct", pct: "pct", pp: "pct",
 });
 
-/* Words a number may travel over on its way to its unit. They carry no field of
-   their own — "between 2262 and 2360 calories" is a calorie band, and "2030
-   weekly sets" is a set count. Anything NOT on this list stops the scan, so a
-   number followed by an unrelated noun ends up with no unit at all. */
+/* Nouns that name a FIELD rather than a unit. They are read LEFTWARD, because
+   that is where a label and a subject sit: "Protein: 2262", "Your calorie floor
+   is 155", "You weigh 2262". Without this the checker read only rightward and a
+   sentence with the unit word deleted went straight through (review round 2, C8). */
+const FIELD_WORDS = Object.freeze(Object.assign({}, UNIT_WORDS, {
+  protein: "g",
+  maintenance: "kcal", tdee: "kcal", ate: "kcal", eat: "kcal", eating: "kcal",
+  weight: "lb", weigh: "lb", weighs: "lb", weighed: "lb", bodyweight: "lb", trend: "lb",
+  rest: "min", sleep: "h", slept: "h",
+}));
+
+/* Words a number may travel over on its way to its unit or its field. They carry
+   no field of their own — "between 2262 and 2360 calories" is a calorie band,
+   "2030 weekly sets" is a set count, and "your calorie band today is 2262" is
+   still a calorie band. Anything NOT on this list ends the scan. */
 const UNIT_FILLER = new Set(["a", "an", "the", "and", "or", "to", "of", "at", "about", "around",
   "roughly", "approximately", "between", "somewhere", "least", "most", "more", "up", "over",
   "under", "per", "weekly", "daily", "this", "that", "your", "my", "total", "plus", "minus",
-  "extra", "additional", "another", "some", "is", "are", "was", "were", "than", "add", "adding"]);
+  "extra", "additional", "another", "some", "is", "are", "was", "were", "than", "add", "adding",
+  "target", "targets", "floor", "ceiling", "band", "level", "range", "limit", "goal", "cap",
+  "count", "average", "figure", "number", "today", "now", "currently", "still", "only", "just"]);
 
 const STOP_PUNCT = /^[.!?;]$/;
 const ATOM = /(\d[\d,]*(?:\.\d+)?)|([A-Za-z][A-Za-z/'-]*)|(\S)/g;
 const ISO_DATE = /\d{4}-\d{2}-\d{2}/g;
 const UNKNOWN_UNIT = "?";
+/* An unrecognised noun beside a number is NOT "no unit" — that was the hole. It
+   is a unit this file does not know, and it licenses nothing but itself: "155
+   seconds" is not "155 minutes", and "155 kilograms" is not "155 lb". */
+const unknownNoun = (word) => "!" + word;
+
+/* WHICH UNITS MAY BE SPOKEN BARE, and only these. Counts are unitless in
+   ordinary speech ("set 1 of 3", "28 readings" → "28"), and a figure the ENGINE
+   ITSELF stated with no unit may be repeated with no unit. Everything else must
+   be spoken with its unit: a calorie band, a protein floor, a bodyweight, a
+   rate, a duration — and A DATE. `date` is deliberately absent: the components
+   of "2030-02-04" are not a quantity in any field. */
+const BARE_SPEAKABLE = Object.freeze(new Set(["set", "rep", "lift", "reading", "pct", UNKNOWN_UNIT]));
 
 /* `4 sets a week` and `1.19 pounds a week` are rates, and the engine tags them
    as such (`lb/wk`). The rate words are read here so the spoken form matches the
@@ -130,9 +156,11 @@ function perWeek(unit, atoms, from) {
   return unit;
 }
 
-/* The unit a number is speaking into: the first unit word after it, crossing
-   only other numbers, punctuation and the filler above, and never crossing the
-   end of a sentence. `null` means the sentence named no unit at all. */
+/* RIGHTWARD: the first unit word after the number, crossing only other numbers,
+   punctuation and the filler above, and never crossing the end of the clause.
+   A recognised unit word gives that unit; an unrecognised noun gives `!noun`;
+   reaching the end of the clause gives `null`, and the leftward scan gets its
+   turn. */
 function unitAfter(atoms, from) {
   for (let i = from; i < atoms.length; i++) {
     const a = atoms[i];
@@ -140,6 +168,23 @@ function unitAfter(atoms, from) {
     if (a.kind === "punct") { if (STOP_PUNCT.test(a.v)) return null; continue; }
     const unit = UNIT_WORDS[a.v];
     if (unit) return perWeek(unit, atoms, i + 1);
+    if (UNIT_FILLER.has(a.v)) continue;
+    return unknownNoun(a.v);
+  }
+  return null;
+}
+
+/* LEFTWARD: the field this number is being spoken INTO — the label form
+   ("Protein: 2262") and the subject form ("your calorie floor is 155"). It binds
+   only on a word this file knows; an unrecognised word ends the scan with no
+   unit rather than inventing one, so the number falls to the bare rule. */
+function unitBefore(atoms, from) {
+  for (let i = from; i >= 0; i--) {
+    const a = atoms[i];
+    if (a.kind === "num") continue;
+    if (a.kind === "punct") { if (STOP_PUNCT.test(a.v)) return null; continue; }
+    const unit = FIELD_WORDS[a.v];
+    if (unit) return unit;
     if (UNIT_FILLER.has(a.v)) continue;
     return null;
   }
@@ -166,7 +211,13 @@ function parseUnits(s) {
   const out = [];
   for (let i = 0; i < atoms.length; i++) {
     if (atoms[i].kind !== "num") continue;
-    out.push({ token: atoms[i].v, unit: inDate(atoms[i].at) ? "date" : unitAfter(atoms, i + 1) });
+    let unit;
+    if (inDate(atoms[i].at)) unit = "date";
+    else {
+      unit = unitAfter(atoms, i + 1);                 /* the unit it is spoken in */
+      if (unit === null) unit = unitBefore(atoms, i - 1);   /* else the field it is spoken into */
+    }
+    out.push({ token: atoms[i].v, unit });
   }
   return out;
 }
@@ -206,11 +257,12 @@ function untraceable(answer, results, turn_id) {
     const units = allowed.get(spoken.token);
     if (!units) { bad.push(spoken.token); continue; }
     if (spoken.unit === null) {
-      /* A bare number, with no unit or field word around it. Any QUANTITY the
-         turn produced licenses it — but a date never does: the components of
-         "2030-02-04" are not a set count, a calorie band or a bodyweight. */
+      /* A bare number: no unit word after it and no field word before it, inside
+         its own clause. Only a BARE_SPEAKABLE licensing unit saves it — a count,
+         or a figure the engine itself stated bare. A calorie band, a protein
+         floor, a bodyweight, a rate, a duration and a DATE all refuse. */
       let licensed = false;
-      for (const u of units) if (u !== "date") { licensed = true; break; }
+      for (const u of units) if (BARE_SPEAKABLE.has(u)) { licensed = true; break; }
       if (!licensed) bad.push(spoken.token);
       continue;
     }
@@ -975,7 +1027,7 @@ function startLiveSession({ cap, now, optIn, user } = {}) {
 module.exports = {
   createCoachTools, TIER, CODES, NEVER_VIA_COACH, TIER3_TOPICS,
   tagged, blank, num, text, numericTokens, collectTagged, allowedTokens, untraceable, traceable,
-  parseUnits, UNIT_WORDS, carriesNumber,
+  parseUnits, UNIT_WORDS, FIELD_WORDS, BARE_SPEAKABLE, carriesNumber,
   CHARTER_BANNED, charterViolations, FORBIDDEN_KEYS, assertNoLeak,
   verifyCostCap, startLiveSession, verifyOptIn, CAP_REQUIRED, NAMED_USERS, OPT_IN_REQUIRED,
 };

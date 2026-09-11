@@ -166,6 +166,33 @@ test("the opt-in is PER USER: one person's yes never speaks for another", () => 
   }
 });
 
+/* C5 review round 2, C9 / surviving mutant S2. DECISIONS:89 and the brief:
+   "two named users only — Joe and Dad"; a third user needs a separate owner
+   ruling. That was implemented and unproved — deleting the NAMED_USERS check
+   killed no test, and a third person with a perfectly-formed opt-in of her own
+   would have started a session. */
+test("TWO NAMED USERS ONLY: a third user's own valid opt-in still refuses", () => {
+  const cap = good();
+  assert.deepEqual(T.NAMED_USERS.slice().sort(), ["dad", "joe"]);
+
+  for (const stranger of ["mum", "sam", "Joe", "joe ", "guest"]) {
+    /* her own record, matching in every respect — user, accepted, timestamp,
+       screen version, and wording that names the transfer plainly */
+    const hers = optInFor(stranger);
+    assert.equal(hers.user, stranger);
+    assert.equal(hers.accepted, true);
+    const r = T.startLiveSession({ cap, now: NOW, optIn: hers, user: stranger });
+    assert.equal(r.started, false);
+    assert.equal(r.code, "COACH_OPT_IN_REQUIRED", stranger + " started a session without an owner ruling");
+    assert.match(r.reason, /joe or dad/i);
+  }
+
+  /* and the two who are ruled on still work, so the test measures the roster and
+     not a blanket refusal */
+  assert.equal(T.startLiveSession({ cap, now: NOW, optIn: optInFor("joe"), user: "joe" }).code, "COACH_NO_LIVE_ADAPTER");
+  assert.equal(T.startLiveSession({ cap, now: NOW, optIn: optInFor("dad"), user: "dad" }).code, "COACH_NO_LIVE_ADAPTER");
+});
+
 test("the opt-in record must carry the wording the user actually saw", () => {
   const cap = good();
   for (const [label, patch] of [

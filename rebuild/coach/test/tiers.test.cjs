@@ -270,17 +270,54 @@ test("the staged command set is NOT widened by the local era", () => {
   assert.deepEqual(stage, ["finishSession", "logSession", "logSet", "weighIn", "workout"]);
   assert.deepEqual(local, stage, "local-client.mjs widened the staged command set");
   /* `workout` is the one PRODUCER-INJECTED command, and that — not a wider set —
-     is how a dated non-workout fact reaches disk. */
-  /* The producer lives in checkin-commands.cjs — checkin-host.mjs now binds the
-     device's one local era and passes the producer down to it
-     (`commands: createCheckInCommands()`) instead of composing a store of its
-     own, so this reads the claim where the claim is actually made. The BEHAVIOUR
-     — one dated durable operation per check-in — is proved for real in
-     local-era.test.cjs, not by reading source. */
-  const commands = read("m3/w7-preview/today/checkin-commands.cjs");
-  assert.match(commands, /`workout` is the\s*\n?\s*only PRODUCER-INJECTED one/);
-  assert.match(commands, /a `workoutCommands` provider does/);
+     is how a dated non-workout fact reaches disk. Pinned on CODE, not on comment
+     prose (review round 2, C10): the stage's own signature takes the provider,
+     and checkin-host.mjs passes the check-in's provider down to the one local
+     era instead of composing a store of its own. */
+  assert.match(read("m3/w6/t2-stage.cjs"),
+    /function createT2Stage\(configProvider, \{[^}]*workoutCommands: selectedWorkoutCommands = workoutCommands/);
   assert.match(read("m3/w7-preview/today/checkin-host.mjs"), /commands: createCheckInCommands\(\)/);
+});
+
+/* C5 review round 2, C10. Two of the three assertions above used to match COMMENT
+   PROSE, which can drift from the code it describes. This one EXECUTES the
+   injection: the producer — not the client — authors the operation's class, kind
+   and payload for a `workout` command, which is exactly what "producer-injected"
+   means and exactly why a check-in can reach disk without widening the staged
+   command set or editing rebuild/client. */
+test("the check-in's producer, EXECUTED: it authors the op the client will write", () => {
+  const CheckIn = require("../../m3/w7-preview/today/checkin-commands.cjs");
+  const producer = CheckIn.createCheckInCommands();
+
+  /* the accepted client stamps a producer-injected command schema_version 2 */
+  assert.equal(producer.schemaVersion, 2);
+  assert.equal(typeof producer.prepare, "function");
+  assert.equal(typeof producer.validate, "function");
+
+  /* RUN IT. The class, the kind and the payload are the producer's, not the
+     client's — the client authors none of these for `workout`. */
+  const authored = producer.prepare({ action: "checkin",
+    input: { answers: { soreness: "Mild" },
+      effective: { local_date: DAY, local_time: "13:00", utc_offset: "+00:00" } } });
+  assert.equal(authored.class, "event");
+  assert.equal(authored.kind, "fact");
+  assert.equal(authored.payload.profile, CheckIn.PROFILE);
+  assert.deepEqual(authored.payload.answers, { soreness: "Mild" });
+  assert.deepEqual(authored.parents, []);
+  assert.equal(authored.effective.local_date, DAY);
+
+  /* and it is CLOSED: it authors a check-in and refuses everything else, so the
+     injection point cannot be used as a general write channel */
+  assert.throws(() => producer.prepare({ action: "logSet", input: {} }), /CHECKIN_INPUT_INVALID/);
+  assert.throws(() => producer.prepare({ action: "checkin", input: { answers: { energy: "Amazing" } } }),
+    /CHECKIN_INPUT_INVALID/);
+
+  /* the same producer re-checks the envelope the client actually builds */
+  const op = { kind: "fact", class: "event", athlete_id: "ath-1", causal_parents: [],
+    effective: { local_date: DAY, local_time: "13:00", utc_offset: "+00:00" },
+    payload: authored.payload };
+  assert.equal(producer.validate(op, () => null), true);
+  assert.equal(producer.validate(Object.assign({}, op, { kind: "reading" }), () => null), false);
 });
 
 test("the whole script over the real consent surface stays traceable and honest", async () => {

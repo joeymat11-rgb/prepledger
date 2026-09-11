@@ -79,8 +79,11 @@ const TEMPLATES_2 = Object.freeze({
   weight_trend: (v) => join([
     has(v.trend) ? "Your trend weight is " + d(v.trend, "lb") + " pounds. " : "There is no trend weight on this device yet. ",
     has(v.rate) && has(v.rateLo) && has(v.rateHi) && has(v.n)
+      /* Every figure is spoken WITH its unit — the range too. A bare between-and
+         range would be a rate said as a bare number, and the checker refuses
+         that by design (review round 2, C8). */
       ? "You are losing about " + d(v.rate, "lb/wk") + " pounds a week, somewhere between " + d(v.rateLo, "lb/wk") + " and "
-        + d(v.rateHi, "lb/wk") + ", measured across " + d(v.n, "reading") + " readings from " + d(v.from, "text") + " to " + d(v.to, "text") + ". "
+        + d(v.rateHi, "lb/wk") + " pounds a week, measured across " + d(v.n, "reading") + " readings from " + d(v.from, "text") + " to " + d(v.to, "text") + ". "
       : "The rate is not measured yet, so I have no weekly number for you. ",
     has(v.lastReadISO) ? "Your last reading was " + d(v.lastReadISO, "text") + "." : "No reading is stored yet.",
   ]),

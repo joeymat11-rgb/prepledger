@@ -106,6 +106,67 @@ test("a number is traceable only INTO THE FIELD THAT LICENSED IT", async () => {
   }
 });
 
+/* C5 review round 2, C8. The round-1 checker read only RIGHTWARD and treated an
+   unrecognised noun as "no unit", so deleting the unit word restored the whole
+   hole: every string below was ACCEPTED at be888dd. The first three are the
+   reviewer's own red-first probes, verbatim. */
+test("deleting the unit word does not make a number free: the field still binds", async () => {
+  const turn = coach().openTurn("turn-c8");
+  await turn.call.today_plan({});
+
+  const MUST_REFUSE = [
+    /* the reviewer's three, verbatim */
+    ["Your protein target is 2262.", "2262"],      /* label to the LEFT: a kcal floor in a g slot */
+    ["Rest 155 seconds.", "155"],                  /* `seconds` is not a unit this file knows */
+    ["Protein: 2262. Calories: 155.", "2262"],     /* the "Field: N." label form */
+    /* and the rest of the reviewer's round-2 table */
+    ["Your calorie floor is 155.", "155"],
+    ["You weigh 2262.", "2262"],
+    ["Add 155 kilograms.", "155"],
+    ["Your body fat is 2360 percent.", "2360"],
+    /* a number with no field word at all is not free either */
+    ["Your target is 2262.", "2262"],
+    ["It is 155.", "155"],
+  ];
+  for (const [said, token] of MUST_REFUSE) {
+    assert.ok(turn.untraceable(said).includes(token), "STILL GREEN: " + said);
+  }
+  /* "Protein: 2262. Calories: 155." is wrong in BOTH clauses */
+  assert.deepEqual(turn.untraceable("Protein: 2262. Calories: 155."), ["2262", "155"]);
+
+  /* the reviewer's three must-accept strings, verbatim, plus the label form used
+     correctly — the fix must not buy its refusals with false reds */
+  for (const said of [
+    "Your protein target is 155 grams.",
+    "Eat between 2262 and 2360 kcal.",
+    "Today: 2262–2360 kcal · 155 g protein",
+    "Your calorie band today is 2262 to 2360.",
+    "Protein: 155. Calories: 2262.",
+    "Eat 2,262 calories today.",
+  ]) {
+    assert.deepEqual(turn.untraceable(said), [], "WRONGLY RED: " + said);
+  }
+});
+
+test("an unrecognised unit noun licenses nothing but itself", async () => {
+  const turn = coach().openTurn("turn-c8b");
+  await turn.call.today_plan({});
+  /* `seconds`, `kilograms`, `stone` are not in the declared vocabulary, so they
+     are units of their own that no engine value in this turn carries */
+  for (const said of ["Rest 155 seconds.", "Add 155 kilograms.", "You weigh 2262 stone.",
+    "That is 2360 furlongs."]) {
+    assert.ok(turn.untraceable(said).length > 0, "an unknown noun was read as 'no unit': " + said);
+  }
+  /* and the declared vocabulary still maps its own synonyms */
+  assert.deepEqual(T.parseUnits("155 grams").map((p) => p.unit), ["g"]);
+  assert.deepEqual(T.parseUnits("155 g").map((p) => p.unit), ["g"]);
+  assert.deepEqual(T.parseUnits("180.4 lbs").map((p) => p.unit), ["lb"]);
+  assert.deepEqual(T.parseUnits("1.19 pounds a week").map((p) => p.unit), ["lb/wk"]);
+  assert.deepEqual(T.parseUnits("155 seconds").map((p) => p.unit), ["!seconds"]);
+});
+
+/* C5 review round 2, C9 / surviving mutant S1. The rule "a date never licenses a
+   bare number" was real but unasserted: deleting it killed no test. */
 test("a date tag licenses a date, never a bare quantity", async () => {
   const turn = coach().openTurn("turn-date");
   await turn.call.today_plan({});
@@ -117,6 +178,20 @@ test("a date tag licenses a date, never a bare quantity", async () => {
   for (const said of ["Add 2030 weekly sets.", "Do 4 sets.", "Eat 2030 calories.", "You have 4 reps left."]) {
     assert.ok(turn.untraceable(said).length > 0, "a date component licensed a quantity: " + said);
   }
+  /* THE BARE CASE, which is the mutant: a date component spoken with no unit and
+     no field word at all. `date` is deliberately absent from BARE_SPEAKABLE, and
+     putting it back turns this RED. */
+  assert.equal(T.BARE_SPEAKABLE.has("date"), false, "a date became bare-speakable");
+  assert.deepEqual(T.parseUnits("Give me 2030.").map((p) => p.unit), [null], "the probe is not a bare number");
+  assert.deepEqual(turn.untraceable("Give me 2030."), ["2030"],
+    "a bare number borrowed its provenance from a date");
+  assert.deepEqual(turn.untraceable("Do 2030 of them."), ["2030"]);
+  /* and the same sentence shape IS allowed for a bare-speakable unit, so the
+     test measures the date exclusion and not a blanket refusal of bare numbers */
+  const sets = coach().openTurn("turn-bare-ok");
+  await sets.call.request_replan({ fact: "volume" });
+  assert.equal(sets.results[0].values.addWeeklySets.unit, "set");
+  assert.deepEqual(sets.untraceable("Give me 6."), []);
 });
 
 test("every interpolation declares the unit it speaks into", () => {
