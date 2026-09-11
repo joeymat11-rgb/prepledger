@@ -21,7 +21,7 @@
 // run.cjs itself groups them on one executable. A child's argv carries only the two flags
 // the accepted originals use; every inline-code and short-circuit form refuses. Every
 // obligation that a ledger line would clear — brief acceptance, theme — is cleared only by
-// exact ledger bytes in Git at its accepted-chain anchor, never by declaration.
+// that line's exact bytes found IN GIT at the parent's receipt base, never by declaration.
 // No POSTFIX PACKAGE PASS without an ACCEPTED envelope naming the exact artifact bytes
 // (DECISIONS:86-87); --ci's own PUBLIC CI EVIDENCE PASS is public evidence only and is
 // qualified in its own sentence.
@@ -84,10 +84,6 @@ const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
 // reviewed tooling change, not a spec change, and it must not land before X3's needle
 // proof has been exercised on a real move.
 const MOVES_RULING = null;
-// One reviewed candidate definition; it confers NO authority. A real PM theme line
-// on CHAIN_REF must cite this digest before any successor can cover a parent gate.
-const SUCCESSOR_POLICY_FILE = TOOLING + '/b-ntc-successors.json';
-const SUCCESSOR_POLICY_SHA = '614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee';
 // Packages that register no D-ID at all. DECISIONS:93: feature work under the ratified
 // slice plan takes no register D-ID, and DECISIONS:103 (1) rules B-NTC (and B-LOM behind
 // it) exactly that kind of package — it turns an accepted open boundary into a provider.
@@ -114,7 +110,7 @@ const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
-const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', SUCCESSOR_POLICY_FILE, TOOLING + '/test/successor-authority.test.cjs', TOOLING + '/TOOLING-SUCCESSORS-ASTRA-REPORT.txt', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
@@ -232,9 +228,8 @@ const SPEC_KEYS = ['version', 'lanePackage', 'packageId', 'status', 'brief', 'so
   'privateLiveTriggered', 'parent', 'tooling', 'product', 'coverage', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
   'authorizations', 'artifact', 'children', 'notes'];
 const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
-function claim(v, role, label, child = false) { // a ledger citation whose text hashes to the sha it names
-  keys(v, child && Object.hasOwn(v, 'commit') ? [...CLAIM_KEYS, 'commit'] : CLAIM_KEYS, 'Authorization claim ' + label);
-  if (Object.hasOwn(v, 'commit')) assert(child && /^[a-f0-9]{40}$/.test(v.commit), 'CHILD-LEDGER-ANCHOR-SHAPE');
+function claim(v, role, label) { // a ledger citation whose text hashes to the sha it names
+  keys(v, CLAIM_KEYS, 'Authorization claim ' + label);
   assert(Number.isInteger(v.ledgerLine) && v.ledgerLine > 0 && v.role === role, 'Claim coordinates ' + label);
   assert(typeof v.line === 'string' && !/[\r\n]/.test(v.line) && /^[a-f0-9]{64}$/.test(v.lineSha256) && sha(Buffer.from(v.line)) === v.lineSha256, 'LEDGER-LINE-SHA256 ' + label);
 }
@@ -251,7 +246,7 @@ function spec() {
   // — never a bare integer a spec can invent. Its bytes are resolved in Git by authority().
   keys(s.brief, ['file', 'sha256', 'acceptedLedgerLine'], 'Brief citation');
   if (s.brief.acceptedLedgerLine !== null) {
-    claim(s.brief.acceptedLedgerLine, 'cowork', 'brief acceptance', true);
+    claim(s.brief.acceptedLedgerLine, 'cowork', 'brief acceptance');
     assert.equal(s.status, 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-STATUS disagrees with the cited ledger line');
     assert(s.brief.acceptedLedgerLine.line.includes(s.packageId) && s.brief.acceptedLedgerLine.line.includes(s.brief.file) &&
       /(?:^|[ ·])ACCEPTED$/.test(s.brief.acceptedLedgerLine.line), 'Brief acceptance line names this package and brief and ends in the ACCEPT terminal word');
@@ -348,7 +343,7 @@ function spec() {
   keys(s.authorizations, ['owner', 'contract', 'theme', 'review'], 'Closed authorization keys');
   claim(s.authorizations.owner, 'owner', 'owner'); claim(s.authorizations.contract, 'cowork', 'contract');
   if (s.authorizations.theme !== null) {
-    claim(s.authorizations.theme, 'cowork', 'theme', true);
+    claim(s.authorizations.theme, 'cowork', 'theme');
     assert(s.authorizations.theme.line.includes(s.packageId) && s.authorizations.theme.line.endsWith(' · ACCEPTED'), 'Theme line binds this package id');
   }
   keys(s.authorizations.review, ['role', 'prefix', 'terminal'], 'Review claim');
@@ -384,7 +379,7 @@ function option(o) {
   const raw = fs.readFileSync(rel(o.artifact));
   assert.equal(sha(raw), o.sha256, 'Parent artifact bytes ' + o.id);
   // X2 / R3-B, half one. The parent's REVIEW file is where receiptBase comes from, and
-  // receiptBase remains the exact inherited owner/contract ledger anchor. Unpinned, a spec could
+  // receiptBase is the base every ledger obligation is resolved at. Unpinned, a spec could
   // hand the runner any review file it liked — r3's C-COMMIT-3 wrote one inside the tooling
   // directory, pointed at a scratch commit carrying forged theme and brief lines, and the
   // runner reported them "found in Git" and dropped two open obligations. So the review
@@ -600,21 +595,14 @@ function fidelity(s, sealed) {
 // W6. The owner and contract ledger lines are found as EXACT LINE BYTES in
 // rebuild/DECISIONS.md at a real chain commit, under their own roles and with content
 // mentions; the contract must additionally BE the parent artifact's own contract line.
-// Parent owner/contract stay at the exact accepted parent receipt. New child
-// claims may name a later immutable commit, but only on BOTH the candidate ancestry
-// and the fixed accepted chain. A local-only spec-selected anchor cannot authorize.
-function ledger(at, v, mentions, role) {
-  L.verifyReceipt(root, at, { commit: at, path: 'rebuild/DECISIONS.md', line: v.line, lineSha256: v.lineSha256 }, { role, mentions });
-}
-function childLedger(s, bound, v, label, mentions) {
-  claim(v, 'cowork', label, true);
-  const at = v.commit || bound.receiptBase;
-  assert(/^[a-f0-9]{40}$/.test(at), 'CHILD-LEDGER-ANCHOR-SHAPE');
-  L.git(root, ['merge-base', '--is-ancestor', bound.receiptBase, at]);
-  L.git(root, ['merge-base', '--is-ancestor', at, 'HEAD']);
-  L.git(root, ['merge-base', '--is-ancestor', at, CHAIN_REF]);
-  ledger(at, v, mentions, 'cowork');
-  return at;
+// N4/N5. The theme and the brief acceptance are held to the SAME standard as owner and
+// contract: L.verifyReceipt reads rebuild/DECISIONS.md out of Git at the parent's receipt
+// base and requires the exact line bytes under the right role. A line that exists only in
+// the spec refuses; a line that is absent leaves its obligation OPEN. Neither can be
+// cleared by declaration, and neither is verifiable at all without a sealed parent to
+// anchor it — so a claim made without one refuses rather than counting.
+function ledger(at, v, mentions) {
+  L.verifyReceipt(root, at, { commit: at, path: 'rebuild/DECISIONS.md', line: v.line, lineSha256: v.lineSha256 }, { role: v.role, mentions });
 }
 function authority(s, bound) {
   const theme = s.authorizations.theme, accepted = s.brief.acceptedLedgerLine;
@@ -627,70 +615,15 @@ function authority(s, bound) {
     note('owner and contract ledger lines not verified at a chain commit'); return;
   }
   const at = bound.receiptBase;
-  claim(s.authorizations.owner, 'owner', 'owner');
-  claim(s.authorizations.contract, 'cowork', 'contract');
-  ledger(at, s.authorizations.owner, ['M2-RULE'], 'owner');
-  ledger(at, s.authorizations.contract, ['POSTFIX-GATE BRIEF'], 'cowork');
+  ledger(at, s.authorizations.owner, ['M2-RULE']);
+  ledger(at, s.authorizations.contract, ['POSTFIX-GATE BRIEF']);
   assert.equal(s.authorizations.contract.lineSha256, bound.acceptance.authorizations.contract.lineSha256, 'INHERITED-CONTRACT-AUTHORIZATION');
-  const themeAt = theme ? childLedger(s, bound, theme, 'theme', [s.packageId]) : null;
-  const briefAt = accepted ? childLedger(s, bound, accepted, 'brief acceptance', [s.packageId, s.brief.file]) : null;
-  if (!theme) themeOpen();
-  if (!accepted) briefOpen();
-  say('AUTHORITY OBSERVED owner/contract exact roles and ledger bytes at parent receipt ' + at +
-    '; inherited contract exact; theme ' + (themeAt || 'NULL') + '; brief acceptance ' + (briefAt || 'NULL') +
-    '; any child anchor is an immutable ancestor of both candidate and fixed accepted chain');
-}
-
-// This is an exact source policy, not a generic wrapper or move exception. Pin the
-// whole child declaration/product closure plus the immutable parent originals. The
-// independently reviewed two-stage helper supplies actual original assertions; a
-// different file that only prints its needle cannot satisfy these source checks.
-function loadSuccessorPolicy() {
-  assert.equal(diskSha(SUCCESSOR_POLICY_FILE), SUCCESSOR_POLICY_SHA, 'SUCCESSOR-POLICY-BYTES');
-  assert.equal(gitSha('HEAD', SUCCESSOR_POLICY_FILE), SUCCESSOR_POLICY_SHA, 'SUCCESSOR-POLICY-GIT-BYTES');
-  return J.parseExact(fs.readFileSync(rel(SUCCESSOR_POLICY_FILE)));
-}
-function validateSuccessorDefinition(s, bound, p) {
-  assert.equal(sha(Buffer.from(JSON.stringify(p, null, 2) + '\n')), SUCCESSOR_POLICY_SHA, 'SUCCESSOR-POLICY-DEFINITION');
-  assert.equal(ID, 'B-NTC', 'SUCCESSOR-WRONG-PACKAGE');
-  assert.equal(s.lanePackage, p.lanePackage, 'SUCCESSOR-WRONG-PACKAGE');
-  assert.equal(s.packageId, p.packageId, 'SUCCESSOR-WRONG-PACKAGE');
-  assert(bound, 'SUCCESSOR-PARENT-MISSING');
-  for (const [key, value] of Object.entries(p.parent)) assert.equal(bound.option[key], value, 'SUCCESSOR-PARENT-' + key);
-  assert.equal(sha(L.object(root, p.sourceCommit, p.parent.artifact)), p.parent.sha256, 'SUCCESSOR-PARENT-ORIGIN');
-  assert.equal(sha(Buffer.from(JSON.stringify(bound.acceptance, null, 2) + '\n')), p.parent.sha256, 'SUCCESSOR-PARENT-DEFINITION');
-  assert.deepEqual(s.coverage, p.coverage, 'SUCCESSOR-COVERAGE-MAPPING');
-  assert.deepEqual(s.children, p.children, 'SUCCESSOR-CHILD-DECLARATIONS');
-  assert.deepEqual(s.product, p.product, 'SUCCESSOR-PRODUCT-CLOSURE');
-  L.checkSources(root, p.sourceCommit, p.sourcePins);
-  L.checkSources(root, 'HEAD', p.sourcePins);
-  return p;
-}
-function successorAuthorization(s, bound) {
-  assert(s.authorizations.theme, 'SUCCESSOR-PM-AUTHORITY-UNISSUED');
-  return childLedger(s, bound, s.authorizations.theme, 'successor theme',
-    [s.packageId, 'B-NTC-SUCCESSORS ' + SUCCESSOR_POLICY_SHA]);
-}
-function successorSupport(s, bound) {
-  if (!bound) return null;
-  const inherits = new Set(Object.values(s.coverage.inherited));
-  const needs = s.children.some(c => inherits.has(c.name) && !childArgv(c).some(f =>
-    Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f)));
-  if (!needs) return null;
-  const p = validateSuccessorDefinition(s, bound, loadSuccessorPolicy());
-  successorAuthorization(s, bound);
-  return p;
-}
-function inheritedExecutable(s, bound, gate, child, result, support) {
-  assert(result && result.ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
-  const declared = s.children.find(c => c.name === child);
-  assert(declared, 'INHERITED-CHILD-DECLARATION');
-  assert.deepEqual(result.targets, childArgv(declared), 'INHERITED-EXECUTION-TARGETS');
-  if (result.targets.some(f => Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f))) return;
-  assert(support && support.coverage.inherited[gate] === child, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child);
-  const exact = support.children.find(c => c.name === child);
-  assert.deepEqual(declared, exact, 'SUCCESSOR-EXECUTABLE-DEFINITION');
-  assert.equal(result.needle, exact.needle, 'SUCCESSOR-EXECUTED-VERDICT');
+  if (!theme) themeOpen(); else ledger(at, theme, [s.packageId]);
+  if (!accepted) briefOpen(); else ledger(at, accepted, [s.packageId, s.brief.file]);
+  say('AUTHORITY OBSERVED owner DECISIONS:' + s.authorizations.owner.ledgerLine + ' and contract DECISIONS:' + s.authorizations.contract.ledgerLine +
+    ' present as exact ledger line bytes at ' + at.slice(0, 7) + ' under their own roles; contract inherited byte-equal from the parent; theme ' +
+    (theme ? 'DECISIONS:' + theme.ledgerLine + ' found in Git at that base' : 'NULL — no PASS word is available') + '; brief acceptance ' +
+    (accepted ? 'DECISIONS:' + accepted.ledgerLine + ' found in Git at that base' : 'NULL — the obligation stays open'));
 }
 
 // --------------------------------------------------------- 4. the 45 register laws
@@ -796,7 +729,6 @@ function children(s, env) {
 // declared verdict — never by a file's existence. The inherited set must be exactly the
 // parent artifact's own covered set; a move is carried by this package's own successor.
 function coverage(s, bound, ran) {
-  const support = successorSupport(s, bound);
   const covered = new Map([...Object.entries(s.coverage.inherited), ...Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])]);
   for (const [gate, child] of covered) assert(ran.get(child) && ran.get(child).ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
@@ -807,7 +739,9 @@ function coverage(s, bound, ran) {
     // what B30 did; that is what this equality refuses.
     assert.deepEqual(s.coverage.inherited, byChild, 'INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET');
     for (const [gate, child] of Object.entries(s.coverage.inherited)) {
-      inheritedExecutable(s, bound, gate, child, ran.get(child), support);
+      const targets = ran.get(child).targets;
+      assert(targets.some(f => Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f)),
+        'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
     }
     // The closed bound the accepted original states as assert.equal(covered.length, 9):
     // exactly the parent's covered set plus this package's own declared, bounded moves.
@@ -855,7 +789,6 @@ function noRegister(s, ran) {
 // writes in rebuild/m4/spec.
 function proposed(s, bound) {
   const pins = { [RUNNER]: diskSha(RUNNER), [TOOLING + '/packages/' + ID + '.json']: sha(specRaw) };
-  if (successorSupport(s, bound)) pins[SUCCESSOR_POLICY_FILE] = diskSha(SUCCESSOR_POLICY_FILE);
   if (fs.existsSync(rel(s.brief.file))) pins[s.brief.file] = diskSha(s.brief.file);
   if (s.carrierSuccessor && fs.existsSync(rel(s.carrierSuccessor.file))) pins[s.carrierSuccessor.file] = diskSha(s.carrierSuccessor.file);
   for (const c of s.children) for (const f of childArgv(c)) pins[f] = diskSha(f);
@@ -923,8 +856,6 @@ function envelope(s, bound, ran) {
     assert(ran.get(c.name) && ran.get(c.name).ok, 'NO-REGISTER-PACKAGE-OWN-CHILD-DID-NOT-EXECUTE ' + ID + ' ' + c.name);
   assert(s.authorizations.theme, 'THEME-AUTHORIZATION-UNAVAILABLE'); // no PASS before the brief's own ledger line is bound
   assert(s.brief.acceptedLedgerLine && s.status === 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-UNAVAILABLE'); // N4: no PASS on an unaccepted brief
-  authority(s, bound);
-  successorSupport(s, bound);
   L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [s.packageId, ARTIFACT, hash] });
   const cited = { owner: [s.authorizations.owner, ['M2-RULE']], contract: [s.authorizations.contract, ['POSTFIX-GATE BRIEF']],
     theme: [s.authorizations.theme, [s.packageId]], brief: [s.brief.acceptedLedgerLine, [s.packageId, s.brief.file]] };
@@ -1002,7 +933,6 @@ try {
   const phase = product(s, bound);
   fidelity(s, first.sealed);
   authority(s, bound);
-  successorSupport(s, bound); // refuse unissued or changed successors before any campaign
   // Honesty: this line ECHOES free text the spec supplies and counts it. It asserts
   // nothing, and r2 was right that "UNCHANGED" read as an observation. What actually holds
   // these surfaces is product(), pins() and the PIN_PATHS check above — not this sentence.
