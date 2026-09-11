@@ -108,7 +108,11 @@ try {
   await page.waitForSelector("#morning-weight");
   await page.fill("#morning-weight", "178.2");
   await page.click('[role="dialog"] button[type="submit"]');
-  await page.waitForSelector('[data-slot="morning"]');
+  /* A2 review B2: the weigh-in is a real encrypted-repository transaction now, so
+     wait for the sheet to close and the reading to land rather than for a selector
+     that was already on screen. */
+  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
   const logged = (await page.textContent('[data-slot="morning"]')).trim();
   assert.match(logged, /^This morning ✓ 178\.2 lb/, "the offline weigh-in reached the screen: " + logged);
   const trend = (await page.textContent('[data-slot="trend"]')).trim();
