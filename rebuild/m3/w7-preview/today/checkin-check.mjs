@@ -41,6 +41,9 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
+// P1 (DECISIONS:114 (1)): every check-in state this check reaches is swept for an em or
+// en dash in the REAL rendered DOM.
+import { assertNoDashOnScreen } from "./dash-check.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const executablePath = process.env.W7_BROWSER_BIN;
@@ -161,7 +164,15 @@ async function reachable(page, label) {
   assert(box.top >= 0, `${label}: the primary action is cut off at the top`);
   assert(box.overflow <= 0, `${label}: the screen scrolls sideways by ${box.overflow}px`);
   notes.push(`${label} content ${box.content}px in a ${box.viewport}px viewport`);
+  /* P1 (DECISIONS:114 (1)): every state this check measures is also swept for a dash. */
+  await noDashes(page, label);
   return box;
+}
+/* P1: the owner's no-dashes rule, at every state this check walks through. */
+const dashStates = [];
+async function noDashes(page, where) {
+  await assertNoDashOnScreen(page, where);
+  dashStates.push(where);
 }
 async function inputsAreLargeEnough(page, label) {
   const sizes = await page.evaluate(() => [...document.querySelectorAll("#phone input, #phone select, #phone textarea")]
@@ -275,29 +286,32 @@ try {
   /* ---------- the reload ---------- */
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector('[data-slot="primary-label"]');
-  assert.equal(await text(page, '[data-slot="recovery-state"]'), "— recorded today");
+  assert.equal(await text(page, '[data-slot="recovery-state"]'), "Recorded today");
   await page.click('[data-go="recovery"]');
   await page.waitForSelector("#phone .checkin");
   assert.match(await phone(page), /Recorded today at \d\d:\d\d/);
   assert.match(await phone(page), /already recorded on this device/);
+  await noDashes(page, "the check-in read back after a reload");
 
   /* ---------- a genuinely new page ---------- */
   const second = watch(await context.newPage());
   await second.goto(url, { waitUntil: "load" });
   await second.waitForSelector('[data-slot="primary-label"]');
-  assert.equal(await text(second, '[data-slot="recovery-state"]'), "— recorded today");
+  assert.equal(await text(second, '[data-slot="recovery-state"]'), "Recorded today");
+  await noDashes(second, "Today, on a new page, with the check-in recorded");
   await second.close();
 
   /* ---------- THE PROCESS KILL — taskkill /F /T, not a graceful close ---------- */
   await hardKill(context);
   ({ context, page } = await launch());
-  assert.equal(await text(page, '[data-slot="recovery-state"]'), "— recorded today",
+  assert.equal(await text(page, '[data-slot="recovery-state"]'), "Recorded today",
     "the check-in did not survive a real process kill");
   await page.click('[data-go="recovery"]');
   await page.waitForSelector("#phone .checkin");
   const afterKill = await phone(page);
   assert.match(afterKill, /Recorded today at \d\d:\d\d/);
   assert.match(afterKill, /Which muscles\?: quads and glutes/);
+  await noDashes(page, "the check-in read back after a real process kill");
   notes.push("survived a real taskkill /F /T");
 
   /* ---------- the height comparison against the approved reference ---------- */
@@ -366,6 +380,7 @@ if (problems.length || failures) {
     + "branches -> sleep record confirmed with provenance -> recorded -> read back -> reload "
     + `-> new page -> ${kills} REAL PROCESS KILLS (taskkill /F /T, each verified dead) -> `
     + "a new day starts blank; no off-origin request, no horizontal overflow, every input "
-    + ">= 16px, every tap target >= 44px, the primary action reachable in every branch state.\n  "
+    + ">= 16px, every tap target >= 44px, the primary action reachable in every branch state; "
+    + `no em/en dash in the rendered DOM at any of the ${dashStates.length} states walked (DECISIONS:114).\n  `
     + notes.join("\n  "));
 }
