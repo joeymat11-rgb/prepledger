@@ -442,3 +442,428 @@ the fixed calendar cliff but does not remove the cliff. The exact residual:
     byte check, sha256 printed before and after — plus a copy of the original in
     `.tmp/local-bite/` before the first mutation.
 14. **No additive export line was needed anywhere.** Zero existing files changed.
+
+---
+
+# C1b REPORT — the local era, spoken as a durable-client scope
+
+Same branch, same worktree, same Node. C1 is above this line and is unchanged in
+substance; everything below is the follow-on that closes the gap the A0 merge
+left open.
+
+**The gap, in one sentence.** `composeWorkoutHost` is BINDING ONLY — every
+collaborator injected — and its own journey test injects SYNTHETIC ones (a
+synthetic identity, a synthetic signing key, a synthetic lease, a pass-through
+observation guard, `validateCommit: () => null`). `host/index.html` says "the
+page's own bootstrap supplies the repository, keys, clock, engine and athlete
+setup", and nothing did. C1b is that bootstrap's local half: one call that turns
+a real first-run installation into the exact twelve-member durable-client scope
+`createDurablePublicClient` / `composeWorkoutHost` ask for, with **no synthetic
+value anywhere in it**.
+
+**No `host/` file was edited.** `rebuild/m3/w6/host/**` is byte-identical to the
+A0 merge; its 22 tests still pass unchanged. The host stays binding-only and the
+local era supplies the bindings — which is the whole point of the A0 design.
+
+## WHAT WAS BUILT (C1b)
+
+| file | sha256 | lines |
+|---|---|---|
+| `rebuild/m3/w6/local/host-bindings.mjs` (new) | `aabe4f26454386d35a74bc0c74b5264592654260fc5aa1991060c29d02ffc118` | 284 |
+| `rebuild/m3/w6/local/host-browser-entry.mjs` (new) | `476b6c0266ccacefa82d02d5f5f5dcdd042c11ca78af45b86f01eefca6aacecb` | 19 |
+| `rebuild/m3/w6/test/local-host-journey.test.mjs` (new) | `25cea4c5e64b1a9b63039e307da12bb34a30270080979a162651bde19cb95806` | 444 |
+| `rebuild/m3/w6/test/local-host-browser.mjs` (new) | `ef97680d35978879d7e025040c1856506f5153a2de7c08dcf0eb2bbc89006e33` | 186 |
+| `rebuild/m3/w6/test/static-modules.mjs` (new) | `4505ba63dfb64b0bbf199b10c051ec64ffc895235534774883b01ae51c37c203` | 66 |
+| `rebuild/m3/w6/local/local-client.mjs` (edited, additive) | `a055c623ca0b1c95cc5cbad3386b8cb9cdfdc58e32f5ecd549d88762d3814ea9` | 392 |
+| `rebuild/m3/w6/local/build.mjs` (edited, additive) | `e500644550d6dfc922d09e8ba73b27c6eb8ef2b29a54514fb5ce847b2839e66b` | 37 |
+| `rebuild/m3/w6/test/browser-check.mjs` (edited, the harness fix) | `eb1e5c8e19ced67bfca860dba7627a6950dd793cac2fe4ad48e5de130cd12b07` | 101 |
+
+Every path is inside C1b's ownership (`rebuild/m3/w6/local/**`,
+`rebuild/m3/w6/test/**`, this report). Nothing under `host/`, `client/`,
+`engine/`, `m4/`, no lockfile and no `.gitignore` was touched, and no install of
+any kind was run.
+
+Changes to `local-client.mjs` are strictly additive: one import, one exported
+`LOCAL_SCOPE` symbol, a `booted` flag, an internal scope reader, and one new
+method `hostBindings(options)`. Every existing export and behaviour is intact —
+the C1 suite, the C1 bite and the C1 browser runner all still pass (below).
+
+## WHAT THE BINDINGS SUPPLY, AND WHY EACH VALUE IS HONEST
+
+`localHostBindings(clientOrOpenOptions)` returns exactly twelve members —
+`Object.keys()` is asserted against the list, so a thirteenth cannot creep in.
+
+| member | value | why it is honest, not a stand-in |
+|---|---|---|
+| `repository` | the C1 installation's own `openRepository` handle | the same sealed IndexedDB generations C1 writes; there is no second store |
+| `stage` | `createT2Stage` over `localEraConfig(metadata, …)`, `allowInbound: true` | the SAME configProvider C1's own bridge uses, so both write paths read one era from one place |
+| `namespace` / `athleteId` / `deviceId` | the open options | the values the generation was sealed under; `localEraConfig` refuses a scope mismatch |
+| `sessionEpoch` | the client's own per-open epoch | one process-lifetime identity, generated in the factory closure; nothing outside can set it |
+| `isCurrentSession` | `epoch === sessionEpoch && !closed` | a CLOSED client is not the current session, so a retired session's write can never be Saved |
+| `observationEpoch` | `() => sessionEpoch` | in a local era there is exactly one observation — this device's own — so the observation epoch IS the session epoch. Anything else would be inventing a second observer |
+| `observationGuard` | pass-through for local kinds; **refuses every inbound kind** | see K1 below |
+| `validateCommit` | C1's `commitFailure` over this stage's own record | the identical synchronous, reject-only validator C1 proved with its bite; adapted only in that the context comes from the public client's bridge |
+| `keys` | ONE pin: this device's own P-256 verification key | see "the one thing the brief did not anticipate" below |
+| `crypto` | the `crypto` the factory was opened with | the same WebCrypto that seals the generation |
+
+### K1 is not applicable here, so the guard records nothing
+
+The K1 fence exists to stop a client acting on knowledge it got from a hosted
+authority between verification and durable outcome. **No hosted knowledge exists
+on this phone.** There is nothing to have learned and nothing to fence, so the
+guard passes local work straight through and keeps no state — a recorder with
+one observer to record would be theatre, and a fake ledger is worse than none.
+
+What it *does* do is the honest half: `disposition`, `pull`, `snapshot`,
+`lease`, `time`, `current-head-exchange` and `time-exchange` are refused
+outright, **before the callback runs and therefore before the pinned key is ever
+consulted**, with `state 12` / `LOCAL_ERA_NO_INBOUND`. State 12 is the client's
+own "this protocol is not installed", not a storage fault — because nothing is
+wrong with the stored truth; there is simply nowhere for an inbound record to
+have come from. Test 10 fires all five entry points, including with a lease this
+device really did sign, and asserts the revision and token do not move.
+
+### The one thing the brief did not anticipate: `keys` cannot be empty
+
+The brief asked for "an empty list if the factory accepts it". It does not, and
+neither does the durable client — and the reason runs deeper than the argument
+check:
+
+* `composeWorkoutHost` refuses `keys` unless `Array.isArray(keys) && keys.length`;
+* `W5.createPublicVerifier` throws `TypeError` on an empty list; and, decisively,
+* `public-client.mjs` `stageVerified` verifies
+  `generation.metadata.authorityLease` with that P-256 verifier **on every staged
+  command**, not only on inbound ones — a failure is `LEASE_PROOF_UNPROVEN` /
+  state 18. So a local era that wants the public client cannot hand it "no keys":
+  it has to hold a lease the W5 verifier can check.
+
+The answer is the same one `local-era.mjs` already gives for the T2 lease: the
+era issues one **to itself**. `createLocalHostAuthority` mints a P-256 keypair,
+`signHostLease` signs a W5-shaped lease with it, and the pin is that keypair's
+public half. The lease is the era lease **field for field** — same `lease_id`
+`local-era:<eraId>`, same `range`, same `not_before`/`not_after`, same
+`schema_version 2` — so both write paths stamp one `lease_id` and there is one
+window, not two. The private half lives in `metadata.localHostAuthority`, i.e.
+inside the same sealed generation it authorizes, encrypted at rest under the
+device key, never in plaintext storage and never logged.
+
+**This is not a dummy authority key.** A dummy would be a value that *claims* to
+be someone else's decision. This one claims nothing: it is the integrity pin for
+a record this device signed, it is named `local-era-<eraId>` so it cannot be
+mistaken for anything else, and the observation guard makes it structurally
+incapable of admitting an inbound record. `local-era.mjs`'s own header already
+states the rule it inherits — "it proves the integrity of that sealed record,
+NOT permission from anyone".
+
+One consequence worth stating plainly: because ECDSA is randomised and WebCrypto
+does no low-S normalisation, about half of all raw signatures would be rejected
+by the very verifier they are for (`decodeSignature` requires `0 < s <= n/2`).
+`canonicalSignature` normalises S and re-draws a degenerate signature, which is
+what makes the lease verifiable by the **unchanged** `rebuild/m3/w5/public-client.cjs`.
+Test 1 asserts that verifier accepts it and rejects a tampered copy.
+
+### Where renewal runs, and who commits
+
+The brief asked the right question. C1's `boot()` is what keeps writing alive:
+inside the last 200 days it re-signs the still-valid era lease for another 400
+and commits it. When the HOST writes, the writer is the **public client's own
+bridge**, which never calls `boot()`. So the rule is made explicit rather than
+assumed, in two parts:
+
+1. `hostBindings()` **refuses outright** unless `boot()` has already reported
+   ready (`LOCAL_HOST_BINDINGS_BOOT_REQUIRED` / 18). The flag is retired by any
+   non-ready `boot()` and by `close()`, so a stale earlier success cannot open
+   the door. Tests: first-run before enroll, first-run after enroll, and after
+   either kind of partial erasure.
+2. `hostBindings()` then runs the SAME renewal check itself, inside the one
+   durable commit that installs or refreshes the host lease. That is the second
+   chance if `boot()`'s own attempt failed (C1 treats that as non-fatal and
+   reports `leaseRenewalCode`), and it happens **before the scope object
+   exists** — therefore before the public client's first write.
+
+The decisive test drives a movable clock: enroll and `boot()` on day 0 (nothing
+due, `leaseRenewedUntil: null`), then move to day 201 **with no second boot** and
+call `hostBindings()`. Only the bindings can renew at that point, and they do —
+`installed: true`, `not_after` moves, the W5 lease follows it exactly, and
+`leaseRenewalDue(era.lease, now)` is asserted `false`, i.e. *the scope never
+exists over a lease still due for renewal*. Move to day 1000 and the scope is
+refused `LOCAL_LEASE_EXPIRED` / 20 rather than discovered on the first save.
+
+A second `hostBindings()` over an installed era writes nothing: revision and
+token are asserted unchanged, and a relaunch reports `installed: false`.
+
+### The zero frontier — a C1 gap C1b found and closed
+
+C1 seals `sync` empty. That is right for its own path (`rebuild/client` boots an
+absent frontier as `{W:0, authorityW:0}`), but it leaves the host's **correction
+path unreachable**: `prepareWorkoutEdit` compares
+`collections.sync.frontier.authorityW` against the history's own `W`, and
+`undefined !== 0` refuses `WORKOUT_EDIT_PREFIX_INCOMPLETE` / 18. So on a C1
+generation the athlete could log a set and never fix it.
+
+`installHostAuthority` writes `{W: 0, authorityW: 0}` in the same commit when the
+frontier is absent. That is not an invention: it is the only frontier a local era
+can have, it is exactly what T2 already defaults to, and it says the true thing —
+no authority has accepted anything here, because there is no authority. C1's own
+seed and its "every collection sealed empty" assertion are untouched; the
+frontier appears only when a host asks for bindings. Journey step 8 proves the
+correction lands and the original stays immutable.
+
+### The derived sidecar is CARRIED on the host path, never authored
+
+The host's derived state is the engine history projector's, computed from ops; a
+projector configured for C1's commands knows nothing about a workout batch. So
+the host stage carries C1's sidecar exactly as it found it and authors one only
+where none exists. Consequence, asserted rather than hidden: after host writes
+the cache's basis is *behind* the ops, which `boot()` reports as
+`derivedStale: true` with `derivedCode: null` — older, not damaged. Ops are
+truth. The only validator check that can fire on this path is therefore
+`LOCAL_SIDECAR_UNPROVEN`, the fail-closed one, and test 1 fires it directly.
+
+## THE BROWSER HARNESS — ROOT CAUSE AND FIX
+
+DECISIONS:98 records, against the A0 merge: *"browser journey NOT RUN (retained
+Chromium harness fails to fetch repository.mjs — Track C/host follow-on)"*.
+
+**The message points at the wrong file.** `test/browser-check.mjs` served exactly
+two paths — `/` and `/repository.mjs` — and 404'd everything else. That was
+complete when `repository.mjs` was self-contained. Since the K1 recovery work it
+opens with
+
+```js
+import { createRecoveryStage } from './recovery-stage.mjs';
+import { createImportCustody } from './import-custody.mjs';
+```
+
+so the page's `await import("/repository.mjs")` makes the browser fetch two more
+modules, both of which the harness 404s. ES module resolution fails as a whole,
+and Chromium reports the failure against the **entry** module, not the missing
+dependency. Reproduced here on the pre-fix file, verbatim:
+
+```
+W6 BROWSER-REPOSITORY FAIL — page.evaluate: TypeError: Failed to fetch
+dynamically imported module: http://127.0.0.1:62227/repository.mjs
+```
+
+Nothing is wrong with `repository.mjs`. The harness's allowlist was one commit
+behind its own dependency graph. It is not an allowlist problem, not a MIME
+problem and not a path-root problem: it is a **single-filename server for a
+module that grew a graph**.
+
+**The fix** is `rebuild/m3/w6/test/static-modules.mjs`: serve the W6 **directory**
+rather than a hand-kept list of filenames, so a new relative import can never
+silently break a harness again. Two properties of that file keep it safe, and no
+caller can widen them:
+
+* **containment** asserted on the REAL path after `realpathSync`, so no `..`,
+  absolute path or symlink escapes the tree (a lexical check alone would follow
+  a link out); and
+* an **extension allowlist** (`.mjs .cjs .js .map .json .html .css .woff2 .txt`),
+  so the harness can never hand a browser a key file, a ledger or a dotfile that
+  happens to sit under the same root.
+
+A caller may also inject files that live outside the root (`files: {"/host.js":
+…}`) for a built bundle written into `.tmp/`.
+
+`browser-check.mjs` now uses it and passes 6/6 — a harness that had been dark
+since the K1 merge. **No `host/` file needed changing, so there is no REQUEST TO
+PM for this item.**
+
+## COMMANDS + RESULTS (Windows, this worktree)
+
+`NODE` is `C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe`
+(v24.19.0). PowerShell blocks `npm.ps1`, so node is called directly; output was
+redirected to a file with `Set-Content -Encoding UTF8` and read back, because the
+shell mangles `✔`/`ℹ`. Exit codes were captured from `$LASTEXITCODE`, not inferred.
+
+| command | before C1b | after C1b |
+|---|---|---|
+| `NODE --test rebuild/m3/w6/test/*.test.mjs` | `tests 456 · pass 456 · fail 0` | **`tests 470 · pass 470 · fail 0`**, exit 0 — the 456 unchanged plus 14 new |
+| `NODE --test rebuild/m3/w6/test/local-host-journey.test.mjs` | — | `tests 14 · pass 14 · fail 0`, exit 0 |
+| `NODE --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | `tests 22 · pass 22 · fail 0` | **`tests 22 · pass 22 · fail 0`**, exit 0 — unchanged, `host/` untouched |
+| `NODE rebuild/m3/w6/build-browser.mjs` | `w6.js` `b733c830…3143d`, `w6.js.meta.json` `ffe65850…9b00c` | **byte-identical**: `b733c830…3143d` / `ffe65850…9b00c`, exit 0 |
+| `NODE rebuild/m3/w6/local/build.mjs` | `34 pinned local inputs`; `local.js` `ab944312…4cb58` | `36 pinned local inputs`; `local.js` `7a43cdd11ee85166c6bc2ab720f2a460fc919f6f685a5e9a1a2b1b9ea14d1e30` — moved because `local-client.mjs` now imports `host-bindings.mjs` (+ `authority/canonical.cjs`), and **`W6 LOCAL-HOST BROWSER BUILD PASS — 96 pinned local inputs`**, `host.js` `9694e4a2b0ecc0d4e625db8a49382b58155159d69718819736009896b22afc48` |
+| `NODE rebuild/m3/w6/test/local-bite.cjs` | RESTORED PASS | **RESTORED PASS**, exit 0 — all four bites still RED: durability-gate, stage-basis, sidecar-self-heal, lease-self-renewal; source `a055c623…14ea9` before and after |
+| `NODE rebuild/m3/w6/test/local-browser.mjs` (Edge) | `8/8` | **`8/8` PASS**, exit 0; Edge 152.0.4191.66 |
+| `NODE rebuild/m3/w6/test/browser-check.mjs` (Edge) | **FAIL** — `Failed to fetch dynamically imported module … /repository.mjs` | **`6/6` PASS**, exit 0 |
+| `NODE rebuild/m3/w6/test/local-host-browser.mjs` (Edge) | — | **`6/6` PASS**, exit 0; Edge 152.0.4191.66; 96 pinned bundle inputs |
+
+### The 14 node cases, by what each proves
+
+`local-host-journey.test.mjs` imports the host's own fixture
+(`host/test/journey-fixture.cjs`) rather than copying it, so both journeys are
+talking about the same athlete on the same day. 2026-09-04 is a Friday; the
+engine's fallback week would serve `leg-press`, and this athlete's own split
+says `U` — so every assertion about which lifts appear is also an assertion that
+the fallback week was never consulted.
+
+1. **first run → enroll → boot → bindings.** The scope is refused before enroll
+   AND after enroll-but-before-boot. Then: exactly the twelve members;
+   `isCurrentSession` true for its own epoch and false for another; the
+   validator fails closed when reached without a stage record; the sealed
+   generation carries `localHostAuthority` and an `authorityLease` that mirrors
+   the era lease field for field and verifies under the unchanged W5 verifier
+   (and does not verify with `device_id` swapped); `sync.frontier {W:0,authorityW:0}`.
+2. **a second `hostBindings()` writes nothing** — revision and token unchanged.
+3. **`prepareWorkout` + `startPreparedWorkout` through the real host.** Five
+   slots across `db-bench` / `lat-pulldown`; the stored Start is a real
+   `session-start`, `schema_version 2`, v2 capture profile, `lease_id
+   local-era:<eraId>`.
+4. **three sets** through `host.client.execute('workout', …)`, all with the same
+   `lease_id`.
+5. **ONE GENERATION.** A `weighIn` through C1's own bridge plus the four session
+   ops: five operations, one `meta/checkpoint` whose counts describe the whole
+   generation, `meta/device.seq 5`, `device_seq` 1–5 with no gap, ONE distinct
+   `lease_id` across both write paths, and the carried sidecar reported
+   `derivedStale: true` / `derivedCode: null`.
+6. **close.** The scope's `isCurrentSession` goes false; a late host write is
+   refused and nothing is Saved.
+7. **RELAUNCH** a new factory over the same store: `ops 5`, same `eraId`,
+   `installed: false`; history reads the original capture byte for byte; the
+   session resumes with three recoveries and no second Start; the two remaining
+   slots are logged through `executeResumedWorkout`; C1's own `resumeAfterKill()`
+   still reads the same store.
+8. **finish + correct.** `session-close`, then `prepareWorkoutEdit` /
+   `commitWorkoutEdit` — reachable only because of the zero frontier — with
+   `original.reps 9` and `current.reps 10`.
+9. **NOTHING SYNTHETIC in the sealed metadata.** The fixture key (`O.AUTH_KEY`),
+   the fixture identity key (`O.K_IDENTITY`), the fixture lease id `L-dev-A` and
+   `synthetic-enrollment-only` are all absent; so are the substrings
+   `synthetic`, `fixture` and `test-identity`. Every lease-shaped record in
+   metadata carries this era's `lease_id`; the pinned kid names this era; no
+   `wireProofs` were ever admitted. And the clincher: all eight-plus stored
+   commitments are recomputed with `Ops.commitmentOf(op,
+   metadata.localEra.identityKey)` and must match — the identity every operation
+   was taken under is the installation's own, not a fixture's.
+10. **every inbound path refuses cleanly and writes nothing** — four
+    `acceptResponse` kinds plus `exchangeServerTime`, all `state 12` /
+    `LOCAL_ERA_NO_INBOUND` / `stored: false`, revision and token unmoved.
+11–12. **partial erasure stays restore-required**, twice: the enrollment marker
+    erased (data perfectly readable) and the device key erased. Both give
+    `status restore-required`, `boot().ready false` state 18, `hostBindings()`
+    rejected `LOCAL_HOST_BINDINGS_BOOT_REQUIRED`, and `enroll()` still refused —
+    no reseed over an existing installation.
+13. **renewal before the scope exists** (the movable-clock case described above),
+    including the expired-era refusal at day 1000.
+14. **`localHostBindings` accepts an open client or the open options**, returns
+    the same twelve members either way, gives a new session epoch for a new open,
+    does not re-install an era it finds installed, and refuses a first-run
+    installation through the options form too.
+
+### The 6 browser cases (`local-host-browser.mjs`, real Edge, fresh profile)
+
+1. first run in a real browser: enroll, boot, bindings install the era's own
+   P-256 lease; the twelve members, `kid local-era-<eraId>`, `leaseId
+   local-era:<eraId>`;
+2. the real host prepares today's workout off the athlete's own split (five
+   slots, `db-bench` / `lat-pulldown` — not the fallback week);
+3. Start and ONE logged set: real durable commits through the public client into
+   real IndexedDB, `ops 2`;
+4. **the whole browser context goes away** — process, page, every in-memory
+   handle — and a new context on the same profile directory reopens it: `ops 2`,
+   same `eraId`, `installed: false`, same kid;
+5. history read in the new context: one session, the prescription byte-identical,
+   and the logged set's `reps 9` still there;
+6. the session continues in the new context with one completion recovered and no
+   second Start; reading and resuming wrote nothing.
+
+## DESIGN NOTES (C1b) — every decision taken without asking, and why
+
+1. **`keys` is one self-issued P-256 pin, not an empty list.** The brief offered
+   "empty if the factory accepts it". It does not, and the durable client needs
+   a verifiable `authorityLease` on every staged command, not just inbound ones.
+   Full reasoning above. The alternative — refusing to compose the host at all in
+   a local era — would have left the gap exactly where A0 left it.
+2. **The observation guard refuses inbound rather than passing everything
+   through.** The brief said "a pass-through that records nothing". It is that,
+   for the local kinds. But once a pinned key exists, "pass-through" would mean
+   an inbound record could be *verified* — so the guard refuses every inbound
+   kind first. Refusing is what makes the pin harmless.
+3. **`allowInbound: true` on the host stage.** Not a contradiction of (2). The
+   public client hands the stage a `historyAuthentication` set on every workout
+   read; with `allowInbound` false, `t2-stage.cjs` refuses that read
+   `LOCAL_HISTORY_IDENTITY_UNPROVEN`/18 before the host sees it. The inbound
+   *commands* it also enables need a verified `record` + `proof`, which the guard
+   makes unreachable.
+4. **The host lease MIRRORS the era lease instead of having its own window.**
+   One installation, one window, one `lease_id`, one renewal rule. Two windows
+   would be two things to expire and a second way to be wrong.
+5. **A missing or malformed `localHostAuthority` is re-minted, not refused.**
+   Re-minting loses nothing: no operation is bound to the kid — operations carry
+   `lease_id`, which is the era's and is unchanged by a re-mint. So this is
+   self-healing rather than a new way to need recovery.
+6. **The zero frontier is written.** Reasoned above. It is the one frontier a
+   local era can have; leaving it absent silently removed the athlete's ability
+   to correct a recorded set.
+7. **`hostBindings()` requires `boot()`.** The alternative — booting implicitly
+   inside `hostBindings()` — would have hidden the renewal instead of making it
+   explicit, and would let a host skip the C1 status semantics entirely.
+8. **`isCurrentSession` goes false on `close()`.** A closed client is not the
+   current session. In practice the closed repository handle usually answers
+   first with state 18; the session fence is what stops a *still-open* store
+   accepting a retired session's write. The test says exactly that rather than
+   claiming an ordering it does not control.
+9. **The scope is frozen with exactly twelve enumerable keys**; the owning client
+   and the install summary hang off symbols (`LOCAL_HOST_CLIENT`,
+   `LOCAL_HOST_INSTALL`) so `Object.keys` stays the contract and a spread into
+   `composeWorkoutHost` carries nothing extra.
+10. **`local-client.mjs` ↔ `host-bindings.mjs` is a deliberate import cycle.**
+    Neither side touches the other's bindings at module-evaluation time, only
+    inside functions called later; it is what lets `local.hostBindings()` exist
+    without a dynamic `import()` chunk in the phone bundle. Both Node and esbuild
+    handle it, and all three browser runners prove the bundled form works.
+11. **The static server serves a directory, not a filename list.** The defect it
+    fixes was a filename list going stale; replacing it with a longer filename
+    list would have been the same defect with a later expiry date.
+12. **`host-browser-entry.mjs` lives in `local/`, not `host/`.** It re-exports
+    `host/host-entry.mjs` unchanged and adds the local exports, so a local-era
+    page gets one bundle without a single edit to a PM-owned file.
+
+## RESIDUALS (C1b)
+
+1. **No `subtle` seam.** `composeWorkoutHost` has no `subtle` parameter, so
+   `createDurablePublicClient` falls back to `globalThis.crypto.subtle` for the
+   W5 verifier even though the bindings inject `crypto`. Correct in Node 24 and
+   in every browser this targets, and harmless — but it means the verifier is not
+   using the injected object. Listed under REQUEST TO PM.
+2. **`WORKOUT_PREPARATION_INVALID` still masks the specific code.** Unchanged
+   from the A0 note; a host refusal surfaces the generic code, so the split-guard
+   and basis refusals are not distinguishable to a screen yet. Screen-tier.
+3. **iOS Safari is NOT covered.** Chromium-family (Edge 152) only, as in C1. C3's
+   job. The C1b bundle is larger (96 pinned inputs vs 36) because it carries the
+   engine and the prepared panel; nothing about iOS storage eviction changes.
+4. **No C1b bite.** The C1 bite still proves C1's four invariants. C1b's own
+   invariants — the lease mirror, the boot fence, the inbound refusal — are
+   proved by direct positive AND negative assertions, not by a mutate-and-restore
+   runner. A C1b bite is a reasonable ask and is not done.
+5. **Key custody is unchanged and still local-only.** A browser that evicts site
+   data destroys the device key and with it the era, the host authority and every
+   sealed generation. P1 stays BLOCKED; the recovery path is C2's port.
+6. **The host authority's private JWK is extractable in memory at mint time**
+   (WebCrypto cannot export a non-extractable key, and the JWK must be sealed so
+   the lease can be re-signed at renewal). It is written only into the encrypted
+   generation, never logged, and `publicEra()` still exposes only identifiers and
+   a window. This is the same trade `local-era.mjs` already makes for
+   `authorityKey`.
+7. **Nothing here adopts local-era operations into a hosted era.** Still deferred
+   with hosted sync (DECISIONS:88). C1b only makes the `lease_id` marking
+   consistent across both write paths, which is what a future adoption would read.
+
+## REQUEST TO PM
+
+Neither item below blocks C1b; both are `host/`-owned and were therefore not
+touched.
+
+1. **`composeWorkoutHost` could pass `subtle` through to
+   `createDurablePublicClient`.** Add `subtle` to its destructured parameters and
+   to the `createDurablePublicClient({…})` call, defaulting to `crypto.subtle`
+   when not supplied. One line each; it makes the injected `crypto` actually the
+   one that verifies, and removes a `globalThis` read from the phone path.
+2. **`host/index.html` + `host-entry.mjs` can now name their bootstrap.** The
+   comment "the page's own bootstrap supplies the repository, keys, clock, engine
+   and athlete setup" has an answer as of this branch:
+   `rebuild/m3/w6/local/host-bindings.mjs` `localHostBindings(client)`. If the PM
+   wants the host page itself to boot on a phone, `host-entry.mjs` re-exporting
+   `openLocalDurableClient` / `localHostBindings` would make
+   `rebuild/m3/w6/local/host-browser-entry.mjs` unnecessary. Lane C did not make
+   that edit because `host/**` is PM-owned.
