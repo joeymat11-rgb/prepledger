@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "earned/coach/cap.schema.json",
+  "title": "Earned voice coach — API cost cap record",
+  "description": "The receipt that a HARD SPENDING CAP exists on the API account. Owner ruling: a hard cap before the first real conversation. No verified record of this shape = no live session; there is no override. It is a receipt, never a place to put a key: any credential-shaped string in it fails verification (tools.verifyCostCap).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "provider", "account_label", "cap_usd_month", "cap_usd_session",
+    "per_minute_usd", "verified", "verified_at", "verified_by", "evidence"
+  ],
+  "properties": {
+    "provider": { "type": "string", "minLength": 1, "description": "e.g. openai" },
+    "account_label": { "type": "string", "minLength": 1, "description": "A human label for the account. NOT an account id, NOT a key, NOT an email." },
+    "cap_usd_month": { "type": "number", "exclusiveMinimum": 0, "description": "The hard monthly cap actually set on the account." },
+    "cap_usd_session": { "type": "number", "exclusiveMinimum": 0, "description": "The per-session ceiling the adapter enforces. Must be <= cap_usd_month." },
+    "per_minute_usd": { "type": "number", "exclusiveMinimum": 0, "description": "Published voice-layer price at the time of verification ($0.05/min at GPT-Live-1 launch). Used to price a session budget, never to authorise one." },
+    "verified": { "const": true, "description": "Exactly true. A cap nobody checked is not a cap." },
+    "verified_at": { "type": "string", "format": "date-time", "description": "ISO timestamp of the human check on the provider's own billing page. Re-verify within maxAgeDays (default 30)." },
+    "verified_by": { "type": "string", "minLength": 1, "description": "Who looked. The owner, by name." },
+    "evidence": { "type": "string", "minLength": 1, "description": "What was seen, in words. Not a hash, not a token: a bare 40+ hex string fails the credential-shape scan." },
+    "notes": { "type": "string" },
+    "_note": { "type": "string", "description": "Present only on the shape example; a live record carries none." }
+  }
+}
