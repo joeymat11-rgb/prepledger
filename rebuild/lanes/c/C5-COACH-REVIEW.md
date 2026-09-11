@@ -339,3 +339,261 @@ build a second independent local world).
    LANES.md:16 bar was not met for this delivery).
 4. **C2 is the gate on the model adapter.** It does not block C5. It must block
    the first line of GPT-Live-1 code.
+
+---
+
+## Round 2 (delta be888dd)
+
+Reviewer: the same independent reviewer, same posture — the fixer's
+"Review round 1 — conditions applied" section is a hypothesis, and every
+condition below was re-executed here rather than read.
+Worktree `work/lane-c/review-coach`, detached at **`be888dd`**
+(`378a819` code+tests, `be888dd` report + the round-1 review copied in), rebased
+onto `origin/rebuild/t2-client-core` @ **`3bb2802`**. Round-1 review commit
+`022ae8a` remains reachable; the copy of it at `be888dd` is **byte-identical** to
+what I committed (`git diff 022ae8a:… be888dd:…` empty).
+
+### Baseline re-measured
+
+| check | result |
+|---|---|
+| `git diff --stat 3bb2802..be888dd -- rebuild/m3 rebuild/engine rebuild/client rebuild/conform rebuild/m4 .github` | **empty** |
+| `git diff --stat 3bb2802..be888dd` | 15 files, **4004 insertions, 0 deletions** — `rebuild/coach/**` + the report + the review copy |
+| rebase fidelity: `git diff e576905 4a2cdca -- rebuild/coach` | **empty** — the rebase moved the coach tree unchanged, so all 621+/78− is the fixer's work |
+| `node --test "rebuild/coach/test/*.test.cjs"` | `tests 54 · pass 54 · fail 0`, `not ok` count **0** |
+| per suite | traceability **14**, tiers **12**, local-era **9**, cost-cap **11**, charter-and-gym-seam **8** = **54** — exactly as claimed |
+| `node rebuild/coach/coach-text.cjs` | `turns: 25 · untraceable turns: 0 · charter violations: 0`, exit 0 |
+| `node --check rebuild/coach/tools.cjs` | OK |
+| sha256 of the report's 14-file table | **14/14 match** (I extracted the table from the report and recomputed independently) |
+| `node --version` | **v24.18.0** — the report's corrected value |
+
+### Per-condition verdict
+
+**C1 (was BLOCKING) — CLOSED.** Executed: `verifyCostCap(cap.example.json)` now
+returns `ok:false / COACH_COST_CAP_INVALID`, and `startLiveSession` with it
+returns `COACH_COST_CAP_INVALID` — it never reaches `COACH_NO_LIVE_ADAPTER`. I
+checked the guard is on the **annotation, not the filename**: a live-shaped record
+with `_note` added refuses, so does `_todo`, so does a bare `_` key; an array
+refuses `COACH_COST_CAP_ABSENT`; the example stripped of every `_` key verifies
+`ok:true` and reaches `COACH_NO_LIVE_ADAPTER`, which is the correct end state.
+Red-first confirmed by mutation: replacing the annotation scan with `[]` turns
+*"THE SHAPE EXAMPLE IS NOT A CAP"* RED (fail 1). The suite's `good()` is now a
+synthetic live-shaped record, so the suite no longer asserts the non-cap is a cap.
+
+**C2 — CLOSED as specified; see the new condition C8 for what the fix does not
+reach.** All **five** of my round-1 must-refuse strings now refuse and all
+**three** must-accept strings still accept, measured on the same `today_plan`
+turn (allowed map: `2262→kcal`, `2360→kcal`, `155→g`, `2030/02/04→date`):
+
+| said | round 1 | round 2 |
+|---|---|---|
+| `Eat 155 calories today.` | `[]` | **`["155"]` refused** |
+| `Your protein target is 2262 grams.` | `[]` | **`["2262"]` refused** |
+| `Add 2030 weekly sets.` | `[]` | **`["2030"]` refused** |
+| `Rest 155 minutes between sets.` | `[]` | **`["155"]` refused** |
+| `Your weight is 2262 pounds.` | `[]` | **`["2262"]` refused** |
+| `Today: 2262–2360 kcal · 155 g protein` | `[]` | `[]` accepted |
+| `Your calorie band today is 2262 to 2360.` | `[]` | `[]` accepted |
+| `Your protein target is 155 grams.` | `[]` | `[]` accepted |
+
+**Three NEW probes of my own, different units and fields** (plus four more I ran):
+`"Do 2262 reps."` → **refused** (kcal into `rep`); `"That is 155 days away."` →
+**refused** (g into `day`); `"You slept 2360 hours."` → **refused** (kcal into
+`h`). Also `"Log 155 lb on the bar."` → refused, `"2360 g of protein."` →
+refused, and two legitimate forms still accepted: `"Eat 2,262 calories today."`
+(comma form) and `"Eat between 2262 and 2360 kcal."` Date discipline holds:
+`"Do 2030 sets."` refused, `"Do 2030 of them."` refused (a bare number is not
+licensed by a date), `"Today is 2030-02-04."` accepted.
+
+**The 25 turns / 0 untraceable are NOT bought by loosening the checker.** I
+mutated the checker to accept everything (`untraceable()` → `return []`) and ran
+the whole suite: **fail 6**, RED on *"FAIL-CLOSED: a template copy with a literal
+number turns the check RED"*, *"FAIL-CLOSED: a plausible-but-wrong rounding…"*,
+*"a number is traceable only INTO THE FIELD THAT LICENSED IT"*, *"a date tag
+licenses a date, never a bare quantity"* and two more. Two further loosening
+mutants also die: making every parsed number unit-less (`fail 2`) and making
+`allowedTokens` ignore the declared unit (`fail 3`). Removing `d()`'s
+`COACH_UNIT_MISMATCH` throw turns *"every interpolation declares the unit it
+speaks into"* RED. The instrument is load-bearing in both directions.
+
+**C3 — CLOSED.** I re-executed the durability probe: after a yes the store holds
+one op (`proposal-response`, payload exactly `{proposal_id, answer:"accept"}`) and
+one issuance (`{id, accepted:true, instance:null}`); the 388-char reason, the
+producer name and `addWeeklySets` are each absent from the raw dump; a fresh
+client over the same backend keeps only `[{proposal, answer, op_id}]` and a coach
+rebuilt over it has `acceptedProposals()/issuedProposals()/consentLedger()` all
+`[]`. The old test is renamed *"…equals the engine's proposal exactly (in
+memory)"* (`tiers.test.cjs:97`) so it no longer reads as durable proof, and the
+new test *"EXACTLY what the durable store keeps after a yes — and the reason is
+NOT on disk"* (`:123`) asserts each of those facts, with the failure message
+`"the engine's reason IS on disk — update this test and C3"` — it goes RED the day
+a durable reason lands, which is what I asked for. `rebuild/client` is untouched.
+The open question (does DECISIONS:89's "recorded with the reason" mean on disk?)
+is correctly escalated rather than answered by the lane.
+
+**C4 — CLOSED.** Executed, 14 cases: a bare `true` refuses (with or without a
+user); Joe's record with `user:"joe"` and Dad's with `user:"dad"` each reach
+`COACH_NO_LIVE_ADAPTER`; **Joe's record presented as Dad refuses**, and Dad's as
+Joe refuses; a record with `accepted:"yes"` refuses; a missing/numeric `user`
+refuses; and four wording patches refuse — wording that omits "phone", wording
+that omits "audio", empty wording, and *"Turn on the voice coach for a better
+experience."* The wording that passes names the phone, the audio, the text and
+that it **leaves**, which is the brief's privacy clause. `NAMED_USERS` is
+`["joe","dad"]`. Mutation: removing the `optIn.user !== user` check turns *"the
+opt-in is PER USER"* RED; removing the wording check turns *"the opt-in record
+must carry the wording the user actually saw"* RED; removing the record-shape
+check and the `accepted !== true` check each turn a cost-cap test RED.
+
+**C5 — CLOSED.** My round-1 test is in the suite verbatim and each guard is now
+load-bearing **individually**, which I verified by mutation rather than by
+reading the fixer's table: both guards removed → `fail 1`; outer guard only →
+`fail 1`; inner guard only → `fail 1`; in every case the RED test is *"the turn
+guards are load-bearing: a POOLED results array cannot lend provenance"*.
+Executed directly: `untraceable("Eat 2262 calories.", tA.results.concat(tB.results), "B")`
+→ `["2262"]`, and the same pooled array scoped to `"A"` → `[]`, so the test
+measures the guard and not the absence of the number. `tools.cjs` is unchanged
+here, as the fixer says.
+
+**C6 — CLOSED, with the bound stated precisely.** The payload walk is real:
+`{note:{sets:7}}`, `{n:[7]}`, a depth-5 nest and a **depth-9** nest are all
+refused `COACH_PROPOSAL_NOT_ENGINE_ISSUED`; `NaN` and `Infinity` are refused too.
+A **depth-12** nest passes — consistent with the documented `depth > 8` bound, not
+a contradiction of it — and so do a numeric **string** (`"7"`), a number inside
+prose, and a numeric object **key**. In every passing case I compared the issued
+proposal body **and** the proposal id against the clean call: **identical**, so
+the arguments demonstrably reach nothing. Mutation: collapsing the walk to the top
+level turns *"tier 2: the model may never construct the numbers"* RED. The node
+version is corrected and matches my measurement.
+
+**C7 — OPEN, correctly and by design.** `.github` is untouched
+(`git diff --stat 3bb2802..be888dd -- .github` empty), which is what I asked for.
+The fixer supplies the exact one-line step and states plainly that until it
+exists the CI half of `LANES.md:16`'s bar has not been met for this delivery. This
+remains PM/integrator-owned and is not something the lane can close.
+
+### New probes and what they found
+
+Beyond the C1–C7 evidence above, one class of sentence still passes that should
+not, and it is the same threat model C2 was written for.
+
+**C8 — the checker reads only RIGHTWARD, so dropping the unit noun restores the
+round-1 hole.** Executed on the same `today_plan` turn, all **accepted**:
+
+| said | why it passes |
+|---|---|
+| `Your protein target is 2262.` | no unit word *after* the number → "bare" → licensed by any quantity. This is my round-1 must-refuse R2 with the word "grams" deleted |
+| `Your calorie floor is 155.` | same, the other direction |
+| `You weigh 2262.` | a calorie floor spoken as a bodyweight |
+| `Protein: 2262. Calories: 155.` | field names are to the LEFT and are never read |
+| `Rest 155 seconds.` | `seconds` is not in `UNIT_WORDS` → unknown unit → treated as bare |
+| `Add 155 kilograms.` | `kilograms`/`kg` not in `UNIT_WORDS` → bare |
+| `Your body fat is 2360 percent.` | `percent` not in `UNIT_WORDS` → bare |
+
+This is a documented design choice ("a number with no unit word around it is
+licensed by any quantity in the turn"), and it **cannot be reached by this
+artifact**: every interpolation goes through `d(tag, unit)`, which throws
+`COACH_UNIT_MISMATCH` on a wrong tag and `TypeError` when no unit is declared, and
+no template string contains a digit. But `untraceable()` is the instrument
+`model-adapter.md §8` names as the adapter's bar, and a model emitting free text
+has no `d()` in its path. The class C2 named — "a number that the engine did not
+compute *for that purpose* is spoken as if it had been" — is materially narrowed
+but not closed.
+*Exact change:* read the field/unit words **before** the number as well as after
+(a field-word table: `protein`, `calorie(s)`, `weight`, `rest`, `sleep`, `sets`,
+`reps` → the unit they name), and treat an **unrecognised** noun adjacent to a
+number as an unknown unit that licenses nothing, rather than as "no unit".
+Fail-closed on ambiguity is the posture the rest of this file already takes.
+*Red-first probes the fix must refuse:* `"Your protein target is 2262."`,
+`"Rest 155 seconds."`, `"Protein: 2262. Calories: 155."`
+*and must still accept:* `"Your protein target is 155 grams."`,
+`"Eat between 2262 and 2360 kcal."`, `"Today: 2262–2360 kcal · 155 g protein"`.
+
+### Mutants
+
+**23 mutants run, 20 killed / 3 survived.** Two files mutated (`tools.cjs`,
+`coach-text.cjs`), each restored and verified by sha256 after every run:
+`897b179d08e6902bfd1f681c6f03ae758b10ca96a3d592aab69b2fb68a8526f6` (tools) and
+`683c01ad998c8cd3e9cbe9ee86813b85d47fbcaae6e138b715a26f8467c2d2c9` (coach-text),
+both matching the report's file table; `git status --short` clean afterwards and
+54/54 green on the restored tree.
+
+Killed (20): checker → accept-everything (fail 6); every number bare (2);
+declared unit ignored (3); both turn guards (1); outer guard alone (1); inner
+guard alone (1); `d()` unit assertion (1); `request_replan` walk → top level (1);
+cap annotation guard (1); cap staleness (1); cap credential scan (1); opt-in
+record shape (1); opt-in `accepted !== true` (1); opt-in user match (1); opt-in
+wording (1); charter lint (1); `confirmed` guard (2); issued-ledger check (1);
+`assertNoLeak` (1); tier-3 explanation (1).
+
+Survived (3), all non-blocking and all named here rather than left silent:
+- **S1 — `bare number may borrow a date`.** Deleting the `u !== "date"` filter in
+  `untraceable()` kills nothing. The rule is real and correct (my probe
+  `"Do 2030 of them."` is refused because of it) but no test asserts it. *Add my
+  probe as a test.*
+- **S2 — the named-user check.** Removing `NAMED_USERS.includes(user)` kills
+  nothing: a third user with her own matching record would start. The brief's
+  "two named users only — Joe and Dad; no third user without a separate owner
+  ruling" is implemented but unproved. *Add: a `"mum"` record with `user:"mum"`
+  must refuse `COACH_OPT_IN_REQUIRED`.*
+- **S3 — `Array.isArray(record)` in `verifyCostCap`.** Near-equivalent: without it
+  an array still refuses, as `COACH_COST_CAP_INVALID` instead of
+  `COACH_COST_CAP_ABSENT`. No behaviour is lost; not worth a test.
+
+### The rebase-induced test edit
+
+Verified, and it is a **real weakening** the report understates, though the claim
+itself survives. Round 1's two assertions both read **code** out of
+`checkin-host.mjs`: `workoutCommands: createCheckInCommands()` and
+`client.execute('workout', { action: 'checkin'`. Round 2 has three: one still
+reads code (`commands: createCheckInCommands()` — which I confirmed is really
+there, `checkin-host.mjs:48`), and **two now match comment prose** in
+`checkin-commands.cjs:14–16`. A comment can drift from the code it describes; a
+`client.execute('workout', …)` assertion cannot.
+
+The underlying claim — *producer injection is the accepted client's own extension
+point, not a bypass* — **is still true and still asserted where it matters**:
+`workout` is in both COMMANDS sets (asserted at `tiers.test.cjs:270–271`, and I
+re-read both files: `t2-stage.cjs:9` and `local-client.mjs:49` are still the
+identical five), `checkin-host.mjs:48` really passes the producer down, and the
+**behaviour** is proved by execution rather than by reading source in
+`local-era.test.cjs` — which is **byte-identical to round 1**
+(`304a310676a6c025f1d68f5da3e8d3044b9abc17c306d0e6db02608c3921e983`, the same
+hash I recorded at `e576905`) and passes 9/9 on the new tip. That is the strongest
+possible evidence that the rebase did not change the behaviour under test.
+Nothing under `rebuild/m3` changed on this branch. *Suggested, non-blocking:*
+restore one behavioural source assertion (`client.execute('workout'`) at whatever
+file now carries it, so the pin is on code rather than on prose.
+
+## FINAL VERDICT: ACCEPT WITH CONDITIONS
+
+**No BLOCKING condition remains** — C1, the only blocker from round 1, is closed
+and proved red-first. This delivery is mergeable on this review; what follows are
+carry-forwards, all NON-BLOCKING for C5 itself.
+
+- **C8 — NON-BLOCKING for C5; BLOCKING PREREQUISITE for any model adapter.** The
+  traceability checker reads only rightward and treats an unrecognised unit noun
+  as "no unit", so `"Your protein target is 2262."` and `"Rest 155 seconds."`
+  pass. Unreachable by the templates (`d()` guards every interpolation), reachable
+  by the first free-text model. Fix and red-first probes stated above. This
+  inherits C2's marking rather than being a new discovery about the delivery.
+- **C9 — NON-BLOCKING.** Three surviving mutants: add the date-borrow test (S1)
+  and the third-user test (S2). S3 needs nothing.
+- **C10 — NON-BLOCKING.** Restore one behavioural (code, not comment) source
+  assertion for the producer-injection claim in `tiers.test.cjs`.
+- **C7 — STILL OPEN, PM/integrator-owned.** No CI step runs these 54 tests. The
+  lane did the right thing by not editing `.github`; the ledger line should record
+  that the CI half of `LANES.md:16`'s bar was not met and that the merge rests on
+  this review alone.
+
+### For the lane lead
+
+1. **Merge is not blocked.** C1 closed; C2–C6 closed; C7 was never the lane's to
+   close.
+2. **The PM question from round 1 is still open and still needs an answer:** does
+   DECISIONS:89's "recorded with the reason" mean on disk? If yes, tier 2 is not
+   finished and the work is a `rebuild/client` change, not a coach change. The
+   test now states the gap honestly and will go RED when it is fixed.
+3. **C8 is the gate on GPT-Live-1**, exactly as C2 was. Do not let an adapter land
+   against the current checker.
+4. **C7:** decide whether the integrator merges before the CI step exists, and say
+   so in the ledger line either way.

@@ -1,8 +1,9 @@
 # C5 — VOICE COACH: tool contract + text-first prototype (BUILDER REPORT)
 
 Lane C, branch `rebuild/lane-c-coach`, **rebased onto `origin/rebuild/t2-client-core`
-@ `3bb2802`** after review round 1 (round 1 was written on `5dc9254`; the rebase
-was clean — this branch is additions-only under `rebuild/coach/**` and
+@ `292d01d`** after review round 2 (round 1 was written on `5dc9254`, round 2 on
+`3bb2802`; every rebase has been clean — this branch is additions-only under
+`rebuild/coach/**` and
 `rebuild/lanes/c/**`). That tip carries C1/C2's `rebuild/m3/w6/local/**`, the port under
 `rebuild/m3/setup/port`, and A3's recovery check-in. Owner ruling DECISIONS:89;
 brief `rebuild/coach/VOICE-COACH-BRIEF.md` (read, not edited — it is the ruling).
@@ -16,23 +17,23 @@ task; the cap gate is built and proved instead.
 
 ## Files
 
-Refreshed after review round 1 (see the section at the end). Changed rows are
-marked **†**.
+Refreshed after review **round 2** (see the two sections at the end). Rows changed
+in round 2 are marked **‡**; rows changed in round 1 and untouched since, **†**.
 
 | file | lines | sha256 |
 |---|---|---|
-| `rebuild/coach/TOOL-CONTRACT.md` **†** | 428 | `58c8239083359ead4555c13518b2f072797784f25404d54b7a17e12c97a4ea82` |
-| `rebuild/coach/tools.cjs` **†** | 982 | `897b179d08e6902bfd1f681c6f03ae758b10ca96a3d592aab69b2fb68a8526f6` |
+| `rebuild/coach/TOOL-CONTRACT.md` **‡** | 438 | `1cda03c55d5cca676fca1684d2172f37f19edf3fad993594ea3992dcef587f16` |
+| `rebuild/coach/tools.cjs` **‡** | 1034 | `6616516cfc2fdb98e6a03cb816a1f22d615664d592fb21f5577ce847b3cf7a4f` |
 | `rebuild/coach/local-world.mjs` | 183 | `776c4f307007c0d41d7afc449f1357a2aebcd05a25dedf7d0ecb2e79e3abf632` |
-| `rebuild/coach/coach-text.cjs` **†** | 266 | `683c01ad998c8cd3e9cbe9ee86813b85d47fbcaae6e138b715a26f8467c2d2c9` |
-| `rebuild/coach/model-adapter.md` **†** | 171 | `9dd1df59c4d5884d436929234507ee4a1098f61d8c86443643a0158e9eb84510` |
+| `rebuild/coach/coach-text.cjs` **‡** | 269 | `116e08124af2078c0c082a1908f88648184910dc11b130db232b5d7d249d5604` |
+| `rebuild/coach/model-adapter.md` **‡** | 179 | `c0cc0eff64702534e2974fd729082a1fbbf9d0f510d4b009a13b453d511481aa` |
 | `rebuild/coach/scripts/questions.json` | 35 | `b50281309960805b00c7f9105616795388bdda9a17ed2e63869daa71dfdcee04` |
 | `rebuild/coach/cap.schema.json` | 26 | `8bdb19765cc8a0fa9607aae86fe0d9aa2dff6dc1dedf694d73ecf3c89ac690bf` |
 | `rebuild/coach/cap.example.json` | 14 | `341d8e4d01d9509d6a5e37876f9e1276c6335799d5b5402434f3b20b0a3b96da` |
-| `rebuild/coach/test/traceability.test.cjs` **†** | 211 | `48422081a84538a86ba102d51a2e8636dbb2101316bda5504a36f8ec6857e105` |
-| `rebuild/coach/test/tiers.test.cjs` **†** | 296 | `f83c73cb0be445631e65bd5c46d2c0b33600cb5f5b0eb17c4691cb421c52c9d8` |
+| `rebuild/coach/test/traceability.test.cjs` **‡** | 286 | `0bfaa4606ee2fd0d0c842cc28f6856c1176ddee35b33d8d3a081b1b9a3f43686` |
+| `rebuild/coach/test/tiers.test.cjs` **‡** | 333 | `4519c23e2ade5ade59ce2a22efd79c31ae64f4393d59be4a54e52138b3160404` |
 | `rebuild/coach/test/local-era.test.cjs` | 225 | `304a310676a6c025f1d68f5da3e8d3044b9abc17c306d0e6db02608c3921e983` |
-| `rebuild/coach/test/cost-cap.test.cjs` **†** | 213 | `73f3ee62a0c1ed9632b309b5ff854a0c586e2b3b9625289ab1280815977a4406` |
+| `rebuild/coach/test/cost-cap.test.cjs` **‡** | 240 | `ab4a6d0d868a348a7438a9605076f6601ecbd2266a81057c8ebfbbe463d3664d` |
 | `rebuild/coach/test/charter-and-gym-seam.test.cjs` | 152 | `868d8f19fa3e162a045c28914e1517cad364d1868b966b411de820afd0fc8281` |
 | `rebuild/coach/VOICE-COACH-BRIEF.md` (unchanged) | 35 | `5d66dc611217f0a6f09dc12da721ee81d6bd4a6a2d706a4dfea84e8e966e3510` |
 
@@ -44,8 +45,7 @@ C6(ii)); the reviewer measured v24.18.0 too.
 
 ```
 node --test "rebuild/coach/test/*.test.cjs"
-    tests 54 · suites 0 · pass 54 · fail 0 · cancelled 0 · skipped 0 · todo 0
-    duration_ms 357.7
+    tests 58 · suites 0 · pass 58 · fail 0 · cancelled 0 · skipped 0 · todo 0
 ```
 (the quoted glob matters — `node --test rebuild/coach/test/` treats the directory
 as a single test file on this build and fails.)
@@ -59,10 +59,10 @@ It needs no dependency, no `package.json` and no install: the suite is plain
 
 | suite | tests | result |
 |---|---|---|
-| `traceability.test.cjs` | 14 | pass |
-| `tiers.test.cjs` | 12 | pass |
+| `traceability.test.cjs` | 16 | pass |
+| `tiers.test.cjs` | 13 | pass |
 | `local-era.test.cjs` | 9 | pass |
-| `cost-cap.test.cjs` | 11 | pass |
+| `cost-cap.test.cjs` | 12 | pass |
 | `charter-and-gym-seam.test.cjs` | 8 | pass |
 
 ```
@@ -470,5 +470,170 @@ should say so: the merge decision rests on the independent review alone.
   scope. The question is with the PM; the test states the gap meanwhile.
 - **The CI step (C7).** PM/integrator-owned; `.github` is outside this lane's
   write scope.
+- **R2's residuals** — no model, no voice, no UI, no cap on any account, no
+  opt-in screen — are unchanged and still disclosed above.
+
+## Review round 2 — C8/C9/C10 applied
+
+Round 2 of the independent review (`rebuild/lanes/c/C5-COACH-REVIEW.md`, the
+reviewer's commit `23a3533`, copied in here) re-executed every round-1 condition
+at `be888dd` and closed C1–C6; C7 stays PM-owned. Its verdict is **ACCEPT WITH
+CONDITIONS with nothing blocking**, and it left three cheap carry-forwards. All
+three are applied below, each written RED first and each quoted with the
+measurement.
+
+Suite: **54 → 58** tests, 58 pass / 0 fail. CLI unchanged at 25 turns ·
+0 untraceable · 0 charter violations. `node --check rebuild/coach/tools.cjs` OK.
+All three measured on the head **after** the rebase onto
+`origin/rebuild/t2-client-core` @ `292d01d` (clean, no conflict). Isolation
+re-verified there: `git diff --stat 292d01d..HEAD -- rebuild/m3 rebuild/engine
+rebuild/client rebuild/conform rebuild/m4 .github` is **empty**, and
+`git diff --stat 292d01d..HEAD` is 15 files, **4634 insertions, 0 deletions** —
+`rebuild/coach/**` plus this report and the review copy, nothing else.
+
+### C8 — deleting the unit word no longer buys a free number
+
+RED at `be888dd`. The checker read only RIGHTWARD and treated an unrecognised
+noun as "no unit", so a bare number was licensed by any quantity in the turn.
+Every one of these was **ACCEPTED**:
+
+| said | round 2 (`be888dd`) | now |
+|---|---|---|
+| `Your protein target is 2262.` | `[]` GREEN | **`["2262"]` refused** |
+| `Rest 155 seconds.` | `[]` GREEN | **`["155"]` refused** |
+| `Protein: 2262. Calories: 155.` | `[]` GREEN | **`["2262","155"]` refused** |
+| `Your calorie floor is 155.` | `[]` GREEN | **refused** |
+| `You weigh 2262.` | `[]` GREEN | **refused** |
+| `Add 155 kilograms.` | `[]` GREEN | **refused** |
+| `Your body fat is 2360 percent.` | `[]` GREEN | **refused** |
+| `Your target is 2262.` (no field word at all) | `[]` GREEN | **refused** |
+| `Your protein target is 155 grams.` | `[]` | `[]` **accepted** |
+| `Eat between 2262 and 2360 kcal.` | `[]` | `[]` **accepted** |
+| `Today: 2262–2360 kcal · 155 g protein` | `[]` | `[]` **accepted** |
+| `Your calorie band today is 2262 to 2360.` | `[]` | `[]` **accepted** |
+| `Protein: 155. Calories: 2262.` (labels used correctly) | `[]` | `[]` **accepted** |
+
+Three changes, all in `untraceable()`'s reading of a sentence — no change to what
+the tools return:
+
+1. **The field binds LEFTWARD too.** `FIELD_WORDS` adds the nouns that name a
+   field rather than a unit (`protein`, `maintenance`, `weigh`, `bodyweight`,
+   `rest`, `sleep`, …) on top of the whole unit vocabulary, and `unitBefore()`
+   reads them: the label form (`Protein: 2262`) and the subject form (`your
+   calorie floor is 155`). Rightward still wins where both answer. Neither scan
+   crosses `.`, `!`, `?` or `;` — a clause is the unit of reading.
+2. **An unrecognised noun is a unit, not an absence.** `unitAfter()` now returns
+   `"!" + noun` for a word it does not know, so `155 seconds` asks for
+   `!seconds:155` and `155 kilograms` asks for `!kilograms:155`. Neither is
+   licensed unless the ENGINE ITSELF used that word — which is the fail-closed
+   posture the rest of the file already takes, and which also keeps engine prose
+   passing verbatim (`8–10k`, `0.79pp`) because both sides read the same words.
+   `percent`/`pct`/`pp` were added to the declared vocabulary as `pct`.
+3. **A bare number is refused unless its field is declared bare-speakable.**
+   `BARE_SPEAKABLE` is an explicit frozen set — `set`, `rep`, `lift`, `reading`,
+   `pct`, and `?` (a figure the engine itself stated with no unit). A calorie
+   band, a protein floor, a bodyweight, a rate, a duration and **a date** are not
+   in it, so `"Your target is 2262."` refuses where round 1's "any non-date unit"
+   rule let it through.
+
+One template had to start speaking its unit, which is the point of the condition:
+`weight_trend`'s range now reads *"somewhere between 1.14 and 1.24 **pounds a
+week**"* instead of a bare pair. Nothing else changed — and the digit-free
+template scan still passes, so no figure was hard-coded to get there.
+
+Mutation, measured here, each mutant reverted immediately:
+
+| mutant | suite |
+|---|---|
+| M13 leftward binding removed (`unitBefore` never consulted) | **fail 2** — *"a number is traceable only INTO THE FIELD THAT LICENSED IT"* and *"deleting the unit word…"*, both on `WRONGLY RED: Your calorie band today is 2262 to 2360.` — leftward binding is what keeps the legitimate label form green |
+| M14 bare rule reverted to round 1's "any non-date unit" | **fail 1** — *"deleting the unit word…"*, `STILL GREEN: Your target is 2262.` |
+| M15 unrecognised noun read as "no unit" (the round-1 behaviour) | **fail 1** — *"an unrecognised unit noun licenses nothing but itself"* |
+| unmutated | **58/58 pass** |
+
+Stated plainly: the REFUSALS in C8 are carried by M14's rule (bare) and M15's rule
+(unknown noun); **leftward binding is the precision half** — it exists so the fix
+does not buy its refusals with false reds on sentences like *"Your calorie band
+today is 2262 to 2360."* Both halves are now load-bearing and both die under
+mutation. New tests: *"deleting the unit word does not make a number free: the
+field still binds"* (the reviewer's three probes verbatim, plus the rest of their
+round-2 table and the must-accepts) and *"an unrecognised unit noun licenses
+nothing but itself"*.
+
+### C9 — the two surviving mutants
+
+**S1 — a date never licenses a bare number.** The rule was real and correct but
+unasserted: deleting it killed no test. The existing date test now also asserts
+the BARE case, which is where the rule actually lives:
+`BARE_SPEAKABLE.has("date") === false`; `parseUnits("Give me 2030.")` → `[null]`
+(so the probe really is a bare number); `untraceable("Give me 2030.")` →
+`["2030"]`; `untraceable("Do 2030 of them.")` → `["2030"]`. And, so the test
+measures the date exclusion rather than a blanket refusal of bare numbers, a
+`set`-tagged figure in the same shape is still accepted: on the `request_replan`
+turn, `untraceable("Give me 6.")` → `[]`.
+*Mutant M16* — adding `"date"` to `BARE_SPEAKABLE` → **fail 1**, *"a date tag
+licenses a date, never a bare quantity"*, message `a date became bare-speakable`.
+
+**S2 — two named users only.** DECISIONS:89 and the brief: *"two named users only
+— Joe and Dad"*, a third needs a separate owner ruling. Implemented and unproved:
+removing `NAMED_USERS.includes(user)` killed nothing, and a third person with a
+perfectly-formed opt-in of her own would have started a session. New test
+*"TWO NAMED USERS ONLY: a third user's own valid opt-in still refuses"* builds
+`mum`/`sam`/`guest` records that match in every respect — right user, `accepted:
+true`, valid timestamp, screen version, and wording that names the transfer
+plainly — and asserts each refuses `COACH_OPT_IN_REQUIRED` naming *joe or dad*.
+It also pins the roster (`["dad","joe"]`), rejects the near-misses `"Joe"` and
+`"joe "`, and re-asserts that the two ruled-on users still reach
+`COACH_NO_LIVE_ADAPTER`, so it measures the roster and not a blanket refusal.
+*Mutant M17* — `NAMED_USERS.includes(user)` → `!!user` → **fail 1**, message
+`mum started a session without an owner ruling`.
+
+**S3** — `Array.isArray(record)` in `verifyCostCap` — the reviewer judged it a
+near-equivalent worth no test (without it an array still refuses, with a
+different code). I agree and left it.
+
+### C10 — one BEHAVIOURAL assertion for producer injection
+
+The round-1 rebase left two of three assertions matching COMMENT PROSE in
+`checkin-commands.cjs`, which can drift from the code it describes. Both are gone.
+What stands now:
+
+- **code, not prose**, in *"the staged command set is NOT widened by the local
+  era"*: the stage's own signature —
+  `function createT2Stage(configProvider, { allowInbound = false, workoutCommands: selectedWorkoutCommands = workoutCommands })`
+  (`t2-stage.cjs:19`) — is the injection point, and `checkin-host.mjs:48` passes
+  the check-in's provider down to the one local era
+  (`commands: createCheckInCommands()`). The two COMMANDS sets are still parsed
+  and compared as before.
+- **EXECUTED**, in the new test *"the check-in's producer, EXECUTED: it authors
+  the op the client will write"*: it calls `createCheckInCommands()` and runs
+  `prepare({action:"checkin", input:{answers:{soreness:"Mild"}, effective:{…}}})`,
+  asserting the producer — not the client — authors `class:"event"`,
+  `kind:"fact"`, `payload.profile`, `payload.answers` and `effective.local_date`,
+  and that `schemaVersion` is 2 (the client's requirement for a producer-injected
+  command). It then proves the channel is CLOSED: `prepare` throws
+  `CHECKIN_INPUT_INVALID` for `action:"logSet"` and for an invented answer
+  (`energy:"Amazing"`), and the producer's own `validate()` accepts the envelope
+  it authored and rejects one whose `kind` was changed.
+*Red-first (M18):* replacing the producer with a stub that returns
+`{class:"reading", kind:"read", payload:{}}` turns the test **RED** (`fail 1`) —
+the assertions discriminate on behaviour, not on text. Reverted immediately.
+
+The end-to-end behaviour (one dated durable operation per check-in, through the
+real client) remains proved by execution in `local-era.test.cjs`, which is
+**byte-identical to round 1**
+(`304a310676a6c025f1d68f5da3e8d3044b9abc17c306d0e6db02608c3921e983`) and passes
+9/9. Nothing under `rebuild/m3` is touched by this branch.
+
+### Still open after round 2
+
+- **C7 — no CI home.** PM/integrator-owned; `.github` untouched. The one-line
+  step is in the counts section. Until it exists the CI half of `LANES.md:16`'s
+  bar is unmet for this delivery and the ledger line should say so.
+- **The PM question from round 1** — does DECISIONS:89's "recorded with the
+  reason" mean on disk? — is unanswered. The test states the gap and goes RED the
+  day a durable reason lands.
+- **C8 is the gate on GPT-Live-1**, as C2 was. `model-adapter.md` §8.1 now spells
+  out that an adapter must speak the unit, and that "Your protein target is 2262."
+  is discarded exactly as "Eat 155 calories." is.
 - **R2's residuals** — no model, no voice, no UI, no cap on any account, no
   opt-in screen — are unchanged and still disclosed above.
