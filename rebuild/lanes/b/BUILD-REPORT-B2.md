@@ -908,3 +908,393 @@ protected `:70` cell does not move, both protected surfaces are UNCHANGED, and t
 carriers are authored as pinned successors rather than edits. The package bar is NOT met and is not
 claimed: no artifact, no package runner, no private census, no second gate beyond its 261 observable
 assertions, and no accepted brief.**
+
+---
+
+# POST-REVIEW r1 — the fixer's pass
+
+2026-09-11 · lane-B **fixer** (Opus; author ≠ builder ≠ reviewer), working directly on the owner's PC in the
+same worktree `work/lane-b/b2`, branch `rebuild/lane-b-b2`, reset hard to `origin/rebuild/lane-b-b2` @
+`5a4205c` (clean tree) before any edit. Contract read first, in full:
+`rebuild/lanes/b/reviews/B2-REVIEW-r1.md` (305 lines, **ACCEPT WITH CHANGES**),
+`rebuild/lanes/b/BUILD-REPORT-B2.md` (910 lines), `rebuild/lanes/b/BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md`
+(573 lines), `rebuild/lanes/LANES.md` incl. its Amendments, `rebuild/DECISIONS.md` 60, 82, 88–100.
+`ledger/` and `rebuild/conform/private` were **never opened**; every protected surface is verdict-only.
+`package-lock.json` is unmodified; no other worktree was touched.
+
+## R.0 What this pass changed, in two commits
+
+| commit | files | why |
+|---|---|---|
+| **1 — fixes + brief v1.2** | `rebuild/engine/progression.cjs` (D3 boundary), `rebuild/lanes/b/b2-delta-cells.cjs` (**new**), `rebuild/lanes/b/BRIEF-B2-TARGETS-IDENTITY-ERA-v1.2.md` (**new**), this report | review Changes 1, 3, 5 + bite B-2 |
+| **2 — PM-optional Q2** | `rebuild/engine/volume.cjs` | review Change 2. Titled so it can be reverted whole if the PM carries Q2 to B3. |
+
+Review **Change 4** (the `REQUESTS.md` line for `rebuild/m4/spec/b2-inherited-carriers.cjs`) needed no new
+work: the line is **already filed** on the tip at `16302cd` — `rebuild/lanes/REQUESTS.md`, 2026-09-11
+02:10 ET, B → PM, "…Also: permission for lane-B carrier files under rebuild/m4/spec
+(b2-inherited-carriers.cjs is already on the b2 branch; LANES.md gives m4/spec to the PM) — or name a
+lane-B path for carriers". `REQUESTS.md` is a shared append-only file on the integration tip, not on this
+branch, which is why this worktree's copy does not show it; nothing was appended twice. Recorded in brief
+v1.2 §v1.2-A6.
+
+### R.0.1 Product files — sha256, this pass
+
+| file | at `5a4205c` (reviewed) | after commit 1 | after commit 2 |
+|---|---|---|---|
+| `rebuild/engine/plan.cjs` | `4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93` | unchanged | unchanged |
+| `rebuild/engine/progression.cjs` | `ad989ed4edc1094244491e7d68bdb9ddb1c795f9797e699edfdad2652a52c70a` | **`9adaeecb715e42533fcd51483e67f52a9d8d530a0de80865e28ae572152599a8`** (54,466 B, 902 lines) | unchanged |
+| `rebuild/engine/volume.cjs` | `73550ef80b17f9517923c0ecc69783c89aa24a6670dd13c0a464cc57d4a2a9be` | unchanged | **`4a04f4e81ca8debdce36b1b4f4a0957c413a9c6dc9289583a500f878ae66ed9c`** (24,444 B, 318 lines) |
+
+Pre-image (base `acd3b67`) re-verified byte-exact from git before every base-side run:
+`plan.cjs 1b26c87f…` 19,784 B · `progression.cjs 7031838d…` 53,582 B · `volume.cjs c32298e7…` 23,465 B.
+
+New files:
+
+| file | sha256 | size |
+|---|---|---|
+| `rebuild/lanes/b/b2-delta-cells.cjs` | `0b0a240df4f623863a67a2bee1fff0e7d36ad902f572eb7a99e51eb12fd60e12` | 14,162 B, 259 lines |
+| `rebuild/lanes/b/BRIEF-B2-TARGETS-IDENTITY-ERA-v1.2.md` | `24241aeb5bc53a621acd2373348b06b679911d6438cf31ce713eb5e9709c6370` | 115,534 B, 896 lines |
+
+`rebuild/m4/spec/b2-inherited-carriers.cjs` is **unchanged** by this pass
+(`f023ad8c8ef15809cefea577e7835f3bd7bfb864af3b7f33875983d773ead00d`, 12,543 B). No frozen law, golden,
+tool, witness file, `tools/` path, `rebuild/conform/**` path or accepted artifact was edited; `migrate.cjs`,
+`earn.cjs`, `writers.cjs`, `merge.cjs` (B3's) and `dates.cjs`, `sleep.cjs`, `policy.cjs`, `today.cjs`
+(B1's) are byte-untouched.
+
+## R.1 The 45-law runner — re-run on BOTH sides, with and without the Q2 commit
+
+Frozen bundle: the gitignored `rebuild/conform/engines/engine-main.cjs`, sha256 re-verified before each run
+as `a575ac58a55c5e2929b584be6ed6b1d5db8c36c81b449415d0909dc4b1958eec` (814,639 B). Base side produced by
+`git checkout acd3b67 -- <the three files>` in place, sha-verified, then restored byte-exactly (asserted).
+
+```
+TZ=America/New_York  node rebuild\conform\v4\run-defect-laws.cjs
+```
+
+| run | TOTAL line | exit |
+|---|---|---|
+| BASE (`acd3b67` bytes) | `TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL` | 1 |
+| CANDIDATE, commit 1 (no Q2) | `TOTAL 45 laws · 45 RED-frozen · 25 RED-candidate · 88 GREEN repair controls · 83/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL` | 1 |
+| CANDIDATE, commit 2 (Q2 in) | **identical to the line above** | 1 |
+
+**Line-by-line diff of the two 47-line outputs: MOVED LINES = 15 — the fourteen laws and the TOTAL line,
+nothing else — on BOTH candidate variants.** The fourteen, each `RED-frozen / RED-candidate` →
+`RED-frozen / GREEN-candidate`:
+
+```
+D1  P-D1-first-targets-fit-current-set-count
+D2  E-D2-invalid-set-count-stays-quarantined
+D3  P-D3-volume-receipt-belongs-to-whole-lift-name
+D4  P-D4-other-lift-earn-cannot-spend-sightings
+D5  P-D5-ladder-minimum-counts-distinct-rungs
+D6  P-D6-deload-preserves-absent-load
+D7  P-D7-anchor-and-trend-exclude-future-sessions
+D9  E-D9-split-selects-latest-effective-date
+D18 P-D18-structural-budget-sees-current-week-volume-receipts-beyond-display-prefix
+D28 E-D28-programme-volume-follows-the-current-effective-split
+D29 P-D29-designed-and-logged-front-delt-volume-use-the-same-indirect-credit
+D30 P-D30-first-set-trend-respects-the-recorded-technique-era
+D31 V4-volume-tolerance-post-change
+D32 V4-volume-replication-same-era
+```
+
+No other law moved status on either side. The six accepted repairs (D12, D33, D34, D35, D41, D43) are
+GREEN-candidate on both sides, so `39 → 25` is the fourteen exactly. The two predicted side effects
+reproduce to the number: GREEN repair controls `89 → 88` (D29's non-idempotent control) and detected mutant
+executions `97/104 → 83/104` (the fourteen laws' export-wrapper mutants going inert on a repaired source).
+`AUDIT RED-FIRST FAIL` is the runner's own all-45-must-be-RED rule on both sides and is not B2's.
+**D18's law is GREEN on the candidate with the Q2 hunk in** — the Q2 change does not weaken the repair it
+sits inside.
+
+## R.2 Q2 — the reviewer's misattribution case, proved correct
+
+Cell file `rebuild/lanes/b/b2-delta-cells.cjs`, cells `B2-Q2a…2e`, on the reviewer's own r1 §7 B-1 fixture
+(lifts `Press` id `press` and `Press incline` id `inc`; 95 ordinary feed notes; then one current-week
+receipt `VOLUME +1 — CHEST via Press incline (now 3 sets)` at row 95):
+
+```
+CELL HOLDS  B2-Q2a  a current-week VOLUME receipt for "Press incline" PAST feed row 80   ["inc"]
+CELL HOLDS  B2-Q2b  the same receipt at feed row 0 — the owner bug is pre-existing        ["inc"]
+CELL HOLDS  B2-Q2c  D18 still SEES the receipt past the cap                               {"seenPastRow80":true}
+CELL HOLDS  B2-Q2d  a lift whose NAME contains " (now " keeps its own structural move     ["pnh"]
+CELL HOLDS  B2-Q2e  NEGATIVE CONTROL: VOLUME PASSED is still not a move                   0
+B2 DELTA CELLS: 21/21 HOLD · side CANDIDATE · Q2 APPLIED
+```
+
+The same file, run against the three engine states, gives the whole table:
+
+| state | `structuralMovesThisWeek().sets` (row 95) | (row 0) | name contains `" (now "` |
+|---|---|---|---|
+| base `acd3b67` | `[]` (invisible past the cap) | `["press"]` | `["press"]` |
+| B2 without Q2 | `["press"]` — **misattributed** | `["press"]` | `["press"]` |
+| B2 with Q2 | **`["inc"]`** | `["inc"]` | `["pnh"]` |
+
+The cell file detects the side and the Q2 state from the engine itself and asserts the pinned value for
+whichever it finds, so it exits 0 on base, on commit 1 and on commit 2 — and it names in its own output
+which of the three it observed. Reverting commit 2 therefore leaves the cell file correct and passing.
+
+## R.3 D3 — a lift's OWN receipt is no longer dropped (reviewer bite B-2, fixed)
+
+One line of `progression.cjs` (brief v1.2 §v1.2-A1): C3's whole-name boundary now splits at the **last**
+`" (now "` and also accepts the whole tail, so a lift whose own name contains the producer's delimiter keeps
+its own receipt while the shorter lift still refuses it. Cells `B2-DELTA-3a…3f`:
+
+```
+                                                         base            v1.1 hunk   v1.2 hunk
+"Press (now heavy)" reads its OWN receipt                 [["…",1]]       []          [["2026-09-01",1]]
+"Press" reads that same receipt                           [["…",1]]       []          []
+"Press (now heavy)", row with NO " (now …)" suffix        [["…",1]]       [["…",1]]   [["2026-09-01",1]]
+"Press" vs "Press incline"'s receipt  (D3 proper)         [["…",1]]       []          []
+VOLUME PASSED (no "via ")                                 []              []          []
+exId match / mismatch  (C2 terminal)                      [..] / [..]     [..] / []   [..] / []
+```
+
+The `witnesses-1` D3 substitution in `rebuild/m4/spec/b2-inherited-carriers.cjs` (whose fixture row carries
+no ` (now …)` suffix) is unaffected and still flips; the carrier is unchanged and still applies 17
+substitutions.
+
+## R.4 D7 — the reviewer is right, and no caller was invented
+
+**Source fact, now an executable cell (`B2-D7a`).** The cell walks every `*.cjs` in the engine directory,
+finds each `liftTrend(` call, extracts its balanced argument list, skips the declaration and the late-bound
+`(...args) => E.liftTrend(...args)` delegates, and asserts that **none** of the remaining call sites
+contains `asOf`:
+
+```
+["progression.cjs:815","progression.cjs:847","sleep.cjs:1748","sleep.cjs:1748","volume.cjs:245","volume.cjs:284","writers.cjs:1399"]
+```
+
+`liftTrend(s, id)` · `liftTrend(s, t.id, { cleanOnly, minN })` · `liftTrend(s, tpl.exA|exB)` ·
+`liftTrend(s, exId)` · `liftTrend(s, exId, { window: 999 })` · `liftTrend(s, ex.id)`. **Not one supplies
+`opts.asOf`.** `regime` takes its earlier view through `energy.cjs:214`/`:634` → `_stateAsOf` state
+truncation, not through `liftTrend`. **So the `liftTrend` half of D7 is inert on every engine-internal
+path, and the brief's "every `liftTrend` consumer that passes one (`progressionTrend`, `liftCall`,
+`volumeConversion`, `regime`)" sentence is wrong.** Corrected in brief v1.2 §v1.2-A3, and corrected here.
+**No call site was added, and the guard was not removed.**
+
+**But the guard is NOT dead code, and the law says so.** Executed on this branch with
+`if (opts && opts.asOf && d > atT) continue;` deleted from `liftTrend` (mutant `progression.cjs` sha256
+`31d976f8687b1d07da661ddd3ff6cbcce360f6c628198e3c62b0100742cd5931`), everything else identical:
+
+```
+with the guard     D7 P-D7-anchor-and-trend-exclude-future-sessions · RED-frozen / GREEN-candidate / AUDIT-FAIL
+                   TOTAL 45 laws · 45 RED-frozen · 25 RED-candidate · 88 controls · 83/104 · exit 1
+
+without the guard  D7 P-D7-anchor-and-trend-exclude-future-sessions · RED-frozen / RED-candidate / AUDIT-FAIL
+                   TOTAL 45 laws · 45 RED-frozen · 26 RED-candidate · 88 controls · 84/104 · exit 1
+                   (D31 stays GREEN-candidate; D7 is the ONLY law that moves)
+```
+
+**Answer to "does the brief's D7 law need the `asOf` path to turn GREEN": YES, explicitly.** The law's own
+`run` calls `T.liftTrend(s, ex.id, { asOf: '2026-09-03' })` and requires `trend === null`
+(`rebuild/conform/v4/laws-clock-and-as-of.cjs:11`), and the `witnesses-1` D7 substitution asserts the same
+shape (`defect-witnesses.cjs:55` supplies `{ asOf: "2026-09-03" }`). The honest statement is therefore two
+clauses, both executed: **inert to every in-engine consumer, load-bearing to the oracle and to the exported
+API.** `progression.cjs` was restored byte-exactly after the experiment (asserted by sha).
+
+Behavioural halves, cells `B2-D7b/7c/7d`, base → candidate:
+
+```
+liftTrend(s,id)                   n=4, 2026-09-10 → 2026-09-13   ==   n=4, 2026-09-10 → 2026-09-13   (identical: the narrowing)
+liftTrend(s,id,{asOf:'2026-09-03'}) a 4-point trend               →    null
+liftTrend(s,id,{asOf:'2026-09-14'}) n=4                           →    n=4        (a later as-of still sees them)
+progressAnchor(ex,s)              [11,10]                         →    [8,7]      (the half that IS live in-engine)
+```
+
+## R.5 The three unlisted delta sites — enumerated, executed, pinned
+
+New lane-B cell file `rebuild/lanes/b/b2-delta-cells.cjs` (21 cells; exits 0 on base and on candidate,
+naming which side it observed). It is **not** a frozen witness and lives in lane B's own folder
+(`LANES.md`: lane B owns `rebuild/lanes/b/*`); it edits nothing.
+
+**(i) `migrate.cjs:1629` — the third `_bornValid` consumer.** `migrate.cjs` is **B3's** file and **not one
+byte of it was edited**; the delta arrives through `plan.cjs`'s repaired predicate. `patchV51` (the split
+patch) binds `const bornValid = _bornValid;` and its `put()` judges a pre-existing record wearing a new id
+with `const wasValid = bornValid(have)`. Measured by replaying the patch (state re-stamped to `v: 50`, the
+seeded `fly` replaced by a brought record) — cells `B2-DELTA-1a/1b/1c`:
+
+| brought `fly` | base | B2 candidate |
+|---|---|---|
+| `sets: -1` | `quarantined: null`, filled (`w`, `inc`, `setsAt` stamped) | **`quarantined: "invalid:2026-08-12"`, NOT filled** |
+| `sets: 0` · `sets: 3.5` · `hi: 0` | `null` · `null` · `null` | `invalid:2026-08-12` ×3 |
+| `sets: 2, hi: 20` (control) | `null`, filled | `null`, filled — unchanged |
+
+`put` returning **false** means no seams, no insertion markers and no FRESH BASELINE receipts fire for that
+record. This is the site's own F1 rule ("quarantined IFF invalid") finally holding, so it is very likely the
+*intended* consequence of D2 — but it is a behaviour delta in a file outside B2's allowlist and it is not in
+§1.2's delta list. **B3 must be told: it rebases onto a tree where `patchV51` quarantines impossible brought
+records instead of healing them.** No edit was made and none is proposed here.
+
+**(ii) `targetsFor({sets:-1, first:[8]})`.** Cells `B2-DELTA-2a/2b/2c`:
+
+```
+targetsFor({sets:-1, last:null, first:[8]}, {sessionLog:{}})   base [8]    ->   candidate []
+targetsFor({sets:-1, last:null},            {sessionLog:{}})   RangeError on BOTH sides (unchanged, per §1.2)
+targetsFor({sets: 3, last:null, first:[8,7]})                  [8,7] -> [8,7,6]   (D1's own repair, already pinned)
+```
+
+`fitN` is `arr.slice(0, ex.sets)` plus a `while (t9.length < ex.sets)` pad, so a negative `ex.sets` makes
+`slice(0,-1)` drop the last element and the pad loop never runs. Reachable only for a record that was never
+quarantined. Added to §1.3's delta list in brief v1.2.
+
+**(iii) D3's boundary dropping a lift's OWN receipt** — **fixed**, §R.3 above.
+
+## R.6 Carriers, witnesses and the flips — re-measured
+
+`node rebuild\m4\spec\b2-inherited-carriers.cjs`, unchanged file, both candidate variants:
+
+```
+CANDIDATE (commit 1, and commit 2):
+  B2 CARRIER defect-witnesses-6: PASS; 8 cases; 0 exact expectation substitution(s) (unchanged);
+    M6 preserved defects native: 4/4 PASS; frozen and candidate execute every merge witness.
+  B2 INHERITED CARRIERS: 5/5 PASS; 17 exact substitutions (…); PACKAGE receipt PENDING    exit 0
+BASE (acd3b67 bytes):
+  B2 INHERITED CARRIERS FAIL at defect-witnesses: ERR_ASSERTION                            exit 1
+```
+
+Failure-tolerant flip measurement (original witness bytes read, never written; the tolerant `witness`
+wrapper is an in-memory exact replacement):
+
+| gate | base | B2 candidate | flips |
+|---|---|---|---|
+| `witnesses-1` `defect-witnesses` | **10/10 reproduced** | **2/10** | D1 D2 D3 D4 D5 D6 D7 D9 — **8** (D8, D10 still reproduce; they are B1's) |
+| `witnesses-2` `defect-witnesses-2` | 10/11 (D12 already RED) | **9/11** | D18 — **1** |
+| `witnesses-3` | 5/5 | **5/5** | **0** |
+| `witnesses-4` | 5/5 | **0/5** | D28 D29 D30 D31 D32 — **5** |
+
+**14 assertion flips across three files (8 + 1 + 5)** — the builder's and the reviewer's numbers exactly,
+with the corrected D3 hunk and with the Q2 hunk in.
+
+Direct `node rebuild\engine\test\defect-witnesses[-2..-7].cjs` exit codes:
+base `0 · 1 · 0 · 0 · 1 · 0 · 1`, candidate `1 · 1 · 0 · 1 · 1 · 0 · 1` — identical to r1.
+`witnesses-5` and `witnesses-7` fail identically on both sides: pre-existing at this tip, not a B2 delta.
+
+## R.7 The protected second-gate cell `tools/engine-test.jsx:70` — still does not move
+
+Reproduced directly at the gate's hard pin `MEASURED_TEST_NOW="2026-07-29"` (`second-gate.mjs:64`) over
+`tools/snapshots/2026-08-06-ledger.json`, whose sha256 re-verified as
+`62f9e0515bf3d34bc1e0d53cfc309cba0fa9acdf63f87e0fb42f246e6a7c199f` (the brief's pin) on every run:
+
+| engine | `nLifts` | `state` | `nExcludedNonNumeric` / `excludedIds` | `:70` |
+|---|---|---|---|---|
+| pre-image bytes | 3 | `unknown` | 2 / `["curl","hanging"]` | **holds** |
+| **B2 candidate (both commits)** | **3** | **`unknown`** | 2 / `["curl","hanging"]` | **holds — the cell does NOT move** |
+| v1's unconditional `liftTrend` cut (rebuilt here) | **0** | `unknown` | 2 / `["curl","hanging"]` | **fails — the cell flips** |
+
+## R.8 Public census and the public conformance suite — base vs candidate
+
+**Direct-call census** (the builder's `census.cjs`: the thirteen full-engine reads over the seeded state,
+per lift over all 16 seeded lifts, at both matrix days), base → candidate **with the corrected D3 hunk and
+with the Q2 hunk in**:
+
+```
+===== 2026-09-03  base -> candidate =====      ===== 2026-09-07  base -> candidate =====
+/perLift/fly/deloadLoad: 5 -> null             /perLift/fly/deloadLoad: 5 -> null
+/perLift/hipthrust/deloadLoad: 5 -> null       /perLift/hipthrust/deloadLoad: 5 -> null
+cells changed: 2                               cells changed: 2
+```
+
+**Exactly the single D6 cell — `deloadLoad` for `fly` and `hipthrust`, `5 → null` — at both matrix days.
+Nothing else moved.** Neither the D3 boundary correction nor the Q2 hunk adds a census cell (the seeded
+feed is 9 rows and carries no VOLUME receipt; no seeded lift's name contains `" (now "`).
+
+**`rebuild/conform/run.cjs`** (`MEASURED_TEST_NOW=2026-09-03`, `TZ=America/New_York`), base vs candidate:
+
+```
+SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families   (exit 1)
+```
+
+on **both** sides, with the **entire 82-line stdout identical (0 differences) and 0-byte stderr on both**.
+The only `BAD` line on both is the absent private fixture on a public clone; not a B2 regression.
+
+**`second-gate.mjs --candidate`**, base vs candidate:
+
+* reference side completes `SECOND GATE reference FINAL108: 3072 passed, 0 failed` on both, with identical
+  condition-origin counts, vacuity gate, SYNC-LAWS and `reference surface: byte-identical to committed
+  baseline (123077 bytes)`;
+* candidate side aborts at the same pre-existing D12 cell on both —
+  `FAILED ASSERTION tools/engine-test.jsx:106` — the site the accepted custody owns;
+* `.tmp/m2-second-gate/candidate-engine-test.stdout.log` is **267 lines on both sides with ZERO
+  differences**, and the 12-line driver stdout and 179-byte stderr are identical.
+
+So **B2 adds no failure inside the 261 observable assertions**, with the corrected D3 hunk and with Q2 in.
+The remaining **2,811** assertions stay unobserved without the accepted D12 custody — residual risk R-2,
+still open, still §7 Q9.
+
+## R.9 Protected surfaces — verdict only
+
+* **P6 second-gate cells `tools/engine-test.jsx:8790–8793`**, reproduced on both engine copies at the
+  gate's `2026-07-29` anchor: **UNCHANGED** — both cells hold on the pre-image bytes and on B2. No cell
+  values, no hashes, no prose.
+* **The seeded set-one laboratory card** (`sleep.cjs:1141` `labAnalytics2`, whose `setOneRead` call at
+  `sleep.cjs:1286` is the only engine consumer of `setOneRead`), compared by digest between the two engine
+  copies at both matrix days: **UNCHANGED**. Digests withheld.
+* **`rebuild/conform/private/live.json`, the private `live.main` golden and `ledger/`**: never opened, never
+  named with values, never hashed, never quoted. The private LIVE census for D30 remains the PM's own
+  `--full` on the owner's PC.
+
+## R.10 The reviewer's bites, re-run on both engine copies
+
+| bite | re-run result |
+|---|---|
+| **B-1** D18 × `volume.cjs:159` | reproduced exactly (`[]` → `["press"]`), and **closed** by the Q2 commit (`["inc"]`). §R.2. |
+| **B-2** D3 boundary vs a name containing `" (now "` | reproduced (`[["2026-09-01",1]]` → `[]` under the v1.1 hunk) and **fixed**. §R.3. |
+| **B-3** D32 technique-era boundary sweep (the accepted witness's own fixture) | fork none / `2025-01-01` / `2026-01-01` (the prior block's FIRST date — the inclusive `f.from <= d` boundary, honoured) / `2026-09-20` (future) → `REPLICATED` on **both** sides; fork `2026-01-02` and `2026-04-01` → `REPLICATED` (base) → **`OUTCOME-COMPATIBLE`** (candidate); a **foreign** lift's forks cannot change the tier (`REPLICATED` on both); both `why` strings are the pre-existing prose — no new string. No defect found. |
+| **B-4** D5 duplicate rungs, coercion, D5×D6 | `loadRungs([100,100])` and `([100,"100"])` → `null` (base `[100]`); `[100,105]` and `[105,100]` → `[100,105]` on both; `parseRungs("100,100")` → `null` vs `[100]`; `parseRungs("100,105,100")` → `[100,105]` on both; duplicate-only ladder at `w:100`: `maxedOut` `true→false`, `nextLoad` `null→105`, `deloadLoad` `100→95`, `snapLoad` `100` on both; **D5×D6** duplicate ladder + `w:null` → `0` (base) → `null` (candidate). No defect found. |
+| **B-5** D7 future sessions with and without `asOf` | reproduced exactly. §R.4. |
+| **B-6** D7 × D30 | a future in-era session: `setOneRead` = `LIVE n=4 (2026-08-10 → 2026-09-13)` on **both** engines — D7's cut was **not** extended into `setOneRead`, as `BRIEF-SET-ONE-ERA.md:19` requires. Cross-era (fork `2026-09-01`): `LIVE n=4` (base) → `COUNTING n=1 need=4` (candidate), as designed. |
+| **B-7** D9 × D28, unsorted multi-row split | `dayType` for `2026-09-01/02/03` = `["U","U","REST"]` (base, last-array-row) → `["REST","REST","REST"]` (candidate, latest effective date — i.e. it now agrees with the sorted reading, which is `["REST","REST","REST"]` on both); `programmeVolume` chest `9 → 3` (the authored July week → the query week); `structuralMovesThisWeek.monday` `2026-08-31` on both and agrees with `programmeVolume`'s week. Both repairs exercised together. No defect found. |
+| **B-8** the D2 predicate directly | base returns `true` for `sets:-1`, `sets:0`, `sets:3.5`, `hi:NaN`, `hi:0`; candidate returns `false` for all five and `true` for `{sets:3,hi:10}` and `{sets:3.0,hi:10.5}`. The `RangeError` from `targetsFor` on a still-unquarantined impossible record with no `first` survives on both. |
+| **B-9** D6's guard shape vs its siblings | `[nextLoad, prevLoad, deloadLoad]` — `w:null` `[null,null,5]`→`[null,null,null]`; `w:""` same; `w:"   "`, `w:false`, `w:0` `[5,5,5]` on both (`w:0` must not change, and does not); `w:"100"` `[105,95,95]` on both. |
+
+## R.11 What this pass could NOT do
+
+* **The package acceptance bar is still not met and is still not claimed.** No
+  `rebuild/m4/spec/acceptance-b2-targets-identity-era.json`, no `b2-package.cjs`, no 19-gate identity run,
+  no `--full`, no receipt, no authorized rerun. The artifact cannot be written until the PM rules **which B
+  package is first** (`REQUESTS.md` 02:20 ET / 02:10 ET, both unanswered); two packages cannot claim one
+  parent. Brief v1.2 §v1.2-A5 now states the correct `product` shape for whenever it is written.
+* **The 2,811 unobserved second-gate assertions** cannot be reached without the accepted D12 custody, which
+  this fixer does not own and did not author. Residual risk R-2 stands; §7 Q9 is not closed.
+* **The private LIVE census for D30** was not run: it needs `rebuild/conform/private/live.json` and is the
+  PM's own `--full` on the owner's PC by `DECISIONS:92`/`:93` C4. Nothing private was opened.
+* **Q1, Q3, Q4, Q5, Q6, Q7, Q8, Q9 are not answered** — they are the PM's. Q2 is answered only in the sense
+  that its hunk now exists on a commit the PM can revert in one step.
+* **`migrate.cjs:1629` was not edited** (B3's file) and **`volume.cjs:302` (`_setsMovesSince`) was not
+  repaired** — both are recorded, neither is a B2 hunk.
+* **No caller was invented for `opts.asOf`.** The guard stays, its inertness is stated, and the D7 law's
+  dependence on the `asOf` path is proved by executing the law without the guard.
+* **`rebuild/lanes/STATUS.md` was not edited** (per this fixer's instruction); the STATUS line is handed back
+  in the final message for the lane lead to append.
+
+## R.12 Everything this pass executed, as commands
+
+```
+git -C <b2> fetch origin ; git -C <b2> reset --hard origin/rebuild/lane-b-b2      -> clean at 5a4205c
+node .tmp\fixer\setup.js            -> engine-base (acd3b67 bytes, sha-verified), engine-cand, engine-noasof
+node .tmp\fixer\v1cut.js            -> engine-v1cut (v1's unconditional liftTrend cut)
+node .tmp\fixer\laws.js noq2 | q2   -> run-defect-laws.cjs base & candidate, in place, restored + line-diff
+node .tmp\fixer\noasof.js           -> the same runner with D7's asOf guard deleted, restored
+node .tmp\fixer\gates.js            -> b2-inherited-carriers.cjs, defect-witnesses[-2..-7], b2-delta-cells.cjs, :70 x3
+node .tmp\fixer\flips.js            -> failure-tolerant witness flip counts, both engine copies
+node .tmp\fixer\census.js base cand -> census x 2 days + structural diff
+node .tmp\fixer\suite.js            -> rebuild/conform/run.cjs and second-gate.mjs --candidate, both sides, diffed
+node .tmp\fixer\bites.js  <engine>  -> r1 bites B-4, B-6, B-8, B-9
+node .tmp\fixer\bites2.js <engine>  -> r1 bites B-3, B-7 on the witnesses-4 fixture shape
+node <builder p6-verdict.cjs | lab-verdict.cjs> <engine>   -> protected surfaces, verdict only
+node rebuild\lanes\b\b2-delta-cells.cjs [engineDir]        -> 21/21 on base, on commit 1 and on commit 2
+```
+
+Every engine run: `TZ=America/New_York`; `MEASURED_TEST_NOW=2026-09-03` except the `:70` and P6
+reproductions, which use the second gate's hard pin `2026-07-29`, and the frozen conformance suite, which
+sets its own. `.tmp/` is gitignored (`.gitignore:4`); nothing from it is committed. After every base-side
+run the three product files were restored and asserted byte-identical by sha256.
+
+**Verdict of this pass: the five required changes are in (three as edits, one as a correction of record, one
+already filed as a REQUESTS line); the reviewer's own B-2 regression is fixed; the fourteen laws are still
+14/14 GREEN-candidate / RED-frozen with MOVED LINES = 15 and D18 GREEN with the Q2 hunk in; the carrier is
+5/5 with 17 substitutions and the flips are still 8 + 1 + 5; `tools/engine-test.jsx:70` does not move; the
+public census delta is still the single D6 cell; `rebuild/conform/run.cjs` and the observable second gate
+are byte-identical base vs candidate; both protected surfaces are UNCHANGED. The package bar is NOT met and
+is not claimed.**
+

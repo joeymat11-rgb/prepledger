@@ -231,8 +231,10 @@ function _volDeltas(ex, s) {
     if (!f9 || typeof f9.t !== "string" || f9.t.indexOf("VOLUME ") !== 0) continue;
     let named9 = false;
     if (f9.exId != null) named9 = String(f9.exId) === String(ex && ex.id);
-    else { const at9 = f9.t.indexOf("via "); const own9 = at9 < 0 ? null : f9.t.slice(at9 + 4).split(" (now ")[0];
-      for (const n9 of names9) if (n9 && own9 === n9) named9 = true; }
+    else { const at9 = f9.t.indexOf("via "); const tail9 = at9 < 0 ? null : f9.t.slice(at9 + 4);
+      const cut9 = tail9 === null ? -1 : tail9.lastIndexOf(" (now ");   /* C3 — the producer's own suffix is the LAST " (now ", so a lift whose NAME contains that delimiter keeps its own receipt */
+      const own9 = tail9 === null ? null : (cut9 < 0 ? tail9 : tail9.slice(0, cut9));
+      for (const n9 of names9) if (n9 && (own9 === n9 || tail9 === n9)) named9 = true; }
     if (!named9) continue;
     const body9 = f9.t.slice(7).trim();
     const sign9 = body9.charAt(0) === "+" ? 1 : (body9.charAt(0) === "-" || body9.charAt(0) === "\u2212") ? -1 : 0;
