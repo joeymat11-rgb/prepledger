@@ -797,9 +797,15 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
      no longer produce the broken one — which is the point. `gen` is the shape
      the accepted order resolver reads: ops keyed by op_id, each with its own
      causal_parents. */
+  /* C4c — these fixtures now carry the `class` the product actually writes.
+     They omitted it while the workout owned a generation by itself; since ONE
+     STORE put the reading and the check-in in the same one, `causalTips()` is
+     class-scoped (A3 review F2), so a fixture without a class is not a workout
+     op at all. Adding it makes the fixture truthful — every assertion below is
+     unchanged. */
   const gen = ops => ({ collections: { ops: Object.fromEntries(ops.map(op => [op.op_id, op])) } });
-  const start = (id, parents, seq) => ({ op_id: id, kind: 'session-start', causal_parents: parents, device_seq: seq });
-  const close = (id, parents, seq) => ({ op_id: id, kind: 'session-close', causal_parents: parents, device_seq: seq });
+  const start = (id, parents, seq) => ({ op_id: id, kind: 'session-start', class: 'session', causal_parents: parents, device_seq: seq });
+  const close = (id, parents, seq) => ({ op_id: id, kind: 'session-close', class: 'session', causal_parents: parents, device_seq: seq });
 
   await t.test('the guard refuses exactly the parents round 1 would have written', () => {
     const empty = gen([]);
@@ -874,8 +880,8 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
      from every tip descends from everything — and this pins the shapes rather
      than assuming a chain. */
   await t.test('a day containing an Undo has two tips, and both are carried', () => {
-    const set = (id, parents, seq) => ({ op_id: id, kind: 'session-set', causal_parents: parents, device_seq: seq });
-    const tomb = (id, parents, seq) => ({ op_id: id, kind: 'tombstone', causal_parents: parents, device_seq: seq });
+    const set = (id, parents, seq) => ({ op_id: id, kind: 'session-set', class: 'session', causal_parents: parents, device_seq: seq });
+    const tomb = (id, parents, seq) => ({ op_id: id, kind: 'tombstone', class: 'session', causal_parents: parents, device_seq: seq });
     const undone = gen([start('s1', [], 1), set('x1', [], 2), tomb('t1', ['x1'], 3),
       set('x2', [], 4), close('c1', ['s1', 'x2'], 5)]);
     assert.deepEqual(causalTips(undone), ['t1', 'c1'], 'the removal edit is a tip of its own');
@@ -885,6 +891,31 @@ test('A2 — the causal frontier is DERIVED from the durable log, never remember
     assert.deepEqual(causalTips(open), ['s1', 'x1', 'x2']);
     assert.equal(startOrderRefusalOf(open, causalTips(open)), null,
       'a later Start still reaches the open session\'s Start');
+  });
+
+  /* C4c — A3 REVIEW F2, the reason causalTips() is class-scoped. The weigh-in,
+     the workout and the recovery check-in now share ONE generation. A kind-blind
+     frontier would take a check-in fact (class "event") or a morning reading
+     (class "reading") as a causal tip, and the next Start would descend from it
+     — a workout ordered behind a wellness answer. It must not. */
+  await t.test('a check-in and a reading in the same generation are NOT workout tips', () => {
+    const checkin = (id, seq) => ({ op_id: id, kind: 'fact', class: 'event', causal_parents: [], device_seq: seq });
+    const reading = (id, seq) => ({ op_id: id, kind: 'fact', class: 'reading', causal_parents: [], device_seq: seq });
+    const shared = gen([reading('r1', 1), start('s1', [], 2), close('c1', ['s1'], 3),
+      checkin('k1', 4), reading('r2', 5)]);
+    assert.deepEqual(causalTips(shared), ['c1'],
+      'the only tip of the workout order is the close — not the check-in, not the readings');
+    assert.equal(startOrderRefusalOf(shared, causalTips(shared)), null,
+      'and a Start on that tip is orderable');
+    // The negative control: a Start that descends ONLY from the check-in is refused.
+    const refusal = startOrderRefusalOf(shared, ['k1']);
+    assert(refusal, 'a Start ordered behind a wellness answer reaches no session and is refused');
+    assert.equal(refusal.code, 'WORKOUT_START_ORDER_UNPROVEN');
+    // A generation holding ONLY non-workout ops has no workout tip at all.
+    const wellnessOnly = gen([reading('r1', 1), checkin('k1', 2)]);
+    assert.deepEqual(causalTips(wellnessOnly), []);
+    assert.equal(startOrderRefusalOf(wellnessOnly, []), null,
+      'and the first Start of the day descends from nothing, exactly as on an empty store');
   });
 
   await t.test('the tip of a store holding two closed sessions is the LAST close, and nothing else', () => {

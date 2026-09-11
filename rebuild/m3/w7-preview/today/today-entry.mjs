@@ -2,25 +2,32 @@
 // the approved-design view over the real adapter and, if anything at all goes
 // wrong, says so — naming the cause — without painting a number.
 //
-// ONE STORE, ONE DEVICE (C4b, DECISIONS:106). The morning weigh-in and the
-// workout are two WRITE PATHS into ONE sealed generation of this device's local
-// era (rebuild/m3/w6/local/): the reading through the local client's execute(),
-// the workout through composeWorkoutHost over the same client's hostBindings().
-// They were two generations because one generation carries one lease with one
+// ONE STORE, ONE DEVICE (C4b/C4c, DECISIONS:106). The morning weigh-in, the
+// workout and the recovery check-in are THREE WRITE PATHS into ONE sealed
+// generation of this device's local era (rebuild/m3/w6/local/): the reading
+// through the local client's execute(), the workout through composeWorkoutHost
+// over the same client's hostBindings(), the check-in through a durable public
+// client over its own bindings with the page's own command producer.
+// They were three generations because one generation carries one lease with one
 // schema_version — but rebuild/client gates only a workout on that schema
 // (index.cjs:206), so the reading rides the era's lease into the same
-// generation. There is a test: rebuild/m3/w6/test/local-schema-probe.mjs.
-// Nothing of record lives in localStorage, and nothing here mints a key, signs
-// a lease or asserts an enrolment.
+// generation, and the era's lease IS schema 2, which is what the check-in's
+// producer-injected command is stamped. There is a test:
+// rebuild/m3/w6/test/local-schema-probe.mjs. Nothing of record lives in
+// localStorage, and nothing here mints a key, signs a lease or asserts an
+// enrolment.
 import app from "./today-app.cjs";
 import TodayModel from "./today-model.cjs";
 import { createGymHost, openTodayHosts, RESTORE_REQUIRED } from "./gym-host.mjs";
 import { createReadingHost } from "./reading-host.mjs";
 import { createGymModel } from "./gym-model.mjs";
 import { mountGym, newGymDraft } from "./gym-app.mjs";
-import { createCheckInHost } from "./checkin-host.mjs";
+import { createCheckInHost, PROFILE as CHECKIN_PROFILE } from "./checkin-host.mjs";
+import CheckInCommands from "./checkin-commands.cjs";
 import { createCheckInModel } from "./checkin-model.mjs";
 import { mountCheckIn } from "./checkin-app.mjs";
+
+const { createCheckInCommands } = CheckInCommands;
 
 const { mountToday, createTodayModel } = app;
 
@@ -30,8 +37,20 @@ const { mountToday, createTodayModel } = app;
 export async function createCheckInEntry(model, options = {}) {
   const day = model.today;
   let host = null;
-  try { host = await createCheckInHost({ day, ...options }); }
-  catch (error) { host = null; if (options.onFailure) options.onFailure(error); }
+  /* ONE STORE (C4c). `hosts` is the same injection point the workout entry
+     takes: a page that supplies an installation puts the check-in in the SAME
+     sealed generation as the weigh-in and the sets; a page that supplies none
+     gets that store anyway, through checkin-host.mjs, which opens this device's
+     installation itself. The producer and the profile are the page's own —
+     `era.createCheckInHost` takes them as arguments, because w6 does not depend
+     on this page. `onFailure` is not a store option and never reaches one. */
+  const { hosts, onFailure, ...lane } = options;
+  try {
+    host = hosts && hosts.createCheckInHost
+      ? await hosts.createCheckInHost({ day, commands: createCheckInCommands(), profile: CHECKIN_PROFILE })
+      : await createCheckInHost({ day, ...lane });
+  }
+  catch (error) { host = null; if (onFailure) onFailure(error); }
   const checkin = createCheckInModel({ host, day, engineState: model.stateFromOps() });
   let summary = { durable: !!host, recorded: false, date: null };
   let onRefresh = null;

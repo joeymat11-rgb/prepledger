@@ -54,6 +54,7 @@
 // observation, and partial erasure is restore-required, never a re-enrolment.
 import { openLocalDurableClient } from "./local-client.mjs";
 import { openLocalDeviceIdentity } from "./local-keys.mjs";
+import { LOCAL_ERA_SCHEMA_VERSION } from "./local-era.mjs";
 import Client from "../../../client/index.cjs";
 import { StorageFailure } from "../repository.mjs";
 import { createDurablePublicClient } from "../public-client.mjs";
@@ -92,14 +93,37 @@ export const PRODUCER = Object.freeze({ app_build: "earned-today-preview",
   source_schema: "w7-preview-synthetic" });
 
 /* ---------------------------------------------------------------------------
-   THE CAUSAL FRONTIER. A2's two pure functions, carried here verbatim and pinned
-   BY SOURCE in the journey test (String(mine) === String(theirs)), because the
-   drop-in must refuse exactly the Starts the page refuses today — no more, no
-   fewer. Provenance: rebuild/m3/w7-preview/today/gym-host.mjs causalTips /
-   startOrderRefusalOf, written under A2 review round 2.
+   THE CAUSAL FRONTIER. A2's two pure functions. They live here ONCE — gym-host.mjs
+   re-exports them, so `GymHost.causalTips === causalTips` is an identity rather
+   than a source comparison. Provenance:
+   rebuild/m3/w7-preview/today/gym-host.mjs causalTips / startOrderRefusalOf,
+   written under A2 review round 2; made class-scoped by C4c (A3 review F2).
    --------------------------------------------------------------------------- */
+/* C4c — A3 REVIEW F2. THE WORKOUT ORDER IS class "session", AND THIS IS AN
+   ALLOWLIST, NOT A DENYLIST.
+
+   A2 wrote this filter when the workout owned a generation by itself, so "every
+   op with causal_parents" and "every op of the workout order" were the same set.
+   They are not any more. ONE STORE put the morning reading (class "reading") in
+   this generation, and C4c puts the recovery check-in (class "event", A3's
+   earned/recovery-checkin/v1 fact) in it too. Left kind-blind, a check-in fact
+   would be taken as a causal TIP and the next Start would descend from it —
+   ordering a workout behind a wellness answer, which is exactly what A3's F2
+   said whoever unified the lanes must prevent. It was already happening to the
+   weigh-in: before this change, day 1's first Start descended from that
+   morning's reading.
+
+   The workout order is therefore named positively: `class === "session"`. That
+   is session-start, session-set, session-skip, session-close, and the workout
+   EDITS — an Undo's tombstone is written class "session" too (measured, not
+   assumed; a reading's tombstone is class "reading" and is correctly excluded).
+   An allowlist because C1b review F1 already learned this lesson once: a
+   denylist of "not reading, not event" would silently admit any class a future
+   package adds. A class this set does not name does not order a workout. */
+export const WORKOUT_ORDER_CLASS = 'session';
 const graphOps = generation => Object.values(generation?.collections?.ops || {})
-  .filter(op => op && typeof op.op_id === 'string' && Array.isArray(op.causal_parents));
+  .filter(op => op && typeof op.op_id === 'string' && Array.isArray(op.causal_parents)
+    && op.class === WORKOUT_ORDER_CLASS);
 
 export function causalTips(generation) {
   const rows = graphOps(generation);
@@ -341,6 +365,106 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       close() { alive = false; } });
   }
 
+  /* ----------------------------------------------------------- the check-in
+     C4c — A3's THIRD lane, folded into the SAME generation.
+
+     A3 composed `checkin-host.mjs` exactly as `reading-host.mjs` composed the
+     second lane: its own repository, its own lease, its own generation. Its
+     header says why — "the check-in's operations are written through the
+     client's producer-injected command, which the client stamps schema_version
+     2 … so this lane's lease is schema 2 and it cannot live in the reading lane
+     (schema 1)". That is true of the READING lane and it is the argument for a
+     third generation only if the era's own lease is schema 1. It is schema 2
+     (LOCAL_ERA_SCHEMA_VERSION), so a schema-2 producer command rides it exactly
+     as a workout set does, and the check-in belongs in this generation.
+
+     THE ONE THING THIS LANE SUPPLIES that the other two do not is its command
+     producer. It is an ARGUMENT here, never an import: w6 does not depend on
+     w7-preview, so the page passes its own `commands` (checkin-commands.cjs)
+     and the `profile` its facts carry. Everything else — the repository, the
+     T2 stage, the durable public client, the clock, the lease — is the
+     installation's, shared with the weigh-in and the workout.
+
+     Each handle takes its OWN hostBindings(), like the gym card: a fresh stage
+     closure over the same repository, so the three lanes serialise on the
+     repository's compare-and-swap and never share staging state. */
+  async function createCheckInHost(options = {}) {
+    assertOpen();
+    reconcile("createCheckInHost", options);
+    const { day, commands, profile } = options;
+    if (typeof day !== "string" || !DAY_RE.test(day)) throw new TypeError("createCheckInHost requires day");
+    if (!commands || typeof commands !== "object") throw new TypeError("createCheckInHost requires commands");
+    if (typeof profile !== "string" || !profile) throw new TypeError("createCheckInHost requires profile");
+
+    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day) });
+    const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
+    const checkInClient = createDurablePublicClient({ ...bindings,
+      schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
+    const opened = await checkInClient.reopen();
+    let alive = true;
+
+    /* A3's read-back, carried and narrowed by ONE clause. The accepted client
+       publishes no face for a check-in (A3 seam S1), so the rows are read out of
+       the durable generation the repository just authenticated, as a FILTER and
+       never an interpretation. The added clause is the profile match already
+       being an exact-equality test doing the isolating work: in ONE generation
+       it is what keeps a weigh-in (class "reading") and a workout set (class
+       "session") out of this list, and it is why folding the lane in cannot make
+       a check-in read anything that is not one. */
+    function checkInsIn(generation) {
+      const collections = generation?.collections || {};
+      const rejected = collections.rejected || {};
+      const dead = new Set(Object.values(collections.ops || {})
+        .filter(op => op && op.kind === "tombstone" && typeof op.target_op_id === "string")
+        .map(op => op.target_op_id));
+      return Object.values(collections.ops || {})
+        .filter(op => op && op.kind === "fact" && op.class === "event"
+          && op.payload && op.payload.profile === profile
+          && op.effective && typeof op.effective.local_date === "string"
+          && !rejected[op.op_id] && !dead.has(op.op_id))
+        .sort((a, b) => (a.device_seq || 0) - (b.device_seq || 0) || (a.op_id < b.op_id ? -1 : 1))
+        .map(op => Object.freeze({
+          op_id: op.op_id,
+          date: op.effective.local_date,
+          time: op.effective.local_time || null,
+          offset: op.effective.utc_offset || null,
+          answers: JSON.parse(JSON.stringify(op.payload.answers)),
+        }));
+    }
+
+    const handle = {
+      repository: bindings.repository, client: checkInClient, day, namespace, databaseName, lease,
+      device: null, deviceKeyCustody: "local-keys.mjs",
+      openedRefusal: opened && opened.refusal ? { ...opened.refusal } : null,
+      async all() { return checkInsIn((await bindings.repository.load()).generation); },
+      async forDate(date) {
+        if (typeof date !== "string" || !DAY_RE.test(date)) throw new TypeError("forDate requires a date");
+        return (await handle.all()).filter(row => row.date === date);
+      },
+      async save(answers) {
+        if (!alive) return { ok: false, state: 3, copy: null, code: "LOCAL_CLIENT_CLOSED", op_id: null };
+        const result = await checkInClient.execute("workout", { action: "checkin", input: { answers } });
+        return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
+          code: result.code || null, op_id: result.op_id || null };
+      },
+      async restart() { return checkInClient.reopen(); },
+      face() { const current = checkInClient.current(); return current && current.view ? current.view : null; },
+      paint() { const view = handle.face(); return view ? view.paint : null; },
+      blockedCopy() {
+        const view = handle.face();
+        if (!view) return null;
+        return (view.layer2 && view.layer2.copy) || (view.layer1 && view.layer1.label) || null;
+      },
+      outboxRetained() {
+        const view = handle.face();
+        return view && view.layer1 && Number.isSafeInteger(view.layer1.outbox) ? view.layer1.outbox : null;
+      },
+      // Detaches THIS handle only — see createReadingHost().close().
+      close() { alive = false; },
+    };
+    return Object.freeze(handle);
+  }
+
   return Object.freeze({
     client, databaseName, namespace, athleteId, deviceId,
     // What C1's boot() reported about this installation: the era window, the
@@ -350,7 +474,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       ops: booted.ops, derivedStale: booted.derivedStale, derivedCode: booted.derivedCode,
       importRebaseRequired: booted.importRebaseRequired === true,
       leaseRenewedUntil: booted.leaseRenewedUntil || null }),
-    createReadingHost, createGymHost,
+    createReadingHost, createGymHost, createCheckInHost,
     /* C4b-D1. The day this installation's OWN writes (the weigh-in path, the
        lease window, the enrolment stamp) are stamped with, right now. Every host
        stamps its own `day` instead; see createGymHost. */
@@ -456,23 +580,40 @@ export async function openTodayInstallation({
     // wins over `day`; with neither, the wall clock's own day seeds it.
     const state = { day: day || wallClock().today() };
     const live = clock || liveClockOver(state);
-    entry = { handles: 0, state, live, adoptions: [], declaredClock: clock !== undefined };
+    /* THE DAY THIS INSTALLATION IS ACTUALLY STAMPING WITH — asked of the clock
+       it is really using, never of the seed it was opened with (review round 2,
+       nit 2). With no declared provider the two are the same value by
+       construction (`liveClockOver` reads `state.day`); with one, `state.day` is
+       only a seed the provider never agreed to, so reporting it would have
+       `liveDay()` name a day nothing is stamped on. */
+    const dayNow = () => (typeof live.today === "function" ? live.today() : state.day);
+    entry = { handles: 0, state, live, dayNow, adoptions: [], declaredClock: clock !== undefined };
     entry.opening = (async () => {
       const device = deviceId || (await openLocalDeviceIdentity({ indexedDB, crypto, databaseName })).deviceId;
       return openTodayOverLocalEra({ indexedDB, crypto, databaseName, namespace,
-        athleteId, deviceId: device, clock: live, liveDay: () => state.day, ...rest });
+        athleteId, deviceId: device, clock: live, liveDay: dayNow, ...rest });
     })();
     byKey.set(key, entry);
     // A failed open must not be remembered: the next page load has to try again.
     entry.opening.catch(() => { if (byKey.get(key) === entry) byKey.delete(key); });
-  } else if (day !== undefined && day !== entry.state.day) {
-    // THE ADOPTION, by name and on the record.
-    if (entry.declaredClock) {
-      entry.adoptions.push({ from: entry.state.day, to: day, adopted: false,
-        why: "the installation was opened with an explicit clock provider, which this module may not move" });
-    } else {
-      entry.adoptions.push({ from: entry.state.day, to: day, adopted: true });
-      entry.state.day = day;
+  } else {
+    /* A SECOND CALLER'S OWN CLOCK PROVIDER, recorded exactly as a second
+       caller's own `deviceKeys` is (review round 2, nit 1). This installation
+       already stands on one clock; it cannot take a second, and until now the
+       second was dropped in silence — the same silence D1 was. Refusing here
+       would strand the caller, so it is IGNORED and NAMED. */
+    if (clock !== undefined && clock !== entry.live)
+      entry.adoptions.push({ from: entry.dayNow(), to: null, adopted: false,
+        why: "a second caller handed over its own clock provider; this installation already has one" });
+    if (day !== undefined && day !== entry.dayNow()) {
+      // THE ADOPTION, by name and on the record.
+      if (entry.declaredClock) {
+        entry.adoptions.push({ from: entry.dayNow(), to: day, adopted: false,
+          why: "the installation was opened with an explicit clock provider, which this module may not move" });
+      } else {
+        entry.adoptions.push({ from: entry.dayNow(), to: day, adopted: true });
+        entry.state.day = day;
+      }
     }
   }
   const era = await entry.opening;
@@ -481,7 +622,7 @@ export async function openTodayInstallation({
   return Object.freeze({ ...era,
     // What day this installation's own writes are stamped with, right now, and
     // every time a later caller moved it.
-    liveDay: () => entry.state.day,
+    liveDay: () => entry.dayNow(),
     clockAdoptions: () => entry.adoptions.map(entry => ({ ...entry })),
     close() {
       if (released) return;
