@@ -1,0 +1,79 @@
+EARNED — INDEPENDENT NUTRITION INPUTS CORRECTION REVIEW
+Date: 2026-09-11. Verdict: ACCEPT, bounded R1 correction.
+Candidate: 26b511b536de272c692f023555622cb69be8e231.
+Correction base: 938913671d9dbd352f90adee963e4aef02cee43d.
+Original base: 693b021f01d832a889f6933f2dcad2258431d808.
+FILE: ASTRA-NUTRITION-INPUTS-REVIEW.md correction continuation at0b78eac.
+Reviewer phone_release_review, nonauthor; author qualification_delta_review.
+Tree/branch: BASE/astra-nutrition-inputs-delta-review,
+  codex/astra-nutrition-inputs-delta-review.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+Original REQUIRED CORRECTION report910d5182dc555ca8a7ac406f0db380d9a2df2679
+and its original witness/tree remain unchanged. Read full correction report/diff.
+
+R1 REPLAY AND SOURCE
+Replayed the identical original actual-Today concurrent sequence against corrected
+imports: prepare P; start era.commitNutritionInputs(P) without awaiting; immediately
+start era.client.execute('nutritionInputs', same proposal); await both.
+Now guarded: acknowledged=true, Saved on this phone, durableRevision3.
+Raw: acknowledged=false, NUTRITION_INPUT_PREPARATION_REQUIRED. Exactly one record.
+The observed original false-no-save/raw-admission defect is corrected.
+
+Local-client now owns a closure-private Symbol and private executeReviewed callback;
+public execute forwards only command and args and rejects raw nutrition commands
+before bridge staging. The boundary's serialized invocation alone supplies the
+capability. Matching payload, review ID or a newly forged same-description Symbol
+cannot provide it. The unchanged transaction validator still checks active review,
+revision/token, session/scope and exact batch. Existing bridge CAS, failure state18
+and state20/expired-lease normalization are shared by both execution routes. This
+is invocation ownership without a new store, lease, global lock or public token.
+
+EXECUTED
+Retained Node v24.19.0; NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules,
+TZ=America/New_York; EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this tree.
+node --test rebuild/m3/w6/test/nutrition-inputs.test.mjs
+  rebuild/m3/w6/test/local-client.test.mjs
+  rebuild/m3/w6/test/local-initial-setup.test.mjs
+58 PASS, 0 FAIL, 0 SKIP, exit0. Log .tmp/focused58.log.
+Original10 nutrition checks unchanged plus4 added correction checks and44 existing.
+Includes raw calls before/after guarded calls, equal/different payloads, held encrypted
+transaction with prompt raw refusal and no early Saved, concurrent legitimate retry,
+reopen, actual competing weight, quota/retry, close/postcommit recovery, expired lease,
+integrity and existing setup/weight/workout/cache-loss path.
+
+node .tmp/nutrition-inputs-delta-review.mjs: exit0.
+This ignored owned script relocates imports in the original witness without changing
+its concurrent sequence, reuses its actual competing-write race, and adds controls.
+All use actual Today/local-client/stage/encrypted repository with synthetic inputs,
+fake-indexeddb and Node webcrypto; no injected transaction result or canned admission.
+Independent observations:
+- Original R1 replay now yields guarded Saved, raw refused, one record.
+- Equal and different raw proposals with forged public third-argument capability
+  both refuse. Concurrent legitimate repeat retains the same operation ID; revision
+  and device sequence increment exactly once, stored inputs equal reviewed inputs.
+- Another actual installation saves weight171 while nutrition encryption is held.
+  Weight survives as the only operation; nutrition returns NUTRITION_INPUT_STALE and
+  spends no extra sequence. Independent context uses separate calendar and IDBFactory
+  facade over the same database, preserving the original review's real CAS witness.
+- Expired reviewed execution returns state20/LOCAL_LEASE_EXPIRED; subsequent public
+  execution preserves the same normalization rather than reporting generic failure.
+
+Executed unchanged-source comparisons against938913: wire, history, Today bindings,
+page, original journey test and both existing neighbor suites byte-identical.
+Executed original nutrition-test prefix comparison: original10 remain unchanged;
+correction tests are appended. Full delta is only local-client, inputs-boundary,
+contract explanation, appended tests and the author's one correction report.
+git diff --check PASS. No product or test edits made by this reviewer.
+
+REUSED EVIDENCE / LIMITS
+Unchanged wire/history/identity/ownership findings reuse910d518; no second general
+campaign. Original local schema1 setup-note on the accepted schema2 local-era lease
+remains factual local capture, not hosted T3 admission or a governing effective plan.
+U1/U2 complete intake/selection, U3/U4 physiological qualification, U5 approved
+four-field advice/UI remain open. No UI/browser/phone/CI readiness claim.
+Inherited local-today-journey result remains103/105 with2 failures (old page-pin
+assertion and parent), not PASS; byte-equality evidence is retained and no rerun or
+pin edit occurred. Final source qualification still must resolve it.
+One report only; no installs, lock churn, frozen source/law/authority edits, private
+campaign, remote action, agents, integration or deployment. Root owns acceptance
+and distinct integration. No further correction found in this bounded delta.
