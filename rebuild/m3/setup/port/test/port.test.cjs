@@ -194,12 +194,51 @@ test('a wrong-file --local is refused, and --local-inspect says what the file is
   assert.match(merge.out, /^2\. LOCAL\s+FAIL/m);
   assert.match(merge.out, /LOCAL_UNRELATED/);
   assert.match(merge.out, /readings this file has in common with the source: 0/);
+  assert.match(merge.out, /no reading \(same date AND same weight\) is in both files/);
+  assert.ok(!/format number/.test(merge.out), 'the schema is fine here, so it is not named');
   assert.equal(fs.existsSync(out), false, 'nothing written, no folder created');
 
   const look = runPort(['--source', SYNTHETIC, '--local', wrongFile, '--local-inspect']);
   assert.equal(look.code, 2, look.out);
   assert.match(look.out, /LOCAL_UNRELATED/);
+  assert.match(look.out, /no reading \(same date AND same weight\) is in both files/);
   assert.match(look.out, /--local-inspect only looks/);
+});
+
+/* DEFECT 5 (review round 2): the refusal used to hardcode the shared-readings
+   sentence, so a file with 35 readings in common and a future format number was
+   told it had none — and Joe would go hunting for a file that was the right one.
+   The two reasons are independent and the message must say which one fired. */
+test('a lineage-only refusal names the schema, not the readings', () => {
+  const ahead = JSON.parse(fs.readFileSync(SYNTHETIC, 'utf8'));
+  ahead.v = 104;                       // every read identical: 35 in common
+  const aheadFile = path.join(SCRATCH, 'future schema.json');
+  fs.writeFileSync(aheadFile, Buffer.from(JSON.stringify(ahead), 'utf8'));
+  const out = path.join(SCRATCH, 'lineage-only-out');
+
+  const merge = runPort(['--source', SYNTHETIC, '--out', out, '--local', aheadFile, '--local-confirm', first8(aheadFile)]);
+  assert.equal(merge.code, 2, merge.out);
+  assert.match(merge.out, /^2\. LOCAL\s+FAIL/m);
+  assert.match(merge.out, /lineage=false/);
+  assert.match(merge.out, /readings this file has in common with the source: 35/,
+    'the readings ARE shared, and the run says so');
+  assert.match(merge.out, /format number 104 is not in the source's lineage \(needs 54 to 60\)/);
+  assert.ok(!/no reading \(same date AND same weight\) is in both files/.test(merge.out),
+    'the old hardcoded sentence must not appear when the readings are fine');
+  assert.equal(fs.existsSync(out), false, 'nothing written, no folder created');
+
+  const look = runPort(['--source', SYNTHETIC, '--local', aheadFile, '--local-inspect']);
+  assert.equal(look.code, 2, look.out);
+  assert.match(look.out, /format number 104 is not in the source's lineage/);
+  assert.ok(!/no reading \(same date AND same weight\) is in both files/.test(look.out));
+
+  // and the reason builder itself, on each of the three failing combinations
+  const { unrelatedReason } = require('../port.cjs');
+  assert.match(unrelatedReason({ shared: 0, lineage: true }, 54, 54, 60), /^no reading/);
+  assert.match(unrelatedReason({ shared: 35, lineage: false }, 54, 104, 60), /^its format number 104/);
+  const both = unrelatedReason({ shared: 0, lineage: false }, 54, 104, 60);
+  assert.match(both, /no reading/);
+  assert.match(both, /format number 104/);
 });
 
 test('a genuine --local still needs confirming, and --local-inspect prints what to confirm', () => {

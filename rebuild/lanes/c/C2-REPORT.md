@@ -7,6 +7,18 @@ sections below are current as of the fix round; what changed is summarised in
 FIX ROUND at the top, and the one false claim the reviewer falsified — PRIVACY
 PROOF item 5 — is corrected in place rather than quietly dropped.
 
+**REVIEW ROUND 2 (ACCEPT) — DEFECT 5, LOW, closed.** `LOCAL_UNRELATED` built its
+diagnostic around the shared-readings clause and appended the schema clause to
+it, so a local file with **35 readings in common** and a future format number was
+told "no reading is in both files". The two conditions are independent and the
+message now says which one actually fired: `unrelatedReason()` assembles the
+sentence from `shared < 1` and `!lineage` separately, and both the run path and
+`--local-inspect` print it. A new test drives the lineage-only case (`v = 104`,
+every read identical) and asserts the schema clause appears, the readings clause
+does **not**, and the run still reports `readings this file has in common with
+the source: 35` — plus the three failing combinations against `unrelatedReason`
+directly. Suite is now **21/21, 0 skipped**.
+
 Builder: cowork (Claude Fable 5.1). Branch `rebuild/lane-c-c2`, worktree
 `work/lane-c/c2`, base `2553300`. Node 24.19.0 on Windows (PowerShell 5.1).
 Owner files only: `rebuild/m3/setup/port/**` (new) + this file. Nothing under
@@ -89,15 +101,16 @@ ledger silently doubling — and it cannot detect a different athlete in princip
 
 | file | sha256 | bytes |
 |---|---|---|
-| `rebuild/m3/setup/port/port.cjs` | `394d7fc4f62d31a5cd8f9d648dab101f954f1d4f7904596d7188485d063177b6` | 30074 |
+| `rebuild/m3/setup/port/port.cjs` | `08f877c73baaea6d7ab9737df303a8bd6e83c17697780130eea64e6fc615b070` | 30692 |
 | `rebuild/m3/setup/port/unseal.cjs` | `515822a128031f03dde27d96c161d5528dd444673e00fa2e5c9a1d40719abf02` | 4883 |
 | `rebuild/m3/setup/port/wordlist.cjs` | `e5ef45762e19d96e1dd2c043fec4ed1405e5bdabf3080169081c03aacd32daa7` | 14466 |
 | `rebuild/m3/setup/port/README.md` | `a00ecda5799fbb5ac2c137b162388261828ea17ce7478402437ad43f7127dd13` | 8374 |
-| `rebuild/m3/setup/port/test/port.test.cjs` | `1bbc65d22cbcf03d332b4cd1946f947c7460f1d2cc4b15a37f4b78227d4497e0` | 22789 |
+| `rebuild/m3/setup/port/test/port.test.cjs` | `093cc63eb0fb6983e0c02beffd42edd375ded5808fba6e89bfdb00ac02131000` | 25316 |
 | `rebuild/m3/setup/port/test/seal.test.cjs` | `c0d4d3e9dc5e533dc9461717a2939e3ec0160d600b242f21a8f3f7625d9af695` | 4517 |
 
 (`unseal.cjs`, `wordlist.cjs` and `seal.test.cjs` are unchanged from `e8011ce`
-and carry the hashes the reviewer verified.)
+and carry the hashes the first reviewer verified. `port.cjs` and
+`test/port.test.cjs` moved again in review round 2, for DEFECT 5 below.)
 
 All six are LF-only and end with a newline (verified byte-wise), so the hashes
 above are the committed blob bytes under `core.autocrlf=false`.
@@ -222,8 +235,8 @@ corrections; `dataLossGuard safe=true lost=0` is the guard on the same states.
 node --test rebuild/m3/setup/port/test/seal.test.cjs rebuild/m3/setup/port/test/port.test.cjs
 ```
 
-→ **tests 20 · pass 20 · fail 0 · cancelled 0 · skipped 0 · todo 0**, exit 0
-(duration 2.65 s; each port case spawns the CLI, which spawns the gate twice).
+→ **tests 21 · pass 21 · fail 0 · cancelled 0 · skipped 0 · todo 0**, exit 0
+(duration 2.76 s; each port case spawns the CLI, which spawns the gate twice).
 **Zero skipped** matters here: the two Windows bypass cases are the regression
 for the review's HIGH defect, and a skipped bypass test is worse than none.
 
@@ -233,7 +246,8 @@ for the review's HIGH defect, and a skipped bypass test is worse than none.
 | stdout carries paths, counts, hashes and verdicts | the privacy case — see below |
 | `--local` merges the pair, Windows paths with spaces and backslashes | merged state deep-equals `prepare(source, {localBytes})`; both the source reads and the local-only `2029-12-02` read are present; `local.bytes` round-trips; the census counts run against the local input too; `payload.local.relatedness.related === true`; `--out` is a folder with spaces, every path passed with `\` separators |
 | **the counts check refuses a merge that drops a class `dataLossGuard` reads as empty** | see the finding below — `safe=true lost=0` from the engine guard, `SHRANK (source): nights 35->0` from the census counts, exit 2, no folder |
-| **a wrong-file `--local` is refused** | zero shared readings → exit 2, `LOCAL_UNRELATED`, `readings this file has in common with the source: 0`, nothing written; `--local-inspect` on the same file exits 2 and writes nothing |
+| **a wrong-file `--local` is refused** | zero shared readings → exit 2, `LOCAL_UNRELATED`, `readings this file has in common with the source: 0`, the readings clause present and the schema clause absent, nothing written; `--local-inspect` on the same file exits 2 and writes nothing |
+| **a lineage-only refusal names the schema, not the readings** (DEFECT 5) | local `v = 104` with all 35 readings shared → exit 2, `lineage=false`, `readings … in common …: 35`, `format number 104 is not in the source's lineage (needs 54 to 60)`, and the readings clause **absent**; same on `--local-inspect`; plus `unrelatedReason` checked directly on all three failing combinations |
 | **a genuine `--local` still needs confirming** | no `--local-confirm` → exit 2 at `CONFIRM`; a wrong token → exit 2; `--local-inspect` exits 0, prints the exact token to use and the shared-reading count, and writes nothing |
 | a gate that is not GREEN stops the port | exit 2, `ORACLE FAIL`, `NO BUNDLE WRITTEN`, and the output folder is empty — not even a passphrase file |
 | the CLI refuses to write inside the repository / unknown argument / missing source | exit 1 each, nothing created |
@@ -454,7 +468,7 @@ modes, and the port stops. That is the gate earning its place.
 
 ## STATUS
 
-C2 is built, the four review conditions are closed, and the suite is 20/20 with
-0 skipped on public fixtures. **The real run on the private blob has not happened
+C2 is built, the four review conditions and round 2's DEFECT 5 are closed, and
+the suite is 21/21 with 0 skipped on public fixtures. **The real run on the private blob has not happened
 and must not happen until Joe asks for it in his own words** — see the README's
 first section, which states that rule for whoever runs it.

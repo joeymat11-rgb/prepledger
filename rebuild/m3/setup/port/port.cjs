@@ -343,6 +343,17 @@ function relatedness(source, local, schemaV) {
   return { shared: shared.size, lineage, related: shared.size >= 1 && lineage };
 }
 
+/* Two independent reasons, so the refusal says which one actually fired. The
+   first version hardcoded the shared-readings sentence and told a file with 35
+   readings in common and a future schema that it had none — a diagnostic that
+   sends Joe looking for the wrong file when the file was right. */
+function unrelatedReason(rel, sourceV, localV, schemaV) {
+  const why = [];
+  if (rel.shared < 1) why.push('no reading (same date AND same weight) is in both files');
+  if (!rel.lineage) why.push(`its format number ${localV} is not in the source's lineage (needs ${sourceV} to ${schemaV})`);
+  return why.join('; and ');
+}
+
 async function run(argv) {
   const opts = parseArgs(argv);
   if (opts.help || (!opts.source && !opts.out)) { console.log(USAGE); return 0; }
@@ -383,16 +394,16 @@ async function run(argv) {
     say('LOCAL', localRelated.related ? 'PASS' : 'FAIL', `${opts.local}  sha256=${localSha256}  bytes=${localBytes.length}`);
     note(`schema ${localHead.v} (source ${sourceHead.v}, engine ${engine.SCHEMA_V})  lineage=${localRelated.lineage}  ` +
       `readings this file has in common with the source: ${localRelated.shared}`);
+    const why = localRelated.related ? '' : unrelatedReason(localRelated, sourceHead.v, localHead.v, engine.SCHEMA_V);
     if (opts.inspect) {
       note(localRelated.related
         ? `This looks like the same ledger. To merge it, run again with  --local-confirm ${first8}`
-        : 'LOCAL_UNRELATED  This does NOT look like the same ledger: no reading (same date AND same weight) is in both files.');
+        : `LOCAL_UNRELATED  This does NOT look like the same ledger: ${why}.`);
       note('Nothing was written - --local-inspect only looks.');
       return localRelated.related ? 0 : 2;
     }
     if (!localRelated.related) {
-      note('LOCAL_UNRELATED  No reading (same date AND same weight) is in both files' +
-        (localRelated.lineage ? '.' : ', and its schema is not in the source\'s lineage.'));
+      note(`LOCAL_UNRELATED  This does NOT look like the same ledger: ${why}.`);
       note('Merging it would invent a history that never happened. Nothing was written.');
       note('Run again with --local-inspect to see what that file is.');
       return 2;
@@ -554,4 +565,4 @@ if (require.main === module) {
 }
 
 module.exports = { run, GATE, REPO, REPO_REAL, USAGE, makePassphrase, seal, runGate, engineDigest,
-  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, GUARDED };
+  PASSPHRASE_WORDS, realPathOf, outRefusal, insideRepo, relatedness, unrelatedReason, GUARDED };
