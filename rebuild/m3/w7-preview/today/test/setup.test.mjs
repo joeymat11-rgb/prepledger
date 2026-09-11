@@ -821,22 +821,86 @@ test('S18 / S19 - after the first run, the page opens on the REAL local era and 
   booted.hosts.close();
 });
 
-/* H3, EXECUTED AND RECORDED (A4-REPORT.md). The accepted ENGINE cannot render Today
-   for a clean-init athlete: rebuild/engine/energy.cjs:370 observedTDEE dereferences
-   s.blackout.until, and `blackout` is not a member createCleanInitState writes. That
-   is why boot() does NOT hand the first-run athlete to createTodayModel as its
-   basis, and it is an engine-tier change A4 has no custody for (BUILD-BRIEF 6).
-   This test goes GREEN by asserting the gap, and turns RED the day it is closed,
-   which is the day the wiring can land. */
+/* C1 (review round 1). The landing Today must SAY that the figures on it are not
+   his yet, for exactly as long as H3 is open. Both directions are asserted: the
+   sentence is absent before the first run, present after it, and the predicate
+   that decides it clears itself the day Today really does stand on his athlete. */
+test('S19 - after the first run, the landing Today SAYS the figures on it are not his yet', async () => {
+  const fault = faultDatabase();
+  const lane = { indexedDB: fault.indexedDB, crypto: webcrypto };
+  const sentence = Model.COPY.notHisNumbersYet;
+  assert(typeof sentence === 'string' && sentence.trim() !== '', 'the sentence exists');
+
+  const before = await createSetupEntry({ today: DAY }, lane);
+  const fresh = new JSDOM(shell());
+  mountToday(fresh.window.document, createTodayModel({ today: DAY }), { setup: before });
+  assert.equal(fresh.window.document.getElementById('phone').textContent.includes(sentence), false,
+    'before the first run there is nothing to say');
+
+  assert.equal((await before.host.save(documentOf(filled()))).ok, true);
+  before.host.close();
+  const after = await createSetupEntry({ today: DAY }, lane);
+  assert.equal(after.athleteLabel(), 'Dad', 'the entry knows whose week is recorded');
+  const landed = new JSDOM(shell());
+  mountToday(landed.window.document, createTodayModel({ today: DAY }), { setup: after });
+  const text = landed.window.document.getElementById('phone').textContent;
+  assert(text.includes(sentence),
+    'a man who has just typed his real week is not shown a stranger\'s numbers in silence');
+  assert.equal(landed.window.document.querySelector('[data-slot="setup-note"]').hidden, false);
+  after.host.close();
+});
+
+test('S19 - the sentence clears ITSELF the day Today really stands on his athlete', () => {
+  const needed = TodayApp.setupNoteNeeded;
+  const his = createCleanInitState({ setup: documentOf(filled()) });
+  assert.equal(needed(false, null, null), false, 'nothing recorded, nothing to say');
+  assert.equal(needed(true, 'Dad', createTodayModel({ today: DAY }).stateFromOps()), true,
+    'recorded, but Today is standing on the fixture: say so');
+  assert.equal(needed(true, 'Dad', his), false,
+    'recorded AND Today is standing on HIS state: the sentence is gone, with no edit');
+  assert.equal(needed(true, 'Dad', null), true, 'no state to compare is not a licence to stay silent');
+});
+
+/* H3, EXECUTED AND RECORDED (A4-REPORT.md section 6), and CORRECTED at review round
+   1 (C2): the reviewer executed both fix shapes the first hand-off offered and
+   neither works. TWO members are missing, not one, and the test asserts BOTH gaps
+   BY NAME so that a partial engine fix cannot close the register item silently. */
 test('H3 - the accepted engine still cannot paint Today for a clean-init athlete', () => {
   const state = createCleanInitState({ setup: documentOf(filled()) });
-  assert.equal(Object.hasOwn(state, 'blackout'), false,
-    'createCleanInitState writes no blackout member');
+  assert.equal(Object.hasOwn(state, 'blackout'), false, 'no blackout member');
+  assert.equal(Object.hasOwn(state, 'model'), false, 'and no model member either');
   assert(readRepo('rebuild/engine/energy.cjs').includes('daysUntil(s.blackout.until)'),
-    'and energy.cjs still dereferences it unguarded');
+    'energy.cjs:370 still dereferences s.blackout.until unguarded');
+  assert(readRepo('rebuild/engine/energy.cjs').includes('s.model.anchorISO'),
+    'energy.cjs:84 bfEst still dereferences s.model.anchorISO unguarded');
+  /* GAP 1: as the constructor writes it, the first throw is s.blackout.until. */
   assert.throws(() => createTodayModel({ today: DAY, basisState: state }).read(),
-    /Cannot read properties of undefined/,
-    'so Today throws on the first paint; H3 must close before the basis can be wired');
+    /Cannot read properties of undefined \(reading 'until'\)/,
+    'GAP 1: nowModel throws on s.blackout.until');
+  /* GAP 2: blackout ALONE is not enough. `blackout: {}` is not even a fix shape:
+     daysUntil(undefined) throws in dates.cjs. With a VALID blackout the throw
+     MOVES to bfEst's s.model.anchorISO. */
+  const plain = JSON.parse(JSON.stringify(state));
+  assert.throws(() => createTodayModel({ today: DAY, basisState: { ...plain, blackout: {} } }).read(),
+    /Cannot read properties of undefined \(reading 'split'\)/,
+    'blackout: {} is NOT a fix shape: daysUntil(undefined) reaches mk() in rebuild/engine/dates.cjs:8');
+  assert.throws(() => createTodayModel({ today: DAY,
+    basisState: { ...plain, blackout: { until: '2020-01-01' } } }).read(),
+  /Cannot read properties of undefined \(reading 'anchorISO'\)/,
+  'GAP 2: with a VALID blackout the throw MOVES to energy.cjs:84 bfEst, s.model.anchorISO');
+  /* And the fix shape the hand-off must name: BOTH members, written by the
+     constructor. With both present the page paints, which is what makes "two
+     members, not one" a claim and not an opinion. */
+  assert.doesNotThrow(() => createTodayModel({ today: DAY, basisState: { ...plain,
+    blackout: { until: '2020-01-01' },
+    model: { anchorISO: '2020-01-01', anchorLb: 170, k: 0 } } }).read(),
+  'blackout AND model together: Today paints');
+  /* And guarding energy.cjs:370 alone only moves the throw: these readers are
+     equally unguarded, which is why the honest fix is the CONSTRUCTOR's. */
+  for (const [file, count] of [['rebuild/engine/sleep.cjs', 2], ['rebuild/engine/writers.cjs', 3]]) {
+    const unguarded = (readRepo(file).match(/\bs\.blackout\.until\b|\bst\.blackout\.until\b/g) || []).length;
+    assert(unguarded >= 1, file + ' still reads blackout.until directly (' + unguarded + ' of ~' + count + ')');
+  }
 });
 
 test('S17 - the first-run screens name no network address, and the CSP is unchanged', async () => {

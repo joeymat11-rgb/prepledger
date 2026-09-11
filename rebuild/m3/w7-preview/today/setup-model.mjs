@@ -106,6 +106,14 @@ export const COPY = Object.freeze({
   jumpWord: 'jump',
   unknownWord: 'not answered yet',
   setupEntry: 'Set up your week',
+  /* C1 (A4 review round 1). THE ONE SENTENCE THE LANDING TODAY OWES HIM. His
+     answers are durably recorded, but the accepted engine cannot yet paint a
+     clean-init athlete (register item H3), so Today is still standing on the
+     preview's sample athlete. Saying nothing there is S19's named silent
+     failure, "a fake dashboard greets a brand-new athlete". It is shown ONLY
+     while the record holds his first run AND the screen is not yet his, and it
+     clears itself the day H3 closes, with no edit. */
+  notHisNumbersYet: 'Your week is saved on this device. The numbers on this screen are still the preview’s sample athlete, not you. Nothing here was measured from anything you did.',
   screen6Priorities: 'What matters most',
   screen6Nothing: 'nothing named',
   refusalHead: 'Earned can’t build your week yet',

@@ -105,6 +105,28 @@ const CHECKIN_NO_STORE = "This device could not open its encrypted local store, 
    runtime copy; setup-app.mjs carries the same string in its own COPY and
    test/setup.test.mjs asserts the two agree. */
 const SETUP_ENTRY = "Set up your week";
+/* A4 / C1 (review round 1) - THE ONE SENTENCE THE LANDING TODAY OWES HIM.
+   A man who has just typed his real week taps "Start using Earned" and arrives
+   here. His answers ARE durably recorded; what he is looking at is not yet built
+   from them, because the accepted engine cannot read a clean-init athlete
+   (register item H3, rebuild/engine/energy.cjs:370 and :84). Showing him the
+   preview's sample athlete in silence is S19's named silent failure verbatim,
+   "a fake dashboard greets a brand-new athlete", so the page says which it is.
+   Same string as setup-model.mjs COPY.notHisNumbersYet, which is where the six
+   screens' words live and what design.cjs harvests; the suite asserts the two
+   agree, and this module is a SETUP_SOURCE so the harvest sees it here. */
+const SETUP_NOT_HIS_NUMBERS = "Your week is saved on this device. The numbers on this screen are still the preview’s sample athlete, not you. Nothing here was measured from anything you did.";
+
+/* WHEN THE SENTENCE IS OWED, as a predicate rather than a flag, so that it clears
+   ITSELF the day H3 closes and boot() paints his own state: the moment Today is
+   standing on the athlete whose week the record holds, the two labels agree and
+   this returns false with no edit anywhere. Exported so the suite can assert both
+   directions without needing an engine that can paint a clean-init athlete. */
+function setupNoteNeeded(enrolled, athleteLabel, state) {
+  if (enrolled !== true) return false;
+  if (!state || typeof state.athlete_label !== "string" || !athleteLabel) return true;
+  return state.athlete_label !== athleteLabel;
+}
 
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
@@ -268,6 +290,7 @@ function mountToday(doc, model, options = {}) {
        page inventing a state the athlete never entered. */
     map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
     setupTile(map);
+    setupNote(map);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -464,6 +487,23 @@ function mountToday(doc, model, options = {}) {
     return offer;
   }
 
+  /* A4 / C1 - the sentence, bound exactly as the tile is. `state` is the engine
+     state Today is actually painting from, so the comparison is with what is on
+     the screen and not with what the page hoped was on it. */
+  function setupNote(map) {
+    const note = map.get("setup-note");
+    if (!note) return false;
+    const summary = (setup && typeof setup.summary === "function" ? setup.summary() : null) || null;
+    const label = setup && typeof setup.athleteLabel === "function" ? setup.athleteLabel() : null;
+    let state = null;
+    try { state = typeof model.stateFromOps === "function" ? model.stateFromOps() : null; }
+    catch (_) { state = null; }
+    const owed = setupNoteNeeded(!!summary && summary.enrolled === true, label, state);
+    note.textContent = owed ? SETUP_NOT_HIS_NUMBERS : "";
+    note.hidden = !owed;
+    return owed;
+  }
+
   /* A3 — Today's one-line report on the check-in. It reads the DURABLE lane, never a
      flag this page sets, and says nothing at all when nothing is recorded. */
   function recoveryState() {
@@ -569,4 +609,5 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
   WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
-  CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE, SETUP_ENTRY };
+  CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE,
+  SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded };

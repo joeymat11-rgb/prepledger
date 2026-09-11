@@ -101,17 +101,25 @@ export async function createSetupEntry({ today: day }, options = {}) {
   /* With NO store this page cannot know whether the device has been set up, so it
      does not guess: firstRun stays false and the setup route is not offered. An
      installation that refuses is never enrolled a second time. */
-  let enrolled = host ? await host.enrolled() : true;
+  let enrolled = true;
+  /* C1 - WHOSE week the record holds, read from the record and held for the view.
+     It is what lets Today decide, without a flag, whether the screen it is about
+     to paint is his: see setupNoteNeeded in today-app.cjs. */
+  let label = null;
   let onRefresh = null;
   async function refresh() {
-    enrolled = host ? await host.enrolled() : true;
+    const rows = host ? await host.all() : [];
+    enrolled = host ? rows.length > 0 : true;
+    label = rows.length ? rows[0].setup.athlete_label : null;
     if (onRefresh) onRefresh();
     return { durable: !!host, enrolled };
   }
+  await refresh();
   const setup = createSetupModel({ today: day });
   return {
     summary: () => ({ durable: !!host, enrolled }),
     firstRun: () => !!host && enrolled === false,
+    athleteLabel: () => label,
     /* The athlete this installation's first run created, built by the ACCEPTED
        constructor from the stored document and by nothing else. Returns null
        before the first run. See the note in boot() about why it is not yet

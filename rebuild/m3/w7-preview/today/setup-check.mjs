@@ -161,7 +161,13 @@ async function reachable(page, label) {
   notes.push(`${label}: content ${box.content}px in a ${box.viewport}px viewport, no sideways scroll`);
   return box;
 }
+/* C3 (review round 1): which screens were REALLY measured. The first version of
+   this check called inputsAreLargeEnough on three of the six and its PASS line
+   said "every screen"; the count is now derived from the calls that ran, so the
+   line cannot claim coverage the run did not have. */
+const measured = new Set();
 async function inputsAreLargeEnough(page, label) {
+  measured.add(label.replace(/,.*$/, "").trim());
   const sizes = await page.evaluate(() => [...document.querySelectorAll("#phone input, #phone select, #phone textarea")]
     .map(el => ({ id: el.id || el.tagName, size: Math.round(parseFloat(getComputedStyle(el).fontSize)) })));
   for (const entry of sizes) assert(entry.size >= 16, `${label}: ${entry.id} renders at ${entry.size}px`);
@@ -227,6 +233,7 @@ async function runFlow(page, stopAt = 6) {
   await dayKind("Monday", "Monday"); await dayKind("Monday", "Upper body");
   await dayKind("Thursday", "Thursday"); await dayKind("Thursday", "Lower body");
   await reachable(page, "screen 2");
+  await inputsAreLargeEnough(page, "screen 2");
   await noDashes(page, "screen 2");
   assert.match(await phone(page), /Earned plans two kinds of day so far: upper body and lower body\./);
   if (stopAt === 2) return;
@@ -308,6 +315,7 @@ async function runFlow(page, stopAt = 6) {
   0, "screen 5 starts with nothing selected");
   await tap(page, "chest");
   await reachable(page, "screen 5");
+  await inputsAreLargeEnough(page, "screen 5");
   await noDashes(page, "screen 5");
   if (stopAt === 5) return;
 
@@ -321,6 +329,7 @@ async function runFlow(page, stopAt = 6) {
   assert.match(summary, /We have not put a weight on anything\./);
   assert.doesNotMatch(summary, /Earned can’t build your week yet/, "nothing is missing");
   await reachable(page, "screen 6");
+  await inputsAreLargeEnough(page, "screen 6");
   await noDashes(page, "screen 6");
 }
 
@@ -373,6 +382,18 @@ try {
   await next(page);
   await page.waitForFunction(() => !!document.querySelector('#phone [data-slot="recovery-state"]'));
   notes.push("the six screens finished and the page landed on Today");
+
+  /* C1 (review round 1). The Today he LANDS ON says, in his own words, that his
+     week is recorded and the figures on this screen are still the preview's
+     sample athlete. Without it the man who has just typed his real week is shown
+     a stranger's weight trend in silence, which is S19's named silent failure. */
+  const landing = await phone(page);
+  assert.match(landing, /Your week is saved on this device\./);
+  assert.match(landing, /still the preview’s sample athlete/);
+  assert.equal(await page.evaluate(() =>
+    document.querySelector('[data-slot="setup-note"]').hidden), false,
+  "the first-run note is rendered on the Today the flow lands on");
+  notes.push("the landing Today says the figures on it are not his yet");
 
   /* ---------- the tile is gone, and the route refuses ---------- */
   assert.equal(await page.evaluate(() =>
@@ -433,7 +454,8 @@ if (problems.length || failures) {
     + "through -> a REAL KILL MID-FLOW leaving zero operations and no partial athlete -> the "
     + "flow again -> ONE operation written -> Today with the tile gone and ?screen=setup "
     + `refused -> reload -> new page -> ${kills} REAL PROCESS KILLS (taskkill /F /T, each `
-    + "verified dead); no off-origin request, no horizontal overflow at 390px or 320px, every "
-    + "input >= 16px, every tap target >= 44px, the primary action reachable on every screen, "
-    + "and no U+2013 or U+2014 rendered anywhere.\n  " + notes.join("\n  "));
+    + "verified dead); no off-origin request, no horizontal overflow at 390px or 320px, "
+    + `every input >= 16px and every tap target >= 44px MEASURED ON ${measured.size} OF THE SIX `
+    + "SCREENS, the primary action reachable on every screen, and no U+2013 or U+2014 "
+    + "rendered anywhere on them.\n  " + notes.join("\n  "));
 }
