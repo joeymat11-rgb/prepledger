@@ -37,6 +37,13 @@ const FORBIDDEN = Object.freeze([
   ["rebuild/m4/import/*", (p) => /^rebuild\/m4\/import\//.test(p)],
   ["ledger/*", (p) => /^ledger\//.test(p)],
   ["src/history.js", (p) => p === "src/history.js"],
+  /* A2: the accepted rebuild/m4/workout/engine-runtime.cjs composes its twelve
+     modules through ONE non-literal require, which esbuild glob-expands over the
+     whole of rebuild/engine — dragging in seed/migrate/merge/index and every
+     Node-only engine test harness. The page uses the accepted host-owned mirror
+     rebuild/m3/w6/host/engine-runtime-host.cjs instead, exactly as the phone host
+     does (A0 §4), so the accepted file must never enter this graph either. */
+  ["rebuild/m4/workout/engine-runtime.cjs", (p) => p === "rebuild/m4/workout/engine-runtime.cjs"],
 ]);
 
 // The page must really contain these: the engine's Today readers, the accepted writer,
@@ -50,6 +57,24 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/client/store.cjs",
   "rebuild/m3/w7-preview/today/today-model.cjs",
   "rebuild/m3/w7-preview/today/today-app.cjs",
+  /* A2 — the gym card really is the ACCEPTED W6 host composition over the accepted
+     capture layer, in the page. A build that lost any of these would be a page
+     with a second, invented workout path. */
+  "rebuild/m3/w7-preview/today/gym-host.mjs",
+  "rebuild/m3/w7-preview/today/gym-model.mjs",
+  "rebuild/m3/w7-preview/today/gym-app.mjs",
+  "rebuild/m3/w6/host/workout-host.mjs",
+  "rebuild/m3/w6/host/engine-runtime-host.cjs",
+  "rebuild/m3/w6/public-client.mjs",
+  "rebuild/m3/w6/repository.mjs",
+  "rebuild/m3/w6/t2-stage.cjs",
+  "rebuild/m4/workout/capture.cjs",
+  "rebuild/m4/workout/commands.cjs",
+  "rebuild/m4/workout/engine-capture.cjs",
+  "rebuild/m4/workout/engine-history.cjs",
+  "rebuild/m4/workout/source-projection.cjs",
+  "rebuild/m4/workout/edit-values.cjs",
+  "rebuild/m3/w5/source/codec.cjs",
 ]);
 
 /* review D-4: EXECUTE the "no network reference" claim instead of printing it. Every

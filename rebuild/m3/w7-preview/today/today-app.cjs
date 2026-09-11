@@ -58,6 +58,16 @@ function trendLine(view) {
    discover it. The screen behind it repeats the same words in full. */
 const NOT_WIRED = "— not wired yet";
 
+/* A2 — what Today says about today's workout. The three states come from the
+   DURABLE workout log (rebuild/m3/w7-preview/today/gym-model.mjs over the accepted
+   W6 host), never from a flag this page sets: no session today, one in progress,
+   or one closed. "Workout in progress" and "Resume " are the approved design's own
+   words; the two that describe a finished workout are this preview's own, declared
+   in design.cjs, because the approved prototype has no finished-workout state. */
+const WORKOUT_IN_PROGRESS = "Workout in progress";
+const WORKOUT_RECORDED_TODAY = "Workout recorded";
+const REVIEW_WORKOUT = "Review today’s workout";
+
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
    down from C's 47px, one pixel at a time, ONLY until the primary action is back inside
@@ -80,11 +90,20 @@ function fitHeadline(view, root) {
   return size;
 }
 
-function mountToday(doc, model) {
+/* options.workout (A2) — the durable gym card, injected so this module keeps no
+   import of the workout data layer:
+     summary()                  -> { phase, sets } read from the durable log, or null
+     open({ phone, doc, back })  -> mounts the gym card into the phone element
+   With no workout host at all (a browser that will not give this page an encrypted
+   local store, which is exactly what a jsdom test is), the entry point says so in
+   the capture layer's own terms and records nothing. */
+function mountToday(doc, model, options = {}) {
   const phone = doc.getElementById("phone");
   const status = doc.getElementById("today-status");
   const chrome = doc.getElementById("today-storage");
   if (!phone) throw new Error("Today preview: no #phone host element");
+  const workout = options.workout || null;
+  const session = () => (workout && typeof workout.summary === "function" ? workout.summary() : null) || null;
 
   let screen = "today";
 
@@ -162,19 +181,31 @@ function mountToday(doc, model) {
     put(map, "kcal-note", calorieBand(view.calorieTarget));
 
     put(map, "workout-title", view.workout.title);
+    /* The workout line carries the durable state of today's session — in progress or
+       recorded — beside the engine's own exercise count. A2. */
+    const today = session();
+    const sessionState = today && today.phase === "active" ? WORKOUT_IN_PROGRESS
+      : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY : null;
     put(map, "workout-count", view.workout.exerciseCount === null
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
-      : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises") + " · Your set targets are ready");
+      : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
+        + " · " + (sessionState || "Your set targets are ready"));
 
     for (const name of ["nutrition-state", "recovery-state", "coach-state"]) put(map, name, NOT_WIRED);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
     const primary = map.get("primary");
-    put(map, "primary-label", owed
-      ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")
-      : "Start " + view.workout.title);
-    primary.addEventListener("click", () => (owed ? openWeighIn() : render("workout", true)));
+    /* The resume action the approved direction requires: while a workout is in
+       progress the single primary action resumes it, in the approved design's own
+       word. A recorded workout is reviewable, not restartable. */
+    const resuming = !!(today && today.phase === "active");
+    const action = resuming ? "Resume " + view.workout.title
+      : owed ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")
+      : today && today.phase === "finished" ? REVIEW_WORKOUT
+      : "Start " + view.workout.title;
+    put(map, "primary-label", action);
+    primary.addEventListener("click", () => (owed && !resuming ? openWeighIn() : render("workout", true)));
     if (!owed && view.workout.exerciseCount === null) primary.disabled = true;
 
     wire(root);
@@ -332,9 +363,17 @@ function mountToday(doc, model) {
       "The recovery check-in is not wired yet. Nothing on this screen is recorded, and no answer here reaches your plan.");
     if (next === "coach") return renderStub("t-coach", focus,
       "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.");
-    if (next === "workout") return renderStub("t-workout", focus,
-      "Workout logging is not wired yet. No workout has been started and nothing is recorded.",
-      "The session name above is the engine's own. Every prescription for it belongs to the workout screen, which comes next.");
+    if (next === "workout") {
+      if (workout && typeof workout.open === "function") {
+        return workout.open({ doc, phone, back: () => render("today", true) });
+      }
+      /* No encrypted local workout store on this device: say exactly that, show no
+         prescription, and record nothing. This is not a "not wired yet" screen — the
+         gym card is wired; this device cannot open its store. */
+      return renderStub("t-workout", focus,
+        "Your workout could not be opened on this device, and nothing was recorded.",
+        "This browser did not give the page an encrypted local store to keep a workout in.");
+    }
     return renderToday(focus);
   }
 
@@ -349,4 +388,5 @@ function mountToday(doc, model) {
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
    tests without touching a document. */
 module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel,
-  ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD };
+  ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD,
+  WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT };

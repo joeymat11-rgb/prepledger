@@ -219,13 +219,50 @@ test("every screen this slice does not build says so and shows no invented value
   assert.doesNotMatch(phoneText(doc), /135|chest press/i, "no scripted coach answer is shown");
 });
 
-test("the workout entry point carries the engine's session name and nothing more", () => {
+/* A2 made the workout entry point real. With NO workout host injected — which is
+   exactly what a browser that will not give the page an encrypted local store
+   looks like, and what this jsdom document is — the entry point must say that
+   plainly, name what is missing, and show no prescription and no figure. It must
+   NOT claim the feature is unbuilt, and it must not fabricate a session. The wired
+   path is proved end to end, over the real durable store, in test/gym.test.mjs. */
+test("with no encrypted local store, the workout entry point says so and shows no figure", () => {
   const { dom, doc, model } = setup();
   weighIn(dom, doc, 180.2);
   slot(doc, "primary").click();
-  assert.match(phoneText(doc), /Workout logging is not wired yet/);
+  assert.match(phoneText(doc), /could not be opened on this device, and nothing was recorded/);
+  assert.match(phoneText(doc), /encrypted local store/);
+  assert.doesNotMatch(phoneText(doc), /not wired yet/, "the gym card is wired; this device has no store");
   assert.equal(slot(doc, "workout-title").textContent, model.read().workout.title);
-  assert.doesNotMatch(phoneText(doc), /\d/, "not one figure appears on an unwired screen");
+  assert.doesNotMatch(phoneText(doc), /\d/, "not one figure appears when the workout cannot be opened");
+});
+
+/* A2 — the injected workout host is what Today reads its workout state from. A
+   Today with no host must never invent one, and the three states must come from
+   that host and nowhere else. (The states themselves are read off the real durable
+   log in test/gym.test.mjs; this checks Today cannot make one up.) */
+test("Today's workout state comes from the injected host, never from the page", () => {
+  const plain = setup();
+  assert.match(slot(plain.doc, "workout-count").textContent, /Your set targets are ready$/);
+
+  for (const [phase, expected] of [["active", app.WORKOUT_IN_PROGRESS], ["finished", app.WORKOUT_RECORDED_TODAY]]) {
+    const dom = new JSDOM(shell(), { url: "http://127.0.0.1:4178/" });
+    const doc = dom.window.document;
+    const model = createTodayModel({ storage: createMemoryStorage() });
+    let opened = 0;
+    const api = mountToday(doc, model, { workout: { summary: () => ({ phase, sets: 0 }), open: () => { opened += 1; } } });
+    assert.match(slot(doc, "workout-count").textContent, new RegExp(expected + "$"), phase);
+    // A finished workout does not displace the morning weigh-in from the single
+    // primary action; an UNFINISHED one does, so it can never become unreachable.
+    if (phase === "finished") {
+      assert.equal(slot(doc, "primary-label").textContent, "Log the scale");
+      model.weighIn(178.3);
+      api.render("today");
+    }
+    assert.equal(slot(doc, "primary-label").textContent,
+      phase === "active" ? "Resume " + model.read().workout.title : app.REVIEW_WORKOUT, phase);
+    slot(doc, "primary").click();
+    assert.equal(opened, 1, phase + ": the primary action opens the injected gym card");
+  }
 });
 
 test("an untrusted local record paints no number anywhere", () => {

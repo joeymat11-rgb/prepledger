@@ -82,6 +82,32 @@ const APPROVED_COPY = Object.freeze([
    the template's. */
 const RUNTIME_COPY = Object.freeze([
   "This morning", "Weight trend", "Why this plan?", "Your set targets are ready",
+  /* A2 — the gym card composes these beside bound values, exactly as A1's four are
+     composed. Each occurs verbatim in Refinement A, the reviewed workout/rest
+     prototype, and each is checked against the view sources as well. */
+  "Exercise ", " of ", "What you did · Set ", "Last time: ", "Log set ", " logged",
+  " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
+  "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
+  " recorded",
+]);
+/* Copy this PREVIEW owns at runtime, exactly as PREVIEW_COPY is owned in the
+   template. Each entry says something the approved prototype cannot, and each is
+   checked to be ABSENT from the approved references — so this list can never be
+   used to smuggle in approved-looking words.
+     * the rest length — the prototype counts down a fictional 2:30; the accepted
+       engine prescribes no rest at all, so the screen says that instead;
+     * the finished workout — the prototype never completes one, so it has no
+       words for Today's "recorded" state, for reviewing it, or for the action
+       that closes the session;
+     * the unopenable store — the prototype saves nothing, so it can never fail
+       to save. */
+const PREVIEW_RUNTIME_COPY = Object.freeze([
+  "Your plan does not set a rest length.",
+  "Workout recorded",
+  "Review today’s workout",
+  "Finish this workout",
+  "Your workout could not be opened on this device, and nothing was recorded.",
+  "Today’s workout is recorded on this device.",
 ]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -153,12 +179,18 @@ function assertDesignBinding(approved, templateHtml, appSource) {
       assert(approvedText.includes(line), `COPY-BINDING FAIL: declared runtime copy missing upstream: "${line}"`);
       assert(appSource.includes(line), `COPY-BINDING FAIL: declared runtime copy missing from the view: "${line}"`);
     }
+    for (const line of PREVIEW_RUNTIME_COPY) {
+      assert(!approvedText.includes(line),
+        `COPY-BINDING FAIL: preview-owned runtime copy is in the approved references and must be declared approved: "${line}"`);
+      assert(appSource.includes(line), `COPY-BINDING FAIL: declared preview runtime copy missing from the view: "${line}"`);
+    }
   }
   // The design of record's numbers are fictional. None of them may be copied.
   for (const line of textOf(templateHtml)) {
     assert(!/\d/.test(line), `NO-NUMBERS FAIL: the template carries a literal figure: "${line}"`);
   }
-  return { classes: used.size, copy: PREVIEW_COPY.length + APPROVED_COPY.length + (appSource === undefined ? 0 : RUNTIME_COPY.length) };
+  return { classes: used.size, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+    + (appSource === undefined ? 0 : RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
 // The shipped stylesheet: the inlined pinned typefaces, then the approved bytes in order,
@@ -193,13 +225,18 @@ function headlineVocabulary(root = ROOT) {
 }
 
 const SOURCE = __dirname;
+/* Every module that can put a word on the screen. A2 adds the gym card's view and
+   its adapter, so the copy binding covers the gym screens exactly as it covers
+   Today's. */
+const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs"]);
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
-const appSource = () => fs.readFileSync(path.join(SOURCE, "today-app.cjs"), "utf8");
+const appSource = () => VIEW_SOURCES.map((name) => fs.readFileSync(path.join(SOURCE, name), "utf8")).join("\n");
 const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8");
 const shellHtml = () => fs.readFileSync(path.join(SOURCE, "index.shell.html"), "utf8");
 
 module.exports = {
   ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
+  PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
