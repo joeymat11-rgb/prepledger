@@ -87,7 +87,7 @@ const MOVES_RULING = null;
 // One reviewed candidate definition; it confers NO authority. A real PM theme line
 // on CHAIN_REF must cite this digest before any successor can cover a parent gate.
 const SUCCESSOR_POLICY_FILE = TOOLING + '/b-ntc-successors.json';
-const SUCCESSOR_POLICY_SHA = '614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee';
+const SUCCESSOR_POLICY_SHA = '1e99f355f00360afdf2fee8a4c07b6601aa1202c3ef7b7d2b5ac62bce3276350';
 // Packages that register no D-ID at all. DECISIONS:93: feature work under the ratified
 // slice plan takes no register D-ID, and DECISIONS:103 (1) rules B-NTC (and B-LOM behind
 // it) exactly that kind of package — it turns an accepted open boundary into a provider.

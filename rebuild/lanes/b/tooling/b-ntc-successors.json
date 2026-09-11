@@ -2,7 +2,7 @@
   "version": 1,
   "lanePackage": "B-NTC",
   "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
-  "sourceCommit": "71fb2f1ae2bf48cc8f32ff3f9e905949e352914c",
+  "sourceCommit": "096c9ae7eb860310a7ec2aa8ef348d8eb787efe4",
   "parent": {
     "id": "NATIVE-CARRIERS",
     "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
@@ -116,7 +116,7 @@
       "argv": [
         "rebuild/m4/spec/b-ntc-journeys.cjs"
       ],
-      "needle": "B-NTC DURABLE JOURNEYS: 237/237 PASS;"
+      "needle": "B-NTC DURABLE JOURNEYS: 245/245 PASS;"
     },
     {
       "name": "profile-refusals",
@@ -135,6 +135,38 @@
         "rebuild/m4/spec/b-ntc-successors.test.cjs"
       ],
       "needle": "# pass 4"
+    },
+    {
+      "name": "owner-setup-baseline",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-owner-tests.cjs"
+      ],
+      "needle": "B-NTC OWNER SETUP/BASELINE: 49 PASS;"
+    },
+    {
+      "name": "owner-closure-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-owner-qualification.test.cjs"
+      ],
+      "needle": "# pass 8"
+    },
+    {
+      "name": "owner-entry-calendar",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-owner-entry-tests.cjs"
+      ],
+      "needle": "B-NTC OWNER ENTRY/CALENDAR: 67 PASS;"
+    },
+    {
+      "name": "owner-final-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-owner-final.test.cjs"
+      ],
+      "needle": "# pass 21"
     }
   ],
   "product": {
@@ -260,12 +292,12 @@
     },
     ".github/workflows/rebuild.yml": {
       "pre": "f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8",
-      "post": "5b84ef71f97453ecf03fa4ed2f9510ac3ab39ea4398a6c4d3c20b6f08a9756d1",
+      "post": "ad9d6480026c3474135cc5a33139ffb80661a3aad10a2b07ad16ae0caa8a17d0",
       "role": "superseded-by-child"
     },
     "rebuild/m4/spec/b-ntc-successors.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "9ff617bbe7867d5c4b6a8854d3ba1740aa781a46626bbdfc88581783b24c33a1",
+      "post": "2f2689770353d6efc71708c619d8f7ca5354d5c50aaae49cd66198d75ab93933",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-traces.cjs": {
@@ -320,7 +352,7 @@
     },
     "rebuild/m3/w6/local/today-bindings.mjs": {
       "pre": "f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff",
-      "post": "b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94",
+      "post": "e4d1058b1d7b0fb957d3b2dc83908eeb20a9c86005b4f775d66760ebe4812101",
       "role": "new"
     },
     "rebuild/m3/w6/host/engine-runtime-host.cjs": {
@@ -330,7 +362,7 @@
     },
     "rebuild/m3/w6/host/workout-host.mjs": {
       "pre": "4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b",
-      "post": "262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe",
+      "post": "885005d7879c5b8bee92a28145c88e6a8814a86a0311234319e0be5c1972de75",
       "role": "new"
     },
     "rebuild/m3/w6/host/test/journey.test.mjs": {
@@ -345,7 +377,7 @@
     },
     "rebuild/m4/spec/b-ntc-journeys.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55",
+      "post": "4b63909d21baf846646214fef3c496adedc38b339cd651fc7692502a906d6bbe",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-focused.cjs": {
@@ -375,7 +407,7 @@
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
       "pre": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
-      "post": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "post": "40ae454b8345bdf36e0f169c7cf25643947af7216e30fbc7b363614f32386c88",
       "role": "new"
     },
     "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
@@ -385,7 +417,7 @@
     },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
       "pre": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
-      "post": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+      "post": "b52771c5f43fee2391b3e78e47cd96e67dddcecd4d235904aff98f448645fb6a",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-successors.test.cjs": {
@@ -401,6 +433,541 @@
     "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "role": "new"
+    },
+    "package-lock.json": {
+      "pre": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "post": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "role": "new"
+    },
+    "package.json": {
+      "pre": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "post": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "role": "new"
+    },
+    "rebuild/authority/canonical.cjs": {
+      "pre": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+      "post": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+      "role": "new"
+    },
+    "rebuild/client/bodycomp.cjs": {
+      "pre": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+      "post": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+      "role": "new"
+    },
+    "rebuild/client/canonical.cjs": {
+      "pre": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+      "post": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+      "role": "new"
+    },
+    "rebuild/client/copy.cjs": {
+      "pre": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+      "post": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+      "role": "new"
+    },
+    "rebuild/client/face.cjs": {
+      "pre": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+      "post": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+      "role": "new"
+    },
+    "rebuild/client/index.cjs": {
+      "pre": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+      "post": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+      "role": "new"
+    },
+    "rebuild/client/lease.cjs": {
+      "pre": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+      "post": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+      "role": "new"
+    },
+    "rebuild/client/ops.cjs": {
+      "pre": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+      "post": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+      "role": "new"
+    },
+    "rebuild/client/outbox.cjs": {
+      "pre": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+      "post": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+      "role": "new"
+    },
+    "rebuild/client/plan.cjs": {
+      "pre": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+      "post": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+      "role": "new"
+    },
+    "rebuild/client/session.cjs": {
+      "pre": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+      "post": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+      "role": "new"
+    },
+    "rebuild/client/store.cjs": {
+      "pre": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+      "post": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+      "role": "new"
+    },
+    "rebuild/client/sync.cjs": {
+      "pre": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+      "post": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+      "role": "new"
+    },
+    "rebuild/conform/lib/canonical.cjs": {
+      "pre": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+      "post": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+      "role": "new"
+    },
+    "rebuild/conform/lib/ops.cjs": {
+      "pre": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+      "post": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+      "role": "new"
+    },
+    "rebuild/m3/w5/package.json": {
+      "pre": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
+      "post": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
+      "role": "new"
+    },
+    "rebuild/m3/w5/pnpm-lock.yaml": {
+      "pre": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec",
+      "post": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec",
+      "role": "new"
+    },
+    "rebuild/m3/w5/public-client.cjs": {
+      "pre": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+      "post": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+      "role": "new"
+    },
+    "rebuild/m3/w5/reconciliation/codec.cjs": {
+      "pre": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+      "post": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+      "role": "new"
+    },
+    "rebuild/m3/w5/source/codec.cjs": {
+      "pre": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+      "post": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+      "role": "new"
+    },
+    "rebuild/m3/w6/bridge.mjs": {
+      "pre": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+      "post": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+      "role": "new"
+    },
+    "rebuild/m3/w6/candidate-grant.mjs": {
+      "pre": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+      "post": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+      "role": "new"
+    },
+    "rebuild/m3/w6/history-proof.mjs": {
+      "pre": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+      "post": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+      "role": "new"
+    },
+    "rebuild/m3/w6/import-custody.mjs": {
+      "pre": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+      "post": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/host-bindings.mjs": {
+      "pre": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+      "post": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/import-bundle.mjs": {
+      "pre": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
+      "post": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/initial-setup.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "89dd7b19cb9244b76152f3839c1b084f780bd69e31e682bd66e6128d6af4af6b",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/local-client.mjs": {
+      "pre": "3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899",
+      "post": "fe2e853307813c08e5a899a5af4a272f557e39feb5f79b10bd57c75dc23a73a6",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/local-era.mjs": {
+      "pre": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+      "post": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/local-keys.mjs": {
+      "pre": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+      "post": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+      "role": "new"
+    },
+    "rebuild/m3/w6/node-sha256-browser.mjs": {
+      "pre": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+      "post": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+      "role": "new"
+    },
+    "rebuild/m3/w6/package.json": {
+      "pre": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494",
+      "post": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494",
+      "role": "new"
+    },
+    "rebuild/m3/w6/pnpm-lock.yaml": {
+      "pre": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566",
+      "post": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566",
+      "role": "new"
+    },
+    "rebuild/m3/w6/public-client.mjs": {
+      "pre": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d",
+      "post": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-history.mjs": {
+      "pre": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+      "post": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-local.mjs": {
+      "pre": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+      "post": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-plan-reader.cjs": {
+      "pre": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+      "post": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-plan.cjs": {
+      "pre": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+      "post": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-profile.mjs": {
+      "pre": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+      "post": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-snapshot.cjs": {
+      "pre": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+      "post": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+      "role": "new"
+    },
+    "rebuild/m3/w6/recovery-stage.mjs": {
+      "pre": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+      "post": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+      "role": "new"
+    },
+    "rebuild/m3/w6/repository.mjs": {
+      "pre": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912",
+      "post": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912",
+      "role": "new"
+    },
+    "rebuild/m3/w6/strict-json.mjs": {
+      "pre": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+      "post": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+      "role": "new"
+    },
+    "rebuild/m3/w6/t2-stage.cjs": {
+      "pre": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+      "post": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-initial-setup.test.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d84d19bbe2fae7557b3972c05dfa7f91253063c42a1ce7d6fbc40318de446db5",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/support.mjs": {
+      "pre": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+      "post": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/fixtures.cjs": {
+      "pre": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+      "post": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": {
+      "pre": "cfb2b12f6aabf0360f500b8a008867d5c3dd809f2d7a1ca1ed5ede9926b46612",
+      "post": "cfb2b12f6aabf0360f500b8a008867d5c3dd809f2d7a1ca1ed5ede9926b46612",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": {
+      "pre": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
+      "post": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/checkin-host.mjs": {
+      "pre": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
+      "post": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": {
+      "pre": "6334594edde87236959cf4a51989c5fc6c15345f47ac1ebd246af87cc9dc6270",
+      "post": "6334594edde87236959cf4a51989c5fc6c15345f47ac1ebd246af87cc9dc6270",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/gym-app.mjs": {
+      "pre": "2886130654e20001628379118fd74a3c739a48b977c6b3ae453f0b7f9e0e084c",
+      "post": "2886130654e20001628379118fd74a3c739a48b977c6b3ae453f0b7f9e0e084c",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/gym-host.mjs": {
+      "pre": "70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18",
+      "post": "a1604df4229d6f86f6a315733a86a60a67da30d78c266fa3e5074e9a5e345539",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/gym-model.mjs": {
+      "pre": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
+      "post": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/reading-host.mjs": {
+      "pre": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
+      "post": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/today-app.cjs": {
+      "pre": "daea4dddf3b5ebd6c8f22108bebb5e37eb065afbb167259a412cae31b13d2116",
+      "post": "39a642211a3c0c2258fc4fee57fb753dc048e0192e1e9917ceaed2501c544ea1",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/today-engine.cjs": {
+      "pre": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+      "post": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/today-entry.mjs": {
+      "pre": "5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8",
+      "post": "f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/today-model.cjs": {
+      "pre": "ef051efa8ae2b2e905aa76bc04c156c21e36c55ba219e634c7c0be85eb77be42",
+      "post": "5f3d32aaf0e1127013ceb8396adeb47b6bc675a3f363941172af11c99bb581b1",
+      "role": "new"
+    },
+    "rebuild/m4/workout/athlete-state.cjs": {
+      "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
+      "post": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
+      "role": "new"
+    },
+    "rebuild/m4/workout/authority-profile.cjs": {
+      "pre": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+      "post": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+      "role": "new"
+    },
+    "rebuild/m4/workout/capture.cjs": {
+      "pre": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+      "post": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+      "role": "new"
+    },
+    "rebuild/m4/workout/commands.cjs": {
+      "pre": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+      "post": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+      "role": "new"
+    },
+    "rebuild/m4/workout/context-values.cjs": {
+      "pre": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+      "post": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+      "role": "new"
+    },
+    "rebuild/m4/workout/continuation.mjs": {
+      "pre": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+      "post": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/edit-history.cjs": {
+      "pre": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+      "post": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+      "role": "new"
+    },
+    "rebuild/m4/workout/edit-values.cjs": {
+      "pre": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+      "post": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-capture.cjs": {
+      "pre": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+      "post": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-history.cjs": {
+      "pre": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+      "post": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-order.cjs": {
+      "pre": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+      "post": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/native-baseline.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "5d6d14dcf77e6dc3fb2969878dcb08c91068bb7cf95fc26e688f39e468241916",
+      "role": "new"
+    },
+    "rebuild/m4/workout/project-history.mjs": {
+      "pre": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+      "post": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+      "role": "new"
+    },
+    "rebuild/m4/workout/resume-policy.cjs": {
+      "pre": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f",
+      "post": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f",
+      "role": "new"
+    },
+    "rebuild/m4/workout/schema.cjs": {
+      "pre": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+      "post": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+      "role": "new"
+    },
+    "rebuild/m4/workout/source-control-values.cjs": {
+      "pre": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+      "post": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+      "role": "new"
+    },
+    "rebuild/m4/workout/source-projection.cjs": {
+      "pre": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+      "post": "a67903d7851ffac10691dbd354702e3adf9a7f647984d8d80c7d2c0e7058d8ba",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m4/workout/stored-history.mjs": {
+      "pre": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+      "post": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/native-baseline-journey.test.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "2ebca9050cad9cff4cd9c2b5193ef345cefdc549dfc0db841953be6c49d210fb",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/native-baseline.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d734ea4e2e6a37111e630ab4645324f2defa45da9c1ca59fe2e7f5a5c10db717",
+      "role": "new"
+    },
+    "rebuild/m4/workout/workout-basis.cjs": {
+      "pre": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+      "post": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-runtime-closure.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "1f392e28b6aabfa492f980215d6ee76dc3aaedfc5cb24c1db66a43624d6355b1",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-runtime-closure.json": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "3af583a42c2cddddf28333c275389759c42097742c56bdac0766cebd80a57673",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-owner-tests.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "cf62e93d5e4d15ad22f751a253c8ec6450b2b9234cedfbd16b99dc6fee6729fc",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-owner-qualification.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "8f8f482baa0e318018caf244bb8f2572474ab31e18673f36a7f351e7d4366aca",
+      "role": "new"
+    },
+    "rebuild/m3/w6/build-browser.mjs": {
+      "pre": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
+      "post": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/calendar.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "8050704a3bbed549eeb67e2d03c870ec9a0dace2fa7837c214ce8eb598e92b1c",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-owner-browser.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "7db65dc045f40b35a8acef986b78de3d50229a4b56f885de3deba2429aa95c57",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-owner-entry.test.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d6d7b1b64c2622f8c81d7a7236c7426b2d7ccd5ce8cce81daa63dc3b5d80ba32",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/build.mjs": {
+      "pre": "96bf93e652b13a47742b3e06266437606fe12f3c566e5da32b1b3ab0811af279",
+      "post": "96bf93e652b13a47742b3e06266437606fe12f3c566e5da32b1b3ab0811af279",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/design.cjs": {
+      "pre": "b4398841d5cee04565e9401232e30c3316f10a86f9458de1d0a015189d55a9b9",
+      "post": "b4398841d5cee04565e9401232e30c3316f10a86f9458de1d0a015189d55a9b9",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-owner-entry-tests.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "c93b5c3167bd56727c0387e272028918f01dd2ed98d8c310abdc08ba47b3b088",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-owner-final.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d70516bf18cbb78ef9a34b9db55eae02c764b09f79b41e99f6792ff616d32c58",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-existing-dependencies.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "1da30a38873bb09fefc3c2e0c3f493d035717ba536a70767cbd857e76024fe81",
+      "role": "new"
+    },
+    "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": {
+      "pre": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+      "post": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+      "role": "new"
+    },
+    "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": {
+      "pre": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+      "post": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+      "role": "new"
+    },
+    "rebuild/m3/w6/cipher-imports.json": {
+      "pre": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+      "post": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "b66a415d80bc61f5a4d30d6f9cfcc4ca80a5890186bf494e8fd0032005cda3bc",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/index.shell.html": {
+      "pre": "1ea785f2e55dedd051329b3095e8b7eeb77d19341f074a29632aeea243eb67b1",
+      "post": "0f15ae30fe297d5444872b61c1fc857a0fc334973954ba6ab5bfe4dfd5560efb",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/preview.css": {
+      "pre": "9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40",
+      "post": "9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/screens.template.html": {
+      "pre": "d62981e369373e4971bc126a2f8d20ef4d037f68e7562dfa0784854bd9c6f0d2",
+      "post": "44a287366620568502390e464b0d26141e9f7b74671dd42db7cecf047e0ad2c7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2": {
+      "pre": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+      "post": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2": {
+      "pre": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+      "post": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/OFL-InstrumentSans.txt": {
+      "pre": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+      "post": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/OFL-InstrumentSerif.txt": {
+      "pre": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+      "post": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/SOURCES.json": {
+      "pre": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
+      "post": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
       "role": "new"
     }
   },
@@ -448,18 +1015,18 @@
     "rebuild/m4/spec/native-next-target-candidate/reach.cjs": "6b76c5e45c089cf25873fd1d4b4c66f318ea20b0a3eb291b6164888cb7a2242c",
     "rebuild/m4/spec/native-next-target-candidate/source-delta.cjs": "fce1c2f92bf445373fdab39fdd1e2f16705f0312c6b3b8347c225dae6639ea6a",
     "rebuild/m4/workout/engine-runtime.cjs": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
-    "rebuild/m4/workout/source-projection.cjs": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+    "rebuild/m4/workout/source-projection.cjs": "a67903d7851ffac10691dbd354702e3adf9a7f647984d8d80c7d2c0e7058d8ba",
     "rebuild/m4/workout/test/native-next-targets.test.cjs": "8ab8ac5b7e1a35a9006e952f07ce170a2bb58ce962e213f18ee2bd385b6b3a41",
     "rebuild/m4/workout/test/native-next-targets-assembly.test.cjs": "eb75529047b1f9fad7f362bff4c3a5d649f3d27470bfd158102190f73e610c14",
     "rebuild/m4/workout/test/native-next-targets-correction.test.cjs": "ffed53fdee84e587507485e8883c34cf11d63c5489d48e770bc76b5ccab4aea1",
     "rebuild/m4/spec/native-carriers-profile.test.cjs": "95ef170a49de25688afebe0622870a79efe2140d27ff260b9f262bb2075286bd",
     "rebuild/m4/spec/NATIVE-CARRIERS-THEME.md": "6bf8e14224328ad270226736cc775aa659337908f2a9c4344a4f87abac298cb2",
     "rebuild/m4/spec/NATIVE-CARRIERS-BUILD-REPORT.md": "cee971788c4b04b14abb5dfb9b6a07bec3baae630898be4bbad7369b5fee734d",
-    ".github/workflows/rebuild.yml": "5b84ef71f97453ecf03fa4ed2f9510ac3ab39ea4398a6c4d3c20b6f08a9756d1",
+    ".github/workflows/rebuild.yml": "ad9d6480026c3474135cc5a33139ffb80661a3aad10a2b07ad16ae0caa8a17d0",
     "rebuild/m4/workout/native-trend-context.cjs": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
     "rebuild/m4/workout/test/native-trend-context.test.cjs": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
     "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "ec950730038c9a1f43c9a7933547537dce43fe51f708830dc219e4d41b5abcbc",
-    "rebuild/m4/spec/b-ntc-successors.cjs": "9ff617bbe7867d5c4b6a8854d3ba1740aa781a46626bbdfc88581783b24c33a1",
+    "rebuild/m4/spec/b-ntc-successors.cjs": "2f2689770353d6efc71708c619d8f7ca5354d5c50aaae49cd66198d75ab93933",
     "rebuild/m4/spec/b-ntc-traces.cjs": "58a44e3118ae30fb5740df902efca496a13dff591db071047e08e61937fa4799",
     "rebuild/m4/spec/b-ntc-direct.cjs": "89c7f6864911ea10ce5b11584c5c1af2e78cf999b91c04758f20de83d4d07376",
     "rebuild/m4/spec/b-ntc-legacy.cjs": "c9acd1ecdd7fbaa850b26a84aa9c4058fa8d0e0697d51123c830d01b6124a9d9",
@@ -470,22 +1037,133 @@
     "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": "4ebe1bccc9d27a2206b97ca66b79933b5e456ced31585aae5e7f32f187fa8ca8",
     "rebuild/m4/spec/b-ntc-writers-differential.cjs": "5a21c36a18ced0b847700651e5fab349fbba7977eec432df94d278037e5272ef",
     "rebuild/m4/spec/b-ntc-second-gate.cjs": "0ecd0f85e56d2858a18b74e44f252451543bf4e4f3774c2d6c3a69a6a55131e0",
-    "rebuild/m3/w6/local/today-bindings.mjs": "b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94",
+    "rebuild/m3/w6/local/today-bindings.mjs": "e4d1058b1d7b0fb957d3b2dc83908eeb20a9c86005b4f775d66760ebe4812101",
     "rebuild/m3/w6/host/engine-runtime-host.cjs": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
-    "rebuild/m3/w6/host/workout-host.mjs": "262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe",
+    "rebuild/m3/w6/host/workout-host.mjs": "885005d7879c5b8bee92a28145c88e6a8814a86a0311234319e0be5c1972de75",
     "rebuild/m3/w6/host/test/journey.test.mjs": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
-    "rebuild/m4/spec/b-ntc-journeys.cjs": "ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55",
+    "rebuild/m4/spec/b-ntc-journeys.cjs": "4b63909d21baf846646214fef3c496adedc38b339cd651fc7692502a906d6bbe",
     "rebuild/m4/spec/b-ntc-focused.cjs": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
     "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
     "rebuild/m3/w7-preview/today/test/checkin.test.mjs": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
     "rebuild/m3/w7-preview/today/test/design.test.cjs": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
     "rebuild/m3/w7-preview/today/test/package.test.cjs": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
-    "rebuild/m3/w7-preview/today/test/view.test.mjs": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": "40ae454b8345bdf36e0f169c7cf25643947af7216e30fbc7b363614f32386c88",
     "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
-    "rebuild/m3/w6/test/local-today-journey.test.mjs": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": "b52771c5f43fee2391b3e78e47cd96e67dddcecd4d235904aff98f448645fb6a",
     "rebuild/m4/spec/b-ntc-successors.test.cjs": "3cec74af09a930abec79464fe37a2fc1e073c3bf93d04d9c1db22ea31f0219d6",
     "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
-    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9"
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+    "package-lock.json": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+    "package.json": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+    "rebuild/authority/canonical.cjs": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+    "rebuild/client/bodycomp.cjs": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+    "rebuild/client/canonical.cjs": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+    "rebuild/client/copy.cjs": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+    "rebuild/client/face.cjs": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+    "rebuild/client/index.cjs": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+    "rebuild/client/lease.cjs": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+    "rebuild/client/ops.cjs": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+    "rebuild/client/outbox.cjs": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+    "rebuild/client/plan.cjs": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+    "rebuild/client/session.cjs": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+    "rebuild/client/store.cjs": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+    "rebuild/client/sync.cjs": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+    "rebuild/conform/lib/canonical.cjs": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+    "rebuild/conform/lib/ops.cjs": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+    "rebuild/m3/w5/package.json": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
+    "rebuild/m3/w5/pnpm-lock.yaml": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec",
+    "rebuild/m3/w5/public-client.cjs": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+    "rebuild/m3/w5/reconciliation/codec.cjs": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+    "rebuild/m3/w5/source/codec.cjs": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+    "rebuild/m3/w6/bridge.mjs": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+    "rebuild/m3/w6/candidate-grant.mjs": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+    "rebuild/m3/w6/history-proof.mjs": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+    "rebuild/m3/w6/import-custody.mjs": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+    "rebuild/m3/w6/local/host-bindings.mjs": "bc2ee6a41899b85af24f2bb691b2dd826dc3c9e2fbb185e7820c22464eb0ec39",
+    "rebuild/m3/w6/local/import-bundle.mjs": "5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54",
+    "rebuild/m3/w6/local/initial-setup.mjs": "89dd7b19cb9244b76152f3839c1b084f780bd69e31e682bd66e6128d6af4af6b",
+    "rebuild/m3/w6/local/local-client.mjs": "fe2e853307813c08e5a899a5af4a272f557e39feb5f79b10bd57c75dc23a73a6",
+    "rebuild/m3/w6/local/local-era.mjs": "658300a2a080981bc48042fc54b155de8826d1b845102a0222a09347ebf61e46",
+    "rebuild/m3/w6/local/local-keys.mjs": "53082451e91e4055b8586d017f96d585394eacb6987351513d1fa420c972c94d",
+    "rebuild/m3/w6/node-sha256-browser.mjs": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+    "rebuild/m3/w6/package.json": "e2bbbd8a3464628ad2e71a42b0984cdda29720eb2a714ba506517cc50a4fd494",
+    "rebuild/m3/w6/pnpm-lock.yaml": "cea5ea74668bb33be4d38de333a0bc35cbdc18d32022561ad0f09c690a53a566",
+    "rebuild/m3/w6/public-client.mjs": "230370a0c6465892337e76fea7fbfd117458c79f57d50bc82e8b9b7e5df0648d",
+    "rebuild/m3/w6/recovery-history.mjs": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+    "rebuild/m3/w6/recovery-local.mjs": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+    "rebuild/m3/w6/recovery-plan-reader.cjs": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+    "rebuild/m3/w6/recovery-plan.cjs": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+    "rebuild/m3/w6/recovery-profile.mjs": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+    "rebuild/m3/w6/recovery-snapshot.cjs": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+    "rebuild/m3/w6/recovery-stage.mjs": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+    "rebuild/m3/w6/repository.mjs": "4d8696382792d05585174652ac23b6589be9269d92eed0de37c8980d296a8912",
+    "rebuild/m3/w6/strict-json.mjs": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+    "rebuild/m3/w6/t2-stage.cjs": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+    "rebuild/m3/w6/test/local-initial-setup.test.mjs": "d84d19bbe2fae7557b3972c05dfa7f91253063c42a1ce7d6fbc40318de446db5",
+    "rebuild/m3/w6/test/support.mjs": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+    "rebuild/m3/w7-preview/fixtures.cjs": "42d16ee32c2a6bb4f404277b89021b75573e593e9654e86c01e1c574cb4c7a58",
+    "rebuild/m3/w7-preview/today/checkin-app.mjs": "cfb2b12f6aabf0360f500b8a008867d5c3dd809f2d7a1ca1ed5ede9926b46612",
+    "rebuild/m3/w7-preview/today/checkin-commands.cjs": "2ec701faa7edc77276e8154789507a03c423f1493bdc069f078bd8a797fec984",
+    "rebuild/m3/w7-preview/today/checkin-host.mjs": "029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b",
+    "rebuild/m3/w7-preview/today/checkin-model.mjs": "6334594edde87236959cf4a51989c5fc6c15345f47ac1ebd246af87cc9dc6270",
+    "rebuild/m3/w7-preview/today/gym-app.mjs": "2886130654e20001628379118fd74a3c739a48b977c6b3ae453f0b7f9e0e084c",
+    "rebuild/m3/w7-preview/today/gym-host.mjs": "a1604df4229d6f86f6a315733a86a60a67da30d78c266fa3e5074e9a5e345539",
+    "rebuild/m3/w7-preview/today/gym-model.mjs": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
+    "rebuild/m3/w7-preview/today/reading-host.mjs": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
+    "rebuild/m3/w7-preview/today/today-app.cjs": "39a642211a3c0c2258fc4fee57fb753dc048e0192e1e9917ceaed2501c544ea1",
+    "rebuild/m3/w7-preview/today/today-engine.cjs": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+    "rebuild/m3/w7-preview/today/today-entry.mjs": "f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593",
+    "rebuild/m3/w7-preview/today/today-model.cjs": "5f3d32aaf0e1127013ceb8396adeb47b6bc675a3f363941172af11c99bb581b1",
+    "rebuild/m4/workout/athlete-state.cjs": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
+    "rebuild/m4/workout/authority-profile.cjs": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+    "rebuild/m4/workout/capture.cjs": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+    "rebuild/m4/workout/commands.cjs": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+    "rebuild/m4/workout/context-values.cjs": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+    "rebuild/m4/workout/continuation.mjs": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+    "rebuild/m4/workout/edit-history.cjs": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+    "rebuild/m4/workout/edit-values.cjs": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+    "rebuild/m4/workout/engine-capture.cjs": "309c75d82a036b24b09ebc6668ea73065aa76de5638b2dee3da18d9067e08785",
+    "rebuild/m4/workout/engine-history.cjs": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
+    "rebuild/m4/workout/engine-order.cjs": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
+    "rebuild/m4/workout/native-baseline.cjs": "5d6d14dcf77e6dc3fb2969878dcb08c91068bb7cf95fc26e688f39e468241916",
+    "rebuild/m4/workout/project-history.mjs": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+    "rebuild/m4/workout/resume-policy.cjs": "7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f",
+    "rebuild/m4/workout/schema.cjs": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+    "rebuild/m4/workout/source-control-values.cjs": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+    "rebuild/m4/workout/stored-history.mjs": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+    "rebuild/m4/workout/test/native-baseline-journey.test.mjs": "2ebca9050cad9cff4cd9c2b5193ef345cefdc549dfc0db841953be6c49d210fb",
+    "rebuild/m4/workout/test/native-baseline.test.cjs": "d734ea4e2e6a37111e630ab4645324f2defa45da9c1ca59fe2e7f5a5c10db717",
+    "rebuild/m4/workout/workout-basis.cjs": "e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664",
+    "rebuild/m4/spec/b-ntc-runtime-closure.cjs": "1f392e28b6aabfa492f980215d6ee76dc3aaedfc5cb24c1db66a43624d6355b1",
+    "rebuild/m4/spec/b-ntc-runtime-closure.json": "3af583a42c2cddddf28333c275389759c42097742c56bdac0766cebd80a57673",
+    "rebuild/m4/spec/b-ntc-owner-tests.cjs": "cf62e93d5e4d15ad22f751a253c8ec6450b2b9234cedfbd16b99dc6fee6729fc",
+    "rebuild/m4/spec/b-ntc-owner-qualification.test.cjs": "8f8f482baa0e318018caf244bb8f2572474ab31e18673f36a7f351e7d4366aca",
+    "rebuild/m3/w6/build-browser.mjs": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
+    "rebuild/m3/w6/local/calendar.mjs": "8050704a3bbed549eeb67e2d03c870ec9a0dace2fa7837c214ce8eb598e92b1c",
+    "rebuild/m3/w6/test/local-owner-browser.mjs": "7db65dc045f40b35a8acef986b78de3d50229a4b56f885de3deba2429aa95c57",
+    "rebuild/m3/w6/test/local-owner-entry.test.mjs": "d6d7b1b64c2622f8c81d7a7236c7426b2d7ccd5ce8cce81daa63dc3b5d80ba32",
+    "rebuild/m3/w7-preview/today/build.mjs": "96bf93e652b13a47742b3e06266437606fe12f3c566e5da32b1b3ab0811af279",
+    "rebuild/m3/w7-preview/today/design.cjs": "b4398841d5cee04565e9401232e30c3316f10a86f9458de1d0a015189d55a9b9",
+    "rebuild/m4/spec/b-ntc-owner-entry-tests.cjs": "c93b5c3167bd56727c0387e272028918f01dd2ed98d8c310abdc08ba47b3b088",
+    "rebuild/m4/spec/b-ntc-owner-final.test.cjs": "d70516bf18cbb78ef9a34b9db55eae02c764b09f79b41e99f6792ff616d32c58",
+    "rebuild/m4/spec/b-ntc-existing-dependencies.test.cjs": "1da30a38873bb09fefc3c2e0c3f493d035717ba536a70767cbd857e76024fe81",
+    "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+    "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+    "rebuild/m3/w6/cipher-imports.json": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+    "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs": "b66a415d80bc61f5a4d30d6f9cfcc4ca80a5890186bf494e8fd0032005cda3bc",
+    "rebuild/m3/w7-preview/today/index.shell.html": "0f15ae30fe297d5444872b61c1fc857a0fc334973954ba6ab5bfe4dfd5560efb",
+    "rebuild/m3/w7-preview/today/preview.css": "9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40",
+    "rebuild/m3/w7-preview/today/screens.template.html": "44a287366620568502390e464b0d26141e9f7b74671dd42db7cecf047e0ad2c7",
+    "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+    "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+    "rebuild/m4/workout/fonts/OFL-InstrumentSans.txt": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+    "rebuild/m4/workout/fonts/OFL-InstrumentSerif.txt": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+    "rebuild/m4/workout/fonts/SOURCES.json": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
+    "rebuild/m4/spec/acceptance-native-carriers.json": "e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a",
+    "rebuild/m4/spec/review-native-carriers.json": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
+    "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md": "5fc945dff19692983d2af533f54238c257120afa043d695e0356e1058ee604e4",
+    "rebuild/lanes/b/tooling/test/execution-targets.test.cjs": "2cf4cd31f307db092c038df53c2c93a2d728532357a117cc154385b8a3fd9874",
+    "rebuild/lanes/b/tooling/test/successor-authority.test.cjs": "2f62107bd48726593022360d3998e9f90c006f94037e8e38306dc14ab8943ee7"
   }
 }
