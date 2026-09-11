@@ -6,7 +6,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { buildBrowser } from '../build-browser.mjs';
+import { completeVisibleOwnerSetup } from './visible-owner-setup.mjs';
 import { buildToday, DIST } from '../../w7-preview/today/build.mjs';
 const require=createRequire(import.meta.url),{chromium}=require('playwright-core');
 // Playwright's waitForFunction must not be given an async predicate here.
@@ -41,23 +41,16 @@ const operationIds=page=>page.evaluate(async()=>Object.keys((await owner.hosts.g
 const root=fileURLToPath(new URL('../../../../',import.meta.url));
 if(!process.env.W7_BROWSER_BIN) {console.log('OWNER ENTRY BROWSER NOT RUN: W7_BROWSER_BIN required');process.exit(0);}
 const scratch=path.join(root,'.tmp/owner-browser');await fs.mkdir(scratch,{recursive:true});
-const source=path.join(scratch,'enroll.mjs'),bundle=path.join(scratch,'enroll.js');
-await fs.writeFile(source,`import {openTodayInstallation} from '../../rebuild/m3/w6/local/today-bindings.mjs';
-import {createLocalCalendar} from '../../rebuild/m3/w6/local/calendar.mjs';
-export async function enroll(){const calendar=createLocalCalendar();const era=await openTodayInstallation({calendar,
- initialSetup:{athlete_label:'Synthetic browser owner',split:{from:'2026-01-01',map:{0:'U',1:'U',2:'U',3:'U',4:'U',5:'U',6:'U'}},
- exercises:[{id:'synthetic-press',n:'Synthetic press',mg:'chest',day:'U',sets:2,hi:10,inc:2.5,steps:[20,22.5,25,30,40]}],priority_muscles:[]}});era.close();}`);
-await buildToday();await buildBrowser({entryPoints:[source],outfile:bundle});
+await buildToday();
 const assets=new Map();for(const name of ['index.html','app.js','styles.css'])assets.set('/'+name,await fs.readFile(path.join(DIST,name)));
-assets.set('/',assets.get('/index.html'));assets.set('/enroll.js',await fs.readFile(bundle));
+assets.set('/',assets.get('/index.html'));
 const server=http.createServer((req,res)=>{const name=req.url.split('?')[0],body=assets.get(name);res.writeHead(body?200:404,{'Content-Type':name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':'text/html','Cache-Control':'no-store'});res.end(body||'');});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({executablePath:process.env.W7_BROWSER_BIN,headless:true});
 try {
  const context=await browser.newContext({viewport:{width:390,height:844},timezoneId:'America/New_York'}),page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(error.message));
- await page.goto(url);await page.getByRole('heading',{name:'Setup required',exact:true}).waitFor();
- await page.evaluate(async()=>{await(await import('/enroll.js')).enroll();});
+ await page.goto(url);await completeVisibleOwnerSetup(page);
  await page.reload();await page.locator('[data-slot="date"]').filter({hasText:'Synthetic browser owner'}).waitFor();
  await page.evaluate(async()=>{window.owner=await(await import('/app.js')).boot();});
  assert.deepEqual(await operationIds(page),[]);
@@ -76,6 +69,7 @@ try {
  await page.getByRole('button',{name:'2',exact:true}).click();
  const firstIds=await operationIds(page);await page.locator('[data-slot="log"]').click();
  const first=await waitForNewOperation(page,{kind:'session-set',beforeIds:firstIds});
+ assert.equal(first.lift_lineage_id,'press');
  let rows=await page.evaluate(async()=>Object.values((await owner.hosts.generation()).generation.collections.ops));
  assert.equal(rows.length,2);assert.equal(rows.some(op=>op.class==='reading'),false);
  await page.locator('[data-slot="saved-facts"]').waitFor();
@@ -87,6 +81,19 @@ try {
  await page.getByRole('button',{name:'2',exact:true}).click();
  const secondIds=await operationIds(page);await page.locator('[data-slot="log"]').click();
  const second=await waitForNewOperation(page,{kind:'session-set',beforeIds:secondIds});
+ assert.equal(second.lift_lineage_id,'press');
+ const unclosed=await page.evaluate(async()=> (await owner.hosts.generation()).generation.collections.ops);
+ assert.equal(Object.keys(unclosed).length,3);
+ assert.equal(Object.values(unclosed).some(op=>op.kind==='session-close'),false);
+ await page.locator('[data-slot="saved-facts"]').waitFor();
+ await page.getByRole('button',{name:'Back to Today',exact:true}).click();
+ assert.match(await page.locator('[data-slot="primary"]').innerText(),/^Resume UPPER/);
+ assert.equal(await page.getByRole('button',{name:/^Review today/}).count(),0);
+ await page.reload();await page.evaluate(async()=>{window.owner=await(await import('/app.js')).boot();});
+ assert.deepEqual(await page.evaluate(async()=> (await owner.hosts.generation()).generation.collections.ops),unclosed);
+ assert.equal(await page.evaluate(()=>owner.workout.summary().phase),'saved');
+ assert.match(await page.locator('[data-slot="primary"]').innerText(),/^Resume UPPER/);
+ await page.locator('[data-slot="primary"]').click();
  await page.getByRole('button',{name:/^Finish this workout/}).click();
  await page.getByRole('button',{name:/^Review today/ }).waitFor();
  assert.equal(await page.locator('#phone button.primary').count(),1);
@@ -104,5 +111,5 @@ try {
  assert.equal(Object.values(saved).filter(op=>op.kind==='session-close').length,1);
  assert.equal(Object.values(saved).filter(op=>op.class==='reading').length,1);assert.equal(await page.evaluate(()=>owner.workout.summary().phase),'finished');
  assert.deepEqual(errors,[]);await context.close();
- console.log('OWNER WORKOUT NAVIGATION BROWSER PASS: visible keyboard training without weight; exact sets before any reading; resume/review; later real weight; reload.');
+ console.log('OWNER WORKOUT NAVIGATION BROWSER PASS: visible setup; keyboard training without weight; exact sets before any reading; all-sets-unclosed reload/Resume; explicit Finish/review; later real weight; reload.');
 } finally {await browser.close();await new Promise(r=>server.close(r));}
