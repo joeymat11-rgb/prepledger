@@ -110,8 +110,12 @@ export function composeWorkoutHost({
   // `subtle` is optional, so its ABSENCE is never a refusal. A supplied one that
   // cannot verify is refused here, by name, in the same shape as the optional
   // string-lane registrar below — never silently replaced by globalThis.
-  if (subtle !== undefined && typeof subtle?.verify !== 'function')
-    throw new TypeError('composeWorkoutHost requires a WebCrypto SubtleCrypto when subtle is supplied');
+  // P2 review F1: BOTH members are required. W5.createPublicVerifier calls
+  // importKey to pin each key and verify to check the proof, so a `subtle`
+  // carrying only one of them passed this guard and then failed the silent way
+  // the guard exists to prevent — LEASE_PROOF_UNPROVEN with no word about why.
+  if (subtle !== undefined && (typeof subtle?.verify !== 'function' || typeof subtle?.importKey !== 'function'))
+    throw new TypeError('composeWorkoutHost requires a WebCrypto SubtleCrypto (importKey and verify) when subtle is supplied');
   if (typeof createDurablePublicClient !== 'function') need('createDurablePublicClient');
   if (typeof createNullSelectionRegistrar !== 'function') need('createNullSelectionRegistrar');
   if (typeof createSourceProjectionReader !== 'function') need('createSourceProjectionReader');

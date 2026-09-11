@@ -194,9 +194,14 @@ test('P2 (1) — composeWorkoutHost accepts subtle and forwards it to createDura
 
   await t.test('d. a supplied non-WebCrypto subtle is refused by name; an absent one never is', async () => {
     const parents = await scaffold();
-    for (const bad of [{}, null, 'globalThis.crypto.subtle', 7, { verify: 'no' }]) {
+    // P2 review F1: the last two are the cases the first version of this guard
+    // let through — half a SubtleCrypto, which composed and then refused
+    // LEASE_PROOF_UNPROVEN without saying why. The verifier needs BOTH members.
+    const bads = [{}, null, 'globalThis.crypto.subtle', 7, { verify: 'no' },
+      { verify: async () => true }, { importKey: webcrypto.subtle.importKey.bind(webcrypto.subtle) }];
+    for (const [index, bad] of bads.entries()) {
       assert.throws(() => composeWorkoutHost(scopeOver(parents, { subtle: bad })), error =>
-        error instanceof TypeError && error.message.includes('subtle'), String(bad));
+        error instanceof TypeError && error.message.includes('subtle'), 'bad subtle #' + index);
     }
     // undefined is the absent value, and absence is not a refusal.
     assert.doesNotThrow(() => composeWorkoutHost(scopeOver(parents, { subtle: undefined })));

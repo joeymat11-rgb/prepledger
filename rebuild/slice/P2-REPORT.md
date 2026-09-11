@@ -258,3 +258,149 @@ no product byte and no JavaScript module. It is the only unusual thing in the fi
 None. No law, frozen file or accepted artifact was edited, and nothing was changed to make a test
 pass. `engine-runtime-host.cjs` was not opened for edit; it is absent from `git diff --stat`, which
 is the executed proof that the accepted engine artifact's pin still holds.
+
+---
+
+# ROUND 2 — review finding F1 closed
+
+Review: `rebuild/slice/P2-REVIEW.md` (commit `75081c4`), **FINAL VERDICT ACCEPT at `d5c140c`**, with
+F1/F2/F3 as non-blocking follow-ups. The PM asked for F1 to be closed on this branch before the
+merge. F1 is closed below; F2 and F3 are recorded here as residuals, verbatim from the review, and
+are NOT closed on this branch.
+
+## F1 — closed
+
+The reviewer was right, and right about the reason rather than the symptom. The guard's own comment
+promised that a supplied `subtle` that "cannot verify is refused here, by name", but it checked only
+`verify`. `W5.createPublicVerifier` calls `subtle.importKey` to pin each key and `subtle.verify` to
+check the proof, so `{ verify: async () => true }` composed cleanly and then failed the exact silent
+way the guard exists to prevent — `LEASE_PROOF_UNPROVEN`, with nothing said about the half-supplied
+SubtleCrypto. The reviewer executed that on the head; I did not re-derive it from reading.
+
+### Hunk 1 — `rebuild/m3/w6/host/workout-host.mjs`
+
+The guard now requires BOTH members. Same named `TypeError`, message extended to name them:
+
+```
+   // `subtle` is optional, so its ABSENCE is never a refusal. A supplied one that
+   // cannot verify is refused here, by name, in the same shape as the optional
+   // string-lane registrar below — never silently replaced by globalThis.
++  // P2 review F1: BOTH members are required. W5.createPublicVerifier calls
++  // importKey to pin each key and verify to check the proof, so a `subtle`
++  // carrying only one of them passed this guard and then failed the silent way
++  // the guard exists to prevent — LEASE_PROOF_UNPROVEN with no word about why.
+-  if (subtle !== undefined && typeof subtle?.verify !== 'function')
+-    throw new TypeError('composeWorkoutHost requires a WebCrypto SubtleCrypto when subtle is supplied');
++  if (subtle !== undefined && (typeof subtle?.verify !== 'function' || typeof subtle?.importKey !== 'function'))
++    throw new TypeError('composeWorkoutHost requires a WebCrypto SubtleCrypto (importKey and verify) when subtle is supplied');
+```
+
+The two replaced lines are lines ROUND 1 ITSELF ADDED. Measured against the base commit
+`5c6766e`, both host files are still pure insertions and no pre-existing line is removed or
+reordered — `git diff --numstat origin/rebuild/t2-client-core`:
+
+```
+20      0       rebuild/m3/w6/host/host-entry.mjs
+21      0       rebuild/m3/w6/host/workout-host.mjs
+```
+
+(`21` = round 1's 17 plus round 2's 4 comment lines; the guard line itself is a changed line inside
+an added block, so it does not show as a deletion against the base.)
+`rebuild/m3/w6/host/engine-runtime-host.cjs` is still absent from the diff entirely.
+
+### Hunk 2 — `rebuild/m3/w6/host/test/host-seams.test.mjs`, test 1.d
+
+The bad-value list gains the two half-SubtleCrypto cases — the reviewer's `{verify}`-only case, and
+its mirror, an `importKey`-only object — and the loop label becomes an index so two objects that both
+stringify to `[object Object]` are still distinguishable in a failure:
+
+```
++    // P2 review F1: the last two are the cases the first version of this guard
++    // let through — half a SubtleCrypto, which composed and then refused
++    // LEASE_PROOF_UNPROVEN without saying why. The verifier needs BOTH members.
++    const bads = [{}, null, 'globalThis.crypto.subtle', 7, { verify: 'no' },
++      { verify: async () => true }, { importKey: webcrypto.subtle.importKey.bind(webcrypto.subtle) }];
++    for (const [index, bad] of bads.entries()) {
+       assert.throws(() => composeWorkoutHost(scopeOver(parents, { subtle: bad })), error =>
+-        error instanceof TypeError && error.message.includes('subtle'), String(bad));
++        error instanceof TypeError && error.message.includes('subtle'), 'bad subtle #' + index);
+     }
+```
+
+Test count is unchanged at 9: 1.d is one test with a longer list, which is what the reviewer's proof
+obligation 3 predicted (`expect tests 9 pass 9 fail 0`).
+
+### Round 2 re-runs, all executed in `work/pm-p2` after the edit
+
+| command | result |
+|---|---|
+| `node --test rebuild/m3/w6/host/test/host-seams.test.mjs` | `tests 9` · `pass 9` · `fail 0` |
+| `node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | `tests 22` · `pass 22` · `fail 0` |
+| `node --test rebuild/m3/w6/test/local-host-journey.test.mjs` | `tests 17` · `pass 17` · `fail 0` |
+| `node --test test/*.test.mjs` from `rebuild/m3/w6` (W6 suite in place) | `tests 552` · `pass 552` · `fail 0` |
+| `node rebuild/m3/w6/test/run-current-head.cjs <retained-R1> --all` | `tests 552` · `pass 552` · `fail 0` |
+| `node --test rebuild/m3/w7-preview/today/test/gym.test.mjs` | `tests 64` · `pass 64` · `fail 0` |
+| `node rebuild/m4/spec/native-carriers-package.cjs --ci` | `NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`, exit 0 |
+| `node rebuild/m3/w6/host/build-host.mjs` | `W6 HOST BUILD PASS — 96 pinned inputs`; 13 engine inputs (reviewer's obligation 4) |
+
+Every count is identical to round 1. Custody unchanged: round 2 touched
+`rebuild/m3/w6/host/workout-host.mjs`, `rebuild/m3/w6/host/test/host-seams.test.mjs` and this report.
+
+## F2 — recorded, NOT closed here (verbatim from `rebuild/slice/P2-REVIEW.md`)
+
+> ### F2 (disclosure, already raised by the builder; confirmed independently) - the 9 new tests do not run in CI
+>
+> Confirmed by reading the workflows, not by trusting the report:
+> `.github/workflows/rebuild.yml:87` is the only step that names host tests and it names exactly
+> `rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs`.
+> `git grep -n "host/test" -- .github/workflows` returns that one line and nothing else. So
+> `host/test/host-seams.test.mjs` runs on neither runner; the green `rebuild` run above contains no
+> evidence from it. The builder correctly refused to touch `.github` (outside custody;
+> DECISIONS:112/:113 allow `rebuild.yml` on a lane branch only inside a re-pinning engine package)
+> and registered the request. Until it is enumerated, the only execution of these 9 tests is this
+> reviewer's, on Windows, Node v24.18.0.
+>
+> PROOF OBLIGATION (PM, at the next re-seal that legitimately carries `rebuild.yml`):
+> 1. Append ` rebuild/m3/w6/host/test/host-seams.test.mjs` to the "A0" step at `rebuild.yml:87`.
+> 2. Confirm green on BOTH matrix legs at that sha with `tools/ci-status.js`.
+> 3. Note the Node floor while doing it: `module.registerHooks` landed in Node v22.15.0 and the
+>    workflow pins `node-version: '22'` (floating). The test asserts the function exists rather
+>    than skipping, so a pinned-back 22.x would fail loudly, not silently pass - acceptable, but it
+>    is a real coupling between this file and the runner's Node minor.
+
+Still open, and still outside this branch's custody. Round 2 did not touch `.github`.
+
+## F3 — recorded, NOT closed here (verbatim from `rebuild/slice/P2-REVIEW.md`)
+
+> ### F3 (scope, PM decision) - C1's literal ask was a `crypto.subtle` DEFAULT, not a pass-through
+>
+> C1-REPORT:857-861 asks to add `subtle` "defaulting to `crypto.subtle` when not supplied", and
+> gives as the reason "it makes the injected `crypto` actually the one that verifies, and **removes
+> a `globalThis` read from the phone path**". The delivered change forwards `undefined` and leaves
+> `W5`'s own `globalThis.crypto && globalThis.crypto.subtle` default in place, so a caller that
+> injects a non-global `crypto` but no `subtle` still verifies through `globalThis`. The globalThis
+> read is removed only for callers that explicitly pass `subtle`.
+>
+> This is NOT a builder defect: `P2-HOST-REQUESTS-BRIEF.md:11` overrides C1 with "Default behaviour
+> byte-identical when not supplied", and acceptance-bar 1 asks only that a fake `subtle` be observed
+> by the client. The builder followed the governing brief, and the reviewer agrees the brief's
+> choice is the safer one for a plumbing-tier change (a `subtle = crypto?.subtle` default would
+> silently change which object verifies for every existing caller, which is not byte-identical and
+> would need its own evidence). Recorded so the PM can tell lane C that half of C1's stated
+> motivation is deliberately deferred, and so nobody later reads C1 as satisfied in full.
+>
+> PROOF OBLIGATION, only if the PM wants C1's version as well (separate slice, not this one):
+> 1. Change `:78` to `subtle = crypto && crypto.subtle`.
+> 2. Add an assertion that with `crypto` injected and `subtle` omitted, the INJECTED crypto's
+>    subtle performs `importKey`/`verify` and `globalThis.crypto.subtle` is never touched.
+> 3. Re-run host 22/22, local-host-journey 17/17, W6 552/552, run-current-head --all 552/552, gym
+>    64/64 and prove each is still at its count.
+
+Deferred by the governing brief, not by oversight. Round 2 did not change the default; the
+forwarded value is still `undefined` when no caller names it, and the 22/22 host suite is still the
+proof that the default path did not move. If the PM wants C1's version, it is a separate slice with
+its own evidence, exactly as the reviewer set out.
+
+F4 in the review is environmental and unrelated to P2 (a Windows `build-engines.mjs` ESM-URL bug and
+`native-carriers-package.cjs` not being concurrency-safe within one worktree root); nothing here
+touches either, and every `--ci` run in this report was serial in this root.
