@@ -1,0 +1,72 @@
+EARNED — NUTRITION AVAILABILITY COPY CANDIDATE
+2026-09-11. Builder report; independent review remains required.
+
+(1) SOURCE / OWNERSHIP
+Parent: 8acd5a6c1fcf13e922a9c82d8711617abe6d3b2c.
+Branch: codex/astra-nutrition-availability-copy.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work
+Isolated worktree: BASE/astra-nutrition-availability-copy.
+Brief: ASTRA-NUTRITION-AVAILABILITY-COPY.md at dd7c9bb, exact-test amendment
+at 3cf3fbd. Read NEXT/ROADMAP/LANES, approved Refinement A/Additions C handoffs
+and DAILY-PLAN-CONTRACT-v1, including unavailable versus explicit not-prescribed.
+Four changed files: today-app.cjs, new today/test/nutrition-availability.test.mjs,
+the precisely licensed today/test/view.test.mjs assertion delta, and this report.
+Reported view.test.mjs:284's obsolete /Not prescribed/ assertion to PM before
+editing. The amended brief licenses its replacement plus a no-false-prescription
+assertion. All other existing assertions remain unchanged; no skips were added.
+
+(2) CHANGE
+The actual nutrition renderer keeps Energy, Protein, Carbohydrate and Fat visible.
+Missing/unconfigured/gated fields now say Not available yet. Missing energy and
+protein retain the producer's own why when present, otherwise explicit unavailable
+copy; unimplemented carbohydrate/fat no longer claim agreed non-prescription.
+Available energy retains its existing rounded headline and full target band;
+available protein retains its existing amount, unit and target label. One missing
+field does not hide the other. No new quantity, conversion or tolerance is added.
+Blocked faces render four unavailable rows and the actual blockedCopy refusal
+in the footer, with no cached nutritional values. A missing refusal has the
+existing local-record-trust explanation. The normal footer says the full screen
+is not wired yet and no target is shown for unavailable fields; it no longer
+claims absent energy/protein amounts are today's engine targets.
+
+(3) EXECUTED SOURCE-BEFORE / AFTER
+New tests render mountToday with the real approved template DOM in jsdom.
+Fresh owner uses actual createCleanInitState and createTodayModel output.
+Mixed/gated cases are explicit presentation-boundary controls retaining numbers
+from the actual synthetic engine. Blocked transition uses createTodayModel's
+real non-TRUTHFUL branch, with a controlled reading-host refusal.
+On unchanged exact-parent product, the new test file: 0 PASS, 5 FAIL, exit 1.
+The rendered fresh-owner text contained EnergyNot prescribed, ProteinNot prescribed,
+CarbohydrateNot prescribed and FatNot prescribed; footer claimed engine targets.
+Mixed/gated rendered cases reproduced the same false absence wording. Null target
+objects threw reading proteinTarget.g. The blocked render returned zero macro rows.
+After correction: 36 PASS, 0 FAIL, 0 skipped/cancelled, exit 0:
+  five focused rendered cases plus all 31 affected existing view cases.
+Checks include producer configuration/refusal text, four named fields, no false
+prescription label, no invented macro figure, retained available amount/unit/range,
+missing-object fallback without borrowing numeric advice, and available-to-blocked
+transition with the actual refusal and no stale nutritional numbers.
+After removing an unnecessary cross-field explanatory fallback, this same bounded
+36-test command was rerun and passed. No broader campaign was repeated.
+
+(4) EXACT COMMANDS / ENVIRONMENT
+PowerShell cwd: BASE/astra-nutrition-availability-copy.
+node = C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe
+Retained Node 24.19 runtime. Local junctions only, no install:
+node_modules -> BASE/m3-w6-browser-bridge/node_modules
+rebuild/m3/w6/node_modules -> BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules
+$env:TZ='America/New_York'
+$env:NODE_PATH='C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/m3-w6-browser-bridge/rebuild/m3/w6/node_modules'
+$env:EARNED_READING_W6_ROOT=(Get-Location).Path
+$env:EARNED_SOURCE_R1_ROOT=(Get-Location).Path
+Before: node --test --test-reporter=spec rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs
+After: node --test --test-reporter=spec rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
+git diff --check: PASS.
+
+(5) LIMITS
+No model, host, storage, entry, template/CSS, approved layout, nutrition input,
+scale, engine, frozen source/laws, policy/workflow or lockfile changes. No private
+data, installs, agents, other tree writes, push/PR/merge/deploy or self-acceptance.
+These are rendered DOM checks, not a physical-phone/layout/browser campaign.
+The complete qualified four-field daily-plan producer remains separate work;
+this copy correction supplies no missing macro target or agreed absence value.

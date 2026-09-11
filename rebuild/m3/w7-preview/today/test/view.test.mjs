@@ -281,7 +281,8 @@ test("every screen this slice does not build says so and shows no invented value
   const rows = [...doc.querySelectorAll(".macro-row")].map((r) => r.textContent);
   assert.equal(rows.length, 4);
   assert.match(rows[2], /Carbohydrate/);
-  assert.match(rows[2], /Not prescribed/);
+  assert.match(rows[2], /Not available yet/);
+  assert.doesNotMatch(rows[2] + rows[3], /Not prescribed/i);
   assert.match(rows[3], /Fat/);
   assert.doesNotMatch(rows[2] + rows[3], /\d/, "no carbohydrate or fat figure is invented");
 
