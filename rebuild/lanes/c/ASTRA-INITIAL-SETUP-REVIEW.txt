@@ -1,0 +1,84 @@
+EARNED — INDEPENDENT INITIAL SETUP REVIEW
+2026-09-11. Reviewer did not author this change.
+Source3f1d17296b68a8d4ea44b4845616b9eaf06af0be; product7033afe.
+Worktree work/astra-initial-setup-review; branch codex/astra-initial-setup-review.
+Authority: PM ASTRA-INITIAL-SETUP-BUILD.md / ASTRA-INITIAL-SETUP-REVIEW.md.
+
+(1) VERDICT: REQUEST CHANGES — ONE BOUNDED STATE-PUBLICATION DEFECT
+F1, P1: local-client.mjs:272-274 leaves status first-run after revision1 has
+committed but keys.persist or writeMarker fails. enrollSetup returns the correct
+state18 failure, but status() and boot() then invite the owner flow to treat the
+existing authoritative setup as a fresh installation. This is inherited catch
+behavior exposed by the new setup API, not claimed as a new legacy regression.
+The PM explicitly requires correction on this new path before acceptance.
+
+Executed exact results, using separate synthetic installations:
+key put fault:
+  enrollSetup => enrolled:false, state18, KEY_WRITE_FAILED.
+  same-client status => first-run / LOCAL_FIRST_RUN.
+  same-client boot => ready:false, firstRun:true, state18, LOCAL_FIRST_RUN.
+  fresh factory => restore-required / KEY_MISSING; enrollment refused.
+marker put fault:
+  enrollSetup => enrolled:false, state18, LOCAL_MARKER_WRITE_FAILED.
+  same-client status/boot => the same incorrect first-run result.
+  fresh factory => restore-required / ENROLLMENT_MARKER_MISSING;
+  enrollment refused. Neither case reported configured:true or enrolled:true.
+
+Reproducer: use the public synthetic setup/config shape in
+test/local-initial-setup.test.mjs. Wrap a fresh IDBFactory.open: on successful
+open, wrap db.transaction; for readwrite transactions ONLY in <database>-keys
+(store keys) or <database>-local (store markers), replace the first store.put
+with a one-shot QuotaExceededError. All generations transactions stay real.
+Open the client, await enrollSetup({setup}), inspect status and boot, then close
+and open a fresh factory over the same IDBFactory. No product source is changed.
+
+Required correction: after successful repository.initialize, any later key/marker
+failure must retire first-run and publish a named restore-required state on the
+same client. Preserve the original failure code/state18, existing sealed bytes,
+fresh-factory partial-loss refusal and no-reenrollment behavior. Do not repair
+this by reseeding, replacing keys or declaring partial enrollment successful.
+Keep invalid-input and pre-commit quota-abort cases genuinely first-run/retryable.
+Focused acceptance target: two post-commit failure cases above plus pre-commit
+abort/valid-retry and delayed-success controls; then affected enrollment tests.
+No broad engine or unchanged workout campaign is needed for that correction.
+
+(2) EXECUTED EVIDENCE
+Node v24.19.0; Windows PowerShell; existing retained dependencies only.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03 for authored suite runs.
+node --test local-initial-setup.test.mjs local-client.test.mjs
+  local-today-journey.test.mjs local-host-journey.test.mjs
+(all paths under rebuild/m3/w6/test): initial invocation completed 58 passing
+setup/client/host tests; Today failed to load because jsdom was not linked.
+After linking the existing jsdom installation, Today alone ran 51/51 pass.
+Thus all109 authored affected tests executed successfully across those runs,
+including new20. No install, dependency mutation or lockfile change.
+
+Independent delayed-generation control: no enrollment success while the IDB
+transaction stayed open; initialSetup remained unconfigured; concurrent submission
+refused LOCAL_ENROLLMENT_IN_PROGRESS. Mutation of caller input while pending did
+not alter the setup eventually saved. Success followed release of the transaction.
+Independent staged-write quota control: after setup and one real weigh-in, a
+second failed weigh-in kept the entire generation byte-value identical, including
+setup and prior operation; setup stayed configured and failed input was retained.
+Independent NaN, negative zero, symbol-member and cyclic input controls all
+refused LOCAL_INITIAL_SETUP_INPUT_INVALID before enrollment; boot stayed first-run.
+
+(3) WHAT PASSED / SCOPE
+Authoritative collection and marker survive derived absence/malformed/stale values,
+actual C4 weigh-in/native set/finish/check-in writes, and synthetic copy/reopen.
+Exact supplied setup and identity/profile/constructor/time roundtrip; caller/result
+mutations cannot rewrite durable authority. Wrong/missing halves and malformed
+authority refuse on boot. No arbitrary old cache or no-setup enrollment is promoted.
+Independent-factory CAS and same-client concurrency tests pass. No replacement API
+was added. Basis reconstruction retains the constructor's empty histories/w:null;
+it is not a current projection, prescription supplier or consented plan transaction.
+Synthetic generation copy is not a real restore or device/key-recovery drill.
+
+Only four product/test files change relative71fb2f1, plus builder report.
+B-NTC binding block is unchanged apart from surrounding initial-setup API additions.
+git diff71fb2f1..HEAD on m4/workout, engine, client, conform, .github and
+w7-preview is empty. Prior B-NTC evidence stays attributed to its own reviews.
+Before this report git diff --exit-code, git diff --check and status were clean.
+No product edit, private input, broad engine campaign, install, push, merge,
+deployment, purchase or protected-soak operation. CI both OS and distinct
+integration remain subsequent conditions. Root is sole PM; only report committed.
