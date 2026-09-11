@@ -179,6 +179,21 @@ to find twice.
 * **Y2** — both halves unchanged; **Z11** now says out loud when the scan did not run.
 * **Y3 / Y4** — spec-note text and the `16 of 18 PIN_PATHS` sentence, both unchanged.
 
+## 4a. What this pass did NOT re-run, said plainly
+
+**r5's twenty-one bites E1–E21 and r2's twenty-one mutations M1–M21 were not individually
+re-executed by this pass.** They are the reviewers' own controls, built in the reviewers' own
+scratch fixtures, and re-running a reviewer's bite list from the builder's chair proves less
+than the reviewer re-running it against the fixed code — which is what r6 is for. What this
+pass ran instead is stated above: the two suites (9/9 and 8/8, the second of which is eight
+cases each pairing a positive control with a named negative over Z1–Z6), the six packages in
+both modes on both lane branches, and the one live bite that mattered to a finding
+(`B-NTC G8`, in the package). The bites that a reviewer should re-take first are r5's **E4,
+E5, E6** (a spec trying to authorise its own move — the refusal text moved, the rule did not),
+**E10** (an uncommitted spec edit — now refuses at `SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT`
+rather than running clean, which is Z7) and **E14** (a forged ledger citation — the authority
+plumbing is untouched, and the void theme name it used no longer exists anywhere).
+
 ## 5. Left OPEN
 
 1. **Neither suite has a CI home** (r5's Z8 note, r2's change 8 second half). Both run green;
