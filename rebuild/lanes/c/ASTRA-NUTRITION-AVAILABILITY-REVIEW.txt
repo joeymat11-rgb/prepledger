@@ -1,0 +1,49 @@
+NUTRITION AVAILABILITY — INDEPENDENT REVIEW
+2026-09-11. ACCEPT for the bounded wording/rendering correction.
+
+(1) SOURCE / ROLE
+Candidate154bf80454b5df2f1d10e4f74c4375b3b123b7b3;
+parent8acd5a6c1fcf13e922a9c82d8711617abe6d3b2c.
+FILE ASTRA-NUTRITION-AVAILABILITY-REVIEW.md atbecf094; copy brief including3cf3fbd amendment,
+DAILY-PLAN-CONTRACT-v1 meanings and complete candidate report/diff read. Distinct reviewer
+/root/phone_release_review, not author native_scale_correction. Isolated
+codex/astra-nutrition-availability-review; only this report committed; no product edit.
+
+(2) EXECUTED
+Retained Node24.19.0 and root/W6 dependencies, no install. TZ=America/New_York;
+NODE_PATH=retained W6; EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this isolated tree.
+node --test rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs
+  rebuild/m3/w7-preview/today/test/view.test.mjs
+36 PASS,0 fail/skip/cancel, exit0:5 focused +31 existing rendered checks.
+Actual fresh-owner clean-state/Today producer reports nutrition not configured: four named rows
+show unavailable and preserve configuration reasons, zero macro numbers and no false non-prescription.
+Mixed energy/protein, gated energy, absent target objects and actual blocked-model transition pass.
+Available amounts, units, calorie-headline rounding and full target band remain unchanged.
+BlockedCopy is rendered; prior figures disappear. The footer describes unavailable fields accurately.
+
+node .tmp/nutrition-review.mjs: INDEPENDENT RENDER PASS, exit0.
+Actual mountToday and approved template DOM, retaining the real synthetic engine's available projection,
+then independently chosen null protein object: Energy renders2,300 kcal with full2,262–2,360 target band;
+Protein, Carbohydrate and Fat show Not available yet; null protein does not crash.
+Transition with a blocked face and no blockedCopy retains four rows, zero numeric elements and the
+existing local-record-trust fallback explanation. These are presentation-boundary controls, not advice.
+No numeric macro value was fabricated. The visible rows and footer were inspected in the tool output.
+The same probe compares view.test.mjs to exact parent: replacing only the licensed amended assertion
+restores original source after CRLF normalization. All other assertions remain intact.
+git diff --check PASS; worktree clean before this report.
+
+(3) SOURCE ASSESSMENT / LIMITS
+Only renderNutrition changes: missing/gated calorie output, missing/null protein and unimplemented
+carbohydrate/fat no longer claim an explicit agreed absence of prescription. Energy and protein are
+handled independently. Existing calorieHeadline/calorieBand/amount behavior is reused without a new
+conversion, target, range, minimum, default or physiological gate. Actual blocked refusal is not buried
+behind missing-field text. Available-target descriptions remain truthful; no false claim of absent
+engine targets remains in the footer. Precise view assertion replacement matches the amended brief.
+
+No required correction found. This is DOM/text acceptance, not full four-field producer implementation,
+scientific/source qualification, daily-plan agreement, a new DTO or phone/layout proof. Reuse unchanged
+template/layout evidence; no broad browser/engine/private campaign or source-before replay claimed by
+this reviewer. Source-before defect evidence is the builder's executed report plus inspected parent delta.
+No model/host/storage/entry/CSS/template/engine/input/scale/law/source-policy/workflow/lock changes,
+private input, install, other tree edit, agent, push/PR/merge/deployment or receipt. Root decides scoped
+acceptance; a distinct integrator assembles. Full daily-plan/input work remains separate.
