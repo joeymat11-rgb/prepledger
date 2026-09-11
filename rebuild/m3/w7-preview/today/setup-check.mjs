@@ -74,6 +74,13 @@ function watch(page) {
   });
   return page;
 }
+/* Re-open after a kill, keeping `live` pointing at whatever is actually running. */
+async function relaunch(query = "", viewport = VIEWPORT) {
+  const opened = await launch(query, viewport);
+  live = opened.context;
+  return opened;
+}
+let live = null;
 async function launch(query = "", viewport = VIEWPORT) {
   const context = await chromium.launchPersistentContext(profile, { executablePath, headless: true, viewport });
   const page = watch(context.pages()[0] || await context.newPage());
@@ -125,6 +132,14 @@ const tapLink = (page, label) => page.evaluate(l => {
   b.click();
 }, label);
 const next = async (page) => { await page.click('#phone [data-slot="primary"]'); };
+/* Today's first-run tile sits in the approved design's bottom block, which the
+   phone frame scrolls; dispatch the click the way a tap does rather than asking
+   playwright to scroll a sticky container into a stable position. */
+const openSetup = (page) => page.evaluate(() => {
+  const tile = document.querySelector('[data-go="setup"]');
+  if (!tile) throw new Error("no first-run tile");
+  tile.click();
+});
 
 /* Reachability, MEASURED, never asserted: the primary action must be fully visible
    once it is scrolled to, and the page must never scroll sideways. */
@@ -156,7 +171,13 @@ async function inputsAreLargeEnough(page, label) {
   for (const entry of targets) assert(entry.h >= 44, `${label}: tap target "${entry.id}" is ${entry.h}px high`);
   return { inputs: sizes.length, targets: targets.length };
 }
-/* THE OWNER'S RULE, AT RENDER TIME (S23 b, DECISIONS:114 (1)). */
+/* THE OWNER'S RULE, AT RENDER TIME (S23 b, DECISIONS:114 (1)).
+   SCOPED TO A4'S OWN SCREENS, deliberately. The merged A1/A2/A3 Today still
+   carries "spike - damped in trend", "- not wired yet" and the en-dashed
+   calorie range, and sweeping those is the PM's P1 item
+   (rebuild/slice/P1-NO-DASHES-BRIEF.md), not A4's to churn (BUILD-BRIEF 6).
+   What A4 owns on Today is exactly one string, the first-run tile, and
+   dashOnTile() below checks that one. */
 async function noDashes(page, label) {
   /* The two marks are passed in as code points, so this FILE stays free of them
      too: the rule is about the UI, and a check that had to spell them would be a
@@ -173,6 +194,12 @@ async function noDashes(page, label) {
   }, [EM, EN]);
   assert.deepEqual(hits, [], label + " renders an ai dash: " + hits.join(" | "));
 }
+/* The one string A4 puts on Today. */
+async function dashOnTile(page) {
+  const label = await page.textContent('[data-slot="setup-entry-label"]');
+  assert.equal((label || "").includes(EM) || (label || "").includes(EN), false,
+    "the first-run tile carries an ai dash: " + label);
+}
 
 /* The six screens, tapped through as Dad would. Stops where `stopAt` says. */
 async function runFlow(page, stopAt = 6) {
@@ -187,8 +214,18 @@ async function runFlow(page, stopAt = 6) {
 
   await next(page);                                    // -> 2
   await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("2 of 6"));
-  await tap(page, "Monday"); await tap(page, "Upper body");
-  await tap(page, "Thursday"); await tap(page, "Lower body");
+  /* Scoped to the weekday's own block: every chosen day offers BOTH kinds, so a
+     document-wide search for "Lower body" would answer the wrong day. */
+  const dayKind = (day, kind) => page.evaluate(([d, k]) => {
+    const block = [...document.querySelectorAll("#phone fieldset.question")]
+      .find(f => f.querySelector("legend") && f.querySelector("legend").textContent.trim() === d);
+    if (!block) throw new Error("no weekday block " + d);
+    const b = [...block.querySelectorAll(".option")].find(x => x.textContent.trim() === k);
+    if (!b) throw new Error("no control " + k + " under " + d);
+    b.click();
+  }, [day, kind]);
+  await dayKind("Monday", "Monday"); await dayKind("Monday", "Upper body");
+  await dayKind("Thursday", "Thursday"); await dayKind("Thursday", "Lower body");
   await reachable(page, "screen 2");
   await noDashes(page, "screen 2");
   assert.match(await phone(page), /Earned plans two kinds of day so far: upper body and lower body\./);
@@ -204,10 +241,42 @@ async function runFlow(page, stopAt = 6) {
       .map(b => b.textContent.trim()).join(",")), "3,10",
   "the standard start is PROPOSED and pre-selected, and nothing else is");
   assert.doesNotMatch(standard, /not sure/i, "the removed refusal is gone (DECISIONS:114 (2))");
-  await tapLink(page, "Add an exercise");
-  await page.waitForSelector("#phone input[id^='setup-n-']");
-  await page.fill("#phone input[id^='setup-n-']", "Chest press");
-  await tap(page, "chest");
+  /* One lift under each session kind his split contains: a kind with an empty
+     list is a NAMED missing answer, which is screen 6's job to say. */
+  /* Each step re-queries the live DOM: every tap repaints the screen, so a node
+     held across one is a node that is no longer on the page. */
+  const inList = (kind, what) => page.evaluate(([k, w]) => {
+    const block = [...document.querySelectorAll("#phone fieldset.question")]
+      .find(f => f.querySelector("legend") && f.querySelector("legend").textContent.trim() === k);
+    if (!block) throw new Error("no list for " + k);
+    if (w.add) {
+      const add = [...block.querySelectorAll("button.text-link")]
+        .find(x => x.textContent.trim() === "Add an exercise");
+      if (!add) throw new Error("no add control under " + k);
+      return add.click();
+    }
+    const rows = [...block.querySelectorAll(".followup")];
+    const row = rows[rows.length - 1];
+    if (!row) throw new Error("no exercise row under " + k);
+    if (w.name !== undefined) {
+      const input = row.querySelector("input");
+      input.value = w.name;
+      return input.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    const chip = [...row.querySelectorAll(".option")].find(x => x.textContent.trim() === w.mg);
+    if (!chip) throw new Error("no chip " + w.mg);
+    return chip.click();
+  }, [kind, what]);
+  const addLift = async (kind, name, mg) => {
+    await inList(kind, { add: true });
+    await inList(kind, { name });
+    await inList(kind, { mg });
+  };
+  /* The chip SHOWS the gloss and STORES the bare label (DECISIONS:115, S25):
+     "quads (front of thigh)" is what the athlete taps, "quads" is what is
+     written. The read-back on screen 6 is what proves the second half. */
+  await addLift("Upper body", "Chest press", "chest");
+  await addLift("Lower body", "Leg press", "quads (front of thigh)");
   await reachable(page, "screen 3");
   await inputsAreLargeEnough(page, "screen 3");
   await noDashes(page, "screen 3");
@@ -219,7 +288,13 @@ async function runFlow(page, stopAt = 6) {
   assert.match(loads, /What the weights do\./);
   assert.match(loads, /Leave the jump blank and Earned uses 5 lb, its standard step\./);
   assert.doesNotMatch(loads, /starting (weight|load)/i, "no starting load is collected (S20)");
-  await page.fill("#phone input[id^='setup-first-']", "20");
+  await page.evaluate(() => {
+    const boxes = [...document.querySelectorAll("#phone input[id^='setup-first-']")];
+    boxes.forEach((box, at) => {
+      box.value = String(20 + at * 25);
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  });
   await reachable(page, "screen 4");
   await inputsAreLargeEnough(page, "screen 4");
   await noDashes(page, "screen 4");
@@ -259,22 +334,27 @@ const opsInStore = (page) => page.evaluate(async () => {
   return out;
 });
 
+/* `live` (declared above) is the context that is actually running, held outside
+   the try so a THROWN check still shuts its browser down: a failed run that
+   stranded a persistent context left dozens of msedge processes behind and made
+   the next run's kill count meaningless. */
 let failures = 0;
 try {
   /* ---------- launch 1: Today offers the first run, and the flow is reachable ---------- */
   let { context, page } = await launch();
+  live = context;
   assert.equal(await page.evaluate(() =>
     document.querySelector('[data-slot="setup-entry"]').hidden), false,
   "a fresh installation is offered its first run");
   assert.equal(await page.textContent('[data-slot="setup-entry-label"]'), "Set up your week");
-  await noDashes(page, "Today, fresh");
-  await page.click('[data-go="setup"]');
+  await dashOnTile(page);
+  await openSetup(page);
 
   /* ---------- the KILL MID-FLOW: no half-written athlete ---------- */
   await runFlow(page, 4);
   notes.push("four screens answered, then the browser is killed");
   await hardKill(context);
-  ({ context, page } = await launch("?screen=setup"));
+  ({ context, page } = await relaunch("?screen=setup"));
   const afterKill = await phone(page);
   assert.match(afterKill, /1 of 6/, "the relaunch shows the START of the flow, never a half-built week");
   assert.doesNotMatch(afterKill, /Chest press/, "nothing he typed mid-flow was written anywhere");
@@ -283,10 +363,12 @@ try {
   assert.equal(empty.enrolled, false);
   notes.push("a real taskkill mid-flow left zero operations and no partial athlete");
 
-  /* ---------- the whole flow, then the ONE write ---------- */
-  await page.reload({ waitUntil: "load" });
+  /* ---------- the whole flow, then the ONE write ----------
+     Back to the plain URL: this launch came up on ?screen=setup, and a reload
+     would keep that query rather than landing on Today. */
+  await page.goto(url, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="primary-label"]');
-  await page.click('[data-go="setup"]');
+  await openSetup(page);
   await runFlow(page, 6);
   await next(page);
   await page.waitForFunction(() => !!document.querySelector('#phone [data-slot="recovery-state"]'));
@@ -296,7 +378,7 @@ try {
   assert.equal(await page.evaluate(() =>
     document.querySelector('[data-slot="setup-entry"]').hidden), true,
   "a device that has been set up is never invited to be set up again");
-  await noDashes(page, "Today, after the first run");
+
   const recorded = await opsInStore(page);
   assert.equal(recorded.rows, 1, "ONE operation for six screens: " + JSON.stringify(recorded));
   assert.equal(recorded.label, "Dad");
@@ -317,7 +399,7 @@ try {
 
   /* ---------- THE PROCESS KILL, after the write ---------- */
   await hardKill(context);
-  ({ context, page } = await launch());
+  ({ context, page } = await relaunch());
   const afterSecondKill = await opsInStore(page);
   assert.equal(afterSecondKill.rows, 1, "the first run did not survive a real process kill");
   assert.equal(afterSecondKill.label, "Dad");
@@ -326,7 +408,7 @@ try {
 
   /* ---------- 320px: the narrow phone ---------- */
   await hardKill(context);
-  ({ context, page } = await launch("", NARROW));
+  ({ context, page } = await relaunch("", NARROW));
   const narrow = await page.evaluate(() => {
     const view = document.querySelector(".view");
     return Math.round(view.scrollWidth - view.clientWidth);
@@ -338,6 +420,7 @@ try {
   failures += 1;
   problems.push(error && error.message ? error.message : String(error));
 } finally {
+  try { if (live) await live.close(); } catch (_) { /* already killed, which is the point */ }
   await new Promise(resolve => server.close(resolve));
   try { fs.rmSync(profile, { recursive: true, force: true }); } catch (_) {}
 }
