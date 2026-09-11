@@ -1,0 +1,7 @@
+# Assemble accepted nutrition availability correction
+
+Temporary Astra PM September11. Distinct integrator, neither native_scale_correction (author) nor phone_release_review (reviewer). Read NEXT/ROADMAP/LANES, builder report and independent4387f8b32929f9cd6e74846c918176e17b296bac. Root read complete report and source delta and scoped-ACCEPTS154bf80454b5df2f1d10e4f74c4375b3b123b7b3. BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+
+Continue owned BASE/astra-owner-phone-integration at clean8acd5a6c1fcf13e922a9c82d8711617abe6d3b2c. Mechanically join exact154bf804, verify the four accepted changed files exactly, all other source unchanged. Run the36 affected DOM/view checks and real PWA build; reuse unchanged engine/phone-layout/lifecycle/browser evidence. This is a render-only text/null/refusal correction, no new broad browser/engine campaign required unless a concrete affected failure appears. No UI rewrite or numerical change. Preserve required later source-policy/CI/physical-phone checks.
+
+Commit ONE factual report rebuild/lanes/c/ASTRA-OWNER-NUTRITION-COPY-INTEGRATION-REPORT.txt with exact source/parent equality and actual checks. No input938913 integration before its separate review, no PR51/B1, source pins/workflows/laws/private data, other trees, install, actual integration-branch merge, push/PR/deployment or protected soak. Nonmechanical conflict returns to PM. Return clean exact source/report commits.
