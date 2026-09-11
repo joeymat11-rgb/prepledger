@@ -1,0 +1,169 @@
+# slice-host — build the Earned SLICE folder and put it on a phone-reachable static host.
+#
+# WHY A SEPARATE WORKFLOW AND A SEPARATE SITE. `deploy.yml` is the FROZEN app's pipeline and
+# is never touched here. `soak.yml` is the 30-day storage experiment's own site. This is a
+# THIRD site for the vertical slice (PLAN-SLICE-v1 S1: "a phone-reachable static host …
+# second Netlify site via the soak.yml pattern"). It publishes PUBLIC source with a
+# SYNTHETIC athlete only — Joe's real data enters only through the on-PC port and the
+# device's own local save (Track C), never through anything this workflow uploads. The
+# build itself refuses to emit a folder containing a private path or a credential shape.
+#
+# SECRETS (both repository secrets, names chosen here and documented in
+# rebuild/slice/A5-REPORT.md §"what Joe must click"):
+#   NETLIFY_AUTH_TOKEN     — already exists; the same token soak.yml uses. Not created here.
+#   SLICE_NETLIFY_SITE_ID  — NEW. The Site ID of the empty Netlify site Joe creates for the
+#                            slice. Only the owner can create it; until he does, this
+#                            workflow BUILDS and then NO-OPS with a clear log line.
+#
+# It never runs on main, never creates a site, never deploys the frozen app's folder, and
+# refuses — twice, by two independent routes — if the site id it is given turns out to be
+# the production site or the soak site.
+#
+# HOW IT IS RUN. By PUSH, to rebuild/t2-client-core, touching one of the paths below.
+# `workflow_dispatch` is declared so the button exists IF this file ever reaches the
+# default branch, but GitHub only lists a workflow_dispatch workflow once its file is on
+# the DEFAULT branch (main) — and this file is deliberately never on main. So there is no
+# "Run workflow" button for it today, and the deploy route is the push.
+name: slice-host
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [rebuild/t2-client-core]
+    paths:
+      - 'rebuild/m3/w7-preview/today/**'
+      - 'rebuild/slice/pwa/**'
+      - '.github/workflows/slice-host.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: slice-host-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  slice-host:
+    name: earned-slice
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Refuse to run on main
+        run: |
+          test "$GITHUB_REF" != "refs/heads/main" || { echo "slice-host never runs on main"; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund --include=dev
+
+      # The page's bundle is produced by the accepted W6 browser build, whose dependencies
+      # are pinned by rebuild/m3/w6/pnpm-lock.yaml. pnpm 9 is used because that lockfile is
+      # a pnpm lockfile and because pnpm 10 would skip esbuild's own install script.
+      - name: Install the pinned W6 browser-build dependencies
+        run: |
+          npm install -g pnpm@9
+          pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+
+      # This job is the CI HOME for both lockfile-only A5 suites — including the one that
+      # reads THIS file as data. rebuild.yml is pinned by the accepted NATIVE-CARRIERS
+      # artifact, so it cannot gain a step until the PM's batched re-seal at B1; this
+      # step means the 42 lockfile-only checks are not waiting on that.
+      - name: The A5 shell's own checks, and this workflow's own (no bundler)
+        run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
+
+      - name: Build the deployable folder
+        run: node rebuild/slice/pwa/build-pwa.mjs
+
+      - name: The built folder's own checks
+        run: node --test rebuild/slice/pwa/test/package.test.cjs
+
+      - name: Stage exactly what the build emitted, and list it with its hashes
+        run: |
+          set -o pipefail
+          SRC=.tmp/slice-pwa-dist
+          test -d "$SRC" || { echo "the build emitted no folder"; exit 1; }
+          STAGE="$RUNNER_TEMP/site"; mkdir -p "$STAGE"
+          cp -R "$SRC/." "$STAGE/"
+          test -f "$STAGE/index.html" && test -f "$STAGE/sw.js" && test -f "$STAGE/_headers" \
+            || { echo "the staged folder is missing a required file"; exit 1; }
+          echo "staged $(find "$STAGE" -type f | wc -l) files:"
+          (cd "$STAGE" && sha256sum $(find . -type f | sed 's|^\./||' | sort)) | tee "$RUNNER_TEMP/slice-build-hashes.txt"
+          (cd "$STAGE" && zip -q "$RUNNER_TEMP/slice.zip" -r .)
+          {
+            echo "### earned-slice build"
+            echo '```'
+            cat "$RUNNER_TEMP/slice-build-hashes.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy to the slice's own Netlify site (no-op until the owner creates it)
+        env:
+          NT: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          SITE: ${{ secrets.SLICE_NETLIFY_SITE_ID }}
+        run: |
+          set -o pipefail
+          if [ -z "$NT" ] || [ -z "$SITE" ]; then
+            echo "SLICE HOST NO-OP — the folder built and its checks passed, but no site was deployed."
+            echo "SLICE HOST NO-OP — missing secret(s):$( [ -z "$NT" ] && printf ' NETLIFY_AUTH_TOKEN' )$( [ -z "$SITE" ] && printf ' SLICE_NETLIFY_SITE_ID' )"
+            echo "SLICE HOST NO-OP — only the repository owner can create the site and add SLICE_NETLIFY_SITE_ID."
+            echo "SLICE HOST NO-OP — the five steps are in rebuild/slice/A5-REPORT.md."
+            echo "SLICE HOST NO-OP — once both secrets exist, the NEXT PUSH to rebuild/t2-client-core touching rebuild/slice/pwa/** or rebuild/m3/w7-preview/today/** deploys. Do not look for a Run-workflow button: GitHub lists workflow_dispatch only for workflows on the default branch, and this file is deliberately never on main."
+            exit 0
+          fi
+          META=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites/$SITE")
+          NAME=$(printf '%s' "$META" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{process.stdout.write(JSON.parse(d).name||'')}catch(e){}})")
+          REPO=$(printf '%s' "$META" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{process.stdout.write(((JSON.parse(d).build_settings||{}).repo_url)||'')}catch(e){}})")
+          if [ -z "$NAME" ]; then echo "SLICE HOST FAIL — SLICE_NETLIFY_SITE_ID names no site this token can see"; exit 1; fi
+          # The frozen app's production site is the one linked to the prepledger repository
+          # (deploy.yml finds it exactly that way), and earned-soak is the storage
+          # experiment's. Neither may ever receive this folder.
+          case "$REPO" in *prepledger*) echo "SLICE HOST FAIL — that is the FROZEN app's production site. Refusing."; exit 1;; esac
+          case "$NAME" in earned-soak) echo "SLICE HOST FAIL — that is the soak experiment's site. Refusing."; exit 1;; esac
+          # A SECOND, INDEPENDENT REFUSAL (review F4). The two checks above read the
+          # TARGET's own record; if Netlify ever answers without build_settings they see
+          # nothing at all. This one asks the ACCOUNT which sites are the frozen app's
+          # (deploy.yml's own rule) and the soak experiment's, and refuses by ID. It is
+          # read-only — no site is ever created here — and it fails CLOSED: if the list
+          # cannot be read, the deploy does not happen.
+          FORBIDDEN=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=100" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{let s;try{s=JSON.parse(d)}catch(e){process.exit(1)}if(!Array.isArray(s))process.exit(1);process.stdout.write(s.filter(x=>((((x.build_settings||{}).repo_url)||'').includes('prepledger'))||x.name==='earned-soak'||((x.custom_domain||'').includes('prepledger'))).map(x=>x.id).join(' '))})") \
+            || { echo "SLICE HOST FAIL — could not read the account's site list to check the target. Refusing."; exit 1; }
+          for bad in $FORBIDDEN; do
+            if [ "$bad" = "$SITE" ]; then echo "SLICE HOST FAIL — that site id is the frozen app's or the soak experiment's. Refusing."; exit 1; fi
+          done
+          echo "deploying to the site named $NAME"
+          URL=$(printf '%s' "$META" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);process.stdout.write(j.ssl_url||j.url||'')})")
+          DEP=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" \
+                --data-binary @"$RUNNER_TEMP/slice.zip" "https://api.netlify.com/api/v1/sites/$SITE/deploys" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);if(!j.id){console.error(d);process.exit(1)}process.stdout.write(j.id)})")
+          echo "deploy $DEP created, polling..."
+          for i in $(seq 1 40); do
+            ST=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/deploys/$DEP" \
+              | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).state))")
+            echo "state: $ST"
+            if [ "$ST" = "ready" ]; then echo "SLICE_URL=$URL" >> "$GITHUB_ENV"; break; fi
+            [ "$ST" = "error" ] && exit 1
+            sleep 4
+            [ "$i" = "40" ] && exit 1
+          done
+          echo "PUBLISHED $URL  (commit ${GITHUB_SHA})"
+          echo "### earned-slice published" >> "$GITHUB_STEP_SUMMARY"
+          echo "$URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Probe what the phone will ask for (status codes and the two headers that matter)
+        if: env.SLICE_URL != ''
+        run: |
+          for p in "" index.html manifest.webmanifest sw.js icon-192.png; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "$SLICE_URL/$p?t=$(date +%s)")
+            printf '%s %s\n' "$code" "$SLICE_URL/$p"
+          done
+          echo "--- sw.js response headers ---"
+          curl -sI "$SLICE_URL/sw.js" | grep -iE 'cache-control|content-security-policy|content-type' || true
+          echo "--- / response headers ---"
+          curl -sI "$SLICE_URL/" | grep -iE 'cache-control|content-security-policy' || true
