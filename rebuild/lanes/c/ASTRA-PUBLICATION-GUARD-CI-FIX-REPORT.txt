@@ -1,0 +1,66 @@
+PUBLICATION GUARD — A5 CI TEST CORRECTION
+September11,2026. Author candidate; independent review required.
+Branch codex/astra-publication-guard-ci-fix, isolated work/astra-publication-guard-ci-fix.
+Base88d78c3b109f3cd6b9832591574c07651493f3e4; FILE at PM69bda70.
+Root reported actual PR51 Linux run34630009375/job103364240703 failure.
+No remote CI verdict is claimed by this local correction.
+
+(1) RED / CHANGE
+Reproduced actual unmodified A5 pwa.test.cjs + workflow.test.cjs against the
+approved guard:42 pass,1 fail,0 skipped/cancelled. The final workflow test's
+blanket /slice-host|slice-pwa|rebuild\// assertion rejects the approved preview
+prefix exclusions/comment. Logs retained ignored under .tmp/guard-ci-fix/.
+Changed only rebuild/slice/pwa/test/workflow.test.cjs, plus this report.
+The existing separation test retains its slice code/path and soak assertions;
+only its overbroad frozen-pipeline prohibition is replaced. All other original
+A5 tests are retained, and two focused mutation tests are added.
+
+The successor parses actual deploy.yml with yaml and rejects warnings/errors.
+Canonical parsed accepted7b1678a workflow, minus ONLY preview.if, is SHA256
+4abc65a2fb071ca130ecb8d5306704b82540370a956de8af5b87860a1e04095e.
+Every other parsed value must match: triggers, permissions, exact job inventory,
+test/production definitions, target selection, publish commands, dependencies
+and all preview steps. Comments and mapping-key order are not behavior; ordered
+arrays and all scalar/script bytes are retained. The pinned digest needs no
+Git history or network at test execution, including shallow CI checkouts.
+Independently reconstructed the digest from actual accepted Git bytes locally;
+parsed current protected values equal that reference exactly.
+
+A small closed condition reader supports only the existing && / == / != /
+negated startsWith clauses, refuses other syntax, and compares strings without
+case distinction.12 branch cases x3 events x4 dependency outcomes=144 scenarios,
+checking preview and production in each, plus real PR merge-ref checks. Cases
+include main/case variants, both excluded prefixes, ordinary feature/codex,
+prefix near-misses, push/PR/dispatch, successful/failed/skipped/cancelled tests.
+Main production and ordinary-feature preview survive only their original gates;
+rebuild/** and codex/astra- preview refuse. Parsed unchanged top-level triggers
+and unconditional test job preserve normal PR/test behavior. This is a bounded
+local semantics check, not GitHub's interpreter, actionlint or remote execution.
+
+(2) EXECUTED GREEN / MUTATIONS
+Existing Node24.19.0 and root lockfile dependencies via ignored junction;
+no install. Exact command: node --test --test-reporter=tap
+rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs.
+45 pass,0 fail,0 skipped,0 cancelled, exit0.35 PWA plus10 workflow tests.
+The two added tests mutate real parsed workflow copies, serialize actual YAML,
+then invoke the same production guard assertion. Seven real mutations refuse:
+- remove rebuild exclusion;
+- remove Astra exclusion;
+- change production API deployment target;
+- remove production's test dependency;
+- remove a test-job step;
+- add a slice publication step to preview;
+- add a separate slice-publish workflow job.
+All mutate actual existing values or add concrete executable job/step values;
+no stdout/verdict substitution. Candidate workflows on disk are never mutated.
+
+(3) HANDOFF / LIMITS
+git diff --check PASS. Actual workflows, ledger, brief, source-policy/runner,
+product/host/frozen app and first-use lifecycle tests remain untouched. Source
+before/after guard semantics reuse independentce52f0a; this is its precise A5
+assertion successor, not permission to change any protected workflow behavior.
+Root must arrange distinct independent review, then explicitly update PR51
+and obtain actual required CI. No pass-count wrapper or workflow pin changed;
+any separately pinned caller remains its own exact integration obligation.
+No full engine/private campaign, fixture/secret access, dependency install,
+lock churn, other worktree edit, push, new PR, remote merge, deploy or soak.
