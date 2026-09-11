@@ -7,7 +7,8 @@
 # Now:
 #   test      runs on every push and every PR, on every branch
 #   deploy    production — only from main, and only after test is green
-#   preview   any other branch gets a Netlify draft URL, never production
+#   preview   non-main, non-rebuild branches get a frozen-app Netlify draft URL
+#             rebuilt-app hosting uses the separate slice-host.yml workflow
 #
 # Still a direct zip deploy from GitHub's runners rather than a Netlify build:
 # no build minutes, no credit latch, no stopped-builds state. The Netlify token
@@ -157,7 +158,7 @@ jobs:
   preview:
     name: preview
     needs: test
-    if: github.ref != 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref != 'refs/heads/main' && github.event_name != 'pull_request' && !startsWith(github.ref, 'refs/heads/rebuild/') && !startsWith(github.ref, 'refs/heads/codex/astra-')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
