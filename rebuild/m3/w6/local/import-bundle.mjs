@@ -310,8 +310,34 @@ export const importSummaries = generation => importEntries(generation).map(entry
   name: entry.name, sourceSha256: entry.sourceSha256, migratedSha256: entry.migratedSha256,
   schemaV: entry.schemaV ?? null, engineSha256: entry.engineSha256 ?? null,
   oracleVerdict: entry.oracleVerdict ?? null, createdAt: entry.createdAt ?? null,
+  localSha256: entry.localSha256 ?? null,
   importedAt: entry.importedAt, opsBasisAtImport: clone(entry.opsBasisAtImport ?? null),
   rebaseRequired: entry.rebaseRequired === true, rebasedAt: entry.rebasedAt ?? null }));
+
+// WHAT MAKES TWO IMPORTS THE SAME IMPORT. Review round 2 (R2-1): this used to be
+// sourceSha256 alone, and that is not an identity. A re-port of the SAME ledger
+// with --local keeps source.sha256 (the --source file did not change) and moves
+// migrated.sha256 (the merge produced a different candidate) — and, because the
+// default name derives from the source hash, it lands on the SAME NAME. So the
+// committed-entry check answered LOCAL_IMPORT_ALREADY_PRESENT and the richer
+// merged history was silently not adopted: a refusal dressed as reassurance,
+// which is the worst shape a refusal can have.
+//
+// The identity is now the same tuple keepOriginal compares through
+// engineContextJson, so the committed path and the custody path agree about what
+// "a different bundle" means instead of disagreeing at the two ends of one
+// import. `?? null` on the entry side keeps an entry written before this change
+// reading as the same import when the bundle really is the same one.
+const IMPORT_IDENTITY = ["sourceSha256", "migratedSha256", "engineSha256", "createdAt",
+  "oracleVerdict", "schemaV", "localSha256"];
+export const importIdentityOf = payload => ({ sourceSha256: payload.source.sha256,
+  migratedSha256: payload.migrated.sha256, engineSha256: payload.engine.sha256,
+  createdAt: payload.createdAt, oracleVerdict: payload.oracle.verdict,
+  schemaV: payload.engine.schemaV, localSha256: payload.local ? payload.local.sha256 : null });
+export function sameImport(entry, payload) {
+  const identity = importIdentityOf(payload);
+  return IMPORT_IDENTITY.every(field => (entry?.[field] ?? null) === identity[field]);
+}
 
 // WHY THIS IS A STICKY FLAG AND NOT AN INFERENCE. The obvious cheap rule — mark
 // it while the sidecar is stale — is WRONG, and wrong in the dangerous
@@ -409,7 +435,10 @@ function importEntryFor({ payload, name, basis, importedAt, rebaseRequired }) {
   return { profile: LOCAL_IMPORT_PROFILE, name, sourceSha256: payload.source.sha256,
     migratedSha256: payload.migrated.sha256, schemaV: payload.engine.schemaV,
     engineSha256: payload.engine.sha256, oracleVerdict: payload.oracle.verdict,
-    createdAt: payload.createdAt, importedAt,
+    createdAt: payload.createdAt,
+    // Recorded so imports() can say a MERGED port landed here, and so the
+    // committed identity covers the same ground as the custody one.
+    localSha256: payload.local ? payload.local.sha256 : null, importedAt,
     opsBasisAtImport: { opCount: basis.opCount, lastOpId: basis.lastOpId },
     rebaseRequired, rebasedAt: null };
 }
@@ -462,13 +491,14 @@ async function runImport(scope, { bundleBytes, passphrase, name } = {}) {
       // custody's own rule and the entry is history. Checked before staging, so
       // a second import writes nothing at all.
       //
-      // But "same name" is not "same file". The default name is derived from the
-      // source hash, so a repeat under it really is the same bundle — a CHOSEN
-      // name is not, and answering ALREADY_PRESENT to a different ledger offered
-      // under a taken name would tell Joe the wrong thing in the one case where
-      // it matters. So the recorded source hash decides, not the name.
+      // But "same name" is not "same file", and — review round 2 — "same source"
+      // is not "same bundle" either. A re-port of the same ledger WITH --local
+      // keeps the source hash, moves the migrated hash, and lands on the same
+      // derived name. sameImport() compares the whole recorded identity, so that
+      // case is a refusal a host can act on rather than an ALREADY_PRESENT that
+      // quietly declines to adopt the richer history.
       if (already) {
-        if (already.sourceSha256 !== opened.payload.source.sha256)
+        if (!sameImport(already, opened.payload))
           return refused({ code: "LOCAL_IMPORT_NAME_TAKEN", state: 3 },
             { name: chosen, durableRevision: snapshot.revision });
         return existingResult(already, snapshot.revision);

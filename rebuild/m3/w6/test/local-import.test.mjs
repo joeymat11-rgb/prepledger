@@ -19,7 +19,8 @@ import { IDBFactory } from "fake-indexeddb";
 import { faultDatabase, deferred } from "./support.mjs";
 import { openLocalDurableClient, DERIVED, opsBasis } from "../local/local-client.mjs";
 import { unsealBundle, qualifyBundle, importBundle, listImports, importOriginal, markImportRebased,
-  importNameFor, importSummaries, importRebasePending, importRebaseCode, base64ToBytes,
+  importNameFor, importSummaries, importRebasePending, importRebaseCode,
+  importIdentityOf, sameImport, base64ToBytes,
   bytesToBase64, sha256Hex, BUNDLE_PROFILE, KDF, CIPHER, TAG_BYTES, BUNDLE_FAILURE,
   PAYLOAD_FAILURE, NOT_QUALIFIED, ORACLE_PASS, LOCAL_IMPORT_PROFILE,
   IMPORT_REBASE_CODE } from "../local/import-bundle.mjs";
@@ -33,9 +34,9 @@ const PORT = path.join(REPO, "rebuild/m3/setup/port/port.cjs");
 // --- ONE REAL BUNDLE, SEALED BY port.cjs, PRODUCED ONCE ----------------------
 // --out must be outside every git working tree and may carry no `rebuild`
 // segment (C2's own guard), so the OS temp folder is the only place this can go.
-function sealRealBundle() {
+function sealRealBundle(extraArgs = []) {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), "w6-c2b-"));
-  const run = spawnSync(process.execPath, [PORT, "--source", FIXTURE, "--out", out],
+  const run = spawnSync(process.execPath, [PORT, "--source", FIXTURE, ...extraArgs, "--out", out],
     { cwd: REPO, encoding: "utf8", timeout: 600000 });
   if (run.status !== 0) {
     throw new Error(`port.cjs did not seal a bundle (status ${run.status}). ` +
@@ -49,11 +50,35 @@ function sealRealBundle() {
     passphrase: fs.readFileSync(path.join(out, passName), "utf8").trim(), stdout: run.stdout };
 }
 const REAL = sealRealBundle();
-process.on("exit", () => { try { fs.rmSync(REAL.out, { recursive: true, force: true }); } catch {} });
 const SOURCE_BYTES = new Uint8Array(fs.readFileSync(FIXTURE));
 
+// A SECOND real bundle: the SAME --source, re-ported WITH --local. This is the
+// review-round-2 scenario, and it is produced by the CLI rather than simulated,
+// because the whole point is that port.cjs can make two different bundles that
+// collide on the default name. The local file is the fixture plus one read the
+// source does not have (the shape port.cjs's own suite uses), written to the OS
+// temp folder — rebuild/conform/ is frozen and is never written to here.
+function sealLocalPairBundle() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "w6-c2b-localsrc-"));
+  const state = JSON.parse(Buffer.from(SOURCE_BYTES).toString("utf8"));
+  state.reads = state.reads.concat([{ d: "2029-12-02", w: 181, note: "SYNTHETIC local-only", sealed: false }]);
+  const file = path.join(dir, "local.json");
+  fs.writeFileSync(file, Buffer.from(JSON.stringify(state), "utf8"));
+  const localSha = sha(fs.readFileSync(file));
+  const sealedPair = sealRealBundle(["--local", file, "--local-confirm", localSha.slice(0, 8)]);
+  return { ...sealedPair, srcDir: dir, localSha };
+}
+const PAIR = sealLocalPairBundle();
+process.on("exit", () => {
+  for (const dir of [REAL.out, PAIR.out, PAIR.srcDir]) {
+    try { fs.rmSync(dir, { recursive: true, force: true }); } catch {}
+  }
+});
+
 // --- helpers -----------------------------------------------------------------
-const sha = bytes => createHash("sha256").update(bytes).digest("hex");
+// A declaration, not a const: sealLocalPairBundle() above runs at module load
+// and needs it hoisted.
+function sha(bytes) { return createHash("sha256").update(bytes).digest("hex"); }
 const envelopeOf = bytes => JSON.parse(Buffer.from(bytes).toString("utf8"));
 const bytesOf = envelope => new Uint8Array(Buffer.from(JSON.stringify(envelope, null, 1) + "\n", "utf8"));
 // Re-seal a chosen payload with port.cjs's own parameters. Test-side only: it
@@ -234,7 +259,7 @@ test("import on a fresh enrolled phone seeds derived, keeps the original, and su
   assert.deepEqual(booted.imports[0], { name: result.name, sourceSha256: opened.payload.source.sha256,
     migratedSha256: opened.payload.migrated.sha256, schemaV: opened.payload.engine.schemaV,
     engineSha256: opened.payload.engine.sha256, oracleVerdict: "PASS",
-    createdAt: opened.payload.createdAt, importedAt: AT,
+    createdAt: opened.payload.createdAt, localSha256: null, importedAt: AT,
     opsBasisAtImport: { opCount: 0, lastOpId: null }, rebaseRequired: false, rebasedAt: null });
   assert.deepEqual(await client.imports(), booted.imports);
   client.close();
@@ -704,5 +729,93 @@ test("a stranded custody record from a different seal is never reused, but the s
   assert.equal(entry.createdAt, reused.context.createdAt);
   assert.equal(entry.oracleVerdict, reused.context.oracle.verdict);
   assert.equal(entry.migratedSha256, reused.context.migratedSha256);
+  client.close();
+});
+
+// --- REVIEW ROUND 2 (R2-1) — "same source" is not "same bundle" --------------
+
+test("the --local re-port is a REAL second bundle that collides on the default name", async () => {
+  // Not simulated: both bundles came from port.cjs in this run. The arithmetic
+  // the defect turns on is asserted rather than argued — --source did not
+  // change, so source.sha256 and therefore the derived name are identical;
+  // --local merged a read the source lacks, so migrated.sha256 moved.
+  const plain = await unsealBundle(REAL.bytes, REAL.passphrase, { crypto: webcrypto });
+  const merged = await unsealBundle(PAIR.bytes, PAIR.passphrase, { crypto: webcrypto });
+  assert.equal(merged.payload.source.sha256, plain.payload.source.sha256, "same --source file");
+  assert.deepEqual(merged.sourceBytes, SOURCE_BYTES);
+  assert.notEqual(merged.payload.migrated.sha256, plain.payload.migrated.sha256, "the merge moved it");
+  assert.equal(importNameFor(merged.payload.source.sha256), importNameFor(plain.payload.source.sha256),
+    "and both land on the SAME default name");
+  // The --local half is real too: port.cjs recorded the second original.
+  assert.equal(merged.payload.local.sha256, PAIR.localSha);
+  assert.notEqual(merged.localBytes, null);
+  assert.equal(await sha256Hex(webcrypto, merged.localBytes), PAIR.localSha);
+  assert.equal(merged.payload.local.relatedness.related, true);
+  assert.equal(merged.qualification, null, "it qualifies, so D1 does not answer first");
+  // sameImport is what now separates them, and sourceSha256 alone does not.
+  assert.equal(plain.payload.source.sha256, merged.payload.source.sha256);
+  assert.equal(sameImport(importIdentityOf(plain.payload), merged.payload), false);
+  assert.equal(sameImport(importIdentityOf(plain.payload), plain.payload), true);
+  assert.equal(sameImport(importIdentityOf(merged.payload), merged.payload), true);
+  // An entry written before localSha256 existed still reads as the same import
+  // when the bundle really is the same one.
+  const legacy = { ...importIdentityOf(plain.payload) };
+  delete legacy.localSha256;
+  assert.equal(sameImport(legacy, plain.payload), true);
+});
+
+test("re-porting the same ledger WITH --local is refused, not answered ALREADY_PRESENT", async () => {
+  const indexedDB = new IDBFactory();
+  const client = await ready(indexedDB);
+  const plain = await unsealBundle(REAL.bytes, REAL.passphrase, { crypto: webcrypto });
+  const merged = await unsealBundle(PAIR.bytes, PAIR.passphrase, { crypto: webcrypto });
+  const name = importNameFor(plain.payload.source.sha256);
+
+  const first = await client.importBundle(IMPORT);
+  assert.equal(first.imported, true);
+  assert.equal(first.name, name);
+  const settled = await activeRevision(indexedDB);
+
+  // THE DEFECT. Same source hash, same derived name, DIFFERENT migrated state.
+  // Answering ALREADY_PRESENT here would decline to adopt the richer merged
+  // history while telling Joe his port was already done — a refusal dressed as
+  // reassurance. It must be a refusal he can act on.
+  const collided = await client.importBundle({ bundleBytes: PAIR.bytes, passphrase: PAIR.passphrase });
+  assert.equal(collided.imported, false);
+  assert.equal(collided.code, "LOCAL_IMPORT_NAME_TAKEN");
+  assert.equal(collided.name, name);
+  assert.equal(await activeRevision(indexedDB), settled, "and it wrote nothing");
+  const entries = await client.imports();
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].migratedSha256, plain.payload.migrated.sha256, "still the plain port");
+  assert.equal(entries[0].localSha256, null);
+  assert.deepEqual((await client.importOriginal(name)).candidateBytes,
+    new TextEncoder().encode(plain.migratedJson), "the first original is untouched");
+
+  // The TRUE same-bundle re-import is still the reassuring answer.
+  const repeat = await client.importBundle(IMPORT);
+  assert.equal(repeat.imported, false);
+  assert.equal(repeat.code, "LOCAL_IMPORT_ALREADY_PRESENT");
+  assert.equal(await activeRevision(indexedDB), settled);
+
+  // And the merged port adopts cleanly under a name of its own — the refusal is
+  // about the collision, never about the bundle.
+  const adopted = await client.importBundle({ bundleBytes: PAIR.bytes, passphrase: PAIR.passphrase,
+    name: "port:merged-with-local" });
+  assert.equal(adopted.imported, true);
+  assert.equal(adopted.durableRevision, settled + 1);
+  const both = await client.imports();
+  assert.equal(both.length, 2);
+  assert.equal(both[1].migratedSha256, merged.payload.migrated.sha256);
+  assert.equal(both[1].localSha256, PAIR.localSha, "imports() says a MERGED port landed here");
+  assert.notEqual(both[1].migratedSha256, both[0].migratedSha256);
+  // The --local original rides custody too, byte-identical, alongside the source.
+  const kept = await client.importOriginal("port:merged-with-local");
+  assert.deepEqual(kept.sourceBytes, SOURCE_BYTES);
+  assert.notEqual(kept.localBytes, null);
+  assert.equal(sha(Buffer.from(kept.localBytes)), PAIR.localSha);
+  assert.equal(kept.context.local.sha256, PAIR.localSha);
+  // Zero ops throughout, so the cache is seeded and it is the MERGED state.
+  assert.deepEqual((await client.boot()).derived, merged.payload.migrated.state);
   client.close();
 });

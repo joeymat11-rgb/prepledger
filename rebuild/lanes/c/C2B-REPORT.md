@@ -30,6 +30,33 @@ changed:
 * **C3 — residual 8 says what the two defects cost.** Both were invariants that
   no assertion covered; four new cases cover them now.
 
+**ROUND 2 — FINAL VERDICT ACCEPT at `f2aed42`, with one non-blocking follow-up,
+closed here.**
+
+* **R2-1 — "same source" is not "same bundle".** `runImport`'s committed-entry
+  check compared `sourceSha256` alone. A re-port of the SAME ledger **with
+  `--local`** keeps that hash (the `--source` file did not change), moves
+  `migratedSha256` (the merge produced a different candidate) and lands on the
+  SAME derived name — so it answered `LOCAL_IMPORT_ALREADY_PRESENT` and the
+  richer merged history was silently not adopted. A refusal dressed as
+  reassurance, which is the worst shape a refusal can have. `sameImport()` now
+  compares the whole recorded identity — `sourceSha256`, `migratedSha256`,
+  `engineSha256`, `createdAt`, `oracleVerdict`, `schemaV`, `localSha256` — which
+  is the same ground `keepOriginal` covers through `engineContextJson`, so the
+  committed path and the custody path finally agree about what "a different
+  bundle" means. A true same-bundle re-import is still `ALREADY_PRESENT`.
+  `localSha256` is new on the entry, so `imports()` can also say a MERGED port
+  landed here; an entry written before it existed reads as `null` and still
+  matches a non-`--local` bundle.
+
+  **Both bundles in the test come from `port.cjs` in the run**, not from a
+  resealed synthetic — the arithmetic the defect turns on is the CLI's, so the
+  CLI produces it: `source.sha256` `b5eb62d4…a499` on both, `migrated.sha256`
+  `de3fa6fc…0795` plain vs `d41a215f…4ae0` merged, one derived name
+  `port:b5eb62d459d6e58b`. That second seal also gives the `local` payload
+  branch (decode, hash-check, custody round-trip of the second original) its
+  first end-to-end coverage.
+
 Nothing above or below this note is retracted. The review reproduced every
 number in the first version exactly, and it also attacked the seal harder than
 this suite does — 15 byte flips including the tag region, six passphrase
@@ -66,24 +93,26 @@ contract, `port.cjs` is spawned as the sealer, neither is modified.
 
 ## WHAT WAS BUILT
 
-Hashes are as of the review round; the first-round values the review verified
-are in its own FILES REVIEWED table, and the two files it did not cause a change
-in (`local-import-browser.mjs`, `local-client.mjs`) still carry them.
+Hashes are as of review round 2. The values the review verified at `ab52e30` are
+in its own FILES REVIEWED table, and the two files neither round changed
+(`local-import-browser.mjs`, `local-client.mjs`) still carry them.
 
 | file | sha256 | lines | bytes |
 |---|---|---|---|
-| `rebuild/m3/w6/local/import-bundle.mjs` (new) | `6c3cf6ed630bc5f38ad3cef12c901408fe0d0f05267659b7440d4ab7f48ae24e` | 575 | 35734 |
-| `rebuild/m3/w6/test/local-import.test.mjs` (new) | `0ffe0740baf2710b8c2ae75fa5f59af3affbef1aca91436c0609af309a670a48` | 708 | 43501 |
+| `rebuild/m3/w6/local/import-bundle.mjs` (new) | `5db842a96a94db7df91b4eaec28c82522e4aa50edc1d3b19607bf1200b4d2b54` | 605 | 37665 |
+| `rebuild/m3/w6/test/local-import.test.mjs` (new) | `f7ea519ac46b19a4b58792ac69515f076f3ceeb20365b7bccd28ebb36ab2ac95` | 821 | 50121 |
 | `rebuild/m3/w6/test/local-import-browser.mjs` (new) | `226f92c1458b6c514b28dc6a30043c039a8d598e565332a3d41260d45f12cab1` | 254 | 13762 |
 | `rebuild/m3/w6/local/local-client.mjs` (edited, additive) | `3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899` | 416 | 26390 |
-| `rebuild/m3/w6/local/browser-entry.mjs` (edited, additive) | `c672a3302ed71cf70ab60f9018173186e0208bfe9757113cc66918919e41b145` | 19 | 1465 |
+| `rebuild/m3/w6/local/browser-entry.mjs` (edited, additive) | `3b0d4d02abaca46989f3347d5982d3343efa1a2833ba603ee84c3487ad0c9c87` | 20 | 1497 |
 
 All five are LF-only (checked byte-wise: `CR=0`) and end with a newline, so
 `.gitattributes` cannot rewrite them and the hashes above are the committed blob
 bytes under `core.autocrlf=false`.
 
 **The edit to `local-client.mjs` is 26 added lines and ONE changed line.**
-`git diff --stat` is `32 insertions(+), 1 deletion(-)` across both edited files.
+`git diff --stat c90d207` is `33 insertions(+), 1 deletion(-)` across both edited
+files (`local-client.mjs` 26/1, `browser-entry.mjs` 8/0 — one re-export block,
+grown across the two review rounds).
 The single changed line is `boot()`'s sidecar report, which used to read
 
 ```js
@@ -339,10 +368,19 @@ source, so a repeat is a no-op BY CONSTRUCTION — checked before staging, so a
 second import writes nothing at all and reports
 `{imported: false, code: "LOCAL_IMPORT_ALREADY_PRESENT", …}` with the recorded
 basis. But **"same name" is not "same file"**: a caller may pass its own `name`.
-So the recorded `sourceSha256` decides, and a different bundle under a taken
-name is `LOCAL_IMPORT_NAME_TAKEN`, refused before staging, rather than the
-reassuring ALREADY_PRESENT. That was found by a test I wrote expecting the
-opposite result, and the module was changed rather than the assertion.
+**And review round 2 added the other half: "same source" is not "same bundle"
+either.** A re-port of the same ledger with `--local` keeps the source hash,
+moves the migrated hash, and lands on the same DERIVED name — so a check on
+`sourceSha256` alone answered ALREADY_PRESENT and declined to adopt the merged
+history. `sameImport()` now compares the whole recorded identity
+(`sourceSha256`, `migratedSha256`, `engineSha256`, `createdAt`, `oracleVerdict`,
+`schemaV`, `localSha256`), which is exactly the ground `keepOriginal` covers
+through `engineContextJson` — one definition of "a different bundle" at both
+ends of an import instead of two. A different bundle under a taken name is
+`LOCAL_IMPORT_NAME_TAKEN`, refused before staging; a true re-import of the same
+bundle is still ALREADY_PRESENT. The first half was found by a test I wrote
+expecting the opposite result, and the module was changed rather than the
+assertion; the second half was found by the independent review.
 
 ---
 
@@ -357,8 +395,8 @@ No install of any kind was run.
 
 | command | before C2b | after C2b |
 |---|---|---|
-| `NODE --test rebuild/m3/w6/test/*.test.mjs` | `tests 473 · pass 473 · fail 0 · skipped 0` | **`tests 493 · pass 493 · fail 0 · skipped 0`**, exit 0 — the 473 unchanged plus 20 new |
-| `NODE --test rebuild/m3/w6/test/local-import.test.mjs` | — | `tests 20 · pass 20 · fail 0 · skipped 0`, exit 0 |
+| `NODE --test rebuild/m3/w6/test/*.test.mjs` | `tests 473 · pass 473 · fail 0 · skipped 0` | **`tests 495 · pass 495 · fail 0 · skipped 0`**, exit 0 — the 473 unchanged plus 22 new |
+| `NODE --test rebuild/m3/w6/test/local-import.test.mjs` | — | `tests 22 · pass 22 · fail 0 · skipped 0`, exit 0, 8.2 s (two real `port.cjs` seals, each running the frozen gate twice) |
 | `NODE rebuild/m3/w6/test/local-bite.cjs` | RESTORED PASS | **RESTORED PASS**, exit 0 — all four bites still RED (durability-gate, stage-basis, sidecar-self-heal, lease-self-renewal); source `3bf8c01d…0899` before and after (the hash moved from C1's `a055c623…14ea9` because `local-client.mjs` was edited) |
 | `NODE rebuild/m3/w6/build-browser.mjs` | `w6.js` `b733c830…3143d`, meta `ffe65850…9b00c` | **byte-identical**: `b733c830…3143d` / `ffe65850…9b00c`, exit 0 |
 | `NODE rebuild/m3/w6/local/build.mjs` | `36` / `96` pinned inputs | `38` / `97` pinned inputs, exit 0; `local.js` `a0efa4887ce5088ad6b64cfe67b23c226a31c7f1cb07b3235c54d08fa026e5a8`, `host.js` `fbcab6424bd7f42e2ca2058409ce6796762dd4efe13ce816f4f06650923796c7` — both moved because the entry now carries `import-bundle.mjs` (+ `strict-json.mjs`, already in the host bundle, hence +1 there and +2 here) |
@@ -374,7 +412,7 @@ than passing silently if `playwright-core` or `W6_BROWSER_BIN` is missing.
 `$env:W6_BROWSER_BIN` was
 `C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`.
 
-### The 20 node cases, by what each proves
+### The 22 node cases, by what each proves
 
 1. **Seal compat.** A bundle sealed by the real `port.cjs` this run opens under
    `crypto.subtle`, and its payload deep-equals `unseal.cjs`'s. The five sealing
@@ -450,6 +488,21 @@ than passing silently if `playwright-core` or `W6_BROWSER_BIN` is missing.
     record (its checkpoint is still the original one), and the two durable
     records are asserted to agree on engine sha, verdict, `createdAt` and
     migrated hash.
+21. **REVIEW R2-1 — the `--local` re-port is a REAL second bundle that collides
+    on the default name.** Both bundles come from `port.cjs` in this run: same
+    `source.sha256`, different `migrated.sha256`, one derived name — asserted,
+    not argued. The `--local` half is real too (`local.sha256` matches the file,
+    `localBytes` hash-check, `relatedness.related` true), it qualifies so D1 does
+    not answer first, and `sameImport` separates the two where `sourceSha256`
+    alone does not — including that an entry written before `localSha256` existed
+    still matches a non-`--local` bundle.
+22. **REVIEW R2-1 — the re-port is REFUSED, not answered ALREADY_PRESENT.**
+    `LOCAL_IMPORT_NAME_TAKEN` with nothing written, one entry still holding the
+    plain port's migrated hash, and the first original untouched. The true
+    same-bundle re-import is still `ALREADY_PRESENT`. The merged port then
+    adopts cleanly under its own name: two entries, the second carrying the
+    merged migrated hash and `localSha256`, BOTH originals in custody
+    byte-identical, and the seeded cache is the MERGED state.
 
 ### The 7 browser cases (`local-import-browser.mjs`, real Edge, fresh profile)
 
@@ -650,8 +703,9 @@ as bytes from the same origin rather than pasted into a JS literal.
 
 ## STATUS
 
-C2b is built, and the independent review's two conditions (D1 the oracle/dataLoss
-gate, D2 the custody provenance comparison) are closed in one follow-up commit
-with four new cases covering both. Suite 493/493 with 0 skipped, four browser
-runners green on real Edge, the C1 bite still RED-and-restored, `w6.js`
-byte-identical. Nothing was pushed.
+C2b is built. The independent review's round-1 conditions (D1 the
+oracle/dataLoss gate, D2 the custody provenance comparison) and its round-2
+follow-up (R2-1, the `--local` re-port identity) are all closed, in two
+follow-up commits, with six new cases covering them. Suite 495/495 with 0
+skipped, four browser runners green on real Edge, the C1 bite still
+RED-and-restored, `w6.js` byte-identical. Nothing was pushed.
