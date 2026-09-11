@@ -1,0 +1,99 @@
+OWNER WORKOUT NAVIGATION — INDEPENDENT REVIEW
+September 11, 2026. Verdict: ACCEPT the bounded navigation delta.
+Candidate a157d3dca009205b0e796f9a73f97e10256a0d83;
+product/tests ff7c113f9566f2e1334bab63e406c79f36d52b82;
+base d450ee70891bfe7cfb253eb97f5a73821b7eabca.
+Reviewer authored qualification tooling only, neither this product nor owner
+entry. No tooling qualification is self-reviewed or accepted by this report.
+Review branch: codex/astra-owner-workout-navigation-review.
+Assignment: PM ASTRA-OWNER-WORKOUT-NAVIGATION-REVIEW.md at c161b1a.
+
+Scope inspected
+Read NEXT, ROADMAP, the product/review briefs, full builder report, all six
+changed files and adjacent renderer, entry and gym state/prepare/finish code.
+The only product changes are today-app.cjs and screens.template.html.
+The native type=button with existing link styling follows actual ready,
+finished or relevant blocked state while weight owns the primary action.
+It opens the existing gym path, whose prepare/refusal and Start controls stay
+unchanged. No engine/host/setup/prescription/clock rule is changed. Saved and
+complete join active in the existing Resume/in-progress interpretation;
+only a real closed session receives Review/recorded treatment. Unfinished
+retains its explicit close path. Rest/no session gets no new Start. Untrusted
+renderer removes the button; actual damaged owner boot refuses before mounting.
+
+Executed evidence
+Existing Node24.19.0, installed Chrome and root/W6/W5 dependency junctions.
+No install or private fixture. Exact focused command:
+node --test --test-reporter=tap
+  rebuild/m3/w7-preview/today/test/view.test.mjs
+  rebuild/m3/w7-preview/today/test/design.test.cjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+58 pass, 0 fail, 0 cancelled, 0 skipped. Covers the new eight view cells and
+real owner rest-day cell, alongside original refusal/lifecycle/design checks.
+
+Exact committed local-owner-workout-navigation-browser.mjs, existing Chrome,
+NODE_PATH=W6 dependencies: OWNER WORKOUT NAVIGATION BROWSER PASS, exit0.
+It builds the real source and boots actual owner mode/current browser calendar
+from persisted public synthetic enrollment. No model/day/basis injection or
+app.render navigation. Public boot is read again to expose observation handles;
+navigation itself uses visible controls and native keyboard Enter. It cancels
+weight, starts training, saves40x10 before any reading, returns to Today and
+resumes, saves another40x10, explicitly finishes/reviews, then logs170.5 and
+reloads. Its repository polling awaits new exact IDs/values. Both full saved
+Set records survive reload; exact final five operations comprise one Start,
+two Sets, one Close and one reading. No duplicate Start/Set or page error.
+
+Independent source-before negative
+In this isolated review tree only, temporarily restored the two product files
+from d450ee7 while retaining the candidate browser test. The actual rebuilt
+browser fails exit1 with the precise assertion: visible training action without
+submitting a weight, expected1/actual0. Both product files were restored byte
+exact in finally; tracked status was clean. This proves the visible regression
+detects the original defect, not only the author's chosen success label.
+Ignored .tmp/reviewer-source-before.cjs SHA256:
+cfe53ce1fd873237a0157b37bf3cbb0fb08913cc7bd791d8448ee7bfaa2ff2eb.
+
+Independent omitted-boundary browser continuation
+Extended the committed browser probe in an ignored review-only copy, retaining
+its real visible save flow. After BOTH sets, Back to Today offers Resume, no
+Review and no Close operation. Ordinary page reload retains Resume and exactly
+the original three records (Start and both full Sets). Clicking Resume reaches
+the real Finish action; only explicit Finish closes it. Remaining original
+review/weight/reload assertions still pass. Then deliberately damaged only this
+synthetic browser store's operation collection through its repository, closed
+the handle and reloaded: Restore required appears with zero phone buttons and
+no workout-action. Output INDEPENDENT UNCLOSED RELOAD AND DAMAGED OWNER STORE
+PASS plus original browser terminal, exit0. No product hooks or source edits.
+Ignored .tmp/reviewer-navigation.mjs SHA256:
+f0be87dd2a96db9f12af739a3367683491fcb3d76c8470e1a036417a998e90d1.
+
+Layout and accessibility
+Inspected actual full-page screenshot from the390x844 browser viewport:
+.tmp/owner-browser/navigation-ready.png SHA256
+c4f88bb70379ea57d595587ae3c46f53ed0bc5a1802903691c36135c90a57370.
+Workout link sits beside UPPER, visible inside the phone before weight entry;
+one large primary remains Log your weight. Native button focus/Enter succeeds.
+Paper/ink typography, separators and link vocabulary remain consistent. Top and
+bottom development review text are outside phone content. Full-page screenshot
+and desktop Chromium are not a physical iPhone, installed PWA or phone verdict.
+
+Qualifier handoff (no pins changed in this review)
+Changed source: today/today-app.cjs and today/screens.template.html.
+Changed tests: today/test/view.test.mjs adds8; w6/test/local-owner-entry.test.mjs
+adds1 actual rest case. New actual browser source:
+rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs (108 lines).
+Final qualifier must include these exact source/test/build imports and current
+test counts. Existing owner-entry/calendar66 accounting is expected to become67
+with the new rest test; final qualifier must verify by actual execution. The older b-ntc-journeys wrapper still hard-codes237 while it
+executes changed view.test and local-today-journey; execute its actual vector
+and refresh exact count/terminal/declaration mechanically (do not retain stale
+237 or turn equality into a lower bound). No new campaign is implied here.
+
+No blocking issue found within this two-file behavior change. ACCEPT applies
+only to this scoped navigation source, not the unqualified package. Root PM
+acceptance and distinct integration remain separate. Setup/native-baseline,
+midnight and prior component evidence is reused for unchanged code; full,
+private, both-OS CI, final policy/receipt and physical-phone gates remain.
+No product fix, integration merge, source repin, policy/tooling/law edit,
+install, private access, push or deploy. git diff --check clean; only this
+one review report committed. All temporary product changes were restored.
