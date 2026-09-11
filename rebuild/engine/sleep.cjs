@@ -220,12 +220,13 @@ function liftCall(s, exId, opts = {}) {
 }
 
 // DECISIONS:110 evidence presence; both dates preserve D21's two-anchor contract.
+const hasSleepHours = n => typeof n.h === 'number' && Number.isFinite(n.h);
 function missingCurrentSleepEvidence(s) {
   const today9 = isoOf(todayStart()), yesterday9 = plusDays(today9, -1);
   const currentNights9 = nightsBefore(s, plusDays(today9, 1));
   const last9 = currentNights9[currentNights9.length - 1];
   const hasCurrentSleep9 = currentNights9.some(n => (n.d === yesterday9 || n.d === today9)
-    && typeof n.h === 'number' && Number.isFinite(n.h));
+    && hasSleepHours(n));
   return hasCurrentSleep9 ? null : { state: 'UNKNOWN', expectedDate: yesterday9, lastDate: last9 ? last9.d : null };
 }
 
@@ -252,7 +253,8 @@ function recoveryIndex(s) {
   const add = (k, receipt, fix, cost) => flags.push({ k, receipt, fix, cost });
   const slp = sleepInfo(s);
   if (!slp.clean) add("sleep", `sleep reset — ${slp.run} of ${s.sleep.needed} clean nights`, `${s.sleep.needed - slp.run} more night${s.sleep.needed - slp.run === 1 ? "" : "s"} at ${s.sleep.cleanH} h or better, back to back`, Math.min(3, s.sleep.needed - slp.run) * 10);
-  const last5 = s.sleep.nights.slice(-5).map((n) => n.h);
+  const last5Rows = s.sleep.nights.slice(-5);
+  const last5 = last5Rows.every(hasSleepHours) ? last5Rows.map((n) => n.h) : [];
   /* two decimals, because 6.96 rounded to one reads "7.0 h — under 7" and looks
      like the app cannot do arithmetic. A receipt that looks wrong is not a receipt. */
   if (last5.length === 5 && last5.reduce((a, b) => a + b, 0) / 5 < 7) add("avg5", `five-night average is ${(last5.reduce((a, b) => a + b, 0) / 5).toFixed(2)} h — under 7`, "this one is chronic, not last night — it needs a week of earlier lights-out, not one long lie-in", 10);
@@ -1036,7 +1038,7 @@ function nightsBefore(s, iso) {
 
 // Copied from frozen src/app.jsx @ fe516c1:6997-7010.
 function cleanAtDate(s, iso) {
-  const nights = nightsBefore(s, iso);
+  const nights = nightsBefore(s, iso).filter(hasSleepHours);
   if (!nights.length) return true;
   const last = nights[nights.length - 1];
   if (last.d !== plusDays(iso, -1)) return true;   /* D8 — a night that is not LAST night carries no current restriction */
@@ -1053,7 +1055,7 @@ function cleanAtDate(s, iso) {
 
 // Copied from frozen src/app.jsx @ fe516c1:7016-7026.
 function sleepMean3At(s, iso) {
-  const nights = nightsBefore(s, iso);
+  const nights = nightsBefore(s, iso).filter(hasSleepHours);
   if (!nights.length) return true;
   if (nights[nights.length - 1].d !== plusDays(iso, -1)) return true; // D8: old debt is history, not a current sleep veto.
   const run = [nights[nights.length - 1]];
@@ -1071,7 +1073,7 @@ function atSleepTarget(s, iso) {
   let run = 0;
   for (let i = nights.length - 1; i >= 0; i--) {
     if (i < nights.length - 1 && Math.round((mk(nights[i + 1].d) - mk(nights[i].d)) / DAY) !== 1) break;
-    if (nights[i].h >= s.sleep.cleanH) run++; else break;
+    if (hasSleepHours(nights[i]) && nights[i].h >= s.sleep.cleanH) run++; else break;
   }
   return { run, at: run >= s.sleep.needed };
 }
