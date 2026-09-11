@@ -1,0 +1,105 @@
+FIRST-USE SETUP — INDEPENDENT SCOPED REVIEW
+September 11, 2026. Verdict: ACCEPT within the bounded first-use assignment.
+Candidate: 55063f89a553af777a702f218b47b649cc11bb9b
+Base: a157d3dca009205b0e796f9a73f97e10256a0d83
+Review branch/worktree: codex/astra-first-use-setup-review / astra-first-use-setup-review.
+FILE: ASTRA-FIRST-USE-SETUP-REVIEW.md at PM f0bc7f5.
+Reviewer did not author this setup form/enrollment controller. Prior independently
+accepted low-level setup, baseline and navigation evidence is reused, not reaccepted
+here. Root owns scoped feature acceptance/integration. No required correction found.
+
+(1) SOURCE / AUTHORITY
+Read NEXT/ROADMAP, original FILE, current catalogue disposition including attribution
+correction 87d8d4c, builder report and all eleven changed files. The actual owner page
+opens this form only after LOCAL_FIRST_RUN. Existing unconfigured authority remains
+setup-required, and damaged/partial authority remains restore-required. Enrollment
+delegates to the accepted public installation API. Only a probe proving first-run
+allows retry; confirmed/uncertain authority disables reenrollment. On success, Today
+reopens stored initialSetup rather than accepting the caller's object as its model.
+No identity/key/history initializer or hidden workout write occurs in the new form.
+
+The draft starts without exercises, schedule selections, quantities or priorities.
+Its displayed actual local date is editable and explicitly reviewed. Schedule and
+positive finite quantity/integer checks preserve the draft on error. Equipment list
+and optional arithmetic range come from the entered values. The final closed-schema
+constructor remains authoritative. Cancellation, edit/order controls, complete-routine
+confirmation and limitation text do not instruct users to omit a required exercise.
+
+The seven-id mapping matches the PM's expressly adopted limited families, not a
+claimed pre-existing general catalogue. Executed constructor/rest/INDIRECT test:
+press/rows/pulldown/curl/hack/extension/ham retain exact group/type, null initial loads,
+and rest150/150/150/90/150/90/90; exact secondary maps stay source-owned. No suffixes,
+inferred variants, numeric prescriptions, seed import, engine change or OWNER_CALLS
+activation appears in the delta. Priorities are recorded preferences, not implemented
+prescription effects, and the form says so.
+
+(2) EXECUTED TESTS / BUILT PAGE
+Existing Node24.19.0, retained dependencies through ignored junctions, installed
+Chrome; no install. setup.test.mjs plus design.test.cjs:24 pass,0 fail/skip. These
+execute actual storage precommit/retry, postcommit keys/marker, pending-marker
+duplicate-submit, post-save reopen failure, configured-controller refusal and damaged
+boot controls. Reused unchanged low-level44/109 and calendar/baseline evidence.
+
+Committed setup/browser-check.mjs ran against its actual build: PASS. Visible fresh
+setup/review/save, first40lb x10 set and normal close; exact stored setup/device and
+start/set/close collections survive reload. Setup alone creates no workout operation.
+Its inspection module opens enroll:false and reads authority; no test enrollment or
+operation fabrication. No page exceptions/off-origin requests. Actual build completes
+its existing forbidden-input/network checks; static design tests do not substitute
+for rendered-form assessment.
+
+Independent ignored .tmp/review-first-use.mjs, SHA256
+c6a77afb40be7d539fb9bc34b165b2523d24cf0b073fdc76ff1b9c37cbbe62a5:
+real built page, native controls,390x844, separate fresh browser contexts. All seven
+families entered explicitly; range10..20 at2.5 produces10/12.5/15/17.5/20. A duplicate
+press is refused with focus on Exercise. Integer1.5 error focuses Sets, retains the
+entry; Cancel keeps the previously saved2-set exercise. Move Leg curl earlier and
+select Chest/Hamstrings priorities; review contains all seven equipment lists, and
+Back through exercises/schedule preserves the name/routine. Final public readback
+matches exact order press/rows/pulldown/curl/hack/ham/extension and priorities. Reload
+preserves the same setup/device, shows no enrollment form, and setup writes no ops.
+
+Independent native IndexedDB put faults through the VISIBLE form:
+- generations/active failure before commit: review retained, save enabled, no active
+  generation; retry saves the entered setup and creates no workout operations.
+- keys/active failure after commit: revision1 exists; save/back disabled; reload opens
+  Restore required with no form; the entire committed generation remains unchanged.
+- final enrolled-marker failure: same restore-only/disabled/reload result, with the
+  entire revision1 generation unchanged. No chosen-status mock drives these cases.
+No page exceptions in the independent successful run.
+
+Review-harness corrections: initial dependency path lacked the W5 hash resolution
+link; corrected the ignored junction. A precommit retry assertion initially expected
+generation revision1 even after Today reopened and wrote its legitimate derived
+cache (actual2); replaced that unrelated assumption with stored-authority/no-op checks.
+One restore heading locator used “Restore this device” instead of actual “Restore
+required”; corrected and reran the full focused browser probe successfully. These
+were environment/harness errors, not product failures or negative-control credit.
+
+(3) RENDERED FORM / INHERITED FRAME
+Inspected actual fresh, review, range-editor and seven-exercise review screenshots.
+Paper/ink/Instrument styling is coherent; labels, entered quantities and full review
+remain readable. One main action per stage. Name-tab/Enter/error focus works; range
+editor text inputs/selects render at least16px, with visible native focus indication.
+Long form/review scrolls and its final save/back controls are reachable. No horizontal
+overflow within the actual setup view. Local images retained under
+.tmp/first-use-screenshots/ and .tmp/review-shots/.
+
+INHERITED LIMITATION, not a new form regression: the development shell still places
+an844px phone frame below review/status chrome. Measured at viewport390: document
+scrollWidth398, inner phone view388, phone top127.53125 and frame height844. This
+produces outer-page overflow/scroll and does not represent a finished physical-phone
+release shell. Base/current shell, preview.css and approved reference bytes are
+unchanged. This review accepts the bounded form in that inherited development frame;
+it does not approve the frame as a mobile release or claim an iPhone keyboard/zoom test.
+
+(4) LIMITS / HANDOFF
+One configured bilateral member per supported id, positive-pound equipment, repeating
+upper/lower/rest only. Unsupported variants, kg/bodyweight/assistance, other splits,
+complete individual routine suitability and permanent catalogue coverage are not
+proved. Stored priority effects, remaining nutrition/progression/recovery/advice
+obligations, final source-policy/full-package qualification and actual phone/recovery
+acceptance remain. The separate inherited OWNER_CALLS provenance blocker is untouched.
+No source fix, other-worktree edit, private input, install, full engine campaign,
+source policy, external action, push, merge or deployment. git diff --check passes.
+Only this independent report is committed.
