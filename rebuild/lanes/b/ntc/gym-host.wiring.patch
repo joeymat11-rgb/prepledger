@@ -1,0 +1,207 @@
+B-NTC — H6, the gym-card wiring — AS A PATCH, NOT AS AN EDIT
+============================================================
+
+Package:   B-NTC (qualified nativeTrendContext provider), branch rebuild/lane-b-ntc.
+Target:    rebuild/m3/w7-preview/today/gym-host.mjs, at this branch's tip.
+Custody:   NOT lane B's to land. DECISIONS:106 (b) grants lane C an explicit
+           licence to edit this file for the local-era move, and B-NTC-REVIEW-r1
+           §7 Q4 sequences it: Q1 ruling -> F3 fix in workout-host.mjs (lane B,
+           done on this branch) -> lane C's one-store pass -> the A2 builder
+           lands this patch with the delta cells below.
+Apply:     git apply rebuild/lanes/b/ntc/gym-host.wiring.patch
+           (or `git apply --3way` after lane C's pass; the hunks are local and
+           do not touch the causal-frontier block lane C will move.)
+
+WHAT THIS PATCH IS, AND WHAT REVIEW r1 CHANGED IN IT
+----------------------------------------------------
+
+The brief's original §6 H6 was a one-line import swap plus `nativeTrendContext:
+trendBinding.resolve`. Review r1 accepted the mechanism and rejected the form on
+three counts. All three are fixed here:
+
+  (a) NAMED IMPORTS FROM A CommonJS MODULE (review §5.1, "style defect").
+      gym-host.mjs states its own rule two lines above the import block:
+      "CommonJS collaborators are taken as DEFAULT imports, the way the accepted
+      host entry (rebuild/m3/w6/host/host-entry.mjs) takes them". Every other CJS
+      collaborator in the file — Source, Capture, Commands, Adapter, History,
+      SourceProjection, WorkoutBasis, ResumePolicy, HostRuntime, T2Stage,
+      Canonical — is a default import. The original hunk broke that rule and
+      worked only while `module.exports = { … }` stays an object literal
+      cjs-module-lexer can read. This patch takes the DEFAULT import and
+      destructures beside the file's other destructures.
+
+  (b) THE BIND WINDOW (review F3 / C3). gym-model.readPrevious()
+      (gym-model.mjs:128-139) re-runs the accepted reader over the reconstructed
+      lastProjection() input AFTER workoutProducer has returned. With a window
+      that lived only inside the producer, that read threw
+      PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED / resolver_failed,
+      gym-model.mjs:136 swallowed it, and the card showed NO previous
+      performance on exactly the days B-NTC unblocks. This patch moves the
+      window onto the engine handle: every engine read over a state that carries
+      its own workoutFacts runs inside `binding.withFacts(facts, …)`, which is
+      bind … finally RESTORE and is re-entrant, so the producer's own window is
+      not disarmed by a nested read. Measured both ways in D6 / D6-control below.
+
+  (c) THE S2 OPTION, OFF BY DEFAULT (review F2 / C2, PM question Q1).
+      `mapRecordedDaysWithEnginePredicates` is a new createGymHost option,
+      default FALSE, and the shipped page passes nothing, so the page behaves
+      exactly as it does today. It has an effect only when BOTH it is true AND
+      the runtime exposes dayWeather + cleanAtDate — which no accepted runtime
+      does, because EXPOSED is ['genSession','rirPlan'] and that list is pinned
+      by native-carriers-witnesses.cjs:16. `trendDayReader()` reports which
+      reader was composed so a caller states the truth instead of assuming it.
+
+THE CORRECTED §9.1 DELTA CELLS — MEASURED, NOT PREDICTED
+--------------------------------------------------------
+
+Measured on 2026-09-11 on the owner's PC, node v24.19.0, in a scratch copy of
+this branch (…/Temp/ntc-fix/scratch), with this patch applied. The athlete is
+the one gym.test.mjs:569-570 and today-entry.mjs:26 both use:
+`createTodayModel({}).stateFromOps()` with `sessionLog = {}` — and it carries
+**28 recorded sleep nights and 0 events**.
+
+| # | cell | brief v1 said | MEASURED with this patch, option OFF |
+|---|---|---|---|
+| G1 | gym.test.mjs:621 "day 4 — the first wall" | day 4 prepares; rewrite the assertions | **NOT OBSERVED — unchanged.** phase `blocked`, code `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`, copy `resolver_failed`, Start refused, 12 ops. `createEmptyHistoryDayFacts` refuses `recorded_sleep_unmapped` for every date because of the 28 nights |
+| G2 | gym.test.mjs:639 "every day after the wall" | training days now prepare | **NOT OBSERVED — unchanged.** day+4, day+5, day+7 each stay `blocked` with `ENGINE_CAPTURE_NO_WORKOUT` or `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`, 12 ops |
+| G3 | gym.test.mjs:657 `lastProducerRefusal().code` | `null` on a prepared day | **NOT OBSERVED — unchanged.** still `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` |
+| G4 | view.test.mjs:328-337 | unchanged | **unchanged** — correctly called in brief v1 |
+| G5 | "a fresh Joe trains day after day — the S2 milestone" | delivered by this one line | **NOT delivered by this patch alone.** It is delivered only with the option ON *and* the EXPOSED re-seal (PM Q1(a)); proven in a scratch re-seal, D5 below |
+| G6 | *(new — review F3)* previous performance on an opened day | not stated | With this patch's window: `genSession` **ANSWERED**, 2 cards, both carrying the engine's own `earned/performed-lift/v1` previous record (demo-press and demo-row, 40 lb × 11 and × 10 from day 1), `model.previous().size === 2`. With the ORIGINAL narrow window: **THREW** `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`/`resolver_failed`, swallowed at gym-model.mjs:136, `model.previous().size === 0` |
+| G7 | *(new — found while measuring G6, A2 CUSTODY, NOT B-NTC's)* the printed "Last time" line | not stated | Still absent even with G6 fixed: `gym-model.previousLine()` (gym-model.mjs:142-148) expects the LEGACY prev shape `{ w: number, reps: number[] }`, while a NATIVE `card.prev` is an `earned/performed-lift/v1` record whose loads live at `slots[i].fact.current.load.value`. The data is now there; the reader shape is not. A2 owns that line |
+
+Suite results in the scratch copy, with this patch applied:
+
+  node --test <the five today test files> + ntc-h6-delta.test.mjs
+      -> tests 129 · pass 129 · fail 0   (123 unchanged + 6 delta cells)
+  node --test ntc-h6-reseal.test.mjs        (scratch-widened EXPOSED only)
+      -> tests 4 · pass 4 · fail 0        (D5 day 4 opens, ops 12->18; D6 + control)
+  node rebuild/m3/w7-preview/today/build.mjs
+      -> A1 TODAY BUILD PASS: 3 assets; 84 pinned inputs; no network reference
+         (so esbuild resolves the DEFAULT CJS import in the browser bundle)
+
+The two scratch test files and the scratch `EXPOSED` widening are NOT committed
+and are NOT part of this patch: they exist only to measure the cells above, and
+the re-seal they simulate is the PM's decision, not lane B's.
+
+---------------------------------------------------------------------------
+THE DIFF (against rebuild/m3/w7-preview/today/gym-host.mjs at this branch tip)
+---------------------------------------------------------------------------
+
+diff --git a/rebuild/m3/w7-preview/today/gym-host.mjs b/rebuild/m3/w7-preview/today/gym-host.mjs
+index 0d0dbf3..a669f5e 100644
+--- a/rebuild/m3/w7-preview/today/gym-host.mjs
++++ b/rebuild/m3/w7-preview/today/gym-host.mjs
+@@ -25,7 +25,7 @@ import { openRepository } from '../../w6/repository.mjs';
+ import { createDurablePublicClient } from '../../w6/public-client.mjs';
+ import { parseStrictJson } from '../../w6/strict-json.mjs';
+ import { projectWorkoutRecords } from '../../../m4/workout/project-history.mjs';
+-import { composeWorkoutHost, createUnavailableNativeTrendContext } from '../../w6/host/workout-host.mjs';
++import { composeWorkoutHost } from '../../w6/host/workout-host.mjs';
+ // CommonJS collaborators are taken as DEFAULT imports, the way the accepted
+ // host entry (rebuild/m3/w6/host/host-entry.mjs) takes them: createRequire is a
+ // Node builtin and the accepted browser build refuses every Node import.
+@@ -37,12 +37,14 @@ import History from '../../../m4/workout/engine-history.cjs';
+ import SourceProjection from '../../../m4/workout/source-projection.cjs';
+ import WorkoutBasis from '../../../m4/workout/workout-basis.cjs';
+ import ResumePolicy from '../../../m4/workout/resume-policy.cjs';
++import NativeTrend from '../../../m4/workout/native-trend-context.cjs';
+ import HostRuntime from '../../w6/host/engine-runtime-host.cjs';
+ import T2Stage from '../../w6/t2-stage.cjs';
+ import Canonical from '../../../authority/canonical.cjs';
+ 
+ const { createNullLaneWorkoutBasis } = WorkoutBasis;
+ const { createWorkoutResumePolicy } = ResumePolicy;
++const { createNativeTrendContextBinding, createDayFactsReader } = NativeTrend;
+ const { createT2Stage } = T2Stage;
+ 
+ /* Synthetic, public, non-secret preview labels — the same posture and the same
+@@ -223,7 +225,16 @@ export function startOrderRefusalOf(generation, resolvedParents) {
+ /* One live host over one repository handle, with every provider named here and
+    only here. composeWorkoutHost binds them; it invents nothing. */
+ export async function createGymHost({ day, engineState, indexedDB, crypto, deviceKeys,
+-  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId } = {}) {
++  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId,
++  /* B-NTC, the S2 path — OFF by default and off on the shipped page.
++     With it false (or with the engine's two day predicates absent from the
++     pinned EXPOSED surface, which is the case on this tree) the qualified
++     provider uses the empty-history day reader, so an athlete carrying recorded
++     nights or events refuses exactly as he does today. With it true AND a
++     runtime that exposes dayWeather + cleanAtDate, recorded nights and events
++     are mapped through the ENGINE's own predicates. Nothing here decides that;
++     it reports which reader it got on the handle below. */
++  mapRecordedDaysWithEnginePredicates = false } = {}) {
+   const web = crypto || globalThis.crypto;
+   const idb = indexedDB || globalThis.indexedDB;
+   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('createGymHost requires day');
+@@ -255,9 +266,44 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
+     clock, lease, online: false, contract: { client: '1', required: '1' }, standing: 'enrolled' }),
+     { allowInbound: true, workoutCommands });
+ 
+-  const engine = HostRuntime.createEngineRuntime({
++  /* B-NTC — THE QUALIFIED nativeTrendContext PROVIDER, wired here and nowhere
++     else. A0's createUnavailableNativeTrendContext always threw, which is why a
++     fresh athlete's second day on a trained lift could not be prepared at all
++     (DECISIONS:102). This composes the real provider instead: a binding whose
++     window says WHICH facts object an engine read is over, and a day reader
++     that derives hard/debt from a fact the athlete recorded — or refuses.
++
++     The day reader needs the runtime (for the engine's own two predicates) and
++     the runtime needs the resolver, so the reader is late-bound through one
++     thunk that REFUSES until composition finishes. Composition is synchronous,
++     so no caller can observe the gap. */
++  let dayReader = null;
++  const trendBinding = createNativeTrendContextBinding({
++    dayFacts: iso => {
++      if (!dayReader) throw new Error('GYM_NATIVE_TREND_DAY_READER_UNCOMPOSED');
++      return dayReader.dayFacts(iso);
++    } });
++  const runtime = HostRuntime.createEngineRuntime({
+     clock: { today: () => day, hour: () => 8, now: () => new Date(day + 'T13:00:00.000Z'), stamp: () => day + 'T13:00:00.000Z' },
+-    nativeTrendContext: createUnavailableNativeTrendContext() });
++    nativeTrendContext: trendBinding.resolve });
++  dayReader = createDayFactsReader({ state: engineState, engine: runtime,
++    mapRecordedDaysWithEnginePredicates });
++
++  /* THE BIND WINDOW, AROUND EVERY ENGINE READ OVER THE SAME FACTS — not just
++     the producer's (review r1, F3). gym-model.readPrevious() re-runs this very
++     reader over the reconstructed lastProjection() input AFTER the producer has
++     returned; with a window that lived only inside workoutProducer, that read
++     threw PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED, gym-model.mjs:136 swallowed
++     it, and the card showed no previous performance on exactly the days this
++     package unblocks. So the window travels with the engine handle.
++
++     It opens only when the state being read carries facts of its own, and
++     `withFacts` RESTORES the previous window rather than clearing it, so the
++     producer's own window is not disarmed by a nested read. */
++  const scoped = (facts, run) => (facts ? trendBinding.withFacts(facts, run) : run());
++  const engine = Object.freeze({
++    genSession: (s, iso, slp) => scoped(s && s.workoutFacts, () => runtime.genSession(s, iso, slp)),
++    rirPlan: (s, ex, slp) => scoped(s && s.workoutFacts, () => runtime.rirPlan(s, ex, slp)) });
+ 
+   /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION.
+      ----------------------------------------------------------------------
+@@ -300,7 +346,7 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
+     createWorkoutResumePolicy, parseStrictJson, projectWorkoutRecords,
+     prescriptionCapture, sourceCodec: Source, engine, engineState, clock: { today: () => day },
+     workoutProducerIdentity: PRODUCER, resolveWorkoutBasis, resumeReason: RESUME_REASON,
+-    plannedSplitSlotId });
++    plannedSplitSlotId, nativeTrendBinding: trendBinding });
+ 
+   /* The guard, over the live store, against the parents the accepted resolver
+      produced most recently — which, at both call sites (right after the probe's
+@@ -311,6 +357,14 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
+   }
+ 
+   return Object.freeze({ host, repository, engine, day, plannedSplitSlotId, device,
++    /* The trend binding and WHICH day reader it got, so a caller can report the
++       truth instead of assuming it. `enginePredicates` is false on this tree
++       because EXPOSED is ['genSession','rirPlan']; it becomes true only if a
++       re-seal adds dayWeather + cleanAtDate AND the option above is on. */
++    trendBinding, trendDayReader: () => Object.freeze({
++      enginePredicates: dayReader.enginePredicates,
++      enginePredicatesAvailable: dayReader.enginePredicatesAvailable,
++      optionRequested: dayReader.optionRequested }),
+     // The causal parents the accepted resolver last derived, for tests and for
+     // the report. Reading it never changes it; it is not a store.
+     causalParents: () => lastResolved.slice(),

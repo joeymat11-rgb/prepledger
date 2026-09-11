@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
-    "sha256": "0ba59cca3bd70383330fa59a4ae86a971108a64594933d5c6388bca6c45e16b8",
+    "sha256": "3e8fa02ba58fafea3cb12c40f46c2bed3ff91500e4436330b660cb947828df3c",
     "acceptedLedgerLine": null
   },
   "sourceBase": "12cfdb9d58fbcab10faacdaff8ef886ca79ab9c2",
@@ -164,8 +164,10 @@
   "notes": [
     "B-NTC edits NOTHING under rebuild/engine, rebuild/conform or rebuild/m4/spec: every parent-pinned product file is role \"carried\" (pre === post, byte-identical on disk, verified by this generator).",
     "dIds and laws are EMPTY on purpose. B-NTC registers no D-ID (DECISIONS:93 — feature work under the ratified slice plan takes no register D-ID); it turns an accepted open boundary into a provider.",
-    "NOT RUNNABLE by the accepted runner today: rebuild/lanes/b/tooling/b-package.cjs closes its package list to B1|B2|B3|B4 (“B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B1|B2|B3|B4”). Extending that list is the PM’s/tooling owner’s change, not lane B’s unilateral one — PM question Q2 in the brief.",
-    "runnerSha256, brief.sha256 and every authorization stay null until the tooling PR is accepted and the PM accepts this brief with a ledger line; a declared acceptance that stands in no ledger refuses the run by design.",
-    "children[] is empty: B-NTC declares no package child yet, so no gate is covered and the coverage bound is inherited-only."
+    "RUNNER: at rebuild/lane-b-tooling @ 572a8c2 (the tip when v1 was written) b-package.cjs closed its package list to B1|B2|B3|B4 and refused this id in one line with exit 1. At 477b025 its usage line is “--ci|--full --package <B-NTC|B-LOM|B1|B2|B3|B4>”, so B-NTC is accepted by the guard. The exact terminal line and exit code of the v1.1 run are in rebuild/lanes/b/BUILD-REPORT-B-NTC.md §3.6, reported verbatim. Note that 477b025 also carries its OWN packages/B-NTC.json (21 159 B); two specs for one id will collide at merge — PM question Q2.",
+    "runnerSha256 and every authorization stay null until the tooling PR is accepted and the PM accepts this brief with a ledger line; a declared acceptance that stands in no ledger refuses the run by design. brief.sha256 IS set, and is the sha256 of BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md v1.1 on this branch (review r1 C8: the previous wording of this note contradicted the file).",
+    "artifact.file / artifact.review name rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json and review-b-ntc-native-trend-context.json, NEITHER OF WHICH EXISTS ON THIS BRANCH — and that is correct, not a slip (review r1 C8/F8): b-package.cjs:300-303 DERIVES exactly those two paths from this package id and asserts the spec names them. They are written by the PM at acceptance, after an independent review; a PROPOSED package cannot carry them.",
+    "children[] is empty: B-NTC declares no package child yet, so no gate is covered and the coverage bound is inherited-only.",
+    "v1.1 (post review r1): the provider gained a content digest binding (identity is unenforceable at this seam — engine-capture.cjs:52 clones), a re-entrant withFacts window, a two-holder pace read, a refusing bind(null), and the S2 day reader createEnginePredicateDayFacts behind createDayFactsReader's mapRecordedDaysWithEnginePredicates option, which is FALSE by default and inert unless the engine exposes dayWeather + cleanAtDate. product[] is unchanged and still all-carried: no rebuild/engine byte moves."
   ]
 }

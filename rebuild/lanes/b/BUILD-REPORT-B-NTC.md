@@ -1,5 +1,176 @@
 # BUILD REPORT — B-NTC — qualified `nativeTrendContext` provider
 
+---
+
+## 0. POST-r1 FIX PASS — what this pass did, and every number it measured
+
+`rebuild/lanes/b/reviews/B-NTC-REVIEW-r1.md` returned **ACCEPT WITH CHANGES**. This section
+is the fixer's report; §§1–6 below are the original builder's, corrected in place where the
+review found a wrong figure (each correction is marked).
+
+**Environment:** same worktree
+`…\work\lane-b\ntc`, branch `rebuild/lane-b-ntc`, reset to `origin/rebuild/lane-b-ntc`
+@ `afb3bf4` (the review commit) before any edit. Node
+`C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe`
+**v24.19.0**. `node_modules` at root, `rebuild/m3/w6` and `rebuild/m3/w5` were already
+installed from the builder's pass; **nothing was re-installed and `package-lock.json` was
+never touched**. The frozen bundles in the gitignored `rebuild/conform/engines/` were already
+present (`engine-main.cjs` 813 696 B, `engine-old.cjs` 792 806 B) — `build-engines.mjs` is
+still Windows-broken (review F10, open item O8) and was not run.
+
+### 0.1 C1–C5 (required) and C6–C9 (recommended)
+
+| item | what was done | evidence |
+|---|---|---|
+| **C1** identity | the claim is **withdrawn** in all six places; the module now enforces and states **a content digest of the bound facts + `source_revision` + a unique `start_op_id`**, re-checked per request inside a scoped window. New refusal `bound_facts_digest_mismatch`. Two cells record that identity is NOT enforced and that the digest catches a moved object | brief §4.4, §1.4, §3, §4.1, §8 M10, §13 O3; module header; `workout-host.mjs` H3c comment |
+| **C2** §9.1 + §0 headline | rewritten to the measurement: the product's own athlete carries **28 recorded sleep nights**, G1/G2/G3 marked **NOT OBSERVED**, G5 conditional on the Q1 ruling, §0 qualified | brief §0, §9.1, §12 Q1 |
+| **C3** bind window | **fixed**, not just disclosed: `withFacts(facts, run)` (bind … finally RESTORE, re-entrant) added to the module, used by H3c, and put on the engine handle by the H6 patch so `gym-model.readPrevious()` runs inside a window. Measured both ways | brief §4.1, §9.1 G6; patch header |
+| **C4** journey figure | corrected to **23/23 at head** (22/22 is the base figure). §3.4b below corrected | brief §7.3; §3.4b |
+| **C5** O2 / §7.4 | corrected to "green inside `native-carriers-package.cjs --ci` (child `focused`, `# pass 15`); not runnable by a bare `node --test`" | brief §7.4, §13 O2 |
+| **C6** `rushedOf` | reads **both** holders; a disagreement refuses `session_pace_disagreement`; cell added | brief §4.3 |
+| **C7** `bind(null)` | now **throws**; clearing is `unbind()`; `bound()`'s live-object behaviour documented | brief §4.1; module header |
+| **C8** spec slips | the contradicting note fixed; the artifact/review paths kept **with the reason** (`b-package.cjs:300-303` derives them); §2 byte count corrected **7 846 → 7 862** | `packages/B-NTC.json`; §2 |
+| **C9** CI home | **not done — it is a PM item.** B-NTC touches no `.github` file by design | brief §13 O7 |
+
+### 0.2 The S2 path (PM ruling pending; option A implemented and OFF)
+
+`createDayFactsReader({ state, engine, mapRecordedDaysWithEnginePredicates })` — **default
+`false`** — chooses between `createEmptyHistoryDayFacts` (today's proof over an empty
+history) and `createEnginePredicateDayFacts` (the **engine's own** `dayWeather` /
+`cleanAtDate`). The engine reader is used **only** when the option is on **and**
+`enginePredicatesAvailable(engine)` is true at runtime; otherwise the existing
+`recorded_sleep_unmapped` refusal stands unchanged. Nothing on the accepted tree exposes
+those two predicates, so the committed behaviour is identical to before.
+
+**The scratch proof.** A copy of this branch at
+`C:\Users\joeym\AppData\Local\Temp\ntc-fix\scratch` (robocopy, `node_modules` junctioned,
+`ledger/` and `rebuild/conform/private` deleted from the copy and never opened) with (i) the
+H6 patch applied and (ii) an **env-gated widening of `EXPOSED`** in the scratch
+`engine-runtime-host.cjs` only. Four arms, all driven through the product path
+(`createGymHost` + `createGymModel`, encrypted `fake-indexeddb` store) on the athlete
+`createTodayModel({}).stateFromOps()` with `sessionLog = {}` — **28 recorded nights,
+0 events**:
+
+```
+ARM 1  option OFF, predicates ABSENT   (the shipped default)
+  dayReader {"enginePredicates":false,"enginePredicatesAvailable":false,"optionRequested":false}
+  day1 ready/closed 0->6 · day2 ready/closed 6->12
+  day4 {"phase":"blocked","code":"PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED","copy":"resolver_failed","ops":12}
+
+ARM 2  option ON,  predicates ABSENT   (no re-seal yet)
+  dayReader {"enginePredicates":false,"enginePredicatesAvailable":false,"optionRequested":true}
+  day4 {"phase":"blocked","code":"PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED","copy":"resolver_failed","ops":12}
+        -- byte-for-byte the same refusal as ARM 1: never a silent downgrade
+
+ARM 3  option ON,  predicates PRESENT  (scratch EXPOSED re-seal)
+  dayReader {"enginePredicates":true,"enginePredicatesAvailable":true,"optionRequested":true}
+  day4 {"phase":"ready","code":null,"copy":null,"ops":12}
+  readPreviousSeam {"genSession":"ANSWERED","cards":2,"cardsWithPrev":2,"nativeSessionsInInput":2}
+  day4Conducted {"probe":"ready","closed":true,"settled":"finished","before":12,"after":18}
+        -- THE GYM CARD OPENS: Started, every set logged, closed. ops 12 -> 18
+
+ARM 4  ARM 3 but with the ORIGINAL narrow bind window   (the F3 control)
+  day4 {"phase":"ready", ...}   -- the day still opens
+  readPreviousSeam {"genSession":"THREW","code":"PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED",
+                    "reason":"resolver_failed"}
+  model.previous().size === 0   -- swallowed at gym-model.mjs:136; the card shows nothing
+```
+
+The scratch widening and the two scratch test files are **NOT committed** and are not
+proposed as a diff: widening `EXPOSED` re-seals an accepted artifact and that is the PM's
+decision (brief §12 Q1).
+
+### 0.3 H6 as a patch file
+
+`rebuild/lanes/b/ntc/gym-host.wiring.patch` (14 626 B, sha256
+`91cf70bd75ec0b29d62f78e9b3a455835465909a14b2b2ca0b5828d30979a386`) — a prose header (custody,
+the three corrections, the **measured** §9.1 table) followed by a unified diff against
+`rebuild/m3/w7-preview/today/gym-host.mjs` at this branch tip.
+
+```
+$ git apply --check rebuild/lanes/b/ntc/gym-host.wiring.patch     -> exit 0
+$ git apply        rebuild/lanes/b/ntc/gym-host.wiring.patch      -> exit 0
+  applied file sha256 == scratch file sha256  -> True
+$ git checkout -- rebuild/m3/w7-preview/today/gym-host.mjs        -> status for that path: []
+```
+
+**`gym-host.mjs` is NOT committed and is byte-identical to the tip on this branch.**
+
+With the patch applied in the scratch copy:
+
+| run | result |
+|---|---|
+| `node --test` over the five today test files **+ `ntc-h6-delta.test.mjs`** | **tests 129 · pass 129 · fail 0** (123 unchanged + 6 corrected A2 delta cells) |
+| `node --test ntc-h6-reseal.test.mjs` (scratch-widened `EXPOSED` only) | **tests 4 · pass 4 · fail 0** — D5 day 4 opens and conducts 12→18; D6 previous performance present; D6-control previous EMPTY with the narrow window |
+| `node rebuild/m3/w7-preview/today/build.mjs` | **`A1 TODAY BUILD PASS`: 3 assets; 84 pinned inputs (13 engine, 12 client); 2 pinned typefaces inlined; 3/3 assets free of any network reference** — so esbuild resolves the DEFAULT CJS import in the browser bundle |
+
+### 0.4 Every gate re-run on the COMMITTED tree
+
+| # | command | outcome |
+|---|---|---|
+| 0.4a | `node --test rebuild/m4/workout/test/native-trend-context.test.cjs` | **tests 36 · pass 36 · fail 0**, exit 0 (22 → 36; 14 new cells for C1/C3/C6/C7 and the S2 path) |
+| 0.4b | `node --test …/journey.test.mjs …/engine-equivalence.test.cjs` | **tests 23 · pass 23 · fail 0**, exit 0 — unmoved by the H3c rewrite, step 17 still green, same diagnostic line |
+| 0.4c | `node --test` over the five `rebuild/m3/w7-preview/today/test/*` files | **tests 123 · pass 123 · fail 0** — unchanged on the committed tree, as designed |
+| 0.4d | `node rebuild/conform/v4/run-defect-laws.cjs` | `TOTAL 45 laws · **45 RED-frozen** · **39 RED-candidate** · 89 GREEN repair controls · 97/104 mutant executions DETECTED · **0 HARNESS_ERROR** · AUDIT RED-FIRST FAIL` — **45/39 unmoved** |
+| 0.4e | `node rebuild/conform/run.cjs` on the candidate, then with all three modified tracked files stashed, then popped | both logs 84 lines, **sha256 `7EA1E04BBB2847738BCDC7793DA8365E3EAF59F849FC8BC54A355487EC58A37C` on BOTH**, `Compare-Object` → **0 differing rows**. Terminal line on both: `SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families`. `git status` identical before and after |
+| 0.4f | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | `POSTFIX M2-NATIVE-CARRIERS AUTHORIZED artifact=295762f0…`, **13 children each `OBSERVED; exit 0 and exact declared verdict`**, terminal `NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`, **exit 0** (90.4 s) |
+
+### 0.5 `b-package.cjs --ci --package B-NTC` — the honest lines (v1.1)
+
+The runner was fetched from `origin/rebuild/lane-b-tooling` **@ `477b025`** with
+`git archive` into `C:\Users\joeym\AppData\Local\Temp\ntc-fix\tooling`
+(`b-package.cjs` 65 367 B, sha256
+`6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b`), copied into this
+worktree, run, and **deleted again**. `git status --porcelain` afterwards lists no
+`rebuild/lanes/b/tooling/b-package.cjs`.
+
+That commit's usage line is `--ci|--full --package <B-NTC|B-LOM|B1|B2|B3|B4>`, so unlike
+v1's measurement at `572a8c2` the id is **accepted by the guard**. What it then says:
+
+```
+$ node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+B PACKAGE B-NTC FAIL; required evidence missing or failed; local diagnostics withheld
+exit 1
+
+$ node rebuild/lanes/b/tooling/b-package.cjs --full --package B-NTC
+B PACKAGE B-NTC FAIL; required evidence missing or failed; local diagnostics withheld
+exit 1
+
+$ node rebuild/lanes/b/tooling/b-package.cjs --ci --package B1     (control, same tree)
+B PACKAGE B1 FAIL; required evidence missing or failed; local diagnostics withheld
+exit 1
+```
+
+**No PASS word is claimed, and the FAIL is reported as it happened.** It is also not
+B-NTC-specific: the control package `B1` fails identically on the same tree. The runner
+requires an ACCEPTED envelope and a receipt chain that a **PROPOSED** package cannot have —
+`brief.acceptedLedgerLine` is `null`, `tooling.runnerSha256` is `null`, every authorization
+is `null`, and no `rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json` exists because
+the PM writes it at acceptance. Diagnostics are withheld by the runner's own design, so no
+finer statement is available to a builder. **`--full` reaches the same refusal**, which means
+open item O4 (the standing `DECISIONS:97` BLOCKED-private line) is still not producible for
+this package id; the parent gate's line (0.4f) remains the closest true statement.
+
+Also found and recorded: `477b025` carries its **own** `rebuild/lanes/b/tooling/packages/B-NTC.json`
+(21 159 B) beside the one this package committed (7 862 B). Two specs, one id — PM question
+Q2, brief O9.
+
+### 0.6 Boundaries honoured in this pass
+
+* **Never opened:** `ledger/`, `rebuild/conform/private/` (both also removed from the scratch
+  copy before anything ran in it).
+* **Never edited:** `rebuild/engine/**`, `rebuild/conform/**`, `rebuild/m4/spec/**`,
+  `.github/**`, `src/**`, `package.json`, `package-lock.json`, frozen laws/witnesses/tools/
+  goldens, and **`rebuild/m3/w7-preview/today/gym-host.mjs`** (patched only in scratch, and
+  once in this worktree to verify `git apply`, then restored — `git status` proves it).
+* **Never touched:** any other worktree. No worktree was created, moved or removed; the
+  tooling runner came from `git archive`, not from the sibling `…/work/lane-b/tooling`
+  checkout.
+* Files committed by this pass: `native-trend-context.cjs`, its test, `workout-host.mjs`,
+  the brief, `packages/B-NTC.json`, and the new `rebuild/lanes/b/ntc/gym-host.wiring.patch`.
+
+---
+
 Lane B builder (Opus), lane B. **Speculative until reviewed.** Every command below was run on
 the owner's PC (Windows, PowerShell / cmd) in the worktree
 `C:\Users\joeym\Documents\Codex\2026-09-04\read-rebuild-t3-brief-md-and\work\lane-b\ntc`,
@@ -37,8 +208,23 @@ branch `rebuild/lane-b-ntc`, with
 | `rebuild/m3/w6/host/workout-host.mjs` | 3 additive hunks (optional `nativeTrendBinding`) | 12 000 → 13 409 | `4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b` → `2d160c1c79fd7957febe964db523bc53dbb9a32fa571895f30e1a279a77fc480` |
 | `rebuild/m3/w6/host/test/journey.test.mjs` | 1 import + new step 17; steps 1–16 unmodified | 27 838 → 37 419 | `57566afd36ea913da4b9eaeed8f7a358479381606a9b6f92fc5e562d85d58cda` (the sha `DECISIONS:98` pins) → `d4c68645474eb8f6b4acbd252b35b9f0ca31225f6269fea53416a8c8a712af96` |
 | `rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md` | **NEW** | 56 010 | `0ba59cca3bd70383330fa59a4ae86a971108a64594933d5c6388bca6c45e16b8` |
-| `rebuild/lanes/b/tooling/packages/B-NTC.json` | **NEW** (allowed by `DECISIONS:103` (4)); its `brief.sha256` is the brief hash on the row above | 7 846 | `b0aec30912f67de1d88e174ab3be86c62ee68833d117d883cfb025ecf14601b4` |
+| `rebuild/lanes/b/tooling/packages/B-NTC.json` | **NEW** (allowed by `DECISIONS:103` (4)); its `brief.sha256` is the brief hash on the row above | **7 862** *(review r1 C8/F8: this row said 7 846; the sha256 matched, so the byte count was the slip — corrected)* | `b0aec30912f67de1d88e174ab3be86c62ee68833d117d883cfb025ecf14601b4` |
 | `rebuild/lanes/b/BUILD-REPORT-B-NTC.md` | **NEW** — this file | — | — |
+
+**AFTER THE r1 FIX PASS (§0), the same files on disk:**
+
+| file | bytes | sha256 |
+|---|---|---|
+| `rebuild/m4/workout/native-trend-context.cjs` | 25 319 | `7f34754fcada67a0403315c22bf66724cdcbdca5052e8e8f16f789fdb012054a` |
+| `rebuild/m4/workout/test/native-trend-context.test.cjs` (**36 cells**) | 29 437 | `443448d0643b32416a92b63af91d1ad8d75bd5e3571ca33086bc94851748e14d` |
+| `rebuild/m3/w6/host/workout-host.mjs` | 14 536 | `262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe` |
+| `rebuild/m3/w6/host/test/journey.test.mjs` | 37 419 | `d4c68645474eb8f6b4acbd252b35b9f0ca31225f6269fea53416a8c8a712af96` — **unchanged by the fix pass** |
+| `rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md` (**v1.1**) | 88 089 | `3e8fa02ba58fafea3cb12c40f46c2bed3ff91500e4436330b660cb947828df3c` |
+| `rebuild/lanes/b/ntc/gym-host.wiring.patch` (**NEW**) | 14 626 | `91cf70bd75ec0b29d62f78e9b3a455835465909a14b2b2ca0b5828d30979a386` |
+| `rebuild/lanes/b/tooling/packages/B-NTC.json` (re-pinned to the v1.1 brief hash; `product` / `coverage` / `parent` unchanged) | 9 225 | `e9b1603c9545cabfa01a9af4d28c339bce60a730f79881c5a166645994455b86` |
+
+Unchanged pins re-verified on disk after the fix pass: `rebuild/engine/performed.cjs`
+`2372e66b…` (19 479 B) and `rebuild/m4/workout/engine-runtime.cjs` `9be21897…` (3 947 B).
 
 **Not touched, verified:** anything under `rebuild/engine`, `rebuild/conform`,
 `rebuild/m4/spec`, `.github`, `src`, `ledger`, `rebuild/conform/private`,
@@ -109,10 +295,10 @@ fixed it. Recorded because a BLOCKED line must never be quietly re-rolled.
 | # | command | outcome |
 |---|---|---|
 | 3.4a | `node --test rebuild/m4/workout/test/native-trend-context.test.cjs` | **22 tests, 22 pass, 0 fail** |
-| 3.4b | `node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | **22 tests, 22 pass, 0 fail** (17 journey steps + 5 equivalence). Step 17 diagnostic: `day two: asked=1 prepared=undefined code=WORKOUT_PREPARATION_INVALID producer={"code":"PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED","reason":"resolver_failed",…}` |
+| 3.4b | `node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | **CORRECTED (review r1 C4/F4): 23 tests, 23 pass, 0 fail** at the package head — 17 journey steps + 5 equivalence + the suite node, which `node --test` counts. This row originally said 22/22; **22/22 is the BASE figure** (`DECISIONS:102`, 16 `await t.test(` calls at `12cfdb9`). Both are stated so no later reader concludes a test vanished. Re-measured after the r1 fix pass: still 23/23. Step 17 diagnostic: `day two: asked=1 prepared=undefined code=WORKOUT_PREPARATION_INVALID producer={"code":"PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED","reason":"resolver_failed",…}` |
 | 3.4c | `node --test rebuild/m3/w7-preview/today/test/{adapter,view,design,package,gym}` | **123 tests, 123 pass, 0 fail** — A1/A2 unchanged, as designed (the gym card is not wired by this package) |
 | 3.4d | `node --test rebuild/m4/workout/test/{schema,engine-capture,engine-history,engine-order,context-history,source-control,configuration-capture,history-panel,native-trend-context}` | **62 tests, 56 pass, 6 fail.** All six live in the three files that `throw Error('Explicit retained PERFORMED_W6_DIR required')` at require time — `engine-history.test.cjs`, `history-panel.test.cjs`, `source-control.test.cjs`. Environmental, pre-existing, and B-NTC touches nothing they read |
-| 3.4e | `node --test rebuild/m4/workout/test/native-next-targets{,-assembly,-correction}.test.cjs` | **BLOCKED — NOT RUN.** `Error: Cannot find module '../../../../test-support/import-engine/rebuild/m3/w7-preview/fixtures.cjs'`. They need `EARNED_NATIVE_PACKET_ROOT` + a `test-support/import-engine/` tree that does not exist in this repository — exactly A0-REPORT §"not qualified" 2. **This report does not claim they passed.** Open item O2 |
+| 3.4e | `node --test rebuild/m4/workout/test/native-next-targets{,-assembly,-correction}.test.cjs` | **BLOCKED by a bare `node --test`.** `Error: Cannot find module '../../../../test-support/import-engine/rebuild/m3/w7-preview/fixtures.cjs'` — they need `EARNED_NATIVE_PACKET_ROOT` + a `test-support/import-engine/` tree that does not exist in this repository. **CORRECTED (review r1 C5/F5): they DO run and DO pass inside `native-carriers-package.cjs --ci`** — the gate's `focused` child is exactly those three files asserting `# pass 15` (`native-carriers-package.cjs:61-64`) and it reported `OBSERVED; exit 0 and exact declared verdict` in §3.3, in the reviewer's re-run and in §0.4f. The original "could not be run / claims nothing about them" was overstated |
 
 ### 3.5 The journey step that had to be built three times — recorded in full
 
@@ -134,7 +320,7 @@ explicitly in the test and in a comment — **one lift carries a working load fr
 declared `steps`** (`db-bench.w = 35`) — and then `asked=1` and the wall appears. A2 does not
 hit this because it uses `today.stateFromOps()`, a seeded Joe-shaped state. **Open item O1.**
 
-### 3.6 `b-package.cjs --ci --package B-NTC` — the honest lines
+### 3.6 `b-package.cjs --ci --package B-NTC` — the honest lines (v1 pass; **v1.1's run is §0.5**)
 
 The accepted runner is on `rebuild/lane-b-tooling` @ `572a8c2`, not on this branch. It was
 copied into the worktree, run, then **deleted without ever being committed** (`git status`
@@ -206,9 +392,28 @@ told the first package to carry is **already closed** by `DECISIONS:105`, so B-N
 
 ## 6. Verdict
 
-Evidence complete for a **PROPOSED** package: 45/39 laws unmoved, census byte-identical,
-parent gate PASS with the second gate, 22/22 provider cells, 22/22 A0 journey including the
-new end-to-end proof, 123/123 screens. **No PASS word is claimed for B-NTC itself** — the
-runner refuses its package id, `--full` was never reachable, and no artifact is sealed, no
-receipt exists and nothing is merged. Open items O1–O6 and PM questions Q1–Q4 are in the
-brief. **Speculative until reviewed.**
+**v1 (the builder's):** Evidence complete for a **PROPOSED** package: 45/39 laws unmoved,
+census byte-identical, parent gate PASS with the second gate, 22/22 provider cells, 22/22 A0
+journey including the new end-to-end proof, 123/123 screens. *(The journey figure is
+corrected to 23/23 at head — §3.4b.)*
+
+**v1.1 (after review r1 — §0):** C1–C5 applied, C6–C8 applied, C9 left as the PM item it is.
+The measured state of the tree now:
+
+* **36/36** provider cells · **23/23** A0 journey + equivalence · **123/123** today/gym,
+  unchanged on the committed tree
+* **45 RED-frozen / 39 RED-candidate**, 0 HARNESS_ERROR — unmoved
+* census **byte-identical** to base (same sha256 on both runs, 0 differing rows)
+* `native-carriers-package.cjs --ci` → **PASS, exit 0**, 13/13 children OBSERVED
+* `b-package.cjs --ci --package B-NTC` @ tooling `477b025` → **`B PACKAGE B-NTC FAIL;
+  required evidence missing or failed; local diagnostics withheld`, exit 1** — the same line
+  the control package `B1` gets on the same tree, because a PROPOSED package has no accepted
+  envelope. **No PASS word is claimed for B-NTC.**
+* H6 as a patch: `git apply --check` **exit 0**; applied in scratch → **129/129** today suite
+  (123 + 6 delta cells), `A1 TODAY BUILD PASS`; `gym-host.mjs` **not committed**
+* the S2 path: **implemented, OFF by default, inert on this tree**, and proven in scratch to
+  open the 28-night athlete's day 4 (ops 12 → 18) only with the option on *and* a widened
+  `EXPOSED` — which is the PM's ruling to make (brief §12 Q1)
+
+Open items O1–O10 and PM questions Q1–Q4 are in the brief. **Still speculative; still
+PROPOSED; nothing merged.**
