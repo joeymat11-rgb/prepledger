@@ -128,7 +128,7 @@ Two contract points that come with them. **(a)** Every fixture that is merely *d
 2. **`D25-1 require-a-majority` — the brief's named killers do not kill.** `1/2` and `6/7` both read `good` on the repaired engine *and* under the mutant (repair `1 ≥ 1` / `6 ≥ 6`; majority `2 ≥ 2` / `12 ≥ 7`). **The killer cell is `2/4`** — repaired `caution`, mutant `good`. Re-measured here: the sole detector that moved was `D25.two_of_4`. Add `2/4` to §2 D25's cell list. (`1/2` and `6/7` remain correct killers for `D25-2 drop-the-one-miss-allowance`; the no-rows cell kills `D25-3`.)
 3. **`D23-1 default-slp-to-empty-object` — the killer is the surviving `TypeError`, per the builder.** v1.1 names the `last.h = 3` deferral cell; measured, it does not distinguish (the fixture's lift has `e.w == null`, so `genSession` takes the `baselineAsk` branch either way). The only detector is the assertion v1.1 itself lists as a **non-flip**: `defect-witnesses-3.cjs:41`, `assert.throws(() => genSession(s,'2026-09-03'), TypeError)` — repaired `TypeError`, mutant `NO THROW`. Re-measured here: the sole detector was `carrier defect-witnesses-3`. This makes the `defect-witnesses-3` carrier **load-bearing for D23-1**, not merely carried.
 4. **`D27-3 gate-on-programme-week-and-phase` needs the fixture v1.1 omits: `2026-08-12`.** For a committed `cut`, `phaseArc`'s `startOf.cut` is `START`, so `arc.weeks` and `weekDay().wk` agree on almost every date; they diverge only for `diff ∈ [63, 69)` days after `START = 2026-06-10`. At `clock.today() = 2026-08-12` (`diff = 63`): **`arc.weeks = 9`, `weekDay().wk = 10`, repaired `rung = "calories"`, mutant `rung = "break"`.** The builder and the reviewer derived this date independently and converged. **Express the cell as `START + 63 days`, not as the literal** — if `START` moves, the killer date moves with it (reviewer's residual risk 7).
-5. **`D10-2 utc-stamp-substitution` is behaviourally unkillable — this is now a contract requirement, not an observation.** Five independent harnesses (builder, review r1, the r1 fix pass, review r2, the r2 fix pass) found **nothing moved**: not one of the battery cells, not one of the 45 law rows, not one of the three carriers, and not one of the fourteen committed delta cells. `(Date.UTC(b) − Date.UTC(a)) / 604800000` is bit-identical to `Math.round((mk(b) − mk(a))/DAY)/7` on every date-only input because both endpoints are stamped consistently. Since `BRIEF-IMPORT-GUARDS.md:88` forbids earning a kill from a refusal, **B1's package must carry a positive source/alias assertion for `dates.cjs`** (e.g. `weeksBetween`'s declaration text contains no `Date.UTC`). Without it D10's mutant column is one short and should be declared so, not papered over.
+5. **`D10-2 utc-stamp-substitution` is behaviourally unkillable — this is now a contract requirement, not an observation.** Five independent harnesses (builder, review r1, the r1 fix pass, review r2, the r2 fix pass) found **nothing moved**: not one of the battery cells, not one of the 45 law rows, not one of the three carriers, and not one of the fourteen committed delta cells. `(Date.UTC(b) − Date.UTC(a)) / 604800000` is bit-identical to `Math.round((mk(b) − mk(a))/DAY)/7` on every date-only input because both endpoints are stamped consistently. Since `BRIEF-IMPORT-GUARDS.md:89` forbids earning a kill from a refusal (*citation corrected from `:88` by the r4 amendment, review r3 §4: the "source-pin refusal … earns no kill" sentence is at `:89`; `:88` is the strengthened-theme-claims paragraph*), **B1's package must carry a positive source/alias assertion for `dates.cjs`** (e.g. `weeksBetween`'s declaration text contains no `Date.UTC`). Without it D10's mutant column is one short and should be declared so, not papered over.
 6. **§6 Q5 settled: the `policy.cjs:554` rider is OUT.** v1.1's §0.1 item 2 ("policy 23 → 24, 25 with the rider") and §5.4 ("3+1+2 new delegate lines") contradict each other. **§0.1 item 2 is correct and §5.4's "2" is wrong: `policy.cjs` gains ONE delegate (`plusDays`), so the delegate arithmetic is 3 (`today.cjs`) + 1 (`sleep.cjs`) + 1 (`policy.cjs`) = 5 new delegate lines**, and the built diff is byte-reproducible from this brief. The rider itself is a measured printed no-op (v1.1 §0.1 item 10; re-measured by the builder over 220 095 pairs: 0 printed differences, 0 `arc.weeks >= 10` decision differences), so leaving it out costs nothing and keeps `weeksBetween`'s 67 remaining sibling sites one consistent open question.
 7. **Delegate/declaration placements are now part of the contract** so the diff is byte-reproducible: `plusDays` is declared in `dates.cjs` **above** the `// Copied from frozen src/app.jsx @ fe516c1:311-311.` marker, never between the marker and `weeksBetween` (it has no frozen counterpart, and `source-proof.cjs:11 declarationRanges()` names each range by the first declaration after such a marker). `policy.cjs`'s delegate goes after `:16` as v1.1 says, accepting that this breaks that block's alphabetical order; `sleep.cjs`'s after `:21`.
 
@@ -153,7 +153,7 @@ delta cells        : 14/14 hold on the candidate; 0/14 on base, every cell faili
 conform + 2nd gate : line-for-line identical to pristine, 0 differing in all four streams
 ```
 
-**Consequence for the package artifact (C-r2-2(a), the PM's).** `rebuild/engine/test/b1-delta-cells.cjs` is not a convenience: remove it and B1's committed evidence falls from 32/33 to 13/33. It must be listed as a **required** artifact of B1's closed profile beside the carrier.
+**Consequence for the package artifact (C-r2-2(a), the PM's).** `rebuild/engine/test/b1-delta-cells.cjs` is not a convenience: remove it and B1's committed evidence falls from 32/33 to 13/33. It must be listed as a **required** artifact of B1's closed profile beside the carrier. **Re-measured on the 23-cell file by review r3 §4 and independently on the 25-cell file by the r4 pass (BUILD-REPORT §10.4), both with the cell file removed from the detector set: 12 of 33 CAUGHT · 21 NOT CAUGHT** (10 by carrier, 2 by law, one of those two only via D22's frames parity). The `13/33` above was the 14-cell measurement and is superseded by that pair; the consequence is unchanged and stronger — the cell file carries twenty-one of the thirty-three kills single-handedly. See §A9.
 
 ### A6. Residual risks carried from the review, unclosed (the PM owns each)
 
@@ -167,6 +167,8 @@ conform + 2nd gate : line-for-line identical to pristine, 0 differing in all fou
 8. **"No sleep restriction" still reads GREEN/100, not UNKNOWN.** The owner's D8 word was *UNKNOWN*. In all four variants (base, shipped, rem1, v1.2) a missing or stale last night makes `recoveryIndex` read **GREEN / 100 with zero flags** — a positive claim of perfect recovery on a day the engine knows nothing. The flag model has no third state (`sleep.cjs:220-236`). v1.2 does **not** close this; it is beyond B1's hunks and needs a PM ruling on whether "no restriction" may present as GREEN/100 or must present as unknown.
 9. **A1's batched CI re-seal rides on B1** (`DECISIONS.md:99`): the lockfile-only A1 test step, retiring the memory-only preview and its `# pass 19` child, re-pinning `rebuild.yml`. `.github/` is not lane B's and is not in this brief, but B1's closed profile must budget for it.
 10. **H1** (`today.cjs:92 e.id === "hack"`) stays out of B1; v1.1 §4's recommendation is unchanged.
+11. **`D24-2 drop-the-empty-ledger-guard` is caught only by a FIXTURE COINCIDENCE** (review r3 §4, re-measured by the r4 pass at BUILD-REPORT §10.4). Its only detectors are the **three D27 cells**, and they detect it only because the shared `stalled` D27 fixture happens to carry an empty `dailyLogs`, so dropping the guard makes yesterday owed and pushes `theOneFix` down to rung `logging`. **No D24 cell catches it.** The brief's own named killer — the empty-`dailyLogs` control in D24's *Must NOT change* list — is committed nowhere. If B2 or B3 ever gives that fixture a `dailyLogs` row, `D24-2` goes uncaught silently. One `pro([])`-style empty-ledger line in the D24 cell would close it; the r4 pass left it open because it is outside review r3's three required changes, and records it here so it is a decision rather than an oversight.
+12. **`D21`'s fall-back coverage is now three years deep, but it is still enumeration, not a rule.** §A9 item 2 commits `2025-11-02`, `2026-11-01` and `2027-11-07`. A mutant that special-cased all three would still pass. The structural fix — asserting the *primitive* rather than the dates — is the source/alias cell's `plusDays` clause, which is already committed; this risk is recorded so a future pass does not mistake three dates for a proof.
 
 ### A7. `@noble/*` — documented, NOT fixed here (review C8)
 
@@ -181,6 +183,58 @@ Re-verified on this branch: `package.json` declares dependencies `react`, `react
 ### A8. What v1.2 does NOT change
 
 The other nine hunks (D10, D8, D19, D16, D17, D24, D25, D27, D23) are **unchanged, byte for byte**, and so is `legacy-b1-carriers.cjs`. C7's `rebuild/m4/spec` half (`acceptance-b1-grading-time-window.json`, `b1-grading-package.cjs`, `b1-inherited-carriers.cjs`, the `witnesses-1`/`witnesses-3` `coverage.run → coverage.covered` move) remains **unauthored by lane B on lane-boundary grounds** (`LANES.md` ownership table) — the carrier already exports `COVERS` and `runWitness` for that child, and `b1-delta-cells.cjs` must be added to its required-artifact list. Every objection and PM question in §4, §5 and §6 below stands as written, except where §A4 items 1–7 correct them.
+
+### A9. v1.2 AMENDMENT — the r4 fix pass (review r3's three changes)
+
+> **Third amendment (r4 fix pass, a seventh agent — not the builder, not any of the three reviewers, not the r1/r2/r3 fixers).** `rebuild/lanes/b/reviews/B1-REVIEW-r3.md` returned **ACCEPT WITH CHANGES** with the PM's three acceptance conditions at `DECISIONS:103` item 2 all **MET by execution**. Three changes followed; all three are applied. Two are docs-and-cells only. The third moves **one engine byte**, and this amendment exists to say exactly what that byte is and what it is not.
+
+**1. C-r3-1 — how the mutant matrix must be stated (docs; nothing measured moved).** The package may not say "33 of 33 caught" unqualified. It says, in the same sentence as the count, what §A5 above already says: **32 behavioural kills by a committed artifact, plus `D10-2` — behaviourally unkillable — carried by a declaration-scoped source assertion.** This binds `BUILD-REPORT-B1.md` §9.3 (corrected in place), **the verdict file, and the sealed C7 artifact**. Two numbers were corrected with it: §9.2's `1/33` → the measured **12/33** (§A5's "Consequence" paragraph and BUILD-REPORT §10.4), and the `BRIEF-IMPORT-GUARDS.md:88` citation → **`:89`** (§A4 item 5).
+
+**2. C-r3-2 — `D21`'s fall-back years are committed (cells only; no engine byte).** §2 D21 has always named three delta cells and said mutant (3) is killed by *"the two other fall-back years"*. Only `2026-11-01` was in the repository. Review r3 measured the gap: a `D21-3` that special-cases the 2026 date survived all 23 cells, 6/6 carriers and all 45 laws including D22's frames parity. **`2027-11-07` and `2025-11-02` are now cells** in `rebuild/engine/test/b1-delta-cells.cjs` (`B1-D21-the-fall-back-anchor-holds-on-every-fall-back-year`), with both primitives, both good-night controls, an off-transition control, and review r2's `N1e` case folded in as a committed control. Measured: `clean` is `true` on base and `false` on the candidate for all three years; the mutant is now **CAUGHT**, by this cell and by nothing else. Residual risk 12 records what three dates do and do not prove.
+
+**3. C-r3-3 — D27's `phaseArc(s)` is GUARDED inside B1. THIS IS A GUARD, NOT A SEMANTICS CHANGE.**
+
+The route was checked on the tip first: `rebuild/lanes/REQUESTS.md` @ `5dc9254` carries lane B's own line offering to guard it inside B1 *"unless you route it to B3 (say so)"*, and neither `DECISIONS:108`/`:109` nor any `PM → B` line answers it. **Not routed → guarded here**, per the default lane B itself stated.
+
+What it fixes: `today.cjs:309`'s `const arc = phaseArc(s);` was called bare from `theOneFix`, which `nowModelUncached:554` calls bare. `phaseArc` reaches `dietBreakState` → `daysBetween` → `mk(brk.end)` → `.split(...)`, so on a **stalled cut with a non-ISO `plan.brk.end` or `plan.brk.start`** the candidate threw `TypeError: s.split is not a function` out of both `theOneFix` and `nowModel` — Today's whole model — where the frozen engine returned advice. No law, carrier or cell caught it.
+
+The hunk is one line, in the idiom B1 already uses two lines below for `sleepInfo`:
+
+```js
+const arc = (() => { try { return phaseArc(s); } catch (e) { return { key: "cut", weeks: weekDay().wk }; } })();
+```
+
+**Why the fall-back is `{ key: "cut", weeks: weekDay().wk }` and not something neutral.** Before B1 this gate read `const stalled = !sealed && cr.measured && cr.scale < floor;` (no phase term) and `const longCut = weekDay().wk >= 10;`. That fall-back reproduces both expressions exactly. So **in the region where `phaseArc` cannot answer, B1's behaviour is byte-for-byte the frozen engine's**, and D27's repair applies only where `phaseArc` does answer. Nothing in §2 D27's *Proposed behaviour*, its delta cells, its *Must NOT change* list or its law changes. A neutral default would have **moved** the advice on the reviewer's own fixture (`break` → `hold`) and would have been an unbriefed second behaviour change; this one is not.
+
+**It is committed as a cell and as a mutant.** `B1-D27-a-phase-that-cannot-be-derived-leaves-the-pre-D27-reading-standing` asserts no-throw plus the base's own `rung`/`title`/`move.kind` on three malformed shapes, and carries the D27 controls that make it RED on the pre-B1 base. `D27-4 drop-the-phaseArc-guard` is an **r4-authored mutant beyond §2's 32**, labelled as such wherever it is counted, and it is caught by that cell and by nothing else.
+
+**The bar is unchanged and still met**, re-executed on the guarded candidate (BUILD-REPORT §10.4, §10.5):
+
+```
+45 laws            : 10 rows moved (D8,D10,D16,D17,D19,D21,D23,D24,D25,D27); 35 byte-identical;
+                     every moved row RED-frozen/GREEN-candidate on the candidate
+D22 frames parity  : TRUE — byte-identical row on both trees, absent from both AUDIT-FAIL sets
+33 mutants of the bar, detectors = COMMITTED ARTIFACTS ONLY:
+                     32 BEHAVIOURAL kills · D10-2 by the source assertion · 0 HARNESS
+                     (+ 2 r4 additions, D21-3b and D27-4, both CAUGHT — 35 run, 35 caught)
+without the cells  : 12 of 33 CAUGHT · 21 survive
+B1 carrier         : 6/6 PASS · 20 substitutions · witness files byte-identical to their pins
+delta cells        : 25/25 hold on the candidate; 0/25 on base
+conform + 2nd gate : line-for-line identical to base, 0 differing in all four streams;
+                     conform assertion lines 33/33 identical, tally {BAD:6, OK:26, INFO:1} both
+```
+
+**Engine bytes after this amendment** — three unchanged, one moved, and the one that moved is this guard:
+
+```
+dates.cjs  b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067   unchanged
+policy.cjs 4d6c244efa6b34daed02e194dbbd5b7064abcde2d93fd28974a5f2df519187e1   unchanged
+sleep.cjs  77ced98c0b31c085e04da348592e936ce79dc85496a9df3febaef27e77380ffd   unchanged
+today.cjs  f8d0397abd75c02dd570741191124c32e26ab850702607826943d4394fda2e00
+        -> 0df0fd169e05cc7659f34f36ea37f2d7965fd4f2db4d568a285bd04fb05c80e9   the D27 guard
+```
+
+If the PM would rather the guard went to B3, it is one line to revert and its cell goes with it; say so in `REQUESTS.md` and lane B will take it out.
 
 ## 0.1 v1.1 changes — exactly what moved and why
 

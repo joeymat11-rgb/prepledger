@@ -306,7 +306,7 @@ function theOneFix(s, levers) {
   // Rungs 4/5 — only once logging, steps and sleep are covered AND the trend has stalled
   const cr = currentRate(s);
   /* D27 — rungs 4/5 are CUT advice: the committed phase decides, and its own recorded start times it */
-  const arc = phaseArc(s);
+  const arc = (() => { try { return phaseArc(s); } catch (e) { return { key: "cut", weeks: weekDay().wk }; } })();   /* r4 GUARD - a phase that cannot be derived leaves the PRE-D27 reading standing, so theOneFix/nowModel never throw where the frozen engine returned */
   const onCut = arc.key === "cut";
   const stalled = onCut && !sealed && cr.measured && cr.scale < floor;
   const longCut = arc.weeks >= 10;

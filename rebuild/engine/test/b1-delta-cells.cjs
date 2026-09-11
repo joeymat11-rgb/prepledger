@@ -1,8 +1,8 @@
 "use strict";
 
 // B1 GRADING & TIME WINDOW — purpose-written delta cells.
-// BRIEF-B1-GRADING-TIME-WINDOW-v1.2 §A (the r1 review's C2 and C5, and the r2
-// review's C-r2-1).
+// BRIEF-B1-GRADING-TIME-WINDOW-v1.2 §A (the r1 review's C2 and C5, the r2
+// review's C-r2-1, and the r3 review's C-r3-2 and C-r3-3 — see §A9).
 //
 // These are NOT defect witnesses: they assert the REPAIRED behaviour, and they
 // exist because the independent reviews proved that B1's committed artifacts
@@ -148,6 +148,63 @@ cell("B1-D8xD21-a-short-last-night-still-restricts-recovery",
   assert.equal(engine("2026-11-01").sleepInfo(withNights([{ d: "2026-11-01", h: 1 }])).clean, false);
   // and three genuinely clean nights are still clean.
   assert.equal(T.sleepInfo(withNights([...recent, { d: "2026-09-02", h: 8 }])).clean, true);
+});
+
+// ---------------------------------------------------------------------------
+// C-r3-2 (review r3) — D21's fall-back coverage, on ALL THREE fall-back years.
+//
+// Until this cell, exactly one fall-back date was pinned by a committed
+// artifact: `2026-11-01`, inside the C2 cell above. Review r3 measured what
+// that costs. A mutant that special-cases that single date —
+//
+//     const tomorrow = today9 === "2026-11-01" ? "2026-11-02"
+//                    : isoOf(new Date(todayStart().getTime() + DAY));
+//
+// — survives all 23 cells, 6/6 carriers and all 45 laws including D22's frames
+// parity: the whole repository passes a `sleepInfo` that is right in one year
+// and wrong in every other. BRIEF v1.2 §2 D21 already names the real killer in
+// its own words — its delta cells are `2026-11-01`, `2027-11-07` AND
+// `2025-11-02`, and mutant (3) is "killed by requiring the ordinary and
+// spring-forward controls byte-identical and the two other fall-back years to
+// pass". Those two other years were measured by review r1's own battery and by
+// review r3's, and committed by neither. They are committed here.
+//
+// On each of the three dates 86_400_000 ms after local midnight lands at 23:00
+// on the SAME calendar date, so the millisecond form asks `cleanAtDate` about
+// today twice and a night bed-dated today is never seen. The repaired
+// two-anchor form asks at `today9` AND at `plusDays(today9, 1)`.
+cell("B1-D21-the-fall-back-anchor-holds-on-every-fall-back-year",
+  ["D21-3 hardcode-fallback-date"], () => {
+  const withN = (nights) => { const s = state(); s.sleep.nights = nights; return s; };
+  const clean = (day, nights) => engine(day).sleepInfo(withN(nights)).clean;
+  // THE cells: a 1 h night bed-dated the fall-back date itself, on the two
+  // fall-back years no committed artifact reached. Both read `true` on the
+  // pre-B1 base (measured) — the night the athlete actually slept was invisible.
+  assert.equal(clean("2027-11-07", [{ d: "2027-11-07", h: 1 }]), false);
+  assert.equal(clean("2025-11-02", [{ d: "2025-11-02", h: 1 }]), false);
+  // and the year the C2 cell already pins, restated so the three read as ONE
+  // set: a mutant must now get all three right, not one.
+  assert.equal(clean("2026-11-01", [{ d: "2026-11-01", h: 1 }]), false);
+  // the primitive underneath each of them steps a calendar date, not 24 hours.
+  assert.equal(engine("2027-11-07").plusDays("2027-11-07", 1), "2027-11-08");
+  assert.equal(engine("2025-11-02").plusDays("2025-11-02", 1), "2025-11-03");
+  // controls, identical on both engines: a GOOD same-date night is still clean
+  // on each year, and a short night bed-dated the previous day still restricts.
+  assert.equal(clean("2027-11-07", [{ d: "2027-11-07", h: 8 }]), true);
+  assert.equal(clean("2025-11-02", [{ d: "2025-11-02", h: 8 }]), true);
+  assert.equal(clean("2027-11-07", [{ d: "2027-11-06", h: 2 }]), false);
+  assert.equal(clean("2025-11-02", [{ d: "2025-11-01", h: 2 }]), false);
+  // control OFF any transition, so the three cells above are measuring the
+  // transition and not the mechanism.
+  assert.equal(clean("2026-09-03", [{ d: "2026-09-03", h: 1 }]), false);
+  assert.equal(clean("2026-09-03", [{ d: "2026-09-03", h: 8 }]), true);
+  // review r2's §8 bite 1 (`N1e`), folded in while this file is open: last
+  // night 2 h PLUS a row bed-dated TOMORROW. Measured identical on base and
+  // candidate — a coverage gap the two-anchor form already handles correctly,
+  // not a defect, and now it is a committed control rather than a note.
+  const n1e = [{ d: "2026-08-31", h: 8 }, { d: "2026-09-01", h: 8 },
+    { d: "2026-09-02", h: 2 }, { d: "2026-09-04", h: 8 }];
+  assert.equal(clean("2026-09-03", n1e), false);
 });
 
 // ---------------------------------------------------------------------------
@@ -399,6 +456,59 @@ cell("B1-D27-long-cut-is-the-committed-phases-own-age-not-the-programme-week",
   assert.equal(T10.phaseArc(s10).weeks, 10);
   assert.equal(T10.weekDay().wk, 11);
   assert.equal(T10.theOneFix(s10).rung, "break");
+});
+
+// ---------------------------------------------------------------------------
+// C-r3-3 (review r3 §5, bite 2) — D27's `phaseArc(s)` is GUARDED, and the guard
+// leaves the PRE-D27 reading standing. This is a GUARD, not a semantics change.
+//
+// `theOneFix` is called bare by `nowModelUncached:554`, and before B1 its
+// rungs-4/5 gate read `weekDay()`, which cannot throw. `phaseArc` can: it calls
+// `dietBreakState(s)` bare, which reaches `daysBetween` -> `mk(brk.end)` ->
+// `.split(...)` on whatever is stored. Measured by review r3 and again by this
+// pass on the same fixture: with a non-ISO `plan.brk.end` or `plan.brk.start`
+// on a stalled cut, the pre-B1 base RETURNS ADVICE (`rung "break"`,
+// `move.kind "fix"`) and the unguarded candidate threw
+// `TypeError: s.split is not a function` out of BOTH `theOneFix` and
+// `nowModel` — Today's whole model. No law, carrier or cell caught it.
+//
+// The remedy is the idiom B1 itself uses two lines below for `sleepInfo`
+// (`slp9`), and the FALL-BACK IS THE PRE-D27 READING — `key "cut"` and
+// `weekDay().wk`, which is exactly what `theOneFix` read before B1 (`stalled`
+// had no phase term; `longCut` was `weekDay().wk >= 10`). So where the phase
+// cannot be derived the candidate is byte-for-byte the frozen engine's
+// behaviour, and D27's repair applies only where `phaseArc` answers.
+// `plan.brk` is written by the engine at exactly one place
+// (`writers.cjs:2216`, from a proposal's `apply.start/end`), so the reachable
+// route is a ported or imported row — B3/C2 territory — not the engine's own
+// writes.
+cell("B1-D27-a-phase-that-cannot-be-derived-leaves-the-pre-D27-reading-standing",
+  ["D27-4 drop-the-phaseArc-guard (r4-authored; beyond BRIEF v1.2 §2's 32)"], () => {
+  const T = engine("2026-09-03");
+  const malformed = [
+    ["brk.end is a number", { start: "2026-09-01", end: 1762060800000 }],
+    ["brk.end is an object", { start: "2026-09-01", end: {} }],
+    ["brk.start is a number", { start: 1762060800000, end: "2026-09-07" }],
+  ];
+  for (const [what, brk] of malformed) {
+    // THE cell: no throw, and the answer is the BASE's own answer at this
+    // fixture, measured on the pre-B1 base — rung "break" / move.kind "fix".
+    const fix = T.theOneFix(stalled("2026-09-03", "cut", brk));
+    assert.equal(fix.rung, "break", what + " must not move the rung the frozen engine gave");
+    assert.equal(fix.title, "A diet break has earned its place", what);
+    assert.equal(T.nowModel(stalled("2026-09-03", "cut", brk)).move.kind, "fix",
+      what + " must not throw out of nowModel");
+  }
+  // and the pre-D27 gate is what stands in: at this fixture `weekDay().wk` is
+  // 13, so `longCut` is true exactly as it was before B1.
+  assert.equal(T.weekDay().wk, 13);
+  // controls — D27's repair is UNCHANGED wherever the phase CAN be derived, and
+  // these are what make this cell RED on the pre-B1 base (base: both "break").
+  assert.equal(T.theOneFix(stalled("2026-09-03", "maintenance")).rung, "hold");
+  assert.equal(T.theOneFix(stalled("2026-09-03", "cut",
+    { start: "2026-09-01", end: "2026-09-07" })).rung, "hold");
+  // control: a well-formed stalled cut with no break is still told to take one.
+  assert.equal(T.theOneFix(stalled("2026-09-03", "cut")).rung, "break");
 });
 
 // A ready hack debut on a scheduled day, the state D23's law is named for.
