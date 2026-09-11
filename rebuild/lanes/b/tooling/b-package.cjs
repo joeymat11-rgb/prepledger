@@ -183,7 +183,7 @@ const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
 // package id itself determines. A spec can never nominate its own exempt path.
 const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md',
   TOOLING + '/TOOLING-FIX-r5-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', TOOLING + '/test/successor-moves.test.cjs',
-  ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+  TOOLING + '/test/product-phase-and-ledger.test.cjs', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
@@ -814,9 +814,18 @@ function product(s, bound) {
     }
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
     const disk = diskSha(file);
+    // The POST-image is asked first, and the order is the whole of the change (fix r5
+    // follow-up, from lane B's own §4.2 objection). A file this package declares and PINS
+    // but does not CHANGE carries pre === post — it is complete at those bytes, and it was
+    // being counted as "still at the pinned pre-image" for ever, so PRODUCT could never
+    // leave PARTIAL and the `OPEN product PARTIAL` obligation blocked --ci permanently.
+    // B-NTC has seven such files. Nothing is weakened: a file genuinely at a pre-image with
+    // a DIFFERENT declared post still reports `pre`, a `carried` file is still held to
+    // pin.pre exactly, and a file at neither image is still UNLISTED-PRODUCT-DRIFT. This is
+    // a reporting order, not a refusal; no assertion is added, removed or relaxed.
     if (pin.role === 'carried') { assert.equal(disk, pin.pre, 'UNLISTED-PRODUCT-DRIFT ' + file); at.carried.push(file); }
-    else if (disk === pin.pre) at.pre.push(file);
     else if (pin.post && disk === pin.post) at.post.push(file);
+    else if (disk === pin.pre) at.pre.push(file);
     else at.drift.push(file);
   }
   assert(!at.drift.length, 'UNLISTED-PRODUCT-DRIFT ' + at.drift.join(' '));
@@ -879,16 +888,37 @@ function authority(s, bound) {
     themeOpen(); briefOpen();
     note('owner and contract ledger lines not verified at a chain commit'); return;
   }
-  const at = bound.receiptBase;
+  // TWO ANCHORS, because there are two kinds of line here, and conflating them was a defect
+  // in EVERY child package (fix r5 follow-up; lane B raised it against itself).
+  //
+  // OWNER and CONTRACT are PARENT-ERA lines. The contract is additionally asserted
+  // byte-equal to the parent artifact's own contract line, one assert below. They belong at
+  // the parent's receipt base and stay there.
+  //
+  // THE THEME and THE BRIEF ACCEPTANCE are THIS PACKAGE'S OWN lines. They are written after
+  // the parent was sealed — necessarily, since they accept work the parent had not seen. At
+  // the parent's receipt base they can never be found, so `brief.acceptedLedgerLine` could
+  // never be set on any child package before its own seal, and the obligation it clears
+  // could never be cleared. That is what this fixes, and it fixes nothing else.
+  //
+  // The anchor for those two is CHAIN_REF — the real chain branch, resolved from Git refs
+  // and nameable by no spec (X2). NOT `HEAD`: a lane can write any line it likes into its
+  // own branch's DECISIONS.md, and clearing an obligation by self-declaration is exactly
+  // what N4 exists to prevent. The chain branch is the PM's, so a line found there is the
+  // PM's. envelope() re-resolves ALL FOUR at the package's OWN receipt base at the seal,
+  // where it always did, and asserts that base is an ancestor of CHAIN_REF — so the seal is
+  // no weaker, and this path is no stronger than the seal.
+  const at = bound.receiptBase, own = CHAIN_REF;
   ledger(at, s.authorizations.owner, ['M2-RULE']);
   ledger(at, s.authorizations.contract, ['POSTFIX-GATE BRIEF']);
   assert.equal(s.authorizations.contract.lineSha256, bound.acceptance.authorizations.contract.lineSha256, 'INHERITED-CONTRACT-AUTHORIZATION');
-  if (!theme) themeOpen(); else ledger(at, theme, [s.packageId]);
-  if (!accepted) briefOpen(); else ledger(at, accepted, [s.packageId, s.brief.file]);
+  if (!theme) themeOpen(); else ledger(own, theme, [s.packageId]);
+  if (!accepted) briefOpen(); else ledger(own, accepted, [s.packageId, s.brief.file]);
   say('AUTHORITY OBSERVED owner DECISIONS:' + s.authorizations.owner.ledgerLine + ' and contract DECISIONS:' + s.authorizations.contract.ledgerLine +
-    ' present as exact ledger line bytes at ' + at.slice(0, 7) + ' under their own roles; contract inherited byte-equal from the parent; theme ' +
-    (theme ? 'DECISIONS:' + theme.ledgerLine + ' found in Git at that base' : 'NULL — no PASS word is available') + '; brief acceptance ' +
-    (accepted ? 'DECISIONS:' + accepted.ledgerLine + ' found in Git at that base' : 'NULL — the obligation stays open'));
+    ' present as exact ledger line bytes at the parent receipt base ' + at.slice(0, 7) + ' under their own roles; contract inherited byte-equal from the parent; theme ' +
+    (theme ? 'DECISIONS:' + theme.ledgerLine + ' found in Git on ' + CHAIN_REF : 'NULL — no PASS word is available') + '; brief acceptance ' +
+    (accepted ? 'DECISIONS:' + accepted.ledgerLine + ' found in Git on ' + CHAIN_REF : 'NULL — the obligation stays open') +
+    '; this package\'s own two lines are resolved on the chain branch, not at its parent\'s receipt base — they are written after the parent was sealed and could never be found there');
 }
 
 // --------------------------------------------------------- 4. the 45 register laws
