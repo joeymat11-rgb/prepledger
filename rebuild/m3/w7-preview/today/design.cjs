@@ -13,13 +13,15 @@
    A design change upstream, or a builder quietly inventing a class or a phrase or
    copying one of the prototype's fictional figures, fails this file.
 
-   It deliberately depends on nothing but node:fs and node:crypto, so the tests that use
-   it run under the repository's own lockfile with no browser-build dependency. */
+   It deliberately depends on nothing but node:fs, node:crypto and this page's own
+   ./plain-copy.cjs (which depends on nothing at all), so the tests that use it run under
+   the repository's own lockfile with no browser-build dependency. */
 
 const assert = require("node:assert/strict");
 const { createHash } = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { plainCopy } = require("./plain-copy.cjs");
 
 const ROOT = path.resolve(__dirname, "../../../..");
 
@@ -67,7 +69,7 @@ const PREVIEW_COPY = Object.freeze([
      approved prototype stores nothing, so it can never have a record to reuse and
      has no words for confirming one. */
   "Yes, that’s right",
-  "No — answer it here",
+  "No: answer it here",
 ]);
 // Static copy that MUST come from the approved references.
 const APPROVED_COPY = Object.freeze([
@@ -167,7 +169,7 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      recorded nothing yet, a form bound, a device with no store, or the plain
      statement that these answers reach no training rule. Each is checked to be
      ABSENT from the approved references. */
-  "Nothing is recorded yet. Every answer is blank, and blank means unknown — never none, never zero.",
+  "Nothing is recorded yet. Every answer is blank, and blank means unknown: never none, never zero.",
   "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
   "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
   "This device could not open its encrypted local store, so no check-in can be recorded here.",
@@ -178,8 +180,8 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
   "Days away from training is recorded as a whole number of days. Nothing was recorded.",
   "This check-in could not be recorded on this device, and no part of it was recorded.",
-  "— recorded today",
-  "— not available on this device",
+  "Recorded today",
+  "Not available on this device",
 ]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -269,7 +271,25 @@ function recoveryVocabulary(approved) {
 }
 /* Every harvested string must be in the shipped template. Placeholders are matched as
    the attribute they are, so a placeholder demoted to visible text would not satisfy
-   this, and the rest as their own element's text. */
+   this, and the rest as their own element's text.
+
+   DASH-NORMALISED (DECISIONS:114 (1), the owner verbatim: "no ai dashes are allowed in
+   the ui"): where the pinned approved reference itself spells a word with an em or en
+   dash, the shipped screen may not, so the comparison is made after ./plain-copy.cjs has
+   taken the dash out of BOTH sides. The owner's rule beats the pinned design where the
+   two disagree, and only there: every other harvested word is still compared byte for
+   byte, so this can never be used to let a different word through. The report lists each
+   term the normalisation moved. */
+const dashNormalisedTerms = (vocabulary) => {
+  const moved = [];
+  for (const [kind, list] of Object.entries(vocabulary)) {
+    for (const value of list) {
+      const plain = plainCopy(value);
+      if (plain !== value) moved.push({ kind, approved: value, shipped: plain });
+    }
+  }
+  return moved;
+};
 function assertRecoveryBinding(approved, templateHtml) {
   const vocabulary = recoveryVocabulary(approved);
   assert(vocabulary.placeholders.length >= 7,
@@ -277,18 +297,19 @@ function assertRecoveryBinding(approved, templateHtml) {
   assert(vocabulary.choices.length >= 9,
     `APPROVED-RECOVERY FAIL: only ${vocabulary.choices.length} answer choices harvested`);
   for (const value of vocabulary.placeholders) {
-    assert(templateHtml.includes(`placeholder="${value}"`),
+    assert(templateHtml.includes(`placeholder="${plainCopy(value)}"`),
       `APPROVED-RECOVERY FAIL: the approved placeholder "${value}" is missing from the shipped screen`);
   }
   for (const [kind, list] of [["option", vocabulary.options], ["label", vocabulary.labels],
     ["legend", vocabulary.legends], ["choice", vocabulary.choices]]) {
     for (const value of list) {
-      assert(templateHtml.includes(">" + value + "<"),
+      assert(templateHtml.includes(">" + plainCopy(value) + "<"),
         `APPROVED-RECOVERY FAIL: the approved ${kind} "${value}" is missing from the shipped screen`);
     }
   }
   return { placeholders: vocabulary.placeholders.length, options: vocabulary.options.length,
-    labels: vocabulary.labels.length, legends: vocabulary.legends.length, choices: vocabulary.choices.length };
+    labels: vocabulary.labels.length, legends: vocabulary.legends.length, choices: vocabulary.choices.length,
+    dashNormalised: dashNormalisedTerms(vocabulary) };
 }
 
 function assertDesignBinding(approved, templateHtml, appSource) {
