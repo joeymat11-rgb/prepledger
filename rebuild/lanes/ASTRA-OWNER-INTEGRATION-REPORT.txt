@@ -1,4 +1,85 @@
-OWNER-USE LOCAL INTEGRATION PREFLIGHT
+OWNER-USE LOCAL INTEGRATION UPDATE — 2026-09-11
+Current source:3a73b0d3ee0c21711a1dc8d77fd2425f05adf1bd.
+COMBINED BUILT-BROWSER SOURCE PASS. FINAL PACKAGE NOT QUALIFIED.
+Distinct local integrator; no product behavior or package proof edited here.
+
+(A) ACCEPTED MECHANICAL JOINS
+From prior reportdf226c7, --no-ff merge of accepted owner-entry46a8127 produced
+7d4d6365230ac4a8bf257e6ef9d9150090dfa979. No conflict; original history/reports
+retained. Read full independent009995ad898640a8f896b6a0797df54120551aa7 and
+3650dbf92b2504efa264d4f1bc51f8e2efbb6f34; root scoped-accepted their source.
+After browser proof, root authorized accepted reusable proof41f9a4b, reviewed
+by d6c582b87a73793ccd85ddc5f28a8d1022fed197 (read in full). Its --no-ff merge
+produced3a73b0d3ee0c21711a1dc8d77fd2425f05adf1bd with no conflict. Product
+m3/m4-workout/engine/conform diff against browser-tested7d4d636 is empty.
+No manual semantic or source-pin choice, policy change or authority issuance.
+
+(B) ACTUAL COMBINED BROWSER EVIDENCE
+Existing Chrome headless, retained Node24.19.0/root/W6 dependencies; added only
+an ignored W5 dependency junction for the actual build. No install. Loopback
+server serves built Today assets plus synthetic public-enrollment helper only.
+Exact committed rebuild/m3/w6/test/local-owner-browser.mjs ran on7d4d636:
+  OWNER OPERATION TIMEOUT CONTROL PASS
+  OWNER ENTRY BROWSER PASS
+Exit0. Default actual boot, setup-required, public synthetic enrollment, UI
+weight170.5/set40x10/Moderate, exact new saved identities, four operations after
+reload, original active session and demo isolation; no page errors.
+
+One additional combined browser continuation used a one-lift synthetic setup
+scheduled Monday/Friday, one original set, initial load null, declared ladder.
+Playwright page.clock.setFixedTime samples09-11/09-14/09-18 at13:00Z, browser
+timezone America/New_York. Product boot received NO day, calendar, model or
+basis-state injection; ordinary page reload reads stored setup every time.
+First ordinary reload: UI weight170.5, reload; app's public render('workout')
+navigation opens the real card. UI40x10/effort2 save, Finish this workout close,
+then UI recovery Moderate. Awaited repository polling requires new operation
+IDs and exact kind/value/profile; close additionally matches original Start ID.
+Five operations exist before advancing browser date and reloading.
+09-14: owner mode, actual new day, READY,40 lb x10, no debut. Public app
+navigation plus real UI records45x9/effort2 and closes.09-18 reload: READY,
+45 lb x10, one-rep step proposal, accepted working load45. All eight operations
+equal their exact acknowledged originals; setup collection serialized bytes
+unchanged, stored weight170.5/recovery Moderate retained, legacy sessionLog empty.
+No manual source projection, retained basis, fabricated load or write bypass.
+Public navigation was used to reach workout independently of the daily weigh-in
+primary action; this is not proof that every owner navigation path is complete.
+No page errors. Inspected final screenshot: correct Friday September18/athlete,
+approved phone hierarchy and truthful unavailable initial nutrition/trend.
+Final probe exit0. Initial probe-only errors: nonexistent data-go=workout
+selector, then close identity tested inside payload instead of envelope. Both
+corrected before successful execution; no product failure or red-first credit.
+Ignored probe source retained at .tmp/owner-browser/combined-probe-source.txt,
+SHA e6e42d0c166054e885cb3f4ff8f8e52aee50e542cdeb5a4d061a18d4b809845e;
+screenshot .tmp/owner-browser/owner-combined-next.png. Temporary test file removed.
+Reuse earlier120/241/15 component and stored-setup/cache-absence evidence;
+no broad suite, browser crash/kill, physical phone or hosted proof claimed.
+
+(C) PRECISE FINAL-CLOSURE BUILDER BASE / REMAINING WORK
+Use source3a73b0d (or this report-only descendant) as the coherent committed base.
+Read-only joined preflight correctly refuses Exact declared child bytes
+rebuild/m3/w6/local/today-bindings.mjs. Six current product pins are stale:
+  rebuild/m3/w6/local/today-bindings.mjs
+  rebuild/m3/w6/test/local-today-journey.test.mjs
+  rebuild/m3/w7-preview/today/{gym-host.mjs,today-app.cjs,today-entry.mjs,today-model.cjs}
+Current spec omits new calendar.mjs, local-owner-entry.test.mjs and corrected
+local-owner-browser.mjs. Rebuild actual runtime/resource/test closure, including
+changed index.shell.html and browser entry/build dependencies as applicable;
+retain the now-declared native-baseline/initial-setup/local-client/athlete-state.
+Refresh b-ntc-runtime-closure.json, actual spec postimages/own-test scheduling,
+workflow, precise brief and stale historical two-overlay/one-SUPPORT wording.
+The accepted proof preparation is reusable; its17 children/139 entries/101-file
+closure describe the prior source, not this joined calendar/entry snapshot.
+Policy6147178 and runner still name the old source: no final authority follows.
+Builder must produce a new exact independently reviewed source policy/digest,
+preserving original13+child4, all inherited obligations and actual own tests.
+Then genuine PM brief/theme authority on BOTH actual accepted chain and candidate
+ancestry, full/private/second gates, both-OS CI and exact receipt/rerun remain.
+Netlify sign-in/site settings are separately pending and did not block this
+local integration. Prior publication side-effect boundary below still applies.
+No actual integration branch, remote ref, publication, deploy, private data or
+protected soak changed. git diff --check PASS. Only this ONE report updated.
+
+PRIOR PREFLIGHT — HISTORICAL EVIDENCE, CURRENT DISPOSITION ABOVE
 2026-09-11. Distinct integrator, neither author nor reviewer of the joined product.
 Assignment: PM ASTRA-OWNER-INTEGRATION-PREFLIGHT.md. Root is sole PM judge.
 
