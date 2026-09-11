@@ -206,8 +206,13 @@ the recovered ACCEPTED preimage / test-support reconstruction), C2 (`run-current
 C3 (`today.cjs:92` `e.id === "hack"` recorded as register item H1 for Track B, byte-untouched here)
 and C4 (FULL including the private oracle is the PM's own execution before any receipt).
 
-**C4 note.** The PM's first FULL execution at `821234e` found two PACKAGE-TOOLING defects — engine
-bytes were never in question. F-PM-1: the traces child asserted the public `7 GREEN` summary
+**C4 note.** The PM's FULL executions at `821234e` found three PACKAGE-TOOLING defects — engine
+bytes were never in question. F-PM-3: the wrapper's `historical()` read the historical-audit baseline
+off the immediate parent artifact, which is a closed cumulative profile with no `baseline` key, so
+FULL threw a `TypeError` there on every run; the chain is now resolved to the grandparent
+M2-STEP-EFFICACY acceptance (`A.load` + `A.verifyReceipts`, pins asserted) once inside
+`native-carriers-profile.cjs verify()` and handed to the wrapper as `context.grandparent`.
+F-PM-1: the traces child asserted the public `7 GREEN` summary
 literally, which the private fixture's three additional `PORT-live-*` laws made unreachable inside
 FULL; it now counts the public laws exactly and the private ones only as a count, naming none.
 F-PM-2: the wrapper re-ran all 19 originals, nine of which compare against the FROZEN `fe516c1`

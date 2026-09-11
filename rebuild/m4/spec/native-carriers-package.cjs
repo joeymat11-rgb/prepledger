@@ -7,7 +7,7 @@ const Profile=require('./native-carriers-profile.cjs'),Reference=require('./nati
 const R=require('../../conform/v4/postfix/run.cjs'),L=require('../../conform/v4/postfix/legacy-gates.cjs');
 const {sha}=require('../../conform/v4/postfix/target.cjs');
 const args=process.argv.slice(2);assert(args.length===1&&['--full','--ci'].includes(args[0]),'Explicit --full or --ci');const ci=args[0]==='--ci';
-let context,root,a,m,logDir,made=null;
+let context,root,g,m,logDir,made=null;
 // The five B0-authored children, then the five successors of the parent's own
 // substitute children — the ones that carry the nine covered originals.
 const names=['traces','direct','legacy','witnesses','cases',
@@ -31,17 +31,22 @@ function child(name,argv,env,needle){
  console.log('NATIVE CARRIERS PACKAGE '+name+' OBSERVED; exit 0 and exact declared verdict');
 }
 function historical(bundles){
- // An exact public-code snapshot, not a replacement baseline engine.
+ // An exact public-code snapshot, not a replacement baseline engine. The baseline
+ // lives on the GRANDPARENT acceptance (M2-STEP-EFFICACY): the immediate parent
+ // M2-LOAD-WRITES artifact is a closed cumulative profile with no `baseline` key.
+ // Profile.verify() resolved and pinned that chain once; nothing is re-read here.
+ const baseline=g.baseline;
  const dir=fs.mkdtempSync(path.join(logDir,'original-audit-'));
  try{
-  const files=Object.entries(a.baseline.publicPins).filter(([file])=>file.startsWith('rebuild/engine/')||/^rebuild\/conform\/v4\/[^/]+\.cjs$/.test(file));
+  const files=Object.entries(baseline.publicPins).filter(([file])=>file.startsWith('rebuild/engine/')||/^rebuild\/conform\/v4\/[^/]+\.cjs$/.test(file));
   assert(files.some(([file])=>file==='rebuild/conform/v4/run-defect-laws.cjs'));
-  for(const [file,hash]of files){const bytes=L.object(root,a.baseline.auditCommit,file);assert.equal(sha(bytes),hash);const out=path.join(dir,file);assert(out.startsWith(dir+path.sep));fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,bytes);}
+  for(const [file,hash]of files){const bytes=L.object(root,baseline.auditCommit,file);assert.equal(sha(bytes),hash);const out=path.join(dir,file);assert(out.startsWith(dir+path.sep));fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,bytes);}
   console.log(L.historicalAudit({baseline:dir,bundles}).replace(/\bPASS\b/g,'OBSERVED'));
  }finally{assert(path.resolve(dir).startsWith(logDir+path.sep));fs.rmSync(dir,{recursive:true,force:true});}
 }
 try{
- context=Profile.verify();({root,parent:a,manifest:m}=context);
+ context=Profile.verify();({root,grandparent:g,manifest:m}=context);
+ assert(g&&g.baseline&&g.baseline.publicPins&&typeof g.baseline.auditCommit==='string','Resolved grandparent baseline');
  logDir=path.join(root,'.tmp/native-carriers-package');fs.mkdirSync(logDir,{recursive:true});
  console.log('POSTFIX '+Profile.ID+' '+(context.accepted?'AUTHORIZED':'REVIEW-PENDING')+' artifact='+context.artifactSha256+(context.themePending?' THEME_PENDING':''));
  const bundles=require('./load-write-reference.cjs').create(root);

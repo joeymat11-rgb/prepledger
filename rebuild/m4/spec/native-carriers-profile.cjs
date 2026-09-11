@@ -6,7 +6,7 @@
 // carrier over the pinned sourceBase.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'../../..'),P=path.join(root,'rebuild/conform/v4/postfix');
-const L=require(path.join(P,'legacy-gates.cjs')),J=require(path.join(P,'strict-json.cjs')),S=require('./native-carriers-source.cjs');
+const A=require(path.join(P,'acceptance.cjs')),L=require(path.join(P,'legacy-gates.cjs')),J=require(path.join(P,'strict-json.cjs')),S=require('./native-carriers-source.cjs');
 const ID='M2-NATIVE-CARRIERS',ARTIFACT='rebuild/m4/spec/acceptance-native-carriers.json',REVIEW='rebuild/m4/spec/review-native-carriers.json';
 // Parent: the accepted M2-LOAD-WRITES artifact and its own PENDING/ACCEPTED
 // review, with the integrated receipt now standing at rebuild/DECISIONS.md.
@@ -93,6 +93,32 @@ function parent(){
  }
  return a;
 }
+// The historical audit baseline lives on the GRANDPARENT (the accepted
+// M2-STEP-EFFICACY artifact), not on the parent: the M2-LOAD-WRITES artifact is
+// a closed cumulative profile and carries no `baseline` key. The parent's own
+// `parent` object names the grandparent artifact and envelope by sha256, so the
+// chain is resolved here — exactly the way load-write-profile.cjs parent() does
+// it — and the resolved acceptance is handed to the runner as context.grandparent
+// so these pins are verified once per verify().
+function grandparent(a){
+ const g=a.parent;
+ keys(g,['artifact','sha256','envelope','envelopeSha256']);
+ assert.equal(S.sha(fs.readFileSync(path.join(root,g.artifact))),g.sha256,'Grandparent acceptance bytes');
+ assert.equal(S.sha(fs.readFileSync(path.join(root,g.envelope))),g.envelopeSha256,'Grandparent envelope bytes');
+ const loaded=A.load(root,path.join(root,g.envelope));
+ assert.equal(loaded.envelope.acceptanceFile,g.artifact,'Grandparent envelope names its artifact');
+ assert.equal(loaded.envelope.acceptanceSha256,g.sha256,'Grandparent envelope pins its artifact bytes');
+ assert(A.verifyReceipts(root,loaded.acceptance,loaded.envelope,loaded.bytes),'Real accepted grandparent');
+ // Grandparent pins still hold in this tree: its own executables byte-for-byte,
+ // and every frozen public input this package does not supersede.
+ for(const [file,hash]of Object.entries(loaded.acceptance.executionPins))
+  assert.equal(S.sha(fs.readFileSync(path.join(root,file))),hash,'Unchanged grandparent executable: '+file);
+ for(const [file,hash]of Object.entries(loaded.acceptance.baseline.publicPins)){
+  if(SUPERSEDED.has(file)||/^rebuild\/engine\/[^/]+\.cjs$/.test(file))continue;
+  assert.equal(S.sha(fs.readFileSync(path.join(root,file))),hash,'Unchanged frozen input: '+file);
+ }
+ return loaded.acceptance;
+}
 function citation(claim,{role,mustInclude,mustEndWith}){
  keys(claim,['ledgerLine','role','line','lineSha256']);
  assert(Number.isInteger(claim.ledgerLine)&&claim.ledgerLine>0,'Ledger line number');
@@ -148,6 +174,8 @@ function verify(){
   assert(m.executionPins['rebuild/m4/spec/native-carriers-'+child+'.cjs'],'Covered gate '+gate+' maps to a pinned child');
  assert(same(m,proposed()),'Exact closed cumulative profile and all input hashes');
  const a=parent();
+ // Resolved once here so the runner never re-reads or re-pins the chain.
+ const g=grandparent(a);
  const review=J.parseExact(fs.readFileSync(path.join(root,REVIEW)));
  keys(review,['version','status','receipt']);assert.equal(review.version,1);assert(['PENDING','ACCEPTED'].includes(review.status));
  const themePending=false;
@@ -169,9 +197,9 @@ function verify(){
   for(const [file,hash]of Object.entries({...m.product,...m.executionPins}))assert.equal(S.sha(L.object(root,match[1],file)),hash,'Reviewed product/execution bytes');
   accepted=true;
  }
- return {root,manifest:m,parent:a,accepted,themePending,artifactSha256:S.sha(raw)};
+ return {root,manifest:m,parent:a,grandparent:g,accepted,themePending,artifactSha256:S.sha(raw)};
 }
-module.exports={ID,ARTIFACT,REVIEW,PARENT,REQUIRED,FILES,SUPERSEDED,COVERAGE,OWNER_SHA,THEME_SHA,REVIEW_CLAIM,parent,citation,authorizations,checkAuthorizations,proposed,verify};
+module.exports={ID,ARTIFACT,REVIEW,PARENT,REQUIRED,FILES,SUPERSEDED,COVERAGE,OWNER_SHA,THEME_SHA,REVIEW_CLAIM,parent,grandparent,citation,authorizations,checkAuthorizations,proposed,verify};
 if(require.main===module){try{
  assert.deepEqual(process.argv.slice(2),['--seal']);
  const reviewFile=path.join(root,REVIEW);

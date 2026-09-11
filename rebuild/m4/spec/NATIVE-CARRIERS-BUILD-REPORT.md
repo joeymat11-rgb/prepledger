@@ -91,6 +91,31 @@ delegation/speed pair (lines 26 + 88) is dropped on PM judgement.
 
 ### PM FULL-execution defects (found at `821234e` in the only tree where FULL can run)
 
+- **F-PM-3 (wrapper `historical()`, blocking)** — with all 13 children OBSERVED and all 10 run
+  original gates PASS (incl. `migrate-full`), the wrapper still FAILED inside `historical()`. It read
+  `a.baseline.publicPins` / `a.baseline.auditCommit` where `a` = `context.parent` = the immediate
+  parent artifact `rebuild/m4/spec/acceptance-load-writes.json`, whose keys are `version, packageId,
+  sourceBase, parent, requiredIds, matrix, gates, authorizations, product, executionPins` — there is
+  **no `baseline` key**, so every FULL run threw a `TypeError`. The baseline lives one level up, on
+  the **grandparent** `rebuild/conform/v4/postfix/acceptance-step-efficacy.json` (envelope
+  `manifest-step-efficacy.json`), whose `baseline` carries `auditCommit, extractionCommit,
+  frozenCommit, frozenBlob, publicPins, engine, buildSources`. The parent's own
+  `load-write-package.cjs` worked only because ITS parent *was* the step-efficacy artifact — B0
+  inherited the expression but not the chain depth.
+  Fixed: `native-carriers-profile.cjs` gains `grandparent(a)`, which resolves the chain exactly the
+  way `load-write-profile.cjs parent()` does — the load-writes artifact's own `parent` object
+  (`artifact`/`sha256`/`envelope`/`envelopeSha256`, itself inside the byte-pinned parent) is asserted
+  against the files on disk, `A.load(root, <envelope>)` reads them, `A.verifyReceipts` must return
+  true, and the grandparent's pins must still hold in this tree (every `executionPins` entry
+  byte-for-byte; every `baseline.publicPins` entry that is neither superseded by this package nor a
+  `rebuild/engine/*.cjs` file). `verify()` resolves it **once** and returns it as
+  `context.grandparent`; the wrapper reads `g.baseline` and never re-reads or re-pins the chain. The
+  `original-audit-` temp-dir discipline, the `dir + path.sep` path-prefix asserts, the
+  `run-defect-laws.cjs` presence assert and the `PASS`→`OBSERVED` rewrite are unchanged. `--full`
+  without the private fixture now executes `historical()` and every run original gate in order and
+  terminates only at `migrate-full` with
+  `NATIVE CARRIERS PACKAGE BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING` (exit 2). No product, gate,
+  `rebuild/engine/**`, `rebuild/engine/test/**` or `rebuild/conform/**` change.
 - **F-PM-1 (traces child, blocking)** — `native-carriers-traces.cjs census()` asserted the literal
   `7 GREEN · 0 RED…` summary. With the private fixture present the oracle also runs its three
   `PORT-live-*` laws and the line reads `10 GREEN`, so the child could never pass inside FULL.
