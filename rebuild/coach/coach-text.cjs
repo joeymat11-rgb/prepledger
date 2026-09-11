@@ -23,71 +23,88 @@ const fs = require("node:fs");
 const path = require("node:path");
 const T = require("./tools.cjs");
 
-const d = (tag) => (tag && typeof tag.display === "string" ? tag.display : "");
+/* EVERY INTERPOLATION DECLARES ITS UNIT (C5 review round 1, C2). `d(tag, "kcal")`
+   says "a calorie figure goes here", and a tag that is not a calorie figure is a
+   bug in the template, not a sentence to be rendered. That is the answer side of
+   the unit-keyed traceability check in tools.cjs: the template says what field
+   the slot is, the tag says what field the number is, and the two must agree
+   before a single digit is printed. */
+const d = (tag, unit) => {
+  if (typeof unit !== "string" || !unit) {
+    throw new TypeError("d(): every interpolation must declare the unit it speaks into");
+  }
+  if (!tag || typeof tag.display !== "string" || tag.display === "") return "";
+  if (tag.unit !== unit) {
+    throw new Error("COACH_UNIT_MISMATCH: a " + String(tag.unit) + " value was interpolated into a " + unit + " slot ("
+      + String(tag.source) + ")");
+  }
+  return tag.display;
+};
 const has = (tag) => !!(tag && typeof tag.display === "string" && tag.display !== "");
 const join = (parts) => parts.filter((p) => typeof p === "string" && p !== "").join("").replace(/\s+/g, " ").trim();
 
 /* Every template below is a pure function of one turn's tool results. */
 const TEMPLATES = Object.freeze({
   today_plan: (v) => join([
-    has(v.workoutTitle) ? "Today is " + d(v.workoutTitle) + ". " : "There is no training session on the board today. ",
+    has(v.workoutTitle) ? "Today is " + d(v.workoutTitle, "text") + ". " : "There is no training session on the board today. ",
     has(v.kcalLo) && has(v.kcalHi)
-      ? "Eat between " + d(v.kcalLo) + " and " + d(v.kcalHi) + " calories"
+      ? "Eat between " + d(v.kcalLo, "kcal") + " and " + d(v.kcalHi, "kcal") + " calories"
       : "I do not have a calorie band for you",
-    has(v.proteinG) ? ", with at least " + d(v.proteinG) + " grams of protein. " : ". ",
-    has(v.ifText) && has(v.thenText) ? d(v.ifText) + ": " + d(v.thenText) + "." : "",
+    has(v.proteinG) ? ", with at least " + d(v.proteinG, "g") + " grams of protein. " : ". ",
+    has(v.ifText) && has(v.thenText) ? d(v.ifText, "text") + ": " + d(v.thenText, "text") + "." : "",
   ]),
   calories: (v) => join([
     has(v.kcalLo) && has(v.kcalHi)
-      ? "Between " + d(v.kcalLo) + " and " + d(v.kcalHi) + " calories today."
+      ? "Between " + d(v.kcalLo, "kcal") + " and " + d(v.kcalHi, "kcal") + " calories today."
       : "I do not have a calorie band for you today, so I am not going to make one up.",
   ]),
   protein: (v) => join([
     has(v.proteinG)
-      ? "At least " + d(v.proteinG) + " grams. It is a floor, not a bullseye — over it is not a miss."
+      ? "At least " + d(v.proteinG, "g") + " grams. It is a floor, not a bullseye — over it is not a miss."
       : "I do not have a protein target for you today.",
   ]),
-  why_calories: (v) => join([has(v.body) ? d(v.body) : "The engine gave no reasoning for that number.",
-    has(v.weekly) ? " " + d(v.weekly) : ""]),
+  why_calories: (v) => join([has(v.body) ? d(v.body, "text") : "The engine gave no reasoning for that number.",
+    has(v.weekly) ? " " + d(v.weekly, "text") : ""]),
   why_instruction: (v) => join([
-    has(v.title) ? d(v.title) + ". " : "",
-    has(v.body) ? d(v.body) : "The engine has nothing to change right now.",
+    has(v.title) ? d(v.title, "text") + ". " : "",
+    has(v.body) ? d(v.body, "text") : "The engine has nothing to change right now.",
   ]),
-  why_maintenance: (v) => join([has(v.body) ? d(v.body) : "Maintenance is not measured yet."]),
-  status: (v) => join([has(v.word) ? d(v.word) + ". " : "", has(v.body) ? d(v.body) : ""]),
-  levers: (v) => join((v.levers || []).map((l) => d(l.label) + ": " + d(l.zone) + ", " + d(l.detail) + ". ")),
+  why_maintenance: (v) => join([has(v.body) ? d(v.body, "text") : "Maintenance is not measured yet."]),
+  status: (v) => join([has(v.word) ? d(v.word, "text") + ". " : "", has(v.body) ? d(v.body, "text") : ""]),
+  levers: (v) => join((v.levers || []).map((l) =>
+    d(l.label, "text") + ": " + d(l.zone, "text") + ", " + d(l.detail, "text") + ". ")),
 });
 
 const TEMPLATES_2 = Object.freeze({
   weight_trend: (v) => join([
-    has(v.trend) ? "Your trend weight is " + d(v.trend) + " pounds. " : "There is no trend weight on this device yet. ",
+    has(v.trend) ? "Your trend weight is " + d(v.trend, "lb") + " pounds. " : "There is no trend weight on this device yet. ",
     has(v.rate) && has(v.rateLo) && has(v.rateHi) && has(v.n)
-      ? "You are losing about " + d(v.rate) + " pounds a week, somewhere between " + d(v.rateLo) + " and "
-        + d(v.rateHi) + ", measured across " + d(v.n) + " readings from " + d(v.from) + " to " + d(v.to) + ". "
+      ? "You are losing about " + d(v.rate, "lb/wk") + " pounds a week, somewhere between " + d(v.rateLo, "lb/wk") + " and "
+        + d(v.rateHi, "lb/wk") + ", measured across " + d(v.n, "reading") + " readings from " + d(v.from, "text") + " to " + d(v.to, "text") + ". "
       : "The rate is not measured yet, so I have no weekly number for you. ",
-    has(v.lastReadISO) ? "Your last reading was " + d(v.lastReadISO) + "." : "No reading is stored yet.",
+    has(v.lastReadISO) ? "Your last reading was " + d(v.lastReadISO, "text") + "." : "No reading is stored yet.",
   ]),
   current_set: (v) => join([
-    d(v.liftLabel) + ", set " + d(v.setPosition) + " of " + d(v.setCount) + ". ",
-    has(v.prescription) ? d(v.prescription) + ". " : "",
-    has(v.effort) ? d(v.effort) + " " : "",
-    has(v.setup) ? d(v.setup) + "." : "",
+    d(v.liftLabel, "text") + ", set " + d(v.setPosition, "set") + " of " + d(v.setCount, "set") + ". ",
+    has(v.prescription) ? d(v.prescription, "text") + ". " : "",
+    has(v.effort) ? d(v.effort, "text") + " " : "",
+    has(v.setup) ? d(v.setup, "text") + "." : "",
   ]),
   next_set: (v) => join([
-    "Next is " + d(v.liftLabel) + ", set " + d(v.position) + " of " + d(v.count) + ". ",
-    has(v.prescription) ? d(v.prescription) + ". " : "",
-    has(v.effort) ? d(v.effort) : "",
+    "Next is " + d(v.liftLabel, "text") + ", set " + d(v.position, "set") + " of " + d(v.count, "set") + ". ",
+    has(v.prescription) ? d(v.prescription, "text") + ". " : "",
+    has(v.effort) ? d(v.effort, "text") : "",
   ]),
-  last_comparable: (v) => join([has(v.line) ? d(v.line) + "." : ""]),
+  last_comparable: (v) => join([has(v.line) ? d(v.line, "text") + "." : ""]),
   /* The check-in read-back is the model's own: the approved question wording
      beside the athlete's own answer, plus the engine-consequence sentence. This
      adds no adjective, no score and no judgement. */
   checkin: (v) => join([
     v.lines && v.lines.length
-      ? (has(v.provenance) ? d(v.provenance) + ". " : "") + v.lines.map((l) => d(l)).join("; ") + ". " + d(v.note)
-      : "Nothing is recorded for the check-in on " + d(v.date) + ". " + d(v.note),
+      ? (has(v.provenance) ? d(v.provenance, "text") + ". " : "") + v.lines.map((l) => d(l, "text")).join("; ") + ". " + d(v.note, "text")
+      : "Nothing is recorded for the check-in on " + d(v.date, "date") + ". " + d(v.note, "text"),
     has(v.sleepRecordHours) && has(v.sleepRecordDate)
-      ? " Your sleep record already has the night of " + d(v.sleepRecordDate) + ": " + d(v.sleepRecordHours)
+      ? " Your sleep record already has the night of " + d(v.sleepRecordDate, "date") + ": " + d(v.sleepRecordHours, "h")
         + " hours. I would ask you to confirm that rather than ask again."
       : "",
   ]),
@@ -95,23 +112,23 @@ const TEMPLATES_2 = Object.freeze({
      evidence the engine used the answer (approved handoff). */
   recorded: (v) => join([
     "Recorded. ",
-    v.lines && v.lines.length ? "What went down: " + v.lines.map((l) => d(l)).join("; ") + ". " : "",
-    has(v.consequence) ? d(v.consequence) : "",
+    v.lines && v.lines.length ? "What went down: " + v.lines.map((l) => d(l, "text")).join("; ") + ". " : "",
+    has(v.consequence) ? d(v.consequence, "text") : "",
   ]),
   proposal: (v) => join([
     "The engine has a proposal. ",
     has(v.addWeeklySets) && has(v.muscle) && has(v.weeklySetsNow)
-      ? d(v.muscle) + " sits at " + d(v.weeklySetsNow) + " weekly sets, and it proposes adding "
-        + d(v.addWeeklySets) + ". " : "",
-    has(v.reason) ? "Its reason: " + d(v.reason) + " " : "",
+      ? d(v.muscle, "text") + " sits at " + d(v.weeklySetsNow, "set") + " weekly sets, and it proposes adding "
+        + d(v.addWeeklySets, "set") + " sets. " : "",
+    has(v.reason) ? "Its reason: " + d(v.reason, "text") + " " : "",
     "Do you want it? Until you say yes, nothing changes.",
   ]),
   accepted: (v) => join([
     "Recorded. ",
-    has(v.reason) ? "The reason stored with it is the engine's own: " + d(v.reason) : "",
+    has(v.reason) ? "The reason stored with it is the engine's own: " + d(v.reason, "text") : "",
   ]),
   declined: () => "Then nothing changes. This conversation doesn't change your plan.",
-  refused: (v) => join([has(v.explanation) ? d(v.explanation) : "", " This conversation doesn't change your plan."]),
+  refused: (v) => join([has(v.explanation) ? d(v.explanation, "text") : "", " This conversation doesn't change your plan."]),
   /* A refusal states what happened once. The engine's and the client's own
      refusals already end in their own words, so the closing sentence is added
      only when it is not already there. */

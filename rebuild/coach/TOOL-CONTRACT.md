@@ -91,12 +91,24 @@ mints its own era rather than reading this one, which is a lane-c-today merge aw
 }
 ```
 
-`display` is the whole traceability contract. `tools.untraceable(answer, results,
-turn_id)` extracts every numeric token from `answer` and from every `display` the
-turn produced, and returns the tokens the tools did not account for. A non-empty
-return is a **RED** transcript. A rounding of a real value ("1.2" for 1.19) is
-untraceable and fails, which is the point: a friendlier number is still a
-different number.
+`display` **and `unit` together** are the traceability contract.
+`tools.allowedTokens(results, turn_id)` returns a map from numeric token to the
+set of UNITS the turn licensed it in, and `tools.untraceable(answer, results,
+turn_id)` reads each number in `answer` together with the unit/field words around
+it and returns the tokens the tools did not account for IN THE UNIT THE SENTENCE
+ASKS FOR. A non-empty return is a **RED** transcript.
+
+- A rounding of a real value ("1.2" for 1.19) is untraceable and fails, which is
+  the point: a friendlier number is still a different number.
+- `"Eat 155 calories"` fails when 155 is the protein target in grams. A number
+  travels only into a slot the engine computed *for that purpose*.
+- Engine prose (`unit: "text"`) is read with the same parser, so the prose's own
+  unit words are what it licenses.
+- A number with no unit or field word around it is licensed by any quantity the
+  turn produced — but **never by a `date`**: the components of `2030-02-04` are
+  not a set count, a calorie band or a bodyweight.
+- On the answer side every interpolation declares its unit:
+  `d(v.kcalLo, "kcal")` throws `COACH_UNIT_MISMATCH` if handed a gram value.
 
 Every value is scoped to its own `turn_id`. Provenance cannot be borrowed from an
 earlier answer, and `openTurn()` is the only way to call a tool.
@@ -285,8 +297,12 @@ survive a reload, so the coach says plainly that it has not recorded it.
 
 ### `request_replan`
 **in** `{ "fact": "volume"|"phase"|"ladder", "exerciseId": str? }`
-**THIS TOOL TAKES NO NUMBERS.** Any numeric property in the input is refused with
-`COACH_PROPOSAL_NOT_ENGINE_ISSUED`. That is the mechanical form of the ruling:
+**THIS TOOL TAKES NO NUMBERS.** A number ANYWHERE in the input — top level,
+nested in an object, or inside an array, to depth 8 — is refused with
+`COACH_PROPOSAL_NOT_ENGINE_ISSUED`. A numeric STRING (`"7"`, `"make it 7 sets"`)
+is not refused and does not need to be: nothing reads it as a quantity, and the
+issued proposal is byte-identical to the clean call. That is the mechanical form
+of the ruling:
 the model may never construct a proposal's numbers and then ask for confirmation,
 because a confirm is not an undo and confirmation of a guess is still a guess.
 **out** `values`: `proposalId` (id), `producer` (text), `reason` (text),
@@ -385,10 +401,22 @@ returns reaches the coach with its own code and its own sentence.
 ## The cost cap
 
 `verifyCostCap(record, { now, maxAgeDays = 30 })` and `startLiveSession({ cap,
-now, optIn })`. No verified cap record → no live session, and there is no
+now, optIn, user })`. No verified cap record → no live session, and there is no
 override argument in the file (a test greps for one). `cap.schema.json` is the
 shape; `cap.example.json` is a labelled example and says so. A cap record is a
 receipt: any credential-shaped string in it fails verification.
+
+**The shape example is not a cap.** Any record carrying an annotation key —
+anything starting with `_` — is refused `COACH_COST_CAP_INVALID` before any other
+check, so `cap.example.json` can never be mistaken for a cap on an account. The
+suite's happy path is a synthetic live-shaped record built from the example minus
+its annotations, never the file itself.
+
+**The opt-in is per user.** `user` must be one of `NAMED_USERS` (`joe`, `dad`)
+and `optIn` must be that user's own record
+`{ user, accepted: true, accepted_at, screen_version, wording }` — a bare `true`,
+a missing user, or another user's record all refuse `COACH_OPT_IN_REQUIRED`. The
+`wording` must name the phone, the audio, the text and the fact that it leaves.
 
 ## Charter
 

@@ -29,17 +29,22 @@ const LEASE = () => O.lease("dev-A", { not_before: "2030-01-01T00:00:00Z", not_a
 
 function world() {
   const backend = Client.memoryBackend();
-  const client = Client.createClient({ deviceId: "dev-A", athleteId: "ath-1", identityKey: O.K_IDENTITY,
-    authorityKey: O.AUTH_KEY, backend, clock: CLOCK, lease: LEASE(), online: false,
-    contract: { client: "1", required: "1" }, standing: "enrolled" });
-  client.boot();
+  const open = () => {
+    const c = Client.createClient({ deviceId: "dev-A", athleteId: "ath-1", identityKey: O.K_IDENTITY,
+      authorityKey: O.AUTH_KEY, backend, clock: CLOCK, lease: LEASE(), online: false,
+      contract: { client: "1", required: "1" }, standing: "enrolled" });
+    c.boot();
+    return c;
+  };
+  const client = open();
   const today = createTodayModel({});
   const dump = () => {
     const out = {};
     for (const c of backend.collections().sort()) { out[c] = {}; for (const k of backend.keys(c).sort()) out[c][k] = backend.get(c, k); }
     return JSON.stringify(out);
   };
-  return { backend, client, today, dump, coach: T.createCoachTools({ today, consent: client }) };
+  return { backend, client, today, dump, reboot: open,
+    coach: T.createCoachTools({ today, consent: client }) };
 }
 
 test("tier 2: a plan-change REQUEST issues the engine's own proposal and changes nothing", async () => {
@@ -77,7 +82,19 @@ test("tier 2: NO YES leaves the store byte-identical", async () => {
   assert.deepEqual(w.client.face().answers, []);
 });
 
-test("tier 2: WITH A YES the accepted proposal equals the engine's proposal exactly, and the reason is stored", async () => {
+/* C5 review round 1, C3. This test used to be headed "the reason is stored" and
+   proved it against `done.accepted.reason` — a field on an in-memory Map that
+   dies with the process. THE REASON IS NOT ON DISK. rebuild/client's existing
+   proposal-response path has no reason slot (index.cjs:271 respond() commits
+   `payload: {proposal_id, answer}`; :338 recordIssuance() writes
+   `{id, accepted, instance}`; :161 answers() reads them back), so all that
+   survives a restart is that SOME id was accepted. The brief names that existing
+   path, so this is a gap in rebuild/client, not in the coach — and the lane lead
+   has put "does 'recorded with the reason' mean on disk?" to the PM. Until that
+   is answered, this test states the gap instead of hiding it: it asserts exactly
+   what the durable store holds, and asserts that the reason is NOT in it. It
+   goes RED the day a durable reason lands, which is the point. */
+test("tier 2: WITH A YES the accepted proposal equals the engine's proposal exactly (in memory)", async () => {
   const w = world();
   const t1 = w.coach.openTurn("turn-a");
   const issued = await t1.call.request_replan({ fact: "volume" });
@@ -88,10 +105,10 @@ test("tier 2: WITH A YES the accepted proposal equals the engine's proposal exac
   assert.equal(done.ok, true, JSON.stringify(done.unavailable || {}));
   assert.equal(done.recorded, true);
 
-  /* exactly — not a paraphrase, not a re-derivation */
+  /* exactly — not a paraphrase, not a re-derivation. IN THIS PROCESS. */
   assert.deepEqual(JSON.parse(JSON.stringify(done.accepted.proposal)), engineProposal);
   assert.equal(done.accepted.reason, engineProposal.reason);
-  assert.ok(done.accepted.reason && done.accepted.reason.length > 40, "the engine's reason is stored, not a stub");
+  assert.ok(done.accepted.reason && done.accepted.reason.length > 40, "the engine's reason is a stub");
 
   /* and it went through the EXISTING consent path, not a side door */
   const answers = w.client.face().answers;
@@ -103,13 +120,75 @@ test("tier 2: WITH A YES the accepted proposal equals the engine's proposal exac
   assert.equal(done.accepted.issuance_stored, true);
 });
 
+test("tier 2: EXACTLY what the durable store keeps after a yes — and the reason is NOT on disk", async () => {
+  const w = world();
+  const t1 = w.coach.openTurn("turn-a");
+  const issued = await t1.call.request_replan({ fact: "volume" });
+  const engineProposal = JSON.parse(JSON.stringify(issued.proposal));
+  const t2 = w.coach.openTurn("turn-b");
+  const done = await t2.call.accept_proposal({ proposal_id: engineProposal.proposal_id, confirmed: true });
+  assert.equal(done.ok, true, JSON.stringify(done.unavailable || {}));
+
+  const store = JSON.parse(w.dump());
+
+  /* ONE operation, and its payload is exactly two fields */
+  const ops = Object.values(store.ops);
+  assert.equal(ops.length, 1);
+  assert.equal(ops[0].kind, "proposal-response");
+  assert.deepEqual(ops[0].payload, { proposal_id: engineProposal.proposal_id, answer: "accept" });
+  assert.equal(ops[0].op_id, done.accepted.op_id);
+
+  /* and ONE issuance, of exactly three fields */
+  assert.deepEqual(Object.values(store.issuances),
+    [{ id: engineProposal.proposal_id, accepted: true, instance: null }]);
+
+  /* THE GAP, stated rather than hidden: the engine's reason, the proposal body
+     and the producer name never reach disk, because the existing
+     proposal-response payload has no slot for any of them. */
+  const raw = w.dump();
+  assert.ok(!raw.includes(engineProposal.reason), "the engine's reason IS on disk — update this test and C3");
+  assert.ok(!raw.includes(engineProposal.producer), "the producer name is on disk");
+  assert.ok(!raw.includes("weeklySetsNow"), "the proposal body is on disk");
+
+  /* a freshly booted client over the SAME backend keeps the answer and loses the
+     rest — this is what survives a restart, in full */
+  const fresh = w.reboot();
+  assert.deepEqual(fresh.face().answers.map((a) => ({ proposal: a.proposal, answer: a.answer, op_id: a.op_id })),
+    [{ proposal: engineProposal.proposal_id, answer: "accept", op_id: done.accepted.op_id }]);
+  assert.equal(fresh.issuedInstance(engineProposal.proposal_id), null);
+
+  /* and a coach rebuilt over that fresh client knows nothing about the proposal */
+  const rebuilt = T.createCoachTools({ today: w.today, consent: fresh });
+  assert.deepEqual(rebuilt.acceptedProposals(), []);
+  assert.deepEqual(rebuilt.issuedProposals(), []);
+  assert.deepEqual(rebuilt.consentLedger(), []);
+});
+
 test("tier 2: the model may never construct the numbers", async () => {
   const w = world();
   const before = w.dump();
   const turn = w.coach.openTurn("turn-x");
-  const numeric = await turn.call.request_replan({ fact: "volume", addWeeklySets: 7 });
-  assert.equal(numeric.ok, false);
-  assert.equal(numeric.unavailable.code, T.CODES.PROPOSAL_NOT_ENGINE_ISSUED);
+  /* C5 review round 1, C6(i): the guard used to read only the TOP LEVEL, so a
+     number one step down walked straight past it. It now walks the payload. */
+  for (const args of [
+    { fact: "volume", addWeeklySets: 7 },
+    { fact: "volume", note: { sets: 7 } },
+    { fact: "volume", n: [7] },
+    { fact: "volume", deep: { a: { b: { c: [{ d: 7 }] } } } },
+  ]) {
+    const numeric = await turn.call.request_replan(args);
+    assert.equal(numeric.ok, false, JSON.stringify(args) + " carried a number past the guard");
+    assert.equal(numeric.unavailable.code, T.CODES.PROPOSAL_NOT_ENGINE_ISSUED);
+  }
+
+  /* A NUMERIC STRING is not refused, and does not need to be: it is free text the
+     engine never reads as a quantity, and the issued proposal is byte-identical
+     to the clean call either way. That is what the report now says. */
+  const clean = await turn.call.request_replan({ fact: "volume" });
+  const wordy = await turn.call.request_replan({ fact: "volume", addWeeklySets: "7", note: "make it 7 sets" });
+  assert.equal(wordy.ok, true, JSON.stringify(wordy.unavailable || {}));
+  assert.deepEqual(JSON.parse(JSON.stringify(wordy.proposal)), JSON.parse(JSON.stringify(clean.proposal)),
+    "a free-text argument reached the engine's proposal");
 
   const invented = await turn.call.accept_proposal({ proposal_id: "prop-the-model-made-this-up", confirmed: true });
   assert.equal(invented.ok, false);
@@ -192,8 +271,16 @@ test("the staged command set is NOT widened by the local era", () => {
   assert.deepEqual(local, stage, "local-client.mjs widened the staged command set");
   /* `workout` is the one PRODUCER-INJECTED command, and that — not a wider set —
      is how a dated non-workout fact reaches disk. */
-  assert.match(read("m3/w7-preview/today/checkin-host.mjs"), /workoutCommands: createCheckInCommands\(\)/);
-  assert.match(read("m3/w7-preview/today/checkin-host.mjs"), /client\.execute\('workout', \{ action: 'checkin'/);
+  /* The producer lives in checkin-commands.cjs — checkin-host.mjs now binds the
+     device's one local era and passes the producer down to it
+     (`commands: createCheckInCommands()`) instead of composing a store of its
+     own, so this reads the claim where the claim is actually made. The BEHAVIOUR
+     — one dated durable operation per check-in — is proved for real in
+     local-era.test.cjs, not by reading source. */
+  const commands = read("m3/w7-preview/today/checkin-commands.cjs");
+  assert.match(commands, /`workout` is the\s*\n?\s*only PRODUCER-INJECTED one/);
+  assert.match(commands, /a `workoutCommands` provider does/);
+  assert.match(read("m3/w7-preview/today/checkin-host.mjs"), /commands: createCheckInCommands\(\)/);
 });
 
 test("the whole script over the real consent surface stays traceable and honest", async () => {

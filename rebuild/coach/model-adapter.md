@@ -99,8 +99,23 @@ The screen names the thing plainly and does not bury it:
 >
 > [ Turn the coach on ]   [ Not now ]
 
-"Not now" is the default state. `startLiveSession()` refuses with
-`COACH_OPT_IN_REQUIRED` until this is answered yes for that user.
+"Not now" is the default state.
+
+**What the code actually does** (C5 review round 1, C4 — this section used to
+over-claim it). `startLiveSession({ cap, now, optIn, user })`:
+
+- `user` is required and must be one of `NAMED_USERS` = `["joe", "dad"]`. No
+  user, an empty string, or a third name → `COACH_OPT_IN_REQUIRED`.
+- `optIn` must be a RECORD, not a boolean:
+  `{ user, accepted: true, accepted_at, screen_version, wording }`. A bare `true`
+  refuses.
+- `optIn.user` must equal `user`. Joe's yes does not open the gate for Dad.
+- `wording` must be the text that user actually saw, and it must name the phone,
+  the audio, the text, and the fact that it leaves — wording that hides the
+  transfer refuses, because a yes to words that hide it is not consent to it.
+
+There is still **no screen**: nobody has seen this, and building it is a lane-c
+screen change. What exists is the gate the screen will feed.
 
 ## 6. Two defaults taken from the brief's "not decided"
 
@@ -133,10 +148,20 @@ and both are reversible without touching the tool contract.
 
 The same four checks the brief names, run with the model in the loop:
 
-1. `test/traceability.test.cjs` — every numeric token traceable to the same turn,
-   with the fail-closed injection still going RED.
+1. `test/traceability.test.cjs` — every numeric token traceable to the same turn
+   **and to the field that licensed it**, with the fail-closed injection still
+   going RED. The unit check is not optional for a model: the scripted templates
+   cannot exploit a field-blind check (no template string carries a digit) but a
+   model can, and "Eat 155 calories" out of a 155-gram protein target is the
+   exact failure the check exists for. `allowedTokens()` is keyed on
+   `unit:token`; every interpolation declares its unit; a `date` tag licenses a
+   date and never a bare quantity.
 2. `test/tiers.test.cjs` — no yes leaves the durable store byte-identical; with a
-   yes the accepted proposal equals the engine's exactly and the reason is stored.
+   yes the accepted proposal equals the engine's exactly and the reason is stored
+   **in this process**. It is NOT on disk: rebuild/client's proposal-response
+   payload has no reason slot, and the suite asserts that gap explicitly rather
+   than reading an in-memory Map as durable proof (C5 review round 1, C3). An
+   adapter must not report the reason as durable until that changes.
 3. `test/charter-and-gym-seam.test.cjs` — tier-3 refusals explained, state
    unchanged, no charter vocabulary.
 4. `test/cost-cap.test.cjs` — a verified cap record, or no session.

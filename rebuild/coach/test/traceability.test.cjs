@@ -68,6 +68,105 @@ test("FAIL-CLOSED: a plausible-but-wrong rounding of a real value is still untra
   assert.deepEqual(bad.tokens, ["1.2"]);
 });
 
+/* ------------------------------------------------------------------ C2 ---- */
+
+/* C5 review round 1, C2. The instrument used to be FIELD-BLIND: it flattened
+   every tagged display in the turn into one untyped set of digit strings, so any
+   number the turn produced licensed any sentence. Every string below was GREEN
+   at e576905 — a protein gram count minted a calorie instruction, a calorie floor
+   minted a protein target, and a year out of a date tag minted a set count.
+   These six strings are the reviewer's own, verbatim. */
+test("a number is traceable only INTO THE FIELD THAT LICENSED IT", async () => {
+  const turn = coach().openTurn("turn-units");
+  await turn.call.today_plan({});
+  /* what today_plan licensed, keyed on unit */
+  const allowed = T.allowedTokens(turn.results, "turn-units");
+  assert.deepEqual([...allowed.get("2262")], ["kcal"]);
+  assert.deepEqual([...allowed.get("155")], ["g"]);
+  assert.deepEqual([...allowed.get("2030")], ["date"]);
+
+  const MUST_REFUSE = [
+    ["Eat 155 calories today.", "155"],                       /* g into a kcal slot */
+    ["Your protein target is 2262 grams.", "2262"],           /* kcal into a g slot */
+    ["Add 2030 weekly sets.", "2030"],                        /* a date component into a set slot */
+    ["Rest 155 minutes between sets.", "155"],                /* g into a min slot */
+    ["Your weight is 2262 pounds.", "2262"],                  /* kcal into a lb slot */
+  ];
+  for (const [said, token] of MUST_REFUSE) {
+    assert.deepEqual(turn.untraceable(said), [token], "STILL GREEN: " + said);
+  }
+
+  const MUST_ACCEPT = [
+    "Today: 2262–2360 kcal · 155 g protein",                  /* today.marchingOrder.targetLine verbatim */
+    "Your calorie band today is 2262 to 2360.",
+    "Your protein target is 155 grams.",
+  ];
+  for (const said of MUST_ACCEPT) {
+    assert.deepEqual(turn.untraceable(said), [], "WRONGLY RED: " + said);
+  }
+});
+
+test("a date tag licenses a date, never a bare quantity", async () => {
+  const turn = coach().openTurn("turn-date");
+  await turn.call.today_plan({});
+  /* the day is tagged `date` and its components are 2030 / 02 / 04 */
+  assert.equal(turn.results[0].values.day.unit, "date");
+  /* read as a date, they are fine */
+  assert.deepEqual(turn.untraceable("The plan is for 2030-02-04."), []);
+  /* read as anything else, they are not */
+  for (const said of ["Add 2030 weekly sets.", "Do 4 sets.", "Eat 2030 calories.", "You have 4 reps left."]) {
+    assert.ok(turn.untraceable(said).length > 0, "a date component licensed a quantity: " + said);
+  }
+});
+
+test("every interpolation declares the unit it speaks into", () => {
+  const kcal = T.num("t", "energy.calorieTarget.lo", 2262, "kcal");
+  assert.equal(C.d(kcal, "kcal"), "2262");
+  assert.throws(() => C.d(kcal), /declare the unit/);
+  assert.throws(() => C.d(kcal, ""), /declare the unit/);
+  assert.throws(() => C.d(kcal, "g"), /COACH_UNIT_MISMATCH/);
+  /* a blank value still takes the blank branch rather than throwing */
+  assert.equal(C.d(T.blank("t", "energy.currentRate.scale", "lb/wk", "no rate"), "lb/wk"), "");
+});
+
+/* ------------------------------------------------------------------ C5 ---- */
+
+/* C5 review round 1, C5. `untraceable()` is exported and an adapter is free to
+   call it with a POOLED results array; the two turn guards in allowedTokens()
+   are what stop turn A's provenance licensing turn B's sentence. Deleting either
+   guard left 46/46 green at e576905. This is the test that kills that mutant:
+   it is measured, not asserted — ["2262"] with the guards, [] without. */
+test("the turn guards are load-bearing: a POOLED results array cannot lend provenance", async () => {
+  const c = coach();
+  const a = c.openTurn("A");
+  await a.call.today_plan({});                    /* licenses kcal:2262 in turn A */
+  const b = c.openTurn("B");
+  await b.call.cannot_change_via_coach({ topic: "phase" });   /* licenses no number at all */
+
+  const pooled = a.results.concat(b.results);
+  assert.deepEqual(T.untraceable("Eat 2262 calories.", pooled, "B"), ["2262"],
+    "turn B borrowed turn A's provenance out of a pooled array");
+  /* the same pooled array scoped to A does license it — so the test is measuring
+     the guard, not the absence of the number */
+  assert.deepEqual(T.untraceable("Eat 2262 calories.", pooled, "A"), []);
+
+  /* Each guard is killed on its own, so neither can be deleted quietly.
+     INNER (per tag): a result envelope forged with turn B's id whose tagged
+     values still carry turn A's. */
+  const smuggled = { ...a.results[0], turn_id: "B" };
+  assert.deepEqual(T.untraceable("Eat 2262 calories.", [smuggled], "B"), ["2262"],
+    "a tag from another turn licensed this one");
+
+  /* OUTER (per result): the mirror image — a result that BELONGS to turn A,
+     carrying one tag mis-stamped for turn B. A result from another turn is not
+     this turn's evidence whatever its contents claim, so the outer guard drops
+     the whole envelope before the inner one ever sees the tag. */
+  const crossStamped = { ...a.results[0], turn_id: "A",
+    values: { kcalLo: { ...a.results[0].values.kcalLo, turn_id: "B" } } };
+  assert.deepEqual(T.untraceable("Eat 2262 calories.", [crossStamped], "B"), ["2262"],
+    "a result belonging to turn A licensed turn B because one tag inside it was stamped B");
+});
+
 test("provenance cannot be borrowed from another turn", async () => {
   const run = await C.runScript(coach());
   const trend = run.turns.find((t) => t.id === "q06");

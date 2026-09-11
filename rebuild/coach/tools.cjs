@@ -53,6 +53,16 @@ const text = (turn_id, source, s) =>
 
 /* ------------------------------------------------------- traceability ------ */
 
+/* UNIT-KEYED. Binding a number to the TURN is not enough: a protein gram count
+   must not be able to travel into a calorie slot just because both were computed
+   in the same breath (C5 review round 1, C2). So the allowed set is keyed on
+   `unit + ":" + token`, every interpolation in coach-text.cjs DECLARES the unit
+   it is speaking into, and the checker below reads each spoken number TOGETHER
+   WITH the unit/field words around it. "Eat 155 calories" asks for `kcal:155`;
+   a `g:155` tag does not license it.
+   A date is not a quantity: a `date` tag licenses its components only where the
+   sentence itself reads as a date, never as a bare number. */
+
 /* Numeric tokens, comma-normalised. Sign is deliberately not part of a token:
    the risk this check exists to catch is an INVENTED QUANTITY, not a dropped
    minus sign, and "2030-01-07" must tokenise as three ordinary numbers. */
@@ -76,25 +86,137 @@ function collectTagged(node, out) {
   return out;
 }
 
-/* The set of numbers a turn is allowed to say: the tokens of every tagged value
-   the tools returned IN THAT TURN, and nothing else. */
+/* The unit each spoken word asks for. The canon on the right is exactly the set
+   of units the tags in this file declare. */
+const UNIT_WORDS = Object.freeze({
+  kcal: "kcal", kcals: "kcal", cal: "kcal", cals: "kcal", calorie: "kcal", calories: "kcal",
+  "kcal/day": "kcal", "kcal/d": "kcal", "kcals/day": "kcal",
+  g: "g", gram: "g", grams: "g",
+  lb: "lb", lbs: "lb", pound: "lb", pounds: "lb",
+  "lb/wk": "lb/wk", "lbs/wk": "lb/wk", "lb/week": "lb/wk",
+  set: "set", sets: "set",
+  rep: "rep", reps: "rep",
+  lift: "lift", lifts: "lift",
+  reading: "reading", readings: "reading",
+  day: "day", days: "day",
+  h: "h", hr: "h", hrs: "h", hour: "h", hours: "h",
+  min: "min", mins: "min", minute: "min", minutes: "min",
+  week: "wk", weeks: "wk", wk: "wk",
+});
+
+/* Words a number may travel over on its way to its unit. They carry no field of
+   their own — "between 2262 and 2360 calories" is a calorie band, and "2030
+   weekly sets" is a set count. Anything NOT on this list stops the scan, so a
+   number followed by an unrelated noun ends up with no unit at all. */
+const UNIT_FILLER = new Set(["a", "an", "the", "and", "or", "to", "of", "at", "about", "around",
+  "roughly", "approximately", "between", "somewhere", "least", "most", "more", "up", "over",
+  "under", "per", "weekly", "daily", "this", "that", "your", "my", "total", "plus", "minus",
+  "extra", "additional", "another", "some", "is", "are", "was", "were", "than", "add", "adding"]);
+
+const STOP_PUNCT = /^[.!?;]$/;
+const ATOM = /(\d[\d,]*(?:\.\d+)?)|([A-Za-z][A-Za-z/'-]*)|(\S)/g;
+const ISO_DATE = /\d{4}-\d{2}-\d{2}/g;
+const UNKNOWN_UNIT = "?";
+
+/* `4 sets a week` and `1.19 pounds a week` are rates, and the engine tags them
+   as such (`lb/wk`). The rate words are read here so the spoken form matches the
+   tag rather than fighting it. */
+function perWeek(unit, atoms, from) {
+  if (unit === "wk" || unit.indexOf("/") >= 0) return unit;
+  const a = atoms[from], b = atoms[from + 1];
+  if (a && a.kind === "word" && a.v === "weekly") return unit + "/wk";
+  if (a && a.kind === "word" && (a.v === "a" || a.v === "per" || a.v === "each")
+    && b && b.kind === "word" && (b.v === "week" || b.v === "wk")) return unit + "/wk";
+  return unit;
+}
+
+/* The unit a number is speaking into: the first unit word after it, crossing
+   only other numbers, punctuation and the filler above, and never crossing the
+   end of a sentence. `null` means the sentence named no unit at all. */
+function unitAfter(atoms, from) {
+  for (let i = from; i < atoms.length; i++) {
+    const a = atoms[i];
+    if (a.kind === "num") continue;
+    if (a.kind === "punct") { if (STOP_PUNCT.test(a.v)) return null; continue; }
+    const unit = UNIT_WORDS[a.v];
+    if (unit) return perWeek(unit, atoms, i + 1);
+    if (UNIT_FILLER.has(a.v)) continue;
+    return null;
+  }
+  return null;
+}
+
+/* Every number in a string, with the unit its own words ask for. */
+function parseUnits(s) {
+  const src = String(s === null || s === undefined ? "" : s);
+  const dates = [];
+  ISO_DATE.lastIndex = 0;
+  let dm;
+  while ((dm = ISO_DATE.exec(src)) !== null) dates.push([dm.index, dm.index + dm[0].length]);
+  const inDate = (i) => dates.some(([lo, hi]) => i >= lo && i < hi);
+
+  const atoms = [];
+  ATOM.lastIndex = 0;
+  let m;
+  while ((m = ATOM.exec(src)) !== null) {
+    if (m[1] !== undefined) atoms.push({ kind: "num", v: m[1].replace(/,/g, ""), at: m.index });
+    else if (m[2] !== undefined) atoms.push({ kind: "word", v: m[2].toLowerCase().replace(/[-']+$/, ""), at: m.index });
+    else atoms.push({ kind: "punct", v: m[3], at: m.index });
+  }
+  const out = [];
+  for (let i = 0; i < atoms.length; i++) {
+    if (atoms[i].kind !== "num") continue;
+    out.push({ token: atoms[i].v, unit: inDate(atoms[i].at) ? "date" : unitAfter(atoms, i + 1) });
+  }
+  return out;
+}
+
+/* The numbers a turn is allowed to say, KEYED ON UNIT: a map from token to the
+   set of units the tools licensed it in, drawn from the tagged values the tools
+   returned IN THAT TURN and nothing else. A tag that declares a real unit
+   licenses its tokens in that unit; engine PROSE (unit `text`) is read with the
+   same parser a spoken sentence is read with, so the prose's own unit words —
+   "2300 kcal on 8,500 steps" — are what it licenses. */
 function allowedTokens(results, turn_id) {
-  const allowed = new Set();
+  const allowed = new Map();
+  const add = (token, unit) => {
+    if (!allowed.has(token)) allowed.set(token, new Set());
+    allowed.get(token).add(unit || UNKNOWN_UNIT);
+  };
   for (const r of results || []) {
     if (turn_id && r && r.turn_id !== turn_id) continue;
     for (const t of collectTagged(r)) {
       if (turn_id && t.turn_id !== turn_id) continue;
-      for (const tok of numericTokens(t.display)) allowed.add(tok);
+      const declared = typeof t.unit === "string" && t.unit ? t.unit : null;
+      const spoken = parseUnits(t.display);
+      if (declared === null || declared === "text") for (const p of spoken) add(p.token, p.unit);
+      else for (const p of spoken) add(p.token, p.unit === "date" ? "date" : declared);
     }
   }
   return allowed;
 }
 
 /* FAIL-CLOSED. Returns every numeric token in `answer` that no tool result from
-   the same turn accounts for. An empty array is the only passing answer. */
+   the same turn accounts for IN THE UNIT THE SENTENCE ASKS FOR. An empty array
+   is the only passing answer. */
 function untraceable(answer, results, turn_id) {
   const allowed = allowedTokens(results, turn_id);
-  return numericTokens(answer).filter((tok) => !allowed.has(tok));
+  const bad = [];
+  for (const spoken of parseUnits(answer)) {
+    const units = allowed.get(spoken.token);
+    if (!units) { bad.push(spoken.token); continue; }
+    if (spoken.unit === null) {
+      /* A bare number, with no unit or field word around it. Any QUANTITY the
+         turn produced licenses it — but a date never does: the components of
+         "2030-02-04" are not a set count, a calorie band or a bodyweight. */
+      let licensed = false;
+      for (const u of units) if (u !== "date") { licensed = true; break; }
+      if (!licensed) bad.push(spoken.token);
+      continue;
+    }
+    if (!units.has(spoken.unit)) bad.push(spoken.token);
+  }
+  return bad;
 }
 const traceable = (answer, results, turn_id) => untraceable(answer, results, turn_id).length === 0;
 
@@ -191,6 +313,19 @@ function assertNoLeak(result) {
   })(result, 0);
   if (seen.length) throw new Error("COACH_TOOL_LEAK:" + [...new Set(seen)].join(","));
   return result;
+}
+
+/* Does an argument payload carry a number ANYWHERE — top level, nested in an
+   object, or inside an array? (C5 review round 1, C6(i): the old guard read only
+   the top level, so `{note:{sets:7}}` walked straight past it.) Numeric strings
+   are deliberately NOT caught here: they are still just free text the engine
+   never reads as a quantity, and the proposal's numbers come out of an engine
+   producer either way. */
+function carriesNumber(node, depth) {
+  if (typeof node === "number") return true;
+  if (!node || typeof node !== "object" || depth > 8) return false;
+  if (Array.isArray(node)) return node.some((v) => carriesNumber(v, depth + 1));
+  return Object.values(node).some((v) => carriesNumber(v, depth + 1));
 }
 
 /* ------------------------------------------------------------ the tools -- */
@@ -613,7 +748,7 @@ function createCoachTools(world) {
         "No accepted engine entry point re-plans on that kind of fact yet. The engine re-plans on: " + REPLAN_FACTS.join(", ") + ".",
         "rebuild/engine — no accepted replan-on-coach-facts producer exists");
     }
-    if (args && Object.keys(args).some((k) => typeof args[k] === "number")) {
+    if (carriesNumber(args, 0)) {
       return unavailable("request_replan", TIER.PROPOSAL, turn_id, CODES.PROPOSAL_NOT_ENGINE_ISSUED,
         "This tool takes no numbers. A proposal's numbers come from the engine, never from the conversation.",
         "VOICE-COACH-BRIEF.md tier 2");
@@ -751,8 +886,19 @@ const CREDENTIAL_SHAPES = Object.freeze([
 function verifyCostCap(record, options) {
   const now = (options && options.now) || new Date().toISOString();
   const maxAgeDays = (options && options.maxAgeDays) || 30;
-  if (!record || typeof record !== "object") {
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
     return { ok: false, code: CODES.COST_CAP_ABSENT, reason: "No cost-cap record was supplied. No live session may start." };
+  }
+  /* THE SHAPE EXAMPLE IS NOT A CAP (C5 review round 1, C1). cap.example.json
+     says so in its own first field, and a verifier that green-lights a
+     self-declared placeholder is a false green sitting exactly where fail-closed
+     was required. Any annotation key — anything starting with "_" — means this
+     is a document about a cap, not a cap on an account. A live record carries
+     none, so there is nothing legitimate to lose by refusing here. */
+  const annotations = Object.keys(record).filter((k) => k.charAt(0) === "_");
+  if (annotations.length) {
+    return { ok: false, code: CODES.COST_CAP_INVALID,
+      reason: "this is the shape example, not a cap on any account (it carries " + annotations.join(", ") + ")" };
   }
   const missing = CAP_REQUIRED.filter((k) => record[k] === undefined || record[k] === null || record[k] === "");
   if (missing.length) return { ok: false, code: CODES.COST_CAP_INVALID, reason: "Cap record is missing: " + missing.join(", ") };
@@ -775,18 +921,61 @@ function verifyCostCap(record, options) {
   return { ok: true, code: null, reason: null, capUsdMonth: record.cap_usd_month, capUsdSession: record.cap_usd_session };
 }
 
+/* ------------------------------------------------------ the opt-in gate -- */
+
+/* "Explicit opt-in for each user" (owner ruling), "two named users only — Joe
+   and Dad". PER USER, not per build (C5 review round 1, C4): one boolean `true`
+   used to open the gate for anybody, and the user id was silently ignored. An
+   opt-in is now a RECORD belonging to one named user, and it must carry the
+   wording that user actually saw — wording that says plainly that the audio and
+   the text leave this phone. Nothing here starts a session either way. */
+const NAMED_USERS = Object.freeze(["joe", "dad"]);
+const OPT_IN_REQUIRED = Object.freeze(["user", "accepted", "accepted_at", "screen_version", "wording"]);
+const OPT_IN_CODE = "COACH_OPT_IN_REQUIRED";
+const no = (reason) => ({ ok: false, code: OPT_IN_CODE, reason });
+
+function verifyOptIn(optIn, user) {
+  if (typeof user !== "string" || !NAMED_USERS.includes(user)) {
+    return no("A live session belongs to one named user. Say who is talking (" + NAMED_USERS.join(" or ")
+      + "); a session with no user is not a session anyone consented to.");
+  }
+  if (!optIn || typeof optIn !== "object" || Array.isArray(optIn)) {
+    return no("A bare yes is not an opt-in. " + user + " opts in on a screen, and the record of that screen "
+      + "— who, when, which wording — is what opens this gate.");
+  }
+  const missing = OPT_IN_REQUIRED.filter((k) => optIn[k] === undefined || optIn[k] === null || optIn[k] === "");
+  if (missing.length) return no("The opt-in record is missing: " + missing.join(", ") + ".");
+  if (optIn.user !== user) {
+    return no("That opt-in belongs to " + String(optIn.user) + ", not to " + user
+      + ". One user's yes never speaks for another.");
+  }
+  if (optIn.accepted !== true) return no(user + " has not answered yes on the opt-in screen.");
+  if (!Number.isFinite(Date.parse(optIn.accepted_at))) return no("accepted_at is not an ISO timestamp.");
+  const wording = String(optIn.wording);
+  const names = [[/phone/i, "that this phone is where it starts"], [/audio|voice/i, "the audio"],
+    [/\btext\b|transcript/i, "the text"], [/leav|sent|send|goes|go to/i, "that it leaves the phone"]];
+  const unnamed = names.filter(([re]) => !re.test(wording)).map(([, what]) => what);
+  if (unnamed.length) {
+    return no("The opt-in wording must name what actually happens — it does not name: " + unnamed.join(", ")
+      + ". A yes to words that hide the transfer is not consent to the transfer.");
+  }
+  return { ok: true, code: null, reason: null, user };
+}
+
 /* The one gate in front of anything live. There is deliberately no live session
    in this task: this refuses, and a future adapter must call it first. */
-function startLiveSession({ cap, now, optIn } = {}) {
+function startLiveSession({ cap, now, optIn, user } = {}) {
   const verdict = verifyCostCap(cap, { now });
   if (!verdict.ok) return { started: false, code: verdict.code, reason: verdict.reason };
-  if (optIn !== true) return { started: false, code: "COACH_OPT_IN_REQUIRED", reason: "Each user opts in on a screen that names what leaves the phone. Nothing starts without it." };
-  return { started: false, code: "COACH_NO_LIVE_ADAPTER", reason: "The cap and the opt-in are in order. No live model adapter exists in this build; the text-first prototype is the only coach here." };
+  const consent = verifyOptIn(optIn, user);
+  if (!consent.ok) return { started: false, code: consent.code, reason: consent.reason };
+  return { started: false, code: "COACH_NO_LIVE_ADAPTER", reason: "The cap and " + user + "'s opt-in are in order. No live model adapter exists in this build; the text-first prototype is the only coach here." };
 }
 
 module.exports = {
   createCoachTools, TIER, CODES, NEVER_VIA_COACH, TIER3_TOPICS,
   tagged, blank, num, text, numericTokens, collectTagged, allowedTokens, untraceable, traceable,
+  parseUnits, UNIT_WORDS, carriesNumber,
   CHARTER_BANNED, charterViolations, FORBIDDEN_KEYS, assertNoLeak,
-  verifyCostCap, startLiveSession, CAP_REQUIRED,
+  verifyCostCap, startLiveSession, verifyOptIn, CAP_REQUIRED, NAMED_USERS, OPT_IN_REQUIRED,
 };
