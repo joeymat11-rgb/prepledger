@@ -36,3 +36,16 @@
 .review .note { margin: 0; }
 #today-status { margin-top: 6px; }
 .view > .note { padding: 24px; }
+
+/* Today follows Additions C, the authoritative reference, structure for structure, so it
+   takes C's own headline metric. Refinement A's .intro h1 (54px) is more specific than
+   C's h1 (47px) and would otherwise win purely because A's stylesheet is also loaded for
+   the weigh-in sheet's controls. These are C's declared values, not new ones, and the
+   difference is what keeps the single primary action inside one 390x844 viewport
+   (review F2). */
+.view .intro h1 { font-size: 47px; line-height: 1.04; letter-spacing: -.025em; }
+
+/* C composes "a main line with a quieter second line" once, on its coach entry
+   (.coach-entry .sub). Today's trend control is the same composition, so it gets the same
+   declared values rather than a new idea. */
+.view .trend .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }

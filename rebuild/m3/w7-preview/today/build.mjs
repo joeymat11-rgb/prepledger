@@ -17,14 +17,14 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildBrowser } from "../../w6/build-browser.mjs";
 import design from "./design.cjs";
 
-const { APPROVED, readApproved, assertDesignBinding, composeStyles } = design;
+const { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles } = design;
 
 export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(SOURCE, "../../../..");
 export const DIST = path.join(ROOT, ".tmp/w7-today-dist");
 export const SCRATCH = path.join(ROOT, ".tmp/w7-today-build");
 export const ASSETS = Object.freeze(["index.html", "styles.css", "app.js"]);
-export { APPROVED, readApproved, assertDesignBinding, composeStyles };
+export { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles };
 
 const FORBIDDEN = Object.freeze([
   ["rebuild/engine/seed.cjs", (p) => p === "rebuild/engine/seed.cjs"],
@@ -83,11 +83,12 @@ async function realDirectory(directory) {
 
 export async function buildToday() {
   const approved = readApproved();
+  const fonts = readFonts();
   const shell = design.shellHtml();
   const template = design.templateHtml();
   const chrome = design.chromeCss();
   assert.equal(shell.split("<!-- APPROVED_TEMPLATES -->").length, 2, "TEMPLATE-SLOT FAIL");
-  const binding = assertDesignBinding(approved, template);
+  const binding = assertDesignBinding(approved, template, design.appSource());
 
   await realDirectory(path.join(ROOT, ".tmp"));
   await realDirectory(SCRATCH);
@@ -99,7 +100,7 @@ export async function buildToday() {
 
   const contents = {
     "index.html": shell.replace("<!-- APPROVED_TEMPLATES -->", template),
-    "styles.css": composeStyles(approved, chrome),
+    "styles.css": composeStyles(approved, chrome, fonts),
     "app.js": await fs.readFile(built.outfile),
   };
   await realDirectory(DIST);
@@ -111,7 +112,7 @@ export async function buildToday() {
   assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
   return { dist: DIST, assets: [...ASSETS], inputs, inventory: built.inventory,
-    approved: APPROVED.map((a) => a.sha256), binding };
+    approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
@@ -121,7 +122,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     const client = result.inputs.filter((p) => p.startsWith("rebuild/client/"));
     console.log(`A1 TODAY BUILD PASS: ${result.assets.length} assets; ${result.inputs.length} pinned inputs `
       + `(${engine.length} engine, ${client.length} client); approved design pinned; `
-      + `${result.binding.classes} bound classes; no literal figure in the template`);
+      + `${result.binding.classes} bound classes; ${result.fonts.length} pinned typefaces inlined; `
+      + `no literal figure in the template and no network reference`);
   } catch (error) {
     console.error(`A1 TODAY BUILD FAIL: ${error.message}`);
     process.exitCode = 1;

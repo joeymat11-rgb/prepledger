@@ -2,30 +2,29 @@
 
 /* A1 — the view: the owner-approved 2026-09-08 Today screen bound to the real adapter.
    These tests prove that every figure on screen came from the engine or a stored
-   operation, that the approved prototype's fictional numbers are gone, that the screens
-   this slice does not build say so, and that every text input the athlete can focus is
-   at least 16px (the iOS zoom rule). */
+   operation, that the engine's own reading note is shown rather than dropped (review F1),
+   that the screens this slice does not build say so, and that every text input the page
+   actually renders is at least 16px (the iOS zoom rule, review F4). */
 
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const fs = require("node:fs");
 const path = require("node:path");
 const { JSDOM } = require("jsdom");
 const { createEngine } = require("../../../../engine/index.cjs");
-const { mountToday } = require("../today-app.cjs");
+const app = require("../today-app.cjs");
+const { mountToday, morningLine, trendLine, calorieBand, calorieHeadline } = app;
 const { createTodayModel, createBasisState, engineClockFor, SYNTHETIC_DAY } = require("../today-model.cjs");
-const { createMemoryStorage } = require("../web-storage-backend.cjs");
+const { createWebStorageBackend, createMemoryStorage } = require("../web-storage-backend.cjs");
 const design = require("../design.cjs");
 
-const SOURCE = path.resolve(__dirname, "..");
-const ROOT = path.resolve(__dirname, "../../../../..");
 const DAY = SYNTHETIC_DAY;
+const money = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 
 /* The approved prototypes' numbers are fictional (rebuild/m1/MOCK.md). These particular
    figures cannot be a value this synthetic athlete's engine produces, so seeing one means
    template text survived instead of being bound. Substring checks, not word-boundary
-   regexes: "2,300kcal" has no word boundary after the 0, and a \\b test there silently
-   passes whatever is on screen.
+   regexes: "2,300 kcal" has no word boundary after the 0 in some renderings, and a \b
+   test there silently passes whatever is on screen.
 
    The REAL guard is stronger and lives in two places: every figure on Today is asserted
    equal to the reference engine's own value slot by slot, and no digit at all may appear
@@ -38,7 +37,6 @@ const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb",
 function shell() {
   return design.shellHtml().replace("<!-- APPROVED_TEMPLATES -->", design.templateHtml());
 }
-
 function setup(options = {}) {
   const dom = new JSDOM(shell(), { url: "http://127.0.0.1:4178/" });
   const doc = dom.window.document;
@@ -48,6 +46,13 @@ function setup(options = {}) {
 }
 const phoneText = (doc) => doc.getElementById("phone").textContent;
 const slot = (doc, name) => doc.querySelector(`[data-slot="${name}"]`);
+function weighIn(dom, doc, value) {
+  slot(doc, "primary").click();
+  const sheet = doc.querySelector('[role="dialog"]');
+  doc.getElementById("morning-weight").value = String(value);
+  sheet.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
+  return sheet;
+}
 
 test("Today paints the approved design from engine values only", () => {
   const { doc, model } = setup();
@@ -56,16 +61,15 @@ test("Today paints the approved design from engine values only", () => {
   const state = createBasisState(DAY);
 
   assert.equal(doc.querySelector(".brand").textContent, "Earned");
-  assert.equal(doc.querySelector(".day-label").textContent, "Your plan for today");
+  assert.equal(doc.querySelector(".label").textContent, "Your plan for today");
   assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title);
-  assert.equal(slot(doc, "instruction-why").textContent, reference.statusFace(state).cause);
+  assert.equal(slot(doc, "instruction-why").textContent, reference.marchingOrder(state).why);
   assert.equal(slot(doc, "workout-title").textContent, reference.nowModel(state).workout.title);
   assert.equal(slot(doc, "workout-count").textContent,
-    reference.genSession(state, DAY, null).ex.length + " exercises");
-  assert.equal(slot(doc, "trend").textContent, reference.nowModel(state).headed.weight.toFixed(1) + " lb");
-  assert.match(slot(doc, "kcal-note").textContent, new RegExp(String(reference.calorieTarget(state).lo).slice(0, 1)));
-  assert.match(slot(doc, "protein").textContent, new RegExp(String(reference.proteinTarget(state).g)));
-  assert.equal(slot(doc, "morning").textContent, "Not logged yet");
+    reference.genSession(state, DAY, null).ex.length + " exercises · Your set targets are ready");
+  assert.equal(slot(doc, "kcal-note").textContent, calorieBand(reference.calorieTarget(state)));
+  assert.equal(slot(doc, "protein").textContent, money.format(reference.proteinTarget(state).g));
+  assert.equal(slot(doc, "morning").textContent, "This morning — not logged yet");
   assert.equal(view.hasReadToday, false);
   for (const figure of FICTIONAL) assert(!phoneText(doc).includes(figure), "prototype figure on screen: " + figure);
 });
@@ -73,47 +77,93 @@ test("Today paints the approved design from engine values only", () => {
 test("the primary action before a weigh-in is the engine's own marching order", () => {
   const { doc, model } = setup();
   const view = model.read();
-  assert.equal(slot(doc, "primary-note").textContent, view.marchingOrder.why);
   assert.equal(slot(doc, "primary-label").textContent.toLowerCase(), view.marchingOrder.thenText.toLowerCase());
+  assert.equal(slot(doc, "instruction-why").textContent, view.marchingOrder.why);
 });
 
 test("a weigh-in through the sheet rebinds every engine-derived value on Today", () => {
   const { dom, doc, model } = setup();
-  slot(doc, "primary").click();
-  const sheet = doc.querySelector('[role="dialog"]');
-  assert(sheet, "the weigh-in sheet opened");
-  assert.equal(doc.activeElement.id, "morning-weight");
-  const input = doc.getElementById("morning-weight");
-  input.value = "179.4";
-  sheet.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
-
+  weighIn(dom, doc, 179.4);
   assert.equal(doc.querySelector('[role="dialog"]'), null, "the sheet closed");
   const reference = createEngine({ clock: engineClockFor(DAY) });
   const state = reference.applyRead(createBasisState(DAY), DAY, 179.4, { hour: 8 });
-  assert.equal(slot(doc, "morning").textContent, "179.4 lb");
-  assert.equal(slot(doc, "trend").textContent, reference.nowModel(state).headed.weight.toFixed(1) + " lb");
+  assert.match(slot(doc, "morning").textContent, /^This morning ✓ 179\.4 lb/);
+  assert.equal(slot(doc, "trend").textContent,
+    "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?");
   assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title);
-  assert.equal(slot(doc, "morning-label").textContent, "This morning ✓");
   assert.match(slot(doc, "primary-label").textContent, /^Start /);
   assert.equal(model.read().hasReadToday, true);
   for (const figure of FICTIONAL) assert(!phoneText(doc).includes(figure), "prototype figure on screen: " + figure);
 });
 
-test("a refused weigh-in shows the client's own refusal and paints no number", () => {
+/* ---- review F1: the engine's reading note is shown, not dropped ---- */
+test("a spike reading renders the ENGINE's own note beside it; a quiet reading renders none", () => {
+  const reference = createEngine({ clock: engineClockFor(DAY) });
+  const spikeState = reference.applyRead(createBasisState(DAY), DAY, 191.7, { hour: 8 });
+  const spikeNote = spikeState.reads.at(-1).note;
+  assert(spikeNote && spikeNote.length > 0, "the accepted writer really does attach a note to a spike");
+
+  const spike = setup();
+  weighIn(spike.dom, spike.doc, 191.7);
+  const shown = slot(spike.doc, "morning").textContent;
+  assert.equal(shown, "This morning ✓ 191.7 lb · " + spikeNote);
+  assert(shown.includes(spikeNote), "the note is the engine's own string, verbatim");
+  // The reading and the trend no longer sit side by side unreconciled.
+  assert.match(spike.doc.getElementById("phone").textContent, new RegExp(spikeNote.slice(0, 12).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  const quietState = reference.applyRead(createBasisState(DAY), DAY, 179.4, { hour: 8 });
+  assert.equal(quietState.reads.at(-1).note, "", "this reading carries no note");
+  const quiet = setup();
+  weighIn(quiet.dom, quiet.doc, 179.4);
+  assert.equal(slot(quiet.doc, "morning").textContent, "This morning ✓ 179.4 lb");
+  assert(!slot(quiet.doc, "morning").textContent.includes("·"), "no separator is printed with no note");
+});
+
+test("morningLine and trendLine carry no words of their own beyond the approved labels", () => {
+  const note = "spike — damped in trend";
+  assert.equal(morningLine({ morningRead: { lb: 190, note } }), "This morning ✓ 190.0 lb · " + note);
+  assert.equal(morningLine({ morningRead: { lb: 190, note: "" } }), "This morning ✓ 190.0 lb");
+  assert.equal(morningLine({ morningRead: null }), "This morning — not logged yet");
+  assert.equal(trendLine({ nowModel: { headed: { weight: 180.1 } } }), "Weight trend 180.1 lb · Why this plan?");
+  assert.match(trendLine({ nowModel: { headed: { weight: null } } }), /Not available yet/);
+});
+
+/* ---- review F8: an impossible weight is refused in words, never silently ---- */
+test("an impossible weight is refused with an honest message and records nothing", () => {
+  const storage = createMemoryStorage();
+  const { dom, doc, model } = setup({ storage });
+  for (const value of ["10000", "0", "-5", "59.9", "400.1", "180.01"]) {
+    const sheet = weighIn(dom, doc, value);
+    const message = doc.getElementById("weigh-error").textContent;
+    assert(message.length > 0, "refused " + value + " in words");
+    assert.match(message, /Nothing was recorded/);
+    assert(doc.querySelector('[role="dialog"]'), "the sheet stays open on a refusal");
+    doc.querySelector('[data-action="cancel"]').click();
+    assert.equal(sheet.isConnected, false);
+  }
+  assert.equal(model.read().hasReadToday, false);
+  assert.equal(createWebStorageBackend(storage).keys("ops").length, 0, "no impossible weight reached the log");
+  // And the bound is a FORM bound, not a claim about the engine: a weight inside it works.
+  weighIn(dom, doc, "179.4");
+  assert.equal(model.read().hasReadToday, true);
+});
+
+test("an empty box is refused by the CLIENT, in the client's own words", () => {
+  const { dom, doc, model } = setup();
+  weighIn(dom, doc, "");
+  const message = doc.getElementById("weigh-error").textContent;
+  assert.match(message, /A weight is required/);
+  assert.doesNotMatch(message, /\d+\.\d/, "a refusal carries no weight");
+  assert.equal(model.read().hasReadToday, false);
+});
+
+test("a refused weigh-in leaves Today exactly as it was", () => {
   const { dom, doc, model } = setup();
   const before = phoneText(doc);
-  slot(doc, "primary").click();
-  const sheet = doc.querySelector('[role="dialog"]');
-  const input = doc.getElementById("morning-weight");
-  input.value = "";
-  sheet.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
-  const error = doc.getElementById("weigh-error").textContent;
-  assert(error.length > 0, "a refusal is shown");
-  assert.doesNotMatch(error, /\d+\.\d/, "a refusal carries no weight");
-  assert(doc.querySelector('[role="dialog"]'), "the sheet stays open on a refusal");
-  assert.equal(model.read().hasReadToday, false);
+  weighIn(dom, doc, "10000");
   doc.querySelector('[data-action="cancel"]').click();
   assert.equal(phoneText(doc), before, "nothing on Today changed");
+  assert.equal(model.read().hasReadToday, false);
 });
 
 test("a reload of the page restores the stored weigh-in on screen", () => {
@@ -124,9 +174,8 @@ test("a reload of the page restores the stored weigh-in on screen", () => {
   const shown = slot(first.doc, "trend").textContent;
 
   const second = setup({ storage });
-  assert.equal(slot(second.doc, "morning").textContent, "177.6 lb");
+  assert.match(slot(second.doc, "morning").textContent, /^This morning ✓ 177\.6 lb/);
   assert.equal(slot(second.doc, "trend").textContent, shown);
-  assert.equal(slot(second.doc, "morning-label").textContent, "This morning ✓");
 });
 
 test("Why this plan shows only the engine's own explanations", () => {
@@ -152,7 +201,6 @@ test("every screen this slice does not build says so and shows no invented value
   assert.match(rows[2], /Carbohydrate/);
   assert.match(rows[2], /Not prescribed/);
   assert.match(rows[3], /Fat/);
-  assert.match(rows[3], /Not prescribed/);
   assert.doesNotMatch(rows[2] + rows[3], /\d/, "no carbohydrate or fat figure is invented");
 
   doc.querySelector('[data-go="today"]').click();
@@ -169,18 +217,11 @@ test("every screen this slice does not build says so and shows no invented value
   doc.querySelector('[data-go="coach"]').click();
   assert.match(phoneText(doc), /not wired yet/);
   assert.doesNotMatch(phoneText(doc), /135|chest press/i, "no scripted coach answer is shown");
-
-  doc.querySelector('[data-go="today"]').click();
-  slot(doc, "primary").click();
-  doc.querySelector('[data-action="cancel"]').click();
 });
 
 test("the workout entry point carries the engine's session name and nothing more", () => {
-  const storage = createMemoryStorage();
-  const { doc, model } = setup({ storage });
-  model.weighIn(180.2);
-  doc.querySelector('[data-go="why"]').click();
-  doc.querySelector('[data-go="today"]').click();
+  const { dom, doc, model } = setup();
+  weighIn(dom, doc, 180.2);
   slot(doc, "primary").click();
   assert.match(phoneText(doc), /Workout logging is not wired yet/);
   assert.equal(slot(doc, "workout-title").textContent, model.read().workout.title);
@@ -191,7 +232,7 @@ test("an untrusted local record paints no number anywhere", () => {
   const storage = createMemoryStorage();
   const seeded = createTodayModel({ storage });
   seeded.weighIn(181.9);
-  require("../web-storage-backend.cjs").createWebStorageBackend(storage).clear("ops");
+  createWebStorageBackend(storage).clear("ops");
   const { doc } = setup({ storage });
   assert.match(slot(doc, "instruction").textContent, /cannot show today's plan/);
   assert.equal(slot(doc, "kcal").textContent, "Not available yet");
@@ -200,90 +241,123 @@ test("an untrusted local record paints no number anywhere", () => {
   assert.equal(slot(doc, "primary").disabled, true);
 });
 
-/* ---- the iOS zoom rule, checked against the ACTUAL cascade the page ships ---- */
+/* ---- the strong guard: every figure on Today is a bound engine value ---- */
+test("every figure on Today equals the reference engine's own value, slot by slot", () => {
+  const { dom, doc } = setup();
+  const reference = createEngine({ clock: engineClockFor(DAY) });
+  for (const [state, label] of [[createBasisState(DAY), "before"],
+    [reference.applyRead(createBasisState(DAY), DAY, 176.2, { hour: 8 }), "after"]]) {
+    if (label === "after") weighIn(dom, doc, 176.2);
+    const calories = reference.calorieTarget(state);
+    const protein = reference.proteinTarget(state);
+    assert.equal(slot(doc, "kcal").textContent, calorieHeadline(calories), label);
+    assert.equal(slot(doc, "kcal-note").textContent, calorieBand(calories), label);
+    assert.equal(slot(doc, "protein").textContent, money.format(protein.g), label);
+    assert.equal(slot(doc, "trend").textContent,
+      "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?", label);
+    assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title, label);
+    assert.equal(slot(doc, "workout-count").textContent,
+      reference.genSession(state, DAY, null).ex.length + " exercises · Your set targets are ready", label);
+  }
+  assert.match(slot(doc, "morning").textContent, /^This morning ✓ 176\.2 lb/);
+});
+
+test("not one digit appears on Today outside a bound slot", () => {
+  const { doc } = setup();
+  const clone = doc.getElementById("phone").cloneNode(true);
+  for (const bound of clone.querySelectorAll("[data-slot]")) bound.textContent = "";
+  assert.doesNotMatch(clone.textContent, /\d/,
+    "a figure survived in the template instead of being bound: " + clone.textContent.replace(/\s+/g, " ").trim());
+});
+
+/* ---- review F4: the iOS zoom rule, on the inputs the page ACTUALLY renders ---- */
 function cascade(css) {
-  const flat = css.replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, " ");
+  // Comments MUST go first. Without that, the comment before a rule is swallowed into its
+  // selector, el.matches() throws on the nonsense, the rule is silently skipped and the
+  // test measures the approved 14px instead of the 16px correction — which is how the
+  // first version of this test passed while proving nothing.
+  const flat = css.replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/@font-face\{[^{}]*\}/g, " ")
+    .replace(/@media[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, " ");
   const rules = [];
   for (const match of flat.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const body = match[2];
-    let size = null;
     const explicit = body.match(/(?:^|;)\s*font-size\s*:\s*(\d+(?:\.\d+)?)px/);
     const shorthand = body.match(/(?:^|;)\s*font\s*:\s*(?:[^;]*?\s)?(\d+(?:\.\d+)?)px/);
-    if (explicit) size = Number(explicit[1]);
-    else if (shorthand) size = Number(shorthand[1]);
+    const size = explicit ? Number(explicit[1]) : shorthand ? Number(shorthand[1]) : null;
     if (size === null) continue;
     for (const selector of match[1].split(",")) rules.push({ selector: selector.trim(), size });
   }
   return rules;
 }
+const VENDOR = /::-webkit-|::-moz-|::backdrop|:focus-visible/;
 function fontSizeOf(el, rules) {
   let size = 16;
   for (const rule of rules) {
-    try { if (el.matches(rule.selector)) size = rule.size; } catch (_) { /* engine-specific selector */ }
+    try { if (el.matches(rule.selector)) size = rule.size; }
+    catch (error) {
+      // A selector this DOM cannot evaluate must be a known vendor/pseudo form, never a
+      // rule that was silently dropped because the parser mangled it.
+      assert.match(rule.selector, VENDOR, "unparseable selector in the shipped stylesheet: " + rule.selector);
+    }
   }
   return size;
 }
 
-test("every text input the athlete can focus renders at 16px or more", () => {
-  const rules = cascade(design.composeStyles(design.readApproved(), design.chromeCss()));
+test("every text input the page actually renders is 16px or more", () => {
+  const rules = cascade(design.composeStyles(design.readApproved(), design.chromeCss(), []));
   const { doc } = setup();
   const seen = [];
-  for (const screen of ["today", "nutrition", "recovery", "coach", "why"]) {
-    const go = doc.querySelector(`[data-go="${screen}"]`);
-    if (go) go.click(); else doc.querySelector('[data-go="today"]');
+  const sweep = (where) => {
     for (const el of doc.querySelectorAll("input, select, textarea")) {
       const size = fontSizeOf(el, rules);
-      seen.push([screen, el.id || el.tagName, size]);
-      assert(size >= 16, `${screen}: ${el.id || el.tagName} renders at ${size}px`);
+      seen.push([where, el.id || el.tagName, size]);
+      assert(size >= 16, `${where}: ${el.id || el.tagName} renders at ${size}px`);
     }
-    const back = doc.querySelector('[data-go="today"]');
-    if (back) back.click();
+  };
+  for (const screen of ["nutrition", "recovery", "coach", "why"]) {
+    doc.querySelector(`[data-go="${screen}"]`).click();
+    sweep(screen);
+    doc.querySelector('[data-go="today"]').click();
   }
+  sweep("today");
   slot(doc, "primary").click();
-  for (const el of doc.querySelectorAll('[role="dialog"] input')) {
-    const size = fontSizeOf(el, rules);
-    seen.push(["weigh-in", el.id, size]);
-    assert(size >= 16, `weigh-in: ${el.id} renders at ${size}px`);
-  }
-  assert(seen.length > 0, "at least one input was checked");
+  sweep("weigh-in");
+
+  // The only input this slice renders is the weigh-in box; say so rather than implying
+  // a sweep that covered more (review F4).
+  const inputs = seen.filter(([, name]) => name === "morning-weight");
+  assert.equal(inputs.length, 1, "the weigh-in box is the one input A1 renders: " + JSON.stringify(seen));
+  assert(inputs[0][2] >= 16, "the weigh-in box is at least 16px");
 });
 
-/* ---- the strong guard: every figure on Today is a bound engine value ---- */
-test("every figure on Today equals the reference engine's own value, slot by slot", () => {
-  const storage = createMemoryStorage();
-  const { doc } = setup({ storage });
-  const reference = createEngine({ clock: engineClockFor(DAY) });
-  const app = require("../today-app.cjs");
-  const money = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
-
-  for (const [state, label] of [[createBasisState(DAY), "before"],
-    [reference.applyRead(createBasisState(DAY), DAY, 176.2, { hour: 8 }), "after"]]) {
-    if (label === "after") {
-      slot(doc, "primary").click();
-      const sheet = doc.querySelector('[role="dialog"]');
-      doc.getElementById("morning-weight").value = "176.2";
-      sheet.dispatchEvent(new (doc.defaultView.Event)("submit", { bubbles: true, cancelable: true }));
-    }
-    const calories = reference.calorieTarget(state);
-    const protein = reference.proteinTarget(state);
-    const rate = reference.currentRate(state);
-    assert.equal(slot(doc, "kcal").textContent, money.format(Math.round(calories.mid / 100) * 100) + "kcal", label);
-    assert.equal(slot(doc, "kcal-note").textContent, app.calorieBand(calories), label);
-    assert.equal(slot(doc, "protein").textContent, money.format(protein.g) + "g protein", label);
-    assert.equal(slot(doc, "trend").textContent, reference.nowModel(state).headed.weight.toFixed(1) + " lb", label);
-    assert.equal(slot(doc, "rate").textContent, app.rateSentence(rate), label);
-    assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title, label);
-    assert.equal(slot(doc, "workout-count").textContent,
-      reference.genSession(state, DAY, null).ex.length + " exercises", label);
-  }
-  assert.equal(slot(doc, "morning").textContent, "176.2 lb");
-});
-
-test("not one digit appears on Today outside a bound slot", () => {
+test("the 16px correction really would raise the approved sub-16px fields A3 will render", () => {
+  const rules = cascade(design.composeStyles(design.readApproved(), design.chromeCss(), []));
   const { doc } = setup();
-  const phone = doc.getElementById("phone");
-  const clone = phone.cloneNode(true);
-  for (const bound of clone.querySelectorAll("[data-slot]")) bound.textContent = "";
-  assert.doesNotMatch(clone.textContent, /\d/,
-    "a figure survived in the template instead of being bound: " + clone.textContent.replace(/\s+/g, " ").trim());
+  const view = doc.querySelector(".view");
+  // Construct the approved check-in and coach fields the recovery/coach screens will use
+  // once A3 wires them, and confirm the correction applies to each.
+  const cases = [
+    ['<div class="followup"><input id="probe-a"></div>', "probe-a"],
+    ['<div class="followup"><select id="probe-b"></select></div>', "probe-b"],
+    ['<form class="composer"><input id="probe-c"></form>', "probe-c"],
+    ['<input class="hours" id="probe-d">', "probe-d"],
+    ['<textarea id="probe-e"></textarea>', "probe-e"],
+  ];
+  for (const [html, id] of cases) {
+    const host = doc.createElement("div");
+    host.innerHTML = html;
+    view.append(host);
+    const el = doc.getElementById(id);
+    assert(fontSizeOf(el, rules) >= 16, id + " would render below 16px");
+    host.remove();
+  }
+  // And the correction is load-bearing: without preview.css those same fields are < 16px.
+  const approvedOnly = cascade(design.composeStyles(design.readApproved(), "", []));
+  const host = doc.createElement("div");
+  host.innerHTML = '<div class="followup"><input id="probe-f"></div>';
+  view.append(host);
+  assert(fontSizeOf(doc.getElementById("probe-f"), approvedOnly) < 16,
+    "the approved reference really does set this field below 16px");
+  host.remove();
 });

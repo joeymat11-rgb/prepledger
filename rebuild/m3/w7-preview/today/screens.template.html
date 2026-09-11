@@ -1,48 +1,48 @@
 <!-- A1 · Today rebound to the owner-approved 2026-09-08 design.
-     Structure and class names come from rebuild/m1/approved-2026-09-08/:
-     Refinement A (Today plan-first) plus the Additions C entry points
-     (full nutrition plan, recovery check-in, coach). Every class token used
-     here is checked against the two pinned stylesheets by build.mjs, and
-     every static copy string is checked to occur verbatim in the pinned
-     approved HTML. NOTHING here carries a number: every value is bound at
-     runtime from an engine result or a stored operation. -->
+     Today follows ADDITIONS C — the authoritative implementation reference — structure
+     for structure: mast, intro, food with the full-nutrition link, training with the
+     recovery link, the trend lines, and a bottom carrying ONE primary action plus the
+     coach entry. That is also what keeps the primary action inside one 390x844 viewport
+     (review F2); Refinement A's evidence grid and bottom note are what pushed it below
+     the fold, and neither is in the authoritative Today.
+     Refinement A still supplies the direct-entry control the weigh-in sheet uses, which
+     the 2026-09-08 design has no screen for.
+     Every class token here is checked against the two pinned stylesheets by design.cjs,
+     and every static copy string is checked to occur verbatim in the pinned approved
+     HTML. NOTHING here carries a number: every value is bound at runtime from an engine
+     result or a stored operation. -->
 <template id="t-today">
 <article class="page">
   <header class="mast">
-    <div class="brand">Earned</div>
-    <div class="date" data-slot="date"></div>
+    <span class="brand">Earned</span>
+    <span class="small muted" data-slot="date"></span>
   </header>
   <section class="intro">
-    <p class="day-label">Your plan for today</p>
+    <p class="label">Your plan for today</p>
     <h1 data-slot="instruction"></h1>
-    <p class="intro-copy" data-slot="instruction-why"></p>
+    <p data-slot="instruction-why"></p>
   </section>
   <section class="food">
-    <div class="section-label">Eat about</div>
-    <div class="food-values">
-      <div><div class="food-value" data-slot="kcal"></div><div class="quiet" data-slot="kcal-note"></div></div>
-      <div><div class="food-value" data-slot="protein"></div><div class="quiet" data-slot="protein-note"></div></div>
+    <p class="small">Eat about</p>
+    <div class="food-grid">
+      <div><span class="number" data-slot="kcal"></span> <span class="unit" data-slot="kcal-unit"></span></div>
+      <div><span class="number" data-slot="protein"></span> <span class="unit" data-slot="protein-unit"></span></div>
     </div>
-    <button class="text-link" type="button" data-go="nutrition">Your full nutrition plan <span data-arrow></span></button>
+    <p class="small muted" data-slot="kcal-note"></p>
+    <button class="link" type="button" data-go="nutrition">Your full nutrition plan <span data-arrow></span></button>
   </section>
   <section class="training">
-    <div class="training-top"><h2 data-slot="workout-title"></h2></div>
-    <p data-slot="workout-count"></p>
-    <p class="training-note" data-slot="workout-note"></p>
-    <button class="text-link recovery-link" type="button" data-go="recovery">How are you feeling today? <span data-arrow></span></button>
+    <div class="row"><h2 data-slot="workout-title"></h2></div>
+    <p class="small muted" data-slot="workout-count"></p>
+    <button class="link recovery-link" type="button" data-go="recovery">How are you feeling today? <span data-arrow></span></button>
   </section>
-  <section class="evidence">
-    <div class="evidence-grid">
-      <div><div class="small quiet" data-slot="morning-label">This morning</div><div class="datum" data-slot="morning"></div></div>
-      <div><div class="small quiet">Weight trend</div><div class="datum" data-slot="trend"></div></div>
-    </div>
-    <p class="trend-note" data-slot="rate"></p>
-    <button class="text-link" type="button" data-go="why">Why this plan? <span data-arrow></span></button>
-  </section>
+  <button class="link trend" type="button" data-go="why">
+    <span><span data-slot="morning"></span><span class="sub" data-slot="trend"></span></span>
+    <span data-arrow></span>
+  </button>
   <div class="bottom">
-    <button class="cta" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
-    <p class="bottom-note" data-slot="primary-note"></p>
-    <button class="text-link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it.</span></span><span data-arrow></span></button>
+    <button class="primary" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
+    <button class="link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it.</span></span><span data-arrow></span></button>
   </div>
 </article>
 </template>
@@ -75,7 +75,7 @@
   </header>
   <section data-slot="why-sections"></section>
   <div class="bottom">
-    <button class="cta secondary" type="button" data-go="today"><span>Back to my plan</span><span data-arrow></span></button>
+    <button class="primary" type="button" data-go="today"><span>Back to my plan</span><span data-arrow></span></button>
   </div>
 </article>
 </template>

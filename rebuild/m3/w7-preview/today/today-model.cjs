@@ -251,6 +251,15 @@ function createTodayModel(options = {}) {
   /* The one wired athlete action. The value is handed to the client unchanged; the
      client decides whether it is recorded, and its answer is reported verbatim. */
   const ALREADY_RECORDED = "Today's weigh-in is already recorded on this device. Changing a recorded reading needs the correction path, which is not wired yet.";
+  /* The entry-form bound. rebuild/client accepts any finite number as a reading, so
+     without this a slip of the thumb (10000, 0, -5) is recorded as a fact and the
+     engine damps it into the trend for ever. This is a FORM bound, not an engine
+     admission rule and not a new client law — the same posture, and the same numbers,
+     as the reviewed w7-preview's weigh-in form. It refuses in words; it never refuses
+     silently and never rounds an entry into range (review F8). */
+  const FORM_MIN = 60, FORM_MAX = 400;
+  const OUT_OF_RANGE = "A morning weight is recorded between " + FORM_MIN + " and " + FORM_MAX
+    + " lb, to one decimal place. Nothing was recorded.";
   function weighIn(lb) {
     /* Refuse rather than write an operation the accepted writer would ignore. The engine
        keeps the FIRST reading for a date; a second stored operation would leave the log
@@ -258,6 +267,11 @@ function createTodayModel(options = {}) {
     if (adoptedRead(stateFromOps(), day)) {
       lastMessage = { ok: false, state: null, copy: ALREADY_RECORDED };
       return { ok: false, state: null, copy: ALREADY_RECORDED, op_id: null };
+    }
+    if (typeof lb === "number" && Number.isFinite(lb)
+      && (lb < FORM_MIN || lb > FORM_MAX || Number(lb.toFixed(1)) !== lb)) {
+      lastMessage = { ok: false, state: null, copy: OUT_OF_RANGE };
+      return { ok: false, state: null, copy: OUT_OF_RANGE, op_id: null };
     }
     const result = client.weighIn({ date: day, lb });
     lastMessage = { ok: !!result.acknowledged, state: result.state, copy: result.copy };
@@ -278,7 +292,7 @@ function createTodayModel(options = {}) {
     stateFromOps,
     storedReads,
     adoptedRead: (date) => adoptedRead(stateFromOps(), date || day),
-    ALREADY_RECORDED,
+    ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX,
   };
 }
 

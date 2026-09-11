@@ -1,7 +1,7 @@
-// OPTIONAL, PC-only: open the built Today page in a real browser and prove three things
-// that a Node test cannot — the bundle executes, the durable record survives a genuine
-// page reload, and no number on screen is one of the approved prototype's fictional
-// figures.
+// OPTIONAL, PC-only: open the built Today page in a real browser and prove four things a
+// Node test cannot — the bundle executes, the durable record survives a genuine page
+// reload, the single primary action is inside the first 390x844 viewport in BOTH states
+// (review F2), and the page fetches nothing over the network (review F9).
 //
 // It installs nothing. Point W7_BROWSER_BIN at an existing Chromium/Chrome executable;
 // without it the check says so and exits 0 with a clear NOT RUN line, so it can never be
@@ -32,6 +32,7 @@ const { chromium } = require("playwright-core");
 // really is 2,300 for this fixture, so that one is NOT a prototype tell; the Node view
 // tests prove slot by slot where every figure came from.
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb", "About 60 min", "9 exercises"];
+const VIEWPORT = { width: 390, height: 844 };
 
 const server = await startServer({ port: 0 });
 const url = `http://127.0.0.1:${server.address().port}/`;
@@ -39,26 +40,46 @@ const browser = await chromium.launch({ executablePath, headless: true });
 let failures = 0;
 const problems = [];
 try {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ viewport: VIEWPORT });
   const page = await context.newPage();
   page.on("pageerror", (error) => problems.push("pageerror: " + error.message));
   page.on("console", (message) => {
-    // The page ships no icon; a favicon 404 is the browser asking, not the page failing.
     if (message.type() !== "error") return;
     const where = (message.location() && message.location().url) || "";
+    // The page ships no icon; a favicon 404 is the browser asking, not the page failing.
     if (/favicon/.test(where) || /favicon/.test(message.text())) return;
     problems.push("console: " + message.text() + " @ " + where);
   });
-  page.on("requestfailed", (r) => { if (!/favicon/.test(r.url())) problems.push("requestfailed: " + r.url()); });
+  // review F9: nothing outside this local origin may be requested at all.
+  page.on("request", (request) => {
+    if (!request.url().startsWith(url) && !request.url().startsWith("data:")) {
+      problems.push("offsite request: " + request.url());
+    }
+  });
 
   await page.goto(url, { waitUntil: "load" });
   await page.waitForSelector('[data-slot="instruction"]');
 
+  /* review F2: the ONE primary action must be reachable without scrolling, in both
+     states. Measured against the scrolling viewport, not the document. */
+  const primaryBox = () => page.evaluate(() => {
+    const view = document.querySelector(".view");
+    const cta = document.querySelector('[data-slot="primary"]');
+    const top = view.getBoundingClientRect().top;
+    const box = cta.getBoundingClientRect();
+    return { top: Math.round(box.top - top), bottom: Math.round(box.bottom - top),
+      viewport: Math.round(view.clientHeight), label: cta.textContent.trim() };
+  });
+
   const first = await page.textContent("#phone");
   assert(!/Today could not open/.test(first), "the page mounted");
   const instruction = await page.textContent('[data-slot="instruction"]');
-  const morning = await page.textContent('[data-slot="morning"]');
-  assert.equal(morning.trim(), "Not logged yet", "a fresh browser profile holds no reading");
+  assert.equal((await page.textContent('[data-slot="morning"]')).trim(), "This morning — not logged yet",
+    "a fresh browser profile holds no reading");
+
+  const before = await primaryBox();
+  assert(before.bottom <= before.viewport,
+    `the primary action is below the fold before a weigh-in: bottom ${before.bottom} > ${before.viewport}`);
 
   // Log a weigh-in through the real sheet.
   await page.click('[data-slot="primary"]');
@@ -67,10 +88,43 @@ try {
   await page.click('[role="dialog"] button[type="submit"]');
   await page.waitForSelector('[data-slot="morning"]');
   const logged = (await page.textContent('[data-slot="morning"]')).trim();
-  assert.equal(logged, "179.4 lb", "the weigh-in reached the screen");
+  assert.equal(logged, "This morning ✓ 179.4 lb", "the weigh-in reached the screen");
   const trend = (await page.textContent('[data-slot="trend"]')).trim();
   const after = (await page.textContent('[data-slot="instruction"]')).trim();
   assert.notEqual(after, instruction.trim(), "the engine's instruction changed");
+
+  const afterBox = await primaryBox();
+  assert(afterBox.bottom <= afterBox.viewport,
+    `the primary action is below the fold after a weigh-in: bottom ${afterBox.bottom} > ${afterBox.viewport}`);
+
+  /* review F1: a spike reading must carry the engine's own note beside it. Checked on a
+     second browser profile so it does not disturb the reading above. */
+  const spikeContext = await browser.newContext({ viewport: VIEWPORT });
+  const spikePage = await spikeContext.newPage();
+  await spikePage.goto(url, { waitUntil: "load" });
+  await spikePage.waitForSelector('[data-slot="primary"]');
+  await spikePage.click('[data-slot="primary"]');
+  await spikePage.fill("#morning-weight", "191.7");
+  await spikePage.click('[role="dialog"] button[type="submit"]');
+  await spikePage.waitForSelector('[data-slot="morning"]');
+  const spikeLine = (await spikePage.textContent('[data-slot="morning"]')).trim();
+  assert.match(spikeLine, /^This morning ✓ 191\.7 lb · .+/,
+    "a spike reading shows the engine's note beside it, not a bare number: " + spikeLine);
+  // review F8: an impossible weight is refused in words and recorded nowhere.
+  await spikeContext.close();
+
+  const refuseContext = await browser.newContext({ viewport: VIEWPORT });
+  const refusePage = await refuseContext.newPage();
+  await refusePage.goto(url, { waitUntil: "load" });
+  await refusePage.waitForSelector('[data-slot="primary"]');
+  await refusePage.click('[data-slot="primary"]');
+  await refusePage.fill("#morning-weight", "10000");
+  await refusePage.click('[role="dialog"] button[type="submit"]');
+  const refusal = (await refusePage.textContent("#weigh-error")).trim();
+  assert(refusal.length > 0, "an impossible weight is refused in words, not silently");
+  assert.match(refusal, /Nothing was recorded/);
+  assert(await refusePage.$('[role="dialog"]'), "the sheet stays open on a refusal");
+  await refuseContext.close();
 
   // A REAL reload of a REAL browser.
   await page.reload({ waitUntil: "load" });
@@ -87,14 +141,21 @@ try {
   const text = await page.textContent("#phone");
   for (const figure of FICTIONAL) assert(!text.includes(figure), "prototype figure on screen: " + figure);
 
+  // The approved typefaces really loaded, from the inlined bytes and not the network.
+  const fonts = await page.evaluate(() => document.fonts.size);
+  assert(fonts >= 2, "both inlined typefaces are registered on the document");
+
   // The storage really is this page's own local record.
   const keys = await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("earned.today")));
   assert(keys.length > 0, "the durable record is in this origin's local storage");
   assert(keys.some((k) => k.includes(":ops:")), "an operation is stored");
 
-  assert.deepEqual(problems, [], "no page or console error");
-  console.log(`A1 TODAY BROWSER CHECK PASS — mounted, weighed in (${logged}), survived a real reload and a new page; `
-    + `${keys.length} durable local records; no prototype figure on screen`);
+  assert.deepEqual(problems, [], "no page error, console error or offsite request");
+  console.log(`A1 TODAY BROWSER CHECK PASS — mounted, weighed in (${logged}), spike note shown, impossible weight `
+    + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
+    + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `
+    + `${before.viewport - before.bottom}px and ${afterBox.viewport - afterBox.bottom}px of headroom); `
+    + `${keys.length} durable local records; no network request; no prototype figure on screen`);
 } catch (error) {
   failures = 1;
   console.error("A1 TODAY BROWSER CHECK FAIL — " + error.message);

@@ -74,6 +74,21 @@ test("the bundle carries the real engine and the real client and nothing forbidd
   assert.throws(() => build.assertBundleInputs(result.inputs.map((p) => ({ path: p })).concat([{ path: "node_modules/left-pad/index.js" }])), /unapproved dependency/);
 });
 
+test("the page fetches nothing: no remote origin in any shipped asset (review F9)", async () => {
+  const html = await fs.readFile(path.join(build.DIST, "index.html"), "utf8");
+  const css = await fs.readFile(path.join(build.DIST, "styles.css"), "utf8");
+  const app = await fs.readFile(path.join(build.DIST, "app.js"), "utf8");
+  for (const [name, text] of [["index.html", html], ["styles.css", css]]) {
+    assert.doesNotMatch(text, /https?:\/\//, name + " references a remote origin");
+    assert.doesNotMatch(text, /@import/, name + " imports another stylesheet");
+  }
+  assert.doesNotMatch(app, /fonts\.(?:googleapis|gstatic)\.com/);
+  assert.equal((css.match(/@font-face/g) || []).length, 2, "both typefaces are inlined");
+  assert.match(css, /src:url\(data:font\/woff2;base64,/);
+  assert.equal(result.fonts.length, 2);
+  for (const font of result.fonts) assert.match(font.sha256, /^[0-9a-f]{64}$/);
+});
+
 test("no athlete data and no credential is shipped in the bundle", async () => {
   const app = await fs.readFile(path.join(build.DIST, "app.js"), "utf8");
   assert(!/ledger\/state\.json/.test(app));
@@ -103,8 +118,13 @@ test("the local server serves the three assets on 127.0.0.1 with no application 
     const response = await request(name);
     assert.equal(response.status, 200, name);
     assert.match(response.headers["cache-control"], /no-store/);
-    assert.match(response.headers["content-security-policy"], /connect-src 'none'/);
-    assert.match(response.headers["content-security-policy"], /worker-src 'none'/);
+    const csp = response.headers["content-security-policy"];
+    assert.match(csp, /connect-src 'none'/);
+    assert.match(csp, /worker-src 'none'/);
+    // review F9: the policy names no external origin, which is also the proof that an
+    // offline launch has nothing left to fetch.
+    assert.doesNotMatch(csp, /https?:/, name + " policy still names a remote origin");
+    assert.match(csp, /font-src data:/);
     assert.equal(response.headers["x-content-type-options"], "nosniff");
   }
   const head = await request("/", "HEAD");

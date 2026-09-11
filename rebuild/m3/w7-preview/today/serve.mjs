@@ -14,7 +14,11 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { ASSETS, DIST, ROOT } from "./build.mjs";
 
-export const CSP = "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'";
+// The page loads no remote stylesheet and no remote font: the two Instrument typefaces
+// are the repository's own pinned files, inlined as data: URLs (review F9). The policy
+// therefore names no external origin at all, which is also the proof that an offline
+// launch has nothing left to fetch.
+export const CSP = "default-src 'none'; script-src 'self'; style-src 'self'; font-src data:; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; worker-src 'none'";
 const TYPES = {
   "index.html": "text/html; charset=utf-8",
   "styles.css": "text/css; charset=utf-8",

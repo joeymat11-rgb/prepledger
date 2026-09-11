@@ -60,7 +60,12 @@ test("a weigh-in becomes a durable operation and the engine reads THAT operation
   assert.equal(op.payload.lb.unit, "lb");
   assert.equal(op.effective.local_date, DAY);
   assert.match(op.canonical_content_commitment, /^[0-9a-f]{64}$/);
-  assert.equal(backend.keys("outbox").length, 1, "the outbox entry is in the SAME transaction");
+  /* Co-existence, which is what THIS assertion shows: after the action, both records are
+     present. That the two are written in ONE all-or-nothing transaction is proved
+     separately, by failing the outbox write and observing that NO operation survives —
+     see "a storage failure ... invents nothing" and "the durability rule is
+     all-or-nothing" below (review F10). */
+  assert.equal(backend.keys("outbox").length, 1, "the outbox entry co-exists with the operation");
 
   // The engine's state is the accepted writer's result over that operation.
   const after = model.read();
@@ -156,6 +161,40 @@ test("a storage failure is refused with the client's copy, records nothing, inve
   assert.equal(createWebStorageBackend(storage).keys("ops").length, 0);
 });
 
+test("the durability rule is all-or-nothing, in both directions", () => {
+  // Fail the SECOND write (the outbox entry): the operation written before it must not
+  // survive. This is the atomicity claim, executed.
+  const outboxFails = createMemoryStorage();
+  const first = createTodayModel({ storage: outboxFails, backend: (real) => ({ ...real,
+    write(handle, collection, key, value) {
+      if (collection === "outbox") throw new Error("disk full");
+      return real.write(handle, collection, key, value);
+    } }) });
+  assert.equal(first.weighIn(181.3).ok, false);
+  const back = createWebStorageBackend(outboxFails);
+  assert.equal(back.keys("ops").length, 0, "the operation written before the failure was rolled back");
+  assert.equal(back.keys("outbox").length, 0);
+
+  // Fail the FIRST write (the operation): nothing at all is written.
+  const opsFail = createMemoryStorage();
+  const second = createTodayModel({ storage: opsFail, backend: (real) => ({ ...real,
+    write(handle, collection, key, value) {
+      if (collection === "ops") throw new Error("denied");
+      return real.write(handle, collection, key, value);
+    } }) });
+  assert.equal(second.weighIn(181.3).ok, false);
+  const other = createWebStorageBackend(opsFail);
+  assert.equal(other.keys("ops").length, 0);
+  assert.equal(other.keys("outbox").length, 0);
+
+  // The control: with no injected failure the same action writes both.
+  const good = createMemoryStorage();
+  assert.equal(createTodayModel({ storage: good }).weighIn(181.3).ok, true);
+  const ok = createWebStorageBackend(good);
+  assert.equal(ok.keys("ops").length, 1);
+  assert.equal(ok.keys("outbox").length, 1);
+});
+
 test("an expired lease refuses the write and the screen keeps no number it did not have", () => {
   const storage = createMemoryStorage();
   const lease = mintSyntheticLease(DAY);
@@ -166,6 +205,26 @@ test("an expired lease refuses the write and the screen keeps no number it did n
   assert.equal(result.state, 20);
   assert.equal(model.read().hasReadToday, false);
   assert.equal(createWebStorageBackend(storage).keys("ops").length, 0);
+});
+
+test("an impossible weight is refused by the form bound, in words, recording nothing", () => {
+  const storage = createMemoryStorage();
+  const model = createTodayModel({ storage });
+  const before = storage.snapshot();
+  for (const value of [10000, 0, -5, 59.9, 400.1, 180.01, 1e12]) {
+    const result = model.weighIn(value);
+    assert.equal(result.ok, false, "refused " + value);
+    assert.equal(result.op_id, null);
+    assert.match(result.copy, /Nothing was recorded/, "the refusal says so in words");
+    assert(result.copy.length > 20, "the refusal is a sentence, not an empty string");
+  }
+  assert.deepEqual(storage.snapshot(), before, "no impossible weight reached storage");
+  assert.equal(model.read().hasReadToday, false);
+  assert.equal(model.read().morningRead, null);
+  // The bound is the FORM's, not the engine's: a weight inside it is recorded unchanged,
+  // and the entry is never rounded into range.
+  assert.equal(model.weighIn(60).ok, true);
+  assert.equal(model.read().morningRead.lb, 60);
 });
 
 test("a second weigh-in for the same day is refused rather than stored and ignored", () => {
@@ -179,6 +238,18 @@ test("a second weigh-in for the same day is refused rather than stored and ignor
   const view = model.read();
   assert.equal(view.morningRead.lb, 181.3, "the screen shows the reading the engine used");
   assert.equal(view.unadopted, 0, "the log and the screen agree");
+});
+
+test("the engine's own note on a reading reaches the view, verbatim", () => {
+  const reference = createEngine({ clock: engineClockFor(DAY) });
+  for (const [weight, expectNote] of [[191.7, true], [179.4, false]]) {
+    const model = createTodayModel({ storage: createMemoryStorage() });
+    assert.equal(model.weighIn(weight).ok, true);
+    const engineNote = reference.applyRead(createBasisState(DAY), DAY, weight, { hour: 8 }).reads.at(-1).note;
+    assert.equal(!!engineNote, expectNote, "the accepted writer's note for " + weight);
+    assert.equal(model.read().morningRead.note, engineNote,
+      "the adapter carries the engine's note without rewording it");
+  }
 });
 
 test("an evicted store paints no number at all", () => {

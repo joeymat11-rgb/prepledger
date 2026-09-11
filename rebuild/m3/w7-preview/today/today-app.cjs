@@ -5,6 +5,10 @@
    with no engine value or no stored operation is filled with an explicit
    not-available sentence, never a placeholder figure.
 
+   Today follows Additions C, the authoritative reference, structure for structure. That
+   is what keeps the single primary action inside one 390x844 viewport (review F2);
+   `browser-check.mjs` asserts it in a real browser, in both states.
+
    Screens beyond Today (gym card A2, recovery check-in A3, Dad's first run A4) are
    entry points only: they carry the approved visuals and a plain "not wired yet" state.
    They fabricate nothing. */
@@ -33,12 +37,20 @@ function calorieBand(calorieTarget) {
   if (!Number.isFinite(calorieTarget.lo) || !Number.isFinite(calorieTarget.hi)) return NOT_AVAILABLE;
   return "Today's target " + amount(calorieTarget.lo) + "–" + amount(calorieTarget.hi) + " kcal";
 }
-function rateSentence(rate) {
-  if (!rate || !rate.measured || !Number.isFinite(rate.scale)) return "A weekly rate is not measured yet.";
-  const direction = rate.scale > 0 ? "down" : rate.scale < 0 ? "up" : "flat at";
-  const size = Math.abs(rate.scale).toFixed(2);
-  const span = rate.from && rate.to ? " over " + rate.n + " readings, " + rate.from + " to " + rate.to + "." : ".";
-  return "Trend " + direction + " " + size + " lb/week" + span;
+
+/* The morning line. When the accepted writer attached a note to the reading — "spike —
+   damped in trend", "inside your noise — not information" — that note is the engine's
+   own reconciliation of a reading with the trend beside it, and it is SHOWN (review F1).
+   The app never writes a note of its own and never suppresses one. */
+function morningLine(view) {
+  if (!view.morningRead) return "This morning — not logged yet";
+  const line = "This morning ✓ " + pounds(view.morningRead.lb) + " lb";
+  const note = (view.morningRead.note || "").trim();
+  return note ? line + " · " + note : line;
+}
+function trendLine(view) {
+  const weight = view.nowModel && view.nowModel.headed ? view.nowModel.headed.weight : null;
+  return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE) + " · Why this plan?";
 }
 
 function mountToday(doc, model) {
@@ -92,54 +104,47 @@ function mountToday(doc, model) {
     if (chrome) chrome.textContent = view.storageNote;
     const root = template("t-today");
     const map = slots(root);
+    put(map, "date", dayLabel(view.today));
+
     if (view.blocked) {
-      put(map, "date", dayLabel(view.today));
       put(map, "instruction", "Earned cannot show today's plan.");
       put(map, "instruction-why", view.blockedCopy || "This device's local record could not be trusted, so nothing is shown.");
-      for (const name of ["kcal", "kcal-note", "protein", "protein-note", "workout-title", "workout-count",
-        "workout-note", "morning", "trend", "rate", "primary-label", "primary-note"]) put(map, name, null);
+      for (const name of ["kcal", "kcal-unit", "protein", "protein-unit", "kcal-note",
+        "workout-title", "workout-count", "morning", "trend", "primary-label"]) put(map, name, null);
       map.get("primary").disabled = true;
       wire(root);
       show(root, focus);
       return;
     }
 
-    put(map, "date", dayLabel(view.today));
     put(map, "instruction", view.nowModel.move.title);
-    put(map, "instruction-why", view.statusFace.cause || view.nowModel.move.body);
+    const owed = !view.hasReadToday;
+    /* Before a weigh-in the sentence under the instruction is the engine's reason for
+       asking; after it, the engine's reading of where the plan stands. Both are the
+       engine's own strings. */
+    put(map, "instruction-why", owed
+      ? (view.marchingOrder.why || view.statusFace.cause)
+      : (view.statusFace.cause || view.nowModel.move.body));
 
     const kcal = calorieHeadline(view.calorieTarget);
-    const kcalEl = put(map, "kcal", kcal === null ? NOT_AVAILABLE : kcal);
-    if (kcal !== null) { const unit = doc.createElement("span"); unit.textContent = "kcal"; kcalEl.append(unit); }
+    put(map, "kcal", kcal);
+    put(map, "kcal-unit", kcal === null ? "" : "kcal");
+    put(map, "protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : null);
+    put(map, "protein-unit", Number.isFinite(view.proteinTarget.g) ? "g protein" : "");
     put(map, "kcal-note", calorieBand(view.calorieTarget));
-
-    const proteinEl = put(map, "protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : NOT_AVAILABLE);
-    if (Number.isFinite(view.proteinTarget.g)) { const unit = doc.createElement("span"); unit.textContent = "g protein"; proteinEl.append(unit); }
-    put(map, "protein-note", Number.isFinite(view.proteinTarget.floor)
-      ? "A floor, not a ceiling — " + amount(view.proteinTarget.floor) + " g at least"
-      : "Across your day");
 
     put(map, "workout-title", view.workout.title);
     put(map, "workout-count", view.workout.exerciseCount === null
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
-      : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises"));
-    put(map, "workout-note", view.workout.exerciseCount === null
-      ? "Nothing to open today."
-      : "Your set targets are ready. Logging them is not wired yet.");
+      : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises") + " · Your set targets are ready");
 
-    put(map, "morning-label", view.hasReadToday ? "This morning ✓" : "This morning");
-    put(map, "morning", view.morningRead ? pounds(view.morningRead.lb) + " lb" : "Not logged yet");
-    put(map, "trend", Number.isFinite(view.nowModel.headed.weight) ? pounds(view.nowModel.headed.weight) + " lb" : NOT_AVAILABLE);
-    put(map, "rate", rateSentence(view.currentRate));
+    put(map, "morning", morningLine(view));
+    put(map, "trend", trendLine(view));
 
-    const owed = !view.hasReadToday;
     const primary = map.get("primary");
     put(map, "primary-label", owed
       ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")
       : "Start " + view.workout.title);
-    put(map, "primary-note", owed
-      ? (view.marchingOrder.why || "")
-      : "Logging a workout is not wired yet.");
     primary.addEventListener("click", () => (owed ? openWeighIn() : render("workout", true)));
     if (!owed && view.workout.exerciseCount === null) primary.disabled = true;
 
@@ -182,9 +187,17 @@ function mountToday(doc, model) {
     });
     sheet.addEventListener("submit", (event) => {
       event.preventDefault();
-      const value = input.value.trim() === "" ? NaN : Number(input.value);
-      const result = model.weighIn(Number.isFinite(value) ? value : input.value);
-      if (!result.ok) { error.textContent = result.copy; input.focus(); return; }
+      /* Hand the raw entry to the model. Everything that can refuse it — the form bound,
+         then the client itself — answers in words, and those words are shown. An empty
+         box becomes a non-number so the client's own "A weight is required." is what the
+         athlete reads; nothing is ever refused silently (review F8). */
+      const raw = input.value.trim();
+      const result = model.weighIn(raw === "" ? raw : Number(raw));
+      if (!result.ok) {
+        error.textContent = result.copy || "This weight could not be recorded, and nothing was recorded.";
+        input.focus();
+        return;
+      }
       close();
       render("today", true);
     });
@@ -297,4 +310,4 @@ function mountToday(doc, model) {
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
    tests without touching a document. */
-module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, rateSentence, dayLabel, ARROW, NOT_AVAILABLE };
+module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel, ARROW, NOT_AVAILABLE };
