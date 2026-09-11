@@ -1,6 +1,197 @@
-# EARNED — LANE B · PACKAGE B2 — TARGETS, IDENTITY & TECHNIQUE ERA — BEHAVIOUR/DELTA BRIEF **v1.4, POST-REVIEW-r3 AMENDMENT** (PROPOSED, NOT ACCEPTED)
+# EARNED — LANE B · PACKAGE B2 — TARGETS, IDENTITY & TECHNIQUE ERA — BEHAVIOUR/DELTA BRIEF **v1.4, POST-REVIEW-r3 AMENDMENT + POST-REVIEW-r4 CORRECTIONS** (**ACCEPTED BY NAME** at `DECISIONS:109`; the r4 corrections below are reviewer-requested amendments and ride under `DECISIONS:108` (c))
 
-## v1.4 amendment (post-review r3) — READ THIS FIRST
+## v1.4-r4 corrections (post-review r4) — READ THIS FIRST
+
+2026-09-11 · lane-B **fixer round 4** (Opus; author ≠ builder ≠ r1/r2/r3/r4 reviewer ≠ r1/r2/r3 fixer),
+working directly on the owner's PC in `work/lane-b/b2`. Applies the **five** changes
+`rebuild/lanes/b/reviews/B2-REVIEW-r4.md` (**ACCEPT WITH CHANGES**, sha under review `6038a52`) requires.
+**Four are documentation or a cell arm; one is a single COMMENT line inside the already-revertable Q2
+commit. No behaviour changes and no gate figure moves** — every gate in §v1.4-E4's evidence table was
+nevertheless re-executed, with and without Q2, and reproduces (§v1.4-r4 evidence, below).
+
+**The file name does not change.** `DECISIONS:109` accepts **`BRIEF-B2 v1.4`** by name; r4's five changes are
+*reviewer-requested amendments to that file*, which is exactly the class `DECISIONS:108` (c) admits without a
+new line, so they land **in place** and are disclosed here and in §v1.4-E2's table rather than in a v1.5 the
+PM has not named.
+
+| field | value |
+|---|---|
+| review of record | `rebuild/lanes/b/reviews/B2-REVIEW-r4.md` — ACCEPT WITH CHANGES; sha under review `6038a52`; base `acd3b67`; five required changes — four documentation/cell, one engine **comment** |
+| PM rulings this file now cites | **`DECISIONS:108` (c)** — *"BRIEF-B2 v1.3 ACCEPTED by name = v1.2 + the r2/r3 reviewer-requested amendments only; anything beyond them needs a new line"* · **`DECISIONS:109`** — *"BRIEF-B2 v1.4 ACCEPTED by name (= v1.3 + the r3 findings: Q2 hunk re-authored with the C1 tie-break; C6 bounded and its census recorded; Q2j pins exId + mgsTouched) — rows 9–13 ride under this line."* |
+| branch | `rebuild/lane-b-b2` — Q2 is **still ONE commit, still the only commit that touches `volume.cjs`, still LAST**, so `git revert` still drops it whole. It is **re-authored once more** because the corrected comment is an engine byte. |
+| node | `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe` **v24.19.0**, by full path · `TZ=America/New_York` · `package-lock.json` unmodified · `node_modules` 39 entries |
+| frozen bundle | the gitignored `rebuild/conform/engines/engine-main.cjs`, sha256 `a575ac58a55c5e2929b584be6ed6b1d5db8c36c81b449415d0909dc4b1958eec`, 814,639 B (re-verified by sha before every run). `engine-old.cjs` is **absent on this clone** — R2-6, unchanged. |
+| never opened | `ledger/`, `rebuild/conform/private/**`. Protected surfaces reported **verdict-only**. |
+
+**The five changes, in one line each.**
+
+1. **F1 — `volume.cjs:166`'s own comment stated a FALSE absolute and is corrected** (r4 required change 1).
+   It ended *"…so the receipt's own muscle group is **never** charged to a different lift by `s.exercises`
+   order."* With **no** live lift holding the receipt's name and **two** lifts carrying it as a *former*
+   name in different muscle groups, the shipped engine returns `mgsTouched ["chest"]` forward and
+   **`["back"]`** reversed. §2 C6 and §v1.4-E1 state that bound correctly; the comment did not. The comment
+   is now bounded to C6's excluded class (ii), and **new cell `B2-Q2j-b`** pins the arm. §v1.4-r4-F1.
+2. **F2 — §2 C2 gains one sentence: a structured `exId` that resolves to NO lift is UNATTRIBUTABLE**
+   (r4 required change 2). It destroys the move at **all three** C1→C2→C3 readers while the receipt stays
+   readable on the athlete's own feed. No writer in `rebuild/engine/` emits `exId` onto a feed row today, so
+   the class is **dormant until B3's writer half** — which is why it is written down now. **New cell
+   `B2-Q2l`.** §v1.4-r4-F2.
+3. **F3 — §v1.4-E4's "no move that the v1.3 hunk found is dropped" is FALSIFIED in one measured shape and
+   is bounded** (r4 required change 5). Give the live-name lift a `sets` move from `s.adjustments` and the
+   de-duplication at `volume.cjs:167` drops the feed receipt. The shipped answer **equals base**, so it is a
+   correction rather than a loss — but the sentence as written was an unqualified absolute. §v1.4-r4-F3.
+4. **F4 — §v1.4-E2 is re-stated against `DECISIONS:108` (c) and `:109`, and the claim that r3 "offered"
+   the engine fix is WITHDRAWN** (r4 required changes 3 and 4). r3 required **one cell** and wrote *"No
+   engine byte needs to change"*; the build report was honest about going beyond that letter and the brief
+   was not. The "needs a line" column is re-computed: **18 of r4 §5's 20 changes ride under `:108` (c)**,
+   and the two that do not — the live-name tie-break as normative convention, and the Q2 engine byte — are
+   **both now covered by `DECISIONS:109`**. §v1.4-r4-F4.
+5. **F5 — the C6 census gains its reproduction caveat** (r4 required change 5's companion, r4 §4 / R4-6):
+   the published **row 2** only reproduces when the renamed lift's *current* name is a **substring** of the
+   receipt text. With a current name that is not, base and no-Q2 read ✗ and the totals become **6/8 and
+   7/8** — i.e. the published figures are the **conservative** ones and the case against reverting Q2 is
+   stronger, not weaker. §v1.4-r4-F5.
+
+### v1.4-r4-F1. The engine comment at `volume.cjs:166`, corrected — and the arm no cell pinned
+
+**Reproduced first, on five sha-pinned engine copies, before any edit.** No live `Bench`; `f1` =
+`{n:"Bench press", renames:[{prevN:"Bench"}]}` **chest**, `f2` = `{n:"Row heavy",
+renames:[{prevN:"Bench"}]}` **back**; one current-week receipt `VOLUME +1 — CHEST via Bench (now 3 sets)`:
+
+```
+                     base     no-Q2    07fba76  2ada13f   SHIPPED
+.sets [f1,f2]        []       []       []       ["f1"]    ["f1"]
+.sets [f2,f1]        []       []       []       ["f2"]    ["f2"]
+mgsTouched [f1,f2]   []       []       []       ["chest"] ["chest"]
+mgsTouched [f2,f1]   []       []       []       ["back"]  ["back"]    <- STILL order-decided
+_volDeltas(f1)/(f2)  both     both     both     both      both
+```
+
+**This is inside the declared trade and is NOT a regression against base** — base ships **no move at all**
+here, so it is the *"WRONG owner where base shipped a missing one"* trade §v1.3-B3 already declares, and
+**§2 C6 and §v1.4-E1 already bound it correctly** (*"only when no lift's current name matches does array
+order decide among former-name matches"*). What was wrong is the **engine's own in-line comment**, which is
+the text B3 reads at the site, and which stated the absolute without the qualifier. Corrected:
+
+```
+-   … is preferred over a former one, so the receipt's own muscle group is never charged to a different lift by s.exercises order */
++   … is preferred over a former one, so WHERE A LIVE NAME MATCHES the receipt's muscle group is never charged to a different lift by s.exercises order; where ONLY former names match, array order still decides — C6's excluded class (ii), pinned by cell B2-Q2j-b */
+```
+
+**One comment line. No behaviour changes** — `volume.cjs` `d487b123…` 25,309 B → **`944b1fcd…` 25,443 B**,
+and every gate below is byte-identical to `6038a52`. **New cell `B2-Q2j-b`** pins all five sides of the
+table above, including `_volDeltas` crediting both lifts everywhere and the `f2`/`back` arm the comment used
+to deny; it also carries a **live-holder control** (put one live `Bench` back and order stops deciding),
+which is the tie-break's own boundary. Executed, it **deepens BOTH vacuity controls**: `07fba76` returns
+`[]` on the no-live-holder arm (**29/32**, with `B2-Q2f` / `B2-Q2g`) and `2ada13f` returns `["back"]` on the
+live-holder control (**30/32**, with `B2-Q2j`). **`B2-Q2j-b` is therefore not a documentation cell — it
+fails on both withdrawn hunks, for two different reasons.**
+
+### v1.4-r4-F2. §2 C2 — a structured `exId` that names no lift is UNATTRIBUTABLE
+
+**Reproduced on five engine copies.** Receipt `VOLUME +1 — CHEST via Press (now 3 sets)`, one lift `press`
+named `Press`, and `f.exId = "ghost"`:
+
+```
+                  base        no-Q2   07fba76  2ada13f  SHIPPED
+structuralMoves   ["press"]   ["press"]  []       []       []
+_volDeltas(press) credited    NOT     NOT      NOT      NOT
+controls (identical on every side): exId absent -> ["press"] · exId = "press" -> ["press"]
+                                    numeric id 7 with exId "7" -> [7]   (String() coercion works)
+```
+
+On **no-Q2** the two readers **disagree** — `structuralMovesThisWeek` credits by name while `_volDeltas`
+refuses — a **ninth** C6 shape and one more count against reverting Q2. With Q2 in they agree: they agree
+that a receipt the athlete can read on his own feed has **no owner and no move**. `progression.cjs:233` (D3)
+and `:628` (D4) are already terminal this way at `f70dd23`, so **Q2 does not create the class — it completes
+it**, and C2 never said what a non-resolving id means. It does now (§2 C2, `[extended in r4]`), and cell
+**`B2-Q2l`** pins it with its two vacuity controls.
+
+**It is dormant today and that is the point.** Measured: **no writer in `rebuild/engine/` puts `exId` on a
+feed row** — `writers.cjs:2162` and `:2319` emit `{d, at, t, how}` — so nothing in today's data can reach
+it. `merge.cjs` carrying a foreign row from another device, or **B3's writer half**, turns it on, and B3 is
+the package that writes `exId`. **This is a boundary B3 inherits, stated before B3 can trip over it.**
+
+### v1.4-r4-F3. "It loses nothing" — bounded to what is measured
+
+§v1.4-E4 said *"if no current name matches, the family pass runs exactly as before, so **no move that the
+v1.3 hunk found is dropped**."* Executed (r4 §2.5, bite **R4-C**): add
+`adjustments:[{d:"2026-09-01", exUndo:{field:"sets", exId:"cur"}}]` to the colliding-family fixture and, with
+`exercises [old, cur]`, `2ada13f` returns **two** moves (`["cur","old"]`, `mgsTouched ["chest","back"]`)
+while the shipped hunk returns **one** (`["cur"]`, `["chest"]`) — tier 1 lands on a lift that already has a
+move, and the de-duplication at `volume.cjs:167` drops the receipt. **The shipped answer equals base and
+equals `f70dd23`**, so this is a *correction*, not a loss. The sentence is corrected in §v1.4-E4 and the
+bound is: *…except where the live-name lift already carries a `sets` move from `s.adjustments`, in which
+case the dedupe at `:167` drops the receipt exactly as base does.*
+
+### v1.4-r4-F4. The acceptance class, re-stated against `DECISIONS:108` (c) and `:109`
+
+**Two corrections of fact, both r4's.**
+
+1. **v1.4 attributed to r3 an offer r3 never made.** §v1.4-E4 said *"r3 offered 'fix it, or document it as a
+   bounded residual and flag it'"* and the R3-4 residual line said *"r3 offered 'fix it or bound it'"*.
+   **Neither phrase, nor any offer, is in `B2-REVIEW-r3.md`.** r3's required change 4 is one sentence —
+   *"Extend the cell to assert `mgsTouched` on every side"* — and r3's verdict reads *"confined to
+   `BRIEF-…-v1.3` and one cell. **No engine byte needs to change.**"*, repeated at r3 §5. `BUILD-REPORT-B2.md`
+   §R3.0 was honest about this (*"That is the one place this pass goes beyond r3's letter"*); the brief was
+   not, and the brief is the document the PM accepts. **Both sentences now carry the build report's wording.**
+   This is not cosmetic: it is the difference between the engine fix being a reviewer-requested amendment
+   (rides under `:108` (c)) and being the fixer's own judgment (does not).
+2. **§v1.4-E2 reasoned from `DECISIONS:103` item (3) and never cited `:108`.** `:108` (c) is dated the same
+   day and **after** r3's review, and it accepts a **content class**, not a filename. Rows 9–12 of
+   §v1.4-E2's table **are** the r2-requested amendments and were therefore **already accepted** when v1.4
+   was written; marking them "NO — needs a line" was stale. §v1.4-E2 is re-stated, and the ask is narrowed.
+
+**The narrowed ask, and the line that answers it.** r4 §5 enumerates **twenty** v1.2 → v1.4 changes and
+finds **eighteen** of them r2/r3 reviewer-requested amendments that ride under `:108` (c) as written.
+**Exactly two do not:** the **live-name tie-break stated as normative convention** (in §2 C6 *and* in §2 C3's
+"Known bound" — the same rule stated twice) and the **Q2 engine byte**. They are the two `git revert 6038a52`
+removes **together** — one is the commit, the other describes what the commit does — so their natural home
+was the PM's §7 Q2 ruling. **The PM has now given that line: `DECISIONS:109` accepts `BRIEF-B2 v1.4` by name
+as "v1.3 + the r3 findings: Q2 hunk re-authored with the C1 tie-break; C6 bounded and its census recorded;
+Q2j pins exId + mgsTouched", and adds "rows 9–13 ride under this line".** Both outstanding items are named
+in it. **B2 no longer needs a fresh DECISIONS line for this brief.**
+
+**The consequence no document stated, and it is still live.** `:109` accepts the tie-break *and* the commit
+together; §7 Q2 is still unanswered. **If the PM reverts the Q2 commit, §2 C6's and §2 C3's tie-break
+paragraphs must be struck — or re-marked as B3's obligation — in the same pass**, or the durable convention
+`PLAN…:157` hands to B3 will describe a tie-break **no shipped reader performs**. That is a one-edit
+obligation on whoever applies the revert, and it is recorded here so it is not discovered later.
+
+### v1.4-r4-F5. The C6 census — the reproduction caveat on row 2
+
+The published eight-shape table (§v1.4-E5, repeated beside §7 Q2) reproduces **cell for cell** on a fourth
+independent execution (r4 §4), including which lift id is named in each ✗. **One construction detail decides
+row 2 and neither r3, this lane's r3 pass, nor r4's own fixer stated it:** the renamed lift `p9` is
+currently named `Press` and was formerly `Press heavy`, and **`Press` is a substring of the receipt text**
+`… via Press heavy (now 3 sets)`. That is why base and no-Q2 read ✓ there.
+
+**With a current name that is NOT a substring of the receipt** (`p9` currently `Press heavy v2`), base and
+no-Q2 both read **✗ `p9`** and the totals become **6/8 and 7/8** instead of 5/8 and 6/8. The ordering of the
+five engines is unchanged and the gap widens: **the published figures are the conservative ones, and the
+measured case against reverting Q2 is stronger than the table states, never weaker.** The fixture is
+therefore stated rather than left implicit, so the next round measures the same thing (r4 residual **R4-6**).
+
+### v1.4-r4 — re-run evidence (with and without Q2), all executed by this fixer
+
+Nothing in F1–F5 changes behaviour, so nothing below is expected to move; it was executed anyway, because
+"no behaviour change" is a claim and this lane executes its claims.
+
+| gate | base `acd3b67` | B2 no-Q2 (docs commit) | **B2 +Q2 (r4)** |
+|---|---|---|---|
+| `run-defect-laws.cjs` TOTAL | `45 · 39 · 89 · 97/104` exit 1 | `45 · 25 · 88 · 83/104` exit 1 | **byte-identical to no-Q2** exit 1 |
+| MOVED LINES over the 46-line stdout | — | **15** vs base | **15** vs base · **0** vs no-Q2 · **0** vs `6038a52` |
+| the fifteen | D1 D2 D3 D4 D5 D6 D7 D9 D18 D28 D29 D30 D31 D32 + TOTAL — **D18 `RED-frozen / GREEN-candidate`** with Q2 in | | |
+| public direct-call census, 572 cells × 2 state readings × 2 matrix days | — | 4 cells: `deloadLoad` `5 → null` for `fly` and `hipthrust` | **the same single D6 cell in four JSON positions; 0 cells vs no-Q2; 0 vs `6038a52`** |
+| `tools/engine-test.jsx:70` at the gate's `2026-07-29` pin | HOLDS | HOLDS | **HOLDS** (`:71 :72 :76` hold too) |
+| `b2-inherited-carriers.cjs` | FAIL `ERR_ASSERTION` exit 1 | 5/5, 17 subs exit 0 | **5/5, 17 subs exit 0** |
+| `defect-witnesses[ ,-2..-7]` exit codes | `0·1·0·0·1·0·1` | `1·1·0·1·1·0·1` | **`1·1·0·1·1·0·1`** |
+| `b2-delta-cells.cjs` (30 → **32** cells) | 32/32 exit 0 | 32/32 exit 0 | **32/32 exit 0** — and **29/32 on `07fba76`** (moved `B2-Q2f`, `B2-Q2g`, `B2-Q2j-b`), **30/32 on `2ada13f`** (moved `B2-Q2j`, `B2-Q2j-b`): the two independent vacuity controls, both now **deeper** than before r4 |
+| `rebuild/conform/run.cjs` | `SUITE INCONSISTENT 99/99/29/70` exit 1 | same | **stdout sha256-identical on all sides**, 0-byte stderr |
+| `second-gate.mjs --candidate` | reference `FINAL108: 3072 passed, 0 failed` | same | **stdout, stderr and the candidate log sha256-identical on all sides** |
+| `git revert <Q2>` | — | — | **applies clean; the reverted tree has ZERO diff against the docs commit** |
+
+## v1.4 amendment (post-review r3) — READ THIS SECOND
 
 2026-09-11 · lane-B **fixer round 3** (Opus; author ≠ builder ≠ r1/r2/r3 reviewer ≠ r1/r2 fixer), working
 directly on the owner's PC in `work/lane-b/b2`. Applies the five changes
@@ -98,40 +289,63 @@ reading guidance and changes no question, but a brief whose self-description doe
 exactly what r2's required change 2 existed to stop. **v1.3 made TWO exceptions, not one.** The tail note
 and the NOTE are corrected below, and this table is the complete list.
 
-| # | edit | introduced | class | rides under the PM's v1.2 acceptance? |
+**`[the last column is re-stated in r4]`** — it used to ask *"rides under the PM's v1.2 acceptance?"* and was
+computed against `DECISIONS:103` item (3) alone, which was already superseded when v1.4 was written. It now
+asks **which PM ruling each edit rides under**, and the governing rulings are `DECISIONS:108` (c) and
+`:109` (§v1.4-r4-F4).
+
+| # | edit | introduced | class | which PM ruling it rides under |
 |---|---|---|---|---|
-| 1 | H1 version/date line; both keep `(PROPOSED, NOT ACCEPTED)` | v1.3, v1.4 | editorial | — |
-| 2 | NEW §"v1.3 amendment" block (~167 ln) and NEW §"v1.4 amendment" block | v1.3, v1.4 | new material, all reviewer-requested | **yes** (disclosure) |
-| 3 | "READ THIS FIRST" → "READ THIS SECOND" / "THIRD" on the older amendment headings | v1.3, v1.4 | editorial | — |
-| 4 | NOTE withdrawing v1.2's "C1–C6 are verbatim" | v1.3 | r2 change 2, required | **yes** |
-| 5 | §v1.2-A2 heading + NOTE: "HUNK SUPERSEDED" | v1.3 | r2 change 1 | **yes** |
-| 6 | the "comparison is against `x.n` only…" sentence struck through and WITHDRAWN | v1.3 | r2 change 1 | **yes** |
-| 7 | "Still open for the PM" extended with R2-1…R2-7, and now R3-1…R3-7 | v1.3, v1.4 | r2 changes 3+4, r3 §5 | **yes** |
-| 8 | tail note "carried WHOLE and UNEDITED" → "carried WHOLE" + the exceptions | v1.3, v1.4 | r2 change 2, r3 change 2 | **yes** |
-| 9 | §2 preamble: "C1–C5 verbatim" → C1/C2/C4/C5 verbatim, C3/C6 corrected | v1.3 | r2 change 2 | **NO — needs a line** |
-| 10 | **§2 C3 rewritten in place** (LAST `" (now "`; two exact comparisons; executable form) | v1.3 | r2 change 2, exactly as asked | **NO — needs a line** |
-| 11 | **§2 C6 rewritten in place** — C1→C2→C3 order, a NEW falsifiable obligation, the B3 instruction, `volume.cjs:302` named | v1.3 | (a)(c) r2-requested; **(b)(d) NEW normative content r2 did not request** | **NO — needs a line** |
-| 12 | **§7 Q2 edited in place** — appended `**[v1.3] …**` paragraph | v1.3 | beyond the C3/C6 wording; **v1.3 denied it** | **NO — corrected here, and needs a line** |
-| 13 | **§2 C6 BOUNDED** — the agreement clause qualified to single-owner receipts; the three excluded classes named; the live-name tie-break stated | **v1.4** | **NEW normative content**, r3 change 1 + 4 | **NO — needs a line** |
-| 14 | §2 C3's executable form gains the `at < 0` guard; three citations re-pinned | **v1.4** | correction of fact (the code is unchanged) | **yes** |
-| 15 | **§7 Q2 gains the C6 census table** and the "revert is worse than base" finding | **v1.4** | r3 change 5; material for the ruling, changes no question | **yes** |
-| 16 | **`volume.cjs`'s Q2 hunk gains the live-name tier** (the only engine byte r3 moved) | **v1.4** | r3 change 4 — an **engine** fix inside the already-PM-optional Q2 commit | **rides under Q2's own ruling** |
+| 1 | H1 version/date line; `[r4]` `(PROPOSED, NOT ACCEPTED)` replaced by the `:109` acceptance | v1.3, v1.4, r4 | editorial / correction of fact | — |
+| 2 | NEW §"v1.3 amendment" block (~167 ln), NEW §"v1.4 amendment" block, `[r4]` NEW §"v1.4-r4 corrections" block | v1.3, v1.4, r4 | new material, all reviewer-requested | **`:108` (c)** (disclosure) |
+| 3 | "READ THIS FIRST" → "SECOND" / "THIRD" / `[r4]` "FOURTH" on the older amendment headings | v1.3, v1.4, r4 | editorial | — |
+| 4 | NOTE withdrawing v1.2's "C1–C6 are verbatim" | v1.3 | r2 change 2, required | **`:108` (c)** |
+| 5 | §v1.2-A2 heading + NOTE: "HUNK SUPERSEDED" | v1.3 | r2 change 1 | **`:108` (c)** |
+| 6 | the "comparison is against `x.n` only…" sentence struck through and WITHDRAWN | v1.3 | r2 change 1 | **`:108` (c)** |
+| 7 | "Still open for the PM" extended with R2-1…R2-7, R3-1…R3-7, `[r4]` R4-1…R4-6 | v1.3, v1.4, r4 | r2 changes 3+4, r3 §5, r4 §7 | **`:108` (c)** |
+| 8 | tail note "carried WHOLE and UNEDITED" → "carried WHOLE" + the exceptions | v1.3, v1.4, r4 | r2 change 2, r3 change 2 | **`:108` (c)** |
+| 9 | §2 preamble: "C1–C5 verbatim" → C1/C2/C4/C5 verbatim, C3/C6 corrected | v1.3 | r2 change 2 | **`:108` (c) — ALREADY ACCEPTED** (`:109` repeats it: "rows 9–13 ride under this line") |
+| 10 | **§2 C3 rewritten in place** (LAST `" (now "`; two exact comparisons; executable form) | v1.3 | r2 change 2, exactly as asked | **`:108` (c) — ALREADY ACCEPTED** |
+| 11 | **§2 C6 rewritten in place** — C1→C2→C3 order, a NEW falsifiable obligation, the B3 instruction, `volume.cjs:302` named | v1.3 | (a)(c) r2-requested; **(b)(d) NEW normative content r2 did not request** | **`:108` (c) — ALREADY ACCEPTED**; the tie-break half of (b)(d) is row 13's, below |
+| 12 | **§7 Q2 edited in place** — appended `**[v1.3] …**` paragraph | v1.3 | beyond the C3/C6 wording; **v1.3 denied it** | **`:108` (c)** — disclosure of an r2-class edit; corrected here |
+| 13 | **§2 C6 BOUNDED** — the agreement clause qualified to single-owner receipts; the three excluded classes named; **the live-name tie-break stated as normative convention** (twice — also in §2 C3's "Known bound") | **v1.4** | **NEW normative content**, r3 change 1 + 4 | the bounding rides under **`:108` (c)**; the **tie-break** is r4 §5's row 16 — beyond `:108` (c), and **`:109` grants it** ("Q2 hunk re-authored with the C1 tie-break") |
+| 14 | §2 C3's executable form gains the `at < 0` guard; three citations re-pinned | **v1.4** | correction of fact (the code is unchanged) | **`:108` (c)** |
+| 15 | **§7 Q2 gains the C6 census table** and the "revert is worse than base" finding | **v1.4** | r3 change 5; material for the ruling, changes no question | **`:108` (c)** ("its census recorded", `:109`) |
+| 16 | **`volume.cjs`'s Q2 hunk gains the live-name tier** (the only engine byte the r3 pass moved) | **v1.4** | **this lane's own judgment, NOT an r3 request** — r3 wrote "No engine byte needs to change" (§v1.4-r4-F4) | r4 §5's row 20 — beyond `:108` (c), and **`:109` grants it by name** |
+| 17 | **`[r4]` §2 C2 extended** — one bullet: a non-resolving `exId` is unattributable | **r4** | **r4 change 2**, reviewer-requested | **`:108` (c)** |
+| 18 | **`[r4]` §v1.4-E4's two false sentences** — the "r3 offered" attribution WITHDRAWN, "it loses nothing" BOUNDED; the same withdrawal in the R3-4 residual line | **r4** | **r4 changes 3 and 5**, reviewer-requested | **`:108` (c)** |
+| 19 | **`[r4]` §v1.4-E2 re-stated** against `:108` (c) / `:109`; the revert consequence recorded in §2 C6 and §2 C3 | **r4** | **r4 change 4**, reviewer-requested | **`:108` (c)** |
+| 20 | **`[r4]` cells `B2-Q2j-b` and `B2-Q2l`; `volume.cjs:166`'s COMMENT corrected** (one line, inside the Q2 commit) | **r4** | **r4 changes 1 and 2**, reviewer-requested; **no behaviour change** | **`:108` (c)**; the comment sits inside the commit `:109` grants |
 
-**C1, C2, C4, C5 are byte-unchanged since v1.1. Q1 and Q3–Q9 are byte-unchanged since v1.1. All fourteen
-D-hunk sections (§1.1–§1.14) are byte-unchanged. No scope, package-bar, parent or file-ownership statement
-has moved in either amendment.**
+**C1, C4, C5 are byte-unchanged since v1.1; C2's v1.1 sentence is byte-unchanged and carries one added
+r4 bullet (row 17). Q1 and Q3–Q9 are byte-unchanged since v1.1. All fourteen D-hunk sections (§1.1–§1.14)
+are byte-unchanged. No scope, package-bar, parent or file-ownership statement has moved in any amendment.**
 
-**Judgment, adopting r3 §2 and extending it.** Rows 1–8, 14 and 15 withdraw or disclose; they are what an
-amendment is for. **Rows 9–13 change the durable convention `PLAN…:157` hands to B3, and `DECISIONS:103`
-item (3) accepts "BRIEF-B2 v1.2" by name.** The C3 correction and the C6 bounding are both right on the
-merits — one aligns the text with code the PM already accepted, the other stops a false absolute reaching
-B3's D44 — but they must be **accepted, not assumed**. Row 16 is an engine change and would normally be the
-heaviest item; it is not, because it lives entirely inside the commit the PM is already being asked to keep
-or revert (§7 Q2), and reverting that commit removes it.
+**Judgment `[re-stated in r4]`, adopting r4 §5.** The governing ruling is **`DECISIONS:108` (c)** — *"BRIEF-B2
+v1.3 ACCEPTED by name = v1.2 + the r2/r3 reviewer-requested amendments only; anything beyond them needs a new
+line"* — **not** `:103` item (3), which v1.4 reasoned from and which `:108` (c) supersedes. `:108` (c) is
+dated after r3's review and accepts a **content class**, not a filename: the file on the branch called *v1.3*
+was authored before r3 existed and cannot contain r3's amendments, so **the file that realises `:108` (c)'s
+definition is this one.** r4 §5 enumerated **twenty** v1.2 → v1.4 changes and found **eighteen** of them r2/r3
+reviewer-requested amendments that **ride under `:108` (c) and need no new line** — which makes rows 9–12's
+old "NO — needs a line" marking **stale, and it is corrected above.**
 
-> **B2 needs a `rebuild/DECISIONS.md` line naming `BRIEF-B2 v1.4` (or an explicit PM ruling that the
-> C3 correction, the C6 bounding and the Q2 hunk's live-name tier all ride under the v1.2 acceptance)
-> before the package can seal.** This is the same ask r3 §6 item 1 makes, updated to v1.4.
+**Exactly two did not ride under `:108` (c):** the **live-name tie-break as normative convention** (r4 row 16
+= the tie-break half of row 13 here, stated twice — §2 C6 and §2 C3's "Known bound") and the **Q2 engine
+byte** (r4 row 20 = row 16 here). They are the two `git revert 6038a52` removes **together** — one is the
+commit, the other describes what the commit does — so their natural home was the PM's §7 Q2 ruling.
+
+> **`[r4]` The PM has given that line. `DECISIONS:109`: *"BRIEF-B2 v1.4 ACCEPTED by name (= v1.3 + the r3
+> findings: Q2 hunk re-authored with the C1 tie-break; C6 bounded and its census recorded; Q2j pins exId +
+> mgsTouched) — rows 9–13 ride under this line."* Both outstanding items are named in it, and rows 9–13 are
+> named explicitly. **B2 does NOT need a further `rebuild/DECISIONS.md` line for this brief**; r3 §6 item 1
+> and r4 §8 item 1 are discharged. The r4 corrections in this file are reviewer-requested amendments and
+> ride under `:108` (c) like every other r2/r3/r4 amendment.**
+>
+> **The live consequence, which no document stated before r4:** `:109` accepts the tie-break and the commit
+> **together**, and §7 Q2 is still unanswered. **If the PM answers Q2 by reverting the Q2 commit, §2 C6's
+> and §2 C3's tie-break paragraphs must be struck or re-marked as B3's obligation in the same pass** — or
+> the durable convention `PLAN…:157` hands to B3 will describe a tie-break no shipped reader performs.
 
 ### v1.4-E3. The three citations, corrected — measured on the tip
 
@@ -172,17 +386,31 @@ the declared double-ownership residual. What was **not** declared is what the on
 
 **A receipt whose own text says CHEST charged to `back`, decided by array order.** `mgsTouched` feeds the
 `volumePush` week budget and the Auto-Pilot tighten veto, so this is the half of that residual the product
-actually consumes — and it was a **regression against base**, introduced by the hunk. r3 offered
-"fix it, or document it as a bounded residual and flag it". **It is fixed**, because it can be fixed without
-touching C3: C3 says which strings are legal owner names; it says nothing about which of two legal owners
-gets the one move, and that is where the defect lives.
+actually consumes — and it was a **regression against base**, introduced by the hunk. ~~r3 offered
+"fix it, or document it as a bounded residual and flag it".~~ **`[corrected in r4]` r3 offered nothing of the
+kind, and this sentence is WITHDRAWN** (r4 required change 3): r3's required change 4 is one sentence —
+*"Extend the cell to assert `mgsTouched` on every side"* — and r3's verdict says the changes are *"confined
+to `BRIEF-…-v1.3` and one cell. **No engine byte needs to change.**"*, repeated at r3 §5. **The engine fix
+below is this lane's own judgment and is the one place the r3 pass went beyond r3's letter**, in the wording
+`BUILD-REPORT-B2.md` §R3.0 used from the start; `DECISIONS:109` has since accepted it by name (*"Q2 hunk
+re-authored with the C1 tie-break"*). **It is fixed**, because it can be fixed without touching C3: C3 says
+which strings are legal owner names; it says nothing about which of two legal owners gets the one move, and
+that is where the defect lives.
 
 **The rule added, and why it is C1 rather than a new convention.** Among legal owners, prefer the lift whose
 **current** name matches. C1 already says `ex.n` is the live display name and `forks[].prevN` /
 `renames[].prevN` are *display history*; reading the live name first is that sentence applied, and it is what
-base, `f70dd23` and `07fba76` all did by accident. It makes this reader **order-independent** where it was
-order-decided, and it loses nothing: if no current name matches, the family pass runs exactly as before, so
-no move that the v1.3 hunk found is dropped.
+base, `f70dd23` and `07fba76` all did by accident. It makes this reader **order-independent** where a live
+name matches — where **only** former names match it stays order-decided, which the engine comment now says
+and cell `B2-Q2j-b` pins (§v1.4-r4-F1) — and ~~it loses nothing: if no current name matches, the family pass
+runs exactly as before, so no move that the v1.3 hunk found is dropped.~~ **`[bounded in r4]`** it loses one
+move in one measured shape: *if no current name matches, the family pass runs exactly as before, so no move
+that the v1.3 hunk found is dropped* — **except where the live-name lift already carries a `sets` move from
+`s.adjustments`, in which case the de-duplication at `volume.cjs:167` drops the receipt exactly as base
+does.** Measured (r4 bite R4-C, §v1.4-r4-F3): with `exUndo:{field:"sets", exId:"cur"}` and
+`exercises [old, cur]`, `2ada13f` returns **two** moves (`["cur","old"]`, `mgsTouched ["chest","back"]`) and
+the shipped hunk **one** (`["cur"]`, `["chest"]`) — **the same answer base and `f70dd23` give**, so the
+shipped behaviour is the *correction*; only the unqualified absolute was wrong.
 
 **Exact hunk, FINAL FORM** (`volume.cjs` base-tree pre-image `:159`; post-image **`:163–166`** plus one
 delegate at `:6`). Nothing else in `structuralMovesThisWeek` is touched and no `require` is added:
@@ -194,10 +422,13 @@ delegate at `:6`). Nothing else in `structuralMovesThisWeek` is touched and no `
 +   const at9 = f.t.indexOf("via "); const tail9 = at9 < 0 ? null : f.t.slice(at9 + 4);   /* "VOLUME PASSED" carries no "via" — declines are not moves */
 +   const cut9 = tail9 === null ? -1 : tail9.lastIndexOf(" (now "); const own9 = tail9 === null ? null : (cut9 < 0 ? tail9 : tail9.slice(0, cut9));
 +   const xs9 = (s.exercises || []); const owns9 = (n9) => !!n9 && (own9 === n9 || tail9 === n9);   /* C3 — two exact comparisons over one name, nothing else */
-+   const ex = f.exId != null ? xs9.find((x) => String(f.exId) === String(x.id)) : (xs9.find((x) => owns9(String((x && x.n) || ""))) || xs9.find((x) => _formerNames(x).some(owns9)));   /* Q2 — §2 C1→C2→C3: structured identity is terminal, else the producer's whole-name boundary over the lift's whole NAME FAMILY — the same two exact comparisons _volDeltas makes, so the two readers cannot disagree about one receipt (C6). Where the family admits two owners the LIVE name (C1: ex.n is the display name, renames[].prevN is history) is preferred over a former one, so the receipt's own muscle group is never charged to a different lift by s.exercises order */
++   const ex = f.exId != null ? xs9.find((x) => String(f.exId) === String(x.id)) : (xs9.find((x) => owns9(String((x && x.n) || ""))) || xs9.find((x) => _formerNames(x).some(owns9)));   /* Q2 — §2 C1→C2→C3: structured identity is terminal, else the producer's whole-name boundary over the lift's whole NAME FAMILY — the same two exact comparisons _volDeltas makes, so the two readers cannot disagree about one receipt (C6). Where the family admits two owners the LIVE name (C1: ex.n is the display name, renames[].prevN is history) is preferred over a former one, so WHERE A LIVE NAME MATCHES the receipt's muscle group is never charged to a different lift by s.exercises order; where ONLY former names match, array order still decides — C6's excluded class (ii), pinned by cell B2-Q2j-b */
 ```
-`volume.cjs` **`30e4dc21…` 24,898 B → `d487b123…` 25,309 B**; `plan.cjs 4c6f9817…` and
-`progression.cjs 9adaeecb…` are **byte-identical to `f70dd23`**, as they have been since `f70dd23`.
+**`[sha re-pinned in r4]`** `volume.cjs` **`30e4dc21…` 24,898 B → `d487b123…` 25,309 B → `944b1fcd…`
+25,443 B** — the last step is **r4's corrected COMMENT only**, the executable text of the hunk is unchanged
+(`git diff` against `6038a52` is one line, and every gate is byte-identical on both); `plan.cjs 4c6f9817…`
+19,853 B and `progression.cjs 9adaeecb…` 54,466 B are **byte-identical to `f70dd23`**, as they have been
+since `f70dd23`.
 
 - **Delta cells.** Unchanged from §v1.3-B1's list, plus: `structuralMovesThisWeek.sets` / `.mgsTouched`
   owner selection when **two lifts' name families collide** is now decided by the live name rather than by
@@ -207,9 +438,12 @@ delegate at `:6`). Nothing else in `structuralMovesThisWeek` is touched and no `
 - **Source mutants** (for the closed run, if the PM keeps the hunk): (1) `volume-owner-returns-to-substring`;
   (2) `volume-owner-splits-at-the-FIRST-now` (killed by `B2-Q2d`); (3) `volume-owner-trusts-exid-only`;
   (4) `volume-owner-drops-the-no-suffix-tail`; (5) `volume-owner-drops-the-former-name-term` — the withdrawn
-  `07fba76` hunk itself, killed by `B2-Q2f` / `B2-Q2g` (executed: **28/30**);
+  `07fba76` hunk itself, killed by `B2-Q2f` / `B2-Q2g` **and, `[added in r4]`, by `B2-Q2j-b`'s
+  no-live-holder arm** (executed: **29/32**, was 28/30 before r4's two cells);
   (6) **`volume-owner-drops-the-live-name-tier`** — the withdrawn `2ada13f` hunk itself, killed by
-  `B2-Q2j` (executed: **29/30**).
+  `B2-Q2j` **and, `[added in r4]`, by `B2-Q2j-b`'s own live-holder control** (executed: **30/32**, was
+  29/30 — both vacuity controls got deeper, not shallower). **`B2-Q2l` HOLDS on both withdrawn hunks**, as
+  it must: the non-resolving-`exId` class is C2's, and both withdrawn hunks carry C2's tier.
 - **Not touched, deliberately:** `volume.cjs:302` (`_setsMovesSince`) carries the same shape behind its own
   untouched 120-row cap — r2's residual R2-5, still open, still named in C6.
 
@@ -245,6 +479,30 @@ first four columns reproduce r3 §4 exactly, independently.
    whose own two readers contradict each other more often than the code it replaces.** v1.3 said only that
    leaving the line unconverted "ships a WRONG owner where base shipped a missing one"; this is the
    stronger, measured statement, and it is now beside §7 Q2 where the ruling is made.
+
+**`[added in r4]` The fixture behind row 2, and why the published totals are the CONSERVATIVE ones.** r4
+reproduced this table cell for cell, including which lift id each ✗ names, and recorded the one construction
+detail that decides row 2: the renamed lift `p9` is currently named **`Press`** and formerly `Press heavy`,
+and `Press` is a **substring** of the receipt text `… via Press heavy (now 3 sets)` — which is why base and
+no-Q2 read ✓ there at all. **Give `p9` a current name that is NOT a substring of the receipt (`Press heavy
+v2`) and base and no-Q2 both read ✗ `p9`: the totals become 6/8 and 7/8 instead of 5/8 and 6/8.** The
+ordering of the five engines is unchanged and the gap widens, so **the published figures understate the
+case against reverting Q2, never overstate it.** The fixture is stated here so the next round measures the
+same thing (r4 residual R4-6; §v1.4-r4-F5).
+
+**`[added in r4]` Two shapes outside the published eight, both r4's own, both now cell-pinned.** They are
+listed here rather than folded into the table above, which stays at the eight shapes every round has
+measured:
+
+| extension shape | base | no-Q2 | `07fba76` | `2ada13f` | **shipped** | cell |
+|---|---|---|---|---|---|---|
+| **R4-B** `via Press (now 3 sets)` with `f.exId = "ghost"` | ✓ (move) | **✗ `press`** | ✓ (no move) | ✓ (no move) | **✓ (no move)** | `B2-Q2l` |
+| **R4-A** `via Bench (now 3 sets)`, no live `Bench`, two former holders | ✗ `f1`,`f2` | ✗ `f1`,`f2` | ✗ `f1`,`f2` | ✗ `f2` | **✗ `f2`** | `B2-Q2j-b` |
+
+Over ten shapes: base **6**, no-Q2 **8**, `07fba76` **5**, `2ada13f` **4**, shipped **4**. **The ordering is
+unchanged and the gap against reverting Q2 widens** — R4-B is a **ninth** shape on which reverting Q2 makes
+the two readers disagree. R4-A is a member of excluded class (ii), so C6 already covers it; it is the arm
+`B2-Q2j-b` now pins and the arm the engine comment used to deny (§v1.4-r4-F1).
 
 ### v1.4-E6. R3-B — the empty inner — and R3-C's widening of the register wording
 
@@ -288,7 +546,7 @@ same. **The proposed register entry is therefore "any same-day duplicate anywher
 | `rebuild/conform/run.cjs` | `SUITE INCONSISTENT 99/99/29/70` exit 1 | same | **stdout sha256-identical on all three**, 0-byte stderr |
 | `second-gate.mjs --candidate` | reference `FINAL108: 3072 passed, 0 failed` | same | **stdout, stderr and the candidate log (31,489 B, 267 content lines, sha `cf407f73…`) sha256-identical on all three** |
 
-## v1.3 amendment (post-review r2) — READ THIS SECOND
+## v1.3 amendment (post-review r2) — READ THIS THIRD
 
 2026-09-11 · lane-B **fixer round 2** (Opus; author ≠ builder ≠ r1 reviewer ≠ r2 reviewer ≠ r1 fixer),
 working directly on the owner's PC in `work/lane-b/b2`. Applies the four changes
@@ -485,7 +743,7 @@ added-set tolerance verdict is decided by their order."**
 | `rebuild/conform/run.cjs` | — | `SUITE INCONSISTENT 99/99/29/70` exit 1 | **stdout sha256-identical to no-Q2**, 0-byte stderr |
 | `second-gate.mjs --candidate` | — | reference `FINAL108: 3072 passed, 0 failed` | **stdout and 181-byte stderr sha256-identical to no-Q2**; candidate log 267 lines; stops at the pre-existing D12 cell `engine-test.jsx:106` on every side |
 
-## v1.2 amendment (post-review r1) — READ THIS THIRD, BEFORE THE v1.1 NOTE BELOW
+## v1.2 amendment (post-review r1) — READ THIS FOURTH, BEFORE THE v1.1 NOTE BELOW
 
 2026-09-11 · lane-B **fixer** (Opus; author ≠ builder ≠ reviewer), working directly on the owner's PC in
 `work/lane-b/b2`. Applies the five changes the independent review required, plus the one hunk correction
@@ -862,9 +1120,13 @@ than by reading the fixer's claim):
   every v1.2 → v1.3 → v1.4 difference is listed with its acceptance class.
 - **R3-3 — CLOSED by §v1.4-E3.** Three post-image citations corrected, three more re-measured and confirmed,
   and C3's executable form now carries the `at < 0` guard.
-- **R3-4 — CLOSED by §v1.4-E4, as an ENGINE fix rather than a document.** r3 offered "fix it or bound it";
-  it was fixable without touching C3, so it is fixed, and `B2-Q2j` now pins `exId` **and** `mgsTouched` in
-  both array orders on every side.
+- **R3-4 — CLOSED by §v1.4-E4, as an ENGINE fix rather than a document.** ~~r3 offered "fix it or bound
+  it";~~ **`[corrected in r4]` r3 offered nothing: its required change 4 asked only for a cell and its
+  verdict says "No engine byte needs to change".** The r3 pass judged the behaviour an engine defect on its
+  own account — *"that is the one place this pass goes beyond r3's letter"*, `BUILD-REPORT-B2.md` §R3.0 —
+  and fixed it because it was fixable without touching C3; `DECISIONS:109` has since accepted that hunk by
+  name. `B2-Q2j` pins `exId` **and** `mgsTouched` in both array orders on every side, and `[r4]` `B2-Q2j-b`
+  pins the no-live-holder arm the tie-break does not reach.
 - **R3-5 — CLOSED by §v1.4-E5.** The census sits beside §7 Q2, including "reverting Q2 is strictly worse
   than base on C6".
 - **R3-6 — OPEN, lane tooling, NOT B2's.** `rebuild/conform/engines/build-engines.mjs` cannot run on Windows
@@ -877,21 +1139,45 @@ than by reading the fixer's claim):
 - **R3-C — adopted into §v1.3-B4's wording** (§v1.4-E6): the register candidate is "any same-day duplicate
   anywhere in the window", not "a duplicate on the first post-change day". Still not fixed in B2.
 
+**`[added in r4]` r4's residuals, adopted here as named open risks. Everything above STANDS** (r4
+re-executed R3-1…R3-5 against the documents rather than reading the r3 pass's claim, and closed them):
+
+- **R4-1 … R4-5 — CLOSED by §v1.4-r4-F1…F5.** Four documentation/cell changes and one engine **comment**
+  line; no behaviour changed, and every gate was re-executed anyway.
+- **R4-A — OPEN by design, bounded, and now pinned** (§v1.4-r4-F1): with **no** live holder and two
+  former-name holders, `s.exercises` order still decides the move and with it `mgsTouched`. It is excluded
+  class (ii) of the bounded C6 and it is **not** a regression against base (base ships no move at all).
+  Cell `B2-Q2j-b`; the engine comment at `volume.cjs:166` now says so.
+- **R4-B — OPEN by design, dormant, and now stated and pinned** (§v1.4-r4-F2, §2 C2): a structured `exId`
+  naming no lift destroys the move at all three readers. **No writer in `rebuild/engine/` emits `exId` onto
+  a feed row today**, so it cannot fire on today's data; `merge.cjs` or **B3's writer half** turns it on.
+  Cell `B2-Q2l`. **B3 inherits this boundary and must rule on inbound unresolvable ids.**
+- **R4-6 — OPEN, reproduction hygiene** (§v1.4-r4-F5): the published C6 census only reproduces with the
+  row-2 fixture now stated (`p9` currently `Press`, a substring of the receipt). Stated here; committing
+  the eight fixtures beside the cells is the next round's option, not B2's obligation.
+- **R3-6 / R3-7 / R2-* / R-* — unchanged**, and r4 re-confirmed each of them by execution.
+
 **Still open for the PM:** every question Q1–Q9 of §7. Q2 now has a **corrected and re-corrected** hunk on a
 revertable commit, with the C6 census beside it, and Q8 has the executed inertness finding beside it;
 neither is answered here. **r2's recommendation on Q2 is KEEP, with required change 1 applied; r3 does not
-disturb it and adds the measured cost of the alternative** (§v1.4-E5) — the PM's option of carrying Q2 to B3
-is still available for the cost of one `git revert`, and that revert now demonstrably lands on a C6 position
-worse than base. **One thing is NEW for the PM and is not a §7 question:** B2 needs a `DECISIONS` line
-naming **`BRIEF-B2 v1.4`**, or an explicit ruling that §2's C3 correction, C6 bounding and the Q2 hunk's
-live-name tier ride under the v1.2 acceptance (§v1.4-E2).
+disturb it and adds the measured cost of the alternative** (§v1.4-E5); **`[r4]` r4 reproduced that census
+independently, cell for cell, and widened the gap with two further shapes** (§v1.4-E5's extension table) —
+the PM's option of carrying Q2 to B3 is still available for the cost of one `git revert`, and that revert
+now demonstrably lands on a C6 position worse than base. ~~**One thing is NEW for the PM and is not a §7
+question:** B2 needs a `DECISIONS` line naming **`BRIEF-B2 v1.4`**, or an explicit ruling that §2's C3
+correction, C6 bounding and the Q2 hunk's live-name tier ride under the v1.2 acceptance (§v1.4-E2).~~
+**`[closed in r4]` `DECISIONS:109` is that line** — it accepts `BRIEF-B2 v1.4` by name and names both
+outstanding items; nothing further is asked of the PM about this brief (§v1.4-r4-F4). **What remains for
+whoever answers Q2:** if the answer is REVERT, strike §2 C6's and §2 C3's tie-break paragraphs in the same
+pass.
 
 ---
 
 *Everything from here to the end of the file is `BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md` carried WHOLE (its own H1 replaced by the v1.4 line at the top), and where v1.2 corrects a sentence it is quoted and replaced in the amendment rather than rewritten below.*
 
-**THE EXCEPTIONS, stated exactly — FOUR in-place edits across v1.3 and v1.4, not one** (r3 required
-change 2; v1.3 said "the ONE exception" and was wrong about its own bytes):
+**THE EXCEPTIONS, stated exactly — `[re-counted in r4]` SIX in-place edits across v1.3, v1.4 and the r4
+corrections, not one** (r3 required change 2; v1.3 said "the ONE exception" and was wrong about its own
+bytes — and v1.4 said FOUR and was right at the time it was written):
 
 | # | what is edited in place below | version | marked | superseded text quoted in |
 |---|---|---|---|---|
@@ -899,11 +1185,14 @@ change 2; v1.3 said "the ONE exception" and was wrong about its own bytes):
 | 2 | **§2 C6** — rewritten (C1→C2→C3 order, a new falsifiable obligation, the B3 instruction, `volume.cjs:302` named) | v1.3 | `[corrected in v1.3]` | §v1.3-B2 |
 | 3 | **§7 Q2** — an appended `**[v1.3] …**` paragraph (reading guidance; the question is unchanged) | v1.3 | *(was unmarked and DENIED by v1.3's own tail note — that is r3's required change 2)* | — |
 | 4 | **§2 C6** — the agreement clause **bounded** to single-owner receipts, the three excluded classes named, the live-name tie-break stated; **§2 C3**'s executable form gains the `at < 0` guard and three citations are re-pinned; **§7 Q2** gains the C6 census table and a `**[v1.4] …**` paragraph | v1.4 | `[bounded in v1.4]` / `[citations re-pinned in v1.4]` / `[v1.4]` | §v1.4-E1, §v1.4-E3 |
+| 5 | **`[r4]` §2 C2** — ONE bullet added: an `exId` that resolves to no lift is unattributable (r4 required change 2). **v1.1's C2 sentence itself is byte-unchanged.** | r4 | `[extended in r4]` / `[added in r4]` | §v1.4-r4-F2 |
+| 6 | **`[r4]` §2 C6 and §2 C3** — the tie-break sentence qualified to *where a live name matches*, the no-live-holder arm stated, cell `B2-Q2j-b` named, and the **revert consequence** recorded in both copies (r4 required changes 1 and 4); **§7 Q2** gains a `**[r4] …**` paragraph carrying the census caveat and the two extension shapes | r4 | `[added in r4]` | §v1.4-r4-F1, §v1.4-r4-F4, §v1.4-r4-F5 |
 
-**Everything else below is byte-for-byte v1.1: C1, C2, C4 and C5 of §2; Q1 and Q3–Q9 of §7; all fourteen
-D-hunk sections of §1; §3, §4, §5 and §6 entire.** `PLAN…:157` makes §2 the durable convention B3
-implements, which is why these four edits exist and why **§v1.4-E2 classifies each one as riding under the
-PM's v1.2 acceptance or needing a v1.4 acceptance line.**
+**Everything else below is byte-for-byte v1.1: C1, C4 and C5 of §2 and C2's own sentence; Q1 and Q3–Q9 of
+§7; all fourteen D-hunk sections of §1; §3, §4, §5 and §6 entire.** `PLAN…:157` makes §2 the durable
+convention B3 implements, which is why these six edits exist and why **§v1.4-E2 names, for each one, the PM
+ruling it rides under — `DECISIONS:108` (c) for eighteen of r4 §5's twenty changes, and `:109` for the two
+that do not.**
 
 2026-09-11 · Opus builder of LANE B, research only. Nothing in the repo was modified, committed or pushed; every edit reported here was made in throw-away copies under the session scratchpad and discarded. No `ledger/` and no `rebuild/conform/private` path was opened.
 
@@ -1361,16 +1650,18 @@ No comparability boundary. The era tools are already on the engine — `plan.cjs
 
 ## 2. THE IDENTITY CONVENTION (D3/D4 — and the scheme B3's D37/D38/D39 must reuse)
 
-`PLAN…:157` requires this brief to state the convention so the engine does not end up with two. It is stated here as a **durable lift-identity scheme**, not a string trick, and it is deliberately reader-first so B2 can land it without touching `writers.cjs`, `merge.cjs`, `earn.cjs` or `migrate.cjs`. **C1, C2, C4 and C5 are reproduced verbatim from v1; only the three line citations inside them are re-pinned onto `87eddad`, marked `[re-pinned]`. C3 is `[corrected in v1.3]` with its citations `[re-pinned in v1.4]` — the superseded C3 sentence is quoted in §v1.3-B2 and the reason is r2's required change 2. C6 is `[corrected in v1.3, bounded in v1.4]` — the superseded v1.3 sentence is quoted in §v1.4-E1 and the reason is r3's required change 1: as v1.3 wrote it, C6 was an absolute the shipped engine does not satisfy, and B3's D44 is the guard that would have been written to it. B3 must implement the C3 BELOW, not the one in v1/v1.1/v1.2, and the C6 BELOW, not v1.3's.**
+`PLAN…:157` requires this brief to state the convention so the engine does not end up with two. It is stated here as a **durable lift-identity scheme**, not a string trick, and it is deliberately reader-first so B2 can land it without touching `writers.cjs`, `merge.cjs`, `earn.cjs` or `migrate.cjs`. **C1, C4 and C5 are reproduced verbatim from v1; only the three line citations inside them are re-pinned onto `87eddad`, marked `[re-pinned]`. C2 is verbatim from v1 and `[extended in r4]` with ONE added bullet — the unattributable non-resolving `exId`, r4's required change 2; nothing in v1's C2 sentence moved. C3 is `[corrected in v1.3]` with its citations `[re-pinned in v1.4]` — the superseded C3 sentence is quoted in §v1.3-B2 and the reason is r2's required change 2. C6 is `[corrected in v1.3, bounded in v1.4]` — the superseded v1.3 sentence is quoted in §v1.4-E1 and the reason is r3's required change 1: as v1.3 wrote it, C6 was an absolute the shipped engine does not satisfy, and B3's D44 is the guard that would have been written to it. B3 must implement the C3 BELOW, not the one in v1/v1.1/v1.2, and the C6 BELOW, not v1.3's.**
 
 **C1 — identity is the record id, never a name.** A lift's durable identity is `String(ex.id)`. Names (`ex.n`, `forks[].prevN`, `renames[].prevN`) are *display history*, resolved through `_formerNames` (`progression.cjs:216` `[re-pinned from :109–114]`) and used only to interpret prose written before the id was carried.
 
-**C2 — structured identity is authoritative and terminal.** When a feed/receipt/adjustment record carries a structured owner field, that field decides ownership on its own: a match is ownership, a mismatch is **non**-ownership, and the prose is not consulted as a fallback. The field name is **`exId`** — the name `writers.cjs` already uses on `agentProposals` (`:1486`, `:1496` `[re-pinned from :1459, :1469]`), on `adjustments[].exUndo.exId` (read at `volume.cjs:155`) and on `structuralMovesThisWeek`'s own `moves[].exId` (`:160`). B2 implements only the *reader* half; B3 (whose D44 hunk already edits `writers.cjs:2319` `[re-pinned from :2292]`, and whose D37/D38/D39 edit `merge.cjs`/`writers.cjs`) adds the writer half and must use this exact field name and this exact terminal semantics.
+**C2 `[extended in r4]` — structured identity is authoritative and terminal.** When a feed/receipt/adjustment record carries a structured owner field, that field decides ownership on its own: a match is ownership, a mismatch is **non**-ownership, and the prose is not consulted as a fallback. The field name is **`exId`** — the name `writers.cjs` already uses on `agentProposals` (`:1486`, `:1496` `[re-pinned from :1459, :1469]`), on `adjustments[].exUndo.exId` (read at `volume.cjs:155`) and on `structuralMovesThisWeek`'s own `moves[].exId` (`:160`). B2 implements only the *reader* half; B3 (whose D44 hunk already edits `writers.cjs:2319` `[re-pinned from :2292]`, and whose D37/D38/D39 edit `merge.cjs`/`writers.cjs`) adds the writer half and must use this exact field name and this exact terminal semantics.
+
+- **`[added in r4]` An `exId` that resolves to NO lift in `s.exercises` is UNATTRIBUTABLE — C5's third answer — and that is deliberate, not an oversight.** Terminal means terminal in both directions: the record gets **no move and no credit at any reader**, even when its own prose names a real lift and the athlete can read it on his feed. All three C1→C2→C3 readers are terminal this way — `progression.cjs:233` (`_volDeltas`, D3), `progression.cjs:628` (`_deriveSightingFull`, D4) and, with Q2, `volume.cjs:166` (`structuralMovesThisWeek`) — so the three **agree** about such a row, which is what C6 requires of them; what they agree on is that it has no owner. Comparison is `String(f.exId) === String(ex.id)`, so a numeric id and its string spelling are the **same** owner. **No writer in `rebuild/engine/` emits `exId` onto a feed row today** (`writers.cjs:2162` and `:2319` write `{d, at, t, how}`), so the class is **dormant**: only `merge.cjs` carrying a foreign row from another device, or **B3's own writer half**, can produce one. **B3 must therefore never write an `exId` it cannot resolve, and must decide — as a B3 question, not a B2 one — whether an unresolvable id on an inbound merged row is dropped, repaired from the prose, or left unattributable as it is today.** Cell **`B2-Q2l`** pins current behaviour on every side, with `exId` absent and `exId` correct as its two controls; §v1.4-r4-F2 has the measurement and r4's bite R4-B is where it was found.
 
 **C3 `[corrected in v1.3]` — the legacy boundary is a WHOLE-NAME boundary at the producer's own recorded delimiter, and the delimiter is the LAST one. Never a substring, never a bare prefix.** Two boundaries exist because two producers exist, and each is read from the producer, not invented:
 - **VOLUME receipts** (`writers.cjs:2162`, `:2319` `[re-pinned from :2135, :2292]`) emit `VOLUME ±N — <MG> via <ex.n> (now <n> sets)`. Read the **tail** — everything after the first `"via "`. The producer appends **exactly one** `" (now <n> sets)"` suffix, but a lift's own NAME may contain the string `" (now "`; therefore the suffix is cut at the **LAST** `" (now "` in the tail, never the first. Ownership is an exact `===` against `_formerNames(ex)` of **either** (a) the tail with that last suffix removed, **or** (b) the whole tail unchanged — (b) is what carries a legacy row that was written with no suffix at all. Two exact comparisons over the whole name family; nothing else. A row with no `"via "` (e.g. `VOLUME PASSED`) has **no owner** and is skipped, never guessed.
   - *Executable form `[citations re-pinned in v1.4]`, identical in `_volDeltas` (`progression.cjs:232–237` — `:232` `let named9 = false`, `:233` the C2 `exId` tier, `:234–236` the boundary, **`:237` the two exact comparisons**) and — with Q2 — at `volume.cjs:159` (base coordinate; post-image `:163–166`):* `at = t.indexOf("via ")` → **`tail = at < 0 ? null : t.slice(at+4)`** → `cut = tail === null ? -1 : tail.lastIndexOf(" (now ")` → `own = tail === null ? null : (cut < 0 ? tail : tail.slice(0, cut))` → `_formerNames(ex).some(n => n && (own === n || tail === n))`. **The `at < 0` guard is part of the form, not commentary**: it is what makes a row with no `"via "` unowned instead of throwing — v1.3 printed the form without it (r3 required change 3).
-  - *Known bound (see §v1.3-B3, §v1.4-E1 and §v1.4-E6):* when the row carries **no** suffix, or its inner is **empty** (`" (now )"`), or two lifts' name families **collide**, (a) and (b) can name **two different lifts**, and the convention does not make that receipt unambiguous. That is C4's standard failing against a legacy shape, not a licence to loosen the comparison; the close is C2's writer-side `exId`, not a wider C3. **Which of the two legal owners gets the one move is a tie-break, not part of C3: the LIVE name wins** (C1), and only among former-name matches does `s.exercises` order decide — see C6 and §v1.4-E4.
+  - *Known bound (see §v1.3-B3, §v1.4-E1 and §v1.4-E6):* when the row carries **no** suffix, or its inner is **empty** (`" (now )"`), or two lifts' name families **collide**, (a) and (b) can name **two different lifts**, and the convention does not make that receipt unambiguous. That is C4's standard failing against a legacy shape, not a licence to loosen the comparison; the close is C2's writer-side `exId`, not a wider C3. **Which of the two legal owners gets the one move is a tie-break, not part of C3: the LIVE name wins** (C1), and only among former-name matches does `s.exercises` order decide — see C6 and §v1.4-E4. **`[added in r4]` This is the same normative sentence C6 states, written twice; `DECISIONS:109` accepts it together with the Q2 commit, so if §7 Q2 is answered by reverting that commit BOTH copies must be struck or re-marked as B3's obligation in the same pass (§v1.4-r4-F4). The no-live-holder arm it does not reach is pinned by cell `B2-Q2j-b`.**
 - **EARNED receipts** (`earn.cjs:89`) emit `<EX.N.toUpperCase()> <load> EARNED`. The owner is a former name that both starts the string **and** is followed by exactly ` <numeric load> EARNED` — regex `/^ [-+]?(?:\d+(?:\.\d+)?|\.\d+) EARNED$/` applied to the remainder. Name-only or arbitrary-tail matches are **not** ownership.
 
 **C4 — the boundary is complete, not heuristic.** No substring search, no `startsWith` without a terminator, no fuzzy or case-insensitive widening beyond the uppercasing the producer itself applies (`progression.cjs:611` `[re-pinned from :495]`), no invented delimiter. If a future producer's format has no such delimiter, the correct move is to add `exId` at that producer (C2), not to loosen C3.
@@ -1390,7 +1681,9 @@ No comparability boundary. The era tools are already on the engine — `plan.cjs
 >
 > **All three are double-owned on BASE as well; none is a B2 regression; none is repairable by a reader.** The close is **C2's writer-side `exId`** (B3's half), never a looser C3. Executed over eight receipt shapes, the two readers disagree on **3 of 8** with Q2 in, **5 of 8** on base and **6 of 8** with Q2 reverted — the census is in §v1.4-E5, beside §7 Q2.
 >
-> **Within an excluded shape, the one move is NOT decided by `s.exercises` order: the LIVE name wins.** C1 says `ex.n` is the display name and `forks[].prevN` / `renames[].prevN` are history, so a lift whose **current** name matches owns the move ahead of a lift for which the same string is a **former** name; only among former-name matches does array order decide. Without this tie-break a receipt whose own text says CHEST is charged to another lift's muscle group through `mgsTouched`, which the `volumePush` week budget and the Auto-Pilot tighten veto consume (§v1.4-E4, r3 bite R3-A). `B2-Q2j` pins `exId` **and** `mgsTouched` in both array orders on every side.
+> **Within an excluded shape, the one move is NOT decided by `s.exercises` order WHERE A LIVE NAME MATCHES: the LIVE name wins.** C1 says `ex.n` is the display name and `forks[].prevN` / `renames[].prevN` are history, so a lift whose **current** name matches owns the move ahead of a lift for which the same string is a **former** name; **only among former-name matches does array order decide, and it still does** — with no live holder and two former holders the move, and with it `mgsTouched`, follows `s.exercises` order on every Q2 form (`["chest"]` forward, `["back"]` reversed, where base ships no move at all). Without this tie-break a receipt whose own text says CHEST is charged to another lift's muscle group through `mgsTouched`, which the `volumePush` week budget and the Auto-Pilot tighten veto consume (§v1.4-E4, r3 bite R3-A). `B2-Q2j` pins `exId` **and** `mgsTouched` in both array orders on every side; **`B2-Q2j-b` pins the no-live-holder arm** the tie-break does *not* reach (§v1.4-r4-F1, r4 bite R4-A), so the bound above is executed rather than asserted.
+>
+> **`[added in r4]` If the PM answers §7 Q2 by REVERTING the Q2 commit, this tie-break paragraph and the identical one in §2 C3's "Known bound" must be struck — or re-marked as B3's obligation — in the same pass**, because `git revert` removes the only shipped reader that performs it, and a durable convention that describes a tie-break no reader performs is worse than one that stays silent. `DECISIONS:109` accepts the tie-break and the commit **together**; nothing above survives the one without the other.
 
 **What this clause is FOR.** r2's §6 R2-A is exactly the failure it exists to catch — a renamed lift whose receipt `_volDeltas` credited and `structuralMovesThisWeek` dropped — and cell `B2-Q2f` asserts the agreement directly. **What it must NOT become**, and the reason it is bounded: B3's **D44 is "the VOLUME-receipt truth guard"**, and a guard written to the unqualified v1.3 sentence **fires on legitimate legacy data** — the three excluded shapes above. B3's `earnWalk` as-of repair (D37), trial-decision preservation (D38), offer-dismissal preservation (D39) and D44 **reuse C1–C5 as corrected here — B3 must implement the v1.3 C3, NOT the "first `" (now "`" text of v1/v1.1/v1.2, which is superseded and would reproduce the regression r1's bite B-2 found, and must implement the v1.4 C6 above, NOT v1.3's unqualified one**; and **B3 must not introduce a second identity scheme, a per-set immutable-id model, or a name-normalisation pass.** Two readers in the engine remain off the convention and are named rather than silently left: `volume.cjs:302` (`_setsMovesSince`, behind its own untouched 120-row cap — r2 residual R2-5) and any writer that still omits `exId` (C2's half, B3's).
 
@@ -1493,6 +1786,12 @@ Recommendation to the PM, unchanged from v1: serialize B1 and B2 on the `witness
 | **shapes where the two readers DISAGREE** | **5 / 8** | **6 / 8** | **3 / 8** |
 
 **Reverting Q2 does not return to base — it is strictly WORSE than base on C6, 6 shapes against 5.** D3 repairs `_volDeltas` and leaves `structuralMovesThisWeek` on the substring rule, so on r1's own B-1 fixture the two readers disagree *in both directions*. The alternative "carry Q2 to B3 for the cost of one `git revert`" therefore costs more than one release of misattribution: it ships a package whose own two readers contradict each other more often than the code it replaces. **The three that remain with Q2 in are the double-ownership classes C6 now excludes by name — they are present on base too and no reader can close them; only C2's writer-side `exId` (B3's half) can.** Lane B still does not answer this question; it now states the price of each answer.
+
+**[r4] The question STILL stands and is still unanswered; the material has changed a fourth time, and every figure above was reproduced by a fourth independent execution — cell for cell, including which lift id each ✗ names.** Three things are added, none of them an answer:
+
+1. **The table's own fixture, so the next round measures the same thing (r4 §4 / R4-6).** Row 2 reproduces **only** because the renamed lift `p9` is *currently* named `Press`, which is a **substring** of `… via Press heavy (now 3 sets)`. With a current name that is not a substring (`Press heavy v2`), base reads **✗ `p9`** and Q2-REVERTED reads **✗ `p9`**, and the totals become **6/8 and 7/8** against Q2-IN's unchanged 3/8. **The figures above are the conservative ones: the measured case against reverting Q2 is stronger than the table states, never weaker.**
+2. **Two shapes outside the published eight, both cell-pinned** (§v1.4-E5): a receipt carrying `exId = "ghost"`, which names no lift — **✓ no move with Q2 in, ✗ `press` with Q2 REVERTED**, a ninth disagreeing shape and one more count against reverting; and a colliding family with **no live holder**, which stays `s.exercises`-order-decided on every Q2 form and ships **no move at all** on base. Over ten shapes: base **6**, Q2 REVERTED **8**, Q2 IN **4**.
+3. **What the REVERT answer costs in this file, beyond the engine.** `git revert` of the Q2 commit removes the only shipped reader that performs the live-name tie-break, so **§2 C6's and §2 C3's tie-break paragraphs must be struck — or re-marked as B3's obligation — in the same pass** (§v1.4-r4-F4). `DECISIONS:109` accepts the tie-break and the commit **together**; neither survives alone. **B2 needs no further `DECISIONS` line for the brief** — `:109` is it — so this question is now purely the scope ruling it always was.
 
 **Q3 (scope, two lines). Reader-side `exId` in B2.** §2 C2's *reader* half is two lines across D3 and D4 and is fully backward-compatible (re-executed on the merged tree: laws GREEN, seeded census unchanged). Including it lets B3 add the writer field at `writers.cjs:2319` without re-opening `progression.cjs`, which B2 owns. Confirm it is in B2's allowlist.
 

@@ -1,5 +1,5 @@
 'use strict';
-/* EARNED — LANE B · PACKAGE B2 — DELTA CELLS (post-review r1, extended r2, extended r3)
+/* EARNED — LANE B · PACKAGE B2 — DELTA CELLS (post-review r1, extended r2, r3, r4)
  *
  * Witness-style cells for the delta sites the accepted-brief text does NOT
  * enumerate. Unlike rebuild/engine/test/defect-witnesses*.cjs these are NOT
@@ -311,6 +311,50 @@ cell('B2-Q2j  RESIDUAL — colliding NAME FAMILIES are double-owned; the LIVE na
   return { volDeltas: 'both', fwd, rev, mgFwd, mgRev, byId };
 });
 
+/* r4 required change 1 / bite R4-A — the OTHER arm of the same collision, which
+ * B2-Q2j does not reach and no cell pinned before r4. Take the LIVE holder away:
+ * two lifts carry the receipt's name ONLY as a former name, in DIFFERENT muscle
+ * groups. Tier 1 (live name) finds nothing, so tier 2 runs and `.find` resolves
+ * the collision by s.exercises order — which means mgsTouched, the half the
+ * volumePush week budget and the Auto-Pilot tighten veto consume, follows array
+ * order: a receipt whose own text says CHEST is charged to `back` when the array
+ * is reversed. This is EXACTLY what §2 C6's bounded clause excludes as class (ii)
+ * ("only among former-name matches does array order decide") and it is NOT a
+ * regression against base: base ships NO MOVE AT ALL here, so it is the declared
+ * "WRONG owner where base shipped a missing one" trade, not a new defect. The
+ * engine comment at volume.cjs:166 used to deny it and now states it. _volDeltas
+ * credits BOTH lifts on every side, base included — the double-ownership residual,
+ * unchanged. This cell is also a second discriminator against the withdrawn
+ * 07fba76 hunk, which has no former-name term and returns [] here.            */
+cell('B2-Q2j-b  RESIDUAL — NO live holder: two FORMER-name owners stay order-decided, and so does mgsTouched', () => {
+  const f1 = lift({ id: 'f1', n: 'Bench press', sets: 3, mg: 'chest', renames: [{ prevN: 'Bench' }] });
+  const f2 = lift({ id: 'f2', n: 'Row heavy', sets: 3, mg: 'back', renames: [{ prevN: 'Bench' }] });
+  const row = 'VOLUME +1 — CHEST via Bench (now 3 sets)';
+  const bare = { feed: [{ d: '2026-09-01', t: row }] };
+  assert.deepEqual(T._volDeltas(f1, bare), [['2026-09-01', 1]]);   /* every side */
+  assert.deepEqual(T._volDeltas(f2, bare), [['2026-09-01', 1]]);   /* every side — two owners, one receipt */
+  const got = {
+    fwd: nestSets([f1, f2], row), rev: nestSets([f2, f1], row),
+    mgFwd: mgsOf([f1, f2], row), mgRev: mgsOf([f2, f1], row),
+  };
+  assert.deepEqual(got, q2pick({
+    /* base and no-Q2 read "via <x.n>" as a substring, and neither current name is in the row */
+    'BASE':                  { fwd: [], rev: [], mgFwd: [], mgRev: [] },
+    'CANDIDATE-NOT APPLIED': { fwd: [], rev: [], mgFwd: [], mgRev: [] },
+    /* Q2 in: the family pass finds both, and ORDER decides — the live-name tier never fires */
+    'CANDIDATE-APPLIED':     { fwd: ['f1'], rev: ['f2'], mgFwd: ['chest'], mgRev: ['back'] },
+  }));
+  /* the tie-break's own boundary: put a LIVE holder back and order stops deciding, on every Q2 form */
+  const live = lift({ id: 'cur', n: 'Bench', sets: 3, mg: 'chest' });
+  const withLive = { fwd: mgsOf([live, f2], row), rev: mgsOf([f2, live], row) };
+  assert.deepEqual(withLive, q2pick({
+    'BASE':                  { fwd: ['chest'], rev: ['chest'] },
+    'CANDIDATE-NOT APPLIED': { fwd: ['chest'], rev: ['chest'] },
+    'CANDIDATE-APPLIED':     { fwd: ['chest'], rev: ['chest'] },
+  }));
+  return { ...got, withLive, note: 'C6 excluded class (ii), no-live-holder arm — bounded, and NOT a regression: base ships no move' };
+});
+
 /* r3 bite R3-B — a receipt whose tail is exactly " (now )", an EMPTY inner.
  * " (now )" is a full delimiter to lastIndexOf, so an empty inner is
  * indistinguishable from a legacy suffix-less row: the whole tail is a legal
@@ -344,6 +388,53 @@ cell('B2-Q2k-b  and the boundary still fails CLOSED around it, on every side', (
   };
   assert.deepEqual(got, { emptyOwner: [], noOwnerText: [], emptyCount: ['pa'], passed: [], litNowName: ['nn'] });
   return got;                                           /* identical on BASE and on both candidate variants */
+});
+
+/* r4 required change 2 / bite R4-B — C2's OTHER direction. A structured exId
+ * that resolves to NO lift in s.exercises destroys the move AND the credit, at
+ * all three C1->C2->C3 readers, while the receipt itself still names a real lift
+ * in prose and is still legible on the athlete's own feed. That is C5's third
+ * answer — UNATTRIBUTABLE — and it is deliberate: terminal means terminal in
+ * both directions, and a reader that fell back to the prose would be exactly the
+ * "mismatch is non-ownership" rule C2 forbids.
+ * Q2 does NOT create the class: progression.cjs:233 (D3) and :628 (D4) are
+ * already terminal this way WITHOUT Q2. What Q2 does is complete it — with Q2
+ * OUT the two readers DISAGREE here (structuralMovesThisWeek credits by name,
+ * _volDeltas refuses), which is a NINTH C6 shape and one more count against
+ * reverting Q2; with Q2 IN they agree that the row has no owner.
+ * Dormant today by measurement: no writer in rebuild/engine/ puts exId on a feed
+ * row (writers.cjs:2162 and :2319 emit {d, at, t, how}), so only merge.cjs
+ * carrying a foreign row, or B3's writer half, can produce one. B3 inherits this
+ * boundary — see §2 C2's r4 bullet. The two controls below keep the cell honest:
+ * with exId absent, and with exId naming the lift, the move is found on EVERY
+ * side, so a cell that passed by finding nothing would fail them.            */
+cell('B2-Q2l  C2 — an exId that resolves to NO lift is UNATTRIBUTABLE: no move and no credit', () => {
+  const p = lift({ id: 'press', n: 'Press', sets: 3 });
+  const ROW = 'VOLUME +1 — CHEST via Press (now 3 sets)';
+  const sWith = (extra) => ({ exercises: [p], adjustments: [], sessionLog: {},
+    feed: [Object.assign({ d: '2026-09-01', t: ROW }, extra)] });
+  const movesOf = (extra) => T.structuralMovesThisWeek(sWith(extra)).sets.map((m) => m.exId);
+  const ghostMove = movesOf({ exId: 'ghost' });
+  const ghostCredit = T._volDeltas(p, sWith({ exId: 'ghost' }));
+  assert.deepEqual(ghostMove, q2pick({
+    'BASE': ['press'],                  /* base ignores exId entirely at this reader */
+    'CANDIDATE-NOT APPLIED': ['press'], /* D3 repairs _volDeltas only — the two readers DISAGREE here */
+    'CANDIDATE-APPLIED': [],            /* C2 terminal at all three readers — they agree: no owner */
+  }));
+  assert.deepEqual(ghostCredit, pick({ BASE: [['2026-09-01', 1]], CANDIDATE: [] }));
+  /* C6, stated as the cell's own assertion rather than as prose */
+  const agree = (ghostMove.length > 0) === (ghostCredit.length > 0);
+  assert.equal(agree, q2pick({ 'BASE': true, 'CANDIDATE-NOT APPLIED': false, 'CANDIDATE-APPLIED': true }));
+  /* CONTROLS — identical on every side, so this cell cannot pass vacuously */
+  assert.deepEqual(movesOf(null), ['press']);                       /* exId absent -> the prose decides */
+  assert.deepEqual(movesOf({ exId: 'press' }), ['press']);          /* exId matching -> ownership */
+  assert.deepEqual(T._volDeltas(p, sWith(null)), [['2026-09-01', 1]]);
+  const seven = lift({ id: 7, n: 'Press', sets: 3 });
+  const numeric = T.structuralMovesThisWeek({ exercises: [seven], adjustments: [], sessionLog: {},
+    feed: [{ d: '2026-09-01', exId: '7', t: ROW }] }).sets.map((m) => m.exId);
+  assert.deepEqual(numeric, [7]);                                   /* String() coercion — same owner, every side */
+  return { ghostMove, ghostCredit, agree, numeric,
+    note: 'dormant: no rebuild/engine writer emits exId onto a feed row today — B3’s writer half turns it on' };
 });
 
 /* ---- REGISTER CANDIDATE (r2 required change 4) ------------------------ *
