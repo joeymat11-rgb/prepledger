@@ -556,3 +556,279 @@ observability or wording, and none of them can strand, lose or misstamp anything
 the athlete does. They are follow-ups, not conditions.
 
 **FINAL VERDICT: ACCEPT at ecdcc29**
+
+---
+---
+
+# ROUND 3 (C4c) — the third lane folded in, re-pinned onto `e73e28f`
+
+Head `a403990` (`e381c44` the fold, `71494b3` the journey/Edge/checks,
+`a403990` the report). Base = the integration tip `e73e28f` (A3 merged).
+Worktree clean apart from this file.
+
+## 1. SCOPE — clean
+
+`git diff --stat e73e28f HEAD` = 27 files, +5462/−775. **Nothing** under
+`rebuild/host`, `rebuild/client`, `rebuild/engine`, `rebuild/m4`,
+`rebuild/conform` or `.github` — verified by path filter, not by eye. Nothing
+under `rebuild/DECISIONS.md`, `REQUESTS.md` or `STATUS.md` relative to the base.
+Everything touched is a licensed today file, a today test or PC check, `w6/local`,
+`w6/test`, the pins json, or a lane report.
+
+**`gym-host.mjs` is byte-untouched in C4c** — `git diff --name-only ecdcc29 HEAD`
+returns nothing for it, and its sha256 `70a59b5c328f…` is the same value I
+verified in round 2. `reading-host.mjs` and `today-model.cjs` likewise.
+
+`checkin-check.mjs` is the one out-of-licence edit: **3 functional lines** (a
+`PROCESS_NAME` const, the CIM filter, the assertion message) plus a disclosed
+comment. That is the D3 fix, nothing else, and the diff confirms it.
+
+**One thing the PM should know, outside my brief.** `origin/rebuild/t2-client-core`
+has moved past this candidate's base: it now carries REQUESTS 11:55 ET · PM → C,
+routing lane B's G7/O10 (`previousLine()` still reads the legacy `{w,reps}` shape,
+so "Last time" is absent on the active set) into this same re-pin *"and keep it in
+the same re-review"*. This candidate predates that line. `gym-model.mjs:142
+previousLine` is untouched here and `gym-model.mjs`/`gym-app.mjs` are not in the
+C4c diff at all, so **G7/O10 is unmet**. Not a defect in what I was asked to
+review; a scope note for whoever merges.
+
+## 2. COUNTS — every one reproduces
+
+| | claimed | measured |
+|---|---|---|
+| A1 today (design+adapter+view+package) | 64 | **64/64** exit 0 |
+| A2 gym | 60 | **60/60** exit 0 |
+| A3 check-in | 28 | **28/28** exit 0 |
+| W6 suite | 552 | **552/552** exit 0 |
+| C4 journey | 51 | **51/51** exit 0 |
+| A0 host | 22 | **22/22** exit 0 |
+| w7-preview | 19 | **19/19** exit 0 |
+| `run-current-head.cjs <R1> --all` | 552/552 | **552/552** exit 0 |
+| `--bite` | still bites | exit 1, 2 of 14 |
+| `native-carriers-package.cjs --ci` | PASS | **PASS** exit 0 |
+| `today/build.mjs` | PASS | **PASS** — 3 assets, 93 pinned inputs, 68 bound classes |
+| Edge `local-today-browser.mjs` | 6/6 | **6/6** exit 0 |
+| `browser-check.mjs` msedge | PASS | **PASS** exit 0 |
+| `checkin-check.mjs` msedge | PASS | **PASS** exit 0 |
+| `gym-check.mjs` msedge | PASS | **PASS** exit 0 |
+
+All four PC checks ran on `W7_BROWSER_BIN=msedge.exe`, every kill scoped to a
+`%TEMP%` profile directory. The Edge runner's pass line now carries the C4c
+claim: *"a recovery check-in between the sessions and one on the same day as a
+Start, in the SAME generation, causing neither"*. `gym-check`'s says *"the workout
+order is KIND-AWARE (C4c), so day 1's Start opens it and day 2's descends from day
+1's close and the Undo's tombstone, and every causal parent of a Start is a
+workout operation."*
+
+## 3. ATTACK — the fold
+
+`%TEMP%\c4b-rev\r3-fold-probe.mjs`, `r3-tomb-probe.mjs`, `r3-history-probe.mjs`,
+`r3-hist2-probe.mjs`. Sequences the suites do not run.
+
+**3.1 The check-in really does ride the era's lease, and the schema gate is not
+bypassed — it is satisfied.**
+
+```
+checkin op: schema_version=2  class=event  kind=fact  lease_id=SAME AS GENERATION
+reading op: schema_version=1  class=reading
+era lease schema=2 (= LOCAL_ERA_SCHEMA_VERSION)   leases=1  checkpoint=2  ops=2
+the check-in lane's own public client asked to write a READING -> OPERATION_SCHEMA_MISMATCH
+```
+
+That last line is the honest part, and I went looking for it because the report's
+argument only works if it holds: the check-in is admitted **because it is genuinely
+schema 2**, not because the gate was loosened. The very same public client still
+refuses a schema-1 reading — which is exactly why the weigh-in keeps going through
+C1's bridge instead. Two write paths and one lease, for a stated reason.
+
+**3.2 Lane isolation — all three directions, including the one the tests don't
+assert.**
+
+```
+weigh + Start + set + check-in in ONE generation (4 ops):
+  checkin.all() = 1 row     a host on a FOREIGN profile sees 0 rows
+  readings.reads() = 1      session ops = 2
+interleaved: check-in, weigh, check-in, Start, check-in after EVERY set, finish
+  ops 13 = {event 6, reading 1, session 6}  checkpoint 13  leases 1
+  readWorkoutHistory() -> read true, 1 session
+  checkin rows 6, reading rows 1, Start parent classes [[]], orderRefusal null
+CONTROL, same session with and without interleaved check-ins:
+  logged 4 / 4   finish true / true   session records 5 / 5   capture_issues 0 / 0
+  -> the projected workout history is IDENTICAL
+```
+
+I ran that control because "the lanes do not disturb each other" is easy to assert
+and hard to prove: a check-in between every set could have silently changed what
+the history projector reconstructs. It does not — byte-for-byte the same shape.
+
+**3.3 Can a check-in ever order a workout? No — three sequences, none of them in
+the suites.**
+
+```
+checkin, Start, checkin, set, checkin, finish -> all ok
+   starts=1  parentClasses=[[]]  EVENT AS A PARENT: false
+   causalTips = ["session/session-close"]   startOrderRefusal = null   ops 9 = checkpoint
+checkin, checkin, Start, set -> all ok
+   parentClasses=[[]]  EVENT AS A PARENT: false
+   causalTips = ["session/session-start","session/session-set"]  refusal null
+weigh, checkin, Start, set, finish -> all ok
+   parentClasses=[[]]  EVENT AS A PARENT: false  refusal null
+```
+
+Every one asserts `EVENT AS A PARENT === false` and `startOrderRefusal === null`
+inside the probe, so these are checks, not printouts. The `[[]]` is the deliberate
+C4c change: day 1's Start no longer descends from that morning's reading, so it is
+an orphan again — consistent with `gym-check`'s re-derived claim and with the new
+`gym.test.mjs` subtest.
+
+**3.4 The load-bearing measurement behind the allowlist.** The comment claims an
+Undo's tombstone is class `session` — "measured, not assumed". I measured it
+through the product's own Undo:
+
+```
+undo ok=true | tombstones = ["tombstone/session"]
+causalTips = ["session-start/session","tombstone/session"]
+```
+
+True. The removal edit stays a workout tip, which is what keeps the round-2
+`gym-check` claim (day 2 descends from day 1's close **and** the Undo's tombstone)
+honest under a class filter.
+
+**3.5 Concurrent check-in ‖ set, 60 pairs.**
+
+```
+pairs 60  checkinOk 60  setOk 0
+checkinRefused {}   setRefused { WORKOUT_RESUME_STALE: 60 }
+ops 61 = checkpoint 61,  leases 1,  no two ops share a device_seq
+ops == before + (checkin?1:0) + (set?1:0) asserted on EVERY pair — held 60/60
+checkin rows read back: 60
+```
+
+**No lost update with a third writer.** The refusal is the same
+`WORKOUT_RESUME_STALE` the weigh-in produces (report §9.1, review D4) — the
+check-in now joins the weigh-in as a lane that wins that race 100% of the time.
+The residual is already disclosed with the 60/60 figure and a PM request; **it
+should name the check-in as the second lane that can trigger it**, because a
+check-in taken from inside the active set (which A3 ships) is closer to the
+athlete's hand than a weigh-in is. That is a wording ask, not a defect: nothing
+is lost, the refusal is by name, and the shipped card re-prepares.
+
+**3.6 One clock covers the check-in host.**
+
+```
+era.createCheckInHost({ …, clock }) -> LOCAL_ERA_CLOCK_MISMATCH / 3
+```
+
+Same refusal as `createGymHost` and `createReadingHost`. The page wrapper
+`checkin-host.mjs createCheckInHost` opens the same installation: `ci.repository
+=== rd.repository` is true, `db = earned-today-local`, `ns = earned-today/device-A`,
+`device = null`, custody `local-keys.mjs`, athlete `owner`, `device-<32hex>`.
+
+## 4. THE A3 TEST EDITS — honest, and MUTANT 5 is not weakened
+
+Four disclosed edits to `checkin.test.mjs`, and they are the four in the diff.
+The one that matters is MUTANT 5. A3 proved lane separation by **storage**: three
+databases, "no store holds another store's operation", plus a constants check that
+the three names differ. Under one store that form is unavailable and would be a
+lie if kept. What replaced it:
+
+* `kit.host.repository === readings.repository === gymHost.repository` — one
+  handle, executed rather than asserted from names;
+* the one generation holds exactly `['fact/event/<profile>', 'fact/reading']`;
+* **each lane READS only its own** — `kit.host.all()` dates, `readings.reads()`
+  lbs, and `await gymHost.causalTipsNow()` deep-equal `[]`;
+* neither producer accepts the other's command, and the refusal stores nothing —
+  now compared against a `before` snapshot instead of a bare `[]`, which is
+  strictly better in a shared generation;
+* one database, one namespace, one `lease_id`.
+
+**Does it still catch what it caught?** A lane reading another lane's rows: yes,
+and better — the old assertions only inspected what was on disk per store, which
+is meaningless once there is one store; the new ones exercise the read paths. A
+shared frontier: yes — `causalTipsNow() === []` here, plus the new `gym.test.mjs`
+F2 subtest which carries a real **negative control**
+(`startOrderRefusalOf(shared, ['k1'])` → `WORKOUT_START_ORDER_UNPROVEN`) and a
+wellness-only generation case. That subtest is the +1 that takes gym from 59 to
+60. The `class: 'session'` added to the gym fixtures makes them match what the
+product actually writes — I verified that independently (3.4) — and every
+assertion around them is unchanged.
+
+Nothing was weakened. One cosmetic nit: in MUTANT 5,
+`gymHost.repository.databaseName || kit.host.databaseName` makes the third element
+of that `Set` a tautology if `repository.databaseName` is undefined — harmless,
+because the `===` identity two lines above already settles it.
+
+## 5. THE ROUND-2 NITS — all four closed
+
+| nit | closed by | I verified |
+|---|---|---|
+| 1. a second caller passing only `clock` was silently dropped | `openTodayInstallation` now records it | `adoptions=[{from 2030-02-04, to null, adopted:false, why:"a second caller handed over its own clock provider; this installation already has one"}]` — was `[]` |
+| 2. `liveDay()` misreported under a declared clock provider | `dayNow()` asks the clock it is really using | declared-clock installation now reports `liveDay=2030-02-04`, the day it stamps — was the wall-clock seed `2026-09-11` |
+| 3. §9.11's two wording corrections | §9 item 11 rewritten | the report now says the live day is **not** restored on close and a weigh-in in that window is **REFUSED**, both as I measured them |
+| 4. `ops === 9` message vs comment | rewritten, and **better than I asked** | the claim is now made directly — `dayTwoOps === 0`, *"A REFUSED DAY WRITES NOTHING: no operation in the generation is stamped <DAY_TWO>"* — and the literal 9 carries an honest message about day one's composition |
+
+Nit 4's fix is the kind I like: I pointed at a comment that overstated an
+assertion, and rather than soften the comment they made the assertion say the
+thing.
+
+## 6. WHERE I DISAGREE / RESIDUALS
+
+1. **The allowlist has no completeness guard.** `WORKOUT_ORDER_CLASS = 'session'`
+   is right (an allowlist, per C1b F1), and the journey asserts the forward
+   direction — *every causal parent of a Start belongs to the workout order*
+   (`local-today-journey.test.mjs:987`). Nothing asserts the **converse**: that
+   every op the workout lane writes carries `class === 'session'`. If a future
+   workout kind arrived with another class it would drop out of the frontier
+   silently — the same silent-drop shape as D1, one level down. I measured today's
+   answer (start/set/close/tombstone are all `session`), so this is a guard to add,
+   not a live fault. **Recommended, not required:** one assertion that the classes
+   of the ops a full session writes are a subset of `{WORKOUT_ORDER_CLASS}`.
+2. **D4's residual now has two trigger lanes.** §9.1 should name the check-in
+   beside the weigh-in, with my 60/60 figure for the check-in‖set pair. A check-in
+   is reachable from inside the active set, which the weigh-in is not.
+3. **G7/O10 is unmet** — see §1. The candidate is one tip behind the PM line that
+   routed it here.
+4. The MUTANT 5 `|| kit.host.databaseName` tautology (§4).
+
+None of these can lose, misstamp or strand anything the athlete does. They are
+follow-ups.
+
+## 7. FILES REVIEWED IN ROUND 3 (sha256, recomputed at `a403990`)
+
+```
+f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff  w6/local/today-bindings.mjs
+7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e  w6/test/local-today-journey.test.mjs
+1cf1aa35cc3f39b8e3b2d1f446d2ed6e80ddbb3f1439403fe42d765d86e9f6d1  w6/test/local-today-browser.mjs
+029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b  w7-preview/today/checkin-host.mjs
+fd0b3b59ee0cde2d426a257d0ab5a51a0ba026d3b7339fb75a65df8fc0aa9dc5  w7-preview/today/checkin-check.mjs
+5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8  w7-preview/today/today-entry.mjs
+70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18  w7-preview/today/gym-host.mjs   <- unchanged since ecdcc29
+30816caca2d69a788777b78f6a8dae53f496190fc70adec092e88293251c41db  w7-preview/today/gym-check.mjs
+5b157274a13948f719a9c76cfda17fda03f06ae1010b4769cd5e1acca45bb5f1  w7-preview/today/browser-check.mjs
+1b0cce2307ae9d30daa538abd802914069ba636fdffd408adeea6df961934be6  w7-preview/today/test/checkin.test.mjs
+7ee49c4019dea8d60ed7c476959f1ac38b54dfca7f929eb3b09cd84e24f41f92  w7-preview/today/test/gym.test.mjs
+b217868e43cd62186e204354fe9b3f9f34ab7513996a33d43c266802be695dbd  lanes/c/C4B-REPORT.md
+```
+
+Nothing in the worktree was modified by this review; every probe under
+`%TEMP%\c4b-rev\`, every browser profile under `%TEMP%`, every `taskkill` scoped
+to one. No candidate file edited, nothing committed or pushed, nothing installed.
+Synthetic data only — the athlete is `w7-preview/fixtures.cjs`; `ledger/` and
+`rebuild/conform/private` were not read.
+
+## ROUND 3 DISPOSITION
+
+The fold is real and the argument for it is checkable: the check-in op is schema 2
+under the generation's own schema-2 lease, admitted by a gate that still refuses a
+schema-1 reading on the same path. The three lanes share one generation, one
+checkpoint, one lease, and each still reads only its own rows — proved in both
+directions, plus a control showing the workout projection is byte-identical with
+and without check-ins interleaved through a whole session. The class-scoped
+frontier holds under every sequence I could construct, including the two the
+suites do not run, and its load-bearing assumption (the Undo tombstone's class) is
+measured, not assumed. A3's four test edits are disclosed and MUTANT 5 is restated
+into the property that survives the fold rather than dropped. All four round-2
+nits are closed, one of them better than asked. Four follow-ups remain, none of
+them able to lose, misstamp or strand anything.
+
+**FINAL VERDICT: ACCEPT at a403990**
