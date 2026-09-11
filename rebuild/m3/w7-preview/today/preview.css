@@ -30,6 +30,9 @@
 }
 .sheet-panel .field { margin-top: 12px; }
 .sheet-panel .error:empty { display: none; }
+/* A3: the check-in's refusal line occupies no space until there is a refusal to
+   print. An empty alert must not push the primary action down. */
+.view .error:empty { display: none; }
 
 /* The preview frame around the phone. */
 .stage { min-height: 100vh; }

@@ -62,7 +62,12 @@ const RUNTIME_CLASSES = Object.freeze(["macro-row", "row", "number", "unit", "ar
 // the approved prototype saves nothing and refuses nothing.
 const PREVIEW_COPY = Object.freeze([
   "Not now",
-  "Every answer is blank, and blank means unknown. Nothing here is recorded.",
+  /* A3 — the two controls that CONFIRM an existing dated sleep record instead of
+     asking for it twice. The approved handoff item 4 requires that reuse; the
+     approved prototype stores nothing, so it can never have a record to reuse and
+     has no words for confirming one. */
+  "Yes, that’s right",
+  "No — answer it here",
 ]);
 // Static copy that MUST come from the approved references.
 const APPROVED_COPY = Object.freeze([
@@ -75,6 +80,26 @@ const APPROVED_COPY = Object.freeze([
   "A quick check-in.", "Energy right now", "Muscle soreness right now", "Stress right now",
   "Low", "Moderate", "High", "None", "Mild", "Significant",
   "Ask your coach.", "Make sense of your plan and the progress behind it.",
+  /* A3 — every word of the approved recovery screen (?screen=recovery), question by
+     question, choice by choice, including the conditional detail the approved notes
+     enumerate. Each is asserted to occur verbatim in the approved references AND in
+     this page's template, so the screen can neither drift from the design nor lose a
+     branch of it silently. */
+  "A few details to help put today’s training in context. Answer what you can; leave the rest blank.",
+  "Last night’s sleep", "hours asleep, approximately", "How was the quality?",
+  "Poor", "Okay", "Good",
+  "Which muscles?", "Does it affect your usual movement?",
+  "Leave unanswered", "A little", "Quite a lot", "Not sure",
+  "Anything else affecting today?", "Pain", "Feeling ill", "Time away",
+  "Keep pain separate from ordinary muscle soreness.",
+  "Where, and during which movement?", "Is this new or changed?",
+  "New", "Worse than before", "Ongoing, unchanged", "Improving",
+  "How does it affect movement?",
+  "No noticeable effect", "I change how I move", "I cannot do the movement",
+  "What symptoms, and when did they start?",
+  "About how many days away from training?", "What was the reason?",
+  "Add a note, if useful", "Anything the answers missed?",
+  "Add today’s context", "Your answers belong alongside your training data.",
 ]);
 /* Approved copy the VIEW composes at runtime rather than carrying in the template,
    because it sits beside a bound value ("Weight trend 180.1 lb"). Each string is checked
@@ -89,6 +114,18 @@ const RUNTIME_COPY = Object.freeze([
   " reps", "Aim to finish with ", " clean reps left", "Effort unknown",
   "Ready for set ", "Next · Set ", "Next · ", "Resume ", "Workout in progress", " complete",
   " recorded",
+]);
+/* A3 — the approved question wording the CHECK-IN composes at runtime, beside a
+   stored answer, when it reads today's recorded check-in back. Same rule as A1's and
+   A2's: verbatim in the approved references, and present in a view source. */
+const CHECKIN_RUNTIME_COPY = Object.freeze([
+  "Last night’s sleep", "How was the quality?", "Energy right now",
+  "Muscle soreness right now", "Which muscles?", "Does it affect your usual movement?",
+  "Stress right now", "Anything else affecting today?",
+  "Where, and during which movement?", "Is this new or changed?", "How does it affect movement?",
+  "What symptoms, and when did they start?", "About how many days away from training?",
+  "What was the reason?", "Anything the answers missed?",
+  "Pain", "Feeling ill", "Time away",
 ]);
 /* Copy this PREVIEW owns at runtime, exactly as PREVIEW_COPY is owned in the
    template. Each entry says something the approved prototype cannot, and each is
@@ -124,6 +161,25 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      prototype has no unfinished session and so no words for either. */
   "An earlier workout was never finished",
   "Close the unfinished workout",
+  /* A3 — the check-in. The approved prototype records nothing, reuses nothing and
+     refuses nothing, so it has no words for: a recorded check-in and its provenance,
+     an existing dated sleep record offered for confirmation, a blank sheet that has
+     recorded nothing yet, a form bound, a device with no store, or the plain
+     statement that these answers reach no training rule. Each is checked to be
+     ABSENT from the approved references. */
+  "Nothing is recorded yet. Every answer is blank, and blank means unknown — never none, never zero.",
+  "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
+  "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
+  "This device could not open its encrypted local store, so no check-in can be recorded here.",
+  "Your sleep record already has last night.",
+  "From your sleep record for ",
+  "Recorded today at ",
+  "Your plan is unchanged: nothing in this check-in reaches a training rule yet.",
+  "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
+  "Days away from training is recorded as a whole number of days. Nothing was recorded.",
+  "This check-in could not be recorded on this device, and no part of it was recorded.",
+  "— recorded today",
+  "— not available on this device",
 ]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -171,6 +227,70 @@ function fontFaceCss(fonts) {
   ).join("\n");
 }
 
+/* ---------------------------------------------------------------------------
+   THE RECOVERY SCREEN, DERIVED FROM THE APPROVED BYTES (A3 review F1).
+   ---------------------------------------------------------------------------
+   A hand-maintained list of approved strings can only catch what somebody
+   remembered to list, and the first build of this screen shipped six of the
+   approved placeholders missing because a placeholder is an ATTRIBUTE and the
+   copy binding only reads text NODES. So the recovery screen's vocabulary is not
+   listed at all: it is HARVESTED out of the pinned approved reference at check
+   time — every placeholder, every <option>, every <label>, every <legend> and
+   every choice array the approved screen builds its buttons from — and the
+   shipped template must carry every single one of them, verbatim.
+
+   A word added to the approved design upstream, or one quietly dropped here,
+   fails this without anyone updating a list. */
+const RECOVERY_START = "recovery:()=>";
+const RECOVERY_END = "coach:()=>";
+function recoverySection(approved) {
+  const reference = approved.find((a) => /additions-C-approved/i.test(a.file));
+  assert(reference, "APPROVED-RECOVERY FAIL: the authoritative Additions C reference is not pinned");
+  const start = reference.html.indexOf(RECOVERY_START);
+  const end = reference.html.indexOf(RECOVERY_END, start);
+  assert(start > 0 && end > start, "APPROVED-RECOVERY FAIL: the recovery screen could not be located");
+  return reference.html.slice(start, end);
+}
+function recoveryVocabulary(approved) {
+  const section = recoverySection(approved);
+  const grab = (pattern) => [...section.matchAll(pattern)].map((m) => m[1].replace(/\s+/g, " ").trim()).filter(Boolean);
+  const placeholders = grab(/placeholder="([^"]+)"/g);
+  const options = grab(/<option[^>]*>([^<]+)<\/option>/g);
+  const labels = grab(/<label[^>]*>([^<]+)<\/label>/g);
+  const legends = grab(/<legend[^>]*>([^<]+)<\/legend>/g);
+  // The approved screen builds its answer buttons from inline arrays:
+  //   ${['Poor','Okay','Good'].map(x=>`<button …>${x}</button>`).join('')}
+  const choices = [...section.matchAll(/\[((?:'[^']*',?)+)\]\.map\(/g)]
+    .flatMap((m) => [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]))
+    .filter(Boolean);
+  const unique = (list) => [...new Set(list)];
+  return { placeholders: unique(placeholders), options: unique(options), labels: unique(labels),
+    legends: unique(legends), choices: unique(choices) };
+}
+/* Every harvested string must be in the shipped template. Placeholders are matched as
+   the attribute they are, so a placeholder demoted to visible text would not satisfy
+   this, and the rest as their own element's text. */
+function assertRecoveryBinding(approved, templateHtml) {
+  const vocabulary = recoveryVocabulary(approved);
+  assert(vocabulary.placeholders.length >= 7,
+    `APPROVED-RECOVERY FAIL: only ${vocabulary.placeholders.length} placeholders harvested`);
+  assert(vocabulary.choices.length >= 9,
+    `APPROVED-RECOVERY FAIL: only ${vocabulary.choices.length} answer choices harvested`);
+  for (const value of vocabulary.placeholders) {
+    assert(templateHtml.includes(`placeholder="${value}"`),
+      `APPROVED-RECOVERY FAIL: the approved placeholder "${value}" is missing from the shipped screen`);
+  }
+  for (const [kind, list] of [["option", vocabulary.options], ["label", vocabulary.labels],
+    ["legend", vocabulary.legends], ["choice", vocabulary.choices]]) {
+    for (const value of list) {
+      assert(templateHtml.includes(">" + value + "<"),
+        `APPROVED-RECOVERY FAIL: the approved ${kind} "${value}" is missing from the shipped screen`);
+    }
+  }
+  return { placeholders: vocabulary.placeholders.length, options: vocabulary.options.length,
+    labels: vocabulary.labels.length, legends: vocabulary.legends.length, choices: vocabulary.choices.length };
+}
+
 function assertDesignBinding(approved, templateHtml, appSource) {
   const css = approved.map((a) => a.styles).join("\n");
   const allowed = new Set(PREVIEW_CLASSES);
@@ -191,7 +311,7 @@ function assertDesignBinding(approved, templateHtml, appSource) {
     assert(templateHtml.includes(line), `COPY-BINDING FAIL: declared approved copy missing from the template: "${line}"`);
   }
   if (appSource !== undefined) {
-    for (const line of RUNTIME_COPY) {
+    for (const line of [...RUNTIME_COPY, ...CHECKIN_RUNTIME_COPY]) {
       assert(approvedText.includes(line), `COPY-BINDING FAIL: declared runtime copy missing upstream: "${line}"`);
       assert(appSource.includes(line), `COPY-BINDING FAIL: declared runtime copy missing from the view: "${line}"`);
     }
@@ -205,8 +325,12 @@ function assertDesignBinding(approved, templateHtml, appSource) {
   for (const line of textOf(templateHtml)) {
     assert(!/\d/.test(line), `NO-NUMBERS FAIL: the template carries a literal figure: "${line}"`);
   }
-  return { classes: used.size, copy: PREVIEW_COPY.length + APPROVED_COPY.length
-    + (appSource === undefined ? 0 : RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
+  /* A3 review F1: the recovery screen's whole vocabulary, harvested from the approved
+     bytes rather than listed — placeholders included, which the text-node checks above
+     cannot see. */
+  const recovery = assertRecoveryBinding(approved, templateHtml);
+  return { classes: used.size, recovery, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+    + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
 // The shipped stylesheet: the inlined pinned typefaces, then the approved bytes in order,
@@ -244,7 +368,10 @@ const SOURCE = __dirname;
 /* Every module that can put a word on the screen. A2 adds the gym card's view and
    its adapter, so the copy binding covers the gym screens exactly as it covers
    Today's. */
-const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs"]);
+const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.mjs", "today-model.cjs",
+  /* A3 — the check-in's view and its answer model, so every word the check-in can put
+     on screen is bound exactly as Today's and the gym card's are. */
+  "checkin-app.mjs", "checkin-model.mjs"]);
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
 const appSource = () => VIEW_SOURCES.map((name) => fs.readFileSync(path.join(SOURCE, name), "utf8")).join("\n");
 const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8");
@@ -252,8 +379,9 @@ const shellHtml = () => fs.readFileSync(path.join(SOURCE, "index.shell.html"), "
 
 module.exports = {
   ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
-  PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
+  CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
+  recoverySection, recoveryVocabulary, assertRecoveryBinding,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
 };
