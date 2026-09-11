@@ -46,6 +46,8 @@ const FICTIONAL = ["135 lb", "9 reps", "2:30", "+30 seconds", "Exercise 1 of 9",
 // point takes the day; nothing about the product changes to reach it.
 const hereRequire = createRequire(import.meta.url);
 const DAY_ONE = hereRequire("./today-model.cjs").SYNTHETIC_DAY;
+// C4b: the ONE store's database name, taken from the page rather than restated.
+const { DATABASE: LOCAL_DATABASE } = await import("./gym-host.mjs");
 const DAY_TWO = (() => {
   const [y, m, d] = DAY_ONE.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
@@ -387,9 +389,15 @@ try {
 
   // The durable store really is this device's own encrypted IndexedDB.
   const databases = await page.evaluate(() => indexedDB.databases().then((list) => list.map((d) => d.name)));
-  assert(databases.includes("earned-today-preview-workout"), "the workout store is on this device: " + databases);
-  assert(databases.includes("earned-today-preview-readings"), "so is the weigh-in store: " + databases);
-  assert(databases.includes("earned-today-preview-device-keys"), "this device kept its own keys: " + databases);
+  /* C4b — ONE STORE. There is no second generation and no page-minted key store:
+     the weigh-in and the workout are both in this device's own local era
+     (rebuild/m3/w6/local/), with key custody in its `-keys` database and the
+     enrolment marker in its `-local` one. */
+  assert(databases.includes(LOCAL_DATABASE), "the one store is on this device: " + databases);
+  assert(databases.includes(LOCAL_DATABASE + "-keys"), "this device kept its own key: " + databases);
+  for (const gone of ["earned-today-preview-workout", "earned-today-preview-readings",
+    "earned-today-preview-device-keys"])
+    assert(!databases.includes(gone), "the page's old synthetic store must not exist: " + gone);
   // Nothing of record is in localStorage any more (review B2).
   const local = await page.evaluate(() => Object.keys(localStorage));
   assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));

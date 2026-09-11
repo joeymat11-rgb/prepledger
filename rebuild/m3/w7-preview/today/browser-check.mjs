@@ -235,8 +235,13 @@ try {
   /* A2 review B2: the store of record is this origin's ENCRYPTED IndexedDB, and
      localStorage holds nothing at all. */
   const databases = await page.evaluate(() => indexedDB.databases().then((list) => list.map((d) => d.name)));
-  assert(databases.includes("earned-today-preview-readings"), "the reading store is on this device: " + databases);
-  assert(databases.includes("earned-today-preview-device-keys"), "this device kept its own keys: " + databases);
+  /* C4b — ONE STORE: the reading lives in this device's own local era, beside the
+     workout, under the key custody in its `-keys` database. */
+  const { DATABASE: LOCAL_DATABASE } = await import("./gym-host.mjs");
+  assert(databases.includes(LOCAL_DATABASE), "the one store is on this device: " + databases);
+  assert(databases.includes(LOCAL_DATABASE + "-keys"), "this device kept its own key: " + databases);
+  assert(!databases.includes("earned-today-preview-readings"),
+    "the page's old synthetic reading store must not exist: " + databases);
   const local = await page.evaluate(() => Object.keys(localStorage));
   assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));
 
