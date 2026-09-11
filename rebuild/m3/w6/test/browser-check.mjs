@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import http from "node:http";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { randomBytes } from "node:crypto";
 import { initial, config, createT2Stage } from "./support.mjs";
+import { startModuleServer } from "./static-modules.mjs";
 const require = createRequire(import.meta.url);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 let chromium;
@@ -21,16 +21,14 @@ const profile = fs.mkdtempSync(path.join(scratch, "browser-repository-"));
 const rawKey = Array.from(randomBytes(32)); // Per-run synthetic key, kept in process memory only.
 const seed = initial(), stage = createT2Stage(config);
 const candidate = JSON.parse(JSON.stringify(stage(seed, "weighIn", { lb: 170.6 }).generation));
-const server = http.createServer((request, response) => {
-  if (request.url === "/repository.mjs") {
-    response.writeHead(200, { "Content-Type": "text/javascript", "Cache-Control": "no-store" });
-    response.end(fs.readFileSync(path.join(root, "repository.mjs"))); return;
-  }
-  if (request.url === "/") { response.writeHead(200, { "Content-Type": "text/html", "Cache-Control": "no-store" }); response.end("<!doctype html><title>W6 synthetic repository test</title><p>Storage test only</p>"); return; }
-  response.writeHead(404); response.end();
-});
-await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-const origin = `http://127.0.0.1:${server.address().port}`;
+// C1b. This harness used to serve "/repository.mjs" and nothing else. Since the
+// K1 recovery work repository.mjs imports ./recovery-stage.mjs and
+// ./import-custody.mjs, both of which were 404ing, so the page's module graph
+// failed and the whole browser journey was reported as "cannot fetch
+// repository.mjs" (DECISIONS:98). The W6 directory is served instead, with
+// containment and a type allowlist — see test/static-modules.mjs.
+const { origin, close: closeServer } = await startModuleServer({ root,
+  index: "<!doctype html><meta charset=\"utf-8\"><title>W6 synthetic repository test</title><p>Storage test only</p>" });
 let context;
 let cases = 0;
 const passed = () => { cases++; };
@@ -99,5 +97,5 @@ try {
   process.exitCode = 1;
 } finally {
   if (context) await context.close();
-  await new Promise(resolve => server.close(resolve));
+  await closeServer();
 }
