@@ -64,6 +64,42 @@ async function setup(options = {}) {
 const phoneText = (doc) => doc.getElementById("phone").textContent;
 const slot = (doc, name) => doc.querySelector(`[data-slot="${name}"]`);
 
+for (const [phase, label] of [["ready", null], ["finished", app.REVIEW_WORKOUT], ["blocked", app.WHY_WORKOUT_CANNOT_OPEN]])
+test("weight owed still exposes the host's " + phase + " workout action", async () => {
+  let opened = 0;
+  const kit = await setup({ mount: { workout: {
+    summary: () => ({ phase, sets: 0, code: phase === "blocked" ? "SOURCE_REQUIRED" : null }),
+    open: () => { opened += 1; },
+  } } });
+  const { doc, model, api } = kit;
+  assert.equal(model.read().hasReadToday, false);
+  assert.equal(slot(doc, "primary-label").textContent, "Log the scale");
+  const action = slot(doc, "workout-action");
+  assert.equal(action.tagName, "BUTTON"); assert.equal(action.type, "button");
+  assert.equal(action.textContent, label || "Start " + model.read().workout.title);
+  assert.equal(doc.querySelectorAll("#phone button.primary").length, 1);
+  action.click(); assert.equal(opened, 1); assert.equal(model.storedReads().length, 0);
+  await model.weighIn(178.3); api.render("today");
+  assert.equal(slot(doc, "workout-action"), null);
+  kit.close();
+});
+
+for (const phase of ["active", "saved", "complete", "unfinished", "rest"])
+test(phase + " does not acquire a second workout action while weight is owed", async () => {
+  const kit = await setup({ mount: { workout: {
+    summary: () => ({ phase, sets: 0, unfinished: phase === "unfinished" ? { day: "2026-09-01", startId: "original" } : null }),
+    open: () => assert.fail("no automatic navigation"),
+  } } });
+  assert.equal(slot(kit.doc, "workout-action"), null);
+  assert.equal(kit.model.storedReads().length, 0);
+  if (["active", "saved", "complete"].includes(phase)) {
+    assert.match(slot(kit.doc, "primary-label").textContent, /^Resume /);
+    assert.match(slot(kit.doc, "workout-count").textContent, /Workout in progress/);
+  }
+  if (phase === "unfinished") assert.equal(slot(kit.doc, "primary-label").textContent, app.CLOSE_UNFINISHED_WORKOUT);
+  kit.close();
+});
+
 /* The sheet's submit handler awaits a real encrypted transaction, so the test has
    to wait for it too — the same wait a person makes. */
 async function settle(doc) {
