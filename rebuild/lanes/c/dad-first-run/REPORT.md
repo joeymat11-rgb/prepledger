@@ -177,3 +177,148 @@ suite counts pinned at the base; the review protocol with 14 mutants and the
 declared CI residual (`rebuild.yml:89` enumerates five today files and A4
 cannot add its own step — `DECISIONS:109`/`:112`); the owner-look dependency
 and what changes if each of Q1/Q2/Q3 is reversed; out of scope.
+
+## 8. REVISION 2 — the owner's look, folded in (2026-09-11)
+
+Authority: `rebuild/DECISIONS.md:114` (the owner looked at revision 1 of the
+mock in the PM chat and asked for changes, plus two standing product rules) and
+`rebuild/DECISIONS.md:115` (the PM's correction of `:114` (3) after checking
+the code). Dispatch: `rebuild/lanes/REQUESTS.md` `17:25 ET · PM → C` and
+`17:28 ET · PM → C`. Base: `9e73d1c47b99025b1278e03f087a18f6ed3205ee`
+(`origin/rebuild/t2-client-core`; revision 1's base was `74c8412`).
+
+### 8.1 Files at revision 2
+
+| file | lines | bytes | sha256 (LF, as committed) |
+|---|---|---|---|
+| `dad-first-run-mock.html` | 507 | 31,998 | `f69832b8ecd81e8ceb02c8047458e7d6f26346f5f54c8e9c1ebfb5a7fafb98c6` |
+| `BRIEF.md` | 523 | 34,301 | `4122b72bdc80b55e2a2b995023b420e9ca006520516f155a582e25b007df03cc` |
+| `BUILD-BRIEF.md` | 523 | 42,232 | `fc71e49307bd297a6705f48372594917584be958b1208892bb139b57890d9514` |
+| `HAND-TEST.md` | 139 | 5,653 | `aa641cbf934ce82f05999c99fc466239296750c80a81c4be9976e50f6c9b7b17` |
+
+All LF-only (0 CRLF). Revision 1 hashes are in section 1 and section 7.
+
+### 8.2 The four changes
+
+1. **No em dash, no en dash in UI copy** (`:114` (1), owner verbatim: "no ai
+   dashes are allowed in the ui"). The mock is swept to **zero** U+2014,
+   U+2013, `&mdash;` and `&ndash;` in the whole file, comments included. Each
+   rewrite follows the PM's own P1 rules
+   (`rebuild/slice/P1-NO-DASHES-BRIEF.md`): aside to a colon or a new sentence,
+   label suffix to a colon. Swept strings, before to after:
+   "We need something to call you — a first name is fine." to "... call you. A
+   first name is fine."; "Tell us what Tuesday is — upper or lower." to
+   "... Tuesday is: upper or lower."; "Don't add a weight yet — Earned asks
+   ..." to "... yet. Earned asks ..."; "That doesn't look like a weight —
+   numbers only." to "... a weight. Numbers only."; "My machine's jumps are
+   uneven — let me list them" to "... uneven: let me list them"; "No exercises
+   yet — go back a step" to "... yet. Go back a step"; the 5 lb helper line;
+   the equipment summary separator; "nothing named &mdash; that's fine" to
+   "nothing named, that's fine"; Today's "Not yet &mdash; Earned sets this ..."
+   to "Not yet. Earned sets this ..."; "No weight readings yet &mdash; not
+   wired yet" to "... yet: not wired yet"; the mg refusal line. No meaning
+   changed anywhere. `BRIEF.md` and `HAND-TEST.md` UI strings swept to match.
+   The acceptance bar gains **S23** (build-time AND render-time refusal of both
+   code points, entities included) and **S23b** (where the pinned approved
+   design itself carries a dash the owner's rule supersedes it, so the harvest
+   comparison is dash-normalised in one documented place citing `:114`, the
+   report lists every normalised term, and a term differing by anything other
+   than a dash must still fail).
+2. **Earned proposes, it does not ask** (`:114` (2)). Screen 3 now shows a
+   named standard start, `3 sets, aim for 10 reps`, pre-filled and changeable;
+   the two "I'm not sure" controls are deleted, and with them the two screen-6
+   refusals they fed. Neither number can be emptied: tapping the selected chip
+   again does nothing, and choosing another value marks the number as his, which
+   the summary then says. The standard is a declared per-athlete-setup default
+   exactly like the 5 lb step, never read from `seed.cjs` (the H1 rule,
+   `DECISIONS:93` C3): acceptance check **S24** proves the setup files import
+   nothing from `rebuild/engine`. ONE standard covers every exercise until lane
+   B answers the per-exercise question (REQUESTS `17:25 ET · PM → B`); the
+   brief states that variant as a SWITCH in the reducer, not a redesign.
+   **S5** is rewritten from "the refusal marker is not a value" to "the standard
+   is proposed, never asked", and **S20** now kills the toggle-to-null mutant.
+3. **The engine's real muscle labels** (`:115`, replacing `:114` (3)). The
+   mock's seven-group `MG` constant (chest, back, shoulders, arms, legs,
+   glutes, core), which was INVENTED by revision 1 and which the PM repeated
+   unchecked, is deleted along with the whole idea of a mapping. The chips are
+   now the eleven labels the owner's own seed spells, verified by reading
+   `rebuild/engine/seed.cjs` on this tip: delts `:16`, back `:20`, biceps
+   `:31`, chest `:33`, forearms `:39`, triceps `:41`, calves `:46`, abs `:48`,
+   quads `:52`, glutes `:54`, hams `:58` (the `EXERCISES` array, `:14-60`).
+   A gloss may be shown beside a label ("delts (shoulders)", "abs (core)",
+   "quads (front of thigh)", "hams (hamstrings)"); the stored value is always
+   the bare label. A "something else" chip reveals a free text field stored
+   verbatim, which `athlete-state.cjs:98` accepts. Acceptance check **S25**
+   re-derives the label set from `seed.cjs` at test time and refuses any
+   coarse-group list or mapping table.
+4. **Screen-2 copy** (`:114` (4)): "Earned plans two kinds of session so far —
+   upper body and lower body." becomes "Earned plans two kinds of day so far:
+   upper body and lower body."
+
+### 8.3 The standing lesson, discharged
+
+`:115` requires every vocabulary and number on the screens to cite its engine
+source or be marked INVENTED. `BUILD-BRIEF.md` section 2.8 is that table
+(20 rows). What it found while being written:
+
+- **The 5 lb standard step was mis-cited.** `BRIEF.md` Q3 (revision 1) said
+  "the ruling is `inc 5 default for new lifts`". No such ledger line exists: a
+  search of `rebuild/DECISIONS.md` for `inc` returns nothing. The real engine
+  evidence, found and now cited, is `rebuild/engine/migrate.cjs:795` (any `inc`
+  above 5 is clamped to 5) and the engine's own two newborn lifts, minted with
+  `inc: 5` at `migrate.cjs:1651` and `:1653`. Corrected in both briefs.
+- **The standard start is INVENTED, and is marked so.** The accepted engine has
+  no default set count and no default rep target for a new lift. The nearest
+  engine numbers are cited and explicitly NOT used as a derivation:
+  `progression.cjs:426`'s `ex.hi || 8` is a guard clean-init never reaches
+  (clean-init always supplies `hi`), and `constants.cjs:327`
+  `VOL_BANDS {floor 6, lo 8, hi 14, ceil 22}` counts WEEKLY sets per muscle,
+  not sets per exercise. `seed.cjs`'s own per-lift values are one athlete's and
+  are forbidden as a source by H1.
+- **The chip gloss is INVENTED**, and marked so. The engine has no gloss table;
+  `constants.cjs:333` `MG_LABEL` glosses only delt heads (`delts_side`,
+  `delts_rear`, `delts_front`), which first-run does not collect.
+- **What the labels are load-bearing for**, and why a mapping would have hurt:
+  weekly per-muscle volume is keyed by the raw `mg` string
+  (`sleep.cjs:894` `perMg`), and indirect credit is keyed by exercise id onto
+  those same fine labels (`constants.cjs:330` `INDIRECT`: press to
+  triceps/delts, rows and pulldown to biceps, curl to forearms).
+
+### 8.4 What was executed on this revision
+
+Node, on the owner's PC, against the real modules on the tip:
+
+- Mock parses: `new Function(<script block>)` PARSE OK, 23,852 chars.
+- Dash scan of the whole mock file: `U+2014 0 · U+2013 0 · &mdash;/&ndash; 0`,
+  and zero in the rendered output of every screen.
+- Every screen renders and throws nothing; rendered lengths
+  `s1=781 s2=2075 s3=4510 s4=2080 s5=1730 s6=2743 today=1215`, each with
+  exactly one `.primary`.
+- Chip set vs `seed.cjs`: the distinct `mg` values parsed out of the seed are
+  `delts, back, biceps, chest, forearms, triceps, calves, abs, quads, glutes,
+  hams`; chips not in the seed = `[]`, seed labels not offered = `[]`.
+- The produced document is accepted by the REAL constructor:
+  `createCleanInitState({setup})` returns `v=60`, `plan.autonomy=propose`,
+  every exercise `w:null`, `sets 3 / hi 10` from the standard, `inc 5` from the
+  standard step and `2.5` where it was typed, an uneven stack
+  `"45 60 80 105"` parsed to `[45,60,80,105]`, a "something else" label
+  (`"squeezy bits"`) stored verbatim as `mg`, and
+  `exOrder {"U":["chest_press","grip_trainer"],"L":["leg_press"]}`.
+- The refusal path still refuses: with the name cleared, one lightest setting
+  blank and one `mg` cleared, `missing()` names three gaps, each tapping back to
+  its own screen, and the constructor on the same answers throws
+  `CLEAN_INIT_SETUP_REQUIRED (athlete_label)`. Neither sets nor reps can appear
+  in that list any more, which is the point of change 2.
+- LF-only confirmed for all four files (0 CRLF).
+
+Not executed, unchanged from revision 1: real iPhone Safari (the owner's own
+look is the approval), VoiceOver, and any build or CI integration.
+
+### 8.5 Still open
+
+- **`e.setup`** (`DECISIONS:106` item d) is UNCHANGED and still the one PM
+  question in `BUILD-BRIEF.md` section 2.7, with its two exact REQUESTS texts.
+  Nothing in `:114` or `:115` touches it.
+- **The per-exercise rep target** is lane B's engine question
+  (REQUESTS `17:25 ET · PM → B`). Until it is answered, one standard for all.
+- **The owner's second look** at this mock is the gate. Nothing merges before it.

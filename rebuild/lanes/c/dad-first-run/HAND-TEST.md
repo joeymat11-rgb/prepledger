@@ -58,8 +58,9 @@ All four, or it is not a pass:
 1. **Under 5 minutes**, from "Have a go" to the Today screen.
 2. **No question you had to answer** for him to keep going.
 3. **No number on the final screen that he did not supply**, except the date,
-   the "n of 6" counter, and the 5 lb standard step — which is labelled as
-   ours on the screen where it is used.
+   the "n of 6" counter, and the two declared standards (the 3 sets / 10 reps
+   standard start, and the 5 lb standard step), each labelled as Earned's on
+   the screen where it is used.
 4. Asked afterwards, **"what happens tomorrow?"**, he can answer it from what
    he saw. ("Nothing, tomorrow's a rest day" is a correct answer.)
 
@@ -73,8 +74,9 @@ a silent default that let him through with a guess.
 Any one of these:
 
 - He asks what a screen means and cannot continue until you tell him.
-- He **invents a number** to get past a field — a weight he did not read off
-  the machine, a rep count he picked because the box wanted one.
+- He **invents a number** to get past a field: a weight he did not read off
+  the machine, or a set or rep count he changed only because the screen showed
+  one and he felt he had to touch it.
 - He reaches Today on a state built from a guess.
 - The timer passes 5 minutes.
 - He lands somewhere he cannot get back from.
@@ -86,8 +88,10 @@ Ask in this order, and write the answers verbatim. Do not correct him.
 
 1. **"What happens tomorrow?"**
 2. **"What did it ask you that you didn't know the answer to?"**
-3. **"Was there anything on there you don't think is true?"** — this one
-   catches numbers the app supplied that read as claims about him.
+3. **"Was there anything on there you don't think is true?"** This one
+   catches numbers the app supplied that read as claims about him. Since
+   revision 2 there are two of them (the standard start and the standard step),
+   so this question matters more, not less.
 
 Then, and only then, answer anything he asked during the run.
 
