@@ -1,0 +1,134 @@
+EARNED — FIRST-USE SETUP CANDIDATE
+2026-09-11. Builder report; independent review required. No self-acceptance.
+Base a157d3dca009205b0e796f9a73f97e10256a0d83, branch codex/astra-first-use-setup.
+Assignment ASTRA-FIRST-USE-SETUP.md at PM b4b22aa; supplementary explicit
+catalogue disposition ASTRA-FIRST-USE-CATALOGUE-DISPOSITION.md at PM c55c1d3.
+
+(1) BEHAVIOR / OWNED DELTA
+Only the actual owner boot's LOCAL_FIRST_RUN branch opens the form. Existing
+configured/partial/restore-required records retain their accepted opening path.
+No setup object, identity, key, lease or workout is authored by a test initializer
+in the shipped page. The user enters a name, confirms the local start date, selects
+every weekday as Upper/Lower/Rest, and adds their own routine order/sets/rep ceilings,
+increments and actual available loads. Nothing in the routine is preselected.
+
+New setup/catalogue.mjs: exact seven-id PM mapping; no numerical prescriptions.
+New setup/setup-model.mjs: real calendar date and complete-schedule checks; positive
+finite quantities; integer sets/reps; explicit ascending load list or arithmetic
+range using only entered endpoints/increment. Range limited to 1,001 entries with
+an aligned endpoint. Actual closed constructor validates the final review object.
+New setup/setup-view.mjs: progressive schedule/exercise/review form, labeled native
+controls, focused errors, editable/removable/reorderable entries, optional explicit
+priority selection, exercise cancellation and back navigation. Exercise/equipment
+consistency and complete supported routine require explicit confirmations.
+New setup/enrollment.mjs: openTodayInstallation(initialSetup, enroll:true) delegates
+to accepted enrollSetup; device identity and commit handling remain existing code.
+Saving suppresses duplicate submissions. After failure, a real enroll:false probe
+must establish LOCAL_FIRST_RUN before retry becomes available. Existing authority
+or damaged tail means restore-only; no overwrite/re-enroll action is offered.
+After committed success, the installation closes and Today reopens from its stored
+initialSetup. Caller setup is not used as Today's model. A failed post-save reopen
+states that setup was saved and requires reopening/restoring, with no save shortcut.
+New setup/setup.css uses approved paper/ink/green and Instrument form conventions.
+today-entry.mjs wires only the fresh branch and post-save reopening; build.mjs
+appends the owned setup CSS. No today-app/template/navigation/engine/constructor/
+local-client/policy/law/package/lockfile changes.
+
+(2) EXECUTED FOCUSED EVIDENCE
+Node v24.19.0, existing dependencies reached by untracked junctions; no installation.
+node --test rebuild/m3/w7-preview/today/setup/setup.test.mjs
+  13 tests PASS, 0 failures. Actual local installation/client and fake-indexeddb
+  transactions, outside-product quota/tail fault injection:
+  - blank state has no supplied routine, quantities or priorities;
+  - invalid calendar, omitted weekday, absent scheduled exercise kind refuse and
+    leave the source draft intact; explicit equipment arithmetic/validation;
+  - all seven actual constructor identities/muscles/session types and null starting
+    loads; actual restFor returns150/150/150/90/150/90/90 and exact INDIRECT maps;
+  - actual enrollment/reopen keeps stored name and empty initial history/null loads
+    after caller mutation; duplicate call after completion does not resave;
+  - real generation quota failure leaves no active generation and permits one retry;
+  - real postcommit key and final-marker failures leave revision1 authority intact,
+    never call success, and refuse replacement submission;
+  - delayed actual final-marker transaction suppresses concurrent submit, reports
+    no success while pending, then completes one enrollment at revision1;
+  - post-save callback failure retains revision1 and restores instead of reenrolling;
+  - second controller on a configured installation refuses replacement without
+    changing its committed record;
+  - actual boot shows form only on first-run; invalid submit retains name/focuses
+    missing weekday and closing the setup page leaves no active generation;
+  - a real missing postcommit marker produces restore-required without any form.
+
+node --test setup/setup.test.mjs test/design.test.cjs (both paths below today/)
+  24 PASS (13 focused + 11 existing design tests), 0 failures. Existing reference,
+  font, static template and vocabulary checks retained. Static binding does not
+  independently approve this new dynamic form; that is a reviewer/owner obligation.
+
+node rebuild/m3/w7-preview/today/build.mjs
+  A1 TODAY BUILD PASS: three assets;102 inputs,13 engine/12 client;68 bound static
+  classes;2 pinned inlined typefaces;3/3 assets have no network reference. Existing
+  bundle forbidden-input checks exclude seed/migrate/merge/engine index/private.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+node rebuild/m3/w7-preview/today/setup/browser-check.mjs
+  FIRST-USE BROWSER setup/review/enroll/first-set/close/reload PASS.
+  Real built page, fresh Chromium context,390x844 viewport. Every setup value enters
+  through visible native controls; no setup initializer/console enrollment. Invalid
+  name submit focuses the name. Canceling an exercise drops only its unsaved entry;
+  returning from review preserves the completed exercise's quantities. Visible save
+  opens Today and says routine saved. Separate test-only readback helper opens with
+  enroll:false, never writes a setup/operation or exports keys. Stored authority is
+  exact synthetic entered press/chest/U1x10 and hack/quads/L2x10,2.5lb increments,
+  [20,22.5,25,30,40] available loads; all initial loads null, no initial session log
+  and no workout operations caused by setup. The actual Start UPPER control opens
+  the gym, visible40lb x10 reps/0 reserve records a session-set, and visible Finish
+  closes normally. Exactly session-start/session-set/session-close then survive
+  full reload with identical setup, device identity and stored collections.
+  No page exceptions/off-origin requests; setup has no horizontal overflow and
+  every actual input/select renders at least16px. No phone-ready claim.
+
+git diff --check PASS. Existing accepted44/109 local-setup and calendar evidence
+reused; no broad/full/private campaign. No push, PR, merge, publish or deployment.
+
+(3) APPEARANCE / RETAINED LOCAL EVIDENCE
+Inspected actual fresh, review and Today screenshots. Kept approved palette/fonts,
+quiet labels and one primary action. Removed the programmatic heading focus ring
+and grouped weekdays on review to keep the confirmation compact. Setup scrolls for
+long routines; text is not truncated. Independent aesthetic/owner review pending.
+Screenshots are retained at this worktree's .tmp/first-use-screenshots/:
+01-fresh.png     85de1512355f64214caa16292cbefcacf2f8ea59570450e9afa1bc0417d3bfef
+02-review.png    8083683030b4ef3864d137b8fc42aaaf2b1b3199c897957595155d53c9748124
+03-today.png     72448a5e841d50c86452e003b32d06ffa68630fcab22f14482a2dbf0694cb24f
+04-first-set.png 0079e209b966e33399454edb71296a12bfb8dd951c372e35ed635b05487c8ade
+05-reloaded.png  6f7089cb2f74cb1a00081f0a3c98049b4f7fadf5c85107684f7beb6b4c0b1287
+The committed browser script regenerates these from explicit synthetic entries.
+
+(4) CATALOGUE / LIMITS / HANDOFF
+PM expressly adopted press/chest/U,rows/back/U,pulldown/back/U,curl/biceps/U,
+hack/quads/L,extension/quads/L,ham/hams/L. back/biceps/quads are new bounded public
+mapping choices, not claimed as an existing public catalogue. Constants RULED_ORDER
+supplies existing day association; INDIRECT supplies existing secondary credits;
+writers descriptions establish press/chest and ham/hams. restFor uses prefix matching:
+rows and pulldown are compounds. The initial provisional mismatch was retracted;
+there is no row/rows or pull/pulldown engine correction in this candidate.
+
+One configured bilateral member per id. No arbitrary suffix, guessed alternate
+group, second variant or overloaded per-side convention. No kg/assisted/bodyweight
+routine, metadata-schema extension, anatomical coefficients, training formula or
+new prescription. The person must confirm their actual movement/equipment and
+complete supported routine; unsupported required exercises must not be omitted to
+finish. This does not prove Joe's or Dad's actual routine fits. Broader catalogue,
+variant metadata, other splits and full exercise coverage remain product work.
+Priority muscles are saved truthfully but are not yet acted upon by prescriptions.
+
+An early overly broad public-engine text search accidentally returned seed.cjs
+matches. They were not used as mapping evidence or copied into this candidate.
+Subsequent source reads were explicit constants/writers files. No ledger/private
+input was accessed. Parent was informed immediately; PM catalogue disposition is
+the mapping authority. Shipped bundle excludes seed and the historical consent
+producer remains outside the accepted runtime. No OWNER_CALLS change or activation.
+
+Native baseline behavior uses prior independent c100bda evidence; this builder did
+not independently re-accept its own baseline. Navigation base review is separate.
+First-use access does not qualify the full B1 package, nutrition/phase/adaptive
+prescriptions, receipt provenance, final policy, recovery or phone readiness.
+Those obligations remain with the PM delivery checkpoint and independent review.

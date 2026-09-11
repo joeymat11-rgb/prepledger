@@ -27,6 +27,7 @@ import { createCheckInHost, PROFILE as CHECKIN_PROFILE } from "./checkin-host.mj
 import CheckInCommands from "./checkin-commands.cjs";
 import { createCheckInModel } from "./checkin-model.mjs";
 import { mountCheckIn } from "./checkin-app.mjs";
+import { mountSetup } from './setup/setup-view.mjs';
 
 const { createCheckInCommands } = CheckInCommands;
 
@@ -233,7 +234,7 @@ async function bootMode(options = {}) {
   if (options.today || options.basisState || options.model) throw new TypeError('OWNER_TODAY_USES_AUTHORITATIVE_SETUP');
   if (options.clock) throw new TypeError('OWNER_TODAY_REQUIRES_COORDINATED_CALENDAR');
   const calendar = options.calendar || createLocalCalendar();
-  let hosts = options.hosts, setup, restoreRequired = null, setupRequired = false;
+  let hosts = options.hosts, setup, restoreRequired = null, setupRequired = false, firstRun = false;
   const failures = [];
   try {
     hosts ||= await openTodayHosts({ indexedDB: options.indexedDB, crypto: options.crypto, calendar, enroll: false });
@@ -241,10 +242,33 @@ async function bootMode(options = {}) {
     setup = await hosts.initialSetup();
     setupRequired = !setup.configured;
   } catch (error) {
-    if (error.code === 'LOCAL_FIRST_RUN') setupRequired = true;
+    if (error.code === 'LOCAL_FIRST_RUN') { setupRequired = true; firstRun = true; }
     else { restoreRequired = error.code || error.message; failures.push(restoreRequired); }
   }
   const phone = doc.getElementById('phone'), status = doc.getElementById('today-status');
+  if (firstRun) {
+    hosts?.close();
+    if (status) status.textContent = 'Set up your current routine to begin.';
+    const storage = doc.getElementById('today-storage'); if (storage) storage.textContent = 'Your routine is not saved yet.';
+    const view = mountSetup(doc, { indexedDB: options.indexedDB, crypto: options.crypto, calendar,
+      async onSaved() {
+        try {
+          const next = await boot({ ...options, calendar });
+          if (next.restoreRequired || next.setupRequired) throw new Error(next.restoreRequired || 'LOCAL_SETUP_REOPEN_FAILED');
+          if (status) status.textContent = 'Your routine is saved. Today is ready.';
+        } catch (error) {
+          const panel = doc.createElement('section'); panel.className = 'page';
+          const heading = doc.createElement('h1'); heading.textContent = 'Routine saved.';
+          const note = doc.createElement('p'); note.textContent = 'Today could not reopen. Reopen or restore this device before continuing. (' + (error.code || error.message) + ')';
+          panel.append(heading, note); phone.replaceChildren(panel);
+          if (status) status.textContent = note.textContent;
+          throw error;
+        }
+      } });
+    const result = { mode, setupRequired: true, restoreRequired: null, failures, model: null, hosts: null, close: () => view.close() };
+    pages.set(doc, result);
+    return result;
+  }
   if (setupRequired || restoreRequired) {
     const panel = doc.createElement('section'); panel.className = 'screen';
     const title = doc.createElement('h1'), note = doc.createElement('p');

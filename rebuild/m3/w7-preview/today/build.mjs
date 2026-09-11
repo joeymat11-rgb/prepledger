@@ -141,7 +141,7 @@ export async function buildToday() {
   const fonts = readFonts();
   const shell = design.shellHtml();
   const template = design.templateHtml();
-  const chrome = design.chromeCss();
+  const chrome = design.chromeCss() + '\n' + await fs.readFile(path.join(SOURCE, 'setup/setup.css'), 'utf8');
   assert.equal(shell.split("<!-- APPROVED_TEMPLATES -->").length, 2, "TEMPLATE-SLOT FAIL");
   const binding = assertDesignBinding(approved, template, design.appSource());
 
