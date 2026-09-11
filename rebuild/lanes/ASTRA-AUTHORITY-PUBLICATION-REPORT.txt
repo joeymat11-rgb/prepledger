@@ -1,0 +1,81 @@
+REAL AUTHORITY BRANCH — DISTINCT LOCAL PREPARATION
+2026-09-11. Assignment ASTRA-AUTHORITY-PUBLICATION-PREP.md at PMade5b55.
+Verdict: LOCAL PREPARATION PASS; NOT PUBLISHED / NOT ACCEPTED-CHAIN AUTHORITY.
+No package receipt or qualification verdict is issued by this report.
+
+(1) EXACT CANDIDATE
+Branch codex/astra-bntc-authority-publication, isolated worktree
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-bntc-authority-publication.
+Base7b1678a4a8449053000d52a0a8e9e070f32a240e, verified against actual origin
+by git ls-remote before preparation and again after all checks; unchanged.
+Mechanical cherry-picks in the authorized order, no conflict or text rewrite:
+  guard9ee440c -> 99c414e5777a26107d17f34403a0a914ae9c9a9a
+  prior PM3809dacc -> 7d42589b55a31cc18e585c5647b69b247be7872a
+  actual PM5dade31 -> 62d37ed2a3c371437a97a999af5bfc3fa74cdb98
+62d37ed is the immutable containing commit for ALL four appended ledger lines
+and the public amended brief. This report is its document-only descendant.
+Read full independent guardce52f0aa04297073f96aec4cd2af1385dd77a509 and final
+policy747a78d56083d45434ac6a8b90e6db3589064ff0, plus exact source commits.
+Reuse those accepted checks; no engine/full/private campaign repeated.
+
+(2) AUTHORITY BYTES AND ANCESTRY — EXECUTED
+Complete DECISIONS bytes at62d37ed equal the actual PM issuance at5dade31.
+Original accepted197699-byte ledger prefix is unchanged; exactly4 lines added.
+Actual legacy-gates.verifyReceipt validates each literal line/hash at62d37ed
+under cowork role; new brief/theme required text and exact selector/digest pass.
+Temporary Astra PM attribution is preserved verbatim, not attributed to Claude.
+Line numbers and SHA256 over each literal line without newline:
+112 role: 6c1dacb2da6a92555405bb5bde3f3f1f4c66b6826bee32389a9dbbf44ec2fa95
+113 prior brief: 5ec91a9b6c2db84c7aa93e71fbc65732d38d7ffc74e1a260ee3fb55aa2eb4872
+114 amended brief: c159cc472043d53516ead72bccfa2e21686905565615479b21cdd23581746788
+115 exact theme: 08c27a97f2aa12519bde82712b6e2a40196e1439ad3e1b88b686411cfeeb2c25
+Brief rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md equals5dade31 bytes,
+SHA2565fc945dff19692983d2af533f54238c257120afa043d695e0356e1058ee604e4.
+Theme literally includes B-NTC-SUCCESSORS 07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393.
+Accepted base7b1678a and parent-receipt baseb045e61 are ancestors of62d37ed.
+Actual fixed CHAIN_REF remains refs/remotes/origin/rebuild/t2-client-core at
+7b1678a. Checking62d37ed as its ancestor returns1: local genuine PM material
+is NOT yet on that chain. No ref was moved to simulate authority. Later spec
+binding must use exact literal line bytes and hashes, not line numbers alone.
+
+(3) SCOPE / TRIGGERS — EXECUTED SOURCE CHECKS
+Before this report, exact changed-file set against accepted base is ONLY:
+  .github/workflows/deploy.yml
+  rebuild/DECISIONS.md
+  rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md
+  rebuild/lanes/c/ASTRA-REBUILD-PUBLICATION-GUARD-REPORT.md
+This ONE integrator report is the fifth path. Guard workflow equals reviewed
+9ee440c bytes. The complete test/production job region is byte-identical to
+base; parsed workflow trigger/test/production and every other preview property
+compare equal using existing yaml. Exact guarded expression also matches.
+Under that expression, successful push on this codex/astra- branch or on
+rebuild/t2-client-core has preview=false and production=false. Ordinary test
+job still runs on triggered pushes/PRs; its dependency and all steps unchanged.
+Slice-host.yml is byte-identical, SHA256
+42f43c3b40a31f929a57de197da3c4888bdf9105f7163ac58bbe88e67ec681fb.
+None of these five paths match its Today/PWA/workflow path filters. This
+candidate publication and later document-only integration therefore do not
+select slice-host. No manual dispatch is proposed. These are source/equality
+and local expression checks, not remote Actions execution or an actionlint run.
+Independent36 guard scenarios are reused with the exact guard bytes preserved.
+No product, engine, host, policy, runner, source pins, main, frozen app, data,
+credentials or repository settings changed. git diff --check PASS.
+
+(4) CONCRETE ORDINARY PR/CI ROUTE — NOT EXECUTED
+Root reviews this exact clean branch/report, then separately authorizes its
+external publication. Publish codex/astra-bntc-authority-publication and create
+a normal PR targeting rebuild/t2-client-core. The included accepted guard
+prevents frozen preview for this prefix. Pipeline's ordinary test still runs;
+the PR base matches rebuild workflow's existing pull_request branches filter,
+so retain its actual Ubuntu/Windows checks. No skip-ci or workflow bypass.
+After required reviews/checks and authorized integration, preserve62d37ed in
+ancestry (normal merge/fast-forward route); squash/rebase would require freshly
+verified replacement containing-commit citations. Reverify actual remote tip,
+ledger prefix and trigger scope if anything moves before publication/merge.
+Only after real accepted-branch publication and truthful ref refresh can the
+product candidate receive this authority ancestry, then bind amended-brief114
+and exact-theme115 at62d37ed under a separate instruction. Original parent/
+owner/contract, final source policy, all FULL/private/CI requirements and genuine
+exact-artifact receipt remain. First-use55063f8 and B1 are separate work.
+No push, PR creation, actual integration merge, deploy, remote/ref mutation,
+settings change, secret/private access, install, purchase or protected soak.
