@@ -1,0 +1,268 @@
+{
+  "version": 1,
+  "lanePackage": "B1",
+  "packageId": "M2-B1-GRADING-TIME-WINDOW",
+  "status": "PROPOSED",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B1-GRADING-TIME-WINDOW-v1.1.md",
+    "sha256": "bda40faaea2f24223ac69b48480ebd0b9c9d07c0b3c7ff931fa05bd4a41c9c4c",
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "87eddad7e9e7141e28ea575b3b99038eac61585a",
+  "dIds": [
+    "D10",
+    "D8",
+    "D21",
+    "D19",
+    "D16",
+    "D17",
+    "D24",
+    "D25",
+    "D27",
+    "D23"
+  ],
+  "laws": {
+    "D10": "E-D10-calendar-week-is-seven-calendar-dates",
+    "D8": "D-D8-stale-sleep-does-not-claim-current-debt",
+    "D21": "E-D21-sleep-cleanliness-includes-the-fall-back-calendar-date",
+    "D19": "P-D19-inclusive-break-end-prose-agrees-with-active-day",
+    "D16": "E-D16-seven-day-forecast-does-not-grade-a-month-late-read",
+    "D17": "E-D17-undone-adjustment-is-not-described-as-applied",
+    "D24": "E-D24-partial-yesterday-remains-owed-until-calories-are-present",
+    "D25": "E-D25-zero-protein-successes-cannot-be-a-good-protein-read",
+    "D27": "P-D27-maintenance-is-not-described-as-a-long-stalled-cut",
+    "D23": "E-D23-scheduled-hack-debut-is-not-presented-as-a-rest-day"
+  },
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [
+    "D16"
+  ],
+  "parent": {
+    "decided": false,
+    "chosen": null,
+    "options": [
+      {
+        "id": "NATIVE-CARRIERS",
+        "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
+        "sha256": "295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1",
+        "review": "rebuild/m4/spec/review-native-carriers.json",
+        "receiptLedgerLine": 96,
+        "note": "Chain head on disk. Use this if the PM rules B1 FIRST in the B chain (recommended by BRIEF-B1 v1.1 section 5.3: NATIVE-CARRIERS -> B1 -> B2 -> B4 -> B3)."
+      },
+      {
+        "id": "B2",
+        "artifact": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+        "receiptLedgerLine": null,
+        "note": "Use this if the PM rules B2 first (PLAN-TRACK-B-PACKAGES-v1.md:146 proposes B2 -> B1). Then every pre-image sha256 in this spec is re-taken at B2's accepted head."
+      }
+    ]
+  },
+  "product": {
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": null,
+      "role": "edited"
+    }
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "native-carriers-source-carriers",
+      "merge-source": "native-carriers-source-carriers",
+      "writers-source": "native-carriers-source-carriers",
+      "witnesses-2": "native-carriers-inherited-carriers",
+      "witnesses-5": "native-carriers-inherited-carriers",
+      "migrate-differential": "native-carriers-inherited-carriers",
+      "witnesses-7": "native-carriers-defect-witnesses",
+      "writers-differential": "native-carriers-writers-differential",
+      "second-gate": "native-carriers-second-gate"
+    },
+    "moves": {
+      "witnesses-1": "b1-inherited-carriers",
+      "witnesses-3": "b1-inherited-carriers"
+    }
+  },
+  "carrierSuccessor": {
+    "file": "rebuild/conform/v4/postfix/legacy-b1-carriers.cjs",
+    "parent": "rebuild/conform/v4/postfix/legacy-step-efficacy-carriers.cjs",
+    "witnessPins": {
+      "rebuild/engine/test/defect-witnesses.cjs": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+      "rebuild/engine/test/defect-witnesses-2.cjs": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2",
+      "rebuild/engine/test/defect-witnesses-3.cjs": "f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6"
+    }
+  },
+  "witnessFlips": [
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": 61,
+      "from": "cleanAtDate({nights:[{d:\"2026-01-01\",h:5}]},\"2026-09-03\") === false",
+      "to": "cleanAtDate({nights:[{d:\"2026-01-01\",h:5}]},\"2026-09-03\") === true"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": 71,
+      "from": "weeksBetween('2026-03-08','2026-03-15') approx 167/168",
+      "to": "weeksBetween('2026-03-08','2026-03-15') === 1"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": 72,
+      "from": "weeksBetween('2026-11-01','2026-11-08') approx 169/168",
+      "to": "weeksBetween('2026-11-01','2026-11-08') === 1"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 93,
+      "from": "r.graded === 1",
+      "to": "r.graded === 0"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 94,
+      "from": "r.rows[0].hit === true",
+      "to": "r.rows[0].hit === null"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 103,
+      "from": "r.decisions[0].applied === true",
+      "to": "r.decisions[0].applied === false"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 127,
+      "from": "line.includes(\"day 6 of 7, 0 to go\") === true",
+      "to": "line.includes(\"day 6 of 7, 0 to go\") === false"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 128,
+      "from": "next.when === \"resumes Mon 9/7\"",
+      "to": "next.when === \"resumes Tue 9/8\""
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 159,
+      "from": "sleepInfo(s).clean === true",
+      "to": "sleepInfo(s).clean === false"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 48,
+      "from": "workout.title === \"REST DAY\"",
+      "to": "workout.title === \"LOWER BODY · TODAY\""
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 49,
+      "from": "workout.today === false",
+      "to": "workout.today === true"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 50,
+      "from": "workout.iso === undefined",
+      "to": "workout.iso === \"2026-09-03\""
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 58,
+      "from": "focus.clear === true",
+      "to": "focus.clear === false"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 59,
+      "from": "owed.some(k === 'yesterday') === false",
+      "to": "owed.some(k === 'yesterday') === true"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 72,
+      "from": "fiveLevers(s).protein.state === \"good\"",
+      "to": "fiveLevers(s).protein.state === \"caution\""
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 100,
+      "from": "fix.rung === \"break\"",
+      "to": "fix.rung === \"hold\""
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 101,
+      "from": "fix.title (long-stalled-cut title)",
+      "to": "fix.title === \"Nothing to fix — hold the line\""
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-3.cjs",
+      "line": 102,
+      "from": "body.startsWith(\"You've held the deficit for weeks\") === true",
+      "to": "body.startsWith(\"You've held the deficit for weeks\") === false"
+    }
+  ],
+  "protectedSurfaces": [
+    "tools/engine-test.jsx:8790-8793 (second gate P6 cells, S6 = clP(SEED))",
+    "the seeded set-one laboratory card (sleep.cjs labAnalytics2, the only setOneRead consumer)",
+    "rebuild/conform/goldens (public census and frozen goldens)",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": null,
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": null,
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52",
+      "inheritFromParent": true
+    },
+    "theme": null,
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B1-GRADING-TIME-WINDOW",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b1-grading-time-window.json",
+    "review": "rebuild/m4/spec/review-b1-grading-time-window.json",
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs --package B1"
+  },
+  "children": [],
+  "notes": [
+    "theme is null until the PM accepts BRIEF-B1-GRADING-TIME-WINDOW-v1.1.md as a rebuild/DECISIONS.md ledger line; the runner refuses PASS while it is null (THEME-AUTHORIZATION-UNAVAILABLE).",
+    "owner/contract carry lineSha256 only; the full ledger line text is bound at seal time in a sha-pinned citation file beside the artifact, as native-carriers-authorizations.json does.",
+    "D10 adds one declaration and one export to dates.cjs (plusDays); D21/D16/D19/D24 consume it. Brief section 6 Q3 asks the PM to approve the export-surface change (seven names -> eight).",
+    "D10's repair changes behaviour at weeksBetween sites B1 does not own: energy.cjs:84,228, sleep.cjs:633,806, migrate.cjs:301,1203, writers.cjs:1587,2432. Enumerated as delta cells; B3 budgets the goldens.",
+    "H1 (today.cjs:92 e.id === \"hack\") is recommended as its own item immediately after B1, not inside it (brief section 4); it collides with D23's mutant.",
+    "witnesses-2 and second-gate already fail bare at this tip on the accepted STEP-EFFICACY D12 repair; both are inherited coverage.covered and must NOT be 'fixed' by B1."
+  ]
+}

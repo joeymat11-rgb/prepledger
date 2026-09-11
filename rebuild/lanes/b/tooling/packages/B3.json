@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "lanePackage": "B3",
+  "packageId": "M2-B3-MERGE-RECEIPTS-SYNC",
+  "status": "SKELETON",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B3-MERGE-RECEIPTS-SYNC.md",
+    "sha256": null,
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "87eddad7e9e7141e28ea575b3b99038eac61585a",
+  "dIds": [
+    "D45",
+    "D36",
+    "D22",
+    "D44",
+    "D42",
+    "D37",
+    "D38",
+    "D39",
+    "D40"
+  ],
+  "laws": {
+    "D45": "V4-analyst-effort-rule-matches-writer",
+    "D36": "V4-curl-receipt-prices-actual-vector",
+    "D22": "E-D22-recovery-reader-preserves-indexed-sleep-facts-without-a-shape-crash",
+    "D44": "V4-volume-receipt-requires-actual-change",
+    "D42": "V4-break-undo-restores-scale-effect",
+    "D37": "V4-merge-earned-receipt-historical-asof",
+    "D38": "V4-merge-preserves-written-trial-decisions",
+    "D39": "V4-merge-preserves-offer-dismissal",
+    "D40": "V4-daily-conflict-direction-independent"
+  },
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [
+    "D45"
+  ],
+  "parent": {
+    "decided": false,
+    "chosen": null,
+    "options": [
+      {
+        "id": "B4",
+        "artifact": "rebuild/m4/spec/acceptance-b4-numbers-cache-identity.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b4-numbers-cache-identity.json",
+        "receiptLedgerLine": null,
+        "note": "Recommended: PLAN-TRACK-B-PACKAGES-v1.md:113 merge order puts B3 last, after B4."
+      },
+      {
+        "id": "B2",
+        "artifact": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+        "receiptLedgerLine": null,
+        "note": "Alternative: B3 straight after B2 (PLAN section 2 says B3 goes after B2 because of the shared progression.cjs/volume.cjs surfaces)."
+      }
+    ]
+  },
+  "product": {
+    "rebuild/engine/writers.cjs": {
+      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": null,
+      "role": "edited"
+    }
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "native-carriers-source-carriers",
+      "merge-source": "native-carriers-source-carriers",
+      "writers-source": "native-carriers-source-carriers",
+      "witnesses-2": "native-carriers-inherited-carriers",
+      "witnesses-5": "native-carriers-inherited-carriers",
+      "migrate-differential": "native-carriers-inherited-carriers",
+      "witnesses-7": "native-carriers-defect-witnesses",
+      "writers-differential": "native-carriers-writers-differential",
+      "second-gate": "native-carriers-second-gate"
+    },
+    "moves": {}
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "the D36 curl upgrade receipt string, the D45 analyst prompt string and the D44 VOLUME receipt (three frozen-receipt surfaces named in PLAN section B3)",
+    "tools/engine-test.jsx:8790-8793 (second gate P6 cells)",
+    "rebuild/conform/goldens and the frozen app fe516c1:src/app.jsx",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": null,
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": null,
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52",
+      "inheritFromParent": true
+    },
+    "theme": null,
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B3-MERGE-RECEIPTS-SYNC",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b3-merge-receipts-sync.json",
+    "review": "rebuild/m4/spec/review-b3-merge-receipts-sync.json",
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs --package B3"
+  },
+  "children": [],
+  "notes": [
+    "SKELETON from PLAN-TRACK-B-PACKAGES-v1.md section B3 (9 defects, 39 register hours, the heaviest package). Not a brief: coordinates, hunks, cases, mutants, expected deltas and witness flips are all still to be written and accepted.",
+    "D40 carries an UNFINISHED owner rule (DECISIONS:60): the tie-break and the conflict presentation are explicitly NOT decided and must be specified in the reviewed fix brief before anything is built. PLAN section 4 recommends drafting a proposal, putting it to the owner in one line, and carrying D40 into a later package if the answer is slow rather than blocking the other eight.",
+    "earnWalk now lives in rebuild/engine/earn.cjs (moved verbatim per DECISIONS:85); D37 rewrites its as-of.",
+    "Read-only reach into sleep.cjs (D22 readers) and progression.cjs (D37, D44) — those files get no hunk and must stay byte-identical.",
+    "B2 must state the durable identity convention B3 reuses (PLAN section 4 risk: D3/D4 and D37/D38/D39 both invent identity schemes; two conventions in one engine is the failure mode).",
+    "Track C's C2 port proof (migrate -> merge -> 10/10 port-oracle on the real blob) must be re-run after B3 merges, or scheduled after it: D22/D36/D37/D38/D39/D40 change exactly that path.",
+    "D22's fix straddles the migrate.cjs boundary and the sleep.cjs readers in one change; the register FIX line warns 'do not silently replace recorded nights with an empty list' (AUDIT-REGISTER.md:344) — the highest lost-fact risk in the lane.",
+    "coverage.moves is empty only because the witness-flip measurement has not been done. Measure it before the brief, as B1 and B2 did."
+  ]
+}

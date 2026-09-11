@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "lanePackage": "B4",
+  "packageId": "M2-B4-NUMBERS-CACHE-IDENTITY",
+  "status": "SKELETON",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B4-NUMBERS-CACHE-IDENTITY.md",
+    "sha256": null,
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "87eddad7e9e7141e28ea575b3b99038eac61585a",
+  "dIds": [
+    "D14",
+    "D11",
+    "D15",
+    "D13",
+    "D20",
+    "D26"
+  ],
+  "laws": {
+    "D14": "E-D14-current-rate-uses-missing-drip-default",
+    "D11": "E-D11-gain-interval-is-ordered-and-zero-drift-never-promoted",
+    "D15": "E-D15-session-frequency-does-not-change-with-food-row-density",
+    "D13": "E-D13-energy-density-cache-tracks-relevant-state",
+    "D20": "E-D20-forecast-refreshes-after-an-observed-rate-change",
+    "D26": "E-D26-today-model-refreshes-when-the-calendar-day-changes"
+  },
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [],
+  "parent": {
+    "decided": false,
+    "chosen": null,
+    "options": [
+      {
+        "id": "B2",
+        "artifact": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+        "receiptLedgerLine": null,
+        "note": "Recommended under the chain NATIVE-CARRIERS -> B1 -> B2 -> B4 -> B3 (BRIEF-B1 v1.1 section 5.3)."
+      },
+      {
+        "id": "B1",
+        "artifact": "rebuild/m4/spec/acceptance-b1-grading-time-window.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b1-grading-time-window.json",
+        "receiptLedgerLine": null,
+        "note": "Alternative: B4 straight after B1, which is the only hard ordering constraint PLAN section B4 states (shared today.cjs/policy.cjs)."
+      }
+    ]
+  },
+  "product": {
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": null,
+      "role": "edited"
+    }
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "native-carriers-source-carriers",
+      "merge-source": "native-carriers-source-carriers",
+      "writers-source": "native-carriers-source-carriers",
+      "witnesses-2": "native-carriers-inherited-carriers",
+      "witnesses-5": "native-carriers-inherited-carriers",
+      "migrate-differential": "native-carriers-inherited-carriers",
+      "witnesses-7": "native-carriers-defect-witnesses",
+      "writers-differential": "native-carriers-writers-differential",
+      "second-gate": "native-carriers-second-gate"
+    },
+    "moves": {}
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "tools/engine-test.jsx:8790-8793 (second gate P6 cells)",
+    "rebuild/conform/goldens and the frozen app fe516c1:src/app.jsx",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": null,
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": null,
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52",
+      "inheritFromParent": true
+    },
+    "theme": null,
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B4-NUMBERS-CACHE-IDENTITY",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b4-numbers-cache-identity.json",
+    "review": "rebuild/m4/spec/review-b4-numbers-cache-identity.json",
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs --package B4"
+  },
+  "children": [],
+  "notes": [
+    "SKELETON from PLAN-TRACK-B-PACKAGES-v1.md section B4 (6 defects, 17 register hours, the smallest package). Not a brief.",
+    "The three policy.cjs / today.cjs pre-images here are the CURRENT tip values. B1 edits both files, so if B1 lands first these pre-images are stale and must be re-taken at B1's accepted head — the same re-pin rule the parent field records.",
+    "Scope inside the shared files is cache-only: policy.cjs the forecast cache, today.cjs the nowModel cache. Nothing else in either file may move.",
+    "Order inside the package matters for a measured reason: D20 and D26 both consume energy.cjs memoOnState, so the three value repairs (D14, D11, D15) precede the three cache repairs, and D13 (the memo itself) precedes its two consumers.",
+    "All six are plain Batch A FIX approvals at DECISIONS:60; none of the seven Batch B owner rules falls here, so there is no owner question in B4.",
+    "D13/D20/D26 are NOT APPLICABLE to LIVE (AUDIT-REGISTER.md:499,504,512), so privateLiveTriggered is empty and no private-census change is anticipated; a discovered one is a RED stop, not a golden regeneration.",
+    "coverage.moves is empty only because the witness-flip measurement has not been done. Measure it before the brief, as B1 and B2 did."
+  ]
+}

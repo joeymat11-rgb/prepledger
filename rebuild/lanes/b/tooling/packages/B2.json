@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "lanePackage": "B2",
+  "packageId": "M2-B2-TARGETS-IDENTITY-ERA",
+  "status": "PROPOSED",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md",
+    "sha256": "c8fb915265eafd0dc9c60a736ddd69eec76f0b485775e3b74f28e5b7c15b87cf",
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "87eddad7e9e7141e28ea575b3b99038eac61585a",
+  "dIds": [
+    "D9",
+    "D2",
+    "D1",
+    "D5",
+    "D6",
+    "D7",
+    "D3",
+    "D4",
+    "D29",
+    "D18",
+    "D28",
+    "D30",
+    "D31",
+    "D32"
+  ],
+  "laws": {
+    "D9": "E-D9-split-selects-latest-effective-date",
+    "D2": "E-D2-invalid-set-count-stays-quarantined",
+    "D1": "P-D1-first-targets-fit-current-set-count",
+    "D5": "P-D5-ladder-minimum-counts-distinct-rungs",
+    "D6": "P-D6-deload-preserves-absent-load",
+    "D7": "P-D7-anchor-and-trend-exclude-future-sessions",
+    "D3": "P-D3-volume-receipt-belongs-to-whole-lift-name",
+    "D4": "P-D4-other-lift-earn-cannot-spend-sightings",
+    "D29": "P-D29-designed-and-logged-front-delt-volume-use-the-same-indirect-credit",
+    "D18": "P-D18-structural-budget-sees-current-week-volume-receipts-beyond-display-prefix",
+    "D28": "E-D28-programme-volume-follows-the-current-effective-split",
+    "D30": "P-D30-first-set-trend-respects-the-recorded-technique-era",
+    "D31": "V4-volume-tolerance-post-change",
+    "D32": "V4-volume-replication-same-era"
+  },
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [
+    "D30"
+  ],
+  "parent": {
+    "decided": false,
+    "chosen": null,
+    "options": [
+      {
+        "id": "NATIVE-CARRIERS",
+        "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
+        "sha256": "295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1",
+        "review": "rebuild/m4/spec/review-native-carriers.json",
+        "receiptLedgerLine": 96,
+        "note": "Chain head on disk. Use this if the PM rules B2 FIRST (PLAN-TRACK-B-PACKAGES-v1.md:146 proposes B2 -> B1; BRIEF-B2 v1.1 section 6 states it as the PM's call)."
+      },
+      {
+        "id": "B1",
+        "artifact": "rebuild/m4/spec/acceptance-b1-grading-time-window.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b1-grading-time-window.json",
+        "receiptLedgerLine": null,
+        "note": "Use this if the PM rules B1 first (BRIEF-B1 v1.1 section 5.3 recommends NATIVE-CARRIERS -> B1 -> B2 -> B4 -> B3). Then every pre-image sha256 here is re-taken at B1's accepted head."
+      }
+    ]
+  },
+  "product": {
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": null,
+      "role": "edited"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": null,
+      "role": "edited"
+    }
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "native-carriers-source-carriers",
+      "merge-source": "native-carriers-source-carriers",
+      "writers-source": "native-carriers-source-carriers",
+      "witnesses-2": "native-carriers-inherited-carriers",
+      "witnesses-5": "native-carriers-inherited-carriers",
+      "migrate-differential": "native-carriers-inherited-carriers",
+      "witnesses-7": "native-carriers-defect-witnesses",
+      "writers-differential": "native-carriers-writers-differential",
+      "second-gate": "native-carriers-second-gate"
+    },
+    "moves": {
+      "witnesses-1": "b2-inherited-carriers",
+      "witnesses-4": "b2-inherited-carriers"
+    }
+  },
+  "carrierSuccessor": {
+    "file": "rebuild/conform/v4/postfix/legacy-b2-carriers.cjs",
+    "parent": "rebuild/conform/v4/postfix/legacy-step-efficacy-carriers.cjs",
+    "witnessPins": {
+      "rebuild/engine/test/defect-witnesses.cjs": "557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644",
+      "rebuild/engine/test/defect-witnesses-2.cjs": "833db0431e656f862636ab96383c64b8e52f4cbaf94e28da14c1bae52115aaf2",
+      "rebuild/engine/test/defect-witnesses-4.cjs": "c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7"
+    }
+  },
+  "witnessFlips": [
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D1 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D2 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D3 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D4 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D5 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D6 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D7 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses.cjs",
+      "line": "D9 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-2.cjs",
+      "line": 106,
+      "from": "D18 cell reproduced (structural moves behind the 80-row display prefix)",
+      "to": "reviewed successor expectation; extends the accepted legacy-step-efficacy-carriers.cjs D12 substitutions, D11/D13-D17/D19-D21 preserved"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "line": 47,
+      "from": "programmeVolume chest === 6",
+      "to": "programmeVolume chest === 3 (D28; first throw of the five-cell file)"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "line": "D29 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "line": "D30 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "line": "D31 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    },
+    {
+      "file": "rebuild/engine/test/defect-witnesses-4.cjs",
+      "line": "D32 cell",
+      "from": "reproduced on the unmodified tip",
+      "to": "reviewed successor expectation; exact assertion coordinates pinned at implementation"
+    }
+  ],
+  "protectedSurfaces": [
+    "tools/engine-test.jsx:8790-8793 (second gate P6 cells, S6 = clP(SEED); no forks on ham, June-only sessions, so D30/D7 era cuts are structurally inert there)",
+    "the seeded set-one laboratory card (sleep.cjs labAnalytics2, setOneRead call at sleep.cjs:1286, the only engine consumer; frozen app.jsx:7407)",
+    "rebuild/conform/goldens, the original 45-law seeds, rebuild/conform/oracle, the original witness/differential/source test files and the seeded soak",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": null,
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": null,
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52",
+      "inheritFromParent": true
+    },
+    "theme": null,
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B2-TARGETS-IDENTITY-ERA",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
+    "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs --package B2"
+  },
+  "children": [],
+  "notes": [
+    "theme is null until the PM accepts BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md as a rebuild/DECISIONS.md ledger line; the runner refuses PASS while it is null.",
+    "CORRECTION to BRIEF-B2 v1.1 section 6: rebuild/engine/volume.cjs IS already in the accepted parent's product map (acceptance-native-carriers.json pins it at c32298e7...). B2 supersedes that pin rather than introducing a new product file.",
+    "D30 carries the two conditions accepted at DECISIONS:82: the law's control may serve as a result oracle but never as the clock-trace oracle; the P6 sites and the seeded set-one card are the named protected surfaces.",
+    "The register laws' own mutants go inert on a repaired candidate: detected mutant executions fall 97/104 -> 83/104 (exactly the fourteen laws' candidate-side mutants), and D29's control is non-idempotent (GREEN repair controls 89 -> 88). Only the named SOURCE mutants may serve as this package's fault mutants.",
+    "Executed public-census delta on the discarded repaired copy is exactly one primitive cell: deloadLoad for fly and hipthrust, 5 -> null (D6), at both matrix days. Anything else is a RED stop for a reviewed successor expectation.",
+    "Brief section 7 open questions for the PM: Q1 parent chain; Q2 volume.cjs:159 identity convention; Q3 reader-side exId (two lines); Q4 witnesses-1 carrier serialization with B1; Q5 witnesses-2 extension path.",
+    "witnesses-1 is the one carrier B1 and B2 share (B2's eight flips + B1's D8/D10 preserved in one file). Serialize on that file or accept one rebase pass."
+  ]
+}
