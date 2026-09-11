@@ -1,0 +1,66 @@
+INDEPENDENT TOOLING POLICY-SELECTOR REVIEW — September 11, 2026
+SCOPED ACCEPT. No remaining correction required in this reviewed delta.
+Candidate85f7d564d4af9b3cacce8dad0e8e7d5d096de68b; base7cd7a5b.
+Separate codex/astra-tooling-policy-review; reviewer authored no tooling.
+This does not issue PM authority, accept B-NTC, authorize sealing or close gates.
+
+(1) SOURCE FINDING CLOSED
+b-package.cjs:674 now selects the exact successor policy from fixed CLI ID B-NTC,
+not candidate argv or parent pins. spec():245/248 binds declaration identity to
+that CLI ID. Missing parent refuses. No ANY-parent-pin inheritance return remains.
+The policy is required before campaign (:1040), at coverage (:834), proposed pins
+(:893), and accepted-envelope verification (:962).
+Other packages' original inheritance (:683-738) binds the accepted gate/name map,
+exact argv/verdict, actual execution targets/verdict and HEAD/disk source bytes.
+The known legacy route binds artifact e940359b... and its schedule-bearing wrapper
+SHA0fe94beee6a6e57315eee8535690d378cf42171e4c64bcf6172284fa47703655 at
+the actual reviewed commit. Unknown parent formats refuse. Accepted parents that
+embed a child schedule supply that accepted schedule, not a new caller authority.
+
+(2) EXECUTED
+Existing Node24.19.0, Windows, existing dependencies only. Authored focused suites:
+execution-targets.test.cjs + successor-authority.test.cjs =>19 pass/0 fail/0 skip.
+Their genuine B-NTC successor runs, source/authority controls and original-route
+positive pass. The old false-coverage regression runs five actual helper processes.
+
+Independent ignored .tmp/independent-policy-review.cjs, SHA256
+6fb1ff9d65749ac16d05f56f4ccf84ad7408db77dc3e49ac2fbf099750afbf36:
+- Real unchanged runner functions loaded before main-campaign delimiter. No source
+  body or process output replaced. Genuine parent artifact/hash and review bind.
+- Preserve15 declarations,9 inherited names, moves={} and theme=null. Retarget only
+  the five inherited children to unchanged pinned native-carriers-source.cjs via
+  Node --test with TAP # pass1. Five REAL child processes exit0,276 stdout bytes each.
+  Old7cd7a5b support returns null and coverage counts9 false gates. Candidate support
+  and coverage both refuse SUCCESSOR-CHILD-DECLARATIONS. Null/undefined parent both
+  refuse SUCCESSOR-PARENT-MISSING; generic B1 original-route checks refuse the same
+  helper-as-test declarations. This is false coverage reproduced, not package PASS.
+- Independently derive all FIVE schedule tuples from the IMMUTABLE original
+  native-carriers-package.cjs names/verdict literals and exact child argv loop.
+  Compare against acceptedOriginalChildren: exact. Execute real original
+  native-carriers-source-carriers.cjs on this unchanged parent-source tree:
+  exit0,926 stdout bytes, its actual verdict, all3 associated source-gates admitted.
+  Altered argv/needle, gate map and unknown parent format refuse.
+- Exact82-source policy digest614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee
+  unchanged. Six spec deltas are only runnerSha256, matching actual runner bytes
+  ca0419e61beac8ffe9c89971e11fd1f3cfb0913af1d2d5d05ddbdf12c057f484.
+  MOVES_RULING=null, moves={}, actual B-NTC statusPROPOSED, theme=null and accepted
+  brief citation=null. No new PM authority is claimed by this candidate.
+Independent probe exits0. Initial reviewer harness exported a function absent in
+old7cd7a5b; corrected export only, no product finding or red credit.
+Tracked diff against85f7d56 was empty before writing this report.
+
+(3) RETAINED EVIDENCE / PREREQUISITES
+Read9c95dee independent successor review and4a842323 original tooling review.
+Reuse their unaffected authority, closure, receipt/chain and original controls;
+the arbitrary-parent-pin inherited positive is superseded by this exact schedule
+check. Authored focused groups incidentally re-execute their authority controls;
+no separate full engine campaign or unrelated151 product tests rerun.
+
+Before package acceptance: genuine exact brief/theme citation including literal
+B-NTC-SUCCESSORS 614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee
+fixed accepted-chain/candidate ancestry,
+exact final artifact and independent receipt, affected CI/FULL/private custody
+and existing seal requirements remain. This report supplies none of those.
+No source edits, private reads/materialization, installs, lockfile changes, push,
+PR, merge, deployment, purchases, protected soak or accepted artifact fabricated.
+Only this report is committed; independent public probe/logs remain ignored.
