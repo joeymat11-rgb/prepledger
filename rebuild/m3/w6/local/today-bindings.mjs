@@ -53,6 +53,8 @@
 // they authorize; key custody is local-keys.mjs; first run is evidenced by an
 // observation, and partial erasure is restore-required, never a re-enrolment.
 import { openLocalDurableClient } from "./local-client.mjs";
+import { openLocalDeviceIdentity } from "./local-keys.mjs";
+import Client from "../../../client/index.cjs";
 import { StorageFailure } from "../repository.mjs";
 import { createDurablePublicClient } from "../public-client.mjs";
 import { parseStrictJson } from "../strict-json.mjs";
@@ -136,7 +138,7 @@ const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 /* The page's own clocks, restated: the client wants ISO strings, the engine
    readers want a Date. Both are pinned to one instant on the host's own day, as
    gym-host.mjs and today-model.cjs already pin them. */
-const clientClockFor = day => ({ today: () => day, now: () => day + "T13:00:00.000Z",
+export const clientClockFor = day => ({ today: () => day, now: () => day + "T13:00:00.000Z",
   tz: "-05:00", monotonicMs: () => 0 });
 const engineClockFor = day => ({ today: () => day, hour: () => 8,
   now: () => new Date(day + "T13:00:00.000Z"), stamp: () => day + "T13:00:00.000Z" });
@@ -341,5 +343,82 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
   });
 }
 
-export default { openTodayOverLocalEra, causalTips, startOrderRefusalOf,
-  TODAY_DATABASE, TODAY_NAMESPACE, PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER };
+/* ---------------------------------------------------------------- C4b
+   ONE INSTALLATION PER PAGE, and the page's own identity.
+
+   After the swap, today/{reading-host,gym-host}.mjs are thin wrappers over this
+   module and today-entry.mjs boots over it BY DEFAULT — so three call sites can
+   ask for "this device's Today store" in one page load, and all three must get
+   the SAME handle. Opening it twice would open two clients over one repository:
+   two bridges, two published faces, and a write one of them cannot see.
+
+   So the installation is memoized per (indexedDB, databaseName, namespace) and
+   REFERENCE-COUNTED: each caller gets a facade whose close() detaches only that
+   caller, and the last one out closes the client and drops the memo — which is
+   what makes the next open a real relaunch, re-read from disk.
+
+   THE ATHLETE is "owner": one athlete on one phone, until Dad's A4 first-run
+   setup exists to name a second. THE DEVICE is minted once at random and kept
+   in the key database (local-keys.mjs openLocalDeviceIdentity) — it has to be
+   stable across launches because localEraConfig refuses an era whose sealed
+   lease names another device. Neither is a credential.
+   -------------------------------------------------------------------------- */
+export const TODAY_ATHLETE = "owner";
+
+/* THE CLIENT'S OWN WORDS for a state-18 refusal. A page that cannot open this
+   device's installation must say what rebuild/client says — it must not invent a
+   sentence, and it must never re-enrol over the record it could not read. */
+export const RESTORE_REQUIRED = Client.copy.RESTORE_REQUIRED;
+
+/* The page's real clock, for the era's lease window and the client's stamps.
+   The SCREEN's day is a separate argument (`day`) on every host, exactly as it
+   was: this one answers "when is now", not "which day is being shown". */
+export function wallClock() {
+  const pad = value => String(Math.floor(Math.abs(value))).padStart(2, "0");
+  const offset = -new Date().getTimezoneOffset();
+  return {
+    now: () => new Date().toISOString(),
+    today: () => { const at = new Date(); return new Date(at.getTime() - at.getTimezoneOffset() * 60000).toISOString().slice(0, 10); },
+    tz: (offset < 0 ? "-" : "+") + pad(offset / 60) + ":" + pad(offset % 60),
+    monotonicMs: () => (typeof performance !== "undefined" && typeof performance.now === "function" ? performance.now() : Date.now()),
+  };
+}
+
+const installations = new WeakMap();
+
+export async function openTodayInstallation({
+  indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
+  databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
+  athleteId = TODAY_ATHLETE, deviceId, clock, ...rest } = {}) {
+  if (!indexedDB || !crypto?.subtle) throw new StorageFailure("LOCAL_ERA_STORE_UNAVAILABLE", 18);
+  let byKey = installations.get(indexedDB);
+  if (!byKey) { byKey = new Map(); installations.set(indexedDB, byKey); }
+  const key = JSON.stringify([databaseName, namespace]);
+  let entry = byKey.get(key);
+  if (!entry) {
+    entry = { handles: 0 };
+    entry.opening = (async () => {
+      const device = deviceId || (await openLocalDeviceIdentity({ indexedDB, crypto, databaseName })).deviceId;
+      return openTodayOverLocalEra({ indexedDB, crypto, databaseName, namespace,
+        athleteId, deviceId: device, clock: clock || wallClock(), ...rest });
+    })();
+    byKey.set(key, entry);
+    // A failed open must not be remembered: the next page load has to try again.
+    entry.opening.catch(() => { if (byKey.get(key) === entry) byKey.delete(key); });
+  }
+  const era = await entry.opening;
+  entry.handles += 1;
+  let released = false;
+  return Object.freeze({ ...era, close() {
+    if (released) return;
+    released = true;
+    entry.handles -= 1;
+    if (entry.handles > 0) return;
+    if (byKey.get(key) === entry) byKey.delete(key);
+    era.close();
+  } });
+}
+
+export default { openTodayOverLocalEra, openTodayInstallation, wallClock,
+  causalTips, startOrderRefusalOf,
+  TODAY_DATABASE, TODAY_NAMESPACE, TODAY_ATHLETE, PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER };

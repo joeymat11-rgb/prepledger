@@ -9,8 +9,10 @@
 // own gym-host.mjs. Nothing is stubbed; no second engine and no second capture
 // path exists.
 //
-// Synthetic and labelled: the athlete (rebuild/m3/w7-preview/fixtures.cjs, the
-// same invented athlete A1's Today uses), the device keys, the lease.
+// Synthetic and labelled: the athlete only (rebuild/m3/w7-preview/fixtures.cjs,
+// the same invented athlete A1's Today uses). C4b removed the rest: the device
+// keys, the lease and the enrolment are this installation's own local era now,
+// and nothing in the page mints any of them.
 //
 // This file needs rebuild/m3/w6's own dependencies (fake-indexeddb), exactly as
 // package.test.cjs and browser-check.mjs already do.
@@ -19,8 +21,7 @@ import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
-import { createGymHost, signRecord, LEASE_DOMAIN, AUTHORITY_KID,
-  causalTips, startOrderRefusalOf } from '../gym-host.mjs';
+import { createGymHost, causalTips, startOrderRefusalOf } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, effortWords, prescriptionLine, effortInstruction } from '../gym-model.mjs';
 import { mountGym, NO_REST_PRESCRIBED, COULD_NOT_PREPARE } from '../gym-app.mjs';
 import { createWorkoutEntry } from '../today-entry.mjs';
@@ -34,27 +35,19 @@ const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
 const DAY = SYNTHETIC_DAY;
 const SLOT = 'earned-today-preview/' + DAY;
 
-async function deviceKeys() {
-  const pair = await webcrypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-  const jwk = await webcrypto.subtle.exportKey('jwk', pair.publicKey);
-  const storeKey = await webcrypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  return { kid: AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-    publicKey: { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y, key_ops: ['verify'], ext: true } };
-}
-
-// One device: one IndexedDB factory and one set of device keys, reused across
-// "relaunches" exactly as a real browser reuses its own storage and key store.
+// One device: one IndexedDB factory, which is one installation of the local era,
+// reused across "relaunches" exactly as a real browser reuses its own storage
+// and key custody. No key is minted here — the page does not take one.
 async function device(options = {}) {
   const fault = faultDatabase();
-  const keys = await deviceKeys();
   const today = createTodayModel({});
   const state = options.engineState || today.stateFromOps();
   async function open() {
     return createGymHost({ day: DAY, engineState: state, indexedDB: fault.indexedDB,
-      crypto: webcrypto, deviceKeys: keys, plannedSplitSlotId: SLOT });
+      crypto: webcrypto, plannedSplitSlotId: SLOT });
   }
   const gymHost = await open();
-  return { fault, keys, today, state, gymHost, open,
+  return { fault, today, state, gymHost, open,
     model: createGymModel({ gymHost, sessionTitle: today.read().workout.title }) };
 }
 const opsOf = async repository => Object.values((await repository.load()).generation.collections.ops || {});
@@ -454,10 +447,12 @@ test('A2 — Today reflects the durable workout state', async t => {
     { url: 'http://127.0.0.1:4178/' });
   const doc = dom.window.document;
   const fault = faultDatabase();
-  const keys = await deviceKeys();
-  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
+  const readings = await createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
   const today = createTodayModel({ today: DAY, readings });
-  const workout = await createWorkoutEntry(today, { indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
+  /* C4b — ONE STORE: the reading host and the workout entry open the SAME
+     installation, so this is the whole screen over one sealed generation. */
+  const workout = await createWorkoutEntry(today, { indexedDB: fault.indexedDB, crypto: webcrypto });
+  assert.equal(workout.gymHost.repository, readings.repository, 'one repository handle');
   const api = TodayApp.mountToday(doc, today, { workout });
   const slot = name => doc.querySelector(`[data-slot="${name}"]`);
 
@@ -472,7 +467,17 @@ test('A2 — Today reflects the durable workout state', async t => {
   });
 
   await t.test('with one in progress, Today offers Resume and says so', async () => {
-    await workout.gym.start();
+    /* C4b — ONE STORE. The preparation this entry took at construction was
+       resolved BEFORE the weigh-in, and one store means the weigh-in moved the
+       generation, so that preparation is stale and is refused BY NAME. The
+       shipped screen re-prepares before every Start (gym-app.mjs paint() calls
+       model.read()); this line is that re-preparation, stated. */
+    const stale = await workout.gym.start();
+    assert.equal(stale.ok, false, 'a preparation taken before the weigh-in is stale');
+    assert.equal(stale.code, 'WORKOUT_PREPARATION_STALE', JSON.stringify(stale));
+    await workout.refresh();
+    const started = await workout.gym.start();
+    assert.equal(started.ok, true, started.code);
     await workout.refresh();
     api.render('today');
     assert.match(slot('workout-count').textContent, new RegExp(TodayApp.WORKOUT_IN_PROGRESS + '$'));
@@ -518,13 +523,12 @@ test('A2 — Today reflects the durable workout state', async t => {
    --------------------------------------------------------------------------- */
 async function lane(state, label) {
   const fault = faultDatabase();
-  const keys = await deviceKeys();
   /* on(day) is A PAGE LOAD: a brand new host over the SAME device storage and the
-     SAME key store, exactly as reopening the app builds a new host over the
+     SAME key custody, exactly as reopening the app builds a new host over the
      IndexedDB that is already there. Nothing is carried in memory between these. */
   async function on(day) {
     const host = await createGymHost({ day, engineState: state, indexedDB: fault.indexedDB, crypto: webcrypto,
-      deviceKeys: keys, plannedSplitSlotId: 'slot', databaseName: 'probe-' + label });
+      plannedSplitSlotId: 'slot', databaseName: 'probe-' + label });
     return { host, model: createGymModel({ gymHost: host, sessionTitle: 'T' }) };
   }
   return { on, fault };

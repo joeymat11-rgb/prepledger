@@ -26,11 +26,11 @@
 
    WHAT IS SYNTHETIC AND SAID SO. The athlete BASIS — exercises, split, sleep, food log,
    and the reads before the first day this device owns — is
-   rebuild/m3/w7-preview/fixtures.cjs, the invented synthetic athlete. The device
-   enrolment (store key, authority key pair, lease, identity label) is minted on the
-   device by gym-host.mjs and labelled there; it authorizes nothing and reaches no
-   server. There is no transport, so the client is created offline and never claims
-   a sync.
+   rebuild/m3/w7-preview/fixtures.cjs, the invented synthetic athlete. That is now the
+   ONLY synthetic thing left: C4b moved the device enrolment onto this phone's own
+   local era (rebuild/m3/w6/local/), whose identity key, authority key and lease are
+   generated on the device and sealed inside the generation they authorize. There is
+   no transport, so the client is created offline and never claims a sync.
 
    WHAT IS REAL. The operation envelope and its commitment, the all-or-nothing durable
    transaction, the integrity checkpoint, the outbox accounting, the face's governing
@@ -41,12 +41,11 @@
 const { createTodayEngine } = require("./today-engine.cjs");
 const { SYNTHETIC_DAY, createSyntheticState } = require("../fixtures.cjs");
 
-/* Synthetic, public, non-secret preview labels, shared with gym-host.mjs. Naming
-   them in source is deliberate: there is no real key here to leak, and a reader
-   must be able to see that. */
-const SYNTHETIC_DEVICE_ID = "earned-today-preview-device";
-const SYNTHETIC_ATHLETE_ID = "earned-today-preview-athlete";
-const SYNTHETIC_IDENTITY_KEY = "synthetic-preview-identity-not-a-credential";
+/* C4b: the three synthetic enrolment labels that used to live here
+   (SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY) are gone.
+   Nothing read them once gym-host.mjs stopped minting an enrolment; the device
+   id is this installation's own (local-keys.mjs) and the identity key is the
+   era's, sealed in the generation and never named in source. */
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
@@ -276,5 +275,5 @@ function createTodayModel(options = {}) {
 module.exports = {
   createTodayModel, createBasisState, previewClock, engineClockFor, projectionOf,
   NO_STORE, NO_STORE_NOTE, STORE_NOTE,
-  SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY, SYNTHETIC_DAY,
+  SYNTHETIC_DAY,
 };

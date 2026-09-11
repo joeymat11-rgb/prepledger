@@ -16,6 +16,17 @@ import { StorageFailure } from "../repository.mjs";
 
 const STORE = "keys";
 const ACTIVE = "active";
+/* C4b. THE DEVICE IDENTITY, kept beside the key it belongs to.
+   `localEraConfig` refuses an era whose sealed lease names another device
+   (LOCAL_ERA_SCOPE_MISMATCH), so the id a page opens with has to be the SAME id
+   on every launch — it cannot be minted per page load and it cannot be a
+   constant shared by every installation. It is therefore minted once, at random,
+   and persisted HERE: erasing it is already an erasure of key custody, which is
+   already restore-required, so there is no new way for an installation to lose
+   half of itself. It is an identifier, never a credential: it authorizes
+   nothing, and the keys in this store stay non-extractable and unexported. */
+const DEVICE = "device";
+const DEVICE_PREFIX = "device-";
 const VERSION = 1;
 export const keysDatabaseName = databaseName => `${databaseName}-keys`;
 
@@ -114,4 +125,46 @@ export async function openLocalKeys({ indexedDB = globalThis.indexedDB, crypto =
     },
     close() { held = null; try { db.close(); } catch {} },
   };
+}
+
+/* THE DEVICE IDENTITY (C4b). Read it, or mint it once and persist it, in the
+   key database this installation already owns. Returns the SAME id on every
+   later call for the same database, which is what `localEraConfig` requires.
+   `minted` says which happened, so a caller can report a genuinely new install
+   without guessing. Nothing here reads, writes or touches the key record. */
+export async function openLocalDeviceIdentity({ indexedDB = globalThis.indexedDB,
+  crypto = globalThis.crypto, databaseName } = {}) {
+  if (!indexedDB || typeof crypto?.getRandomValues !== "function" || !databaseName)
+    throw new StorageFailure("KEY_CONFIGURATION_REQUIRED", 18);
+  const db = await new Promise((resolve, reject) => {
+    const request = indexedDB.open(keysDatabaseName(databaseName), VERSION);
+    request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(STORE)) request.result.createObjectStore(STORE); };
+    request.onerror = () => reject(new StorageFailure("KEY_DATABASE_OPEN_FAILED", 18));
+    request.onblocked = () => reject(new StorageFailure("KEY_DATABASE_UPGRADE_BLOCKED", 18));
+    request.onsuccess = () => { request.result.onversionchange = () => request.result.close(); resolve(request.result); };
+  });
+  try {
+    const existing = await new Promise((resolve, reject) => {
+      let tx, value;
+      try { tx = db.transaction(STORE, "readonly"); const request = tx.objectStore(STORE).get(DEVICE); request.onsuccess = () => { value = request.result; }; }
+      catch { reject(new StorageFailure("KEY_READ_FAILED", 18)); return; }
+      tx.oncomplete = () => resolve(value);
+      tx.onabort = () => reject(new StorageFailure("KEY_READ_FAILED", 18));
+      tx.onerror = () => {};
+    });
+    if (typeof existing?.deviceId === "string" && existing.deviceId.startsWith(DEVICE_PREFIX))
+      return { deviceId: existing.deviceId, minted: false };
+    if (existing !== undefined) throw new StorageFailure("LOCAL_DEVICE_IDENTITY_UNUSABLE", 18);
+    const deviceId = DEVICE_PREFIX + Array.from(crypto.getRandomValues(new Uint8Array(16)),
+      byte => byte.toString(16).padStart(2, "0")).join("");
+    await new Promise((resolve, reject) => {
+      let tx;
+      try { tx = db.transaction(STORE, "readwrite"); tx.objectStore(STORE).put({ deviceId }, DEVICE); }
+      catch { reject(new StorageFailure("KEY_WRITE_FAILED", 18)); return; }
+      tx.oncomplete = () => resolve(true);
+      tx.onabort = () => reject(new StorageFailure("KEY_WRITE_FAILED", 18));
+      tx.onerror = () => {};
+    });
+    return { deviceId, minted: true };
+  } finally { try { db.close(); } catch {} }
 }
