@@ -68,6 +68,19 @@ export function keysPresent({ indexedDB, databaseName }) {
   return probeRecord({ indexedDB, name: keysDatabaseName(databaseName), store: STORE, key: ACTIVE });
 }
 
+/* C4b-D5. The three first-run signals, read with the SAME non-creating probes
+   openLocalDurableClient uses and in the same shape, so that the device identity
+   below and C1's own status() cannot disagree about whether this is a first run.
+   The names are C1's: the generations store's active record, the key record, and
+   the enrolment marker in `<databaseName>-local`. */
+export async function firstRunSignals({ indexedDB, databaseName }) {
+  return {
+    store: await probeRecord({ indexedDB, name: databaseName, store: "generations", key: ACTIVE }),
+    keys: await keysPresent({ indexedDB, databaseName }),
+    marker: await probeRecord({ indexedDB, name: `${databaseName}-local`, store: "markers", key: "enrolled" }),
+  };
+}
+
 const usable = value => !!value && value.algorithm?.name === "AES-GCM" &&
   value.algorithm?.length === 256 && value.extractable === false;
 
@@ -131,11 +144,32 @@ export async function openLocalKeys({ indexedDB = globalThis.indexedDB, crypto =
    key database this installation already owns. Returns the SAME id on every
    later call for the same database, which is what `localEraConfig` requires.
    `minted` says which happened, so a caller can report a genuinely new install
-   without guessing. Nothing here reads, writes or touches the key record. */
+   without guessing. Nothing here reads, writes or touches the key record.
+
+   C4b REVIEW D5 — A REFUSED OPEN MUST NOT SEED AN IDENTITY. The first version
+   opened the key database (creating it) and minted before anything had decided
+   whether this installation may be opened at all, so erasing the key database
+   of a real installation put it straight back on disk with a fresh device id
+   while the page correctly said RESTORE_REQUIRED. Minting is now LAZY and
+   FIRST-RUN ONLY: the existing id is read through the non-creating probe, and a
+   new one is minted only when the caller's own three first-run signals — the
+   generation, the key record, the enrolment marker — are ALL absent, which is
+   the same observation C1's `openLocalDurableClient` makes before it will
+   enrol. Anything else throws C1's own code at state 18 and writes nothing. */
 export async function openLocalDeviceIdentity({ indexedDB = globalThis.indexedDB,
-  crypto = globalThis.crypto, databaseName } = {}) {
+  crypto = globalThis.crypto, databaseName, present } = {}) {
   if (!indexedDB || typeof crypto?.getRandomValues !== "function" || !databaseName)
     throw new StorageFailure("KEY_CONFIGURATION_REQUIRED", 18);
+  // Non-creating: a device that holds no key database still holds none after this.
+  const known = await probeRecord({ indexedDB, name: keysDatabaseName(databaseName), store: STORE, key: DEVICE });
+  if (!known) {
+    const signals = present || await firstRunSignals({ indexedDB, databaseName });
+    // Exactly C1's own verdict and its own precedence, so the page names the
+    // same code whether the refusal surfaces here or one call later.
+    if (signals.store || signals.keys || signals.marker)
+      throw new StorageFailure(!signals.store ? "STORE_MISSING"
+        : !signals.keys ? "KEY_MISSING" : "ENROLLMENT_MARKER_MISSING", 18);
+  }
   const db = await new Promise((resolve, reject) => {
     const request = indexedDB.open(keysDatabaseName(databaseName), VERSION);
     request.onupgradeneeded = () => { if (!request.result.objectStoreNames.contains(STORE)) request.result.createObjectStore(STORE); };

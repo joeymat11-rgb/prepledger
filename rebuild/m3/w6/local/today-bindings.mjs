@@ -152,7 +152,7 @@ const engineClockFor = day => ({ today: () => day, hour: () => 8,
 export async function openTodayOverLocalEra({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
-  athleteId, deviceId, clock,
+  athleteId, deviceId, clock, liveDay,
   enroll = true, cleanInit,
   producerIdentity = PRODUCER, planBasis = PLAN_BASIS, inputBasis = INPUT_BASIS,
   resumeReason = RESUME_REASON, nativeTrendContext,
@@ -174,13 +174,13 @@ export async function openTodayOverLocalEra({
     // NEVER a re-enrolment. C1's own verdict is the answer, code and state intact.
     if (booted.ready !== true) throw new StorageFailure(booted.code || "LOCAL_HOST_BINDINGS_BOOT_REQUIRED", booted.state ?? 18);
     return buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
-      databaseName, namespace, athleteId, deviceId, producerIdentity, planBasis, inputBasis,
+      databaseName, namespace, athleteId, deviceId, clock, liveDay, producerIdentity, planBasis, inputBasis,
       resumeReason, nativeTrendContext });
   } catch (error) { client.close(); throw error; }
 }
 
 function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
-  databaseName, namespace, athleteId, deviceId, producerIdentity, planBasis, inputBasis,
+  databaseName, namespace, athleteId, deviceId, clock, liveDay, producerIdentity, planBasis, inputBasis,
   resumeReason, nativeTrendContext }) {
   let open = true;
   const ignored = [];
@@ -199,6 +199,12 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       throw new StorageFailure("LOCAL_ERA_DATABASE_MISMATCH", 3);
     if (options.namespace !== undefined && options.namespace !== namespace)
       throw new StorageFailure("LOCAL_ERA_NAMESPACE_MISMATCH", 3);
+    /* C4b-D1. A caller that hands a HOST its own clock is asking for the one
+       thing this module may not infer: which day the operations it writes are
+       stamped with. A host's day comes from its `day` argument and from nowhere
+       else, so a second, possibly disagreeing clock is refused BY NAME rather
+       than quietly dropped — the silent drop is what stranded a Start. */
+    if (options.clock !== undefined) throw new StorageFailure("LOCAL_ERA_CLOCK_MISMATCH", 3);
     if (options.deviceKeys !== undefined) ignored.push(where + ": deviceKeys (the local era holds its own non-extractable key custody — local-keys.mjs)");
   }
 
@@ -221,7 +227,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         .slice()
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     }
-    const sealed = (await client.hostBindings({ workoutCommands })).repository;
+    // The reading host's own day, for the same reason the gym host has one.
+    const sealed = (await client.hostBindings({ workoutCommands, clock: clientClockFor(day) })).repository;
     const lease = (await sealed.load()).generation.metadata.authorityLease;
     return Object.freeze({
       repository: sealed, client, day, namespace, databaseName,
@@ -278,7 +285,16 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     if (!engineState || !Array.isArray(engineState.exercises)) throw new TypeError("createGymHost requires engineState");
     if (typeof plannedSplitSlotId !== "string" || !plannedSplitSlotId.trim()) throw new TypeError("createGymHost requires plannedSplitSlotId");
 
-    const bindings = await client.hostBindings({ workoutCommands });
+    /* C4b-D1 — THE HOST'S OWN CLOCK, all the way down. These bindings carry the
+       T2 stage that STAMPS every operation this host writes; composeWorkoutHost
+       below is handed `{ today: () => day }` and the engine runtime
+       `engineClockFor(day)`. All three are the SAME day, so an operation's
+       recorded day always equals the day the host that wrote it stands on — the
+       invariant the accepted resume policy and engine-order.cjs read. Before
+       this, the stage came from the installation (the first caller's day) while
+       the host stood on its own: a Start written on day 2 was stamped day 1 and
+       the next read refused it WORKOUT_HISTORY_RECONCILIATION_REQUIRED forever. */
+    const bindings = await client.hostBindings({ workoutCommands, clock: clientClockFor(day) });
     let alive = true;
     const engine = HostRuntime.createEngineRuntime({ clock: engineClockFor(day),
       nativeTrendContext: nativeTrendContext || createUnavailableNativeTrendContext() });
@@ -335,6 +351,12 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       importRebaseRequired: booted.importRebaseRequired === true,
       leaseRenewedUntil: booted.leaseRenewedUntil || null }),
     createReadingHost, createGymHost,
+    /* C4b-D1. The day this installation's OWN writes (the weigh-in path, the
+       lease window, the enrolment stamp) are stamped with, right now. Every host
+       stamps its own `day` instead; see createGymHost. */
+    liveDay: () => (typeof liveDay === "function" ? liveDay()
+      : (typeof clock?.today === "function" ? clock.today() : null)),
+    clockAdoptions: () => [],
     // Options a host handed over that this installation did not honour. Empty is
     // the expected answer once the page stops minting its own device material.
     ignored: () => ignored.slice(),
@@ -386,37 +408,89 @@ export function wallClock() {
 
 const installations = new WeakMap();
 
+/* C4b-D1 — THE LIVE CLOCK PROVIDER.
+   One installation serves a whole page load, and a page load can be asked for a
+   different day than the one it opened on: `today-entry.mjs` auto-boots at
+   module load on the page's own day and never releases its holder, and A2's own
+   gym-check.mjs conducts day 2 by calling boot({ today }) again in that same
+   load. The C4b memo returned the existing era and DROPPED the later caller's
+   clock in silence, so the installation's client kept stamping day one while the
+   host stood on day two. That is a stranded Start, and it is the defect A2's own
+   REJECT round named.
+
+   So the installation's clock is now LIVE: one provider, read by the local
+   client, by hostBindings, by the lease window check and by the enrolment stamp,
+   whose day is a single mutable value. A later caller that declares a different
+   day ADOPTS it — a page load that has moved to another day must stamp what it
+   writes now on that day — and the adoption is RECORDED by name on
+   `clockAdoptions()`, never silently honoured. ADOPT rather than REFUSE because
+   the shipped page cannot release its holder, so refusing would strand day two
+   rather than order it.
+
+   The HOST half is independent and does not go through here: every host binds
+   its own stage, host clock and engine clock to its own `day`
+   (`createGymHost` / `createReadingHost` above), so two hosts on two days in one
+   page load each stamp their own day correctly. */
+function liveClockOver(state) {
+  return Object.freeze({
+    today: () => state.day,
+    now: () => state.day + "T13:00:00.000Z",
+    tz: "-05:00",
+    monotonicMs: () => 0,
+  });
+}
+
 export async function openTodayInstallation({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
-  athleteId = TODAY_ATHLETE, deviceId, clock, ...rest } = {}) {
+  athleteId = TODAY_ATHLETE, deviceId, day, clock, ...rest } = {}) {
   if (!indexedDB || !crypto?.subtle) throw new StorageFailure("LOCAL_ERA_STORE_UNAVAILABLE", 18);
+  if (day !== undefined && (typeof day !== "string" || !DAY_RE.test(day)))
+    throw new StorageFailure("LOCAL_ERA_DAY_INVALID", 18);
   let byKey = installations.get(indexedDB);
   if (!byKey) { byKey = new Map(); installations.set(indexedDB, byKey); }
   const key = JSON.stringify([databaseName, namespace]);
   let entry = byKey.get(key);
   if (!entry) {
-    entry = { handles: 0 };
+    // The one mutable value the live clock reads. `clock` (an explicit provider)
+    // wins over `day`; with neither, the wall clock's own day seeds it.
+    const state = { day: day || wallClock().today() };
+    const live = clock || liveClockOver(state);
+    entry = { handles: 0, state, live, adoptions: [], declaredClock: clock !== undefined };
     entry.opening = (async () => {
       const device = deviceId || (await openLocalDeviceIdentity({ indexedDB, crypto, databaseName })).deviceId;
       return openTodayOverLocalEra({ indexedDB, crypto, databaseName, namespace,
-        athleteId, deviceId: device, clock: clock || wallClock(), ...rest });
+        athleteId, deviceId: device, clock: live, liveDay: () => state.day, ...rest });
     })();
     byKey.set(key, entry);
     // A failed open must not be remembered: the next page load has to try again.
     entry.opening.catch(() => { if (byKey.get(key) === entry) byKey.delete(key); });
+  } else if (day !== undefined && day !== entry.state.day) {
+    // THE ADOPTION, by name and on the record.
+    if (entry.declaredClock) {
+      entry.adoptions.push({ from: entry.state.day, to: day, adopted: false,
+        why: "the installation was opened with an explicit clock provider, which this module may not move" });
+    } else {
+      entry.adoptions.push({ from: entry.state.day, to: day, adopted: true });
+      entry.state.day = day;
+    }
   }
   const era = await entry.opening;
   entry.handles += 1;
   let released = false;
-  return Object.freeze({ ...era, close() {
-    if (released) return;
-    released = true;
-    entry.handles -= 1;
-    if (entry.handles > 0) return;
-    if (byKey.get(key) === entry) byKey.delete(key);
-    era.close();
-  } });
+  return Object.freeze({ ...era,
+    // What day this installation's own writes are stamped with, right now, and
+    // every time a later caller moved it.
+    liveDay: () => entry.state.day,
+    clockAdoptions: () => entry.adoptions.map(entry => ({ ...entry })),
+    close() {
+      if (released) return;
+      released = true;
+      entry.handles -= 1;
+      if (entry.handles > 0) return;
+      if (byKey.get(key) === entry) byKey.delete(key);
+      era.close();
+    } });
 }
 
 export default { openTodayOverLocalEra, openTodayInstallation, wallClock,

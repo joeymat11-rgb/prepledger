@@ -21,11 +21,15 @@ import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
 import design from "./design.cjs";
 
-/* A2 review B2 — a REAL process kill needs the pids of the chrome processes that
-   opened a given profile directory. `context.close()` is a graceful shutdown and
-   hides exactly the defect this check exists to catch. */
+/* A2 review B2 — a REAL process kill needs the pids of the browser processes
+   that opened a given profile directory. `context.close()` is a graceful
+   shutdown and hides exactly the defect this check exists to catch.
+
+   C4b review D3: the name was the literal "chrome.exe", so on a machine whose
+   W7_BROWSER_BIN is Edge this failed at the kill rather than reporting NOT RUN.
+   It is derived from the executable now, as local-today-browser.mjs does. */
 function chromeProcessesForProfile(profile) {
-  const script = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='" + PROCESS_NAME + "'\" | "
     + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
     + "Select-Object -ExpandProperty ProcessId";
   try {
@@ -45,6 +49,8 @@ if (!executablePath) {
 
 const require = createRequire(path.join(here, "../../w6/package.json"));
 const { chromium } = require("playwright-core");
+// C4b review D3 — the kill must name THIS browser, not a hardcoded chrome.exe.
+const PROCESS_NAME = path.basename(executablePath);
 
 // Every instruction title the engine can put in the headline slot, read out of the engine
 // source at run time so a title added tomorrow is covered without anyone listing it here.
@@ -265,7 +271,7 @@ try {
     const killedTrend = (await killPage.textContent('[data-slot="trend"]')).trim();
 
     const pids = chromeProcessesForProfile(profile);
-    assert(pids.length > 0, "no chrome process was found for this profile — the kill would prove nothing");
+    assert(pids.length > 0, "no " + PROCESS_NAME + " process was found for this profile — the kill would prove nothing");
     for (const pid of pids) {
       try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
       catch (_) { /* a child may already be gone with its parent */ }
@@ -297,7 +303,7 @@ try {
     + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
     + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `
     + `${before.viewport - before.bottom}px and ${afterBox.viewport - afterBox.bottom}px of headroom); `
-    + `the reading survived a REAL process kill (taskkill /F /T on ${killed} chrome.exe of a persistent profile, `
+    + `the reading survived a REAL process kill (taskkill /F /T on ${killed} ${PROCESS_NAME} of a persistent profile, `
     + `kill verified) and localStorage holds nothing; no network request; no prototype figure on screen; `
     + `${sweptBefore.count} engine headline titles swept in both states — worst headroom `
     + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after; `

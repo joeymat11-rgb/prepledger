@@ -35,6 +35,8 @@ if (!executablePath) {
 }
 const require = createRequire(path.join(here, "../../w6/package.json"));
 const { chromium } = require("playwright-core");
+// C4b review D3 — the kill must name THIS browser, not a hardcoded chrome.exe.
+const PROCESS_NAME = path.basename(executablePath);
 
 const VIEWPORT = { width: 390, height: 844 };
 // Figures out of the approved prototype. Its numbers are fictional; this synthetic
@@ -86,12 +88,18 @@ async function launch() {
 /* A REAL PROCESS KILL (review B2). context.close() is a graceful shutdown: the
    browser gets to flush everything it was holding, which is exactly the case that
    HIDES the defect this check exists to catch. iOS terminating a backgrounded tab
-   does not ask politely, and neither does this: every chrome.exe whose command line
-   names this profile directory is killed with `taskkill /F /T`, and the kill is
-   verified before the next launch. Nothing the browser had not already committed to
-   disk survives it. */
+   does not ask politely, and neither does this: every process of THIS BROWSER
+   whose command line names this profile directory is killed with `taskkill /F
+   /T`, and the kill is verified before the next launch. Nothing the browser had
+   not already committed to disk survives it.
+
+   C4b review D3: the name used to be the literal "chrome.exe", so on a machine
+   whose W7_BROWSER_BIN is Edge the check did not report NOT RUN — it FAILED at
+   the first kill, "no chrome process was found for this profile", before any of
+   the assertions below could run. It is derived from the executable now, exactly
+   as rebuild/m3/w6/test/local-today-browser.mjs already derives it. */
 function chromeProcessesForProfile() {
-  const script = "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+  const script = "Get-CimInstance Win32_Process -Filter \"Name='" + PROCESS_NAME + "'\" | "
     + "Where-Object { $_.CommandLine -like '*" + profile.replace(/'/g, "''") + "*' } | "
     + "Select-Object -ExpandProperty ProcessId";
   try {
@@ -102,7 +110,7 @@ function chromeProcessesForProfile() {
 }
 async function hardKill(context) {
   const pids = chromeProcessesForProfile();
-  assert(pids.length > 0, "no chrome process was found for this profile — the kill would prove nothing");
+  assert(pids.length > 0, "no " + PROCESS_NAME + " process was found for this profile — the kill would prove nothing");
   for (const pid of pids) {
     try { execFileSync("taskkill.exe", ["/F", "/T", "/PID", String(pid)], { stdio: "ignore", timeout: 30000 }); }
     catch (_) { /* a child may already be gone with its parent */ }
@@ -299,15 +307,26 @@ try {
   const shippedDayTwo = await page.evaluate(async (day) => {
     const mod = await import(new URL("app.js", location.href).href);
     const booted = await mod.boot({ today: day });
-    const ops = (await booted.workout.gymHost.repository.load()).generation.collections.ops || {};
-    return { summary: booted.workout.summary(), ops: Object.keys(ops).length };
+    const ops = Object.values((await booted.workout.gymHost.repository.load()).generation.collections.ops || {});
+    return { summary: booted.workout.summary(), ops: ops.length,
+      workoutOps: ops.filter((op) => op.class === "session").length,
+      readingOps: ops.filter((op) => op.class === "reading").length };
   }, DAY_TWO);
   assert.equal(shippedDayTwo.summary.phase, "blocked", JSON.stringify(shippedDayTwo.summary));
   assert.equal(shippedDayTwo.summary.code, "PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED",
     "the ported-log athlete is walled by the ENGINE, in its own words: " + shippedDayTwo.summary.code);
-  // Day 1 left 8 operations: a Start, the set that was logged and then undone,
-  // its removal edit, the four sets that stand, and the close.
-  assert.equal(shippedDayTwo.ops, 8, "a refused day writes nothing: " + shippedDayTwo.ops);
+  /* C4b — ONE STORE moved this number, and only this number. Day 1 left EIGHT
+     WORKOUT operations: a Start, the set that was logged and then undone, its
+     removal edit, the four sets that stand, and the close. It also logged one
+     morning weigh-in, which before the swap lived in a second generation
+     (earned-today-preview-readings) and is now in the SAME one — so the
+     generation holds 9. The claim being made here is "a refused day writes
+     NOTHING", so it is made against the count taken before the refused day
+     rather than against a literal that has to be re-derived every time the
+     journey above changes: the reading is counted separately and named. */
+  assert.equal(shippedDayTwo.workoutOps, 8, "day 1's eight workout operations: " + shippedDayTwo.workoutOps);
+  assert.equal(shippedDayTwo.readingOps, 1, "and the one morning, now in the SAME generation");
+  assert.equal(shippedDayTwo.ops, 9, "a refused day writes nothing: " + shippedDayTwo.ops);
 
   /* Now the athlete S2 actually ships to. DECISIONS:100 has Joe starting FRESH, so
      the daily path that matters is the one without a ported log — same device, same
@@ -365,20 +384,54 @@ try {
     fresh.sessionLog = {};
     const booted = await mod.boot({ today: day, basisState: fresh });
     const read = await booted.workout.gymHost.host.client.readWorkoutHistory();
-    const ops = (await booted.workout.gymHost.repository.load()).generation.collections.ops || {};
-    const starts = Object.values(ops).filter((op) => op.kind === "session-start");
+    const ops = Object.values((await booted.workout.gymHost.repository.load()).generation.collections.ops || {});
+    const starts = ops.filter((op) => op.kind === "session-start");
     return { read: read.read, sessions: read.read ? read.history.sessions.length : null,
       summary: booted.workout.summary(), morning: booted.readings ? (await booted.readings.reads()).length : null,
-      ops: Object.keys(ops).length,
-      orphanStarts: starts.filter((op) => op.causal_parents.length === 0).length };
+      ops: ops.length,
+      workoutOps: ops.filter((op) => op.class === "session").length,
+      readingOps: ops.filter((op) => op.class === "reading").length,
+      leases: [...new Set(ops.map((op) => op.lease_id))].length,
+      startDays: starts.map((op) => op.effective.local_date).sort(),
+      orphanStarts: starts.filter((op) => (op.causal_parents || []).length === 0).length,
+      startParents: starts.map((start) => (start.causal_parents || [])
+        .map((id) => { const parent = ops.find((op) => op.op_id === id); return parent ? parent.kind : "?"; })) };
   }, DAY_TWO);
   assert.equal(bothDays.read, true, "the durable history still reads after the third REAL kill");
   assert.equal(bothDays.sessions, 2, "BOTH training days are on disk: " + bothDays.sessions);
   assert.equal(bothDays.summary.phase, "finished", "day 2 is still recorded: " + JSON.stringify(bothDays.summary));
-  assert.equal(bothDays.ops, 14, "day 1's eight operations plus day 2's six: " + bothDays.ops);
-  assert.equal(bothDays.orphanStarts, 1,
-    "exactly one Start descends from nothing — the first; day 2 descends from day 1's close");
-  assert.equal(bothDays.morning, 2, "both mornings are in the encrypted reading store");
+  /* C4b — the second number ONE STORE moved. Day 1's eight workout operations
+     plus day 2's six is still 14; the two mornings used to be 2 operations in a
+     SECOND generation and are now in this one, so the generation holds 16 under
+     ONE lease. Both halves are asserted separately rather than as one literal,
+     so a future change to either journey says which half moved. */
+  assert.equal(bothDays.workoutOps, 14, "day 1's eight workout operations plus day 2's six: " + bothDays.workoutOps);
+  assert.equal(bothDays.readingOps, 2, "and both mornings, in the SAME generation: " + bothDays.readingOps);
+  assert.equal(bothDays.ops, 16, "ONE generation holds all of it: " + bothDays.ops);
+  assert.equal(bothDays.leases, 1, "under ONE lease_id across both write paths");
+  /* C4b review D1 — each Start is stamped on the day its own host stood on.
+     This is the invariant that, when it broke, left a Start on disk that no
+     accepted resolver could order. */
+  assert.deepEqual(bothDays.startDays, [DAY_ONE, DAY_TWO].sort(),
+    "each Start is stamped on its own day: " + JSON.stringify(bothDays.startDays));
+  /* C4b — THE THIRD NUMBER ONE STORE MOVED, and the most interesting one.
+     This used to read "exactly one Start descends from nothing — the first".
+     Under TWO generations the workout log began with the first Start, so that
+     Start had no parent. Under ONE, day 1's morning weigh-in is written FIRST
+     and into the SAME causal graph, so the first Start descends from THE
+     MORNING and no Start is an orphan at all. The claim the old assertion made
+     — every Start is ordered, and day 2 descends from day 1 — is made directly
+     instead of through an orphan count: each Start's parents are named by kind. */
+  assert.equal(bothDays.orphanStarts, 0,
+    "no Start descends from nothing: under one store the first one descends from the first morning");
+  assert.deepEqual(bothDays.startParents.map((kinds) => kinds.slice().sort()),
+    [["fact"], ["fact", "session-close", "tombstone"]],
+    "day 1's Start descends from that morning's reading; day 2's from every tip the log then "
+    + "held — day 1's close, the Undo's tombstone, and day 2's own morning: "
+    + JSON.stringify(bothDays.startParents));
+  assert(bothDays.startParents[1].includes("session-close"),
+    "and day 2 descends from day 1's close, which is the ordering claim that matters");
+  assert.equal(bothDays.morning, 2, "both mornings are readable through the reading host");
 
   await page.reload({ waitUntil: "load" });
   await page.waitForSelector('[data-slot="workout-count"]');
@@ -409,12 +462,14 @@ try {
     + "Today -> weigh-in -> Start -> active set (prescription shown separately from editable performed values, "
     + "no effort preselected) -> refusal without an effort answer -> logged with an explicit unknown effort -> "
     + "saved facts + Undo + rest + next set -> Undo removed it -> relogged -> REAL PROCESS KILL (taskkill /F /T "
-    + "on every chrome.exe of the persistent profile, kill verified) -> the weigh-in AND the in-progress workout "
+    + "on every " + PROCESS_NAME + " of the persistent profile, kill verified) -> the weigh-in AND the in-progress workout "
     + "both came back out of the encrypted store and the session resumed at the next set -> finished -> Today "
     + "says recorded, through a reload, a new page and a SECOND real kill. DAY 2 (" + DAY_TWO + ", the page's own "
     + "entry point over the same device storage): prepares -> weigh-in -> Start -> every set -> finished; a THIRD "
-    + "real kill, and the history still reads with BOTH sessions (14 ops, exactly one Start descending from "
-    + "nothing) and both mornings still in the encrypted reading store. localStorage holds nothing. Headroom: "
+    + "real kill, and the history still reads with BOTH sessions. ONE STORE (C4b): 16 operations in ONE sealed "
+    + "generation under ONE lease — 14 workout and both mornings; each Start stamped on its own day; day 1's "
+    + "Start descends from that morning's reading and day 2's from day 1's close, so NO Start is unordered. "
+    + "localStorage holds nothing. Headroom: "
     + notes.join(", ")
     + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");
 } catch (error) {

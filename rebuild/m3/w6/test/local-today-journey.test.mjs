@@ -589,7 +589,7 @@ test('C4 — a weigh-in and a workout set committed concurrently both survive', 
    =========================================================================== */
 export const PAGE_PINS = Object.freeze({
   'today-entry.mjs': '4b9a0c218b1c333f9c3c49f418a3a14d9ad31458a00aa19732026fff84571595',
-  'gym-host.mjs': '01b3c813eff92c52af6b91a478fbfb0f4ffe1b4360f9ca86e3eaa743624c6232',
+  'gym-host.mjs': '70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18',
   'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
 });
 const pageFile = name => fileURLToPath(new URL('../../w7-preview/today/' + name, import.meta.url));
@@ -857,5 +857,174 @@ test('C4b — boot() opens the local era BY DEFAULT, and takes an injected one w
       'the same era — a default boot and an injected one are the same installation');
     assert.equal(second.model.read().morningRead.lb, 179.4, 'and the first load\'s reading is still there');
     era.close();
+  });
+});
+
+/* ===========================================================================
+   10. TWO TRAINING DAYS IN ONE PAGE LOAD (C4b review D1).
+
+   THE DEFECT THIS BLOCK EXISTS FOR. The C4b memo returned an existing
+   installation and DROPPED the later caller's clock in silence, while
+   composeWorkoutHost still got the caller's real day. Two clocks for one notion
+   of "today": day 2's Start was written stamped day 1, and the very next read
+   refused it WORKOUT_HISTORY_RECONCILIATION_REQUIRED with
+   startOrderRefusal() = WORKOUT_START_ORDER_UNPROVEN — a Start on disk that no
+   accepted resolver can order, which is exactly A2's REJECT-round class.
+
+   It is reachable because the shipped page auto-boots at module load and NEVER
+   releases its holder, so every later boot({ today }) in that page load — which
+   is how A2's own gym-check.mjs conducts day 2 — got day one's clock.
+
+   The A/B is the whole point: the ONLY difference between the two runs is
+   whether day 1's holder was released. Both must now reach a logged set on day 2
+   and leave no Start for which startOrderRefusal() is non-null.
+   =========================================================================== */
+async function conductDayOne(booted) {
+  assert.deepEqual(booted.failures, []);
+  assert.equal((await booted.workout.gym.start()).ok, true);
+  for (let guard = 0; guard < 3; guard++) {
+    const view = await booted.workout.gym.read();
+    if (view.phase !== 'active') break;
+    const logged = await logCurrent(booted.workout.gym, view, CHOSEN);
+    assert.equal(logged.ok, true, 'day 1 set: ' + logged.code);
+    booted.workout.gym.forget();
+  }
+}
+
+async function twoDaysInOnePageLoad(releaseFirstHolder) {
+  const indexedDB = new IDBFactory();
+  const day2 = offsetDay(DAY, 1);
+  const first = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+  await conductDayOne(first);
+  if (releaseFirstHolder) first.hosts.close();
+
+  const fresh = createTodayModel({}).stateFromOps();
+  fresh.sessionLog = {};
+  const second = await Entry.boot({ document: shellDoc(), today: day2, indexedDB, crypto: webcrypto,
+    basisState: fresh });
+  assert.deepEqual(second.failures, []);
+  assert.equal(second.hosts.client === first.hosts.client, !releaseFirstHolder,
+    'the A and B runs must really differ in whether the installation was shared');
+
+  // The abandoned day-1 session is named and retired through the accepted close.
+  if (second.workout.summary().unfinished) {
+    const recovered = await second.workout.recover();
+    assert.equal(recovered.ok, true, 'recover: ' + recovered.code);
+  }
+  assert.equal(second.workout.summary().phase, 'ready', JSON.stringify(second.workout.summary()));
+
+  const started = await second.workout.gym.start();
+  assert.equal(started.ok, true, 'day 2 Start: ' + started.code);
+  const view = await second.workout.gym.read();
+  assert.equal(view.phase, 'active',
+    'day 2 must be usable after its own Start, not ' + view.phase + '/' + (view.code || '-')
+    + ' ' + JSON.stringify(view.unfinished || null));
+  const logged = await logCurrent(second.workout.gym, view, CHOSEN);
+  assert.equal(logged.ok, true, 'day 2 first set: ' + logged.code);
+
+  /* NOTHING STRANDED. Every Start on disk is one the accepted resolver can
+     order — that is the claim the whole block exists to make. */
+  assert.equal(await second.workout.gymHost.startOrderRefusal(), null);
+  const generation = (await second.hosts.generation()).generation;
+  const ops = Object.values(generation.collections.ops);
+  const starts = ops.filter(op => op.kind === 'session-start');
+  assert.equal(starts.length, 2, 'one Start per day');
+  assert.deepEqual(starts.map(op => op.effective.local_date).sort(), [DAY, day2],
+    'each Start is stamped on the day its own host stood on — the invariant D1 broke');
+  const liveDay = second.hosts.liveDay();
+  second.hosts.close();
+  if (!releaseFirstHolder) first.hosts.close();
+  return { ops: ops.map(op => op.kind), liveDay, adoptions: second.hosts.clockAdoptions() };
+}
+
+test('C4b-D1 — two training days in ONE page load, with and without releasing the first holder', async t => {
+  let released = null, shipped = null;
+
+  await t.test('A — the first holder IS released (a real relaunch): day 2 reaches a logged set', async () => {
+    released = await twoDaysInOnePageLoad(true);
+    assert.equal(released.ops.filter(kind => kind === 'session-start').length, 2);
+    assert.equal(released.ops.filter(kind => kind === 'session-close').length, 1, 'day 1 was retired');
+    assert.equal(released.ops.at(-1), 'session-set', 'and day 2 got as far as a logged set');
+    assert.deepEqual(released.adoptions, [], 'a fresh installation has nothing to adopt');
+  });
+
+  await t.test('B — THE SHIPPED SHAPE: the holder is NOT released, and day 2 still reaches a logged set', async () => {
+    shipped = await twoDaysInOnePageLoad(false);
+    assert.deepEqual(shipped.ops, released.ops,
+      'A and B must produce the SAME durable record — the only difference between them is a holder');
+  });
+
+  await t.test('the later day is ADOPTED by name, and the installation says so', () => {
+    assert.deepEqual(shipped.adoptions, [{ from: DAY, to: offsetDay(DAY, 1), adopted: true }],
+      'the second boot\'s day is recorded, never silently dropped');
+    assert.equal(shipped.liveDay, offsetDay(DAY, 1),
+      'and the installation\'s own writes are stamped on it from then on');
+  });
+
+  await t.test('a host may not be handed a second clock — it is refused BY NAME', async () => {
+    const era = await load(new IDBFactory(), DAY);
+    for (const [where, open] of [
+      ['createReadingHost', () => era.createReadingHost({ day: DAY, clock: clockFor(DAY) })],
+      ['createGymHost', () => era.createGymHost({ day: DAY, clock: clockFor(DAY),
+        engineState: createTodayModel({}).stateFromOps(), plannedSplitSlotId: SLOT })],
+    ]) await assert.rejects(open, error => {
+      assert.equal(error.code, 'LOCAL_ERA_CLOCK_MISMATCH', where);
+      assert.equal(error.state, 3, where);
+      return true;
+    }, where);
+    era.close();
+  });
+});
+
+/* ===========================================================================
+   11. A REFUSED OPEN SEEDS NOTHING (C4b review D5).
+
+   openLocalDeviceIdentity used to open the key database — CREATING it — and mint
+   a fresh device id before anything had decided whether this installation may be
+   opened at all. Erasing the key database of a real installation therefore put
+   it straight back on disk, holding a brand-new identity, while the page
+   correctly said RESTORE_REQUIRED. No re-enrolment followed and nothing was
+   lost, but a page that refuses to open an installation must not be seeding a
+   new one into it.
+   =========================================================================== */
+test('C4b-D5 — a restore-required open creates no key database and mints no device id', async t => {
+  const databases = async indexedDB => (await indexedDB.databases()).map(entry => entry.name).sort();
+
+  await t.test('a device that holds NOTHING is a first run: the id is minted once and kept', async () => {
+    const indexedDB = new IDBFactory();
+    assert.deepEqual(await databases(indexedDB), []);
+    const first = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal(first.restoreRequired, null);
+    const deviceId = first.hosts.deviceId;
+    assert.match(deviceId, /^device-[0-9a-f]{32}$/);
+    first.hosts.close();
+    const again = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal(again.hosts.deviceId, deviceId, 'the same identity comes back, never a second one');
+    again.hosts.close();
+  });
+
+  await t.test('with the key database ERASED, nothing is created and no id is minted', async () => {
+    const indexedDB = new IDBFactory();
+    const first = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal((await first.model.weighIn(179.4)).ok, true);
+    const deviceId = first.hosts.deviceId;
+    first.hosts.close();
+
+    await deleteDatabase(indexedDB, keysDatabaseName(GymHost.DATABASE));
+    const without = await databases(indexedDB);
+    assert.equal(without.includes(keysDatabaseName(GymHost.DATABASE)), false, 'the key database really is gone');
+
+    const booted = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal(booted.restoreRequired, 'KEY_MISSING', 'and the page says so, with C1\'s own code');
+    assert.equal(booted.hosts, null);
+    assert.deepEqual(await databases(indexedDB), without,
+      'the refused open created nothing — not even the key database it would have minted into');
+
+    /* And it stays refused: a second open does not eventually give up and start
+       a new life, and the id it would have minted is not on disk to be found. */
+    const again = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal(again.restoreRequired, 'KEY_MISSING');
+    assert.deepEqual(await databases(indexedDB), without);
+    assert.match(deviceId, /^device-[0-9a-f]{32}$/);
   });
 });

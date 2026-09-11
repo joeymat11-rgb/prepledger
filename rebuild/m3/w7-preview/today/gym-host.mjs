@@ -26,7 +26,7 @@
 // at random and kept in the key database beside the non-extractable store key
 // (local-keys.mjs openLocalDeviceIdentity), because the era's sealed lease names
 // a device and refuses any other.
-import { openTodayInstallation, clientClockFor, causalTips, startOrderRefusalOf,
+import { openTodayInstallation, causalTips, startOrderRefusalOf,
   TODAY_DATABASE, TODAY_NAMESPACE, TODAY_ATHLETE,
   PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER } from '../../w6/local/today-bindings.mjs';
 
@@ -48,12 +48,15 @@ export const ATHLETE_ID = TODAY_ATHLETE;
    what makes the next open a real relaunch off disk. */
 export function openTodayHosts({ indexedDB, crypto, databaseName = DATABASE,
   namespace = NAMESPACE, athleteId = ATHLETE_ID, deviceId, day, clock } = {}) {
-  /* The client's clock is the PAGE'S OWN DAY, exactly as this module's stage
-     clock always was (`day + 'T13:00:00.000Z'`) — the page's day is its today,
-     and an operation has to be stamped on the day the screen is standing on or
-     the accepted resume policy reads yesterday's open session as unfinished. */
+  /* The installation's clock is the PAGE'S OWN DAY, exactly as this module's
+     stage clock always was (`day + 'T13:00:00.000Z'`) — the page's day is its
+     today, and an operation has to be stamped on the day the screen is standing
+     on or the accepted resume policy reads yesterday's open session as
+     unfinished. `day` is passed AS A DAY, not pre-baked into a clock, so that a
+     later boot in the same page load (day 2) is ADOPTED and recorded on
+     `clockAdoptions()` rather than silently dropped — C4b review D1. */
   return openTodayInstallation({ indexedDB, crypto, databaseName, namespace, athleteId, deviceId,
-    clock: clock || (typeof day === 'string' ? clientClockFor(day) : undefined) });
+    day: typeof day === 'string' ? day : undefined, ...(clock ? { clock } : {}) });
 }
 
 /* A handle that owns its share of the installation: closing it detaches the
