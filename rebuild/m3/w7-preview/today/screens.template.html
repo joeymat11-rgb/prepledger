@@ -147,7 +147,7 @@
   </div>
   <div class="followup" data-follow="soreness" hidden>
     <label for="sore-location">Which muscles?</label>
-    <input id="sore-location" data-field="soreness_location">
+    <input id="sore-location" placeholder="For example, quads and glutes" data-field="soreness_location">
     <label for="sore-impact">Does it affect your usual movement?</label>
     <select id="sore-impact" data-field="soreness_impact">
       <option value="">Leave unanswered</option><option>No</option><option>A little</option><option>Quite a lot</option><option>Not sure</option>
@@ -168,7 +168,7 @@
   <div class="followup" data-follow="pain" hidden>
     <p>Keep pain separate from ordinary muscle soreness.</p>
     <label for="pain-location">Where, and during which movement?</label>
-    <input id="pain-location" data-field="pain_location">
+    <input id="pain-location" placeholder="Location and movement" data-field="pain_location">
     <label for="pain-change">Is this new or changed?</label>
     <select id="pain-change" data-field="pain_change">
       <option value="">Leave unanswered</option><option>New</option><option>Worse than before</option><option>Ongoing, unchanged</option><option>Improving</option><option>Not sure</option>
@@ -180,18 +180,18 @@
   </div>
   <div class="followup" data-follow="illness" hidden>
     <label for="ill-note">What symptoms, and when did they start?</label>
-    <input id="ill-note" data-field="illness_note">
+    <input id="ill-note" placeholder="What you have noticed" data-field="illness_note">
   </div>
   <div class="followup" data-follow="away" hidden>
     <label for="away-days">About how many days away from training?</label>
-    <input id="away-days" type="number" min="0" step="1" inputmode="numeric" data-field="away_days">
+    <input id="away-days" type="number" min="0" step="1" inputmode="numeric" placeholder="Days" data-field="away_days">
     <label for="away-reason">What was the reason?</label>
-    <input id="away-reason" data-field="away_reason">
+    <input id="away-reason" placeholder="Optional" data-field="away_reason">
   </div></fieldset>
 
   <details class="checkin-note"><summary>Add a note, if useful</summary>
     <label class="note-label" for="recovery-note">Anything the answers missed?</label>
-    <textarea id="recovery-note" data-field="note"></textarea>
+    <textarea id="recovery-note" placeholder="What else should your coach know?" data-field="note"></textarea>
   </details>
 
   <p class="error" id="checkin-error" role="alert"></p>

@@ -31,11 +31,20 @@ export const CLEAN_REP_HELP = [
   'Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.',
 ];
 
-export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {}) {
+/* A3 review F7 — the card's TRANSIENT state (what is typed into the two boxes and
+   which effort answer is chosen) lives in an object the caller may hold, so leaving
+   the card for the check-in and coming straight back does not throw the athlete's
+   half-entered set away. Nothing durable lives here: the moment a set is logged this
+   is cleared, and a caller that passes nothing gets a fresh one — which is exactly
+   what every existing caller and every A2 test does. */
+export function newGymDraft() { return { effort: null, entry: { load: null, reps: null } }; }
+
+export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
   let busy = false;
-  let effort = null;          // NOTHING is preselected; the athlete states it
-  let entry = { load: null, reps: null };
+  const held = draft && typeof draft === 'object' ? draft : newGymDraft();
+  if (!Object.hasOwn(held, 'effort')) held.effort = null;   // NOTHING is preselected
+  if (!held.entry || typeof held.entry !== 'object') held.entry = { load: null, reps: null };
   let showSetup = false, showWhy = false, showHelp = false;
 
   const template = id => {
@@ -129,10 +138,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {
 
     const load = root.querySelector('#gym-weight');
     const reps = root.querySelector('#gym-reps');
-    load.value = entry.load === null ? (view.entry.load === null ? '' : String(view.entry.load)) : entry.load;
-    reps.value = entry.reps === null ? (view.entry.reps === null ? '' : String(view.entry.reps)) : entry.reps;
-    load.addEventListener('input', () => { entry.load = load.value; });
-    reps.addEventListener('input', () => { entry.reps = reps.value; });
+    load.value = held.entry.load === null ? (view.entry.load === null ? '' : String(view.entry.load)) : held.entry.load;
+    reps.value = held.entry.reps === null ? (view.entry.reps === null ? '' : String(view.entry.reps)) : held.entry.reps;
+    load.addEventListener('input', () => { held.entry.load = load.value; });
+    reps.addEventListener('input', () => { held.entry.reps = reps.value; });
     for (const button of root.querySelectorAll('[data-step]')) {
       const [field, direction] = button.dataset.step.split(':');
       const size = field === 'load' ? (view.entry.step === null ? null : view.entry.step) : 1;
@@ -142,7 +151,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {
         const current = Number(box.value);
         const next = (Number.isFinite(current) ? current : 0) + Number(direction) * size;
         box.value = String(Math.max(0, Math.round(next * 100) / 100));
-        entry[field] = box.value;
+        held.entry[field] = box.value;
       });
     }
 
@@ -154,9 +163,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {
       button.type = 'button';
       button.textContent = choice.label;
       // NOTHING is preselected: every answer starts aria-pressed="false".
-      button.setAttribute('aria-pressed', String(!!effort && effort.label === choice.label));
+      button.setAttribute('aria-pressed', String(!!held.effort && held.effort.label === choice.label));
       button.addEventListener('click', () => {
-        effort = choice;
+        held.effort = choice;
         for (const other of choices.querySelectorAll('.choice')) other.setAttribute('aria-pressed', String(other === button));
         root.querySelector('#gym-error').textContent = '';
       });
@@ -184,14 +193,14 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {
       if (busy) return;
       busy = true;
       const result = await model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
-        load: load.value.trim(), reps: reps.value.trim(), effort: effort && effort.reserve });
+        load: load.value.trim(), reps: reps.value.trim(), effort: held.effort && held.effort.reserve });
       busy = false;
       if (!result.ok) {
         root.querySelector('#gym-error').textContent = refusalText(result);
         return;
       }
-      entry = { load: null, reps: null };
-      effort = null; showWhy = false; showSetup = false; showHelp = false;
+      held.entry = { load: null, reps: null };
+      held.effort = null; showWhy = false; showSetup = false; showHelp = false;
       await paint();
       if (onChanged) onChanged();
     });
@@ -316,5 +325,5 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn } = {
   return paint();
 }
 
-export default { mountGym, CHECK, NO_REST_PRESCRIBED, COULD_NOT_PREPARE, WORKOUT_RECORDED, CLEAN_REP_HELP,
-  FINISH_WORKOUT };
+export default { mountGym, newGymDraft, CHECK, NO_REST_PRESCRIBED, COULD_NOT_PREPARE, WORKOUT_RECORDED,
+  CLEAN_REP_HELP, FINISH_WORKOUT };

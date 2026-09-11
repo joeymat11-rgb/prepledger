@@ -14,8 +14,9 @@ import { webcrypto } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createCheckInHost, CHECKIN_DATABASE, CHECKIN_NAMESPACE, CHECKIN_SCHEMA_VERSION } from '../checkin-host.mjs';
-import { AUTHORITY_KID, DATABASE as WORKOUT_DATABASE } from '../gym-host.mjs';
-import { READING_DATABASE } from '../reading-host.mjs';
+import { AUTHORITY_KID, DATABASE as WORKOUT_DATABASE, createGymHost } from '../gym-host.mjs';
+import { createReadingHost, READING_DATABASE } from '../reading-host.mjs';
+import { createWorkoutEntry } from '../today-entry.mjs';
 import CheckInCommands from '../checkin-commands.cjs';
 import Model from '../checkin-model.mjs';
 import { createCheckInDraft, createCheckInModel, sleepNightFor, recordedLines, dayBefore } from '../checkin-model.mjs';
@@ -286,9 +287,6 @@ test('A3 — yesterday is never today, and a denial is never carried forward', a
   for (const value of Object.values(view.draft.choices)) assert.equal(value, null,
     'yesterday\'s answers do not pre-fill today\'s sheet');
   assert.equal(view.note, Model.NOTHING_YET);
-
-  /* And recording today does not disturb yesterday. */
-  await model.save.call(model);
   tomorrow.close();
 });
 
@@ -524,6 +522,117 @@ test('A3 — the check-in is reachable from Today, and Today reports the durable
   entry.host.close();
 });
 
+/* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. Entered from Today it goes
+   back to Today; entered mid-set it goes back to that set, with the workout still in
+   progress and what was typed into it still there. */
+test('A3 — back from the check-in returns to where the athlete came from', async () => {
+  const kit = await device();
+  const lane = { indexedDB: kit.fault.indexedDB, crypto: webcrypto, deviceKeys: kit.keys };
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  const today = createTodayModel({ today: DAY });
+  const workout = await createWorkoutEntry(today, lane);
+  const entry = await createCheckInEntry(today, lane);
+  const api = mountToday(doc, today, { workout, checkin: entry });
+
+  /* From TODAY: back lands on Today. */
+  doc.querySelector('[data-go="recovery"]').click();
+  assert.equal(api.screen(), 'recovery');
+  doc.querySelector('#phone [data-go="today"]').click();
+  await settle();
+  assert.equal(api.screen(), 'today');
+  assert(doc.querySelector('[data-slot="recovery-state"]'), 'Today is on screen');
+
+  /* From the ACTIVE SET: the card is opened, a weight is typed but not logged, the
+     check-in is reached from the card's own approved route, and back lands on the
+     same set with the typed value intact. */
+  api.render('workout', true);
+  await settle();
+  const weight = doc.querySelector('#gym-weight');
+  assert(weight, 'the gym card is on screen');
+  const before = await opsOf(workout.gymHost.repository);
+  weight.value = '47.5';
+  weight.dispatchEvent(new (dom.window.Event)('input', { bubbles: true }));
+
+  const route = doc.querySelector('#phone [data-action="checkin"]');
+  assert(route, 'the card carries the route');
+  assert.equal(route.hidden, false, 'the route is shown when the page supplies it');
+  route.click();
+  await settle();
+  assert.equal(api.screen(), 'recovery');
+  assert(text(doc).includes('A quick check-in.'));
+
+  doc.querySelector('#phone [data-go="today"]').click();
+  await settle();
+  assert.equal(api.screen(), 'workout', 'back returned to the workout, not to Today');
+  assert(doc.querySelector('#gym-weight'), 'the active set is on screen again');
+  assert.equal(doc.querySelector('#gym-weight').value, '47.5',
+    'the half-entered set survived the trip to the check-in');
+  const afterOps = await opsOf(workout.gymHost.repository);
+  assert.equal(afterOps.filter(o => o.kind === 'session-set').length, 0,
+    'navigating to the check-in and back logs no set');
+  assert.equal(afterOps.filter(o => o.kind === 'session-start').length,
+    before.filter(o => o.kind === 'session-start').length + (before.length ? 0 : 1),
+    'navigating never starts a second session');
+
+  /* And the origin does not stick: entering again from Today goes back to Today. */
+  doc.querySelector('#phone [data-action="back"]').click();
+  await settle();
+  assert.equal(api.screen(), 'today');
+  doc.querySelector('[data-go="recovery"]').click();
+  doc.querySelector('#phone [data-go="today"]').click();
+  await settle();
+  assert.equal(api.screen(), 'today', 'the workout origin was not inherited');
+
+  workout.gymHost.close();
+  entry.host.close();
+});
+
+/* A3 review F1 — the approved recovery vocabulary is HARVESTED from the pinned
+   approved bytes, not listed by hand, and every harvested string must be on the
+   shipped screen. The first build of this screen dropped six of the seven approved
+   placeholders precisely because a placeholder is an attribute and no hand list
+   mentioned it. */
+test('A3 — every approved word of the recovery screen is on the shipped screen', async () => {
+  const approved = design.readApproved();
+  const vocabulary = design.recoveryVocabulary(approved);
+  assert.deepEqual(vocabulary.placeholders, ['—', 'For example, quads and glutes',
+    'Location and movement', 'What you have noticed', 'Days', 'Optional',
+    'What else should your coach know?'], 'the harvest really reads the approved bytes');
+  assert.equal(vocabulary.legends.length, 5);
+  assert.equal(vocabulary.labels.length, 10);
+  assert.equal(vocabulary.options.length, 12);
+  assert.equal(vocabulary.choices.length, 12);
+
+  const report = design.assertRecoveryBinding(approved, design.templateHtml());
+  assert.deepEqual(report, { placeholders: 7, options: 12, labels: 10, legends: 5, choices: 12 });
+
+  /* RED FIRST: dropping any ONE of them fails, so this can never pass by accident. */
+  const template = design.templateHtml();
+  for (const value of vocabulary.placeholders.filter(v => v !== '—')) {
+    assert.throws(() => design.assertRecoveryBinding(approved,
+      template.replace(` placeholder="${value}"`, '')), /APPROVED-RECOVERY FAIL/, value);
+  }
+  /* replaceAll, because several approved words appear on more than one question
+     ("Leave unanswered", "Not sure"): removing one occurrence would leave the others
+     to satisfy the check and the mutation would prove nothing. */
+  for (const value of [...vocabulary.options, ...vocabulary.labels, ...vocabulary.legends,
+    ...vocabulary.choices]) {
+    assert.throws(() => design.assertRecoveryBinding(approved,
+      template.replaceAll('>' + value + '<', '>x<')), /APPROVED-RECOVERY FAIL/, value);
+  }
+
+  /* And they are really RENDERED, not merely present in the template file. */
+  const kit = await device();
+  const model = createCheckInModel({ host: kit.host, day: DAY, engineState: stateWithoutLastNight() });
+  const { doc } = await screen({ model });
+  const shown = [...doc.querySelectorAll('#phone [placeholder]')].map(el => el.getAttribute('placeholder'));
+  for (const value of vocabulary.placeholders) {
+    assert(shown.includes(value), 'the approved placeholder is not on screen: ' + value);
+  }
+  kit.host.close();
+});
+
 test('A3 — the workout flow carries the approved route to the check-in', () => {
   const template = design.templateHtml();
   const gym = template.slice(template.indexOf('<template id="t-gym">'), template.indexOf('<template id="t-rest">'));
@@ -591,14 +700,53 @@ test('A3 — MUTANT 4: skipping the outbox entry is impossible — one transacti
   kit.host.close();
 });
 
-test('A3 — MUTANT 5: a check-in cannot enter the workout or the weigh-in lane', () => {
-  /* Three lanes, three databases, three namespaces. A check-in written into the
-     workout's store would be a workout operation the accepted host would have to
-     order. It cannot happen: the lane names are distinct and each host opens only
-     its own. */
-  assert.notEqual(CHECKIN_DATABASE, WORKOUT_DATABASE);
-  assert.notEqual(CHECKIN_DATABASE, READING_DATABASE);
-  assert.match(CHECKIN_NAMESPACE, /checkins$/);
+/* A3 review F4 — MUTANT 5 as a PROPERTY of the running lanes, not of three string
+   constants. Three real stores are opened on ONE device, each is written through its
+   own product path, and the ops on disk are read back: no store holds another store's
+   operation, and neither producer will accept the other's command. */
+test('A3 — MUTANT 5: a check-in cannot enter the workout or the weigh-in lane', async () => {
+  const kit = await device();
+  const lane = { indexedDB: kit.fault.indexedDB, crypto: webcrypto, deviceKeys: kit.keys };
+  const today = createTodayModel({ today: DAY });
+  const readings = await createReadingHost({ day: DAY, ...lane });
+  const gymHost = await createGymHost({ day: DAY, engineState: today.stateFromOps(),
+    plannedSplitSlotId: 'earned-today-preview/' + DAY, ...lane });
+
+  await kit.host.save({ energy: 'Low', stress: 'High' });
+  const weighed = await readings.weighIn({ date: DAY, lb: 178.4 });
+  assert.equal(weighed.ok, true, weighed.copy);
+
+  const kindsIn = async repository => (await opsOf(repository))
+    .map(op => op.kind + '/' + op.class + (op.payload && op.payload.profile ? '/' + op.payload.profile : ''));
+  assert.deepEqual(await kindsIn(kit.host.repository), ['fact/event/' + CheckInCommands.PROFILE],
+    'the check-in lane holds the check-in and nothing else');
+  assert.deepEqual(await kindsIn(readings.repository), ['fact/reading'],
+    'the weigh-in lane holds no check-in');
+  assert.deepEqual(await kindsIn(gymHost.repository), [],
+    'the workout lane holds no check-in');
+
+  /* And the command itself cannot cross. The workout lane's ACCEPTED producer refuses
+     a check-in action, and this lane's producer refuses a workout action — both
+     without storing anything. */
+  const intoWorkout = await gymHost.host.client.execute('workout',
+    { action: 'checkin', input: { answers: { energy: 'Low' } } });
+  assert.notEqual(intoWorkout.acknowledged, true, 'the workout lane accepted a check-in');
+  assert.deepEqual(await kindsIn(gymHost.repository), [], 'the refusal stored nothing');
+
+  const intoCheckIn = await kit.host.client.execute('workout',
+    { action: 'start', input: { planned_split_slot_id: 'x', plan_basis: 'y' } });
+  assert.notEqual(intoCheckIn.acknowledged, true, 'the check-in lane accepted a workout Start');
+  assert.deepEqual(await kindsIn(kit.host.repository), ['fact/event/' + CheckInCommands.PROFILE],
+    'the refusal stored nothing');
+
+  // The three lanes really are three stores, which is what makes the above possible.
+  assert.equal(new Set([CHECKIN_DATABASE, WORKOUT_DATABASE, READING_DATABASE]).size, 3);
+  assert.equal(new Set([CHECKIN_NAMESPACE, gymHost.repository ? 'earned-today-preview/device-A' : '',
+    'earned-today-preview/device-A/readings']).size, 3);
+
+  readings.close();
+  gymHost.close();
+  kit.host.close();
 });
 
 test('A3 — MUTANT 6: the command producer refuses anything that is not a check-in', () => {

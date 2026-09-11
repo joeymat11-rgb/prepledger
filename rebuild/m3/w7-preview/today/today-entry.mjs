@@ -16,7 +16,7 @@ import TodayModel from "./today-model.cjs";
 import { createGymHost, openDeviceKeys } from "./gym-host.mjs";
 import { createReadingHost } from "./reading-host.mjs";
 import { createGymModel } from "./gym-model.mjs";
-import { mountGym } from "./gym-app.mjs";
+import { mountGym, newGymDraft } from "./gym-app.mjs";
 import { createCheckInHost } from "./checkin-host.mjs";
 import { createCheckInModel } from "./checkin-model.mjs";
 import { mountCheckIn } from "./checkin-app.mjs";
@@ -65,6 +65,7 @@ export async function createWorkoutEntry(model, options = {}) {
     sessionTitle: view.workout ? view.workout.title : null });
   let summary = null;
   let onRefresh = null;
+  const gymDraft = newGymDraft();
   /* THE PREPARABILITY PROBE (review B1). gym.read() prepares today's workout through
      the accepted host WITHOUT storing anything, so Today knows — before it offers
      anything — whether the layer will prepare, is mid-session, has a closed session,
@@ -91,9 +92,14 @@ export async function createWorkoutEntry(model, options = {}) {
     refresh,
     recover,
     setOnRefresh(fn) { onRefresh = fn; },
+    /* A3 review F7: the card's half-entered set is held BY THE ENTRY, not by the
+       mount, so stepping out to the check-in and straight back does not discard it.
+       It is transient only — a logged set clears it, and nothing here is of record. */
     open({ doc, phone, back, checkIn }) {
-      return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh, onCheckIn: checkIn });
+      return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh,
+        onCheckIn: checkIn, draft: gymDraft });
     },
+    gymDraft: () => gymDraft,
     gym, gymHost,
   };
 }

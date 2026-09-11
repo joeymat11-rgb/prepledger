@@ -128,6 +128,13 @@ function mountToday(doc, model, options = {}) {
   const checkinSummary = () => (checkin && typeof checkin.summary === "function" ? checkin.summary() : null) || null;
 
   let screen = "today";
+  /* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. The check-in is reachable
+     from two places, and "back" from it must not silently move the athlete: entered
+     from Today it returns to Today, entered mid-workout it returns to the workout,
+     which is still in progress and comes back at the same set with what was typed into
+     it still there. The origin is recorded when the route is taken and cleared the
+     moment it is used, so a later entry from Today can never inherit it. */
+  let checkinOrigin = null;
 
   /* The engine's own words are never reworded; only the first letter of the marching
      order's verb phrase is capitalised so it can head a button. */
@@ -428,10 +435,16 @@ function mountToday(doc, model, options = {}) {
      still shown — they are the design — but every control is inert and the screen
      says, in the capture layer's own terms, that nothing here can be recorded. It is
      NOT a "not wired yet" screen: the check-in is wired; this device has no store. */
-  function renderCheckInWithoutStore(focus) {
+  function renderCheckInWithoutStore(focus, origin = "today") {
     const root = renderStub("t-recovery", focus, CHECKIN_NO_STORE, null, "fine");
     for (const el of root.querySelectorAll("button.option, input, select, textarea, [data-slot='primary']")) el.disabled = true;
     for (const el of root.querySelectorAll("[data-follow], [data-slot='sleep-known'], [data-slot='recorded']")) el.hidden = true;
+    /* Back still returns where the athlete came from, store or no store (review F7). */
+    for (const el of root.querySelectorAll('[data-go="today"]')) {
+      const back = el.cloneNode(true);
+      el.replaceWith(back);
+      back.addEventListener("click", (event) => { event.preventDefault(); render(origin, true); });
+    }
   }
 
   function render(next, focus = false) {
@@ -440,10 +453,12 @@ function mountToday(doc, model, options = {}) {
     if (next === "why") return renderWhy(focus);
     if (next === "nutrition") return renderNutrition(focus);
     if (next === "recovery") {
+      const origin = checkinOrigin === "workout" && workout ? "workout" : "today";
+      checkinOrigin = null;
       if (checkin && typeof checkin.open === "function") {
-        return checkin.open({ doc, phone, back: () => render("today", true) });
+        return checkin.open({ doc, phone, back: () => render(origin, true) });
       }
-      return renderCheckInWithoutStore(focus);
+      return renderCheckInWithoutStore(focus, origin);
     }
     if (next === "coach") return renderStub("t-coach", focus,
       "The coach is not wired yet. There is no conversation here, and nothing on this screen comes from your records.");
@@ -453,7 +468,7 @@ function mountToday(doc, model, options = {}) {
            design's own sentence. The gym card is handed the route, not the screen:
            it never learns what a check-in is. */
         return workout.open({ doc, phone, back: () => render("today", true),
-          ...(checkin ? { checkIn: () => render("recovery", true) } : {}) });
+          ...(checkin ? { checkIn: () => { checkinOrigin = "workout"; render("recovery", true); } } : {}) });
       }
       /* No encrypted local workout store on this device: say exactly that, show no
          prescription, and record nothing. This is not a "not wired yet" screen — the

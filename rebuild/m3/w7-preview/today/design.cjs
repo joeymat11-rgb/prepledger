@@ -227,6 +227,70 @@ function fontFaceCss(fonts) {
   ).join("\n");
 }
 
+/* ---------------------------------------------------------------------------
+   THE RECOVERY SCREEN, DERIVED FROM THE APPROVED BYTES (A3 review F1).
+   ---------------------------------------------------------------------------
+   A hand-maintained list of approved strings can only catch what somebody
+   remembered to list, and the first build of this screen shipped six of the
+   approved placeholders missing because a placeholder is an ATTRIBUTE and the
+   copy binding only reads text NODES. So the recovery screen's vocabulary is not
+   listed at all: it is HARVESTED out of the pinned approved reference at check
+   time — every placeholder, every <option>, every <label>, every <legend> and
+   every choice array the approved screen builds its buttons from — and the
+   shipped template must carry every single one of them, verbatim.
+
+   A word added to the approved design upstream, or one quietly dropped here,
+   fails this without anyone updating a list. */
+const RECOVERY_START = "recovery:()=>";
+const RECOVERY_END = "coach:()=>";
+function recoverySection(approved) {
+  const reference = approved.find((a) => /additions-C-approved/i.test(a.file));
+  assert(reference, "APPROVED-RECOVERY FAIL: the authoritative Additions C reference is not pinned");
+  const start = reference.html.indexOf(RECOVERY_START);
+  const end = reference.html.indexOf(RECOVERY_END, start);
+  assert(start > 0 && end > start, "APPROVED-RECOVERY FAIL: the recovery screen could not be located");
+  return reference.html.slice(start, end);
+}
+function recoveryVocabulary(approved) {
+  const section = recoverySection(approved);
+  const grab = (pattern) => [...section.matchAll(pattern)].map((m) => m[1].replace(/\s+/g, " ").trim()).filter(Boolean);
+  const placeholders = grab(/placeholder="([^"]+)"/g);
+  const options = grab(/<option[^>]*>([^<]+)<\/option>/g);
+  const labels = grab(/<label[^>]*>([^<]+)<\/label>/g);
+  const legends = grab(/<legend[^>]*>([^<]+)<\/legend>/g);
+  // The approved screen builds its answer buttons from inline arrays:
+  //   ${['Poor','Okay','Good'].map(x=>`<button …>${x}</button>`).join('')}
+  const choices = [...section.matchAll(/\[((?:'[^']*',?)+)\]\.map\(/g)]
+    .flatMap((m) => [...m[1].matchAll(/'([^']*)'/g)].map((x) => x[1]))
+    .filter(Boolean);
+  const unique = (list) => [...new Set(list)];
+  return { placeholders: unique(placeholders), options: unique(options), labels: unique(labels),
+    legends: unique(legends), choices: unique(choices) };
+}
+/* Every harvested string must be in the shipped template. Placeholders are matched as
+   the attribute they are, so a placeholder demoted to visible text would not satisfy
+   this, and the rest as their own element's text. */
+function assertRecoveryBinding(approved, templateHtml) {
+  const vocabulary = recoveryVocabulary(approved);
+  assert(vocabulary.placeholders.length >= 7,
+    `APPROVED-RECOVERY FAIL: only ${vocabulary.placeholders.length} placeholders harvested`);
+  assert(vocabulary.choices.length >= 9,
+    `APPROVED-RECOVERY FAIL: only ${vocabulary.choices.length} answer choices harvested`);
+  for (const value of vocabulary.placeholders) {
+    assert(templateHtml.includes(`placeholder="${value}"`),
+      `APPROVED-RECOVERY FAIL: the approved placeholder "${value}" is missing from the shipped screen`);
+  }
+  for (const [kind, list] of [["option", vocabulary.options], ["label", vocabulary.labels],
+    ["legend", vocabulary.legends], ["choice", vocabulary.choices]]) {
+    for (const value of list) {
+      assert(templateHtml.includes(">" + value + "<"),
+        `APPROVED-RECOVERY FAIL: the approved ${kind} "${value}" is missing from the shipped screen`);
+    }
+  }
+  return { placeholders: vocabulary.placeholders.length, options: vocabulary.options.length,
+    labels: vocabulary.labels.length, legends: vocabulary.legends.length, choices: vocabulary.choices.length };
+}
+
 function assertDesignBinding(approved, templateHtml, appSource) {
   const css = approved.map((a) => a.styles).join("\n");
   const allowed = new Set(PREVIEW_CLASSES);
@@ -261,7 +325,11 @@ function assertDesignBinding(approved, templateHtml, appSource) {
   for (const line of textOf(templateHtml)) {
     assert(!/\d/.test(line), `NO-NUMBERS FAIL: the template carries a literal figure: "${line}"`);
   }
-  return { classes: used.size, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+  /* A3 review F1: the recovery screen's whole vocabulary, harvested from the approved
+     bytes rather than listed — placeholders included, which the text-node checks above
+     cannot see. */
+  const recovery = assertRecoveryBinding(approved, templateHtml);
+  return { classes: used.size, recovery, copy: PREVIEW_COPY.length + APPROVED_COPY.length
     + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
@@ -313,6 +381,7 @@ module.exports = {
   ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
   CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
+  recoverySection, recoveryVocabulary, assertRecoveryBinding,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
 };

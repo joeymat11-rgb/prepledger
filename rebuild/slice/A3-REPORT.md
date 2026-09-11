@@ -19,6 +19,18 @@ approved recovery check-in, over the same real durable stack A1's weigh-in and A
 card use. It is also reachable from inside the workout flow, in the approved design's own
 sentence ("How are you feeling today?").
 
+> **REVIEW ROUND 1 (dafcd01) — ACCEPT-WITH-FIXES, one blocking.** F1 found that six of
+> the approved screen's seven placeholder strings were missing from the shipped screen
+> ("For example, quads and glutes", "Location and movement", "What you have noticed",
+> "Days", "Optional", "What else should your coach know?" — only "—" survived), and that
+> the design binding could not have caught it, because a placeholder is an ATTRIBUTE and
+> the copy binding only reads text NODES. **The claim "word for word" below was therefore
+> false at dafcd01 and is corrected here: it was true of every visible sentence and every
+> choice, and false of six placeholders.** All six are now on the screen, and the recovery
+> screen's whole vocabulary is no longer a hand-maintained list at all — it is harvested
+> from the pinned approved bytes at check time (§2.1). F4, F5 and F7 are addressed below;
+> F2/F3 are recorded in §3.5 and §9.
+
 The screen is ADDITIONS C's recovery screen structure for structure and word for word:
 last night's sleep (approximate hours and quality as **separate** signals), energy now,
 muscle soreness now, stress now, "Anything else affecting today?" (Pain · Feeling ill ·
@@ -41,7 +53,10 @@ Behaviour, as the approved notes require:
 * an existing dated sleep night is shown with its provenance and offered for
   CONFIRMATION instead of being asked for a second time;
 * yesterday's check-in is never shown as today's, and a denial recorded yesterday is
-  never carried into today.
+  never carried into today;
+* **back returns where the athlete came from** (review F7): entered from Today it goes
+  back to Today; entered from the active set it goes back to that set, with the workout
+  still in progress and what was typed into it still there.
 
 Answers are stored as ONE dated operation per day through the accepted `rebuild/client`
 path — its own encrypted IndexedDB repository under the accepted durable public client,
@@ -61,17 +76,17 @@ reload, a new page and a real `taskkill /F /T`.
 | `6334594edde87236959cf4a51989c5fc6c15345f47ac1ebd246af87cc9dc6270` | `checkin-model.mjs` |
 | `cfb2b12f6aabf0360f500b8a008867d5c3dd809f2d7a1ca1ed5ede9926b46612` | `checkin-app.mjs` |
 | `2b5f8a99181544576a357855a1a9e4e1766d15737c61fd5cd720ded2357e4a91` | `checkin-check.mjs` |
-| `6e54c81f954b7f60a2155ea6603f830228f249cbbb93eef65919270bbefed80e` | `test/checkin.test.mjs` |
+| `aa101d3643f78db33090443056ea872ea04c32a1f16465eb1dce88f0b65537c2` | `test/checkin.test.mjs` |
 
 ### Changed
 
 | sha256 | file | what |
 | --- | --- | --- |
-| `41ee80bb85ef11c260f0e9af476ce5c8b899f5275b3e040a27576a56364dbe5c` | `screens.template.html` | `t-recovery` is the approved recovery screen; `t-gym` gains the hidden check-in route |
-| `c3192313f14ba3d2b33677721d615e1c95cd7a99987172a09804e6e41d3df251` | `today-app.cjs` | the `checkin` entry injection; recovery routing; Today's recovery marker |
-| `52fd9b05a18db6d853c7e6c661b3b2a72f7149d2ebc4283835f1d6a7f7f45339` | `today-entry.mjs` | `createCheckInEntry`, booted as a third lane; the gym card's route |
-| `e7a5e40673ee7791da47d525056d773f769c2972b3ab72455340c76c9038837c` | `gym-app.mjs` | `onCheckIn` (5 additive lines); the route is hidden unless supplied |
-| `86277297c54910219802ad26212043022457d57247d45c7bc9b22a03c50d7dbd` | `design.cjs` | the approved recovery copy, the check-in runtime copy, the preview-owned copy, two new view sources |
+| `d62981e369373e4971bc126a2f8d20ef4d037f68e7562dfa0784854bd9c6f0d2` | `screens.template.html` | `t-recovery` is the approved recovery screen, its seven approved placeholders included; `t-gym` gains the hidden check-in route |
+| `daea4dddf3b5ebd6c8f22108bebb5e37eb065afbb167259a412cae31b13d2116` | `today-app.cjs` | the `checkin` entry injection; recovery routing; the back-to-origin rule; Today's recovery marker |
+| `7a7f4b54bd486cc56480142e66f6815edc60c066ad6997c652e910e01a732ea3` | `today-entry.mjs` | `createCheckInEntry`, booted as a third lane; the gym card's route and its held draft |
+| `2886130654e20001628379118fd74a3c739a48b977c6b3ae453f0b7f9e0e084c` | `gym-app.mjs` | `onCheckIn` and `newGymDraft()` (additive); the route is hidden unless supplied |
+| `b4398841d5cee04565e9401232e30c3316f10a86f9458de1d0a015189d55a9b9` | `design.cjs` | the recovery vocabulary harvested from the approved bytes; the check-in runtime copy; the preview-owned copy; two new view sources |
 | `96bf93e652b13a47742b3e06266437606fe12f3c566e5da32b1b3ab0811af279` | `build.mjs` | the four check-in modules become REQUIRED bundle inputs |
 | `9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40` | `preview.css` | `.view .error:empty { display: none }` (one rule) |
 | `0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d` | `test/design.test.cjs` | the binding count and the view-source list grow |
@@ -86,6 +101,32 @@ file, `checkin-host.mjs`, and imports the shared device enrolment from `gym-host
 read-only, as `reading-host.mjs` already does.
 
 All files: UTF-8, no BOM, LF only, no mojibake (verified byte by byte).
+
+### 2.1 THE DERIVED RECOVERY BINDING (review F1)
+
+A hand-maintained list of approved strings can only catch what somebody remembered to
+list. So the recovery screen's vocabulary is no longer listed: `design.cjs` locates the
+approved screen inside the pinned reference (between `recovery:()=>` and `coach:()=>`)
+and **harvests** it at check time —
+
+| harvested | n | examples |
+| --- | --- | --- |
+| `placeholder=` attributes | 7 | `—`, `For example, quads and glutes`, `Days`, `Optional` |
+| `<option>` texts | 12 | `Leave unanswered`, `Quite a lot`, `Ongoing, unchanged` |
+| `<label>` texts | 10 | `hours asleep, approximately`, `Which muscles?` |
+| `<legend>` texts | 5 | `Last night's sleep`, `Anything else affecting today?` |
+| choice arrays the approved screen maps over | 12 | `Poor/Okay/Good`, `Pain/Feeling ill/Time away` |
+
+— and every one of them must be in the shipped template, placeholders matched **as the
+attribute they are** (so a placeholder demoted to visible text would not satisfy it).
+`assertRecoveryBinding()` runs inside `assertDesignBinding()`, so the BUILD fails too, not
+only the test. A word added to the approved design upstream, or one quietly dropped here,
+now fails without anyone updating a list.
+
+The test is RED-first: it removes each of the 45 harvested strings from a copy of the
+template, one at a time, and asserts each removal fails (`replaceAll`, because several
+approved words appear on more than one question). It then asserts the seven placeholders
+are really RENDERED on the mounted screen, not merely present in the template file.
 
 ---
 
@@ -178,6 +219,32 @@ rejected or tombstoned, ordered by the device's own sequence.
 
 `forDate(date)` is the date law: it returns only operations effective for the date asked
 for. That, and nothing else, is why yesterday can never be painted as today.
+
+### 3.5 TWO THINGS THAT RIDE ON LANE SEPARATION (review F2 / F3) — queue items under S1
+
+Both are **unreachable today** and both become reachable the moment a future package
+unifies the lanes. They belong with S1 and are recorded here so that package's author
+finds them.
+
+**F2 — `causalTips()` is kind-blind.** `gym-host.mjs`'s `causalTips(generation)` treats
+EVERY op in a generation as a node of the causal graph, regardless of `kind` or `class`.
+That is correct today only because a check-in lives in its own generation and the workout
+lane's generation contains nothing but session ops. If one schema and one generation ever
+carry both, a check-in `fact` would be taken as a causal tip and a later Start would
+descend from it — ordering a workout behind a wellness answer. **Whoever unifies the lanes
+must make `causalTips()` kind-aware (or class-scoped) in the same change.** This slice
+did not touch `gym-host.mjs` at all, so nothing here can be the cause; the note exists
+because merging lanes would make it one.
+
+**F3 — the reconnect copy.** `rebuild/client/index.cjs:205` answers a producer-injected
+command whose lease is not `schema_version: 2` with *"Reconnect before saving this
+workout."* — a sentence about workouts that a check-in would surface verbatim through
+`result.copy`. It is unreachable in this build: `checkin-host.mjs` mints its own schema-2
+lease for its own generation, so the branch cannot be entered, and no test can make it
+fire without editing the pinned client. If a future change ever gives the check-in lane a
+lease it did not mint, this sentence is what the athlete would read. Recorded, not
+papered over with a `copy` override — rewriting the accepted client's words in the
+renderer is exactly what A1 and A2 refused to do.
 
 ---
 
@@ -281,7 +348,7 @@ Each is a defect this screen exists to refuse. Each is a test in
 | M2 | carry yesterday forward (fall back to the newest row when today has none) | `forDate()` filters strictly on `effective.local_date`; the day-two test shows the newest row exists and is NOT returned, and the sheet is blank |
 | M3 | derive a score/index/readiness from the choices | the closed command refuses `readiness`, `score`, `recovery_index` and every other unlisted field; the shipped view source is scanned for score-shaped identifiers; the stored payload is asserted to contain no number but the two the athlete entered |
 | M4 | skip the outbox entry | the operation and its outbox entry are asserted equal in count and id; the accepted bridge re-checks the same thing (`PREPARED_BATCH_MISMATCH`) before it commits; the fault test proves the other half — neither, not one |
-| M5 | let a check-in into the workout or weigh-in lane | three databases, three namespaces, asserted distinct; each host opens only its own |
+| M5 | let a check-in into the workout or weigh-in lane | **a property of the running lanes** (review F4): three real stores opened on ONE device, each written through its own product path, ops read back from disk — the check-in store holds only `fact/event/earned/recovery-checkin/v1`, the weigh-in store only `fact/reading`, the workout store none of either; and the command cannot cross in either direction — the workout lane's ACCEPTED producer refuses `action: "checkin"` and this lane's producer refuses `action: "start"`, both storing nothing |
 | M6 | a producer that accepts anything | `prepare`/`validate` refused for a wrong action, an extra input key, an unknown choice, a wrong class, a wrong profile and an unknown causal parent |
 
 Two more defects were **found and fixed during the build**, both by tests written before
@@ -294,6 +361,16 @@ the fix:
 * the sleep-confirmation buttons stayed enabled while their block was hidden — a control
   reachable by keyboard or script that could answer something the athlete could not see.
   They are now inert whenever the block is not offered.
+
+### Round-1 review fixes
+
+| fix | what changed |
+| --- | --- |
+| **F1** (blocking) | the six missing approved placeholders are on the screen, and the recovery vocabulary is harvested from the approved bytes rather than listed (§2.1). Report §1 corrected. |
+| **F4** | M5 is now the real property test over three running lanes, not three string constants. |
+| **F5** | the dead `await model.save.call(model)` and its misleading comment are gone from the no-carry-forward test. |
+| **F7** | back returns to the origin; `gym-app.mjs` gains `newGymDraft()` so the half-entered set survives the trip (transient only — a logged set clears it, and a caller that passes nothing gets a fresh one, which is what every A2 test does). Tested both directions, including that the workout origin is not inherited by a later entry from Today. |
+| **F2/F3** | recorded in §3.5 as queue items under S1. |
 
 ---
 
@@ -312,8 +389,8 @@ node rebuild/m4/spec/native-carriers-package.cjs --ci
 node --test rebuild/m3/w7-preview/test/*.test.cjs                 -> pass 19   fail 0
 node --test rebuild/m3/w6/host/test/*.test.mjs .../*.test.cjs     -> pass 22   fail 0
 node --test rebuild/m3/w7-preview/today/test/*.test.mjs .../*.test.cjs
-                                                                  -> pass 149  fail 0
-        (A1 64 + A2 59 = 123, never fewer and never weakened, + 26 new A3 tests)
+                                                                  -> pass 151  fail 0
+        (A1 64 + A2 59 = 123, never fewer and never weakened, + 28 A3 tests)
 node --test rebuild/m3/w6/test/*.test.mjs                         -> pass 501  fail 0
 node --test rebuild/slice/pwa/test/*.test.cjs                     -> pass 53   fail 0
 
@@ -323,9 +400,11 @@ node rebuild/m3/w7-preview/today/build.mjs
   3/3 assets scanned and free of any network reference
 
 node rebuild/slice/pwa/build-pwa.mjs
-  A5 PWA BUILD PASS: 13 files ...; cache name earned-slice-03f20b0b27282e185a69c4e72d40c5c1
+  A5 PWA BUILD PASS: 13 files ...; cache name earned-slice-ff07c0d148da5a74eeb03a51210d1867
   derived from those bytes ...; no network reference in any shipped byte
 ```
+
+(Every figure above is from the run at the round-1-fix head, not from the first build.)
 
 Real Chromium (`W7_BROWSER_BIN=C:\Users\joeym\AppData\Local\ms-playwright\chromium-1234\chrome-win64\chrome.exe`):
 
@@ -385,13 +464,18 @@ run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs
 ```
 
 So CI on this branch runs the 123 existing today tests **including this slice's changes to
-`view.test.mjs` and `design.test.cjs`**, but NOT the 26 new tests in
+`view.test.mjs` and `design.test.cjs`**, but NOT the 28 new tests in
 `today/test/checkin.test.mjs`. Naming the file differently cannot change that — the step
 has no glob.
 
+One consolation, and it is the reason F1's fix went into `design.cjs` rather than only
+into a test: `assertRecoveryBinding()` runs inside `assertDesignBinding()`, which
+`design.test.cjs` (a step CI DOES run, on both OS) calls — so the derived recovery
+binding is under CI today even though `checkin.test.mjs` is not.
+
 **Re-seal item for the next engine package (carry with the batched item lines 99/101/102
 already record):** add `rebuild/m3/w7-preview/today/test/checkin.test.mjs` to the step at
-`rebuild.yml:89`, and re-pin. Until then the 26 A3 tests are proved on the PC only, and
+`rebuild.yml:89`, and re-pin. Until then the 28 A3 tests are proved on the PC only, and
 this report says so rather than implying CI covers them.
 
 ---
@@ -412,7 +496,7 @@ this report says so rather than implying CI covers them.
 5. **No safety workflow.** The approved notes: *"A selected issue needs its own qualified
    safety workflow before production."* Selecting Pain or Feeling ill records the facts
    and gives no clearance, no advice and no escalation. Named, not built.
-6. **The 26 A3 tests have no CI home yet** (§8).
+6. **The 28 A3 tests have no CI home yet** (§8).
 7. **The device enrolment is synthetic** and labelled so in `gym-host.mjs`, unchanged from
    A2: keys minted on the device, non-extractable, authorizing nothing anywhere.
 8. **One check-in per day per device.** Two devices are out of scope until hosted sync
