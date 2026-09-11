@@ -177,11 +177,15 @@ const engineClockFor = day => ({ today: () => day, hour: () => 8,
 export async function openTodayOverLocalEra({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
-  athleteId, deviceId, clock, liveDay,
+  athleteId, deviceId, clock, liveDay, calendar,
   enroll = true, cleanInit, initialSetup,
   producerIdentity = PRODUCER, planBasis = PLAN_BASIS, inputBasis = INPUT_BASIS,
   resumeReason = RESUME_REASON, nativeTrendContext,
 } = {}) {
+  if (calendar) {
+    if (clock !== undefined && clock !== calendar.clock) throw new StorageFailure('LOCAL_ERA_CLOCK_MISMATCH', 3);
+    clock = calendar.clock;
+  }
   const prescriptionCapture = Capture.createPrescriptionCapture({ parseStrictJson,
     profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
   const workoutCommands = Commands.createWorkoutCommands({ prescriptionCapture });
@@ -202,15 +206,30 @@ export async function openTodayOverLocalEra({
     // NEVER a re-enrolment. C1's own verdict is the answer, code and state intact.
     if (booted.ready !== true) throw new StorageFailure(booted.code || "LOCAL_HOST_BINDINGS_BOOT_REQUIRED", booted.state ?? 18);
     return buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
-      databaseName, namespace, athleteId, deviceId, clock, liveDay, producerIdentity, planBasis, inputBasis,
+      databaseName, namespace, athleteId, deviceId, clock, liveDay, calendar, producerIdentity, planBasis, inputBasis,
       resumeReason, nativeTrendContext });
   } catch (error) { client.close(); throw error; }
 }
 
 function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexedDB, crypto,
-  databaseName, namespace, athleteId, deviceId, clock, liveDay, producerIdentity, planBasis, inputBasis,
+  databaseName, namespace, athleteId, deviceId, clock, liveDay, calendar, producerIdentity, planBasis, inputBasis,
   resumeReason, nativeTrendContext }) {
   let open = true;
+  const hostClock = day => calendar ? calendar.clientClock(day) : clientClockFor(day);
+  const operation = (day, action) => calendar ? calendar.run(day, action) : action();
+  // The explicit earlier-day host can only prepare a continuation and close it.
+  // It cannot start, log, edit or remove an earlier performed set.
+  function calendarClient(raw, day, historicalClose = false) {
+    if (!calendar) return raw;
+    const guarded = new Set(['prepareWorkout', 'startPreparedWorkout', 'prepareWorkoutContinuation',
+      'executeResumedWorkout', 'prepareWorkoutEdit', 'commitWorkoutEdit', 'execute']);
+    return Object.freeze(Object.fromEntries(Object.entries(raw).map(([name, value]) => [name,
+      typeof value !== 'function' || !guarded.has(name) ? value : (...args) => {
+        const historical = historicalClose && (name === 'prepareWorkoutContinuation'
+          || name === 'executeResumedWorkout' && args[0]?.action === 'close');
+        return calendar.run(day, () => value(...args), { historical });
+      }])));
+  }
   const ignored = [];
   const assertOpen = () => { if (!open) throw new StorageFailure("LOCAL_CLIENT_CLOSED", 3); };
   /* The device options the two page hosts take today. This installation already
@@ -256,7 +275,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     }
     // The reading host's own day, for the same reason the gym host has one.
-    const sealed = (await client.hostBindings({ workoutCommands, clock: clientClockFor(day) })).repository;
+    const sealed = (await client.hostBindings({ workoutCommands, clock: hostClock(day) })).repository;
     const lease = (await sealed.load()).generation.metadata.authorityLease;
     return Object.freeze({
       repository: sealed, client, day, namespace, databaseName,
@@ -281,7 +300,9 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
          in test/local-schema-probe.mjs. */
       async weighIn({ date, lb } = {}) {
         if (!alive) return { ok: false, state: 3, copy: null, code: "LOCAL_CLIENT_CLOSED", op_id: null };
-        const result = await client.execute("weighIn", { date, lb });
+        if (calendar && date !== day) return { ok: false, state: 3, code: 'LOCAL_CALENDAR_DATE_MISMATCH',
+          copy: 'This entry belongs to another date. Nothing was recorded.', op_id: null };
+        const result = await operation(day, () => client.execute("weighIn", { date, lb }));
         return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
           code: result.code || null, op_id: result.op_id || null };
       },
@@ -322,7 +343,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
        this, the stage came from the installation (the first caller's day) while
        the host stood on its own: a Start written on day 2 was stamped day 1 and
        the next read refused it WORKOUT_HISTORY_RECONCILIATION_REQUIRED forever. */
-    const bindings = await client.hostBindings({ workoutCommands, clock: clientClockFor(day) });
+    const bindings = await client.hostBindings({ workoutCommands, clock: hostClock(day) });
     let alive = true;
     // B-NTC's qualified default lives at C4's actual shared-store composition.
     // An explicitly injected resolver remains the caller's; storage, clocks,
@@ -332,7 +353,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       if (!dayReader) throw new Error("GYM_NATIVE_TREND_DAY_READER_UNCOMPOSED");
       return dayReader.dayFacts(iso);
     } });
-    const runtime = HostRuntime.createEngineRuntime({ clock: engineClockFor(day),
+    const runtime = HostRuntime.createEngineRuntime({ clock: calendar ? calendar.engineClock(day) : engineClockFor(day),
       nativeTrendContext: nativeTrendContext || trendBinding.resolve });
     dayReader = NativeTrend.createDayFactsReader({ state: engineState, engine: runtime });
     // readPrevious runs after the producer returns. Scope each engine read to
@@ -360,7 +381,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
          outlives it is refused by the public client rather than reaching a live
          repository. The installation's own answer still has to agree. */
       isCurrentSession: epoch => alive === true && bindings.isCurrentSession(epoch),
-      createDurablePublicClient,
+      createDurablePublicClient: config => calendarClient(createDurablePublicClient(config), day, options.historicalClose === true),
       createNullSelectionRegistrar: SourceProjection.createNullSelectionRegistrar,
       createSourceProjectionReader: SourceProjection.createSourceProjectionReader,
       createEngineWorkoutCapture: Adapter.createEngineWorkoutCapture,
@@ -418,7 +439,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
     if (!commands || typeof commands !== "object") throw new TypeError("createCheckInHost requires commands");
     if (typeof profile !== "string" || !profile) throw new TypeError("createCheckInHost requires profile");
 
-    const bindings = await client.hostBindings({ workoutCommands: commands, clock: clientClockFor(day) });
+    const bindings = await client.hostBindings({ workoutCommands: commands, clock: hostClock(day) });
     const lease = (await bindings.repository.load()).generation.metadata.authorityLease;
     const checkInClient = createDurablePublicClient({ ...bindings,
       schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
@@ -465,7 +486,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       },
       async save(answers) {
         if (!alive) return { ok: false, state: 3, copy: null, code: "LOCAL_CLIENT_CLOSED", op_id: null };
-        const result = await checkInClient.execute("workout", { action: "checkin", input: { answers } });
+        const result = await operation(day, () => checkInClient.execute("workout", { action: "checkin", input: { answers } }));
         return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
           code: result.code || null, op_id: result.op_id || null };
       },
@@ -488,7 +509,7 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
   }
 
   return Object.freeze({
-    client, databaseName, namespace, athleteId, deviceId,
+    client, calendar, databaseName, namespace, athleteId, deviceId,
     // What C1's boot() reported about this installation: the era window, the
     // sidecar's freshness, any import still to be rebased. Never key material.
     installation: Object.freeze({ eraId: booted.eraId, leaseId: booted.leaseId,
@@ -590,7 +611,8 @@ function liveClockOver(state) {
 export async function openTodayInstallation({
   indexedDB = globalThis.indexedDB, crypto = globalThis.crypto,
   databaseName = TODAY_DATABASE, namespace = TODAY_NAMESPACE,
-  athleteId = TODAY_ATHLETE, deviceId, day, clock, ...rest } = {}) {
+  athleteId = TODAY_ATHLETE, deviceId, day, clock, calendar, ...rest } = {}) {
+  if (calendar && clock && clock !== calendar.clock) throw new StorageFailure('LOCAL_ERA_CLOCK_MISMATCH', 3);
   if (!indexedDB || !crypto?.subtle) throw new StorageFailure("LOCAL_ERA_STORE_UNAVAILABLE", 18);
   if (day !== undefined && (typeof day !== "string" || !DAY_RE.test(day)))
     throw new StorageFailure("LOCAL_ERA_DAY_INVALID", 18);
@@ -602,7 +624,7 @@ export async function openTodayInstallation({
     // The one mutable value the live clock reads. `clock` (an explicit provider)
     // wins over `day`; with neither, the wall clock's own day seeds it.
     const state = { day: day || wallClock().today() };
-    const live = clock || liveClockOver(state);
+    const live = calendar?.clock || clock || liveClockOver(state);
     /* THE DAY THIS INSTALLATION IS ACTUALLY STAMPING WITH — asked of the clock
        it is really using, never of the seed it was opened with (review round 2,
        nit 2). With no declared provider the two are the same value by
@@ -610,16 +632,18 @@ export async function openTodayInstallation({
        only a seed the provider never agreed to, so reporting it would have
        `liveDay()` name a day nothing is stamped on. */
     const dayNow = () => (typeof live.today === "function" ? live.today() : state.day);
-    entry = { handles: 0, state, live, dayNow, adoptions: [], declaredClock: clock !== undefined };
+    entry = { handles: 0, state, live, dayNow, adoptions: [], calendar, declaredClock: !!calendar || clock !== undefined };
     entry.opening = (async () => {
       const device = deviceId || (await openLocalDeviceIdentity({ indexedDB, crypto, databaseName })).deviceId;
       return openTodayOverLocalEra({ indexedDB, crypto, databaseName, namespace,
-        athleteId, deviceId: device, clock: live, liveDay: dayNow, ...rest });
+        athleteId, deviceId: device, clock: live, liveDay: dayNow, calendar, ...rest });
     })();
     byKey.set(key, entry);
     // A failed open must not be remembered: the next page load has to try again.
     entry.opening.catch(() => { if (byKey.get(key) === entry) byKey.delete(key); });
   } else {
+    if ((calendar || entry.calendar) && calendar !== entry.calendar)
+      throw new StorageFailure('LOCAL_ERA_CLOCK_MISMATCH', 3);
     if (rest.initialSetup !== undefined)
       throw new StorageFailure("LOCAL_INITIAL_SETUP_ALREADY_ENROLLED", 18);
     /* A SECOND CALLER'S OWN CLOCK PROVIDER, recorded exactly as a second

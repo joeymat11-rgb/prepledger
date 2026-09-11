@@ -104,6 +104,9 @@ const STORE_NOTE = "Saved in this device's encrypted local store. It survives a 
 
 function createTodayModel(options = {}) {
   const day = options.today || SYNTHETIC_DAY;
+  const owner = options.mode === 'owner';
+  if (owner && (!options.today || !options.basisState || !options.engineClock))
+    throw new TypeError('OWNER_TODAY_SETUP_AND_CLOCK_REQUIRED');
   const engineFactory = options.engineFactory || createTodayEngine;
   const basis = options.basisState ? clone(options.basisState) : createBasisState(day);
 
@@ -118,7 +121,7 @@ function createTodayModel(options = {}) {
   const durable = !!readings;
   const storageNote = durable ? STORE_NOTE : NO_STORE_NOTE;
 
-  const E = engineFactory({ clock: engineClockFor(day) });
+  const E = engineFactory({ clock: options.engineClock || engineClockFor(day) });
 
   let lastMessage = null;
 
@@ -131,11 +134,19 @@ function createTodayModel(options = {}) {
   /* op log -> engine state, through the ACCEPTED writer. */
   function stateFromOps() {
     let state = clone(basis);
+    // Clean-init has no energy/trend baseline. Project the client's accepted
+    // observations as facts; do not feed a fabricated baseline to applyRead.
+    if (owner) {
+      state.reads = storedReads().map(r => ({ d: r.date, w: r.lb }));
+      return state;
+    }
     for (const r of storedReads()) state = E.applyRead(state, r.date, r.lb, { hour: 8 });
     return state;
   }
 
   function sessionFor(state) {
+    if (owner && !(state.split || []).some(split => split.from <= day))
+      return { available: false, reason: 'WORKOUT_SPLIT_NOT_IN_FORCE', count: null, name: null };
     try {
       const session = E.genSession(state, day, null);
       if (!session || !Array.isArray(session.ex)) return { available: false, reason: null, count: null, name: null };
@@ -197,10 +208,21 @@ function createTodayModel(options = {}) {
     const unadopted = reads.filter((r) => !adoptedDates.has(r.date)).length;
     const adopted = (state.reads || []).filter((r) => r && typeof r.w === "number");
     const latestRead = adopted.length ? { date: adopted[adopted.length - 1].d, lb: adopted[adopted.length - 1].w } : null;
-    const projection = projectionOf(E, state);
     const session = sessionFor(state);
+    // The setup contract supplies a programme, not a nutrition or trend baseline.
+    // Unknown fields below are presentation values, never coaching prescriptions.
+    const projection = owner ? {
+      nowModel: { move: { title: 'Your day', body: 'Your saved programme is on this device.' },
+        eat: { sub: 'Nutrition targets are not configured.' }, headed: { weight: null },
+        workout: { title: session.name || 'Workout', sub: null, today: day } },
+      statusFace: { word: 'Unknown', cause: 'Your saved programme is on this device.' },
+      currentRate: { measured: false }, calorieTarget: { gated: true, mid: null, why: 'Nutrition targets are not configured.' },
+      proteinTarget: { g: null, why: 'Nutrition targets are not configured.' },
+      marchingOrder: { thenText: 'Log your weight', why: 'Record a weight when you are ready.' },
+      readRecency: null,
+    } : projectionOf(E, state);
     const view = {
-      today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,
+      mode: options.mode || 'test', athleteLabel: basis.athlete_label || null, today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,
       blocked: false, blockedCopy: null,
       durable, storageNote, message: lastMessage,
       hasReadToday: !!morningRead, latestRead, morningRead, storedReadCount: reads.length, unadopted,
@@ -211,7 +233,10 @@ function createTodayModel(options = {}) {
         available: session.available, unavailableReason: session.reason },
       ...projection,
     };
-    view.why = whySections(view);
+    view.why = owner ? [
+      { heading: 'Your programme', body: 'From the initial setup saved on this device.' },
+      { heading: 'Weight trend and nutrition', body: 'Projection for initial setup is not supported yet. Recorded weights are retained; no trend or nutrition target has been calculated.' },
+    ] : whySections(view);
     return clone(view);
   }
 
