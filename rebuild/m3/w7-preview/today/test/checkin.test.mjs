@@ -13,9 +13,9 @@ import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
-import { createCheckInHost, CHECKIN_DATABASE, CHECKIN_NAMESPACE, CHECKIN_SCHEMA_VERSION } from '../checkin-host.mjs';
-import { AUTHORITY_KID, DATABASE as WORKOUT_DATABASE, createGymHost } from '../gym-host.mjs';
-import { createReadingHost, READING_DATABASE } from '../reading-host.mjs';
+import { createCheckInHost, CHECKIN_SCHEMA_VERSION } from '../checkin-host.mjs';
+import { DATABASE as LOCAL_DATABASE, NAMESPACE as LOCAL_NAMESPACE, createGymHost } from '../gym-host.mjs';
+import { createReadingHost } from '../reading-host.mjs';
 import { createWorkoutEntry } from '../today-entry.mjs';
 import CheckInCommands from '../checkin-commands.cjs';
 import Model from '../checkin-model.mjs';
@@ -36,20 +36,14 @@ const NEXT_DAY = (() => {
   return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
 })();
 
-async function deviceKeys() {
-  const pair = await webcrypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-  const jwk = await webcrypto.subtle.exportKey('jwk', pair.publicKey);
-  const storeKey = await webcrypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  return { kid: AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-    publicKey: { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y, key_ops: ['verify'], ext: true } };
-}
-/* ONE device: one IndexedDB factory and one key store, reopened across "relaunches"
-   exactly as a real browser reopens its own storage. */
+/* ONE device: one IndexedDB factory, which is one installation of the local era,
+   reopened across "relaunches" exactly as a real browser reopens its own storage.
+   C4c: no key is minted here — the page does not take one, and the check-in now
+   opens the SAME installation the weigh-in and the workout do. */
 async function device() {
   const fault = faultDatabase();
-  const keys = await deviceKeys();
-  const open = (day = DAY) => createCheckInHost({ day, indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
-  return { fault, keys, open, host: await open() };
+  const open = (day = DAY) => createCheckInHost({ day, indexedDB: fault.indexedDB, crypto: webcrypto });
+  return { fault, open, host: await open() };
 }
 const opsOf = async repository => Object.values((await repository.load()).generation.collections.ops || {});
 const outboxOf = async repository => Object.values((await repository.load()).generation.collections.outbox || {});
@@ -701,12 +695,18 @@ test('A3 — MUTANT 4: skipping the outbox entry is impossible — one transacti
 });
 
 /* A3 review F4 — MUTANT 5 as a PROPERTY of the running lanes, not of three string
-   constants. Three real stores are opened on ONE device, each is written through its
-   own product path, and the ops on disk are read back: no store holds another store's
-   operation, and neither producer will accept the other's command. */
+   constants. Three lanes are opened on ONE device, each is written through its own
+   product path, and the ops on disk are read back.
+
+   C4c REWROTE WHAT "SEPARATE" MEANS HERE. A3 proved it with three stores: no store
+   held another store's operation. The lanes share one sealed generation now, so
+   that form of the claim is not available and would be a lie if it were. The claim
+   itself is unchanged and is made where it always mattered — each lane READS only
+   its own operations, the workout ORDER sees neither of the other two (A3 review
+   F2), and neither producer will accept the other's command. */
 test('A3 — MUTANT 5: a check-in cannot enter the workout or the weigh-in lane', async () => {
   const kit = await device();
-  const lane = { indexedDB: kit.fault.indexedDB, crypto: webcrypto, deviceKeys: kit.keys };
+  const lane = { indexedDB: kit.fault.indexedDB, crypto: webcrypto };
   const today = createTodayModel({ today: DAY });
   const readings = await createReadingHost({ day: DAY, ...lane });
   const gymHost = await createGymHost({ day: DAY, engineState: today.stateFromOps(),
@@ -718,31 +718,55 @@ test('A3 — MUTANT 5: a check-in cannot enter the workout or the weigh-in lane'
 
   const kindsIn = async repository => (await opsOf(repository))
     .map(op => op.kind + '/' + op.class + (op.payload && op.payload.profile ? '/' + op.payload.profile : ''));
-  assert.deepEqual(await kindsIn(kit.host.repository), ['fact/event/' + CheckInCommands.PROFILE],
-    'the check-in lane holds the check-in and nothing else');
-  assert.deepEqual(await kindsIn(readings.repository), ['fact/reading'],
-    'the weigh-in lane holds no check-in');
-  assert.deepEqual(await kindsIn(gymHost.repository), [],
-    'the workout lane holds no check-in');
+
+  /* C4c — THE THREE LANES ARE ONE STORE NOW, so this no longer asks "does each
+     store hold only its own operation" — there is one store, and the question is
+     answered one level up, where it has always mattered: each lane READS only its
+     own operations, and neither producer will accept the other's command.
+     Executed, not asserted: the three hosts share ONE repository handle. */
+  assert.equal(kit.host.repository, readings.repository, 'one repository handle, not three');
+  assert.equal(kit.host.repository, gymHost.repository);
+  assert.deepEqual(await kindsIn(kit.host.repository),
+    ['fact/event/' + CheckInCommands.PROFILE, 'fact/reading'],
+    'ONE generation holds both, and nothing else');
+  assert.deepEqual((await kit.host.all()).map(row => row.date), [DAY],
+    'and the check-in lane READS the check-in and nothing else');
+  assert.deepEqual(readings.reads().map(row => row.lb), [178.4],
+    'the weigh-in lane reads no check-in');
+  assert.deepEqual(await gymHost.causalTipsNow(), [],
+    'and the workout order sees neither — a check-in is not a causal tip (A3 review F2)');
 
   /* And the command itself cannot cross. The workout lane's ACCEPTED producer refuses
      a check-in action, and this lane's producer refuses a workout action — both
      without storing anything. */
+  const before = await kindsIn(kit.host.repository);
   const intoWorkout = await gymHost.host.client.execute('workout',
     { action: 'checkin', input: { answers: { energy: 'Low' } } });
   assert.notEqual(intoWorkout.acknowledged, true, 'the workout lane accepted a check-in');
-  assert.deepEqual(await kindsIn(gymHost.repository), [], 'the refusal stored nothing');
+  assert.deepEqual(await kindsIn(kit.host.repository), before, 'the refusal stored nothing');
 
   const intoCheckIn = await kit.host.client.execute('workout',
     { action: 'start', input: { planned_split_slot_id: 'x', plan_basis: 'y' } });
   assert.notEqual(intoCheckIn.acknowledged, true, 'the check-in lane accepted a workout Start');
-  assert.deepEqual(await kindsIn(kit.host.repository), ['fact/event/' + CheckInCommands.PROFILE],
-    'the refusal stored nothing');
+  assert.deepEqual(await kindsIn(kit.host.repository), before, 'the refusal stored nothing');
 
-  // The three lanes really are three stores, which is what makes the above possible.
-  assert.equal(new Set([CHECKIN_DATABASE, WORKOUT_DATABASE, READING_DATABASE]).size, 3);
-  assert.equal(new Set([CHECKIN_NAMESPACE, gymHost.repository ? 'earned-today-preview/device-A' : '',
-    'earned-today-preview/device-A/readings']).size, 3);
+  /* ONE database, ONE namespace, ONE lease across all three lanes.
+
+     C4d, review round 3: the third line here used to read
+     `new Set([kit.host.databaseName, readings.databaseName,
+       gymHost.repository.databaseName || kit.host.databaseName]).size === 1`.
+     `repository` carries no `databaseName`, so that third term was ALWAYS the
+     first one and the set was always a singleton — a tautology that would have
+     passed with the gym lane in a different database entirely. The gym lane's
+     answer is the identity already asserted above (`kit.host.repository ===
+     gymHost.repository`), which is stronger than any name comparison; the two
+     lanes that DO publish a name are checked against the era's own constants. */
+  assert.equal(kit.host.databaseName, LOCAL_DATABASE);
+  assert.equal(kit.host.namespace, LOCAL_NAMESPACE);
+  assert.equal(readings.databaseName, LOCAL_DATABASE, 'the weigh-in lane names the same database');
+  assert.equal(readings.namespace, LOCAL_NAMESPACE);
+  assert.equal(new Set((await opsOf(kit.host.repository)).map(op => op.lease_id)).size, 1,
+    'one lease_id across both write paths that wrote');
 
   readings.close();
   gymHost.close();

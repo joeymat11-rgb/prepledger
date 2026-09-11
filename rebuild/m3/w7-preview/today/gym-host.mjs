@@ -1,320 +1,78 @@
-// gym-host.mjs — the ONE place this page composes the accepted W6 workout host.
+// gym-host.mjs — ONE STORE (C4b). The page's workout host, over THIS DEVICE'S
+// OWN LOCAL ERA, and nothing else.
 //
-// It binds, it does not invent. Every collaborator below is the accepted module
-// the A0 host journey binds (rebuild/m3/w6/host/test/journey.test.mjs), passed to
-// the accepted rebuild/m3/w6/host/workout-host.mjs composeWorkoutHost. There is no
-// second engine (the prescription runtime is the host's own accepted mirror
-// rebuild/m3/w6/host/engine-runtime-host.cjs) and no second capture path (the
-// validator is rebuild/m4/workout/capture.cjs at the v2 source-aware profile).
+// WHAT THIS FILE USED TO BE, and why it is not that any more. It minted the
+// page's whole enrolment: a constant identity key, a static enrolment evidence
+// string that any partial erasure would silently re-enrol over, an AES/P-256
+// device key pair, a never-renewed fixed-window lease, and a SECOND encrypted
+// generation beside the weigh-in's — because one generation carries one lease
+// with one schema_version. Lane C's accepted local era (rebuild/m3/w6/local/)
+// answers every one of those, and the schema question turned out to be about
+// the CLIENT, not the store: rebuild/client gates only a WORKOUT on the lease
+// schema (index.cjs:206), so a schema-1 reading rides the era's schema-2 lease
+// into the SAME generation through C1's bridge. The proof is
+// rebuild/m3/w6/test/local-schema-probe.mjs; the composition is
+// rebuild/m3/w6/local/today-bindings.mjs.
 //
-// WHAT IS SYNTHETIC, AND SAID SO. This preview has no enrolment: no authority
-// issues it a lease and no server knows it. So the page mints its OWN device
-// enrolment on first launch — an AES-GCM key for the encrypted local store and a
-// P-256 key pair that signs one offline-write lease for this device. Both are
-// generated ON THE DEVICE, are non-extractable, never leave it, and authorize
-// nothing anywhere else. They are labelled synthetic everywhere they appear. A
-// real enrolment (Dad's first run, A4) replaces this whole module's first half.
+// So this module now binds and does not invent — and there is nothing synthetic
+// left in it to label. No key is generated here, no lease is signed here, no
+// enrolment evidence is asserted here, and there is no second generation.
 //
-// WHAT IS REAL. The encrypted IndexedDB repository, the T2 stage over
-// rebuild/client, the durable public client, the v2 prescription capture, the
-// null-lane registrar and composite reader, the engine capture adapter, the
-// engine history projector, the accepted prescription runtime, and every
-// operation those write.
+// THE PAGE'S IDENTITY. One installation per (indexedDB, database, namespace),
+// memoized and reference-counted by openTodayInstallation so that the weigh-in
+// host, the gym card and the transient host used to retire an abandoned session
+// all hold the SAME client. The athlete is "owner" (one athlete on one phone,
+// until Dad's A4 first-run setup names a second). The device id is minted once
+// at random and kept in the key database beside the non-extractable store key
+// (local-keys.mjs openLocalDeviceIdentity), because the era's sealed lease names
+// a device and refuses any other.
+import { openTodayInstallation, causalTips, startOrderRefusalOf,
+  TODAY_DATABASE, TODAY_NAMESPACE, TODAY_ATHLETE,
+  PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER } from '../../w6/local/today-bindings.mjs';
 
-import { openRepository } from '../../w6/repository.mjs';
-import { createDurablePublicClient } from '../../w6/public-client.mjs';
-import { parseStrictJson } from '../../w6/strict-json.mjs';
-import { projectWorkoutRecords } from '../../../m4/workout/project-history.mjs';
-import { composeWorkoutHost, createUnavailableNativeTrendContext } from '../../w6/host/workout-host.mjs';
-// CommonJS collaborators are taken as DEFAULT imports, the way the accepted
-// host entry (rebuild/m3/w6/host/host-entry.mjs) takes them: createRequire is a
-// Node builtin and the accepted browser build refuses every Node import.
-import Source from '../../w5/source/codec.cjs';
-import Capture from '../../../m4/workout/capture.cjs';
-import Commands from '../../../m4/workout/commands.cjs';
-import Adapter from '../../../m4/workout/engine-capture.cjs';
-import History from '../../../m4/workout/engine-history.cjs';
-import SourceProjection from '../../../m4/workout/source-projection.cjs';
-import WorkoutBasis from '../../../m4/workout/workout-basis.cjs';
-import ResumePolicy from '../../../m4/workout/resume-policy.cjs';
-import HostRuntime from '../../w6/host/engine-runtime-host.cjs';
-import T2Stage from '../../w6/t2-stage.cjs';
-import Canonical from '../../../authority/canonical.cjs';
+/* Re-exported, not restated: the causal frontier functions, the producer
+   identity and the basis labels are the local era's own, so there is exactly one
+   copy of each in the tree and `GymHost.causalTips === causalTips` is an
+   identity rather than a source comparison. */
+export { causalTips, startOrderRefusalOf, PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER };
+/* rebuild/client's own words for a state-18 refusal, carried through w6 so the
+   page never writes its own sentence for one. */
+export { RESTORE_REQUIRED } from '../../w6/local/today-bindings.mjs';
 
-const { createNullLaneWorkoutBasis } = WorkoutBasis;
-const { createWorkoutResumePolicy } = ResumePolicy;
-const { createT2Stage } = T2Stage;
+export const DATABASE = TODAY_DATABASE;
+export const NAMESPACE = TODAY_NAMESPACE;
+export const ATHLETE_ID = TODAY_ATHLETE;
 
-/* Synthetic, public, non-secret preview labels — the same posture and the same
-   naming as A1's today-model.cjs. There is no real credential in this file: the
-   two private keys are generated on the device and are non-extractable. */
-export const DEVICE_ID = 'earned-today-preview-device';
-export const ATHLETE_ID = 'earned-today-preview-athlete';
-export const NAMESPACE = 'earned-today-preview/device-A';
-export const DATABASE = 'earned-today-preview-workout';
-export const KEY_DATABASE = 'earned-today-preview-device-keys';
-export const IDENTITY_KEY = 'synthetic-preview-identity-not-a-credential';
-export const AUTHORITY_KID = 'synthetic-preview-authority';
-export const ENROLMENT_EVIDENCE = 'synthetic-preview-enrolment-only';
-export const PLAN_BASIS = 'NO_ACCEPTED_PLAN';
-export const INPUT_BASIS = 'native-only/zero-import';
-export const RESUME_REASON =
-  'Recomputed on this device from the same stored plan; the instructions you started with are unchanged.';
-
-export const PRODUCER = Object.freeze({ app_build: 'earned-today-preview',
-  engine_build: 'accepted-native-carriers', rule_profile: Adapter.PROFILE,
-  source_schema: 'w7-preview-synthetic' });
-
-export const LEASE_DOMAIN = 'earned/lease/v1';
-const ORDER = BigInt('0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551');
-
-/* The exact ES256 signature encoding rebuild/m3/w5/public-client.cjs decodes:
-   "ES256.<kid>.<base64url(r||s)>", 32 bytes each, low-s. WebCrypto ECDSA already
-   emits raw r||s; only the low-s normalisation is added here. This is a FORMAT
-   binding, not a new crypto rule, and rebuild/m3/w5/crypto.cjs (the Node signer)
-   is deliberately NOT imported: the accepted browser build forbids it. */
-function base64url(bytes) {
-  let binary = '';
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-const toBigInt = bytes => bytes.reduce((n, b) => (n << 8n) | BigInt(b), 0n);
-function toBytes(value) {
-  const out = new Uint8Array(32);
-  let n = value;
-  for (let i = 31; i >= 0; i--) { out[i] = Number(n & 255n); n >>= 8n; }
-  return out;
-}
-export async function signRecord(record, { domain, field, privateKey, kid, crypto }) {
-  const unsigned = Object.fromEntries(Object.keys(record).filter(k => k !== field).map(k => [k, record[k]]));
-  const message = new TextEncoder().encode(domain + Canonical.canonicalEncode(unsigned));
-  const raw = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, privateKey, message));
-  if (raw.length !== 64) throw new Error('GYM_LEASE_SIGNATURE_UNSUPPORTED');
-  const r = toBigInt(raw.slice(0, 32));
-  let s = toBigInt(raw.slice(32));
-  if (s > ORDER / 2n) s = ORDER - s;
-  const out = new Uint8Array(64);
-  out.set(toBytes(r), 0);
-  out.set(toBytes(s), 32);
-  return { ...record, [field]: 'ES256.' + kid + '.' + base64url(out) };
+/* THE PAGE'S INSTALLATION. Every host in this page comes from one of these, and
+   close() detaches one holder — the last one out closes the client, which is
+   what makes the next open a real relaunch off disk. */
+export function openTodayHosts({ indexedDB, crypto, databaseName = DATABASE,
+  namespace = NAMESPACE, athleteId = ATHLETE_ID, deviceId, day, clock } = {}) {
+  /* The installation's clock is the PAGE'S OWN DAY, exactly as this module's
+     stage clock always was (`day + 'T13:00:00.000Z'`) — the page's day is its
+     today, and an operation has to be stamped on the day the screen is standing
+     on or the accepted resume policy reads yesterday's open session as
+     unfinished. `day` is passed AS A DAY, not pre-baked into a clock, so that a
+     later boot in the same page load (day 2) is ADOPTED and recorded on
+     `clockAdoptions()` rather than silently dropped — C4b review D1. */
+  return openTodayInstallation({ indexedDB, crypto, databaseName, namespace, athleteId, deviceId,
+    day: typeof day === 'string' ? day : undefined, ...(clock ? { clock } : {}) });
 }
 
-/* The device key store. Both keys are generated here, are non-extractable, and
-   are kept as CryptoKey objects in this device's own IndexedDB — so the page can
-   reopen its encrypted store after a reload, a new tab, a browser restart or a
-   power cut, and nothing that could be copied off the device is ever produced.
-   A browser that will not keep them REFUSES; it never falls back to an
-   extractable key or to an unencrypted store. */
-function idbRequest(request) {
-  return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(new Error('GYM_DEVICE_KEYS_UNAVAILABLE'));
-  });
+/* A handle that owns its share of the installation: closing it detaches the
+   host AND releases the installation holder it was opened with. Callers that
+   already hold an installation (today-entry.mjs boot(), which opens one and
+   passes it to both hosts) never come through here. */
+function owning(era, handle) {
+  return Object.freeze({ ...handle, athleteId: era.athleteId, deviceId: era.deviceId,
+    close() { handle.close(); era.close(); } });
 }
-export async function openDeviceKeys({ indexedDB, crypto, databaseName = KEY_DATABASE } = {}) {
-  if (!indexedDB || !crypto?.subtle) throw new Error('GYM_DEVICE_KEYS_UNAVAILABLE');
-  const open = indexedDB.open(databaseName, 1);
-  open.onupgradeneeded = () => {
-    if (!open.result.objectStoreNames.contains('keys')) open.result.createObjectStore('keys');
-  };
-  const db = await idbRequest(open);
+
+export async function createGymHost({ day, engineState, plannedSplitSlotId,
+  indexedDB, crypto, deviceKeys, databaseName = DATABASE, namespace = NAMESPACE } = {}) {
+  const era = await openTodayHosts({ indexedDB, crypto, databaseName, namespace, day });
   try {
-    const existing = await new Promise((resolve, reject) => {
-      const tx = db.transaction('keys', 'readonly');
-      const get = tx.objectStore('keys').get('device');
-      let value;
-      get.onsuccess = () => { value = get.result; };
-      tx.oncomplete = () => resolve(value);
-      tx.onabort = () => reject(new Error('GYM_DEVICE_KEYS_UNAVAILABLE'));
-      tx.onerror = () => {};
-    });
-    if (existing) return existing;
-    const storeKey = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-    const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-    const jwk = await crypto.subtle.exportKey('jwk', pair.publicKey);
-    const record = { kid: AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-      publicKey: { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y, key_ops: ['verify'], ext: true } };
-    await new Promise((resolve, reject) => {
-      const tx = db.transaction('keys', 'readwrite');
-      tx.objectStore('keys').put(record, 'device');
-      tx.oncomplete = resolve;
-      tx.onabort = () => reject(new Error('GYM_DEVICE_KEYS_UNAVAILABLE'));
-      tx.onerror = () => {};
-    });
-    return record;
-  } finally { db.close(); }
-}
-
-/* The one offline-write lease this device issues itself, for the lane whose
-   operations carry `schemaVersion`. The durable public client verifies its
-   signature against the device's own public key and refuses any operation whose
-   schema differs from it, which is why the schema is a parameter and not a
-   constant: the workout lane is 2 and the reading lane is 1. */
-export function mintLease(schemaVersion) {
-  return { lease_id: 'synthetic-preview-lease', device_id: DEVICE_ID, athlete_id: ATHLETE_ID,
-    schema_version: schemaVersion, range: [1, 1000000],
-    not_before: '1970-01-01T00:00:00Z', not_after: '9999-12-31T00:00:00Z',
-    issued_server_time: '1970-01-01T00:00:00Z' };
-}
-
-export function initialGeneration(lease) {
-  return { collections: { meta: { checkpoint: { counts: { ops: 0, outbox: 0 } } },
-    sync: { snapshot: { plan: {}, reads: [] }, frontier: { W: 0, authorityW: 0 } } },
-    metadata: { schema: 1, checkpoint: 'synthetic-preview', authorityLease: lease } };
-}
-
-/* ---------------------------------------------------------------------------
-   THE CAUSAL FRONTIER, READ OFF THE DURABLE LOG. Pure, so the same functions the
-   host runs can be checked against a generation a test writes by hand.
-   --------------------------------------------------------------------------- */
-const graphOps = generation => Object.values(generation?.collections?.ops || {})
-  .filter(op => op && typeof op.op_id === 'string' && Array.isArray(op.causal_parents));
-
-/* The tips of the stored causal graph: every op no other op names as a parent.
-   For a store holding one closed session that is exactly the close operation;
-   for an empty store it is []. Ordered by the device's own sequence so the
-   result is stable, and by op_id when a device_seq is absent. */
-export function causalTips(generation) {
-  const rows = graphOps(generation);
-  const claimed = new Set();
-  for (const op of rows) for (const parent of op.causal_parents) claimed.add(parent);
-  return rows.filter(op => !claimed.has(op.op_id))
-    .sort((a, b) => (a.device_seq || 0) - (b.device_seq || 0) || (a.op_id < b.op_id ? -1 : 1))
-    .map(op => op.op_id);
-}
-
-function reachedFrom(generation, parents) {
-  const ops = generation?.collections?.ops || {};
-  const seen = new Set(), stack = Array.isArray(parents) ? parents.slice() : [];
-  while (stack.length) {
-    const id = stack.pop();
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const op = ops[id];
-    if (op && Array.isArray(op.causal_parents)) stack.push(...op.causal_parents);
-  }
-  return seen;
-}
-
-/* THE PRE-WRITE ORDER GUARD (review round 2, point 3). A Start that does not
-   descend from every Start already on disk cannot be recovered once it is
-   written: rebuild/m4/workout/engine-order.cjs cannot order it, so
-   readWorkoutHistory refuses, so the resume and close paths that would retire it
-   refuse too. There is no accepted recovery left to offer — so a Start like that
-   must be refused BEFORE the write.
-
-   This is deliberately NOT a restatement of causalTips(). It takes the parents
-   the accepted resolver ACTUALLY produced for this generation — the exact bytes
-   the client is about to store as causal_parents — and checks them against the
-   Starts the log already holds. Derivation and check are two independent
-   computations, so a resolver that drifts back to a remembered frontier, an
-   empty one, or an invented id is caught here rather than on disk. */
-export function startOrderRefusalOf(generation, resolvedParents) {
-  const starts = graphOps(generation).filter(op => op.kind === 'session-start');
-  if (!starts.length) return null;              // nothing on disk to descend from
-  const reached = reachedFrom(generation, resolvedParents);
-  const orphans = starts.filter(op => !reached.has(op.op_id));
-  if (!orphans.length) return null;
-  return Object.freeze({ code: 'WORKOUT_START_ORDER_UNPROVEN',
-    reason: 'this session would not descend from ' + orphans.length
-      + ' session(s) already recorded on this device, and the accepted order resolver cannot order it' });
-}
-
-/* One live host over one repository handle, with every provider named here and
-   only here. composeWorkoutHost binds them; it invents nothing. */
-export async function createGymHost({ day, engineState, indexedDB, crypto, deviceKeys,
-  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId } = {}) {
-  const web = crypto || globalThis.crypto;
-  const idb = indexedDB || globalThis.indexedDB;
-  if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('createGymHost requires day');
-  if (!engineState || !Array.isArray(engineState.exercises)) throw new TypeError('createGymHost requires engineState');
-  if (typeof plannedSplitSlotId !== 'string' || !plannedSplitSlotId.trim()) throw new TypeError('createGymHost requires plannedSplitSlotId');
-  if (!idb || !web?.subtle) throw new Error('GYM_DEVICE_STORE_UNAVAILABLE');
-
-  const device = deviceKeys || await openDeviceKeys({ indexedDB: idb, crypto: web });
-  const keys = [{ kid: device.kid, publicKey: device.publicKey }];
-  const repository = await openRepository({ indexedDB: idb, crypto: web, databaseName, namespace,
-    keyProvider: () => device.storeKey,
-    authorizeEnrollment: evidence => evidence === ENROLMENT_EVIDENCE });
-
-  let lease;
-  try { await repository.load(); }
-  catch (error) {
-    if (error?.code !== 'STORE_MISSING') { repository.close(); throw error; }
-    lease = await signRecord(mintLease(2),
-      { domain: LEASE_DOMAIN, field: 'signature', privateKey: device.signingKey, kid: device.kid, crypto: web });
-    await repository.initialize(initialGeneration(lease), ENROLMENT_EVIDENCE);
-  }
-  if (!lease) lease = (await repository.load()).generation.metadata.authorityLease;
-
-  const prescriptionCapture = Capture.createPrescriptionCapture({ parseStrictJson,
-    profile: Capture.SOURCE_PROFILE, sourceCodec: Source });
-  const workoutCommands = Commands.createWorkoutCommands({ prescriptionCapture });
-  const clock = { today: () => day, now: () => day + 'T13:00:00.000Z', tz: '-05:00', monotonicMs: () => 0 };
-  const stage = createT2Stage(() => ({ deviceId: DEVICE_ID, athleteId: ATHLETE_ID, identityKey: IDENTITY_KEY,
-    clock, lease, online: false, contract: { client: '1', required: '1' }, standing: 'enrolled' }),
-    { allowInbound: true, workoutCommands });
-
-  const engine = HostRuntime.createEngineRuntime({
-    clock: { today: () => day, hour: () => 8, now: () => new Date(day + 'T13:00:00.000Z'), stamp: () => day + 'T13:00:00.000Z' },
-    nativeTrendContext: createUnavailableNativeTrendContext() });
-
-  /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION.
-     ----------------------------------------------------------------------
-     Review round 2 found this: round 1 kept the causal parents of the next
-     write in a per-host closure seeded []. A host lives for one page load, so
-     the SECOND training day — a new page, a new host — started from [] and its
-     Start did not descend from the first day's close. Two Starts then sit
-     concurrent in the accepted order resolver
-     (rebuild/m4/workout/engine-order.cjs): `ready.length > 1` with no receipt
-     sequence on either (an offline generation has W 0), so it refuses
-     WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED, and because that Start is
-     already on disk every later read refuses
-     WORKOUT_HISTORY_RECONCILIATION_REQUIRED — permanently.
-
-     The log already carries the lineage, so nothing needs to be remembered
-     between page loads and nothing may be invented. The accepted resolver is
-     handed the very generation the client is about to write against, so the
-     parents are derived FROM THAT GENERATION at the moment of resolution: the
-     causal TIPS of the stored graph — every op no other op names as a parent.
-     After a closed session that is exactly the close operation; on an empty
-     store it is []; there is no third source of truth and no closure to go
-     stale across a reload, a relaunch or a kill. */
-  let lastResolved = [];
-  const nullLaneBasis = createNullLaneWorkoutBasis({ sourceCodec: Source,
-    planBasis: PLAN_BASIS, inputBasis: INPUT_BASIS, causalParents: () => lastResolved.slice() });
-  function resolveWorkoutBasis(generation, ...rest) {
-    lastResolved = causalTips(generation);
-    return nullLaneBasis(generation, ...rest);
-  }
-
-  const host = composeWorkoutHost({ repository, stage, namespace, athleteId: ATHLETE_ID, deviceId: DEVICE_ID,
-    sessionEpoch: 1, isCurrentSession: epoch => epoch === 1, observationEpoch: () => 1,
-    observationGuard: { run: async (_kind, run) => run() }, validateCommit: () => null,
-    keys, crypto: web,
-    createDurablePublicClient,
-    createNullSelectionRegistrar: SourceProjection.createNullSelectionRegistrar,
-    createSourceProjectionReader: SourceProjection.createSourceProjectionReader,
-    createEngineWorkoutCapture: Adapter.createEngineWorkoutCapture,
-    createEngineHistoryProjector: History.createEngineHistoryProjector,
-    createWorkoutResumePolicy, parseStrictJson, projectWorkoutRecords,
-    prescriptionCapture, sourceCodec: Source, engine, engineState, clock: { today: () => day },
-    workoutProducerIdentity: PRODUCER, resolveWorkoutBasis, resumeReason: RESUME_REASON,
-    plannedSplitSlotId });
-
-  /* The guard, over the live store, against the parents the accepted resolver
-     produced most recently — which, at both call sites (right after the probe's
-     prepareWorkout, and again immediately before startPreparedWorkout writes),
-     are exactly the causal_parents the Start will carry. */
-  async function startOrderRefusal() {
-    return startOrderRefusalOf((await repository.load()).generation, lastResolved.slice());
-  }
-
-  return Object.freeze({ host, repository, engine, day, plannedSplitSlotId, device,
-    // The causal parents the accepted resolver last derived, for tests and for
-    // the report. Reading it never changes it; it is not a store.
-    causalParents: () => lastResolved.slice(),
-    causalTipsNow: async () => causalTips((await repository.load()).generation),
-    startOrderRefusal,
-    close() { repository.close(); } });
+    return owning(era, await era.createGymHost({ day, engineState, plannedSplitSlotId,
+      ...(deviceKeys !== undefined ? { deviceKeys } : {}) }));
+  } catch (error) { era.close(); throw error; }
 }

@@ -22,6 +22,15 @@ export const LOCAL_OUTFILE = resolve(here, "../.tmp/local/local.js");
 export const LOCAL_HOST_ENTRY = resolve(here, "host-browser-entry.mjs");
 export const LOCAL_HOST_OUTFILE = resolve(here, "../.tmp/local-host/host.js");
 
+// C4. The same build again, over the entry that adds the ONE STORE drop-in and
+// the page's own adapters. Additive: neither build-browser.mjs nor either
+// existing entry changes, so their output bytes cannot move.
+export const TODAY_ENTRY = resolve(here, "today-browser-entry.mjs");
+export const TODAY_OUTFILE = resolve(here, "../.tmp/local-today/today.js");
+export function buildTodayBrowser({ outfile = TODAY_OUTFILE } = {}) {
+  return buildBrowser({ outfile, entryPoints: [TODAY_ENTRY] });
+}
+
 export function buildLocalBrowser({ outfile = LOCAL_OUTFILE } = {}) {
   return buildBrowser({ outfile, entryPoints: [LOCAL_ENTRY] });
 }

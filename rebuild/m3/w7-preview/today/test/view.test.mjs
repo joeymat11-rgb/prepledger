@@ -15,7 +15,8 @@ import { webcrypto } from "node:crypto";
 import { JSDOM } from "jsdom";
 import { faultDatabase } from "../../../w6/test/support.mjs";
 import { createReadingHost } from "../reading-host.mjs";
-import { AUTHORITY_KID } from "../gym-host.mjs";
+import { DATABASE, RESTORE_REQUIRED } from "../gym-host.mjs";
+import { boot } from "../today-entry.mjs";
 import Engine from "../../../../engine/index.cjs";
 import app from "../today-app.cjs";
 import TodayModel from "../today-model.cjs";
@@ -42,21 +43,15 @@ const money = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const FICTIONAL = ["2,252", "2,344", "235 g", "180.9 lb", "181.3 lb", "135 lb",
   "About 60 min", "9 exercises", "9 reps", "1.1 lb/week"];
 
-async function deviceKeys() {
-  const pair = await webcrypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, false, ["sign", "verify"]);
-  const jwk = await webcrypto.subtle.exportKey("jwk", pair.publicKey);
-  const storeKey = await webcrypto.subtle.generateKey({ name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]);
-  return { kid: AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-    publicKey: { kty: "EC", crv: "P-256", x: jwk.x, y: jwk.y, key_ops: ["verify"], ext: true } };
-}
 function shell() {
   return design.shellHtml().replace("<!-- APPROVED_TEMPLATES -->", design.templateHtml());
 }
+/* C4b: no page-minted device keys — the host opens this device's own local era
+   (one installation per IndexedDB factory), so one factory is one device. */
 async function lane(options = {}) {
   const fault = options.fault || faultDatabase();
-  const keys = options.keys || await deviceKeys();
-  const open = () => createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto, deviceKeys: keys });
-  return { fault, keys, open, readings: await open() };
+  const open = () => createReadingHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
+  return { fault, open, readings: await open() };
 }
 async function setup(options = {}) {
   const dom = new JSDOM(shell(), { url: "http://127.0.0.1:4178/" });
@@ -390,10 +385,19 @@ test("an unfinished earlier workout is named on Today, and the primary action cl
   kit.close();
 });
 
-test("an untrusted local record paints no number anywhere", async () => {
+/* C4b — an untrusted local record is RESTORE-REQUIRED, not a blocked face.
+   A2's two synthetic hosts re-opened a damaged store and painted a blocked
+   screen off it. The local era refuses to open one at all: state 18, the code
+   named, and — the part that matters — it never re-enrols over the record it
+   could not read, because first-run evidence exists only where C1 observed all
+   three signals absent. So the claim is made where the behaviour now is: the
+   page says what rebuild/client says, no reading is claimed, and the damaged
+   generation is still on disk untouched. */
+test("an untrusted local record is refused by name, never re-enrolled over, and claims no reading", async () => {
   const store = await lane();
   const seeded = createTodayModel({ today: DAY, readings: store.readings });
   await seeded.weighIn(181.9);
+  const era = (await store.readings.repository.load()).generation.metadata.localEra;
   // Corrupt the stored operation collection under the page.
   const snapshot = await store.readings.repository.load();
   const damaged = JSON.parse(JSON.stringify(snapshot.generation));
@@ -401,15 +405,45 @@ test("an untrusted local record paints no number anywhere", async () => {
   await store.readings.repository.commit({ revision: snapshot.revision, token: snapshot.token }, damaged, () => null);
   store.readings.close();
 
-  const reopened = await lane({ fault: store.fault, keys: store.keys });
-  const kit = await setup({ lane: reopened });
-  const { doc } = kit;
-  assert.match(slot(doc, "instruction").textContent, /cannot show today's plan/);
-  assert.equal(slot(doc, "kcal").textContent, "Not available yet");
-  assert.equal(slot(doc, "trend").textContent, "Not available yet");
-  assert.doesNotMatch(phoneText(doc), /\d+\.\d|\d,\d{3}/, "no figure survives an untrusted record");
-  assert.equal(slot(doc, "primary").disabled, true);
-  kit.close();
+  const refused = await store.open().then(() => null, (error) => error);
+  assert(refused, "a damaged installation must not open");
+  assert.equal(refused.state, 18, refused.code);
+  assert.match(String(refused.code), /T2_INTEGRITY_UNPROVEN|STORED_INTEGRITY_UNPROVEN|RESTORE_UNPROVEN/);
+
+  const dom = new JSDOM(shell(), { url: "http://127.0.0.1:4178/" });
+  const doc = dom.window.document;
+  const booted = await boot({ document: doc, today: DAY,
+    indexedDB: store.fault.indexedDB, crypto: webcrypto });
+  assert.equal(booted.restoreRequired, refused.code, "the page names the client's own code");
+  assert.equal(doc.getElementById("today-status").textContent,
+    RESTORE_REQUIRED + " (" + refused.code + ")", "and says what rebuild/client says, not its own sentence");
+  assert.equal(booted.readings, null, "no store opened");
+  assert.equal(booted.model.read().morningRead, null, "nothing on screen claims a reading");
+  assert.equal(booted.model.read().hasReadToday, false);
+  assert.equal(booted.model.read().storedReadCount, 0);
+  /* The PLAN still renders — it is the engine's own basis, and A1's accepted
+     behaviour with no store at all (see adapter.test.mjs). What must never
+     appear is a figure taken from the record that would not authenticate. */
+  assert.doesNotMatch(phoneText(doc), /181\.9/, "no figure from the unreadable record reaches the screen");
+  const noStore = new JSDOM(shell(), { url: "http://127.0.0.1:4178/" }).window.document;
+  mountToday(noStore, createTodayModel({ today: DAY }), {});
+  assert.equal(slot(doc, "trend").textContent, slot(noStore, "trend").textContent,
+    "the screen is exactly the no-store screen: the basis, and not one byte of the damaged record");
+
+  // NOT RE-ENROLLED: the damaged generation is still the one on disk.
+  const after = await new Promise((resolve, reject) => {
+    const open = store.fault.indexedDB.open(DATABASE, 1);
+    open.onsuccess = () => { const db = open.result; const tx = db.transaction("generations", "readonly");
+      const get = tx.objectStore("generations").get("active");
+      let value; get.onsuccess = () => { value = get.result; };
+      tx.oncomplete = () => { db.close(); resolve(value); };
+      tx.onabort = () => { db.close(); reject(tx.error); }; };
+    open.onerror = () => reject(open.error);
+  });
+  assert(after, "the record is still there — nothing deleted it");
+  const reopened = await lane({ fault: store.fault }).then(() => null, (error) => error);
+  assert(reopened && reopened.state === 18, "and it still refuses, rather than starting a second life");
+  assert(era && era.eraId, "the era this test damaged really was sealed in the generation");
 });
 
 /* ---- the strong guard: every figure on Today is a bound engine value ---- */
