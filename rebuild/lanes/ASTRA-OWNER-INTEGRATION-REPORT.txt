@@ -1,0 +1,162 @@
+OWNER-USE LOCAL INTEGRATION PREFLIGHT
+2026-09-11. Distinct integrator, neither author nor reviewer of the joined product.
+Assignment: PM ASTRA-OWNER-INTEGRATION-PREFLIGHT.md. Root is sole PM judge.
+
+(1) EXACT SOURCE / VERDICT
+Final source candidate fbc24209f732db31eadec4c5fc48cca0d28e85e6,
+codex/astra-owner-integration, work/astra-owner-integration.
+Product merge d7a3cc65b4c67ccb755ec6f59d6bbca5c060737d:
+mechanical --no-ff, first parent9e779f682593c4b9a15850d384799b1e0c528ed2
+(stored setup plus post-commit correction), second parent
+b843a7b2274e0ea1e2b19670dd87dff0847d1dd5 (native baseline).
+No conflict, no manual product resolution; both histories and reports retained.
+B-NTC/F1 ancestor71fb2f1ae2bf48cc8f32ff3f9e905949e352914c retained.
+COMBINED SYNTHETIC JOURNEY PASS. EXACT PACKAGE NOT QUALIFIED.
+No actual integration branch/ref, remote, publication or deployment changed.
+
+Read NEXT, ROADMAP, current PM LANES/DECISIONS/CHECKPOINT, setup independent
+f01ca87c06f47e576d7d25957bc67adaff3829e8, baseline independent
+c100bdae3f74d141584781faa9be9b7ce6cd8814, and B-NTC independent
+3501d1129607fac9d1a92757582c56d439d07d12 / 79b8c44f78678c8845e8ae04ec178228e64a3378.
+Reuse their scoped component evidence; this report confers no new acceptance.
+PM subsequently scoped-accepted tooling85f7d564d4af9b3cacce8dad0e8e7d5d096de68b
+on independent a3ffd3c97b775a8cc81bbf66aa55525f086ac0b0 (read in full), and
+authorized its local mechanical join. Cherry-picks7cd7a5b then85f7d56 produced
+fe96f67 then fbc2420 without conflict. Exact runner/policy/two focused test files
+equal85f by Git-vs-disk byte checks. Parsed B-NTC spec equals prejoin spec except
+runnerSha256=ca0419e61beac8ffe9c89971e11fd1f3cfb0913af1d2d5d05ddbdf12c057f484.
+No newer product declarations were replaced by tooling branch placeholders.
+Product m3/m4/engine/conform diff from d7a3cc6: empty; journey evidence reused.
+Owner-entry/calendar unfinished source was not read/copied into this candidate.
+
+(2) EXECUTED JOIN EVIDENCE
+Existing Node24.19.0; retained W6/root dependencies through ignored junctions;
+NODE_PATH=W6 node_modules, TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03.
+No install. One local probe over real enrollment, encrypted repository, C4 hosts,
+client commands, default B-NTC, source registrar and gym model; fake-indexeddb.
+No retained cleanInit supplied and no runtime/engine function substituted.
+Explicit synthetic one-lift setup enrolled; caller input discarded; installation
+closed BEFORE first workout. Every subsequent open called era.initialSetup()
+and supplied that freshly read basisState to createGymHost, never cached setup.
+First date09-11: weigh-in170.5 acknowledged; debut asks for a working load;
+actual40x10/effort2 set and close acknowledged; recovery energy Moderate saved.
+Five operations stored. Derived collection removed in an actual synthetic
+repository commit; all handles released. Date09-14 fresh installation: READY,
+40 lb x 10 reps, no debut, accepted working load40. Actual45x9 set and close
+acknowledged. Derived collection removed again; all handles released.
+Date09-18 fresh installation: READY,45 lb x 10 reps, one-rep step proposal,
+accepted working load45, two baseline decisions, zero legacy sessionLog entries.
+Eight operations total; every first-date operation byte-equivalent as objects,
+including weigh-in/check-in. Initial-setup collection serialized bytes unchanged;
+fresh authority's initial working load still null on every reopen.
+Probe exit0, all assertions passed on first execution at d7a3cc6. Probe SHA256
+20e80ad497101607307b2bde189986b31cbab0340c3135b31cd72cedd14e4ce3.
+Temporary probe removed; only this report authored beyond mechanical assembly.
+No browser/phone claim,
+private input/census, engine/full campaign, sealed artifact or receipt produced.
+
+(3) EXACT PACKAGING DEPENDENCIES, EXECUTED BEFORE ANY CAMPAIGN
+Read-only successor preflight on candidate refuses as expected:
+  Unlisted parent pin drift rebuild/m4/workout/source-projection.cjs
+All82 policy source pins compared with candidate disk. Exactly three differ:
+  source-projection.cjs (rebuild/m4/workout/):
+    old fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e
+    new a67903d7851ffac10691dbd354702e3adf9a7f647984d8d80c7d2c0e7058d8ba
+  today-bindings.mjs (rebuild/m3/w6/local/):
+    old b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94
+    new 26eea12a393c0853ee3a5e952db7f86540419ff20f5e4db20161408ca45b8a8e
+  workout-host.mjs (rebuild/m3/w6/host/):
+    old 262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe
+    new 885005d7879c5b8bee92a28145c88e6a8814a86a0311234319e0be5c1972de75
+The first is an accepted-parent execution pin, absent from child product map;
+the other two currently have role new. Existing spec/policy cannot cover them.
+Missing new runtime dependency: source-projection now unconditionally requires
+rebuild/m4/workout/native-baseline.cjs, absent from both product and policy pins.
+Setup path also lacks closure for rebuild/m3/w6/local/{local-client,initial-setup}.mjs;
+initial-setup imports rebuild/m4/workout/athlete-state.cjs, likewise absent from
+this policy. Add explicit applicable runtime/support closure and actual own
+setup/baseline tests; preserving old82 alone is not a complete joined closure.
+
+Concrete reviewed changes needed, NOT performed by this integrator:
+- Scoped amendment to rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md:
+  section13 O1 explicitly excludes the baseline writer question. Name the accepted
+  native-baseline factual projection, setup/calendar join and their exact scope;
+  keep unresolved unequal/configured mapping and future-history restrictions.
+  Re-pin amended brief and its exact PM acceptance; do not relabel old acceptance.
+- rebuild/lanes/b/tooling/packages/B-NTC.json: update concrete postimages; declare
+  source-projection superseded-by-child with exact parent execution preimage;
+  add new runtime/support/test inventory and own executed children. Keep every
+  inherited gate, original13+actual-child4, provider cells and durability duties.
+  Existing allowed CHILD_ROOTS excludes w6/test: use an exact pinned real
+  execution wrapper under m4/spec, as b-ntc-journeys already does, or obtain a
+  narrowly reviewed root amendment; never append an inert test path to argv.
+- rebuild/m4/spec/b-ntc-successors.cjs: current archived overlay lists ONLY
+  runtime/rebuild.yml; sourceModule substitutes ONLY runtime SUPPORT. A reviewed
+  exact source-projection supersession and native-baseline dependency closure
+  must preserve archived parent validators and separately prove actual child.
+  Do not edit immutable native-carriers-source.cjs/parent artifact or old tests.
+  Update associated b-ntc source/fidelity carriers and drift/refusal evidence;
+  original13 and actual-child4 still actually execute, without global overlays.
+- rebuild/lanes/b/tooling/b-ntc-successors.json: policy614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee
+  binds sourceCommit71fb2f1,82 pins,15 exact children, product map and9 inherited
+  gates. A coherent new sourceCommit, closure and declared own tests need a new
+  reviewed digest; old source policy cannot bless this assembly by re-pointing.
+- rebuild/lanes/b/tooling/b-package.cjs: retain independently accepted85f's
+  unconditional policy selection, exact schedule/source/role/chain checks; pin
+  the newly reviewed policy digest. RunnerSha256/spec pins follow mechanically.
+  moves={} and MOVES_RULING=null remain. No broadened waiver or new receipt.
+- .github/workflows/rebuild.yml: final joined setup/baseline/calendar tests need
+  an actual CI home on BOTH OS; exact workflow/spec execution pins follow. Its
+  unsealed-child switch is not integration-ready. Ordinary plumbing retains
+  one independent review plus CI; pin overlap does not make old proof current.
+
+(4) CAMPAIGN OPTIONS / RECOMMENDATION
+A. Qualify71fb2f1 under old exact policy, then qualify baseline as another child,
+then re-pin moving setup/calendar host again: distinct valid campaigns could
+work, but repeat qualification and postpone the actual owner-use snapshot.
+B. Recommended: PM scopes one coherent joined source before sealing anything.
+Finish/review owner-entry; tooling correction is now scoped-accepted. Assemble
+only accepted bytes, amend scope/closure and review that meaningful delta once.
+Retain all valid component evidence; run changed joins and own bites, then one
+closed cumulative qualification for that exact source. Preserve all45 register
+laws,19 gates, second gate, private/full requirements, fidelity, mutations,
+original13+child4, genuine receipt and authorized rerun; no waiver inferred.
+Do not run repeated FULL on today's moving candidate or call archived proof
+child acceptance. This report's combined PASS is one bounded join, not any gate.
+
+(5) NEXT BOUNDED AUTHORITY / PUBLICATION ACTION — PROPOSAL ONLY
+Observed fixed CHAIN_REF=refs/remotes/origin/rebuild/t2-client-core at
+7b1678a4a8449053000d52a0a8e9e070f32a240e. Ancestry check of local authority
+3809dacc3f160decfafc271755226bb694cafdfa against it returns1 (not ancestor).
+Minimal authority route: prepare a fresh DOCUMENT-ONLY integration candidate
+from the then-current actual accepted tip; cherry-pick the two DECISIONS lines
+of3809dac (not the PM/product branch), append scoped amended-brief acceptance
+and, only AFTER independent tool/policy acceptance, the real PM theme naming
+M2-B-NTC-NATIVE-TREND-CONTEXT and B-NTC-SUCCESSORS <exact final policy digest>.
+Use existing cowork ledger role explicitly attributed to temporary Astra PM;
+never label Astra work as Claude or replace owner/contract authority. Capture
+immutable commit + exact line numbers/SHA256 after that docs candidate is final.
+This preparatory route produces no package receipt or code acceptance.
+Before publication obtain explicit existing-scope authority covering the actual
+branch push AND its automatic Netlify draft, or first independently authorize
+and review a narrow deployment-trigger guard preserving all code checks.
+Current deploy.yml: push all branches except ledger-only; preview job any
+non-main non-PR event. Docs-only push still deploys. slice-host paths do NOT
+match DECISIONS, but that does not suppress pipeline preview. No presently
+verified document-only push route avoids this side effect. Do not use skip-ci,
+alter remote tracking refs, or bypass required checks to manufacture authority.
+After authorized document-only integration/CI and actual remote update, merge
+that immutable authority commit into the separate product candidate; verify it
+is ancestor of BOTH candidate HEAD and real CHAIN_REF. Bind brief/theme claims
+to those exact ledger bytes; parent owner/contract stay at the parent receipt.
+Then the separately assigned integrator may perform authorized qualification,
+private custody and eventual code integration under their existing boundaries.
+I prepared this dependency/action report only; no publication was attempted.
+
+(6) END CHECKS / LIMITS
+git diff --check PASS. Diff71fb2f1..candidate on frozen app, ledger, scripts,
+tools, engine, conform and package-lock.json: empty. No protected soak touched.
+Only candidate merge, authorized tooling cherry-picks and ONE authored report;
+no other worktree changed, no user data
+deleted, no private material read/printed, no install, PR, push, deploy or phone
+readiness claim. Root PM decides acceptance and the next narrowly scoped brief.
