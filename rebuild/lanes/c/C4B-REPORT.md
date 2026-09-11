@@ -632,11 +632,26 @@ confirmed by `git diff --stat 04c8cc9..HEAD`, which lists 18 files, all under
    thumb, one sheet at a time), so it is a residual and not a defect. But 100% is
    not "a case a one-store page must know exists", and it is stated as 100%.
 
+   **C4d — THERE ARE NOW TWO LANES THAT CAN TRIGGER IT, not one.** The figure
+   above was measured against the WEIGH-IN, because when it was taken the
+   weigh-in was the only other lane in this generation. Since C4c the RECOVERY
+   CHECK-IN writes here too, through its own `hostBindings()` over the same
+   repository, so a check-in saved at the same instant as a set contends with it
+   in exactly the same way and loses the set to the same named refusal. Nothing
+   about the mechanism differs — it is the repository's compare-and-swap, and
+   which lane is the other writer is immaterial to it — so the 60/60 measurement
+   stands unchanged and is not re-measured per lane. What changes is the reach:
+   the check-in sheet and the gym card are two screens the athlete can move
+   between, so the PM request below is now worth MORE than it was, not less, and
+   it should be read as covering a set refused after EITHER a reading write or a
+   check-in write. `today-entry.mjs` opens all three lanes in one boot, so the
+   page has every handle it needs to do the retry in one place.
+
    **REQUEST TO THE PM, one line:** *`gym-app.mjs` should retry a set ONCE on
-   `WORKOUT_RESUME_STALE` after a reading write, the way it already re-prepares
-   before Start* — `gym-app.mjs` is PM-owned, the retry is the accepted client's
-   own refusal being taken at its word, and without it a weigh-in landing at the
-   same instant as a tap loses the tap.
+   `WORKOUT_RESUME_STALE` after a reading OR CHECK-IN write, the way it already
+   re-prepares before Start* — `gym-app.mjs` is PM-owned, the retry is the
+   accepted client's own refusal being taken at its word, and without it a
+   weigh-in or a check-in landing at the same instant as a tap loses the tap.
 
    Making either impossible rather than unreachable needs a serialising write
    lock shared by both paths, which would have to wrap the host's own client —
@@ -987,3 +1002,227 @@ are swept for `IDENTITY_KEY`, `ENROLMENT_EVIDENCE`, `AUTHORITY_KID`, `mintLease`
 * Still not run here: `rebuild.yml` end to end, the A5 suites, and the W6 browser
   checks other than the Today runner. Residual 7 (the moving R1 pin) is
   unchanged.
+
+---
+
+# 13. C4d — "Last time", and the shape the engine actually hands over
+
+PM instruction, `REQUESTS.md` 11:55 ET / `DECISIONS:109`: *add to the C4 re-pin —
+lane B finding G7/O10; `previousLine()` still reads the legacy `{w,reps}` shape so
+"Last time" is absent on the active set; fix within `today/` (read the accepted
+performed shape via the same `genSession` input A2 proved), test it, and keep it in
+the same re-review.* Committed, **not pushed**.
+
+## 13.1 The rebase
+
+`git fetch origin` then `git rebase origin/rebuild/t2-client-core` (now `5dc9254`,
+docs-only since `e73e28f`). **Fifteen commits replayed, no conflict.** Head after
+the rebase: `d822f78`.
+
+## 13.2 What `previousLine()` actually read — and what the engine actually sends
+
+The proposed hunk on `rebuild/lane-b-ntc`
+(`rebuild/lanes/b/ntc/gym-model.previousLine.patch`) was treated as a **hypothesis**
+and checked line by line against `rebuild/engine`. Every claim in it holds:
+
+| claim | verified at |
+|---|---|
+| `card.prev` is `governingMeta(ex, s)` | `today.cjs:78` (`meta9 = governingMeta(e, s)`) and `today.cjs:171` (`prev: eraFresh(s, e.id) ? null : meta9`) |
+| the NATIVE return is the whole performed entry | `progression.cjs:132` — `if (row.native) return row.en;`, and `row.en` is the `entries[]` element for this lift (`progression.cjs:69, 72`) |
+| the LEGACY return is `{ d, w, reps, rir, rirSets, debt }` | `progression.cjs:133-134` |
+| per-position load and reps live at `slots[i].fact.current.{load,reps}.value` | `performed.cjs:34-72` (`performedEntry`'s own validator) — `load` is `{value, unit:'lb'}` with `value > 0`, or `{kind:'configuration', configuration_key}` which only the **v2** profile may carry; `reps` is `{value, unit:'rep'}`, a safe integer ≥ 0 |
+| a configuration load has no numeric magnitude and must not be scalarised | `performed.cjs:124-130` (`performedNumericEntry` throws `PERFORMED_NUMERIC_LOAD_UNAVAILABLE`) |
+
+**What `previousLine` read before this release** —
+`rebuild/m3/w7-preview/today/gym-model.mjs:141-147` at `d822f78`:
+
+```js
+  function previousLine(liftId, position) {
+    const prev = previousByLift.get(liftId);
+    if (!prev || typeof prev.w !== 'number' || !Array.isArray(prev.reps)) return null;
+    const reps = prev.reps[position - 1];
+    if (!Number.isFinite(reps)) return null;
+    return 'Last time: ' + prev.w + ' lb × ' + reps;
+  }
+```
+
+The LEGACY shape only. A native entry has no `prev.w`, so the first guard returned
+`null` and the card printed nothing.
+
+## 13.3 Why it could not be SEEN, measured before the fix
+
+This branch does not carry lane B's provider, so the engine composes the
+deliberately-unavailable one. Driven through `createGymHost` on the fresh athlete
+(probe under `%TEMP%`, the `lane()`/`conductDay` shape `gym.test.mjs` uses):
+
+```
+day+0  phase=ready    previous map size=2   demo-press -> null   view.previous=null
+day+1  phase=ready    previous map size=2   demo-leg   -> null   view.previous=null
+day+3  phase=blocked  code=PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED
+       previous map size=0
+```
+
+On the second day on a trained lift, `genSession` THROWS, `readPrevious()` catches
+it, and the map is **empty** — the reader was never reached at all. That is why G7
+only became visible once B-NTC's qualified provider opened that day, exactly as
+lane B's note says. With a qualified resolver supplied (same probe):
+
+```
+day+3  phase=ready    demo-press -> NATIVE earned/performed-lift/v1
+       slots=[{pos:1, performed, load {40,lb}, reps {11,rep}},
+              {pos:2, performed, load {40,lb}, reps {10,rep}}]
+       view.previous = "Last time: 40 lb × 11"
+```
+
+## 13.4 The fix, and the ONE place it differs from the proposed hunk
+
+`previousAt(prev, position)` reads both shapes, reformats neither, averages
+nothing across positions, and falls back from neither to the other. The legacy
+branch is byte-for-byte the old one.
+
+**The difference, deliberate.** The proposed hunk found the native position with
+`prev.slots.find(entry => entry.position === position)`. That is not the line the
+engine itself reads. `_lineOf` (`progression.cjs:76-79`) — the function
+`governingLast` and the anchor are built from — is, for a native row,
+`performedLine(en).reps`, and `performedLine` (`performed.cjs:218-238`) is
+documented as *"the contiguous performed prefix of the ORIGINAL positions … an
+ADDED position never enters it and never ends it; a skipped, unlogged, removed or
+unresolved ORIGINAL position ends the prefix; positions are never compacted and no
+hole is filled with zero."* For a legacy row, `prev.reps` **is** that same line. So
+a `find` by position would print a line for an added set, or for a performed set
+sitting past a hole — positions the engine's own line excludes and which the legacy
+branch could never reach. The prefix is walked here in exactly `performedLine`'s
+terms and indexed by `position - 1`: the same key, the same meaning, in both shapes.
+
+It cannot simply call `performedLine`: `rebuild/m4/workout/engine-runtime.cjs:11`
+declares `EXPOSED = ['genSession','rirPlan']` and returns a frozen object with
+nothing else reachable. So this reads the entry `readPrevious()` already took off
+the same `genSession` call — no second reader of the athlete's state, no second
+engine run, and no new engine surface.
+
+A load with no numeric magnitude fails the `unit === 'lb'` guard and prints
+**nothing**, which is the refusal `performedNumericEntry` makes.
+
+## 13.5 The tests
+
+**`gym.test.mjs` — `A2/C4d — a prior NATIVE session prints "Last time" with the
+engine's own numbers`** (2 subtests, 64 cases in the file now). It opens the
+installation with a QUALIFIED `nativeTrendContext` of its own, written in
+`performed.cjs:192-205`'s terms — it echoes the binding it is handed and answers
+three booleans, and it invents no flag. `gym-host.mjs` is untouched, and lane B's
+wiring hunk is NOT applied.
+
+* **the negative control, first:** on day+0 the engine reports no governing
+  comparison for the lift (`previous().get(lift) === null`) and the card prints
+  **nothing** — the honest absence. The day is then conducted in full.
+* **the positive:** on day+3, the comparison the engine hands over is asserted to
+  be the NATIVE entry (`typeof prev.w === 'undefined'`, `prev.profile` matches
+  `^earned/performed-lift/`), carrying `{value:40, unit:'lb'}`, `{value:11,
+  unit:'rep'}` and the athlete's own effort `{tag:'exact', value:2, unit:'rep'}` in
+  slot 1. The line is asserted twice — once against the literal `'Last time: 40 lb
+  × 11'`, once against the entry's own values composed, so neither a changed
+  fixture nor a changed formatter can pass silently — on the `ready` view and again
+  on the ACTIVE set, which is where the athlete reads it.
+* **per position, not per session:** set 1 is logged, and set 2's line is asserted
+  to be slot **2**'s (`40 lb × 10`, which really differs from slot 1's).
+
+**`gym.test.mjs` — `CONVERSE: every op the workout lane writes carries class
+'session'`** (review round 3). The F2 tests all ask that a non-workout op is never
+a workout tip; that is half the claim. If the workout lane ever wrote an op without
+`class: 'session'`, class-scoping would drop it out of its own order **silently**.
+So this conducts a whole real session — Start, a set, an Undo, its replacement,
+every remaining set, the close — and asserts against the DURABLE store that all
+four kinds are present (`session-start`, `session-set`, `tombstone`,
+`session-close`), that `new Set(ops.map(op => op.class))` is exactly
+`[WORKOUT_ORDER_CLASS]`, that every tip `causalTips` returns is one of those
+operations, and that the close is among them.
+
+**`gym-check.mjs` (Edge, the BUILT page)** — day 1's active set now asserts
+`[data-slot="previous"]` matches `^Last time: \d+(\.\d+)? lb × \d+$`; day 2's
+active set asserts it is **empty**. Day 2 is this athlete's other training day, on
+lifts the fresh basis has never trained, so `card.prev` is null for both of them
+(measured) — a line there would be invented, and asserting the emptiness locks the
+absence rather than leaving it unchecked. The NATIVE line cannot be reached in this
+runner at all until a qualified provider is wired, which is lane B's hunk; that is
+why the native proof lives in `gym.test.mjs`.
+
+**`checkin.test.mjs` MUTANT 5 — the tautology removed.** The line
+`new Set([kit.host.databaseName, readings.databaseName,
+gymHost.repository.databaseName || kit.host.databaseName]).size === 1` was always
+true: `repository` publishes no `databaseName`, so the third term was always the
+first one, and the assertion would have passed with the gym lane in a different
+database entirely. The gym lane's answer is the identity already asserted two lines
+above (`kit.host.repository === gymHost.repository`), which is stronger than any
+name comparison; the two lanes that DO publish a name are now checked against the
+era's own constants, and the weigh-in lane's namespace is checked too.
+
+**§9.1 — the check-in named as a second trigger lane.** The 60/60
+`WORKOUT_RESUME_STALE` figure was measured against the weigh-in, because it was the
+only other lane in the generation at the time. Since C4c the check-in writes here
+too, over the same repository, so it contends identically; the mechanism is the
+repository's compare-and-swap and is indifferent to which lane the other writer is,
+so the measurement stands and is not re-run per lane. What changes is the reach,
+and the PM request is restated as covering a set refused after **either** a reading
+or a check-in write.
+
+## 13.6 Everything re-run, at this head
+
+| what | result |
+|---|---|
+| `today/test/{design.cjs,adapter,view,package}` | **64 / 64**, exit 0 |
+| `today/test/gym.test.mjs` | **64 / 64**, exit 0 (60 + the native pair + the converse guard, and one nested case) |
+| `today/test/checkin.test.mjs` | **28 / 28**, exit 0 |
+| `w6/test/*.test.mjs` (the whole W6 suite) | **552 / 552**, exit 0 |
+| `w6/test/local-today-journey.test.mjs` | **51 / 51** (inside the W6 run) |
+| `w6/host/test/{journey,engine-equivalence}` | **22 / 22**, exit 0 |
+| `w7-preview/test/{model,view,package}` | **19 / 19**, exit 0 |
+| `run-current-head.cjs <R1> --all` | **552 / 552**, exit 0 — composed-tree parity, exactly |
+| `run-current-head.cjs <R1> --bite` | exit 1 — the mutant is caught, as designed |
+| `m4/spec/native-carriers-package.cjs --ci` | PASS, exit 0 |
+| `today/build.mjs` | PASS — 3 assets, 93 pinned inputs |
+| `w6/test/local-today-browser.mjs` (Edge) | **6 / 6**, exit 0, 8 `msedge.exe` killed |
+| `today/browser-check.mjs` (Edge) | PASS, exit 0 |
+| `today/gym-check.mjs` (Edge) | PASS, exit 0 — three real kills, and the two "Last time" assertions |
+| `today/checkin-check.mjs` (Edge) | PASS, exit 0 — three real kills |
+
+## 13.7 The files, at this head
+
+| file | lines | sha256 |
+|---|---|---|
+| `rebuild/m3/w7-preview/today/gym-model.mjs` | 492 | `6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3` |
+| `rebuild/m3/w7-preview/today/gym-check.mjs` | 529 | `48665c92a51464d5fdb179673cb7136e1925d57d8b49d9f13e22149c002aa81a` |
+| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | 1107 | `be31fed87150c4d64545e2bcbeec12d0d106218135d78f2b78a854160f935e45` |
+| `rebuild/m3/w7-preview/today/test/checkin.test.mjs` | 790 | `bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be` |
+| `rebuild/m3/w7-preview/today/checkin-check.mjs` | 371 | `fd0b3b59ee0cde2d426a257d0ab5a51a0ba026d3b7339fb75a65df8fc0aa9dc5` |
+| `rebuild/m3/w7-preview/today/today-entry.mjs` | 215 | `5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8` |
+| `rebuild/m3/w7-preview/today/checkin-host.mjs` | 58 | `029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b` |
+| `rebuild/m3/w7-preview/today/reading-host.mjs` | 44 | `a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa` |
+| **`rebuild/m3/w7-preview/today/gym-host.mjs`** | **78** | **`70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18`** — *unchanged since C4b* |
+| `rebuild/m3/w6/local/today-bindings.mjs` | 639 | `f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff` |
+| `rebuild/m3/w6/test/local-today-journey.test.mjs` | 1115 | `7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e` |
+| `rebuild/m3/w6/test/local-today-browser.mjs` | 370 | `1cf1aa35cc3f39b8e3b2d1f446d2ed6e80ddbb3f1439403fe42d765d86e9f6d1` |
+
+`PAGE_PINS` pins `today-entry.mjs`, `gym-host.mjs`, `reading-host.mjs` and
+`checkin-host.mjs`; none of the four moved in C4d, so no re-pin was needed.
+`gym-model.mjs` is not pinned — the journey DRIVES it, so drift in it turns the
+suite red on its own.
+
+## 13.8 C4d commits
+
+| | |
+|---|---|
+| `d822f78` | (the rebase onto `origin/rebuild/t2-client-core` at `5dc9254`, fifteen commits, no conflict) |
+| `3565d7b` | `previousLine()` reads the shape the engine actually hands it; the converse class guard; the MUTANT 5 tautology removed; the two Edge "Last time" assertions |
+| this | `C4B-REPORT.md` §13 and the §9.1 second-trigger-lane note |
+
+## 13.9 What I did NOT do
+
+* **Nothing was pushed.**
+* **`gym-host.mjs` is byte-unchanged** (`70a59b5c…`, 78 lines) across C4c and C4d,
+  so lane B's B-NTC wiring hunk rebases onto it trivially whichever merges second.
+  Its `nativeTrendContext` wiring is lane B's to land; `gym.test.mjs` reaches a
+  qualified provider only by opening the era directly, in the test.
+* `host/`, `client/`, `engine/`, `m4/`, `conform/`, `.github/` untouched. No engine
+  byte, no law, no witness, no golden.
+* Still not run here: `rebuild.yml` end to end, the A5 suites, and the W6 browser
+  checks other than the Today runner. Residual 7 (the moving R1 pin) is unchanged.
