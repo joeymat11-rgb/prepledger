@@ -1,3 +1,26 @@
+# Post-commit enrollment correction — candidate update
+
+2026-09-11. Branch codex/astra-setup-postcommit-fix; base3f1d172.
+Product/test correction commit:36164d0. Required finding: independent reviewe9d39b8 F1/P1. Candidate only; same independent reviewer must recheck it.
+
+Only local-client.mjs and local-initial-setup.test.mjs change, plus this updated report. After repository.initialize resolves, enrollment records confirmed initialization and immediately retires first-run as LOCAL_ENROLLMENT_INCOMPLETE while key/marker writes are pending. If either later step fails, status becomes restore-required with the original code; returned state is18. boot, initialSetup and host-binding access respect that refusal, and another enrollment cannot replace committed data. Successful completion alone publishes enrolled:true/ready. No key replacement or cleanup is attempted.
+
+The flag is set AFTER awaited initialize success, not when initialization is attempted. repository.mjs initialize returns publish(), whose success resolves only from transaction.oncomplete; write/validation/quota abort rejects before that resolution. This contract supports the confirmed-commit distinction. No inference of commit from an ambiguous exception was added. Existing ALREADY_INITIALIZED refusal and concurrent enrollment guard remain.
+
+Executed meaningful red-first controls on original3f1d172: three failures, all false first-run after confirmed revision1. Candidate results:
+- Key put fault: enrollSetup false/state18/KEY_WRITE_FAILED; same-client status/boot restore-required with that code, no firstRun; setup remains unavailable and host access refuses. Fresh factory reports KEY_MISSING. Second submissions on both cannot change the sealed revision1 bytes.
+- Marker put fault: same outcomes with LOCAL_MARKER_WRITE_FAILED; fresh factory ENROLLMENT_MARKER_MISSING. Original sealed bytes remain exact across refused submissions.
+- Delayed successful marker: revision1 already sealed, promise still pending; no configured/enrolled success or first-run claim; concurrent submission refuses LOCAL_ENROLLMENT_IN_PROGRESS. After releasing the real marker transaction, enrollment and setup boot succeed.
+- Existing pre-commit quota fault/valid retry and invalid setup retry controls pass: no partial authority and genuinely first-run before retry. Existing concurrency, partial-loss, no-reseed and local error tests remain green.
+
+Final executed command with existing Node24.19.0 on Windows:
+`node --test rebuild/m3/w6/test/local-initial-setup.test.mjs rebuild/m3/w6/test/local-client.test.mjs`
+Result44/44 pass,0 fail,0 skipped (setup23 + local-client21). git diff --check clean. Tests inject only synthetic IDB API faults; generations transactions remain real. Sealed-record comparisons occur in memory; no key/record contents printed. Existing locked dependency directory reused through an ignored junction; no install.
+
+The prior109-test result below is retained as prior evidence, not rerun in full for this error-state delta. No UI/engine/client-core/workflow change, broad gate, real phone, private read/import/export, push, integration merge, deployment, purchase or protected-soak action. Reviewed B-NTC binding and setup API shape are unchanged. Independent correction review, CI both OS and separate integration remain required.
+
+---
+Prior initial implementation report follows; source/counts below refer to that earlier candidate.
 # Authoritative initial setup — builder report
 
 2026-09-11. Candidate implementation, NOT accepted or integrated.
@@ -47,3 +70,4 @@ Initial combined invocation lacked jsdom in the selected dependency directory, s
 Synthetic fake-indexeddb evidence only; no browser kill, physical phone, backup credential recovery, hosted sync, private data, import, installation, push, integration merge, deployment or spending. No engine/conformance/full gate or CI claim. B-NTC package integration remains pending. Independent review remains required; builder does not accept this work.
 
 Next owner entry must select configured authority instead of fixture basis, handle current calendar/midnight without changing C4 clock rules, and visibly handle unconfigured/refused setup. Native first-working-load adoption is a separate known delta: this slice deliberately retains constructor w:null. Pending Dad starter-plan/design choices, nutrition/recovery qualifications and full product ambitions remain intact.
+
