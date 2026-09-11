@@ -1,0 +1,111 @@
+OWNER ENTRY / CALENDAR — INDEPENDENT REVIEW
+September 11, 2026. Reviewer authored neither entry nor setup implementation.
+Candidate:d05876fbc01765f7958f6e5a1a58e06e9a53f263, base9e779f6.
+Branch/worktree: codex/astra-owner-entry-review / astra-owner-entry-review.
+FILE: PM ASTRA-OWNER-ENTRY-REVIEW.md and ASTRA-OWNER-ENTRY-NEXT.md.
+Verdict: REQUEST CHANGES, limited to the new browser test's two save waits.
+Product/default-boot/calendar/lifecycle evidence PASSES in the reviewed scope.
+
+(1) REQUIRED CORRECTION F1 / P2 — BROWSER ACKNOWLEDGMENT FENCES
+rebuild/m3/w6/test/local-owner-browser.mjs:45 and51 pass async predicates to
+page.waitForFunction. On the retained Playwright1.62.1/actual Chromium this does
+not retry until the resolved boolean becomes true. Independent direct control:
+  const handle = await page.waitForFunction(async()=>false, {}, {timeout:500});
+  await handle.jsonValue();
+returns false immediately instead of timing out. The Promise itself satisfies
+the polling condition. These waits therefore do not establish that the Set or
+check-in exists before continuing to evidence/reload.
+
+Line51 additionally tests only op.kind==='fact', already satisfied by the earlier
+weight fact. Merely fixing Promise handling leaves this predicate ineffective.
+Wait for an actual new recovery fact, payload.profile equal to
+earned/recovery-checkin/v1, with the intended Moderate answer/identity, and for
+the actual new session-set. Use bounded polling that awaits each predicate's
+boolean, or an equivalent genuine durable-success condition. Retain current
+exact operation-count, persisted-state, isolation and no-page-error assertions.
+
+Independent exposure: using the same async wait pattern around historical close
+allowed reload while only the weight and Start existed; one run then reopened
+without close. A subsequent run showed two records immediately after the wait
+and three by reload. This is a test timing defect, not loss of an acknowledged
+save. Explicit awaited page.evaluate polling in the independent probe observed
+all three records BEFORE reload and all three afterwards. No product fix is
+requested for this artifact. The later authored count/reload checks can catch
+the race but do not make either wait a reliable acknowledgment fence.
+
+(2) SCOPED PRODUCT / SOURCE FINDINGS
+Read NEXT/ROADMAP, PM assignment/checkpoint, candidate report, eleven-file delta,
+approved design binding and additions handoff. Default built boot has no fixture
+day/basis: actual calendar plus authoritative setup supplies model identity and
+programme, and all three write paths share one installation. Explicit demo is
+labeled and uses its own database/namespace. Fresh or old-unconfigured startup
+is setup-required with no logging model; partial key loss is restore-required.
+
+Calendar samples day/instant/offset/hour/monotonic context once per serialized
+operation. Stale handles refuse before mutation. Explicit provider conflicts
+retain named C4 refusal; fixed test/day paths remain unchanged. Historical
+continuation allows preparation and close only, preserving original Start and
+session day while permission-time checks use actual current time. The expired
+lease control refuses state20 without adding a close.
+
+Owner projection is explicitly limited to clean initial-setup programme plus
+stored reading facts. It does not run legacy applyRead on missing trend/energy
+state, fabricate demo targets, catch arbitrary nutrition errors as insufficient
+data, or erase recorded values. The explicit configured/test/demo engine path
+remains intact. Qualified first-reading/trend/nutrition initialization is still
+required; this unavailable presentation is accepted only for the current setup
+contract. Native baseline is not in this source and remains a separate join.
+
+The four C4 page pins match actual reviewed bytes. Only entry and gym wrapper
+hashes changed; behavior assertions were not weakened. B-NTC shared-store
+provider/resolver wiring remains, with the actual engine-clock option added.
+Approved styles/templates/fonts are unchanged. Inspected actual ordinary and
+UTC+13 next-day screenshots: paper/ink/Instrument hierarchy, clear action,
+authoritative label/date, and unavailable nutrition instead of fictional values.
+
+(3) EXECUTED EVIDENCE
+Existing Node24.19.0, retained locked W6/W5 dependencies and jsdom via ignored
+junctions. No install. Windows TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03.
+node --test over local-owner-entry.test.mjs + local-today-journey.test.mjs:
+66 pass (15 owner lifecycle +51 C4),0 fail,0 skip.
+Today design.test.cjs + view.test.mjs + adapter.test.mjs:54 pass,0 fail,0 skip.
+Total120. Initial design filename used .mjs and contributed no tests; corrected
+.cjs invocation above supplies the actual design results. Reused setup109/F1
+and unaffected B-NTC evidence rather than running broad campaigns again.
+
+Actual buildToday through local-owner-browser.mjs completed. The authored
+ordinary actual Chrome journey passed: public synthetic enrollment, default
+page boot, UI weight170.5/set40x10/Moderate, reload, original active workout,
+demo roundtrip, no page errors. First build lacked W5 hash resolution; adding
+an ignored W5 link to the existing dependencies resolved that environment issue.
+The test-control limitation above remains despite its passing result.
+
+Independent actual BUILT default-page journey, 390x844, Pacific/Apia UTC+13:
+browser clock23:59:45 Sep11; public API enrolls synthetic programme, then ordinary
+page reload/boot without a day/basis/calendar injection. UI weight173.2 and Start;
+type42.5x9/exact2; move browser time to00:01:15 Sep12 and dispatch foreground.
+Original editor and values remain; stale Log refuses with no Set. Return to
+Today names the original unfinished Start. Visit retained old editor and return;
+explicitly close original workout. Awaited durable polling proves exactly
+weight/Start/close, no Set, before reload; reload retains all3, original close
+target, next local day, prior weight and actual +13:00/23:59 reading stamp.
+No page errors. The actual-clock implementation handles the transition itself.
+
+Initial independent probe supplied unsupported two-decimal weight173.25 and
+assumed a reading operation kind instead of fact; corrected synthetic inputs
+and assertions before the successful journey. A short diagnostic server also
+missed favicon handling; corrected allowlisted server. These are review-harness
+errors and receive no behavioral-red credit. Temporary probes/screenshots stay
+ignored; no candidate product source was edited.
+
+(4) FOCUSED SUCCESSOR / LIMITS
+After a distinct author commits the two wait corrections, reuse120 tests and
+source/lifecycle findings. Independently rerun only the corrected committed
+browser harness and its awaited new Set/recovery save/reload controls; a false
+predicate must time out and the earlier weight must not satisfy recovery wait.
+No new broad product review is needed unless the correction changes product.
+Setup UI/programme choice, qualified nutrition/trend, native-baseline package,
+affected Linux/Windows CI, integration and actual identified-build iPhone
+save/restart/next-day acceptance remain separate. This is not whole-app usability,
+crash-kill, hosted, package/full-gate or phone proof. No private reads, installs,
+product edits, full campaign, push, PR, merge or deployment. One report committed.
