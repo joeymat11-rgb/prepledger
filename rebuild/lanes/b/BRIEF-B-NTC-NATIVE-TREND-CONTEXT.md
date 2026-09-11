@@ -24,6 +24,7 @@ every hunk in one of these rows and nothing else.
 | 7 | **r2 changes 3, 5** — brief §4 lists **all three** `rebuild.yml` hunks and names the successor evidence for the 19 memory-only tests; §5's false executable claim is corrected and the patch file is deleted | `B-NTC-REVIEW-r2` changes 3–5, `DECISIONS:113 (3)` and `(4)` | §v1.2 4, §v1.2 5 |
 | 8 | **r2 change 7** — the sibling re-pin obligation is stated: B1, B2, B3, B4 and B-LOM each re-pin `engine-runtime.cjs` and list the `b-ntc-*` sources at their own rebase | `B-NTC-REVIEW-r2` change 7, `DECISIONS:113 (6)` | §v1.3 S |
 | 9 | **r2 changes 9, 11, 12, 13** — the BUILD-REPORT counts are re-measured at this head, the `rirPlan` scoping residual is stated, the two retargets are enumerated in the package spec, and §4.2's stale "Refused." sentence is annotated | `B-NTC-REVIEW-r2` | §v1.3 S, §4.2 |
+| 10 | **C5's CI home** — a fourth `rebuild.yml` hunk, `node --test "rebuild/coach/test/*.test.cjs"` (lane C's voice coach, **64/64 exit 0**), disclosed in §4; `setup.test.mjs` deliberately NOT enumerated, with the rule for seal time stated | **`DECISIONS:117 (4)`** | §4 hunk 4 of 4 |
 
 **Nothing in this section is an acceptance and nothing below claims one.** The word
 ACCEPTED appears in this document only inside quotations of ledger lines that exist.
@@ -230,14 +231,28 @@ set logged → closed, ops 12 → 19, three durable sessions. Provider cell
 |---|---|---|
 | `rebuild/m3/w6/host/test/journey.test.mjs` | step 14's two byte pins re-pinned; one new assertion on `COMPOSITION.exposed` | it pins `engine-runtime.cjs` and its mirror by sha256; the re-pin is the mechanical consequence, and the new assertion states the surface rather than only its bytes |
 | `rebuild/m3/w7-preview/today/test/gym.test.mjs` | three subtests re-authored | DECISIONS:109's own words: "A2's spike table becomes delta cells". These three were A2-REPORT §9.1's spike, locked at the old wall. Counts unchanged: **59/59**. |
-| `.github/workflows/rebuild.yml` **hunk 1 of 3** | the A1/A2 step now enumerates **seven** files and is renamed A1/A2/A3 | :109's bundled tooling item: `checkin.test.mjs` (A3's suite, deferred by :99/:101/:102 and never picked up) and `ntc-h6-delta.test.mjs` had no CI home at all. Measured at this head: **164/164, exit 0** |
-| `.github/workflows/rebuild.yml` **hunk 2 of 3** | the step `Cumulative extracted-engine native-carrier and legacy-census evidence` (`node rebuild/m4/spec/native-carriers-package.cjs --ci`) is **REPLACED** by `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` | `DECISIONS:113 (3)`: "replacing the parent's step with the child's step IS the correct supersession (the precedent is line 98 …) — do NOT restore it, it would make CI permanently red on the child tree". The parent wrapper refuses the child's `engine-runtime` bytes by design. **Role `superseded-by-child`; the parent's wrapper bytes are untouched.** |
-| `.github/workflows/rebuild.yml` **hunk 3 of 3** | the step `Synthetic Today projection, UI and preview package` (`rebuild/m3/w7-preview/test/{model,view,package}.test.cjs`, **19 tests**) is **DELETED** | `DECISIONS:109`'s pass-19 retirement, confirmed by `DECISIONS:113 (3)`: "deleting the memory-only step IS the :109 pass-19 retirement — keep it deleted". The successor evidence is **named below**, not asserted in a YAML comment |
+| `.github/workflows/rebuild.yml` **hunk 1 of 4** | the A1/A2 step now enumerates **seven** files and is renamed A1/A2/A3 | :109's bundled tooling item: `checkin.test.mjs` (A3's suite, deferred by :99/:101/:102 and never picked up) and `ntc-h6-delta.test.mjs` had no CI home at all. Measured at this head: **164/164, exit 0** |
+| `.github/workflows/rebuild.yml` **hunk 2 of 4** | the step `Cumulative extracted-engine native-carrier and legacy-census evidence` (`node rebuild/m4/spec/native-carriers-package.cjs --ci`) is **REPLACED** by `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` | `DECISIONS:113 (3)`: "replacing the parent's step with the child's step IS the correct supersession (the precedent is line 98 …) — do NOT restore it, it would make CI permanently red on the child tree". The parent wrapper refuses the child's `engine-runtime` bytes by design. **Role `superseded-by-child`; the parent's wrapper bytes are untouched.** |
+| `.github/workflows/rebuild.yml` **hunk 3 of 4** | the step `Synthetic Today projection, UI and preview package` (`rebuild/m3/w7-preview/test/{model,view,package}.test.cjs`, **19 tests**) is **DELETED** | `DECISIONS:109`'s pass-19 retirement, confirmed by `DECISIONS:113 (3)`: "deleting the memory-only step IS the :109 pass-19 retirement — keep it deleted". The successor evidence is **named below**, not asserted in a YAML comment |
+
+| `.github/workflows/rebuild.yml` **hunk 4 of 4** | a new step `C5 — the voice coach tool contract and text prototype`, `node --test "rebuild/coach/test/*.test.cjs"` | `DECISIONS:117 (4)`: "rebuild.yml is pinned by the accepted engine artifact, so any step lands only inside a re-pinning engine package (:112) — it RIDES THE B-NTC SEAL as one more DISCLOSED hunk (brief §4 lists it …)". Lane C's C5 voice coach had no CI home. **Measured in this worktree at this head: `# tests 64 · # pass 64 · # fail 0`, exit 0.** No dependency, no lockfile. |
+
+**`setup.test.mjs` is deliberately NOT enumerated, and this is the rule `:117 (4)` gives.**
+The same ruling asks for A4's `rebuild/m3/w7-preview/today/test/setup.test.mjs` to be
+enumerated in the A1/A2/A3 step **"only if it exists on the tip when B-NTC seals, else it
+rides B1's re-seal"**. At this head it does **not** exist on
+`origin/rebuild/t2-client-core` — `git ls-tree -r --name-only origin/rebuild/t2-client-core
+-- rebuild/m3/w7-preview/today/test/` lists six files and that is not one of them. So the
+step enumerates seven files, not eight. **The rule for whoever seals this package:** if
+`setup.test.mjs` is on the tip at seal time, add it to the A1/A2/A3 step's enumeration (and
+to `b-ntc-journeys.cjs`'s file list and its exact count) before sealing; if it is not, it
+rides B1's re-seal and nothing here changes. The same `rebuild.yml` comment block states it
+in place, so a reader of the workflow alone is not left to guess.
 
 **r2 R3 was right about disclosure and the PM has ruled on substance.** The table above now
-carries all three hunks. `DECISIONS:113 (3)` rules that both removals are correct and are not
+carries all four hunks. `DECISIONS:113 (3)` rules that both removals are correct and are not
 to be restored; what was wrong was that the previous version of this table named only one of
-them. It names three now.
+them. It names four now — the three r2 found and the one `:117 (4)` added afterwards.
 
 #### 4.1 The successor evidence for the 19 memory-only tests, cell by cell
 
@@ -313,7 +328,7 @@ That is done, and each half is checkable:
 
 * **the child's spec omits it.** `packages/B-NTC.json` declares fifteen children and
   `browser-package` (`# pass 19`) is not one of them.
-* **the CI step is gone.** `.github/workflows/rebuild.yml` hunk 3 of 3, §4 above.
+* **the CI step is gone.** `.github/workflows/rebuild.yml` hunk 3 of 4, §4 above.
 * **the successors are named.** §4.1 above, cell by cell, including the **three** that have
   no successor and are recorded as a residual rather than claimed.
 * **the parent wrapper is untouched.** `git diff origin/rebuild/t2-client-core HEAD --

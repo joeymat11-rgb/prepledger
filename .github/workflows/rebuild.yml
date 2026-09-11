@@ -95,6 +95,20 @@ jobs:
       # globbed, so the same set runs on both runners whatever the shell does.
       - name: A1/A2/A3 — the rebound Today page, the gym card, the check-in and the B-NTC delta cells
         run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
+      # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
+      # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,
+      # listed in BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md §4. The glob is the PM's own wording
+      # and is quoted so both runners expand it the same way: node's --test does the
+      # expansion itself, not the shell. Measured in the lane-b/ntc worktree at this head:
+      # 64 tests, 64 pass, 0 fail, exit 0. No dependency, no lockfile.
+      #
+      # A4's rebuild/m3/w7-preview/today/test/setup.test.mjs is NOT enumerated in the today
+      # step above: :117 (4) enumerates it "only if it exists on the tip when B-NTC seals",
+      # and it does not exist on origin/rebuild/t2-client-core at this head. If it lands
+      # before the seal it joins the A1/A2/A3 step; otherwise it rides B1's re-seal.
+      - name: C5 — the voice coach tool contract and text prototype
+        run: node --test "rebuild/coach/test/*.test.cjs"
       - name: A5 — the PWA shell's lockfile-only suites
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself
