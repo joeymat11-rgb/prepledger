@@ -577,7 +577,12 @@ function spec() {
       assert(typeof sub.original === 'string' && typeof sub.from === 'string' && sub.from.length >= 16 &&
         typeof sub.to === 'string' && sub.to.length >= 16 && sub.from !== sub.to &&
         typeof sub.why === 'string' && sub.why.trim().length >= 16, 'SUCCESSOR-SUBSTITUTION-SHAPE ' + JSON.stringify(sub.original));
-      assert(Object.values(sup.carriers).some(c => c.original === sub.original), 'SUCCESSOR-SUBSTITUTION-NOT-ON-A-DECLARED-ORIGINAL ' + sub.original);
+      // The file a substitution applies to need not be a declared CARRIER's original: a
+      // pin re-target most naturally lands in the support module the carriers share. What
+      // is required of it is stronger and is checked at run time against the parent's own
+      // bytes (successorProof): it must be a file the PARENT pins in executionPins, equal
+      // to that pin and to the Git blob at the parent's acceptance commit.
+      assert(/^rebuild\/m4\/spec\/[a-z0-9.-]+\.cjs$/.test(sub.original), 'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
     }
   }
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
@@ -1013,6 +1018,25 @@ function successorProof(s, bound, ran) {
   const sup = s.coverage.successors;
   if (sup === null || !bound) return proofs;
   assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
+  // Z5, once for the run: the parent's acceptance commit is on the real chain branch,
+  // resolved from Git refs, and behind HEAD. Nothing below reads a blob before this holds.
+  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, CHAIN_REF]);
+  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, 'HEAD']);
+  // Z2 (c), the substitution list as a whole, BEFORE any carrier is considered. Every file
+  // a substitution touches is a parent EXECUTION PIN, byte-equal to that pin and to the Git
+  // blob at the parent's acceptance commit; every `from` stands exactly once in it; every
+  // `to` stands in it not at all. A substitution over a file the parent does not pin, or
+  // one whose `from` is not there, or one that is already applied, all refuse here.
+  for (const sub of sup.substitutions) {
+    const pin = bound.acceptance.executionPins[sub.original];
+    assert(pin, 'SUCCESSOR-SUBSTITUTION-TARGET-NOT-A-PARENT-EXECUTION-PIN ' + sub.original);
+    const bytes = fs.readFileSync(rel(sub.original));
+    assert.equal(sha(bytes), pin, 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + sub.original);
+    assert.equal(sha(bytes), gitSha(SUCCESSOR_PARENT_COMMIT, sub.original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + sub.original);
+    const text = bytes.toString('utf8');
+    assert.equal(text.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
+    assert.equal(text.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
+  }
   const accepted = acceptedVerdicts(bound);
   for (const [parentChild, declared] of Object.entries(sup.carriers))
     proofs.set(parentChild, proveSuccessor(s, bound, ran, parentChild, declared, accepted));
@@ -1022,9 +1046,7 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
   const sup = s.coverage.successors, original = declared.original;
   assert.equal(bound.acceptance.executionPins[original] !== undefined, true, 'SUCCESSOR-ORIGINAL-NOT-A-PARENT-EXECUTION-PIN ' + original);
   // (1) the original is the parent's own byte, on disk, in the parent's pin map, and in Git
-  // at the parent's acceptance commit — which is on the chain and behind HEAD (Z5).
-  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, CHAIN_REF]);
-  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, 'HEAD']);
+  // at the parent's acceptance commit — anchored on the chain by successorProof() above.
   const originalBytes = fs.readFileSync(rel(original));
   assert.equal(sha(originalBytes), bound.acceptance.executionPins[original], 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + original);
   assert.equal(sha(originalBytes), gitSha(SUCCESSOR_PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
@@ -1036,9 +1058,13 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
   assert(!parentOwn.has(declared.successor), 'SUCCESSOR-IS-A-PARENT-PINNED-FILE ' + declared.successor);
   const body = [...sources.values()].join('\n');
   assert(body.includes(original), 'SUCCESSOR-DOES-NOT-NAME-THE-ORIGINAL ' + parentChild + ' ' + original);
+  // Lines the substitution list touches are excluded from the copy test, because the table
+  // is REQUIRED to carry them verbatim — that is condition (c) itself. Every OTHER long
+  // line of the original must be absent from the successor's own source.
   const subs = sup.substitutions.filter(x => x.original === original);
+  const quoted = sup.substitutions.flatMap(x => [x.from, x.to]);
   const lines = originalText.split('\n').map(l => l.trim())
-    .filter(l => l.length >= 40 && !subs.some(x => x.from.includes(l) || l.includes(x.from)));
+    .filter(l => l.length >= 40 && !quoted.some(q => q.includes(l) || l.includes(q)));
   assert(lines.length >= 8, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original);
   const copied = lines.filter(l => body.includes(l));
   assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
@@ -1046,10 +1072,6 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
   // (3) the replacements are exactly the enumerated ones, and nothing else replaces.
   const { table, holder } = successorTable(sources);
   assert.deepEqual(table, sup.substitutions, 'SUCCESSOR-SUBSTITUTION-TABLE-DISAGREES-WITH-THE-SPEC ' + holder);
-  for (const sub of subs) {
-    assert.equal(originalText.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
-    assert.equal(originalText.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
-  }
   for (const [file, src] of sources)
     for (const m of src.matchAll(/\.replace(?:All)?\s*\(/g)) {
       const line = src.slice(src.lastIndexOf('\n', m.index) + 1, src.indexOf('\n', m.index) + 1 || undefined);
