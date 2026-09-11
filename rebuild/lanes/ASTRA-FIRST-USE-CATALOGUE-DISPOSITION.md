@@ -1,0 +1,21 @@
+# Bounded setup catalogue disposition
+
+Temporary PM September11, supplement to ASTRA-FIRST-USE-SETUP.md. This is a new explicit small public identity mapping for the existing-routine capture feature, not a recovered personal routine or an assertion that a general catalogue already exists. Root authorizes implementation for independent review. Users select exercises and supply their own schedule/order/sets/rep ceilings/equipment loads; no item is preselected and no programme is prescribed by this table.
+
+| Stable existing engine id | Display choice | Existing primary grouping key | Existing session type |
+|---|---|---|---|
+| press | Chest press | chest | U |
+| rows | Seated row | back | U |
+| pulldown | Lat pulldown | back | U |
+| curl | Biceps curl | biceps | U |
+| hack | Hack squat | quads | L |
+| extension | Leg extension | quads | L |
+| ham | Leg curl | hams | L |
+
+The names identify bilateral movement families only; the person must confirm the actual movement/equipment and keep it consistent. Do not collapse overhead press into chest press, triceps extension into leg extension, unilateral rounds into bilateral sets, or independent different exercise/technique/equipment variants into a single historical identity. Support one configured member per stable id in this first form; do not append suffixes that lose exact INDIRECT lookup. Unsupported required variants stay a visible limitation to resolve before claiming that person's complete routine is configured. This seven-choice step is not the app's permanent exercise coverage, a whole-body programme recommendation or proof of Joe/Dad routine suitability. Preserve further needed catalogue/metadata coverage in report.
+
+Existing source establishes U/L ordering in constants RULED_ORDER, exact secondary credits in INDIRECT, and explicit press/chest and ham/hams in writers OWNER_CALLS descriptions (descriptions only, never their historical consent producer). The missing primary-key choices back/biceps/quads are expressly adopted here as coarse movement-group metadata; they are not claimed to be copied from a pre-existing public catalogue. External classification cross-checks: [NASM seated row](https://www.nasm.org/resource-center/exercise-library/seated-machine-row-close-grip) and [NASM lat pulldown](https://www.nasm.org/resource-center/blog/training/the-biomechanics-of-the-lat-pulldown-muscles-grip-and-form) support back as a primary grouping; [NASM biceps curl](https://www.nasm.org/resource-center/exercise-library/barbell-bicep-curl) supports biceps; [ACE quadriceps catalogue](https://www.acefitness.org/resources/everyone/exercise-library/body-part/legs-thighs/quadriceps(quads)/) supplies the quadriceps grouping and leg-extension classification; [NASM leg curl](https://www.nasm.org/resource-center/exercise-library/seated-leg-curl) supports hamstrings. These sources establish coarse anatomical labels only, not Earned coefficients, individualized efficacy or numerical prescription quality. No copied exercise instructions or numeric prescriptions enter the app.
+
+The proposed row/rows and pull/pulldown mismatch is RETRACTED. Root inspected actual restFor prefix matching and executed createWriters({},{}).restFor on source11ba8e8: press150, rows150, pulldown150, hack150, curl90. Keep existing ids exactly; no engine fix. Preserve actual INDIRECT credits and current rest/terminal-bump predicates instead of storing duplicated coefficients in the catalogue or treating omitted secondary muscles as scientifically inactive. No new volume credit/frequency/rest rule is licensed.
+
+Implement only the named mapping in owned setup files, with actual constructor/engine-bound compatibility cases sufficient to catch lost exact ids/group/type. Render no internal ids. No seed, ledger, selected old routine, personal prior loads or private history. Do not import or enable runAdaptive/OWNER_CALLS. Current accepted runtime excludes that producer and its separate provenance obligation remains. No closed setup schema extension, engine edits, new threshold, source policy/publish or silent broader exercise-name inference. Independent review must assess mapping limits and real first-use interaction alongside the form.
