@@ -5,7 +5,10 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const root=path.resolve(__dirname,'../../..');
 const Profile=require('./native-carriers-profile.cjs'),S=require('./native-carriers-source.cjs');
 const ART=path.join(root,Profile.ARTIFACT),AUTH=path.join(root,'rebuild/m4/spec/native-carriers-authorizations.json');
-const CHANGES=path.join(root,S.CHANGES_FILE);
+const CHANGES=path.join(root,S.CHANGES_FILE),REVIEW=path.join(root,Profile.REVIEW);
+// The grandparent the profile resolves the historical-audit baseline through.
+const GRANDPARENT=path.join(root,'rebuild/conform/v4/postfix/acceptance-step-efficacy.json');
+const PARENT_ART=path.join(root,Profile.PARENT.artifact);
 function withEdit(file,mutate,body){
  const original=fs.readFileSync(file);
  try{fs.writeFileSync(file,mutate(original.toString('utf8')));body();}
@@ -17,7 +20,12 @@ test('the sealed artifact verifies as it stands', () => {
  const context=Profile.verify();
  assert.equal(context.manifest.packageId,Profile.ID);
  assert.equal(context.manifest.sourceBase,S.BASE);
- assert.equal(context.accepted,false,'No receipt is claimed');
+ // F-PM-4: track the review file's actual status instead of hardcoding PENDING.
+ // Hardcoding `false` made this child fail the moment an independent receipt was
+ // written, so PACKAGE PASS was unreachable. The parent's load-write-profile.test.cjs
+ // asserts the same equality against its own review file.
+ assert.equal(context.accepted,JSON.parse(fs.readFileSync(REVIEW)).status==='ACCEPTED',
+  'accepted reports exactly the review file status');
  assert.equal(context.themePending,false,'The theme ledger line is bound');
 });
 test('the owner and theme ledger lines are bound by exact text and sha256', () => {
@@ -61,4 +69,36 @@ test('a one-character edit to the theme document is refused', () => {
 test('a one-character edit to the build report is refused', () => {
  const report=path.join(root,'rebuild/m4/spec/NATIVE-CARRIERS-BUILD-REPORT.md');
  withEdit(report,text=>text+' ',refuses);
+});
+// Review F-E1: the two mechanisms shipped in the last deltas — the covered/run
+// coverage record (F-PM-2) and the resolved grandparent baseline (F-PM-3) — carry
+// their own refusals, so neither can be weakened by editing a manifest or a pin.
+const rewrite=fn=>text=>{const value=JSON.parse(text);fn(value);return JSON.stringify(value,null,2)+'\n';};
+test('a covered original gate moved to run is refused', () => {
+ withEdit(ART,rewrite(m=>{
+  const gate=m.coverage.covered[0];
+  assert(gate,'a covered gate to move');
+  m.coverage.covered=m.coverage.covered.filter(g=>g!==gate);
+  m.coverage.run=[...m.coverage.run,gate].sort();
+ }),refuses);
+});
+test('a coverage remap to an unpinned child is refused', () => {
+ withEdit(ART,rewrite(m=>{
+  const gate=Object.keys(m.coverage.byChild)[0];
+  assert(gate,'a covered gate to remap');
+  assert(!m.executionPins['rebuild/m4/spec/native-carriers-not-a-pinned-child.cjs'],'the remap target is genuinely unpinned');
+  m.coverage.byChild[gate]='not-a-pinned-child';
+ }),refuses);
+});
+test('a flipped byte in the grandparent acceptance is refused', () => {
+ withEdit(GRANDPARENT,text=>{
+  assert(text.startsWith('{\n  "version": 2,'),'grandparent version preamble');
+  return text.replace('"version": 2','"version": 3');
+ },refuses);
+});
+test('a changed grandparent pointer in the parent artifact is refused', () => {
+ withEdit(PARENT_ART,rewrite(a=>{
+  assert.equal(a.parent.artifact,'rebuild/conform/v4/postfix/acceptance-step-efficacy.json','the parent names the grandparent');
+  a.parent.sha256='0'.repeat(64);
+ }),refuses);
 });
