@@ -532,7 +532,8 @@ function baselineOf(bound) {
 // drops from its inventory, are both UNLISTED-PRODUCT-DRIFT.
 function product(s, bound) {
   const pmap = bound && bound.acceptance.product, epins = bound && bound.acceptance.executionPins;
-  const at = { pre: [], post: [], carried: [], drift: [], superseded: [] };
+  const at = { pre: [], post: [], carried: [], drift: [], superseded: [], existing: [] };
+  let existingPolicy;
   for (const [file, pin] of Object.entries(s.product)) {
     if (pmap && Object.hasOwn(pmap, file)) {
       assert.equal(pin.pre, pmap[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
@@ -555,6 +556,15 @@ function product(s, bound) {
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
     const disk = diskSha(file);
     if (pin.role === 'carried') { assert.equal(disk, pin.pre, 'UNLISTED-PRODUCT-DRIFT ' + file); at.carried.push(file); }
+    else if (ID === 'B-NTC' && pin.role === 'new' && pin.post !== null && pin.pre === pin.post && disk === pin.post) {
+      // A newly inventoried existing dependency is present, not changed code.
+      // This narrow accounting requires the complete fixed successor policy,
+      // truthful sourceBase preimage and immutable policy/HEAD source evidence.
+      existingPolicy ||= validateSuccessorDefinition(s, bound, loadSuccessorPolicy());
+      assert.equal(existingPolicy.sourcePins[file], pin.post, 'EXISTING-DEPENDENCY-POLICY-SOURCE ' + file);
+      assert.equal(gitSha(s.sourceBase, file), pin.pre, 'EXISTING-DEPENDENCY-SOURCEBASE ' + file);
+      at.existing.push(file);
+    }
     else if (disk === pin.pre) at.pre.push(file);
     else if (pin.post && disk === pin.post) at.post.push(file);
     else at.drift.push(file);
@@ -565,7 +575,7 @@ function product(s, bound) {
     assert(Object.hasOwn(s.product, file), 'UNLISTED-PRODUCT-DRIFT ' + file + ' is pinned by the parent and is not in this product inventory');
   const phase = at.post.length === 0 ? 'NOT-IMPLEMENTED' : at.pre.length === 0 ? 'IMPLEMENTED' : 'PARTIAL';
   say('PRODUCT ' + phase + '; ' + at.post.length + ' at the declared post-image / ' + at.pre.length + ' at the pinned pre-image / ' + at.carried.length +
-    ' carried byte-identical from the parent / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
+    ' carried byte-identical from the parent / ' + at.existing.length + ' newly inventoried existing dependencies (present, not changed implementation) / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
     '; ' + at.superseded.length + ' declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte' +
     (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : ''));
   if (phase !== 'IMPLEMENTED') note('product ' + phase + ' (' + at.pre.length + ' declared file(s) still at the pinned pre-image)');

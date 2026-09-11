@@ -1,3 +1,93 @@
+FINAL COHERENT QUALIFICATION — INTERMEDIATE SOURCE CHECKPOINT
+September 11, 2026. Author only. Final policy deliberately NOT frozen.
+Base d450ee70891bfe7cfb253eb97f5a73821b7eabca; integrated source
+3a73b0d3ee0c21711a1dc8d77fd2425f05adf1bd. Isolated final worktree/branch
+astra-owner-qualification-final / codex/astra-owner-qualification-final.
+The containing commit identifies this intermediate source exactly.
+
+Accepted entry46a8127 and preparation41f9 were mechanically joined by the
+independent integrator, whose committed report gives actual default-browser
+save/reload and scheduled 40x10 -> 40x10 -> 45x9 -> 45x10 evidence. Reuse
+independent preparationd6c582b and component reviews; no self-acceptance.
+Root subsequently held final policy for a separately assigned visible workout
+navigation disposition. That source has not joined; no B1 join or product edit.
+
+Current delta
+- Refresh actual calendar/entry/test pins: 108-file build-resolved inventory,
+  148 product entries, 19 children. All reviewed17 declarations are preserved;
+  additions are actual entry/calendar execution and final qualification controls.
+- Entry wrapper executes local-owner-entry.test.mjs and the changed
+  local-today-journey.test.mjs: exactly66 pass, zero fail/skip/cancel.
+  Both are explicitly enumerated in the existing two-OS workflow; final
+  qualification controls have a separate explicit step. Browser remains separate.
+- Browser probe/build imports are inventoried. Its generated page URLs are
+  explicitly limited to /app.js three times and /enroll.js once, all imported
+  by the exact probe. They are browser URLs, not omitted filesystem modules.
+  Three build warnings are bound exactly to the unchanged journey's intentional
+  IDENTITY_KEY/ENROLMENT_EVIDENCE/AUTHORITY_KID nonexport assertions. All other
+  unresolved imports/warnings still refuse. No product loader form was added.
+- Refresh proposed v1.3 and historical three-overlay/two-SUPPORT wording.
+
+Material runner correction authorized by supplement
+ASTRA-QUALIFICATION-UNCHANGED-DEPENDENCIES.md at PM7e7ccbb authorizes a narrow
+accounting correction. Actual old product() against the real current map reported
+47 post / 80 pre / 20 parent-carried / zero drift = PARTIAL, because truthful
+newly inventoried dependencies have pre===post. The correction only considers
+BNTC role:new with nonnull pre===post===disk. It validates the complete fixed
+policy, requires the individual immutable policy source pin, and checks the
+actual Git sourceBase preimage. It reports these as existing/present separately
+from changed implementation. Parent PRODUCT/EXECUTION classification and preimage
+checks, pre-before-post handling for edited/superseded files, and phase formula
+are unchanged. No general role, root, selector, authority or receipt exception.
+
+Executed focused evidence on this intermediate source
+- Actual entry/calendar wrapper66/66, zero fail/skip/cancel.
+- Unchanged actual setup/baseline wrapper49/49, zero fail/skip/cancel.
+- Final calendar/entry/browser disk drift and missing-pin controls5/5 (filtered
+  run; the four final-policy tests are deliberately pending final policy).
+- Reviewed owner source closure controls8/8 rerun on integrated entry source.
+- Ten isolated actual-runner unchanged-dependency controls passed (8 plus2
+  focused tests): old PARTIAL/new IMPLEMENTED; missing/changed disk; falsebase;
+  absent/wrong policy and changed declaration; parent mislabels; unchanged
+  edited/superseded parent remains PARTIAL; absent new implementation remains
+  PARTIAL; other package unchanged; missing individual source pin refuses;
+  existing dependencies alone remain NOT-IMPLEMENTED. Fixtures only replace the
+  compiled fixed policy digest with their synthetic policy's digest, preserving
+  all real validation functions/Git checks. They create no real chain authority.
+- Tooling regression equality counts follow exact19; all five real helper-as-test
+  substitutions remain. Legacy original execution restoration now also restores
+  the exact third projection pin. Full accepted19 tooling controls will rerun
+  once the final proposed source policy exists; no result claimed early.
+- diff --check clean. Product/frozen source diff against base is empty.
+
+Initial inventory attempts correctly refused browser page URLs, then the three
+intentional nonexport warnings, then detected the actual three /app.js imports.
+The scanner was narrowed to those exact reviewed constructs above; no test body
+or runtime was changed. An early wrapper invocation refused absent entry pins
+because inventory generation had stopped. The final66/49 executions succeeded.
+
+Current mechanical SHA256 (not a final policy)
+runner: 2f0fb155225c0bf947cc28a2036fabcce6f7b13aae7d35f97de486245325540b
+closure code: 9c9772979e2e4ff23edde4cd7e23465568b0252b750882895edc6f7764faf53f
+closure map: cf77ee949cbd2359ab559296b99fd141eeda8dca635561cf2ce4d96052662036
+entry wrapper: 73ccd933108380a5a494fae2d2f40809b6e9f2df5bafe13e8748f24beaccc0c9
+final controls: 541221e5d6e0a74355d2234a06f263032377486ce417e38cad2551e26518fd51
+existing controls: 1da30a38873bb09fefc3c2e0c3f493d035717ba536a70767cbd857e76024fe81
+proposed brief: 4160d581c9a667ca865dce1ac56f9c13511cd4f462a39bd0827c55166bf46d9a
+Old policy6147178 remains unchanged and cannot authorize this source.
+
+Pending: independently reviewed navigation source/disposition, narrow source
+join and refresh, committed coherent source followed by proposed policy and
+mechanical runner/spec hash update (no circular self-pin), real-map corrected
+product proof and all final policy/altered declaration/old tooling controls.
+Then independent material-runner/final-delta review, root PM exact brief/theme
+ruling, and genuine authority integration on both fixed CHAIN_REF and candidate.
+No new PM line is invented. Current actual CHAIN_REF remains7b1678a.
+Full/private/CI/45 laws/19 gates/second gate/fidelity/mutations/final receipt and
+physical-phone obligations remain. No install/private/FULL/push/PR/deployment.
+
+HISTORICAL REUSABLE PREPARATION REPORT — CURRENT DISPOSITION ABOVE
+
 ASTRA OWNER QUALIFICATION — REUSABLE PREPARATION CHECKPOINT
 2026-09-11; author only; not package acceptance or deployment.
 
@@ -50,7 +140,7 @@ Executed focused evidence (existing dependencies; no private inputs)
   declarations and a shortened/re-pinned manifest refuse; restored actual source
   verifies and global loader/filesystem functions remain unchanged.
 - Original b-ntc-profile-refusals.test.cjs: all 13 unchanged tests pass.
-- Existing b-ntc-child-pin-refusals.test.cjs: all 4 unchanged tests pass.
+- Existing b-ntc-successors.test.cjs: all 4 unchanged tests pass.
 - Actual b-ntc-source-carriers.cjs: 6/6 assertions at each original clock; candidate
   terminal receipt remains PENDING. Archived and actual source checks both ran.
 - Actual runner validateSuccessorDefinition with the current real spec refuses
