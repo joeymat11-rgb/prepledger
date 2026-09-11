@@ -782,3 +782,190 @@ Two things for the lane lead, neither blocking the merge: get the CI step added
 (or say in the ledger line that it was not), and put the reason-on-disk question
 to the PM. The model adapter remains gated on `model-adapter.md §8` with this
 checker as its bar — which, after three rounds, it now deserves to be.
+
+---
+
+## Round 4 (delta 93d18e1)
+
+A new standing owner rule landed after my round-3 ACCEPT: **DECISIONS:114 (1)**,
+owner verbatim *"no ai dashes are allowed in the ui"* (no U+2014, no U+2013 in
+athlete-facing copy). This round reviews the coach's sweep and nothing else.
+Worktree detached at **`93d18e1`**, rebased onto
+`origin/rebuild/t2-client-core` @ **`9e73d1c`**. My round-3 commit `5fda6ca`
+remains reachable and the review copy at `93d18e1` is **byte-identical** to it.
+
+### Baseline re-measured
+
+| check | result |
+|---|---|
+| `git diff --stat 9e73d1c..93d18e1` | 16 files, 5118 insertions, **0 deletions** — `rebuild/coach/**` plus the report and this review, nothing else |
+| `git diff --stat 9e73d1c..93d18e1 -- rebuild/m3 rebuild/engine rebuild/client rebuild/conform rebuild/m4 .github` | **empty** |
+| `git show --stat 051c3d7` (the only code commit) | 5 files, all under `rebuild/coach/` |
+| `node --test "rebuild/coach/test/*.test.cjs"` | `tests 64 · pass 64 · fail 0`, `not ok` **0** |
+| per suite | traceability **16**, tiers **13**, local-era **9**, cost-cap **12**, charter **8**, no-dashes **6** = **64** — exactly as claimed |
+| `node rebuild/coach/coach-text.cjs` | `turns: 25 · untraceable turns: 0 · charter violations: 0`, exit 0 |
+| `node --check rebuild/coach/tools.cjs` | OK |
+| report file table | **15/15 sha256 AND 15/15 line counts match** (the table grew by `test/no-dashes.test.cjs`) |
+
+One bookkeeping note: the delta `4126035..93d18e1` also shows `DECISIONS.md`,
+`REQUESTS.md`, `STATUS.md` and the two `rebuild/slice/` briefs. Those arrived
+with the **rebase onto the newer tip**, not from this lane — against the branch's
+real base `9e73d1c` the lane adds only the files in the table above. I checked
+this rather than assuming it.
+
+### RED baseline — CLOSED
+
+I restored the pre-sweep `tools.cjs` and `coach-text.cjs` from `2052824` (the
+parent of the sweep commit) over the current tree and ran the new suite against
+them: **`tests 6 · pass 0 · fail 6`** — all six tests RED, not one. Restored and
+re-verified `git status --short` empty and 6/6 green again. The test file is
+genuinely red-first against the tree it was written for.
+
+### My own scan — 0 coach-authored dashes
+
+Independent of the lane's test, with my own comment stripper:
+
+| surface | dashes |
+|---|---|
+| `tools.cjs` / `coach-text.cjs` / `local-world.mjs`, **code only** | **0 / 0 / 0** (56 remain in comments: 40 + 10 + 6) |
+| `scripts/questions.json` | 0 |
+| all five tier-3 explanations | 0 |
+| every reachable refusal/`unavailable` string — every one of the 15 tools crossed with 14 argument shapes, walked to depth 8 | **4 distinct strings carry a dash, and all four are ENGINE prose**: `today.statusFace.cause`, `today.marchingOrder.targetLine` (the `2262–2360` range), `theOneFix`, and the `volumeImbalance` reason. The coach authors none of them |
+| every `verifyCostCap` and `verifyOptIn` refusal reason (6 cap shapes × , 4 opt-in shapes × 3 users) | **0** |
+| the 25-turn transcript, engine-tagged values subtracted | **coach-written = 0** |
+
+### The "17" figure — TRUE, but it is a CEILING and it is FIXTURE-SPECIFIC
+
+Executed both ways, which the report does not distinguish:
+
+| fixture | total dashes in the transcript | coach-authored |
+|---|---|---|
+| the test's own `coach()` — **no consent surface** | **17** | **0** |
+| a consent-bearing world (the `tiers.test.cjs` shape) | **19** | **0** |
+
+The extra two are the engine's `volumeImbalance` reason, which is spoken again at
+q18 only when the consent surface exists so the yes can land. So the residual is
+17 on the fixture the test measures and 19 on a fixture closer to a phone — and
+**the property that matters, coach-authored = 0, holds on both.**
+
+Mutation, exactly as asked:
+
+| mutant | result |
+|---|---|
+| `total <= 17` → `total <= 16` | **KILLED** (fail 1) — RED on *"the 25-turn transcript carries no dash the COACH wrote"* |
+| `total <= 17` → `total <= 18` | **SURVIVED** (fail 0) |
+
+So it is a **one-sided ceiling**, not a pin: it catches the residual rising, not
+falling. The report's word *"PINS the engine-prose residual at 17"* overstates on
+both counts. I want to be clear that the **instrument is right and the wording is
+wrong**, not the other way round: a hard pin at exactly 17 would turn RED the day
+`rebuild/engine`'s prose is swept, punishing an improvement. A ceiling is the
+correct choice. Only the report sentence needs fixing, and that is not worth a
+round.
+
+### The sweep changed punctuation only — verified
+
+Exactly **6** literals changed, 1 in `coach-text.cjs` and 5 in `tools.cjs`. I
+diffed each and compared word sets and digit counts:
+
+| # | change | digits | words lost |
+|---|---|---|---|
+| 1 | `not a bullseye — over it` → `not a bullseye. Over it` | 0 → 0 | none |
+| 2 | `not a choice — not yours and not mine.` → `not a choice. It is not yours and it is not mine.` | 0 → 0 | none (gained "it" for grammar) |
+| 3 | `rebuild/engine — no accepted…` → `rebuild/engine: no accepted…` | 0 → 0 | none |
+| 4 | `exactly true — a cap nobody checked…` → `exactly true. A cap nobody checked…` | 0 → 0 | none |
+| 5 | `that screen — who, when, which wording — is what opens` → `that screen saying who, when and which wording, is what opens` | 0 → 0 | none (gained "saying", "and") |
+| 6 | `what actually happens — it does not name:` → `what actually happens. It does not name:` | 0 → 0 | none |
+
+**No word lost and no digit introduced in any of the six** — which matters here
+more than anywhere else, since a number appearing in a refusal string would
+silently widen the traceability allow-set. The traceability suite is still 16/16
+and the CLI still 0 untraceable, so nothing leaked. Only #5 reads slightly
+awkwardly (`that screen saying who, when and which wording, is what opens this
+gate`); that is style, not a rule breach, and I am recording it rather than
+raising it.
+
+Each swept literal is individually load-bearing — I reverted them one at a time:
+
+| reverted literal | fail | first RED test |
+|---|---|---|
+| protein template | 3 | *"no dash in any template's own words"* |
+| tier-3 phase | 4 | *"no dash in the tier-3 explanations or the scripted questions"* |
+| replan source string | 2 | *"no dash in any refusal the athlete can reach"* |
+| cap `verified` reason | 2 | *"no dash in any cost-cap or opt-in reason"* |
+| opt-in record reason | 2 | *"no dash in any cost-cap or opt-in reason"* |
+| opt-in wording reason | 2 | *"no dash in any cost-cap or opt-in reason"* |
+| an **en** dash injected into a template (not just an em dash) | 3 | *"no dash in any template's own words"* |
+
+**8 mutants run, 7 killed / 1 survived** (the survivor is the `<= 18` ceiling
+loosening, characterised above, not a defect). All three mutated files restored
+and verified byte-identical by sha256; `git status --short` empty; 64/64 green on
+the restored tree.
+
+### Is carrying engine prose verbatim the right call under :114? YES
+
+I was asked to judge this, so I will state it plainly.
+
+Rewording an engine sentence inside the coach is exactly what this whole delivery
+exists to prevent. `model-adapter.md §7` already forbids it in the same breath as
+forbidding invented numbers — *"Reword an engine or client refusal. The code and
+the sentence travel verbatim"* — and the reason is not stylistic: the moment the
+coach paraphrases a sentence that explains a number, it is authoring copy about a
+number it did not compute, and the Today screen and the coach start saying
+different words for the same fact. `rebuild/engine` and `rebuild/m3` are also
+outside this lane's write scope, and the lane correctly did not touch them (I
+verified: byte-untouched against `9e73d1c`).
+
+So the lane's three moves are the right ones: sweep what it authors (6 → 0),
+carry engine prose byte-verbatim, and leave a visible tripwire on the residual.
+The `model-adapter.md §7` addition states the same exception in the same place a
+future adapter will read it.
+
+**And the loop is already closable without editing the engine.**
+`rebuild/slice/P1-NO-DASHES-BRIEF.md`, which landed on this tip, resolves the
+identical problem for the Today screens: *"Text the ENGINE emits (rebuild/engine
+is frozen for this brief) that today/ renders verbatim: today/ normalises it at
+the render boundary with ONE small function (dash → ': ' for asides, ' to ' for
+numeric ranges) that is unit-tested; the engine is not edited."* That is the
+precedent the coach should adopt when P1 lands: a mechanical, unit-tested
+punctuation transform at the point of speech changes no words, invents no number,
+and takes the coach's spoken residual to 0 without any engine edit and without
+the coach rewording anything. I am recording this as a follow-up, **not** as a
+condition — it depends on a brief this lane does not own, and the coach has no
+UI yet for anything to be seen in.
+
+### Residuals added this round
+
+- **R-DASH-ENGINE.** 17 dashes (19 with a consent surface) still reach the
+  spoken transcript inside engine prose. Outside this lane's write scope,
+  disclosed, tripwired. Adopt P1's render-boundary normaliser when it exists.
+- **R-DASH-JSON.** Two lane-owned dashes survive outside the test's scan:
+  `cap.example.json`'s `_note` and `cap.schema.json`'s `title`. Neither is
+  athlete-facing — the `_note` says of itself that it *"is never read by the
+  product"*, and a JSON Schema title is developer metadata — so :114 does not
+  reach them. Recorded so the report's "6 lane-owned literals → 0" is read as
+  *athlete-facing* literals, which is what it means.
+- **R-DASH-WORDING.** The report says the test "PINS" the residual at 17. It
+  sets a ceiling (`total <= 17`), which is the better instrument; only the
+  sentence is wrong.
+- The round-3 residuals stand unchanged: **R-CI** (still no `.github` step runs
+  these 64 tests — verified empty again), **R-REASON** (the PM's reason-on-disk
+  ruling), **R-SCOPE**, **R-BARE**.
+
+## FINAL VERDICT ACCEPT at 93d18e1
+
+The sweep does what it claims and nothing more. Six athlete-facing literals went
+to zero, each one red-first and individually load-bearing; my own independent
+scan of the source, the assets, all five tier-3 explanations, every reachable
+refusal across 15 tools × 14 argument shapes, every cap and opt-in reason, and
+the full 25-turn transcript finds **zero dashes the coach wrote**; the changes
+are punctuation-only with no word lost and no digit introduced; `rebuild/m3`,
+`rebuild/engine`, `rebuild/client`, `rebuild/conform`, `rebuild/m4` and `.github`
+are byte-untouched; 64/64 green, CLI 25/0/0, 15/15 hashes and line counts.
+Carrying engine prose verbatim is the correct reading of :114 for this lane, and
+P1 shows how the remainder closes later without an engine edit.
+
+Nothing blocking. The three standing items for the lane lead are unchanged: the
+CI step (or a ledger line saying it was not added), the PM's reason-on-disk
+ruling, and the model adapter staying gated on `model-adapter.md §8` — now with
+the no-dash rule in `§7` as part of that bar.
