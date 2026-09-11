@@ -1,0 +1,59 @@
+NATIVE SCALE F1/F2 — INDEPENDENT DELTA REVIEW
+2026-09-11. ACCEPT for the correction delta; F1 and F2 closed by execution.
+
+(1) EXACT SOURCE / ROLE
+Candidatecdcb264044ea786896ba7933cdf5e8571bce2443;
+parent95c6a5423cf4de364e24fc24f8b1754a49dcbc91.
+FILE ASTRA-NATIVE-SCALE-DELTA-REVIEW.md atcaaac97; correction brief and complete builder report read.
+Same independent reviewer /root/phone_release_review as original2d53a6ad56a2785e358b20fac96ba4bdf6877cb3,
+not author of either implementation. New isolated codex/astra-native-scale-correction-review.
+Only this report committed; no implementation edit or assembly.
+
+(2) DELTA INSPECTED
+scale-feedback.mjs copies only the exposed workoutHistory before recursive freezing. Internal projection
+continues using the borrowed view; no full-generation copy and no shared interpreter change.
+The contradiction check removes only closeTime<=cutoff; active/status/current-edit and chronology checks
+remain. Thus known contradictory predecessor evidence survives cutoff, while genuine later completion
+without prior-order evidence is still excluded from the training-at-reading test.
+CONTRACT.md describes output ownership and current-evidence cutoff semantics precisely. Four appended tests
+exercise ownership descriptors/aliases, both order-evidence types/cutoffs/layers, close removal/correction,
+and genuine later completion/future reading. None merely compares counts or duplicated formulas.
+
+(3) EXECUTED
+Retained Node24.19.0/dependencies only. TZ=America/New_York; NODE_PATH=retained W6;
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this review tree.
+node --test rebuild/m4/nutrition/scale-feedback.test.mjs
+23 PASS,0 fail/skip/cancel, exit0. Includes all original19 plus4 regressions.
+The ownership test checks every reachable caller object's descriptors, extensibility/sealed/frozen state,
+no shared output/input references, recursively frozen output, rejected output writes and successful later
+caller writes without changing the snapshot. Chronology cases execute same-device and causal-parent order,
+accepted/local views, pending removal and correction, both07:30/10:00 cutoffs, genuine read-before-close,
+and a future reading. The original equal-time/reopen/cache-loss cases remain passing.
+
+node .tmp/scale-review-probe.mjs: PASS, exit0. Replayed this reviewer's original actual-C4-produced witness
+fixture against corrected source; only relocated imports and expected corrected assertions changed.
+F1 result: beforeFrozen=false, afterFrozen=false, sameReference=false, parentsFrozen=false. Caller property
+assignment succeeds; returned original remains frozen and does not gain that property.
+F2 same produced Close08:00, consecutive-predecessor reading effective07:00: both asOf07:30 and10:00 yield
+null baseline and SCALE_TRAINING_CHRONOLOGY_REQUIRED, replacing original07:30's erroneous170/no exclusions.
+Independent additional close-effective correction: current pending correction moves Close to06:30 while
+accepted Close remains08:00. At asOf07:30, local result says AFTER_COMPLETED_TRAINING, accepted result says
+SCALE_TRAINING_CHRONOLOGY_REQUIRED. This proves the cutoff fix still uses each layer's current resolved
+close rather than original time or correction-recording time. Invalid-asOf and removed-repeat controls pass.
+Receipt/envelope boundary fixtures are synthetic controls, not signed-authority qualification.
+
+node .tmp/check-delta-source.cjs: PASS. Original test file is an exact prefix after CRLF normalization;
+all original19 assertions remain intact. Diff for rebuild/engine, rebuild/m3 and rebuild/m4/workout empty.
+Reuse original2d53a6a's independent8 rate/4 writer parent-parity vectors and unchanged upstream evidence;
+no repeat independent arithmetic campaign required. Focused23 itself reruns its inherited parity cases.
+git diff --check PASS; candidate delta is only projection, contract, appended tests and builder report.
+
+(4) VERDICT LIMITS
+No remaining correction required in this delta. Original implementation's two blocking findings are closed;
+root alone awards scoped acceptance and a distinct integrator assembles accepted code.
+This does not issue engine/source-policy/CI qualification, historical knowledge snapshots, a chronology
+winner, physiological/date policy, Today wiring or physical phone proof. Imported-source blackout mapping,
+unsupported reading reclassification, four-field nutrition/personal goals, recovery/progression and full
+mandatory engine qualification remain open as documented. No full/private or memory campaign, additional
+reviewer/agent, private input, installation/lock churn, frozen law/oracle/source-policy/workflow edit, other
+tree edit, push/PR/merge/deployment or receipt. Runnable synthetic witnesses remain ignored in this tree.
