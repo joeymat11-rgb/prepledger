@@ -94,6 +94,18 @@ const CHECKIN_RECORDED_TODAY = "Recorded today";
 const CHECKIN_NO_STORE_SHORT = "Not available on this device";
 const CHECKIN_NO_STORE = "This device could not open its encrypted local store, so no check-in can be recorded here.";
 
+/* A4 — Dad's first run. The route and the landing tile exist ONLY while this
+   installation carries no first-run operation, and "carries no first-run
+   operation" is read from the durable generation by the setup entry, never from
+   a flag this page sets. A store that has been set up, a store that refused
+   RESTORE_REQUIRED and a device with no store at all all give the same answer
+   here: the setup screens are not offered (BUILD-BRIEF 2.3, S13/S14).
+   This module is CommonJS and the setup screens are ESM, so the tile's one word
+   is a literal here, declared in design.cjs beside the rest of the preview's own
+   runtime copy; setup-app.mjs carries the same string in its own COPY and
+   test/setup.test.mjs asserts the two agree. */
+const SETUP_ENTRY = "Set up your week";
+
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
    lines and push the primary action out of a 390x844 viewport. This steps the headline
    down from C's 47px, one pixel at a time, ONLY until the primary action is back inside
@@ -136,6 +148,12 @@ function mountToday(doc, model, options = {}) {
        open({ phone, doc, back })  -> mounts the check-in into the phone element */
   const checkin = options.checkin || null;
   const checkinSummary = () => (checkin && typeof checkin.summary === "function" ? checkin.summary() : null) || null;
+  /* A4 — the first-run entry, injected exactly as the other two are:
+       firstRun()                  -> true only while the DURABLE record holds no
+                                      first-run operation for this installation
+       open({ doc, phone, back, done }) -> mounts the six screens into #phone */
+  const setup = options.setup || null;
+  const firstRun = () => !!(setup && typeof setup.firstRun === "function" && setup.firstRun() === true);
 
   let screen = "today";
   /* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. The check-in is reachable
@@ -249,6 +267,7 @@ function mountToday(doc, model, options = {}) {
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
     map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
+    setupTile(map);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -433,6 +452,18 @@ function mountToday(doc, model, options = {}) {
     return root;
   }
 
+  /* A4 — the landing tile. It is shown ONLY while this installation is fresh, so a
+     device that has been set up never sees an invitation to be set up again, and a
+     device whose store did not open is not invited to enrol into nothing. */
+  function setupTile(map) {
+    const tile = map.get("setup-entry");
+    if (!tile) return null;
+    const offer = firstRun();
+    tile.hidden = !offer;
+    if (offer) put(map, "setup-entry-label", SETUP_ENTRY);
+    return offer;
+  }
+
   /* A3 — Today's one-line report on the check-in. It reads the DURABLE lane, never a
      flag this page sets, and says nothing at all when nothing is recorded. */
   function recoveryState() {
@@ -458,7 +489,19 @@ function mountToday(doc, model, options = {}) {
   }
 
   function render(next, focus = false) {
+    /* A4 — the first-run route. It is REFUSED, not merely hidden, once the record
+       says this installation has been set up: an installation that is no longer
+       fresh falls straight back to Today, so no URL, no stale link and no second
+       tab can reach the setup screens a second time (S13). The same fallback
+       covers RESTORE_REQUIRED and a device with no store, because in both cases
+       the page was given no setup entry at all (S14). */
+    if (next === "setup" && !firstRun()) next = "today";
     screen = next;
+    if (next === "setup") {
+      return setup.open({ doc, phone,
+        back: () => render("today", true),
+        done: () => render("today", true) });
+    }
     if (next === "today") return renderToday(focus);
     if (next === "why") return renderWhy(focus);
     if (next === "nutrition") return renderNutrition(focus);
@@ -495,7 +538,27 @@ function mountToday(doc, model, options = {}) {
     if (event.key === "Escape" && !phone.querySelector('[role="dialog"]') && screen !== "today") render("today", true);
   });
 
-  render("today");
+  /* THE SCREEN THIS PAGE LOAD OPENS ON. Today, as it always has, with the
+     first-run tile on it while this installation is fresh. `?screen=` names a
+     screen for the checks and for the owner's look, and it can only reach a
+     screen this page would otherwise offer: the setup route above refuses when
+     the installation is not fresh, so ?screen=setup on a set-up device lands on
+     Today rather than on a second enrolment.
+     A4 does NOT make the setup screens the landing screen. It cannot honestly:
+     Today's engine basis on this page is still the synthetic fixture
+     (today-model.cjs createBasisState), so a fresh installation that has not run
+     setup is exactly the A1 page that already ships, and making setup the landing
+     screen would change what every merged suite and check boots into. Wiring the
+     first-run op's clean-init state in as Today's basis is a today-model.cjs
+     change, which A4 does not own; boot() does it for the enrolled case, which is
+     the case the first run creates. Recorded in A4-REPORT.md as a residual. */
+  function requestedScreen() {
+    const view = doc.defaultView;
+    const search = view && view.location && typeof view.location.search === "string" ? view.location.search : "";
+    const found = /[?&]screen=([a-z-]+)/.exec(search);
+    return found ? found[1] : null;
+  }
+  render(requestedScreen() || "today");
   return { render, read: () => model.read(), openWeighIn, screen: () => screen };
 }
 
@@ -506,4 +569,4 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
   WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
-  CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE };
+  CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE, SETUP_ENTRY };

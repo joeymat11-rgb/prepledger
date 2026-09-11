@@ -81,6 +81,16 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/checkin-commands.cjs",
   "rebuild/m3/w7-preview/today/checkin-model.mjs",
   "rebuild/m3/w7-preview/today/checkin-app.mjs",
+  /* A4 — Dad's first run really is the accepted encrypted repository under the
+     accepted durable public client over rebuild/client, in the page, and the
+     document it writes really is built by the ACCEPTED clean-init constructor. A
+     build that lost any of these would be a page whose first run goes nowhere, or
+     one that invented an athlete state of its own. */
+  "rebuild/m3/w7-preview/today/setup-host.mjs",
+  "rebuild/m3/w7-preview/today/setup-commands.mjs",
+  "rebuild/m3/w7-preview/today/setup-model.mjs",
+  "rebuild/m3/w7-preview/today/setup-app.mjs",
+  "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
   "rebuild/m3/w6/public-client.mjs",

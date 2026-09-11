@@ -604,7 +604,11 @@ test('C4 — a weigh-in and a workout set committed concurrently both survive', 
    injected `hosts`.
    =========================================================================== */
 export const PAGE_PINS = Object.freeze({
-  'today-entry.mjs': '5fc40e1e6a4fe2768b4fa943d3e55b6f4037575d4e20627300d1147609ba8ab8',
+  /* A4 re-pin (DECISIONS:117 (1)). today-entry.mjs gained createSetupEntry, the
+     keyed basisState refusal and setup.athleteState(). Re-read against
+     today-bindings.mjs: boot() still opens the local era BY DEFAULT (the `hosts`
+     branch is untouched) and no wrapper opens a store of its own. */
+  'today-entry.mjs': '328be6152fbd045167af2a827d1a4ce4b30a60b0b2917b89e210cc057c8f11da',
   'gym-host.mjs': '70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18',
   'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

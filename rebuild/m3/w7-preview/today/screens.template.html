@@ -42,6 +42,11 @@
   </button>
   <div class="bottom">
     <button class="primary" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
+    <!-- A4 · the first-run tile. Shown ONLY while this installation carries no
+         first-run operation; once the setup op is in the generation the tile is
+         hidden and the route refuses, so setup can never run twice (S13). Its
+         words are bound at runtime from setup-model.mjs. -->
+    <button class="link" type="button" data-go="setup" data-own data-slot="setup-entry" hidden><span data-slot="setup-entry-label"></span><span data-arrow></span></button>
     <button class="link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it. <span data-own data-slot="coach-state"></span></span></span><span data-arrow></span></button>
   </div>
 </article>
@@ -322,6 +327,36 @@
   <div class="bottom">
     <button class="cta" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
     <button class="text-link" type="button" data-action="back">Back to Today</button>
+  </div>
+</article>
+</template>
+
+<!-- A4 · Dad's first run (?screen=setup). SIX screens in ONE frame: a masthead
+     carrying the brand and a quiet "n of 6", a back control on every screen but
+     the first, one question, and one primary action inside the 390x844 viewport.
+     Every class token here is an approved-stylesheet selector; every word is bound
+     at runtime from setup-model.mjs COPY, which design.cjs binds as this screen's
+     named preview-owned vocabulary (SETUP_PREVIEW_COPY) and checks for U+2013 and
+     U+2014 (DECISIONS:114 (1)). Nothing here carries a figure: the two declared
+     standards and the "n of 6" counter are composed by the view. -->
+<template id="t-setup">
+<article class="page checkin">
+  <header class="mast">
+    <span class="brand">Earned</span>
+    <span class="small muted" data-slot="counter"></span>
+  </header>
+  <button class="back" type="button" data-slot="back" hidden><span aria-hidden="true">←</span> <span data-slot="back-label"></span></button>
+  <header class="detail-head">
+    <h1 data-slot="head"></h1>
+    <p data-slot="lead"></p>
+  </header>
+  <p class="note" data-own data-slot="note" hidden></p>
+  <section data-slot="body" aria-live="polite"></section>
+  <p class="error" id="setup-error" role="alert"></p>
+  <div class="bottom">
+    <button class="primary" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
+    <div class="secondary-row"><button class="text-link" type="button" data-slot="secondary" hidden></button></div>
+    <p class="fine" data-own data-slot="fine" hidden></p>
   </div>
 </article>
 </template>

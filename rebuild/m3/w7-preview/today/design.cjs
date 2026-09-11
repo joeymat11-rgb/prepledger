@@ -185,6 +185,21 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Recorded today",
   "Not available on this device",
 ]);
+/* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
+   all, so every sentence the six screens show is preview-owned and named here,
+   exactly as PREVIEW_RUNTIME_COPY is. Each entry is checked to be ABSENT from the
+   approved references, so this list can never be used to smuggle in
+   approved-looking words, and PRESENT in a view source, so a sentence cannot be
+   declared and then quietly dropped. The words themselves are in ONE place,
+   setup-model.mjs COPY, which is a view source; the list below is read out of
+   that module at check time rather than retyped, so a copy edit there fails this
+   check instead of drifting past it.
+   THE OWNER'S RULE (DECISIONS:114 (1)) applies to every one of them: no U+2014
+   and no U+2013. assertSetupBinding refuses either, in the module and in the
+   shipped template, and the build refuses with it. */
+const SETUP_MODEL_SOURCE = "setup-model.mjs";
+const DASHES = Object.freeze([["U+2014", "—"], ["U+2013", "–"],
+  ["&mdash;", "&mdash;"], ["&ndash;", "&ndash;"]]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const classTokens = (html) =>
@@ -314,6 +329,80 @@ function assertRecoveryBinding(approved, templateHtml) {
     dashNormalised: dashNormalisedTerms(vocabulary) };
 }
 
+/* ---------------------------------------------------------------------------
+   A4 — THE FIRST-RUN VOCABULARY, HARVESTED FROM THE MODULE THAT OWNS IT.
+   ---------------------------------------------------------------------------
+   Same lesson as the recovery harvest above, applied the other way round: the
+   approved design has no first-run screen, so there is nothing upstream to
+   harvest FROM. What there is instead is exactly one module that owns every
+   word of these six screens (setup-model.mjs COPY / VALIDATION / MISSING), and
+   the check harvests that, so a sentence added, edited or removed there is
+   covered without anyone updating a list. */
+function setupVocabulary(root = ROOT) {
+  const text = fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", SETUP_MODEL_SOURCE), "utf8");
+  const block = (name) => {
+    const start = text.indexOf("export const " + name + " = Object.freeze({");
+    assert(start > 0, `SETUP-VOCABULARY FAIL: ${name} could not be located in ${SETUP_MODEL_SOURCE}`);
+    const end = text.indexOf("\n});", start);
+    assert(end > start, `SETUP-VOCABULARY FAIL: ${name} is not closed`);
+    return text.slice(start, end);
+  };
+  const grab = (name) => [...block(name).matchAll(/:\s*'((?:[^'\\]|\\.)*)'/g)]
+    .map((m) => m[1].replace(/\\(.)/g, "$1")).filter((s) => s.trim() !== "");
+  const copy = grab("COPY");
+  const validation = grab("VALIDATION");
+  const refusals = grab("REFUSAL_SENTENCES");
+  assert(copy.length >= 30, `SETUP-VOCABULARY FAIL: only ${copy.length} first-run sentences harvested`);
+  assert(refusals.length >= 5, `SETUP-VOCABULARY FAIL: only ${refusals.length} refusal sentences harvested`);
+  return { copy, validation, refusals, source: text };
+}
+/* Every module that can put a first-run word on the screen, joined. */
+const setupSource = (root = ROOT) => SETUP_SOURCES
+  .map((name) => fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", name), "utf8")).join("\n");
+/* The two files A4 OWNS outright. today-app.cjs is excluded from the dash scan
+   because its A1/A2/A3 copy is the PM's P1 sweep (rebuild/slice/P1-NO-DASHES-BRIEF.md),
+   not A4's to churn; A4's own hunk in it is covered by the harvest above. */
+const setupOwnSource = (root = ROOT) => ["setup-app.mjs", "setup-model.mjs", "setup-commands.mjs",
+  "setup-host.mjs"].map((name) => fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", name), "utf8")).join("\n");
+/* Every harvested sentence must (a) carry no em dash and no en dash, and (b) be
+   present in a view source, so a sentence cannot be declared here and then
+   quietly dropped from the screens.
+   There is deliberately NO "absent from the approved references" clause, which
+   is the clause PREVIEW_RUNTIME_COPY carries. That clause exists to stop a
+   builder smuggling approved-looking words into a preview-owned list. It has
+   nothing to bite on here: the approved 2026-09-08 design has no first-run
+   screen at all, so every one of these sentences is preview-owned by
+   construction, and the words that do overlap with the approved design are the
+   ones that SHOULD ("Earned", "Next", "Back") - the page would be wrong to
+   spell them differently on this screen than on every other. */
+function assertSetupBinding(approved, templateHtml, root = ROOT) {
+  const vocabulary = setupVocabulary(root);
+  const source = setupSource(root);
+  for (const line of [...vocabulary.copy, ...vocabulary.validation, ...vocabulary.refusals]) {
+    for (const [name, mark] of DASHES) {
+      assert(!line.includes(mark),
+        `NO-DASH FAIL (DECISIONS:114 (1)): the first-run sentence "${line}" carries ${name}`);
+    }
+    assert(source.includes(line), `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
+  }
+  /* The view sources themselves carry no dash either: a sentence composed at
+     runtime out of two halves would slip past the harvest above. */
+  for (const [name, mark] of DASHES) {
+    assert(!setupOwnSource(root).includes(mark),
+      `NO-DASH FAIL (DECISIONS:114 (1)): a first-run source file carries ${name}`);
+  }
+  /* The shipped first-run template itself: it binds every word at runtime, so it
+     must carry no dash of its own either. */
+  const start = templateHtml.indexOf('<template id="t-setup">');
+  assert(start > 0, "SETUP-BINDING FAIL: the first-run screen is not in the shipped template");
+  const section = templateHtml.slice(start, templateHtml.indexOf("</template>", start));
+  for (const [name, mark] of DASHES) {
+    assert(!section.includes(mark), `NO-DASH FAIL (DECISIONS:114 (1)): the first-run template carries ${name}`);
+  }
+  return { copy: vocabulary.copy.length, validation: vocabulary.validation.length,
+    refusals: vocabulary.refusals.length };
+}
+
 function assertDesignBinding(approved, templateHtml, appSource) {
   const css = approved.map((a) => a.styles).join("\n");
   const allowed = new Set(PREVIEW_CLASSES);
@@ -352,7 +441,10 @@ function assertDesignBinding(approved, templateHtml, appSource) {
      bytes rather than listed — placeholders included, which the text-node checks above
      cannot see. */
   const recovery = assertRecoveryBinding(approved, templateHtml);
-  return { classes: used.size, recovery, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+  /* A4 — the first-run screens' own vocabulary, harvested from the one module
+     that owns it, and the owner's no-dash rule applied to every sentence of it. */
+  const setup = assertSetupBinding(approved, templateHtml);
+  return { classes: used.size, recovery, setup, copy: PREVIEW_COPY.length + APPROVED_COPY.length
     + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
@@ -395,6 +487,13 @@ const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.m
   /* A3 — the check-in's view and its answer model, so every word the check-in can put
      on screen is bound exactly as Today's and the gym card's are. */
   "checkin-app.mjs", "checkin-model.mjs"]);
+/* A4 — Dad's first run: the six screens' view and the module that owns every word
+   on them. They are their OWN list rather than two more VIEW_SOURCES entries
+   because VIEW_SOURCES is pinned by name in test/design.test.cjs, which A4 does
+   not own; assertSetupBinding reads these two itself and binds them just as
+   tightly. today-app.cjs, which carries the landing tile's one word, is already
+   a VIEW_SOURCE. */
+const SETUP_SOURCES = Object.freeze(["setup-app.mjs", "setup-model.mjs", "today-app.cjs"]);
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
 const appSource = () => VIEW_SOURCES.map((name) => fs.readFileSync(path.join(SOURCE, name), "utf8")).join("\n");
 const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8");
@@ -405,6 +504,8 @@ module.exports = {
   CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
   recoverySection, recoveryVocabulary, assertRecoveryBinding,
+  setupVocabulary, assertSetupBinding, setupSource, setupOwnSource,
+  DASHES, SETUP_MODEL_SOURCE, SETUP_SOURCES,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
 };
