@@ -1,57 +1,55 @@
 # A0 — host composition, Dad's clean first run, one synthetic journey
 
-Branch `rebuild/slice-a0`, based on `origin/rebuild/t2-client-core` @
-`189523bdb2fa37187ce9e08b93c4e6dc27d41efd` (the joined tree).
-Builder: cowork (Earned PM) · A0 builder. **Candidate, not accepted.** An
-independent reviewer reviews this; nothing here is self-accepted.
+Branch `rebuild/slice-a0`, rebased onto `rebuild/t2-client-core` @
+`52a74b63fa0effd44a410a00204f789bdc74e5e6` (M2-NATIVE-CARRIERS merged, ledger
+lines 96–97). Builder: cowork (Earned PM) · A0 builder. **Candidate, not
+accepted.** An independent reviewer reviews this; nothing here is
+self-accepted.
 
 Node v24.19.0. Nothing installed, nothing purchased, no network use by any
 test, no private folder or `src/history.js` read, no athlete data printed.
-`rebuild/engine/*`, `public-client.mjs`, `t2-stage.cjs`, `rebuild/client/*`,
+`rebuild/engine/*`, `rebuild/m4/workout/engine-runtime.cjs`,
+`public-client.mjs`, `t2-stage.cjs`, `rebuild/client/*`,
 `rebuild/authority/*`, `rebuild/m3/w5/crypto.cjs`, `build-browser.mjs`,
-`reading-replay.cjs`, `schema.cjs` and every frozen law are **unchanged**.
+`reading-replay.cjs`, `schema.cjs`, every `rebuild/m4/spec` package and every
+frozen law are **unchanged**. `git diff --stat 52a74b6..HEAD` is the whole
+claim: A0 adds files, and modifies none.
 
 ---
 
-## 0. Read this first — the one thing that did not work
+## 0. Read this first — the engine-carrier blocker is GONE
 
-**The accepted candidate-L engine carriers cannot be adopted into
-`rebuild/engine` on this branch, and the L tests therefore cannot run here.**
+The first two rounds of this report led with a blocker: candidate L's engine
+carriers could not be written into `rebuild/engine`, because the then-current
+M2-LOAD-WRITES profile asserted a closed engine file inventory. **B0 resolved
+that.** `rebuild/engine` at `52a74b6` now carries `performed.cjs`,
+`entered-load.cjs` and the five changed carriers at exactly the bytes candidate
+L needs, sealed by the accepted M2-NATIVE-CARRIERS package. Everything that
+blocker forced is now undone:
 
-`rebuild/m4/spec/load-write-source.cjs` `verify()` asserts a **closed**
-`rebuild/engine` file inventory — exactly `constants, dates, energy, index,
-merge, migrate, oracle-shim, plan, policy, progression, seed, sleep, today,
-volume, writers, earn` — and exact bytes for `plan`, `progression`, `sleep`,
-`today`, `writers`. That verifier is reached by
-`node rebuild/m4/spec/load-write-package.cjs --ci`.
+* The **scratch composition root is deleted.** `engine-root.cjs` and the six
+  staged carrier copies under
+  `rebuild/m4/spec/native-next-target-candidate/engine/` are gone (−7,062
+  lines). The journey test now composes the accepted runtime straight off disk.
+  Keeping duplicate carrier bytes beside the real ones would only be a drift
+  hazard.
+* The **phone page now carries a real engine.** `build-host.mjs` reports
+  **91 pinned inputs including all 13 engine modules**, with no `seed.cjs`,
+  `migrate.cjs`, `merge.cjs`, `engine/index.cjs`, `rebuild/engine/test/*`,
+  `rebuild/authority/*` (beyond `canonical.cjs`), `rebuild/m3/w5/crypto.cjs`
+  or `rebuild/m4/import/*`.
+* **`engine-runtime.cjs` is back at its accepted bytes**
+  (`9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23`) and A0
+  no longer modifies it — see §4.
 
-Candidate L needs `rebuild/engine/performed.cjs` (a **new** file), and
-`rebuild/engine/entered-load.cjs` beneath it, plus changed bytes for five of
-the five pinned files. Writing any of that into `rebuild/engine` breaks
-`--ci`. My assignment says: if adopting L files changes a pinned file, **STOP
-and report rather than edit the profile.** So I did not edit the profile and
-did not write those files into `rebuild/engine`.
-
-Direct consequences, all measured:
-
-1. `rebuild/m4/workout/test/native-next-targets*.test.cjs` — **3 of 3 fail**
-   in this tree, all with `Error: Cannot find module '../../engine/performed.cjs'`
-   (`MODULE_NOT_FOUND`). They are adopted at their accepted bytes and are ready
-   to pass the moment a composition root carries the carriers.
-2. The **browser host page cannot be built end to end** (§5). The rest of the
-   host graph bundles cleanly; the engine cannot enter it.
-3. The Node journey test therefore assembles the engine from a **scratch
-   composition root** built from the carrier bytes staged (verbatim,
-   sha256-pinned) under
-   `rebuild/m4/spec/native-next-target-candidate/engine/` —
-   see `engine-root.cjs`. Nothing under `rebuild/engine` is written.
-
-**PM decision needed** (this is the gate on everything downstream): where the
-L engine carriers are allowed to live. Either (a) the M2-LOAD-WRITES profile is
-re-issued to admit `performed.cjs`/`entered-load.cjs` and the five changed
-carriers — that is the profile owner's call, not mine — or (b) the host keeps
-composing from a materialised packet root, in which case the browser page needs
-a separate, reviewed way to obtain a bundled engine.
+One thing the merge does *not* fix, and it is not A0's:
+`rebuild/m4/workout/test/native-next-targets*.test.cjs` still fail 3/3, now
+with `Cannot find module '.../test-support/import-engine/...'` and
+`Provide the immutable packet root explicitly (EARNED_NATIVE_PACKET_ROOT)`.
+Those three files are **byte-identical to the tip** (they do not appear in
+`git diff 52a74b6..HEAD` at all) and need an external packet root that does not
+exist in this worktree. That is an upstream harness/environment matter, not a
+regression introduced here.
 
 ---
 
@@ -87,34 +85,60 @@ new commits, nothing else touched:
   `git check-ignore -v` reports `rebuild/m3/w6/.gitignore:2:.tmp/`, so no
   `.gitignore` change was needed.
 
-Not changed, because the review did not ask and they remain true: the engine
-carrier blocker (§0), the literal-require rewrite (§4), and every limit in §8.
+Round 1's other conclusions were superseded by the B0 merge; see §0 and §4.
+
+---
+
+## 0c. Integration round — rebased onto the merged tip
+
+Rebased `rebuild/slice-a0` onto `rebuild/t2-client-core` @ `52a74b6`. Git
+dropped A0's L-adoption commit as *"patch contents already upstream"* (§7).
+The one conflict the PM predicted — add/add on `engine-runtime.cjs` — is
+resolved **in favour of the tip's accepted bytes**, and A0's literal-require
+composition moved to a new host-owned module:
+
+* `rebuild/m4/workout/engine-runtime.cjs` → restored to `9be21897…`; A0 no
+  longer touches it.
+* `rebuild/m3/w6/host/engine-runtime-host.cjs` → **new**, twelve literal
+  requires, same modules/order/contract, esbuild rationale in its header (§4).
+* `host-entry.mjs` (now exports `EngineRuntime`), `build-host.mjs` (whitelists
+  the thirteen engine inputs and refuses `engine-runtime.cjs` by name) and
+  `esbuild-probe.mjs` (now builds **both** and reports the contrast) point at
+  it.
+* `rebuild/m3/w6/host/test/engine-equivalence.test.cjs` → **new**, 5/5, the
+  drift guard between the two.
+* `rebuild/m3/w6/host/test/journey-fixture.cjs` → **new**; the synthetic
+  athlete and day moved here so the journey and the equivalence test share one
+  definition instead of two copies.
+* `engine-root.cjs` and the six staged carrier copies → **deleted** (§0).
 
 ---
 
 ## 1. What was built
 
+Every file below is **added** by A0. A0 modifies no file that exists at
+`52a74b6`.
+
 | file | sha256 |
 |---|---|
 | `rebuild/m3/w6/host/workout-host.mjs` | `7943b184801a99ca3ced1cfb304108936c4ef9e6d5c9ceeff4989c5b1e92091a` |
-| `rebuild/m3/w6/host/host-entry.mjs` | `c4fe5f2d07170c4b89923907bf6e2ef4b93ac71f39e8e5a7486d3448637b163d` |
+| `rebuild/m3/w6/host/engine-runtime-host.cjs` | `114411b1a075c2354eccb552b5855007d06a1a3fe788b5ae0991a6eb3d08309e` |
+| `rebuild/m3/w6/host/host-entry.mjs` | `627aa3a7081e6e0fd7b1f833848a4fdeb883f2fea93c513c02010af0401a365c` |
 | `rebuild/m3/w6/host/index.html` | `5dbef56656fbf91fdaf6ab091963878e606d89103df197f87c678d284f6cb370` |
-| `rebuild/m3/w6/host/build-host.mjs` | `a07562cfbe752b835a28e1c339825407958bc9722826d1e0cedd8808ad7f93ae` |
-| `rebuild/m3/w6/host/esbuild-probe.mjs` | `d81f82cd5c57ae055f9e058081b691df49144f2f5b3f7e0ded6e714e47c794a4` |
-| `rebuild/m3/w6/host/test/journey.test.mjs` | `4895a8b25bc370adf67926dc1fe3c2c3c62994311890c6f75e092c8c726977b3` |
+| `rebuild/m3/w6/host/build-host.mjs` | `fa33de689c9f0579e69c2a5fd72697fffe0294efc4fcd90e0c9971eaf72c14bf` |
+| `rebuild/m3/w6/host/esbuild-probe.mjs` | `70be6f08685c177856df200f3187cd68738f03c5cc5553f25e8289f59a3eb668` |
+| `rebuild/m3/w6/host/test/journey.test.mjs` | `9d448bb956bae9464a3322286a42fcb8c6dbac315391da92c6853fc7c0109681` |
+| `rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | `f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee` |
+| `rebuild/m3/w6/host/test/journey-fixture.cjs` | `cbca2b7721bb2291691d7bd74bc568493d0b5b10f0bcb3e6dec34f5e4736cba4` |
 | `rebuild/m4/workout/athlete-state.cjs` | `dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c` |
 | `rebuild/m4/workout/workout-basis.cjs` | `e4ed838ae212a277c6922373cea66109a3332a5f250285d47165ad282c1aa664` |
 | `rebuild/m4/workout/resume-policy.cjs` | `7c11a07ae5bb5d114447ad06f52d95537d83fef012cc78d47e19664e9925395f` |
-| `rebuild/m4/spec/native-next-target-candidate/engine-root.cjs` | `982df138b1c2f1d5affaf636e290469f3a3bb82c6c46a72b9ad66a96ed0a7ec0` |
 | `rebuild/slice/A0-REPORT.md` | this file |
 
-Hashes above are after review round 1 (§0b). The four files it changed were
-`workout-host.mjs`, `journey.test.mjs`, `athlete-state.cjs` and
-`engine-root.cjs`; nothing else on the branch moved.
-
-Changed (one file, one change): `rebuild/m4/workout/engine-runtime.cjs`
-`9be21897…` → `4d48a9b13557072284cc017c132b32cc15ea08c9107120baf6fa85c496ea50f0`
-(§4).
+`rebuild/m4/workout/engine-runtime.cjs` stays at the accepted
+`9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23`. Journey
+step 14 asserts that hash, so a future edit to it fails a test here as well as
+failing the engine package's own pins.
 
 ### Dad's clean first run — `athlete-state.cjs`
 
@@ -232,7 +256,7 @@ registered projection.
 | 11 | one correction — original operation unchanged, original/current both visible | PASS |
 | 12 | next-target capture produced, started, saved, reopened byte-identically; second session visible | PASS |
 | 13 | the unavailable providers refuse explicitly and **store nothing** (string-lane basis; native trend context; a non-zero-import generation; a string claim with no string lane) | PASS |
-| 14 | the composed engine root is candidate L at its pinned bytes | PASS |
+| 14 | the engine the journey ran is the **accepted** `engine-runtime.cjs` at `9be21897…`, unmodified; the host mirror is at its own pinned hash; both name the same twelve modules | PASS |
 | 15 | **(review R1 / probe P1)** a split whose `from` is one day after the host day: the state is accepted and the engine unguarded really serves the fallback's Friday-L (`['leg-press']`); the host refuses `WORKOUT_SPLIT_NOT_IN_FORCE` and **stores nothing**; the same split, once in force, is served normally | PASS |
 | 16 | **(review R2)** `v` equals the engine's `SCHEMA_V` and the autonomy floor equals `AUTONOMY_LEVELS[0]`, read from the engine itself; `plan` has exactly one key and no `mode` | PASS |
 
@@ -257,66 +281,98 @@ three controls.
 
 ---
 
-## 4. esbuild evidence for `engine-runtime.cjs:10`
+## 4. Why the host owns its own runtime module
 
-Brief §4.2 marked this UNVERIFIED. Measured with the **real** browser build
-(`rebuild/m3/w6/build-browser.mjs`, esbuild, `platform: browser`,
-`format: esm`), reproducible via `node rebuild/m3/w6/host/esbuild-probe.mjs`:
+The L2 brief §4.2 flagged `engine-runtime.cjs`'s non-literal
+`require('../../engine/' + name + '.cjs')` as a suspected bundling problem and
+marked it UNVERIFIED. It is verified, and it is worse than suspected: esbuild
+cannot resolve a require whose argument is an expression, so it treats the path
+as a **glob** and pulls in *every* file under `rebuild/engine` — all twenty
+Node-only `rebuild/engine/test/*` harnesses, and by the same expansion
+`seed.cjs`, `migrate.cjs`, `merge.cjs` and `index.cjs`, which carry or reach
+one athlete's personal history and must never enter the phone bundle.
 
-* **Before** — `require('../../engine/' + name + '.cjs')`:
-  **62 esbuild errors across 21 files.** esbuild glob-expands the expression
-  and pulls in *every* file under `rebuild/engine`, including all 20 Node-only
-  `rebuild/engine/test/*` harnesses (and by the same expansion `seed.cjs`,
-  `migrate.cjs`, `merge.cjs`, `index.cjs` — which the product rules forbid in
-  the phone bundle). This is **worse** than the brief's expectation of an
-  unbundled runtime `require`.
-* **After** — twelve literal requires, same modules, same `MODULES` order:
-  **1 esbuild error in 1 file** — `Could not resolve
-  "../../engine/performed.cjs"`, i.e. only the §0 blocker remains.
+`engine-runtime.cjs`'s bytes are **pinned by the accepted M2-NATIVE-CARRIERS
+package**, so the fix cannot live there without re-sealing that package. It
+lives in a host-owned mirror instead:
+**`rebuild/m3/w6/host/engine-runtime-host.cjs`** — the same twelve modules in
+the same order, the same `createEngineRuntime` contract, the same withheld
+`HISTORY`/`ROLLUPS` providers, expressed with twelve **literal** requires. It
+imports nothing from `engine-runtime.cjs`: doing so would drag the glob back
+into the graph and undo the point.
 
-So the fix was warranted and was applied. **It takes an accepted candidate-L
-file off its accepted bytes and needs the L owner's re-review.** Nothing else
-in that file changed.
+Measured side by side with the real build
+(`node rebuild/m3/w6/host/esbuild-probe.mjs`):
+
+| entry | result |
+|---|---|
+| `rebuild/m4/workout/engine-runtime.cjs` (accepted) | **BUILD FAILED** — 62 esbuild errors across 21 files, **20 of them `rebuild/engine/test/*`** |
+| `rebuild/m3/w6/host/engine-runtime-host.cjs` (host) | **BUILT** — 15 pinned inputs, **13 from `rebuild/engine`**: exactly the twelve named modules plus `entered-load.cjs`, which `performed.cjs` requires |
+
+**Two files that must behave identically are a drift hazard**, so the thing
+that makes the duplication safe is
+`rebuild/m3/w6/host/test/engine-equivalence.test.cjs` (**5/5 pass**): same
+`MODULES` list *and order* (checked position by position, because the factories
+are applied in sequence onto one table and a permutation would compose a
+different engine while passing a set compare), same `EXPOSED` names, the same
+`ENGINE_RUNTIME_*_PROVIDER_REQUIRED` refusals from both absent providers, the
+same argument refusals, and **identical `genSession` / `rirPlan` output** on the
+journey fixture across three days (the U day, and two the split calls REST). A
+fifth case asserts a session really is produced on the journey day, so the
+comparison is never two `null`s agreeing.
+
+`build-host.mjs` also refuses `engine-runtime.cjs` by name in the page graph,
+and now whitelists exactly those thirteen engine modules — an unexpected
+fourteenth fails the build.
 
 ---
 
 ## 5. Browser status
 
 * **Host page bundle** — `node rebuild/m3/w6/host/build-host.mjs` →
-  **PASS, 77 pinned inputs**, and the graph contains **zero** `rebuild/engine`
-  inputs, no `seed.cjs` / `migrate.cjs` / `merge.cjs` / `engine/index.cjs`, no
-  `rebuild/authority/*` beyond `canonical.cjs`, no `rebuild/m3/w5/crypto.cjs`,
-  no `rebuild/m4/import/*`, no `rebuild/engine/test/*`. `build-browser.mjs` is
-  unchanged; the entry is passed to it as an ordinary `entryPoints` value.
-* **Browser journey — NOT RUN.** Two independent reasons, both measured:
-  1. the page cannot obtain a bundled engine (§0/§4), so the journey has
-     nothing to drive;
-  2. the retained Chromium harness itself is broken in this environment.
-     `node rebuild/m3/w6/test/browser-check.mjs` with
-     `W6_BROWSER_BIN=C:\Users\joeym\AppData\Local\ms-playwright\chromium-1234\chrome-win64\chrome.exe`
-     fails with the exact error
-     `page.evaluate: TypeError: Failed to fetch dynamically imported module:
-     http://127.0.0.1:<port>/repository.mjs`.
-     Chromium launches fine (`151.0.7922.34`). **Control:** the identical
-     failure occurs in the untouched retained W6 worktree
-     (`work/m3-w6-browser-bridge`), so it is pre-existing and environmental,
-     not caused by this branch. Nothing was installed to work around it.
+  **PASS, 91 pinned inputs**, now including **all 13 engine modules** the host
+  runtime names. No `seed.cjs` / `migrate.cjs` / `merge.cjs` /
+  `engine/index.cjs`, no `rebuild/engine/test/*`, no `rebuild/authority/*`
+  beyond `canonical.cjs`, no `rebuild/m3/w5/crypto.cjs`, no
+  `rebuild/m4/import/*`, and no `rebuild/m4/workout/engine-runtime.cjs`.
+  `build-browser.mjs` is unchanged; the entry is passed to it as an ordinary
+  `entryPoints` value. The page can now obtain a real engine —
+  `host-entry.mjs` exports it as `EngineRuntime`.
+* **Browser journey — still NOT RUN,** but for only ONE reason now, and it is
+  not A0's: the retained Chromium harness is broken in this environment.
+  `node rebuild/m3/w6/test/browser-check.mjs` with
+  `W6_BROWSER_BIN=C:\Users\joeym\AppData\Local\ms-playwright\chromium-1234\chrome-win64\chrome.exe`
+  fails with the exact error
+  `page.evaluate: TypeError: Failed to fetch dynamically imported module:
+  http://127.0.0.1:<port>/repository.mjs`.
+  Chromium launches fine (`151.0.7922.34`). **Control:** the identical failure
+  occurs in the untouched retained W6 worktree
+  (`work/m3-w6-browser-bridge`), so it is pre-existing and environmental, not
+  caused by this branch. Nothing was installed to work around it. With the
+  bundle blocker gone, fixing that harness is now the only thing between here
+  and a real in-browser run of this journey.
 
 ---
 
 ## 6. Commands and totals
 
+All at the integrated head, on the PC, from the rebased worktree:
+
 | command | result |
 |---|---|
-| `node rebuild/m3/w6/test/run-current-head.cjs <tree> --all` (**baseline**, before any change) | **435 pass / 0 fail** |
-| `node rebuild/m3/w6/test/run-current-head.cjs <tree> --all` (**after**) | **435 pass / 0 fail** — no delta |
-| `node rebuild/m4/spec/load-write-package.cjs --ci` (**baseline**) | `LOAD PUBLIC CI EVIDENCE PASS`, exit 0 |
-| `node rebuild/m4/spec/load-write-package.cjs --ci` (**after**) | `LOAD PUBLIC CI EVIDENCE PASS`, exit 0 |
+| `node rebuild/m4/spec/native-carriers-package.cjs --ci` | **`NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`**, exit 0 — the B0 pins are intact |
+| `node rebuild/m3/w6/test/run-current-head.cjs . --all` | **435 pass / 0 fail**, exit 0 |
 | `node --test rebuild/m3/w6/host/test/journey.test.mjs` | **17 pass / 0 fail** |
-| `node --test rebuild/m4/workout/test/native-next-targets{,-assembly,-correction}.test.cjs` | **0 pass / 3 fail** — all `Cannot find module '../../engine/performed.cjs'` (§0) |
-| `node rebuild/m3/w6/host/build-host.mjs` | PASS, 77 pinned inputs, 0 engine inputs |
-| `node rebuild/m3/w6/host/esbuild-probe.mjs` | 62 errors / 21 files → 1 error / 1 file (§4) |
+| `node --test rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | **5 pass / 0 fail** (new) |
+| `node rebuild/m3/w6/host/build-host.mjs` | **PASS, 91 pinned inputs, 13 engine modules**, nothing forbidden |
+| `node rebuild/m3/w6/host/esbuild-probe.mjs` | accepted runtime **BUILD FAILED** 62 errors / 21 files (20 under `engine/test/`); host runtime **BUILT**, 15 inputs, 13 engine (§4) |
+| `node --test rebuild/m4/workout/test/native-next-targets{,-assembly,-correction}.test.cjs` | 0 pass / 3 fail — `Cannot find module '.../test-support/import-engine/...'` and `EARNED_NATIVE_PACKET_ROOT` missing. **Byte-identical to the tip**; upstream harness/environment, not A0 (§0) |
 | `node rebuild/m3/w6/test/browser-check.mjs` | FAIL (environmental, pre-existing — §5) |
+
+Earlier rounds, for continuity: `run-current-head --all` was 435/435 before and
+after A0's original work on `189523b`, and the then-relevant
+`load-write-package.cjs --ci` passed before and after. On this integrated head
+the engine package's gate is `native-carriers-package.cjs --ci`, above.
 
 Note on the runner: `run-current-head.cjs` takes a retained-R1 repository as
 `argv[2]`. In the **joined** tree the composition root is the tree itself; with
@@ -328,42 +384,43 @@ branch; both baseline and after-runs used the joined tree as `argv[2]`.
 
 ---
 
-## 7. L adoption list
+## 7. L adoption — now upstream, nothing left to adopt
 
-Adopted **byte-for-byte**, each verified against
-`native-candidate-L/hashes/HASHES-L-AFTER.sha256`:
+A0's first commit adopted nine candidate-L files byte-for-byte, because they
+were not yet in the tree. **B0 landed all of them**, so on the rebase onto
+`52a74b6` git dropped that commit with *"patch contents already upstream"* —
+the strongest possible confirmation that A0's copies were byte-identical to
+what was accepted.
 
-| file | sha256 | verified |
-|---|---|---|
-| `rebuild/m4/workout/source-projection.cjs` | `fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e` | ✓ |
-| `rebuild/m4/workout/test/native-next-targets-assembly.test.cjs` | `eb75529047b1f9fad7f362bff4c3a5d649f3d27470bfd158102190f73e610c14` | ✓ |
-| `rebuild/m4/workout/test/native-next-targets-correction.test.cjs` | `ffed53fdee84e587507485e8883c34cf11d63c5489d48e770bc76b5ccab4aea1` | ✓ |
-| `rebuild/m4/workout/test/native-next-targets.test.cjs` | `8ab8ac5b7e1a35a9006e952f07ce170a2bb58ce962e213f18ee2bd385b6b3a41` | ✓ |
-| `rebuild/m4/spec/native-next-target-candidate/fixture.cjs` | `2554ae6ecd553df70473cc417676512e7e7188bdbcb150497698568e81df86a9` | ✓ |
-| `rebuild/m4/spec/native-next-target-candidate/import-engine-assembly.cjs` | `cb58dafbaed93e72bb94329219a4d6c36a80b88485456cfbc7620628d1f4ca22` | ✓ |
-| `rebuild/m4/spec/native-next-target-candidate/reach.cjs` | `6b76c5e45c089cf25873fd1d4b4c66f318ea20b0a3eb291b6164888cb7a2242c` | ✓ |
-| `rebuild/m4/spec/native-next-target-candidate/source-delta.cjs` | `fce1c2f92bf445373fdab39fdd1e2f16705f0312c6b3b8347c225dae6639ea6a` | ✓ |
-| `rebuild/m4/workout/engine-runtime.cjs` | adopted at `9be21897…` in commit 1, then **changed** to `4d48a9b1…` in commit 2 (§4) | ✓ then changed |
-
-Staged **verbatim, outside `rebuild/engine`** (see §0), under
-`rebuild/m4/spec/native-next-target-candidate/engine/`:
-`performed.cjs 2372e66b…`, `plan.cjs 1b26c87f…`, `progression.cjs 7031838d…`,
-`sleep.cjs 3dd34e11…`, `today.cjs 397532ec…`, `writers.cjs 00291236…` —
-all at their accepted L bytes.
+Nothing under `rebuild/m4/workout/test/`,
+`rebuild/m4/spec/native-next-target-candidate/`,
+`rebuild/m4/workout/source-projection.cjs` or
+`rebuild/m4/workout/engine-runtime.cjs` now appears in
+`git diff 52a74b6..HEAD`. The six carrier copies A0 had staged under
+`native-next-target-candidate/engine/`, and the `engine-root.cjs` that
+assembled them into a scratch root, are **deleted** (−7,062 lines): the real
+carriers are in `rebuild/engine` and duplicating their bytes would only invite
+drift.
 
 ---
 
 ## 8. LIMITS — in plain language
 
-1. **The L engine carriers are not in `rebuild/engine`, and the L tests fail
-   here.** The M2-LOAD-WRITES profile forbids them; I did not edit the profile.
-   This needs a PM/owner decision (§0). Everything else in this report should
-   be read as "the host works given a composition root that has the engine".
-2. **The phone page is not runnable yet.** Everything except the engine bundles
-   cleanly and safely (77 inputs, no seed, no authority, no import). The engine
-   cannot enter the bundle on this branch.
-3. **`engine-runtime.cjs` is no longer at its accepted L bytes.** One change,
-   evidence-driven, needs the L owner's re-review.
+1. **The engine composition is duplicated in two files.**
+   `rebuild/m3/w6/host/engine-runtime-host.cjs` restates what
+   `rebuild/m4/workout/engine-runtime.cjs` composes, because the accepted file
+   cannot be bundled and cannot be changed (§4). `engine-equivalence.test.cjs`
+   is what keeps them honest; there is no compiler-level guarantee. If the
+   engine ever gains or loses a module, **both** files must change and that
+   test will say so.
+2. **The three `native-next-targets*` tests do not pass in this worktree.**
+   They are byte-identical to the tip and need `EARNED_NATIVE_PACKET_ROOT` and
+   a `test-support/import-engine/` tree that does not exist here. Not A0's, but
+   it means A0 has *not* re-proven candidate L's own behaviour — that was
+   proven under L and under B0.
+3. **The phone page has never actually been opened.** It bundles (91 inputs,
+   full engine, nothing forbidden), but the Chromium harness is broken here
+   (§5), so no browser has executed this page. "Builds" is not "runs".
 4. **The string lane (Joe's imported history) is deferred.** `source_basis` for
    an activated source needs an assembled recovery handle over the R1 runtime
    plus hosted sync; the host refuses explicitly rather than claiming one. It

@@ -3,17 +3,18 @@
 // providers a page needs to call it. It composes nothing at import time: a
 // page must supply the repository, identity, keys, clock and engine.
 //
-// The ENGINE RUNTIME IS NOT EXPORTED HERE and cannot be, on this branch.
-// rebuild/m4/workout/engine-runtime.cjs composes twelve rebuild/engine
-// modules, and six of them — at the bytes the accepted candidate-L needs,
-// including rebuild/engine/performed.cjs, which does not exist under
-// rebuild/engine at all — cannot be written into rebuild/engine here without
-// breaking the closed engine inventory that rebuild/m4/spec/load-write-package.cjs
-// --ci enforces. Measured with the real esbuild build:
-// rebuild/m3/w6/host/esbuild-probe.mjs. A page therefore receives `engine` as
-// an injected provider, and this branch cannot yet supply a bundled one.
+// The engine runtime exported here is the HOST-OWNED mirror
+// (./engine-runtime-host.cjs), not rebuild/m4/workout/engine-runtime.cjs. The
+// accepted runtime composes its twelve modules through one non-literal
+// require, which esbuild glob-expands over the whole of rebuild/engine —
+// dragging in seed.cjs / migrate.cjs / merge.cjs / index.cjs and every
+// Node-only rebuild/engine/test/* harness. Its bytes are pinned by the
+// accepted M2-NATIVE-CARRIERS package, so the fix lives in the host module
+// instead. Measured: rebuild/m3/w6/host/esbuild-probe.mjs. The two are held
+// equivalent by rebuild/m3/w6/host/test/engine-equivalence.test.cjs.
 export * from '../browser-entry.mjs';
 export { composeWorkoutHost, createUnavailableNativeTrendContext } from './workout-host.mjs';
+export { default as EngineRuntime } from './engine-runtime-host.cjs';
 export { default as AthleteState } from '../../../m4/workout/athlete-state.cjs';
 export { default as WorkoutBasis } from '../../../m4/workout/workout-basis.cjs';
 export { default as ResumePolicy } from '../../../m4/workout/resume-policy.cjs';

@@ -11,8 +11,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { join } from 'node:path';
-import { webcrypto } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { webcrypto, createHash } from 'node:crypto';
 import { fixture, initial, config, O, createT2Stage } from '../../test/support.mjs';
 import { createDurablePublicClient } from '../../public-client.mjs';
 import { parseStrictJson } from '../../strict-json.mjs';
@@ -30,23 +31,14 @@ const SourceProjection = require('../../../../m4/workout/source-projection.cjs')
 const { createCleanInitState, SCHEMA_V, AUTONOMY_FLOOR } = require('../../../../m4/workout/athlete-state.cjs');
 const { createNullLaneWorkoutBasis, createUnavailableStringLaneResolver } = require('../../../../m4/workout/workout-basis.cjs');
 const { createWorkoutResumePolicy } = require('../../../../m4/workout/resume-policy.cjs');
-const { materializeEngineRoot } = require('../../../../m4/spec/native-next-target-candidate/engine-root.cjs');
+// The engine carriers landed in rebuild/engine with M2-NATIVE-CARRIERS, so the
+// journey now composes the ACCEPTED runtime straight off disk; the scratch
+// composition root this test used to build is gone. The host's bundleable
+// mirror is covered by engine-equivalence.test.cjs.
+const AcceptedRuntime = require('../../../../m4/workout/engine-runtime.cjs');
+const HostRuntime = require('../engine-runtime-host.cjs');
+const { DAY, SETUP, clockFor } = require('./journey-fixture.cjs');
 
-// 2026-09-04 is a Friday. The Joe-shaped fallback week in
-// rebuild/engine/plan.cjs dayType would call a Friday an L day; this athlete's
-// OWN split calls it U. Every assertion about which lifts appear is therefore
-// also an assertion that the fallback week was never consulted.
-const DAY = '2026-09-04';
-const SETUP = Object.freeze({
-  athlete_label: 'synthetic-test-identity',
-  split: { from: '2026-08-31', map: { 0: 'REST', 1: 'REST', 2: 'REST', 3: 'REST', 4: 'REST', 5: 'U', 6: 'L' } },
-  exercises: [
-    { id: 'db-bench', n: 'Dumbbell bench press', mg: 'chest', day: 'U', sets: 3, hi: 10, inc: 5, steps: [20, 25, 30, 35, 40, 45, 50] },
-    { id: 'lat-pulldown', n: 'Lat pulldown', mg: 'back', day: 'U', sets: 2, hi: 12, inc: 10, steps: [50, 60, 70, 80, 90] },
-    { id: 'leg-press', n: 'Leg press', mg: 'quads', day: 'L', sets: 3, hi: 12, inc: 10, steps: [90, 100, 110, 120] },
-  ],
-  priority_muscles: ['chest', 'back'],
-});
 const PRODUCER = Object.freeze({ app_build: 'synthetic-test-identity', engine_build: 'native-candidate-L',
   rule_profile: Adapter.PROFILE, source_schema: 'synthetic-clean-init' });
 const RESUME_REASON = 'Current assessment recomputed by this host from the same clean-init state; not a personal prescription.';
@@ -54,11 +46,11 @@ const PLAN_BASIS = 'NO_ACCEPTED_PLAN';
 const INPUT_BASIS = 'native-only/zero-import';
 const SLOT = 'synthetic-slot';
 
-const { root: engineRoot, runtimeModule, pins } = materializeEngineRoot();
-const { createEngineRuntime } = require(runtimeModule);
+const { createEngineRuntime } = AcceptedRuntime;
+// Pinned here so a silent edit to the host's bundleable mirror is a test
+// failure; its behavioural equivalence is engine-equivalence.test.cjs's job.
+const HOST_RUNTIME_SHA256 = '114411b1a075c2354eccb552b5855007d06a1a3fe788b5ae0991a6eb3d08309e';
 const emptyPrefix = () => Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
-const clockFor = day => ({ today: () => day, nowISO: () => day + 'T12:00:00.000Z',
-  nowMs: () => Date.parse(day + 'T12:00:00.000Z'), hour: () => 12, dow: () => new Date(day + 'T00:00:00Z').getUTCDay() });
 
 // One live host over one repository handle. Providers are named here and only
 // here; composeWorkoutHost binds them and invents nothing.
@@ -100,7 +92,7 @@ async function scaffold() {
 const opsOf = async repository => Object.values((await repository.load()).generation.collections.ops || {});
 const kindsOf = ops => ops.map(o => o.kind).sort();
 
-test('host journey — clean init, record, relaunch, resume, finish, history, correct, next targets', async t => {
+test('host journey â€” clean init, record, relaunch, resume, finish, history, correct, next targets', async t => {
   const { f, stage, parents } = await scaffold();
   const engineState = createCleanInitState({ setup: SETUP });
   let parentIds = [];
@@ -161,7 +153,7 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
       prescriptionCapture: Capture.createPrescriptionCapture({ parseStrictJson }) }), TypeError);
   });
 
-  await t.test('4. open today\'s workout — DEBUT asks for a working load', async () => {
+  await t.test('4. open today\'s workout â€” DEBUT asks for a working load', async () => {
     const prepared = await host.client.prepareWorkout({ planned_split_slot_id: SLOT });
     assert(prepared.prepared, prepared.code);
     const lifts = [...new Set(prepared.view.slots.map(s => s.lift_lineage_id))];
@@ -197,7 +189,7 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     const values = [
       { slot: 0, load: 35, reps: 9, reserve: { tag: 'exact', value: 2, unit: 'rep' } },
       { slot: 1, load: 35, reps: 8, reserve: { tag: 'at_least', value: 3, unit: 'rep' } },
-      { slot: 2, load: 35, reps: 7 },   // effort not recorded — an unknown effort, never a guessed one
+      { slot: 2, load: 35, reps: 7 },   // effort not recorded â€” an unknown effort, never a guessed one
     ];
     const prepared = host.adapter; void prepared;
     const view = JSON.parse(originalCapture);
@@ -228,7 +220,7 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
       'the Start operation is byte-identical after relaunch');
   });
 
-  await t.test('8. resume the SAME session — no duplicate Start, instructions unchanged', async () => {
+  await t.test('8. resume the SAME session â€” no duplicate Start, instructions unchanged', async () => {
     const resumed = await host.client.prepareWorkoutContinuation({ session_start_op_id: startId });
     assert(resumed.prepared, resumed.code);
     assert.deepEqual(resumed.view.allowed_actions, ['set', 'skip', 'close']);
@@ -267,7 +259,7 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert(ops.filter(o => o.kind === 'session-set').every(o => o.session_start_op_id === startId));
   });
 
-  await t.test('10. reopen history on a fresh client — byte-identical reads', async () => {
+  await t.test('10. reopen history on a fresh client â€” byte-identical reads', async () => {
     repository.close();
     const fresh = await f.fresh();
     repository = fresh.repository;
@@ -363,17 +355,24 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert.deepEqual(await opsOf(repository), before, 'no refusal in this step wrote anything');
   });
 
-  await t.test('14. the composed engine root is the accepted L candidate at its accepted bytes', () => {
-    assert.equal(pins['rebuild/engine/performed.cjs'], '2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a');
-    for (const name of ['plan.cjs', 'progression.cjs', 'sleep.cjs', 'today.cjs', 'writers.cjs'])
-      assert(pins['rebuild/engine/' + name], name);
-    // engine-runtime.cjs carries this branch's single literal-require change
-    // (accepted L bytes were 9be21897…); see its SLICE-A0 comment.
-    assert.equal(pins['rebuild/m4/workout/engine-runtime.cjs'], '4d48a9b13557072284cc017c132b32cc15ea08c9107120baf6fa85c496ea50f0');
+  await t.test('14. the engine this host composed is the accepted runtime, unmodified', () => {
+    const sha = file => createHash('sha256')
+      .update(readFileSync(fileURLToPath(new URL(file, import.meta.url)))).digest('hex');
+    // The accepted M2-NATIVE-CARRIERS runtime, at the bytes that package pins.
+    // A0 does not change this file: the bundleable variant is the separate
+    // host-owned mirror below, and engine-equivalence.test.cjs proves they agree.
+    assert.equal(sha('../../../../m4/workout/engine-runtime.cjs'),
+      '9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23', 'accepted engine-runtime.cjs is untouched');
+    assert.equal(sha('../engine-runtime-host.cjs'), HOST_RUNTIME_SHA256, 'host runtime is at its pinned bytes');
+    // The runtime the journey actually ran is the accepted one.
+    assert.deepEqual(AcceptedRuntime.COMPOSITION.modules, HostRuntime.MODULES);
+    assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 12);
+    for (const forbidden of ['seed.cjs', 'migrate.cjs', 'merge.cjs'])
+      assert(AcceptedRuntime.COMPOSITION.forbiddenImports.includes(forbidden), forbidden);
   });
 
   // A0 review R1 / reviewer probe P1. A split whose `from` is one day AFTER
-  // the host's day is well formed, so createCleanInitState accepts it — and
+  // the host's day is well formed, so createCleanInitState accepts it â€” and
   // rebuild/engine/plan.cjs dayType finds no entry with from <= today and
   // falls back to a fixed Mon/Thu=U, Tue/Fri=L, Wed=REFEED week. On 2026-09-04
   // (a Friday) that fallback serves 'leg-press'. This step proves both halves:
@@ -407,7 +406,7 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
       assert(refused.code, 'the refusal names a code');
       assert.deepEqual(await opsOf(own.f.repo), before, 'the refusal stored nothing');
 
-      // The same split, once in force, is served normally — the guard is about
+      // The same split, once in force, is served normally â€” the guard is about
       // the day, not about rejecting this athlete.
       const inForce = structuredClone(SETUP);
       inForce.split.from = DAY;                    // in force exactly today
@@ -423,7 +422,7 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
   // checked against the engine itself, so a drift is a test failure rather
   // than a silent divergence. athlete-state.cjs still imports no engine file.
   await t.test('16. the clean-init state\'s engine-owned literals match the engine', () => {
-    const constants = require(join(engineRoot, 'rebuild/engine/constants.cjs'))({}, {});
+    const constants = require('../../../../engine/constants.cjs')({}, {});
     assert.equal(SCHEMA_V, constants.SCHEMA_V, 'v is the engine\'s SCHEMA_V (constants.cjs)');
     assert.equal(createCleanInitState({ setup: SETUP }).v, constants.SCHEMA_V);
     assert.equal(AUTONOMY_FLOOR, constants.AUTONOMY_LEVELS[0],

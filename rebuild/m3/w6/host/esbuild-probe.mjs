@@ -1,33 +1,44 @@
-// Evidence probe for L2-HOST-ASSEMBLY-BRIEF §4.2: does the non-literal require
-// at rebuild/m4/workout/engine-runtime.cjs:10 survive the existing browser
-// build? Writes two bundles and reports what esbuild did. Changes no product
-// file; installs nothing.
+// Evidence probe: why the host owns its own runtime module.
+//
+// Builds BOTH prescription runtimes through the existing browser build and
+// reports what each does to the graph:
+//
+//   rebuild/m4/workout/engine-runtime.cjs   one non-literal require; esbuild
+//                                           glob-expands it over rebuild/engine
+//   rebuild/m3/w6/host/engine-runtime-host.cjs  twelve literal requires
+//
+// Changes no product file and installs nothing.
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { buildBrowser } from '../build-browser.mjs';
 const here = dirname(fileURLToPath(import.meta.url));
 const out = resolve(here, '.tmp/esbuild-probe');
 mkdirSync(out, { recursive: true });
-const entry = resolve(out, 'runtime-entry.mjs');
-const runtimePath = resolve(here, '../../../m4/workout/engine-runtime.cjs').replaceAll('\\', '/');
-writeFileSync(entry, "export {createEngineRuntime} from '" + runtimePath + "';\n");
-let result = null, error = null;
-try { result = await buildBrowser({ outfile: resolve(out, 'runtime.js'), entryPoints: [entry] }); }
-catch (e) { error = e; }
-if (error) {
-  console.log('ENGINE RUNTIME BUNDLE FAILED');
-  const files = [...new Set((error.errors || []).map(e => e.location?.file).filter(Boolean))];
-  console.log('esbuild errors: ' + (error.errors || []).length + ' across ' + files.length + ' files');
-  for (const f of files) console.log('  ' + f);
-  for (const e of (error.errors || []).slice(0, 4)) console.log('  TEXT: ' + e.text);
-}
-else {
-  const text = readFileSync(result.outfile, 'utf8');
-  const engineInputs = result.inventory.filter(i => i.path.startsWith('rebuild/engine/'));
-  console.log('ENGINE RUNTIME BUNDLE BUILT');
-  console.log('inputs: ' + result.inventory.length + ' | rebuild/engine inputs bundled: ' + engineInputs.length);
-  console.log('bundle retains a bare require(: ' + /(^|[^.\w])require\(/.test(text));
-  const m = text.match(/[^\n]*require\([^\n]*/g);
-  if (m) for (const line of m.slice(0, 6)) console.log('  ' + line.trim().slice(0, 160));
+
+const TARGETS = [
+  ['accepted  rebuild/m4/workout/engine-runtime.cjs', resolve(here, '../../../m4/workout/engine-runtime.cjs')],
+  ['host      rebuild/m3/w6/host/engine-runtime-host.cjs', resolve(here, 'engine-runtime-host.cjs')],
+];
+
+for (const [label, target] of TARGETS) {
+  const slug = label.trim().split(/\s+/)[0];
+  const entry = resolve(out, slug + '-entry.mjs');
+  writeFileSync(entry, "export {createEngineRuntime} from '" + target.replaceAll('\\', '/') + "';\n");
+  let result = null, error = null;
+  try { result = await buildBrowser({ outfile: resolve(out, slug + '.js'), entryPoints: [entry] }); }
+  catch (e) { error = e; }
+  if (error) {
+    const errors = error.errors || [];
+    const files = [...new Set(errors.map(e => e.location?.file).filter(Boolean))];
+    const tests = files.filter(f => f.startsWith('rebuild/engine/test/'));
+    console.log(label + ' -> BUILD FAILED: ' + errors.length + ' errors across ' + files.length +
+      ' files (' + tests.length + ' under rebuild/engine/test/)');
+    if (errors[0]) console.log('    first: ' + errors[0].text + ' [' + (errors[0].location?.file || '?') + ']');
+  } else {
+    const engineInputs = result.inventory.map(i => i.path).filter(p => /^rebuild\/engine\//.test(p));
+    console.log(label + ' -> BUILT: ' + result.inventory.length + ' pinned inputs, ' +
+      engineInputs.length + ' from rebuild/engine');
+    console.log('    engine: ' + engineInputs.map(p => p.slice('rebuild/engine/'.length)).join(' '));
+  }
 }

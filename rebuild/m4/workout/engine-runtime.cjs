@@ -7,30 +7,7 @@
 // factory is instantiated privately only to obtain the existing rirPlan reader;
 // no completion or adaptive writer escapes or executes through this surface.
 const MODULES=Object.freeze(['dates','constants','plan','performed','progression','sleep','energy','policy','today','volume','earn','writers']);
-// SLICE-A0 (host assembly): the twelve requires below are literal. They are
-// the same twelve modules named by MODULES, in the same order, and compose
-// exactly as before in Node. The previous single non-literal
-// require('../../engine/'+name+'.cjs') is glob-expanded by esbuild into EVERY
-// file under rebuild/engine — including seed.cjs / migrate.cjs / merge.cjs and
-// the Node-only rebuild/engine/test harnesses, which must never enter the
-// phone bundle. Measured, not assumed: rebuild/m3/w6/host/esbuild-probe.mjs
-// reports 62 esbuild errors across 21 files, 20 of them rebuild/engine/test/*.
-// This is a byte change to an accepted candidate-L file and needs its owner's
-// re-review; nothing else in the file is touched.
-const FACTORIES=Object.freeze({
- dates:require('../../engine/dates.cjs'),
- constants:require('../../engine/constants.cjs'),
- plan:require('../../engine/plan.cjs'),
- performed:require('../../engine/performed.cjs'),
- progression:require('../../engine/progression.cjs'),
- sleep:require('../../engine/sleep.cjs'),
- energy:require('../../engine/energy.cjs'),
- policy:require('../../engine/policy.cjs'),
- today:require('../../engine/today.cjs'),
- volume:require('../../engine/volume.cjs'),
- earn:require('../../engine/earn.cjs'),
- writers:require('../../engine/writers.cjs')});
-const factories=MODULES.map(name=>{const create=FACTORIES[name];if(typeof create!=='function')throw new TypeError('Accepted engine module missing: '+name);return create;});
+const factories=MODULES.map(name=>require('../../engine/'+name+'.cjs'));
 const EXPOSED=Object.freeze(['genSession','rirPlan']);
 // Source-owned exact lookup (the same read the seeded engine performs); it
 // embeds no athlete data. It is a reached dependency of today.pickStructural.

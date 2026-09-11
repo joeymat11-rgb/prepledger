@@ -15,13 +15,23 @@ const forbidden = [
   ['rebuild/m3/w5/crypto.cjs', p => p === 'rebuild/m3/w5/crypto.cjs'],
   ['rebuild/m4/import/*', p => /^rebuild\/m4\/import\//.test(p)],
   ['rebuild/engine/test/*', p => /^rebuild\/engine\/test\//.test(p)],
+  // The accepted runtime is the one file whose non-literal require would
+  // glob-expand rebuild/engine; the page uses the host mirror instead.
+  ['rebuild/m4/workout/engine-runtime.cjs', p => p === 'rebuild/m4/workout/engine-runtime.cjs'],
 ];
+// The engine modules the host runtime is allowed to pull in: exactly the
+// twelve it names, plus entered-load.cjs, which performed.cjs requires.
+const ALLOWED_ENGINE = new Set([...['dates', 'constants', 'plan', 'performed', 'progression', 'sleep',
+  'energy', 'policy', 'today', 'volume', 'earn', 'writers', 'entered-load'].map(n => 'rebuild/engine/' + n + '.cjs')]);
 const paths = result.inventory.map(i => i.path);
 let clean = true;
 for (const [label, match] of forbidden) {
   const hits = paths.filter(match);
   if (hits.length) { clean = false; console.log('FORBIDDEN IN GRAPH: ' + label + ' -> ' + hits.join(', ')); }
 }
+const engineInputs = paths.filter(p => /^rebuild\/engine\//.test(p));
+const unexpected = engineInputs.filter(p => !ALLOWED_ENGINE.has(p));
+if (unexpected.length) { clean = false; console.log('UNEXPECTED ENGINE INPUT: ' + unexpected.join(', ')); }
 console.log('W6 HOST BUILD ' + (clean ? 'PASS' : 'FAIL') + ' — ' + result.inventory.length + ' pinned inputs at ' + result.outfile);
-console.log('rebuild/engine inputs: ' + paths.filter(p => /^rebuild\/engine\//.test(p)).join(', ') || 'none');
+console.log('rebuild/engine inputs (' + engineInputs.length + '): ' + (engineInputs.join(', ') || 'none'));
 if (!clean) process.exitCode = 1;
