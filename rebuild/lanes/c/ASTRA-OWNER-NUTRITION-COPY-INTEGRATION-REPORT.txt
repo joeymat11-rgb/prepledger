@@ -1,0 +1,65 @@
+NUTRITION AVAILABILITY COPY — DISTINCT LOCAL ASSEMBLY
+September 11, 2026. FILE ASTRA-OWNER-NUTRITION-COPY-JOIN.md at PM 997e948.
+Mechanical join, 36 affected render checks and real PWA build PASS.
+
+(1) EXACT SOURCE
+Integrator /root/owner_release_integrator, neither author native_scale_correction
+nor reviewer phone_release_review. Read NEXT/ROADMAP/LANES in this continuing
+assignment, full builder report and independent review
+4387f8b32929f9cd6e74846c918176e17b296bac; root scoped-accepted exact 154bf804.
+Owned codex/astra-owner-phone-integration was verified clean at
+8acd5a6c1fcf13e922a9c82d8711617abe6d3b2c before mutation.
+Worktree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-phone-integration.
+Mechanical --no-ff merge 5d62e867e3380128941da4c29e7e036ad680a30f:
+first parent 8acd5a6c1fcf13e922a9c82d8711617abe6d3b2c;
+second parent 154bf80454b5df2f1d10e4f74c4375b3b123b7b3.
+No conflict, manual resolution, product rewrite or integrator test change.
+Complete tracked-diff allowlist assertion verifies exactly four accepted files:
+rebuild/m3/w7-preview/today/today-app.cjs;
+rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs;
+rebuild/m3/w7-preview/today/test/view.test.mjs;
+rebuild/lanes/c/ASTRA-NUTRITION-AVAILABILITY-REPORT.txt.
+Each Git blob equals exact 154bf804; all other tracked source equals pre-join.
+
+(2) ACTUAL CHECKS
+Retained Node v24.19.0 and existing root/W6/W5 dependency junctions; no install.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03;
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules;
+EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this integration tree.
+BASE is the parent work directory named above.
+node --test rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs
+  rebuild/m3/w7-preview/today/test/view.test.mjs
+PASS 36/36 = five focused + 31 existing view checks; zero failures/skips/
+cancellations, exit 0. Actual fresh-owner producer rendering retains four
+unavailable fields and configuration reasons. Mixed/gated/missing-object and
+available-to-blocked controls preserve available amounts/ranges, expose refusal
+and prevent false non-prescription or stale numerical values.
+No numerical algorithm, input, model, host, storage, template or CSS changed.
+
+(3) REAL ARTIFACT BUILD / REUSE
+Preserved previous generated folders under ignored .tmp/pre-nutrition-copy-
+slice-pwa-dist/ and .tmp/pre-nutrition-copy-w7-today-dist/ in this owned tree.
+node rebuild/slice/pwa/build-pwa.mjs: A5 PWA BUILD PASS, exit 0;
+13 files, 11 precached/pinned assets and 13 exact header rules; approved colors,
+private-shape/path guards and no shipped network-reference check PASS.
+Output .tmp/slice-pwa-dist/; Today output .tmp/w7-today-dist/.
+Direct old/new Buffer comparison: nine PWA files unchanged; app/index/sw/headers
+change with the new rendered code and hash references. Today index/styles
+unchanged; app.js changed. No whole-artifact byte-equivalence claim across delta.
+App SHA256 3b1337f29f2f5848ca72ca99b6b64d9d8f5ed92078bf35a089729b2c3ab04375.
+Cache earned-slice-dc0d92e03193517f3c2a6bb4b015e31c.
+Ignored .tmp/nutrition-copy-artifacts.json SHA256
+645031cc2a376c6b4317bf8db621e3677d09d12fdd768fbff33d61c575dea645.
+Reused unchanged engine, phone-layout, lifecycle and workout-browser evidence
+for their unaffected source/behavior. No new broad browser/private/engine
+campaign claimed; the affected DOM rendering executed above and build is fresh.
+
+(4) LIMITS
+Full daily-plan/input production remains separate; no missing quantity or
+agreed non-prescription is implemented by this wording correction. Later exact
+source-policy/CI/full engine qualification and physical-phone checks remain.
+No input938913, PR51 or B1 joined. No source pins, workflows, laws, private data,
+lockfile/install, other-worktree writes, actual integration-branch merge,
+remote action, push/PR/deployment, host setting or protected-soak operation.
+git diff --check PASS; only this factual report is added beyond the accepted
+four-file mechanical merge. No broader qualification or release authority.
