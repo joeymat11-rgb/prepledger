@@ -24,6 +24,10 @@ Owner authorized temporary Astra takeover while Claude usage is exhausted, prese
 
 ## Unattended continuation
 
-Existing Claude bridge automation remains PAUSED. New hourly thread heartbeat earned-astra-development-continuation is ACTIVE for this root task. It resumes this checkpoint, checks live handles and continues concrete work; quiet when unchanged. No duplicate PM or task creation. Goal tool currently reports no active goal; do not mark the app complete at this handoff. Only use create_goal if the owner explicitly requests one.
+Existing Claude bridge automation remains PAUSED. New hourly thread heartbeat earned-astra-development-continuation is ACTIVE for this root task. It resumes this checkpoint, checks live handles and continues concrete work; quiet when unchanged. No duplicate PM or task creation. Owner reconfirmed continuous work; continuous delivery goal is now ACTIVE. Hourly heartbeat is backup only. Do not mark the app complete at a handoff.
 
 No app-ready claim, percentage or release date is supported yet. Report working user journeys and exact remaining joins instead.
+
+## Current review handoff
+
+Earlier worker assignments completed. Tooling fix c7b7133f3611f0bff98f35c5626d14571b38fbb7 is under independent review by /root/tooling_fix_acceptance in work/astra-tooling-review-final. B-NTC join0876043 is under independent review by /root/ntc_join_review in work/astra-ntc-join-review. Verify their live handles; do not assume the older engine_resume/phone_readiness handles remain active. No new acceptance/integration yet. Root continues immediately on returned results.
