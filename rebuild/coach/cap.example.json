@@ -1,0 +1,13 @@
+{
+  "_note": "SHAPE ONLY. No cap exists on any account yet (C5 residual). This file is what a real one must look like; it is never read by the product and it must never be edited into a live record — the live one is created when the owner actually sets the cap.",
+  "provider": "openai",
+  "account_label": "earned-voice-coach (owner personal)",
+  "cap_usd_month": 25,
+  "cap_usd_session": 2,
+  "per_minute_usd": 0.05,
+  "verified": true,
+  "verified_at": "2030-02-04T12:00:00.000Z",
+  "verified_by": "owner",
+  "evidence": "Billing page shows a hard monthly limit, not a notification threshold; usage alerts are separate and are not the cap.",
+  "notes": "Two named users only, Joe and Dad. A third user needs a separate owner ruling."
+}
