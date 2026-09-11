@@ -1,0 +1,16 @@
+/* A5-owned chrome for the install / offline-launch preflight. It adds no colour, type or
+   spacing of its own beyond the approved design's tokens: the panel is the page's
+   existing .review aside (13px, var(--muted)), and the only colour it ever sets is the
+   approved --green, on the word that says the device is ready. */
+
+#pwa-preflight { display: grid; gap: 6px; }
+#pwa-preflight p { margin: 0; }
+#pwa-preflight [data-pwa="state"] { font-weight: 600; }
+#pwa-preflight [data-pwa="state"][data-ready="yes"] { color: var(--green); }
+#pwa-preflight [data-pwa="detail"]:empty { display: none; }
+#pwa-preflight [hidden] { display: none; }
+
+/* Once Earned is launching from the Home Screen there is nothing left to add it to. */
+@media (display-mode: standalone) {
+  #pwa-preflight [data-pwa="install"] { display: none; }
+}
