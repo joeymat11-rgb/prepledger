@@ -170,3 +170,81 @@ test('authenticated but wrong-scope originals and damaged checkpoints refuse rea
     } finally { h.close(); }
   }
 });
+test('reviewed commit owns its actual Today invocation against an immediately queued matching raw request', async t => {
+  const h = await harness(); try {
+    const p = proposal(), prepared = await prepare(h, p), before = await h.repository.load();
+    const intended = h.era.commitNutritionInputs({ preparedId: prepared.preparedId });
+    const raw = h.era.client.execute('nutritionInputs', p);
+    const [saved, bypass] = await Promise.all([intended, raw]), after = await h.repository.load();
+    t.diagnostic(JSON.stringify({ intended: { acknowledged: saved.acknowledged, code: saved.code }, raw: { acknowledged: bypass.acknowledged, code: bypass.code }, committedNotes: Object.values(after.generation.collections.ops).filter(op => op.payload?.profile === Wire.PROFILE).length }));
+    assert.equal(bypass.acknowledged, false, 'raw request must not borrow the active review');
+    assert.equal(saved.acknowledged, true, saved.code);
+    assert.equal(after.revision, before.revision + 1);
+    assert.equal(after.generation.collections.meta.device.seq, before.generation.collections.meta.device.seq + 1);
+    assert.equal(Object.keys(after.generation.collections.ops).length, 1);
+    assert.equal((await h.era.readNutritionInputs()).view.local.current.sourceOpId, saved.op_id);
+  } finally { h.close(); }
+});
+test('raw requests before reviewed invocation and differing concurrent payloads cannot claim its authorization', async () => {
+  for (const [rawFirst, matching] of [[true, true], [true, false], [false, false]]) {
+    const h = await harness(); try {
+      const p = await prepare(h), before = await h.repository.load();
+      const rawCall = () => h.era.client.execute('nutritionInputs', proposal(matching ? declared() : unknown()), p.preparedId);
+      const reviewedCall = () => h.era.commitNutritionInputs({ preparedId: p.preparedId });
+      let raw, reviewed;
+      if (rawFirst) { raw = rawCall(); reviewed = reviewedCall(); }
+      else { reviewed = reviewedCall(); raw = rawCall(); }
+      assert.equal((await raw).code, 'NUTRITION_INPUT_PREPARATION_REQUIRED');
+      const saved = await reviewed; assert.equal(saved.acknowledged, true, saved.code);
+      const after = await h.repository.load(); assert.equal(after.revision, before.revision + 1);
+      assert.equal(after.generation.collections.meta.device.seq, before.generation.collections.meta.device.seq + 1);
+      assert.equal(Object.keys(after.generation.collections.ops).length, 1);
+      assert.deepEqual((await h.era.readNutritionInputs()).view.local.current.inputs, declared());
+    } finally { h.close(); }
+  }
+});
+test('raw requests during encrypted commit fail promptly while repeated reviewed commits save exactly once', async () => {
+  const fault = faultDatabase(), h = await harness({ indexedDB: fault.indexedDB });
+  try {
+    const p = await prepare(h), before = await h.repository.load(); fault.state.mode = 'delay'; fault.state.armed = true;
+    let settled = false;
+    const first = h.era.commitNutritionInputs({ preparedId: p.preparedId }).then(result => { settled = true; return result; });
+    await fault.state.write.promise;
+    for (const inputs of [declared(), unknown()]) {
+      const raw = await h.era.client.execute('nutritionInputs', proposal(inputs));
+      assert.equal(raw.acknowledged, false); assert.equal(raw.code, 'NUTRITION_INPUT_PREPARATION_REQUIRED');
+    }
+    const repeated = h.era.commitNutritionInputs({ preparedId: p.preparedId });
+    assert.equal(settled, false, 'raw rejection must not release Saved or wait for the held transaction');
+    fault.state.release = true;
+    const [saved, retry] = await Promise.all([first, repeated]);
+    assert.equal(saved.acknowledged, true); assert.equal(retry.acknowledged, true); assert.equal(retry.op_id, saved.op_id);
+    const after = await h.repository.load(); assert.equal(after.revision, before.revision + 1);
+    assert.equal(after.generation.collections.meta.device.seq, before.generation.collections.meta.device.seq + 1);
+    fault.state.armed = false; await h.reopen(); assert.equal((await h.era.readNutritionInputs()).view.records.length, 1);
+  } finally { fault.state.release = true; fault.state.armed = false; h.close(); }
+});
+test('actual competing weight commit during nutrition sealing remains usable and invalidates the reviewed generation', async () => {
+  let armed = false, enter, release;
+  const entered = new Promise(resolve => { enter = resolve; }), hold = new Promise(resolve => { release = resolve; });
+  const crypto = { getRandomValues: webcrypto.getRandomValues.bind(webcrypto), subtle: new Proxy(webcrypto.subtle, { get(target, key) {
+    if (key === 'encrypt') return async (...args) => { if (armed) { armed = false; enter(); await hold; } return target.encrypt(...args); };
+    const value = target[key]; return typeof value === 'function' ? value.bind(target) : value;
+  } }) };
+  const h = await harness({ crypto }); let second, other;
+  try {
+    const calendar = createLocalCalendar({ now: () => new Date(`${day}T08:00:00Z`), offsetMinutes: () => 0 });
+    second = await openTodayInstallation({ indexedDB: new Proxy(h.indexedDB, { get(target, key) { const value = target[key]; return typeof value === 'function' ? value.bind(target) : value; } }), crypto: webcrypto, day, calendar });
+    other = await second.createReadingHost({ day });
+    const p = await prepare(h), before = await h.repository.load(); armed = true;
+    const pending = h.era.commitNutritionInputs({ preparedId: p.preparedId }); await entered;
+    assert.equal((await other.weighIn({ date: day, lb: 171 })).ok, true, 'unrelated real write is not locked behind nutrition');
+    release(); const stale = await pending; assert.equal(stale.acknowledged, false); assert.equal(stale.code, 'NUTRITION_INPUT_STALE');
+    const after = await h.repository.load(); assert.equal(after.revision, before.revision + 1);
+    assert.equal(after.generation.collections.meta.device.seq, before.generation.collections.meta.device.seq + 1);
+    const ops = Object.values(after.generation.collections.ops); assert.equal(ops.length, 1); assert.equal(ops[0].payload.lb.value, 171);
+    assert.equal((await h.era.readNutritionInputs()).view.local.current, null);
+    const fresh = await prepare(h), saved = await h.era.commitNutritionInputs({ preparedId: fresh.preparedId }); assert.equal(saved.acknowledged, true, saved.code);
+    assert.equal((await h.repository.load()).generation.collections.meta.device.seq, before.generation.collections.meta.device.seq + 2);
+  } finally { release(); other?.close(); second?.close(); h.close(); }
+});

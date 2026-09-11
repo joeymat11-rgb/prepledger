@@ -77,7 +77,12 @@ does not acknowledge Saved; reopening reads the original operation.
 The guarded read authenticates the current local-era originals and checks the
 repository revision again before exposing a result. Damaged or wrong-scope input
 is a refusal, not an empty setup. Reading and dropping derived cache never reseed
-or write. The generic `execute` entry cannot bypass the nutrition review guard.
+or write. The generic `execute` entry refuses every raw nutrition command before
+bridge staging, including one concurrent with a matching prepared commit. Only
+the boundary's serialized reviewed invocation has the private local execution
+capability; it is never exposed in public arguments, a review ID or durable data.
+The private route retains the existing C1 failure normalization and bridge; the
+actual revision/token, scope and batch checks still run in its commit transaction.
 The factual reader preserves all original assertions, rejects partial/current
 conflict blends, and gives no authority-accepted plan or nutrition recommendation.
 

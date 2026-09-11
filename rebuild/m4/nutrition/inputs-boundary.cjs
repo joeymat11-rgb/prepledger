@@ -8,7 +8,7 @@ const failure = (code, state = 3) => ({ acknowledged: false, prepared: false, re
 
 // One local-era composition. The existing bridge owns sealing, retries and
 // commit-before-success. The repository's revision/token binds the review.
-function createInputsBoundary({ repository, execute, currentFailure, scope, localConfig }) {
+function createInputsBoundary({ repository, executeReviewed, currentFailure, scope, localConfig }) {
   let serial = 0, preparation = null, active = null, tail = Promise.resolve();
   const enqueue = task => { const next = tail.then(task); tail = next.catch(() => {}); return next; };
   async function readCurrent() {
@@ -65,7 +65,9 @@ function createInputsBoundary({ repository, execute, currentFailure, scope, loca
         }
         active = preparation;
         let result;
-        try { result = await execute('nutritionInputs', copy(active.proposal)); }
+        // Only this serialized reviewed attempt can enter the private nutrition
+        // route. Public raw commands never reach its bridge or borrow active.
+        try { result = await executeReviewed(copy(active.proposal)); }
         finally { active = null; }
         if (result.durableRevision) preparation.committed = result.durableRevision;
         const after = currentFailure();
