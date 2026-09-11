@@ -1,0 +1,38 @@
+/* Preview-owned chrome, appended AFTER the two pinned approved stylesheets.
+   It adds no colour, type or spacing of its own beyond the approved tokens, and it
+   changes no approved rule except the one accessibility correction named below. */
+
+/* iOS zoom rule: every text input the athlete can focus renders at >= 16px. The approved
+   references set 13-15px on the check-in follow-ups, the sleep-hours box and the coach
+   composer; Safari zooms the page on focus below 16px, which breaks the fixed phone
+   layout the design depends on. This preserves the visual intent (the fields keep their
+   size, border and colour) and resolves the concrete accessibility conflict, per
+   rebuild/m1/MOCK.md's rule for exactly this case. */
+.view .followup input,
+.view .followup select,
+.view .composer input,
+.view .hours,
+.view textarea { font-size: 16px; }
+
+/* The morning weigh-in sheet. The 2026-09-08 design does not cover a weigh-in entry
+   screen, so this is preview-owned chrome built only from approved tokens and the
+   approved direct-entry control (.field / .number-control / .step / .error / .cta). */
+.sheet-panel {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+  border-radius: 18px 18px 0 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -12px 40px #1c1b1814;
+}
+.sheet-panel .field { margin-top: 12px; }
+.sheet-panel .error:empty { display: none; }
+
+/* The preview frame around the phone. */
+.stage { min-height: 100vh; }
+.review .note { margin: 0; }
+#today-status { margin-top: 6px; }
+.view > .note { padding: 24px; }

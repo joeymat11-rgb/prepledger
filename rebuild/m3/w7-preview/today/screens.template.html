@@ -1,0 +1,142 @@
+<!-- A1 · Today rebound to the owner-approved 2026-09-08 design.
+     Structure and class names come from rebuild/m1/approved-2026-09-08/:
+     Refinement A (Today plan-first) plus the Additions C entry points
+     (full nutrition plan, recovery check-in, coach). Every class token used
+     here is checked against the two pinned stylesheets by build.mjs, and
+     every static copy string is checked to occur verbatim in the pinned
+     approved HTML. NOTHING here carries a number: every value is bound at
+     runtime from an engine result or a stored operation. -->
+<template id="t-today">
+<article class="page">
+  <header class="mast">
+    <div class="brand">Earned</div>
+    <div class="date" data-slot="date"></div>
+  </header>
+  <section class="intro">
+    <p class="day-label">Your plan for today</p>
+    <h1 data-slot="instruction"></h1>
+    <p class="intro-copy" data-slot="instruction-why"></p>
+  </section>
+  <section class="food">
+    <div class="section-label">Eat about</div>
+    <div class="food-values">
+      <div><div class="food-value" data-slot="kcal"></div><div class="quiet" data-slot="kcal-note"></div></div>
+      <div><div class="food-value" data-slot="protein"></div><div class="quiet" data-slot="protein-note"></div></div>
+    </div>
+    <button class="text-link" type="button" data-go="nutrition">Your full nutrition plan <span data-arrow></span></button>
+  </section>
+  <section class="training">
+    <div class="training-top"><h2 data-slot="workout-title"></h2></div>
+    <p data-slot="workout-count"></p>
+    <p class="training-note" data-slot="workout-note"></p>
+    <button class="text-link recovery-link" type="button" data-go="recovery">How are you feeling today? <span data-arrow></span></button>
+  </section>
+  <section class="evidence">
+    <div class="evidence-grid">
+      <div><div class="small quiet" data-slot="morning-label">This morning</div><div class="datum" data-slot="morning"></div></div>
+      <div><div class="small quiet">Weight trend</div><div class="datum" data-slot="trend"></div></div>
+    </div>
+    <p class="trend-note" data-slot="rate"></p>
+    <button class="text-link" type="button" data-go="why">Why this plan? <span data-arrow></span></button>
+  </section>
+  <div class="bottom">
+    <button class="cta" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
+    <p class="bottom-note" data-slot="primary-note"></p>
+    <button class="text-link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it.</span></span><span data-arrow></span></button>
+  </div>
+</article>
+</template>
+
+<template id="t-weigh">
+<form class="sheet-panel" role="dialog" aria-modal="true" aria-label="Log this morning's weight">
+  <div class="section-label">This morning</div>
+  <div class="field">
+    <label for="morning-weight">Weight (lb)</label>
+    <div class="number-control">
+      <button class="step" type="button" data-step="-0.1" aria-label="Decrease weight">−</button>
+      <input id="morning-weight" type="number" inputmode="decimal" min="0" step="any" aria-label="Weight in pounds" aria-describedby="weigh-error">
+      <button class="step" type="button" data-step="0.1" aria-label="Increase weight">+</button>
+    </div>
+  </div>
+  <p class="error" id="weigh-error" role="alert"></p>
+  <div class="gym-actions">
+    <button class="cta" type="submit"><span data-slot="weigh-submit"></span><span data-arrow></span></button>
+    <div class="secondary-row"><button class="text-link" type="button" data-action="cancel" data-own>Not now</button></div>
+  </div>
+</form>
+</template>
+
+<template id="t-why">
+<article class="page">
+  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
+  <header class="detail-head">
+    <h1>Why this plan?</h1>
+    <p data-slot="why-lead"></p>
+  </header>
+  <section data-slot="why-sections"></section>
+  <div class="bottom">
+    <button class="cta secondary" type="button" data-go="today"><span>Back to my plan</span><span data-arrow></span></button>
+  </div>
+</article>
+</template>
+
+<template id="t-nutrition">
+<article class="page">
+  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
+  <header class="detail-head">
+    <h1>Your food plan.</h1>
+    <p>Your agreed daily targets, together in one place.</p>
+  </header>
+  <section data-slot="macros" aria-label="Daily targets"></section>
+  <p class="note">Targets guide your day. Any suggested change comes with a reason and your choice to accept it.</p>
+  <p class="note" data-own data-slot="stub-note"></p>
+</article>
+</template>
+
+<template id="t-recovery">
+<article class="page checkin">
+  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
+  <header class="detail-head">
+    <h1>A quick check-in.</h1>
+    <p data-own data-slot="stub-note"></p>
+  </header>
+  <fieldset class="question"><legend>Energy right now</legend><div class="options">
+    <button class="option" type="button" disabled aria-pressed="false">Low</button>
+    <button class="option" type="button" disabled aria-pressed="false">Moderate</button>
+    <button class="option" type="button" disabled aria-pressed="false">High</button>
+  </div></fieldset>
+  <fieldset class="question"><legend>Muscle soreness right now</legend><div class="options">
+    <button class="option" type="button" disabled aria-pressed="false">None</button>
+    <button class="option" type="button" disabled aria-pressed="false">Mild</button>
+    <button class="option" type="button" disabled aria-pressed="false">Significant</button>
+  </div></fieldset>
+  <fieldset class="question"><legend>Stress right now</legend><div class="options">
+    <button class="option" type="button" disabled aria-pressed="false">Low</button>
+    <button class="option" type="button" disabled aria-pressed="false">Moderate</button>
+    <button class="option" type="button" disabled aria-pressed="false">High</button>
+  </div></fieldset>
+  <p class="fine" data-own>Every answer is blank, and blank means unknown. Nothing here is recorded.</p>
+</article>
+</template>
+
+<template id="t-coach">
+<article class="page">
+  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
+  <header class="detail-head">
+    <h1>Ask your coach.</h1>
+    <p>Make sense of your plan and the progress behind it.</p>
+  </header>
+  <p class="note" data-own data-slot="stub-note"></p>
+</article>
+</template>
+
+<template id="t-workout">
+<article class="page">
+  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
+  <header class="detail-head">
+    <h1 data-slot="workout-title"></h1>
+    <p data-own data-slot="stub-note"></p>
+  </header>
+  <p class="note" data-own data-slot="workout-detail"></p>
+</article>
+</template>
