@@ -190,6 +190,7 @@ function mountToday(doc, model, options = {}) {
       for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
       put(map, "recovery-state", null);
       map.get("primary").disabled = true;
+      map.get("workout-action").remove();
       wire(root);
       show(root, focus);
       return;
@@ -231,7 +232,8 @@ function mountToday(doc, model, options = {}) {
        Today names it and offers that close rather than printing a code the athlete
        can do nothing about (review round 2, point 3). */
     const stranded = today && today.phase === "unfinished" ? today.unfinished : null;
-    const sessionState = today && today.phase === "active" ? WORKOUT_IN_PROGRESS
+    const resuming = !!(today && ["active", "saved", "complete"].includes(today.phase));
+    const sessionState = resuming ? WORKOUT_IN_PROGRESS
       : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY
       : stranded ? UNFINISHED_WORKOUT + " · " + stranded.day
       : refused ? WORKOUT_CANNOT_OPEN + " · " + refused : null;
@@ -252,7 +254,16 @@ function mountToday(doc, model, options = {}) {
     /* The resume action the approved direction requires: while a workout is in
        progress the single primary action resumes it, in the approved design's own
        word. A recorded workout is reviewable, not restartable. */
-    const resuming = !!(today && today.phase === "active");
+    // Weight is optional for navigation. Keep one primary, and expose the
+    // host's actual workout action beside the title when that primary asks for weight.
+    const workoutAction = map.get("workout-action");
+    const hasWorkoutAction = today && (today.phase === "finished"
+      || view.workout.exerciseCount > 0 || !!view.workout.unavailableReason);
+    if (owed && hasWorkoutAction && ["ready", "finished", "blocked"].includes(today.phase)) {
+      workoutAction.textContent = today.phase === "finished" ? REVIEW_WORKOUT
+        : today.phase === "blocked" ? WHY_WORKOUT_CANNOT_OPEN : "Start " + view.workout.title;
+      workoutAction.addEventListener("click", () => render("workout", true));
+    } else workoutAction.remove();
     const action = resuming ? "Resume " + view.workout.title
       : stranded ? CLOSE_UNFINISHED_WORKOUT
       : owed ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")

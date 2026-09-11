@@ -29,6 +29,19 @@ async function open(t,clock=time(),configured=true) {
 }
 const ops=async page=>Object.values((await page.hosts.generation()).generation.collections.ops);
 
+test('actual owner rest day offers weight but no new workout shortcut or Start',async t=>{
+  const indexedDB=new IDBFactory(),dom=document(),{calendar}=time(),value=setup();
+  value.split.map[5]='REST'; // The explicit synthetic clock is Friday September11.
+  await enroll(indexedDB,calendar,value);
+  const page=await boot({document:dom.window.document,indexedDB,crypto:webcrypto,calendar});
+  t.after(()=>{page.close();dom.window.close();});
+  assert.equal(page.model.read().workout.exerciseCount,null);
+  assert.equal(page.model.read().workout.unavailableReason,null);
+  assert.equal(dom.window.document.querySelector('[data-slot="workout-action"]'),null);
+  assert.equal(page.model.read().hasReadToday,false);
+  assert.deepEqual(await ops(page),[]);
+});
+
 test('actual default boot uses persisted setup and wall date without injected day/basis/clock',async t=>{
   const indexedDB=new IDBFactory(),dom=document(),calendar=createLocalCalendar();await enroll(indexedDB,calendar);
   const page=await boot({document:dom.window.document,indexedDB,crypto:webcrypto});t.after(()=>{page.close();dom.window.close();});
