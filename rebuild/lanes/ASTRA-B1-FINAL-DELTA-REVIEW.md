@@ -1,0 +1,11 @@
+# B1 final authored correction — independent focused review
+
+Temporary PM September11. Parallel source review only; package order BNTC -> B1 -> B2 -> B4 -> B3 remains. Use NEW work/astra-b1-delta-review, codex/astra-b1-delta-review from exact fe03ed0d5c4fa347807d8df7a611f408a4e10397. Reviewer did not author B1. Read NEXT, ROADMAP, latest LANES/DECISIONS, accepted B1 brief and B1-REVIEW-r3.md at this source, plus BUILD-REPORT-B1 section10. Preserve original Claude worktrees.
+
+Review only final authored correction fe03ed0 against its predecessor, closing r3's explicit conditions: accurate distinction of behavioral mutant kills versus D10-2 source assertion and correct no-cells count; committed second/third fallback-year cells that actually kill the hardcoded-date mutant; the D27 phaseArc guard now directed to B1 by DECISIONS:110, with a meaningful malformed-break counterexample and preserved normal behavior. Execute the focused candidate cells and independently verify these changed controls, using installed dependencies and synthetic data. Reuse prior independent evidence for unaffected B1 hunks; do not commission a new comprehensive review, private census or FULL campaign.
+
+State ACCEPT or REQUEST CHANGES for this delta, not the full package. Any actual new regression gets an exact bounded counterexample. Distinguish old conform/second-gate failures from claimed PASS; neither a matching baseline failure nor this review confers qualified engine acceptance. Do not edit frozen laws, engine code, tests or original reports. One new factual report with exact source and executed results.
+
+Also inspect, without broad new research or implementation, whether DECISIONS:110's UNKNOWN recovery presentation ruling is already implemented in this B1 source. If missing, name the exact function/consumer and narrow next owner, preserving the rule that missing sleep imposes no restriction. Do not casually turn every non-GREEN state into a reduction or claim absence proves recovery. This is a residual to route, not permission to expand the correction or alter user policy.
+
+No installs, private data, broad campaigns, push, merge, deployment, purchases or protected soak. Root remains sole PM. Candidate cannot be qualified or merged before its proper cumulative BNTC parent/source and all required engine evidence exist.
