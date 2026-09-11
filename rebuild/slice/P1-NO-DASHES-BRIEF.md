@@ -37,5 +37,12 @@ messages are NOT user-facing and may keep their dashes (leave them alone; do not
 5. No file outside custody changed (git diff --stat proves it); no engine, conform, m4/spec, client, .github or pwa change.
 6. Reviewer file rebuild/slice/P1-REVIEW.md with FINAL VERDICT ACCEPT / ACCEPT-WITH-FIXES / REJECT, own re-runs listed.
 
+## Amendment (DECISIONS:117 (1), before the build started)
+7. build.mjs REFUSES to build when any user-facing asset (built HTML/JS/CSS) contains U+2013 or U+2014 (a build-time
+   guard with a named error; tested by a planted dash that is refused and restored), and the render boundary refuses the
+   same at runtime for text it did not author (the normaliser of item "How to rewrite" is the only path that admits engine
+   prose). A4 (Dad first-run, lane C) inherits both after rebasing onto P1; do not duplicate A4's own screens.
+8. design.cjs: the dash-normalised harvest is P1's to land (bar item 3); A4 verifies it after rebase, does not re-author it.
+
 ## Report
 rebuild/slice/P1-REPORT.md per rebuild/t2/REPORT.txt: factual, short, every claim executed (commands + counts).
