@@ -1,0 +1,139 @@
+EARNED — B-NTC C4 JOIN / SUCCESSOR REVIEW
+2026-09-11. Independent reviewer; did not author the candidate.
+Source: 0876043004d23eb1ae38dbdcb0e0f49fd45efc2f (codex/astra-b-ntc).
+Review branch: codex/astra-ntc-join-review, based on that exact commit.
+Worktree: work/astra-ntc-join-review. Root Astra remains the sole PM.
+Authority: ASTRA-RESUME.md / ASTRA-CHECKPOINT.md in work/astra-pm-resume;
+AGENTS, LANES, DECISIONS:108-110, B-NTC brief and independent r1 review.
+
+(1) VERDICT
+ACCEPT within scope: C4 default qualified-provider wiring, both repeat-workout
+journeys, retained Last time shape, and the two-stage archived-parent/actual-child
+source verification design. No new product correctness defect found.
+REQUEST CHANGES before package seal: F1 below. This is not a package receipt,
+FULL verdict, final CI acceptance, integration authorization or phone-readiness
+claim. Candidate tooling7748880 remains unaccepted. Separate review of c7b7133
+is not adjudicated here and that fix is absent from this source.
+
+(2) REQUIRED CHANGE F1 — KEEP THE ORIGINAL REFUSAL CHILD EXECUTABLE
+Priority P1 for package acceptance; no observed workout failure.
+native-carriers-package.cjs:66 requires profile-refusals with # pass 13.
+B-NTC.json:445 schedules only child-pin-refusals, # pass 4; its note at :461
+explicitly leaves the original profile-refusal suite historical. The four tests
+check runtime/workflow/provider drift and a clean preflight. They do not execute
+the original artifact/version, owner/theme citation, literal-carrier, coverage
+remap, grandparent acceptance/pointer and other refusal assertions.
+Executed registration diagnostic: original file contains 13 test declarations;
+candidate has exactly one refusal child, child-pin-refusals, expecting four;
+its test body never loads native-carriers-profile.test.cjs. CONFIRMED.
+The positive archived Profile.verify call preserves validator assertions but
+does not execute the original tests that prove the assertions refuse bad input.
+The explicit pass19 retirement does not authorize retiring these 13 tests.
+Required: declare a dedicated successor that executes the original 13 meaningful
+assertions with verified archived-parent context, and retain the four actual-child
+checks. Pin the successor and original input, run it, and include it in the child
+spec. Keep archived acceptance distinct from child acceptance. No parent test
+edits, blanket waiver, unused argv test path or changed expected PASS count.
+Exact original 13 test obligations (the child name includes positive controls):
+  1. Sealed artifact verifies as it stands; acceptance matches review status.
+  2. Owner/theme ledger lines bind exact text, role and SHA; altered citation refuses.
+  3. Altered artifact version byte refuses.
+  4. Altered product hash refuses.
+  5. Changed engine byte refuses.
+  6. Altered owner-citation role refuses.
+  7. Altered literal carrier list refuses.
+  8. One-character theme-document edit refuses.
+  9. One-character build-report edit refuses.
+ 10. Covered original gate moved to run refuses.
+ 11. Coverage remap to unpinned child refuses.
+ 12. Flipped grandparent acceptance version refuses.
+ 13. Changed grandparent pointer in parent artifact refuses.
+Focused correction target: successor executes that unchanged original suite,
+13 pass / 0 fail / 0 skipped; actual-child pin suite still 4 pass / 0 fail /
+0 skipped, run sequentially to avoid overlapping transient mutation probes.
+Prove exact input pins and restored bytes. The parent positive acceptance control
+must remain about the archived parent; never advertise it as child acceptance.
+Recheck candidate runtime load isolation after the successor. No repeat of the
+237-test product campaign is needed unless product bytes change.
+
+(3) EXECUTED, BOUNDED REVIEW EVIDENCE
+Windows PowerShell; existing Node v24.19.0 runtime at
+C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03. Reused retained locked
+root/W6/W5 dependencies through local junctions; no installation or lock churn.
+Commands below use that executable as node. Counts overlap; not additive.
+
+node --test --test-reporter=tap
+  rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs
+  rebuild/m3/w6/test/local-today-journey.test.mjs
+  rebuild/m4/workout/test/native-trend-context.test.cjs
+  => 97 pass, 0 fail, 0 skipped.
+node rebuild/m4/spec/b-ntc-journeys.cjs
+  => B-NTC DURABLE JOURNEYS: 237/237 PASS; 0 fail, 0 skipped.
+node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs
+  => 4 pass, 0 fail, with candidate bytes restored.
+node rebuild/m4/spec/b-ntc-witnesses.cjs
+  => 6/6 input/alarm branches; 0 lab/history reach.
+node rebuild/m4/spec/b-ntc-focused.cjs
+  => 15 pass, 0 fail, 1 inherited added-slot test skipped (not a new pass).
+node rebuild/m4/spec/b-ntc-source-carriers.cjs
+  => NATIVE SOURCE CARRIERS: 6/6 PASS; original assertions reached.
+node rebuild/m4/spec/b-ntc-inherited-carriers.cjs
+  => NATIVE INHERITED CARRIERS: 6/6 PASS; original scope retained.
+
+Own negative controls appended an inert comment separately to an unlisted
+parent engine pin (plan.cjs) and an original executable pin
+(native-carriers-witnesses.cjs). Both refused with Unlisted parent pin drift;
+both restored byte-identically in finally. Only this review worktree was used.
+Own isolation control: after successful preflight, ordinary require loaded the
+actual four-reader runtime. Its disk hash equaled the child postimage and differed
+from the parent execution hash. The private source module used the child SUPPORT
+pin; ordinary native-carriers-source retained the parent pin. Global fs.readFileSync
+and Module._load were unchanged. All controls passed.
+
+(4) PRODUCT AND SOURCE FINDINGS
+today-bindings.mjs owns the qualified default where C4 actually creates the host.
+The page's thin gym wrapper reaches that composition. Both authored day+3 cells
+use this default without injecting a resolver, close the prior host, and reopen
+the same storage. Fresh zero-night fixture: ops 12 -> 19, three recorded sessions;
+28-night product fixture: ops 12 -> 18, every planned set logged, three sessions.
+C4 shared-generation, clock, causal-frontier and reopen checks pass. These are
+production storage/client code over injected fake-indexeddb, not browser or phone
+durability evidence. The fresh fixture explicitly declares working loads from
+each lift's ladder; it does not prove the absent first-working-load writer.
+Native previous performance retains earned/performed-lift/v1 and per-slot facts;
+G7 displays Last time: 35 lb x 8 (UI uses the multiplication glyph). C4 gym-model
+is unchanged; inspection confirms the retained contiguous-original-prefix reader.
+Its per-position native display and refusal tests passed inside the 237-test
+wrapper. No fabricated legacy scalar fields are used.
+
+Archived overlay is confined to private module-scoped readFileSync for exactly
+runtime and rebuild.yml, pinned at b95ccca879e371b5ba225ad12cae612ec89469ba.
+The unmodified original Profile.verify still checks receipt, authorizations,
+ancestry, parent/grandparent pins and original source construction. Actual-child
+checks run separately against disk; only the declared runtime SUPPORT hash is
+substituted in the private source verifier. Original executables are hash-checked
+and compared to Git origin before private compilation. No candidate substitution,
+global loader/fs patch or require.cache replacement is present.
+Witness edits retain all six branches/forbidden imports and adjust only the exact
+exposed reader set. Focused successor adjusts only that same surface expectation;
+cases redirects its original focused detector to that successor. CLI guard change
+invokes the original body. The second-gate context explicitly returns accepted:false.
+Its source was inspected; the expensive second gate was not rerun in this review.
+The ten carrier-wrapper mapping is reasonable within this source scope, subject
+to actual tooling recognition and closure. F1 is the additional omitted child.
+
+(5) REMAINING PACKAGE / DELIVERY CONDITIONS
+Join independently accepted tooling, preserve every inherited coverage obligation,
+record the exact successor mapping under PM authority, and bind real brief/theme
+citations at a valid accepted-chain anchor. No trailing-argv execution fiction.
+The spec is PROPOSED and is not itself an immutable accepted child envelope yet.
+Workflow switches to b-package --ci B-NTC; do not integrate that switch until the
+child is publicly qualified/sealed. Full custody and acceptance remain separate.
+Original pass19 files remain intact; the 237-test durable replacement was executed.
+No broad historical campaign, private fixture/census, FULL, seal, receipt, formal
+b-package CI, browser/device run, private port, push, merge or deployment here.
+Before this report, git diff --exit-code was clean; git diff 7b1678a..0876043 on
+engine/conform/frozen-app paths was empty. Only this report is committed.
+Next reviewable correction: F1's dedicated original-refusal successor and exact
+spec pin, followed by its focused execution. Reuse unaffected evidence above.
