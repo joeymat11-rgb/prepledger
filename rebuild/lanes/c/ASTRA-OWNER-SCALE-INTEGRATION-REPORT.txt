@@ -1,0 +1,91 @@
+NATIVE SCALE FEEDBACK — DISTINCT LOCAL ASSEMBLY
+September 11, 2026. FILE ASTRA-OWNER-SCALE-JOIN.md at PM 3c0581d.
+Scoped local assembly/tests/build/browser PASS. Full engine qualification pending.
+
+(1) EXACT SOURCE / ACCEPTANCE
+Integrator /root/owner_release_integrator, not original/correction author,
+independent reviewer or PM. Read NEXT/ROADMAP/LANES in this continuing assignment;
+read complete original 95c6a54 report, independent 2d53a6a, correction cdcb264
+report and final independent ce7967270fd4f6ba647210cb21b0760002f13c02.
+Root accepted the bounded corrected source after executed closure of F1/F2.
+Verified owned codex/astra-owner-phone-integration clean at
+dc29cf109025e3c988f0e7ddd70c6dbee10a54a1 before mutation.
+Worktree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-phone-integration.
+Mechanical --no-ff merge 86e271c7cde4f9ca0d0b2e9109845370c6814213:
+first parent dc29cf109025e3c988f0e7ddd70c6dbee10a54a1;
+second parent cdcb264044ea786896ba7933cdf5e8571bce2443
+(original 95c6a5423cf4de364e24fc24f8b1754a49dcbc91 from ca57649).
+Zero conflicts or manual resolutions; no integrator product/test edit.
+Complete tracked-diff allowlist assertion: exactly eight accepted files:
+engine/energy.cjs, engine/writers.cjs, new engine/scale.cjs;
+m4/nutrition/CONTRACT.md, scale-feedback.mjs, scale-feedback.test.mjs;
+lanes/c/ASTRA-NATIVE-SCALE-FEEDBACK-REPORT.txt and
+lanes/c/ASTRA-NATIVE-SCALE-CORRECTION-REPORT.txt (all under rebuild/).
+Each Git blob equals cdcb264 exactly. All other tracked source unchanged.
+Separate diff checks: existing m3/**, slice/** and workflows equal dc29cf1.
+Phone/setup/lifecycle bytes preserved, including the accepted four test/helper files.
+
+(2) ACTUAL COMBINED CHECKS
+Existing Node v24.19.0, installed Chrome; retained root/W6/W5 dependencies only.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03;
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules;
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this integration worktree.
+BASE is the parent work directory named above. Commands use the retained node.exe.
+node --test rebuild/m4/nutrition/scale-feedback.test.mjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+  rebuild/m3/w7-preview/today/setup/setup.test.mjs
+PASS 52/52 = 23 scale + 16 lifecycle + 13 setup; zero failures/skips/cancellations,
+exit 0. Includes ownership/cutoff correction cases, inherited configured-state
+legacy arithmetic parity, actual native producer/readback and first-use controls.
+No second broad old/memory/private campaign was run or claimed.
+
+(3) ACTUAL BUILD / AFFECTED BROWSER
+Preserved previous generated folders in owned ignored
+.tmp/pre-scale-slice-pwa-dist/ and .tmp/pre-scale-w7-today-dist/ before rebuilding.
+node rebuild/slice/pwa/build-pwa.mjs: A5 PWA BUILD PASS, exit 0;
+13 files, 11 precached/pinned assets, 13 exact response-header rules;
+approved colors, private-shape/path guards and no shipped network reference PASS.
+Real deployable folder: .tmp/slice-pwa-dist/. Today: .tmp/w7-today-dist/.
+Actual bundle metadata contains rebuild/engine/scale.cjs at SHA256
+038a3ba4ca933a4315b829287d84c08006c4cbe8ea173a3fd659bc50f8dd936f.
+It does not contain m4/nutrition/scale-feedback.mjs: that projection is not wired.
+Direct old/new output Buffer comparisons: nine PWA files unchanged; app,
+index.html, sw.js and _headers changed with new bundle/hash references.
+Today index/styles unchanged; app.js changed. Thus prior whole-artifact equality
+does NOT cover this engine delta and was not used instead of the affected build.
+New app SHA256 eab59b63d0e0a26c53b5be63e741e866ff95d0551b6b6a397c739513c9e0f61b;
+cache earned-slice-1d7e08fdbd5ba7488b7120ed41e4d2a2.
+Ignored inventory .tmp/scale-joined-artifacts.json SHA256
+dd09d9144512d7e269bc4bb1230b3dfe59162914554bbaee6288d96589cc0de5.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe;
+node rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs:
+OWNER WORKOUT NAVIGATION BROWSER PASS, exit 0, actual Chrome 390x844.
+Visible synthetic setup; keyboard Start without weight; two actual 40x10/effort2
+sets; exact three unclosed operations survive reload, Resume stays available;
+explicit Finish then Review; actual 170.5 weight and final reload retain five
+operations (one Start, two Sets, one Close, one reading) and finished phase.
+Original set identities/content survive; zero page exceptions. Inspected actual
+.tmp/owner-browser/navigation-ready.png. It is the unchanged Today development
+frame, not a physical phone or a fresh release-shell layout assessment.
+Reuse independent unrelated phone layout/status evidence for unchanged shell/
+styles; no new whole offline/update/phone journey or physical behavior claimed.
+
+(4) CHANGED CLOSURE / REMAINING WORK
+energy.currentRate and writers.applyRead now statically require engine/scale.cjs;
+this shared arithmetic edge is actually present in the built owner app.
+New scale-feedback.mjs directly imports reading-history.mjs, strict-json.mjs,
+stored-history.mjs, capture.cjs, source/codec.cjs, edit-values.cjs,
+edit-history.cjs, engine/dates.cjs and engine/scale.cjs. Its focused test is a
+new execution edge. These identify changes for an explicit later qualification
+successor; they are not a competing complete transitive source manifest.
+Full mandatory engine/source-policy/package/CI qualification remains pending.
+Stable BNTC 413/07f stays unchanged and separate. No receipt or pin authority.
+Today projection wiring, imported-source blackout mapping, unsupported reading
+reclassification, personal/four-field nutrition inputs, recovery/progression,
+full routine/load-family support and retained physical-phone/M3/beta limits remain.
+No B1 or PR51 guard integration, product rewriting, new UI, nutrition defaults,
+source pins/runners/frozen laws/oracles, private material, other tree edits,
+lockfile churn, install, host setting, soak operation, push/PR/deployment or
+actual integration-branch merge. git diff --check PASS. One new integration
+report only beyond the exact accepted mechanical source merge.
