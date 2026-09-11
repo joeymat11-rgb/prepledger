@@ -867,3 +867,108 @@ touched.
    `openLocalDurableClient` / `localHostBindings` would make
    `rebuild/m3/w6/local/host-browser-entry.mjs` unnecessary. Lane C did not make
    that edit because `host/**` is PM-owned.
+
+## C1b REVIEW ROUND 3 — all four findings applied (delta on `57e7212`)
+
+The independent reviewer returned **ACCEPT at `57e7212`, no defects**, with four
+non-blocking findings. All four are applied in one commit. Nothing above this
+heading is retracted; what follows is what changed.
+
+| file | sha256 after | lines |
+|---|---|---|
+| `rebuild/m3/w6/local/host-bindings.mjs` | `89aaad7aae51555f627f8e2cf8d56b05e060382e426e7b232fa9c9a82fde490d` | 328 |
+| `rebuild/m3/w6/test/local-host-journey.test.mjs` | `223310ba75f008adcd0e11ed14f8395cbe8a4ee729d820b20ee6be8306e8ce43` | 540 |
+| `rebuild/m3/w6/test/static-modules.mjs` | `4ea0b2cf3f43a1acf9b97836253ea034222983851d326ee390a9326fefd9a6f4` | 75 |
+
+### F1 — the observation guard is now an ALLOWLIST, pinned to its source
+
+The reviewer was right, and right about the reason rather than the symptom: a
+denylist of seven made a **security-relevant guard depend on a list in another
+file staying in sync, with nothing pinning one to the other**. An eighth inbound
+kind added to `public-client.mjs` later would have passed the guard, reached
+verification against this device's own key, and left every test here green.
+
+`LOCAL_OBSERVATION_KINDS` is now the decision: `local-recovery-basis`,
+`workout-history`, `workout-edit-history` — the three kinds that ask a purely
+local question of a purely local generation. **Everything else refuses by
+default**, known inbound kind or a kind that does not exist yet. Probe S4's
+`observationGuard.run("totally-unknown-kind", inner)` now refuses instead of
+running.
+
+`INBOUND_OBSERVATION_KINDS` is exported too, but it is **not** what the guard
+decides on — it is the other half of the pin. The new case
+*"the observation guard allowlist is pinned to the kinds public-client.mjs can
+actually pass"* reads `public-client.mjs`, extracts every
+`observationGuard.run(<literal>` call site **and** the keys of `accept()`'s
+`{disposition, pull, snapshot, lease, time}[kind]` map, and asserts the union is
+**exactly** the two lists here. It fails in both directions — a new kind over
+there that neither list names, and a stale entry here that no longer exists over
+there. It also pins the call-site count (6) and asserts exactly one site passes a
+variable and that variable is `kind`, so a changed call shape fails loudly
+instead of silently narrowing what the pin can see.
+
+### F2 — all seven inbound kinds, each with `inner ran === false`
+
+Case 10 is now a direct guard probe over all seven inbound kinds **plus** an
+unknown kind and the empty string, each asserting the inner function **never
+ran** — a refusal that still ran the callback would have verified an inbound
+record against the pinned key before answering — and then over the three local
+kinds asserting they **do** run, so the guard is not a blanket refusal.
+
+Case 11 keeps the end-to-end paths and adds `exchangeCurrentHead`, giving six of
+the seven through real caller entry points (`acceptResponse` × 4,
+`exchangeServerTime`, `exchangeCurrentHead`). The seventh, `time`, has no
+caller-reachable entry point — `acceptResponse` refuses the kind before the guard
+is asked — so it is covered by case 10's direct probe, and the test says so in a
+comment rather than skipping it silently.
+
+### F3 — a lapsed era now reports `LOCAL_LEASE_EXPIRED` / 20 on a fresh open
+
+The header promised "an expired era is refused here, not discovered on the first
+save", and on a **fresh open** of a lapsed installation the boot fence answered
+first with `LOCAL_HOST_BINDINGS_BOOT_REQUIRED` / 18. That is the wrong state as
+well as the wrong code: **18 says "stored truth needs recovery" about data that
+is perfectly readable.** The truth is 20 — the data is fine, the write allowance
+ran out.
+
+`refuseLapsedEra()` now reads the era from disk **before** the boot fence, and
+only when it is genuinely readable: an unreadable or absent generation (first
+run, an erased device key) throws there and is swallowed, so those keep the boot
+fence's 18. The new case proves all of it on one store: enroll and boot at day 0,
+reopen at day 1000, `status()` and `boot()` both say `LOCAL_LEASE_EXPIRED`
+(`readable: true`, `leaseExpired: true`, state 20), and **both** `hostBindings()`
+and the `localHostBindings(options)` form reject `LOCAL_LEASE_EXPIRED` / 20. The
+two partial-erasure cases still get 18, which is what proves the new check did
+not swallow the boot fence.
+
+### F4 — the `static-modules.mjs` comment no longer overstates the allowlist
+
+The comment claimed the extension allowlist stops the harness handing a browser
+"a key file, a **.json ledger** or a dotfile". `.json` **is** in `TYPES` and is
+served. The comment now says what is actually true: `.json` is served because a
+module graph and a build metafile need it, so the allowlist is not a defence
+against a JSON file holding something private — **containment** is, and `root` is
+the W6 directory, which holds no athlete data and is nowhere near `ledger/`. It
+also now names the real reason `node_modules` is unreachable (a junction whose
+realpath resolves outside `realBase`, so the containment check 404s it), which the
+reviewer verified independently.
+
+### Re-run after the four fixes
+
+| command | result |
+|---|---|
+| `NODE --test rebuild/m3/w6/test/local-host-journey.test.mjs` | `tests 17 · pass 17 · fail 0`, exit 0 (14 → 17: case 10 split into 10 + 11, plus the F1 pin and the F3 lapsed-era case) |
+| `NODE --test rebuild/m3/w6/test/*.test.mjs` | **`tests 473 · pass 473 · fail 0`**, exit 0 (470 → 473) |
+| `NODE --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | `tests 22 · pass 22 · fail 0`, exit 0 — still unchanged |
+| `NODE rebuild/m3/w6/build-browser.mjs` | `w6.js` `b733c830…3143d` — **still byte-identical to the C1 baseline** |
+| `NODE rebuild/m3/w6/test/local-bite.cjs` | RESTORED PASS, exit 0; all four bites still RED; source `a055c623…14ea9` unchanged (this round did not touch `local-client.mjs`) |
+| `NODE rebuild/m3/w6/local/build.mjs` | `36` / `96` pinned inputs; `local.js` `68825b6a28655ab1dc2655c9f70f3fcd8028d3317723bbd4e552bb40ee1de49e`, `host.js` `6e13f09afb45c137e063a682ea578e4e4334cec8ec84578df9a1abe03d65b323` — both moved because `host-bindings.mjs` changed |
+| `NODE rebuild/m3/w6/test/browser-check.mjs` (Edge 152.0.4191.66) | `6/6` PASS, exit 0 |
+| `NODE rebuild/m3/w6/test/local-browser.mjs` (Edge) | `8/8` PASS, exit 0 |
+| `NODE rebuild/m3/w6/test/local-host-browser.mjs` (Edge) | `6/6` PASS, exit 0 |
+
+**Residuals unchanged.** None of the four findings touched residual 1 (no
+`subtle` seam), 2 (`WORKOUT_PREPARATION_INVALID` masking), 3 (no iOS), 4 (no C1b
+bite), 5 (local-only key custody), 6 (extractable private JWK at mint) or 7 (no
+local-era adoption). Both REQUEST TO PM items stand, and no `host/`-owned file
+was touched in this round either.

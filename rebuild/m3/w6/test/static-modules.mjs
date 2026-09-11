@@ -18,12 +18,21 @@
 // The fix is to serve the DIRECTORY the module lives in rather than a hand-kept
 // list of filenames, so a new relative import can never silently break the
 // harness again. Two rules keep that safe:
-//   * containment — a resolved path must stay inside `root`, so no "..",
-//     absolute path or symlink escape reaches anything else on the machine; and
-//   * an extension allowlist — only module and asset types are served, so the
-//     harness can never hand a browser a key file, a .json ledger or a dotfile
-//     that happens to sit under the same tree.
+//   * containment — the REAL path, after symlinks are resolved, must stay inside
+//     `root`, so no "..", absolute path or symlink escape reaches anything else
+//     on the machine. This is what keeps `node_modules` out: it is a junction
+//     whose realpath resolves outside the W6 directory, so it 404s; and
+//   * an extension allowlist — only module and asset types are served, so an
+//     extensionless file, a dotfile, a key file or a `.pem`/`.log` under the
+//     same tree cannot be fetched.
 // Both are properties of this file; no caller can widen them.
+//
+// C1b review F4. Be exact about what the extension allowlist is NOT: `.json` IS
+// served, because a module graph and a build metafile need it. So the allowlist
+// is not a defence against a JSON file that holds something private — CONTAINMENT
+// is, and `root` is the W6 directory, which holds no athlete data and is nowhere
+// near `ledger/`. Point this at a tree that does hold data and the extension
+// list will not save you; the earlier wording here claimed it would.
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";

@@ -21,9 +21,10 @@
 // the same range and the same window. The pinned key is therefore this device's
 // own verification key — the integrity pin for a record it signed — and NEVER a
 // stand-in for a hosted authority's decision. Two things keep that honest:
-//   * every inbound kind is refused by the observation guard BEFORE any
-//     verification runs (LOCAL_ERA_NO_INBOUND, state 12), so this key can never
-//     be the thing that admits a disposition, pull, snapshot, lease or time; and
+//   * the observation guard runs only the three purely-local kinds and refuses
+//     EVERYTHING ELSE BY DEFAULT, before any verification (LOCAL_ERA_NO_INBOUND,
+//     state 12), so this key can never be the thing that admits a disposition,
+//     pull, snapshot, lease, time or anything added later; and
 //   * the lease mirrors the era lease field for field, so "Saved" still means
 //     DURABLY-COMMITTED-ON-THIS-PHONE and nothing more.
 // The private half lives in generation.metadata.localHostAuthority, i.e. inside
@@ -48,10 +49,28 @@ const LEASE_DOMAIN = "earned/lease/v1";
 const ORDER = BigInt("0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551");
 const HALF = ORDER / 2n;
 const LEASE_FIELDS = ["lease_id", "athlete_id", "device_id", "range", "not_before", "not_after", "schema_version"];
-// Every kind createDurablePublicClient runs through observationGuard.run that is
-// about a record from somewhere else. There is nowhere else here.
-const INBOUND_KINDS = new Set(["disposition", "pull", "snapshot", "lease", "time",
+// C1b review F1. THIS IS AN ALLOWLIST, AND IT HAS TO BE.
+//
+// It was a denylist of the seven inbound kinds, which was correct on the day it
+// was written and unsafe as a shape: any kind not on the list PASSED. The list
+// lived here while the kinds live in public-client.mjs, so a kind added there
+// later would have run — reaching verification against this device's own pinned
+// key — with every test in this branch still green. A security-relevant guard
+// must not depend on two files staying in step.
+//
+// So: these three are the kinds that ask a purely LOCAL question of a purely
+// local generation — build a recovery basis from what is on this disk, read this
+// device's workout history, read it again to address a correction. They are the
+// only ones allowed to run. Everything else, known inbound kind or a kind that
+// does not exist yet, refuses by default.
+export const LOCAL_OBSERVATION_KINDS = Object.freeze(["local-recovery-basis", "workout-history", "workout-edit-history"]);
+// The seven inbound kinds as public-client.mjs passes them TODAY. This is not
+// what the guard decides on — the allowlist above is — it is the other half of
+// the pin: test/local-host-journey.test.mjs reads public-client.mjs and fails if
+// the kinds it can pass are not exactly these two lists together.
+export const INBOUND_OBSERVATION_KINDS = Object.freeze(["disposition", "pull", "snapshot", "lease", "time",
   "current-head-exchange", "time-exchange"]);
+const ALLOWED_KINDS = new Set(LOCAL_OBSERVATION_KINDS);
 const clone = value => structuredClone(value);
 const encode = value => Canonical.canonicalEncode(value);
 
@@ -184,12 +203,35 @@ async function installHostAuthority({ repository, crypto, clock, athleteId, devi
   return { authority, era, renewedUntil, revision: commit.revision, installed: true };
 }
 
+// C1b review F3. A LAPSED ERA IS A DIFFERENT ANSWER FROM "YOU HAVE NOT BOOTED".
+//
+// The module header promises "an expired era is refused here, not discovered on
+// the first save", and installHostAuthority does throw LOCAL_LEASE_EXPIRED / 20.
+// But on a FRESH OPEN of a lapsed installation boot() fails first, so the boot
+// fence used to answer with the generic LOCAL_HOST_BINDINGS_BOOT_REQUIRED / 18 —
+// the common path produced a less specific code than the header promised, and 18
+// says "stored truth needs recovery" about data that is perfectly readable. The
+// truth is state 20: the data is fine, the write allowance ran out.
+//
+// So the era is read from disk BEFORE the boot fence, and only when it is
+// genuinely readable. An unreadable or absent generation (first run, an erased
+// device key) throws here and is swallowed, so those keep the boot fence's 18.
+async function refuseLapsedEra({ repository, clock }) {
+  let era;
+  try { era = readLocalEra((await repository.load()).generation.metadata); }
+  catch { return; } // Not readable: this is not the lapsed case. The boot fence answers.
+  if (leaseExpired(era.lease, clock.now())) throw new StorageFailure("LOCAL_LEASE_EXPIRED", 20);
+}
+
 // The scope itself. Twelve members, no thirteenth: composeWorkoutHost names
 // every one of these and refuses a missing one by name, so anything extra here
 // would be a member nobody asked for.
 export async function buildLocalHostBindings(scope, { workoutCommands } = {}) {
   const { repository, crypto, clock, namespace, athleteId, deviceId, sessionEpoch, alive, booted, client } = scope;
-  if (typeof booted !== "function" || booted() !== true) throw new StorageFailure("LOCAL_HOST_BINDINGS_BOOT_REQUIRED", 18);
+  if (typeof booted !== "function" || booted() !== true) {
+    await refuseLapsedEra(scope);
+    throw new StorageFailure("LOCAL_HOST_BINDINGS_BOOT_REQUIRED", 18);
+  }
   const install = await installHostAuthority(scope);
   const commands = workoutCommands === undefined ? scope.workoutCommands : workoutCommands;
 
@@ -232,16 +274,18 @@ export async function buildLocalHostBindings(scope, { workoutCommands } = {}) {
   // passes local work straight through and keeps no state — a recorder that only
   // ever had one observer to record would be theatre.
   //
-  // What it DOES do is refuse every inbound kind outright, before the pinned key
-  // is ever consulted. That is the honest local-era answer to "what verifies a
-  // W5 response here": nothing does, because none is admitted. State 12 is the
-  // client's own "this protocol is not installed", not a storage fault.
+  // What it DOES do is refuse everything that is not one of the three local
+  // kinds, before the pinned key is ever consulted — see LOCAL_OBSERVATION_KINDS
+  // above for why that is an allowlist and not a denylist. That is the honest
+  // local-era answer to "what verifies a W5 response here": nothing does,
+  // because none is admitted. State 12 is the client's own "this protocol is not
+  // installed", not a storage fault.
   const observationGuard = Object.freeze({
     run(kind, run) {
-      if (INBOUND_KINDS.has(kind)) return Promise.resolve({ accepted: false, stored: false, durable: false, confirmed: false,
+      if (ALLOWED_KINDS.has(kind)) return run();
+      return Promise.resolve({ accepted: false, stored: false, durable: false, confirmed: false,
         state: 12, code: "LOCAL_ERA_NO_INBOUND",
         reason: "This installation is a local era: there is no authority to accept, reject or reconcile, so no inbound record is admitted." });
-      return run();
     },
   });
 

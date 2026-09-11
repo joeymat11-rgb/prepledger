@@ -26,7 +26,9 @@ import { projectWorkoutRecords } from '../../../m4/workout/project-history.mjs';
 import { composeWorkoutHost, createUnavailableNativeTrendContext } from '../host/workout-host.mjs';
 import { openLocalDurableClient, DERIVED, markerDatabaseName } from '../local/local-client.mjs';
 import { localHostBindings, localHostAuthorityKid, readLocalHostAuthority,
-  LOCAL_HOST_CLIENT, LOCAL_HOST_INSTALL, LOCAL_HOST_AUTHORITY_PROFILE } from '../local/host-bindings.mjs';
+  LOCAL_HOST_CLIENT, LOCAL_HOST_INSTALL, LOCAL_HOST_AUTHORITY_PROFILE,
+  LOCAL_OBSERVATION_KINDS, INBOUND_OBSERVATION_KINDS } from '../local/host-bindings.mjs';
+import { readFileSync } from 'node:fs';
 import { readLocalEra, localEraLeaseId, leaseRenewalDue } from '../local/local-era.mjs';
 import { keysDatabaseName } from '../local/local-keys.mjs';
 
@@ -334,13 +336,43 @@ test('local-era host journey — first run, workout through the public client, r
       assert.equal(Ops.commitmentOf(op, sealed.metadata.localEra.identityKey), op.canonical_content_commitment, op.op_id);
   });
 
-  await t.test('10. every inbound path refuses cleanly, before verification, and writes nothing', async () => {
+  // C1b review F2. All SEVEN inbound kinds, each asserting the inner function
+  // NEVER RAN — a refusal that still ran the callback would have verified an
+  // inbound record against this device's own pinned key before answering.
+  await t.test('10. all seven inbound kinds refuse without running the inner work, and the guard is an allowlist', () => {
+    const guard = bindings.observationGuard;
+    const probe = async kind => {
+      let ran = false;
+      const result = await guard.run(kind, async () => { ran = true; return { accepted: true }; });
+      return { ran, result };
+    };
+    return Promise.all([...INBOUND_OBSERVATION_KINDS, 'a-kind-that-does-not-exist-yet', ''].map(async kind => {
+      const { ran, result } = await probe(kind);
+      assert.equal(ran, false, `inner ran for ${kind}`);
+      assert.equal(result.code, 'LOCAL_ERA_NO_INBOUND', kind);
+      assert.equal(result.state, 12, kind);
+      assert.equal(result.stored, false, kind);
+      assert.equal(result.accepted, false, kind);
+    })).then(() => Promise.all(LOCAL_OBSERVATION_KINDS.map(async kind => {
+      // The three purely-local kinds DO run: the guard is not a blanket refusal.
+      const { ran, result } = await probe(kind);
+      assert.equal(ran, true, `local kind ${kind} must run`);
+      assert.deepEqual(result, { accepted: true }, kind);
+    })));
+  });
+
+  await t.test('11. the reachable inbound entry points refuse cleanly and write nothing', async () => {
     const before = await bindings.repository.load();
     const refusals = [];
     for (const kind of ['disposition', 'pull', 'snapshot', 'lease'])
       refusals.push(await host.client.acceptResponse(kind, { wireVersion: W5.WIRE_VERSION,
         body: kind === 'lease' ? { lease: before.generation.metadata.authorityLease } : { anything: true } }));
     refusals.push(await host.client.exchangeServerTime(async () => ({ wireVersion: W5.WIRE_VERSION, body: {} })));
+    refusals.push(await host.client.exchangeCurrentHead(async () => ({ wireVersion: W5.WIRE_VERSION, body: {} }),
+      { issuanceAttempt: 'local-era-probe' }));
+    // 'time' has no caller-reachable entry point — acceptResponse refuses the
+    // kind before the guard is asked — so it is covered by case 10's direct
+    // probe and named here rather than silently skipped.
     for (const refused of refusals) {
       assert.equal(refused.code, 'LOCAL_ERA_NO_INBOUND', JSON.stringify(refused));
       assert.equal(refused.state, 12);
@@ -441,4 +473,68 @@ test('localHostBindings accepts an open client or the open options, and returns 
   await assert.rejects(() => localHostBindings({ indexedDB: new IDBFactory(), crypto: webcrypto,
     databaseName: DB, namespace: NS, athleteId: ATHLETE, deviceId: DEVICE, clock }),
     { code: 'LOCAL_FIRST_RUN' });
+});
+
+// C1b review F1. The guard is an allowlist, so a kind added to public-client.mjs
+// later fails closed rather than passing. That is only half the protection: this
+// case is the other half, and it fails in BOTH directions — a new kind over
+// there that neither list here names, and a stale entry here that no longer
+// exists over there. Without it the two files could drift silently.
+test('the observation guard allowlist is pinned to the kinds public-client.mjs can actually pass', () => {
+  const source = readFileSync(new URL('../public-client.mjs', import.meta.url), 'utf8');
+  const calls = [...source.matchAll(/observationGuard\s*\.\s*run\s*\(\s*([^,]+?)\s*,/g)].map(m => m[1].trim());
+  assert.equal(calls.length, 6, 'the number of guard call sites moved: ' + calls.join(' | '));
+  const literals = [], variables = [];
+  for (const argument of calls) {
+    const literal = /^(["'`])([^"'`]+)\1$/.exec(argument);
+    if (literal) literals.push(literal[2]); else variables.push(argument);
+  }
+  // Exactly one call site passes a variable, and it is `kind` inside accept().
+  // Any other shape means this pin is no longer reading the whole truth.
+  assert.deepEqual(variables, ['kind'], 'an unmodelled guard call shape appeared: ' + variables.join(', '));
+  const map = /const method = \{([^}]+)\}\[kind\]/.exec(source);
+  assert(map, "accept()'s kind map is no longer where this pin reads it");
+  const mapped = [...map[1].matchAll(/([A-Za-z][\w-]*)\s*:/g)].map(m => m[1]);
+  const declared = [...new Set([...literals, ...mapped])].sort();
+  const modelled = [...new Set([...LOCAL_OBSERVATION_KINDS, ...INBOUND_OBSERVATION_KINDS])].sort();
+  assert.deepEqual(declared, modelled,
+    'public-client.mjs and host-bindings.mjs disagree about the observation kinds');
+  // The two halves are disjoint, and neither is empty: a kind cannot be both a
+  // local question and an inbound record.
+  for (const kind of LOCAL_OBSERVATION_KINDS) assert.equal(INBOUND_OBSERVATION_KINDS.includes(kind), false, kind);
+  assert.equal(LOCAL_OBSERVATION_KINDS.length, 3);
+  assert.equal(INBOUND_OBSERVATION_KINDS.length, 7);
+});
+
+// C1b review F3. The module header promises an expired era is refused at the
+// bindings, not discovered on the first save. On a FRESH open of a lapsed
+// installation the boot fence used to answer first with the generic
+// LOCAL_HOST_BINDINGS_BOOT_REQUIRED / 18 — which says "stored truth needs
+// recovery" about data that is perfectly readable. State 20 is the truth: the
+// data is fine, the write allowance ran out.
+test('a lapsed era refuses the host scope with LOCAL_LEASE_EXPIRED / 20, not the generic boot fence', async () => {
+  const indexedDB = new IDBFactory();
+  const { state, clock } = movableClock();
+  const prescriptionCapture = capture();
+  const first = await openClient(indexedDB, clock, prescriptionCapture);
+  assert.equal((await first.enroll()).enrolled, true);
+  assert.equal((await first.boot()).ready, true);
+  await first.hostBindings();
+  first.close();
+
+  state.offset = 1000;
+  const lapsed = await openClient(indexedDB, clock, prescriptionCapture);
+  assert.deepEqual(lapsed.status(), { state: 'restore-required', code: 'LOCAL_LEASE_EXPIRED' });
+  const booted = await lapsed.boot();
+  assert.equal(booted.ready, false);
+  assert.equal(booted.readable, true, 'the data is readable; only writing lapsed');
+  assert.equal(booted.leaseExpired, true);
+  assert.equal(booted.state, 20);
+  await assert.rejects(() => lapsed.hostBindings(), { code: 'LOCAL_LEASE_EXPIRED', state: 20 });
+  // The options form says the same thing rather than a second vocabulary.
+  await assert.rejects(() => localHostBindings({ indexedDB, crypto: webcrypto, databaseName: DB, namespace: NS,
+    athleteId: ATHLETE, deviceId: DEVICE, clock,
+    workoutCommands: Commands.createWorkoutCommands({ prescriptionCapture }) }),
+    { code: 'LOCAL_LEASE_EXPIRED', state: 20 });
+  lapsed.close();
 });
