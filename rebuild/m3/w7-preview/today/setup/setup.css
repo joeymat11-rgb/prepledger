@@ -1,0 +1,23 @@
+/* First-use form: approved paper/ink/Instrument tokens and existing form dimensions. */
+.setup .detail-head h1 { font-size:39px; }
+.setup .detail-head h1:focus { outline:none; }
+.setup .detail-head p { font-size:14px; }
+.setup form { display:flex; flex-direction:column; gap:12px; }
+.setup-field label { display:block; font-size:14px; margin-bottom:7px; }
+.setup-field input,.setup-field select { width:100%; min-height:44px; border:1px solid #a99e8d; border-radius:7px; background:var(--paper); padding:9px; font:inherit; font-size:16px; }
+.setup-field p { margin-top:7px; }
+.setup select:focus-visible { outline:3px solid var(--green); outline-offset:3px; }
+.setup-week { border:0; padding:0; margin:0; }
+.setup-week legend { margin-bottom:9px; }
+.setup-week .setup-field { display:grid; grid-template-columns:1fr 1fr; align-items:center; gap:12px; margin-bottom:7px; }
+.setup-week label { margin:0; }
+.setup-exercise { border-top:1px solid var(--line); padding:15px 0 5px; overflow-wrap:anywhere; }
+.setup-exercise h2 { font-size:30px; }
+.setup-exercise .link { display:flex; }
+.setup-priorities summary { min-height:44px; padding:10px 0; cursor:pointer; }
+.setup-priorities label { display:flex; align-items:center; gap:9px; min-height:44px; }
+.setup input[type=checkbox] { width:20px; height:20px; }
+.setup button:disabled { opacity:.55; cursor:wait; }
+.setup .error { margin:0; }
+.setup-confirm { display:flex; align-items:flex-start; gap:12px; min-height:44px; font-size:14px; }
+.setup-confirm input { flex:none; }
