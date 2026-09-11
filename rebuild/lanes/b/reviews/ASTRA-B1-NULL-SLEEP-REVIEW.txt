@@ -1,0 +1,77 @@
+B1 MISSING-HOURS CORRECTION - SAME INDEPENDENT REVIEWER
+September 11, 2026. Reviewer is not the correction author.
+Verdict: ACCEPT this correction; original R1 is closed.
+Candidate: 77ff41f8affa76eb9aae3a8971ae2d1db1367eb2
+Base: 7594c7603a32d00231a374b58f54c485342d2d59
+Branch/worktree: codex/astra-b1-null-sleep-review /
+  work/astra-b1-null-sleep-review
+Assignment: ASTRA-B1-NULL-SLEEP-REVIEW.md at PM917379d.
+Original independent review: d0e535207e6634768eb10fae5ec2235920799972.
+
+(1) EXACT SOURCE ASSESSMENT
+Read required NEXT/ROADMAP, PM fix assignment, original R1 and builder report.
+Only sleep.cjs changes product behavior; one new focused test and one author
+report accompany it. No consumer, date primitive, threshold or owner policy
+changed. The shared hasSleepHours predicate at223 requires finite numeric h.
+Presence uses it, cleanAtDate and sleepMean3At filter qualified observations,
+and their existing last-night and consecutive-calendar guards remain. Thus a
+missing current observation cannot expose an older date as current debt, and
+removing a missing middle observation leaves a calendar gap rather than an
+invented consecutive run. Stored arrays themselves are never filtered/mutated.
+atSleepTarget checks the original sequence and stops at a missing observation.
+The existing latest-five-row window is chosen BEFORE its all-qualified test;
+it does not search backward for replacement values. Numeric0 remains finite.
+
+(2) EXECUTED VERIFICATION
+Existing Node24.19.0, retained W5 dependency path, TZ=America/New_York and
+MEASURED_TEST_NOW=2026-09-03; no install. Command:
+node --test --test-reporter=tap
+  rebuild/engine/test/b1-null-sleep.test.cjs
+  rebuild/engine/test/b1-unknown-recovery.test.cjs
+32 pass,0 fail,0 skipped,0 cancelled (15 new,17 prior). Actual registrar paths
+cover null/undefined/omitted hours at both anchors, nonfinite/nonnumeric values,
+0/2/8-hour positives, current short runs and independent adverse factors.
+
+Independent ignored .tmp/independent-null-delta.cjs:
+SHA256 d78b248c07ee973385b7651254f987a330019afadb56e9cc5d99d56a34d6129e.
+Reused only the original independent probe's synthetic state/factory builders,
+stopping before its checks. Same actual source codec/null-selection registrar,
+four actual flat lift histories and25 synthetic scale/step observations.
+No pricing, progression, programme, recovery or decision delegates. Previous
+sleep factory is loaded directly from immutable7594c76 for behavioral red.
+
+- Exact original current-null reproduction: predecessor WATCH/null with sole
+  sleep cost30, volume recovery veto and step sleep veto; corrected source
+  UNKNOWN/null, no flags, actual volume PUSH and step PUSH. Registrar-admitted
+  frozen state remains byte/value-equivalent by structuredClone comparison.
+- Current-null plus actual recorded joints/holds/dips preserves independently
+  sufficient WATCH/LOW and the corresponding volume / LOW-only step vetoes.
+  No false sleep flag remains and missing evidence cannot escalate severity.
+- Measured0 at yesterday and same-day anchors retains the predecessor's entire
+  recovery/volume/step output objects, including WATCH/70 and real sleep cost.
+  The existing different stepPush date anchor is deliberately unchanged.
+- Old zero-hour records followed by current null, undefined, NaN, infinities,
+  boolean or string hours do not become current debt. The records stay intact;
+  target run does not count the missing row. A qualified current8 after a
+  missing middle day yields run1 and no three-night mean restriction.
+- Seven rows with enough older measured zeros, but a missing row inside the
+  last five, yield no avg5 flag. Supplying the actual missing observation as0
+  restores that measured flag. This independently detects backward replacement.
+- A valid measured other anchor remains known when yesterday or today's other
+  row is null; real0 is still adverse and real8 is not erased by missing data.
+
+(3) REUSE AND LIMITS
+Reuse original d0e5352's unaffected consumer inventory, four behavioral
+non-GREEN counterexamples, actual surrounding composition, DST/two-anchor
+evidence and bounded known-current comparisons. Reuse6529af0 for earlier B1
+work. No broad matrix, full engine campaign or repeated unchanged review.
+
+Original report section3 OWNER_CALLS consent/WATCH receipt defect remains
+separately tracked, pre-existing and untouched; this verdict does not accept
+that reachable owner-specific proposal. Recovery screens/no-reading join,
+proper cumulative BNTC parent/source policy, downstream output accounting,
+full/public/private/second-gate/fidelity/mutations/CI and genuine final receipt
+remain required. No screen/browser/phone or universal fidelity claim follows.
+Root alone is PM. No product edits, policy redesign, private inputs, install,
+lock churn, push, PR, merge or deploy. git diff --check passed; only this one
+review report is committed and all candidate product bytes remain unchanged.
