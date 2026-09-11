@@ -17,19 +17,50 @@ acceptance: `test/*.test.cjs`. Nothing here calls a model, a network or a key.
 | `next_set` | 0 read | the next slot in the same capture |
 | `last_comparable_performance` | 0 read | the engine's qualified comparison, or nothing |
 | `weight_trend` | 0 read | trend, measured rate, reading recency |
-| `today_checkin` | 0 read | the recovery check-in — **no reader exists yet** |
+| `today_checkin` | 0 read | the recovery check-in's own read-back |
 | `why_this_instruction` | 0 read | the engine's own reason, unedited |
-| `record_pain_or_soreness` | 1 fact | — **no durable command yet** |
-| `equipment_unavailable_today` | 1 fact | — **no durable command yet** |
+| `record_pain_or_soreness` | 1 fact | the accepted check-in lane, one dated operation |
+| `equipment_unavailable_today` | 1 fact | — **no field anywhere; still refuses** |
 | `correct_set` | 1 fact | the accepted removal edit + a fresh set |
-| `time_away` | 1 fact | — **no durable command yet** |
-| `answer_checkin` | 1 fact | — **no durable command yet** |
+| `time_away` | 1 fact | the accepted check-in lane |
+| `answer_checkin` | 1 fact | the accepted check-in lane |
 | `request_replan` | 2 proposal | an engine producer issues the proposal + its reason |
 | `accept_proposal` | 2 proposal | `rebuild/client` respond() + recordIssuance() |
 | `cannot_change_via_coach` | 3 refused | phase, floors, progression rules, consent policy |
 
 Tier 0 is not a tier in the ruling — the ruling's three tiers are the ones that
 *write*. A read changes nothing, so it is numbered 0 and is never gated on a yes.
+
+## The store of record
+
+`local-world.mjs` opens the world the tools take. It is C1/C4's ONE local
+installation: `openLocalDurableClient` (sealed IndexedDB generations, the real
+`rebuild/client` on a memory backend, the bridge that publishes only after the IDB
+transaction completes) enrolling and booting a local era.
+
+**One client, one generation.** The morning reading (`execute('weighIn', …)`) and
+the workout (through `hostBindings()` → the accepted `composeWorkoutHost`) are
+written by the same client into the same sealed generation. A test asserts the
+op count goes 1 → 2 across a weigh-in and a Start.
+
+**The staged command set is NOT widened.** `rebuild/m3/w6/local/local-client.mjs:49`
+carries the identical five as `rebuild/m3/w6/t2-stage.cjs:9` —
+`weighIn · logSet · logSession · finishSession · workout`. The local client's
+`execute()` merely refuses an unknown command with `LOCAL_COMMAND_UNSUPPORTED`
+(state 3) instead of the stage's `throw` at `t2-stage.cjs:84`. A test parses both
+files and asserts the sets are equal, and another asserts
+`client.execute('respond', …)` refuses.
+
+What changed instead is that **`workout` is the one PRODUCER-INJECTED command**,
+and `rebuild/m3/w7-preview/today/checkin-commands.cjs` is a producer for it. That
+is how a dated non-workout fact reaches disk without editing `rebuild/client` or
+the stage — and it is why four of the five tier-1 tools now write instead of
+refusing.
+
+**Still synthetic, and said so:** the athlete basis is
+`rebuild/m3/w7-preview/fixtures.cjs`; the check-in lane (`checkin-host.mjs`) still
+mints its own era rather than reading this one, which is a lane-c-today merge away
+(`world.checkInOnLocalEra === false`).
 
 ## The envelope every tool returns
 
@@ -161,15 +192,24 @@ prepared from.
 is an ANSWER: the tool refuses with `COACH_NO_QUALIFIED_COMPARISON` and the coach
 says it has nothing comparable. It never reaches into the session log itself.
 
-### `today_checkin`
-**in** `{}`. **out** `date`, `answered` (flag), `summary` (text).
-**MISSING TODAY.** There is no recovery-check-in reader in the slice: Today's own
-face labels the recovery and coach entries "— not wired yet"
-(`rebuild/m3/w7-preview/today/today-app.cjs`), and A2 recorded "no skip/correction
-wired". Refuses with `COACH_CHECKIN_SURFACE_ABSENT`.
-When a reader exists it must keep the approved semantics verbatim: **blank is
-unknown, never healthy/normal/zero**; a cleared detail never becomes an active
-fact (approved handoff, Additions C, points 3–4).
+### `today_checkin` — WIRED
+**in** `{}`.
+**out** `date`, `answered` (flag), `note` (text — the model's own consequence
+sentence), `provenance` (text), `lines[]` (text — the approved question wording
+beside the athlete's own answer), `sleepRecordHours` (h), `sleepRecordDate` (date).
+**layer** `rebuild/m3/w7-preview/today/checkin-model.mjs` `createCheckInModel().read()`
+over `checkin-host.mjs` (its own database, namespace, lease and producer).
+**the laws it carries, unchanged**
+- **Blank is unknown**, never healthy/normal/zero. A day with nothing recorded
+  answers `answered:false`, an empty `lines`, and a BLANK `provenance` — not "".
+- **The date law.** Only operations effective for this day are read back;
+  yesterday's answers are never today's, and yesterday's denial never carries.
+- **Sleep is not asked twice.** When the engine's `sleep.nights` already holds
+  last night, its hours and its date come back here so the coach can ask for a
+  confirmation rather than the same question again.
+**never returns** a score, a readiness number, or any adjective about what the
+answers mean. There is none to return: the model derives nothing.
+**refuses with** `COACH_CHECKIN_SURFACE_ABSENT` when no check-in lane is open.
 
 ---
 
@@ -193,15 +233,51 @@ never a number, never an omission.
 **never returns** a corrected value the athlete did not state. Both the original
 set operation and the removal stay on disk; an honest history is what that is.
 
-### `record_pain_or_soreness`, `equipment_unavailable_today`, `time_away`, `answer_checkin` — NOT WIRED
-**in** `{ "confirmed": true, "note": str }` (plus the check-in's own follow-ups
-when they exist). **out** none.
+### `record_pain_or_soreness`, `time_away`, `answer_checkin` — WIRED (check-in lane)
+
+All three write through the SAME accepted sheet — `checkin-model.mjs`'s draft and
+`save()` → `checkin-host.save()` → `client.execute('workout', {action:'checkin'})`
+— which is **one dated operation per day**, or nothing.
+
+`record_pain_or_soreness`
+**in** `{ "confirmed": true, "soreness": "None|Mild|Significant",
+"soreness_location": str, "soreness_impact": "No|A little|Quite a lot|Not sure",
+"pain": true, "pain_location": str, "pain_change": "New|Worse than before|Ongoing,
+unchanged|Improving|Not sure", "pain_impact": "No noticeable effect|I change how I
+move|I cannot do the movement|Not sure" }`
+
+`time_away`
+**in** `{ "confirmed": true, "days": int, "reason": str }`
+
+`answer_checkin`
+**in** `{ "confirmed": true, "sleep_quality": "Poor|Okay|Good",
+"energy": "Low|Moderate|High", "soreness": …, "stress": "Low|Moderate|High",
+"confirm_sleep_record": true, "sleep_hours": number, "note": str }`
+
+**out (all three)** `opId` (text), `date` (date), `consequence` (text — the plan
+consequence the model states after a real save), `lines[]` (the read-back).
+
+**what the coach may not do here**
+- It may not invent a choice. Every label goes through the draft's own `choose()`,
+  which accepts ONLY the approved design's words; anything else throws before a
+  byte is written and the tool returns `CHECKIN_INPUT_INVALID`.
+- It may not grade an answer, weight it, or turn it into a number.
+- It may not submit a cleared issue's detail — the draft drops it and
+  `checkin-commands.cjs` `answersOf()` refuses it again at the door.
+- It may not overwrite the sleep record silently: `confirm_sleep_record` confirms
+  the dated night (and its date travels with the answer); stating different hours
+  goes through the sheet's own explicit rejection of the record.
+- After the first check-in of a day, a second refuses in the model's own words
+  ("Today's check-in is already recorded on this device…"). That is the sheet's
+  one-per-day rule, not a coach rule, and it is reported verbatim.
+
+### `equipment_unavailable_today` — STILL NOT WIRED
+**in** `{ "confirmed": true, "note": str }`. **out** none.
 **refuses with** `COACH_FACT_COMMAND_ABSENT`, naming
-`rebuild/m3/w6/t2-stage.cjs:9` — the staged command set is exactly
-`weighIn · logSet · logSession · finishSession · workout`, and anything else
-reaches `throw new Error("Unsupported staged command")` at `t2-stage.cjs:84`.
-Writing these anywhere else would be a fact that cannot survive a reload, so the
-coach says plainly that it has not recorded it.
+`rebuild/m3/w7-preview/today/checkin-commands.cjs` `FIELDS` — there is no
+equipment field there, no workout command for it and no plan verb, so the closed
+command would refuse it. Writing it anywhere else would be a fact that cannot
+survive a reload, so the coach says plainly that it has not recorded it.
 
 ---
 
@@ -248,11 +324,14 @@ or the client's own code when `respond()` does not acknowledge.
 not evidence the engine used the answer (approved handoff, "Required
 interpretation").
 
-**Known gap.** `respond` is NOT in the W6 staged command set
-(`rebuild/m3/w6/t2-stage.cjs:9`), so on a device whose client is reached through
-the durable public client the yes cannot be written today. The consent surface is
-therefore injected, and where it is absent the tool refuses. A live coach needs
-`proposal-response` added to the staged commands first.
+**Known gap.** `respond` is NOT in the staged command set — not in
+`rebuild/m3/w6/t2-stage.cjs:9` and not in `rebuild/m3/w6/local/local-client.mjs:49`
+either. On the local era `client.execute('respond', …)` refuses with
+`LOCAL_COMMAND_UNSUPPORTED`, state 3, and a test proves it. So the consent surface
+is injected, and where it is absent the tool refuses with
+`COACH_CONSENT_SURFACE_ABSENT` and nothing changes. A live coach needs
+`proposal-response` added to the staged commands — or a producer-injected
+consent command, the way the check-in got one — first.
 
 ---
 
@@ -286,10 +365,12 @@ tier-3 exchange and for every tier-2 exchange that ends without a yes.
 | code | meaning | proof |
 |---|---|---|
 | `COACH_CONFIRMATION_REQUIRED` | a fact or a yes was not given | brief, tiers 1–2 |
-| `COACH_CHECKIN_SURFACE_ABSENT` | no recovery check-in reader | `today-app.cjs` "not wired yet" |
+| `COACH_CHECKIN_SURFACE_ABSENT` | no check-in lane open on this device | `checkin-model.mjs` |
+| `CHECKIN_INPUT_INVALID` | an answer outside the approved sheet | `checkin-commands.cjs` `answersOf()` |
 | `COACH_GYM_SESSION_ABSENT` | no session composed / no set in this phase | `gym-model.mjs` `read()` |
 | `COACH_NO_QUALIFIED_COMPARISON` | the engine qualified no comparison | `today.cjs:63` `card.prev === null` |
-| `COACH_FACT_COMMAND_ABSENT` | no durable command for this fact | `t2-stage.cjs:9`, `:84` |
+| `COACH_FACT_COMMAND_ABSENT` | no durable field for this fact (equipment) | `checkin-commands.cjs` FIELDS · `t2-stage.cjs:9` |
+| `LOCAL_COMMAND_UNSUPPORTED` | a command outside the staged five | `local-client.mjs:49` |
 | `COACH_REPLAN_ENTRY_ABSENT` | no engine re-plan entry point for this fact | no producer in `rebuild/engine` |
 | `COACH_ENGINE_ISSUED_NO_PROPOSAL` | the producer returned null | engine producer |
 | `COACH_CONSENT_SURFACE_ABSENT` | no consent surface reachable | `rebuild/client/index.cjs` |

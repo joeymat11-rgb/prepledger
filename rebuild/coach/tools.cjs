@@ -388,20 +388,39 @@ function createCoachTools(world) {
     }));
   }
 
-  /* The recovery check-in is approved (Additions C, point 3) and NOT wired in the
-     slice — Today's face labels it "— not wired yet". There is no reader, so
-     there is no answer. Blank is unknown, never normal. */
+  /* The recovery check-in. On the current tip it IS wired — the accepted A3 lane
+     (checkin-host.mjs + checkin-model.mjs). The read is the model's own
+     read-back: the approved design's question wording beside the athlete's own
+     answer, with no adjective and no judgement added here.
+     Blank is unknown. A day with no stored check-in answers `answered:false` and
+     the model's own sentence — never "fine", never zero, and never yesterday's
+     answers (the model enforces the date law). */
   async function today_checkin(_args, turn_id) {
     if (!checkin || typeof checkin.read !== "function") {
       return unavailable("today_checkin", TIER.READ, turn_id, CODES.CHECKIN_SURFACE_ABSENT,
-        "The recovery check-in is not wired on this device yet, so there is nothing recorded to read back.",
-        "rebuild/m3/w7-preview/today/today-app.cjs — coach/recovery entries labelled not wired yet");
+        "No recovery check-in lane is open on this device, so there is nothing recorded to read back.",
+        "rebuild/m3/w7-preview/today/checkin-model.mjs createCheckInModel");
     }
-    const read = await checkin.read({ date: day });
+    if (typeof checkin.refresh === "function") await checkin.refresh();
+    const view = checkin.read();
+    const rec = view.recorded;
     return assertNoLeak(ok("today_checkin", TIER.READ, turn_id, {
-      date: tagged(turn_id, "coach.checkin.date", day, "date", day),
-      answered: tagged(turn_id, "checkin.read.answered", !!read.answered, "flag", ""),
-      summary: text(turn_id, "checkin.read.summary", read.summary),
+      date: tagged(turn_id, "checkin-model.read.day", view.day, "date", view.day),
+      answered: tagged(turn_id, "checkin-model.read.recorded", !!rec, "flag", ""),
+      note: text(turn_id, "checkin-model.read.note", view.note),
+      provenance: rec ? text(turn_id, "checkin-model.recorded.provenance", rec.provenance)
+        : blank(turn_id, "checkin-model.recorded.provenance", "text", "nothing is recorded for this day"),
+      lines: rec ? rec.lines.map((line, i) =>
+        text(turn_id, "checkin-model.recordedLines[" + i + "]", line)) : [],
+      /* The dated night the sleep record ALREADY holds, with its provenance —
+         so the coach can state it rather than ask the same question twice
+         (approved handoff, point 4). */
+      sleepRecordHours: view.sleepRecord
+        ? num(turn_id, "checkin-model.sleepNightFor (engine sleep.nights)", view.sleepRecord.hours, "h")
+        : blank(turn_id, "checkin-model.sleepNightFor", "h", "the sleep record has no night for last night"),
+      sleepRecordDate: view.sleepRecord
+        ? tagged(turn_id, "checkin-model.sleepNightFor.date", view.sleepRecord.date, "date", view.sleepRecord.date)
+        : blank(turn_id, "checkin-model.sleepNightFor.date", "date", "no dated night"),
     }));
   }
 
@@ -418,28 +437,116 @@ function createCoachTools(world) {
     return null;
   }
 
-  /* The non-workout fact commands do not exist yet. rebuild/m3/w6/t2-stage.cjs:9
-     admits exactly weighIn / logSet / logSession / finishSession / workout, and
-     anything else reaches `throw new Error("Unsupported staged command")` at
-     t2-stage.cjs:84. So these four refuse in a named way rather than writing a
-     fact somewhere that cannot survive a reload. */
-  const STAGE_SOURCE = "rebuild/m3/w6/t2-stage.cjs:9 COMMANDS (and :84 Unsupported staged command)";
-  function noFactCommand(tool, turn_id, what) {
+  /* The staged command set is STILL exactly five. rebuild/m3/w6/t2-stage.cjs:9
+     admits weighIn / logSet / logSession / finishSession / workout, and
+     rebuild/m3/w6/local/local-client.mjs:49 carries the IDENTICAL set — the local
+     era does NOT widen it; its execute() simply refuses an unknown command with
+     LOCAL_COMMAND_UNSUPPORTED instead of the stage's throw at t2-stage.cjs:84.
+     What DID change is that `workout` is the one PRODUCER-INJECTED command, and
+     checkin-commands.cjs is a producer for it. So a dated non-workout fact —
+     soreness, pain, time away, a check-in answer — is now writable without
+     editing rebuild/client or the stage, and these tools write through that lane
+     rather than refusing. Equipment has no field anywhere and still refuses. */
+  const STAGE_SOURCE = "rebuild/m3/w6/t2-stage.cjs:9 COMMANDS == rebuild/m3/w6/local/local-client.mjs:49 COMMANDS (not widened)";
+  function noFactCommand(tool, turn_id, what, source) {
     return unavailable(tool, TIER.FACT, turn_id, CODES.FACT_COMMAND_ABSENT,
-      "There is no accepted durable command for " + what + " on this device yet, so I will not pretend to have recorded it.",
-      STAGE_SOURCE);
+      "There is no accepted durable field for " + what + " on this device, so I will not pretend to have recorded it.",
+      source || STAGE_SOURCE);
   }
+
+  /* ONE check-in write. The draft is the accepted sheet (checkin-model.mjs), so
+     every law it carries applies to a spoken answer exactly as to a tapped one:
+     blank stays absent, a cleared issue's detail cannot travel, and the closed
+     command (checkin-commands.cjs) refuses anything outside its own field list.
+     The coach chooses no wording of its own — `choose` only accepts the approved
+     design's own labels, and an unknown one throws before anything is written. */
+  async function writeCheckIn(tool, turn_id, apply) {
+    if (!checkin || typeof checkin.read !== "function") {
+      return unavailable(tool, TIER.FACT, turn_id, CODES.CHECKIN_SURFACE_ABSENT,
+        "No recovery check-in lane is open on this device, so nothing can be recorded.",
+        "rebuild/m3/w7-preview/today/checkin-model.mjs");
+    }
+    const draft = checkin.draft();
+    try { apply(draft); }
+    catch (error) {
+      return unavailable(tool, TIER.FACT, turn_id, "CHECKIN_INPUT_INVALID",
+        (error && error.message) || null, "rebuild/m3/w7-preview/today/checkin-commands.cjs answersOf()");
+    }
+    const saved = await checkin.save();
+    if (!saved.ok) {
+      return unavailable(tool, TIER.FACT, turn_id, saved.code || "CHECKIN_NOT_RECORDED",
+        saved.copy || null, "checkin-model.save -> checkin-host.save -> client.execute('workout', {action:'checkin'})");
+    }
+    const view = checkin.read();
+    return assertNoLeak(ok(tool, TIER.FACT, turn_id, {
+      opId: text(turn_id, "checkin-model.save.op_id", saved.op_id),
+      date: tagged(turn_id, "checkin-model.read.day", view.day, "date", view.day),
+      consequence: text(turn_id, "checkin-model.save.copy", saved.copy),
+      lines: view.recorded ? view.recorded.lines.map((line, i) =>
+        text(turn_id, "checkin-model.recordedLines[" + i + "]", line)) : [],
+    }, { recorded: true }));
+  }
+
+  /* Soreness is a CHOICE from the approved set, and pain is an ISSUE with its own
+     follow-ups. The coach passes the athlete's words through; it never grades
+     them and never converts a choice into a number. */
   async function record_pain_or_soreness(args, turn_id) {
-    return needConfirm("record_pain_or_soreness", args, turn_id) || noFactCommand("record_pain_or_soreness", turn_id, "pain or soreness");
+    const guard = needConfirm("record_pain_or_soreness", args, turn_id);
+    if (guard) return guard;
+    return writeCheckIn("record_pain_or_soreness", turn_id, (draft) => {
+      if (args.soreness) draft.choose("soreness", args.soreness);
+      if (args.soreness_location) draft.set("soreness_location", args.soreness_location);
+      if (args.soreness_impact) draft.set("soreness_impact", args.soreness_impact);
+      if (args.pain === true) {
+        draft.toggleIssue("pain");
+        if (args.pain_location) draft.set("pain_location", args.pain_location);
+        if (args.pain_change) draft.set("pain_change", args.pain_change);
+        if (args.pain_impact) draft.set("pain_impact", args.pain_impact);
+      }
+    });
   }
-  async function equipment_unavailable_today(args, turn_id) {
-    return needConfirm("equipment_unavailable_today", args, turn_id) || noFactCommand("equipment_unavailable_today", turn_id, "equipment being unavailable");
-  }
+
   async function time_away(args, turn_id) {
-    return needConfirm("time_away", args, turn_id) || noFactCommand("time_away", turn_id, "time away");
+    const guard = needConfirm("time_away", args, turn_id);
+    if (guard) return guard;
+    return writeCheckIn("time_away", turn_id, (draft) => {
+      draft.toggleIssue("away");
+      if (args.days !== undefined && args.days !== null) draft.set("away_days", args.days);
+      if (args.reason) draft.set("away_reason", args.reason);
+    });
   }
+
+  /* The check-in's own questions, answered out loud. Every label is checked
+     against the approved choice list by the draft itself. */
+  const CHECKIN_GROUPS = Object.freeze(["sleep_quality", "energy", "soreness", "stress"]);
   async function answer_checkin(args, turn_id) {
-    return needConfirm("answer_checkin", args, turn_id) || noFactCommand("answer_checkin", turn_id, "a check-in answer");
+    const guard = needConfirm("answer_checkin", args, turn_id);
+    if (guard) return guard;
+    return writeCheckIn("answer_checkin", turn_id, (draft) => {
+      for (const group of CHECKIN_GROUPS) if (args[group]) draft.choose(group, args[group]);
+      /* SLEEP IS NOT ASKED TWICE (approved handoff, point 4). When the sleep
+         record already holds last night, the sheet asks the athlete to CONFIRM it
+         — and the date of that night travels with the answer. Stating a different
+         number is the sheet's own explicit rejection of the record, never a
+         silent overwrite. */
+      if (args.confirm_sleep_record === true) draft.confirmSleep();
+      if (args.sleep_hours !== undefined && args.sleep_hours !== null) {
+        const sheet = draft.state();
+        if (sheet.sleepRecord && sheet.sleepConfirm !== "rejected") draft.answerSleepHere();
+        draft.set("sleep_hours", args.sleep_hours);
+      }
+      if (args.note) draft.set("note", args.note);
+    });
+  }
+
+  /* STILL MISSING. `equipment unavailable today` is not a field in
+     checkin-commands.cjs FIELDS, not a workout command, and not a plan verb.
+     The closed command would refuse it (CHECKIN_INPUT_INVALID), so the coach
+     refuses first and says why rather than filing it as a note. */
+  async function equipment_unavailable_today(args, turn_id) {
+    return needConfirm("equipment_unavailable_today", args, turn_id)
+      || noFactCommand("equipment_unavailable_today", turn_id, "equipment being unavailable",
+        "rebuild/m3/w7-preview/today/checkin-commands.cjs FIELDS (no equipment field) · " + STAGE_SOURCE);
   }
 
   /* correct_set IS wired: the accepted durable removal edit (prepareWorkoutEdit +

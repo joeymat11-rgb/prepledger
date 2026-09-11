@@ -15,6 +15,8 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const T = require("../tools.cjs");
 const C = require("../coach-text.cjs");
 const Client = require("../../client/index.cjs");
@@ -157,15 +159,41 @@ test("tier 1: a fact tool without a recorded yes records nothing and says so", a
   assert.equal(w.dump(), before);
 });
 
-test("tier 1: with a yes, the three unwired facts refuse by NAMING the missing command", async () => {
+test("tier 1: equipment-unavailable has no field anywhere and refuses by naming that", async () => {
   const w = world();
   const turn = w.coach.openTurn("turn-fact2");
-  for (const name of ["record_pain_or_soreness", "equipment_unavailable_today", "time_away", "answer_checkin"]) {
-    const r = await turn.call[name]({ confirmed: true, note: "synthetic" });
+  const r = await turn.call.equipment_unavailable_today({ confirmed: true, note: "synthetic" });
+  assert.equal(r.ok, false);
+  assert.equal(r.unavailable.code, T.CODES.FACT_COMMAND_ABSENT);
+  assert.match(r.unavailable.source, /checkin-commands\.cjs FIELDS/);
+  assert.match(r.unavailable.source, /t2-stage\.cjs:9/);
+});
+
+test("tier 1: the check-in facts refuse when no check-in lane is open — they do not invent one", async () => {
+  const w = world();                               /* no checkin injected */
+  const turn = w.coach.openTurn("turn-fact3");
+  for (const name of ["record_pain_or_soreness", "time_away", "answer_checkin"]) {
+    const r = await turn.call[name]({ confirmed: true });
     assert.equal(r.ok, false);
-    assert.equal(r.unavailable.code, T.CODES.FACT_COMMAND_ABSENT);
-    assert.match(r.unavailable.source, /t2-stage\.cjs:9/);
+    assert.equal(r.unavailable.code, T.CODES.CHECKIN_SURFACE_ABSENT);
   }
+});
+
+test("the staged command set is NOT widened by the local era", () => {
+  const read = (p) => fs.readFileSync(path.join(__dirname, "..", "..", p), "utf8");
+  const setOf = (src) => {
+    const m = /const COMMANDS = new Set\((\[[^\]]*\])\)/.exec(src);
+    assert.ok(m, "COMMANDS set not found");
+    return JSON.parse(m[1].replace(/'/g, '"')).slice().sort();
+  };
+  const stage = setOf(read("m3/w6/t2-stage.cjs"));
+  const local = setOf(read("m3/w6/local/local-client.mjs"));
+  assert.deepEqual(stage, ["finishSession", "logSession", "logSet", "weighIn", "workout"]);
+  assert.deepEqual(local, stage, "local-client.mjs widened the staged command set");
+  /* `workout` is the one PRODUCER-INJECTED command, and that — not a wider set —
+     is how a dated non-workout fact reaches disk. */
+  assert.match(read("m3/w7-preview/today/checkin-host.mjs"), /workoutCommands: createCheckInCommands\(\)/);
+  assert.match(read("m3/w7-preview/today/checkin-host.mjs"), /client\.execute\('workout', \{ action: 'checkin'/);
 });
 
 test("the whole script over the real consent surface stays traceable and honest", async () => {

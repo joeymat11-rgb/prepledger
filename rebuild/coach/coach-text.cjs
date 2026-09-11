@@ -79,9 +79,24 @@ const TEMPLATES_2 = Object.freeze({
     has(v.effort) ? d(v.effort) : "",
   ]),
   last_comparable: (v) => join([has(v.line) ? d(v.line) + "." : ""]),
+  /* The check-in read-back is the model's own: the approved question wording
+     beside the athlete's own answer, plus the engine-consequence sentence. This
+     adds no adjective, no score and no judgement. */
   checkin: (v) => join([
-    has(v.summary) ? "On " + d(v.date) + " you told me: " + d(v.summary)
-      : "Nothing is recorded for the check-in on " + d(v.date) + ". Blank means unknown, not fine.",
+    v.lines && v.lines.length
+      ? (has(v.provenance) ? d(v.provenance) + ". " : "") + v.lines.map((l) => d(l)).join("; ") + ". " + d(v.note)
+      : "Nothing is recorded for the check-in on " + d(v.date) + ". " + d(v.note),
+    has(v.sleepRecordHours) && has(v.sleepRecordDate)
+      ? " Your sleep record already has the night of " + d(v.sleepRecordDate) + ": " + d(v.sleepRecordHours)
+        + " hours. I would ask you to confirm that rather than ask again."
+      : "",
+  ]),
+  /* After a real save, state the actual plan consequence — "saved" alone is not
+     evidence the engine used the answer (approved handoff). */
+  recorded: (v) => join([
+    "Recorded. ",
+    v.lines && v.lines.length ? "What went down: " + v.lines.map((l) => d(l)).join("; ") + ". " : "",
+    has(v.consequence) ? d(v.consequence) : "",
   ]),
   proposal: (v) => join([
     "The engine has a proposal. ",
@@ -151,8 +166,11 @@ async function answerOne(coach, question, memory, templates) {
     return say(r.ok ? tpl[read.template](r.values) : tpl.unavailable(r.unavailable));
   }
   if (FACT_INTENTS[question.intent]) {
-    const r = await turn.call[FACT_INTENTS[question.intent]]({ confirmed: question.yes === true, note: question.ask });
-    return say(r.ok ? "Recorded." : tpl.unavailable(r.unavailable));
+    /* The harness sets `confirmed` — never the coach, and never the model — and
+       only from its own record of the spoken yes. */
+    const args = Object.assign({}, question.args, { confirmed: question.yes === true });
+    const r = await turn.call[FACT_INTENTS[question.intent]](args);
+    return say(r.ok ? tpl.recorded(r.values) : tpl.unavailable(r.unavailable));
   }
   if (TIER3_INTENTS[question.intent]) {
     const r = await turn.call.cannot_change_via_coach({ topic: TIER3_INTENTS[question.intent] });

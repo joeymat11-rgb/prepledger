@@ -95,14 +95,17 @@ test("a complete, verified, fresh cap passes — and STILL starts nothing in thi
 
 test("there is no override: the gate takes no flag that skips it", () => {
   const src = fs.readFileSync(path.join(__dirname, "..", "tools.cjs"), "utf8");
-  for (const escape of ["skipCap", "force", "bypass", "allowUncapped", "ignoreCap"]) {
-    assert.ok(!src.includes(escape), "tools.cjs carries an escape hatch: " + escape);
+  /* identifier-boundary, not substring: "enforces the date law" contains "force"
+     and a grep that fires on that gets deleted rather than kept */
+  for (const escape of ["skipCap", "force", "bypass", "allowUncapped", "ignoreCap", "uncapped"]) {
+    const re = new RegExp("(^|[^A-Za-z0-9_])" + escape + "([^A-Za-z0-9_]|$)");
+    assert.ok(!re.test(src), "tools.cjs carries an escape hatch: " + escape);
   }
   assert.ok(!/started:\s*true/.test(src), "nothing in this build may report a started live session");
 });
 
 test("no live model call and no network exists in this build", () => {
-  for (const file of ["tools.cjs", "coach-text.cjs"]) {
+  for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs"]) {
     const src = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
     for (const forbidden of ["node:http", "node:https", "fetch(", "WebSocket", "api.openai.com", "OPENAI_API_KEY"]) {
       assert.ok(!src.includes(forbidden), file + " reaches the network via " + forbidden);
