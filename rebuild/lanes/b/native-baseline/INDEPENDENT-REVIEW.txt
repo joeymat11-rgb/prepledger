@@ -1,0 +1,90 @@
+NATIVE BASELINE — INDEPENDENT SOURCE / BEHAVIOR REVIEW
+September 11, 2026. Reviewer did not author this candidate.
+Source: b843a7b2274e0ea1e2b19670dd87dff0847d1dd5, base71fb2f1.
+Branch/worktree: codex/astra-native-baseline-review / astra-native-baseline-review.
+Assignment: PM ASTRA-NATIVE-BASELINE-REVIEW.md and ASTRA-NATIVE-BASELINE.md.
+Verdict: ACCEPT this narrow factual projection and default-host journey.
+This is not final engine-package, public/full CI, browser or phone acceptance.
+
+(1) INDEPENDENT RULE ASSESSMENT
+Read candidate brief/report and all eight changed files. No engine body or
+accepted law changed. The registrar derives only initially null exercise loads
+from supplied setup and accepted native history; it does not replay a legacy
+writer, create sessionLog entries, mutate setup, or write an earned receipt.
+
+Early/partial close: ACCEPT. PERFORMED-ENGINE-v1 permits a known original prefix
+to anchor while distinguishing complete top-window evidence. performedEntry
+accepts normal/early closed records; performedLine stops at an original hole
+and excludes added slots. Legacy writers.cjs completeSession also requires a
+nonempty reps line, not every planned set, before null numeric-load adoption.
+The new projection uses these boundaries and conservatively requires uniform
+actual loads across all performed originals, including observations after a
+hole; it never compacts those observations into the progression prefix.
+
+Later observed loads: ACCEPT. writers.cjs335-349 supplies the precise factual
+effect: first numeric adoption does not insert an off-ladder rung; a subsequent
+different numeric load inserts that observed value into an existing ladder and
+clears topAt/topRun. The candidate reproduces those fields without unrelated
+writer receipts, stamps, queue/adaptive effects, or automatic load increases.
+Native history remains authoritative for reps and top counts. Authenticated
+causal order, rather than effective date sorting or lexical ID order, governs.
+
+Configured/unequal original loads retain exact typed values, slot/source/edit
+identities and a named mapping requirement. No scalar is guessed from a mean,
+minimum, maximum or last set. Existing non-null scalar/configuration/vector
+setup remains unchanged. An initially null wSets case refuses mapping. Missing
+order, ambiguous originals and future-history downstream dependency refuse.
+Open, added-only, no-prefix, foreign-lineage and prior-era records cannot adopt.
+Future records are excluded from factual derivation, but the actual registrar
+also refuses downstream prescription because the accepted B2/D7 consumers do
+not yet provide the required as-of qualification. This preserves past evidence.
+
+(2) EXECUTED EVIDENCE
+Existing Node24.19.0 and retained W6/jsdom dependencies; no installation.
+TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03. Six focused files under rebuild:
+  m4/workout/test/native-baseline.test.cjs
+  m4/workout/test/native-baseline-journey.test.mjs
+  m3/w6/host/test/journey.test.mjs
+  m3/w6/host/test/engine-equivalence.test.cjs
+  m3/w6/test/local-host-journey.test.mjs
+  m3/w7-preview/today/test/gym.test.mjs
+node --test --test-reporter=tap:130 pass,0 fail,0 skip. Deliberately did not
+repeat the unrelated engine-order campaign or broader package/full suites.
+native-baseline-bite.cjs: PASS; removal of the real registrar join makes the
+day+3 actual-store journey fail. It substitutes only child compilation and
+does not edit candidate files or substitute a fixture source into execution.
+
+Actual encrypted repository/C4/default B-NTC/gym journey establishes first
+40x10 -> reopened40x10; subsequent45x9 -> reopened45x10. Removing derived cache
+preserves results. Actual correction40->35 and undo rebuild correctly while
+the immutable Set/edit operations remain. Actual unequal40/35 closes durably
+and reopens with structured mapping refusal and both exact source IDs/loads.
+These are synthetic actual-store tests, not real-browser or phone gestures.
+
+Independent accepted-reader/writer controls also executed via Node stdin:
+reused only the authored synthetic base/session carrier constructors (loaded
+before test registrations), then compared installed engine behavior directly.
+Two-slot early record [42x10,unlogged] establishes42 and governingLast[10],
+but atTopOfWindow is false and deriveSighting returns null/0. Complete two-slot
+47x10/47x10 is a positive control returning topRun1. Diagnostic legacy
+completeSession on synthetic partial42x10 then47x9 matches native w/steps/
+topAt/topRun exactly: initial42 is not inserted, later47 is inserted/reset.
+Removing the second native contributor reconstructs42 and removes rung47.
+The diagnostic writer was used only for comparison, never in product flow.
+An initial probe used progressAnchor arguments backwards and stopped; corrected
+control uses governingLast and a complete-top positive, with all assertions
+passing. No credit is taken for that harness error or an unproved trend call.
+
+(3) SCOPE AND FOLLOW-THROUGH
+No required source correction found in this delta. The rule assessment above
+is independent of the candidate's own expectations and self-removal test.
+Unequal/configuration mapping UI and confirmation remain required before those
+blocked shapes can receive a prescription. Authoritative setup durability is
+the separate initial-setup review/fix; supplying cleanInit here does not prove
+that collection's persistence. Existing B-NTC/F1 acceptance remains separate.
+The new dependency/source semantics still require the proper child engine
+package, updated source/fidelity carriers and protected integrator census,
+affected CI/build and required public/full/second gates with independent
+acceptance. This report does not replace or relabel any of those obligations.
+No product edits, private reads, installs, broad conformance run, push, PR,
+merge, deployment or phone claim. Only this review report is committed.
