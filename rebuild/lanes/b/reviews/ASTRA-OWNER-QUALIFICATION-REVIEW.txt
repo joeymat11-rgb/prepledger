@@ -1,0 +1,139 @@
+OWNER QUALIFICATION PREPARATION - INDEPENDENT PROOF REVIEW
+September 11, 2026. Reviewer did not author the preparation.
+Verdict: ACCEPT this reusable preparation only.
+Candidate: 41f9a4bc5a49a1e1136c9e937533a608f40dd422
+Base: df226c76cda5605d5a8548227464e460d0808bbc
+Branch/worktree: codex/astra-owner-qualification-review /
+  work/astra-owner-qualification-review
+Assignment: PM ASTRA-OWNER-QUALIFICATION-REVIEW.md at df9c2dd.
+No final package, policy, entry, browser, CI or phone acceptance follows.
+
+(1) REVIEW BOUNDARY AND SOURCE
+Read NEXT, ROADMAP, current PM checkpoint, preparation assignment, candidate
+report, proposed amendment and all nine changed files. This delta contains
+proof/closure/wrapper/spec/workflow/documentation only. Native-baseline product
+was authored by this reviewer; its behavior is NOT self-reviewed here. Reuse
+independent c100bdae3f74d141584781faa9be9b7ce6cd8814 for that product, f01ca87
+for setup, 3501d11/79b8c44 for B-NTC/F1 and original profile controls, and
+a3ffd3c for unchanged tooling. Current product bytes equal preparation base.
+
+Source-projection supersession preimage is exactly parent execution pin
+fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e;
+postimage is a67903d7851ffac10691dbd354702e3adf9a7f647984d8d80c7d2c0e7058d8ba.
+The archived overlay covers only runtime, projection and rebuild workflow,
+read at immutable b95ccca879e371b5ba225ad12cae612ec89469ba with original pins.
+ActualChild checks disk against parent and declared child postimages, then
+rebuilds the closure. Private source compilation changes exactly two unique
+SUPPORT literals. All original carrier construction/assertions and original
+executable origin checks remain; actual gates still execute disk source.
+No global fs/loader hook or require-cache replacement was introduced. The
+original verifier loaded ordinarily still carries the original projection pin.
+An archived parent's accepted=true is not returned as child acceptance.
+
+(2) DEPENDENCY INVENTORY AND EXECUTION
+Independently walked literal relative import/export/require edges from actual
+Today entry, local bindings/client, runtime and the three named test targets.
+This walk did not use the candidate inventory's roots or esbuild graph.
+Inspected createRequire(import.meta.url) in test/support.mjs and the baseline
+journey; followed its literal relative dependencies. Took the twelve factory
+targets separately from the real host mirror's literal require map and matched
+them to the source runtime declaration. The only current nonliteral require is
+that explicitly guarded MODULES importer. Result: 95 source/test files and
+185 literal relative edges, plus twelve runtime factory bindings, agree exactly
+with the declared 101 files including six package/lock inputs. All are in the
+139-entry product map with correct postimages. Independently checked the actual
+local-client -> initial-setup -> athlete-state and projection -> native-baseline
+edges, and support.mjs -> conform/lib/ops.cjs createRequire edge.
+
+No concrete reachable omission found in this exact source snapshot. Esbuild
+resolves static dependencies and rejects unresolved imports/build warnings;
+the runtime factory importer additionally requires exact syntax and one
+require call. Literal createRequire scanning supplements test/support imports.
+This is not a general parser/proof of all possible future dynamic import forms:
+new computed/aliased loaders need explicit independent resolution and refusal
+review in the next source delta. External package code is external to this
+inventory; package/lock inputs are pinned and real child execution verifies
+availability here. No installed-package integrity or both-OS run is claimed.
+
+All fifteen prior child declarations and the complete coverage map equal base
+as JSON values. Ten original carrier successors, provider/focused/journey
+children and original13/child4 remain. The two additions use actual Node test
+targets. Setup wrapper checks all three target pins and closure before spawning,
+requires success, zero fail/skip/cancel and exactly49 pass. The proof child
+executes its named node:test file; process failure or a missing8-pass verdict
+is rejected by the real unchanged runner. No child-root widening or moves.
+
+(3) EXECUTED FOCUSED EVIDENCE
+Existing Node24.19.0 and existing root/W6/W5 dependency junctions; no install.
+node --test --test-concurrency=1 --test-reporter=tap, these three files:
+  rebuild/m4/spec/b-ntc-owner-qualification.test.cjs
+  rebuild/m4/spec/b-ntc-profile-refusals.test.cjs
+  rebuild/m4/spec/b-ntc-successors.test.cjs
+25 pass,0 fail,0 skipped,0 cancelled: new8, unchanged original13, unchanged4.
+Tests ran sequentially because their temporary disk mutations share a tree.
+
+node rebuild/m4/spec/b-ntc-owner-tests.cjs: actual named targets49 pass,0 fail,
+0 skipped,0 cancelled, exact wrapper terminal. This verifies wrapper execution;
+the independent product behavior findings above are reused without self-review.
+node rebuild/m4/spec/b-ntc-source-carriers.cjs: actual original source children
+6/6 PASS (migrate/merge/writers at frozen and native), receipt remains PENDING.
+
+Independent ignored .tmp/independent-owner-proof.cjs executed successfully.
+SHA256: 0ea960bea88a83ed2a81bb768f7d02bacbeb4117a691a6564c794e5aa82b3e05
+It uses actual candidate functions and fresh real child processes. Controls:
+- Missing native-baseline/initial-setup product entries refuse. Replacing their
+  actual bodies with empty bodies refuses before archived evidence can pass.
+- Remove reachable recovery-plan-reader.cjs from BOTH manifest and product map,
+  then supply the new manifest hash: reconstructed import graph still refuses.
+- Introduce an unresolved static setup import: real build resolution refuses.
+  Introduce a second computed runtime require: exact importer guard refuses.
+- Replace actual baseline test with one throwing node:test, rebuild closure
+  and re-pin test/manifest/spec to reach execution: real failing test runs and
+  wrapper refuses (# fail1), rather than accepting valid-looking pins.
+- Shorten wrapper's actual spawned vector to only setup test: real23 pass,
+  but exact49 accounting refuses. No test body is replaced by an argv helper.
+- Append a real throwing proof test, update its spec postimage: original8 pass
+  plus1 fail; actual runner children() refuses Required child. Substituting
+  an unchanged inert helper as node:test produces1 pass and cannot satisfy the
+  same proof child's8-pass terminal. These component probes issue no authority.
+- Restore all bytes: archived plus actual preflight succeeds. Ordinary original
+  SUPPORT remains old; actual SUPPORT equals current projection. Global fs and
+  Module._load identities remain unchanged. git status and diff --check clean.
+
+(4) POLICY, WORKFLOW AND REMAINING OBLIGATIONS
+Runner SHA remains ca0419e61beac8ffe9c89971e11fd1f3cfb0913af1d2d5d05ddbdf12c057f484.
+Old policy SHA remains 614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee.
+Both are byte-identical to base. Compiled real runner only before its campaign
+boundary, then invoked actual validateSuccessorDefinition against real parent
+and old policy:17-child candidate refuses SUCCESSOR-CHILD-DECLARATIONS;
+restoring original15 children still refuses SUCCESSOR-PRODUCT-CLOSURE.
+Status PROPOSED, theme/brief acceptance null, moves={}, MOVES_RULING=null.
+No old policy or archived evidence can authorize this preparation as supplied.
+
+Workflow names all three setup/baseline tests and the new proof test beneath
+the existing ubuntu-latest/windows-latest matrix, with required NODE_PATH for
+setup/baseline. Candidate package invocation retains the real policy gate.
+No CI run, accepted profile or source-policy waiver is claimed by the new label.
+Proposed v1.3 accurately supersedes historical O1 within factual projection /
+authoritative setup scope and identifies calendar entry as a pending join.
+It preserves unequal/configured mappings, future-history B2/D7 refusal, no
+manufactured nutrition targets and missing phone proof; this is no fresh
+nutrition/trend completion claim. Some unchanged spec notes still describe the
+historical two-overlay/one-SUPPORT version; the new scoped note, v1.3 and report
+state the current three/two behavior. Refresh that historical wording with the
+final entry/policy delta; it does not alter executed selectors or this verdict.
+
+Owner-entry d05876f / corrected46a8127 is NOT joined into reviewed41f9 source.
+After its separate accepted integration, refresh actual entry/calendar closure,
+test accounting/workflow and all changed source pins; review only that delta.
+Final coherent immutable source/product/child policy needs a NEW independently
+reviewed digest, mechanical runner/spec pins and genuine PM brief/theme
+citations on fixed accepted CHAIN_REF and candidate ancestry. Local PM lines
+are not chain authority. Root alone owns PM acceptance.
+FULL/private custody,45 register laws/19 gates, complete second gate,
+fidelity/mutations, both-OS CI, genuine exact-artifact receipt and actual phone
+proof remain outstanding. Fresh nutrition initialization, actionable mappings
+and downstream future-history fixes retain their separate product obligations.
+No product/proof correction, private input, broad campaign, install, lock churn,
+push, PR, merge, deploy, protected-soak action or authority issuance. Only this
+report is committed; all temporary counterexample edits were restored.
