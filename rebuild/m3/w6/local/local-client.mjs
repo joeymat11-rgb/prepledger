@@ -27,7 +27,13 @@ import Client from "../../../client/index.cjs";
 import { openLocalKeys, probeRecord, keysPresent } from "./local-keys.mjs";
 import { createLocalEra, localEraConfig, readLocalEra, publicEra,
   leaseExpired, leaseRenewalDue, renewLocalEraLease } from "./local-era.mjs";
+// C1b. host-bindings.mjs imports this module back; the cycle is safe because
+// neither side touches the other's bindings at module-evaluation time.
+import { localHostBindings } from "./host-bindings.mjs";
 
+// The marker host-bindings.mjs recognises as "this is the factory's own internal
+// scope", so nothing outside this closure can assemble one.
+export const LOCAL_SCOPE = Symbol.for("earned/local-durable-scope/v1");
 const GENERATIONS_STORE = "generations";
 const ACTIVE = "active";
 const MARKER_STORE = "markers";
@@ -162,7 +168,7 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
   // future validator that has something else to compare against). It is NOT a
   // check: nothing but this closure can set it, so it cannot disagree with itself.
   const sessionEpoch = hex(crypto, 8);
-  let attempt = 0, pending = null, closed = false;
+  let attempt = 0, pending = null, closed = false, booted = false;
   const LEASE_EXPIRED_COPY = "Saving is paused: this phone's local era has lapsed. Your saved entries are intact.";
   // lease.cjs returns these exact reasons; the real client passes them through as
   // `reason` on its state-20 refusal, with no code. Naming them is what lets a host
@@ -253,6 +259,9 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
   }
 
   async function boot() {
+    // C1b. Any outcome other than ready retires the booted fact, so
+    // hostBindings() can never be reached through a stale earlier success.
+    booted = false;
     if (closed) return { ready: false, ...refusal(3, "LOCAL_CLIENT_CLOSED") };
     if (status.state === "first-run") return { ready: false, firstRun: true, ...refusal(18, "LOCAL_FIRST_RUN") };
     // A restore-required verdict is NOT re-derived from whether the bytes decrypt.
@@ -303,10 +312,20 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
       return { ready: false, readable: true, leaseExpired: true, ...refusal(20, "LOCAL_LEASE_EXPIRED"), ...payload };
     }
     status = { state: "ready", code: "LOCAL_READY" };
+    booted = true;
     return { ready: true, leaseExpired: false, ...payload };
   }
 
-  return Object.freeze({
+  // C1b. The internal scope host-bindings.mjs builds the durable-client scope
+  // from. Nothing here is new state: it is the same repository handle, the same
+  // era clock and the same session epoch C1's own bridge already uses, handed to
+  // the module that knows what createDurablePublicClient needs.
+  let api = null;
+  const internalScope = () => ({ [LOCAL_SCOPE]: true, repository, crypto, clock, namespace, athleteId, deviceId,
+    sessionEpoch, workoutCommands, alive: () => !closed, booted: () => booted && !closed && status.state === "ready",
+    client: api });
+
+  api = Object.freeze({
     status: () => ({ ...status }),
     enroll,
     boot,
@@ -355,12 +374,19 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
         return { ...refusal(error?.state ?? 18, status.code), line: Client.copy.RESTORE_REQUIRED, draftLine: null, ghost: false };
       }
     },
+    // C1b. The durable-client scope createDurablePublicClient / composeWorkoutHost
+    // need, supplied from THIS installation. Additive: nothing above changes, and a
+    // host that never calls it gets exactly the C1 client. It refuses unless boot()
+    // has reported ready, because boot() is where the era's lease self-renewal runs
+    // and the public client's own bridge never calls it.
+    hostBindings(options) { return localHostBindings(internalScope(), options); },
     close() {
       if (closed) return;
-      closed = true; pending = null;
+      closed = true; pending = null; booted = false;
       try { repository.close(); } catch {}
       keys.close();
       status = { state: "closed", code: "LOCAL_CLIENT_CLOSED" };
     },
   });
+  return api;
 }
