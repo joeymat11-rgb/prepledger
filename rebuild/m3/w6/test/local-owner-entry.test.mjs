@@ -28,6 +28,15 @@ async function open(t,clock=time(),configured=true) {
   return {page,indexedDB,dom,...clock};
 }
 const ops=async page=>Object.values((await page.hosts.generation()).generation.collections.ops);
+async function activeGeneration(indexedDB) {
+  return new Promise((resolve,reject)=>{
+    const request=indexedDB.open(TODAY_DATABASE);request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{
+      const db=request.result,tx=db.transaction('generations','readonly'),get=tx.objectStore('generations').get('active');
+      tx.oncomplete=()=>{db.close();resolve(get.result);};tx.onabort=()=>{db.close();reject(tx.error);};
+    };
+  });
+}
 
 test('actual owner rest day offers weight but no new workout shortcut or Start',async t=>{
   const indexedDB=new IDBFactory(),dom=document(),{calendar}=time(),value=setup();
@@ -56,13 +65,33 @@ test('actual default boot uses persisted setup and wall date without injected da
 
 test('fresh and legacy no-setup are setup-required; missing key remains restore-required',async t=>{
   const fresh=await open(t,time(),false);assert.equal(fresh.page.setupRequired,true);assert.equal(fresh.page.restoreRequired,null);
-  assert.equal(fresh.page.model,null);assert.equal(fresh.dom.window.document.querySelector('#phone input'),null);
+  assert.equal(fresh.page.model,null);assert.equal(fresh.page.hosts,null);
+  const phone=fresh.dom.window.document.getElementById('phone');
+  assert.equal(phone.querySelector('h1').textContent,'Make it yours.');
+  assert.equal(phone.querySelectorAll('form').length,1);
+  assert.deepEqual([...phone.querySelectorAll('input,select')].map(x=>x.name),
+    ['athlete_label','from','day-0','day-1','day-2','day-3','day-4','day-5','day-6']);
+  assert.equal(phone.querySelector('[name=athlete_label]').value,'');
+  assert.deepEqual([...phone.querySelectorAll('select')].map(x=>x.value),Array(7).fill(''));
+  assert.equal(await activeGeneration(fresh.indexedDB),undefined,'viewing setup commits neither setup authority nor workout operations');
+  await assert.rejects(openTodayInstallation({indexedDB:fresh.indexedDB,crypto:webcrypto,calendar:fresh.calendar,enroll:false}),
+    error=>error.code==='LOCAL_FIRST_RUN');
+  assert.equal(await activeGeneration(fresh.indexedDB),undefined);
   const indexedDB=new IDBFactory(),dom=document(),clock=time();await enroll(indexedDB,clock.calendar,null);
+  const legacy=await activeGeneration(indexedDB);
   let page=await boot({document:dom.window.document,indexedDB,crypto:webcrypto,calendar:clock.calendar});
-  assert.equal(page.setupRequired,true);page.close();
+  assert.equal(page.setupRequired,true);assert.equal(page.restoreRequired,null);assert.equal(page.model,null);
+  assert.equal(dom.window.document.querySelector('#phone h1').textContent,'Setup required');
+  assert.equal(dom.window.document.querySelector('#phone form'),null);
+  assert.equal(dom.window.document.querySelector('#phone input'),null);
+  assert.deepEqual(await activeGeneration(indexedDB),legacy);page.close();
   await new Promise((resolve,reject)=>{const r=indexedDB.deleteDatabase(TODAY_DATABASE+'-keys');r.onsuccess=resolve;r.onerror=()=>reject(r.error);});
   page=await boot({document:dom.window.document,indexedDB,crypto:webcrypto,calendar:clock.calendar});
   assert.equal(page.setupRequired,false);assert.equal(page.restoreRequired,'KEY_MISSING');assert.equal(page.model,null);
+  assert.equal(dom.window.document.querySelector('#phone h1').textContent,'Restore required');
+  assert.equal(dom.window.document.querySelector('#phone form'),null);
+  assert.equal(dom.window.document.querySelector('#phone input'),null);
+  assert.deepEqual(await activeGeneration(indexedDB),legacy,'missing key cannot replace the existing generation');
   page.close();dom.window.close();
 });
 
