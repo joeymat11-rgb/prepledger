@@ -391,12 +391,19 @@ function mountToday(doc, model, options = {}) {
     const root = template("t-nutrition");
     const map = slots(root);
     const host = map.get("macros");
-    const rows = view.blocked ? [] : [
-      ["Energy", calorieHeadline(view.calorieTarget), "kcal", calorieBand(view.calorieTarget)],
-      ["Protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : null, "g",
-        "Your daily protein target."],
-      ["Carbohydrate", null, "g", "Not prescribed. The engine issues no carbohydrate target."],
-      ["Fat", null, "g", "Not prescribed. The engine issues no fat target."],
+    const energy = view.blocked ? null : calorieHeadline(view.calorieTarget);
+    const protein = view.blocked ? null : amount(view.proteinTarget?.g);
+    const rows = view.blocked
+      ? ["Energy", "Protein", "Carbohydrate", "Fat"].map(label => [label, null, null, "This value cannot be shown right now."])
+      : [
+      ["Energy", energy, "kcal", energy === null
+        ? view.calorieTarget?.why || "An energy target is not available yet."
+        : calorieBand(view.calorieTarget)],
+      ["Protein", protein, "g", protein === null
+        ? view.proteinTarget?.why || "A protein target is not available yet."
+        : "Your daily protein target."],
+      ["Carbohydrate", null, "g", "A carbohydrate target is not available yet."],
+      ["Fat", null, "g", "A fat target is not available yet."],
     ];
     for (const [label, value, unit, copy] of rows) {
       const row = doc.createElement("div");
@@ -406,7 +413,7 @@ function mountToday(doc, model, options = {}) {
       const name = doc.createElement("strong");
       name.textContent = label;
       const figure = doc.createElement("span");
-      if (value === null) { figure.className = "unit"; figure.textContent = "Not prescribed"; }
+      if (value === null) { figure.className = "unit"; figure.textContent = NOT_AVAILABLE; }
       else {
         const big = doc.createElement("span");
         big.className = "number";
@@ -422,7 +429,9 @@ function mountToday(doc, model, options = {}) {
       row.append(top, note);
       host.append(row);
     }
-    put(map, "stub-note", "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.");
+    put(map, "stub-note", view.blocked
+      ? view.blockedCopy || "This device's local record could not be trusted, so nutrition values cannot be shown."
+      : "The full nutrition screen is not wired yet. No target is shown for unavailable fields.");
     wire(root);
     show(root, focus);
   }
