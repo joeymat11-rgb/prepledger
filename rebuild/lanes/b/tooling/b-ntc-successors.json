@@ -1,0 +1,491 @@
+{
+  "version": 1,
+  "lanePackage": "B-NTC",
+  "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
+  "sourceCommit": "71fb2f1ae2bf48cc8f32ff3f9e905949e352914c",
+  "parent": {
+    "id": "NATIVE-CARRIERS",
+    "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
+    "sha256": "e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a",
+    "review": "rebuild/m4/spec/review-native-carriers.json",
+    "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb"
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "source-carriers",
+      "merge-source": "source-carriers",
+      "writers-source": "source-carriers",
+      "witnesses-2": "inherited-carriers",
+      "witnesses-5": "inherited-carriers",
+      "migrate-differential": "inherited-carriers",
+      "witnesses-7": "defect-witnesses",
+      "writers-differential": "writers-differential",
+      "second-gate": "second-gate"
+    },
+    "moves": {}
+  },
+  "children": [
+    {
+      "name": "traces",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-traces.cjs"
+      ],
+      "needle": "NATIVE CARRIER TRACES:"
+    },
+    {
+      "name": "direct",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-direct.cjs"
+      ],
+      "needle": "NATIVE CARRIERS DIRECT:"
+    },
+    {
+      "name": "legacy",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-legacy.cjs"
+      ],
+      "needle": "NATIVE CARRIERS LEGACY DIFFERENTIAL:"
+    },
+    {
+      "name": "witnesses",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-witnesses.cjs"
+      ],
+      "needle": "NATIVE CARRIERS WITNESSES:"
+    },
+    {
+      "name": "cases",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-cases.cjs"
+      ],
+      "needle": "NATIVE CARRIERS CASES:"
+    },
+    {
+      "name": "source-carriers",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-source-carriers.cjs"
+      ],
+      "needle": "NATIVE SOURCE CARRIERS:"
+    },
+    {
+      "name": "inherited-carriers",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-inherited-carriers.cjs"
+      ],
+      "needle": "NATIVE INHERITED CARRIERS:"
+    },
+    {
+      "name": "defect-witnesses",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-defect-witnesses.cjs"
+      ],
+      "needle": "NATIVE DEFECT WITNESSES:"
+    },
+    {
+      "name": "writers-differential",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-writers-differential.cjs"
+      ],
+      "needle": "NATIVE WRITERS DIFFERENTIAL:"
+    },
+    {
+      "name": "second-gate",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-second-gate.cjs"
+      ],
+      "needle": "NATIVE SECOND GATE:"
+    },
+    {
+      "name": "ntc-provider-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/native-trend-context.test.cjs"
+      ],
+      "needle": "# pass 39"
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-focused.cjs"
+      ],
+      "needle": "B-NTC FOCUSED: 15/15 PASS;"
+    },
+    {
+      "name": "durable-journeys",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-journeys.cjs"
+      ],
+      "needle": "B-NTC DURABLE JOURNEYS: 237/237 PASS;"
+    },
+    {
+      "name": "profile-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs"
+      ],
+      "needle": "# pass 13"
+    },
+    {
+      "name": "child-pin-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-successors.test.cjs"
+      ],
+      "needle": "# pass 4"
+    }
+  ],
+  "product": {
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "post": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "role": "carried"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "post": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "role": "carried"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "post": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "ec950730038c9a1f43c9a7933547537dce43fe51f708830dc219e4d41b5abcbc",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "pre": "9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23",
+      "post": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "role": "superseded-by-child"
+    },
+    ".github/workflows/rebuild.yml": {
+      "pre": "f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8",
+      "post": "5b84ef71f97453ecf03fa4ed2f9510ac3ab39ea4398a6c4d3c20b6f08a9756d1",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m4/spec/b-ntc-successors.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "9ff617bbe7867d5c4b6a8854d3ba1740aa781a46626bbdfc88581783b24c33a1",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-traces.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "58a44e3118ae30fb5740df902efca496a13dff591db071047e08e61937fa4799",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-direct.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "89c7f6864911ea10ce5b11584c5c1af2e78cf999b91c04758f20de83d4d07376",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-legacy.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "c9acd1ecdd7fbaa850b26a84aa9c4058fa8d0e0697d51123c830d01b6124a9d9",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "0d7635eed730dcaa6ba80a2d72d645d9171cb3f95cd94c017ba8ae4b81a678f7",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-cases.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d47a03acbdc971d7ba1e58fa3f9553cce21a165078ceb118c24bc3edd3c2cdb1",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "3ee1ae61c658e0c79bd4dcc30294e07c2fe484880574f58b71547ce5d19132e2",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "f5f8c2757acc62113bb46ace8232b8750be942933101a63641a0300e7e1feedd",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "4ebe1bccc9d27a2206b97ca66b79933b5e456ced31585aae5e7f32f187fa8ca8",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "5a21c36a18ced0b847700651e5fab349fbba7977eec432df94d278037e5272ef",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "0ecd0f85e56d2858a18b74e44f252451543bf4e4f3774c2d6c3a69a6a55131e0",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/today-bindings.mjs": {
+      "pre": "f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff",
+      "post": "b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": {
+      "pre": "114411b1a075c2354eccb552b5855007d06a1a3fe788b5ae0991a6eb3d08309e",
+      "post": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b",
+      "post": "262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "57566afd36ea913da4b9eaeed8f7a358479381606a9b6f92fc5e562d85d58cda",
+      "post": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
+      "pre": "be31fed87150c4d64545e2bcbeec12d0d106218135d78f2b78a854160f935e45",
+      "post": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-journeys.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-focused.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
+      "pre": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "post": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
+      "pre": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
+      "post": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": {
+      "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "post": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": {
+      "pre": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "post": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": {
+      "pre": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "post": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
+      "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": {
+      "pre": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+      "post": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "3cec74af09a930abec79464fe37a2fc1e073c3bf93d04d9c1db22ea31f0219d6",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "role": "new"
+    }
+  },
+  "sourcePins": {
+    "rebuild/engine/plan.cjs": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+    "rebuild/engine/progression.cjs": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+    "rebuild/engine/sleep.cjs": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+    "rebuild/engine/today.cjs": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+    "rebuild/engine/writers.cjs": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+    "rebuild/engine/index.cjs": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+    "rebuild/m3/w7-preview/browser-engine.cjs": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+    "rebuild/m3/w7-preview/build.mjs": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+    "rebuild/engine/performed.cjs": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+    "rebuild/engine/entered-load.cjs": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+    "rebuild/engine/constants.cjs": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+    "rebuild/engine/dates.cjs": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+    "rebuild/engine/earn.cjs": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+    "rebuild/engine/energy.cjs": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+    "rebuild/engine/merge.cjs": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+    "rebuild/engine/migrate.cjs": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+    "rebuild/engine/oracle-shim.cjs": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+    "rebuild/engine/policy.cjs": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+    "rebuild/engine/seed.cjs": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+    "rebuild/engine/volume.cjs": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+    "rebuild/m4/spec/native-carriers-source.cjs": "e16228d89c78896255bfed7dcd4d5a2742d7016aadec100f6f73b15f227f6ef8",
+    "rebuild/m4/spec/native-carriers-parent-source.cjs": "7c1bd1d5c6ebef5f26027d5c87464c0b615f60932235ac01ebd6be33eed43457",
+    "rebuild/m4/spec/native-carriers-reference.cjs": "b55479cb5acecc4f8edc9f13bd64ab8f7c145530e5b61efd46c6992729a557ed",
+    "rebuild/m4/spec/native-carriers-errors.cjs": "ddcfa7d212a6291e7c84c50106813c4f9c1ead46bb11723bb505e58e423e51c7",
+    "rebuild/m4/spec/native-carriers-traces.cjs": "c0d86fc3f151c784d24f1c6c3049d627f0dc7d53296233766e7525f3fefefe71",
+    "rebuild/m4/spec/native-carriers-direct.cjs": "e48a8545667fffb39459dfd530e58575782754a0009b2b0b9084be63b0cd66d1",
+    "rebuild/m4/spec/native-carriers-legacy.cjs": "21c078c326cb3b2652ba0a83ebe5fcb61ea12f5e2cd82a543b0cb10bcba7f346",
+    "rebuild/m4/spec/native-carriers-witnesses.cjs": "dde7f2fdb53669148d011097df3d08a2c1cd65545e8aedc84047a8860c2ed28b",
+    "rebuild/m4/spec/native-carriers-cases.cjs": "d9e74be7aa1556d17efe302a9f8d1a6138aa8487e38a4cdf7d2f144646789311",
+    "rebuild/m4/spec/native-carriers-source-carriers.cjs": "83254f0a9261696cd86c8e028dc69803caacbdade02525106e1697aec102f640",
+    "rebuild/m4/spec/native-carriers-inherited-carriers.cjs": "a68964c735051b7377ebaabc94907df84e9b46786a0dd903676ad72aecdb3fd6",
+    "rebuild/m4/spec/native-carriers-defect-witnesses.cjs": "4540e4a9f2783acfd175a155df7efca56d07cfb8e48180ba7261442804970cf6",
+    "rebuild/m4/spec/native-carriers-writers-differential.cjs": "8d5aef85c7b088dc2f5045516fad92000c28d1755336d06b0791c857e3337f6e",
+    "rebuild/m4/spec/native-carriers-second-gate.cjs": "d518bb866ad796f575d695e8d91906af96df6a3bd20e103410fca9bee5b091a2",
+    "rebuild/m4/spec/native-carriers-profile.cjs": "a99fab0f8da1d202eef551def80466be3e98106ffc34aff95ee889618ae20b32",
+    "rebuild/m4/spec/native-carriers-package.cjs": "0fe94beee6a6e57315eee8535690d378cf42171e4c64bcf6172284fa47703655",
+    "rebuild/m4/spec/native-carriers-changes.json": "9e6f608a322ac0773275fdd3916df6655c9f9b6ac975a88023907b3f877438c5",
+    "rebuild/m4/spec/native-carriers-authorizations.json": "0409c6945e5455a4fb722379fdef90875b65a89bab6c4e173989d1f5043be872",
+    "rebuild/m4/spec/native-next-target-candidate/fixture.cjs": "2554ae6ecd553df70473cc417676512e7e7188bdbcb150497698568e81df86a9",
+    "rebuild/m4/spec/native-next-target-candidate/import-engine-assembly.cjs": "cb58dafbaed93e72bb94329219a4d6c36a80b88485456cfbc7620628d1f4ca22",
+    "rebuild/m4/spec/native-next-target-candidate/reach.cjs": "6b76c5e45c089cf25873fd1d4b4c66f318ea20b0a3eb291b6164888cb7a2242c",
+    "rebuild/m4/spec/native-next-target-candidate/source-delta.cjs": "fce1c2f92bf445373fdab39fdd1e2f16705f0312c6b3b8347c225dae6639ea6a",
+    "rebuild/m4/workout/engine-runtime.cjs": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+    "rebuild/m4/workout/source-projection.cjs": "fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e",
+    "rebuild/m4/workout/test/native-next-targets.test.cjs": "8ab8ac5b7e1a35a9006e952f07ce170a2bb58ce962e213f18ee2bd385b6b3a41",
+    "rebuild/m4/workout/test/native-next-targets-assembly.test.cjs": "eb75529047b1f9fad7f362bff4c3a5d649f3d27470bfd158102190f73e610c14",
+    "rebuild/m4/workout/test/native-next-targets-correction.test.cjs": "ffed53fdee84e587507485e8883c34cf11d63c5489d48e770bc76b5ccab4aea1",
+    "rebuild/m4/spec/native-carriers-profile.test.cjs": "95ef170a49de25688afebe0622870a79efe2140d27ff260b9f262bb2075286bd",
+    "rebuild/m4/spec/NATIVE-CARRIERS-THEME.md": "6bf8e14224328ad270226736cc775aa659337908f2a9c4344a4f87abac298cb2",
+    "rebuild/m4/spec/NATIVE-CARRIERS-BUILD-REPORT.md": "cee971788c4b04b14abb5dfb9b6a07bec3baae630898be4bbad7369b5fee734d",
+    ".github/workflows/rebuild.yml": "5b84ef71f97453ecf03fa4ed2f9510ac3ab39ea4398a6c4d3c20b6f08a9756d1",
+    "rebuild/m4/workout/native-trend-context.cjs": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "ec950730038c9a1f43c9a7933547537dce43fe51f708830dc219e4d41b5abcbc",
+    "rebuild/m4/spec/b-ntc-successors.cjs": "9ff617bbe7867d5c4b6a8854d3ba1740aa781a46626bbdfc88581783b24c33a1",
+    "rebuild/m4/spec/b-ntc-traces.cjs": "58a44e3118ae30fb5740df902efca496a13dff591db071047e08e61937fa4799",
+    "rebuild/m4/spec/b-ntc-direct.cjs": "89c7f6864911ea10ce5b11584c5c1af2e78cf999b91c04758f20de83d4d07376",
+    "rebuild/m4/spec/b-ntc-legacy.cjs": "c9acd1ecdd7fbaa850b26a84aa9c4058fa8d0e0697d51123c830d01b6124a9d9",
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": "0d7635eed730dcaa6ba80a2d72d645d9171cb3f95cd94c017ba8ae4b81a678f7",
+    "rebuild/m4/spec/b-ntc-cases.cjs": "d47a03acbdc971d7ba1e58fa3f9553cce21a165078ceb118c24bc3edd3c2cdb1",
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": "3ee1ae61c658e0c79bd4dcc30294e07c2fe484880574f58b71547ce5d19132e2",
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": "f5f8c2757acc62113bb46ace8232b8750be942933101a63641a0300e7e1feedd",
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": "4ebe1bccc9d27a2206b97ca66b79933b5e456ced31585aae5e7f32f187fa8ca8",
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": "5a21c36a18ced0b847700651e5fab349fbba7977eec432df94d278037e5272ef",
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": "0ecd0f85e56d2858a18b74e44f252451543bf4e4f3774c2d6c3a69a6a55131e0",
+    "rebuild/m3/w6/local/today-bindings.mjs": "b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94",
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+    "rebuild/m3/w6/host/workout-host.mjs": "262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe",
+    "rebuild/m3/w6/host/test/journey.test.mjs": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+    "rebuild/m4/spec/b-ntc-journeys.cjs": "ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55",
+    "rebuild/m4/spec/b-ntc-focused.cjs": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": "3cec74af09a930abec79464fe37a2fc1e073c3bf93d04d9c1db22ea31f0219d6",
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9"
+  }
+}

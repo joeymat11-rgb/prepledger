@@ -1,0 +1,86 @@
+EARNED — B-NTC SUCCESSOR TOOLING CANDIDATE
+2026-09-11. Author only; independent review and PM disposition still required.
+Branch codex/astra-tooling-successors; base c7b7133 (independent review4a842323).
+Brief: PM ASTRA-TOOLING-SUCCESSORS.md; retained B-NTC join review3501d11.
+
+(1) CHANGE / EXACT SOURCE
+Nine inherited gate->child names remain unchanged; coverage.moves={} and
+MOVES_RULING=null everywhere. No generic moves/wrapper exception enabled.
+b-ntc-successors.json fixes B-NTC parent artifact, all15 child declarations,
+product map and82 exact original/child source pins at builder
+71fb2f1ae2bf48cc8f32ff3f9e905949e352914c. The source policy SHA is
+614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee.
+Runner verifies policy bytes in Git/disk, exact declaration/map/parent equality,
+and closure bytes at original candidate commit, HEAD and disk. Original13 and
+actual-child4 remain separate scheduled children. Actual execution still uses
+c7b7133's validated Node target list; coverage consumes its actual run result.
+A needle-only replacement can exit0 but fails source-policy verification.
+The policy itself supplies no approval. Existing theme authority must name the
+exact B-NTC-SUCCESSORS policy digest before the successor campaign starts and
+again at coverage/seal. The policy joins the proposed artifact execution pins.
+
+Child theme/brief citations may optionally add commit, an immutable full Git SHA.
+It must descend from the accepted parent receipt base AND be an ancestor of
+both candidate HEAD and fixed refs/remotes/origin/rebuild/t2-client-core.
+Missing commit retains the old parent-base rule. Owner/contract cannot add this
+field; their exact inherited parent receipt anchor and fixed roles stay intact.
+Path remains rebuild/DECISIONS.md. Final artifact receipt, parent review/receipt
+pins, single-parent scan, remote ancestry and reviewed-source checks are retained.
+No local-only PM commit can satisfy the new child anchor rule.
+
+Six package specs change ONLY tooling.runnerSha256, mechanically to
+12422628bf75de46743eee1fedde6b5988a0d49151328abde974b34ca3997e74.
+README explains the optional citation anchor and exact unissued source policy.
+
+(2) EXECUTED FOCUSED CONTROLS
+Existing Node v24.19.0, Windows. No install.
+node --test --test-reporter=tap rebuild/lanes/b/tooling/test/execution-targets.test.cjs
+  =>9 pass /0 fail /0 skipped. All original nine control groups ran once after
+  runner changes, including trailing argv and parent PRODUCT preimage/role rules.
+node --test --test-reporter=tap rebuild/lanes/b/tooling/test/successor-authority.test.cjs
+  =>8 pass /0 fail /0 skipped. These groups exercise:
+  - later child citations succeed at actual fixed-chain ancestor; accepted
+    c7b7133 authority() refuses the same fixture at the old parent anchor;
+  - wrong role/hash, absent line, foreign path, mutable anchor and changed
+    old-parent contract refuse; legacy null child claims remain compatible;
+  - local-only, unrelated, absent and off-chain commits refuse;
+  - unissued or wrong policy authority refuses; no moves switch is enabled;
+  - policy disk/Git byte pins both discriminate;
+  - actual82-pin candidate closure, exact15 children and9-gate map verify;
+  - altered map/move/package/parent/target/product/policy and unchanged-original,
+    helper or runtime byte drift refuse;
+  - real pinned source-carriers child executes successfully in a fresh Node
+    subprocess; the three inherited source gates accept that execution result;
+    missing execution, changed target and absent support refuse. Replacing its
+    body with a needle-printing stub passes only the generic child output check,
+    then refuses the exact source policy. Original bytes restored and rechecked.
+
+The test compiles real runner functions before their main-campaign delimiter;
+no function bodies are replaced. Public authority-fixture lines are clearly
+labeled control data; no package receipt or acceptance envelope is constructed.
+The actual candidate fixture is a public-only Git archive plus read-only object
+store access and existing dependency junctions. No ledger/private paths enter
+that archive. Actual product/source files in the builder worktree are untouched.
+All mutations occur in generated temporary fixtures, restored before cleanup;
+junction objects are unlinked first, and resolved temporary scope is checked.
+Initial real-child fixture attempts correctly refused missing frozen public
+root inputs; the complete public source fixture then passed. No product change
+was made in response to those harness setup failures.
+node --check runner and focused test; git diff --check =>exit0.
+
+(3) REQUIRED PM INPUTS / LIMITS
+This is candidate support, NOT an accepted package or CI/FULL verdict.
+Distinct reviewer must review exact tooling changes and proposed source policy.
+After review, real PM theme authority must cite the package id and literal
+B-NTC-SUCCESSORS 614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee
+in an exact cowork ledger line. Both real brief and theme citations need
+line/hash/role and permitted immutable commit fields. Their anchor must reach
+the actual fixed accepted chain and candidate ancestry through the integrator.
+The builder spec's citations remain null here; no PM ruling is invented.
+The final exact child artifact receipt and its existing remote-chain proof,
+private/full custody and public qualification are still separate obligations.
+No repetition of broad engine/product campaigns; one actual source-carriers
+child only. Original13/child4 and unaffected product evidence remain the separate
+builder/independent-review evidence, not claimed re-executed by this author.
+No frozen law/oracle/engine/app change, private data read, install, push, merge,
+deployment, shared authority-file edit, or lockfile change.
