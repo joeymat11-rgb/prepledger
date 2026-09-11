@@ -1,0 +1,98 @@
+EARNED — INDEPENDENT DURABLE NUTRITION INPUTS REVIEW
+Date: 2026-09-11. Verdict: REQUIRED CORRECTION R1.
+Candidate: 938913671d9dbd352f90adee963e4aef02cee43d.
+Base: 693b021f01d832a889f6933f2dcad2258431d808.
+FILE: ASTRA-NUTRITION-INPUTS-REVIEW.md at 0899ec9; original scope includes bab83aa.
+Reviewer: phone_release_review, not implementation author qualification_delta_review.
+Tree/branch: BASE/astra-nutrition-inputs-review, codex/astra-nutrition-inputs-review.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+Read complete candidate report/contract, source delta and named task references.
+
+R1 — CONCURRENT RAW EXECUTE BORROWS THE GUARDED COMMIT'S REVIEW AUTHORITY
+Actual Today installation, actual initialSetup, real local client/stage/encrypted
+repository (fake-indexeddb and Node webcrypto; synthetic facts only):
+  p = await prepare(h);
+  guarded = h.era.commitNutritionInputs({preparedId:p.preparedId});
+  direct = h.era.client.execute('nutritionInputs', proposal());
+  [a,b] = await Promise.all([guarded,direct]);
+The direct proposal equals the reviewed proposal. Do not await guarded before direct.
+Observed repeatedly: a.acknowledged=false, code=NUTRITION_INPUT_STALE,
+copy='Entry not saved. Your input is retained.'; b.acknowledged=true,
+copy='Saved on this phone · not yet synced', durableRevision=3. Read returns exactly
+one nutrition record. This contradicts both direct-execution refusal and the reviewed
+call's no-save statement. The standalone raw-execute test does not cover this overlap.
+
+Source: inputs-boundary.cjs lines 12,66-84 holds a shared active preparation while
+awaiting execute. local-client.mjs lines 232-233 routes the guarded call through the
+same public api.execute whose command allowlist includes nutritionInputs (line52).
+A raw invocation queued first reaches validateCommit while active is owned by the
+reviewed call; equal payload/revision/scope checks cannot distinguish invocation owner.
+Required: bind admission to the exact guarded execution attempt; raw public execute
+must remain unable to borrow an active review. Preserve truthful acknowledgments,
+retry identity, stale-write refusal and existing failure/close behavior. No fix made.
+
+Exact runnable retained witness: BASE/astra-nutrition-inputs-review/.tmp/nutrition-inputs-review.mjs.
+First independent block after helpers reproduces R1 through Today forwarding.
+Run from this review tree, with retained node.exe v24.19.0:
+  NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules
+  TZ=America/New_York
+  node .tmp/nutrition-inputs-review.mjs
+Exit0, prints DIRECT_DURING_GUARDED_COMMIT with the above results and passing controls.
+Helpers/imports originate from the candidate test's real installation harness;
+independent cases are appended. This ignored local artifact is not product code.
+
+EXECUTED EVIDENCE AND LIMITS
+node --test rebuild/m3/w6/test/nutrition-inputs.test.mjs
+  rebuild/m3/w6/test/local-client.test.mjs
+  rebuild/m3/w6/test/local-initial-setup.test.mjs
+54 PASS, 0 FAIL, 0 SKIP, exit0 (10 new, 44 existing). Retained dependencies only.
+These include copied review versus mutation; invalid partial group/units without
+sequence spending; original/update/correction/clear retention; stale review after
+weight; retry; encrypted quota; delayed transaction; expiry/close; other athlete's
+review; postcommit context loss and reopen; wrong athlete/checkpoint; real setup,
+plan, weight, workout Start/Set/Finish, cache removal, reopen and following-day
+40lb prescription/Start. No browser or physical-phone claim for this host-only lane.
+
+Independent witness additionally executed:
+- Wrong device with recomputed original commitment, and changed text with stale
+  commitment: encrypted repository read refuses LOCAL_HISTORY_IDENTITY_UNPROVEN.
+  No key was printed or persisted outside the synthetic repository.
+- Real second installation writes weight171 while first nutrition transaction is
+  paused before encryption completes. Nutrition refuses NUTRITION_INPUT_STALE;
+  competing weight remains the sole operation, no extra nutrition sequence is spent.
+  Separate IDBFactory facade represents an independent context on the same database;
+  no transaction result was stubbed. First same-factory/different-calendar setup
+  correctly refused LOCAL_ERA_CLOCK_MISMATCH; corrected harness used separate context.
+- Two actual T2-produced assertion roots in a projection fixture give two heads,
+  null current, NUTRITION_INPUT_RESOLUTION_REQUIRED. Unknown and none retain distinct
+  original meanings. This is an explicit ambiguous-history fixture, not a claim that
+  the guarded writer accepts a competing root.
+- Actual guarded read leaves revision/token/generation identical; returned nested
+  input is frozen and an independently mutable clone does not alter the result.
+An initial witness invocation without NODE_PATH failed module resolution; rerun with
+retained dependency path produced the executed results above. No installs performed.
+
+SOURCE ASSESSMENT
+Closed typed setup-note payload retains effective tuple, causal supersedes, original
+source/date, explicit goal/phase and complete four-field plan. Validation keeps target,
+minimum, range, absence and clear distinct; history selects full heads rather than
+mixing fields. Source uses detached projection copies. The schema1 fact on the accepted
+C1 local schema2-lease route is intentional and passes actual local admission; it
+claims local saved state, not hosted T3 acceptance. Text is ordinary note text, not
+serialized structured JSON. setup-note does not enter physiological event classes.
+No generated advice, implicit plan/default, second store or re-enrollment was added.
+These findings do not waive R1 or qualify this factual record as an effective plan.
+
+Executed git diff --exit-code base -- today-entry.mjs local-today-journey.test.mjs
+(using full respective rebuild/m3/w7-preview/today and rebuild/m3/w6/test paths):
+no changes. Journey-test SHA256 b52771c5f43fee2391b3e78e47cd96e67dddcecd4d235904aff98f448645fb6a.
+Builder's unchanged journey result remains 103/105, two failures (old page-pin
+assertion and parent), not PASS. This review verified byte equality, not another
+105-test execution. Final source qualification must resolve that inherited pin.
+
+U1 complete coupled intake domain/phase-policy and U2 accepted selection/fallback,
+U3/U4 physiological qualification, U5 daily-plan/UI wiring remain outside this factual
+capture. Hosted adoption, UI workflow and individualized useful guidance remain open.
+No full/private campaign, frozen source/law/validator edits, product/test changes,
+lock churn, remote action, extra agent or self-integration. Sole tracked addition is
+this report. Root owns disposition; focused correction and distinct integration follow.
