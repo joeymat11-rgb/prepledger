@@ -1,0 +1,82 @@
+NATIVE BASELINE CANDIDATE — September 11, 2026
+Branch: codex/astra-native-baseline. Base: 71fb2f1.
+Assignment: ASTRA-NATIVE-BASELINE.md in astra-pm-resume.
+Verdict: authored candidate; NOT independently reviewed or accepted.
+
+(1) CHANGE
+New workout/native-baseline.cjs projectNativeBaseline reconstructs initially
+null working loads from initial state plus current immutable native facts.
+Uses installed performedEntry/historyRows/Line, plan forksOf/sameEra and
+progression loadRungs. Actual null-selection registrar consumes it; the W6
+workout host supplies its explicit day and retains structured refusal details.
+No engine body, initial setup, old sessionLog, stamps or receipt is written.
+Later actual uniform loads update the derived scalar in accepted causal order;
+changed-load observed rungs/topAt/topRun use the existing writer effect.
+Nonfresh explicit scalar/vector/configuration state is unchanged.
+Exact behavior/delta: BRIEF.md beside this report, selected before edits and
+sent to PM; later-load and future-history refinements incorporate PM feedback.
+
+(2) EXECUTED BEFORE/AFTER
+Actual C4 installation, encrypted repository over fake-indexeddb, actual gym
+model/client/history/capture, DEFAULT B-NTC. Synthetic explicit clean state
+starts w:null, hi10, one original slot; no fixture basis or preloaded weight.
+Sep11: record40x10 with exact2 effort, normal close. Reopen Sep14:40 lb x10,
+not Find a working load. Record45x9 exact2, close, reopen Sep18:45 lb x10;
+existing engine explains its one-rep step. Same outputs after synthetic
+collections.derived removal and reopen; supplied immutable initial state
+unchanged and sessionLog remains empty. This is reconstruction from supplied
+setup plus stored operations, not proof of the separately pending initial-setup
+collection's durability, a real browser gesture or phone/process kill.
+Actual closed-set correction40->35 survives reopen and changes baseline to35.
+Undo of that contributor restores debut; original Set and correction remain.
+Actual original slots40/35 close and survive reopen. Preparation returns
+NATIVE_BASELINE_MAPPING_REQUIRED with exact vector, source IDs and required
+scalar/vector mapping, without discarding or averaging either fact.
+
+(3) FOCUSED CHECKS, FINAL RESTORED SOURCE
+Existing Node v24.19.0; no install. NODE_PATH points to the existing locked
+m3-w6-browser-bridge/rebuild/m3/w6/node_modules. Ignored junctions reuse that
+W6 dependency tree and astra-initial-setup-review's existing jsdom tree.
+node --test over these seven files:151 tests,151 pass,0 fail,0 skip:
+  workout/test/native-baseline.test.cjs (23)
+  workout/test/native-baseline-journey.test.mjs (3)
+  workout/test/engine-order.test.cjs (21)
+  m3/w6/host/test/journey.test.mjs
+  m3/w6/host/test/engine-equivalence.test.cjs
+  m3/w6/test/local-host-journey.test.mjs (last three combined40)
+  m3/w7-preview/today/test/gym.test.mjs (64)
+Paths under rebuild/; workout paths under rebuild/m4/.
+Unit adversaries: partial/early/open, skipped/removed/added originals, edits,
+unequal/configured loads, existing wSets, lineage/era, order and future dates.
+Added/configured typed entries here are explicit synthetic consumer inputs;
+the accepted current host projector's v1/extension limitation is not repaired
+or claimed as a completed configured/added-slot host journey.
+Initial test setup errors: missing ESM dependencies, phase case, repository
+commit signature/return expectation and an expected-string encoding issue;
+corrected without product workarounds. These earned no behavioral-red credit.
+Final git diff --check: no whitespace errors.
+
+(4) BITE
+node workout/test/native-baseline-bite.cjs: PASS. Disposable child compilation
+replaces only the actual registrar's projectNativeBaseline call with its old
+state clone. Real C4 journey fails at day+3 assertion 'native join must leave
+debut'. No product file is mutated on disk. Restored151/151 above.
+
+(5) OPEN OBLIGATIONS
+Unequal original loads need an accepted working-scalar plus original-slot
+vector mapping/confirmation; configured facts need their qualified domain
+prescription mapping. Full values and operations remain available. The host
+exposes actionable structured requirements; rendering that information and
+collecting a valid confirmation is a separate screens/consent join, not built.
+Future matching records are excluded from baseline derivation: past40 remains
+proved. Registrar refuses prescription with that evidence retained because
+current governingLast/progressAnchor still consume future native history.
+This is the explicit B2/D7 as-of dependency, not a new prohibition on using
+past work. B-LOM legacy/native order mapping remains separate and unchanged.
+Early partial loads follow closed-entry/prefix semantics, not invented slots;
+independent brief review must assess this source-to-prescription delta.
+The new dependency and source semantics need a proper child engine-package
+qualification, source/fidelity carriers, affected CI/browser build, required
+public/full/second gates, protected integrator census and acceptance chain.
+No conformance campaign/private fixture, law edits, installs, browser build,
+public CI, push, PR, merge, deployment, purchases or self-acceptance performed.

@@ -178,7 +178,7 @@ export function composeWorkoutHost({
       // split does not cover. The throw is contained by the client's
       // prepareWorkout / prepareWorkoutContinuation and stores nothing.
       if (!splitInForceOn(engineState, day)) refuseSplitNotInForce(day);
-      lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts });
+      lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts, day });
       // B-NTC. Open the trend-context window over the VERY facts object this
       // preparation is about to give the engine, for exactly the engine read it
       // wraps, and restore the previous window when that read returns.
@@ -198,6 +198,10 @@ export function composeWorkoutHost({
       return nativeTrendBinding ? nativeTrendBinding.withFacts(context.workoutFacts, prepare) : prepare();
     } catch (error) {
       lastRefusal = Object.freeze({ code: error?.code || null, reason: error?.reason || null,
+        ...(typeof error?.code === 'string' && error.code.startsWith('NATIVE_BASELINE_') ? {
+          baseline_requirement: structuredClone(Object.fromEntries(['lift_lineage_id','start_op_id','close_op_id',
+            'original_slots','native_baseline','required_confirmation'].filter(key => error[key] !== undefined).map(key => [key,error[key]])))
+        } : {}),
         message: typeof error?.message === 'string' ? error.message : null });
       throw error;
     }

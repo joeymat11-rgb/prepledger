@@ -20,6 +20,7 @@
 // generation that holds source rows, or an accepted log prefix whose digest
 // this module cannot compute from real log rows, is refused rather than given
 // an invented frontier.
+const {projectNativeBaseline}=require('./native-baseline.cjs');
 const FIELDS=Object.freeze(['W','log_digest','selection_id']);
 const PROFILE='earned/null-selection-projection/v1';
 const fail=code=>{const e=new Error(code);e.code=code;throw e;};
@@ -37,7 +38,7 @@ function createNullSelectionRegistrar({sourceCodec}={}){
   throw new TypeError('Existing source frontier codec required');
  const held=new WeakMap();
  const emptyAcceptedPrefix=()=>sourceCodec.basis({W:0,log_digest:sourceCodec.createPrefixHasher().digest(),selection_id:null});
- function register({generation,state,workoutFacts}={}){
+ function register({generation,state,workoutFacts,day}={}){
   const c=generation?.collections;
   if(!c||typeof c!=='object'||Array.isArray(c))fail('SOURCE_PROJECTION_GENERATION_REQUIRED');
   const rows=c[sourceCodec.COLLECTION];
@@ -47,7 +48,15 @@ function createNullSelectionRegistrar({sourceCodec}={}){
   if(!state||typeof state!=='object'||Array.isArray(state)||!Array.isArray(state.exercises))fail('SOURCE_PROJECTION_STATE_REQUIRED');
   if(workoutFacts!==undefined&&workoutFacts!==null&&workoutFacts.profile!=='earned/workout-facts/v1')fail('SOURCE_PROJECTION_FACTS_REQUIRED');
   const basis=emptyAcceptedPrefix();
-  const projection=freezeOwned({profile:PROFILE,ready:true,accepted_state:structuredClone(state),
+  const derived=projectNativeBaseline({state,workoutFacts,day});
+  // D7/B2 remains outside this candidate: preserve the valid past baseline,
+  // but do not let downstream unfiltered history prescribe from a future row.
+  if(derived.baseline.future_start_ids.length){
+   const e=new Error('NATIVE_BASELINE_HISTORY_TIME_REQUIRED');e.code=e.message;
+   e.reason='downstream_as_of_mapping_required';e.native_baseline=derived.baseline;
+   e.required_confirmation='Use the qualified B2/D7 as-of history consumer before preparing this workout.';throw e;
+  }
+  const projection=freezeOwned({profile:PROFILE,ready:true,accepted_state:derived.state,native_baseline:derived.baseline,
    workout_history:workoutFacts===undefined||workoutFacts===null?null:structuredClone(workoutFacts),workout_baseline:null,source_basis:structuredClone(basis)});
   held.set(projection,{basis:structuredClone(basis),state:projection.accepted_state,baseline:null,facts:projection.workout_history});
   return projection;
