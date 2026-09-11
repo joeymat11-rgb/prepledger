@@ -12,7 +12,7 @@ function dayType(iso, s) {
   const d = mk(iso).getDay();
   const list = (s && s.split) || [];
   let ent = null;
-  for (const x of list) if (x && x.from && x.from <= iso) ent = x;
+  for (const x of list) if (x && x.from && x.from <= iso && (!ent || String(x.from) >= String(ent.from))) ent = x;
   if (ent && ent.map) { const v = ent.map[d]; return v === "U" || v === "L" ? v : "REST"; }
   if (d === 3) {
     const off = s && s.targets && s.targets.refeedOff;
@@ -81,7 +81,7 @@ function pinsBornOf(ex) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:1858-1858.
-function _bornValid(e) { return !!(e && typeof e.sets === "number" && typeof e.hi === "number" && typeof e.setup === "string" && (e.day === "U" || e.day === "L") && typeof e.mg === "string"); }
+function _bornValid(e) { return !!(e && Number.isInteger(e.sets) && e.sets > 0 && Number.isFinite(e.hi) && e.hi > 0 && typeof e.setup === "string" && (e.day === "U" || e.day === "L") && typeof e.mg === "string"); }
 
 // Copied from frozen src/app.jsx @ fe516c1:1859-1867.
 function exActive(s, id) {

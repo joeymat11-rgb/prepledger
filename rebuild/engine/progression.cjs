@@ -152,6 +152,7 @@ function progressAnchor(ex, s) {
     const rows = _governingRows(ex, s) || [];
     for (let i = rows.length - 1; i >= 0; i--) {
       const row = rows[i];
+      if (row.d > atA) continue;
       if (!sameEra(fkA, row.d, atA)) continue;
       if (_rowRushed(s, row)) continue;
       if (!_rowAtCurrentLoad(row, ex)) continue;
@@ -161,6 +162,7 @@ function progressAnchor(ex, s) {
   }
   const days9 = Object.keys(s.sessionLog || {}).sort();
   for (let i = days9.length - 1; i >= 0; i--) {
+    if (days9[i] > atA) continue;
     if (!sameEra(fkA, days9[i], atA)) continue;   /* FIX 3c — an anchor from another technique era anchors nothing */
     const sl = s.sessionLog[days9[i]];
     if (paceRushed(sl)) continue;
@@ -228,7 +230,9 @@ function _volDeltas(ex, s) {
   for (const f9 of ((s && s.feed) || [])) {
     if (!f9 || typeof f9.t !== "string" || f9.t.indexOf("VOLUME ") !== 0) continue;
     let named9 = false;
-    for (const n9 of names9) if (n9 && f9.t.indexOf("via " + n9) > -1) named9 = true;
+    if (f9.exId != null) named9 = String(f9.exId) === String(ex && ex.id);
+    else { const at9 = f9.t.indexOf("via "); const own9 = at9 < 0 ? null : f9.t.slice(at9 + 4).split(" (now ")[0];
+      for (const n9 of names9) if (n9 && own9 === n9) named9 = true; }
     if (!named9) continue;
     const body9 = f9.t.slice(7).trim();
     const sign9 = body9.charAt(0) === "+" ? 1 : (body9.charAt(0) === "-" || body9.charAt(0) === "\u2212") ? -1 : 0;
@@ -268,7 +272,7 @@ function targetsFor(ex, s) {
   const fitN = (arr) => { const t9 = arr.slice(0, ex.sets); while (t9.length < ex.sets) t9.push(Math.max(1, _padFrom9(t9, ex.hi) - 1)); return t9; };
   if (ex.std) return fitN(ex.std);
   if (ex.reclaim) return fitN(ex.reclaim);
-  if (!governingLast(ex, s)) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
+  if (!governingLast(ex, s)) return ex.first ? fitN(ex.first) : Array(ex.sets).fill(Math.max(1, ex.hi - 2));
   const t = progressAnchor(ex, s).slice(0, ex.sets);
   while (t.length < ex.sets) t.push(Math.max(1, _padFrom9(t, ex.hi) - 1));
   const { add } = progressStep(ex, s);
@@ -345,8 +349,8 @@ function proposeLadder(s, exId) {
 // Copied from frozen src/app.jsx @ fe516c1:1258-1262.
 function loadRungs(ex) {
   const r = Array.isArray(ex && ex.steps) ? ex.steps.map(Number).filter((x) => isFinite(x) && x > 0) : [];
-  if (r.length < 2) return null;
-  return [...new Set(r)].sort((a, b) => a - b);
+  const u9 = [...new Set(r)].sort((a, b) => a - b);
+  return u9.length < 2 ? null : u9;
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:1271-1274.
@@ -392,6 +396,7 @@ function snapLoad(ex, w) {
 
 // Copied from frozen src/app.jsx @ fe516c1:1310-1319.
 function deloadLoad(ex, pct = 0.95) {
+  if (ex.w == null || ex.w === "") return null;   /* C6 — absence is not zero; the same guard nextLoad/prevLoad already apply */
   const w = Number(ex.w);
   if (!isFinite(w)) return null;
   const rungs = loadRungs(ex);
@@ -405,7 +410,8 @@ function deloadLoad(ex, pct = 0.95) {
 // Copied from frozen src/app.jsx @ fe516c1:1321-1324.
 function parseRungs(text) {
   const r = String(text || "").split(/[^0-9.]+/).map(Number).filter((x) => isFinite(x) && x > 0);
-  return r.length >= 2 ? [...new Set(r)].sort((a, b) => a - b) : null;
+  const u9 = [...new Set(r)].sort((a, b) => a - b);
+  return u9.length >= 2 ? u9 : null;
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:1376-1385.
@@ -617,7 +623,8 @@ function _deriveSightingFull(s, ex) {
     for (const f9 of ((s && s.feed) || [])) {
       if (!f9 || typeof f9.t !== "string" || !/ EARNED$/.test(f9.t)) continue;
       let hit9 = false;
-      for (const n9 of names9) if (f9.t.indexOf(n9) === 0) hit9 = true;
+      if (f9.exId != null) hit9 = String(f9.exId) === String(ex.id);
+      else for (const n9 of names9) if (f9.t.indexOf(n9) === 0 && /^ [-+]?(?:\d+(?:\.\d+)?|\.\d+) EARNED$/.test(f9.t.slice(n9.length))) hit9 = true;
       if (hit9 && f9.d && (!lastEarn9 || String(f9.d) > String(lastEarn9))) lastEarn9 = String(f9.d);
     }
     const start9 = [eraFrom9, lastEarn9].filter((x9) => x9 != null).sort().pop() || null;
@@ -689,6 +696,7 @@ function liftTrend(s, exId, opts) {
   const pts = [];
   for (const row of rows) {
     const {d}=row;
+    if (opts && opts.asOf && d > atT) continue;
     if (!sameEra(fkT, d, atT)) continue;
     const rec = row.rec || {};
     const native = row.source === 'performed';
