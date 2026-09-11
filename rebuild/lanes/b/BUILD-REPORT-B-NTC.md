@@ -181,6 +181,58 @@ Also found and recorded: `477b025` carries its **own** `rebuild/lanes/b/tooling/
 (21 159 B) beside the one this package committed (7 862 B). Two specs, one id — PM question
 Q2, brief O9.
 
+### 0.5-r2 RE-MEASURED AT THE r2 FIX HEAD (B-NTC-REVIEW-r2 R9 / change 9)
+
+r2's R9 found the headline figures in this report pre-merge and wrong. They are re-measured
+here, at the head this report is committed in, each with the command that produced it. **Where
+a figure below disagrees with one earlier in this document, the figure below is the measured
+one and the earlier one is superseded.**
+
+| row | earlier in this report | measured at this head | command |
+|---|---|---|---|
+| provider cells | 36/36 | **39/39**, exit 0 | `node --test --test-reporter=tap rebuild/m4/workout/test/native-trend-context.test.cjs` |
+| the enumerated today suites | 123/123 and 129/129 | **164/164**, exit 0 over the **seven** enumerated files | `node --test --test-reporter=tap rebuild/m3/w7-preview/today/test/{adapter,checkin,design,gym,ntc-h6-delta,package,view}.test.*` |
+| … per file | — | adapter **20**, checkin **28**, design **11**, gym **64**, ntc-h6-delta **8**, package **10**, view **23** | each alone, each exit 0 |
+| A0 | — | **23/23**, exit 0 | `node --test --test-reporter=tap rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` |
+| delta cell G1 | "UNCHANGED … blocked / `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`" | **GREEN — "the product athlete's day+3 wall is GONE"**; G2, G3, G4, G5 green with it | inside `ntc-h6-delta.test.mjs` |
+| delta cells G1–G5 (+G6, G7, and the new **G8**) | — | **8/8**, exit 0 | as above |
+| profile refusals | — | **13/13**, exit 0 | `node --test --test-reporter=tap rebuild/m4/spec/b-ntc-profile-refusals.test.cjs` |
+| successor child-pin refusals | 4/4 | **6/6**, exit 0 | `node --test --test-reporter=tap rebuild/m4/spec/b-ntc-successors.test.cjs` |
+| focused | — | `B-NTC FOCUSED: 15/15 PASS; original assertions and actual child runtime`, exit 0 | `node rebuild/m4/spec/b-ntc-focused.cjs` |
+| durable journeys | 237/237 | **`B-NTC DURABLE JOURNEYS: 238/238 PASS; …`**, exit 0 (+1 for `B-NTC G8`) | `node rebuild/m4/spec/b-ntc-journeys.cjs` |
+| one-store journey | — | **51/51**, exit 0 | `node --test --test-reporter=tap rebuild/m3/w6/test/local-today-journey.test.mjs` |
+| the retired memory-only 19 | — | **19/19**, exit 0 — still green in Git, no CI home | `node --test --test-reporter=tap rebuild/m3/w7-preview/test/{model,view,package}.test.cjs` |
+| the 45 register laws | — | `TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL`, exit 1 — **the base figure, unmoved** | `node rebuild/conform/v4/run-defect-laws.cjs` with `ENGINE_MAIN`/`ENGINE_OLD` from `rebuild/conform/engines/` |
+| the public census | — | `SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families`, exit 1 — **character-for-character the base line** | `node rebuild/conform/run.cjs` |
+
+**The package gates, at this head** (superseding the `FAIL … exit 1` pair quoted in §0.5):
+
+```
+$ node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+B PACKAGE B-NTC COVERAGE 9/19 original gate(s) covered by 5 executed child(ren) (9 inherited, the parent map byte-for-byte; 0 moved …); 10 re-execute under --full
+B PACKAGE B-NTC SUCCESSORS 10 declared successor executable(s) PROVED against the parent original, of which 9 carry an inherited gate under MOVES_RULING=DECISIONS:113 …; coverage.moves stays {} and X1 is unwidened; … 3 enumerated substitution(s)
+B PACKAGE B-NTC OPEN product PARTIAL (7 declared file(s) still at the pinned pre-image)
+B PACKAGE B-NTC OPEN theme ledger line accepting this brief is null (THEME-AUTHORIZATION-UNAVAILABLE before any receipt)
+B PACKAGE B-NTC OPEN brief rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md not accepted by a PM ledger line
+B PACKAGE B-NTC OPEN closed cumulative profile not sealed
+B PACKAGE B-NTC CI REVIEW-PENDING: 3 open obligation(s); public evidence only; no PASS is claimed
+EXIT=2
+
+$ node rebuild/lanes/b/tooling/b-package.cjs --full --package B-NTC
+B PACKAGE B-NTC BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING                     (stderr)
+EXIT=2
+```
+
+**Open item O4 is CLOSED.** §0.5 recorded that the standing `DECISIONS:97` BLOCKED-private
+terminal was not producible for this package id. It is produced above. `rebuild/conform/private`
+does not exist in this worktree, was never sought and is never opened — only its absence is
+noted, which is what that code means.
+
+Two of the three `--ci`-blocking obligations are ledger-clearable (the theme line and the
+brief-acceptance line). The third, `product PARTIAL`, is **not**; the full analysis, the two
+ways to clear it and the reason lane B took neither in this pass are in
+`rebuild/lanes/b/FIX-REPORT-B-NTC-r2.md` §4.2.
+
 ### 0.6 Boundaries honoured in this pass
 
 * **Never opened:** `ledger/`, `rebuild/conform/private/` (both also removed from the scratch
