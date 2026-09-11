@@ -3,40 +3,37 @@
 // The PM's REAL Today + gym card code (today-model.cjs, gym-model.mjs,
 // gym-app.mjs, today-app.cjs, design.cjs — imported unmodified from
 // rebuild/m3/w7-preview/today/) conducted over Lane C's local era through
-// rebuild/m3/w6/local/today-bindings.mjs, with the page's two synthetic hosts
-// (gym-host.mjs, reading-host.mjs) never constructed.
+// rebuild/m3/w6/local/today-bindings.mjs — which, since C4b, is also what
+// gym-host.mjs and reading-host.mjs open: they are thin wrappers over it, and
+// the synthetic enrolment they used to mint is gone from the page entirely.
 //
 // Everything lands in ONE sealed generation: one collections.ops, one
 // checkpoint, one lease_id, one device sequence.
 //
-// WHAT IS STILL PAGE-OWNED AND COULD NOT BE DRIVEN. today-entry.mjs
-// createWorkoutEntry() / boot() import createGymHost and createReadingHost as
-// module bindings (today-entry.mjs:16-17) and call them directly
-// (today-entry.mjs:26, :30, :83) — there is no injection point, so they cannot be
-// pointed at another store without a change inside today/**. That change is the
-// "REQUEST TO PM (exact patch)" in rebuild/lanes/c/C4-ONE-STORE-REPORT.md.
-// Blocks 1-7 therefore drive the nearest real seams — createGymModel, mountGym,
-// createTodayModel, mountToday — which is exactly what createWorkoutEntry itself
-// does with them. Block 9 (review D1) goes further: it applies BOTH hunks of that
-// patch to a disposable copy of today-entry.mjs under the OS temp directory —
-// never the tree — and runs the patched boot() both ways.
+// C4b — THE SWAP IS APPLIED (DECISIONS:106). When this file was written,
+// today-entry.mjs was PM-owned and had no injection point, so blocks 1-7 drove
+// the nearest real seams (createGymModel, mountGym, createTodayModel,
+// mountToday) and blocks 8-9 applied the "REQUEST TO PM" patch to a disposable
+// copy under the OS temp directory. The patch is in the file now, so those two
+// blocks drive the REAL createWorkoutEntry and the REAL boot() instead: there is
+// no unapplied patch left to trial, and the claim they carry is the one that
+// matters after the swap — boot() opens this device's local era BY DEFAULT.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { IDBFactory } from 'fake-indexeddb';
 import { webcrypto, createHash } from 'node:crypto';
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { createDurablePublicClient } from '../public-client.mjs';
-import { openTodayOverLocalEra, causalTips, startOrderRefusalOf,
+import { openTodayOverLocalEra, openTodayInstallation, causalTips, startOrderRefusalOf,
   PLAN_BASIS, INPUT_BASIS, RESUME_REASON, PRODUCER } from '../local/today-bindings.mjs';
 import { readLocalEra, localEraLeaseId, LOCAL_ERA_SCHEMA_VERSION } from '../local/local-era.mjs';
 import { markerDatabaseName } from '../local/local-client.mjs';
 import { keysDatabaseName } from '../local/local-keys.mjs';
 // The page's own modules, unmodified.
 import * as GymHost from '../../w7-preview/today/gym-host.mjs';
+import * as Entry from '../../w7-preview/today/today-entry.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../../w7-preview/today/gym-model.mjs';
 import { mountGym } from '../../w7-preview/today/gym-app.mjs';
 import TodayApp from '../../w7-preview/today/today-app.cjs';
@@ -445,14 +442,21 @@ function deleteDatabase(indexedDB, name) {
 }
 
 /* ===========================================================================
-   5. PARTIAL ERASURE. The drop-in refuses; the page's synthetic hosts re-enrol.
+   5. PARTIAL ERASURE is restore-required, through the drop-in AND through the
+   page's own module — which, since C4b, is the same store.
+
+   The contrast this block used to draw (the page's reading-host silently
+   re-enrolled over an erased generation, because ENROLMENT_EVIDENCE was a
+   string constant anyone could present) no longer has two sides: that module
+   is gone. What replaces it is the stronger claim — the SHIPPED PAGE now
+   refuses, by name, on the same erasures.
    =========================================================================== */
-test('C4 — partial erasure is restore-required here, and a silent re-enrolment in the page\'s hosts', async t => {
+test('C4b — partial erasure is restore-required, in the drop-in and in the page', async t => {
   await t.test('the drop-in refuses to open, with C1\'s own code, and writes nothing', async () => {
     for (const [label, erase] of [
       ['the enrollment marker', db => eraseRecord(db, DB + '-local', 'markers', 'enrolled')],
       ['the device key', db => eraseRecord(db, DB + '-keys', 'keys', 'active')],
-      // The SAME erasure the page's reading-host silently re-enrols over below.
+      // The SAME erasure the page's reading-host used to re-enrol over.
       ['the whole generation database', db => deleteDatabase(db, DB)],
     ]) {
       const indexedDB = new IDBFactory();
@@ -473,34 +477,46 @@ test('C4 — partial erasure is restore-required here, and a silent re-enrolment
     }
   });
 
-  await t.test('the page\'s reading-host re-enrols over an erased generation without a word', async () => {
-    /* The contrast, executed on the PAGE'S OWN module. ENROLMENT_EVIDENCE is a
-       string constant, so authorizeEnrollment accepts it from anyone, and the
-       STORE_MISSING branch (reading-host.mjs:62-67) mints a new lease and
-       initializes a new generation. There is no first-run signal and no
-       restore-required state to tell the athlete his history is gone. */
+  await t.test('and so does the PAGE, through its own module and its own defaults', async () => {
+    /* The same erasure, driven through rebuild/m3/w7-preview/today/reading-host.mjs
+       — the file that used to mint a new lease and initialize a new generation
+       on STORE_MISSING, without a word. It is a wrapper now, so the refusal it
+       reports is C1's, by name, with the athlete's record still on disk. */
     const { createReadingHost } = await import('../../w7-preview/today/reading-host.mjs');
     const indexedDB = new IDBFactory();
-    const keys = await pageDeviceKeys();
-    const first = await createReadingHost({ day: DAY, indexedDB, crypto: webcrypto, deviceKeys: keys });
+    const first = await createReadingHost({ day: DAY, indexedDB, crypto: webcrypto });
     assert.equal((await first.weighIn({ date: DAY, lb: 179.4 })).ok, true);
     assert.equal(first.reads().length, 1);
+    const leaseId = first.lease.lease_id;
     first.close();
-    await deleteDatabase(indexedDB, 'earned-today-preview-readings');
-    const second = await createReadingHost({ day: DAY, indexedDB, crypto: webcrypto, deviceKeys: keys });
-    assert.equal(second.openedRefusal, null, 'no refusal is reported');
-    assert.deepEqual(second.reads(), [], 'the history is gone and the store simply starts again');
-    second.close();
+
+    await eraseRecord(indexedDB, GymHost.DATABASE + '-keys', 'keys', 'active');
+    const refused = await createReadingHost({ day: DAY, indexedDB, crypto: webcrypto })
+      .then(() => null, error => error);
+    assert(refused, 'the page must not open a half-erased installation');
+    assert.equal(refused.state, 18);
+    assert.equal(refused.code, 'KEY_MISSING');
+
+    /* AND THE PAGE SAYS SO. boot() names the client's own RESTORE_REQUIRED copy
+       and the code, mounts what it honestly can, and re-enrols nothing. */
+    const doc = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+      { url: 'http://127.0.0.1:4178/' }).window.document;
+    const booted = await Entry.boot({ document: doc, today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal(booted.restoreRequired, 'KEY_MISSING');
+    assert.equal(booted.hosts, null, 'no installation opened');
+    assert.equal(booted.readings, null, 'and no store');
+    assert.equal(doc.getElementById('today-status').textContent,
+      GymHost.RESTORE_REQUIRED + ' (KEY_MISSING)');
+    assert.equal(booted.model.read().hasReadToday, false, 'nothing on screen claims a reading');
+
+    // The record is untouched: opening again still refuses rather than starting over.
+    const survivor = await createReadingHost({ day: DAY, indexedDB, crypto: webcrypto })
+      .then(() => null, error => error);
+    assert.equal(survivor.state, 18, 'still restore-required, never a second life');
+    assert.equal(survivor.code, 'KEY_MISSING');
+    assert(leaseId.startsWith('local-era:'));
   });
 });
-
-async function pageDeviceKeys() {
-  const pair = await webcrypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
-  const jwk = await webcrypto.subtle.exportKey('jwk', pair.publicKey);
-  const storeKey = await webcrypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-  return { kid: GymHost.AUTHORITY_KID, storeKey, signingKey: pair.privateKey,
-    publicKey: { kty: 'EC', crv: 'P-256', x: jwk.x, y: jwk.y, key_ops: ['verify'], ext: true } };
-}
 
 /* ===========================================================================
    6. NO LOST UPDATE. Two writers, one repository: the reading goes through C1's
@@ -550,76 +566,51 @@ test('C4 — a weigh-in and a workout set committed concurrently both survive', 
 });
 
 /* ===========================================================================
-   7. THE PINS. The drop-in must not drift from the page it replaces.
+   7. THE PINS. The page and the drop-in must not drift apart.
 
-   REVIEW D2. `String(fn) === String(fn)` was the whole pin, and it is BLIND to
-   what the function closes over: causalTips calls the module-local graphOps and
-   startOrderRefusalOf calls graphOps and reachedFrom, and no assertion compared
-   those. Two functions with identical source text over different helpers satisfy
-   String(a) === String(b) and behave differently — which is exactly the drift the
-   pin exists to catch. So the pin is now THREE things, coarsest first:
-     * the sha256 of each whole today/** file this branch depends on, recorded
-       against the bytes the drop-in and the REQUEST TO PM patch were written
-       for. Anything moving in those files fails here first, by name;
-     * the extracted source of the two module-local helpers, from both files;
-     * String(fn) on the two exported functions, as before.
+   C4b CHANGED WHAT THERE IS TO PIN. Before the swap, causalTips /
+   startOrderRefusalOf existed TWICE — once in gym-host.mjs and once here — and
+   the pin compared their source. Review D2 found that blind to the module-local
+   helpers they close over (graphOps, reachedFrom), so a third layer compared
+   those too. After the swap there is exactly ONE copy of each: gym-host.mjs
+   re-exports today-bindings.mjs, so the comparison is an IDENTITY (===) and no
+   source comparison can drift from it. The helper-source layer is retired
+   because it has nothing left to compare.
+
+   PAGE_PINS stays, re-pinned, with the corrected description review round 2
+   asked for: it is NOT "every today/** file this branch depends on" — the
+   journey imports seven and pins three. It is THE THREE FILES WHOSE DRIFT THIS
+   SUITE COULD NOT OTHERWISE SEE. The other four (design.cjs, gym-app.mjs,
+   gym-model.mjs, today-app.cjs, today-model.cjs) are DRIVEN by the blocks above,
+   so drift in them turns this suite red on its own. today-entry.mjs, gym-host.mjs
+   and reading-host.mjs are the three the swap rests on: if the entry point stops
+   defaulting to the local era, or either wrapper starts opening a store of its
+   own again, every block here would still pass over an injected `hosts`.
    =========================================================================== */
-/* The page files this branch is pinned to, and the bytes they had when the
-   drop-in and §5's patch were written (candidate d9891f0, base 43470fe). A
-   change to any of them is not necessarily wrong — but it must be re-read
-   against today-bindings.mjs and the report's patch before this goes green. */
 export const PAGE_PINS = Object.freeze({
-  'today-entry.mjs': 'fa313c14ef1a962a63086b6efd34938959eea0548ee1f5aa50708027a92e9c98',
-  'gym-host.mjs': '9b018f11ad88903516721f56d5cec54714ceecf15d1a5f288c9c71bdc26c78a2',
-  'reading-host.mjs': 'c28273b8c5b410068cd236a943002147f57dbea7a1c59f55543d9b134cd7dcec',
+  'today-entry.mjs': '4b9a0c218b1c333f9c3c49f418a3a14d9ad31458a00aa19732026fff84571595',
+  'gym-host.mjs': '01b3c813eff92c52af6b91a478fbfb0f4ffe1b4360f9ca86e3eaa743624c6232',
+  'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
 });
 const pageFile = name => fileURLToPath(new URL('../../w7-preview/today/' + name, import.meta.url));
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
-/* A module-local helper, lifted out of a file by its declaration. Used on BOTH
-   files, so the comparison is source against source and not source against a
-   remembered string. */
-function helperSource(text, name) {
-  const declared = ['function ' + name + '(', 'const ' + name + ' = ']
-    .map(form => [form, text.indexOf(form)]).filter(([, at]) => at !== -1);
-  assert.equal(declared.length, 1, 'helper not found exactly once: ' + name);
-  const [form, start] = declared[0];
-  const block = form.startsWith('function');
-  let depth = 0;
-  for (let index = start; index < text.length; index++) {
-    const ch = text[index];
-    if ('({['.includes(ch)) depth++;
-    else if (')}]'.includes(ch)) {
-      depth--;
-      // A `function` declaration ends when its own body closes.
-      if (block && depth === 0 && ch === '}' && index > text.indexOf('{', start)) return text.slice(start, index + 1);
-    } else if (!block && ch === ';' && depth === 0) return text.slice(start, index + 1);
-  }
-  throw new Error('unterminated helper: ' + name);
-}
 
-test('C4 — the drop-in is pinned to the page\'s own hosts', async t => {
-  await t.test('the page files this branch depends on are the bytes it was written against', () => {
+test('C4b — the page and the drop-in are pinned to each other', async t => {
+  await t.test('the three files whose drift this suite could not otherwise see are unchanged', () => {
     for (const [name, expected] of Object.entries(PAGE_PINS)) {
       const actual = sha256(readFileSync(pageFile(name)));
       assert.equal(actual, expected,
-        'rebuild/m3/w7-preview/today/' + name + ' has changed since C4 was written.\n'
+        'rebuild/m3/w7-preview/today/' + name + ' has changed since C4b was written.\n'
         + '  expected sha256 ' + expected + '\n  actual   sha256 ' + actual + '\n'
-        + '  Re-read it against rebuild/m3/w6/local/today-bindings.mjs and the REQUEST TO PM\n'
-        + '  patch in rebuild/lanes/c/C4-ONE-STORE-REPORT.md, then update PAGE_PINS here.');
+        + '  Re-read it against rebuild/m3/w6/local/today-bindings.mjs — in particular that\n'
+        + '  boot() still opens the local era by DEFAULT and that neither wrapper opens a\n'
+        + '  store of its own — then update PAGE_PINS here.');
     }
   });
 
-  await t.test('the module-local helpers those functions close over are the page\'s too', () => {
-    const mine = readFileSync(fileURLToPath(new URL('../local/today-bindings.mjs', import.meta.url)), 'utf8');
-    const page = readFileSync(pageFile('gym-host.mjs'), 'utf8');
-    for (const helper of ['graphOps', 'reachedFrom'])
-      assert.equal(helperSource(mine, helper), helperSource(page, helper),
-        'today-bindings.mjs ' + helper + ' has diverged from gym-host.mjs');
-  });
-
-  await t.test('causalTips and startOrderRefusalOf are the page\'s functions, character for character', () => {
-    assert.equal(String(causalTips), String(GymHost.causalTips));
-    assert.equal(String(startOrderRefusalOf), String(GymHost.startOrderRefusalOf));
+  await t.test('causalTips and startOrderRefusalOf are the SAME functions, not copies of them', () => {
+    assert.equal(GymHost.causalTips, causalTips, 'gym-host.mjs re-exports; it does not restate');
+    assert.equal(GymHost.startOrderRefusalOf, startOrderRefusalOf);
   });
 
   await t.test('the product constants are the page\'s values', () => {
@@ -629,95 +620,71 @@ test('C4 — the drop-in is pinned to the page\'s own hosts', async t => {
     assert.deepEqual(PRODUCER, GymHost.PRODUCER);
   });
 
-  /* REVIEW D3. This pin was `typeof` only, and `typeof null === 'object'`, so a
-     member the drop-in nulled out passed silently. `device` IS null here on
-     purpose — key custody is local-keys.mjs, non-extractable and unexported
-     (report residual 4) — so it is declared, by name, and EVERY OTHER nulled
-     member now fails. The claim in §2 is therefore "every member NAME", which is
-     what this asserts. */
+  await t.test('nothing in today/** mints an identity, a lease or an enrolment any more', () => {
+    for (const name of ['today-entry.mjs', 'gym-host.mjs', 'reading-host.mjs']) {
+      const text = readFileSync(pageFile(name), 'utf8');
+      for (const gone of ['IDENTITY_KEY', 'ENROLMENT_EVIDENCE', 'AUTHORITY_KID', 'mintLease',
+        'initialGeneration', 'signRecord', 'openDeviceKeys', 'generateKey'])
+        assert.equal(text.includes(gone), false, name + ' still carries ' + gone);
+    }
+  });
+
+  /* REVIEW D3, kept. `typeof null === 'object'`, so a member the drop-in nulled
+     out could pass a typeof-only shape check. `device` IS null on purpose — key
+     custody is local-keys.mjs, non-extractable and unexported — so it is declared
+     by name, and EVERY OTHER nulled member fails. Since C4b the page's hosts ARE
+     these hosts, so the comparison runs the other way: the wrapper must carry
+     every member the drop-in returns, and may only ADD to it. */
   const NULLED = new Set(['device']);
 
-  await t.test('the two returned shapes carry every member NAME the page\'s hosts return', async () => {
-    const Reading = await import('../../w7-preview/today/reading-host.mjs');
+  await t.test('the page\'s wrappers carry every member the drop-in returns, and add only identity', async () => {
     const indexedDB = new IDBFactory();
-    const keys = await pageDeviceKeys();
-    const pageReading = await Reading.createReadingHost({ day: DAY, indexedDB, crypto: webcrypto, deviceKeys: keys });
+    const Reading = await import('../../w7-preview/today/reading-host.mjs');
+    const pageReading = await Reading.createReadingHost({ day: DAY, indexedDB, crypto: webcrypto });
     const pageGym = await GymHost.createGymHost({ day: DAY, engineState: createTodayModel({}).stateFromOps(),
-      indexedDB, crypto: webcrypto, deviceKeys: keys, plannedSplitSlotId: SLOT });
+      indexedDB, crypto: webcrypto, plannedSplitSlotId: SLOT });
 
     const era = await load(new IDBFactory(), DAY);
     const mineReading = await era.createReadingHost({ day: DAY });
     const mineGym = await era.createGymHost({ day: DAY, engineState: createTodayModel({}).stateFromOps(),
       plannedSplitSlotId: SLOT });
-    for (const [label, page, mine] of [['reading-host', pageReading, mineReading], ['gym-host', pageGym, mineGym]])
-      for (const member of Object.keys(page)) {
-        assert.equal(typeof mine[member], typeof page[member], label + '.' + member);
-        if (page[member] !== null && mine[member] === null)
-          assert(NULLED.has(member), label + '.' + member + ' is null where the page returns a value, '
-            + 'and is not a declared exception — declare it and say why, or return something honest');
+    for (const [label, page, mine] of [['reading-host', pageReading, mineReading], ['gym-host', pageGym, mineGym]]) {
+      for (const member of Object.keys(mine)) {
+        assert.equal(typeof page[member], typeof mine[member], label + '.' + member);
+        if (mine[member] !== null && page[member] === null)
+          assert(NULLED.has(member), label + '.' + member + ' is null where the drop-in returns a value');
       }
+      const added = Object.keys(page).filter(member => !(member in mine));
+      assert.deepEqual(added.sort(), ['athleteId', 'deviceId'],
+        label + ' may only ADD the installation identity: ' + JSON.stringify(added));
+    }
     // The one declared exception, stated rather than implied.
     assert.equal(mineReading.device, null);
-    assert.equal(mineGym.device, null);
-    assert.equal(mineReading.deviceKeyCustody, 'local-keys.mjs');
-    assert.equal(mineGym.deviceKeyCustody, 'local-keys.mjs');
-    assert.notEqual(pageReading.device, null, 'the page really does return a key record here');
+    assert.equal(pageReading.device, null);
+    assert.equal(pageReading.deviceKeyCustody, 'local-keys.mjs');
+    assert.equal(pageGym.deviceKeyCustody, 'local-keys.mjs');
+    assert.equal(pageReading.athleteId, 'owner');
+    assert.match(pageReading.deviceId, /^device-[0-9a-f]{32}$/);
     pageReading.close(); pageGym.close(); mineReading.close(); mineGym.close(); era.close();
   });
 });
 
 /* ===========================================================================
-   8. THE PROPOSED PATCH — the createWorkoutEntry hunk, read as product code.
+   8. THE PAGE'S OWN createWorkoutEntry, over an INJECTED installation.
 
-   REVIEW D3. This used to claim it was "copied VERBATIM ... with the three lines
-   changed". It is NOT byte-equal to the patch and never was: this file's quote
-   style differs, `createGymHost` is qualified `GymHost.createGymHost` because it
-   is imported as a namespace here, and the patch's own comments are dropped. And
-   the hunk changes FOUR lines, not three, and it is one of the patch's TWO hunks.
-   So, stated honestly: below is today-entry.mjs:23-66 with the FIRST hunk of §5
-   applied by hand, kept because it reads as product code and drives the whole
-   screen. The byte-exact application of BOTH hunks to the real file is block 9.
+   This block used to carry a hand-applied copy of §5's first hunk, because
+   today/** was PM-owned and the patch could not be applied. DECISIONS:106
+   granted it and C4b applied it, so the copy is gone: the function imported and
+   driven here is rebuild/m3/w7-preview/today/today-entry.mjs createWorkoutEntry,
+   unmodified, with `{ hosts: era }` — the injection point the patch added.
    =========================================================================== */
-async function patchedCreateWorkoutEntry(model, options = {}) {
-  const view = model.read();
-  const day = model.today;
-  const { hosts, ...lane } = options;                                   // + patch
-  const openGym = (hosts && hosts.createGymHost) || GymHost.createGymHost;  // + patch
-  const gymHost = await openGym({ day, engineState: model.stateFromOps(),   // ~ patch
-    plannedSplitSlotId: 'earned-today-preview/' + day, ...lane });
-  const hostForDay = other => openGym({ day: other, engineState: model.stateFromOps(),  // ~ patch
-    plannedSplitSlotId: 'earned-today-preview/' + other, ...lane });
-  const gym = createGymModel({ gymHost, hostForDay,
-    sessionTitle: view.workout ? view.workout.title : null });
-  let summary = null;
-  let onRefresh = null;
-  async function refresh() {
-    const read = await gym.read();
-    summary = { phase: read.phase, sets: read.done || 0, code: read.code || null,
-      copy: read.copy || null, unfinished: read.unfinished || null };
-    if (onRefresh) onRefresh();
-    return summary;
-  }
-  async function recover() {
-    if (!summary || !summary.unfinished) return { ok: false, code: 'WORKOUT_RECOVERY_TARGET_REQUIRED' };
-    const result = await gym.closeUnfinished(summary.unfinished);
-    await refresh();
-    return result;
-  }
-  await refresh();
-  return { summary: () => summary, refresh, recover,
-    setOnRefresh(fn) { onRefresh = fn; },
-    open({ doc, phone, back }) { return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh }); },
-    gym, gymHost };
-}
-
-test('C4 — the patched createWorkoutEntry drives Today\'s real screen over the one store', async t => {
+test('C4b — the page\'s createWorkoutEntry drives Today\'s real screen over the one store', async t => {
   const indexedDB = new IDBFactory();
   const era = await load(indexedDB, DAY);
   const readings = await era.createReadingHost({ day: DAY });
   const today = createTodayModel({ today: DAY, readings });
-  // The patched call: ONE option, `hosts`. No indexedDB, no crypto, no deviceKeys.
-  const workout = await patchedCreateWorkoutEntry(today, { hosts: era });
+  // ONE option, `hosts`. No indexedDB, no crypto, no deviceKeys.
+  const workout = await Entry.createWorkoutEntry(today, { hosts: era });
   const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
     { url: 'http://127.0.0.1:4178/' });
   const doc = dom.window.document;
@@ -728,6 +695,7 @@ test('C4 — the patched createWorkoutEntry drives Today\'s real screen over the
     assert.deepEqual(era.ignored(), []);
     assert.match(slot('primary-label'), /^Log the scale$/i);
     assert.equal(workout.summary().phase, 'ready');
+    assert.equal(workout.gymHost.repository, readings.repository, 'one repository handle');
   });
 
   await t.test('after the weigh-in Today offers Start, then Resume, then the review', async () => {
@@ -773,201 +741,121 @@ test('C4 — the patched createWorkoutEntry drives Today\'s real screen over the
 });
 
 /* ===========================================================================
-   9. BOTH HUNKS OF THE REQUEST TO PM PATCH, APPLIED AND EXECUTED (review D1).
+   9. boot() OVER THE LOCAL ERA BY DEFAULT.
 
-   §5 of the report is two hunks. Block 8 reads the first one as product code but
-   is not byte-exact, and NOTHING in this branch executed the second — the boot()
-   hunk, which is the larger and the riskier one: it suppresses openDeviceKeys
-   (`if (!hosts && !device && idb && web)`), rewrites `lane`, and drops `lane`
-   from the reading-host call (`...(hosts ? {} : lane)`). Its central promise —
-   "a page that passes no hosts gets exactly what it gets today" — was asserted,
-   not tested.
+   This block used to apply §5's two hunks to a disposable copy of
+   today-entry.mjs under the OS temp directory and run the patched boot() both
+   ways, because the branch was not allowed to edit the file. The patch is
+   applied now, so the disposable-copy machinery, the six anchors and the
+   report-diff comparison are all gone — there is no unapplied patch left for
+   them to be about. What they existed to prove is asserted directly instead,
+   on the REAL module:
 
-   So: the six anchors below ARE the report's diff, character for character. They
-   are applied to a DISPOSABLE COPY of today-entry.mjs under the OS temp
-   directory; nothing in the tree is written, and the test fails if an anchor
-   matches anything other than exactly once. Then the patched module is run BOTH
-   ways — over the drop-in, and with no `hosts` at all — and the second run is
-   asserted to still open the page's own TWO generations.
-
-   THE ONE CHANGE BEYOND THE PATCH, disclosed: the copy's six relative import
-   specifiers are rewritten to absolute file URLs so the module still resolves to
-   the REAL today/** files from the temp directory. Nothing else is touched, and
-   the rewrite is asserted to be exactly invertible back to the patched text.
+     * boot() with NO hosts opens this device's own local era: ONE generation,
+       ONE self-issued lease, one checkpoint, both write paths in it, and none
+       of the page's three old databases anywhere;
+     * boot() with an INJECTED installation uses that one and mints nothing;
+     * both give the same shape, because they are the same store.
    =========================================================================== */
-const TODAY_DIR = fileURLToPath(new URL('../../w7-preview/today/', import.meta.url));
-export const REQUEST_TO_PM_PATCH = Object.freeze([
-  // --- hunk 1: createWorkoutEntry ---
-  { old: '  const gymHost = await createGymHost({ day, engineState: model.stateFromOps(),\n'
-       + '    plannedSplitSlotId: "earned-today-preview/" + day, ...options });',
-    new: '  /* ONE STORE. `hosts` is the only injection point: a page that supplies one\n'
-       + '     (rebuild/m3/w6/local/today-bindings.mjs openTodayOverLocalEra) puts the\n'
-       + '     weigh-in and the workout in ONE sealed generation; a page that supplies\n'
-       + '     none gets exactly the two synthetic hosts this module built before. */\n'
-       + '  const { hosts, ...lane } = options;\n'
-       + '  const openGym = (hosts && hosts.createGymHost) || createGymHost;\n'
-       + '  const gymHost = await openGym({ day, engineState: model.stateFromOps(),\n'
-       + '    plannedSplitSlotId: "earned-today-preview/" + day, ...lane });' },
-  { old: '  const hostForDay = (other) => createGymHost({ day: other, engineState: model.stateFromOps(),\n'
-       + '    plannedSplitSlotId: "earned-today-preview/" + other, ...options });',
-    new: '  const hostForDay = (other) => openGym({ day: other, engineState: model.stateFromOps(),\n'
-       + '    plannedSplitSlotId: "earned-today-preview/" + other, ...lane });' },
-  // --- hunk 2: boot ---
-  { old: '  const day = options.today || undefined;',
-    new: '  const day = options.today || undefined;\n'
-       + '  /* An injected installation owns the device material: no key is minted here and\n'
-       + '     none is passed down. `era.ignored()` is empty when that is honoured. */\n'
-       + '  const hosts = options.hosts || null;' },
-  { old: '  if (!device && idb && web) {',
-    new: '  if (!hosts && !device && idb && web) {' },
-  { old: '  const lane = { indexedDB: idb, crypto: web, ...(device ? { deviceKeys: device } : {}) };',
-    new: '  const lane = hosts ? { hosts }\n'
-       + '    : { indexedDB: idb, crypto: web, ...(device ? { deviceKeys: device } : {}) };' },
-  { old: '  try { readings = await createReadingHost({ day: day || TodayModel.SYNTHETIC_DAY, ...lane }); }',
-    new: '  const openReading = (hosts && hosts.createReadingHost) || createReadingHost;\n'
-       + '  try { readings = await openReading({ day: day || TodayModel.SYNTHETIC_DAY,\n'
-       + '    ...(hosts ? {} : lane) }); }' },
-]);
+const shellDoc = () => new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+  { url: 'http://127.0.0.1:4178/' }).window.document;
 
-/* Apply the patch to text, refusing anything but exactly one match per anchor. */
-export function applyRequestToPmPatch(text) {
-  const matches = [];
-  for (const hunk of REQUEST_TO_PM_PATCH) {
-    const count = text.split(hunk.old).length - 1;
-    matches.push(count);
-    assert.equal(count, 1, 'anchor did not match exactly once (' + count + '): '
-      + hunk.old.split('\n')[0].trim());
-    text = text.replace(hunk.old, hunk.new);
-  }
-  return { text, matches };
+async function wholeJourney(booted, doc) {
+  const label = () => doc.querySelector('[data-slot="primary-label"]').textContent;
+  assert.match(label(), /^Log the scale$/i);
+  assert.equal((await booted.model.weighIn(179.4)).ok, true);
+  booted.api.render('today');
+  assert.match(label(), /^Start /);
+  await booted.workout.open({ doc, phone: doc.getElementById('phone'),
+    back: () => booted.api.render('today') });
+  const last = await logEverySet(booted.workout.gym);
+  assert.equal((await booted.workout.gym.finish({ startId: last.startId })).ok, true);
+  await booted.workout.refresh();
+  booted.api.render('today');
+  assert.equal(label(), TodayApp.REVIEW_WORKOUT);
 }
 
-test('C4 — both hunks of the REQUEST TO PM patch, applied to a disposable copy and executed', async t => {
-  const original = readFileSync(join(TODAY_DIR, 'today-entry.mjs'), 'utf8');
-  const scratch = join(tmpdir(), 'c4-patch-trial-' + process.pid);
-  let Entry = null, patched = null, matches = null;
+function oneGeneration(generation) {
+  const ops = Object.values(generation.collections.ops);
+  assert.equal(ops.length, 7, 'one reading, one start, four sets, one close — in ONE generation');
+  assert.deepEqual([...new Set(ops.map(op => op.class))].sort(), ['reading', 'session']);
+  assert.deepEqual([...new Set(ops.map(op => op.schema_version))].sort(), [1, 2]);
+  assert.equal([...new Set(ops.map(op => op.lease_id))].length, 1);
+  assert.match(generation.metadata.authorityLease.lease_id, /^local-era:[0-9a-f]{32}$/);
+  assert.equal(generation.metadata.authorityLease.schema_version, LOCAL_ERA_SCHEMA_VERSION);
+  assert.equal(generation.collections.meta.checkpoint.counts.ops, 7);
+  return ops;
+}
 
-  await t.test('the six anchors each match exactly once, and nothing in the tree is written', () => {
-    ({ text: patched, matches } = applyRequestToPmPatch(original));
-    assert.deepEqual(matches, [1, 1, 1, 1, 1, 1]);
-    assert.notEqual(patched, original);
-    for (const marker of ['const { hosts, ...lane } = options;', 'const openGym =',
-      'const hosts = options.hosts || null;', 'if (!hosts && !device && idb && web) {',
-      'const lane = hosts ? { hosts }', 'const openReading ='])
-      assert.equal(patched.split(marker).length - 1, 1, 'expected exactly one: ' + marker);
-    // The tree itself is untouched — this is the file the branch must not edit.
-    assert.equal(readFileSync(join(TODAY_DIR, 'today-entry.mjs'), 'utf8'), original);
-  });
-
-  /* The report's unified diff and the six hunks above must be ONE patch. If they
-     drift, the PM applies something this test never ran. Every line the patch
-     adds has to appear in the report as an added line, and every line it removes
-     as a removed one. */
-  await t.test('the report\'s unified diff is this same patch, line for line', () => {
-    const report = readFileSync(fileURLToPath(
-      new URL('../../../lanes/c/C4-ONE-STORE-REPORT.md', import.meta.url)), 'utf8');
-    for (const hunk of REQUEST_TO_PM_PATCH) {
-      const removed = hunk.old.split('\n');
-      const added = hunk.new.split('\n');
-      for (const line of removed)
-        if (!added.includes(line))
-          assert(report.includes('\n-' + line + '\n'), 'report is missing removed line: ' + line.trim());
-      for (const line of added)
-        if (!removed.includes(line))
-          assert(report.includes('\n+' + line + '\n'), 'report is missing added line: ' + line.trim());
-    }
-  });
-
-  await t.test('the copy differs from the patched text only by its import specifiers', async () => {
-    const dirUrl = pathToFileURL(TODAY_DIR).href;
-    const rewritten = patched.replaceAll('from "./', 'from "' + dirUrl);
-    assert.equal(rewritten.split(dirUrl).length - 1, 6, 'six relative imports rewritten');
-    assert.equal(rewritten.replaceAll('from "' + dirUrl, 'from "./'), patched,
-      'the rewrite must be exactly invertible — nothing else may have changed');
-    mkdirSync(scratch, { recursive: true });
-    const file = join(scratch, 'today-entry.patched.mjs');
-    writeFileSync(file, rewritten);
-    Entry = await import(pathToFileURL(file).href);
-    assert.equal(typeof Entry.boot, 'function');
-    assert.equal(typeof Entry.createWorkoutEntry, 'function');
-  });
-
-  const shell = () => new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
-    { url: 'http://127.0.0.1:4178/' }).window.document;
-
-  await t.test('patched boot({ hosts: era }) drives the whole page over ONE generation', async () => {
+test('C4b — boot() opens the local era BY DEFAULT, and takes an injected one when given', async t => {
+  await t.test('THE DEFAULT: boot() with no hosts puts the whole day in ONE generation', async () => {
     const indexedDB = new IDBFactory();
-    const era = await load(indexedDB, DAY);
-    const doc = shell();
-    const booted = await Entry.boot({ document: doc, today: DAY, hosts: era });
+    const doc = shellDoc();
+    const booted = await Entry.boot({ document: doc, today: DAY, indexedDB, crypto: webcrypto });
     assert.deepEqual(booted.failures, [], 'nothing failed to open');
-    assert.deepEqual(era.ignored(), [], 'the page minted no device keys and passed none down');
-    assert(booted.api && booted.model && booted.workout && booted.readings);
-    // Which hosts were actually built: the drop-in, not the page's synthetic pair.
+    assert.equal(booted.restoreRequired, null);
+    assert(booted.api && booted.model && booted.workout && booted.readings && booted.hosts);
+    // Which hosts were actually built: the local era, not a page-minted pair.
     assert.equal(booted.readings.deviceKeyCustody, 'local-keys.mjs');
     assert.equal(booted.workout.gymHost.deviceKeyCustody, 'local-keys.mjs');
-    assert.equal(booted.workout.gymHost.repository, (await era.createReadingHost({ day: DAY })).repository,
+    assert.equal(booted.workout.gymHost.repository, booted.readings.repository,
       'both hosts hold the SAME repository handle');
+    assert.deepEqual(booted.hosts.ignored(), [], 'the page minted no device material');
 
-    // The whole product journey, through the patched entry point.
-    const label = () => doc.querySelector('[data-slot="primary-label"]').textContent;
-    assert.match(label(), /^Log the scale$/i);
-    assert.equal((await booted.model.weighIn(179.4)).ok, true);
-    booted.api.render('today');
-    assert.match(label(), /^Start /);
-    await booted.workout.open({ doc, phone: doc.getElementById('phone'),
-      back: () => booted.api.render('today') });
-    const last = await logEverySet(booted.workout.gym);
-    assert.equal((await booted.workout.gym.finish({ startId: last.startId })).ok, true);
-    await booted.workout.refresh();
-    booted.api.render('today');
-    assert.equal(label(), TodayApp.REVIEW_WORKOUT);
+    await wholeJourney(booted, doc);
+    oneGeneration((await booted.hosts.generation()).generation);
 
+    /* The page's three old databases were never created, and the only ones on
+       this device are the local era's own three. */
+    const names = (await indexedDB.databases()).map(entry => entry.name).sort();
+    assert.deepEqual(names, [GymHost.DATABASE, GymHost.DATABASE + '-keys',
+      markerDatabaseName(GymHost.DATABASE)].sort(), JSON.stringify(names));
+    for (const gone of ['earned-today-preview-device-keys', 'earned-today-preview-readings',
+      'earned-today-preview-workout']) assert.equal(names.includes(gone), false, gone + ' must not exist');
+    booted.hosts.close();
+  });
+
+  await t.test('AN INJECTED INSTALLATION is used as given, and nothing is minted beside it', async () => {
+    const indexedDB = new IDBFactory();
+    const era = await load(indexedDB, DAY);
+    const doc = shellDoc();
+    const booted = await Entry.boot({ document: doc, today: DAY, hosts: era });
+    assert.deepEqual(booted.failures, []);
+    assert.equal(booted.hosts, era, 'the installation it was handed, not another');
+    assert.deepEqual(era.ignored(), [], 'the page passed no device material down');
+    assert.equal(booted.workout.gymHost.repository, booted.readings.repository);
+
+    await wholeJourney(booted, doc);
     const generation = await genOf(era);
-    const ops = Object.values(generation.collections.ops);
-    assert.equal(ops.length, 7, 'one reading, one start, four sets, one close — in ONE generation');
-    assert.deepEqual([...new Set(ops.map(op => op.class))].sort(), ['reading', 'session']);
-    assert.deepEqual([...new Set(ops.map(op => op.schema_version))].sort(), [1, 2]);
-    assert.equal([...new Set(ops.map(op => op.lease_id))].length, 1);
-    assert.equal(generation.collections.meta.checkpoint.counts.ops, 7);
+    oneGeneration(generation);
+    // Nothing synthetic reached the sealed metadata.
     const sealed = JSON.stringify(generation.metadata);
-    for (const forbidden of [GymHost.IDENTITY_KEY, GymHost.ENROLMENT_EVIDENCE, GymHost.AUTHORITY_KID])
-      assert.equal(sealed.includes(forbidden), false);
-    // And the page's own two databases were never created.
+    for (const forbidden of ['synthetic-preview-identity-not-a-credential',
+      'synthetic-preview-enrolment-only', 'synthetic-preview-authority', 'synthetic-preview-lease'])
+      assert.equal(sealed.includes(forbidden), false, forbidden);
+    // Only the era's own databases exist: no page-minted key store beside them.
     const names = (await indexedDB.databases()).map(entry => entry.name).sort();
     assert.deepEqual(names, [DB, DB + '-keys', DB + '-local'].sort(), JSON.stringify(names));
     era.close();
   });
 
-  await t.test('THE DEFAULT IS PRESERVED: patched boot() with no hosts still opens the page\'s TWO generations', async () => {
+  await t.test('the two routes produce the SAME store, because there is only one', async () => {
     const indexedDB = new IDBFactory();
-    const doc = shell();
-    const booted = await Entry.boot({ document: doc, today: DAY, indexedDB, crypto: webcrypto });
-    assert.deepEqual(booted.failures, [], 'the unpatched path still opens cleanly');
-    assert.equal((await booted.model.weighIn(179.4)).ok, true);
-    assert.equal((await booted.workout.gym.start()).ok, true);
+    const first = await Entry.boot({ document: shellDoc(), today: DAY, indexedDB, crypto: webcrypto });
+    assert.equal((await first.model.weighIn(179.4)).ok, true);
+    const leaseId = (await first.hosts.generation()).generation.metadata.authorityLease.lease_id;
+    first.hosts.close();
 
-    // The page minted its own device keys again, and built its own two hosts.
-    assert.equal(booted.readings.deviceKeyCustody, undefined, 'this is reading-host.mjs, not the drop-in');
-    assert.notEqual(booted.readings.device, null, 'and it holds the page-minted key record');
-    const names = (await indexedDB.databases()).map(entry => entry.name).sort();
-    for (const expected of ['earned-today-preview-device-keys', 'earned-today-preview-readings',
-      'earned-today-preview-workout'])
-      assert(names.includes(expected), 'missing ' + expected + ' — got ' + JSON.stringify(names));
-
-    // TWO generations, and they really are separate: the reading is in one and
-    // the workout in the other, with two different lease_ids.
-    const readingOps = Object.values((await booted.readings.repository.load()).generation.collections.ops || {});
-    const workoutOps = Object.values((await booted.workout.gymHost.repository.load()).generation.collections.ops || {});
-    assert.equal(readingOps.length, 1);
-    assert.equal(readingOps[0].class, 'reading');
-    assert.equal(workoutOps.length, 1);
-    assert.equal(workoutOps[0].kind, 'session-start');
-    assert.equal(booted.readings.lease.schema_version, 1);
-    assert.equal((await booted.workout.gymHost.repository.load()).generation.metadata.authorityLease.schema_version, 2);
-    booted.workout.gymHost.close();
-    booted.readings.close();
+    /* A second page load over the same device, this time handing boot() an
+       installation opened by hand at the page's OWN defaults. Same era, same
+       lease, and the reading from the first load is still there. */
+    const era = await openTodayInstallation({ indexedDB, crypto: webcrypto,
+      databaseName: GymHost.DATABASE, namespace: GymHost.NAMESPACE, clock: clockFor(DAY) });
+    const second = await Entry.boot({ document: shellDoc(), today: DAY, hosts: era });
+    assert.deepEqual(second.failures, []);
+    assert.equal((await era.generation()).generation.metadata.authorityLease.lease_id, leaseId,
+      'the same era — a default boot and an injected one are the same installation');
+    assert.equal(second.model.read().morningRead.lb, 179.4, 'and the first load\'s reading is still there');
+    era.close();
   });
-
-  rmSync(scratch, { recursive: true, force: true });
 });
