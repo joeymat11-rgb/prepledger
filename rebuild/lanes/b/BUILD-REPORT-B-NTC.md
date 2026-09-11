@@ -143,8 +143,32 @@ B PACKAGE B1 FAIL; required evidence missing or failed; local diagnostics withhe
 exit 1
 ```
 
-**No PASS word is claimed, and the FAIL is reported as it happened.** It is also not
-B-NTC-specific: the control package `B1` fails identically on the same tree. The runner
+> **CORRECTED at the r2 fix head (B-NTC-REVIEW-r2 R7 / change 7; `DECISIONS:113 (6)`).**
+> The sentence that used to stand here — *"It is also not B-NTC-specific: the control
+> package `B1` fails identically on the same tree"* — **is wrong twice over, and r2 was
+> right to say so.** B1 does **not** fail identically, and its failure is **caused by
+> B-NTC**. The two refusals are different assertions, and at the r2 fix head the runner
+> names them on stderr (`TOOLING-REVIEW-r5` Z6):
+>
+> | package | named refusal | why |
+> |---|---|---|
+> | **B1**, **B2** | `PARENT-PIN-BROKEN rebuild/m4/workout/engine-runtime.cjs` | **because of B-NTC.** This child re-pins `engine-runtime.cjs` under `DECISIONS:109` PATH A; B1 and B2 still carry the parent's pre-image, so the pin they re-assert at run time no longer holds on this tree. |
+> | **B3**, **B4**, **B-LOM** | `UNLISTED-SOURCE-CHANGE` naming the `b-ntc-*` sources | **because of B-NTC.** Their fidelity scan sees new files under `rebuild/m4/spec/` that their own product inventories do not list. |
+> | **B-NTC** | its own open obligations — see the re-measured terminal below | not this failure at all. |
+>
+> **The cost is real and this package owns it.** B-NTC has made all five sibling lane-B
+> packages unsealable until each re-pins. `DECISIONS:113 (6)` rules the remedy: each of B1,
+> B2, B3, B4 and B-LOM re-takes `engine-runtime.cjs` (and any other child-superseded pin)
+> and lists the `b-ntc-*` sources in its own spec **at its own rebase onto the B-NTC
+> accepted head, recorded in its own brief**; no separate ledger line is needed.
+> `DECISIONS:103 (1)` puts B1 next, so B1 pays this first. The obligation is stated in
+> `BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md` §v1.3 S.
+>
+> The `--ci`/`--full` terminals quoted above are also **superseded**: they were measured
+> under the tooling as it stood before `TOOLING-REVIEW-r5`, when the successor mechanism was
+> refused outright. See §0.5-r2 below for the terminals at this head.
+
+**No PASS word is claimed, and the FAIL is reported as it happened.** The runner
 requires an ACCEPTED envelope and a receipt chain that a **PROPOSED** package cannot have —
 `brief.acceptedLedgerLine` is `null`, `tooling.runnerSha256` is `null`, every authorization
 is `null`, and no `rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json` exists because

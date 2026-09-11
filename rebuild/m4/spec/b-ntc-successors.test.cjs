@@ -2,21 +2,25 @@
 // LANE B — the child-pin refusal controls for the B-NTC successors.
 //
 // B-NTC-REVIEW-r2 R10 / change 10. This suite proves that the actual-child preflight
-// refuses undeclared drift, and the only way to prove that is to introduce some. The
-// version r2 reviewed wrote the drift into three TRACKED files and restored only in a
+// refuses undeclared drift, and the only way to prove that is to present it with some.
+// The version r2 reviewed wrote the drift into three TRACKED files and restored only in a
 // `finally`: killed mid-run it left corrupted bytes in the owner's checkout, and it is
-// declared as a CI child, so a cancelled workflow could do the same. Three things fix it
-// here, and none of them weakens the check:
+// declared as a CI child, so a cancelled workflow could do the same. r2 offered two fixes
+// — copy the tree, or restore on process exit. This takes a third that is stronger than
+// either: **it never writes a tracked byte at all.**
 //
-//   1. the checkout must be CLEAN before the suite touches anything, and clean again after
-//      — `git status --porcelain` over the whole tree, not over the three files, so a
-//      stray edit from an earlier interrupted run is caught rather than carried;
-//   2. every mutation is registered in RESTORE before it is written, and RESTORE is drained
-//      by `process.on('exit')` and by SIGINT/SIGTERM handlers as well as by the `finally`.
-//      An interrupt, an uncaught throw anywhere in the suite, or a `process.exit()` from
-//      node:test itself all put the bytes back. (A SIGKILL cannot be caught by anything in
-//      this process; what covers that case is 1, on the next run.)
-//   3. the mutation window is one write and one assertion, with nothing else inside it.
+// Each drift control runs in its own short-lived CHILD PROCESS which installs a read-only
+// `fs.readFileSync` overlay over exactly one path, in its own process, and then calls
+// `preflight()`. That is the same boundary the check operates at — `preflight()` reads
+// every pin through `fs.readFileSync` — so nothing about the refusal is weakened, while
+// the repository is never opened for writing by this suite in any process. Kill it at any
+// moment, with any signal, and `git status --porcelain` is exactly what it was: there is
+// no window in which it is anything else. The suite asserts that before and after, over
+// tracked files, and the last case asserts the two are the same string.
+//
+// The overlay lives ONLY in the probe child. Case 4 re-asserts that no global filesystem
+// or module-loader hook survives in THIS process, which is the process the seal runner's
+// declared child actually executes.
 const test = require('node:test'), assert = require('node:assert/strict');
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process');
 const root = path.resolve(__dirname, '../../..');
@@ -27,34 +31,39 @@ const S = require('./b-ntc-successors.cjs');
 // directory, and requiring that to be absent would make this suite unrunnable after any
 // gate run for a reason that has nothing to do with the finding.
 const status = () => cp.execFileSync('git', ['status', '--porcelain', '-uno'], { cwd: root, encoding: 'utf8' }).trim();
-const RESTORE = new Map(); // absolute path -> the bytes that stood there before this suite
-function drain() {
-  for (const [p, bytes] of RESTORE) { try { fs.writeFileSync(p, bytes); } catch (_) { /* best effort on the way out */ } }
-  RESTORE.clear();
-}
-process.on('exit', drain);
-for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK'])
-  try { process.on(signal, () => { drain(); process.exit(130); }); } catch (_) { /* not every signal exists on every OS */ }
-
 const CLEAN_AT_START = status();
-assert.equal(CLEAN_AT_START, '', 'B-NTC-REVIEW-r2 change 10: this suite mutates tracked files and refuses to start on a dirty checkout');
 
-// The three candidate-owned paths whose undeclared drift the preflight must refuse: the two
-// the child declares superseded-by-child, and one it declares new.
+// The probe: one path gets two extra comment bytes on the way out of readFileSync, in this
+// child and nowhere else. Everything else reads the real tree, unmodified.
+const PROBE = [
+  'const fs=require("node:fs"),path=require("node:path");',
+  'const target=path.resolve(process.argv[1]);',
+  'const real=fs.readFileSync.bind(fs);',
+  'fs.readFileSync=(file,options)=>{',
+  '  const bytes=real(file,options);',
+  '  if(typeof file!=="string"||path.resolve(file)!==target)return bytes;',
+  '  const drift="\\n// undeclared child drift\\n";',
+  '  return typeof bytes==="string"?bytes+drift:Buffer.concat([bytes,Buffer.from(drift)]);',
+  '};',
+  'require(process.argv[2]).preflight();',
+  'console.log("PREFLIGHT DID NOT REFUSE");',
+].join('\n');
+
 for (const file of ['rebuild/m4/workout/engine-runtime.cjs', '.github/workflows/rebuild.yml', 'rebuild/m4/workout/native-trend-context.cjs']) {
   test('actual-child preflight refuses undeclared drift in ' + file, () => {
-    const p = path.join(root, file), before = fs.readFileSync(p);
-    RESTORE.set(p, before);
-    try {
-      fs.writeFileSync(p, Buffer.concat([before, Buffer.from('\n// undeclared child drift\n')]));
-      assert.throws(() => S.preflight(), /Exact actual child supersession|Exact declared child bytes/);
-    } finally { fs.writeFileSync(p, before); RESTORE.delete(p); }
-    assert(fs.readFileSync(p).equals(before), 'Candidate byte restoration ' + file);
-    assert.equal(status(), '', 'the checkout is clean again after ' + file);
+    const env = { ...process.env };
+    delete env.NODE_TEST_CONTEXT;
+    const r = cp.spawnSync(process.execPath, ['-e', PROBE, path.join(root, file), path.join(__dirname, 'b-ntc-successors.cjs')],
+      { cwd: root, env, encoding: 'utf8', timeout: 600000, maxBuffer: 32 * 1024 * 1024 });
+    assert.notEqual(r.status, 0, 'the drifted tree must refuse: ' + file);
+    assert.match((r.stderr || '') + (r.stdout || ''), /Exact actual child supersession|Exact declared child bytes/,
+      'the refusal must name the child-pin assertion for ' + file);
+    assert.doesNotMatch(r.stdout || '', /PREFLIGHT DID NOT REFUSE/);
+    assert.equal(status(), CLEAN_AT_START, 'no tracked byte moved while proving ' + file);
   });
 }
 
-test('full archived-parent plus actual-child preflight succeeds after all restorations', () => {
+test('full archived-parent plus actual-child preflight succeeds, with no global hook', () => {
   const read = fs.readFileSync, load = require('node:module')._load;
   S.preflight();
   assert.equal(fs.readFileSync, read, 'No global filesystem overlay survives');
@@ -77,5 +86,4 @@ test('the enumerated substitutions are the whole difference from the parent orig
 
 test('the checkout this suite started on is the checkout it leaves', () => {
   assert.equal(status(), CLEAN_AT_START, 'no tracked byte moved across this suite');
-  assert.equal(RESTORE.size, 0, 'no mutation is still outstanding');
 });

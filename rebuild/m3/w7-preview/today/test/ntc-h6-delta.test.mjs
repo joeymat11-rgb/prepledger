@@ -54,6 +54,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
+import { readFile } from 'node:fs/promises'; // B-NTC G6 reads the shipped host source
 import { faultDatabase } from '../../../w6/test/support.mjs';
 import { createGymHost } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../gym-model.mjs';
@@ -393,4 +394,53 @@ test('B-NTC G7/O10 — C4 Last time reads the performed shape on the default qua
   assert.equal(Array.isArray(prev.reps), false, 'a native prev has no `reps` array');
   assert.equal(active.previous, 'Last time: 35 lb × 8');
   handle.host.close();
+});
+
+/* B-NTC G8 — the rirPlan bind window (B-NTC-REVIEW-r2 R11 / change 11).
+   ====================================================================
+
+   r2's bites M8 and M16 removed the `rirPlan` bind scoping from the H6 hunk and
+   found gym + delta + adapter + A0 still at 109/109. That is an honest result
+   and it is why this cell exists: ONE line of the one-hunk licence had no cell
+   at all, and "it survived four suites" is not evidence that it is right.
+
+   WHY THIS CELL IS STRUCTURAL, said plainly. `rirPlan` does not reach the
+   nativeTrendContext resolver on ANY path this product currently drives:
+   rebuild/engine/writers.cjs:757 reads `s.workoutFacts` and walks the performed
+   history through E.performedHistoryMembers / E.performedEntry, and none of
+   those asks for trend context (rebuild/engine/performed.cjs:198-199 is the only
+   site that does, and it is on the recommendation path `genSession` takes). So
+   no BEHAVIOURAL cell can go red when the scoping is removed — not because the
+   scoping is decorative, but because the call it protects has not arrived yet.
+   Writing a behavioural cell here would mean inventing a path the product does
+   not have, and that would be a worse lie than the gap.
+
+   WHAT LANE B DID, AND WHY. The scoping is KEPT, not dropped. The two engine
+   forwarders the host exposes are `genSession` and `rirPlan`; `genSession`
+   demonstrably needs the window, and giving `rirPlan` a different, unscoped
+   binding would mean that the day writers.cjs's performed-history reader does
+   need the context, it would answer from whatever window happened to be open —
+   a fail-OPEN introduced silently by asymmetry. Symmetry is the conservative
+   choice inside a one-hunk licence, and this cell is what makes removing it
+   visible: it reads the shipped source and requires both forwarders to be
+   scoped the same way. Delete the `scoped(...)` wrapper from `rirPlan` and this
+   cell goes RED, which is exactly what r2 change 11 asked for. */
+test('B-NTC G8 — rirPlan and genSession are scoped by the SAME bind window (r2 R11)', async () => {
+  const source = await readFile(new URL('../../../w6/local/today-bindings.mjs', import.meta.url), 'utf8');
+  const forwarders = [...source.matchAll(/^\s*(genSession|rirPlan):\s*\(([^)]*)\)\s*=>\s*(.*)$/gm)]
+    .map(m => ({ name: m[1], args: m[2], body: m[3] }));
+  assert.equal(forwarders.length, 2, 'the host exposes exactly two engine forwarders');
+  assert.deepEqual(forwarders.map(f => f.name).sort(), ['genSession', 'rirPlan']);
+  for (const f of forwarders) {
+    assert.match(f.body, /^scoped\(s && s\.workoutFacts,/,
+      f.name + ' must read through the bind window scoped to its own facts (r2 R11): ' + f.body);
+    assert.match(f.body, new RegExp('runtime\\.' + f.name + '\\('),
+      f.name + ' must forward to the engine runtime and not re-implement anything');
+  }
+  /* And the window itself is fail-closed: with no facts, `scoped` runs the read
+     unbound, and an unbound resolve refuses rather than answering. That refusal
+     is the provider cells' own (native-trend-context.test.cjs, no_bound_source_facts);
+     what is asserted here is that the host does not hold a window open across reads. */
+  assert.match(source, /const scoped = \(facts, run\) => facts \? trendBinding\.withFacts\(facts, run\) : run\(\);/,
+    'the scoping helper is the one-line, per-read, restoring form');
 });

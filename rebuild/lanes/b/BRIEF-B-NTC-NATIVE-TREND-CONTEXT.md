@@ -1,4 +1,129 @@
-# EARNED — B-NTC — QUALIFIED `nativeTrendContext` PROVIDER — behaviour/delta brief v1.2 — **PROPOSED, NOT ACCEPTED**
+# EARNED — B-NTC — QUALIFIED `nativeTrendContext` PROVIDER — behaviour/delta brief v1.3 — **amended by lane B; acceptance line pending (BRIEF-READY)**
+
+---
+
+## v1.3 — WHAT THIS DOCUMENT IS, AND EVERY AMENDMENT SINCE THE ACCEPTED SHA
+
+`DECISIONS:108 (a)` accepted **BRIEF-B-NTC by sha256 `0ba59cca…`** (56 010 B at `68fbca4`).
+This file is no longer those bytes and does not claim to be. It is **not accepted**; it is
+**amended by lane B and READY**, and the acceptance line is pending. `DECISIONS:113 (2)`
+re-accepts the brief BY NAME on the condition that the diff from `0ba59cca…` contains
+nothing but the amendments listed here, and directs that the binding sha256 is the one lane
+B posts in its next `REQUESTS` line once the §5 correction has landed. **This section is
+that list.** A reviewer should be able to take the diff `0ba59cca…` → this file and find
+every hunk in one of these rows and nothing else.
+
+| # | amendment | authority | where |
+|---|---|---|---|
+| 1 | **v1.1** — the r1 review's C1–C5 applied: the identity claim withdrawn and replaced by the re-checked `bindingDigest`, the bind window over `readPrevious()`, both pace holders read with a disagreement refusal, `bind(null)` refusing | `B-NTC-REVIEW-r1.md` ACCEPT WITH CHANGES | §v1.1 |
+| 2 | **v1.1 re-pin** — the child re-pins `engine-runtime.cjs` and its host mirror inside its own seal | `DECISIONS:109` PATH A | §v1.2 1 |
+| 3 | **v1.2 / :109 PATH A** — the option is removed as an option; `EXPOSED` is widened by exactly `dayWeather` and `cleanAtDate`; both :109 obligations discharged | `DECISIONS:109` | §v1.2 1–3 |
+| 4 | **:109 enumeration** — `rebuild.yml`'s A1/A2 step enumerates seven `today/` files | `DECISIONS:109`, `DECISIONS:112 (1)` standing rule | §v1.2 4 |
+| 5 | **C4 join** — the H6 wiring moves to lane C's `rebuild/m3/w6/local/today-bindings.mjs` | `DECISIONS:111`, `:113 (5)` | §v1.2 4, §H6 |
+| 6 | **SUCCESSOR CARRIERS** — the nine inherited gates are carried by lane-B successors that load the parent's own originals; `coverage.moves` stays `{}` | **`DECISIONS:113 (1)`**, ratifying `B-NTC-REVIEW-r2` §E.3, particularising `DECISIONS:112 (1)` | §v1.3 S |
+| 7 | **r2 changes 3, 5** — brief §4 lists **all three** `rebuild.yml` hunks and names the successor evidence for the 19 memory-only tests; §5's false executable claim is corrected and the patch file is deleted | `B-NTC-REVIEW-r2` changes 3–5, `DECISIONS:113 (3)` and `(4)` | §v1.2 4, §v1.2 5 |
+| 8 | **r2 change 7** — the sibling re-pin obligation is stated: B1, B2, B3, B4 and B-LOM each re-pin `engine-runtime.cjs` and list the `b-ntc-*` sources at their own rebase | `B-NTC-REVIEW-r2` change 7, `DECISIONS:113 (6)` | §v1.3 S |
+| 9 | **r2 changes 9, 11, 12, 13** — the BUILD-REPORT counts are re-measured at this head, the `rirPlan` scoping residual is stated, the two retargets are enumerated in the package spec, and §4.2's stale "Refused." sentence is annotated | `B-NTC-REVIEW-r2` | §v1.3 S, §4.2 |
+
+**Nothing in this section is an acceptance and nothing below claims one.** The word
+ACCEPTED appears in this document only inside quotations of ledger lines that exist.
+
+### S. The successor carriers, the substitutions, and the sibling cost
+
+**The nine inherited gates.** `DECISIONS:109` PATH A makes this child re-pin
+`rebuild/m4/workout/engine-runtime.cjs`, so the accepted parent `M2-NATIVE-CARRIERS` refuses
+the child's bytes — by design, and the PM says so in terms ("no separate parent re-seal is
+needed or wanted"). The gates behind that pin are still worth running against the child's
+bytes. `DECISIONS:113 (1)` rules how: **`coverage.moves` stays `{}`** (condition a) and
+`coverage.inherited` — which is held byte-for-byte to the parent artifact's own
+`coverage.byChild` — names a **successor executable** per parent child name. X1 is not
+widened, for this package or any other.
+
+Ten successors are declared (`rebuild/m4/spec/b-ntc-*.cjs`), of which five carry the nine
+inherited gates: `source-carriers` (migrate-source, merge-source, writers-source),
+`inherited-carriers` (witnesses-2, witnesses-5, migrate-differential), `defect-witnesses`
+(witnesses-7), `writers-differential`, `second-gate`. Each **loads** the parent carrier's own
+original body — never a copy — in a private module that does not enter `require.cache`, and
+`rebuild/lanes/b/tooling/b-package.cjs` proves that before it admits a single gate: the
+original's sha256 equals the parent artifact's `executionPins` entry **and** the Git blob at
+the parent acceptance commit `b95ccca…` (itself asserted to be on the chain branch and
+behind HEAD); the successor's source closure **names** the original and contains none of its
+lines; and each successor is held to the parent wrapper's **own accepted verdict in full**
+(`NATIVE SOURCE CARRIERS: 6/6 PASS;`, not the prefix).
+
+**The text substitutions, verbatim — there are three.** `DECISIONS:113 (1) (c)` permits only
+a pin re-target made necessary by a declared `superseded-by-child` product path, and requires
+every one to be enumerated verbatim in the package spec. They are in
+`packages/B-NTC.json` `coverage.successors.substitutions` and in `b-ntc-successors.cjs`'s own
+`SUBSTITUTIONS` table, which the runner deep-equals against the spec:
+
+1. `native-carriers-source.cjs` — `'rebuild/m4/workout/engine-runtime.cjs':'9be21897…'` →
+   `…:'c03732e8…'`. **This is the pin re-target (c) is literally about.**
+2. `native-carriers-witnesses.cjs` — the exposed-surface `deepEqual` from the two-name
+   `['genSession','rirPlan']` to the four-name `['cleanAtDate','dayWeather','genSession','rirPlan']`.
+   Still an exact `deepEqual`; not relaxed.
+3. `native-carriers-cases.cjs` — the mutant detector's target from
+   `rebuild/m4/workout/test/native-next-targets.test.cjs` to
+   `rebuild/m4/spec/b-ntc-native-next-targets.test.cjs`. The detector itself is unchanged.
+
+`DECISIONS:113 (1) (c)`'s parenthetical names **two** ("the `witnesses` exposed-surface
+`deepEqual` and the `cases` mutant-detector target") because `B-NTC-REVIEW-r2` §E.2 counted
+the substitutions applied to **gate bodies**; the SUPPORT pin re-target is recorded
+separately in r2 §E.1. Lane B states all three here rather than carry a count. **A fourth
+substitution that the withdrawn candidate performed — rewriting each original's
+`if(require.main===module)` guard to `if(true)` — is gone.** It was not a pin re-target and
+(c) does not permit it; the successor now makes the entry module the main module for the
+duration of its own compile and restores that in a `finally`, so the guard is answered and
+no original byte moves.
+
+**What this does not prove (r2 R12).** The three strings above decide which parent
+assertions survive. A future pass that weakened one and regenerated the spec pin in the same
+commit would still refuse — the runner deep-equals the successor's own table against the
+spec's list — but a pass that weakened **both in lockstep** is caught by a reviewer reading
+these three rows and by nothing else. That is stated, not hidden.
+
+**The sibling cost, owned (r2 R7 / change 7, `DECISIONS:113 (6)`).** This child's re-pin of
+`engine-runtime.cjs` makes every sibling lane-B package unsealable until it re-pins. Measured
+at this head: **B1 and B2** refuse `PARENT-PIN-BROKEN rebuild/m4/workout/engine-runtime.cjs`;
+**B3, B4 and B-LOM** refuse `UNLISTED-SOURCE-CHANGE` naming the `b-ntc-*` sources. `:113 (6)`
+agrees the remedy: each of B1, B2, B3, B4 and B-LOM **re-takes `engine-runtime.cjs` (and any
+other child-superseded pin) and lists the `b-ntc-*` sources in its own spec at its own rebase
+onto the B-NTC accepted head, recorded in its own brief**; no separate ledger line is needed.
+`DECISIONS:103 (1)` puts B1 next, so B1 pays this first.
+
+### R. The `rirPlan` bind window — KEPT, with a cell, and the reason said out loud
+
+`B-NTC-REVIEW-r2` R11 / change 11: one line of the one-hunk licence had no cell. r2's bites
+M8 and M16 removed the `rirPlan` bind scoping and found gym + delta + adapter + A0 still at
+**109/109**. r2 asked for a cell that goes red when it is unscoped, **or** for the scoping to
+be dropped. Lane B **kept it and wrote the cell**:
+`rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs` `B-NTC G8 — rirPlan and genSession
+are scoped by the SAME bind window (r2 R11)`.
+
+**Why the cell is structural, and why that is the honest form here.** `rirPlan` does not
+reach the `nativeTrendContext` resolver on any path this product drives:
+`rebuild/engine/writers.cjs:757` reads `s.workoutFacts` and walks the performed history
+through `E.performedHistoryMembers` / `E.performedEntry`; the only site that asks for trend
+context is `rebuild/engine/performed.cjs:198-199`, on the recommendation path `genSession`
+takes. So **no behavioural cell can go red when the scoping is removed** — not because the
+scoping is decorative, but because the call it protects has not arrived. Inventing a path
+the product does not have, purely to make a cell bite, would be a worse lie than the gap.
+
+**Why KEEP rather than DROP.** The host exposes exactly two engine forwarders. `genSession`
+demonstrably needs the window. Giving `rirPlan` a different, *unscoped* binding means that on
+the day `writers.cjs`'s performed-history reader does need the context, it answers from
+whatever window happens to be open — a fail-OPEN introduced silently by asymmetry. Symmetry
+is the conservative choice inside a one-hunk licence.
+
+**Measured, both ways.** With the scoping removed exactly as M8 removed it
+(`rirPlan: (s, ex, slp) => runtime.rirPlan(s, ex, slp)`), on a restored-byte-identical bite:
+`ntc-h6-delta` **8 tests / 7 pass / 1 fail**, `not ok 8 - B-NTC G8`; `gym` **64/64 exit 0**
+and `adapter` **20/20 exit 0** — r2's M8/M16 result reproduced exactly, and now with one
+cell that notices. The file restored byte-identically (`b243257a…` before and after).
+
+**The residual that remains.** The cell proves the shipped source keeps both forwarders on
+the same window. It does not prove the window is semantically required for `rirPlan`,
+because nothing today requires it. That is the residual, and it is a residual, not a claim.
 
 ---
 
@@ -105,7 +230,59 @@ set logged → closed, ops 12 → 19, three durable sessions. Provider cell
 |---|---|---|
 | `rebuild/m3/w6/host/test/journey.test.mjs` | step 14's two byte pins re-pinned; one new assertion on `COMPOSITION.exposed` | it pins `engine-runtime.cjs` and its mirror by sha256; the re-pin is the mechanical consequence, and the new assertion states the surface rather than only its bytes |
 | `rebuild/m3/w7-preview/today/test/gym.test.mjs` | three subtests re-authored | DECISIONS:109's own words: "A2's spike table becomes delta cells". These three were A2-REPORT §9.1's spike, locked at the old wall. Counts unchanged: **59/59**. |
-| `.github/workflows/rebuild.yml` | the A1/A2 step now enumerates seven files | :109's bundled tooling item: `checkin.test.mjs` (A3's suite, deferred by :99/:101/:102 and never picked up) and `ntc-h6-delta.test.mjs` had no CI home at all |
+| `.github/workflows/rebuild.yml` **hunk 1 of 3** | the A1/A2 step now enumerates **seven** files and is renamed A1/A2/A3 | :109's bundled tooling item: `checkin.test.mjs` (A3's suite, deferred by :99/:101/:102 and never picked up) and `ntc-h6-delta.test.mjs` had no CI home at all. Measured at this head: **164/164, exit 0** |
+| `.github/workflows/rebuild.yml` **hunk 2 of 3** | the step `Cumulative extracted-engine native-carrier and legacy-census evidence` (`node rebuild/m4/spec/native-carriers-package.cjs --ci`) is **REPLACED** by `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` | `DECISIONS:113 (3)`: "replacing the parent's step with the child's step IS the correct supersession (the precedent is line 98 …) — do NOT restore it, it would make CI permanently red on the child tree". The parent wrapper refuses the child's `engine-runtime` bytes by design. **Role `superseded-by-child`; the parent's wrapper bytes are untouched.** |
+| `.github/workflows/rebuild.yml` **hunk 3 of 3** | the step `Synthetic Today projection, UI and preview package` (`rebuild/m3/w7-preview/test/{model,view,package}.test.cjs`, **19 tests**) is **DELETED** | `DECISIONS:109`'s pass-19 retirement, confirmed by `DECISIONS:113 (3)`: "deleting the memory-only step IS the :109 pass-19 retirement — keep it deleted". The successor evidence is **named below**, not asserted in a YAML comment |
+
+**r2 R3 was right about disclosure and the PM has ruled on substance.** The table above now
+carries all three hunks. `DECISIONS:113 (3)` rules that both removals are correct and are not
+to be restored; what was wrong was that the previous version of this table named only one of
+them. It names three now.
+
+#### 4.1 The successor evidence for the 19 memory-only tests, cell by cell
+
+`DECISIONS:109` retires the `# pass 19` child "with the successor evidence named", and
+`:113 (3)` names it: "the enumerated today/gym/checkin step + the A0 step". Lane B verified
+that concretely rather than asserting it. The retired file still runs at this head —
+`node --test rebuild/m3/w7-preview/test/{model,view,package}.test.cjs` → **19/19, exit 0** —
+and it stays in Git; what it loses is its CI home. Here is what now asserts what:
+
+| # | retired memory-only cell | successor that asserts it now |
+|---|---|---|
+| model 1–2 | actual engine exact projection parity: morning, logged and reset (native + frozen Date) | A0 `engine-equivalence.test.cjs`; `today/adapter` "the composed engine's applyRead is byte-identical to the full engine's" and "stateFromOps equals the reference engine's own applyRead result" |
+| model 3 | all exposed reader DTOs exactly match independently projected actual engine | `today/adapter` "every number in the view DTO is reproduced independently from the engine"; `today/view` "every figure on Today equals the reference engine's own value, slot by slot" |
+| model 4 | preview-only morning edit equals actual applyRead for quiet, noise and spike inputs | `today/view` "a weigh-in through the sheet rebinds every engine-derived value on Today" and "a spike reading renders the ENGINE's own note beside it; a quiet reading renders none"; `today/adapter` "the engine's note on a reading reaches the DTO verbatim" |
+| model 7 | invalid or duplicate preview inputs leave every state byte unchanged | `today/adapter` "an invalid value is refused by the CLIENT, in the client's own words", "a repeat same-day weigh-in is refused, and the log and the screen never disagree", "an impossible weight is refused in words and reaches the log nowhere"; `today/view` "a refused weigh-in leaves Today exactly as it was" |
+| view 1–2 | morning shows yesterday's engine plan / keyboard weigh-in updates every engine-derived value | `today/view` "Today paints the approved design from engine values only" and "a weigh-in through the sheet rebinds every engine-derived value on Today" |
+| view 3 | cancel, invalid input and reload never keep an entry | `today/view` "an empty box is refused by the CLIENT, in the client's own words", "a refused weigh-in leaves Today exactly as it was", "a reload of the page restores the stored weigh-in on screen" |
+| view 4 | Why replaces every sample explanation; Back and unbuilt workout are honest | `today/view` "Why this plan shows only the engine's own explanations" and "every screen this slice does not build says so and shows no invented value" |
+| view 5 | exact numerical mock claims cannot silently survive a template drift | `today/design` "an invented class, an invented phrase or a copied figure fails the binding" and "the template carries no figure at all"; `today/view` "not one digit appears on Today outside a bound slot" |
+| package 1 | built package contains only the three reviewed assets | `today/package` "the built package is exactly the three reviewed assets" |
+| package 2 | template and style bytes copied from the pinned public mock | `today/design` "both approved references are pinned by sha256 and read byte-for-byte"; `today/package` "the approved design is pinned by sha256 and a changed byte fails the build" |
+| package 3 | bundle uses only explicit read modules; rejects private, writer and external inputs | `today/package` "the bundle carries the real engine and the real client and nothing forbidden" and "no athlete data and no credential is shipped in the bundle" |
+| package 4 | an extra build asset blocks serving and a rebuild removes only that extra file | `today/package`, **the same cell by name** |
+| package 5 | local server serves built assets with network/worker/cache restrictions | `today/package` "the local server serves the three assets on 127.0.0.1 with no application network" and "the page fetches nothing: no remote origin in any shipped asset" |
+| package 6 | source, private paths, traversal and writes cannot reach the repository | `today/package`, **the same cell by name** |
+
+**Three of the nineteen have NO successor, and lane B says so rather than claiming
+fifteen-out-of-fifteen.** They are:
+
+* **model 5** — "yesterday plan has its own as-of clock and does not change after today's
+  preview entry". The durable suites assert that the instruction changes *because the engine
+  changed* (`today/adapter`) and that a reload restores the stored weigh-in (`today/view`),
+  but nothing asserts the as-of clock of *yesterday's* plan specifically. **Partial.**
+* **model 6** — "reset and a new page model discard edits without persistence or sync
+  claims". Its subject is retired, not superseded: in the durable world there is no
+  discard-without-persistence path — `today/adapter` asserts the opposite property, that a
+  weigh-in is one durable transaction. **No successor, and none is wanted.**
+* **model 8** — "returned views and snapshots cannot mutate the model". An immutability
+  property of the memory-only preview object. **No successor.** Nothing in the durable
+  suites asserts that a returned DTO cannot be written through.
+
+`DECISIONS:113 (3)` rules the step deleted and says "do NOT restore it", so lane B does not
+restore it; what lane B will not do is call three orphaned assertions covered. They are
+recorded here and in `FIX-REPORT-B-NTC-r2.md` as a residual for whoever owns the w7-preview
+memory-only model next. The files are unchanged in Git and run green today.
 
 **One behaviour change found while re-authoring, and it is NOT papered over.** A2's
 "a SECOND session on the same day is refused" cell used to pass because `prepareWorkout`
@@ -115,16 +292,41 @@ re-authored to assert the guard that actually has to hold, and the guard holds: 
 refuses the Start with its own `WORKOUT_NOT_READY`, the op count is unchanged, and the log
 still carries exactly the two sessions. Measured, not assumed.
 
-### 5. The one thing this pass did NOT do, named
+### 5. The pass-19 retirement — CORRECTED (r2 R4 / change 4, `DECISIONS:113 (4)`)
 
-DECISIONS:109 bundles a third tooling item: "retire the old memory-only w7-preview child
-(`# pass 19`) from the wrapper together with its CI step, with the successor evidence
-named." The **enumeration half is applied**; the **retirement half is written out and NOT
-applied**, as a real verified diff at `rebuild/lanes/b/ntc/pass19-retirement.patch`
-(`git apply --check` exit 0). The three reasons are in that file's header: it was outside
-this pass's dispatch, it deletes executed evidence that nothing this package owns covers,
-and "successor evidence named" is a judgment recorded in the PM's own wrapper file. One
-command lands it.
+**What this section used to say was false at the head r2 reviewed, and it is withdrawn.**
+It said the retirement was "written out and NOT applied, as a real verified diff at
+`rebuild/lanes/b/ntc/pass19-retirement.patch` (`git apply --check` exit 0) … One command
+lands it." r2 ran that command: **`git apply --check` exited 1**,
+`error: patch failed: .github/workflows/rebuild.yml:76 … patch does not apply` — the patch
+had been superseded by the very commit that rewrote that region. The brief was making an
+executable claim that did not execute. Lane B confirms r2's measurement and does not
+re-state the claim in any form.
+
+**What the retirement actually is, per `DECISIONS:113 (4)`, verbatim:** "the parent wrapper
+`rebuild/m4/spec/native-carriers-package.cjs` is NOT edited (its bytes are the accepted
+parent's, role superseded-by-child); the retirement is complete when the child's spec omits
+that child, the CI step is gone and the successors are named — delete
+`rebuild/lanes/b/ntc/pass19-retirement.patch` and correct brief §5 to say exactly this."
+
+That is done, and each half is checkable:
+
+* **the child's spec omits it.** `packages/B-NTC.json` declares fifteen children and
+  `browser-package` (`# pass 19`) is not one of them.
+* **the CI step is gone.** `.github/workflows/rebuild.yml` hunk 3 of 3, §4 above.
+* **the successors are named.** §4.1 above, cell by cell, including the **three** that have
+  no successor and are recorded as a residual rather than claimed.
+* **the parent wrapper is untouched.** `git diff origin/rebuild/t2-client-core HEAD --
+  rebuild/m4/spec/native-carriers-package.cjs` is empty; its `# pass 19` child is still
+  declared at line 65 and its bytes still equal the parent's execution pin — which is what
+  lets every successor in §S load the parent's own originals at all. Its role in this
+  package's product map is `superseded-by-child`, exactly as the ruling says.
+* **the patch file is deleted.** So are the other two carried patches,
+  `gym-host.wiring.patch` and `gym-model.previousLine.patch`: r2 §G.1 measured both at
+  `git apply --check` **exit 1** as well (`gym-host.mjs:25`, `gym-model.mjs:139`), both
+  superseded by the C4 integration and the r1 fix passes. Three documents describing a tree
+  that no longer exists are worse than none, and this brief cited one of them as executable
+  evidence. They are gone; the work they described is in the tree and in §4 and §H6.
 
 ### 6. Q1 in §12 is ANSWERED; §12's other questions stand
 
@@ -567,6 +769,21 @@ the accepted tree, and says so rather than working around it:**
   the accepted parent artifact**: `rebuild/m4/spec/native-carriers-witnesses.cjs:16` asserts
   `assert.deepEqual(COMPOSITION.exposed.slice().sort(),['genSession','rirPlan'],'Exposed reader surface');`
   Adding two names to `EXPOSED` turns `native-carriers --ci` RED. **Refused.**
+
+  > **SUPERSEDED — read §v1.2 1 and §v1.3 S instead (B-NTC-REVIEW-r2 R13 / change 13).**
+  > This bullet is v1 text and it is **the opposite of what this head does**. The bullet's
+  > *reasoning* still holds — adding two names to `EXPOSED` does turn the ACCEPTED PARENT's
+  > `native-carriers-package.cjs --ci` RED, and that is measured and quoted in
+  > `BUILD-REPORT-B-NTC.md` — but the conclusion "Refused." was overtaken by
+  > `DECISIONS:109` PATH A, which rules the widening IN and rules that **the child re-pins
+  > it** rather than the parent re-sealing it. `EXPOSED` is
+  > `['genSession','rirPlan','dayWeather','cleanAtDate']` at this head, the parent's refusal
+  > is by design and is not to be repaired, and the nine gates behind that pin are carried
+  > by the successors of §v1.3 S under `DECISIONS:113 (1)`. v1.2's blanket instruction
+  > ("where v1.1 said 'behind an option', read 'as the behaviour'") covers this sentence,
+  > but r2 was right that a reader arriving at §4.2 alone would be misled, so it is
+  > annotated here in place rather than left to a cross-reference.
+
 * Composing a second engine to reach them is forbidden (`DECISIONS:102`, A2: "no second
   engine, no second capture path").
 * Copying the two bodies here is the "copied second implementation"
