@@ -1,8 +1,10 @@
 # C5 — VOICE COACH: tool contract + text-first prototype (BUILDER REPORT)
 
 Lane C, branch `rebuild/lane-c-coach`, **rebased onto `origin/rebuild/t2-client-core`
-@ `5dc9254`** (the tip that carries C1/C2's `rebuild/m3/w6/local/**`, the port under
-`rebuild/m3/setup/port`, and A3's recovery check-in). Owner ruling DECISIONS:89;
+@ `3bb2802`** after review round 1 (round 1 was written on `5dc9254`; the rebase
+was clean — this branch is additions-only under `rebuild/coach/**` and
+`rebuild/lanes/c/**`). That tip carries C1/C2's `rebuild/m3/w6/local/**`, the port under
+`rebuild/m3/setup/port`, and A3's recovery check-in. Owner ruling DECISIONS:89;
 brief `rebuild/coach/VOICE-COACH-BRIEF.md` (read, not edited — it is the ruling).
 
 **Isolated. Nothing outside `rebuild/coach/**` and this file is touched**, and the
@@ -14,41 +16,53 @@ task; the cap gate is built and proved instead.
 
 ## Files
 
+Refreshed after review round 1 (see the section at the end). Changed rows are
+marked **†**.
+
 | file | lines | sha256 |
 |---|---|---|
-| `rebuild/coach/TOOL-CONTRACT.md` | 400 | `2f742c6dd05f38f7cd821c12c0ed6aba2f0160829449246fcb51e89de8764a7c` |
-| `rebuild/coach/tools.cjs` | 793 | `5cf96668d30568d2593cfb6dc7a439affa62d77a1c9a8399f10d5f34f9a3da3a` |
+| `rebuild/coach/TOOL-CONTRACT.md` **†** | 428 | `58c8239083359ead4555c13518b2f072797784f25404d54b7a17e12c97a4ea82` |
+| `rebuild/coach/tools.cjs` **†** | 982 | `897b179d08e6902bfd1f681c6f03ae758b10ca96a3d592aab69b2fb68a8526f6` |
 | `rebuild/coach/local-world.mjs` | 183 | `776c4f307007c0d41d7afc449f1357a2aebcd05a25dedf7d0ecb2e79e3abf632` |
-| `rebuild/coach/coach-text.cjs` | 249 | `d2b3912a7676490da7cb81b551db65404f0c115f8662e2a9551367ae700ce3bc` |
-| `rebuild/coach/model-adapter.md` | 146 | `61cbf46f46bcbe2819f8f08d7a6b71b9a0b1826eb09c6138b4954fb0a56e97e5` |
+| `rebuild/coach/coach-text.cjs` **†** | 266 | `683c01ad998c8cd3e9cbe9ee86813b85d47fbcaae6e138b715a26f8467c2d2c9` |
+| `rebuild/coach/model-adapter.md` **†** | 171 | `9dd1df59c4d5884d436929234507ee4a1098f61d8c86443643a0158e9eb84510` |
 | `rebuild/coach/scripts/questions.json` | 35 | `b50281309960805b00c7f9105616795388bdda9a17ed2e63869daa71dfdcee04` |
 | `rebuild/coach/cap.schema.json` | 26 | `8bdb19765cc8a0fa9607aae86fe0d9aa2dff6dc1dedf694d73ecf3c89ac690bf` |
 | `rebuild/coach/cap.example.json` | 14 | `341d8e4d01d9509d6a5e37876f9e1276c6335799d5b5402434f3b20b0a3b96da` |
-| `rebuild/coach/test/traceability.test.cjs` | 112 | `97117a8baee65ee61d6f73d8c6aa0738a805462f660b479618eed356a8f409ec` |
-| `rebuild/coach/test/tiers.test.cjs` | 209 | `b35c200404a15bc70af4e6912fbe30bf88daafbd525684336615bc71c2486a29` |
+| `rebuild/coach/test/traceability.test.cjs` **†** | 211 | `48422081a84538a86ba102d51a2e8636dbb2101316bda5504a36f8ec6857e105` |
+| `rebuild/coach/test/tiers.test.cjs` **†** | 296 | `f83c73cb0be445631e65bd5c46d2c0b33600cb5f5b0eb17c4691cb421c52c9d8` |
 | `rebuild/coach/test/local-era.test.cjs` | 225 | `304a310676a6c025f1d68f5da3e8d3044b9abc17c306d0e6db02608c3921e983` |
-| `rebuild/coach/test/cost-cap.test.cjs` | 115 | `ca557a6e1e59d789dbff0041148d94b9e282f7b2da6041a6a796d21760ecc6ce` |
+| `rebuild/coach/test/cost-cap.test.cjs` **†** | 213 | `73f3ee62a0c1ed9632b309b5ff854a0c586e2b3b9625289ab1280815977a4406` |
 | `rebuild/coach/test/charter-and-gym-seam.test.cjs` | 152 | `868d8f19fa3e162a045c28914e1517cad364d1868b966b411de820afd0fc8281` |
 | `rebuild/coach/VOICE-COACH-BRIEF.md` (unchanged) | 35 | `5d66dc611217f0a6f09dc12da721ee81d6bd4a6a2d706a4dfea84e8e966e3510` |
 
-## Commands and counts (Windows, PowerShell 5.1, node v24.19.0)
+## Commands and counts (Windows, cmd.exe, node **v24.18.0**)
 
-Node is called directly:
-`& 'C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe'`
+Node version MEASURED, not remembered: `node --version` on this PC prints
+`v24.18.0`. The first round of this report said v24.19.0 and was wrong (review
+C6(ii)); the reviewer measured v24.18.0 too.
 
 ```
 node --test "rebuild/coach/test/*.test.cjs"
-    tests 46 · pass 46 · fail 0 · skipped 0 · todo 0 · duration_ms 374.8
+    tests 54 · suites 0 · pass 54 · fail 0 · cancelled 0 · skipped 0 · todo 0
+    duration_ms 357.7
 ```
 (the quoted glob matters — `node --test rebuild/coach/test/` treats the directory
 as a single test file on this build and fails.)
 
+**The one-line `test` script** for whoever adds the CI step (review C7 — I did not
+edit `.github`, it is PM-owned):
+`"test": "node --test \"rebuild/coach/test/*.test.cjs\""`.
+It needs no dependency, no `package.json` and no install: the suite is plain
+`node:test` + `node:assert`, and `fake-indexeddb` is reached through
+`rebuild/m3/w6/test/support.mjs` exactly as the A2 and C4 suites reach it.
+
 | suite | tests | result |
 |---|---|---|
-| `traceability.test.cjs` | 10 | pass |
-| `tiers.test.cjs` | 11 | pass |
+| `traceability.test.cjs` | 14 | pass |
+| `tiers.test.cjs` | 12 | pass |
 | `local-era.test.cjs` | 9 | pass |
-| `cost-cap.test.cjs` | 8 | pass |
+| `cost-cap.test.cjs` | 11 | pass |
 | `charter-and-gym-seam.test.cjs` | 8 | pass |
 
 ```
@@ -162,16 +176,26 @@ leaves the durable store byte-identical; accepting without `confirmed:true` leav
 it byte-identical and records no answer; with the yes,
 `done.accepted.proposal` **deep-equals** the engine's own object (recomputed
 independently from `volumeImbalance` — `hams`, 4 weekly sets now, `need` 6, `why`
-verbatim), the reason is stored, and the yes lands as a `proposal-response`
-operation in `client.face().answers` with the same `op_id`. `request_replan`
-refuses any numeric argument and any id the engine did not issue.
+verbatim), the reason is stored **in this process**, and the yes lands as a
+`proposal-response` operation in `client.face().answers` with the same `op_id`.
+The reason is **not on disk** — the suite now asserts that gap explicitly (see
+C3 below). `request_replan` refuses **a number anywhere in its payload — top
+level, nested in an object, or inside an array, to depth 8** — and any id the
+engine did not issue. A numeric STRING (`"7"`, `"make it 7 sets"`) is accepted
+and reaches nothing: the issued body and the proposal id are byte-identical to
+the clean call, and the suite asserts that equality rather than claiming a
+refusal that does not happen.
 
 **(c) TIER 3.** All five topics refused with an explanation, `state_unchanged`,
 store byte-identical.
 
 **(d) COST CAP.** No record → refuse. Nine invalid shapes refuse with a reason.
-Ten credential shapes refuse the record. A perfect cap plus opt-in **still** starts
-nothing (`COACH_NO_LIVE_ADAPTER`). A test greps `tools.cjs` for escape hatches
+Ten credential shapes refuse the record. **`cap.example.json` itself refuses** —
+any record carrying an annotation key is not a cap on an account (C1), and the
+suite's happy path is a synthetic live-shaped record, not the placeholder file.
+The opt-in is **per user**: a bare `true`, a missing user and another user's
+record all refuse (C4). A verified cap plus that user's own opt-in **still**
+starts nothing (`COACH_NO_LIVE_ADAPTER`). A test greps `tools.cjs` for escape hatches
 (identifier-boundary, so "enforces" is not mistaken for "force") and greps all
 three source files for network symbols — none present.
 
@@ -205,10 +229,12 @@ reversible without touching the tool contract.
 - **No UI.** The approved design's Coach tab ("quiet Today and contextual entries
   to the already approved staged conversation", Additions C point 5) is not built.
 - **No cap on any account.** `cap.example.json` is labelled SHAPE ONLY in its own
-  first field. The gate exists and refuses; the cap itself is an owner action on
-  the provider's billing page.
+  first field, and since round 1 the verifier **refuses it by name**. The gate
+  exists and refuses; the cap itself is an owner action on the provider's billing
+  page.
 - **No opt-in screen built.** The words are drafted in `model-adapter.md` §5 and
-  `startLiveSession()` refuses without `optIn: true`. Nobody has seen the screen.
+  `startLiveSession({cap, now, optIn, user})` refuses without a per-user opt-in
+  record. Nobody has seen the screen; what exists is the gate it will feed.
 - **Dad's hand test is later** — after Joe's own week of use, per the brief.
 - **Not run here:** the W6 suite, the A1/A2/A3/A5 suites, `--ci`, `--full`.
   Untouched by construction; this branch adds only `rebuild/coach/**` and this
@@ -236,3 +262,213 @@ reversible without touching the tool contract.
 4. **B-NTC** (`PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`) → the coach can see more
    than one training day for a fresh athlete.
 5. Only then a model adapter, and only behind a real cap.
+
+## Review round 1 — conditions applied
+
+Independent review: `rebuild/lanes/c/C5-COACH-REVIEW.md` (copied into this branch
+byte-identical from the reviewer's commit `022ae8a`). Verdict **ACCEPT WITH
+CONDITIONS**, reviewed at `e576905`. All seven conditions are addressed below;
+every one was written RED first and is quoted with the measurement, not a claim.
+
+Suite: **46 → 54** tests, 54 pass / 0 fail, measured on the head **after** the
+rebase onto `origin/rebuild/t2-client-core` @ `3bb2802`. CLI unchanged at 25
+turns · 0 untraceable · 0 charter violations. Isolation re-verified on the
+rebased head: `git diff --stat 3bb2802..HEAD -- rebuild/m3 rebuild/engine
+rebuild/client rebuild/conform rebuild/m4 .github` is **empty**, and
+`git diff --stat 3bb2802..HEAD` is 15 files, **3979 insertions, 0 deletions** —
+`rebuild/coach/**` plus this report and the review copy, nothing else.
+
+**One rebase-induced test fix**, disclosed rather than hidden: the new tip
+rewrote `rebuild/m3/w7-preview/today/checkin-host.mjs` to bind the device's one
+local era (`commands: createCheckInCommands()`) instead of composing a store of
+its own, so two SOURCE-READING assertions in
+`test/tiers.test.cjs` ("the staged command set is NOT widened by the local era")
+no longer matched. They now read the producer-injection claim out of
+`checkin-commands.cjs`, where the claim is actually made, plus the one line in
+`checkin-host.mjs` that passes the producer down. No behaviour assertion changed
+and nothing under `rebuild/m3` was touched — the check-in's real durable write is
+proved by execution in `local-era.test.cjs`, which passes unchanged on the new
+tip.
+
+### C1 (BLOCKING) — the cap gate green-lit its own shape example
+
+RED at `e576905`: `verifyCostCap(cap.example.json)` returned `ok: true`, and
+`startLiveSession` with it reached `COACH_NO_LIVE_ADAPTER` — past the one gate in
+front of real money, stopped only by the accident that no adapter exists.
+
+GREEN now. `verifyCostCap` refuses, before any other check, **any record carrying
+a key that starts with `_`**: `{ ok:false, code:"COACH_COST_CAP_INVALID",
+reason:"this is the shape example, not a cap on any account (it carries _note)" }`.
+It is the annotation that refuses it, not a hard-coded filename, so `_todo` or a
+bare `_` refuse too. `startLiveSession({cap: example, …})` now returns
+`COACH_COST_CAP_INVALID` and the test asserts `notEqual(code,
+"COACH_NO_LIVE_ADAPTER")` — it must not get far enough to discover the missing
+adapter. `test/cost-cap.test.cjs`'s `good()` is rebuilt as a **synthetic
+live-shaped record** (the example minus every annotation key), so the suite no
+longer asserts that the non-cap is a valid cap. An array is also refused
+(`COACH_COST_CAP_ABSENT`) rather than falling through the object path.
+New test: *"THE SHAPE EXAMPLE IS NOT A CAP: the file that says so is refused, and
+starts nothing"*.
+
+### C2 — traceability is now keyed on unit/field, not on the turn
+
+RED at `e576905`: the allowed set was one untyped `Set` of digit strings, so any
+number the turn produced licensed any sentence. All five of the reviewer's
+must-refuse strings returned `[]`.
+
+GREEN now, and this is the bar the model adapter must clear.
+
+- `allowedTokens(results, turn_id)` returns a **Map from token to the set of
+  UNITS** the turn licensed it in. A tag with a real unit licenses its tokens in
+  that unit; engine prose (`unit: "text"`) is read with the same parser a spoken
+  sentence is read with, so `"2300 kcal on 8,500 steps"` licenses `kcal:2300`.
+- `untraceable()` parses each spoken number **together with the unit/field words
+  around it** (`UNIT_WORDS`, a filler list it may travel over, never crossing a
+  sentence end; `4 sets a week` and `1.19 pounds a week` read as rates).
+- A number with no unit word around it is licensed by any quantity in the turn —
+  but **never by a `date`**. Date tags do not license bare numbers.
+- On the answer side **every interpolation declares its unit**:
+  `d(v.kcalLo, "kcal")`, `d(v.proteinG, "g")`, `d(v.rate, "lb/wk")`,
+  `d(v.setPosition, "set")`, `d(v.sleepRecordDate, "date")`. `d()` throws
+  `COACH_UNIT_MISMATCH` if the tag's unit is not the declared one, and throws
+  `TypeError` if no unit is declared at all. Tested both ways.
+
+Measured on `today_plan` (allowed: `2262=kcal`, `2360=kcal`, `155=g`,
+`2030/02/04=date`), the reviewer's own six strings, verbatim:
+
+| said | before | now |
+|---|---|---|
+| `Eat 155 calories today.` | `[]` GREEN | `["155"]` **refused** |
+| `Your protein target is 2262 grams.` | `[]` GREEN | `["2262"]` **refused** |
+| `Add 2030 weekly sets.` | `[]` GREEN | `["2030"]` **refused** |
+| `Rest 155 minutes between sets.` | `[]` GREEN | `["155"]` **refused** |
+| `Your weight is 2262 pounds.` | `[]` GREEN | `["2262"]` **refused** |
+| `Today: 2262–2360 kcal · 155 g protein` | `[]` | `[]` **accepted** |
+| `Your calorie band today is 2262 to 2360.` | `[]` | `[]` **accepted** |
+| `Your protein target is 155 grams.` | `[]` | `[]` **accepted** |
+
+New tests: *"a number is traceable only INTO THE FIELD THAT LICENSED IT"*,
+*"a date tag licenses a date, never a bare quantity"*, *"every interpolation
+declares the unit it speaks into"*. The CLI stays at **25 turns / 0 untraceable**
+and the local-era script run stays green, so nothing was bought with a
+false-red-tolerant instrument.
+
+### C3 — the test no longer reads an in-memory Map as durable proof
+
+The old test was headed *"…and the reason is stored"* and proved it against
+`done.accepted.reason`, a field on a `Map` that dies with the process.
+
+Renamed to *"…equals the engine's proposal exactly (in memory)"*, and a new test
+*"tier 2: EXACTLY what the durable store keeps after a yes — and the reason is
+NOT on disk"* asserts the store contents rather than a promise:
+
+- exactly **one** op, `kind:"proposal-response"`, payload deep-equal to
+  `{ proposal_id, answer:"accept" }` — no third field;
+- exactly **one** issuance, deep-equal to `{ id, accepted:true, instance:null }`;
+- the engine's reason, the producer name and the proposal body are each asserted
+  **absent** from the raw dump;
+- a freshly booted client over the same backend keeps exactly
+  `[{proposal, answer:"accept", op_id}]` and `issuedInstance() === null`;
+- a coach rebuilt over that fresh client has `acceptedProposals() === []`,
+  `issuedProposals() === []`, `consentLedger() === []`.
+
+**The reason is NOT on disk**, and the comment in the test says so and says why:
+`rebuild/client`'s existing `proposal-response` path has **no reason slot**
+(`index.cjs:271 respond()` commits `{proposal_id, answer}`; `:338
+recordIssuance()` writes `{id, accepted, instance}`; `:161 answers()` reads them
+back). The brief names that existing path, so the gap is in `rebuild/client`, not
+in the coach — and **`rebuild/client` is untouched**. The lane lead has put the
+question *"does DECISIONS:89's 'recorded with the reason' mean on disk?"* to the
+PM; this test goes RED the day a durable reason lands, which is the point.
+`model-adapter.md` §8.2 now carries the same statement.
+
+### C4 — the opt-in is per user
+
+RED at `e576905`: `startLiveSession({optIn: true})` reached
+`COACH_NO_LIVE_ADAPTER` and `user` was silently ignored — one `true` opened the
+gate for anybody, while `model-adapter.md` §5 claimed it was per user.
+
+GREEN now. `startLiveSession({ cap, now, optIn, user })`:
+
+- `user` must be one of `NAMED_USERS = ["joe","dad"]`. Absent, empty, a third
+  name, a number or an object → `COACH_OPT_IN_REQUIRED`.
+- `optIn` must be a **record**, not a boolean:
+  `{ user, accepted:true, accepted_at, screen_version, wording }`.
+  `{optIn: true}` and `{optIn: true, user:"joe"}` both refuse.
+- `optIn.user` must equal `user`. Joe's record with `user:"dad"` refuses with
+  *"One user's yes never speaks for another."*
+- `wording` must be the text the user actually saw and must name the **phone**,
+  the **audio**, the **text** and that it **leaves** — nine wording and shape
+  patches are asserted to refuse, including *"Turn on the voice coach for a
+  better experience."*
+- each named user's own record reaches `COACH_NO_LIVE_ADAPTER`, and only theirs.
+
+New tests: *"the opt-in is PER USER: one person's yes never speaks for another"*,
+*"the opt-in record must carry the wording the user actually saw"*.
+`model-adapter.md` §5 now describes what the code does instead of over-claiming.
+
+### C5 — the turn-scoping guards are now load-bearing
+
+RED at `e576905`: the reviewer deleted **both** guards in `allowedTokens()` and
+46/46 stayed green (mutants M7, M7b, M7c).
+
+GREEN now, and measured by mutation in this worktree, each guard on its own:
+
+| mutant | traceability suite |
+|---|---|
+| both guards → `if (false) continue;` | **fail 1** — *"turn B borrowed turn A's provenance out of a pooled array"* (`[]`, expected `["2262"]`) |
+| inner per-tag guard only | **fail 1** — *"a tag from another turn licensed this one"* |
+| outer per-result guard only | **fail 1** — *"a result belonging to turn A licensed turn B because one tag inside it was stamped B"* |
+| unmutated | **14/14 pass** |
+
+The new test *"the turn guards are load-bearing: a POOLED results array cannot
+lend provenance"* carries the reviewer's own case verbatim —
+`T.untraceable("Eat 2262 calories.", tA.results.concat(tB.results), "B")` →
+`["2262"]` with the guards, `[]` without — plus the same pooled array scoped to
+`"A"` (→ `[]`, so the test measures the guard rather than the absence of the
+number), and one forgery per guard. `tools.cjs` itself is unchanged here: the
+guards were correct, they were simply unproved. **Guards restored byte-identical
+after the mutation run** (the sha256 in the file table is the restored file, and
+the suite is green on it).
+
+### C6 — the two over-claims
+
+(i) `request_replan` now **walks the payload** (objects and arrays, depth 8)
+instead of reading only the top level. `{fact:"volume", note:{sets:7}}`,
+`{fact:"volume", n:[7]}` and `{fact:"volume", deep:{a:{b:{c:[{d:7}]}}}}` are all
+refused `COACH_PROPOSAL_NOT_ENGINE_ISSUED`. A numeric **string** is still
+accepted, and the report and `TOOL-CONTRACT.md` now say so precisely: the test
+asserts the issued proposal from `{fact:"volume", addWeeklySets:"7", note:"make
+it 7 sets"}` deep-equals the clean call's, so the extra arguments demonstrably
+reach nothing.
+
+(ii) **Node version fixed.** Measured `node --version` → **v24.18.0**. The round-1
+line said v24.19.0 and was wrong; the header of the counts section now carries the
+measured value and says it was measured.
+
+### C7 — CI (PM-owned; `.github` NOT touched)
+
+I did not edit `.github` and this branch changes nothing there (`git diff --stat`
+against `.github` is empty). The one line the integrator needs is in the counts
+section above:
+
+```
+node --test "rebuild/coach/test/*.test.cjs"
+```
+
+as a `test` script: `"test": "node --test \"rebuild/coach/test/*.test.cjs\""`.
+No dependency, no `package.json`, no install — plain `node:test` + `node:assert`,
+with `fake-indexeddb` reached through `rebuild/m3/w6/test/support.mjs` exactly as
+the A2 and C4 suites reach it. **Until that step exists, the CI half of
+`LANES.md:16`'s bar has not been met for this delivery** and the ledger line
+should say so: the merge decision rests on the independent review alone.
+
+### Not done, and why
+
+- **The reason on disk (C3's decision).** Not mine to take: it is a
+  `rebuild/client` change and `rebuild/client` is outside this lane's write
+  scope. The question is with the PM; the test states the gap meanwhile.
+- **The CI step (C7).** PM/integrator-owned; `.github` is outside this lane's
+  write scope.
+- **R2's residuals** — no model, no voice, no UI, no cap on any account, no
+  opt-in screen — are unchanged and still disclosed above.
