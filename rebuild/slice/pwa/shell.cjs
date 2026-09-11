@@ -1,7 +1,7 @@
 "use strict";
 
 /* shell.cjs — the deployable folder, as pure functions: the response headers, the two
-   edits that turn A1's built page into an installable one, and the service worker source
+   edits that turn A1's built page into an installable release surface, and the service worker source
    with its precache manifest filled in.
 
    A1's own build is not touched and not re-implemented. This file only ever receives the
@@ -120,12 +120,23 @@ function once(text, find, replace, label) {
 }
 
 const preflightHtml = () => fs.readFileSync(path.join(SOURCE, "preflight.html"), "utf8");
-const preflightCss = () => fs.readFileSync(path.join(SOURCE, "preflight.css"), "utf8");
+const preflightCss = () => fs.readFileSync(path.join(SOURCE, "preflight.css"), "utf8")
+  + "\n" + fs.readFileSync(path.join(SOURCE, "release.css"), "utf8");
 const preflightJs = () => fs.readFileSync(path.join(SOURCE, "preflight.js"), "utf8");
 const workerSource = () => fs.readFileSync(path.join(SOURCE, "sw-source.js"), "utf8");
 
 function installableHtml(indexHtml, names) {
-  let html = once(indexHtml, '<link rel="stylesheet" href="styles.css">',
+  let html = once(indexHtml, '<body>', '<body class="release">', "release body");
+  html = once(html, 'content="width=device-width,initial-scale=1"',
+    'content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content"', "device viewport");
+  // These IDs are real entry-point consumers. Keep the live message in front of
+  // the app; move identity/storage context below it, without hiding either one.
+  const chrome = html.match(/<aside class="review">\s*<p id="today-identity">[^<]*<\/p>\s*<p id="today-storage">[^<]*<\/p>\s*(<p id="today-status" role="status">[^<]*<\/p>)\s*<\/aside>/);
+  assert(chrome, "SHELL-EDIT FAIL: expected Today status consumers");
+  const device = chrome[0].replace(chrome[1], "");
+  html = once(html, chrome[0], '<aside class="review release-status" aria-label="Current status">'
+    + chrome[1] + '</aside>', "live Today status");
+  html = once(html, '<link rel="stylesheet" href="styles.css">',
     [`<link rel="stylesheet" href="${names.styles}">`,
       `  <link rel="stylesheet" href="${names.preflightCss}">`,
       `  <link rel="manifest" href="${pwa.MANIFEST_FILE}">`,
@@ -139,7 +150,8 @@ function installableHtml(indexHtml, names) {
   html = once(html, '<script type="module" src="app.js"></script>',
     `<script type="module" src="${names.app}"></script>\n`
     + `  <script src="${names.preflightJs}" defer></script>`, "the bundle script");
-  html = once(html, "</main>", preflightHtml().replace(/^<!--[\s\S]*?-->\n/, "") + "</main>",
+  html = once(html, "</main>", '<footer class="release-device" aria-label="This device">'
+    + device + preflightHtml().replace(/^<!--[\s\S]*?-->\n/, "") + '</footer></main>',
     "the end of the stage");
   assert(!/href="styles\.css"/.test(html) && !/src="app\.js"/.test(html),
     "SHELL-EDIT FAIL: an unhashed asset name survived");
