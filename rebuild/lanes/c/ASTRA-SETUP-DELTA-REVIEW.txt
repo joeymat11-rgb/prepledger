@@ -1,0 +1,62 @@
+INITIAL SETUP POST-COMMIT CORRECTION — INDEPENDENT DELTA REVIEW
+September 11, 2026. Same independent reviewer; not the correction author.
+Source:9e779f682593c4b9a15850d384799b1e0c528ed2; product36164d0.
+Prior candidate3f1d172; prior independent report commit e9d39b8 is preserved.
+Branch/worktree: codex/astra-setup-delta-review / astra-setup-delta-review.
+Assignment: PM ASTRA-SETUP-DELTA-REVIEW.md.
+Verdict: ACCEPT the correction. Original F1/P1 finding is resolved.
+
+(1) SOURCE
+Only local-client.mjs, its focused setup test and the builder report differ
+from3f1d172. Examined the complete delta and repository.initialize/publish.
+The initialized flag is set after awaited initialization success; publish
+resolves on the real generations transaction's oncomplete. Status immediately
+becomes restore-required/LOCAL_ENROLLMENT_INCOMPLETE while key/marker writes
+are pending. A post-commit failure preserves the specific code and state18.
+No retry, key replacement, rollback, data deletion or reseeding is introduced.
+Precommit errors never cross that fence. The existing enrollment concurrency
+and ALREADY_INITIALIZED protections remain. Success is published only after
+key persistence and marker completion. Both enrollment APIs share this path.
+
+(2) EXECUTED FOCUSED EVIDENCE
+Existing Node24.19.0, ignored W6 dependency junction and NODE_PATH; no install.
+TZ=America/New_York, MEASURED_TEST_NOW=2026-09-03.
+node --test rebuild/m3/w6/test/local-initial-setup.test.mjs
+            rebuild/m3/w6/test/local-client.test.mjs
+44 pass,0 fail,0 skipped. Initial invocation lacked NODE_PATH for the sibling
+W5 hash dependency (client21 passed; setup did not load); corrected environment
+then executed all44. That environment failure is not a behavioral result.
+
+Reproduced original key-put failure after sealed revision1: enrollment returns
+false/state18/KEY_WRITE_FAILED, same-client status/boot refuse with that code,
+initialSetup is unavailable, host access rejects, and replacement cannot alter
+the sealed bytes. Fresh factory remains restore-required/KEY_MISSING.
+Marker-put failure gives the corresponding LOCAL_MARKER_WRITE_FAILED and
+fresh-factory ENROLLMENT_MARKER_MISSING. Neither reports first run.
+Delayed marker holds real transaction completion: pending enrollment reports
+no success, boot/setup/host refuse, concurrent enrollment is in progress;
+release completes successfully. Existing validation/quota precommit controls
+remain first-run and permit valid retry. Setup identities and exact values,
+derived-loss reconstruction, races and actual C4 writes remain green.
+
+Independent additional probes reused only synthetic fault/carrier helpers,
+disabled their test registrations, and counted actual crypto.generateKey calls.
+For BOTH failed tails, subsequent same-client enroll() and enrollSetup(), plus
+fresh-factory enroll(), all refuse. Count stays exactly1 and sealed revision1
+bytes remain equal; no key or ciphertext contents were printed.
+Separately held the KEY transaction, rather than the authored marker delay:
+revision1 already exists, enrollment is unsettled, status/boot name incomplete,
+setup/host refuse, legacy enroll() returns in-progress, key count stays1.
+After release, enrollment and exact setup boot succeed; a real weighIn170.5
+is acknowledged and authoritative setup remains unchanged. All independent
+assertions passed. Temporary review probe removed; product source untouched.
+
+(3) BOUNDARIES
+Prior109-test/source review evidence is reused outside this error-state delta;
+no broad engine or repeated Today campaign was run. Initial setup plumbing and
+this correction are accepted in scope; owner-entry screens, native-baseline
+package qualification, affected CI on both OS and separate integration remain
+their own obligations. This synthetic fake-indexeddb evidence is not a phone
+kill/recovery drill, hosted acceptance, final engine seal or full CI result.
+No required delta changes remain. No product edits, private reads, installation,
+push, PR, merge or deployment. Only this independent report is committed.
