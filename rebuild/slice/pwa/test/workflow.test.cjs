@@ -14,6 +14,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { createHash } = require("node:crypto");
 const { test } = require("node:test");
 const YAML = require("yaml");
 
@@ -29,6 +30,54 @@ const deployStep = steps.find((s) => /Deploy to the slice/.test(s.name || ""));
 const script = steps.map((s) => s.run || "").join("\n");
 // What the runner executes, with the shell comments taken out.
 const code = script.split("\n").filter((line) => !/^\s*#/.test(line)).join("\n");
+
+// PM-approved publication guard9ee440c, independently reviewedce52f0a.
+// Canonical parsed deploy.yml at accepted7b1678a, excluding ONLY preview.if.
+// All triggers, permissions, test/production jobs, targets and publishing steps
+// are retained. Embed the digest so a shallow CI checkout needs no Git history.
+const FROZEN_PROTECTED_SHA = "4abc65a2fb071ca130ecb8d5306704b82540370a956de8af5b87860a1e04095e";
+const canonical = value => Array.isArray(value) ? value.map(canonical)
+  : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+function condition(expression, ref, event) {
+  const context = { ref: ref.toLowerCase(), event_name: event.toLowerCase() };
+  // Restricted grammar of these two existing job conditions; unknown syntax
+  // refuses. This checks local semantics, not GitHub's expression implementation.
+  return expression.split(/\s*&&\s*/).map(term => {
+    let match = /^github\.(ref|event_name)\s*(!=|==)\s*'([^']*)'$/.exec(term.trim());
+    if (match) return (context[match[1]] === match[3].toLowerCase()) === (match[2] === "==");
+    match = /^!startsWith\(github\.ref,\s*'([^']*)'\)$/.exec(term.trim());
+    assert(match, "Unreviewed publication condition syntax");
+    return !context.ref.startsWith(match[1].toLowerCase());
+  }).every(Boolean);
+}
+function frozenPipeline(source) {
+  const parsed = YAML.parseDocument(source);
+  assert.deepEqual([...parsed.errors, ...parsed.warnings], [], "Frozen pipeline YAML");
+  const value = parsed.toJS(), protectedValue = structuredClone(value);
+  delete protectedValue.jobs.preview.if;
+  assert.equal(createHash("sha256").update(JSON.stringify(canonical(protectedValue))).digest("hex"),
+    FROZEN_PROTECTED_SHA, "Frozen triggers/test/production/targets/publish steps changed");
+  const refs = [
+    ["main", false, true], ["MAIN", false, true],
+    ["rebuild/t2-client-core", false, false], ["ReBuIlD/topic", false, false],
+    ["codex/astra-review", false, false], ["CODEX/ASTRA-topic", false, false],
+    ["feature/ui", true, false], ["codex/general", true, false],
+    ["rebuild", true, false], ["rebuildish/topic", true, false],
+    ["codex/astra", true, false], ["codex/astral-topic", true, false],
+  ];
+  for (const [branch, preview, production] of refs)
+    for (const event of ["push", "pull_request", "workflow_dispatch"])
+      for (const result of ["success", "failure", "skipped", "cancelled"]) {
+        const eligible = result === "success" && event !== "pull_request";
+        assert.equal(result === "success" && condition(value.jobs.preview.if, "refs/heads/" + branch, event),
+          eligible && preview, "Preview eligibility: " + branch + "/" + event + "/" + result);
+        assert.equal(result === "success" && condition(value.jobs.deploy.if, "refs/heads/" + branch, event),
+          eligible && production, "Production eligibility: " + branch + "/" + event + "/" + result);
+      }
+  for (const name of ["preview", "deploy"])
+    assert.equal(condition(value.jobs[name].if, "refs/pull/51/merge", "pull_request"), false);
+  return value;
+}
 
 test("the workflow is valid YAML with one job and no warnings", () => {
   assert.deepEqual([...doc.errors, ...doc.warnings], []);
@@ -147,18 +196,46 @@ test("it deploys the build's own folder and nothing else from the tree", () => {
   for (const required of ["index.html", "sw.js", "_headers"]) assert(stage.includes(required), required);
 });
 
-test("it never touches the frozen app's pipeline, and the pipeline never sees this folder", () => {
+test("slice publishing remains separate and the approved guard preserves the frozen pipeline", () => {
   // The header comment names deploy.yml and soak.yml to say it does NOT touch them.
   // No step may mention either, or the frozen app's own site manifest.
   assert.doesNotMatch(code, /deploy\.yml|soak\.yml|site-manifest|scripts\//);
   // ("prepledger" is the repository's own name; "ledger/" is the owner's health data.)
   assert.doesNotMatch(code, /ledger\/|src\/history/);
-  // deploy.yml ignores nothing under rebuild/, so it must not be able to pick this up:
-  // this workflow's own paths are all under rebuild/ or its own file.
+  // This workflow's own paths are all under rebuild/ or its own file. The
+  // separately reviewed frozen preview guard excludes these branch prefixes.
   const on = workflow.on || workflow[true];
   for (const p of on.push.paths) assert(/^rebuild\/|^\.github\/workflows\/slice-host\.yml$/.test(p), p);
   const pipeline = fs.readFileSync(path.join(ROOT, ".github/workflows/deploy.yml"), "utf8");
-  assert.doesNotMatch(pipeline, /slice-host|slice-pwa|rebuild\//, "deploy.yml was edited to know about the slice");
+  frozenPipeline(pipeline);
   const soak = fs.readFileSync(path.join(ROOT, ".github/workflows/soak.yml"), "utf8");
   assert.doesNotMatch(soak, /slice-host|slice-pwa|SLICE_NETLIFY_SITE_ID/, "soak.yml was edited");
+});
+
+test("frozen pipeline successor rejects reenabled rebuild and Astra previews", () => {
+  const pipeline = YAML.parse(fs.readFileSync(path.join(ROOT, ".github/workflows/deploy.yml"), "utf8"));
+  for (const prefix of ["refs/heads/rebuild/", "refs/heads/codex/astra-"]) {
+    const changed = structuredClone(pipeline);
+    const clause = " && !startsWith(github.ref, '" + prefix + "')";
+    assert(changed.jobs.preview.if.includes(clause), "Actual guard clause exists");
+    changed.jobs.preview.if = changed.jobs.preview.if.replace(clause, "");
+    assert.throws(() => frozenPipeline(YAML.stringify(changed)), /Preview eligibility/);
+  }
+});
+
+test("frozen pipeline successor rejects changed production targets, jobs and slice publication", () => {
+  const pipeline = YAML.parse(fs.readFileSync(path.join(ROOT, ".github/workflows/deploy.yml"), "utf8"));
+  const mutants = [
+    value => { const step = value.jobs.deploy.steps.find(step => /api\/v1\/sites\/\$SITE\/deploys/.test(step.run || ""));
+      assert(step, "Actual production target exists");
+      step.run = step.run.replace("api/v1/sites/$SITE/deploys", "api/v1/sites/unreviewed-target/deploys"); },
+    value => { value.jobs.deploy.needs = []; },
+    value => { value.jobs.test.steps.pop(); },
+    value => { value.jobs.preview.steps.push({ name: "Publish slice", run: "netlify deploy --dir .tmp/slice-pwa-dist" }); },
+    value => { value.jobs["slice-publish"] = { uses: "./.github/workflows/slice-host.yml" }; },
+  ];
+  for (const mutate of mutants) {
+    const changed = structuredClone(pipeline); mutate(changed);
+    assert.throws(() => frozenPipeline(YAML.stringify(changed)), /Frozen triggers\/test\/production\/targets\/publish steps changed/);
+  }
 });
