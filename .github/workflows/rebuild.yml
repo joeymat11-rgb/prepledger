@@ -22,7 +22,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # Raised from 15 with the 2026-09-11 CI re-seal: the native-carriers package now
+    # actually completes (it used to die in ~1 min at the `focused` child), and six new
+    # suites plus two pnpm installs run alongside it on both runners.
+    timeout-minutes: 30
     env:
       MEASURED_TEST_NOW: '2026-09-03'
       TZ: America/New_York
@@ -36,6 +39,33 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --no-audit --no-fund --include=dev
+      # CI RE-SEAL, 2026-09-11. Until this step existed, every run on this branch died
+      # here: the native-carriers `focused` child loads
+      # rebuild/m4/spec/native-next-target-candidate/fixture.cjs, which reaches
+      # rebuild/m3/w5/source/codec.cjs -> rebuild/m3/w5/reconciliation/codec.cjs ->
+      # require('@noble/hashes/sha2.js'). Node resolves that from
+      # rebuild/m3/w5/node_modules, and the root `npm ci` above never writes there, so
+      # all three native-next-target tests died with MODULE_NOT_FOUND (`# pass 0`,
+      # `# fail 3`) and the package reported FAIL. The same missing dependency is what
+      # broke slice-host.yml's own build step. W6's dependencies (esbuild,
+      # fake-indexeddb) are the same story for the A1/A2/A5 suites added below.
+      # Both are installed from their own committed pnpm lockfiles, frozen, so CI can
+      # never resolve a version this repository has not pinned and no lockfile changes.
+      # Both lockfiles are lockfileVersion '9.0'; pnpm 9 is the version that wrote them
+      # and the version slice-host.yml already installs.
+      - name: Install pnpm 9 (the version both W6 and W5 lockfiles were written with)
+        run: npm install -g pnpm@9
+      # Not --ignore-scripts: esbuild's own postinstall has to run, exactly as
+      # slice-host.yml's equivalent step documents, or the bundler-backed suites below
+      # cannot build.
+      - name: Install the pinned W6 browser-build dependencies
+        run: pnpm --dir rebuild/m3/w6 install --frozen-lockfile
+      # --ignore-workspace because rebuild/m3/w5/pnpm-workspace.yaml carries only
+      # `allowBuilds:` and no `packages:` key, which pnpm 9 refuses outright with
+      # "packages field missing or empty"; --ignore-scripts because nothing in this
+      # workflow runs wrangler or workerd — only @noble/hashes has to resolve.
+      - name: Install the pinned W5 source and reconciliation dependencies
+        run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
       - name: Check frozen files and actual old-app package
         run: node rebuild/m3/w0/scope-package.mjs
       - name: Public law, mutant, adapter and archived-artifact checks
@@ -50,5 +80,16 @@ jobs:
         run: node --test rebuild/m3/w7-preview/test/model.test.cjs rebuild/m3/w7-preview/test/view.test.cjs rebuild/m3/w7-preview/test/package.test.cjs
       - name: Cumulative extracted-engine native-carrier and legacy-census evidence
         run: node rebuild/m4/spec/native-carriers-package.cjs --ci
+      # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
+      # this re-seal). Each file is named rather than globbed so the same set runs on
+      # both runners whatever the shell does with a wildcard.
+      - name: A0 — the workout host over the real durable client
+        run: node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs
+      - name: A1/A2 — the rebound Today page and the gym card
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      - name: A5 — the PWA shell's lockfile-only suites
+        run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
+      - name: A5 — the built deploy folder itself
+        run: node --test rebuild/slice/pwa/test/package.test.cjs
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"

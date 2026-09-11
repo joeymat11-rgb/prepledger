@@ -140,3 +140,102 @@
   <p class="note" data-own data-slot="workout-detail"></p>
 </article>
 </template>
+
+<!-- A2 · the gym card. These two screens are REFINEMENT A's reviewed workout and
+     saved-set/rest screens (Refinement-Workout.png, Refinement-Rest.png), structure
+     for structure, in A's own classes. Every value is bound at runtime from the
+     accepted capture layer or from a stored operation; as everywhere in this page,
+     no element here carries a figure. Two elements of A's rest screen are absent
+     and the report says why: the countdown timer and its +30s/Pause controls price
+     a rest length the accepted engine does not prescribe. -->
+<template id="t-gym">
+<article class="page">
+  <div class="gym-nav">
+    <button class="back" type="button" data-action="back"><span aria-hidden="true">←</span> <span data-slot="session-title"></span></button>
+    <span data-slot="exercise-position"></span>
+  </div>
+  <div class="gym-head">
+    <h1 data-slot="lift"></h1>
+    <button class="text-link" type="button" data-action="setup">Setup <span data-arrow></span></button>
+  </div>
+  <div data-slot="reason"></div>
+  <p class="change"><button class="why-inline" type="button" data-action="why">Why?</button></p>
+  <div class="small quiet" data-slot="setup-note" hidden></div>
+  <div class="set-strip" aria-label="Set progress" data-slot="strip"></div>
+  <section class="prescription">
+    <div class="small quiet">This set’s plan</div>
+    <h2 data-slot="plan"></h2>
+    <p class="effort-target" data-slot="effort-target"></p>
+  </section>
+  <section class="entry">
+    <div class="entry-header">
+      <h2 data-slot="entry-title"></h2>
+      <span data-slot="previous"></span>
+    </div>
+    <div class="fields">
+      <div class="field">
+        <label for="gym-weight">Weight (lb)</label>
+        <div class="number-control">
+          <button class="step" type="button" data-step="load:-1" aria-label="Decrease weight">−</button>
+          <input id="gym-weight" type="number" inputmode="decimal" min="0" step="any" aria-label="Actual weight in pounds" aria-describedby="gym-error">
+          <button class="step" type="button" data-step="load:1" aria-label="Increase weight">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label for="gym-reps">Reps</label>
+        <div class="number-control">
+          <button class="step" type="button" data-step="reps:-1" aria-label="Decrease reps">−</button>
+          <input id="gym-reps" type="number" inputmode="numeric" min="0" step="1" aria-label="Actual reps" aria-describedby="gym-error">
+          <button class="step" type="button" data-step="reps:1" aria-label="Increase reps">+</button>
+        </div>
+      </div>
+    </div>
+    <fieldset class="effort">
+      <legend>Clean reps left <span class="quiet">at the end</span></legend>
+      <div class="choices" data-slot="choices"></div>
+    </fieldset>
+    <p class="error" id="gym-error" role="alert"></p>
+  </section>
+  <div class="gym-actions">
+    <button class="cta" type="button" data-slot="log"><span data-slot="log-label"></span><span data-check></span></button>
+    <div class="secondary-row"><button class="text-link" type="button" data-action="clean-rep">What counts as a clean rep?</button></div>
+    <div class="small quiet" data-slot="clean-rep-note" hidden></div>
+  </div>
+  <div class="next-lift">
+    <div><div class="quiet">Up next</div><div class="name" data-slot="up-next"></div></div>
+  </div>
+</article>
+</template>
+
+<template id="t-rest">
+<article class="page">
+  <div class="gym-nav">
+    <button class="back" type="button" data-action="back"><span aria-hidden="true">←</span> <span data-slot="session-title"></span></button>
+    <span data-slot="exercise-position"></span>
+  </div>
+  <div class="gym-head">
+    <h1 data-slot="lift"></h1>
+  </div>
+  <div data-slot="reason"></div>
+  <section class="saved-block" aria-live="polite">
+    <div>
+      <div class="saved-title"><span data-check></span><span data-slot="saved-title"></span></div>
+      <p class="saved-facts" data-slot="saved-facts"></p>
+    </div>
+    <button class="text-link" type="button" data-action="undo">Undo</button>
+  </section>
+  <section class="rest">
+    <div class="rest-heading"><h2>Take your rest.</h2></div>
+    <div class="small quiet" data-own data-slot="rest-note"></div>
+  </section>
+  <section class="next-set">
+    <p class="small" data-slot="next-label"></p>
+    <h2 data-slot="next-plan"></h2>
+    <p data-slot="next-effort"></p>
+  </section>
+  <div class="bottom">
+    <button class="cta" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
+    <button class="text-link" type="button" data-action="back">Back to Today</button>
+  </div>
+</article>
+</template>

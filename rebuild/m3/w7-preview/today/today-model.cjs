@@ -1,27 +1,36 @@
 "use strict";
 
-/* today-model.cjs — the REAL adapter: the durable local operation log of
-   rebuild/client under the accepted engine.
+/* today-model.cjs — the REAL adapter: the durable reading log of rebuild/client
+   under the accepted engine.
 
-   The memory-only preview adapter (rebuild/m3/w7-preview/model.cjs) is replaced here by:
-
-     athlete action  ->  client.weighIn()          one durable local transaction
-                                                   (operation + outbox entry, or nothing)
+     athlete action  ->  reading-host.weighIn()   ONE durable transaction inside the
+                                                  accepted encrypted repository:
+                                                  the operation and its outbox entry,
+                                                  or neither (review B2)
      durable op log  ->  client.face().layer1.reads   the client's OWN projection of its
-                                                   reading operations (corrections and
-                                                   tombstones included)
+                                                  reading operations (corrections and
+                                                  tombstones included)
      op log          ->  E.applyRead(...) replay  the ACCEPTED writer computes the trend
-                                                   and the read note; the adapter computes
-                                                   no number of its own
+                                                  and the read note; the adapter computes
+                                                  no number of its own
      engine          ->  view                     every value on screen is an engine
-                                                   result or a stored operation
+                                                  result or a stored operation
+
+   REVIEW B2. A1 kept the reading log in localStorage. A real `taskkill /F /T` loses
+   recent localStorage writes (Chromium buffers them in the renderer), which is
+   exactly what an iOS tab termination does — so a reading the screen called saved
+   could vanish. The store of record is now the same encrypted IndexedDB repository
+   the gym card uses, through the same accepted durable public client; this module
+   holds no client, no backend, no storage and no lease of its own. localStorage is
+   gone from the product, not demoted to a cache.
 
    WHAT IS SYNTHETIC AND SAID SO. The athlete BASIS — exercises, split, sleep, food log,
    and the reads before the first day this device owns — is
-   rebuild/m3/w7-preview/fixtures.cjs, the invented synthetic athlete. The identity key,
-   the authority key and the offline-write lease are synthetic literals minted here; they
-   authorize nothing, reach no server, and are not credentials. There is no transport, so
-   the client is created offline and never claims a sync.
+   rebuild/m3/w7-preview/fixtures.cjs, the invented synthetic athlete. The device
+   enrolment (store key, authority key pair, lease, identity label) is minted on the
+   device by gym-host.mjs and labelled there; it authorizes nothing and reaches no
+   server. There is no transport, so the client is created offline and never claims
+   a sync.
 
    WHAT IS REAL. The operation envelope and its commitment, the all-or-nothing durable
    transaction, the integrity checkpoint, the outbox accounting, the face's governing
@@ -29,21 +38,15 @@
    lease, evicted store) is reported with the CLIENT'S OWN copy and changes nothing on
    screen. No number is ever invented to fill a gap. */
 
-const { createClient } = require("../../../client/index.cjs");
-const { signatureOver } = require("../../../client/ops.cjs");
 const { createTodayEngine } = require("./today-engine.cjs");
-const { createWebStorageBackend, createMemoryStorage } = require("./web-storage-backend.cjs");
-const { SYNTHETIC_DAY, dayOffset, createSyntheticState } = require("../fixtures.cjs");
+const { SYNTHETIC_DAY, createSyntheticState } = require("../fixtures.cjs");
 
-const LEASE_DOMAIN = "earned/lease/v1";
-
-/* Synthetic, public, non-secret preview constants. They stand in for an enrolment this
-   preview does not have. Naming them in source is deliberate: there is no real key here
-   to leak, and a reader must be able to see that. */
+/* Synthetic, public, non-secret preview labels, shared with gym-host.mjs. Naming
+   them in source is deliberate: there is no real key here to leak, and a reader
+   must be able to see that. */
 const SYNTHETIC_DEVICE_ID = "earned-today-preview-device";
 const SYNTHETIC_ATHLETE_ID = "earned-today-preview-athlete";
 const SYNTHETIC_IDENTITY_KEY = "synthetic-preview-identity-not-a-credential";
-const SYNTHETIC_AUTHORITY_KEY = "synthetic-preview-authority-not-a-credential";
 
 const clone = (v) => JSON.parse(JSON.stringify(v));
 
@@ -71,20 +74,6 @@ function engineClockFor(day) {
   return { today: base.today, hour: base.hour, now: base.date, stamp: base.stamp };
 }
 
-function mintSyntheticLease(day) {
-  const lease = {
-    lease_id: "lease-today-preview",
-    device_id: SYNTHETIC_DEVICE_ID,
-    athlete_id: SYNTHETIC_ATHLETE_ID,
-    not_before: dayOffset(day, -1) + "T00:00:00.000Z",
-    not_after: dayOffset(day, 1) + "T00:00:00.000Z",
-    range: [1, 100000],
-    schema_version: 2,
-  };
-  lease.signature = signatureOver(SYNTHETIC_AUTHORITY_KEY, LEASE_DOMAIN, lease, "signature");
-  return lease;
-}
-
 /* The basis the durable operations are replayed ONTO: the synthetic athlete with every
    read from the day this device starts owning removed, so a stored operation is the only
    source of a reading on or after that day. */
@@ -106,60 +95,38 @@ function projectionOf(E, state) {
   };
 }
 
+/* The sentence for a device that could not open its encrypted local store. It is
+   NOT a fallback store: A2 review B2 showed a localStorage store of record loses a
+   recorded reading under a hard process kill, so there is no second place to put
+   one. Nothing is recorded, and the screen says so. */
+const NO_STORE = "This device could not open its encrypted local store, so nothing can be recorded here.";
+const NO_STORE_NOTE = "Nothing can be recorded on this device: its encrypted local store did not open.";
+const STORE_NOTE = "Saved in this device's encrypted local store. It survives a reload, a restart, a reboot and a crash.";
+
 function createTodayModel(options = {}) {
   const day = options.today || SYNTHETIC_DAY;
   const engineFactory = options.engineFactory || createTodayEngine;
-  const clock = previewClock(day);
-  const lease = options.lease === undefined ? mintSyntheticLease(day) : options.lease;
   const basis = options.basisState ? clone(options.basisState) : createBasisState(day);
 
-  let storage = options.storage;
-  let durable = true;
-  let storageNote = "Saved on this device. It survives a reload, a restart and a reboot.";
-  if (!storage) {
-    try {
-      if (typeof globalThis !== "undefined" && globalThis.localStorage) {
-        globalThis.localStorage.setItem("earned.today.v1:probe", "1");
-        globalThis.localStorage.removeItem("earned.today.v1:probe");
-        storage = globalThis.localStorage;
-      }
-    } catch (_) { storage = undefined; }
-  }
-  if (!storage) {
-    storage = createMemoryStorage();
-    durable = false;
-    storageNote = "This browser is not allowing local storage. Nothing here will survive a reload.";
-  }
-
-  const backend = options.backend
-    ? options.backend(createWebStorageBackend(storage, { prefix: options.prefix }))
-    : createWebStorageBackend(storage, { prefix: options.prefix });
+  /* THE STORE OF RECORD (review B2). `readings` is the durable reading lane —
+     rebuild/m3/w7-preview/today/reading-host.mjs, the accepted encrypted
+     repository under the accepted durable public client over rebuild/client. This
+     module holds no client, no backend and no lease of its own: it asks that lane
+     for the client's own projection and hands it the athlete's entry. With no lane
+     at all the plan still renders from the engine, and a weigh-in is refused in
+     words rather than written somewhere that can lose it. */
+  const readings = options.readings || null;
+  const durable = !!readings;
+  const storageNote = durable ? STORE_NOTE : NO_STORE_NOTE;
 
   const E = engineFactory({ clock: engineClockFor(day) });
-
-  const client = createClient({
-    deviceId: SYNTHETIC_DEVICE_ID,
-    athleteId: SYNTHETIC_ATHLETE_ID,
-    identityKey: SYNTHETIC_IDENTITY_KEY,
-    authorityKey: SYNTHETIC_AUTHORITY_KEY,
-    backend,
-    clock,
-    lease,
-    online: false,
-  });
-  client.boot();
 
   let lastMessage = null;
 
   /* The durable reading operations, as the CLIENT projects them. The adapter does not
      parse the operation log itself; it asks the client. */
   function storedReads() {
-    const face = client.face();
-    const reads = (face.layer1 && Array.isArray(face.layer1.reads)) ? face.layer1.reads : [];
-    return reads
-      .filter((r) => r && typeof r.date === "string" && typeof r.lb === "number" && Number.isFinite(r.lb))
-      .slice()
-      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+    return readings ? readings.reads() : [];
   }
 
   /* op log -> engine state, through the ACCEPTED writer. */
@@ -213,15 +180,15 @@ function createTodayModel(options = {}) {
   }
 
   function read() {
-    const face = client.face();
+    const paint = readings ? readings.paint() : "TRUTHFUL";
     const reads = storedReads();
     /* A face that is not TRUTHFUL means the client itself will not stand behind what it
        holds. Paint no number in that case. */
-    if (face.paint !== "TRUTHFUL") {
+    if (readings && paint !== "TRUTHFUL") {
       return {
-        today: day, paint: face.paint, faceState: face.state, blocked: true,
-        blockedCopy: (face.layer2 && face.layer2.copy) || (face.layer1 && face.layer1.label) || null,
-        restore: client.restoreFlow(), durable, storageNote, message: lastMessage,
+        today: day, paint, faceState: (readings.face() || {}).state || null, blocked: true,
+        blockedCopy: readings.blockedCopy(),
+        durable, storageNote, message: lastMessage,
         hasReadToday: false, latestRead: null, morningRead: null, storedReadCount: reads.length, unadopted: 0,
       };
     }
@@ -234,11 +201,12 @@ function createTodayModel(options = {}) {
     const projection = projectionOf(E, state);
     const session = sessionFor(state);
     const view = {
-      today: day, paint: face.paint, faceState: face.state, blocked: false, blockedCopy: null,
+      today: day, paint, faceState: readings ? ((readings.face() || {}).state || null) : null,
+      blocked: false, blockedCopy: null,
       durable, storageNote, message: lastMessage,
       hasReadToday: !!morningRead, latestRead, morningRead, storedReadCount: reads.length, unadopted,
-      saveLabel: (face.layer1 && face.layer1.label) || "",
-      outbox: client.outboxRetained(),
+      saveLabel: readings ? readings.label() : "",
+      outbox: readings ? readings.outboxRetained() : null,
       workout: { title: projection.nowModel.workout.title, sub: projection.nowModel.workout.sub,
         today: projection.nowModel.workout.today, exerciseCount: session.count,
         available: session.available, unavailableReason: session.reason },
@@ -260,7 +228,10 @@ function createTodayModel(options = {}) {
   const FORM_MIN = 60, FORM_MAX = 400;
   const OUT_OF_RANGE = "A morning weight is recorded between " + FORM_MIN + " and " + FORM_MAX
     + " lb, to one decimal place. Nothing was recorded.";
-  function weighIn(lb) {
+  /* ASYNC since review B2: an entry is acknowledged only after the encrypted
+     repository transaction completes, so this cannot resolve before the reading is
+     genuinely on disk. A screen that wants to say "Saved" must await it. */
+  async function weighIn(lb) {
     /* Refuse rather than write an operation the accepted writer would ignore. The engine
        keeps the FIRST reading for a date; a second stored operation would leave the log
        and the screen disagreeing. The correction path is named, not faked. */
@@ -273,30 +244,37 @@ function createTodayModel(options = {}) {
       lastMessage = { ok: false, state: null, copy: OUT_OF_RANGE };
       return { ok: false, state: null, copy: OUT_OF_RANGE, op_id: null };
     }
-    const result = client.weighIn({ date: day, lb });
-    lastMessage = { ok: !!result.acknowledged, state: result.state, copy: result.copy };
-    return { ok: !!result.acknowledged, state: result.state, copy: result.copy, op_id: result.op_id || null };
+    if (!readings) {
+      lastMessage = { ok: false, state: null, copy: NO_STORE };
+      return { ok: false, state: null, copy: NO_STORE, op_id: null };
+    }
+    const result = await readings.weighIn({ date: day, lb });
+    lastMessage = { ok: result.ok, state: result.state, copy: result.copy };
+    return { ok: result.ok, state: result.state, copy: result.copy, op_id: result.op_id };
   }
 
-  /* Re-boot this adapter's client from the same storage: the page-reload path, without a
-     page reload. Used by the reload proof. */
-  function reopen() { lastMessage = null; client.restart(); return read(); }
+  /* Re-open the durable lane from disk: the page-reload path, without a page reload. */
+  async function reopen() {
+    lastMessage = null;
+    if (readings) await readings.restart();
+    return read();
+  }
 
   return {
     read, weighIn, reopen,
     today: day,
     engine: E,
-    client,
-    storage,
+    readings,
     basisState: () => clone(basis),
     stateFromOps,
     storedReads,
     adoptedRead: (date) => adoptedRead(stateFromOps(), date || day),
-    ALREADY_RECORDED, OUT_OF_RANGE, FORM_MIN, FORM_MAX,
+    ALREADY_RECORDED, OUT_OF_RANGE, NO_STORE, FORM_MIN, FORM_MAX,
   };
 }
 
 module.exports = {
-  createTodayModel, createBasisState, previewClock, engineClockFor, mintSyntheticLease, projectionOf,
-  SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY, SYNTHETIC_AUTHORITY_KEY, SYNTHETIC_DAY,
+  createTodayModel, createBasisState, previewClock, engineClockFor, projectionOf,
+  NO_STORE, NO_STORE_NOTE, STORE_NOTE,
+  SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY, SYNTHETIC_DAY,
 };

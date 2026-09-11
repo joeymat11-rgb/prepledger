@@ -135,19 +135,37 @@ export function composeWorkoutHost({
     resolveCapturedLayout: ({ start }) => adapter.readLayout(start.prescription_capture) });
 
   let lastProjection = null;
+  // A2. The durable client CONTAINS whatever the producer throws and answers the
+  // caller with its own generic WORKOUT_PREPARATION_INVALID (public-client.mjs
+  // prepareWorkout's catch: only a StorageFailure keeps its code). That is correct
+  // for the client — a producer refusal is not a storage state — but it means the
+  // specific refusal the athlete needs to read (WORKOUT_SPLIT_NOT_IN_FORCE, or an
+  // engine refusal such as PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED) is lost at the
+  // seam. A screen cannot recover it from the client, and public-client.mjs is
+  // accepted and unchanged, so the smallest honest place to keep it is here, where
+  // the throw happens. This RECORDS; it never substitutes, softens or invents a
+  // refusal, and the throw still propagates unchanged.
+  let lastRefusal = null;
   // The producer never hands the adapter a state of its own: it registers the
   // supplied state through the null registrar and lets the adapter consume ONLY
   // the registered projection.
   function workoutProducer(generation, context) {
     const day = clock.today();
-    // R1: refuse before anything is registered or prepared, so the engine's
-    // fallback week is unreachable from this host on a day the athlete's own
-    // split does not cover. The throw is contained by the client's
-    // prepareWorkout / prepareWorkoutContinuation and stores nothing.
-    if (!splitInForceOn(engineState, day)) refuseSplitNotInForce(day);
-    lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts });
-    return adapter.prepare({ day, basis: context.basis,
-      sourceProjection: lastProjection, source_basis: context.source_basis }).capture;
+    lastRefusal = null;
+    try {
+      // R1: refuse before anything is registered or prepared, so the engine's
+      // fallback week is unreachable from this host on a day the athlete's own
+      // split does not cover. The throw is contained by the client's
+      // prepareWorkout / prepareWorkoutContinuation and stores nothing.
+      if (!splitInForceOn(engineState, day)) refuseSplitNotInForce(day);
+      lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts });
+      return adapter.prepare({ day, basis: context.basis,
+        sourceProjection: lastProjection, source_basis: context.source_basis }).capture;
+    } catch (error) {
+      lastRefusal = Object.freeze({ code: error?.code || null, reason: error?.reason || null,
+        message: typeof error?.message === 'string' ? error.message : null });
+      throw error;
+    }
   }
   const workoutResumePolicy = createWorkoutResumePolicy({ produceCapture: workoutProducer, reason: resumeReason });
 
@@ -169,5 +187,9 @@ export function composeWorkoutHost({
 
   return Object.freeze({ client, adapter, registrar, reader, historyProjector,
     workoutProducer, workoutResumePolicy, plannedSplitSlotId,
-    lastProjection: () => lastProjection, mount });
+    lastProjection: () => lastProjection,
+    // The last refusal this host's own producer threw, or null when the last
+    // producer run did not refuse. Read-only, and never a substitute for the
+    // client's own answer: a caller reports BOTH.
+    lastProducerRefusal: () => lastRefusal, mount });
 }
