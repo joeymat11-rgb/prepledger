@@ -658,17 +658,18 @@ function phaseProposal(s, deps) {
       const eb7 = energyBalanceTarget(s);
       const last7 = Object.entries(s.dailyLogs || {}).filter(([d, v]) => v && v.cal != null).slice(-7);
       const unmet = eb7 && eb7.hi ? last7.filter(([, v]) => v.cal > eb7.hi).length >= 3 : false;
-      const recOff = recoveryIndex(s).band !== "GREEN";
+      const recovery9 = recoveryIndex(s), recoveryBand9 = recovery9.band;
+      const recOff = recoveryBand9 === 'WATCH' || recoveryBand9 === 'LOW';
       const sleepOK = sleepMean3At(s, t7);
       const estShare7 = last7.length ? last7.filter(([d]) => (((s.dayCtx || {})[d] || {}).est)).length / last7.length : 0;
       const n9 = [lowEnergy, unmet, recOff].filter(Boolean).length;
-      return (n9 >= 2 && sleepOK && estShare7 < 0.5) ? { lowEnergy, unmet, recOff } : null;
+      return (n9 >= 2 && sleepOK && estShare7 < 0.5) ? { lowEnergy, unmet, recOff, incompleteSleep: !!recovery9.sleepEvidence } : null;
     } catch (e) { return null; }
   })();
   if (brkCluster && (brkS.status === "none" || brkS.status === "recent")) {
     const start = today, end = isoOf(new Date(mk(today).getTime() + (BREAK_LEN_DAYS - 1) * DAY));
     return { rid: "phase_break_" + today, title: "DIET BREAK — A WEEK AT MAINTENANCE", gate: null,
-      why: `${sup.first ? sup.first.text : "adherence and recovery"}. ${h.metabolic} ${h.scale}`,
+      why: `${sup.first ? sup.first.text : "adherence and recovery"}. ${h.metabolic} ${h.scale}${brkCluster.incompleteSleep ? " Current sleep evidence is incomplete; independently observed signals support this proposal." : ""}`,
       apply: { kind: "break", start, end, maintenance: brkS.maintenance } };
   }
   // 2) The cut has run to the diet exit and the athlete has committed nothing — offer the transition to

@@ -79,8 +79,9 @@ function liftCall(s, exId, opts = {}) {
   if (rushedN) R2.push(`${rushedN} of your last ${clean.length} on this lift ${rushedN === 1 ? "was" : "were"} logged rushed — short rest costs you reps on the back sets, so ${rushedN === 1 ? "it does" : "they do"} not count toward a stall.`);
   if (debtN) R2.push(`${debtN} of your last ${clean.length} ran on short sleep — worth about 2.85% on strength, a real cost (CI 1.23–4.47) that is smaller than your own set-to-set spread, so it is context for reading the day, not a reason to change it, so ${debtN === 1 ? "it does" : "they do"} not count toward a stall either. ${debtN === 1 ? "It still counts" : "They still count"} for reps, records and every trend on this page.`);
   const slp2 = sleepInfo(s);
+  const missingSleep9 = missingCurrentSleepEvidence(s);
   const lastN = s.sleep.nights[s.sleep.nights.length - 1];
-  if (lastN) R2.push(`Last night: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
+  if (lastN) R2.push(`${missingSleep9 ? "Sleep record " + lastN.d : "Last night"}: ${lastN.h} hours` + (lastN.sol != null ? `, took about ${lastN.sol} min to fall asleep.` : "."));
   /* per-lift day-of-week pattern — computed, n-gated at 3 per bucket */
   const dow3 = mk(tISO3).getDay();
   const byDow = all.filter((h) => mk(h.d).getDay() === dow3 && !dayWeather(s, h.d).hardSession);   /* R17 */
@@ -98,7 +99,7 @@ function liftCall(s, exId, opts = {}) {
     if (timed.length >= 8) {
       const med2 = timed.map((n) => mins3(n.bed)).sort((a3, b3) => a3 - b3)[Math.floor(timed.length / 2)];
       const dev = Math.abs(mins3(lastN.bed) - med2);
-      if (dev > 45) R2.push(`Bedtime was about ${Math.round(dev / 15) * 15} min off your usual last night — the kind of night the lab is pricing.`);
+      if (dev > 45) R2.push(`Bedtime was about ${Math.round(dev / 15) * 15} min off your usual ${missingSleep9 ? "on " + lastN.d : "last night"} — the kind of night the lab is pricing.`);
     }
   }
   /* pulse vs baseline — cut-stress context when both exist */
@@ -133,11 +134,14 @@ function liftCall(s, exId, opts = {}) {
        PRECEDENCE, NAMED: a diagnosed reset is the one sanctioned exception to
        never-prescribe-below-delivered — a deliberate recovery move, on his tap only. */
     const pain9 = !!(ex2 && ex2.holdFlag);
-    const fat9 = (() => { try { return recoveryIndex(s).band !== "GREEN"; } catch (e) { return false; } })();
+    let recoveryBand9 = 'UNKNOWN';
+    const fat9 = (() => { try { recoveryBand9 = recoveryIndex(s).band; return recoveryBand9 === 'WATCH' || recoveryBand9 === 'LOW'; } catch (e) { return false; } })();
     if (pain9 || fat9) { const newW = ex2 && typeof ex2.w === "number" ? deloadLoad(ex2) : null;
-      return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total, and ${pain9 ? "the governor holds this lift — pain speaks there" : "recovery has left GREEN"} — the diagnosis supports lightening a notch to rebuild. A reset deliberately prescribes below delivered capacity: the named exception, on your tap only.`, receipts: R2 }; }
+      return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total, and ${pain9 ? "the governor holds this lift — pain speaks there" : "recovery has left GREEN"} — the diagnosis supports lightening a notch to rebuild.${missingSleep9 ? " Current sleep evidence is incomplete; this restriction follows the observed signal." : ""} A reset deliberately prescribes below delivered capacity: the named exception, on your tap only.`, receipts: R2 }; }
     return { verdict: "REVIEW", vel, n: clean.length,
-      why: `${stall} comparable sessions without a beat — a stall signal, not yet a cause. The check ran: governor clear (no pain flag), recovery GREEN, and protocol noise was never in the count. A plateau with a green body is time or stimulus, and lightening answers neither — the target stands.`,
+      why: recoveryBand9 === 'UNKNOWN'
+        ? `${stall} comparable sessions without a beat — a stall signal, not yet a cause. Recovery has no current sleep reading; absence is not fatigue evidence. The governor is clear and no observed recovery signal supports a load cut — the target stands.`
+        : `${stall} comparable sessions without a beat — a stall signal, not yet a cause. The check ran: governor clear (no pain flag), recovery GREEN, and protocol noise was never in the count. A plateau with a green body is time or stimulus, and lightening answers neither — the target stands.`,
       receipts: R2.concat(["Stall review: the cause check ran and nothing supports a load cut today. If pain or recovery turns while the stall holds, the reset offer files itself."]) };
   }
   if (alarm && alarm.tier === "AMBER") return { verdict: "HOLD", vel, n: clean.length, why: "Body alarm is AMBER. Normal session, but no all-out sets — every 0 becomes a 1. Anything you do deliver still counts and still banks: a label is not a validity failure.", receipts: R2.concat(["Body alarm: AMBER — off day, not a failure. Delivered reps keep their full standing."]) };
@@ -209,13 +213,23 @@ function liftCall(s, exId, opts = {}) {
      arm (Henselmans 2022, 49 studies). What survives is the honest half — the
      day after a refeed is a day he is well fed and well slept, which is a fine
      day to try for a record without needing a mechanism story attached. */
-  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: `Green light: fed and slept${vel != null && vel > 0 ? ", and you have been gaining" : ""}. If a record is in you, today is a good day for it.`, receipts: R2.concat(["Yesterday was the refeed. Worth being straight about why that helps: no isocaloric study has ever shown extra carbohydrate improves the next session, so this is not glycogen — it is that you are rested and not hungry."]) };
+  if (postRf && (vel == null || vel >= 0)) return { verdict: "PUSH+", vel, n: clean.length, why: missingSleep9 ? "Yesterday was the refeed; current sleep has no reading. Logged performance still counts and can earn progression." : `Green light: fed and slept${vel != null && vel > 0 ? ", and you have been gaining" : ""}. If a record is in you, today is a good day for it.`, receipts: R2.concat([missingSleep9 ? "No current sleep reading; absence does not restrict progression or establish that you are rested." : "Yesterday was the refeed. Worth being straight about why that helps: no isocaloric study has ever shown extra carbohydrate improves the next session, so this is not glycogen — it is that you are rested and not hungry."]) };
   if (dowLag != null && dowLag <= -3) return { verdict: "PUSH", vel, n: clean.length, why: `Chase — but this weekday usually runs about ${Math.abs(dowLag)} reps lighter for you here. Beat THAT line and it is a win.`, receipts: R2 };
   if (vel != null && vel <= 0 && stall > 0) return { verdict: "PUSH", vel, n: clean.length, why: `Progress has gone flat here. Chase honestly — one more session without a gain and the desk suggests lightening.`, receipts: R2 };
   return { verdict: "PUSH", vel, n: clean.length, why: `${vel != null && vel > 0.2 ? "You are gaining here — keep chasing." : "Keep chasing."} Weight goes up on its own the day you hit the standard.`, receipts: R2 };
 }
 
-// Copied from frozen src/app.jsx @ fe516c1:3570-3630.
+// DECISIONS:110 evidence presence; both dates preserve D21's two-anchor contract.
+function missingCurrentSleepEvidence(s) {
+  const today9 = isoOf(todayStart()), yesterday9 = plusDays(today9, -1);
+  const currentNights9 = nightsBefore(s, plusDays(today9, 1));
+  const last9 = currentNights9[currentNights9.length - 1];
+  const hasCurrentSleep9 = currentNights9.some(n => (n.d === yesterday9 || n.d === today9)
+    && typeof n.h === 'number' && Number.isFinite(n.h));
+  return hasCurrentSleep9 ? null : { state: 'UNKNOWN', expectedDate: yesterday9, lastDate: last9 ? last9.d : null };
+}
+
+// Copied from frozen src/app.jsx @ fe516c1:3570-3630; UNKNOWN amendment below.
 function recoveryIndex(s) {
   /* ---------- RECOVERY_NOTE ----------
      This used to hand back "45/100" as a headline. The app's own charter says
@@ -270,9 +284,15 @@ function recoveryIndex(s) {
       eaR.lo < EA_LOW ? 25 : 15);
   }
   const score = Math.max(0, Math.round(100 - flags.reduce((a, f) => a + f.cost, 0)));
+  // DECISIONS:110: no recovery reading from absent sleep. Existing independently
+  // observed WATCH/LOW severity survives; missing evidence cannot create GREEN.
+  const missingSleep9 = missingCurrentSleepEvidence(s);
+  const observedBand9 = score >= 80 ? 'GREEN' : score >= 55 ? 'WATCH' : 'LOW';
   const lever = flags.slice().sort((a, b) => b.cost - a.cost)[0] || null;
   return {
-    score, band: score >= 80 ? "GREEN" : score >= 55 ? "WATCH" : "LOW",
+    score: missingSleep9 ? null : score,
+    band: missingSleep9 && observedBand9 === 'GREEN' ? 'UNKNOWN' : observedBand9,
+    ...(missingSleep9 ? { sleepEvidence: missingSleep9 } : {}),
     flags, lever, watched: 7, excludedDips: excluded,
     factors: flags.map((f) => f.receipt),
   };
@@ -1035,6 +1055,7 @@ function cleanAtDate(s, iso) {
 function sleepMean3At(s, iso) {
   const nights = nightsBefore(s, iso);
   if (!nights.length) return true;
+  if (nights[nights.length - 1].d !== plusDays(iso, -1)) return true; // D8: old debt is history, not a current sleep veto.
   const run = [nights[nights.length - 1]];
   for (let i = nights.length - 2; i >= 0 && run.length < 3; i--) {
     if (Math.round((mk(run[0].d) - mk(nights[i].d)) / DAY) !== 1) break;

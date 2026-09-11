@@ -242,7 +242,8 @@ function volumeConversion(s, exId) {
   const ex = (s.exercises || []).find((x) => x.id === exId);
   const falling = t.hi < 0;
   const tolerated = !falling && !(ex && ex.holdFlag);
-  const band9 = recoveryIndex(s).band;
+  const recovery9 = recoveryIndex(s), band9 = recovery9.band;
+  const adverseRecovery9 = band9 === 'WATCH' || band9 === 'LOW';
   /* MIXED-PHASE (F): a phase transition inside the read window — labeled, never
      force-classified into a cut or surplus response. */
   const phLog9 = (s.plan && Array.isArray(s.plan.phaseLog)) ? s.plan.phaseLog : [];
@@ -252,7 +253,7 @@ function volumeConversion(s, exId) {
      governor holding the lift (pain speaks there — the immediate safety path), or
      recovery leaving GREEN. An interval spanning zero can never subtract. */
   const safety = falling && !!(ex && ex.holdFlag);
-  const subtract = dK > 0 && falling && (t.n >= TREND_MIN_SESSIONS + 2 || safety || band9 !== "GREEN");
+  const subtract = dK > 0 && falling && (t.n >= TREND_MIN_SESSIONS + 2 || safety || adverseRecovery9);
   const effort9 = delivered === true ? "delivered (the terminal-set RIR reports say the hard sets ran hard)" : delivered === false ? "NOT delivered" : "unrated (fewer than 2 terminal-set RIR reports)";
   const revLine9 = "Reviews derive from the change date: outcome opens " + fmtShort(reviews.outcome) + " (day " + blockDays + " of " + REVIEW_OUTCOME_D + "), credible classification " + fmtShort(reviews.classify) + ".";
   /* THE LADDER (F): UNDELIVERED / NOT-TOLERATED / MIXED-PHASE / UNCLEAR / TOLERATED /
@@ -264,7 +265,7 @@ function volumeConversion(s, exId) {
     why = "the added set never arrived as prescribed effort — the final-set RIR reports say the hard sets were left in the tank, so this read says nothing about volume: the dose was not delivered";
   } else if (!tolerated) { tier = "NOT-TOLERATED";
     why = "post-change, the lift itself is deteriorating (" + t.pct + "%/session, CI " + t.lo + " to " + t.hi + ") — the added set is not being tolerated. Delivery was " + effort9 + "; execution, rest and technique standardization are yours to check — the instrument cannot see them. " + (subtract
-      ? "The staged review's subtract condition is met" + (safety ? " on the safety path (the governor holds this lift while it falls)" : (band9 !== "GREEN" ? " — recovery has left GREEN while the lift falls" : " — the deterioration repeated past the minimum window")) + "; the card carries the receipt."
+      ? "The staged review's subtract condition is met" + (safety ? " on the safety path (the governor holds this lift while it falls)" : (adverseRecovery9 ? " — recovery has left GREEN while the lift falls" : " — the deterioration repeated past the minimum window")) + "; the card carries the receipt."
       : "A set comes off only if this repeats, pain speaks, or recovery leaves GREEN — a hold is not a verdict.");
   } else if (mixedPhase) { tier = "MIXED-PHASE";
     why = "the phase flipped inside this read window — the observation is filed MIXED-PHASE and never force-classified: a cut read and a surplus read answer different questions. " + revLine9;
@@ -292,6 +293,7 @@ function volumeConversion(s, exId) {
       why = "effort " + effort9 + " and the lift is carrying the added set — TOLERATED. Growth is a longer question: a short-horizon lift trend is performance evidence, never tissue evidence. " + revLine9;
     }
   }
+  if (recovery9.sleepEvidence) why += " Current sleep evidence is incomplete; absence contributes no reduction or fatigue signal.";
   return { status: "LIVE", exId, changedAt, prevK, k: lastK, dK, trend: t, delivered, tolerated, tier, mixedPhase, reviews, blockDays, subtract, safety, why };
 }
 
