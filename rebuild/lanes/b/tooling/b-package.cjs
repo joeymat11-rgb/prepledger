@@ -110,8 +110,8 @@ const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
-const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
-const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/'];
+const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
 // --require=, --import=) are caught with the bare ones; NO_RUN catches every form that
@@ -170,12 +170,13 @@ const open = [], note = (reason, ciBlocking = true) => { open.push({ reason, ciB
 const keys = (o, list, label) => assert.deepEqual(Object.keys(o).sort(), list.slice().sort(), label);
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const rel = file => path.join(root, file), diskSha = file => sha(fs.readFileSync(rel(file)));
-const argvFiles = argv => argv.filter(a => !a.startsWith('-'));
 const gitSha = (commit, file) => sha(L.object(root, commit, file)); // bytes as they stand IN GIT
 const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // N2/N3. The whole argv of a declared child, decided here and nowhere else: allow-listed
-// flags first, then a real file under a fixed root, then only more such files. Returns the
-// executed targets; the FIRST of them is the file node will actually run.
+// flags first, then explicit executable files under fixed roots. In bare-script mode
+// Node runs exactly ONE file: trailing positions are application arguments, not executions.
+// Only --test executes multiple explicit files. This function is the single definition
+// used by validation, pins, ownership, fidelity and both inherited/moved coverage.
 function childArgv(c) {
   assert(Array.isArray(c.argv) && c.argv.length && c.argv.every(a => typeof a === 'string' && a.length), 'Child argv ' + c.name);
   for (const a of c.argv) {
@@ -186,13 +187,17 @@ function childArgv(c) {
   let i = 0;
   for (; i < c.argv.length && c.argv[i].startsWith('-'); i++)
     assert(ARGV_ALLOWED.has(c.argv[i]), 'CHILD-ARGV-FLAG-NOT-ALLOWED ' + c.name + ' ' + c.argv[i]);
+  const flags = c.argv.slice(0, i);
+  assert(new Set(flags).size === flags.length, 'CHILD-ARGV-DUPLICATE-FLAG ' + c.name);
+  const testMode = flags.includes('--test');
+  assert(testMode || !flags.includes('--test-reporter=tap'), 'CHILD-ARGV-REPORTER-WITHOUT-TEST ' + c.name);
   const targets = c.argv.slice(i);
   assert(targets.length, 'CHILD-ARGV-EXECUTES-NO-FILE ' + c.name);
   for (const f of targets) {
     assert(!f.startsWith('-'), 'CHILD-ARGV-FLAG-AFTER-FILE ' + c.name + ' ' + f);
-    assert(!path.isAbsolute(f) && !f.includes('..') && CHILD_ROOTS.some(r => f.startsWith(r)) && fs.existsSync(rel(f)), 'CHILD-ARGV-TARGET ' + c.name + ' ' + f);
+    assert(!path.isAbsolute(f) && !path.win32.isAbsolute(f) && !f.includes('..') && !f.includes('\\') && /\.(?:cjs|mjs|js)$/.test(f) && CHILD_ROOTS.some(r => f.startsWith(r)) && fs.existsSync(rel(f)) && fs.statSync(rel(f)).isFile(), 'CHILD-ARGV-TARGET ' + c.name + ' ' + f);
   }
-  assert.deepEqual(targets, argvFiles(c.argv), 'CHILD-ARGV-SHAPE ' + c.name);
+  assert(testMode || targets.length === 1, 'CHILD-ARGV-BARE-SCRIPT-ARGUMENTS ' + c.name + '; extra positional files are not executed by Node');
   return targets;
 }
 // N1. "a file that requires the original" is decided by READING the covering file's bytes,
@@ -214,7 +219,7 @@ function requiresOriginal(file, original) {
 // reading the spec's own product roles, never by a declaration of ownership; and a spec
 // cannot widen it, because role "new" is refused for any file the parent pins (product()).
 function ownChildren(s) {
-  return s.children.filter(c => argvFiles(c.argv).some(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new'));
+  return s.children.filter(c => childArgv(c).some(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new'));
 }
 let logDir, ARTIFACT, REVIEW, specRaw;
 
@@ -324,7 +329,7 @@ function spec() {
     assert(typeof move.child === 'string' && names.has(move.child), 'COVERAGE-CHILD-NOT-DECLARED ' + gate + ' ' + move.child);
     assert(typeof move.reason === 'string' && !/[\r\n]/.test(move.reason) && move.reason.trim().length >= 16, 'COVERAGE-MOVE-REASON-MISSING ' + gate);
     assert(!Object.values(s.coverage.inherited).includes(move.child), 'COVERAGE-MOVE-CHILD-IS-AN-INHERITED-CHILD ' + gate + ' ' + move.child);
-    const original = GATE_FILE.get(gate), targets = argvFiles(byName.get(move.child).argv);
+    const original = GATE_FILE.get(gate), targets = childArgv(byName.get(move.child));
     assert(targets.includes(original) || targets.some(f => requiresOriginal(f, original)),
       'COVERAGE-MOVE-CHILD-DOES-NOT-EXECUTE-THE-ORIGINAL ' + gate + ' ' + move.child + ' needs ' + original);
     movedBy.set(move.child, [...(movedBy.get(move.child) || []), gate]);
@@ -526,6 +531,7 @@ function product(s, bound) {
   for (const [file, pin] of Object.entries(s.product)) {
     if (pmap && Object.hasOwn(pmap, file)) {
       assert.equal(pin.pre, pmap[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
+      assert(pin.role === 'carried' || pin.role === 'edited', 'PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED ' + file);
       assert(pin.role !== 'superseded-by-child', 'PRODUCT-ROLE-MISLABELLED ' + file + ' is a parent PRODUCT pin, not an execution pin');
     } else if (epins && Object.hasOwn(epins, file)) {
       // Y1 second half / r4 §5.4. The parent pinned this file in executionPins. DECISIONS:109
@@ -566,7 +572,7 @@ function product(s, bound) {
 function fidelity(s, sealed) {
   L.git(root, ['merge-base', '--is-ancestor', s.sourceBase, 'HEAD']); // sourceBase is an ancestor of HEAD
   const changed = L.git(root, ['diff', '--name-only', s.sourceBase, 'HEAD', '--', 'rebuild/engine', 'rebuild/conform', 'rebuild/m4/spec', TOOLING]).toString().split(/\r?\n/).filter(Boolean);
-  const targets = new Set(s.children.flatMap(c => argvFiles(c.argv)));
+  const targets = new Set(s.children.flatMap(c => childArgv(c)));
   const unlisted = changed.filter(f => !(Object.hasOwn(s.product, f) || f === ARTIFACT || f === REVIEW || TOOLING_FILES.includes(f) || targets.has(f) || f === (s.carrierSuccessor && s.carrierSuccessor.file)));
   assert(!unlisted.length, 'UNLISTED-SOURCE-CHANGE ' + unlisted.join(' '));
   assert.equal(diskSha(RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER');
@@ -714,7 +720,7 @@ function children(s, env) {
     if (!moved.length) assert(bytes >= NEEDLE_FLOOR || GATE_TERMINAL.test(out),
       'CHILD-DID-NOT-REALLY-EXECUTE ' + c.name + '; ' + bytes + ' byte(s) of stdout and no original gate terminal line');
     ran.set(c.name, { ok: true, needle: c.needle, bytes, targets, moved });
-    say('CHILD ' + c.name + ' OBSERVED; exit 0, ' + bytes + ' bytes of stdout, exact declared verdict at line start; ran ' + targets[0] +
+    say('CHILD ' + c.name + ' OBSERVED; exit 0, ' + bytes + ' bytes of stdout, exact declared verdict at line start; ran ' + targets.join(' ') +
       (moved.length ? '; and emitted the original gate needle(s) ' + moved.join(' ') : ''));
   }
   return ran;
@@ -769,7 +775,7 @@ function noRegister(s, ran) {
   say('NO-REGISTER OBLIGATION ' + ID + ' registers no D-id, so the 45-law accounting imposes nothing on it; in its place ' +
     executed.length + ' of ' + own.length + ' declared child(ren) executing one of this package\'s own role:"new" product file(s) ran in this process, ' +
     'exit 0, with their exact declared needle at line start — ' + MIN_OWN_CHILDREN + ' required at the seal (' + s.children.length +
-    ' child(ren) declared in total' + (own.length ? ': ' + own.map(c => c.name + ' -> ' + argvFiles(c.argv).filter(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new').join(' ')).join('; ') : '') + ')');
+    ' child(ren) declared in total' + (own.length ? ': ' + own.map(c => c.name + ' -> ' + childArgv(c).filter(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new').join(' ')).join('; ') : '') + ')');
   if (executed.length < MIN_OWN_CHILDREN)
     note('no-register package: ' + executed.length + ' of the ' + MIN_OWN_CHILDREN +
       ' required child(ren) executing this package\'s own new product file(s) ran (TOOLING-REVIEW-r4 Y1; the seal refuses while this stands)');
@@ -785,7 +791,7 @@ function proposed(s, bound) {
   const pins = { [RUNNER]: diskSha(RUNNER), [TOOLING + '/packages/' + ID + '.json']: sha(specRaw) };
   if (fs.existsSync(rel(s.brief.file))) pins[s.brief.file] = diskSha(s.brief.file);
   if (s.carrierSuccessor && fs.existsSync(rel(s.carrierSuccessor.file))) pins[s.carrierSuccessor.file] = diskSha(s.carrierSuccessor.file);
-  for (const c of s.children) for (const f of argvFiles(c.argv)) pins[f] = diskSha(f);
+  for (const c of s.children) for (const f of childArgv(c)) pins[f] = diskSha(f);
   const covered = [...Object.keys(s.coverage.inherited), ...Object.keys(s.coverage.moves)].sort(), o = bound.option;
   return {
     version: 1, lanePackage: ID, packageId: s.packageId, sourceBase: s.sourceBase,
