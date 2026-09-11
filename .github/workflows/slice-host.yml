@@ -70,10 +70,22 @@ jobs:
           npm install -g pnpm@9
           pnpm --dir rebuild/m3/w6 install --frozen-lockfile
 
-      # This job is the CI HOME for both lockfile-only A5 suites — including the one that
-      # reads THIS file as data. rebuild.yml is pinned by the accepted NATIVE-CARRIERS
-      # artifact, so it cannot gain a step until the PM's batched re-seal at B1; this
-      # step means the 42 lockfile-only checks are not waiting on that.
+      # 2026-09-11. The build above failed at 8d14ee4 with
+      #   rebuild/m3/w5/reconciliation/codec.cjs:4:27: ERROR: Could not resolve "@noble/hashes/sha2.js"
+      #   rebuild/m3/w5/source/codec.cjs:5:23: ERROR: Could not resolve "@noble/hashes/sha2.js"
+      # A2 put rebuild/m3/w5/source/codec.cjs into the Today bundle, and esbuild resolves
+      # that import by walking up from rebuild/m3/w5 — where only W5's own lockfile can
+      # put it. W6's install above cannot reach it. Frozen, so nothing drifts.
+      # --ignore-workspace: rebuild/m3/w5/pnpm-workspace.yaml has no `packages:` key and
+      # pnpm 9 refuses without it; --ignore-scripts: nothing here runs wrangler/workerd.
+      - name: Install the pinned W5 source and reconciliation dependencies
+        run: pnpm --dir rebuild/m3/w5 install --frozen-lockfile --ignore-scripts --ignore-workspace
+
+      # This job runs both lockfile-only A5 suites — including the one that reads THIS
+      # file as data, so an edit here is checked by the same push that makes it. Since the
+      # 2026-09-11 CI re-seal rebuild.yml runs them too, on BOTH runners; this job is no
+      # longer their only home, but it stays their home on the deploy path, where a broken
+      # workflow file would otherwise only be discovered by the deploy failing.
       - name: The A5 shell's own checks, and this workflow's own (no bundler)
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
 
