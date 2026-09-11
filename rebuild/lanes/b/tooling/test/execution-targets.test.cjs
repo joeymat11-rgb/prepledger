@@ -45,7 +45,7 @@ write(pass, 'console.log("PROBE PASS\\n" + "x".repeat(240));');
 write(good, 'console.log("OWN PASS\\n" + "y".repeat(240));');
 write(fail, 'throw new Error("SECOND TARGET EXECUTED");');
 const child = (argv, name = 'probe-child', needle = 'PROBE PASS') => ({ name, argv, needle });
-const packageFor = c => ({ children: [c], product: { [good]: { role: 'new', pre: sha(good), post: null } }, coverage: { inherited: {}, moves: {} } });
+const packageFor = c => ({ children: [c], product: { [good]: { role: 'new', pre: sha(good), post: null } }, coverage: { inherited: {}, moves: {}, successors: null } });
 const env = { ...process.env, NODE_OPTIONS: '', NODE_V8_COVERAGE: '' };
 delete env.NODE_TEST_CONTEXT; // The outer node:test worker is not the package runner's environment.
 const execute = c => api.children(packageFor(c), env);
@@ -97,14 +97,29 @@ test('inherited pinned original cannot become a trailing application argument', 
   const s = packageFor(c); s.coverage.inherited = { example: c.name };
   const bound = { option: { id: 'CONTROL' }, acceptance: { product: {}, executionPins: { [good]: sha(good) }, coverage: { byChild: s.coverage.inherited } } };
   assert.throws(() => api.coverage(s, bound, api.children(s, env)), /CHILD-ARGV-BARE-SCRIPT-ARGUMENTS/);
-  // Reproduce r5's exact inherited names/map as well, without executing old gates.
-  const inherited = JSON.parse(fs.readFileSync(path.join(sourceRoot, 'rebuild/lanes/b/tooling/packages/B-NTC.json')));
-  assert.equal(Object.keys(inherited.coverage.inherited).length, 9);
-  assert.equal(inherited.children.length, 5);
-  for (const original of inherited.children) {
-    for (const file of original.argv.filter(a => !a.startsWith('-'))) write(file, 'throw new Error("INHERITED ORIGINAL EXECUTED");');
+  // TOOLING-REVIEW-r5 Z8 / r2 R8. This case used to read the REAL packages/B-NTC.json and
+  // assert `children.length === 5`. That number is a property of one branch — the spec
+  // declares 5 on rebuild/lane-b-tooling and 15 on rebuild/lane-b-ntc — so the suite was
+  // 9/9 here and 8/9 there for a reason that has nothing to do with the rule under test.
+  // The rule under test is: an inherited pinned original must not be reachable only as a
+  // trailing application argument. So the map is BUILT here, the way every other case in
+  // this file builds its inputs, and the suite is deterministic on any single branch.
+  const fixture = { children: [], coverage: { inherited: {}, moves: {}, successors: null }, product: {} };
+  const carriers = ['source-carriers', 'inherited-carriers', 'defect-witnesses', 'writers-differential', 'second-gate'];
+  const gatesOf = { 'source-carriers': ['migrate-source', 'merge-source', 'writers-source'],
+    'inherited-carriers': ['witnesses-2', 'witnesses-5', 'migrate-differential'],
+    'defect-witnesses': ['witnesses-7'], 'writers-differential': ['writers-differential'], 'second-gate': ['second-gate'] };
+  for (const name of carriers) {
+    const file = 'rebuild/m4/spec/probe-' + name + '.cjs';
+    write(file, 'throw new Error("INHERITED ORIGINAL EXECUTED");');
+    fixture.children.push({ name, argv: [file], needle: 'NATIVE ' + name.toUpperCase() + ':' });
+    for (const g of gatesOf[name]) fixture.coverage.inherited[g] = name;
+  }
+  assert.equal(Object.keys(fixture.coverage.inherited).length, 9);
+  assert.equal(fixture.children.length, carriers.length);
+  for (const original of fixture.children) {
     const forged = { ...original, argv: [pass, ...original.argv.filter(a => !a.startsWith('-'))], needle: 'PROBE PASS' };
-    assert.throws(() => api.children({ ...inherited, children: [forged] }, env), /CHILD-ARGV-BARE-SCRIPT-ARGUMENTS/);
+    assert.throws(() => api.children({ ...fixture, children: [forged] }, env), /CHILD-ARGV-BARE-SCRIPT-ARGUMENTS/);
   }
   // Real parent-pinned execution still establishes the unchanged coverage rule.
   const direct = child([good], 'inherited-good', 'OWN PASS'); s.children = [direct];

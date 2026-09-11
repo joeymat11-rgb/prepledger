@@ -1,5 +1,27 @@
 # Astra tooling correction — executed child targets
 
+> **LANE B ANNOTATION, 2026-09-11 (fix r5). THIS DOCUMENT BINDS NOTHING.**
+> `DECISIONS:112 (2)` rules the Astra provenance VOID: its ledger lines, its brief
+> amendment and its theme are not on the chain, its code is adopted only as a speculative
+> builder candidate with Astra as author, and its self-reviews do not count as the
+> independent review. Every sentence below is a hypothesis. Two independent blind reviews
+> re-measured them and the record is:
+>
+> * the `childArgv()` change itself — **confirmed** (`TOOLING-REVIEW-r5` §C, ACCEPT, and
+>   lane B keeps commit `c7b7133`);
+> * "`node --test rebuild/lanes/b/tooling/test/execution-targets.test.cjs` → 9 passed /
+>   0 failed, exit 0" — **not reproducible as stated.** `B-NTC-REVIEW-r2` R8 measured
+>   **8/9, exit 1** on `rebuild/lane-b-ntc`, because the suite asserted
+>   `packages/B-NTC.json`'s `children.length === 5` and that spec declares **15** there.
+>   The claim was true on one branch and false on the other, and the report says neither.
+>   Fixed under `TOOLING-REVIEW-r5` Z8: the suite now builds its own inherited-map fixture
+>   and is **9/9 on both lane branches** (`TOOLING-FIX-r5-REPORT.md`);
+> * the two commits `7cd7a5b` and `85f7d56`, described elsewhere in the Astra report set,
+>   were **REJECTED** by `TOOLING-REVIEW-r5` and lane B **reverted** both.
+>
+> No claim below has been re-checked beyond the three above. Read it as a candidate's
+> notes, not as evidence.
+
 2026-09-11. Candidate only; independent review required.
 Branch `codex/astra-tooling-fix`, base `7748880701ef62246c8362c43f760ee10f86c2cc`.
 Assignment: PM `ASTRA-TOOLING-FIX.md`. Prior independent source review:

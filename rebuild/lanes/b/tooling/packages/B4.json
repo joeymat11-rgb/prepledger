@@ -60,7 +60,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "e08580e7bb6b044d578f44f6bb685ff850f606d62e8043be6dbd2004dd39512c"
+    "runnerSha256": "f63fe558037c0a894592d5c9284cbe92f23f7830385f514194613b8eb9ba1e62"
   },
   "product": {
     "rebuild/engine/energy.cjs": {
@@ -176,7 +176,8 @@
       "writers-differential": "writers-differential",
       "second-gate": "second-gate"
     },
-    "moves": {}
+    "moves": {},
+    "successors": null
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
