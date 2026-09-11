@@ -10,6 +10,34 @@ on the phone with WebCrypto alone, keeps the original bytes immutably through
 the existing import custody, records the import in generation metadata, and
 seeds the derived cache **only** where there are no operations to contradict.
 
+**REVIEW ROUND APPLIED (2026-09-11), after ACCEPT WITH CONDITIONS on `ab52e30`.**
+Both defects are closed in one commit and everything was re-executed. What
+changed:
+
+* **D1 (medium) — the bundle's own verdicts are now READ, not type-checked.**
+  `oracle.verdict` had to be the string `"PASS"` in nobody's code; it does now,
+  and `dataLoss` is gated on `safe`, `lost` and a per-class decrease rule.
+  Refusal code `BUNDLE_NOT_QUALIFIED`, refused before the first `load()`, so an
+  unqualified migration cannot reach storage or become the derived cache. See
+  THE QUALIFICATION GATE. The report's own "strictly validated" sentence was the
+  thing that made this a defect rather than a residual, and it is corrected in
+  place rather than quietly dropped.
+* **D2 (low-medium) — `keepOriginal` now compares all four material fields**,
+  `engineContextJson` and `localBytes` included, so a stranded custody record
+  from a different seal is never reused under a colliding name. Design note 6 is
+  corrected in place; the legitimate retry still works and both halves are
+  tested.
+* **C3 — residual 8 says what the two defects cost.** Both were invariants that
+  no assertion covered; four new cases cover them now.
+
+Nothing above or below this note is retracted. The review reproduced every
+number in the first version exactly, and it also attacked the seal harder than
+this suite does — 15 byte flips including the tag region, six passphrase
+near-misses, and NFKD composed-vs-decomposed in all four directions, which no
+test here covers and which it confirmed works. That NFKD gap is real and
+remains: the word list is ASCII, so this suite still never exercises
+normalisation.
+
 **PRIVACY.** `rebuild/conform/private/` does not exist in this worktree
 (`Test-Path` → False) and nothing under `ledger/` was opened by me, by the
 module, or by any test. Every bundle in every case below was sealed by the real
@@ -38,13 +66,17 @@ contract, `port.cjs` is spawned as the sealer, neither is modified.
 
 ## WHAT WAS BUILT
 
+Hashes are as of the review round; the first-round values the review verified
+are in its own FILES REVIEWED table, and the two files it did not cause a change
+in (`local-import-browser.mjs`, `local-client.mjs`) still carry them.
+
 | file | sha256 | lines | bytes |
 |---|---|---|---|
-| `rebuild/m3/w6/local/import-bundle.mjs` (new) | `62fd9f975a3516b5da4c653215011d1c7f3041dd4445a9a8bce84449752c1aea` | 485 | 29636 |
-| `rebuild/m3/w6/test/local-import.test.mjs` (new) | `b57a8cd99714c7d3a91a6d627ad148bf88235c8cd70c8cc58d5ea6c1a3db060d` | 541 | 33461 |
+| `rebuild/m3/w6/local/import-bundle.mjs` (new) | `6c3cf6ed630bc5f38ad3cef12c901408fe0d0f05267659b7440d4ab7f48ae24e` | 575 | 35734 |
+| `rebuild/m3/w6/test/local-import.test.mjs` (new) | `0ffe0740baf2710b8c2ae75fa5f59af3affbef1aca91436c0609af309a670a48` | 708 | 43501 |
 | `rebuild/m3/w6/test/local-import-browser.mjs` (new) | `226f92c1458b6c514b28dc6a30043c039a8d598e565332a3d41260d45f12cab1` | 254 | 13762 |
 | `rebuild/m3/w6/local/local-client.mjs` (edited, additive) | `3bf8c01d7e2b28fd0fad66ec0b6fd60663ab8b38caa9f222e0d36772c5970899` | 416 | 26390 |
-| `rebuild/m3/w6/local/browser-entry.mjs` (edited, additive) | `6bca11b92a30f83cf7076250488a4d36460995e0fcf67b39fd23e9d4458cc739` | 19 | 1422 |
+| `rebuild/m3/w6/local/browser-entry.mjs` (edited, additive) | `c672a3302ed71cf70ab60f9018173186e0208bfe9757113cc66918919e41b145` | 19 | 1465 |
 
 All five are LF-only (checked byte-wise: `CR=0`) and end with a newline, so
 `.gitattributes` cannot rewrite them and the hashes above are the committed blob
@@ -110,22 +142,32 @@ non-base64 ciphertext and a ciphertext shorter than the tag — ten variants, al
 | any of the ten structural envelope edits above | `BUNDLE_AUTH_FAILED` |
 | not JSON / not a byte input / empty passphrase | `BUNDLE_AUTH_FAILED` |
 | a payload whose own `source.sha256` disagrees with the AAD | `BUNDLE_AUTH_FAILED` |
-| a WELL-SEALED bundle whose payload is the wrong shape | `BUNDLE_PAYLOAD_INVALID` + `field` |
+| a WELL-SEALED bundle whose payload is the wrong SHAPE | `BUNDLE_PAYLOAD_INVALID` + `field` |
+| a well-sealed, well-shaped bundle whose own VERDICTS say the migration is not vouched for | `BUNDLE_NOT_QUALIFIED` + `reason`/`detail` |
 
-The last row is a deliberate split from `unseal.cjs`, and it is the one place
-the two decoders differ on purpose. `unseal.cjs` returns as soon as the tag
-verifies and `payload.source.sha256` matches the AAD; the tag proves nobody
+The last two rows are a deliberate split from `unseal.cjs`, and they are the
+only places the decoders differ on purpose. `unseal.cjs` returns as soon as the
+tag verifies and `payload.source.sha256` matches the AAD; the tag proves nobody
 edited the rest. The PHONE needs more than "unedited": it needs "this bundle
 says what this importer requires, in the shape it requires", because the wrong
 place to discover a missing `engine.schemaV` is halfway through a durable
 commit. So after the two checks `unseal.cjs` makes — in the same order, with the
-same code — `unsealBundle` strictly validates `createdAt`, `engine.sha256`,
+same code — `unsealBundle` checks the SHAPE of `createdAt`, `engine.sha256`,
 `engine.schemaV`, `source.bytes`, `migrated.sha256`, `migrated.state`,
-`oracle.verdict`, `dataLoss` and (when present) `local`. Those failures are
+`oracle.verdict`, `dataLoss` (object, boolean `safe`, integer `lost`, object
+`before`/`after`) and (when present) `local`. Those failures are
 `BUNDLE_PAYLOAD_INVALID` with the FIELD name attached — never a value. The test
 reaches each one by re-sealing a deliberately broken payload with port.cjs's own
 parameters, which is the only way a well-sealed bundle with a bad payload can
 exist at all.
+
+**Shape is not content, and the first version of this report blurred them.** It
+listed `oracle.verdict` among fields "strictly validated", which a reader could
+only take to mean the verdict was checked. It was checked for being a STRING.
+The independent review caught it (D1) and demonstrated the consequence: a bundle
+whose own oracle said `FAIL` imported durably and, on a zero-op phone, became
+the engine state Joe sees. The next section is the fix; the sentence above now
+says SHAPE, because that is all that section does.
 
 ### `migrated.sha256` — how port.cjs computes it, and why re-hashing works
 
@@ -148,6 +190,58 @@ browser case 1 asserts it again inside Edge with `crypto.subtle.digest`.
 
 `source.bytes` is checked the same way and more strongly: it is asserted equal
 to the 157 544 bytes of the fixture ON DISK, not merely to its own hash.
+
+---
+
+## THE QUALIFICATION GATE (review D1) — reading the bundle's own verdicts
+
+Intact-and-in-profile is one question. **Was the migration inside it ever
+vouched for** is a different one, and C2b originally answered only the first.
+
+`qualifyBundle(payload)` now answers the second, and `unsealBundle` runs it LAST
+— after every integrity check, because asking whether a migration passed is
+pointless until the bytes describing it are proved to be the ones sealed. Four
+refusals, one code, a fixed `reason` enum and a `detail`:
+
+| `reason` | fires when | `detail` |
+|---|---|---|
+| `oracle-verdict` | `payload.oracle.verdict !== "PASS"` | the verdict as given |
+| `data-loss-unsafe` | `dataLoss.safe !== true` | `safe=false` |
+| `data-loss-classes` | `dataLoss.lost !== 0` | `lost=<n>` |
+| `count-decrease` | any class smaller in `dataLoss.after` than in `dataLoss.before` | `<class> <before>-><after>` |
+
+**Where those exact shapes come from.** `"PASS"` is the literal at
+`port.cjs:479`, and it is the ONLY value port.cjs can write: the bundle is not
+written at all unless the gate came back ok, so any other value means something
+other than port.cjs produced this file. `dataLoss` is `{safe, lost, before,
+after}` at `port.cjs:497`, where `before`/`after` are
+`engine.recordCounts(sourceState)` / `(candidateState)` — plain class→count
+objects — and `port.cjs:440` refuses to seal unless `safe === true &&
+lost.length === 0`. The decrease rule reads a missing key as `0`, which is what
+port.cjs's own `countsCheck` does (`port.cjs:322`). On the real preimage nothing
+decreases (`corrections 0->9` rises, every other class holds), which is why the
+rule can be absolute rather than carrying exceptions.
+
+**This is a defensive check against a file, not a second opinion on the gate.**
+port.cjs cannot currently produce an unqualified bundle. That is exactly the
+argument for having it: it costs nothing while the two agree, and it is the only
+thing standing there if they ever stop agreeing — or if the file came from
+somewhere that is not port.cjs. The failure it prevents is the one CLAUDE.md
+names as this codebase's dominant defect: a fact written down and never enforced
+in code.
+
+**`detail` carries a class name and two counts, never a ledger value.** That is
+the same disclosure port.cjs itself makes on Joe's console — "a count is not a
+value", `port.cjs:177` — and it is what lets a host say WHICH class shrank
+rather than "something is wrong".
+
+**Inspection is still possible, and it fails closed.**
+`unsealBundle(bytes, pass, {allowUnqualified: true})` returns the bundle with
+the refusal on `qualification` instead of throwing, so a host can OPEN a bad
+file in order to tell Joe what is wrong with it. The DEFAULT is the throw, and
+`importBundle` never passes the flag — a caller that forgets to look at a
+returned field is precisely how an unchecked verdict got here in the first
+place.
 
 ---
 
@@ -263,8 +357,8 @@ No install of any kind was run.
 
 | command | before C2b | after C2b |
 |---|---|---|
-| `NODE --test rebuild/m3/w6/test/*.test.mjs` | `tests 473 · pass 473 · fail 0 · skipped 0` | **`tests 489 · pass 489 · fail 0 · skipped 0`**, exit 0 — the 473 unchanged plus 16 new |
-| `NODE --test rebuild/m3/w6/test/local-import.test.mjs` | — | `tests 16 · pass 16 · fail 0 · skipped 0`, exit 0, ~4.6 s |
+| `NODE --test rebuild/m3/w6/test/*.test.mjs` | `tests 473 · pass 473 · fail 0 · skipped 0` | **`tests 493 · pass 493 · fail 0 · skipped 0`**, exit 0 — the 473 unchanged plus 20 new |
+| `NODE --test rebuild/m3/w6/test/local-import.test.mjs` | — | `tests 20 · pass 20 · fail 0 · skipped 0`, exit 0 |
 | `NODE rebuild/m3/w6/test/local-bite.cjs` | RESTORED PASS | **RESTORED PASS**, exit 0 — all four bites still RED (durability-gate, stage-basis, sidecar-self-heal, lease-self-renewal); source `3bf8c01d…0899` before and after (the hash moved from C1's `a055c623…14ea9` because `local-client.mjs` was edited) |
 | `NODE rebuild/m3/w6/build-browser.mjs` | `w6.js` `b733c830…3143d`, meta `ffe65850…9b00c` | **byte-identical**: `b733c830…3143d` / `ffe65850…9b00c`, exit 0 |
 | `NODE rebuild/m3/w6/local/build.mjs` | `36` / `96` pinned inputs | `38` / `97` pinned inputs, exit 0; `local.js` `a0efa4887ce5088ad6b64cfe67b23c226a31c7f1cb07b3235c54d08fa026e5a8`, `host.js` `fbcab6424bd7f42e2ca2058409ce6796762dd4efe13ce816f4f06650923796c7` — both moved because the entry now carries `import-bundle.mjs` (+ `strict-json.mjs`, already in the host bundle, hence +1 there and +2 here) |
@@ -280,7 +374,7 @@ than passing silently if `playwright-core` or `W6_BROWSER_BIN` is missing.
 `$env:W6_BROWSER_BIN` was
 `C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe`.
 
-### The 16 node cases, by what each proves
+### The 20 node cases, by what each proves
 
 1. **Seal compat.** A bundle sealed by the real `port.cjs` this run opens under
    `crypto.subtle`, and its payload deep-equals `unseal.cjs`'s. The five sealing
@@ -334,6 +428,28 @@ than passing silently if `playwright-core` or `W6_BROWSER_BIN` is missing.
     derived name.
 16. **The module-level entry points** accept a client and delegate to the same
     code path; the pure helpers judge a generation shape.
+17. **REVIEW D1 — a verdict that is not `PASS` is refused.** Five spellings
+    (`FAIL`, `SUSPECT`, `pass`, `PASS ` with a trailing space, and the empty
+    string) all `BUNDLE_NOT_QUALIFIED` / `oracle-verdict`; then on a real client
+    the `FAIL` bundle is refused, the revision never moves, `imports()` is
+    empty, NO custody original is staged, `derived` is NOT seeded, and a good
+    bundle still imports afterwards.
+18. **REVIEW D1 — a recorded loss is refused.** `safe: false`,
+    `lost: 2`, a `reads` count one lower than before, and a class deleted from
+    `after` entirely (read as 0, as port.cjs reads it) — each with the right
+    `reason` and `detail`; then a `sessionLog` decrease refused on a real client
+    with nothing written and nothing staged.
+19. **`allowUnqualified` opens a bad bundle for inspection but never imports
+    one**, the default is the throw, and `qualifyBundle` as a unit — including
+    that the verdict is judged before the counts, and that a RISE is fine.
+20. **REVIEW D2 — a stranded original from a different seal is never reused.**
+    Bundle B (same ledger, same migrated state, different engine sha and
+    `createdAt`, still qualifying) collides on the default name after A's commit
+    was faulted: `LOCAL_IMPORT_NAME_TAKEN`, nothing written, A's original
+    untouched. The legitimate retry of A then succeeds, REUSES the stranded
+    record (its checkpoint is still the original one), and the two durable
+    records are asserted to agree on engine sha, verdict, `createdAt` and
+    migrated hash.
 
 ### The 7 browser cases (`local-import-browser.mjs`, real Edge, fresh profile)
 
@@ -404,8 +520,20 @@ as bytes from the same origin rather than pasted into a JS literal.
    state `import-custody.mjs` already names, and which a retry absorbs.
 6. **`keepOriginal` reuses an existing record instead of re-staging.** Without
    it, a retry after a `STALE_REVISION` would hand custody a moved checkpoint and
-   get `IMPORT_CUSTODY_ID_CONFLICT`, stranding the import permanently. The bytes
-   are compared before any reuse.
+   get `IMPORT_CUSTODY_ID_CONFLICT`, stranding the import permanently. **ALL FOUR
+   material fields are compared before any reuse** — `sourceBytes`,
+   `candidateBytes`, `localBytes` and `engineContextJson`. The first version of
+   this note said "the bytes are compared" and meant only the first two; the
+   review (D2) showed what the gap cost: a stranded record from seal A reused
+   under seal B leaves `metadata.imports[]` carrying B's engine sha, oracle
+   verdict and `createdAt` while the immutable custody record carries A's — two
+   durable records of one import disagreeing about who did the migration.
+   Because the default name is `port:<sourceSha256[0..16]>`, two seals of the
+   SAME ledger always collide on the name, so this is ordinary rather than
+   exotic. The legitimate retry is unaffected, and that is a property rather
+   than a hope: `custodyMaterial` builds `engineContextJson` from PAYLOAD fields
+   only — `createdAt` included, never the clock — so re-opening the same bundle
+   rebuilds a byte-identical string. Both halves are tested.
 7. **Two imports onto a zero-op generation are LAST-WINS for the cache.** Not a
    workflow — there is one port — but it is what the code does, it loses nothing
    (both originals stay in custody under their own names, both entries stay in
@@ -423,6 +551,21 @@ as bytes from the same origin rather than pasted into a JS literal.
 10. **No fixture bundle is checked in.** The tests spawn the real `port.cjs`
     every run (~2 s of the 4.6 s), so the seal-compat proof is against the code
     that actually ships rather than against a file that could drift from it.
+11. **The qualification gate REFUSES rather than delegating to the host.**
+    (Review D1 offered either.) Delegating would mean every host that ever
+    imports has to remember to read `oracle.verdict`, and the one in this
+    repository is not written yet — so the default would have been "adopt it".
+    Refusing at the importer makes the safe answer the one you get by doing
+    nothing, and `allowUnqualified` gives a host that genuinely wants to show
+    Joe the problem an explicit way to ask for it. A host that later wants to
+    offer him an override can build it on `qualifyBundle` + `allowUnqualified`
+    without weakening this path.
+12. **`durableRevision` means "the durable revision as of this answer", not
+    "where my import landed".** On the success path those coincide. On
+    `LOCAL_IMPORT_ALREADY_PRESENT` it is the CURRENT revision, which may be well
+    past the one the original import produced — a host that wants the latter
+    should read `imports()` and not this field. Noted because the review read it
+    the other way, which means the field can be read the other way.
 
 ---
 
@@ -468,19 +611,47 @@ as bytes from the same origin rather than pasted into a JS literal.
    already refuses those at PREPARE, so any bundle that exists has passed the
    same parser once — but the phone-side failure mode is untested because no such
    bundle can be produced by the CLI.
-8. **No C2b bite.** C1's bite still proves C1's four invariants on the edited
-   `local-client.mjs` (all four still RED, RESTORED PASS). C2b's own invariants —
-   the seal compatibility, the no-write-on-refusal sequence, the untouched
-   `derived.value` — are proved by direct positive AND negative assertions rather
-   than by a mutate-and-restore runner. A C2b bite is a reasonable ask and is not
-   done.
+8. **No C2b bite, and that cost something measurable.** C1's bite still proves
+   C1's four invariants on the edited `local-client.mjs` (all four still RED,
+   RESTORED PASS). C2b's own invariants — the seal compatibility, the
+   no-write-on-refusal sequence, the untouched `derived.value` — are proved by
+   direct positive AND negative assertions rather than by a mutate-and-restore
+   runner. **Both review defects were invariants that no assertion covered at
+   all**: nothing read `oracle.verdict`'s value (D1) and nothing compared the
+   custody provenance (D2), so no test could have gone red for either. A bite
+   would not have found them either — a bite breaks code that IS asserted — but
+   the pattern is the same one it exists to catch, and the honest reading is
+   that direct assertions only cover what somebody thought to assert. Both are
+   now asserted, in four new cases; a C2b bite remains a reasonable ask and is
+   still not done.
 9. **CI still runs no W6 test on either OS** (C1's finding, unchanged). Nothing
    in any workflow executes `rebuild/m3/w6/test/*`, so a future regression under
    `rebuild/m3/w6/local/**` would be caught by no workflow. The independent
    reviewer's run plus the Windows runs recorded here are the entire gate.
+10. **NFKD normalisation is implemented and NOT covered by this suite.** The
+    word list `port.cjs` draws from is plain ASCII, so no test here can produce
+    a passphrase where composed and decomposed spellings differ, and none does.
+    The independent review closed that gap by hand — it sealed with port.cjs's
+    own `seal()` using `café-naïve-über-résumé-ñandú-ångström` in both
+    spellings and opened each with each, all four combinations, under both
+    decoders — and confirmed that ASCII-folding correctly does NOT open (this is
+    NFKD, not folding). That evidence lives in C2B-REVIEW.md, not in a test that
+    runs every time. It stays a residual: the day someone allows a non-ASCII
+    passphrase, nothing in this repository will fail if the normalisation is
+    dropped.
+11. **The qualification gate is a check on a FILE, not a second opinion on the
+    migration.** It reads what the bundle recorded about itself. It cannot tell
+    whether the recorded verdict was earned — a file that claims `PASS` and a
+    clean `dataLoss` is adopted on those claims, and the tag only proves the
+    claims were not edited after sealing. What actually certifies the migration
+    is the frozen port-oracle run on the PC, which is C2's, and its own residual
+    2 (the oracle certifies the ENGINE, not the individual migrated object)
+    stands unchanged behind this.
 
 ## STATUS
 
-C2b is built. Suite 489/489 with 0 skipped, four browser runners green on real
-Edge, the C1 bite still RED-and-restored, `w6.js` byte-identical. Nothing was
-pushed.
+C2b is built, and the independent review's two conditions (D1 the oracle/dataLoss
+gate, D2 the custody provenance comparison) are closed in one follow-up commit
+with four new cases covering both. Suite 493/493 with 0 skipped, four browser
+runners green on real Edge, the C1 bite still RED-and-restored, `w6.js`
+byte-identical. Nothing was pushed.

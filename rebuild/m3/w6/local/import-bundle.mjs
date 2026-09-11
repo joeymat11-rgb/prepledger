@@ -63,6 +63,15 @@ export const BUNDLE_FAILURE = "BUNDLE_AUTH_FAILED";
 export const PAYLOAD_FAILURE = "BUNDLE_PAYLOAD_INVALID";
 export const LOCAL_IMPORT_PROFILE = "earned/local-import/v1";
 export const IMPORT_REBASE_CODE = "IMPORT_REBASE_REQUIRED";
+// A bundle that is well-formed and correctly sealed, but whose OWN recorded
+// verdicts say the migration inside it was not vouched for. Distinct from both
+// other codes on purpose: the passphrase was right, the bytes are intact, the
+// profile is understood — and the thing is still not fit to adopt.
+export const NOT_QUALIFIED = "BUNDLE_NOT_QUALIFIED";
+// The exact string port.cjs writes (port.cjs:479), and the ONLY one it can:
+// the bundle is not written at all unless the gate came back ok, so any other
+// value means something other than port.cjs produced this file.
+export const ORACLE_PASS = "PASS";
 const HEX64 = /^[0-9a-f]{64}$/;
 const encoder = new TextEncoder();
 const clone = value => structuredClone(value);
@@ -180,10 +189,54 @@ async function payloadOf(crypto, plain, sourceSha256) {
   if (!object(payload.migrated) || !HEX64.test(payload.migrated.sha256 ?? "")) bad("migrated.sha256");
   if (!object(payload.migrated.state)) bad("migrated.state");
   if (!object(payload.oracle) || typeof payload.oracle.verdict !== "string") bad("oracle.verdict");
-  if (!object(payload.dataLoss)) bad("dataLoss");
+  // SHAPE here, CONTENT in qualifyBundle. port.cjs writes
+  // {safe, lost, before, after} (port.cjs:497) where before/after are
+  // engine.recordCounts(...) — plain class→count objects. A bundle missing any
+  // of the four cannot be judged at all, which is a profile problem.
+  if (!object(payload.dataLoss) || typeof payload.dataLoss.safe !== "boolean" ||
+      !Number.isSafeInteger(payload.dataLoss.lost) || payload.dataLoss.lost < 0 ||
+      !object(payload.dataLoss.before) || !object(payload.dataLoss.after)) bad("dataLoss");
   if (payload.local !== undefined && (!object(payload.local) || typeof payload.local.bytes !== "string" ||
       !HEX64.test(payload.local.sha256 ?? ""))) bad("local");
   return payload;
+}
+
+/* --- DOES THIS BUNDLE'S OWN RECORD SAY IT MAY BE ADOPTED? -------------------
+   REVIEW D1. Everything above this line asks "is this file intact and in this
+   profile". It is a different question from "did the migration inside it pass",
+   and C2b used to answer only the first — `oracle.verdict` was checked for
+   being a STRING and `dataLoss` for being an OBJECT, and nothing read either
+   value. A bundle whose own oracle said FAIL was adopted durably and, on a
+   zero-op phone, became the engine state Joe sees. The verdict is the ONLY
+   field that says the migration was ever checked; not reading it is exactly the
+   failure mode CLAUDE.md names as this codebase's dominant defect — research
+   written down and never enforced in code.
+
+   port.cjs cannot currently produce an unqualified bundle: it exits before
+   writing anything if the gate is not green (port.cjs:440 for the guard, the
+   ORACLE step for the gate). That is precisely why this is worth having on the
+   phone — the check costs nothing while the two agree, and it is the only thing
+   standing there if they ever stop agreeing, or if the file came from somewhere
+   that is not port.cjs.
+
+   `reason` is a fixed enum and `detail` is a class NAME and two COUNTS. That is
+   the same disclosure port.cjs itself makes on Joe's console ("a count is not a
+   value", port.cjs:177), and it is what lets a host say WHICH class shrank
+   rather than "something is wrong". No ledger value is ever in here. */
+export function qualifyBundle(payload) {
+  if (payload?.oracle?.verdict !== ORACLE_PASS)
+    return { code: NOT_QUALIFIED, state: 3, reason: "oracle-verdict", detail: String(payload?.oracle?.verdict) };
+  const loss = payload.dataLoss;
+  if (loss.safe !== true) return { code: NOT_QUALIFIED, state: 3, reason: "data-loss-unsafe", detail: "safe=false" };
+  if (loss.lost !== 0) return { code: NOT_QUALIFIED, state: 3, reason: "data-loss-classes", detail: `lost=${loss.lost}` };
+  // The decrease rule, over every class either side names. port.cjs's own
+  // countsCheck reads a missing key as 0 (port.cjs:322) and so does this.
+  for (const key of [...new Set([...Object.keys(loss.before), ...Object.keys(loss.after)])].sort()) {
+    const before = loss.before[key] || 0, after = loss.after[key] || 0;
+    if (after < before) return { code: NOT_QUALIFIED, state: 3, reason: "count-decrease",
+      detail: `${key} ${before}->${after}` };
+  }
+  return null;
 }
 
 /* unsealBundle — open a sealed C2 port bundle on WebCrypto alone.
@@ -191,9 +244,18 @@ async function payloadOf(crypto, plain, sourceSha256) {
    payload plus the three derived byte strings every caller needs, so nobody
    base64-decodes a 500 KB field twice or re-stringifies the state by hand.
    Throws StorageFailure(BUNDLE_AUTH_FAILED) for anything the tag or the
-   envelope refuses, and StorageFailure(BUNDLE_PAYLOAD_INVALID) with a `field`
-   for a well-sealed bundle this profile cannot read. Writes nothing, ever. */
-export async function unsealBundle(bundleBytes, passphrase, { crypto = globalThis.crypto } = {}) {
+   envelope refuses, StorageFailure(BUNDLE_PAYLOAD_INVALID) with a `field` for a
+   well-sealed bundle this profile cannot read, and StorageFailure
+   (BUNDLE_NOT_QUALIFIED) with `reason`/`detail` for one whose own verdicts say
+   the migration was not vouched for. Writes nothing, ever.
+
+   `allowUnqualified: true` returns such a bundle instead of throwing, with the
+   refusal on `qualification`. It exists so a host can OPEN a bad bundle in
+   order to tell Joe what is wrong with it — the default has to be the throw,
+   because a caller that forgets to look at a returned field is exactly how an
+   unchecked verdict got here in the first place. */
+export async function unsealBundle(bundleBytes, passphrase,
+  { crypto = globalThis.crypto, allowUnqualified = false } = {}) {
   if (!crypto?.subtle) fail("LOCAL_CRYPTO_UNAVAILABLE", 18);
   const env = envelopeOf(bundleBytes);
   const sourceSha256 = env.aad[1];
@@ -220,7 +282,12 @@ export async function unsealBundle(bundleBytes, passphrase, { crypto = globalThi
     localBytes = base64ToBytes(payload.local.bytes);
     if (await sha256Hex(crypto, localBytes) !== payload.local.sha256) fail(PAYLOAD_FAILURE, 3, { field: "local.bytes" });
   }
-  return { payload, sourceBytes, localBytes, migratedJson };
+  // LAST, after every integrity check — asking whether a migration passed is
+  // pointless until the bytes describing it are proved to be the ones sealed.
+  const qualification = qualifyBundle(payload);
+  if (qualification && !allowUnqualified)
+    fail(qualification.code, qualification.state, { reason: qualification.reason, detail: qualification.detail });
+  return { payload, sourceBytes, localBytes, migratedJson, qualification };
 }
 
 // --- NAMES, ENTRIES AND THE REBASE MARKING -----------------------------------
@@ -311,9 +378,27 @@ async function keepOriginal(custody, name, expected, material) {
   let existing = null;
   try { existing = await custody.load(name); }
   catch (error) { if (error?.code !== "IMPORT_CUSTODY_MISSING") throw error; }
+  // REVIEW D2. ALL FOUR material fields, not just the two byte strings.
+  // engineContextJson carries createdAt, the engine sha, the oracle verdict,
+  // dataLoss and census — the PROVENANCE. A custody record is immutable, so
+  // reusing one whose provenance differs would leave two durable records of one
+  // import disagreeing about which engine did the migration and what its oracle
+  // said: metadata.imports[] would carry bundle B's, the custody record bundle
+  // A's. Because the default name is port:<sourceSha256[0..16]>, two seals of
+  // the SAME ledger always collide on the name, so this is ordinary, not exotic.
+  //
+  // The legitimate retry is unaffected, and that is a property of
+  // custodyMaterial rather than a hope: every field it puts in
+  // engineContextJson comes from the PAYLOAD — createdAt included — and none
+  // from the clock or the environment, so re-opening the same bundle rebuilds a
+  // byte-identical string. The aborted-commit case proves it end to end.
   if (existing) {
     if (!sameBytes(existing.sourceBytes, material.sourceBytes) ||
-        !sameBytes(existing.candidateBytes, material.candidateBytes)) fail("LOCAL_IMPORT_NAME_TAKEN", 3);
+        !sameBytes(existing.candidateBytes, material.candidateBytes) ||
+        existing.engineContextJson !== material.engineContextJson ||
+        (existing.localBytes === null) !== (material.localBytes === null) ||
+        (existing.localBytes !== null && !sameBytes(existing.localBytes, material.localBytes)))
+      fail("LOCAL_IMPORT_NAME_TAKEN", 3);
     return "reused";
   }
   await custody.stage(name, expected, material);
@@ -352,10 +437,15 @@ async function runImport(scope, { bundleBytes, passphrase, name } = {}) {
   // NOTHING HAS TOUCHED STORAGE YET. A wrong passphrase or a tampered byte
   // fails here, before the first load(), which is what makes "no write" a
   // property of the sequence rather than of a cleanup path.
+  // allowUnqualified stays FALSE: a bundle whose own oracle verdict is not PASS,
+  // or whose own dataLoss records a loss, is refused here — before the first
+  // load(), so an unqualified migration cannot reach storage at all, let alone
+  // become the derived cache on a zero-op phone.
   try { opened = await unsealBundle(bundleBytes, passphrase, { crypto: scope.crypto }); }
   catch (error) {
     return refused({ code: error?.code || BUNDLE_FAILURE, state: error?.state ?? 3 },
-      error?.field ? { field: error.field } : {});
+      { ...(error?.field ? { field: error.field } : {}),
+        ...(error?.reason ? { reason: error.reason, detail: error.detail } : {}) });
   }
   const chosen = name === undefined ? importNameFor(opened.payload.source.sha256) : name;
   if (typeof chosen !== "string" || !VALID_NAME.test(chosen))

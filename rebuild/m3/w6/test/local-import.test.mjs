@@ -18,10 +18,11 @@ import { webcrypto, createHash, pbkdf2Sync, createCipheriv, randomBytes } from "
 import { IDBFactory } from "fake-indexeddb";
 import { faultDatabase, deferred } from "./support.mjs";
 import { openLocalDurableClient, DERIVED, opsBasis } from "../local/local-client.mjs";
-import { unsealBundle, importBundle, listImports, importOriginal, markImportRebased,
+import { unsealBundle, qualifyBundle, importBundle, listImports, importOriginal, markImportRebased,
   importNameFor, importSummaries, importRebasePending, importRebaseCode, base64ToBytes,
   bytesToBase64, sha256Hex, BUNDLE_PROFILE, KDF, CIPHER, TAG_BYTES, BUNDLE_FAILURE,
-  PAYLOAD_FAILURE, LOCAL_IMPORT_PROFILE, IMPORT_REBASE_CODE } from "../local/import-bundle.mjs";
+  PAYLOAD_FAILURE, NOT_QUALIFIED, ORACLE_PASS, LOCAL_IMPORT_PROFILE,
+  IMPORT_REBASE_CODE } from "../local/import-bundle.mjs";
 const require = createRequire(import.meta.url);
 const Unseal = require("../../setup/port/unseal.cjs");
 
@@ -537,5 +538,171 @@ test("the module-level entry points accept a client, and the helpers judge a gen
   assert.equal(importRebaseCode({ metadata: { imports: [{ name: "a", rebaseRequired: false }] } }), null);
   assert.equal(importRebaseCode({ metadata: { imports: "not an array" } }), null);
   assert.equal(importNameFor("b5eb62d459d6e58bfb26bfa65f772db193998825166d7538403dad41eddda499"), "port:b5eb62d459d6e58b");
+  client.close();
+});
+
+// --- REVIEW D1 — the bundle's own verdicts are read, not just type-checked ---
+
+test("a bundle whose own ORACLE VERDICT is not PASS is refused, and writes nothing", async () => {
+  const good = Unseal.unseal(Buffer.from(REAL.bytes), REAL.passphrase);
+  assert.equal(good.oracle.verdict, ORACLE_PASS, "the real CLI writes exactly this string");
+  // The real bundle qualifies; that is the control for everything below.
+  assert.equal(qualifyBundle(good), null);
+  for (const verdict of ["FAIL", "SUSPECT", "pass", "PASS ", ""]) {
+    const bundle = reseal({ ...good, oracle: { ...good.oracle, verdict } }, REAL.passphrase, good.source.sha256);
+    await assert.rejects(unsealBundle(bundle, REAL.passphrase, { crypto: webcrypto }), error => {
+      assert.equal(error.code, NOT_QUALIFIED, `verdict ${JSON.stringify(verdict)} must not qualify`);
+      assert.equal(error.reason, "oracle-verdict");
+      assert.equal(error.detail, verdict);
+      return true;
+    });
+  }
+  // And on a real client: refused before the first load(), so nothing is
+  // written, nothing is staged in custody, and the cache is NOT seeded from a
+  // migration the oracle rejected.
+  const indexedDB = new IDBFactory();
+  const client = await ready(indexedDB);
+  const before = await activeRevision(indexedDB);
+  const failed = reseal({ ...good, oracle: { ...good.oracle, verdict: "FAIL" } }, REAL.passphrase, good.source.sha256);
+  const result = await client.importBundle({ bundleBytes: failed, passphrase: REAL.passphrase });
+  assert.equal(result.imported, false);
+  assert.equal(result.code, NOT_QUALIFIED);
+  assert.equal(result.reason, "oracle-verdict");
+  assert.equal(result.detail, "FAIL");
+  assert.equal(await activeRevision(indexedDB), before, "the revision never moved");
+  assert.deepEqual(await client.imports(), []);
+  await assert.rejects(client.importOriginal(importNameFor(good.source.sha256)), { code: "IMPORT_CUSTODY_MISSING" });
+  const booted = await client.boot();
+  assert.deepEqual(booted.derived, { profile: "host-clean-init", s: { v: 1 } }, "derived was NOT seeded");
+  // The good bundle still imports afterwards — a refusal poisons nothing.
+  assert.equal((await client.importBundle(IMPORT)).imported, true);
+  client.close();
+});
+
+test("a bundle whose own dataLoss records a loss is refused, and writes nothing", async () => {
+  const good = Unseal.unseal(Buffer.from(REAL.bytes), REAL.passphrase);
+  // The shape port.cjs writes (port.cjs:497): {safe, lost, before, after} with
+  // before/after = engine.recordCounts(...). On the real preimage nothing
+  // decreases (`corrections 0->9` rises, everything else holds), which is why
+  // the decrease rule can be absolute.
+  assert.equal(good.dataLoss.safe, true);
+  assert.equal(good.dataLoss.lost, 0);
+  assert.ok(good.dataLoss.before.reads > 0 && good.dataLoss.after.reads > 0);
+  const variants = [
+    ["data-loss-unsafe", "safe=false", { ...good.dataLoss, safe: false }],
+    ["data-loss-classes", "lost=2", { ...good.dataLoss, lost: 2 }],
+    ["count-decrease", `reads ${good.dataLoss.before.reads}->${good.dataLoss.before.reads - 1}`,
+      { ...good.dataLoss, after: { ...good.dataLoss.after, reads: good.dataLoss.before.reads - 1 } }],
+    // A class that vanished entirely reads as 0, exactly as port.cjs's own
+    // countsCheck reads a missing key.
+    ["count-decrease", `nights ${good.dataLoss.before.nights}->0`,
+      { ...good.dataLoss, after: Object.fromEntries(
+        Object.entries(good.dataLoss.after).filter(([key]) => key !== "nights")) }],
+  ];
+  for (const [reason, detail, dataLoss] of variants) {
+    const bundle = reseal({ ...good, dataLoss }, REAL.passphrase, good.source.sha256);
+    await assert.rejects(unsealBundle(bundle, REAL.passphrase, { crypto: webcrypto }), error => {
+      assert.equal(error.code, NOT_QUALIFIED);
+      assert.equal(error.reason, reason);
+      assert.equal(error.detail, detail);
+      return true;
+    });
+  }
+  const indexedDB = new IDBFactory();
+  const client = await ready(indexedDB);
+  const before = await activeRevision(indexedDB);
+  const shrunk = reseal({ ...good, dataLoss: { ...good.dataLoss,
+    after: { ...good.dataLoss.after, sessionLog: 0 } } }, REAL.passphrase, good.source.sha256);
+  const result = await client.importBundle({ bundleBytes: shrunk, passphrase: REAL.passphrase });
+  assert.equal(result.imported, false);
+  assert.equal(result.code, NOT_QUALIFIED);
+  assert.equal(result.reason, "count-decrease");
+  assert.equal(result.detail, `sessionLog ${good.dataLoss.before.sessionLog}->0`);
+  assert.equal(await activeRevision(indexedDB), before);
+  assert.deepEqual(await client.imports(), []);
+  await assert.rejects(client.importOriginal(importNameFor(good.source.sha256)), { code: "IMPORT_CUSTODY_MISSING" });
+  client.close();
+});
+
+test("allowUnqualified opens a bad bundle for inspection but never imports one", async () => {
+  const good = Unseal.unseal(Buffer.from(REAL.bytes), REAL.passphrase);
+  const failed = reseal({ ...good, oracle: { ...good.oracle, verdict: "FAIL" } }, REAL.passphrase, good.source.sha256);
+  // A host has to be able to tell Joe WHAT is wrong with a file he was handed.
+  const opened = await unsealBundle(failed, REAL.passphrase, { crypto: webcrypto, allowUnqualified: true });
+  assert.deepEqual(opened.qualification,
+    { code: NOT_QUALIFIED, state: 3, reason: "oracle-verdict", detail: "FAIL" });
+  assert.equal(opened.payload.engine.schemaV, good.engine.schemaV, "the rest of it is readable");
+  assert.deepEqual(opened.sourceBytes, SOURCE_BYTES);
+  // The DEFAULT is the throw, and importBundle never passes the flag.
+  assert.equal((await unsealBundle(REAL.bytes, REAL.passphrase, { crypto: webcrypto })).qualification, null);
+  const indexedDB = new IDBFactory();
+  const client = await ready(indexedDB);
+  assert.equal((await client.importBundle({ bundleBytes: failed, passphrase: REAL.passphrase })).code, NOT_QUALIFIED);
+  assert.equal(await activeRevision(indexedDB), 1);
+  client.close();
+  // qualifyBundle as a unit, including the ordering: the verdict is judged
+  // before the counts, so a bundle failing both names the verdict.
+  assert.equal(qualifyBundle({ oracle: { verdict: "FAIL" },
+    dataLoss: { safe: false, lost: 3, before: { reads: 9 }, after: { reads: 0 } } }).reason, "oracle-verdict");
+  assert.equal(qualifyBundle({ oracle: { verdict: ORACLE_PASS },
+    dataLoss: { safe: true, lost: 0, before: {}, after: {} } }), null);
+  assert.equal(qualifyBundle({ oracle: { verdict: ORACLE_PASS },
+    dataLoss: { safe: true, lost: 0, before: { a: 1 }, after: { a: 2 } } }), null, "a RISE is fine");
+});
+
+// --- REVIEW D2 — a stranded original is reused only if its PROVENANCE matches -
+
+test("a stranded custody record from a different seal is never reused, but the same bundle still retries", async () => {
+  const good = Unseal.unseal(Buffer.from(REAL.bytes), REAL.passphrase);
+  // Bundle B: the SAME ledger and the SAME migrated state — so it collides on
+  // the default name port:<sourceSha256[0..16]> — sealed by a DIFFERENT engine
+  // at a different time. Both still qualify, so D1 does not answer first and
+  // this really does exercise keepOriginal.
+  const otherEngine = sha(Buffer.from("a different engine tree"));
+  const B = reseal({ ...good, createdAt: "2030-01-01T00:00:00.000Z",
+    engine: { ...good.engine, sha256: otherEngine } }, REAL.passphrase, good.source.sha256);
+  assert.equal((await unsealBundle(B, REAL.passphrase, { crypto: webcrypto })).qualification, null);
+
+  const fault = faultDatabase();
+  const client = await ready(fault.indexedDB);
+  const before = await activeRevision(fault.indexedDB);
+  fault.state.armed = true; fault.state.mode = "quota";
+  assert.equal((await client.importBundle(IMPORT)).imported, false, "bundle A's commit aborts");
+  fault.state.armed = false; fault.state.mode = null;
+  assert.equal(await activeRevision(fault.indexedDB), before);
+  const name = importNameFor(good.source.sha256);
+  const stranded = await client.importOriginal(name);
+  assert.equal(stranded.context.engine.sha256, good.engine.sha256);
+  assert.equal(stranded.context.createdAt, good.createdAt);
+
+  // B collides on the name. Reusing A's immutable original would leave
+  // metadata.imports[] saying B's engine while custody says A's.
+  const collided = await client.importBundle({ bundleBytes: B, passphrase: REAL.passphrase });
+  assert.equal(collided.imported, false);
+  assert.equal(collided.code, "LOCAL_IMPORT_NAME_TAKEN");
+  assert.equal(await activeRevision(fault.indexedDB), before, "nothing was written");
+  assert.deepEqual(await client.imports(), []);
+  assert.equal((await client.importOriginal(name)).context.engine.sha256, good.engine.sha256,
+    "A's original is untouched");
+
+  // THE LEGITIMATE RETRY STILL WORKS. custodyMaterial builds engineContextJson
+  // from PAYLOAD fields only — createdAt included, never the clock — so
+  // re-opening the same bundle rebuilds a byte-identical string and the
+  // stranded original is reused rather than re-staged.
+  assert.equal((await client.execute("weighIn", { date: "2026-09-11", lb: 170 })).acknowledged, true,
+    "and the checkpoint the custody record pinned is now stale");
+  const retry = await client.importBundle(IMPORT);
+  assert.equal(retry.imported, true);
+  assert.equal(retry.name, name);
+  const reused = await client.importOriginal(name);
+  assert.deepEqual(reused.sourceBytes, SOURCE_BYTES);
+  assert.equal(reused.checkpointRevision, before, "reused, not re-staged: still the ORIGINAL checkpoint");
+  assert.equal(reused.context.engine.sha256, good.engine.sha256);
+  // And the two durable records now agree about the same import.
+  const entry = (await client.imports())[0];
+  assert.equal(entry.engineSha256, reused.context.engine.sha256);
+  assert.equal(entry.createdAt, reused.context.createdAt);
+  assert.equal(entry.oracleVerdict, reused.context.oracle.verdict);
+  assert.equal(entry.migratedSha256, reused.context.migratedSha256);
   client.close();
 });

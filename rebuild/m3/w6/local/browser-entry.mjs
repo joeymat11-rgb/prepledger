@@ -12,8 +12,8 @@ export { createLocalEra, readLocalEra, localEraConfig, publicEra, localEraLeaseI
 // C2b. The phone side of Joe's PC port: unseal a sealed C2 bundle on WebCrypto
 // alone and adopt it. No Node crypto, no node:buffer — atob/btoa and
 // crypto.subtle, which is why this can ship in the phone bundle at all.
-export { unsealBundle, importBundle, listImports, importOriginal, markImportRebased,
+export { unsealBundle, qualifyBundle, importBundle, listImports, importOriginal, markImportRebased,
   importNameFor, importSummaries, importRebasePending, importRebaseCode, bytesToBase64,
   base64ToBytes, sha256Hex, BUNDLE_PROFILE, BUNDLE_FAILURE, PAYLOAD_FAILURE,
-  LOCAL_IMPORT_PROFILE, IMPORT_REBASE_CODE } from "./import-bundle.mjs";
+  NOT_QUALIFIED, ORACLE_PASS, LOCAL_IMPORT_PROFILE, IMPORT_REBASE_CODE } from "./import-bundle.mjs";
 export { StorageFailure } from "../repository.mjs";
