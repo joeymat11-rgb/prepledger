@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
-    "sha256": "4160d581c9a667ca865dce1ac56f9c13511cd4f462a39bd0827c55166bf46d9a",
+    "sha256": "5fc945dff19692983d2af533f54238c257120afa043d695e0356e1058ee604e4",
     "acceptedLedgerLine": null
   },
   "sourceBase": "7b1678a4a8449053000d52a0a8e9e070f32a240e",
@@ -162,7 +162,7 @@
     },
     ".github/workflows/rebuild.yml": {
       "pre": "f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8",
-      "post": "8ed14d3a481622013ad9f5e2c0d24b04df55d71e4f8ff63a1e2d12d346afd56d",
+      "post": "ad9d6480026c3474135cc5a33139ffb80661a3aad10a2b07ad16ae0caa8a17d0",
       "role": "superseded-by-child"
     },
     "rebuild/m4/spec/b-ntc-successors.cjs": {
@@ -247,7 +247,7 @@
     },
     "rebuild/m4/spec/b-ntc-journeys.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "ef4a99146ddb5b0a845903389d766ab8c4dbb2be8bd6f6d801082872c49f8d55",
+      "post": "4b63909d21baf846646214fef3c496adedc38b339cd651fc7692502a906d6bbe",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-focused.cjs": {
@@ -277,7 +277,7 @@
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
       "pre": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
-      "post": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "post": "40ae454b8345bdf36e0f169c7cf25643947af7216e30fbc7b363614f32386c88",
       "role": "new"
     },
     "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
@@ -592,7 +592,7 @@
     },
     "rebuild/m3/w7-preview/today/today-app.cjs": {
       "pre": "daea4dddf3b5ebd6c8f22108bebb5e37eb065afbb167259a412cae31b13d2116",
-      "post": "8c67305f1ecbafb97147fe75c4634dcf3cfb9492a3f660e12ba4c8819d7fbf89",
+      "post": "39a642211a3c0c2258fc4fee57fb753dc048e0192e1e9917ceaed2501c544ea1",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/today-engine.cjs": {
@@ -717,12 +717,12 @@
     },
     "rebuild/m4/spec/b-ntc-runtime-closure.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "9c9772979e2e4ff23edde4cd7e23465568b0252b750882895edc6f7764faf53f",
+      "post": "1f392e28b6aabfa492f980215d6ee76dc3aaedfc5cb24c1db66a43624d6355b1",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-runtime-closure.json": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "cf77ee949cbd2359ab559296b99fd141eeda8dca635561cf2ce4d96052662036",
+      "post": "3af583a42c2cddddf28333c275389759c42097742c56bdac0766cebd80a57673",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-owner-tests.cjs": {
@@ -752,7 +752,7 @@
     },
     "rebuild/m3/w6/test/local-owner-entry.test.mjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "3886bb612894758510a119ed704de8a0f62e0857338ab403b0884ef6d24eb843",
+      "post": "d6d7b1b64c2622f8c81d7a7236c7426b2d7ccd5ce8cce81daa63dc3b5d80ba32",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/build.mjs": {
@@ -767,17 +767,77 @@
     },
     "rebuild/m4/spec/b-ntc-owner-entry-tests.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "73ccd933108380a5a494fae2d2f40809b6e9f2df5bafe13e8748f24beaccc0c9",
+      "post": "c93b5c3167bd56727c0387e272028918f01dd2ed98d8c310abdc08ba47b3b088",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-owner-final.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "541221e5d6e0a74355d2234a06f263032377486ce417e38cad2551e26518fd51",
+      "post": "d70516bf18cbb78ef9a34b9db55eae02c764b09f79b41e99f6792ff616d32c58",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-existing-dependencies.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "post": "1da30a38873bb09fefc3c2e0c3f493d035717ba536a70767cbd857e76024fe81",
+      "role": "new"
+    },
+    "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": {
+      "pre": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+      "post": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+      "role": "new"
+    },
+    "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": {
+      "pre": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+      "post": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
+      "role": "new"
+    },
+    "rebuild/m3/w6/cipher-imports.json": {
+      "pre": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+      "post": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "b66a415d80bc61f5a4d30d6f9cfcc4ca80a5890186bf494e8fd0032005cda3bc",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/index.shell.html": {
+      "pre": "1ea785f2e55dedd051329b3095e8b7eeb77d19341f074a29632aeea243eb67b1",
+      "post": "0f15ae30fe297d5444872b61c1fc857a0fc334973954ba6ab5bfe4dfd5560efb",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/preview.css": {
+      "pre": "9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40",
+      "post": "9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/screens.template.html": {
+      "pre": "d62981e369373e4971bc126a2f8d20ef4d037f68e7562dfa0784854bd9c6f0d2",
+      "post": "44a287366620568502390e464b0d26141e9f7b74671dd42db7cecf047e0ad2c7",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2": {
+      "pre": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+      "post": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2": {
+      "pre": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+      "post": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/OFL-InstrumentSans.txt": {
+      "pre": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+      "post": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/OFL-InstrumentSerif.txt": {
+      "pre": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+      "post": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+      "role": "new"
+    },
+    "rebuild/m4/workout/fonts/SOURCES.json": {
+      "pre": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
+      "post": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
       "role": "new"
     }
   },
@@ -919,7 +979,7 @@
       "argv": [
         "rebuild/m4/spec/b-ntc-journeys.cjs"
       ],
-      "needle": "B-NTC DURABLE JOURNEYS: 237/237 PASS;"
+      "needle": "B-NTC DURABLE JOURNEYS: 245/245 PASS;"
     },
     {
       "name": "profile-refusals",
@@ -960,7 +1020,7 @@
       "argv": [
         "rebuild/m4/spec/b-ntc-owner-entry-tests.cjs"
       ],
-      "needle": "B-NTC OWNER ENTRY/CALENDAR: 66 PASS;"
+      "needle": "B-NTC OWNER ENTRY/CALENDAR: 67 PASS;"
     },
     {
       "name": "owner-final-refusals",
@@ -969,7 +1029,7 @@
         "--test-reporter=tap",
         "rebuild/m4/spec/b-ntc-owner-final.test.cjs"
       ],
-      "needle": "# pass 19"
+      "needle": "# pass 21"
     }
   ],
   "notes": [
@@ -978,10 +1038,10 @@
     "Role new means introduced to this parent profile; some host/test files existed at sourceBase but were not parent-pinned. Their pre is the real sourceBase bytes, or empty-byte SHA only where absent. The runtime, source-projection and rebuild.yml use superseded-by-child with exact parent execution preimages.",
     "The qualified provider is relocated to C4 actual composition in w6/local/today-bindings.mjs with PM authorization. One-store storage, clocks, causal tips and explicit resolver injection are preserved. Both fresh zero-night and 28-night default paths and C4 Last time are positive journey cells.",
     "Inherited coverage retains exact parent gate->child names; argv targets dedicated successors. Accepted tooling85f requires exact-policy-bound successors or the strict accepted original schedule. The proposed final policy/material unchanged-dependency accounting needs independent review and PM ledger disposition; coverage.moves stays empty and MOVES_RULING remains null.",
-    "Historical memory-only pass19 tests and original parent wrapper remain unchanged. The child substitutes 237 executed durable journey assertions; workflow points to B-NTC preparation and enumerates all seven Today test files. Do not integrate workflow until child public qualification and acceptance are complete.",
-    "Own behavior children: 39 provider cells and 237 durable journey assertions; inherited focused15 and all ten original carrier children retained. Dedicated profile-refusals executes the unchanged parent-pinned native-carriers-profile.test.cjs (13 tests) with isolated archived-parent validators. Separate child-pin-refusals executes four actual-child controls. The package runs these children sequentially; archived acceptance is never child acceptance.",
+    "Historical memory-only pass19 tests and original parent wrapper remain unchanged. The child substitutes 245 executed durable journey assertions; workflow points to B-NTC preparation and enumerates all seven Today test files. Do not integrate workflow until child public qualification and acceptance are complete.",
+    "Own behavior children: 39 provider cells and 245 durable journey assertions; inherited focused15 and all ten original carrier children retained. Dedicated profile-refusals executes the unchanged parent-pinned native-carriers-profile.test.cjs (13 tests) with isolated archived-parent validators. Separate child-pin-refusals executes four actual-child controls. The package runs these children sequentially; archived acceptance is never child acceptance.",
     "Exact brief/theme acceptance citations and final independent child envelope are pending. The semantic PM rulings108/109 exist but do not match the tooling required terminal citation format at its parent receipt base. No citation is invented.",
     "Historical preparation checkpoint at df226c7 (superseded by the final-coherent note below). Source-projection is explicitly superseded with exact parent preimage; native-baseline and build-resolved setup/runtime/test closure are declared. Owner entry, final reviewed source commit/policy digest, genuine amended brief/theme acceptance and all full/private/CI custody are still pending. Policy6147178 intentionally remains unchanged and cannot authorize this source.",
-    "Final coherent entry46a8127 and preparation41f9 joined at3a73b0d, base reportd450ee7. Proposed v1.3/runtime closure and 19 real child declarations await independent final-policy review and actual PM chain authority; no CI/FULL/receipt acceptance. Browser evidence remains separately reported by the integrator."
+    "Final coherent entry/navigation and material qualification joined at11ba8e8, base reportca57649. Proposed v1.3/runtime closure and 19 real child declarations await independent final-policy review and actual PM chain authority; no CI/FULL/receipt acceptance. Browser evidence remains separately reported by the integrator."
   ]
 }

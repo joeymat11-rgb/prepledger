@@ -12,7 +12,8 @@
     "rebuild/m4/workout/test/native-baseline-journey.test.mjs",
     "rebuild/m3/w6/test/local-owner-entry.test.mjs",
     "rebuild/m3/w6/test/local-today-journey.test.mjs",
-    "rebuild/m3/w6/test/local-owner-browser.mjs"
+    "rebuild/m3/w6/test/local-owner-browser.mjs",
+    "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs"
   ],
   "runtimeFactoryImports": [
     "rebuild/engine/dates.cjs",
@@ -50,7 +51,38 @@
     {
       "file": "rebuild/m3/w6/test/local-owner-browser.mjs",
       "path": "/enroll.js"
+    },
+    {
+      "file": "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs",
+      "path": "/app.js"
+    },
+    {
+      "file": "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs",
+      "path": "/app.js"
+    },
+    {
+      "file": "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs",
+      "path": "/enroll.js"
     }
+  ],
+  "resources": [
+    "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html",
+    "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
+    "rebuild/m3/w6/cipher-imports.json",
+    "rebuild/m3/w7-preview/today/checkin-app.mjs",
+    "rebuild/m3/w7-preview/today/checkin-model.mjs",
+    "rebuild/m3/w7-preview/today/gym-app.mjs",
+    "rebuild/m3/w7-preview/today/gym-model.mjs",
+    "rebuild/m3/w7-preview/today/index.shell.html",
+    "rebuild/m3/w7-preview/today/preview.css",
+    "rebuild/m3/w7-preview/today/screens.template.html",
+    "rebuild/m3/w7-preview/today/today-app.cjs",
+    "rebuild/m3/w7-preview/today/today-model.cjs",
+    "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2",
+    "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2",
+    "rebuild/m4/workout/fonts/OFL-InstrumentSans.txt",
+    "rebuild/m4/workout/fonts/OFL-InstrumentSerif.txt",
+    "rebuild/m4/workout/fonts/SOURCES.json"
   ],
   "files": {
     "package-lock.json": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
@@ -83,6 +115,8 @@
     "rebuild/engine/today.cjs": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
     "rebuild/engine/volume.cjs": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
     "rebuild/engine/writers.cjs": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+    "rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html": "caf9c2dc683e220112bc8bf85ed8dbe670428c8015b1ae8ec7d68a35720b2a45",
+    "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html": "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031",
     "rebuild/m3/w5/package.json": "badf2a44a197008ec4f56a7810fb0e390732de0136eaf2a3048bfaee6288b0bc",
     "rebuild/m3/w5/pnpm-lock.yaml": "858248a2668f55703b69f37dbd11ddac4b6c15c71c3407e1346f399e91a9f6ec",
     "rebuild/m3/w5/public-client.cjs": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
@@ -91,6 +125,7 @@
     "rebuild/m3/w6/bridge.mjs": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
     "rebuild/m3/w6/build-browser.mjs": "c2a0df9155e658c74b9e4fe2bc96badeaa9048dd56e9a0455b89212721da8f97",
     "rebuild/m3/w6/candidate-grant.mjs": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+    "rebuild/m3/w6/cipher-imports.json": "b34e9d2fdf1304059e4bf6b8487e40cd0953cad8af7f63c07a8e3eea2831e4db",
     "rebuild/m3/w6/history-proof.mjs": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
     "rebuild/m3/w6/host/engine-runtime-host.cjs": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
     "rebuild/m3/w6/host/workout-host.mjs": "885005d7879c5b8bee92a28145c88e6a8814a86a0311234319e0be5c1972de75",
@@ -119,7 +154,8 @@
     "rebuild/m3/w6/t2-stage.cjs": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
     "rebuild/m3/w6/test/local-initial-setup.test.mjs": "d84d19bbe2fae7557b3972c05dfa7f91253063c42a1ce7d6fbc40318de446db5",
     "rebuild/m3/w6/test/local-owner-browser.mjs": "7db65dc045f40b35a8acef986b78de3d50229a4b56f885de3deba2429aa95c57",
-    "rebuild/m3/w6/test/local-owner-entry.test.mjs": "3886bb612894758510a119ed704de8a0f62e0857338ab403b0884ef6d24eb843",
+    "rebuild/m3/w6/test/local-owner-entry.test.mjs": "d6d7b1b64c2622f8c81d7a7236c7426b2d7ccd5ce8cce81daa63dc3b5d80ba32",
+    "rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs": "b66a415d80bc61f5a4d30d6f9cfcc4ca80a5890186bf494e8fd0032005cda3bc",
     "rebuild/m3/w6/test/local-today-journey.test.mjs": "b52771c5f43fee2391b3e78e47cd96e67dddcecd4d235904aff98f448645fb6a",
     "rebuild/m3/w6/test/support.mjs": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
     "rebuild/m3/w7-preview/browser-engine.cjs": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
@@ -133,8 +169,11 @@
     "rebuild/m3/w7-preview/today/gym-app.mjs": "2886130654e20001628379118fd74a3c739a48b977c6b3ae453f0b7f9e0e084c",
     "rebuild/m3/w7-preview/today/gym-host.mjs": "a1604df4229d6f86f6a315733a86a60a67da30d78c266fa3e5074e9a5e345539",
     "rebuild/m3/w7-preview/today/gym-model.mjs": "6e2361035adf9e677d2a2499b54395ab738e71debaa2e2df9bc29b5cdca42fc3",
+    "rebuild/m3/w7-preview/today/index.shell.html": "0f15ae30fe297d5444872b61c1fc857a0fc334973954ba6ab5bfe4dfd5560efb",
+    "rebuild/m3/w7-preview/today/preview.css": "9b3ba5cd4ac95cb838b71fcbcb27121882facab96a94cda1afe70ce391727b40",
     "rebuild/m3/w7-preview/today/reading-host.mjs": "a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa",
-    "rebuild/m3/w7-preview/today/today-app.cjs": "8c67305f1ecbafb97147fe75c4634dcf3cfb9492a3f660e12ba4c8819d7fbf89",
+    "rebuild/m3/w7-preview/today/screens.template.html": "44a287366620568502390e464b0d26141e9f7b74671dd42db7cecf047e0ad2c7",
+    "rebuild/m3/w7-preview/today/today-app.cjs": "39a642211a3c0c2258fc4fee57fb753dc048e0192e1e9917ceaed2501c544ea1",
     "rebuild/m3/w7-preview/today/today-engine.cjs": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
     "rebuild/m3/w7-preview/today/today-entry.mjs": "f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593",
     "rebuild/m3/w7-preview/today/today-model.cjs": "5f3d32aaf0e1127013ceb8396adeb47b6bc675a3f363941172af11c99bb581b1",
@@ -150,6 +189,11 @@
     "rebuild/m4/workout/engine-history.cjs": "7ab75dc967e721d798d293f992796d67befd68e258e9e508f7bfd7a5cd24be89",
     "rebuild/m4/workout/engine-order.cjs": "1ace8e3e585c04b2aaee5cb40b894069ffd1be245bffd4bf93046c454b25e10a",
     "rebuild/m4/workout/engine-runtime.cjs": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+    "rebuild/m4/workout/fonts/InstrumentSans-Variable.woff2": "aa72922aafcc0dc18f36ec1d805b0212057dabe8b9d5b8b57f67035aea1b826d",
+    "rebuild/m4/workout/fonts/InstrumentSerif-Regular.woff2": "ca21b99b0d6b88a0dc34cebfe48104611e5c7f8f92746bed26c37aa470174322",
+    "rebuild/m4/workout/fonts/OFL-InstrumentSans.txt": "9e27a72ed30eb49a08678f6a5d6ed98ec7ba5368f541637ee0683ec9134ef966",
+    "rebuild/m4/workout/fonts/OFL-InstrumentSerif.txt": "129ed7618959716959f2941fdd5b49e0ad6e6c1d78726761786a00253d865521",
+    "rebuild/m4/workout/fonts/SOURCES.json": "d91470a5d364e45ada6d38310a7c6772176ab3cbb6042d8f52c6d22fe4d56d53",
     "rebuild/m4/workout/native-baseline.cjs": "5d6d14dcf77e6dc3fb2969878dcb08c91068bb7cf95fc26e688f39e468241916",
     "rebuild/m4/workout/native-trend-context.cjs": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
     "rebuild/m4/workout/project-history.mjs": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",

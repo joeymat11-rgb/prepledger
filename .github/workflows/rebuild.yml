@@ -107,6 +107,8 @@ jobs:
         run: node --test rebuild/m3/w6/test/local-owner-entry.test.mjs rebuild/m3/w6/test/local-today-journey.test.mjs
       - name: Final owner policy and calendar source refusals
         run: node --test rebuild/m4/spec/b-ntc-owner-final.test.cjs
+      - name: Exact child execution and successor authority controls
+        run: node --test --test-concurrency=1 rebuild/lanes/b/tooling/test/execution-targets.test.cjs rebuild/lanes/b/tooling/test/successor-authority.test.cjs
       - name: A5 — the PWA shell's lockfile-only suites
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself

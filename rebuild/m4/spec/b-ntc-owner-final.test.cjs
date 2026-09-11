@@ -6,7 +6,8 @@ const root=path.resolve(__dirname,'../../..'),C=require('./b-ntc-runtime-closure
 const spec=()=>JSON.parse(fs.readFileSync(path.join(root,'rebuild/lanes/b/tooling/packages/B-NTC.json')));
 const clone=x=>JSON.parse(JSON.stringify(x));
 for(const file of ['rebuild/m3/w6/local/calendar.mjs','rebuild/m3/w7-preview/today/today-entry.mjs',
-  'rebuild/m3/w6/test/local-owner-entry.test.mjs','rebuild/m3/w6/test/local-owner-browser.mjs'])
+  'rebuild/m3/w6/test/local-owner-entry.test.mjs','rebuild/m3/w6/test/local-owner-browser.mjs',
+  'rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs','rebuild/m3/w7-preview/today/screens.template.html'])
 test('final closure refuses real disk drift: '+file,()=>{
   const full=path.join(root,file),before=fs.readFileSync(full);
   try{fs.appendFileSync(full,'\n// public source drift control\n');assert.throws(()=>C.verify(spec()),/Actual imported runtime closure differs/);}
@@ -14,7 +15,7 @@ test('final closure refuses real disk drift: '+file,()=>{
   assert(fs.readFileSync(full).equals(before));
 });
 test('calendar and entry tests cannot disappear from the actual source declaration',()=>{
-  for(const file of ['rebuild/m3/w6/local/calendar.mjs','rebuild/m3/w6/test/local-owner-entry.test.mjs']){
+  for(const file of ['rebuild/m3/w6/local/calendar.mjs','rebuild/m3/w6/test/local-owner-entry.test.mjs','rebuild/m3/w7-preview/today/screens.template.html']){
     const s=spec();delete s.product[file];assert.throws(()=>C.verify(s),/Missing or wrong runtime closure pin/);
   }
   assert(C.verify(spec()).files['rebuild/m3/w6/test/local-owner-browser.mjs']);

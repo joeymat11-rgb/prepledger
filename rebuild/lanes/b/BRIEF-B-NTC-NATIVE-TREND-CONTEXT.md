@@ -18,7 +18,12 @@ journey. Accepted owner-entry46a8127 (reviews009995ad/3650dbf) then joined at
 3a73b0d with the independently reviewed preparation41f9 (reviewd6c582b). The
 integrator proved actual default built-browser save/reload and scheduled-day
 40x10 -> 40x10 -> 45x9 -> 45x10, preserving stored setup and all eight operations.
-This is bounded browser/source evidence, not CI/FULL, a receipt or a phone verdict.
+Accepted navigationa157d3d (independentf9d7222) and material qualification5d350c8
+(independent427d38c) joined at11ba8e8, reportca57649. Actual visible training is
+reachable without submitting a weight; saved work resumes until explicit Finish.
+The integrator's combined browser confirms original Set records and later real
+weight survive reload. This is bounded source evidence, not CI/FULL or a receipt;
+physical-phone proof remains separate. First-use setup UI and B1 are separate work.
 
 ### Scope and preserved boundaries
 

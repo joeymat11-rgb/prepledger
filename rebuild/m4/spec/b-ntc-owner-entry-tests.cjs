@@ -12,5 +12,5 @@ const env={...process.env,TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',N
 const r=cp.spawnSync(process.execPath,['--test','--test-reporter=tap',...FILES],{cwd:root,encoding:'utf8',windowsHide:true,env,timeout:180000,maxBuffer:8e6});
 process.stdout.write(r.stdout||'');process.stderr.write(r.stderr||'');
 assert(!r.error&&r.status===0&&/^# fail 0$/m.test(r.stdout)&&/^# skipped 0$/m.test(r.stdout)&&/^# cancelled 0$/m.test(r.stdout),'All owner-entry/calendar assertions execute');
-const pass=/^# pass (\d+)$/m.exec(r.stdout);assert(pass&&Number(pass[1])===66,'Actual owner-entry/calendar test accounting');
+const pass=/^# pass (\d+)$/m.exec(r.stdout);assert(pass&&Number(pass[1])===67,'Actual owner-entry/calendar test accounting');
 console.log('B-NTC OWNER ENTRY/CALENDAR: '+pass[1]+' PASS; 0 fail, 0 skipped, 0 cancelled; actual owner boot, calendar and stored journey tests');

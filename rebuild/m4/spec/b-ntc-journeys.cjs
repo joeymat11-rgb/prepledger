@@ -12,5 +12,5 @@ for(const file of files)assert.equal(sha(fs.readFileSync(path.join(root,file))),
 const r=cp.spawnSync(process.execPath,['--test','--test-reporter=tap',...files],{cwd:root,encoding:'utf8',windowsHide:true,
   env:{...process.env,TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',NODE_OPTIONS:'',NODE_V8_COVERAGE:''},timeout:180000,maxBuffer:8e6});
 process.stdout.write(r.stdout||'');process.stderr.write(r.stderr||'');
-assert(!r.error&&r.status===0&&/^# pass 237$/m.test(r.stdout)&&/^# fail 0$/m.test(r.stdout),'All original journey assertions execute');
-console.log('B-NTC DURABLE JOURNEYS: 237/237 PASS; Today, gym, check-in, default-provider multi-day, host equivalence and one-store joins');
+assert(!r.error&&r.status===0&&/^# pass 245$/m.test(r.stdout)&&/^# fail 0$/m.test(r.stdout),'All original journey assertions execute');
+console.log('B-NTC DURABLE JOURNEYS: 245/245 PASS; Today, gym, check-in, default-provider multi-day, host equivalence and one-store joins');

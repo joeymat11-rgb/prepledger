@@ -12,7 +12,7 @@ const ROOTS=Object.freeze(['rebuild/m3/w7-preview/today/today-entry.mjs',
 const TEST_ROOTS=Object.freeze(['rebuild/m3/w6/test/local-initial-setup.test.mjs',
   'rebuild/m4/workout/test/native-baseline.test.cjs','rebuild/m4/workout/test/native-baseline-journey.test.mjs',
   'rebuild/m3/w6/test/local-owner-entry.test.mjs','rebuild/m3/w6/test/local-today-journey.test.mjs',
-  'rebuild/m3/w6/test/local-owner-browser.mjs']);
+  'rebuild/m3/w6/test/local-owner-browser.mjs','rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs']);
 const DEPENDENCIES=Object.freeze(['package.json','package-lock.json','rebuild/m3/w6/package.json',
   'rebuild/m3/w6/pnpm-lock.yaml','rebuild/m3/w5/package.json','rebuild/m3/w5/pnpm-lock.yaml']);
 const FILE='rebuild/m4/spec/b-ntc-runtime-closure.json';
@@ -38,8 +38,11 @@ function inventory(){
     'Only the three original authority-nonexport assertions warn');
   // These are browser-page URLs inside the separately pinned synthetic probe,
   // not filesystem imports. Its build code and real runtime roots remain closed.
-  const browserGeneratedImports=Object.entries(testBuilt.metafile.inputs).flatMap(([file,input])=>input.imports.filter(i=>i.external&&i.path.startsWith('/')).map(i=>({file,path:i.path}))).sort((a,b)=>a.path.localeCompare(b.path));
-  assert.deepEqual(browserGeneratedImports,['/app.js','/app.js','/app.js','/enroll.js'].map(path=>({file:'rebuild/m3/w6/test/local-owner-browser.mjs',path})),'Only the exact browser probe generated URLs');
+  const browserGeneratedImports=Object.entries(testBuilt.metafile.inputs).flatMap(([file,input])=>input.imports.filter(i=>i.external&&i.path.startsWith('/')).map(i=>({file,path:i.path}))).sort((a,b)=>a.file.localeCompare(b.file)||a.path.localeCompare(b.path));
+  assert.deepEqual(browserGeneratedImports,[
+    ...['/app.js','/app.js','/app.js','/enroll.js'].map(path=>({file:'rebuild/m3/w6/test/local-owner-browser.mjs',path})),
+    ...['/app.js','/app.js','/enroll.js'].map(path=>({file:'rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs',path}))
+  ],'Only the exact two browser probes generated URLs');
   // Literal require calls made by createRequire in ESM support files are not
   // followed by the bundler. Resolve their real relative paths and close them.
   const extra=new Set(),scan=[...Object.keys(testBuilt.metafile.inputs)];
@@ -55,8 +58,23 @@ function inventory(){
   assert(inputs.every(f=>f.startsWith('rebuild/')&&!f.includes('..')&&!f.includes('/private/')),'Public repository import closure only');
   const externals=[...new Set(Object.values(built.metafile.inputs).flatMap(x=>x.imports.filter(i=>i.external).map(i=>i.path)))].sort();
   assert.deepEqual(externals,['@noble/hashes/hmac.js','@noble/hashes/sha2.js','@noble/hashes/utils.js','node:crypto'],'Exact external runtime dependencies');
-  const files=Object.fromEntries([...new Set([...inputs,...DEPENDENCIES])].sort().map(f=>[f,sha(fs.readFileSync(path.join(root,f)))]));
-  return {version:1,roots:ROOTS.slice(),testRoots:TEST_ROOTS.slice(),runtimeFactoryImports,externals,browserGeneratedImports,files};
+  // Build resources read through the exact design/build declarations, not imports.
+  const design=require('../../m3/w7-preview/today/design.cjs'),base='rebuild/m3/w7-preview/today/';
+  const resourceReads=[design.templateHtml,design.chromeCss,design.shellHtml].map(fn=>{
+    const m=/path\.join\(SOURCE, "([a-z.-]+)"\)/.exec(fn.toString());assert(m,'Exact design resource reader');return base+m[1];
+  });
+  assert.deepEqual(resourceReads,[base+'screens.template.html',base+'preview.css',base+'index.shell.html']);
+  const fontSource=JSON.parse(fs.readFileSync(path.join(root,design.FONT_DIR,'SOURCES.json')));
+  const buildText=fs.readFileSync(path.join(root,'rebuild/m3/w6/build-browser.mjs'),'utf8');
+  const fontLiteral=/const fontNames=(\[[^\n]+\]);/.exec(buildText);assert(fontLiteral,'Exact build font inventory');
+  const fontNames=JSON.parse(fontLiteral[1].replaceAll("'",'"'));
+  assert.deepEqual(fontSource.files.map(f=>f.name).sort(),fontNames.slice().sort(),'Exact design/build typography inventory');
+  const resources=[...new Set([...resourceReads,...design.APPROVED.map(p=>p.file),
+    ...design.VIEW_SOURCES.map(n=>base+n),design.FONT_DIR+'/SOURCES.json',
+    ...fontNames.map(n=>design.FONT_DIR+'/'+n),'rebuild/m3/w6/cipher-imports.json'])].sort();
+  assert(resources.every(f=>f.startsWith('rebuild/')&&!f.includes('..')),'Public design/build resources only');
+  const files=Object.fromEntries([...new Set([...inputs,...DEPENDENCIES,...resources])].sort().map(f=>[f,sha(fs.readFileSync(path.join(root,f)))]));
+  return {version:1,roots:ROOTS.slice(),testRoots:TEST_ROOTS.slice(),runtimeFactoryImports,externals,browserGeneratedImports,resources,files};
 }
 function verify(spec){
   const bytes=fs.readFileSync(path.join(root,FILE));
