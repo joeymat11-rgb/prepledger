@@ -1,0 +1,104 @@
+FIRST-USE LIFECYCLE SUCCESSOR — TESTS ONLY
+September11,2026. FILE ASTRA-FIRST-USE-LIFECYCLE-SUCCESSOR.md at PMf46faa4.
+Affected lifecycle/setup and two actual browser journeys PASS.
+Independent acceptance and current source-policy/package/CI qualification pending.
+
+(1) EXACT CANDIDATE
+Branch codex/astra-first-use-lifecycle-successor; isolated worktree
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-first-use-lifecycle-successor.
+Parent bcbb985af9d7a36bef6aab775251732b4f8cedfe.
+Test-source commit ddc0032d64d053adf05d1977bd6b186f7c6d0868.
+This report is the sole additional file. No product/integration resolution.
+Read NEXT/ROADMAP, complete bcbb985 integration report and the current FILE.
+
+(2) CHANGE AND PRESERVED CONTROLS
+local-owner-entry.test.mjs now checks the exact initial heading, one form,
+name/date/seven day controls, blank name/schedule and absent model/hosts.
+Raw active generation remains absent; enroll:false still refuses LOCAL_FIRST_RUN.
+Thus viewing the fresh form commits neither setup authority nor workout ops.
+The formerly unreached legacy no-setup and deleted synthetic key checks now
+execute: Setup required versus Restore required/KEY_MISSING, no form/input,
+no model, and byte-equivalent retained generation before/after each refusal.
+Existing configured fixture enrollment remains appropriate and unchanged.
+Other15 lifecycle tests have exact unchanged UTF-8 source: UTC+13, midnight,
+DST, same-day offset, unsaved editor retention, old handle/date guards,
+actual write timestamps, reopen/currentness and demo isolation all retained.
+
+Both real browser preludes call visible-owner-setup.mjs, which drives only
+actual visible controls and waits for actual saved Today output. Generated
+enroll.mjs/enroll.js and the /enroll.js route are removed from both harnesses.
+The synthetic name, all-U week from2026-01-01,2 sets, ceiling10, increase2.5,
+equipment20/22.5/25/30/40 and no priorities retain the original scenarios.
+Only fixture exercise identity/name changes: synthetic-press/Synthetic press
+to approved catalogue press/Chest press. Recorded set lineage is asserted press.
+Both confirmations explicitly describe this synthetic bilateral routine only.
+No manufactured owner routine, clock/day override or setup/state injection.
+Existing default boot calls attach observation handles without injected options.
+
+Exact post-save new-operation polling functions are unchanged in both files.
+Weight/set/check-in quantities, original saved-record identities,4/5 op counts,
+negative absent-recovery timeout, navigation/keyboard/layout and page-error
+controls remain. Added durable all-sets-unclosed control:3 exact operations,
+no close, no Review, Resume before/after reload; explicit Finish then Review.
+Existing model documents this all-sets-unclosed phase as saved. The first
+development run of this added assertion expected active and failed; corrected
+that new assertion to the existing documented saved state, then reran.
+No existing expected outcome or product behavior changed to resolve that error.
+
+(3) EXECUTED
+Retained Node24.19.0, Chrome headless390x844/America/New_York; existing root/W6/W5
+dependency junctions. NODE_PATH points to retained W6 dependencies. No install.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03.
+Use the retained node.exe for these commands from this candidate root:
+  node --test rebuild/m3/w6/test/local-owner-entry.test.mjs
+Source-before bcbb985:15 pass,1 fail,0 skip/cancel, exit1. Exact failing line59
+expects null input but receives HTMLInputElement. Legacy/damaged tail not reached.
+The two original browser preludes were inspected, not executed before correction.
+
+  node --test rebuild/m3/w6/test/local-owner-entry.test.mjs rebuild/m3/w7-preview/today/setup/setup.test.mjs
+Final29 pass,0 fail,0 skip/cancel, exit0:16 lifecycle +13 unchanged setup tests.
+
+Set W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe:
+  node rebuild/m3/w6/test/local-owner-browser.mjs
+OWNER OPERATION TIMEOUT CONTROL PASS; OWNER ENTRY BROWSER PASS, exit0.
+Visible setup alone has0 ops; actual170.5lb,40x10/effort2,Moderate recovery;
+4 ops after reload, exact set/recovery records retained, original active session,
+demo isolation, no page errors. Screenshot .tmp/owner-browser/owner-reopened.png.
+
+  node rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs
+OWNER WORKOUT NAVIGATION BROWSER PASS, exit0. Visible setup, keyboard Start
+without weight;2 actual40x10/effort2 sets before any reading; all-sets-unclosed
+reload/Resume; explicit Finish/Review;170.5lb; final reload5 ops =1 Start,
+2 Sets,1 Close,1 reading; exact set records retained; finished; no page errors.
+Screenshot .tmp/owner-browser/navigation-ready.png. Both final browser runs
+executed after the final assertions. This is desktop Chromium, not phone proof.
+git diff --check PASS. Exact original polling-source comparison PASS.
+Diff outside authorized tests/report is empty; product/workflows/pins untouched.
+
+(4) NEXT QUALIFICATION/CI INPUTS — NO CURRENT PIN CLAIM
+Changed/new consumed test files, all under rebuild/m3/w6/test/:
+  local-owner-entry.test.mjs
+  local-owner-browser.mjs
+  local-owner-workout-navigation-browser.mjs
+  visible-owner-setup.mjs (new Node-side import of both browser journeys)
+The later owner-screens successor must bind these exact bytes and commands;
+old wrapper/source pins do not cover them. No wrapper or runner changed here.
+Actual browser resources remain /, /index.html, /app.js, /styles.css, produced
+by unchanged current today/build.mjs into .tmp/w7-today-dist; no enrollment route.
+The first-use parent already changed today-entry.mjs/build.mjs and brings these
+runtime/resource edges under rebuild/m3/w7-preview/today/setup/:
+  catalogue.mjs, enrollment.mjs, setup-model.mjs, setup-view.mjs, setup.css.
+The later closure must also cover accepted setup.test.mjs and, if selected for
+its separate CI entry, browser-check.mjs/browser-probe.mjs (these two were not
+rerun by this test-only task). Existing build/design/templates/fonts retain
+their inherited obligations. No claim that the five named setup files alone
+constitute the transitive closure or replace the accepted engine obligations.
+
+Read-only stable qualification-policy worktree status clean. Its existing
+413a54e4837d837abd1be97a05de70ace1c56265 b-ntc-successors.json remains SHA256
+07f74495875e3798fe432bf6f1d288d4c522856d52dbad5661da0efe526e6393.
+No guard050 integration, stable413 change, source policy, receipt, workflow,
+brief, host/storage/product edit, full engine/private run, private data access,
+lockfile churn, remote action, PR, actual integration merge or deployment.
+Next: root-arranged independent review of this exact successor, then authorized
+screens/qualification+CI join against its precise source. No authority issued here.
