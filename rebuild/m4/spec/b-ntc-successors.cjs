@@ -1,6 +1,6 @@
 'use strict';
 // Candidate two-stage proof, never a receipt or acceptance. The archived parent
-// preflight reads only two superseded execution pins from their reviewed Git
+// preflight reads only three superseded execution pins from their reviewed Git
 // origin. Actual-child source verification and every gate execute against disk.
 // No global loader/fs patch, cache replacement or candidate-code substitution.
 const fs=require('node:fs'),path=require('node:path'),Module=require('node:module');
@@ -12,7 +12,9 @@ const ARTIFACT='rebuild/m4/spec/acceptance-native-carriers.json';
 const PARENT_SHA='e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a';
 const ORIGIN='b95ccca879e371b5ba225ad12cae612ec89469ba';
 const RUNTIME='rebuild/m4/workout/engine-runtime.cjs';
-const OVERLAY=Object.freeze([RUNTIME,'.github/workflows/rebuild.yml']);
+const PROJECTION='rebuild/m4/workout/source-projection.cjs';
+const SUPPORT_SUPERSESSIONS=Object.freeze([RUNTIME,PROJECTION]);
+const OVERLAY=Object.freeze([...SUPPORT_SUPERSESSIONS,'.github/workflows/rebuild.yml']);
 const NAMES=Object.freeze(['traces','direct','legacy','witnesses','cases','source-carriers',
   'inherited-carriers','defect-witnesses','writers-differential','second-gate']);
 const rel=file=>path.join(root,file);
@@ -45,14 +47,17 @@ function actualChild(a){
   }
   for(const [file,pin]of Object.entries(spec.product))
     assert.equal(sha(fs.readFileSync(rel(file))),pin.post,'Exact declared child bytes '+file);
+  require('./b-ntc-runtime-closure.cjs').verify(spec);
   return spec;
 }
 function sourceModule(a,{archived=false,spec}={}){
   const file='rebuild/m4/spec/native-carriers-source.cjs';let src=original(file,a);
   if(!archived){
-    const old="'"+RUNTIME+"':'"+a.executionPins[RUNTIME]+"'";
-    assert.equal(src.split(old).length,2,'One exact runtime SUPPORT pin');
-    src=src.replace(old,"'"+RUNTIME+"':'"+spec.product[RUNTIME].post+"'");
+    for(const support of SUPPORT_SUPERSESSIONS){
+      const old="'"+support+"':'"+a.executionPins[support]+"'";
+      assert.equal(src.split(old).length,2,'One exact SUPPORT pin '+support);
+      src=src.replace(old,"'"+support+"':'"+spec.product[support].post+"'");
+    }
   }
   return compile(file,src,(name,normal)=>name==='node:fs'&&archived?archivedFs(a):normal(name));
 }
@@ -75,8 +80,8 @@ function preflight(){
     name==='node:fs'?archivedFs(a):name==='./native-carriers-source.cjs'?archivedSource:normal(name));
   const parent=profile.verify();assert.equal(parent.accepted,true,'Archived parent independently accepted');
   const source=sourceModule(a,{spec});source.verify(root);
-  console.log('B-NTC ARCHIVED PARENT VERIFIED; two exact execution pins read at '+ORIGIN+'; this is not child acceptance');
-  console.log('B-NTC ACTUAL CHILD VERIFIED; original source construction and all assertions, one exact runtime SUPPORT pin superseded; candidate code reads disk');
+  console.log('B-NTC ARCHIVED PARENT VERIFIED; three exact execution pins read at '+ORIGIN+'; this is not child acceptance');
+  console.log('B-NTC ACTUAL CHILD VERIFIED; original source construction and all assertions, two exact runtime/projection SUPPORT pins superseded; candidate code reads disk');
   return {a,spec,source,parent};
 }
 function run(name){
@@ -117,7 +122,7 @@ function run(name){
 }
 function profileRefusals(){
   // Register the unchanged original thirteen tests against the archived parent.
-  // The tests use the real filesystem for their temporary edits; only the two
+  // The tests use the real filesystem for their temporary edits; only the three
   // superseded execution reads inside the private validators use archived bytes.
   const {a}=preflight(),source=sourceModule(a,{archived:true});
   const file='rebuild/m4/spec/native-carriers-profile.cjs';

@@ -1,6 +1,84 @@
-# EARNED — B-NTC — QUALIFIED `nativeTrendContext` PROVIDER — behaviour/delta brief v1.2 — **PROPOSED, NOT ACCEPTED**
+# EARNED — B-NTC — QUALIFIED `nativeTrendContext` PROVIDER — behaviour/delta brief v1.3 — **PROPOSED, NOT ACCEPTED**
 
 ---
+
+## v1.3 — PROPOSED OWNER-BUILD QUALIFICATION AMENDMENT (2026-09-11)
+
+This amendment explicitly supersedes §13 O1's exclusion only for the accepted
+native-baseline factual projection and its authoritative-setup/calendar composition.
+It is proposed until independent review and the temporary sole PM's exact acceptance.
+Historical findings and measurements below describe their original snapshots; they
+are not silently withdrawn or promoted to current package acceptance.
+
+The independently checked components are stored setup9e779f6 (reviewf01ca87),
+native baselineb843a7b (reviewc100bda), B-NTC/F1 at71fb2f1 (reviews3501d11/79b8c44)
+and tooling85f7d56 (reviewa3ffd3c). The distinct local integration atdf226c7 retains
+their original histories and establishes one synthetic combined enrollment/reopen
+journey. It does not supply CI/FULL, a final child receipt, owner-entry acceptance,
+or a phone verdict. Final owner-entry/calendar source is a separate pending join.
+
+### Scope and preserved boundaries
+
+Authoritative initial setup lives in the encrypted installation's initialSetup
+collection with its metadata marker, outside derived caches. Enrollment persists
+only explicitly supplied athlete inputs. Reopen reads that stored document before
+constructing a clean initial state; it cannot substitute a retained caller object,
+an old demo seed or a different athlete's programme. Post-commit enrollment failure
+retires the first-run path and leaves recovery required. No athlete programme,
+working load, recovery value or nutrition target is manufactured by this amendment.
+
+The zero-import source registrar may reconstruct a factual native starting load
+from durable native performed records using the existing performed-history, era
+and load-rung predicates. The accepted source-projection/native-baseline join is
+an owned read projection: no original setup or performed fact is mutated, no legacy
+sessionLog entry or completed-workout writer is replayed, and no progression rule,
+recommendation, timestamp or earned-load receipt is invented. A first confirmed
+uniform working load leaves debut on a later reopen; later confirmed uniform loads
+supply the current factual baseline. Missing derived cache has the same meaning.
+
+Unequal original-slot loads, configuration-domain loads, unresolved original slots
+and scalar/vector mappings retain their structured mapping requirements. Observed
+configuration keys do not mean pounds, and unequal loads do not imply a chosen
+scalar. Existing correction/undo and source-basis/identity guards remain required.
+Future history retains the explicit B2/D7 as-of-consumer limitation and refusal;
+this amendment does not claim the downstream future-history defect is repaired.
+
+The actual owner entry must compose authoritative stored setup with current local
+calendar dates and coherent timestamp/offset inputs. Explicit demo remains separate.
+Fresh open, midnight, retained draft and original Start identity/date handling must
+be checked against the separately reviewed owner-entry source. No fixed historical
+fixture date is an owner clock, and this preparation claims no phone/browser proof.
+
+### Qualification mechanics
+
+source-projection.cjs is superseded-by-child from its exact accepted-parent
+preimage fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e.
+Archived-parent validation keeps original assertions and reads only the exact
+runtime, source-projection and workflow preimages in private module scope. Actual
+child validation checks current bytes separately and substitutes exactly the two
+runtime/projection SUPPORT hashes in the privately compiled original verifier.
+Native-baseline and the transitive runtime/setup import closure, including
+local-client.mjs, initial-setup.mjs and athlete-state.cjs, are explicitly pinned.
+A fresh build-resolved graph must agree with that closure and the child product map;
+a changed import or absent dependency pin refuses. Allowed child roots stay fixed.
+
+Real setup/baseline tests execute through a pinned m4/spec wrapper using actual
+Node --test targets. All previous inherited gates, original thirteen profile tests,
+four actual-child pin tests, native provider cells, forty-five register laws,
+nineteen gates, full second gate, source/fidelity/mutation checks, public/full/private
+custody and genuine exact-artifact receipt requirements remain. moves={} and
+MOVES_RULING=null remain. The unconditional B-NTC source-policy obligation, exact
+accepted original schedule checks and role/source/chain protections are unchanged.
+
+Policy6147178 binds the old71fb2f1 source and cannot authorize this changed source.
+After the reviewed owner entry joins, the coherent committed source needs one new
+independently reviewed exact policy digest, mechanical runner/spec pins and genuine
+PM brief/theme citations on both the fixed accepted chain and candidate ancestry.
+No local-only authority is treated as remote authority; no unsealed profile is
+accepted CI. Both OS workflow enumerations must carry the final affected tests.
+
+---
+
 
 ## v1.2 — DECISIONS:109, PATH A: THE OPTION IS GONE AND THE 28-NIGHT ATHLETE OPENS
 
@@ -1396,7 +1474,7 @@ the one lane B recommends. The PM confirms who lands it; the patch is ready eith
 
 ## 13. Open items, recorded honestly
 
-* **O1 — A0's clean-init athlete cannot reach the trend seam at all** (§7.3). Every lift at
+* **O1 — HISTORICAL FINDING; scoped successor disposition proposed in v1.3 above. A0's clean-init athlete cannot reach the trend seam at all** (§7.3). Every lift at
   `w: null` is a permanent DEBUT, the host never writes `w` back, and the resolver is asked
   0 times. Step 17 sets one lift's `w` from its own `steps` and says so. The real question
   underneath — *what writes `w` for a native athlete, and when* — is not B-NTC's and is not

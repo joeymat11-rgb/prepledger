@@ -78,7 +78,9 @@ jobs:
         run: node rebuild/t2/rig187.cjs
       # B-NTC succeeds the memory-only preview with the executed durable Today,
       # gym and check-in suites below. Historical preview tests remain in Git.
-      - name: Cumulative B-NTC native-carrier and legacy-census evidence
+      # This candidate step must not be integrated as an accepted profile until
+      # its final coherent source policy, authority and exact receipt qualify.
+      - name: Candidate B-NTC native-carrier and legacy-census evidence
         run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
@@ -95,6 +97,12 @@ jobs:
       # globbed, so the same set runs on both runners whatever the shell does.
       - name: A1/A2/A3 — the rebound Today page, the gym card, the check-in and the B-NTC delta cells
         run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      - name: Owner stored setup and native baseline — explicit tests on both OS
+        env:
+          NODE_PATH: ${{ github.workspace }}/rebuild/m3/w6/node_modules
+        run: node --test rebuild/m3/w6/test/local-initial-setup.test.mjs rebuild/m4/workout/test/native-baseline.test.cjs rebuild/m4/workout/test/native-baseline-journey.test.mjs
+      - name: Owner child source and dependency closure refusals
+        run: node --test rebuild/m4/spec/b-ntc-owner-qualification.test.cjs
       - name: A5 — the PWA shell's lockfile-only suites
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself
