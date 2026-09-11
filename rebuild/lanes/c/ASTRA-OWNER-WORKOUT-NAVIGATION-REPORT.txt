@@ -1,0 +1,76 @@
+OWNER WORKOUT NAVIGATION — BUILDER REPORT
+September 11, 2026. Candidate; independent review is required.
+FILE: PM ASTRA-OWNER-WORKOUT-NAVIGATION.md at dbaa1d9.
+Base:d450ee70891bfe7cfb253eb97f5a73821b7eabca.
+Product/tests:ff7c113f9566f2e1334bab63e406c79f36d52b82.
+Branch/worktree: codex/astra-owner-workout-navigation / astra-owner-workout-navigation.
+
+(1) ACTUAL FAILURE BEFORE
+Added local-owner-workout-navigation-browser.mjs and ran it against unchanged
+base product. Real built default boot, actual browser date, public synthetic
+setup, zero operations. Click weight primary; cancel with Not now. No visible
+training action exists: expected Start UPPER count1, actual0. Test exits1 at
+the explicit assertion. No injected model/day/basis or app.render navigation.
+
+After adding the shortcut, the same actual journey exposed a second barrier:
+save first Set, Back to Today; source summary phase is saved, but Today says
+programme ready and its only primary again says Log your weight. Existing
+renderer recognized active only. Root explicitly confirmed saved/rest and
+complete-awaiting-close are in scope for truthful existing Resume behavior.
+
+(2) CHANGE
+Only today-app.cjs and screens.template.html change product behavior. A native
+button using the existing approved link class sits beside the workout title
+while the main primary offers weight. Its label/action follows the source:
+ready -> Start; blocked with a relevant workout/requirement -> existing Why;
+finished -> Review. No second large primary, CSS, new static copy or design
+declaration is needed. Clicking still opens the existing gym model, whose
+prepare/refusal/Start path decides what can be done.
+Source active/saved/complete phases now retain existing Workout in progress /
+Resume behavior. Saved is the between-set rest state; complete still awaits
+actual close and is never labeled finished. Stranded keeps its explicit close
+primary. Actual rest/no-session gets no Start shortcut. Untrusted view removes
+the new control. Weight logging remains available through its unchanged path.
+
+(3) EXECUTED FINAL SOURCE
+Existing Node24.19.0, installed Chrome and retained W6/W5/jsdom via ignored
+junctions. No install. From repo root:
+node --test rebuild/m3/w7-preview/today/test/view.test.mjs
+  rebuild/m3/w7-preview/today/test/design.test.cjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+58 pass,0 fail,0 skipped. Added8 view cases: ready/finished/blocked while weight
+owed; active/saved/complete/unfinished/rest primary behavior. Added actual
+owner-store rest-day case. Existing design/refusal/clock/lifecycle tests pass.
+
+W7_BROWSER_BIN=<existing Chrome>, NODE_PATH=<retained W6 dependencies>:
+node rebuild/m3/w6/test/local-owner-workout-navigation-browser.mjs
+OWNER WORKOUT NAVIGATION BROWSER PASS, exit0. This command rebuilds the actual
+page and executes its public default entry. Real visible actions only:
+cancel weight -> keyboard Enter on Start UPPER -> save40x10 -> Back -> Resume
+-> Ready for set2 -> save40x10 -> Finish -> Review -> Today -> log170.5 -> reload.
+After first Set: exactly Start/Set, no reading. Final exactly5 operations:
+one Start, two Sets, one Close, one actual weight; both full Set records equal
+their pre-reload records. No duplicate Start/Set; final source phase finished.
+Waits await real durable observations and exact new identities. No page errors.
+
+Inspected .tmp/owner-browser/navigation-ready.png at390x844: approved paper/ink/
+Instrument hierarchy preserved, one main primary and underlined training link.
+Browser proves link is inside phone and visible viewport, native keyboard
+activation works, and one primary remains. No physical iPhone claim.
+
+Interim browser harness corrections: followed the real Ready for set2 action,
+Finish's automatic return, and review's Today button rather than nonexistent
+selectors. Actual rest returns count:null/no unavailable reason, not0; corrected
+the new expectation and excluded no-session shortcut. These harness mistakes
+receive no red credit. The two product failures above were directly observed.
+
+(4) QUALIFIER / REVIEW HANDOFF
+Distinct reviewer should inspect these2 product files, rerun the focused58 and
+actual visible navigation browser test, and assess source/blocked/rest/closed
+distinctions. Existing ordinary owner browser/lifecycle and setup/native-baseline
+evidence remains reusable outside this delta. Final qualification must include
+the new browser regression and9 added focused cases in its affected-test closure
+and bind actual final source; this builder changed no policy/source pins.
+No engine, host, setup, nutrition, law, golden, private, tooling or stylesheet
+changes. No broad/full campaign, install, push, integration merge or deployment.
+git diff --check clean. One builder report committed; no self-acceptance.
