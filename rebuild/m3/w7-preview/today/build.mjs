@@ -16,7 +16,14 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { buildBrowser } from "../../w6/build-browser.mjs";
 import design from "./design.cjs";
+/* THE BUILD-TIME REFUSAL for the owner's no-dashes rule (DECISIONS:114 (1), P1 brief
+   amendment DECISIONS:117 (1)): this build will not write an asset carrying an em or en
+   dash in text the athlete can see. The scan and what it deliberately exempts (comments,
+   and the frozen sources' own prose, which reaches the DOM only through plainCopy) are
+   documented in ./plain-copy.cjs. */
+import PlainCopy from "./plain-copy.cjs";
 
+const { assertNoAiDashesInAssets } = PlainCopy;
 const { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles } = design;
 
 export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
@@ -159,6 +166,8 @@ export async function buildToday() {
     "app.js": await fs.readFile(built.outfile),
   };
   assertNoNetworkReference(Object.entries(contents));
+  /* Before a byte is written: no em dash and no en dash in anything the athlete reads. */
+  const dashes = assertNoAiDashesInAssets(Object.entries(contents));
   await realDirectory(DIST);
   for (const entry of await fs.readdir(DIST, { withFileTypes: true })) {
     assert(entry.isFile() && !entry.isSymbolicLink(), "OUTPUT-CLEAN FAIL: unexpected directory or link");
@@ -167,7 +176,7 @@ export async function buildToday() {
   for (const name of ASSETS) await fs.writeFile(path.join(DIST, name), contents[name]);
   assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
-  return { dist: DIST, assets: [...ASSETS], inputs, inventory: built.inventory,
+  return { dist: DIST, assets: [...ASSETS], inputs, inventory: built.inventory, dashes,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
 
@@ -179,7 +188,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     console.log(`A1 TODAY BUILD PASS: ${result.assets.length} assets; ${result.inputs.length} pinned inputs `
       + `(${engine.length} engine, ${client.length} client); approved design pinned; `
       + `${result.binding.classes} bound classes; ${result.fonts.length} pinned typefaces inlined; `
-      + `no literal figure in the template; ${result.assets.length}/${result.assets.length} assets scanned and free of any network reference`);
+      + `no literal figure in the template; ${result.assets.length}/${result.assets.length} assets scanned and free of any network reference; `
+      + `no em/en dash in any text the athlete can see (${result.dashes.admitted} frozen-source strings carry one and `
+      + `reach the screen only through plainCopy; ${result.binding.recovery.dashNormalised.length} harvested approved term(s) dash-normalised)`);
   } catch (error) {
     console.error(`A1 TODAY BUILD FAIL: ${error.message}`);
     process.exitCode = 1;
