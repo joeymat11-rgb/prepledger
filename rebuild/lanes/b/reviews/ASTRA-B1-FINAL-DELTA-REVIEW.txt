@@ -1,0 +1,77 @@
+B1 FINAL AUTHORED CORRECTION — INDEPENDENT DELTA REVIEW
+September 11, 2026. SCOPED ACCEPT of fe03ed0d5c4fa347807d8df7a611f408a4e10397.
+Separate branch codex/astra-b1-delta-review; reviewer did not author B1.
+No full-package acceptance or qualification follows.
+
+(1) SCOPE AND PRIOR EVIDENCE
+Read accepted B1 brief v1.2, B1-REVIEW-r3.md, BUILD-REPORT-B1 section10,
+NEXT/ROADMAP/LANES, and current PM DECISIONS:110. Review only fe03ed0 against
+its predecessor: two added cells, one today.cjs guard, brief/report corrections.
+Reuse r3 evidence for unaffected B1 hunks, carriers, laws and prior matrix.
+No frozen law, witness, engine dates/policy/sleep, tool, workflow or lockfile
+changed in this delta. Tracked diff against candidate empty before this report.
+
+(2) CONDITIONS CLOSED BY FOCUSED EXECUTION
+Existing Node24.19.0; TZ=America/New_York. No dependency installation needed.
+Actual committed rebuild/engine/test/b1-delta-cells.cjs:25/25 hold;
+22 named mutants carried, explicitly distinguishing D10-2 source/alias assertion;
+8 outside-module D10 call sites. This is the cell suite, not conformance PASS.
+
+C-r3-1: BUILD-REPORT sections9.2/9.3/10.1 and brief A5/A9 now distinguish
+32 behavioural kills plus D10-2 source assertion, and state12/33 detectors
+without cells,21 survivors. The12/33 count is reused from r3's independent
+measurement and r4's recorded reproduction; I did not rerun the33-mutant matrix.
+Independent UTC-date-stamp weeksBetween substitution passes all24 value cells
+and fails only the source/alias cell. Thus it earns no behavioural-kill claim.
+The eventual verdict and sealed C7 artifact must retain this same distinction;
+this review does not create either artifact or discharge their obligations.
+
+C-r3-2: independently substitute the exact hardcoded2026 fall-back special case
+in sleepInfo. It passes every prior23 committed cell. Against final25 cells,
+it fails EXACTLY B1-D21-the-fall-back-anchor-holds-on-every-fall-back-year.
+The committed2027-11-07 and2025-11-02 cases now supply the missing detector;
+the ordinary/good-night/previous-day/N1e controls run as part of that cell.
+
+C-r3-3: route is now explicitly INSIDE B1 under PM DECISIONS:110.
+Replace candidate today factory with the ACTUAL unguarded predecessor source:
+only the new D27 malformed-break cell fails, with split-is-not-a-function.
+Independent full-engine comparison uses public pre-B1 modules at5dc9254.
+For numeric end, object end and numeric start, candidate theOneFix output and
+nowModel.move exactly equal the pre-B1 values; unguarded predecessor throws
+from both. Six ordinary combinations (cut/maintenance/surplus, with/without
+well-formed active break) retain whole predecessor theOneFix and nowModel outputs.
+The guard restores lost robustness without changing those normal cases.
+
+Independent review aid, ignored .tmp/independent-b1-delta.cjs:
+SHA256 aed998a03180af537f3bdb1bd3ce1b7813edc303ab60c6d9e43ed18e049c9743.
+It compiles actual factories with isolated in-memory source substitutions; cells
+remain unchanged. For the UTC source assertion only, its read observes the same
+mutated declaration. No product/test file is edited on disk. Initial harness
+needle used different parameter names; corrected to exact source before final PASS.
+
+(3) UNKNOWN RECOVERY IS STILL UNIMPLEMENTED HERE — ROUTE SEPARATELY
+Actual recoveryIndex/sleepInfo on synthetic day2026-09-03:
+  no nights:                  clean=true, GREEN/100, factors[]
+  newest night2026-08-31,2h:   clean=true, GREEN/100, factors[]
+  last night2026-09-02,8h:     clean=true, GREEN/100, factors[]
+  last night2026-09-02,2h:     clean=false, WATCH/70, sleep-reset factor
+Missing/stale sleep correctly imposes no sleep restriction; GREEN/100 still
+misrepresents missing evidence under DECISIONS:110. Source: sleep.cjs
+recoveryIndex:219, sleep predicate:238, score/band:272-276, sleepInfo:1901.
+Narrow next owner: lane B owns qualified UNKNOWN flag-model semantics and the
+explicit consumer mapping; PM/screens owns approved 'no reading' presentation.
+Do not change only the label: sleep.liftCall:136, policy.phaseProposal:661,
+volume.volumeConversion:245-254 and writers.volumePush:1342-1343 use non-GREEN
+as adverse evidence or a veto. UNKNOWN must not become a new reduction merely
+because these comparisons exist. Other actual recovery flags remain operative.
+This is the requested residual, not an expansion or rejection of the r4 correction.
+
+(4) REMAINING PACKAGE LIMITS
+Prior conform/second-gate runs in section10.5 are FAIL, with baseline-matching
+failures (including D12); none is restated as PASS here. They were not rerun.
+B1 still needs its proper cumulative B-NTC parent/source, required cell/source
+assertion carriers and sealed C7, real authority/receipt chain, affected public
+and engine/full/private evidence and PM qualification. D24-2 fixture dependence
+remains an attributed prior residual outside these explicit conditions.
+No broad review/campaign, private data, source edits, installs, push, PR, merge,
+deployment, purchase or protected-soak action. Only this report is committed.
