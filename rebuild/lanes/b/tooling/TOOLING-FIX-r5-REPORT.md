@@ -194,6 +194,56 @@ E5, E6** (a spec trying to authorise its own move — the refusal text moved, th
 rather than running clean, which is Z7) and **E14** (a forged ledger citation — the authority
 plumbing is untouched, and the void theme name it used no longer exists anywhere).
 
+## 4b. THE SELF-CLEARING COMMIT — **r6 SHOULD JUDGE THIS ONE FIRST**
+
+One commit on `rebuild/lane-b-tooling` makes two corrections that **clear obligations which
+were blocking lane B's own package**. Lane B raised both against itself (`FIX-REPORT-B-NTC-r2.md`
+§4.1 and §4.2), declined to make them in the r5 fix pass for exactly that reason, and makes
+them here only because the PM asked for them — as **one distinct commit, with its own suite**,
+so that a reviewer can take it on its own before anything else in the pass. It touches nothing
+else. If r6 rejects it, reverting that single commit restores the two obligations and leaves
+every other Z1–Z11 change standing.
+
+**Correction 1 — the product phase (`product()`).** The post-image is now asked before the
+pre-image. A file a package declares and PINS but does not CHANGE carries `pre === post`; it
+was counted as "still at the pinned pre-image" for ever, so `PRODUCT` could never leave
+`PARTIAL` and `OPEN product PARTIAL` blocked `--ci` permanently. B-NTC has seven such files.
+**This is a reporting order, not a refusal:** no assertion is added, removed or relaxed.
+
+**Correction 2 — where a child's own ledger lines are looked up (`authority()`).** This is a
+defect in **every child package**, not only B-NTC. `authority()` resolved all four cited
+lines at `bound.receiptBase` — the **parent's** receipt commit (`b-package.cjs:882`, with the
+theme at `:886` and the brief acceptance at `:887`; `receiptBase` is set from the parent's
+review receipt at `:681`). Owner and contract belong there: they are parent-era, and the
+contract is additionally asserted byte-equal to the parent artifact's own. **The theme and
+the brief acceptance do not.** They are this package's own lines, written after its parent
+was sealed — necessarily, since they accept work the parent had not seen — so at the parent's
+receipt base they can never be found. `brief.acceptedLedgerLine` could therefore never be set
+on any child package before its own seal, and the obligation it clears could never be
+cleared. Those two now resolve on **`CHAIN_REF`**, the real chain branch read from Git refs.
+
+**Not `HEAD`,** and that matters: a lane can write any line it likes into its own branch's
+`DECISIONS.md`, and clearing an obligation by self-declaration is precisely what N4 exists to
+prevent. The chain branch is the PM's. `envelope()` still re-resolves **all four** at the
+package's own receipt base at the seal, and still asserts that base is an ancestor of
+`CHAIN_REF` — so the seal is no weaker and this path is no stronger than the seal.
+
+**The suite:** `rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs`, **7/7 exit
+0**. It builds its own Git repository whose `DECISIONS.md` gains the child's two lines in a
+**later** commit than the parent's receipt base — the shape that made the old code
+impossible — and compiles the real runner with exactly one constant re-pointed at it
+(asserted to be the only differing line). (a) an unchanged declared+pinned file reports
+`IMPLEMENTED`; (b) a file genuinely at a pre-image with a different post still reports
+`pre`/`PARTIAL`, and alone is `NOT-IMPLEMENTED`; (c) a file at neither image still refuses
+`UNLISTED-PRODUCT-DRIFT`, a `carried` file is still held to `pin.pre`, and a `new` file with
+`post: null` that does not exist is still at the pre-image; (d) with both lines on the chain
+branch, both obligations close; (e) absent lines still leave both obligations OPEN, a line
+that exists only in the spec still refuses `RECEIPT-EXACT-LINE-MISSING`, and a real line that
+does not mention this package still refuses `RECEIPT-CONTENT`; (f) owner and contract still
+resolve at the **parent's** receipt base and the contract is still inherited byte-equal — a
+late owner line still refuses there; and with no sealed parent at all, both obligations are
+still refused a claim and left open.
+
 ## 5. Left OPEN
 
 1. **Neither suite has a CI home** (r5's Z8 note, r2's change 8 second half). Both run green;
@@ -210,13 +260,12 @@ plumbing is untouched, and the void theme name it used no longer exists anywhere
    extracted by bracket matching and `JSON.parse`d. A string containing an unbalanced bracket
    would make the parse throw, which is a refusal, not a false pass; but the extraction is
    text, and a reviewer should read `b-ntc-successors.cjs`'s table with their own eyes.
-4. **The product-phase question** raised by the package branch:
-   `product()` tests `disk === pin.pre` before `disk === pin.post`, so a file declared with
-   `pre === post` — a file a package pins and executes but does not change — is counted as
-   "still at the pinned pre-image" for ever. B-NTC has seven such files and therefore a
-   permanent `OPEN product PARTIAL`. Lane B did **not** change this in the same pass that
-   would benefit from it; the objection and the exact question are in
-   `rebuild/lanes/b/FIX-REPORT-B-NTC-r2.md` §4.2.
+4. ~~**The product-phase question**~~ — **CLOSED by the self-clearing commit, §4b.** It was
+   raised here as an objection and left standing deliberately; the PM asked for it to be
+   taken, and it was, as its own commit with its own suite so that r6 can judge it alone.
+   The ledger-anchor defect (§4b correction 2) was found in the same follow-up and is closed
+   the same way. **Both are the only changes in this pass that clear an obligation of lane
+   B's own package, and they are the two a reviewer should take first.**
 
 **Author:** lane-b-fixer5 · fix pass answering `TOOLING-REVIEW-r5` · **no PASS word is claimed
 for anything in this file, and the independent review r6 has not run.**
