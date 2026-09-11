@@ -29,12 +29,12 @@
       <div><span class="number" data-slot="protein"></span> <span class="unit" data-slot="protein-unit"></span></div>
     </div>
     <p class="small muted" data-slot="kcal-note"></p>
-    <button class="link" type="button" data-go="nutrition">Your full nutrition plan <span data-arrow></span></button>
+    <button class="link" type="button" data-go="nutrition">Your full nutrition plan <span class="muted" data-own data-slot="nutrition-state"></span> <span data-arrow></span></button>
   </section>
   <section class="training">
     <div class="row"><h2 data-slot="workout-title"></h2></div>
     <p class="small muted" data-slot="workout-count"></p>
-    <button class="link recovery-link" type="button" data-go="recovery">How are you feeling today? <span data-arrow></span></button>
+    <button class="link recovery-link" type="button" data-go="recovery">How are you feeling today? <span class="muted" data-own data-slot="recovery-state"></span> <span data-arrow></span></button>
   </section>
   <button class="link trend" type="button" data-go="why">
     <span><span data-slot="morning"></span><span class="sub" data-slot="trend"></span></span>
@@ -42,7 +42,7 @@
   </button>
   <div class="bottom">
     <button class="primary" type="button" data-slot="primary"><span data-slot="primary-label"></span><span data-arrow></span></button>
-    <button class="link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it.</span></span><span data-arrow></span></button>
+    <button class="link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it. <span data-own data-slot="coach-state"></span></span></span><span data-arrow></span></button>
   </div>
 </article>
 </template>

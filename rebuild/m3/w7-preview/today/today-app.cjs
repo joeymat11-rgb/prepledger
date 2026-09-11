@@ -53,6 +53,33 @@ function trendLine(view) {
   return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE) + " · Why this plan?";
 }
 
+/* The honesty rule (review D-2): an entry point this slice has not wired says so on
+   Today's face, in the approved design's own secondary text, so the athlete never taps to
+   discover it. The screen behind it repeats the same words in full. */
+const NOT_WIRED = "— not wired yet";
+
+/* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
+   lines and push the primary action out of a 390x844 viewport. This steps the headline
+   down from C's 47px, one pixel at a time, ONLY until the primary action is back inside
+   the viewport, and never below the 33px floor. A two-line title never moves; engine text
+   is never truncated. It is a no-op wherever there is no layout to measure (a jsdom test),
+   which is why the browser check is what proves it. */
+const HEADLINE_BASE = 47, HEADLINE_FLOOR = 33, HEADLINE_GUARD = 8;
+function fitHeadline(view, root) {
+  const headline = root.querySelector("h1");
+  const primary = root.querySelector('[data-slot="primary"]');
+  if (!headline || !primary || !view || !view.clientHeight) return null;
+  root.style.removeProperty("--headline");
+  const room = () => view.clientHeight - HEADLINE_GUARD
+    - (primary.getBoundingClientRect().bottom - view.getBoundingClientRect().top);
+  let size = HEADLINE_BASE;
+  while (room() < 0 && size > HEADLINE_FLOOR) {
+    size -= 1;
+    root.style.setProperty("--headline", size + "px");
+  }
+  return size;
+}
+
 function mountToday(doc, model) {
   const phone = doc.getElementById("phone");
   const status = doc.getElementById("today-status");
@@ -111,6 +138,7 @@ function mountToday(doc, model) {
       put(map, "instruction-why", view.blockedCopy || "This device's local record could not be trusted, so nothing is shown.");
       for (const name of ["kcal", "kcal-unit", "protein", "protein-unit", "kcal-note",
         "workout-title", "workout-count", "morning", "trend", "primary-label"]) put(map, name, null);
+      for (const name of ["nutrition-state", "recovery-state", "coach-state"]) put(map, name, NOT_WIRED);
       map.get("primary").disabled = true;
       wire(root);
       show(root, focus);
@@ -138,6 +166,7 @@ function mountToday(doc, model) {
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises") + " · Your set targets are ready");
 
+    for (const name of ["nutrition-state", "recovery-state", "coach-state"]) put(map, name, NOT_WIRED);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -150,6 +179,15 @@ function mountToday(doc, model) {
 
     wire(root);
     show(root, focus);
+    fitHeadline(phone, root);
+    /* A change to the headline's text re-runs the fit. No test hook: the page simply
+       keeps itself correct, and the browser check exercises the engine's whole title
+       vocabulary through exactly this path. */
+    if (typeof doc.defaultView !== "undefined" && doc.defaultView && doc.defaultView.MutationObserver) {
+      const headline = root.querySelector("h1");
+      if (headline) new doc.defaultView.MutationObserver(() => fitHeadline(phone, root))
+        .observe(headline, { characterData: true, childList: true, subtree: true });
+    }
     if (view.message) tell(view.message.copy);
     else if (view.unadopted > 0) tell("This device holds " + view.unadopted + " stored reading(s) the plan did not use.");
   }
@@ -310,4 +348,5 @@ function mountToday(doc, model) {
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
    tests without touching a document. */
-module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel, ARROW, NOT_AVAILABLE };
+module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel,
+  ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD };

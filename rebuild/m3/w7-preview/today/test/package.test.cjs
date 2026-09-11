@@ -89,6 +89,22 @@ test("the page fetches nothing: no remote origin in any shipped asset (review F9
   for (const font of result.fonts) assert.match(font.sha256, /^[0-9a-f]{64}$/);
 });
 
+/* review D-4: the "no network reference" claim is EXECUTED by the build, and the check
+   itself is shown to be able to fail. */
+test("the build refuses any network reference in a shipped asset", () => {
+  assert.equal(typeof build.assertNoNetworkReference, "function");
+  assert.doesNotThrow(() => build.assertNoNetworkReference([["ok.css", ".a{color:#fff}"]]));
+  // A data: payload is not a reference, however many slashes it contains.
+  assert.doesNotThrow(() => build.assertNoNetworkReference(
+    [["fonts.css", "@font-face{src:url(data:font/woff2;base64,AA//BB//CC)}"]]));
+  for (const bad of [
+    '<link href="https://fonts.googleapis.com/css2?family=X">',
+    '<script src="http://example.com/a.js">',
+    '@import url(//cdn.example.com/x.css);',
+    ".a{background:url(https://example.org/b.png)}",
+  ]) assert.throws(() => build.assertNoNetworkReference([["probe", bad]]), /NETWORK-REFERENCE FAIL/, bad);
+});
+
 test("no athlete data and no credential is shipped in the bundle", async () => {
   const app = await fs.readFile(path.join(build.DIST, "app.js"), "utf8");
   assert(!/ledger\/state\.json/.test(app));

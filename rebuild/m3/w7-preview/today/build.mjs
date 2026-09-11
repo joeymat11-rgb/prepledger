@@ -52,6 +52,25 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/today-app.cjs",
 ]);
 
+/* review D-4: EXECUTE the "no network reference" claim instead of printing it. Every
+   shipped byte is scanned for a URL the browser could act on — an absolute http(s) URL or
+   a protocol-relative //host one. data: payloads are collapsed first, because a base64
+   font legitimately contains "//" thousands of times and is not a reference to anything.
+   The only address this page may name is its own origin, which it never writes down: the
+   three assets are fetched by relative path. */
+export function assertNoNetworkReference(assets) {
+  for (const [name, bytes] of assets) {
+    const text = (typeof bytes === "string" ? bytes : bytes.toString("utf8")).replace(/data:[^"')\s]+/g, "data:");
+    const hits = [
+      ...text.matchAll(/https?:\/\/[^\s"'`)<>]+/gi),
+      ...text.matchAll(/(?:^|[\s"'(=,;:])\/\/[a-z0-9][a-z0-9.-]*\.[a-z]{2,}[^\s"'`)<>]*/gi),
+    ].map((match) => match[0].trim());
+    assert.equal(hits.length, 0,
+      `NETWORK-REFERENCE FAIL: ${name} names ${[...new Set(hits)].slice(0, 3).join(", ")}`);
+  }
+  return assets.length;
+}
+
 export function assertBundleInputs(inventory) {
   const paths = inventory.map((i) => i.path);
   for (const [label, match] of FORBIDDEN) {
@@ -103,6 +122,7 @@ export async function buildToday() {
     "styles.css": composeStyles(approved, chrome, fonts),
     "app.js": await fs.readFile(built.outfile),
   };
+  assertNoNetworkReference(Object.entries(contents));
   await realDirectory(DIST);
   for (const entry of await fs.readdir(DIST, { withFileTypes: true })) {
     assert(entry.isFile() && !entry.isSymbolicLink(), "OUTPUT-CLEAN FAIL: unexpected directory or link");
@@ -123,7 +143,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     console.log(`A1 TODAY BUILD PASS: ${result.assets.length} assets; ${result.inputs.length} pinned inputs `
       + `(${engine.length} engine, ${client.length} client); approved design pinned; `
       + `${result.binding.classes} bound classes; ${result.fonts.length} pinned typefaces inlined; `
-      + `no literal figure in the template and no network reference`);
+      + `no literal figure in the template; ${result.assets.length}/${result.assets.length} assets scanned and free of any network reference`);
   } catch (error) {
     console.error(`A1 TODAY BUILD FAIL: ${error.message}`);
     process.exitCode = 1;

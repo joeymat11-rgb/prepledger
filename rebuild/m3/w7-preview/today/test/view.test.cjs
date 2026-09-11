@@ -262,6 +262,58 @@ test("every figure on Today equals the reference engine's own value, slot by slo
   assert.match(slot(doc, "morning").textContent, /^This morning ✓ 176\.2 lb/);
 });
 
+/* review D-2: the athlete must not have to tap to discover an entry point is unwired. */
+test("every unwired entry point says so on Today's own face, in secondary text", () => {
+  const { doc } = setup();
+  for (const name of ["nutrition-state", "recovery-state", "coach-state"]) {
+    const el = slot(doc, name);
+    assert(el, name + " is on Today");
+    assert.equal(el.textContent, app.NOT_WIRED);
+    assert.equal(el.closest("[data-go]") !== null, true, name + " sits inside its own entry point");
+  }
+  // The two inline markers use the approved design's own secondary text colour; the
+  // coach marker sits inside the entry's existing .sub line, which already is that.
+  assert(slot(doc, "nutrition-state").classList.contains("muted"));
+  assert(slot(doc, "recovery-state").classList.contains("muted"));
+  assert(slot(doc, "coach-state").closest(".sub"), "the coach marker is in the .sub line");
+  // Each entry point carries the marker beside its own approved label.
+  const face = phoneText(doc);
+  for (const label of ["Your full nutrition plan", "How are you feeling today?", "Ask your coach"]) {
+    const at = face.indexOf(label);
+    assert(at >= 0, label);
+    assert(face.slice(at, at + 120).includes(app.NOT_WIRED), label + " is not marked on Today's face");
+  }
+  // And the screen behind each one repeats it in full.
+  for (const screen of ["nutrition", "recovery", "coach"]) {
+    doc.querySelector(`[data-go="${screen}"]`).click();
+    assert.match(phoneText(doc), /not wired yet/, screen);
+    doc.querySelector('[data-go="today"]').click();
+  }
+});
+
+test("the wired action is NOT marked unwired", () => {
+  const { doc } = setup();
+  assert(!slot(doc, "primary-label").textContent.includes("not wired"));
+  assert(!slot(doc, "morning").textContent.includes("not wired"));
+});
+
+/* review D-1: the fitter is a no-op where there is no layout, and never truncates. */
+test("the headline fitter cannot truncate engine text and stays off without layout", () => {
+  const { doc } = setup();
+  const longest = design.headlineVocabulary()[0];
+  const headline = slot(doc, "instruction");
+  headline.textContent = longest;
+  assert.equal(headline.textContent, longest, "engine text is never shortened");
+  assert.doesNotMatch(headline.textContent, /…|\.\.\./, "no ellipsis is ever added");
+  // jsdom reports no layout, so the fitter must leave the headline at the approved size.
+  assert.equal(doc.querySelector(".page").style.getPropertyValue("--headline"), "");
+  assert.equal(app.HEADLINE_BASE, 47);
+  assert.equal(app.HEADLINE_FLOOR, 33);
+  const approved = design.readApproved();
+  assert(approved.some((a) => a.styles.includes("font-size:47px")), "47px is C's own headline size");
+  assert(approved.some((a) => a.styles.includes("font-size:33px")), "33px is C's own smallest display size");
+});
+
 test("not one digit appears on Today outside a bound slot", () => {
   const { doc } = setup();
   const clone = doc.getElementById("phone").cloneNode(true);

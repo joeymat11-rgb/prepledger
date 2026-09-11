@@ -24,12 +24,20 @@ const path = require("node:path");
 const ROOT = path.resolve(__dirname, "../../../..");
 
 /* ORDER MATTERS. Refinement A is laid down FIRST and Additions C SECOND, so the
-   authoritative reference (ADDITIONS-C-APPROVED-HANDOFF.md: "Local authoritative
-   implementation reference is dist/index.html …"; MOCK.md: "the C HTML wins where they
-   differ") wins every rule the two share — its page, food, training and bottom
-   proportions included. That ordering is what keeps Today's single primary action inside
-   one 390x844 viewport (review F2). Refinement A still supplies the direct-entry control
-   the weigh-in sheet uses, which C has no screen for. */
+   authoritative reference wins every rule the two share — its page, food, training and
+   bottom proportions included. That ordering is what keeps Today's single primary action
+   inside one 390x844 viewport (review F2). Refinement A still supplies the direct-entry
+   control the weigh-in sheet uses, which C has no screen for.
+
+   The authority for that ordering is:
+     rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md LINE 9 — "Local
+       authoritative implementation reference is `dist/index.html` in this directory,
+       SHA256 caf9c2dc…" (the bytes pinned second below), and
+     rebuild/m1/MOCK.md LINE 20 — a builder must not "improve" the design, and where an
+       approved layout conflicts with an accepted requirement the concrete issue is
+       resolved while preserving the visual intent.
+   NOT MOCK.md line 14: that line is about the B-stage PNGs losing to the C HTML, which
+   says nothing about Refinement A (review D-3). */
 const APPROVED = Object.freeze([
   { file: "rebuild/m1/approved-2026-09-08/Earned-refinement-A.html",
     sha256: "fddfe0542c4a578653a11941d96fbf6727dc2d9f83c500449c694339e89ab031" },
@@ -159,6 +167,31 @@ function composeStyles(approved, chrome, fonts) {
   return fontFaceCss(fonts) + "\n" + approved.map((a) => a.styles).join("\n") + "\n" + chrome;
 }
 
+/* THE HEADLINE VOCABULARY. Today's headline slot is driven by the engine's own
+   nowModel().move.title, which the engine renders in upper case. Every one of those
+   strings is a `title:` literal in rebuild/engine/*.cjs, so they are read straight out of
+   the engine source at test time and the layout is measured against ALL of them — a title
+   added to the engine tomorrow is covered without anyone remembering to list it here.
+
+   This is deliberately a SUPERSET: it collects every `title:` literal in the engine, not
+   only the ones theOneFix and policy.cjs can put on this slot. Testing the layout against
+   more strings than the slot can show is safe; missing one is not. */
+const ENGINE_DIR = "rebuild/engine";
+function headlineVocabulary(root = ROOT) {
+  const dir = path.join(root, ENGINE_DIR);
+  const out = new Set();
+  for (const name of fs.readdirSync(dir)) {
+    if (!name.endsWith(".cjs")) continue;
+    const text = fs.readFileSync(path.join(dir, name), "utf8");
+    for (const pattern of [/(?:^|[\s,{(])title\s*:\s*"((?:[^"\\\n]|\\.){3,140})"/g,
+      /(?:^|[\s,{(])title\s*:\s*'((?:[^'\\\n]|\\.){3,140})'/g]) {
+      for (const match of text.matchAll(pattern)) out.add(match[1].replace(/\\(.)/g, "$1").toUpperCase());
+    }
+  }
+  assert(out.size >= 10, "HEADLINE-VOCABULARY FAIL: the engine's title literals could not be read");
+  return [...out].sort((a, b) => b.length - a.length || (a < b ? -1 : 1));
+}
+
 const SOURCE = __dirname;
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
 const appSource = () => fs.readFileSync(path.join(SOURCE, "today-app.cjs"), "utf8");
@@ -168,5 +201,6 @@ const shellHtml = () => fs.readFileSync(path.join(SOURCE, "index.shell.html"), "
 module.exports = {
   ROOT, SOURCE, APPROVED, FONTS, FONT_DIR, PREVIEW_CLASSES, RUNTIME_CLASSES, PREVIEW_COPY, APPROVED_COPY, RUNTIME_COPY,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
+  headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
 };

@@ -119,6 +119,46 @@ test("the shipped stylesheet is the approved bytes, then the named corrections",
   }
 });
 
+/* review D-1: the headline vocabulary is READ FROM THE ENGINE, so a title added to the
+   engine tomorrow is swept by the browser check without anyone listing it here. */
+test("the headline vocabulary is read out of the engine source, not hand-listed", () => {
+  const titles = design.headlineVocabulary();
+  assert(titles.length >= 10, "the engine's title literals were found");
+  for (const title of titles) assert.equal(title, title.toUpperCase(),
+    "the engine renders move.title in upper case: " + title);
+  // Each one really is a title literal in the engine, not something this file invented.
+  const engine = fs.readdirSync(path.join(design.ROOT, design.ENGINE_DIR))
+    .filter((name) => name.endsWith(".cjs"))
+    .map((name) => fs.readFileSync(path.join(design.ROOT, design.ENGINE_DIR, name), "utf8"))
+    .join("\n").toUpperCase();
+  for (const title of titles) assert(engine.includes(title), "not an engine literal: " + title);
+  // The four that pushed the primary action out of the viewport are covered.
+  for (const known of ["LOW-ENERGY CHECK — ONE QUESTION THAT DISCRIMINATES",
+    "AT A FLOOR — REVIEW THE RATE WITH YOUR COACH", "DIET BREAK — A WEEK AT MAINTENANCE",
+    "NOW A SMALL CALORIE TRIM EARNS ITS PLACE", "CLOSE THE BOOKS FIRST", "NOTHING NEEDS YOU"]) {
+    assert(titles.includes(known), "missing from the vocabulary: " + known);
+  }
+  // Sorted longest first, so the worst case is swept first.
+  assert.deepEqual(titles, [...titles].sort((a, b) => b.length - a.length || (a < b ? -1 : 1)));
+  assert.throws(() => design.headlineVocabulary(os.tmpdir()), /HEADLINE-VOCABULARY FAIL|ENOENT/);
+});
+
+/* review D-3: the ordering authority is cited, and the misattributed line is not. */
+test("the C-wins ordering cites the handoff line 9 and MOCK.md line 20", () => {
+  const source = fs.readFileSync(path.join(design.SOURCE, "design.cjs"), "utf8");
+  assert.match(source, /ADDITIONS-C-APPROVED-HANDOFF\.md LINE 9/);
+  assert.match(source, /MOCK\.md LINE 20/);
+  assert.match(source, /NOT MOCK\.md line 14/);
+  // And the cited lines really say what they are cited for.
+  const handoff = fs.readFileSync(path.join(design.ROOT,
+    "rebuild/m1/approved-2026-09-08/ADDITIONS-C-APPROVED-HANDOFF.md"), "utf8").split("\n");
+  assert.match(handoff[8], /Local authoritative implementation reference is/);
+  assert(handoff[8].includes(design.APPROVED[1].sha256), "handoff line 9 pins the C bytes");
+  const mock = fs.readFileSync(path.join(design.ROOT, "rebuild/m1/MOCK.md"), "utf8").split("\n");
+  assert.match(mock[19], /must not "improve" the design/);
+  assert.match(mock[13], /B-stage renders/, "line 14 is about the B PNGs, not Refinement A");
+});
+
 test("the page shell has exactly one slot for the approved templates", () => {
   assert.equal(design.shellHtml().split("<!-- APPROVED_TEMPLATES -->").length, 2);
 });

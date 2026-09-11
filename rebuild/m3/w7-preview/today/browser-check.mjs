@@ -16,6 +16,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
+import design from "./design.cjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const executablePath = process.env.W7_BROWSER_BIN;
@@ -27,6 +28,10 @@ if (!executablePath) {
 
 const require = createRequire(path.join(here, "../../w6/package.json"));
 const { chromium } = require("playwright-core");
+
+// Every instruction title the engine can put in the headline slot, read out of the engine
+// source at run time so a title added tomorrow is covered without anyone listing it here.
+const HEADLINES = design.headlineVocabulary();
 
 // Figures this synthetic athlete's engine cannot produce. The rounded calorie headline
 // really is 2,300 for this fixture, so that one is NOT a prototype tell; the Node view
@@ -97,6 +102,58 @@ try {
   assert(afterBox.bottom <= afterBox.viewport,
     `the primary action is below the fold after a weigh-in: bottom ${afterBox.bottom} > ${afterBox.viewport}`);
 
+  /* review D-1: the layout must hold the ONE primary action inside the viewport for EVERY
+     title the engine can put in the headline slot — not only the one this fixture happens
+     to produce. Four of them run to three lines. The title is written into the slot and
+     the page's own fitter reacts to it through exactly the path a real engine title would
+     take; nothing here reaches into the fitter or fakes a measurement. */
+  const sweep = async (target, label) => {
+    const rows = [];
+    for (const title of HEADLINES) {
+      const row = await target.evaluate(async (text) => {
+        const view = document.querySelector(".view");
+        const headline = document.querySelector('[data-slot="instruction"]');
+        const cta = document.querySelector('[data-slot="primary"]');
+        headline.textContent = text;
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const top = view.getBoundingClientRect().top;
+        const box = cta.getBoundingClientRect();
+        return { bottom: Math.round(box.bottom - top), viewport: Math.round(view.clientHeight),
+          size: Math.round(parseFloat(getComputedStyle(headline).fontSize)),
+          height: Math.round(headline.getBoundingClientRect().height) };
+      }, title);
+      assert(row.bottom <= row.viewport,
+        label + ': "' + title + '" pushes the primary action out of the viewport (bottom '
+        + row.bottom + " > " + row.viewport + ", headline at " + row.size + "px)");
+      assert(row.size >= 33,
+        label + ': "' + title + '" drove the headline below the 33px floor (' + row.size + "px)");
+      rows.push({ title, room: row.viewport - row.bottom, size: row.size });
+    }
+    const worst = rows.reduce((a, b) => (a.room <= b.room ? a : b));
+    const shrunk = rows.filter((r) => r.size < 47);
+    return { worst, shrunk, count: rows.length };
+  };
+
+  const sweepContext = await browser.newContext({ viewport: VIEWPORT });
+  const sweepPage = await sweepContext.newPage();
+  await sweepPage.goto(url, { waitUntil: "load" });
+  await sweepPage.waitForSelector('[data-slot="primary"]');
+  const sweptBefore = await sweep(sweepPage, "before a weigh-in");
+  await sweepPage.reload({ waitUntil: "load" });
+  await sweepPage.waitForSelector('[data-slot="primary"]');
+  await sweepPage.click('[data-slot="primary"]');
+  await sweepPage.fill("#morning-weight", "180.6");
+  await sweepPage.click('[role="dialog"] button[type="submit"]');
+  await sweepPage.waitForSelector('[data-slot="morning"]');
+  const sweptAfter = await sweep(sweepPage, "after a weigh-in");
+  await sweepContext.close();
+
+  /* review D-2: the unwired entry points say so on Today's own face. */
+  for (const name of ["nutrition-state", "recovery-state", "coach-state"]) {
+    const text = (await page.textContent('[data-slot="' + name + '"]')).trim();
+    assert.equal(text, "— not wired yet", name + " does not say so on Today's face");
+  }
+
   /* review F1: a spike reading must carry the engine's own note beside it. Checked on a
      second browser profile so it does not disturb the reading above. */
   const spikeContext = await browser.newContext({ viewport: VIEWPORT });
@@ -155,7 +212,11 @@ try {
     + `refused, survived a real reload and a new page; primary action inside the ${VIEWPORT.width}x${VIEWPORT.height} `
     + `viewport in both states (bottom ${before.bottom} and ${afterBox.bottom} of ${before.viewport}; `
     + `${before.viewport - before.bottom}px and ${afterBox.viewport - afterBox.bottom}px of headroom); `
-    + `${keys.length} durable local records; no network request; no prototype figure on screen`);
+    + `${keys.length} durable local records; no network request; no prototype figure on screen; `
+    + `${sweptBefore.count} engine headline titles swept in both states — worst headroom `
+    + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after; `
+    + `${sweptBefore.shrunk.length} title(s) fitted down to ${[...new Set(sweptBefore.shrunk.map((r) => r.size))].join("/") || "none"}px `
+    + `(33px floor never reached); unwired entry points labelled on Today's face`);
 } catch (error) {
   failures = 1;
   console.error("A1 TODAY BROWSER CHECK FAIL — " + error.message);

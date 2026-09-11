@@ -7,7 +7,7 @@
    composer; Safari zooms the page on focus below 16px, which breaks the fixed phone
    layout the design depends on. This preserves the visual intent (the fields keep their
    size, border and colour) and resolves the concrete accessibility conflict, per
-   rebuild/m1/MOCK.md's rule for exactly this case. */
+   rebuild/m1/MOCK.md LINE 20's rule for exactly this case. */
 .view .followup input,
 .view .followup select,
 .view .composer input,
@@ -37,13 +37,21 @@
 #today-status { margin-top: 6px; }
 .view > .note { padding: 24px; }
 
-/* Today follows Additions C, the authoritative reference, structure for structure, so it
-   takes C's own headline metric. Refinement A's .intro h1 (54px) is more specific than
-   C's h1 (47px) and would otherwise win purely because A's stylesheet is also loaded for
-   the weigh-in sheet's controls. These are C's declared values, not new ones, and the
-   difference is what keeps the single primary action inside one 390x844 viewport
-   (review F2). */
-.view .intro h1 { font-size: 47px; line-height: 1.04; letter-spacing: -.025em; }
+/* Today follows Additions C, the authoritative reference (its handoff line 9), structure
+   for structure, so it takes C's own headline metric. Refinement A's .intro h1 (54px) is
+   more specific than C's h1 (47px) and would otherwise win purely because A's stylesheet
+   is also loaded for the weigh-in sheet's controls. These are C's declared values, not
+   new ones, and the difference is part of what keeps the single primary action inside one
+   390x844 viewport (review F2).
+
+   THE FLUID FLOOR (review D-1). Four of the engine's own instruction titles run to three
+   lines at 47px and push the primary action out of a 390x844 viewport. The headline is
+   therefore fluid between C's declared 47px and a 33px floor — 33px is C's own smallest
+   declared display size (@media(max-width:350px){.number{font-size:33px}}) — and the view
+   steps it down ONLY as far as it must for the primary action to stay in view. A
+   two-line title never moves. Engine text is never truncated and nothing is made
+   sticky. */
+.view .intro h1 { font-size: var(--headline, 47px); line-height: 1.04; letter-spacing: -.025em; }
 
 /* C composes "a main line with a quieter second line" once, on its coach entry
    (.coach-entry .sub). Today's trend control is the same composition, so it gets the same

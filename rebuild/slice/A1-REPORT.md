@@ -47,6 +47,10 @@ All seven items are applied; both blocking ones are verified in a real browser.
   | pre-weigh-in CTA bottom | 1158 (below the fold) | **798 of 842 — 44px headroom** |
   | post-weigh-in CTA bottom | 1061 (below the fold) | **758 of 842 — 84px headroom** |
 
+  Those two figures are for the title this fixture happens to produce. Round 2 (§0b,
+  D-1) measured the engine's WHOLE title vocabulary and found four titles still out of
+  view; the worst-case headroom is now +11px, and the browser check enforces it.
+
   `browser-check.mjs` now asserts the primary action's bounding box is inside the
   scrolling viewport in **both** states and prints the headroom, so a regression
   is a red check and not a judgement call. Nothing was invented: the layout is
@@ -104,6 +108,67 @@ All seven items are applied; both blocking ones are verified in a real browser.
 
 ---
 
+## 0b. Review round 2 — the delta ACCEPT's four items
+
+The independent review of `4befc22` returned **ACCEPT** with four non-blocking items.
+All four are closed.
+
+* **D-1 — the headline slot must hold EVERY engine title.** The reviewer was right and
+  the number was worse than my report claimed: the engine's instruction vocabulary is
+  **15** `title:` literals (I now read them out of `rebuild/engine/*.cjs` rather than
+  trusting a count), **four** of them run to three lines at 47px, and each pushed the
+  primary action **5px out** of a 390×844 viewport before a weigh-in. My reported 44px
+  of headroom was the headroom for one title, not the worst case.
+
+  **What I did.** Additions C has no responsive rule that helps here — its only
+  breakpoint is `@media(max-width:350px)`, which never fires at 390. So, per the
+  reviewer's second option, the headline is now **fluid between C's own 47px and a 33px
+  floor** — 33px is C's own smallest declared display size
+  (`@media(max-width:350px){.number{font-size:33px}}`). `fitHeadline()` steps it down
+  **one pixel at a time and only as far as it must** for the primary action to be back
+  inside the viewport, with an 8px guard. A two-line title never moves. Engine text is
+  never truncated, there is no ellipsis, and nothing is made sticky.
+
+  It re-runs through a `MutationObserver` on the headline, so **no test hook exists**:
+  the browser check writes a title into the slot and the page reacts through exactly the
+  path a real engine title takes.
+
+  **Measured across all 15 titles, both states:**
+
+  | | before the fix | after the fix |
+  |---|---|---|
+  | worst headroom, pre-weigh-in | **−5px (out of view)** | **+11px** |
+  | worst headroom, post-weigh-in | +18px | **+10px** |
+  | titles needing the fitter | — | 4, fitted to 45px and 42px |
+  | 33px floor reached | — | **never** |
+
+  `browser-check.mjs` now sweeps the whole vocabulary in both states and fails if any
+  title puts the primary action out of view or drives the headline below the floor. A
+  title added to the engine tomorrow is covered without anyone editing a list.
+* **D-2 — an unwired entry point must say so on Today's face.** Done. Each of the three
+  carries `— not wired yet` beside its own approved label, in the approved design's own
+  secondary text: the nutrition and recovery links use C's `.muted`, and the coach entry
+  puts it inside the `.sub` line that is already secondary text. The athlete never taps
+  to discover it; the screen behind each one still repeats it in full. It costs no
+  height — the one-line entries stay one line.
+* **D-3 — the citation was wrong.** Fixed. MOCK.md **line 14** is about the B-stage PNGs
+  losing to the C HTML and says nothing about Refinement A; quoting it as the A-vs-C
+  ordering authority was a misattribution. The authority is
+  **ADDITIONS-C-APPROVED-HANDOFF.md line 9** ("Local authoritative implementation
+  reference is `dist/index.html` … SHA256 caf9c2dc…", the bytes pinned second) plus
+  **MOCK.md line 20** (the builder rule). `design.cjs` and `preview.css` now cite those,
+  and a test asserts the cited lines really say what they are cited for — and that line
+  14 is about the B PNGs.
+* **D-4 — "no network reference" was printed, not checked.** Fixed.
+  `assertNoNetworkReference()` scans every shipped byte for an absolute `http(s)://` URL
+  or a protocol-relative `//host` one, after collapsing `data:` payloads (a base64 font
+  legitimately contains `//` thousands of times). The build now fails on a hit, and a
+  test feeds it four real violations — a Google Fonts `<link>`, an `http` script, an
+  `@import url(//cdn…)`, and a CSS `url(https://…)` — and asserts each is refused, with
+  a `data:`-heavy stylesheet as the control.
+
+---
+
 ## 1. What A1 does, in one paragraph
 
 The Today screen renders the owner-approved 2026-09-08 design, and every figure
@@ -125,22 +190,22 @@ they cannot source.
 
 | file | lines | bytes | sha256 |
 |---|---:|---:|---|
-| `rebuild/m3/w7-preview/today/browser-check.mjs` | 167 | 9126 | `2d0c845dd28442d8143a7f7e470db316619fb13e421b77fac77d064a23429642` |
-| `rebuild/m3/w7-preview/today/build.mjs` | 131 | 6375 | `86857c6c975407daf7f45f997b5ef38a0b4357622ab7950332fa365867872fc0` |
-| `rebuild/m3/w7-preview/today/design.cjs` | 172 | 9485 | `ba0ff5e675b9f41f674358a62a44ba62544108c981e270537a46700a7fefc1da` |
+| `rebuild/m3/w7-preview/today/browser-check.mjs` | 228 | 12752 | `97cffef22256ccdd51c0e9ff84760311fb3ba01108869e6ccf8b97221c17b0f9` |
+| `rebuild/m3/w7-preview/today/build.mjs` | 151 | 7565 | `044f549d9c84d135a14a557d43167a212ac16b96b54da7efcf2fa0e1c6651331` |
+| `rebuild/m3/w7-preview/today/design.cjs` | 206 | 11434 | `a45a4ef4bf4812d5aecb1389fa75a6212f7a1f9b52eb201e848e0434ec47c21c` |
 | `rebuild/m3/w7-preview/today/index.shell.html` | 32 | 1460 | `e9f22a922022128f6846e00abe8e0fbe087b500567d0747558dffb6ba118b7e5` |
-| `rebuild/m3/w7-preview/today/preview.css` | 51 | 2484 | `02efb2c6c12d3399cafd4c7c81de8396d1c2561a1d2af8d6be0982b07f3e6bbd` |
-| `rebuild/m3/w7-preview/today/screens.template.html` | 142 | 6982 | `4a743ae345f90f75b375d977410812f774a230daa4dbcc45dbd96736ee53c8bd` |
+| `rebuild/m3/w7-preview/today/preview.css` | 59 | 3076 | `7516d17469306de187d6f26b484882d6f55577ff51d8cb20a71d7c99d7799a60` |
+| `rebuild/m3/w7-preview/today/screens.template.html` | 142 | 7158 | `170eb4ed9682dc8d1fc25746b3d2bc73c320d266469229cc257034550f8e3add` |
 | `rebuild/m3/w7-preview/today/serve.mjs` | 99 | 4880 | `6483de1d5cf841c1d58bc1f02bea682bf7e03d49fdaff2c1d67075f9b5754174` |
-| `rebuild/m3/w7-preview/today/today-app.cjs` | 313 | 14355 | `8ffd6d9976ba3c6bb5c92b60464b4a32afa1c835652f40774f17e02b3eb011b2` |
+| `rebuild/m3/w7-preview/today/test/adapter.test.cjs` | 324 | 15693 | `5eff6df05483aa063ed143c693cbaeb7cd800d5959b6be819b6abf7fc662ecc3` |
+| `rebuild/m3/w7-preview/today/test/design.test.cjs` | 164 | 9469 | `39aea0af3425b6ddd53ba1c15327db8cf21ad6edb5b3ceeebdaed2408d33a44a` |
+| `rebuild/m3/w7-preview/today/test/package.test.cjs` | 174 | 9271 | `168163e0979b8558db8281dab9453e2be3f1a8841ecbb4434c01e612d4d0a718` |
+| `rebuild/m3/w7-preview/today/test/view.test.cjs` | 415 | 21682 | `6f6e2562fea4d4ee775618172d910ae741ffa93b0eca5504b181a1081bf209e6` |
+| `rebuild/m3/w7-preview/today/today-app.cjs` | 352 | 16637 | `2b9b2329b325a41f03f2fe2adc3497fe3c8ef818b33cf9663191713ac9bfce68` |
 | `rebuild/m3/w7-preview/today/today-engine.cjs` | 39 | 1969 | `c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c` |
 | `rebuild/m3/w7-preview/today/today-entry.mjs` | 16 | 653 | `b0b1b6ba36634ceb4d7b024283e2a8916f8960a62cc43424a1d836c2b8a20a45` |
 | `rebuild/m3/w7-preview/today/today-model.cjs` | 302 | 14424 | `ba29e631b8b7ff8d249510102f63fd16ca069f033d73db7e9388c7b353ca9346` |
 | `rebuild/m3/w7-preview/today/web-storage-backend.cjs` | 126 | 4978 | `3a80b921f9fd9849286c0e95064e4491e45f67a41222a0317dd8f452f0dcf548` |
-| `rebuild/m3/w7-preview/today/test/adapter.test.cjs` | 324 | 15693 | `5eff6df05483aa063ed143c693cbaeb7cd800d5959b6be819b6abf7fc662ecc3` |
-| `rebuild/m3/w7-preview/today/test/design.test.cjs` | 124 | 6789 | `2ef36d9d802f3ba4e5a0ecd0af1abcfcb4ee41c6307c16860f404e44f203331e` |
-| `rebuild/m3/w7-preview/today/test/package.test.cjs` | 158 | 8348 | `d1e8b7e51d25569f44a7bed90712f0c46805a08fd5baa41aec3c54d28d230187` |
-| `rebuild/m3/w7-preview/today/test/view.test.cjs` | 363 | 18862 | `48e290af4105b01bb700345c720f0c7efa1858801cfc690b26cdb3499a17b9bf` |
 | `rebuild/slice/A1-REPORT.md` | — | — | this file |
 
 Every other file in the tree — `rebuild/engine/*`, `rebuild/client/*`,
@@ -331,21 +396,23 @@ All on the PC, at the branch head.
 | `node --test rebuild/m3/w6/host/test/journey.test.mjs …/engine-equivalence.test.cjs` | **22 pass / 0 fail** (A0 still green) |
 | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | **`NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`**, exit 0 |
 | `node rebuild/m3/w6/test/run-current-head.cjs . --all` | **435 pass / 0 fail**, exit 0 |
-| `node rebuild/m3/w7-preview/today/build.mjs` | `A1 TODAY BUILD PASS: 3 assets; 38 pinned inputs (13 engine, 12 client); approved design pinned; 40 bound classes; 2 pinned typefaces inlined; no literal figure in the template and no network reference` |
-| `node --test rebuild/m3/w7-preview/today/test/{design,adapter,view,package}.test.cjs` | **52 pass / 0 fail** |
+| `node rebuild/m3/w7-preview/today/build.mjs` | `A1 TODAY BUILD PASS: 3 assets; 38 pinned inputs (13 engine, 12 client); approved design pinned; 40 bound classes; 2 pinned typefaces inlined; no literal figure in the template; 3/3 assets scanned and free of any network reference` |
+| `node --test rebuild/m3/w7-preview/today/test/{design,adapter,view,package}.test.cjs` | **58 pass / 0 fail** |
 | `node rebuild/m3/w7-preview/today/browser-check.mjs` (with `W7_BROWSER_BIN`) | see below |
 
 ```
-A1 TODAY BROWSER CHECK PASS — mounted, weighed in (This morning ✓ 179.4 lb),
-spike note shown, impossible weight refused, survived a real reload and a new
-page; primary action inside the 390x844 viewport in both states (bottom 798 and
-758 of 842; 44px and 84px of headroom); 4 durable local records; no network
-request; no prototype figure on screen
+A1 TODAY BROWSER CHECK PASS — mounted, weighed in (This morning ✓ 179.4 lb), spike note
+shown, impossible weight refused, survived a real reload and a new page; primary action
+inside the 390x844 viewport in both states (bottom 798 and 740 of 842; 44px and 102px of
+headroom); 4 durable local records; no network request; no prototype figure on screen;
+15 engine headline titles swept in both states — worst headroom 11px before / 10px after;
+4 title(s) fitted down to 42/45px (33px floor never reached); unwired entry points
+labelled on Today's face
 ```
 
-### The 52 new tests, by what they actually prove
+### The 58 new tests, by what they actually prove
 
-**`design.test.cjs` (8)** — both approved references pinned by sha256 and read
+**`design.test.cjs` (10)** — both approved references pinned by sha256 and read
 byte-for-byte, A first and C second; **a one-byte change to a copy of a real
 reference fails the pin, with the untouched copy as the control** (review F5);
 both typefaces pinned by sha256, size and `wOF2` magic, inlined, with no `http`
@@ -376,7 +443,7 @@ view DTO is reproduced independently from the engine; the backend is a genuine
 all-or-nothing store; a Storage that denies writes is reported, not silently
 downgraded.
 
-**`view.test.cjs` (17)** — Today paints the approved design from engine values
+**`view.test.cjs` (20)** — Today paints the approved design from engine values
 only; the primary action and the sentence under the instruction are the engine's
 own marching order; the sheet rebinds every engine-derived value; **a spike
 reading renders the engine's note and a quiet reading renders none**, with a
@@ -395,7 +462,20 @@ the shipped cascade; and **the 16px correction is proved load-bearing** on the
 approved fields A3 will render, with the approved-only cascade as the control
 (review F4).
 
-**`package.test.cjs` (9)** — three assets and only three; the approved design
+**`design.test.cjs` also (review round 2)** — the headline vocabulary is read out of the
+engine source, every entry really is an engine `title:` literal, the four three-line titles
+are in it, and an unreadable engine directory fails loudly; the C-wins ordering cites the
+handoff line 9 and MOCK.md line 20, and the cited lines are checked to say what they are
+cited for (line 14 is about the B PNGs).
+
+**`view.test.cjs` also (review round 2)** — every unwired entry point carries `— not wired
+yet` beside its own approved label on Today's face, inside its own entry point, in the
+approved secondary text, with the screen behind it repeating it; the wired action is NOT
+marked unwired; the headline fitter never shortens engine text, adds no ellipsis, and
+stays off where there is no layout, with 47px and 33px both confirmed as C's own declared
+sizes.
+
+**`package.test.cjs` (10)** — three assets and only three; the approved design
 pinned and all seven templates present; the bundle carries the real engine and
 the real client and nothing forbidden (and a forbidden input or an unapproved
 dependency **fails** the assertion); **no shipped asset references a remote
@@ -471,7 +551,7 @@ fail is worse than no test.
     (a) **the iOS zoom rule** — the approved references set 13–15px on the
     check-in follow-ups, the sleep-hours box and the coach composer; Safari zooms
     the page below 16px, which breaks the fixed phone layout the design depends
-    on. Corrected to 16px, per MOCK.md's rule for an approved layout that
+    on. Corrected to 16px, per MOCK.md LINE 20's rule for an approved layout that
     conflicts with an accessibility requirement.
     (b) **`.view .intro h1` → C's 47px/1.04/−.025em** — Today follows C, so it
     takes C's headline metric. A's `.intro h1` (54px) is more specific than C's
@@ -486,7 +566,19 @@ fail is worse than no test.
 11. **The weekly-rate sentence moved from Today to Why.** C's Today has no rate
     line. It is still engine-sourced and still on screen, one tap away, in the
     "The rate itself" section.
-12. **A second build, beside the reviewed one, rather than a rebind in place.**
+12. **The headline is fluid, between C's own sizes, and only when it must be
+    (review D-1).** Additions C has no responsive rule that helps at 390px, so the
+    headline steps down from C's 47px toward a 33px floor — C's own smallest declared
+    display size — one pixel at a time, stopping the moment the primary action is back
+    inside the viewport with an 8px guard. Four of the engine's fifteen titles need it;
+    they settle at 45px and 42px and the floor is never reached. A two-line title never
+    moves. Rejected: truncation or an ellipsis of engine text (it would hide what the
+    coach said), a sticky bottom bar (a redesign C does not have), and shortening the
+    titles (they are engine words, not mine).
+13. **An unwired entry point is labelled on Today's face (review D-2).** `— not wired
+    yet` beside each approved label, in the approved design's own secondary text. The
+    honesty rule: the athlete must not tap to find out.
+14. **A second build, beside the reviewed one, rather than a rebind in place.**
     See §8.1 — this one is forced, not chosen.
 
 ---
@@ -543,9 +635,11 @@ fail is worse than no test.
 8. **No phone has opened this.** The real browser check runs headless Chromium on
    the PC at a 390×844 viewport. iOS Safari specifically — the install, the zoom
    behaviour the 16px rule is for, VoiceOver, 200% text — is A5's, untested here.
-   The layout headroom is **44px before a weigh-in** and 84px after; an engine
-   instruction one line longer than the current worst case would consume it, and
-   the browser check is what would catch that.
+   The layout headroom, measured across the engine's whole title vocabulary, is
+   **+11px before a weigh-in and +10px after, for the worst of 15 titles** — held
+   there by the fitter, which has 9 more pixels of range before it reaches its 33px
+   floor (§7.12). A title long enough to exhaust that range would be caught by the
+   browser check, not shipped.
 9. **The entry bound is the adapter's, not the engine's or the client's.**
    60–400 lb with one decimal (§7.7). Below 60 or above 400 is refused by the
    FORM, in words. This is not a claim that the engine would reject such a
