@@ -16,8 +16,14 @@
 #                            workflow BUILDS and then NO-OPS with a clear log line.
 #
 # It never runs on main, never creates a site, never deploys the frozen app's folder, and
-# refuses outright if the site id it is given turns out to be the production site or the
-# soak site.
+# refuses — twice, by two independent routes — if the site id it is given turns out to be
+# the production site or the soak site.
+#
+# HOW IT IS RUN. By PUSH, to rebuild/t2-client-core, touching one of the paths below.
+# `workflow_dispatch` is declared so the button exists IF this file ever reaches the
+# default branch, but GitHub only lists a workflow_dispatch workflow once its file is on
+# the DEFAULT branch (main) — and this file is deliberately never on main. So there is no
+# "Run workflow" button for it today, and the deploy route is the push.
 name: slice-host
 
 on:
@@ -64,8 +70,12 @@ jobs:
           npm install -g pnpm@9
           pnpm --dir rebuild/m3/w6 install --frozen-lockfile
 
-      - name: The A5 shell's own checks (no bundler)
-        run: node --test rebuild/slice/pwa/test/pwa.test.cjs
+      # This job is the CI HOME for both lockfile-only A5 suites — including the one that
+      # reads THIS file as data. rebuild.yml is pinned by the accepted NATIVE-CARRIERS
+      # artifact, so it cannot gain a step until the PM's batched re-seal at B1; this
+      # step means the 42 lockfile-only checks are not waiting on that.
+      - name: The A5 shell's own checks, and this workflow's own (no bundler)
+        run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
 
       - name: Build the deployable folder
         run: node rebuild/slice/pwa/build-pwa.mjs
@@ -103,6 +113,7 @@ jobs:
             echo "SLICE HOST NO-OP — missing secret(s):$( [ -z "$NT" ] && printf ' NETLIFY_AUTH_TOKEN' )$( [ -z "$SITE" ] && printf ' SLICE_NETLIFY_SITE_ID' )"
             echo "SLICE HOST NO-OP — only the repository owner can create the site and add SLICE_NETLIFY_SITE_ID."
             echo "SLICE HOST NO-OP — the five steps are in rebuild/slice/A5-REPORT.md."
+            echo "SLICE HOST NO-OP — once both secrets exist, the NEXT PUSH to rebuild/t2-client-core touching rebuild/slice/pwa/** or rebuild/m3/w7-preview/today/** deploys. Do not look for a Run-workflow button: GitHub lists workflow_dispatch only for workflows on the default branch, and this file is deliberately never on main."
             exit 0
           fi
           META=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites/$SITE")
@@ -114,6 +125,18 @@ jobs:
           # experiment's. Neither may ever receive this folder.
           case "$REPO" in *prepledger*) echo "SLICE HOST FAIL — that is the FROZEN app's production site. Refusing."; exit 1;; esac
           case "$NAME" in earned-soak) echo "SLICE HOST FAIL — that is the soak experiment's site. Refusing."; exit 1;; esac
+          # A SECOND, INDEPENDENT REFUSAL (review F4). The two checks above read the
+          # TARGET's own record; if Netlify ever answers without build_settings they see
+          # nothing at all. This one asks the ACCOUNT which sites are the frozen app's
+          # (deploy.yml's own rule) and the soak experiment's, and refuses by ID. It is
+          # read-only — no site is ever created here — and it fails CLOSED: if the list
+          # cannot be read, the deploy does not happen.
+          FORBIDDEN=$(curl -s -H "Authorization: Bearer $NT" "https://api.netlify.com/api/v1/sites?per_page=100" \
+            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{let s;try{s=JSON.parse(d)}catch(e){process.exit(1)}if(!Array.isArray(s))process.exit(1);process.stdout.write(s.filter(x=>((((x.build_settings||{}).repo_url)||'').includes('prepledger'))||x.name==='earned-soak'||((x.custom_domain||'').includes('prepledger'))).map(x=>x.id).join(' '))})") \
+            || { echo "SLICE HOST FAIL — could not read the account's site list to check the target. Refusing."; exit 1; }
+          for bad in $FORBIDDEN; do
+            if [ "$bad" = "$SITE" ]; then echo "SLICE HOST FAIL — that site id is the frozen app's or the soak experiment's. Refusing."; exit 1; fi
+          done
           echo "deploying to the site named $NAME"
           URL=$(printf '%s' "$META" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const j=JSON.parse(d);process.stdout.write(j.ssl_url||j.url||'')})")
           DEP=$(curl -s -X POST -H "Authorization: Bearer $NT" -H "Content-Type: application/zip" \

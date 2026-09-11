@@ -48,6 +48,12 @@ test("it is triggered by exactly what the plan says and by nothing else", () => 
   assert(!on.push.branches.includes("main"));
   // Belt and braces: it refuses at run time too.
   assert.match(script, /refs\/heads\/main/);
+  /* review F1: workflow_dispatch is declared, but GitHub lists it only for workflows on
+     the DEFAULT branch, and this file is deliberately never there — so the file must say
+     so rather than leave the owner hunting a button that is not offered. */
+  assert("workflow_dispatch" in on);
+  assert.match(text, /only lists a workflow_dispatch workflow once its file is on\n# the DEFAULT branch/);
+  assert.match(text, /the deploy route is the push/);
 });
 
 test("it names exactly the two secrets, and does not reach for any other", () => {
@@ -59,7 +65,7 @@ test("it names exactly the two secrets, and does not reach for any other", () =>
      header curl sends, and an emptiness test — and the site id only inside a URL path and
      an emptiness test. Anything else (an echo, a file write, a query string) fails here. */
   const FORMS = ["Authorization: Bearer \\$NT\"", "\\[ -z \"\\$NT\" \\]",
-    "\\[ -z \"\\$SITE\" \\]", "api/v1/sites/\\$SITE"];
+    "\\[ -z \"\\$SITE\" \\]", "api/v1/sites/\\$SITE", "\\[ \"\\$bad\" = \"\\$SITE\" \\]"];
   for (const line of script.split("\n")) {
     if (!/\$(?:NT|SITE)\b/.test(line)) continue;
     const used = [...line.matchAll(new RegExp(FORMS.join("|"), "g"))].length;
@@ -78,7 +84,11 @@ test("without the secrets it BUILDS, says so in words, and deploys nothing", () 
   const body = deployStep.run;
   assert.match(body, /if \[ -z "\$NT" \] \|\| \[ -z "\$SITE" \]; then/);
   assert.match(body, /SLICE HOST NO-OP/);
-  assert.equal((body.match(/SLICE HOST NO-OP/g) || []).length, 4, "the no-op explains itself");
+  assert.equal((body.match(/SLICE HOST NO-OP/g) || []).length, 5, "the no-op explains itself");
+  // review F1: the no-op must tell the owner the REAL route, and must not send him
+  // looking for a Run-workflow button that GitHub does not list for this file.
+  assert.match(body, /NEXT PUSH to rebuild\/t2-client-core/);
+  assert.match(body, /Do not look for a Run-workflow button/);
   // The no-op path ends the step successfully; it does not fail the run and does not
   // continue into the deploy.
   const noop = body.slice(body.indexOf("if [ -z"), body.indexOf("META="));
@@ -89,11 +99,44 @@ test("without the secrets it BUILDS, says so in words, and deploys nothing", () 
 
 test("it cannot deploy the slice onto the frozen app's site or the soak site", () => {
   const body = deployStep.run;
+  // Refusal one and two read the TARGET's own record.
   assert.match(body, /\*prepledger\*\) echo "SLICE HOST FAIL/);
   assert.match(body, /earned-soak\) echo "SLICE HOST FAIL/);
-  // It deploys an id the owner supplied; it never creates or searches for a site by name.
-  assert(!/api\/v1\/sites"/.test(body), "it lists or creates sites");
+  /* review F4 — refusal three is INDEPENDENT of the target's own record: it asks the
+     account which site ids are the frozen app's (deploy.yml's own rule) and the soak's,
+     and refuses by id. It fails CLOSED, so an unreadable list stops the deploy. */
+  assert.match(body, /FORBIDDEN=\$\(curl[^\n]*api\/v1\/sites\?per_page=100/);
+  assert.match(body, /for bad in \$FORBIDDEN; do/);
+  assert.match(body, /\[ "\$bad" = "\$SITE" \]; then echo "SLICE HOST FAIL/);
+  assert.match(body, /could not read the account's site list[^\n]*Refusing/);
+  assert.equal((body.match(/SLICE HOST FAIL/g) || []).length, 5, "every refusal says so");
+  // It deploys an id the owner supplied, and it never CREATES a site: the only write to
+  // the Netlify API is the deploy itself.
+  const writes = [...body.matchAll(/curl[^\n]*-X POST[^\n]*/g)].map((m) => m[0]);
+  assert.equal(writes.length, 1, "more than one write to the Netlify API");
   assert.match(body, /sites\/\$SITE\/deploys/);
+  assert(!/-d '\{"name"/.test(body), "it creates a site");
+});
+
+/* review F2 — rebuild.yml is pinned by the accepted NATIVE-CARRIERS artifact and cannot
+   gain a step until the PM's batched re-seal at B1, so THIS job is where the A5 checks
+   live in the meantime. Every A5 test file must be run by it, including this one. */
+test("this workflow is the CI home for every A5 test file", () => {
+  const files = fs.readdirSync(path.join(ROOT, "rebuild/slice/pwa/test")).filter((n) => n.endsWith(".test.cjs"));
+  assert(files.length >= 3, "no test files found");
+  for (const name of files) {
+    assert(code.includes("rebuild/slice/pwa/test/" + name), name + " is in no step of this workflow");
+  }
+  // The two lockfile-only suites run BEFORE the build, on the root lockfile alone
+  // (workflow.test.cjs needs `yaml`, a root devDependency, which `npm ci` installs).
+  const lockfileOnly = steps.find((s) => /no bundler/.test(s.name || "")).run;
+  assert(lockfileOnly.includes("pwa.test.cjs") && lockfileOnly.includes("workflow.test.cjs"));
+  assert(!lockfileOnly.includes("package.test.cjs"), "the bundler-dependent suite is in the bundler-free step");
+  const order = steps.map((s) => s.name || "");
+  assert(order.findIndex((n) => /no bundler/.test(n))
+    < order.findIndex((n) => /Build the deployable folder/.test(n)));
+  assert(JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8")).devDependencies.yaml,
+    "workflow.test.cjs needs `yaml` from the root lockfile");
 });
 
 test("it deploys the build's own folder and nothing else from the tree", () => {

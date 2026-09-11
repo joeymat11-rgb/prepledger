@@ -598,6 +598,14 @@ test("the iOS guidance is the one thing the approved design cannot supply, and i
   const approved = design.readApproved(ROOT).map((a) => a.html).join("\n");
   assert(!approved.includes("Add to Home Screen"),
     "if the approved design ever gains this screen, bind to it instead of owning the words");
+  /* review F5: it is GUIDANCE — where the control is — and must promise nothing about
+     what happens after the tap. No iPhone has confirmed this build's installed behaviour,
+     so the page may not describe it. */
+  const guidance = design.textOf(fragment).find((line) => /Add to Home Screen/.test(line));
+  assert.equal(guidance, "On iPhone: in Safari, tap Share, then Add to Home Screen.");
+  for (const claim of [/launch/i, /\bwill\b/i, /signal/i, /offline/i, /work/i, /then opens/i]) {
+    assert.doesNotMatch(guidance, claim, "the guidance claims a result: " + guidance);
+  }
   // It is hidden once Earned already launches from the Home Screen.
   assert.match(shell.preflightCss(), /@media \(display-mode: standalone\)/);
   assert.match(shell.preflightJs(), /display-mode: standalone/);

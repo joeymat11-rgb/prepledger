@@ -2,9 +2,13 @@
      rebuild/slice/pwa/build-pwa.mjs; A1's page source is not touched.
      It uses the page's own secondary type (.review — 13px, var(--muted)) from the
      approved 2026-09-08 design, and carries no number of its own: every figure below is
-     written at runtime from what the service worker reports about THIS device's cache. -->
+     written at runtime from what the service worker reports about THIS device's cache.
+
+     The iPhone line is GUIDANCE — where the control is — and NOT a claim about what
+     happens afterwards. No iPhone has confirmed this build's installed behaviour yet
+     (A5-REPORT.md §8), so the page does not say it will. -->
 <aside class="review" id="pwa-preflight" aria-label="Install and offline launch">
   <p><strong>Offline launch</strong> — <span data-pwa="state" role="status">checking this device…</span></p>
   <p data-pwa="detail"></p>
-  <p data-pwa="install" hidden>On iPhone, open this page in Safari, tap Share, then Add to Home Screen. Earned then launches from the Home Screen, with or without a signal.</p>
+  <p data-pwa="install" hidden>On iPhone: in Safari, tap Share, then Add to Home Screen.</p>
 </aside>
