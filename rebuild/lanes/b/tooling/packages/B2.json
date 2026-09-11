@@ -74,6 +74,10 @@
       }
     ]
   },
+  "tooling": {
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
+    "runnerSha256": "f0d20e95c6b91948c06bf066bbf6990126445fbe8e7e26c961d3e565b0bf48ec"
+  },
   "product": {
     "rebuild/engine/plan.cjs": {
       "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
@@ -89,24 +93,106 @@
       "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
       "post": null,
       "role": "edited"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "post": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "role": "carried"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "post": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "role": "carried"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "post": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "role": "carried"
     }
   },
   "coverage": {
     "inherited": {
-      "migrate-source": "native-carriers-source-carriers",
-      "merge-source": "native-carriers-source-carriers",
-      "writers-source": "native-carriers-source-carriers",
-      "witnesses-2": "native-carriers-inherited-carriers",
-      "witnesses-5": "native-carriers-inherited-carriers",
-      "migrate-differential": "native-carriers-inherited-carriers",
-      "witnesses-7": "native-carriers-defect-witnesses",
-      "writers-differential": "native-carriers-writers-differential",
-      "second-gate": "native-carriers-second-gate"
+      "migrate-source": "source-carriers",
+      "merge-source": "source-carriers",
+      "writers-source": "source-carriers",
+      "witnesses-2": "inherited-carriers",
+      "witnesses-5": "inherited-carriers",
+      "migrate-differential": "inherited-carriers",
+      "witnesses-7": "defect-witnesses",
+      "writers-differential": "writers-differential",
+      "second-gate": "second-gate"
     },
-    "moves": {
-      "witnesses-1": "b2-inherited-carriers",
-      "witnesses-4": "b2-inherited-carriers"
-    }
+    "moves": {}
   },
   "carrierSuccessor": {
     "file": "rebuild/conform/v4/postfix/legacy-b2-carriers.cjs",
@@ -213,15 +299,14 @@
     "owner": {
       "ledgerLine": 60,
       "role": "owner",
-      "line": null,
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
       "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
     },
     "contract": {
       "ledgerLine": 49,
       "role": "cowork",
-      "line": null,
-      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52",
-      "inheritFromParent": true
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
     "theme": null,
     "review": {
@@ -232,10 +317,45 @@
   },
   "artifact": {
     "file": "rebuild/m4/spec/acceptance-b2-targets-identity-era.json",
-    "review": "rebuild/m4/spec/review-b2-targets-identity-era.json",
-    "runner": "rebuild/lanes/b/tooling/b-package.cjs --package B2"
+    "review": "rebuild/m4/spec/review-b2-targets-identity-era.json"
   },
-  "children": [],
+  "children": [
+    {
+      "name": "source-carriers",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-source-carriers.cjs"
+      ],
+      "needle": "NATIVE SOURCE CARRIERS: 6/6 PASS;"
+    },
+    {
+      "name": "inherited-carriers",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-inherited-carriers.cjs"
+      ],
+      "needle": "NATIVE INHERITED CARRIERS: 6/6 PASS;"
+    },
+    {
+      "name": "defect-witnesses",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-defect-witnesses.cjs"
+      ],
+      "needle": "NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;"
+    },
+    {
+      "name": "writers-differential",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-writers-differential.cjs"
+      ],
+      "needle": "NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;"
+    },
+    {
+      "name": "second-gate",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-second-gate.cjs"
+      ],
+      "needle": "NATIVE SECOND GATE:"
+    }
+  ],
   "notes": [
     "theme is null until the PM accepts BRIEF-B2-TARGETS-IDENTITY-ERA-v1.1.md as a rebuild/DECISIONS.md ledger line; the runner refuses PASS while it is null.",
     "CORRECTION to BRIEF-B2 v1.1 section 6: rebuild/engine/volume.cjs IS already in the accepted parent's product map (acceptance-native-carriers.json pins it at c32298e7...). B2 supersedes that pin rather than introducing a new product file.",
@@ -243,6 +363,9 @@
     "The register laws' own mutants go inert on a repaired candidate: detected mutant executions fall 97/104 -> 83/104 (exactly the fourteen laws' candidate-side mutants), and D29's control is non-idempotent (GREEN repair controls 89 -> 88). Only the named SOURCE mutants may serve as this package's fault mutants.",
     "Executed public-census delta on the discarded repaired copy is exactly one primitive cell: deloadLoad for fly and hipthrust, 5 -> null (D6), at both matrix days. Anything else is a RED stop for a reviewed successor expectation.",
     "Brief section 7 open questions for the PM: Q1 parent chain; Q2 volume.cjs:159 identity convention; Q3 reader-side exId (two lines); Q4 witnesses-1 carrier serialization with B1; Q5 witnesses-2 extension path.",
-    "witnesses-1 is the one carrier B1 and B2 share (B2's eight flips + B1's D8/D10 preserved in one file). Serialize on that file or accept one rebase pass."
+    "witnesses-1 is the one carrier B1 and B2 share (B2's eight flips + B1's D8/D10 preserved in one file). Serialize on that file or accept one rebase pass.",
+    "coverage.moves is empty: the two gates B2 intends to move (witnesses-1, witnesses-4) become covered only when rebuild/conform/v4/postfix/legacy-b2-carriers.cjs exists and is declared in children[] with its own exact verdict. Until then both re-execute under --full. A gate is never covered by a file that merely exists (TOOLING-REVIEW-r1 W2; DECISIONS:97 F-PM-2).",
+    "children[] re-executes the five accepted NATIVE-CARRIERS successor children in this process, each with its exact declared verdict; those executions are what cover the nine inherited originals.",
+    "product carries every file the parent artifact pins: the package repair files with role \"edited\" over their parent pre-image, and the remaining parent-pinned files with role \"carried\" (pre === post). Dropping a parent-pinned file from this inventory is UNLISTED-PRODUCT-DRIFT."
   ]
 }

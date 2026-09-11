@@ -31,7 +31,7 @@ same applies to the witness carrier successor, which belongs under
 |---|---|---|
 | `GATES` (19 identities), `gateRun` | `rebuild/conform/v4/postfix/run.cjs` | the 19 original gates in `--full`, second gate included |
 | `PIN_PATHS` (derived from the immutable source) | same file | Git-vs-disk fidelity at HEAD |
-| `git`, `object`, `verifyReceipt`, `historicalAudit` | `postfix/legacy-gates.cjs` | ancestry, receipt lines, the historical 45-law audit |
+| `git`, `object`, `verifyReceipt`, `checkSources`, `historicalAudit` | `postfix/legacy-gates.cjs` | ancestry, exact ledger-line bytes, reviewed Git-and-worktree byte pins, the historical 45-law audit |
 | `sha` | `postfix/target.cjs` | every byte pin |
 | `parseExact` | `postfix/strict-json.cjs` | exact reviewed JSON bytes + duplicate-key refusal |
 | `codes` (closed BLOCKED list) | `rebuild/m4/spec/native-carriers-errors.cjs` | BLOCKED vs FAIL classification |
@@ -39,40 +39,112 @@ same applies to the witness carrier successor, which belongs under
 
 No gate, law, oracle, golden or frozen input is re-implemented here.
 
+## Which bytes bind which — the substantive/thin split
+
+`BRIEF-IMPORT-GUARDS.md` §3 puts **all substantive requirements** in the hashed artifact
+and leaves the runner's own bytes "bound externally by this hash/review". Lane B keeps
+that split, in a chain where **nothing pins itself**:
+
+```
+packages/<id>.json   the substantive spec        pinned by  acceptance-<slug>.json  (spec.sha256)
+b-package.cjs        the runner                  pinned by  packages/<id>.json      (tooling.runnerSha256)
+                                                 and by     acceptance-<slug>.json  (runner.sha256)
+acceptance-<slug>.json  the sealed artifact      pinned by  the PM's DECISIONS receipt line (64-hex)
+```
+
+* Before seal, an injected line in `b-package.cjs` refuses at the **first** spec check
+  (`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`) — the spec carries the runner's sha256.
+* After seal, `envelope()` recomputes the **whole artifact** from the spec and the bytes on
+  disk (`same(m, proposed())`) and refuses on any difference: an edited spec, an edited
+  runner, a changed product pin, a changed child, a changed coverage map.
+* On an ACCEPTED envelope every pinned product and execution byte is additionally re-read
+  **from Git at the reviewed commit** and compared with the worktree, through
+  `legacy-gates.checkSources` — the original routine, not a copy.
+* `fidelity()` scans `rebuild/lanes/b/tooling/**` alongside `rebuild/engine`,
+  `rebuild/conform` and `rebuild/m4/spec`, and the tooling inventory it accepts is fixed
+  **in the runner**, so a new file cannot be smuggled in beside the spec.
+
+### What the sealed artifact contains
+
+`acceptance-<slug>.json` is written by the PM's integrator (never by this tooling) as
+canonical JSON with exactly these keys, in this order:
+
+```
+version, lanePackage, packageId, sourceBase,
+parent {id, artifact, sha256, review, receiptLedgerLine, reviewedCommit},
+spec {file, sha256}, runner {file, sha256},
+dIds, laws, carriedAcceptedIds, privateLiveTriggered,
+gates (the 19, sorted), coverage {covered, run, byChild},
+authorizations, product, carrierSuccessor, witnessFlips, protectedSurfaces, children,
+artifact {file, review}, executionPins
+```
+
+`executionPins` is the runner, the spec, the brief, the carrier successor when it exists,
+and every file a declared child executes. `product` is the spec's own `{pre, post, role}`
+map. The runner computes the same object every run; if the sealed bytes differ by one
+character the run refuses.
+
 ## How to instantiate a package
 
 1. **Copy the nearest spec** in `packages/` and edit it. It is read with `parseExact`, so
    the bytes must be exactly `JSON.stringify(parsed, null, 2) + "\n"` — a duplicate key,
    an unknown key, a missing key or a stray space refuses the whole run (control C4).
    Keys are closed: `version, lanePackage, packageId, status, brief, sourceBase, dIds,
-   laws, carriedAcceptedIds, privateLiveTriggered, parent, product, coverage,
+   laws, carriedAcceptedIds, privateLiveTriggered, parent, tooling, product, coverage,
    carrierSuccessor, witnessFlips, protectedSurfaces, authorizations, artifact, children,
    notes`.
+1b. **`tooling`** is `{runner, runnerSha256}` — the runner path and the sha256 of the
+   reviewed `b-package.cjs`. Re-take it whenever the runner changes, and re-review both
+   together: the runner is not allowed to differ from the bytes the spec names.
 2. **`dIds`** in package order; **`laws`** maps each D-id to its law id. The runner
    cross-checks every law id against the **executed** live inventory, not a table — a
    renamed or mistyped law id fails the run (control C3).
-3. **`product`** maps each file to `{pre, post, role}`. `pre` is the pinned pre-image
-   sha256 at `sourceBase`; `post` stays `null` until the repair exists. The runner hashes
-   the bytes on disk and reports `NOT-IMPLEMENTED` / `PARTIAL` / `IMPLEMENTED`; a byte
-   that is neither `pre` nor `post` is `UNLISTED-PRODUCT-DRIFT` and fails (control C2).
+3. **`product`** maps each file to `{pre, post, role}` and must list **every file the
+   parent artifact pins in its own `product` map** — the repair files with role `edited`
+   (or `new`), the rest with role `carried` (`pre === post`, byte-identical on disk).
+   `pre` must **be** the parent's pin, not a self-declared value; `post` stays `null`
+   until the repair exists. The runner hashes the bytes on disk and reports
+   `NOT-IMPLEMENTED` / `PARTIAL` / `IMPLEMENTED` over the non-carried files. A byte that
+   is neither `pre` nor `post`, a pre-image that is not the parent's pin, and a
+   parent-pinned file **missing from the inventory** are all `UNLISTED-PRODUCT-DRIFT`
+   and fail (controls C2, C6, C7).
 4. **`parent`** carries `decided`, `chosen` and every documented `options` entry. See the
    chain rule below.
-5. **`coverage.inherited`** repeats the parent artifact's own `coverage.byChild`;
-   **`coverage.moves`** lists the gates this package moves from `run` to `covered`, with
-   the child that carries them. A gate is inherited-covered or moved, never both.
+5. **`coverage.inherited`** must be exactly the parent artifact's own `coverage.byChild`
+   gate set; **`coverage.moves`** lists the gates this package moves from `run` to
+   `covered`. A gate is inherited-covered or moved, never both. **Every value is the
+   `name` of an entry in `children[]`, and the gate counts as covered only because that
+   child actually ran in this process, exit 0, with its exact declared verdict matched.**
+   A covering name that is not a declared child refuses (`COVERAGE-CHILD-NOT-DECLARED`);
+   a declared child that did not run refuses (`COVERAGE-CHILD-NOT-EXECUTED`). Nothing is
+   ever covered because a file exists — that is the `DECISIONS:97` F-PM-2 defect.
 6. **`carrierSuccessor`** + **`witnessFlips`**: one flip per assertion site, and every
    frozen witness file pinned by sha256 so it stays **byte-identical** — the established
    mechanism is in-memory `exactReplace` substitution by a named successor child
    (`legacy-step-efficacy-carriers.cjs:17-18`), never an edit to the witness file.
-7. **`authorizations`**: `owner` = `DECISIONS:60`, `contract` = `DECISIONS:49` (inherited
-   byte-equal from the parent), `theme` = the PM's line accepting *this* brief, `review` =
-   `{cowork, "POSTFIX-ACCEPTANCE <packageId>", ACCEPTED}`. `theme` stays `null` until the
-   brief is accepted, and the runner refuses PASS while it is null
-   (`THEME-AUTHORIZATION-UNAVAILABLE`). `owner`/`contract` carry `lineSha256` now; the
-   full line text is bound at seal time in a sha-pinned citation file beside the artifact,
-   as `native-carriers-authorizations.json` does.
-8. **`children`**: `{name, argv, needle}` per package child. Each must exit 0 and print
-   its exact declared verdict. Empty until authored — reported as an open obligation.
+7. **`authorizations`**: `owner` = `DECISIONS:60`, `contract` = `DECISIONS:49`, `theme` =
+   the PM's line accepting *this* brief, `review` =
+   `{cowork, "POSTFIX-ACCEPTANCE <packageId>", ACCEPTED}`. `owner`, `contract` and `theme`
+   are `{ledgerLine, role, line, lineSha256}` and carry the **full line text**, whose
+   sha256 must be the `lineSha256` they name. Every run verifies `owner` and `contract`
+   as exact line bytes in `rebuild/DECISIONS.md` at the parent's receipt base, under their
+   own roles and with content mentions, and requires `contract.lineSha256` to equal the
+   parent artifact's own contract line (`INHERITED-CONTRACT-AUTHORIZATION`). `theme` stays
+   `null` until the brief is accepted, and the runner refuses PASS while it is null
+   (`THEME-AUTHORIZATION-UNAVAILABLE`); on an ACCEPTED envelope all three are re-verified
+   at the package's own receipt base.
+8. **`children`**: `{name, argv, needle}` per package child. `name` is
+   `[a-z0-9][a-z0-9-]{1,39}` and unique; `needle` is a non-empty verdict of at least 8
+   non-blank characters; `argv` never carries `-e`/`--eval`/`-p`/`--print`/`-r`/
+   `--require`/`--import`, and every non-flag element must be an existing repo-relative
+   file under `rebuild/m4/spec/`, `rebuild/conform/v4/postfix/`, `rebuild/engine/test/`,
+   `rebuild/m4/workout/test/` or `rebuild/m3/w7-preview/test/`. Each child must exit 0 and
+   print its exact declared verdict. Empty until authored — an open obligation, and then
+   no gate can be covered at all.
+9. **`artifact`** is `{file, review}` and must equal the paths the **package id** implies
+   (`rebuild/m4/spec/acceptance-<packageId minus M2- lowercased>.json` and
+   `review-…json`). Those two are the only paths exempt from `UNLISTED-SOURCE-CHANGE`, and
+   the exemption is computed in the runner — a spec cannot nominate its own.
 
 ## The chain rule (single parent, immutable)
 
@@ -90,10 +162,21 @@ acceptance-import-guards.json -> acceptance-step-efficacy.json ff164b86...
 incompatible for the artifact chain, so **B1.json and B2.json each carry both options with
 `decided: false`, and the PM names one.** The runner:
 
-* verifies **every** sealed option (artifact bytes by sha256, review `ACCEPTED`, the
-  receipt line by its own sha256 at its commit, the line naming the artifact and hash and
-  ending ` ACCEPTED`) and prints one line per option;
-* prints `PARENT UNDECIDED` and records an open obligation while `chosen` is null;
+* verifies **every** sealed option (artifact bytes by sha256 on disk **and in Git at the
+  commit that option's own receipt names as reviewed**, that commit an ancestor of HEAD,
+  review `ACCEPTED`, the receipt line by its own sha256 at its base, the line naming this
+  artifact and hash and ending ` ACCEPTED`) and prints one line per option;
+* **re-asserts every parent pin and every un-superseded grandparent pin at run time** —
+  the parent's `product` ∪ `executionPins` (the product half through the inventory above),
+  then the grandparent artifact's own bytes, its ACCEPTED envelope and receipt, and its
+  `product` ∪ `executionPins` minus everything the parent superseded. This is
+  `native-carriers-profile.cjs`'s "Every parent pin still holds", which a three-tree diff
+  since `sourceBase` cannot substitute for;
+* prints `PARENT UNDECIDED` and records an open obligation while `chosen` is null — and,
+  when exactly one option is sealed on disk, uses it **provisionally** for the pins,
+  inventory and inherited-coverage checks while recording that it is not a claim on the
+  chain. When no option is sealed (B3, B4 today) those three checks are impossible and
+  each is recorded as its own open obligation instead of being skipped silently;
 * once `chosen` is set, scans every other spec in `packages/` and **fails** if another
   package already claims that artifact (control C1);
 * walks the chain to the artifact that still carries the audit `baseline` (the closed
@@ -105,11 +188,14 @@ Product merges may still be parallel. The **artifact chain** and the shared
 
 ## Cloud vs the owner's PC
 
-**Cloud / CI, both OS — `--ci` (public evidence only):** spec bytes and closed schema;
-parent-chain verification; product pre/post state; fidelity (sourceBase ancestry, no
-unlisted engine/conform/m4-spec change, PIN_PATHS Git-vs-disk); the 45 register laws
-red-first with the pinned public reference bundles; the declared witness-flip and coverage
-accounting; every declared package child. Exit 0 with
+**Cloud / CI, both OS — `--ci` (public evidence only):** spec bytes and closed schema, with
+the runner's own sha256; parent-chain verification and the parent/grandparent pin
+re-assertion; product pre/post/carried state against the parent's product map; fidelity
+(sourceBase ancestry, no unlisted engine/conform/m4-spec/lane-b-tooling change, the runner
+and spec pins, PIN_PATHS Git-vs-disk); the owner and contract ledger lines as exact bytes;
+the 45 register laws red-first with the pinned public reference bundles; the declared
+witness-flip accounting; **every declared package child, executed**; the coverage map,
+which counts only gates whose covering child just ran. Exit 0 with
 `PUBLIC CI EVIDENCE PASS` only when every non-envelope obligation is closed; otherwise
 `CI REVIEW-PENDING`, exit 2, **no PASS word**.
 
@@ -134,8 +220,11 @@ matrix; `gateRun` still enforces it independently inside `migrate-full`.
 
 1. **Brief** accepted by the PM as a ledger line; its sha256 goes into `brief` and the
    line into `authorizations.theme`.
-2. **Implement**, then **seal** the artifact in `rebuild/m4/spec/` with
-   `review-<pkg>.json` = `{version: 1, status: "PENDING", receipt: null}`.
+2. **Implement**, then **seal** the artifact in `rebuild/m4/spec/` — the exact object
+   described under *What the sealed artifact contains*, carrying `spec.sha256`,
+   `runner.sha256`, the product map and the execution pins — with
+   `review-<pkg>.json` = `{version: 1, status: "PENDING", receipt: null}`. From that point
+   the spec and the runner are frozen: any edit to either voids the artifact.
 3. **PENDING FULL run on the PC.** Complete evidence, no PASS word,
    `POSTFIX PACKAGE REVIEW-PENDING`, **exit 2**. Hand the PM the verdict file.
 4. **PM receipt.** One `rebuild/DECISIONS.md` line naming the exact reviewed commit, the
@@ -160,13 +249,31 @@ step 3 starts again (that is exactly what happened to NATIVE-CARRIERS at
 |---|---|
 | two packages claim one parent artifact | FAIL exit 1 |
 | a product byte is neither the declared pre nor post image | FAIL exit 1 |
+| a declared pre-image is not the parent artifact's pin | FAIL exit 1 |
+| a parent-pinned product file is dropped from the inventory | FAIL exit 1 |
+| a parent or grandparent pin no longer holds on disk | FAIL exit 1 |
 | a declared law id is not the live executed law id | FAIL exit 1 |
 | spec bytes are not canonical JSON | FAIL exit 1 |
-| an unlisted engine/conform/m4-spec change since `sourceBase` | FAIL exit 1 |
+| an unlisted engine/conform/m4-spec/lane-b-tooling change since `sourceBase` | FAIL exit 1 |
+| `b-package.cjs` differs from the sha256 the reviewed spec pins | FAIL exit 1 |
+| the spec or the runner differs from the sealed artifact's pins | FAIL exit 1 |
+| the sealed artifact is not what the spec and the bytes recompute to | FAIL exit 1 |
+| a covered gate names a child that is not declared | FAIL exit 1 |
+| a covered gate's child did not execute in this run | FAIL exit 1 |
+| the inherited set is not the parent artifact's covered set | FAIL exit 1 |
+| a declared child has an empty needle, or argv that executes no file | FAIL exit 1 |
+| an owner/contract/theme line is not exact bytes in the ledger at its base | FAIL exit 1 |
+| the contract line is not the parent artifact's contract line | FAIL exit 1 |
 | PIN_PATHS disagree between Git and disk | FAIL exit 1 |
 | an ACCEPTED envelope with no bound theme line | FAIL exit 1 |
+| the artifact, review or receipt changes between the first and last evaluation | FAIL exit 1 |
 | the private fixture is absent under `--full` | BLOCKED exit 2 |
 | evidence complete but acceptance PENDING | REVIEW-PENDING exit 2, no PASS word |
+
+The envelope is evaluated twice: once before the evidence, only to choose the header word
+and hand `fidelity()` the sealed pins, and once **after every gate**, which is the
+evaluation that decides the terminal word and the exit code. The two must agree on the
+artifact hash, the reviewed commit and the receipt base, or the run refuses.
 
 ## The STATUS line lane B posts, per stage
 
@@ -202,3 +309,15 @@ rebuild/lanes/b/tooling/
 ```
 
 Logs are written under `.tmp/b-package/<id>/` (local only, never forwarded).
+
+All four specs currently declare the **five accepted NATIVE-CARRIERS successor children**
+(`source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`,
+`second-gate`) and inherit the nine gates those children cover. That is what makes the
+coverage real: the children run in every `--ci` and every `--full`, and the nine gates are
+counted only because of those executions. `coverage.moves` is empty in all four — a move
+becomes real when the package's own `legacy-b<N>-carriers.cjs` exists and is declared in
+`children[]` with its own exact verdict, not before.
+
+**Revision history.** `TOOLING-REVIEW-r1.md` (ACCEPT WITH CHANGES) named seven weakenings
+W1–W7; all seven are closed in this revision, and `TOOLING-REPORT.md` §"post-review r1"
+carries the executed proof for each.
