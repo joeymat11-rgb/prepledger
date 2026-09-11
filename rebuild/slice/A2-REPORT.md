@@ -26,7 +26,95 @@ it is called out here rather than buried. Nothing under `rebuild/engine`,
 
 ---
 
-## 0. Review round 1 — what changed
+## 0. Review round 2 — the REJECT, and what it found
+
+The independent review of `5688687` returned **REJECT**, with a headline finding
+that was correct, serious, and mine:
+
+> day 2 (the next training day, different muscle group) Today says "ready", Start
+> WRITES a durable session-start (ops 6→7), then the next read is blocked
+> `WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED` and every later day is
+> `WORKOUT_HISTORY_RECONCILIATION_REQUIRED`, forever.
+
+It is reproduced here rather than accepted on trust. A spike drives whole training
+days — probe, Start, every set, Finish — each on a **new host over the same
+storage**, which is what a page load is. With round 1's code (the frontier held in
+a per-host closure seeded `[]`), the fresh athlete's log looks like this:
+
+```
+day+0 2030-02-04  probe=ready  started+recorded+closed  ops 0->6
+day+1 2030-02-05  probe=ready  SETS blocked WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED  ops 6->7
+day+2 2030-02-06  probe=blocked WORKOUT_HISTORY_RECONCILIATION_REQUIRED  ops 7->7
+day+3 … day+13    probe=blocked WORKOUT_HISTORY_RECONCILIATION_REQUIRED  ops 7->7
+```
+
+One session, then a wall that never lifts, with a Start on disk that nothing can
+retire. The athlete is stranded after one workout. That is the product being
+broken, not a seam, and the rejection was right.
+
+**The cause, exactly as the reviewer named it.** `gym-host.mjs` kept the causal
+parents of the next write in a closure inside `createGymHost`, seeded `[]`, and
+updated it only when *this* host wrote something. A host lives for one page load.
+So day 2's Start carried `causal_parents: []` and did not descend from day 1's
+close. Two Starts with no causal relation are concurrent, and
+`rebuild/m4/workout/engine-order.cjs` refuses to invent an order between them
+(`ready.length > 1` with no receipt sequence — an offline generation has `W 0`):
+`WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED`. Once the second Start is on disk the
+history read that every screen, resume and close path depends on refuses too,
+which is the permanent `WORKOUT_HISTORY_RECONCILIATION_REQUIRED`.
+
+**Why the suite was green.** The fresh-athlete test asserted `phase === 'ready'`
+on the next day and never called `start()`. A probe proves the engine will
+prescribe; it proves nothing about what writing does. Round 1 therefore also
+documented a fresh-athlete wall at day +3 that the athlete could never reach,
+because they were stranded at day +1. That is the more important lesson here:
+**every day-level test now conducts the day** — Start, every set, Finish — and
+asserts the op count, the phase after the write, and that Finish succeeded.
+
+### The five required fixes, and where each is
+
+1. **Seed the frontier from the durable log.** Done, and stronger than seeding:
+   the parents are **derived on every resolution** from the generation the client
+   is about to write against (`causalTips`, §7.18). The tips of the stored graph —
+   every op no other op names as a parent — are exactly the close of the last
+   session. There is no closure to go stale across a reload, relaunch or kill, so
+   nothing needs to be remembered and nothing is invented.
+2. **Probe and Start are the same computation.** Both run through the same
+   resolver over the same generation; the client itself compares the bytes
+   (`WORKOUT_PREPARATION_MISMATCH` if the Start does not carry the parents the
+   preparation resolved). A test asserts that what the probe resolved is exactly
+   what landed in `causal_parents`.
+3. **Never leave a written Start unrecoverable.** This splits in two, and both
+   halves are done.
+   * *The unorderable Start.* There is no accepted recovery for this state — the
+     order refusal takes down the very history read that the resume and close paths
+     need, so the close that would retire it is refused too (executed). The honest
+     answer is the one the brief allows: **refuse before writing**.
+     `startOrderRefusalOf` compares the parents the resolver actually produced
+     against the Starts the log already holds, at the probe and again immediately
+     before the write; on a refusal the screen shows `WORKOUT_START_ORDER_UNPROVEN`
+     in the guard's own words and stores nothing.
+   * *The abandoned session.* A session started and then walked away from blocks
+     every later day in the accepted client
+     (`WORKOUT_HISTORY_RECONCILIATION_REQUIRED`) — a second way a written Start
+     stranded the athlete, and round 1 only documented it. Here a recovery **does**
+     exist, so it is now **offered**: Today names the day the unfinished session
+     belongs to and its primary action performs the accepted `early` close. That is
+     the capture layer's own completion kind, on a host standing on that session's
+     own day (the only one whose current capture maps to its slots —
+     `WORKOUT_RESUME_SLOT_MAPPING_REQUIRED` otherwise, executed). One operation is
+     written, nothing is deleted, the sets that were done stay recorded, and today
+     becomes startable again.
+4. **Tests that conduct multiple days across page loads.** §6 and §9.1.
+5. **The browser check runs two training days across a real kill.** It now runs
+   **three** real kills and two whole sessions; see §6.
+
+No engine, capture, client or otherwise pinned file is changed. §9.1 is rewritten
+from the new spike, and names the day the first genuine engine wall bites.
+
+---
+
+## 0b. Review round 1 — what changed
 
 The independent review of `2bbc793` returned **ACCEPT WITH FIXES (2 blocking)**.
 Both blocking items were real defects, both are fixed, and the fix for each is
@@ -128,23 +216,23 @@ Today's primary action is **Resume**.
 | `rebuild/m3/w6/host/workout-host.mjs` | 195 | 12000 | `4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b` |
 | `rebuild/m3/w7-preview/today/browser-check.mjs` | 305 | 17253 | `301e50b5a9fd7ea62507478abc161e4d63b245b1b30542e4abfecfef437ff1f2` |
 | `rebuild/m3/w7-preview/today/build.mjs` | 180 | 9233 | `a9938571ee5457c3e71c78805308b5206c7bb047355c7b0d085dfb143049e4bf` |
-| `rebuild/m3/w7-preview/today/design.cjs` | 254 | 14512 | `44c1236e9d28c51649d609eff3e08d79e6e0f6ea5166455799439a60d8228b50` |
+| `rebuild/m3/w7-preview/today/design.cjs` | 259 | 14822 | `0cbfe5fc37df0b3a553f06ca6ebd02c3ce7e48d9304e92cd1dc582b7fbe7542d` |
 | `rebuild/m3/w7-preview/today/gym-app.mjs` | 311 | 14113 | `504e5eb03383eab848ae220db29117eabc7a03e69716466dc6c641d732517e21` |
-| `rebuild/m3/w7-preview/today/gym-check.mjs` | 308 | 18113 | `d69a362cf884d42e1807b3a67a2279bfc46ccf7dccce5957f85a88b21ddbdb74` |
-| `rebuild/m3/w7-preview/today/gym-host.mjs` | 229 | 13192 | `dc6410c004bfae51db71b4b0a8b58e7271ad257d82d87e84f66accd822afc54a` |
-| `rebuild/m3/w7-preview/today/gym-model.mjs` | 357 | 19750 | `b05f68dfd8ddaf71e1ada8e8761ac2106ceca766d0a49c88ff1837fe99f75a0b` |
+| `rebuild/m3/w7-preview/today/gym-check.mjs` | 420 | 25236 | `b056d5639781568a05f64a5aa9359ebe66f6a3eafdf854e871c425873e130427` |
+| `rebuild/m3/w7-preview/today/gym-host.mjs` | 320 | 18299 | `9b018f11ad88903516721f56d5cec54714ceecf15d1a5f288c9c71bdc26c78a2` |
+| `rebuild/m3/w7-preview/today/gym-model.mjs` | 436 | 24513 | `398b0e4cd8f0e61cc53baf56d3edfe6f00c93df943a2da59426c76f6433676d4` |
 | `rebuild/m3/w7-preview/today/index.shell.html` | 32 | 1508 | `1ea785f2e55dedd051329b3095e8b7eeb77d19341f074a29632aeea243eb67b1` |
 | `rebuild/m3/w7-preview/today/reading-host.mjs` | 121 | 6723 | `c28273b8c5b410068cd236a943002147f57dbea7a1c59f55543d9b134cd7dcec` |
 | `rebuild/m3/w7-preview/today/screens.template.html` | 241 | 11840 | `041d75f3ebf91764f29e63d90f94d43da659fc22090137e928ab9f3114b5b418` |
 | `rebuild/m3/w7-preview/today/test/adapter.test.cjs` | — | — | **deleted** (→ `.mjs`) |
 | `rebuild/m3/w7-preview/today/test/adapter.test.mjs` | 336 | 16931 | `82ee5614bc43fc317d8eccac96a4db7ef6dfb4a47b2d77852634cac707db47b4` |
 | `rebuild/m3/w7-preview/today/test/design.test.cjs` | 191 | 11039 | `cd68e2db2440d8f0a62b95b3bac1f54078416c218280466fd84c58e3451eebff` |
-| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | 615 | 32740 | `325f0ab67893fd159d3b5c6dfdb80fb90d4cad99f8b4daa0bb798a9a559a2809` |
+| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | 919 | 50426 | `1117d79420de9249a4fa1bbd32360c40b6712decbfde731afc050e4aff6d5915` |
 | `rebuild/m3/w7-preview/today/test/package.test.cjs` | 185 | 10149 | `dd5f22ca9305ede3604e3786acdfbc6b586125100efc681b39c8c1d5ccbc5532` |
 | `rebuild/m3/w7-preview/today/test/view.test.cjs` | — | — | **deleted** (→ `.mjs`) |
-| `rebuild/m3/w7-preview/today/test/view.test.mjs` | 542 | 27504 | `750b88c9e0d83b977d49ac15883f2bbd2f8fa22a9815c3ddf651cee06cccc485` |
-| `rebuild/m3/w7-preview/today/today-app.cjs` | 416 | 20951 | `6c9fc1e4a63682eebe7c6f87efdb409b408be8e7b5aa0cea0adb13a240f1ed23` |
-| `rebuild/m3/w7-preview/today/today-entry.mjs` | 98 | 4708 | `2896ff9635451cf9e7748f554b6e28df305f14d5772637bef670ed3b25a917c1` |
+| `rebuild/m3/w7-preview/today/test/view.test.mjs` | 575 | 29099 | `39137c139f3c2ddc915fdad56f85ba7d0d970d1efefcf7e4a392e031c2fa610b` |
+| `rebuild/m3/w7-preview/today/today-app.cjs` | 436 | 22013 | `8a14c39b924341fb07f05fd287c09a89294e3badbd8c8fe5ff0c80f088ac9626` |
+| `rebuild/m3/w7-preview/today/today-entry.mjs` | 120 | 6013 | `fa313c14ef1a962a63086b6efd34938959eea0548ee1f5aa50708027a92e9c98` |
 | `rebuild/m3/w7-preview/today/today-model.cjs` | 280 | 14393 | `7377bf2da6d839a9d6fcbba2fd74306239597e6e55ff60f5f7a5a33bf75d8ac8` |
 | `rebuild/m3/w7-preview/today/web-storage-backend.cjs` | — | — | **deleted** (review B2) |
 | `rebuild/slice/pwa/browser-offline-check.mjs` | 172 | 9543 | `6823e3270e4ce4333286b39f4ca59eacf5088ffaa233b79aa99a8ab063ae7555` |
@@ -380,39 +468,54 @@ All on the PC, at the branch head.
 
 | command | result |
 |---|---|
-| `node --test …/today/test/gym.test.mjs` | **43 pass / 0 fail** (new) |
-| `node --test …/today/test/{design.test.cjs,adapter.test.mjs,view.test.mjs,package.test.cjs}` | **63 pass / 0 fail** (A1's 58, + 5 net) |
+| `node --test …/today/test/gym.test.mjs` | **59 pass / 0 fail** (43 after round 1, + 16 for the REJECT) |
+| `node --test …/today/test/{design.test.cjs,adapter.test.mjs,view.test.mjs,package.test.cjs}` | **64 pass / 0 fail** (A1's 58, + 6 net) |
 | `node --test rebuild/m3/w6/host/test/journey.test.mjs …/engine-equivalence.test.cjs` | **22 pass / 0 fail** (A0 unchanged) |
 | `node --test rebuild/m3/w7-preview/test/{model,view,package}.test.cjs` | **19 pass / 0 fail** (pinned preview, untouched) |
 | `node rebuild/m4/spec/native-carriers-package.cjs --ci` | **`NATIVE CARRIERS PUBLIC CI EVIDENCE PASS`**, exit 0 |
 | `node rebuild/m3/w6/test/run-current-head.cjs . --all` | **435 pass / 0 fail**, exit 0 |
 | `node rebuild/m3/w7-preview/today/build.mjs` | `A1 TODAY BUILD PASS: 3 assets; 83 pinned inputs (13 engine, 12 client); approved design pinned; 61 bound classes; 2 pinned typefaces inlined; no literal figure in the template; 3/3 assets scanned and free of any network reference` |
-| `node rebuild/slice/pwa/build-pwa.mjs` | `A5 PWA BUILD PASS: 13 files …; cache name earned-slice-8b593bb2fb337176a56ca69e9b97014a …; no network reference in any shipped byte` |
+| `node rebuild/slice/pwa/build-pwa.mjs` | `A5 PWA BUILD PASS: 13 files …; cache name earned-slice-075b99d8fd35a5a8415cdd21c9aa3a4f …; no network reference in any shipped byte` |
 | `node --test rebuild/slice/pwa/test/{package,pwa,workflow}.test.cjs` | **53 pass / 0 fail** |
 | `node rebuild/slice/pwa/browser-offline-check.mjs` | PASS (tail below) |
 | `node rebuild/m3/w7-preview/today/browser-check.mjs` | PASS (tail below) |
 | `node rebuild/m3/w7-preview/today/gym-check.mjs` | PASS (tail below) |
 
 ```
-A2 GYM BROWSER CHECK PASS — Today -> Start -> active set (prescription shown separately
-from editable performed values, no effort preselected) -> refusal without an effort answer
--> logged with an explicit unknown effort -> saved facts + Undo + rest + next set -> Undo
-removed it -> relogged -> REAL PROCESS KILL (taskkill /F /T on every chrome.exe of the
-persistent profile, kill verified) -> the weigh-in AND the in-progress workout both came
-back out of the encrypted store and the session resumed at the next set -> finished ->
-Today says recorded, through a reload, a new page and a SECOND real kill. localStorage
-holds nothing. Headroom: active set 118px headroom, saved set 64px headroom, active set 1
-118px headroom, saved set 1 64px headroom, active set 2 118px headroom, saved set 2 64px
-headroom, active set 3 118px headroom, saved set 3 64px headroom, Today, workout recorded
-102px headroom. No network request; no prototype figure on screen; every input >= 16px;
-no horizontal overflow.
+A2 GYM BROWSER CHECK PASS — TWO TRAINING DAYS across three REAL process kills. DAY 1:
+Today -> weigh-in -> Start -> active set (prescription shown separately from editable
+performed values, no effort preselected) -> refusal without an effort answer -> logged
+with an explicit unknown effort -> saved facts + Undo + rest + next set -> Undo removed
+it -> relogged -> REAL PROCESS KILL (taskkill /F /T on every chrome.exe of the persistent
+profile, kill verified) -> the weigh-in AND the in-progress workout both came back out of
+the encrypted store and the session resumed at the next set -> finished -> Today says
+recorded, through a reload, a new page and a SECOND real kill. DAY 2 (2030-02-05, the
+page's own entry point over the same device storage): prepares -> weigh-in -> Start ->
+every set -> finished; a THIRD real kill, and the history still reads with BOTH sessions
+(14 ops, exactly one Start descending from nothing) and both mornings still in the
+encrypted reading store. localStorage holds nothing. Headroom: active set 118px headroom,
+saved set 64px headroom, active set 1 118px headroom, saved set 1 64px headroom, active
+set 2 118px headroom, saved set 2 64px headroom, active set 3 118px headroom, saved set 3
+64px headroom, Today, workout recorded 102px headroom. No network request; no prototype
+figure on screen; every input >= 16px; no horizontal overflow.
 ```
+
+That tail carries the whole of the reviewer's point 5, so it is worth spelling out
+what it now proves that round 2's did not. The page is opened on the **next day**
+through `boot({ today })` — the product's own entry point, no test double — over
+the storage day 1 left behind. The **shipped** preview fixture is tried first and
+refuses with the ENGINE's own `PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED`, writing
+nothing (§9.1); then the athlete DECISIONS:100 names — fresh, no ported log — runs
+a whole second session through the screen. After a third real kill the durable
+history still reads, holds **both** sessions and **14** operations, and exactly
+**one** Start has empty `causal_parents`: the first. Day 2's descends from day 1's
+close. Under round 2's build this sequence could not have been written at all.
 
 ```
 A1 TODAY BROWSER CHECK PASS — mounted, weighed in (This morning ✓ 179.4 lb), spike note
 shown, impossible weight refused, survived a real reload and a new page; primary action
 inside the 390x844 viewport in both states (bottom 798 and 740 of 842; 44px and 102px of
-headroom); the reading survived a REAL process kill (taskkill /F /T on 8 chrome.exe of a
+headroom); the reading survived a REAL process kill (taskkill /F /T on 7 chrome.exe of a
 persistent profile, kill verified) and localStorage holds nothing; no network request; no
 prototype figure on screen; 15 engine headline titles swept in both states — worst
 headroom 11px before / 10px after; 4 title(s) fitted down to 42/45px (33px floor never
@@ -421,7 +524,7 @@ reached); unwired entry points labelled on Today's face
 
 ```
 A5 OFFLINE LAUNCH CHECK PASS — installed one worker over the host's own headers; cache
-earned-slice-8b593bb2fb337176a56ca69e9b97014a holds all 11 files; preflight read
+earned-slice-075b99d8fd35a5a8415cdd21c9aa3a4f holds all 11 files; preflight read
 "offline-ready ✓" only after verifying them; with the network OFF Today rendered from the
 engine, a weigh-in (This morning ✓ 178.2 lb · spike — damped in trend) was recorded and
 survived a reload and a new page; the same folder with the worker blocked could not open
@@ -435,7 +538,38 @@ relaunch. `context.close()` is a graceful shutdown — it lets the browser flush
 what it was holding, which is precisely the case that hid the localStorage defect —
 and it is no longer used for any step this report calls a kill.
 
-### The 43 gym tests, by what they prove
+### The 59 gym tests, by what they prove
+
+**The abandoned session, and the way out (5, new for the REJECT).** Day 1 starts and
+logs one set and stops. The next day, on a new host over the same storage, the
+screen reports `phase: 'unfinished'` — carrying the layer's own
+`WORKOUT_HISTORY_RECONCILIATION_REQUIRED`, the **day** the session belongs to, its
+`startId` and how many sets it holds — and naming it writes nothing. The recovery
+then writes exactly **one** operation, a `session-close` whose
+`payload.completion_kind` is the layer's own `early` and whose first causal parent
+is the Start; the set the athlete actually did is still `included`; and today
+becomes `ready`. A storage fault during that close is reported as a refusal with
+nothing recorded, and with no way to reach the session's own day the recovery says
+`WORKOUT_RECOVERY_UNAVAILABLE` and writes nothing.
+
+**Multiple days across page loads (14, new for the REJECT).** Two groups. *"A FRESH
+athlete trains day after day, each day on a NEW page load"* conducts day 1 (`ops
+0→6`, phase `active` after the Start, Finish `ok`, `settled: finished`) and day 2
+on a brand-new host over the same storage (`ops 6→12`, its Start's
+`causal_parents` asserted **equal to day 1's close op id**), then a rest day that
+writes nothing, then the first wall with nothing written, then six later days each
+asserting that `readWorkoutHistory` still reads, both sessions are still there and
+the op count has not moved. *"The causal frontier is DERIVED from the durable log,
+never remembered"* pins the mechanism: an empty store has no tip; a host that has
+written nothing reports the stored tip immediately (and has resolved nothing merely
+by opening); what the probe resolves is byte-for-byte what the Start writes; the
+screen refuses an unorderable Start and writes nothing; Start re-checks at the
+moment of writing, so a store that moves BETWEEN probe and tap still cannot produce
+a bad write; a day containing an Undo has **two** tips and an open session has one
+per unclaimed op, both carried whole; and the guard itself is exercised over
+generations written by hand, including round 1's exact parents on round 1's exact
+store.
+
 
 **The journey on the real stack (12).** Nothing is stored before a Start; every
 prescription figure equals the capture cell it claims to come from (`load.display`,
@@ -495,18 +629,15 @@ marching order; after it, `Start <title>`; with a workout in progress,
 so an unfinished session can never become unreachable; when finished,
 `Workout recorded` + `Review today’s workout`.
 
-**REVIEW B1 — when the layer will prepare a workout, and when it will not (7).**
-Executed, so §9.1 cannot drift from it. For a **FRESH** athlete: day 1 prepares,
-records and closes; a **second session the same day** is refused
-`PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` / `resolver_failed` (and Today shows the
-day as recorded rather than offering a Start that would fail); the **next day**
-prepares normally because its lifts have no app-recorded session yet; a **REST day**
-is `ENGINE_CAPTURE_NO_WORKOUT`, which is not a refusal; and **the next session of
-the same lifts** is refused `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`, with the
-layer's own reason and **never its code twice**. For an athlete carrying a **legacy
-session log**: the first session records and closes, and then **every** later
-scheduled day refuses `PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED` — a refusal that
-carries no reason, and none is invented.
+**When the layer will prepare a workout, and when it will not (2 more).** Executed,
+so §9.1 cannot drift from it. A **second session the same day** is refused
+`PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` / `resolver_failed`, and Today shows the
+day as recorded rather than offering a Start that would fail. For an athlete
+carrying a **legacy session log**: the first session records and closes, and then
+**every** later scheduled day refuses `PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED` — a
+refusal that carries no reason, and none is invented. Each of these refusals is
+read for its wording as well as its code: the layer's own reason, and **never its
+code twice**.
 
 ### The changes to A1's own tests
 
@@ -657,6 +788,55 @@ All are **strengthenings**, not removals. A1 is **63 / 0** at this head (was 58)
     device; the device sentence is used only when the page has no workout host at
     all. Rejected: a disabled primary action with no explanation, and any sentence
     of my own about why the engine refused.
+18. **The causal frontier is DERIVED, never remembered (the REJECT).** The choice
+    on the table was the reviewer's own wording — *seed* `causalParents` from the
+    durable log at host creation. What is implemented is stronger: there is no
+    seed and no per-host state to seed. The accepted resolver is handed the exact
+    generation the client is about to write against, so `causalTips(generation)`
+    computes the parents at the moment of resolution, from those bytes. The tips
+    are every op no other op names as a parent — after a closed session, exactly
+    its close; on an empty store, `[]`. Rejected: seeding at construction (a value
+    computed once is a value that can go stale — a long-lived page, a second host
+    on the same store, a tab left open across midnight); and reading the "last
+    session" by date or by device sequence, both of which would be my ordering
+    rather than the log's causal one, which is exactly what
+    `rebuild/m4/workout/engine-order.cjs` refuses to accept from anyone.
+19. **An unorderable Start is refused BEFORE it is written, because there is no
+    "after".** The reviewer asked for the accepted resume/close path to be offered
+    if a written Start blocks the next read. It cannot be: the order refusal takes
+    down `readWorkoutHistory`, and `prepareWorkoutContinuation` authenticates that
+    same history, so the close that would retire the Start is refused too. The
+    brief's instruction for exactly this case is to refuse before writing, and that
+    is what happens — at the probe, and again on the tap against the generation the
+    write will land on. The guard is deliberately not a restatement of the
+    derivation: it takes the parents the resolver actually produced and checks them
+    against the Starts the log already holds, so a resolver that drifts is caught
+    by an independent computation rather than by its own opinion of itself.
+20. **`boot()` accepts a `basisState`.** One injection point beside `today`,
+    `model`, `indexedDB` and `crypto`, used by the checks and by nothing in the
+    page. It exists because the shipped preview athlete carries a ported log and is
+    walled by the engine on day 2 (§9.1), so the browser could not otherwise
+    conduct the two days DECISIONS:100's fresh athlete actually gets. The browser
+    check asserts **both**: the shipped athlete's engine refusal with nothing
+    written, and the fresh athlete's second whole session. Rejected: a URL
+    parameter or a stored flag (real product surface, reachable by a user), and
+    changing the fixture (that is A1's, and accepted).
+21. **The abandoned-session recovery is offered on Today's EXISTING primary
+    action, and it uses the layer's own `early` close.** Three choices inside this
+    one. *Where:* Today's single primary button already changes its label and its
+    action with the state (`Start …`, `Resume …`, `Review today's workout`,
+    `Why today's workout cannot open`); `Close the unfinished workout` is one more
+    of those, so no element is added to an owner-approved screen. *What:* the
+    accepted `completion_kind: 'early'` — the kind the capture layer already
+    carries for a session that did not finish. Rejected: `normal` (it would claim
+    the athlete completed sets they never did) and anything that removes the Start
+    (the log is append-only, and the sets that were done are real). *How:* on a
+    host standing on the session's own day, because the accepted continuation
+    prepares the CURRENT capture and refuses a slot mapping that does not match —
+    `WORKOUT_RESUME_SLOT_MAPPING_REQUIRED`, executed, not assumed. Rejected:
+    closing it silently on the athlete's behalf at boot (a durable write nobody
+    asked for), and leaving it documented as a limit (the reviewer is right that a
+    recoverable trap should be recovered, not annotated).
 
 ---
 
@@ -667,7 +847,7 @@ the file was restored, and the restored sha256 was checked equal to the original
 Driver output is reproduced verbatim:
 
 ```
-M1 the enrolment drops the outbox accounting the client requires — KILLED (71 failing) — restored byte-for-byte
+M1 the enrolment drops the outbox accounting the client requires — KILLED (80 failing) — restored byte-for-byte
 M2 a refused set is reported as saved — KILLED (4 failing) — restored byte-for-byte
 M3 the rep target is computed locally instead of read from the capture — KILLED (4 failing) — restored byte-for-byte
 M4 an effort answer is preselected — KILLED (4 failing) — restored byte-for-byte
@@ -679,14 +859,23 @@ B1-M9 Today calls a REFUSED workout ready and offers Start — KILLED (1 failing
 B1-M10 an ENGINE refusal is blamed on the device — KILLED (2 failing) — restored byte-for-byte
 B1-M11 a refusal prints its code twice (CODE · CODE) — KILLED (2 failing) — restored byte-for-byte
 B2-M12 the weigh-in is acknowledged before the repository transaction completes — KILLED (3 failing) — restored byte-for-byte
-B2-M13 the reading lane takes the workout lane's schema, so its writes are refused — KILLED (22 failing) — restored byte-for-byte
-B2-M14 the screen reads its own cache instead of the client's projection — KILLED (16 failing) — restored byte-for-byte
+B2-M13 the reading lane takes the workout lane's schema, so its writes are refused — KILLED (23 failing) — restored byte-for-byte
+B2-M14 the screen reads its own cache instead of the client's projection — KILLED (17 failing) — restored byte-for-byte
+R2-M15 the causal frontier is remembered per page load instead of derived from the log — KILLED (9 failing) — restored byte-for-byte
+R2-M16 the pre-write order guard is switched off on the screen — KILLED (3 failing) — restored byte-for-byte
+R2-M17 the probe says ready without running the order check — KILLED (3 failing) — restored byte-for-byte
+R2-M18 Start writes first and checks afterwards — KILLED (2 failing) — restored byte-for-byte
+R2-M19 the tip walk stops at the first parent, so an older session is left unreachable — KILLED (2 failing) — restored byte-for-byte
+R2-M20 a claimed op is treated as a tip, so the frontier is not the frontier — KILLED (8 failing) — restored byte-for-byte
+R2-M21 the abandoned session is closed as if it had finished normally — KILLED (2 failing) — restored byte-for-byte
+R2-M22 an unfinished earlier session is reported as a plain refusal with no way out — KILLED (3 failing) — restored byte-for-byte
+R2-M23 the recovery is reported as done before the layer acknowledges it — KILLED (2 failing) — restored byte-for-byte
+R2-M24 Today offers Start over an unfinished earlier session — KILLED (1 failing) — restored byte-for-byte
 ```
 
-14 applied, **14 KILLED, 0 survived**. M1–M8 are round 1's set, re-run unchanged
-against round 2's code (their failing counts moved because the A1 test files they
-also cross now exercise the durable reading lane). M9–M14 are new, and exist
-because of this review.
+24 applied, **24 KILLED, 0 survived**. M1–M8 are round 1's set and M9–M14 round
+2's, all re-run unchanged against this code. M15–M24 are new, and exist because of
+the REJECT.
 
 * **M1** (the brief's "skip the outbox entry") drops `outbox` from the enrolment
   checkpoint the client's own integrity check requires — the whole gym card then
@@ -722,6 +911,31 @@ because of this review.
 * **B2-M14** makes the Today screen render from an in-memory cache it keeps itself
   instead of re-reading the client's projection, which is how a store-of-record
   quietly turns back into a cache. 16 tests fail.
+* **R2-M15** is the REJECT itself, reduced to one line: the frontier stops being
+  derived from the generation and goes back to whatever this host happens to
+  remember. The multi-day tests fail — which is the whole point, because round 1's
+  suite did not.
+* **R2-M16 / R2-M17 / R2-M18** switch off the pre-write guard, the probe's use of
+  it, and Start's use of it, one at a time. **M18 survived its first run**: every
+  test reached Start through a probe that had already refused, so Start's own
+  re-check was never exercised alone. The fix is a test for the race that makes it
+  matter — the store changing BETWEEN the probe and the tap — and the re-run killed
+  it. Reported because it found a real gap in the tests, not because 24/24 reads
+  better.
+* **R2-M19** stops the ancestry walk after two hops, so an older session drops out
+  of reach; **R2-M20** inverts the tip filter so the "frontier" is made of ops that
+  are already claimed. Both are the ways a derivation can look right and be wrong.
+* **R2-M21** closes the abandoned session as `normal` instead of `early` — a
+  recovery that quietly claims the athlete finished sets they never did.
+* **R2-M22** drops the unfinished-session branch, so the screen falls back to
+  printing `WORKOUT_HISTORY_RECONCILIATION_REQUIRED` with no way out: round 1's
+  behaviour, and the trap the reviewer named.
+* **R2-M23** returns success from the recovery without checking that the layer
+  acknowledged the close. **It survived its first run** — the recovery's one write
+  had only ever been exercised on the happy path — so a storage fault was injected
+  into that close, and the re-run killed it.
+* **R2-M24** makes Today offer `Start` over an unfinished earlier session, which is
+  the screen half of the same trap.
 
 Beyond these, the tests carry negative controls of their own: an injected IndexedDB
 quota fault, four efforts outside the accepted domain, a split dated 2031, a second
@@ -733,25 +947,58 @@ phrase and a copied prototype figure.
 
 ## 9. LIMITS and SEAMS — in plain language
 
-1. **The repeat-session seam — corrected diagnosis (review B1).** Round 1 wrote this
-   up as "a second workout on the same day is refused". That was wrong, in a way
-   that mattered: it made the seam sound like a same-day edge case, when it is
-   actually **the day-to-day path**, and it named one code when there are two. What
-   the engine actually does was measured, not guessed — a spike drove two fixtures
-   through `prepareWorkout` for fourteen consecutive days each (day 0 = 2030-02-04),
-   and the raw result is:
+1. **The repeat-session seam — diagnosed twice, and only the second one is real.**
+   Round 1 wrote this up as "a second workout on the same day is refused"; review
+   round 1 was right that this was wrong. Round 2's rewrite was **also** wrong, in
+   a way only a spike that CONDUCTS days could expose: it measured a probe, and a
+   probe cannot see what writing does. Under round 1's code the fresh athlete never
+   reached the day it named, because day +1's Start poisoned the log (§0).
+
+   This is the spike as it stands now. Each row is a whole day driven through the
+   screen's own actions on a **new host over the same storage** (a page load):
+   probe → Start → every set → Finish. `ops` is the durable operation count before
+   and after that day.
 
    ```
-   FRESH  (no prior session log)
-     day+1  ready (40 lb × 11 reps)      day+2  ENGINE_CAPTURE_NO_WORKOUT (rest day)
-     day+4  ready
-     day+3, +7, +10, +14                 PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED
-                                         (reason: resolver_failed)
-   LEGACY (carrying a ported session log)
-     day+1, +3, +4, +7, +10, +14         PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED
-                                         (reason: none)
-     day+2, +5, +6                       ENGINE_CAPTURE_NO_WORKOUT (rest days)
+   === FRESH (DECISIONS:100 — the athlete S2 ships to) ===
+   day+0  2030-02-04  probe=ready    started+recorded+closed                 ops 0->6
+   day+1  2030-02-05  probe=ready    started+recorded+closed                 ops 6->12
+   day+2  2030-02-06  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 12->12
+   day+3  2030-02-07  probe=blocked  PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED ops 12->12
+   day+4  2030-02-08  probe=blocked  PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED ops 12->12
+   day+5  2030-02-09  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 12->12
+   day+6  2030-02-10  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 12->12
+   day+7  2030-02-11  probe=blocked  PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED ops 12->12
+   day+8  2030-02-12  probe=blocked  PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED ops 12->12
+   day+9  2030-02-13  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 12->12
+   day+10 2030-02-14  probe=blocked  PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED ops 12->12
+   day+11 2030-02-15  probe=blocked  PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED ops 12->12
+   day+12 2030-02-16  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 12->12
+   day+13 2030-02-17  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 12->12
+
+   === LEGACY (the preview fixture, carrying a ported session log) ===
+   day+0  2030-02-04  probe=ready    started+recorded+closed                 ops 0->6
+   day+1  2030-02-05  probe=blocked  PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED ops 6->6
+   day+2  2030-02-06  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 6->6
+   day+3  2030-02-07  probe=blocked  PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED ops 6->6
+   day+4  2030-02-08  probe=blocked  PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED ops 6->6
+   day+5  2030-02-09  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 6->6
+   day+6  2030-02-10  probe=blocked  ENGINE_CAPTURE_NO_WORKOUT               ops 6->6
+   day+7  … day+13    the same two codes, alternating with the rest days    ops 6->6
    ```
+
+   **So, in one sentence: a FRESH athlete gets TWO whole training days, and the
+   first genuine engine wall bites on day +3** — `2030-02-07`,
+   `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` with reason `resolver_failed`. Days 0
+   and 1 are this athlete's two distinct split days (Upper, then Lower); day +2 is
+   a rest day; day +3 comes back to day 0's lifts, and the engine then needs the
+   numeric native trend context no accepted host composes. A **LEGACY** athlete
+   gets exactly ONE day and is walled from day +1 by
+   `PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED`.
+
+   Every row after the wall was checked for something stronger than a code: the
+   durable history still READS, both recorded sessions are still there, and the op
+   count never moves. A refused day writes nothing, and the log is never poisoned.
 
    Read plainly, there are **three distinct outcomes**, and A2 must not blur them:
 
@@ -762,7 +1009,8 @@ phrase and a copied prototype figure.
      happily; the next scheduled day whose lifts already have an app-recorded
      session refuses, because `rebuild/engine/performed.cjs` asks for a
      `nativeTrendContext` provider that no accepted host composes. A day with
-     *different* lifts still prepares — which is why day+4 is green and day+3 is not.
+     *different* lifts still prepares — which is why day +1 is green and day +3 is
+     not.
    * `PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED` (no reason) is the **legacy
      athlete's** wall, and it is harder: an athlete carrying a ported session log is
      refused on *every* later scheduled day, including ones with untouched lifts,
@@ -780,17 +1028,18 @@ phrase and a copied prototype figure.
    gym.test.mjs "a layer refusal on the gym screen names the layer, not the device")
    and three mutants (B1-M9/M10/M11) confirm each half independently.
 
-   **The path S2 actually needs is asserted.** DECISIONS:100 says Joe starts
-   **FRESH** at S2, so the fresh daily path — not the legacy one — is what S2 ships
-   on. `gym.test.mjs` asserts it end to end: *"A2 — a FRESH athlete (DECISIONS:100,
-   Joe at S2) records a session, and the layer says when it will not prepare
-   another"* covers day 1 prepares/records/closes, a second same-day session refused
-   with the layer's own code, the next day preparing normally, a rest day being a
-   rest day and not a refusal, and the same lifts' next session refusing
-   `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`. A second test,
+   **The path S2 actually needs is CONDUCTED, not probed.** DECISIONS:100 says Joe
+   starts **FRESH** at S2, so the fresh daily path is what S2 ships on.
+   *"A2 — a FRESH athlete (DECISIONS:100, Joe at S2) trains day after day, each day
+   on a NEW page load"* drives it: day 1 prepared, started, every set recorded,
+   closed (`ops 0→6`); day 2 on a new host over the same storage, the same again
+   (`ops 6→12`) with its Start's `causal_parents` asserted to be **exactly day 1's
+   close**; day 3 a rest day that writes nothing; day 4 the first wall with nothing
+   written; then six later days each checked for a readable history, two intact
+   sessions and an unmoved op count. A second group,
    *"an athlete carrying a LEGACY session log (Joe after the S3 port) is refused a
    second session outright"*, pins the other code so a future provider cannot land
-   silently.
+   silently. The browser check runs the same two days for real (§6).
 
    **Where the fix belongs.** Both are **engine-tier provider gaps, not screen
    work**: the *native trend-context provider* and the *legacy-order-mapping
@@ -800,6 +1049,13 @@ phrase and a copied prototype figure.
    S2 gives Joe a correct first session per lift, correct rest days, and an honest
    refusal in the layer's own words on the days it will not prepare — which is what
    the accepted layer can truthfully support today.
+
+   **What this is NOT.** It is not the round-2 defect. That one was A2's own
+   (`causal_parents`), it wrote to disk, it could not be recovered, and it is
+   fixed. These two are engine refusals that write nothing and leave the log
+   readable. The difference matters because it decides who fixes what: the first
+   was a screen-tier bug in my custody; these are provider gaps in someone
+   else's. A reviewer should confirm that separation holds — see §10.0b.
 2. **`previous performance` is reachable but thin.** For this synthetic athlete the
    engine returns a governing-last line from the fixture's own session log, so the
    line renders; for an athlete with none it is absent, and a test proves both
@@ -822,11 +1078,19 @@ phrase and a copied prototype figure.
    (verified PIDs, `taskkill /F /T`, poll-to-zero, relaunch) leaves both the weigh-in
    and the in-progress workout present. Collapsing them into a single generation is
    a **client-tier** change (schema/lease binding), not a screen one.
-4. **No skip, no early finish, no correction.** The accepted layer supports all
-   three (`skip`, `completion_kind: 'early'`, `correct`). A2 wires none: the Finish
-   action appears only when every slot is recorded, and it closes `normal`. A session
-   the athlete abandons stays open and Today keeps offering **Resume** — honest, but
-   there is no way to close it early from the screen.
+4. **No skip and no correction; early finish only as a recovery.** The accepted
+   layer supports three things A2 does not fully wire (`skip`,
+   `completion_kind: 'early'`, `correct`). `early` is now wired, but for one
+   purpose only: closing a session abandoned on an **earlier** day, which otherwise
+   blocks every later day (review round 2, point 3). Within the day itself the
+   Finish action still appears only when every slot is recorded and still closes
+   `normal`, and Today keeps offering **Resume** — so an athlete who wants to stop
+   a session short *today* still has no button for it, and must either finish it or
+   leave it until tomorrow, when the recovery offers the early close. That
+   asymmetry is deliberate rather than overlooked: an in-day early finish is a
+   product decision about what a partial session means for the engine's next
+   prescription, and it belongs to the owner, not to a builder closing a review
+   finding. `skip` and `correct` remain unwired entirely.
 5. **No rest timer** (§7.5), and no rest length anywhere.
 6. **`Review today’s workout` is a label, not a screen.** Tapping it opens the gym
    card, which reports the session is recorded and how many sets it holds. There is
@@ -882,7 +1146,38 @@ phrase and a copied prototype figure.
 
 ## 10. What the reviewer should attack first
 
-**Round 2 first — the two blocking fixes are the things to break.**
+**The REJECT first. That is where the risk is.**
+
+0z. **The causal frontier.** The claim is that a page load can no longer lose the
+   lineage, because there is nothing to lose — the parents are recomputed from the
+   generation being written. Attack the derivation, not the story. The two shapes
+   that are not a single chain are pinned by tests, and both carry **more than one
+   tip**: a day containing an **Undo** has two (the close, and the removal edit the
+   close never names), and a session left **open** has one per unclaimed op. A
+   Start that descends from every tip descends from everything, which is why this
+   is carried whole rather than reduced to "the last close". Decide whether you
+   agree with that reading, and look for a third shape I have not thought of. Then
+   run more than two days — the spike stops at fourteen because the *engine* wall
+   stops the athlete, but the *order* machinery is what I changed, and it deserves
+   a longer run than the engine allows here.
+0y. **The pre-write guard, and whether "refuse before writing" is the right
+   answer.** I claim there is no accepted recovery once an unorderable Start is on
+   disk, because the order refusal takes down the history read that resume and
+   close both authenticate through. Check that claim directly: write such a Start
+   by hand into a generation and try every accepted path to retire it. If one
+   works, decision 19 is wrong and the screen should offer it.
+0w. **The abandoned-session recovery.** This is the one place A2 adds a durable
+   write the athlete did not explicitly ask for in the moment — they asked to close
+   an old session, and the layer writes an `early` close. Read decision 21 and
+   disagree with any of its three choices. Check in particular that a host built for
+   *another* day cannot do anything except that close, and that closing a session
+   on its own day does not disturb the causal tips in a way the next Start then
+   inherits.
+0x. **The multi-day tests themselves.** Round 1's suite was green while the product
+   was broken, so the tests are now as much the deliverable as the code. Read
+   `conductDay` and ask what it would let through. It asserts the phase after the
+   Start, that Finish returned ok, and the op count — is that enough? Add a day 3
+   to the browser check if you can find an athlete the engine will prepare one for.
 
 0a. **B2, the store of record.** The claim is that the weigh-in is now as durable as
    the workout. Attack it: pull the plug harder than `gym-check.mjs` does, clear one
@@ -917,9 +1212,13 @@ phrase and a copied prototype figure.
    sentence even for a set, which is the client's wording and not A2's, but a
    reviewer may judge that showing it beside the code is worse than showing the code
    alone.
-6. **The mutants.** Re-run all 14, and add your own: try storing a number for the
+6. **The mutants.** Re-run all 24, and add your own: try storing a number for the
    unknown effort, try reading the strip's "logged" count from the screen rather than
-   the log, try letting `finish()` close a session with an unrecorded slot. Note that
-   **B1-M10 survived its first run** (§8) — the suite could not see who a refusal
-   blamed until a test was added for it. Assume there are more blind spots of that
-   shape and aim there.
+   the log, try letting `finish()` close a session with an unrecorded slot, try
+   writing a Start whose parents are yesterday's tip rather than today's. Note that
+   **three mutants survived their first run** (§8): B1-M10, because nothing read who
+   a refusal blamed; R2-M18, because every path to Start went through a probe that
+   had already refused; and R2-M23, because the recovery's one write had only ever
+   been exercised succeeding. All three gaps were in the tests, not the code, and
+   all three were the same shape — a check that was never exercised on its own.
+   Assume there are more, and aim there.

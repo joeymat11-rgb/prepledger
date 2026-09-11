@@ -77,7 +77,14 @@ export function effortInstruction(slot) {
 
 const sameSlot = (a, b) => a && b && a.logical_set_slot === b.logical_set_slot && a.lift_lineage_id === b.lift_lineage_id;
 
-export function createGymModel({ gymHost, sessionTitle } = {}) {
+/* hostForDay(date) builds a host for a day that is NOT today, over the same device
+   storage. It is needed for exactly one thing: closing a session the athlete
+   abandoned on an earlier day. The accepted continuation prepares the CURRENT
+   capture for the host's own day and refuses a slot mapping that does not match
+   (WORKOUT_RESUME_SLOT_MAPPING_REQUIRED, executed), so the only host that can
+   retire that session is one standing on the day it belongs to. When no factory is
+   supplied the recovery is simply unavailable and says so; nothing is guessed. */
+export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
   if (!gymHost || !gymHost.host) throw new TypeError('createGymModel requires a composed gym host');
   const { host, engine, day, plannedSplitSlotId } = gymHost;
   const client = host.client;
@@ -140,10 +147,35 @@ export function createGymModel({ gymHost, sessionTitle } = {}) {
     return 'Last time: ' + prev.w + ' lb × ' + reps;
   }
 
+  /* The host's pre-write order guard, in the shape every other refusal here
+     takes. It never invents a reason: the host derives both the code and the
+     sentence from the durable log. */
+  async function orderRefusal() {
+    if (typeof gymHost.startOrderRefusal !== 'function') return null;
+    const refusal = await gymHost.startOrderRefusal();
+    return refusal ? { code: refusal.code, copy: refusal.reason || null } : null;
+  }
+
   async function history() {
     const read = await client.readWorkoutHistory();
     if (!read.read) return { ok: false, ...refusalOf(read) };
     return { ok: true, history: read.history };
+  }
+
+  /* A session from an EARLIER day that was never closed. The accepted client
+     refuses to prepare a new workout while one is open (its own
+     WORKOUT_HISTORY_RECONCILIATION_REQUIRED), so without this the athlete is
+     stuck: today's card can neither start nor see the thing that is blocking it. */
+  function unfinishedBefore(list) {
+    for (const session of list.sessions || []) {
+      if (session.projection.close_records.length) continue;
+      const record = session.projection.start_record;
+      const date = record && record.current && record.current.effective && record.current.effective.local_date;
+      if (!date || date === day) continue;
+      return { startId: session.start.operation.op_id, day: date,
+        sets: session.projection.facts.filter(f => f.included === true).length };
+    }
+    return null;
   }
 
   function sessionsToday(list) {
@@ -237,7 +269,20 @@ export function createGymModel({ gymHost, sessionTitle } = {}) {
           lifts: [...new Set(facts.map(f => f.lift_lineage_id))].length };
       }
       const prepared = await client.prepareWorkout({ planned_split_slot_id: plannedSplitSlotId });
-      if (!prepared.prepared) { preparedId = null; return { ...base, phase: 'blocked', ...refusalOf(prepared) }; }
+      if (!prepared.prepared) {
+        preparedId = null;
+        /* If an earlier day's session is what is holding this shut, say so and
+           offer the accepted close rather than printing a code the athlete can do
+           nothing with. */
+        const stale = unfinishedBefore(listed.history);
+        if (stale) return { ...base, phase: 'unfinished', unfinished: stale, ...refusalOf(prepared) };
+        return { ...base, phase: 'blocked', ...refusalOf(prepared) };
+      }
+      /* The probe and Start run the SAME check over the SAME generation, so a
+         screen that says "ready" cannot be followed by a Start that writes and
+         then blocks (review round 2). */
+      const unorderable = await orderRefusal();
+      if (unorderable) { preparedId = null; return { ...base, phase: 'blocked', ...unorderable }; }
       preparedId = prepared.preparedId;
       readPrevious();
       const shape = slotsView(prepared.view.slots.map(slot => ({ ...slot, completion: null })), prepared.view);
@@ -289,10 +334,15 @@ export function createGymModel({ gymHost, sessionTitle } = {}) {
 
   async function start() {
     if (!preparedId) { const view = await read(); if (view.phase !== 'ready') return { ok: false, code: view.code || 'WORKOUT_NOT_READY', copy: view.copy || null }; }
+    /* Re-run the guard immediately before the write, against the generation the
+       write will land on. A Start that cannot be ordered is refused here and
+       NOTHING is stored — there is no accepted path that could retire it
+       afterwards, so it must never reach the log. */
+    const unorderable = await orderRefusal();
+    if (unorderable) { preparedId = null; message = unorderable; return { ok: false, ...unorderable }; }
     const result = await client.startPreparedWorkout({ preparedId });
     preparedId = null;
     if (result.acknowledged !== true) return remember(result);
-    gymHost.setCausalParents([result.op_id]);
     saved = null;
     return { ok: true, opId: result.op_id };
   }
@@ -346,12 +396,41 @@ export function createGymModel({ gymHost, sessionTitle } = {}) {
     const result = await client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'close', input: {
       session_start_op_id: startId, completion_kind: 'normal', causal_parents: [...new Set(parents)] } });
     if (result.acknowledged !== true) return remember(result);
-    gymHost.setCausalParents([result.op_id]);
     saved = null;
     return { ok: true, opId: result.op_id };
   }
 
-  return Object.freeze({ read, start, logSet, undo, finish, forget,
+  /* THE ACCEPTED RECOVERY for a session abandoned on an earlier day (review round
+     2, point 3). It closes it with the layer's own `early` completion kind — the
+     kind the accepted commands already carry for a session that did not finish —
+     on a host standing on that session's own day, because that is the only host
+     whose current capture maps to its slots. Everything about it is the accepted
+     layer's: the continuation, the close command, the causal parents taken from
+     the slots that were actually recorded. Nothing is deleted, and the sets that
+     were done stay exactly as they were logged. */
+  async function closeUnfinished({ startId, day: sessionDay } = {}) {
+    if (typeof startId !== 'string' || !startId.trim() || typeof sessionDay !== 'string' || !sessionDay.trim())
+      return { ok: false, code: 'WORKOUT_RECOVERY_TARGET_REQUIRED', copy: null };
+    if (typeof hostForDay !== 'function') {
+      message = { code: 'WORKOUT_RECOVERY_UNAVAILABLE', copy: null };
+      return { ok: false, ...message };
+    }
+    const other = await hostForDay(sessionDay);
+    try {
+      const handle = await other.host.client.prepareWorkoutContinuation({ session_start_op_id: startId });
+      if (!handle.prepared) return remember(handle);
+      const parents = [startId, ...handle.view.slots.filter(s => s.completion).map(s => s.completion.op_id)];
+      const result = await other.host.client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'close',
+        input: { session_start_op_id: startId, completion_kind: 'early',
+          causal_parents: [...new Set(parents)] } });
+      if (result.acknowledged !== true) return remember(result);
+      return { ok: true, opId: result.op_id };
+    } finally {
+      if (typeof other.close === 'function') other.close();
+    }
+  }
+
+  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift, day });
 }

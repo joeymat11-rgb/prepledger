@@ -69,6 +69,8 @@ const WORKOUT_RECORDED_TODAY = "Workout recorded";
 const REVIEW_WORKOUT = "Review today’s workout";
 const WORKOUT_CANNOT_OPEN = "Today’s workout cannot open";
 const WHY_WORKOUT_CANNOT_OPEN = "Why today’s workout cannot open";
+const UNFINISHED_WORKOUT = "An earlier workout was never finished";
+const CLOSE_UNFINISHED_WORKOUT = "Close the unfinished workout";
 /* The ONE sentence that is about this device. It is used only when the page has no
    workout host at all — never for a refusal that came from the accepted layer. */
 const NO_LOCAL_STORE = "Your workout could not be opened on this device, and nothing was recorded.";
@@ -195,8 +197,14 @@ function mountToday(doc, model, options = {}) {
        described as a fault of this device. */
     const today = session();
     const refused = today && today.phase === "blocked" ? (today.code || null) : null;
+    /* A session abandoned on an EARLIER day blocks every later day in the accepted
+       client. It is not a dead end: the layer's own `early` close retires it, so
+       Today names it and offers that close rather than printing a code the athlete
+       can do nothing about (review round 2, point 3). */
+    const stranded = today && today.phase === "unfinished" ? today.unfinished : null;
     const sessionState = today && today.phase === "active" ? WORKOUT_IN_PROGRESS
       : today && today.phase === "finished" ? WORKOUT_RECORDED_TODAY
+      : stranded ? UNFINISHED_WORKOUT + " · " + stranded.day
       : refused ? WORKOUT_CANNOT_OPEN + " · " + refused : null;
     put(map, "workout-count", view.workout.exerciseCount === null
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
@@ -213,12 +221,23 @@ function mountToday(doc, model, options = {}) {
        word. A recorded workout is reviewable, not restartable. */
     const resuming = !!(today && today.phase === "active");
     const action = resuming ? "Resume " + view.workout.title
+      : stranded ? CLOSE_UNFINISHED_WORKOUT
       : owed ? capitalise(view.marchingOrder.thenText || "Log this morning's weight")
       : today && today.phase === "finished" ? REVIEW_WORKOUT
       : refused ? WHY_WORKOUT_CANNOT_OPEN
       : "Start " + view.workout.title;
     put(map, "primary-label", action);
-    primary.addEventListener("click", () => (owed && !resuming ? openWeighIn() : render("workout", true)));
+    primary.addEventListener("click", async () => {
+      if (stranded) {
+        /* One durable write, through the same client as everything else, and the
+           screen repaints from what the layer answers — never from optimism. */
+        primary.disabled = true;
+        try { await workout.recover(); } finally { primary.disabled = false; }
+        render("today", false);
+        return;
+      }
+      return owed && !resuming ? openWeighIn() : render("workout", true);
+    });
     if (!owed && view.workout.exerciseCount === null) primary.disabled = true;
 
     wire(root);
@@ -413,4 +432,5 @@ function mountToday(doc, model, options = {}) {
 module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, morningLine, trendLine, dayLabel,
   ARROW, NOT_AVAILABLE, NOT_WIRED, HEADLINE_BASE, HEADLINE_FLOOR, HEADLINE_GUARD,
   WORKOUT_IN_PROGRESS, WORKOUT_RECORDED_TODAY, REVIEW_WORKOUT,
-  WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE };
+  WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,
+  UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT };

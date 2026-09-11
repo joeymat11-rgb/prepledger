@@ -25,7 +25,12 @@ export async function createWorkoutEntry(model, options = {}) {
   const day = model.today;
   const gymHost = await createGymHost({ day, engineState: model.stateFromOps(),
     plannedSplitSlotId: "earned-today-preview/" + day, ...options });
-  const gym = createGymModel({ gymHost, sessionTitle: view.workout ? view.workout.title : null });
+  /* A host standing on some OTHER day, over the same device storage. Used only to
+     close a session abandoned on an earlier day (gym-model.closeUnfinished). */
+  const hostForDay = (other) => createGymHost({ day: other, engineState: model.stateFromOps(),
+    plannedSplitSlotId: "earned-today-preview/" + other, ...options });
+  const gym = createGymModel({ gymHost, hostForDay,
+    sessionTitle: view.workout ? view.workout.title : null });
   let summary = null;
   let onRefresh = null;
   /* THE PREPARABILITY PROBE (review B1). gym.read() prepares today's workout through
@@ -35,14 +40,24 @@ export async function createWorkoutEntry(model, options = {}) {
   async function refresh() {
     const read = await gym.read();
     summary = { phase: read.phase, sets: read.done || 0, code: read.code || null,
-      copy: read.copy || null };
+      copy: read.copy || null, unfinished: read.unfinished || null };
     if (onRefresh) onRefresh();
     return summary;
+  }
+  /* The accepted close for a session abandoned on an earlier day. It writes through
+     the same client as everything else and then re-probes, so the screen reports
+     the layer's answer and never its own. */
+  async function recover() {
+    if (!summary || !summary.unfinished) return { ok: false, code: "WORKOUT_RECOVERY_TARGET_REQUIRED" };
+    const result = await gym.closeUnfinished(summary.unfinished);
+    await refresh();
+    return result;
   }
   await refresh();
   return {
     summary: () => summary,
     refresh,
+    recover,
     setOnRefresh(fn) { onRefresh = fn; },
     open({ doc, phone, back }) {
       return mountGym(doc, phone, { model: gym, onBack: back, onChanged: refresh });
@@ -68,7 +83,14 @@ export async function boot(options = {}) {
   try { readings = await createReadingHost({ day: day || TodayModel.SYNTHETIC_DAY, ...lane }); }
   catch (error) { failures.push("weigh-in store: " + (error && error.message ? error.message : String(error))); }
 
-  const model = options.model || createTodayModel({ ...(day ? { today: day } : {}), ...(readings ? { readings } : {}) });
+  /* basisState joins today / model / indexedDB / crypto as an injection point.
+     Nothing in the page supplies one — boot() is called with no arguments — so
+     the shipped screen always runs the fixture's own athlete. It exists because
+     the checks need to run the athlete DECISIONS:100 names (FRESH at S2) beside
+     the fixture's, over the same real stores. */
+  const model = options.model || createTodayModel({ ...(day ? { today: day } : {}),
+    ...(options.basisState ? { basisState: options.basisState } : {}),
+    ...(readings ? { readings } : {}) });
 
   let workout = null;
   try { workout = await createWorkoutEntry(model, lane); }

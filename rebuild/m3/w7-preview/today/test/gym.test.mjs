@@ -19,7 +19,8 @@ import assert from 'node:assert/strict';
 import { webcrypto } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { faultDatabase } from '../../../w6/test/support.mjs';
-import { createGymHost, signRecord, LEASE_DOMAIN, AUTHORITY_KID } from '../gym-host.mjs';
+import { createGymHost, signRecord, LEASE_DOMAIN, AUTHORITY_KID,
+  causalTips, startOrderRefusalOf } from '../gym-host.mjs';
 import { createGymModel, EFFORT_CHOICES, effortWords, prescriptionLine, effortInstruction } from '../gym-model.mjs';
 import { mountGym, NO_REST_PRESCRIBED, COULD_NOT_PREPARE } from '../gym-app.mjs';
 import { createWorkoutEntry } from '../today-entry.mjs';
@@ -518,33 +519,132 @@ test('A2 — Today reflects the durable workout state', async t => {
 async function lane(state, label) {
   const fault = faultDatabase();
   const keys = await deviceKeys();
+  /* on(day) is A PAGE LOAD: a brand new host over the SAME device storage and the
+     SAME key store, exactly as reopening the app builds a new host over the
+     IndexedDB that is already there. Nothing is carried in memory between these. */
   async function on(day) {
     const host = await createGymHost({ day, engineState: state, indexedDB: fault.indexedDB, crypto: webcrypto,
       deviceKeys: keys, plannedSplitSlotId: 'slot', databaseName: 'probe-' + label });
     return { host, model: createGymModel({ gymHost: host, sessionTitle: 'T' }) };
   }
-  return { on };
+  return { on, fault };
+}
+const opCount = async host => Object.keys((await host.repository.load()).generation.collections.ops || {}).length;
+const opsIn = async host => (await host.repository.load()).generation.collections.ops || {};
+
+/* Conduct one whole training day through the screen's own actions, on a host
+   that was created fresh for this day: probe, Start, every set, Finish. Returns
+   what the layer did at each step so a test can assert on it rather than on a
+   phase alone. */
+async function conductDay(handle, { expect = 'recorded' } = {}) {
+  const before = await opCount(handle.host);
+  const probe = await handle.model.read();
+  if (probe.phase !== 'ready') return { probe: probe.phase, code: probe.code, copy: probe.copy, before, after: before };
+  const started = await handle.model.start();
+  if (!started.ok) return { probe: probe.phase, startRefused: started.code, before, after: await opCount(handle.host) };
+  const afterStart = await handle.model.read();
+  const last = await logEverySet(handle.model);
+  const closed = await handle.model.finish({ startId: last.startId });
+  const settled = await handle.model.read();
+  const result = { probe: probe.phase, startOp: started.opId, phaseAfterStart: afterStart.phase,
+    sets: last.total, closed: closed.ok, closeCode: closed.code || null, settled: settled.phase,
+    before, after: await opCount(handle.host) };
+  if (expect === 'recorded') {
+    assert.equal(result.phaseAfterStart, 'active', 'a written Start must leave the screen usable');
+    assert.equal(result.closed, true, 'the session must close: ' + result.closeCode);
+    assert.equal(result.settled, 'finished');
+  }
+  return result;
 }
 const offsetDay = (day, days) => {
   const [y, m, d] = day.split('-').map(Number);
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 };
 
-test('A2 — a FRESH athlete (DECISIONS:100, Joe at S2) records a session, and the layer says when it will not prepare another', async t => {
+/* REVIEW ROUND 2 — the headline finding. The athlete does not live inside one
+   page load. These tests CONDUCT consecutive training days, each on its own new
+   host over the same storage, and assert what the layer did: the op count, the
+   phase after a written Start, and that Finish succeeded. A probe alone proves
+   nothing — round 1's suite was green while day 2 stranded the athlete. */
+test('A2 — a FRESH athlete (DECISIONS:100, Joe at S2) trains day after day, each day on a NEW page load', async t => {
   const fresh = createTodayModel({}).stateFromOps();
   fresh.sessionLog = {};
   const L = await lane(fresh, 'fresh');
+  let firstClose = null;
 
   let handle = await L.on(DAY);
-  await t.test('day 1 — the session is prepared, recorded and closed', async () => {
-    const view = await handle.model.read();
-    assert.equal(view.phase, 'ready', view.code || '');
-    assert((await handle.model.start()).ok);
-    const last = await logEverySet(handle.model);
-    assert((await handle.model.finish({ startId: last.startId })).ok);
-    assert.equal((await handle.model.read()).phase, 'finished');
+  await t.test('day 1 — prepared, started, every set recorded, closed', async () => {
+    const done = await conductDay(handle);
+    assert.equal(done.probe, 'ready');
+    assert.equal(done.before, 0);
+    assert.equal(done.after, 6, 'one Start, four sets and one close');
+    const ops = await opsIn(handle.host);
+    const close = Object.values(ops).find(op => op.kind === 'session-close');
+    firstClose = close.op_id;
+    assert.deepEqual(Object.values(ops).find(op => op.kind === 'session-start').causal_parents, [],
+      'the first session in an empty log descends from nothing');
   });
   handle.host.close();
+
+  await t.test('day 2 — a NEW page load: prepared, started, recorded, closed, and it descends from day 1', async () => {
+    handle = await L.on(offsetDay(DAY, 1));
+    /* The defect this replaces: a new host began from an empty causal frontier,
+       so this Start did not descend from day 1's close. Two concurrent Starts
+       are unorderable (WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED) and, once one
+       is on disk, every later read refuses WORKOUT_HISTORY_RECONCILIATION_REQUIRED
+       forever. The parents are now DERIVED from the stored log on every
+       resolution, so a page load cannot lose them. */
+    const done = await conductDay(handle);
+    assert.equal(done.probe, 'ready');
+    assert.equal(done.before, 6);
+    assert.equal(done.after, 12, 'a second whole session really is on disk');
+    const ops = await opsIn(handle.host);
+    const start = Object.values(ops).find(op => op.kind === 'session-start' && op.op_id === done.startOp);
+    assert.deepEqual(start.causal_parents, [firstClose],
+      'day 2 descends from day 1\'s close, read off the log and not remembered');
+    handle.host.close();
+  });
+
+  await t.test('day 3 — a rest day is not a refusal: the engine schedules no session', async () => {
+    handle = await L.on(offsetDay(DAY, 2));
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'blocked');
+    assert.equal(view.code, 'ENGINE_CAPTURE_NO_WORKOUT');
+    assert.equal(await opCount(handle.host), 12, 'a rest day writes nothing');
+    handle.host.close();
+  });
+
+  /* THE FIRST GENUINE ENGINE WALL, and the day it bites. Days 1 and 2 are this
+     athlete's two distinct training days; day 4 comes back to day 1's lifts, and
+     the engine then needs the numeric native trend context no accepted host
+     composes. It is an engine-tier provider gap, for Track B — not a screen's. */
+  await t.test('day 4 — the first wall: PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED, and nothing is written', async () => {
+    handle = await L.on(offsetDay(DAY, 3));
+    const view = await handle.model.read();
+    assert.equal(view.phase, 'blocked');
+    assert.equal(view.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
+    assert.equal(view.copy, 'resolver_failed', 'the layer\'s own reason, and no invented sentence');
+    assert.notEqual(view.copy, view.code, 'a refusal never prints its code twice');
+    const refused = await handle.model.start();
+    assert.equal(refused.ok, false, 'Start is refused, not offered');
+    assert.equal(await opCount(handle.host), 12, 'a refused day writes NOTHING');
+    handle.host.close();
+  });
+
+  await t.test('every day after the wall stays readable — the log is never poisoned', async () => {
+    for (const offset of [4, 5, 6, 7, 10, 14]) {
+      handle = await L.on(offsetDay(DAY, offset));
+      const view = await handle.model.read();
+      assert.equal(view.phase, 'blocked', 'day+' + offset);
+      assert(['ENGINE_CAPTURE_NO_WORKOUT', 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'].includes(view.code),
+        'day+' + offset + ' refuses for an ENGINE reason, never a poisoned local order: ' + view.code);
+      const read = await handle.host.host.client.readWorkoutHistory();
+      assert.equal(read.read, true, 'the durable history still reads on day+' + offset);
+      assert.equal(read.history.sessions.length, 2, 'both recorded sessions are still there');
+      assert.equal(await opCount(handle.host), 12);
+      handle.host.close();
+    }
+  });
 
   await t.test('a SECOND session on the same day is refused, with the layer\'s own code', async () => {
     handle = await L.on(DAY);
@@ -558,34 +658,238 @@ test('A2 — a FRESH athlete (DECISIONS:100, Joe at S2) records a session, and t
     assert.equal(handle.host.host.lastProducerRefusal().reason, 'resolver_failed');
     handle.host.close();
   });
+});
 
-  await t.test('the NEXT day prepares normally — its lifts have no app-recorded session yet', async () => {
+/* REVIEW ROUND 2, point 3 — the OTHER way a written Start strands the athlete, and
+   the accepted path out of it. A session abandoned mid-way blocks every later day in
+   the accepted client; A2 now names it and offers the layer's own `early` close. */
+test('A2 — a session abandoned on an earlier day is named, and the accepted close retires it', async t => {
+  const fresh = createTodayModel({}).stateFromOps();
+  fresh.sessionLog = {};
+  const L = await lane(fresh, 'abandoned');
+  const hostForDay = async (other) => (await L.on(other)).host;
+
+  let handle = await L.on(DAY);
+  let startId = null;
+  await t.test('day 1 — start, log one set, and walk away', async () => {
+    const started = await handle.model.start();
+    assert.equal(started.ok, true);
+    startId = started.opId;
+    const view = await handle.model.read();
+    const logged = await handle.model.logSet({ startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: String(view.entry.load), reps: String(view.entry.reps), effort: CHOSEN });
+    assert.equal(logged.ok, true);
+    assert.equal(await opCount(handle.host), 2, 'a Start and one set, and no close');
+  });
+  handle.host.close();
+
+  await t.test('the next day says WHICH day is unfinished, and offers the close', async () => {
     handle = await L.on(offsetDay(DAY, 1));
-    const view = await handle.model.read();
-    assert.equal(view.phase, 'ready', view.code || '');
-    assert.match(view.prescription.line, /^\d+(\.\d+)? lb × \d+ reps$/);
+    const model = createGymModel({ gymHost: handle.host, hostForDay, sessionTitle: 'T' });
+    const view = await model.read();
+    assert.equal(view.phase, 'unfinished', view.code || '');
+    assert.equal(view.code, 'WORKOUT_HISTORY_RECONCILIATION_REQUIRED',
+      'the layer\'s own code is still reported beside it');
+    assert.equal(view.unfinished.day, DAY, 'the day named is the session\'s own');
+    assert.equal(view.unfinished.startId, startId);
+    assert.equal(view.unfinished.sets, 1, 'and how much of it was recorded');
+    assert.equal(await opCount(handle.host), 2, 'naming it writes nothing');
+  });
+
+  await t.test('the close writes ONE operation, keeps the recorded set, and unblocks today', async () => {
+    const model = createGymModel({ gymHost: handle.host, hostForDay, sessionTitle: 'T' });
+    const stale = (await model.read()).unfinished;
+    const closed = await model.closeUnfinished(stale);
+    assert.equal(closed.ok, true, closed.code || '');
+    assert.equal(await opCount(handle.host), 3, 'exactly one close operation, and no deletion');
+    const ops = await opsIn(handle.host);
+    const close = ops[closed.opId];
+    assert.equal(close.kind, 'session-close');
+    assert.equal(close.payload.completion_kind, 'early',
+      'the layer\'s own kind for a session that did not finish');
+    assert.deepEqual(close.causal_parents.slice(0, 1), [startId]);
+    const read = await handle.host.host.client.readWorkoutHistory();
+    assert.equal(read.read, true);
+    assert.equal(read.history.sessions[0].projection.facts.filter(f => f.included === true).length, 1,
+      'the set the athlete actually did is still recorded');
+    const after = await model.read();
+    assert.equal(after.phase, 'ready', 'and today can now be started: ' + (after.code || ''));
+  });
+
+  /* A recovery that reports success on a write the layer refused would be the same
+     class of lie as B2-M12's optimistic weigh-in, and it is the one write on this
+     path, so it is exercised directly: a storage fault during the close. */
+  await t.test('a recovery the layer refuses is reported as refused, and records nothing', async () => {
+    const own = await lane(fresh, 'abandoned-fault');
+    const ownHostForDay = async (other) => (await own.on(other)).host;
+    let h = await own.on(DAY);
+    assert.equal((await h.model.start()).ok, true);
+    const stale = { startId: (await opsIn(h.host)) && Object.values(await opsIn(h.host))
+      .find(op => op.kind === 'session-start').op_id, day: DAY };
+    h.host.close();
+
+    h = await own.on(offsetDay(DAY, 1));
+    const model = createGymModel({ gymHost: h.host, hostForDay: ownHostForDay, sessionTitle: 'T' });
+    const before = await opCount(h.host);
+    own.fault.state.armed = true;
+    own.fault.state.mode = 'quota';
+    const refused = await model.closeUnfinished(stale);
+    own.fault.state.armed = false;
+    assert.equal(refused.ok, false, 'a refused close is never reported as done');
+    assert(refused.code, 'and it names the layer\'s own code');
+    assert.equal(await opCount(h.host), before, 'nothing survived the fault');
+    h.host.close();
+  });
+
+  await t.test('with no way to reach that day, the recovery says so and writes nothing', async () => {
+    const model = createGymModel({ gymHost: handle.host, sessionTitle: 'T' });   // no hostForDay
+    const before = await opCount(handle.host);
+    const refused = await model.closeUnfinished({ startId, day: DAY });
+    assert.equal(refused.ok, false);
+    assert.equal(refused.code, 'WORKOUT_RECOVERY_UNAVAILABLE');
+    assert.equal(await opCount(handle.host), before);
+  });
+  handle.host.close();
+});
+
+/* REVIEW ROUND 2, points 1-3 — the causal frontier itself. */
+test('A2 — the causal frontier is DERIVED from the durable log, never remembered', async t => {
+  const fresh = createTodayModel({}).stateFromOps();
+  fresh.sessionLog = {};
+  const L = await lane(fresh, 'frontier');
+
+  let handle = await L.on(DAY);
+  await t.test('an empty store has no tip, and the first Start claims none', async () => {
+    assert.deepEqual(await handle.host.causalTipsNow(), []);
+    assert.equal(await handle.host.startOrderRefusal(), null);
+    await conductDay(handle);
+  });
+  const closeId = Object.values(await opsIn(handle.host)).find(op => op.kind === 'session-close').op_id;
+  handle.host.close();
+
+  await t.test('a host that has written nothing still reports the stored tip immediately', async () => {
+    handle = await L.on(offsetDay(DAY, 1));
+    assert.deepEqual(await handle.host.causalTipsNow(), [closeId],
+      'the tip comes off the log at once, before this host has resolved anything');
+    assert.equal(handle.host.causalParents().length, 0, 'and nothing was resolved merely by opening');
     handle.host.close();
   });
 
-  await t.test('a REST day is not a refusal: the engine simply schedules no session', async () => {
-    handle = await L.on(offsetDay(DAY, 2));
-    const view = await handle.model.read();
-    assert.equal(view.phase, 'blocked');
-    assert.equal(view.code, 'ENGINE_CAPTURE_NO_WORKOUT');
+  await t.test('the probe and Start resolve the SAME parents over the SAME generation', async () => {
+    handle = await L.on(offsetDay(DAY, 1));
+    const probe = await handle.model.read();
+    assert.equal(probe.phase, 'ready');
+    const atProbe = handle.host.causalParents();
+    assert.deepEqual(atProbe, [closeId]);
+    const started = await handle.model.start();
+    assert.equal(started.ok, true);
+    const ops = await opsIn(handle.host);
+    assert.deepEqual(ops[started.opId].causal_parents, atProbe,
+      'what the probe resolved is exactly what was written');
     handle.host.close();
   });
 
-  /* The limit A2 sits on, stated as a test so it cannot be forgotten: the SECOND
-     session of a lift needs the numeric native trend context this host does not
-     compose (A0 §8.5). It is an engine-tier provider gap, for Track B. */
-  await t.test('the next session of the SAME lifts is refused: PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED', async () => {
-    handle = await L.on(offsetDay(DAY, 3));
-    const view = await handle.model.read();
-    assert.equal(view.phase, 'blocked');
-    assert.equal(view.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
-    assert.equal(view.copy, 'resolver_failed', 'the layer\'s own reason, and no invented sentence');
-    assert.notEqual(view.copy, view.code, 'a refusal never prints its code twice');
-    handle.host.close();
+  /* The guard itself, over generations written by hand, because the product can
+     no longer produce the broken one — which is the point. `gen` is the shape
+     the accepted order resolver reads: ops keyed by op_id, each with its own
+     causal_parents. */
+  const gen = ops => ({ collections: { ops: Object.fromEntries(ops.map(op => [op.op_id, op])) } });
+  const start = (id, parents, seq) => ({ op_id: id, kind: 'session-start', causal_parents: parents, device_seq: seq });
+  const close = (id, parents, seq) => ({ op_id: id, kind: 'session-close', causal_parents: parents, device_seq: seq });
+
+  await t.test('the guard refuses exactly the parents round 1 would have written', () => {
+    const empty = gen([]);
+    assert.equal(startOrderRefusalOf(empty, causalTips(empty)), null, 'an empty store is orderable');
+    const oneDay = gen([start('s1', [], 1), close('c1', ['s1'], 2)]);
+    assert.equal(startOrderRefusalOf(oneDay, causalTips(oneDay)), null,
+      'a second Start carrying the derived tip is orderable');
+    // ROUND 1's parents on ROUND 1's store: a new page load resolved [] over a
+    // log that already held a Start. That is the write that stranded the athlete.
+    const refusal = startOrderRefusalOf(oneDay, []);
+    assert(refusal, 'a Start that descends from nothing must be refused');
+    assert.equal(refusal.code, 'WORKOUT_START_ORDER_UNPROVEN');
+    assert.match(refusal.reason, /would not descend from 1 session/);
+    // An id that is not in the log at all reaches nothing, and is refused too.
+    assert(startOrderRefusalOf(oneDay, ['not-an-op']), 'an invented parent is refused');
+    // The tip of a store holding one closed session IS that close.
+    assert.deepEqual(causalTips(oneDay), ['c1']);
+  });
+
+  /* The screen must HONOUR the guard, not merely have one. A host that reports an
+     unorderable Start must never reach "ready", and Start must write nothing. */
+  await t.test('the screen honours an order refusal: never ready, and nothing is written', async () => {
+    const own = await lane(fresh, 'frontier-guard');
+    let guardHandle = await own.on(DAY);
+    await conductDay(guardHandle);                 // one recorded day on its own store
+    guardHandle.host.close();
+
+    guardHandle = await own.on(offsetDay(DAY, 1));
+    const refusal = { code: 'WORKOUT_START_ORDER_UNPROVEN', reason: 'this session would not descend from 1 session' };
+    const guarded = { ...guardHandle.host, startOrderRefusal: async () => refusal };
+    const model = createGymModel({ gymHost: guarded, sessionTitle: 'T' });
+    const before = await opCount(guardHandle.host);
+    const view = await model.read();
+    assert.equal(view.phase, 'blocked', 'a Start that cannot be ordered is never called ready');
+    assert.equal(view.code, 'WORKOUT_START_ORDER_UNPROVEN');
+    assert.equal(view.copy, refusal.reason, 'the reason is the guard\'s own, not an invented sentence');
+    const started = await model.start();
+    assert.equal(started.ok, false, 'Start is refused');
+    assert.equal(started.code, 'WORKOUT_START_ORDER_UNPROVEN');
+    assert.equal(await opCount(guardHandle.host), before, 'and NOTHING was written');
+    guardHandle.host.close();
+  });
+
+  /* The race the probe alone cannot close: the store changes BETWEEN the probe and
+     the tap. Start re-checks against the generation it is about to write on, so a
+     "ready" screen from a moment ago still cannot produce an unorderable Start. */
+  await t.test('Start re-checks at the moment of writing, not only at the probe', async () => {
+    const own = await lane(fresh, 'frontier-race');
+    let raceHandle = await own.on(DAY);
+    await conductDay(raceHandle);
+    raceHandle.host.close();
+
+    raceHandle = await own.on(offsetDay(DAY, 1));
+    let asked = 0;
+    const racing = { ...raceHandle.host,
+      // Orderable when the screen probes; unorderable by the time the athlete taps.
+      startOrderRefusal: async () => (asked++ === 0 ? null
+        : { code: 'WORKOUT_START_ORDER_UNPROVEN', reason: 'the store moved under this preparation' }) };
+    const model = createGymModel({ gymHost: racing, sessionTitle: 'T' });
+    const before = await opCount(raceHandle.host);
+    assert.equal((await model.read()).phase, 'ready', 'the probe was satisfied');
+    const started = await model.start();
+    assert.equal(started.ok, false, 'the write is refused on the re-check');
+    assert.equal(started.code, 'WORKOUT_START_ORDER_UNPROVEN');
+    assert.equal(await opCount(raceHandle.host), before, 'and NOTHING reached the log');
+    raceHandle.host.close();
+  });
+
+  /* A store is not always a single chain. An Undo leaves a removal edit that the
+     close never names as a parent, so that day has TWO tips; a session left open
+     has one tip per unclaimed op. Both are carried whole — a Start that descends
+     from every tip descends from everything — and this pins the shapes rather
+     than assuming a chain. */
+  await t.test('a day containing an Undo has two tips, and both are carried', () => {
+    const set = (id, parents, seq) => ({ op_id: id, kind: 'session-set', causal_parents: parents, device_seq: seq });
+    const tomb = (id, parents, seq) => ({ op_id: id, kind: 'tombstone', causal_parents: parents, device_seq: seq });
+    const undone = gen([start('s1', [], 1), set('x1', [], 2), tomb('t1', ['x1'], 3),
+      set('x2', [], 4), close('c1', ['s1', 'x2'], 5)]);
+    assert.deepEqual(causalTips(undone), ['t1', 'c1'], 'the removal edit is a tip of its own');
+    assert.equal(startOrderRefusalOf(undone, causalTips(undone)), null);
+    // An open session: the Start and its sets are each unclaimed.
+    const open = gen([start('s1', [], 1), set('x1', [], 2), set('x2', [], 3)]);
+    assert.deepEqual(causalTips(open), ['s1', 'x1', 'x2']);
+    assert.equal(startOrderRefusalOf(open, causalTips(open)), null,
+      'a later Start still reaches the open session\'s Start');
+  });
+
+  await t.test('the tip of a store holding two closed sessions is the LAST close, and nothing else', () => {
+    const two = gen([start('s1', [], 1), close('c1', ['s1'], 2), start('s2', ['c1'], 3), close('c2', ['s2'], 4)]);
+    assert.deepEqual(causalTips(two), ['c2']);
+    assert.equal(startOrderRefusalOf(two, causalTips(two)), null,
+      'a third Start on the derived tip reaches BOTH recorded sessions');
+    assert(startOrderRefusalOf(two, ['c1']),
+      'the tip of the FIRST day is stale: it does not reach the second session');
   });
 });
 

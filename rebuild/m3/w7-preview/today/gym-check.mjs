@@ -42,6 +42,15 @@ const VIEWPORT = { width: 390, height: 844 };
 const FICTIONAL = ["135 lb", "9 reps", "2:30", "+30 seconds", "Exercise 1 of 9", "All 9",
   "Chest press complete", "Machine fly"];
 
+// The SECOND training day, for the multi-day run below. The page's own entry
+// point takes the day; nothing about the product changes to reach it.
+const hereRequire = createRequire(import.meta.url);
+const DAY_ONE = hereRequire("./today-model.cjs").SYNTHETIC_DAY;
+const DAY_TWO = (() => {
+  const [y, m, d] = DAY_ONE.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + 1)).toISOString().slice(0, 10);
+})();
+
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), "a2-gym-profile-"));
 const server = await startServer({ port: 0 });
 const url = `http://127.0.0.1:${server.address().port}/`;
@@ -274,6 +283,105 @@ try {
     "the finished workout survived a second REAL process kill");
   assert.equal(await text(page, '[data-slot="morning"]'), "This morning ✓ 179.4 lb",
     "and so did the morning reading");
+
+  /* ---------- REVIEW ROUND 2: THE SECOND TRAINING DAY ----------
+     The athlete does not live inside one page load. This opens the page's OWN
+     entry point on the next day, over the same device storage, and conducts a
+     whole second session: weigh in, Start, every set, Finish. Round 1's build
+     wrote a Start here that could never be ordered again, and every later day
+     refused WORKOUT_HISTORY_RECONCILIATION_REQUIRED for good. */
+  /* First, the SHIPPED fixture's own day 2. This preview athlete carries a ported
+     (legacy) session log, so the ENGINE refuses every later scheduled day with its
+     own code until a legacy-order-mapping provider exists (report §9.1). The point
+     here is that it refuses, in the layer's words, and writes NOTHING. */
+  const shippedDayTwo = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const booted = await mod.boot({ today: day });
+    const ops = (await booted.workout.gymHost.repository.load()).generation.collections.ops || {};
+    return { summary: booted.workout.summary(), ops: Object.keys(ops).length };
+  }, DAY_TWO);
+  assert.equal(shippedDayTwo.summary.phase, "blocked", JSON.stringify(shippedDayTwo.summary));
+  assert.equal(shippedDayTwo.summary.code, "PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED",
+    "the ported-log athlete is walled by the ENGINE, in its own words: " + shippedDayTwo.summary.code);
+  // Day 1 left 8 operations: a Start, the set that was logged and then undone,
+  // its removal edit, the four sets that stand, and the close.
+  assert.equal(shippedDayTwo.ops, 8, "a refused day writes nothing: " + shippedDayTwo.ops);
+
+  /* Now the athlete S2 actually ships to. DECISIONS:100 has Joe starting FRESH, so
+     the daily path that matters is the one without a ported log — same device, same
+     encrypted stores, same page entry point, same durable session day 1 left. */
+  const dayTwo = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const fresh = mod.createTodayModel({}).stateFromOps();
+    fresh.sessionLog = {};
+    const booted = await mod.boot({ today: day, basisState: fresh });
+    return { failures: booted.failures, summary: booted.workout ? booted.workout.summary() : null };
+  }, DAY_TWO);
+  assert.deepEqual(dayTwo.failures, [], "day 2 opened both durable lanes: " + JSON.stringify(dayTwo.failures));
+  assert(dayTwo.summary, "day 2 has a workout entry");
+  assert.equal(dayTwo.summary.phase, "ready",
+    "day 2 prepares on the same device, over day 1's stored session: " + JSON.stringify(dayTwo.summary));
+
+  await page.waitForSelector('[data-slot="morning"]');
+  assert.equal(await text(page, '[data-slot="morning"]'), "This morning — not logged yet",
+    "day 2 has its own morning, and yesterday's reading is not reused");
+  await page.click('[data-slot="primary"]');
+  await page.waitForSelector("#morning-weight");
+  await page.fill("#morning-weight", "178.9");
+  await page.click('[role="dialog"] button[type="submit"]');
+  await page.waitForSelector('[role="dialog"]', { state: "detached" });
+  await page.waitForFunction(() => /✓/.test(document.querySelector('[data-slot="morning"]').textContent));
+  assert.match(await text(page, '[data-slot="primary-label"]'), /^Start /,
+    "day 2 offers Start, not a refusal");
+
+  await page.click('[data-slot="primary"]');
+  await page.waitForSelector('[data-slot="log"]');
+  let dayTwoGuard = 0;
+  while (await seen(page, '[data-slot="log"]')) {
+    if (dayTwoGuard++ > 20) throw new Error("day 2 never finished");
+    await page.click('.choice:nth-child(3)');
+    await page.click('[data-slot="log"]');
+    await page.waitForSelector('[data-slot="primary-label"]');
+    const label = await text(page, '[data-slot="primary-label"]');
+    if (label === "Finish this workout") break;
+    assert.match(label, /^Ready for set /, "day 2, set " + dayTwoGuard + ": " + label);
+    await page.click('[data-slot="primary"]');
+    await page.waitForSelector('[data-slot="log"]');
+  }
+  assert.equal(await text(page, '[data-slot="primary-label"]'), "Finish this workout");
+  await page.click('[data-slot="primary"]');
+  await page.waitForSelector('[data-slot="workout-count"]');
+  assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
+    "day 2 recorded a whole second session");
+
+  /* ---------- a THIRD real kill, then read both days back ---------- */
+  await hardKill(context);
+  ({ context, page } = await launch());
+  const bothDays = await page.evaluate(async (day) => {
+    const mod = await import(new URL("app.js", location.href).href);
+    const fresh = mod.createTodayModel({}).stateFromOps();
+    fresh.sessionLog = {};
+    const booted = await mod.boot({ today: day, basisState: fresh });
+    const read = await booted.workout.gymHost.host.client.readWorkoutHistory();
+    const ops = (await booted.workout.gymHost.repository.load()).generation.collections.ops || {};
+    const starts = Object.values(ops).filter((op) => op.kind === "session-start");
+    return { read: read.read, sessions: read.read ? read.history.sessions.length : null,
+      summary: booted.workout.summary(), morning: booted.readings ? (await booted.readings.reads()).length : null,
+      ops: Object.keys(ops).length,
+      orphanStarts: starts.filter((op) => op.causal_parents.length === 0).length };
+  }, DAY_TWO);
+  assert.equal(bothDays.read, true, "the durable history still reads after the third REAL kill");
+  assert.equal(bothDays.sessions, 2, "BOTH training days are on disk: " + bothDays.sessions);
+  assert.equal(bothDays.summary.phase, "finished", "day 2 is still recorded: " + JSON.stringify(bothDays.summary));
+  assert.equal(bothDays.ops, 14, "day 1's eight operations plus day 2's six: " + bothDays.ops);
+  assert.equal(bothDays.orphanStarts, 1,
+    "exactly one Start descends from nothing — the first; day 2 descends from day 1's close");
+  assert.equal(bothDays.morning, 2, "both mornings are in the encrypted reading store");
+
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector('[data-slot="workout-count"]');
+  assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
+    "and day 1 is still recorded on a plain reload");
   const finalText = await page.textContent("#phone");
   for (const figure of FICTIONAL) assert(!finalText.includes(figure), "prototype figure on screen: " + figure);
 
@@ -287,15 +395,19 @@ try {
   assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));
   await context.close();
 
-  assert.equal(kills, 2, "two REAL process kills were executed");
+  assert.equal(kills, 3, "three REAL process kills were executed");
   assert.deepEqual(problems, [], "no page error, console error or offsite request");
-  console.log("A2 GYM BROWSER CHECK PASS — Today -> Start -> active set (prescription shown separately from "
-    + "editable performed values, no effort preselected) -> refusal without an effort answer -> logged with an "
-    + "explicit unknown effort -> saved facts + Undo + rest + next set -> Undo removed it -> relogged -> "
-    + "REAL PROCESS KILL (taskkill /F /T on every chrome.exe of the persistent profile, kill verified) -> the "
-    + "weigh-in AND the in-progress workout both came back out of the encrypted store and the session resumed at "
-    + "the next set -> finished -> Today says recorded, through a reload, a new page and a SECOND real kill. "
-    + "localStorage holds nothing. Headroom: " + notes.join(", ")
+  console.log("A2 GYM BROWSER CHECK PASS — TWO TRAINING DAYS across three REAL process kills. DAY 1: "
+    + "Today -> weigh-in -> Start -> active set (prescription shown separately from editable performed values, "
+    + "no effort preselected) -> refusal without an effort answer -> logged with an explicit unknown effort -> "
+    + "saved facts + Undo + rest + next set -> Undo removed it -> relogged -> REAL PROCESS KILL (taskkill /F /T "
+    + "on every chrome.exe of the persistent profile, kill verified) -> the weigh-in AND the in-progress workout "
+    + "both came back out of the encrypted store and the session resumed at the next set -> finished -> Today "
+    + "says recorded, through a reload, a new page and a SECOND real kill. DAY 2 (" + DAY_TWO + ", the page's own "
+    + "entry point over the same device storage): prepares -> weigh-in -> Start -> every set -> finished; a THIRD "
+    + "real kill, and the history still reads with BOTH sessions (14 ops, exactly one Start descending from "
+    + "nothing) and both mornings still in the encrypted reading store. localStorage holds nothing. Headroom: "
+    + notes.join(", ")
     + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");
 } catch (error) {
   failures = 1;

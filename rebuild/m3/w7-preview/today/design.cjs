@@ -119,6 +119,11 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      nothing, so it can never fail to save. */
   "This device could not open its encrypted local store, so nothing can be recorded here.",
   "Saved in this device's encrypted local store. It survives a reload, a restart, a reboot and a crash.",
+  /* Review round 2: a session abandoned on an earlier day blocks every later day in
+     the accepted client, and the layer's own `early` close retires it. The
+     prototype has no unfinished session and so no words for either. */
+  "An earlier workout was never finished",
+  "Close the unfinished workout",
 ]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");

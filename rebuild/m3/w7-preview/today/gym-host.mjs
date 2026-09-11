@@ -163,6 +163,63 @@ export function initialGeneration(lease) {
     metadata: { schema: 1, checkpoint: 'synthetic-preview', authorityLease: lease } };
 }
 
+/* ---------------------------------------------------------------------------
+   THE CAUSAL FRONTIER, READ OFF THE DURABLE LOG. Pure, so the same functions the
+   host runs can be checked against a generation a test writes by hand.
+   --------------------------------------------------------------------------- */
+const graphOps = generation => Object.values(generation?.collections?.ops || {})
+  .filter(op => op && typeof op.op_id === 'string' && Array.isArray(op.causal_parents));
+
+/* The tips of the stored causal graph: every op no other op names as a parent.
+   For a store holding one closed session that is exactly the close operation;
+   for an empty store it is []. Ordered by the device's own sequence so the
+   result is stable, and by op_id when a device_seq is absent. */
+export function causalTips(generation) {
+  const rows = graphOps(generation);
+  const claimed = new Set();
+  for (const op of rows) for (const parent of op.causal_parents) claimed.add(parent);
+  return rows.filter(op => !claimed.has(op.op_id))
+    .sort((a, b) => (a.device_seq || 0) - (b.device_seq || 0) || (a.op_id < b.op_id ? -1 : 1))
+    .map(op => op.op_id);
+}
+
+function reachedFrom(generation, parents) {
+  const ops = generation?.collections?.ops || {};
+  const seen = new Set(), stack = Array.isArray(parents) ? parents.slice() : [];
+  while (stack.length) {
+    const id = stack.pop();
+    if (seen.has(id)) continue;
+    seen.add(id);
+    const op = ops[id];
+    if (op && Array.isArray(op.causal_parents)) stack.push(...op.causal_parents);
+  }
+  return seen;
+}
+
+/* THE PRE-WRITE ORDER GUARD (review round 2, point 3). A Start that does not
+   descend from every Start already on disk cannot be recovered once it is
+   written: rebuild/m4/workout/engine-order.cjs cannot order it, so
+   readWorkoutHistory refuses, so the resume and close paths that would retire it
+   refuse too. There is no accepted recovery left to offer — so a Start like that
+   must be refused BEFORE the write.
+
+   This is deliberately NOT a restatement of causalTips(). It takes the parents
+   the accepted resolver ACTUALLY produced for this generation — the exact bytes
+   the client is about to store as causal_parents — and checks them against the
+   Starts the log already holds. Derivation and check are two independent
+   computations, so a resolver that drifts back to a remembered frontier, an
+   empty one, or an invented id is caught here rather than on disk. */
+export function startOrderRefusalOf(generation, resolvedParents) {
+  const starts = graphOps(generation).filter(op => op.kind === 'session-start');
+  if (!starts.length) return null;              // nothing on disk to descend from
+  const reached = reachedFrom(generation, resolvedParents);
+  const orphans = starts.filter(op => !reached.has(op.op_id));
+  if (!orphans.length) return null;
+  return Object.freeze({ code: 'WORKOUT_START_ORDER_UNPROVEN',
+    reason: 'this session would not descend from ' + orphans.length
+      + ' session(s) already recorded on this device, and the accepted order resolver cannot order it' });
+}
+
 /* One live host over one repository handle, with every provider named here and
    only here. composeWorkoutHost binds them; it invents nothing. */
 export async function createGymHost({ day, engineState, indexedDB, crypto, deviceKeys,
@@ -202,11 +259,34 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
     clock: { today: () => day, hour: () => 8, now: () => new Date(day + 'T13:00:00.000Z'), stamp: () => day + 'T13:00:00.000Z' },
     nativeTrendContext: createUnavailableNativeTrendContext() });
 
-  // The causal parents of the NEXT durable write, kept by the caller through
-  // setCausalParents(); the basis resolver reads them and nothing else invents one.
-  let causalParents = [];
-  const resolveWorkoutBasis = createNullLaneWorkoutBasis({ sourceCodec: Source,
-    planBasis: PLAN_BASIS, inputBasis: INPUT_BASIS, causalParents: () => causalParents.slice() });
+  /* THE CAUSAL FRONTIER, DERIVED FROM THE DURABLE LOG ON EVERY RESOLUTION.
+     ----------------------------------------------------------------------
+     Review round 2 found this: round 1 kept the causal parents of the next
+     write in a per-host closure seeded []. A host lives for one page load, so
+     the SECOND training day — a new page, a new host — started from [] and its
+     Start did not descend from the first day's close. Two Starts then sit
+     concurrent in the accepted order resolver
+     (rebuild/m4/workout/engine-order.cjs): `ready.length > 1` with no receipt
+     sequence on either (an offline generation has W 0), so it refuses
+     WORKOUT_ORDER_CONCURRENT_LOCAL_UNRESOLVED, and because that Start is
+     already on disk every later read refuses
+     WORKOUT_HISTORY_RECONCILIATION_REQUIRED — permanently.
+
+     The log already carries the lineage, so nothing needs to be remembered
+     between page loads and nothing may be invented. The accepted resolver is
+     handed the very generation the client is about to write against, so the
+     parents are derived FROM THAT GENERATION at the moment of resolution: the
+     causal TIPS of the stored graph — every op no other op names as a parent.
+     After a closed session that is exactly the close operation; on an empty
+     store it is []; there is no third source of truth and no closure to go
+     stale across a reload, a relaunch or a kill. */
+  let lastResolved = [];
+  const nullLaneBasis = createNullLaneWorkoutBasis({ sourceCodec: Source,
+    planBasis: PLAN_BASIS, inputBasis: INPUT_BASIS, causalParents: () => lastResolved.slice() });
+  function resolveWorkoutBasis(generation, ...rest) {
+    lastResolved = causalTips(generation);
+    return nullLaneBasis(generation, ...rest);
+  }
 
   const host = composeWorkoutHost({ repository, stage, namespace, athleteId: ATHLETE_ID, deviceId: DEVICE_ID,
     sessionEpoch: 1, isCurrentSession: epoch => epoch === 1, observationEpoch: () => 1,
@@ -222,8 +302,19 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
     workoutProducerIdentity: PRODUCER, resolveWorkoutBasis, resumeReason: RESUME_REASON,
     plannedSplitSlotId });
 
+  /* The guard, over the live store, against the parents the accepted resolver
+     produced most recently — which, at both call sites (right after the probe's
+     prepareWorkout, and again immediately before startPreparedWorkout writes),
+     are exactly the causal_parents the Start will carry. */
+  async function startOrderRefusal() {
+    return startOrderRefusalOf((await repository.load()).generation, lastResolved.slice());
+  }
+
   return Object.freeze({ host, repository, engine, day, plannedSplitSlotId, device,
-    setCausalParents(ids) { causalParents = Array.isArray(ids) ? ids.slice() : []; },
-    causalParents: () => causalParents.slice(),
+    // The causal parents the accepted resolver last derived, for tests and for
+    // the report. Reading it never changes it; it is not a store.
+    causalParents: () => lastResolved.slice(),
+    causalTipsNow: async () => causalTips((await repository.load()).generation),
+    startOrderRefusal,
     close() { repository.close(); } });
 }

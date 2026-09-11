@@ -346,6 +346,39 @@ test("a refused preparation is shown on Today, with the layer's code once and no
   kit.close();
 });
 
+/* REVIEW ROUND 2, point 3 — a session abandoned on an earlier day is a state the
+   athlete can get OUT of. Today names the day and the primary action performs the
+   accepted close; it never re-renders from optimism. */
+test("an unfinished earlier workout is named on Today, and the primary action closes it", async () => {
+  let recovered = 0;
+  let phase = "unfinished";
+  const kit = await setup({ mount: { workout: {
+    summary: () => (phase === "unfinished"
+      ? { phase: "unfinished", sets: 0, code: "WORKOUT_HISTORY_RECONCILIATION_REQUIRED",
+          unfinished: { startId: "op-1", day: "2030-02-04", sets: 1 } }
+      : { phase: "ready", sets: 0, code: null }),
+    recover: async () => { recovered += 1; phase = "ready"; return { ok: true }; },
+    open: () => {} } } });
+  const { doc, model, api } = kit;
+  await model.weighIn(179.4);
+  api.render("today");
+
+  const line = slot(doc, "workout-count").textContent;
+  assert(line.includes(app.UNFINISHED_WORKOUT), line);
+  assert(line.includes("2030-02-04"), "the day it belongs to is named: " + line);
+  assert(!line.includes("Your set targets are ready"), line);
+  assert(!phoneText(doc).includes(app.NO_LOCAL_STORE), "this is not a fault of the device");
+
+  const button = slot(doc, "primary");
+  assert.equal(slot(doc, "primary-label").textContent, app.CLOSE_UNFINISHED_WORKOUT);
+  button.click();
+  await settle(doc);
+  assert.equal(recovered, 1, "the accepted close ran once");
+  assert.match(slot(doc, "primary-label").textContent, /^Start /,
+    "and Today repainted from what the layer answered");
+  kit.close();
+});
+
 test("an untrusted local record paints no number anywhere", async () => {
   const store = await lane();
   const seeded = createTodayModel({ today: DAY, readings: store.readings });
