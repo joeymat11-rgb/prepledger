@@ -1,5 +1,5 @@
 'use strict';
-/* EARNED — LANE B · PACKAGE B2 — DELTA CELLS (post-review r1)
+/* EARNED — LANE B · PACKAGE B2 — DELTA CELLS (post-review r1, extended post-review r2)
  *
  * Witness-style cells for the delta sites the accepted-brief text does NOT
  * enumerate. Unlike rebuild/engine/test/defect-witnesses*.cjs these are NOT
@@ -194,6 +194,141 @@ cell('B2-Q2e  NEGATIVE CONTROL: VOLUME PASSED is still not a move, on every side
   const s = { exercises: [lift()], feed: [{ d: '2026-09-01', t: 'VOLUME PASSED — nothing moved' }], adjustments: [], sessionLog: {} };
   assert.equal(T.structuralMovesThisWeek(s).sets.length, 0);
   return 0;
+});
+
+/* ---- Q2, post-review r2 ---------------------------------------------- *
+ * r2 required change 1. The reviewed Q2 hunk compared the receipt against
+ * `x.n` ONLY, so a lift RENAMED to a leading word of its old name lost a move
+ * the base and the no-Q2 candidate both found — and `_volDeltas`, which reads
+ * the same receipt through `_formerNames`, kept crediting it. Two readers, two
+ * answers, one receipt: a §2 C6 violation, and a deviation from C3's own
+ * "`===` against `_formerNames(ex)`". The shipped hunk carries the former-name
+ * term, so B2-Q2f/g HOLD on every side and MOVE only on the withdrawn hunk.  */
+cell('B2-Q2f  r2 R2-A — a RENAMED lift keeps the move written under its FORMER name', () => {
+  const p9 = lift({ id: 'p9', n: 'Press', sets: 3, renames: [{ prevN: 'Press heavy' }] });
+  const s = { exercises: [p9], feed: [{ d: '2026-09-01', t: 'VOLUME +1 — CHEST via Press heavy (now 3 sets)' }],
+    adjustments: [], sessionLog: {} };
+  const moved = T.structuralMovesThisWeek(s).sets.map((m) => m.exId);
+  const credited = T._volDeltas(p9, s);
+  assert.deepEqual(moved, ['p9']);                      /* base · no-Q2 · Q2 alike; [] on the withdrawn hunk */
+  assert.deepEqual(credited, [['2026-09-01', 1]]);
+  assert.equal(moved.length > 0, credited.length > 0);  /* C6 — the two readers agree about the owner */
+  return { moved, credited };
+});
+cell('B2-Q2g  the same for forks[].prevN, and for the CURRENT name after a rename', () => {
+  const p8 = lift({ id: 'p8', n: 'Press', sets: 3, forks: [{ prevN: 'Press wide' }] });
+  const fork = T.structuralMovesThisWeek({ exercises: [p8], adjustments: [], sessionLog: {},
+    feed: [{ d: '2026-09-01', t: 'VOLUME +1 — CHEST via Press wide (now 3 sets)' }] }).sets.map((m) => m.exId);
+  const p9 = lift({ id: 'p9', n: 'Press', sets: 3, renames: [{ prevN: 'Press heavy' }] });
+  const cur = T.structuralMovesThisWeek({ exercises: [p9], adjustments: [], sessionLog: {},
+    feed: [{ d: '2026-09-01', t: 'VOLUME +1 — CHEST via Press (now 3 sets)' }] }).sets.map((m) => m.exId);
+  assert.deepEqual(fork, ['p8']);
+  assert.deepEqual(cur, ['p9']);
+  return { fork, cur };
+});
+
+/* r2 required change 3, positive half — the improvement the r1 record did not
+ * claim: for the PRODUCER-WRITTEN (suffixed) shape the owner is decided by the
+ * name, not by where the lift happens to sit in s.exercises.                 */
+const NEST1 = lift({ id: 'p1', n: 'Press', sets: 3 });
+const NEST2 = lift({ id: 'p2', n: 'Press (now heavy)', sets: 3 });
+const NEST3 = lift({ id: 'p3', n: 'Press (now heavy) (now light)', sets: 3 });
+const nestSets = (exs, t) => T.structuralMovesThisWeek({ exercises: exs, adjustments: [], sessionLog: {},
+  feed: [{ d: '2026-09-01', t }] }).sets.map((m) => m.exId);
+const ROW_SUF = 'VOLUME +1 — CHEST via Press (now heavy) (now light) (now 3 sets)';
+const ROW_BARE = 'VOLUME +1 — CHEST via Press (now heavy)';
+cell('B2-Q2h  NESTED DELIMITER — the producer-written receipt is order-INDEPENDENT with Q2', () => {
+  const fwd = nestSets([NEST1, NEST2, NEST3], ROW_SUF);
+  const rev = nestSets([NEST3, NEST2, NEST1], ROW_SUF);
+  assert.deepEqual(fwd, q2pick({ 'BASE': ['p1'], 'CANDIDATE-NOT APPLIED': ['p1'], 'CANDIDATE-APPLIED': ['p3'] }));
+  assert.deepEqual(rev, q2pick({ 'BASE': ['p3'], 'CANDIDATE-NOT APPLIED': ['p3'], 'CANDIDATE-APPLIED': ['p3'] }));
+  return { fwd, rev };                                  /* base/no-Q2: s.exercises order decides. Q2: it does not. */
+});
+
+/* r2 required change 3, negative half — the BOUNDED RESIDUAL, pinned rather
+ * than fixed. A suffix-less legacy row (the shape defect-witnesses.cjs's own
+ * D3 fixture uses) carries no delimiter, so the whole tail is a legal owner
+ * name AND the tail cut at the name's own " (now " is a legal owner name.
+ * Two lifts therefore answer "mine" in _volDeltas — on EVERY side, base
+ * included — and structuralMovesThisWeek's `.find` resolves that by
+ * s.exercises order. C4 ("complete, not heuristic") and C5 ("exactly one of
+ * mine / not mine / unattributable") overstate what the boundary delivers for
+ * this shape. Closing it needs the writer-side exId of C2 (B3's half), not a
+ * looser reader; until then this cell is the record of what ships.          */
+cell('B2-Q2i  RESIDUAL — a SUFFIX-LESS legacy row is DOUBLE-OWNED, and order-decided', () => {
+  const bare = { feed: [{ d: '2026-09-01', t: ROW_BARE }] };
+  const byShort = T._volDeltas(NEST1, bare);
+  const byLong = T._volDeltas(NEST2, bare);
+  assert.deepEqual(byShort, [['2026-09-01', 1]]);       /* every side */
+  assert.deepEqual(byLong, [['2026-09-01', 1]]);        /* every side — two owners, one receipt */
+  assert.deepEqual(nestSets([NEST1, NEST2, NEST3], ROW_BARE), ['p1']);
+  assert.deepEqual(nestSets([NEST3, NEST2, NEST1], ROW_BARE), ['p2']);
+  return { byShort, byLong, note: 'array-order-decided on every side — bounded residual, not a regression' };
+});
+
+/* The other half of the same residual, and the ONE behaviour the r2 former-name
+ * term adds beyond restoring the lost move: when two lifts' NAME FAMILIES
+ * collide on the same string, structuralMovesThisWeek now inherits the exact
+ * ambiguity _volDeltas has always had (both claim it) instead of silently
+ * preferring the current-name lift. Same residual class as B2-Q2i, recorded
+ * here because it is a real order-dependence the shipped hunk introduces.   */
+cell('B2-Q2j  RESIDUAL — colliding NAME FAMILIES are double-owned, and order-decided with Q2', () => {
+  const cur = lift({ id: 'cur', n: 'Press', sets: 3 });
+  const old = lift({ id: 'old', n: 'Bench', sets: 3, renames: [{ prevN: 'Press' }] });
+  const row = 'VOLUME +1 — CHEST via Press (now 3 sets)';
+  const both = [T._volDeltas(cur, { feed: [{ d: '2026-09-01', t: row }] }),
+    T._volDeltas(old, { feed: [{ d: '2026-09-01', t: row }] })];
+  assert.deepEqual(both, [[['2026-09-01', 1]], [['2026-09-01', 1]]]);   /* _volDeltas: both, on EVERY side */
+  const fwd = nestSets([cur, old], row);
+  const rev = nestSets([old, cur], row);
+  assert.deepEqual(fwd, ['cur']);
+  assert.deepEqual(rev, q2pick({ 'BASE': ['cur'], 'CANDIDATE-NOT APPLIED': ['cur'], 'CANDIDATE-APPLIED': ['old'] }));
+  return { volDeltas: 'both', fwd, rev };
+});
+
+/* ---- REGISTER CANDIDATE (r2 required change 4) ------------------------ *
+ * NOT a B2 delta. sessionLog is keyed by date, so the only way two
+ * observations of one lift share a calendar day is two entries in one day's
+ * `entries` array — and volumeConversion, liftTrend and setOneRead all reach
+ * the lift with `(entries||[]).find(e => e.id === exId)`, i.e. the FIRST entry
+ * only. The second observation is silently invisible to all three, and the
+ * whole added-set tolerance verdict for the lift is decided by which of the
+ * two was appended first. A D9-family (array-order-decides) blind spot inside
+ * the exact surface B2's D30/D31/D32 hunks read; no law, witness or census
+ * cell covers it. B2 neither creates nor repairs it: this cell pins CURRENT
+ * behaviour, identically on base and on both candidate variants, so that a
+ * future repair has to move a written number.                              */
+function sameDayDup(order) {
+  const s = { exercises: [lift({ id: 'press', n: 'Press', sets: 3 })], sessionLog: {},
+    sleep: { nights: [] }, feed: [], adjustments: [] };
+  const k2 = { id: 'press', w: 100, reps: [8, 7] };
+  const k3 = { id: 'press', w: 100, reps: [8, 7, 6] };
+  for (const d of ['2026-08-01', '2026-08-05', '2026-08-09', '2026-08-13', '2026-08-17']) s.sessionLog[d] = { entries: [{ ...k2 }] };
+  s.sessionLog['2026-08-21'] = { entries: order === 'k2first' ? [{ ...k2 }, { ...k3 }] : [{ ...k3 }, { ...k2 }] };
+  for (const d of ['2026-08-25', '2026-08-29', '2026-09-01']) s.sessionLog[d] = { entries: [{ ...k3 }] };
+  return s;
+}
+const dupRead = (order) => {
+  const s = sameDayDup(order);
+  const vc = T.volumeConversion(s, 'press');
+  const lt = T.liftTrend(s, 'press');
+  const sr = T.setOneRead(s, 'press');
+  return { status: vc && vc.status, changedAt: vc && vc.changedAt, trendN: lt && lt.n, setOne: sr && sr.n };
+};
+cell('B2-REG-1  REGISTER CANDIDATE — same-day duplicate entries flip the tolerance verdict by array order', () => {
+  const a = dupRead('k2first'), b = dupRead('k3first');
+  assert.deepEqual(a, { status: 'READING', changedAt: '2026-08-25', trendN: null, setOne: 9 });
+  assert.deepEqual(b, { status: 'LIVE', changedAt: '2026-08-21', trendN: 4, setOne: 9 });
+  assert.notDeepEqual(a, b);                            /* the point: one state, two orders, two verdicts */
+  return { k2first: a, k3first: b };                    /* identical on BASE and on both candidate variants */
+});
+cell('B2-REG-1b  and the second same-day entry is invisible to all three readers', () => {
+  const one = dupRead('k3first');
+  const s = sameDayDup('k3first');
+  s.sessionLog['2026-08-21'].entries.length = 1;        /* drop the shadowed entry entirely */
+  const vc = T.volumeConversion(s, 'press'), lt = T.liftTrend(s, 'press'), sr = T.setOneRead(s, 'press');
+  assert.deepEqual({ status: vc && vc.status, changedAt: vc && vc.changedAt, trendN: lt && lt.n, setOne: sr && sr.n }, one);
+  return one;                                           /* removing it changes nothing — it was never read */
 });
 
 /* ---- D7 -------------------------------------------------------------- *

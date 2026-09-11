@@ -1298,3 +1298,333 @@ public census delta is still the single D6 cell; `rebuild/conform/run.cjs` and t
 are byte-identical base vs candidate; both protected surfaces are UNCHANGED. The package bar is NOT met and
 is not claimed.**
 
+
+---
+
+# POST-REVIEW r2 — lane-B fixer round 2
+
+2026-09-11 · Opus **fixer round 2** of LANE B (author ≠ builder ≠ r1 reviewer ≠ r2 reviewer ≠ r1 fixer),
+working directly on the owner's PC in `work/lane-b/b2`, branch `rebuild/lane-b-b2`. Review of record:
+`rebuild/lanes/b/reviews/B2-REVIEW-r2.md` — **ACCEPT WITH CHANGES**, sha under review
+`07fba76695b0c70ac41f8f287b4104f3d57b5904`, base `acd3b67`. **All four required changes concern the
+PM-OPTIONAL Q2 commit and §2's text; `f70dd23` needs none and received none.** `ledger/` and
+`rebuild/conform/private/**` were never opened. No frozen law, witness file, tool, golden, accepted
+artifact or `package-lock.json` byte moved. No other worktree was touched.
+
+## R2.0 What changed, and the shape of the branch
+
+| item | value |
+|---|---|
+| branch before | `acd3b67` → `c39d1cb` → `5a4205c` → `f70dd23` → `07fba76` → `c4129c9` (r2 review file) |
+| branch after | `acd3b67` → `c39d1cb` → `5a4205c` → `f70dd23` → **r2 review file** → **post-r2 fixes (docs + cells)** → **ONE Q2 commit** |
+| why the reshape | the task's constraint and r2 §5.2's guarantee: the Q2 work must stay in **exactly one** commit sitting on `f70dd23`-equivalent **product** content, so `git revert <Q2>` still returns the tree to `f70dd23` byte-for-byte. `07fba76` is **replaced**, not amended in place, because its hunk is superseded. The review file stays on the branch, committed **before** the new Q2 commit. |
+| node | `C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe` **v24.19.0**, by full path · `TZ=America/New_York` · `package-lock.json` unmodified · `node_modules` present (39 entries) |
+| frozen bundle | the gitignored `rebuild/conform/engines/engine-main.cjs`, sha256 `a575ac58a55c5e2929b584be6ed6b1d5db8c36c81b449415d0909dc4b1958eec`, 814,639 B (the builder's; re-verified by sha before use). `engine-old.cjs` is **not** present on this clone — see R2.7 for what that changes in `run.cjs`'s output (nothing that differs between sides). |
+
+**Files this pass touched, and nothing else:**
+
+```
+M  rebuild/engine/volume.cjs                                      (the Q2 commit — ONE delegate + ONE find predicate)
+M  rebuild/lanes/b/b2-delta-cells.cjs                             (+7 cells: 21 -> 28)
+A  rebuild/lanes/b/BRIEF-B2-TARGETS-IDENTITY-ERA-v1.3.md          (v1.2 carried whole; §2 C3/C6 corrected in place; four new sections)
+M  rebuild/lanes/b/BUILD-REPORT-B2.md                             (this section)
+```
+
+`plan.cjs` and `progression.cjs` are **byte-identical to `f70dd23`** (`4c6f9817…` / `9adaeecb…`,
+re-verified after every experiment). `volume.cjs` goes `73550ef8…` (`f70dd23`) →
+`30e4dc2153fd8f4a8dbe3769f686065171215f79228903a547cc34359ea5befc` with the Q2 commit; the withdrawn
+`07fba76` volume.cjs was `4a04f4e8…`. `BRIEF-…-v1.2.md` is **kept** on the branch for audit; v1.3
+supersedes it.
+
+## R2.1 Required change 1 — the Q2 hunk lost a correctly-attributed move. Reproduced, then fixed.
+
+**Reproduced on the tip (`c4129c9`, product content = `07fba76`) BEFORE any edit**, exactly as r2 §6 R2-A
+describes it. Lift `p9`, current name `Press`, `renames:[{prevN:"Press heavy"}]`, one current-week receipt
+written under the former name `VOLUME +1 — CHEST via Press heavy (now 3 sets)`:
+
+```
+                                           base(acd3b67)  no-Q2(f70dd23)  Q2 reviewed(07fba76)  Q2 SHIPPED
+_volDeltas(p9, s)                          [["…",1]]      [["…",1]]       [["…",1]]             [["…",1]]
+structuralMovesThisWeek().sets             ["p9"]         ["p9"]          []   <-- LOST         ["p9"]
+… the same with forks:[{prevN:"Press wide"}]  ["p8"]      ["p8"]          []   <-- LOST         ["p8"]
+```
+
+The reviewed hunk compared `own9`/`tail9` against `x.n` **only**. `"Press heavy" !== "Press"`, so the move
+vanished — while `_volDeltas`, which resolves through `_formerNames`, went on crediting it. Two readers,
+two owners, one receipt: a **§2 C6** violation, and a deviation from **C3**'s own "`===` against
+`_formerNames(ex)`". `structuralMovesThisWeek().sets` feeds the Auto-Pilot tighten veto, the `volumePush`
+week budget and the offer-expiry branch (`writers.cjs:2313`), so a lost move is a week budget that believes
+no set was added.
+
+**The fix, exactly as r2 prescribed** — the former-name term supplied by a **late-bound `E._formerNames`
+delegate**, the pattern `volume.cjs:16` already uses for `liftTrend` and `migrate.cjs:12` already uses for
+`_formerNames` itself. **`volume.cjs` gains no `require`.**
+
+```
++const _formerNames = (...args) => E._formerNames(...args);   /* Q2 — §2 C1 … so volume.cjs still gains no require */
+ const _tCrit = (...args) => E._tCrit(...args);
+...
+-    const ex = (s.exercises || []).find((x) => (f.exId != null ? String(f.exId) === String(x.id) : (own9 === x.n || tail9 === x.n)));
++    const ex = (s.exercises || []).find((x) => (f.exId != null ? String(f.exId) === String(x.id) : _formerNames(x).some((n9) => n9 && (own9 === n9 || tail9 === n9))));
+```
+
+That predicate is now the same shape `_volDeltas` runs at `progression.cjs:232–236`: C2's `exId` tier,
+then C3's two exact comparisons, over the whole name family. **That identity is what C6 asserts**, so cell
+`B2-Q2f` asserts the *agreement* of the two readers, not two separate literals.
+
+**Executed after the fix:** `structuralMovesThisWeek().sets` = `["p9"]`, `_volDeltas` = `[["2026-09-01",1]]`
+— and the `forks[].prevN` case likewise returns `["p8"]`. Nothing else in the probe moved.
+
+## R2.2 Required change 2 — §2 C3 corrected in place, C6 rewritten to hand B3 the corrected rule
+
+C3 said the owner is "the exact string between `"via "` and the **first** `" (now "`". The boundary that
+actually ships cuts at the **LAST** `" (now "` and additionally accepts the whole tail. v1.2 §A1 fixed the
+code and explicitly declined to rewrite C3. Because `PLAN…:157` makes §2 the durable convention and **C6
+tells B3 to reuse it**, a B3 author implementing C3 verbatim would have reproduced exactly the regression
+r1's bite B-2 found and the r1 fixer repaired — a documentation defect with a code-level consequence one
+package downstream.
+
+**In `BRIEF-…-v1.3.md`:** §2 C3 is rewritten in place and marked `[corrected in v1.3]`, with the tail /
+last-delimiter / two-exact-comparisons rule stated as prose **and** as its executable form; the superseded
+sentence is quoted in §v1.3-B2 for audit. §2 C6 is rewritten to (a) say the order is **C1→C2→C3**, (b) make
+C6 *falsifiable* — "for any one receipt, `_volDeltas` and `structuralMovesThisWeek` must agree" — naming
+r2's R2-A as the failure the clause exists to catch, (c) tell B3 **in terms** to implement the v1.3 C3 and
+not the superseded text, and (d) name the two readers still off the convention (`volume.cjs:302`, and any
+writer still omitting `exId`). C1, C2, C4 and C5 are untouched: C4/C5 state the standard the convention is
+held to, and where the implementation misses it the gap is recorded as a residual rather than the standard
+being lowered.
+
+## R2.3 Required change 3 — the suffix-less residual, resolved as "document + cell"
+
+r2 offered "resolve per the convention **or** document explicitly as a bounded residual with a cell". It is
+documented and pinned, because it is **not repairable by a reader**: a row with no ` (now N sets)` suffix
+makes both (a) the tail-cut-at-its-own-delimiter and (b) the whole tail legal owner names, so two lifts
+answer "mine". Loosening or tightening either comparison trades one wrong answer for another; the correct
+close is **C2's writer-side `exId`**, which is B3's half. Executed on four engine copies, both
+`s.exercises` orders:
+
+| shape | base | no-Q2 | Q2 reviewed | Q2 SHIPPED | cell |
+|---|---|---|---|---|---|
+| producer-written (suffixed) nested receipt, fwd / rev | `["p1"]` / `["p3"]` | `["p1"]` / `["p3"]` | `["p3"]` / `["p3"]` | **`["p3"]` / `["p3"]`** | `B2-Q2h` |
+| suffix-less legacy row `… via Press (now heavy)`, fwd / rev | `["p1"]` / `["p2"]` | `["p1"]` / `["p2"]` | `["p1"]` / `["p2"]` | `["p1"]` / `["p2"]` | `B2-Q2i` |
+| colliding NAME FAMILIES, fwd / rev | `["cur"]` / `["cur"]` | `["cur"]` / `["cur"]` | `["cur"]` / `["cur"]` | `["cur"]` / **`["old"]`** | `B2-Q2j` |
+| `_volDeltas` on the suffix-less row, short lift / long lift | both `[["…",1]]` | both | both | both | `B2-Q2i` |
+
+Three things are now on the record that were not:
+
+1. **The improvement Q2 *does* deliver, claimed.** For the shape the producer writes, Q2 removes the
+   `s.exercises`-order dependence outright (`B2-Q2h`). r2 is right that this was worth claiming.
+2. **The residual Q2 does not close**, with both halves pinned — the double ownership in `_volDeltas` **and**
+   the array-order resolution inside `structuralMovesThisWeek` — on **every** side including base
+   (`B2-Q2i`). This is the executed counterexample to C4 and C5, stated as such in v1.3 §B3.
+3. **The one new order-dependence the former-name term introduces** (`B2-Q2j`): when two lifts' name
+   families collide, `_volDeltas` has always credited both; before this fix `structuralMovesThisWeek`
+   silently preferred the current-name lift, and now it inherits the same ambiguity and resolves it by array
+   order. Declared rather than discovered later: the trade is deliberate — **agreement between the two
+   readers (C6) is worth more than a deterministic-but-different answer at one of them** — and it is the
+   same residual class as (2).
+
+## R2.4 Required change 4 — same-day duplicate entries, recorded as a REGISTER CANDIDATE, NOT fixed
+
+`sessionLog` is keyed by date, so two observations of one lift on one calendar day can only be two entries
+in that day's `entries` array; `volumeConversion`, `liftTrend` and `setOneRead` all reach the lift with
+`(entries || []).find(e => e.id === exId)` — the first entry only. Executed, **identical on base, on
+`f70dd23`, on `07fba76` and on the shipped hunk**:
+
+```
+2026-08-21 entries [k=2, k=3]  ->  volumeConversion READING,            changedAt 2026-08-25 · liftTrend null · setOneRead LIVE n=9
+2026-08-21 entries [k=3, k=2]  ->  volumeConversion LIVE (tolerated),   changedAt 2026-08-21 · liftTrend n=4  · setOneRead LIVE n=9
+```
+
+One state, two array orders, two opposite tolerance verdicts — and deleting the shadowed entry outright
+changes nothing, because it was never read (`B2-REG-1b`). **Not fixed in B2, deliberately**: repairing it
+means ruling which same-day observation is authoritative, which is a behaviour decision for the register and
+the PM, not a reader tweak inside an in-flight package whose brief is not accepted. Cells `B2-REG-1` and
+`B2-REG-1b` pin current behaviour on every side so a future repair has to move a written number, and v1.3
+§B4 carries the proposed register wording.
+
+## R2.5 The fourteen laws, with and without Q2 — re-executed
+
+```
+TZ=America/New_York   node rebuild\conform\v4\run-defect-laws.cjs
+```
+with the three product files swapped **in place** by `git checkout <ref> --`, sha-verified on every run and
+restored afterwards (`git status --porcelain` checked after each swap):
+
+| variant | product sha256 (plan / progression / volume) | TOTAL line | exit |
+|---|---|---|---|
+| BASE `acd3b67` | `1b26c87f` / `7031838d` / `c32298e7` | `45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL` | 1 |
+| CANDIDATE no-Q2 `f70dd23` | `4c6f9817` / `9adaeecb` / `73550ef8` | `45 · 45 · **25** · **88** · **83/104** · 0 · AUDIT RED-FIRST FAIL` | 1 |
+| CANDIDATE +Q2 **shipped** | `4c6f9817` / `9adaeecb` / `30e4dc21` | **byte-identical to the line above** | 1 |
+
+**Line-by-line diff of the 46-line stdout: base vs no-Q2 → MOVED LINES = 15 · base vs +Q2 → MOVED LINES = 15
+· no-Q2 vs +Q2 → MOVED LINES = 0.** The fifteen are the fourteen laws and the TOTAL line and nothing else:
+
+```
+D1 D2 D3 D4 D5 D6 D7 D9 D18 D28 D29 D30 D31 D32 + TOTAL
+```
+
+each moving `RED-frozen / RED-candidate / mutant-DETECTED` → `RED-frozen / GREEN-candidate / AUDIT-FAIL`.
+**D18's law is GREEN-candidate with the Q2 hunk in** — the change sits inside D18's own repair and does not
+weaken it. The two predicted side effects reproduce to the number (`89 → 88` GREEN repair controls,
+`97/104 → 83/104` detected mutant executions). `AUDIT RED-FIRST FAIL` is the runner's own all-45-must-be-RED
+rule on both sides and is not B2's. These are r1's, the r1 fixer's and r2's numbers exactly.
+
+## R2.6 Census, `:70`, carrier, witnesses, cells
+
+**Public direct-call census — this fixer's own, 572 cells per run.** Two state readings (`migrate(null)` and
+`SEED`) × both matrix days, over `programmeVolume`, `muscleVolume`, `volumeImbalance`,
+`structuralMovesThisWeek`, `nowModel`, `canonicalizePlan`, `dayType` at eight dates, and per lift over all
+16 seeded lifts: `targetsFor`, `progressAnchor`, `loadRungs`, `maxedOut`, `nextLoad`, `prevLoad`,
+`deloadLoad`, `snapLoad`, `repsLostOnJump`, `deriveSighting`, `_volDeltas`, `setOneRead`,
+`volumeConversion`, `liftTrend`, `liftTrend({asOf})`, `liftCall`, `exActive`. Run on four sha-pinned
+disposable engine copies (`eng-base`, `eng-noq2`, `eng-oldq2` = the withdrawn `07fba76`, `eng-q2`):
+
+```
+===== 2026-09-03  base -> B2 (+Q2 shipped) =====      ===== 2026-09-07  base -> B2 (+Q2 shipped) =====
+  SEED/perLift/fly/deloadLoad:           5 -> null      (the identical four cells)
+  SEED/perLift/hipthrust/deloadLoad:     5 -> null
+  migrated/perLift/fly/deloadLoad:       5 -> null
+  migrated/perLift/hipthrust/deloadLoad: 5 -> null
+cells changed: 4 of 572                                cells changed: 4 of 572
+
+base -> B2 (no Q2)          : the same 4 cells, both days
+B2 no-Q2 -> B2 +Q2 shipped  : 0 cells, both days
+B2 +Q2 reviewed -> +Q2 shipped : 0 cells, both days      <- the former-name term adds no census cell either
+```
+
+**Exactly the single D6 cell (`deloadLoad` for `fly` and `hipthrust`, `5 → null`) at both matrix days in
+both state readings.** The Q2 hunk adds no census cell in either form, and R-1 stands: the seeded state has
+no sessions, so this is a thin oracle for the era/trend readers.
+
+**`tools/engine-test.jsx:70`**, reproduced at the second gate's own hard pin `MEASURED_TEST_NOW=2026-07-29`
+over `tools/snapshots/2026-08-06-ledger.json`, whose sha256 was re-verified inside every probe process as
+`62f9e0515bf3d34bc1e0d53cfc309cba0fa9acdf63f87e0fb42f246e6a7c199f` (the brief's pin):
+
+| engine | `nLifts` | `state` | `:70` | `:71` | `:72` | `:76` |
+|---|---|---|---|---|---|---|
+| base `acd3b67` | 3 | `unknown` | **HOLDS** | holds | holds | holds |
+| no-Q2 `f70dd23` | 3 | `unknown` | **HOLDS** | holds | holds | holds |
+| Q2 reviewed `07fba76` | 3 | `unknown` | **HOLDS** | holds | holds | holds |
+| **Q2 shipped** | 3 | `unknown` | **HOLDS** | holds | holds | holds |
+
+**The protected cell does not move, with or without Q2, in either Q2 form.** Q8's finding stands: the
+narrowing is what keeps `:70` still.
+
+**Carrier, witnesses, cells** (on the working tree, Q2 shipped):
+
+```
+node rebuild\m4\spec\b2-inherited-carriers.cjs
+  -> B2 INHERITED CARRIERS: 5/5 PASS; 17 exact substitutions (9 + 3 + 5 + 0 + 0); exit 0
+     witnesses-1 10 cases / 9 subs · witnesses-2 11 cases / 3 subs · witnesses-4 5 cases / 5 subs
+     witnesses-3 5 cases / 0 subs · witnesses-6 8 cases / 0 subs + M6 preserved defects native 4/4
+node rebuild\engine\test\defect-witnesses[ ,-2..-7].cjs
+  -> exit codes 1 · 1 · 0 · 1 · 1 · 0 · 1      (base is 0 · 1 · 0 · 0 · 1 · 0 · 1 — the same 8+1+5 flip shape)
+node rebuild\lanes\b\b2-delta-cells.cjs <engineDir>
+  -> eng-base   28/28 HOLD · side BASE      · Q2 n/a          · exit 0
+  -> eng-noq2   28/28 HOLD · side CANDIDATE · Q2 NOT APPLIED  · exit 0
+  -> eng-q2     28/28 HOLD · side CANDIDATE · Q2 APPLIED      · exit 0
+  -> eng-oldq2  25/28      · side CANDIDATE · Q2 APPLIED      · exit 1   <-- VACUITY CONTROL
+                  MOVED: B2-Q2f, B2-Q2g, B2-Q2j — i.e. the withdrawn 07fba76 hunk
+```
+
+**The cell file is not vacuous on the new material either.** Pointed at the withdrawn hunk it reports
+**25/28, exit 1**, moving exactly the three cells that encode required change 1 and the family-collision
+residual. That run is the mutant `volume-owner-drops-the-former-name-term` executed against the shipped
+pins, and it is the reason the new cells are worth their lines: `B2-Q2f`/`B2-Q2g` pin the same value on
+base, on no-Q2 and on Q2, so the only thing they can catch is exactly the defect r2 found.
+
+The seven added cells: `B2-Q2f` (renamed lift, + the C6 agreement assertion), `B2-Q2g` (`forks[].prevN` and
+the current name after a rename), `B2-Q2h` (nested delimiter, both array orders), `B2-Q2i` (suffix-less
+double ownership, both readers, both orders), `B2-Q2j` (colliding name families), `B2-REG-1` and
+`B2-REG-1b` (the same-day duplicate register candidate). 21 → 28.
+
+## R2.7 The conform suite and the second gate — byte-identical with and without Q2
+
+```
+cd rebuild\conform && MEASURED_TEST_NOW=2026-09-03 TZ=America/New_York ENGINE_MAIN=<a575ac58…> node run.cjs
+  no-Q2 : SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families   exit 1
+  +Q2   : the same, 81 stdout lines, 0-byte stderr                                                                                        exit 1
+  stdout sha256 IDENTICAL (3978571cc5311bdc…), 0 differing lines
+  INFO 9 engine-track rig185: W1 PASS, W2 PASS  on both sides
+
+node rebuild\engine\test\second-gate.mjs --candidate
+  no-Q2 : reference FINAL108: 3072 passed, 0 failed · reference surface byte-identical to committed baseline (123077 bytes)   exit 1
+  +Q2   : the same; stdout sha256 IDENTICAL (650cddc45a09d318…), stderr 181 B sha256 IDENTICAL (73db6a9fb1e58c6d…)            exit 1
+  .tmp/m2-second-gate/candidate-engine-test.stdout.log : 267 content lines; the candidate side stops at the
+  pre-existing D12 cell tools/engine-test.jsx:106 ("SNAPSHOT 08-07 ITEM B — the live stepeff fit … exceeds
+  the walking-physics ceiling"), which is why FINAL2/FINAL3 read 251/1 and 256/1 — identical on every side.
+```
+
+**Environment note (R2-6), not a B2 signal.** This clone carries only `engine-main.cjs`; with no
+`ENGINE_OLD` the suite prints `BAD 0 engine artifacts present (main + old)` beside the expected
+`BAD 7 privacy … 0 private lines`. r2, running with both bundles, saw `BAD 2` (port oracle) and `BAD 3`
+(sensitivity) instead. **Every one of those lines is identical on both sides here**, so none of them is
+B2's — the claim is "the conform suite is *identical*", never "the conform suite is clean". **B2 adds no
+failure inside the 261 observable assertions, with or without Q2. The remaining 2,811 stay unobserved —
+R-2 / Q9, still open, and not B2's to close.**
+
+## R2.8 Protected and private surfaces — VERDICT ONLY
+
+* **P6, `tools/engine-test.jsx:8790–8793`** — not re-derived by this pass; the r1 fixer's and r2's
+  verdict (UNCHANGED on base, `f70dd23`, `07fba76` and under the v1 cut) is not disturbed, because the
+  shipped Q2 change produces **zero** census cells and **zero** second-gate output differences against
+  `07fba76` and against `f70dd23`, both executed above. No cell value, no hash, no prose.
+* **The seeded set-one laboratory card** (`sleep.cjs:1141`) — `setOneRead` is unchanged by this pass and the
+  census `setOneRead` cells are identical across all four engine variants at both matrix days. **UNCHANGED.**
+  Nothing quoted, nothing hashed.
+* **`rebuild/conform/private/**`, the private `live.main` golden, and `ledger/`** — never opened, never
+  named with values, never hashed, never quoted. The private LIVE census for D30 remains the PM's own
+  `--full` on the owner's PC (`DECISIONS:92` / `:93` C4).
+
+## R2.9 What this pass did NOT do
+
+* **`f70dd23` was not touched.** r2 says it needs no change; it got none. `progression.cjs` and `plan.cjs`
+  are byte-identical to `f70dd23` on the branch tip.
+* **Required change 4 was NOT implemented as a repair** — r2 says "do NOT fix in B2", and it is recorded as
+  a register candidate with cells instead.
+* **`volume.cjs:302` (`_setsMovesSince`) was not converted** (r2 residual R2-5). It stays the one reader in
+  this file off the convention, now named in C6 rather than only in a brief footnote.
+* **No writer-side `exId` was added** — that is C2's half and B3's file.
+* **`rebuild/lanes/STATUS.md` was not edited**; the STATUS line is handed back in the final message.
+* **`rebuild/m4/spec/b2-inherited-carriers.cjs` was not moved** — placement is still the PM's (r2 P-5), and
+  the `REQUESTS.md` line is already filed on the tip at `16302cd`.
+* **The package bar is still NOT met and is NOT claimed**: no `acceptance-b2-targets-identity-era.json`, no
+  `b2-package.cjs`, no 19-gate identity run, no `--full`, no receipt, no authorized rerun. It cannot be
+  claimed until the PM rules which B package claims the parent (r2 P-1).
+
+## R2.10 Everything this pass executed, as commands
+
+```
+git -C <b2> fetch origin ; git -C <b2> reset --hard origin/rebuild/lane-b-b2     -> clean at c4129c9
+<probe-r2a.cjs on the tip, BEFORE any edit>                                      -> R2-A/B/C/D all four reproduce
+<edit volume.cjs: + _formerNames delegate, + the family term at :159>            -> vol 4a04f4e8… -> 30e4dc21…
+<probe-r2a.cjs again>                                                            -> sets ["p9"]; nothing else moved
+<setup-engines.ps1>  eng-base / eng-noq2 / eng-oldq2 / eng-q2, sha-pinned        -> c32298e7 / 73550ef8 / 4a04f4e8 / 30e4dc21
+node rebuild\conform\v4\run-defect-laws.cjs  x3 in place, restored + sha-checked  -> 45/39/89/97-104 · 45/25/88/83-104 · identical
+<movediff2.cjs over the three 46-line stdouts>                                    -> 15 / 15 / 0 MOVED LINES; the 14 laws + TOTAL
+<probe-all.cjs x4 engines>                                                        -> the R2.3 and R2.4 tables
+<census.cjs x 4 engines x 2 matrix days (572 cells) + censusdiff.cjs>             -> 4 cells both days; 0 noq2->q2; 0 oldq2->q2
+<probe70.cjs x4 engines at MEASURED_TEST_NOW=2026-07-29>                          -> :70 HOLDS x4; snapshot sha 62f9e051… verified in-process
+node rebuild\m4\spec\b2-inherited-carriers.cjs                                    -> 5/5 PASS, 17 subs, exit 0
+node rebuild\engine\test\defect-witnesses[ ,-2..-7].cjs                           -> 1·1·0·1·1·0·1
+node rebuild\lanes\b\b2-delta-cells.cjs  x4 engines                               -> 28/28 · 28/28 · 28/28 · 25/28 (vacuity control)
+cd rebuild\conform && node run.cjs   (no-Q2, +Q2)                                 -> SUITE INCONSISTENT 99/99/29/70; stdout sha IDENTICAL; 0-byte stderr
+node rebuild\engine\test\second-gate.mjs --candidate  (no-Q2, +Q2)                -> reference FINAL108 3072/0; stdout+stderr sha IDENTICAL; log 267 lines
+git status --porcelain  after every in-place swap and at the end                  -> only the intended files
+```
+
+Every engine run: `TZ=America/New_York`; `MEASURED_TEST_NOW=2026-09-03` except the `:70` reproduction, which
+uses the second gate's hard pin `2026-07-29`, and the frozen conformance suite, which sets its own. All
+scratch scripts and engine copies live **outside** the worktree (`work/lane-b/b2-fixer2/`); nothing from
+them is committed. After every base-side run the product files were restored and asserted byte-identical by
+sha256.
+
+**Verdict of this pass: r2's four required changes are all in — one as a code fix at the site r2 named, one
+as an in-place correction of §2's C3 and C6, and two as written residuals with executable cells. The
+fourteen laws are still 14/14 `RED-frozen / GREEN-candidate` with MOVED LINES = 15 and 0 between the two
+candidate variants, D18 GREEN with Q2 in; the public census delta is still the single D6 cell;
+`tools/engine-test.jsx:70` does not move; the carrier is 5/5 with 17 substitutions and the witness exit
+codes are unchanged; `rebuild/conform/run.cjs` and the observable second gate are byte-identical with and
+without Q2; the delta cells are 28/28 on base, on no-Q2 and on Q2, and 25/28 on the withdrawn hunk. The Q2
+work is ONE commit and `git revert` still drops it whole. The package bar is NOT met and is not claimed.**
