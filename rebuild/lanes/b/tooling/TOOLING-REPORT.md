@@ -525,3 +525,429 @@ design.**
    the private fixture is absent on this machine and must stay absent (`DECISIONS:97`).
    W2's coverage accounting, however, is no longer dead code — it now executes in **every**
    `--ci` run, because the covering children run there.
+
+# post-review r2 — N1–N5 closed
+
+Everything above describes the bytes r1 and r2 examined. This section is the **second** fix
+pass, on top of the r2 review `f385a78`, executed on the owner's PC in the worktree
+`work/lane-b/tooling`, branch `rebuild/lane-b-tooling`, Node `v24.19.0` at the pinned
+runtime path, shell `powershell.exe`, absolute paths, fresh process per call.
+`package-lock.json` untouched; no other worktree touched; **nothing committed under
+`rebuild/m4/spec`, `rebuild/conform`, `rebuild/engine` or `.github`**. The bite harness
+mutates files under those trees and restores the exact bytes in a `finally`;
+`git status --porcelain --untracked-files=all` is **empty** afterwards, and so is the same
+command scoped to `rebuild/m4/spec rebuild/conform rebuild/engine .github rebuild/lanes
+rebuild/DECISIONS.md rebuild/m3`. Nothing under `ledger/` or `rebuild/conform/private/`
+was opened; `rebuild/conform/private/` does not exist on this tree and was not created.
+
+**New runner sha256: `eaa731a143438dd0238925397c5ff3450fc8e1bafee5220f0332150a1460b81d`**
+(`rebuild/lanes/b/tooling/b-package.cjs`, 684 lines, 53,683 bytes, LF-only).
+
+The r2 verdict's standing condition was: *"`b-package.cjs` must not seal or claim PASS for
+any B package whose `coverage.moves` is non-empty, or whose `children[].argv` carries any
+flag outside `--test` / `--test-reporter=tap`, until N1–N3 below are closed."* Both halves
+are now enforced **in the runner** rather than held by convention.
+
+## r2.1 N1 — `coverage.moves` is bounded, and so is `coverage.inherited`
+
+The finding: `coverage.moves` was "bounded by nothing at all: any of the remaining ten
+original gates, mapped to any declared child", and `covered.size` was printed but never
+asserted where the accepted original pins `assert.equal(m.coverage.covered.length, 9)`.
+
+**What changed.** Four bounds, all read out of the originals rather than re-typed:
+
+| bound | how | refusal |
+|---|---|---|
+| the inherited map is the parent's, **gate and child** | `assert.deepEqual(s.coverage.inherited, byChild)` — the whole map, not its key set | `INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET` |
+| an inherited child executes a **parent-pinned** file | its argv target must be in the parent artifact's `executionPins` or `product` — the generic form of the original's `assert(m.executionPins['…-'+child+'.cjs'])` | `INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE` |
+| a move is **declared with a reason** | `moves[gate]` is `{child, reason}`, reason single-line and ≥ 16 non-blank characters | `COVERAGE-MOVE-REASON-MISSING` |
+| a move's child **executes the gate's own original** | `GATE_FILE` is built from `R.GATES`; the child's argv must name that file, or a file whose **bytes** require it — every relative `require`/`import` specifier is resolved against its own directory and compared | `COVERAGE-MOVE-CHILD-DOES-NOT-EXECUTE-THE-ORIGINAL` |
+| **one gate per child**, unless `run.cjs` groups them | `GATE_GROUP` is derived from `R.GATES` by executable; the only group is `conformance` + `selftest` on `rebuild/conform/run.cjs` | `COVERAGE-MOVE-CHILD-COVERS-MORE-GATES-THAN-run.cjs-GROUPS` |
+| the covered set is **closed** | `covered == parent byChild + declared moves` | `COVERED-SET-BOUND` |
+
+A move's child may also not be one of the inherited children
+(`COVERAGE-MOVE-CHILD-IS-AN-INHERITED-CHILD`), so a package cannot re-use the parent's
+carriers to absorb gates they never ran.
+
+**Executed.**
+
+| bite | what | exit | fired in |
+|---|---|---|---|
+| B07 | the other ten gates into `moves`, all on one declared child (r2's own bite) | **1** | `spec()`, before any output |
+| B07b | the same ten, now `{child, reason}`-shaped so the schema alone cannot refuse | **1** | `spec()` |
+| B07c | one move to a NEW child running a real pinned file that does not require the gate original | **1** | `spec()` |
+| B07e | the one `run.cjs`-grouped pair moved to a child that cannot reach `rebuild/conform/run.cjs` (outside the child roots) | **1** | `spec()` |
+| B08 | one gate dropped from `inherited` | **1** | — |
+| B08b | the parent's nine gate ids kept, every one re-pointed at one declared child | **1** | `coverage()`, **after** all five children had run |
+| **B30** | **the composite: all 19 gates, nine as `inherited` and ten as `moves`, on ONE `node --version` child** | **1** | `spec()` |
+| **B07d** | **POSITIVE CONTROL: a move whose child argv IS `rebuild/engine/test/defect-witnesses.cjs`, the gate's own original executable** | **2** | accepted — `CI REVIEW-PENDING: 5 open obligation(s)`, no PASS |
+
+B07d is the control that matters as much as the refusals: the bound is not "refuse every
+move", it is "a move must carry the gate's own work". A legitimate move is accepted and
+prints its reason on the `COVERAGE <gate> <- child … MOVED, carries <original>` line.
+
+## r2.2 N2 — every inline-code form refuses, by allow-list
+
+The finding: `NO_INLINE` was an **anchored exact match**, so `--eval=…` (and `--print=`,
+`--input-type=`, `--require=`) passed straight through and the child's stdout became
+whatever the spec wrote.
+
+**What changed.** The deny-list is replaced by an **allow-list**, exactly as r2 required:
+the only flags a child may pass are `--test` and `--test-reporter=tap` — the only two the
+accepted originals ever pass (`load-write-package.cjs:38-41`,
+`native-carriers-package.cjs:64-70`) — and only *before* the file. `NO_INLINE` survives as
+a named backstop, now matched on the flag **prefix** (`(?:=|$)`) so the bare and `=<code>`
+spellings are one rule, and `NO_RUN` names the short-circuit forms separately.
+
+**Executed — 19 argv probes, every one exit 1:**
+
+| probe | argv form | refusal |
+|---|---|---|
+| B11 | `['-e','0']` | `CHILD-ARGV-INLINE-CODE` |
+| B16 | `['--eval=console.log("NATIVE SECOND GATE: forged…")', <pinned child>]` (r2's own bite) | `CHILD-ARGV-INLINE-CODE` |
+| N2a–N2m | `-e`, `--eval`, `--eval=…`, `-p`, `--print`, `--print=1`, `--input-type`, `--input-type=module`, `-r`, `--require`, `--require=<allowed root file>`, `--import`, `--import=…` | `CHILD-ARGV-INLINE-CODE` |
+| N2n–N2p | `-v`, `--help`, `-h` | `CHILD-ARGV-SHORT-CIRCUITS-EXECUTION` |
+| N2q | `['-']` — stdin only, no file | `CHILD-ARGV-STDIN-OR-END-OF-OPTIONS` |
+| N2r | `['--', <pinned child>]` | `CHILD-ARGV-STDIN-OR-END-OF-OPTIONS` |
+| N2s | `['--test','--experimental-loader=./x.mjs', <pinned child>]` — a smuggled flag behind an allow-listed one | `CHILD-ARGV-INLINE-CODE` |
+| B12/B13/B14 | target outside the roots / absent / traversing out | `CHILD-ARGV-TARGET` |
+
+Note `-r`/`--require` of an **allowed** root also refuses. The originals never use it, so
+the allow-list does not carry it; widening it would be a reviewed change to this file.
+
+## r2.3 N3 — a needle is satisfied only by a real execution
+
+The finding: `node --version` "prints 8 characters and exits 0 without running the named
+file", and `stdout.includes(needle)` accepted it.
+
+**What changed.** Three conditions, all of which must hold:
+
+1. **argv is file-first.** The first non-flag token must be an existing file under one of
+   the five fixed roots, and **no token may stand after it that begins with `-`**. So
+   `node --version pinned.cjs` and `node pinned.cjs --version` both refuse, the first as
+   `CHILD-ARGV-SHORT-CIRCUITS-EXECUTION`, the second additionally as
+   `CHILD-ARGV-FLAG-AFTER-FILE`.
+2. **The needle is a terminal line, not a substring.** It must match at the **head of a
+   line** of stdout (`CHILD-NEEDLE-NOT-A-TERMINAL-LINE`), which closes r2's "a child that
+   prints the needle inside any longer text, or inside a `NOT OBSERVED: …` sentence".
+3. **The output floor.** stdout must be **≥ 200 bytes**, or carry one of the original
+   gates' own terminal lines — `GATE_TERMINAL`, built from `R.GATES`' ids as
+   `^LEGACY (<id>|…) PASS \| `, the line `run.cjs`'s `gateRun` emits
+   (`CHILD-DID-NOT-REALLY-EXECUTE`).
+
+`node --version` fails (1) *and* (3): ten bytes of stdout, no gate terminal line. The five
+real children clear the floor by a wide margin — 926, 815, 480, 1068 and 227 bytes — and
+every one of them prints its declared verdict at line start.
+
+**Executed.**
+
+| bite | what | exit |
+|---|---|---|
+| **B15** | `argv: ['--version', <pinned child>]`, needle `v24.19.0` (r2's own bite) | **1** |
+| B15b | `argv: [<pinned child>, '--version']` — the flag after the file | **1** |
+| B09 / B10 | empty needle / seven-character needle | **1** / **1** |
+
+And the floor in isolation, with the argv held **legal** throughout, so nothing but the
+execution rule can be doing the refusing — each probe declares a sixth child running a real
+file under a child root and varies only what it prints:
+
+| probe | stdout | exit | which rule |
+|---|---|---|---|
+| FLOOR-A | needle at line start, **26 bytes**, no gate terminal line | **1** | the 200-byte floor |
+| FLOOR-B | **over 200 bytes**, needle present only MID-line | **1** | needle-at-line-start |
+| FLOOR-C | **77 bytes**, needle at line start **plus** a genuine `LEGACY second-gate PASS \| …` line | **2** | the OR branch — accepted, `5 open obligation(s)`, no PASS |
+
+## r2.4 N4 — the brief acceptance is a verified ledger line
+
+The finding: `status: 'BRIEF-ACCEPTED'` plus `brief.acceptedLedgerLine: <any truthy>`
+cleared a blocking obligation; "the number is never resolved to a line".
+
+**What changed.** `brief.acceptedLedgerLine` is now `null` **or** a `claim()`-shaped
+citation `{ledgerLine, role: 'cowork', line, lineSha256}` — the same shape owner, contract
+and theme carry. `spec()` checks the shape, that `sha256(line) === lineSha256`, that
+`status` is `BRIEF-ACCEPTED`, that the line names this package id **and** this brief path,
+and that it ends in the **`ACCEPTED` terminal word**. `authority()` then resolves it the
+way the originals resolve every other citation: `L.verifyReceipt` reads
+`rebuild/DECISIONS.md` **out of Git at the parent's receipt base** and requires the exact
+line bytes, under role `cowork`, exactly once. The ACCEPTED branch of `envelope()`
+re-verifies it at the package's own receipt base alongside owner, contract and theme, and
+refuses PASS outright without it (`BRIEF-ACCEPTANCE-UNAVAILABLE`).
+
+| bite | what | exit | fired in |
+|---|---|---|---|
+| **B29** | `status: 'BRIEF-ACCEPTED'` + `acceptedLedgerLine: 101` (r2's own bite — it used to drop 5 opens to 4) | **1** | `spec()` — the claim shape |
+| **B29b** | a **self-consistent invented claim**: correct sha256, names the package and the brief, ends ` · ACCEPTED`, stands in no ledger | **1** | `authority()`, after `FIDELITY OBSERVED` — the Git lookup |
+
+With `acceptedLedgerLine: null` (all four specs today) the obligation simply stays open —
+`OPEN brief rebuild/lanes/b/BRIEF-B1-… not accepted by a PM ledger line`. There is no third
+outcome, and a claim made with no sealed parent to anchor it at refuses
+(`BRIEF-ACCEPTANCE-UNVERIFIABLE`) rather than counting.
+
+## r2.5 N5 — the theme is verified on every run, not only inside an ACCEPTED envelope
+
+The finding: `authority()` verified owner and contract against Git but `theme` "only inside
+the ACCEPTED branch of `envelope()`", so pre-seal an invented line "removes a blocking
+obligation and prints as though it had been observed".
+
+**What changed.** `authority()` now runs the theme through the identical
+`L.verifyReceipt` path as owner and contract — exact line bytes in Git at the parent's
+receipt base, role `cowork`, mentioning this package id.
+
+| bite | what | exit | fired in |
+|---|---|---|---|
+| **B31** | an entirely invented theme line — self-consistent sha256, contains the package id, ends ` · ACCEPTED`, exists in no ledger (r2's own bite — it used to drop 5 opens to 4) | **1** | `authority()`, after `FIDELITY OBSERVED` |
+
+The `AUTHORITY OBSERVED` line now says which of the two it is:
+`theme NULL — no PASS word is available; brief acceptance NULL — the obligation stays open`,
+or `theme DECISIONS:<n> found in Git at that base`.
+
+**Consequence for the whole report: the open-obligation count is evidence again.** r2's
+closing point 3 was that "two of the five can be removed by declaration". Neither can now.
+
+## r2.6 Residual R1 — the runner is bound in Git, not only on disk
+
+r2's R1: *"a tampered runner executes its injected line before it checks its own hash"*, and
+*"inject a line into `b-package.cjs`, re-take `tooling.runnerSha256`, and the run proceeds
+normally"* (B02, accepted pre-seal at r2).
+
+**What changed.** The spec's runner pin is resolved **twice**: against the bytes on disk
+(`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`, unchanged, still the first check in `spec()`) and
+against the bytes standing in **Git at HEAD**
+(`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT`). Disk, Git and the spec pin must be one
+byte string, and `fidelity()` re-asserts both mid-run. The hand that edits the runner
+cannot also rewrite the reviewed history without committing.
+
+| bite | what | exit |
+|---|---|---|
+| B01 | runner injected line, spec pin untouched | **1** (disk pin) |
+| **B02** | **runner injected line AND `tooling.runnerSha256` re-taken — the co-edit r2 recorded as accepted** | **1** (Git pin) |
+
+Stated plainly, because it is the honest half: **this detects, it does not prevent.** The
+attribution pass shows B02's stdout beginning with the injected line
+`B PACKAGE RUNNER-EDIT injected line executed` before the refusal. Self-verification cannot
+be otherwise. What changed is that the co-edit no longer survives detection. The operative
+consequence for practice is unchanged from r2's R1: **a reviewer of a sealed B package
+diffs `b-package.cjs` and `packages/<id>.json`; running them is not a substitute.** A
+second consequence is new and worth naming: the runner must be **committed** before any
+run, because an uncommitted edit is exactly what this check refuses.
+
+## r2.7 Residual R3 — parent pins re-asserted from Git as the original does
+
+r2's R3: the pins were re-asserted "from **disk only**", where the accepted original "also
+reads each superseded file from Git at `sourceBase`", and `git status` over the 18
+`PIN_PATHS` does not reach `rebuild/m4/spec`, `rebuild/m3` or `.github`, "where 28 of the
+31 parent pins and all 23 grandparent pins live".
+
+**What changed.** One helper, `held()`, resolves every parent and grandparent pin the way
+`native-carriers-profile.cjs:94-98` resolves it:
+
+* a file **this package supersedes** (is in its own `product`) must still carry the
+  parent's pinned bytes **in Git at `sourceBase`** — `PARENT-PIN-BROKEN-AT-SOURCEBASE` /
+  `GRANDPARENT-PIN-BROKEN-AT-SOURCEBASE`;
+* a file it does **not** supersede must be byte-identical on disk **and** in Git at HEAD —
+  `PARENT-PIN-BROKEN` / `…-GIT-DISK-DISAGREE`.
+
+The grandparent walk no longer skips files this spec supersedes; they are routed to the
+`sourceBase` check instead of being ignored. The honest run now reports all three counts:
+
+```
+PARENT PINS RE-ASSERTED at run time; 31 pin(s) from rebuild/m4/spec/acceptance-native-carriers.json
+plus its 20 product pins through the inventory below, and 23 un-superseded grandparent pin(s)
+from rebuild/m4/spec/acceptance-load-writes.json, byte-identical on disk AND in Git at HEAD;
+20 superseded pin(s) preserved in Git at sourceBase 87eddad; parent artifact byte-identical in
+Git at 84d8f28892973b6cf68f37d2fe5ce80d97b1d165
+```
+
+B19 (a parent execution pin edited: `.github/workflows/rebuild.yml`), B20 (a grandparent
+pin edited: `rebuild/m4/spec/load-write-traces.cjs`) and B21 (parent artifact bytes edited)
+all refuse, exit 1.
+
+## r2.8 The two honesty points from r2 §5
+
+* The runner header claimed *"No PASS word without an ACCEPTED envelope"* while `--ci`
+  prints `PUBLIC CI EVIDENCE PASS` at exit 0 with no artifact and no receipt. The header
+  now says **`POSTFIX PACKAGE PASS`** specifically, and the `--ci` success line itself now
+  reads `PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; … and
+  POSTFIX PACKAGE PASS is unavailable on this mode at any time`.
+* `PROTECTED SURFACES … verdict-only UNCHANGED` read as an observation while asserting
+  nothing. It now reads `… declared by the spec and echoed here, asserted by nothing in
+  this line`, and names what does hold those surfaces.
+
+## r2.9 The r2 reviewer's bite list, re-executed against the fixed runner
+
+All 39 executions r2 reports (B01–B31 with the a/b/c variants, plus PS0–PS4), re-run here,
+**plus 20 new probes** for the N-controls — 59 bite executions and 6 post-seal controls, 65
+in all. Spec bytes, runner bytes, ledger bytes, parent/grandparent pins and the two
+temporary envelopes are restored by the harness's `finally` after **every** bite.
+
+```
+bites run    : 59      refused (exit 1) : 57
+accepted-2   : 1       B07d, the N1 positive control (a real move) — CI REVIEW-PENDING, no PASS
+no-effect-2  : 1       B23, the Git-bound control (a worktree ledger edit is invisible)
+bare PASS    : 0       across all 59
+post-seal    : 6       PS0 accepted-2 (the independent recomputation), PS1-PS4 + B28 exit 1
+```
+
+| # | bite | r2 | now |
+|---|---|---|---|
+| B01 | runner injected line | 1 | **1** |
+| B02 | runner injected line + spec re-pinned | **2, accepted** | **1** |
+| B03–B06 | runner path / exemption key / self-nominated artifact / 19 gates on an undeclared file | 1 | **1** ×4 |
+| **B07** | ten gates into `coverage.moves` | **2, ACCEPTED — N1** | **1** |
+| B07b/c/e | reason-shaped moves, a move that does not run the original, the grouped pair out of root | — | **1** ×3 |
+| **B07d** | a move that DOES run the original (positive control) | — | **2, accepted, no PASS** |
+| B08 | inherited ≠ the parent covered set | 1 | **1** |
+| B08b | the parent's gates re-pointed at one child | — | **1** |
+| B09–B14 | needle and argv schema | 1 ×6 | **1** ×6 |
+| **B15** | `['--version', <pinned child>]` | **2, ACCEPTED — N3** | **1** |
+| B15b | `[<pinned child>, '--version']` | — | **1** |
+| **B16** | `['--eval=…', <pinned child>]` | **2, ACCEPTED — N2** | **1** |
+| N2a–N2s | 19 further inline / short-circuit / stdin / smuggled-flag forms | — | **1** ×19 |
+| B17–B21 | product inventory, pre-image, parent pin, grandparent pin, parent artifact | 1 ×5 | **1** ×5 |
+| B22a/b/c | contract ledger line tampered three ways | 1 ×3 | **1** ×3 |
+| B23 | control: `DECISIONS.md` tampered in the worktree | 2, no effect | **2, no effect** |
+| B24, B25a/b, B26, B27 | law id, single-parent chain ×2, carried id, non-canonical JSON | 1 ×5 | **1** ×5 |
+| B28 | artifact written mid-run | 1 | **1** |
+| **B29** | brief obligation cleared by declaration | **2, ACCEPTED — N4** | **1** |
+| B29b | an invented self-consistent brief-acceptance claim | — | **1** |
+| **B30** | composite: all 19 gates, one `--version` child | **2, ACCEPTED — N1+N3** | **1** |
+| **B31** | invented theme ledger line | **2, ACCEPTED — N5** | **1** |
+| PS0 | seal by independent recomputation | accepted | **2, accepted** |
+| PS1–PS4 | spec edited / runner co-edited / artifact pin altered / forged receipt, all post-seal | 1 ×4 | **1** ×4 |
+
+**Every bite r2 recorded as ACCEPTED now refuses.** The four that were the finding — B07,
+B15, B16, B30 — plus B29 and B31, and B02 which r2 recorded as accepted pre-seal.
+
+**PS0 still works.** The artifact is rebuilt in the harness from the spec and the bytes on
+disk, with no help from the runner, and `same(m, proposed())` accepts it:
+
+```
+ENVELOPE PENDING artifact=b85f3f6600f512fc0d3e29048b7c84f357ec1898047ecb84fce8eda99cd3f067
+  spec=f3f658b8f181d58ac8110e361aea646819b475cc8de064604971068e74c1f1a0
+  runner=eaa731a143438dd0238925397c5ff3450fc8e1bafee5220f0332150a1460b81d
+CI REVIEW-PENDING: 4 open obligation(s); public evidence only; no PASS is claimed   (exit 2)
+```
+
+That is the load-bearing control for the new artifact shape: `coverage` now carries
+`{covered, run, moves, byChild}`, and an independently built artifact with that shape is
+accepted while PS1/PS2/PS3 show the binding is total.
+
+### Where each N-control fires (attribution)
+
+The runner withholds diagnostics by design, so the control that fired is identified by how
+far the run got before refusing:
+
+| bite | stdout lines before refusal | control |
+|---|---|---|
+| B07 / B07b / B07c | 0 | `spec()` — the bounded-moves schema, before any output |
+| B08b | 31 — last line `CHILD second-gate OBSERVED` | `coverage()` — the parent-map equality, after all five children ran |
+| B16 | 0 | `spec()` — `CHILD-ARGV-INLINE-CODE` |
+| B15 / B15b | 0 | `spec()` — short-circuit / flag-after-file |
+| FLOOR-A / FLOOR-B | 30 | `children()` — the execution floor and the line-start rule |
+| B29 | 0 | `spec()` — the claim shape |
+| B29b / B31 | 10 — last line `FIDELITY OBSERVED` | `authority()` — the Git lookup at the parent's receipt base |
+| B02 | 1 — the injected line itself | `spec()` — the Git-at-HEAD pin, after the injected line had run |
+
+## r2.10 The tip demo, re-executed
+
+All run as `node rebuild/lanes/b/tooling/b-package.cjs <args>` from the worktree root.
+
+| invocation | exit | terminal line |
+|---|---|---|
+| `--ci --package B1` | **2** | `CI REVIEW-PENDING: 5 open obligation(s); public evidence only; no PASS is claimed` |
+| `--ci --package B2` | **2** | `CI REVIEW-PENDING: 5 open obligation(s); …` |
+| `--ci --package B3` | **2** | `CI REVIEW-PENDING: 10 open obligation(s); …` |
+| `--ci --package B4` | **2** | `CI REVIEW-PENDING: 10 open obligation(s); …` |
+| `--full --package B1` | **2** | `B PACKAGE B1 BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING` |
+| `--full --package B2` | **2** | `B PACKAGE B2 BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING` |
+| (no args) | **1** | `B PACKAGE USAGE REFUSED; exactly: --ci\|--full --package B1\|B2\|B3\|B4` |
+| `--third --package B1` | **1** | same refusal |
+| `--ci --full --package B1` | **1** | same refusal |
+| `--ci --package B9` | **1** | same refusal |
+| `--ci --package b1` | **1** | same refusal (case-exact) |
+| `--ci` alone | **1** | same refusal |
+| `--package B1` alone | **1** | same refusal |
+
+All six real runs executed `45/45` register laws with **0 HARNESS_ERROR**
+(`TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls ·
+97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL`), all five
+declared children, and
+
+```
+COVERAGE 9/19 original gate(s) covered by 5 executed child(ren)
+  (9 inherited, the parent map byte-for-byte; 0 moved, each bound to its own original
+   executable); 10 re-execute under --full
+```
+
+(`9 inherited, unverified` on B3/B4, which document no sealed parent). The open counts are
+unchanged from r2 at 5/5/10/10 — the two obligations N4 and N5 concern are still open,
+and now they cannot be closed by declaration. **0 lines containing a bare `PASS` in any of
+the 13 runs**; the only occurrences of the word are the two negations and the qualified
+`PUBLIC CI EVIDENCE PASS`, which no run reached.
+
+The five children each print their declared verdict at line start, and the runner now says
+how much they printed and which file they ran:
+
+```
+CHILD source-carriers     OBSERVED; exit 0, 926 bytes of stdout, exact declared verdict at line start; ran rebuild/m4/spec/native-carriers-source-carriers.cjs
+CHILD inherited-carriers  OBSERVED; exit 0, 815 bytes …
+CHILD defect-witnesses    OBSERVED; exit 0, 480 bytes …
+CHILD writers-differential OBSERVED; exit 0, 1068 bytes …
+CHILD second-gate         OBSERVED; exit 0, 227 bytes …
+```
+
+## r2.11 Delivered bytes after the r2 fix
+
+| file (under `rebuild/lanes/b/tooling/`) | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 684 | 53683 | `eaa731a143438dd0238925397c5ff3450fc8e1bafee5220f0332150a1460b81d` |
+| `packages/B1.json` | 386 | 22590 | `ed2a59ab07c299fb56fbe3a639edf9ca72d2a1d5374180a1db801aa23b098bf0` |
+| `packages/B2.json` | 371 | 23501 | `2005606f43df4dbe597ba9bd8f9233d169d05afb3b85ab2ae3cc9ea52ae4eae2` |
+| `packages/B3.json` | 268 | 18450 | `41bc9ce615590496675720cece3fb46b3bbd22094e978d60d2a77ba1b0088a33` |
+| `packages/B4.json` | 258 | 17861 | `06b4d367d2339f48c2f50cfaef5621bb598346f14f92657e1bcb17fcc75101bd` |
+
+The only change to the four specs is `tooling.runnerSha256`, re-taken from the new runner
+bytes; all four remain byte-canonical JSON and LF-only. `README.md` and this file changed
+with the mechanism. **`package-lock.json` is untouched.**
+
+## r2.12 What is still open after r2 — stated, not hidden
+
+1. **The runner is 684 lines.** Still nothing copied: `GATES`/`gateRun`, `PIN_PATHS`,
+   `git`/`object`/`verifyReceipt`/`checkSources`/`historicalAudit`, `sha`, `parseExact`,
+   the BLOCKED `codes` list and the reference bundles are all **required**, and the two new
+   derivations — `GATE_FILE`/`GATE_GROUP` and `GATE_TERMINAL` — are read out of `R.GATES`
+   rather than re-typed. The growth over r1's 514 is the five N-controls.
+2. **The pre-seal spec is still editable.** R1 is closed on the **runner**; the spec is not
+   bound in Git the same way, deliberately — binding it would make every fail-closed bite
+   refuse for the same generic reason and destroy the attribution this report depends on.
+   The spec's real anchors remain the reviewed commit (a human diff) and, from the seal on,
+   the artifact (PS1 refuses a post-seal spec edit). **A reviewer must diff the spec.**
+3. **The N3 floor's OR branch is a string a child could print.** A child that prints a
+   fabricated `LEGACY <gate> PASS | …` line clears the floor with under 200 bytes
+   (FLOOR-C). It is bounded — that child is a real file under a fixed root, pinned in the
+   artifact and reviewed — but it is a string test, not a proof of execution. The stronger
+   rule would compare the child's stdout against the original gate's own declared needle
+   from `R.GATES`; that requires each move to declare which gate's needle it carries, which
+   is a spec-shape change and belongs with the first real `legacy-b<N>-carriers.cjs`.
+4. **R4 is unchanged and inherited from `run.cjs`**: two `PIN_PATHS` entries
+   (`rebuild/conform/goldens`, `rebuild/conform/manifest.json`) do not exist in this tree,
+   so "18 PIN_PATHS byte-identical" is nominal, not 18 live paths.
+5. **R5 is unchanged: the ACCEPTED happy path is still untested by a genuine receipt.**
+   Every negative around it is executed (PS4, B28 and r1's B4a–B4f); the positive needs a
+   PM ledger line. N1–N3 are now closed *before* that run rather than diagnosed by it,
+   which was r2's requirement.
+6. **R6 is unchanged: `gates()` and `historical()` remain unexecuted** on any machine
+   without the private fixture, by design (`DECISIONS:97`). The coverage accounting they
+   depend on does run, in every `--ci`.
+7. **R7 is unchanged: `--ci` still cannot be wired into `.github/workflows/rebuild.yml`**,
+   which is a NATIVE-CARRIERS execution pin and belongs to the one batched re-seal at B1
+   (`DECISIONS:99`).
+8. **R8 is narrowed but not gone.** `fidelity()` still exempts every file a declared child
+   executes from `UNLISTED-SOURCE-CHANGE`. With N2/N3 closed a spec can no longer name a
+   file it never executes — the child must run it, file-first, and clear the output floor —
+   so the exemption now costs a real execution. It is still an exemption a spec chooses.
+9. **Everything in r2 §10 that the PM must name is unchanged**, except that items 2 and 3
+   ("N1, N2 and N3 as blocking pre-seal conditions" and "N4 and N5, or an explicit ruling")
+   are answered by this fix rather than by a ruling. The single parent, the brief
+   acceptance lines, the theme lines, H1, and who runs and judges the FULL gate all remain
+   open and are the PM's.

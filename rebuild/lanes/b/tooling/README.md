@@ -53,7 +53,13 @@ acceptance-<slug>.json  the sealed artifact      pinned by  the PM's DECISIONS r
 ```
 
 * Before seal, an injected line in `b-package.cjs` refuses at the **first** spec check
-  (`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`) — the spec carries the runner's sha256.
+  (`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER`) — the spec carries the runner's sha256. The
+  same pin is then resolved a second time against the runner's bytes **in Git at HEAD**
+  (`RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT`), so the pre-seal co-edit — inject a line
+  *and* re-take `tooling.runnerSha256` in the same hand — refuses too: disk, Git and the
+  spec pin must be one byte string. Self-verification still only **detects**; the injected
+  line has already run by the time the check is reached. A reviewer of a sealed B package
+  diffs `b-package.cjs` and `packages/<id>.json`, and does not only run them.
 * After seal, `envelope()` recomputes the **whole artifact** from the spec and the bytes on
   disk (`same(m, proposed())`) and refuses on any difference: an edited spec, an edited
   runner, a changed product pin, a changed child, a changed coverage map.
@@ -74,7 +80,7 @@ version, lanePackage, packageId, sourceBase,
 parent {id, artifact, sha256, review, receiptLedgerLine, reviewedCommit},
 spec {file, sha256}, runner {file, sha256},
 dIds, laws, carriedAcceptedIds, privateLiveTriggered,
-gates (the 19, sorted), coverage {covered, run, byChild},
+gates (the 19, sorted), coverage {covered, run, moves, byChild},
 authorizations, product, carrierSuccessor, witnessFlips, protectedSurfaces, children,
 artifact {file, review}, executionPins
 ```
@@ -95,7 +101,21 @@ character the run refuses.
    notes`.
 1b. **`tooling`** is `{runner, runnerSha256}` — the runner path and the sha256 of the
    reviewed `b-package.cjs`. Re-take it whenever the runner changes, and re-review both
-   together: the runner is not allowed to differ from the bytes the spec names.
+   together: the runner is not allowed to differ from the bytes the spec names **or from
+   the bytes standing in Git at HEAD**. A runner edited on disk and re-pinned in the same
+   breath refuses; the pin is only satisfied when disk, Git and the spec agree. The
+   practical consequence is that the runner must be **committed** before any run.
+
+1c. **`brief`** is `{file, sha256, acceptedLedgerLine}`. `acceptedLedgerLine` is `null`
+   until the PM accepts the brief, and then it is a **ledger citation**
+   `{ledgerLine, role: "cowork", line, lineSha256}` — the same shape as `owner`,
+   `contract` and `theme`, never a bare line number. Its `line` must name this package id
+   and this brief path and end in the **`ACCEPTED` terminal word**, `status` must be
+   `BRIEF-ACCEPTED`, and the runner finds its exact bytes in `rebuild/DECISIONS.md`
+   **in Git at the parent's receipt base** before the obligation closes. A declared
+   acceptance that is not in the ledger refuses the run; a `null` one simply leaves the
+   obligation open. The open-obligation count is therefore evidence again: neither the
+   brief nor the theme can be struck off it by declaration.
 2. **`dIds`** in package order; **`laws`** maps each D-id to its law id. The runner
    cross-checks every law id against the **executed** live inventory, not a table — a
    renamed or mistyped law id fails the run (control C3).
@@ -110,14 +130,42 @@ character the run refuses.
    and fail (controls C2, C6, C7).
 4. **`parent`** carries `decided`, `chosen` and every documented `options` entry. See the
    chain rule below.
-5. **`coverage.inherited`** must be exactly the parent artifact's own `coverage.byChild`
-   gate set; **`coverage.moves`** lists the gates this package moves from `run` to
-   `covered`. A gate is inherited-covered or moved, never both. **Every value is the
-   `name` of an entry in `children[]`, and the gate counts as covered only because that
-   child actually ran in this process, exit 0, with its exact declared verdict matched.**
-   A covering name that is not a declared child refuses (`COVERAGE-CHILD-NOT-DECLARED`);
-   a declared child that did not run refuses (`COVERAGE-CHILD-NOT-EXECUTED`). Nothing is
-   ever covered because a file exists — that is the `DECISIONS:97` F-PM-2 defect.
+5. **`coverage`** is `{inherited, moves}`, and **both halves are bounded** — the covered
+   set is not something a spec can grow.
+
+   **`coverage.inherited` must be the parent artifact's own `coverage.byChild` map
+   byte-for-byte** — the gate ids *and* the child each one maps to
+   (`INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET`). Re-pointing the parent's nine at
+   a child of the spec's own choosing is refused, and every inherited child must execute a
+   file the **parent artifact itself pins**
+   (`INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE`).
+
+   **`coverage.moves` maps a gate to `{child, reason}`** — never a bare child name. A move
+   is accepted only when all of the following hold:
+   * `reason` is a stated, single-line, non-trivial sentence (`COVERAGE-MOVE-REASON-MISSING`);
+   * the child's `argv` names **the gate's own original executable** as `run.cjs` records
+     it in `GATES`, or a file whose **bytes** carry a `require`/`import` of that executable
+     — resolved by reading the covering file and resolving each relative specifier against
+     its own directory, never by declaration
+     (`COVERAGE-MOVE-CHILD-DOES-NOT-EXECUTE-THE-ORIGINAL`);
+   * the child carries **one** gate, unless `run.cjs` itself groups several on one
+     executable — today the only such group is `conformance` + `selftest`, both on
+     `rebuild/conform/run.cjs`
+     (`COVERAGE-MOVE-CHILD-COVERS-MORE-GATES-THAN-run.cjs-GROUPS`);
+   * the child is not also an inherited child
+     (`COVERAGE-MOVE-CHILD-IS-AN-INHERITED-CHILD`).
+
+   A gate is inherited-covered or moved, never both, and the total is asserted closed:
+   `covered == parent byChild + declared moves` (`COVERED-SET-BOUND`) — the generic form of
+   the accepted original's `assert.equal(m.coverage.covered.length, 9)`.
+
+   **Every value is the `name` of an entry in `children[]`, and the gate counts as covered
+   only because that child actually ran in this process, exit 0, with its exact declared
+   verdict matched.** A covering name that is not a declared child refuses
+   (`COVERAGE-CHILD-NOT-DECLARED`); a declared child that did not run refuses
+   (`COVERAGE-CHILD-NOT-EXECUTED`). Nothing is ever covered because a file exists — that is
+   the `DECISIONS:97` F-PM-2 defect — and nothing is covered by a child that did not
+   execute the thing the gate is about.
 6. **`carrierSuccessor`** + **`witnessFlips`**: one flip per assertion site, and every
    frozen witness file pinned by sha256 so it stays **byte-identical** — the established
    mechanism is in-memory `exactReplace` substitution by a named successor child
@@ -131,16 +179,51 @@ character the run refuses.
    own roles and with content mentions, and requires `contract.lineSha256` to equal the
    parent artifact's own contract line (`INHERITED-CONTRACT-AUTHORIZATION`). `theme` stays
    `null` until the brief is accepted, and the runner refuses PASS while it is null
-   (`THEME-AUTHORIZATION-UNAVAILABLE`); on an ACCEPTED envelope all three are re-verified
+   (`THEME-AUTHORIZATION-UNAVAILABLE`); on an ACCEPTED envelope all four are re-verified
    at the package's own receipt base.
+
+   **`theme` is held to exactly the same standard as `owner` and `contract` on every run,
+   not only inside an ACCEPTED envelope.** When it is non-null the runner finds its exact
+   line bytes in `rebuild/DECISIONS.md` **in Git at the parent's receipt base**, under role
+   `cowork`, mentioning this package id. An invented line — self-consistent, naming the
+   package, ending ` · ACCEPTED`, and standing in no ledger — refuses the run; it does not
+   quietly close an obligation. When it is `null` the obligation simply stays open. There
+   is no third outcome, and a `theme` declared with no sealed parent to anchor it at
+   refuses (`THEME-AUTHORIZATION-UNVERIFIABLE`) rather than counting.
 8. **`children`**: `{name, argv, needle}` per package child. `name` is
-   `[a-z0-9][a-z0-9-]{1,39}` and unique; `needle` is a non-empty verdict of at least 8
-   non-blank characters; `argv` never carries `-e`/`--eval`/`-p`/`--print`/`-r`/
-   `--require`/`--import`, and every non-flag element must be an existing repo-relative
-   file under `rebuild/m4/spec/`, `rebuild/conform/v4/postfix/`, `rebuild/engine/test/`,
-   `rebuild/m4/workout/test/` or `rebuild/m3/w7-preview/test/`. Each child must exit 0 and
-   print its exact declared verdict. Empty until authored — an open obligation, and then
-   no gate can be covered at all.
+   `[a-z0-9][a-z0-9-]{1,39}` and unique; `needle` is a single-line verdict of at least 8
+   non-blank characters.
+
+   **`argv` is an allow-list, not a deny-list.** The only flags a child may pass are the
+   two the accepted originals ever pass — `--test` and `--test-reporter=tap`
+   (`load-write-package.cjs`, `native-carriers-package.cjs`) — and they may stand only
+   *before* the file. Then the **first non-flag token must be an existing repo-relative
+   file** under `rebuild/m4/spec/`, `rebuild/conform/v4/postfix/`, `rebuild/engine/test/`,
+   `rebuild/m4/workout/test/` or `rebuild/m3/w7-preview/test/`, and every token after it
+   must be another such file. Consequences, each with its own refusal:
+   * every inline-code form refuses, in both its bare and its `=<code>` spelling —
+     `-e`, `--eval`, `--eval=`, `-p`, `--print`, `--print=`, `--input-type`,
+     `--input-type=`, `-r`, `--require`, `--require=`, `--import`, `--import=`,
+     `--loader`, `--experimental-loader` (`CHILD-ARGV-INLINE-CODE`);
+   * every form that makes node print and exit without running the file refuses —
+     any token beginning `--version`, `-v`, `--help`, `-h`
+     (`CHILD-ARGV-SHORT-CIRCUITS-EXECUTION`);
+   * `-` and `--` refuse, so a child can never be fed on stdin
+     (`CHILD-ARGV-STDIN-OR-END-OF-OPTIONS`);
+   * a flag standing **after** the file refuses, so `node pinned.cjs --version` is
+     rejected as surely as `node --version pinned.cjs` (`CHILD-ARGV-FLAG-AFTER-FILE`);
+   * an argv with no file at all refuses (`CHILD-ARGV-EXECUTES-NO-FILE`).
+
+   **And the child must have really executed.** Exit 0 with the needle somewhere in stdout
+   is not enough. The needle must stand at the **head of its own line**
+   (`CHILD-NEEDLE-NOT-A-TERMINAL-LINE`) — a needle buried inside a longer sentence, or
+   inside a negation, does not count — and stdout must be **at least 200 bytes**, or else
+   carry one of the original gates' own terminal lines (`LEGACY <gate> PASS | …`, the line
+   `run.cjs`'s `gateRun` emits), or the run refuses
+   (`CHILD-DID-NOT-REALLY-EXECUTE`). `node --version` exits 0 and prints eight characters
+   at line start; it is the case this floor exists to refuse.
+
+   Empty until authored — an open obligation, and then no gate can be covered at all.
 9. **`artifact`** is `{file, review}` and must equal the paths the **package id** implies
    (`rebuild/m4/spec/acceptance-<packageId minus M2- lowercased>.json` and
    `review-…json`). Those two are the only paths exempt from `UNLISTED-SOURCE-CHANGE`, and
@@ -171,7 +254,13 @@ incompatible for the artifact chain, so **B1.json and B2.json each carry both op
   then the grandparent artifact's own bytes, its ACCEPTED envelope and receipt, and its
   `product` ∪ `executionPins` minus everything the parent superseded. This is
   `native-carriers-profile.cjs`'s "Every parent pin still holds", which a three-tree diff
-  since `sourceBase` cannot substitute for;
+  since `sourceBase` cannot substitute for. Each pin is resolved the way the original
+  resolves it: a file **this package supersedes** must still carry the parent's pinned
+  bytes **in Git at `sourceBase`** (`native-carriers-profile.cjs:96`, "Parent product
+  preserved at sourceBase"), and a file it does not supersede must be byte-identical **on
+  disk and in Git at HEAD**. The second half matters because 28 of the 31 parent pins and
+  all 23 grandparent pins live under `rebuild/m4/spec`, `rebuild/m3` and `.github`, which
+  the 18-path `git status` check does not reach;
 * prints `PARENT UNDECIDED` and records an open obligation while `chosen` is null — and,
   when exactly one option is sealed on disk, uses it **provisionally** for the pins,
   inventory and inherited-coverage checks while recording that it is not a claim on the
@@ -198,6 +287,13 @@ witness-flip accounting; **every declared package child, executed**; the coverag
 which counts only gates whose covering child just ran. Exit 0 with
 `PUBLIC CI EVIDENCE PASS` only when every non-envelope obligation is closed; otherwise
 `CI REVIEW-PENDING`, exit 2, **no PASS word**.
+
+`PUBLIC CI EVIDENCE PASS` is the **only** PASS word `--ci` can ever print, it is qualified
+in its own sentence (*"public evidence only, NOT the package verdict"*), and it carries no
+artifact and no receipt. The claim "no PASS word without an ACCEPTED envelope" is about
+`POSTFIX PACKAGE PASS`, which `--ci` cannot reach at all. This is parity with
+`load-write-package.cjs`; it is stated here because r2 was right that the runner's own
+header overclaimed it.
 
 **Owner's PC only — `--full`:** everything `--ci` does, then the private-oracle
 requirement, the historical 45-law audit against the pinned baseline snapshot, and the 19
@@ -256,13 +352,27 @@ step 3 starts again (that is exactly what happened to NATIVE-CARRIERS at
 | spec bytes are not canonical JSON | FAIL exit 1 |
 | an unlisted engine/conform/m4-spec/lane-b-tooling change since `sourceBase` | FAIL exit 1 |
 | `b-package.cjs` differs from the sha256 the reviewed spec pins | FAIL exit 1 |
+| `b-package.cjs` on disk differs from its own bytes in Git at HEAD | FAIL exit 1 |
 | the spec or the runner differs from the sealed artifact's pins | FAIL exit 1 |
 | the sealed artifact is not what the spec and the bytes recompute to | FAIL exit 1 |
 | a covered gate names a child that is not declared | FAIL exit 1 |
 | a covered gate's child did not execute in this run | FAIL exit 1 |
-| the inherited set is not the parent artifact's covered set | FAIL exit 1 |
+| the inherited map is not the parent artifact's `byChild` map, gate **and** child | FAIL exit 1 |
+| an inherited child does not execute a file the parent artifact pins | FAIL exit 1 |
+| a move carries no stated reason | FAIL exit 1 |
+| a move's child does not execute the gate's own original executable, or a file requiring it | FAIL exit 1 |
+| a move's child carries more gates than `run.cjs` groups on one executable | FAIL exit 1 |
+| the covered set is larger than parent `byChild` + declared moves | FAIL exit 1 |
 | a declared child has an empty needle, or argv that executes no file | FAIL exit 1 |
+| a child's argv carries any flag but `--test` / `--test-reporter=tap` | FAIL exit 1 |
+| a child's argv carries inline code, a short-circuit flag, stdin, or a flag after the file | FAIL exit 1 |
+| a child's needle is not at the head of a line of its stdout | FAIL exit 1 |
+| a child's stdout is under 200 bytes with no original gate terminal line | FAIL exit 1 |
 | an owner/contract/theme line is not exact bytes in the ledger at its base | FAIL exit 1 |
+| a declared brief acceptance is not exact bytes in the ledger at its base | FAIL exit 1 |
+| a theme or brief acceptance is declared with no sealed parent to anchor it at | FAIL exit 1 |
+| a parent-superseded pin no longer holds in Git at `sourceBase` | FAIL exit 1 |
+| an un-superseded parent/grandparent pin disagrees between Git at HEAD and disk | FAIL exit 1 |
 | the contract line is not the parent artifact's contract line | FAIL exit 1 |
 | PIN_PATHS disagree between Git and disk | FAIL exit 1 |
 | an ACCEPTED envelope with no bound theme line | FAIL exit 1 |
@@ -315,9 +425,22 @@ All four specs currently declare the **five accepted NATIVE-CARRIERS successor c
 `second-gate`) and inherit the nine gates those children cover. That is what makes the
 coverage real: the children run in every `--ci` and every `--full`, and the nine gates are
 counted only because of those executions. `coverage.moves` is empty in all four — a move
-becomes real when the package's own `legacy-b<N>-carriers.cjs` exists and is declared in
-`children[]` with its own exact verdict, not before.
+becomes real when the package's own `legacy-b<N>-carriers.cjs` exists, is declared in
+`children[]` with its own exact verdict, **and its argv executes the moved gate's own
+original executable or a file whose bytes require it**, not before. The emptiness is no
+longer what makes the gate matrix safe: the bound is enforced whether `moves` is empty or
+not.
 
-**Revision history.** `TOOLING-REVIEW-r1.md` (ACCEPT WITH CHANGES) named seven weakenings
-W1–W7; all seven are closed in this revision, and `TOOLING-REPORT.md` §"post-review r1"
-carries the executed proof for each.
+**Revision history.**
+
+* `TOOLING-REVIEW-r1.md` (ACCEPT WITH CHANGES) named seven weakenings W1–W7; all seven are
+  closed, and `TOOLING-REPORT.md` §"post-review r1" carries the executed proof for each.
+* `TOOLING-REVIEW-r2.md` (ACCEPT WITH CHANGES) closed W1, W4–W7, found W2/W3 closed only
+  for the cases r1 named, and recorded five new weakenings N1–N5: an unbounded
+  `coverage.moves`, an anchored-exact `NO_INLINE` that missed `--eval=`, a needle any
+  short-circuiting child could satisfy, and a brief acceptance and a theme line that
+  cleared obligations by declaration. All five are closed in this revision, together with
+  the r2 residual R1 (the runner is now bound in Git at HEAD, not only on disk) and R3
+  (superseded pins re-read from Git at `sourceBase`, un-superseded ones from Git at HEAD).
+  `TOOLING-REPORT.md` §"post-review r2" carries the executed proof, including the r2
+  reviewer's own bite list re-run against the fixed runner.
