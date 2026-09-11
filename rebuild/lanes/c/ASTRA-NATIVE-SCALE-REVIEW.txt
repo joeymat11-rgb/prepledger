@@ -1,0 +1,86 @@
+NATIVE SCALE FEEDBACK — INDEPENDENT REVIEW
+2026-09-11. REQUIRED CORRECTIONS F1/F2; not ACCEPT.
+
+(1) EXACT SOURCE / ROLE
+Candidate95c6a5423cf4de364e24fc24f8b1754a49dcbc91, parentca57649b3cc9189dca8d006ceb6bac17c842bea6.
+FILE ASTRA-NATIVE-SCALE-REVIEW.md at8e44739 and original native-scale brief/contract read.
+Distinct reviewer /root/phone_release_review, not builder/integrator. Read NEXT, ROADMAP, LANES,
+full builder report/contract, all six changed files, reading/stored-workout interpreters and actual C4
+producer paths. Isolated codex/astra-native-scale-review; only this report committed. No fixes made.
+
+(2) EXECUTED
+Retained Node24.19.0/dependencies, no install. TZ=America/New_York; NODE_PATH=W6 retained dependencies;
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this isolated source root.
+node --test rebuild/m4/nutrition/scale-feedback.test.mjs:19 PASS,0 fail/skip/cancel, exit0.
+This includes actual encrypted C4 first/late/trained/read-first/equal-time journeys, reopen/cache-loss,
+T2-envelope correction/removal/conflict/rejection/as-of/offset/DST/source-gap controls, 10-reading native
+rate without model, and parent-source legacy parity. No61-test neighboring campaign or full/private gate
+rerun claimed here. The source-before currentRate missing-model TypeError is actually exercised by the suite;
+legacy currentRate still throws, while the new scale-only result has no fat/model dependency.
+
+node .tmp/scale-review-probe.mjs: exit0; independently selected witnesses below reproduced with assertions.
+It reuses the existing test's actual C4 producer fixture helpers, with imports relocated, then clones the
+produced generation before calling candidate code. Additional signed-envelope controls are explicitly
+synthetic fixtures, not authority authentication evidence. No caller eligibility flags or fake sessionLog.
+Independent positive controls: invalid2026-02-30 asOf throws SCALE_AS_OF_INVALID; removing one same-date
+reading leaves the surviving175lb reading eligible and reports only READING_REMOVED.
+node .tmp/scale-parent-parity.mjs: PASS,8 independently chosen configured currentRate states and4 applyRead
+states against factories compiled from git's exact parent source. Covers all-same-date regression degeneracy,
+constant28 readings, irregular two-day spacing/noise, prior/weekly fallback, and historical/current trained
+writes. Full JSON rate output and full writer return values match. Existing tests add36 rate/64 writer states.
+git diff --check PASS. Working tree clean before this sole report addition.
+
+(3) F1 — PROJECTION FREEZES CALLER-OWNED INPUT [required]
+Source: rebuild/m4/nutrition/scale-feedback.mjs:18,34,160-162.
+storedWorkoutHistory retains operation references from generation; the final recursive freeze traverses
+those references. Actual C4-produced Start/Set/Close/reading generation, cloned before the candidate call:
+  before Object.isFrozen(start) = false
+  after Object.isFrozen(start) = true
+  result.workoutHistory.sessions[0].start.operation === start = true
+  Object.isFrozen(start.causal_parents) = true
+A subsequent harmless property assignment to that caller-owned Start throws TypeError. This is an observable
+mutation of the input object's descriptors/extensibility, despite unchanged JSON values. The current input
+JSON/deep-value check misses it. It also leaves unrelated workout roots inconsistently frozen depending on
+whether storedWorkoutHistory returns their references. A read-only projector must not impose this ownership
+change on its supplied generation.
+Required: freeze only owned output copies (or otherwise isolate shared original references) and add a
+red-first test asserting the supplied generation/operations/arrays retain their pre-call mutability while
+returned histories remain immutable. No change to stored-workout interpretation is needed.
+
+(4) F2 — AS-OF HIDES ALREADY-KNOWN CHRONOLOGY CONTRADICTION [required]
+Source: rebuild/m4/nutrition/scale-feedback.mjs:77-82.
+Actual C4-produced completed native workout has Close effective2026-09-11 08:00+00:00. Its subsequent
+reading has a retained same-device consecutive predecessor pointing to that Close. Replace only that reading
+with an actual T2 builder envelope retaining the same identity/sequence/predecessor/quantity but effective
+07:00+00:00, a deliberate contradictory-clock control. Same complete current generation:
+  asOf07:30 -> baseline170, exclusions[]
+  asOf10:00 -> baseline null, SCALE_TRAINING_CHRONOLOGY_REQUIRED
+The operation graph already proves Close was recorded before the reading, while their effective timestamps
+claim the reverse. The first contradiction check requires closeTime<=cutoff, and the second filter drops it;
+therefore the earlier cutoff silently treats that known contradiction as eligible evidence. This is not a
+historical receipt snapshot: the contract explicitly consumes the current resolved record at original
+effective dates. Advancing only the cutoff should not be required to acknowledge evidence already supplied.
+Required: retain a chronology requirement for this known contradictory predecessor/causal order even when
+the conflicting close's effective timestamp lies beyond cutoff. Preserve genuine future-reading exclusion
+and genuine read-before-later-close behavior; add both-cutoff controls. No new chronology policy is requested.
+
+(5) SOUND WORK / RETAINED LIMITS
+Shared arithmetic matches the inspected parent: +/-1.5 clamp,0.3 update, one-decimal smoothing; raw last28
+regression, minimum10 and unchanged uncertainty; legacy configured fat wrapper retained. First eligible
+reading supplies baseline; no reading/rate/body model is invented. Reading interpreter supplies current
+corrections, tombstones, concurrent/unresolved/rejected exclusions and separate accepted/local folds.
+Legacy readWindow uses the completed sessionLog entry, written by completion; native Start/open sets alone
+are correctly not declared completed training. Actual C4 reading has no workout causal parent but retains
+consecutive device predecessor evidence; both order directions/equal timestamps are executed.
+Source-intent material/validation and actual envelope demonstrate the explicit imported blackout gap;
+reading reclassification demonstrates existing READING_EFFECT_UNSUPPORTED. These are bounded exclusions,
+not implementations of import blackout or time reclassification. Runtime-local-midnight regression/DST
+coordinates and potential cross-timezone differences are disclosed; this review invents no timezone rule.
+
+Correction/removal and accepted/local controls pass, including pending close removal retaining accepted
+training exclusion; asOf uses current edits at the original reading date. Those passes do not cure F1/F2.
+Full source-policy/mandatory engine qualification, host/Today wiring, four-field nutrition/personal goals,
+recovery/progression, imported-source blackout/reclassification and physical phone proof remain separate.
+No product/frozen-law/oracle/private data, other tree, source policy/CI, runtime export, lockfile or storage
+schema edits; no installs, new agent, full/private campaign, remote push/PR/merge/deployment or receipt.
+Root must route minimal corrections to the author; this reviewer neither fixes nor self-accepts them.
