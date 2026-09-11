@@ -49,6 +49,7 @@ function morningLine(view) {
   return note ? line + " · " + note : line;
 }
 function trendLine(view) {
+  if (view.mode === "owner") return "Weight trend · Initial-setup projection is not available yet";
   const weight = view.nowModel && view.nowModel.headed ? view.nowModel.headed.weight : null;
   return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE) + " · Why this plan?";
 }
@@ -176,10 +177,10 @@ function mountToday(doc, model, options = {}) {
   /* ---------------- Today ---------------- */
   function renderToday(focus) {
     const view = model.read();
-    if (chrome) chrome.textContent = view.storageNote;
+    if (chrome) chrome.textContent = [view.mode === 'demo' ? 'Demo · fictional athlete' : view.athleteLabel, view.storageNote].filter(Boolean).join(' · ');
     const root = template("t-today");
     const map = slots(root);
-    put(map, "date", dayLabel(view.today));
+    put(map, "date", dayLabel(view.today) + (view.mode === "demo" ? " · Demo · fictional athlete" : view.mode === "owner" ? " · " + view.athleteLabel : ""));
 
     if (view.blocked) {
       put(map, "instruction", "Earned cannot show today's plan.");
@@ -209,6 +210,11 @@ function mountToday(doc, model, options = {}) {
     put(map, "protein", Number.isFinite(view.proteinTarget.g) ? amount(view.proteinTarget.g) : null);
     put(map, "protein-unit", Number.isFinite(view.proteinTarget.g) ? "g protein" : "");
     put(map, "kcal-note", calorieBand(view.calorieTarget));
+    if (view.mode === 'owner') {
+      root.querySelector('.food > p').textContent = 'Nutrition';
+      root.querySelector('.food-grid').remove();
+      put(map, 'kcal-note', 'Projection for initial setup is not available yet.');
+    }
 
     put(map, "workout-title", view.workout.title);
     /* The workout line carries the durable state of today's session — in progress,
@@ -232,14 +238,14 @@ function mountToday(doc, model, options = {}) {
     put(map, "workout-count", view.workout.exerciseCount === null
       ? (view.workout.unavailableReason ? "Today's exercises are not available: " + view.workout.unavailableReason : "No session is scheduled today.")
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
-        + " · " + (sessionState || "Your set targets are ready"));
+        + " · " + (sessionState || (view.mode === "owner" ? "Your programme is ready" : "Your set targets are ready")));
 
     for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
     map.get("recovery-state").textContent = recoveryState();
-    put(map, "morning", morningLine(view));
+    put(map, "morning", view.mode === "owner" ? (view.morningRead ? "Today · " + pounds(view.morningRead.lb) + " lb" : "Today — weight not logged yet") : morningLine(view));
     put(map, "trend", trendLine(view));
 
     const primary = map.get("primary");
@@ -336,6 +342,7 @@ function mountToday(doc, model, options = {}) {
         return;
       }
       close();
+      if (options.onRecorded) { await options.onRecorded(); return; }
       render("today", true);
     });
   }
@@ -448,6 +455,7 @@ function mountToday(doc, model, options = {}) {
   }
 
   function render(next, focus = false) {
+    if (options.beforeNavigate?.(next) === false) return;
     screen = next;
     if (next === "today") return renderToday(focus);
     if (next === "why") return renderWhy(focus);
@@ -481,12 +489,14 @@ function mountToday(doc, model, options = {}) {
     return renderToday(focus);
   }
 
-  phone.addEventListener("keydown", (event) => {
+  const onKeyDown = (event) => {
     if (event.key === "Escape" && !phone.querySelector('[role="dialog"]') && screen !== "today") render("today", true);
-  });
+  };
+  phone.addEventListener("keydown", onKeyDown);
 
   render("today");
-  return { render, read: () => model.read(), openWeighIn, screen: () => screen };
+  return { render, read: () => model.read(), openWeighIn, screen: () => screen,
+    destroy: () => phone.removeEventListener("keydown", onKeyDown) };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by

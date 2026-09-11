@@ -47,7 +47,7 @@ export const ATHLETE_ID = TODAY_ATHLETE;
    close() detaches one holder — the last one out closes the client, which is
    what makes the next open a real relaunch off disk. */
 export function openTodayHosts({ indexedDB, crypto, databaseName = DATABASE,
-  namespace = NAMESPACE, athleteId = ATHLETE_ID, deviceId, day, clock } = {}) {
+  namespace = NAMESPACE, athleteId = ATHLETE_ID, deviceId, day, clock, calendar, enroll } = {}) {
   /* The installation's clock is the PAGE'S OWN DAY, exactly as this module's
      stage clock always was (`day + 'T13:00:00.000Z'`) — the page's day is its
      today, and an operation has to be stamped on the day the screen is standing
@@ -56,7 +56,7 @@ export function openTodayHosts({ indexedDB, crypto, databaseName = DATABASE,
      later boot in the same page load (day 2) is ADOPTED and recorded on
      `clockAdoptions()` rather than silently dropped — C4b review D1. */
   return openTodayInstallation({ indexedDB, crypto, databaseName, namespace, athleteId, deviceId,
-    day: typeof day === 'string' ? day : undefined, ...(clock ? { clock } : {}) });
+    calendar, enroll, day: typeof day === 'string' ? day : undefined, ...(clock ? { clock } : {}) });
 }
 
 /* A handle that owns its share of the installation: closing it detaches the

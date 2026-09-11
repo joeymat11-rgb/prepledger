@@ -16,6 +16,7 @@
 // rebuild/m3/w6/test/local-schema-probe.mjs. Nothing of record lives in
 // localStorage, and nothing here mints a key, signs a lease or asserts an
 // enrolment.
+import { createLocalCalendar, DAY_CHANGED_COPY } from '../../w6/local/calendar.mjs';
 import app from "./today-app.cjs";
 import TodayModel from "./today-model.cjs";
 import { createGymHost, openTodayHosts, RESTORE_REQUIRED } from "./gym-host.mjs";
@@ -80,19 +81,19 @@ export async function createWorkoutEntry(model, options = {}) {
      weigh-in and the workout in ONE sealed generation; a page that supplies
      none gets the SAME store through gym-host.mjs, which opens this device's
      installation itself. There is no second behaviour left to fall back to. */
-  const { hosts, ...lane } = options;
+  const { hosts, draft, ...lane } = options;
   const openGym = (hosts && hosts.createGymHost) || createGymHost;
   const gymHost = await openGym({ day, engineState: model.stateFromOps(),
     plannedSplitSlotId: "earned-today-preview/" + day, ...lane });
   /* A host standing on some OTHER day, over the same device storage. Used only to
      close a session abandoned on an earlier day (gym-model.closeUnfinished). */
   const hostForDay = (other) => openGym({ day: other, engineState: model.stateFromOps(),
-    plannedSplitSlotId: "earned-today-preview/" + other, ...lane });
+    plannedSplitSlotId: "earned-today-preview/" + other, historicalClose: true, ...lane });
   const gym = createGymModel({ gymHost, hostForDay,
     sessionTitle: view.workout ? view.workout.title : null });
   let summary = null;
   let onRefresh = null;
-  const gymDraft = newGymDraft();
+  const gymDraft = draft || newGymDraft();
   /* THE PREPARABILITY PROBE (review B1). gym.read() prepares today's workout through
      the accepted host WITHOUT storing anything, so Today knows — before it offers
      anything — whether the layer will prepare, is mid-session, has a closed session,
@@ -131,7 +132,7 @@ export async function createWorkoutEntry(model, options = {}) {
   };
 }
 
-export async function boot(options = {}) {
+async function bootControlled(options = {}) {
   const doc = options.document || document;
   const failures = [];
   const day = options.today || undefined;
@@ -154,7 +155,7 @@ export async function boot(options = {}) {
      absent, so a fresh phone opens silently and a damaged one never does. */
   let restoreRequired = null;
   if (!hosts) {
-    try { hosts = await openTodayHosts({ indexedDB: idb, crypto: web, day: day || TodayModel.SYNTHETIC_DAY }); }
+    try { hosts = await openTodayHosts({ indexedDB: idb, crypto: web, databaseName: options.databaseName, namespace: options.namespace, clock: options.clock, day: day || TodayModel.SYNTHETIC_DAY }); }
     catch (error) {
       if (error && error.state === 18) restoreRequired = error.code || "RESTORE_UNPROVEN";
       failures.push("device store: " + (error && error.message ? error.message : String(error)));
@@ -168,14 +169,10 @@ export async function boot(options = {}) {
     ...(hosts ? {} : { indexedDB: idb, crypto: web }) }); }
   catch (error) { failures.push("weigh-in store: " + (error && error.message ? error.message : String(error))); }
 
-  /* basisState joins today / model / indexedDB / crypto as an injection point.
-     Nothing in the page supplies one — boot() is called with no arguments — so
-     the shipped screen always runs the fixture's own athlete. It exists because
-     the checks need to run the athlete DECISIONS:100 names (FRESH at S2) beside
-     the fixture's, over the same real stores. */
+  // Explicit test/demo composition. Owner boot reads authoritative setup below.
   const model = options.model || createTodayModel({ ...(day ? { today: day } : {}),
     ...(options.basisState ? { basisState: options.basisState } : {}),
-    ...(readings ? { readings } : {}) });
+    mode: options.mode, ...(readings ? { readings } : {}) });
 
   let workout = null;
   try { workout = await createWorkoutEntry(model, lane); }
@@ -200,6 +197,178 @@ export async function boot(options = {}) {
   else if (failures.length && status) status.textContent = "Not everything opened: " + failures.join("; ")
     + ". Nothing was recorded.";
   return { api, workout, checkin, model, readings, hosts, restoreRequired, failures };
+}
+
+export const DEMO_DATABASE = 'earned-today-explicit-demo';
+export const DEMO_NAMESPACE = 'earned-today/demo';
+const pages = new WeakMap();
+const openings = new WeakMap();
+
+// Injected day/model/basis remain explicit test controls. A shipped boot has none.
+export async function boot(options = {}) {
+  const doc = options.document || document;
+  const pending = openings.get(doc);
+  if (pending) { await pending.catch(() => {}); return boot(options); }
+  const opening = bootMode(options);
+  openings.set(doc, opening);
+  try { return await opening; }
+  finally { if (openings.get(doc) === opening) openings.delete(doc); }
+}
+
+async function bootMode(options = {}) {
+  const doc = options.document || document;
+  const mode = options.mode || (options.today || options.model || options.basisState || options.hosts ? 'test'
+    : new URLSearchParams(doc.location?.search || '').get('mode') === 'demo' ? 'demo' : 'owner');
+  if (!['owner', 'demo', 'test'].includes(mode)) throw new TypeError('TODAY_MODE_INVALID');
+  if (mode === 'test') return bootControlled(options);
+  pages.get(doc)?.close();
+  const identity = doc.getElementById('today-identity');
+  if (identity) identity.textContent = mode === 'demo' ? 'Earned · Demo · fictional athlete' : 'Earned · Today';
+  if (mode === 'demo') {
+    const result = await bootControlled({ ...options, mode, databaseName: DEMO_DATABASE, namespace: DEMO_NAMESPACE });
+    result.close = () => { result.api?.destroy(); result.readings?.close(); result.workout?.gymHost?.close(); result.checkin?.host?.close(); result.hosts?.close(); };
+    pages.set(doc, result);
+    return result;
+  }
+  if (options.today || options.basisState || options.model) throw new TypeError('OWNER_TODAY_USES_AUTHORITATIVE_SETUP');
+  if (options.clock) throw new TypeError('OWNER_TODAY_REQUIRES_COORDINATED_CALENDAR');
+  const calendar = options.calendar || createLocalCalendar();
+  let hosts = options.hosts, setup, restoreRequired = null, setupRequired = false;
+  const failures = [];
+  try {
+    hosts ||= await openTodayHosts({ indexedDB: options.indexedDB, crypto: options.crypto, calendar, enroll: false });
+    if (hosts.calendar !== calendar) throw new TypeError('LOCAL_ERA_CLOCK_MISMATCH');
+    setup = await hosts.initialSetup();
+    setupRequired = !setup.configured;
+  } catch (error) {
+    if (error.code === 'LOCAL_FIRST_RUN') setupRequired = true;
+    else { restoreRequired = error.code || error.message; failures.push(restoreRequired); }
+  }
+  const phone = doc.getElementById('phone'), status = doc.getElementById('today-status');
+  if (setupRequired || restoreRequired) {
+    const panel = doc.createElement('section'); panel.className = 'screen';
+    const title = doc.createElement('h1'), note = doc.createElement('p');
+    title.textContent = setupRequired ? 'Setup required' : 'Restore required';
+    note.textContent = setupRequired ? 'No programme is configured on this device. Initial setup is required before you can record here.'
+      : RESTORE_REQUIRED + ' (' + restoreRequired + ')';
+    panel.append(title, note); phone.replaceChildren(panel);
+    if (status) status.textContent = note.textContent;
+    const storage = doc.getElementById('today-storage'); if (storage) storage.textContent = 'Nothing can be recorded here yet.';
+    hosts?.close();
+    return { mode, setupRequired, restoreRequired, failures, model: null, hosts: null, close() {} };
+  }
+  if (identity) identity.textContent = 'Earned · ' + setup.setup.athlete_label;
+  const days = new Map(); let current = null, closed = false, refreshing = null;
+  const notice = doc.createElement('div'); notice.id = 'today-calendar'; notice.setAttribute('role', 'status');
+  phone.parentNode.insertBefore(notice, phone);
+  function paintNotice() {
+    notice.replaceChildren();
+    if (!current) return;
+    if (current.model.today !== calendar.sample().day) {
+      const text = doc.createElement('p'); text.textContent = DAY_CHANGED_COPY; notice.append(text);
+      const draft = current.workout.gymDraft();
+      if (draft.entry.load !== null || draft.entry.reps !== null) {
+        const retained = doc.createElement('p');
+        retained.textContent = 'Retained workout entry · ' + current.model.today + ' · Load: '
+          + (draft.entry.load ?? 'blank') + ' · Reps: ' + (draft.entry.reps ?? 'blank');
+        notice.append(retained);
+      }
+      const move = doc.createElement('button'); move.textContent = 'Return to Today'; move.addEventListener('click', () => { void refresh({ move: true }).catch(() => {}); }); notice.append(move);
+    }
+    for (const item of days.values()) if (item !== current && item.retained) {
+      const button = doc.createElement('button'); button.textContent = 'View retained draft · ' + item.model.today;
+      button.addEventListener('click', () => showRetained(item)); notice.append(button);
+    }
+  }
+  function park() {
+    if (!current) return;
+    current.retained = current.api.screen() !== 'today' || !!phone.querySelector('[role="dialog"]');
+    current.dom = [...phone.childNodes];
+    current.api.destroy();
+  }
+  function showRetained(item) {
+    park(); current = item; phone.replaceChildren(...item.dom); paintNotice();
+  }
+  async function makeDay(day) {
+    const readings = await hosts.createReadingHost({ day });
+    const model = createTodayModel({ mode: 'owner', today: day, basisState: setup.basisState,
+      readings, engineClock: calendar.engineClock(day) });
+    const workout = await createWorkoutEntry(model, { hosts });
+    const checkin = await createCheckInEntry(model, { hosts });
+    const item = { model, readings, workout, checkin, readSignature: JSON.stringify(model.storedReads()), api: null, retained: false };
+    return item;
+  }
+  function mount(item) {
+    current = item;
+    item.api = mountToday(doc, item.model, { workout: item.workout, checkin: item.checkin,
+      async onRecorded() { await refresh(); },
+      beforeNavigate(next) {
+        if (next === 'today' && calendar.sample().day !== item.model.today) { void refresh({ move: true }).catch(() => {}); return false; }
+      } });
+    const redraw = () => { if (current === item && item.api.screen() === 'today' && !phone.querySelector('[role="dialog"]')) item.api.render('today'); };
+    item.workout.setOnRefresh(redraw); item.checkin.setOnRefresh(redraw);
+    paintNotice();
+  }
+  async function update({ move = false } = {}) {
+    if (closed) return;
+    const day = calendar.sample().day;
+    if (current && day !== current.model.today) {
+      paintNotice();
+      // Never replace an active editor. Its DOM and entry-owned draft stay on
+      // their original day, and the local write guard refuses a stale save.
+      if (!move && (current.api.screen() !== 'today' || phone.querySelector('[role="dialog"]'))) return;
+      park();
+    }
+    if (!current || day !== current.model.today) {
+      let item = days.get(day);
+      if (!item) {
+        item = await makeDay(day);
+        if (closed) { item.readings.close(); item.workout.gymHost.close(); item.checkin.host?.close(); return; }
+        days.set(day, item);
+      }
+      mount(item);
+    } else {
+      const reopened = await current.readings.restart();
+      if (reopened.ready !== true) throw Object.assign(new Error(reopened.code || 'LOCAL_REOPEN_FAILED'), { code: reopened.code });
+      const signature = JSON.stringify(current.model.storedReads());
+      if (signature !== current.readSignature && current.api.screen() === 'today' && !phone.querySelector('[role="dialog"]')) {
+        const previous = current.workout;
+        current.workout = await createWorkoutEntry(current.model, { hosts, draft: previous.gymDraft() });
+        current.readSignature = signature; previous.gymHost.close(); current.api.destroy(); mount(current);
+      }
+      await current.workout.refresh(); await current.checkin.refresh();
+      paintNotice();
+    }
+  }
+  function refresh(options) {
+    if (!refreshing) refreshing = update(options).catch(error => {
+      if (closed) return;
+      restoreRequired = error.code || error.message;
+      failures.push(restoreRequired);
+      if (status) status.textContent = RESTORE_REQUIRED + ' (' + restoreRequired + ')';
+      phone.textContent = RESTORE_REQUIRED + ' (' + restoreRequired + ')';
+      throw error;
+    }).finally(() => { refreshing = null; });
+    return refreshing;
+  }
+  try { await refresh(); } catch (error) { hosts.close(); notice.remove(); throw error; }
+  const onVisible = () => { if (doc.visibilityState !== 'hidden') void refresh().catch(() => {}); };
+  const onFocus = () => { void refresh().catch(() => {}); };
+  doc.addEventListener('visibilitychange', onVisible); doc.defaultView?.addEventListener('focus', onFocus);
+  const timer = doc.defaultView?.setInterval(onFocus, 15000);
+  const result = { mode, calendar, setupRequired: false, get restoreRequired() { return restoreRequired; }, failures, hosts,
+    get model() { return current.model; }, get api() { return current.api; },
+    get readings() { return current.readings; }, get workout() { return current.workout; }, get checkin() { return current.checkin; },
+    refresh, retainedDays: () => [...days.values()].filter(d => d.retained).map(d => d.model.today),
+    close() {
+      if (closed) return; closed = true;
+      doc.removeEventListener('visibilitychange', onVisible); doc.defaultView?.removeEventListener('focus', onFocus);
+      doc.defaultView?.clearInterval(timer); notice.remove();
+      for (const item of days.values()) { item.api?.destroy(); item.readings.close(); item.workout.gymHost.close(); item.checkin.host?.close(); }
+      hosts.close(); if (pages.get(doc) === result) pages.delete(doc);
+    } };
+  pages.set(doc, result);
+  return result;
 }
 
 if (typeof document !== "undefined" && document.getElementById("phone")) {
