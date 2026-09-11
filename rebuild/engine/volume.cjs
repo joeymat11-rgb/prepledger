@@ -3,6 +3,7 @@
 // Frozen v7.56.0 volume readers; cross-module calls resolve through this engine's E.
 module.exports = function createVolume(E, { clock, ids }) {
 const { DAY, DELIVERED_MAJ, HYP_B, HYP_SDES, INDIRECT, MG_LABEL, REVIEW_CLASSIFY_D, REVIEW_DELIV_D, REVIEW_OUTCOME_D, TREND_MIN_SESSIONS, TREND_SE_FLOOR, VOL_BANDS } = E;
+const _formerNames = (...args) => E._formerNames(...args);   /* Q2 — §2 C1: names are display history; the whole name family is resolved through progression.cjs's own helper, late-bound like every other cross-module call here, so volume.cjs still gains no require */
 const _tCrit = (...args) => E._tCrit(...args);
 const cap = (...args) => E.cap(...args);
 const dayType = (...args) => E.dayType(...args);
@@ -159,7 +160,10 @@ function structuralMovesThisWeek(s) {
   });
   (s.feed || []).forEach((f) => {
     if (!f || !f.t || !f.d || f.d < monday || f.t.indexOf("VOLUME ") !== 0) return;
-    const ex = (s.exercises || []).find((x) => f.t.indexOf("via " + x.n) > -1);   /* "VOLUME PASSED" carries no "via" — declines are not moves */
+    const at9 = f.t.indexOf("via "); const tail9 = at9 < 0 ? null : f.t.slice(at9 + 4);   /* "VOLUME PASSED" carries no "via" — declines are not moves */
+    const cut9 = tail9 === null ? -1 : tail9.lastIndexOf(" (now "); const own9 = tail9 === null ? null : (cut9 < 0 ? tail9 : tail9.slice(0, cut9));
+    const xs9 = (s.exercises || []); const owns9 = (n9) => !!n9 && (own9 === n9 || tail9 === n9);   /* C3 — two exact comparisons over one name, nothing else */
+    const ex = f.exId != null ? xs9.find((x) => String(f.exId) === String(x.id)) : (xs9.find((x) => owns9(String((x && x.n) || ""))) || xs9.find((x) => _formerNames(x).some(owns9)));   /* Q2 — §2 C1→C2→C3: structured identity is terminal, else the producer's whole-name boundary over the lift's whole NAME FAMILY — the same two exact comparisons _volDeltas makes, so the two readers cannot disagree about one receipt (C6). Where the family admits two owners the LIVE name (C1: ex.n is the display name, renames[].prevN is history) is preferred over a former one, so WHERE A LIVE NAME MATCHES the receipt's muscle group is never charged to a different lift by s.exercises order; where ONLY former names match, array order still decides — C6's excluded class (ii), pinned by cell B2-Q2j-b */
     if (ex && !moves.some((m) => m.kind === "sets" && m.exId === ex.id)) moves.push({ kind: "sets", d: f.d, rid: null, exId: ex.id, mgs: spillOf(ex.id) });
   });
   return { monday, moves,
