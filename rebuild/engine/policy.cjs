@@ -14,6 +14,7 @@ const energyBalanceTarget = (...args) => E.energyBalanceTarget(...args);
 const energyDensity = (...args) => E.energyDensity(...args);
 const fmtShort = (...args) => E.fmtShort(...args);
 const isoOf = (...args) => E.isoOf(...args);
+const plusDays = (...args) => E.plusDays(...args);
 const memoOnState = (...args) => E.memoOnState(...args);
 const mk = (...args) => E.mk(...args);
 const observedTDEE = (...args) => E.observedTDEE(...args);
@@ -476,11 +477,12 @@ function trackRecord(s, deps) {
   let sd = 0.3; try { const wn = weightNoise(reads); if (wn && wn.sd) sd = wn.sd; } catch (e) {}
   const tol = +Math.max(0.3, sd).toFixed(2);   // honest tolerance = the athlete's own 1-sigma noise, floored
   const sorted = reads.slice().sort((a, b) => (a.d < b.d ? -1 : 1));
-  const actualTrendAt = (iso) => { for (const r of sorted) if (r.d >= iso && r.pt != null) return r.pt; return null; };
+  /* D16 — an eligible read ON the due date or the one grace date after it; later reads leave the call UNGRADED */
+  const actualTrendAt = (iso, graceISO) => { for (const r of sorted) if (r.d >= iso && r.d <= graceISO && r.pt != null && !r.sealed && !r.offWindow) return r.pt; return null; };
   const rows = [];
   for (const f of fc) {
-    const dueISO = isoOf(new Date(mk(f.d).getTime() + GRADE_LAG * DAY));
-    const actual = actualTrendAt(dueISO);
+    const dueISO = plusDays(f.d, GRADE_LAG);
+    const actual = actualTrendAt(dueISO, plusDays(dueISO, 1));
     if (actual == null) { rows.push({ d: f.d, pred: +(+f.pred7).toFixed(1), actual: null, err: null, graded: false, hit: null, miss: false }); continue; }
     const err = +(actual - f.pred7).toFixed(2);
     const hit = Math.abs(err) <= tol;
@@ -492,7 +494,7 @@ function trackRecord(s, deps) {
   const mae = graded.length ? +(graded.reduce((a, r) => a + Math.abs(r.err), 0) / graded.length).toFixed(2) : null;
   let cleanStreak = 0; for (let i = graded.length - 1; i >= 0; i--) { if (graded[i].hit) cleanStreak++; else break; }
   const decisions = ((s && s.adjustments) || []).filter((a) => a && a.rid && (String(a.rid).indexOf("ap_") === 0 || String(a.rid).indexOf("apauto_") === 0))
-    .slice(-8).map((a) => ({ d: a.d, title: a.title, applied: !a.dismissed, auto: !!a.auto }));
+    .slice(-8).map((a) => ({ d: a.d, title: a.title, applied: !a.dismissed && !a.undone, auto: !!a.auto }));
   const calibration = graded.length
     ? `Over ${graded.length} graded 7-day call${graded.length > 1 ? "s" : ""}, the trend landed within your ±${tol} lb noise ${hits} time${hits !== 1 ? "s" : ""} and missed ${misses} — mean miss ±${mae} lb. Misses are shown, not hidden.`
     : "No 7-day calls have come due yet — the record fills as each prediction ages into an outcome.";
@@ -539,6 +541,7 @@ function phaseArc(s, deps) {
   s = s || {};
   const today = (deps && deps.today) || isoOf(todayStart());
   const brkS = (deps && deps.brk) || dietBreakState(s, deps);
+  const resumeISO = brkS.end ? plusDays(brkS.end, 1) : null;   /* D19 — an inclusive last active day resumes the NEXT date */
   const dx = _phaseSafe(() => dietExit(s), null);
   const committed = (s.plan && typeof s.plan === "object" && typeof s.plan.phase === "string") ? s.plan.phase : null;
   const exitStarted = (dx && dx.started) || null;
@@ -560,7 +563,7 @@ function phaseArc(s, deps) {
     if (brkS.status === "proposed") next = { key: "break", label: PHASE_META.break.label, when: `starts ${fmtShort(brkS.start)}`, note: "a planned week at maintenance — adherence and recovery, not a metabolic reset" };
     else next = { key: "maintenance", label: PHASE_META.maintenance.label, when: "when you and your coach call it — no date", note: "one step to your measured maintenance, hold, then decide — no automatic surplus" };
   } else if (key === "break") {
-    next = { key: "cut", label: PHASE_META.cut.label, when: `resumes ${fmtShort(brkS.end)}`, note: "the deficit picks back up; the scale settles as the glycogen water comes back off" };
+    next = { key: "cut", label: PHASE_META.cut.label, when: `resumes ${fmtShort(resumeISO)}`, note: "the deficit picks back up; the scale settles as the glycogen water comes back off" };
   } else if (key === "maintenance") {
     const ready = dx && dx.decideReady;
     next = { key: "leangain", label: "DECIDE", when: ready ? "your hold has the days behind it — decide with the numbers" : (dx && dx.readReady ? "a couple more weeks before the re-measured number is worth trusting" : "hold first — the scale means nothing for two weeks"), note: "a surplus is one option; staying here is another — there is no rule that the next phase is a build" };
@@ -570,7 +573,7 @@ function phaseArc(s, deps) {
 
   const sup = (deps && deps.sup) || phaseSupervisor(s, deps);
   const line = key === "break"
-    ? `Diet break — day ${brkS.daysSince} of ${BREAK_LEN_DAYS}, ${brkS.daysLeft} to go. Eating at maintenance; the cut resumes ${fmtShort(brkS.end)}.`
+    ? `Diet break — day ${brkS.daysSince + 1} of ${BREAK_LEN_DAYS}, ${brkS.daysLeft} to go. Eating at maintenance; the cut resumes ${fmtShort(resumeISO)}.`
     : key === "maintenance"
     ? `Maintenance hold — week ${weeks}. ${next.when}.`
     : key === "leangain"

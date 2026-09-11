@@ -19,6 +19,7 @@ const dayType = (...args) => E.dayType(...args);
 const proteinTarget = (...args) => E.proteinTarget(...args);
 const proteinHit = (...args) => E.proteinHit(...args);
 const weeksBetween = (...args) => E.weeksBetween(...args);
+const plusDays = (...args) => E.plusDays(...args);
 const nextLoad = (...args) => E.nextLoad(...args);
 const regime = (...args) => E.regime(...args);
 const exById = (...args) => E.exById(...args);
@@ -1018,6 +1019,7 @@ function cleanAtDate(s, iso) {
   const nights = nightsBefore(s, iso);
   if (!nights.length) return true;
   const last = nights[nights.length - 1];
+  if (last.d !== plusDays(iso, -1)) return true;   /* D8 — a night that is not LAST night carries no current restriction */
   if (last.h < DEBT_LAST_H) return false;
   /* three CALENDAR-consecutive nights ending last night, if we have them */
   const run = [last];
@@ -1898,7 +1900,7 @@ function weekWeather(s, days) {
 // Copied from frozen src/app.jsx @ fe516c1:14453-14458.
 function sleepInfo(s) {
   const n = s.sleep.nights;
-  const tomorrow = isoOf(new Date(todayStart().getTime() + DAY));
+  const tomorrow = plusDays(isoOf(todayStart()), 1);
   const t = atSleepTarget(s, null);
   return { run: t.run, atTarget: t.at, clean: cleanAtDate(s, tomorrow), last: n[n.length - 1], need: s.sleep.needed };
 }

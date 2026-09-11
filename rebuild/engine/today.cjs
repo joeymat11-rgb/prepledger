@@ -29,6 +29,8 @@ const mk = (...args) => E.mk(...args);
 const nextLoad = (...args) => E.nextLoad(...args);
 const owedNights = (...args) => E.owedNights(...args);
 const paceProjection = (...args) => E.paceProjection(...args);
+const phaseArc = (...args) => E.phaseArc(...args);
+const plusDays = (...args) => E.plusDays(...args);
 const progressStep = (...args) => E.progressStep(...args);
 const progressionTrend = (...args) => E.progressionTrend(...args);
 const proteinHit = (...args) => E.proteinHit(...args);
@@ -38,6 +40,7 @@ const readWindow = (...args) => E.readWindow(...args);
 const safeCrossing = (...args) => E.safeCrossing(...args);
 const signalReadCopy = (...args) => E.signalReadCopy(...args);
 const signalState = (...args) => E.signalState(...args);
+const sleepInfo = (...args) => E.sleepInfo(...args);
 const stepTarget = (...args) => E.stepTarget(...args);
 const structuralMovesThisWeek = (...args) => E.structuralMovesThisWeek(...args);
 const targetsFor = (...args) => E.targetsFor(...args);
@@ -203,8 +206,9 @@ function nowFocus(s, hour) {
      Falls back to 17:00 only until there is enough of his own record. */
   const eveningFrom = 17;
   if (dayOpen && h >= eveningFrom) owed.push({ k: "day", t: "Close the day", why: "calories, protein, steps — three numbers, then it is done" });
-  const yISO = isoOf(new Date(todayStart().getTime() - DAY));
-  const yOpen = Object.keys(s.dailyLogs || {}).length > 0 && !(s.dailyLogs || {})[yISO];
+  const yISO = plusDays(isoOf(todayStart()), -1);
+  const yRow = (s.dailyLogs || {})[yISO];   /* D24 — the SAME calorie predicate as today (:201) and the ledger (sleep.cjs:1001) */
+  const yOpen = Object.keys(s.dailyLogs || {}).length > 0 && (!yRow || yRow.cal == null);
   if (yOpen) owed.push({ k: "yesterday", t: "Yesterday never closed", why: "same numbers, honest timestamp — the ledger marks it logged-late, which is a fact rather than a fault" });
 
   const phase = h < 12 ? "MORNING" : h < eveningFrom ? "MIDDAY" : "EVENING";
@@ -246,7 +250,7 @@ function fiveLevers(s) {
   const proHitN = proRows.filter((p) => proteinHit(pt.lo, p)).length;
   const protein = !proRows.length
     ? { label: "PROTEIN", state: "quiet", detail: "counting only" }
-    : { label: "PROTEIN", state: proHitN >= proRows.length - 1 ? "good" : "caution", detail: `${proHitN}/${proRows.length}` };
+    : { label: "PROTEIN", state: proHitN >= 1 && proHitN >= proRows.length - 1 ? "good" : "caution", detail: `${proHitN}/${proRows.length}` };
   // TRAINING — sessions banked in the last seven days against the four-day split
   const wk7 = Object.keys(s.sessionLog || {}).filter((d) => { const g = (mk(tISO) - mk(d)) / DAY; return g >= 0 && g < 7; }).length;
   // Progress, not a fault: a logged session reads neutral (a rolling count that sits at 1-3
@@ -301,8 +305,11 @@ function theOneFix(s, levers) {
     whyNot: "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food." };
   // Rungs 4/5 — only once logging, steps and sleep are covered AND the trend has stalled
   const cr = currentRate(s);
-  const stalled = !sealed && cr.measured && cr.scale < floor;
-  const longCut = weekDay().wk >= 10;
+  /* D27 — rungs 4/5 are CUT advice: the committed phase decides, and its own recorded start times it */
+  const arc = phaseArc(s);
+  const onCut = arc.key === "cut";
+  const stalled = onCut && !sealed && cr.measured && cr.scale < floor;
+  const longCut = arc.weeks >= 10;
   if (stalled && longCut) return { rung: "break", lever: "DEFICIT", state: "caution",
     title: "A diet break has earned its place",
     body: "You've held the deficit for weeks and the trend has flattened. A full week at maintenance is the intervention with real adherence evidence here — not a deeper cut. A planned pause, not a lapse.",
@@ -564,19 +571,20 @@ function nowModelUncached(s, deps) {
   else move = { kind: "quiet", title: "NOTHING NEEDS YOU", body: "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying." };
   /* NEXT WORKOUT */
   let workout = { title: "REST DAY", sub: "Recovery is training too — the next session is on its way.", today: false };
-  try {
-    for (let k9 = 0; k9 < 7; k9++) {
-      const d9 = isoOf(new Date(todayStart().getTime() + k9 * 864e5));
-      const dt9 = dayType(d9, s);
-      if (dt9 === "U" || dt9 === "L") {
-        const sess9 = genSession(s, d9);
-        const beats = ((sess9 && sess9.ex) || []).filter((e) => e && e.prev && Array.isArray(e.prev.reps) && e.prev.reps.length).slice(0, 2)
-          .map((e) => e.n + (typeof e.w === "number" ? " " + e.w : "") + " — beat " + e.prev.reps.join("·"));
-        workout = { title: (dt9 === "U" ? "UPPER BODY" : "LOWER BODY") + " · " + (k9 === 0 ? "TODAY" : k9 === 1 ? "TOMORROW" : fmtShort(d9).toUpperCase()), sub: beats.join(" · "), today: k9 === 0, iso: d9 };
-        break;
-      }
-    }
-  } catch (e) {}
+  const slp9 = (() => { try { return sleepInfo(s); } catch (e) { return { last: null }; } })();   /* D23 — genSession REQUIRES its sleep input (:63,:56) */
+  for (let k9 = 0; k9 < 7; k9++) {
+    let d9, dt9, sess9;
+    try {
+      d9 = plusDays(isoOf(todayStart()), k9);
+      dt9 = dayType(d9, s);
+      if (dt9 !== "U" && dt9 !== "L") continue;
+      sess9 = genSession(s, d9, slp9);
+    } catch (e) { continue; }   /* a failed derivation is not a rest day: keep scanning */
+    const beats = ((sess9 && sess9.ex) || []).filter((e) => e && e.prev && Array.isArray(e.prev.reps) && e.prev.reps.length).slice(0, 2)
+      .map((e) => e.n + (typeof e.w === "number" ? " " + e.w : "") + " — beat " + e.prev.reps.join("·"));
+    workout = { title: (dt9 === "U" ? "UPPER BODY" : "LOWER BODY") + " · " + (k9 === 0 ? "TODAY" : k9 === 1 ? "TOMORROW" : fmtShort(d9).toUpperCase()), sub: beats.join(" · "), today: k9 === 0, iso: d9 };
+    break;
+  }
   /* WHERE YOU'RE HEADED */
   const pp = paceProjection(s);
   const bf = bfEst(s);
