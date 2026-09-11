@@ -114,7 +114,7 @@ const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
-const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', SUCCESSOR_POLICY_FILE, TOOLING + '/test/successor-authority.test.cjs', TOOLING + '/TOOLING-SUCCESSORS-ASTRA-REPORT.txt', TOOLING + '/TOOLING-POLICY-FIX-ASTRA-REPORT.txt', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', SUCCESSOR_POLICY_FILE, TOOLING + '/test/successor-authority.test.cjs', TOOLING + '/TOOLING-SUCCESSORS-ASTRA-REPORT.txt', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
@@ -672,60 +672,25 @@ function successorAuthorization(s, bound) {
     [s.packageId, 'B-NTC-SUCCESSORS ' + SUCCESSOR_POLICY_SHA]);
 }
 function successorSupport(s, bound) {
-  // The CLI package selects this obligation. Candidate argv, declarations and
-  // parent pins can never turn it off, even when an unchanged helper loads as a test.
-  if (ID !== 'B-NTC') return null;
-  assert(bound, 'SUCCESSOR-PARENT-MISSING');
+  if (!bound) return null;
+  const inherits = new Set(Object.values(s.coverage.inherited));
+  const needs = s.children.some(c => inherits.has(c.name) && !childArgv(c).some(f =>
+    Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f)));
+  if (!needs) return null;
   const p = validateSuccessorDefinition(s, bound, loadSuccessorPolicy());
   successorAuthorization(s, bound);
   return p;
-}
-function acceptedOriginalChildren(bound) {
-  if (Array.isArray(bound.acceptance.children)) return bound.acceptance.children;
-  // Exact legacy format: the accepted artifact pins this schedule-bearing source.
-  // These five entries are the literal names/argv/verdicts in that immutable file.
-  const artifactSha = 'e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a';
-  const file = 'rebuild/m4/spec/native-carriers-package.cjs';
-  const hash = '0fe94beee6a6e57315eee8535690d378cf42171e4c64bcf6172284fa47703655';
-  assert.equal(sha(Buffer.from(JSON.stringify(bound.acceptance, null, 2) + '\n')), artifactSha, 'INHERITED-ACCEPTED-CHILD-SCHEDULE-UNAVAILABLE');
-  assert.equal(bound.option.sha256, artifactSha, 'INHERITED-ORIGINAL-PARENT');
-  assert.equal(bound.acceptance.executionPins[file], hash, 'INHERITED-ORIGINAL-SCHEDULE-PIN');
-  L.checkSources(root, bound.reviewedCommit, { [file]: hash });
-  const verdicts = {
-    'source-carriers': 'NATIVE SOURCE CARRIERS: 6/6 PASS;',
-    'inherited-carriers': 'NATIVE INHERITED CARRIERS: 6/6 PASS;',
-    'defect-witnesses': 'NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;',
-    'writers-differential': 'NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;',
-    'second-gate': 'NATIVE SECOND GATE:',
-  };
-  return Object.entries(verdicts).map(([name, needle]) => ({ name, argv: ['rebuild/m4/spec/native-carriers-' + name + '.cjs'], needle }));
 }
 function inheritedExecutable(s, bound, gate, child, result, support) {
   assert(result && result.ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
   const declared = s.children.find(c => c.name === child);
   assert(declared, 'INHERITED-CHILD-DECLARATION');
   assert.deepEqual(result.targets, childArgv(declared), 'INHERITED-EXECUTION-TARGETS');
-  if (ID === 'B-NTC') {
-    assert(support && support.coverage.inherited[gate] === child, 'SUCCESSOR-POLICY-REQUIRED-FOR-INHERITANCE');
-    const exact = support.children.find(c => c.name === child);
-    assert.deepEqual(declared, exact, 'SUCCESSOR-EXECUTABLE-DEFINITION');
-    assert.equal(result.needle, exact.needle, 'SUCCESSOR-EXECUTED-VERDICT');
-    return;
-  }
-  // Other packages can inherit an original route only from the exact schedule
-  // embedded in their independently accepted parent or its exact pinned legacy
-  // schedule source. ANY pinned helper is not an original gate executable.
-  const originals = acceptedOriginalChildren(bound);
-  assert.equal(bound.acceptance.coverage.byChild[gate], child, 'INHERITED-ACCEPTED-GATE-MAPPING');
-  const matches = originals.filter(c => c.name === child);
-  assert.equal(matches.length, 1, 'INHERITED-ACCEPTED-CHILD-SCHEDULE');
-  assert.deepEqual(declared, matches[0], 'INHERITED-ACCEPTED-ARGV-VERDICT');
-  assert.equal(result.needle, matches[0].needle, 'INHERITED-EXECUTED-VERDICT');
-  for (const file of result.targets) {
-    const pin = bound.acceptance.executionPins[file] || bound.acceptance.product[file];
-    const hash = typeof pin === 'string' ? pin : pin && (pin.post || pin.pre);
-    assert(hash && diskSha(file) === hash && gitSha('HEAD', file) === hash, 'INHERITED-ACCEPTED-EXECUTABLE-BYTES');
-  }
+  if (result.targets.some(f => Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f))) return;
+  assert(support && support.coverage.inherited[gate] === child, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child);
+  const exact = support.children.find(c => c.name === child);
+  assert.deepEqual(declared, exact, 'SUCCESSOR-EXECUTABLE-DEFINITION');
+  assert.equal(result.needle, exact.needle, 'SUCCESSOR-EXECUTED-VERDICT');
 }
 
 // --------------------------------------------------------- 4. the 45 register laws

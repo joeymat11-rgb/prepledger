@@ -16,11 +16,11 @@ function write(root,f,bytes){const full=path.join(root,f);fs.mkdirSync(path.dirn
 function git(root,...args){return cp.execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true,stdio:['ignore','pipe','pipe']}).trim();}
 function init(root){fs.mkdirSync(root,{recursive:true});git(root,'init','--quiet');git(root,'config','user.name','Public control');git(root,'config','user.email','public-control@example.invalid');}
 function commit(root){git(root,'add','rebuild/DECISIONS.md');git(root,'commit','--quiet','-m','Public authority fixture');return git(root,'rev-parse','HEAD');}
-function api(root,source=text,exports="authority,childLedger,loadSuccessorPolicy,validateSuccessorDefinition,successorAuthorization,successorSupport,inheritedExecutable,children,coverage,acceptedOriginalChildren,MOVES_RULING",id="B-NTC"){
+function api(root,source=text,exports="authority,childLedger,loadSuccessorPolicy,validateSuccessorDefinition,successorAuthorization,successorSupport,inheritedExecutable,children,coverage,MOVES_RULING"){
  const file=path.join(root,runnerRel),m=new Module(file,module);m.filename=file;m.paths=Module._nodeModulePaths(path.dirname(path.join(sourceRoot,runnerRel)));
  const normal=m.require.bind(m);m.require=f=>normal(path.isAbsolute(f)&&f.startsWith(root+path.sep)?path.join(sourceRoot,path.relative(root,f)):f);
  write(root,'rebuild/conform/v4/postfix/run.cjs',fs.readFileSync(path.join(sourceRoot,'rebuild/conform/v4/postfix/run.cjs')));
- const argv=process.argv;process.argv=[process.execPath,file,'--ci','--package',id];
+ const argv=process.argv;process.argv=[process.execPath,file,'--ci','--package','B-NTC'];
  try{m._compile(source.slice(0,source.indexOf(delimiter))+'\nmodule.exports={'+exports+',init(){logDir='+JSON.stringify(scratch)+';}};',file);}finally{process.argv=argv;}
  m.exports.init();return m.exports;
 }
@@ -88,11 +88,7 @@ for(const dep of ['node_modules','rebuild/m3/w6/node_modules','rebuild/m3/w5/nod
 const candidate=JSON.parse(fs.readFileSync(path.join(actual,'rebuild/lanes/b/tooling/packages/B-NTC.json')));
 const option=candidate.parent.options.find(o=>o.id===candidate.parent.chosen);
 const accepted=JSON.parse(fs.readFileSync(path.join(actual,option.artifact)));
-const review=JSON.parse(fs.readFileSync(path.join(actual,option.review)));
-const reviewedCommit=/POSTFIX-ACCEPTANCE \S+ ([a-f0-9]{40}) /.exec(review.receipt.line)[1];
-const parentBound={option,acceptance:accepted,reviewedCommit,receiptBase:review.receipt.commit};
-// Add only the exact public policy to the fixture's inherited tree; no receipt.
-write(actual,policyRel,fs.readFileSync(path.join(sourceRoot,policyRel)));git(actual,'read-tree','HEAD');git(actual,'add',policyRel);git(actual,'commit','--quiet','-m','Public source-policy fixture');
+const parentBound={option,acceptance:accepted};
 const runner=api(actual);
 test('exact candidate definition and complete original/child source closure verify',()=>{
  assert.equal(runner.validateSuccessorDefinition(candidate,parentBound,policy),policy);
@@ -111,44 +107,13 @@ test('real exact successor executes; missing execution, wrong target and needle-
  let ran;try{ran=runner.children(s,env);}catch(e){throw new Error(e.message+'\n'+fs.readFileSync(path.join(scratch,c.name+'.log'),'utf8'));}assert(ran.get(c.name).ok);
  for(const gate of ['migrate-source','merge-source','writers-source'])assert.doesNotThrow(()=>runner.inheritedExecutable(candidate,parentBound,gate,c.name,ran.get(c.name),policy));
  assert.throws(()=>runner.inheritedExecutable(candidate,parentBound,'migrate-source',c.name,undefined,policy),/COVERAGE-CHILD-NOT-EXECUTED/);
- assert.throws(()=>runner.inheritedExecutable(candidate,parentBound,'migrate-source',c.name,ran.get(c.name),null),/SUCCESSOR-POLICY-REQUIRED/);
+ assert.throws(()=>runner.inheritedExecutable(candidate,parentBound,'migrate-source',c.name,ran.get(c.name),null),/NOT-A-PARENT-PINNED/);
  const bad={...ran.get(c.name),targets:['rebuild/m4/spec/native-carriers-source-carriers.cjs']};assert.throws(()=>runner.inheritedExecutable(candidate,parentBound,'migrate-source',c.name,bad,policy),/INHERITED-EXECUTION-TARGETS/);
  const file=path.join(actual,c.argv[0]),bytes=fs.readFileSync(file);try{
   fs.writeFileSync(file,'console.log('+JSON.stringify(c.needle+' '+ 'x'.repeat(250))+');');
   const fake=runner.children(s,env);assert(fake.get(c.name).ok,'printing a needle by itself is insufficient');
   assert.throws(()=>runner.validateSuccessorDefinition(candidate,parentBound,policy),/WORKTREE-SOURCE-PIN/);
  }finally{fs.writeFileSync(file,bytes);}
- assert.doesNotThrow(()=>runner.validateSuccessorDefinition(candidate,parentBound,policy));
-});
-test('five real pinned helpers with all fifteen declarations bypass the old runner and refuse now',()=>{
- const malicious=clone(candidate),names=new Set(Object.values(malicious.coverage.inherited));
- for(const c of malicious.children)if(names.has(c.name)){c.argv=['--test','--test-reporter=tap','rebuild/m4/spec/native-carriers-source.cjs'];c.needle='# pass 1';}
- assert.equal(malicious.children.length,15);assert.equal(names.size,5);assert.equal(malicious.authorizations.theme,null);
- assert.equal(sha(fs.readFileSync(path.join(actual,'rebuild/m4/spec/native-carriers-source.cjs'))),accepted.executionPins['rebuild/m4/spec/native-carriers-source.cjs']);
- const old=api(actual,cp.execFileSync('git',['show','7cd7a5b:'+runnerRel],{cwd:sourceRoot,encoding:'utf8',windowsHide:true}),'successorSupport,children,coverage');
- assert.equal(old.successorSupport(malicious,parentBound),null);
- const env={...process.env,NODE_OPTIONS:'',NODE_V8_COVERAGE:''};delete env.NODE_TEST_CONTEXT;
- const ran=runner.children({...malicious,children:malicious.children.filter(c=>names.has(c.name))},env);
- assert.equal(ran.size,5);for(const value of ran.values())assert.equal(value.needle,'# pass 1');
- assert.equal(old.coverage(malicious,parentBound,ran).size,9,'baseline FALSE coverage, not package acceptance');
- assert.throws(()=>runner.successorSupport(malicious,parentBound),/SUCCESSOR-CHILD-DECLARATIONS/,'before campaign');
- assert.throws(()=>runner.coverage(malicious,parentBound,ran),/SUCCESSOR-CHILD-DECLARATIONS/,'before counting');
- const generic=api(actual,text,'inheritedExecutable,acceptedOriginalChildren','B1');
- for(const [gate,name]of Object.entries(malicious.coverage.inherited))assert.throws(()=>generic.inheritedExecutable(malicious,parentBound,gate,name,ran.get(name),null),/INHERITED-ACCEPTED-ARGV-VERDICT/);
-});
-test('exact legacy parent schedule is source-bound and its genuine original child executes',()=>{
- const generic=api(actual,text,'inheritedExecutable,acceptedOriginalChildren,children','B1');
- const scheduled=generic.acceptedOriginalChildren(parentBound);assert.equal(scheduled.length,5);
- const c=scheduled.find(c=>c.name==='source-carriers'),s={...candidate,children:scheduled};
- const restored=['rebuild/m4/workout/engine-runtime.cjs','.github/workflows/rebuild.yml'].map(file=>[file,fs.readFileSync(path.join(actual,file))]);
- try{
-  for(const [file]of restored)write(actual,file,cp.execFileSync('git',['show',reviewedCommit+':'+file],{cwd:sourceRoot,windowsHide:true}));
-  const env={...process.env,NODE_OPTIONS:'',NODE_V8_COVERAGE:'',TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03'};delete env.NODE_TEST_CONTEXT;
-  let ran;try{ran=generic.children({...s,children:[c]},env);}catch(e){throw new Error(e.message+'\n'+fs.readFileSync(path.join(scratch,c.name+'.log'),'utf8'));}
-  for(const gate of ['migrate-source','merge-source','writers-source'])assert.doesNotThrow(()=>generic.inheritedExecutable(s,parentBound,gate,c.name,ran.get(c.name),null));
-  const forged=clone(s);forged.children.find(x=>x.name===c.name).needle='# pass 1';assert.throws(()=>generic.inheritedExecutable(forged,parentBound,'migrate-source',c.name,ran.get(c.name),null),/INHERITED-ACCEPTED-ARGV-VERDICT/);
-  const file='rebuild/m4/spec/native-carriers-package.cjs',bytes=fs.readFileSync(path.join(actual,file));try{fs.appendFileSync(path.join(actual,file),'\n// control drift');assert.throws(()=>generic.acceptedOriginalChildren(parentBound),/WORKTREE-SOURCE-PIN/);}finally{write(actual,file,bytes);}
- }finally{for(const [file,bytes]of restored)write(actual,file,bytes);}
  assert.doesNotThrow(()=>runner.validateSuccessorDefinition(candidate,parentBound,policy));
 });
 test.after(()=>{

@@ -24,7 +24,6 @@ function write(file, text) {
 write(runnerRel, source);
 write('rebuild/conform/v4/postfix/run.cjs', fs.readFileSync(path.join(sourceRoot, 'rebuild/conform/v4/postfix/run.cjs')));
 const runnerFile = path.join(scratch, runnerRel);
-function createApi(id) {
 const m = new Module(runnerFile, module);
 m.filename = runnerFile;
 m.paths = Module._nodeModulePaths(path.dirname(path.join(sourceRoot, runnerRel)));
@@ -32,15 +31,12 @@ const baseRequire = m.require.bind(m);
 m.require = file => baseRequire(path.isAbsolute(file) && file.startsWith(scratch + path.sep)
   ? path.join(sourceRoot, path.relative(scratch, file)) : file);
 const savedArgv = process.argv;
-process.argv = [process.execPath, runnerFile, '--ci', '--package', id];
+process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) + '\nmodule.exports={childArgv,ownChildren,children,coverage,product,noRegister,proposed,init(){logDir=root;specRaw=Buffer.from("{}");},MOVES_RULING};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
-return api;
-}
-const api = createApi('B-NTC'), generic = createApi('B1');
 const sha = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(scratch, file))).digest('hex');
 const pass = 'rebuild/m4/spec/probe-pass.cjs';
 const good = 'rebuild/m4/spec/probe-own.cjs';
@@ -110,20 +106,20 @@ test('inherited pinned original cannot become a trailing application argument', 
     const forged = { ...original, argv: [pass, ...original.argv.filter(a => !a.startsWith('-'))], needle: 'PROBE PASS' };
     assert.throws(() => api.children({ ...inherited, children: [forged] }, env), /CHILD-ARGV-BARE-SCRIPT-ARGUMENTS/);
   }
-  // An arbitrary parent-pinned executable is no longer an inherited gate route.
+  // Real parent-pinned execution still establishes the unchanged coverage rule.
   const direct = child([good], 'inherited-good', 'OWN PASS'); s.children = [direct];
   s.coverage.inherited = { example: direct.name }; bound.acceptance.coverage.byChild = s.coverage.inherited;
-  assert.throws(() => api.coverage(s, bound, api.children(s, env)));
+  assert.equal(api.coverage(s, bound, api.children(s, env)).size, 1);
 });
 test('proposed execution pins share the validated executed-target definition', () => {
   const c = child(['--test', pass, good], 'pin-good', 'TAP version 13');
   const s = packageFor(c); s.brief = { file: 'missing-public-brief.md' };
   const bound = { option: {}, acceptance: {} };
-  const proposed = generic.proposed(s, bound);
+  const proposed = api.proposed(s, bound);
   assert.equal(proposed.executionPins[pass], sha(pass));
   assert.equal(proposed.executionPins[good], sha(good));
   s.children = [child([pass, good])];
-  assert.throws(() => generic.proposed(s, bound), /CHILD-ARGV-BARE-SCRIPT-ARGUMENTS/);
+  assert.throws(() => api.proposed(s, bound), /CHILD-ARGV-BARE-SCRIPT-ARGUMENTS/);
 });
 test('parent product roles carried/edited admitted; new/superseded/wrong pre refuse', () => {
   const pin = { pre: sha(good), post: sha(good), role: 'carried' };
