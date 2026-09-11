@@ -64,6 +64,29 @@
 // already-sealed rebuild/m4/spec/acceptance-*.json ON THE CHAIN BRANCH already names the
 // same parent artifact. Y3 is spec-note text. Y4: the PIN_PATHS sentence counted 18 paths
 // where 16 exist in this tree; it now counts the ones that exist and says so.
+//
+// TOOLING-REVIEW r5 (Z1-Z11), on the withdrawn successor commits. r5 rejected 7cd7a5b and
+// 85f7d56 and lane B REVERTED both rather than patch them: their admission condition was a
+// theme digest DECISIONS:112 (2) declares void, they verified no relation between a
+// successor and the parent's original, they held successors to prefix needles where the
+// parent was held to full verdicts, and they turned an unissued authorization into an
+// opaque exit-1 FAIL for the one package they existed for. What lands instead is lane B's
+// own, under the ruling that has since been made: DECISIONS:113 (1), which ratifies
+// B-NTC-REVIEW-r2 E.3 as written. Z1: SUCCESSOR_RULING is the only thing that admits a
+// successor and it is recorded HERE, not in a policy file; the admitted gates are DERIVED
+// from the parent artifact's own coverage.byChild plus the carrier's own source closure,
+// never a hardcoded nine. Z2: successorCoverage() proves the RELATION - the original is
+// the parent's byte in the parent's pin map and in Git at the parent's acceptance commit;
+// the successor names it and contains none of its lines; its substitutions are exactly the
+// spec's enumerated list and nothing else in its closure replaces. Z3: the verdict needle
+// is the parent wrapper's own `verdicts` string in full, read out of the pinned original.
+// Z4: nothing on this path asserts for an authority that is merely not yet issued - the
+// brief line and the seal stay OPEN obligations and B-NTC exits 2 like every other
+// package. Z5: there is no policy sourceCommit at all; pins are taken at HEAD and the
+// parent's acceptance commit is anchored on CHAIN_REF. Z6: the catch names the refusing
+// assertion from a vocabulary derived from this file. Z7: the spec is pinned in Git at
+// HEAD as the runner is. Z11: the UNDECIDED branch says that Y2's scan did not run.
+// The void theme name and every Astra policy digest appear nowhere in this tree at all.
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process'), assert = require('node:assert/strict');
 const root = path.resolve(__dirname, '../../../..'), P = path.join(root, 'rebuild/conform/v4/postfix');
 const R = require(path.join(P, 'run.cjs')), L = require(path.join(P, 'legacy-gates.cjs')), J = require(path.join(P, 'strict-json.cjs'));
@@ -84,6 +107,54 @@ const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
 // reviewed tooling change, not a spec change, and it must not land before X3's needle
 // proof has been exercised on a real move.
 const MOVES_RULING = null;
+// TOOLING-REVIEW r5 (Z1-Z11) / B-NTC-REVIEW r2 (R5). THE SUCCESSOR RULING, recorded HERE
+// and nowhere else (W7), because DECISIONS:113 (1) (e) says in terms "the tooling records
+// this ruling id and refuses coverage.inherited in any package that does not cite it".
+//
+// DECISIONS:113 (1) ratifies MOVES_RULING B-NTC-INHERITED-1 "AS WRITTEN in
+// B-NTC-REVIEW-r2.md §E.3 (this line is its id; it particularises DECISIONS:112 (1))".
+// r5's Z1 was written before that line landed and reads :112's earlier wording, under
+// which the nine successors would be coverage.moves. :113 settles r5's own PM question 1
+// the other way and is the operative text: the child declares coverage.INHERITED naming a
+// successor executable per parent child name, on five conditions — (a) coverage.moves
+// stays {}, so X1 is NOT widened, for B-NTC or for anyone; (b) each successor compiles the
+// parent gate's own original body, sha-verified against the parent's executionPins AND
+// against the Git blob at the parent's acceptance commit, in a private module; (c) the
+// only permitted text substitution is a pin re-target made necessary by a declared
+// superseded-by-child product path, every one enumerated verbatim in the package spec;
+// (d) the child never inherits the parent's accepted boolean; (e) this.
+//
+// So MOVES_RULING stays null and coverage.moves stays refused everywhere. What this
+// constant admits is narrower: an inherited gate whose covering child is NOT a
+// parent-pinned executable — the case coverage() refuses outright for every other package
+// with INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE. A spec can never reach
+// the successor path by declaration: the id below must be cited, the package id must be in
+// the closed set below, and the gate must be one the PARENT ARTIFACT's own coverage.byChild
+// records against a carrier that reads the superseded support file — derived at run time
+// from the parent's bytes (successorGates), never a hardcoded list of nine names.
+const SUCCESSOR_RULING = 'DECISIONS:113';
+// ":113 … for M2-B-NTC only". Fixed here; a spec cannot nominate its own id.
+const SUCCESSOR_PACKAGES = new Set(['B-NTC']);
+// ":113 (b) … the Git blob at the parent's acceptance commit b95ccca…". The commit is the
+// one DECISIONS:104's re-seal names as reviewed, and it is asserted to be on the real chain
+// branch (CHAIN_REF) and an ancestor of HEAD before any blob is read out of it — X2's rule
+// applied to the successor path, which is r5's Z5. There is no policy `sourceCommit`: every
+// successor and original byte is verified on disk and in Git AT HEAD, and the parent's own
+// bytes against the chain. A commit a file names is never trusted for provenance.
+const SUCCESSOR_PARENT_COMMIT = 'b95ccca879e371b5ba225ad12cae612ec89469ba';
+// The parent wrapper whose `verdicts` table IS the accepted schedule (r5 Z3): the exact
+// terminal strings the parent's own children must print. Read out of the immutable
+// original, never re-typed here, exactly as PIN_PATHS and GATE_NEEDLE are.
+const SUCCESSOR_WRAPPER = 'rebuild/m4/spec/native-carriers-package.cjs';
+// The support file whose supersession is what makes a successor necessary at all
+// (DECISIONS:109 PATH A). A parent carrier that does not reach it has no claim to a
+// successor, and successorGates() refuses the gate rather than admitting it.
+const SUCCESSOR_SUPPORT = 'rebuild/m4/workout/engine-runtime.cjs';
+// r5 Z2. The successor's own substitution table must stand in its source as ONE strict-JSON
+// literal under this name, so the runner can read it without executing a line of the lane's
+// code — the same discipline PIN_PATHS uses against run.cjs. Every replacement the successor
+// performs must be driven by it, and it must equal the spec's enumerated list byte for byte.
+const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // Packages that register no D-ID at all. DECISIONS:93: feature work under the ratified
 // slice plan takes no register D-ID, and DECISIONS:103 (1) rules B-NTC (and B-LOM behind
 // it) exactly that kind of package — it turns an accepted open boundary into a provider.
@@ -110,7 +181,9 @@ const PRODUCT_ROLES = ['edited', 'carried', 'new', 'superseded-by-child'];
 // W7: every exemption is fixed HERE and nowhere else — the lane-B tooling inventory, the
 // roots a declared child may execute from, and (in spec()) the artifact/review paths the
 // package id itself determines. A spec can never nominate its own exempt path.
-const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
+const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPORT.md', TOOLING + '/TOOLING-FIX-ASTRA-REPORT.md',
+  TOOLING + '/TOOLING-FIX-r5-REPORT.md', TOOLING + '/test/execution-targets.test.cjs', TOOLING + '/test/successor-moves.test.cjs',
+  ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
@@ -158,6 +231,30 @@ const PIN_PATHS = (() => {
   assert.equal(m.length, 1, 'Original closed PIN_PATHS inventory');
   const list = JSON.parse(m[0][1].replaceAll("'", '"'));
   assert(list.length && new Set(list).size === list.length, 'PIN_PATHS inventory'); return list;
+})();
+// Z6 / r5 F6 / r2 "what the PM must rule" 7. THE REFUSAL VOCABULARY. Every refusal used to
+// collapse to one sentence and one exit code: r5 applied twelve structurally different
+// tampers and got twelve byte-identical terminals, and r2 had to preload an assert tracer
+// to learn why B-NTC refused at all. A lane can spend a whole pass guessing at that.
+//
+// What is printed is a CODE and nothing else. The vocabulary is DERIVED from this runner's
+// own source — every named assertion label in this file already opens with an upper-kebab
+// code, so the set is exactly the set of names a reviewer can grep for — and the catch
+// prints a code only if the refusing message OPENS with one of them. That is what keeps
+// the promise narrow: no assertion detail, no path, no count, no child stdout or stderr,
+// nothing derived from the private census, and nothing an input can inject, because a
+// string that is not already a name in this file is not in the set. The BLOCKED path is
+// untouched — it still prints only its own closed code, and --full's private-oracle
+// refusal still terminates `BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING` and nothing more.
+// A hand that edits this file to widen the set moves the runner's own sha256 and refuses at
+// RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT before a line of it runs.
+const FAIL_CODES = (() => {
+  const src = fs.readFileSync(path.join(__dirname, 'b-package.cjs'), 'utf8'), out = new Set();
+  for (const m of src.matchAll(/'([A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,})(?=['; ])/g)) out.add(m[1]);
+  // held() composes two suffixes onto a base code; they are names too, so they are in.
+  for (const base of [...out]) for (const suffix of ['-AT-SOURCEBASE', '-GIT-DISK-DISAGREE']) out.add(base + suffix);
+  assert(out.size >= 40, 'REFUSAL-VOCABULARY-TOO-SMALL ' + out.size);
+  return out;
 })();
 const args = process.argv.slice(2);
 // Exactly two modes, exactly one package; no third mode, no defaulting, case-exact ids.
@@ -221,6 +318,99 @@ function requiresOriginal(file, original) {
 function ownChildren(s) {
   return s.children.filter(c => childArgv(c).some(f => Object.hasOwn(s.product, f) && s.product[f].role === 'new'));
 }
+// r5 Z2. The SOURCE CLOSURE of a declared executable: the file itself plus every file it
+// reaches through a relative require/import specifier, resolved the way requiresOriginal()
+// resolves one. This is read, never executed, and it is bounded — a closure that will not
+// close inside CLOSURE_LIMIT files is refused rather than truncated, because a truncated
+// closure would silently weaken every check built on it.
+const CLOSURE_LIMIT = 64;
+function closure(file) {
+  const seen = new Map(), queue = [file];
+  while (queue.length) {
+    const f = queue.shift();
+    if (seen.has(f)) continue;
+    assert(seen.size < CLOSURE_LIMIT, 'SUCCESSOR-SOURCE-CLOSURE-TOO-LARGE ' + file);
+    assert(fs.existsSync(rel(f)) && fs.statSync(rel(f)).isFile(), 'SUCCESSOR-SOURCE-CLOSURE-FILE-MISSING ' + f);
+    const src = fs.readFileSync(rel(f), 'utf8');
+    seen.set(f, src);
+    const dir = path.posix.dirname(f);
+    for (const m of src.matchAll(/(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]/g)) {
+      const ref = m[1] || m[2];
+      if (!ref || !ref.startsWith('.')) continue;
+      const base = path.posix.normalize(path.posix.join(dir, ref));
+      for (const cand of [base, base + '.cjs', base + '.js', base + '.mjs'])
+        if (fs.existsSync(rel(cand)) && fs.statSync(rel(cand)).isFile()) { queue.push(cand); break; }
+    }
+  }
+  return seen;
+}
+// Z1's derivation, and it is a DERIVATION: the gates a successor may carry are exactly the
+// gates the PARENT ARTIFACT's own coverage.byChild records, whose parent carrier is a file
+// the parent pins in executionPins, and whose carrier's own source closure reaches the
+// superseded support file. Nine names are never typed here. A gate the parent does not
+// record, or one whose carrier does not reach the support file, is not in the returned map
+// and coverage() refuses it by the ordinary rule.
+function successorGates(bound) {
+  const out = new Map(); // gate -> { child, original }
+  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  if (!byChild) return out;
+  const epins = bound.acceptance.executionPins;
+  for (const [gate, child] of Object.entries(byChild)) {
+    // The parent's carrier for a child name is the file the parent PINS under that name;
+    // the concatenation is only ever admitted because the parent's own pin map agrees.
+    const original = 'rebuild/m4/spec/native-carriers-' + child + '.cjs';
+    if (!Object.hasOwn(epins, original)) continue;
+    let reaches = false;
+    for (const src of closure(original).values()) if (src.includes(SUCCESSOR_SUPPORT)) { reaches = true; break; }
+    if (!reaches) continue;
+    out.set(gate, { child, original });
+  }
+  return out;
+}
+// Z3. The ACCEPTED SCHEDULE, read out of the parent wrapper's own `verdicts` table — the
+// exact terminal string each parent child prints. The wrapper's bytes are a parent
+// execution pin, re-asserted here before a character is parsed, so this is the parent's
+// own text and not a re-typing of it. A successor is held to the string its parent was
+// held to, in full: "NATIVE SOURCE CARRIERS: 6/6 PASS;", not "NATIVE SOURCE CARRIERS:".
+function acceptedVerdicts(bound) {
+  const pin = bound.acceptance.executionPins[SUCCESSOR_WRAPPER];
+  assert(pin, 'SUCCESSOR-WRAPPER-NOT-A-PARENT-EXECUTION-PIN ' + SUCCESSOR_WRAPPER);
+  assert.equal(diskSha(SUCCESSOR_WRAPPER), pin, 'SUCCESSOR-WRAPPER-BYTES ' + SUCCESSOR_WRAPPER);
+  const src = fs.readFileSync(rel(SUCCESSOR_WRAPPER), 'utf8');
+  const block = /^const verdicts=\{$([\s\S]*?)^\};$/m.exec(src);
+  assert(block, 'SUCCESSOR-ACCEPTED-SCHEDULE-UNREADABLE ' + SUCCESSOR_WRAPPER);
+  const map = new Map();
+  for (const line of block[1].split('\n')) {
+    if (!line.trim()) continue;
+    const m = /^\s*'?([a-z0-9][a-z0-9-]*)'?\s*:\s*'((?:[^'\\]|\\.)*)',?\s*$/.exec(line);
+    assert(m, 'SUCCESSOR-ACCEPTED-SCHEDULE-UNREADABLE line ' + JSON.stringify(line));
+    map.set(m[1], m[2].replace(/\\'/g, "'").replace(/\\\\/g, '\\'));
+  }
+  assert(map.size >= 10, 'SUCCESSOR-ACCEPTED-SCHEDULE-UNREADABLE ' + map.size + ' verdict(s)');
+  return map;
+}
+// Z2, the substitution table as the successor itself states it: ONE strict-JSON array
+// literal named SUCCESSOR_TABLE, extracted from the closure by bracket matching and parsed
+// without executing anything. Its presence is what lets the runner assert that the ONLY
+// replacements the successor performs are the ones the spec enumerates.
+function successorTable(sources) {
+  let found = null, holder = null;
+  for (const [file, src] of sources) {
+    const at = src.indexOf('const ' + SUCCESSOR_TABLE + ' = [');
+    if (at < 0) continue;
+    assert(found === null, 'SUCCESSOR-SUBSTITUTION-TABLE-DECLARED-TWICE ' + file);
+    const start = src.indexOf('[', at);
+    let depth = 0, end = -1;
+    for (let i = start; i < src.length; i++) {
+      if (src[i] === '[') depth++;
+      else if (src[i] === ']' && --depth === 0) { end = i + 1; break; }
+    }
+    assert(end > start, 'SUCCESSOR-SUBSTITUTION-TABLE-UNREADABLE ' + file);
+    found = JSON.parse(src.slice(start, end)); holder = file;
+  }
+  assert(found !== null, 'SUCCESSOR-SUBSTITUTION-TABLE-MISSING; the successor must state its replacements as one JSON ' + SUCCESSOR_TABLE + ' literal');
+  return { table: found, holder };
+}
 let logDir, ARTIFACT, REVIEW, specRaw;
 
 // ---------------------------------------------------------------- 1. the spec
@@ -281,6 +471,12 @@ function spec() {
   // that hand cannot rewrite without a commit. Disk, Git and the spec pin must be one byte
   // string; a co-edited runner refuses here even though its disk hash agrees.
   assert.equal(gitSha('HEAD', RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT');
+  // Z7 / r5 F9. The runner was pinned on disk AND in Git; the SPEC that pins it was pinned
+  // on disk only, so an uncommitted spec edit ran clean while an uncommitted runner edit
+  // refused. The spec is evidence in exactly the same sense — it is what the artifact will
+  // carry the sha256 of — so it is held to the same two places. This is the check that
+  // makes r5's E10 (an uncommitted `notes` append) refuse instead of quietly passing.
+  assert.equal(gitSha('HEAD', TOOLING + '/packages/' + ID + '.json'), sha(specRaw), 'SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT');
   for (const [file, pin] of Object.entries(s.product)) {
     keys(pin, ['pre', 'post', 'role'], 'Product pin ' + file);
     assert(/^[a-f0-9]{64}$/.test(pin.pre) && (pin.post === null || /^[a-f0-9]{64}$/.test(pin.post)), 'Product sha256 ' + file);
@@ -303,7 +499,7 @@ function spec() {
   // must execute the gate's own original executable, or a file whose bytes require that
   // executable; and one child may carry more than one gate only where run.cjs itself groups
   // those gates on a single executable. "All 19 by one child" satisfies none of the three.
-  keys(s.coverage, ['inherited', 'moves'], 'Coverage block');
+  keys(s.coverage, ['inherited', 'moves', 'successors'], 'Coverage block');
   // X1 — BLOCKING, and it is the FIRST thing decided about coverage. r3's residual R3-A is
   // the move/needle composite: a declared child that never ran the gate's original could
   // still be reported as carrying a moved gate. Every part of that finding enters through a
@@ -339,6 +535,36 @@ function spec() {
     assert(gates.length === 1 || (files.size === 1 && gates.length <= GATE_GROUP.get(gates.map(g => GATE_FILE.get(g))[0]).length),
       'COVERAGE-MOVE-CHILD-COVERS-MORE-GATES-THAN-run.cjs-GROUPS ' + child + ' ' + gates.join(' '));
   }
+  // Z1, the DECLARATION half. Nothing here admits a successor — successorCoverage() does
+  // that, against the parent's own bytes — but a spec that declares the block at all must
+  // be one the ruling names and must cite the ruling id. Everything else refuses HERE,
+  // before any child runs, and X1's `moves === {}` above is untouched for every package
+  // including this one: DECISIONS:113 (1) (a) is explicit that coverage.moves stays {}.
+  if (s.coverage.successors !== null) {
+    assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
+    keys(s.coverage.successors, ['ruling', 'parentAcceptanceCommit', 'carriers', 'substitutions'], 'Successor block');
+    const sup = s.coverage.successors;
+    assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID + '; ' + SUCCESSOR_RULING + ' names ' + [...SUCCESSOR_PACKAGES].join(' ') + ' only');
+    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING=' + SUCCESSOR_RULING),
+      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=' + SUCCESSOR_RULING);
+    assert.equal(sup.parentAcceptanceCommit, SUCCESSOR_PARENT_COMMIT, 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT');
+    assert(sup.carriers && typeof sup.carriers === 'object' && !Array.isArray(sup.carriers) && Object.keys(sup.carriers).length, 'SUCCESSOR-CARRIERS-UNDECLARED');
+    for (const [name, c] of Object.entries(sup.carriers)) {
+      keys(c, ['successor', 'original'], 'Successor carrier ' + name);
+      assert(typeof c.successor === 'string' && typeof c.original === 'string', 'SUCCESSOR-CARRIER-SHAPE ' + name);
+      // The successor file must be a file a DECLARED child of this package actually runs.
+      assert(s.children.some(ch => childArgv(ch).includes(c.successor)), 'SUCCESSOR-NOT-AN-EXECUTED-CHILD-TARGET ' + name + ' ' + c.successor);
+      assert(c.successor !== c.original, 'SUCCESSOR-IS-THE-ORIGINAL ' + name);
+    }
+    assert(Array.isArray(sup.substitutions), 'SUCCESSOR-SUBSTITUTIONS-UNDECLARED');
+    for (const sub of sup.substitutions) {
+      keys(sub, ['original', 'from', 'to', 'why'], 'Successor substitution');
+      assert(typeof sub.original === 'string' && typeof sub.from === 'string' && sub.from.length >= 16 &&
+        typeof sub.to === 'string' && sub.to.length >= 16 && sub.from !== sub.to &&
+        typeof sub.why === 'string' && sub.why.trim().length >= 16, 'SUCCESSOR-SUBSTITUTION-SHAPE ' + JSON.stringify(sub.original));
+      assert(Object.values(sup.carriers).some(c => c.original === sub.original), 'SUCCESSOR-SUBSTITUTION-NOT-ON-A-DECLARED-ORIGINAL ' + sub.original);
+    }
+  }
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
   keys(s.authorizations, ['owner', 'contract', 'theme', 'review'], 'Closed authorization keys');
   claim(s.authorizations.owner, 'owner', 'owner'); claim(s.authorizations.contract, 'cowork', 'contract');
@@ -359,7 +585,13 @@ function spec() {
     s.children.length + ' declared child(ren), argv file-first under ' + CHILD_ROOTS.length + ' fixed root(s) with only ' +
     [...ARGV_ALLOWED].join(' ') + ' permitted; ' + Object.keys(s.coverage.moves).length +
     ' declared move(s), each naming its own original executable in a relative require specifier' +
-    (MOVES_RULING === null ? ' (moves are refused outright under this runner — TOOLING-REVIEW-r3 X1)' : ''));
+    (MOVES_RULING === null ? ' (moves are refused outright under this runner — TOOLING-REVIEW-r3 X1)' : '') +
+    // B-NTC-REVIEW-r2 R5: the old sentence stopped at "0 declared move(s) … refused
+    // outright", which was true of the key and false of the package while successor
+    // executables carried the parent's gates. It now says which it is, on every run.
+    '; ' + (s.coverage.successors === null ? 'no successor carriers declared (every inherited gate must be carried by a parent-pinned executable)'
+      : Object.keys(s.coverage.successors.carriers).length + ' successor carrier(s) declared under ' + s.coverage.successors.ruling +
+        ' with ' + s.coverage.successors.substitutions.length + ' enumerated substitution(s), each proved against the parent original in coverage()'));
   if (fs.existsSync(rel(s.brief.file))) assert.equal(diskSha(s.brief.file), s.brief.sha256, 'Brief bytes');
   else note('brief ' + s.brief.file + ' not authored');
   return s;
@@ -428,8 +660,16 @@ function parent(s) {
   if (!s.parent.decided || !s.parent.chosen) {
     say('PARENT UNDECIDED; ' + s.parent.options.length + ' documented options; the PM names exactly one — a single-parent immutable chain cannot have two heads (PLAN-TRACK-B-PACKAGES-v1.md:146)');
     note('parent artifact not named by the PM');
+    // Z11 / r5 F11. Y2's single-parent scan — the sibling specs on disk and in Git, and the
+    // already-sealed artifacts on the chain branch — sits BELOW this return, so on an
+    // UNDECIDED branch it does not run at all. r5's E18 (a rival sibling claiming B1's
+    // parent) passes clean for exactly that reason. The scan is not hoisted here, because a
+    // provisional head is not a claim on the chain and refusing a rival claim to a parent
+    // the PM has not named would refuse the wrong thing; but the silence is now said out
+    // loud on every such run, so no reader takes an UNDECIDED PASS for a single-parent one.
+    note('single-parent scan (TOOLING-REVIEW-r4 Y2) did NOT run: it is reached only once the PM has named the parent, so a rival sibling claim or an already-sealed rival artifact would not be reported on this run');
     if (sealed.length !== 1) { note('no single sealed chain head on disk; parent pins, product inventory and inherited coverage are unverifiable'); return null; }
-    say('PARENT PROVISIONAL ' + sealed[0].option.id + '; the one sealed chain head on disk carries the pins re-asserted below — it is NOT a claim on the chain');
+    say('PARENT PROVISIONAL ' + sealed[0].option.id + '; the one sealed chain head on disk carries the pins re-asserted below — it is NOT a claim on the chain; the Y2 single-parent scan did not run (see OPEN)');
     return { ...sealed[0], decided: false };
   }
   const bound = sealed.find(x => x.option.id === s.parent.chosen);
@@ -725,11 +965,91 @@ function children(s, env) {
   }
   return ran;
 }
+// ------------------------------------------------ 5b. the successor proof (DECISIONS:113)
+// Z2, and it is the whole point of the pass. The runner must be able to tell a FAITHFUL
+// successor from one that quietly drops an assertion — r5's F3 was that it could only tell
+// "these bytes" from "other bytes", and the bytes it trusted were authored elsewhere. So
+// nothing here is an identity check over a declared sha. Every assertion below is a
+// RELATION between the successor's source and the parent's original:
+//
+//   1. the parent's original is the parent's own byte, twice over — equal to the parent
+//      artifact's executionPins entry AND to the Git blob at the parent's acceptance
+//      commit, which is itself asserted to be on the real chain branch (Z5);
+//   2. the successor NAMES that original and does not CONTAIN it: the original's own long
+//      lines must not appear anywhere in the successor's source closure, so a successor
+//      that copies the body instead of loading it refuses;
+//   3. the successor's replacements are exactly the ones the spec enumerates verbatim —
+//      the successor states them as one JSON table, the runner deep-equals that table
+//      against the spec's list, requires every `from` to stand exactly once in the
+//      original, and requires every replace() call site in the closure to be driven by the
+//      table. A retarget turned into assert.ok(true) is a table entry the spec does not
+//      carry, and it refuses;
+//   4. the successor is held to the PARENT's own accepted verdict string in full (Z3).
+//
+// None of that proves the successor's runtime behaviour. What it proves is that the body
+// compiled is the parent's body, that the differences are exactly the enumerated ones, and
+// that a reviewer reading four strings in the spec is reading all of them.
+function successorCoverage(s, bound, ran, gate, child, targets) {
+  const sup = s.coverage.successors;
+  // The ordinary rule, unchanged, for every package that does not carry the ruling.
+  assert(sup !== null, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
+  assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
+  const admitted = successorGates(bound);
+  assert(admitted.has(gate), 'SUCCESSOR-GATE-NOT-IN-THE-RULING ' + gate +
+    '; the parent artifact records ' + admitted.size + ' gate(s) whose carrier reaches ' + SUCCESSOR_SUPPORT);
+  const { child: parentChild, original } = admitted.get(gate);
+  const declared = sup.carriers[parentChild];
+  assert(declared, 'SUCCESSOR-CARRIER-NOT-DECLARED ' + gate + ' ' + parentChild);
+  assert.equal(declared.original, original, 'SUCCESSOR-ORIGINAL-IS-NOT-THE-PARENT-CARRIER ' + parentChild);
+  assert(targets.includes(declared.successor), 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + child + ' ' + declared.successor);
+  // (1) the original is the parent's own byte, on disk, in the parent's pin map, and in Git
+  // at the parent's acceptance commit — which is on the chain and behind HEAD (Z5).
+  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, CHAIN_REF]);
+  L.git(root, ['merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, 'HEAD']);
+  const originalBytes = fs.readFileSync(rel(original));
+  assert.equal(sha(originalBytes), bound.acceptance.executionPins[original], 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + original);
+  assert.equal(sha(originalBytes), gitSha(SUCCESSOR_PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
+  const originalText = originalBytes.toString('utf8');
+  // (2) names it, and does not contain it.
+  const sources = closure(declared.successor);
+  const body = [...sources.values()].join('\n');
+  assert(body.includes(original), 'SUCCESSOR-DOES-NOT-NAME-THE-ORIGINAL ' + parentChild + ' ' + original);
+  const subs = sup.substitutions.filter(x => x.original === original);
+  const lines = originalText.split('\n').map(l => l.trim())
+    .filter(l => l.length >= 40 && !subs.some(x => x.from.includes(l) || l.includes(x.from)));
+  assert(lines.length >= 8, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original);
+  const copied = lines.filter(l => body.includes(l));
+  assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
+    copied.length + ' of ' + lines.length + ' original line(s) stand verbatim in the successor source');
+  // (3) the replacements are exactly the enumerated ones, and nothing else replaces.
+  const { table, holder } = successorTable(sources);
+  assert.deepEqual(table, sup.substitutions, 'SUCCESSOR-SUBSTITUTION-TABLE-DISAGREES-WITH-THE-SPEC ' + holder);
+  for (const sub of subs) {
+    assert.equal(originalText.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
+    assert.equal(originalText.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
+  }
+  for (const [file, src] of sources)
+    for (const m of src.matchAll(/\.replace(?:All)?\s*\(/g)) {
+      const line = src.slice(src.lastIndexOf('\n', m.index) + 1, src.indexOf('\n', m.index) + 1 || undefined);
+      assert(line.includes(SUCCESSOR_TABLE) || /\bsub(?:stitution)?\b/.test(line),
+        'SUCCESSOR-REPLACEMENT-NOT-DRIVEN-BY-THE-DECLARED-TABLE ' + file + ' ' + JSON.stringify(line.trim().slice(0, 72)));
+    }
+  // (4) the parent's own accepted verdict, in full (Z3).
+  const accepted = acceptedVerdicts(bound);
+  const want = accepted.get(parentChild);
+  assert(want, 'SUCCESSOR-ACCEPTED-VERDICT-UNKNOWN ' + parentChild);
+  const declaredChild = s.children.find(c => c.name === child);
+  assert.equal(declaredChild.needle, want, 'SUCCESSOR-EXECUTED-VERDICT ' + parentChild +
+    '; the successor is held to the parent\'s own accepted terminal string, not a prefix of it');
+  assert(ran.get(child).ok, 'SUCCESSOR-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
+  return { parentChild, original, successor: declared.successor, substitutions: subs.length, verdict: want };
+}
 // W2. A gate is covered ONLY by a declared child that executed here with its exact
 // declared verdict — never by a file's existence. The inherited set must be exactly the
 // parent artifact's own covered set; a move is carried by this package's own successor.
 function coverage(s, bound, ran) {
   const covered = new Map([...Object.entries(s.coverage.inherited), ...Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])]);
+  const carried = new Map(); // gate -> the successor proof, for the gates DECISIONS:113 admits
   for (const [gate, child] of covered) assert(ran.get(child) && ran.get(child).ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   if (!byChild) { if (covered.size) note('inherited coverage unverified against a parent artifact until the PM names the parent'); }
@@ -740,8 +1060,12 @@ function coverage(s, bound, ran) {
     assert.deepEqual(s.coverage.inherited, byChild, 'INHERITED-COVERAGE-IS-NOT-THE-PARENT-COVERED-SET');
     for (const [gate, child] of Object.entries(s.coverage.inherited)) {
       const targets = ran.get(child).targets;
-      assert(targets.some(f => Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f)),
-        'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
+      // The ordinary case: the child ran the parent's own pinned executable. Unchanged.
+      if (targets.some(f => Object.hasOwn(bound.acceptance.executionPins, f) || Object.hasOwn(bound.acceptance.product, f))) continue;
+      // The ONLY other way in, and it is DECISIONS:113's: a successor proved against the
+      // parent's own original. Without the ruling cited this throws the same code it
+      // always threw, so X1's world is exactly as it was for every other package.
+      carried.set(gate, successorCoverage(s, bound, ran, gate, child, targets));
     }
     // The closed bound the accepted original states as assert.equal(covered.length, 9):
     // exactly the parent's covered set plus this package's own declared, bounded moves.
@@ -755,11 +1079,26 @@ function coverage(s, bound, ran) {
     (GATE_IDS.length - covered.size) + ' re-execute under --full');
   // The declared verdict is never echoed: it carries the word PASS, and a REVIEW-PENDING
   // run must print that word only inside its own two negations.
+  // Z1/Z2, the honesty half, and it is the sentence r2's R5 said was missing: the runner
+  // must not report "0 declared move(s) … refused outright" while successor executables
+  // carry the parent's gates. Every successor-carried gate is named here with its parent
+  // original, and the ruling id is printed once with the count it admitted.
+  if (carried.size) {
+    const sup = s.coverage.successors;
+    say('SUCCESSORS ' + carried.size + ' inherited gate(s) carried by ' + new Set([...carried.values()].map(v => v.successor)).size +
+      ' successor executable(s) under MOVES_RULING=' + SUCCESSOR_RULING + ' (' + sup.ruling + '); coverage.moves stays {} and X1 is unwidened; each successor LOADS the parent carrier\'s own original, byte-equal to the parent execution pin AND to the Git blob at ' +
+      SUCCESSOR_PARENT_COMMIT.slice(0, 7) + ' (on ' + CHAIN_REF + ' and behind HEAD), contains none of its lines, replaces only through the declared table, and prints the parent\'s own accepted verdict in full; ' +
+      sup.substitutions.length + ' enumerated substitution(s)');
+    for (const sub of sup.substitutions)
+      say('SUCCESSOR SUBSTITUTION ' + sub.original + '; ' + JSON.stringify(sub.from) + ' -> ' + JSON.stringify(sub.to) + '; ' + sub.why);
+  }
   for (const [gate, child] of covered) {
-    const move = s.coverage.moves[gate];
+    const move = s.coverage.moves[gate], succ = carried.get(gate);
     say('COVERAGE ' + gate + ' <- child ' + child + ' executed in this run; exit 0 and exact declared verdict' +
       (move ? '; MOVED, declared against ' + GATE_FILE.get(gate) + ' and observed emitting that gate’s own needle — ' + move.reason
-        : '; inherited from ' + (bound ? bound.option.id : 'the parent the PM has not named yet')));
+        : succ ? '; inherited from ' + bound.option.id + ' and CARRIED BY A SUCCESSOR ' + succ.successor + ' that loads ' + succ.original +
+          ' (' + succ.substitutions + ' declared substitution(s); verdict ' + JSON.stringify(succ.verdict) + ')'
+          : '; inherited from ' + (bound ? bound.option.id : 'the parent the PM has not named yet')));
   }
   return covered;
 }
@@ -801,7 +1140,12 @@ function proposed(s, bound) {
     spec: { file: TOOLING + '/packages/' + ID + '.json', sha256: sha(specRaw) }, runner: { file: RUNNER, sha256: diskSha(RUNNER) },
     dIds: s.dIds, laws: s.laws, carriedAcceptedIds: s.carriedAcceptedIds, privateLiveTriggered: s.privateLiveTriggered,
     gates: GATE_IDS.slice().sort(),
+    // The successor block travels INTO the sealed artifact, like the parent's review pin
+    // (X2): a later reader of the artifact can see which gates were carried by a successor,
+    // under which ruling id, and what the enumerated substitutions were, without trusting
+    // the spec that produced it. It is null for every package that declares none.
     coverage: { covered, run: GATE_IDS.filter(g => !covered.includes(g)).sort(), moves: s.coverage.moves,
+      successors: s.coverage.successors,
       byChild: { ...s.coverage.inherited, ...Object.fromEntries(Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])) } },
     authorizations: s.authorizations, product: s.product, carrierSuccessor: s.carrierSuccessor, witnessFlips: s.witnessFlips,
     protectedSurfaces: s.protectedSurfaces, children: s.children, artifact: { file: ARTIFACT, review: REVIEW }, executionPins: pins,
@@ -967,6 +1311,14 @@ try {
   }
 } catch (error) {
   const blocked = BLOCKED.includes(error && error.code);
-  console.error(blocked ? 'B PACKAGE ' + ID + ' BLOCKED ' + error.code : 'B PACKAGE ' + ID + ' FAIL; required evidence missing or failed; local diagnostics withheld');
+  // Z6. The ONE token printed here is the leading word of the refusing assertion's own
+  // name, and only when that word is already a name in this file (FAIL_CODES). Anything
+  // else — an unnamed assertion, a runtime error, a message an input could shape — prints
+  // the unchanged sentence and nothing more. Exit codes are unchanged in both branches.
+  const message = error && typeof error.message === 'string' ? error.message : '';
+  const token = (/^([A-Z][A-Z0-9-]{7,})(?:[ ;:]|$)/.exec(message) || [])[1];
+  const code = !blocked && token && FAIL_CODES.has(token) ? token : null;
+  console.error(blocked ? 'B PACKAGE ' + ID + ' BLOCKED ' + error.code
+    : 'B PACKAGE ' + ID + ' FAIL' + (code ? ' ' + code : '') + '; required evidence missing or failed; local diagnostics withheld');
   process.exitCode = blocked ? 2 : 1;
 }
