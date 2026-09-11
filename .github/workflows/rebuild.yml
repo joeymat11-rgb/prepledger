@@ -85,8 +85,17 @@ jobs:
       # both runners whatever the shell does with a wildcard.
       - name: A0 — the workout host over the real durable client
         run: node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs
-      - name: A1/A2 — the rebound Today page and the gym card
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      # ENUMERATION COMPLETED BY M2-B-NTC, DECISIONS:109. The line below named
+      # five files; two more existed under the same directory with no CI home at
+      # all — A3's check-in suite (checkin.test.mjs, deferred by DECISIONS 99/101/102
+      # and never picked up) and B-NTC's own delta cells (ntc-h6-delta.test.mjs).
+      # :109 rules that "rebuild.yml enumerates checkin.test.mjs + any unlisted
+      # today/gym test files" rides the B-NTC seal, so both are named here. The
+      # rule the step already stated is kept: every file is named rather than
+      # globbed, so the same set runs on both runners whatever the shell does.
+      # Measured locally on this branch: 158 tests, 158 pass, 0 fail.
+      - name: A1/A2/A3 — the rebound Today page, the gym card, the check-in and the B-NTC delta cells
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
       - name: A5 — the PWA shell's lockfile-only suites
         run: node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/workflow.test.cjs
       - name: A5 — the built deploy folder itself

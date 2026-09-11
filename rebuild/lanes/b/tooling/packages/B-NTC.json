@@ -5,13 +5,20 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
-    "sha256": "60838907f0d205b1259ea9b0e1e4b76d48db5339409e314413280ed1140a8dd6",
+    "sha256": "89cc1c3a30b97fe7f78f581e09bed056bdc99939e1004baef77c819e460667b6",
     "acceptedLedgerLine": null
   },
-  "sourceBase": "12cfdb9d58fbcab10faacdaff8ef886ca79ab9c2",
+  "sourceBase": "5dc92543e3a179e74fd72ea1a9a3ab41f6db4e18",
   "dIds": [],
   "laws": {},
-  "carriedAcceptedIds": [],
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
   "privateLiveTriggered": [],
   "parent": {
     "decided": true,
@@ -22,6 +29,7 @@
         "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
         "sha256": "e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a",
         "review": "rebuild/m4/spec/review-native-carriers.json",
+        "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
         "receiptLedgerLine": 104,
         "note": "RE-TAKEN at the merge, exactly as the previous wording of this note said it would be. The pin was 295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1 with receiptLedgerLine 96, the chain head at sourceBase 12cfdb9 (DECISIONS:96/97); the PM's CI re-seal (DECISIONS:105) re-sealed the same artifact to e940359b… with receipt line 104, and DECISIONS:108 (e) CONFIRMED that as B-NTC's parent. This branch merged origin/rebuild/t2-client-core at 93b23edb5c09073b4723a97368aa17c367ce6873, where rebuild/m4/spec/acceptance-native-carriers.json hashes to e940359b… on disk (verified), so the pin above is the head artifact and not a prediction. sourceBase stays 12cfdb9: `git diff 12cfdb9 origin/rebuild/t2-client-core -- rebuild/engine rebuild/conform rebuild/m4/workout rebuild/m3/w6/host` is EMPTY, so every product pre-image sha below is still exact at the merge."
       }
@@ -29,7 +37,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": null
+    "runnerSha256": "6f69aa8ee6667f27b92166dd981ba9c15078f7e77fc2692130950a2ab8be2c3b"
   },
   "product": {
     "rebuild/engine/plan.cjs": {
@@ -131,6 +139,31 @@
       "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
       "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
       "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "8cf038efb19e1c6758233b2bb8974610c3d55b046df3870a2661ad51e7c9c600",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "pre": "9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23",
+      "post": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "role": "edited"
+    },
+    ".github/workflows/rebuild.yml": {
+      "pre": "f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8",
+      "post": "3a8d46ce64d5c55b37f4c4f384a140e1962dc19dff96ff9c3ca0343102704ca7",
+      "role": "edited"
     }
   },
   "coverage": {
@@ -149,26 +182,95 @@
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
-  "protectedSurfaces": [],
+  "protectedSurfaces": [
+    "rebuild/m4/workout/engine-runtime.cjs — a PARENT EXECUTION PIN this child SUPERSEDES (9be21897… -> c03732e8…): EXPOSED gains dayWeather + cleanAtDate per DECISIONS:109 PATH A. The parent M2-NATIVE-CARRIERS profile keeps its own pin and therefore REFUSES on these bytes; that refusal is this child's to supersede and no separate parent re-seal is wanted.",
+    "rebuild/m3/w6/host/engine-runtime-host.cjs — the bundleable mirror of the file above, widened with it (114411b1… -> e210bfa0…); engine-equivalence.test.cjs holds the two to the same name list.",
+    ".github/workflows/rebuild.yml — a PARENT EXECUTION PIN this child SUPERSEDES (f57ced40… -> 3a8d46ce…): the A1/A2/A3 step now enumerates seven today/ files, adding checkin.test.mjs and ntc-h6-delta.test.mjs, which DECISIONS:109 rules rides this seal.",
+    "rebuild/engine/* — byte-identical, every one carried; this package edits no engine byte."
+  ],
   "authorizations": {
-    "owner": null,
-    "contract": null,
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
     "theme": null,
-    "review": null
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B-NTC-NATIVE-TREND-CONTEXT",
+      "terminal": "ACCEPTED"
+    }
   },
   "artifact": {
     "file": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
     "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json"
   },
-  "children": [],
+  "children": [
+    {
+      "name": "source-carriers",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-source-carriers.cjs"
+      ],
+      "needle": "NATIVE SOURCE CARRIERS: 6/6 PASS;"
+    },
+    {
+      "name": "inherited-carriers",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-inherited-carriers.cjs"
+      ],
+      "needle": "NATIVE INHERITED CARRIERS: 6/6 PASS;"
+    },
+    {
+      "name": "defect-witnesses",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-defect-witnesses.cjs"
+      ],
+      "needle": "NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;"
+    },
+    {
+      "name": "writers-differential",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-writers-differential.cjs"
+      ],
+      "needle": "NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;"
+    },
+    {
+      "name": "second-gate",
+      "argv": [
+        "rebuild/m4/spec/native-carriers-second-gate.cjs"
+      ],
+      "needle": "NATIVE SECOND GATE:"
+    },
+    {
+      "name": "ntc-provider-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/native-trend-context.test.cjs"
+      ],
+      "needle": "# pass 39"
+    }
+  ],
   "notes": [
-    "B-NTC edits NOTHING under rebuild/engine, rebuild/conform or rebuild/m4/spec: every parent-pinned product file is role \"carried\" (pre === post, byte-identical on disk, verified by this generator).",
-    "dIds and laws are EMPTY on purpose. B-NTC registers no D-ID (DECISIONS:93 — feature work under the ratified slice plan takes no register D-ID); it turns an accepted open boundary into a provider.",
-    "RUNNER: at rebuild/lane-b-tooling @ 572a8c2 (the tip when v1 was written) b-package.cjs closed its package list to B1|B2|B3|B4 and refused this id in one line with exit 1. At 477b025 its usage line is “--ci|--full --package <B-NTC|B-LOM|B1|B2|B3|B4>”, so B-NTC is accepted by the guard. The exact terminal line and exit code of the v1.1 run are in rebuild/lanes/b/BUILD-REPORT-B-NTC.md §3.6, reported verbatim. Note that 477b025 also carries its OWN packages/B-NTC.json (21 159 B); two specs for one id will collide at merge — PM question Q2.",
-    "runnerSha256 and every authorization stay null until the tooling PR is accepted and the PM accepts this brief with a ledger line; a declared acceptance that stands in no ledger refuses the run by design. brief.sha256 IS set, and is the sha256 of BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md as it stands on this branch (review r1 C8: the previous wording of this note contradicted the file). It moved 0ba59cca… (v1, the brief DECISIONS:108 (a) accepts by name) -> 3e8fa02b… (v1.1, the r1 fix pass) -> 60838907f0d205b1259ea9b0e1e4b76d48db5339409e314413280ed1140a8dd6 (the second fix pass: the §6 H6 STATUS block incl. its DECISIONS:109 paragraph, the §9.1 and §7.5 notes and the O10 update — no claim in the brief was withdrawn, only the applied/measured status added).",
+    "B-NTC edits NO byte under rebuild/engine, rebuild/conform or rebuild/m4/spec: every parent-pinned product file is role \"carried\" (pre === post, byte-identical on disk, verified by this runner).",
+    "dIds and laws are EMPTY on purpose. B-NTC registers no D-ID (DECISIONS:93 — feature work under the ratified slice plan takes no register D-ID); it turns an accepted open boundary into a provider. That is why the runner puts it in NO_REGISTER_IDS, and why TOOLING-REVIEW-r4's Y1 applies to it.",
+    "Y1 (TOOLING-REVIEW-r4 §7), APPLIED AS FAR AS THE RUNNER ALLOWS. Y1: \"a package with an empty dIds inventory may not be sealed unless at least one declared child executes one of its own role:'new' product files.\" The child `ntc-provider-cells` does exactly that: it executes rebuild/m4/workout/test/native-trend-context.test.cjs, which is declared in product[] with role \"new\" and is this package's own authored cell file (39 cells, needle \"# pass 39\" at line start in TAP). The five carrier children above it are the parent's own covered set, named exactly as the parent artifact's coverage.byChild names them — coverage.inherited now resolves to DECLARED children, which it did not before this revision.",
+    "Y1 RESIDUE — A RUNNER LIMIT, NOT A SPEC CHOICE, AND IT IS A STOP. The dispatch asked for the journey and the gym/today suites to be declared children too. They CANNOT be declared against b-package.cjs @ 636aeaa: CHILD_ROOTS (b-package.cjs:73) is the closed list [rebuild/m4/spec/, rebuild/conform/v4/postfix/, rebuild/engine/test/, rebuild/m4/workout/test/, rebuild/m3/w7-preview/test/], and it contains NEITHER rebuild/m3/w6/host/test/ (the A0 journey, 23/23) NOR rebuild/m3/w7-preview/today/test/ (A2 gym 59/59, today 130/130, 158/158 with A3). CHILD_ROOTS is fixed in the runner by design (W7: \"a spec can never nominate its own exempt path\"), so widening it is a reviewed TOOLING change on rebuild/lane-b-tooling, not something this spec may do. Until it lands, those three suites are evidence in the BUILD-REPORT and in .github/workflows/rebuild.yml, and are NOT declared children here.",
+    "product[] role \"new\" PRE-IMAGES. The three files this package authored did not exist at sourceBase, so there is no pre-image byte to pin; their `pre` is the sha256 of the empty byte string (e3b0c442…), which the runner accepts as a 64-hex and which is stated here rather than disguised as a real pin. Their `post` is the disk sha256 on the sealing branch.",
+    "THE CHILD RE-PIN (DECISIONS:109). The two files whose PARENT EXECUTION PINS this child supersedes — rebuild/m4/workout/engine-runtime.cjs and .github/workflows/rebuild.yml — are in the parent artifact's executionPins, NOT in its product map, so they are recorded in protectedSurfaces above rather than in product[]: adding a non-parent-product file to product[] would force role \"new\" on a file that is edited, which would be false. A reviewer checks the re-pin by diffing those two files against the parent artifact's executionPins.",
     "artifact.file / artifact.review name rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json and review-b-ntc-native-trend-context.json, NEITHER OF WHICH EXISTS ON THIS BRANCH — and that is correct, not a slip (review r1 C8/F8): b-package.cjs:300-303 DERIVES exactly those two paths from this package id and asserts the spec names them. They are written by the PM at acceptance, after an independent review; a PROPOSED package cannot carry them.",
-    "children[] is empty: B-NTC declares no package child yet, so no gate is covered and the coverage bound is inherited-only.",
-    "SECOND FIX PASS (DECISIONS:108 (b)): the branch merged origin/rebuild/t2-client-core (merge 93b23ed, no conflict) and then APPLIED rebuild/lanes/b/ntc/gym-host.wiring.patch to rebuild/m3/w7-preview/today/gym-host.mjs under the lifted one-hunk licence, with six committed delta cells at rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs. Neither file is parent-pinned product, so product[] is still byte-for-byte all-carried and dIds/laws/witnessFlips/coverage are untouched. The mapRecordedDaysWithEnginePredicates option remains FALSE on every shipped path, so PM question Q1 is not pre-empted. G7/O10 (gym-model.previousLine) was NOT applied — gym-model.mjs is A2's and the lifted licence names gym-host.mjs only; the hunk sits unapplied at rebuild/lanes/b/ntc/gym-model.previousLine.patch. DECISIONS:109 landed during the pass (merged in as 6d61deb): Q1 = PATH A implemented INSIDE this child package, which re-pins engine-runtime.cjs / EXPOSED and rebuild.yml and removes the option, and B-NTC must prove the 28-night product state too. Obligation (i) — the fresh zero-night athlete's day+3 READY/started/sets/closed — is DISCHARGED by delta cell G5 in this commit. Obligation (ii), the option removal, the EXPOSED and rebuild.yml re-pins and the `# pass 19` retirement are the NEXT pass: they are re-pins this spec must carry, and :108's one-hunk licence did not cover them, so no rebuild/m4/spec, .github or rebuild/engine byte moved here. :109 also routes G7/O10 to lane C's C4.",
-    "v1.1 (post review r1): the provider gained a content digest binding (identity is unenforceable at this seam — engine-capture.cjs:52 clones), a re-entrant withFacts window, a two-holder pace read, a refusing bind(null), and the S2 day reader createEnginePredicateDayFacts behind createDayFactsReader's mapRecordedDaysWithEnginePredicates option, which is FALSE by default and inert unless the engine exposes dayWeather + cleanAtDate. product[] is unchanged and still all-carried: no rebuild/engine byte moves."
+    "runnerSha256 IS NOW SET to the reviewed runner at rebuild/lane-b-tooling @ 636aeaa (TOOLING-REVIEW-r4: ACCEPT WITH CHANGES, \"usable for sealing YES for B-NTC/B-LOM once Y1 is in force\"). The runner does not exist on rebuild/lane-b-ntc, so `--ci` is run in a scratch copy that carries this branch's tree plus the 636aeaa tooling folder; the exit code and the terminal lines of that run are reported verbatim in rebuild/lanes/b/BUILD-REPORT-B-NTC.md. Every authorization stays null until the PM accepts this brief with a ledger line: a declared acceptance that stands in no ledger refuses the run by design.",
+    "brief.sha256 is the sha256 of BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md at v1.2 on this branch. It moved 0ba59cca… (v1, the brief DECISIONS:108 (a) accepts by name) -> 3e8fa02b… (v1.1, the r1 fix pass) -> 60838907… (the :108 (b) wiring pass) -> 89cc1c3a… (v1.2, this pass: the §v1.2 section applying DECISIONS:109). No claim was withdrawn in v1.2; §12 Q1 is marked ANSWERED and the \"behind an option\" wording is superseded.",
+    "THIS PASS (DECISIONS:109, obligation (ii)). EXPOSED widened to [genSession, rirPlan, dayWeather, cleanAtDate] at engine-runtime.cjs:30 and its host mirror :45, with both returned handles gaining the two forwarders; mapRecordedDaysWithEnginePredicates REMOVED from createDayFactsReader and from createGymHost (the handle no longer even reports optionRequested); createDayFactsReader now REFUSES a runtime without both predicates instead of downgrading. Obligation (ii) DISCHARGED: the 28-night createTodayModel({}).stateFromOps() athlete prepares day+3 on day+0's lift group, Starts, logs every set and closes, ops 12 -> 18, three durable sessions (delta cells G1-G4). Obligation (i) still holds and now rides the SAME reader (G5, ops 12 -> 19). Suites on the committed tree: A2 gym 59/59, today 130/130, 158/158 with A3's check-in, journey+equivalence 23/23, provider cells 39/39, A1 TODAY BUILD PASS, v4 45 RED-frozen / 39 RED-candidate unmoved, census byte-identical (same sha256, 0 differing rows).",
+    "THE PARENT NOW REFUSES, BY DESIGN. `node rebuild/m4/spec/native-carriers-package.cjs --ci` exits 1 on this branch with \"NATIVE CARRIERS PACKAGE FAIL; required evidence missing or failed; local diagnostics withheld\"; the named assertion behind that withheld line is \"Adopted support bytes: rebuild/m4/workout/engine-runtime.cjs\" expecting 9be21897… and finding c03732e8…. DECISIONS:109 says that refusal is the child's to supersede and that no separate parent re-seal is wanted, so it is REPORTED here, not repaired.",
+    "G7/O10 is lane C's (DECISIONS:109 routes it to C4): the unapplied hunk is at rebuild/lanes/b/ntc/gym-model.previousLine.patch and gym-model.mjs is byte-untouched on this branch. Delta cell G7 still LOCKS the current absence, so when C4 lands the fix that one cell goes red on purpose and its positive replacement is in the patch file.",
+    ":109's THIRD BUNDLED ITEM IS HALF DONE, AND SAID SO. The rebuild.yml enumeration IS applied; the `# pass 19` retirement is written as a real verified diff at rebuild/lanes/b/ntc/pass19-retirement.patch (git apply --check exit 0) and NOT applied — it was outside this pass's dispatch, it deletes executed evidence nothing this package owns covers, and \"successor evidence named\" is a judgment recorded in the PM's own wrapper file."
   ]
 }

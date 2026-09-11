@@ -51,7 +51,9 @@ const SLOT = 'synthetic-slot';
 const { createEngineRuntime } = AcceptedRuntime;
 // Pinned here so a silent edit to the host's bundleable mirror is a test
 // failure; its behavioural equivalence is engine-equivalence.test.cjs's job.
-const HOST_RUNTIME_SHA256 = '114411b1a075c2354eccb552b5855007d06a1a3fe788b5ae0991a6eb3d08309e';
+// Re-pinned once, with the accepted runtime it mirrors, under DECISIONS:109 —
+// see step 14 for the reason and for the parent refusal it does not restate.
+const HOST_RUNTIME_SHA256 = 'e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d';
 const emptyPrefix = () => Source.basis({ W: 0, log_digest: Source.createPrefixHasher().digest(), selection_id: null });
 
 // One live host over one repository handle. Providers are named here and only
@@ -357,18 +359,29 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert.deepEqual(await opsOf(repository), before, 'no refusal in this step wrote anything');
   });
 
-  await t.test('14. the engine this host composed is the accepted runtime, unmodified', () => {
+  await t.test('14. the engine this host composed is the accepted runtime, at the bytes its package pins', () => {
     const sha = file => createHash('sha256')
       .update(readFileSync(fileURLToPath(new URL(file, import.meta.url)))).digest('hex');
-    // The accepted M2-NATIVE-CARRIERS runtime, at the bytes that package pins.
-    // A0 does not change this file: the bundleable variant is the separate
-    // host-owned mirror below, and engine-equivalence.test.cjs proves they agree.
+    /* A0 still does not change these files. The pin below MOVED ONCE, and only
+       for the reason the ledger records: DECISIONS:109 (PATH A) rules that the
+       M2-B-NTC child package re-pins engine-runtime.cjs and the EXPOSED set, so
+       the accepted surface is now
+       ['genSession','rirPlan','dayWeather','cleanAtDate'] — the two day
+       predicates the B-NTC nativeTrendContext provider asks rather than
+       restates. The parent M2-NATIVE-CARRIERS profile keeps its own pin at the
+       old bytes and therefore refuses; that refusal is the child's to supersede
+       and is not re-stated here. The bundleable variant is the separate
+       host-owned mirror below, and engine-equivalence.test.cjs proves the two
+       still agree name for name. */
     assert.equal(sha('../../../../m4/workout/engine-runtime.cjs'),
-      '9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23', 'accepted engine-runtime.cjs is untouched');
+      'c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936',
+      'accepted engine-runtime.cjs is at the M2-B-NTC re-pinned bytes');
     assert.equal(sha('../engine-runtime-host.cjs'), HOST_RUNTIME_SHA256, 'host runtime is at its pinned bytes');
     // The runtime the journey actually ran is the accepted one.
     assert.deepEqual(AcceptedRuntime.COMPOSITION.modules, HostRuntime.MODULES);
     assert.equal(AcceptedRuntime.COMPOSITION.modules.length, 12);
+    assert.deepEqual(AcceptedRuntime.COMPOSITION.exposed.slice().sort(),
+      ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan'], 'the re-pinned EXPOSED surface');
     for (const forbidden of ['seed.cjs', 'migrate.cjs', 'merge.cjs'])
       assert(AcceptedRuntime.COMPOSITION.forbiddenImports.includes(forbidden), forbidden);
   });

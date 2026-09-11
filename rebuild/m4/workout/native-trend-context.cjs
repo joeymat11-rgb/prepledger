@@ -84,19 +84,29 @@
 // the same state, the same date key.
 //
 // This module nevertheless does NOT restate them and does NOT copy them.
-// `rebuild/m4/workout/engine-runtime.cjs:11` exposes exactly ['genSession',
-// 'rirPlan'] and that surface is PINNED by the accepted M2-NATIVE-CARRIERS
-// artifact (rebuild/m4/spec/native-carriers-witnesses.cjs:16 asserts
-// `COMPOSITION.exposed.slice().sort()` equals ['genSession','rirPlan']), so a
-// host cannot obtain `dayWeather` / `cleanAtDate` today without reopening an
-// accepted package, and composing a second engine to get them is forbidden
-// (A2: "no second engine"). Copying the two bodies here would be the "copied
-// second implementation" PERFORMED-ENGINE-v1 §6 forbids. So the day reader is a
-// REQUIRED injected collaborator with no fallback, and this module ships TWO —
-// see createEmptyHistoryDayFacts (the proof over an empty history, which is
-// what runs today) and createEnginePredicateDayFacts (the engine's OWN two
-// predicates, reachable only if a re-seal ever exposes them). Which one a host
-// gets is decided by createDayFactsReader's option, which is OFF by default.
+// Copying the two bodies here would be the "copied second implementation"
+// PERFORMED-ENGINE-v1 §6 forbids, and composing a second engine to get them is
+// forbidden too (A2: "no second engine"). So the day reader is a REQUIRED
+// injected collaborator with no fallback, and the shipped one ASKS THE ENGINE:
+// see createEnginePredicateDayFacts, which calls `engine.dayWeather` and
+// `engine.cleanAtDate` and refuses to exist without them.
+//
+// DECISIONS:109 — PATH A, AND THE OPTION IS GONE. Until that ruling this module
+// carried an OFF-by-default `mapRecordedDaysWithEnginePredicates` option,
+// because `engine-runtime.cjs` exposed exactly ['genSession','rirPlan'] and no
+// accepted host could hand the two predicates in. The M2-B-NTC package now
+// re-pins that surface itself — engine-runtime.cjs:30 and its host mirror
+// engine-runtime-host.cjs:45 expose ['genSession','rirPlan','dayWeather',
+// 'cleanAtDate'] — so the mapping is simply THE BEHAVIOUR. `createDayFactsReader`
+// takes no flag; it returns the engine-predicate reader or REFUSES, and the
+// reader itself is fail-closed per day: a predicate that is unreadable, throws,
+// or answers with anything but a boolean refuses that day by name rather than
+// being read as "no event, no debt".
+//
+// createEmptyHistoryDayFacts SURVIVES as a named constructor, because it is a
+// real proof over an empty input and three A0 journey steps bind it directly,
+// but nothing selects it by configuration any more: a host that wants it must
+// name it.
 //
 // WHERE `rushed` COMES FROM. `paceRushed(sl)` is
 // `!!sl && sl.pace === PACE.rushed` (progression.cjs:544). It is a test for an
@@ -120,10 +130,11 @@
 // rather than silent.
 const REFUSAL = 'NATIVE_TREND_CONTEXT_UNQUALIFIED';
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
-// The two engine predicates this seam needs. They are NOT on the pinned
-// EXPOSED surface today; a host may only pass them if a future re-seal adds
-// them, and `createDayFactsReader` checks for them at runtime rather than
-// assuming either way.
+// The two engine predicates this seam needs. Since DECISIONS:109 they ARE on
+// the EXPOSED surface, re-pinned by this package (engine-runtime.cjs:30 and its
+// host mirror engine-runtime-host.cjs:45). `createDayFactsReader` still CHECKS
+// for them at runtime rather than assuming: a runtime that does not carry both
+// is refused outright, never quietly downgraded to a weaker reader.
 const ENGINE_DAY_PREDICATES = Object.freeze(['dayWeather', 'cleanAtDate']);
 
 function unqualified(reason, extra) {
@@ -215,7 +226,10 @@ function rushedOf(session) {
   return false;
 }
 
-// THE DAY READER THIS PACKAGE CAN PROVE TODAY.
+// THE PROOF-OVER-AN-EMPTY-HISTORY DAY READER. It is NO LONGER the shipped
+// reader (DECISIONS:109 removed the option that chose it); it is kept because
+// three A0 journey steps bind it by name and because the proof it states about
+// an empty athlete state is true and worth keeping under test.
 //
 // It answers only for an athlete whose state carries NO recorded event and NO
 // recorded sleep night. For such a state the two engine predicates are constant
@@ -237,19 +251,21 @@ function rushedOf(session) {
 //
 // The moment either list is non-empty this reader REFUSES — it does not fall
 // back, and it does not approximate the halo or the three-night run. Mapping a
-// recorded event or a recorded night onto a native session is the open item the
+// recorded event or a recorded night onto a native session was the open item the
 // APM recorded verbatim in rebuild/m4/REPORT-OWNER-WORKOUT-BRIEF-ASTRA.md:17
 // ("no accepted native hard/rushed/debt mapping ... old cleanAtDate returns
 // true on no nights and native event intervals are not legacy dated-event/halo
-// semantics"). Closing it needs the engine's own two readers at this seam —
-// which is what createEnginePredicateDayFacts below is, and which needs the
-// pinned runtime surface reopened (PM question Q1).
+// semantics"). That item is CLOSED by createEnginePredicateDayFacts below,
+// which asks the engine's own two readers at this seam — the answer PM question
+// Q1 was ruled with (DECISIONS:109, PATH A).
 //
-// MEASURED, AND THE REASON THAT OPTION EXISTS (review r1, F2): the athlete the
-// shipped gym card and rebuild/m3/w7-preview/today/today-entry.mjs:26 actually
-// pass to createGymHost — `createTodayModel({}).stateFromOps()` — carries 28
-// RECORDED SLEEP NIGHTS, so this reader refuses `recorded_sleep_unmapped` for
-// every date and B-NTC alone does not open the product's own gym card.
+// MEASURED, AND WHY THIS READER IS NO LONGER THE SHIPPED ONE (review r1, F2):
+// the athlete the shipped gym card and
+// rebuild/m3/w7-preview/today/today-entry.mjs:26 actually pass to createGymHost
+// — `createTodayModel({}).stateFromOps()` — carries 28 RECORDED SLEEP NIGHTS,
+// so this reader refuses `recorded_sleep_unmapped` for every date, and with it
+// wired B-NTC did not open the product's own gym card. That is DECISIONS:109's
+// obligation (ii), and the engine-predicate reader is what discharges it.
 //
 // The state is read on EVERY call, never captured at construction, so a host
 // that composes once and trains for weeks starts refusing the day the athlete
@@ -269,8 +285,7 @@ function createEmptyHistoryDayFacts({ state } = {}) {
   };
 }
 
-// THE DAY READER FOR AN ATHLETE WHO HAS RECORDED NIGHTS AND EVENTS — the S2
-// path, option A (PM question Q1(a)).
+// THE SHIPPED DAY READER — the S2 path, PATH A, ruled at DECISIONS:109.
 //
 // It calls the ENGINE's own two predicates at the row's own date. It restates
 // nothing, approximates nothing and copies no body: `dayWeather` and
@@ -279,14 +294,14 @@ function createEmptyHistoryDayFacts({ state } = {}) {
 // — the same two questions, asked of the engine instead of answered from a
 // constant.
 //
-// It is NOT reachable on the accepted tree. `EXPOSED` is
-// `['genSession','rirPlan']` (engine-runtime.cjs:11, mirrored at
-// engine-runtime-host.cjs:45) and that list is pinned by
-// native-carriers-witnesses.cjs:16, so no accepted host can hand these two in.
-// Adding them is a re-seal of the accepted artifact — the PM's decision, not
-// lane B's. Until that happens `createDayFactsReader` finds them absent and
-// keeps the existing refusal, which is why this code changes nothing on the
-// committed tree.
+// It IS reachable on this tree, because this package re-pins the surface that
+// carries it: `EXPOSED` is `['genSession','rirPlan','dayWeather','cleanAtDate']`
+// (engine-runtime.cjs:30, mirrored at engine-runtime-host.cjs:45). An athlete
+// with 28 recorded sleep nights is therefore READ rather than refused, which is
+// exactly what obligation (ii) asks for — and the fresh zero-night athlete of
+// obligation (i) is read by the SAME code path, because `cleanAtDate` on an
+// empty nights list returns true on its own first line and `dayWeather` on an
+// empty events list produces no `k:"event"` flag. One reader, both athletes.
 //
 // ONE DELIBERATE DIFFERENCE FROM THE LEGACY BRANCH, stated because it is a
 // difference: `progression.cjs:702,704` wraps each predicate in
@@ -315,30 +330,37 @@ function createEnginePredicateDayFacts({ state, engine } = {}) {
   };
 }
 
-// THE ONE PLACE A HOST CHOOSES A DAY READER — and the option is OFF.
+// THE ONE PLACE A HOST GETS A DAY READER — and there is nothing to choose.
 //
-// `mapRecordedDaysWithEnginePredicates` is the S2 unblocking path, default
-// FALSE. With it false, or with the engine's two predicates absent at runtime,
-// the empty-history reader is returned and a day with a recorded night refuses
-// `recorded_sleep_unmapped` exactly as it does today. With it true AND both
-// predicates present, recorded nights and events are mapped through the
-// ENGINE's own readers and a day with 28 recorded nights can be qualified.
+// DECISIONS:109: "the option removed as an option (mapping is the shipped
+// behaviour, fail-closed on any night it cannot map)". So this function takes no
+// flag. It returns the ENGINE-PREDICATE reader, always, and FAIL-CLOSES in two
+// distinct places:
 //
-// Both conditions are checked at composition time and reported by
-// `enginePredicatesAvailable`, so a host can say which reader it got instead of
-// guessing. Turning the option on when the predicates are absent is NOT an
-// error and NOT a silent downgrade to something weaker: it lands on the same
-// honest refusal the tree ships today.
-function createDayFactsReader({ state, engine, mapRecordedDaysWithEnginePredicates = false } = {}) {
-  if (typeof mapRecordedDaysWithEnginePredicates !== 'boolean')
-    throw new TypeError('createDayFactsReader: mapRecordedDaysWithEnginePredicates must be a boolean');
+//   * AT COMPOSITION, here: a runtime that does not carry both predicates is
+//     refused by `createEnginePredicateDayFacts`'s own TypeError. It is NOT
+//     downgraded to the empty-history reader. A silent downgrade is exactly the
+//     shape of bug the ruling removed — it would answer `hard:false, debt:false`
+//     for a fresh athlete while LOOKING like the mapped behaviour, and would
+//     make a tree with a narrow EXPOSED surface pass tests that claim the wide
+//     one. Refusing here means a mis-composed host is unusable, loudly.
+//
+//   * PER DAY, in the reader itself: a predicate that throws, is unreadable, or
+//     answers with anything but a boolean refuses THAT DAY by name
+//     (`day_weather_unreadable`, `clean_at_date_not_boolean`, …). A caught
+//     exception is never read as false.
+//
+// `enginePredicates` stays on the handle so a host can still REPORT what it got
+// rather than assume it; it is now always true on a composed reader, because a
+// reader that would have made it false does not come into existence.
+function createDayFactsReader({ state, engine } = {}) {
   const available = enginePredicatesAvailable(engine);
-  const enginePredicates = mapRecordedDaysWithEnginePredicates && available;
-  const dayFacts = enginePredicates
-    ? createEnginePredicateDayFacts({ state, engine })
-    : createEmptyHistoryDayFacts({ state });
-  return Object.freeze({ dayFacts, enginePredicates, enginePredicatesAvailable: available,
-    optionRequested: mapRecordedDaysWithEnginePredicates });
+  if (!available)
+    throw new TypeError('createDayFactsReader requires a runtime exposing the engine\'s own '
+      + ENGINE_DAY_PREDICATES.join(' and ') + ' readers; recorded-day mapping is the shipped behaviour (DECISIONS:109)'
+      + ' and is never downgraded to the empty-history reader');
+  return Object.freeze({ dayFacts: createEnginePredicateDayFacts({ state, engine }),
+    enginePredicates: true, enginePredicatesAvailable: available });
 }
 function enginePredicatesAvailable(engine) {
   return !!engine && ENGINE_DAY_PREDICATES.every(name => typeof engine[name] === 'function');

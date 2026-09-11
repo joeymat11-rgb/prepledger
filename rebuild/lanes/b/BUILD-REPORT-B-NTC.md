@@ -603,3 +603,384 @@ The measured state of the tree now:
 
 Open items O1–O10 and PM questions Q1–Q4 are in the brief. **Still speculative; still
 PROPOSED; nothing merged.**
+
+---
+
+# POST-:109 PASS — PATH A APPLIED: THE OPTION IS GONE AND THE 28-NIGHT ATHLETE OPENS
+
+*Builder: lane-b-builder2 (not the B-NTC author, not its reviewer). Everything in this
+section was MEASURED on this branch. Where a gate refuses, the refusal is quoted verbatim
+and attributed, never summarised into a verdict it does not carry.*
+
+## P.0 What DECISIONS:109 asked for, and what this pass did with each clause
+
+| :109 clause | state |
+|---|---|
+| map recorded sleep through the engine's OWN predicates, never a re-implementation | **DONE** — `engine.dayWeather` / `engine.cleanAtDate` are the only executable uses of either name in the provider (P.2) |
+| implemented INSIDE the M2-B-NTC package; the child re-pins `engine-runtime.cjs` / `EXPOSED`; no separate parent re-seal | **DONE** — P.1; the parent's own profile now refuses, quoted at P.5 |
+| prove (i) the FRESH zero-night athlete opens day+3 | **HOLDS** — already discharged at `d78aff4`; re-measured here through the SAME reader (P.3) |
+| prove (ii) the 28-night product state opens the day | **DONE** — P.3, the whole day conducted, ops 12 → 18 |
+| remove the option as an option | **DONE** — P.2 |
+| `rebuild.yml` enumerates `checkin.test.mjs` + any unlisted today/gym test files | **DONE** — P.4 |
+| retire the old memory-only w7-preview child (`# pass 19`) + its CI step, successor named | **WRITTEN, NOT APPLIED** — a real verified diff at `rebuild/lanes/b/ntc/pass19-retirement.patch`; reasons in that file's header and at P.7 |
+| Y1 (TOOLING-REVIEW-r4): a no-register-id package must REQUIRE its own children | **PARTLY** — six children declared, one of them executing this package's own `role:"new"` file; the journey and gym/today suites CANNOT be declared against the runner as it stands (P.6, a STOP) |
+
+## P.1 How `EXPOSED` was widened, and how it was re-pinned
+
+| file:line | before | after |
+|---|---|---|
+| `rebuild/m4/workout/engine-runtime.cjs:30` | `Object.freeze(['genSession','rirPlan'])` | `Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate'])` |
+| `rebuild/m4/workout/engine-runtime.cjs:57-58` | returns `{genSession, rirPlan}` | returns those two **plus** `dayWeather:(s,iso)=>E.dayWeather(s,iso)` and `cleanAtDate:(s,iso)=>E.cleanAtDate(s,iso)` |
+| `rebuild/m3/w6/host/engine-runtime-host.cjs:45` | the same two names (the bundleable mirror) | the same four names |
+| `rebuild/m3/w6/host/engine-runtime-host.cjs:107-108` | returns `{genSession, rirPlan}` | the same four forwarders |
+
+The list alone would have changed nothing: both runtimes return an explicit frozen object
+rather than `E`, so the forwarders are what actually widen the surface. `E` itself still
+never leaves either function, and `COMPOSITION.absent`, `COMPOSITION.forbiddenImports` and
+the `absentProvider` traps are untouched.
+
+**No `rebuild/engine/*` byte moved.** Both predicates are readers the engine already
+composes (`sleep.cjs:1872`, `sleep.cjs:1017`, both returned by the sleep factory at
+`sleep.cjs:1957`) and both are already reached from inside `genSession`'s own closed graph.
+
+**The re-pin, as a child supersession.** `engine-runtime.cjs` is pinned by the accepted
+M2-NATIVE-CARRIERS artifact in its `executionPins` (`9be21897…`). The parent profile is
+left byte-for-byte intact and therefore refuses; the child carries the new bytes. Three
+places record the new pin:
+
+* `rebuild/m3/w6/host/test/journey.test.mjs:54` and `:367` — the two sha256 byte pins,
+  re-pinned once, with the reason in the step-14 comment. A new assertion on
+  `COMPOSITION.exposed` was added so the surface is stated, not only its bytes.
+* `rebuild/lanes/b/tooling/packages/B-NTC.json` — `product[]` now declares
+  `rebuild/m4/workout/engine-runtime.cjs` and `.github/workflows/rebuild.yml` with
+  `role: "edited"`, `pre` = the parent pin, `post` = the new bytes. That declaration is
+  what `b-package.cjs:419 held()` reads as "superseded" (P.6).
+* `protectedSurfaces[]` in the same spec, in words.
+
+## P.2 The option is removed as an option — and there is no re-implementation
+
+* `createDayFactsReader({state, engine})` takes **no flag**; it returns
+  `createEnginePredicateDayFacts(...)` or **throws**. `createGymHost` no longer accepts
+  `mapRecordedDaysWithEnginePredicates`, and the handle no longer reports
+  `optionRequested` (a reader that says "the option was off" is still a tree with an
+  option in it).
+* **Fail-closed at composition:** a runtime without both predicates is refused by name,
+  never downgraded to the empty-history reader. A silent downgrade is indistinguishable
+  from the shipped behaviour for a fresh athlete, so it could hide a narrow `EXPOSED`.
+* **Fail-closed per day:** a predicate that throws, is unreadable, or answers with a
+  non-boolean refuses THAT DAY by name. A caught exception is never read as false —
+  deliberately stricter than `progression.cjs:702,704`.
+
+**The grep, run on this tree.** The only executable occurrences of either predicate name
+in `rebuild/m4/workout/native-trend-context.cjs` are:
+
+```
+native-trend-context.cjs:321      try { weather = engine.dayWeather(state, iso); }
+native-trend-context.cjs:326      try { clean = engine.cleanAtDate(state, iso); }
+```
+
+Every other occurrence in that file is a comment citing the engine's own line numbers. No
+`hardSession` computation, no `nightsBefore`, no halo arithmetic anywhere under
+`rebuild/m4/workout`, `rebuild/m3/w7-preview` or `rebuild/m3/w6/host`.
+
+## P.3 Both obligations, measured
+
+### (ii) — the 28-night product athlete, `createTodayModel({}).stateFromOps()`
+
+28 recorded sleep nights, 0 events: the state `today-entry.mjs:26` and `gym.test.mjs` both
+hand to `createGymHost`.
+
+| | at `d78aff4` | now |
+|---|---|---|
+| day+3 probe | `blocked` · `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` · `resolver_failed` | **`ready`**, no code, `lastProducerRefusal() === null`, lift group `demo-press` (2 lifts) = day+0's own |
+| day+3 conducted | not reachable | **Started · all 4 sets logged · closed · `settled: finished`** |
+| ops | 12 (a refused day wrote nothing) | **12 → 18** |
+| durable sessions | 2 | **3**, none stranded; `previous()` carries both of day+3's lifts |
+| days +4 / +7 / +10 / +14 | `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` ×4 | **`ready`** ×4 |
+| days +5 / +6 | `ENGINE_CAPTURE_NO_WORKOUT` | `ENGINE_CAPTURE_NO_WORKOUT` (unchanged — the split gives no workout) |
+| `trendDayReader()` | `{enginePredicates:false, enginePredicatesAvailable:false, optionRequested:false}` | `{enginePredicates:true, enginePredicatesAvailable:true}` |
+
+Cells: `ntc-h6-delta.test.mjs` **G1** (the wall is gone), **G2** (the days after it — and an
+explicit assertion that not one of the six refuses for want of a trend context), **G3**
+(the composed reader, and that `optionRequested` is absent rather than false), **G4** (the
+whole day conducted, 12 → 18). Provider-level: "OBLIGATION (ii), at the provider" and
+"the ENGINE accepts the mapped answer for an athlete with 28 recorded nights".
+
+### (i) — the fresh zero-night athlete, `createCleanInitState`
+
+**Unchanged in outcome, and that is the point.** At `d78aff4` cell G5 was discharged by the
+empty-history reader; here it is discharged by the **same engine predicates the 28-night
+athlete gets**, because `cleanAtDate` returns `true` on its own first line for an empty
+nights list and `dayWeather` produces no `k:"event"` flag for an empty events list. Day+3
+on day+0's own lift group: `ready` → Started → every set logged → closed, **ops 12 → 19**,
+three durable sessions, previous performance intact (G6). One reader, both athletes — so
+the fresh case is not proven by a mechanism that differs from the one that ships. The
+provider cell "OBLIGATION (i) rides the SAME code path" asserts the same equality directly
+against `ENGINE.dayWeather` / `ENGINE.cleanAtDate`.
+
+## P.4 Gates on the committed tree
+
+| gate | result |
+|---|---|
+| `node --test` over the five today files + `ntc-h6-delta.test.mjs` | **tests 130 · pass 130 · fail 0** (129 → 130: cell G4 is new) |
+| the same **plus** A3's `checkin.test.mjs` | **tests 158 · pass 158 · fail 0** (157 → 158) |
+| `node --test .../today/test/gym.test.mjs` | **tests 59 · pass 59 · fail 0** — unmoved |
+| `node --test journey.test.mjs engine-equivalence.test.cjs` | **tests 23 · pass 23 · fail 0** |
+| `node --test .../m4/workout/test/native-trend-context.test.cjs` | **tests 39 · pass 39 · fail 0** (36 → 39) |
+| `node rebuild/m3/w7-preview/today/build.mjs` | **`A1 TODAY BUILD PASS`**: 3 assets; 88 pinned inputs (13 engine, 12 client); 68 bound classes; 2 typefaces inlined; 3/3 assets free of any network reference |
+| `node rebuild/conform/v4/run-defect-laws.cjs` | `TOTAL 45 laws · **45 RED-frozen** · **39 RED-candidate** · 89 GREEN repair controls · 97/104 mutant executions DETECTED · **0 HARNESS_ERROR** · AUDIT RED-FIRST FAIL` — **45/39 unmoved**, exit 1 as before |
+| `node rebuild/conform/run.cjs` | 81 lines, sha256 `68A07DDB77930E1FD6C83C8B54FF33ABF12F584B265E7EEFE133C0D5B47EC2BC` — **byte-identical to the pre-change run on the same tree**; terminal line `SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against absent families · 70 GREEN against present families` |
+| `.github/workflows/rebuild.yml` | the A1/A2 step becomes A1/A2/A3 and enumerates **seven** files: `adapter`, `checkin`, `design`, `gym`, `ntc-h6-delta`, `package`, `view`. Both additions had **no CI home at all** before. Structure re-checked: 17 steps, 0 tabs, indentation unchanged |
+
+**Baselines were taken BEFORE any edit, on the same tree**, so "unmoved" and
+"byte-identical" are comparisons, not recollections: v4 read 45/39/0 and the census read
+the same 81 lines and the same sha256 before the first file was touched.
+
+## P.5 `native-carriers --ci` — THE PARENT REFUSES, AND THAT IS THE DESIGN
+
+```
+$ node rebuild/m4/spec/native-carriers-package.cjs --ci
+NATIVE CARRIERS PACKAGE FAIL; required evidence missing or failed; local diagnostics withheld
+exit 1
+```
+
+The wrapper withholds diagnostics by design. The named assertion behind that line, obtained
+by calling `Profile.verify()` directly on this tree:
+
+```
+Adopted support bytes: rebuild/m4/workout/engine-runtime.cjs
++ actual - expected
+
++ 'c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936'
+- '9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23'
+```
+
+(`rebuild/m4/spec/native-carriers-source.cjs:106`, reached from
+`native-carriers-profile.cjs`.) **This is the expected result, not a regression.**
+DECISIONS:109: *"a child package supersedes its parent's execution pins … no separate
+parent re-seal is needed or wanted."* The parent's profile is left byte-for-byte intact —
+this pass changed **no** byte under `rebuild/m4/spec` — so it refuses on the child's bytes,
+and that refusal is the child's to supersede. It is reported here rather than repaired.
+
+## P.6 `b-package.cjs --ci --package B-NTC` — reported exactly as it ran
+
+Run in a scratch git worktree carrying this branch's tree plus the
+`rebuild/lanes/b/tooling` folder from `rebuild/lane-b-tooling @ 636aeaa`, committed there
+so the runner's `git`-at-`HEAD` pins resolve; `node_modules` junctioned from this worktree
+so the reference bundles build. The scratch worktree was removed afterwards.
+
+```
+$ node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+exit 1 · 7 lines
+```
+
+Six `say` lines, then the FAIL line. The six that **passed**:
+
+```
+B PACKAGE B-NTC SPEC OBSERVED packages/B-NTC.json 552fec58…; runner 6f69aa8e… byte-identical
+  on disk and in Git at HEAD; status=PROPOSED; 0 D-ids; 25 declared product files;
+  6 declared child(ren) …; 0 declared move(s)
+B PACKAGE B-NTC PARENT OPTION NATIVE-CARRIERS … e940359b… ACCEPTED at b95ccca8… (DECISIONS:104);
+  artifact byte-identical on disk, in Git at that commit and on refs/remotes/origin/rebuild/t2-client-core
+B PACKAGE B-NTC PARENT BOUND NATIVE-CARRIERS …; single-parent chain holds
+B PACKAGE B-NTC POSTFIX M2-B-NTC-NATIVE-TREND-CONTEXT REVIEW-PENDING mode=--ci
+B PACKAGE B-NTC ENVELOPE ABSENT; …acceptance-b-ntc-native-trend-context.json is not sealed yet
+B PACKAGE B-NTC PARENT PINS RE-ASSERTED at run time; 29 pin(s) …, 23 un-successeded grandparent
+  pin(s) …, 22 superseded pin(s) preserved in Git at sourceBase 5dc9254
+```
+
+then
+
+```
+B PACKAGE B-NTC FAIL; required evidence missing or failed; local diagnostics withheld
+```
+
+**The named assertion** (obtained from a throwaway copy of the runner inside the scratch,
+with only the catch clause printing `error.message`; the copy was discarded with the
+scratch and the exit/lines above are the UNMODIFIED runner's):
+
+```
+UNLISTED-PRODUCT-DRIFT rebuild/m4/workout/engine-runtime.cjs is not parent-pinned and is not declared new
+  at product (rebuild/lanes/b/tooling/b-package.cjs:451)
+```
+
+### P.6.1 THE FIRST STOP — the runner cannot express a child superseding a parent EXECUTION pin
+
+The two functions disagree about what "parent-pinned" means:
+
+* `held()` (`b-package.cjs:419`) resolves supersession against
+  `{...acceptance.product, ...acceptance.executionPins}` — and it treats a file as
+  superseded **exactly when the spec declares it in `product[]`**. That is the runner's own
+  equivalent of `native-carriers-profile.cjs`'s `SUPERSEDED` set, and it **worked**: the run
+  printed *"22 superseded pin(s) preserved in Git at sourceBase 5dc9254"*.
+* `product()` (`b-package.cjs:451`) resolves the same question against
+  `acceptance.product` **only**. `engine-runtime.cjs` lives in the parent's
+  `executionPins`, so `product()` sees it as not-parent-pinned and demands
+  `role: "new"`.
+
+So a child doing exactly what DECISIONS:109 instructs must declare the file in `product[]`
+to satisfy `held()`, and is then refused by `product()` unless it calls an **edited** file
+`"new"`. **Lane B will not mislabel an edited file to get a green line**, so the spec
+declares `role: "edited"` and the run refuses. This is a TOOLING change on
+`rebuild/lane-b-tooling`, not something a spec may do (W7: `CHILD_ROOTS`, `NO_REGISTER_IDS`
+and `role` are all fixed in the runner).
+
+**The fix, and it is one line.** Give `product()` the same map `held()` uses for the
+membership test, while leaving the completeness loop over `acceptance.product`:
+
+```js
+const ppin = bound && { ...bound.acceptance.product, ...bound.acceptance.executionPins };
+if (ppin && Object.hasOwn(ppin, file)) assert.equal(pin.pre, ppin[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
+else assert(pin.role === 'new' || !ppin, 'UNLISTED-PRODUCT-DRIFT ' + file + ' is not parent-pinned and is not declared new');
+```
+
+**Measured with that one line applied to a scratch copy of the runner**, the run gets nine
+further gates and then stops on P.6.2:
+
+```
+PRODUCT IMPLEMENTED; 5 at the declared post-image / 0 at the pinned pre-image /
+  20 carried byte-identical from the parent / 0 unlisted drift;
+  the inventory covers all 20 parent-pinned product files
+FIDELITY OBSERVED; sourceBase 5dc9254 ancestor of HEAD; 9 engine/conform/m4-spec/lane-b-tooling
+  file(s) changed since sourceBase, all in the fixed inventory; 18 PIN_PATHS byte-identical Git vs disk
+AUTHORITY OBSERVED owner DECISIONS:60 and contract DECISIONS:49 present as exact ledger line
+  bytes at b045e61 under their own roles; contract inherited byte-equal from the parent;
+  theme NULL …; brief acceptance NULL — the obligation stays open
+LAWS 45/45 executed | TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · … · 0 HARNESS_ERROR
+LAWS DECLARED-STATE 45/45 rows agree with the spec at product phase IMPLEMENTED
+CARRIERS NONE DECLARED; 0 witness flip(s) declared
+```
+
+### P.6.2 THE SECOND STOP — the parent's own carrier children refuse the child's bytes
+
+With P.6.1 patched, the first declared child refuses:
+
+```
+Required child source-carriers
+  → AssertionError: Adopted support bytes: rebuild/m4/workout/engine-runtime.cjs
+      + 'c03732e8…'  - '9be21897…'
+    at native-carriers-source.cjs:106
+    at native-carriers-parent-source.cjs:43
+    at native-carriers-source-carriers.cjs:13
+```
+
+This is the SAME refusal as P.5, surfacing a second time and for the same correct reason:
+the five children that carry the parent's nine inherited gates **are the parent's own
+carrier modules**, and each re-verifies the parent's source pins. A child that supersedes a
+parent file has to carry **successor** children for those gates — which is precisely what
+`carrierSuccessor` and `coverage.moves` exist for, and `coverage.moves` is refused outright
+by X1 (`MOVES_RULING === null`, `b-package.cjs:60`) until a PM ruling exists.
+
+**So B-NTC cannot be sealed by `b-package.cjs @ 636aeaa`, and neither cause is inside lane
+B's reach within this package.** Both are named above with their file:line and their fix.
+
+### P.6.3 Y1 — done as far as the runner allows, and the residue is a STOP too
+
+`children[]` was empty, which was itself a latent defect: `coverage.inherited` names five
+children and `b-package.cjs:268` asserts every one of them is a DECLARED child, so the old
+spec could not have run at all. Six children are now declared:
+
+| child | argv | needle |
+|---|---|---|
+| `source-carriers` | `rebuild/m4/spec/native-carriers-source-carriers.cjs` | `NATIVE SOURCE CARRIERS: 6/6 PASS;` |
+| `inherited-carriers` | `…native-carriers-inherited-carriers.cjs` | `NATIVE INHERITED CARRIERS: 6/6 PASS;` |
+| `defect-witnesses` | `…native-carriers-defect-witnesses.cjs` | `NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;` |
+| `writers-differential` | `…native-carriers-writers-differential.cjs` | `NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;` |
+| `second-gate` | `…native-carriers-second-gate.cjs` | `NATIVE SECOND GATE:` |
+| **`ntc-provider-cells`** | `--test --test-reporter=tap rebuild/m4/workout/test/native-trend-context.test.cjs` | `# pass 39` |
+
+The last one is what satisfies Y1: it executes
+`rebuild/m4/workout/test/native-trend-context.test.cjs`, which `product[]` declares with
+`role: "new"` — this package's own authored cell file.
+
+**The residue, and it is the third STOP.** The dispatch asked for the journey and the
+gym/today suites to be declared children too. They **cannot** be, against this runner:
+`CHILD_ROOTS` (`b-package.cjs:73`) is the closed list
+
+```
+['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/',
+ 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/']
+```
+
+which contains **neither** `rebuild/m3/w6/host/test/` (the A0 journey, 23/23) **nor**
+`rebuild/m3/w7-preview/today/test/` (A2 gym 59/59, today 130/130, 158/158 with A3) — note
+`…/w7-preview/test/` is present but `…/w7-preview/today/test/` is not, so the rebound page's
+whole suite is out of reach. `CHILD_ROOTS` is fixed in the runner by design (W7: *"a spec
+can never nominate its own exempt path"*), so widening it is a reviewed TOOLING change.
+Until it lands those three suites are evidence in this report and in
+`.github/workflows/rebuild.yml`, and are **not** declared children.
+
+## P.7 What else moved, and the one thing that did not
+
+| file | what | licence |
+|---|---|---|
+| `rebuild/m3/w6/host/test/journey.test.mjs` | step 14's two byte pins re-pinned; one new `COMPOSITION.exposed` assertion | the mechanical consequence of the re-pin DECISIONS:109 instructs |
+| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | three subtests re-authored; **59/59 unchanged** | DECISIONS:109's own words: *"A2's spike table becomes delta cells"* |
+| `.github/workflows/rebuild.yml` | the enumeration | DECISIONS:109 names `rebuild.yml` as re-pinned by this child and puts the enumeration in this seal. **Note for the PM:** `LANES.md`'s ownership table assigns `.github` to **no** lane, so the basis for this edit is the ledger line, not LANES.md. If that is wrong, revert this one file — nothing else depends on it. |
+
+**A behaviour change found while re-authoring, and it is NOT papered over.** A2's
+"a SECOND session on the same day is refused" subtest passed because `prepareWorkout`
+refused with `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`. With the wall gone the preparation
+**succeeds** — so that cell was resting on a provider gap, not on a same-day guard. It is
+re-authored to assert the guard that has to hold, and the guard holds, measured:
+`model.start()` → `ok:false`, `code: 'WORKOUT_NOT_READY'`, op count unchanged (12 → 12), and
+the log still carries exactly the two sessions.
+
+**The `# pass 19` retirement is written and NOT applied.** `rebuild/lanes/b/ntc/pass19-retirement.patch`
+is a real `git diff` taken with the enumeration already in place, so it applies on top of
+this branch; `git apply --check` exits **0** and an apply/revert round-trip was executed.
+Three reasons are in its header: it was outside this pass's dispatch, it deletes executed
+evidence that nothing this package owns covers, and *"successor evidence named"* is a
+judgment recorded in the PM's own wrapper file. One command lands it.
+
+## P.8 Files this pass touched
+
+| file | bytes | sha256 |
+|---|---|---|
+| `rebuild/m4/workout/engine-runtime.cjs` | 5 596 | `c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936` |
+| `rebuild/m3/w6/host/engine-runtime-host.cjs` | 7 305 | `e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d` |
+| `rebuild/m4/workout/native-trend-context.cjs` | 26 812 | `f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a` |
+| `rebuild/m4/workout/test/native-trend-context.test.cjs` (**39 cells**) | 34 331 | `8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a` |
+| `rebuild/m3/w7-preview/today/gym-host.mjs` | 21 609 | `305973d936d6cc80d89c7639b42984c17c2e75d98818cdc759b08f1a1e5a3dd8` |
+| `rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs` (**7 cells**) | 23 847 | `8cf038efb19e1c6758233b2bb8974610c3d55b046df3870a2661ad51e7c9c600` |
+| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | 52 594 | `a7ca2ef083c2db7c8cbaa809135f18d52008b249d7efa402ee6731f384ab4045` |
+| `rebuild/m3/w6/host/test/journey.test.mjs` | 38 329 | `228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3` |
+| `.github/workflows/rebuild.yml` | 6 178 | `3a8d46ce64d5c55b37f4c4f384a140e1962dc19dff96ff9c3ca0343102704ca7` |
+
+Plus the documents: `BRIEF-…md` (v1.2), this report,
+`rebuild/lanes/b/tooling/packages/B-NTC.json`, and the new
+`rebuild/lanes/b/ntc/pass19-retirement.patch`.
+
+**Untouched, and checked:** every byte under `rebuild/engine`, `rebuild/conform` and
+`rebuild/m4/spec`; `gym-model.mjs` (G7/O10 is lane C's C4 — the hunk still sits unapplied at
+`rebuild/lanes/b/ntc/gym-model.previousLine.patch`); every frozen law, witness, tool and
+golden; `package-lock.json`.
+
+## P.9 What a reviewer should attack first
+
+1. **Is exposing `dayWeather` + `cleanAtDate` really additive?** The claim is that both are
+   pure readers already reached from inside `genSession`'s closed graph, so the widening
+   grants no new capability. Check `sleep.cjs:1957`'s return and the `absentProvider` traps.
+2. **Is the fresh athlete still proven?** G5 is unchanged in outcome; the risk is that it is
+   now green for a different reason. The provider cell "OBLIGATION (i) rides the SAME code
+   path" is the control — it asserts equality against `ENGINE.dayWeather`/`ENGINE.cleanAtDate`
+   directly.
+3. **The re-authored A2 cells.** Three subtests changed meaning. Read them against
+   DECISIONS:109's "A2's spike table becomes delta cells" and decide whether the same-day
+   cell's new assertion is the right guard.
+4. **The `.github` licence.** P.7 states the basis is the ledger line, not LANES.md.
+5. **RED-first, MEASURED — do not take P.2's fail-closed claim on trust, it was executed.**
+   With `rebuild/m3/w6/host/engine-runtime-host.cjs` reverted to its narrow two-name
+   `EXPOSED` (the host mirror is the runtime the gym card actually composes) and nothing
+   else changed:
+   ```
+   node --test .../today/test/ntc-h6-delta.test.mjs   -> tests 7 · pass 0 · fail 7
+   node --test .../w6/host/test/engine-equivalence.test.cjs -> tests 5 · pass 3 · fail 2
+   ```
+   **All seven** delta cells go red, G5 included — `createDayFactsReader` refuses to
+   compose rather than quietly returning the empty-history reader, so even the fresh
+   athlete's cell fails loudly instead of passing for the old reason. That is the
+   fail-closed direction of P.2, demonstrated rather than asserted; a silent downgrade
+   would have left G5 green and hidden the narrow surface. Equivalence catches the
+   mirror/accepted drift in the same run. The tree was restored byte-for-byte afterwards
+   (`engine-runtime-host.cjs` back at `e210bfa0…`).

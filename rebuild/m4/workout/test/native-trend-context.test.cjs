@@ -381,8 +381,9 @@ test('two pace declarations that disagree are refused, never resolved by precede
 });
 
 // ------------------------------------------------------------------------
-// G. THE S2 PATH — recorded nights and events mapped through the ENGINE's own
-//    predicates, behind an option that is OFF by default (PM question Q1(a)).
+// G. THE S2 PATH, AS SHIPPED — recorded nights and events mapped through the
+//    ENGINE's own predicates. DECISIONS:109 ruled PATH A and removed the
+//    option: there is no flag here any more, and no cell may turn one on.
 // ------------------------------------------------------------------------
 
 // The athlete shape the shipped gym card actually carries: recorded nights.
@@ -390,31 +391,31 @@ const nightsState = (count = 28) => ({ events: [],
   sleep: { nights: Array.from({ length: count },
     (_, i) => ({ d: '2026-08-' + String(i + 1).padStart(2, '0'), h: 7 })) } });
 
-test('the option is OFF by default: a day with recorded nights refuses exactly as today', () => {
-  const reader = createDayFactsReader({ state: nightsState() });
-  assert.equal(reader.optionRequested, false, 'default OFF');
-  assert.equal(reader.enginePredicates, false);
-  const binding = createNativeTrendContextBinding({ dayFacts: reader.dayFacts });
-  binding.bind(factsFor());
-  refuses(() => binding.resolve(requestFor()), 'recorded_sleep_unmapped');
+test('createDayFactsReader takes NO option — the flag is gone from its signature', () => {
+  // The removal is proved by reading the function, not by asserting a behaviour
+  // that an added default could quietly restore: a parameter named
+  // mapRecordedDaysWithEnginePredicates does not appear in the source at all.
+  const src = require('node:fs').readFileSync(require.resolve('../native-trend-context.cjs'), 'utf8');
+  const body = src.slice(src.indexOf('function createDayFactsReader'));
+  assert.equal(/mapRecordedDaysWithEnginePredicates/.test(body), false,
+    'the option is removed as an option, not defaulted to true');
+  assert.equal(createDayFactsReader.length <= 1, true, 'one options bag, no flag');
 });
 
-test('the option ON without the engine predicates keeps the SAME refusal — never a silent downgrade', () => {
+test('a runtime without the two predicates is REFUSED — never a silent downgrade', () => {
   assert.equal(enginePredicatesAvailable(undefined), false);
   assert.equal(enginePredicatesAvailable({ genSession: () => null, rirPlan: () => null }), false,
-    'the pinned EXPOSED surface does not carry them');
+    'the OLD two-name surface does not carry them');
   assert.deepEqual(ENGINE_DAY_PREDICATES.slice(), ['dayWeather', 'cleanAtDate']);
-  const reader = createDayFactsReader({ state: nightsState(),
-    engine: { genSession: () => null, rirPlan: () => null },
-    mapRecordedDaysWithEnginePredicates: true });
-  assert.equal(reader.optionRequested, true);
-  assert.equal(reader.enginePredicatesAvailable, false);
-  assert.equal(reader.enginePredicates, false, 'it fell back rather than guessing');
-  const binding = createNativeTrendContextBinding({ dayFacts: reader.dayFacts });
-  binding.bind(factsFor());
-  refuses(() => binding.resolve(requestFor()), 'recorded_sleep_unmapped');
-  assert.throws(() => createDayFactsReader({ state: nightsState(), mapRecordedDaysWithEnginePredicates: 'yes' }),
-    TypeError);
+  // This is the fail-closed direction DECISIONS:109 asks for. Before the ruling
+  // this same call fell back to the empty-history reader and answered
+  // `recorded_sleep_unmapped`; a fallback is indistinguishable from the shipped
+  // behaviour for a FRESH athlete, so it could hide a narrow EXPOSED surface.
+  assert.throws(() => createDayFactsReader({ state: nightsState(),
+    engine: { genSession: () => null, rirPlan: () => null } }), TypeError);
+  assert.throws(() => createDayFactsReader({ state: nightsState() }), TypeError);
+  assert.throws(() => createDayFactsReader({ state: nightsState(),
+    engine: { dayWeather: () => ({ hardSession: false }) } }), TypeError, 'one of two is not both');
 });
 
 test('the engine-predicate reader refuses to exist without the engine\'s own two readers', () => {
@@ -426,21 +427,48 @@ test('the engine-predicate reader refuses to exist without the engine\'s own two
 });
 
 // The engine's OWN two predicates, taken off the real twelve-module
-// composition. This is the surface a re-seal would have to add to EXPOSED
-// (engine-runtime.cjs:11); nothing here reopens it, the test simply composes
-// the engine itself, which is what every other cell in group E already does.
+// composition — the same composition engine-runtime.cjs builds.
 const ENGINE = composeEngine(undefined);
 const enginePredicates = { dayWeather: ENGINE.dayWeather, cleanAtDate: ENGINE.cleanAtDate };
 
-test('the engine composes dayWeather and cleanAtDate — they exist, they are just not EXPOSED', () => {
+test('the engine composes dayWeather and cleanAtDate, and they are now EXPOSED', () => {
   for (const name of ENGINE_DAY_PREDICATES) assert.equal(typeof ENGINE[name], 'function', name);
   assert.equal(enginePredicatesAvailable(enginePredicates), true);
 });
 
-test('option ON + the engine\'s own predicates: a day with 28 RECORDED NIGHTS is qualified', () => {
+// ---- THE RE-PIN ITSELF (DECISIONS:109; the child supersedes the parent's
+//      execution pin on engine-runtime.cjs, exactly as NATIVE-CARRIERS
+//      superseded LOAD-WRITES'). Both accepted runtimes are asserted, because
+//      the browser build binds the host mirror and Node binds the other, and a
+//      surface that widened in only one of them would open the gym card on the
+//      phone and not in CI, or the reverse.
+const Runtime = require('../engine-runtime.cjs');
+const HostRuntime = require('../../../m3/w6/host/engine-runtime-host.cjs');
+const RUNTIME_CLOCK = { today: () => DAY, hour: () => 8, now: () => new Date(DAY + 'T13:00:00.000Z'),
+  stamp: () => DAY + 'T13:00:00.000Z' };
+
+test('EXPOSED carries the two day predicates in BOTH accepted runtimes, and they are the engine\'s own', () => {
+  const expected = ['cleanAtDate', 'dayWeather', 'genSession', 'rirPlan'];
+  assert.deepEqual(Runtime.COMPOSITION.exposed.slice().sort(), expected, 'rebuild/m4/workout/engine-runtime.cjs');
+  assert.deepEqual(HostRuntime.COMPOSITION.exposed.slice().sort(), expected, 'the host mirror');
+  assert.deepEqual(HostRuntime.EXPOSED.slice(), Runtime.COMPOSITION.exposed.slice(),
+    'the mirror does not lead; it restates the accepted list in the same order');
+  // And the widening is REAL, not a list: the returned frozen handles actually
+  // carry the two readers, and their answers are the engine's own answers.
+  const state = { exercises: [], events: [{ d: DAY, t: 'wedding' }], ...nightsState(28) };
+  for (const [label, create] of [['accepted', Runtime.createEngineRuntime], ['host mirror', HostRuntime.createEngineRuntime]]) {
+    const handle = create({ clock: RUNTIME_CLOCK });
+    for (const name of ENGINE_DAY_PREDICATES) assert.equal(typeof handle[name], 'function', label + ' ' + name);
+    assert.equal(handle.dayWeather(state, DAY).hardSession, ENGINE.dayWeather(state, DAY).hardSession, label);
+    assert.equal(handle.cleanAtDate(state, DAY), ENGINE.cleanAtDate(state, DAY), label);
+    assert.equal(enginePredicatesAvailable(handle), true, label + ' satisfies the provider');
+    assert.equal(Object.isFrozen(handle), true, label + ' stays frozen');
+  }
+});
+
+test('OBLIGATION (ii), at the provider: a day with 28 RECORDED NIGHTS is qualified', () => {
   const state = { exercises: [], ...nightsState(28) };
-  const reader = createDayFactsReader({ state, engine: enginePredicates,
-    mapRecordedDaysWithEnginePredicates: true });
+  const reader = createDayFactsReader({ state, engine: enginePredicates });
   assert.equal(reader.enginePredicates, true, 'the engine\'s own readers were used');
   const binding = createNativeTrendContextBinding({ dayFacts: reader.dayFacts });
   binding.bind(factsFor());
@@ -451,34 +479,50 @@ test('option ON + the engine\'s own predicates: a day with 28 RECORDED NIGHTS is
     { hard: !!ENGINE.dayWeather(state, DAY).hardSession, debt: !ENGINE.cleanAtDate(state, DAY) });
   assert.equal(typeof answer.hard, 'boolean');
   assert.equal(typeof answer.debt, 'boolean');
-  // …and the SAME athlete, with the option off, still refuses. One option, one
-  // difference.
-  const off = createDayFactsReader({ state, engine: enginePredicates });
-  const refusing = createNativeTrendContextBinding({ dayFacts: off.dayFacts });
+  // The CONTROL is no longer an option — it is the other named reader. The very
+  // same athlete, read by the empty-history reader, still refuses; that is the
+  // behaviour this package replaced, kept here so the difference stays visible.
+  const refusing = createNativeTrendContextBinding({ dayFacts: createEmptyHistoryDayFacts({ state }) });
   refusing.bind(factsFor());
   refuses(() => refusing.resolve(requestFor()), 'recorded_sleep_unmapped');
 });
 
-test('option ON: a recorded EVENT on the day answers hard:true — not a constant false', () => {
+test('OBLIGATION (i) rides the SAME code path: a FRESH zero-night athlete is qualified too', () => {
+  // DECISIONS:109 requires both athletes, and one reader must serve both or the
+  // fresh case is being proven by a different mechanism than the one that ships.
+  const fresh = { exercises: [], events: [], sleep: { nights: [] } };
+  const reader = createDayFactsReader({ state: fresh, engine: enginePredicates });
+  const binding = createNativeTrendContextBinding({ dayFacts: reader.dayFacts });
+  binding.bind(factsFor());
+  const answer = binding.resolve(requestFor());
+  assert.deepEqual({ hard: answer.hard, debt: answer.debt }, { hard: false, debt: false });
+  // …and it is the ENGINE saying so, not the empty-input proof: cleanAtDate
+  // returns true on its own first line for an empty nights list, and dayWeather
+  // produces no k:"event" flag for an empty events list.
+  assert.deepEqual({ hard: answer.hard, debt: answer.debt },
+    { hard: !!ENGINE.dayWeather(fresh, DAY).hardSession, debt: !ENGINE.cleanAtDate(fresh, DAY) });
+});
+
+test('a recorded EVENT on the day answers hard:true — not a constant false', () => {
   const state = { exercises: [], events: [{ d: DAY, t: 'wedding' }], sleep: { nights: [] } };
-  const reader = createDayFactsReader({ state, engine: enginePredicates,
-    mapRecordedDaysWithEnginePredicates: true });
+  const reader = createDayFactsReader({ state, engine: enginePredicates });
   const binding = createNativeTrendContextBinding({ dayFacts: reader.dayFacts });
   binding.bind(factsFor());
   const answer = binding.resolve(requestFor());
   assert.equal(answer.hard, true, 'the engine\'s own dayWeather says this day was hard');
   assert.equal(answer.hard, !!ENGINE.dayWeather(state, DAY).hardSession);
   // The empty-history reader refuses the same athlete rather than reading him
-  // as not-hard, which is the whole reason the option exists.
+  // as not-hard, which is the whole reason the mapping had to be the behaviour.
   const empty = createNativeTrendContextBinding({ dayFacts: createEmptyHistoryDayFacts({ state }) });
   empty.bind(factsFor());
   refuses(() => empty.resolve(requestFor()), 'recorded_events_unmapped');
 });
 
-test('option ON: a predicate that throws REFUSES — a caught exception is never read as false', () => {
+test('FAIL-CLOSED PER DAY: a predicate that throws REFUSES — a caught exception is never read as false', () => {
   // PERFORMED-ENGINE-v1.md:254 forbids "caught exceptions interpreted as false"
   // on the native branch, so this reader does NOT copy progression.cjs:702,704's
-  // `catch (e) { hard = false; }`.
+  // `catch (e) { hard = false; }`. This is the "fail-closed on any night it
+  // cannot map" half of DECISIONS:109.
   const state = { exercises: [], ...nightsState(3) };
   const throwing = { dayWeather: () => { throw new Error('boom'); }, cleanAtDate: () => true };
   const b1 = createNativeTrendContextBinding({ dayFacts: createEnginePredicateDayFacts({ state, engine: throwing }) });
@@ -500,26 +544,46 @@ test('option ON: a predicate that throws REFUSES — a caught exception is never
   refuses(() => b4.resolve(requestFor()), 'clean_at_date_not_boolean');
 });
 
-test('the ENGINE accepts the option-ON answer for an athlete with 28 recorded nights', () => {
+test('the ENGINE accepts the mapped answer for an athlete with 28 recorded nights', () => {
   const facts = factsFor();
   const state = { exercises: [], ...nightsState(28), workoutFacts: facts };
   const row = { d: DAY, rec: facts.sessions[0].record, source: 'performed', start_op_id: START };
-  // Control: the same athlete with the option OFF is the tree's current
-  // behaviour — the engine refuses, containing this module's refusal.
-  const off = createNativeTrendContextBinding({
-    dayFacts: createDayFactsReader({ state, engine: enginePredicates }).dayFacts });
+  // Control: the same athlete read by the empty-history reader is the behaviour
+  // this package replaced — the engine refuses, containing that refusal.
+  const off = createNativeTrendContextBinding({ dayFacts: createEmptyHistoryDayFacts({ state }) });
   off.bind(facts);
   assert.throws(() => composeEngine(off.resolve).performedTrendContext(state, row),
     { code: 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED', reason: 'resolver_failed' });
-  // With the option on and the engine's own predicates present, the engine gets
-  // three booleans and does not refuse.
+  // With the shipped reader the engine gets three booleans and does not refuse.
   const on = createNativeTrendContextBinding({
-    dayFacts: createDayFactsReader({ state, engine: enginePredicates,
-      mapRecordedDaysWithEnginePredicates: true }).dayFacts });
+    dayFacts: createDayFactsReader({ state, engine: enginePredicates }).dayFacts });
   on.bind(facts);
   const flags = composeEngine(on.resolve).performedTrendContext(state, row);
   assert.deepEqual(Object.keys(flags).sort(), ['debt', 'hard', 'rushed']);
   for (const key of ['hard', 'rushed', 'debt']) assert.equal(typeof flags[key], 'boolean', key);
   assert.deepEqual({ hard: flags.hard, debt: flags.debt },
     { hard: !!ENGINE.dayWeather(state, DAY).hardSession, debt: !ENGINE.cleanAtDate(state, DAY) });
+});
+
+test('END TO END over the ACCEPTED runtime handle, not a hand-made predicate pair', () => {
+  // Every cell above hands the provider `enginePredicates`, an object this file
+  // built. This one takes the two readers off the very handle a host composes,
+  // so the re-pin is proved where a host actually stands: createEngineRuntime →
+  // createDayFactsReader → resolve → performedTrendContext.
+  const facts = factsFor();
+  const state = { exercises: [], ...nightsState(28), workoutFacts: facts };
+  const row = { d: DAY, rec: facts.sessions[0].record, source: 'performed', start_op_id: START };
+  for (const [label, create] of [['accepted', Runtime.createEngineRuntime], ['host mirror', HostRuntime.createEngineRuntime]]) {
+    let reader = null;
+    const binding = createNativeTrendContextBinding({
+      dayFacts: iso => { if (!reader) throw new Error('UNCOMPOSED'); return reader.dayFacts(iso); } });
+    const handle = create({ clock: RUNTIME_CLOCK, nativeTrendContext: binding.resolve });
+    reader = createDayFactsReader({ state, engine: handle });
+    assert.equal(reader.enginePredicates, true, label);
+    binding.bind(facts);
+    const flags = composeEngine(binding.resolve).performedTrendContext(state, row);
+    assert.deepEqual({ hard: flags.hard, debt: flags.debt },
+      { hard: !!ENGINE.dayWeather(state, DAY).hardSession, debt: !ENGINE.cleanAtDate(state, DAY) }, label);
+    for (const key of ['hard', 'rushed', 'debt']) assert.equal(typeof flags[key], 'boolean', label + ' ' + key);
+  }
 });

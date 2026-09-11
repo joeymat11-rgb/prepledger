@@ -7,25 +7,42 @@
    patch applied; none is predicted. The names G1…G7 are the cells of
    rebuild/lanes/b/ntc/gym-host.wiring.patch, in its order.
 
-   THE OPTION IS OFF. `createGymHost` is called exactly as the shipped page calls
-   it — `mapRecordedDaysWithEnginePredicates` is never passed — so these cells
-   describe the tree as it ships, not a scratch re-seal.
+   THERE IS NO OPTION. DECISIONS:109 ruled PATH A and removed
+   `mapRecordedDaysWithEnginePredicates` as an option: `createGymHost` no longer
+   takes it, `createDayFactsReader` no longer takes it, and mapping an athlete's
+   RECORDED nights and events through the ENGINE's own `dayWeather` +
+   `cleanAtDate` is simply what the page does. `createGymHost` is called here
+   exactly as today-entry.mjs calls it, so these cells describe the shipped tree.
 
-   THE TWO ATHLETES, and why the answer differs between them:
+   The surface that carries those two predicates is re-pinned BY THIS PACKAGE:
+   `EXPOSED` is ['genSession','rirPlan','dayWeather','cleanAtDate'] at
+   rebuild/m4/workout/engine-runtime.cjs:30 and at its host mirror
+   rebuild/m3/w6/host/engine-runtime-host.cjs:45 — the child superseding the
+   parent's execution pin exactly as M2-NATIVE-CARRIERS superseded
+   M2-LOAD-WRITES'. The provider cells
+   (rebuild/m4/workout/test/native-trend-context.test.cjs, group G) assert that
+   re-pin directly; these cells assert what it does to the SCREEN.
 
-     * THE PRODUCT ATHLETE — `createTodayModel({}).stateFromOps()`, which
-       today-entry.mjs and gym.test.mjs both pass to createGymHost. It carries 28
-       RECORDED SLEEP NIGHTS, so the qualified provider's empty-history day
-       reader refuses `recorded_sleep_unmapped` for every date and the wiring
-       changes NOTHING for it (G1, G2, G3). Opening it needs the EXPOSED re-seal
-       (PM question Q1(a)) — not this package.
+   THE TWO ATHLETES — and DECISIONS:109 requires BOTH, through the same reader:
 
-     * THE FRESH ATHLETE — `createCleanInitState`, DECISIONS:100's athlete: no
-       recorded night, no recorded event. The day reader answers by proof over an
-       empty history, so day+3 on the same lift group PREPARES and is conducted
-       (G5) with previous performance intact (G6). This is A2-REPORT §9.1's
-       "day+3 2030-02-07 probe=blocked PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED",
-       removed — on the athlete for whom it can be removed without a re-seal.
+     * OBLIGATION (ii) · THE PRODUCT ATHLETE — `createTodayModel({}).stateFromOps()`,
+       which today-entry.mjs and gym.test.mjs both pass to createGymHost. It
+       carries 28 RECORDED SLEEP NIGHTS. Before this pass the qualified
+       provider's empty-history day reader refused `recorded_sleep_unmapped` for
+       every date and the gym card stayed shut (G1/G2/G3 were LOCKED at that
+       refusal). Those three cells are now the OBSERVED opposite: day+3 prepares,
+       is Started, every set is logged and it closes (G1, G4), and the days after
+       it are engine rest days rather than refusals (G2).
+
+     * OBLIGATION (i) · THE FRESH ATHLETE — `createCleanInitState`,
+       DECISIONS:100's athlete: no recorded night, no recorded event. This was
+       already proven at d78aff4 and it still holds, now through the SAME engine
+       predicates rather than a second reader: `cleanAtDate` returns true on its
+       own first line for an empty nights list and `dayWeather` produces no
+       `k:"event"` flag for an empty events list. Day+3 on the same lift group
+       prepares and is conducted (G5) with previous performance intact (G6). This
+       is A2-REPORT §9.1's "day+3 2030-02-07 probe=blocked
+       PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED", removed for both athletes.
 
    ONE WORKING LOAD, STATED OUT LOUD (B-NTC journey step 17; review r1 O1). A
    clean-init lift starts at `w: null`, which the engine reads as a permanent
@@ -146,15 +163,17 @@ async function trainedFreshLane(label) {
 }
 
 /* ---------------------------------------------------------------------------
-   G1 · G2 · G3 — THE PRODUCT ATHLETE IS UNCHANGED BY THE WIRING.
-   Brief v1 predicted these three cells would flip. Review r1 measured that they
-   do not, and this is that measurement, committed: 28 recorded nights, so the
-   empty-history day reader refuses for every date and the engine's own refusal
-   comes back word for word. G1/G2/G3 are marked NOT OBSERVED in the patch's
-   table for exactly this reason.
+   G1 · G2 · G3 · G4 — OBLIGATION (ii): THE 28-NIGHT PRODUCT ATHLETE OPENS.
+   Brief v1 predicted these cells would flip on the wiring alone. Review r1
+   measured that they did not — 28 recorded nights, the empty-history reader
+   refusing `recorded_sleep_unmapped` for every date — and d78aff4 committed
+   them LOCKED at that refusal, with the reason named. DECISIONS:109 ruled the
+   fix (PATH A, inside this package), and these are the re-measurements: the
+   engine's own two day predicates now answer for this athlete, so the wall is
+   gone. Every figure below was measured on this tree; none is predicted.
    --------------------------------------------------------------------------- */
 
-test('B-NTC G1 — the product athlete\'s day+3 wall is UNCHANGED by the H6 wiring (gym.test.mjs:621)', async () => {
+test('B-NTC G1 — OBLIGATION (ii): the product athlete\'s day+3 wall is GONE (was gym.test.mjs:621)', async () => {
   const state = productAthlete();
   assert.equal(state.sleep.nights.length, 28, 'the athlete the shipped page passes carries 28 recorded nights');
   assert.equal((state.events || []).length, 0);
@@ -168,16 +187,19 @@ test('B-NTC G1 — the product athlete\'s day+3 wall is UNCHANGED by the H6 wiri
   }
   const handle = await L.on(offsetDay(SYNTHETIC_DAY, 3));
   const view = await handle.model.read();
-  assert.equal(view.phase, 'blocked');
-  assert.equal(view.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED', 'the wall is still the wall');
-  assert.equal(view.copy, 'resolver_failed', 'the engine\'s own reason, unchanged');
-  const refused = await handle.model.start();
-  assert.equal(refused.ok, false, 'Start is refused, not offered');
-  assert.equal(await opCount(handle.host), 12, 'a refused day still writes NOTHING');
+  /* THE DELTA THIS PASS EXISTS FOR. At d78aff4 this same read returned
+     phase 'blocked' / code PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED /
+     copy 'resolver_failed', because 28 recorded nights could not be mapped. */
+  assert.equal(view.phase, 'ready', 'day+3 prepares: ' + (view.code || ''));
+  assert.equal(view.code, undefined, 'no refusal code at all');
+  assert.equal(handle.host.host.lastProducerRefusal(), null, 'and the producer refused nothing');
+  assert.deepEqual([view.lift.id, view.lift.count], ['demo-press', 2], 'day+3 is day+0\'s own lift group');
+  const started = await handle.model.start();
+  assert.equal(started.ok, true, 'Start is OFFERED and accepted: ' + (started.code || ''));
   handle.host.close();
 });
 
-test('B-NTC G2 — every day after the wall is UNCHANGED for the product athlete (gym.test.mjs:639)', async () => {
+test('B-NTC G2 — the days after the wall are ENGINE days now, not refusals (was gym.test.mjs:639)', async () => {
   const L = await lane(productAthlete(), 'g2');
   for (const offset of [0, 1]) {
     const handle = await L.on(offsetDay(SYNTHETIC_DAY, offset));
@@ -188,23 +210,30 @@ test('B-NTC G2 — every day after the wall is UNCHANGED for the product athlete
   for (const offset of [4, 5, 6, 7, 10, 14]) {
     const handle = await L.on(offsetDay(SYNTHETIC_DAY, offset));
     const view = await handle.model.read();
-    assert.equal(view.phase, 'blocked', 'day+' + offset);
-    assert(['ENGINE_CAPTURE_NO_WORKOUT', 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'].includes(view.code),
-      'day+' + offset + ' refuses for an ENGINE reason: ' + view.code);
+    if (view.phase === 'blocked')
+      assert.equal(view.code, 'ENGINE_CAPTURE_NO_WORKOUT',
+        'day+' + offset + ' may only be blocked because the split has no workout: ' + view.code);
     const read = await handle.host.host.client.readWorkoutHistory();
     assert.equal(read.read, true, 'the durable history still reads on day+' + offset);
     assert.equal(read.history.sessions.length, 2);
     assert.equal(await opCount(handle.host), 12, 'day+' + offset + ' writes nothing');
-    seen.push(view.code);
+    seen.push(view.phase === 'blocked' ? view.code : view.phase);
     handle.host.close();
   }
-  assert.deepEqual(seen, ['PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED', 'ENGINE_CAPTURE_NO_WORKOUT',
-    'ENGINE_CAPTURE_NO_WORKOUT', 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED',
-    'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED', 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'],
-    'the measured shape of the days after the wall, unchanged by this package');
+  /* MEASURED. At d78aff4 this array was
+     ['PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED','ENGINE_CAPTURE_NO_WORKOUT',
+      'ENGINE_CAPTURE_NO_WORKOUT','PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED',
+      'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED','PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'].
+     Four of the six were the trend-context wall; none is now. The two that stay
+     blocked are day+5 and day+6, which the split simply gives no workout. */
+  assert.deepEqual(seen, ['ready', 'ENGINE_CAPTURE_NO_WORKOUT', 'ENGINE_CAPTURE_NO_WORKOUT',
+    'ready', 'ready', 'ready'],
+    'the measured shape of the days after the wall, with the mapping shipped');
+  assert.equal(seen.includes('PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'), false,
+    'not one day refuses for want of a trend context any more');
 });
 
-test('B-NTC G3 — lastProducerRefusal() is UNCHANGED, and the composed day reader says WHY (gym.test.mjs:657)', async () => {
+test('B-NTC G3 — the composed day reader reports the ENGINE\'s own predicates (was gym.test.mjs:657)', async () => {
   const L = await lane(productAthlete(), 'g3');
   for (const offset of [0, 1]) {
     const handle = await L.on(offsetDay(SYNTHETIC_DAY, offset));
@@ -213,18 +242,46 @@ test('B-NTC G3 — lastProducerRefusal() is UNCHANGED, and the composed day read
   }
   const handle = await L.on(offsetDay(SYNTHETIC_DAY, 3));
   await handle.model.read();
-  const produced = handle.host.host.lastProducerRefusal();
-  assert.equal(produced.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
-  assert.equal(produced.reason, 'resolver_failed');
+  assert.equal(handle.host.host.lastProducerRefusal(), null,
+    'the producer refusal that stood at d78aff4 is gone');
   /* The wiring reports which reader it composed instead of leaving a reader to
-     assume. On this tree EXPOSED is ['genSession','rirPlan'], pinned by
-     native-carriers-witnesses.cjs:16, so the engine's own two day predicates are
-     not obtainable and the option was never asked for. */
+     assume. EXPOSED is now ['genSession','rirPlan','dayWeather','cleanAtDate'],
+     re-pinned by this package, so the engine's own two day predicates ARE
+     obtainable — and there is no option left to ask for. */
   assert.deepEqual(handle.host.trendDayReader(),
-    { enginePredicates: false, enginePredicatesAvailable: false, optionRequested: false });
+    { enginePredicates: true, enginePredicatesAvailable: true });
+  assert.equal(Object.hasOwn(handle.host.trendDayReader(), 'optionRequested'), false,
+    'the option is removed as an option, not reported as off');
   assert.throws(() => handle.host.trendBinding.resolve({ start_op_id: 'x', source_revision: 1, effective: {} }),
     { code: 'NATIVE_TREND_CONTEXT_UNQUALIFIED', reason: 'no_bound_source_facts' },
     'outside a preparation window the resolver answers nothing at all');
+  handle.host.close();
+});
+
+test('B-NTC G4 — OBLIGATION (ii) CONDUCTED: the 28-night athlete trains day+3 end to end', async () => {
+  /* A probe alone proves nothing (A2 review round 2). This is the whole day, on
+     its own page load, over the same device storage: Start, every set, Finish. */
+  const L = await lane(productAthlete(), 'g4');
+  for (const offset of [0, 1]) {
+    const handle = await L.on(offsetDay(SYNTHETIC_DAY, offset));
+    assert.equal((await conductDay(handle)).closed, true);
+    handle.host.close();
+  }
+  const handle = await L.on(offsetDay(SYNTHETIC_DAY, 3));
+  const done = await conductDay(handle);
+  assert.equal(done.probe, 'ready');
+  assert.equal(done.closed, true, 'day+3 closes: ' + done.closeCode);
+  assert.equal(done.settled, 'finished');
+  assert.equal(done.before, 12);
+  assert.equal(done.after, 18, 'a third whole session really is on disk (12 -> 18)');
+  assert.deepEqual(done.logged.map(entry => [entry.lift, entry.position]),
+    [['demo-press', 1], ['demo-press', 2], ['demo-row', 1], ['demo-row', 2]],
+    'every set of day+3 was logged, in order');
+  const read = await handle.host.host.client.readWorkoutHistory();
+  assert.equal(read.read, true);
+  assert.equal(read.history.sessions.length, 3, 'three recorded sessions, none stranded');
+  assert.deepEqual([...handle.model.previous().keys()].sort(), ['demo-press', 'demo-row'],
+    'and the engine hands back previous performance for both of day+3\'s lifts');
   handle.host.close();
 });
 
@@ -232,11 +289,19 @@ test('B-NTC G3 — lastProducerRefusal() is UNCHANGED, and the composed day read
    G5 — THE CELL DECISIONS:108 ASKS TO BE PROVEN.
    A2-REPORT §9.1: "a FRESH athlete gets TWO whole training days, and the first
    genuine engine wall bites on day +3 … PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED
-   … day +3 comes back to day 0's lifts". With the qualified provider wired and
-   the option OFF, that day is prepared, Started, logged and closed.
+   … day +3 comes back to day 0's lifts". With the qualified provider wired that
+   day is prepared, Started, logged and closed.
+
+   THIS CELL IS UNCHANGED IN OUTCOME by DECISIONS:109, and that is the point:
+   obligation (i) was discharged at d78aff4 by the empty-history reader, and it
+   is discharged here by the ENGINE's own two predicates over the same empty
+   state, because `cleanAtDate` returns true on its own first line for an empty
+   nights list and `dayWeather` produces no `k:"event"` flag for an empty events
+   list. One reader now serves both athletes; the fresh one is not being proven
+   by a mechanism that differs from the one that ships.
    --------------------------------------------------------------------------- */
 
-test('B-NTC G5 — A2\'s spike: a FRESH athlete\'s day+3 on the SAME lift group no longer refuses, option OFF', async () => {
+test('B-NTC G5 — OBLIGATION (i): a FRESH athlete\'s day+3 on the SAME lift group prepares and is conducted', async () => {
   const { L, dayZero } = await trainedFreshLane('g5');
   assert.equal(dayZero.after, 7, 'day+0: one Start, five sets, one close');
 
@@ -253,8 +318,8 @@ test('B-NTC G5 — A2\'s spike: a FRESH athlete\'s day+3 on the SAME lift group 
      copy 'resolver_failed' — A2-REPORT §9.1's day+3 row. */
   assert.equal(view.phase, 'ready', 'day+3 prepares: ' + (view.code || ''));
   assert.equal(handle.host.host.lastProducerRefusal(), null, 'no producer refusal on the qualified path');
-  assert.equal(handle.host.trendDayReader().enginePredicates, false,
-    'and it does so WITHOUT the EXPOSED widening — a fresh athlete has no recorded night to map');
+  assert.equal(handle.host.trendDayReader().enginePredicates, true,
+    'and it does so through the ENGINE\'s own predicates — the same reader the 28-night athlete gets');
   assert.deepEqual([view.lift.id, view.lift.count], ['db-bench', 2], 'day+3 is day+0\'s own lift group');
   handle.host.close();
 

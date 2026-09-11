@@ -225,16 +225,7 @@ export function startOrderRefusalOf(generation, resolvedParents) {
 /* One live host over one repository handle, with every provider named here and
    only here. composeWorkoutHost binds them; it invents nothing. */
 export async function createGymHost({ day, engineState, indexedDB, crypto, deviceKeys,
-  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId,
-  /* B-NTC, the S2 path — OFF by default and off on the shipped page.
-     With it false (or with the engine's two day predicates absent from the
-     pinned EXPOSED surface, which is the case on this tree) the qualified
-     provider uses the empty-history day reader, so an athlete carrying recorded
-     nights or events refuses exactly as he does today. With it true AND a
-     runtime that exposes dayWeather + cleanAtDate, recorded nights and events
-     are mapped through the ENGINE's own predicates. Nothing here decides that;
-     it reports which reader it got on the handle below. */
-  mapRecordedDaysWithEnginePredicates = false } = {}) {
+  databaseName = DATABASE, namespace = NAMESPACE, plannedSplitSlotId } = {}) {
   const web = crypto || globalThis.crypto;
   const idb = indexedDB || globalThis.indexedDB;
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('createGymHost requires day');
@@ -286,8 +277,13 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
   const runtime = HostRuntime.createEngineRuntime({
     clock: { today: () => day, hour: () => 8, now: () => new Date(day + 'T13:00:00.000Z'), stamp: () => day + 'T13:00:00.000Z' },
     nativeTrendContext: trendBinding.resolve });
-  dayReader = createDayFactsReader({ state: engineState, engine: runtime,
-    mapRecordedDaysWithEnginePredicates });
+  /* DECISIONS:109, PATH A. No option: the reader maps the athlete's RECORDED
+     nights and events through the ENGINE's own dayWeather + cleanAtDate, which
+     this package re-pinned onto the EXPOSED surface. `runtime` is the accepted
+     host mirror, so the predicates handed over are the engine's, not a copy —
+     and if a runtime ever arrived without them this composition REFUSES rather
+     than falling back to the empty-history reader. */
+  dayReader = createDayFactsReader({ state: engineState, engine: runtime });
 
   /* THE BIND WINDOW, AROUND EVERY ENGINE READ OVER THE SAME FACTS — not just
      the producer's (review r1, F3). gym-model.readPrevious() re-runs this very
@@ -358,13 +354,13 @@ export async function createGymHost({ day, engineState, indexedDB, crypto, devic
 
   return Object.freeze({ host, repository, engine, day, plannedSplitSlotId, device,
     /* The trend binding and WHICH day reader it got, so a caller can report the
-       truth instead of assuming it. `enginePredicates` is false on this tree
-       because EXPOSED is ['genSession','rirPlan']; it becomes true only if a
-       re-seal adds dayWeather + cleanAtDate AND the option above is on. */
+       truth instead of assuming it. `enginePredicates` is TRUE on this tree:
+       EXPOSED is ['genSession','rirPlan','dayWeather','cleanAtDate'], re-pinned
+       by this package (DECISIONS:109), and a composition that could not read
+       both predicates would have refused above rather than reaching here. */
     trendBinding, trendDayReader: () => Object.freeze({
       enginePredicates: dayReader.enginePredicates,
-      enginePredicatesAvailable: dayReader.enginePredicatesAvailable,
-      optionRequested: dayReader.optionRequested }),
+      enginePredicatesAvailable: dayReader.enginePredicatesAvailable }),
     // The causal parents the accepted resolver last derived, for tests and for
     // the report. Reading it never changes it; it is not a store.
     causalParents: () => lastResolved.slice(),

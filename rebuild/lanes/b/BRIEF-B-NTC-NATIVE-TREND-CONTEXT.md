@@ -1,4 +1,138 @@
-# EARNED — B-NTC — QUALIFIED `nativeTrendContext` PROVIDER — behaviour/delta brief v1.1 — **PROPOSED, NOT ACCEPTED**
+# EARNED — B-NTC — QUALIFIED `nativeTrendContext` PROVIDER — behaviour/delta brief v1.2 — **PROPOSED, NOT ACCEPTED**
+
+---
+
+## v1.2 — DECISIONS:109, PATH A: THE OPTION IS GONE AND THE 28-NIGHT ATHLETE OPENS
+
+`rebuild/DECISIONS.md` line 109 ruled PM question Q1 (§12) as **PATH A**, and ruled it
+**inside this package**:
+
+> "PATH A. The nativeTrendContext provider maps recorded sleep through the engine's OWN
+> predicates (dayWeather + cleanAtDate exposed), never a re-implementation — and it is
+> implemented INSIDE the M2-B-NTC package as part of its own closed cumulative profile: a
+> child package supersedes its parent's execution pins exactly as NATIVE-CARRIERS
+> superseded LOAD-WRITES (engine-runtime.cjs / the EXPOSED set are re-pinned by the child;
+> no separate parent re-seal is needed or wanted)."
+
+This version applies that ruling. Everything below the v1.1 section is v1 text with v1.1's
+corrections in place; **where v1.1 said "behind an option", read "as the behaviour"**, and
+where it said "`EXPOSED` is `['genSession','rirPlan']`, so this is unreachable", read the
+four-name surface below. No other claim in this brief is withdrawn.
+
+### 1. The `EXPOSED` set is widened, and the child is what re-pins it
+
+| file | line | before | after |
+|---|---|---|---|
+| `rebuild/m4/workout/engine-runtime.cjs` | **30** | `Object.freeze(['genSession','rirPlan'])` | `Object.freeze(['genSession','rirPlan','dayWeather','cleanAtDate'])` |
+| `rebuild/m3/w6/host/engine-runtime-host.cjs` | **45** | same two names (the bundleable mirror) | same four names |
+
+Widening the list alone would have changed nothing, because both runtimes return an
+explicit frozen object rather than `E`. So the returned handle gains the two forwarders
+too — `dayWeather:(s,iso)=>E.dayWeather(s,iso)` and `cleanAtDate:(s,iso)=>E.cleanAtDate(s,iso)`
+— with the engine's own arity and the engine's own return value, unwrapped. `E` itself
+still never leaves the function.
+
+**Why these two names are safe to expose, stated rather than assumed.** Both are pure
+READERS the engine already composes (`sleep.cjs:1872` and `sleep.cjs:1017`, both returned
+by the sleep factory at `sleep.cjs:1957`), and both are already reached from inside
+`genSession`'s own closed graph. Exposing them mints no id, writes nothing, supplies no
+history and grants no permission; it only lets a host ASK the engine the two day questions
+it already answers to itself. `COMPOSITION.absent`, `COMPOSITION.forbiddenImports` and the
+`absentProvider` traps are untouched.
+
+**No engine byte moved.** `rebuild/engine/*` is byte-identical; the widening is entirely in
+the two runtime files, which is where the surface is decided.
+
+### 2. The option is removed as an option
+
+* `createDayFactsReader({state, engine})` takes **no flag**. It returns
+  `createEnginePredicateDayFacts(...)` or it **throws**. It never falls back to
+  `createEmptyHistoryDayFacts`.
+* `createGymHost` no longer accepts `mapRecordedDaysWithEnginePredicates`; the shipped page
+  gets the mapped reader because there is nothing else to get.
+* The handle's `optionRequested` field is **gone**, not set to `false` — a reader that
+  reports "the option was off" is still a tree with an option in it.
+
+**Fail-closed, in two distinct places** (DECISIONS:109's "fail-closed on any night it
+cannot map"):
+
+1. **At composition.** A runtime that does not carry both predicates is refused by name.
+   A silent downgrade is precisely the bug the ruling removes: it answers
+   `hard:false, debt:false` for a fresh athlete while LOOKING like the mapped behaviour,
+   so a narrow `EXPOSED` surface could pass tests that claim the wide one.
+2. **Per day.** A predicate that throws, is unreadable, or answers with anything but a
+   boolean refuses THAT DAY by name (`day_weather_unreadable`, `clean_at_date_not_boolean`,
+   …). A caught exception is never read as false — PERFORMED-ENGINE-v1.md:254's own words,
+   and deliberately stricter than `progression.cjs:702,704`.
+
+**No re-implementation.** The only executable uses of either predicate name in
+`native-trend-context.cjs` are `engine.dayWeather(state, iso)` (`:321`) and
+`engine.cleanAtDate(state, iso)` (`:326`). Every other occurrence in the file is a comment
+citing the engine's own line numbers. `grep` proves it; §7 records the check.
+
+### 3. Both obligations, measured
+
+**(ii) THE 28-NIGHT PRODUCT ATHLETE — the one this pass exists for.**
+`createTodayModel({}).stateFromOps()` (28 recorded sleep nights, 0 events), the state
+`today-entry.mjs:26` and `gym.test.mjs` both hand to `createGymHost`:
+
+| | at `d78aff4` (option OFF) | now |
+|---|---|---|
+| day+3 probe | `blocked` · `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` · `resolver_failed` | **`ready`**, on day+0's own lift group (`demo-press`, 2 lifts) |
+| day+3 conducted | not reachable | **Started, every set logged, closed**, `settled: finished` |
+| ops | 12, unchanged | **12 → 18**; three durable sessions, none stranded |
+| days +4 / +7 / +10 / +14 | all `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED` | all **`ready`** |
+| days +5 / +6 | `ENGINE_CAPTURE_NO_WORKOUT` | `ENGINE_CAPTURE_NO_WORKOUT` (unchanged: the split gives no workout) |
+| `trendDayReader()` | `{enginePredicates:false, enginePredicatesAvailable:false, optionRequested:false}` | `{enginePredicates:true, enginePredicatesAvailable:true}` |
+
+Cells: `ntc-h6-delta.test.mjs` **G1** (the wall is gone), **G2** (the days after), **G3**
+(the composed reader reports the engine's own predicates), **G4** (the whole day conducted,
+12 → 18).
+
+**(i) THE FRESH ZERO-NIGHT ATHLETE — already discharged at `d78aff4`, and it still holds.**
+Cell **G5** is unchanged in outcome, and that is the point: at `d78aff4` it was discharged
+by the empty-history reader; it is discharged now by the **same engine predicates the
+28-night athlete gets**, because `cleanAtDate` returns `true` on its own first line for an
+empty nights list and `dayWeather` produces no `k:"event"` flag for an empty events list.
+One reader serves both athletes, so the fresh case is not being proven by a mechanism that
+differs from the one that ships. Day+3 on day+0's own lift group: `ready` → Started → every
+set logged → closed, ops 12 → 19, three durable sessions. Provider cell
+"OBLIGATION (i) rides the SAME code path" asserts the same thing at the provider.
+
+### 4. What else moved, and why — nothing hidden
+
+| file | what | why |
+|---|---|---|
+| `rebuild/m3/w6/host/test/journey.test.mjs` | step 14's two byte pins re-pinned; one new assertion on `COMPOSITION.exposed` | it pins `engine-runtime.cjs` and its mirror by sha256; the re-pin is the mechanical consequence, and the new assertion states the surface rather than only its bytes |
+| `rebuild/m3/w7-preview/today/test/gym.test.mjs` | three subtests re-authored | DECISIONS:109's own words: "A2's spike table becomes delta cells". These three were A2-REPORT §9.1's spike, locked at the old wall. Counts unchanged: **59/59**. |
+| `.github/workflows/rebuild.yml` | the A1/A2 step now enumerates seven files | :109's bundled tooling item: `checkin.test.mjs` (A3's suite, deferred by :99/:101/:102 and never picked up) and `ntc-h6-delta.test.mjs` had no CI home at all |
+
+**One behaviour change found while re-authoring, and it is NOT papered over.** A2's
+"a SECOND session on the same day is refused" cell used to pass because `prepareWorkout`
+refused with `PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED`. With the wall gone the preparation
+**succeeds** — so that cell was resting on a provider gap, not on a same-day guard. It is
+re-authored to assert the guard that actually has to hold, and the guard holds: the screen
+refuses the Start with its own `WORKOUT_NOT_READY`, the op count is unchanged, and the log
+still carries exactly the two sessions. Measured, not assumed.
+
+### 5. The one thing this pass did NOT do, named
+
+DECISIONS:109 bundles a third tooling item: "retire the old memory-only w7-preview child
+(`# pass 19`) from the wrapper together with its CI step, with the successor evidence
+named." The **enumeration half is applied**; the **retirement half is written out and NOT
+applied**, as a real verified diff at `rebuild/lanes/b/ntc/pass19-retirement.patch`
+(`git apply --check` exit 0). The three reasons are in that file's header: it was outside
+this pass's dispatch, it deletes executed evidence that nothing this package owns covers,
+and "successor evidence named" is a judgment recorded in the PM's own wrapper file. One
+command lands it.
+
+### 6. Q1 in §12 is ANSWERED; §12's other questions stand
+
+§12 Q1 asked whether the `EXPOSED` re-seal was the PM's to make. It was, it was made
+(DECISIONS:109), and it was made **as a child re-pin rather than a parent re-seal** — so
+the parent M2-NATIVE-CARRIERS profile now refuses on `engine-runtime.cjs`'s bytes, by
+design. The refusal is quoted verbatim in `BUILD-REPORT-B-NTC.md`. Read §12 Q1 as closed
+and §13's "the S2 path needs a ruling" as closed with it.
 
 ---
 

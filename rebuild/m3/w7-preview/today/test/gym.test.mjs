@@ -614,48 +614,81 @@ test('A2 — a FRESH athlete (DECISIONS:100, Joe at S2) trains day after day, ea
     handle.host.close();
   });
 
-  /* THE FIRST GENUINE ENGINE WALL, and the day it bites. Days 1 and 2 are this
-     athlete's two distinct training days; day 4 comes back to day 1's lifts, and
-     the engine then needs the numeric native trend context no accepted host
-     composes. It is an engine-tier provider gap, for Track B — not a screen's. */
-  await t.test('day 4 — the first wall: PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED, and nothing is written', async () => {
+  /* THE WALL THAT USED TO BITE HERE, AND WHY IT NO LONGER DOES.
+     ---------------------------------------------------------------------------
+     RE-AUTHORED UNDER DECISIONS:109 ("A2's spike table becomes delta cells").
+     Days 1 and 2 are this athlete's two distinct training days; day 4 comes back
+     to day 1's lifts, and the engine then needs the numeric native trend
+     context. Until B-NTC there was no accepted provider, so this cell asserted
+     `blocked / PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED / resolver_failed` — an
+     engine-tier provider gap, recorded as Track B's.
+
+     M2-B-NTC composed that provider, and DECISIONS:109 made mapping the
+     athlete's RECORDED nights and events through the engine's own `dayWeather` +
+     `cleanAtDate` the shipped behaviour. This athlete —
+     `createTodayModel({}).stateFromOps()` — carries 28 recorded sleep nights, so
+     he is exactly the case obligation (ii) names, and the wall is gone.
+
+     The full conduct of this day (Start, every set, Finish, ops 12 -> 18) is
+     B-NTC's own delta cell G4 in
+     rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs. This cell stays a
+     PROBE so the lane it shares with the two cells below still holds exactly two
+     recorded sessions and twelve ops. */
+  await t.test('day 4 — the trend-context wall is GONE: the day prepares, and a probe writes nothing', async () => {
     handle = await L.on(offsetDay(DAY, 3));
     const view = await handle.model.read();
-    assert.equal(view.phase, 'blocked');
-    assert.equal(view.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
-    assert.equal(view.copy, 'resolver_failed', 'the layer\'s own reason, and no invented sentence');
-    assert.notEqual(view.copy, view.code, 'a refusal never prints its code twice');
-    const refused = await handle.model.start();
-    assert.equal(refused.ok, false, 'Start is refused, not offered');
-    assert.equal(await opCount(handle.host), 12, 'a refused day writes NOTHING');
+    assert.equal(view.phase, 'ready', 'day 4 prepares: ' + (view.code || ''));
+    assert.equal(view.code, undefined, 'no refusal code at all');
+    assert.equal(handle.host.host.lastProducerRefusal(), null,
+      'and the producer refused nothing — PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED is not reached');
+    assert.equal(view.lift.id, 'demo-press', 'day 4 comes back to day 1\'s own lift group');
+    assert.equal(await opCount(handle.host), 12, 'a probe still writes NOTHING');
     handle.host.close();
   });
 
   await t.test('every day after the wall stays readable — the log is never poisoned', async () => {
+    const seen = [];
     for (const offset of [4, 5, 6, 7, 10, 14]) {
       handle = await L.on(offsetDay(DAY, offset));
       const view = await handle.model.read();
-      assert.equal(view.phase, 'blocked', 'day+' + offset);
-      assert(['ENGINE_CAPTURE_NO_WORKOUT', 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'].includes(view.code),
-        'day+' + offset + ' refuses for an ENGINE reason, never a poisoned local order: ' + view.code);
+      /* A blocked day may now ONLY be a day the split gives no workout. Before
+         DECISIONS:109 four of these six were the trend-context wall. */
+      if (view.phase === 'blocked')
+        assert.equal(view.code, 'ENGINE_CAPTURE_NO_WORKOUT',
+          'day+' + offset + ' may only be blocked because the engine schedules nothing: ' + view.code);
       const read = await handle.host.host.client.readWorkoutHistory();
       assert.equal(read.read, true, 'the durable history still reads on day+' + offset);
       assert.equal(read.history.sessions.length, 2, 'both recorded sessions are still there');
       assert.equal(await opCount(handle.host), 12);
+      seen.push(view.phase === 'blocked' ? view.code : view.phase);
       handle.host.close();
     }
+    assert.deepEqual(seen, ['ready', 'ENGINE_CAPTURE_NO_WORKOUT', 'ENGINE_CAPTURE_NO_WORKOUT',
+      'ready', 'ready', 'ready'], 'the measured shape of the days after the old wall');
   });
 
-  await t.test('a SECOND session on the same day is refused, with the layer\'s own code', async () => {
+  await t.test('a SECOND session on the same day is refused, and writes nothing', async () => {
     handle = await L.on(DAY);
     const view = await handle.model.read();
     // The day's session is closed, so the screen reports it as recorded rather
-    // than offering a Start that the layer would refuse.
+    // than offering a Start.
     assert.equal(view.phase, 'finished');
+    /* RE-AUTHORED UNDER DECISIONS:109, and the change is stated rather than
+       hidden: the PREPARATION now succeeds, because the trend context this
+       athlete's 28 recorded nights blocked is now answered. That means the
+       same-day guard is no longer riding on a provider gap — so this cell now
+       asserts the guard that actually has to hold: the screen refuses the Start
+       and NOTHING reaches the log. */
     const prepared = await handle.host.host.client.prepareWorkout({ planned_split_slot_id: 'slot' });
-    assert.notEqual(prepared.prepared, true);
-    assert.equal(handle.host.host.lastProducerRefusal().code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
-    assert.equal(handle.host.host.lastProducerRefusal().reason, 'resolver_failed');
+    assert.equal(prepared.prepared, true, 'the preparation itself is computable now');
+    assert.equal(handle.host.host.lastProducerRefusal(), null, 'and it refused nothing');
+    const before = await opCount(handle.host);
+    const refused = await handle.model.start();
+    assert.equal(refused.ok, false, 'a second Start on a finished day is refused');
+    assert.equal(refused.code, 'WORKOUT_NOT_READY', 'the screen\'s own code, not an invented sentence');
+    assert.equal(await opCount(handle.host), before, 'and the refusal writes NOTHING');
+    assert.equal((await handle.host.host.client.readWorkoutHistory()).history.sessions.length, 2,
+      'still exactly the two sessions this athlete recorded');
     handle.host.close();
   });
 });
