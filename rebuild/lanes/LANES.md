@@ -33,3 +33,10 @@ No push to main, no deploy, no private data in any report or cloud session, no p
 - MECHANICAL INTEGRATION (screens/plumbing tier): the acceptance bar is written in the brief BEFORE the build. When the independent reviewer's file says ACCEPT and CI is green on both OS, a mechanical integrator subagent merges into rebuild/t2-client-core with a one-line ledger entry — it does not wait for the PM's turn. The PM spot-checks merged work afterwards and may revert with a ledger line. Author ≠ reviewer ≠ integrator.
 - ENGINE TIER: the LANE runs the FULL gate itself (closed package run, second gate, own bites, mutants, fidelity diff, and the private census on the owner's PC with verdict-only reporting) and hands the PM a verdict file; the PM judges the verdict and accepts as a ledger line — it no longer runs every gate personally. Acceptance stays the PM's judgment (DECISIONS:91).
 - SPECULATIVE AUTHORING: a lane may implement a package on a candidate branch before its brief is accepted (parallel authoring); nothing merges before acceptance; the branch is rebased/adjusted to the accepted brief.
+
+## Amendments 2026-09-11 evening (owner: "massively accelerate development without hindering quality" — DECISIONS:116)
+- CADENCE: every lead chat wakes itself every 30 minutes while anything is in flight (was ≈hourly).
+- DAD FIRST-RUN: built directly from the amended BUILD-BRIEF; the owner approves by looking at the real screens in the browser pane; no second mock.
+- ENGINE REHEARSAL: a package may rehearse its closed profile against the predecessor's candidate head; after acceptance only pins move; the gate, the private census, receipts, reruns and PM acceptance are unchanged; nothing merges on a rehearsal.
+- WIDTH: lane C up to 3 builders + 2 reviewers while clean; PM lane runs its polish queue as parallel briefs (today/** briefs sequenced).
+- EFFORT: PM chat HIGH (max at engine acceptance) · LANE B chat MAX · LANE C chat HIGH · integrator LOW. Subagents inherit the chat's effort; the owner sets the lane chats; leads confirm by a STATUS line. Definitions: .claude/agents/earned-*.md.
