@@ -1,0 +1,70 @@
+ASTRA PHONE RELEASE REVIEW — 2026-09-11
+
+(1) VERDICT / EXACT SCOPE
+ACCEPT for the responsive PWA shell delta only.
+Candidate edc9a7f50e253f2191e2587682e0960afc18e948; product 4d570024cd485aed53cdd695a8c998e15cdb9292;
+base 55063f89a553af777a702f218b47b649cc11bb9b. Independent reviewer /root/phone_release_review,
+not author /root/ntc_join_review or PM. Assignment ASTRA-PHONE-RELEASE-REVIEW.md at e218424;
+original shell brief at d2f0a28. Isolated codex/astra-phone-release-review; this is its only committed file.
+Read NEXT then ROADMAP, LANES, owner rulings, original assignment, full candidate report, A5/design
+references and actual changed source/status consumers. Assessed the built browser UI, not only test text.
+
+(2) EXECUTED
+Existing Node24.19.0 and installed Chrome, retained dependencies, no installation.
+node --test rebuild/slice/pwa/test/pwa.test.cjs rebuild/slice/pwa/test/package.test.cjs
+  rebuild/slice/pwa/test/workflow.test.cjs: 54/54 PASS, zero failures/skips.
+First attempt: 44 pass/10 package failures because the isolated tree lacked W5's noble dependency
+resolution. Added a local ignored W5 junction to retained W6 dependencies; rerun above passed. No source fix.
+W7_BROWSER_BIN=existing Chrome; node rebuild/slice/pwa/browser-release-check.mjs: RELEASE BROWSER PASS.
+Actual default owner setup: seven visible exercise entries/review; save and reload with identical stored
+setup/device/collections and no enrollment form. Real upper workout: four sets, one Start and one Close;
+170.5 weight saved. Offline reload and a new offline page preserve all compared stored records. Separate
+worker-blocked offline context fails to launch as required. No page exceptions/off-origin requests.
+
+Widths: 390x844 and 320x568 long seven-exercise review, 844x390 landscape, 320x390 workout and weight
+sheet: document matches viewport, content has no horizontal overflow, final controls are uncovered and
+reachable. Wide view is capped at420px. Natural document scrolling; no handset border/radius/shadow.
+Inputs are16px or23px. Existing package tests verify approved colors, complete asset/header allowlists,
+manifest, private/remote-reference guards and unchanged original emitted app/style bytes.
+
+(3) INDEPENDENT PROBES / VISUAL ASSESSMENT
+node .tmp/review-probe.mjs: INDEPENDENT_PROBE_PASS. Constructed source-before release from git's exact
+55063f8 shell using unchanged Today build and supported response headers; no tracked product edits.
+Before390x844: document398, view388, phone top126.53125, fixed height844. Candidate: document/view390,
+phone top43.84375, content height983.65625. Paper rgb(244,240,232), Instrument Sans remain; status occupies
+the leading strip. Keyboard Tab reaches the name input with a3px green focus outline and16px text.
+Distinct date-boundary probe: visible setup/workout entry20x9, browser Date advanced one day, actual window
+focus refresh invoked. At320x390, actual calendar notice shows the old date and retained20x9; Return to
+Today and View retained draft work, and the typed values survive. This controls browser time, not a physical
+phone clock. The calendar consumer remains in normal flow before the app.
+Inspected fresh, long-review bottom, reduced workout, offline Today, postcommit refusal and restore
+screenshots from this execution, plus independently captured source-before/calendar screenshots.
+Local evidence: .tmp/release-shots/{02-release-fresh,03-review-320,04-workout-small,05-offline-reopened,
+06-postcommit-refusal,07-restore}.png; .tmp/review-before.png; .tmp/review-calendar.png;
+.tmp/release-shots/measurements.json. Ignored synthetic artifacts remain in the review tree.
+
+(4) STATUS / REFUSAL / UPDATE
+Traced today-status producers for setup/save/read/refusal/restore/open failure; role=status remains visible
+before the app. Identity and storage messages remain visible in the footer, with unchanged IDs; calendar
+and preflight/install text survive. No genuine failure is hidden by the shell. The actual IndexedDB marker
+put fault after setup commit says reopen/restore and Do not set up again, disables save, then reloads to
+Restore required (ENROLLMENT_MARKER_MISSING), no form; storage refusal remains readable. It cannot be
+mistaken for fresh enrollment in this drive.
+Actual second local build/controller takeover preserves typed40x10; all11 new assets ready, logging
+continues, and offline reload selects the new stylesheet hash with unchanged saved records. Immediate
+cache inventory contains both old/new containers with11 entries each, reproducing the report. Worker and
+preflight JavaScript are byte-unchanged from55063f8; this delta still has11 precached assets. No additional
+cache-policy regression or data loss observed. This is not proof of cache cleanup, bounded retention,
+physical storage survival or a diagnosis/fix of that inherited retention observation.
+
+(5) LIMITS / BOUNDARIES
+No required correction found in this delta. ACCEPT does not qualify owner daily use, full routine coverage,
+all seven load families, nutrition/recovery/progression, lifecycle-source test successors, final BNTC/source
+policy, M3/beta or physical iOS. Seven supported exercise entries are not proof of complete routine/load-family
+support. Nutrition/initial trend unavailability and unwired doors remain explicit in the actual page.
+Physical iOS keyboard/zoom, safe-area, Home Screen installation, kill/reboot/pressure and real phone offline
+behavior were not executed; reduced desktop Chromium heights do not establish them. No hosted or two-OS CI
+claim. Separate PR51 publication/workflow-regex correction is owned elsewhere; workflow.test.cjs and all
+workflows are unchanged on this exact candidate, and this review does not accept that separate branch.
+No engine campaign/private fixture, product edit, dependency install/lock change, push, PR, merge, deploy,
+receipt or other remote action. git diff --check passed before committing this report.
