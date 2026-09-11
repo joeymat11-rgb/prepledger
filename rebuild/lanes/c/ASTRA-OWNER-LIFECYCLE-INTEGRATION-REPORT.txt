@@ -1,0 +1,80 @@
+FIRST-USE LIFECYCLE SUCCESSOR — DISTINCT LOCAL INTEGRATION
+September 11, 2026. FILE ASTRA-OWNER-LIFECYCLE-JOIN.md at PM 8e44739.
+Mechanical assembly PASS; focused lifecycle/setup 29/29 PASS.
+No full qualification, remote-release or physical-iPhone claim.
+
+(1) EXACT SOURCE / SCOPE
+Integrator /root/owner_release_integrator, distinct from builder and reviewer.
+Read NEXT/ROADMAP, LANES, prior phone integration and both lifecycle reports.
+Root read and scoped-accepted independent a532a9139aea43d1047ebf272e7adec68a03266c.
+Continued owned codex/astra-owner-phone-integration in
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-phone-integration.
+Mechanical --no-ff merge 37c66717e15174d14fd66b972116f74e6f9cfa30:
+first parent 693b021f01d832a889f6933f2dcad2258431d808;
+second parent 60fc01973b6328d6edec5f8d803b67471b28826a;
+accepted test source ddc0032d64d053adf05d1977bd6b186f7c6d0868,
+based on bcbb985af9d7a36bef6aab775251732b4f8cedfe.
+Zero conflicts, manual resolutions or integrator product/test edits.
+Complete tracked diff versus 693b021 is exactly the four tests/helper below
+plus ASTRA-FIRST-USE-LIFECYCLE-SUCCESSOR-REPORT.txt. All other tracked bytes,
+including every product/served-source file, remain identical to pre-join.
+
+(2) EXACT TEST/HELPER DELTA AND QUALIFICATION EDGES
+All paths below are under rebuild/m3/w6/test/; exact Git blob equality against
+accepted 60fc019 verified for each. Actual worktree SHA256 values:
+local-owner-entry.test.mjs
+  beec2926f7345a4cac077d52e41eb9a63785fd0a5703c33e3b4e07bbfc24e69e
+local-owner-browser.mjs
+  5fd99a351c71d168405feafa747c7968a8411a7f834d10973c84164627e250ae
+local-owner-workout-navigation-browser.mjs
+  367f6173d5f2dfae066e1fa0018060f4ec0fa9cf9d0971773180199409484c28
+visible-owner-setup.mjs (new Node-side import of both browser journeys)
+  f352da6cff33654482daefd01611529eef0d34ad625f55acbb63bff9a67f39d0
+The helper uses visible controls; generated enroll.js routes are removed.
+Browser resources remain /, /index.html, /app.js, /styles.css from Today build.
+git diff --exit-code against 60fc019 for m3/**, m4/**, engine/** and client/**
+PASS: lifecycle runtime/build/test source equals that independently run tree.
+Phone release source remains exact accepted edc9a7f via prior integration.
+
+Later explicit qualification must cover these four execution files plus the
+already accepted first-use entry/build and setup catalogue/enrollment/model/
+view/CSS edges under rebuild/m3/w7-preview/today/. Its setup.test.mjs executes
+here; separate setup browser-check.mjs/browser-probe.mjs evidence remains reused.
+Phone closure includes its exact shell/release.css, browser-release-check.mjs,
+pwa.test.cjs and inherited build/preflight/worker/assets/header dependencies.
+These are changed closure edges, not a substitute complete transitive manifest.
+Existing fonts, design, browser bundler, runtime and engine obligations remain.
+Stable BNTC 413/07f remains separate, unchanged; no new pin authority is claimed.
+
+(3) EXECUTED ON THE JOIN
+Node v24.19.0; TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03;
+NODE_PATH=retained m3-w6-browser-bridge/rebuild/m3/w6/node_modules.
+node --test rebuild/m3/w6/test/local-owner-entry.test.mjs
+  rebuild/m3/w7-preview/today/setup/setup.test.mjs
+PASS 29/29: 16 lifecycle + 13 setup; zero failures/skips/cancellations, exit 0.
+This resolves the inherited old 15/16 lifecycle result in the joined tree;
+fresh form, legacy no-setup and missing-key refusal now execute together.
+Existing date/clock/draft/write guards and setup commit/refusal controls pass.
+Initial invocation failed at module loading because the root build-only W6
+dependency junction lacked jsdom. Preserved that junction under ignored .tmp/
+and made the owned root junction reuse the existing repository node_modules,
+matching the accepted test environment. W6/W5 links remained unchanged.
+No installation or source correction. The complete focused rerun above passed.
+
+(4) VALIDATED REUSE / LIMITS
+Rechecked retained .tmp/phone-artifact-equality.json: every size/hash matches
+all 13 PWA and 3 Today files. Prior actual Buffer.equals comparison and fresh
+build provenance in report 693b021 therefore remain valid; no rebuild needed.
+Prior inventory SHA256 dbd165d7e901cd3ca5404ba12c3f427cce560886d4ad0c2020660f41b1fbc285.
+Reused independent phone 8479fa0 browser/A5 evidence for identical served bytes;
+reused lifecycle a532a9's two actual browser journeys and timeout negative
+control for identical test/helper/runtime/Today inputs. No browser rerun is
+claimed. The phone shell does not enter the lifecycle journeys' Today build.
+Package/source-policy/runner/CI qualification remains explicitly pending.
+Physical phone, cache-retention interpretation, complete routines/load families,
+nutrition/recovery/progression, M3/beta and existing retained limits remain.
+No PR51, native-scale or B1 branch joined. No source pins/runners/laws/workflows,
+product/host settings, private data, frozen app, dependency lockfiles or other
+worktree edited. No actual integration-branch merge, remote action, push, PR,
+deployment, install, protected-soak access or data deletion. git diff --check
+PASS. Only this report is added beyond the accepted mechanical merge.
