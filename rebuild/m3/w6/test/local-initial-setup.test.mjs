@@ -180,3 +180,69 @@ test('memoized Today setup submission cannot be silently discarded or replace th
   await assert.rejects(openTodayOverLocalEra({...config(idb),initialSetup:setup()}),{code:'LOCAL_INITIAL_SETUP_ALREADY_ENROLLED'});
 });
 
+
+// F1: fault only the final key/marker transaction; generations stay real.
+function enrollmentTailFault(suffix, mode='throw') {
+  const inner=new IDBFactory();let reached;const arrived=new Promise(resolve=>{reached=resolve;});
+  const state={armed:true,release:false,arrived};
+  const indexedDB={open(...args){
+    const request=inner.open(...args);
+    request.addEventListener('success',()=>{
+      const db=request.result,transaction=db.transaction.bind(db);
+      db.transaction=(...txArgs)=>{
+        const tx=transaction(...txArgs);
+        if(!state.armed||args[0]!==config(inner).databaseName+suffix||txArgs[1]!=='readwrite')return tx;
+        const name=suffix==='-keys'?'keys':'markers',store=tx.objectStore(name),put=store.put.bind(store);
+        store.put=(...putArgs)=>{
+          state.armed=false;reached();
+          if(mode==='throw')throw new DOMException('Synthetic enrollment tail fault','QuotaExceededError');
+          const result=put(...putArgs);
+          const hold=()=>{if(!state.release){const read=store.get(putArgs[1]);read.onsuccess=hold;}};hold();
+          return result;
+        };
+        return tx;
+      };
+    });return request;
+  }};
+  return {indexedDB,inner,state};
+}
+function sealedRecord(indexedDB) {
+  return new Promise((resolve,reject)=>{
+    const request=indexedDB.open(config(indexedDB).databaseName);
+    request.onerror=()=>reject(request.error);
+    request.onsuccess=()=>{const db=request.result,tx=db.transaction('generations','readonly'),get=tx.objectStore('generations').get('active');
+      tx.oncomplete=()=>{db.close();resolve(get.result);};tx.onabort=()=>{db.close();reject(tx.error);};};
+  });
+}
+for(const [suffix,code,reopenCode] of [
+  ['-keys','KEY_WRITE_FAILED','KEY_MISSING'],
+  ['-local','LOCAL_MARKER_WRITE_FAILED','ENROLLMENT_MARKER_MISSING'],
+]) test('post-commit '+suffix+' failure retires first-run and never reenrolls',async()=>{
+  const fault=enrollmentTailFault(suffix),c=await openLocalDurableClient(config(fault.indexedDB));
+  const result=await c.enrollSetup({setup:setup()});assert.equal(result.enrolled,false);assert.equal(result.code,code);assert.equal(result.state,18);
+  const sealed=await sealedRecord(fault.inner);assert.equal(sealed.revision,1,'generation really committed before tail failure');
+  assert.deepEqual(c.status(),{state:'restore-required',code});
+  const boot=await c.boot();assert.equal(boot.ready,false);assert.notEqual(boot.firstRun,true);assert.equal(boot.code,code);assert.equal(boot.state,18);
+  assert.equal((await c.initialSetup()).configured,false);await assert.rejects(c.hostBindings());
+  const replacement=setup();replacement.athlete_label='Synthetic forbidden replacement';
+  assert.equal((await c.enrollSetup({setup:replacement})).enrolled,false);
+  assert.deepEqual(await sealedRecord(fault.inner),sealed);c.close();
+  const next=await openLocalDurableClient(config(fault.indexedDB));
+  assert.deepEqual(next.status(),{state:'restore-required',code:reopenCode});assert.equal((await next.boot()).ready,false);
+  assert.equal((await next.enrollSetup({setup:replacement})).enrolled,false);assert.deepEqual(await sealedRecord(fault.inner),sealed);next.close();
+});
+
+test('post-commit delayed marker publishes neither success nor first-run until completion',async()=>{
+  const fault=enrollmentTailFault('-local','delay'),c=await openLocalDurableClient(config(fault.indexedDB));
+  let settled=false;const saving=c.enrollSetup({setup:setup()}).then(result=>{settled=true;return result;});
+  await fault.state.arrived;
+  try {
+    assert.equal((await sealedRecord(fault.inner)).revision,1);
+    assert.equal(settled,false);assert.equal(c.status().state,'restore-required');
+    assert.equal(c.status().code,'LOCAL_ENROLLMENT_INCOMPLETE');
+    const boot=await c.boot();assert.equal(boot.ready,false);assert.notEqual(boot.firstRun,true);
+    assert.equal((await c.initialSetup()).configured,false);await assert.rejects(c.hostBindings());
+    assert.equal((await c.enrollSetup({setup:setup()})).code,'LOCAL_ENROLLMENT_IN_PROGRESS');
+  } finally {fault.state.release=true;}
+  assert.equal((await saving).enrolled,true);assert.equal((await c.boot()).initialSetup.configured,true);c.close();
+});

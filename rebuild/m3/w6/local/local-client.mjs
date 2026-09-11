@@ -256,6 +256,7 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     if (typeof enrolledAt !== "string" || !Number.isFinite(Date.parse(enrolledAt)))
       return { enrolled: false, ...refusal(3, "LOCAL_CLOCK_UNUSABLE") };
     enrolling = true;
+    let initialized = false;
     try {
       const initialSetup = explicitSetup ? createInitialSetup({ setup, athleteId, deviceId, createdAt: enrolledAt }) : null;
       const era = createLocalEra({ crypto, athleteId, deviceId, enrolledAt });
@@ -265,13 +266,20 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
       // second key and never a reseed.
       const key = await keys.generate();
       await repository.initialize(seedGeneration(era, enrolledAt, cleanInit, initialSetup), firstRunEvidence);
+      // initialize resolves only from the generation transaction's oncomplete.
+      // From this point first-run is no longer true, even while the enrollment
+      // tail is pending. A rejected pre-commit attempt never reaches this fence.
+      initialized = true;
+      status = { state: "restore-required", code: "LOCAL_ENROLLMENT_INCOMPLETE" };
       await keys.persist(key);
       await writeMarker({ indexedDB, databaseName, at: enrolledAt });
       status = { state: "ready", code: "LOCAL_ENROLLED" };
       return { enrolled: true, revision: 1, ...publicEra(era) };
     } catch (error) {
-      if (error instanceof StorageFailure && error.code === "ALREADY_INITIALIZED") status = { state: "restore-required", code: error.code };
-      return { enrolled: false, ...refusal(error?.state ?? 3, error?.code || "LOCAL_ENROLLMENT_FAILED") };
+      const code = error?.code || "LOCAL_ENROLLMENT_FAILED";
+      if (initialized || (error instanceof StorageFailure && error.code === "ALREADY_INITIALIZED"))
+        status = { state: "restore-required", code };
+      return { enrolled: false, ...refusal(initialized ? 18 : error?.state ?? 3, code) };
     } finally { enrolling = false; }
   }
 
