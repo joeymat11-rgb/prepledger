@@ -1,0 +1,33 @@
+# Independent B-NTC successor tooling review
+
+2026-09-11. **REQUEST CHANGES — one blocking P1 finding.**
+Reviewed source:7cd7a5bacf52a9e7edafe454a936c4317d023244.
+Separate branch codex/astra-tooling-successors-review; reviewer authored none of this tooling.
+Scope: delta from independently accepted c7b7133; prior review4a842323 reused outside changed paths. Builder report and PM assignment/clarification read. No package or engine acceptance follows.
+
+## P1 — candidate child declarations bypass the exact source policy
+
+`rebuild/lanes/b/tooling/b-package.cjs:674–681` enables successorSupport only if an inherited child has no target appearing anywhere in the parent's product/execution pins. `:683–693` independently returns early when ANY executed target is such a parent pin. Neither check binds that target to the actual original gate executable or its original argv/needle. Thus the inherited permissive target check remains an escape hatch around the new fixed policy.
+
+Independent real-process reproduction, retained in ignored `.tmp/independent-policy-bypass.cjs`:
+- Load the unchanged runner before its main-campaign delimiter, exporting actual functions; no function body replacements. Read actual policy614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee and genuine parent artifact e940359b… . Preserve the exact nine-gate mapping, moves={}, product declaration and all15 child declarations.
+- Change only the five inherited children's argv to `['--test','--test-reporter=tap','rebuild/m4/spec/native-carriers-source.cjs']` and needle to `# pass 1`. This file is unchanged and its hash matches the real parent's execution pin. It exports source helpers; loading it as a Node test does not call the original gates/assertions.
+- Keep theme=null. successorSupport returns null, without validating policy/source closure or requiring its issued PM disposition.
+- Execute those five inherited children through the real children() function. Each real Node subprocess exits0 and emits276 bytes of TAP containing `# pass 1`; no invented stdout or wrapper is needed.
+- Feed their actual execution results to coverage() with the full15-child declaration. It succeeds and reports9/19 gates covered by five executed children. The original nine gate assertions did not execute.
+
+This proves false coverage and bypass of the proposed successor-policy requirement, not a complete authorized package PASS. No receipt, acceptance artifact or authority was fabricated. Final-envelope controls were not bypassed or weakened in this probe; they cannot substitute for binding the purported gate execution.
+
+Required scoped correction: require the exact B-NTC successor policy whenever handling this B-NTC successor/product profile; candidate argv edits must not turn that requirement off. If a genuine original-parent execution route remains, bind every inherited child to its exact original executable/argv/needle and actually execute it. Remove ANY-parent-pin admission as proof. Preserve moves={} / MOVES_RULING=null, existing final-envelope/own-child controls and fixed accepted-chain authority. Add this positive-hash, helper-as-test mutation as a regression; it must refuse before campaign or coverage.
+
+## Other executed evidence and retained limits
+
+Existing Node24.19.0, Windows. Ran the unchanged committed execution-targets.test.cjs and successor-authority.test.cjs using real subprocesses and existing dependencies:17/17 pass,0 fail,0 skipped (9 prior controls +8 new groups). The latter builds isolated public fixtures, verifies exact71fb2f1 source policy with82 pins/15 children, checks declaration/package/parent/original/helper/runtime drift, executes the real source-carriers successor and refuses a needle-only replacement. Its fixture authority claims are test data, not issued PM authority. Those tests miss the independent bypass above.
+
+Read the policy against source71fb2f1 and its original parent mapping, plus the successor helper's separate archived-parent/actual-child construction. Original13 profile-refusal tests and child4 remain separately declared/pinned. Their execution was accepted in the separate successor review; not rerun as an engine campaign here. Policy/source inspection is not final tooling acceptance while P1 remains.
+
+The new childLedger path requires a full immutable commit, exact Git ledger bytes/hash, cowork role, parent-receipt ancestry, candidate ancestry and fixed refs/remotes/origin/rebuild/t2-client-core ancestry. Committed controls exercise later-chain success, omitted-commit old-anchor fallback, wrong role/hash/path/mutable/absent/unrelated/local-only anchors and inherited contract mutation. Owner/contract retain their fixed parent anchor/roles. No additional blocking issue established in that changed authority path. Prior c7 trailing-argv/product-role controls reran green; other prior accepted receipt/chain/envelope evidence is reused explicitly.
+
+Before report creation: tracked source diff against7cd7a5b empty. No product/tooling source edits, private reads, installs, pushes, merges, deploys or broad engine/full gates. Existing dependency reuse points to the read-only join worktree; generated control mutations remain in isolated public fixtures. No accepted artifact/envelope constructed.
+
+After P1: a different-source focused delta rerun is required. Genuine PM brief/theme citation including literal `B-NTC-SUCCESSORS 614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee`, actual fixed-chain/candidate anchoring, exact final artifact receipt and separate CI/FULL/private custody obligations remain prerequisites. This report issues none of them.
