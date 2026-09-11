@@ -158,7 +158,12 @@ const bound = () => ({ option: { id: 'NATIVE-CARRIERS' }, decided: true, accepta
   product: {},
   executionPins: { [ORIGINAL]: sha(fs.readFileSync(path.join(scratch, ORIGINAL))), [WRAPPER]: sha(fs.readFileSync(path.join(scratch, WRAPPER))) },
   coverage: { byChild: { ...inherited } } } });
+const pin = f => ({ pre: sha(fs.readFileSync(path.join(scratch, f))), post: sha(fs.readFileSync(path.join(scratch, f))), role: 'new' });
 const spec = () => ({
+  // The successor and the module it loads are this package's OWN new product; the closure
+  // walk is bounded by exactly that set, and everything it reaches outside it is a boundary
+  // file the runner requires to be a parent pin or the immutable conform library.
+  product: { [SUCCESSOR]: pin(SUCCESSOR), [MODULE]: pin(MODULE) },
   children: [{ name: CHILD, argv: [SUCCESSOR], needle: VERDICT }],
   coverage: { inherited: { ...inherited }, moves: {}, successors: {
     ruling: 'MOVES_RULING=' + api.SUCCESSOR_RULING + ' B-NTC-INHERITED-1',

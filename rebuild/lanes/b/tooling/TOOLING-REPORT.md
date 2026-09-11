@@ -1790,3 +1790,98 @@ packages/B2.json      378 lines   25989 bytes  1e9af6784e5c4415d8a139a5641683135
 packages/B3.json      275 lines   20982 bytes  774b3b8ec7a35201fbd748e2d3a9519f9f6149d83cb51fbe80c286ad349eed48
 packages/B4.json      265 lines   20449 bytes  7f6e0a188e87d79454a9578eb49aa010844997b076eee1305e89b99434193ac0
 ```
+
+---
+
+# §r5 — THE FIX PASS AFTER TOOLING-REVIEW-r5 (REJECT / NOT SAFE TO SEAL)
+
+`TOOLING-REVIEW-r5.md` accepted `c7b7133` and confirmed r4's Y1–Y4 landed and effective, and
+**REJECTED** `7cd7a5b` and `85f7d56`. Its F10 also recorded that this report was untouched by
+all three commits and still described an 820-line runner. This section is the head of record.
+
+## r5 §F10 — the delivered bytes at this head, measured
+
+`TOOLING-REPORT.md` itself is not in the table; a file cannot carry its own hash. Reproduce
+with `Get-FileHash -Algorithm SHA256` on the committed bytes.
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 1401 | 112 245 | `448a33520a3f1ea9960e6ef69c7faa995a783ca1466b5a731e6880924eb253ae` |
+| `README.md` | 755 | 53 756 | `5d076d96be0efb497de7737555775525fdf4b3850348ec45239b754e1b910c40` |
+| `test/execution-targets.test.cjs` | 181 | 12 047 | `2716035971efa8bdfe01972bff5d5cd7595725da4f588f869cb91187e45b527d` |
+| `test/successor-moves.test.cjs` | 318 | 20 020 | `b2d87f81a931336e709fe9f75a7e5ee1861ec9cd6c97d5dabebb55656f45c4d6` |
+
+The six package specs carry `448a3352…` as `tooling.runnerSha256`, re-pinned mechanically,
+and their own bytes are printed by `SPEC OBSERVED` on every run (and are pinned in Git at
+HEAD from this revision — Z7). Their sizes at this head:
+`B-NTC.json` 24 040 B, `B-LOM.json` 13 757 B, `B1.json` 25 107 B, `B2.json` 26 013 B,
+`B3.json` 21 006 B, `B4.json` 20 473 B — on `rebuild/lane-b-tooling`; `B-NTC.json` is larger
+on `rebuild/lane-b-ntc`, where the package's own children and successors are declared.
+
+(For the record of what moved: r4's head was 966 lines / 77 756 bytes; the head r5 reviewed
+was 1077 lines / 85 080 bytes / `ca0419e6…`, and **that head is withdrawn** — see below.)
+
+There is **no** `b-ntc-successors.json` in this directory and no policy file of any kind: the
+successor rule lives in `b-package.cjs` constants, where `DECISIONS:113 (1) (e)` puts it.
+`b-ntc-successors.cjs` — the lane-authored successor module — lives in the PACKAGE, at
+`rebuild/m4/spec/`, on `rebuild/lane-b-ntc`; this runner reads its substitution table without
+executing it.
+
+## The two commits are WITHDRAWN, not patched
+
+```
+$ git revert --no-edit 85f7d56 7cd7a5b
+[rebuild/lane-b-tooling 02eb2e3] Revert "Require B-NTC policy and bind inherited gates to exact accepted schedules"
+[rebuild/lane-b-tooling e8e2d61] Revert "Bind B-NTC successors to exact source policy and accepted-chain authority"
+$ git grep -n -e '614717800602' -e 'B-NTC-SUCCESSORS' -- rebuild/lanes/b/tooling   → exit 1 (no match)
+$ node --test rebuild/lanes/b/tooling/test/execution-targets.test.cjs             → # pass 9 · # fail 0  exit 0
+```
+
+History stays honest: the r5 review commit stays on top of the commits it rejected, and two
+revert commits stand above it. `c7b7133` (ACCEPT) is untouched. The Astra policy digest and
+the void theme name appear nowhere in this directory — grepped, exit 1.
+
+## The two suites at this head
+
+```
+$ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/execution-targets.test.cjs
+  # tests 9 · # pass 9 · # fail 0   EXIT=0
+$ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/successor-moves.test.cjs
+  # tests 8 · # pass 8 · # fail 0   EXIT=0
+```
+
+`execution-targets.test.cjs` is **Z8-fixed**: its inherited-map case built its expectation
+from the real `packages/B-NTC.json` and asserted `children.length === 5`, which is true on
+`rebuild/lane-b-tooling` and false (15) on `rebuild/lane-b-ntc` — r2's R8 by construction.
+It now builds its own five-carrier / nine-gate fixture and is 9/9 on either branch.
+
+`successor-moves.test.cjs` is **lane B's own (Z9)**, replacing the withdrawn
+`successor-authority.test.cjs`, which read `B_NTC_SOURCE_ROOT` defaulting to a sibling
+worktree and `git archive`d a commit on one lane branch only. The replacement builds its own
+Git repository in a temp directory, commits into it, compiles the REAL runner against it with
+exactly two constants re-pointed at that fixture (asserted to be the only two lines that
+differ), and drives `successorProof` / `successorCoverage` directly. No sibling worktree, no
+second branch, no accepted artifact, no receipt, no network. Its eight cases are the positive
+control plus one named negative per rule: Z1 (only the ruling admits, and a carrier whose
+closure does not reach the superseded support file drops out of the derived set), Z2 (the
+original's two anchors; a lockstep re-pin still refused by the Git blob; a copy instead of a
+load; a weakened table; a replacement outside the table; a missing table; a `from` absent from
+the original), Z3 (a prefix needle and a `0/6` needle both refuse), Z5 (no policy
+`sourceCommit` is read anywhere; the chain anchoring is a real Git ancestry question) and Z6
+(the vocabulary, and that `failCode` returns the code alone and `null` for anything else).
+
+## The moves rule, as it now stands
+
+`MOVES_RULING` is still `null` and `coverage.moves` is still `{}` in all six specs — **X1 is
+not widened, for B-NTC or for anyone**, which is `DECISIONS:113 (1) (a)` in terms. What the
+ruling admits is narrower: an inherited gate whose covering child is not a parent-pinned
+executable, and only for the package ids `SUCCESSOR_PACKAGES` names, only for gates DERIVED
+from the parent artifact's own `coverage.byChild` whose carrier closure reaches the superseded
+support file, and only when the spec cites `MOVES_RULING=DECISIONS:113`. The four proofs each
+successor must pass, and the refusal codes, are in `README.md` §"Successor carriers" and in
+the runner's own header.
+
+r5's Z1 was written before line 113 landed and reads `:112`'s earlier wording, under which the
+nine would have been `coverage.moves`; r5 itself put that to the PM as its question 1, and
+`:113` answered it the other way. The tooling follows the ruled text, and says so in the
+header rather than leaving a reader to reconcile the two.
