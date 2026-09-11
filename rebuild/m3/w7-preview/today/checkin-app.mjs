@@ -13,7 +13,10 @@
 
 import TodayApp from './today-app.cjs';
 import Model from './checkin-model.mjs';
+// The render boundary for the owner's no-dashes rule (DECISIONS:114 (1)).
+import PlainCopy from './plain-copy.cjs';
 
+const { plainCopy } = PlainCopy;
 const { ARROW } = TodayApp;
 const { SLEEP_KNOWN_LEAD, SLEEP_RECORD_PREFIX } = Model;
 
@@ -38,8 +41,8 @@ export function mountCheckIn(doc, phone, { model, onBack, onChanged } = {}) {
   };
   function put(map, name, text) {
     const el = map.get(name);
-    if (!el) throw new Error('Check-in: template slot missing — ' + name);
-    el.textContent = text === null || text === undefined ? '' : String(text);
+    if (!el) throw new Error('Check-in: template slot missing: ' + name);
+    el.textContent = plainCopy(text === null || text === undefined ? '' : String(text), name);
     el.hidden = text === null || text === undefined || text === '';
     return el;
   }
@@ -59,19 +62,19 @@ export function mountCheckIn(doc, phone, { model, onBack, onChanged } = {}) {
     recorded.replaceChildren();
     if (view.recorded) {
       const head = doc.createElement('p');
-      head.textContent = view.recorded.provenance || '';
+      head.textContent = plainCopy(view.recorded.provenance || '', 'recorded-provenance');
       head.hidden = !view.recorded.provenance;
       recorded.append(head);
       for (const line of view.recorded.lines) {
         const p = doc.createElement('p');
         p.className = 'fine';
-        p.textContent = line;
+        p.textContent = plainCopy(line, 'recorded-line');
         recorded.append(p);
       }
       /* The plan consequence, stated with the record it belongs to. A "saved" screen
          alone would imply the engine used these answers; it has not. */
       const consequence = doc.createElement('p');
-      consequence.textContent = Model.PLAN_UNCHANGED;
+      consequence.textContent = plainCopy(Model.PLAN_UNCHANGED, 'plan-unchanged');
       recorded.append(consequence);
       recorded.hidden = false;
     } else recorded.hidden = true;
@@ -146,14 +149,14 @@ export function mountCheckIn(doc, phone, { model, onBack, onChanged } = {}) {
       const result = await model.save();
       busy = false;
       if (!result.ok) {
-        if (error) error.textContent = result.copy;
+        if (error) error.textContent = plainCopy(result.copy, 'checkin-error');
         primary.disabled = false;
         return;
       }
       paint();
       if (onChanged) onChanged();
     });
-    if (view.message && !view.message.ok && error) error.textContent = view.message.copy;
+    if (view.message && !view.message.ok && error) error.textContent = plainCopy(view.message.copy, 'checkin-error');
 
     for (const el of root.querySelectorAll('[data-go="today"]')) {
       el.addEventListener('click', event => { event.preventDefault(); if (onBack) onBack(); });

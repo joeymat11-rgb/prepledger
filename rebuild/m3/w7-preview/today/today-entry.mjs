@@ -26,7 +26,10 @@ import { createCheckInHost, PROFILE as CHECKIN_PROFILE } from "./checkin-host.mj
 import CheckInCommands from "./checkin-commands.cjs";
 import { createCheckInModel } from "./checkin-model.mjs";
 import { mountCheckIn } from "./checkin-app.mjs";
+// The render boundary for the owner's no-dashes rule (DECISIONS:114 (1)).
+import PlainCopy from "./plain-copy.cjs";
 
+const { plainCopy } = PlainCopy;
 const { createCheckInCommands } = CheckInCommands;
 
 const { mountToday, createTodayModel } = app;
@@ -196,19 +199,25 @@ export async function boot(options = {}) {
   /* Every cause is surfaced, not swallowed (review, non-blocking). The page still
      renders whatever it honestly can. */
   const status = doc.getElementById("today-status");
-  if (restoreRequired && status) status.textContent = RESTORE_REQUIRED + " (" + restoreRequired + ")";
-  else if (failures.length && status) status.textContent = "Not everything opened: " + failures.join("; ")
-    + ". Nothing was recorded.";
+  if (restoreRequired && status) status.textContent = plainCopy(RESTORE_REQUIRED + " (" + restoreRequired + ")", "today-status");
+  else if (failures.length && status) status.textContent = plainCopy("Not everything opened: " + failures.join("; ")
+    + ". Nothing was recorded.", "today-status");
   return { api, workout, checkin, model, readings, hosts, restoreRequired, failures };
 }
 
 if (typeof document !== "undefined" && document.getElementById("phone")) {
   boot().catch((error) => {
     const host = document.getElementById("phone");
-    const cause = error && error.message ? error.message : String(error);
-    if (host) host.textContent = "Today could not open on this device. Nothing was changed or recorded. " + cause;
+    /* The last-chance screen. The cause is a machine's sentence, so it can carry a dash
+       the normaliser has no rule for; the owner's rule (DECISIONS:114 (1)) still holds
+       here, and a blank page would be worse than a nameless failure, so a cause that
+       cannot be made plain is dropped from the screen and left to the console. */
+    const raw = error && error.message ? error.message : String(error);
+    let cause = "";
+    try { cause = " " + plainCopy(raw, "boot-failure"); } catch (_) { console.error(raw); }
+    if (host) host.textContent = "Today could not open on this device. Nothing was changed or recorded." + cause;
     const status = document.getElementById("today-status");
-    if (status) status.textContent = "Today did not open: " + cause + ". Nothing was recorded.";
+    if (status) status.textContent = "Today did not open." + cause + " Nothing was recorded.";
   });
 }
 
