@@ -41,6 +41,8 @@ const signalState = (...args) => E.signalState(...args);
 const stepTarget = (...args) => E.stepTarget(...args);
 const structuralMovesThisWeek = (...args) => E.structuralMovesThisWeek(...args);
 const targetsFor = (...args) => E.targetsFor(...args);
+const governingLast = (...args) => E.governingLast(...args);
+const governingMeta = (...args) => E.governingMeta(...args);
 const todayStart = (...args) => E.todayStart(...args);
 const typicalError = (...args) => E.typicalError(...args);
 const weekDay = (...args) => E.weekDay(...args);
@@ -72,6 +74,9 @@ function genSession(s, iso, slp) {
     const isDebutNow = active.has(e.id);
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
     const w = q && q.newW != null ? q.newW : e.w;
+    /* NATIVE-NEXT-TARGETS — the card reads the governing last line and metadata
+       through the shared source-owned helpers (legacy-only: the same cache). */
+    const last9 = governingLast(e, s), meta9 = governingMeta(e, s);
     let tgt, note, baselineAsk = false;
     if (e.w == null) {   /* R2 fix-2: was gated on !lastMeta && !last, so a BLANK completion (honest log, no load) dropped the next card into hi-2 chase targets; the ask stands until a load exists */
       /* FIX split-1 (P0-2) — THE DEBUT/BASELINE ASK (R20b register): a lift
@@ -85,7 +90,7 @@ function genSession(s, iso, slp) {
       note = "DEBUT — find the working weight: pick a load you can control for about " + (e.hi != null ? e.hi : "the target") + " reps, enter the load and log what it gives. Zero expectations — everything banks.";
     }
     else if (e.id === "hack" && e.pendingThird && isDebutNow) { tgt = [...targetsFor(e, s), Math.max(8, e.hi - 3)]; note = "DEBUT — third set banks whatever it gives"; }
-    else if (q && q.kind === "debut" && e.last) {
+    else if (q && q.kind === "debut" && last9) {
       /* C12 — FIT THE PRIOR LINE TO THE SET COUNT FIRST. e.last is the line at the OLD
          load and may carry a different number of sets than this lift now runs: a 4-set
          last line on a 5-set lift produced four targets. Same pad-and-truncate rule the
@@ -98,7 +103,7 @@ function genSession(s, iso, slp) {
          asked [8,8,9] and delivered [7,7,8]) and the floor could ask a COLLAPSED set for
          MORE at a heavier load (press [8,9,8,4] -> [7,8,7,6]). The floor of 6 is deleted;
          every target still floors at 1. */
-      const base9 = e.last.slice(0, e.sets);
+      const base9 = last9.slice(0, e.sets);
       while (base9.length < e.sets) base9.push(Math.max(1, _padFrom9(base9, e.hi) - 1));
       const vecOld9 = Array.isArray(e.wSets) ? e.wSets : null;
       const vecNew9 = Array.isArray(q.newWSets) ? q.newWSets : null;
@@ -112,7 +117,7 @@ function genSession(s, iso, slp) {
         ? `DEBUT at ${w} — smallest honest jump: expect to keep almost every rep`
         : `DEBUT at ${w} — honest jump: about ${d9} fewer per set${pct9 != null ? " at +" + pct9 + "%" : ""}`;
     }
-    else if (q && !e.last) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }
+    else if (q && !last9) { tgt = targetsFor(e, s); note = e.debutNote || `DEBUT at ${w}`; }
     else { tgt = targetsFor(e, s); note = e.own ? `OWN-IT — ${e.ownNote}` : e.reclaim ? "RECLAIM — the exact standard" : e.ladder ? `set ${e.ladder.set + 1} is the ladder — top of rung ${e.ladder.top}` : e.note; }
     /* C7/Q5 (PROGRESSION-1, the owner's exact words) — ONE LINE FOR THE RULED REALLOCATION.
        Calves shows three sets where its last delivered line has four, and the card said
@@ -121,7 +126,7 @@ function genSession(s, iso, slp) {
        rewritten and the set does not come back. It retires itself the moment a three-set
        line exists, because then the card and the record agree without explanation. */
     const realloc9 = SET_REALLOCATIONS.find((x) => x.id === e.id && String(e.setsAt || "") === x.setsAt);
-    if (realloc9 && e.sets < ((e.last || []).length || 0)) note = realloc9.line;
+    if (realloc9 && e.sets < ((last9 || []).length || 0)) note = realloc9.line;
     if (e.holdFlag) note = "HELD — opener ran 0 RIR twice · one honest session releases it";
     const live = (() => {
       if (baselineAsk) return "baseline ask — enter the load you used; what it gives today IS the line";
@@ -129,7 +134,7 @@ function genSession(s, iso, slp) {
       if (isDebutNow && q) return `debut at ${w} — log what it gives, zero expectations`;
       if (e.std && e.own) return `${e.std.join(",")} clean owns it — honest opener, controlled every rep`;
       if (e.reclaim) return `reclaim the exact ${e.reclaim.join(",")} — ${e.reclaim.reduce((a, b) => a + b, 0)} honest reps buys the increment`;
-      if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${e.last ? e.last[e.ladder.set] : "?"} → ${e.ladder.top} finishes the rung`;
+      if (e.ladder) return `set ${e.ladder.set + 1} is the money set — ${last9 ? last9[e.ladder.set] : "?"} → ${e.ladder.top} finishes the rung`;
       return `chase ${tgt.join(",")} — ${progressStep(e, s).why}`;
     })();
     /* R18a — THE RUNWAY, VISIBLE. Every numeric lift names its next load and the measured
@@ -151,8 +156,8 @@ function genSession(s, iso, slp) {
          flooring at window-lo printed 4 where the earn needed 3. And a lift whose last
          session logged fewer sets than it now runs cannot evaluate the window at all —
          it names the arming condition instead of implying tonight can earn. */
-      const base9 = e.last && e.last.length ? e.last : tgt;
-      if (e.last && e.last.length && e.sets && e.last.length < e.sets) return "arming: " + e.last.length + " of " + e.sets + " sets on file — the window reads only a full " + e.sets + "-set session; log one and the runway prices itself";
+      const base9 = last9 && last9.length ? last9 : tgt;
+      if (last9 && last9.length && e.sets && last9.length < e.sets) return "arming: " + last9.length + " of " + e.sets + " sets on file — the window reads only a full " + e.sets + "-set session; log one and the runway prices itself";
       const dist9 = base9.reduce((a9, v9, i9) => a9 + Math.max(0, ((win9.hi || 0) - i9) - (v9 || 0)), 0);
       if (up9 == null) return loadRungs(e)
         ? "no rung above " + e.w + " is on file — if the machine makes more, answer the ask on TRAIN (or SETUP ✎) and the next earn has a price; if this is the top of the stack, reps are the ladder from here"
@@ -163,7 +168,7 @@ function genSession(s, iso, slp) {
       const blind9 = rungsUp9 != null && rungsUp9 <= 1 ? " · the ladder goes blind above " + up9 + " — file the machine's next rungs in SETUP (uneven ✎) so the earn after this one has a price" : "";
       return up9 + " EARNS AT THE TOP OF THE WINDOW (" + win9.lo + "-" + win9.hi + ") — " + (dist9 === 0 ? "you are there" : "you are " + dist9 + " rep" + (dist9 === 1 ? "" : "s") + " away") + " · " + (sight9 ? "one sighting banked — one more banks it" : "two sightings bank it") + (te9 ? ", or one that beats your ±" + te9 + " spread" : "") + blind9;
     })();
-    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, ...(baselineAsk ? { baselineAsk: true } : {}), setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : e.lastMeta };   /* FIX 3c — a fresh era has no "last time" to beat; the baseline banner carries the why */
+    return { id: e.id, n: e.n, w, tgt, note, isDebutNow, ...(baselineAsk ? { baselineAsk: true } : {}), setup: e.setup, live, runway, prev: eraFresh(s, e.id) ? null : meta9 };   /* FIX 3c — a fresh era has no "last time" to beat; the baseline banner carries the why */
   });
   /* R18a — the header's no-debut claim carries a receipt: the nearest earn on THIS card,
      named with its measured distance, so "rep progression day" reads as a location. */

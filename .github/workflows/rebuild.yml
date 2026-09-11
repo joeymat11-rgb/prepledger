@@ -48,7 +48,7 @@ jobs:
         run: node rebuild/t2/rig187.cjs
       - name: Synthetic Today projection, UI and preview package
         run: node --test rebuild/m3/w7-preview/test/model.test.cjs rebuild/m3/w7-preview/test/view.test.cjs rebuild/m3/w7-preview/test/package.test.cjs
-      - name: Cumulative extracted-engine load-write and second-gate evidence
-        run: node rebuild/m4/spec/load-write-package.cjs --ci
+      - name: Cumulative extracted-engine native-carrier and legacy-census evidence
+        run: node rebuild/m4/spec/native-carriers-package.cjs --ci
       - name: Report the evidence boundary
         run: node -e "console.log('W0 PUBLIC CI PASS; private oracle/full selftest, real backend, installed phone and final M3 SCOPE-FREEZE remain separate acceptance gates')"

@@ -11,6 +11,7 @@ const atTopOfWindow = (...args) => E.atTopOfWindow(...args);
 const bfEst = (...args) => E.bfEst(...args);
 const blackoutOn = (...args) => E.blackoutOn(...args);
 const bodyAlarm = (...args) => E.bodyAlarm(...args);
+const bodyAlarmSignal = (...args) => E.bodyAlarmSignal(...args);
 const buildRirSets = (...args) => E.buildRirSets(...args);
 const calorieFloor = (...args) => E.calorieFloor(...args);
 const cap = (...args) => E.cap(...args);
@@ -771,12 +772,38 @@ function rirPlan(s, ex, slp) {
   /* ALARM DAY (P5) — the every-0-becomes-1 rule lived only in copy; now the terminal
      set actually floors at 1 on an alarm day. Effort is modified; validity is not —
      what he delivers still counts and still banks. */
-  try { const al9p = bodyAlarm(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1)); why.push("alarm day — every 0 becomes a 1; delivered reps still count and bank"); } } catch (e) {}
+  /* NATIVE-NEXT-TARGETS — the floor reads the shared detection signal only. The
+     old call built the full presentation (lab groups, canary, HISTORY) merely to
+     test truthiness, and a presentation failure after a real signal silently
+     became an all-clear. Detection failure on an invalid state still yields no
+     floor, exactly as before; presentation can no longer drop the effect. */
+  try { const al9p = bodyAlarmSignal(s); if (al9p) { plan = plan.map((r) => Math.max(r, 1)); why.push("alarm day — every 0 becomes a 1; delivered reps still count and bank"); } } catch (e) {}
   /* v7.53.0 JOB 1 — the failure A/B's terminal-set cap is RETIRED with the
      experiment. The research default is the standing policy: 1-2 RIR
      everywhere, an occasional all-out last set as the honesty tool. */
-  const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
-  if (opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
+  let hotOpenerHistory;
+  if (!s.workoutFacts) {
+    const opens = Object.values(s.sessionLog).flatMap((sl) => (sl.entries || []).filter((e) => e.id === ex.id && e.rir != null).map((e) => e.rir)).sort((a, b) => a - b);
+    hotOpenerHistory = opens.length >= 3 && opens[Math.floor(opens.length / 2)] <= 0;
+  } else {
+    let known = 0, hot = 0;
+    for (const {rec} of E.performedHistoryMembers(s)) for (const entry of rec.entries || []) {
+      const rich = E.performedEntry(entry);
+      if (rich) {
+        if (rich.lift_lineage_id !== ex.id) continue;
+        const opener = E.performedOriginalRirSets(rich)[0];
+        if (!E.effortKnown(opener)) continue;
+        known++; if (E.effortIs(opener, 'eq0')) hot++;
+      } else if (entry.id === ex.id && entry.rir != null) {
+        known++; if (entry.rir <= 0) hot++;
+      }
+    }
+    // The original upper-median <=0 rule is exactly a strict majority of
+    // known hot openers, with the same minimum three. A 3+ bound is known
+    // nonzero, never an exact rating; missing/removed openers stay missing.
+    hotOpenerHistory = known >= 3 && hot > Math.floor(known / 2);
+  }
+  if (hotOpenerHistory) { plan = plan.map((r, i) => (i === 0 ? r + 1 : r)); why.push("your openers run hot on this lift — bank one early"); }
   return { plan, why };
 }
 

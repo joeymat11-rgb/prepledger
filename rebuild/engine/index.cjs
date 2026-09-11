@@ -4,6 +4,8 @@ const modules = [
   require("./dates.cjs"),
   require("./constants.cjs"),
   require("./seed.cjs"),
+  require("./entered-load.cjs"),
+  require("./performed.cjs"),
   require("./plan.cjs"),
   require("./progression.cjs"),
   require("./sleep.cjs"),

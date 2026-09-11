@@ -34,21 +34,104 @@ function progressStep(ex, s) {
      ruling, before a single session ran under it). Progression is RIR-driven on
      every lift again; a stray lift_pair trial on an unsynced device can no
      longer freeze what he lifts. */
-  const rs = ex.lastMeta ? rirSetsOf(ex.lastMeta) : [];
+  const meta9 = governingMeta(ex, s);
+  const rich = E.performedEntry(meta9);
+  const rs = meta9 ? (rich ? E.performedOriginalRirSets(rich) : rirSetsOf(meta9)) : [];
   const term = rs.length > 1 ? rs[rs.length - 1] : null;
   const open = rs.length ? rs[0] : null;
-  if (term != null) {
-    if (term >= 3) return { add: 3, why: `you finished the last set with ${term} reps still in the tank, on the set the taper sends to failure — that is unspent stimulus, so the step is real` };
-    if (term === 2) return { add: 2, why: "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it" };
-    if (term === 1) return { add: 2, why: "one rep short of failure on the last set — close enough that the next step can be more than a token" };
-    return { add: 1, why: "you took the last set to failure exactly as prescribed — one rep is the honest step from there" };
+  if (rich ? E.effortKnown(term) : term != null) {
+    if (rich ? E.effortIs(term, "gte3") : term >= 3) return { add: 3, why: rich ? E.performedStepWhy(rich, "terminal-ge3") : `you finished the last set with ${term} reps still in the tank, on the set the taper sends to failure — that is unspent stimulus, so the step is real` };
+    if (rich ? E.effortIs(term, "eq2") : term === 2) return { add: 2, why: rich ? E.performedStepWhy(rich, "terminal-eq2") : "two reps left on the set meant to reach failure — there is room above, and a token single rep would waste it" };
+    if (rich ? E.effortIs(term, "eq1") : term === 1) return { add: 2, why: rich ? E.performedStepWhy(rich, "terminal-eq1") : "one rep short of failure on the last set — close enough that the next step can be more than a token" };
+    return { add: 1, why: rich ? E.performedStepWhy(rich, "terminal-zero") : "you took the last set to failure exactly as prescribed — one rep is the honest step from there" };
   }
-  if (open != null) {
-    if (open >= 3) return { add: 2, why: `opener at ${open} RIR and no last-set rating — the opener alone says there was headroom` };
-    if (open === 2) return { add: 1, why: "opener at the prescribed 2 RIR, last set unrated — one rep until the terminal set is on file to say otherwise" };
-    return { add: 1, why: "opener ran at 1 RIR or hotter — the step holds at one rep" };
+  if (rich ? E.effortKnown(open) : open != null) {
+    if (rich ? E.effortIs(open, "gte3") : open >= 3) return { add: 2, why: rich ? E.performedStepWhy(rich, "opener-ge3") : `opener at ${open} RIR and no last-set rating — the opener alone says there was headroom` };
+    if (rich ? E.effortIs(open, "eq2") : open === 2) return { add: 1, why: rich ? E.performedStepWhy(rich, "opener-eq2") : "opener at the prescribed 2 RIR, last set unrated — one rep until the terminal set is on file to say otherwise" };
+    return { add: 1, why: rich ? E.performedStepWhy(rich, "opener-low") : "opener ran at 1 RIR or hotter — the step holds at one rep" };
   }
-  return { add: 1, why: "nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper" };
+  return { add: 1, why: rich ? E.performedStepWhy(rich, "no-rating") : "nothing rated last time, so the step defaults to a single rep — rate the last set and this gets sharper" };
+}
+
+/* NATIVE-NEXT-TARGETS — ONE source-owned governing read. With a registered
+   native view (s.workoutFacts) the values the prescription reads come from the
+   factual history in its established causal order (E.performedHistoryRows),
+   never from the exercise.last/lastMeta cache. Three consumer rules stay
+   separate: latest factual metadata (governingMeta), the eligible anchor line
+   (progressAnchor: same era, not rushed, same load at every performed
+   position) and the progression-bearing count (_loadTenure). Legacy-only
+   inputs (no workoutFacts) keep every original read byte for byte. */
+function _nativeView(s) { return !!(s && s.workoutFacts); }
+function _rowsFor(s, exId) {
+  const rows = [];
+  for (const row of E.performedHistoryRows(s)) {
+    const native = row.source === "performed";
+    const en = ((row.rec || {}).entries || []).find((e) => e && (native ? e.lift_lineage_id : e.id) === exId);
+    if (!en) continue;
+    if (native) { const line9 = E.performedLine(en); if (line9 && !line9.originals) continue; }
+    rows.push({ d: row.d, source: row.source, start_op_id: row.start_op_id, rec: row.rec, en, native });
+  }
+  return rows;
+}
+function _lineOf(row) {
+  if (row.native) { const line = E.performedLine(row.en); return line ? line.reps.slice() : []; }
+  return Array.isArray(row.en.reps) ? row.en.reps.slice() : [];
+}
+function _prescribedLoads(ex) {
+  return Array.from({ length: Math.max(1, ex.sets || 1) }, (_, i) => (Array.isArray(ex.wSets) && ex.wSets[i] != null ? ex.wSets[i] : ex.w));
+}
+function _rowAtCurrentLoad(row, ex) {
+  if (row.native) return E.performedLoadMatches(row.en, _prescribedLoads(ex));
+  if (typeof ex.w === "number") return String(row.en.w) === String(ex.w);
+  return row.en.wKey === String(ex.w);
+}
+function _rowRushed(s, row) { return row.native ? E.performedTrendContext(s, row).rushed : paceRushed(row.rec); }
+function _rowDebt(s, row) {
+  if (row.native) return E.performedTrendContext(s, row).debt;
+  try { return !cleanAtDate(s, row.d); } catch (e) { return false; }
+}
+/* A consented reset writes ex.last = null and a dated RESET APPLIED feed line.
+   Rows after that day set the line again; rows before it never undo the reset;
+   a row ON that day is an unproved cross-reset mapping and refuses. */
+function _resetAfter(ex, s) {
+  const names9 = _formerNames(ex).map((n9) => "RESET APPLIED — " + n9);
+  let at = null;
+  for (const f9 of ((s && s.feed) || [])) {
+    if (!f9 || typeof f9.t !== "string" || !names9.some((n9) => f9.t.indexOf(n9) === 0) || !f9.d) continue;
+    if (at == null || String(f9.d) > at) at = String(f9.d);
+  }
+  return at;
+}
+/* Rows for this lift under the registered view. When the history carries no
+   row of any source for the lift, the imported cache is the undisputed
+   baseline and stands. Once any row exists (a removed native session still
+   counts as a row), the rows alone decide: a stale or contradictory cache is
+   never revived, and a removed contributor is recomputed from what remains. */
+function _governingRows(ex, s) {
+  const all = _rowsFor(s, ex.id);
+  if (!all.length) return null;
+  const rows = all.filter((row) => _lineOf(row).length);
+  if (ex.last !== null) return rows;
+  const at = _resetAfter(ex, s);
+  if (at == null) return rows;
+  if (rows.some((row) => String(row.d) === at)) { const e = new Error("PROGRESSION_RESET_MAPPING_REQUIRED"); e.code = e.message; e.reset_at = at; throw e; }
+  return rows.filter((row) => String(row.d) > at);
+}
+function governingLast(ex, s) {
+  if (!_nativeView(s)) return ex.last;
+  const rows = _governingRows(ex, s);
+  if (rows === null) return ex.last;
+  return rows.length ? _lineOf(rows[rows.length - 1]) : null;
+}
+function governingMeta(ex, s) {
+  if (!_nativeView(s)) return ex.lastMeta;
+  const rows = _governingRows(ex, s);
+  if (rows === null) return ex.lastMeta;
+  if (!rows.length) return null;
+  const row = rows[rows.length - 1];
+  if (row.native) return row.en;
+  const en = row.en;
+  return { d: row.d, w: en.w, reps: en.reps.slice(), rir: en.rir ?? null, rirSets: rirSetsOf(en), debt: _rowDebt(s, row) };
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:970-995.
@@ -60,12 +143,23 @@ function progressAnchor(ex, s) {
      days old). Entries now carry wKey = String(config) at log time; a
      non-numeric config anchors ONLY on its own wKey; legacy null/string
      entries never match and the fallback stays ex.last. */
-  const base = (ex.last || []).slice();
+  const base = (governingLast(ex, s) || []).slice();
   if (!s || !base.length) return base;
   const numericCfg = typeof ex.w === "number";
-  const days9 = Object.keys(s.sessionLog || {}).sort();
   const fkA = forksOf(s, ex.id);
   const atA = isoOf(todayStart());
+  if (_nativeView(s)) {
+    const rows = _governingRows(ex, s) || [];
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const row = rows[i];
+      if (!sameEra(fkA, row.d, atA)) continue;
+      if (_rowRushed(s, row)) continue;
+      if (!_rowAtCurrentLoad(row, ex)) continue;
+      return _lineOf(row);
+    }
+    return base;
+  }
+  const days9 = Object.keys(s.sessionLog || {}).sort();
   for (let i = days9.length - 1; i >= 0; i--) {
     if (!sameEra(fkA, days9[i], atA)) continue;   /* FIX 3c — an anchor from another technique era anchors nothing */
     const sl = s.sessionLog[days9[i]];
@@ -93,11 +187,24 @@ function _padFrom9(arr, hi) {
 // Copied from frozen src/app.jsx @ fe516c1:1034-1046.
 function _loadTenure(ex, s, ref, fks) {
   const all9 = [];
+  if (_nativeView(s)) {
+    /* native view: the same rows, in causal order, each carrying its performed
+       prefix as the line; the tenure is the suffix at the current load vector */
+    for (const row of _rowsFor(s, ex.id)) {
+      const d9 = row.d, line9 = _lineOf(row);
+      if (ref != null && d9 > String(ref)) continue;
+      if (fks && fks.length && !sameEra(fks, d9, ref)) continue;
+      if (line9.length) all9.push([d9, row.en, line9, row]);
+    }
+    let i0 = all9.length;
+    while (i0 > 0 && _rowAtCurrentLoad(all9[i0 - 1][3], ex)) i0--;
+    return { all: all9, tenure: all9.slice(i0) };
+  }
   for (const d9 of Object.keys((s && s.sessionLog) || {}).sort()) {
     if (ref != null && d9 > String(ref)) continue;
     if (fks && fks.length && !sameEra(fks, d9, ref)) continue;
     const en9 = (((s.sessionLog[d9] || {}).entries) || []).find((e9) => e9 && e9.id === ex.id && Array.isArray(e9.reps) && e9.reps.length);
-    if (en9) all9.push([d9, en9]);
+    if (en9) all9.push([d9, en9, en9.reps.slice()]);
   }
   const key9 = String(ex.w);
   let i0 = all9.length;
@@ -161,7 +268,7 @@ function targetsFor(ex, s) {
   const fitN = (arr) => { const t9 = arr.slice(0, ex.sets); while (t9.length < ex.sets) t9.push(Math.max(1, _padFrom9(t9, ex.hi) - 1)); return t9; };
   if (ex.std) return fitN(ex.std);
   if (ex.reclaim) return fitN(ex.reclaim);
-  if (!ex.last) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
+  if (!governingLast(ex, s)) return (ex.first || Array(ex.sets).fill(Math.max(1, ex.hi - 2))).slice();
   const t = progressAnchor(ex, s).slice(0, ex.sets);
   while (t.length < ex.sets) t.push(Math.max(1, _padFrom9(t, ex.hi) - 1));
   const { add } = progressStep(ex, s);
@@ -364,8 +471,8 @@ function progressionSetCount(ex, s, through) {
        either. A decline ("VOLUME PASSED") carries no "via" and no sign, and is not a move. */
     const volDeltas9 = _volDeltas(ex, s);
     const setsAtTime9 = (d9) => _setsAtTime(ex.sets, volDeltas9, d9);
-    for (const [d9, en9] of tenure9) {
-      if (en9.reps.length >= setsAtTime9(d9)) return Math.min(ex.sets, en9.reps.length);
+    for (const [d9, , line9] of tenure9) {
+      if (line9.length >= setsAtTime9(d9)) return Math.min(ex.sets, line9.length);
     }
   } catch (e) {}
   return ex.sets;
@@ -413,6 +520,7 @@ function deriveLastMeta(s, exId) {
 
 // Copied from frozen src/app.jsx @ fe516c1:1679-1686.
 function rirSetsOf(en) {
+  const rich = E.performedRirSets(en); if (rich) return rich;
   if (!en) return [];
   const len = (en.reps || []).length;
   const arr = Array.isArray(en.rirSets) ? en.rirSets.slice(0, len) : [];
@@ -423,6 +531,7 @@ function rirSetsOf(en) {
 
 // Copied from frozen src/app.jsx @ fe516c1:1704-1711.
 function rirReceipt(en) {
+  if (E.performedEntry(en)) return E.performedRirReceipt(en);
   const arr = rirSetsOf(en);
   if (!arr.length) return null;
   const open = arr[0], last = arr[arr.length - 1];
@@ -446,19 +555,26 @@ function typicalError(s, exId, asOf) {
   const at9 = asOf || isoOf(todayStart());   /* v7.53.0 (b) — no date means "now", and now belongs to whichever era today is in */
   const fkCache = {};
   const fkOf = (id9) => (id9 in fkCache ? fkCache[id9] : (fkCache[id9] = forksOf(s, id9)));
-  Object.keys((s && s.sessionLog) || {}).sort().forEach((d) =>
-    ((s.sessionLog[d] || {}).entries || []).forEach((e) => {
-      if (!(e && e.reps && e.reps.length)) return;
-      if (!sameEra(fkOf(e.id), d, at9)) return;   /* v7.53.0 (b) — pairs from a different technique era are a different lift's noise */
-      (byId[e.id] = byId[e.id] || []).push(e);
-    }));
+  for (const { d, rec } of E.performedHistoryRows(s)) {
+    for (const e of (rec || {}).entries || []) {
+      const rich = E.performedEntry(e);
+      if (!rich && !(e && e.reps && e.reps.length)) continue;
+      const id = rich ? rich.lift_lineage_id : e.id;
+      if (!sameEra(fkOf(id), d, at9)) continue;
+      (byId[id] = byId[id] || []).push(e);
+    }
+  }
   const pooled = [], mine = [];
   Object.keys(byId).forEach((id) => {
     const rs = byId[id];
     for (let i = 1; i < rs.length; i++) {
       const a = rs[i - 1], b = rs[i];
-      if (a.w == null || b.w == null || String(a.w) !== String(b.w) || a.reps.length !== b.reps.length) continue;
-      b.reps.forEach((x, j) => { const dlt = (Number(x) || 0) - (Number(a.reps[j]) || 0); pooled.push(dlt); if (id === exId) mine.push(dlt); });
+      let ar = a.reps, br = b.reps;
+      if (E.performedEntry(a) || E.performedEntry(b)) {
+        const pair = E.performedPair(a, b); if (!pair) continue;
+        ar = pair.a; br = pair.b;
+      } else if (a.w == null || b.w == null || String(a.w) !== String(b.w) || a.reps.length !== b.reps.length) continue;
+      br.forEach((x, j) => { const dlt = (Number(x) || 0) - (Number(ar[j]) || 0); pooled.push(dlt); if (id === exId) mine.push(dlt); });
     }
   });
   const sd = (arr) => {
@@ -514,7 +630,7 @@ function _deriveSightingFull(s, ex) {
     const volD9 = _volDeltas(ex, s);
     let topAt9 = null, topRun9 = 0; const tops9 = [];
     for (const p9 of tenure9) {
-      const d9 = p9[0], en9 = p9[1];
+      const d9 = p9[0], en9 = { reps: p9[2] };
       if (start9 != null && d9 < start9) continue;
       if (eraFirst9 != null && d9 === eraFirst9) continue;                       /* FIX 3c — the first era session banks nothing */
       if (lastEarn9 != null && d9 === lastEarn9) { topAt9 = null; topRun9 = 0; tops9.length = 0; continue; }   /* the earn day ends spent */
@@ -538,6 +654,16 @@ function deriveSighting(s, ex) { const f9 = _deriveSightingFull(s, ex); return {
 
 // Copied from frozen src/app.jsx @ fe516c1:3145-3155.
 function sessionScore(entry) {
+  const rich = E.performedNumericEntry(entry);
+  if (rich) {
+    if (rich.slots.some(slot => slot.state === "unresolved")) return null;
+    let work = 0;
+    for (const slot of rich.slots) if (slot.state === "performed") {
+      work += slot.fact.current.load.value * slot.fact.current.reps.value;
+      if (!Number.isFinite(work)) return null;
+    }
+    return work > 0 ? work : null;
+  }
   if (!entry) return null;
   const w = Number(entry.w);
   if (entry.w == null || entry.w === "" || !isFinite(w) || w <= 0) return null;
@@ -557,21 +683,26 @@ function liftTrend(s, exId, opts) {
   const cleanOnly = !!(opts && opts.cleanOnly);
   const minN = (opts && opts.minN) || TREND_MIN_SESSIONS;
   const log = (s && s.sessionLog) || {};
-  const days = Object.keys(log).sort();
+  const rows = s?.workoutFacts ? E.performedHistoryRows(s) : Object.keys(log).sort().map(d=>({d,rec:log[d],source:'legacy'}));
   const fkT = forksOf(s, exId);
   const atT = (opts && opts.asOf) || isoOf(todayStart());   /* v7.53.0 (b) — era-aware: the trend reads the regime containing the query date */
   const pts = [];
-  for (const d of days) {
+  for (const row of rows) {
+    const {d}=row;
     if (!sameEra(fkT, d, atT)) continue;
-    const rec = log[d] || {};
-    const en = (rec.entries || []).find((e) => e && e.id === exId);
+    const rec = row.rec || {};
+    const native = row.source === 'performed';
+    const en = (rec.entries || []).find((e) => e && (native ? e.lift_lineage_id : e.id) === exId);
     if (!en) continue;
-    const sc = sessionScore(en);
+    const observation = native ? E.performedTrendObservation(s,row,en) : null;
+    const sc = native ? observation.sc : sessionScore(en);
     if (sc == null) continue;
     let hard = false, rushed = false, debt = false;
+    if(native){({hard,rushed,debt}=observation);}else{
     try { hard = !!dayWeather(s, d).hardSession; } catch (e) { hard = false; }   /* R17 — the SESSION question, not the food one */
     try { rushed = !!paceRushed(rec); } catch (e) { rushed = false; }
     try { debt = !cleanAtDate(s, d); } catch (e) { debt = false; }
+    }
     /* EXCLUDE hard only. hard is a DATA-QUALITY flag (declared estimate day, event
        day) — the number itself is not trustworthy. rushed and short-sleep days are
        different: the number is real, the day was just harder.
@@ -586,7 +717,7 @@ function liftTrend(s, exId, opts) {
        short-sleep or rushed session can never be what makes the verdict falling. */
     if (hard) continue;
     if (cleanOnly && (rushed || debt)) continue;   /* the DOWNGRADE test re-estimates on clean SESSIONS, which is what the comment always promised */
-    pts.push({ d, y: sc, soft: rushed || debt, k: ((en.reps || []).length) });
+    pts.push({ d, y: sc, soft: rushed || debt, k: native ? observation.k : ((en.reps || []).length), ...(native?{start_op_id:row.start_op_id}:{}) });
   }
   /* AUDIT A (volume lever) — THE FEEDBACK LOOP, SEVERED AT ITS SOURCE. sessionScore is
      w x TOTAL reps, so a set-count change steps this series ~+1/oldSets instantly (2 -> 3
@@ -637,35 +768,44 @@ function liftTrend(s, exId, opts) {
   const sePct = Math.max((seB / my) * 100, TREND_SE_FLOOR);
   const t = _tCrit(n - 2);
   const nSoft = use.filter((p) => p.soft).length;
-  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use, k: lastK, resetAt: cutAt > 0 ? series[0].d : null };
+  return { id: exId, n, nSoft, pct: +pct.toFixed(3), se: +sePct.toFixed(3), lo: +(pct - t * sePct).toFixed(3), hi: +(pct + t * sePct).toFixed(3) /* se is rounded to 3dp HERE — that is why the floor above is 0.001 and not 1e-6. A tighter floor is silently rounded back to exactly 0 by this line, and a zero se takes infinite weight in the pooling. The guard was real; the formatter erased it. */, from: use[0].d, to: use[n - 1].d, pts: use, k: lastK, resetAt: cutAt > 0 ? series[0].d : null, ...(cutAt>0&&series[0].start_op_id?{reset_start_op_id:series[0].start_op_id}:{}) };
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:3273-3372.
 function progressionTrend(s) {
   const log = (s && s.sessionLog) || {};
-  const days = Object.keys(log).sort();
+  const rows = s?.workoutFacts ? E.performedHistoryRows(s) : Object.keys(log).sort().map(d=>({d,rec:log[d],source:'legacy'}));
   const seen = [];
-  for (const d of days) for (const e of (log[d].entries || [])) if (e && e.id && seen.indexOf(e.id) < 0) seen.push(e.id);
+  for(const row of rows)for(const e of (row.rec.entries||[])){
+    const id=row.source==='performed'?e.lift_lineage_id:e?.id;
+    if(id&&seen.indexOf(id)<0)seen.push(id);
+  }
   let nExcludedNonNumeric = 0;
   const excludedIds = [];
   /* R17 — THE RECEIPT. Any session day the trend layer sets aside is named here, from
      the same predicate liftTrend uses, so a count that drops always carries its reason
      to the coach card. Silent was the failure: 3 → 0 with no sentence anywhere. */
   const setAsideDays = Object.keys(log).filter((d) => { try { return !!dayWeather(s, d).hardSession; } catch (e) { return false; } }).sort();
+  const setAsideWorkouts=[];
+  for(const row of rows)if(row.source==='performed'&&E.performedTrendContext(s,row).hard){
+    setAsideWorkouts.push({d:row.d,start_op_id:row.start_op_id});
+    if(!setAsideDays.includes(row.d))setAsideDays.push(row.d);
+  }
   const trends = [];
   for (const id of seen) {
     let any = false, scored = false;
-    for (const d of days) {
-      const en = (log[d].entries || []).find((e) => e && e.id === id);
+    for (const row of rows) {
+      const native=row.source==='performed';
+      const en = (row.rec.entries || []).find((e) => e && (native?e.lift_lineage_id:e.id) === id);
       if (!en) continue;
       any = true;
-      if (sessionScore(en) != null) { scored = true; break; }
+      if ((native?E.performedTrendObservation(s,row,en).sc:sessionScore(en)) != null) { scored = true; break; }
     }
     if (any && !scored) { nExcludedNonNumeric++; excludedIds.push(id); continue; }
     const t = liftTrend(s, id);
     if (t) trends.push(t);
   }
-  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, setAsideDays: setAsideDays.slice().sort(), lifts: trends };
+  const base = { nLifts: trends.length, nExcludedNonNumeric, excludedIds, setAsideDays: setAsideDays.slice().sort(), lifts: trends, ...(s?.workoutFacts?{setAsideWorkouts}:{}) };
   if (trends.length < TREND_MIN_LIFTS) return { ...base, state: "unknown", pct: null, lo: null, hi: null, why: "only " + trends.length + " lift(s) carry a usable trend — " + TREND_MIN_LIFTS + " needed before this reads anything" };
   let sw = 0, swx = 0;
   for (const t of trends) { const w = 1 / (t.se * t.se); sw += w; swx += w * t.pct; }   /* no epsilon guard: TREND_SE_FLOOR makes se >= 0.001 by construction, so an epsilon here could never fire and would be one more guard that cannot. The invariant is asserted instead. */
@@ -746,6 +886,6 @@ function progressionTrend(s) {
 
 
 return {
-  progressStep, progressAnchor, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend
+  progressStep, progressAnchor, governingLast, governingMeta, maxedOut, _padFrom9, _loadTenure, _formerNames, _volDeltas, _setsAtTime, targetsFor, proposeLadder, loadRungs, debutDebit, nextLoad, prevLoad, snapLoad, deloadLoad, parseRungs, repsLostOnJump, windowFor, progressionSetCount, atTopOfWindow, buildRirSets, deriveLastMeta, rirSetsOf, rirReceipt, paceRushed, openerRir, terminalRir, typicalError, beatsNoise, _deriveSightingFull, deriveSighting, sessionScore, _tCrit, liftTrend, progressionTrend
 };
 };

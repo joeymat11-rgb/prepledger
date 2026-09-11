@@ -17,6 +17,10 @@ const ALLOWED_INPUTS = new Set([
   ...PREVIEW_INPUTS.map((name) => `rebuild/m3/w7-preview/${name}`),
   ...READ_INPUTS.map((name) => `rebuild/engine/${name}.cjs`),
   "rebuild/engine/earn.cjs",
+  // NATIVE-CARRIERS: the adopted progression/today/plan/writers carriers read the
+  // source-owned performed helpers, so the two native files are browser inputs too.
+  "rebuild/engine/performed.cjs",
+  "rebuild/engine/entered-load.cjs",
 ]);
 
 export function assertBundleInputs(inputs) {

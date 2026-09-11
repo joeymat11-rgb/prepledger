@@ -301,6 +301,16 @@ function eraFresh(s, exId, asOf) {
   if (!fks.length) return false;
   const ref = asOf || isoOf(todayStart());
   if (eraIdx(fks, ref) === 0) return false;
+  /* NATIVE-NEXT-TARGETS — a registered native session of the same era before
+     the reference day also ends freshness; the rows come from the one factual
+     history in causal order. Legacy-only inputs read the log exactly as before. */
+  if (s && s.workoutFacts) {
+    for (const row of E.performedHistoryRows(s)) {
+      const native = row.source === "performed";
+      if (row.d < ref && sameEra(fks, row.d, ref) && (((row.rec || {}).entries) || []).some((e) => e && (native ? e.lift_lineage_id === exId && !!(E.performedLine(e) || {}).originals : e.id === exId))) return false;
+    }
+    return true;
+  }
   for (const d of Object.keys((s && s.sessionLog) || {})) {
     if (d < ref && sameEra(fks, d, ref) && (((s.sessionLog[d] || {}).entries) || []).some((e) => e && e.id === exId)) return false;
   }
