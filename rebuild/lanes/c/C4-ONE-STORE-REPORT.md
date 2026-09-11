@@ -2,6 +2,8 @@
 
 **Branch** `rebuild/lane-c-today` · **base** `43470fe` (integration tip `6036dcf` = A1 Today +
 A2 gym card, plus lane C's accepted C1/C1b/C2/C2b).
+**Revision 2** — the three conditions of `C4-ONE-STORE-REVIEW.md` (ACCEPT WITH CONDITIONS at
+`d9891f0`) are closed; see **§8**.
 
 **What was asked.** Prove, in lane C's own files, that the PM's just-merged Today + gym card
 can run over the accepted LOCAL ERA store as a drop-in — one encrypted generation holding
@@ -80,15 +82,20 @@ const readings = await era.createReadingHost({ day });                        //
 const gymHost  = await era.createGymHost({ day, engineState, plannedSplitSlotId }); // gym-host.mjs shape
 ```
 
-* `era.createReadingHost(...)` returns **every member `reading-host.mjs` returns** —
+* `era.createReadingHost(...)` returns **every member NAME `reading-host.mjs` returns** —
   `repository, client, device, day, namespace, databaseName, lease, openedRefusal, face,
   reads, paint, label, blockedCopy, weighIn, restart, outboxRetained, close` — so
   `today-model.cjs` binds to it with no change. `weighIn` goes through C1's `execute()`.
-* `era.createGymHost(...)` returns **every member `gym-host.mjs` returns** —
+  **One member is deliberately `null`: `device`** — key custody is `local-keys.mjs`,
+  non-extractable and unexported, and `deviceKeyCustody` names where it went (residual 4).
+  Review D3: the shape pin was `typeof` only, and `typeof null === 'object'`, so a nulled
+  member passed silently; `device` is now the single **declared** exception and **any other
+  nulled member fails the pin by name**.
+* `era.createGymHost(...)` returns **every member NAME `gym-host.mjs` returns** —
   `host, repository, engine, day, plannedSplitSlotId, device, causalParents, causalTipsNow,
-  startOrderRefusal, close` — so `gym-model.mjs` and `gym-app.mjs` bind to it with no change.
-  The host is the accepted `composeWorkoutHost`, every durable-client member coming from
-  `client.hostBindings()`.
+  startOrderRefusal, close` — so `gym-model.mjs` and `gym-app.mjs` bind to it with no change
+  (same `device` exception). The host is the accepted `composeWorkoutHost`, every
+  durable-client member coming from `client.hostBindings()`.
 * **Each gym handle takes its own `hostBindings()`** — a fresh T2 stage closure and commit
   validator over the same repository — so today's card and the transient `hostForDay` used
   to retire an abandoned session cannot share staging state.
@@ -102,11 +109,29 @@ const gymHost  = await era.createGymHost({ day, engineState, plannedSplitSlotId 
   and **recorded** on `era.ignored()`, never quietly honoured. The journey asserts
   `era.ignored()` is empty.
 * **`causalTips` / `startOrderRefusalOf` are A2's own functions**, carried verbatim with
-  provenance and pinned **by source** in the test (`String(mine) === String(theirs)`), so
-  the drop-in refuses exactly the Starts the page refuses today. `PLAN_BASIS`, `INPUT_BASIS`,
-  `RESUME_REASON` and `PRODUCER` are pinned by value against the page's exports. The module
-  imports nothing from `w7-preview` (w6 must not depend on the page, and after the swap
-  `gym-host.mjs` is gone) — the test does the importing.
+  provenance, so the drop-in refuses exactly the Starts the page refuses today.
+  `PLAN_BASIS`, `INPUT_BASIS`, `RESUME_REASON` and `PRODUCER` are pinned by value against
+  the page's exports. The module imports nothing from `w7-preview` (w6 must not depend on
+  the page, and after the swap `gym-host.mjs` is gone) — the test does the importing.
+* **The pin is three layers, coarsest first (review D2).** `String(fn) === String(fn)` was
+  the whole pin and it is **blind to what the function closes over**: `causalTips` calls the
+  module-local `graphOps`, `startOrderRefusalOf` calls `graphOps` and `reachedFrom`, and
+  nothing compared those — two functions with identical source over different helpers pass
+  `String(a) === String(b)` and behave differently. Now: (1) the **sha256 of each whole
+  `today/**` file this branch depends on**, recorded against the bytes the drop-in and the
+  patch were written for, failing with the file name and both hashes; (2) the **extracted
+  source of `graphOps` and `reachedFrom`**, lifted out of *both* files by declaration and
+  compared source to source; (3) `String(fn)` on the two exported functions, as before.
+
+| sha256 | pinned file |
+|---|---|
+| `fa313c14ef1a962a63086b6efd34938959eea0548ee1f5aa50708027a92e9c98` | `rebuild/m3/w7-preview/today/today-entry.mjs` (the patch target) |
+| `9b018f11ad88903516721f56d5cec54714ceecf15d1a5f288c9c71bdc26c78a2` | `rebuild/m3/w7-preview/today/gym-host.mjs` (the carried functions and constants) |
+| `c28273b8c5b410068cd236a943002147f57dbea7a1c59f55543d9b134cd7dcec` | `rebuild/m3/w7-preview/today/reading-host.mjs` (the shape) |
+
+  They live in `PAGE_PINS` in `test/local-today-journey.test.mjs`. A change to any of them
+  is not necessarily wrong, but it must be re-read against `today-bindings.mjs` and against
+  §5's patch before this goes green again — the failure message says exactly that.
 
 **What the swap removes:** the constant `IDENTITY_KEY`, the static `ENROLMENT_EVIDENCE`, the
 page-minted AES/P-256 device keys, the fixed 'synthetic-preview' checkpoint label, the
@@ -119,7 +144,7 @@ three-signal restore-required verdict and a self-renewing 400-day lease.
 
 ## 3. Evidence
 
-### `rebuild/m3/w6/test/local-today-journey.test.mjs` — **35/35**
+### `rebuild/m3/w6/test/local-today-journey.test.mjs` — **43/43**
 
 | block | what it conducts |
 |---|---|
@@ -129,14 +154,38 @@ three-signal restore-required verdict and a self-renewing 400-day lease.
 | 4 · resume & recovery | a new page load on the same day resumes at the next set with the Start **byte-identical**; the next day names *which* day is unfinished and the accepted `early` close retires it in one operation |
 | 5 · partial erasure | the drop-in refuses with C1's own code for all three signals; the page's `reading-host.mjs` silently re-enrols over the same erasure |
 | 6 · no lost update | a reading and a set committed concurrently (§4) |
-| 7 · the pins | source-identity and value pins against the page's own hosts; shape pins member for member |
-| 8 · the proposed patch | the PM's `createWorkoutEntry` **with the patch applied**, driving `mountToday` + `mountGym` end to end over the one store |
+| 7 · the pins | the three-layer pin of §2 — file sha256, extracted helpers, `String(fn)` — plus the value pins and the shape pin with its one declared `null` |
+| 8 · the patch as product code | a copy of `createWorkoutEntry` with §5's **first** hunk applied by hand, driving `mountToday` + `mountGym` end to end over the one store. Not byte-equal to the patch: the quote style differs, `createGymHost` is namespace-qualified, the patch's comments are dropped |
+| 9 · **BOTH hunks, byte-exact** | §5's six anchors applied to a **disposable copy** of `today-entry.mjs` under the OS temp directory — never the tree — each matching **exactly once**; the report's own diff asserted to be that same patch line for line; then the patched `boot()` run **both ways** |
 
 The ONE-GENERATION assertions, in full: `collections.ops` holds **9** operations after the
 journey — 1 `reading` (schema 1) and 8 `session` (schema 2); `meta.checkpoint.counts` equals
 the whole generation's `{ops, outbox}`; `meta.device.seq` equals the op count; there is
 exactly **one** `lease_id` across both write paths; the device sequence is contiguous
 1..9; and `[...new Set(schema_version)] === [1, 2]` **in the same generation**.
+
+Block 9 in full, because it is the evidence review D1 asked for. The six anchors are applied
+to text read from the real `today-entry.mjs`, and the tree is re-read afterwards and asserted
+unchanged. The one change beyond the patch is disclosed and bounded: the copy's six relative
+import specifiers are rewritten to absolute `file://` URLs so the module still resolves to
+the **real** `today/**` files from the temp directory, and the rewrite is asserted to be
+exactly invertible back to the patched text — nothing else may differ. Then:
+
+* **`boot({ hosts: era })`** — `failures` is `[]`; `era.ignored()` is `[]` (the page minted
+  no device keys and passed none down); both handles report
+  `deviceKeyCustody: 'local-keys.mjs'`, so the hosts built really are the drop-in; both hold
+  the **same `repository` handle**; the whole product journey runs through the patched entry
+  point — "Log the scale" → weigh-in → "Start …" → `workout.open(...)` → four sets → finish →
+  `REVIEW_WORKOUT`; and the store afterwards is **7 ops in ONE generation**, classes
+  `['reading','session']`, schemas `[1, 2]`, one `lease_id`, `checkpoint.counts.ops === 7`,
+  no synthetic string in the sealed metadata, and the page's own two databases
+  **never created** (the IndexedDB name list is exactly the era's three).
+* **`boot()` with no `hosts`** — the default is preserved *in fact*: `failures` is `[]`, the
+  weigh-in is durable, the entry is `reading-host.mjs` (no `deviceKeyCustody`, and it holds
+  the page-minted key record), and it opens the page's own **two** generations —
+  `earned-today-preview-readings` (1 `reading` op, lease `schema_version` **1**) and
+  `earned-today-preview-workout` (1 `session-start`, lease `schema_version` **2**) beside
+  `earned-today-preview-device-keys`.
 
 ### `rebuild/m3/w6/test/local-today-browser.mjs` — real Edge, **5/5**, exit 0
 
@@ -213,10 +262,16 @@ Everything above runs without a single change inside `today/**`, except for one 
 (`:26`, `:30`, `:83`). There is no injection point, so the page cannot be pointed at
 another store without this hunk. **It is not applied here — `today/**` is PM-owned.**
 
-The patch is additive and default-preserving: a page that passes no `hosts` gets exactly
-what it gets today. **The patched `createWorkoutEntry` is executed** in block 8 of
-`test/local-today-journey.test.mjs` (a verbatim copy with these three lines changed), so the
-PM can see it working before applying it.
+The patch is additive and default-preserving, and that is **executed, not asserted** (review
+D1). Block 9 of `test/local-today-journey.test.mjs` applies the **six anchors below** — both
+hunks, byte for byte — to a disposable copy of `today-entry.mjs` under the OS temp directory,
+fails if any anchor matches other than exactly once, re-reads the tree to prove it was not
+written, checks that the diff printed here **is** that same patch line for line, and then
+runs the patched `boot()` twice: with `hosts` (one generation, the whole product journey) and
+**without** (the page's own two generations, unchanged). Block 8 separately reads the first
+hunk as product code; it is *not* byte-equal to the patch — different quote style, a
+namespace-qualified `createGymHost`, and the patch's comments dropped — and that hunk changes
+four lines, not three.
 
 ```diff
 --- a/rebuild/m3/w7-preview/today/today-entry.mjs
@@ -296,11 +351,11 @@ and `startOrderRefusalOf` are already carried in `today-bindings.mjs` with the s
 
 | | |
 |---|---|
-| files added | 5 — `local/today-bindings.mjs` (324), `local/today-browser-entry.mjs` (20), `test/local-today-journey.test.mjs` (637), `test/local-today-browser.mjs` (181), `test/local-schema-probe.mjs` (55) |
+| files added | 5 — `local/today-bindings.mjs` (324), `local/today-browser-entry.mjs` (20), `test/local-today-journey.test.mjs` (903), `test/local-today-browser.mjs` (181), `test/local-schema-probe.mjs` (55) |
 | files edited | 1 — `local/build.mjs`, **+8 lines, additive** (`TODAY_ENTRY`, `TODAY_OUTFILE`, `buildTodayBrowser`); both existing bundles byte-identical |
 | files edited under PM/host/client/engine ownership | **0** |
-| new assertions | 35 Node cases + 5 real-browser cases + 1 standalone probe |
-| W6 suite | 495 → **530**, 0 failures |
+| new assertions | 43 Node cases + 5 real-browser cases + 1 standalone probe |
+| W6 suite | 495 → **538**, 0 failures |
 | today / host suites | 123 / 22, **unchanged and untouched** |
 | bundle inputs | `today.js` 103 pinned inputs (vs `host.js` 97) |
 
@@ -308,8 +363,9 @@ and `startOrderRefusalOf` are already carried in `today-bindings.mjs` with the s
 
 ## 7. Residuals — what is NOT done
 
-1. **The swap itself is not applied.** `today/**` is PM-owned; §5 is the patch, executed in
-   a verbatim copy but not in the file.
+1. **The swap itself is not applied.** `today/**` is PM-owned; §5 is the patch, applied
+   byte-exactly to a disposable copy under the OS temp directory and executed both ways
+   (block 9), but never to the file.
 2. **F2 (`WORKOUT_PREPARATION_STALE`) is named, not removed.** The shipped screen re-prepares
    before every Start, so the product path is safe; a caller that holds a preparation across
    a reading write gets a refusal. If the PM wants it impossible rather than unreachable,
@@ -324,7 +380,8 @@ and `startOrderRefusalOf` are already carried in `today-bindings.mjs` with the s
 4. **`device` is `null` on both handles** (key custody is `local-keys.mjs`, non-extractable
    and unexported). Nothing in `today/**` reads `.device`; `deviceKeyCustody` names where it
    went. If a future screen wants a key record, it will have to ask for something that can
-   honestly be shown.
+   honestly be shown. Since review D3 the shape pin **declares this one exception by name**
+   and fails on any other nulled member, so the residual can no longer widen in silence.
 5. **No iPhone, no iOS Safari.** Chromium-family evidence only — that is C3's job, and the
    browser check says so in its own output.
 6. **Not run here:** `rebuild.yml --ci`, the native-carriers package gate, `run-current-head`,
@@ -333,3 +390,61 @@ and `startOrderRefusalOf` are already carried in `today-bindings.mjs` with the s
    the batched re-seal item (DECISIONS:103 §5), and this file adds one more suite to it.
 7. **Synthetic data only.** The athlete is `rebuild/m3/w7-preview/fixtures.cjs`. `ledger/`
    and `rebuild/conform/private` were not read.
+
+---
+
+## 8. The review's three conditions — what changed
+
+Independent review `C4-ONE-STORE-REVIEW.md` returned **ACCEPT WITH CONDITIONS** at `d9891f0`
+(no correctness defect found; the patch trial passed six anchors and 123/123; 175 concurrent
+write pairs produced zero lost updates). All three conditions are closed here.
+
+**D1 — the `boot()` hunk was executed nowhere in the branch.** True: block 8 only read the
+`createWorkoutEntry` hunk, and §5's central promise rested on inspection. **Block 9 now
+applies both hunks byte-exactly** to a disposable copy under the OS temp directory, asserts
+each of the six anchors matches exactly once, asserts the tree is unchanged afterwards,
+asserts the report's own diff is the same patch line for line, and runs the patched `boot()`
+**both ways** — `{ hosts: era }` through the whole product journey into one generation, and
+no-`hosts` into the page's own two generations with its own minted keys. Eight new
+assertions; nothing in the tree is written, and the one change beyond the patch (import
+specifiers rewritten to absolute `file://` URLs) is disclosed and asserted invertible.
+
+**D2 — the source pin was blind to module-local helpers.** True and latent: `graphOps` and
+`reachedFrom` are byte-identical today and nothing compared them, so a future edit to
+`gym-host.mjs`'s helpers would have left the pin green while the drop-in diverged. The pin is
+now three layers — **file sha256** of all three `today/**` files this branch depends on (the
+table in §2, with a failure message naming the file and both hashes), the **extracted source
+of both helpers** from both files, and `String(fn)` as before.
+
+**D3 — three sentences overstated.** All three corrected, and two of them made mechanically
+true rather than just reworded:
+
+* "verbatim … three lines" → block 8 is now described as what it is (the first hunk applied
+  by hand, four changed lines, *not* byte-equal — quote style, namespace qualification,
+  dropped comments), and the byte-exact application of both hunks is block 9.
+* "returns **every member**" → "every member **name**", with `device`'s deliberate `null`
+  stated at the point of the claim.
+* The shape pin was `typeof` only, so `typeof null === 'object'` let a nulled member through.
+  It now carries a declared `NULLED` set containing exactly `device`, and **any other member
+  that is `null` where the page returns a value fails by name**.
+
+Two things the review found that the report did **not** state, recorded here because they
+strengthen F1 and F4-adjacent claims that were previously argued rather than shown:
+
+* **Why F1 is safe has a mechanism.** `engine-order.cjs:74` dereferences a parent's
+  `causal_parents` with no guard, so a reading on the causal frontier *looks* like it could
+  raise an unnamed `TypeError`. It cannot: the colour-walk at `:59-65` validates every
+  reachable node *before* the dependency walk at `:70-76` can dereference one, so a pruned
+  reading fails by name (`WORKOUT_ORDER_CAUSAL_INPUT_UNPROVEN`) instead. The reviewer
+  executed both directions.
+* **`workout.recover()` is outside F2's "paint() re-prepares" defence** — and is safe anyway,
+  because `closeUnfinished` builds a fresh transient host through `hostForDay` with a fresh
+  preparation. The reviewer drove abandon → boot next day → weigh in → recover with no
+  intervening `refresh()`: one reading and exactly one `session-close`, no staleness.
+
+Not changed, and why: the review's remark that §4's no-lost-update proof "is thin on one
+interleaving" is fair, and it is earned by the reviewer's 175 pairs rather than by block 6.
+Block 6 stays as the invariant check it is (nothing lost, exactly one set, contiguous
+sequence, checkpoint equals actual); the 175-pair harness lives in the review, under
+`$env:TEMP`, and is not carried into the branch — a soak harness in the suite would add
+minutes to every run for evidence that is already recorded.
