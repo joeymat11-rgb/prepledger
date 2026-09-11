@@ -1159,3 +1159,244 @@ fx2/s10-scopes.ps1   23 frozen-scope emptiness checks and the file hashes       
 `git status --porcelain` in the worktree showed only the intended files at every checkpoint, and the four engine sha256s were re-read after the carrier run and after the mutant run.
 
 **Privacy, verdict-only.** `rebuild/conform/private/` does not exist on this tree and was not created. `ledger/` was never opened. No `--full` was run. No private value, count, hash or prose appears anywhere in §8.
+
+---
+
+# 9. POST-RULING r3 — the PM's acceptance conditions
+
+**Author:** lane-B fixer r3 (Opus), a fifth agent — not the builder of `ffa4243`, not the r1 reviewer, not the r1 fixer, not the r2 reviewer, not the r2 fixer of `1ed76d9`.
+**Input:** `rebuild/DECISIONS.md:103` (PM, LANE B RULINGS) — **BRIEF-B1 v1.2 ACCEPTED as the brief of record for M2-B1**, with three conditions: *"owner semantics are ONLY the verbatim DECISIONS:60 rules per D-id; no law is edited to pass; the D10 call sites outside B1's modules (energy/sleep/migrate/writers) are listed as delta cells with before/after values in the package"*; and item 5, the contents every engine-package verdict file must carry. Plus the r2 review's one open PM item, **C-r2-2(b)** — the C7 artifact must carry C4's positive source/alias assertion for `D10`.
+**Base:** `origin/rebuild/t2-client-core`. **Note, and it matters below:** that branch moved from `acd3b67` (B1's merge-base, and the tree every earlier pass measured against) to **`da63053`** while this pass ran. `git diff --name-only acd3b67 da63053 -- rebuild/engine rebuild/conform` is **empty**, so every engine and conform coordinate in §§1–8 still resolves byte-for-byte; what moved is the **parent artifact** (§9.6).
+
+## 9.0 What changed, and what did not
+
+```
+git diff --name-status 1ed76d9 <this commit>
+  M rebuild/engine/test/b1-delta-cells.cjs     14 cells -> 23
+  M rebuild/lanes/b/BUILD-REPORT-B1.md         this section
+```
+
+**No engine byte changed.** `dates.cjs`, `policy.cjs`, `sleep.cjs` and `today.cjs` are byte-identical to `1ed76d9` — sha256 re-read after every harness run in this pass: `dates.cjs b51f3f1e0e94… · policy.cjs 4d6c244efa6b… · sleep.cjs 77ced98c0b31… · today.cjs f8d0397abd75…` (the post-C1 `sleep.cjs`, matching review r2 §9; §6/§7.13's `6be0c6fb35fe…` is the pre-C1 one-anchor file and is superseded). `git diff --name-only acd3b67 HEAD -- <scope>` is **empty** for each of `tools`, `rebuild/conform/golden`, `rebuild/conform/laws`, `rebuild/conform/oracle`, `rebuild/conform/gates`, `rebuild/m4/spec`, `.github`, `src`, `package.json`, `package-lock.json`, `rebuild/lanes/STATUS.md`, `rebuild/lanes/REQUESTS.md`, `rebuild/DECISIONS.md`; under `rebuild/conform/v4` the only path is still `postfix/legacy-b1-carriers.cjs`, unchanged in this pass. **No law was edited to pass** — the PM's second condition — and the proof is mechanical: the whole of `rebuild/conform/v4/laws-*.cjs`, `helpers.cjs`, `run-defect-laws.cjs` and `postfix/run.cjs` is untouched on this branch, and the ten rows move for the engine's behaviour alone (§9.5).
+
+**Nine cells added, all in lane B's own file:** eight enumerating the D10 call sites outside B1's modules (§9.1) and one carrying D10's source/alias assertion (§9.2).
+
+## 9.1 The eight D10 call sites outside B1's modules — before/after, measured
+
+D10 repairs ONE primitive, and eight call sites in four modules B1 edits no byte of consume it. Each now has its own cell, named for its coordinate, asserting the AFTER value with a failure message that names the BEFORE value and what the run actually produced. **Every BEFORE below was measured by this pass on the pre-B1 base**, not quoted: two engine trees (`fx3/base` from `origin/rebuild/t2-client-core`, `fx3/cand` from HEAD), one probe, both printed.
+
+| # | site (this tree) | what the line evaluates | BEFORE (base) | AFTER (candidate) |
+|---|---|---|---|---|
+| 1 | `energy.cjs:84` `bfEst` | `wks = Math.max(0, weeksBetween(anchorISO, atISO))` | `0.994047619047619`; **printed `lean` 159.9** at a 10 lb/wk drip | `1`; **`lean` 160** |
+| 2 | `energy.cjs:228` `currentRate` | `Δtrend / Math.max(0.5, weeksBetween(wk[i-1], wk[i]))` | `rates = [1.005988023952096]`; the sleep lab prints `wk +1 · Mon 3/23 · 179.0 lb **±0.0** · …` | `[1]`; the same row **without a band** |
+| 3 | `sleep.cjs:634` `labAnalytics` cone | the same denominator, clamped to ±10 | `1.005988023952096` | `1` |
+| 4 | `sleep.cjs:807` `labAnalytics` lift slope | `x = pts.map(q => weeksBetween(pts[0].d, q.d))` | `x = [0, 0.994047619047619, 1.994047619047619]`, slope `2.005964191091732`, printed **`+2.01 reps/wk`** | `[0, 1, 2]`, slope `2`, **`+2.00 reps/wk`** |
+| 5 | `migrate.cjs:301` `reconcileTrendChain` | `r.d >= w.wk && weeksBetween(w.wk, r.d) < 1` | `weekly[0] = {wk:"2026-03-02", trend:190.4}` — the next Monday's read rewrote the previous week's snapshot | `{wk:"2026-03-02", trend:0}` — left alone |
+| 6 | `migrate.cjs:1203` `patchV59` | the same predicate, in the re-class replay | `weekly[0] = {wk:"2027-03-08", trend:169.3}` | `{wk:"2027-03-08", trend:0}` |
+| 7 | `writers.cjs:1587` `runAdaptive` | `weeksBetween(monday,r.d) >= 0 && … < 1` (two calls, one line) | `weekly = [{wk:"2026-03-02", trend:180}]` — a snapshot opened by a read belonging to the NEXT week | `[]` |
+| 8 | `writers.cjs:2432` `undoRead` | `weeksBetween(monday,x.d) < 1` | `weekly = [{wk:"2026-03-02", trend:181}]` — the week's snapshot survived undoing the week's only read | `[]` |
+
+Every fixture is a **US spring-forward week** (`2026-03-02 → 2026-03-09`, and `2027-03-08 → 2027-03-15` for site 6, whose replay only reaches weeks at or after the earliest attested date). That is deliberate, and it is the fact the downstream lanes need: seven calendar dates across the spring-forward are `0.994047619047619` weeks and the `< 1` window predicate flips **`true → false`**; across the fall-back they are `1.005952380952381` and the same predicate is **unmoved**. So the four window sites (5–8) change behaviour in **one week a year**, in the direction of *excluding* a read that never belonged to that week.
+
+Six of the eight cells also carry a **control** — the same call six calendar days in, or off a transition — which behaves identically on both engines, so each cell is measuring the boundary and not the mechanism.
+
+**Three things this pass will not smooth over.**
+
+1. **Site 3 does not reach the athlete's screen at any fixture I tried.** The pivot cone reports **whole weeks** (`spread80`, the median date), and a 0.6 % shift in one of five rates is quantised away: on three fixtures (a flat-then-drop of 9.9 lb across the transition; a steady 2 lb/wk series; two transitions in one series) the rendered cone was **byte-identical** on base and candidate. The cell therefore asserts the site's own transcribed expression and says so in its own comment. Sites 1, 2, 4, 5, 6, 7 and 8 all reach a stored or printed value.
+2. **`migrate.cjs` and `writers.cjs` are B3's; `energy.cjs` is B2's.** B1 edits none of them. Sites 5–8 are the four the brief's §5.3 told B3 to budget, and sites 1–2 are B2's. They are now executable rather than prose. **B3's golden budget must anticipate sites 5, 6, 7 and 8; B2's must anticipate 1 and 2.**
+3. **Site 6 uses `migrate.cjs`'s own exported `SCALE1_RECLASS` table** to build its attested reads, rather than retyping any value into a test file.
+
+## 9.2 The D10 source/alias assertion — `D10-2` is killed by a committed artifact
+
+`D10-2 utc-stamp-substitution` replaces the repaired body with the law's own control shape, `(Date.UTC(..) − Date.UTC(..)) / 604800000`. Five independent harnesses measured that **nothing moves** behaviourally, because both endpoints are stamped consistently on every date-only input. BRIEF v1.2 §2 D10 names its kill exactly — *"killed by an alias trace showing a UTC constructor"* — and review r1 (C4) and review r2 (**C-r2-2(b)**) both routed that trace to the package artifact, which is the PM's directory and does not yet exist.
+
+This pass commits the trace as the last cell of `b1-delta-cells.cjs`, which is lane B's own file. It reads **one declaration** and makes seven claims about it:
+
+1. `weeksBetween` rounds the **DAY count** (`Math.round(`), reads **both** endpoints through `mk(` (exactly two occurrences), and divides the rounded count by 7.
+2. its declaration contains **none** of `Date.UTC`, `604800000`, `86400000`, `864e5`, `getTime(`, `getTimezoneOffset`, `toISOString`, `Date.parse`, `new Date(`, `7 * 24`, `24 * 60`, `168`.
+3. the calendar helper it calls is itself local — `mk` builds `new Date(y, m - 1, d)` and contains no `Date.UTC` / `toISOString` / `Date.parse` — so the substitution cannot be moved one level down.
+4. `plusDays` steps the calendar date (`setDate(`, `getDate(`, `mk(`, `isoOf(`) and contains no millisecond arithmetic.
+5. the `// Copied from frozen src/app.jsx @ fe516c1:311-311.` marker sits **immediately above** `weeksBetween`, and `plusDays` is declared above that marker — BRIEF v1.2 §A item 7, so `postfix/source-proof.cjs:11 declarationRanges()` still names the range correctly.
+6. `dates.cjs`'s export set is exactly the seven frozen names **plus** `plusDays`, in order.
+7. **the alias trace.** Every consumer delegates to the one definition and re-declares nothing: `weeksBetween` in `energy.cjs`, `sleep.cjs`, `migrate.cjs`, `writers.cjs`, and `plusDays` in `sleep.cjs`, `policy.cjs`, `today.cjs`, each appear as exactly **one** declaration, and that declaration is `const <n> = (...args) => E.<n>(...args);`. Without this a mutant could leave `dates.cjs` pristine and substitute a UTC form in a single consumer, and every value cell in the file would still hold.
+
+**This is a positive assertion, not a source-pin refusal.** `BRIEF-IMPORT-GUARDS.md:89` says a source-pin refusal, a syntax error, a missing target or a timeout earns no kill, and it is right — a pin over the file's bytes would have "killed" all 33 mutants and proved nothing. This cell is **declaration-scoped**, and that is measured rather than argued: across all 33 mutants it fires on the **three** that edit `dates.cjs` (`D10-1`, `D10-2`, `D10-3`) and **holds under the other thirty** (§9.3). `D10-1` and `D10-3` already had value kills; `D10-2` did not, and now does.
+
+**C-r2-2 is still the PM's, and is not discharged by this.** The closed profile must still (a) list `rebuild/engine/test/b1-delta-cells.cjs` as a **required** package artifact — without it B1's committed coverage falls from 33/33 to 1/33 — and (b) carry this assertion. What changed is that (b) is now an executable artifact in the repository instead of a sentence in a brief, and (a) is what makes it binding.
+
+## 9.3 The mutant matrix against committed artifacts — **33 of 33**
+
+```
+MUTANTS 33 · CAUGHT-by-the-committed-cells 32 · NOT CAUGHT 1 · HARNESS 0
+  + D23-1 default-slp-to-empty-object, CAUGHT by the committed carrier defect-witnesses-3
+  = 33 / 33 caught by an artifact that is IN the repository
+```
+
+**Method, and its limits, stated rather than implied.** The 33 mutants (BRIEF v1.2 §2's 32, plus the r1-fixer's `D21-4`) were transcribed for this pass from the brief's own "Source mutants" prose against the candidate tree's bytes, as exact **single-occurrence** string edits; all 33 anchors resolved exactly once (`HARNESS 0`), were applied on a disposable copy of `rebuild/engine` in `fx3/mut`, each run in a fresh process, files restored between runs and in a process-exit handler. **The detector this pass measured is `b1-delta-cells.cjs` alone.** The law and carrier columns were **not** re-measured mutant-by-mutant and are **not** re-claimed: this pass changes no engine, law or carrier byte, so neither column can have moved, and §8.3 carries them. The one column that could move is the cells column, and it is the one measured.
+
+Two results are worth naming:
+
+- **`D10-2` is caught**, by the §9.2 cell and by nothing else — the first time any pass has killed it with a committed artifact.
+- **`D23-1` is not caught by any cell**, and this pass verified its carrier kill directly rather than carrying it: `D23-1` applied to a throwaway worktree at `1ed76d9` takes the B1 carrier from **6/6 PASS to 4/6**, both `defect-witnesses-3` runs failing `ERR_ASSERTION` (the surviving `TypeError` at `defect-witnesses-3.cjs:41`, exactly as brief §A4 item 3 says). Restored; `git status --porcelain` empty.
+
+The eight site cells (§9.1) fired on **`D10-1` only** among the 33 — they are enumeration, not detectors, and they do not inflate the count: the summary line reports `20 named mutants carried` and `8 D10 call sites … enumerated with before/after values` separately.
+
+## 9.4 Owner semantics are ONLY the verbatim `DECISIONS:60` rules — checked mechanically
+
+`fx3/check-semantics.js` reads the ledger line **from Git** (`git show acd3b67:rebuild/DECISIONS.md`, line 60), splits Batch B into its seven per-`D` rules, and byte-compares each against the brief's quoted text:
+
+```
+Batch-B rules in the ledger line : D8, D10, D16, D25, D32, D37, D40
+B1 D-ids with a Batch-B rule     : D10, D8, D16, D25
+B1 D-ids that are Batch-A plain  : D21, D19, D17, D24, D27, D23
+VERBATIM D10   (85 chars, byte-identical)
+VERBATIM D8   (203 chars, byte-identical)
+VERBATIM D16  (224 chars, byte-identical)
+VERBATIM D25  (193 chars, byte-identical)
+Batch-A "none specific; Batch-A plain FIX" declarations in the brief: 6 (expected 6)
+D-ids the brief claims a verbatim owner rule for: D10, D8, D16, D25   (no overclaim)
+ledger self-limit present: true  ("no owner-specific interval or value is set")
+SEMANTICS CHECK: CLEAN
+```
+
+**Nothing needed correcting.** All four Batch-B rules are quoted byte-for-byte, the other six are declared as plain Batch-A FIX approvals on the register's own recommendation and claim no owner rule, and no B1 D-id claims a verbatim owner rule it does not have.
+
+**And no hunk invents a threshold or interval.** `fx3/check-literals.js` lists every numeric literal on an added engine line — 47 added lines, and after stripping comments the literals are `-8, -1, 0, 1, 2, 7, 10`. Each is attributable:
+
+| literal | where | provenance |
+|---|---|---|
+| `-8`, `2`, and the `0`/`1` inside the rewritten scan and `beats` | `policy.cjs` `.slice(-8)`, `today.cjs` `slice(0,2)`, `k9 === 0/1` | carried **verbatim from the pre-image**; not new |
+| `-1` | `plusDays(iso, -1)` (D8), `plusDays(…, -1)` (D24) | D8's own words, **"last night"**; D24's register FIX, the previous calendar date |
+| `1` | `plusDays(dueISO, 1)` | D16's own words: **"or, failing that, the next day (one grace date)"** |
+| `1` | `plusDays(brkS.end, 1)`, `daysSince + 1` | D19's register FIX `:134`: "one-based day numbering and next-day resumption wording" |
+| `1` | `plusDays(today9, 1)` | D21's register FIX `:144`: "Advance to the next calendar date" |
+| `1` | `proHitN >= 1` | D25's own words: **"at least one successful day … before the one-miss allowance applies"** |
+| `7` | `weeksBetween`'s divisor, and `k9 < 7` | both **carried from the pre-image**; D10 changes where `Math.round` sits, not the 7 |
+| `10` | `arc.weeks >= 10` | **carried from the pre-image's `weekDay().wk >= 10`** — D27 changes which clock the 10 is read on, not the 10 |
+
+There is no number in B1 that the owner, the register or the frozen source did not already set.
+
+## 9.5 Everything else re-run, and unmoved
+
+Every figure below was executed by this pass on the owner's PC, with its own harnesses in `work/lane-b/fx3/`, outside the worktree.
+
+**Frozen bundle**, built from the repo's own recipe (`legacy-gates.publicReferences({baseline, scratch, sourcePins: manifest.baseline.buildSources})`, 10 source pins, `FROZEN-BUILD-SOURCE-PIN` checked inside):
+
+```
+main -> fx3/.tmp/main/engine.cjs  bytes=815164  sha256=9c042f48c0704fcc5f5ac86c2a2f1f6863e17a77dfd9e0732229d4e41b3000c2
+old  -> fx3/.tmp/old/engine.cjs   bytes=794274  sha256=499f01d822eb9e46edbddcd2381a230be8085b59f6ed6b22d5c1e7dccda575de
+```
+
+(esbuild embeds input paths, so the byte count tracks the cwd — the builder, r1, the r1 fixer, r2, the r2 fixer and this pass each got a different number, and `build-engines.mjs` documents why. Equivalence is behavioural: the runner reproduces the base tip's terminal line exactly, below.)
+
+**The 45 v4 laws — exactly 10 rows move, `D22` is not one of them, and all ten read GREEN-candidate.**
+
+```
+[cand 1ed76d9+r3] TOTAL 45 laws · 45 RED-frozen · 29 RED-candidate · 89 GREEN repair controls · 87/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+[base acd3b67   ] TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL
+ROWS MOVED 10 · UNCHANGED 35 · moved ids: D8, D10, D16, D17, D19, D21, D23, D24, D25, D27
+each moved row: RED-frozen / GREEN-candidate / AUDIT-FAIL   (base: RED-frozen / RED-candidate / mutant-DETECTED)
+D22 E-D22-recovery-reader-preserves-indexed-sleep-facts-without-a-shape-crash — byte-identical on both trees
+```
+
+**The cells — 23/23 on the candidate, 0/23 on base, and every site cell's base failure names the base value.**
+
+```
+candidate : exit=0  B1 DELTA CELLS: 23/23 hold; 20 named mutants carried (D10-2 by source/alias assertion,
+            every other by value); 8 D10 call sites outside B1's modules enumerated with before/after values
+base      : exit=1  B1 DELTA CELLS: 0/23 hold
+            e.g. FAIL B1-D10-site-writers-2432-undoRead-weekly-retain-window
+                 writers.cjs:2432 undoRead — weekly after undoing the week's only read
+                 |  BEFORE (pre-B1 base origin/rebuild/t2-client-core, measured) = [{"wk":"2026-03-02","trend":181}]
+                 |  this run produced = [{"wk":"2026-03-02","trend":181}]
+            and  FAIL B1-D10-weeksBetween-is-calendar-based-…  ::  dates.cjs must declare `plusDays` at the top level
+```
+
+The source cell's base failure is honest about *why* it fails there: on the pre-B1 base the primitive does not exist, so it is a missing declaration rather than a behavioural claim — the same distinction §7.7 drew for `T.plusDays is not a function`.
+
+**The B1 carrier — 6/6 PASS, 18 substitutions, the three witness files byte-identical to their pins.**
+
+```
+PACKAGE_ID M2-B1-GRADING-TIME-WINDOW · COVERS witnesses-1, witnesses-2, witnesses-3
+  defect-witnesses    on disk 557c12e72690c397…  pin 557c12e72690c397…  MATCH=true
+  defect-witnesses-2  on disk 833db0431e656f86…  pin 833db0431e656f86…  MATCH=true
+  defect-witnesses-3  on disk f5169bebd527ac13…  pin f5169bebd527ac13…  MATCH=true
+PASS defect-witnesses   [native]/[frozen] reproduced=10 tail="DEFECT WITNESSES: 10/10"   carrierHash=c2ea4423ec9b014a
+PASS defect-witnesses-2 [native]/[frozen] reproduced=11 tail="DEFECT WITNESSES 2: 11/11" carrierHash=a766bfe0abffc05d
+PASS defect-witnesses-3 [native]/[frozen] reproduced=5  tail="DEFECT WITNESSES 3: 5/5"   carrierHash=de59fa01b12e73ef
+B1 CARRIER: 6/6 PASS · git status --porcelain afterwards shows only b1-delta-cells.cjs
+```
+
+**Conform suite and the second gate — identical on both trees, in all four streams.**
+
+```
+conform     : cand=79 base=79 stdout lines, DIFFERING=0 (after normalising the worktree root, which is the only
+              thing that differs — the `engine artifacts present` diagnostic prints an absolute path);
+              stderr 0/0, DIFFERING=0
+              terminal, both trees: SUITE INCONSISTENT — 99 reference GREEN · 99 STRONG · 29 RED-first against
+              absent families · 70 GREEN against present families
+second gate : stdout cand=6 base=6 DIFFERING=0 · stderr cand=3 base=3 DIFFERING=0
+              reference half PASSES on both (FINAL108 3072/0 · vacuity 9 known · SYNC-LAWS 18 laws / 59 seeds ·
+              surface byte-identical, 123 077 bytes)
+              terminal, both trees: SECOND GATE candidate: FAIL — second gate failed; inspect ignored public
+              diagnostic logs   (the pre-existing D12 abort at tools/engine-test.jsx:106)
+```
+
+Two honest notes on that comparison. **(i)** Line counts here are non-blank lines and were captured as UTF-8 by a small spawner (`fx3/cap.js`) rather than through a PowerShell redirect, which is why they differ from §7.9's and §8.4's counts; the content is identical line-for-line between the trees, which is the claim. **(ii)** The base comparison tree is a **sparse** throwaway worktree (`rebuild`, `tools`, `src`, `scripts`, plus the top-level files) — `ledger/` was NOT checked out. The second gate's reference half reads exactly one ledger file, `ledger/analyst-constitution.md` (`tools/engine-test.jsx:8193`, the only `ledger/` read in that tool), so that **one file** was extracted into the throwaway tree with `git archive`. Nothing under `ledger/` was opened, and `ledger/state.json` was never materialised there at all. The two gitignored build products `rebuild/conform/engines/engine-{main,old}.cjs` were copied across, as §8.4 did, because they are absent from a fresh worktree and derive from `fe516c1:src/app.jsx` for both trees by construction.
+
+## 9.6 B1's package prerequisites — what runs, in order, when B1's turn comes
+
+`DECISIONS:103` item 1 puts **B-NTC first** and B1 second; item 5 fixes what B1's verdict file must carry. This is the ordered list, written now so the verdict file is assembled rather than improvised.
+
+**Before anything can run — what B1 is blocked on, and who owns it.**
+
+1. **The PM's C7 artifact** (`rebuild/m4/spec/`, the PM's directory per `LANES.md`): `acceptance-b1-grading-time-window.json` sealed by sha256, the runner, `review-b1-grading-time-window.json = {version:1, status:"PENDING", receipt:null}`, and `witnesses-1` / `witnesses-3` moved from `coverage.run` to `coverage.covered` with `legacy-b1-carriers.cjs` declared in `children[]` with its own exact verdict. **Until it exists no gate can say PASS for B1**, and `native-carriers-profile.verify()` refuses correctly on B1's own `Unchanged parent pin: rebuild/engine/dates.cjs`.
+2. **C-r2-2, both halves**: `rebuild/engine/test/b1-delta-cells.cjs` listed as a **required** artifact (§9.3: without it committed coverage is 1/33), and D10's source/alias assertion carried (§9.2 is the executable form of it).
+3. **The theme line.** `authorizations.theme` is no longer null in substance — `DECISIONS:103` item 2 **is** the PM's acceptance of BRIEF-B1 v1.2 — so the artifact binds *that* line by sha256, alongside `owner = DECISIONS:60` and `contract = DECISIONS:49`.
+4. **THE PARENT RE-PIN, and it is new since §8.** `acceptance-native-carriers.json` was re-sealed for the CI fix: `295762f0…` → **`e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a`**, receipt **`DECISIONS:104`** at reviewed commit `b95ccca`, accepted head `7cc3493`, superseding `DECISIONS:96` (`DECISIONS:105`). Every `parent` field in the brief's §0, in `rebuild/lanes/b/tooling/packages/B1.json` and in the sealed artifact must be re-taken there — `parent.sha256`, `receiptLedgerLine 96 → 104`, `reviewedCommit`, and `sourceBase` at the accepted head — per item 1's own rule that "the second package re-takes its pre-image shas at the first's accepted head". **B1's engine pre-images themselves do not move**: `rebuild/engine` and `rebuild/conform` are byte-identical from `acd3b67` through `da63053`.
+5. **B-NTC merges first** (item 1). If B-NTC touches any of B1's four files, B1 re-takes those pre-images too and re-runs §9.5 in full.
+
+**Then, in this order, and all of it goes in the verdict file.**
+
+| # | run | expected terminal |
+|---|---|---|
+| 1 | `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B1` — cloud/CI, **both OS** | `PUBLIC CI EVIDENCE PASS` (qualified in its own sentence: public evidence only, NOT the package verdict), exit 0. Anything else is `CI REVIEW-PENDING`, exit 2, **no PASS word** |
+| 2 | `node rebuild/lanes/b/tooling/b-package.cjs --full --package B1` **without** the private fixture — every cloud session and every builder/reviewer run, per `DECISIONS:97` | exactly `B PACKAGE M2-B1-GRADING-TIME-WINDOW BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING`, exit 2 |
+| 3 | **the lane's own FULL on the owner's PC**, with the private fixture present — everything `--ci` does, plus the private-oracle requirement, the historical 45-law audit against the pinned baseline snapshot, and the 19 original gates through `run.cjs`'s own `gateRun` (second gate included) | `POSTFIX PACKAGE REVIEW-PENDING`, exit 2, complete evidence, **no PASS word**. Private reporting is **verdict-only**: no private value, count, hash or prose; the private blob is never opened, only its existence tested |
+| 4 | hand the PM the verdict file → **PM receipt**: one `rebuild/DECISIONS.md` line `- <date> · cowork · POSTFIX-ACCEPTANCE M2-B1-GRADING-TIME-WINDOW <40-hex> rebuild/m4/spec/acceptance-b1-grading-time-window.json <64-hex> ACCEPTED` | — |
+| 5 | incorporate that docs-only receipt base; set `review-b1-grading-time-window.json` to `{status:"ACCEPTED", receipt:{commit, path, line, lineSha256}}` — operational coordinates only, **never the artifact bytes** | — |
+| 6 | **AUTHORIZED FULL rerun** on the PC | `POSTFIX PACKAGE PASS M2-B1-GRADING-TIME-WINDOW`, exit 0 |
+
+**The receipt → rerun chain, stated as the verdict file must state it:** the runner re-verifies the receipt line at its own commit under role `cowork`, the owner (`DECISIONS:60`) and theme (`DECISIONS:103`) lines at the same base under their own roles, the reviewed artifact bytes from Git, and ancestry — reviewed commit and `sourceBase` ancestors of HEAD, receipt base an ancestor of a freshly fetched `origin/rebuild/t2-client-core`. **An accepted artifact is never re-sealed**: if its bytes change the receipt is void and step 3 starts again.
+
+**The lane's own measurements that ride in the verdict file** (all of them re-run at the sealed commit, not carried from here): the 45-law row diff on candidate and base (10 moved, 10/10 GREEN-candidate, `D22` unmoved); the carrier 6/6 with the three witness pins matched; `b1-delta-cells.cjs` N/N on candidate and 0/N on base; the 33-mutant matrix against committed artifacts; conform and the second gate line-for-line on both trees; the 19 original gates; `native-carriers-profile.verify()`; and the `--ci` refusal with its honest attribution.
+
+**The batched `rebuild.yml` re-seal item — B1 only references it, and it is no longer B-NTC's either.** `DECISIONS:103` item 5 assigns it to the FIRST package to re-seal. That turned out to be **NATIVE-CARRIERS itself**: `DECISIONS:105` records the CI re-seal integrated (both OS install the locked W6/W5 deps before the native-carriers step; four new steps give the slice suites a CI home — A0 host 22, A1/A2 today 123, A5 lockfile-only 43, A5 built folder 10; `slice-host.yml` gains the W5 install), the artifact re-sealed to `e940359b…`, public CI GREEN both OS at `b95ccca`. That line states the item is **CLOSED except retiring the old memory-only preview child (`# pass 19`) — "next re-seal"**. So B1 carries **one** residual, not the batch: if B1's own re-seal is the next one to touch `.github/workflows/rebuild.yml`, it retires that child; otherwise it names whichever package does. `.github/` is untouched on this branch and B1 has no other CI obligation.
+
+## 9.7 What this pass did NOT do
+
+1. **It did not touch `rebuild/m4/spec`.** C7 and C-r2-2 are the PM's; §9.2 makes (b) executable, it does not author (a).
+2. **It did not re-measure the law and carrier columns of the mutant matrix**, because no engine, law or carrier byte moved in this pass. §8.3 carries them, and §9.3 says so rather than re-claiming them.
+3. **It did not run `--full`, the private census, or any browser/host surface** (`DECISIONS:92`, `:93` C4). `D16` is still B1's only LIVE-TRIGGERED defect.
+4. **It did not run the 19 original gates or `native-carriers-profile.verify()`.** Both are functions of the engine bytes and the parent pins; no engine byte moved, and the parent-pin question is now the §9.6 item 4 re-pin, which belongs to the sealed artifact.
+5. **It did not edit `STATUS.md`, `REQUESTS.md` or `DECISIONS.md`**, and it did not file the `@noble` request — which `DECISIONS:105` has in any case now **answered in substance**, by installing the locked W5/W6 dependencies in CI rather than declaring the packages at the root. The r2 §7 finding stands as the diagnosis; the fix landed in NATIVE-CARRIERS.
+6. **It did not touch `migrate.cjs` or `writers.cjs`** — B3's — nor any other worktree. The throwaway worktrees this pass created (`fx3/wtbase`, `fx3/wtmut`) were made with `git worktree add --detach`, sparse, and removed afterwards.
+7. **The open PM questions from r2 §11 are unchanged**: the UNKNOWN-recovery product ruling, `N1a` (a night bed-dated today restricts recovery on ordinary days — pre-existing), and `H1`.
+
+## 9.8 Reproduction
+
+```
+node  = C:\Users\joeym\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe   (v24.19.0)
+env   = TZ=America/New_York  MEASURED_TEST_NOW=2026-09-03  ENGINE_MAIN=<main>  ENGINE_OLD=<old>
+
+fx3/probe-d10.js + probe-d10b/c/d.js   the eight call sites, base vs candidate                  (§9.1)
+fx3/build-frozen.js                    frozen fe516c1 bundle via legacy-gates.publicReferences  (§9.5)
+fx3/mutants.js + run-mutants.js        33 mutants on fx3/mut, detector = the committed cells    (§9.3)
+fx3/run-carrier.js                     the B1 carrier, 3 files x 2 Date modes                   (§9.5)
+fx3/cap.js + streamdiff.js             conform + second gate on both trees, line-for-line       (§9.5)
+fx3/check-semantics.js                 DECISIONS:60 Batch-B rules vs the brief, byte-compared   (§9.4)
+fx3/check-literals.js                  every numeric literal on an added engine line            (§9.4)
+```
+
+All helper scripts live in `work/lane-b/fx3/`, **outside** the worktree; build products in `fx3/.tmp/`. Nothing generated is committed. The 33 mutants were applied only inside `fx3/mut` and `fx3/wtmut`; the shared `b1` worktree was never mutated, and `git status --porcelain` there showed only the two intended files at every checkpoint.
+
+**Privacy, verdict-only.** `rebuild/conform/private/` does not exist on this tree and was not created. `ledger/` was never opened; the one file the frozen second gate itself reads was placed into a throwaway tree by `git archive` without being read, and `ledger/state.json` was never checked out there. No `--full` was run. No private value, count, hash or prose appears anywhere in §9.

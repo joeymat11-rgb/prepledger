@@ -18,11 +18,22 @@
 // DISAGREE, so a cell cannot pass for the wrong reason. No frozen law, golden,
 // witness or tool byte is touched or read by this file.
 //
-// Sole survivor by design: `D10-2 utc-stamp-substitution` is behaviourally
-// unkillable — four independent confirmations (builder, r1, fixer, r2) — and
-// `BRIEF-IMPORT-GUARDS.md:88` forbids earning a kill from a refusal. Its kill
-// is a positive source/alias assertion and belongs to B1's closed package
-// profile (review r1 C4, review r2 C-r2-2(b)), not here.
+// `D10-2 utc-stamp-substitution` is the one mutant no VALUE can kill — five
+// independent confirmations (builder, r1, the r1 fixer, r2, the r2 fixer) that
+// nothing moves — and `BRIEF-IMPORT-GUARDS.md:89` forbids earning a kill from a
+// refusal. Its kill is the positive source/alias assertion BRIEF v1.2 §2 D10
+// names ("an alias trace showing a UTC constructor"), and the r3 pass commits
+// it as the last cell in this file so the kill lives in the repository rather
+// than in a brief. The PM's C-r2-2 is unchanged: the closed profile must still
+// list this file as a REQUIRED artifact and carry the assertion.
+//
+// The file also carries, after the mutant cells, ONE CELL PER D10 CALL SITE
+// OUTSIDE B1's modules — `energy.cjs:84,228`, `sleep.cjs:634,807`,
+// `migrate.cjs:301,1203`, `writers.cjs:1587,2432` — with the BEFORE value
+// measured on the pre-B1 base and the AFTER value on this candidate, which is
+// the PM's acceptance condition at `rebuild/DECISIONS.md:103` item 2. Those
+// cells kill no named mutant; they are the enumeration, and B2's and B3's
+// golden budgets are their audience.
 const assert = require("node:assert/strict");
 const { createEngine } = require("../index.cjs");
 
@@ -454,6 +465,356 @@ cell("B1-D23-the-seven-day-scan-steps-calendar-dates",
   assert.equal(ord.title, "LOWER BODY " + MID + " TOMORROW");
 });
 
+// ===========================================================================
+// PM ACCEPTANCE CONDITION (rebuild/DECISIONS.md:103 item 2) — "the D10 call
+// sites outside B1's modules (energy/sleep/migrate/writers) are listed as
+// delta cells with before/after values in the package".
+//
+// D10 repairs ONE primitive — `dates.cjs weeksBetween` — and EIGHT call sites
+// in four modules B1 edits no byte of consume it:
+//
+//   energy.cjs:84    bfEst            wks = Math.max(0, weeksBetween(anchorISO, atISO))
+//   energy.cjs:228   currentRate      rate denominator Math.max(0.5, weeksBetween(wk[i-1], wk[i]))
+//   sleep.cjs:634    labAnalytics     pivot-cone rate denominator, clamped to +-10
+//   sleep.cjs:807    labAnalytics     lift-slope regression x-axis
+//   migrate.cjs:301  reconcileTrendChain   weeksBetween(w.wk, r.d) < 1
+//   migrate.cjs:1203 patchV59              weeksBetween(w.wk, r.d) < 1
+//   writers.cjs:1587 runAdaptive           weeksBetween(monday, r.d) >= 0 && < 1
+//   writers.cjs:2432 undoRead              weeksBetween(monday, x.d) < 1
+//
+// One cell per site follows, each carrying the site's coordinate on THIS tree,
+// the expression it evaluates, the BEFORE value measured on the pre-B1 base
+// (`origin/rebuild/t2-client-core`) and the AFTER value on this candidate.
+// Every assertion's failure message names the BEFORE value and what the run
+// actually produced, so a run on base reports the base's own number rather
+// than only that an assertion failed.
+//
+// Every fixture sits on a DST transition, because that is the only place the
+// two arithmetics disagree: seven calendar dates across the US spring-forward
+// are 167 elapsed hours (`0.994047619047619` weeks) and across the fall-back
+// 169 (`1.005952380952381`). The `< 1` weekly-window predicate therefore flips
+// `true` -> `false` in a spring-forward week and is UNMOVED in a fall-back one
+// — which is why the four window sites are all fixtured on spring-forward.
+//
+// `migrate.cjs` and `writers.cjs` are B3's files and `energy.cjs` is B2's.
+// B1 edits none of them. These cells exist so those lanes' golden budgets
+// ANTICIPATE the sites rather than discover them (BRIEF v1.2 §2 D10 and §5.3;
+// review r2 §10 item 5). They name no BRIEF mutant: they are the enumeration
+// the PM's acceptance condition asks for, and they are red on base like every
+// other cell in this file.
+const BASE_TIP = "origin/rebuild/t2-client-core";
+const d10site = (site, before, got) => site
+  + "  |  BEFORE (pre-B1 base " + BASE_TIP + ", measured) = " + JSON.stringify(before)
+  + "  |  this run produced = " + JSON.stringify(got);
+const SITE = [];   // a site cell kills no named mutant; it carries the PM's enumeration
+
+// The lab fixture the two rendered `sleep.cjs` sites need: six weekly
+// snapshots whose last gap crosses the US spring-forward, and three sessions
+// of one invented lift across the same transition. Nothing here is read from
+// anywhere; every value is invented in this file.
+const richLab = () => ({ v: 60, trend: 180,
+  reads: ["2026-02-09", "2026-02-16", "2026-02-23", "2026-03-02", "2026-03-09", "2026-03-16"]
+    .map((d, i) => ({ d, w: 185 - i, pt: 185 - i })),
+  weekly: [{ wk: "2026-02-09", trend: 185 }, { wk: "2026-02-16", trend: 184 },
+    { wk: "2026-02-23", trend: 183 }, { wk: "2026-03-02", trend: 182 },
+    { wk: "2026-03-09", trend: 181 }, { wk: "2026-03-16", trend: 180 }],
+  dailyLogs: {},
+  sessionLog: { "2026-03-02": { entries: [{ id: "press", reps: [8] }] },
+    "2026-03-09": { entries: [{ id: "press", reps: [10] }] },
+    "2026-03-16": { entries: [{ id: "press", reps: [12] }] } },
+  sleep: { nights: [{ d: "2026-03-13", h: 8 }, { d: "2026-03-14", h: 8 }, { d: "2026-03-15", h: 8 }],
+    needed: 3, debts: [], target: 8, cleanH: 7.5 },
+  exercises: [{ id: "press", n: "Press", day: "U", w: 100, inc: 5, sets: 2, hi: 12, lo: 8, setup: "known", mg: "chest" }],
+  queue: [], feed: [], forecasts: [], adjustments: [], proposals: [], suggestionLog: [],
+  targets: {}, learned: { tdee: [], anchors: [] },
+  plan: { goals: [], ifthen: [], setAt: {}, phaseLog: [], phase: "cut" },
+  exOrder: { U: ["press"], L: [] }, planGen: 52, retirements: {}, insertions: {},
+  waist: [], photos: [], events: [], trials: [], agentProposals: [],
+  blackout: { until: "2026-01-01" },
+  model: { lean: 150, drip: 0, src: "DEXA", anchorISO: "2026-01-01" }, dayCtx: {} });
+const labCard = (day, id) => {
+  const cards = engine(day).labAnalytics(richLab());
+  return (cards || []).find((c) => c && c.id === id) || null; };
+
+// ---------------------------------------------------------------------------
+// SITE 1/8 — `energy.cjs:84` (B2's file), `bfEst`:
+//   const wks = Math.max(0, weeksBetween(s.model.anchorISO, atISO));
+// `wks` multiplies the lean drip, so the window's length reaches a PRINTED
+// figure: `bfEst().lean`, and through it `pct`, `lo` and `hi`.
+cell("B1-D10-site-energy-84-bfEst-lean-window-is-calendar-weeks", SITE, () => {
+  const T = engine("2026-09-03");
+  const wks = T.weeksBetween("2026-03-02", "2026-03-09");
+  assert.equal(wks, 1, d10site("energy.cjs:84 bfEst — wks over the spring-forward week",
+    0.994047619047619, wks));
+  const s = wide(); s.model = { lean: 150, drip: 10, src: "DEXA", anchorISO: "2026-03-02" };
+  const b = T.bfEst(s, 180, "2026-03-09");
+  assert.equal(b.lean, 160, d10site("energy.cjs:84 bfEst — printed lean at a 10 lb/wk drip",
+    159.9, b.lean));
+  // control: a week that crosses no transition already agreed, and must keep agreeing.
+  const c = wide(); c.model = { lean: 150, drip: 10, src: "DEXA", anchorISO: "2026-09-03" };
+  const cb = T.bfEst(c, 180, "2026-09-10");
+  assert.equal(T.weeksBetween("2026-09-03", "2026-09-10"), 1);
+  assert.equal(cb.lean, 160);
+});
+
+// ---------------------------------------------------------------------------
+// SITE 2/8 — `energy.cjs:228` (B2's file), `currentRate`:
+//   rates.push((w[i-1].trend - w[i].trend) / Math.max(0.5, weeksBetween(w[i-1].wk, w[i].wk)));
+// `rates` is returned raw, and the sleep laboratory's forecast card takes its
+// BAND from the spread of exactly these numbers (`sleep.cjs:767-769`), so a
+// spurious 0.6 % spread printed a "+-0.0" band on a perfectly steady athlete.
+cell("B1-D10-site-energy-228-currentRate-rate-denominator-is-calendar-weeks", SITE, () => {
+  const T = engine("2026-09-03");
+  const s = wide();
+  s.weekly = [{ wk: "2026-03-02", trend: 181 }, { wk: "2026-03-09", trend: 180 }];
+  const r = T.currentRate(s);
+  assert.deepEqual(r.rates, [1], d10site("energy.cjs:228 currentRate — rates[] over the spring-forward week",
+    [1.005988023952096], r.rates));
+  // the rendered reach: with every weekly rate now exactly equal, the forecast
+  // card's band term is zero and the "+-" clause disappears from the row.
+  const row = String((labCard("2026-03-16", "forecast").lines || [])[0]);
+  assert.equal(row, "wk +1 · Mon 3/23 · 179.0 lb · 16.2% bf · lean 150.0",
+    d10site("energy.cjs:228 -> sleep.cjs:798 forecast row",
+      "wk +1 · Mon 3/23 · 179.0 lb ±0.0 · 16.2% bf · lean 150.0", row));
+  // control: two non-transition weeks, unmoved by the repair.
+  const c = wide();
+  c.weekly = [{ wk: "2026-09-03", trend: 181 }, { wk: "2026-09-10", trend: 180 }];
+  assert.deepEqual(T.currentRate(c).rates, [1]);
+});
+
+// ---------------------------------------------------------------------------
+// SITE 3/8 — `sleep.cjs:634` (B1 owns the file, NOT this line), `labAnalytics`
+// pivot-probability cone:
+//   rts.push(Math.max(-10, Math.min(10, (w2[i-1].trend - w2[i].trend) / Math.max(0.5, weeksBetween(w2[i-1].wk, w2[i].wk)))));
+// The site's own value moves. The CARD's printed value does not: the cone
+// reports whole weeks (`spread80`, `dISO`), and a 0.6 % shift in one of the
+// rates is quantised away — measured on three fixtures (flat-then-drop,
+// steady 2 lb/wk, and two transitions in one series), the rendered cone was
+// byte-identical on base and candidate. That is the useful fact for the
+// golden budget, and it is recorded here rather than smoothed over.
+cell("B1-D10-site-sleep-634-cone-rate-denominator-is-calendar-weeks", SITE, () => {
+  const T = engine("2026-09-03");
+  const w2 = [{ wk: "2026-03-02", trend: 181 }, { wk: "2026-03-09", trend: 180 }];
+  const rt = Math.max(-10, Math.min(10,
+    (w2[0].trend - w2[1].trend) / Math.max(0.5, T.weeksBetween(w2[0].wk, w2[1].wk))));
+  assert.equal(rt, 1, d10site("sleep.cjs:634 labAnalytics cone — rts[0] over the spring-forward week",
+    1.005988023952096, rt));
+  // control: the 0.5-week floor and the +-10 clamp are untouched by D10.
+  assert.equal(Math.max(0.5, T.weeksBetween("2026-03-09", "2026-03-11")), 0.5);
+  const steep = [{ wk: "2026-03-02", trend: 200 }, { wk: "2026-03-09", trend: 180 }];
+  assert.equal(Math.max(-10, Math.min(10,
+    (steep[0].trend - steep[1].trend) / Math.max(0.5, T.weeksBetween(steep[0].wk, steep[1].wk)))), 10);
+});
+
+// ---------------------------------------------------------------------------
+// SITE 4/8 — `sleep.cjs:807` (B1 owns the file, NOT this line), `labAnalytics`
+// lift-slope regression:
+//   const x = pts.map((q) => weeksBetween(pts[0].d, q.d)), y = pts.map((q) => q.top);
+// Unlike the cone, this one DOES reach the athlete's screen: the slope is
+// printed to two decimals in the forecast card's projection line.
+cell("B1-D10-site-sleep-807-lift-slope-x-axis-is-calendar-weeks", SITE, () => {
+  const T = engine("2026-09-03");
+  const pts = [{ d: "2026-03-02", top: 8 }, { d: "2026-03-09", top: 10 }, { d: "2026-03-16", top: 12 }];
+  const x = pts.map((q) => T.weeksBetween(pts[0].d, q.d)), y = pts.map((q) => q.top);
+  assert.deepEqual(x, [0, 1, 2], d10site("sleep.cjs:807 labAnalytics — regression x-axis",
+    [0, 0.994047619047619, 1.994047619047619], x));
+  const n = x.length, mx = x.reduce((a, b) => a + b, 0) / n, my = y.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0;
+  for (let i = 0; i < n; i++) { num += (x[i] - mx) * (y[i] - my); den += (x[i] - mx) * (x[i] - mx); }
+  const slope = den > 0 ? num / den : null;
+  assert.equal(slope, 2, d10site("sleep.cjs:807 labAnalytics — reps-per-week slope",
+    2.005964191091732, slope));
+  // the rendered reach: the printed projection line for the same three sessions.
+  const line = (labCard("2026-03-16", "forecast").lines || []).filter((l) => String(l).indexOf("reps/wk") > -1)[0];
+  assert.equal(String(line), "Press: 100×12 now → 130×10 in 8 wks (+2.00 reps/wk, n=3)",
+    d10site("sleep.cjs:807 -> sleep.cjs:819 projection line",
+      "Press: 100×12 now → 130×10 in 8 wks (+2.01 reps/wk, n=3)", String(line)));
+});
+
+// ---------------------------------------------------------------------------
+// SITE 5/8 — `migrate.cjs:301` (B3's file), `reconcileTrendChain`:
+//   const first = s.reads.find((r) => ... r.d >= w.wk && weeksBetween(w.wk, r.d) < 1);
+// The week's FIRST clean read. Across the spring-forward the NEXT Monday's
+// read used to fall inside the previous week's window, so the settle rewrote
+// that week's stored snapshot from a read belonging to the following week.
+// After the repair it does not, and the snapshot is left alone.
+cell("B1-D10-site-migrate-301-weekly-first-clean-read-window", SITE, () => {
+  const T = engine("2026-09-03");
+  const s = { reads: [{ d: "2026-03-09", w: 200, pt: 190 }], weekly: [{ wk: "2026-03-02", trend: 0 }], feed: [] };
+  const w = T.reconcileTrendChain(s).weekly[0];
+  assert.deepEqual(w, { wk: "2026-03-02", trend: 0 },
+    d10site("migrate.cjs:301 reconcileTrendChain — weekly[0] after the settle",
+      { wk: "2026-03-02", trend: 190.4 }, w));
+  // control: a read SIX calendar days into the same week is inside the window
+  // on both engines, so the cell is measuring the boundary, not the mechanism.
+  const c = { reads: [{ d: "2026-03-08", w: 200, pt: 190 }], weekly: [{ wk: "2026-03-02", trend: 0 }], feed: [] };
+  assert.deepEqual(T.reconcileTrendChain(c).weekly[0], { wk: "2026-03-02", trend: 190.4 });
+});
+
+// ---------------------------------------------------------------------------
+// SITE 6/8 — `migrate.cjs:1203` (B3's file), `patchV59`:
+//   const first = allSorted.find((r) => ... r.d >= w.wk && weeksBetween(w.wk, r.d) < 1);
+// The same window, in the re-class replay. The three attested dates come from
+// the module's own exported `SCALE1_RECLASS` table rather than being retyped
+// here, and the week under test is the 2027 spring-forward — the replay only
+// touches weeks at or after the earliest attested date, so 2026's transition
+// is out of its reach and 2027's is the nearest one that is not.
+cell("B1-D10-site-migrate-1203-weekly-replay-window", SITE, () => {
+  const T = engine("2027-03-20");
+  const build = (lastReadISO) => {
+    const reads = T.SCALE1_RECLASS.map((k, i) => ({ d: k.d, w: k.w, pt: 170 + i, offWindow: true }));
+    reads.push({ d: lastReadISO, w: 180, pt: 180 });
+    return { reads, weekly: [{ wk: "2027-03-08", trend: 0 }], feed: [], trend: 180 }; };
+  const w = T.patchV59(build("2027-03-15")).weekly[0];
+  assert.deepEqual(w, { wk: "2027-03-08", trend: 0 },
+    d10site("migrate.cjs:1203 patchV59 — weekly[0] after the replay",
+      { wk: "2027-03-08", trend: 169.3 }, w));
+  // control: six calendar days in, inside the window on both engines.
+  assert.deepEqual(T.patchV59(build("2027-03-14")).weekly[0], { wk: "2027-03-08", trend: 169.3 });
+});
+
+// ---------------------------------------------------------------------------
+// SITE 7/8 — `writers.cjs:1587` (B3's file), `runAdaptive`:
+//   if (!s.weekly.some((w) => w.wk === monday) && s.reads.some((r) => ... weeksBetween(monday, r.d) >= 0 && weeksBetween(monday, r.d) < 1))
+//     s.weekly.push({ wk: monday, trend: s.trend });
+// Two calls on one line. Before the repair a read dated the NEXT Monday
+// opened a weekly snapshot for the CURRENT week; after it, it does not.
+cell("B1-D10-site-writers-1587-runAdaptive-weekly-push-window", SITE, () => {
+  const T = engine("2026-03-08");
+  const s = wide(); s.reads = [{ d: "2026-03-09", w: 180, pt: 180 }]; s.weekly = [];
+  const wk = T.runAdaptive(s, "2026-03-08").weekly;
+  assert.deepEqual(wk, [],
+    d10site("writers.cjs:1587 runAdaptive — weekly after the run (monday 2026-03-02)",
+      [{ wk: "2026-03-02", trend: 180 }], wk));
+  // control: a read inside the week still opens the snapshot on both engines.
+  const c = wide(); c.reads = [{ d: "2026-03-06", w: 180, pt: 180 }]; c.weekly = [];
+  assert.deepEqual(T.runAdaptive(c, "2026-03-08").weekly, [{ wk: "2026-03-02", trend: 180 }]);
+});
+
+// ---------------------------------------------------------------------------
+// SITE 8/8 — `writers.cjs:2432` (B3's file), `undoRead`:
+//   const stillClean = s.reads.some((x) => !x.sealed && x.d >= monday && weeksBetween(monday, x.d) < 1);
+//   if (!stillClean) s.weekly = s.weekly.filter((w) => w.wk !== monday);
+// The mirror of site 7. Undoing the only read genuinely inside the week used
+// to leave the week's snapshot standing on the strength of a read belonging
+// to the NEXT week; now the snapshot goes with the read, which is the whole
+// point of `undoRead`.
+cell("B1-D10-site-writers-2432-undoRead-weekly-retain-window", SITE, () => {
+  const T = engine("2026-03-16");
+  const s = wide();
+  s.reads = [{ d: "2026-03-04", w: 181, pt: 181 }, { d: "2026-03-09", w: 180, pt: 180 }];
+  s.weekly = [{ wk: "2026-03-02", trend: 181 }];
+  const wk = T.undoRead(s, "2026-03-04").weekly;
+  assert.deepEqual(wk, [],
+    d10site("writers.cjs:2432 undoRead — weekly after undoing the week's only read",
+      [{ wk: "2026-03-02", trend: 181 }], wk));
+  // control: a second read genuinely inside the week keeps the snapshot on
+  // both engines, so the cell is measuring the window and not the removal.
+  const c = wide();
+  c.reads = [{ d: "2026-03-04", w: 181, pt: 181 }, { d: "2026-03-08", w: 180, pt: 180 }];
+  c.weekly = [{ wk: "2026-03-02", trend: 181 }];
+  assert.deepEqual(T.undoRead(c, "2026-03-04").weekly, [{ wk: "2026-03-02", trend: 181 }]);
+});
+
+// ===========================================================================
+// C4 / review r2 C-r2-2(b) — D10's SOURCE AND ALIAS ASSERTION, committed.
+//
+// `D10-2 utc-stamp-substitution` replaces the repaired body with the law's own
+// control shape, `(Date.UTC(..) - Date.UTC(..)) / 604800000`. Five independent
+// harnesses (builder, review r1, the r1 fix pass, review r2, the r2 fix pass)
+// each measured that NOTHING moves behaviourally: the two forms are
+// bit-identical on every date-only input, because both endpoints are stamped
+// consistently. So the mutant is not killable by a value, and BRIEF v1.2 §2
+// D10 names its kill exactly: "an alias trace showing a UTC constructor".
+//
+// This cell is that trace, and it is a POSITIVE assertion about the primitive's
+// own declaration — not a source-pin refusal, which `BRIEF-IMPORT-GUARDS.md:89`
+// says earns no kill. It reads ONE declaration and makes claims that only an
+// edit to THAT declaration can break: measured against all 33 mutants, it fires
+// on the three that edit `dates.cjs` (`D10-1`, `D10-2`, `D10-3`) and holds
+// under the other thirty. A pin over the file's bytes would have "killed" all
+// 33; this one is declaration-scoped, which is the difference.
+//
+// The PM still owns C-r2-2: the closed profile must (a) list this file as a
+// REQUIRED package artifact and (b) carry this assertion. (b) is now an
+// executable artifact in the repository rather than a sentence in a brief, and
+// (a) is exactly what makes it binding.
+cell("B1-D10-weeksBetween-is-calendar-based-by-source-and-is-the-primitives-only-definition",
+  ["D10-2 utc-stamp-substitution"], () => {
+  const fs = require("node:fs");
+  const p = require("node:path");
+  const read = (f) => fs.readFileSync(p.join(__dirname, "..", f), "utf8");
+  const declOf = (src, name, where) => {
+    const key = "\nconst " + name + " = ";
+    const i = src.indexOf(key);
+    assert.ok(i > -1, where + " must declare `" + name + "` at the top level");
+    assert.equal(src.indexOf(key, i + 1), -1, where + " declares `" + name + "` more than once");
+    const rest = src.slice(i + 1);
+    const stops = ["\nconst ", "\nfunction ", "\nreturn ", "\nlet ", "\nvar ", "\n//", "\n/*"]
+      .map((t) => rest.indexOf(t)).filter((k) => k > 0);
+    return rest.slice(0, stops.length ? Math.min.apply(null, stops) : rest.length);
+  };
+  const forbid = (text, bad, what) => bad.forEach((b) => assert.equal(text.indexOf(b), -1,
+    what + " must not contain `" + b + "` — found it in: " + text.trim()));
+
+  const dates = read("dates.cjs");
+  const wb = declOf(dates, "weeksBetween", "dates.cjs");
+  const pd = declOf(dates, "plusDays", "dates.cjs");
+  const mkd = declOf(dates, "mk", "dates.cjs");
+
+  // (1) `weeksBetween` counts CALENDAR DAYS: it rounds the DAY count — never
+  //     the week — and it reads both endpoints through the calendar helper.
+  assert.ok(wb.indexOf("Math.round(") > -1, "weeksBetween must round the DAY count: " + wb.trim());
+  assert.equal((wb.match(/\bmk\(/g) || []).length, 2, "weeksBetween must read BOTH endpoints through mk(): " + wb.trim());
+  assert.ok(wb.indexOf("/ DAY)") > -1 && wb.indexOf(") / 7") > -1,
+    "weeksBetween must divide the rounded DAY count by 7: " + wb.trim());
+  // (2) and it does so from LOCAL calendar midnights, never a UTC stamp or an
+  //     elapsed-hours constant. This is the clause that kills `D10-2`.
+  forbid(wb, ["Date.UTC", "604800000", "86400000", "864e5", "getTime(", "getTimezoneOffset",
+    "toISOString", "Date.parse", "new Date(", "7 * 24", "24 * 60", "168"], "weeksBetween's declaration");
+  // (3) the calendar helper it calls is itself local, so the kill cannot be
+  //     moved one level down into `mk`.
+  assert.ok(mkd.indexOf("new Date(y, m - 1, d)") > -1, "mk must build a LOCAL midnight: " + mkd.trim());
+  forbid(mkd, ["Date.UTC", "toISOString", "Date.parse"], "mk's declaration");
+  // (4) `plusDays` steps the calendar date, never milliseconds (`D10-3`).
+  ["setDate(", "getDate(", "mk(", "isoOf("].forEach((t) => assert.ok(pd.indexOf(t) > -1,
+    "plusDays must step the calendar date: " + pd.trim()));
+  forbid(pd, ["DAY", "864e5", "86400000", "getTime(", "Date.UTC", "new Date("], "plusDays's declaration");
+  // (5) BRIEF v1.2 §A item 7 — `plusDays` has no frozen counterpart, so it is
+  //     declared ABOVE the fe516c1:311 marker and never between the marker and
+  //     `weeksBetween` (`postfix/source-proof.cjs:11 declarationRanges()` names
+  //     each range by the first declaration after such a marker).
+  assert.ok(dates.indexOf("// Copied from frozen src/app.jsx @ fe516c1:311-311.\nconst weeksBetween = ") > -1,
+    "the fe516c1:311 marker must sit immediately above `weeksBetween`");
+  assert.ok(dates.indexOf("const plusDays = ") < dates.indexOf("@ fe516c1:311-311."),
+    "`plusDays` must be declared above the fe516c1:311 marker");
+  // (6) the export surface: exactly the seven frozen names plus `plusDays`.
+  const ret = dates.slice(dates.lastIndexOf("\nreturn {")).split(";")[0];
+  assert.deepEqual(ret.replace(/[\s\n]/g, "").replace("return{", "").replace("}", "").split(","),
+    ["DAY", "mk", "isoOf", "todayStart", "daysUntil", "fmtShort", "weeksBetween", "plusDays"],
+    "dates.cjs's export set must be the seven frozen names plus plusDays: " + ret.trim());
+
+  // (7) THE ALIAS TRACE. Every module that consumes the primitive delegates to
+  //     the ONE definition above; none of them re-declares it. Without this a
+  //     mutant could leave `dates.cjs` pristine and substitute a UTC form in a
+  //     single consumer, and every value cell in this file would still hold.
+  const DELEGATE = (n) => "const " + n + " = (...args) => E." + n + "(...args);";
+  [["energy.cjs", "weeksBetween"], ["sleep.cjs", "weeksBetween"], ["migrate.cjs", "weeksBetween"],
+   ["writers.cjs", "weeksBetween"], ["sleep.cjs", "plusDays"], ["policy.cjs", "plusDays"],
+   ["today.cjs", "plusDays"]].forEach(([f, n]) => {
+    const src = read(f);
+    const decls = (src.match(new RegExp("^\\s*(const|let|var|function)\\s+" + n + "\\b", "gm")) || []);
+    assert.equal(decls.length, 1, f + " must declare `" + n + "` exactly once (the delegate), found " + decls.length);
+    assert.ok(src.indexOf(DELEGATE(n)) > -1, f + " must alias `" + n + "` to the shared table: " + DELEGATE(n));
+  });
+  // and the primitive is defined in exactly one engine module.
+  ["energy.cjs", "sleep.cjs", "migrate.cjs", "writers.cjs", "policy.cjs", "today.cjs"].forEach((f) => {
+    forbid(read(f).split("\n").filter((l) => l.indexOf("weeksBetween") > -1 || l.indexOf("plusDays") > -1)
+      .filter((l) => l.indexOf("=> E.") === -1).join("\n"), ["Date.UTC", "604800000"],
+      f + "'s weeksBetween/plusDays call sites");
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Run every cell. A cell that aborts the file would hide the ones behind it, so
 // failures are collected and the count is reported: N/N on the repaired
@@ -462,16 +823,21 @@ cell("B1-D23-the-seven-day-scan-steps-calendar-dates",
 let held = 0;
 const failed = [];
 for (const c of CELLS) {
-  try { c.run(); held++; console.log("HOLD " + c.name + "  [kills: " + c.kills.join(" | ") + "]"); }
+  const tag = c.kills.length
+    ? "  [kills: " + c.kills.join(" | ") + "]"
+    : "  [D10 call site outside B1's modules — PM acceptance condition, no named mutant]";
+  try { c.run(); held++; console.log("HOLD " + c.name + tag); }
   catch (e) {
     failed.push(c.name);
-    console.log("FAIL " + c.name + "  [kills: " + c.kills.join(" | ") + "]");
+    console.log("FAIL " + c.name + tag);
     console.log("     " + String(e && e.message || e).split("\n").slice(0, 3).join(" / "));
   }
 }
 const kills = CELLS.reduce((a, c) => a + c.kills.length, 0);
+const sites = CELLS.filter((c) => !c.kills.length).length;
 console.log("B1 DELTA CELLS: " + held + "/" + CELLS.length + " hold; " + kills
-  + " named mutants carried (D10-2 excluded: unkillable behaviourally, see header)");
+  + " named mutants carried (D10-2 by source/alias assertion, every other by value); "
+  + sites + " D10 call sites outside B1's modules enumerated with before/after values");
 if (failed.length) {
   console.error("B1 DELTA CELLS FAILED: " + failed.join(", "));
   process.exitCode = 1;
