@@ -1,0 +1,108 @@
+ASTRA OWNER QUALIFICATION — REUSABLE PREPARATION CHECKPOINT
+2026-09-11; author only; not package acceptance or deployment.
+
+Source
+Base df226c76cda5605d5a8548227464e460d0808bbc, isolated branch
+codex/astra-owner-qualification. This report's containing commit identifies the
+exact preparation candidate. Base includes the distinct product/tool join
+fbc24209f732db31eadec4c5fc48cca0d28e85e6, accepted setup 9e779f6,
+native baseline b843a7b, B-NTC/F1 71fb2f1 and tooling 85f7d56.
+Assignment: ASTRA-OWNER-QUALIFICATION-PREP.md in the PM worktree.
+
+Changes
+Proposed v1.3 brief explicitly supersedes historical section 13 O1's exclusion
+for factual native-baseline reconstruction using existing engine predicates.
+It includes authoritative stored setup and pending current-calendar composition;
+unequal/configured mappings, future-history B2/D7 limits and missing phone proof
+remain explicit. No product behavior changed by this preparation.
+
+source-projection.cjs is declared superseded-by-child from parent preimage
+fecb0447d5079628bb531c59bfbc64b72d302c1fa3e844ef2692a161a0f0e37e.
+The module-private archived verifier reads exactly three reviewed-parent pins:
+runtime, projection and workflow. Actual-child proof checks all declared disk
+postimages and substitutes exactly the runtime/projection SUPPORT literals in
+the original privately compiled source verifier. Original profile assertions,
+original executable origin checks and actual-child gate execution remain intact.
+No global filesystem/loader/cache patch or accepted-parent edit was introduced.
+
+A build-resolved import inventory records 101 public runtime/test/dependency
+files, including local-client, initial-setup, athlete-state and native-baseline.
+It derives runtime factories from the exact source declaration, resolves static
+imports and literal relative createRequire dependencies, and pins package/lock
+inputs. It does not execute its generated bundles. Verification rebuilds that
+inventory, compares its exact manifest and requires every source postimage in
+the product map. The current map contains 139 sources and 17 child declarations.
+All 15 prior child declarations and the complete coverage map are byte-equivalent
+as JSON values to the base. The two additions execute real setup/baseline tests
+and meaningful source/closure refusals through existing allowed spec roots.
+
+The workflow's existing two-OS job explicitly enumerates the three current
+setup/baseline tests and new closure refusal tests. Existing package invocation
+remains gated; its label identifies candidate evidence. No source policy was
+issued or accepted CI receipt claimed. moves={} and MOVES_RULING=null remain.
+
+Executed focused evidence (existing dependencies; no private inputs)
+- b-ntc-owner-tests.cjs: 49 pass, 0 fail, 0 skipped, 0 cancelled. These are actual
+  Node --test targets: local-initial-setup.test.mjs, native-baseline.test.cjs and
+  native-baseline-journey.test.mjs. The wrapper requires the exact count and pins.
+- b-ntc-owner-qualification.test.cjs: 8 pass, 0 fail. Five real source drifts
+  (projection/baseline/local-client/initial-setup/athlete-state), absent dependency
+  declarations and a shortened/re-pinned manifest refuse; restored actual source
+  verifies and global loader/filesystem functions remain unchanged.
+- Original b-ntc-profile-refusals.test.cjs: all 13 unchanged tests pass.
+- Existing b-ntc-child-pin-refusals.test.cjs: all 4 unchanged tests pass.
+- Actual b-ntc-source-carriers.cjs: 6/6 assertions at each original clock; candidate
+  terminal receipt remains PENDING. Archived and actual source checks both ran.
+- Actual runner validateSuccessorDefinition with the current real spec refuses
+  unchanged policy 6147178 for changed owner sources/declarations. It cannot
+  authorize this candidate. All 15 previous children and coverage were compared
+  against base; runner and old policy bytes were compared against base unchanged.
+- Fresh runtime closure verification: 101 files; all product postimages agree.
+- git diff --check: clean.
+
+One initial setup/baseline execution lacked fake-indexeddb resolution in the
+native-baseline journey's CJS createRequire context. It failed with that precise
+missing-module error. The wrapper now explicitly sets NODE_PATH to the existing
+W6 dependency directory; the final 49-test run passed. No install or product fix.
+Local ignored dependency junctions reuse existing integration/W6/W5 dependencies.
+
+Mechanical SHA-256 pins
+b-ntc-successors.cjs
+  2f2689770353d6efc71708c619d8f7ca5354d5c50aaae49cd66198d75ab93933
+b-ntc-runtime-closure.cjs
+  7fcea6563a9744e544a4dc19a36d86a371621e069fa006b74a82929c7ea245d3
+b-ntc-runtime-closure.json
+  3097d5edd693f6e0578f190a91a4c8e3087d6d19aa1b31f965ee4a0bcb5a500a
+b-ntc-owner-tests.cjs
+  cf62e93d5e4d15ad22f751a253c8ec6450b2b9234cedfbd16b99dc6fee6729fc
+b-ntc-owner-qualification.test.cjs
+  8f8f482baa0e318018caf244bb8f2572474ab31e18673f36a7f351e7d4366aca
+.github/workflows/rebuild.yml
+  54ca0281f5482472d5beb14e880935dad26a9ccbbc96891618fb6a861f385968
+Unchanged b-package.cjs
+  ca0419e61beac8ffe9c89971e11fd1f3cfb0913af1d2d5d05ddbdf12c057f484
+Unchanged old b-ntc-successors.json policy
+  614717800602ce09f792b77a2ef04f191a9d156573b572b772aa1854afae17ee
+
+Precise remaining dependency and acceptance steps
+Owner-entry candidate d05876fbc01765f7958f6e5a1a58e06e9a53f263 was inspected
+read-only at its committed report/file list; it has NOT joined this checkpoint.
+Root must first provide independently reviewed/accepted entry source. Then join
+that exact source, refresh the calendar/entry runtime graph and affected test
+inventory, add its real execution accounting and both-OS workflow enumeration,
+refresh all exact spec postimages, and independently review that narrow delta.
+
+The resulting coherent immutable source commit, product map, closure and child
+declarations need a NEW independently reviewed source policy/digest. The old
+6147178 policy binds 71fb2f1 and remains unissued for this changed owner build.
+Mechanically update the runner's reviewed policy pin/spec hash only after that
+step. Root must issue actual amended brief/theme acceptance with exact new policy
+digest, and a distinct integrator must place those citations on the fixed accepted
+CHAIN_REF and candidate ancestry. Local-only PM lines are not chain authority.
+
+No FULL, private custody/materialization, mutation campaign, complete second gate,
+45-register-law/19-gate campaign, both-OS CI, final exact-artifact receipt or phone
+proof was executed here. Those preserved qualification obligations remain before
+acceptance. This checkpoint also makes no fresh nutrition/trend completion claim.
+No install, lockfile change, frozen law/product change, push, PR, integration-branch
+merge or deployment. Root remains sole PM; distinct review remains required.
