@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "lanePackage": "B-NTC",
+  "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
+  "status": "PROPOSED",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
+    "sha256": "0ba59cca3bd70383330fa59a4ae86a971108a64594933d5c6388bca6c45e16b8",
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "12cfdb9d58fbcab10faacdaff8ef886ca79ab9c2",
+  "dIds": [],
+  "laws": {},
+  "carriedAcceptedIds": [],
+  "privateLiveTriggered": [],
+  "parent": {
+    "decided": true,
+    "chosen": "NATIVE-CARRIERS",
+    "options": [
+      {
+        "id": "NATIVE-CARRIERS",
+        "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
+        "sha256": "295762f0bfabf371e1e84b2c8e00a56fc46e7ed3f4e1a08afdebc9e86fb9c5d1",
+        "review": "rebuild/m4/spec/review-native-carriers.json",
+        "receiptLedgerLine": 96,
+        "note": "Chain head at sourceBase 12cfdb9 (DECISIONS:96/97). SUPERSEDED UPSTREAM: the PM’s CI re-seal (DECISIONS:105) re-sealed the same artifact to e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a at origin tip da63053; whichever is head when B-NTC is rebased is the parent, and this pin is re-taken then."
+      }
+    ]
+  },
+  "tooling": {
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
+    "runnerSha256": null
+  },
+  "product": {
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "post": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "role": "carried"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "post": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "role": "carried"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "post": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    }
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "source-carriers",
+      "merge-source": "source-carriers",
+      "writers-source": "source-carriers",
+      "witnesses-2": "inherited-carriers",
+      "witnesses-5": "inherited-carriers",
+      "migrate-differential": "inherited-carriers",
+      "witnesses-7": "defect-witnesses",
+      "writers-differential": "writers-differential",
+      "second-gate": "second-gate"
+    },
+    "moves": {}
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [],
+  "authorizations": {
+    "owner": null,
+    "contract": null,
+    "theme": null,
+    "review": null
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
+    "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json"
+  },
+  "children": [],
+  "notes": [
+    "B-NTC edits NOTHING under rebuild/engine, rebuild/conform or rebuild/m4/spec: every parent-pinned product file is role \"carried\" (pre === post, byte-identical on disk, verified by this generator).",
+    "dIds and laws are EMPTY on purpose. B-NTC registers no D-ID (DECISIONS:93 — feature work under the ratified slice plan takes no register D-ID); it turns an accepted open boundary into a provider.",
+    "NOT RUNNABLE by the accepted runner today: rebuild/lanes/b/tooling/b-package.cjs closes its package list to B1|B2|B3|B4 (“B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B1|B2|B3|B4”). Extending that list is the PM’s/tooling owner’s change, not lane B’s unilateral one — PM question Q2 in the brief.",
+    "runnerSha256, brief.sha256 and every authorization stay null until the tooling PR is accepted and the PM accepts this brief with a ledger line; a declared acceptance that stands in no ledger refuses the run by design.",
+    "children[] is empty: B-NTC declares no package child yet, so no gate is covered and the coverage bound is inherited-only."
+  ]
+}

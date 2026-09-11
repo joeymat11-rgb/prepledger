@@ -81,6 +81,14 @@ export function composeWorkoutHost({
   workoutProducerIdentity,
   resolveWorkoutBasis,
   resumeReason,
+  // B-NTC, optional. The qualified nativeTrendContext binding
+  // (rebuild/m4/workout/native-trend-context.cjs). Its `resolve` is what the
+  // caller handed createEngineRuntime; this host's only job is to tell it
+  // WHICH facts object the engine is about to read, and to take that binding
+  // away again the moment the preparation ends. Absent, nothing changes: the
+  // host keeps whatever resolver the caller composed, including A0's honest
+  // refusal createUnavailableNativeTrendContext.
+  nativeTrendBinding,
   stringSelectionRegistrar,     // optional: reading-replay's own projectLineage registrar
   mountPreparedWorkoutPanel,    // optional: only needed by a page host
   plannedSplitSlotId,
@@ -117,6 +125,9 @@ export function composeWorkoutHost({
   if (typeof resolveWorkoutBasis !== 'function') need('resolveWorkoutBasis');
   if (typeof resumeReason !== 'string' || !resumeReason.trim()) need('resumeReason');
   if (typeof plannedSplitSlotId !== 'string' || !plannedSplitSlotId.trim()) need('plannedSplitSlotId');
+  if (nativeTrendBinding !== undefined &&
+      (typeof nativeTrendBinding?.bind !== 'function' || typeof nativeTrendBinding?.unbind !== 'function'))
+    throw new TypeError('composeWorkoutHost requires a {bind, unbind} native trend binding when one is supplied');
   if (stringSelectionRegistrar !== undefined && typeof stringSelectionRegistrar?.workoutInput !== 'function')
     throw new TypeError('composeWorkoutHost requires a registered string-lane registrar when one is supplied');
 
@@ -159,12 +170,21 @@ export function composeWorkoutHost({
       // prepareWorkout / prepareWorkoutContinuation and stores nothing.
       if (!splitInForceOn(engineState, day)) refuseSplitNotInForce(day);
       lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts });
+      // B-NTC. Bind the qualified native trend resolver to the VERY facts
+      // object this preparation is about to give the engine — by identity, not
+      // by copy — so the resolver can prove that what it answers about is what
+      // the engine is reading. The binding lasts exactly this preparation.
+      if (nativeTrendBinding) nativeTrendBinding.bind(context.workoutFacts);
       return adapter.prepare({ day, basis: context.basis,
         sourceProjection: lastProjection, source_basis: context.source_basis }).capture;
     } catch (error) {
       lastRefusal = Object.freeze({ code: error?.code || null, reason: error?.reason || null,
         message: typeof error?.message === 'string' ? error.message : null });
       throw error;
+    } finally {
+      // Outside a preparation the resolver has no bound facts and refuses;
+      // a later request can never be answered from this preparation's binding.
+      if (nativeTrendBinding) nativeTrendBinding.unbind();
     }
   }
   const workoutResumePolicy = createWorkoutResumePolicy({ produceCapture: workoutProducer, reason: resumeReason });

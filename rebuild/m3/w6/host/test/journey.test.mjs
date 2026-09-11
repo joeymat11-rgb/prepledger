@@ -31,6 +31,8 @@ const SourceProjection = require('../../../../m4/workout/source-projection.cjs')
 const { createCleanInitState, SCHEMA_V, AUTONOMY_FLOOR } = require('../../../../m4/workout/athlete-state.cjs');
 const { createNullLaneWorkoutBasis, createUnavailableStringLaneResolver } = require('../../../../m4/workout/workout-basis.cjs');
 const { createWorkoutResumePolicy } = require('../../../../m4/workout/resume-policy.cjs');
+// B-NTC — the qualified nativeTrendContext provider (step 17).
+const { createNativeTrendContextBinding, createEmptyHistoryDayFacts } = require('../../../../m4/workout/native-trend-context.cjs');
 // The engine carriers landed in rebuild/engine with M2-NATIVE-CARRIERS, so the
 // journey now composes the ACCEPTED runtime straight off disk; the scratch
 // composition root this test used to build is gone. The host's bundleable
@@ -431,6 +433,145 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert.deepEqual(Object.keys(plan), ['autonomy'], 'no invented plan member');
     assert.equal(plan.autonomy, 'propose');
     assert(!Object.hasOwn(plan, 'mode'), 'plan.mode is not engine vocabulary and is not written');
+  });
+
+  // B-NTC. The second training day on the SAME lift is the wall DECISIONS:102
+  // records: with A0's createUnavailableNativeTrendContext the engine reaches
+  // liftTrend over a native row, asks for a trend context, gets a throw, and
+  // refuses PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED before any write. This
+  // step runs that day twice over the SAME stored history — once with A0's
+  // refusal and once with the qualified provider — and asserts both halves:
+  // the wall is real, and the provider is what removes it.
+  await t.test('17. the second day on the same lift: refused without a trend context, prepared with one', async () => {
+    const NEXT = '2026-09-11';                       // DAY + 7, the same Friday U day
+    const LIFT = 'db-bench';
+    // Its own clean store, conducted from nothing, so this step depends on no
+    // state the rest of the journey left behind.
+    const own = await scaffold();
+    try {
+      // The clean-init athlete's every lift starts at `w: null`, which
+      // rebuild/engine/today.cjs genSession reads as a permanent DEBUT — and a
+      // DEBUT never reaches liftTrend, which is why steps 4-12 above never ask
+      // for a trend context at all (A0-REPORT §"not qualified" 5). This host
+      // does not write `w` back to the state; the frozen engine's
+      // writers.completeSession is what sets it in the real app. So this step
+      // states that one fact explicitly: ONE lift carries a working load taken
+      // from its own declared `steps`, which is the athlete DECISIONS:102
+      // describes (a lift with a recorded load, coming back for its second
+      // session). Nothing else about the clean-init state is changed.
+      const state = structuredClone(createCleanInitState({ setup: SETUP }));
+      state.exercises.find(e => e.id === 'db-bench').w = 35;
+      let ids = [], stageDay = DAY;
+      // One stage whose clock follows the conducted day, so each session's
+      // stored `effective.local_date` is the day it was actually trained.
+      const ownStage = createT2Stage(() => ({ ...config(), clock: { ...config().clock, today: () => stageDay } }),
+        { allowInbound: true, workoutCommands: Commands.createWorkoutCommands({ prescriptionCapture: own.parents.capture }) });
+      const basis = createNullLaneWorkoutBasis({ sourceCodec: Source,
+        planBasis: PLAN_BASIS, inputBasis: INPUT_BASIS, causalParents: () => ids });
+      const hostAt = (day, nativeTrendContext, nativeTrendBinding) => composeWorkoutHost({
+        repository: own.f.repo, stage: ownStage, namespace: 'synthetic-athlete/device-A',
+        athleteId: 'ath-1', deviceId: 'dev-A',
+        sessionEpoch: 1, isCurrentSession: x => x === 1, observationEpoch: () => 1,
+        observationGuard: { run: async (_kind, fn) => fn() }, validateCommit: () => null,
+        keys: own.parents.keys, crypto: webcrypto,
+        createDurablePublicClient,
+        createNullSelectionRegistrar: SourceProjection.createNullSelectionRegistrar,
+        createSourceProjectionReader: SourceProjection.createSourceProjectionReader,
+        createEngineWorkoutCapture: Adapter.createEngineWorkoutCapture,
+        createEngineHistoryProjector: History.createEngineHistoryProjector,
+        createWorkoutResumePolicy, parseStrictJson, projectWorkoutRecords,
+        prescriptionCapture: own.parents.capture, sourceCodec: Source,
+        engine: createEngineRuntime({ clock: clockFor(day), nativeTrendContext }),
+        engineState: state, clock: clockFor(day),
+        workoutProducerIdentity: PRODUCER, resolveWorkoutBasis: basis, resumeReason: RESUME_REASON,
+        plannedSplitSlotId: SLOT, ...(nativeTrendBinding ? { nativeTrendBinding } : {}),
+      });
+
+      // The athlete's own two training days, conducted through the product
+      // entry point exactly as A2 conducts them: Friday U, Saturday L. Day
+      // 2026-09-11 then comes back to the Friday lifts — DECISIONS:102's day+3.
+      async function conduct(day) {
+        stageDay = day;
+        const host9 = hostAt(day, createUnavailableNativeTrendContext());
+        const p = await host9.client.prepareWorkout({ planned_split_slot_id: SLOT });
+        assert(p.prepared, day + ' prepares for this athlete: ' + p.code);
+        const s = await host9.client.startPreparedWorkout({ preparedId: p.preparedId });
+        assert(s.acknowledged, s.code);
+        ids = [s.op_id];
+        const sets = [];
+        for (const slot of p.view.slots) {
+          const r = await host9.client.execute('workout', { action: 'set', input: {
+            session_start_op_id: s.op_id, logical_set_slot: slot.logical_set_slot,
+            lift_lineage_id: slot.lift_lineage_id, load: { value: 35, unit: 'lb' },
+            reps: { value: 9, unit: 'rep' }, reserve: { tag: 'exact', value: 2, unit: 'rep' } } });
+          assert(r.acknowledged, r.code);
+          sets.push(r.op_id);
+        }
+        assert(sets.length, day + ' recorded every prescribed slot');
+        const c = await host9.client.execute('workout', { action: 'close', input: {
+          session_start_op_id: s.op_id, completion_kind: 'normal',
+          causal_parents: [s.op_id, ...sets] } });
+        assert(c.acknowledged, c.code);
+        ids = [c.op_id];
+        return p.view.slots.map(x => x.lift_lineage_id);
+      }
+      await conduct(DAY);            // Friday — db-bench, lat-pulldown
+      await conduct('2026-09-05');   // Saturday — leg-press
+      stageDay = NEXT;
+      const after = await opsOf(own.f.repo);
+
+      // (a) DAY TWO, A0's honest refusal — the S2 wall through the product entry point.
+      let asked = 0;
+      const refusing = createUnavailableNativeTrendContext();
+      const walled = hostAt(NEXT, r => { asked++; return refusing(r); });
+      const refused = await walled.client.prepareWorkout({ planned_split_slot_id: SLOT });
+      t.diagnostic('day two: asked=' + asked + ' prepared=' + refused.prepared + ' code=' + refused.code +
+        ' producer=' + JSON.stringify(walled.lastProducerRefusal()));
+      assert.notEqual(refused.prepared, true, 'the unqualified host does not prepare the second same-lift day');
+      assert.equal(walled.lastProducerRefusal()?.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
+      assert.equal(walled.lastProducerRefusal().reason, 'resolver_failed');
+      assert.deepEqual(await opsOf(own.f.repo), after, 'the refusal stored nothing');
+
+      // (b) The same day, the same history, the qualified provider.
+      const binding = createNativeTrendContextBinding({
+        dayFacts: createEmptyHistoryDayFacts({ state }) });
+      const open = hostAt(NEXT, binding.resolve, binding);
+      const prepared = await open.client.prepareWorkout({ planned_split_slot_id: SLOT });
+      assert(prepared.prepared, 'the qualified host prepares the day the wall refused: ' + prepared.code);
+      assert.equal(open.lastProducerRefusal(), null, 'no producer refusal on the qualified path');
+      assert.equal(prepared.view.profile, 'earned/workout-prescription/v2');
+      assert(prepared.view.slots.some(s => s.lift_lineage_id === LIFT), 'the prepared day carries ' + LIFT);
+      assert.deepEqual(await opsOf(own.f.repo), after, 'preparing still writes nothing until Start');
+
+      // (c) The binding does not outlive the preparation it was made for.
+      assert.equal(binding.bound(), null, 'the producer unbound the facts when it returned');
+      assert.throws(() => binding.resolve({ start_op_id: 'x', source_revision: 1, effective: {} }),
+        { code: 'NATIVE_TREND_CONTEXT_UNQUALIFIED', reason: 'no_bound_source_facts' });
+
+      // (d) A context bound to the wrong revision is refused, never answered:
+      //     the engine's own PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED comes back.
+      const stale = createNativeTrendContextBinding({
+        dayFacts: createEmptyHistoryDayFacts({ state }) });
+      const staleHost = hostAt(NEXT,
+        request => stale.resolve({ ...request, source_revision: request.source_revision + 1 }), stale);
+      const staleRefusal = await staleHost.client.prepareWorkout({ planned_split_slot_id: SLOT });
+      assert.notEqual(staleRefusal.prepared, true, 'a stale-revision context does not prepare');
+      assert.equal(staleHost.lastProducerRefusal()?.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
+      assert.deepEqual(await opsOf(own.f.repo), after, 'the stale refusal stored nothing');
+
+      // (e) An athlete who has recorded a sleep night is refused, not guessed
+      //     about: the day-facts reader cannot qualify hard/debt for a native
+      //     session yet, so the whole preparation fails closed (PM Q1).
+      const withNight = structuredClone(state);
+      withNight.sleep = { nights: [{ d: '2026-09-10', h: 5 }] };
+      const nightBinding = createNativeTrendContextBinding({
+        dayFacts: createEmptyHistoryDayFacts({ state: withNight }) });
+      const nightHost = hostAt(NEXT, nightBinding.resolve, nightBinding);
+      const nightRefusal = await nightHost.client.prepareWorkout({ planned_split_slot_id: SLOT });
+      assert.notEqual(nightRefusal.prepared, true, 'a recorded sleep night is not silently read as clean');
+      assert.equal(nightHost.lastProducerRefusal()?.code, 'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED');
+      assert.deepEqual(await opsOf(own.f.repo), after, 'that refusal stored nothing either');
+    } finally { own.f.repo.close(); }
   });
 
   repository.close();
