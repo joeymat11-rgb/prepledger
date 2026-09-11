@@ -9,4 +9,12 @@ export { openLocalKeys, keysPresent, keysDatabaseName, probeRecord } from "./loc
 export { createLocalEra, readLocalEra, localEraConfig, publicEra, localEraLeaseId, leaseExpired,
   leaseRenewalDue, renewLocalEraLease, LOCAL_ERA_PROFILE, LOCAL_ERA_DAYS,
   LOCAL_ERA_RENEW_WITHIN_DAYS } from "./local-era.mjs";
+// C2b. The phone side of Joe's PC port: unseal a sealed C2 bundle on WebCrypto
+// alone and adopt it. No Node crypto, no node:buffer — atob/btoa and
+// crypto.subtle, which is why this can ship in the phone bundle at all.
+export { unsealBundle, qualifyBundle, importBundle, listImports, importOriginal, markImportRebased,
+  importNameFor, importSummaries, importRebasePending, importRebaseCode,
+  importIdentityOf, sameImport, bytesToBase64,
+  base64ToBytes, sha256Hex, BUNDLE_PROFILE, BUNDLE_FAILURE, PAYLOAD_FAILURE,
+  NOT_QUALIFIED, ORACLE_PASS, LOCAL_IMPORT_PROFILE, IMPORT_REBASE_CODE } from "./import-bundle.mjs";
 export { StorageFailure } from "../repository.mjs";
