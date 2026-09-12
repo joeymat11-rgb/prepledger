@@ -1,5 +1,9 @@
 # Astra delivery checkpoint — September 11, 2026
 
+## SUPERSEDING — September 12, 08:23 ET reconciliation
+
+Read ASTRA-RECONCILIATION-2026-09-12.md first. Actual origin is 4d0eac39e08c84b64e8e62f718ca84faf0b4bcac; Fable PM resumed, B-NTC and several owner features merged. PR51 refused at DECISIONS:112; older approval requests and sole-PM instructions below are historical. Stop duplicate builder dispatch; retain local candidates for current PM disposition. Owner entry 2c46b23 has independently reproduced F1 (review 2e2c3e8); not accepted. Three helpers completed/idle. Actual owner phone proof remains pending according to current STATUS. No main-line adoption of our local assembly is claimed.
+
 ## CURRENT — September12 06:21 ET completed reviews and actual entry dispatch
 
 Goal turn PROGRESS: root read/verified full reports and clean sources. Scale74c0cce323d46f3dbf558bdace667ef661288efd ACCEPTED under same-reviewer c5a49e111a4214d832841d3f0d8d06be8dd53d53 (originalbe7fe6b);28 affected and original Why witness plus actual changed Chrome PASS. Formf3e60d87e1847da194d77155b66e061a879abe6c ACCEPTED under same-reviewerecf0e757d96a9668af20f9db180c33a1dcc16ea4 (originale6d840e);8 tests and independent mounted retired-review/quota identity replay PASS. Both historical defects remain recorded, no gates/pins weakened. Original module/layout/backend evidence reused.
