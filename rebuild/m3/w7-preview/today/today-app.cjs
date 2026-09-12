@@ -29,6 +29,9 @@ const ProblemReport = require("./problem-report.cjs");
 /* N1 (DECISIONS:143) - the nutrition entry's own words, its refusals and the projector
    the adapter replays a stored food day with. Pure: no DOM, no store. */
 const FoodModel = require("./food-model.cjs");
+/* N2 (DECISIONS:167) - the sleep entry's refusal rules and the projector seam S2 needs,
+   because the engine has no writer that appends a night. Pure: no DOM, no store. */
+const SleepModel = require("./sleep-model.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -130,6 +133,52 @@ const FOOD_REFUSAL_COPY = Object.freeze({
   NOTHING: "Enter calories, protein, or both. Nothing was recorded.",
   CAL_RANGE: "Calories are recorded as a whole number between 0 and 20000. Nothing was recorded.",
   PRO_RANGE: "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
+});
+
+/* N2 (DECISIONS:167) - every word the SLEEP entry can put on the screen. The approved
+   2026-09-08 design has no sleep screen at all, so all of it is preview-owned and
+   declared in design.cjs PREVIEW_RUNTIME_COPY; each sentence is the accepted brief's
+   own (rebuild/lanes/d2/BRIEF-N2-SLEEP-ENTRY.md v1.0, "Exact copy and states to
+   draw"), which marks every one of them INVENTED. sleep-model.cjs owns the RULE and
+   names each refusal by code; this file owns the wording. */
+const SLEEP_TITLE = "Sleep";
+const SLEEP_NIGHT_PREFIX = "Night of ";
+const SLEEP_NONE = "No sleep recorded for this night.";
+const SLEEP_MODE_LABEL = "How do you want to record it?";
+const SLEEP_MODE_TIMES = "Bed and wake times";
+const SLEEP_MODE_HOURS = "Hours asleep";
+const SLEEP_BED_LABEL = "Bed time";
+const SLEEP_WAKE_LABEL = "Wake time";
+const SLEEP_AWAKE_TOGGLE = "Time awake";
+const SLEEP_AWAKE_LABEL = "Minutes awake";
+const SLEEP_ESTIMATE_PREFIX = "Estimate from clock times: ";
+const SLEEP_AWAKE_NONE = "Time awake was not recorded.";
+const SLEEP_CLOCK_CHANGE = "For a clock-change night, enter hours asleep.";
+const SLEEP_HOURS_ASK = "About how many hours did you sleep?";
+const SLEEP_HOURS_LABEL = "Hours";
+const SLEEP_HOURS_NOTE = "Entered as an approximate duration.";
+const SLEEP_FROM_TIMES = "From bed and wake times.";
+const SLEEP_CHECKIN_PREFIX = "From your check-in on ";
+const SLEEP_CONFIRMED_PREFIX = "Confirmed from your check-in on ";
+const SLEEP_USE_CHECKIN = "Use these hours";
+const SLEEP_SAVE = "Save sleep";
+const SLEEP_SAVED = "Sleep saved on this device.";
+const SLEEP_RECORDED_PREFIX = "Recorded ";
+const SLEEP_NO_SAVE_TIME = "Save time not recorded.";
+const SLEEP_NOT_SAVED = "Sleep could not be saved on this device.";
+const SLEEP_READ_FAILED = "Sleep was saved. The screen could not refresh. Open it again.";
+const SLEEP_NO_STORE = "Sleep cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep it. Open Earned again on this device, or use one that allows local storage.";
+const SLEEP_NOTHING_RECORDED = "Nothing was recorded.";
+/* One sentence per refusal code, and no code without one. Each is followed on screen
+   by SLEEP_NOTHING_RECORDED, exactly as the brief's table spells it. */
+const SLEEP_REFUSAL_COPY = Object.freeze({
+  NOTHING: "Choose times or hours asleep.",
+  BOTH_TIMES: "Enter both times.",
+  TIME_FORM: "Enter valid times.",
+  SAME_TIME: "For matching times, enter hours asleep instead.",
+  AWAKE: "Enter whole minutes awake within the time in bed.",
+  HOURS: "Enter hours from 0 to 24, with up to two decimal places.",
+  NIGHT_DATE: "Choose a completed night.",
 });
 
 const PROBLEM_ENTRY = "Report a problem";
@@ -274,6 +323,90 @@ function mountToday(doc, model, options = {}) {
      either way. Cleared the moment a read succeeds. */
   let foodReadBack = null;
   if (foodLane && typeof model.setFoodDays === "function") model.setFoodDays(foodLane);
+
+  /* ---------------- N2, THE SLEEP LANE (DECISIONS:167) ----------------
+     Opened here for exactly N1's reason, one seam further on: today-entry.mjs boot()
+     AND rebuild/m3/w6/local/today-bindings.mjs are both PINNED ON DISK by the merged
+     B-NTC artifact, and their pin-class transition is lane B's round after H3
+     (DECISIONS:154 (5)), so neither can gain a sixth lane. N2 opens its own through
+     `era.client.hostBindings({workoutCommands})` - the point local-client.mjs:395
+     exposes and D2's N2-SOURCE-ERRATUM.md confirms - lazily and FAILING CLOSED, so
+     every jsdom mount in this repository is unchanged: jsdom has no indexedDB. */
+  let sleepLane = options.sleep || null;
+  let sleepOpening = null;
+  let sleepSaving = null;
+  let sleepLaneFailure = null;
+  let sleepReadBack = null;      // an acknowledged night whose read-back did not land
+  /* The screen's own transient state. Nothing durable lives here. TIMES first. */
+  const sleepDraft = { mode: "times", bed: "", wake: "", awake_min: "", hours: "",
+    awakeOpen: false, from_checkin_op_id: "" };
+  if (sleepLane && typeof model.setSleepNights === "function") model.setSleepNights(sleepLane);
+
+  function sleepEntryFor(host, rows) {
+    let cache = rows;
+    return {
+      host,
+      rows: () => cache,
+      async refresh() { cache = await host.all(); return cache; },
+      /* The COMMIT and the READ-BACK are two outcomes, exactly as N1's lane learned
+         from D2 round 2: an acknowledged night is durable whatever the read does. */
+      async save(night) {
+        const result = await host.save(night);
+        if (!result || result.ok !== true) return result;
+        try { await this.refresh(); return { ...result, readBack: true }; }
+        catch (_) { return { ...result, readBack: false }; }
+      },
+      close() { host.close(); },
+    };
+  }
+
+  function openSleepLane() {
+    if (sleepLane || sleepOpening) return sleepOpening;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) { sleepLaneFailure = "NO_LOCAL_STORE"; return null; }
+    sleepOpening = Promise.resolve()
+      .then(() => import("./sleep-host.mjs"))
+      .then((module) => module.createSleepHost({ day: model.today, indexedDB: idb, crypto: web }))
+      .then(async (host) => {
+        const lane = sleepEntryFor(host, await host.all());
+        sleepLane = lane;
+        if (typeof model.setSleepNights === "function") model.setSleepNights(lane);
+        loadCheckInKit();
+        if (screen === "today" || screen === "sleep") render(screen, false);
+        return lane;
+      })
+      .catch((error) => {
+        sleepLane = null;
+        sleepLaneFailure = (error && (error.code || error.message)) || "SLEEP_LANE_UNAVAILABLE";
+        if (screen === "sleep") render(screen, false);
+        return null;
+      });
+    return sleepOpening;
+  }
+
+  /* D2's correction 1 - THE SAME-PAGE JOURNEY. `createCheckInEntry` captures
+     `model.stateFromOps()` ONCE, at boot, and `createCheckInModel` freezes the night
+     it found at construction. Reopening the page is not a substitute, and neither
+     today-entry.mjs nor checkin-model.mjs may be edited (the first is pinned on disk,
+     the second must stay byte-identical so N2 proves the reuse path without changing
+     A3 at all). So when a night has been saved since the check-in was built, the
+     route builds a FRESH check-in model over the SAME host and mounts it with the
+     SAME screen: one rebind, no second store, no second producer, nothing durable. */
+  let checkInKit = null;
+  let checkInKitLoading = null;
+  function loadCheckInKit() {
+    if (checkInKit || checkInKitLoading) return checkInKitLoading;
+    checkInKitLoading = Promise.all([import("./checkin-model.mjs"), import("./checkin-app.mjs")])
+      .then(([model_, app]) => {
+        checkInKit = { createCheckInModel: model_.createCheckInModel, mountCheckIn: app.mountCheckIn };
+        return checkInKit;
+      })
+      .catch(() => { checkInKit = null; return null; });
+    return checkInKitLoading;
+  }
+  if (sleepLane) loadCheckInKit();
 
   function foodEntryFor(host, rows) {
     let cache = rows;
@@ -447,6 +580,10 @@ function mountToday(doc, model, options = {}) {
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
     map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
+    /* N2 - Today's sleep entry and its one line. Written straight, like the other two:
+       a night this device holds nothing for says NOTHING rather than a placeholder. */
+    put(map, "sleep-entry-label", SLEEP_TITLE);
+    map.get("sleep-state").textContent = plainOrDrop(sleepState(), "sleep-state");
     setupTile(map);
     setupNote(map);
     problemControl(map);
@@ -833,6 +970,238 @@ function mountToday(doc, model, options = {}) {
     return line;
   }
 
+  /* ======================= N2, THE SLEEP ENTRY (DECISIONS:167) =======================
+     The night this screen is about: the day BEFORE today, which is exactly what
+     checkin-model.mjs dayBefore computes for the check-in that reads it back. */
+  const sleepNightDate = () => SleepModel.nightDateFor(model.today);
+
+  /* The check-in's own answer for the morning AFTER this night, offered as a dated
+     SUGGESTION and never promoted silently. Read out of the check-in lane the page was
+     given; with no lane there is nothing to offer and the screen says nothing. */
+  function sleepCheckInOffer() {
+    if (!checkin || !checkin.checkin || typeof checkin.checkin.recorded !== "function") return null;
+    const row = checkin.checkin.recorded();
+    if (!row || !row.answers) return null;
+    const hours = row.answers.sleep_hours;
+    if (typeof hours !== "number" || !Number.isFinite(hours)) return null;
+    return { date: row.date, hours, op_id: row.op_id || null };
+  }
+
+  function renderSleep(focus) {
+    const root = template("t-sleep");
+    const map = slots(root);
+    const date = sleepNightDate();
+    put(map, "sleep-title", SLEEP_TITLE);
+    put(map, "sleep-night", SLEEP_NIGHT_PREFIX + (date || ""));
+    const opening = sleepLane ? null : openSleepLane();
+    if (!sleepLane) {
+      /* WHAT CANNOT HAPPEN, WHY, AND WHAT TO DO - N1's D2 round-1 lesson, applied
+         here from the first line rather than after a review. */
+      put(map, "sleep-note", sleepLaneFailure
+        ? SLEEP_NO_STORE + " " + FOOD_REASON + sleepLaneFailure + "."
+        : (opening ? FOOD_OPENING : SLEEP_NO_STORE));
+      map.get("sleep-entry-form").hidden = true;
+    } else {
+      sleepEntry(map, root, date);
+    }
+    wire(root);
+    show(root, focus);
+  }
+
+  /* The entry itself. Two modes, TIMES first (:167 (3)); one primary action; the
+     recorded night read back from the PROJECTED engine state, with its provenance. */
+  function sleepEntry(map, root, date) {
+    const section = map.get("sleep-entry-form");
+    section.hidden = false;
+    const logged = typeof model.loggedSleep === "function" ? model.loggedSleep(date) : null;
+    const record = typeof model.recordedSleep === "function" ? model.recordedSleep(date) : null;
+    put(map, "sleep-note", logged ? "" : SLEEP_NONE);
+    map.get("sleep-note").hidden = !!logged;
+
+    put(map, "sleep-mode-label", SLEEP_MODE_LABEL);
+    const times = map.get("sleep-mode-times");
+    const hoursMode = map.get("sleep-mode-hours");
+    times.textContent = plainOrDrop(SLEEP_MODE_TIMES, "sleep-mode-times");
+    hoursMode.textContent = plainOrDrop(SLEEP_MODE_HOURS, "sleep-mode-hours");
+    times.setAttribute("aria-pressed", String(sleepDraft.mode === "times"));
+    hoursMode.setAttribute("aria-pressed", String(sleepDraft.mode === "hours"));
+    /* A MODE IS NOT A FACT. Switching keeps what is typed in the other mode locally
+       and submits only the visible one. */
+    times.addEventListener("click", () => { sleepDraft.mode = "times"; render("sleep", false); });
+    hoursMode.addEventListener("click", () => { sleepDraft.mode = "hours"; render("sleep", false); });
+
+    const timesBlock = map.get("sleep-times");
+    const hoursBlock = map.get("sleep-hours-mode");
+    timesBlock.hidden = sleepDraft.mode !== "times";
+    hoursBlock.hidden = sleepDraft.mode !== "hours";
+
+    put(map, "sleep-bed-label", SLEEP_BED_LABEL);
+    put(map, "sleep-wake-label", SLEEP_WAKE_LABEL);
+    put(map, "sleep-awake-label", SLEEP_AWAKE_LABEL);
+    put(map, "sleep-hours-label", SLEEP_HOURS_ASK);
+    put(map, "sleep-hours-note", SLEEP_HOURS_NOTE);
+    put(map, "sleep-save-label", SLEEP_SAVE);
+    const bed = map.get("sleep-bed");
+    const wake = map.get("sleep-wake");
+    const awake = map.get("sleep-awake");
+    const hoursBox = map.get("sleep-hours");
+    bed.value = sleepDraft.bed;
+    wake.value = sleepDraft.wake;
+    awake.value = sleepDraft.awake_min;
+    hoursBox.value = sleepDraft.hours;
+    bed.addEventListener("input", () => { sleepDraft.bed = bed.value; sleepEstimate(map); });
+    wake.addEventListener("input", () => { sleepDraft.wake = wake.value; sleepEstimate(map); });
+    awake.addEventListener("input", () => { sleepDraft.awake_min = awake.value; sleepEstimate(map); });
+    hoursBox.addEventListener("input", () => { sleepDraft.hours = hoursBox.value; });
+
+    const toggle = map.get("sleep-awake-toggle");
+    toggle.textContent = plainOrDrop(SLEEP_AWAKE_TOGGLE, "sleep-awake-toggle");
+    map.get("sleep-awake-field").hidden = !sleepDraft.awakeOpen;
+    toggle.addEventListener("click", () => { sleepDraft.awakeOpen = !sleepDraft.awakeOpen; render("sleep", false); });
+    sleepEstimate(map);
+
+    /* THE CHECK-IN'S OWN ANSWER, dated, as a suggestion. Taking it fills the hours
+       box and carries the source op id; it writes nothing by itself. */
+    const offer = sleepCheckInOffer();
+    const offerLine = map.get("sleep-checkin");
+    const use = map.get("sleep-use-checkin");
+    if (offer && !logged) {
+      offerLine.hidden = false;
+      offerLine.textContent = plainOrDrop(
+        SLEEP_CHECKIN_PREFIX + offer.date + ": " + offer.hours + " h", "sleep-checkin");
+      use.hidden = false;
+      use.textContent = plainOrDrop(SLEEP_USE_CHECKIN, "sleep-use-checkin");
+      use.addEventListener("click", () => {
+        sleepDraft.mode = "hours";
+        sleepDraft.hours = String(offer.hours);
+        sleepDraft.from_checkin_op_id = offer.op_id || "";
+        render("sleep", false);
+      });
+    } else { offerLine.hidden = true; offerLine.textContent = ""; use.hidden = true; use.textContent = ""; }
+
+    const error = map.get("sleep-error");
+    error.textContent = sleepReadBack ? plainOrDrop(SLEEP_READ_FAILED, "sleep-error") : "";
+    const recorded = map.get("sleep-recorded");
+    recorded.hidden = !logged;
+    /* A night the ENGINE holds with NO operation behind it is the athlete's imported
+       basis, not something this device recorded: it shows the figure and claims no
+       provenance at all, because there is none to claim. */
+    recorded.textContent = logged
+      ? plainOrDrop([logged.h + " h", sleepSourceLine(record), record ? sleepStamp(record) : ""]
+        .filter(Boolean).join(" "), "sleep-recorded")
+      : "";
+    map.get("sleep-save").addEventListener("click", () => { sleepSaving = recordSleep(map); });
+    return section;
+  }
+
+  /* The hours a pair of clock times comes to, asked of the ENGINE and never computed
+     here. Shown only when the pair is recordable, so the clamp can never be displayed
+     as a figure the athlete did not mean. */
+  function sleepEstimate(map) {
+    const line = map.get("sleep-estimate");
+    if (!line) return;
+    const entry = { ...sleepDraft, mode: "times", date: sleepNightDate() };
+    const refusal = SleepModel.timesRefusal(entry, model.today);
+    if (refusal === SleepModel.REFUSALS.SAME_TIME) {
+      line.textContent = plainOrDrop(SLEEP_CLOCK_CHANGE, "sleep-estimate");
+      return;
+    }
+    if (refusal && refusal !== SleepModel.REFUSALS.NIGHT_DATE) { line.textContent = ""; return; }
+    const minutes = String(sleepDraft.awake_min).trim();
+    const hours = model.engine.sleepSpanH(sleepDraft.bed, sleepDraft.wake,
+      minutes === "" ? 0 : Number(minutes));
+    line.textContent = plainOrDrop(SLEEP_ESTIMATE_PREFIX + hours + " h"
+      + (minutes === "" ? " " + SLEEP_AWAKE_NONE : ""), "sleep-estimate");
+  }
+
+  /* Which of the two shapes the WINNING operation used, in the brief's own words. */
+  function sleepSourceLine(record) {
+    const night = record && record.night ? record.night : null;
+    if (!night) return "";
+    if (Object.hasOwn(night, "hours")) {
+      return night.from_checkin_op_id
+        ? SLEEP_CONFIRMED_PREFIX + (checkinDateFor(night.from_checkin_op_id) || model.today) + "."
+        : SLEEP_HOURS_NOTE;
+    }
+    return SLEEP_FROM_TIMES;
+  }
+  const checkinDateFor = (opId) => {
+    const offer = sleepCheckInOffer();
+    return offer && offer.op_id === opId ? offer.date : null;
+  };
+  /* ONLY the stamp the operation actually carries. */
+  function sleepStamp(record) {
+    if (!record || !record.savedDate || !record.savedTime) return SLEEP_NO_SAVE_TIME;
+    return SLEEP_RECORDED_PREFIX + record.savedDate + " at " + record.savedTime + ".";
+  }
+
+  /* The write. Kept as a named async function so a check can await it, and it NEVER
+     rejects: a commit and the read-back that follows it are two outcomes. */
+  async function recordSleep(map) {
+    const error = map.get("sleep-error");
+    const entry = { ...sleepDraft, date: sleepNightDate() };
+    const refusal = SleepModel.refusalFor(entry, model.today);
+    if (refusal) {
+      error.textContent = plainOrDrop(
+        (SLEEP_REFUSAL_COPY[refusal] || SLEEP_NOT_SAVED) + " " + SLEEP_NOTHING_RECORDED, "sleep-error");
+      return;
+    }
+    const night = SleepModel.nightFromEntry(entry, model.today);
+    const save = map.get("sleep-save");
+    save.disabled = true;
+    let result = null;
+    try { result = await sleepLane.save(night); }
+    catch (thrown) {
+      save.disabled = false;
+      error.textContent = plainOrDrop(SLEEP_NOT_SAVED + " "
+        + FOOD_REASON + ((thrown && (thrown.code || thrown.message)) || "SLEEP_WRITE_UNKNOWN") + ".",
+      "sleep-error");
+      return;
+    }
+    finally { save.disabled = false; }
+    if (!result || result.ok !== true) {
+      error.textContent = plainOrDrop(
+        [SLEEP_NOT_SAVED, reasonOf(result)].filter(Boolean).join(" "), "sleep-error");
+      return;
+    }
+    sleepReadBack = result.readBack === false ? { date: night.date } : null;
+    sleepDraft.bed = ""; sleepDraft.wake = ""; sleepDraft.awake_min = "";
+    sleepDraft.hours = ""; sleepDraft.from_checkin_op_id = ""; sleepDraft.awakeOpen = false;
+    render("sleep", false);
+  }
+
+  /* Today's one line about sleep: the DURABLE record, never a flag this page sets. */
+  function sleepState() {
+    if (!sleepLane) { openSleepLane(); return ""; }
+    const logged = typeof model.loggedSleep === "function" ? model.loggedSleep(sleepNightDate()) : null;
+    return logged && Number.isFinite(logged.h) ? logged.h + " h" : "";
+  }
+
+  /* D2 correction 1, executed. The check-in the page was given captured the engine
+     state ONCE; if a night has been recorded since, the answer it would offer is out
+     of date. This builds a FRESH check-in model over the SAME host and the CURRENT
+     projected state and mounts the SAME screen. Returns null - and the untouched
+     original path runs - whenever there is nothing to rebind, so every existing mount
+     in this repository behaves exactly as it did. Nothing durable is written, no
+     second store or producer is opened, and neither checkin-model.mjs nor the pinned
+     today-entry.mjs is edited. */
+  function reboundCheckIn(origin) {
+    if (!checkInKit || !checkin || !checkin.host || typeof model.loggedSleep !== "function") return null;
+    const captured = checkin.checkin ? checkin.checkin.sleepRecord : null;
+    const current = model.loggedSleep(sleepNightDate());
+    const same = (!captured && !current)
+      || (captured && current && captured.hours === current.h && captured.date === current.d);
+    if (same) return null;
+    const fresh = checkInKit.createCheckInModel({ host: checkin.host, day: model.today,
+      engineState: model.stateFromOps() });
+    return Promise.resolve(fresh.refresh()).then(() => checkInKit.mountCheckIn(doc, phone, {
+      model: fresh,
+      onBack: () => render(origin, true),
+      /* Today's own marker still comes from the ENTRY's durable summary. */
+      onChanged: () => checkin.refresh(),
+    }));
+  }
+
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
     const root = template(id);
     const map = slots(root);
@@ -1003,10 +1372,14 @@ function mountToday(doc, model, options = {}) {
     if (next === "today") return renderToday(focus);
     if (next === "why") return renderWhy(focus);
     if (next === "nutrition") return renderNutrition(focus);
+    if (next === "sleep") return renderSleep(focus);
     if (next === "recovery") {
       const origin = checkinOrigin === "workout" && workout ? "workout" : "today";
       checkinOrigin = null;
       if (checkin && typeof checkin.open === "function") {
+        /* N2 / D2 correction 1 - the SAME-PAGE journey. */
+        const rebound = reboundCheckIn(origin);
+        if (rebound) return rebound;
         return checkin.open({ doc, phone, back: () => render(origin, true) });
       }
       return renderCheckInWithoutStore(focus, origin);
@@ -1058,7 +1431,11 @@ function mountToday(doc, model, options = {}) {
   }
   render(requestedScreen() || "today");
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
-    foodPending: () => foodSaving, foodReady: () => foodOpening };
+    foodPending: () => foodSaving, foodReady: () => foodOpening,
+    /* N2 - the in-flight sleep write, the lane's own opening, and the check-in
+       rebind's module load, so a check and a test can wait for each honestly. */
+    sleepPending: () => sleepSaving, sleepReady: () => sleepOpening,
+    checkInKitReady: () => checkInKitLoading, sleepLane: () => sleepLane };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
@@ -1074,4 +1451,11 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
   FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY,
   FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_OPENING, FOOD_KEPT_UNREADABLE,
-  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY };
+  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY,
+  SLEEP_TITLE, SLEEP_NIGHT_PREFIX, SLEEP_NONE, SLEEP_MODE_LABEL, SLEEP_MODE_TIMES,
+  SLEEP_MODE_HOURS, SLEEP_BED_LABEL, SLEEP_WAKE_LABEL, SLEEP_AWAKE_TOGGLE, SLEEP_AWAKE_LABEL,
+  SLEEP_ESTIMATE_PREFIX, SLEEP_AWAKE_NONE, SLEEP_CLOCK_CHANGE, SLEEP_HOURS_ASK,
+  SLEEP_HOURS_LABEL, SLEEP_HOURS_NOTE, SLEEP_FROM_TIMES, SLEEP_CHECKIN_PREFIX,
+  SLEEP_CONFIRMED_PREFIX, SLEEP_USE_CHECKIN, SLEEP_SAVE, SLEEP_SAVED, SLEEP_RECORDED_PREFIX,
+  SLEEP_NO_SAVE_TIME, SLEEP_NOT_SAVED, SLEEP_READ_FAILED, SLEEP_NO_STORE,
+  SLEEP_NOTHING_RECORDED, SLEEP_REFUSAL_COPY };
