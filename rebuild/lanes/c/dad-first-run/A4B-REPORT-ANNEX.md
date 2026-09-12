@@ -1,14 +1,114 @@
 # A4B REPORT ANNEX
 
 Evidence for `A4B-REPORT.md`. Head: `rebuild/lane-c-a4b`, base
-`origin/rebuild/t2-client-core` @ 9d493d0 (4ee62da at round 1, d9fee35 at round
-2; every move since is docs-only, no B-NTC code has merged, `today-bindings.mjs`
-untouched by them, all three rebases clean with no conflict).
+`origin/rebuild/t2-client-core` @ **aa06544**, which carries the B-NTC merge
+(4ee62da at round 1, d9fee35 at round 2, 9d493d0 at round 3). Every rebase so far
+has been clean with no conflict.
 
-Section 0 is the owner's look (round 3), section 0a round 1's conditions, and
-sections 1 to 5 the original build's evidence, which still stands.
+Section 00 is the re-pin onto B-NTC and 00b the blocker it exposed; section 0 is
+the owner's look (round 3), 0a round 1's conditions, and 1 to 5 the original
+build's evidence, which still stands.
 
-## 0c. WHAT WAS RE-RUN THIS ROUND
+## 00c. CI AT THIS HEAD
+
+Polled from `work/lane-c/main` with `node ..\tools\ci-status.js
+rebuild/lane-c-a4b <sha>` until both runs completed. Recorded below with the
+head they ran on; the `rebuild` workflow fails at the B-NTC gate described in
+00b and at nothing else.
+
+## 00. RE-PIN ONTO THE B-NTC MERGE (DECISIONS:144)
+
+**The rebase.** `git rebase origin/rebuild/t2-client-core` (tip aa06544, which
+carries the B-NTC merge ce38aa3) replayed all eleven commits with **no conflict
+in any file**, `today-bindings.mjs` included. Git could merge it because lane B's
+H6 wiring and A4b's change live in different functions of the same file: lane B's
+`trendBinding` / `dayReader` / `scoped` / `engine.genSession` / `engine.rirPlan`
+sit around line 325 inside the era builder, and A4b's three hunks sit at 533-563
+inside `createSetupHost`. Verified two ways rather than trusting the merge:
+
+    git diff origin/rebuild/t2-client-core...HEAD -- .../today-bindings.mjs
+      3 hunks, +11 / -2, all A4b's:
+        setupsIn(): tags read back beside the document, null for a pre-A4b op
+        save(setup) -> save(setup, tags)
+        execute(): input { setup } -> { setup, tags }
+      nothing of lane B's wiring appears in the diff, in either direction
+
+and by reading the file: lines 325-340 are lane B's, unchanged. The journey
+suite's `PAGE_PINS` still pass (51/51), which is the second witness that the
+wrapper files were not disturbed.
+
+**What the tip moved under us, absorbed without edits.** `build.mjs` now reports
+**103** pinned inputs, not 102 (B-NTC added a module to the page graph), and the
+A0 host suite is **32**, not 31 (B-NTC added a host-seams subtest). Neither is
+A4b's doing and neither needed a change here.
+
+**Mutants NOT re-run.** No licensed non-test file changed in this round at all -
+the rebase produced no conflict to resolve and no follow-on edit. The last mutant
+run stands at the round 1 head (M21-M32, 12/12 killed) plus the reviewer's
+R11-R14.
+
+## 00b. THE BLOCKER, IN FULL
+
+`node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` is what
+`rebuild.yml` line 82 now runs in place of `native-carriers-package.cjs --ci`.
+On this head it prints three OBSERVED lines and then:
+
+    B PACKAGE B-NTC FAIL WORKTREE-SOURCE-PIN; required evidence missing or
+    failed; local diagnostics withheld
+
+The gate is `rebuild/conform/v4/postfix/legacy-gates.cjs:12-16`:
+
+    for(const [file,hash] of Object.entries(pins)) {
+      if(sha(object(root,commit,file))!==hash) fail('GIT-SOURCE-PIN');
+      if(disk&&sha(fs.readFileSync(path.join(root,file)))!==hash)
+        fail('WORKTREE-SOURCE-PIN');
+    }
+
+Two checks per pinned file: the git object at the pinned commit, and **the bytes
+on disk**. Measured here:
+
+    packages/B-NTC.json:228  today-bindings.mjs post  95315f7a0e63cd49...
+    tip's bytes (git show origin/...:...)             95315f7a0e63cd49...  match
+    this worktree's bytes                             20650a8821fc7105...  differ
+
+So `GIT-SOURCE-PIN` passes and `WORKTREE-SOURCE-PIN` fails, and it fails for the
+A4b delta the licence explicitly grants (`:129 (1)`, `:106 (b)`, `:111`). CI
+checks the branch out, so the same step fails there; the run id is in section 00c.
+
+**Why lane C cannot fix it.** The three places that could - `.github/rebuild.yml`,
+`rebuild/lanes/b/tooling/packages/B-NTC.json` and `rebuild/m4/**` - are all named
+OUT in A4b's custody and in this dispatch, and two of them are the seal itself:
+editing a pin to match my bytes is forging the artifact the gate exists to
+protect. The fourth option, reverting the `save(setup, tags)` delta, would leave
+the third payload member unable to reach the producer, which is the whole of
+A4b's storage ruling (`:129 (2)`).
+
+**What it is an instance of.** `DECISIONS:132` froze the tip for the files B-NTC
+pins, because a tree whose bytes the artifact does not pin makes the child gate
+refuse. That freeze protected the seal while lane B sealed. The same rule now
+points the other way: the merged artifact pins a file that lane C holds
+exclusively and has a live licensed edit to, so ANY A4b head fails the gate. It
+wants a ruling, not a workaround - a successor package, a re-seal on the A4b
+merge, or a disk-check exemption for files in another lane's custody are all PM
+calls.
+
+## 0d. COUNTS ON THE REBASED HEAD (this round)
+
+today 64 / copy 36 / gym 64 / checkin 28 / setup 150 / catalogue 43 /
+ntc-h6-delta 8 / W6 552 / journey 51 / A0 host 32 / w7 19, every one 0 fail.
+`rebuild.yml`'s today step run exactly as written (adapter, checkin, design, gym,
+ntc-h6-delta, package, view) 164/164. `build.mjs` PASS at 103 pinned inputs, 68
+bound classes. Four msedge checks PASS. `b-package --ci --package B-NTC` FAIL, on
+`WORKTREE-SOURCE-PIN` only, worktree clean before and after it.
+
+Gym card after B-NTC, informational: `gym-check.mjs` still reports `"Last time"
+prints on day 1's active set from the engine's own comparison (C4d), and day 2's
+lifts, which have none on file, print nothing rather than an invented one`, and
+no day+3 same-lift-group refusal text appears in any of the four checks' output.
+No walk in those checks places a same-group lift three days apart, so that is an
+absence, not a demonstration that the refusal is gone.
+
+## 0c. WHAT WAS RE-RUN IN ROUND 3
 
 setup 150/150, catalogue 43/43, today 64/64, copy 36/36, gym 64/64, checkin
 28/28, `build.mjs` PASS (102 pinned inputs, 68 bound classes), and all four
