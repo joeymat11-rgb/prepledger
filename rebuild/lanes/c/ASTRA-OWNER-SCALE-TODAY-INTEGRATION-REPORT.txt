@@ -1,0 +1,102 @@
+SCALE TODAY + DURABLE INPUTS — DISTINCT LOCAL ASSEMBLY
+September 12, 2026. FILE ASTRA-OWNER-SCALE-TODAY-JOIN.md at PM d4ff658.
+Exact union, 42 affected checks, actual PWA build and Chrome lifecycle PASS.
+
+(1) SOURCE / AUTHORITY
+Integrator /root/owner_release_integrator; neither source author nor reviewer.
+Read NEXT/ROADMAP/LANES/current checkpoint, complete original/correction reports
+and independent be7fe6b40fc545d97db1e33d29d6543421d31ef6 and
+c5a49e111a4214d832841d3f0d8d06be8dd53d53. Root accepted corrected scale Today
+74c0cce323d46f3dbf558bdace667ef661288efd after the actual R1 withdrawal replay.
+Owned codex/astra-owner-phone-integration verified clean at
+0808bb05bce9ebbcbfe5c92a1c606d0f9d46c5a7 before local merge.
+Worktree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-phone-integration.
+Mechanical --no-ff merge 832702b1d2760f83c83f9eeab0e1006a3b2c90f5:
+first parent 0808bb05bce9ebbcbfe5c92a1c606d0f9d46c5a7;
+second parent 74c0cce323d46f3dbf558bdace667ef661288efd;
+scale correction parent de90349fea7cc68ebada5a2d6469e244e5d7b14b,
+original scale Today base 154bf80454b5df2f1d10e4f74c4375b3b123b7b3.
+The first parent already includes accepted inputs26b511b. No conflicts or manual
+resolution; Git automatically merged the disjoint today-bindings regions.
+
+(2) EXACT FILE/REGION UNION
+Executed complete changed-file inventory comparison: 0808bb0..joined equals
+154bf804..74c0cce, exactly 15 files. Fourteen blobs equal accepted74c0cce:
+rebuild/lanes/c/ASTRA-NATIVE-SCALE-TODAY-{REPORT,CORRECTION-REPORT}.txt;
+rebuild/m3/w6/local/host-bindings.mjs; public-client.mjs under w6;
+rebuild/m3/w6/test/local-owner-entry.test.mjs, local-scale-browser.mjs,
+local-scale-feedback.test.mjs, local-scale-lifecycle-browser.mjs,
+local-scale-lifecycle.test.mjs;
+rebuild/m3/w7-preview/today/preview.css, today-app.cjs, today-entry.mjs,
+today-model.cjs; rebuild/m4/nutrition/scale-feedback-view.mjs.
+
+Shared fifteenth file: rebuild/m3/w6/local/today-bindings.mjs. Whole-file equality
+to either parent would be false. Executed exact stored-source assertion: remove
+only the three accepted26b511b readNutritionInputs/prepareNutritionInputs/
+commitNutritionInputs forwarding lines from joined text; the entire remainder
+equals accepted74c0cce's complete file. Block occurs exactly once. This preserves
+the accepted input forwarding plus scale createReadingHost/cache/save/restart
+regions, without a fabricated one-parent equality claim.
+Joined shared-source SHA256
+19cc0880e7865cd700640967ee4be7e02ccdeaddfbbdcc798b6d7b7e66d3251a.
+All other tracked source remains equal0808bb0, including accepted input boundary/
+client/stage/wire/history and shared engine arithmetic. No integrator code edit.
+
+(3) ACTUAL AFFECTED COMPOSITION CHECKS
+Retained Node v24.19.0; existing root/W6/W5 dependencies and Chrome, no install.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03;
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules;
+EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this integration tree.
+BASE is the parent work directory above.
+node --test rebuild/m3/w6/test/local-scale-lifecycle.test.mjs
+  rebuild/m3/w6/test/local-scale-feedback.test.mjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+  rebuild/m3/w6/test/nutrition-inputs.test.mjs
+PASS42/42 = six lifecycle + six scale-host + 16 owner + 14 inputs;
+zero failures/skips/cancellations, exit0. Real shared-store input/weight/workout/
+reopen and race tests execute with new scale reader present. Guarded nutrition
+commit acknowledges; concurrent raw invocation refuses, exactly one note.
+Actual source-to-DOM conflict/correction/removal, calendar/refusal withdrawal,
+close during pending decrypt and retained workout/check-in/weight drafts pass.
+
+(4) ACTUAL ARTIFACT / BROWSER
+Preserved earlier generated folders as ignored .tmp/pre-scale-today-slice-pwa-dist/
+and .tmp/pre-scale-today-w7-today-dist/ before rebuilding in this owned tree.
+node rebuild/slice/pwa/build-pwa.mjs: A5 PWA BUILD PASS, exit0;
+13 files, 11 precached/pinned assets, 13 exact headers; approved colors and
+existing forbidden-input/private-shape/path/no-network-reference guards pass.
+Output .tmp/slice-pwa-dist/ and .tmp/w7-today-dist/.
+Actual metadata now includes scale-feedback.mjs AND scale-feedback-view.mjs,
+plus all three inputs-wire/history/boundary modules. Factual scale is wired;
+the nutrition form is not joined. Engine/scale.cjs remains the shared calculator.
+App SHA256 b4b3d91e0d9facdc35e4948c33587b914b6442404ddb7369712d118d5c2d5edb;
+styles SHA256 433f72aa4e5b3cacdf0f829613000be16c96111ce0c4d5c1a826b19c29434d49;
+cache earned-slice-40cc0c3c6a19a66081a796148bb90117.
+Direct output Buffer comparison: eight PWA files unchanged; app/styles/index/
+sw/headers changed. Today index unchanged, app/styles changed. No whole-artifact
+byte-equivalence claim across this licensed source/CSS change.
+Ignored .tmp/scale-today-artifacts.json SHA256
+9c799460813b7e72fe1d6a3b3d324b24b476d5d2bdac17a6baf38dcadcd2bb24.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe;
+node rebuild/m3/w6/test/local-scale-lifecycle-browser.mjs:
+SCALE LIFECYCLE CHROME PASS, exit0. Actual owner build, visible setup/save170,
+keyboard Why; a second real installation handle saves180 to the same database.
+Foreground refresh withdraws170/count1; Back/reload agree;320/390 document/phone
+overflow checks pass; zero page errors. Inspected .tmp/scale-lifecycle/after-why-
+320.png: zero eligible count/conflict text, no old170, readable scale evidence
+and Back. Actual desktop Chrome journey, not physical phone or hosted authority.
+
+(5) RETAINED LIMITS
+Reuse unchanged evidence outside affected paths; no repeated broad engine/private/
+CI campaign. Existing local-host16/17 guard count7vs6 and subsequent local-kind
+4vs3 expectations remain red; original joined95/97 page-pin assertion/parent
+remain recorded failures, not PASS. Those suites/pins were unchanged and not
+rerun. Later exact source qualification must resolve them explicitly.
+Full engine/source-policy/CI/both-OS/physical-phone qualification remains required.
+Factual scale is not fat loss or nutrition advice. Correction UI, imported
+blackout/time-reclassification/unresolved-history limits and U1-U5 remain.
+No form candidate/correction, B1/PR51, actual integration-branch/PR merge, push,
+deployment, private data, install/lock churn, other-tree edit, extra agent, source
+pin/law/workflow edit or soak operation. git diff --check PASS; one report only
+beyond mechanical assembly. Root owns subsequent acceptance and form hook.
