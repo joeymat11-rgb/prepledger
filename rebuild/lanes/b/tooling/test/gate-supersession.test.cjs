@@ -66,6 +66,7 @@ const CELL = c => 'rebuild/m4/workout/test/h3-' + c + '-cells.test.cjs';
 const LEGACY = 'rebuild/conform/v4/postfix/legacy-h3-differential.cjs';
 const WRITERS = 'rebuild/conform/v4/postfix/writers-h3-differential.cjs';
 const CENSUS = 'rebuild/m4/workout/test/h3-census-identity.test.cjs';
+const ENGINE_DIFF = 'rebuild/conform/v4/postfix/engine-files-h3-differential.cjs';
 const UNRELATED = 'rebuild/m4/spec/h3-unrelated-probe.cjs';
 const needleOf = f => 'H3 ' + path.posix.basename(f).toUpperCase() + ': PASS;';
 for (const f of [...CARRIERS.map(CELL), LEGACY, WRITERS, CENSUS, UNRELATED])
@@ -73,6 +74,21 @@ for (const f of [...CARRIERS.map(CELL), LEGACY, WRITERS, CENSUS, UNRELATED])
 const CELL_CHILD = c => 'h3-cells-' + c;
 const LEGACY_CHILD = 'h3-legacy-differential', WRITERS_CHILD = 'h3-writers-differential';
 const CENSUS_CHILD = 'h3-census-identity', UNRELATED_CHILD = 'h3-unrelated';
+const ENGINE_DIFF_CHILD = 'h3-engine-files-differential';
+
+// ------------------------------- DECISIONS:153 (ii), the named-files differential
+// `rebuild/engine` as the PARENT sealed it: three files the parent pins at a post, one the
+// parent does not pin at all (so the runner falls back to the parent's `sourceBase` blob),
+// and one this package's own brief declares — which is the file the differential must EXCLUDE.
+const ENGINE = ['rebuild/engine/plan.cjs', 'rebuild/engine/energy.cjs', 'rebuild/engine/volume.cjs',
+  'rebuild/engine/constants.cjs', 'rebuild/engine/writers.cjs'];
+const ENGINE_DECLARED = 'rebuild/engine/writers.cjs';           // H3's own brief names this one
+for (const f of ENGINE) write(f, "'use strict';\n// " + f + '\nmodule.exports = ' + JSON.stringify(f) + ';\n');
+// The runner compares every tracked engine file this package does NOT declare: four of five.
+const ENGINE_COMPARED = ENGINE.length - 1;
+const ENGINE_NEEDLE = 'H3 ENGINE FILES DIFFERENTIAL: ' + ENGINE_COMPARED +
+  ' rebuild/engine file(s) outside the brief byte-identical to the parent post;';
+write(ENGINE_DIFF, "'use strict';\nconsole.log(" + JSON.stringify(ENGINE_NEEDLE) + ");\n");
 
 // The PM's line, in the ledger's own shape, carrying the F1 GRANT TOKEN. Everything around
 // the token is prose and the runner never reads it; the token, the package id, the carrier
@@ -134,7 +150,8 @@ try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
     '\nmodule.exports={coverage,supersededSpecShape,supersededGates,supersededGateIds,supersededByCarrier,' +
     'supersessionRuling,proposed,GATE_IDS,BYTE_IDENTITY_CARRIERS,SUPERSESSION_EVIDENCE_KEYS,' +
-    'SUPERSESSION_RUNNER_CENSUS,SUPERSESSION_GRANT_SHAPE,FAIL_CODES,failCode,' +
+    'SUPERSESSION_RUNNER_CENSUS,SUPERSESSION_GRANT_SHAPE,SUPERSESSION_STANDING_RULING,' +
+    'supersessionEngineIdentity,ENGINE_ROOT,FAIL_CODES,failCode,' +
     'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
@@ -157,20 +174,24 @@ const bound = () => ({
     review: 'rebuild/m4/spec/review-b-ntc-native-trend-context.json', reviewSha256: 'b'.repeat(64),
     receiptLedgerLine: { ledgerLine: 104, role: 'receipt', line: 'x', lineSha256: 'c'.repeat(64) }, note: null },
   decided: true, reviewedCommit: PARENT_COMMIT,
-  acceptance: { product: {}, executionPins: {},
+  acceptance: { product: Object.fromEntries(ENGINE.slice(0, 3).map(f => [f, { pre: at(f), post: at(f), role: 'carried' }])),
+    executionPins: {}, sourceBase: PARENT_COMMIT,
     coverage: { covered: Object.keys(BY_CHILD).sort(), run: [], moves: {}, successors: null, byChild: { ...BY_CHILD } } },
 });
 const WHY = 'the gate reconstructs rebuild/engine byte-for-byte from a frozen BASE and asserts every path the parent spec declares at the parent post';
 const evidence = c => ({ laws: null, redFirst: [CELL_CHILD(c)], census: api.SUPERSESSION_RUNNER_CENSUS,
-  legacyDifferential: LEGACY_CHILD, writersDifferential: WRITERS_CHILD });
+  legacyDifferential: LEGACY_CHILD, writersDifferential: WRITERS_CHILD, engineFilesDifferential: ENGINE_DIFF_CHILD });
 const childrenOf = () => [
   ...CARRIERS.map(c => ({ name: CELL_CHILD(c), argv: [CELL(c)], needle: needleOf(CELL(c)) })),
   { name: LEGACY_CHILD, argv: [LEGACY], needle: needleOf(LEGACY) },
   { name: WRITERS_CHILD, argv: [WRITERS], needle: needleOf(WRITERS) },
   { name: CENSUS_CHILD, argv: [CENSUS], needle: needleOf(CENSUS) },
+  { name: ENGINE_DIFF_CHILD, argv: [ENGINE_DIFF], needle: ENGINE_NEEDLE },
   { name: UNRELATED_CHILD, argv: [UNRELATED], needle: needleOf(UNRELATED) },
 ];
-const productOf = () => Object.fromEntries([...CARRIERS.map(CELL), LEGACY, WRITERS, CENSUS]
+// This package's own declared product: its cells, its three differentials, its census cell —
+// and the ONE engine file its accepted brief names, which the differential must exclude.
+const productOf = () => Object.fromEntries([...CARRIERS.map(CELL), LEGACY, WRITERS, CENSUS, ENGINE_DIFF, ENGINE_DECLARED]
   .map(f => [f, { pre: at(f), post: at(f), role: 'new' }]));
 const spec = (carriers = CARRIERS, rulingLineSha256 = shaOf(RULING_LINE)) => ({
   packageId: 'M2-H3-CLEAN-INIT', sourceBase: PARENT_COMMIT, status: 'PROPOSED',
@@ -198,6 +219,62 @@ test('r10 F6 — the role is REQUESTS 08:40 (b), not DECISIONS:147 (b), everywhe
   assert(source.includes('REQUESTS 08:40 (b) needs a PM line'), 'and so does the user-visible refusal');
   // The r10 note, with TOOLING-REVIEW-r10's citation correction.
   assert(source.includes('b-ntc-successors.cjs:142'), 'the refusing line for H3 is :142, the else branch');
+});
+
+test(':153 (ii) — the named-files engine differential, computed by the RUNNER and by the child', () => {
+  // The fifth evidence kind the STANDING ROLE adds, and it is a required slot.
+  assert.deepEqual(api.SUPERSESSION_EVIDENCE_KEYS,
+    ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential', 'engineFilesDifferential']);
+  assert.equal(api.ENGINE_ROOT, 'rebuild/engine/');
+  const s = spec(), b = bound();
+  // The runner's own comparison: four of the five tracked engine files — every one this
+  // package does NOT declare. Three come from the parent's post, one (constants.cjs, which
+  // the parent does not pin at all) from the parent's sourceBase blob.
+  assert.equal(api.supersessionEngineIdentity(s, b), ENGINE_COMPARED);
+  assert(Object.hasOwn(s.product, ENGINE_DECLARED), 'the brief names one engine file');
+  assert(!Object.hasOwn(b.acceptance.product, 'rebuild/engine/constants.cjs'), 'and the parent pins one of them nowhere');
+  shape(s);
+  const got = api.supersededGates(s, b, ran());
+  assert.equal(got.get('second-gate').engineCompared, ENGINE_COMPARED);
+  // (a) an engine file OUTSIDE the brief that moved refuses by name — the whole point.
+  const before = fs.readFileSync(path.join(scratch, 'rebuild/engine/plan.cjs'), 'utf8');
+  write('rebuild/engine/plan.cjs', before + '// a byte this package never declared\n');
+  assert.throws(() => api.supersessionEngineIdentity(s, b), /SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED/);
+  assert.throws(() => api.supersededGates(s, b, ran()), /SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED/);
+  write('rebuild/engine/plan.cjs', before);
+  // (b) the same for the file the parent pins nowhere: the sourceBase blob is the anchor.
+  const wasConst = fs.readFileSync(path.join(scratch, 'rebuild/engine/constants.cjs'), 'utf8');
+  write('rebuild/engine/constants.cjs', wasConst + '// moved, and the parent has no post for it\n');
+  assert.throws(() => api.supersessionEngineIdentity(s, b), /SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED/);
+  write('rebuild/engine/constants.cjs', wasConst);
+  // (c) the file the brief DOES name may move freely — that is what "outside the brief" means.
+  const wasWriters = fs.readFileSync(path.join(scratch, ENGINE_DECLARED), 'utf8');
+  write(ENGINE_DECLARED, wasWriters + '// H3 changes this one, and its brief says so\n');
+  const moved = spec(); moved.product[ENGINE_DECLARED] = { pre: at(ENGINE_DECLARED), post: at(ENGINE_DECLARED), role: 'new' };
+  assert.equal(api.supersessionEngineIdentity(moved, b), ENGINE_COMPARED);
+  write(ENGINE_DECLARED, wasWriters);
+  // (d) the child's needle must STATE the runner's own count and claim byte-identity.
+  const wrong = spec();
+  wrong.children = childrenOf().map(c => c.name === ENGINE_DIFF_CHILD
+    ? { ...c, needle: 'H3 ENGINE FILES DIFFERENTIAL: 99 rebuild/engine file(s) byte-identical;' } : c);
+  assert.throws(() => api.supersededGates(wrong, b, ran()),
+    /GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT/);
+  const vague = spec();
+  vague.children = childrenOf().map(c => c.name === ENGINE_DIFF_CHILD
+    ? { ...c, needle: 'H3 ENGINE FILES DIFFERENTIAL: ' + ENGINE_COMPARED + ' file(s) all good;' } : c);
+  assert.throws(() => api.supersededGates(vague, b, ran()),
+    /GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-CLAIM-BYTE-IDENTITY/);
+  // (e) the slot is required, must be a declared child, and must differ from the other two.
+  const missing = spec();
+  for (const c of CARRIERS) delete missing.coverage.superseded.gates[c].evidence.engineFilesDifferential;
+  assert.throws(() => shape(missing), /GATE-SUPERSESSION-EVIDENCE-KEYS-NOT-CLOSED/);
+  const dup = spec();
+  dup.coverage.superseded.gates['second-gate'].evidence.engineFilesDifferential = LEGACY_CHILD;
+  assert.throws(() => shape(dup), /GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD/);
+  // And the STANDING ROLE's own coordinate is recorded as vocabulary.
+  assert.equal(api.SUPERSESSION_STANDING_RULING.at, 153);
+  assert.match(api.SUPERSESSION_STANDING_RULING.lineSha256, /^b6f84af6a014/);
+  assert(source.includes('whose own token stands inside a prose clause'), 'and the refusal points at it');
 });
 
 test('r10b N1 — the token must BEGIN its own · clause; negated, quoted or wrapped frees nothing', () => {
@@ -329,8 +406,8 @@ test('r10 F5 — per-carrier evidence, distinct slots, and it must bear on this 
   const got = api.supersededGates(s, bound(), ran());
   for (const c of CARRIERS) {
     const e = got.get(GATES_OF(c)[0]);
-    assert.deepEqual(e.executed, [CELL_CHILD(c), LEGACY_CHILD, WRITERS_CHILD]);
-    assert.equal(new Set(e.executed).size, 3);
+    assert.deepEqual(e.executed, [CELL_CHILD(c), LEGACY_CHILD, WRITERS_CHILD, ENGINE_DIFF_CHILD]);
+    assert.equal(new Set(e.executed).size, 4);
   }
   // (e) `Required child` carries a code now, so the role's most likely real failure is named.
   assert(api.FAIL_CODES.has('CHILD-REQUIRED-EXIT-ZERO'), 'children() refuses a red child by name');
@@ -435,7 +512,8 @@ test('r10 — the block is closed, and every refusal carries a name in the vocab
   assert.throws(() => shape(why), /GATE-SUPERSESSION-WHY-MISSING/);
   const empty = spec(); empty.coverage.superseded.gates = {};
   assert.throws(() => shape(empty), /GATE-SUPERSESSION-GATES-UNDECLARED/);
-  assert.deepEqual(api.SUPERSESSION_EVIDENCE_KEYS, ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential']);
+  assert.deepEqual(api.SUPERSESSION_EVIDENCE_KEYS,
+    ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential', 'engineFilesDifferential']);
   assert.deepEqual(api.BYTE_IDENTITY_CARRIERS.slice().sort(),
     ['defect-witnesses', 'inherited-carriers', 'second-gate', 'source-carriers', 'writers-differential']);
   for (const code of ['GATE-SUPERSESSION-RULING-NOT-CITED', 'GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE',
@@ -453,6 +531,11 @@ test('r10 — the block is closed, and every refusal carries a name in the vocab
     'GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN',
     'GATE-SUPERSESSION-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT',
     'GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL', 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT',
-    'CHILD-REQUIRED-EXIT-ZERO'])
+    'CHILD-REQUIRED-EXIT-ZERO',
+    // DECISIONS:153 (ii)'s own four.
+    'SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED', 'SUPERSESSION-ENGINE-PARENT-SOURCEBASE-UNAVAILABLE',
+    'SUPERSESSION-ENGINE-DIFFERENTIAL-COMPARED-NOTHING',
+    'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT',
+    'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-CLAIM-BYTE-IDENTITY'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
 });

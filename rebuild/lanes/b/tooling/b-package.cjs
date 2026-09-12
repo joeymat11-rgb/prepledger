@@ -637,8 +637,23 @@ const BYTE_IDENTITY_CARRIERS = ['source-carriers', 'inherited-carriers', 'defect
 // `census`: a declared child that proves public-census byte-identity, or the fixed literal
 // below, which is the runner's OWN census line and is admitted only when it says `none`.
 // `legacyDifferential` / `writersDifferential`: the two differentials, by declared child name.
-const SUPERSESSION_EVIDENCE_KEYS = ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential'];
+// DECISIONS:153 adds the fifth kind, and it is the one the PM calls "the correct proof" for a
+// child whose accepted brief changes engine bytes: `engineFilesDifferential`, a declared child
+// proving every `rebuild/engine` file OUTSIDE the brief's named files byte-identical to the
+// parent's post. The runner does not take the child's word for it — it computes the same
+// comparison itself from the parent artifact and the disk (supersessionEngineIdentity below)
+// and holds the child's needle to the count it measured.
+const SUPERSESSION_EVIDENCE_KEYS = ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential',
+  'engineFilesDifferential'];
 const SUPERSESSION_RUNNER_CENSUS = 'runner-live-triggered-line';
+// DECISIONS:153, the STANDING ROLE's own coordinate, recorded here as vocabulary. The line
+// ratifies the role, weighs r10 §C's honesty table and writes it off knowingly, and carries
+// H3's token — but INSIDE a long prose clause, so under r10b N1 it grants nothing and the
+// runner says so by name. The PM is appending a token-clause line; this sha is what the
+// refusal points at so nobody hunts for the ruling.
+const SUPERSESSION_STANDING_RULING = { at: 153, lineSha256: 'b6f84af6a014cc3a751ff3f077ed03e149047cdcc0f448328038a3e0f0af47e1' };
+// The one root the named-files differential is about. Fixed here (W7).
+const ENGINE_ROOT = 'rebuild/engine/';
 // TOOLING-REVIEW-r10 F1 — BLOCKING, and this is the fix. r10 asked three SUBSTRING/KEYWORD
 // questions of the located line: does it contain the package id, does it contain the word
 // SUPERSEDE/NOT-INHERITABLE, does it contain one of the five carrier names. The reviewer
@@ -948,7 +963,9 @@ function supersessionRuling(s) {
   // F1: the POSITIVE, STRUCTURED grant. No prose is read.
   const grants = supersessionGrants(line);
   assert(grants.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
-    '; a supersession is granted by the exact token ' + SUPERSESSION_GRANT_SHAPE + ' and never by prose about it');
+    '; a supersession is granted by the exact token ' + SUPERSESSION_GRANT_SHAPE + ' and never by prose about it' +
+    '; the STANDING ROLE is DECISIONS:' + SUPERSESSION_STANDING_RULING.at + ' ' +
+    SUPERSESSION_STANDING_RULING.lineSha256.slice(0, 12) + ', whose own token stands inside a prose clause and therefore frees nothing');
   const mine = grants.filter(g => g[1] === s.packageId);
   assert(mine.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + at +
     '; its grant token(s) name ' + [...new Set(grants.map(g => g[1]))].join(' ') + ', not ' + s.packageId);
@@ -999,8 +1016,7 @@ function supersededSpecShape(s, names) {
         'GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF ' + carrier + ' ' + e.laws.join(' '));
     }
     assert(Array.isArray(e.redFirst) && e.redFirst.length, 'GATE-SUPERSESSION-EVIDENCE-RED-FIRST-UNDECLARED ' + carrier);
-    const children = [...e.redFirst, e.legacyDifferential, e.writersDifferential,
-      ...(e.census === SUPERSESSION_RUNNER_CENSUS ? [] : [e.census])];
+    const children = evidenceChildren(e);
     for (const c of children)
       assert(typeof c === 'string' && names.has(c), 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-DECLARED ' + carrier + ' ' + JSON.stringify(c));
     assert(typeof e.census === 'string' && e.census.length, 'GATE-SUPERSESSION-EVIDENCE-CENSUS-UNNAMED ' + carrier);
@@ -1008,9 +1024,11 @@ function supersededSpecShape(s, names) {
     // same green child as red-first, legacy differential AND writers differential — three
     // names for one execution, reported as "3 named child(ren) executed green". The three
     // slots are three different questions, so they are three different children.
-    assert(e.legacyDifferential !== e.writersDifferential,
-      'GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD ' + carrier + ' ' + e.legacyDifferential);
-    for (const slot of ['legacyDifferential', 'writersDifferential'])
+    // DECISIONS:153 adds the third differential, so the three are held apart pairwise.
+    const diffs = [e.legacyDifferential, e.writersDifferential, e.engineFilesDifferential];
+    assert(new Set(diffs).size === 3,
+      'GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD ' + carrier + ' ' + diffs.join(' '));
+    for (const slot of ['legacyDifferential', 'writersDifferential', 'engineFilesDifferential'])
       assert(!e.redFirst.includes(e[slot]), 'GATE-SUPERSESSION-EVIDENCE-SLOTS-SHARE-A-CHILD ' + carrier + ' ' + e[slot] +
         ' stands in redFirst and in ' + slot);
     assert(new Set(e.redFirst).size === e.redFirst.length, 'GATE-SUPERSESSION-EVIDENCE-RED-FIRST-REPEATS-A-CHILD ' + carrier);
@@ -1037,7 +1055,7 @@ function supersededSpecShape(s, names) {
 // The declared evidence children of one row, in one place: the three slots plus the census
 // when it names a child rather than the runner's own line.
 function evidenceChildren(e) {
-  return [...e.redFirst, e.legacyDifferential, e.writersDifferential,
+  return [...e.redFirst, e.legacyDifferential, e.writersDifferential, e.engineFilesDifferential,
     ...(e.census === SUPERSESSION_RUNNER_CENSUS ? [] : [e.census])];
 }
 const byNameOf = s => new Map(s.children.map(c => [c.name, c]));
@@ -2186,6 +2204,35 @@ function supersededByCarrier(s, bound) {
     out[carrier] = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
   return out;
 }
+// DECISIONS:153 (ii), the fifth evidence kind, COMPUTED BY THE RUNNER and not taken on the
+// child's word: every tracked `rebuild/engine` file that this package does NOT declare as its
+// own product must stand byte-identical to the PARENT'S POST — or, where the parent declares
+// no post for it, to the blob at the parent's own `sourceBase`. That is the exact sentence
+// :153 (ii) asks the named-files differential to prove, asked again here of the parent
+// artifact and the disk, so the differential child is corroboration and never the only
+// evidence. Returns the count compared, which the child's needle is then held to.
+function supersessionEngineIdentity(s, bound) {
+  const tracked = L.git(root, ['ls-files', '-z', ENGINE_ROOT.slice(0, -1)]).toString('utf8')
+    .split('\0').filter(f => f.startsWith(ENGINE_ROOT));
+  const base = bound.acceptance.sourceBase;
+  let compared = 0;
+  for (const f of tracked) {
+    if (Object.hasOwn(s.product, f)) continue;               // named by this package's brief
+    const pin = bound.acceptance.product[f];
+    let want = pin && pin.post !== null && pin.post !== undefined ? pin.post : null;
+    if (want === null) {
+      assert(typeof base === 'string' && /^[a-f0-9]{40}$/.test(base),
+        'SUPERSESSION-ENGINE-PARENT-SOURCEBASE-UNAVAILABLE ' + f + '; the parent artifact declares no post for it and no sourceBase to fall back to');
+      want = gitSha(base, f);
+    }
+    assert.equal(diskSha(f), want, 'SUPERSESSION-ENGINE-FILE-OUTSIDE-THE-BRIEF-MOVED ' + f +
+      '; it is not declared by this package and does not stand at ' +
+      (pin && pin.post ? 'the parent post ' + String(want).slice(0, 12) : 'the parent sourceBase blob ' + String(base).slice(0, 7)));
+    compared++;
+  }
+  assert(compared, 'SUPERSESSION-ENGINE-DIFFERENTIAL-COMPARED-NOTHING; no tracked ' + ENGINE_ROOT + ' file stands outside this package\'s own product');
+  return compared;
+}
 function supersededGates(s, bound, ran) {
   const out = new Map();
   const sup = s.coverage.superseded;
@@ -2194,6 +2241,11 @@ function supersededGates(s, bound, ran) {
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   assert(byChild, 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT; a gate can only be superseded against the parent that covered it');
   const parentCarriers = new Set(Object.values(byChild));
+  // DECISIONS:153 (ii). The runner's own named-files differential, once per run, before any
+  // carrier is admitted: if an engine file outside this package's brief has moved, no amount
+  // of declared evidence is worth reading.
+  const engineCompared = supersessionEngineIdentity(s, bound);
+  const byName = byNameOf(s);
   for (const [carrier, row] of Object.entries(sup.gates)) {
     // TOOLING-REVIEW-r10 F2 — BLOCKING, and the fix is this one line. r10 asked the ruling
     // only whether it mentioned SOME carrier, so a PM line reading "may declare second-gate
@@ -2220,9 +2272,20 @@ function supersededGates(s, bound, ran) {
     if (e.census === SUPERSESSION_RUNNER_CENSUS)
       assert(!s.privateLiveTriggered.length, 'GATE-SUPERSESSION-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN ' + carrier +
         '; the runner\'s own census line names ' + s.privateLiveTriggered.join(' ') + ', so it is not byte-identity evidence');
+    // DECISIONS:153 (ii), the child's half: its needle must STATE the count of engine files
+    // compared and claim byte-identity over `rebuild/engine`, and the count it states is the
+    // one the runner measured a moment ago. A differential that says "all good" without a
+    // number, or with somebody else's number, is not the proof :153 asks for.
+    const diffNeedle = byName.get(e.engineFilesDifferential).needle;
+    assert(new RegExp('(?:^|\\D)' + engineCompared + '(?:\\D|$)').test(diffNeedle),
+      'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-STATE-THE-COUNT ' + carrier + ' ' +
+      e.engineFilesDifferential + '; the runner compared ' + engineCompared + ' file(s) and the needle is ' + JSON.stringify(diffNeedle));
+    assert(/byte-identical/i.test(diffNeedle) && diffNeedle.includes('rebuild/engine'),
+      'GATE-SUPERSESSION-ENGINE-DIFFERENTIAL-NEEDLE-DOES-NOT-CLAIM-BYTE-IDENTITY ' + carrier + ' ' +
+      e.engineFilesDifferential + '; the needle must name rebuild/engine and say byte-identical');
     const gates = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
     for (const gate of gates)
-      out.set(gate, { carrier, why: row.why, evidence: e, executed, gates, at: ruling.at, line: ruling.line });
+      out.set(gate, { carrier, why: row.why, evidence: e, executed, gates, engineCompared, at: ruling.at, line: ruling.line });
   }
   assert(out.size, 'GATE-SUPERSESSION-SUPERSEDES-NO-GATE-OF-THE-PARENT');
   return out;
@@ -2298,6 +2361,10 @@ function coverage(s, bound, ran) {
         '; red-first ' + e.redFirst.join(' ') + '; public census ' +
         (e.census === SUPERSESSION_RUNNER_CENSUS ? 'the runner\'s own census line, which says none' : 'child ' + e.census) +
         '; legacy differential ' + e.legacyDifferential + '; writers differential ' + e.writersDifferential +
+        // DECISIONS:153 (ii): the named-files differential, and the count the RUNNER measured
+        // beside the child that states it.
+        '; engine-files differential ' + e.engineFilesDifferential + ' over ' + r.engineCompared +
+        ' tracked ' + ENGINE_ROOT + ' file(s) outside this package\'s own product, each re-compared here against the parent post' +
         '; ' + r.executed.length + ' named child(ren) executed green in this run');
     }
   }
