@@ -17,6 +17,6 @@ Reviewed Claude candidate rebuild/lane-c-n1 @ 25650f8f0300377d6e533aadf2366ff25f
 - Build PASS: 3 assets, 107 pinned inputs. Five boundary files (bindings plus four PAGE_PINS files) byte-identical to integration 40568f7; no engine/client/product-custody drift in the candidate. Temporary reviewer mutations were restored byte-for-byte.
 - GitHub API independently verified CI 34700923767 at the exact full head: windows-latest and ubuntu-latest success. Deploy/preview CI 34700923713 also success at that head; production skipped.
 - NON-BLOCKING scope disclosure for PM: that CI does not run food.test.mjs or food-check.mjs. The brief and builder disclose this residual. A green inherited suite is not cross-OS evidence for N1's new cells; register them at the named CI handoff, with no claim that this review granted .github custody.
-- The builder's report claims a working clean-init entry and five browser checks. The first claim misses protein replay; the second was independently reproduced on retry. No raw log, private fixture, phone data or acceptance line is included here.
+- The builder's report claims a working clean-init entry and five browser checks. The first claim misses protein replay; the required nutrition browser check was independently reproduced on retry (the other four were not rerun by D2). No raw log, private fixture, phone data or acceptance line is included here.
 
 Return a new exact head with fixes and updated cell evidence. Settings review proceeds separately; N1 remains in C's court.
