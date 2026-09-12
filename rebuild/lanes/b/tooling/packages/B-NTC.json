@@ -1,0 +1,557 @@
+{
+  "version": 1,
+  "lanePackage": "B-NTC",
+  "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
+  "status": "BRIEF-ACCEPTED",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
+    "sha256": "4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c",
+    "acceptedLedgerLine": {
+      "ledgerLine": 126,
+      "role": "cowork",
+      "line": "- 2026-09-11 · cowork · BRIEF ACCEPTED BY SHA for M2-B-NTC-NATIVE-TREND-CONTEXT: rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md, sha256 4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c (125275 bytes), is the brief of record. It is the DECISIONS:108 (a) brief (sha256 prefix 0ba59cca) grown ONLY by the amendments its own v1.3 header table lists: the r1 fixes, the :109 obligations and enumeration, the C4 join, the :113 (1) successor carriers, the B-NTC-REVIEW-r2 changes, the :117 (4) C5 CI step and the B-NTC-REVIEW-r3 prose corrections R1 and R2. DECISIONS:113 (2) re-accepted it by name and left the binding sha256 to lane B; this line carries that sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "fc4bfef5ff1796ec7deec214c0f2c7550a2d4d6d4b2b8018344b190b5c5bd5e1"
+    }
+  },
+  "sourceBase": "50fa37a534ce8b2406a88d194b4ee00e3394ede8",
+  "dIds": [],
+  "laws": {},
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [],
+  "parent": {
+    "decided": true,
+    "chosen": "NATIVE-CARRIERS",
+    "options": [
+      {
+        "id": "NATIVE-CARRIERS",
+        "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
+        "sha256": "e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a",
+        "review": "rebuild/m4/spec/review-native-carriers.json",
+        "reviewSha256": "9b0918d6172d08d8f62336219bb4f91809a09705665839bc59c8b7a74a9526bb",
+        "receiptLedgerLine": 104,
+        "note": "Accepted parent e940359b at reviewed b95ccca; remote ancestry is checked unchanged by tooling. Candidate assembly base is integrated C4 7b1678a. Tooling c7b7133 independently accepted at 4a842323 and joined locally; no child seal or receipt claimed."
+      }
+    ]
+  },
+  "tooling": {
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
+    "runnerSha256": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612"
+  },
+  "product": {
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "post": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "role": "carried"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "post": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "role": "carried"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "post": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "role": "new"
+    },
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "pre": "9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23",
+      "post": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "role": "superseded-by-child"
+    },
+    ".github/workflows/rebuild.yml": {
+      "pre": "f57ced400231be9ed7167c6d76b7d04db827283543d556ec8e8bc97c647d7df8",
+      "post": "839a79ab2eecb025e7603e1f5b7dc887e422f58768fd253a02cc7daf40090078",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m4/spec/b-ntc-successors.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-traces.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-direct.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-legacy.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-cases.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "role": "new"
+    },
+    "rebuild/m3/w6/local/today-bindings.mjs": {
+      "pre": "aa310314fd6fe305b5f75d8031886ae712badde93c62cb0b075116349612ffbc",
+      "post": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": {
+      "pre": "114411b1a075c2354eccb552b5855007d06a1a3fe788b5ae0991a6eb3d08309e",
+      "post": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "4117dce4c571594159853422bd1e2d9c6630754b858bc491b9e89a62b3eddc12",
+      "post": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "57566afd36ea913da4b9eaeed8f7a358479381606a9b6f92fc5e562d85d58cda",
+      "post": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
+      "pre": "be31fed87150c4d64545e2bcbeec12d0d106218135d78f2b78a854160f935e45",
+      "post": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-journeys.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-focused.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
+      "pre": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "post": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
+      "pre": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "post": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": {
+      "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "post": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": {
+      "pre": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "post": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": {
+      "pre": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "post": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "role": "new"
+    },
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
+      "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "role": "new"
+    },
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": {
+      "pre": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+      "post": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "new"
+    },
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "role": "new"
+    }
+  },
+  "coverage": {
+    "inherited": {
+      "migrate-source": "source-carriers",
+      "merge-source": "source-carriers",
+      "writers-source": "source-carriers",
+      "witnesses-2": "inherited-carriers",
+      "witnesses-5": "inherited-carriers",
+      "migrate-differential": "inherited-carriers",
+      "witnesses-7": "defect-witnesses",
+      "writers-differential": "writers-differential",
+      "second-gate": "second-gate"
+    },
+    "moves": {},
+    "successors": {
+      "ruling": "MOVES_RULING=DECISIONS:113 B-NTC-INHERITED-1, ratified as written in B-NTC-REVIEW-r2.md E.3, particularising DECISIONS:112 (1)",
+      "parentAcceptanceCommit": "b95ccca879e371b5ba225ad12cae612ec89469ba",
+      "carriers": {
+        "traces": {
+          "successor": "rebuild/m4/spec/b-ntc-traces.cjs",
+          "original": "rebuild/m4/spec/native-carriers-traces.cjs"
+        },
+        "direct": {
+          "successor": "rebuild/m4/spec/b-ntc-direct.cjs",
+          "original": "rebuild/m4/spec/native-carriers-direct.cjs"
+        },
+        "legacy": {
+          "successor": "rebuild/m4/spec/b-ntc-legacy.cjs",
+          "original": "rebuild/m4/spec/native-carriers-legacy.cjs"
+        },
+        "witnesses": {
+          "successor": "rebuild/m4/spec/b-ntc-witnesses.cjs",
+          "original": "rebuild/m4/spec/native-carriers-witnesses.cjs"
+        },
+        "cases": {
+          "successor": "rebuild/m4/spec/b-ntc-cases.cjs",
+          "original": "rebuild/m4/spec/native-carriers-cases.cjs"
+        },
+        "source-carriers": {
+          "successor": "rebuild/m4/spec/b-ntc-source-carriers.cjs",
+          "original": "rebuild/m4/spec/native-carriers-source-carriers.cjs"
+        },
+        "inherited-carriers": {
+          "successor": "rebuild/m4/spec/b-ntc-inherited-carriers.cjs",
+          "original": "rebuild/m4/spec/native-carriers-inherited-carriers.cjs"
+        },
+        "defect-witnesses": {
+          "successor": "rebuild/m4/spec/b-ntc-defect-witnesses.cjs",
+          "original": "rebuild/m4/spec/native-carriers-defect-witnesses.cjs"
+        },
+        "writers-differential": {
+          "successor": "rebuild/m4/spec/b-ntc-writers-differential.cjs",
+          "original": "rebuild/m4/spec/native-carriers-writers-differential.cjs"
+        },
+        "second-gate": {
+          "successor": "rebuild/m4/spec/b-ntc-second-gate.cjs",
+          "original": "rebuild/m4/spec/native-carriers-second-gate.cjs"
+        }
+      },
+      "substitutions": [
+        {
+          "original": "rebuild/m4/spec/native-carriers-source.cjs",
+          "from": "'rebuild/m4/workout/engine-runtime.cjs':'9be218975e39d84465f6c337d48b60c5009f268eb68d7b9808871ad867c61b23'",
+          "to": "'rebuild/m4/workout/engine-runtime.cjs':'c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936'",
+          "why": "the SUPPORT pin re-target DECISIONS:113 (1) (c) is about: engine-runtime.cjs is declared superseded-by-child, so the shared source module must expect the child's byte or every carrier refuses the child tree before running one assertion"
+        },
+        {
+          "original": "rebuild/m4/spec/native-carriers-witnesses.cjs",
+          "from": "assert.deepEqual(COMPOSITION.exposed.slice().sort(),['genSession','rirPlan'],'Exposed reader surface');",
+          "to": "assert.deepEqual(COMPOSITION.exposed.slice().sort(),['cleanAtDate','dayWeather','genSession','rirPlan'],'Exposed reader surface');",
+          "why": "the same exact four-name deepEqual over the surface the child declares; DECISIONS:109 PATH A widens EXPOSED by dayWeather and cleanAtDate, so the parent's two-name expectation is the pin this supersession re-targets and the assertion stays exact, never relaxed"
+        },
+        {
+          "original": "rebuild/m4/spec/native-carriers-cases.cjs",
+          "from": "path.join(root,'rebuild/m4/workout/test/native-next-targets.test.cjs')",
+          "to": "path.join(root,'rebuild/m4/spec/b-ntc-native-next-targets.test.cjs')",
+          "why": "the mutant detector re-targeted onto the child's copy of the focused test, which is the file that reads the widened surface; the detector itself is unchanged and still has to catch every mutant it caught for the parent"
+        }
+      ]
+    }
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "rebuild/m4/workout/engine-runtime.cjs — a PARENT EXECUTION PIN this child SUPERSEDES (9be21897… -> c03732e8…): EXPOSED gains dayWeather + cleanAtDate per DECISIONS:109 PATH A. The parent M2-NATIVE-CARRIERS profile keeps its own pin and therefore REFUSES on these bytes; that refusal is this child's to supersede and no separate parent re-seal is wanted.",
+    "rebuild/m3/w6/host/engine-runtime-host.cjs — the bundleable mirror of the file above, widened with it (114411b1… -> e210bfa0…); engine-equivalence.test.cjs holds the two to the same name list.",
+    ".github/workflows/rebuild.yml - a PARENT EXECUTION PIN this child SUPERSEDES: four disclosed hunks, all in BRIEF section 4. (1) the A1/A2/A3 step enumerates seven today/ files, adding checkin.test.mjs and ntc-h6-delta.test.mjs, which DECISIONS:109 rules rides this seal; (2) the parent gate step is replaced by this child's, which DECISIONS:113 (3) rules the correct supersession and says not to restore; (3) the memory-only w7-preview step is deleted, which is the :109 pass-19 retirement :113 (3) says to keep deleted; (4) a new C5 step node --test \"rebuild/coach/test/*.test.cjs\" (64/64 exit 0 here), which DECISIONS:117 (4) rules rides this seal as one more disclosed hunk. A4's setup.test.mjs is NOT enumerated HERE, and that is now an OWED item, not a settled one: :117 (4) enumerates it only if it exists on the tip at seal time; at the FIRST seal (tip 2d457fd) it did not exist, at this re-seal onto the tip 50fa37a it DOES, so the condition is met. DECISIONS:132 scopes this pass to the five moved pins and the enumeration is a rebuild.yml change only the PM may rule on, so it is NOT applied here and is raised as an OPEN item in rebuild/lanes/b/VERDICT-B-NTC.md. The brief is frozen by sha256 4aa94069... under DECISIONS:126 and still carries the first-seal sentence; it is not edited.",
+    "rebuild/engine/* — byte-identical, every one carried; this package edits no engine byte."
+  ],
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
+    "theme": {
+      "ledgerLine": 122,
+      "role": "cowork",
+      "line": "- 2026-09-11 · cowork · THEME M2-B-NTC-NATIVE-TREND-CONTEXT — the qualified nativeTrendContext provider, DECISIONS:103 (1) first in the lane-B chain and the S2 blocker. Its behaviour/delta contract is rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md; its parent is M2-NATIVE-CARRIERS, rebuild/m4/spec/acceptance-native-carriers.json sha256 e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a, whose engine-runtime.cjs and rebuild.yml execution pins this child supersedes under DECISIONS:109 PATH A. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "3ca8bf169fe96f3cd0ec51ea68b1406e76fdaa11d67e38cadb0559319d272384"
+    },
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B-NTC-NATIVE-TREND-CONTEXT",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
+    "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json"
+  },
+  "children": [
+    {
+      "name": "traces",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-traces.cjs"
+      ],
+      "needle": "NATIVE CARRIER TRACES: 7/7 public census laws GREEN on both clocks; 2/2 frozen goldens byte-identical;"
+    },
+    {
+      "name": "direct",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-direct.cjs"
+      ],
+      "needle": "NATIVE CARRIERS DIRECT: 713/713 PASS;"
+    },
+    {
+      "name": "legacy",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-legacy.cjs"
+      ],
+      "needle": "NATIVE CARRIERS LEGACY DIFFERENTIAL: 9/9 legacy-only comparisons identical"
+    },
+    {
+      "name": "witnesses",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-witnesses.cjs"
+      ],
+      "needle": "NATIVE CARRIERS WITNESSES: 6/6 input/alarm branches;"
+    },
+    {
+      "name": "cases",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-cases.cjs"
+      ],
+      "needle": "NATIVE CARRIERS CASES: 7/7 effective mutants, one per carrier file, all restored"
+    },
+    {
+      "name": "source-carriers",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-source-carriers.cjs"
+      ],
+      "needle": "NATIVE SOURCE CARRIERS: 6/6 PASS;"
+    },
+    {
+      "name": "inherited-carriers",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-inherited-carriers.cjs"
+      ],
+      "needle": "NATIVE INHERITED CARRIERS: 6/6 PASS;"
+    },
+    {
+      "name": "defect-witnesses",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-defect-witnesses.cjs"
+      ],
+      "needle": "NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;"
+    },
+    {
+      "name": "writers-differential",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-writers-differential.cjs"
+      ],
+      "needle": "NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;"
+    },
+    {
+      "name": "second-gate",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-second-gate.cjs"
+      ],
+      "needle": "NATIVE SECOND GATE:"
+    },
+    {
+      "name": "ntc-provider-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/native-trend-context.test.cjs"
+      ],
+      "needle": "# pass 39"
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-focused.cjs"
+      ],
+      "needle": "B-NTC FOCUSED: 15/15 PASS;"
+    },
+    {
+      "name": "durable-journeys",
+      "argv": [
+        "rebuild/m4/spec/b-ntc-journeys.cjs"
+      ],
+      "needle": "B-NTC DURABLE JOURNEYS: 238/238 PASS;"
+    },
+    {
+      "name": "profile-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs"
+      ],
+      "needle": "# pass 13"
+    },
+    {
+      "name": "child-pin-refusals",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/spec/b-ntc-successors.test.cjs"
+      ],
+      "needle": "# pass 6"
+    }
+  ],
+  "notes": [
+    "LANE B fix pass r2 (author lane-b-fixer5), under DECISIONS:113 (1), which ratified MOVES_RULING B-NTC-INHERITED-1 as written in B-NTC-REVIEW-r2.md E.3 and particularises DECISIONS:112 (1). Candidate preparation only: no child artifact, no receipt, no private run, no PASS word. DECISIONS:112 (2) rules the Astra provenance VOID; every Astra-authored file in this package was re-authored or re-measured by lane B, and the two rejected tooling commits were withdrawn by git revert on rebuild/lane-b-tooling.",
+    "coverage.moves is {} and stays {} - DECISIONS:113 (1) (a). X1 is not widened for this package or any other. The nine inherited gates are the parent artifact acceptance-native-carriers.json e940359b...'s own coverage.byChild, byte for byte, and each is carried by a SUCCESSOR executable declared in coverage.successors. The admission is the ruling id recorded in b-package.cjs, never anything this spec says about itself.",
+    "Each successor LOADS the parent carrier's own original body in a private module that never enters require.cache. The seal runner proves the relation before admitting a gate: the original equals the parent executionPin AND the Git blob at b95ccca... (asserted on the chain branch and behind HEAD); the successor names the original and contains none of its lines; its replacements are exactly coverage.successors.substitutions and nothing else in its closure replaces; and its declared needle is the parent wrapper's own accepted verdict IN FULL, read out of native-carriers-package.cjs's pinned verdicts table.",
+    "THREE enumerated substitutions, verbatim, DECISIONS:113 (1) (c). (1) the SUPPORT pin re-target in native-carriers-source.cjs - the pin re-target (c) is literally about; (2) the witnesses exposed-surface deepEqual, two names to four, still exact; (3) the cases mutant-detector target, re-pointed at the child's focused test, detector unchanged. The ruling's parenthetical names two because B-NTC-REVIEW-r2 E.2 counted gate-body substitutions; r2 E.1 records the SUPPORT one separately. A FOURTH substitution the withdrawn candidate performed - rewriting if(require.main===module) to if(true) - is GONE: it was not a pin re-target, so (c) does not permit it, and the successor now makes the entry module the main module for its own compile instead.",
+    "Role new means introduced to this parent profile; some host/test files existed at sourceBase but were not parent-pinned. Their pre is the real sourceBase bytes, or the empty-byte sha only where absent. SEVEN of them are unchanged by this package (adapter, checkin, design, package and view under w7-preview/today/test, engine-equivalence.test.cjs and local-today-journey.test.mjs) and so carry pre === post: this package declares and PINS them - rebuild/m4/spec/b-ntc-journeys.cjs holds all ten executed suites by bytes against product[file].post - and does not change them. They are NOT dropped from this inventory; deleting a real pin to make a phase word read better is the move this package must not make. The runner used to test disk === pre BEFORE disk === post and so counted them as still at the pre-image for ever, which is why PRODUCT reported PARTIAL on every run; lane B raised that against itself in FIX-REPORT-B-NTC-r2.md 4.2 and the PM asked for it, so it is fixed in its own distinct tooling commit with its own suite (test/product-phase-and-ledger.test.cjs, r6 to judge first). engine-runtime.cjs and .github/workflows/rebuild.yml carry role superseded-by-child over a PARENT EXECUTION PIN (DECISIONS:109 PATH A), each with the parent byte as its exact pre-image.",
+    "PASS-19 RETIREMENT APPLIED per DECISIONS:113 (4): the memory-only w7-preview child (browser-package, # pass 19) is OMITTED from this spec, its CI step is deleted from rebuild.yml, and the parent wrapper native-carriers-package.cjs is NOT edited - its bytes are the accepted parent's and its role here is superseded-by-child. The successor evidence is named cell by cell in BRIEF 4.1, including the THREE of the nineteen that have NO successor and are recorded as a residual rather than claimed. rebuild/lanes/b/ntc/pass19-retirement.patch is deleted, as the ruling directs; so are the two other carried patches, which r2 G.1 measured at git apply --check exit 1.",
+    "The qualified provider lives at C4's actual composition in rebuild/m3/w6/local/today-bindings.mjs (lane C custody, DECISIONS:111, confirmed by :113 (5)). One-store storage, clocks, causal tips and explicit resolver injection are preserved. The rirPlan bind scoping is KEPT and now has a cell that goes RED when it is removed (ntc-h6-delta B-NTC G8, r2 R11); no behavioural cell is possible because rirPlan reaches no trend-context call on any path this product drives, and that residual is stated in the brief rather than dressed up.",
+    "SIBLING COST, owned (r2 R7, DECISIONS:113 (6)): this child's re-pin of engine-runtime.cjs makes B1 and B2 refuse PARENT-PIN-BROKEN and B3, B4 and B-LOM refuse UNLISTED-SOURCE-CHANGE until each re-pins at its own rebase onto the accepted B-NTC head. Stated in the brief and corrected in BUILD-REPORT-B-NTC.md, whose earlier claim that B1 \"fails identically\" was wrong twice over.",
+    "CI HOME FOR C5, DECISIONS:117 (4): rebuild.yml gains a FOURTH disclosed hunk, the step node --test \"rebuild/coach/test/*.test.cjs\" for lane C's voice coach (64/64 exit 0 measured in this worktree). rebuild.yml is pinned by the accepted engine artifact, so a step lands only inside a re-pinning engine package and this one rides the B-NTC seal. A4's rebuild/m3/w7-preview/today/test/setup.test.mjs is NOT enumerated in the today step, and at this re-seal that is an OWED item: it did not exist on origin/rebuild/t2-client-core at the first seal (tip 2d457fd) and it does exist on the tip 50fa37a this package now stands on, so :117 (4)'s condition is met. The enumeration is a rebuild.yml change outside DECISIONS:132's five-pin scope; it is raised for the PM in rebuild/lanes/b/VERDICT-B-NTC.md rather than taken unasked. The rule for seal time is stated in BRIEF section 4 and in the rebuild.yml comment.",
+    "OPEN at this head, and every one of them is ledger- or seal-clearable: the theme line, the brief-acceptance line and the child's own sealed artifact. brief.acceptedLedgerLine stays NULL and status stays PROPOSED: DECISIONS:113 (2) re-accepts this brief by name and names line 113, but that line does not meet the runner's N4/X4 citation format - it does not carry this packageId, does not name the brief path and does not end in the ACCEPT terminal word - and lane B will not relax a gate to make a claim pass. FIX-REPORT-B-NTC-r2.md 4.1 carries the two paste-ready line texts the PM can append; they were verified end to end against a throwaway chain fixture and shrink the obligations to the seal alone.",
+    "RE-SEAL ON THE TIP, DECISIONS:132. rebuild/lane-b-ntc was merged onto origin/rebuild/t2-client-core 50fa37a (merge base 5c6766e) so that the five files this package pins which lane C's P1/P2 moved are re-pinned inside this package's own seal instead of breaking it at the PM's merge: rebuild/m3/w6/local/today-bindings.mjs b243257a746f->95315f7a0e63; rebuild/m3/w6/host/workout-host.mjs 262d7d5f65e7->8472097cb015; rebuild/m3/w6/test/local-today-journey.test.mjs 7e5ccb4cbe3d->4572517ce67b; rebuild/m3/w7-preview/today/test/checkin.test.mjs bdf209db6dc6->3e7be3363105; rebuild/m3/w7-preview/today/test/view.test.mjs c9cc240f5ae8->f0d4e66aba82. sourceBase moves to that tip, where every parent and grandparent pin this package declares still stands. Roles are unchanged; the merge changed no engine, conform, m4/workout, rebuild.yml, runner or spec byte, and no other product pin moved. The ten durable journey suites are 238/238 and the provider cells 39/39 on the merged tree, so b-ntc-journeys.cjs's exact count is unmoved and its own bytes do not change. The first seal's artifact 1588567a... and its receipt DECISIONS:130 are void by construction: the artifact bytes move, so the PM's receipt must be re-issued against the new sha256."
+  ]
+}

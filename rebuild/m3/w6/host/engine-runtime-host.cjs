@@ -42,7 +42,13 @@
 // no athlete data and no provider; every line below the require list is a
 // structural mirror of the accepted runtime.
 const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progression', 'sleep', 'energy', 'policy', 'today', 'volume', 'earn', 'writers']);
-const EXPOSED = Object.freeze(['genSession', 'rirPlan']);
+// WIDENED WITH THE ACCEPTED RUNTIME BY M2-B-NTC (DECISIONS:109, PATH A). This
+// list is a MIRROR and never leads: engine-runtime.cjs:30 is where the surface
+// is decided, and engine-equivalence.test.cjs:26 fails on any drift between the
+// two. The two added names are the engine's own day predicates, `dayWeather`
+// (sleep.cjs:1872) and `cleanAtDate` (sleep.cjs:1017), which the B-NTC
+// nativeTrendContext provider asks instead of restating.
+const EXPOSED = Object.freeze(['genSession', 'rirPlan', 'dayWeather', 'cleanAtDate']);
 // Literal requires: the same twelve modules MODULES names, in that order.
 const FACTORIES = Object.freeze({
  dates: require('../../../engine/dates.cjs'),
@@ -98,7 +104,10 @@ function createEngineRuntime({ clock, ids, drafts, nativeTrendContext } = {}) {
   Object.assign(E, created);
  }
  for (const name of EXPOSED) if (typeof E[name] !== 'function') throw new TypeError('Accepted engine did not compose ' + name);
- return Object.freeze({ genSession: (s, iso, slp) => E.genSession(s, iso, slp), rirPlan: (s, ex, slp) => E.rirPlan(s, ex, slp) });
+ // The same four thin forwarders the accepted runtime returns, in the same
+ // order and with the same arities; E itself never leaves this function.
+ return Object.freeze({ genSession: (s, iso, slp) => E.genSession(s, iso, slp), rirPlan: (s, ex, slp) => E.rirPlan(s, ex, slp),
+  dayWeather: (s, iso) => E.dayWeather(s, iso), cleanAtDate: (s, iso) => E.cleanAtDate(s, iso) });
 }
 
 const COMPOSITION = Object.freeze({ profile: 'earned/engine-runtime-host/v1',

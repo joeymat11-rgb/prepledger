@@ -90,6 +90,22 @@ export function composeWorkoutHost({
   workoutProducerIdentity,
   resolveWorkoutBasis,
   resumeReason,
+  // B-NTC, optional. The qualified nativeTrendContext binding
+  // (rebuild/m4/workout/native-trend-context.cjs). Its `resolve` is what the
+  // caller handed createEngineRuntime; this host's only job is to tell it
+  // WHICH facts object the engine is about to read, for exactly as long as it
+  // is reading them, and to restore the previous window when the read returns.
+  // Absent, nothing changes: the host keeps whatever resolver the caller
+  // composed, including A0's honest refusal createUnavailableNativeTrendContext.
+  //
+  // NOTE FOR ANY OTHER CALLER OF THE SAME ENGINE (review r1, F3). This host
+  // opens the window around its OWN engine read — adapter.prepare. A caller
+  // that re-runs the same accepted reader later over the same facts (the gym
+  // card's previous-performance read is exactly that) must open its own window
+  // with `nativeTrendBinding.withFacts(facts, run)`; otherwise the resolver has
+  // nothing bound and the engine refuses, silently, wherever that refusal is
+  // swallowed. `withFacts` is re-entrant for precisely this reason.
+  nativeTrendBinding,
   stringSelectionRegistrar,     // optional: reading-replay's own projectLineage registrar
   mountPreparedWorkoutPanel,    // optional: only needed by a page host
   plannedSplitSlotId,
@@ -135,6 +151,10 @@ export function composeWorkoutHost({
   if (typeof resolveWorkoutBasis !== 'function') need('resolveWorkoutBasis');
   if (typeof resumeReason !== 'string' || !resumeReason.trim()) need('resumeReason');
   if (typeof plannedSplitSlotId !== 'string' || !plannedSplitSlotId.trim()) need('plannedSplitSlotId');
+  if (nativeTrendBinding !== undefined &&
+      (typeof nativeTrendBinding?.bind !== 'function' || typeof nativeTrendBinding?.unbind !== 'function' ||
+       typeof nativeTrendBinding?.withFacts !== 'function'))
+    throw new TypeError('composeWorkoutHost requires a {bind, unbind, withFacts} native trend binding when one is supplied');
   if (stringSelectionRegistrar !== undefined && typeof stringSelectionRegistrar?.workoutInput !== 'function')
     throw new TypeError('composeWorkoutHost requires a registered string-lane registrar when one is supplied');
 
@@ -177,8 +197,23 @@ export function composeWorkoutHost({
       // prepareWorkout / prepareWorkoutContinuation and stores nothing.
       if (!splitInForceOn(engineState, day)) refuseSplitNotInForce(day);
       lastProjection = registrar.register({ generation, state: engineState, workoutFacts: context.workoutFacts });
-      return adapter.prepare({ day, basis: context.basis,
+      // B-NTC. Open the trend-context window over the VERY facts object this
+      // preparation is about to give the engine, for exactly the engine read it
+      // wraps, and restore the previous window when that read returns.
+      //
+      // The window does NOT claim object identity across the engine seam: the
+      // accepted adapter hands genSession a structuredClone
+      // (rebuild/m4/workout/engine-capture.cjs:52), so the engine never holds
+      // the object bound here. What the window buys is SCOPE (outside it every
+      // request refuses), a content digest that catches a facts object moving
+      // under the binding, and the value correspondence performed.cjs itself
+      // checks — revision, unique Start, whole effective tuple.
+      const prepare = () => adapter.prepare({ day, basis: context.basis,
         sourceProjection: lastProjection, source_basis: context.source_basis }).capture;
+      // withFacts restores rather than clears, so a caller that has already
+      // opened a window over the same facts (the gym card's previous-performance
+      // read) is not disarmed by this one returning.
+      return nativeTrendBinding ? nativeTrendBinding.withFacts(context.workoutFacts, prepare) : prepare();
     } catch (error) {
       lastRefusal = Object.freeze({ code: error?.code || null, reason: error?.reason || null,
         message: typeof error?.message === 'string' ? error.message : null });

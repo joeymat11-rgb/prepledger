@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "lanePackage": "B-LOM",
+  "packageId": "M2-B-LOM-LEGACY-ORDER-MAPPING",
+  "status": "SKELETON",
+  "brief": {
+    "file": "rebuild/lanes/b/BRIEF-B-LOM-LEGACY-ORDER-MAPPING.md",
+    "sha256": null,
+    "acceptedLedgerLine": null
+  },
+  "sourceBase": "e9c50e109d3f60ea6da3d538c129a601b346bef4",
+  "dIds": [],
+  "laws": {},
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [],
+  "parent": {
+    "decided": false,
+    "chosen": null,
+    "options": [
+      {
+        "id": "B-NTC",
+        "artifact": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
+        "sha256": null,
+        "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
+        "reviewSha256": null,
+        "receiptLedgerLine": null,
+        "note": "TBD. DECISIONS:103 (1): the legacy order-mapping provider goes inside B-NTC only if it is the same seam; the lane-B STATUS of 2026-09-11 05:50 ET records that it is NOT (B-NTC binds performed.cjs:193, B-LOM is data-fed at performed.cjs:176-183), so B-LOM follows as its own package with the ACCEPTED B-NTC artifact as its parent. Every coordinate here — sha256, reviewSha256, receiptLedgerLine — is taken when B-NTC is sealed and receipted, and not before."
+      }
+    ]
+  },
+  "tooling": {
+    "runner": "rebuild/lanes/b/tooling/b-package.cjs",
+    "runnerSha256": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612"
+  },
+  "product": {},
+  "coverage": {
+    "inherited": {},
+    "moves": {},
+    "successors": null
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "rebuild/conform/goldens (public census and frozen goldens)",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
+    "theme": null,
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-B-LOM-LEGACY-ORDER-MAPPING",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-b-lom-legacy-order-mapping.json",
+    "review": "rebuild/m4/spec/review-b-lom-legacy-order-mapping.json"
+  },
+  "children": [],
+  "notes": [
+    "SKELETON. B-LOM exists here so the runner admits the id and so the chain’s shape is visible; it declares no product, no child and no D-id, and every run of it is REVIEW-PENDING with the whole inventory open. Nothing in this file is a claim about the legacy order-mapping seam.",
+    "product is EMPTY on purpose: B-LOM’s parent is the B-NTC artifact, which is not sealed, so there is no parent product map to inherit and no pre-image to pin. The inventory is taken whole at B-NTC’s accepted head. While the parent is unsealed the runner cannot verify inventory completeness at all and says so in its own line.",
+    "coverage.inherited is EMPTY and children[] is empty for the same reason: inherited coverage IS the parent artifact’s own gate->child map byte-for-byte, and there is no parent artifact yet. All nineteen original gates re-execute under --full.",
+    "dIds and laws are empty because B-LOM is named in the runner’s NO_REGISTER_IDS set (DECISIONS:93). If the PM later rules that B-LOM does carry register repairs, the exemption is removed from b-package.cjs — not worked around here. THE REPLACEMENT OBLIGATION (TOOLING-REVIEW-r4 Y1): with no D-id there is no law accounting, so the runner requires at least MIN_OWN_CHILDREN declared child(ren) executing one of this package's own role:\"new\" product files. B-LOM declares none — product is {} and children[] is empty — so the run reports NO-REGISTER OBLIGATION 0 of 0, carries it as an OPEN obligation on top of the rest of the skeleton's, and the seal REFUSES with NO-REGISTER-PACKAGE-SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT. B-LOM cannot be sealed until it has a cell of its own that runs.",
+    "The brief is not written yet, so brief.sha256 is null and the runner leaves \"brief not authored\" OPEN.",
+    "PARENT, CORRECTED (TOOLING-REVIEW-r4 Y3). B-LOM’s ONLY parent option is B-NTC, which is not sealed, so this spec names no NATIVE-CARRIERS option and nothing here was re-pinned at the DECISIONS:104 CI re-seal. (The note that stood here through r3 said parent.options NATIVE-CARRIERS had been re-pinned; it was copied from B1/B2, where it is true, and this spec has no such option. Corrected rather than carried.) What IS re-taken at the tip is sourceBase e9c50e1; the parent pins are taken whole at B-NTC’s accepted head when it exists.",
+    "NO PRE-IMAGES TO RE-VERIFY (TOOLING-REVIEW-r4 Y3). product is {} — this spec pins no pre-image at all, so it makes no pre-image claim. The r3-era note that stood here described this spec's product pre-images as the parent's own pins carried forward; with an empty product map that said more than these bytes contain, so it is corrected rather than carried and the false sentence is not reproduced. When B-NTC seals, the inventory is taken whole from its artifact and re-verified by B-LOM’s own lane, not by the tooling fixer.",
+    "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
+    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B).",
+    "SINGLE PARENT, TWO WAYS (TOOLING-REVIEW-r4 Y2). parent.chosen is null here, so the rule is not yet engaged; when it is, parent() refuses if any sibling packages/*.json claims the same artifact — read BOTH from disk AND from Git at HEAD, so freeing a sibling’s `chosen` in an uncommitted edit no longer frees the parent (r4 G14) — and refuses again if an already-sealed rebuild/m4/spec/acceptance-*.json ON refs/remotes/origin/rebuild/t2-client-core names it. B-LOM’s only option is B-NTC, so the second head this guards against is a second claim on the B-NTC artifact once it exists."
+  ]
+}
