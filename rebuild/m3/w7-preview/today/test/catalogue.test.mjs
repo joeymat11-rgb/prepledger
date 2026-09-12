@@ -612,3 +612,58 @@ test('H7 an illegal secondary head is refused, by the producer and by validate',
   opBad.payload.tags[id].secondary.find((s) => s.mg === 'delts').head = 'delts_lateral';
   assert.equal(validate(opBad, () => null), false);
 });
+
+/* C1 (review round 1, non-blocking). The cell above refuses a head that is not a
+   region label AT ALL, which `Object.hasOwn(REGION_MG, s.head)` alone already
+   catches. The SECOND half of the rule - that the head must be a region of THIS
+   credit's own engine label - had nothing holding it: deleting
+   `if (REGION_MG[s.head] !== s.mg) bad();` left every suite green. `lats` is a
+   real region label and a real key of REGION_MG, so it passes the first half; it
+   belongs to `back`, so a `delts` credit naming it is a credit contradicting
+   itself, and storing one would hand F2 a resolved region for the wrong muscle. */
+test('C1 a head that is a REAL label but the WRONG muscle is refused, at both gates', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const { prepare, validate } = await import('../setup-commands.mjs');
+  const model = createSetupModel({ today: '2030-02-04' });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addFromCatalogue('U', byId('barbell_bench_press'));
+  model.setExerciseField(row.key, 'first', '20');
+  model.togglePriority('chest');
+  const built = model.document();
+  const id = Object.keys(built.tags)[0];
+  const good = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+
+  /* `lats` is legal in itself, and it is NOT a delts region. */
+  assert.ok(Object.hasOwn(REGION_MG, 'lats'), 'lats really is a region label');
+  assert.equal(REGION_MG.lats, 'back');
+  assert.notEqual(REGION_MG.lats, 'delts');
+
+  const crossed = JSON.parse(JSON.stringify(built.tags));
+  const credit = crossed[id].secondary.find((s) => s.mg === 'delts');
+  credit.head = 'lats';
+  assert.deepEqual(credit, { mg: 'delts', lend: 0.5, head: 'lats' },
+    'the credit under test is exactly the reviewer\'s');
+  assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: crossed } }),
+    /SETUP_INPUT_INVALID/, 'a delts credit named a back region and the producer took it');
+
+  const op = { kind: 'fact', class: 'event', athlete_id: 'owner', causal_parents: [],
+    effective: { local_date: '2030-02-04', local_time: '08:00', utc_offset: '-05:00' },
+    payload: JSON.parse(JSON.stringify(good.payload)) };
+  op.payload.tags[id].secondary.find((s) => s.mg === 'delts').head = 'lats';
+  assert.equal(validate(op, () => null), false,
+    'and the envelope check took it too, which is the half of the rule C1 found unheld');
+
+  /* Every direction of the same mistake, so the agreement is pinned rather than
+     one example of it: each is a real label belonging to some other mg. */
+  for (const [mg, head] of [['delts', 'traps'], ['back', 'delts_front'], ['triceps', 'biceps'],
+    ['hams', 'quads'], ['glutes', 'calves']]) {
+    assert.notEqual(REGION_MG[head], mg, head + ' is not a ' + mg + ' region');
+    const tags = JSON.parse(JSON.stringify(built.tags));
+    const target = tags[id].secondary.find((s) => s.mg === 'delts');
+    target.mg = mg;
+    target.head = head;
+    assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags } }),
+      /SETUP_INPUT_INVALID/, mg + ' credit naming ' + head + ' was accepted');
+  }
+});
