@@ -1,0 +1,136 @@
+EARNED — INDEPENDENT PERSONAL NUTRITION FORM REVIEW
+2026-09-12. REQUEST CHANGES: one bounded P2 recovery finding below.
+
+(1) EXACT SOURCE / ROLE
+FILE ASTRA-NUTRITION-INPUT-FORM-REVIEW.md at01729af.
+Candidate4a9e48ea8b21f5ebf55e94d97f338ad00d0ebcea;
+base26b511b536de272c692f023555622cb69be8e231.
+Isolated branch codex/astra-nutrition-input-form-review, tree:
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-nutrition-input-form-review
+Reviewer native_scale_today did not author the input backend/form. No review of
+the reviewer's separate scale candidate occurred here. Read build/review briefs,
+complete candidate report, accepted input contract and7bc403f backend delta
+review, NEXT/ROADMAP/LANES; retained approved Refinement A/Additions C direction.
+Code-review skill applied. Only this report is committed; product unchanged.
+
+(2) EXECUTED EVIDENCE
+Retained Node24.19.0:
+C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe
+TZ=America/New_York. NODE_PATH points to sibling
+m3-w6-browser-bridge/rebuild/m3/w6/node_modules. Tree-local ignored junctions:
+node_modules -> sibling m3-w6-browser-bridge/node_modules;
+rebuild/m3/{w5,w6}/node_modules -> sibling retained W6 node_modules.
+No install/lockfile changes. All commands below ran in the review tree.
+
+node --test --test-reporter=spec rebuild/m3/w7-preview/test/nutrition-input-form.test.mjs
+7 PASS,0 FAIL/SKIP/CANCEL,exit0. Actual storage tests reproduced unknown/none,
+complete typed four-field review, edit/save/reload, goal-only preservation,
+correction/clear/history, blank validation, stale weight, quota retry, late
+postcommit context loss, rollover/offset, competing nutrition and Back/draft.
+The unchanged backend58/7bc403f evidence is reused, not independently rerun.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+node rebuild/m3/w7-preview/test/nutrition-input-browser-check.mjs
+NUTRITION FORM BROWSER PASS,exit0. Actual retained Chrome/IndexedDB/webcrypto
+module harness; initial unanswered controls, real save/reload, Back/weight,
+four-field semantics, stale and rollover with retained draft, keyboard/labels,
+visible controls>=44px and no page/remote-request errors. This is a module
+harness, not the actual owner Today entry hookup.
+
+node --test --test-reporter=spec .tmp/form-independent-probe.mjs
+Independent source-selected witnesses:4 PASS,1 FAIL,0 SKIP/CANCEL. Failure is
+the canRetry assertion in F1, true versus expected false; no durable corruption.
+The passing four use actual installation/calendar/repository commands:
+ a. Enter a literal zero, then abandon recorded plan and declared goal: saved
+    inputs are exactly unknown goal plus no existing plan; hidden fields absent.
+ b. Hold an actual IDB write; overlap Confirm, Review, Load, Edit and Update:
+    one original is committed and equals the prepared full inputs exactly.
+ c. Hold the shared calendar queue, start confirmation, then cross midnight:
+    no deadlock/write, draft unchanged, date remedy and no invalid retry.
+ d. Unmount while a real commit waits: no late onSaved callback; real completed
+    record survives reopen and the retained model reports its actual outcome.
+Ignored runnable probe retained.
+Exact SHA256: f6a9caadbcd396ec6bcecfef79fe22834bc3c9082f29aba6c530fa7e17f75664.
+
+node .tmp/form-review-browser.mjs
+INDEPENDENT BROWSER PASS,exit0. Same retained built module with independently
+entered plan, actual range controls at200% root text in both390 and320 widths;
+associated labels, visible controls>=44px, no document horizontal overflow or
+page errors. No implementation or supplied test was edited.
+Visually inspected fresh390, review320, saved390, supplied enlarged320, and
+independent enlarged390/320 screenshots under .tmp/nutrition-input-form/.
+At200% the form scrolls vertically; associated labels remain readable, and
+native inputs/selects retain normal internal text scrolling/selection.
+The independent browser script hash is
+6c888000534ee335898de01f7cafd73ddc3bd0ada8485be9a0c8893604af6e70.
+
+(3) F1 — P2: A RETIRED REVIEW IS MISLABELLED AS RETRYABLE STORAGE FAILURE
+File today/nutrition-input-model.mjs:64-70 and130 (under w7-preview).
+Concrete trigger: two real form models share one actual installation. First
+model prepares its explicit review; second model prepares its own review.
+The accepted input boundary intentionally holds one preparation and returns
+NUTRITION_INPUT_PREPARATION_REQUIRED when the first model confirms its old ID.
+Its source is unchanged inputs-boundary.cjs:55; this review does not dispute
+that refusal or the private reviewed execution route.
+
+Observed UI: phase=error, no nutrition fact committed, message says to check
+available device storage and try saving again, and a Try saving again button
+is offered. Two further confirmations still produce error and zero records.
+No storage change can revive that replaced ID. Explicit Edit -> Review ->
+Confirm succeeds and writes exactly one reviewed record, proving the actual
+remedy and distinguishing this case from retryable quota failure.
+
+Required bounded correction: treat missing/retired preparation as needing a
+new explicit review; preserve draft, give the actual remedy, and do not offer
+same-ID retry. Preserve existing quota retry identity and all backend guards.
+No automatic reprepare-and-commit that skips the user's new review.
+
+Exact runnable minimal witness follows. Save as .tmp/form-retired-review.mjs
+in this candidate/review tree and run with the Node/NODE_PATH above. Extracted
+from this report and executed: exit1 at the final true-versus-false assertion. It uses
+only genuine public model/preparation/commit calls over the real fixture store.
+
+--- BEGIN WITNESS ---
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { webcrypto } from 'node:crypto';
+import { createFormFixture, fillRecorded } from '../rebuild/m3/w7-preview/test/nutrition-input-fixture.mjs';
+import { createNutritionInputModel } from '../rebuild/m3/w7-preview/today/nutrition-input-model.mjs';
+const { IDBFactory } = createRequire(new URL('../rebuild/m3/w6/package.json', import.meta.url))('fake-indexeddb');
+const h = await createFormFixture({ indexedDB: new IDBFactory(), crypto: webcrypto });
+let other;
+try {
+  fillRecorded(h.model); await h.model.review();
+  other = createNutritionInputModel({ installation: h.installation, calendar: h.calendar });
+  await other.load(); fillRecorded(other);
+  other.update('goal.statement', 'Second explicit review'); await other.review();
+  await h.model.confirm(); const stale = h.model.snapshot();
+  assert.equal(stale.phase, 'error'); assert.match(stale.message, /Check available device storage/);
+  await h.model.confirm(); await h.model.confirm();
+  assert.equal(h.model.snapshot().phase, 'error'); assert.equal((await h.read()).view.records.length, 0);
+  h.model.edit(); await h.model.review(); await h.model.confirm();
+  assert.equal(h.model.snapshot().phase, 'saved'); assert.equal((await h.read()).view.records.length, 1);
+  assert.equal(stale.canRetry, false, 'Retired preparation requires explicit new review');
+} finally { other?.close(); h.close(); }
+--- END WITNESS ---
+
+(4) VERDICT / REMAINING JOIN
+REQUEST CHANGES for F1 only. No other concrete implementation defect was found
+in this bounded review. The reviewed data semantics remain factual capture:
+target/minimum/open-or-closed range/not-prescribed/unavailable and proper units;
+none/unknown/clear remain distinct; no hidden plan fields or false numeric zero.
+Ordinary overlapping actions are fenced by model busy state. The real guarded
+commit retains shared calendar context without nested queue deadlock. Durable
+acknowledgment alone produces Saved; postcommit context loss remains distinct.
+
+Actual entry wiring remains deliberately absent, as the FILE authorized. The
+entry owner must import model/view, include scoped CSS, create/load the model
+with the SAME installation/calendar, keep it across Back/remount, restore
+invoker focus, refresh Today after real saved state even when unmounted, and
+close model plus installation during teardown. No delivered-owner-UI or useful
+nutrition-coaching claim follows from this standalone module acceptance.
+Full engine/source-policy/CI/phone qualification and U1-U5 remain separate.
+Root alone accepts; same independent reviewer can check this small correction,
+and a distinct integrator follows. No broad/private/backend campaign, source
+pin edits, private facts, extra agents, other-tree writes, push/PR/merge/deploy,
+installation, product edit or self-integration. git diff --check PASS.
