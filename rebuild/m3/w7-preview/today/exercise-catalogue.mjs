@@ -81,13 +81,34 @@ const e = (id, n, aliases, group, mg, head, secondary, kinds) =>
 
 const U = ['U'], L = ['L'];
 /* 0.5 is constants.cjs:330's own fraction for a compound paying a helper muscle.
-   0.25 is INVENTED, and used only where the lift pays plainly less than that. */
-const TRI = { mg: 'triceps', lend: 0.5 }, FRONT = { mg: 'delts', lend: 0.5 };
+   0.25 is INVENTED, and used only where the lift pays plainly less than that.
+
+   THE REGION ON A SECONDARY CREDIT (DECISIONS:154 (8)). `head` already names the
+   region on the PRIMARY, which is what volume.cjs:74 buckets on (`e.head || e.mg`).
+   These four credits now name it on the SECONDARY too, so a helper that is
+   anatomically unambiguous stops arriving region-unspecified under
+   DECISIONS:155 (3). Every one of these head names is INVENTED-and-declared
+   (DECISIONS:115), exactly as the primary heads are: `delts_front`, `delts_side`
+   and `delts_rear` are constants.cjs:333 MG_LABEL keys and `lower_back` is a
+   DECISIONS:127 (2) region label, and test/catalogue.test.mjs re-derives both sets
+   from those files rather than trusting this comment.
+
+   NO LEND VALUE MOVES. A head is a NAME for a credit already paid; what it pays is
+   a different decision and :154 (8) does not make one. The constant called FRONT
+   always meant the front delt - this makes the data say what the name says.
+
+   BACK_H stays coarse ON PURPOSE: its five uses (the three rear-delt flies,
+   the farmer's carry and the ab wheel) each straddle two regions, so naming one
+   would be a guess. They stay qualified:false under :155 (3). */
+const TRI = { mg: 'triceps', lend: 0.5 }, FRONT = { mg: 'delts', head: 'delts_front', lend: 0.5 };
+const REAR = { mg: 'delts', head: 'delts_rear', lend: 0.5 };
+const SIDE_H = { mg: 'delts', head: 'delts_side', lend: 0.25 };
+const ERECTOR = { mg: 'back', head: 'lower_back', lend: 0.5 };
 const BI = { mg: 'biceps', lend: 0.5 }, FORE = { mg: 'forearms', lend: 0.5 };
 const BACK_H = { mg: 'back', lend: 0.25 }, GLUTE_H = { mg: 'glutes', lend: 0.5 };
 const HAM_H = { mg: 'hams', lend: 0.5 }, QUAD_H = { mg: 'quads', lend: 0.5 };
 const ABS_H = { mg: 'abs', lend: 0.25 }, CHEST_H = { mg: 'chest', lend: 0.25 };
-const CALF_H = { mg: 'calves', lend: 0.25 }, DELT_H = { mg: 'delts', lend: 0.25 };
+const CALF_H = { mg: 'calves', lend: 0.25 };
 
 export const CATALOGUE = Object.freeze([
   /* ---------------------------------------------------------------- chest
@@ -122,8 +143,8 @@ export const CATALOGUE = Object.freeze([
   e('inverted_row', 'Inverted row', ['body row', 'ring row', 'australian pull up'], 'back', 'back', 'upper_back', [BI], U),
   e('shrug', 'Shrug', ['barbell shrug', 'dumbbell shrug', 'trap shrug'], 'back', 'back', 'traps', [FORE], U),
   e('machine_shrug', 'Shrug machine', ['machine shrug', 'smith shrug'], 'back', 'back', 'traps', [FORE], U),
-  e('upright_row', 'Upright row', ['cable upright row', 'barbell upright row'], 'back', 'back', 'traps', [DELT_H, BI], U),
-  e('face_pull', 'Face pull', ['cable face pull', 'rope face pull'], 'back', 'back', 'traps', [{ mg: 'delts', lend: 0.5 }], U),
+  e('upright_row', 'Upright row', ['cable upright row', 'barbell upright row'], 'back', 'back', 'traps', [SIDE_H, BI], U),
+  e('face_pull', 'Face pull', ['cable face pull', 'rope face pull'], 'back', 'back', 'traps', [REAR], U),
   e('back_extension', 'Back extension', ['hyperextension', 'roman chair', '45 degree back extension'], 'back', 'back', 'lower_back', [GLUTE_H, HAM_H], L),
   e('good_morning', 'Good morning', ['barbell good morning'], 'back', 'back', 'lower_back', [HAM_H, GLUTE_H], L),
   e('rack_pull', 'Rack pull', ['partial deadlift', 'block pull'], 'back', 'back', 'lower_back', [{ mg: 'hams', lend: 0.5 }, { mg: 'glutes', lend: 0.5 }, FORE], L),
@@ -171,8 +192,8 @@ export const CATALOGUE = Object.freeze([
   e('goblet_squat', 'Goblet squat', ['dumbbell squat', 'kettlebell squat'], 'legs', 'quads', 'quads', [GLUTE_H, ABS_H], L),
   e('lunge', 'Lunge', ['walking lunge', 'reverse lunge', 'dumbbell lunge'], 'legs', 'quads', 'quads', [{ mg: 'glutes', lend: 0.5 }], L),
   e('bulgarian_split_squat', 'Bulgarian split squat', ['split squat', 'rear foot elevated split squat', 'rfess'], 'legs', 'quads', 'quads', [{ mg: 'glutes', lend: 0.5 }], L),
-  e('romanian_deadlift', 'Romanian deadlift', ['rdl', 'stiff leg deadlift'], 'legs', 'hams', 'hams', [{ mg: 'glutes', lend: 0.5 }, { mg: 'back', lend: 0.5 }, FORE], L),
-  e('deadlift', 'Deadlift', ['conventional deadlift', 'barbell deadlift'], 'legs', 'hams', 'hams', [{ mg: 'glutes', lend: 0.5 }, { mg: 'back', lend: 0.5 }, { mg: 'quads', lend: 0.25 }, FORE], L),
+  e('romanian_deadlift', 'Romanian deadlift', ['rdl', 'stiff leg deadlift'], 'legs', 'hams', 'hams', [{ mg: 'glutes', lend: 0.5 }, ERECTOR, FORE], L),
+  e('deadlift', 'Deadlift', ['conventional deadlift', 'barbell deadlift'], 'legs', 'hams', 'hams', [{ mg: 'glutes', lend: 0.5 }, ERECTOR, { mg: 'quads', lend: 0.25 }, FORE], L),
   e('lying_leg_curl', 'Lying leg curl', ['leg curl', 'hamstring curl'], 'legs', 'hams', 'hams', [{ mg: 'calves', lend: 0.25 }], L),
   e('seated_leg_curl', 'Seated leg curl', ['seated hamstring curl'], 'legs', 'hams', 'hams', [], L),
   e('nordic_curl', 'Nordic curl', ['nordic hamstring curl', 'glute ham raise'], 'legs', 'hams', 'hams', [GLUTE_H], L),
