@@ -193,6 +193,37 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Report a problem",
   "Copied. Send it to Joe.",
   "Select all and copy, then send it to Joe.",
+  /* N1 (DECISIONS:143). The approved 2026-09-08 nutrition screen shows TARGETS and
+     has no entry on it: the prototype records nothing, so it has no words for
+     recording an intake, for refusing one, for reading one back, or for having no
+     target to show at all. Every sentence below is therefore preview-owned, checked
+     ABSENT from the approved references and PRESENT in a view source: they live in
+     today-app.cjs, which is one, because VIEW_SOURCES is pinned by name in
+     test/design.test.cjs and this build does not own that file. food-model.cjs owns
+     the RULE and names each refusal by code; the wording is the view's. */
+  "Today's intake",
+  "Enter what you actually ate today. Either figure on its own is enough.",
+  "Calories eaten",
+  "Protein eaten",
+  "Record today's intake",
+  "Recording it again replaces today's figures.",
+  "Enter calories, protein, or both. Nothing was recorded.",
+  "Calories are recorded as a whole number between 0 and 20000. Nothing was recorded.",
+  "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
+  "This intake could not be recorded on this device, and no part of it was recorded.",
+  "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+  "Not prescribed. The engine issues no carbohydrate or fat target.",
+  /* D2 round 1 - the refusals the nutrition entry can now act on, and the day the
+     engine could not read back. Preview-owned for the same reason as the rest. */
+  "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+  "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+  "Opening this device's encrypted store.",
+  "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.",
+  /* D2 round 2 - a commit and the read that follows it are two outcomes. */
+  "Earned could not read today's record back just now, so what is shown here may not be the whole day.",
+  "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+  "Nothing you entered is lost. Read today's record again below, or open Earned again on this device.",
+  "Read today's record again",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

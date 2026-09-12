@@ -15,6 +15,13 @@
 // accepts. The validator below is that constructor, run on the envelope that is about
 // to be written: if the stored bytes could not rebuild the athlete, nothing is stored.
 import { createCleanInitState, REQUIRED_SETUP } from './setup-model.mjs';
+/* DECISIONS:154 (8): a secondary credit may now NAME the region it pays. The legal
+   names are not restated here - `REGION_MG`'s keys ARE the set: the three
+   constants.cjs:333 MG_LABEL keys (delts_front, delts_side, delts_rear) and the
+   DECISIONS:127 (2) region labels, in one place, which test/catalogue.test.mjs
+   re-derives from the engine files themselves. This module imports a LIST, not a
+   catalogue lookup, and it still imports nothing from rebuild/engine. */
+import { REGION_MG } from './exercise-catalogue.mjs';
 
 export const PROFILE = 'earned/first-run-setup/v1';
 export const ACTION = 'first-run-setup';
@@ -64,10 +71,24 @@ export function tagsOf(input, document) {
     if (tag.head !== null && !(typeof tag.head === 'string' && tag.head.trim())) bad();
     if (!Array.isArray(tag.secondary)) bad();
     const secondary = tag.secondary.map((s) => {
-      if (!isMap(s) || Object.keys(s).length !== 2) bad();
+      /* {mg, lend} as before, plus ONE optional member: `head`, the region this
+         credit pays (DECISIONS:154 (8)). ABSENT IS UNCHANGED - a credit with no
+         head means exactly what it meant before, region-unspecified under
+         DECISIONS:155 (3) - and a fourth key is still refused, because this
+         widened one optional member and not the shape. */
+      if (!isMap(s)) bad();
+      const members = Object.keys(s);
+      if (members.length < 2 || members.length > 3) bad();
+      if (members.some((k) => k !== 'mg' && k !== 'lend' && k !== 'head')) bad();
       if (typeof s.mg !== 'string' || !s.mg.trim()) bad();
       if (typeof s.lend !== 'number' || !Number.isFinite(s.lend) || s.lend <= 0 || s.lend > 1) bad();
-      return { mg: s.mg, lend: s.lend };
+      if (!Object.hasOwn(s, 'head')) return { mg: s.mg, lend: s.lend };
+      /* A head that is not a region label names nothing a reader could resolve, and
+         one that belongs to another engine label would make the credit contradict
+         itself. Both are refused here rather than stored for F2 to discover. */
+      if (typeof s.head !== 'string' || !Object.hasOwn(REGION_MG, s.head)) bad();
+      if (REGION_MG[s.head] !== s.mg) bad();
+      return { mg: s.mg, lend: s.lend, head: s.head };
     });
     out[id] = { head: tag.head, secondary };
   }
