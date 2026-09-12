@@ -497,3 +497,51 @@ Reviewer's own executed counts, for the ledger line: today 64 / gym 64 / checkin
 native-carriers --ci PASS / build PASS (98 pinned inputs) / browser-check + gym-check
 + checkin-check + setup-check PASS on msedge with verified real process kills /
 mutants 18 killed 0 survived / worktree clean, six hashes byte-identical.
+
+---
+
+## Round 2 (delta 97c969e)
+
+Candidate `rebuild/lane-c-a4` @ **97c969e91bd299136b28d8dd96855c8fdb6b974f**, rebased
+onto `origin/rebuild/t2-client-core` @ **5a76fcd** (docs-only). Reviewer worktree
+detached at 97c969e, `git status --short` empty at start and end. Round-1 verdict was
+ACCEPT WITH CONDITIONS at 308f983 (review commit e1dc377). Re-executed here.
+
+**Custody re-checked.** `git diff --numstat 5a76fcd..97c969e` = the same 19 paths as
+round 1 plus `A4-REVIEW.md`. Nothing under `rebuild/engine`, `rebuild/client`,
+`rebuild/conform`, `rebuild/m4/**`, `rebuild/m3/w6/host`, `.github`, `src`, `ledger`.
+The W6 journey pin for `today-entry.mjs` is re-pinned `328be615...` -> `5b714660...`
+with the reason (it gained `athleteLabel()`); **the other three pins are byte-identical
+to round 1** (`gym-host` `70a59b5c...`, `reading-host` `a3e92015...`, `checkin-host`
+`029b3a9b...`), so the wrapper files really were not disturbed. Journey 51/51.
+
+| # | verdict | executed evidence |
+|---|---|---|
+| **C1** | **CLOSED** | `today-app.cjs` exports `setupNoteNeeded(enrolled, athleteLabel, state)` and `SETUP_NOT_HIS_NUMBERS`; probe `c1probe.mjs`: the string is identical to `setup-model.mjs` `COPY.notHisNumbersYet`, carries no U+2013/U+2014, and the predicate answers correctly in all seven states I put to it, including `H3 CLOSED: Today paints HIS state -> owed=false`. **Not a flag**: it is recomputed every render from the durable record (`setup.summary().enrolled`, `setup.athleteLabel()`) and from `model.stateFromOps()`, the state Today is actually painting. My own attack "he types the fixture's own label" FAILS to defeat it, because the synthetic fixture carries no `athlete_label` at all (probe: `undefined`), so the sentence is owed unconditionally while the fixture is on screen. Reviewer mutants **R6** (`setupNoteNeeded` always false) and **R7** (always true) each KILLED, pass 101 fail 2, both by `S19 - after the first run, the landing Today SAYS the figures on it are not his yet` and `S19 - the sentence clears ITSELF the day Today really stands on his athlete`; restored byte-clean. `setup-check.mjs` asserts it on the landed Today (line 392/394) and my own msedge run printed "the landing Today says the figures on it are not his yet". **Wording judged:** plain, three short sentences, says what IS saved before what is not, claims nothing about him, no dash; the apostrophe in "preview's" is U+2019, the same typographic apostrophe the rest of the approved copy uses, not a dash. Accepted as Dad's words |
+| **C2** | **CLOSED** | `A4-REPORT.md` section 6's REQUESTS line is this reviewer's corrected one-liner **verbatim** (byte-compared against the line in this file: VERBATIM MATCH true). The suite's `H3 - the accepted engine still cannot paint Today for a clean-init athlete` now asserts all four states by name: bare -> `'until'` at `energy.cjs:370`; `blackout: {}` -> `dates.cjs:8`; `blackout: {until}` -> `'anchorISO'` at `energy.cjs:84`; both -> paints. It also pins that both engine dereferences are still unguarded, so a partial fix cannot close the register item silently |
+| **C3** | **CLOSED** | `inputsAreLargeEnough(page, ...)` is now called on screens 1-6 (`setup-check.mjs:216, 236, 288, 306, 318, 332`), and the PASS line is DERIVED from a `measured` Set populated inside that function (`:164-170`, `:458`), so it can no longer overclaim. My msedge run printed "MEASURED ON 6 OF THE SIX SCREENS". Report wording corrected |
+| **C4** | **CLOSED (as recorded)** | P1 has still not merged (base 5a76fcd carries neither P1 mechanism); the reversal of the `:117 (1)` sequence is recorded in the report. The PM owns the merge order; nothing further is A4's |
+| **C5** | **CLOSED, and my round-1 number was the wrong one** | I re-counted on the freshly built page: `dist/index.html` 5, `dist/styles.css` 2, `dist/app.js` 67 = **74** occurrences, which is the builder's figure. My round-1 "71" was a per-LINE scanner that counted a line carrying two marks once. None are A4's. The owner-look note carries it |
+| **C6** | **STILL OPEN, unchanged** | S22, the hand test, is a human run. Not performed by this reviewer; not substitutable. It remains owed and NON-BLOCKING |
+| **C7 (NEW, NON-BLOCKING, mechanical)** | **AGREED** | `DECISIONS:119 (6)` caps reports at 60 lines with no logs or raw diffs. `A4-REPORT.md` is **953** lines and **this file is 499** - both over. Cut BOTH to <= 60-line summaries (counts, run ids, paths, verdict, conditions, residuals) and keep the present files as `A4-REPORT-ANNEX.md` and `A4-REVIEW-ANNEX.md`. Mechanical, no code change, and it must not drop the H3 REQUESTS line or the residual list |
+
+**Reviewer's re-run counts at 97c969e** (deps installed as `rebuild.yml` does;
+`NODE_ENV` cleared): today **64**, gym **64**, checkin **28**, setup **103**, seven
+today files **259**, W6 **552**, journey **51**, A0 host **22**, w7-preview **19**,
+`native-carriers-package.cjs --ci` **PASS**, `build.mjs` **PASS** (3 assets, 98 pinned
+inputs, 68 bound classes). Zero regressions: 64/64/28 unchanged, 101 -> 103 is the two
+new S19 subtests. Four browser checks on msedge all **PASS** with verified real
+`taskkill /F /T`: setup-check (4 kills, one mid-flow leaving zero operations and no
+partial athlete), browser-check, gym-check, checkin-check.
+
+**Mutants, round 2:** R6 and R7 above, both KILLED, 0 survived, worktree clean after
+each. Round 1's 18 stand.
+
+**New probe:** `c1probe.mjs` (the predicate's truth table plus the label-collision
+attack). No new defect found.
+
+**FINAL VERDICT ACCEPT at 97c969e.** C1-C5 are closed by execution; C6 (the hand test)
+and C7 (the `:119 (6)` report cut) are NON-BLOCKING and carried on the ledger line,
+alongside the residuals listed above, of which H3 remains the one that matters.
+
+**OWNER LOOK: pending (PM).**
