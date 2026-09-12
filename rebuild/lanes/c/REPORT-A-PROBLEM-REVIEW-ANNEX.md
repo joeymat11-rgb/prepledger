@@ -218,3 +218,70 @@ Condition C1.
 The 3-row hand test on the owner's iPhone (a human run, and row 3 is the only thing that
 can answer whether the iOS clipboard copies at all). CI both OS: this reviewer does not
 push.
+
+---
+
+## 10. Round 2 (delta ee35707) - evidence
+
+Candidate @ **ee35707** (code **759918b**), base **b0e777d**. `git status --short` empty
+at start and end. Code delta `41fdda5..ee35707` is exactly `test/problem.test.mjs` (+90)
+and `browser-check.mjs` (+24/-8); the rest is docs (the two report files, `STATUS.md`,
+`REQUESTS.md`, and this reviewer's own round-1 files carried onto the branch).
+
+### C1, and a correction this reviewer owes
+
+```
+BASELINE                                   pass 25 fail 0
+E2  page internals into `user agent`   ->  pass 24 fail 1  KILLED by
+      "C1 - the page block is the same shape, and user agent is the browser's own string"
+Z4 (my round-1 mutant, re-run)         ->  pass 25 fail 0  *** SURVIVED ***
+Z5  nine hex in the device field       ->  pass 21 fail 4  KILLED by R4, R2, C1
+```
+
+Z4 surviving twice made me test the mutant itself rather than the suite:
+
+```
+round-1 Z4: lines in the block = 8 | the word LEAK appears: false  -> it was a NO-OP mutant
+REAL ninth field (added to FIELDS too) -> pass 22 fail 3
+      KILLED by "R1 - the block is exactly the eight declared fields, in order", R8, R2
+```
+
+**My round-1 Z4 added a key to `values`, but the block is built by `FIELDS.map(...)`, so
+it never changed the output at all.** A real ninth field is killed by `R1`, which already
+existed at round 1. So the block's SHAPE was pinned from the start and my round-1 finding
+was half wrong: only the VALUE-SET half was a real gap, E2 was the one true survivor, and
+it is now dead. The new `assertBlockShape` pins line count, key order, `ENROLMENT`,
+`OFFLINE`, `LANES`, the build and device shapes, the stamp shape, `screen` as one token,
+and bars `{`, `}` and `"` from the free-text `user agent` field.
+
+### The enumeration
+
+Read off the test: screens 6 (`today, gym, recovery, setup, nutrition, coach`) x
+enrolment 6 (the four, plus `undefined` and `'probably'`) x offline-ready 4 (the three
+plus `undefined`) x devices 4 (`null`, a full 32-hex id, `'not an id'`, `''`) x user
+agents 4 (including `'Probe 1.0 — experimental'`, which exercises the dash boundary) =
+**2304**, and the test asserts `checked` equals exactly that product, so the loop cannot
+silently stop early. Plus the empty state and one pass over the REAL page, where the
+`user agent` field is compared byte-for-byte with `plainCopy(navigator.userAgent)`. The
+dispatch's "576 states" understates it fourfold.
+
+### C4, C2, C3
+
+`browser-check.mjs` PASSES in msedge with the new measurement: "with the box OPEN the
+primary action is still in view at both widths (390px: **452 to 511 of 842**; 320px:
+**444 to 503 of 842**)" - byte-identical to the figures this reviewer measured
+independently in round 1, which is the strongest form of agreement available here.
+
+C2 is routed: `rebuild/lanes/REQUESTS.md` on this tip now carries
+`2026-09-12 04:09 ET · C → PM · FOUR SMALL ITEMS ... (3) report-a-problem copy is ONE
+sentence for both phones: "Copied. Send it to Joe." (fallback "Select all and copy, then
+send it to Joe.") — say if Dad's phone should differ`. The same commit also carries
+lane C's pin-class ruling request, which quotes this reviewer's A4b condition C8.
+
+### Counts re-run at ee35707
+
+```
+problem 25 / 25 / 0      rebuild.yml today step 164 / 164 / 0      setup 157 / 157 / 0
+build.mjs PASS: 3 assets; 104 pinned inputs; build earned-a66db853886a
+served page on 127.0.0.1:4178 -> 200, 22449 bytes, the control's slot present
+```
