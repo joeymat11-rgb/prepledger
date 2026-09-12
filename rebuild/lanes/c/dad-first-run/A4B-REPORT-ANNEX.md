@@ -12,9 +12,20 @@ build's evidence, which still stands.
 ## 00c. CI AT THIS HEAD
 
 Polled from `work/lane-c/main` with `node ..\tools\ci-status.js
-rebuild/lane-c-a4b <sha>` until both runs completed. Recorded below with the
-head they ran on; the `rebuild` workflow fails at the B-NTC gate described in
-00b and at nothing else.
+rebuild/lane-c-a4b <sha>` until both runs completed:
+
+    d5696bc pipeline  completed success  34680440032
+    d5696bc rebuild   completed failure  34680439982
+      job rebuild-public (windows-latest) failure
+        Cumulative B-NTC native-carrier and legacy-census evidence
+      job rebuild-public (ubuntu-latest)  failure
+        Cumulative B-NTC native-carrier and legacy-census evidence
+
+`pipeline` is green. `rebuild` fails on both operating systems at exactly one
+step - the one that runs `b-package.cjs --ci --package B-NTC`, rebuild.yml line
+82 - and at no other. That is the blocker in 00b, reproduced in CI, and it is
+the only thing standing between this head and green. A later docs-only commit
+moves the head; its run fails identically at the same step, for the same reason.
 
 ## 00. RE-PIN ONTO THE B-NTC MERGE (DECISIONS:144)
 

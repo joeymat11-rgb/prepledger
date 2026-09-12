@@ -8,11 +8,11 @@ was the owner look `:133`). Detail and evidence: `A4B-REPORT-ANNEX.md`.
 
 Rebase onto the tip took NO conflict. `today-bindings.mjs`: lane B's H6 wiring
 (`trendBinding`, `scoped`, `genSession`/`rirPlan`) and A4b's `createSetupHost`
-changes sit in different functions, so git merged them; verified by reading the
-file and by diffing it against the tip, where A4b's delta is exactly its three
-hunks, +11/-2, and none of lane B's is touched. No licensed non-test file moved
-beyond that, so mutants were not re-run; `rebuild.yml` and `rebuild/m4/**` are
-untouched. Build pins **103**, A0 host **32** (B-NTC added one of each).
+changes sit in different functions, so git merged them; verified by reading it
+and by diffing against the tip, where A4b's delta is exactly its three hunks,
++11/-2, and none of lane B's is touched. No licensed non-test file moved beyond
+that, so mutants were not re-run. `rebuild.yml` and `rebuild/m4/**` untouched;
+build pins **103** and A0 host is **32** (B-NTC added one of each).
 
 ## BLOCKER - THE B-NTC GATE REFUSES ANY LICENSED EDIT TO A FILE IT PINS
 
@@ -46,14 +46,14 @@ Four msedge checks PASS. `b-package --ci` **FAIL**, above.
 Informational, the gym card after B-NTC: no day+3 same-lift-group refusal appears
 in any of the four walks, and `gym-check.mjs` reports `"Last time" prints on day
 1's active set from the engine's own comparison (C4d), and day 2's lifts, which
-have none on file, print nothing rather than an invented one`. No walk puts a
-same-group lift three days apart, so that is an absence, not a proof.
+have none on file, print nothing`. No walk places a same-group lift three days apart, so that is an absence, not a proof.
 
 ## SERVED, AND PREFLIGHT (DECISIONS:135 (3), self-check)
 
 http://127.0.0.1:4178/ , `serve.mjs` pid **11600**, rebuilt on this head;
 `/app.js` **1443195 bytes** served and on disk. Diff inside custody **PASS** (20
-paths, nothing under engine / client / conform / m4 / w6-host / .github / src /
-ledger); report <= 60 lines **PASS**; no U+2013 or U+2014 in UI custody **PASS**;
-counts present **PASS**; CI green at the exact head **FAIL**, the B-NTC gate
-above, run id in the annex.
+paths, nothing under engine / client / conform / m4 / w6-host / .github / src or
+ledger); report <= 60 **PASS**; no U+2013 or U+2014 in UI custody **PASS**;
+counts present **PASS**; CI green at the exact head **FAIL** - run 34680439982,
+`rebuild` red on both OS at the B-NTC gate above and no other step; 34680440032,
+`pipeline`, green.
