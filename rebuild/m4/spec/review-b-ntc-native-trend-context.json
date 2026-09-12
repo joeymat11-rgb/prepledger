@@ -1,5 +1,10 @@
 {
   "version": 1,
-  "status": "PENDING",
-  "receipt": null
+  "status": "ACCEPTED",
+  "receipt": {
+    "commit": "32408277be136ff5c41f7585c5f073e96e6c1252",
+    "path": "rebuild/DECISIONS.md",
+    "line": "- 2026-09-12 · cowork · POSTFIX-ACCEPTANCE M2-B-NTC-NATIVE-TREND-CONTEXT 9ad2ecab141753e9e8e74d3a105bd168d5e72286 rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json 87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428 ACCEPTED",
+    "lineSha256": "089a2920ae80d85791916ce2ff92263cf0d332db6eed45c143ae75380f3b7e50"
+  }
 }
