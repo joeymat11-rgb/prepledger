@@ -597,13 +597,23 @@ const REVIEWS_DIR = 'rebuild/lanes/b/reviews/';
 // wrapper loads, not the wrapper — and leaves the number alone.
 const SUCCESSOR_LOAD_FLOOR = 8;
 // ---------------------------------------------------------------------------------------
-// DECISIONS:147's contingency (b), built speculatively under :100 while the PM is asked to
-// ratify it as plan of record. TWO H3 builders measured the same wall independently
+// REQUESTS 2026-09-12 08:40 (b) — PENDING A PM LINE — built speculatively under
+// DECISIONS:100 while the PM is asked to ratify it as plan of record. (TOOLING-REVIEW-r10
+// F6: `DECISIONS:147`'s own (b) is the H3-CORE split, "(b) split is refused as the plan of
+// record" / "CONTINGENCY: … lane B ships (b) H3-core at once", and says nothing about gate
+// supersession. Every attribution in this file is the request, not that ruling; the
+// `DECISIONS:<n>` a terminal prints comes from the located line and is the real coordinate.)
+// TWO H3 builders measured the same wall independently
 // (BRIEF-H3-CLEAN-INIT v1.7 §9, BRIEF-H3-CORE §5): the five NATIVE-CARRIERS carriers below
 // do not PIN the engine, they RECONSTRUCT it — `baseline()` reads every carried file from a
 // frozen BASE and applies the literal carrier list whose bytes are pinned by CHANGES_SHA —
-// and `b-ntc-successors.cjs:141/:145` additionally assert every path `packages/B-NTC.json`
-// declares AT B-NTC'S OWN POST. So no child of M2-B-NTC that changes ANY declared file,
+// and `b-ntc-successors.cjs` additionally holds the child's whole declared state: `:141`
+// each declared child supersession at its `pin.post`, `:145` every path
+// `packages/B-NTC.json` declares at that spec's own post, and — TOOLING-REVIEW-r10's
+// citation correction, verified independently of the briefs — b-ntc-successors.cjs:142, the
+// `else` branch, is what actually refuses H3 (`Unlisted parent pin drift rebuild/engine/writers.cjs`,
+// a path B-NTC pins and never declared `superseded-by-child`). So no child of M2-B-NTC that
+// changes ANY declared file,
 // engine byte or not, can carry these five by substitution: the walls are byte-identity
 // reconstructions, not pins, and `:113 (1) (c)` admits no substitution that could move one.
 // H3-CORE proved the second half with no engine byte changed at all.
@@ -629,9 +639,26 @@ const BYTE_IDENTITY_CARRIERS = ['source-carriers', 'inherited-carriers', 'defect
 // `legacyDifferential` / `writersDifferential`: the two differentials, by declared child name.
 const SUPERSESSION_EVIDENCE_KEYS = ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential'];
 const SUPERSESSION_RUNNER_CENSUS = 'runner-live-triggered-line';
-// What the PM's line must say before a single gate may be superseded by it. The words are
-// fixed here for the same reason SUCCESSOR_RULING_ID is: a lane writes specs, not rulings.
-const SUPERSESSION_GRANT = /\bSUPERSEDE(?:D|S)?\b|\bNOT[ -]INHERITABLE\b/i;
+// TOOLING-REVIEW-r10 F1 — BLOCKING, and this is the fix. r10 asked three SUBSTRING/KEYWORD
+// questions of the located line: does it contain the package id, does it contain the word
+// SUPERSEDE/NOT-INHERITABLE, does it contain one of the five carrier names. The reviewer
+// executed that against the real chain and `DECISIONS:112` — a line about
+// `MOVES_RULING B-NTC-INHERITED-1`, whose only "grant" is the incidental clause "…exactly as
+// NATIVE-CARRIERS' inherited-carriers superseded LOAD-WRITES" — was ADMITTED, and would have
+// retired three of the nineteen for M2-B-NTC. A line REFUSING the role passed all three too.
+//
+// So the grant is a TOKEN the PM writes on purpose, matched positively and structurally, and
+// prose is never read again. THE EXACT SHAPE, and it is documented in README §r10 for the PM:
+//
+//     GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]
+//
+// e.g. `GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,second-gate`.
+// The token must stand on a ledger line that ENDS in the `RULED` terminal word, exactly as
+// brief acceptance is held to `ACCEPTED` — so a line that argues about the role, or refuses
+// it, carries no token and frees nothing. The carriers the token names are the ONLY carriers
+// the spec may supersede (F2), one by one.
+const SUPERSESSION_GRANT = /(?:^|[\s·])GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*)(?![A-Za-z0-9,-])/g;
+const SUPERSESSION_GRANT_SHAPE = 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]';
 // What coverage() ADMITTED, so the --full gate sweep and the seal can see it without being
 // handed it through four signatures. Empty for every package that declares none, and it is
 // written exactly once, by coverage(), after the ruling and the evidence have both stood.
@@ -876,35 +903,52 @@ function describes(description, sub, paths) {
   if (token.length < 4 || !significant.includes(token)) return false;
   return significant.some(w => w !== token && text.includes(w) && !pathWords.has(w));
 }
-// DECISIONS:147 (b). THE PM'S SUPERSESSION LINE, located the way every other citation in
-// this file is located: by its OWN SHA256, in `rebuild/DECISIONS.md` on the chain branch —
-// the one text a spec cannot write. It must then say three things: it names THIS package,
-// it GRANTS the supersession in the word (SUPERSEDE/SUPERSEDED/NOT-INHERITABLE), and it
-// names at least one of the five carriers it frees. Until the PM writes such a line, every
-// spec that declares the block refuses GATE-SUPERSESSION-RULING-NOT-CITED (the placeholder
-// `null`) or finds no line at all — which is the expected state of this build, not a bug.
-let SUPERSESSION_TEXT = null, SUPERSESSION_AT = null, SUPERSESSION_KEY = null;
+// REQUESTS 2026-09-12 08:40 (b), PENDING A PM LINE. THE PM'S SUPERSESSION LINE, located the
+// way every other citation in this file is located: by its OWN SHA256, in
+// `rebuild/DECISIONS.md` on the chain branch — the one text a spec cannot write. It must
+// then be a RULED line carrying the exact grant token `GATE-SUPERSESSION <packageId>
+// <carrier>[,<carrier>…]` naming THIS package, and it returns the SET OF CARRIERS that token
+// names: the spec may supersede those and no others (F2). Until the PM writes such a line,
+// every spec that declares the block refuses GATE-SUPERSESSION-RULING-NOT-CITED (the
+// placeholder `null`) or finds no line at all — the expected state of this build, not a bug.
+let SUPERSESSION_AT = null;
 function supersessionRuling(s) {
   const sup = s.coverage.superseded;
   assert(sup.rulingLineSha256 !== null, 'GATE-SUPERSESSION-RULING-NOT-CITED; ' +
-    'DECISIONS:147 (b) needs a PM line and coverage.superseded.rulingLineSha256 is the placeholder null');
+    'REQUESTS 08:40 (b) needs a PM line of the shape ' + SUPERSESSION_GRANT_SHAPE +
+    ' and coverage.superseded.rulingLineSha256 is the placeholder null');
   assert(/^[a-f0-9]{64}$/.test(sup.rulingLineSha256), 'GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE');
-  if (SUPERSESSION_TEXT === null || SUPERSESSION_KEY !== sup.rulingLineSha256) {
-    const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
-    const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === sup.rulingLineSha256);
-    assert.equal(hits.length, 1, 'GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' +
-      hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
-    SUPERSESSION_AT = hits[0][0]; SUPERSESSION_TEXT = hits[0][1]; SUPERSESSION_KEY = sup.rulingLineSha256;
+  // TOOLING-REVIEW-r10 F4 — NO CACHE, EVER. r10 short-circuited on the recorded sha, so the
+  // "re-taken at the seal" call re-validated a STRING this process had already read: the
+  // reviewer deleted the line from the chain mid-run and the second call still ADMITTED.
+  // The chain file is re-read on every call, which is the only way "a seal cannot stand on a
+  // withdrawn ruling" can be true WITHIN a run as well as across runs. It is one Git object
+  // read per call and the role is declared by nobody today, so the cost is nil.
+  const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === sup.rulingLineSha256);
+  assert.equal(hits.length, 1, 'GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' +
+    hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
+  const [at, line] = hits[0];
+  SUPERSESSION_AT = at;
+  // The ledger's own terminal word, held exactly as brief acceptance is held to ACCEPTED.
+  assert(/(?:^|[ ·])RULED$/.test(line.trim()), 'GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
+    '; a supersession stands on a RULED ledger line and on nothing else');
+  // F1: the POSITIVE, STRUCTURED grant. No prose is read.
+  const grants = [...line.matchAll(SUPERSESSION_GRANT)];
+  assert(grants.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
+    '; a supersession is granted by the exact token ' + SUPERSESSION_GRANT_SHAPE + ' and never by prose about it');
+  const mine = grants.filter(g => g[1] === s.packageId);
+  assert(mine.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + at +
+    '; its grant token(s) name ' + [...new Set(grants.map(g => g[1]))].join(' ') + ', not ' + s.packageId);
+  const granted = new Set();
+  for (const g of mine) for (const c of g[2].split(',')) {
+    assert(BYTE_IDENTITY_CARRIERS.includes(c), 'GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE ' +
+      c + ' DECISIONS:' + at + '; the token may name only ' + BYTE_IDENTITY_CARRIERS.join(','));
+    granted.add(c);
   }
-  const line = SUPERSESSION_TEXT;
-  assert(line.includes('M2-' + ID) || line.includes(s.packageId),
-    'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + SUPERSESSION_AT);
-  assert(SUPERSESSION_GRANT.test(line), 'GATE-SUPERSESSION-RULING-DOES-NOT-GRANT-A-SUPERSESSION DECISIONS:' + SUPERSESSION_AT);
-  assert(BYTE_IDENTITY_CARRIERS.some(c => line.includes(c)),
-    'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-A-BYTE-IDENTITY-CARRIER DECISIONS:' + SUPERSESSION_AT);
-  return line;
+  return { at, line, granted };
 }
-// DECISIONS:147 (b), the SPEC-PHASE shape. Nothing here supersedes anything: it decides
+// REQUESTS 08:40 (b), the SPEC-PHASE shape. Nothing here supersedes anything: it decides
 // only that the block is well formed, that every carrier named is one of the five the
 // runner fixes, and that every evidence child is a DECLARED child of this package. Whether
 // that child RAN, and green, is supersededGates()'s question at run time.
@@ -923,7 +967,7 @@ function supersededSpecShape(s, names) {
   for (const [carrier, row] of Object.entries(sup.gates)) {
     // (i) ONLY the five byte-identity carriers, and anything else refuses BY NAME.
     assert(BYTE_IDENTITY_CARRIERS.includes(carrier), 'GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE ' + carrier +
-      '; DECISIONS:147 (b) frees exactly ' + BYTE_IDENTITY_CARRIERS.join(' ') + ' and no other gate of the nineteen');
+      '; REQUESTS 08:40 (b) frees exactly ' + BYTE_IDENTITY_CARRIERS.join(' ') + ' and no other gate of the nineteen');
     assert(row && typeof row === 'object' && !Array.isArray(row), 'GATE-SUPERSESSION-ROW-UNDECLARED ' + carrier);
     keys(row, ['why', 'evidence'], 'GATE-SUPERSESSION-ROW-KEYS-NOT-CLOSED ' + carrier + '; a row is exactly why, evidence');
     assert(typeof row.why === 'string' && !/[\r\n]/.test(row.why) && row.why.trim().length >= 16,
@@ -948,8 +992,43 @@ function supersededSpecShape(s, names) {
     for (const c of children)
       assert(typeof c === 'string' && names.has(c), 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-DECLARED ' + carrier + ' ' + JSON.stringify(c));
     assert(typeof e.census === 'string' && e.census.length, 'GATE-SUPERSESSION-EVIDENCE-CENSUS-UNNAMED ' + carrier);
+    // TOOLING-REVIEW-r10 F5, half one: ONE CHILD MAY NOT FILL THREE SLOTS. r10 admitted the
+    // same green child as red-first, legacy differential AND writers differential — three
+    // names for one execution, reported as "3 named child(ren) executed green". The three
+    // slots are three different questions, so they are three different children.
+    assert(e.legacyDifferential !== e.writersDifferential,
+      'GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD ' + carrier + ' ' + e.legacyDifferential);
+    for (const slot of ['legacyDifferential', 'writersDifferential'])
+      assert(!e.redFirst.includes(e[slot]), 'GATE-SUPERSESSION-EVIDENCE-SLOTS-SHARE-A-CHILD ' + carrier + ' ' + e[slot] +
+        ' stands in redFirst and in ' + slot);
+    assert(new Set(e.redFirst).size === e.redFirst.length, 'GATE-SUPERSESSION-EVIDENCE-RED-FIRST-REPEATS-A-CHILD ' + carrier);
+    // Half two: the evidence must BEAR on this package. r10 admitted a child executing a
+    // file with no relation to anything the package declares. A child that runs none of this
+    // package's own declared product is not this package's evidence for anything.
+    for (const c of children) {
+      const files = childArgv(byNameOf(s).get(c));
+      assert(files.some(f => Object.hasOwn(s.product, f)),
+        'GATE-SUPERSESSION-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT ' + carrier + ' ' + c + ' ' + files.join(' '));
+    }
+  }
+  // Half three: PER-CARRIER evidence. Every superseded carrier must carry at least one
+  // evidence child of its OWN — a set shared verbatim across five carriers is one claim
+  // wearing five hats, which is exactly what r10 measured in the real H3 probe.
+  const rows = Object.entries(sup.gates);
+  for (const [carrier, row] of rows) {
+    const mine = new Set(evidenceChildren(row.evidence));
+    for (const [other, r2] of rows) if (other !== carrier) for (const c of evidenceChildren(r2.evidence)) mine.delete(c);
+    assert(mine.size, 'GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN ' + carrier +
+      '; every named child also stands under another superseded carrier, so nothing here bears on this gate in particular');
   }
 }
+// The declared evidence children of one row, in one place: the three slots plus the census
+// when it names a child rather than the runner's own line.
+function evidenceChildren(e) {
+  return [...e.redFirst, e.legacyDifferential, e.writersDifferential,
+    ...(e.census === SUPERSESSION_RUNNER_CENSUS ? [] : [e.census])];
+}
+const byNameOf = s => new Map(s.children.map(c => [c.name, c]));
 // TOOLING-REVIEW-r9 F5. The SPEC-PHASE shape of the successor block, in its own named
 // function. r9 shipped four refusals here — SUCCESSOR-SUBSTITUTION-TARGET-SHAPE, the
 // spec half of -IS-A-PROTECTED-SURFACE, SUCCESSOR-REVIEW-FILE-SHAPE and
@@ -1203,7 +1282,7 @@ function spec() {
   // must execute the gate's own original executable, or a file whose bytes require that
   // executable; and one child may carry more than one gate only where run.cjs itself groups
   // those gates on a single executable. "All 19 by one child" satisfies none of the three.
-  // DECISIONS:147 (b) adds `superseded`: `null` in every package that declares none, which
+  // REQUESTS 08:40 (b) adds `superseded`: `null` in every package that declares none, which
   // today is all seven. Its whole spec-phase shape stands in supersededSpecShape() below.
   keys(s.coverage, ['inherited', 'moves', 'successors', 'superseded'], 'Coverage block');
   // X1 — BLOCKING, and it is the FIRST thing decided about coverage. r3's residual R3-A is
@@ -1253,7 +1332,7 @@ function spec() {
   // r7b F-C / DECISIONS:147 / TOOLING-REVIEW-r9 F5. The successor block's spec-phase
   // shape is one named function, so a suite can measure its refusals directly.
   successorSpecShape(s);
-  // DECISIONS:147 (b). The same discipline for the gate-supersession block: its whole
+  // REQUESTS 08:40 (b). The same discipline for the gate-supersession block: its whole
   // spec-phase shape is one named function, measurable on its own.
   supersededSpecShape(s, names);
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
@@ -1304,7 +1383,7 @@ function spec() {
         (RULING_LINE_AT === null ? '; the ruling line was not read on this run (every substitution was a re-target)'
           : '; the ruling line was located on ' + CHAIN_REF + ' BY ITS OWN SHA256 ' + s.coverage.successors.rulingLineSha256.slice(0, 12) +
             ', standing at DECISIONS:' + RULING_LINE_AT + ' today, and carries ' + SUCCESSOR_RULING_ID)) +
-    // DECISIONS:147 (b). Declared or not, the header says so: this is the one line a
+    // REQUESTS 08:40 (b). Declared or not, the header says so: this is the one line a
     // reviewer reads first, and a gate supersession is the largest claim a child can make.
     '; ' + (s.coverage.superseded == null ? 'no gate supersession declared (every inherited gate is carried or re-executed)'
       : Object.keys(s.coverage.superseded.gates).length + ' byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 ' +
@@ -1788,7 +1867,14 @@ function children(s, env) {
     const r = cp.spawnSync(process.execPath, c.argv, { cwd: root, env, encoding: 'utf8', windowsHide: true, timeout: 1800000, maxBuffer: 32 * 1024 * 1024 });
     const out = r.stdout || '', bytes = Buffer.byteLength(out, 'utf8');
     fs.writeFileSync(path.join(logDir, c.name + '.log'), out + (r.stderr || ''));
-    assert(!r.error && r.status === 0, 'Required child ' + c.name);
+    // TOOLING-REVIEW-r10 F5. This refusal used to read “Required child <name>” — not a name
+    // in FAIL_CODES, so the single most likely real failure of any package printed a bare
+    // FAIL. It is the same refusal; it now carries a word. (It is also why
+    // GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN is belt-and-braces rather than the first
+    // line of defence: children() refuses a red child here, earlier and harder, and the
+    // evidence check reaches only the map this loop produced.)
+    assert(!r.error && r.status === 0, 'CHILD-REQUIRED-EXIT-ZERO ' + c.name + '; status ' + r.status +
+      (r.error ? ' ' + String(r.error.code || r.error.message).slice(0, 40) : '') + ', log ' + c.name + '.log');
     // N3. The needle is a VERDICT, so it must stand at the head of its own line — not
     // somewhere inside a longer sentence, and not inside a negation. And a process that
     // printed a handful of bytes did not execute a gate file: `node --version` exits 0 and
@@ -2059,7 +2145,7 @@ function successorCoverage(s, bound, proofs, gate, child, targets) {
   assert(targets.includes(proof.successor), 'SUCCESSOR-CHILD-DOES-NOT-EXECUTE-THE-DECLARED-SUCCESSOR ' + gate + ' ' + proof.successor);
   return proof;
 }
-// DECISIONS:147 (b), the RUN PHASE. Returns gate -> { carrier, why, evidence, executed },
+// REQUESTS 08:40 (b), the RUN PHASE. Returns gate -> { carrier, why, evidence, executed },
 // and it returns nothing at all unless the PM's line stands on the chain branch: the ruling
 // is asked FIRST, so a spec that declares the block without one refuses by name and no
 // evidence is even read. Then, per carrier: it must be a carrier of THIS parent (its name
@@ -2077,15 +2163,32 @@ function supersededGateIds(s, bound) {
   if (sup == null || !byChild) return [];
   return Object.entries(byChild).filter(([, c]) => Object.hasOwn(sup.gates, c)).map(([g]) => g).sort();
 }
+// The same derivation, grouped: which gates EACH declared carrier retires. TOOLING-REVIEW-r10
+// F2 asked for the true count per carrier in both the coverage line and the artifact.
+function supersededByCarrier(s, bound) {
+  const sup = s.coverage.superseded;
+  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  if (sup == null || !byChild) return {};
+  const out = {};
+  for (const carrier of Object.keys(sup.gates).sort())
+    out[carrier] = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
+  return out;
+}
 function supersededGates(s, bound, ran) {
   const out = new Map();
   const sup = s.coverage.superseded;
   if (sup == null) return out;
-  const line = supersessionRuling(s);                          // (iii) — refuses if absent
+  const ruling = supersessionRuling(s);                        // (iii) — refuses if absent
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
   assert(byChild, 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT; a gate can only be superseded against the parent that covered it');
   const parentCarriers = new Set(Object.values(byChild));
   for (const [carrier, row] of Object.entries(sup.gates)) {
+    // TOOLING-REVIEW-r10 F2 — BLOCKING, and the fix is this one line. r10 asked the ruling
+    // only whether it mentioned SOME carrier, so a PM line reading "may declare second-gate
+    // SUPERSEDED and nothing else" admitted all five and nine gates. The grant token is now
+    // matched CARRIER BY CARRIER: a line naming second-gate frees second-gate alone.
+    assert(ruling.granted.has(carrier), 'GATE-SUPERSESSION-CARRIER-IS-NOT-IN-THE-RULING ' + carrier +
+      '; DECISIONS:' + ruling.at + '\'s grant token frees ' + [...ruling.granted].sort().join(',') + ' for this package');
     assert(parentCarriers.has(carrier), 'GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER ' + carrier +
       '; ' + bound.option.id + '\'s own coverage.byChild names ' + [...parentCarriers].sort().join(' '));
     // A gate is superseded OR carried, never both: a successor that carries it would be
@@ -2093,8 +2196,7 @@ function supersededGates(s, bound, ran) {
     const claimed = s.coverage.successors && Object.hasOwn(s.coverage.successors.carriers, carrier);
     assert(!claimed, 'GATE-SUPERSESSION-CARRIER-IS-ALSO-CLAIMED-BY-A-SUCCESSOR ' + carrier);
     const e = row.evidence, executed = [];
-    for (const child of [...e.redFirst, e.legacyDifferential, e.writersDifferential,
-      ...(e.census === SUPERSESSION_RUNNER_CENSUS ? [] : [e.census])]) {
+    for (const child of evidenceChildren(e)) {
       const r = ran.get(child);
       assert(r, 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-EXECUTED ' + carrier + ' ' + child +
         '; the named evidence child did not run in this run');
@@ -2106,8 +2208,9 @@ function supersededGates(s, bound, ran) {
     if (e.census === SUPERSESSION_RUNNER_CENSUS)
       assert(!s.privateLiveTriggered.length, 'GATE-SUPERSESSION-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN ' + carrier +
         '; the runner\'s own census line names ' + s.privateLiveTriggered.join(' ') + ', so it is not byte-identity evidence');
-    for (const [gate, c] of Object.entries(byChild)) if (c === carrier)
-      out.set(gate, { carrier, why: row.why, evidence: e, executed, at: SUPERSESSION_AT, line });
+    const gates = Object.entries(byChild).filter(([, c]) => c === carrier).map(([g]) => g).sort();
+    for (const gate of gates)
+      out.set(gate, { carrier, why: row.why, evidence: e, executed, gates, at: ruling.at, line: ruling.line });
   }
   assert(out.size, 'GATE-SUPERSESSION-SUPERSEDES-NO-GATE-OF-THE-PARENT');
   return out;
@@ -2122,7 +2225,7 @@ function coverage(s, bound, ran) {
   // Every declared successor is proved before any gate is admitted by one, so a carrier
   // that claims no gate is held to exactly the same four proofs as one that does.
   const proofs = successorProof(s, bound, ran);
-  // DECISIONS:147 (b). Decided BEFORE the inherited map is compared, because a superseded
+  // REQUESTS 08:40 (b). Decided BEFORE the inherited map is compared, because a superseded
   // gate is one the child does NOT inherit: `coverage.inherited` must drop it, and the
   // equality below is taken against the parent map MINUS the superseded gates.
   const superseded = supersededGates(s, bound, ran);
@@ -2156,10 +2259,15 @@ function coverage(s, bound, ran) {
     Object.keys(s.coverage.inherited).length + ' inherited' + (byChild ? ', the parent map byte-for-byte' : ', unverified') + '; ' +
     Object.keys(s.coverage.moves).length + ' moved, each naming its own original executable in a relative require specifier' +
     ' and each proved by that gate’s own needle out of R.GATES in the child’s stdout); ' +
+    // TOOLING-REVIEW-r10 F2, the reporting half: the TRUE count, per carrier. The role
+    // retires GATES, not carriers — five carriers of B-NTC cover nine of the nineteen — and
+    // the line now says which carrier retired which, so nobody reads "five" and means nine.
     (superseded.size ? superseded.size + ' SUPERSEDED under DECISIONS:' + [...superseded.values()][0].at +
-      ', counted toward the ' + GATE_IDS.length + ' only under that ruling; ' : '') +
+      ' (' + [...new Set([...superseded.values()].map(r => r.carrier))].sort()
+        .map(c => c + ' ' + [...superseded.values()].filter(r => r.carrier === c).length).join(', ') +
+      '), counted toward the ' + GATE_IDS.length + ' only under that ruling; ' : '') +
     (GATE_IDS.length - covered.size - superseded.size) + ' re-execute under --full');
-  // DECISIONS:147 (b), the reporting half, and it is why the role exists at all: a
+  // REQUESTS 08:40 (b), the reporting half, and it is why the role exists at all: a
   // superseded gate is named SUPERSEDED — never OBSERVED, never carried — with the carrier
   // it replaces, the PM line that freed it, and every evidence child this run EXECUTED.
   if (superseded.size) {
@@ -2252,12 +2360,15 @@ function proposed(s, bound) {
     // (X2): a later reader of the artifact can see which gates were carried by a successor,
     // under which ruling id, and what the enumerated substitutions were, without trusting
     // the spec that produced it. It is null for every package that declares none.
-    // DECISIONS:147 (b): the supersession travels into the sealed artifact the same way —
+    // REQUESTS 08:40 (b): the supersession travels into the sealed artifact the same way —
     // the carriers, the PM line's own sha256 and the EVIDENCE NAMES, so a later reader sees
     // which of the parent's gates were not carried and what stood in their place without
     // trusting the spec that produced it. `superseded` and `run` are disjoint from
     // `covered`: a superseded gate is neither carried here nor re-executed under --full.
     coverage: { covered, superseded: supersededGateIds(s, bound),
+      // TOOLING-REVIEW-r10 F2: the TRUE count, per carrier, in the artifact as well as the
+      // terminal — `{ <carrier>: [<gate ids it retires>] }`, empty when none is declared.
+      supersededByCarrier: supersededByCarrier(s, bound),
       run: GATE_IDS.filter(g => !covered.includes(g) && !supersededGateIds(s, bound).includes(g)).sort(),
       moves: s.coverage.moves, successors: s.coverage.successors, supersessions: s.coverage.superseded ?? null,
       byChild: { ...s.coverage.inherited, ...Object.fromEntries(Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])) } },
@@ -2475,13 +2586,24 @@ function envelope(s, bound, ran) {
   // is this branch. Nothing below it is reachable with a move declared.
   assert(MOVES_RULING !== null || !Object.keys(s.coverage.moves).length,
     'COVERAGE-MOVES-REFUSED-AT-SEAL-WITHOUT-A-PM-RULING ' + Object.keys(s.coverage.moves).join(' '));
-  // DECISIONS:147 (b), the same discipline at the seal: the PM's supersession line is
-  // RE-TAKEN here, off the chain branch, so a seal cannot stand on a ruling that has since
-  // moved or been withdrawn. It is the ruling that lets a superseded gate count toward the
-  // nineteen, so it is asked again at the one moment the count becomes a PASS.
+  // REQUESTS 08:40 (b), the same discipline at the seal: the PM's supersession line is
+  // RE-TAKEN here, off the chain branch — re-READ, not re-validated from a cache (F4) — so a
+  // seal cannot stand on a ruling that has since moved or been withdrawn. It is the ruling
+  // that lets a superseded gate count toward the nineteen, so it is asked again at the one
+  // moment the count becomes a PASS.
+  //
+  // TOOLING-REVIEW-r10 F3 — BLOCKING, and this guard is the fix. `SUPERSEDED_RESOLVED` is
+  // written by coverage(), which runs AFTER the first envelope() call of the main sequence
+  // (the one that supplies the header word and the sealed pins). r10 asserted the map
+  // unconditionally, so on a sealed+ACCEPTED artifact the FIRST call refused
+  // GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL with the map still empty — and since PASS needs
+  // an authorized review, no package declaring a supersession could ever reach one. The
+  // assert is now phased on `ran`, exactly as Y1's execution half below already is: the
+  // first, header-only evaluation asks the RULING (which needs nothing but Git) and the
+  // END-of-run re-evaluation, the one that decides, asks the admitted map as well.
   if (s.coverage.superseded != null) {
     supersessionRuling(s);
-    assert(SUPERSEDED_RESOLVED.size, 'GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL; coverage() admitted no superseded gate');
+    if (ran) assert(SUPERSEDED_RESOLVED.size, 'GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL; coverage() admitted no superseded gate');
   }
   // Y1 — BLOCKING, and the seal is where it belongs. A package in NO_REGISTER_IDS carries
   // no D-id, so nothing in the 45-law accounting is ever owed by it: want(d) is RED for
@@ -2555,7 +2677,7 @@ function historical(bound, bundles) {
 function gates(bundles, authorized, covered, ran) {
   for (const [gate, child] of covered) assert(ran.get(child) && ran.get(child).ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
   const done = new Set(covered.keys());
-  // DECISIONS:147 (b). A SUPERSEDED gate is not re-executed here, and that is the whole of
+  // REQUESTS 08:40 (b). A SUPERSEDED gate is not re-executed here, and that is the whole of
   // what the ruling buys: its byte-identity reconstruction of rebuild/engine is exactly
   // what a child that changes a declared file cannot reproduce. Every OTHER original gate
   // re-executes as it always did, and the set is still closed against GATE_IDS below, so a

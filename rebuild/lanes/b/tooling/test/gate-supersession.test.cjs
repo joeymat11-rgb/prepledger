@@ -1,17 +1,18 @@
 'use strict';
-// LANE B — DECISIONS:147 contingency (b), the GATE SUPERSESSION role, built speculatively
-// under :100 while the PM is asked to ratify it as plan of record.
+// LANE B — REQUESTS 2026-09-12 08:40 (b), the GATE SUPERSESSION role, PENDING A PM LINE and
+// built speculatively under DECISIONS:100. (DECISIONS:147's own (b) is the H3-CORE split and
+// says nothing about supersession — TOOLING-REVIEW-r10 F6.)
 //
 // TWO H3 builders measured the same wall independently. BRIEF-H3-CLEAN-INIT v1.7 §9: the
-// five NATIVE-CARRIERS carriers do not PIN rebuild/engine, they RECONSTRUCT it from a
-// frozen BASE plus a sha-pinned literal carrier list, so a child that changes an engine
-// byte cannot carry them by substitution. BRIEF-H3-CORE §5: `b-ntc-successors.cjs:141/:145`
-// additionally hold every path `packages/B-NTC.json` declares AT B-NTC'S OWN POST, so no
-// child that changes ANY declared file — engine byte or not — can carry them either. The
-// role under test lets such a child declare the gate SUPERSEDED and stand its own EXECUTED
-// evidence in its place, and it is bounded by the PM's line, by the five carrier names the
-// runner fixes, and by the evidence children actually running green in the same run.
+// five NATIVE-CARRIERS carriers do not PIN rebuild/engine, they RECONSTRUCT it from a frozen
+// BASE plus a sha-pinned literal carrier list, so a child that changes an engine byte cannot
+// carry them by substitution. BRIEF-H3-CORE §5, with the citation TOOLING-REVIEW-r10
+// corrected: `b-ntc-successors.cjs:142` (the `else` branch of the child-state model) refuses
+// `Unlisted parent pin drift rebuild/engine/writers.cjs` for H3, and :141/:145 hold every
+// declared child supersession and every path `packages/B-NTC.json` declares AT B-NTC'S OWN
+// POST — so no child that changes ANY declared file can carry them either.
 //
+// This suite measures the role and every one of TOOLING-REVIEW-r10's seven findings.
 // Method is the house one: compile the REAL runner with only CHAIN_REF re-pointed, asserted
 // below to be the only line that differs. The fixture builds its own Git repository; no ref,
 // object or commit of the real repository is read.
@@ -54,34 +55,51 @@ const BY_CHILD = {
 };
 const CARRIERS = [...new Set(Object.values(BY_CHILD))];
 assert.equal(CARRIERS.length, 5);
+const GATES_OF = c => Object.entries(BY_CHILD).filter(([, v]) => v === c).map(([g]) => g).sort();
 
-// The child's own evidence children: the red-first cells, the two differentials, and (in one
-// case below) a census cell. Each is a real file that prints its needle, because the runner
-// is handed the map a real run produced and this suite must be able to build both answers.
-const CELLS = 'rebuild/m4/workout/test/h3-clean-init.test.cjs';
+// ------------------------------------------------------------ the child's own evidence
+// TOOLING-REVIEW-r10 F5: each superseded carrier needs evidence of its OWN, the three slots
+// may not be one child three times, and every named child must execute a file this package
+// declares. So: one red-first cell PER CARRIER, plus two distinct differentials and a census
+// cell, and every one of them runs a `role:"new"` product file of this package.
+const CELL = c => 'rebuild/m4/workout/test/h3-' + c + '-cells.test.cjs';
 const LEGACY = 'rebuild/conform/v4/postfix/legacy-h3-differential.cjs';
 const WRITERS = 'rebuild/conform/v4/postfix/writers-h3-differential.cjs';
 const CENSUS = 'rebuild/m4/workout/test/h3-census-identity.test.cjs';
-for (const [f, needle] of [[CELLS, 'H3 CLEAN INIT CELLS: 9/9 PASS;'], [LEGACY, 'H3 LEGACY DIFFERENTIAL: 9/9 identical'],
-  [WRITERS, 'H3 WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;'], [CENSUS, 'H3 PUBLIC CENSUS: byte-identical']])
-  write(f, "'use strict';\nconsole.log(" + JSON.stringify(needle) + ");\n");
+const UNRELATED = 'rebuild/m4/spec/h3-unrelated-probe.cjs';
+const needleOf = f => 'H3 ' + path.posix.basename(f).toUpperCase() + ': PASS;';
+for (const f of [...CARRIERS.map(CELL), LEGACY, WRITERS, CENSUS, UNRELATED])
+  write(f, "'use strict';\nconsole.log(" + JSON.stringify(needleOf(f)) + ");\n");
+const CELL_CHILD = c => 'h3-cells-' + c;
+const LEGACY_CHILD = 'h3-legacy-differential', WRITERS_CHILD = 'h3-writers-differential';
+const CENSUS_CHILD = 'h3-census-identity', UNRELATED_CHILD = 'h3-unrelated';
 
-// The PM's line, in the ledger's own shape. It names this package, grants the supersession
-// in the word, and names a byte-identity carrier. A fixture line is exactly what this is:
-// the real one does not exist yet, which is why the shipped specs hold `null` and refuse.
-const RULING_LINE = '- 2026-09-12 · cowork · LANE B RULINGS — DECISIONS:147 (b) RATIFIED: for M2-H3-CLEAN-INIT the five ' +
-  'NATIVE-CARRIERS byte-identity carriers source-carriers, inherited-carriers, defect-witnesses, writers-differential and ' +
-  'second-gate are NOT-INHERITABLE by a child that changes any file the parent spec declares; such a child declares them ' +
-  'SUPERSEDED in coverage and stands its own executed evidence in their place · RULED';
-const OTHER_LINE = '- 2026-09-12 · cowork · a chain line that grants nothing at all to anybody · RULED';
-write('rebuild/DECISIONS.md', [OTHER_LINE, RULING_LINE, ''].join('\n'));
-const RULING_SHA = sha(Buffer.from(RULING_LINE));
-const OTHER_SHA = sha(Buffer.from(OTHER_LINE));
+// The PM's line, in the ledger's own shape, carrying the F1 GRANT TOKEN. Everything around
+// the token is prose and the runner never reads it; the token, the package id, the carrier
+// list and the `RULED` terminal word are the whole of the admission.
+const GRANT = 'GATE-SUPERSESSION M2-H3-CLEAN-INIT ' + CARRIERS.join(',');
+const RULING_LINE = '- 2026-09-12 · cowork · LANE B RULINGS — REQUESTS 08:40 (b) RATIFIED: the NATIVE-CARRIERS ' +
+  'byte-identity carriers are not inheritable by a child that changes any file the parent spec declares; ' + GRANT + ' · RULED';
+// r10 F1's own controls, both of which the keyword scan admitted: a line about something
+// else that merely CONTAINS the words, and a line that REFUSES the role outright.
+const PROSE_LINE = '- 2026-09-12 · cowork · LANE B RULINGS — MOVES_RULING B-NTC-INHERITED-1 RATIFIED AS WRITTEN, ' +
+  'exactly as NATIVE-CARRIERS\' inherited-carriers superseded LOAD-WRITES for M2-H3-CLEAN-INIT · RULED';
+const REFUSING_LINE = '- 2026-09-12 · cowork · M2-H3-CLEAN-INIT may NOT declare source-carriers SUPERSEDED; ' +
+  'REQUESTS 08:40 option (b) is REFUSED and the five carriers stay inheritable · RULED';
+// A grant token for somebody else, one naming a gate that is not a byte-identity carrier,
+// one naming a single carrier, and one that is not RULED at all.
+const OTHER_PACKAGE_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-B1-GRADING-TIME-WINDOW second-gate · RULED';
+const SIXTH_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT conformance · RULED';
+const ONE_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT second-gate · RULED';
+const UNRULED_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers · PROPOSED';
+const LEDGER = [RULING_LINE, PROSE_LINE, REFUSING_LINE, OTHER_PACKAGE_LINE, SIXTH_LINE, ONE_LINE, UNRULED_LINE];
+write('rebuild/DECISIONS.md', [...LEDGER, ''].join('\n'));
+const shaOf = line => sha(Buffer.from(line));
 
 git('init', '--quiet', '-b', 'fixture-chain');
 git('config', 'user.email', 'tooling7@earned.local');
 git('config', 'user.name', 'lane-b-tooling7');
-git('add', '-A'); git('commit', '--quiet', '-m', 'the parent programme and the ruling');
+git('add', '-A'); git('commit', '--quiet', '-m', 'the parent programme and the ledger');
 const PARENT_COMMIT = git('rev-parse', 'HEAD').trim();
 
 const fixtureSource = source.replace(
@@ -104,8 +122,9 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'H3'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={coverage,supersededSpecShape,supersededGates,supersededGateIds,supersessionRuling,proposed,' +
-    'GATE_IDS,BYTE_IDENTITY_CARRIERS,SUPERSESSION_EVIDENCE_KEYS,SUPERSESSION_RUNNER_CENSUS,FAIL_CODES,' +
+    '\nmodule.exports={coverage,supersededSpecShape,supersededGates,supersededGateIds,supersededByCarrier,' +
+    'supersessionRuling,proposed,GATE_IDS,BYTE_IDENTITY_CARRIERS,SUPERSESSION_EVIDENCE_KEYS,' +
+    'SUPERSESSION_RUNNER_CENSUS,SUPERSESSION_GRANT_SHAPE,FAIL_CODES,failCode,' +
     'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
@@ -119,243 +138,299 @@ test.after(() => {
 });
 
 const at = f => sha(fs.readFileSync(path.join(scratch, f)));
+// The parent artifact as B-NTC SEALED IT — TOOLING-REVIEW-r10 F7. Its `coverage` carries the
+// five PRE-r10 keys and no `superseded`/`supersessions`/`supersededByCarrier` at all, because
+// it was written by an older runner. Every parent-side reader must read it unchanged.
+const PRE_R10_COVERAGE_KEYS = ['covered', 'run', 'moves', 'successors', 'byChild'];
 const bound = () => ({
   option: { id: 'B-NTC', artifact: 'rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json', sha256: 'a'.repeat(64),
     review: 'rebuild/m4/spec/review-b-ntc-native-trend-context.json', reviewSha256: 'b'.repeat(64),
     receiptLedgerLine: { ledgerLine: 104, role: 'receipt', line: 'x', lineSha256: 'c'.repeat(64) }, note: null },
   decided: true, reviewedCommit: PARENT_COMMIT,
-  acceptance: { product: {}, executionPins: {}, coverage: { byChild: { ...BY_CHILD } } },
+  acceptance: { product: {}, executionPins: {},
+    coverage: { covered: Object.keys(BY_CHILD).sort(), run: [], moves: {}, successors: null, byChild: { ...BY_CHILD } } },
 });
-// The evidence, in the shape the spec declares it: the 45-law row, the red-first cells, the
-// public census, and the two differentials. `laws: null` is "the register did not move".
-const evidence = () => ({ laws: null, redFirst: [CELLS_CHILD], census: api.SUPERSESSION_RUNNER_CENSUS,
-  legacyDifferential: LEGACY_CHILD, writersDifferential: WRITERS_CHILD });
-const CELLS_CHILD = 'h3-cells', LEGACY_CHILD = 'h3-legacy-differential', WRITERS_CHILD = 'h3-writers-differential';
-const CENSUS_CHILD = 'h3-census-identity';
 const WHY = 'the gate reconstructs rebuild/engine byte-for-byte from a frozen BASE and asserts every path the parent spec declares at the parent post';
-const spec = (carriers = CARRIERS, rulingLineSha256 = RULING_SHA) => ({
+const evidence = c => ({ laws: null, redFirst: [CELL_CHILD(c)], census: api.SUPERSESSION_RUNNER_CENSUS,
+  legacyDifferential: LEGACY_CHILD, writersDifferential: WRITERS_CHILD });
+const childrenOf = () => [
+  ...CARRIERS.map(c => ({ name: CELL_CHILD(c), argv: [CELL(c)], needle: needleOf(CELL(c)) })),
+  { name: LEGACY_CHILD, argv: [LEGACY], needle: needleOf(LEGACY) },
+  { name: WRITERS_CHILD, argv: [WRITERS], needle: needleOf(WRITERS) },
+  { name: CENSUS_CHILD, argv: [CENSUS], needle: needleOf(CENSUS) },
+  { name: UNRELATED_CHILD, argv: [UNRELATED], needle: needleOf(UNRELATED) },
+];
+const productOf = () => Object.fromEntries([...CARRIERS.map(CELL), LEGACY, WRITERS, CENSUS]
+  .map(f => [f, { pre: at(f), post: at(f), role: 'new' }]));
+const spec = (carriers = CARRIERS, rulingLineSha256 = shaOf(RULING_LINE)) => ({
   packageId: 'M2-H3-CLEAN-INIT', sourceBase: PARENT_COMMIT, status: 'PROPOSED',
   brief: { file: 'rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md', sha256: 'd'.repeat(64), acceptedLedgerLine: null },
   dIds: [], laws: [], carriedAcceptedIds: [], privateLiveTriggered: [],
   authorizations: { owner: null, contract: null, theme: null, review: null },
-  product: {}, carrierSuccessor: null, witnessFlips: [], protectedSurfaces: [],
-  children: [
-    { name: CELLS_CHILD, argv: [CELLS], needle: 'H3 CLEAN INIT CELLS: 9/9 PASS;' },
-    { name: LEGACY_CHILD, argv: [LEGACY], needle: 'H3 LEGACY DIFFERENTIAL: 9/9 identical' },
-    { name: WRITERS_CHILD, argv: [WRITERS], needle: 'H3 WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;' },
-    { name: CENSUS_CHILD, argv: [CENSUS], needle: 'H3 PUBLIC CENSUS: byte-identical' },
-  ],
+  product: productOf(), carrierSuccessor: null, witnessFlips: [], protectedSurfaces: [],
+  children: childrenOf(),
   coverage: {
     // Every gate the superseded carriers cover is DROPPED from inherited — that is what
     // "not inheritable" means, and coverage() refuses a spec that keeps one.
     inherited: Object.fromEntries(Object.entries(BY_CHILD).filter(([, c]) => !carriers.includes(c))),
     moves: {}, successors: null,
-    superseded: { rulingLineSha256, gates: Object.fromEntries(carriers.map(c => [c, { why: WHY, evidence: evidence() }])) },
+    superseded: { rulingLineSha256, gates: Object.fromEntries(carriers.map(c => [c, { why: WHY, evidence: evidence(c) }])) },
   },
 });
-const ran = (green = true) => new Map([
-  [CELLS_CHILD, { ok: green, needle: 'H3 CLEAN INIT CELLS: 9/9 PASS;', bytes: 400, targets: [CELLS], moved: [] }],
-  [LEGACY_CHILD, { ok: true, needle: 'H3 LEGACY DIFFERENTIAL: 9/9 identical', bytes: 400, targets: [LEGACY], moved: [] }],
-  [WRITERS_CHILD, { ok: true, needle: 'H3 WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;', bytes: 400, targets: [WRITERS], moved: [] }],
-  [CENSUS_CHILD, { ok: true, needle: 'H3 PUBLIC CENSUS: byte-identical', bytes: 400, targets: [CENSUS], moved: [] }],
-]);
+const ran = (red = null) => new Map(childrenOf().map(c =>
+  [c.name, { ok: c.name !== red, needle: c.needle, bytes: 400, targets: c.argv, moved: [] }]));
 const names = s => new Set(s.children.map(c => c.name));
+const shape = s => api.supersededSpecShape(s, names(s));
 
-test(':147 (b) — the five byte-identity carriers, and only those five, are the role\'s subject', () => {
-  assert.deepEqual(api.BYTE_IDENTITY_CARRIERS.slice().sort(),
-    ['defect-witnesses', 'inherited-carriers', 'second-gate', 'source-carriers', 'writers-differential']);
-  // They are the parent artifact's own byChild VALUES, not a list this runner invented: the
-  // nine gates B-NTC covers are covered by exactly these five carrier children.
-  assert.deepEqual([...new Set(Object.values(BY_CHILD))].sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
-  assert.deepEqual(api.SUPERSESSION_EVIDENCE_KEYS,
-    ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential']);
+test('r10 F6 — the role is REQUESTS 08:40 (b), not DECISIONS:147 (b), everywhere it is named', () => {
+  assert(!/DECISIONS:147 \(b\)/.test(source), 'no site attributes the role to DECISIONS:147 (b)');
+  assert(source.includes('REQUESTS 2026-09-12 08:40 (b)'), 'the runner names the real request');
+  assert(source.includes('REQUESTS 08:40 (b) needs a PM line'), 'and so does the user-visible refusal');
+  // The r10 note, with TOOLING-REVIEW-r10's citation correction.
+  assert(source.includes('b-ntc-successors.cjs:142'), 'the refusing line for H3 is :142, the else branch');
 });
 
-test(':147 (b) — an H3-shaped spec with the five superseded and its evidence is ADMITTED', () => {
+test('r10 F1 — the grant is a TOKEN, and prose about the role frees nothing', () => {
+  assert.equal(api.SUPERSESSION_GRANT_SHAPE, 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]');
+  const ok = api.supersessionRuling(spec());
+  assert.deepEqual([...ok.granted].sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
+  assert.equal(ok.line, RULING_LINE);
+  // r10's OWN F1 control: DECISIONS:112's shape — a line about MOVES_RULING whose only
+  // "grant" is the clause "…inherited-carriers superseded LOAD-WRITES", which the keyword
+  // scan ADMITTED. It names the package, carries the word, names a carrier. No token.
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(PROSE_LINE))),
+    /GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN/);
+  // And r10's second control: a line that REFUSES the role, which also passed all three.
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(REFUSING_LINE))),
+    /GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN/);
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(OTHER_PACKAGE_LINE))),
+    /GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE/);
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(SIXTH_LINE))),
+    /GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE/);
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(UNRULED_LINE))),
+    /GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE/);
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, null)), /GATE-SUPERSESSION-RULING-NOT-CITED/);
+  assert.throws(() => api.supersessionRuling(spec(CARRIERS, 'f'.repeat(64))),
+    /GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH/);
+});
+
+test('r10 F2 — a line naming ONE carrier admits that one alone, and the count is per carrier', () => {
+  // r10 measured a line reading "may declare second-gate SUPERSEDED and nothing else"
+  // ADMITTING all five carriers and nine gates. The grant is matched carrier by carrier now.
+  const one = spec(CARRIERS, shaOf(ONE_LINE));
+  shape(one);
+  assert.throws(() => api.supersededGates(one, bound(), ran()), /GATE-SUPERSESSION-CARRIER-IS-NOT-IN-THE-RULING/);
+  // Declaring only what that line grants is admitted, and it retires ONE gate, not nine.
+  const just = spec(['second-gate'], shaOf(ONE_LINE));
+  shape(just);
+  const got = api.supersededGates(just, bound(), ran());
+  assert.deepEqual([...got.keys()], ['second-gate']);
+  assert.deepEqual(got.get('second-gate').gates, ['second-gate']);
+  // The full grant retires nine gates over five carriers, and the per-carrier map says which.
+  const all = api.supersededGates(spec(), bound(), ran());
+  assert.equal(all.size, 9);
+  assert.deepEqual(api.supersededByCarrier(spec(), bound()), {
+    'defect-witnesses': ['witnesses-7'], 'inherited-carriers': ['migrate-differential', 'witnesses-2', 'witnesses-5'],
+    'second-gate': ['second-gate'], 'source-carriers': ['merge-source', 'migrate-source', 'writers-source'],
+    'writers-differential': ['writers-differential'],
+  });
+  for (const c of CARRIERS) assert.deepEqual(all.get(GATES_OF(c)[0]).gates, GATES_OF(c));
+});
+
+test('r10 F4 — the chain line is RE-READ on every call, so a withdrawal refuses in-process', () => {
   const s = spec();
-  // The case H3 could not declare: all nine inherited gates gone, none carried, none
-  // re-executed, and the child's own four children standing in their place.
-  assert.deepEqual(s.coverage.inherited, {});
-  api.supersededSpecShape(s, names(s));
-  const superseded = api.supersededGates(s, bound(), ran());
-  assert.equal(superseded.size, 9, 'the five carriers cover nine of the nineteen gates');
-  assert.deepEqual([...new Set([...superseded.values()].map(r => r.carrier))].sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
-  for (const r of superseded.values()) {
-    assert.equal(r.why, WHY);
-    assert.deepEqual(r.executed, [CELLS_CHILD, LEGACY_CHILD, WRITERS_CHILD], 'every named child, and the census is the runner\'s own line');
-  }
-  // And the whole coverage pass runs: nothing is carried, nothing is inherited, and the
-  // covered-set bound holds as |byChild| = covered + superseded.
-  const covered = api.coverage(s, bound(), ran());
-  assert.equal(covered.size, 0);
-  // A named child census cell instead of the runner's own line is equally admissible.
-  const cell = spec();
-  for (const row of Object.values(cell.coverage.superseded.gates)) row.evidence.census = CENSUS_CHILD;
-  const withCell = api.supersededGates(cell, bound(), ran());
-  assert.equal(withCell.size, 9);
-  assert.deepEqual(withCell.get('second-gate').executed, [CELLS_CHILD, LEGACY_CHILD, WRITERS_CHILD, CENSUS_CHILD]);
+  assert.equal(api.supersessionRuling(s).line, RULING_LINE);        // first read: ADMITTED
+  // r10 deleted the line from the chain mid-run and the cached second call still ADMITTED.
+  write('rebuild/DECISIONS.md', [...LEDGER.filter(l => l !== RULING_LINE), ''].join('\n'));
+  git('add', '-A'); git('commit', '--quiet', '-m', 'the ruling withdrawn');
+  assert.throws(() => api.supersessionRuling(s), /GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH/,
+    'the withdrawal refuses WITHIN the process, not only in the next one');
+  // Put it back and the same call admits again: nothing is remembered either way.
+  write('rebuild/DECISIONS.md', [...LEDGER, ''].join('\n'));
+  git('add', '-A'); git('commit', '--quiet', '-m', 'the ruling restored');
+  assert.equal(api.supersessionRuling(s).line, RULING_LINE);
+  assert(!/SUPERSESSION_KEY|SUPERSESSION_TEXT/.test(source), 'no cache of the supersession line survives in the runner');
 });
 
-test(':147 (b) — a SIXTH gate refuses by name, in the spec phase and again at run time', () => {
-  // The list is fixed in the runner (W7). `cases`, `traces` and `direct` are real parent
-  // children and real gate names, and not one of them is a byte-identity reconstruction.
+test('r10 F3 — the seal assert is PHASED, so a supersession package can reach a seal', () => {
+  // The exact ACCEPTED-branch block, sliced out of the real runner the way execution-targets
+  // slices the Y1 seal block. r10 asserted the map unconditionally, so the FIRST envelope()
+  // call of the main sequence — the header-only one, which runs BEFORE coverage() — refused
+  // GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL, and no package declaring a supersession could
+  // ever reach a PASS (which needs an authorized review).
+  const start = source.indexOf('  if (s.coverage.superseded != null) {', source.indexOf('function envelope('));
+  const end = source.indexOf('\n  }\n', start) + 5;
+  assert(start > 0 && end > start);
+  const block = source.slice(start, end);
+  assert(block.includes('if (ran) assert(SUPERSEDED_RESOLVED.size'), 'the assert is phased on `ran`, as Y1 already is');
+  const sealBlock = new Function('assert', 's', 'ran', 'supersessionRuling', 'SUPERSEDED_RESOLVED', block);
+  const s = spec(), r = ran();
+  const resolved = api.supersededGates(s, bound(), r);
+  // (a) the FIRST call, header-only, with the map still empty: the ruling is asked, the
+  // admitted map is not, and nothing refuses. This is the case r10 measured as fatal.
+  sealBlock(assert, s, undefined, api.supersessionRuling, new Map());
+  // (b) the END-of-run re-evaluation with the map empty: that IS a real defect and refuses.
+  assert.throws(() => sealBlock(assert, s, r, api.supersessionRuling, new Map()),
+    /GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL/);
+  // (c) the END-of-run re-evaluation with the map coverage() actually produced: admitted,
+  // and the seal continues to Y1, the theme and the brief exactly as for any other package.
+  sealBlock(assert, s, r, api.supersessionRuling, resolved);
+  // And the phasing is real in the main sequence: the first call passes no `ran` at all,
+  // exactly as the Y1 execution half is already phased.
+  assert(source.includes('const first = envelope(s, bound);'), 'the first envelope() call is header-only');
+  assert(source.includes('if (ran) for (const c of own)'), 'Y1 is phased the same way');
+});
+
+test('r10 F5 — per-carrier evidence, distinct slots, and it must bear on this package', () => {
+  // (a) one child in three slots — r10 admitted it and reported "3 named child(ren)".
+  const thrice = spec();
+  for (const c of CARRIERS) {
+    const e = thrice.coverage.superseded.gates[c].evidence;
+    e.legacyDifferential = CELL_CHILD(c); e.writersDifferential = CELL_CHILD(c);
+  }
+  assert.throws(() => shape(thrice), /GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD/);
+  const twice = spec();
+  twice.coverage.superseded.gates['second-gate'].evidence.legacyDifferential = CELL_CHILD('second-gate');
+  assert.throws(() => shape(twice), /GATE-SUPERSESSION-EVIDENCE-SLOTS-SHARE-A-CHILD/);
+  // (b) the SAME evidence set under all five carriers — the real H3 probe's shape.
+  const shared = spec();
+  for (const c of CARRIERS) shared.coverage.superseded.gates[c].evidence.redFirst = [CELL_CHILD('second-gate')];
+  assert.throws(() => shape(shared), /GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN/);
+  // (c) a child that executes nothing this package declares is not this package's evidence.
+  const unrelated = spec();
+  unrelated.coverage.superseded.gates['second-gate'].evidence.redFirst = [UNRELATED_CHILD];
+  assert.throws(() => shape(unrelated), /GATE-SUPERSESSION-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT/);
+  // (d) the faithful shape, one cell per carrier, is admitted and reports three DIFFERENT
+  // children per carrier.
+  const s = spec();
+  shape(s);
+  const got = api.supersededGates(s, bound(), ran());
+  for (const c of CARRIERS) {
+    const e = got.get(GATES_OF(c)[0]);
+    assert.deepEqual(e.executed, [CELL_CHILD(c), LEGACY_CHILD, WRITERS_CHILD]);
+    assert.equal(new Set(e.executed).size, 3);
+  }
+  // (e) `Required child` carries a code now, so the role's most likely real failure is named.
+  assert(api.FAIL_CODES.has('CHILD-REQUIRED-EXIT-ZERO'), 'children() refuses a red child by name');
+  assert(!/'Required child '/.test(source), 'and the bare sentence is gone');
+  assert.equal(api.failCode('CHILD-REQUIRED-EXIT-ZERO h3-cells; status 1'), 'CHILD-REQUIRED-EXIT-ZERO');
+  // The map-level refusals stay as belt-and-braces: children() refuses earlier and harder,
+  // and `ran` is empty on the CHILDREN PENDING path, where -NOT-EXECUTED is what fires.
+  assert.throws(() => api.supersededGates(s, bound(), new Map()), /GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-EXECUTED/);
+  assert.throws(() => api.supersededGates(s, bound(), ran(LEGACY_CHILD)), /GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN/);
+});
+
+test('r10 F7 — a PRE-r10 parent artifact is read unchanged; only its own re-seal recomputes', () => {
+  // B-NTC's sealed artifact predates `coverage.superseded`: its `coverage` carries the five
+  // pre-r10 keys and nothing else. Every parent-side reader must accept it as it stands.
+  const b = bound();
+  assert.deepEqual(Object.keys(b.acceptance.coverage).sort(), PRE_R10_COVERAGE_KEYS.slice().sort());
+  assert(!Object.hasOwn(b.acceptance.coverage, 'superseded'));
+  assert(!Object.hasOwn(b.acceptance.coverage, 'supersessions'));
+  const s = spec();
+  assert.equal(api.supersededGates(s, b, ran()).size, 9);
+  assert.equal(api.supersededGateIds(s, b).length, 9);
+  assert.equal(api.coverage(s, b, ran()).size, 0);
+  // The same artifact still carries its nine inherited gates for a child that supersedes
+  // nothing — the r9b reading, unchanged.
+  const none = spec(); none.coverage.superseded = null; none.coverage.inherited = { ...BY_CHILD };
+  const b2 = bound(), r = ran();
+  none.children = [...childrenOf(), ...CARRIERS.map(c => ({ name: c, argv: [CELL(c)], needle: needleOf(CELL(c)) }))];
+  for (const c of CARRIERS) {
+    b2.acceptance.executionPins[CELL(c)] = at(CELL(c));
+    r.set(c, { ok: true, needle: needleOf(CELL(c)), bytes: 400, targets: [CELL(c)], moved: [] });
+  }
+  assert.equal(api.coverage(none, b2, r).size, 9);
+  // The top-level artifact key set is unchanged from r9b — only the `coverage` sub-object
+  // grew, and only in artifacts THIS runner writes.
+  const artifact = api.proposed(spec(), bound());
+  assert.deepEqual(Object.keys(artifact.coverage).sort(),
+    ['byChild', 'covered', 'moves', 'run', 'successors', 'superseded', 'supersededByCarrier', 'supersessions']);
+});
+
+test('r10 — the ARTIFACT records the supersession, the per-carrier gates and a disjoint run set', () => {
+  const s = spec(), b = bound();
+  const artifact = api.proposed(s, b);
+  assert.deepEqual(artifact.coverage.covered, []);
+  assert.deepEqual(artifact.coverage.superseded, Object.keys(BY_CHILD).sort());
+  assert.equal(artifact.coverage.superseded.length + artifact.coverage.run.length, api.GATE_IDS.length);
+  assert(!artifact.coverage.run.some(g => artifact.coverage.superseded.includes(g)));
+  assert.deepEqual(artifact.coverage.supersededByCarrier['source-carriers'], GATES_OF('source-carriers'));
+  assert.equal(artifact.coverage.supersessions.rulingLineSha256, shaOf(RULING_LINE));
+  const row = artifact.coverage.supersessions.gates['source-carriers'];
+  assert.equal(row.why, WHY);
+  assert.equal(row.evidence.laws, null);
+  assert.deepEqual(row.evidence.redFirst, [CELL_CHILD('source-carriers')]);
+  assert.equal(row.evidence.census, api.SUPERSESSION_RUNNER_CENSUS);
+  // A package that declares none records `null` and an empty map, as `successors` does.
+  const none = spec(); none.coverage.superseded = null; none.coverage.inherited = { ...BY_CHILD };
+  const plain = api.proposed(none, b);
+  assert.equal(plain.coverage.supersessions, null);
+  assert.deepEqual(plain.coverage.superseded, []);
+  assert.deepEqual(plain.coverage.supersededByCarrier, {});
+  assert.equal(plain.coverage.run.length, api.GATE_IDS.length - Object.keys(BY_CHILD).length);
+});
+
+test('r10 — a sixth gate, a non-parent carrier, and the inherited/superseded conflict', () => {
   for (const sixth of ['cases', 'traces', 'witnesses', 'conformance', 'migrate-full']) {
     const s = spec();
-    s.coverage.superseded.gates[sixth] = { why: WHY, evidence: evidence() };
-    assert.throws(() => api.supersededSpecShape(s, names(s)), /GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE/,
-      'a sixth gate refuses: ' + sixth);
+    s.coverage.superseded.gates[sixth] = { why: WHY, evidence: evidence('second-gate') };
+    assert.throws(() => shape(s), /GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE/, 'a sixth gate refuses: ' + sixth);
   }
-  // And a name that IS one of the five but is NOT a carrier of THIS parent refuses at run
-  // time, against the parent artifact's own map rather than against the runner's list.
   const s = spec(['second-gate']);
   const b = bound();
   delete b.acceptance.coverage.byChild['second-gate'];
-  s.coverage.inherited = Object.fromEntries(Object.entries(b.acceptance.coverage.byChild));
+  s.coverage.inherited = { ...b.acceptance.coverage.byChild };
   assert.throws(() => api.supersededGates(s, b, ran()), /GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER/);
+  const kept = spec();
+  kept.coverage.inherited = { 'second-gate': CELL_CHILD('second-gate') };
+  assert.throws(() => api.coverage(kept, bound(), ran()), /GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED/);
 });
 
-test(':147 (b) — a MISSING evidence child refuses, at whichever phase can see it', () => {
-  // Named but never declared: the spec phase sees it, because `names` is the declared set.
-  const undeclared = spec();
-  undeclared.coverage.superseded.gates['second-gate'].evidence.legacyDifferential = 'a-child-nobody-declared';
-  assert.throws(() => api.supersededSpecShape(undeclared, names(undeclared)), /GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-DECLARED/);
-  // Declared and NOT RUN: only the run phase can see that, and it is the difference between
-  // evidence and a claim — `ran` is the map built by actually spawning the children.
-  const s = spec();
-  const short = ran(); short.delete(WRITERS_CHILD);
-  assert.throws(() => api.supersededGates(s, bound(), short), /GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-EXECUTED/);
-  // The red-first cells cannot be empty either: there is no supersession without them.
-  const bare = spec();
-  for (const row of Object.values(bare.coverage.superseded.gates)) row.evidence.redFirst = [];
-  assert.throws(() => api.supersededSpecShape(bare, names(bare)), /GATE-SUPERSESSION-EVIDENCE-RED-FIRST-UNDECLARED/);
-});
-
-test(':147 (b) — an evidence child that ran RED refuses', () => {
-  const s = spec();
-  assert.throws(() => api.supersededGates(s, bound(), ran(false)), /GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN/);
-  // The runner's own census line is evidence only while it says `none`: a package whose
-  // census is live-triggered on one of its own D-ids cannot cite that line for identity.
+test('r10 — laws may move only per the child\'s own registered D-ids and an accepted brief', () => {
+  const moved = spec();
+  for (const c of CARRIERS) moved.coverage.superseded.gates[c].evidence.laws = ['D7'];
+  assert.throws(() => shape(moved), /GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-OUTSIDE-THE-REGISTERED-INVENTORY/);
+  moved.dIds = ['D7'];
+  assert.throws(() => shape(moved), /GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF/);
+  moved.brief.acceptedLedgerLine = { ledgerLine: 146, role: 'brief', line: 'x', lineSha256: 'e'.repeat(64) };
+  shape(moved);
+  assert.equal(api.supersededGates(moved, bound(), ran()).size, 9);
+  // The runner's own census line is evidence only while it says `none`.
   const live = spec();
   live.dIds = ['D7']; live.privateLiveTriggered = ['D7'];
   assert.throws(() => api.supersededGates(live, bound(), ran()), /GATE-SUPERSESSION-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN/);
 });
 
-test(':147 (b) — NO RULING refuses, and that is the expected state until the PM writes one', () => {
-  // The placeholder. Every shipped spec holds `superseded: null`; a spec that declares the
-  // block before the line lands refuses HERE, by name, and reaches no evidence at all.
-  const placeholder = spec(CARRIERS, null);
-  api.supersededSpecShape(placeholder, names(placeholder));      // the SHAPE is legal
-  assert.throws(() => api.supersededGates(placeholder, bound(), ran()), /GATE-SUPERSESSION-RULING-NOT-CITED/);
-  // A sha that hashes to no line on the chain branch finds nothing — the bytes are Git's.
-  const absent = spec(CARRIERS, 'f'.repeat(64));
-  assert.throws(() => api.supersededGates(absent, bound(), ran()),
-    /GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH/);
-  // A real line on the chain branch that grants nothing is refused on its CONTENT: it does
-  // not name this package, so the three content tests are reached in order.
-  const other = spec(CARRIERS, OTHER_SHA);
-  assert.throws(() => api.supersededGates(other, bound(), ran()), /GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE/);
-  // And the grant word and the carrier name are asked too. The runner's own source carries
-  // both tests beside each other, so a line naming the package alone frees nothing.
-  assert(source.includes('GATE-SUPERSESSION-RULING-DOES-NOT-GRANT-A-SUPERSESSION'));
-  assert(source.includes('GATE-SUPERSESSION-RULING-DOES-NOT-NAME-A-BYTE-IDENTITY-CARRIER'));
-});
-
-test(':147 (b) — a superseded gate may not ALSO be inherited, and the covered-set bound holds', () => {
-  const carrierFile = 'rebuild/m4/spec/b-ntc-second-gate.cjs';
-  write(carrierFile, "'use strict';\nconsole.log('NATIVE SECOND GATE:');\n");
-  const carried = () => {
-    const r = ran();
-    r.set('second-gate', { ok: true, needle: 'NATIVE SECOND GATE:', bytes: 400, targets: [carrierFile], moved: [] });
-    return r;
-  };
-  // Superseded AND claimed as inherited. The covering child runs green, so the refusal is
-  // the supersession conflict and not the ordinary "child did not execute".
-  const kept = spec();
-  kept.coverage.inherited = { 'second-gate': 'second-gate' };
-  kept.children.push({ name: 'second-gate', argv: [carrierFile], needle: 'NATIVE SECOND GATE:' });
-  const keptBound = bound();
-  keptBound.acceptance.executionPins[carrierFile] = at(carrierFile);
-  assert.throws(() => api.coverage(kept, keptBound, carried()), /GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED/);
-  // Four carriers superseded, the fifth still inherited and carried by the parent's own
-  // pinned executable: the mixed case, and the bound is covered + superseded = |byChild|.
-  const mixed = spec(['source-carriers', 'inherited-carriers', 'defect-witnesses', 'writers-differential']);
-  const b = bound();
-  b.acceptance.executionPins[carrierFile] = at(carrierFile);
-  mixed.children.push({ name: 'second-gate', argv: [carrierFile], needle: 'NATIVE SECOND GATE:' });
-  const r = carried();
-  assert.deepEqual(mixed.coverage.inherited, { 'second-gate': 'second-gate' });
-  const covered = api.coverage(mixed, b, r);
-  assert.equal(covered.size, 1, 'one gate still inherited and carried');
-  assert.equal(api.supersededGateIds(mixed, b).length, 8, 'eight superseded, and 1 + 8 = the parent\'s nine');
-});
-
-test(':147 (b) — the ARTIFACT records the supersession, the evidence names and a disjoint run set', () => {
-  const s = spec();
-  const b = bound();
-  const artifact = api.proposed(s, b);
-  assert.deepEqual(artifact.coverage.covered, []);
-  assert.deepEqual(artifact.coverage.superseded, Object.keys(BY_CHILD).sort());
-  // Disjoint and exhaustive: a superseded gate is neither carried here nor re-executed.
-  assert.equal(artifact.coverage.superseded.length + artifact.coverage.run.length, api.GATE_IDS.length);
-  assert(!artifact.coverage.run.some(g => artifact.coverage.superseded.includes(g)));
-  // The EVIDENCE NAMES travel into the sealed artifact, so a later reader sees what stood in
-  // the gate's place without trusting the spec that produced it — and so does the PM line.
-  assert.equal(artifact.coverage.supersessions.rulingLineSha256, RULING_SHA);
-  assert.deepEqual(Object.keys(artifact.coverage.supersessions.gates).sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
-  const row = artifact.coverage.supersessions.gates['source-carriers'];
-  assert.equal(row.why, WHY);
-  assert.equal(row.evidence.laws, null);
-  assert.deepEqual(row.evidence.redFirst, [CELLS_CHILD]);
-  assert.equal(row.evidence.census, api.SUPERSESSION_RUNNER_CENSUS);
-  assert.equal(row.evidence.legacyDifferential, LEGACY_CHILD);
-  assert.equal(row.evidence.writersDifferential, WRITERS_CHILD);
-  // And a package that declares none records `null`, exactly as `successors` does.
-  const none = spec(); none.coverage.superseded = null;
-  none.coverage.inherited = { ...BY_CHILD };
-  const plain = api.proposed(none, b);
-  assert.equal(plain.coverage.supersessions, null);
-  assert.deepEqual(plain.coverage.superseded, []);
-  assert.equal(plain.coverage.run.length, api.GATE_IDS.length - Object.keys(BY_CHILD).length);
-});
-
-test(':147 (b) — laws may move only per the child\'s own accepted brief D-ids', () => {
-  // `laws: null` is the unmoved case and needs nothing. A moved register must name D-ids
-  // this package REGISTERED, and its brief must itself be accepted: a law cannot move on a
-  // spec's word, which is the whole of why the 45-law row is evidence at all.
-  const moved = spec();
-  for (const row of Object.values(moved.coverage.superseded.gates)) row.evidence.laws = ['D7'];
-  assert.throws(() => api.supersededSpecShape(moved, names(moved)),
-    /GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-OUTSIDE-THE-REGISTERED-INVENTORY/);
-  moved.dIds = ['D7'];
-  assert.throws(() => api.supersededSpecShape(moved, names(moved)),
-    /GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF/);
-  moved.brief.acceptedLedgerLine = { ledgerLine: 146, role: 'brief', line: 'x', lineSha256: 'e'.repeat(64) };
-  api.supersededSpecShape(moved, names(moved));
-  assert.equal(api.supersededGates(moved, bound(), ran()).size, 9);
-});
-
-test(':147 (b) — the block is closed, and every refusal carries a name in the vocabulary', () => {
-  const extra = spec();
-  extra.coverage.superseded.note = 'a key the block does not have';
-  assert.throws(() => api.supersededSpecShape(extra, names(extra)), /GATE-SUPERSESSION-BLOCK-KEYS-NOT-CLOSED/);
-  const row = spec();
-  row.coverage.superseded.gates['second-gate'].note = 'a key a row does not have';
-  assert.throws(() => api.supersededSpecShape(row, names(row)), /GATE-SUPERSESSION-ROW-KEYS-NOT-CLOSED/);
-  const ev = spec();
-  delete ev.coverage.superseded.gates['second-gate'].evidence.census;
-  assert.throws(() => api.supersededSpecShape(ev, names(ev)), /GATE-SUPERSESSION-EVIDENCE-KEYS-NOT-CLOSED/);
-  const why = spec();
-  why.coverage.superseded.gates['second-gate'].why = 'too short';
-  assert.throws(() => api.supersededSpecShape(why, names(why)), /GATE-SUPERSESSION-WHY-MISSING/);
+test('r10 — the block is closed, and every refusal carries a name in the vocabulary', () => {
+  const extra = spec(); extra.coverage.superseded.note = 'a key the block does not have';
+  assert.throws(() => shape(extra), /GATE-SUPERSESSION-BLOCK-KEYS-NOT-CLOSED/);
+  const row = spec(); row.coverage.superseded.gates['second-gate'].note = 'a key a row does not have';
+  assert.throws(() => shape(row), /GATE-SUPERSESSION-ROW-KEYS-NOT-CLOSED/);
+  const ev = spec(); delete ev.coverage.superseded.gates['second-gate'].evidence.census;
+  assert.throws(() => shape(ev), /GATE-SUPERSESSION-EVIDENCE-KEYS-NOT-CLOSED/);
+  const why = spec(); why.coverage.superseded.gates['second-gate'].why = 'too short';
+  assert.throws(() => shape(why), /GATE-SUPERSESSION-WHY-MISSING/);
+  const empty = spec(); empty.coverage.superseded.gates = {};
+  assert.throws(() => shape(empty), /GATE-SUPERSESSION-GATES-UNDECLARED/);
+  assert.deepEqual(api.SUPERSESSION_EVIDENCE_KEYS, ['laws', 'redFirst', 'census', 'legacyDifferential', 'writersDifferential']);
+  assert.deepEqual(api.BYTE_IDENTITY_CARRIERS.slice().sort(),
+    ['defect-witnesses', 'inherited-carriers', 'second-gate', 'source-carriers', 'writers-differential']);
   for (const code of ['GATE-SUPERSESSION-RULING-NOT-CITED', 'GATE-SUPERSESSION-RULING-LINE-SHA256-SHAPE',
     'GATE-SUPERSESSION-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH',
-    'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE', 'GATE-SUPERSESSION-RULING-DOES-NOT-GRANT-A-SUPERSESSION',
-    'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-A-BYTE-IDENTITY-CARRIER', 'GATE-SUPERSESSION-BLOCK-KEYS-NOT-CLOSED',
+    'GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE', 'GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN',
+    'GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE',
+    'GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE',
+    'GATE-SUPERSESSION-CARRIER-IS-NOT-IN-THE-RULING', 'GATE-SUPERSESSION-BLOCK-KEYS-NOT-CLOSED',
     'GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE', 'GATE-SUPERSESSION-CARRIER-IS-NOT-A-PARENT-CARRIER',
     'GATE-SUPERSESSION-CARRIER-IS-ALSO-CLAIMED-BY-A-SUCCESSOR', 'GATE-SUPERSESSION-EVIDENCE-KEYS-NOT-CLOSED',
     'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-DECLARED', 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-EXECUTED',
     'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN', 'GATE-SUPERSESSION-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN',
     'GATE-SUPERSESSION-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF', 'GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED',
-    'GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL', 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT'])
+    'GATE-SUPERSESSION-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD', 'GATE-SUPERSESSION-EVIDENCE-SLOTS-SHARE-A-CHILD',
+    'GATE-SUPERSESSION-EVIDENCE-IS-NOT-THIS-CARRIER-OWN',
+    'GATE-SUPERSESSION-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT',
+    'GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL', 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT',
+    'CHILD-REQUIRED-EXIT-ZERO'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
 });

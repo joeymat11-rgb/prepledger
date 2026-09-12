@@ -1018,7 +1018,7 @@ through `successorSpecShape()` (r9 F5), and every new code in `FAIL_CODES`.
 loads through a computed path this runner cannot see is out of the set and refuses. That is
 the safe direction — a refusal, never an admission — and it is narrower than `:147`'s words.
 
-## r10 — `DECISIONS:147` contingency (b): GATE SUPERSESSION
+## r10 — REQUESTS 2026-09-12 08:40 (b): GATE SUPERSESSION (pending a PM line)
 
 **Speculative, under `DECISIONS:100`.** The PM has been asked to ratify option (b) as plan
 of record and has not yet ruled. The role below is built, tested and shipped INERT: every
@@ -1093,3 +1093,64 @@ refused; the placeholder, an absent line and a real line that grants nothing all
 inherited/superseded conflict and the mixed four-superseded-one-carried case; the artifact's
 disjoint `covered`/`superseded`/`run` and its recorded evidence names; the laws rule; and
 every new code in `FAIL_CODES`.
+
+### r10-fix — TOOLING-REVIEW-r10's seven findings, and THE SHAPE THE PM'S LINE MUST CARRY
+
+**The grant is a token, not prose (F1).** r10 asked three substring questions of the located
+line and the blind reviewer executed them against the real chain: `DECISIONS:112` — a line
+about `MOVES_RULING B-NTC-INHERITED-1` whose only "grant" is the incidental clause *"…exactly
+as NATIVE-CARRIERS' inherited-carriers superseded LOAD-WRITES"* — was **ADMITTED**, and so was
+a line *refusing* the role. A supersession is now granted by an exact token and by nothing
+else. **For the PM:**
+
+```
+GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]
+```
+
+on a ledger line that ends in the `RULED` terminal word — e.g.
+
+```
+- 2026-09-12 · cowork · LANE B RULINGS — … ; GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate · RULED
+```
+
+Everything around the token is prose the runner never reads. The token's `<packageId>` must be
+this package's own (`GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE`), each carrier must be
+one of the five (`-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE`), the line must be
+`RULED` (`-RULING-IS-NOT-A-RULED-LINE`), and a line with no token frees nothing
+(`-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN`).
+
+**The grant is matched carrier by carrier (F2).** A token naming `second-gate` frees
+`second-gate` alone; declaring any other refuses `GATE-SUPERSESSION-CARRIER-IS-NOT-IN-THE-RULING`.
+And the role retires **gates**, not carriers: B-NTC's five carriers cover **nine of the
+nineteen**, so the coverage line and the artifact both report the count **per carrier**
+(`supersededByCarrier`: `source-carriers` 3, `inherited-carriers` 3, `defect-witnesses` 1,
+`writers-differential` 1, `second-gate` 1).
+
+**The seal assert is phased (F3).** `SUPERSEDED_RESOLVED` is written by `coverage()`, which runs
+after the first, header-only `envelope()` call. r10 asserted it unconditionally, so on a
+sealed+ACCEPTED artifact the first call refused `GATE-SUPERSESSION-NOT-ADMITTED-AT-SEAL` with the
+map still empty and **no package declaring a supersession could ever reach a PASS**. The assert
+is now guarded on `ran`, exactly as Y1's execution half already is: the header call asks the
+RULING, the end-of-run re-evaluation asks the admitted map as well.
+
+**No cache across the re-take (F4).** `supersessionRuling()` re-reads `rebuild/DECISIONS.md`
+from `CHAIN_REF` on every call, so a ruling withdrawn mid-run refuses **in the same process**.
+
+**Per-carrier, distinct, bearing evidence (F5).** Each superseded carrier must name at least one
+evidence child of its **own** (`-EVIDENCE-IS-NOT-THIS-CARRIER-OWN`); the two differentials must
+differ and neither may stand in `redFirst` (`-EVIDENCE-DIFFERENTIALS-ARE-THE-SAME-CHILD`,
+`-EVIDENCE-SLOTS-SHARE-A-CHILD`); and every named child must execute a file this package declares
+(`-EVIDENCE-CHILD-DOES-NOT-EXECUTE-THIS-PACKAGE-PRODUCT`). `children()`'s own refusal of a red
+child is now named `CHILD-REQUIRED-EXIT-ZERO` instead of printing a bare FAIL.
+
+**Attribution (F6).** The role is **REQUESTS 2026-09-12 08:40 (b)**, pending a PM line —
+`DECISIONS:147`'s own (b) is the H3-CORE split and says nothing about supersession. The
+`DECISIONS:<n>` a terminal prints is the located line's real coordinate and stays.
+
+**B-NTC's artifact is read unchanged (F7).** `acceptance-b-ntc-native-trend-context.json` predates
+`coverage.superseded`: its `coverage` carries the five pre-r10 keys and nothing else, and every
+parent-side reader takes it as it stands — no forced re-seal to be a PARENT. What *does* need a
+re-seal is B-NTC's own `--full` recomputation: `proposed()` now emits `superseded`,
+`supersededByCarrier` and `supersessions`, so `same(m, proposed())` cannot hold for an artifact
+written by an older runner and `SEALED-PROFILE-RECOMPUTATION` is the refusal — the same cost every
+runner change since `eedabccd…` already carries.

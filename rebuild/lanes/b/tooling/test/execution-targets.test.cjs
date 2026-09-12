@@ -89,14 +89,16 @@ test('direct own execution passes, missing execution and throwing execution refu
   assert.throws(() => seal(s, new Map()), /OWN-CHILD-DID-NOT-EXECUTE/);
   const noOwn = packageFor(child([pass]));
   assert.throws(() => seal(noOwn, new Map()), /SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT/);
-  assert.throws(() => execute(child([fail])), /Required child/);
+  // TOOLING-REVIEW-r10 F5: the same refusal, now carrying a name in FAIL_CODES instead of
+  // the bare sentence "Required child <name>", which printed a bare FAIL.
+  assert.throws(() => execute(child([fail])), /CHILD-REQUIRED-EXIT-ZERO/);
 });
 test('Node --test executes both good targets and fails a throwing second target', () => {
   const c = child(['--test', '--test-reporter=tap', pass, good], 'multi-good', 'TAP version 13');
   const ran = execute(c);
   assert.deepEqual(ran.get(c.name).targets, [pass, good]);
   assert.match(fs.readFileSync(path.join(scratch, c.name + '.log'), 'utf8'), /OWN PASS/);
-  assert.throws(() => execute(child(['--test', pass, fail], 'multi-fail', 'TAP version 13')), /Required child/);
+  assert.throws(() => execute(child(['--test', pass, fail], 'multi-fail', 'TAP version 13')), /CHILD-REQUIRED-EXIT-ZERO/);
   assert.match(fs.readFileSync(path.join(scratch, 'multi-fail.log'), 'utf8'), /SECOND TARGET EXECUTED/);
 });
 test('inherited pinned original cannot become a trailing application argument', () => {
