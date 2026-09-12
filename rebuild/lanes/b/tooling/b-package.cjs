@@ -99,13 +99,17 @@ const TOOLING = 'rebuild/lanes/b/tooling', RUNNER = TOOLING + '/b-package.cjs';
 // tooling directory, which is already inside fidelity()'s change check — this runner still
 // never writes a byte in rebuild/m4/spec.
 const RECEIPT_DIR = TOOLING + '/receipts';
-// DECISIONS:135 (4), and THE ONE WORD that decides what "on the tip" means (r8 F1). The PM
-// has been asked whether plain ancestry of the CURRENT tip suffices; until that is ruled,
-// 'first-parent' stands — it is the stricter of the two and relaxing an enforced seal rule
-// on a reviewer's recommendation is the PM's call, not the tooling's. 'ancestor' is the
-// other setting, fully implemented and fully tested; changing this string is the whole of
-// the change, and a reviewer can see that it is.
-const SEAL_TIP_RULE = 'first-parent'; // 'first-parent' | 'ancestor'
+// DECISIONS:135 (4), and THE ONE WORD that decides what "on the tip" means (r8 F1).
+//
+// RULED AT DECISIONS:145: seal-on-the-tip is ANCESTRY — the CURRENT
+// origin/rebuild/t2-client-core must be an ancestor of the branch head; a merge and a
+// rebase both count; a stale base does not; the FREEZE escape is kept. r8 F1 recommended
+// exactly this and lane B asked: first-parent additionally forbade the `git merge --no-ff
+// <tip>` workflow :137 (1) makes the house move, and bought nothing against the failure
+// :135 names, because the CURRENT tip being an ancestor already means no chain commit is
+// missing. 'first-parent' remains implemented and the suite still measures both settings on
+// one repository, so this is one word and a reviewer can see that it is.
+const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // The closed package-id list. Case-exact, and in THE RULED ORDER — r7 F6. DECISIONS:124
 // rules the chain "ORDER B-NTC → H3 → B1 → B2 → B4 → B3", superseding DECISIONS:103 (1)'s
 // "B-NTC first, then B1, B2, B4, B3" by inserting H3 after B-NTC; those six stand here in
@@ -1852,8 +1856,9 @@ function sealOnTheTip(s, out) {
     return;
   }
   const freeze = s.authorizations.freeze || null;
-  assert(freeze, 'SEAL-BASE-IS-NOT-THE-CHAIN-TIP ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) +
-    ' and that commit is not in this HEAD\'s first-parent chain; rebase or merge the tip, or cite a PM FREEZE line naming this base (DECISIONS:135 (4))');
+  assert(freeze, 'SEAL-BASE-IS-NOT-THE-CHAIN-TIP ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) + ' and that commit is ' +
+    (SEAL_TIP_RULE === 'first-parent' ? 'not in this HEAD\'s first-parent chain' : 'not an ancestor of this HEAD') +
+    '; merge or rebase the tip, or cite a PM FREEZE line naming this base (DECISIONS:135 (4), :145)');
   const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
   const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === freeze.lineSha256);
   assert.equal(hits.length, 1, 'SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH ' + hits.length +

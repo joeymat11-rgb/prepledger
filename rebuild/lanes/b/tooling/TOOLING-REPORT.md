@@ -1989,10 +1989,15 @@ REVIEW-PENDING with twelve named obligations — the change item 2 was for.
 2. **The F2 count.** `describes()` should admit exactly the substitutions the ruling's
    descriptions name. Fire a third substitution over `native-carriers-profile.cjs`: r6's
    predicate admits it (the suite measures that, it is not asserted), r7's does not.
-3. **`:135 (4)` is stricter than ancestry, deliberately.** `git merge --no-ff <tip>` from the
+3. **SUPERSEDED by `DECISIONS:145`: `:135 (4)` is ANCESTRY, not first-parent.** The PM ruled
+   that the current chain tip being an ancestor of the branch head is the test, that a merge
+   and a rebase both count, that a stale base does not, and that the FREEZE escape is kept;
+   `SEAL_TIP_RULE` ships as `'ancestor'` and the suite measures both settings. The paragraph
+   below is the r7 reading and is kept for the record of what changed.
+4. **(r7, superseded) `:135 (4)` is stricter than ancestry, deliberately.** `git merge --no-ff <tip>` from the
    lane does NOT satisfy it. That is a real operational constraint on every lane and the PM
    should see it: the answer is a rebase, or a FREEZE line.
-4. **The `:136 (3)` receipt can only ever SKIP work.** It is read after the `--ci` evidence,
+5. **The `:136 (3)` receipt can only ever SKIP work.** It is read after the `--ci` evidence,
    the pins, the ledger and the ACCEPTED envelope have all been re-taken on that same run.
    A forged receipt buys a shorter run, not a PASS.
 
@@ -2030,22 +2035,22 @@ table because a file cannot carry its own hash.
 
 | file | lines | bytes | sha256 |
 |---|---|---|---|
-| `b-package.cjs` | 2195 | 176 412 | `1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00` |
-| `README.md` | 938 | 68 523 | `e905ce73fd9c7a0403a063d610208ed6853fae9ce850115d61c263074f401aa7` |
+| `b-package.cjs` | 2200 | 176 780 | `59ecc7f91f5f8f6d40c5c0f61267c6f71ca7edd7987b8022da39c5a04a1cce0d` |
+| `README.md` | 940 | 68 626 | `3a24a464ebda251daca2316f5467d5b847239e7184d8275226c27bffde20b881` |
 | `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
 | `test/successor-moves.test.cjs` | 391 | 26 189 | `d561d8490f78b3a6c63a83178f456b45cd3a78946eaf43817b6b47ae28c8f628` |
 | `test/product-phase-and-ledger.test.cjs` | 224 | 14 492 | `5984aa2610fd13f33253b6b2089c9e7d251b12cb094ee82fa40b38d99dc10430` |
 | `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 280 | 19 095 | `d692bf7b301beb2facc6ad9f76c974e63215d8f78b539229dbafd8317c6d1d2c` |
-| `test/seal-tip-and-byte-identity.test.cjs` | 391 | 23 321 | `2c2cdb8a51e9b26c89f6871dd599d3d84d647a78b46be459d997d2b7e54b4aed` |
+| `test/seal-tip-and-byte-identity.test.cjs` | 404 | 24 011 | `acbb8add15ca78459345ad0e301e037f17c943f0321ebe29bdec2b1faa9f4b9b` |
 | `test/parent-pin-shapes-and-spec-successors.test.cjs` | 248 | 16 577 | `08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175` |
 | `../tooling/preflight.cjs` | 166 | 10 896 | `fff710f9fc9c3ab38d74eea1f58889d0b2ba09af86439bcbf22e2622fae08eae` |
 | `../tooling/test/preflight.test.cjs` | 191 | 10 371 | `f80bc48697e38f27f342fac10ddbc5bc63f45b9156ad15b2a1cc6e91ea364748` |
 
-The **seven** package specs carry `1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00`
+The **seven** package specs carry `59ecc7f91f5f8f6d40c5c0f61267c6f71ca7edd7987b8022da39c5a04a1cce0d`
 as `tooling.runnerSha256`, re-pinned mechanically. Their own bytes at this head:
-`B-NTC.json` 24 020 B `69016bf1…` · `B-LOM.json` 13 757 B `07e50efa…` ·
-`H3.json` 12 553 B `b11e578b…` · `B1.json` 25 107 B `2003f54d…` ·
-`B2.json` 26 013 B `d5ba0926…` · `B3.json` 21 006 B `42c72fd7…` · `B4.json` 20 473 B `1360dd1d…`.
+`B-NTC.json` 24 020 B `f5dff4b1…` · `B-LOM.json` 13 757 B `dbf24d83…` ·
+`H3.json` 12 553 B `79cc15e4…` · `B1.json` 25 107 B `b273527f…` ·
+`B2.json` 26 013 B `4a811159…` · `B3.json` 21 006 B `5d45d146…` · `B4.json` 20 473 B `d1531f41…`.
 
 **r7b** (runner `56aba344…`, superseded by the figures above) fixed the two defects the H3
 builder found: **F-E**, the parent-artifact readers knew only the flat `product` shape and so
