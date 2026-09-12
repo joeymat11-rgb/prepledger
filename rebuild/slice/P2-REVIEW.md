@@ -436,3 +436,141 @@ worktree root (shared `.tmp/native-carriers-package/` logs and a transient top-l
 FINAL VERDICT: **ACCEPT at `d5c140c7c6d13304fbf9e2eae2d069f251a1800b`**. F1, F2 and F3 are
 non-blocking follow-ups, each with an executable proof obligation above; the reviewer applied
 none of them.
+
+---
+---
+
+# ROUND 2 - delta review
+
+FINAL VERDICT: ACCEPT at `c4132f9cd9309e69d39f3a3b0aa7921d66565bdf`
+
+Same reviewer, same worktree W = `work/pm-review-p2`, re-pointed with
+`git fetch origin && git checkout --detach origin/rebuild/polish-p2`. Everything below was
+executed by the reviewer on `c4132f9`. `git status --porcelain` was empty at the start, after
+every mutant was restored, and at the end. The round-1 verdict at `d5c140c` above is not
+retracted; this section supersedes it only in that F1 is now closed.
+
+## R2.1 Delta scope - PASS
+
+```
+$ git diff --numstat 75081c4..HEAD
+7       2       rebuild/m3/w6/host/test/host-seams.test.mjs
+6       2       rebuild/m3/w6/host/workout-host.mjs
+146     0       rebuild/slice/P2-REPORT.md
+```
+
+Exactly the three files the coordinator named. `rebuild/slice/P2-REVIEW.md` is untouched by the
+builder (`git diff --numstat 75081c4..HEAD -- rebuild/slice/P2-REVIEW.md` is empty), `.github` is
+untouched, and nothing outside `host/**` moved.
+
+Against the ORIGINAL base the diff is still all-insertions and custody still holds:
+
+```
+$ git diff --numstat origin/rebuild/t2-client-core...HEAD
+1       0       rebuild/lanes/STATUS.md
+20      0       rebuild/m3/w6/host/host-entry.mjs
+251     0       rebuild/m3/w6/host/test/host-seams.test.mjs
+21      0       rebuild/m3/w6/host/workout-host.mjs
+406     0       rebuild/slice/P2-REPORT.md
+438     0       rebuild/slice/P2-REVIEW.md
+$ git hash-object rebuild/m3/w6/host/engine-runtime-host.cjs   -> 583f247cebbc6412807ebcef40278bc671a4b1e5
+$ git rev-parse origin/rebuild/t2-client-core:...engine-runtime-host.cjs -> 583f247cebbc6412807ebcef40278bc671a4b1e5
+```
+
+The `2` deletions in each host file are round-1's own lines being replaced; measured against the
+base commit, workout-host.mjs is `21 0` and host-seams.test.mjs is `251 0`. The report's claim to
+that effect is confirmed, not taken on trust. `engine-runtime-host.cjs` is still byte-identical.
+
+The change itself is exactly the fix proof obligation F1 specified: the guard condition gains
+`|| typeof subtle?.importKey !== 'function'`, the same named `TypeError` is thrown with its message
+extended to `(importKey and verify)`, and test 1.d's bad-list gains `{ verify: async () => true }`
+and an `importKey`-only mirror, with the failure label changed to an index so two `[object Object]`
+values stay distinguishable. Nothing else was smuggled in.
+
+## R2.2 Counts, re-run by the reviewer on `c4132f9` - PASS, all unchanged
+
+| command | result | exit |
+|---|---|---|
+| `node --test rebuild/m3/w6/host/test/host-seams.test.mjs` | `tests 9` `pass 9` `fail 0` | 0 |
+| `node --test rebuild/m3/w6/host/test/journey.test.mjs rebuild/m3/w6/host/test/engine-equivalence.test.cjs` | `tests 22` `pass 22` `fail 0` | 0 |
+| `node --test rebuild/m3/w6/test/local-host-journey.test.mjs` | `tests 17` `pass 17` `fail 0` | 0 |
+| `node --test rebuild/m3/w7-preview/today/test/gym.test.mjs` | `tests 64` `pass 64` `fail 0` | 0 |
+| W6 suite in place (`node --test test/*.test.mjs` from `rebuild/m3/w6`) | `tests 552` `pass 552` `fail 0` | 0 |
+| `node rebuild/m3/w6/test/run-current-head.cjs work/m3-w5-r1 --all` | `tests 552` `pass 552` `fail 0` | 0 |
+| `node rebuild/m4/spec/native-carriers-package.cjs --ci` (SERIAL in this root, per F4) | `NATIVE CARRIERS PUBLIC CI EVIDENCE PASS` | 0 |
+| `node rebuild/m3/w6/host/build-host.mjs` | `W6 HOST BUILD PASS - 96 pinned inputs`; 13 engine inputs | 0 |
+
+Every count is identical to round 1, including the test count at 9 - 1.d is one test with a longer
+list, as obligation F1.3 predicted. The default path is untouched by this delta (`subtle !== undefined`
+still short-circuits the whole condition), and the 22/22 host suite plus 552/552 W6 remain the
+executed proof that it did not move.
+
+## R2.3 The guard, re-probed through the REAL host - F1 CLOSED
+
+The reviewer re-ran the `{verify}`-only case that produced F1, plus its mirror and controls, through
+a real repository / real T2 stage / real `createDurablePublicClient` composition:
+
+```
+PROBE verify-only:        REFUSED-by-name: composeWorkoutHost requires a WebCrypto SubtleCrypto (importKey and verify) when subtle is supplied
+PROBE importKey-only:     REFUSED-by-name: composeWorkoutHost requires a WebCrypto SubtleCrypto (importKey and verify) when subtle is supplied
+PROBE empty-object:       REFUSED-by-name: ...(same message)
+PROBE verify-not-a-function: REFUSED-by-name: ...(same message)
+PROBE both-members (a real SubtleCrypto): COMPOSED
+PROBE absent (undefined): COMPOSED
+PROBE R2 DONE
+```
+
+Both halves of a SubtleCrypto are now refused at composition, by name, with one message; a real
+`webcrypto.subtle` and an absent `subtle` are still not refused. On `d5c140c` the first line was
+`COMPOSED` followed by a silent `LEASE_PROOF_UNPROVEN`. **F1 is closed.**
+
+## R2.4 Mutants re-applied on `c4132f9` - 3 applied, 3 caught, tree restored
+
+| # | mutant | observed | caught |
+|---|---|---|---|
+| M4 (re-applied) | remove the guard entirely | `tests 9 pass 7 fail 2` exit 1 | YES |
+| M10 (new) | revert the guard to round 1's `verify`-only form | `tests 9 pass 7 fail 2` exit 1 | YES |
+| M11 (new) | keep only the `importKey` half, drop the `verify` half | `tests 9 pass 7 fail 2` exit 1 | YES |
+
+M10 is the one that matters: the round-1 guard is now itself a detected regression, so the fix is
+pinned by the test rather than by the comment. M11 shows the test pins BOTH conjuncts, not just the
+new one. Each file was restored with `git checkout --`; `git status --porcelain` empty after each.
+
+Final state of W: `node --test host/test/journey.test.mjs host/test/engine-equivalence.test.cjs
+host/test/host-seams.test.mjs` -> `tests 31  pass 31  fail 0`, exit 0; working tree clean; the
+throw-away `.tmp/probe/` directory deleted.
+
+## R2.5 CI at `c4132f9` - both workflows completed/success
+
+```
+$ node work/lane-c/tools/ci-status.js rebuild/polish-p2 c4132f9cd9309e69d39f3a3b0aa7921d66565bdf
+c4132f9 pipeline   completed  success  34659669273  2026-09-11T23:52:31Z
+c4132f9 rebuild    completed  success  34659669290  2026-09-11T23:52:31Z
+exit 0
+```
+
+Round 2 run ids: **pipeline `34659669273`**, **rebuild `34659669290`**, both at `c4132f9`, and
+`rebuild` is still the `[ubuntu-latest, windows-latest]` matrix. No polling was needed; both were
+already complete. The token was never printed.
+
+## R2.6 Residuals and one new bookkeeping note
+
+* **F1 - CLOSED** at `c4132f9`, verified above by probe and by mutants M10/M11.
+* **F2 - STILL OPEN.** Round 2 did not touch `.github`, so `rebuild.yml:87` still names only
+  `journey.test.mjs` and `engine-equivalence.test.cjs`; the 9 tests in `host-seams.test.mjs` -
+  now 7 bad-`subtle` cases instead of 5 - still run on neither runner, and the green `rebuild` run
+  at `c4132f9` contains no evidence from them. The proof obligation in F2 stands unchanged, and
+  the Node >= 22.15.0 `registerHooks` floor still applies. Correctly out of custody here.
+* **F3 - STILL OPEN by design.** The delta does not change the default; `subtle` is still forwarded
+  as `undefined` when no caller names it. The proof obligation in F3 stands as a separate slice if
+  the PM ever wants C1's literal `crypto.subtle` default.
+* **F5 (new, trivial, bookkeeping).** Round 2 appended no `rebuild/lanes/STATUS.md` line. The only
+  STATUS line on this branch is round 1's `2026-09-11 18:30 ET ... rebuild/polish-p2 @ f51f6ac ...
+  next: independent review`, which now names neither the reviewed sha nor the round-2 sha and still
+  reads "unreviewed". Not a defect in the work and not something the reviewer will fix; the PM
+  should append the closing STATUS line naming `c4132f9`, ACCEPT, and the two CI run ids at merge.
+
+FINAL VERDICT (ROUND 2): **ACCEPT at `c4132f9cd9309e69d39f3a3b0aa7921d66565bdf`**. F1 closed and
+independently re-verified; F2 and F3 remain open as recorded, both correctly outside this branch's
+custody; F5 is a one-line bookkeeping item for the merge. Nothing in this delta was fixed, edited or
+touched by the reviewer.
