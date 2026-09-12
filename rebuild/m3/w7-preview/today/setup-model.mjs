@@ -12,6 +12,9 @@
 // REQUIRED_EXERCISE come out of the constructor's own module, so a member added
 // upstream fails this flow's tests instead of silently going unsent.
 import AthleteState from '../../../m4/workout/athlete-state.cjs';
+/* A4b: the kind of each training day is PROPOSED, not asked (DECISIONS:125 (1)).
+   The rule lives in its own pure module so a different ruling is one file. */
+import { proposeKinds } from './split-kinds.mjs';
 
 export const { REQUIRED_SETUP, REQUIRED_EXERCISE } = AthleteState;
 export const { createCleanInitState } = AthleteState;
@@ -81,6 +84,30 @@ export const COPY = Object.freeze({
   screen2Head: 'Which days?',
   screen2Lead: 'Tap the days you will be in the gym, then say what each one is. You can change this whenever your week changes.',
   screen2Kinds: 'Earned plans two kinds of day so far: upper body and lower body.',
+  /* A4b screen 2 (DECISIONS:125 (1), confirmed :129 (3)). He picks the days;
+     Earned says what each one is. The MECHANISM is Earned's own and the screen
+     says so in its own words: no published standard states it, and inventing a
+     citation for it would be worse than admitting the invention. What it is FOR
+     is cited, in the next line. */
+  screen2Proposal: 'Tap the days you will be in the gym. Earned says what each day is.',
+  screen2Rule: 'Earned alternates upper and lower down your week, and when the count is odd it repeats the kind across your longest gap. That is Earned’s own rule, not a published standard. Change any day and Earned will leave it alone after that.',
+  /* WHAT THE RULE IS FOR, which is not invented (DECISIONS:129 (3)): each muscle
+     worked about twice a week with roughly two days between sessions of the same
+     kind. The citation itself lives in split-kinds.mjs's header, where a source
+     belongs; the screen says the intent in his words and no digits. */
+  screen2Why: 'The point is to work each muscle about twice a week, with a couple of days between sessions of the same kind.',
+  screen2Yours: 'Your choice',
+  screen2Ours: 'Earned’s suggestion',
+  /* The F1 sentence, verbatim from DECISIONS:125 (2). It is shown only while a
+     two-day week is what he has chosen, and it will clear itself the day F1
+     merges, with no edit here. */
+  /* The WORDS are DECISIONS:125 (2)'s, unchanged. The apostrophe is typography:
+     the ledger prints it straight, the rest of this screen prints it curly, and
+     :132 (3) rules that one screen uses one apostrophe. Nothing else moved. */
+  screen2TwoDays: 'With two days, Earned’s full-body plan is coming; for now one upper day and one lower day.',
+  /* Its sibling. One day is the same shortfall, further along, and saying it
+     only for two days would be a silence for the athlete who has less. */
+  screen2OneDay: 'With one day, Earned can give you one upper day. A second day is what lets it cover your lower body at all.',
   screen3Head: 'What you will do.',
   screen3Lead: 'Name what you actually use. A machine’s own label is a fine name.',
   screen3NoLoad: 'Do not add a weight yet. Earned asks for that at the gym, on the day.',
@@ -90,6 +117,27 @@ export const COPY = Object.freeze({
   hiLabel: 'Reps you aim to reach before the weight goes up',
   worksLabel: 'What does it work?',
   exerciseNameLabel: 'What is it called?',
+  /* A4b screen 3 (DECISIONS:127 (1)): TWO DOORS, both landing on one editable
+     week. Neither door asks a beginner what a lift targets. */
+  doorsHead: 'How do you want to start?',
+  doorBuild: 'Build my week for me',
+  doorBuildBody: 'Earned fills the days you chose with a starting set of exercises. Rename, remove or add anything afterwards.',
+  doorChoose: 'I’ll choose',
+  doorChooseBody: 'Search by name, or say what you want to work and pick from there.',
+  doorSwitchToBuild: 'Or let Earned build it for me',
+  doorSwitchToChoose: 'Or pick them myself',
+  doorRebuild: 'Build it again',
+  searchLabel: 'Search for an exercise',
+  searchNone: 'Nothing by that name yet. You can add it yourself below.',
+  workLabel: 'What do you want to work?',
+  groupBack: 'Back to all of them',
+  addFromCatalogue: 'Add',
+  customHead: 'Not in the list?',
+  customRegionRequired: 'Pick a part of it. Earned counts arms and legs one muscle at a time, so it needs to know which one.',
+  /* The band sentences. Both are arithmetic said out loud, never a reassurance:
+     A4B-BRIEF 4.4, over the engine's own VOL_BANDS (constants.cjs:327). */
+  floorSentence: 'Two days is the floor of what Earned can count, not the middle of it. Each muscle gets six sets a week here, and Earned’s band starts at eight.',
+  minorsSentence: 'At two days there is no room for arms or shoulders on their own. They get worked by the presses and the rows, and Earned does not yet count that toward them.',
   screen4Head: 'What the weights do.',
   screen4Lead: 'This is about the machine, not about you. Look at the stack or the plates and tell us what it can make.',
   screen4Hint: 'For example, the lightest pin, and how far apart the pins are.',
@@ -103,6 +151,14 @@ export const COPY = Object.freeze({
   screen6Head: 'Here’s your week.',
   screen6NoLoad: 'We have not put a weight on anything. On your first session Earned will ask you to pick a load you can control, and whatever that gives is where you start.',
   repsWord: 'reps',
+  /* DECISIONS:133 (2). An exercise he has not named yet still has to be TALKED
+     ABOUT: in the summary rows, in the equipment rows and in the gaps. The mock
+     had a fallback for exactly this and the build lost it, so an unnamed row
+     printed its punctuation and nothing else. Two words because the ledger uses
+     two: the ROW says which one it is ("One exercise (unnamed)") and a GAP takes
+     it as a subject ("One exercise has nothing it works yet."). */
+  unnamedExercise: 'One exercise (unnamed)',
+  unnamedSubject: 'One exercise',
   jumpWord: 'jump',
   unknownWord: 'not answered yet',
   setupEntry: 'Set up your week',
@@ -121,6 +177,22 @@ export const COPY = Object.freeze({
   restWord: 'Rest',
   saveRefused: 'Your week could not be recorded on this device, and no part of it was recorded.',
   alreadyRecorded: 'This device is already set up. Nothing was recorded.',
+});
+
+/* A4b, the picker's two layers in plain words (DECISIONS:127 (3)). DISPLAY ONLY,
+   exactly as MG_GLOSS is: what the catalogue stores and what the document
+   carries is always the engine's own label, never one of these. The words
+   themselves are INVENTED - the engine names only the three delt heads
+   (constants.cjs:333) - and no stored value is derived from them. */
+export const GROUP_WORDS = Object.freeze({
+  chest: 'Chest', back: 'Back', shoulders: 'Shoulders',
+  arms: 'Arms', legs: 'Legs', core: 'Core',
+});
+export const REGION_WORDS = Object.freeze({
+  lats: 'Lats', upper_back: 'Upper back', traps: 'Traps', lower_back: 'Lower back',
+  delts_front: 'Front delts', delts_side: 'Side delts', delts_rear: 'Rear delts',
+  biceps: 'Biceps', triceps: 'Triceps', forearms: 'Forearms',
+  quads: 'Quads', hams: 'Hamstrings', glutes: 'Glutes', calves: 'Calves', abs: 'Abs',
 });
 
 /* The validation words, verbatim from BRIEF.md sections 3 and 6. Shown quietly,
@@ -207,9 +279,15 @@ export function createSetupAnswers() {
   return answers;
 }
 let nextKey = 0;
+/* head and secondary are A4b's tags. They never reach the DOCUMENT - closed()
+   throws on a ninth member (athlete-state.cjs:65-71) - they ride the op's third
+   payload member instead (A4B-BRIEF 5). A hand-added lift starts untagged, which
+   is honest: head null means "bucketed by mg", exactly what the engine does with
+   a lift that has no head (volume.cjs:74). */
 export function newExercise(day) {
   nextKey += 1;
-  return { key: 'x' + nextKey, day, n: '', mg: '', mgSource: null, first: '', inc: '', rungs: '' };
+  return { key: 'x' + nextKey, day, n: '', mg: '', mgSource: null, first: '', inc: '', rungs: '',
+    head: null, secondary: [] };
 }
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -234,6 +312,20 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
      screen 3 for the first time does not arrive pre-scolded. */
   const shownOn = new Set();
 
+  /* The days he has claimed a kind for HIMSELF. Held beside the answers rather
+     than inside them: it is provenance, not an answer, and the document never
+     carries it. */
+  const overrides = {};
+  const chosenDays = () => WEEKDAYS.filter((d) => answers.days[d] !== null).map(Number);
+  /* Re-propose every training day that is not an override (A4b, S27). */
+  const repropose = () => {
+    const proposed = proposeKinds(chosenDays());
+    for (const d of WEEKDAYS) {
+      if (answers.days[d] === null || Object.hasOwn(overrides, d)) continue;
+      answers.days[d] = proposed[Number(d)] || '';
+    }
+  };
+
   const kindsInSplit = () => DAY_KINDS.filter((k) => WEEKDAYS.some((d) => answers.days[d] === k));
   const forKind = (kind) => answers.exercises.filter((e) => e.day === kind);
 
@@ -256,19 +348,38 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
 
     setName(value) { answers.name = typeof value === 'string' ? value : ''; return answers.name; },
 
-    /* A day tapped on becomes a training day with no kind yet; tapped off it is
-       written REST. Turning a day off is his own act, not a navigation. */
+    /* A4b, DECISIONS:125 (1): he picks the DAYS and Earned proposes the kind.
+       A day tapped on becomes a training day and the whole week is re-proposed
+       around it; tapped off it is written REST and its override, if it had one,
+       goes with it. Turning a day off is his own act, not a navigation. */
     toggleDay(d) {
       if (!WEEKDAYS.includes(d)) return null;
-      answers.days[d] = answers.days[d] === null ? '' : null;
+      if (answers.days[d] === null) answers.days[d] = '';
+      else { answers.days[d] = null; delete overrides[d]; }
+      repropose();
       return answers.days[d];
     },
+    /* THE OVERRIDE (S27). A tap on the kind a day is merely SHOWING makes that
+       kind his, and from then on no re-proposal may move it: adding a day later
+       re-proposes the days he has not spoken for and leaves his alone. A second
+       tap on a kind he already claimed gives the day back to the proposal, and
+       the day is left unanswered rather than silently re-proposed, because
+       clearing an answer must not look like choosing one. */
     setDayKind(d, kind) {
       if (!WEEKDAYS.includes(d) || !DAY_KINDS.includes(kind)) return null;
       if (answers.days[d] === null) return null;
-      answers.days[d] = answers.days[d] === kind ? '' : kind;
+      if (Object.hasOwn(overrides, d) && answers.days[d] === kind) {
+        answers.days[d] = '';
+        delete overrides[d];
+      } else {
+        answers.days[d] = kind;
+        overrides[d] = kind;
+      }
       return answers.days[d];
     },
+    /* What the screen needs to say which days he spoke for himself. */
+    overrides: () => ({ ...overrides }),
+    proposedKinds: () => proposeKinds(chosenDays()),
 
     /* THE STANDARD START (S5, M20). Both values are ALWAYS held: tapping the
        selected chip again leaves it exactly where it is, choosing another value
@@ -289,6 +400,74 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
       answers.exercises.push(row);
       return clone(row);
     },
+    /* THE "BUILD MY WEEK FOR ME" DOOR (A4B-BRIEF 3.1). It REPLACES the rows the
+       proposer owns and nothing else: a lift he added by hand before opening the
+       door survives, because deleting his own work to make room for a proposal
+       would be the app overruling him. Every proposed row is an ordinary answer
+       row afterwards - renameable, removable, retaggable - which is what makes
+       both doors land on the same editable week (S34). */
+    applyProposal(rows, tags) {
+      if (!Array.isArray(rows)) return null;
+      const mine = answers.exercises.filter((e) => e.source !== 'proposal');
+      const added = [];
+      for (const r of rows) {
+        if (!r || !DAY_KINDS.includes(r.day)) continue;
+        const tag = (tags && r && tags[r.id]) || r || {};
+        nextKey += 1;
+        added.push({
+          key: 'p' + nextKey, day: r.day,
+          n: typeof r.n === 'string' ? r.n : '',
+          mg: typeof r.mg === 'string' ? r.mg : '',
+          mgSource: 'label', first: '', inc: '', rungs: '',
+          head: typeof tag.head === 'string' && tag.head ? tag.head : null,
+          secondary: Array.isArray(tag.secondary) ? clone(tag.secondary) : [],
+          source: 'proposal',
+        });
+      }
+      answers.exercises = mine.concat(added);
+      /* sets and hi stay the athlete's screen-3 choice: the proposal carries
+         A4's standards and may not silently overwrite a value he set. */
+      return added.map(clone);
+    },
+    /* Enthusiasts may edit every tag on any entry, catalogue-sourced or custom
+       (BRIEF 3.3). Refuses rather than storing a tag the engine cannot read. */
+    setHead(key, head) {
+      const row = answers.exercises.find((e) => e.key === key);
+      if (!row) return null;
+      if (head !== null && !(typeof head === 'string' && head.trim())) return null;
+      row.head = head === null ? null : head.trim();
+      return row.head;
+    },
+    setSecondary(key, list) {
+      const row = answers.exercises.find((e) => e.key === key);
+      if (!row || !Array.isArray(list)) return null;
+      for (const s of list) {
+        if (!s || typeof s !== 'object' || Array.isArray(s)) return null;
+        if (Object.keys(s).length !== 2) return null;
+        if (typeof s.mg !== 'string' || !s.mg.trim()) return null;
+        if (typeof s.lend !== 'number' || !Number.isFinite(s.lend) || s.lend <= 0 || s.lend > 1) return null;
+      }
+      row.secondary = list.map((s) => ({ mg: s.mg.trim(), lend: s.lend }));
+      return clone(row.secondary);
+    },
+
+    /* The "I'll choose" door (A4B-BRIEF 3.3). A catalogue entry, or the
+       two-layer picker's product, becomes an ordinary answer row carrying its
+       tags. It is NOT marked as the proposal's, so re-opening the other door
+       never deletes it. */
+    addFromCatalogue(kind, entry) {
+      if (!DAY_KINDS.includes(kind) || !entry || typeof entry.n !== 'string' || !entry.n.trim()) return null;
+      if (typeof entry.mg !== 'string' || !entry.mg.trim()) return null;
+      const row = newExercise(kind);
+      row.n = entry.n;
+      row.mg = entry.mg;
+      row.mgSource = MG_LABELS.includes(entry.mg) ? 'label' : 'other';
+      row.head = typeof entry.head === 'string' && entry.head ? entry.head : null;
+      row.secondary = Array.isArray(entry.secondary) ? clone(entry.secondary) : [];
+      answers.exercises.push(row);
+      return clone(row);
+    },
+
     removeExercise(key) {
       const at = answers.exercises.findIndex((e) => e.key === key);
       if (at < 0) return false;
@@ -374,11 +553,15 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
     missingExercises() {
       const out = [];
       for (const row of answers.exercises) {
-        const label = trim(row.n);
-        if (label === '') {
+        /* DECISIONS:133 (2). The SUBJECT of every gap about this exercise, so no
+           sentence can start with a blank or a stray comma. An unnamed exercise
+           is named as a gap of its own AND still speaks for its other gaps: the
+           owner saw all three at once, and hiding two of them behind the first
+           would make the screen under-report what it knows is missing. */
+        const label = exerciseSubject(row.n);
+        if (!hasName(row.n)) {
           out.push({ screen: 3, key: row.key, code: 'CLEAN_INIT_EXERCISE_REQUIRED',
             copy: MISSING.exerciseName.replace('KIND', DAY_KIND_WORDS[row.day].toLowerCase()) });
-          continue;
         }
         if (trim(row.mg) === '') {
           out.push({ screen: 3, key: row.key, code: 'CLEAN_INIT_EXERCISE_REQUIRED',
@@ -409,16 +592,26 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
        built while anything is missing: createCleanInitState is never called. */
     document() {
       const missing = api.missing();
-      if (missing.length) return { ok: false, missing, setup: null };
+      if (missing.length) return { ok: false, missing, setup: null, tags: null };
       const map = Object.fromEntries(WEEKDAYS.map((d) =>
         [d, DAY_KINDS.includes(answers.days[d]) ? answers.days[d] : REST]));
       const taken = new Set();
+      /* The tags, keyed by the DOCUMENT's id, not the answer row's key: the id is
+         only decided here, by slugOf against the ids already taken, so this is
+         the one place the two key sets can be made to match exactly (BRIEF 5). */
+      const tags = {};
       const exercises = answers.exercises.map((row) => {
         const rungs = parseRungs(row.rungs);
         const first = numberOf(row.first);
         const inc = numberOf(row.inc);
+        const id = slugOf(row.n, taken);
+        tags[id] = {
+          head: typeof row.head === 'string' && row.head.trim() ? row.head.trim() : null,
+          secondary: (Array.isArray(row.secondary) ? row.secondary : [])
+            .map((s) => ({ mg: s.mg, lend: s.lend })),
+        };
         return {
-          id: slugOf(row.n, taken),
+          id,
           n: trim(row.n),
           mg: trim(row.mg),
           day: row.day,
@@ -437,7 +630,7 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
         exercises,
         priority_muscles: answers.priorities.slice(),
       };
-      return { ok: true, missing: [], setup };
+      return { ok: true, missing: [], setup, tags };
     },
   };
   return api;
@@ -451,14 +644,31 @@ export const standardStepLine = () => 'Leave the jump blank and Earned uses '
   + STANDARD_INC + ' ' + STANDARD_INC_UNIT + ', its standard step. Change it if yours is different.';
 export const standardStepSummary = () => 'jump: ' + STANDARD_INC + ' ' + STANDARD_INC_UNIT
   + ', Earned’s standard step';
+/* DECISIONS:133 (2). THE ONE PLACE THAT DECIDES WHETHER AN EXERCISE HAS A NAME.
+   A name is present when it carries at least one letter or digit: that is the
+   honest test, because the owner's own row was a lone comma and a lone comma is
+   not a name. Everything that talks about an exercise - the two summary rows and
+   every gap sentence - asks THIS, so the three defects cannot come back one at a
+   time. `named()` is the row wording, `subject()` the sentence wording. */
+export const hasName = (value) => /[\p{L}\p{N}]/u.test(typeof value === 'string' ? value : '');
+export const namedExercise = (value) => (hasName(value) ? value.trim() : COPY.unnamedExercise);
+export const exerciseSubject = (value) => (hasName(value) ? value.trim() : COPY.unnamedSubject);
+
+/* The per-exercise line on screen 6, as the owner asked for it (:133 (2)):
+   "3 sets - aim for 10 reps", a sentence, not the screen-3 field label. The two
+   digits are HIS answers, the same two S8 already allows on this screen. */
+export const setsLine = (sets, hi) => sets + ' sets · aim for ' + hi + ' ' + COPY.repsWord;
+
 export const counterLine = (n) => n + ' of ' + SCREENS;
 export const glossFor = (label) => (MG_GLOSS[label] ? label + ' (' + MG_GLOSS[label] + ')' : label);
 
 export default {
   createSetupModel, createSetupAnswers, newExercise, parseRungs, isAscending, slugOf, localISO,
-  MG_LABELS, MG_GLOSS, STANDARD_SETS, STANDARD_HI, STANDARD_INC, STANDARD_INC_UNIT,
+  MG_LABELS, MG_GLOSS, GROUP_WORDS, REGION_WORDS,
+  STANDARD_SETS, STANDARD_HI, STANDARD_INC, STANDARD_INC_UNIT,
   SETS_OPTIONS, HI_OPTIONS, WEEKDAYS, WEEKDAY_NAMES, DAY_KINDS, DAY_KIND_WORDS, REST,
   SCREENS, COPY, VALIDATION, MISSING, REFUSAL_SENTENCES, REQUIRED_SETUP, REQUIRED_EXERCISE,
   createCleanInitState, dayKindValidation, standardStartLine, standardStepLine,
   standardStepSummary, counterLine, glossFor,
+  hasName, namedExercise, exerciseSubject, setsLine,
 };

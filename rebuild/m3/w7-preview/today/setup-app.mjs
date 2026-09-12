@@ -21,13 +21,24 @@ import Model from './setup-model.mjs';
    down. A4's own copy is dash-free by construction and its suite asserts that; this is
    the boundary for anything composed beside it. */
 import PlainCopy from './plain-copy.cjs';
+/* A4b: the catalogue and the starter week. Both are pure data-and-arithmetic
+   modules with no DOM and no store, so this view stays the only thing here that
+   knows about the document. */
+import { GROUPS, searchByName, regionsOf, entriesFor, customEntry } from './exercise-catalogue.mjs';
+import { proposeWeek } from './starter-week.mjs';
 
 const { plainOrDrop } = PlainCopy;
 const { ARROW } = TodayApp;
 const { COPY, VALIDATION, MISSING, MG_LABELS, SETS_OPTIONS, HI_OPTIONS, WEEKDAYS,
   WEEKDAY_NAMES, DAY_KINDS, DAY_KIND_WORDS, SCREENS, STANDARD_INC, STANDARD_INC_UNIT,
+  GROUP_WORDS, REGION_WORDS,
   standardStartLine, standardStepLine, standardStepSummary, counterLine, glossFor,
-  dayKindValidation, parseRungs } = Model;
+  dayKindValidation, parseRungs,
+  /* DECISIONS:133 (2): the one naming predicate and the summary's sets line. */
+  namedExercise, setsLine } = Model;
+
+const groupWord = (g) => GROUP_WORDS[g] || g;
+const regionWord = (r) => REGION_WORDS[r] || r;
 
 export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   if (!phone) throw new Error('First run: no host element');
@@ -35,6 +46,16 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   let entered = false;
   let message = '';
   const openRungs = new Set();
+  /* SCREEN 3'S VIEW STATE, and nothing else's. Which door he is standing in,
+     which group and region the picker has open, and what he has typed into the
+     two boxes. None of it is an answer, none of it reaches the model, and none
+     of it reaches the document: closing the page loses exactly this and no
+     answer with it. */
+  let door = null;
+  let group = null;
+  let region = null;
+  let query = '';
+  let custom = '';
 
   const el = (tag, className, text, where) => {
     const node = doc.createElement(tag);
@@ -83,9 +104,13 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   }
 
   /* ---------------------------------------------------------------- screen 2
-     Seven weekday toggles; a day that is on asks which kind it is. A day left
-     off is written REST explicitly (athlete-state.cjs:82-92, S7). */
+     A4b (DECISIONS:125 (1)): seven weekday toggles, and Earned says what each
+     chosen day IS. The kind chips stay, because the proposal is a proposal: a
+     tap makes the day his and the model stops re-proposing it. A day left off
+     is written REST explicitly (athlete-state.cjs:82-92, S7). */
   function screen2(body, answers) {
+    body.append(el('p', 'small muted', COPY.screen2Proposal));
+    const mine = model.overrides();
     for (const d of WEEKDAYS) {
       const name = WEEKDAY_NAMES[Number(d)];
       const block = el('fieldset', 'question');
@@ -98,17 +123,190 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
         }
       }
       block.append(legend, row);
+      /* Whose choice this day's kind is, said plainly, so a proposal is never
+         mistaken for something he answered. */
+      if (DAY_KINDS.includes(answers.days[d])) {
+        block.append(el('p', 'fine', Object.hasOwn(mine, d) ? COPY.screen2Yours : COPY.screen2Ours));
+      }
       if (model.validationShown() && answers.days[d] === '') {
         block.append(el('p', 'small muted', dayKindValidation(name)));
       }
       body.append(block);
     }
+    /* The rule, declared as Earned's own invention, under the days it moved, and
+       beneath it what the rule is FOR, which is not invented (DECISIONS:129 (3);
+       the citation itself is in split-kinds.mjs, not on the screen). */
+    body.append(el('p', 'small muted', COPY.screen2Rule));
+    body.append(el('p', 'small muted', COPY.screen2Why));
+    /* The honest sentences for the weeks the engine cannot yet serve well
+       (DECISIONS:125 (2), F1). Predicate only: they appear when the week is that
+       small and clear the moment it is not. */
+    const chosen = WEEKDAYS.filter((d) => answers.days[d] !== null).length;
+    if (chosen === 1) body.append(el('p', 'small muted', COPY.screen2OneDay));
+    if (chosen === 2) body.append(el('p', 'small muted', COPY.screen2TwoDays));
   }
 
   /* ---------------------------------------------------------------- screen 3
-     The standard start, PROPOSED and pre-selected, then one list per session
-     kind the split actually contains. */
+     A4b (DECISIONS:127 (1)): TWO DOORS, then the SAME editable week behind both.
+     The door is a view state, never an answer: it is not in the model and not in
+     the document, and switching doors adds nothing and destroys nothing. */
+  function doorsPanel(body) {
+    const panel = el('div', 'followup');
+    panel.append(el('p', 'section-label', COPY.doorsHead));
+    for (const [key, label, blurb] of [
+      ['build', COPY.doorBuild, COPY.doorBuildBody],
+      ['choose', COPY.doorChoose, COPY.doorChooseBody]]) {
+      const button = el('button', 'option', label);
+      button.type = 'button';
+      button.setAttribute('aria-pressed', String(door === key));
+      button.addEventListener('click', () => { openDoor(key); paint(); });
+      panel.append(button);
+      panel.append(el('p', 'fine', blurb));
+    }
+    body.append(panel);
+  }
+
+  /* "Build my week for me". The proposal is computed from the days he chose and
+     nothing else, and it REPLACES only its own previous rows. */
+  function openDoor(key) {
+    door = key;
+    if (key !== 'build') return;
+    const kinds = {};
+    const answers = model.answers();
+    for (const d of WEEKDAYS) if (DAY_KINDS.includes(answers.days[d])) kinds[Number(d)] = answers.days[d];
+    const week = proposeWeek({ kinds, sets: answers.sets, hi: answers.hi });
+    model.applyProposal(week.rows, week.tags);
+  }
+
+  /* The kind a catalogue entry goes on: the first of its own kinds his split
+     actually contains, so nothing lands on a day he does not train. */
+  function kindFor(entry) {
+    const inSplit = model.kindsInSplit();
+    for (const k of entry.kinds || []) if (inSplit.includes(k)) return k;
+    return inSplit[0] || null;
+  }
+
+  function addEntry(entry) {
+    const kind = kindFor(entry);
+    if (!kind) return;
+    model.addFromCatalogue(kind, entry);
+  }
+
+  /* A box whose CONTENT changes what is on the screen below it repaints when he
+     is done typing, never on every keystroke: repainting mid-word would take the
+     caret out of his hands, which is the one thing a text field may not do. */
+  function repaintOnChange(wrap) {
+    const input = wrap.querySelector('input');
+    if (input) input.addEventListener('change', () => paint());
+    return wrap;
+  }
+
+  /* Door two, layer zero: by name. Matches n and every alias, case-insensitive
+     (DECISIONS:127 (2)); it never asks him what the lift targets. */
+  function searchPanel(body) {
+    const panel = el('div', 'followup');
+    panel.append(repaintOnChange(textField('setup-search', COPY.searchLabel, query, (v) => { query = v; })));
+    const found = searchByName(query, { limit: 8 });
+    if (query.trim() !== '' && found.length === 0) panel.append(el('p', 'small muted', COPY.searchNone));
+    for (const entry of found) {
+      const line = el('div', 'row');
+      line.append(el('span', null, entry.n));
+      const add = el('button', 'text-link', COPY.addFromCatalogue);
+      add.type = 'button';
+      add.addEventListener('click', () => { addEntry(entry); query = ''; paint(); });
+      line.append(add);
+      panel.append(line);
+    }
+    body.append(panel);
+  }
+
+  /* Layer one and layer two: six groups, then that group's regions, then its
+     lifts. Stopping at the group is complete where the group names one engine
+     bucket; where it does not, the screen says so instead of guessing. */
+  function pickerPanel(body) {
+    const panel = el('div', 'followup');
+    panel.append(el('p', 'quality-label', COPY.workLabel));
+    if (group === null) {
+      const row = el('div', 'options');
+      for (const g of GROUPS) row.append(chip(groupWord(g), false, () => { group = g; region = null; }));
+      panel.append(row);
+      body.append(panel);
+      return;
+    }
+    const back = el('button', 'text-link', COPY.groupBack);
+    back.type = 'button';
+    back.addEventListener('click', () => { group = null; region = null; paint(); });
+    panel.append(back);
+    const regions = regionsOf(group);
+    if (regions.length) {
+      const row = el('div', 'options');
+      for (const r of regions) row.append(chip(regionWord(r), region === r, () => { region = region === r ? null : r; }));
+      panel.append(row);
+    }
+    for (const entry of entriesFor(group, region)) {
+      const line = el('div', 'row');
+      line.append(el('span', null, entry.n));
+      const add = el('button', 'text-link', COPY.addFromCatalogue);
+      add.type = 'button';
+      add.addEventListener('click', () => { addEntry(entry); paint(); });
+      line.append(add);
+      panel.append(line);
+    }
+    /* The custom picker (DECISIONS:127 (3)): his own name, tagged by the door he
+       is standing in. */
+    panel.append(el('p', 'quality-label', COPY.customHead));
+    panel.append(repaintOnChange(textField('setup-custom', COPY.exerciseNameLabel, custom, (v) => { custom = v; })));
+    const made = customEntry({ group, region, name: custom });
+    const addCustom = el('button', 'text-link', COPY.addFromCatalogue);
+    addCustom.type = 'button';
+    addCustom.id = 'setup-custom-add';
+    addCustom.disabled = !!made.error;
+    addCustom.addEventListener('click', () => {
+      const entry = customEntry({ group, region, name: custom });
+      if (entry.error) return;
+      addEntry(entry);
+      custom = '';
+      paint();
+    });
+    panel.append(addCustom);
+    if (custom.trim() !== '' && made.error === 'CUSTOM_REGION_REQUIRED') {
+      panel.append(el('p', 'small muted', COPY.customRegionRequired));
+    }
+    body.append(panel);
+  }
+
+  /* Both doors land on the SAME editable week (S34), so the week itself is NOT
+     behind either of them: the standard start and the per-kind lists are always
+     on the screen, and the doors sit above them as two ways to fill them. A door
+     is therefore never a wall - the other one stays one tap away, and so does
+     adding a lift by hand, exactly as A4 already allowed. */
   function screen3(body, answers) {
+    doorsPanel(body);
+    /* The arithmetic, said out loud, for the week sizes the bands cannot hold
+       (A4B-BRIEF 4.4). Predicate only, over the days he actually chose. */
+    const trainingDays = WEEKDAYS.filter((d) => DAY_KINDS.includes(answers.days[d])).length;
+    if (trainingDays > 0 && trainingDays <= 2) {
+      body.append(el('p', 'small muted', COPY.floorSentence));
+      body.append(el('p', 'small muted', COPY.minorsSentence));
+    }
+    if (door !== null) {
+      const switcher = el('button', 'text-link',
+        door === 'build' ? COPY.doorSwitchToChoose : COPY.doorSwitchToBuild);
+      switcher.type = 'button';
+      switcher.addEventListener('click', () => { openDoor(door === 'build' ? 'choose' : 'build'); paint(); });
+      body.append(switcher);
+      if (door === 'build') {
+        const again = el('button', 'text-link', COPY.doorRebuild);
+        again.type = 'button';
+        again.addEventListener('click', () => { openDoor('build'); paint(); });
+        body.append(again);
+      }
+    }
+    if (door === 'choose') { searchPanel(body); pickerPanel(body); }
+    screen3Standard(body, answers);
+  }
+
+  function screen3Standard(body, answers) {
     const standard = el('div', 'followup');
     standard.append(el('p', 'section-label', COPY.standardHead));
     standard.append(el('h2', null, standardStartLine()));
@@ -220,11 +418,11 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       top.append(el('span', 'unit', DAY_KINDS.includes(kind) ? DAY_KIND_WORDS[kind] : COPY.restWord));
       row.append(top);
       const lifts = DAY_KINDS.includes(kind) ? answers.exercises.filter((x) => x.day === kind) : [];
+      /* DECISIONS:133 (2). The row names the exercise even when he has not, and
+         the sets read as a sentence rather than as screen 3's field label. */
       for (const lift of lifts) {
-        const line = lift.n.trim() === '' ? COPY.exerciseNameLabel
-          : lift.n.trim() + ': ' + (lift.mg.trim() || COPY.worksLabel)
-            + ' · ' + COPY.setsLabel.toLowerCase() + ' ' + answers.sets
-            + ' · ' + answers.hi + ' ' + COPY.repsWord;
+        const line = namedExercise(lift.n) + ': ' + (lift.mg.trim() || COPY.worksLabel)
+          + ' · ' + setsLine(answers.sets, answers.hi);
         row.append(el('p', 'fine', line));
       }
       body.append(row);
@@ -234,7 +432,7 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       const step = lift.inc.trim() === '' ? standardStepSummary()
         : COPY.jumpWord + ': ' + lift.inc.trim() + ' ' + STANDARD_INC_UNIT;
       const first = rungs.length ? rungs.join(', ') : lift.first.trim();
-      body.append(el('p', 'fine', (lift.n.trim() || COPY.exerciseNameLabel) + ': '
+      body.append(el('p', 'fine', namedExercise(lift.n) + ': '
         + COPY.firstLabel.toLowerCase() + ' ' + (first === '' ? COPY.unknownWord : first) + ' · ' + step));
     }
     const priorities = el('div', 'macro-row');
@@ -251,11 +449,18 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   function refusalBlock(body, missing) {
     const block = el('div', 'followup');
     block.append(el('p', 'section-label', COPY.refusalHead));
+    /* ONE GAP PER LINE (DECISIONS:133 (2)). These were bare inline buttons, so
+       the browser flowed them into one run-on sentence and the owner read three
+       gaps as one: "... has no exercises in it., has nothing it works yet., has
+       no lightest setting yet.". Each now sits in its own block, and each copy
+       is a whole sentence with a subject (setup-model.mjs missingExercises). */
     for (const item of missing) {
+      const wrap = el('p', 'gap');
       const line = el('button', 'text-link', item.copy);
       line.type = 'button';
       line.addEventListener('click', () => { model.goto(item.screen); paint(true); });
-      block.append(line);
+      wrap.append(line);
+      block.append(wrap);
     }
     body.append(block);
   }
@@ -310,7 +515,13 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       if (!built.ok) { paint(); return; }
       busy = true;
       primary.disabled = true;
-      const result = await onDone(built.setup);
+      /* ONE argument, an ENVELOPE. today-entry.mjs's `onDone(document_)` forwards
+         whatever it is handed, unchanged, to the durable lane; that file is
+         byte-identical to the tip because the merged B-NTC artifact pins the
+         files around it on disk, so A4b's third payload member travels INSIDE
+         the one argument rather than as a second one. setup-host.mjs unpacks it
+         (envelopeOf) and w6 never sees the difference. */
+      const result = await onDone({ setup: built.setup, tags: built.tags });
       busy = false;
       if (!result || result.ok !== true) {
         message = (result && result.copy) || COPY.saveRefused;

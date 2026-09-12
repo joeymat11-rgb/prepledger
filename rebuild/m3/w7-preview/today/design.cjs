@@ -386,8 +386,15 @@ const setupSource = (root = ROOT) => SETUP_SOURCES
 function assertSetupBinding(approved, templateHtml, root = ROOT) {
   const vocabulary = setupVocabulary(root);
   const source = setupSource(root);
+  /* A harvested sentence is UNESCAPED (grab undoes the JS escapes), so a sentence
+     that legitimately contains an apostrophe - A4b's DECISIONS:125 (2) F1
+     sentence quotes the ledger verbatim, apostrophe and all - appears in the
+     source only in its escaped form. Re-escape before looking, so the check
+     still bites on a genuinely missing sentence without failing on a quote. */
+  const asWritten = (line) => line.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   for (const line of [...vocabulary.copy, ...vocabulary.validation, ...vocabulary.refusals]) {
-    assert(source.includes(line), `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
+    assert(source.includes(line) || source.includes(asWritten(line)),
+      `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
   }
   const start = templateHtml.indexOf('<template id="t-setup">');
   assert(start > 0, "SETUP-BINDING FAIL: the first-run screen is not in the shipped template");
