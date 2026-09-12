@@ -1,7 +1,65 @@
 # A4B REPORT ANNEX
 
 Evidence for `A4B-REPORT.md`. Head: `rebuild/lane-c-a4b`, base
-`origin/rebuild/t2-client-core` @ 4ee62da. Three commits.
+`origin/rebuild/t2-client-core` @ d9fee35 (was 4ee62da at round 1; the two moves
+since are docs-only, no B-NTC code has merged, `today-bindings.mjs` untouched by
+them, rebase clean with no conflict).
+
+## 0. ROUND 1 CONDITIONS, EXECUTED
+
+**C1, the stale bundle, RED then GREEN.** The reviewer was right and the failure
+was mine: the page had been served from a dist built before the `:129 (3)` intent
+line went in, so the owner would have judged screen 2 without the sentence the
+ruling requires.
+
+    RED   GET http://127.0.0.1:4178/app.js  (pid 60960)
+          Content-Length 1429197, body 1429004 bytes
+          contains "The point is to work each muscle about twice a week" : False
+          contains "That is Earned...own rule"                           : True
+    FIX   node rebuild/m3/w7-preview/today/build.mjs   -> A1 TODAY BUILD PASS,
+          3 assets, 102 pinned inputs, 68 bound classes
+          stop pid 60960, start rebuild/m3/w7-preview/today/serve.mjs
+    GREEN GET http://127.0.0.1:4178/app.js  (pid 48880)
+          body 1429587 bytes
+          contains "The point is to work each muscle about twice a week" : True
+          contains "not a published standard"                            : True
+          contains "full-body plan is coming"                            : True
+          GET http://127.0.0.1:4178/  -> 200
+
+The +583 bytes are `COPY.screen2Why` and the two lines of `setup-app.mjs` that
+render it. The server now runs on the rebased head's build.
+
+**C2.** `A4B-BRIEF.md` 4.2 amended in place, marked `AMENDED 2026-09-12 (review
+round 1, condition C2; rulings DECISIONS:125 (1), :127 (4), :129 (3))`: the false
+closing sentence is quoted, shown not to follow from the section's own two lists,
+and replaced by a per-kind table. Its opening sentence now says "an UPPER session"
+and points at the amendment. The S32 session-size subtest gained set-count
+assertions: `want * 3` for every cell, plus 15 at `D_L >= 3`, 24 at `D_L <= 2`
+and 24 for upper at every day count. Still 145 pass.
+
+**C3.** The coordinator's REQUESTS line to the PM. Named in the report's owner-look
+notes so the look does not have to rediscover it.
+
+**C4.** `A4B-BRIEF.md` section 1 amended in place, marked `AMENDED 2026-09-12
+(review round 1, condition C4; licence DECISIONS:129 (1))`: the "NOT touched"
+sentence is quoted and corrected, `save(setup, tags)` and the `setupsIn` read-back
+are named as the reason, the count is given as +11/-2, and `today-entry.mjs` (+4)
+and the journey `PAGE_PINS` re-pin (+7) are disclosed beside it.
+
+**C5.** Flagged in the report's owner-look notes. Nothing changed: the sentence is
+verbatim from `:125 (2)`, and normalising its apostrophe to U+2019 would make it
+no longer verbatim. The PM or the owner decides.
+
+**C6.** S44, the hand test. Still a person's.
+
+## 0b. WHAT WAS RE-RUN AFTER THE CONDITIONS
+
+setup 145/145, catalogue 43/43, today 64/64, copy 36/36, gym 64/64, checkin 28/28,
+`build.mjs` PASS. W6 552, journey 51, A0 host 31, w7 19 and the four msedge checks
+were NOT re-run: between e67fde6 and this head the only changes are
+`A4B-BRIEF.md`, the two report files, the two copied review files and one subtest
+of `test/setup.test.mjs`. No licensed non-test file moved, so nothing those suites
+cover can have changed. Section 4 below is the round 1 evidence and stands.
 
 ## 1. HUNKS BY FILE
 
@@ -180,6 +238,13 @@ All on Windows, in the worktree, against this head.
 or 320px, every input >= 16px and every tap target >= 44px MEASURED ON 6 OF THE
 SIX SCREENS, the primary action reachable on every screen, and no U+2013 or
 U+2014 rendered anywhere on them."
+
+## 4b. THE REVIEWER'S OWN MUTANTS
+
+Round 1 added four beyond M21-M32 and all four were killed: R11 the starter week
+under-fills a major (S32, 9 red), R12 a catalogue `lend` of 1.5 (S29), R13 tags
+need not match the document's ids (S35), R14 the starter week invents a load
+(S33). 16 killed, 0 survived.
 
 ## 5. WHAT WAS NOT DONE
 

@@ -30,8 +30,20 @@ CI green). Every number and vocabulary below carries a `file:line` source or is 
 `design.cjs`, `build.mjs` (`REQUIRED_INPUTS` 99 pinned inputs becomes 102). **OUT**, a REQUESTS line and
 never an edit: `rebuild/engine/**`, `rebuild/client/**`, `rebuild/m4/**`
 (`athlete-state.cjs` included), `rebuild/conform/**`, `.github/**`, `rebuild/m3/w6/host/**`, `src`,
-`ledger`. `today-bindings.mjs` is NOT touched: A4's `createSetupHost` already carries the op; A4b changes
-only its payload shape.
+`ledger`.
+
+**AMENDED 2026-09-12 (review round 1, condition C4; licence `DECISIONS:129 (1)`).** This section said
+"`today-bindings.mjs` is NOT touched: A4's `createSetupHost` already carries the op; A4b changes only its
+payload shape". The second half is right and the first half does not follow from it. The op's payload is
+built from what `createSetupHost`'s `save()` is HANDED, and `save(setup)` had no parameter for the third
+member, so carrying `tags` to the producer is a change to that function's signature: `save(setup, tags)`,
+plus `setupsIn` reading `tags` back beside the document (`null` for an op written before A4b). That is
+**+11 / -2 in `rebuild/m3/w6/local/today-bindings.mjs`**, inside the `:129 (1)` licence and inside lane C's
+exclusive hold on that file (`:106 (b)`, `:111`), but it is an EDIT and this brief said there would be
+none. `today-entry.mjs` (+4, the one `onDone(document_, tags_)` hop) and
+`rebuild/m3/w6/test/local-today-journey.test.mjs` (+7, the `PAGE_PINS` re-pin the pin's own failure message
+instructs) are the same case and are named here for the same reason. The other three PAGE_PINS stay
+byte-identical to A4's, which is the check that nothing else in the wrapper moved.
 
 ## 2. SCREEN 2: DAYS ONLY, EARNED PROPOSES THE KIND
 
@@ -162,13 +174,30 @@ to 7 LOW, **8 to 14 IN-BAND**, 15 to 22 HIGH, over 22 OVER. With A4's standard `
 
 ### 4.2 What "major muscle" means, per kind
 
-**INVENTED**, declared here and named on screen. Four majors per kind, chosen so the session stays at eight
-lifts. **UPPER majors**: chest, lats, upper_back, delts_side. **LOWER majors**: quads, hams, glutes, calves.
+**INVENTED**, declared here and named on screen. Four majors per kind, chosen so an UPPER session stays at
+eight lifts (see the C2 amendment below for what that does and does not imply for a LOWER one). **UPPER majors**: chest, lats, upper_back, delts_side. **LOWER majors**: quads, hams, glutes, calves.
 **Minors**, placed only when the session budget allows: delts_front, delts_rear, biceps, triceps, abs.
 `forearms`, `traps` and `lower_back` are never placed directly; they are indirect-credit buckets
 (`constants.cjs:330`). Composition rule: `lifts(major, D) = 2 if D <= 2 else 1`; minors get 1 lift each only
-when `D >= 3`. Session size is therefore always **8 lifts x 3 sets = 24 sets** at every day count, and no
-session length is promised on screen.
+when `D >= 3`. No session length is promised on screen.
+
+**AMENDED 2026-09-12 (review round 1, condition C2; rulings `DECISIONS:125 (1)`, `:127 (4)`, `:129 (3)`).**
+This paragraph ended "Session size is therefore always **8 lifts x 3 sets = 24 sets** at every day count".
+That does not follow from the two lists above it and is false. Four of the five minors are UPPER lifts and
+exactly one is LOWER: in `exercise-catalogue.mjs`, `delts_front`, `delts_rear`, `biceps` and `triceps` carry
+`kinds: ["U"]` and `abs` carries `kinds: ["L"]`. So the true per-kind sizes are:
+
+| | D <= 2 | D >= 3 |
+|---|---|---|
+| UPPER session | 4 majors x 2 = **8 lifts / 24 sets** | 4 majors x 1 + 4 minors = **8 lifts / 24 sets** |
+| LOWER session | 4 majors x 2 = **8 lifts / 24 sets** | 4 majors x 1 + `abs` = **5 lifts / 15 sets** |
+
+The fix is NOT to place a second lift on a lower major at `D_L >= 3`: that would put quads, hams, glutes and
+calves at 18 sets a week, HIGH, outside the very band section 4 exists to land inside. Nor is it to invent
+lower minors the catalogue does not have. Section 4.3 is stated PER BUCKET and is unaffected: every cell of
+it still reproduces from `volume.cjs:74-83` and `constants.cjs:327`, the two honest LOW rows included. The
+build implements the RULE above, not the deleted sentence, and pins the real session sizes in a named
+subtest of `test/setup.test.mjs`.
 
 ### 4.3 The arithmetic, every day count
 
