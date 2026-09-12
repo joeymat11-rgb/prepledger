@@ -1812,7 +1812,7 @@ were r5's and the head had moved twice under them — F1):
 | `b-package.cjs` | 1540 | 123 956 | `eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612` |
 | `README.md` | 774 | 55 302 | `ad6116e6eb6bcaac2f8bfddbcb9cfd16d25bdb371fe26a3a614259e9ebd7ac72` |
 | `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
-| `test/successor-moves.test.cjs` | 325 | 20 569 | `d9e46ba3fec3fd66c167287323de10bfab4d0ed3a954b71f01419195bebb0a37` |
+| `test/successor-moves.test.cjs` | 353 | 22 650 | `06f77b5a2cf8a611a673c761228132f00901fe476f6143097dc6c73ddcd6c97d` |
 | `test/product-phase-and-ledger.test.cjs` | 221 | 14 186 | `b7a116af01e28a375e307906dc708539adacf5835e7b2cf5439d52c4558cf553` |
 
 The **seven** package specs carry `eedabccd…` as `tooling.runnerSha256`, re-pinned
@@ -1863,14 +1863,17 @@ quoted needles above.
 $ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/execution-targets.test.cjs
   # tests 9 · # pass 9 · # fail 0   EXIT=0
 $ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/successor-moves.test.cjs
-  # tests 8 · # pass 8 · # fail 0   EXIT=0
+  # tests 9 · # pass 9 · # fail 0   EXIT=0
 $ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs
   # tests 7 · # pass 7 · # fail 0   EXIT=0
 ```
 
-(There are **three** suites at the r6-fix head, 24 cases; the heading above says two because
+(There are **three** suites at the r6-fix head, 25 cases; the heading above says two because
 the third landed with the self-clearing commit `8d3d362` and this section was written before
-it. Re-measured at the r6-fix head: 9 + 8 + 7, all exit 0.)
+it. Re-measured at the r6-fix head: 9 + 9 + 7, all exit 0. The ninth successor-moves case is
+r6 change 3's own control — a successor module rewritten to `require()` the original refuses
+`SUCCESSOR-REQUIRES-THE-ORIGINAL-INSTEAD-OF-COMPILING-IT`, and is admitted again when the
+require is removed.)
 
 `execution-targets.test.cjs` is **Z8-fixed**: its inherited-map case built its expectation
 from the real `packages/B-NTC.json` and asserted `children.length === 5`, which is true on

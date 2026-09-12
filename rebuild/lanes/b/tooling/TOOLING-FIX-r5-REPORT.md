@@ -269,3 +269,34 @@ still refused a claim and left open.
 
 **Author:** lane-b-fixer5 · fix pass answering `TOOLING-REVIEW-r5` · **no PASS word is claimed
 for anything in this file, and the independent review r6 has not run.**
+
+## r6 applied
+
+`TOOLING-REVIEW-r6`'s six changes, on `rebuild/lane-b-tooling` `1e80e8f` + this commit, merged
+into `rebuild/lane-b-ntc`. Bites ran in `git clone --shared` throwaways under
+`work/lane-b/fx6-scratch`, never a worktree, each restored after (`clone-tooling` `1e80e8f`,
+`clone-ntc` `01b0f64`, `git status --porcelain` 0 lines in both).
+
+| # | proof command | expected / observed |
+|---|---|---|
+| 1 | `Get-FileHash -Algorithm SHA256 …/b-package.cjs` vs the table | `eedabccd…`, 1540 lines, 123 956 B / **equal**; the `git grep` claim now says exit 0, two matches, both inside quoting report files |
+| 2 | `README.md` 1c and the `theme` paragraph read against `b-package.cjs:911-916` and `:1313-1328` | theme+brief on `CHAIN_REF`, owner+contract at the parent receipt base, all four re-resolved at the package's own receipt base at the seal / **match** |
+| 3 | `node --test test/successor-moves.test.cjs` — new 9th case rewrites the successor module to `require()` the original | `SUCCESSOR-REQUIRES-THE-ORIGINAL-INSTEAD-OF-COMPILING-IT` / **observed**, and admitted again once the require is removed |
+| 4 | clone-ntc: a 4th substitution over an unrelated assertion in `native-carriers-source.cjs`, committed, `--ci --package B-NTC` | `FAIL SUCCESSOR-SUBSTITUTION-NOT-A-RE-TARGET-AND-NOT-RULED` exit 1 / **observed**; B-NTC's own three still admitted |
+| 5 | clone-ntc: `.github/workflows/rebuild.yml` post := pre, committed; plus 2 controls in `execution-targets` | `FAIL PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE` exit 1 / **observed**; B-NTC still `PRODUCT IMPLEMENTED 33/0/20` |
+| 6 | clone-tooling: a forged `theme` claim on B-NTC, committed, `--ci --package B-NTC` | `FAIL RECEIPT-EXACT-LINE-MISSING` exit 1 / **observed** — r6 F5 measured a bare `FAIL` before |
+
+**`DECISIONS:124` / `M2-H3-CLEAN-INIT`.** `IDS` gains `H3` before `B1` (the ruled order);
+`packages/H3.json` is a SKELETON authored by the fixer, not the package — parent = the unsealed
+B-NTC artifact, every pin `null`; product = `rebuild/m4/workout/athlete-state.cjs` role
+`edited`, post `null`; `children: []`, `dIds: []`. `--ci --package H3` refuses
+`REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT`, exit 1 — the empty-inventory half of the D-id
+assert was split out so the refusal carries a name. Whether H3 belongs in `NO_REGISTER_IDS` is
+the PM's ruling and its own author's brief, not this pass's.
+
+**Suites** 25 cases, all exit 0 (9 · 9 · 7). **`--ci` on `rebuild/lane-b-tooling`:** B1 6 open ·
+B2 6 · B3 10 · B4 10 · B-LOM 12 · B-NTC 5, all exit 2 · H3 FAIL exit 1 — every count equals
+r6 §4's, so no change in this pass moved an obligation.
+
+**Author:** lane-b-fixer6 · answering `TOOLING-REVIEW-r6` · **no PASS word is claimed here;
+the independent review of this pass has not run.**

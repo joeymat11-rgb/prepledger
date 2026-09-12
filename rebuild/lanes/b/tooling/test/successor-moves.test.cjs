@@ -322,4 +322,32 @@ test('Z6 — the refusal vocabulary is derived from the runner and covers these 
   assert.equal(api.failCode('NOT-A-REAL-CODE-AT-ALL something'), null);
   assert.equal(api.failCode('ENOENT: no such file or directory'), null);
   assert.equal(api.failCode(undefined), null);
+  // TOOLING-REVIEW r6 change 6 (F5). The vocabulary now also carries the ORIGINALS' own
+  // closed codes, read out of their modules the way BLOCKED is imported, so the highest-
+  // value forgery refusals print a code instead of a bare FAIL.
+  for (const code of ['RECEIPT-EXACT-LINE-MISSING', 'RECEIPT-CONTENT', 'RECEIPT-SCHEMA', 'RECEIPT-ROLE',
+    'JSON-NONCANONICAL-BYTES', 'JSON-DUPLICATE-KEY', 'WORKTREE-SOURCE-PIN', 'GIT-SOURCE-PIN', 'SOURCE-PIN-SCHEMA'])
+    assert(api.FAIL_CODES.has(code), 'vocabulary carries the original refusal ' + code);
+  let original;
+  try { require(path.join(sourceRoot, 'rebuild/conform/v4/postfix/strict-json.cjs')).parseExact(Buffer.from('{ }')); }
+  catch (e) { original = e; }
+  assert.equal(original.code, 'JSON-NONCANONICAL-BYTES');
+  assert.equal(api.failCode(original.message), 'JSON-NONCANONICAL-BYTES');
+});
+
+test('r6 change 3 — a successor that REQUIRES the original instead of compiling it refuses', () => {
+  // DECISIONS:113 (b): the parent body is compiled "in a private module that never enters
+  // require.cache". A require() of the original is exactly how it would enter it, so the
+  // clause is enforced by reading the successor's own closure for such a specifier. The
+  // faithful module above reads the bytes and hands them on; this one requires them.
+  const requiring = moduleText.replace("const fs = require('node:fs'), path = require('node:path');",
+    "const fs = require('node:fs'), path = require('node:path');\n// the whole of the mutant: the original as a MODULE, not as bytes.\nfunction loaded() { return require('./native-carriers-source-carriers.cjs'); }");
+  assert.notEqual(requiring, moduleText);
+  write(MODULE, requiring);
+  try {
+    assert.throws(() => carry(), /SUCCESSOR-REQUIRES-THE-ORIGINAL-INSTEAD-OF-COMPILING-IT/);
+    assert(api.FAIL_CODES.has('SUCCESSOR-REQUIRES-THE-ORIGINAL-INSTEAD-OF-COMPILING-IT'));
+  } finally { write(MODULE, moduleText); }
+  // Restored, the faithful successor is admitted again — the rule is the require, not the edit.
+  assert.equal(carry().verdict, VERDICT);
 });
