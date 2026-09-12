@@ -113,6 +113,29 @@
   <section data-slot="macros" aria-label="Daily targets"></section>
   <p class="note">Targets guide your day. Any suggested change comes with a reason and your choice to accept it.</p>
   <p class="note" data-own data-slot="stub-note"></p>
+  <!-- N1 · TODAY'S INTAKE (DECISIONS:143). The approved 2026-09-08 nutrition screen
+       shows targets and has no entry on it, so every word below is preview-owned and
+       declared in design.cjs; the classes are the approved design's own, and the two
+       boxes are the approved direct-entry control's. It is HIDDEN until this device
+       has a food lane: a device that could not open an encrypted local store has
+       nothing to record into, and the screen says so above rather than offering an
+       entry that cannot be kept. Nothing here carries a figure: every value is bound
+       at runtime from the durable record, through the engine's own projection. -->
+  <section class="field" data-own data-slot="food-entry" hidden>
+    <div class="section-label" data-slot="food-head"></div>
+    <p class="small muted" data-slot="food-lead"></p>
+    <div class="field">
+      <label for="food-cal" data-slot="food-cal-label"></label>
+      <input id="food-cal" class="hours" type="number" inputmode="numeric" min="0" step="1" data-slot="food-cal">
+    </div>
+    <div class="field">
+      <label for="food-pro" data-slot="food-pro-label"></label>
+      <input id="food-pro" class="hours" type="number" inputmode="numeric" min="0" step="1" data-slot="food-pro">
+    </div>
+    <p class="error" role="alert" data-slot="food-error"></p>
+    <p class="small muted" data-slot="food-recorded" hidden></p>
+    <button class="primary" type="button" data-slot="food-save"><span data-slot="food-save-label"></span></button>
+  </section>
 </article>
 </template>
 
