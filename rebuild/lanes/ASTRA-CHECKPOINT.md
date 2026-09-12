@@ -1,6 +1,18 @@
 # Astra delivery checkpoint — September 11, 2026
 
-## CURRENT — September11 14:54 ET; supersedes historical live states below
+## CURRENT — September12 recovery after worker usage interruption
+
+Previous substantive goal work PROGRESS: original nutrition correction26b511b was built and independent review7bc403f3f2ef6c3307871c1d96ac4b3a8620c28c completed before usage interruption. Repeated queued heartbeat triggers did not establish ongoing development. All three live handles were verified ERRORED with usage-limit failures on resumption; no running worker was replaced. Current usage API now reports Pro weekly0% used and no active rate-limit flag (no purchased credits/reset applied). Resume same handles from actual retained files, not fresh duplicate work. Goal remains ACTIVE; phone not delivered.
+
+ROOT ACCEPTANCE: full independent7bc403f report read; corrected inputs26b511b536de272c692f023555622cb69be8e231 scoped-ACCEPTED. Original R1 witness now guarded Saved/raw refused/one note;58 checks and independent forged capability, retry, real other-installation weight/CAS and expiry normalization pass. Original report910d518/source938913 retained as failed predecessor. U1-U5, hosted and nutrition UI remain open. Distinct owner_release_integrator assigned ASTRA-OWNER-NUTRITION-INPUTS-JOIN.md into verified clean local ead1913. No actual integration branch/PR merge authorization granted.
+
+SCALE WORK PRESERVED: BASE/astra-native-scale-today remains HEAD154bf804, eight modified tracked files (host-bindings,today-bindings,public-client,local-owner-entry test,preview.css,today-app/entry/model), three untracked owned files (local-scale-browser.mjs,local-scale-feedback.test.mjs,scale-feedback-view.mjs). No final report/commit yet. Builder reported75 focused PASS, actual Chrome setup/weight/Today/Why/reload and viewport390->document390/phone372,320->document320/phone302. Preserve those as builder evidence until report/review; no phone proof. Inherited local-host-journey16/17 has callsite-count6vs7 failure from new guard; local-today page pin also retained, no weakened assertions. Same builder resumes to finish report/source checkpoint.
+
+FORM ASSIGNMENT: ASTRA-NUTRITION-INPUT-FORM.md atbaf9754 gives original input author separate new module/test-only work from26b511b, real installation/browser harness, no shared Today/host/CSS edits. Its tree did not exist at recovery; prior dispatch hit limit before work. Resume same handle after independent input acceptance, keep actual entry integration as the next explicit hook after scale source. Root read approved RefinementA/AdditionsC and fresh nutrition plan55efbc7; no new physiology or reduced product scope.
+
+NEXT: finish scale candidate then one independent review; distinct local input join; real nutrition form then integrated entry and qualified four-field producer. PM clean baf9754 before this recovery record. Earlier14:54 detailed source/qualification/PR authority remains valid except live worker and nutrition correction states explicitly superseded here. No remote merge/deploy/purchase/private/soak action. PR51 specific override still pending; full mandatory engine/source/CI and actual iPhone tests remain required.
+
+## Prior verified detail — September11 14:54 ET
 
 GOAL ACTIVE. Previous goal turn PROGRESS. Current turn PROGRESS: read/verified final scale assembly report, reviewed actual nutrition rendering and assigned a concrete truthfulness fix, bounded stale copy assertion corrected by brief amendment, nutrition input candidate nearing independent review. Full useful private app for Joe/Dad remains objective; no logger/package-only completion and no resolved memory campaign restarted.
 
