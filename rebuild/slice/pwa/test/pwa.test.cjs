@@ -628,8 +628,56 @@ test("the built page becomes installable: a manifest, an icon, a worker and the 
   assert(!html.includes('href="styles.css"') && !html.includes('src="app.js"'));
   // A1's own page is otherwise byte-for-byte what it was.
   assert(html.includes('<div class="view" id="phone">'));
-  assert(html.includes("<title>Earned — Today</title>"));
+  /* P1 (DECISIONS:114 (1)): A1's tab title lost its em dash in the no-dashes sweep. This
+     pin moves with it and stays a LITERAL title, because its job is to fail when A1's
+     shell moves. */
+  assert(html.includes("<title>Earned: Today</title>"));
   assert.equal(html.split("<template").length, A1_SHELL.split("<template").length);
+});
+
+/* P1 (DECISIONS:114 (1), owner verbatim "no ai dashes are allowed in the ui"): A5 ships
+   the SAME page, so the owner's rule does not stop at A1's folder. Every string A5 emits
+   into the installable HTML, the manifest and the preflight is its own copy, and none of
+   it may carry U+2013 or U+2014. Comments are exempt by the brief, exactly as A1's own
+   build guard exempts them. */
+const AI_DASH = /[–—]/;
+const outsideComments = (text, kind) => (kind === "html"
+  ? text.replace(/<!--[\s\S]*?-->/g, " ")
+  : text.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " "));
+
+const dashCount = (text, kind) => (outsideComments(String(text), kind).match(/[–—]/g) || []).length;
+
+/* TWO EXCEPTIONS, PINNED RATHER THAN HIDDEN. A5's own preflight copy carries two
+   user-facing dashes of its own:
+     preflight.html  "<strong>Offline launch</strong> — <span data-pwa="state">..."
+     preflight.js    "...are stored on this device — everything the launch needs is here."
+   P1's custody for this fix is THESE TWO TEST FILES only (the PM's ruling on the P1
+   review), so P1 does not rewrite A5's source. They are pinned at exactly two here, so a
+   THIRD one fails this suite, and they are named for the A5 lane in
+   rebuild/slice/P1-REPORT.md. Everything else A5 emits must be clean now. */
+const A5_OWN_PREFLIGHT_DASHES = 1;   // in each of preflight.html and preflight.js
+
+test("no em dash and no en dash in anything A5 puts on the athlete's screen", () => {
+  const html = shell.installableHtml(A1_SHELL, NAMES);
+  assert.equal(dashCount(A1_SHELL, "html"), 0, "AI DASH in A1's shell as A5 reads it (DECISIONS:114)");
+  assert.equal(dashCount(pwa.webManifest(), "js"), 0, "AI DASH in the manifest A5 writes");
+  assert.equal(dashCount(shell.preflightCss(), "js"), 0, "AI DASH in A5's preflight stylesheet");
+  // The two A5-owned lines, pinned: exactly one each, no more.
+  assert.equal(dashCount(shell.preflightHtml(), "html"), A5_OWN_PREFLIGHT_DASHES,
+    "A5's preflight markup gained or lost a dash; see P1-REPORT.md (A5-lane item)");
+  assert.equal(dashCount(shell.preflightJs(), "js"), A5_OWN_PREFLIGHT_DASHES,
+    "A5's preflight script gained or lost a dash; see P1-REPORT.md (A5-lane item)");
+  /* The page A5 emits = A1's page + A5's preflight block. So the ONLY dash it may carry
+     is the one A5's own preflight markup contributes, and none from A1. */
+  assert.equal(dashCount(html, "html"), A5_OWN_PREFLIGHT_DASHES,
+    "AI DASH in the installable HTML A5 emits, beyond A5's own pinned preflight line");
+  /* ... and that one dash is A5's own "Offline launch" line, not something from A1. */
+  const page = outsideComments(html, "html");
+  const at = page.search(/[–—]/);
+  assert(at > 0 && page.slice(Math.max(0, at - 60), at).includes("Offline launch"),
+    "the page's one dash is not A5's pinned preflight line: " + JSON.stringify(page.slice(at - 60, at + 60)));
+  // RED FIRST: the sweep really would catch one more.
+  assert.equal(dashCount(html.replace("<title>", "<title>—"), "html"), A5_OWN_PREFLIGHT_DASHES + 1);
 });
 
 test("an upstream change to A1's shell fails this build instead of shipping a page with no worker", () => {

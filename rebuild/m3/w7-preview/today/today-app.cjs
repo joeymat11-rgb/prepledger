@@ -14,6 +14,14 @@
    They fabricate nothing. */
 
 const { createTodayModel } = require("./today-model.cjs");
+/* THE RENDER BOUNDARY for the owner's no-dashes rule (DECISIONS:114 (1)). Every string
+   this file writes into the DOM goes through the normaliser on the way, because most of
+   them are the engine's words and rebuild/engine is frozen for this brief. A dash it
+   cannot rewrite is REFUSED: that one slot renders nothing and the refusal goes to the
+   console, while the rest of the screen paints normally (P1 review, Finding 3). The
+   character never reaches the athlete, and one unrewritable sentence never costs them
+   the whole of Today. */
+const { plainOrDrop } = require("./plain-copy.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -35,15 +43,17 @@ function calorieHeadline(calorieTarget) {
 function calorieBand(calorieTarget) {
   if (!calorieTarget || calorieTarget.gated) return "A calorie range is not available yet.";
   if (!Number.isFinite(calorieTarget.lo) || !Number.isFinite(calorieTarget.hi)) return NOT_AVAILABLE;
-  return "Today's target " + amount(calorieTarget.lo) + "–" + amount(calorieTarget.hi) + " kcal";
+  return "Today's target " + amount(calorieTarget.lo) + " to " + amount(calorieTarget.hi) + " kcal";
 }
 
 /* The morning line. When the accepted writer attached a note to the reading — "spike —
    damped in trend", "inside your noise — not information" — that note is the engine's
    own reconciliation of a reading with the trend beside it, and it is SHOWN (review F1).
-   The app never writes a note of its own and never suppresses one. */
+   The app never writes a note of its own and never suppresses one; it does take the
+   engine's dash out of it on the way to the screen (DECISIONS:114 (1)), which is what
+   plainOrDrop() at every slot below does. */
 function morningLine(view) {
-  if (!view.morningRead) return "This morning — not logged yet";
+  if (!view.morningRead) return "This morning: not logged yet";
   const line = "This morning ✓ " + pounds(view.morningRead.lb) + " lb";
   const note = (view.morningRead.note || "").trim();
   return note ? line + " · " + note : line;
@@ -56,7 +66,7 @@ function trendLine(view) {
 /* The honesty rule (review D-2): an entry point this slice has not wired says so on
    Today's face, in the approved design's own secondary text, so the athlete never taps to
    discover it. The screen behind it repeats the same words in full. */
-const NOT_WIRED = "— not wired yet";
+const NOT_WIRED = "Not wired yet";
 
 /* A2 — what Today says about today's workout. The three states come from the
    DURABLE workout log (rebuild/m3/w7-preview/today/gym-model.mjs over the accepted
@@ -80,8 +90,8 @@ const NO_LOCAL_STORE = "Your workout could not be opened on this device, and not
    the DURABLE fact of whether today's check-in is recorded, read from the same
    client lane the screen writes to. Nothing is said when nothing is recorded: a
    blank check-in is blank, never "none" and never "normal". */
-const CHECKIN_RECORDED_TODAY = "— recorded today";
-const CHECKIN_NO_STORE_SHORT = "— not available on this device";
+const CHECKIN_RECORDED_TODAY = "Recorded today";
+const CHECKIN_NO_STORE_SHORT = "Not available on this device";
 const CHECKIN_NO_STORE = "This device could not open its encrypted local store, so no check-in can be recorded here.";
 
 /* THE HEADLINE FIT (review D-1). Four of the engine's own instruction titles run to three
@@ -152,8 +162,8 @@ function mountToday(doc, model, options = {}) {
   };
   function put(map, name, text) {
     const el = map.get(name);
-    if (!el) throw new Error("Today preview: template slot missing — " + name);
-    el.textContent = text === null || text === undefined || text === "" ? NOT_AVAILABLE : String(text);
+    if (!el) throw new Error("Today preview: template slot missing: " + name);
+    el.textContent = plainOrDrop(text === null || text === undefined || text === "" ? NOT_AVAILABLE : String(text), name);
     return el;
   }
   function arrows(root) {
@@ -171,12 +181,12 @@ function mountToday(doc, model, options = {}) {
       target.focus();
     }
   }
-  function tell(text) { if (status) status.textContent = text; }
+  function tell(text) { if (status) status.textContent = plainOrDrop(text, "today-status"); }
 
   /* ---------------- Today ---------------- */
   function renderToday(focus) {
     const view = model.read();
-    if (chrome) chrome.textContent = view.storageNote;
+    if (chrome) chrome.textContent = plainOrDrop(view.storageNote, "today-storage");
     const root = template("t-today");
     const map = slots(root);
     put(map, "date", dayLabel(view.today));
@@ -238,7 +248,7 @@ function mountToday(doc, model, options = {}) {
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
-    map.get("recovery-state").textContent = recoveryState();
+    map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -331,7 +341,7 @@ function mountToday(doc, model, options = {}) {
       catch (error_) { result = { ok: false, copy: "This weight could not be recorded, and nothing was recorded. " + (error_ && error_.message ? error_.message : "") }; }
       submit.disabled = false;
       if (!result.ok) {
-        error.textContent = result.copy || "This weight could not be recorded, and nothing was recorded.";
+        error.textContent = plainOrDrop(result.copy || "This weight could not be recorded, and nothing was recorded.", "weigh-error");
         input.focus();
         return;
       }
@@ -354,11 +364,11 @@ function mountToday(doc, model, options = {}) {
         const block = doc.createElement("div");
         block.className = "macro-row";
         const head = doc.createElement("strong");
-        head.textContent = section.heading;
+        head.textContent = plainOrDrop(section.heading, "why-heading");
         head.setAttribute("role", "heading");
         head.setAttribute("aria-level", "2");
         const body = doc.createElement("p");
-        body.textContent = section.body;
+        body.textContent = plainOrDrop(section.body, "why-body");
         block.append(head, body);
         host.append(block);
       }
@@ -386,13 +396,13 @@ function mountToday(doc, model, options = {}) {
       const top = doc.createElement("div");
       top.className = "row";
       const name = doc.createElement("strong");
-      name.textContent = label;
+      name.textContent = plainOrDrop(label, "macro-label");
       const figure = doc.createElement("span");
       if (value === null) { figure.className = "unit"; figure.textContent = "Not prescribed"; }
       else {
         const big = doc.createElement("span");
         big.className = "number";
-        big.textContent = value;
+        big.textContent = plainOrDrop(value, "macro-value");
         const u = doc.createElement("span");
         u.className = "unit";
         u.textContent = " " + unit;
@@ -400,7 +410,7 @@ function mountToday(doc, model, options = {}) {
       }
       top.append(name, figure);
       const note = doc.createElement("p");
-      note.textContent = copy;
+      note.textContent = plainOrDrop(copy, "macro-note");
       row.append(top, note);
       host.append(row);
     }
