@@ -1804,19 +1804,26 @@ all three commits and still described an 820-line runner. This section is the he
 `TOOLING-REPORT.md` itself is not in the table; a file cannot carry its own hash. Reproduce
 with `Get-FileHash -Algorithm SHA256` on the committed bytes.
 
+**Re-measured at the r6-fix head** (TOOLING-REVIEW-r6 change 1; the figures that stood here
+were r5's and the head had moved twice under them — F1):
+
 | file | lines | bytes | sha256 |
 |---|---|---|---|
-| `b-package.cjs` | 1401 | 112 245 | `448a33520a3f1ea9960e6ef69c7faa995a783ca1466b5a731e6880924eb253ae` |
-| `README.md` | 755 | 53 756 | `5d076d96be0efb497de7737555775525fdf4b3850348ec45239b754e1b910c40` |
-| `test/execution-targets.test.cjs` | 181 | 12 047 | `2716035971efa8bdfe01972bff5d5cd7595725da4f588f869cb91187e45b527d` |
-| `test/successor-moves.test.cjs` | 318 | 20 020 | `b2d87f81a931336e709fe9f75a7e5ee1861ec9cd6c97d5dabebb55656f45c4d6` |
+| `b-package.cjs` | 1540 | 123 956 | `eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612` |
+| `README.md` | 774 | 55 302 | `ad6116e6eb6bcaac2f8bfddbcb9cfd16d25bdb371fe26a3a614259e9ebd7ac72` |
+| `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
+| `test/successor-moves.test.cjs` | 325 | 20 569 | `d9e46ba3fec3fd66c167287323de10bfab4d0ed3a954b71f01419195bebb0a37` |
+| `test/product-phase-and-ledger.test.cjs` | 221 | 14 186 | `b7a116af01e28a375e307906dc708539adacf5835e7b2cf5439d52c4558cf553` |
 
-The six package specs carry `448a3352…` as `tooling.runnerSha256`, re-pinned mechanically,
-and their own bytes are printed by `SPEC OBSERVED` on every run (and are pinned in Git at
-HEAD from this revision — Z7). Their sizes at this head:
-`B-NTC.json` 24 040 B, `B-LOM.json` 13 757 B, `B1.json` 25 107 B, `B2.json` 26 013 B,
-`B3.json` 21 006 B, `B4.json` 20 473 B — on `rebuild/lane-b-tooling`; `B-NTC.json` is larger
-on `rebuild/lane-b-ntc`, where the package's own children and successors are declared.
+The **seven** package specs carry `eedabccd…` as `tooling.runnerSha256`, re-pinned
+mechanically, and their own bytes are printed by `SPEC OBSERVED` on every run (and are
+pinned in Git at HEAD from this revision — Z7). Their sizes at this head:
+`B-NTC.json` 24 020 B, `B-LOM.json` 13 757 B, `H3.json` 11 706 B, `B1.json` 25 107 B,
+`B2.json` 26 013 B, `B3.json` 21 006 B, `B4.json` 20 473 B — on `rebuild/lane-b-tooling`;
+`B-NTC.json` is larger on `rebuild/lane-b-ntc`, where the package's own children and
+successors are declared. `H3.json` is new at this revision: `DECISIONS:124` rules
+`M2-H3-CLEAN-INIT` a package of its own, and the file is a SKELETON only — every run of it
+refuses `REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT`, exit 1.
 
 (For the record of what moved: r4's head was 966 lines / 77 756 bytes; the head r5 reviewed
 was 1077 lines / 85 080 bytes / `ca0419e6…`, and **that head is withdrawn** — see below.)
@@ -1833,13 +1840,22 @@ executing it.
 $ git revert --no-edit 85f7d56 7cd7a5b
 [rebuild/lane-b-tooling 02eb2e3] Revert "Require B-NTC policy and bind inherited gates to exact accepted schedules"
 [rebuild/lane-b-tooling e8e2d61] Revert "Bind B-NTC successors to exact source policy and accepted-chain authority"
-$ git grep -n -e '614717800602' -e 'B-NTC-SUCCESSORS' -- rebuild/lanes/b/tooling   → exit 1 (no match)
+$ git grep -n -e '614717800602' -e 'B-NTC-SUCCESSORS' -- rebuild/lanes/b/tooling   → exit 0 (2 matches)
 $ node --test rebuild/lanes/b/tooling/test/execution-targets.test.cjs             → # pass 9 · # fail 0  exit 0
 ```
 
+**Corrected at r6 (change 1 / §Scope A).** That `git grep` exits **0**, not 1, and this
+report said 1. Both needles survive — in the two REPORT files that quote the command, at
+`TOOLING-FIX-r5-REPORT.md:48` and at this file's own line above. Nothing load-bearing
+carries them: no digest, no policy file and no void theme is read by the runner or by any
+spec, and the two reverts did take the code. The distinction matters because "exit 1" was
+the claim that the strings were GONE, and they are not — they are quoted, which is a
+different and weaker thing. Said plainly rather than re-grepped into looking true.
+
 History stays honest: the r5 review commit stays on top of the commits it rejected, and two
 revert commits stand above it. `c7b7133` (ACCEPT) is untouched. The Astra policy digest and
-the void theme name appear nowhere in this directory — grepped, exit 1.
+the void theme name are load-bearing nowhere in this directory; they survive only as the
+quoted needles above.
 
 ## The two suites at this head
 
@@ -1848,7 +1864,13 @@ $ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/execution-targets
   # tests 9 · # pass 9 · # fail 0   EXIT=0
 $ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/successor-moves.test.cjs
   # tests 8 · # pass 8 · # fail 0   EXIT=0
+$ node --test --test-reporter=tap rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs
+  # tests 7 · # pass 7 · # fail 0   EXIT=0
 ```
+
+(There are **three** suites at the r6-fix head, 24 cases; the heading above says two because
+the third landed with the self-clearing commit `8d3d362` and this section was written before
+it. Re-measured at the r6-fix head: 9 + 8 + 7, all exit 0.)
 
 `execution-targets.test.cjs` is **Z8-fixed**: its inherited-map case built its expectation
 from the real `packages/B-NTC.json` and asserted `children.length === 5`, which is true on
@@ -1872,7 +1894,7 @@ the original), Z3 (a prefix needle and a `0/6` needle both refuse), Z5 (no polic
 
 ## The moves rule, as it now stands
 
-`MOVES_RULING` is still `null` and `coverage.moves` is still `{}` in all six specs — **X1 is
+`MOVES_RULING` is still `null` and `coverage.moves` is still `{}` in all seven specs — **X1 is
 not widened, for B-NTC or for anyone**, which is `DECISIONS:113 (1) (a)` in terms. What the
 ruling admits is narrower: an inherited gate whose covering child is not a parent-pinned
 executable, and only for the package ids `SUCCESSOR_PACKAGES` names, only for gates DERIVED
