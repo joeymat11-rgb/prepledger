@@ -20,6 +20,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
 import design from "./design.cjs";
+// P1 (DECISIONS:114 (1)): every state this check reaches is also swept for an em or en
+// dash in the REAL rendered DOM.
+import { assertNoDashOnScreen } from "./dash-check.mjs";
 
 /* A2 review B2 — a REAL process kill needs the pids of the browser processes
    that opened a given profile directory. `context.close()` is a graceful
@@ -110,8 +113,15 @@ try {
   const first = await page.textContent("#phone");
   assert(!/Today could not open/.test(first), "the page mounted");
   const instruction = await page.textContent('[data-slot="instruction"]');
-  assert.equal((await page.textContent('[data-slot="morning"]')).trim(), "This morning — not logged yet",
+  assert.equal((await page.textContent('[data-slot="morning"]')).trim(), "This morning: not logged yet",
     "a fresh browser profile holds no reading");
+
+  const dashStates = [];
+  const sweepForDashes = async (target, where) => {
+    await assertNoDashOnScreen(target, where);
+    dashStates.push(where);
+  };
+  await sweepForDashes(page, "Today, before a weigh-in");
 
   const before = await primaryBox();
   assert(before.bottom <= before.viewport,
@@ -128,6 +138,8 @@ try {
   const trend = (await page.textContent('[data-slot="trend"]')).trim();
   const after = (await page.textContent('[data-slot="instruction"]')).trim();
   assert.notEqual(after, instruction.trim(), "the engine's instruction changed");
+
+  await sweepForDashes(page, "Today, with a reading recorded");
 
   const afterBox = await primaryBox();
   assert(afterBox.bottom <= afterBox.viewport,
@@ -177,6 +189,13 @@ try {
   await sweepPage.click('[role="dialog"] button[type="submit"]');
   await recorded(sweepPage);
   const sweptAfter = await sweep(sweepPage, "after a weigh-in");
+  /* NOT swept for dashes in this state: the layout sweep writes the engine's RAW titles
+     into the headline slot by hand, deliberately bypassing the page's own binding (and
+     so the render boundary) to measure the worst case. Reload, so the screen is the
+     page's own again, and sweep that. */
+  await sweepPage.reload({ waitUntil: "load" });
+  await sweepPage.waitForSelector('[data-slot="primary"]');
+  await sweepForDashes(sweepPage, "Today, reloaded with a reading");
   await sweepContext.close();
 
   /* review D-2: the unwired entry points say so on Today's own face. A3 wired the
@@ -184,7 +203,7 @@ try {
      fact instead, and says NOTHING at all while nothing is recorded. */
   for (const name of ["nutrition-state", "coach-state"]) {
     const text = (await page.textContent('[data-slot="' + name + '"]')).trim();
-    assert.equal(text, "— not wired yet", name + " does not say so on Today's face");
+    assert.equal(text, "Not wired yet", name + " does not say so on Today's face");
   }
   assert.equal((await page.textContent('[data-slot="recovery-state"]')).trim(), "",
     "a blank check-in must be blank on Today's face, never 'none' and never 'not wired'");
@@ -202,6 +221,9 @@ try {
   const spikeLine = (await spikePage.textContent('[data-slot="morning"]')).trim();
   assert.match(spikeLine, /^This morning ✓ 191\.7 lb · .+/,
     "a spike reading shows the engine's note beside it, not a bare number: " + spikeLine);
+  /* P1: the engine's own note is the sharpest case for the owner's rule, because the
+     accepted writer really does write "spike — damped in trend". */
+  await sweepForDashes(spikePage, "Today, with the engine's spike note beside the reading");
   // review F8: an impossible weight is refused in words and recorded nowhere.
   await spikeContext.close();
 
@@ -217,6 +239,7 @@ try {
   assert(refusal.length > 0, "an impossible weight is refused in words, not silently");
   assert.match(refusal, /Nothing was recorded/);
   assert(await refusePage.$('[role="dialog"]'), "the sheet stays open on a refusal");
+  await sweepForDashes(refusePage, "the weigh-in sheet, refusing an impossible weight");
   await refuseContext.close();
 
   // A REAL reload of a REAL browser.
@@ -230,6 +253,17 @@ try {
   await relaunched.goto(url, { waitUntil: "load" });
   await relaunched.waitForSelector('[data-slot="morning"]');
   assert.equal((await relaunched.textContent('[data-slot="morning"]')).trim(), logged, "a new page sees the same reading");
+  await sweepForDashes(page, "Today, after a real reload");
+  await sweepForDashes(relaunched, "Today, on a genuinely new page");
+  /* Every screen this page can route to from Today, in the real browser. */
+  for (const [route, where] of [["why", "Why this plan"], ["nutrition", "the nutrition entry"],
+    ["coach", "the coach entry"], ["recovery", "the recovery check-in"]]) {
+    await relaunched.click('[data-go="' + route + '"]');
+    await relaunched.waitForFunction(() => !document.querySelector('[data-slot="kcal-note"]'));
+    await sweepForDashes(relaunched, where);
+    await relaunched.goto(url, { waitUntil: "load" });
+    await relaunched.waitForSelector('[data-slot="morning"]');
+  }
 
   const text = await page.textContent("#phone");
   for (const figure of FICTIONAL) assert(!text.includes(figure), "prototype figure on screen: " + figure);
@@ -308,7 +342,9 @@ try {
     + `${sweptBefore.count} engine headline titles swept in both states — worst headroom `
     + `${sweptBefore.worst.room}px before / ${sweptAfter.worst.room}px after; `
     + `${sweptBefore.shrunk.length} title(s) fitted down to ${[...new Set(sweptBefore.shrunk.map((r) => r.size))].join("/") || "none"}px `
-    + `(33px floor never reached); unwired entry points labelled on Today's face`);
+    + `(33px floor never reached); unwired entry points labelled on Today's face; `
+    + `no em/en dash in the rendered DOM of ${dashStates.length} screen states (DECISIONS:114): `
+    + dashStates.join(", "));
 } catch (error) {
   failures = 1;
   console.error("A1 TODAY BROWSER CHECK FAIL — " + error.message);

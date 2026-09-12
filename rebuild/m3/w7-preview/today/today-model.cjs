@@ -172,7 +172,7 @@ function createTodayModel(options = {}) {
       { heading: "The rate itself",
         body: rate.measured && Number.isFinite(rate.lo) && Number.isFinite(rate.hi)
           ? "The estimated loss rate is " + rate.scale.toFixed(2) + " lb/week; its range is "
-            + rate.lo.toFixed(2) + "–" + rate.hi.toFixed(2) + " lb/week."
+            + rate.lo.toFixed(2) + " to " + rate.hi.toFixed(2) + " lb/week."
           : "The stored history does not establish a measured weekly rate yet." },
     ];
     return out.map((s) => ({ heading: s.heading, body: s.body || "No supporting estimate is available." }));

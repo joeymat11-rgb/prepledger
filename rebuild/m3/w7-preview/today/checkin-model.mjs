@@ -26,7 +26,7 @@ const { CHOICES, ISSUES } = CheckInCommands;
    ABSENT from the approved references by design.cjs, so this list can never be used
    to smuggle approved-looking words in. */
 export const NOTHING_YET =
-  'Nothing is recorded yet. Every answer is blank, and blank means unknown — never none, never zero.';
+  'Nothing is recorded yet. Every answer is blank, and blank means unknown: never none, never zero.';
 export const ALREADY_RECORDED =
   'Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.';
 export const NOTHING_ANSWERED =

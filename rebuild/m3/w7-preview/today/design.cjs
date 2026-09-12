@@ -13,13 +13,15 @@
    A design change upstream, or a builder quietly inventing a class or a phrase or
    copying one of the prototype's fictional figures, fails this file.
 
-   It deliberately depends on nothing but node:fs and node:crypto, so the tests that use
-   it run under the repository's own lockfile with no browser-build dependency. */
+   It deliberately depends on nothing but node:fs, node:crypto and this page's own
+   ./plain-copy.cjs (which depends on nothing at all), so the tests that use it run under
+   the repository's own lockfile with no browser-build dependency. */
 
 const assert = require("node:assert/strict");
 const { createHash } = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { plainCopy } = require("./plain-copy.cjs");
 
 const ROOT = path.resolve(__dirname, "../../../..");
 
@@ -67,7 +69,9 @@ const PREVIEW_COPY = Object.freeze([
      approved prototype stores nothing, so it can never have a record to reuse and
      has no words for confirming one. */
   "Yes, that’s right",
-  "No — answer it here",
+  /* P1 review, optional item 5, taken: a comma reads better here than a colon, and
+     DECISIONS:114 allows "a colon, comma, full stop or a new sentence". */
+  "No, answer it here",
 ]);
 // Static copy that MUST come from the approved references.
 const APPROVED_COPY = Object.freeze([
@@ -167,7 +171,7 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      recorded nothing yet, a form bound, a device with no store, or the plain
      statement that these answers reach no training rule. Each is checked to be
      ABSENT from the approved references. */
-  "Nothing is recorded yet. Every answer is blank, and blank means unknown — never none, never zero.",
+  "Nothing is recorded yet. Every answer is blank, and blank means unknown: never none, never zero.",
   "Today’s check-in is already recorded on this device. Changing a recorded answer needs the correction path, which is not wired yet.",
   "Answer at least one question, or leave the check-in for today. Nothing was recorded.",
   "This device could not open its encrypted local store, so no check-in can be recorded here.",
@@ -178,9 +182,24 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "An approximate sleep length is recorded between 0 and 24 hours. Nothing was recorded.",
   "Days away from training is recorded as a whole number of days. Nothing was recorded.",
   "This check-in could not be recorded on this device, and no part of it was recorded.",
-  "— recorded today",
-  "— not available on this device",
+  "Recorded today",
+  "Not available on this device",
 ]);
+/* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
+   all, so every sentence the six screens show is preview-owned and named here,
+   exactly as PREVIEW_RUNTIME_COPY is. Each entry is checked to be ABSENT from the
+   approved references, so this list can never be used to smuggle in
+   approved-looking words, and PRESENT in a view source, so a sentence cannot be
+   declared and then quietly dropped. The words themselves are in ONE place,
+   setup-model.mjs COPY, which is a view source; the list below is read out of
+   that module at check time rather than retyped, so a copy edit there fails this
+   check instead of drifting past it.
+   THE OWNER'S RULE (DECISIONS:114 (1)) applies to every one of them: no U+2014
+   and no U+2013. Since P1 merged (DECISIONS:121) that refusal is ./plain-copy.cjs's
+   for the whole page, at build time over the shipped bytes and at render time per
+   slot; A4 keeps the behaviour in its own suite and no longer restates the
+   mechanism here (see assertSetupBinding). */
+const SETUP_MODEL_SOURCE = "setup-model.mjs";
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const classTokens = (html) =>
@@ -269,7 +288,25 @@ function recoveryVocabulary(approved) {
 }
 /* Every harvested string must be in the shipped template. Placeholders are matched as
    the attribute they are, so a placeholder demoted to visible text would not satisfy
-   this, and the rest as their own element's text. */
+   this, and the rest as their own element's text.
+
+   DASH-NORMALISED (DECISIONS:114 (1), the owner verbatim: "no ai dashes are allowed in
+   the ui"): where the pinned approved reference itself spells a word with an em or en
+   dash, the shipped screen may not, so the comparison is made after ./plain-copy.cjs has
+   taken the dash out of BOTH sides. The owner's rule beats the pinned design where the
+   two disagree, and only there: every other harvested word is still compared byte for
+   byte, so this can never be used to let a different word through. The report lists each
+   term the normalisation moved. */
+const dashNormalisedTerms = (vocabulary) => {
+  const moved = [];
+  for (const [kind, list] of Object.entries(vocabulary)) {
+    for (const value of list) {
+      const plain = plainCopy(value);
+      if (plain !== value) moved.push({ kind, approved: value, shipped: plain });
+    }
+  }
+  return moved;
+};
 function assertRecoveryBinding(approved, templateHtml) {
   const vocabulary = recoveryVocabulary(approved);
   assert(vocabulary.placeholders.length >= 7,
@@ -277,18 +314,85 @@ function assertRecoveryBinding(approved, templateHtml) {
   assert(vocabulary.choices.length >= 9,
     `APPROVED-RECOVERY FAIL: only ${vocabulary.choices.length} answer choices harvested`);
   for (const value of vocabulary.placeholders) {
-    assert(templateHtml.includes(`placeholder="${value}"`),
+    assert(templateHtml.includes(`placeholder="${plainCopy(value)}"`),
       `APPROVED-RECOVERY FAIL: the approved placeholder "${value}" is missing from the shipped screen`);
   }
   for (const [kind, list] of [["option", vocabulary.options], ["label", vocabulary.labels],
     ["legend", vocabulary.legends], ["choice", vocabulary.choices]]) {
     for (const value of list) {
-      assert(templateHtml.includes(">" + value + "<"),
+      assert(templateHtml.includes(">" + plainCopy(value) + "<"),
         `APPROVED-RECOVERY FAIL: the approved ${kind} "${value}" is missing from the shipped screen`);
     }
   }
   return { placeholders: vocabulary.placeholders.length, options: vocabulary.options.length,
-    labels: vocabulary.labels.length, legends: vocabulary.legends.length, choices: vocabulary.choices.length };
+    labels: vocabulary.labels.length, legends: vocabulary.legends.length, choices: vocabulary.choices.length,
+    dashNormalised: dashNormalisedTerms(vocabulary) };
+}
+
+/* ---------------------------------------------------------------------------
+   A4 — THE FIRST-RUN VOCABULARY, HARVESTED FROM THE MODULE THAT OWNS IT.
+   ---------------------------------------------------------------------------
+   Same lesson as the recovery harvest above, applied the other way round: the
+   approved design has no first-run screen, so there is nothing upstream to
+   harvest FROM. What there is instead is exactly one module that owns every
+   word of these six screens (setup-model.mjs COPY / VALIDATION / MISSING), and
+   the check harvests that, so a sentence added, edited or removed there is
+   covered without anyone updating a list. */
+function setupVocabulary(root = ROOT) {
+  const text = fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", SETUP_MODEL_SOURCE), "utf8");
+  const block = (name) => {
+    const start = text.indexOf("export const " + name + " = Object.freeze({");
+    assert(start > 0, `SETUP-VOCABULARY FAIL: ${name} could not be located in ${SETUP_MODEL_SOURCE}`);
+    const end = text.indexOf("\n});", start);
+    assert(end > start, `SETUP-VOCABULARY FAIL: ${name} is not closed`);
+    return text.slice(start, end);
+  };
+  const grab = (name) => [...block(name).matchAll(/:\s*'((?:[^'\\]|\\.)*)'/g)]
+    .map((m) => m[1].replace(/\\(.)/g, "$1")).filter((s) => s.trim() !== "");
+  const copy = grab("COPY");
+  const validation = grab("VALIDATION");
+  const refusals = grab("REFUSAL_SENTENCES");
+  assert(copy.length >= 30, `SETUP-VOCABULARY FAIL: only ${copy.length} first-run sentences harvested`);
+  assert(refusals.length >= 5, `SETUP-VOCABULARY FAIL: only ${refusals.length} refusal sentences harvested`);
+  return { copy, validation, refusals, source: text };
+}
+/* Every module that can put a first-run word on the screen, joined. */
+const setupSource = (root = ROOT) => SETUP_SOURCES
+  .map((name) => fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", name), "utf8")).join("\n");
+/* Every harvested sentence must be PRESENT IN A VIEW SOURCE, so a sentence cannot be
+   declared here and then quietly dropped from the screens, and the first-run screen
+   must be in the shipped template at all.
+
+   A4 NO LONGER SCANS FOR DASHES HERE. It did, before P1 merged: three loops over
+   ./plain-copy.cjs's two characters, one on the harvested sentences, one on A4's own
+   source files and one on the `t-setup` section. P1 (DECISIONS:121) now owns that
+   refusal for the WHOLE page and owns it better: `assertNoAiDashesInAssets` scans the
+   BUILT bytes - every byte of the HTML and CSS outside a comment, and every JS string
+   literal whose esbuild banner attributes it to `rebuild/m3/w7-preview/today/`, which
+   is exactly where A4's five setup modules live - and `build.mjs` refuses
+   AI_DASH_IN_BUILD, plus AI_DASH_GUARD_BLIND if the banners it attributes by are
+   missing. A second, narrower, source-level scan beside it would be a second
+   mechanism to keep in step for no added coverage (PM to C 20:46: A4 verifies, it
+   does not re-author). A4's own suite still asserts the BEHAVIOUR - no dash in its
+   sentences, its sources or its rendered DOM, and the build refusing when one is put
+   back - which is what proves P1's mechanism really covers these screens.
+
+   There is deliberately NO "absent from the approved references" clause, which is the
+   clause PREVIEW_RUNTIME_COPY carries. That clause exists to stop a builder smuggling
+   approved-looking words into a preview-owned list. It has nothing to bite on here:
+   the approved 2026-09-08 design has no first-run screen at all, so every one of
+   these sentences is preview-owned by construction, and the words that do overlap
+   with the approved design are the ones that SHOULD ("Earned", "Next", "Back"). */
+function assertSetupBinding(approved, templateHtml, root = ROOT) {
+  const vocabulary = setupVocabulary(root);
+  const source = setupSource(root);
+  for (const line of [...vocabulary.copy, ...vocabulary.validation, ...vocabulary.refusals]) {
+    assert(source.includes(line), `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
+  }
+  const start = templateHtml.indexOf('<template id="t-setup">');
+  assert(start > 0, "SETUP-BINDING FAIL: the first-run screen is not in the shipped template");
+  return { copy: vocabulary.copy.length, validation: vocabulary.validation.length,
+    refusals: vocabulary.refusals.length };
 }
 
 function assertDesignBinding(approved, templateHtml, appSource) {
@@ -329,7 +433,10 @@ function assertDesignBinding(approved, templateHtml, appSource) {
      bytes rather than listed — placeholders included, which the text-node checks above
      cannot see. */
   const recovery = assertRecoveryBinding(approved, templateHtml);
-  return { classes: used.size, recovery, copy: PREVIEW_COPY.length + APPROVED_COPY.length
+  /* A4 — the first-run screens' own vocabulary, harvested from the one module
+     that owns it, and the owner's no-dash rule applied to every sentence of it. */
+  const setup = assertSetupBinding(approved, templateHtml);
+  return { classes: used.size, recovery, setup, copy: PREVIEW_COPY.length + APPROVED_COPY.length
     + (appSource === undefined ? 0 : RUNTIME_COPY.length + CHECKIN_RUNTIME_COPY.length + PREVIEW_RUNTIME_COPY.length) };
 }
 
@@ -372,6 +479,13 @@ const VIEW_SOURCES = Object.freeze(["today-app.cjs", "gym-app.mjs", "gym-model.m
   /* A3 — the check-in's view and its answer model, so every word the check-in can put
      on screen is bound exactly as Today's and the gym card's are. */
   "checkin-app.mjs", "checkin-model.mjs"]);
+/* A4 — Dad's first run: the six screens' view and the module that owns every word
+   on them. They are their OWN list rather than two more VIEW_SOURCES entries
+   because VIEW_SOURCES is pinned by name in test/design.test.cjs, which A4 does
+   not own; assertSetupBinding reads these two itself and binds them just as
+   tightly. today-app.cjs, which carries the landing tile's one word, is already
+   a VIEW_SOURCE. */
+const SETUP_SOURCES = Object.freeze(["setup-app.mjs", "setup-model.mjs", "today-app.cjs"]);
 const templateHtml = () => fs.readFileSync(path.join(SOURCE, "screens.template.html"), "utf8");
 const appSource = () => VIEW_SOURCES.map((name) => fs.readFileSync(path.join(SOURCE, name), "utf8")).join("\n");
 const chromeCss = () => fs.readFileSync(path.join(SOURCE, "preview.css"), "utf8");
@@ -382,6 +496,8 @@ module.exports = {
   CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
   recoverySection, recoveryVocabulary, assertRecoveryBinding,
+  setupVocabulary, assertSetupBinding, setupSource,
+  SETUP_MODEL_SOURCE, SETUP_SOURCES,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
 };

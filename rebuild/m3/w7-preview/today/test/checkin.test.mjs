@@ -26,7 +26,9 @@ import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
 import Fixtures from '../../fixtures.cjs';
 import design from '../design.cjs';
+import PlainCopy from '../plain-copy.cjs';
 
+const { plainCopy } = PlainCopy;
 const { mountToday } = TodayApp;
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
 const { createSyntheticState } = Fixtures;
@@ -599,10 +601,21 @@ test('A3 — every approved word of the recovery screen is on the shipped screen
   assert.equal(vocabulary.choices.length, 12);
 
   const report = design.assertRecoveryBinding(approved, design.templateHtml());
-  assert.deepEqual(report, { placeholders: 7, options: 12, labels: 10, legends: 5, choices: 12 });
+  /* P1 (DECISIONS:114 (1), the owner verbatim "no ai dashes are allowed in the ui"): the
+     approved reference's own sleep-hours placeholder is a bare em dash, which the owner's
+     rule does not allow on a screen. It is the ONE harvested term the comparison
+     normalises; every other approved word still has to match byte for byte. */
+  assert.deepEqual(report, { placeholders: 7, options: 12, labels: 10, legends: 5, choices: 12,
+    dashNormalised: [{ kind: 'placeholders', approved: '—', shipped: '' }] });
 
   /* RED FIRST: dropping any ONE of them fails, so this can never pass by accident. */
   const template = design.templateHtml();
+  /* And the normalised one is not a hole: putting the approved em dash back on the
+     shipped screen fails, because the shipped screen must carry the plain form. */
+  assert.equal((template.match(/placeholder=""/g) || []).length, 1,
+    'exactly one placeholder is the dash-normalised one');
+  assert.throws(() => design.assertRecoveryBinding(approved,
+    template.replace('placeholder=""', 'placeholder="—"')), /APPROVED-RECOVERY FAIL/, 'the em dash is refused');
   for (const value of vocabulary.placeholders.filter(v => v !== '—')) {
     assert.throws(() => design.assertRecoveryBinding(approved,
       template.replace(` placeholder="${value}"`, '')), /APPROVED-RECOVERY FAIL/, value);
@@ -622,8 +635,10 @@ test('A3 — every approved word of the recovery screen is on the shipped screen
   const { doc } = await screen({ model });
   const shown = [...doc.querySelectorAll('#phone [placeholder]')].map(el => el.getAttribute('placeholder'));
   for (const value of vocabulary.placeholders) {
-    assert(shown.includes(value), 'the approved placeholder is not on screen: ' + value);
+    /* Dash-normalised, exactly as the binding above compares them (DECISIONS:114 (1)). */
+    assert(shown.includes(plainCopy(value)), 'the approved placeholder is not on screen: ' + value);
   }
+  assert(!shown.some(value => /[–—]/.test(value)), 'no placeholder on screen carries a dash');
   kit.host.close();
 });
 
