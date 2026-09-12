@@ -51,6 +51,7 @@ const mgLabel = (...args) => E.mgLabel(...args);
 const missedReadCost = (...args) => E.missedReadCost(...args);
 const mk = (...args) => E.mk(...args);
 const muscleVolume = (...args) => E.muscleVolume(...args);
+const volBucket = (...args) => E.volBucket(...args);
 const nameAt = (...args) => E.nameAt(...args);
 const nextLoad = (...args) => E.nextLoad(...args);
 const normalizePlan = (...args) => E.normalizePlan(...args);
@@ -1302,8 +1303,8 @@ function _weeklyFreq(day9, s, iso) {
 // The cap is direct sets for one bucket across the complete F pool, not total work.
 function _volumeSessionSets(s, ex, delta, week = trainingWeek(s)) {
   if (!week.hasFullBody) return (ex.sets || 1) + delta;
-  const bucket = ex.head || ex.mg;
-  return orderedExercisesForDay(s, "F").filter((e) => (e.head || e.mg) === bucket)
+  const bucket = volBucket(ex);
+  return orderedExercisesForDay(s, "F").filter((e) => volBucket(e) === bucket)
     .reduce((n, e) => n + (e.sets || 0), delta);
 }
 
@@ -1389,7 +1390,7 @@ function volumePush(s) {
      Rep-velocity stays excluded from routing (E-law). Targets must be READABLE
      (AUDIT C), and engine increments target the muscle's DIRECT lift (AUDIT B). */
   const rank9 = (m) => { let best = 99; for (const L9 of (m.lifts || [])) { const ex9 = (s.exercises || []).find((e) => e && e.id === L9.id); if (!ex9) continue; const ord9 = (s.exOrder && s.exOrder[ex9.day]) || []; const i9 = ord9.indexOf(ex9.id); if (i9 > -1 && i9 < best) best = i9; } return best; };
-  const cands = pv.filter((m) => !m.indirectOnly).sort((a, b) => (rank9(a) - rank9(b)) || (a.sets - b.sets));
+  const cands = pv.filter((m) => m.qualified !== false && !m.indirectOnly).sort((a, b) => (rank9(a) - rank9(b)) || (a.sets - b.sets));
   const skips = [];
   const picks = [];
   for (const m of cands) {
@@ -1454,6 +1455,7 @@ function sweepVolume(s, dow7 = mk(clock.today()).getDay()) {
   let ns = null;
   const cands = [];
   muscleVolume(s).forEach((m) => {
+    if (m.qualified === false || m.indirectOnly) return;
     const recent = (s.agentProposals || []).some((ap) => ap.kind === "volume" && ap.mg === m.mg) || (s.feed || []).slice(0, 80).some((f) => f.t && f.t.indexOf("VOLUME ") === 0 && f.t.indexOf("— " + m.mg.toUpperCase()) > -1 && (mk(tISO7) - mk(f.d)) / DAY < 14);
     if (recent) return;
     let dir = 0, why = "";
@@ -2537,7 +2539,7 @@ function askContext(s, docs) {
     + (() => { const se8 = exerciseSelection(s); if (!se8.items.length || !se8.allGood) return "";
         return `EXERCISE SELECTION (audited against his real gym, confirmed by him directly): every biarticular lift in his programme is already in the lengthened position — standing calf raise with a stretch pause, seated ham curl with hips pinned, reclined leg extension. That is the strongest selection lever in the literature I have read for him (standing vs seated calf raise d = 0.88-1.58 in one small untrained trial, against rep tempo at 0.09) and he is on the right side of all of it. Say so if training comes up, and do NOT go hunting for exercise-selection upgrades that are not there. His triceps use a Prime 3-peg rather than an overhead position: he was shown the d = 0.54-0.61 case and chose to keep it. That is settled — the peg changes the resistance profile, not the shoulder angle, so it was never the same variable — and it must not be raised again. `; })()
     + (() => { const vi8 = volumeImbalance(s); if (!vi8) return "";
-        return `WEEKLY SET ALLOCATION (by head; deltoids counted separately because they are separately trained): ${vi8.pv.map((m) => mgLabel(m.mg) + " " + m.sets + (m.indirectOnly ? " (indirect only)" : "")).join(", ")}. ${vi8.growthOK ? "His MEASURED regime is FREE — lifts holding or rising while fat still falls, confirmed a week apart — so the growth band applies again and raising the lowest muscle is worth proposing; the engine may already have filed that card, so do not double-propose." : "The regime detector does NOT currently sanction adding sets (regime: " + vi8.regimeKey + "), so do NOT recommend adding sets to a muscle sitting below the 6-12 band. That band is a GROWTH dose-response measured in people eating enough to build. Roth 2023 (n=38, six weeks, 30 kcal/kg deficit, 2.8 g/kg protein) compared ~20 weekly sets against ~12 and found lean mass preserved identically with no muscle-thickness difference; Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of the volume that built it. Retention is cheap and is not volume-sensitive. If he asks about a low muscle, say it is adequate for holding and is the first thing to raise when his own measured state sanctions building."} `; })()
+        return `${vi8.pv.some(m => m.qualified === false) ? "DESIGNED WEEKLY SET ALLOCATION (unresolved regions are labeled; their counts have no regional band): " : "WEEKLY SET ALLOCATION (by head; deltoids counted separately because they are separately trained): "}${vi8.pv.map((m) => mgLabel(m.mg) + " " + m.sets + (m.indirectOnly ? " (indirect only)" : "") + (m.qualified === false ? " (region unspecified; no regional band or proposal)" : "")).join(", ")}. ${vi8.growthOK ? "His MEASURED regime is FREE — lifts holding or rising while fat still falls, confirmed a week apart — so the growth band applies again and raising the lowest muscle is worth proposing; the engine may already have filed that card, so do not double-propose." : "The regime detector does NOT currently sanction adding sets (regime: " + vi8.regimeKey + "), so do NOT recommend adding sets to a muscle sitting below the 6-12 band. That band is a GROWTH dose-response measured in people eating enough to build. Roth 2023 (n=38, six weeks, 30 kcal/kg deficit, 2.8 g/kg protein) compared ~20 weekly sets against ~12 and found lean mass preserved identically with no muscle-thickness difference; Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of the volume that built it. Retention is cheap and is not volume-sensitive. If he asks about a low muscle, say it is adequate for holding and is the first thing to raise when his own measured state sanctions building."} `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
     + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
   const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): last night " + ((gate2.last || {}).h ?? "—") + " h; " + gate2.run + " consecutive night(s) at his " + s.sleep.cleanH + " h target; the session is flagged " + (gate2.clean ? "NORMAL" : "SHORT SLEEP") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";

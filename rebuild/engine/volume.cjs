@@ -35,13 +35,41 @@ const mgLabel = (k) => MG_LABEL[k] || k;
 // Copied from frozen src/app.jsx @ fe516c1:8627-8627.
 const volBucket = (ex) => (ex && (ex.head || ex.mg)) || null;
 
+// F2: saved setup tags own authored helper credit, including an explicit [].
+// Regional vocabulary is projected from C's taxonomy, never guessed from a name.
+const hasVolumeTags = (ex) => ex && ex.volumeTags && ex.volumeTags.profile === 'earned/setup-volume-tags/v1';
+function volumeSecondary(ex, designed = false) {
+  if (hasVolumeTags(ex)) return (ex.secondary || []).map(x => [x.mg, x.lend]);
+  return Object.entries(INDIRECT[ex && ex.id] || {}).map(([mg, lend]) => [designed && mg === 'delts' ? 'delts_front' : mg, lend]);
+}
+function volumeTouched(ex) {
+  if (!ex) return [];
+  const keys = [volBucket(ex), ...volumeSecondary(ex, true).map(([mg]) => mg)];
+  if (!hasVolumeTags(ex)) return keys;
+  const regions = ex.volumeTags.regionsByMuscle || {};
+  return [...new Set(keys.flatMap(mg => [mg, ...(regions[mg] || [])]).filter(Boolean))];
+}
+function volumeQualification(contributors, mg) {
+  const tagged = contributors.filter(ex => hasVolumeTags(ex)
+    && (volBucket(ex) === mg || volumeSecondary(ex).some(([key]) => key === mg)));
+  if (!tagged.length) return {};
+  return tagged.some(ex => (ex.volumeTags.regionsByMuscle || {})[mg])
+    ? { qualified: false, qualification: 'region-unspecified' } : { qualified: true };
+}
+
 // Copied from frozen src/app.jsx @ fe516c1:8628-8649.
 function muscleVolume(s) {
   const tISO6 = isoOf(todayStart());
   const win = (backLo, backHi) => Object.keys(s.sessionLog).filter((d) => { const g = (mk(tISO6) - mk(d)) / DAY; return g >= backLo && g < backHi; });
-  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); const b6 = volBucket(ex6); if (!b6) return; const n6 = (e.reps || []).length; by[b6] = (by[b6] || 0) + n6; const lend = INDIRECT[e.id]; if (lend) Object.entries(lend).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; }); }); }); return by; };
+  const contributors = {};
+  const note = (ex, mg, n) => { if (n && hasVolumeTags(ex)) (contributors[mg] || (contributors[mg] = [])).push(ex); };
+  const count = (days2) => { const by = {}; days2.forEach((d) => { (s.sessionLog[d].entries || []).forEach((e) => { const ex6 = (s.exercises || []).find((x) => x.id === e.id); const b6 = volBucket(ex6); if (!b6) return; const n6 = (e.reps || []).length; by[b6] = (by[b6] || 0) + n6; note(ex6, b6, n6); volumeSecondary(ex6).forEach(([mg2, f2]) => { by[mg2] = (by[mg2] || 0) + n6 * f2; note(ex6, mg2, n6 * f2); }); }); }); return by; };
   const now7 = count(win(0, 7)), prev7 = count(win(7, 14));
   const mgs = [...new Set((s.exercises || []).filter((x) => exActive(s, x.id)).map(volBucket).filter(Boolean))];   /* FIX split-1 (P1-1): buckets come from ACTIVE lifts — logged history still counts above, but a retired-only bucket offers nothing to add sets to */
+  // Tagged observed helpers/retired rows stay visible as counts; no inactive lift
+  // is restored to the set of candidates. The tagless parent's row list is exact.
+  for (const mg of [...Object.keys(now7), ...Object.keys(prev7)])
+    if (!mgs.includes(mg) && Object.hasOwn(volumeQualification(contributors[mg] || [], mg), 'qualified')) mgs.push(mg);
   return mgs.map((mg) => {
     const n7 = now7[mg] || 0, p7 = prev7[mg] || 0;
     const zone = n7 < VOL_BANDS.floor ? "UNDER" : n7 < VOL_BANDS.lo ? "LOW" : n7 <= VOL_BANDS.hi ? "IN-BAND" : n7 <= VOL_BANDS.ceil ? "HIGH" : "OVER";
@@ -55,7 +83,9 @@ function muscleVolume(s) {
     const soreKey = (lifts[0] && lifts[0].mg) || mg;
     const sore7 = (s.soreness || []).filter((x) => (mk(tISO6) - mk(x.d)) / DAY < 7 && (x.mgs || []).includes(soreKey)).length;
     const fmtN = (x2) => (Number.isInteger(x2) ? x2 : +x2.toFixed(1));
-    return { mg, n7: fmtN(n7), p7: fmtN(p7), zone, lifts, vels, slipping, gaining, sore7 };
+    const qualification = volumeQualification(contributors[mg] || [], mg);
+    return { mg, n7: fmtN(n7), p7: fmtN(p7), zone: qualification.qualified === false ? null : zone, lifts, vels, slipping, gaining, sore7,
+      ...qualification, ...(Object.hasOwn(qualification, 'qualified') ? { indirectOnly: lifts.length === 0 } : {}) };
   }).filter((m) => m.n7 > 0 || m.p7 > 0);
 }
 
@@ -65,8 +95,9 @@ function programmeVolume(s, iso) {
   const week = trainingWeek(s, iso);
   if (week.hasFullBody) Object.assign(perWeek, week.exposure);
   else for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
-  const by = {};
-  const add = (mg, n) => { if (mg) by[mg] = (by[mg] || 0) + n; };
+  const by = {}, contributors = {};
+  const add = (mg, n, ex) => { if (mg) { by[mg] = (by[mg] || 0) + n;
+    if (n && hasVolumeTags(ex)) (contributors[mg] || (contributors[mg] = [])).push(ex); } };
   /* Bucket by HEAD where a muscle has separately-trained heads. Pelland 2025
      classifies anterior, lateral and posterior deltoid as different muscles with
      different exercise lists — pooling them produces a number that cannot be
@@ -79,9 +110,8 @@ function programmeVolume(s, iso) {
     const days = perWeek[e.day] || 0;
     if (!days || !e.sets) return;
     const n = e.sets * days;
-    add(bucket(e), n);
-    const lend = INDIRECT[e.id];
-    if (lend) Object.entries(lend).forEach(([mg2, f2]) => add(mg2 === "delts" ? "delts_front" : mg2, n * f2));
+    add(bucket(e), n, e);
+    volumeSecondary(e, true).forEach(([mg2, f2]) => add(mg2, n * f2, e));
   });
   return Object.keys(by).map((mg) => {
     const sets = +by[mg].toFixed(1);
@@ -91,7 +121,10 @@ function programmeVolume(s, iso) {
     /* A bucket fed only by what compounds lend has no exercise to add sets to,
        so it cannot be the subject of a volume recommendation — the anterior delt
        here is pressing, and the honest lever on it is the press. */
-    return { mg, sets, zone, tier, indirectOnly: lifts.length === 0, lifts: lifts.map((x) => ({ id: x.id, n: x.n, sets: x.sets, day: x.day })) };
+    const qualification = volumeQualification(contributors[mg] || [], mg);
+    return { mg, sets, zone: qualification.qualified === false ? null : zone,
+      tier: qualification.qualified === false ? null : tier, indirectOnly: lifts.length === 0,
+      lifts: lifts.map((x) => ({ id: x.id, n: x.n, sets: x.sets, day: x.day })), ...qualification };
   }).sort((a, b) => b.sets - a.sets);
 }
 
@@ -102,9 +135,9 @@ const hypGain = (from, to) => +(HYP_B * (Math.sqrt(Math.max(0, to)) - Math.sqrt(
 function volumeImbalance(s) {
   const pv = programmeVolume(s);
   if (!pv.length) return null;
-  const under = pv.filter((m) => m.sets < VOL_BANDS.floor && !m.indirectOnly);
-  const low = pv.filter((m) => m.sets >= VOL_BANDS.floor && m.sets < VOL_BANDS.lo && !m.indirectOnly);
-  const over = pv.filter((m) => m.sets > VOL_BANDS.hi && !m.indirectOnly);
+  const under = pv.filter((m) => m.qualified !== false && m.sets < VOL_BANDS.floor && !m.indirectOnly);
+  const low = pv.filter((m) => m.qualified !== false && m.sets >= VOL_BANDS.floor && m.sets < VOL_BANDS.lo && !m.indirectOnly);
+  const over = pv.filter((m) => m.qualified !== false && m.sets > VOL_BANDS.hi && !m.indirectOnly);
   /* THE GATE — rewired from the exitStart flag to the REGIME DETECTOR (volume-lever spec,
      the key §3 finding). "Are we in a deficit?" was decided by whether a diet-exit date had
      ever been recorded — the old binary phase flag — while the rest of the engine had moved
@@ -151,7 +184,7 @@ function structuralMovesThisWeek(s) {
   const monday = isoOf(new Date(d0 - off * DAY));
   const moves = [];
   const spillOf = (exId) => { const ex = (s.exercises || []).find((x) => x.id === exId); if (!ex) return [];
-    return [(ex.head || ex.mg), ...Object.keys(INDIRECT[ex.id] || {}).map((m) => (m === "delts" ? "delts_front" : m))]; };
+    return volumeTouched(ex); };
   (s.adjustments || []).forEach((a) => {
     if (!a || a.undone || a.dismissed || !a.d || a.d < monday) return;
     if (a.via === "cal" || a.via === "steps") moves.push({ kind: a.via, d: a.d, rid: a.rid });
@@ -307,5 +340,5 @@ function _setsMovesSince(s, sinceISO) {
   return out.sort((a, b) => (a.d < b.d ? -1 : 1));
 }
 
-return { coarseLifts, mgLabel, volBucket, muscleVolume, programmeVolume, hypGain, volumeImbalance, structuralMovesThisWeek, _blockSlope, setOneRead, volumeConversion, _setsMovesSince };
+return { coarseLifts, mgLabel, volBucket, volumeSecondary, volumeTouched, muscleVolume, programmeVolume, hypGain, volumeImbalance, structuralMovesThisWeek, _blockSlope, setOneRead, volumeConversion, _setsMovesSince };
 };
