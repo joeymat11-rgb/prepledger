@@ -785,7 +785,8 @@ function spec() {
     assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
     // r7 F4 adds `rulingLineSha256`: the ruling line is now LOCATED by its own bytes on the
     // chain branch instead of by a ledger line number (rulingText()).
-    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'parentAcceptanceCommit', 'carriers', 'substitutions'], 'Successor block');
+    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
+      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, parentAcceptanceCommit, carriers, substitutions');
     const sup = s.coverage.successors;
     assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID + '; ' + SUCCESSOR_RULING + ' names ' + [...SUCCESSOR_PACKAGES].join(' ') + ' only');
     assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING=' + SUCCESSOR_RULING),
