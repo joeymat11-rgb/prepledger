@@ -23,3 +23,23 @@ export { default as EngineCapture } from '../../../m4/workout/engine-capture.cjs
 export { default as EngineHistory } from '../../../m4/workout/engine-history.cjs';
 export { default as SourceCodec } from '../../w5/source/codec.cjs';
 export { projectWorkoutRecords } from '../../../m4/workout/project-history.mjs';
+
+// P2 / C1-REPORT "REQUEST TO PM" (2). THE LOCAL FACTORY, RE-EXPORTED — NOT A
+// SECOND ONE. The comment at the top of this file ("a page must supply the
+// repository, identity, keys, clock and engine") has had an answer since lane
+// C's C1: rebuild/m3/w6/local/local-client.mjs `openLocalDurableClient` opens
+// the real durable local store, and rebuild/m3/w6/local/host-bindings.mjs
+// `localHostBindings` turns it into the twelve-member scope composeWorkoutHost
+// asks for. A phone bundle built from this entry now has ONE import for both.
+//
+// These are re-export bindings: the values are the very objects those two
+// modules export, in the same module instances, so there is NO second path to
+// the store. C4's one-store design (rebuild/m3/w6/local/today-bindings.mjs,
+// DECISIONS:111) imports `openLocalDurableClient` from the same
+// ./local-client.mjs, and both of lane C's own entries
+// (local/host-browser-entry.mjs, local/today-browser-entry.mjs) re-export the
+// same two names explicitly, which shadows this `export *`-visible pair rather
+// than duplicating it. Nothing here constructs, wraps, configures or caches
+// anything; host/ still builds no store of its own.
+export { openLocalDurableClient } from '../local/local-client.mjs';
+export { localHostBindings } from '../local/host-bindings.mjs';

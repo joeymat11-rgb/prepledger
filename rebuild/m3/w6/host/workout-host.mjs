@@ -67,6 +67,15 @@ export function composeWorkoutHost({
   repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit,
   keys, crypto,
+  // P2 / C1-REPORT "REQUEST TO PM" (1). OPTIONAL WebCrypto SubtleCrypto. A host
+  // whose WebCrypto does not live at globalThis.crypto.subtle supplies it here,
+  // and it is then the injected one that VERIFIES the authority lease, rather
+  // than a globalThis read the phone path cannot control. Not supplied, nothing
+  // changes: the value stays undefined the whole way to
+  // rebuild/m3/w5/public-client.cjs createPublicVerifier's own
+  // `subtle = globalThis.crypto && globalThis.crypto.subtle` default, which is
+  // exactly what every existing caller already gets.
+  subtle,
   // --- constructors, injected so this module imports no product graph ---
   createDurablePublicClient,
   createNullSelectionRegistrar, createSourceProjectionReader,
@@ -98,6 +107,15 @@ export function composeWorkoutHost({
   if (typeof validateCommit !== 'function') need('validateCommit');
   if (!Array.isArray(keys) || !keys.length) need('keys');
   if (!crypto || typeof crypto.getRandomValues !== 'function') need('crypto');
+  // `subtle` is optional, so its ABSENCE is never a refusal. A supplied one that
+  // cannot verify is refused here, by name, in the same shape as the optional
+  // string-lane registrar below — never silently replaced by globalThis.
+  // P2 review F1: BOTH members are required. W5.createPublicVerifier calls
+  // importKey to pin each key and verify to check the proof, so a `subtle`
+  // carrying only one of them passed this guard and then failed the silent way
+  // the guard exists to prevent — LEASE_PROOF_UNPROVEN with no word about why.
+  if (subtle !== undefined && (typeof subtle?.verify !== 'function' || typeof subtle?.importKey !== 'function'))
+    throw new TypeError('composeWorkoutHost requires a WebCrypto SubtleCrypto (importKey and verify) when subtle is supplied');
   if (typeof createDurablePublicClient !== 'function') need('createDurablePublicClient');
   if (typeof createNullSelectionRegistrar !== 'function') need('createNullSelectionRegistrar');
   if (typeof createSourceProjectionReader !== 'function') need('createSourceProjectionReader');
@@ -173,6 +191,9 @@ export function composeWorkoutHost({
     repository, stage, namespace, athleteId, deviceId, sessionEpoch,
     isCurrentSession, observationEpoch, observationGuard, validateCommit,
     keys, crypto, schemaVersion: 2,
+    // Forwarded, not defaulted: undefined here is the same absent value
+    // createDurablePublicClient already destructures when no caller names it.
+    subtle,
     prescriptionCapture, workoutProducerIdentity, resolveWorkoutBasis,
     workoutProducer, workoutResumePolicy,
     projectWorkoutHistory: ({ history, generation, source_revision }) =>
