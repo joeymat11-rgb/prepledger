@@ -711,7 +711,9 @@ test('H3/12 - a first weigh-in that is late or sealed does NOT seed the trend, a
   assert.equal(next.reads[1].pt, null, 'it is still a first trend, so there is no prior one');
 });
 
-/* ====== H3/13 — the rebuild.yml enumeration DECISIONS:142 (2)(b) rides on H3 ======
+/* ====== H3/13 - the rebuild.yml today enumeration: DECISIONS:142 (2)(b) rode on
+   H3, and DECISIONS:177 (A) now makes the step's list COMPLETE, with one hold-out
+   named in the open ======
    Review r1 PM ITEM: nothing in the tree asserts it. The only workflow cell,
    conform/v4/postfix/test/ci-second-gate.test.cjs, is stale-RED at this head AND
    at ce38aa3 (pre-existing, not an H3 regression), so H3 carries its own. */
@@ -719,30 +721,44 @@ test('H3/13 - the CI today step enumerates setup.test.mjs, named and not globbed
   const yml = readRepo('.github/workflows/rebuild.yml');
   const step = yml.split('\n').find(l => l.trim().startsWith('run: node --test') && l.includes('w7-preview/today/test/adapter.test.mjs'));
   assert(step, 'the today step is still one `run:` line naming its files');
-  const FILES = ['adapter.test.mjs', 'checkin.test.mjs', 'design.test.cjs', 'gym.test.mjs',
-    'ntc-h6-delta.test.mjs', 'package.test.cjs', 'setup.test.mjs', 'view.test.mjs'];
-  for (const f of FILES)
-    assert(step.includes('rebuild/m3/w7-preview/today/test/' + f), f + ' is named in the today step');
+  assert(step.includes('rebuild/m3/w7-preview/today/test/setup.test.mjs'),
+    'setup.test.mjs is named in the today step, the thing DECISIONS:142 (2)(b) rode on H3 for');
   assert.equal(/[*?]/.test(step), false, 'every file is named rather than globbed, as the step has always said');
-  /* And the eight named there are exactly the eight that exist, so a file added
-     under that directory cannot acquire a CI home by accident or lose one. */
+
+  /* THE NAMED SET, read off the step line itself and never retyped here. */
+  const PATHS = step.match(/rebuild\/m3\/w7-preview\/today\/test\/[A-Za-z0-9._-]+/g) || [];
+  const NAMED = [...new Set(PATHS.map(p => p.split('/').pop()))].sort();
+  assert.equal(NAMED.length, PATHS.length, 'no file is named twice in the today step');
+  for (const f of NAMED)
+    assert(fs.existsSync(path.join(REPO, 'rebuild/m3/w7-preview/today/test', f)),
+      f + ' is named in the today step but is not in the directory - the step may not name an absent file');
+
+  /* DECISIONS:177 (A) with the r3 hold-out. `food.test.mjs` is lane C's N1 suite
+     (DECISIONS:171): its N1.11 and D2.1 execute the PRE-H3 engine as their own
+     expectation - "the engine cannot produce a plan for a clean-init athlete yet",
+     which the file itself calls the fact H3 will change - so they are RED by design
+     on any tree carrying H3, and its build cells N1.15/N1.17 race view.test.mjs's R3
+     over one build output inside a shared `node --test` invocation. Lane C updates
+     those cells, and H3 then names the file. It is listed BY NAME so that a second
+     unnamed file cannot hide behind the exception. */
+  const HELD_OUT = ['food.test.mjs'];
+  for (const f of HELD_OUT)
+    assert.equal(NAMED.includes(f), false, f + ' is the held-out file and must not be named in the today step');
+
   const onDisk = fs.readdirSync(path.join(REPO, 'rebuild/m3/w7-preview/today/test'))
     .filter(n => /\.test\.(mjs|cjs)$/.test(n)).sort();
-  /* NOT ENUMERATED ANYWHERE, AND THIS IS A FINDING, NOT A LICENCE (v1.8 F-H).
-     `copy.test.mjs` is A4's own and lane C enumerates it elsewhere.
-     `catalogue.test.mjs` and `problem.test.mjs` arrived with the tip merged
-     into this branch (origin/rebuild/t2-client-core @ ec80cbe) and
-     `.github/workflows/rebuild.yml` names NEITHER — measured: the string
-     "catalogue" and the string "problem" do not occur in the workflow at all,
-     so 2 of the 11 test files under that directory have no CI home. That is a
-     rebuild.yml change only the PM may rule on (the :142 (2)(b) precedent),
-     so H3 does NOT apply it and asserts the exact state instead: a third file
-     appearing unenumerated, or one of these two acquiring a home, turns this
-     red and sends someone to read it. */
-  const UNENUMERATED = ['catalogue.test.mjs', 'copy.test.mjs', 'problem.test.mjs'];
-  assert.deepEqual(onDisk, FILES.concat(UNENUMERATED).sort(),
-    'the directory holds exactly the eight enumerated files plus the three this step does not name');
-  for (const f of ['catalogue.test.mjs', 'problem.test.mjs'])
-    assert.equal(new RegExp(f.replace('.', '\\.')).test(yml), false,
-      f + ' has no CI home anywhere in the workflow — F-H, raised for the PM, not fixed here');
+  assert.deepEqual(onDisk, NAMED.concat(HELD_OUT).sort(),
+    'the directory holds exactly the files the today step names plus the one held out by name - food.test.mjs, whose N1.11/D2.1 assert the pre-H3 engine and whose build cells race R3; any other unnamed file, or a second hold-out, is this assertion');
+
+  /* And the hold-out is held out IN THE OPEN: executed by no `run:` line anywhere in
+     the workflow, and named in a comment that carries the reason. Hiding it by
+     silence, or quietly giving it a home in some other step, both turn this red. */
+  const runLines = yml.split('\n').filter(l => l.trim().startsWith('run:'));
+  const comments = yml.split('\n').filter(l => l.trim().startsWith('#'));
+  for (const f of HELD_OUT) {
+    assert.equal(runLines.some(l => l.includes('rebuild/m3/w7-preview/today/test/' + f)), false,
+      f + ' is held out, so no run: line in the workflow may execute it');
+    assert(comments.some(l => l.includes(f)),
+      f + ' is held out in the open: the step comment must name it and say why');
+  }
 });
