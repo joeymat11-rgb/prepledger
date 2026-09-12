@@ -2373,3 +2373,39 @@ test('re-pin - tags for an id the week does not have are refused at the lane', a
   assert.equal((await kit.host.all()).length, 0, 'nothing was written');
   kit.host.close();
 });
+
+/* =====================================================================
+   C9 (round-4 review). The two survivors masked each other: dropping
+   `envelopeOf` from the wrapped save (Y4) is caught by the producer's own
+   split, and dropping it from `prepare` (Y1) is caught by the wrapper - so
+   either one alone left the suite green while Y1 ALONE breaks the path the
+   whole re-pin exists for. The page does not get lane C's wrapper: boot()
+   hands today-entry.mjs an already-open era and today-entry asks W6's OWN
+   createSetupHost for the lane, passing lane C's commands but keeping w6's
+   one-argument `save(setup)`. Nothing tested that. This does: the envelope
+   goes in through w6's own host, and the op on disk must still carry the
+   three members in order.
+   ===================================================================== */
+test('C9 - an envelope through w6\'s OWN createSetupHost().save() still writes three members', async () => {
+  const { openTodayHosts, DATABASE, NAMESPACE } = await import('../gym-host.mjs');
+  const { createSetupCommands } = await import('../setup-commands.mjs');
+  const fault = faultDatabase();
+  const era = await openTodayHosts({ indexedDB: fault.indexedDB, crypto: webcrypto,
+    databaseName: DATABASE, namespace: NAMESPACE, day: DAY });
+  try {
+    const w6 = await era.createSetupHost({ day: DAY,
+      commands: createSetupCommands(), profile: PROFILE });
+    const setup = documentOf(filled());
+    const tags = tagsFor(setup);
+    const written = await w6.save({ setup, tags });
+    assert.equal(written.ok, true,
+      'w6\'s one-argument save took the envelope: ' + written.code);
+    const ops = await opsOf(w6.repository);
+    assert.equal(ops.length, 1, 'ONE op');
+    assert.deepEqual(Object.keys(ops[0].payload), ['profile', 'setup', 'tags'],
+      'three payload members, in the order the producer writes them');
+    assert.deepEqual(ops[0].payload.setup, setup, 'the document, not the envelope');
+    assert.deepEqual(ops[0].payload.tags, tags, 'the tags travelled with it');
+    w6.close();
+  } finally { era.close(); }
+});
