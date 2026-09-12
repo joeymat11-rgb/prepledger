@@ -63,9 +63,18 @@ export const SETTINGS_CANCEL = 'Close without saving';
 export const SETTINGS_NOTHING = 'Add a setting or a cue before saving. Nothing was recorded.';
 export const SETTINGS_REFUSED = 'Each setting needs a short name and a short value, and each name only once. Nothing was recorded.';
 export const SETTINGS_NOT_SAVED = 'These settings could not be recorded on this device, and no part of them was recorded.';
+/* D2 ROUND 1, FINDING 2 - UNKNOWN IS NOT EMPTY. A read that has not answered yet, and
+   a read that FAILED, are two states this block may be in and neither of them is "no
+   settings saved". Both say what they are, and neither offers the capture editor,
+   because an editor seeded from a failed read is a blank form that looks like a
+   correction and would overwrite settings the athlete still has. */
+export const SETTINGS_READING = 'Reading your saved settings for this machine.';
+export const SETTINGS_UNREAD = 'Settings could not be read.';
+export const SETTINGS_UNREAD_ACTION = 'Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.';
 /* The one object the view module is handed. It owns no words of its own. */
 const SETTINGS_COPY = Object.freeze({
   head: SETTINGS_HEAD, none: SETTINGS_NONE, open: SETTINGS_OPEN,
+  reading: SETTINGS_READING, unread: SETTINGS_UNREAD, unreadAction: SETTINGS_UNREAD_ACTION,
   editorTitle: SETTINGS_EDITOR_TITLE, nameLabel: SETTINGS_NAME_LABEL, valueLabel: SETTINGS_VALUE_LABEL,
   cueLabel: SETTINGS_CUE_LABEL, cuesLead: SETTINGS_CUES_LEAD, add: SETTINGS_ADD, remove: SETTINGS_REMOVE,
   save: SETTINGS_SAVE, cancel: SETTINGS_CANCEL, plain: plainOrDrop,
@@ -99,9 +108,34 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   let settingsLane = settings || null;
   let settingsOpening = null;
   let settingsSaving = null;
-  let settingsLatest = null;      // the LATEST op for the lift on screen, or null
   let settingsDraft = null;       // non-null only while the editor is open
   let settingsDraftLift = null;   // the lift that draft belongs to
+  /* D2 ROUND 1, FINDING 1 - THE OPTIONAL READ IS NEVER A PREREQUISITE FOR THE CARD.
+     The read used to be AWAITED inside paint(), so a slow lane meant no active set, no
+     log control and no workout at all until it answered. It is now a lookup in a cache
+     keyed by exercise id: the card paints from whatever that cache holds, a lift with
+     no entry STARTS a read and paints the pending state, and the answer repaints only
+     the lift it belongs to. A late answer for a lift the athlete has moved past is
+     stored and never shown. */
+  const settingsRead = new Map();   // exercise id -> {state: 'known'|'failed', latest}
+  const settingsInFlight = new Set();
+  let settingsReading = null;       // the last read started, for checks and tests
+
+  function startSettingsRead(liftId) {
+    if (!settingsLane || typeof liftId !== 'string' || !liftId) return settingsReading;
+    if (settingsRead.has(liftId) || settingsInFlight.has(liftId)) return settingsReading;
+    settingsInFlight.add(liftId);
+    settingsReading = Promise.resolve()
+      .then(() => settingsLane.latest(liftId))
+      .then(
+        (latest) => { settingsRead.set(liftId, { state: 'known', latest: latest || null }); },
+        /* A REFUSAL IS NOT AN ABSENCE (finding 2). It is recorded as its own state and
+           the block says so; it never becomes "no settings saved yet". */
+        () => { settingsRead.set(liftId, { state: 'failed', latest: null }); },
+      )
+      .then(() => { settingsInFlight.delete(liftId); return paint(); });
+    return settingsReading;
+  }
 
   function openSettingsLane() {
     if (settingsLane || settingsOpening) return settingsOpening;
@@ -173,13 +207,26 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const editor = map.get('settings-editor');
     if (!block || !editor) return;
     if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }
-    MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest: settingsLatest, put });
-    root.querySelector('[data-action="settings-open"]').addEventListener('click', () => {
-      settingsDraft = MachineSettingsView.draftFrom(settingsLatest);
-      settingsDraftLift = view.lift.id;
+    const liftId = view.lift && typeof view.lift.id === 'string' ? view.lift.id : null;
+    if (!liftId) { block.hidden = true; editor.hidden = true; return; }
+    /* NOT AWAITED. The read is started here and its answer arrives in its own repaint;
+       this function, and therefore the whole card, is finished either way. */
+    if (!settingsRead.has(liftId)) startSettingsRead(liftId);
+    const entry = settingsRead.get(liftId) || null;
+    const state = entry ? entry.state : 'reading';
+    const latest = entry ? entry.latest : null;
+    MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest, state, put });
+    const openControl = root.querySelector('[data-action="settings-open"]');
+    /* UNTIL THE READ ANSWERS, THERE IS NOTHING TO CORRECT (finding 2). Offering the
+       editor here would seed it from a null the athlete never chose. */
+    if (state !== 'known') { openControl.disabled = true; editor.hidden = true; return; }
+    openControl.disabled = false;
+    openControl.addEventListener('click', () => {
+      settingsDraft = MachineSettingsView.draftFrom(latest);
+      settingsDraftLift = liftId;
       paint();
     });
-    if (!settingsDraft || settingsDraftLift !== view.lift.id) { editor.hidden = true; return; }
+    if (!settingsDraft || settingsDraftLift !== liftId) { editor.hidden = true; return; }
     editor.hidden = false;
     MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: settingsDraft, put,
       onChanged: () => { paint(); } });
@@ -213,7 +260,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       return;
     }
     settingsDraft = null; settingsDraftLift = null;
-    await paint();
+    /* The capture is durable now, so the cached read for this lift is stale: drop it
+       and read the LOG again rather than painting what this mount remembers. */
+    settingsRead.delete(view.lift.id);
+    await startSettingsRead(view.lift.id);
   }
 
   /* ---------------- the active set ---------------- */
@@ -436,14 +486,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       if (onChanged) onChanged();
       return paint();
     }
-    /* The block reads the DURABLE record for the lift on screen, every paint, so a
-       capture, a correction and a move to the next lift all show what the log says
-       rather than what this mount remembers. A lane that refuses is no block at all,
-       never a stale one. */
-    if (settingsLane && view.lift && typeof view.lift.id === 'string') {
-      try { settingsLatest = await settingsLane.latest(view.lift.id); }
-      catch (_) { settingsLatest = null; }
-    }
+    /* D2 round 1, finding 1 - THE DURABLE SETTINGS READ USED TO BE AWAITED HERE, which
+       made an OPTIONAL read a prerequisite for painting the workout: with a pending
+       read there was no active set and no log control at all. It is gone. The block
+       reads the log per exercise id, started from settingsPaint and applied in its own
+       repaint, so the card renders and the set is logged whether that read is pending,
+       finished or failed. */
     if (view.phase === 'saved') return renderSaved(view);
     /* Every slot recorded but no saved set to show — reachable once a skip is wired
        (A3/A4): offer the finish rather than crashing on an absent active slot. */
@@ -460,6 +508,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     pending: () => settingsSaving,
     ready: () => settingsOpening,
     lane: () => settingsLane,
+    /* The optional read, exposed so a CHECK can wait for it. Nothing on the card
+       waits for it, which is the whole point of finding 1. */
+    read: () => settingsReading,
+    stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),
   });
   return first;
 }
@@ -468,4 +520,5 @@ export default { mountGym, newGymDraft, CHECK, NO_REST_PRESCRIBED, COULD_NOT_PRE
   CLEAN_REP_HELP, FINISH_WORKOUT,
   SETTINGS_HEAD, SETTINGS_NONE, SETTINGS_OPEN, SETTINGS_EDITOR_TITLE, SETTINGS_NAME_LABEL,
   SETTINGS_VALUE_LABEL, SETTINGS_CUE_LABEL, SETTINGS_CUES_LEAD, SETTINGS_ADD, SETTINGS_REMOVE,
-  SETTINGS_SAVE, SETTINGS_CANCEL, SETTINGS_NOTHING, SETTINGS_REFUSED, SETTINGS_NOT_SAVED };
+  SETTINGS_SAVE, SETTINGS_CANCEL, SETTINGS_NOTHING, SETTINGS_REFUSED, SETTINGS_NOT_SAVED,
+  SETTINGS_READING, SETTINGS_UNREAD, SETTINGS_UNREAD_ACTION };

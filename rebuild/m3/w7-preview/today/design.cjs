@@ -233,6 +233,10 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
      in here: they are the athlete's own words, shown back verbatim. */
   "Your settings for this machine",
   "No settings saved yet.",
+  /* D2 round 1, finding 2 - the two states that are NOT an empty record. */
+  "Reading your saved settings for this machine.",
+  "Settings could not be read.",
+  "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
   "Machine settings",
   "Save the settings for this machine",
   "Anything to remember",
