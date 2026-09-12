@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
-    "sha256": "2f4dbbd7293ad24ee853097f683cf904a80e80d2f0444dae7f601d2c9081e6d9",
+    "sha256": "4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c",
     "acceptedLedgerLine": null
   },
   "sourceBase": "7b1678a4a8449053000d52a0a8e9e070f32a240e",

@@ -237,14 +237,18 @@ only `Number.isInteger(v.ledgerLine) && v.ledgerLine > 0`, and the line is found
 in the ACCEPT terminal word:
 
 ```
-- 2026-09-11 · cowork · BRIEF ACCEPTED BY SHA for M2-B-NTC-NATIVE-TREND-CONTEXT: rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md, sha256 2f4dbbd7293ad24ee853097f683cf904a80e80d2f0444dae7f601d2c9081e6d9 (123977 bytes), is the brief of record. It is the DECISIONS:108 (a) brief (sha256 prefix 0ba59cca) grown ONLY by the amendments its own v1.3 header table lists: the r1 fixes, the :109 obligations and enumeration, the C4 join, the :113 (1) successor carriers, the B-NTC-REVIEW-r2 changes and the :117 (4) C5 CI step. DECISIONS:113 (2) re-accepted it by name and left the binding sha256 to lane B; this line carries that sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED
+- 2026-09-11 · cowork · BRIEF ACCEPTED BY SHA for M2-B-NTC-NATIVE-TREND-CONTEXT: rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md, sha256 4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c (125275 bytes), is the brief of record. It is the DECISIONS:108 (a) brief (sha256 prefix 0ba59cca) grown ONLY by the amendments its own v1.3 header table lists: the r1 fixes, the :109 obligations and enumeration, the C4 join, the :113 (1) successor carriers, the B-NTC-REVIEW-r2 changes, the :117 (4) C5 CI step and the B-NTC-REVIEW-r3 prose corrections R1 and R2. DECISIONS:113 (2) re-accepted it by name and left the binding sha256 to lane B; this line carries that sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED
 ```
 
-`sha256` of those exact bytes: `9ef5acf15a78bb6ffb538a4c13dd23e900cb37e01c59d4bdfb8497eaf9ee1df4`
+`sha256` of those exact bytes: `fc4bfef5ff1796ec7deec214c0f2c7550a2d4d6d4b2b8018344b190b5c5bd5e1`
 
 The brief sha256 inside line 2 is **the final one for this pass**, after `DECISIONS:117 (4)`'s
-C5 disclosure landed. If the brief changes again before the PM appends, line 2 must be
-re-issued with the new sha256 — that is the point of putting it in the line.
+C5 disclosure and `B-NTC-REVIEW-r3`'s R1/R2 prose corrections landed. If the brief changes
+again before the PM appends, line 2 must be re-issued with the new sha256 — that is the point
+of putting it in the line, and it is exactly what happened here: r3's R1/R2 moved the brief
+from `2f4dbbd7…` (123977 bytes) to `4aa94069…` (125275 bytes), so line 2 was re-issued and its
+own `lineSha256` moved from `9ef5acf1…` to `fc4bfef5…`. **Line 1 is unchanged** — it carries no
+brief sha256. `packages/B-NTC.json` `brief.sha256` is re-pinned to `4aa94069…` at this commit.
 
 **The runner does not require two lines.** `authorizations.theme` and
 `brief.acceptedLedgerLine` are separate citations, and both mention-sets would be satisfied by
@@ -281,9 +285,14 @@ EXIT=0
 **The obligations shrink to exactly the seal.** The one remaining `OPEN` is the package's own
 unsealed artifact, which is not `--ci` blocking — so the run terminates `PUBLIC CI EVIDENCE
 PASS` at exit 0. The clone was rebuilt and the run repeated once the two line texts were
-final, so the bytes that produced this result are the bytes printed above, hashing to
-`3ca8bf16…` and `9ef5acf1…` — the probe's own copy of the spec cited exactly those two
-`lineSha256` values, and its `DECISIONS.md` carried each line exactly once. That also settles `DECISIONS:113 (3)`'s requirement that the child's CI step
+final, so the bytes that produced this result were the line-1 bytes printed above (`3ca8bf16…`,
+unchanged) and the then-current line 2 (`9ef5acf1…`) — the probe's own copy of the spec cited
+exactly those two `lineSha256` values, and its `DECISIONS.md` carried each line exactly once.
+**The probe was not re-run after r3's R1/R2** moved the brief sha256 and therefore line 2's own
+bytes to `fc4bfef5…`; what that run proved is the *shape* — that these two lines, cited by
+`lineSha256` on the chain branch, shrink the obligations to the seal alone — and that shape is
+independent of which brief digest line 2 carries, since the runner finds the line by its
+`lineSha256` and checks only the mention-set and the terminal word. That also settles `DECISIONS:113 (3)`'s requirement that the child's CI step
 "exits 0 on both runners at the sealed head": it is reachable, and these two lines are what
 makes it reachable. (The probe's `DECISIONS:116`/`:117` ordinals are the clone's own; on the
 real chain they are 119 and 120.)
@@ -338,16 +347,23 @@ $ git diff origin/rebuild/t2-client-core HEAD -- rebuild/m4/spec/native-carriers
       rebuild/m4/spec/acceptance-native-carriers.json rebuild/m4/spec/review-native-carriers.json \
       rebuild/m4/spec/NATIVE-CARRIERS-THEME.md                                          → (empty)
 $ git diff --check 10feb1e HEAD                                                         → (empty) exit 0
-$ git diff --name-only 10feb1e HEAD -- .github                                          → (empty)
-$ git diff --stat 10feb1e HEAD   → 32 files changed, 2539 insertions(+), 701 deletions(-)
+$ git diff --name-only 10feb1e HEAD -- .github                       → .github/workflows/rebuild.yml
+$ git diff --stat 10feb1e HEAD   → 67 files changed, 10378 insertions(+), 904 deletions(-)
 ```
 
-**No `.github` file was touched by this pass at all** — `rebuild.yml` already carried the
-`:109` enumeration and the two supersessions `DECISIONS:113 (3)` ruled correct, and this pass
-left its bytes alone. The parent's artifact, review, theme and wrapper are byte-identical to
-the tip. The 32 changed paths are: the brief, the BUILD-REPORT, this report, the three deleted
-patches, the `rebuild/lanes/b/tooling/**` tree merged from `rebuild/lane-b-tooling` (plus the
-r5 review document), one added cell in `ntc-h6-delta.test.mjs`, and the twelve `b-ntc-*` files.
+**Correction (review r3, R3).** Both figures above are re-measured at `46fef4c`, the head this
+report is committed on top of; the earlier text said `(empty)` and `32 files changed, 2539
+insertions(+), 701 deletions(-)`, which were measured before the later commits of this pass.
+
+**One `.github` file was touched**, by `fed830a`: `DECISIONS:117 (4)`'s fourth `rebuild.yml`
+hunk, the C5 step `node --test "rebuild/coach/test/*.test.cjs"` (brief §4, hunk 4 of 4). The
+other three hunks — the `:109` enumeration and the two supersessions `DECISIONS:113 (3)` ruled
+correct — were already on the tip and this pass left their bytes alone. The parent's artifact,
+review, theme and wrapper are byte-identical to the tip. The 67 changed paths are: the brief,
+the BUILD-REPORT, this report, the three deleted patches, `.github/workflows/rebuild.yml`, the
+`rebuild/lanes/b/tooling/**` tree merged from `rebuild/lane-b-tooling` (plus the r5 review and
+r3 review documents and the tooling fix report), one added cell in `ntc-h6-delta.test.mjs`, and
+the twelve `b-ntc-*` files.
 
 To re-measure this pass:
 

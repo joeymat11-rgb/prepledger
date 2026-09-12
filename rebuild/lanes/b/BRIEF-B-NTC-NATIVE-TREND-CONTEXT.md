@@ -23,7 +23,7 @@ every hunk in one of these rows and nothing else.
 | 6 | **SUCCESSOR CARRIERS** — the nine inherited gates are carried by lane-B successors that load the parent's own originals; `coverage.moves` stays `{}` | **`DECISIONS:113 (1)`**, ratifying `B-NTC-REVIEW-r2` §E.3, particularising `DECISIONS:112 (1)` | §v1.3 S |
 | 7 | **r2 changes 3, 5** — brief §4 lists **all three** `rebuild.yml` hunks and names the successor evidence for the 19 memory-only tests; §5's false executable claim is corrected and the patch file is deleted | `B-NTC-REVIEW-r2` changes 3–5, `DECISIONS:113 (3)` and `(4)` | §v1.2 4, §v1.2 5 |
 | 8 | **r2 change 7** — the sibling re-pin obligation is stated: B1, B2, B3, B4 and B-LOM each re-pin `engine-runtime.cjs` and list the `b-ntc-*` sources at their own rebase | `B-NTC-REVIEW-r2` change 7, `DECISIONS:113 (6)` | §v1.3 S |
-| 9 | **r2 changes 9, 11, 12, 13** — the BUILD-REPORT counts are re-measured at this head, the `rirPlan` scoping residual is stated, the two retargets are enumerated in the package spec, and §4.2's stale "Refused." sentence is annotated | `B-NTC-REVIEW-r2` | §v1.3 S, §4.2 |
+| 9 | **r2 changes 9, 11, 12, 13** — the BUILD-REPORT counts are re-measured at this head, the `rirPlan` scoping residual is stated, the **three** substitutions are enumerated in the package spec (`coverage.successors.substitutions`): the `native-carriers-witnesses.cjs` `EXPOSED` four-name `deepEqual` re-target, the `native-carriers-cases.cjs` mutant-detector path re-target, and the third — the `native-carriers-source.cjs` **SUPPORT pin re-target**, `'rebuild/m4/workout/engine-runtime.cjs':'9be21897…'` → `…:'c03732e8…'`, without which every carrier refuses the child tree before one assertion runs; and §4.2's stale "Refused." sentence is annotated | `B-NTC-REVIEW-r2` | §v1.3 S, §4.2 |
 | 10 | **C5's CI home** — a fourth `rebuild.yml` hunk, `node --test "rebuild/coach/test/*.test.cjs"` (lane C's voice coach, **64/64 exit 0**), disclosed in §4; `setup.test.mjs` deliberately NOT enumerated, with the rule for seal time stated | **`DECISIONS:117 (4)`** | §4 hunk 4 of 4 |
 
 **Nothing in this section is an acceptance and nothing below claims one.** The word
@@ -1222,7 +1222,7 @@ TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls �
 row moves. (`AUDIT RED-FIRST FAIL` is the pristine terminal on this tree, as BRIEF-B1 v1.2
 §0.0 A1 also records; it is not a B-NTC regression.)
 
-### 7.2 The provider's own cells — `rebuild/m4/workout/test/native-trend-context.test.cjs`, **36/36 PASS** (v1 had 22)
+### 7.2 The provider's own cells — `rebuild/m4/workout/test/native-trend-context.test.cjs`, **39/39 PASS** (v1 had 22; v1.1 had 36)
 
 | group | cells |
 |---|---|
@@ -1242,6 +1242,17 @@ row moves. (`AUDIT RED-FIRST FAIL` is the pristine terminal on this tree, as BRI
 Group E **and** the new group G compose the **real** twelve engine modules in the same list
 and order `engine-runtime.cjs:9` uses and call `E.performedTrendContext` / `E.dayWeather` /
 `E.cleanAtDate` directly, so the acceptance is the engine's own, not a mock's.
+
+**v1.2 (`DECISIONS:109` PATH A) re-words group G — the option is gone from
+`createDayFactsReader`'s signature, so G's eight cells are restated without it — and adds 3
+further cells.** Measured at this head: `node --test
+rebuild/m4/workout/test/native-trend-context.test.cjs` → **39 tests / 39 pass / 0 fail**.
+Against the 36-cell head (`a701ac5`) the file gains 10 cell names and loses 7 (G's
+re-wording): net **+3**, the three named here.
+
+| group | cells |
+|---|---|
+| **H. v1.2's three genuinely new cells** | `EXPOSED` carries the two day predicates in **both** accepted runtimes, and they are the engine's own · OBLIGATION (i) rides the SAME code path: a **FRESH zero-night athlete** is qualified too (OBLIGATION (ii)'s 28-night day was already covered by G) · **END TO END over the ACCEPTED runtime handle**, not a hand-made predicate pair |
 
 ### 7.3 The A0 host journey — **23/23 PASS at head**, including new step 17
 
