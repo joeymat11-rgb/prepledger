@@ -14,8 +14,8 @@ no parity hook was needed that the screens do not already expose.
 
 | suite | base `8e558ce` | now |
 |---|---|---|
-| coach `rebuild/coach/test/*.test.cjs` | 64 | **145** (64 + 81 new), 0 fail |
-| the three new files: tools / parity / closed-list | - | **41 / 26 / 13** (floors 30 / 18 / 10) |
+| coach `rebuild/coach/test/*.test.cjs` | 64 | **149**, 0 fail. At review it was **145 = 65 + 80**: the existing files run 65 (A10 took `no-dashes` from 6 to 7) and the three new files contribute 80. C2 then added four durable fixtures, so the split is now **65 + 84** |
+| the three new files: tools / parity / closed-list | - | **41 / 30 / 13** (floors 30 / 18 / 10) |
 | setup 150 · catalogue 43 · gym 64 · checkin 28 · copy 36 · view 23 · adapter 20 · design 11 · package 10 | same | **unmoved**, 0 fail |
 | w6 552 | 552 | **552**, 0 fail |
 | `native-carriers-package.cjs --ci` · `build.mjs` | PASS · PASS | **PASS · PASS** |
@@ -34,7 +34,33 @@ ordering is the base's, not this branch's.
 | A7 blocked fixtures: both paths refuse and name the SAME gaps | **2 / 2** |
 | A2 durable: two installations through `createSetupHost`, stored bytes equal | **2 / 2** |
 | A12 one op per complete transcript, zero per blocked or abandoned one | **8 / 8** |
-| mutants C1 to C10 | **10 / 10 KILLED**, both files restored byte-identical |
+| A1 producer identity: `prepare` called exactly once per submit, and the envelope it returned is the one the coach passed on | **6 / 6** |
+| mutants C1 to C10 | **12 / 13 with the faithful C1 killed after the fix** (see below), both files restored byte-identical |
+
+### Review round 1 conditions, applied
+
+The independent review (`C6A-REVIEW.md`, `C6A-REVIEW-ANNEX.md`, both copied in)
+returned ACCEPT WITH CONDITIONS, nothing blocking. All four are applied.
+
+- **C1** the reviewer's faithful mutant C1 (a hand-built payload with the same key
+  order) SURVIVED: byte equality proved the bytes, not the producer. A **counting
+  spy** on `commands.prepare` now makes producer identity observable, and A1
+  asserts it was called exactly once per submit and that the envelope `submit`
+  passed on is the one `prepare` returned. Re-run with the faithful mutant in
+  place: **fail 6**, `submit did not call prepare exactly once`. Killed.
+- **C2** A2 durable ran `COMPLETE.slice(0, 2)`; brief 2.3 step 4 says "each of at
+  least six". The slice is dropped and **all six** completing fixtures now write
+  through two `createSetupHost` installations each.
+- **C3** A2 equality was two stringifies (`setup`, then `tags`), the shape the
+  reviewer's own C2 finding removed from A1. It is now ONE combined
+  `storedPayload` stringify over the whole payload.
+- **C4** two report figures corrected: the mutant line reads
+  **12 / 13 with the faithful C1 killed after the fix** rather than 10 / 10, and
+  the coach count is **65 + 80**, not 64 + 81 (A10 took `no-dashes` from 6 to 7).
+
+The mutant tally after the fix: C1 faithful (fail 6), C1 crude, C2, C3, C4, C5,
+C6, C7, C8, C9, C10, plus the two guard mutants the round-1 table already
+carried. The one that survived round 1 is the one the spy now kills.
 
 Fixtures (8, floor 6): `two_day`, `four_day`, `free_text_muscle`, `uneven_rungs`, `skipped_priority`,
 `inc_override` complete; `unnamed_exercise` and `unknown_first` are blocked by design and prove A7.
