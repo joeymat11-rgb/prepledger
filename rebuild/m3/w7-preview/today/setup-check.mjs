@@ -61,6 +61,17 @@ let kills = 0;
 
 function watch(page) {
   page.on("pageerror", (error) => problems.push("pageerror: " + error.message));
+  /* AN UNHANDLED REJECTION IS NOT A pageerror. Every control on these six
+     screens is an async click handler, so a throw inside one becomes a rejected
+     promise nobody awaits: the screen simply does not advance and the next
+     waitFor times out with no reason attached. Report it as the failure it is. */
+  page.addInitScript(() => {
+    window.addEventListener("unhandledrejection", (event) => {
+      const reason = event.reason;
+      const text = (reason && (reason.stack || reason.message)) || String(reason);
+      console.error("unhandledrejection: " + text);
+    });
+  });
   page.on("console", (message) => {
     if (message.type() !== "error") return;
     const where = (message.location() && message.location().url) || "";

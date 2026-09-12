@@ -14,7 +14,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { webcrypto } from 'node:crypto';
+import { webcrypto, createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -34,6 +34,9 @@ const DAY = TodayModel.SYNTHETIC_DAY;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../../../..');
 const readRepo = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+/* Bytes, not text: the B-NTC pins are sha256 over the file as it sits on disk. */
+const repoPath = (rel) => path.join(ROOT, rel);
+const shaOf = (rel) => createHash('sha256').update(fs.readFileSync(repoPath(rel))).digest('hex');
 const SETUP_FILES = ['setup-model.mjs', 'setup-commands.mjs', 'setup-host.mjs', 'setup-app.mjs',
   'setup-check.mjs'];
 const setupFileText = (name) => readRepo('rebuild/m3/w7-preview/today/' + name);
@@ -2268,4 +2271,105 @@ test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence'
   assert(Model.COPY.screen2TwoDays.includes('Earned’s full-body plan is coming'));
   assert.equal(text.includes(String.fromCharCode(39)), false,
     'no straight apostrophe anywhere on screen 2');
+});
+
+/* =====================================================================
+   A4b re-pin: the three files the merged B-NTC artifact reaches are
+   BYTE-IDENTICAL to the tip, and stay that way.
+
+   packages/B-NTC.json pins a list of files and
+   rebuild/conform/v4/postfix/legacy-gates.cjs:12-16 checks each one TWICE -
+   as a git object at the pinned commit, and as the bytes ON DISK. A single
+   byte of A4b's in a pinned file turns rebuild.yml's B-NTC step red however
+   well licensed the change is, so A4b keeps its tags handling in lane C's own
+   setup-host.mjs and touches none of them. This test is the guard: it reads
+   the pin out of the package itself rather than restating a hash, so it also
+   goes red if the package moves and nobody re-reads it.
+   ===================================================================== */
+test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', () => {
+  const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
+  const pins = pkg.product;
+  assert(pins && typeof pins === 'object', 'the package still carries its product pins');
+  const entries = Object.entries(pins).filter(([, v]) => v && typeof v.post === 'string');
+  assert(entries.length >= 40, 'pins found: ' + entries.length);
+
+  const missed = [];
+  for (const [file, pin] of entries) {
+    const onDisk = shaOf(file);
+    if (onDisk !== pin.post) missed.push(file + ' on disk ' + onDisk.slice(0, 12)
+      + ' but pinned ' + pin.post.slice(0, 12));
+  }
+  assert.deepEqual(missed, [], 'A4b changed a file the B-NTC artifact pins on disk');
+});
+
+test('re-pin - the three files A4b used to touch are the tip\'s bytes', () => {
+  const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
+  const pins = pkg.product;
+  for (const file of ['rebuild/m3/w6/local/today-bindings.mjs',
+    'rebuild/m3/w6/test/local-today-journey.test.mjs']) {
+    assert(pins[file], file + ' is pinned by the package');
+    assert.equal(shaOf(file),
+      pins[file].post, file + ' must stay byte-identical');
+  }
+  /* today-entry.mjs is not pinned by the package, but the pinned journey suite
+     pins it by sha in PAGE_PINS, so it is in the same class. */
+  const journey = readRepo('rebuild/m3/w6/test/local-today-journey.test.mjs');
+  const pinned = /'today-entry\.mjs':\s*'([a-f0-9]{64})'/.exec(journey);
+  assert(pinned, 'PAGE_PINS still pins today-entry.mjs');
+  assert.equal(shaOf('rebuild/m3/w7-preview/today/today-entry.mjs'), pinned[1],
+    'today-entry.mjs must match the pin the journey suite carries');
+});
+
+test('re-pin - the durable lane writes the tags and reads them back, from setup-host.mjs', async () => {
+  const kit = await device();
+  const setup = documentOf(filled());
+  const tags = tagsFor(setup);
+  /* The envelope the six screens send through today-entry.mjs's one-argument
+     onDone, and the two-argument form the suite uses, are the same write. */
+  assert.equal((await kit.host.save({ setup, tags })).ok, true);
+  const rows = await kit.host.all();
+  assert.equal(rows.length, 1, 'ONE op');
+  assert.deepEqual(rows[0].setup, setup);
+  assert.deepEqual(rows[0].tags, tags, 'the third member came back beside the document');
+  const ops = await opsOf(kit.host.repository);
+  assert.equal(ops.length, 1);
+  assert.deepEqual(Object.keys(ops[0].payload).sort(), ['profile', 'setup', 'tags'],
+    'the op on disk carries exactly three payload members');
+  kit.host.close();
+});
+
+test('re-pin - envelopeOf tells an envelope from a document, and never guesses', async () => {
+  const { envelopeOf } = await import('../setup-host.mjs');
+  const setup = documentOf(filled());
+  const tags = tagsFor(setup);
+  assert.deepEqual(envelopeOf({ setup, tags }), { setup, tags }, 'the screens\' one argument');
+  assert.deepEqual(envelopeOf(setup, tags), { setup, tags }, 'the suite\'s two');
+  /* A real document is REQUIRED_SETUP's four members and can never be read as an
+     envelope; a two-member object that is not exactly {setup, tags} is not one
+     either, and is passed through as the document so the producer refuses it. */
+  assert.deepEqual(envelopeOf(setup), { setup, tags: undefined });
+  assert.deepEqual(envelopeOf({ setup, extra: 1 }), { setup: { setup, extra: 1 }, tags: undefined });
+  assert.deepEqual(envelopeOf(null), { setup: null, tags: undefined });
+});
+
+test('re-pin - a write with tags but NO setup is refused, and writes nothing', async () => {
+  const kit = await device();
+  const setup = documentOf(filled());
+  const refused = await kit.host.save({ setup: undefined, tags: tagsFor(setup) });
+  assert.equal(refused.ok, false, 'no document, no op');
+  assert.equal((await kit.host.all()).length, 0, 'and the generation is still empty');
+  /* The same lane still takes the good write afterwards. */
+  assert.equal((await kit.host.save({ setup, tags: tagsFor(setup) })).ok, true);
+  kit.host.close();
+});
+
+test('re-pin - tags for an id the week does not have are refused at the lane', async () => {
+  const kit = await device();
+  const setup = documentOf(filled());
+  const tags = tagsFor(setup);
+  tags.ghost_lift = { head: null, secondary: [] };
+  const refused = await kit.host.save({ setup, tags });
+  assert.equal(refused.ok, false, 'the key set must match the document ids');
+  assert.equal((await kit.host.all()).length, 0, 'nothing was written');
+  kit.host.close();
 });

@@ -74,6 +74,22 @@ export function tagsOf(input, document) {
   return out;
 }
 
+/* THE ENVELOPE, AND WHY IT EXISTS. The durable lane's `save()` takes ONE
+   document argument, and that signature is not ours to widen: w6's
+   today-bindings.mjs is pinned ON DISK by the merged B-NTC artifact
+   (packages/B-NTC.json, checked by rebuild/conform/v4/postfix/legacy-gates.cjs
+   :12-16), so a single byte of ours in it turns rebuild.yml's B-NTC step red.
+   The six screens therefore hand the lane `{ setup, tags }` as that one
+   argument, w6 forwards it unchanged into this producer's `input.setup`, and
+   THIS function - lane C's own, unpinned - is where the two come apart again.
+   A real setup document is REQUIRED_SETUP's four members and can never be
+   exactly these two keys, so the two shapes cannot be confused. */
+export function envelopeOf(input, tags) {
+  const isEnvelope = isMap(input) && Object.keys(input).length === 2
+    && Object.hasOwn(input, 'setup') && Object.hasOwn(input, 'tags');
+  return isEnvelope ? { setup: input.setup, tags: input.tags } : { setup: input, tags };
+}
+
 export function prepare(request) {
   if (!isMap(request) || Object.keys(request).length !== 2
     || request.action !== ACTION || !isMap(request.input)) bad();
@@ -81,9 +97,10 @@ export function prepare(request) {
   for (const key of Object.keys(input)) {
     if (key !== 'setup' && key !== 'tags' && key !== 'effective') bad();
   }
-  const document = setupOf(input.setup);
+  const carried = envelopeOf(input.setup, input.tags);
+  const document = setupOf(carried.setup);
   const action = { class: 'event', kind: 'fact',
-    payload: { profile: PROFILE, setup: document, tags: tagsOf(input.tags, document) },
+    payload: { profile: PROFILE, setup: document, tags: tagsOf(carried.tags, document) },
     parents: [] };
   if (Object.hasOwn(input, 'effective')) {
     const e = input.effective;

@@ -136,9 +136,9 @@ export async function createSetupEntry({ today: day }, options = {}) {
         onBack: back,
         /* ONE write, at the end, all or nothing. The screen reports what the
            durable layer answered and never its own optimism. */
-        async onDone(document_, tags_) {
+        async onDone(document_) {
           if (!host) return { ok: false, copy: null, code: "SETUP_NO_STORE" };
-          const result = await host.save(document_, tags_);
+          const result = await host.save(document_);
           if (result.ok) { await refresh(); if (done) await done(); }
           return result;
         } });

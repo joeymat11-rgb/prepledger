@@ -6,26 +6,23 @@ was the owner look `:133`). Detail and evidence: `A4B-REPORT-ANNEX.md`.
 
 ## RE-PIN ONTO THE B-NTC MERGE (DECISIONS:144)
 
-Rebase onto the tip took NO conflict. `today-bindings.mjs`: lane B's H6 wiring
-(`trendBinding`, `scoped`, `genSession`/`rirPlan`) and A4b's `createSetupHost`
-changes sit in different functions, so git merged them; verified by reading it
-and by diffing against the tip, where A4b's delta is exactly its three hunks,
-+11/-2, and none of lane B's is touched. No licensed non-test file moved beyond
-that, so mutants were not re-run. `rebuild.yml` and `rebuild/m4/**` untouched;
-build pins **103** and A0 host is **32** (B-NTC added one of each).
+Rebase onto the tip took NO conflict: lane B's H6 wiring and A4b's change sat in
+different functions of `today-bindings.mjs`. That file is now reverted anyway -
+see below - so lane B's wiring is the tip's, byte for byte. `rebuild.yml` and
+`rebuild/m4/**` untouched; build pins **103** and A0 host is **32** (B-NTC added
+one of each). Six mutants on the moved code, all killed and restored.
 
-## BLOCKER - THE B-NTC GATE REFUSES ANY LICENSED EDIT TO A FILE IT PINS
+## RE-PIN ONTO B-NTC: TAGS HANDLING MOVED OFF THE PINNED FILE
 
-`node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` (rebuild.yml's
-gate, line 82) ends **`B PACKAGE B-NTC FAIL WORKTREE-SOURCE-PIN`**, and the cause
-is exact, not a mistake in this branch. `legacy-gates.cjs:12-16` checks each
-pinned file twice: as a git object at the pinned commit, and **as the bytes on
-disk**. `packages/B-NTC.json:228` pins `rebuild/m3/w6/local/today-bindings.mjs`
-at post `95315f7a...`, the TIP's bytes; A4b's licensed +11/-2 makes the working
-copy `20650a88...`, so `GIT-SOURCE-PIN` passes and `WORKTREE-SOURCE-PIN` fails.
-CI checks out this branch, so the same step fails there. Every way out is outside
-custody - `rebuild.yml`, `packages/B-NTC.json` and `rebuild/m4/**` are named OUT,
-and reverting the delta leaves `tags` unable to reach the producer. PM ruling.
+The gate refused this branch (`WORKTREE-SOURCE-PIN`): `legacy-gates.cjs:12-16`
+hashes each pinned file ON DISK, and `packages/B-NTC.json` pins
+`today-bindings.mjs` (and `local-today-journey.test.mjs`, which pins
+`today-entry.mjs` by sha in `PAGE_PINS`). So A4b now modifies **none** of the
+three; all three are byte-identical to the tip. The `tags` travel instead as ONE
+argument, `{ setup, tags }`, which w6's unchanged `save(setup)` forwards into
+lane C's own producer, where `envelopeOf` in `setup-commands.mjs` takes them
+apart; `setup-host.mjs` adds the read-back and an explicit two-argument `save`.
+w6's `createSetupHost` is still used, for everything it already did.
 
 Round 3 (owner look `:133`) is unchanged by the re-pin: one predicate decides
 whether an exercise has a name, `namedExercise()` gives `One exercise (unnamed)`,
@@ -34,10 +31,13 @@ sets · aim for 10 reps`, and `:132 (3)`'s apostrophe keeps `:125 (2)`'s words.
 
 ## COUNTS (Windows, on the rebased head)
 
-today **64** / copy **36** / gym **64** / checkin **28** / setup **150** /
-catalogue **43** / ntc-h6-delta **8** / W6 **552** / journey **51** / A0 host
-**32** / w7 **19**, all 0 fail; rebuild.yml's today step as written **164/164**.
-Four msedge checks PASS. `b-package --ci` **FAIL**, above.
+today **64** / copy **36** / gym **64** / checkin **28** / setup **156** /
+catalogue **43** / ntc-h6-delta **8** / W6 **552** / journey **51** (PAGE_PINS
+unmoved) / A0 host **32** / w7 **19**, all 0 fail. Four msedge checks PASS.
+
+    B PACKAGE B-NTC PUBLIC CI EVIDENCE PASS - public evidence only, NOT the
+    package verdict; the 19 original gates, the private oracle and independent
+    exact-artifact acceptance remain separate
 
     A1 TODAY BUILD PASS: 3 assets; 103 pinned inputs (13 engine, 12 client);
     approved design pinned; 68 bound classes; no em/en dash in any text the
@@ -50,10 +50,9 @@ have none on file, print nothing`. No walk places a same-group lift three days a
 
 ## SERVED, AND PREFLIGHT (DECISIONS:135 (3), self-check)
 
-http://127.0.0.1:4178/ , `serve.mjs` pid **11600**, rebuilt on this head;
-`/app.js` **1443195 bytes** served and on disk. Diff inside custody **PASS** (20
-paths, nothing under engine / client / conform / m4 / w6-host / .github / src or
-ledger); report <= 60 **PASS**; no U+2013 or U+2014 in UI custody **PASS**;
-counts present **PASS**; CI green at the exact head **FAIL** - run 34680439982,
-`rebuild` red on both OS at the B-NTC gate above and no other step; 34680440032,
-`pipeline`, green.
+http://127.0.0.1:4178/ , `serve.mjs` pid **59320**, rebuilt on this head;
+`/app.js` **1445621 bytes** served and on disk. Diff inside custody **PASS**: 18
+paths, all under `dad-first-run/` and `w7-preview/today/`, nothing under
+`rebuild/m3/w6/` at all now; report <= 60 **PASS**; no U+2013 or
+U+2014 in UI custody **PASS**; counts present **PASS**; CI at the exact head:
+run ids in the annex.

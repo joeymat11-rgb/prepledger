@@ -58,7 +58,80 @@ the rebase produced no conflict to resolve and no follow-on edit. The last mutan
 run stands at the round 1 head (M21-M32, 12/12 killed) plus the reviewer's
 R11-R14.
 
-## 00b. THE BLOCKER, IN FULL
+## 00a. THE UNBLOCK: TAGS HANDLING MOVED OFF THE PINNED FILES
+
+The blocker in 00b is closed without a ruling and without a workaround, by
+moving A4b's code rather than the pin.
+
+**Which files the artifact actually reaches.** Two, not one. `packages/B-NTC.json`
+pins `rebuild/m3/w6/local/today-bindings.mjs` AND
+`rebuild/m3/w6/test/local-today-journey.test.mjs`, and the second pins
+`today-entry.mjs` by sha256 inside its own `PAGE_PINS`. A4b had touched all
+three. All three are now byte-identical to the tip:
+
+    today-bindings.mjs            95315f7a0e63cd49...  = package pin
+    local-today-journey.test.mjs  = package pin
+    today-entry.mjs               = the sha PAGE_PINS carries
+
+`rebuild/m3/w6/local/local-client.mjs` is NOT pinned (checked against the
+package's `product` map before starting), so the extension point was available.
+
+**Where the tags went.** The durable lane's `save()` takes ONE argument and that
+signature is w6's. So the screens hand it ONE argument that is an envelope:
+
+    setup-app.mjs   onDone({ setup, tags })              lane C
+    today-entry.mjs onDone(document_) -> host.save(document_)   TIP BYTES
+    w6 save(setup)  -> execute("workout", { input: { setup } }) TIP BYTES
+    setup-commands.mjs prepare()  envelopeOf(input.setup, input.tags)  lane C
+                    -> payload { profile, setup, tags }
+
+`envelopeOf` lives in the PRODUCER, not in setup-host.mjs, and that placement is
+the whole correctness argument: `boot()` hands today-entry.mjs its already-open
+era, and today-entry then asks **w6's own** createSetupHost for the lane - with
+OUR commands, but with w6's one-argument save. The envelope therefore has to come
+apart inside the command, which is the one part of that path lane C owns
+outright. A first shape of this fix unpacked it in setup-host.mjs instead; every
+Node test passed and the BROWSER refused with `WORKOUT_INPUT_INVALID`, because in
+the page the host is w6's, not this module's. That is recorded here because the
+suite could not see it and only the real browser could.
+
+**What setup-host.mjs adds.** It still calls w6's createSetupHost for the era,
+the lease, the clock, the producer-hook client, reopen(), the refusal face and
+close(). On top it supplies `all()` (the same read-back narrowed by profile, plus
+`tags`), `enrolled()`, and a `save(document, tags)` that takes the two apart for
+the suite. No second store, no second lease, no second clock, no second
+generation.
+
+**Guard, red-first.** Two new subtests read the pins out of `packages/B-NTC.json`
+itself rather than restating a hash, and compare every pinned path to the bytes
+on disk; a third checks `today-entry.mjs` against the sha `PAGE_PINS` carries.
+Appending one comment line to `today-bindings.mjs` turns both red; removing it
+turns them green.
+
+**Mutants on the moved code, 6/6 killed, each restored byte-identically.**
+
+| id | what was done | what went red |
+|---|---|---|
+| N1 | `envelopeOf` stops recognising the envelope | setup 4 fail, incl. the real "Start using Earned" write |
+| N2 | the producer drops `tags` from the payload | setup 11 fail (S18, S13, S35, the durable lane) |
+| N3 | `setupsIn` reads `tags` back as null | setup 1 fail, the read-back cell |
+| N4 | `save` skips the enrolled() re-read | setup 2 fail, both S13 second-write cells |
+| N5 | the screens send two arguments instead of the envelope | setup 1 fail, the UI write |
+| N6 | one comment line appended to `today-bindings.mjs` | setup 2 fail, both pin guards |
+
+Two of the six are the cells this dispatch named: **tags written without setup**
+(a `{ setup: undefined, tags }` envelope is refused and writes nothing) and
+**tags for an id not in the week** (`tags.ghost_lift` is refused at the lane);
+both are asserted as their own subtests as well.
+
+**One more thing the check gained.** `setup-check.mjs` now reports an
+`unhandledrejection` from the page. Every control on these six screens is an async
+click handler, so a throw inside one is a rejected promise nobody awaits: the
+screen simply does not advance and the next `waitFor` times out with no reason
+attached. That is exactly how the `WORKOUT_INPUT_INVALID` above presented, and it
+cost a round of guessing.
+
+## 00b. THE BLOCKER, IN FULL (now closed by 00a)
 
 `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` is what
 `rebuild.yml` line 82 now runs in place of `native-carriers-package.cjs --ci`.
@@ -105,12 +178,23 @@ calls.
 
 ## 0d. COUNTS ON THE REBASED HEAD (this round)
 
-today 64 / copy 36 / gym 64 / checkin 28 / setup 150 / catalogue 43 /
-ntc-h6-delta 8 / W6 552 / journey 51 / A0 host 32 / w7 19, every one 0 fail.
-`rebuild.yml`'s today step run exactly as written (adapter, checkin, design, gym,
-ntc-h6-delta, package, view) 164/164. `build.mjs` PASS at 103 pinned inputs, 68
-bound classes. Four msedge checks PASS. `b-package --ci --package B-NTC` FAIL, on
-`WORKTREE-SOURCE-PIN` only, worktree clean before and after it.
+today 64 / copy 36 / gym 64 / checkin 28 / setup **156** / catalogue 43 /
+ntc-h6-delta 8 / W6 552 / journey 51 (PAGE_PINS unmoved) / A0 host 32 / w7 19,
+every one 0 fail. `rebuild.yml`'s today step run exactly as written (adapter,
+checkin, design, gym, ntc-h6-delta, package, view) 164/164. `build.mjs` PASS at
+103 pinned inputs, 68 bound classes. Four msedge checks PASS.
+
+    node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+    B PACKAGE B-NTC PUBLIC CI EVIDENCE PASS - public evidence only, NOT the
+    package verdict; the 19 original gates, the private oracle and independent
+    exact-artifact acceptance remain separate, and POSTFIX PACKAGE PASS is
+    unavailable on this mode at any time
+
+Run alone, `git status --short` carrying only A4b's own edits before and after.
+One thing to know about that gate: it writes `rebuild/m4/spec/
+native-carriers-changes.json` while it runs. It restores the file itself, and
+this run left it clean, but a run interrupted part way would not - check for it
+before committing.
 
 Gym card after B-NTC, informational: `gym-check.mjs` still reports `"Last time"
 prints on day 1's active set from the engine's own comparison (C4d), and day 2's

@@ -515,7 +515,13 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       if (!built.ok) { paint(); return; }
       busy = true;
       primary.disabled = true;
-      const result = await onDone(built.setup, built.tags);
+      /* ONE argument, an ENVELOPE. today-entry.mjs's `onDone(document_)` forwards
+         whatever it is handed, unchanged, to the durable lane; that file is
+         byte-identical to the tip because the merged B-NTC artifact pins the
+         files around it on disk, so A4b's third payload member travels INSIDE
+         the one argument rather than as a second one. setup-host.mjs unpacks it
+         (envelopeOf) and w6 never sees the difference. */
+      const result = await onDone({ setup: built.setup, tags: built.tags });
       busy = false;
       if (!result || result.ok !== true) {
         message = (result && result.copy) || COPY.saveRefused;
