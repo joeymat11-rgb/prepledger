@@ -56,6 +56,13 @@ const ACCEPT_LINE = '- 2026-09-11 · cowork · BRIEF ACCEPTED for ' + PACKAGE_ID
 
 write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, ''].join('\n'));
 write('rebuild/conform/v4/postfix/run.cjs', fs.readFileSync(path.join(sourceRoot, 'rebuild/conform/v4/postfix/run.cjs')));
+// TOOLING-REVIEW r6 change 6: FAIL_CODES harvests the originals' own closed refusal codes
+// by READING these modules off disk, so the fixture carries their real bytes as it already
+// carries run.cjs. Copies, never re-typed.
+for (const original of ['rebuild/conform/v4/postfix/target.cjs', 'rebuild/conform/v4/postfix/legacy-gates.cjs',
+  'rebuild/conform/v4/postfix/strict-json.cjs', 'rebuild/m4/spec/native-carriers-errors.cjs',
+  'rebuild/m4/spec/load-write-reference.cjs'])
+  write(original, fs.readFileSync(path.join(sourceRoot, original)));
 git('init', '--quiet', '-b', 'fixture-chain');
 git('config', 'user.email', 'fixer5@earned.local');
 git('config', 'user.name', 'lane-b-fixer5');

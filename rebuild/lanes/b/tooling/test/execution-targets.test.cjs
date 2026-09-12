@@ -23,6 +23,13 @@ function write(file, text) {
 }
 write(runnerRel, source);
 write('rebuild/conform/v4/postfix/run.cjs', fs.readFileSync(path.join(sourceRoot, 'rebuild/conform/v4/postfix/run.cjs')));
+// TOOLING-REVIEW r6 change 6: FAIL_CODES now harvests the originals' own closed refusal
+// codes by READING these modules off disk (not by requiring them), so the fixture carries
+// their real bytes exactly as it already carries run.cjs. Copies, never re-typed.
+for (const original of ['rebuild/conform/v4/postfix/target.cjs', 'rebuild/conform/v4/postfix/legacy-gates.cjs',
+  'rebuild/conform/v4/postfix/strict-json.cjs', 'rebuild/m4/spec/native-carriers-errors.cjs',
+  'rebuild/m4/spec/load-write-reference.cjs'])
+  write(original, fs.readFileSync(path.join(sourceRoot, original)));
 const runnerFile = path.join(scratch, runnerRel);
 const m = new Module(runnerFile, module);
 m.filename = runnerFile;
@@ -140,17 +147,26 @@ test('parent product roles carried/edited admitted; new/superseded/wrong pre ref
   const pin = { pre: sha(good), post: sha(good), role: 'carried' };
   const s = { product: { [good]: pin } };
   const bound = { acceptance: { product: { [good]: sha(good) }, executionPins: {} } };
-  api.product(s, bound); pin.role = 'edited'; api.product(s, bound);
+  api.product(s, bound);
+  // r6 change 5 (F4): `edited` declares a CHANGE, so pre === post is refused for it — an
+  // untouched parent pin can no longer read as a satisfied product claim. `carried` above
+  // is pre === post by definition and is untouched.
+  pin.role = 'edited'; assert.throws(() => api.product(s, bound), /PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE/);
+  pin.post = '1'.repeat(64); api.product(s, bound);
   pin.role = 'new'; assert.throws(() => api.product(s, bound), /PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED/);
   pin.role = 'superseded-by-child'; assert.throws(() => api.product(s, bound), /PRODUCT-ROLE-MISLABELLED|PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED/);
   pin.role = 'edited'; pin.pre = '0'.repeat(64);
   assert.throws(() => api.product(s, bound), /pre-image is not the parent pin/);
 });
 test('parent execution role requires superseded and exact pre; genuinely new passes', () => {
-  const pin = { pre: sha(good), post: sha(good), role: 'superseded-by-child' };
+  const pin = { pre: sha(good), post: '1'.repeat(64), role: 'superseded-by-child' };
   const s = { product: { [good]: pin } };
   const bound = { acceptance: { product: {}, executionPins: { [good]: sha(good) } } };
   api.product(s, bound);
+  // r6 change 5 (F4): the supersession of a parent EXECUTION pin declares a change too, so
+  // an untouched pin declared pre === post refuses instead of counting as produced.
+  pin.post = pin.pre; assert.throws(() => api.product(s, bound), /PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE/);
+  pin.post = '1'.repeat(64);
   for (const role of ['new', 'carried', 'edited']) {
     pin.role = role; assert.throws(() => api.product(s, bound), /PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED/);
   }

@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "lanePackage": "B-LOM",
-  "packageId": "M2-B-LOM-LEGACY-ORDER-MAPPING",
+  "lanePackage": "H3",
+  "packageId": "M2-H3-CLEAN-INIT",
   "status": "SKELETON",
   "brief": {
-    "file": "rebuild/lanes/b/BRIEF-B-LOM-LEGACY-ORDER-MAPPING.md",
+    "file": "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md",
     "sha256": null,
     "acceptedLedgerLine": null
   },
@@ -31,7 +31,7 @@
         "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
         "reviewSha256": null,
         "receiptLedgerLine": null,
-        "note": "TBD. DECISIONS:103 (1): the legacy order-mapping provider goes inside B-NTC only if it is the same seam; the lane-B STATUS of 2026-09-11 05:50 ET records that it is NOT (B-NTC binds performed.cjs:193, B-LOM is data-fed at performed.cjs:176-183), so B-LOM follows as its own package with the ACCEPTED B-NTC artifact as its parent. Every coordinate here — sha256, reviewSha256, receiptLedgerLine — is taken when B-NTC is sealed and receipted, and not before."
+        "note": "TBD. DECISIONS:124 rules M2-H3-CLEAN-INIT a child of M2-B-NTC, ORDER B-NTC → H3 → B1 → B2 → B4 → B3. B-NTC is not sealed, so sha256, reviewSha256 and receiptLedgerLine are taken when B-NTC is sealed and receipted, and not before. This skeleton takes none of them."
       }
     ]
   },
@@ -39,7 +39,13 @@
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
     "runnerSha256": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612"
   },
-  "product": {},
+  "product": {
+    "rebuild/m4/workout/athlete-state.cjs": {
+      "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
+      "post": null,
+      "role": "edited"
+    }
+  },
   "coverage": {
     "inherited": {},
     "moves": {},
@@ -67,25 +73,21 @@
     "theme": null,
     "review": {
       "role": "cowork",
-      "prefix": "POSTFIX-ACCEPTANCE M2-B-LOM-LEGACY-ORDER-MAPPING",
+      "prefix": "POSTFIX-ACCEPTANCE M2-H3-CLEAN-INIT",
       "terminal": "ACCEPTED"
     }
   },
   "artifact": {
-    "file": "rebuild/m4/spec/acceptance-b-lom-legacy-order-mapping.json",
-    "review": "rebuild/m4/spec/review-b-lom-legacy-order-mapping.json"
+    "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
+    "review": "rebuild/m4/spec/review-h3-clean-init.json"
   },
   "children": [],
   "notes": [
-    "SKELETON. B-LOM exists here so the runner admits the id and so the chain’s shape is visible; it declares no product, no child and no D-id, and every run of it is REVIEW-PENDING with the whole inventory open. Nothing in this file is a claim about the legacy order-mapping seam.",
-    "product is EMPTY on purpose: B-LOM’s parent is the B-NTC artifact, which is not sealed, so there is no parent product map to inherit and no pre-image to pin. The inventory is taken whole at B-NTC’s accepted head. While the parent is unsealed the runner cannot verify inventory completeness at all and says so in its own line.",
-    "coverage.inherited is EMPTY and children[] is empty for the same reason: inherited coverage IS the parent artifact’s own gate->child map byte-for-byte, and there is no parent artifact yet. All nineteen original gates re-execute under --full.",
-    "dIds and laws are empty because B-LOM is named in the runner’s NO_REGISTER_IDS set (DECISIONS:93). If the PM later rules that B-LOM does carry register repairs, the exemption is removed from b-package.cjs — not worked around here. THE REPLACEMENT OBLIGATION (TOOLING-REVIEW-r4 Y1): with no D-id there is no law accounting, so the runner requires at least MIN_OWN_CHILDREN declared child(ren) executing one of this package's own role:\"new\" product files. B-LOM declares none — product is {} and children[] is empty — so the run reports NO-REGISTER OBLIGATION 0 of 0, carries it as an OPEN obligation on top of the rest of the skeleton's, and the seal REFUSES with NO-REGISTER-PACKAGE-SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT. B-LOM cannot be sealed until it has a cell of its own that runs.",
-    "The brief is not written yet, so brief.sha256 is null and the runner leaves \"brief not authored\" OPEN.",
-    "PARENT, CORRECTED (TOOLING-REVIEW-r4 Y3). B-LOM’s ONLY parent option is B-NTC, which is not sealed, so this spec names no NATIVE-CARRIERS option and nothing here was re-pinned at the DECISIONS:104 CI re-seal. (The note that stood here through r3 said parent.options NATIVE-CARRIERS had been re-pinned; it was copied from B1/B2, where it is true, and this spec has no such option. Corrected rather than carried.) What IS re-taken at the tip is sourceBase e9c50e1; the parent pins are taken whole at B-NTC’s accepted head when it exists.",
-    "NO PRE-IMAGES TO RE-VERIFY (TOOLING-REVIEW-r4 Y3). product is {} — this spec pins no pre-image at all, so it makes no pre-image claim. The r3-era note that stood here described this spec's product pre-images as the parent's own pins carried forward; with an empty product map that said more than these bytes contain, so it is corrected rather than carried and the false sentence is not reproduced. When B-NTC seals, the inventory is taken whole from its artifact and re-verified by B-LOM’s own lane, not by the tooling fixer.",
-    "coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1): the runner refuses any non-empty moves while MOVES_RULING is absent, in spec() and again at the seal in envelope(). That is what closes r3’s R3-A — the move/needle composite reaches nothing at all when no move can be declared, rather than being narrowly bounded.",
-    "parent.options[].reviewSha256 pins the parent’s REVIEW file by bytes, and option() additionally requires the receipt base that review names to be an ancestor of refs/remotes/origin/rebuild/t2-client-core — resolved from Git refs, never from this spec (TOOLING-REVIEW-r3 X2, closing R3-B).",
-    "SINGLE PARENT, TWO WAYS (TOOLING-REVIEW-r4 Y2). parent.chosen is null here, so the rule is not yet engaged; when it is, parent() refuses if any sibling packages/*.json claims the same artifact — read BOTH from disk AND from Git at HEAD, so freeing a sibling’s `chosen` in an uncommitted edit no longer frees the parent (r4 G14) — and refuses again if an already-sealed rebuild/m4/spec/acceptance-*.json ON refs/remotes/origin/rebuild/t2-client-core names it. B-LOM’s only option is B-NTC, so the second head this guards against is a second claim on the B-NTC artifact once it exists."
+    "SKELETON, AUTHORED BY THE TOOLING FIXER, NOT BY THE PACKAGE. DECISIONS:124 created M2-H3-CLEAN-INIT on 2026-09-12; this file exists so the runner admits the id and so the chain’s shape is visible. It makes NO claim about the clean-init defect, its scope or its evidence. The package itself — brief, product post-images, D-id/register accounting, children, coverage — is authored by its own builder.",
+    "EVERY RUN OF H3 REFUSES TODAY, BY NAME. dIds is empty and H3 is NOT in the runner’s NO_REGISTER_IDS set, so spec() refuses at REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT, exit 1, before the runner pin, the product map or any child is reached. That is the intended state of a skeleton whose register accounting has not been decided: DECISIONS:124 rules H3 an ENGINE-TIER register item beside H1/H2 and names no D-id, and whether H3 belongs in NO_REGISTER_IDS (DECISIONS:93) or carries D-ids is the PM’s and the package author’s call, never the tooling fixer’s.",
+    "product declares exactly the one file DECISIONS:124 names in scope — rebuild/m4/workout/athlete-state.cjs, role \"edited\" — with its pre-image taken from the bytes standing here now and post null, because the post-image does not exist yet. Role \"edited\" is the truth of what :124 rules (createCleanInitState gains blackout and the model members bfEst reads); it is not a claim that any of it is written.",
+    "parent is UNDECIDED: H3’s only parent option is the B-NTC artifact, which is not sealed. DECISIONS:116 (3) has the lane rehearse H3 against the B-NTC candidate head, so only pins move after B-NTC seals — and pins are exactly what this file does not take.",
+    "coverage.inherited is EMPTY, coverage.moves is {} and must stay {} (TOOLING-REVIEW-r3 X1), and coverage.successors is null: inherited coverage IS the parent artifact’s own gate->child map byte-for-byte, and there is no parent artifact yet.",
+    "brief.sha256 is null because rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md is not written yet, and theme is null because no theme line for M2-H3-CLEAN-INIT stands in the ledger. Neither is struck off by declaration."
   ]
 }

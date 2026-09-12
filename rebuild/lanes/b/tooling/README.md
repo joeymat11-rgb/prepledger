@@ -9,10 +9,14 @@ node rebuild/lanes/b/tooling/b-package.cjs --full --package B1
 ```
 
 Two modes, **no third**. Anything else refuses in one line with exit 1
-(`B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|B-LOM|B1|B2|B3|B4`).
+(`B PACKAGE USAGE REFUSED; exactly: --ci|--full --package B-NTC|B-LOM|H3|B1|B2|B3|B4`).
 
 The id list is **case-exact and closed in the runner** — `b-ntc` refuses exactly as `B5`
-does. Widening it is a reviewed change to `b-package.cjs`; a spec can never nominate its
+does. `H3` is the newest member: `DECISIONS:124` rules `M2-H3-CLEAN-INIT` a package of its
+own, child of `M2-B-NTC`, in the order `B-NTC → H3 → B1 → B2 → B4 → B3`. Its spec is a
+SKELETON that declares no D-id, so every run of it refuses at
+`REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT`, exit 1, until its own author fills it in.
+Widening it is a reviewed change to `b-package.cjs`; a spec can never nominate its
 own id, and the id on the command line must be the one the spec's `packageId` names
 (`M2-<ID>-…`), so a spec filed as `B1.json` cannot claim B2's artifact path.
 
@@ -128,7 +132,18 @@ character the run refuses.
    `contract` and `theme`, never a bare line number. Its `line` must name this package id
    and this brief path and end in the **`ACCEPTED` terminal word**, `status` must be
    `BRIEF-ACCEPTED`, and the runner finds its exact bytes in `rebuild/DECISIONS.md`
-   **in Git at the parent's receipt base** before the obligation closes. A declared
+   **in Git on the chain branch `refs/remotes/origin/rebuild/t2-client-core`
+   (`CHAIN_REF`)** before the obligation closes — not at the parent's receipt base.
+   The brief acceptance and the theme are THIS package's own lines: they are written
+   after the parent was sealed, so at the parent's receipt base they can never be found
+   and the obligation could never close. `owner` and `contract` stay at the parent's
+   receipt base, where they always were. The anchor is a Git REF, never `HEAD` and never
+   a spec's word: a line a lane writes into its own branch's `DECISIONS.md` is not on the
+   chain and refuses (`b-package.cjs:911-916`). At the seal all four — owner, contract,
+   theme and brief acceptance — are re-resolved at the **package's own receipt base**,
+   which `envelope()` additionally asserts is an ancestor of `CHAIN_REF`
+   (`b-package.cjs:1313-1328`), so the seal is no weaker than it was and this path is
+   never stronger than the seal. A declared
    acceptance that is not in the ledger refuses the run; a `null` one simply leaves the
    obligation open. The open-obligation count is therefore evidence again: neither the
    brief nor the theme can be struck off it by declaration. The implication runs **both
@@ -306,8 +321,12 @@ character the run refuses.
 
    **`theme` is held to exactly the same standard as `owner` and `contract` on every run,
    not only inside an ACCEPTED envelope.** When it is non-null the runner finds its exact
-   line bytes in `rebuild/DECISIONS.md` **in Git at the parent's receipt base**, under role
-   `cowork`, mentioning this package id. An invented line — self-consistent, naming the
+   line bytes in `rebuild/DECISIONS.md` **in Git on the chain branch
+   `refs/remotes/origin/rebuild/t2-client-core` (`CHAIN_REF`)**, under role
+   `cowork`, mentioning this package id — the same anchor as the brief acceptance and for
+   the same reason: both are this package's OWN lines, written after the parent was
+   sealed, and neither can ever stand at the parent's receipt base. `owner` and
+   `contract` are the two that stay there. An invented line — self-consistent, naming the
    package, ending ` · ACCEPTED`, and standing in no ledger — refuses the run; it does not
    quietly close an obligation. When it is `null` the obligation simply stays open. There
    is no third outcome, and a `theme` declared with no sealed parent to anchor it at
