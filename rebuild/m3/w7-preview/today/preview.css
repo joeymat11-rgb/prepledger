@@ -56,6 +56,25 @@
    sticky. */
 .view .intro h1 { font-size: var(--headline, 47px); line-height: 1.04; letter-spacing: -.025em; }
 
+/* REPORT A PROBLEM (DECISIONS:140 (3)). Two corrections only, both from approved
+   tokens and neither a new visual idea: the control is given the 44px minimum tap
+   height the rest of this page is already held to, and the diagnostic box is held
+   inside the phone's width so opening it can never make the page scroll sideways.
+   The box's type size comes from the `.view textarea` rule above, unchanged. These
+   are attribute selectors, not new classes: the approved stylesheets decide every
+   class this page may render, and this screen invents none. */
+.view [data-slot="problem-entry"] { min-height: 44px; }
+.view [data-slot="problem-box"] { margin-top: 8px; }
+.view [data-slot="problem-text"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 132px;
+  box-sizing: border-box;
+  white-space: pre;
+  overflow: auto;
+}
+
 /* C composes "a main line with a quieter second line" once, on its coach entry
    (.coach-entry .sub). Today's trend control is the same composition, so it gets the same
    declared values rather than a new idea. */

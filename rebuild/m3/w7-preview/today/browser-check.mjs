@@ -285,6 +285,55 @@ try {
   const local = await page.evaluate(() => Object.keys(localStorage));
   assert.deepEqual(local, [], "nothing of record is kept in localStorage: " + JSON.stringify(local));
 
+  /* REPORT A PROBLEM (DECISIONS:140 (3)), in the real browser. The control is tapped
+     and the FALLBACK BOX is read: whether the clipboard took the block is the one
+     thing this repository cannot decide (no iPhone has run this build), so what is
+     measured is the thing that does not depend on it. The block must be the eight
+     fields, must name this build, and opening it must not make the page scroll
+     sideways at either width. */
+  await page.click('[data-slot="problem-entry"]');
+  await page.waitForSelector('[data-slot="problem-text"]', { state: "visible" });
+  await page.waitForFunction(() => {
+    const area = document.querySelector('[data-slot="problem-text"]');
+    return !!area && area.value.length > 0;
+  });
+  const problem = await page.evaluate(() => {
+    const area = document.querySelector('[data-slot="problem-text"]');
+    const control = document.querySelector('[data-slot="problem-entry"]');
+    const said = document.querySelector('[data-slot="problem-said"]');
+    const view = document.querySelector(".view") || document.documentElement;
+    return { block: area.value, said: said.textContent.trim(),
+      tap: Math.round(control.getBoundingClientRect().height),
+      font: Math.round(parseFloat(getComputedStyle(area).fontSize)),
+      scrollWidth: view.scrollWidth, clientWidth: view.clientWidth,
+      selected: area.selectionEnd - area.selectionStart };
+  });
+  const problemFields = problem.block.split("\n").map((line) => line.slice(0, line.indexOf(":")));
+  assert.deepEqual(problemFields, ["screen", "lane open", "enrolment", "offline-ready",
+    "build", "device", "user agent", "at"], "the block the browser shows: " + problem.block);
+  assert.match(problem.block, /\nbuild: earned-[0-9a-f]{12}\n/, "the block names this build");
+  assert.match(problem.block, /\ndevice: (device-[0-9a-f]{8}|none)\n/, "eight hex, or none");
+  assert.equal(/\b[0-9a-f]{32}\b/.test(problem.block), false, "no full device id reaches the block");
+  assert(problem.said.length > 0, "the control says what happened");
+  assert(problem.tap >= 44, "the control is a 44px tap target: " + problem.tap);
+  assert(problem.font >= 16, "the box is 16px or more: " + problem.font);
+  assert.equal(problem.selected, problem.block.length, "the block is pre-selected, whole");
+  assert(problem.scrollWidth <= problem.clientWidth,
+    "the open box made the page scroll sideways: " + problem.scrollWidth + " > " + problem.clientWidth);
+  /* And at the narrowest width the brief names, with the box still open. */
+  await page.setViewportSize({ width: 320, height: VIEWPORT.height });
+  const narrow = await page.evaluate(() => {
+    const view = document.querySelector(".view") || document.documentElement;
+    return { scrollWidth: view.scrollWidth, clientWidth: view.clientWidth,
+      open: !document.querySelector('[data-slot="problem-box"]').hidden };
+  });
+  assert.equal(narrow.open, true, "the box is still open at the narrow width");
+  assert(narrow.scrollWidth <= narrow.clientWidth,
+    "sideways scroll at 320px with the box open: " + narrow.scrollWidth + " > " + narrow.clientWidth);
+  await page.setViewportSize(VIEWPORT);
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector('[data-slot="morning"]');
+
   /* THE REAL PROCESS KILL (review B2). Everything above ran on a throwaway context;
      this runs on a PERSISTENT profile and kills every chrome.exe of it with
      `taskkill /F /T` — no graceful flush, which is what an iOS tab termination is —
@@ -344,7 +393,9 @@ try {
     + `${sweptBefore.shrunk.length} title(s) fitted down to ${[...new Set(sweptBefore.shrunk.map((r) => r.size))].join("/") || "none"}px `
     + `(33px floor never reached); unwired entry points labelled on Today's face; `
     + `no em/en dash in the rendered DOM of ${dashStates.length} screen states (DECISIONS:114): `
-    + dashStates.join(", "));
+    + dashStates.join(", ")
+    + `; "Report a problem" copied its eight-field block (${problem.tap}px tap target, ${problem.font}px box, `
+    + `pre-selected whole, no full device id, no sideways scroll at 390px or 320px) and said "${problem.said}"`);
 } catch (error) {
   failures = 1;
   console.error("A1 TODAY BROWSER CHECK FAIL — " + error.message);

@@ -22,6 +22,10 @@ const { createTodayModel } = require("./today-model.cjs");
    character never reaches the athlete, and one unrewritable sentence never costs them
    the whole of Today. */
 const { plainOrDrop } = require("./plain-copy.cjs");
+/* REPORT A PROBLEM (DECISIONS:140 (3)). The diagnostic block's shape lives in ONE
+   module and this file only gathers what the page can honestly observe and hands it
+   over. Nothing here reads a store, and the control writes nothing at all. */
+const ProblemReport = require("./problem-report.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -67,6 +71,21 @@ function trendLine(view) {
    Today's face, in the approved design's own secondary text, so the athlete never taps to
    discover it. The screen behind it repeats the same words in full. */
 const NOT_WIRED = "Not wired yet";
+
+/* REPORT A PROBLEM (DECISIONS:140 (3)) - the three sentences the control can put on
+   the screen. The approved 2026-09-08 design has no such control, so all three are
+   preview-owned and declared in design.cjs PREVIEW_RUNTIME_COPY, which asserts each is
+   ABSENT from the approved references and PRESENT here.
+
+   THE WORDING NAMES THE OWNER, ON BOTH PHONES. The brief's own sentence was "Copied.
+   Paste it to Joe.", written for Joe's phone; on Dad's phone he is not pasting into a
+   PM chat, he is sending it to his son. "Send it to Joe" is true on both, so there is
+   ONE sentence rather than a phone-dependent one this page has no way to choose
+   between - it cannot know whose phone it is until the first run has named him, and
+   the control has to work before that. Recorded as a REQUESTS line for the PM. */
+const PROBLEM_ENTRY = "Report a problem";
+const PROBLEM_COPIED = "Copied. Send it to Joe.";
+const PROBLEM_SELECT = "Select all and copy, then send it to Joe.";
 
 /* A2 — what Today says about today's workout. The three states come from the
    DURABLE workout log (rebuild/m3/w7-preview/today/gym-model.mjs over the accepted
@@ -239,6 +258,9 @@ function mountToday(doc, model, options = {}) {
       for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
       put(map, "recovery-state", null);
       map.get("primary").disabled = true;
+      /* A blocked Today is exactly when a problem is worth reporting, so the control
+         is wired here too. It reads nothing from the record it could not trust. */
+      problemControl(map);
       wire(root);
       show(root, focus);
       return;
@@ -291,6 +313,7 @@ function mountToday(doc, model, options = {}) {
     map.get("recovery-state").textContent = plainOrDrop(recoveryState(), "recovery-state");
     setupTile(map);
     setupNote(map);
+    problemControl(map);
     put(map, "morning", morningLine(view));
     put(map, "trend", trendLine(view));
 
@@ -506,6 +529,81 @@ function mountToday(doc, model, options = {}) {
     return owed;
   }
 
+  /* REPORT A PROBLEM (DECISIONS:140 (3)).
+
+     WHAT THE PAGE CAN HONESTLY OBSERVE. Every member below is read from something
+     this view already holds: its own router variable, the three injected lanes, the
+     page's own status line, the installation's authority lease, and the platform.
+     No store is opened, nothing is read back out of the log, and no operation is
+     made - tapping this control leaves the generation exactly as it found it.
+
+     THE DEVICE ID comes from the LEASE the era sealed for this installation, which
+     every open lane carries (today-bindings.mjs hands the handle its
+     `generation.metadata.authorityLease`). It is there from the first launch, before
+     any operation exists, which an op's `device_id` would not be; problem-report.cjs
+     truncates it to eight hex and refuses anything that is not hex.
+
+     RESTORE-REQUIRED is read from the page's OWN status line, because that is the
+     only place a state-18 refusal reaches this view: boot() writes rebuild/client's
+     sentence there and hands mountToday no lanes at all, so a damaged installation
+     and a device with no store are otherwise indistinguishable from here. */
+  const laneHandles = () => ({ workout: !!workout, checkin: !!checkin, setup: !!setup });
+  function installationDevice() {
+    const holders = [setup && setup.host, workout && workout.gymHost];
+    for (const handle of holders) {
+      if (!handle) continue;
+      if (handle.lease && typeof handle.lease.device_id === "string") return handle.lease.device_id;
+      if (typeof handle.deviceId === "string") return handle.deviceId;
+    }
+    return null;
+  }
+  function problemState() {
+    const view = doc.defaultView || null;
+    return {
+      screen,
+      lanes: laneHandles(),
+      enrolment: ProblemReport.enrolmentOf({
+        restoreNote: status ? status.textContent : "",
+        setup: setup && typeof setup.summary === "function" ? setup.summary() : null,
+      }),
+      offlineReady: ProblemReport.offlineReadinessOf(view),
+      device: installationDevice(),
+      userAgent: view && view.navigator ? view.navigator.userAgent : null,
+      at: new Date(),
+    };
+  }
+
+  /* The control. The clipboard is tried and the box is opened REGARDLESS (brief
+     section 3): whether navigator.clipboard.writeText succeeds inside an installed
+     iOS Home Screen app is not verifiable from this repository, so nothing here
+     depends on the answer. Both paths show the SAME block - the string handed to the
+     clipboard is the string put in the box. */
+  function problemControl(map) {
+    const button = map.get("problem-entry");
+    if (!button) return null;
+    put(map, "problem-label", PROBLEM_ENTRY);
+    const said = map.get("problem-said");
+    const box = map.get("problem-box");
+    const area = map.get("problem-text");
+    said.hidden = true;
+    box.hidden = true;
+    button.addEventListener("click", async () => {
+      const report = ProblemReport.buildProblemReport(problemState());
+      area.value = report;
+      let copied = false;
+      const view = doc.defaultView || null;
+      const clipboard = view && view.navigator ? view.navigator.clipboard : null;
+      if (clipboard && typeof clipboard.writeText === "function") {
+        try { await clipboard.writeText(report); copied = true; } catch (_) { copied = false; }
+      }
+      box.hidden = false;
+      try { area.focus(); area.select(); } catch (_) { /* selection is a convenience */ }
+      said.textContent = plainOrDrop(copied ? PROBLEM_COPIED : PROBLEM_SELECT, "problem-said");
+      said.hidden = false;
+    });
+    return button;
+  }
+
   /* A3 — Today's one-line report on the check-in. It reads the DURABLE lane, never a
      flag this page sets, and says nothing at all when nothing is recorded. */
   function recoveryState() {
@@ -612,4 +710,5 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   WORKOUT_CANNOT_OPEN, WHY_WORKOUT_CANNOT_OPEN, NO_LOCAL_STORE,
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
   CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE,
-  SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded };
+  SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded,
+  PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT };
