@@ -535,7 +535,7 @@
         "rebuild/m3/w7-preview/today/test/setup.test.mjs",
         "rebuild/m3/w7-preview/today/test/view.test.mjs"
       ],
-      "needle": "# pass 320"
+      "needle": "# pass 321"
     },
     {
       "name": "ntc-provider-cells",
