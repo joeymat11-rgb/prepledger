@@ -242,6 +242,7 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/TOOLING-FIX-r5-REPORT.md', TOOLING + '/TOOLING-FIX-r7-REPORT.md', TOOLING + '/test/execution-targets.test.cjs',
   TOOLING + '/test/successor-moves.test.cjs', TOOLING + '/test/product-phase-and-ledger.test.cjs',
   TOOLING + '/test/pinned-unchanged-and-ruled-substitutions.test.cjs', TOOLING + '/test/seal-tip-and-byte-identity.test.cjs',
+  TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
   ...IDS.map(i => TOOLING + '/packages/' + i + '.json'), ...IDS.map(i => RECEIPT_DIR + '/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
