@@ -250,7 +250,12 @@ test('F3 — the four refusals r7 fired bare now carry names in the vocabulary',
   for (const code of ['PARENT-RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH', 'THEME-LINE-DOES-NOT-BIND-THIS-PACKAGE-ID',
     'COVERAGE-GATE-IS-NOT-AN-ORIGINAL-GATE', 'COVERAGE-GATE-BOTH-INHERITED-AND-MOVED',
     'PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD', 'SUCCESSOR-RULING-LINE-IS-NOT-THE-RULING',
-    'PRODUCT-PINNED-UNCHANGED-BYTES-MOVED', 'PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN']) {
+    'PRODUCT-PINNED-UNCHANGED-BYTES-MOVED', 'PRODUCT-PINNED-UNCHANGED-IS-A-PARENT-PIN',
+    'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED',
+    // The six this file writes with a COLON after the name, which the harvest could not see
+    // before r7 and which therefore printed a bare FAIL for no reason but punctuation.
+    'SEALED-PROFILE-RECOMPUTATION', 'SINGLE-PARENT-CHAIN', 'SINGLE-PARENT-CHAIN-SEALED',
+    'BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE', 'THEME-AUTHORIZATION-UNVERIFIABLE', 'BRIEF-ACCEPTANCE-UNVERIFIABLE']) {
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
     assert.equal(api.failCode(code + ' and then whatever the assertion said'), code);
   }

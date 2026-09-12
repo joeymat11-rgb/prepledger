@@ -313,7 +313,15 @@ const ORIGINAL_CODE_SOURCES = [path.join(P, 'target.cjs'), path.join(P, 'legacy-
   path.join(P, 'run.cjs'), path.join(root, 'rebuild/m4/spec/native-carriers-errors.cjs'), path.join(root, 'rebuild/m4/spec/load-write-reference.cjs')];
 const FAIL_CODES = (() => {
   const src = fs.readFileSync(path.join(__dirname, 'b-package.cjs'), 'utf8'), out = new Set();
-  for (const m of src.matchAll(/'([A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,})(?=['; ])/g)) out.add(m[1]);
+  // r7 F3, one more class. The harvest admitted a name followed by a quote, a semicolon or a
+  // space, and SIX of this file's own names are written with a COLON after them —
+  // SEALED-PROFILE-RECOMPUTATION, SINGLE-PARENT-CHAIN, SINGLE-PARENT-CHAIN-SEALED,
+  // BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE, THEME-AUTHORIZATION-UNVERIFIABLE and
+  // BRIEF-ACCEPTANCE-UNVERIFIABLE — so those six printed a bare FAIL for no reason except
+  // punctuation. failCode() already read them correctly; only the harvest could not see
+  // them. The colon joins the terminator set; nothing else about the rule changes, and a
+  // string that is not already an upper-kebab name in this file is still not in the set.
+  for (const m of src.matchAll(/'([A-Z][A-Z0-9]*(?:-[A-Z0-9]+){2,})(?=['; :])/g)) out.add(m[1]);
   // held() composes two suffixes onto a base code; they are names too, so they are in.
   for (const base of [...out]) for (const suffix of ['-AT-SOURCEBASE', '-GIT-DISK-DISAGREE']) out.add(base + suffix);
   // The originals' own closed codes — RECEIPT-*, JSON-*, WORKTREE-SOURCE-PIN and their
