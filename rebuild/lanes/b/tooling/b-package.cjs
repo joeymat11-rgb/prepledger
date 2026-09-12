@@ -190,7 +190,7 @@ const SUCCESSOR_TABLE = 'SUBSTITUTIONS';
 // beside H1/H2 and names no D-id for it, so H3 enters under the H- half of the rule and
 // not by anybody's discretion. The rule is ASSERTED below, not merely described, so a
 // future hand cannot quietly add a B- id to this set without also writing the PM line.
-const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM']);
+const NO_REGISTER_IDS = new Set(['B-NTC', 'B-LOM', 'H3']);
 // The B- ids the PM has ruled no-register BY NAME; every other member of NO_REGISTER_IDS
 // must be an H-/F- id, which is the rule above stated as an assertion over this file's own
 // constants. Nothing an input can shape reaches it: both sets are fixed here (W7).

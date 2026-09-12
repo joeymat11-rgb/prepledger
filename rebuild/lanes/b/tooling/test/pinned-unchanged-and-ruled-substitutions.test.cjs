@@ -217,9 +217,11 @@ test('F6 — IDS carries the order DECISIONS:124 rules', () => {
   // stands after the ruled six rather than inside them.
   assert.deepEqual(api.IDS.slice(0, 6), ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3']);
   assert.equal(api.IDS[6], 'B-LOM');
-  // The no-register rule, as it stands in this commit: every member is either an H-/F-
-  // engine-tier item or a B- id the PM ruled exempt by name. The set itself is widened in
-  // its own commit; what is asserted here is the RULE, which cannot be widened by a spec.
+  // THE NO-REGISTER RULE, written down and asserted: every member is either an H-/F-
+  // engine-tier item (DECISIONS:93 — feature work under the ratified slice plan takes no
+  // register D-ID) or a B- id the PM ruled exempt BY NAME (DECISIONS:103 (1)). H3 is in
+  // because DECISIONS:124 makes it an engine-tier item beside H1/H2, not by discretion.
+  assert.deepEqual([...api.NO_REGISTER_IDS].sort(), ['B-LOM', 'B-NTC', 'H3']);
   for (const id of api.NO_REGISTER_IDS) assert(/^[HF][0-9]+$/.test(id) || id === 'B-NTC' || id === 'B-LOM');
   for (const id of api.NO_REGISTER_IDS) assert(api.IDS.includes(id));
 });
