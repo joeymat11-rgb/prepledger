@@ -72,16 +72,41 @@ function winningRows(rows) {
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 }
 
-/* op log -> engine state, through the ACCEPTED writer and nothing else. */
-function projectFoodDays(state, rows, engine) {
+/* op log -> engine state, through the ACCEPTED writer and nothing else.
+
+   D2 ROUND 1, FINDING 1 - THE WRITER CAN REFUSE A STATE, AND A REFUSAL IS NOT A CRASH.
+   `writeDaily` merges the day and then, for a day that carries `pro`, consults the
+   OWED LEDGER: `proteinTarget(s)`, out of energy.cjs, on a state that may have no
+   body-composition estimate at all. For a clean-init athlete that call THROWS, so a
+   protein intake this page durably recorded took the whole projection down with it and
+   the screen went with it. The op is the athlete's fact and it stays recorded; what
+   the ENGINE cannot hold it does not hold, and this projector says which days those
+   are instead of pretending they do not exist or inventing a target to make the writer
+   agree. `next` is only advanced by a writer that RETURNED, so nothing is half applied:
+   writeDaily builds its whole next state before the ledger guard runs. */
+function foodProjection(state, rows, engine) {
   let next = state;
+  const unavailable = [];
   for (const row of winningRows(rows)) {
     const partial = {};
     for (const key of MEMBERS) if (Object.hasOwn(row.day, key)) partial[key] = row.day[key];
     if (Object.keys(partial).length === 0) continue;
-    next = engine.writeDaily(next, row.date, partial);
+    try { next = engine.writeDaily(next, row.date, partial); }
+    catch (_) { unavailable.push(row.date); }
   }
-  return next;
+  return { state: next, unavailable };
+}
+
+function projectFoodDays(state, rows, engine) {
+  return foodProjection(state, rows, engine).state;
+}
+
+/* The WINNING operation for a date, as the log holds it: the athlete's own figures and
+   the effective stamp they were recorded under. This is the record, not a reading of
+   it, and it is what the screen shows when the engine could not take the day. */
+function recordedDay(rows, date) {
+  for (const row of winningRows(rows)) if (row.date === date) return row;
+  return null;
 }
 
 /* What the engine holds for one day, read back out of the projected state rather than
@@ -96,5 +121,5 @@ function loggedDay(state, date) {
   return out;
 }
 
-module.exports = { REFUSALS, refusalFor, dayFromEntry, winningRows, projectFoodDays, loggedDay,
-  LIMITS, MEMBERS, PROFILE, DAY_RE };
+module.exports = { REFUSALS, refusalFor, dayFromEntry, winningRows, foodProjection,
+  projectFoodDays, recordedDay, loggedDay, LIMITS, MEMBERS, PROFILE, DAY_RE };

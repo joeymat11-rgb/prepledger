@@ -103,6 +103,20 @@ const FOOD_CORRECTION = "Recording it again replaces today's figures.";
 const FOOD_REFUSED = "This intake could not be recorded on this device, and no part of it was recorded.";
 const FOOD_NO_TARGETS = "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.";
 const FOOD_NOT_PRESCRIBED = "Not prescribed. The engine issues no carbohydrate or fat target.";
+/* D2 ROUND 1 - A REFUSAL THE ATHLETE CAN ACT ON (finding 3), AND A DAY THE ENGINE
+   CANNOT READ BACK (finding 1). Every refusal this screen shows now says three things:
+   WHAT was refused, WHY in the words of whatever refused it, and WHAT TO DO next. The
+   why is never reworded here: a client refusal arrives with its own copy, and where
+   there is no copy the code it named is shown as the code it named. */
+const FOOD_REFUSED_ACTION = "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.";
+const FOOD_REASON = "The store's own reason: ";
+const FOOD_NO_STORE = "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.";
+const FOOD_OPENING = "Opening this device's encrypted store.";
+/* The sentence this screen has always carried about the PLAN behind it, which N1 did
+   not build and which Today's NOT_WIRED marker describes the same way. Byte identical
+   to the literal it replaces: view.test.mjs is pinned on disk by B-NTC and asserts it. */
+const FOOD_PLAN_UNWIRED = "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.";
+const FOOD_KEPT_UNREADABLE = "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.";
 /* One sentence per refusal code, and no code without one. */
 const FOOD_REFUSAL_COPY = Object.freeze({
   NOTHING: "Enter calories, protein, or both. Nothing was recorded.",
@@ -231,9 +245,10 @@ function mountToday(doc, model, options = {}) {
      fifth lane until DECISIONS:154 (5) unpins it. N1 therefore takes the same
      injection point for its tests (`options.food`) and, when the page was given none,
      opens its own lane from here - once, asynchronously, and failing CLOSED: a device
-     that will not give this page an encrypted store keeps exactly the screen it has
-     today, says "not wired yet" as it always has, and records nothing. That is why
-     every jsdom mount in this repository is unchanged by N1: jsdom has no indexedDB.
+     that will not give this page an encrypted store offers no entry and records
+     nothing, and (D2 round 1, finding 3) says so in words the athlete can act on
+     rather than claiming the feature was never built. That is why every jsdom mount in
+     this repository is unchanged by N1: jsdom has no indexedDB.
 
      The lane object is a READER plus a writer, never a store: `rows()` is synchronous
      because the adapter's projector is, and it is refreshed from the durable log after
@@ -241,6 +256,9 @@ function mountToday(doc, model, options = {}) {
   let foodLane = options.food || null;
   let foodOpening = null;
   let foodSaving = null;
+  /* D2 round 1, finding 3 - the CAUSE of a lane that would not open, kept rather than
+     swallowed, so the screen can say why instead of claiming the feature is unbuilt. */
+  let foodLaneFailure = null;
   if (foodLane && typeof model.setFoodDays === "function") model.setFoodDays(foodLane);
 
   function foodEntryFor(host, rows) {
@@ -263,7 +281,7 @@ function mountToday(doc, model, options = {}) {
     const view = doc.defaultView || null;
     const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
     const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
-    if (!idb || !web || !web.subtle) return null;
+    if (!idb || !web || !web.subtle) { foodLaneFailure = "NO_LOCAL_STORE"; return null; }
     foodOpening = Promise.resolve()
       .then(() => import("./food-host.mjs"))
       .then((module) => module.createFoodHost({ day: model.today, indexedDB: idb, crypto: web }))
@@ -274,7 +292,14 @@ function mountToday(doc, model, options = {}) {
         if (screen === "today" || screen === "nutrition") render(screen, false);
         return lane;
       })
-      .catch(() => { foodLane = null; return null; });
+      .catch((error) => {
+        /* `foodOpening` is deliberately LEFT SET: one attempt per mount. A cleared
+           handle would let every repaint reopen a store that has already refused. */
+        foodLane = null;
+        foodLaneFailure = (error && (error.code || error.message)) || "FOOD_LANE_UNAVAILABLE";
+        if (screen === "nutrition") render(screen, false);
+        return null;
+      });
     return foodOpening;
   }
 
@@ -580,14 +605,29 @@ function mountToday(doc, model, options = {}) {
     }
     /* N1 - the entry, and the one sentence under it.
 
-       WITHOUT A FOOD LANE this screen is exactly the screen that shipped before N1,
-       including its own "not wired yet" sentence: a device that could not open an
-       encrypted store has nothing to record into, and saying the feature is unbuilt is
-       the sentence this page has always used there. With the lane open the screen
-       records, and the sentence is N1's own. */
+       WITHOUT A FOOD LANE there is nothing to record into, and the screen says which
+       of the two true things happened: the store is still opening, or it refused and
+       here is its reason. With the lane open the screen records. */
     if (!foodLane) {
-      put(map, "stub-note", "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.");
-      openFoodLane();
+      /* D2 round 1, finding 3 - WHAT cannot happen, WHY, and WHAT TO DO, FIRST. The
+         only sentence here used to be the unwired-screen one, which answered none of
+         the three: what is actually true of a device with no entry is that THIS DEVICE
+         would not open a store, and that is now what it says and what it tells him to
+         do about it. The attempt is made BEFORE the sentence is chosen, so a store
+         that is still opening says it is opening rather than that it failed.
+
+         THE UNWIRED SENTENCE STAYS, LAST, AND IT IS STILL TRUE: the full nutrition
+         PLAN behind this tile is genuinely unbuilt, which is what Today's own
+         NOT_WIRED marker says about it too. It is also load bearing under custody -
+         rebuild/m3/w7-preview/today/test/view.test.mjs is pinned ON DISK by the merged
+         B-NTC artifact (DECISIONS:144) and asserts it here, so this build cannot
+         remove it and does not try; it demotes it below the sentence the athlete can
+         act on instead. */
+      const opening = openFoodLane();
+      const why = opening && !foodLaneFailure ? FOOD_OPENING
+        : foodLaneFailure ? FOOD_NO_STORE + " " + FOOD_REASON + foodLaneFailure + "."
+          : FOOD_NO_STORE;
+      put(map, "stub-note", why + " " + FOOD_PLAN_UNWIRED);
     } else {
       /* H3 HONESTY (N1.11, DECISIONS:124 / :142). Before H3 lands, the engine has no
          calorie band and no protein target for a clean-init athlete: proteinTarget and
@@ -620,15 +660,33 @@ function mountToday(doc, model, options = {}) {
     const recorded = map.get("food-recorded");
     const cal = map.get("food-cal");
     const pro = map.get("food-pro");
-    error.textContent = "";
+    /* D2 round 1, finding 3 - a lane that opened INTO a refusal (a lost lease, a
+       restore the athlete has not done) says so before he types, in the client's own
+       words, with the action attached. */
+    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;
+    error.textContent = opened
+      ? plainOrDrop(FOOD_REFUSED + " " + reasonOf(opened) + " " + FOOD_REFUSED_ACTION, "food-error")
+      : "";
     /* What the ENGINE holds for today, after the replay. A day with nothing recorded
        says nothing at all - it is never a zero (writers.cjs's own rule, N1 1.2). */
     const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
+    const row = typeof model.recordedFood === "function" ? model.recordedFood(model.today) : null;
     const has = logged && (logged.cal !== null || logged.pro !== null);
-    recorded.textContent = has
-      ? plainOrDrop(FOOD_SAVED + " · " + intakeLine(logged) + " " + FOOD_CORRECTION, "food-recorded")
-      : "";
-    recorded.hidden = !has;
+    /* D2 round 1, finding 1 - the day IS recorded and the engine would not take it.
+       The athlete sees his own figures, out of the operation the log holds, and the
+       reason his ledger has nothing to read back. Nothing is dropped and no engine
+       figure is invented. */
+    const unreadable = !has && !!row
+      && typeof model.foodUnavailable === "function" && model.foodUnavailable(model.today);
+    if (unreadable) {
+      recorded.textContent = plainOrDrop(
+        provenanceLine(row) + " · " + intakeLine(dayOf(row)) + " " + FOOD_KEPT_UNREADABLE, "food-recorded");
+    } else {
+      recorded.textContent = has
+        ? plainOrDrop(provenanceLine(row) + " · " + intakeLine(logged) + " " + FOOD_CORRECTION, "food-recorded")
+        : "";
+    }
+    recorded.hidden = !has && !unreadable;
     const save = map.get("food-save");
     save.addEventListener("click", () => { foodSaving = recordIntake(save, cal, pro, error); });
     return section;
@@ -650,18 +708,46 @@ function mountToday(doc, model, options = {}) {
       try { result = await foodLane.save(dayValues); }
       finally { save.disabled = false; }
       if (!result || result.ok !== true) {
-        error.textContent = plainOrDrop(FOOD_REFUSED, "food-error");
+        /* D2 round 1, finding 3 - the refusal the CLIENT made, not a shrug. What was
+           refused, its own reason, and what to do; the boxes are deliberately not
+           re-rendered, so everything he typed is still there to record again. */
+        error.textContent = plainOrDrop(
+          FOOD_REFUSED + " " + reasonOf(result) + " " + FOOD_REFUSED_ACTION, "food-error");
         return;
       }
       render("nutrition", false);
     }
   }
+  /* WHY, IN THE WORDS OF WHATEVER REFUSED. A client refusal carries its own copy; a
+     refusal with no copy carries the code it named, and the code is shown as the code.
+     Neither is reworded here, and a refusal with neither says nothing extra rather
+     than inventing a cause. */
+  function reasonOf(refusal) {
+    const copy = refusal && typeof refusal.copy === "string" ? refusal.copy.trim() : "";
+    if (copy) return copy;
+    const code = refusal && refusal.code ? String(refusal.code).trim() : "";
+    return code ? FOOD_REASON + code + "." : "";
+  }
   /* The recorded figures, in the engine's own units, and only the ones it holds. */
   function intakeLine(logged) {
     const parts = [];
-    if (logged.cal !== null) parts.push(amount(logged.cal) + " kcal");
-    if (logged.pro !== null) parts.push(amount(logged.pro) + " g protein");
+    if (logged.cal !== null && logged.cal !== undefined) parts.push(amount(logged.cal) + " kcal");
+    if (logged.pro !== null && logged.pro !== undefined) parts.push(amount(logged.pro) + " g protein");
     return parts.join(" · ");
+  }
+  /* The operation's own day, shaped like a projected one so one line renders both. */
+  function dayOf(row) {
+    const day = (row && row.day) || {};
+    return { cal: day.cal === undefined ? null : day.cal, pro: day.pro === undefined ? null : day.pro };
+  }
+  /* D2 round 1, finding 4 - PROVENANCE. The stored effective stamp, as the operation
+     carries it: the local time it was recorded at and the offset that time was in.
+     Neither is computed here, and a stamp the log does not hold is not invented. */
+  function provenanceLine(row) {
+    let line = FOOD_SAVED;
+    if (row && typeof row.time === "string" && row.time) line += " at " + row.time;
+    if (row && typeof row.offset === "string" && row.offset) line += " (local offset " + row.offset + ")";
+    return line;
   }
 
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
@@ -903,4 +989,6 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded,
   PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT,
   FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
-  FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY };
+  FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY,
+  FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_OPENING, FOOD_KEPT_UNREADABLE,
+  FOOD_PLAN_UNWIRED };
