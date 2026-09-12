@@ -12,6 +12,12 @@ import TodayApp from './today-app.cjs';
 // comes out of them here rather than in the frozen source. A dash the normaliser cannot
 // rewrite costs that one slot, not the screen (P1 review, Finding 3).
 import PlainCopy from './plain-copy.cjs';
+/* DECISIONS:154 (2) / :140 wave one - the machine-settings block and its capture
+   editor. The VIEW module owns the shape; the words below are this file's, because
+   this file is one of design.cjs's VIEW_SOURCES and is therefore where the copy
+   binding can see them. The producer and every rule about the op are the coach's,
+   imported by machine-settings-view.mjs and machine-settings-host.mjs. */
+import MachineSettingsView from './machine-settings-view.mjs';
 
 const { plainOrDrop } = PlainCopy;
 const { ARROW } = TodayApp;
@@ -37,6 +43,43 @@ export const CLEAN_REP_HELP = [
   'Estimate how many more you could have done at the end of the set. If you can’t tell, choose Unsure.',
 ];
 
+/* MACHINE SETTINGS, wave one (DECISIONS:154 (2), :140). Every sentence the block and
+   its editor can put on the screen, declared here and nowhere else, so design.cjs binds
+   them exactly as it binds the rest of the gym card's words. The empty state is the one
+   the brief names verbatim: this device holds nothing for this lift and says so, rather
+   than showing a zero, a dash or another lift's setting. */
+export const SETTINGS_HEAD = 'Your settings for this machine';
+export const SETTINGS_NONE = 'No settings saved yet.';
+export const SETTINGS_OPEN = 'Machine settings';
+export const SETTINGS_EDITOR_TITLE = 'Save the settings for this machine';
+export const SETTINGS_NAME_LABEL = 'Setting';
+export const SETTINGS_VALUE_LABEL = 'Value';
+export const SETTINGS_CUE_LABEL = 'Anything to remember';
+export const SETTINGS_CUES_LEAD = 'To remember:';
+export const SETTINGS_ADD = 'Add another setting';
+export const SETTINGS_REMOVE = 'Remove this setting';
+export const SETTINGS_SAVE = 'Save these settings';
+export const SETTINGS_CANCEL = 'Close without saving';
+export const SETTINGS_NOTHING = 'Add a setting or a cue before saving. Nothing was recorded.';
+export const SETTINGS_REFUSED = 'Each setting needs a short name and a short value, and each name only once. Nothing was recorded.';
+export const SETTINGS_NOT_SAVED = 'These settings could not be recorded on this device, and no part of them was recorded.';
+/* D2 ROUND 1, FINDING 2 - UNKNOWN IS NOT EMPTY. A read that has not answered yet, and
+   a read that FAILED, are two states this block may be in and neither of them is "no
+   settings saved". Both say what they are, and neither offers the capture editor,
+   because an editor seeded from a failed read is a blank form that looks like a
+   correction and would overwrite settings the athlete still has. */
+export const SETTINGS_READING = 'Reading your saved settings for this machine.';
+export const SETTINGS_UNREAD = 'Settings could not be read.';
+export const SETTINGS_UNREAD_ACTION = 'Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.';
+/* The one object the view module is handed. It owns no words of its own. */
+const SETTINGS_COPY = Object.freeze({
+  head: SETTINGS_HEAD, none: SETTINGS_NONE, open: SETTINGS_OPEN,
+  reading: SETTINGS_READING, unread: SETTINGS_UNREAD, unreadAction: SETTINGS_UNREAD_ACTION,
+  editorTitle: SETTINGS_EDITOR_TITLE, nameLabel: SETTINGS_NAME_LABEL, valueLabel: SETTINGS_VALUE_LABEL,
+  cueLabel: SETTINGS_CUE_LABEL, cuesLead: SETTINGS_CUES_LEAD, add: SETTINGS_ADD, remove: SETTINGS_REMOVE,
+  save: SETTINGS_SAVE, cancel: SETTINGS_CANCEL, plain: plainOrDrop,
+});
+
 /* A3 review F7 — the card's TRANSIENT state (what is typed into the two boxes and
    which effort answer is chosen) lives in an object the caller may hold, so leaving
    the card for the check-in and coming straight back does not throw the athlete's
@@ -45,13 +88,78 @@ export const CLEAN_REP_HELP = [
    what every existing caller and every A2 test does. */
 export function newGymDraft() { return { effort: null, entry: { load: null, reps: null } }; }
 
-export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft } = {}) {
+export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
   let busy = false;
+  /* D2 round 2, R2-1 - see `show`. True while THIS mount is the screen on the phone. */
+  let owns = true;
+  /* Navigation, of every kind: ownership is handed over BEFORE the page moves, so a
+     read, a save or any other deferred work that settles afterwards has nothing to
+     paint onto. Nothing is cancelled and nothing is thrown; the answer simply arrives
+     to a mount that is no longer the screen. */
+  function leaveCard(go) {
+    owns = false;
+    return go();
+  }
   const held = draft && typeof draft === 'object' ? draft : newGymDraft();
   if (!Object.hasOwn(held, 'effort')) held.effort = null;   // NOTHING is preselected
   if (!held.entry || typeof held.entry !== 'object') held.entry = { load: null, reps: null };
   let showSetup = false, showWhy = false, showHelp = false;
+
+  /* ---------------- MACHINE SETTINGS (DECISIONS:154 (2)) ----------------
+     WHY THIS FILE OPENS THE LANE. The other four lanes are opened by boot() in
+     today-entry.mjs, which is sha-pinned by local-today-journey.test.mjs PAGE_PINS
+     and cannot gain a fifth. gym-app.mjs is DRIVEN by that suite, not pinned
+     (PAGE_PINS names exactly four files), so the fifth lane is opened from here -
+     once, asynchronously, and FAILING CLOSED. A device that will not give this page
+     an encrypted store keeps exactly the card it has today: the block and the
+     editor stay hidden, nothing is captured, and no jsdom mount in this repository
+     changes, because jsdom has no indexedDB. Tests inject `settings` directly. */
+  let settingsLane = settings || null;
+  let settingsOpening = null;
+  let settingsSaving = null;
+  let settingsDraft = null;       // non-null only while the editor is open
+  let settingsDraftLift = null;   // the lift that draft belongs to
+  /* D2 ROUND 1, FINDING 1 - THE OPTIONAL READ IS NEVER A PREREQUISITE FOR THE CARD.
+     The read used to be AWAITED inside paint(), so a slow lane meant no active set, no
+     log control and no workout at all until it answered. It is now a lookup in a cache
+     keyed by exercise id: the card paints from whatever that cache holds, a lift with
+     no entry STARTS a read and paints the pending state, and the answer repaints only
+     the lift it belongs to. A late answer for a lift the athlete has moved past is
+     stored and never shown. */
+  const settingsRead = new Map();   // exercise id -> {state: 'known'|'failed', latest}
+  const settingsInFlight = new Set();
+  let settingsReading = null;       // the last read started, for checks and tests
+
+  function startSettingsRead(liftId) {
+    if (!settingsLane || typeof liftId !== 'string' || !liftId) return settingsReading;
+    if (settingsRead.has(liftId) || settingsInFlight.has(liftId)) return settingsReading;
+    settingsInFlight.add(liftId);
+    settingsReading = Promise.resolve()
+      .then(() => settingsLane.latest(liftId))
+      .then(
+        (latest) => { settingsRead.set(liftId, { state: 'known', latest: latest || null }); },
+        /* A REFUSAL IS NOT AN ABSENCE (finding 2). It is recorded as its own state and
+           the block says so; it never becomes "no settings saved yet". */
+        () => { settingsRead.set(liftId, { state: 'failed', latest: null }); },
+      )
+      .then(() => { settingsInFlight.delete(liftId); return paint(); });
+    return settingsReading;
+  }
+
+  function openSettingsLane() {
+    if (settingsLane || settingsOpening) return settingsOpening;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== 'undefined' ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== 'undefined' ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle || typeof model.day !== 'string') return null;
+    settingsOpening = Promise.resolve()
+      .then(() => import('./machine-settings-host.mjs'))
+      .then((module) => module.createMachineSettingsHost({ day: model.day, indexedDB: idb, crypto: web }))
+      .then(async (host) => { settingsLane = host; await paint(); return host; })
+      .catch(() => { settingsLane = null; return null; });
+    return settingsOpening;
+  }
 
   const template = id => {
     const node = doc.getElementById(id);
@@ -74,7 +182,15 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     for (const el of root.querySelectorAll('[data-arrow]')) el.innerHTML = ARROW;
     for (const el of root.querySelectorAll('[data-check]')) el.innerHTML = CHECK;
   }
+  /* D2 ROUND 2, R2-1 - MOUNT OWNERSHIP. `phone` is the page's ONE surface and every
+     screen shares it. This mount owns it from the moment it is created until the
+     athlete navigates away, and after that it owns nothing: a background read that
+     settles a second later must not put the workout back over Today or over the
+     check-in he is now filling in. `owns` is that ownership, `leaveCard` hands it over
+     BEFORE the caller's navigation runs, and every write to the shared element goes
+     through `show`, which refuses once ownership is gone. */
   function show(root) {
+    if (!owns) return;
     phone.replaceChildren(root);
     const heading = root.querySelector('h1') || root;
     heading.tabIndex = -1;
@@ -97,9 +213,77 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'workout-title', view.title || '');
     put(map, 'stub-note', note);
     put(map, 'workout-detail', detail || '');
-    root.querySelector('[data-go="today"]').addEventListener('click', event => { event.preventDefault(); onBack(); });
+    root.querySelector('[data-go="today"]').addEventListener('click', event => {
+      event.preventDefault(); leaveCard(() => onBack());
+    });
     icons(root);
     show(root);
+  }
+
+  /* The block and the editor, painted onto the active set. With no lane both stay
+     hidden and the card is exactly the card that shipped before this build. */
+  function settingsPaint(root, map, view) {
+    const block = map.get('settings-block');
+    const editor = map.get('settings-editor');
+    if (!block || !editor) return;
+    if (!settingsLane) { block.hidden = true; editor.hidden = true; openSettingsLane(); return; }
+    const liftId = view.lift && typeof view.lift.id === 'string' ? view.lift.id : null;
+    if (!liftId) { block.hidden = true; editor.hidden = true; return; }
+    /* NOT AWAITED. The read is started here and its answer arrives in its own repaint;
+       this function, and therefore the whole card, is finished either way. */
+    if (!settingsRead.has(liftId)) startSettingsRead(liftId);
+    const entry = settingsRead.get(liftId) || null;
+    const state = entry ? entry.state : 'reading';
+    const latest = entry ? entry.latest : null;
+    MachineSettingsView.renderBlock(doc, map, { copy: SETTINGS_COPY, latest, state, put });
+    const openControl = root.querySelector('[data-action="settings-open"]');
+    /* UNTIL THE READ ANSWERS, THERE IS NOTHING TO CORRECT (finding 2). Offering the
+       editor here would seed it from a null the athlete never chose. */
+    if (state !== 'known') { openControl.disabled = true; editor.hidden = true; return; }
+    openControl.disabled = false;
+    openControl.addEventListener('click', () => {
+      settingsDraft = MachineSettingsView.draftFrom(latest);
+      settingsDraftLift = liftId;
+      paint();
+    });
+    if (!settingsDraft || settingsDraftLift !== liftId) { editor.hidden = true; return; }
+    editor.hidden = false;
+    MachineSettingsView.renderEditor(doc, map, { copy: SETTINGS_COPY, draft: settingsDraft, put,
+      onChanged: () => { paint(); } });
+    map.get('settings-error').textContent = '';
+    root.querySelector('[data-action="settings-cancel"]').addEventListener('click', () => {
+      /* CANCELLING WRITES NOTHING. The draft is thrown away and the durable record is
+         whatever it already was; the athlete is returned to the block. */
+      settingsDraft = null; settingsDraftLift = null; paint();
+    });
+    map.get('settings-save').addEventListener('click', () => { settingsSaving = recordSettings(map, view); });
+  }
+
+  /* ONE op through the coach's producer (brief section 2). Both refusals below are
+     decided BEFORE anything is written, and the second of them is the producer's own
+     gate called through machine-settings-view.mjs - there is no validator here. */
+  async function recordSettings(map, view) {
+    const error = map.get('settings-error');
+    const machine = MachineSettingsView.machineFromDraft(settingsDraft, view.lift.id);
+    if (!machine) { error.textContent = plainOrDrop(SETTINGS_NOTHING, 'settings-error'); return; }
+    if (!MachineSettingsView.acceptable(machine)) {
+      error.textContent = plainOrDrop(SETTINGS_REFUSED, 'settings-error');
+      return;
+    }
+    const save = map.get('settings-save');
+    save.disabled = true;
+    let result = null;
+    try { result = await settingsLane.save(machine); }
+    finally { save.disabled = false; }
+    if (!result || result.ok !== true) {
+      error.textContent = plainOrDrop(SETTINGS_NOT_SAVED, 'settings-error');
+      return;
+    }
+    settingsDraft = null; settingsDraftLift = null;
+    /* The capture is durable now, so the cached read for this lift is stale: drop it
+       and read the LOG again rather than painting what this mount remembers. */
+    settingsRead.delete(view.lift.id);
+    await startSettingsRead(view.lift.id);
   }
 
   /* ---------------- the active set ---------------- */
@@ -139,6 +323,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
 
     put(map, 'plan', view.prescription.line);
     put(map, 'effort-target', view.prescription.effort);
+    settingsPaint(root, map, view);
     put(map, 'entry-title', 'What you did · Set ' + view.set.position);
     put(map, 'previous', view.previous);
 
@@ -184,7 +369,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const toCheckIn = root.querySelector('[data-action="checkin"]');
     if (toCheckIn) {
       toCheckIn.hidden = typeof onCheckIn !== 'function';
-      if (typeof onCheckIn === 'function') toCheckIn.addEventListener('click', () => onCheckIn());
+      if (typeof onCheckIn === 'function') {
+        toCheckIn.addEventListener('click', () => leaveCard(() => onCheckIn()));
+      }
     }
 
     const help = root.querySelector('[data-action="clean-rep"]');
@@ -215,7 +402,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'up-next', upNext ? upNext.label : '');
     if (!upNext) root.querySelector('.next-lift').hidden = true;
 
-    root.querySelector('[data-action="back"]').addEventListener('click', () => onBack());
+    root.querySelector('[data-action="back"]').addEventListener('click', () => leaveCard(() => onBack()));
     if (view.message) root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(view.message), 'gym-error');
     icons(root);
     show(root);
@@ -227,7 +414,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     busy = false;
     if (!result.ok) { refusalScreen(view, result); return; }
     if (onChanged) onChanged();
-    onBack();
+    leaveCard(() => onBack());
   }
 
   /* Every slot is recorded but this device has no saved set to show on the rest
@@ -248,7 +435,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'next-effort', '');
     put(map, 'primary-label', FINISH_WORKOUT);
     map.get('primary').addEventListener('click', () => { if (!busy) finishNow(view); });
-    for (const el of root.querySelectorAll('[data-action="back"]')) el.addEventListener('click', () => onBack());
+    for (const el of root.querySelectorAll('[data-action="back"]')) {
+      el.addEventListener('click', () => leaveCard(() => onBack()));
+    }
     icons(root);
     show(root);
   }
@@ -288,7 +477,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       await paint();
       if (onChanged) onChanged();
     });
-    for (const el of root.querySelectorAll('[data-action="back"]')) el.addEventListener('click', () => onBack());
+    for (const el of root.querySelectorAll('[data-action="back"]')) {
+      el.addEventListener('click', () => leaveCard(() => onBack()));
+    }
     icons(root);
     show(root);
   }
@@ -311,7 +502,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     (result && result.code) || '');
 
   async function paint() {
+    /* D2 round 2, R2-1 - a repaint asked for by work that started while this mount WAS
+       the screen, and answered after the athlete left it, paints nothing. The read
+       still resolves and is still cached; it simply has no surface to claim. */
+    if (!owns) return null;
     const view = await model.read();
+    if (!owns) return null;
     if (view.phase === 'blocked') return refusalScreen(view, view);
     if (view.phase === 'finished') return stub(view, WORKOUT_RECORDED,
       view.sets + (view.sets === 1 ? ' set' : ' sets') + ' recorded');
@@ -321,6 +517,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       if (onChanged) onChanged();
       return paint();
     }
+    /* D2 round 1, finding 1 - THE DURABLE SETTINGS READ USED TO BE AWAITED HERE, which
+       made an OPTIONAL read a prerequisite for painting the workout: with a pending
+       read there was no active set and no log control at all. It is gone. The block
+       reads the log per exercise id, started from settingsPaint and applied in its own
+       repaint, so the card renders and the set is logged whether that read is pending,
+       finished or failed. */
     if (view.phase === 'saved') return renderSaved(view);
     /* Every slot recorded but no saved set to show — reachable once a skip is wired
        (A3/A4): offer the finish rather than crashing on an absent active slot. */
@@ -328,8 +530,28 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     return renderActive(view);
   }
 
-  return paint();
+  /* The first paint, as every existing caller already awaits. The settings handles
+     ride ON that promise rather than replacing it, so `await mountGym(...)` still
+     means "the card is on the screen": a durable capture is several turns of the
+     event loop, and a check that polls the log needs to know when it has settled. */
+  const first = paint();
+  first.settings = Object.freeze({
+    pending: () => settingsSaving,
+    ready: () => settingsOpening,
+    lane: () => settingsLane,
+    /* The optional read, exposed so a CHECK can wait for it. Nothing on the card
+       waits for it, which is the whole point of finding 1. */
+    read: () => settingsReading,
+    stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),
+    /* D2 round 2, R2-1 - whether THIS mount is still the screen on the phone. */
+    owns: () => owns,
+  });
+  return first;
 }
 
 export default { mountGym, newGymDraft, CHECK, NO_REST_PRESCRIBED, COULD_NOT_PREPARE, WORKOUT_RECORDED,
-  CLEAN_REP_HELP, FINISH_WORKOUT };
+  CLEAN_REP_HELP, FINISH_WORKOUT,
+  SETTINGS_HEAD, SETTINGS_NONE, SETTINGS_OPEN, SETTINGS_EDITOR_TITLE, SETTINGS_NAME_LABEL,
+  SETTINGS_VALUE_LABEL, SETTINGS_CUE_LABEL, SETTINGS_CUES_LEAD, SETTINGS_ADD, SETTINGS_REMOVE,
+  SETTINGS_SAVE, SETTINGS_CANCEL, SETTINGS_NOTHING, SETTINGS_REFUSED, SETTINGS_NOT_SAVED,
+  SETTINGS_READING, SETTINGS_UNREAD, SETTINGS_UNREAD_ACTION };

@@ -224,6 +224,30 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
   "Nothing you entered is lost. Read today's record again below, or open Earned again on this device.",
   "Read today's record again",
+  /* MACHINE SETTINGS ON THE ACTIVE SET (DECISIONS:154 (2), :140 wave one). The
+     approved prototype has no per-machine memory at all: no block under the
+     prescription, no capture, no empty state for a lift this device holds nothing
+     for. Every sentence below is therefore preview-owned by construction, lives in
+     gym-app.mjs (a VIEW_SOURCE), and is checked ABSENT from the approved references
+     exactly as the rest of this list is. The recalled settings themselves are never
+     in here: they are the athlete's own words, shown back verbatim. */
+  "Your settings for this machine",
+  "No settings saved yet.",
+  /* D2 round 1, finding 2 - the two states that are NOT an empty record. */
+  "Reading your saved settings for this machine.",
+  "Settings could not be read.",
+  "Nothing was lost and nothing was changed. Log your set as usual, and open Earned again on this device to see them.",
+  "Machine settings",
+  "Save the settings for this machine",
+  "Anything to remember",
+  "To remember:",
+  "Add another setting",
+  "Remove this setting",
+  "Save these settings",
+  "Close without saving",
+  "Add a setting or a cue before saving. Nothing was recorded.",
+  "Each setting needs a short name and a short value, and each name only once. Nothing was recorded.",
+  "These settings could not be recorded on this device, and no part of them was recorded.",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

@@ -79,3 +79,30 @@
    (.coach-entry .sub). Today's trend control is the same composition, so it gets the same
    declared values rather than a new idea. */
 .view .trend .sub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* MACHINE SETTINGS ON THE ACTIVE SET (DECISIONS:154 (2), :140 wave one). Four
+   corrections, all from tokens this page is already held to and none a new visual idea:
+   the capture's controls take the 44px minimum tap height the rest of the page has, the
+   editor's rows stack instead of sharing one line (the approved `.row` is a
+   space-between line, which two labelled text boxes cannot hold at 390px, let alone at
+   320px), and a box is held inside the phone's width so opening the editor can never
+   make the card scroll sideways. Its type size is the approved `.view input` size,
+   restated here only because a text box on this card would otherwise inherit the
+   number-control sizing. These are ATTRIBUTE selectors, not new classes: the approved
+   stylesheets decide every class this page may render, and this screen invents none. */
+.view [data-action="settings-open"],
+.view [data-action="settings-add"],
+.view [data-action="settings-cancel"],
+.view [data-slot="settings-rows"] button { min-height: 44px; }
+.view [data-slot="settings-rows"] .row { display: block; }
+.view [data-slot="settings-rows"] label { display: block; margin-top: 8px; }
+.view [data-slot="settings-rows"] input,
+.view [data-slot="settings-editor"] input[type="text"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  font-size: 16px;
+}
+.view [data-slot="settings-list"] .row { gap: 12px; }

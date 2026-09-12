@@ -302,6 +302,28 @@
     <h2 data-slot="plan"></h2>
     <p class="effort-target" data-slot="effort-target"></p>
   </section>
+  <!-- DECISIONS:154 (2) / :140 wave one - THE MACHINE SETTINGS FOR THIS LIFT, under the
+       prescription and above the performed inputs. Every visible string is a slot: the
+       words live in gym-app.mjs, which design.cjs binds, and no figure is written here.
+       Both blocks start hidden; the card shows them only when this device has a lane. -->
+  <section class="prescription" data-own data-slot="settings-block" hidden>
+    <div class="small quiet" data-slot="settings-head"></div>
+    <div data-slot="settings-list"></div>
+    <p class="small quiet" data-slot="settings-cues" hidden></p>
+    <p class="change"><button class="text-link" type="button" data-action="settings-open" data-slot="settings-open-label"></button></p>
+  </section>
+  <section class="entry" data-own data-slot="settings-editor" hidden>
+    <div class="entry-header"><h2 data-slot="settings-editor-title"></h2></div>
+    <div class="fields" data-slot="settings-rows"></div>
+    <p class="change"><button class="text-link" type="button" data-action="settings-add" data-slot="settings-add-label"></button></p>
+    <div class="field">
+      <label for="settings-cue" data-slot="settings-cue-label"></label>
+      <input id="settings-cue" type="text" data-slot="settings-cue">
+    </div>
+    <p class="error" role="alert" data-slot="settings-error"></p>
+    <button class="primary" type="button" data-slot="settings-save"><span data-slot="settings-save-label"></span></button>
+    <div class="secondary-row"><button class="text-link" type="button" data-action="settings-cancel" data-slot="settings-cancel-label"></button></div>
+  </section>
   <section class="entry">
     <div class="entry-header">
       <h2 data-slot="entry-title"></h2>
