@@ -184,6 +184,15 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "This check-in could not be recorded on this device, and no part of it was recorded.",
   "Recorded today",
   "Not available on this device",
+  /* REPORT A PROBLEM (DECISIONS:140 (3)). The approved prototype has no control for
+     reporting a fault and no clipboard, so all three sentences are preview-owned:
+     the control itself, the confirmation when the clipboard took the block, and the
+     instruction when it did not or could not. Each is checked ABSENT from the
+     approved references and PRESENT in a view source, exactly as every other
+     preview-owned sentence on this page is. */
+  "Report a problem",
+  "Copied. Send it to Joe.",
+  "Select all and copy, then send it to Joe.",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

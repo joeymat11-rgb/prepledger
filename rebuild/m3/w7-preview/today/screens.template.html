@@ -53,6 +53,19 @@
          words are bound at runtime from setup-model.mjs. -->
     <button class="link" type="button" data-go="setup" data-own data-slot="setup-entry" hidden><span data-slot="setup-entry-label"></span><span data-arrow></span></button>
     <button class="link coach-entry" type="button" data-go="coach"><span>Ask your coach<span class="sub">Your plan, progress and the reasons behind it. <span data-own data-slot="coach-state"></span></span></span><span data-arrow></span></button>
+    <!-- REPORT A PROBLEM, DECISIONS:140 (3). A secondary control that copies a
+         diagnostic block the owner can paste: which screen, which lanes, which
+         enrolment state, which build, which device prefix, the user agent and the
+         time. It writes NOTHING durable, opens no store and makes no operation.
+         Its words, both confirmations and the block itself are bound at runtime
+         from today-app.cjs and problem-report.cjs. The text box below it is the
+         UNCONDITIONAL fallback the brief requires, not a polyfill: whether
+         navigator.clipboard.writeText succeeds inside an installed iOS Home
+         Screen app is not verifiable from this repository, so the block is always
+         on the screen to select and the copy path is an enhancement. -->
+    <button class="link" type="button" data-own data-slot="problem-entry"><span data-slot="problem-label"></span></button>
+    <p class="small muted" data-own data-slot="problem-said" hidden></p>
+    <div class="field" data-own data-slot="problem-box" hidden><textarea data-slot="problem-text" readonly></textarea></div>
   </div>
 </article>
 </template>

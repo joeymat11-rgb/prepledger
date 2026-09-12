@@ -22,8 +22,13 @@ import design from "./design.cjs";
    and the frozen sources' own prose, which reaches the DOM only through plainCopy) are
    documented in ./plain-copy.cjs. */
 import PlainCopy from "./plain-copy.cjs";
+/* REPORT A PROBLEM (DECISIONS:140 (3)). The diagnostic block names the build it was
+   taken on, and the only honest name for a build is what went into it, so this file
+   computes that name and injects it into the one literal that carries it. */
+import ProblemReport from "./problem-report.cjs";
 
 const { assertNoAiDashesInAssets } = PlainCopy;
+const { BUILD_PLACEHOLDER } = ProblemReport;
 const { APPROVED, readApproved, readFonts, assertDesignBinding, composeStyles } = design;
 
 export const SOURCE = path.dirname(fileURLToPath(import.meta.url));
@@ -98,6 +103,11 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/split-kinds.mjs",
   "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
   "rebuild/m3/w7-preview/today/starter-week.mjs",
+  /* REPORT A PROBLEM (DECISIONS:140 (3)) - the pure diagnostic builder. A build that
+     lost it would be a page whose "Report a problem" control has nothing to copy. It
+     is also the module carrying the build-id literal this file injects below, so its
+     absence is caught twice. */
+  "rebuild/m3/w7-preview/today/problem-report.cjs",
   "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
@@ -130,6 +140,34 @@ export function assertNoNetworkReference(assets) {
       `NETWORK-REFERENCE FAIL: ${name} names ${[...new Set(hits)].slice(0, 3).join(", ")}`);
   }
   return assets.length;
+}
+
+/* THE BUILD ID (REPORT-A-PROBLEM-BRIEF section 2, DECISIONS:140 (3)).
+
+   sha256 over the PINNED INPUT INVENTORY - every module esbuild actually put in the
+   page, each as `<path> <its own sha256>`, sorted so the digest does not depend on the
+   order the bundler happened to walk the graph. It is therefore a name for exactly what
+   shipped: change a byte of any input and the name changes; change nothing and two
+   builds on two machines agree. The precedent is A5's cache name over its precache
+   manifest (DECISIONS:101). The 12-hex truncation of the printed tag is this brief's
+   own invention, and it is a display truncation only: the full digest is returned here
+   and recomputed independently by test/problem.test.mjs. */
+export function buildIdOf(inventory) {
+  const lines = inventory.map((input) => input.path + " " + input.sha256).sort();
+  return design.sha256(lines.join("\n"));
+}
+export const buildTagOf = (inventory) => "earned-" + buildIdOf(inventory).slice(0, 12);
+
+/* The injection. The page cannot compute its own build id - it would have to hash the
+   sources it was built from, which are not in it - so the one literal that carries the
+   name is replaced in the bundle on the way out. It must be there EXACTLY ONCE: zero
+   means problem-report.cjs left the graph or was renamed, and the page would name a
+   build that does not exist; more than one means something else in the graph spells the
+   placeholder, and the replacement would be ambiguous. Both refuse the build. */
+export function injectBuildId(bundle, tag) {
+  const found = bundle.split(BUILD_PLACEHOLDER).length - 1;
+  assert.equal(found, 1, `BUILD-ID-INJECTION FAIL: the build-id literal appears ${found} times, not once`);
+  return bundle.replace(BUILD_PLACEHOLDER, tag);
 }
 
 export function assertBundleInputs(inventory) {
@@ -177,11 +215,14 @@ export async function buildToday() {
     entryPoints: [path.join(SOURCE, "today-entry.mjs")],
   });
   const inputs = assertBundleInputs(built.inventory);
+  /* The build names itself, from what went into it, before a byte is written. */
+  const buildId = buildIdOf(built.inventory);
+  const buildTag = buildTagOf(built.inventory);
 
   const contents = {
     "index.html": shell.replace("<!-- APPROVED_TEMPLATES -->", template),
     "styles.css": composeStyles(approved, chrome, fonts),
-    "app.js": await fs.readFile(built.outfile),
+    "app.js": injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag),
   };
   assertNoNetworkReference(Object.entries(contents));
   /* Before a byte is written: no em dash and no en dash in anything the athlete reads. */
@@ -195,6 +236,7 @@ export async function buildToday() {
   assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
   return { dist: DIST, assets: [...ASSETS], inputs, inventory: built.inventory, dashes,
+    buildId, buildTag,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
 
@@ -204,7 +246,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     const engine = result.inputs.filter((p) => p.startsWith("rebuild/engine/"));
     const client = result.inputs.filter((p) => p.startsWith("rebuild/client/"));
     console.log(`A1 TODAY BUILD PASS: ${result.assets.length} assets; ${result.inputs.length} pinned inputs `
-      + `(${engine.length} engine, ${client.length} client); approved design pinned; `
+      + `(${engine.length} engine, ${client.length} client); build ${result.buildTag}; approved design pinned; `
       + `${result.binding.classes} bound classes; ${result.fonts.length} pinned typefaces inlined; `
       + `no literal figure in the template; ${result.assets.length}/${result.assets.length} assets scanned and free of any network reference; `
       + `no em/en dash in any text the athlete can see (${result.dashes.admitted} frozen-source strings carry one and `
