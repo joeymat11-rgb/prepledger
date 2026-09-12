@@ -50,13 +50,31 @@ async function byTap(fixture, m) {
   return { built, action };
 }
 
+/* C6A review round 1, C1. A COUNTING SPY on `prepare`. Byte equality alone does
+   not prove the producer was USED: a hand-built payload with the same key order
+   passes it, which is the brief's own mutant C1 in faithful form and it survived.
+   The spy makes producer identity observable, so `submit` building its own
+   envelope now fails on the count even when the bytes match. */
+function spyOn(commands) {
+  const calls = [];
+  const wrapped = Object.assign(Object.create(null), commands, {
+    prepare(request) {
+      const action = commands.prepare(request);
+      calls.push({ request, action });
+      return action;
+    },
+  });
+  return { commands: wrapped, calls };
+}
+
 /* STEP 2: the seven tools from the SAME fixture; submit calls the same prepare(). */
 async function byVoice(fixture, m, host) {
   const setup = m.model.createSetupModel({ today: DAY });
+  const spy = spyOn(m.commands);
   const tools = O.createOnboardingTools({ setup, catalogue: m.catalogue, model: m.model,
-    commands: m.commands, effective: EFFECTIVE, host: host || recordingHost() });
+    commands: spy.commands, effective: EFFECTIVE, host: host || recordingHost() });
   const run = await X.driveByVoice(tools, fixture);
-  return { run, tools, setup,
+  return { run, tools, setup, prepareCalls: spy.calls,
     built: run.review.document ? { ok: true, setup: run.review.document.setup, tags: run.review.document.tags } : null,
     action: run.submit.ok ? run.submit.action : null };
 }
@@ -79,6 +97,15 @@ for (const fixture of COMPLETE) {
     /* the payload really is the three-member A4b shape, not an empty object */
     assert.deepEqual(Object.keys(tap.action.payload), ["profile", "setup", "tags"]);
     assert.equal(tap.action.payload.profile, m.commands.PROFILE);
+
+    /* C6A C1: PRODUCER IDENTITY, not just byte equality. `submit` called the
+       accepted producer exactly once, and the envelope it returned is the
+       envelope the coach handed on. A hand-built payload passes the bytes and
+       fails here, which is the point. */
+    assert.equal(voice.prepareCalls.length, 1, "submit did not call prepare exactly once");
+    assert.equal(voice.prepareCalls[0].action, voice.action, "submit returned an envelope prepare did not build");
+    assert.equal(voice.prepareCalls[0].request.action, m.commands.ACTION);
+    assert.deepEqual(Object.keys(voice.prepareCalls[0].request), ["action", "input"]);
   });
 
   test("A1 " + fixture.id + ": validate() is true for BOTH, on the envelope each one built", async () => {
@@ -183,10 +210,14 @@ async function installation(label) {
     databaseName: "earned-c6-" + label, namespace: "earned-c6/" + label });
   return { host, close: () => { try { host.close(); } catch {} } };
 }
-/* The stored op, read back out of the generation the host just authenticated. */
-const storedPayload = (rows) => JSON.stringify({ profile: rows[0].profileSeen, setup: rows[0].setup, tags: rows[0].tags });
+/* C6A review round 1, C3. The stored op as ONE stringify, so a key reordered
+   between `setup` and `tags` on the durable side is caught here exactly as it is
+   on the byte side. Two separate stringifies let the shape drift. */
+const storedPayload = (row) => JSON.stringify({ setup: row.setup, tags: row.tags });
 
-for (const fixture of COMPLETE.slice(0, 2)) {
+/* C6A review round 1, C2. ALL SIX completing fixtures, not a slice: brief 2.3
+   step 4 says "each of at least six", and the reviewer ran all six. */
+for (const fixture of COMPLETE) {
   test("A2 " + fixture.id + ": tapped and spoken write IDENTICAL bytes through createSetupHost", async () => {
     const m = await modules();
     const tapInstall = await installation("tap-" + fixture.id);
@@ -211,9 +242,9 @@ for (const fixture of COMPLETE.slice(0, 2)) {
       assert.equal(tapRows.length, 1, "the tapped installation holds more than one setup");
       assert.equal(voiceRows.length, 1, "the spoken installation holds more than one setup");
 
-      /* THE CLAIM: the same stored bytes, key order included */
-      assert.equal(JSON.stringify(voiceRows[0].setup), JSON.stringify(tapRows[0].setup));
-      assert.equal(JSON.stringify(voiceRows[0].tags), JSON.stringify(tapRows[0].tags));
+      /* THE CLAIM: the same stored bytes, key order included, as ONE stringify
+         over the whole payload (C6A C3). */
+      assert.equal(storedPayload(voiceRows[0]), storedPayload(tapRows[0]));
       assert.equal(voiceRows[0].date, tapRows[0].date);
       /* and each really is the document the athlete answered */
       assert.equal(tapRows[0].setup.athlete_label, fixture.name);
@@ -270,4 +301,3 @@ test("A2 the durable op is the producer's own envelope, not something the coach 
   } finally { install.close(); }
 });
 
-void storedPayload;
