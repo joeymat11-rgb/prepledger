@@ -1,0 +1,653 @@
+{
+  "version": 1,
+  "lanePackage": "H3",
+  "packageId": "M2-H3-CLEAN-INIT",
+  "sourceBase": "ce38aa3bd174c94526e01fb5056df850ad322b80",
+  "parent": {
+    "id": "B-NTC",
+    "artifact": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
+    "sha256": "87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428",
+    "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
+    "reviewSha256": "e0b86ad532731d8639e54fdfe2a1d4c92a7b50548ac736a0700b17d8a01a786e",
+    "receiptLedgerLine": null,
+    "reviewedCommit": "9ad2ecab141753e9e8e74d3a105bd168d5e72286"
+  },
+  "spec": {
+    "file": "rebuild/lanes/b/tooling/packages/H3.json",
+    "sha256": "8e04aec3a666d4d4ce144b0120bd3fc2ae657307390f0d2c171521ce6f7b900d"
+  },
+  "runner": {
+    "file": "rebuild/lanes/b/tooling/b-package.cjs",
+    "sha256": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3"
+  },
+  "dIds": [],
+  "laws": {},
+  "carriedAcceptedIds": [
+    "D12",
+    "D33",
+    "D34",
+    "D35",
+    "D41",
+    "D43"
+  ],
+  "privateLiveTriggered": [],
+  "gates": [
+    "conformance",
+    "merge-differential",
+    "merge-laws",
+    "merge-source",
+    "migrate-differential",
+    "migrate-full",
+    "migrate-source",
+    "second-gate",
+    "selftest",
+    "strict",
+    "witnesses-1",
+    "witnesses-2",
+    "witnesses-3",
+    "witnesses-4",
+    "witnesses-5",
+    "witnesses-6",
+    "witnesses-7",
+    "writers-differential",
+    "writers-source"
+  ],
+  "coverage": {
+    "covered": [],
+    "superseded": [
+      "merge-source",
+      "migrate-differential",
+      "migrate-source",
+      "second-gate",
+      "witnesses-2",
+      "witnesses-5",
+      "witnesses-7",
+      "writers-differential",
+      "writers-source"
+    ],
+    "supersededByCarrier": {
+      "defect-witnesses": [
+        "witnesses-7"
+      ],
+      "inherited-carriers": [
+        "migrate-differential",
+        "witnesses-2",
+        "witnesses-5"
+      ],
+      "second-gate": [
+        "second-gate"
+      ],
+      "source-carriers": [
+        "merge-source",
+        "migrate-source",
+        "writers-source"
+      ],
+      "writers-differential": [
+        "writers-differential"
+      ]
+    },
+    "run": [
+      "conformance",
+      "merge-differential",
+      "merge-laws",
+      "migrate-full",
+      "selftest",
+      "strict",
+      "witnesses-1",
+      "witnesses-3",
+      "witnesses-4",
+      "witnesses-6"
+    ],
+    "moves": {},
+    "successors": null,
+    "supersessions": {
+      "rulingLineSha256": "3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb",
+      "gates": {
+        "source-carriers": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; H3 edits two engine files, extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "inherited-carriers": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files H3 declares are refused there for the same reason as source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "defect-witnesses": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte H3 declares has moved",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "writers-differential": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the gate is the differential over rebuild/engine/writers.cjs itself, which is the file F-B edits, and it reaches it through the same reconstruction",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        },
+        "second-gate": {
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
+          }
+        }
+      }
+    },
+    "byChild": {}
+  },
+  "authorizations": {
+    "owner": {
+      "ledgerLine": 60,
+      "role": "owner",
+      "line": "- 2026-09-06 · owner · M2-RULE — the owner's disposition of the M2 audit, given on rebuild/m2/OWNER-RULING-PACK-M2.md v3 (5,579 bytes, sha256 2568a221bfd50138b4ab4d5bd13efbbf46f66a3ad789bb4127255ba10a2269a9, committed at 4e561e5): owner, exact words received in the Codex coordinator task 01a06e0c-39ea-7591-9666-eead44de251c — a user-role annotation selecting \"Approve Batch A and all seven recommended choices\", then user-role \"Continue\" — relayed verbatim by Astra with that provenance on 2026-09-06 14:40 UTC; cowork independently verified the pack correspondence (pack bytes/sha and the register's 38 FIX + 7 OWNER RULING split match the relay) and did NOT directly observe the Codex UI; the Message-35 route governs transport only and did not originate this ruling; recorded as the owner's ruling in his own words, not a recommendation and not an inference from the integration Go — the owner may correct it at any time by an appended line. BATCH A APPROVED as one batch — every FIX recommendation of rebuild/m2/AUDIT-REGISTER.md becomes an approved repair direction: D1 APPROVED-FIX · D2 APPROVED-FIX · D3 APPROVED-FIX · D4 APPROVED-FIX · D5 APPROVED-FIX · D6 APPROVED-FIX · D7 APPROVED-FIX · D9 APPROVED-FIX · D11 APPROVED-FIX · D12 APPROVED-FIX · D13 APPROVED-FIX · D14 APPROVED-FIX · D15 APPROVED-FIX · D17 APPROVED-FIX · D18 APPROVED-FIX · D19 APPROVED-FIX · D20 APPROVED-FIX · D21 APPROVED-FIX · D22 APPROVED-FIX · D23 APPROVED-FIX · D24 APPROVED-FIX · D26 APPROVED-FIX · D27 APPROVED-FIX · D28 APPROVED-FIX · D29 APPROVED-FIX · D30 APPROVED-FIX · D31 APPROVED-FIX · D33 APPROVED-FIX · D34 APPROVED-FIX · D35 APPROVED-FIX · D36 APPROVED-FIX · D38 APPROVED-FIX · D39 APPROVED-FIX · D41 APPROVED-FIX · D42 APPROVED-FIX · D43 APPROVED-FIX · D44 APPROVED-FIX · D45 APPROVED-FIX (38). BATCH B — all seven RECOMMENDED answers chosen, each now an approved repair direction with its exact rule: D8 APPROVED-FIX — when last night's sleep is missing, recovery is UNKNOWN and no sleep restriction is applied today; every other recovery check still applies (not carry-forward of the last logged night). D10 APPROVED-FIX — date-only week counts mean 7 CALENDAR days, not 168 elapsed hours. D16 APPROVED-FIX — a 7-day forecast hit requires an eligible weigh-in on the due day or, failing that, the next day (one grace date); with no such reading the forecast is UNGRADED, not a miss; the day arithmetic follows D10. D25 APPROVED-FIX — \"protein: good\" requires at least one successful day within the current seven-logged-days window before the one-miss allowance applies; a first missed day cannot read \"good\". D32 APPROVED-FIX — \"benefit replicated\" counts only sessions from the CURRENT technique; all other replication thresholds stay as they are. D37 APPROVED-FIX — a merged earned receipt keeps the assessment as of the day it was earned, accepting that this can change whether a single-sighting increase counts as earned and the numbers printed on past earned receipts. D40 APPROVED-FIX — when two phones disagree on a day's calories with equal detail, ONE deterministic shared winner is chosen with the conflict kept visible and BOTH original entries retained; the exact tie-break rule and how the conflict is shown are NOT decided here and must be specified in the reviewed fix brief before anything is built. Totals: 45/45 dispositions recorded, 45 APPROVED-FIX, 0 KEEP, 0 DEFER, 0 UNRULED. What this does NOT do: it approves directions, not code — each theme still needs its accepted behaviour/delta brief, its red-first laws turning GREEN on the candidate and RED on the frozen engine, the post-fix gate's PACKAGE run and cowork's execution acceptance; the frozen app and its goldens stay untouched; no private release, spending, phone gate, remote gate or M2 closure is waived; no owner-specific interval or value is set. Transport: the route ruling at line 42 applies; no additional Go was requested or given · rebuild/m2/OWNER-RULING-PACK-M2.md · M2-RULE DONE; M2-FIX unblocked for briefs (D33–D35 first, per the accepted PR #34 contract)",
+      "lineSha256": "ebb565c65ba1a33dbc5b007d8854e6c203f1f8ae218bef7521c2dc07ffd596c8"
+    },
+    "contract": {
+      "ledgerLine": 49,
+      "role": "cowork",
+      "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
+      "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
+    },
+    "theme": {
+      "ledgerLine": 168,
+      "role": "cowork",
+      "line": "- 2026-09-12 · cowork · THEME M2-H3-CLEAN-INIT — the clean-init athlete state that paints Today, DECISIONS:124 first after B-NTC in the lane-B chain and an S2 blocker. Its behaviour/delta contract is rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md; its parent is M2-B-NTC-NATIVE-TREND-CONTEXT, rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json sha256 87f4848c8c20a9a187f440abbfef94244786a6ab6fcf859e64295a29f5b49428 (receipt DECISIONS:141), whose five byte-identity carriers this child supersedes under DECISIONS:153 and the token clause DECISIONS:160. Appended by lane B under DECISIONS:135 (2); it supersedes line 165, whose role clause the runner cannot read. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "2834242756266eb30cdbfd61d5b7b6146e3389cc5424aa0322a58fff96ac7251"
+    },
+    "review": {
+      "role": "cowork",
+      "prefix": "POSTFIX-ACCEPTANCE M2-H3-CLEAN-INIT",
+      "terminal": "ACCEPTED"
+    }
+  },
+  "product": {
+    "rebuild/engine/plan.cjs": {
+      "pre": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "post": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "role": "carried"
+    },
+    "rebuild/engine/progression.cjs": {
+      "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "post": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "role": "carried"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "post": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "role": "carried"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "post": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "role": "carried"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "post": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "role": "edited"
+    },
+    "rebuild/engine/index.cjs": {
+      "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "post": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/browser-engine.cjs": {
+      "pre": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "post": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/build.mjs": {
+      "pre": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "post": "dc5bc77d468b0933c5f848cae2398074b93ff916cbc5e75bfe7710e2460e93b1",
+      "role": "carried"
+    },
+    "rebuild/engine/performed.cjs": {
+      "pre": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "post": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "role": "carried"
+    },
+    "rebuild/engine/entered-load.cjs": {
+      "pre": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "post": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "role": "carried"
+    },
+    "rebuild/engine/constants.cjs": {
+      "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "post": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "role": "edited"
+    },
+    "rebuild/engine/dates.cjs": {
+      "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "post": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "role": "carried"
+    },
+    "rebuild/engine/earn.cjs": {
+      "pre": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "post": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "role": "carried"
+    },
+    "rebuild/engine/energy.cjs": {
+      "pre": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "post": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "role": "carried"
+    },
+    "rebuild/engine/merge.cjs": {
+      "pre": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "post": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "role": "carried"
+    },
+    "rebuild/engine/migrate.cjs": {
+      "pre": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "post": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "role": "carried"
+    },
+    "rebuild/engine/oracle-shim.cjs": {
+      "pre": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "post": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "role": "carried"
+    },
+    "rebuild/engine/policy.cjs": {
+      "pre": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "post": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "role": "carried"
+    },
+    "rebuild/engine/seed.cjs": {
+      "pre": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "post": "a67ace2636a8820f7ad87019401225d278a36c4b9d642060c6c42b05404d254d",
+      "role": "carried"
+    },
+    "rebuild/engine/volume.cjs": {
+      "pre": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "post": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/native-trend-context.cjs": {
+      "pre": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "post": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": {
+      "pre": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+      "post": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": {
+      "pre": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "post": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+      "role": "carried"
+    },
+    "rebuild/m4/workout/engine-runtime.cjs": {
+      "pre": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "post": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "role": "carried"
+    },
+    ".github/workflows/rebuild.yml": {
+      "pre": "839a79ab2eecb025e7603e1f5b7dc887e422f58768fd253a02cc7daf40090078",
+      "post": "cf4b83c1133eb1929a578604533fd10444ad4ded97497e9936ff155cd050b4ea",
+      "role": "edited"
+    },
+    "rebuild/m4/spec/b-ntc-successors.cjs": {
+      "pre": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "post": "2efe4a480f952a58bd2fd3e2301054334cfced297f14a46b7b4945962fabe6f9",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-traces.cjs": {
+      "pre": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "post": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-direct.cjs": {
+      "pre": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "post": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-legacy.cjs": {
+      "pre": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "post": "287526762da17bbf7d46ea2b9d567e8a90752b4ba8a4b1e91aa8864c9d3309c8",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-witnesses.cjs": {
+      "pre": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "post": "6a601742f8b1bfae28ca7c7ee3acb0a3930614b21b17e4271f7db0b82fe6207e",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-cases.cjs": {
+      "pre": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "post": "cd86ebaea3cb335ee1c1c89c54830891ca989221e64b679cd6a617e443fea42e",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-source-carriers.cjs": {
+      "pre": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "post": "89bb7727e08d0f0783ada0b584620a793a6acae73f0efb9e6f9c72a228b0e578",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-inherited-carriers.cjs": {
+      "pre": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "post": "505cf440ed736a4deb8cc2d7faf7c2c7b6e10a8d9b640b89ef4ee2e29b9433c1",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-defect-witnesses.cjs": {
+      "pre": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "post": "d6a39f0051a5c3374ce53e0273a9fbd0b60695eaf1fa218a3d2a0c27967ceeb7",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-writers-differential.cjs": {
+      "pre": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "post": "abf14c3f3b37954a9bcf131506d28f0ad44b9e1c6e1c3b0c24c90682735d53d9",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-second-gate.cjs": {
+      "pre": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "post": "b87b8949f9b7f03ab8f62abf3fb9bc8293c7ab7aadfdbcfa489202f6ff9f60c8",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/local/today-bindings.mjs": {
+      "pre": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+      "post": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/engine-runtime-host.cjs": {
+      "pre": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+      "post": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/workout-host.mjs": {
+      "pre": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+      "post": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/journey.test.mjs": {
+      "pre": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
+      "post": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
+      "role": "edited"
+    },
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
+      "pre": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+      "post": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-journeys.cjs": {
+      "pre": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "post": "cb59f37e39b6eaa17207b3b6a0f6d8fcba4b90798381853ba39221d7ee5271be",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-focused.cjs": {
+      "pre": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "post": "60f2ed7e394075eb5456d4ca1e75cf5356d002a56573a1516734294c406641cd",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": {
+      "pre": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "post": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
+      "pre": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "post": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": {
+      "pre": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "post": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": {
+      "pre": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "post": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+      "role": "carried"
+    },
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": {
+      "pre": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "post": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
+      "pre": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "post": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+      "role": "carried"
+    },
+    "rebuild/m3/w6/test/local-today-journey.test.mjs": {
+      "pre": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+      "post": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-successors.test.cjs": {
+      "pre": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "post": "bf63c764a5cb0a86d24a80c9a299711c71801075288ba7339e1c94964fee7ca3",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-native-next-targets.test.cjs": {
+      "pre": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "post": "6dd8e873a65d7fff0978c7e02c8fca86307790ede04e9762e3d49f4239f7db71",
+      "role": "carried"
+    },
+    "rebuild/m4/spec/b-ntc-profile-refusals.test.cjs": {
+      "pre": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "post": "6eee41348020789408021a535d199590c9540d9f58f2ccd479b5f5054b6909c9",
+      "role": "carried"
+    },
+    "rebuild/lanes/b/tooling/b-package.cjs": {
+      "pre": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612",
+      "post": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3",
+      "role": "superseded-by-child"
+    },
+    "rebuild/lanes/b/tooling/packages/B-NTC.json": {
+      "pre": "05a5aa1fdad98df3bbd9efd45721810ed3503ba11ae9e351d3948d988f0948ed",
+      "post": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
+      "role": "superseded-by-child"
+    },
+    "rebuild/m4/workout/athlete-state.cjs": {
+      "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
+      "post": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "role": "new"
+    },
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
+      "pre": "264358a0747c8523c17e5d4d25b57c4db6d236541ad506857afb8ceea4cc5800",
+      "post": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "fe247d2d7a485639bb5aafe88b46a8bc6f8cf9f67a183c3e735b0eeaa227551b",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-engine-files-differential.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+      "role": "new"
+    }
+  },
+  "carrierSuccessor": null,
+  "witnessFlips": [],
+  "protectedSurfaces": [
+    "rebuild/conform/goldens (public census and frozen goldens)",
+    "rebuild/conform/private/live.json and the private live.main golden (never opened, named-with-values, hashed or quoted)"
+  ],
+  "children": [
+    {
+      "name": "h3-sup-source-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs"
+      ],
+      "needle": "# pass 4"
+    },
+    {
+      "name": "h3-sup-inherited-carriers",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "h3-sup-defect-witnesses",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "h3-sup-writers-differential",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "h3-sup-second-gate",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs"
+      ],
+      "needle": "# pass 3"
+    },
+    {
+      "name": "engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/h3-engine-files-differential.cjs"
+      ],
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent;"
+    },
+    {
+      "name": "h3-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-clean-init.test.cjs"
+      ],
+      "needle": "# pass 14"
+    },
+    {
+      "name": "a0-journeys",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w6/host/test/journey.test.mjs",
+        "rebuild/m3/w6/host/test/engine-equivalence.test.cjs"
+      ],
+      "needle": "# pass 23"
+    },
+    {
+      "name": "today-suites",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m3/w7-preview/today/test/adapter.test.mjs",
+        "rebuild/m3/w7-preview/today/test/checkin.test.mjs",
+        "rebuild/m3/w7-preview/today/test/design.test.cjs",
+        "rebuild/m3/w7-preview/today/test/gym.test.mjs",
+        "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs",
+        "rebuild/m3/w7-preview/today/test/package.test.cjs",
+        "rebuild/m3/w7-preview/today/test/setup.test.mjs",
+        "rebuild/m3/w7-preview/today/test/view.test.mjs"
+      ],
+      "needle": "# pass 321"
+    },
+    {
+      "name": "ntc-provider-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/native-trend-context.test.cjs"
+      ],
+      "needle": "# pass 39"
+    }
+  ],
+  "artifact": {
+    "file": "rebuild/m4/spec/acceptance-h3-clean-init.json",
+    "review": "rebuild/m4/spec/review-h3-clean-init.json"
+  },
+  "executionPins": {
+    "rebuild/lanes/b/tooling/b-package.cjs": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3",
+    "rebuild/lanes/b/tooling/packages/H3.json": "8e04aec3a666d4d4ce144b0120bd3fc2ae657307390f0d2c171521ce6f7b900d",
+    "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md": "67e95134b2c48f0c175f3481575854e03e685f6ce50fbf97efe041a459f5b301",
+    "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+    "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+    "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+    "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+    "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+    "rebuild/m4/workout/test/h3-engine-files-differential.cjs": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+    "rebuild/m4/workout/test/h3-clean-init.test.cjs": "fe247d2d7a485639bb5aafe88b46a8bc6f8cf9f67a183c3e735b0eeaa227551b",
+    "rebuild/m3/w6/host/test/journey.test.mjs": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
+    "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": "f209f0ac4f2531ba7704730275d7a7538895d9e1e7b005347582b2f7842a22ee",
+    "rebuild/m3/w7-preview/today/test/adapter.test.mjs": "9656c1f54246cb5580aa10626866c884998fc2ccf52068ede6426da06370210e",
+    "rebuild/m3/w7-preview/today/test/checkin.test.mjs": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+    "rebuild/m3/w7-preview/today/test/design.test.cjs": "0db62ca9bdecb81f4c5b538c0f25054ba6347fdb194d9c5978ad1226ab03697d",
+    "rebuild/m3/w7-preview/today/test/gym.test.mjs": "8ecfb69a47a6d295e45178cf530f35827fffc2b010c99244556e3dbce7b61394",
+    "rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs": "51d82fba5e0bc95345a9506a1975096d1ab9408e243bd51442cb72a435c85c1f",
+    "rebuild/m3/w7-preview/today/test/package.test.cjs": "8cab604c7968dd80b0ca78ff52409e6ff4fbcaa1687e9cf6a12667444b38525e",
+    "rebuild/m3/w7-preview/today/test/setup.test.mjs": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
+    "rebuild/m3/w7-preview/today/test/view.test.mjs": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+    "rebuild/m4/workout/test/native-trend-context.test.cjs": "8c28ccd082ae134ae4d1918d2c84098696ae3cd3b2a56b36471403918f5d4d4a"
+  }
+}
