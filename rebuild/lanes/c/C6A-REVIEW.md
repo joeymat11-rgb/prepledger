@@ -57,3 +57,9 @@ Base is A4b `8e558ce`, not the tip (disclosed), so C6A cannot merge before A4b a
 `driveByTap` is a hand-written mirror of the screens' setters, not their event handlers: fair, but a mistake shared
 with a tool body would pass parity, and Part C's V1 closes it. Coach suites still not in `rebuild.yml` (`.github`
 untouched). No model, voice, relay or cap on any account.
+
+## Round 2 (delta 436b05d)
+All four round-1 conditions are closed, executed not read. **C1**: `onboarding-parity.test.cjs` now wraps the producer in a counting spy and asserts `prepareCalls.length === 1`, `prepareCalls[0].action === voice.action` (reference identity, stronger than I asked), the request's action name and its exact `["action","input"]` keys; my round-1 faithful hand-built-payload mutant, which SURVIVED then, now dies at **fail 6** - the figure claimed. **C2**: `for (const fixture of COMPLETE)`, all six durable, the `.slice(0, 2)` gone. **C3**: `storedPayload(row)` is one `JSON.stringify({setup, tags})` and is the durable assertion. **C4**: `C6A-REPORT.md` now reads "12 / 13 with the faithful C1 killed after the fix" and "145 = 65 + 80". Parity 26 -> 30, coach suite 198/198, gym 64 / checkin 28 / setup 150 / w6 552 unmoved, `--ci` and `build.mjs` PASS, custody against `rebuild/m3`, `rebuild/engine`, `rebuild/client`, `rebuild/m4`, `rebuild/conform` and `.github` still byte-empty.
+One documentation defect found this round and carried as WAVE1-TEXT-REVIEW condition C2, not reopened here: `C6A-ANNEX.md`'s file table is now stale for 3 of its 8 rows (`onboarding-parity.test.cjs` 274->304, `local-world.mjs` 211->278, `no-dashes.test.cjs` 227->229), because `a2f705a` and `3caca8f` edited those files after the annex was written. The report was refreshed; the annex was not. Non-blocking.
+
+## FINAL VERDICT ACCEPT at 436b05d

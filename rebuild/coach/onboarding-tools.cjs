@@ -357,7 +357,11 @@ function createOnboardingTools({ setup, catalogue, model, commands, effective = 
       return unavailable("submit", TIER.FACT, turn_id, C6_CODES.SETUP_HOST_ABSENT,
         model.COPY.saveRefused, "today-bindings.mjs createSetupHost");
     }
-    const saved = await host.save(built.setup, built.tags);
+    /* ONE argument, an ENVELOPE - the call setup-app.mjs:524 makes through
+       today-entry.mjs:141 since A4b merged (:149). The mouth spells the write
+       exactly the way the screen spells it; nothing about the envelope is the
+       coach's to decide. */
+    const saved = await host.save({ setup: built.setup, tags: built.tags });
     if (!saved.ok) {
       return unavailable("submit", TIER.FACT, turn_id, saved.code || "SETUP_NOT_RECORDED",
         saved.code === "SETUP_ALREADY_RECORDED" ? model.COPY.alreadyRecorded : model.COPY.saveRefused,

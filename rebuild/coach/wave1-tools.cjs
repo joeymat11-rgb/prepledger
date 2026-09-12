@@ -275,19 +275,31 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
 
   const IMPL = Object.freeze({ plan_why, machine_settings, record_machine_settings, log_set });
 
+  /* WAVE1 review, C1. The advertised list and the SERVED list are one list.
+     Before this, TIERS advertised nineteen names while dispatch served only
+     these four, so the C5 fifteen came back WAVE1_TOOL_NOT_IN_LIST through
+     dispatch and worked through openTurn().call - the same tool answering two
+     different ways depending on which door was used. A list the mouth is told it
+     may call has to be callable, so dispatch now serves all nineteen: these four
+     here, and the fifteen through the C5 object's own TOOLS, unchanged and at
+     their own tiers. `allowed` below is that same one list. */
+  const SERVED = Object.freeze(Object.assign(Object.create(null), coach.TOOLS, IMPL));
+  const TIERS = Object.freeze(Object.assign({}, coach.TIERS, WAVE1_TIERS));
+  const ALLOWED = Object.freeze(Object.keys(TIERS));
+
   async function dispatch(name, args, turn_id) {
     if (typeof turn_id !== "string" || !turn_id) throw new TypeError("dispatch: a turn_id is required");
-    if (!Object.prototype.hasOwnProperty.call(WAVE1_TIERS, name) || typeof IMPL[name] !== "function") {
+    if (!Object.prototype.hasOwnProperty.call(TIERS, name) || typeof SERVED[name] !== "function") {
       return Object.freeze({ ok: false, tool: name, tier: null, turn_id,
         code: "WAVE1_TOOL_NOT_IN_LIST",
         reason: String(name) + " is not one of the wave-one tools",
-        allowed: WAVE1_TOOLS.slice(), values: Object.freeze({}), state_unchanged: true,
+        allowed: ALLOWED.slice(), values: Object.freeze({}), state_unchanged: true,
         unavailable: Object.freeze({ code: "WAVE1_TOOL_NOT_IN_LIST",
-          reason: String(name) + " is not one of the wave-one tools", source: "wave1-tools.cjs WAVE1_TIERS" }) });
+          reason: String(name) + " is not one of the wave-one tools", source: "wave1-tools.cjs TIERS" }) });
     }
-    try { return await IMPL[name](args, turn_id); }
+    try { return await SERVED[name](args, turn_id); }
     catch (error) {
-      return unavailable(name, WAVE1_TIERS[name], turn_id, "WAVE1_TOOL_THREW",
+      return unavailable(name, TIERS[name], turn_id, "WAVE1_TOOL_THREW",
         (error && error.message) || "the tool refused", "wave1-tools.cjs dispatch");
     }
   }
@@ -305,9 +317,10 @@ function createWave1Tools({ world, coach, reasons = null, effortChoices = [],
       untraceable: base.untraceable, traceable: base.traceable });
   }
 
-  const TIERS = Object.freeze(Object.assign({}, coach.TIERS, WAVE1_TIERS));
+  /* `tools()` answers with the list dispatch actually serves, which is the list
+     TIERS advertises: one list, one answer, whichever is asked (WAVE1 C1). */
   return Object.freeze({ TIERS, WAVE1_TIERS, TIER, dispatch, openTurn, coach,
-    tools: () => WAVE1_TOOLS.slice(), NOT_RECORDED });
+    tools: () => ALLOWED.slice(), wave1Tools: () => WAVE1_TOOLS.slice(), NOT_RECORDED });
 }
 
 module.exports = {

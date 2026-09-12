@@ -2,16 +2,19 @@
 
 ## Files
 
+Refreshed at the RE-PIN head (WAVE1 review C2: the table below had gone stale against the files
+in the tree, on three rows, and a table a reviewer cannot trust is worse than no table).
+
 | file | lines | sha256 |
 |---|---|---|
-| `rebuild/coach/onboarding-tools.cjs` (new) | 442 | `a7458927d1276ad71d4a6167a3033615155e6070e7cbd1d7ffe9978d70667ab1` |
+| `rebuild/coach/onboarding-tools.cjs` (new) | 446 | `4d87ae83db51ce15dd5aa1873fd81fefbd6c521d7fceeef359d948a349d66204` |
 | `rebuild/coach/onboarding-text.cjs` (new) | 162 | `b8e2b4b774c67f45246c914478114b019f4582393fd31cc1e1f78dd80200d509` |
 | `rebuild/coach/scripts/onboarding-script.json` (new) | 115 | `e000db9fb92c79b6a680ffa45ce86fc9aeea57aea8d4f9a3f0fab9c1f7d4b7fe` |
 | `rebuild/coach/test/onboarding-tools.test.cjs` (new) | 483 | `0b76ca09a5ddbf4c66a87f399effa6d9d2100577d91b90629d8e6527d6d61c85` |
-| `rebuild/coach/test/onboarding-parity.test.cjs` (new) | 274 | `5bcb860b4acb5713036a815ce109d32f2277fd996a8531aec011dd6d97b797ab` |
+| `rebuild/coach/test/onboarding-parity.test.cjs` (new) | 339 | `cf532601c3d21f3a692a066203a9c5b8212321ba149b5cf95bb41499f54ee118` |
 | `rebuild/coach/test/onboarding-closed-list.test.cjs` (new) | 144 | `6e160c5beb3ffaf1e2456a45cc50664b350ed3ec29b914b7ad60f96625fd4d77` |
-| `rebuild/coach/local-world.mjs` (edited: one setup-host factory) | 211 | `d8935207dd3b73df0f7242f9d102c512d683b5745d9dc515df54ba9586eb10e6` |
-| `rebuild/coach/test/no-dashes.test.cjs` (extended to the onboarding strings) | 227 | `83a9b46cdd665c9041c84921d60bf45beed47b81c6c51eedf69d0f72b174a149` |
+| `rebuild/coach/local-world.mjs` (edited: one setup-host factory) | 278 | `8a5a3da1c7379335820d8852e60708a5930e2cf8bbfd171f940fe019450d7473` |
+| `rebuild/coach/test/no-dashes.test.cjs` (extended to the onboarding strings) | 229 | `d63638b6c3bb9e66382c2aacc1f4cf8248a45080863c293419130cbe3381dc59` |
 
 ## The check list, and where each one is executed
 
@@ -72,9 +75,28 @@ fixed.
 | `git diff --stat 8e558ce..HEAD -- rebuild/m3 rebuild/engine rebuild/client rebuild/m4 rebuild/conform .github` | empty |
 | `node --version` | v24.18.0 |
 
-A first `--ci` run reported FAIL while the w6 suite was still running in another process; run alone on the
-same head it is PASS, and the base at `8e558ce` is PASS too. Recorded because a reviewer running both at
-once will see the same thing.
+A first `--ci` run reported FAIL. This annex first called that a race under load; the reviewer showed it is
+not. It is a COLD WORKTREE, and it fails deterministically on the first run in one, while the harness
+materialises `test-support/import-engine/**`; runs two and after pass. The correction is kept here rather
+than overwritten, because the wrong diagnosis was the more comfortable one.
+
+## RE-PIN onto :149 - the parity re-check
+
+A4b merged in a different final form from the one this annex was written against: the tags handling moved
+off `today-bindings.mjs` into the producer (`today/setup-commands.mjs`, `envelopeOf`) plus
+`today/setup-host.mjs`, and `setup-app.mjs:524` now calls `onDone({ setup, tags })` - ONE argument, an
+envelope - which `today-entry.mjs:141` forwards verbatim to `host.save()`.
+
+The C6A driver was on the OLD two-argument `save(setup, tags)`, on both sides. That is now fixed:
+`onboarding-tools.cjs` submit and the tap side of the A2 test both make the screen's one-argument call.
+
+Why this mattered even though nothing was failing: `envelopeOf` accepts both spellings, so the old call
+kept producing identical bytes. Re-running the suite with submit reverted to `save(setup, tags)`, 30 of
+31 parity tests still passed - every byte check, every durable check - and only the new argument-shape
+test failed. A parity claim that cannot tell the screen's call from a different one is not worth much, so
+the argument list itself is now pinned: `A1 submit makes the SCREEN's call: save({setup, tags}), one
+argument` asserts one argument, exactly the keys `["setup","tags"]`, and equality with the envelope the
+screen would have built from the same answers.
 
 ## What a reader should check first
 

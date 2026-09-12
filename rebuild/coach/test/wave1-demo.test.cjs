@@ -407,6 +407,55 @@ test("W10 the tier map carries the four new tools, at the tiers the brief names 
   } finally { d.close(); }
 });
 
+/* WAVE1 review, C1. The reviewer found TIERS advertising nineteen names while
+   dispatch served four: the C5 fifteen came back WAVE1_TOOL_NOT_IN_LIST through
+   dispatch and worked through openTurn().call. These two enumerate BOTH lists
+   rather than sampling, so the two can never drift apart again. */
+test("W10 C1 the ADVERTISED list and the SERVED list are one list, enumerated", async () => {
+  const d = await demoWorld("w10c1");
+  try {
+    const advertised = Object.keys(d.tools.TIERS).slice().sort();
+    const served = d.tools.tools().slice().sort();
+    assert.deepEqual(served, advertised, "tools() advertises something dispatch does not serve");
+    /* the union is exactly the C5 fifteen plus these four, nothing invented */
+    const union = Object.keys(d.coach.TIERS).concat(Object.keys(W.WAVE1_TIERS)).sort();
+    assert.deepEqual(advertised, union);
+    assert.equal(advertised.length, 19);
+    /* EVERY advertised name is dispatchable: none is refused as "not in list",
+       and each answers about ITSELF at the tier the merged map names. */
+    for (const name of advertised) {
+      const r = await d.tools.dispatch(name, {}, "turn-c1-" + name);
+      assert.notEqual(r.code, "WAVE1_TOOL_NOT_IN_LIST", name + " is advertised but not served");
+      assert.equal(r.tool, name, name + " answered as a different tool");
+      assert.equal(r.tier, d.tools.TIERS[name], name + " answered at the wrong tier");
+    }
+  } finally { d.close(); }
+});
+
+test("W10 C1 the same name through dispatch and through openTurn().call is the SAME tool", async () => {
+  const d = await demoWorld("w10c1b");
+  try {
+    await d.world.gym.start();
+    const turn = d.tools.openTurn("turn-doors");
+    /* a C5 read and a wave-one read, each through both doors */
+    for (const name of ["today_plan", "current_set", "plan_why", "machine_settings"]) {
+      assert.equal(typeof turn.call[name], "function", name + " is missing from openTurn().call");
+      const viaDispatch = await d.tools.dispatch(name, {}, "turn-doors");
+      const viaCall = await turn.call[name]({});
+      assert.equal(viaDispatch.tool, viaCall.tool, name + " disagrees between doors");
+      assert.equal(viaDispatch.tier, viaCall.tier, name + " changes tier between doors");
+      assert.equal(viaDispatch.ok, viaCall.ok, name + " succeeds one way and refuses the other");
+    }
+    /* the refusal a genuinely unknown name gets names the WHOLE list it could
+       have used, not the four */
+    const unknown = await d.tools.dispatch("set_the_plan", {}, "turn-doors");
+    assert.equal(unknown.code, "WAVE1_TOOL_NOT_IN_LIST");
+    assert.equal(unknown.allowed.length, 19);
+    assert.ok(unknown.allowed.includes("today_plan"));
+    assert.ok(unknown.allowed.includes("log_set"));
+  } finally { d.close(); }
+});
+
 test("W10 the two tier-1 tools refuse without a yes, and write nothing", async () => {
   const d = await demoWorld("w10b");
   try {

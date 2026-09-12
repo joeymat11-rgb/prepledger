@@ -31,11 +31,17 @@ async function modules() {
   const commands = await import("../../m3/w7-preview/today/setup-commands.mjs");
   return { model, catalogue, commands };
 }
-const recordingHost = () => {
+/* The raw ARGUMENTS are kept, not just what they decode to: since A4b merged
+   (:149) the screens call save() with one envelope and envelopeOf() accepts the
+   older two-argument spelling too, so only the argument list itself can show
+   which of the two the coach took. `setup`/`tags` are then taken apart by the
+   PRODUCER's own envelopeOf, never by a second copy of that rule living here. */
+const recordingHost = (envelopeOf) => {
   const ops = [];
-  return { ops, async save(setup, tags) {
+  return { ops, async save(...args) {
     if (ops.length) return { ok: false, state: 0, code: "SETUP_ALREADY_RECORDED", copy: null, op_id: null };
-    ops.push({ setup, tags });
+    const carried = envelopeOf ? envelopeOf(args[0], args[1]) : { setup: args[0], tags: args[1] };
+    ops.push({ args, setup: carried.setup, tags: carried.tags });
     return { ok: true, state: 0, code: null, copy: null, op_id: "op-dev-A-" + ops.length };
   } };
 };
@@ -71,10 +77,11 @@ function spyOn(commands) {
 async function byVoice(fixture, m, host) {
   const setup = m.model.createSetupModel({ today: DAY });
   const spy = spyOn(m.commands);
+  const recorder = host || recordingHost(m.commands.envelopeOf);
   const tools = O.createOnboardingTools({ setup, catalogue: m.catalogue, model: m.model,
-    commands: spy.commands, effective: EFFECTIVE, host: host || recordingHost() });
+    commands: spy.commands, effective: EFFECTIVE, host: recorder });
   const run = await X.driveByVoice(tools, fixture);
-  return { run, tools, setup, prepareCalls: spy.calls,
+  return { run, tools, setup, prepareCalls: spy.calls, recorder,
     built: run.review.document ? { ok: true, setup: run.review.document.setup, tags: run.review.document.tags } : null,
     action: run.submit.ok ? run.submit.action : null };
 }
@@ -163,7 +170,7 @@ test("A12 across every fixture: one op for a complete transcript, zero for a blo
   const m = await modules();
   let written = 0, refused = 0;
   for (const fixture of FIXTURES) {
-    const host = recordingHost();
+    const host = recordingHost(m.commands.envelopeOf);
     const voice = await byVoice(fixture, m, host);
     if (fixture.complete) { assert.equal(host.ops.length, 1, fixture.id); written += 1; }
     else { assert.equal(host.ops.length, 0, fixture.id); refused += 1; }
@@ -171,6 +178,26 @@ test("A12 across every fixture: one op for a complete transcript, zero for a blo
   assert.equal(written, COMPLETE.length);
   assert.equal(refused, BLOCKED.length);
   assert.ok(written >= 6, "the brief's floor is six completing fixtures");
+});
+
+/* RE-PIN onto :149. A4b merged with the tags handling moved off
+   today-bindings.mjs into the producer (setup-commands.mjs envelopeOf) and
+   setup-host.mjs, and setup-app.mjs:524 now hands today-entry.mjs:141 ONE
+   envelope. envelopeOf() still accepts the older two-argument spelling, so a
+   coach left on the old call keeps passing every byte check while no longer
+   making the call the screen makes. Only the argument list shows that, so this
+   pins it: one argument, exactly the two keys, in the screen's order. */
+test("A1 submit makes the SCREEN's call: save({setup, tags}), one argument", async () => {
+  const m = await modules();
+  const voice = await byVoice(COMPLETE[0], m);
+  assert.equal(voice.run.submit.ok, true, JSON.stringify(voice.run.submit.unavailable || {}));
+  const call = voice.recorder.ops[0];
+  assert.equal(call.args.length, 1, "submit still passes save(setup, tags) as two arguments");
+  assert.deepEqual(Object.keys(call.args[0]), ["setup", "tags"]);
+  /* and the envelope the screen would have built from the same answers */
+  const tap = await byTap(COMPLETE[0], m);
+  assert.equal(JSON.stringify(call.args[0]),
+    JSON.stringify({ setup: tap.built.setup, tags: tap.built.tags }));
 });
 
 test("the fixtures cover what the brief asks them to cover", () => {
@@ -227,10 +254,18 @@ for (const fixture of COMPLETE) {
       assert.equal(await tapInstall.host.enrolled(), false);
       assert.equal(await voiceInstall.host.enrolled(), false);
 
-      /* path one: the screens' own setters, saved the way the Start button saves */
+      /* path one: the screens' own setters, saved the way the Start button saves.
+         RE-PIN onto :149. A4b's merged form moved the tags handling into the
+         producer's envelopeOf, and setup-app.mjs:524 now calls
+         `onDone({ setup: built.setup, tags: built.tags })` - ONE argument, an
+         envelope - which today-entry.mjs:141 forwards verbatim to host.save().
+         This line is that call, spelled the way the screen spells it. The old
+         two-argument save(setup, tags) still works (envelopeOf accepts both),
+         which is exactly why it had to be changed deliberately: the parity claim
+         is only worth something if the tap side is the path the screens take. */
       const tap = await byTap(fixture, m);
       assert.ok(tap.built.ok, fixture.id + " did not complete by tap");
-      const tapSaved = await tapInstall.host.save(tap.built.setup, tap.built.tags);
+      const tapSaved = await tapInstall.host.save({ setup: tap.built.setup, tags: tap.built.tags });
       assert.equal(tapSaved.ok, true, JSON.stringify(tapSaved));
 
       /* path two: the seven tools, submit writing through the same host kind */
@@ -253,7 +288,7 @@ for (const fixture of COMPLETE) {
 
       /* A13 on the real path: first run happens once, on both */
       assert.equal(await voiceInstall.host.enrolled(), true);
-      const again = await voiceInstall.host.save(voice.built.setup, voice.built.tags);
+      const again = await voiceInstall.host.save({ setup: voice.built.setup, tags: voice.built.tags });
       assert.equal(again.ok, false);
       assert.equal(again.code, "SETUP_ALREADY_RECORDED");
       assert.equal((await voiceInstall.host.all()).length, 1);
