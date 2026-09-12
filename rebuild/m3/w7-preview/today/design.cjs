@@ -213,6 +213,12 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "This intake could not be recorded on this device, and no part of it was recorded.",
   "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
   "Not prescribed. The engine issues no carbohydrate or fat target.",
+  /* D2 round 1 - the refusals the nutrition entry can now act on, and the day the
+     engine could not read back. Preview-owned for the same reason as the rest. */
+  "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.",
+  "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
+  "Opening this device's encrypted store.",
+  "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

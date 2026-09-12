@@ -27,7 +27,9 @@ import { buildToday } from '../build.mjs';
 
 const { createTodayModel, SYNTHETIC_DAY, createBasisState, engineClockFor } = TodayModel;
 const { mountToday, NOT_WIRED, FOOD_HEAD, FOOD_SAVE, FOOD_SAVED, FOOD_CORRECTION,
-  FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY, FOOD_REFUSED } = TodayApp;
+  FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY, FOOD_REFUSED,
+  FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_KEPT_UNREADABLE,
+  FOOD_PLAN_UNWIRED } = TodayApp;
 const { prepare, validate, dayOf, LIMITS, MEMBERS, ACTION } = FoodCommands;
 const DAY = SYNTHETIC_DAY;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -463,10 +465,23 @@ test('N1.10 - the lane can be attached after the model was built, as the page do
 /* ==========================================================================
    THE SCREEN: N1.11 to N1.16, and N1.19.
    ========================================================================== */
-test('N1.16 - with no food lane the nutrition screen is exactly the screen that shipped', () => {
+/* D2 round 1, finding 3 (BLOCKING, P2). The ONLY sentence here used to be the unwired
+   one, which answered none of the three questions a refusal owes the athlete. What is
+   true of a device with no entry is that THIS DEVICE would not give the page a store,
+   and that sentence now comes first, with the store's own reason and the action. The
+   unwired sentence stays last because the nutrition PLAN behind this tile really is
+   unbuilt, and because view.test.mjs, which asserts it, is pinned on disk by B-NTC. */
+test('N1.16 / D2.3 - with no store the nutrition screen says so, and offers no entry', () => {
   const kit = screenOn();
   kit.doc.querySelector('[data-go="nutrition"]').click();
-  assert.match(kit.text(), /not wired yet/, 'a device with no lane says what it always said');
+  const note = kit.pick('stub-note').textContent;
+  assert(note.startsWith(FOOD_NO_STORE), 'what cannot happen, and what to do FIRST: ' + note);
+  assert(note.includes(FOOD_REASON + 'NO_LOCAL_STORE.'), 'and why: jsdom offers no store');
+  /* The unwired sentence survives, LAST, and describes the PLAN rather than the entry:
+     view.test.mjs is pinned on disk by B-NTC and asserts it here. */
+  assert(note.endsWith(FOOD_PLAN_UNWIRED), 'the plan behind this tile is still unbuilt');
+  assert.equal(note.indexOf('not wired yet') > note.indexOf(FOOD_REASON), true,
+    'it never comes before the sentence he can act on');
   assert.equal(kit.pick('food-entry').hidden, true, 'and offers no entry it cannot keep');
   const rows = [...kit.doc.querySelectorAll('.macro-row')].map((r) => r.textContent);
   assert.equal(rows.length, 4);
@@ -753,4 +768,155 @@ test('N1.20 - N1 touches nothing outside its custody', () => {
   const commands = readRepo('rebuild/m3/w7-preview/today/food-commands.cjs');
   assert.equal(/require\(["'].*\/client\//.test(commands), false,
     'the producer imports nothing from rebuild/client');
+});
+
+/* ==========================================================================
+   D2 ROUND 1 - the three blocking findings on N1, reproduced and closed.
+   Every cell below was RED against 25650f8 and is GREEN here; the evidence is
+   in rebuild/lanes/c/N1-REPORT.md.
+   ========================================================================== */
+test('D2.1 - a clean-init athlete can record PROTEIN: kept, replayed, read back', async () => {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const model = createTodayModel({ today: DAY, basisState: clean });
+  const kit = await device();
+  const page = screenOn({ model, query: '?screen=nutrition', mount: { food: await laneOver(kit.host) } });
+  page.api.render('nutrition');
+  page.doc.querySelector('#food-pro').value = '150';
+  await page.tapSave();
+  assert.equal((await opsOf(kit.host.repository)).length, 1, 'the protein intake IS recorded');
+  /* The crash: writeDaily consults the OWED LEDGER for any day carrying pro, and
+     proteinTarget throws on this athlete state. The projector must survive it. */
+  assert.doesNotThrow(() => model.stateFromOps(), 'the projection survives the refusal');
+  assert.equal(model.loggedFood(DAY), null, 'the engine holds no figure for him yet');
+  assert.equal(model.foodUnavailable(DAY), true, 'and the screen is told exactly that');
+  const line = page.pick('food-recorded').textContent;
+  assert.equal(page.pick('food-recorded').hidden, false, 'his own record is never hidden');
+  assert.match(line, /150 g protein/, 'his protein is read back off the operation');
+  assert(line.includes(FOOD_KEPT_UNREADABLE), 'with the reason his ledger has nothing');
+  assert.doesNotMatch(page.pick('stub-note').textContent, /\d/, 'and still no invented target');
+  /* Calories AND protein together take the same path, and a reopen still holds it. */
+  page.doc.querySelector('#food-cal').value = '2100';
+  page.doc.querySelector('#food-pro').value = '150';
+  await page.tapSave();
+  assert.equal((await opsOf(kit.host.repository)).length, 2);
+  assert.match(page.pick('food-recorded').textContent, /2,100 kcal/);
+  kit.host.close();
+  const again = await kit.open();
+  const rows = await again.all();
+  assert.deepEqual(rows[rows.length - 1].day, { cal: 2100, pro: 150 }, 'durable across a reopen');
+  const reread = createTodayModel({ today: DAY, basisState: clean, foodDays: { rows: () => rows } });
+  assert.doesNotThrow(() => reread.loggedFood(DAY), 'and the replay survives the reopen too');
+  assert.equal(reread.foodUnavailable(DAY), true);
+  again.close();
+});
+
+test('D2.1 - the projector NAMES the days the engine refused, and never throws', () => {
+  const engine = {
+    writeDaily(state, date, partial) {
+      if (partial.pro !== undefined) throw new TypeError('SYNTHETIC_NO_LEDGER');
+      return { ...state, dailyLogs: { ...state.dailyLogs, [date]: partial } };
+    },
+  };
+  const rows = rowsFor([['2030-02-04', { cal: 2000 }], ['2030-02-05', { pro: 150 }]]);
+  const out = FoodModel.foodProjection({ dailyLogs: {} }, rows, engine);
+  assert.deepEqual(out.unavailable, ['2030-02-05'], 'the refused day is named');
+  assert.deepEqual(out.state.dailyLogs, { '2030-02-04': { cal: 2000 } }, 'nothing half applied');
+  assert.deepEqual(FoodModel.recordedDay(rows, '2030-02-05').day, { pro: 150 },
+    'and the refused day is still the athlete own record');
+  assert.equal(FoodModel.recordedDay(rows, '2030-02-06'), null);
+});
+
+test('D2.3 - a store refusal says WHAT, WHY in the store own words, and WHAT TO DO', async () => {
+  const kit = await device();
+  const lane = await laneOver(kit.host);
+  const page = screenOn({ model: createTodayModel({ today: DAY }), mount: { food: lane } });
+  page.api.render('nutrition');
+  /* The CLOSED case, through the real composition rather than a stub. */
+  kit.host.close();
+  page.doc.querySelector('#food-cal').value = '2100';
+  page.doc.querySelector('#food-pro').value = '150';
+  await page.tapSave();
+  const said = page.pick('food-error').textContent;
+  assert(said.startsWith(FOOD_REFUSED), 'WHAT was refused: ' + said);
+  assert(said.includes(FOOD_REASON + 'LOCAL_CLIENT_CLOSED.'), 'WHY, in the code it named');
+  assert(said.includes(FOOD_REFUSED_ACTION), 'and WHAT TO DO next');
+  assert.equal(page.doc.querySelector('#food-cal').value, '2100', 'his figures are still there');
+  assert.equal(page.doc.querySelector('#food-pro').value, '150');
+  assert.equal(lane.rows().length, 0, 'and nothing was recorded');
+  /* And a refusal that DOES carry the client own sentence is never reworded. */
+  const copy = 'This device has to be restored before it can record again.';
+  const spoken = screenOn({ model: createTodayModel({ today: DAY }),
+    mount: { food: { rows: () => [], async refresh() { return []; },
+      async save() { return { ok: false, state: 4, copy, code: 'RESTORE_REQUIRED' }; } } } });
+  spoken.api.render('nutrition');
+  spoken.doc.querySelector('#food-cal').value = '2100';
+  await spoken.tapSave();
+  const restore = spoken.pick('food-error').textContent;
+  assert(restore.includes(copy), 'the client own words, verbatim');
+  assert.equal(restore.includes('RESTORE_REQUIRED'), false, 'a code is the fallback, not an extra');
+  assert(restore.includes(FOOD_REFUSED_ACTION));
+});
+
+test('D2.3 - a store that REFUSES TO OPEN says its reason, not that the feature is unbuilt', async () => {
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/?screen=nutrition' });
+  Object.defineProperty(dom.window, 'indexedDB',
+    { value: { open() { throw new Error('SYNTHETIC_STORE_BLOCKED'); } }, configurable: true });
+  Object.defineProperty(dom.window, 'crypto', { value: webcrypto, configurable: true });
+  const api = mountToday(dom.window.document, createTodayModel({ today: DAY }), {});
+  await api.foodReady();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const note = dom.window.document.querySelector('#phone [data-slot="stub-note"]').textContent;
+  assert(note.startsWith(FOOD_NO_STORE), 'what cannot happen, and what to do: ' + note);
+  assert(note.includes(FOOD_REASON), 'and the reason the store itself gave');
+  assert.equal(note.indexOf('not wired yet') > note.indexOf(FOOD_REASON), true,
+    'the unwired PLAN sentence never stands in for the store refusal');
+  assert.equal(dom.window.document.querySelector('#phone [data-slot="food-entry"]').hidden, true);
+  dom.window.close();
+});
+
+test('D2.4 - the recorded line carries the STORED effective time and offset', async () => {
+  const kit = await device();
+  const model = createTodayModel({ today: DAY });
+  const page = screenOn({ model, mount: { food: await laneOver(kit.host) } });
+  page.api.render('nutrition');
+  page.doc.querySelector('#food-cal').value = '2100';
+  await page.tapSave();
+  const first = (await kit.host.all())[0];
+  assert.match(first.time, /^\d{2}:\d{2}(:\d{2})?$/, 'the operation carries an effective time');
+  const line = page.pick('food-recorded').textContent;
+  assert(line.includes(first.time), 'and the screen shows it: ' + line);
+  if (first.offset) assert(line.includes(first.offset), 'with the offset it was recorded in');
+  /* A CORRECTION reads its provenance off the WINNING operation. */
+  page.doc.querySelector('#food-cal').value = '2400';
+  await page.tapSave();
+  const rows = await kit.host.all();
+  assert.equal(rows.length, 2, 'two operations, the latest winning');
+  const corrected = page.pick('food-recorded').textContent;
+  assert(corrected.includes(rows[1].time), 'the winning operation stamp: ' + corrected);
+  assert.match(corrected, /2,400 kcal/);
+  assert(corrected.includes(FOOD_CORRECTION));
+  /* And a REOPEN reads the same provenance back out of the durable log. */
+  kit.host.close();
+  const again = await kit.open();
+  const kept = await again.all();
+  const reread = createTodayModel({ today: DAY, foodDays: { rows: () => kept } });
+  const page2 = screenOn({ model: reread, mount: { food: { host: again, rows: () => kept,
+    async refresh() { return kept; },
+    async save() { return { ok: false, state: 3, copy: null, code: 'NOT_USED' }; } } } });
+  page2.api.render('nutrition');
+  const back = page2.pick('food-recorded').textContent;
+  assert(back.includes(kept[kept.length - 1].time), 'provenance survives a reopen: ' + back);
+  assert.match(back, /2,400 kcal/);
+  again.close();
+});
+
+test('D2.3 / D2.4 - the new sentences are declared, dash free, and carry no figure', () => {
+  const source = design.appSource();
+  for (const line of [FOOD_REFUSED_ACTION, FOOD_NO_STORE, FOOD_KEPT_UNREADABLE]) {
+    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    assert(source.includes(line), 'present in a view source: ' + line);
+    assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
+    assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
+  }
+  assert.equal(AI_DASH.test(FOOD_REASON), false);
 });

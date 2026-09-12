@@ -155,10 +155,17 @@ function createTodayModel(options = {}) {
      go through an ENGINE writer (`applyRead`, `writeDaily`); the adapter computes
      nothing of its own in either. */
   function stateFromOps() {
+    return foodProjectionOf().state;
+  }
+
+  /* D2 round 1, finding 1 - the same replay, with the days the ENGINE would not take
+     named rather than thrown. A food day it refuses (no body-composition estimate, so
+     no owed ledger to consult) is still recorded and still the athlete's; it simply
+     has no engine figure to read back, and the screen is told which days those are. */
+  function foodProjectionOf() {
     let state = clone(basis);
     for (const r of storedReads()) state = E.applyRead(state, r.date, r.lb, { hour: 8 });
-    state = FoodModel.projectFoodDays(state, storedFoodDays(), E);
-    return state;
+    return FoodModel.foodProjection(state, storedFoodDays(), E);
   }
 
   function sessionFor(state) {
@@ -297,6 +304,11 @@ function createTodayModel(options = {}) {
     setFoodDays(lane) { foodDays = lane || null; return foodDays; },
     storedFoodDays,
     loggedFood: (date) => FoodModel.loggedDay(stateFromOps(), date || day),
+    /* The op the log holds for a date, with its effective stamp: provenance, and the
+       athlete's own figures for a day the engine could not take. */
+    recordedFood: (date) => FoodModel.recordedDay(storedFoodDays(), date || day),
+    /* True when a day IS recorded and the engine refused to replay it. */
+    foodUnavailable: (date) => foodProjectionOf().unavailable.includes(date || day),
     basisState: () => clone(basis),
     stateFromOps,
     storedReads,
