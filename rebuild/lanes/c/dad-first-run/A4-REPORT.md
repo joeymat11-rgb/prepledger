@@ -930,3 +930,23 @@ because C1 added `athleteLabel()` to the entry. Re-read against
 still opens the local era by default and no wrapper opens a store of its own. The
 other three pins are untouched, which is the check that the wrapper files really
 were not disturbed. Journey 51/51 green.
+
+### A ruling that landed during round 1, and what it means for this file
+
+The final `git fetch` before the push moved `origin/rebuild/t2-client-core` again,
+to **5a76fcd** ("owner: RULED line 119 (efficiency)"), four files, docs-only:
+`DECISIONS.md` +1 line, `LANES.md`, and the STATUS rotation into
+`STATUS-ARCHIVE.md`. A4 rebased onto it with no conflicts and re-ran everything.
+
+`DECISIONS:119 (6)` says, among five efficiency levers: "VERIFICATION STAYS IN CI:
+counts, run ids and paths only - no logs or raw diffs in chats or reports; every
+brief carries a READ-LIST; **reports <= 60 lines**".
+
+**This file is far longer than 60 lines, and it is disclosed rather than quietly
+ignored.** It was written before `:119` existed, and the independent reviewer's
+round-1 verdict cites its sections by number; condensing it mid-round would strip
+the executed evidence the verdict rests on. The builder's judgment, for the PM to
+overturn if it wishes: leave the A4 evidence file as it stands for the review and
+the owner look, and apply `:119 (6)`'s cap to the ledger line and to every report
+from the next brief onward. If the PM prefers, a 60-line A4 summary can be cut
+from sections 2, 3, 11 and 14 and this file kept beside it as the evidence annex.
