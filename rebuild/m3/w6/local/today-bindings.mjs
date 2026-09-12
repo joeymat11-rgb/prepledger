@@ -275,7 +275,24 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
     }
     // The reading host's own day, for the same reason the gym host has one.
-    const sealed = (await client.hostBindings({ workoutCommands, clock: hostClock(day) })).repository;
+    const bindings = await client.hostBindings({ workoutCommands, clock: hostClock(day) });
+    const sealed = bindings.repository;
+    const scaleAsOf = () => {
+      const at = calendar?.sample();
+      return at ? { local_date: at.day, local_time: at.time, utc_offset: at.offset }
+        : { local_date: day, local_time: '08:00:00', utc_offset: '-05:00' };
+    };
+    const scaleReader = createDurablePublicClient({ ...bindings, schemaVersion: LOCAL_ERA_SCHEMA_VERSION,
+      subtle: crypto.subtle, scaleAsOf });
+    let scale = null;
+    async function refreshScale() {
+      scale = null;
+      if (!alive || !open) return { read: false, code: 'LOCAL_CLIENT_CLOSED' };
+      const result = await scaleReader.readScaleFeedback();
+      if (alive && open) scale = result;
+      return result;
+    }
+    await refreshScale();
     const lease = (await sealed.load()).generation.metadata.authorityLease;
     return Object.freeze({
       repository: sealed, client, day, namespace, databaseName,
@@ -287,6 +304,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       lease,
       openedRefusal: null,
       face, reads,
+      scaleFeedback: () => alive && open && (!calendar || calendar.sample().day === day) ? structuredClone(scale) : null,
+      refreshScale,
       paint: () => { const view = face(); return view ? view.paint : null; },
       label: () => { const view = face(); return (view && view.layer1 && view.layer1.label) || ""; },
       blockedCopy: () => {
@@ -303,10 +322,11 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         if (calendar && date !== day) return { ok: false, state: 3, code: 'LOCAL_CALENDAR_DATE_MISMATCH',
           copy: 'This entry belongs to another date. Nothing was recorded.', op_id: null };
         const result = await operation(day, () => client.execute("weighIn", { date, lb }));
+        await refreshScale();
         return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
           code: result.code || null, op_id: result.op_id || null };
       },
-      async restart() { return client.boot(); },
+      async restart() { scale = null; const result = await client.boot(); if (result.ready) await refreshScale(); return result; },
       outboxRetained() {
         const view = face();
         return view && view.layer1 && Number.isSafeInteger(view.layer1.outbox) ? view.layer1.outbox : null;

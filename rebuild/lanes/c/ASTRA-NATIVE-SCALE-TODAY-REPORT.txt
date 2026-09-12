@@ -1,0 +1,140 @@
+EARNED — NATIVE SCALE TO ACTUAL TODAY
+2026-09-12 handoff; execution evidence from September 11. Builder evidence only.
+
+(1) SOURCE AND SCOPE
+FILE rebuild/lanes/ASTRA-NATIVE-SCALE-TODAY.md, PM997e948;
+licensed owner-copy assertion amendment8f1b4ca and viewport amendment0b78eac.
+Exact parent154bf80454b5df2f1d10e4f74c4375b3b123b7b3.
+Branch codex/astra-native-scale-today, isolated tree:
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-native-scale-today
+Reviewed calculator componentcdcb264044ea786896ba7933cdf5e8571bce2443,
+independent correction acceptancece7967270fd4f6ba647210cb21b0760002f13c02,
+CONTRACT and correction report read. NEXT/ROADMAP/LANES, approved Refinement A
+and Additions C handoffs, owner PRODUCT-GOAL and CURRENT-PRODUCT-DECISIONS read.
+No nutrition-input938913 adoption. No writes to the historical3664 worktree.
+
+(2) IMPLEMENTATION
+public-client.readScaleFeedback uses its serialized observation guard and
+stageVerified, authenticating history and original local commitments through
+the existing T2 historyAuthentication path. Verified recovery receipts remain
+private. The read captures one generation, samples the statically configured
+as-of context, verifies lease/athlete/device/session/observation standing, then
+checks current revision AND token plus calendar date/offset before publishing.
+It accepts no renderer generation, history proof, eligibility or policy input.
+
+scale-feedback-view calls the unchanged projectScaleFeedback. It retains the
+complete projection in a private WeakMap attached to the internally retained
+view; presentation receives only factual quantities, dates/count, standing,
+exclusions and uncertainty. No keys, source records or operation commitments
+enter that view. Local pending history is explicitly not server-accepted.
+
+today-bindings composes this reader over the same installation repository and
+real identity as the reading/workout hosts. Reading save/restart and existing
+workout/check-in refresh callbacks refresh its view; failed/in-flight refresh
+clears the previous result. Closed handles and changed calendar days withhold
+the cached scale view. Existing owner lifecycle retains active editors through
+rollover; async redraw callbacks are awaited and cannot redraw a closed page.
+No second persistence system, transport or network requirement was introduced.
+
+Today replaces its blanket owner trend-unavailable text when the verified
+projection supplies facts. One eligible reading displays smoothed scale weight
+and establishes a baseline, explicitly not a measured weekly trend. Why shows
+baseline/date, eligible count/range, local standing, measured scale-only rate
+and uncertainty when present, exclusions and as-of/calendar. Scale change is
+not called fat loss. Weight evidence stays below nutrition/workout context.
+The four existing nutrition availability meanings remain unchanged.
+
+Concrete overlap for integration: public-client.mjs adds one static scaleAsOf
+option, scaleContext to stageVerified and one read method; host-bindings.mjs
+adds scale-feedback to local observation kinds; today-bindings.mjs changes only
+createReadingHost. today-entry changes refresh-callback awaiting and owner
+redraw. today-model/today-app change owner scale presentation. preview.css adds
+one grid-track viewport rule. local-owner-entry.test changes ONLY its obsolete
+blanket trend-unavailable copy assertion, with explicit PM license. New owned
+tests are local-scale-feedback.test.mjs and local-scale-browser.mjs. Shared
+reading/workout interpreters, engine arithmetic, initial setup, athlete-state,
+local-client, repository, lease, crypto and inputs-* files are unchanged.
+
+(3) EXECUTED CHECKS
+Runtime: C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe
+Node24.19.0, retained dependencies only. Tree-local ignored junctions:
+node_modules -> sibling m3-w6-browser-bridge/node_modules;
+rebuild/m3/w6/node_modules and rebuild/m3/w5/node_modules -> sibling
+m3-w6-browser-bridge/rebuild/m3/w6/node_modules. No installs or lockfile edits.
+Environment for Node tests: TZ=America/New_York;
+NODE_PATH=<sibling m3-w6-browser-bridge>/rebuild/m3/w6/node_modules;
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this candidate tree.
+
+node --test --test-reporter=spec
+  rebuild/m3/w6/test/local-scale-feedback.test.mjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+  rebuild/m3/w6/test/public-client.test.mjs
+  rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs
+  rebuild/m4/nutrition/scale-feedback.test.mjs
+75 PASS,0 fail/skip/cancel, exit0. Six new focused cases prove real owner
+save/Why/reopen; first late then ten genuinely saved eligible readings; actual
+T2 correction then unresolved competing removal; revision/token/session/
+observation/calendar refusal; bad original and unknown history proof refusal;
+one-store Start/Set/Close/weight exclusion and derived-cache loss; genuine
+concurrent weight commit refuses the old snapshot and fresh read recomputes.
+The correction fixture uses the actual T2 writer and repository commit to
+produce synthetic history; it does not claim a reading-correction UI exists.
+Inherited owner checks cover rollover with retained weight/check-in/workout
+editors, real offsets/DST, unfinished-session recovery and reopen.
+
+node rebuild/m3/w7-preview/today/build.mjs
+PASS:3 assets,102 input inventory entries,14 engine/12 client inputs,68 bound
+classes,2 pinned typefaces,3/3 assets without network references. No source or
+crypto pin was changed. Actual owner bundle was rebuilt by browser check too.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+node rebuild/m3/w6/test/local-scale-browser.mjs
+PASS: real Chrome, actual owner setup through visible controls, weight save,
+Today/Why and reload; keyboard focus and Enter reach evidence;0 page errors.
+Only synthetic fixture facts, local127.0.0.1 server, retained playwright-core.
+Visual inspection found the existing fixed frame overflow. Before viewport
+fix: viewport390/document398/phone388; viewport320/document398/phone388.
+After licensed preview.css minmax(0,1fr):390/390/372 and320/320/302.
+Document-level and phone-level horizontal overflow assertions pass on Today
+and Why. Inspected final Today320/390 and Why320 screenshots. Text and primary
+action remain readable/reachable. Retained screenshots:
+.tmp/scale-today-screens/{today,why}-{320,390}.png.
+Desktop synthetic Chrome layout is not actual phone/touch qualification.
+
+(4) PRESERVED REDS / EXACT CAUSES
+Joined local-owner-entry + local-today-journey + public-client + nutrition-
+availability execution:95 PASS,2 FAIL,97 tests. Both failures are the pinned
+today-entry hash subtest and its parent; behavioral one-store journeys passed.
+Expected hashf48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593.
+Candidate34075659362a031befdbe7b2e8b328a37dde2a3a615bab7ebf97be88eb5fcb2f.
+This pin was already stale at the exact parent: Git blob624f02a05334fe37f27bbf573a4455fa44a0f3a1c0d8837055cdece7192ebc95,
+CRLF-normalized04b2296ccddb084ad958a15594a543006db0e62bb79ebef1ae8ebda29723f4d9.
+PAGE_PINS and that test file remain unchanged; no green claim for this command.
+
+node --test --test-reporter=spec rebuild/m3/w6/test/local-host-journey.test.mjs
+16 PASS,1 FAIL,exit1. Existing call-site pin expects6; explicit scale-feedback
+guard makes7. Its later local-kind-count pin3 is likewise mechanically stale
+against the intentional fourth local kind. Test remains unchanged. Real host
+workout/relaunch/correction and all seven inbound refusals pass. No inbound kind
+was admitted. No source/law/observation-policy pin was rewritten for a green run.
+
+During development, initial async callbacks could outlive a closed test page;
+awaiting callbacks and checking closed fixed that failure in the75-pass run.
+Early fixture/launcher errors (unsupported correction bridge command, browser
+server URL shape,170 vs170.0 selector) were corrected in owned test code; final
+commands above supersede those attempts. Missing retained dependency resolution
+was resolved with local junction/NODE_PATH, without installing anything.
+Final git diff --check PASS; protected-directory diff empty. Completed checks
+were retained across the usage interruption, not repeated for status reporting.
+
+(5) LIMITS / NEXT ACTOR
+Independent technical review and separate integration remain required. This is
+one factual nutrition step, not a complete coaching endpoint. Reading correction
+UI, imported-source blackout mapping, unsupported time reclassification, broader
+nutrition targets/goals/phase/recovery policy and current unresolved histories
+retain their documented boundaries. No formulas, coefficients, model defaults,
+body-fat estimate, invented observations or accepted nutrition plan were added.
+Full engine/source-policy/CI, both-OS qualification and actual phone qualification
+remain separate required release work; no full/private gate or soak was run.
+No self-review/acceptance, extra agents, private owner data, other-tree writes,
+push,PR,merge,deploy or remote operation. This is the sole committed report.

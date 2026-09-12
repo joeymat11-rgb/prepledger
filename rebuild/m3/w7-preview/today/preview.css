@@ -36,6 +36,9 @@
 
 /* The preview frame around the phone. */
 .stage { min-height: 100vh; }
+/* Let the approved phone frame shrink inside the actual viewport. Grid's
+   automatic minimum otherwise keeps its track at the fixed 390px frame. */
+.stage { grid-template-columns: minmax(0, 1fr); }
 .review .note { margin: 0; }
 #today-status { margin-top: 6px; }
 .view > .note { padding: 24px; }

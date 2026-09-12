@@ -10,6 +10,7 @@ import WorkoutSchema from "../../m4/workout/schema.cjs";
 import {storedWorkoutHistory} from "../../m4/workout/stored-history.mjs";
 import {workoutContinuation} from "../../m4/workout/continuation.mjs";
 import WorkoutCommands from "../../m4/workout/commands.cjs";
+import { scaleFeedbackView } from "../../m4/nutrition/scale-feedback-view.mjs";
 const copy = value => structuredClone(value);
 const refusal = (state, code, reason) => ({ stored: false, durable: false, state, code, reason });
 const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment recovery.", 18: "Stored truth needs recovery before it can be used.",
@@ -20,7 +21,7 @@ const reasonFor = state => ({ 17: "This installation needs sign-in or enrollment
 export function createDurablePublicClient({ repository, stage, namespace, athleteId, deviceId, sessionEpoch,
   isCurrentSession, observationEpoch, observationGuard, validateCommit, keys, subtle, crypto, monotonicMs,
   maxTimeRoundTripMs, schemaVersion = 1, permissionNowIso, workoutProducer, workoutProducerIdentity,
-  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy, projectWorkoutHistory, projectReadings } = {}) {
+  resolveWorkoutBasis, prescriptionCapture, recovery, workoutResumePolicy, projectWorkoutHistory, projectReadings, scaleAsOf } = {}) {
   if (!repository || typeof stage !== "function" || !namespace || !athleteId || !deviceId || sessionEpoch === undefined ||
       typeof isCurrentSession !== "function" || typeof observationEpoch !== "function" || typeof observationGuard?.run !== "function" || typeof validateCommit !== "function") throw new TypeError("Explicit durable client scope, staging, observation guard and validator required");
   const verifier = W5.createPublicVerifier({ keys, subtle });
@@ -41,6 +42,8 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
   const resumeCommands=WorkoutCommands.createWorkoutCommands();
   const preparations = new Map(); let activeWorkout = null, unresolvedWorkout = null, preparationEpoch = 0;
   const workoutHistories = new WeakMap();
+  const scaleViews = new WeakMap();
+  let retainedScaleView = null;
   function producerHistory(snapshot,candidate){
     if(projectWorkoutHistory===undefined)return {};
     // Only this candidate's authenticated history may enter the configured
@@ -210,12 +213,12 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
       ((capturedStart(context) || captureEnabled && context.command === "workout" && context.args?.action === "start") &&
         (contextFailure(context.observationEpoch) || workoutFailure(context))) || decision;
   }, stage: stageVerified });
-  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false, authenticateWorkoutHistory = false } = {}) {
+  async function stageVerified(generation, command, args, { authenticateLocalHistory = false, requireCurrentProjection = false, authenticateWorkoutHistory = false, scaleContext = null } = {}) {
     activeGrant?.retire(); activeGrant = null;
     if (!current()) throw new StorageFailure("SESSION_CHANGED", 17);
     const epoch = observationEpoch();
-    const signedOperationIds = authenticateLocalHistory || authenticateWorkoutHistory || projectReadings !== undefined ? new Set() : null;
-    const recoveryReceipts = authenticateWorkoutHistory ? [] : null;
+    const signedOperationIds = authenticateLocalHistory || authenticateWorkoutHistory || scaleContext || projectReadings !== undefined ? new Set() : null;
+    const recoveryReceipts = authenticateWorkoutHistory || scaleContext ? [] : null;
     if (!await verifiedHistory(generation, signedOperationIds, recoveryReceipts)) throw new StorageFailure("HISTORICAL_PROOF_UNPROVEN", 18);
     // Authenticate history first; a restored historical snapshot cannot grant
     // a current prescription. A qualified projection/publish join is still
@@ -266,6 +269,8 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
     }
     const staged={ ...candidate, context: { namespace, sessionEpoch, observationEpoch: epoch } };
     if(history)workoutHistories.set(staged,history);
+    if (scaleContext && candidate.view && !candidate.result?.state)
+      scaleViews.set(staged, scaleFeedbackView({ generation, athleteId, deviceId, asOf: scaleContext, recoveryReceipts }));
     return staged;
   }
   function closedInput(value, required, optional = []) {
@@ -551,6 +556,33 @@ export function createDurablePublicClient({ repository, stage, namespace, athlet
         });
       }catch(error){const changed=contextFailure(null);if(changed)return {...changed,prepared:false};return {...refusal([17,18,19,20].includes(error.state)?error.state:18,error.code||"LOCAL_RECOVERY_UNPROVEN",reasonFor(error.state||18)),prepared:false};}
       finally{activeGrant?.retire();activeGrant=null;}
+    }); },
+    readScaleFeedback() { return enqueue(async () => {
+      retainedScaleView = null;
+      try {
+        if (typeof scaleAsOf !== 'function') return { read: false, code: 'SCALE_CONTEXT_UNAVAILABLE' };
+        if (lateRefusal) return { ...lateRefusal, read: false };
+        return await observationGuard.run('scale-feedback', async () => {
+          const failure = contextFailure(null); if (failure) return { ...failure, read: false };
+          const asOf = copy(scaleAsOf());
+          const snapshot = await repository.load();
+          const candidate = await stageVerified(copy(snapshot.generation), null, null, { scaleContext: asOf });
+          if (!candidate.view || candidate.result?.state) return { ...candidate.result, read: false };
+          const changed = contextFailure(candidate.context.observationEpoch); if (changed) return { ...changed, read: false };
+          const latest = await repository.load();
+          const last = contextFailure(candidate.context.observationEpoch); if (last) return { ...last, read: false };
+          if (latest.revision !== snapshot.revision || latest.token !== snapshot.token)
+            return { read: false, code: 'SCALE_HISTORY_CHANGED' };
+          const now = scaleAsOf();
+          if (now.local_date !== asOf.local_date || now.utc_offset !== asOf.utc_offset)
+            return { read: false, code: 'SCALE_CALENDAR_CHANGED' };
+          retainedScaleView = scaleViews.get(candidate);
+          return { read: true, source_revision: snapshot.revision, view: copy(retainedScaleView) };
+        });
+      } catch (error) {
+        const changed = contextFailure(null);
+        return { ...(changed || refusal(error.state || 18, error.code || 'SCALE_FEEDBACK_UNAVAILABLE', 'Scale feedback could not be verified.')), read: false };
+      } finally { activeGrant?.retire(); activeGrant = null; }
     }); },
     readWorkoutHistory() { return enqueue(async()=>{
       try {

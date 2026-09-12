@@ -59,7 +59,7 @@ export async function createCheckInEntry(model, options = {}) {
   async function refresh() {
     const row = await checkin.refresh();
     summary = { durable: !!host, recorded: !!row, date: row ? row.date : null };
-    if (onRefresh) onRefresh();
+    if (onRefresh) await onRefresh();
     return summary;
   }
   await refresh();
@@ -103,7 +103,7 @@ export async function createWorkoutEntry(model, options = {}) {
     const read = await gym.read();
     summary = { phase: read.phase, sets: read.done || 0, code: read.code || null,
       copy: read.copy || null, unfinished: read.unfinished || null };
-    if (onRefresh) onRefresh();
+    if (onRefresh) await onRefresh();
     return summary;
   }
   /* The accepted close for a session abandoned on an earlier day. It writes through
@@ -329,7 +329,10 @@ async function bootMode(options = {}) {
       beforeNavigate(next) {
         if (next === 'today' && calendar.sample().day !== item.model.today) { void refresh({ move: true }).catch(() => {}); return false; }
       } });
-    const redraw = () => { if (current === item && item.api.screen() === 'today' && !phone.querySelector('[role="dialog"]')) item.api.render('today'); };
+    const redraw = async () => {
+      await item.readings.refreshScale();
+      if (!closed && current === item && item.api.screen() === 'today' && !phone.querySelector('[role="dialog"]')) item.api.render('today');
+    };
     item.workout.setOnRefresh(redraw); item.checkin.setOnRefresh(redraw);
     paintNotice();
   }

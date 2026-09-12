@@ -49,7 +49,15 @@ function morningLine(view) {
   return note ? line + " · " + note : line;
 }
 function trendLine(view) {
-  if (view.mode === "owner") return "Weight trend · Initial-setup projection is not available yet";
+  if (view.mode === "owner") {
+    const scale = view.scaleFeedback;
+    if (!scale) return 'Scale feedback unavailable · Reopen Today to refresh';
+    const issue = scale.exclusions.length ? ' · Some readings excluded; see Why' : '';
+    return scale.smoothedWeight
+      ? 'Smoothed scale weight ' + pounds(scale.smoothedWeight.value) + ' lb · '
+        + (scale.scaleRate ? 'Measured scale change; see Why' : 'Weekly rate not measured yet') + issue
+      : 'Record a morning weight before noon to begin scale feedback' + issue;
+  }
   const weight = view.nowModel && view.nowModel.headed ? view.nowModel.headed.weight : null;
   return "Weight trend " + (Number.isFinite(weight) ? pounds(weight) + " lb" : NOT_AVAILABLE) + " · Why this plan?";
 }

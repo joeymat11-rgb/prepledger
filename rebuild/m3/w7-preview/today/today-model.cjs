@@ -209,6 +209,8 @@ function createTodayModel(options = {}) {
     const adopted = (state.reads || []).filter((r) => r && typeof r.w === "number");
     const latestRead = adopted.length ? { date: adopted[adopted.length - 1].d, lb: adopted[adopted.length - 1].w } : null;
     const session = sessionFor(state);
+    const scaleRead = owner && readings?.scaleFeedback ? readings.scaleFeedback() : null;
+    const scale = scaleRead?.read === true && scaleRead.view.asOf.local_date === day ? scaleRead.view : null;
     // The setup contract supplies a programme, not a nutrition or trend baseline.
     // Unknown fields below are presentation values, never coaching prescriptions.
     const projection = owner ? {
@@ -232,10 +234,21 @@ function createTodayModel(options = {}) {
         today: projection.nowModel.workout.today, exerciseCount: session.count,
         available: session.available, unavailableReason: session.reason },
       ...projection,
+      scaleFeedback: scale,
     };
     view.why = owner ? [
       { heading: 'Your programme', body: 'From the initial setup saved on this device.' },
-      { heading: 'Weight trend and nutrition', body: 'Projection for initial setup is not supported yet. Recorded weights are retained; no trend or nutrition target has been calculated.' },
+      { heading: 'Scale weight', body: scale ? [
+        scale.baseline ? 'Baseline: ' + scale.baseline.value + ' lb on ' + scale.baseline.date + '. Smoothed scale weight: ' + scale.smoothedWeight.value + ' lb.' : 'Record a morning weight before noon and before completing training to begin.',
+        scale.count + ' eligible readings' + (scale.from ? ', ' + scale.from + ' to ' + scale.to : '') + '.',
+        scale.standing,
+        scale.scaleRate ? 'Measured scale loss rate: ' + scale.scaleRate.scale.toFixed(2) + ' lb/week; uncertainty range ' + scale.scaleRate.lo.toFixed(2) + ' to ' + scale.scaleRate.hi.toFixed(2) + ' lb/week. Positive means scale loss; negative means scale gain.'
+          : 'A measured weekly rate needs at least 10 eligible readings. One reading establishes a baseline, not a measured trend.',
+        'Scale change does not establish fat loss.',
+        scale.exclusionDetails.join(' '),
+        'As of ' + scale.asOf.local_date + ' ' + scale.asOf.local_time + ' ' + scale.asOf.utc_offset + '. Calculation calendar: ' + scale.calendar + '.',
+      ].filter(Boolean).join(' ') : 'Scale feedback could not be verified. Reopen Today to refresh the saved readings.' },
+      { heading: 'Nutrition', body: 'Nutrition targets are not configured.' },
     ] : whySections(view);
     return clone(view);
   }
