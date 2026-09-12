@@ -118,6 +118,17 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/food-commands.cjs",
   "rebuild/m3/w7-preview/today/food-model.cjs",
   "rebuild/m3/w7-preview/today/food-host.mjs",
+  /* MACHINE SETTINGS ON THE ACTIVE SET (DECISIONS:154 (2), :140 wave one). The gym
+     card's half of wave one writes THE COACH'S OWN OP: the producer, the caps, the
+     profile, the read-back filter and the latest-wins rule are all in
+     rebuild/coach/machine-settings-commands.cjs, which is a pinned input of this page
+     from here on. A build that lost it would be a page that had to invent a second
+     shape for the same fact, which is the one thing this brief exists to prevent; a
+     build that lost either of the two modules below would be a card whose recalled
+     settings, or whose capture, silently went nowhere. */
+  "rebuild/coach/machine-settings-commands.cjs",
+  "rebuild/m3/w7-preview/today/machine-settings-host.mjs",
+  "rebuild/m3/w7-preview/today/machine-settings-view.mjs",
   "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
