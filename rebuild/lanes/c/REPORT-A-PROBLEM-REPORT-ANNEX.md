@@ -171,3 +171,51 @@ and `pipeline` **34688790317 success**.
 
 This line is itself a commit, so the head that carries it runs again; its ids go to the
 coordinator with the hand-off rather than into a third round of this file.
+
+## 11. ROUND 1: WHAT THE REVIEWER FOUND, AND WHAT CLOSED IT
+
+The reviewer accepted with five non-blocking conditions and landed two mutants this
+suite had missed. Both missed for ONE reason, and it is worth writing down: every test
+in sections 1 to 7 looks for a value it PLANTED. That catches a leak of something the
+test knows about and nothing else. A ninth field is not a planted value. A field that
+carries the whole of Today's view DTO is not a planted value either - it is full of
+engine figures, but not of the three the leak test happened to plant.
+
+**C1, applied.** Two tests were added that know nothing about what the block should
+SAY, only about what it may BE:
+
+    C1 - the block is eight fields in order and every value is in its own set
+    C1 - the page block is the same shape, and user agent is the browser's own string
+
+`assertBlockShape` asserts exactly `FIELDS.length` lines; the keys deep-equal to
+`FIELDS` in order; `enrolment` in `ENROLMENT`; `offline-ready` in `OFFLINE`; `build`
+matching `/^earned-([0-9a-f]{12}|notinjected)$/`; `device` matching
+`/^(device-[0-9a-f]{8}|none)$/`; every name in `lane open` in `LANES`, or `none`; `at`
+the stamp shape; `screen` a single token; and `user agent` free of `{`, `}` and `"`,
+which is what a serialised object brings and a user agent never has. The first test runs
+it over 576 states plus the empty one; the second runs it over the REAL page and asserts
+`user agent` is byte-equal to `navigator.userAgent` through the render boundary.
+
+RED first, executed:
+
+    E2  user agent = JSON.stringify(model.read())   tests 25 | pass 23 | fail 2   KILLED
+    Z4  a ninth field on the end of the block       tests 25 | pass 17 | fail 8   KILLED
+    E2 + Z4 together                                tests 25 | pass 17 | fail 8   KILLED
+    restored                                        tests 25 | pass 25 | fail 0
+
+E2 falls on the page test (the field is no longer the browser's string, and it carries
+`{` and `"`); Z4 falls on both, plus six of the tests that read a field by index.
+
+**C4, applied.** `browser-check.mjs` measures the primary action's own box against the
+phone frame WITH THE BOX OPEN, at 390px and again at 320px, and refuses if it has left
+the viewport. Measured on this head: **390px top 452 bottom 511 of 842; 320px 444 to 503
+of 842** - the reviewer's numbers to the pixel. The PASS line carries them.
+
+**C3, applied.** `rebuild/coach/BRIEF-COACH-WAVE1-TEXT.md` rides this branch, inside lane
+C's licence (`LANES.md:10`) and outside this build's custody list. It is disclosed in the
+report's custody line rather than moved: pulling a docs-only brief out of a branch the
+reviewer has already read costs more than it buys. `C6-INDEX.md` is not in the diff.
+
+**C2 and C5** are not this builder's: the REQUESTS line for the wording is the lane
+lead's (annex section 9 carries the text ready to post), and the three-row hand test is
+the owner's. Residual 1 of section 8 stands until row 3 is run.
