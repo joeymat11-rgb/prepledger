@@ -307,12 +307,12 @@
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612",
-      "post": "c8dfdd491c9fc8bcc614c3bbb60f3b91913ec824c97c380f1f281715f1e17093",
+      "post": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3",
       "role": "superseded-by-child"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
       "pre": "05a5aa1fdad98df3bbd9efd45721810ed3503ba11ae9e351d3948d988f0948ed",
-      "post": "a7d68ce4052ef8a59c76dded2d14e14527348e63126a2c0c57aeb06681e4dd97",
+      "post": "c4a8cf92da6c55be3e50f4c902af5c0c7a2cdede8e4f8a5d6726d89a8b58e9be",
       "role": "superseded-by-child"
     },
     "rebuild/m4/workout/athlete-state.cjs": {
@@ -354,6 +354,11 @@
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "post": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
       "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-engine-files-differential.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d0f59c48b9d50997c5cd4a8cbd9e8a48fdae4765f17c8cf74f03cffafd41d9bf",
+      "role": "new"
     }
   },
   "coverage": {
@@ -361,10 +366,10 @@
     "moves": {},
     "successors": null,
     "superseded": {
-      "rulingLineSha256": null,
+      "rulingLineSha256": "3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb",
       "gates": {
         "source-carriers": {
-          "why": "it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; H3 edits two engine files, extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target",
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; H3 edits two engine files, extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -372,11 +377,12 @@
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites"
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
           }
         },
         "inherited-carriers": {
-          "why": "priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files H3 declares are refused there for the same reason as source-carriers",
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files H3 declares are refused there for the same reason as source-carriers",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -384,11 +390,12 @@
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites"
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
           }
         },
         "defect-witnesses": {
-          "why": "every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte H3 declares has moved",
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte H3 declares has moved",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -396,11 +403,12 @@
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites"
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
           }
         },
         "writers-differential": {
-          "why": "the gate is the differential over rebuild/engine/writers.cjs itself, which is the file F-B edits, and it reaches it through the same reconstruction",
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the gate is the differential over rebuild/engine/writers.cjs itself, which is the file F-B edits, and it reaches it through the same reconstruction",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -408,11 +416,12 @@
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites"
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
           }
         },
         "second-gate": {
-          "why": "the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
+          "why": "DECISIONS:153 (the standing role), token clause at DECISIONS:160: the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
           "evidence": {
             "laws": null,
             "redFirst": [
@@ -420,7 +429,8 @@
             ],
             "census": "runner-live-triggered-line",
             "legacyDifferential": "a0-journeys",
-            "writersDifferential": "today-suites"
+            "writersDifferential": "today-suites",
+            "engineFilesDifferential": "engine-files-differential"
           }
         }
       }
@@ -503,6 +513,13 @@
       "needle": "# pass 3"
     },
     {
+      "name": "engine-files-differential",
+      "argv": [
+        "rebuild/m4/workout/test/h3-engine-files-differential.cjs"
+      ],
+      "needle": "ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine file(s) outside this package's declared product, all byte-identical to the parent;"
+    },
+    {
       "name": "h3-cells",
       "argv": [
         "--test",
@@ -548,6 +565,6 @@
     }
   ],
   "notes": [
-    "H3 supersedes the five NATIVE-CARRIERS byte-identity carriers under REQUESTS 2026-09-12 09:25 (the GATE-SUPERSESSION token line is NOT yet on the chain, so rulingLineSha256 is the null placeholder and the runner refuses GATE-SUPERSESSION-RULING-NOT-CITED by design). Evidence: one red-first cell per carrier under rebuild/m4/workout/test/, each measured RED on the parent engine bytes; the two shared differentials are a0-journeys and today-suites; the census slot is the runner's own live-triggered line, clean. BRIEF-H3-CLEAN-INIT.md v1.8 section 9 carries the measurement and the exact token the PM must write."
+    "H3 supersedes the five NATIVE-CARRIERS byte-identity carriers under the STANDING ROLE at DECISIONS:153 (lineSha256 b6f84af6a014cc3a751ff3f077ed03e149047cdcc0f448328038a3e0f0af47e1, whose own token stands inside a prose clause and therefore frees nothing), granted to this package by the TOKEN CLAUSE at DECISIONS:160 (lineSha256 3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb, cited in coverage.superseded.rulingLineSha256 - the closed block has no field of its own for the standing role, so it is recorded here and in every carrier why). Evidence per :153 (ii): one red-first cell per carrier, the shared legacy (a0-journeys) and writers (today-suites) differentials, the runner's own clean census line, and the named-files engine differential (engine-files-differential, 27 tracked rebuild/engine files outside the brief, byte-identical to the parent). BRIEF-H3-CLEAN-INIT.md v1.9 section 9 carries the measurement."
   ]
 }
