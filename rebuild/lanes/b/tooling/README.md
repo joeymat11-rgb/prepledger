@@ -772,3 +772,114 @@ own stdout**. The evidence sentence the runner prints now says exactly that and 
   sibling worktree, no second branch) and is 8/8. **Z11** an UNDECIDED parent run now says
   out loud that Y2's single-parent scan did not run. `TOOLING-FIX-r5-REPORT.md` carries the
   executed proof for each.
+
+## TOOLING-REVIEW r7 — what changed, and the two PM rulings that landed with it
+
+- **A fifth product role, `pinned-unchanged`.** r6 change 5 refused `pre === post` for
+  `edited` and `superseded-by-child` and exempted `new` outright. r7 F1 measured the cost of
+  that exemption on the sealed spec: **7 of B-NTC's 31 `new` files carry `pre === post`** and
+  stand at their own `sourceBase` bytes, so 7 of the "33 at the declared post-image" are
+  files the package did not write a byte of. The case is real and had no name: a package
+  DECLARES a file, PINS it by bytes, a declared child EXECUTES it, and the package changes
+  nothing in it. That case is now `pinned-unchanged` — `pre === post`, both real, the file
+  NOT parent-pinned (a parent-pinned unchanged file is `carried`), and a declared child's
+  argv must name it or reach it through a relative require (`executedClosure`, read never
+  executed, bounded at 512 files and the bound is reported rather than silent). It is
+  counted in its OWN bucket and never among "at the declared post-image", because this
+  package produced none of it. With the name available, role `new` means what it says:
+  `pre === null` (the file did not exist) or `pre !== post` (this package moved it).
+  **The one exception, bounded in one direction only:** a spec whose artifact is ALREADY
+  SEALED, and whose sealed artifact carries that same file with that same role and those
+  same two shas, keeps its declaration — refusing retroactively would make an accepted
+  package unrunnable without improving the run that sealed it. The grandfathered files are
+  NAMED on every run (`PRODUCT DECLARED-UNCHANGED-UNDER-ROLE-NEW …`) and carry a
+  non-blocking OPEN obligation to re-declare at the next seal. An UNSEALED spec refuses:
+  `PRODUCT-CHANGE-ROLE-DECLARES-NO-CHANGE`.
+- **A ruled substitution is one the ruling's own DESCRIPTION names and quotes.** r6's branch
+  (B) asked whether the last hyphen segment of the substituted module's basename stood
+  anywhere in the `DECISIONS:113` line; measured, that admits one substitution each over
+  **8 of the 17** `native-carriers-*.cjs` parent originals. The ruling describes **two**.
+  `ruledDescriptions()` now parses the ruling's own enumeration — `(two at <commit>: <desc>
+  and <desc>)` — and `describes()` requires (1) the module's distinguishing token to stand in
+  THAT DESCRIPTION, not merely somewhere in a paragraph of prose, and (2) at least one other
+  word of the description to stand in the substitution's own text and in no repository path
+  — the word that says WHAT changed rather than WHERE. Descriptions are CONSUMED, so the
+  ruling's count is the ceiling. Both of B-NTC's real non-re-target substitutions are still
+  admitted and are re-measured in the suite.
+- **The ruling is found by its own sha256, not by a line number.** r6 read line 113 of
+  `rebuild/DECISIONS.md` on `CHAIN_REF`, which made every successor run a hard runtime
+  coupling to a ledger line number. The spec now records `coverage.successors
+  .rulingLineSha256`, the runner SEARCHES the chain branch's `DECISIONS.md` for the one line
+  that hashes to it, and requires that line to carry `B-NTC-INHERITED-1`. A PM renumber moves
+  nothing. The two halves a spec cannot forge — the BYTES and the ID — are the two r6 already
+  required; only the way the line is LOCATED changed.
+- **Named refusals for everything that printed a bare `FAIL`.** Every
+  `merge-base --is-ancestor` now goes through one `ancestor(commit, of, code)` helper, so
+  X2's chain-ancestry refusal says which ancestry it was; the theme-shape assert, the two
+  coverage-map shape asserts and the successor-block key shape have their own names; and the
+  FAIL_CODES harvest admits a name followed by a COLON, which is why six of this file's own
+  names (`SEALED-PROFILE-RECOMPUTATION`, `SINGLE-PARENT-CHAIN`, `SINGLE-PARENT-CHAIN-SEALED`,
+  `BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE`, `THEME-AUTHORIZATION-UNVERIFIABLE`,
+  `BRIEF-ACCEPTANCE-UNVERIFIABLE`) printed nothing before, for no reason but punctuation.
+- **`IDS` carries the ruled order** — `B-NTC, H3, B1, B2, B4, B3` is `DECISIONS:124`'s
+  sequence exactly, and `B-LOM` stands after it because no ruling puts it inside.
+- **`NO_REGISTER_IDS` gains `H3`, under a rule that is written down and asserted.** EVERY
+  H-/F- item is an ENGINE-TIER register item carrying no D-id (`DECISIONS:93` — feature work
+  under the ratified slice plan takes no register D-ID); a B- package is exempt only where
+  the PM ruled it so BY NAME (`DECISIONS:103 (1)` for B-NTC and B-LOM). `DECISIONS:124` makes
+  `M2-H3-CLEAN-INIT` an engine-tier item beside H1/H2, so H3 enters under the H- half of the
+  rule and not by anybody's discretion. What H3 owes instead is Y1's replacement obligation.
+
+### `DECISIONS:135 (4)` — SEAL ON THE TIP, enforced
+
+The ACCEPTED branch of `envelope()` — the same place X1 and Y1 are re-asserted — refuses
+unless the chain branch's CURRENT tip stands in HEAD's own **first-parent chain**. Ancestry
+is the weaker question and would admit a branch that merged the chain a week ago; the
+first-parent chain says the lane head is BUILT ON the tip, which is the mechanic `:135`'s own
+timeline names ("rebase + final round + seal each, on the tip"). **Operational consequence,
+said out loud: `git merge --no-ff <tip>` run FROM THE LANE puts the tip on the SECOND parent
+and does NOT satisfy this.** What does: rebasing onto the tip, branching afresh from it, or
+fast-forwarding. The escape is the PM's alone — a FREEZE line in `rebuild/DECISIONS.md`
+cited in `authorizations.freeze` (the one OPTIONAL authorization key) and matched the way
+every other citation is matched, by the LINE'S OWN SHA256 found on the chain branch. The
+line must say FREEZE, name this package, and name a commit that IS in this HEAD's
+first-parent chain. Codes: `SEAL-BASE-IS-NOT-THE-CHAIN-TIP`,
+`SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH`, `SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE`,
+`SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN`, `SEAL-FREEZE-LINE-SHAPE`.
+
+### `DECISIONS:136 (3)` — the AUTHORIZED STEP is a byte-identity re-verify
+
+The owner's amendment to the `:88`/`:103 (5)` rerun step. The FULL run that reaches
+`POSTFIX PACKAGE PASS` — **the seal step** — writes `receipts/<ID>.json`: the artifact, spec
+and runner sha256, the ACCEPTED envelope key, the verdict file coordinate, and every pinned
+product file's bytes. That file is the only byte this runner writes outside `.tmp`, it lives
+inside `fidelity()`'s own change check, and it is a RECEIPT and not evidence — it can only
+ever cause the expensive matrix to be SKIPPED, never cause a PASS the `--ci` evidence, the
+pins, the ledger and the ACCEPTED envelope have not already earned on that very run.
+
+On a later `--full` with an ACCEPTED envelope, `sealedRunReceipt()` re-takes all of it from
+disk. Identical → the private oracle, the historical audit and the 19 original gates are not
+re-run, everything else is exactly the `--ci` path plus pin verification plus the receipt
+check, and the terminal is `POSTFIX PACKAGE PASS` as before. **Any byte change voids the
+receipt** (`SEALED-RUN-RECEIPT-VOID`, naming what moved) and the FULL run happens exactly as
+today; so does a missing receipt (`SEALED-RUN-RECEIPT-ABSENT`) — which is what makes the
+FIRST full run with the private census unchanged. `:136 (3)`'s "the verdict file names the
+sealed run's evidence hashes" is checked literally: `rebuild/lanes/b/VERDICT-<ID>.md` (a
+runner-derived coordinate, never a spec's word) must NAME the three hashes, or
+`SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES`.
+
+### `DECISIONS:135 (3)` — the shared builder preflight
+
+`rebuild/lanes/tooling/preflight.cjs` — **not** under `lanes/b/`, because every lane runs it;
+plumbing tier, deciding nothing about any package's evidence. One line reaches stdout,
+`PREFLIGHT PASS <head sha>` or `PREFLIGHT FAIL <code>`, so it can be pasted unedited.
+Six checks: the diff against the chain branch (committed, uncommitted and untracked, with
+`--untracked-files=all` so a stray file is named and not collapsed to its directory) lies
+inside the custody globs; the report is ≤ 60 lines; the report carries counts (`<n>/<n>` or
+`pass <n>`); the longest STATUS line is ≤ 400 code points; no U+2013/U+2014 in the declared
+UI custody. The sixth, CI green at the exact head sha, is a GitHub API fact and is out of
+reach offline — so it is NOT faked: the exact `gh run list --repo <slug> --commit <head>`
+command and the commit URL are printed, `--ci-run <id>` must be supplied by the builder who
+looked, and without it the preflight FAILS at `CI-UNVERIFIED` rather than passing quietly.
+The id is recorded and explicitly NOT verified; what it buys is that a human looked and can
+be asked which run they looked at.

@@ -122,7 +122,10 @@ test('(a) a declared+pinned UNCHANGED file (pre === post) reports IMPLEMENTED', 
   // This is B-NTC's seven, in miniature: the package declares the file, pins it by bytes,
   // and does not change it. `pre === post === disk`. Before this change it was counted as
   // "still at the pinned pre-image" and PRODUCT could never be anything but PARTIAL.
-  const s = { product: { [OWN]: { pre: at(OWN), post: at(OWN), role: 'new' } } };
+  // TOOLING-REVIEW r7 F1: the role that says so is "pinned-unchanged", not "new" — the
+  // case is unchanged, only its name is, and the file is counted in its own bucket rather
+  // than among "at the declared post-image" because this package produced no byte of it.
+  const s = { product: { [OWN]: { pre: at(OWN), post: at(OWN), role: 'pinned-unchanged' } } };
   assert.equal(api.product(s, noParent), 'IMPLEMENTED');
 });
 
@@ -131,8 +134,8 @@ test('(b) a file genuinely at a pre-image with a DIFFERENT post still reports pr
   // reached still reports the pre-image, and the phase is still PARTIAL beside a file that
   // has reached its own post.
   const s = { product: {
-    [CHANGED]: { pre: at(CHANGED), post: '0'.repeat(64), role: 'new' },   // declared, not yet there
-    [OWN]: { pre: at(OWN), post: at(OWN), role: 'new' },                  // complete
+    [CHANGED]: { pre: at(CHANGED), post: '0'.repeat(64), role: 'new' },              // declared, not yet there
+    [OWN]: { pre: at(OWN), post: at(OWN), role: 'pinned-unchanged' },                // complete
   } };
   assert.equal(api.product(s, noParent), 'PARTIAL');
   // And on its own, a file that has not reached its declared post is NOT-IMPLEMENTED.

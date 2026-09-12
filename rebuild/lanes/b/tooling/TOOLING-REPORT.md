@@ -1910,3 +1910,112 @@ r5's Z1 was written before line 113 landed and reads `:112`'s earlier wording, u
 nine would have been `coverage.moves`; r5 itself put that to the PM as its question 1, and
 `:113` answered it the other way. The tooling follows the ruled text, and says so in the
 header rather than leaving a reader to reconcile the two.
+
+## r7 — the delivered bytes at THIS head, re-measured
+
+The r6 table above is superseded: the head has moved and every figure in it was taken
+before the r7 changes. Measured with `Get-FileHash -Algorithm SHA256` on the committed
+bytes; `TOOLING-REPORT.md` is not in the table because a file cannot carry its own hash.
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 1970 | 158 238 | `769fd09e2baa8b5ea4a628d20b781a321bd2d13d4601ae3b17ecf04520962186` |
+| `README.md` | 885 | 64 169 | `2f3d5e1b7d5e15c32a161e3790be0b8c274c41f92bc9885a1cc44c0ce56768d9` |
+| `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
+| `test/successor-moves.test.cjs` | 357 | 23 109 | `6da629fe608c9bf416fcc5947c0658053dc5f9343a3d3217a2ce300918ac8235` |
+| `test/product-phase-and-ledger.test.cjs` | 224 | 14 492 | `5984aa2610fd13f33253b6b2089c9e7d251b12cb094ee82fa40b38d99dc10430` |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 280 | 19 095 | `d692bf7b301beb2facc6ad9f76c974e63215d8f78b539229dbafd8317c6d1d2c` |
+| `test/seal-tip-and-byte-identity.test.cjs` | 277 | 15 949 | `1ec47370f3c041348381e70dc5b976da20e6e3d52a33f96f5078678ea808c49f` |
+| `../tooling/preflight.cjs` | 160 | 10 364 | `702115658d21a36af4d552ee1a1c025f8899caa243ea2f9466af222039ec36df` |
+| `../tooling/test/preflight.test.cjs` | 175 | 9 415 | `637428b4a6420ef0103a6571ea34a7ac2e123dc9930466607ee2999d567c1001` |
+
+The **seven** package specs carry `769fd09e…` as `tooling.runnerSha256`, re-pinned
+mechanically, and their own bytes are printed by `SPEC OBSERVED` on every run. Sizes at this
+head: `B-NTC.json` 24 020 B, `B-LOM.json` 13 757 B, `H3.json` 12 553 B, `B1.json` 25 107 B,
+`B2.json` 26 013 B, `B3.json` 21 006 B, `B4.json` 20 473 B.
+
+`H3.json` grew by its own notes, not by a pin: `NO_REGISTER_IDS` now contains `H3`, so the
+sentence that said "every run of H3 refuses `REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT`"
+is no longer true and no longer stands there. `--ci --package H3` on this branch reaches
+`CI REVIEW-PENDING: 12 open obligation(s)`, exit 2.
+
+`rebuild/lanes/tooling/` is a NEW directory and is deliberately outside `lanes/b/`: the
+preflight is shared by every lane (`DECISIONS:135 (3)`, "small, plumbing tier"). It is
+therefore also outside `fidelity()`'s change scope, which is `rebuild/engine`,
+`rebuild/conform`, `rebuild/m4/spec` and `rebuild/lanes/b/tooling` — no package pins it and
+no package's evidence rests on it, which is the whole of what "plumbing tier" means here.
+
+`receipts/` is new and is EMPTY on this branch: nothing here has an ACCEPTED envelope, so no
+seal step has run and no byte-identity receipt exists to read. The seven paths
+`receipts/<ID>.json` are in `TOOLING_FILES` so that the day one is written and committed it
+is inside the change check rather than an `UNLISTED-SOURCE-CHANGE`.
+
+## r7 — the suites at this head
+
+| suite | cases | exit |
+|---|---|---|
+| `test/product-phase-and-ledger.test.cjs` | 7/7 | 0 |
+| `test/execution-targets.test.cjs` | 9/9 | 0 |
+| `test/successor-moves.test.cjs` | 9/9 | 0 |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 12/12 | 0 |
+| `test/seal-tip-and-byte-identity.test.cjs` | 13/13 | 0 |
+| `../tooling/test/preflight.test.cjs` | 8/8 | 0 |
+
+**58 cases, 0 fail.** r6 measured 25 across three suites; the three new suites are r7's own
+(F1/F2/F3/F6, `DECISIONS:135 (4)` + `:136 (3)`, and `DECISIONS:135 (3)`). Two existing cases
+were EDITED and it is worth saying which and why, because both are behaviour changes and not
+test repairs: `product-phase-and-ledger.test.cjs` case (a) declared its unchanged file role
+`new` and now declares it `pinned-unchanged` — the case is the same, the honest name for it
+is not; and `successor-moves.test.cjs` Z5 asserted the two `merge-base --is-ancestor` call
+sites textually and now asserts the two NAMED `ancestor(...)` calls plus that there is
+exactly one ancestry call site in the whole runner.
+
+## r7 — terminals at this head
+
+`--ci --package`, exit **2** and `CI REVIEW-PENDING; public evidence only; no PASS is
+claimed` for all seven: B-NTC **5 open** · H3 **12** · B1 **6** · B2 **6** · B4 **10** ·
+B3 **10** · B-LOM **12** (printed in `IDS` order, which is now the ruled one). Every count
+except H3's equals r7 §3, so nothing in this pass moved an obligation. H3 was `FAIL
+REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT`, exit 1, before this pass and is now a
+REVIEW-PENDING with twelve named obligations — the change item 2 was for.
+
+## r7 — what a reviewer should re-measure first
+
+1. **The F1 grandfather is one-directional.** `product()` takes the SEALED artifact as its
+   third argument and exempts only a role-`new` `pre === post` pin the sealed artifact
+   carries with that same role and those same two shas. Everything else — including the same
+   pin on a spec with no artifact — refuses. The mutant to fire is the r7 reviewer's own:
+   a 32nd `new` file re-declared `pre === post === disk` on an unsealed spec.
+2. **The F2 count.** `describes()` should admit exactly the substitutions the ruling's
+   descriptions name. Fire a third substitution over `native-carriers-profile.cjs`: r6's
+   predicate admits it (the suite measures that, it is not asserted), r7's does not.
+3. **`:135 (4)` is stricter than ancestry, deliberately.** `git merge --no-ff <tip>` from the
+   lane does NOT satisfy it. That is a real operational constraint on every lane and the PM
+   should see it: the answer is a rebase, or a FREEZE line.
+4. **The `:136 (3)` receipt can only ever SKIP work.** It is read after the `--ci` evidence,
+   the pins, the ledger and the ACCEPTED envelope have all been re-taken on that same run.
+   A forged receipt buys a shorter run, not a PASS.
+
+## r7 — B-NTC compatibility, measured in a throwaway clone
+
+`rebuild/lane-b-ntc` seals on runner `eedabccd…`, spec `05a5aa1f…`, artifact `87f4848c…`.
+Three probes in `git clone --shared` fixtures (the ntc worktree was never opened or written,
+and the chain ref was set to this worktree's `origin/rebuild/t2-client-core`):
+
+| probe | what | terminal | exit |
+|---|---|---|---|
+| A | the r7 runner dropped in, spec untouched | `FAIL RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER` | 1 |
+| B | spec re-pinned to the r7 runner | `FAIL SUCCESSOR-BLOCK-KEYS-NOT-CLOSED` | 1 |
+| E | re-pinned and carrying `rulingLineSha256` | `FAIL SEALED-PROFILE-RECOMPUTATION` | 1 |
+
+Probe E is the durable answer and it is structural, not a defect: the sealed artifact pins
+the spec's sha256, and re-pinning the runner moves the spec's bytes. **Any** runner change
+does this to **any** sealed artifact. So the sealed B-NTC keeps the runner it sealed with,
+and these changes must land AFTER its merge and be taken up at its next re-seal.
+
+The BASELINE control — the sealed bytes with their own sealed runner, on the real chain tip —
+reproduces `ENVELOPE PENDING artifact=87f4848c… spec=05a5aa1f… runner=eedabccd…`,
+`PRODUCT IMPLEMENTED; 33 at the declared post-image / 0 at the pinned pre-image / 20 carried`
+and `LAWS 45/45 executed`, then stops in the clone's own `node_modules`
+(`Cannot find module '@noble/hashes/sha2.js'`), which is a fixture gap and not a runner rule.
+`PUBLIC CI EVIDENCE PASS` was therefore NOT re-reached in the clone, and is not claimed here.
