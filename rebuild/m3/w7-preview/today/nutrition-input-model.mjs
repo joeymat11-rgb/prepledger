@@ -62,6 +62,7 @@ export function describeNutritionInputs(inputs) {
   return rows;
 }
 const remedy = result => result?.committed ? 'The record reached this phone, but the connection closed before confirmation. Reopen Your nutrition to check it; your draft is still here.'
+  : result?.code === 'NUTRITION_INPUT_PREPARATION_REQUIRED' ? 'This review is no longer available. Your answers are still here. Review them again before saving.'
   : result?.code === 'NUTRITION_INPUT_STALE' ? 'Another entry was saved. Your answers are still here. Refresh and review them again.'
   : result?.code === 'LOCAL_CALENDAR_DAY_CHANGED' ? 'The local date changed. Your answers are still here. Review them for today before saving.'
   : result?.code === 'LOCAL_LEASE_EXPIRED' ? 'Saving is paused on this phone. Reopen the app to check your saved records; your draft is still here.'
@@ -74,7 +75,7 @@ const remedy = result => result?.committed ? 'The record reached this phone, but
 export function createNutritionInputModel({ installation, calendar }) {
   if (!installation?.client?.commitNutritionInputs || !calendar?.run) throw new TypeError('Actual installation and calendar required');
   const listeners = new Set(); let basis = null, prepared = null, busy = false, closed = false;
-  let state = { phase: 'loading', draft: newNutritionDraft(), message: '', errorField: null, review: null, saved: null, canRetry: false, conflicting: false };
+  let state = { phase: 'loading', draft: newNutritionDraft(), message: '', errorField: null, review: null, saved: null, canRetry: false, reviewRequired: false, conflicting: false };
   const snapshot = () => copy({ ...state, busy });
   const publish = () => { for (const fn of listeners) fn(snapshot()); };
   async function task(fn) {
@@ -102,9 +103,9 @@ export function createNutritionInputModel({ installation, calendar }) {
       const key = keys.at(-1); if (!Object.hasOwn(obj, key) || typeof obj[key] !== 'string' || typeof value !== 'string') return;
       obj[key] = value; prepared = null; state.message = ''; state.errorField = null;
     },
-    edit() { if (busy || closed) return; state.phase = 'edit'; state.canRetry = false; prepared = null; state.review = null; state.message = ''; publish(); },
+    edit() { if (busy || closed) return; state.phase = 'edit'; state.canRetry = false; state.reviewRequired = false; prepared = null; state.review = null; state.message = ''; publish(); },
     review: () => task(async () => {
-      state.message = ''; state.errorField = null; state.canRetry = false;
+      state.message = ''; state.errorField = null; state.canRetry = false; state.reviewRequired = false;
       const inputs = toInputs(state.draft);
       if (!basis || !await read(false)) return;
       const day = calendar.sample().day;
@@ -127,7 +128,12 @@ export function createNutritionInputModel({ installation, calendar }) {
         basis = { revision: r.durableRevision, current: state.saved }; state.draft = fromInputs(state.saved.inputs);
         state.phase = 'saved'; state.message = 'Saved on this phone · not yet synced'; state.canRetry = false;
       }
-      else { state.phase = 'error'; state.message = remedy(r); state.canRetry = !r.committed && r.state !== 18 && r.state !== 20 && !/STALE|CLOSED|DAY_CHANGED/.test(r.code || ''); }
+      else {
+        state.phase = 'error'; state.message = remedy(r);
+        state.reviewRequired = r.code === 'NUTRITION_INPUT_PREPARATION_REQUIRED';
+        if (state.reviewRequired) prepared = null; // A retired ID cannot be revived by retry.
+        state.canRetry = !state.reviewRequired && !r.committed && r.state !== 18 && r.state !== 20 && !/STALE|CLOSED|DAY_CHANGED/.test(r.code || '');
+      }
     }),
     close() { closed = true; listeners.clear(); },
   };

@@ -70,3 +70,22 @@ test('mounted labels, review/edit and Back retain transient draft without commit
     view=mountNutritionInput(dom.window.document,root,{model:h.model});assert.equal(root.querySelector('[name="goal.statement"]').value,'Build strength steadily.');await h.model.review();assert.match(root.textContent,/Target: 2175 kcal\/day/);assert.match(root.textContent,/less than 245 g\/day/);assert.match(root.textContent,/Not prescribed/);view.destroy();
   }finally{h.close();dom.window.close();}
 });
+test('actual second model retires review; mounted remedy preserves draft and needs explicit new review then confirm',async()=>{
+  const {createNutritionInputModel}=await import('../today/nutrition-input-model.mjs');
+  const h=await fixture(),dom=new JSDOM('<main></main>'),root=dom.window.document.querySelector('main');let other,mounted;
+  try{
+    fillRecorded(h.model);await h.model.review();const reviewed=h.model.snapshot().review,draft=h.model.snapshot().draft,before=await h.generation();
+    mounted=mountNutritionInput(dom.window.document,root,{model:h.model});
+    other=createNutritionInputModel({installation:h.installation,calendar:h.calendar});await other.load();fillRecorded(other);other.update('goal.statement','A different explicit review');await other.review();
+    await h.model.confirm();const retired=h.model.snapshot();assert.equal(retired.phase,'error');assert.equal(retired.canRetry,false,'retired review is not a storage retry');
+    assert.match(retired.message,/review.*again/i);assert.doesNotMatch(retired.message,/storage/i);assert.deepEqual(retired.draft,draft);
+    assert.equal(root.querySelector('[data-action="confirm"]'),null);assert.match(root.querySelector('[data-action="review"]').textContent,/Review my answers again/);
+    await h.model.confirm();await h.model.confirm();assert.equal((await h.generation()).revision,before.revision);assert.equal((await h.read()).view.records.length,0);
+    const phase=target=>new Promise(resolve=>{const stop=h.model.subscribe(s=>{if(s.phase===target&&!s.busy){stop();resolve();}});});
+    const fresh=phase('review');root.querySelector('[data-action="review"]').click();await fresh;
+    assert.deepEqual(h.model.snapshot().review.inputs,reviewed.inputs);assert.equal((await h.generation()).revision,before.revision,'renewed review alone does not save');
+    const saved=phase('saved');root.querySelector('[data-action="confirm"]').click();await saved;
+    const records=(await h.read()).view.records;assert.equal(records.length,1);assert.deepEqual(records[0].original.payload.inputs,reviewed.inputs);
+    assert.equal((await h.generation()).generation.collections.meta.device.seq,before.generation.collections.meta.device.seq+1);
+  }finally{mounted?.destroy();other?.close();h.close();dom.window.close();}
+});

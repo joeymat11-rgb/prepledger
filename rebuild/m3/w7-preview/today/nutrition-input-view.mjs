@@ -38,6 +38,7 @@ export function mountNutritionInput(doc, root, { model, onBack = () => {}, onSav
       body += `</fieldset><button class="primary" type="submit"${state.busy || state.conflicting ? ' disabled' : ''}>${state.busy ? 'Preparing review…' : 'Review my answers'}</button></form>`;
     } else if (state.phase === 'review' || state.phase === 'error') {
       body = `${rows(state.review.inputs)}<p class="fine">Recorded for ${esc(state.review.effective.local_date)} at ${esc(state.review.effective.local_time)} (${esc(state.review.effective.utc_offset)}).</p><p class="fine">${state.review.change === 'correction' ? 'Correction to an earlier answer. The original stays in your history.' : 'These are your recorded answers. They do not change a recommended plan.'}</p><div class="nutrition-actions"><button class="link" data-action="edit"${state.busy ? ' disabled' : ''}>Edit answers</button>${state.phase === 'review' || state.canRetry ? `<button class="primary" data-action="confirm"${state.busy ? ' disabled' : ''}>${state.busy ? 'Saving…' : state.canRetry ? 'Try saving again' : 'Save my answers'}</button>` : ''}</div>`;
+      if (state.reviewRequired) body += `<button class="primary" data-action="review"${state.busy ? ' disabled' : ''}>Review my answers again</button>`;
     } else if (state.phase === 'saved') body = `${state.saved ? rows(state.saved.inputs) : ''}<button class="link" data-action="edit">Change my answers</button>`;
     root.innerHTML = `<section class="page nutrition-input" aria-label="Your nutrition"><button class="back" data-action="back">Back to my plan</button><div class="detail-head"><h1 tabindex="-1">${state.phase === 'review' || state.phase === 'error' ? 'Review your answers.' : 'Your nutrition.'}</h1><p>Your goal and the plan you already have.</p></div>${state.saved && state.phase === 'edit' ? `<p class="fine">Using your saved answers from ${esc(state.saved.effective.local_date)}. Saved on this phone; sync is not confirmed.</p>` : ''}<p class="${state.errorField || state.phase === 'error' ? 'error' : 'status'}" role="${state.errorField || state.phase === 'error' ? 'alert' : 'status'}">${esc(state.message)}</p>${state.conflicting ? '<button class="link" data-action="load">Load saved answers (replaces this draft)</button>' : ''}${body}</section>`;
     if (state.errorField) {
@@ -56,6 +57,7 @@ export function mountNutritionInput(doc, root, { model, onBack = () => {}, onSav
     else if (action === 'edit') model.edit();
     else if (action === 'load') model.load();
     else if (action === 'confirm') model.confirm();
+    else if (action === 'review') model.review();
   };
   const submit = event => { event.preventDefault(); model.review(); };
   root.addEventListener('input', input); root.addEventListener('change', change); root.addEventListener('click', click); root.addEventListener('submit', submit);
