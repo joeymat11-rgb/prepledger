@@ -58,7 +58,7 @@ export function acceptable(machine) {
 
 /* The stored settings, verbatim and in the stored order. `put` is the caller's slot
    filler, so every string still goes through P1's render boundary. */
-export function renderBlock(doc, map, { copy, latest, put }) {
+export function renderBlock(doc, map, { copy, latest, state = 'known', put }) {
   const section = map.get('settings-block');
   if (!section) return null;
   section.hidden = false;
@@ -67,6 +67,20 @@ export function renderBlock(doc, map, { copy, latest, put }) {
   const list = map.get('settings-list');
   const cues = map.get('settings-cues');
   list.replaceChildren();
+  /* D2 round 1, finding 2 - UNKNOWN AND UNAVAILABLE ARE NOT EMPTY. A read still in
+     flight, and a read that refused, each say what they are. Neither is ever allowed
+     to fall through to the empty state below, which is a CONFIRMED absence. */
+  if (state !== 'known') {
+    const line = doc.createElement('p');
+    line.className = 'small quiet';
+    line.textContent = state === 'failed'
+      ? copy.plain(copy.unread + ' ' + copy.unreadAction, 'settings-unread')
+      : copy.plain(copy.reading, 'settings-reading');
+    list.append(line);
+    cues.textContent = '';
+    cues.hidden = true;
+    return section;
+  }
   const machine = latest && latest.machine ? latest.machine : null;
   const pairs = machine && Array.isArray(machine.settings) ? machine.settings : [];
   if (!machine || (pairs.length === 0 && !machine.cues)) {

@@ -35,7 +35,8 @@ import { buildToday } from '../build.mjs';
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
 const { SETTINGS_HEAD, SETTINGS_NONE, SETTINGS_OPEN, SETTINGS_EDITOR_TITLE, SETTINGS_CUES_LEAD,
   SETTINGS_ADD, SETTINGS_SAVE, SETTINGS_CANCEL, SETTINGS_NOTHING, SETTINGS_REFUSED,
-  SETTINGS_NOT_SAVED, SETTINGS_NAME_LABEL, SETTINGS_VALUE_LABEL, SETTINGS_CUE_LABEL } = GymApp;
+  SETTINGS_NOT_SAVED, SETTINGS_NAME_LABEL, SETTINGS_VALUE_LABEL, SETTINGS_CUE_LABEL,
+  SETTINGS_READING, SETTINGS_UNREAD, SETTINGS_UNREAD_ACTION } = GymApp;
 const { prepare, machineOf, machineSettingsIn, latestFor, SETTINGS_MAX, SETTING_TEXT_MAX } = MachineSettings;
 const DAY = SYNTHETIC_DAY;
 const SLOT = 'earned-today-preview/' + DAY;
@@ -85,6 +86,10 @@ async function card(kit, options = {}) {
   const mounted = mountGym(doc, phone, { model: kit.model, onBack: () => {},
     settings: Object.hasOwn(options, 'settings') ? options.settings : kit.settings });
   await mounted;
+  /* D2 round 1, finding 1 - the card is on the screen BEFORE the settings read has
+     answered, so a test that wants the block to say something durable waits for the
+     read separately. That the card does not wait is exactly what D2.1 measures. */
+  if (typeof mounted.settings.read === 'function' && mounted.settings.read()) await mounted.settings.read();
   const pick = (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]');
   return { dom, doc, phone, mounted, pick,
     text: () => phone.textContent,
@@ -828,4 +833,124 @@ test('S15 - the card with no capture at all is byte-for-byte the card that shipp
     .replace(SETTINGS_OPEN, '').replace(/\s+/g, ' ').trim(),
   strip(without), 'the only difference between the two cards is the block itself');
   kit.settings.close(); kit.gymHost.close();
+});
+
+/* ==========================================================================
+   D2 ROUND 1 - the three blocking findings on the gym-card settings, reproduced
+   and closed. Evidence in rebuild/lanes/c/GYM-CARD-SETTINGS-REPORT.md.
+   ========================================================================== */
+
+/* THE ACTUAL LOG CONTROL, not model.logSet. S-M6 adds a settings prerequisite to the
+   handler, and a test that drives the model straight through cannot see it. */
+async function logThrough(page, kit) {
+  const before = await kit.model.read();
+  const choices = [...page.doc.querySelectorAll('#phone [data-slot="choices"] .choice')];
+  const choice = choices.find((button) => button.textContent === '2') || choices[0];
+  assert(choice, 'the effort answers are on the card');
+  choice.dispatchEvent(new page.dom.window.Event('click'));
+  const log = page.doc.querySelector('#phone [data-slot="log"]');
+  assert(log, 'the log control is on the card');
+  assert.equal(log.disabled, false, 'the log control is usable');
+  log.dispatchEvent(new page.dom.window.Event('click'));
+  for (let i = 0; i < 600; i++) {
+    const now = await kit.model.read();
+    if (now.phase !== before.phase) return now;
+    if (now.set && before.set && now.set.slot !== before.set.slot) return now;
+    await new Promise((resolve) => setTimeout(resolve, 1));
+  }
+  throw new Error('the log control never logged the set');
+}
+
+test('D2.1 - the card paints and the set LOGS while the settings read is still pending', async () => {
+  const kit = await device();
+  let release = null;
+  const pending = new Promise((resolve) => { release = resolve; });
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  await kit.model.start();
+  const mounted = mountGym(doc, doc.getElementById('phone'), { model: kit.model, onBack() {},
+    settings: { latest: () => pending, save: async () => ({ ok: false }), close() {} } });
+  let finished = false;
+  mounted.then(() => { finished = true; });
+  await settle();
+  assert.equal(finished, true, 'mountGym resolved WITHOUT waiting for the optional read');
+  const page = { dom, doc,
+    pick: (slot) => doc.querySelector('#phone [data-slot="' + slot + '"]') };
+  const block = page.pick('settings-block').textContent;
+  assert(block.includes(SETTINGS_READING), 'the block says the read is still running: ' + block);
+  assert.equal(block.includes(SETTINGS_NONE), false, 'pending is NEVER a confirmed absence');
+  assert.equal(doc.querySelector('#phone [data-action="settings-open"]').disabled, true,
+    'and there is nothing to correct until the read answers');
+  /* THE WORKOUT IS FULLY USABLE with the optional read still in flight. */
+  const view = await kit.model.read();
+  const after = await logThrough(page, kit);
+  assert.notEqual(after.phase, view.phase, 'the set was logged through the control');
+  release(null);
+  await mounted.settings.read();
+  assert.equal(mounted.settings.stateFor(view.lift.id), 'known', 'the late answer landed');
+  kit.settings.close(); kit.gymHost.close(); dom.window.close();
+});
+
+test('D2.2 - a FAILED read says so, never prints the empty state, and seeds no editor', async () => {
+  const kit = await device();
+  const page = await card(kit, { settings: {
+    latest: async () => { throw new Error('SYNTHETIC_READ_FAILURE'); },
+    save: async () => ({ ok: false }), close() {} } });
+  const block = blockText(page);
+  assert(block.includes(SETTINGS_UNREAD), 'the honest state: ' + block);
+  assert(block.includes(SETTINGS_UNREAD_ACTION), 'with what it means and what to do');
+  assert.equal(block.includes(SETTINGS_NONE), false,
+    'a read that FAILED is never rendered as a confirmed absence');
+  assert.equal(page.pick('settings-editor').hidden, true, 'no replacement editor is seeded');
+  assert.equal(page.doc.querySelector('#phone [data-action="settings-open"]').disabled, true,
+    'and the capture affordance is closed while the record is unknown');
+  /* And the workout is untouched by any of it. */
+  await logThrough(page, kit);
+  kit.settings.close(); kit.gymHost.close();
+});
+
+/* S-M6: `if (busy) return;` in the log handler becomes `if (busy || !settingsLatest)
+   return;`. It survived all 43 cells because S8 drove kit.model.logSet directly. These
+   two drive the BUTTON with nothing saved for the lift, which is exactly the state the
+   mutant refuses in. */
+test('D2.3 / S-M6 - the LOG BUTTON logs a set with NO settings saved for the lift', async () => {
+  const kit = await device();
+  const page = await card(kit);
+  assert(blockText(page).includes(SETTINGS_NONE), 'nothing is saved for this lift');
+  assert.deepEqual(await settingsOps(kit.settings.repository), []);
+  const before = await kit.model.read();
+  const after = await logThrough(page, kit);
+  assert.notEqual(after.phase, before.phase, 'the set was logged through the control itself');
+  assert.deepEqual(await settingsOps(kit.settings.repository), [],
+    'and logging a set wrote no machine-settings op');
+  kit.settings.close(); kit.gymHost.close();
+});
+
+test('D2.3 / S-M6 - and logs with the editor open and UNSAVED text in it', async () => {
+  const kit = await device();
+  const page = await card(kit);
+  await page.open();
+  page.type(0, 'Seat', 'four');
+  page.cue('Elbows in.');
+  assert.deepEqual(await settingsOps(kit.settings.repository), [], 'nothing was saved');
+  const before = await kit.model.read();
+  const after = await logThrough(page, kit);
+  assert.notEqual(after.phase, before.phase, 'the set logged with the editor open');
+  assert.deepEqual(await settingsOps(kit.settings.repository), [],
+    'and the unsaved draft was still never written');
+  kit.settings.close(); kit.gymHost.close();
+});
+
+test('D2.1 / D2.2 - the new states are declared, dash free, and carry no figure', () => {
+  const source = design.appSource();
+  for (const line of [SETTINGS_READING, SETTINGS_UNREAD, SETTINGS_UNREAD_ACTION]) {
+    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    assert(source.includes(line), 'present in a view source: ' + line);
+    assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
+    assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
+  }
+  /* The awaited read is GONE from paint(): finding 1 is a shape claim, pinned here. */
+  const gym = codeOf(readRepo('rebuild/m3/w7-preview/today/gym-app.mjs'));
+  assert.equal(/await\s+settingsLane\.latest/.test(gym), false,
+    'the optional read must never be awaited on the card paint path');
 });
