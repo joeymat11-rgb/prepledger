@@ -63,3 +63,8 @@ All four round-1 conditions are closed, executed not read. **C1**: `onboarding-p
 One documentation defect found this round and carried as WAVE1-TEXT-REVIEW condition C2, not reopened here: `C6A-ANNEX.md`'s file table is now stale for 3 of its 8 rows (`onboarding-parity.test.cjs` 274->304, `local-world.mjs` 211->278, `no-dashes.test.cjs` 227->229), because `a2f705a` and `3caca8f` edited those files after the annex was written. The report was refreshed; the annex was not. Non-blocking.
 
 ## FINAL VERDICT ACCEPT at 436b05d
+
+## Round 3 (rebase :149, delta 23ea4be)
+Re-pinned onto the A4b merge and re-verified, executed not read. The parity driver was on the OLD two-argument `save(setup, tags)`; since :149 the screen calls `onDone({setup, tags})` (`setup-app.mjs:524`) which `today-entry.mjs:141` forwards as ONE argument, and `envelopeOf` (`setup-commands.mjs:87`) accepts both spellings, so byte equality could never have caught the drift. Fixed and now pinned by argument shape. My own driver against the merged path: **6/6** fixtures give `argc=1` with keys exactly `["setup","tags"]` matching the screens' envelope, and **6/6** stored ops byte-equal to the screens' one-argument save. Parity 30 -> **31**, coach **201/201**, setup 157 / catalogue 43 unmoved, `build.mjs` PASS, custody 26 files with **zero** outside `rebuild/coach/**` and `rebuild/lanes/c/**`. Round-2 conditions all closed: C1 `dispatch` now serves **19/19** at their declared tiers, C2 the annex table is refreshed, C3 65, C4 wave1-demo 28. The CI residual is withdrawn: `rebuild.yml:111` runs the coach suite.
+
+## FINAL VERDICT ACCEPT at 23ea4be
