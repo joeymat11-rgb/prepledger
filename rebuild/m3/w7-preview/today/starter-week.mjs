@@ -142,7 +142,13 @@ export function proposeWeek(spec) {
         });
         tags[entry.id] = {
           head: entry.head,
-          secondary: entry.secondary.map((s) => ({ mg: s.mg, lend: s.lend })),
+          /* The credit WHOLE, not a narrowed copy of it. DECISIONS:154 (8) put a
+             `head` on the sixteen unambiguous secondary credits, and a proposal
+             that copied only `mg` and `lend` would quietly drop the region the
+             catalogue had just resolved. setup.test.mjs S32 already required the
+             proposed tags to equal the catalogue entry's credits, so this line is
+             what keeps that equality true rather than a new promise. */
+          secondary: entry.secondary.map((s) => ({ ...s })),
         };
       }
     }

@@ -7,6 +7,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -361,4 +362,308 @@ test('S32 entriesInBucket filters by kind and is exhaustive over the catalogue',
     for (const x of entriesInBucket(b, 'L')) assert.ok(x.kinds.includes('L'), x.id);
   }
   assert.equal(seen.size, CATALOGUE.length);
+});
+
+/* =========================================================================
+   CATALOGUE HEADS (DECISIONS:154 (8)) - the region named on every secondary
+   credit that is anatomically unambiguous, and on none that is not.
+
+   DECISIONS:155 (3) leaves a coarse `back` or `delts` helper qualified:false
+   and region-unspecified. :154 (8) shrinks that set AT THE SOURCE. Only `back`
+   and `delts` have sub-regions at all (REGIONS), so only their secondaries can
+   be unresolved: this section names the sixteen the brief resolves and the five
+   it deliberately does not, entry by entry, so neither set can move quietly.
+   ========================================================================= */
+
+/* The legal head set, re-derived rather than listed: the three MG_LABEL keys
+   from constants.cjs and the DECISIONS:127 (2) region labels from REGIONS. */
+const LEGAL_HEADS = [...new Set([...DELT_HEADS, ...ALL_REGIONS])].sort();
+
+/* The sixteen, named entry by entry and credit by credit (brief, table rows
+   1 to 4). A seventeenth resolved credit fails H3 until the brief is amended. */
+const RESOLVED = Object.freeze([
+  ['chest_press_machine', 'delts', 'delts_front'],
+  ['incline_chest_press_machine', 'delts', 'delts_front'],
+  ['barbell_bench_press', 'delts', 'delts_front'],
+  ['incline_barbell_bench_press', 'delts', 'delts_front'],
+  ['dumbbell_bench_press', 'delts', 'delts_front'],
+  ['incline_dumbbell_press', 'delts', 'delts_front'],
+  ['machine_fly', 'delts', 'delts_front'],
+  ['cable_fly', 'delts', 'delts_front'],
+  ['dumbbell_fly', 'delts', 'delts_front'],
+  ['push_up', 'delts', 'delts_front'],
+  ['dip_chest', 'delts', 'delts_front'],
+  ['close_grip_bench_press', 'delts', 'delts_front'],
+  ['face_pull', 'delts', 'delts_rear'],
+  ['upright_row', 'delts', 'delts_side'],
+  ['romanian_deadlift', 'back', 'lower_back'],
+  ['deadlift', 'back', 'lower_back'],
+]);
+
+/* The five the ruling leaves alone: each names a credit that straddles two
+   regions, so resolving it would be a guess (brief, "The five left UNRESOLVED"). */
+const UNRESOLVED = Object.freeze([
+  ['rear_delt_fly', 'back'], ['rear_delt_machine', 'back'], ['cable_rear_delt_fly', 'back'],
+  ['farmers_carry', 'back'], ['ab_wheel', 'back'],
+]);
+
+const creditsOf = (id) => byId(id).secondary;
+const creditFor = (id, mg) => creditsOf(id).find((s) => s.mg === mg);
+
+test('H1 every head named anywhere is a constants.cjs MG_LABEL key or a REGIONS label', () => {
+  /* The set itself is derived, never typed: 3 delt heads + 15 region labels. */
+  assert.deepEqual(LEGAL_HEADS, [...new Set([...DELT_HEADS, ...ALL_REGIONS])].sort());
+  assert.ok(LEGAL_HEADS.includes('delts_front') && LEGAL_HEADS.includes('lower_back'));
+  for (const x of CATALOGUE) {
+    if (x.head !== null) assert.ok(LEGAL_HEADS.includes(x.head), `${x.id} primary head=${x.head}`);
+    for (const s of x.secondary) {
+      if (!Object.hasOwn(s, 'head')) continue;
+      assert.ok(LEGAL_HEADS.includes(s.head), `${x.id} secondary head=${s.head}`);
+    }
+  }
+});
+
+test('H2 a head agrees with its own mg, on primaries and on secondaries alike', () => {
+  for (const x of CATALOGUE) {
+    if (x.head !== null && Object.hasOwn(REGION_MG, x.head)) {
+      assert.equal(REGION_MG[x.head], x.mg, `${x.id} primary ${x.head} is not a ${x.mg} region`);
+    }
+    for (const s of x.secondary) {
+      if (!Object.hasOwn(s, 'head')) continue;
+      assert.ok(Object.hasOwn(REGION_MG, s.head), `${x.id} ${s.head} is not a region at all`);
+      assert.equal(REGION_MG[s.head], s.mg, `${x.id} secondary ${s.head} is not a ${s.mg} region`);
+    }
+  }
+});
+
+test('H3 the sixteen resolved credits carry their head, named one by one', () => {
+  for (const [id, mg, head] of RESOLVED) {
+    const credit = creditFor(id, mg);
+    assert.ok(credit, `${id} has no ${mg} credit at all`);
+    assert.equal(credit.head, head, `${id} ${mg} credit`);
+  }
+});
+
+test('H3 and NO seventeenth credit is resolved: the set is exactly those sixteen', () => {
+  const found = CATALOGUE.flatMap((x) => x.secondary
+    .filter((s) => Object.hasOwn(s, 'head'))
+    .map((s) => [x.id, s.mg, s.head]));
+  assert.equal(found.length, 16, 'resolved credits: ' + JSON.stringify(found));
+  assert.deepEqual([...found].sort(), [...RESOLVED].sort(),
+    'the resolved set moved without this brief being amended');
+});
+
+test('H4 the five ambiguous credits carry NO head, asserted by name', () => {
+  for (const [id, mg] of UNRESOLVED) {
+    const credit = creditFor(id, mg);
+    assert.ok(credit, `${id} has no ${mg} credit at all`);
+    assert.equal(Object.hasOwn(credit, 'head'), false,
+      `${id}'s ${mg} credit was resolved; DECISIONS:155 (3) leaves it unspecified`);
+    assert.deepEqual(Object.keys(credit).sort(), ['lend', 'mg']);
+  }
+});
+
+test('H4 the coarse back credit is paid by exactly those five entries, and no sixth', () => {
+  /* Derived, not listed twice: every credit in the catalogue that is a back
+     helper at 0.25 IS one of the five. A sixth would be a new unresolved credit
+     nobody ruled on, and it fails here rather than shipping region-unspecified. */
+  const coarse = CATALOGUE
+    .filter((x) => x.secondary.some((s) => s.mg === 'back' && s.lend === 0.25))
+    .map((x) => x.id).sort();
+  assert.deepEqual(coarse, UNRESOLVED.map(([id]) => id).sort());
+});
+
+test('H5 no lend value moved: the (mg, lend) multiset is the base\'s, byte for byte', () => {
+  /* Pinned from the catalogue at base 8a42509, before this edit. A head is a NAME
+     for a credit already paid; changing what it pays is a different decision and
+     this brief does not make one. */
+  const credits = CATALOGUE.flatMap((x) => x.secondary.map((s) => s.mg + ':' + s.lend)).sort();
+  assert.equal(credits.length, 94, 'the number of secondary credits moved');
+  const tally = {};
+  for (const c of credits) tally[c] = (tally[c] || 0) + 1;
+  assert.deepEqual(tally, {
+    'abs:0.25': 5, 'back:0.25': 5, 'back:0.5': 2, 'biceps:0.5': 12, 'calves:0.25': 1,
+    'chest:0.25': 2, 'delts:0.25': 1, 'delts:0.5': 13, 'forearms:0.5': 19, 'glutes:0.5': 13,
+    'hams:0.25': 2, 'hams:0.5': 6, 'quads:0.25': 1, 'quads:0.5': 1, 'triceps:0.5': 11,
+  }, 'a lend value or a credit moved');
+  assert.equal(createHash('sha256').update(credits.join(',')).digest('hex'),
+    'abe940b54f74718ed9725fb52abedba569c066a9531bd9ece6132675f2ce91a4');
+});
+
+test('H6 every entry\'s id, name, aliases, group, kinds and PRIMARY mg/head are unchanged', () => {
+  /* The skeleton of the catalogue, pinned at base 8a42509: everything this brief
+     is not allowed to touch, in one digest. Only the secondary credits moved. */
+  assert.equal(CATALOGUE.length, 83);
+  const skeleton = CATALOGUE
+    .map((x) => JSON.stringify([x.id, x.n, x.aliases, x.group, x.mg, x.head, x.kinds]))
+    .join('\n');
+  assert.equal(createHash('sha256').update(skeleton).digest('hex'),
+    '82cbac4ad5b1e94311ad16852997adc2a216947ddf3add8efff0fcbc457d9ecf',
+    'this brief may not move an id, a name, an alias, a group, a kind or a primary head');
+});
+
+test('H6 the shared credit constants are named for what they mean', () => {
+  /* The constant called FRONT always meant the front delt; the data says so now.
+     DELT_H is gone because its one use is SIDE_H, and a constant no longer used
+     is a constant that can be wired back in by accident. */
+  assert.match(CAT_SRC, /FRONT = \{ mg: 'delts', head: 'delts_front', lend: 0\.5 \}/);
+  assert.match(CAT_SRC, /REAR = \{ mg: 'delts', head: 'delts_rear', lend: 0\.5 \}/);
+  assert.match(CAT_SRC, /SIDE_H = \{ mg: 'delts', head: 'delts_side', lend: 0\.25 \}/);
+  assert.match(CAT_SRC, /ERECTOR = \{ mg: 'back', head: 'lower_back', lend: 0\.5 \}/);
+  assert.equal(/\bDELT_H\b/.test(CAT_SRC), false, 'DELT_H is unused and must be deleted');
+  /* BACK_H stays exactly as it was: it is the five unresolved credits. */
+  assert.match(CAT_SRC, /BACK_H = \{ mg: 'back', lend: 0\.25 \}/);
+});
+
+test('H6 every added head is marked INVENTED-and-declared in the source', () => {
+  /* DECISIONS:115: a value that is not sourced says so where it is written. */
+  const block = CAT_SRC.slice(CAT_SRC.indexOf("const U = ['U']"), CAT_SRC.indexOf('export const CATALOGUE'));
+  assert.match(block, /INVENTED/, 'the shared credits block does not declare the heads');
+  assert.match(block, /DECISIONS:154 \(8\)/, 'the ruling that added them is not cited');
+});
+
+/* ---- H7: THE RESOLVED HEAD REACHES THE STORED OP'S TAGS, EXECUTED -------
+   These two cells used to hold a boundary: the head reached the athlete's row and
+   stopped there, because setup-model.mjs document() narrowed every credit to
+   {mg, lend} and setup-commands.mjs tagsOf refused a secondary with any third
+   key. That boundary is CLOSED now (lane decision under DECISIONS:135 (1),
+   disclosed to lane D/F2 as additive), so they assert the reach instead - end to
+   end, through the real reducer and the real producer, and through validate as
+   well, because an op the client would refuse is not a stored op. */
+test('H7 the resolved head reaches the setup model\'s own exercise row', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const model = createSetupModel({ today: '2030-02-04' });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addFromCatalogue('U', byId('barbell_bench_press'));
+  const delts = row.secondary.find((s) => s.mg === 'delts');
+  assert.ok(delts, 'the catalogue entry pays the delts');
+  assert.equal(delts.head, 'delts_front',
+    'addFromCatalogue clones the credit whole, so the head is on the athlete\'s row');
+});
+
+test('H7 and the op the client would store carries it, all the way through', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const { prepare, validate } = await import('../setup-commands.mjs');
+  const model = createSetupModel({ today: '2030-02-04' });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addFromCatalogue('U', byId('barbell_bench_press'));
+  model.setExerciseField(row.key, 'first', '20');
+  model.togglePriority('chest');
+  const built = model.document();
+  assert.equal(built.ok, true, JSON.stringify(built.missing));
+  const id = Object.keys(built.tags)[0];
+
+  /* (1) document() keeps the head ON the credit. */
+  const credit = built.tags[id].secondary.find((s) => s.mg === 'delts');
+  assert.deepEqual(Object.keys(credit).sort(), ['head', 'lend', 'mg']);
+  assert.equal(credit.head, 'delts_front');
+
+  /* (2) the producer carries it into the op, and the payload stays three members
+     and the document stays exactly what the clean-init constructor takes. */
+  const action = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+  assert.deepEqual(Object.keys(action.payload).sort(), ['profile', 'setup', 'tags']);
+  assert.deepEqual(action.payload.setup, built.setup, 'the document is untouched by any of this');
+  const stored = action.payload.tags[id].secondary.find((s) => s.mg === 'delts');
+  assert.deepEqual(stored, { mg: 'delts', lend: 0.5, head: 'delts_front' });
+  /* The triceps credit is unresolved and stays two members: absent is unchanged. */
+  assert.deepEqual(action.payload.tags[id].secondary.find((s) => s.mg === 'triceps'),
+    { mg: 'triceps', lend: 0.5 });
+
+  /* (3) and the client would ACCEPT that op: validate re-checks the same tags. */
+  const op = { kind: 'fact', class: 'event', athlete_id: 'owner', causal_parents: [],
+    effective: { local_date: '2030-02-04', local_time: '08:00', utc_offset: '-05:00' },
+    payload: action.payload };
+  assert.equal(validate(op, () => null), true, 'the widened credit passes the envelope check too');
+});
+
+test('H7 an illegal secondary head is refused, by the producer and by validate', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const { prepare, validate } = await import('../setup-commands.mjs');
+  const model = createSetupModel({ today: '2030-02-04' });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addFromCatalogue('U', byId('barbell_bench_press'));
+  model.setExerciseField(row.key, 'first', '20');
+  model.togglePriority('chest');
+  const built = model.document();
+  const id = Object.keys(built.tags)[0];
+  const good = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+
+  /* A name that is not a region label at all, and a name that belongs to another
+     engine label: neither is a legal head, and the producer says so in its own code. */
+  for (const bad of ['delts_lateral', 'shoulders', '', null, 7]) {
+    const tags = JSON.parse(JSON.stringify(built.tags));
+    tags[id].secondary.find((s) => s.mg === 'delts').head = bad;
+    assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags } }),
+      /SETUP_INPUT_INVALID/, 'head=' + JSON.stringify(bad) + ' was accepted');
+  }
+  /* A fourth key is still refused: this widened ONE optional member, not the shape. */
+  const four = JSON.parse(JSON.stringify(built.tags));
+  four[id].secondary.find((s) => s.mg === 'delts').note = 'x';
+  assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: four } }),
+    /SETUP_INPUT_INVALID/);
+
+  /* And an envelope carrying an illegal head is refused on the way in, too. */
+  const opBad = { kind: 'fact', class: 'event', athlete_id: 'owner', causal_parents: [],
+    effective: { local_date: '2030-02-04', local_time: '08:00', utc_offset: '-05:00' },
+    payload: JSON.parse(JSON.stringify(good.payload)) };
+  opBad.payload.tags[id].secondary.find((s) => s.mg === 'delts').head = 'delts_lateral';
+  assert.equal(validate(opBad, () => null), false);
+});
+
+/* C1 (review round 1, non-blocking). The cell above refuses a head that is not a
+   region label AT ALL, which `Object.hasOwn(REGION_MG, s.head)` alone already
+   catches. The SECOND half of the rule - that the head must be a region of THIS
+   credit's own engine label - had nothing holding it: deleting
+   `if (REGION_MG[s.head] !== s.mg) bad();` left every suite green. `lats` is a
+   real region label and a real key of REGION_MG, so it passes the first half; it
+   belongs to `back`, so a `delts` credit naming it is a credit contradicting
+   itself, and storing one would hand F2 a resolved region for the wrong muscle. */
+test('C1 a head that is a REAL label but the WRONG muscle is refused, at both gates', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const { prepare, validate } = await import('../setup-commands.mjs');
+  const model = createSetupModel({ today: '2030-02-04' });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addFromCatalogue('U', byId('barbell_bench_press'));
+  model.setExerciseField(row.key, 'first', '20');
+  model.togglePriority('chest');
+  const built = model.document();
+  const id = Object.keys(built.tags)[0];
+  const good = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+
+  /* `lats` is legal in itself, and it is NOT a delts region. */
+  assert.ok(Object.hasOwn(REGION_MG, 'lats'), 'lats really is a region label');
+  assert.equal(REGION_MG.lats, 'back');
+  assert.notEqual(REGION_MG.lats, 'delts');
+
+  const crossed = JSON.parse(JSON.stringify(built.tags));
+  const credit = crossed[id].secondary.find((s) => s.mg === 'delts');
+  credit.head = 'lats';
+  assert.deepEqual(credit, { mg: 'delts', lend: 0.5, head: 'lats' },
+    'the credit under test is exactly the reviewer\'s');
+  assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: crossed } }),
+    /SETUP_INPUT_INVALID/, 'a delts credit named a back region and the producer took it');
+
+  const op = { kind: 'fact', class: 'event', athlete_id: 'owner', causal_parents: [],
+    effective: { local_date: '2030-02-04', local_time: '08:00', utc_offset: '-05:00' },
+    payload: JSON.parse(JSON.stringify(good.payload)) };
+  op.payload.tags[id].secondary.find((s) => s.mg === 'delts').head = 'lats';
+  assert.equal(validate(op, () => null), false,
+    'and the envelope check took it too, which is the half of the rule C1 found unheld');
+
+  /* Every direction of the same mistake, so the agreement is pinned rather than
+     one example of it: each is a real label belonging to some other mg. */
+  for (const [mg, head] of [['delts', 'traps'], ['back', 'delts_front'], ['triceps', 'biceps'],
+    ['hams', 'quads'], ['glutes', 'calves']]) {
+    assert.notEqual(REGION_MG[head], mg, head + ' is not a ' + mg + ' region');
+    const tags = JSON.parse(JSON.stringify(built.tags));
+    const target = tags[id].secondary.find((s) => s.mg === 'delts');
+    target.mg = mg;
+    target.head = head;
+    assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags } }),
+      /SETUP_INPUT_INVALID/, mg + ' credit naming ' + head + ' was accepted');
+  }
 });

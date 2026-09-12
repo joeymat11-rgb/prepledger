@@ -607,8 +607,12 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
         const id = slugOf(row.n, taken);
         tags[id] = {
           head: typeof row.head === 'string' && row.head.trim() ? row.head.trim() : null,
+          /* The credit WHOLE, head and all (DECISIONS:154 (8)). A credit the
+             catalogue resolved carries the region it pays; one it left alone is
+             still exactly {mg, lend}, which is unchanged. setup-commands.mjs
+             tagsOf is what checks the head is a legal region label. */
           secondary: (Array.isArray(row.secondary) ? row.secondary : [])
-            .map((s) => ({ mg: s.mg, lend: s.lend })),
+            .map((s) => ({ ...s })),
         };
         return {
           id,

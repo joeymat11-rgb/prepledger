@@ -135,7 +135,12 @@ test("add_exercise_from_catalogue takes a catalogue id and lands the catalogue's
   assert.equal(row.n, entry.n);
   assert.equal(row.mg, entry.mg);
   assert.equal(row.head, entry.head);
-  assert.deepEqual(row.secondary, entry.secondary.map((s) => ({ mg: s.mg, lend: s.lend })));
+  /* THE CATALOGUE'S OWN ROW, which is what this cell is named for: the credit
+     WHOLE. DECISIONS:154 (8) put a `head` on the sixteen unambiguous secondary
+     credits, so a credit is no longer always just {mg, lend}; spreading it keeps
+     this assertion saying what its title says instead of re-narrowing what the
+     catalogue resolved. */
+  assert.deepEqual(row.secondary, entry.secondary.map((s) => ({ ...s })));
 });
 
 test("add_exercise_from_catalogue refuses an id the catalogue does not have", async () => {
