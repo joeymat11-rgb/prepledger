@@ -57,6 +57,8 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/client/store.cjs",
   "rebuild/m3/w7-preview/today/today-model.cjs",
   "rebuild/m3/w7-preview/today/today-app.cjs",
+  "rebuild/m3/w7-preview/today/nutrition-input-model.mjs",
+  "rebuild/m3/w7-preview/today/nutrition-input-view.mjs",
   /* A2 — the gym card really is the ACCEPTED W6 host composition over the accepted
      capture layer, in the page. A build that lost any of these would be a page
      with a second, invented workout path. */
@@ -141,7 +143,8 @@ export async function buildToday() {
   const fonts = readFonts();
   const shell = design.shellHtml();
   const template = design.templateHtml();
-  const chrome = design.chromeCss() + '\n' + await fs.readFile(path.join(SOURCE, 'setup/setup.css'), 'utf8');
+  const nutritionStyles = await fs.readFile(path.join(SOURCE, 'nutrition-input.css'), 'utf8');
+  const chrome = design.chromeCss() + '\n' + await fs.readFile(path.join(SOURCE, 'setup/setup.css'), 'utf8') + '\n' + nutritionStyles;
   assert.equal(shell.split("<!-- APPROVED_TEMPLATES -->").length, 2, "TEMPLATE-SLOT FAIL");
   const binding = assertDesignBinding(approved, template, design.appSource());
 
@@ -168,6 +171,7 @@ export async function buildToday() {
   assert.deepEqual((await fs.readdir(DIST)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
   return { dist: DIST, assets: [...ASSETS], inputs, inventory: built.inventory,
+    styleInputs: ['rebuild/m3/w7-preview/today/nutrition-input.css'],
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
 

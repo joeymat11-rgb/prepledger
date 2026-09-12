@@ -1,0 +1,115 @@
+EARNED — ACTUAL OWNER NUTRITION ENTRY
+2026-09-12. Builder delivery; independent review and distinct integration still required.
+
+(1) SOURCE AND OWNERSHIP
+FILE: ASTRA-OWNER-NUTRITION-ENTRY.md at PM 92f4026.
+Tree: C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-nutrition-entry
+Branch: codex/astra-owner-nutrition-entry
+Exact base: 6306555f26d67fa62930680274c430b0c0b8bced.
+This includes accepted form f3e60d8 / ecf0e757 and accepted scale lifecycle 74c0cce / c5a49e111.
+Product edits: today-entry.mjs, today-app.cjs, build.mjs only, all under rebuild/m3/w7-preview/today.
+New owned evidence: rebuild/m3/w6/test/local-owner-nutrition.test.mjs and local-owner-nutrition-browser.mjs.
+One report: this file. No change to accepted input model/view/CSS, backend, Today model,
+host/calendar/store, engine, protocol, approved HTML/font/design pins, old tests, workflows or other trees.
+Git diff against base confirms the accepted input and backend paths have no changes.
+
+Tested working-file SHA256:
+  today-entry.mjs b830405baad5dcc6bc7ece7d1d6b06716baca971448471207af1d8aca8a66460
+  today-app.cjs 20a129fccc944a7a8e9d355f94b9907454e70dd6f5b2f7a5b04baa5129a9e740
+  build.mjs 1b2be41327401aef4d98342415282c640b3e7a47a603f43631ac092d17d3dcb7
+Unchanged accepted files:
+  nutrition-input-model.mjs 4f95af9c502d6b5926ddee21a0f992b525bcf1263897c137de77d9318218100f
+  nutrition-input-view.mjs 5cff1cce6661e59e28a242c23ea1cc566bbf55753381fca8185c306924486105
+  nutrition-input.css 2eb8b791e5d6487fd8768179a237b128e3cadfa8e1cc3e16e6db413bef1ee324
+
+(2) ACTUAL CONNECTION
+Owner boot creates one input model over its existing installation and coordinated calendar,
+loads authenticated answers once, and retains that model across editor mounts, Back and day changes.
+Today and full nutrition expose a goal/plan input action. Full nutrition keeps the four existing
+guidance fields, then separately labels authenticated saved input as Your recorded answers.
+Original plan source/date, goal/phase and target/minimum/range/not-prescribed meanings are retained.
+Recorded amounts never populate the four guidance values or a governing plan group.
+The page says local save; sync is not confirmed. The owner runtime replaces obsolete nutrition
+not-wired/initial-setup-projection copy without editing the approved shell/template bytes.
+
+The editor is a separate nutrition-input route, excluded from read-only scale repaint.
+Back/Escape return to the invoking Today or full-nutrition control; after rollover they return
+to that route on the current day. Park destroys form listeners; retained-day reopen remounts
+the accepted view on the same model instead of reviving inert DOM. Draft survives refresh/Back.
+A persistent owner subscription observes actual Saved even after Back destroys the view;
+the existing refresh lifecycle rereads authenticated input. A saved-during-refresh flag ensures
+the newest acknowledgement gets read before that refresh completes. Superseded asynchronous
+summary reads cannot overwrite a newer read. Storage refusal withdraws the factual summary.
+Close unsubscribes/closes the model and prevents asynchronous summary/acknowledgement paint.
+Scale withdrawal still runs before pending decryption, preserving the accepted Why correction.
+
+(3) EXECUTED FOCUSED CHECKS
+Retained Node v24.19.0; TZ=America/New_York. Existing dependency junctions only, no installation.
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules.
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT point to this owned tree.
+Node --test:
+  rebuild/m3/w6/test/local-owner-nutrition.test.mjs: 9/9 PASS
+  rebuild/m3/w6/test/local-owner-entry.test.mjs: 16/16 PASS
+  rebuild/m3/w6/test/local-scale-lifecycle.test.mjs: 6/6 PASS
+Combined final: 31 tests, 31 pass, 0 fail. Output .tmp/owner-nutrition-tests.txt.
+
+New checks use actual owner boot, shared encrypted repository and prepared commit:
+  - Unknown goal/no existing plan, no write on review, one saved operation, same generation,
+    actual Back/focus/reload, all four guidance values remain unavailable; effectivePlan null.
+  - Recorded four-field plan, goal-only edit, source/range/history byte semantics preserved.
+  - Both invokers, Back/Escape, unsaved draft and live editor listeners survive foreground refresh.
+  - Rollover preserves actual field nodes; parked editor remount responds to input; current-day Back.
+  - Actual intervening weight rejects stale review; actual competing model retires preparation;
+    explicit remedy needs a fresh review and a separate confirm, no premature nutrition record.
+  - Real IDB quota failure remains retryable across Back; delayed actual transaction completes
+    after Back and visible summary updates automatically, exactly one operation.
+  - Close during actual delayed transaction leaves a replacement DOM sentinel unchanged;
+    reopened owner authenticates the one saved record.
+  - Weight baseline/Why and actual workout auto-start still work in the same generation,
+    with nutrition draft retained.
+  - Competing authenticated saved answer refreshes summary without replacing the input draft;
+    damaged checkpoint then withdraws saved goal and amounts.
+Existing 22 checks cover workout/check-in/weight rollover and foreground, ownership/reopen,
+time-zone/calendar guards, scale corrections/removal/conflict, pending-decryption withdrawal,
+close and active-editor retention. No full/private campaign.
+
+(4) ACTUAL PWA AND CHROME
+Executed node rebuild/m3/w6/test/local-owner-nutrition-browser.mjs.
+The harness builds the actual Today bundle and actual slice PWA, serves its exact files on
+loopback, and drives Chrome 152.0.7977.83 with touch enabled and America/New_York time zone.
+Fresh visible setup -> Today -> full nutrition -> four-field answers -> review -> touch Save ->
+Back -> reload -> goal-only edit -> Escape/focused invoker -> actual weight -> Why -> workout.
+PASS at 390 and 320 widths, including 200% root text: document and phone no horizontal overflow;
+new entry action and form inputs at least 48px; keyboard activation/return focus; no page errors.
+The accepted form CSS is included verbatim in actual styles, model/view are required bundle
+inputs, and input inventory is 107 paths. PWA: 13 files, 11 hash-pinned precache assets.
+No extra browser test module is injected into the actual PWA.
+
+Artifacts (ignored, under this tree):
+  .tmp/slice-pwa-dist/ — actual 13-file rebuilt PWA, not deployed.
+  .tmp/owner-nutrition-browser/inventory.json — exact files/SHA256, 107 inputs, CSS input, browser.
+  .tmp/owner-nutrition-browser/today-390.png
+  .tmp/owner-nutrition-browser/answers-390.png
+  .tmp/owner-nutrition-browser/answers-320.png
+  .tmp/owner-nutrition-browser/answers-320-large.png
+  .tmp/owner-nutrition-browser/review-320.png
+  .tmp/owner-nutrition-browser/recorded-390.png
+  .tmp/owner-nutrition-browser/recorded-320-large.png
+Builder visually inspected recorded-390 and answers-320-large: approved typography retained,
+separate unavailable guidance / recorded answers, legible wrapping and stacked form controls.
+Final shipped app: app.07129ebd0e6ba502.js
+  SHA256 07129ebd0e6ba502f1eb5adaf36c82bda2d6e569252a628d6b367e1013e1ae7d
+Final stylesheet: styles.b7a61ffe5fa9cbf4.css
+  SHA256 b7a61ffe5fa9cbf4063eac967ab102b5dc7ab3b0b01b10da6ff509881c87aea2
+Git diff --check PASS.
+
+(5) LIMITS / NEXT ACTOR
+This delivers factual goal/plan input through the real owner app. It does not deliver qualified
+U1-U5 nutrition guidance, a governing prescription, new physiology or cross-device/hosted adoption.
+The accepted local mixed-schema route and all original host/protocol limitations remain.
+Accepted module 8/backend 58/scale 42 evidence outside changed interactions is reused, not rerun.
+No broad gate, private fixtures, CI, physical phone/Safari, remote publication or integration run.
+Previously reported mechanically stale page-entry hash/host inventory count assertions remain
+unchanged; they were not used as passes or refreshed in this bounded run.
+Required next: nonauthor review of exact candidate, then distinct integration. No self-acceptance
+or claim that Earned or its qualified coherent guidance is complete.

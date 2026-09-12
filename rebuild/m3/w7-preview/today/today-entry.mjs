@@ -28,6 +28,8 @@ import CheckInCommands from "./checkin-commands.cjs";
 import { createCheckInModel } from "./checkin-model.mjs";
 import { mountCheckIn } from "./checkin-app.mjs";
 import { mountSetup } from './setup/setup-view.mjs';
+import { createNutritionInputModel, describeNutritionInputs } from './nutrition-input-model.mjs';
+import { mountNutritionInput } from './nutrition-input-view.mjs';
 
 const { createCheckInCommands } = CheckInCommands;
 
@@ -282,7 +284,46 @@ async function bootMode(options = {}) {
     return { mode, setupRequired, restoreRequired, failures, model: null, hosts: null, close() {} };
   }
   if (identity) identity.textContent = 'Earned · ' + setup.setup.athlete_label;
+  const reviewNote = doc.querySelector('aside.review');
+  if (reviewNote) reviewNote.textContent = 'Weights, workouts, check-ins and nutrition answers share this device’s encrypted store. Set up your goal and existing plan in Your nutrition. Guidance is not available yet.';
   const days = new Map(); let current = null, closed = false, refreshing = null;
+  // One draft model for this installation, independent of day/view mounts. The
+  // summary is an authenticated input read, never an engine prescription.
+  const nutritionModel = createNutritionInputModel({ installation: hosts, calendar });
+  await nutritionModel.load();
+  let nutritionRecord = nutritionModel.snapshot().saved, nutritionReadable = nutritionModel.snapshot().phase !== 'loading';
+  let savedId = nutritionRecord?.sourceOpId;
+  let nutritionRead = 0;
+  let nutritionSavedPending = false;
+  const nutrition = {
+    summary() {
+      return { rows: nutritionReadable && nutritionRecord ? describeNutritionInputs(nutritionRecord.inputs) : [],
+        note: !nutritionReadable ? 'Your saved answers could not be verified. Reopen the app to check storage.'
+          : nutritionRecord ? 'Recorded for ' + nutritionRecord.effective.local_date + '. Saved on this phone; sync is not confirmed. These answers do not change a recommended plan.'
+          : 'No nutrition answers are recorded yet. These answers do not change a recommended plan.' };
+    },
+    open({ doc, phone, back }) { return mountNutritionInput(doc, phone, { model: nutritionModel, onBack: back }); },
+  };
+  async function readNutrition() {
+    nutritionSavedPending = false;
+    const request = ++nutritionRead;
+    nutritionReadable = false; nutritionRecord = null;
+    if (current) paintReadOnly(current);
+    let result;
+    try { result = await hosts.readNutritionInputs(); } catch { return; }
+    if (closed || request !== nutritionRead) return;
+    nutritionReadable = result.read === true && result.view.local.requirements.length === 0;
+    nutritionRecord = nutritionReadable ? result.view.local.current : null;
+    if (current) paintReadOnly(current);
+  }
+  // This survives Back: a durable acknowledgement may arrive after its editor
+  // was unmounted. Re-read the saved fact through the shared installation.
+  const unsubscribeNutrition = nutritionModel.subscribe(state => {
+    if (closed || state.phase !== 'saved' || state.saved?.sourceOpId === savedId) return;
+    savedId = state.saved?.sourceOpId;
+    nutritionSavedPending = true;
+    void refresh().catch(() => {});
+  });
   const notice = doc.createElement('div'); notice.id = 'today-calendar'; notice.setAttribute('role', 'status');
   phone.parentNode.insertBefore(notice, phone);
   function paintNotice() {
@@ -307,11 +348,17 @@ async function bootMode(options = {}) {
   function park() {
     if (!current) return;
     current.retained = current.api.screen() !== 'today' || !!phone.querySelector('[role="dialog"]');
+    current.nutritionReturn = current.api.screen() === 'nutrition-input' ? current.api.nutritionOrigin() : null;
     current.dom = [...phone.childNodes];
     current.api.destroy();
   }
   function showRetained(item) {
-    park(); current = item; phone.replaceChildren(...item.dom); paintReadOnly(item); paintNotice();
+    if (closed) return;
+    park();
+    // The retained form's delegated listeners were disposed on park. Rebind to
+    // its one retained model instead of reviving inert, detached form DOM.
+    if (item.nutritionReturn) mount(item, { initialScreen: 'nutrition-input', nutritionOrigin: item.nutritionReturn });
+    else { current = item; phone.replaceChildren(...item.dom); paintReadOnly(item); paintNotice(); }
   }
   const readOnly = item => ['today', 'why', 'nutrition'].includes(item.api.screen()) && !phone.querySelector('[role="dialog"]');
   function paintReadOnly(item) {
@@ -330,11 +377,18 @@ async function bootMode(options = {}) {
     const item = { model, readings, workout, checkin, readSignature: JSON.stringify(model.storedReads()), api: null, retained: false };
     return item;
   }
-  function mount(item) {
+  function mount(item, navigation = {}) {
     current = item;
-    item.api = mountToday(doc, item.model, { workout: item.workout, checkin: item.checkin,
+    item.api = mountToday(doc, item.model, { workout: item.workout, checkin: item.checkin, nutrition, ...navigation,
       async onRecorded() { await refresh(); },
       beforeNavigate(next) {
+        if (item.api?.screen() === 'nutrition-input' && ['today', 'nutrition'].includes(next) && calendar.sample().day !== item.model.today) {
+          void (async () => {
+            await refresh(); await refresh({ move: true });
+            if (!closed && current !== item) { current.api.render(next, true); current.api.focusNutritionAction(); }
+          })().catch(() => {});
+          return false;
+        }
         if (next === 'today' && item.api?.screen() !== 'today' && calendar.sample().day !== item.model.today) { void refresh({ move: true }).catch(() => {}); return false; }
       } });
     const redraw = async () => {
@@ -349,13 +403,14 @@ async function bootMode(options = {}) {
   }
   async function update({ move = false } = {}) {
     if (closed) return;
+    nutritionReadable = false; nutritionRecord = null; ++nutritionRead;
     const day = calendar.sample().day;
     if (current && day !== current.model.today) {
       paintReadOnly(current); // Old-day scale quantities are no longer current.
       paintNotice();
       // Never replace an active editor. Its DOM and entry-owned draft stay on
       // their original day, and the local write guard refuses a stale save.
-      if (!move && (current.api.screen() !== 'today' || phone.querySelector('[role="dialog"]'))) return;
+      if (!move && (current.api.screen() !== 'today' || phone.querySelector('[role="dialog"]'))) { await readNutrition(); return; }
       park();
     }
     if (!current || day !== current.model.today) {
@@ -386,9 +441,12 @@ async function bootMode(options = {}) {
       if (closed) return;
       paintNotice();
     }
+    await readNutrition();
   }
   function refresh(options) {
-    if (!refreshing) refreshing = update(options).catch(error => {
+    if (!refreshing) refreshing = update(options).then(async () => {
+      while (nutritionSavedPending && !closed) await readNutrition();
+    }).catch(error => {
       if (closed) return;
       restoreRequired = error.code || error.message;
       failures.push(restoreRequired);
@@ -403,7 +461,7 @@ async function bootMode(options = {}) {
     }).finally(() => { refreshing = null; });
     return refreshing;
   }
-  try { await refresh(); } catch (error) { hosts.close(); notice.remove(); throw error; }
+  try { await refresh(); } catch (error) { unsubscribeNutrition(); nutritionModel.close(); hosts.close(); notice.remove(); throw error; }
   const onVisible = () => { if (doc.visibilityState !== 'hidden') void refresh().catch(() => {}); };
   const onFocus = () => { void refresh().catch(() => {}); };
   doc.addEventListener('visibilitychange', onVisible); doc.defaultView?.addEventListener('focus', onFocus);
@@ -411,9 +469,11 @@ async function bootMode(options = {}) {
   const result = { mode, calendar, setupRequired: false, get restoreRequired() { return restoreRequired; }, failures, hosts,
     get model() { return current.model; }, get api() { return current.api; },
     get readings() { return current.readings; }, get workout() { return current.workout; }, get checkin() { return current.checkin; },
+    nutrition: nutritionModel,
     refresh, retainedDays: () => [...days.values()].filter(d => d.retained).map(d => d.model.today),
     close() {
       if (closed) return; closed = true;
+      unsubscribeNutrition(); nutritionModel.close();
       doc.removeEventListener('visibilitychange', onVisible); doc.defaultView?.removeEventListener('focus', onFocus);
       doc.defaultView?.clearInterval(timer); notice.remove();
       for (const item of days.values()) { item.api?.destroy(); item.readings.close(); item.workout.gymHost.close(); item.checkin.host?.close(); }

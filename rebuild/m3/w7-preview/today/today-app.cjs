@@ -134,6 +134,13 @@ function mountToday(doc, model, options = {}) {
        summary()                  -> { recorded: boolean } read from the durable lane
        open({ phone, doc, back })  -> mounts the check-in into the phone element */
   const checkin = options.checkin || null;
+  const nutrition = options.nutrition || null;
+  let nutritionView = null, nutritionOrigin = options.nutritionOrigin || 'nutrition';
+  const focusNutritionAction = () => phone.querySelector('[data-go="nutrition-input"]')?.focus();
+  function nutritionBack() {
+    render(nutritionOrigin, true);
+    focusNutritionAction();
+  }
   const checkinSummary = () => (checkin && typeof checkin.summary === "function" ? checkin.summary() : null) || null;
 
   let screen = "today";
@@ -220,9 +227,10 @@ function mountToday(doc, model, options = {}) {
     put(map, "protein-unit", Number.isFinite(view.proteinTarget.g) ? "g protein" : "");
     put(map, "kcal-note", calorieBand(view.calorieTarget));
     if (view.mode === 'owner') {
-      root.querySelector('.food > p').textContent = 'Nutrition';
+      root.querySelector('.food > p').textContent = nutrition ? 'Your nutrition' : 'Nutrition';
       root.querySelector('.food-grid').remove();
-      put(map, 'kcal-note', 'Projection for initial setup is not available yet.');
+      put(map, 'kcal-note', nutrition ? 'Set up your goal and record a plan you already have. Guidance is not available yet.' : 'Projection for initial setup is not available yet.');
+      if (nutrition) addNutritionAction(root.querySelector('.food'));
     }
 
     put(map, "workout-title", view.workout.title);
@@ -251,6 +259,7 @@ function mountToday(doc, model, options = {}) {
         + " · " + (sessionState || (view.mode === "owner" ? "Your programme is ready" : "Your set targets are ready")));
 
     for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
+    if (nutrition) put(map, 'nutrition-state', 'Goals and plan setup');
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
@@ -439,9 +448,29 @@ function mountToday(doc, model, options = {}) {
     }
     put(map, "stub-note", view.blocked
       ? view.blockedCopy || "This device's local record could not be trusted, so nutrition values cannot be shown."
+      : nutrition ? "Set up your goal and record a plan you already have. Guidance is not available yet."
       : "The full nutrition screen is not wired yet. No target is shown for unavailable fields.");
+    if (nutrition && !view.blocked) {
+      root.querySelector('h1').textContent = 'Your nutrition.';
+      root.querySelector('.detail-head p').textContent = 'Daily guidance, goals and your existing plan.';
+      const section = doc.createElement('section'); section.className = 'nutrition-input';
+      const heading = doc.createElement('h2'); heading.textContent = 'Your recorded answers'; section.append(heading);
+      const summary = nutrition.summary();
+      const note = doc.createElement('p'); note.className = 'fine'; note.textContent = summary.note; section.append(note);
+      for (const [label, value] of summary.rows) {
+        const row = doc.createElement('p'), name = doc.createElement('strong'); name.textContent = label + ': ';
+        row.append(name, doc.createTextNode(value)); section.append(row);
+      }
+      addNutritionAction(section); root.append(section);
+    }
     wire(root);
     show(root, focus);
+  }
+
+  function addNutritionAction(root) {
+    const wrap = doc.createElement('div'); wrap.className = 'nutrition-input';
+    const button = doc.createElement('button'); button.className = 'link'; button.dataset.go = 'nutrition-input';
+    button.textContent = 'Set or update my goal and plan'; wrap.append(button); root.append(wrap);
   }
 
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
@@ -484,7 +513,15 @@ function mountToday(doc, model, options = {}) {
 
   function render(next, focus = false) {
     if (options.beforeNavigate?.(next) === false) return;
+    if (next === 'nutrition-input' && screen !== 'nutrition-input' && !options.initialScreen) nutritionOrigin = screen === 'today' ? 'today' : 'nutrition';
+    options.initialScreen = null;
+    nutritionView?.destroy(); nutritionView = null;
     screen = next;
+    if (next === 'nutrition-input' && nutrition) {
+      nutritionView = nutrition.open({ doc, phone, back: nutritionBack });
+      if (focus) phone.querySelector('h1')?.focus();
+      return;
+    }
     if (next === "today") return renderToday(focus);
     if (next === "why") return renderWhy(focus);
     if (next === "nutrition") return renderNutrition(focus);
@@ -518,13 +555,15 @@ function mountToday(doc, model, options = {}) {
   }
 
   const onKeyDown = (event) => {
+    if (event.key === 'Escape' && screen === 'nutrition-input') { nutritionBack(); return; }
     if (event.key === "Escape" && !phone.querySelector('[role="dialog"]') && screen !== "today") render("today", true);
   };
   phone.addEventListener("keydown", onKeyDown);
 
-  render("today");
+  render(options.initialScreen || "today");
   return { render, read: () => model.read(), openWeighIn, screen: () => screen,
-    destroy: () => phone.removeEventListener("keydown", onKeyDown) };
+    nutritionOrigin: () => nutritionOrigin, focusNutritionAction,
+    destroy: () => { nutritionView?.destroy(); nutritionView = null; phone.removeEventListener("keydown", onKeyDown); } };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
