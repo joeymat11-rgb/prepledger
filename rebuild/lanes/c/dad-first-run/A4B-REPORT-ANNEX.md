@@ -1,11 +1,92 @@
 # A4B REPORT ANNEX
 
 Evidence for `A4B-REPORT.md`. Head: `rebuild/lane-c-a4b`, base
-`origin/rebuild/t2-client-core` @ d9fee35 (was 4ee62da at round 1; the two moves
-since are docs-only, no B-NTC code has merged, `today-bindings.mjs` untouched by
-them, rebase clean with no conflict).
+`origin/rebuild/t2-client-core` @ 9d493d0 (4ee62da at round 1, d9fee35 at round
+2; every move since is docs-only, no B-NTC code has merged, `today-bindings.mjs`
+untouched by them, all three rebases clean with no conflict).
 
-## 0. ROUND 1 CONDITIONS, EXECUTED
+Section 0 is the owner's look (round 3), section 0a round 1's conditions, and
+sections 1 to 5 the original build's evidence, which still stands.
+
+## 0c. WHAT WAS RE-RUN THIS ROUND
+
+setup 150/150, catalogue 43/43, today 64/64, copy 36/36, gym 64/64, checkin
+28/28, `build.mjs` PASS (102 pinned inputs, 68 bound classes), and all four
+msedge checks PASS - `setup-check.mjs` now does 7 real taskkills, each verified
+dead, and walks screen 6 with an unnamed exercise.
+
+W6 552 and journey 51 were NOT re-run. This round touched `setup-app.mjs`,
+`setup-model.mjs`, `setup-check.mjs` and `test/setup.test.mjs` only:
+`today-bindings.mjs` and `today-entry.mjs` did not move, and `setup-check.mjs` is
+a check harness that nothing imports into the bundle (`build.mjs`'s
+REQUIRED_INPUTS does not name it). The journey suite's `PAGE_PINS` cover
+`today-entry.mjs`, `gym-host.mjs`, `reading-host.mjs` and `checkin-host.mjs`,
+none of which changed, so the pin that instructed the round 1 re-pin has nothing
+to say here.
+
+**Served, for the PM's re-look.** `serve.mjs` pid **16880** on 127.0.0.1:4178,
+started after `build.mjs` on this head. `/app.js` is **1431048 bytes** served and
+**1431048 bytes** on disk (`.tmp/w7-today-dist/app.js`, sha256
+`e5066af7b0c99025ffc58c7a76436209c471c185fcc36ab6fff6f1efcbed061d`), and the
+bundle carries `One exercise (unnamed)`, `" sets \xB7 aim for "`, `el("p", "gap")`
+and `’s full-body plan is coming`. (The bundle escapes non-ASCII, so a probe
+must look for `\xB7` and `’`, not the characters themselves; an earlier probe
+of mine looked for the characters and reported a false negative, which is worth
+recording so the next one does not repeat it.)
+
+## 0. ROUND 3: THE OWNER'S LOOK, DECISIONS:133 (2) AND :132 (3)
+
+**The diagnosis.** The owner read three defects on screen 6 and they are one
+defect seen three times. Every place that TALKS about an exercise built its
+sentence out of `lift.n` and asked at most `=== ''` about it, which is not the
+question: his row held a lone comma, so `=== ''` was false, the name went
+through, and the screen printed `",: What does it work? ..."`. The gap copies
+did the same with `NAME`, so `NAME has nothing it works yet.` became
+`, has nothing it works yet.` - and because the gap list was a run of bare
+inline `button`s, the browser laid three of those fragments end to end into the
+sentence he quoted. The fix is one predicate in `setup-model.mjs`, asked by
+everything:
+
+    hasName(v)          -> /[\p{L}\p{N}]/u.test(v)     a letter or a digit
+    namedExercise(v)    -> v.trim() | "One exercise (unnamed)"   (rows)
+    exerciseSubject(v)  -> v.trim() | "One exercise"             (gap sentences)
+    setsLine(sets, hi)  -> "3 sets \xB7 aim for 10 reps"
+
+Two words, not one, because the ledger uses two: a ROW says which exercise it is
+and a GAP takes it as a subject. `missingExercises()` no longer `continue`s past
+an unnamed exercise either: it names the missing name AND still reports what else
+that exercise is missing, because the owner saw all three at once and hiding two
+of them behind the first would make the screen under-report itself.
+
+**RED, recorded.** With the four new subtests in and no fix:
+
+    node --test test/setup.test.mjs
+    not ok 146 - :133 (2) a - an unnamed exercise reads "One exercise (unnamed)"...
+    not ok 148 - :133 (2) c - the gaps are ONE PER LINE, each a full sentence...
+    not ok 149 - :133 (2) d - the sets line is a sentence, not a form label
+    not ok 150 - :132 (3) - screen 2 uses ONE apostrophe, the curly one...
+    # tests 150   # pass 146   # fail 4
+
+**GREEN.** Same command after the fix: `# tests 150  # pass 150  # fail 0`. The
+jsdom cells cover `''`, `'   '` and `','` for the fallback, a named exercise for
+the absence of the fallback, the per-gap block wrappers and sentence shape, the
+sets wording, and screen 2 carrying no U+0027 at all.
+
+**In a real browser.** `setup-check.mjs` gained a launch that walks screen 1 to 6
+with ONE exercise and no name, then reads the rendered DOM: `One exercise
+(unnamed)` present, `/,\s*:/` absent, `3 sets \xB7 aim for 10 reps` present,
+`sets of each exercise 3` absent, and every `p.gap` a `display: block` with
+exactly one button and a sentence in it. It reported `3 gaps each on its own
+line`. Screen 2's assertion now requires the curly apostrophe and refuses any
+straight one anywhere on that screen.
+
+**:132 (3), what did and did not change.** `COPY.screen2TwoDays` is the same
+WORDS as `DECISIONS:125 (2)`; only U+0027 became U+2019. It still renders through
+P1's `plainOrDrop` boundary and the build's dash guard still passes. The two
+places that asserted the straight form - S42 and `setup-check.mjs` - were updated
+with it.
+
+## 0a. ROUND 1 CONDITIONS, EXECUTED
 
 **C1, the stale bundle, RED then GREEN.** The reviewer was right and the failure
 was mine: the page had been served from a dist built before the `:129 (3)` intent
