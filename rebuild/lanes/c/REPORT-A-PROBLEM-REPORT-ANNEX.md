@@ -164,5 +164,10 @@ WHOLE block.
 
 ## 10. CI
 
-Run ids for the pushed head are added here by the push that carries them; the counts
-above are this Windows PC's, executed at the head the report names.
+**489c8c7** (the code head, and the head every count above was measured at):
+`rebuild` **34688790273 success** - `rebuild-public (ubuntu-latest)` success and
+`rebuild-public (windows-latest)` success, all nineteen steps, the B-NTC gate included -
+and `pipeline` **34688790317 success**.
+
+This line is itself a commit, so the head that carries it runs again; its ids go to the
+coordinator with the hand-off rather than into a third round of this file.
