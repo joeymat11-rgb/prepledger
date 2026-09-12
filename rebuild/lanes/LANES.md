@@ -50,3 +50,11 @@ No push to main, no deploy, no private data in any report or cloud session, no p
 - VERIFICATION STAYS IN CI: no test log, browser log or raw diff enters a chat or a report — counts, run ids and file paths only; checks run through the existing scripts/CI and the agent reads the summary line. Every brief carries a READ-LIST (custody files + named dependencies) and the builder orients from it, not from the tree; anything outside it is a REQUESTS line. Reports ≤ 60 lines; STATUS lines ≤ 400 characters (the "why" goes in the report file, the line cites it).
 - REPORTING: the PROGRESS footer appears only on turns that write a STATUS line (was: every message).
 - Leads acknowledge by their next STATUS line and reschedule their own wake-ups accordingly.
+
+## Amendments 2026-09-12 (owner: five process speed rules — DECISIONS:135)
+- Standing licences for the four shared page files under one-Today-build-at-a-time; lanes decide payload shapes with disclosure.
+- Lanes append their own THEME / BRIEF-BY-SHA citation lines once the PM accepted the brief by name; PM acceptance = the receipt.
+- Builder preflight before every PR-READY (rebuild/lanes/tooling/preflight.cjs).
+- The seal runner refuses to seal off the tip; freeze follows the seal automatically.
+- Small engine items may bundle into one package with separate proof cells.
+
