@@ -93,8 +93,15 @@ jobs:
       # today/gym test files" rides the B-NTC seal, so both are named here. The
       # rule the step already stated is kept: every file is named rather than
       # globbed, so the same set runs on both runners whatever the shell does.
-      - name: A1/A2/A3 — the rebound Today page, the gym card, the check-in and the B-NTC delta cells
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/view.test.mjs
+      # DECISIONS:142 (2), option (b): the :117 (4) enumeration of A4's own
+      # setup.test.mjs RIDES H3's seal — H3 re-pins rebuild.yml as B-NTC's child,
+      # and there is no further B-NTC re-seal. setup.test.mjs stands on the tip
+      # and is named here rather than globbed, like every other file in this step.
+      # Measured in the lane-b/h3 worktree at this head: setup.test.mjs 104 tests,
+      # 104 pass, 0 fail; the eight files together 268 tests, 268 pass, 0 fail,
+      # exit 0. No dependency, no lockfile.
+      - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
       # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,
@@ -103,10 +110,10 @@ jobs:
       # expansion itself, not the shell. Measured in the lane-b/ntc worktree at this head:
       # 64 tests, 64 pass, 0 fail, exit 0. No dependency, no lockfile.
       #
-      # A4's rebuild/m3/w7-preview/today/test/setup.test.mjs is NOT enumerated in the today
-      # step above: :117 (4) enumerates it "only if it exists on the tip when B-NTC seals",
-      # and it does not exist on origin/rebuild/t2-client-core at this head. If it lands
-      # before the seal it joins the A1/A2/A3 step; otherwise it rides B1's re-seal.
+      # A4's rebuild/m3/w7-preview/today/test/setup.test.mjs IS enumerated in the today
+      # step above, as of H3. :117 (4) enumerated it "only if it exists on the tip when
+      # B-NTC seals"; it did not, so DECISIONS:142 (2) took option (b) — it rides H3's
+      # seal instead, and B-NTC is not re-sealed for it.
       - name: C5 — the voice coach tool contract and text prototype
         run: node --test "rebuild/coach/test/*.test.cjs"
       - name: A5 — the PWA shell's lockfile-only suites

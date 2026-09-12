@@ -237,9 +237,17 @@ function createCleanInitState({ setup } = {}) {
   /* H3 (DECISIONS:124) — see the block above freezeDeep for every value's
      derivation and for why `model.lean` is absent. `closed()` pins both member
      sets: a member added, removed or renamed refuses here rather than reaching
-     the engine. */
-  const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, 'CLEAN_INIT_BLACKOUT_REQUIRED');
-  const model = closed({ anchorISO: split.from, drip: null, src: null }, MODEL_MEMBERS, 'CLEAN_INIT_MODEL_REQUIRED');
+     the engine.
+     These two codes are DELIBERATELY NOT `CLEAN_INIT_*`. That prefix is the
+     ATHLETE-FACING refusal vocabulary: lane C's setup screens map every
+     `CLEAN_INIT_*` code this file can throw to a sentence a person reads
+     (rebuild/m3/w7-preview/today/setup-model.mjs REFUSAL_SENTENCES, asserted
+     exhaustively by setup.test.mjs S3). These two are builder-side invariants
+     over this module's own literals — no setup document any screen can produce
+     reaches them — so they stay out of that vocabulary rather than forcing a
+     screen sentence for something no athlete can cause. */
+  const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, 'STATE_BLACKOUT_MEMBER_SET');
+  const model = closed({ anchorISO: split.from, drip: null, src: null }, MODEL_MEMBERS, 'STATE_MODEL_MEMBER_SET');
   const seen = new Set();
   const exercises = setup.exercises.map(e => checkExercise(e, seen));
   const covered = new Set(Object.values(split.map).filter(v => DAY_KINDS.includes(v)));

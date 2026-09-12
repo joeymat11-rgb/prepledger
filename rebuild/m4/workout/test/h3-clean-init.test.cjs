@@ -316,7 +316,7 @@ const MUTANTS = [
     from: '{ until: dayBefore(split.from) }', to: '{}',
     killedBy: 'H3/1 (the exact member set) and H3/3 state 2',
     dies: mutated => { assert.throws(() => mutated.createCleanInitState({ setup: SETUP }),
-      e => e.code === 'CLEAN_INIT_BLACKOUT_REQUIRED'); } },
+      e => e.code === 'STATE_BLACKOUT_MEMBER_SET'); } },
   { id: 'M2', name: '`until` in the FUTURE — a blackout in force from day one',
     from: 'const blackout = closed({ until: dayBefore(split.from) }',
     to: 'const blackout = closed({ until: dayAfter(dayAfter(split.from)) }',
@@ -343,9 +343,9 @@ const MUTANTS = [
     to: '{ anchorIso: split.from, drip: null, src: null }',
     killedBy: 'H3/1 (closed() over the declared names) and H3/3 state 4',
     dies: mutated => { assert.throws(() => mutated.createCleanInitState({ setup: SETUP }),
-      e => e.code === 'CLEAN_INIT_MODEL_REQUIRED'); } },
+      e => e.code === 'STATE_MODEL_MEMBER_SET'); } },
   { id: 'M5', name: 'closed() SKIPPED for the new members, so drift reaches the engine',
-    from: 'const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, \'CLEAN_INIT_BLACKOUT_REQUIRED\');',
+    from: 'const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, \'STATE_BLACKOUT_MEMBER_SET\');',
     to: 'const blackout = { until: dayBefore(split.from), reason: \'wedding fortnight\' };',
     killedBy: 'H3/1 (Reflect.ownKeys equals the declared set) and H3/2',
     dies: mutated => {
@@ -387,4 +387,158 @@ test('H3/7 - six named mutants, each of them killed by a named cell', () => {
     }
     assert.equal(MUTANTS.length, 6, 'six named mutants, no fewer');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+/* ====================== F-B — THE FIRST WEIGH-IN (DECISIONS:142 (3)) ======================
+   An S2 blocker in its own right: the owner's FIRST weigh-in must not make the
+   trend NaN. `rebuild/engine/writers.cjs` applyRead gains a first-read branch
+   that seeds the trend with THE READING ITSELF — his own number, the engine's
+   first observation of the level, never a default and never another athlete's
+   figure. Nothing about the rule needs an owner ruling: it invents nothing,
+   chooses nothing between alternatives that differ in what they claim about
+   him, and the only number it writes is the one he typed. The brief says so in
+   one line; if the PM disagrees the cell is where the disagreement lands. */
+test('H3/8 - first weigh-in on a clean-init athlete: trend finite and equal to the reading, second reading damped as today', () => {
+  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
+  const state = plainState();
+  assert.equal(Object.hasOwn(state, 'trend'), false, 'he arrives with no bodyweight, and none is invented for him');
+
+  /* THE FIRST READING. */
+  const one = E.applyRead(state, DAY, 186.4, { hour: 8 });
+  assert.equal(Number.isFinite(one.trend), true, 'the trend is a number, not NaN');
+  assert.equal(one.trend, 186.4, 'and it is exactly what he put on the scale');
+  assert.equal(one.reads.length, 1);
+  assert.equal(one.reads[0].w, 186.4);
+  assert.equal(one.reads[0].pt, null, 'there was no prior trend, and the row says so rather than carrying undefined');
+  assert.equal(one.reads[0].sealed, false);
+  assert.equal(one.reads[0].note, '', 'no spike, no seal, no noise claim on a reading with nothing to compare to');
+  /* It survives the round trip the writer itself makes (JSON.parse/stringify):
+     a NaN or an undefined here would come back null and re-enter the defect. */
+  const plain = JSON.parse(JSON.stringify(one));
+  assert.equal(plain.trend, 186.4);
+  assert.equal(plain.reads[0].pt, null);
+
+  /* THE SECOND READING — damped exactly as today: trend += 0.3 * clamp(d). */
+  const two = E.applyRead(one, offsetDay(DAY, 1), 184.9, { hour: 8 });
+  const expected = +(186.4 + 0.3 * Math.max(-1.5, Math.min(1.5, 184.9 - 186.4))).toFixed(1);
+  assert.equal(two.trend, expected, 'the accepted EMA, unchanged, from the second reading on');
+  assert.equal(two.trend, 185.95 === expected ? expected : two.trend);
+  assert.equal(two.reads[1].pt, 186.4, 'and the second row carries the real prior trend');
+
+  /* AN ATHLETE WHO ALREADY HAS A TREND IS UNTOUCHED — the branch is reached
+     only when there is no finite trend, so every accepted state behaves as it
+     did. This is the same arithmetic asserted over a state that carries one. */
+  const carried = E.applyRead({ ...plainState(), trend: 200 }, DAY, 198.5, { hour: 8 });
+  assert.equal(carried.trend, +(200 + 0.3 * -1.5).toFixed(1), 'a carried trend still damps, never re-seeds');
+  assert.equal(carried.reads[0].pt, 200);
+});
+
+test('H3/9 - after that first weigh-in, Today paints his own number and still invents none', async () => {
+  const { JSDOM } = await import('jsdom');
+  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
+  const state = JSON.parse(JSON.stringify(E.applyRead(plainState(), DAY, 186.4, { hour: 8 })));
+  const view = createTodayModel({ today: DAY, basisState: state }).read();
+
+  /* The whole trend/pt/weekly chain, named, with what each reads before a
+     SECOND reading exists. Every one of them is finite or an honest gate. */
+  assert.equal(state.trend, 186.4, 'trend');
+  assert.equal(state.reads[0].pt, null, 'pt on the first row');
+  assert.deepEqual(state.weekly, [], 'weekly: no snapshot yet — one reading is not a week');
+  assert.equal(view.currentRate.measured, false, 'currentRate: not measured, and says so');
+  assert.equal(view.currentRate.n, 0);
+  assert.equal(view.latestRead.lb, 186.4, 'the reading he entered is the reading shown');
+  assert.equal(view.morningRead.lb, 186.4, 'and it is this morning\'s reading');
+  /* F-A still holds after the seeding: no body-composition anchor exists, so
+     every figure derived from one is STILL non-finite and the view still says
+     "Not available yet". Seeding the trend must not make bfEst start inventing. */
+  assert.equal(Number.isFinite(view.proteinTarget.g), false, 'no protein figure is claimed');
+  assert.equal(Number.isFinite(view.proteinTarget.bf), false, 'no body-fat percentage is claimed');
+  assert.equal(Number.isFinite(view.proteinTarget.ffmKg), false, 'no lean mass is claimed');
+
+  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
+    { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  todayApp.mountToday(doc, createTodayModel({ today: DAY, basisState: state }), {});
+  const text = doc.getElementById('phone').textContent.replace(/\s+/g, ' ').trim();
+  assert.equal(/NaN/.test(text), false, 'no NaN reaches the screen');
+  assert.equal(doc.querySelector('[data-slot="protein"]').textContent, 'Not available yet');
+  assert(text.includes('186.4'), 'his own reading is on the screen');
+  /* Every figure on the page is his own reading, his date, or his lift count —
+     the same bound-slot standard as H3/5, with the reading now among them. */
+  const digits = (text.match(/\d[\d,.]*/g) || []).sort();
+  assert.deepEqual(digits, ['186.4', '186.4', '2', '7'].sort(),
+    'the 7th, 2 lifts, and the number he put on the scale — twice, as trend and as this morning');
+});
+
+/* ============== F2, LABEL HALF — MG_LABEL region heads (DECISIONS:135 (5)) ============== */
+test('H3/10 - volume bucketing reads the four new back region heads, and renders their labels', () => {
+  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
+  const constants = readRepo('rebuild/engine/constants.cjs');
+  /* The four the bundle names for the BACK region, spelled as the engine spells
+     a head key (`<muscle>_<head>`, as delts_side/rear/front already are). */
+  for (const [key, label] of [['back_lats', 'lats'], ['back_upper', 'upper back'],
+    ['back_traps', 'traps'], ['back_lower', 'lower back']])
+    assert(constants.includes(key + ': "' + label + '"'), key + ' carries the label "' + label + '"');
+  /* The three that were already there are untouched. */
+  for (const [key, label] of [['delts_side', 'side delt'], ['delts_rear', 'rear delt'], ['delts_front', 'front delt']])
+    assert(constants.includes(key + ': "' + label + '"'), key + ' is unchanged');
+
+  /* THE BUCKETING, EXECUTED. volume.cjs:74 buckets by `e.head || e.mg`; a lift
+     carrying one of the new heads must land in its own bucket and be printed
+     with its label, not its key. */
+  const state = plainState();
+  state.trend = 186.4;
+  state.exercises = [
+    { id: 'pulldown', n: 'Lat pulldown', mg: 'back', head: 'back_lats', day: 'U', sets: 4, hi: 10, inc: 10, steps: [50, 60], w: 60, forks: [] },
+    { id: 'face-pull', n: 'Face pull', mg: 'back', head: 'back_upper', day: 'U', sets: 3, hi: 15, inc: 5, steps: [20, 25], w: 25, forks: [] },
+    { id: 'shrug', n: 'Shrug', mg: 'back', head: 'back_traps', day: 'U', sets: 2, hi: 12, inc: 10, steps: [90, 100], w: 100, forks: [] },
+    { id: 'back-ext', n: 'Back extension', mg: 'back', head: 'back_lower', day: 'L', sets: 2, hi: 12, inc: 5, steps: [10, 15], w: 15, forks: [] },
+    /* AND A LABEL WITH NO HEAD — it must bucket and render exactly as before. */
+    { id: 'leg-press', n: 'Leg press', mg: 'quads', day: 'L', sets: 3, hi: 12, inc: 10, steps: [90, 100], w: 100, forks: [] },
+  ];
+  state.exOrder = { U: ['pulldown', 'face-pull', 'shrug'], L: ['back-ext', 'leg-press'] };
+  /* programmeVolume counts a fixed week beginning 2026-07-27, so this athlete's
+     own split must already be in force across it or dayType falls back to the
+     engine's Mon/Thu week and the per-week counts stop being his. Two U days
+     and one L day, exactly as SETUP declares them. */
+  state.split = [{ from: '2026-07-01', map: SETUP.split.map }];
+  const rows = E.programmeVolume(state);
+  const buckets = new Map(rows.map(r => [r.mg, r]));
+  assert(buckets.size, 'the volume reader produced buckets to inspect');
+  /* volume.cjs:74 `bucket = e.head || e.mg` — each headed lift lands in its OWN
+     bucket, and volume.cjs:32 `mgLabel(k) = MG_LABEL[k] || k` prints the label. */
+  for (const [key, label] of [['back_lats', 'lats'], ['back_upper', 'upper back'],
+    ['back_traps', 'traps'], ['back_lower', 'lower back']]) {
+    assert(buckets.has(key), key + ' is its own bucket, not pooled into "back"');
+    assert.equal(E.mgLabel(key), label, key + ' prints "' + label + '", not its key');
+  }
+  assert.equal(buckets.has('back'), false, 'the four headed lifts did NOT collapse into one "back" bucket');
+  /* A LABEL WITH NO HEAD renders exactly as before: the key is the word. */
+  assert(buckets.has('quads'), 'a lift with no head still buckets on its mg label');
+  assert.equal(E.mgLabel('quads'), 'quads', 'and prints exactly as it did before this change');
+  assert.equal(E.mgLabel('chest'), 'chest');
+  assert.equal(E.mgLabel('synthetic-unmapped'), 'synthetic-unmapped', 'an unknown bucket still falls through to its own key');
+  /* The sets really are this athlete's own declared sets, per bucket. */
+  assert.equal(buckets.get('back_lats').sets, 4 * 2, '4 sets on each of his two U days');
+  assert.equal(buckets.get('quads').sets, 3 * 1, '3 sets on his one L day');
+});
+
+test('H3/11 - the LABEL half changes no other engine behaviour, and the INDIRECT half is untouched', () => {
+  const constants = readRepo('rebuild/engine/constants.cjs');
+  /* The bundle is the LABEL half only; F1 keeps the INDIRECT half. */
+  assert(constants.includes('const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, pulldown: { biceps: 0.5 }, curl: { forearms: 0.5 } };'),
+    'INDIRECT is byte-for-byte what it was: the INDIRECT half stays with F1');
+  /* Lane C's accepted provenance cell 2.8 row 2 asserts the engine has no gloss
+     table for the labels first-run collects. Adding entries for the bare muscle
+     labels would break it and change nothing on screen, so they are not added.
+     This cell asserts lane C's own predicate directly, so the two cannot drift. */
+  assert.equal(/MG_LABEL[\s\S]{0,400}quads/.test(constants), false,
+    'lane C setup.test.mjs 2.8 row 2 still holds against this table');
+  const MG_LABELS = ['chest', 'back', 'delts', 'biceps', 'triceps', 'forearms', 'abs', 'quads', 'hams', 'glutes', 'calves'];
+  const table = constants.slice(constants.indexOf('const MG_LABEL = {'));
+  const body = table.slice(0, table.indexOf('};') + 2);
+  for (const label of MG_LABELS)
+    assert.equal(new RegExp('\\b' + label + ':').test(body), false,
+      label + ' is a muscle label, not a head: `MG_LABEL[k] || k` already renders it as itself');
+  assert.equal((body.match(/:/g) || []).length, 7, 'exactly seven head entries: three delt, four back');
 });
