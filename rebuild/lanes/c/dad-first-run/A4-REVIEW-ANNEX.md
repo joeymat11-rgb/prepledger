@@ -545,3 +545,89 @@ and C7 (the `:119 (6)` report cut) are NON-BLOCKING and carried on the ledger li
 alongside the residuals listed above, of which H3 remains the one that matters.
 
 **OWNER LOOK: pending (PM).**
+
+---
+
+## Round 3 (re-pin delta fa9ce03) - evidence
+
+Candidate @ **fa9ce03**, base **61d1f16** (P1 no-dashes and P2 host-requests merged).
+`origin/rebuild/t2-client-core` had already moved to **2d457fd** when this reviewer
+fetched, so the branch is behind the tip by that much: a freshness note for the
+integrator, not a custody finding.
+
+**Custody.** `git diff --numstat 61d1f16..fa9ce03`: the same paths as round 2 plus the
+two annex files, and `rebuild/m3/w6/test/local-today-journey.test.mjs` at 20 added / 2
+removed. Nothing under `rebuild/engine`, `rebuild/client`, `rebuild/conform`,
+`rebuild/m4/**`, `rebuild/m3/w6/host`, `.github`, `src` or `ledger`.
+
+**The pre-existing red, verified rather than accepted.** The builder claims the journey
+suite was already failing on the tip because P1 changed `today-entry.mjs` without
+re-pinning. This reviewer checked the base out and ran it:
+
+- `git show 61d1f16:.../today-entry.mjs` hashes **b54d9701...**, while `PAGE_PINS` at
+  that commit still says **5fc40e1e...** - and `git log 61d1f16 -- today-entry.mjs`
+  names P1's own `28c02b2` ("the three views route every rendered string through
+  plainCopy") and `dd8904a` as the commits that changed it.
+- `node --test .../local-today-journey.test.mjs` **at 61d1f16: tests 51, pass 47,
+  fail 4**, and the two red top-level tests are exactly
+  `C4b - partial erasure is restore-required, in the drop-in and in the page` and
+  `C4b - the page and the drop-in are pinned to each other`.
+
+So the claim is TRUE, the red is P1's, and A4's two journey edits close precisely it and
+nothing else. The re-pin is WITHIN LICENCE: `rebuild/m3/w6/test/**` is lane C custody
+(`:106`), the pin's own failure message instructs the editor to re-read and re-pin, the
+comment records both the A4 reason and P1's, and the other three PAGE_PINS
+(`gym-host` `70a59b5c...`, `reading-host` `a3e92015...`, `checkin-host` `029b3a9b...`)
+are byte-identical to rounds 1 and 2.
+
+**Does the `plainCopy(...)` assertion still prove the page speaks the CLIENT's sentence?
+YES.** Read: `plainCopy` is a pure dash-only transform - probe shows it is the IDENTITY
+on dash-free text and `"spike <em> damped"` becomes `"spike: damped"`, nothing else is
+touched - and the expected value is still built from `GymHost.RESTORE_REQUIRED`, so the
+comparison is with the host's own constant, moved to the boundary where the text becomes
+a pixel. Proved to bite by reviewer mutant **R10**: making `boot()` write its own
+sentence ("This device needs restoring.") through the same boundary turns the journey
+**RED, pass 47 fail 4**, on both C4b tests. Not a weakened assertion.
+
+**A4's own dash refusal removed in favour of P1's, and P1's is stronger.** Reviewer
+probe **R8**: an em dash re-inserted into `COPY.screen1Lead` makes the build exit 1 with
+`A1 TODAY BUILD FAIL: AI_DASH_IN_BUILD: 1 em/en dash(es) in text the athlete can see
+(DECISIONS:114): app.js: a string literal of rebuild/m3/w7-preview/...`, naming
+`setup-model.mjs`, and turns the suite RED as well (pass 103 fail 1). P1's guard is
+attribution-aware (it refuses on any literal of a module this page owns and merely
+COUNTS the frozen engine/client prose, which reaches the DOM only through `plainCopy`),
+so removing A4's three narrower loops loses no coverage.
+
+**Every write routed.** Reviewer probe **R9**: changing one `secondary.textContent =
+plainOrDrop(COPY.skip, 'secondary')` back to an unrouted write is KILLED by
+`S23 (a) - A4 renders through P1's boundary, like every other view` (pass 103 fail 1).
+
+**Counts, executed here at fa9ce03.** today (adapter/view/design/package) **64**, copy
+**36**, gym **64**, checkin **28**, setup **104**, all eight today test files **296**,
+W6 **552**, journey **51**, A0 host **22** on the two files the BUILD-BRIEF enumerates
+and **31** across all three host test files (P2's `host-seams.test.mjs` is the new 9),
+w7-preview **19**, `native-carriers-package.cjs --ci` **PASS** with the worktree clean
+before and after, `build.mjs` **PASS** at **99** pinned inputs with P1's own line: "no
+em/en dash in any text the athlete can see (904 frozen-source strings carry one and
+reach the screen only through plainCopy; 1 harvested approved term(s) dash-normalised)".
+Four msedge checks **PASS** with verified real `taskkill /F /T`, setup-check still
+reporting the mid-flow kill leaving zero operations and no partial athlete, the C1
+sentence on the landed Today, and "MEASURED ON 6 OF THE SIX SCREENS".
+
+**The served page.** `http://127.0.0.1:4178/?screen=setup` returns **200**, 21332 bytes,
+CSP unchanged, and carries the `t-setup`, `setup-entry` and `setup-note` slots; this
+reviewer drove all six screens on a fresh msedge profile, confirmed the screen-2 sentence
+verbatim, "Earned's standard start", "Start using Earned", and **zero** off-origin
+requests.
+
+**Mutants round 3:** R8, R9, R10 - 3 killed, 0 survived, every file restored
+byte-identical and `git status --short` empty after each. Rounds 1-2's 20 stand: **23
+killed / 0 survived** in total.
+
+**Residual closed by P1:** round 1's C5 (dashes in the built page) is now closed at the
+PAGE level, not just A4's: the build refuses, and the 904 frozen strings are counted and
+routed rather than waved through.
+
+**Minor, non-blocking:** the branch is behind `origin/rebuild/t2-client-core` (2d457fd);
+the integrator re-pins and re-runs. `A4-REPORT.md` is now 58 lines with its annex, so
+C7 is fully discharged.
