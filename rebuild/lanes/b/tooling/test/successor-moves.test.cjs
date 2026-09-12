@@ -295,8 +295,12 @@ test('Z5 — the parent acceptance commit is anchored, and no spec names a commi
   assert.equal(carry().verdict, VERDICT);
   // A commit that is NOT an ancestor cannot be substituted by any input, because the
   // commit is a runner constant; what the source must carry is the two ancestry asks.
-  assert.equal(fixtureSource.split("'merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, CHAIN_REF").length, 2);
-  assert.equal(fixtureSource.split("'merge-base', '--is-ancestor', SUCCESSOR_PARENT_COMMIT, 'HEAD'").length, 2);
+  // TOOLING-REVIEW r7 F3: both now go through the ONE named ancestry helper, so the
+  // refusal carries a code instead of reaching the catch as "Command failed". The asks
+  // themselves are unchanged — the helper's body is the same `merge-base --is-ancestor`.
+  assert.equal(fixtureSource.split("ancestor(SUCCESSOR_PARENT_COMMIT, CHAIN_REF, 'SUCCESSOR-PARENT-COMMIT-NOT-ON-THE-CHAIN-BRANCH')").length, 2);
+  assert.equal(fixtureSource.split("ancestor(SUCCESSOR_PARENT_COMMIT, 'HEAD', 'SUCCESSOR-PARENT-COMMIT-NOT-BEHIND-HEAD')").length, 2);
+  assert.equal(fixtureSource.split("L.git(root, ['merge-base', '--is-ancestor', commit, of]);").length, 2, 'exactly one ancestry call site');
 });
 
 test('Z6 — the refusal vocabulary is derived from the runner and covers these codes', () => {
