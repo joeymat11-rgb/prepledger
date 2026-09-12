@@ -195,11 +195,11 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
    that module at check time rather than retyped, so a copy edit there fails this
    check instead of drifting past it.
    THE OWNER'S RULE (DECISIONS:114 (1)) applies to every one of them: no U+2014
-   and no U+2013. assertSetupBinding refuses either, in the module and in the
-   shipped template, and the build refuses with it. */
+   and no U+2013. Since P1 merged (DECISIONS:121) that refusal is ./plain-copy.cjs's
+   for the whole page, at build time over the shipped bytes and at render time per
+   slot; A4 keeps the behaviour in its own suite and no longer restates the
+   mechanism here (see assertSetupBinding). */
 const SETUP_MODEL_SOURCE = "setup-model.mjs";
-const DASHES = Object.freeze([["U+2014", "—"], ["U+2013", "–"],
-  ["&mdash;", "&mdash;"], ["&ndash;", "&ndash;"]]);
 
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 const classTokens = (html) =>
@@ -359,46 +359,38 @@ function setupVocabulary(root = ROOT) {
 /* Every module that can put a first-run word on the screen, joined. */
 const setupSource = (root = ROOT) => SETUP_SOURCES
   .map((name) => fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", name), "utf8")).join("\n");
-/* The two files A4 OWNS outright. today-app.cjs is excluded from the dash scan
-   because its A1/A2/A3 copy is the PM's P1 sweep (rebuild/slice/P1-NO-DASHES-BRIEF.md),
-   not A4's to churn; A4's own hunk in it is covered by the harvest above. */
-const setupOwnSource = (root = ROOT) => ["setup-app.mjs", "setup-model.mjs", "setup-commands.mjs",
-  "setup-host.mjs"].map((name) => fs.readFileSync(path.join(root, "rebuild/m3/w7-preview/today", name), "utf8")).join("\n");
-/* Every harvested sentence must (a) carry no em dash and no en dash, and (b) be
-   present in a view source, so a sentence cannot be declared here and then
-   quietly dropped from the screens.
-   There is deliberately NO "absent from the approved references" clause, which
-   is the clause PREVIEW_RUNTIME_COPY carries. That clause exists to stop a
-   builder smuggling approved-looking words into a preview-owned list. It has
-   nothing to bite on here: the approved 2026-09-08 design has no first-run
-   screen at all, so every one of these sentences is preview-owned by
-   construction, and the words that do overlap with the approved design are the
-   ones that SHOULD ("Earned", "Next", "Back") - the page would be wrong to
-   spell them differently on this screen than on every other. */
+/* Every harvested sentence must be PRESENT IN A VIEW SOURCE, so a sentence cannot be
+   declared here and then quietly dropped from the screens, and the first-run screen
+   must be in the shipped template at all.
+
+   A4 NO LONGER SCANS FOR DASHES HERE. It did, before P1 merged: three loops over
+   ./plain-copy.cjs's two characters, one on the harvested sentences, one on A4's own
+   source files and one on the `t-setup` section. P1 (DECISIONS:121) now owns that
+   refusal for the WHOLE page and owns it better: `assertNoAiDashesInAssets` scans the
+   BUILT bytes - every byte of the HTML and CSS outside a comment, and every JS string
+   literal whose esbuild banner attributes it to `rebuild/m3/w7-preview/today/`, which
+   is exactly where A4's five setup modules live - and `build.mjs` refuses
+   AI_DASH_IN_BUILD, plus AI_DASH_GUARD_BLIND if the banners it attributes by are
+   missing. A second, narrower, source-level scan beside it would be a second
+   mechanism to keep in step for no added coverage (PM to C 20:46: A4 verifies, it
+   does not re-author). A4's own suite still asserts the BEHAVIOUR - no dash in its
+   sentences, its sources or its rendered DOM, and the build refusing when one is put
+   back - which is what proves P1's mechanism really covers these screens.
+
+   There is deliberately NO "absent from the approved references" clause, which is the
+   clause PREVIEW_RUNTIME_COPY carries. That clause exists to stop a builder smuggling
+   approved-looking words into a preview-owned list. It has nothing to bite on here:
+   the approved 2026-09-08 design has no first-run screen at all, so every one of
+   these sentences is preview-owned by construction, and the words that do overlap
+   with the approved design are the ones that SHOULD ("Earned", "Next", "Back"). */
 function assertSetupBinding(approved, templateHtml, root = ROOT) {
   const vocabulary = setupVocabulary(root);
   const source = setupSource(root);
   for (const line of [...vocabulary.copy, ...vocabulary.validation, ...vocabulary.refusals]) {
-    for (const [name, mark] of DASHES) {
-      assert(!line.includes(mark),
-        `NO-DASH FAIL (DECISIONS:114 (1)): the first-run sentence "${line}" carries ${name}`);
-    }
     assert(source.includes(line), `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
   }
-  /* The view sources themselves carry no dash either: a sentence composed at
-     runtime out of two halves would slip past the harvest above. */
-  for (const [name, mark] of DASHES) {
-    assert(!setupOwnSource(root).includes(mark),
-      `NO-DASH FAIL (DECISIONS:114 (1)): a first-run source file carries ${name}`);
-  }
-  /* The shipped first-run template itself: it binds every word at runtime, so it
-     must carry no dash of its own either. */
   const start = templateHtml.indexOf('<template id="t-setup">');
   assert(start > 0, "SETUP-BINDING FAIL: the first-run screen is not in the shipped template");
-  const section = templateHtml.slice(start, templateHtml.indexOf("</template>", start));
-  for (const [name, mark] of DASHES) {
-    assert(!section.includes(mark), `NO-DASH FAIL (DECISIONS:114 (1)): the first-run template carries ${name}`);
-  }
   return { copy: vocabulary.copy.length, validation: vocabulary.validation.length,
     refusals: vocabulary.refusals.length };
 }
@@ -504,8 +496,8 @@ module.exports = {
   CHECKIN_RUNTIME_COPY, PREVIEW_RUNTIME_COPY, VIEW_SOURCES,
   readApproved, readFonts, fontFaceCss, assertDesignBinding, composeStyles, textOf, classTokens, sha256,
   recoverySection, recoveryVocabulary, assertRecoveryBinding,
-  setupVocabulary, assertSetupBinding, setupSource, setupOwnSource,
-  DASHES, SETUP_MODEL_SOURCE, SETUP_SOURCES,
+  setupVocabulary, assertSetupBinding, setupSource,
+  SETUP_MODEL_SOURCE, SETUP_SOURCES,
   headlineVocabulary, ENGINE_DIR,
   templateHtml, appSource, chromeCss, shellHtml,
 };

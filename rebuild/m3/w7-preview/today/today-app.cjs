@@ -499,7 +499,9 @@ function mountToday(doc, model, options = {}) {
     try { state = typeof model.stateFromOps === "function" ? model.stateFromOps() : null; }
     catch (_) { state = null; }
     const owed = setupNoteNeeded(!!summary && summary.enrolled === true, label, state);
-    note.textContent = owed ? SETUP_NOT_HIS_NUMBERS : "";
+    /* Through the render boundary like every other slot on this screen (P1,
+       DECISIONS:121): fail-closed per slot, never a page that will not open. */
+    note.textContent = owed ? plainOrDrop(SETUP_NOT_HIS_NUMBERS, "setup-note") : "";
     note.hidden = !owed;
     return owed;
   }

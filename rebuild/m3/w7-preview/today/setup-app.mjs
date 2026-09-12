@@ -14,7 +14,15 @@
 // holds them and navigation only moves.
 import TodayApp from './today-app.cjs';
 import Model from './setup-model.mjs';
+/* THE RENDER BOUNDARY for the owner's no-dashes rule (DECISIONS:114 (1), P1 merged at
+   DECISIONS:121). Every string these six screens write into the DOM goes through it,
+   exactly as today-app.cjs, gym-app.mjs and checkin-app.mjs do: fail-closed PER SLOT,
+   so an unrewritable string blanks its own slot and logs rather than taking the screen
+   down. A4's own copy is dash-free by construction and its suite asserts that; this is
+   the boundary for anything composed beside it. */
+import PlainCopy from './plain-copy.cjs';
 
+const { plainOrDrop } = PlainCopy;
 const { ARROW } = TodayApp;
 const { COPY, VALIDATION, MISSING, MG_LABELS, SETS_OPTIONS, HI_OPTIONS, WEEKDAYS,
   WEEKDAY_NAMES, DAY_KINDS, DAY_KIND_WORDS, SCREENS, STANDARD_INC, STANDARD_INC_UNIT,
@@ -28,10 +36,10 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   let message = '';
   const openRungs = new Set();
 
-  const el = (tag, className, text) => {
+  const el = (tag, className, text, where) => {
     const node = doc.createElement(tag);
     if (className) node.className = className;
-    if (text !== undefined && text !== null) node.textContent = text;
+    if (text !== undefined && text !== null) node.textContent = plainOrDrop(String(text), where || className || tag);
     return node;
   };
   const slots = (root) => {
@@ -42,7 +50,7 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   function put(map, name, text) {
     const node = map.get(name);
     if (!node) throw new Error('First run: template slot missing - ' + name);
-    node.textContent = text === null || text === undefined ? '' : String(text);
+    node.textContent = text === null || text === undefined ? '' : plainOrDrop(String(text), name);
     node.hidden = text === null || text === undefined || text === '';
     return node;
   }
@@ -172,7 +180,7 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       details.className = 'checkin-note';
       details.open = openRungs.has(row.key);
       const summary = doc.createElement('summary');
-      summary.textContent = COPY.rungsSummary;
+      summary.textContent = plainOrDrop(COPY.rungsSummary, 'rungs-summary');
       details.append(summary);
       details.append(textField('setup-rungs-' + row.key, COPY.rungsLabel, row.rungs,
         (v) => model.setExerciseField(row.key, 'rungs', v)));
@@ -287,8 +295,9 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
     if (n === SCREENS && missing.length) refusalBlock(body, missing);
 
     const error = root.querySelector('#setup-error');
-    if (model.validationShown() && n === 1 && answers.name.trim() === '') error.textContent = VALIDATION.name;
-    else error.textContent = message;
+    if (model.validationShown() && n === 1 && answers.name.trim() === '') {
+      error.textContent = plainOrDrop(VALIDATION.name, 'setup-error');
+    } else error.textContent = plainOrDrop(message, 'setup-error');
 
     const primary = map.get('primary');
     const ready = n < SCREENS || missing.length === 0;
@@ -314,7 +323,7 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
     const secondary = map.get('secondary');
     if (n === 5) {
       secondary.hidden = false;
-      secondary.textContent = COPY.skip;
+      secondary.textContent = plainOrDrop(COPY.skip, 'secondary');
       secondary.addEventListener('click', () => { model.next(); paint(true); });
     } else secondary.hidden = true;
 

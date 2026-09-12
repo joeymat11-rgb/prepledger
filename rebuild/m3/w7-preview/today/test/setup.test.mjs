@@ -970,16 +970,56 @@ test('S23 (a) - NO em dash and NO en dash in any first-run source, template or e
   for (const mark of [EM, EN, '&mdash;', '&ndash;']) assert.equal(section.includes(mark), false);
 });
 
-test('S23 (a) - the CHECK refuses rather than warns: a dash in the copy turns it RED', () => {
-  /* Behaviour, not a second implementation. P1 owns the build-wide refusal
-     (rebuild/slice/P1-NO-DASHES-BRIEF.md); this asserts that A4's own copy is
-     checked and that the check is an assertion, so it PASSES once P1's is
-     present and would still catch a dash if P1 were never merged. */
+test('S23 (a) - the BUILD refuses rather than warns: a dash in a first-run string turns it RED', async () => {
+  /* BEHAVIOUR, not a second implementation, and since P1 merged (DECISIONS:121)
+     the mechanism under the behaviour is P1's: plain-copy.cjs scans the BUILT
+     bytes and build.mjs refuses AI_DASH_IN_BUILD. A4 asserts that the refusal
+     really covers ITS screens, which is the thing A4 has to know and the thing a
+     second, narrower, source-level scan of its own could never tell it. */
+  const PlainCopy = (await import('../plain-copy.cjs')).default;
+  assert.equal(PlainCopy.OWNED, 'rebuild/m3/w7-preview/today/',
+    'the guard attributes a literal by module, and A4 lives under that prefix');
+  const banner = ' rebuild/m3/w7-preview/today/setup-model.mjs\n';
+  const clean = [['app.js', '//' + banner + 'var a = "Which days?";\n']];
+  assert.doesNotThrow(() => PlainCopy.assertNoAiDashesInAssets(clean));
+  /* One em dash in a literal attributed to a SETUP module: refused, by code. */
+  const dashed = [['app.js', '//' + banner + 'var a = "Which days ' + EM + ' really?";\n']];
+  assert.throws(() => PlainCopy.assertNoAiDashesInAssets(dashed),
+    (error) => error.code === 'AI_DASH_IN_BUILD' && /setup-model\.mjs/.test(error.message));
+  /* And in the shipped markup of the first-run screen. */
+  assert.throws(() => PlainCopy.assertNoAiDashesInAssets([['index.html', '<p>1 of 6 ' + EM + ' nearly</p>']]),
+    (error) => error.code === 'AI_DASH_IN_BUILD');
+  /* A4's own binding check still refuses a template that lost the screen. */
   const approved = design.readApproved();
   const template = design.templateHtml();
   assert.doesNotThrow(() => design.assertSetupBinding(approved, template));
   assert.throws(() => design.assertSetupBinding(approved,
-    template.replace('<template id="t-setup">', '<template id="t-setup">' + EM)), /NO-DASH FAIL/);
+    template.replace('<template id="t-setup">', '<template id="t-gone">')), /SETUP-BINDING FAIL/);
+});
+
+test('S23 (a) - A4 renders through P1\'s boundary, like every other view', async () => {
+  const PlainCopy = (await import('../plain-copy.cjs')).default;
+  const source = setupFileText('setup-app.mjs');
+  assert(source.includes("import PlainCopy from './plain-copy.cjs'"),
+    'setup-app.mjs takes the render boundary');
+  assert(source.includes('const { plainOrDrop } = PlainCopy'));
+  /* Every textContent write in the six screens' view goes through it. */
+  for (const line of codeOf(source).split('\n')) {
+    if (!/\.textContent\s*=/.test(line)) continue;
+    assert(/plainOrDrop\(/.test(line), 'an unrouted render-boundary write: ' + line.trim());
+  }
+  /* And the one string A4 puts on Today is routed too. */
+  const todayApp = codeOf(setupFileText('today-app.cjs'));
+  assert(/note\.textContent = owed \? plainOrDrop\(SETUP_NOT_HIS_NUMBERS, "setup-note"\)/.test(todayApp));
+  /* Fail-closed PER SLOT: an unrewritable string blanks its own slot, it does not
+     take the screen down. That is P1's contract and A4 relies on it. */
+  assert.equal(PlainCopy.plainOrDrop('a range 60' + EN + '400 lb', 'probe'), 'a range 60 to 400 lb');
+  assert.equal(PlainCopy.plainOrDrop(EM + ' recorded today', 'probe'), 'recorded today');
+  /* A dash in a shape the normaliser will not guess at (no space after it, not a
+     range) is REFUSED, and the slot blanks rather than the screen failing. */
+  assert.throws(() => PlainCopy.plainCopy('seat' + EM + 'pin', 'probe'),
+    (error) => error.code === 'AI_DASH_IN_UI');
+  assert.equal(PlainCopy.plainOrDrop('seat' + EM + 'pin', 'probe'), '');
 });
 
 test('S23 (b) - RENDER TIME: zero U+2013/U+2014 in text, placeholder, aria-label or title', () => {

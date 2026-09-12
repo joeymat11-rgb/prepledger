@@ -34,6 +34,8 @@ import { markerDatabaseName } from '../local/local-client.mjs';
 import { keysDatabaseName } from '../local/local-keys.mjs';
 // The page's own modules, unmodified.
 import * as GymHost from '../../w7-preview/today/gym-host.mjs';
+// P1's render boundary (DECISIONS:121): what the page writes, the client's copy plain.
+import PlainCopy from '../../w7-preview/today/plain-copy.cjs';
 import { PROFILE as CHECKIN_PROFILE } from '../../w7-preview/today/checkin-host.mjs';
 import * as Entry from '../../w7-preview/today/today-entry.mjs';
 import { createGymModel, EFFORT_CHOICES } from '../../w7-preview/today/gym-model.mjs';
@@ -42,6 +44,7 @@ import TodayApp from '../../w7-preview/today/today-app.cjs';
 import TodayModel from '../../w7-preview/today/today-model.cjs';
 import design from '../../w7-preview/today/design.cjs';
 
+const { plainCopy } = PlainCopy;
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
 const DAY = SYNTHETIC_DAY;
 const SLOT = 'earned-today-preview/' + DAY;
@@ -520,8 +523,13 @@ test('C4b — partial erasure is restore-required, in the drop-in and in the pag
     assert.equal(booted.restoreRequired, 'KEY_MISSING');
     assert.equal(booted.hosts, null, 'no installation opened');
     assert.equal(booted.readings, null, 'and no store');
+    /* P1 (DECISIONS:121) put a render boundary in front of every string these
+       screens write: the client's copy is frozen and carries an em dash, and
+       plainCopy takes it out on the way to the DOM. The page still says the
+       CLIENT'S sentence and not one of its own, which is what this asserts; it
+       just says it without the character the owner banned. */
     assert.equal(doc.getElementById('today-status').textContent,
-      GymHost.RESTORE_REQUIRED + ' (KEY_MISSING)');
+      plainCopy(GymHost.RESTORE_REQUIRED + ' (KEY_MISSING)'));
     assert.equal(booted.model.read().hasReadToday, false, 'nothing on screen claims a reading');
 
     // The record is untouched: opening again still refuses rather than starting over.
@@ -607,10 +615,14 @@ export const PAGE_PINS = Object.freeze({
   /* A4 re-pin (DECISIONS:117 (1)). today-entry.mjs gained createSetupEntry, the
      keyed basisState refusal, setup.athleteState() and, at A4 review round 1
      (condition C1), setup.athleteLabel() so Today can say whose week the record
-     holds. Re-read against today-bindings.mjs at every re-pin: boot() still opens
-     the local era BY DEFAULT (the `hosts` branch is untouched) and no wrapper
-     opens a store of its own. */
-  'today-entry.mjs': '5b7146601d3e61a08fd07a888a886719a5b97fc6813b8360d69f6cfe14ce828c',
+     holds; re-pinned again on the re-pin onto 8396415, where it also took P1's
+     render boundary (DECISIONS:121). NOTE: P1 itself changed this file and did
+     NOT re-pin, so this line was already red on the tip at 8396415
+     (5fc40e1e... pinned, b54d9701... on disk); A4 closes that here rather than
+     leaving a red suite behind it. Re-read against today-bindings.mjs at every
+     re-pin: boot() still opens the local era BY DEFAULT (the `hosts` branch is
+     byte-unchanged) and no wrapper opens a store of its own. */
+  'today-entry.mjs': 'b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111',
   'gym-host.mjs': '70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18',
   'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',
