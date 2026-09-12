@@ -176,6 +176,16 @@ git('config', 'user.email', 'tooling7@earned.local');
 git('config', 'user.name', 'lane-b-tooling7');
 git('add', '-A'); git('commit', '--quiet', '-m', 'the parent programme');
 const PARENT_COMMIT = git('rev-parse', 'HEAD').trim();
+// TOOLING-REVIEW-r9 F3. The cited review is PINNED and must stand in Git at HEAD, so a
+// fixture that changes it changes the pin and commits it — which is the discipline the rule
+// asks of a real package. `useReview` is the only way this suite touches the file.
+let REVIEW_SHA = sha(Buffer.from(reviewText));
+function useReview(text) {
+  write(REVIEW_FILE, text);
+  git('add', '--', REVIEW_FILE);
+  git('commit', '--quiet', '--allow-empty', '-m', 'the review of record');
+  REVIEW_SHA = sha(Buffer.from(text));
+}
 
 const fixtureSource = source.replace(
   "const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';",
@@ -197,7 +207,7 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'H3'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={parentClosure,successorProof,SUCCESSOR_LOAD_FLOOR,SUBSTITUTION_FORBIDDEN,FAIL_CODES,' +
+    '\nmodule.exports={parentClosure,successorProof,successorSpecShape,SUCCESSOR_LOAD_FLOOR,SUBSTITUTION_FORBIDDEN,REVIEWS_DIR,FAIL_CODES,' +
     'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
@@ -225,7 +235,7 @@ const spec = () => ({
   coverage: { inherited: { 'migrate-source': CHILD }, moves: {}, successors: {
     ruling: 'MOVES_RULING=DECISIONS:147 in the B-NTC-INHERITED-1 shape',
     rulingLineSha256: sha(Buffer.from(RULING_LINE)),
-    support: SUPPORT, wrapper: null, reviewFile: REVIEW_FILE,
+    support: SUPPORT, wrapper: null, reviewFile: REVIEW_FILE, reviewFileSha256: REVIEW_SHA,
     parentAcceptanceCommit: PARENT_COMMIT,
     carriers: { [CHILD]: { successor: SUCCESSOR, original: WRAPPER } },
     substitutions: JSON.parse(JSON.stringify(substitutions)) } },
@@ -259,12 +269,12 @@ test(':147 — an H3-shaped spec is ADMITTED: three targets, none a parent execu
 });
 
 test(':147 — a target OUTSIDE the parent gate closure refuses by name', () => {
+  useReview(reviewText + '\n- ' + UNREACHED + '\n  from: ' + FROM_SOURCE + '\n  to:   ' + TO_SOURCE + '\n');
   const s = spec();
   s.coverage.successors.substitutions = [{ original: UNREACHED, from: FROM_SOURCE, to: TO_SOURCE,
     why: 'a file the gate never reaches, however plausible the path looks' }];
-  write(REVIEW_FILE, reviewText + '\n- ' + UNREACHED + '\n  from: ' + FROM_SOURCE + '\n  to:   ' + TO_SOURCE + '\n');
   assert.throws(() => prove(s), /SUCCESSOR-SUBSTITUTION-TARGET-NOT-IN-THE-PARENT-GATE-CLOSURE/);
-  write(REVIEW_FILE, reviewText);
+  useReview(reviewText);
 });
 
 test(':147 — a private, golden or oracle target refuses, and the roots are not vacuous', () => {
@@ -293,11 +303,52 @@ test(':147 — a substitution missing from the CITED REVIEW refuses', () => {
   // ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE REVIEW". Only the
   // spec half was ever asserted; a review that quotes two of three refuses on the third.
   const partial = reviewText.split(FROM_MOD).join('a paraphrase of the third substitution');
-  write(REVIEW_FILE, partial);
+  useReview(partial);
   assert.throws(() => prove(), /SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW/);
   fs.rmSync(path.join(scratch, REVIEW_FILE));
   assert.throws(() => prove(), /SUCCESSOR-REVIEW-FILE-ABSENT/);
+  useReview(reviewText);
+  assert.equal(prove().get(CHILD).verdict, VERDICT);
+});
+
+test('r9 F3 — the cited review is PINNED, committed, and under the reviews directory', () => {
+  // r9 read the file off the worktree with no custody test at all: a review the package
+  // wrote in its own commit, or edited after the spec was reviewed, was admitted.
+  assert.equal(api.REVIEWS_DIR, 'rebuild/lanes/b/reviews/');
+  // (a) bytes that are not the pinned bytes — the file moved after the spec cited it.
+  const s = spec(); s.coverage.successors.reviewFileSha256 = '0'.repeat(64);
+  assert.throws(() => prove(s), /SUCCESSOR-REVIEW-FILE-BYTES-NOT-THE-PINNED-REVIEW/);
+  // (b) a review that stands on disk and in the spec's pin, but in nobody's commit.
+  const uncommitted = reviewText + '\nA line added after the review was committed.\n';
+  write(REVIEW_FILE, uncommitted);
+  const drifted = spec(); drifted.coverage.successors.reviewFileSha256 = sha(Buffer.from(uncommitted));
+  assert.throws(() => prove(drifted), /SUCCESSOR-REVIEW-FILE-NOT-IN-GIT-AT-HEAD/);
   write(REVIEW_FILE, reviewText);
+  // (c) a path outside the reviews directory is refused HERE too, not only in the spec
+  // phase — the two functions do not depend on the order they are called in.
+  const elsewhere = 'rebuild/lanes/b/BUILD-REPORT-H3.md';
+  write(elsewhere, reviewText);
+  git('add', '--', elsewhere); git('commit', '--quiet', '--allow-empty', '-m', 'the package own report');
+  const own = spec();
+  own.coverage.successors.reviewFile = elsewhere;
+  own.coverage.successors.reviewFileSha256 = sha(Buffer.from(reviewText));
+  assert.throws(() => prove(own), /SUCCESSOR-REVIEW-FILE-NOT-IN-THE-REVIEWS-DIRECTORY/);
+  assert.equal(prove().get(CHILD).verdict, VERDICT);
+  // NOT proved, and said so in the runner beside the check: that the review's author is not
+  // the spec's builder. Nothing in a Git tree records that, and this suite claims it nowhere.
+  assert(source.includes('is not machine-checkable here'), 'the runner says which half is not proved');
+});
+
+test('r9 C (vi) — a whole-file replacement refuses at RUN phase, not only in spec()', () => {
+  // r9 admitted it here and refused it in spec() alone, so the two functions disagreed and
+  // the run-phase gate was carried by call order. `from` = the whole parent original.
+  const whole = fs.readFileSync(path.join(scratch, SOURCE), 'utf8');
+  useReview(reviewText + '\n' + whole + "\n'use strict';\nmodule.exports = {};\n");
+  const s = spec();
+  s.coverage.successors.substitutions = [{ original: SOURCE, from: whole, to: "'use strict';\nmodule.exports = {};\n",
+    why: 'a rewrite of the parent original wearing a substitution name' }];
+  assert.throws(() => prove(s), /SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT/);
+  useReview(reviewText);
   assert.equal(prove().get(CHILD).verdict, VERDICT);
 });
 
@@ -342,10 +393,105 @@ test(':147 — the copy test moved with the floor, so a pasted body still refuse
   assert.equal(prove().get(CHILD).verdict, VERDICT);
 });
 
+test('r9 F1 — the floor and the copy test follow the COMPILE EDGE, never a path literal', () => {
+  // The whole of F1 in one measurement. The wide closure reaches the oracle manifest and
+  // the path-literal original; the COMPILE closure reaches neither, and reaches exactly the
+  // module the wrapper requires and what that module requires in turn.
+  const wide = api.parentClosure(PARENT_COMMIT, [WRAPPER]);
+  const compiled = api.parentClosure(PARENT_COMMIT, [WRAPPER], 'require');
+  for (const f of [SUPPORT_MOD, REFERENCE]) assert(compiled.has(f), 'the compile edge reaches ' + f);
+  for (const f of [SOURCE, ORACLE]) {
+    assert(wide.has(f), 'the wide closure reaches ' + f);
+    assert(!compiled.has(f), 'the compile edge does NOT reach ' + f + ' — a path literal is not a load');
+  }
+  assert(![...compiled.keys()].some(f => f.endsWith('.json')), 'no .json data fixture can ever be the measured body');
+});
+
+test('r9 F1 — a successor that pastes the LOADED body refuses, however short that body is', () => {
+  // r9's own control, and the defect it proved: a nine-line wrapper whose loaded module is
+  // five lines, pasted whole into the successor, came back ADMITTED, because the floor was
+  // satisfied by a 7 791-line JSON fixture elsewhere in the closure and the copy test was
+  // measured on that same file. The copy test is asked FIRST now: a paste is evidence
+  // whatever the length, and "too short to tell" is not an answer to it.
+  const PASTE_WRAPPER = 'rebuild/m4/spec/b-ntc-paste-carriers.cjs';
+  const PASTE_MOD = 'rebuild/m4/spec/b-ntc-paste-support.cjs';
+  const pasteModText = ["'use strict';",
+    '// A loaded body of five lines, every one of them long enough to qualify for the floor.',
+    'function theOnlyProgrammeThisCarrierEverRuns(rows) { return rows.length + rows.length; }',
+    'const THE_PINNED_SUPPORT_OF_RECORD = "rebuild/engine/writers.cjs@the-parent-byte";',
+    'module.exports = { run: theOnlyProgrammeThisCarrierEverRuns, THE_PINNED_SUPPORT_OF_RECORD };', ''].join('\n');
+  write(PASTE_WRAPPER, wrapperText.replace('./b-ntc-successors.cjs', './b-ntc-paste-support.cjs'));
+  write(PASTE_MOD, pasteModText);
+  const PASTE_SUCCESSOR = 'rebuild/m4/spec/h3-paste-carriers.cjs';
+  const PASTE_CHILD_MOD = 'rebuild/m4/spec/h3-paste-successors.cjs';
+  write(PASTE_CHILD_MOD, ["'use strict';",
+    "const ORIGINALS = { 'source-carriers': '" + PASTE_WRAPPER + "' };",
+    'const SUBSTITUTIONS = [];',
+    '// The paste: the loaded module copied in, instead of read and compiled privately.',
+    ...pasteModText.split('\n').slice(1, 5),
+    'module.exports = { run(name) { return ORIGINALS[name] + SUBSTITUTIONS.length; } };', ''].join('\n'));
+  write(PASTE_SUCCESSOR, ["'use strict';", "require('./h3-paste-successors.cjs').run('source-carriers');", ''].join('\n'));
+  git('add', '-A'); git('commit', '--quiet', '--allow-empty', '-m', 'the paste control');
+  const pasteCommit = git('rev-parse', 'HEAD').trim();
+  const b = bound();
+  b.reviewedCommit = pasteCommit;
+  b.acceptance.executionPins[PASTE_WRAPPER] = at(PASTE_WRAPPER);
+  b.acceptance.children = [{ name: CHILD, argv: [PASTE_WRAPPER], needle: VERDICT }];
+  const s = spec();
+  s.product[PASTE_SUCCESSOR] = pin(PASTE_SUCCESSOR);
+  s.product[PASTE_CHILD_MOD] = pin(PASTE_CHILD_MOD);
+  s.children = [{ name: CHILD, argv: [PASTE_SUCCESSOR], needle: VERDICT }];
+  s.coverage.successors.parentAcceptanceCommit = pasteCommit;
+  s.coverage.successors.carriers = { [CHILD]: { successor: PASTE_SUCCESSOR, original: PASTE_WRAPPER } };
+  s.coverage.successors.substitutions = [];
+  const pasteRan = new Map([[CHILD, { ok: true, needle: VERDICT, bytes: 400, targets: [PASTE_SUCCESSOR], moved: [] }]]);
+  assert.throws(() => api.successorProof(s, b, pasteRan), /SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT/);
+  // And with the paste removed the SAME carrier refuses on the floor, not on the copy: the
+  // five-line body is below it. The two rules measure the same body, in that order.
+  write(PASTE_CHILD_MOD, ["'use strict';",
+    "const ORIGINALS = { 'source-carriers': '" + PASTE_WRAPPER + "' };",
+    'const SUBSTITUTIONS = [];',
+    'module.exports = { run(name) { return ORIGINALS[name] + SUBSTITUTIONS.length; } };', ''].join('\n'));
+  s.product[PASTE_CHILD_MOD] = pin(PASTE_CHILD_MOD);
+  assert.throws(() => api.successorProof(s, b, pasteRan), /SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD/);
+});
+
+test('r9 F5 — the four SPEC-PHASE refusals of the successor block, measured directly', () => {
+  // r9 shipped these inside spec(), which reads the package file off disk and validates
+  // forty other things first, so no suite could reach them. They are one named function now.
+  const closed = spec(); delete closed.coverage.successors.reviewFileSha256;
+  assert.throws(() => api.successorSpecShape(closed), /SUCCESSOR-BLOCK-KEYS-NOT-CLOSED/);
+  const outside = spec();
+  outside.coverage.successors.substitutions = [{ original: 'rebuild/engine/writers.cjs', from: FROM_SOURCE, to: TO_SOURCE,
+    why: 'the engine under test is not the parent gate programme' }];
+  assert.throws(() => api.successorSpecShape(outside), /SUCCESSOR-SUBSTITUTION-TARGET-SHAPE/);
+  const golden = spec();
+  golden.coverage.successors.substitutions = [{ original: ORACLE, from: FROM_SOURCE, to: TO_SOURCE,
+    why: 'a substitution that reaches a golden the ruling excludes by name' }];
+  assert.throws(() => api.successorSpecShape(golden), /SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE/);
+  // The review shape and its pin stand after the substitution loop, so an empty list reaches
+  // them — and an empty list is also the positive control for everything above.
+  const empty = spec(); empty.coverage.successors.substitutions = [];
+  api.successorSpecShape(empty);
+  const report = spec(); report.coverage.successors.substitutions = [];
+  report.coverage.successors.reviewFile = 'rebuild/lanes/b/BUILD-REPORT-H3.md';
+  assert.throws(() => api.successorSpecShape(report), /SUCCESSOR-REVIEW-FILE-SHAPE/);
+  const unpinned = spec(); unpinned.coverage.successors.substitutions = [];
+  unpinned.coverage.successors.reviewFileSha256 = 'not-a-sha';
+  assert.throws(() => api.successorSpecShape(unpinned), /SUCCESSOR-REVIEW-FILE-SHA256-SHAPE/);
+  // A spec with no successor block at all passes through it untouched — five of the seven.
+  api.successorSpecShape({ coverage: { successors: null } });
+});
+
 test(':147 — every new refusal carries a name in the vocabulary', () => {
   for (const code of ['SUCCESSOR-SUBSTITUTION-TARGET-NOT-IN-THE-PARENT-GATE-CLOSURE',
     'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE', 'SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW',
     'SUCCESSOR-REVIEW-FILE-ABSENT', 'SUCCESSOR-REVIEW-FILE-SHAPE', 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD',
-    'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB'])
+    'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB',
+    // TOOLING-REVIEW-r9's five new ones, F3/F4/C (vi).
+    'SUCCESSOR-REVIEW-FILE-BYTES-NOT-THE-PINNED-REVIEW', 'SUCCESSOR-REVIEW-FILE-NOT-IN-GIT-AT-HEAD',
+    'SUCCESSOR-REVIEW-FILE-NOT-IN-THE-REVIEWS-DIRECTORY', 'SUCCESSOR-REVIEW-FILE-SHA256-SHAPE',
+    'SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT', 'SPEC-SOURCE-BASE-NOT-A-COMMIT',
+    'SPEC-SOURCE-BASE-SHAPE', 'PARENT-ARTIFACT-BYTES'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
 });

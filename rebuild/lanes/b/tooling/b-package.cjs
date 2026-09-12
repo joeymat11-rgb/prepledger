@@ -390,6 +390,14 @@ function ancestor(commit, of, code) {
   try { L.git(root, ['merge-base', '--is-ancestor', commit, of]); return true; }
   catch { throw new Error(code + ' ' + String(commit).slice(0, 12) + ' is not an ancestor of ' + of); }
 }
+// TOOLING-REVIEW-r9 F4. Z6 asks that every refusal carry a name, and one whole class did
+// not: a 40-hex string that is not a commit IN THIS REPOSITORY passed every shape test and
+// then reached Git, which answered "Command failed" — an unnamed runtime error, printed as
+// a bare FAIL. Existence is a question with an answer, so it is asked by name, once, here.
+function commitExists(commit, code) {
+  try { L.git(root, ['rev-parse', '--verify', '--quiet', String(commit) + '^{commit}']); return true; }
+  catch { throw new Error(code + ' ' + String(commit).slice(0, 12) + ' is not a commit in this repository'); }
+}
 // N2/N3. The whole argv of a declared child, decided here and nowhere else: allow-listed
 // flags first, then explicit executable files under fixed roots. In bare-script mode
 // Node runs exactly ONE file: trailing positions are application arguments, not executions.
@@ -532,11 +540,19 @@ function closure(file, enter = () => true) {
 //     privately, the very mechanism `:113 (b)` requires it to use.
 // Both are READ, never executed. The walk is bounded by CLOSURE_LIMIT and by the commit: a
 // path that does not stand there is not in the closure at all.
+//
+// TOOLING-REVIEW-r9 F1 adds the SECOND, NARROWER walk. Two questions are asked of this
+// closure and they are not the same question: "may a substitution land in this file?" is
+// about everything the gate reaches, but "what body does this wrapper LOAD?" is about the
+// COMPILE EDGE alone. `edges === 'require'` therefore follows relative require/import
+// specifiers only — never a path literal, never a `.json` data fixture — which is the edge
+// `:113 (b)` names, and it is what the load floor and the copy test are measured on.
 const PARENT_CLOSURE_LIMIT = 512;
 const PARENT_CLOSURE_EXT = ['', '.cjs', '.js', '.mjs', '.json'];
+const PARENT_CLOSURE_REQUIRE_EXT = ['.cjs', '.js', '.mjs', ''];
 const PARENT_CLOSURE_CACHE = new Map();
-function parentClosure(commit, roots) {
-  const key = commit + '|' + roots.slice().sort().join(' ');
+function parentClosure(commit, roots, edges = 'all') {
+  const key = edges + '|' + commit + '|' + roots.slice().sort().join(' ');
   if (PARENT_CLOSURE_CACHE.has(key)) return PARENT_CLOSURE_CACHE.get(key);
   const blob = f => { try { return L.object(root, commit, f).toString('utf8'); } catch { return null; } };
   const files = new Map(), queue = [...roots];
@@ -552,8 +568,12 @@ function parentClosure(commit, roots) {
       const ref = m[1] || m[2];
       if (!ref || !ref.startsWith('.')) continue;
       const base = path.posix.normalize(path.posix.join(dir, ref));
-      for (const e of PARENT_CLOSURE_EXT) if (blob(base + e) !== null) { queue.push(base + e); break; }
+      for (const e of (edges === 'require' ? PARENT_CLOSURE_REQUIRE_EXT : PARENT_CLOSURE_EXT)) {
+        if (edges === 'require' && (base + e).endsWith('.json')) continue;
+        if (blob(base + e) !== null) { queue.push(base + e); break; }
+      }
     }
+    if (edges === 'require') continue;          // the compile edge only — F1
     for (const m of src.matchAll(/['"](rebuild\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json))['"]/g))
       if (!files.has(m[1])) queue.push(m[1]);
   }
@@ -566,6 +586,10 @@ function parentClosure(commit, roots) {
 // is live, not vacuous. Fixed HERE (W7); a spec can never nominate an exempt path.
 const SUBSTITUTION_FORBIDDEN = ['rebuild/conform/private/', 'rebuild/conform/golden/', 'rebuild/conform/goldens/',
   'rebuild/conform/oracle/'];
+// TOOLING-REVIEW-r9 F3. The one directory a cited successor review may stand in. Fixed here
+// (W7): a package cannot cite its own report or brief as the review that saw its
+// substitutions, and it cannot nominate a directory of its own.
+const REVIEWS_DIR = 'rebuild/lanes/b/reviews/';
 // The LOAD FLOOR: how many trimmed 40+ character lines a body must carry before the copy
 // test can say anything. Fixed here (W7). `:147` moves WHERE it is measured — the body the
 // wrapper loads, not the wrapper — and leaves the number alone.
@@ -810,6 +834,151 @@ function describes(description, sub, paths) {
   if (token.length < 4 || !significant.includes(token)) return false;
   return significant.some(w => w !== token && text.includes(w) && !pathWords.has(w));
 }
+// TOOLING-REVIEW-r9 F5. The SPEC-PHASE shape of the successor block, in its own named
+// function. r9 shipped four refusals here — SUCCESSOR-SUBSTITUTION-TARGET-SHAPE, the
+// spec half of -IS-A-PROTECTED-SURFACE, SUCCESSOR-REVIEW-FILE-SHAPE and
+// SUCCESSOR-BLOCK-KEYS-NOT-CLOSED — that no suite could reach, because spec() reads the
+// package file off disk and validates forty other things first. Nothing about the block
+// changed in the lift: spec() calls it where the block stood.
+function successorSpecShape(s) {
+  if (s.coverage.successors !== null) {
+    assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
+    // r7 F4 adds `rulingLineSha256`: the ruling line is now LOCATED by its own bytes on the
+    // chain branch instead of by a ledger line number (rulingText()).
+    // r7b F-C adds `support` (the path whose supersession makes the successor necessary)
+    // and `wrapper` (the older parent shape's accepted schedule, null where the parent
+    // artifact carries its own children). Everything that was a runner constant naming
+    // B-NTC-as-child now stands here and is verified against bytes no spec writes.
+    // DECISIONS:147 adds `reviewFile`: `:113 (1) (c)` says each substitution is "enumerated
+    // verbatim in the package spec AND IN THE REVIEW", and only the spec half was ever
+    // asserted. The spec cites the review path; the runner reads that file and requires
+    // every `from` and `to` to stand in it verbatim, so a substitution a reviewer never saw
+    // cannot ride in on a spec alone.
+    // TOOLING-REVIEW-r9 F3 adds `reviewFileSha256` beside it: the path alone was a name, and
+    // a name is not custody.
+    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'support', 'wrapper', 'reviewFile', 'reviewFileSha256', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
+      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, support, wrapper, reviewFile, reviewFileSha256, parentAcceptanceCommit, carriers, substitutions');
+    const sup = s.coverage.successors;
+    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING='),
+      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=<the ledger coordinate it stands on>');
+    assert(typeof sup.support === 'string' && /^[a-z0-9][a-z0-9./_-]+$/.test(sup.support), 'SUCCESSOR-SUPPORT-SHAPE ' + JSON.stringify(sup.support));
+    assert(sup.wrapper === null || (typeof sup.wrapper === 'string' && sup.wrapper.length), 'SUCCESSOR-WRAPPER-SHAPE ' + JSON.stringify(sup.wrapper));
+    assert(/^[a-f0-9]{40}$/.test(sup.parentAcceptanceCommit), 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-SHAPE');
+    // THE ADMISSION, and it is the ruling's own bytes on the chain branch — not a constant
+    // in this file and not a word in the spec. Everything below it is reachable only after
+    // the PM's line has named this package, granted a successor, stood on the base
+    // conditions and named the support file this package declares it changes.
+    successorRuling(s);
+    assert(sup.carriers && typeof sup.carriers === 'object' && !Array.isArray(sup.carriers) && Object.keys(sup.carriers).length, 'SUCCESSOR-CARRIERS-UNDECLARED');
+    for (const [name, c] of Object.entries(sup.carriers)) {
+      keys(c, ['successor', 'original'], 'Successor carrier ' + name);
+      assert(typeof c.successor === 'string' && typeof c.original === 'string', 'SUCCESSOR-CARRIER-SHAPE ' + name);
+      // The successor file must be a file a DECLARED child of this package actually runs.
+      assert(s.children.some(ch => childArgv(ch).includes(c.successor)), 'SUCCESSOR-NOT-AN-EXECUTED-CHILD-TARGET ' + name + ' ' + c.successor);
+      assert(c.successor !== c.original, 'SUCCESSOR-IS-THE-ORIGINAL ' + name);
+    }
+    assert(Array.isArray(sup.substitutions), 'SUCCESSOR-SUBSTITUTIONS-UNDECLARED');
+    // r6 change 4 (F3). ":113 (c)" permits ONE kind of substitution — "a pin re-target made
+    // necessary by a declared superseded-by-child product path" — and then ratifies two
+    // further ones by describing them in the ruling text itself ("two at 71fb2f1: the
+    // witnesses exposed-surface deepEqual and the cases mutant-detector target"). The runner
+    // enforced neither: it required each `from` to stand exactly once in a parent-pinned
+    // original (successorProof) and the successor's own table to equal this list, but
+    // nothing asked whether a change was a RE-TARGET at all — so a fourth, unratified
+    // substitution was admitted and caught only by a human reading the spec. Both halves are
+    // decided here, before any child runs. Residual, said out loud: (B) bounds WHICH module
+    // and HOW MANY, not the substance of the text; the substance is still the spec's
+    // enumeration, the parent's own bytes, and the package review.
+    // r7b F-C widens branch (A) from `superseded-by-child` alone to EVERY product pin this
+    // package declares a CHANGE on. ":113 (c)" writes "a pin re-target made necessary by a
+    // declared superseded-by-child product path" because that was the only changing role
+    // B-NTC had over a parent EXECUTION pin; DECISIONS:142 grants H3 the same mechanic over
+    // a parent PRODUCT pin, which this package declares `edited`. Nothing is trusted that
+    // was not already: every pre/post pair below is the parent's own pinned byte and this
+    // package's own post, both re-verified in product() against the parent artifact and the
+    // bytes on disk. A substitution can still only carry images the spec declares and the
+    // runner has independently checked.
+    const superseded = Object.entries(s.product).filter(([, p]) =>
+      (p.role === 'superseded-by-child' || p.role === 'edited') && p.post && p.pre !== p.post);
+    const ruledOriginals = new Set(), usedDescriptions = new Set();
+    for (const sub of sup.substitutions) {
+      keys(sub, ['original', 'from', 'to', 'why'], 'Successor substitution');
+      assert(typeof sub.original === 'string' && typeof sub.from === 'string' && sub.from.length >= 16 &&
+        typeof sub.to === 'string' && sub.to.length >= 16 && sub.from !== sub.to &&
+        typeof sub.why === 'string' && sub.why.trim().length >= 16, 'SUCCESSOR-SUBSTITUTION-SHAPE ' + JSON.stringify(sub.original));
+      // The file a substitution applies to need not be a declared CARRIER's original: a
+      // pin re-target most naturally lands in the support module the carriers share. What
+      // is required of it is stronger and is checked at run time against the parent's own
+      // bytes (successorProof): it must be a file the PARENT pins in executionPins, equal
+      // to that pin and to the Git blob at the parent's acceptance commit.
+      // DECISIONS:147 widens the target shape: a substitution may live in any file of the
+      // parent gate's own source closure, which reaches subdirectories and `.json` data as
+      // well as the flat `.cjs` programmes `:113 (c)` assumed. The root stays
+      // `rebuild/m4/spec/` — the parent's own gate programme — which is NARROWER than
+      // ":147"'s words and is said out loud as such: the closure also reaches
+      // `rebuild/engine/**` and `rebuild/conform/**`, and a re-target over the engine under
+      // test would be a code change wearing a re-target's name. Every file BRIEF-H3 v1.6 §9
+      // measured is under this root. Widen it further only with a reviewed tooling change.
+      //
+      // ":147 — no substitution may reach rebuild/conform/private/**, goldens, or the
+      // private fixture." Asserted by name FIRST — TOOLING-REVIEW-r9 F5 measured that the
+      // root shape below dominated it, so a golden target refused as a SHAPE and the
+      // ruling's own exclusion printed nowhere in the spec phase. The named refusal comes
+      // first in both phases now, and a later widening of the root cannot lose it.
+      assert(!SUBSTITUTION_FORBIDDEN.some(p => sub.original.startsWith(p)),
+        'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE ' + sub.original);
+      assert(/^rebuild\/m4\/spec\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json)$/.test(sub.original) && !sub.original.includes('..'),
+        'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
+      // (A) RE-TARGET. Replacing every superseded-by-child pre-image sha by its own post
+      // turns `from` into `to`; or `from` and `to` differ only inside the one region where a
+      // superseded-by-child PATH stands. Either way the two sides differ only in a path or a
+      // pin THIS SPEC declares superseded, which is exactly what ":113 (c)" permits outright.
+      let pinRetarget = sub.from;
+      for (const [, p] of superseded) if (p.post) pinRetarget = pinRetarget.split(p.pre).join(p.post);
+      const pathRetarget = superseded.some(([file]) => {
+        const parts = sub.from.split(file);
+        return parts.length === 2 && sub.to.length >= parts[0].length + parts[1].length &&
+          sub.to.startsWith(parts[0]) && sub.to.endsWith(parts[1]);
+      });
+      if (pinRetarget === sub.to || pathRetarget) continue;
+      // (B) DESCRIBED BY THE RULING. Not a re-target — so one of the substitutions the
+      // RULING'S OWN BYTES enumerate must be THIS one. r7 F2: r6 asked whether a token of
+      // the module's basename appeared anywhere in the ruling prose, which admitted 8 of
+      // the 17 parent originals; the ruling enumerates two. Each enumerated DESCRIPTION is
+      // matched against this substitution as a closed phrase (describes()), and a
+      // description is CONSUMED when it matches, so the ruling's count is the ceiling.
+      const ruling = rulingText(s), descriptions = ruledDescriptions(ruling);
+      // The paths a word could be naming rather than describing: the module itself, the
+      // carriers' successors and originals, and every declared product path. A word that
+      // stands in one of them says WHERE the change is, not WHAT it is.
+      const paths = [sub.original, ...Object.values(sup.carriers).flatMap(c => [c.successor, c.original]), ...Object.keys(s.product)];
+      const hit = descriptions.findIndex((d, i) => !usedDescriptions.has(i) && describes(d, sub, paths));
+      assert(hit >= 0 && !ruledOriginals.has(sub.original),
+        'SUCCESSOR-SUBSTITUTION-NOT-A-RE-TARGET-AND-NOT-RULED ' + sub.original + '; ' + SUCCESSOR_RULING +
+        ' permits a re-target of a declared superseded-by-child path or pin, and otherwise only the ' + descriptions.length +
+        ' substitution(s) its own text describes, once each');
+      usedDescriptions.add(hit);
+      ruledOriginals.add(sub.original);
+    }
+    // DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE
+    // REVIEW". The spec names the review file; the runner reads it and requires every
+    // `from` and every `to` to stand in it VERBATIM. A substitution a reviewer never saw
+    // cannot enter on the spec's word alone, and a review that quotes three of four
+    // substitutions refuses on the fourth by name.
+    // TOOLING-REVIEW-r9 F3 narrows the shape to the REVIEWS directory and pins the bytes.
+    // The custody half — the file exists, is those bytes, and stands in Git at HEAD — is
+    // re-asserted in successorProof(), which is also where the path root is re-checked so
+    // that neither function depends on the other having run.
+    assert(typeof sup.reviewFile === 'string' && sup.reviewFile.startsWith(REVIEWS_DIR) &&
+      /^rebuild\/lanes\/b\/reviews\/[A-Za-z0-9._-]+\.md$/.test(sup.reviewFile) && !sup.reviewFile.includes('..'),
+      'SUCCESSOR-REVIEW-FILE-SHAPE ' + JSON.stringify(sup.reviewFile) + '; a cited review stands under ' + REVIEWS_DIR);
+    assert(typeof sup.reviewFileSha256 === 'string' && /^[a-f0-9]{64}$/.test(sup.reviewFileSha256),
+      'SUCCESSOR-REVIEW-FILE-SHA256-SHAPE ' + JSON.stringify(sup.reviewFileSha256));
+    // The CONTENT half stands in successorProof(), beside every other fact a substitution is
+    // held to, so one function answers "is this substitution admissible" end to end.
+  }
+}
+
 function spec() {
   specRaw = fs.readFileSync(path.join(SPEC_DIR, ID + '.json'));
   const s = J.parseExact(specRaw); // exact reviewed bytes + duplicate-decoded-key refusal
@@ -833,7 +1002,10 @@ function spec() {
   // cleared nothing, but a verdict file must not carry a word its own evidence denies.
   assert(s.status !== 'BRIEF-ACCEPTED' || s.brief.acceptedLedgerLine !== null,
     'BRIEF-ACCEPTED-WITHOUT-A-CITED-LEDGER-LINE: status says the brief is accepted and brief.acceptedLedgerLine is null');
-  assert(/^[a-f0-9]{40}$/.test(s.sourceBase), 'sourceBase is a commit');
+  // TOOLING-REVIEW-r9 F4. The shape was asked and existence was not, so a 40-hex string
+  // naming no commit refused BARE, four functions later, inside a Git call.
+  assert(/^[a-f0-9]{40}$/.test(s.sourceBase), 'SPEC-SOURCE-BASE-SHAPE; sourceBase is a 40-hex commit');
+  commitExists(s.sourceBase, 'SPEC-SOURCE-BASE-NOT-A-COMMIT');
   // A repair package must register at least one D-id. The only packages allowed an empty
   // inventory are the ones the runner itself names in NO_REGISTER_IDS — the exemption is
   // fixed in this file (W7), so no spec can empty its own inventory to dodge the accounting.
@@ -960,130 +1132,9 @@ function spec() {
   // be one the ruling names and must cite the ruling id. Everything else refuses HERE,
   // before any child runs, and X1's `moves === {}` above is untouched for every package
   // including this one: DECISIONS:113 (1) (a) is explicit that coverage.moves stays {}.
-  if (s.coverage.successors !== null) {
-    assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
-    // r7 F4 adds `rulingLineSha256`: the ruling line is now LOCATED by its own bytes on the
-    // chain branch instead of by a ledger line number (rulingText()).
-    // r7b F-C adds `support` (the path whose supersession makes the successor necessary)
-    // and `wrapper` (the older parent shape's accepted schedule, null where the parent
-    // artifact carries its own children). Everything that was a runner constant naming
-    // B-NTC-as-child now stands here and is verified against bytes no spec writes.
-    // DECISIONS:147 adds `reviewFile`: `:113 (1) (c)` says each substitution is "enumerated
-    // verbatim in the package spec AND IN THE REVIEW", and only the spec half was ever
-    // asserted. The spec cites the review path; the runner reads that file and requires
-    // every `from` and `to` to stand in it verbatim, so a substitution a reviewer never saw
-    // cannot ride in on a spec alone.
-    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'support', 'wrapper', 'reviewFile', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
-      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, support, wrapper, reviewFile, parentAcceptanceCommit, carriers, substitutions');
-    const sup = s.coverage.successors;
-    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING='),
-      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=<the ledger coordinate it stands on>');
-    assert(typeof sup.support === 'string' && /^[a-z0-9][a-z0-9./_-]+$/.test(sup.support), 'SUCCESSOR-SUPPORT-SHAPE ' + JSON.stringify(sup.support));
-    assert(sup.wrapper === null || (typeof sup.wrapper === 'string' && sup.wrapper.length), 'SUCCESSOR-WRAPPER-SHAPE ' + JSON.stringify(sup.wrapper));
-    assert(/^[a-f0-9]{40}$/.test(sup.parentAcceptanceCommit), 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-SHAPE');
-    // THE ADMISSION, and it is the ruling's own bytes on the chain branch — not a constant
-    // in this file and not a word in the spec. Everything below it is reachable only after
-    // the PM's line has named this package, granted a successor, stood on the base
-    // conditions and named the support file this package declares it changes.
-    successorRuling(s);
-    assert(sup.carriers && typeof sup.carriers === 'object' && !Array.isArray(sup.carriers) && Object.keys(sup.carriers).length, 'SUCCESSOR-CARRIERS-UNDECLARED');
-    for (const [name, c] of Object.entries(sup.carriers)) {
-      keys(c, ['successor', 'original'], 'Successor carrier ' + name);
-      assert(typeof c.successor === 'string' && typeof c.original === 'string', 'SUCCESSOR-CARRIER-SHAPE ' + name);
-      // The successor file must be a file a DECLARED child of this package actually runs.
-      assert(s.children.some(ch => childArgv(ch).includes(c.successor)), 'SUCCESSOR-NOT-AN-EXECUTED-CHILD-TARGET ' + name + ' ' + c.successor);
-      assert(c.successor !== c.original, 'SUCCESSOR-IS-THE-ORIGINAL ' + name);
-    }
-    assert(Array.isArray(sup.substitutions), 'SUCCESSOR-SUBSTITUTIONS-UNDECLARED');
-    // r6 change 4 (F3). ":113 (c)" permits ONE kind of substitution — "a pin re-target made
-    // necessary by a declared superseded-by-child product path" — and then ratifies two
-    // further ones by describing them in the ruling text itself ("two at 71fb2f1: the
-    // witnesses exposed-surface deepEqual and the cases mutant-detector target"). The runner
-    // enforced neither: it required each `from` to stand exactly once in a parent-pinned
-    // original (successorProof) and the successor's own table to equal this list, but
-    // nothing asked whether a change was a RE-TARGET at all — so a fourth, unratified
-    // substitution was admitted and caught only by a human reading the spec. Both halves are
-    // decided here, before any child runs. Residual, said out loud: (B) bounds WHICH module
-    // and HOW MANY, not the substance of the text; the substance is still the spec's
-    // enumeration, the parent's own bytes, and the package review.
-    // r7b F-C widens branch (A) from `superseded-by-child` alone to EVERY product pin this
-    // package declares a CHANGE on. ":113 (c)" writes "a pin re-target made necessary by a
-    // declared superseded-by-child product path" because that was the only changing role
-    // B-NTC had over a parent EXECUTION pin; DECISIONS:142 grants H3 the same mechanic over
-    // a parent PRODUCT pin, which this package declares `edited`. Nothing is trusted that
-    // was not already: every pre/post pair below is the parent's own pinned byte and this
-    // package's own post, both re-verified in product() against the parent artifact and the
-    // bytes on disk. A substitution can still only carry images the spec declares and the
-    // runner has independently checked.
-    const superseded = Object.entries(s.product).filter(([, p]) =>
-      (p.role === 'superseded-by-child' || p.role === 'edited') && p.post && p.pre !== p.post);
-    const ruledOriginals = new Set(), usedDescriptions = new Set();
-    for (const sub of sup.substitutions) {
-      keys(sub, ['original', 'from', 'to', 'why'], 'Successor substitution');
-      assert(typeof sub.original === 'string' && typeof sub.from === 'string' && sub.from.length >= 16 &&
-        typeof sub.to === 'string' && sub.to.length >= 16 && sub.from !== sub.to &&
-        typeof sub.why === 'string' && sub.why.trim().length >= 16, 'SUCCESSOR-SUBSTITUTION-SHAPE ' + JSON.stringify(sub.original));
-      // The file a substitution applies to need not be a declared CARRIER's original: a
-      // pin re-target most naturally lands in the support module the carriers share. What
-      // is required of it is stronger and is checked at run time against the parent's own
-      // bytes (successorProof): it must be a file the PARENT pins in executionPins, equal
-      // to that pin and to the Git blob at the parent's acceptance commit.
-      // DECISIONS:147 widens the target shape: a substitution may live in any file of the
-      // parent gate's own source closure, which reaches subdirectories and `.json` data as
-      // well as the flat `.cjs` programmes `:113 (c)` assumed. The root stays
-      // `rebuild/m4/spec/` — the parent's own gate programme — which is NARROWER than
-      // ":147"'s words and is said out loud as such: the closure also reaches
-      // `rebuild/engine/**` and `rebuild/conform/**`, and a re-target over the engine under
-      // test would be a code change wearing a re-target's name. Every file BRIEF-H3 v1.6 §9
-      // measured is under this root. Widen it further only with a reviewed tooling change.
-      assert(/^rebuild\/m4\/spec\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json)$/.test(sub.original) && !sub.original.includes('..'),
-        'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
-      // ":147 — no substitution may reach rebuild/conform/private/**, goldens, or the
-      // private fixture." Asserted by name here as well as by the root above, because the
-      // ruling says it and a later widening of the root must not silently lose it.
-      assert(!SUBSTITUTION_FORBIDDEN.some(p => sub.original.startsWith(p)),
-        'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE ' + sub.original);
-      // (A) RE-TARGET. Replacing every superseded-by-child pre-image sha by its own post
-      // turns `from` into `to`; or `from` and `to` differ only inside the one region where a
-      // superseded-by-child PATH stands. Either way the two sides differ only in a path or a
-      // pin THIS SPEC declares superseded, which is exactly what ":113 (c)" permits outright.
-      let pinRetarget = sub.from;
-      for (const [, p] of superseded) if (p.post) pinRetarget = pinRetarget.split(p.pre).join(p.post);
-      const pathRetarget = superseded.some(([file]) => {
-        const parts = sub.from.split(file);
-        return parts.length === 2 && sub.to.length >= parts[0].length + parts[1].length &&
-          sub.to.startsWith(parts[0]) && sub.to.endsWith(parts[1]);
-      });
-      if (pinRetarget === sub.to || pathRetarget) continue;
-      // (B) DESCRIBED BY THE RULING. Not a re-target — so one of the substitutions the
-      // RULING'S OWN BYTES enumerate must be THIS one. r7 F2: r6 asked whether a token of
-      // the module's basename appeared anywhere in the ruling prose, which admitted 8 of
-      // the 17 parent originals; the ruling enumerates two. Each enumerated DESCRIPTION is
-      // matched against this substitution as a closed phrase (describes()), and a
-      // description is CONSUMED when it matches, so the ruling's count is the ceiling.
-      const ruling = rulingText(s), descriptions = ruledDescriptions(ruling);
-      // The paths a word could be naming rather than describing: the module itself, the
-      // carriers' successors and originals, and every declared product path. A word that
-      // stands in one of them says WHERE the change is, not WHAT it is.
-      const paths = [sub.original, ...Object.values(sup.carriers).flatMap(c => [c.successor, c.original]), ...Object.keys(s.product)];
-      const hit = descriptions.findIndex((d, i) => !usedDescriptions.has(i) && describes(d, sub, paths));
-      assert(hit >= 0 && !ruledOriginals.has(sub.original),
-        'SUCCESSOR-SUBSTITUTION-NOT-A-RE-TARGET-AND-NOT-RULED ' + sub.original + '; ' + SUCCESSOR_RULING +
-        ' permits a re-target of a declared superseded-by-child path or pin, and otherwise only the ' + descriptions.length +
-        ' substitution(s) its own text describes, once each');
-      usedDescriptions.add(hit);
-      ruledOriginals.add(sub.original);
-    }
-    // DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE
-    // REVIEW". The spec names the review file; the runner reads it and requires every
-    // `from` and every `to` to stand in it VERBATIM. A substitution a reviewer never saw
-    // cannot enter on the spec's word alone, and a review that quotes three of four
-    // substitutions refuses on the fourth by name.
-    assert(typeof sup.reviewFile === 'string' && /^rebuild\/lanes\/b\/[A-Za-z0-9._/-]+\.md$/.test(sup.reviewFile) && !sup.reviewFile.includes('..'),
-      'SUCCESSOR-REVIEW-FILE-SHAPE ' + JSON.stringify(sup.reviewFile));
-    // The CONTENT half stands in successorProof(), beside every other fact a substitution is
-    // held to, so one function answers "is this substitution admissible" end to end.
-  }
+  // r7b F-C / DECISIONS:147 / TOOLING-REVIEW-r9 F5. The successor block's spec-phase
+  // shape is one named function, so a suite can measure its refusals directly.
+  successorSpecShape(s);
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
   // DECISIONS:135 (4). `freeze` is the ONE optional authorization: a PM FREEZE line naming
   // the base a seal stands on, cited exactly as owner/contract/theme are and matched the
@@ -1149,7 +1200,9 @@ function option(o) {
     say('PARENT OPTION ' + o.id + ' ' + o.artifact + ' NOT-YET-SEALED (' + o.note + ')'); return null;
   }
   const raw = fs.readFileSync(rel(o.artifact));
-  assert.equal(sha(raw), o.sha256, 'Parent artifact bytes ' + o.id);
+  // TOOLING-REVIEW-r9 F4. One nibble changed in the spec's pin and this refused BARE.
+  assert.equal(sha(raw), o.sha256, 'PARENT-ARTIFACT-BYTES ' + o.id + ' ' + o.artifact +
+    '; the artifact on disk is not the bytes this spec pins');
   // X2 / R3-B, half one. The parent's REVIEW file is where receiptBase comes from, and
   // receiptBase is the base every ledger obligation is resolved at. Unpinned, a spec could
   // hand the runner any review file it liked — r3's C-COMMIT-3 wrote one inside the tooling
@@ -1694,10 +1747,33 @@ function successorProof(s, bound, ran) {
   // `from` and every `to` must stand in it VERBATIM, so a substitution a reviewer never saw
   // cannot enter on the spec's word alone, and a review that quotes three of four refuses
   // on the fourth by name.
+  //
+  // TOOLING-REVIEW-r9 F3. r9 read the cited file off the WORKTREE, unpinned: a review the
+  // package wrote in its own commit was admitted, and so was a path this function never
+  // re-checked (only spec() asked its shape). Custody is now asked here, of Git:
+  //   • the path stands under `rebuild/lanes/b/reviews/` — a REVIEW, never the package's
+  //     own report or brief, and the root is fixed in this file (W7);
+  //   • its bytes are the ones the spec PINS (`reviewFileSha256`), so the file cannot move
+  //     after the spec was reviewed; and
+  //   • those same bytes stand in Git at HEAD, so a review written and never committed —
+  //     or committed and then edited — is not a review.
+  // SAID OUT LOUD, because it is the part that is NOT proved: that the review's AUTHOR is
+  // not the spec's builder is not machine-checkable here. Nothing in the tree records who
+  // wrote a file, and a builder who can commit can commit a review. What is proved is that
+  // a specific, committed, pinned document enumerates every substitution — which is what
+  // `:113 (1) (c)` asks for — not that an independent hand wrote it.
   let reviewText = '';
   if (sup.substitutions.length) {
+    assert(sup.reviewFile.startsWith(REVIEWS_DIR), 'SUCCESSOR-REVIEW-FILE-NOT-IN-THE-REVIEWS-DIRECTORY ' + sup.reviewFile +
+      '; the cited review must stand under ' + REVIEWS_DIR);
     assert(fs.existsSync(rel(sup.reviewFile)), 'SUCCESSOR-REVIEW-FILE-ABSENT ' + sup.reviewFile);
-    reviewText = fs.readFileSync(rel(sup.reviewFile), 'utf8');
+    const reviewBytes = fs.readFileSync(rel(sup.reviewFile));
+    assert.equal(sha(reviewBytes), sup.reviewFileSha256, 'SUCCESSOR-REVIEW-FILE-BYTES-NOT-THE-PINNED-REVIEW ' + sup.reviewFile);
+    let inGit = null;
+    try { inGit = gitSha('HEAD', sup.reviewFile); } catch { inGit = null; }
+    assert.equal(inGit, sup.reviewFileSha256, 'SUCCESSOR-REVIEW-FILE-NOT-IN-GIT-AT-HEAD ' + sup.reviewFile +
+      '; an uncommitted or since-edited review is not custody of anything');
+    reviewText = reviewBytes.toString('utf8');
   }
   for (const sub of sup.substitutions) {
     // ADMISSIBILITY FIRST — is this file a target at all — and only then whether a reviewer
@@ -1722,6 +1798,17 @@ function successorProof(s, bound, ran) {
     const text = bytes.toString('utf8');
     assert.equal(text.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
     assert.equal(text.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
+    // TOOLING-REVIEW-r9 C (vi). A `from` that is the WHOLE FILE is a rewrite wearing a
+    // substitution's name: nothing of the parent's accepted body would survive it, and the
+    // sha anchor above would still hold because it anchors the INPUT. spec() refuses it as
+    // NOT-A-RE-TARGET-AND-NOT-RULED, but that is spec()'s gate and this function must not
+    // depend on the order the two are called in — r9 measured it ADMITTED here. So the
+    // run-phase gate asks it too, of the parent's own bytes: what the substitution does not
+    // replace must still be a body.
+    const remainder = text.split(sub.from).join('').trim();
+    assert(remainder.length >= 40, 'SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT ' + sub.original +
+      '; removing the declared `from` leaves ' + remainder.length + ' byte(s) of the parent\'s accepted body standing, and ' +
+      SUCCESSOR_RULING + ' (c) admits a re-target WITHIN that body, never a rewrite of it');
   }
   const accepted = acceptedVerdicts(s, bound);
   for (const [parentChild, declared] of Object.entries(sup.carriers))
@@ -1771,27 +1858,42 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted, PARENT_C
     .filter(l => l.length >= 40 && !quoted.some(q => q.includes(l) || l.includes(q)));
   // DECISIONS:147. THE FLOOR IS MEASURED ON THE BODY THE WRAPPER LOADS, not on the wrapper.
   // B-NTC's carriers are nine-line wrappers carrying seven qualifying lines each, and they
-  // LOAD `b-ntc-successors.cjs` (242 lines) — which is exactly `:113 (b)`'s own mechanic.
+  // LOAD `b-ntc-successors.cjs` (174 qualifying lines) — exactly `:113 (b)`'s own mechanic.
   // The old floor was calibrated to NATIVE-CARRIERS' large programmes, so BRIEF-H3 v1.6 §9
   // measured `SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD` on all five of B-NTC's carriers
-  // and no child of B-NTC could ever have met it. So: if the declared original does not
-  // itself carry the floor, follow it to the largest body in ITS OWN closure at the parent's
-  // reviewed commit and measure there. The copy test moves with the floor, which makes it
-  // STRONGER, not weaker — the successor must not paste the body it is supposed to load.
+  // and no child of B-NTC could ever have met it.
+  //
+  // TOOLING-REVIEW-r9 F1, BLOCKING, and the fix is the whole point of the rule. r9 took
+  // "the body the wrapper loads" to mean "the fattest body anywhere in the wrapper's
+  // closure", and the closure includes path literals and `.json`: measured against the real
+  // parent, all five B-NTC carriers chose `rebuild/conform/v4/postfix/acceptance-step-
+  // efficacy.json` (7 791 qualifying lines) and NEVER `b-ntc-successors.cjs`. A data fixture
+  // cannot be pasted into a successor, so the copy test — the ONE mechanical proof that the
+  // parent body is LOADED and not PASTED — was inert, and a successor carrying the loaded
+  // module verbatim was admitted. The bodies are now exactly those reached from the original
+  // by the COMPILE EDGE (relative require/import, no path literals, no `.json`), and:
+  //   • the copy test runs over ALL of them, the original included, and names the file;
+  //   • the floor is the largest of them, so a wrapper whose loaded module is itself thin
+  //     still refuses.
+  // The copy test is asked FIRST. A pasted body is evidence whatever its length, and asking
+  // the floor first would answer a paste with "too short to tell" — which is how r9's own
+  // control (9-line wrapper → 5-line loaded body, pasted whole) came back ADMITTED.
+  const loaded = new Map([[original, originalText]]);
+  for (const [f, src] of parentClosure(PARENT_COMMIT, [original], 'require')) loaded.set(f, src);
+  for (const [f, src] of loaded) {
+    const copied = qualify(src).filter(l => body.includes(l));
+    assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
+      copied.length + ' line(s) of ' + f + ', which ' + original + ' loads, stand verbatim in the successor source');
+  }
   let floorFile = original, lines = qualify(originalText);
-  if (lines.length < SUCCESSOR_LOAD_FLOOR) {
-    for (const [f, src] of parentClosure(PARENT_COMMIT, [original])) {
-      if (f === original) continue;
-      const q = qualify(src);
-      if (q.length > lines.length) { lines = q; floorFile = f; }
-    }
+  for (const [f, src] of loaded) {
+    if (f === original) continue;
+    const q = qualify(src);
+    if (q.length > lines.length) { lines = q; floorFile = f; }
   }
   assert(lines.length >= SUCCESSOR_LOAD_FLOOR, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original +
-    '; the largest body in its own closure at ' + PARENT_COMMIT.slice(0, 12) + ' is ' + floorFile + ' with ' + lines.length +
-    ' qualifying line(s), and ' + SUCCESSOR_LOAD_FLOOR + ' are required');
-  const copied = lines.filter(l => body.includes(l));
-  assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
-    copied.length + ' of ' + lines.length + ' line(s) of ' + floorFile + ' stand verbatim in the successor source');
+    '; the largest body it LOADS at ' + PARENT_COMMIT.slice(0, 12) + ' is ' + floorFile + ' with ' + lines.length +
+    ' qualifying line(s) across ' + loaded.size + ' compiled file(s), and ' + SUCCESSOR_LOAD_FLOOR + ' are required');
   // (3) the replacements are exactly the enumerated ones, and nothing else replaces.
   const { table, holder } = successorTable(sources);
   assert.deepEqual(table, sup.substitutions, 'SUCCESSOR-SUBSTITUTION-TABLE-DISAGREES-WITH-THE-SPEC ' + holder);

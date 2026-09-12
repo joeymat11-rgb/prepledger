@@ -691,10 +691,12 @@ an identity:
 2. the successor **names** that original and **does not contain it** — none of the
    original's own long lines may stand verbatim in the successor's source closure, so a
    successor that pastes the body instead of loading it refuses. **`DECISIONS:147`**: the
-   floor of 8 long lines is measured on the body the wrapper actually **loads**, not on the
-   wrapper, so a nine-line wrapper that loads a 242-line module is measured against the
-   module (`SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD` still refuses a successor whose
-   whole reachable closure is too thin to prove anything), and the copy test moves with it;
+   floor of 8 long lines is measured on the body the wrapper actually **loads** — the files
+   reached by a relative `require`/`import`, never a path literal and never a `.json` — so a
+   nine-line wrapper that loads `b-ntc-successors.cjs` is measured against that module's 174
+   qualifying lines (`SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD` still refuses a successor
+   whose loaded bodies are all too thin), and the copy test runs over every loaded body and
+   is asked **first**;
 3. the successor's replacements are exactly the spec's enumerated list: the successor
    states them as one strict-JSON `SUBSTITUTIONS` literal, the runner deep-equals that
    table against the spec's, requires every `from` to stand exactly once in the original
@@ -968,30 +970,48 @@ the text a child must re-target lives in the module those nine lines load. Under
 - **No substitution may reach a protected surface.** `rebuild/conform/private/**`,
   `rebuild/conform/golden/**`, `rebuild/conform/goldens/**` and `rebuild/conform/oracle/**`
   refuse **by name** (`SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE`) before any
-  other question is asked. This is not vacuous: the measured B-NTC closure at
-  `9ad2ecab141753e9e8e74d3a105bd168d5e72286` is 171 files and **does** reach
-  `rebuild/conform/oracle/**`.
+  other question is asked. This is not vacuous: the measured B-NTC closure **does** reach
+  `rebuild/conform/oracle/**`. Its size depends on which carriers a child declares — one
+  source carrier closes over **171** files, the five gate carriers over **175**, the ten
+  spec carriers **180**, all fifteen children **219**, the eighteen `executionPins` **222**
+  (TOOLING-REVIEW-r9 F2, which corrected an earlier sentence attributing 171 to six
+  carriers). Declaring another carrier therefore widens the target set for every
+  substitution — a fact a reviewer must read the carrier list for.
 - **Every substitution must be enumerated verbatim in the review the spec cites**, not only
-  in the spec. `coverage.successors.reviewFile` names a `rebuild/lanes/b/**.md` path; the
-  runner reads it and requires both the `from` and the `to` strings to stand in it
-  (`SUCCESSOR-REVIEW-FILE-ABSENT`,
-  `SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW`). A spec can widen the review's own
-  text no more than it can widen the ruling: the file is the reviewer's, and the spec only
-  points at it.
+  in the spec. `coverage.successors.reviewFile` names a path under
+  `rebuild/lanes/b/reviews/` and `reviewFileSha256` pins its bytes; the runner requires the
+  file to exist, to BE those bytes, and for those same bytes to stand in Git at `HEAD`, and
+  then requires both the `from` and the `to` strings to stand in it
+  (`SUCCESSOR-REVIEW-FILE-SHAPE`, `-SHA256-SHAPE`, `-NOT-IN-THE-REVIEWS-DIRECTORY`,
+  `-ABSENT`, `-BYTES-NOT-THE-PINNED-REVIEW`, `-NOT-IN-GIT-AT-HEAD`,
+  `SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW`). **Said out loud** (r9 F3): that
+  the review's AUTHOR is not the spec's builder is *not* machine-checkable — nothing in a
+  Git tree records who wrote a file. What is proved is that a specific, committed, pinned
+  document enumerates every substitution.
 - **The load floor is measured on the ORIGINAL the wrapper loads.** `proveSuccessor()` still
-  requires ≥ 8 qualifying lines (≥ 40 chars, not one of the declared quoted strings), but
-  when the named original is too thin it walks that file's own parent closure and measures
-  the fattest body it reaches, reporting which file it used. The copy test moves with the
-  floor, so a successor that pastes the **module's** body — not merely the wrapper's — is
-  what `SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT` now catches.
+  requires ≥ 8 qualifying lines (≥ 40 chars, not one of the declared quoted strings). The
+  bodies it measures are those reached from the named original by the **compile edge** —
+  relative `require`/`import` only, never a path literal and never a `.json` data fixture
+  (r9 F1: the first cut took "the fattest body in the closure", which on all five real
+  B-NTC carriers chose a 7 791-line JSON acceptance fixture and made the copy test inert).
+  The **copy test runs over every one of those bodies and is asked FIRST**, naming the file,
+  so a successor that pastes the **module's** body — however short that module is — refuses
+  `SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT`; the floor is then the largest of
+  them, so a wrapper whose loaded module is itself thin still refuses.
+- **A whole-file replacement is not a substitution.** `successorProof()` re-asserts it
+  against the parent's own bytes (`SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT`), so
+  the run-phase gate does not depend on `spec()` having run first (r9 C (vi)).
 
-`test/parent-gate-closure-and-load-floor.test.cjs` (9 cases) builds a B-NTC-shaped fixture —
+`test/parent-gate-closure-and-load-floor.test.cjs` (14 cases) builds a B-NTC-shaped fixture —
 a nine-line wrapper loading a module that requires a reference file, names a source file by
 path literal and reaches an oracle golden — and measures all of it: closure by both edge
 kinds, an H3-shaped spec admitted, an out-of-closure target refused, a protected surface
 refused with the oracle proven to be **in** the closure, the double sha anchor, the review
-clause, the floor on the loaded body, the copy test moved with the floor, and the four new
-codes in `FAIL_CODES`.
+clause and its three custody refusals, the compile edge reaching neither the path literal
+nor any `.json`, r9's own paste control (a nine-line wrapper over a five-line loaded module,
+pasted whole) refusing on the COPY and then on the FLOOR once the paste is removed, a
+whole-file replacement refused at run phase, the four `spec()`-phase refusals measured
+through `successorSpecShape()` (r9 F5), and every new code in `FAIL_CODES`.
 
 **Stated residual.** `parentClosure()` follows `rebuild/…` path literals only for
 `.cjs/.mjs/.js/.json` under the roots the carrier itself reaches; a target a parent gate

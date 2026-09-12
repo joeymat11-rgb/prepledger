@@ -135,6 +135,15 @@ git('config', 'user.name', 'lane-b-fixer5');
 git('add', '-A');
 git('commit', '--quiet', '-m', 'fixture');
 const parentCommit = git('rev-parse', 'HEAD').trim();
+// TOOLING-REVIEW-r9 F3. The cited review is PINNED by the spec and must stand in Git at
+// HEAD, so every case that changes it changes the pin and commits it.
+let REVIEW_SHA = sha(fs.readFileSync(path.join(scratch, REVIEW_FILE)));
+function useReview(text) {
+  write(REVIEW_FILE, text);
+  git('add', '--', REVIEW_FILE);
+  git('commit', '--quiet', '--allow-empty', '-m', 'the review of record');
+  REVIEW_SHA = sha(Buffer.from(text));
+}
 
 // The runner, compiled with exactly ONE literal changed: the chain branch (this fixture's
 // own branch). r7b F-C removed the second — `SUCCESSOR_PARENT_COMMIT` was a constant naming
@@ -202,6 +211,7 @@ const spec = () => ({
     support: SUPPORT,
     wrapper: WRAPPER,
     reviewFile: REVIEW_FILE,
+    reviewFileSha256: REVIEW_SHA,
     parentAcceptanceCommit: parentCommit,
     carriers: { [PARENT_CHILD]: { successor: SUCCESSOR, original: ORIGINAL } },
     substitutions: JSON.parse(JSON.stringify(substitutions)) } },
@@ -297,12 +307,12 @@ test('Z2 — the substitutions are exactly the spec\'s, and nothing else replace
   write(MODULE, moduleText);
   // A spec substitution whose `from` is not in the original at all. DECISIONS:147 asks the
   // review first, so the review is given the same text: this case is about the ORIGINAL.
-  const absent = spec(); absent.coverage.successors.substitutions[0].from = 'const NOT_IN_THE_ORIGINAL_AT_ALL = 1;';
   const reviewBefore = fs.readFileSync(path.join(scratch, REVIEW_FILE), 'utf8');
-  write(REVIEW_FILE, reviewBefore + '  from: const NOT_IN_THE_ORIGINAL_AT_ALL = 1;\n');
+  useReview(reviewBefore + '  from: const NOT_IN_THE_ORIGINAL_AT_ALL = 1;\n');
+  const absent = spec(); absent.coverage.successors.substitutions[0].from = 'const NOT_IN_THE_ORIGINAL_AT_ALL = 1;';
   write(MODULE, moduleText.replace(JSON.stringify(substitutions, null, 1), JSON.stringify(absent.coverage.successors.substitutions, null, 1)));
   assert.throws(() => carry(absent), /SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL/);
-  write(REVIEW_FILE, reviewBefore);
+  useReview(reviewBefore);
   write(MODULE, moduleText);
   // No table at all.
   write(MODULE, moduleText.replace('const SUBSTITUTIONS = ', 'const NOT_THE_TABLE = '));
