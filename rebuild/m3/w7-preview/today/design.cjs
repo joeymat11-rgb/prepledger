@@ -193,6 +193,26 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Report a problem",
   "Copied. Send it to Joe.",
   "Select all and copy, then send it to Joe.",
+  /* N1 (DECISIONS:143). The approved 2026-09-08 nutrition screen shows TARGETS and
+     has no entry on it: the prototype records nothing, so it has no words for
+     recording an intake, for refusing one, for reading one back, or for having no
+     target to show at all. Every sentence below is therefore preview-owned, checked
+     ABSENT from the approved references and PRESENT in a view source: they live in
+     today-app.cjs, which is one, because VIEW_SOURCES is pinned by name in
+     test/design.test.cjs and this build does not own that file. food-model.cjs owns
+     the RULE and names each refusal by code; the wording is the view's. */
+  "Today's intake",
+  "Enter what you actually ate today. Either figure on its own is enough.",
+  "Calories eaten",
+  "Protein eaten",
+  "Record today's intake",
+  "Recording it again replaces today's figures.",
+  "Enter calories, protein, or both. Nothing was recorded.",
+  "Calories are recorded as a whole number between 0 and 20000. Nothing was recorded.",
+  "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
+  "This intake could not be recorded on this device, and no part of it was recorded.",
+  "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.",
+  "Not prescribed. The engine issues no carbohydrate or fat target.",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

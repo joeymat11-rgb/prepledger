@@ -108,6 +108,16 @@ const REQUIRED_INPUTS = Object.freeze([
      is also the module carrying the build-id literal this file injects below, so its
      absence is caught twice. */
   "rebuild/m3/w7-preview/today/problem-report.cjs",
+  /* N1 NUTRITION (DECISIONS:143) - the producer, the projector and the durable lane.
+     A build that lost food-model.cjs would be a page whose stored intake never
+     reaches the engine's dailyLogs; one that lost food-commands.cjs or food-host.mjs
+     would be a page whose nutrition entry writes nowhere. All three are required, and
+     food-host.mjs is reached through a dynamic import (the page opens that lane
+     itself, because today-entry.mjs is pinned on disk by B-NTC), so naming it here is
+     also what proves the bundler really followed it. */
+  "rebuild/m3/w7-preview/today/food-commands.cjs",
+  "rebuild/m3/w7-preview/today/food-model.cjs",
+  "rebuild/m3/w7-preview/today/food-host.mjs",
   "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",

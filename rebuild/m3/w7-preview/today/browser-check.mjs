@@ -201,12 +201,18 @@ try {
   /* review D-2: the unwired entry points say so on Today's own face. A3 wired the
      recovery check-in, so it is no longer one of them: its marker carries the durable
      fact instead, and says NOTHING at all while nothing is recorded. */
-  for (const name of ["nutrition-state", "coach-state"]) {
+  /* N1 does the same for nutrition: this device HAS a food lane, so the marker carries
+     the durable fact and is blank until an intake is recorded. jsdom has no indexedDB,
+     so the pinned view suite still sees "Not wired yet" there - that is the difference
+     between a browser and a test runner, not a difference in the page. */
+  for (const name of ["coach-state"]) {
     const text = (await page.textContent('[data-slot="' + name + '"]')).trim();
     assert.equal(text, "Not wired yet", name + " does not say so on Today's face");
   }
-  assert.equal((await page.textContent('[data-slot="recovery-state"]')).trim(), "",
-    "a blank check-in must be blank on Today's face, never 'none' and never 'not wired'");
+  for (const name of ["recovery-state", "nutrition-state"]) {
+    assert.equal((await page.textContent('[data-slot="' + name + '"]')).trim(), "",
+      "a blank " + name + " must be blank on Today's face, never 'none' and never 'not wired'");
+  }
 
   /* review F1: a spike reading must carry the engine's own note beside it. Checked on a
      second browser profile so it does not disturb the reading above. */

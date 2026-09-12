@@ -26,6 +26,9 @@ const { plainOrDrop } = require("./plain-copy.cjs");
    module and this file only gathers what the page can honestly observe and hands it
    over. Nothing here reads a store, and the control writes nothing at all. */
 const ProblemReport = require("./problem-report.cjs");
+/* N1 (DECISIONS:143) - the nutrition entry's own words, its refusals and the projector
+   the adapter replays a stored food day with. Pure: no DOM, no store. */
+const FoodModel = require("./food-model.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -83,6 +86,30 @@ const NOT_WIRED = "Not wired yet";
    ONE sentence rather than a phone-dependent one this page has no way to choose
    between - it cannot know whose phone it is until the first run has named him, and
    the control has to work before that. Recorded as a REQUESTS line for the PM. */
+/* N1 (DECISIONS:143) - every word the nutrition entry can put on the screen. They are
+   HERE, in a view source, because design.cjs's copy binding reads VIEW_SOURCES and
+   test/design.test.cjs pins that list; food-model.cjs owns the RULE and names each
+   refusal by code, this file owns the wording. All of them are preview-owned: the
+   approved 2026-09-08 nutrition screen shows targets and has no entry on it, so the
+   prototype has no words for recording an intake, refusing one, reading one back, or
+   having no target to show at all. */
+const FOOD_HEAD = "Today's intake";
+const FOOD_LEAD = "Enter what you actually ate today. Either figure on its own is enough.";
+const FOOD_CAL_LABEL = "Calories eaten";
+const FOOD_PRO_LABEL = "Protein eaten";
+const FOOD_SAVE = "Record today's intake";
+const FOOD_SAVED = "Recorded today";
+const FOOD_CORRECTION = "Recording it again replaces today's figures.";
+const FOOD_REFUSED = "This intake could not be recorded on this device, and no part of it was recorded.";
+const FOOD_NO_TARGETS = "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.";
+const FOOD_NOT_PRESCRIBED = "Not prescribed. The engine issues no carbohydrate or fat target.";
+/* One sentence per refusal code, and no code without one. */
+const FOOD_REFUSAL_COPY = Object.freeze({
+  NOTHING: "Enter calories, protein, or both. Nothing was recorded.",
+  CAL_RANGE: "Calories are recorded as a whole number between 0 and 20000. Nothing was recorded.",
+  PRO_RANGE: "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
+});
+
 const PROBLEM_ENTRY = "Report a problem";
 const PROBLEM_COPIED = "Copied. Send it to Joe.";
 const PROBLEM_SELECT = "Select all and copy, then send it to Joe.";
@@ -196,6 +223,61 @@ function mountToday(doc, model, options = {}) {
   const setup = options.setup || null;
   const firstRun = () => !!(setup && typeof setup.firstRun === "function" && setup.firstRun() === true);
 
+  /* N1 - THE FOOD LANE, and why this module opens it rather than boot().
+
+     The four other lanes are opened by today-entry.mjs boot() and injected here. That
+     file is PINNED ON DISK by the merged B-NTC artifact through
+     rebuild/m3/w6/test/local-today-journey.test.mjs PAGE_PINS, so it cannot gain a
+     fifth lane until DECISIONS:154 (5) unpins it. N1 therefore takes the same
+     injection point for its tests (`options.food`) and, when the page was given none,
+     opens its own lane from here - once, asynchronously, and failing CLOSED: a device
+     that will not give this page an encrypted store keeps exactly the screen it has
+     today, says "not wired yet" as it always has, and records nothing. That is why
+     every jsdom mount in this repository is unchanged by N1: jsdom has no indexedDB.
+
+     The lane object is a READER plus a writer, never a store: `rows()` is synchronous
+     because the adapter's projector is, and it is refreshed from the durable log after
+     every write rather than from the screen's own memory. */
+  let foodLane = options.food || null;
+  let foodOpening = null;
+  let foodSaving = null;
+  if (foodLane && typeof model.setFoodDays === "function") model.setFoodDays(foodLane);
+
+  function foodEntryFor(host, rows) {
+    let cache = rows;
+    return {
+      host,
+      rows: () => cache,
+      async refresh() { cache = await host.all(); return cache; },
+      async save(day) {
+        const result = await host.save(day);
+        if (result && result.ok) await this.refresh();
+        return result;
+      },
+      close() { host.close(); },
+    };
+  }
+
+  function openFoodLane() {
+    if (foodLane || foodOpening) return foodOpening;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) return null;
+    foodOpening = Promise.resolve()
+      .then(() => import("./food-host.mjs"))
+      .then((module) => module.createFoodHost({ day: model.today, indexedDB: idb, crypto: web }))
+      .then(async (host) => {
+        const lane = foodEntryFor(host, await host.all());
+        foodLane = lane;
+        if (typeof model.setFoodDays === "function") model.setFoodDays(lane);
+        if (screen === "today" || screen === "nutrition") render(screen, false);
+        return lane;
+      })
+      .catch(() => { foodLane = null; return null; });
+    return foodOpening;
+  }
+
   let screen = "today";
   /* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. The check-in is reachable
      from two places, and "back" from it must not silently move the athlete: entered
@@ -306,7 +388,13 @@ function mountToday(doc, model, options = {}) {
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
         + " · " + (sessionState || "Your set targets are ready"));
 
-    for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
+    /* N1 - the nutrition entry says what the DURABLE record says once this device has
+       a food lane, and keeps A1's unwired marker until it does. With no lane there is
+       nothing to record and nothing to report, which is the state the marker has
+       always described. Written straight, like the check-in's, so a day with nothing
+       recorded says NOTHING rather than a placeholder the athlete never entered. */
+    map.get("nutrition-state").textContent = plainOrDrop(nutritionState(), "nutrition-state");
+    put(map, "coach-state", NOT_WIRED);
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
@@ -443,8 +531,19 @@ function mountToday(doc, model, options = {}) {
   }
 
   /* ---------------- entry points that are NOT wired ---------------- */
+  /* H3 HONESTY, AT THE ONE SCREEN THAT ONLY PAINTS TARGETS (DECISIONS:124 / :142).
+     The engine cannot produce a calorie band or a protein target for a clean-init
+     athlete yet: energyBalanceTarget and proteinTarget do not return a blocked view,
+     they THROW on his state. This screen therefore reads defensively - an unreadable
+     view is NO FIGURE and the reason, never a zero and never a stack trace - so that
+     his intake entry below is still usable on the day he finishes setup. When H3
+     lands this branch simply stops being taken. */
+  function readOrNoTargets() {
+    try { return model.read(); }
+    catch (_) { return { blocked: true, blockedCopy: null }; }
+  }
   function renderNutrition(focus) {
-    const view = model.read();
+    const view = readOrNoTargets();
     const root = template("t-nutrition");
     const map = slots(root);
     const host = map.get("macros");
@@ -479,9 +578,90 @@ function mountToday(doc, model, options = {}) {
       row.append(top, note);
       host.append(row);
     }
-    put(map, "stub-note", "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.");
+    /* N1 - the entry, and the one sentence under it.
+
+       WITHOUT A FOOD LANE this screen is exactly the screen that shipped before N1,
+       including its own "not wired yet" sentence: a device that could not open an
+       encrypted store has nothing to record into, and saying the feature is unbuilt is
+       the sentence this page has always used there. With the lane open the screen
+       records, and the sentence is N1's own. */
+    if (!foodLane) {
+      put(map, "stub-note", "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.");
+      openFoodLane();
+    } else {
+      /* H3 HONESTY (N1.11, DECISIONS:124 / :142). Before H3 lands, the engine has no
+         calorie band and no protein target for a clean-init athlete: proteinTarget and
+         energyBalanceTarget both throw on his state, so this screen paints NO FIGURE
+         and says why. The entry below still records - his intake is his fact, and the
+         target is the engine's. This branch flips to the figures the moment the
+         engine can produce them; nothing here has to change for it. */
+      put(map, "stub-note", view.blocked ? FOOD_NO_TARGETS : FOOD_NOT_PRESCRIBED);
+      foodEntry(map);
+    }
     wire(root);
     show(root, focus);
+  }
+
+  /* N1 - TODAY'S INTAKE. Two optional boxes, one primary action, and a read-back that
+     comes from the PROJECTED engine state rather than from what was typed. Every
+     refusal is the page's own sentence and is decided before anything is written; no
+     value is ever clamped into range. A second save for the same day is a CORRECTION:
+     it writes a NEW operation and the projector takes the latest for that date. */
+  function foodEntry(map) {
+    const section = map.get("food-entry");
+    if (!section) return null;
+    section.hidden = false;
+    put(map, "food-head", FOOD_HEAD);
+    put(map, "food-lead", FOOD_LEAD);
+    put(map, "food-cal-label", FOOD_CAL_LABEL);
+    put(map, "food-pro-label", FOOD_PRO_LABEL);
+    put(map, "food-save-label", FOOD_SAVE);
+    const error = map.get("food-error");
+    const recorded = map.get("food-recorded");
+    const cal = map.get("food-cal");
+    const pro = map.get("food-pro");
+    error.textContent = "";
+    /* What the ENGINE holds for today, after the replay. A day with nothing recorded
+       says nothing at all - it is never a zero (writers.cjs's own rule, N1 1.2). */
+    const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
+    const has = logged && (logged.cal !== null || logged.pro !== null);
+    recorded.textContent = has
+      ? plainOrDrop(FOOD_SAVED + " · " + intakeLine(logged) + " " + FOOD_CORRECTION, "food-recorded")
+      : "";
+    recorded.hidden = !has;
+    const save = map.get("food-save");
+    save.addEventListener("click", () => { foodSaving = recordIntake(save, cal, pro, error); });
+    return section;
+  }
+  /* The write itself, kept as a named async function so the click handler can hand the
+     in-flight promise to `foodPending()`: a durable write is several turns of the
+     event loop and a check that polls the log needs to know when it has settled. */
+  async function recordIntake(save, cal, pro, error) {
+    {
+      const entry = { cal: cal.value, pro: pro.value };
+      const refusal = FoodModel.refusalFor(entry);
+      if (refusal) {
+        error.textContent = plainOrDrop(FOOD_REFUSAL_COPY[refusal] || FOOD_REFUSED, "food-error");
+        return;
+      }
+      const dayValues = FoodModel.dayFromEntry(entry);
+      save.disabled = true;
+      let result = null;
+      try { result = await foodLane.save(dayValues); }
+      finally { save.disabled = false; }
+      if (!result || result.ok !== true) {
+        error.textContent = plainOrDrop(FOOD_REFUSED, "food-error");
+        return;
+      }
+      render("nutrition", false);
+    }
+  }
+  /* The recorded figures, in the engine's own units, and only the ones it holds. */
+  function intakeLine(logged) {
+    const parts = [];
+    if (logged.cal !== null) parts.push(amount(logged.cal) + " kcal");
+    if (logged.pro !== null) parts.push(amount(logged.pro) + " g protein");
+    return parts.join(" · ");
   }
 
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
@@ -606,6 +786,15 @@ function mountToday(doc, model, options = {}) {
 
   /* A3 — Today's one-line report on the check-in. It reads the DURABLE lane, never a
      flag this page sets, and says nothing at all when nothing is recorded. */
+  /* N1 - Today's one word about the nutrition entry. It reads the PROJECTED engine
+     state, never a flag this page sets: with no lane it is A1's unwired marker, with a
+     lane and nothing recorded it is silent, and with a recorded day it says so. */
+  function nutritionState() {
+    if (!foodLane) { openFoodLane(); return NOT_WIRED; }
+    const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
+    return logged && (logged.cal !== null || logged.pro !== null) ? FOOD_SAVED : "";
+  }
+
   function recoveryState() {
     const summary = checkinSummary();
     if (!summary || summary.durable !== true) return CHECKIN_NO_STORE_SHORT;
@@ -699,7 +888,8 @@ function mountToday(doc, model, options = {}) {
     return found ? found[1] : null;
   }
   render(requestedScreen() || "today");
-  return { render, read: () => model.read(), openWeighIn, screen: () => screen };
+  return { render, read: () => model.read(), openWeighIn, screen: () => screen,
+    foodPending: () => foodSaving, foodReady: () => foodOpening };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
@@ -711,4 +901,6 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
   CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE,
   SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded,
-  PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT };
+  PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT,
+  FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
+  FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY };
