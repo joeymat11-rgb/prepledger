@@ -37,4 +37,11 @@ Executed: `chest -> mg=chest`, `back -> mg=back`, `shoulders -> mg=delts`, `core
 6. Brief 3.1's "two primary actions and nothing else to read" is looser in practice: the standard-start block and the empty day lists sit beneath the doors. S34 passes; the shape is the owner's to judge.
 7. The branch was cut from the tip and the tip had not moved at fetch; the integrator re-pins and re-runs.
 
+## Round 2 (delta bb2640c)
+Base **d9fee35**. `git diff --stat e67fde6..bb2640c -- rebuild/m3` is **one file**, `test/setup.test.mjs` (+12/-2); the rest of the delta is docs plus lane B's own ledger lines from the rebase. Worktree clean.
+**C1 CLOSED.** Served page is pid 48880; the intent line is in the served `app.js`. Against a build run in this reviewer's own worktree, `index.html` (207b6bb0…) and `styles.css` (fe551a90…) are byte-identical; `app.js` differs by **24 bytes**, all four of them esbuild module-banner paths for `@noble/hashes` files the builder's worktree reaches via `../../m3-w6-browser-bridge/`. It touches no page-owned module, and P1's guard re-run by this reviewer on the SERVED bytes gives 112 banners / **25 owned** / **0 offences** / 904 frozen strings admitted, identical to the fresh build's line.
+**C2 CLOSED.** Brief 4.2 deletes the false clause and tables the per-kind sizes (UPPER 8 lifts / 24 sets at every count; LOWER 8/24 at `D <= 2`, **5 / 15** at `D >= 3`), with both reasons not to "fix" it. S32 now sums `r.sets` and pins 24 / 24 / 15. Re-run: **setup 145/145/0, catalogue 43/43/0**.
+**C4 CLOSED.** Brief section 1 names `today-bindings.mjs` (+11/-2), `today-entry.mjs` and the journey re-pin, and that the other three pins stay byte-identical. **C5 CLOSED**: the report carries OWNER LOOK NOTES naming the apostrophe. **C3 stays OPEN as a residual** for the lane lead's REQUESTS line to the PM; no such line is on the tip yet and the code is unchanged and right.
+**FINAL VERDICT ACCEPT at bb2640c.** Residuals 1-7 above stand, with C3 and C6 (the S44 hand test) added to them.
+
 OWNER LOOK: pending (PM).

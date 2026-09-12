@@ -276,3 +276,59 @@ The three files outside the brief's ADD/EDIT lists, judged:
 
 `S44`, the hand test: a human run through both doors. This reviewer is not a person and
 did not perform it. CI both OS: this reviewer does not push. No phone run.
+
+---
+
+## 13. Round 2 (delta bb2640c) - evidence
+
+Candidate @ **bb2640c**, base **d9fee35**. `git diff --stat e67fde6..bb2640c -- rebuild/m3`
+is **one file, `test/setup.test.mjs`, +12/-2**; everything else in the delta is docs (the
+brief's two amendments, the report, this reviewer's two round-1 files carried onto the
+branch) plus lane B's own `DECISIONS`/`REQUESTS`/`STATUS` lines picked up in the rebase.
+`git status --short` empty at start and end.
+
+**C1 CLOSED.** `serve.mjs` is now pid 48880 and this reviewer compared the served bytes
+against a build run in its OWN worktree:
+
+```
+index.html  fresh 21380  207b6bb02b7ac651 | served 21380  207b6bb02b7ac651 | IDENTICAL true
+styles.css  fresh 175055 fe551a904643e8d2 | served 175055 fe551a904643e8d2 | IDENTICAL true
+app.js      fresh 1429756 e74d9352...     | served 1429780 4d00aa72...     | IDENTICAL false
+   intent line in served app.js: TRUE | in fresh app.js: TRUE
+```
+
+The `app.js` difference is **24 bytes and entirely cosmetic**: four esbuild module-banner
+paths for `@noble/hashes` files under `rebuild/m3/w6/node_modules`, which the builder's
+worktree reaches through a `../../m3-w6-browser-bridge/` relative path and this
+reviewer's resolves directly. It matters only because `plain-copy.cjs`'s build guard
+attributes string literals by those banners, so this reviewer re-ran the guard on the
+SERVED bytes:
+
+```
+served bundle: banners 112 , banners owned by today/ 25
+banners carrying the bridge prefix: 4 ; any of them a today/ module: FALSE
+P1 guard re-run on the SERVED bundle: offences 0 , frozen strings admitted 904
+```
+
+All 25 page-owned modules are attributed, none of the four bridged banners is a `today/`
+module, and the guard's numbers on the served bytes are identical to the fresh build's
+line. The stale-bundle finding is closed and nothing about it weakened the dash guard.
+
+**C2 CLOSED.** Brief 4.2 now deletes the false clause and states the per-kind sizes in a
+table (UPPER 8/24 at every day count; LOWER 8/24 at `D <= 2` and **5 lifts / 15 sets** at
+`D >= 3`), names the catalogue `kinds` that make it so, and records both reasons this
+reviewer gave for not "fixing" it: a second lower major lift would read 18 sets, HIGH,
+and 4.3 is per bucket and unaffected. The one code hunk is the S32 assertion, which now
+sums `r.sets` and pins 24 for upper at every count, 24 for lower at `D_L <= 2` and 15 at
+`D_L >= 3`. Re-run here: **setup 145 / 145 / 0, catalogue 43 / 43 / 0.**
+
+**C4 CLOSED.** Brief section 1 carries an AMENDED paragraph naming `today-bindings.mjs`
+(+11/-2, with the reason that `save()` is what carries the payload), `today-entry.mjs`
+and the journey `PAGE_PINS` re-pin, and stating that the other three pins stay
+byte-identical.
+
+**C5 CLOSED.** `A4B-REPORT.md` carries an OWNER LOOK NOTES section naming the straight
+apostrophe in the F1 sentence against the curly one everywhere else on screen 2.
+
+**C3 remains open as a residual**, correctly: it is a REQUESTS line for the lane lead to
+the PM and no such line is on the tip yet. The code is unchanged and right.
