@@ -1,6 +1,14 @@
 # N1 NUTRITION ENTRY - REPORT
 
-Branch `rebuild/lane-c-n1`, rebased onto `origin/rebuild/t2-client-core` @ `05b73e2` (catalogue heads merged, :170) - CLEAN, no conflict. Brief `N1-NUTRITION-BRIEF.md` (DECISIONS:143 + :154 (7)). Evidence: `N1-REPORT-ANNEX.md`.
+Branch `rebuild/lane-c-n1`, rebased onto `origin/rebuild/t2-client-core` @ `63f3a1c` - CLEAN, no conflict. Brief `N1-NUTRITION-BRIEF.md` (DECISIONS:143 + :154 (7)). Evidence: `N1-REPORT-ANNEX.md`.
+
+## D2 ROUND 2 - R2-1, COMMIT AND READ-BACK (review `08d75c7`, candidate `ae26fee`)
+
+D2 closed findings 1, 3 and 4 and isolated what remained: `foodEntryFor.save` awaited `refresh()` AFTER the client had already acknowledged the operation, so a read that failed rejected out of `save`, out of `recordIntake` and into the event promise. The op was durable and the screen said nothing at all. Reproduced at D2's own bytes: RED **4 fail / 52 pass** with `today-app.cjs`, `design.cjs` and the template stashed; GREEN **56 / 0**.
+
+**A COMMIT AND A READ ARE TWO OUTCOMES, and the screen now says which one failed.** `save` still awaits the read-back, but reports it: an acknowledged result comes back with `readBack: true`, or `readBack: false` and the read's own `readCode`. `recordIntake` cannot reject - `await foodLane.save(...)` is wrapped, so a lane that throws is an **UNKNOWN** outcome and is said to be unknown, never "no part of it was recorded". On `readBack: false` the acknowledgment is kept and rendered **from the committed operation** (`Recorded today · 1,800 kcal`), the read failure is named beside it with the store's own reason and `FOOD_READ_ACTION`, and what he typed is put back into both boxes. A new `data-slot="food-retry"` control (`text-link`, hidden until there is a failed read) calls `retryFoodRead()`, which reads the durable log again and **submits no intake**: on success the read-back state clears and the screen goes back to the record; on failure only the reason changes. Every sentence is dash free, figure free, declared in `design.cjs` and rendered through `plainOrDrop`.
+
+Cells (all RED at `ae26fee`): `D2.R2 - an ACKNOWLEDGED intake whose read-back fails stays on screen, with a retry` (real `createFoodHost`, one committed op asserted in the repository, the event promise asserted NOT to reject, then the retry read asserted to write nothing and restore the normal record); `D2.R2 - a save whose outcome is UNKNOWN says unknown, and never that nothing was stored`; `D2.R2 - the page own lane reports the read-back failure instead of throwing it`; `D2.R2 - the new sentences are declared, dash free, and carry no figure`.
 
 ## WHAT WAS MISSING, AND WHAT N1 ADDS
 
@@ -10,17 +18,9 @@ Three new modules. `food-commands.cjs` - the producer: one `fact`/`food-day` op,
 
 ## D2 ROUND 1 - THE THREE BLOCKING FINDINGS (review `a7c91a1`, candidate `25650f8`)
 
-Every finding reproduced first, at D2's own bytes. RED was measured by stashing ONLY the four product files and running the suite with the new cells present: **7 fail / 45 pass**. GREEN at this head: **52 pass / 0 fail**.
-
-**1 (P1, N1.11) - the protein save/replay CRASH. CONFIRMED and fixed in the projector.** `writeDaily` merges the day and then, for any day carrying `pro`, consults the OWED LEDGER through `proteinTarget(s)` (`energy.cjs`), which THROWS on a clean-init state. A protein intake was durably written and then took the whole projection, and the screen, down with it. `food-model.cjs` now has `foodProjection(state, rows, engine)`: each row goes through the engine's writer inside a try, `next` advances only on a writer that RETURNED (so nothing is half applied), and a refused date is NAMED in `unavailable` rather than thrown. `today-model.cjs` exposes `recordedFood(date)` (the winning op, with its stamp) and `foodUnavailable(date)`. The screen shows his own recorded figures off the operation plus `FOOD_KEPT_UNREADABLE`, which says the ledger will not open without a body-composition estimate, that nothing is lost, and that the figures appear when it exists. **Nothing is dropped and no engine target is fabricated.** Cells: `D2.1 - a clean-init athlete can record PROTEIN: kept, replayed, read back` (real entry, protein-only then calories+protein, host closed and REOPENED, read back) and `D2.1 - the projector NAMES the days the engine refused, and never throws`.
-
-**3 (P2, screen state 6) - refusals were not actionable. CONFIRMED and fixed.** Three paths, three fixes, each saying WHAT was refused, WHY in the words of whatever refused it, and WHAT TO DO. (a) `openFoodLane` no longer swallows the cause: it records `error.code || error.message`, or `NO_LOCAL_STORE` when the device offers no store, and repaints. (b) The no-store note now LEADS with `FOOD_NO_STORE` + the store's own reason. (c) A save refusal prints `FOOD_REFUSED` + the client's own `copy` (verbatim, never reworded) or the `code` it named + `FOOD_REFUSED_ACTION`, and the boxes are deliberately NOT re-rendered, so everything entered is still there. A lane that opened INTO a refusal (`host.openedRefusal`, the restore-required case) says so before he types. Cells: `N1.16 / D2.3`, `D2.3 - a store refusal says WHAT, WHY in the store own words, and WHAT TO DO` (closed case through the real composition + a client sentence carried verbatim), `D2.3 - a store that REFUSES TO OPEN says its reason`.
+RED then was **7 fail / 45 pass** with the four product files stashed; GREEN 52/0. **1** - `writeDaily` consults the owed ledger through `proteinTarget` for any day carrying `pro` and throws on a clean-init state; `food-model.cjs foodProjection()` now advances state only on a writer that RETURNED and NAMES the refused dates, `today-model.cjs` exposes `recordedFood()` and `foodUnavailable()`, and the screen shows his own figures off the winning operation with the reason the ledger is shut (cells `D2.1 ...`). Nothing is dropped and no engine target is fabricated. **3** - `openFoodLane` keeps the cause, the no-store note leads with what cannot happen and why, and a save refusal carries the client's own copy verbatim (or its code) plus the action with the boxes kept (cells `N1.16 / D2.3`, `D2.3 ...`). **4** - `provenanceLine(row)` renders the stored effective time and offset of the winning operation (cell `D2.4 ...`). **2** withdrawn, **5** resolved. D2 verified all three closed.
 
 **3, CUSTODY DISCLOSURE.** D2 asked for the false unbuilt-feature copy to go. `rebuild/m3/w7-preview/today/test/view.test.mjs` is PINNED ON DISK by the merged B-NTC artifact (`B-NTC.json` product, `f0d4e66a...`) and asserts `/not wired yet/` on this screen; removing the sentence turned the gate red and I reverted that edit rather than touch a pinned file. The sentence is kept BYTE-IDENTICAL, demoted to LAST, and is still true of what it now describes: the full nutrition PLAN behind the tile is unbuilt, which is exactly what Today's own `NOT_WIRED` marker says. The athlete reads the actionable sentence first; a cell pins the ordering. Lifting it needs the PM to unpin `view.test.mjs` (DECISIONS:154 (5) territory).
-
-**4 (P2, screen state 5) - provenance absent. CONFIRMED and fixed.** `foodDaysIn` always kept `date/time/offset`; the DOM printed only "Recorded today" and the totals. `provenanceLine(row)` now renders the STORED effective stamp of the WINNING operation and invents nothing the log does not hold. Browser-measured: `Recorded today at 08:00 (local offset -05:00) · 2,100 kcal · 150 g protein`. Cell: `D2.4 - the recorded line carries the STORED effective time and offset` (a correction, then a REOPEN off the durable log).
-
-**2 (withdrawn)** and **5 (resolved)** are recorded as D2 left them; no change was made for either.
 
 ## THE PINNED-FILE CONSTRAINT, AND WHAT IT FORCED
 
@@ -30,18 +30,18 @@ The lane is opened lazily and FAILS CLOSED, so every jsdom mount in this reposit
 
 ## COUNTS (Windows, on this head)
 
-today step as written **164** / setup **157** / catalogue **57** / problem **25** / copy **36** / **food 52** (46 + 6 D2 cells) / W6 **552** / journey **51** (PAGE_PINS unmoved) / A0 host **32** / coach **201**, all 0 fail. Combined serial today + coach + W6 + host: **1276 / 1276**.
+today step as written **164** / setup **157** / catalogue **57** / problem **25** / copy **36** / **food 56** (46 + 6 round-1 + 4 round-2 cells) / W6 **552** / journey **51** (PAGE_PINS unmoved) / A0 host **32** / coach **201**, all 0 fail. Combined serial today + coach + W6 + host: **1280 / 1280**.
 
     B PACKAGE B-NTC PUBLIC CI EVIDENCE PASS - public evidence only, NOT the package verdict
     A1 TODAY BUILD PASS: 3 assets; 107 pinned inputs (13 engine, 12 client); build
-    earned-cada43f69750; approved design pinned; 68 bound classes; no em/en dash in any
+    earned-aef1e9fd5dc1; approved design pinned; 68 bound classes; no em/en dash in any
     text the athlete can see
 
 Six msedge checks PASS at this head (`browser-check`, `dash-check`, `setup-check`, `checkin-check`, `gym-check`, `food-check`), `food-check.mjs` across **3 REAL PROCESS KILLS** (`taskkill /F /T`, each verified dead) and now printing the provenance line above. **Twelve mutants P1-P12 executed and killed**, restored; table in the annex.
 
 ## PREFLIGHT, NAMED (DECISIONS:155 (6), self-check)
 
-1. `git status --porcelain` and `git diff --stat 05b73e2..HEAD` - diff inside custody.
+1. `git status --porcelain` and `git diff --stat 63f3a1c..HEAD` - diff inside custody.
 2. The ten `node --test` count commands above, plus `node --test "rebuild/coach/test/*.test.cjs"`, run from the worktree root (annex section 2 lists them verbatim).
 3. `node rebuild/m3/w7-preview/today/build.mjs` - build PASS at the exact head.
 4. `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` - the gate ALONE, clean before and after.
