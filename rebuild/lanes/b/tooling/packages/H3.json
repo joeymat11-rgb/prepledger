@@ -8,7 +8,7 @@
     "sha256": "73bbce7c7c1db4e2d022a45b0338a2f4065897001f7e9470ccb6ed6d1edfca1c",
     "acceptedLedgerLine": null
   },
-  "sourceBase": "b8d5cc7f9cdbfee07fb5c10716c3bd8bc014ee00",
+  "sourceBase": "c6028367d6c061b39607945eefecb952b2e0d914",
   "dIds": [],
   "laws": {},
   "carriedAcceptedIds": [
@@ -21,15 +21,15 @@
   ],
   "privateLiveTriggered": [],
   "parent": {
-    "decided": true,
-    "chosen": "B-NTC",
+    "decided": false,
+    "chosen": null,
     "options": [
       {
         "id": "B-NTC",
         "artifact": "rebuild/m4/spec/acceptance-b-ntc-native-trend-context.json",
-        "sha256": "1588567a55d1d5a991ef6ea7c26b9f6ecae1594bf0844ac23eb9fed422adeb17",
+        "sha256": null,
         "review": "rebuild/m4/spec/review-b-ntc-native-trend-context.json",
-        "reviewSha256": "609d25cad5f65bb7234e2984c23f58575a719f50ae0c5228ddb15aa7331f4960",
+        "reviewSha256": null,
         "receiptLedgerLine": null,
         "note": "TBD. DECISIONS:124 rules M2-H3-CLEAN-INIT a child of M2-B-NTC, ORDER B-NTC → H3 → B1 → B2 → B4 → B3. B-NTC is not sealed, so sha256, reviewSha256 and receiptLedgerLine are taken when B-NTC is sealed and receipted, and not before. This skeleton takes none of them."
       }
@@ -306,7 +306,7 @@
       "role": "carried"
     },
     "rebuild/m4/workout/athlete-state.cjs": {
-      "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
+      "pre": "318357b199bb782d1714b2b1baa193bacfc10d37fb4ef081d9b6c42f394dd1cb",
       "post": "318357b199bb782d1714b2b1baa193bacfc10d37fb4ef081d9b6c42f394dd1cb",
       "role": "new"
     },
