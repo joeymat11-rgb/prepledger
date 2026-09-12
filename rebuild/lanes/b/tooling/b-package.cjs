@@ -823,7 +823,20 @@ function spec() {
     }
   }
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
-  keys(s.authorizations, ['owner', 'contract', 'theme', 'review'], 'Closed authorization keys');
+  // DECISIONS:135 (4). `freeze` is the ONE optional authorization: a PM FREEZE line naming
+  // the base a seal stands on, cited exactly as owner/contract/theme are and matched the
+  // same way in sealOnTheTip(). Optional so that every spec that does not need one — all of
+  // them, on a branch that carries the tip — keeps the closed four it already has, and so
+  // that adding the key changes no sealed artifact's bytes.
+  const authKeys = Object.keys(s.authorizations).sort();
+  assert(authKeys.every(k => ['owner', 'contract', 'theme', 'review', 'freeze'].includes(k)),
+    'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
+  keys({ ...s.authorizations, freeze: null }, ['owner', 'contract', 'theme', 'review', 'freeze'], 'Closed authorization keys');
+  if (s.authorizations.freeze) {
+    claim(s.authorizations.freeze, 'cowork', 'freeze');
+    assert(/\bFREEZE\b/.test(s.authorizations.freeze.line) && /\b[a-f0-9]{40}\b/.test(s.authorizations.freeze.line),
+      'SEAL-FREEZE-LINE-SHAPE; a freeze citation must say FREEZE and name a 40-hex base commit');
+  }
   claim(s.authorizations.owner, 'owner', 'owner'); claim(s.authorizations.contract, 'cowork', 'contract');
   if (s.authorizations.theme !== null) {
     claim(s.authorizations.theme, 'cowork', 'theme');
@@ -1576,6 +1589,122 @@ function proposed(s, bound) {
 const ARTIFACT_KEYS = ['version', 'lanePackage', 'packageId', 'sourceBase', 'parent', 'spec', 'runner', 'dIds', 'laws', 'carriedAcceptedIds',
   'privateLiveTriggered', 'gates', 'coverage', 'authorizations', 'product', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
   'children', 'artifact', 'executionPins'];
+// DECISIONS:135 (4) SEAL ON THE TIP, ENFORCED — "the seal runner refuses to seal unless the
+// branch head is on origin/rebuild/t2-client-core (or the PM has written a FREEZE line
+// naming the base)". The diagnosis :135 records is a seal on a stale base costing a whole
+// round trip; the cure is that the runner asks the question the human was asking.
+//
+// "ON the tip" is decided as the FIRST-PARENT chain of HEAD, not as ancestry. Ancestry is
+// the weaker question and it is already asked elsewhere; it says only that the tip is
+// somewhere behind, which a branch that merged the chain once a week ago also satisfies.
+// The first-parent chain says the lane head is BUILT ON the tip — which is exactly the
+// mechanic :135's own timeline names, "rebase + final round + seal each, on the tip".
+//
+// SAID OUT LOUD, because it has an operational consequence: `git merge --no-ff <tip>` run
+// FROM THE LANE puts the tip on the SECOND parent, so it does NOT satisfy this. What does:
+// rebasing the lane onto the tip, branching afresh from it, or fast-forwarding to it. A
+// lane that must keep a merge commit has the PM's FREEZE line, below, and nothing else.
+// The tip is read from GIT REFS (CHAIN_REF), never from a spec.
+//
+// THE ESCAPE, and it is the PM's alone: a FREEZE line in rebuild/DECISIONS.md naming the
+// base this seal stands on. The spec CITES it in authorizations.freeze exactly as it cites
+// owner, contract and theme — and it is matched the same way, by the LINE'S OWN SHA256
+// found on the chain branch, so a lane cannot write its own freeze. The line must say
+// FREEZE, name this package, and name a commit that IS in this HEAD's first-parent chain:
+// a freeze naming somebody else's base frees nothing.
+function sealOnTheTip(s, out) {
+  const tip = L.git(root, ['rev-parse', CHAIN_REF]).toString().trim();
+  assert(/^[a-f0-9]{40}$/.test(tip), 'CHAIN-TIP-UNRESOLVED ' + CHAIN_REF);
+  const firstParents = new Set(L.git(root, ['rev-list', '--first-parent', 'HEAD']).toString().split(/\r?\n/).filter(Boolean));
+  if (firstParents.has(tip)) {
+    out('SEAL BASE ON THE TIP; ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) +
+      ' and that commit stands in this HEAD\'s own first-parent chain (DECISIONS:135 (4))');
+    return;
+  }
+  const freeze = s.authorizations.freeze || null;
+  assert(freeze, 'SEAL-BASE-IS-NOT-THE-CHAIN-TIP ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) +
+    ' and that commit is not in this HEAD\'s first-parent chain; rebase or merge the tip, or cite a PM FREEZE line naming this base (DECISIONS:135 (4))');
+  const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === freeze.lineSha256);
+  assert.equal(hits.length, 1, 'SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH ' + hits.length +
+    ' line(s) on ' + CHAIN_REF + ' hash to the cited freeze lineSha256');
+  const [at, line] = hits[0];
+  assert(/\bFREEZE\b/.test(line) && line.includes(s.packageId),
+    'SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE DECISIONS:' + at);
+  const named = (line.match(/\b[a-f0-9]{40}\b/g) || []).filter(c => firstParents.has(c));
+  assert(named.length, 'SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN DECISIONS:' + at +
+    '; the freeze must name the commit this seal actually stands on');
+  out('SEAL BASE FROZEN BY DECISIONS:' + at + '; ' + CHAIN_REF + ' has moved to ' + tip.slice(0, 7) +
+    ' and the PM\'s FREEZE line, found on that branch by its own sha256, names ' + named[0].slice(0, 7) +
+    ' in this HEAD\'s first-parent chain (DECISIONS:135 (4))');
+}
+// DECISIONS:136 (3) AUTHORIZED STEP = BYTE-IDENTITY RE-VERIFY. The owner's amendment to the
+// :88/:103 (5) rerun step: after the PM's receipt, an AUTHORIZED rerun whose artifact,
+// runner, spec and every pinned product file are byte-identical to the sealed run is a
+// --ci run + pin verification + receipt check, and prints POSTFIX PACKAGE PASS on that
+// basis. ANY byte change voids the receipt and forces the FULL run exactly as before; the
+// FIRST full run with the private census is unchanged.
+//
+// The SEALED RUN is recorded by the seal step itself — the --full run that reaches
+// POSTFIX PACKAGE PASS writes rebuild/lanes/b/tooling/receipts/<ID>.json, and nothing else
+// in this runner ever writes it. It is a RECEIPT, not evidence: it can only ever cause the
+// expensive matrix to be SKIPPED, never cause a PASS that the --ci evidence, the pins, the
+// ledger and the ACCEPTED envelope have not already earned on this very run. Everything a
+// forged receipt could claim has already been re-taken from bytes by the time it is read.
+//
+// The receipt does not live in the spec and cannot: a spec cannot carry its own sha256, and
+// an artifact recomputed by proposed() cannot carry its own either. It lives beside them,
+// inside fidelity()'s own change check and pinned into the seal by TOOLING_FILES.
+const SEALED_RUN_KEYS = ['version', 'lanePackage', 'packageId', 'sealedRun'];
+const SEALED_RUN_BLOCK_KEYS = ['artifactSha256', 'specSha256', 'runnerSha256', 'envelopeKey', 'verdictFile', 'product'];
+const VERDICT_FILE = 'rebuild/lanes/b/VERDICT-' + ID + '.md'; // W7: derived here, never named by a spec
+function sealedRunReceipt(s, key) {
+  const file = RECEIPT_DIR + '/' + ID + '.json';
+  if (!fs.existsSync(rel(file))) return { ok: false, code: 'SEALED-RUN-RECEIPT-ABSENT', file };
+  let r = null;
+  try { r = J.parseExact(fs.readFileSync(rel(file))); } catch { return { ok: false, code: 'SEALED-RUN-RECEIPT-UNREADABLE', file }; }
+  const shaped = r && typeof r === 'object' && !Array.isArray(r) && r.version === 1 && r.lanePackage === ID &&
+    r.packageId === s.packageId && r.sealedRun && typeof r.sealedRun === 'object' && !Array.isArray(r.sealedRun) &&
+    same(Object.keys(r).sort(), SEALED_RUN_KEYS.slice().sort()) &&
+    same(Object.keys(r.sealedRun).sort(), SEALED_RUN_BLOCK_KEYS.slice().sort()) &&
+    r.sealedRun.product && typeof r.sealedRun.product === 'object' && !Array.isArray(r.sealedRun.product);
+  if (!shaped) return { ok: false, code: 'SEALED-RUN-RECEIPT-SHAPE', file };
+  const sr = r.sealedRun, moved = [];
+  // The four the ruling names, plus the envelope this receipt was written under: a receipt
+  // taken at another receipt base or another reviewed commit is not this run's.
+  if (sr.artifactSha256 !== diskSha(ARTIFACT)) moved.push(ARTIFACT);
+  if (sr.specSha256 !== sha(specRaw)) moved.push(TOOLING + '/packages/' + ID + '.json');
+  if (sr.runnerSha256 !== diskSha(RUNNER)) moved.push(RUNNER);
+  if (sr.envelopeKey !== key) moved.push('the ACCEPTED envelope');
+  if (sr.verdictFile !== VERDICT_FILE) moved.push('the verdict file coordinate');
+  // EVERY pinned product file, in both directions — a file the receipt does not carry is as
+  // much a change as one whose bytes moved.
+  for (const [file, hash] of Object.entries(sr.product))
+    if (!Object.hasOwn(s.product, file) || !fs.existsSync(rel(file)) || diskSha(file) !== hash) moved.push(file);
+  for (const file of Object.keys(s.product)) if (!Object.hasOwn(sr.product, file)) moved.push(file);
+  if (moved.length) return { ok: false, code: 'SEALED-RUN-RECEIPT-VOID', file, moved };
+  // ":136 (3) … the verdict file names the sealed run's evidence hashes". The verdict is
+  // prose and is appended to, so it is not byte-pinned; what is required is that it NAMES
+  // the three hashes this receipt stands on, so a reader of the verdict can re-take them.
+  if (!fs.existsSync(rel(VERDICT_FILE))) return { ok: false, code: 'SEALED-RUN-VERDICT-FILE-ABSENT', file };
+  const verdict = fs.readFileSync(rel(VERDICT_FILE), 'utf8');
+  const unnamed = [sr.artifactSha256, sr.specSha256, sr.runnerSha256].filter(h => !verdict.includes(h));
+  if (unnamed.length) return { ok: false, code: 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES', file };
+  return { ok: true, file, receipt: r };
+}
+// The seal step's own write. Called ONLY from the terminal branch of a --full run that has
+// just printed nothing yet and is about to print POSTFIX PACKAGE PASS, so the bytes it
+// records are the bytes that run verified. Deterministic: no clock, no counter, no host.
+function writeSealedRunReceipt(s, key) {
+  const product = {};
+  for (const file of Object.keys(s.product).sort()) if (fs.existsSync(rel(file))) product[file] = diskSha(file);
+  const body = { version: 1, lanePackage: ID, packageId: s.packageId,
+    sealedRun: { artifactSha256: diskSha(ARTIFACT), specSha256: sha(specRaw), runnerSha256: diskSha(RUNNER),
+      envelopeKey: key, verdictFile: VERDICT_FILE, product } };
+  fs.mkdirSync(rel(RECEIPT_DIR), { recursive: true });
+  fs.writeFileSync(rel(RECEIPT_DIR + '/' + ID + '.json'), JSON.stringify(body, null, 2) + '\n');
+  return body;
+}
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
 function envelope(s, bound, ran) {
@@ -1597,6 +1726,9 @@ function envelope(s, bound, ran) {
     return { authorized: false, said, sealed: m, key: 'PENDING:' + hash };
   }
   const r = review.receipt; assert(r && typeof r.commit === 'string', 'Missing independent receipt');
+  // DECISIONS:135 (4), and THE SEAL IS THIS BRANCH — the same place X1 and Y1 are re-asserted.
+  // Nothing below is reachable on a stale base unless the PM has frozen it by name.
+  sealOnTheTip(s, out);
   // X1, re-asserted AT THE SEAL. spec() already refused a non-empty coverage.moves, so this
   // can only fire if a future edit loosens that gate without loosening this one; it is here
   // because the reviewer's requirement is literally "must be {} at every seal", and the seal
@@ -1714,7 +1846,30 @@ try {
   const ran = children(s, env);
   const covered = coverage(s, bound, ran);
   noRegister(s, ran); // Y1: the replacement obligation for a package with no D-id
-  if (!ci) { privateOracle(); historical(bound, bundles); gates(bundles, first.authorized, covered, ran); }
+  // DECISIONS:136 (3). Everything above this line IS the --ci run and the pin verification;
+  // the receipt check is envelope()'s own L.verifyReceipt, already done. So the AUTHORIZED
+  // STEP is exactly this: on an ACCEPTED envelope whose artifact, runner, spec and every
+  // pinned product file are byte-identical to the sealed run the receipt records, the
+  // private oracle, the historical audit and the 19-gate matrix are SKIPPED. On anything
+  // else — no receipt, a voided one, or an unauthorized envelope — the FULL run happens
+  // exactly as before, which is also what the FIRST full run always does.
+  let reverify = null;
+  if (!ci) {
+    reverify = first.authorized ? sealedRunReceipt(s, first.key) : { ok: false, code: 'ENVELOPE-NOT-AUTHORIZED' };
+    if (reverify.ok) {
+      say('AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all ' +
+        Object.keys(s.product).length + ' pinned product file(s) are byte-identical to the sealed run recorded in ' + reverify.file +
+        ', and ' + VERDICT_FILE + ' names those evidence hashes; the private oracle, the historical audit and the ' +
+        GATE_IDS.length + ' original gates are NOT re-run on this step — the FIRST full run with the private census stands as the evidence');
+    } else {
+      if (reverify.code === 'SEALED-RUN-RECEIPT-VOID')
+        say('SEALED-RUN-RECEIPT-VOID ' + reverify.moved.length + ' byte change(s) since the sealed run (' +
+          reverify.moved.slice(0, 8).join(' ') + '); the FULL run is required (DECISIONS:136 (3))');
+      else if (first.authorized)
+        say('AUTHORIZED STEP UNAVAILABLE ' + reverify.code + '; the FULL run with the private census is required (DECISIONS:136 (3))');
+      privateOracle(); historical(bound, bundles); gates(bundles, first.authorized, covered, ran);
+    }
+  }
   // W5. Re-evaluate AFTER all evidence: an artifact, review, receipt, spec or runner
   // swapped mid-run changes `key` and refuses here, before any terminal word is printed.
   // `ran` is handed over so the Y1 seal assert can re-take the EXECUTION half against the
@@ -1730,6 +1885,17 @@ try {
     else { say('PUBLIC CI EVIDENCE PASS — public evidence only, NOT the package verdict; the 19 original gates, the private oracle and independent exact-artifact acceptance remain separate, and POSTFIX PACKAGE PASS is unavailable on this mode at any time'); process.exitCode = 0; }
   } else {
     const ready = last.authorized && !open.length;
+    // DECISIONS:136 (3), THE SEAL STEP'S OWN WRITE. The only line in this runner that
+    // writes a byte outside .tmp, and it runs only where the package has just earned
+    // POSTFIX PACKAGE PASS on a FULL run — never on --ci, never on a re-verified step
+    // (the receipt it would write is the one it just read), and never on a REVIEW-PENDING.
+    // What it records is exactly what the next authorized step must find unchanged.
+    if (ready && !(reverify && reverify.ok)) {
+      const wrote = writeSealedRunReceipt(s, last.key);
+      say('SEALED RUN RECORDED ' + RECEIPT_DIR + '/' + ID + '.json; artifact=' + wrote.sealedRun.artifactSha256.slice(0, 12) +
+        ' spec=' + wrote.sealedRun.specSha256.slice(0, 12) + ' runner=' + wrote.sealedRun.runnerSha256.slice(0, 12) +
+        ' over ' + Object.keys(wrote.sealedRun.product).length + ' pinned product file(s); the next AUTHORIZED rerun is a byte-identity re-verify while every one of them is unchanged');
+    }
     say(ready ? 'POSTFIX PACKAGE PASS ' + s.packageId
       : 'POSTFIX PACKAGE REVIEW-PENDING: ' + open.length + ' open obligation(s); independent exact-artifact acceptance required');
     process.exitCode = ready ? 0 : 2;
