@@ -621,15 +621,29 @@ function ruledDescriptions(ruling) {
   assert(out.length, 'SUCCESSOR-RULING-ENUMERATES-NO-SUBSTITUTION');
   return out;
 }
-// One description, one substitution. `paths` is every repository path this run can see in
-// the substitution's own coordinates; a word standing in one of them says WHERE, not WHAT.
+// ONE DESCRIPTION, ONE SUBSTITUTION, and both halves are the review's change 3 in terms.
+//
+// (1) THE DESCRIPTION NAMES THE MODULE. r6 asked whether the module's distinguishing token
+//     stood anywhere in the ruling LINE — a paragraph of prose, in which 8 of the 17 parent
+//     originals' tokens happen to appear. It must now stand in THIS DESCRIPTION, which is
+//     one short phrase the PM wrote about one change. That alone takes the admission count
+//     from 8 of 17 to the 2 the ruling describes.
+// (2) THE DESCRIPTION QUOTES THE CHANGE. At least one OTHER word of the description must
+//     stand in the substitution's own text and in NO repository path this run can see — the
+//     word that says WHAT changed rather than WHERE. "the witnesses exposed-surface
+//     deepEqual" quotes `exposed`; "the cases mutant-detector target" quotes `target`; a
+//     substitution that only renames a path quotes neither and is refused.
+//
+// Said out loud, as r6 said of its own branch: this bounds WHICH module and HOW MANY, not
+// the substance of the text. The substance is still the spec's enumeration, the parent's
+// own bytes (successorProof), and the package review.
 function describes(description, sub, paths) {
   const text = (sub.from + '\n' + sub.to).toLowerCase();
   const pathWords = new Set(paths.flatMap(p => words(p)));
   const significant = words(description).filter(w => !RULED_STOP_WORDS.has(w));
-  if (significant.length < 2) return false;
-  if (!significant.every(w => text.includes(w) || pathWords.has(w))) return false;
-  return significant.some(w => text.includes(w) && !pathWords.has(w));
+  const token = path.posix.basename(sub.original, '.cjs').split('-').pop();
+  if (token.length < 4 || !significant.includes(token)) return false;
+  return significant.some(w => w !== token && text.includes(w) && !pathWords.has(w));
 }
 function spec() {
   specRaw = fs.readFileSync(path.join(SPEC_DIR, ID + '.json'));

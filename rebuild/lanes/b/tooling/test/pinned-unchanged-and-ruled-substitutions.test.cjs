@@ -207,12 +207,37 @@ test('F2 — an unratified third substitution is refused, and r6 would have admi
 });
 
 test('F2 — a word that only names a PATH does not describe a change', () => {
-  // "the witnesses exposed-surface deepEqual": `witnesses` stands in the module path, so it
-  // says WHERE. At least one significant word must stand in the substitution TEXT and in no
-  // path, or the description has not described anything.
+  // "the witnesses exposed-surface deepEqual": `witnesses` names WHICH module — it stands in
+  // the module path. At least one OTHER word of the description must stand in the
+  // substitution TEXT and in no repository path, or the description has described nothing.
   const namesOnlyThePath = { original: WITNESSES, from: 'const carrier = "native-carriers-witnesses";',
     to: 'const carrier = "b-ntc-witnesses";', why: 'a path rename and nothing else' };
   assert(!api.describes('the witnesses exposed-surface deepEqual', namesOnlyThePath, paths));
+  // And the module token must stand in THE DESCRIPTION, not merely somewhere in the ruling:
+  // that is the half that takes r6's 8-of-17 admission down to the two the ruling describes.
+  assert(!api.describes('a change somewhere in the carriers', subs.witnesses, paths));
+});
+
+test('F2 — B-NTC\'s two REAL non-re-target substitutions are admitted, once each', () => {
+  // The bytes B-NTC's sealed spec enumerates, quoted. Both must still be admitted, or the
+  // tightening would have refused the very seal DECISIONS:113 (1) ratified.
+  const real = {
+    witnesses: { original: WITNESSES,
+      from: "assert.deepEqual(COMPOSITION.exposed.slice().sort(),['genSession','rirPlan'],'Exposed reader surface');",
+      to: "assert.deepEqual(COMPOSITION.exposed.slice().sort(),['cleanAtDate','dayWeather','genSession','rirPlan'],'Exposed reader surface');" },
+    cases: { original: CASES,
+      from: "path.join(root,'rebuild/m4/workout/test/native-next-targets.test.cjs')",
+      to: "path.join(root,'rebuild/m4/spec/b-ntc-native-next-targets.test.cjs')" },
+  };
+  const realPaths = [WITNESSES, CASES, 'rebuild/m4/spec/b-ntc-witnesses.cjs', 'rebuild/m4/spec/b-ntc-cases.cjs',
+    'rebuild/m4/workout/test/native-next-targets.test.cjs', 'rebuild/m4/spec/b-ntc-native-next-targets.test.cjs'];
+  const [d1, d2] = api.ruledDescriptions(RULING);
+  assert(api.describes(d1, real.witnesses, realPaths), 'the witnesses substitution the seal ran');
+  assert(api.describes(d2, real.cases, realPaths), 'the cases substitution the seal ran');
+  // Each is described by ONE description and not the other, so neither can consume the
+  // other's and a third substitution cannot ride in on a description already spent.
+  assert(!api.describes(d2, real.witnesses, realPaths));
+  assert(!api.describes(d1, real.cases, realPaths));
 });
 
 test('F2 — a ruling text that enumerates nothing refuses rather than admitting anything', () => {
