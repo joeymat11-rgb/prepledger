@@ -18,3 +18,9 @@
 *.jpg    binary
 *.jpeg   binary
 *.webp   binary
+
+# The lane logs are append-only (LANES.md): every lane appends lines, so a
+# merge of two appends is always the union of both. The union driver keeps
+# every line from both sides instead of raising a conflict (DECISIONS:118).
+rebuild/lanes/STATUS.md   merge=union
+rebuild/lanes/REQUESTS.md merge=union
