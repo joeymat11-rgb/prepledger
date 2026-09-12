@@ -21,8 +21,13 @@ import Engine from "../../../../engine/index.cjs";
 import app from "../today-app.cjs";
 import TodayModel from "../today-model.cjs";
 import design from "../design.cjs";
+/* P1 (DECISIONS:114 (1)): the engine's own words reach the slot through the render
+   boundary, so a slot is compared with plainCopy(the engine's value), never with a
+   sentence typed into this file. The comparison is still against the engine. */
+import PlainCopy from "../plain-copy.cjs";
 
 const { createEngine } = Engine;
+const { plainCopy } = PlainCopy;
 const { mountToday, morningLine, trendLine, calorieBand, calorieHeadline } = app;
 const { createTodayModel, createBasisState, engineClockFor, SYNTHETIC_DAY } = TodayModel;
 
@@ -93,14 +98,14 @@ test("Today paints the approved design from engine values only", async () => {
 
   assert.equal(doc.querySelector(".brand").textContent, "Earned");
   assert.equal(doc.querySelector(".label").textContent, "Your plan for today");
-  assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title);
-  assert.equal(slot(doc, "instruction-why").textContent, reference.marchingOrder(state).why);
-  assert.equal(slot(doc, "workout-title").textContent, reference.nowModel(state).workout.title);
+  assert.equal(slot(doc, "instruction").textContent, plainCopy(reference.nowModel(state).move.title));
+  assert.equal(slot(doc, "instruction-why").textContent, plainCopy(reference.marchingOrder(state).why));
+  assert.equal(slot(doc, "workout-title").textContent, plainCopy(reference.nowModel(state).workout.title));
   assert.equal(slot(doc, "workout-count").textContent,
     reference.genSession(state, DAY, null).ex.length + " exercises · Your set targets are ready");
   assert.equal(slot(doc, "kcal-note").textContent, calorieBand(reference.calorieTarget(state)));
   assert.equal(slot(doc, "protein").textContent, money.format(reference.proteinTarget(state).g));
-  assert.equal(slot(doc, "morning").textContent, "This morning — not logged yet");
+  assert.equal(slot(doc, "morning").textContent, "This morning: not logged yet");
   assert.equal(view.hasReadToday, false);
   for (const figure of FICTIONAL) assert(!phoneText(doc).includes(figure), "prototype figure on screen: " + figure);
   kit.close();
@@ -110,7 +115,7 @@ test("the primary action before a weigh-in is the engine's own marching order", 
   const kit = await setup();
   const view = kit.model.read();
   assert.equal(slot(kit.doc, "primary-label").textContent.toLowerCase(), view.marchingOrder.thenText.toLowerCase());
-  assert.equal(slot(kit.doc, "instruction-why").textContent, view.marchingOrder.why);
+  assert.equal(slot(kit.doc, "instruction-why").textContent, plainCopy(view.marchingOrder.why));
   kit.close();
 });
 
@@ -124,7 +129,7 @@ test("a weigh-in through the sheet rebinds every engine-derived value on Today",
   assert.match(slot(doc, "morning").textContent, /^This morning ✓ 179\.4 lb/);
   assert.equal(slot(doc, "trend").textContent,
     "Weight trend " + reference.nowModel(state).headed.weight.toFixed(1) + " lb · Why this plan?");
-  assert.equal(slot(doc, "instruction").textContent, reference.nowModel(state).move.title);
+  assert.equal(slot(doc, "instruction").textContent, plainCopy(reference.nowModel(state).move.title));
   assert.match(slot(doc, "primary-label").textContent, /^Start /);
   assert.equal(model.read().hasReadToday, true);
   for (const figure of FICTIONAL) assert(!phoneText(doc).includes(figure), "prototype figure on screen: " + figure);
@@ -141,9 +146,15 @@ test("a spike reading renders the ENGINE's own note beside it; a quiet reading r
   const spike = await setup();
   await weighIn(spike.dom, spike.doc, 191.7);
   const shown = slot(spike.doc, "morning").textContent;
-  assert.equal(shown, "This morning ✓ 191.7 lb · " + spikeNote);
+  /* P1: the note is the ENGINE's, still shown whole, with its dash rewritten at the
+     render boundary (DECISIONS:114 (1)). "spike — damped in trend" is the brief's own
+     worked example and lands as "spike: damped in trend". */
+  assert.equal(shown, plainCopy("This morning ✓ 191.7 lb · " + spikeNote));
+  assert(spikeNote.includes("—") || spikeNote.includes("–")
+    ? shown.includes(plainCopy(spikeNote)) : shown.includes(spikeNote),
+    "the engine's note is on screen, dash and all rewritten");
   assert.match(spike.doc.getElementById("phone").textContent,
-    new RegExp(spikeNote.slice(0, 12).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    new RegExp(plainCopy(spikeNote).slice(0, 12).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   spike.close();
 
   const quietState = reference.applyRead(createBasisState(DAY), DAY, 179.4, { hour: 8 });
@@ -159,7 +170,7 @@ test("morningLine and trendLine carry no words of their own beyond the approved 
   const note = "spike — damped in trend";
   assert.equal(morningLine({ morningRead: { lb: 190, note } }), "This morning ✓ 190.0 lb · " + note);
   assert.equal(morningLine({ morningRead: { lb: 190, note: "" } }), "This morning ✓ 190.0 lb");
-  assert.equal(morningLine({ morningRead: null }), "This morning — not logged yet");
+  assert.equal(morningLine({ morningRead: null }), "This morning: not logged yet");
   assert.equal(trendLine({ nowModel: { headed: { weight: 180.1 } } }), "Weight trend 180.1 lb · Why this plan?");
   assert.match(trendLine({ nowModel: { headed: { weight: null } } }), /Not available yet/);
 });
@@ -228,9 +239,9 @@ test("Why this plan shows only the engine's own explanations", async () => {
   const view = model.read();
   const bodies = [...doc.querySelectorAll(".macro-row p")].map((p) => p.textContent);
   assert.equal(bodies.length, view.why.length);
-  assert.equal(bodies[0], view.calorieTarget.why);
-  assert.equal(bodies[1], view.proteinTarget.why);
-  assert.equal(slot(doc, "why-lead").textContent, view.nowModel.move.body);
+  assert.equal(bodies[0], plainCopy(view.calorieTarget.why));
+  assert.equal(bodies[1], plainCopy(view.proteinTarget.why));
+  assert.equal(slot(doc, "why-lead").textContent, plainCopy(view.nowModel.move.body));
   doc.querySelector('[data-go="today"]').click();
   assert(slot(doc, "instruction"), "Back returns to Today");
   kit.close();
@@ -416,7 +427,8 @@ test("an untrusted local record is refused by name, never re-enrolled over, and 
     indexedDB: store.fault.indexedDB, crypto: webcrypto });
   assert.equal(booted.restoreRequired, refused.code, "the page names the client's own code");
   assert.equal(doc.getElementById("today-status").textContent,
-    RESTORE_REQUIRED + " (" + refused.code + ")", "and says what rebuild/client says, not its own sentence");
+    plainCopy(RESTORE_REQUIRED + " (" + refused.code + ")"),
+    "and says what rebuild/client says, not its own sentence");
   assert.equal(booted.readings, null, "no store opened");
   assert.equal(booted.model.read().morningRead, null, "nothing on screen claims a reading");
   assert.equal(booted.model.read().hasReadToday, false);

@@ -25,6 +25,9 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
+// P1 (DECISIONS:114 (1)): every gym state this check reaches is swept for an em or en
+// dash in the REAL rendered DOM.
+import { assertNoDashOnScreen } from "./dash-check.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const executablePath = process.env.W7_BROWSER_BIN;
@@ -149,7 +152,15 @@ async function reachable(page, selector, label) {
     `${label}: the primary action is below the fold (bottom ${box.bottom} > ${box.viewport})`);
   assert(box.overflow <= 0, `${label}: the screen scrolls sideways by ${box.overflow}px`);
   notes.push(`${label} ${box.viewport - box.bottom}px headroom`);
+  /* P1 (DECISIONS:114 (1)): every state this check measures is also swept for a dash. */
+  await noDashes(page, label);
   return box;
+}
+/* P1: the owner's no-dashes rule, at every state this check walks through. */
+const dashStates = [];
+async function noDashes(page, where) {
+  await assertNoDashOnScreen(page, where);
+  dashStates.push(where);
 }
 async function inputsAreLargeEnough(page, label) {
   const sizes = await page.evaluate(() => [...document.querySelectorAll("#phone input, #phone select, #phone textarea")]
@@ -161,7 +172,7 @@ async function inputsAreLargeEnough(page, label) {
 try {
   /* ---------- launch 1: weigh in, open the gym card, log, undo, log again ---------- */
   let { context, page } = await launch();
-  assert.equal(await text(page, '[data-slot="morning"]'), "This morning — not logged yet",
+  assert.equal(await text(page, '[data-slot="morning"]'), "This morning: not logged yet",
     "a fresh profile holds no reading");
   /* The sheet awaits a real encrypted-repository transaction now (review B2), so the
      check waits for the sheet to close and the reading to appear, not for a selector
@@ -176,6 +187,7 @@ try {
   assert.match(startLabel, /^Start /, "after the weigh-in the primary action starts today's workout: " + startLabel);
   const sessionTitle = startLabel.replace(/^Start /, "");
   assert.match(await text(page, '[data-slot="workout-count"]'), /Your set targets are ready$/);
+  await noDashes(page, "Today, with a reading and a workout ready");
 
   await page.click('[data-slot="primary"]');
   await page.waitForSelector('[data-slot="plan"]');
@@ -212,6 +224,7 @@ try {
   await page.waitForFunction(() => document.querySelector("#gym-error").textContent.trim().length > 0);
   assert.match(await text(page, "#gym-error"), /Choose clean reps left, or Unsure\./);
   assert(await seen(page, '[data-slot="log"]'), "the screen stays on the active set");
+  await noDashes(page, "the active set, refusing an entry with no effort answer");
 
   // Log set 1 with an explicit UNKNOWN effort, and an edited performed weight/reps.
   await page.fill("#gym-weight", "45");
@@ -366,7 +379,7 @@ try {
     "day 2 prepares on the same device, over day 1's stored session: " + JSON.stringify(dayTwo.summary));
 
   await page.waitForSelector('[data-slot="morning"]');
-  assert.equal(await text(page, '[data-slot="morning"]'), "This morning — not logged yet",
+  assert.equal(await text(page, '[data-slot="morning"]'), "This morning: not logged yet",
     "day 2 has its own morning, and yesterday's reading is not reused");
   await page.click('[data-slot="primary"]');
   await page.waitForSelector("#morning-weight");
@@ -480,6 +493,7 @@ try {
   await page.waitForSelector('[data-slot="workout-count"]');
   assert.match(await text(page, '[data-slot="workout-count"]'), /Workout recorded$/,
     "and day 1 is still recorded on a plain reload");
+  await noDashes(page, "Today, with the workout recorded");
   const finalText = await page.textContent("#phone");
   for (const figure of FICTIONAL) assert(!finalText.includes(figure), "prototype figure on screen: " + figure);
 
@@ -517,7 +531,8 @@ try {
     + "lifts, which have none on file, print nothing rather than an invented one. "
     + "localStorage holds nothing. Headroom: "
     + notes.join(", ")
-    + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow.");
+    + ". No network request; no prototype figure on screen; every input >= 16px; no horizontal overflow. "
+    + "No em/en dash in the rendered DOM at any of the " + dashStates.length + " states above (DECISIONS:114).");
 } catch (error) {
   failures = 1;
   console.error("A2 GYM BROWSER CHECK FAIL — " + error.message);

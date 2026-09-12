@@ -40,3 +40,21 @@ No push to main, no deploy, no private data in any report or cloud session, no p
 - ENGINE REHEARSAL: a package may rehearse its closed profile against the predecessor's candidate head; after acceptance only pins move; the gate, the private census, receipts, reruns and PM acceptance are unchanged; nothing merges on a rehearsal.
 - WIDTH: lane C up to 3 builders + 2 reviewers while clean; PM lane runs its polish queue as parallel briefs (today/** briefs sequenced).
 - EFFORT: PM chat HIGH (max at engine acceptance) · LANE B chat MAX · LANE C chat HIGH · integrator LOW. Subagents inherit the chat's effort; the owner sets the lane chats; leads confirm by a STATUS line. Definitions: .claude/agents/earned-*.md.
+
+## Amendments 2026-09-11 night (owner: "implement 5 levers" — DECISIONS:119; efficiency without lowering rigor)
+- CADENCE (supersedes the :116 CADENCE line): polling wake-ups are HOURLY. The real trigger is COMPLETION — a lead acts when its own builder, reviewer or integrator returns (the harness notifies); it does not wait for the clock. The 30-minute tick is kept ONLY while that lane has a merge in flight. A wake that finds no new STATUS/REQUESTS line and no returned agent ENDS IMMEDIATELY: no footer, no tree re-read, no STATUS line.
+- USAGE GATE: at every wake the lead reads the LAST sample of C:\Users\joeym\AppData\Roaming\Claude\plan-usage-history.json (samples[-1].u.fh = 5-hour window %, .sd = 7-day %). fh ≥ 60 → dispatch nothing new this wake, finish what is in flight. fh ≥ 80 or sd ≥ 90 → reviews and integrations of already-PR-READY work only, no builders. Write ONE STATUS line (event THROTTLED) the first time a threshold is crossed, none on later wakes; one line (event CLEAR) when it drops back.
+- STATUS ROTATION: rebuild/lanes/STATUS.md = a STATE block at the top (tip · lane heads · in flight + whose court · waiting on the owner · throttle) + the last 15 event lines. Older lines live in rebuild/lanes/STATUS-ARCHIVE.md (append-only; read only when a line is cited). Whoever writes a MERGED line rotates when the tail exceeds 25 lines and refreshes the STATE block. Leads read the STATE block + tail, never the archive. DECISIONS.md: leads read the lines they are pointed at, never the whole file (unchanged).
+- DISPATCH CAP (tightens DECISIONS:91): a lane dispatches NO new builder while it holds 2 items PR-READY-unreviewed, or 1 item ACCEPTED-unmerged older than one wake. Review and integration outrank new building. The :116 width numbers are ceilings, not targets.
+- EFFORT BY TASK (supersedes the :116 EFFORT line for subagents; chat settings unchanged): judgment, review, engine acceptance → HIGH (lane B MAX); builders → MEDIUM; mechanical work (copy sweeps, rebases, integration, CI reruns, report formatting) → LOW. A brief names the effort of every role it dispatches.
+- VERIFICATION STAYS IN CI: no test log, browser log or raw diff enters a chat or a report — counts, run ids and file paths only; checks run through the existing scripts/CI and the agent reads the summary line. Every brief carries a READ-LIST (custody files + named dependencies) and the builder orients from it, not from the tree; anything outside it is a REQUESTS line. Reports ≤ 60 lines; STATUS lines ≤ 400 characters (the "why" goes in the report file, the line cites it).
+- REPORTING: the PROGRESS footer appears only on turns that write a STATUS line (was: every message).
+- Leads acknowledge by their next STATUS line and reschedule their own wake-ups accordingly.
+
+## Amendments 2026-09-12 (owner: five process speed rules — DECISIONS:135)
+- Standing licences for the four shared page files under one-Today-build-at-a-time; lanes decide payload shapes with disclosure.
+- Lanes append their own THEME / BRIEF-BY-SHA citation lines once the PM accepted the brief by name; PM acceptance = the receipt.
+- Builder preflight before every PR-READY (rebuild/lanes/tooling/preflight.cjs).
+- The seal runner refuses to seal off the tip; freeze follows the seal automatically.
+- Small engine items may bundle into one package with separate proof cells.
+

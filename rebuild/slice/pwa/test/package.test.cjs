@@ -187,11 +187,54 @@ test("A1's own package is untouched: three assets, its own folder, its own names
   // A1's page bytes go through unchanged except the two named edits.
   const before = (await fs.readFile(path.join(a1.dist, "index.html"), "utf8"));
   const after = site.files.get("index.html").toString("utf8");
-  for (const marker of ["<title>Earned — Today</title>", '<div class="view" id="phone">', "<template id=\"t-today\">"]) {
+  /* P1 (DECISIONS:114 (1)): A1's tab title lost its em dash in the no-dashes sweep. The
+     marker moves with it and stays a LITERAL title, because its job is to fail when A1's
+     page moves. */
+  for (const marker of ["<title>Earned: Today</title>", '<div class="view" id="phone">', "<template id=\"t-today\">"]) {
     assert(before.includes(marker) && after.includes(marker), marker);
   }
   assert.equal(site.files.get(site.names.styles).equals(await fs.readFile(path.join(a1.dist, "styles.css"))), true);
   assert.equal(site.files.get(site.names.app).equals(await fs.readFile(path.join(a1.dist, "app.js"))), true);
+});
+
+/* P1 (DECISIONS:114 (1), owner verbatim "no ai dashes are allowed in the ui"): A5 ships
+   the SAME page, so the rule is asserted over what A5 actually DEPLOYS, not only over
+   what it composes in memory. Every emitted text file is swept outside its comments; the
+   bundled app.js is exempted for the reason A1's own build guard states (esbuild inlines
+   the frozen rebuild/engine and rebuild/client prose there, which reaches the DOM only
+   through today/plain-copy.cjs, and A1's build.mjs already refuses any owned literal). */
+test("no em dash and no en dash in any text file A5 deploys", () => {
+  const count = (name, text) => (((/\.html?$/.test(name)
+    ? text.replace(/<!--[\s\S]*?-->/g, " ")
+    : text.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ")).match(/[–—]/g)) || []).length;
+  /* The two A5-OWNED lines, pinned rather than hidden. A5's own preflight copy carries
+     one user-facing dash in its markup and one in its script:
+       "<strong>Offline launch</strong> — <span data-pwa="state">..."
+       "...are stored on this device — everything the launch needs is here."
+     P1's custody for this fix is the two A5 TEST files only (the PM's ruling on the P1
+     review), so P1 does not rewrite A5's source; the count is pinned here so a THIRD one
+     fails this suite, and both are named for the A5 lane in rebuild/slice/P1-REPORT.md.
+     Every other deployed text file must be clean. `app.js` is A1's bundle and is exempt
+     for the reason A1's own build guard states (the frozen rebuild/engine and
+     rebuild/client prose is inlined there and reaches the DOM only through
+     today/plain-copy.cjs; A1's build.mjs refuses any A1-owned literal). */
+  const expected = { "index.html": 1, [site.names.preflightJs]: 1 };
+  const found = {};
+  const swept = [];
+  for (const [name, bytes] of site.files) {
+    if (!/\.(html|css|js|json|webmanifest|txt)$|^_headers$/.test(name)) continue;
+    if (name === site.names.app) continue;
+    const n = count(name, bytes.toString("utf8"));
+    if (n) found[name] = n;
+    swept.push(name);
+  }
+  assert.deepEqual(found, expected,
+    "AI DASH in a deployed file beyond A5's two pinned preflight lines (DECISIONS:114)");
+  assert(swept.includes("index.html"), "the shipped page itself was swept: " + swept.join(", "));
+  assert(swept.length >= 5, "only " + swept.length + " text files swept: " + swept.join(", "));
+  // RED FIRST: the sweep really would catch one more.
+  const page = site.files.get("index.html").toString("utf8");
+  assert.equal(count("index.html", page.replace("<title>", "<title>—")), expected["index.html"] + 1);
 });
 
 test("the build's own summary is true: counts, colours and the guard", () => {

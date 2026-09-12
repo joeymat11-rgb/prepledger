@@ -7,7 +7,13 @@
 // them — its code, and its copy when it supplied one.
 
 import TodayApp from './today-app.cjs';
+// The render boundary for the owner's no-dashes rule (DECISIONS:114 (1)): the engine's
+// prescription reasons and the layer's refusals are not this file's words, and the dash
+// comes out of them here rather than in the frozen source. A dash the normaliser cannot
+// rewrite costs that one slot, not the screen (P1 review, Finding 3).
+import PlainCopy from './plain-copy.cjs';
 
+const { plainOrDrop } = PlainCopy;
 const { ARROW } = TodayApp;
 // The approved prototype's own check mark, copied from Earned-refinement-A.html.
 export const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>';
@@ -59,8 +65,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
   };
   function put(map, name, text) {
     const el = map.get(name);
-    if (!el) throw new Error('Gym card: template slot missing — ' + name);
-    el.textContent = text === null || text === undefined ? '' : String(text);
+    if (!el) throw new Error('Gym card: template slot missing: ' + name);
+    el.textContent = plainOrDrop(text === null || text === undefined ? '' : String(text), name);
     el.hidden = text === null || text === undefined || text === '';
     return el;
   }
@@ -79,7 +85,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     for (const value of values) {
       const p = doc.createElement('p');
       p.className = className;
-      p.textContent = value;
+      p.textContent = plainOrDrop(value, className);
       host.append(p);
     }
     host.hidden = values.length === 0;
@@ -124,9 +130,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       const cell = doc.createElement('div');
       cell.className = 'slot' + (entryOf.done ? ' done' : entryOf.current ? ' current' : '');
       if (entryOf.current) cell.setAttribute('aria-current', 'step');
-      cell.append(doc.createTextNode(entryOf.label));
+      cell.append(doc.createTextNode(plainOrDrop(entryOf.label, 'strip-label')));
       const strong = doc.createElement('strong');
-      strong.textContent = entryOf.text;
+      strong.textContent = plainOrDrop(entryOf.text, 'strip-text');
       cell.append(strong);
       strip.append(cell);
     }
@@ -161,7 +167,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       const button = doc.createElement('button');
       button.className = 'choice';
       button.type = 'button';
-      button.textContent = choice.label;
+      button.textContent = plainOrDrop(choice.label, 'effort-choice');
       // NOTHING is preselected: every answer starts aria-pressed="false".
       button.setAttribute('aria-pressed', String(!!held.effort && held.effort.label === choice.label));
       button.addEventListener('click', () => {
@@ -196,7 +202,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
         load: load.value.trim(), reps: reps.value.trim(), effort: held.effort && held.effort.reserve });
       busy = false;
       if (!result.ok) {
-        root.querySelector('#gym-error').textContent = refusalText(result);
+        root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(result), 'gym-error');
         return;
       }
       held.entry = { load: null, reps: null };
@@ -210,7 +216,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     if (!upNext) root.querySelector('.next-lift').hidden = true;
 
     root.querySelector('[data-action="back"]').addEventListener('click', () => onBack());
-    if (view.message) root.querySelector('#gym-error').textContent = refusalText(view.message);
+    if (view.message) root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(view.message), 'gym-error');
     icons(root);
     show(root);
   }

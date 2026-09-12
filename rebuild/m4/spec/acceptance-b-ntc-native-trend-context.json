@@ -2,7 +2,7 @@
   "version": 1,
   "lanePackage": "B-NTC",
   "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
-  "sourceBase": "7b1678a4a8449053000d52a0a8e9e070f32a240e",
+  "sourceBase": "50fa37a534ce8b2406a88d194b4ee00e3394ede8",
   "parent": {
     "id": "NATIVE-CARRIERS",
     "artifact": "rebuild/m4/spec/acceptance-native-carriers.json",
@@ -14,7 +14,7 @@
   },
   "spec": {
     "file": "rebuild/lanes/b/tooling/packages/B-NTC.json",
-    "sha256": "9d8552d9a20af61f8058a31577c23e7d720532e2824be4e1db3f3226041a1a96"
+    "sha256": "05a5aa1fdad98df3bbd9efd45721810ed3503ba11ae9e351d3948d988f0948ed"
   },
   "runner": {
     "file": "rebuild/lanes/b/tooling/b-package.cjs",
@@ -362,8 +362,8 @@
       "role": "new"
     },
     "rebuild/m3/w6/local/today-bindings.mjs": {
-      "pre": "f1bb8bbb1c03ab2f7eaf1187f1fe19c453e73bc6c3b1aec7fd7c33886c97a4ff",
-      "post": "b243257a746f879ac4ebf3adf8fc5f937244a89927387c0a85d0daecd6601c94",
+      "pre": "aa310314fd6fe305b5f75d8031886ae712badde93c62cb0b075116349612ffbc",
+      "post": "95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8",
       "role": "new"
     },
     "rebuild/m3/w6/host/engine-runtime-host.cjs": {
@@ -372,8 +372,8 @@
       "role": "new"
     },
     "rebuild/m3/w6/host/workout-host.mjs": {
-      "pre": "4029a5404cd34aac56da0af89c4ae6e0e2868353ab758d0f778c9d9f29190a8b",
-      "post": "262d7d5f65e736bb2592da6cd2f4bf883f30842d4dbbec97653b610e5f79d6fe",
+      "pre": "4117dce4c571594159853422bd1e2d9c6630754b858bc491b9e89a62b3eddc12",
+      "post": "8472097cb015f5dce034379f3f08b70aa516ca6d479d4f4fc8f3f0e3ffe08b69",
       "role": "new"
     },
     "rebuild/m3/w6/host/test/journey.test.mjs": {
@@ -402,8 +402,8 @@
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/checkin.test.mjs": {
-      "pre": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
-      "post": "bdf209db6dc62e717e067e0b33abe13814013ceda421bc1706b52e555223b5be",
+      "pre": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
+      "post": "3e7be3363105b3fcc481cc1389168c48a92a7086b8ec1e7d86671acb63f6e044",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/design.test.cjs": {
@@ -417,8 +417,8 @@
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/view.test.mjs": {
-      "pre": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
-      "post": "c9cc240f5ae82f1dcd70b0b11e22b23c0892d39a3fdd721a59d7c20793879e2c",
+      "pre": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
+      "post": "f0d4e66aba82b7a51dd0765e74def27e77481fe263bc7a68a16cbe5356793af2",
       "role": "new"
     },
     "rebuild/m3/w6/host/test/engine-equivalence.test.cjs": {
@@ -427,8 +427,8 @@
       "role": "new"
     },
     "rebuild/m3/w6/test/local-today-journey.test.mjs": {
-      "pre": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
-      "post": "7e5ccb4cbe3de9addaa6efd4b5e227c0d07914d69fa6e1a75e664d6abb296b5e",
+      "pre": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
+      "post": "4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7",
       "role": "new"
     },
     "rebuild/m4/spec/b-ntc-successors.test.cjs": {
@@ -452,7 +452,7 @@
   "protectedSurfaces": [
     "rebuild/m4/workout/engine-runtime.cjs — a PARENT EXECUTION PIN this child SUPERSEDES (9be21897… -> c03732e8…): EXPOSED gains dayWeather + cleanAtDate per DECISIONS:109 PATH A. The parent M2-NATIVE-CARRIERS profile keeps its own pin and therefore REFUSES on these bytes; that refusal is this child's to supersede and no separate parent re-seal is wanted.",
     "rebuild/m3/w6/host/engine-runtime-host.cjs — the bundleable mirror of the file above, widened with it (114411b1… -> e210bfa0…); engine-equivalence.test.cjs holds the two to the same name list.",
-    ".github/workflows/rebuild.yml - a PARENT EXECUTION PIN this child SUPERSEDES: four disclosed hunks, all in BRIEF section 4. (1) the A1/A2/A3 step enumerates seven today/ files, adding checkin.test.mjs and ntc-h6-delta.test.mjs, which DECISIONS:109 rules rides this seal; (2) the parent gate step is replaced by this child's, which DECISIONS:113 (3) rules the correct supersession and says not to restore; (3) the memory-only w7-preview step is deleted, which is the :109 pass-19 retirement :113 (3) says to keep deleted; (4) a new C5 step node --test \"rebuild/coach/test/*.test.cjs\" (64/64 exit 0 here), which DECISIONS:117 (4) rules rides this seal as one more disclosed hunk. A4's setup.test.mjs is NOT enumerated: :117 (4) enumerates it only if it exists on the tip at seal time, and it does not.",
+    ".github/workflows/rebuild.yml - a PARENT EXECUTION PIN this child SUPERSEDES: four disclosed hunks, all in BRIEF section 4. (1) the A1/A2/A3 step enumerates seven today/ files, adding checkin.test.mjs and ntc-h6-delta.test.mjs, which DECISIONS:109 rules rides this seal; (2) the parent gate step is replaced by this child's, which DECISIONS:113 (3) rules the correct supersession and says not to restore; (3) the memory-only w7-preview step is deleted, which is the :109 pass-19 retirement :113 (3) says to keep deleted; (4) a new C5 step node --test \"rebuild/coach/test/*.test.cjs\" (64/64 exit 0 here), which DECISIONS:117 (4) rules rides this seal as one more disclosed hunk. A4's setup.test.mjs is NOT enumerated HERE, and that is now an OWED item, not a settled one: :117 (4) enumerates it only if it exists on the tip at seal time; at the FIRST seal (tip 2d457fd) it did not exist, at this re-seal onto the tip 50fa37a it DOES, so the condition is met. DECISIONS:132 scopes this pass to the five moved pins and the enumeration is a rebuild.yml change only the PM may rule on, so it is NOT applied here and is raised as an OPEN item in rebuild/lanes/b/VERDICT-B-NTC.md. The brief is frozen by sha256 4aa94069... under DECISIONS:126 and still carries the first-seal sentence; it is not edited.",
     "rebuild/engine/* — byte-identical, every one carried; this package edits no engine byte."
   ],
   "children": [
@@ -574,7 +574,7 @@
   },
   "executionPins": {
     "rebuild/lanes/b/tooling/b-package.cjs": "eedabccd5b8145bfb07fe653bfb14f9483af8ca52619e813c70bf699407dd612",
-    "rebuild/lanes/b/tooling/packages/B-NTC.json": "9d8552d9a20af61f8058a31577c23e7d720532e2824be4e1db3f3226041a1a96",
+    "rebuild/lanes/b/tooling/packages/B-NTC.json": "05a5aa1fdad98df3bbd9efd45721810ed3503ba11ae9e351d3948d988f0948ed",
     "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md": "4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c",
     "rebuild/m4/spec/b-ntc-traces.cjs": "0137dc617d83ed1e0171054da62f3699a32232342ed88cd54eded578a83c2325",
     "rebuild/m4/spec/b-ntc-direct.cjs": "a043bffc9a0c99f0cfb3aa24ead3e75d4b3f4fc1635fc1df094c089b0b55142a",
