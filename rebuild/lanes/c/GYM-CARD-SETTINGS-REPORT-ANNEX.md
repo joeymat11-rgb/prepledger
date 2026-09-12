@@ -195,6 +195,34 @@ TWO REAL DEFECTS this check found, both fixed and both in the annex rather than 
 itself hung instead of failing when a run failed - a killed context's `close()` and a keep-alive
 socket can both wait for ever - so its shutdown is bounded and it exits on its verdict.
 
+## 6b. THE CI RUNS, AND THE WINDOWS-ONLY FAILURE
+
+| head | workflow | runner | result | run id |
+|---|---|---|---|---|
+| `aabb826` | pipeline | - | **success** | 34704745297 |
+| `aabb826` | rebuild | ubuntu-latest | **success** | 34704745242 |
+| `aabb826` | rebuild | windows-latest | **failure** at "Cumulative B-NTC native-carrier and legacy-census evidence" | 34704745242 |
+| `639db28` (identical code, empty commit) | rebuild | both | **success** | 34705136147 |
+
+The failed job's log reaches `B PACKAGE B-NTC CHILD focused OBSERVED` and then
+`B PACKAGE B-NTC FAIL; required evidence missing or failed; local diagnostics withheld`:
+every declared child was OBSERVED except the last one, `durable-journeys`
+(`rebuild/m4/spec/b-ntc-journeys.cjs`), and that gate withholds the child's own output.
+
+Run on this Windows PC at that exact tree:
+
+    node rebuild/m4/spec/b-ntc-journeys.cjs
+      -> B-NTC DURABLE JOURNEYS: 238/238 PASS; Today, gym, check-in, default-provider
+         multi-day, host equivalence and one-store joins        (exit 0, 9.1s)
+
+and the whole gate, run ALONE, prints PASS with a byte-identical `git status --porcelain`
+before and after. The suites that child runs are green here as well: the today step
+164/164, the local-today journey 51/51, PAGE_PINS byte-unchanged. The re-run API is not
+available to this token (HTTP 403), so the second sample is an EMPTY commit rather than a
+job re-run, and it is green. The same windows-only failure at the same step was observed
+and proved a flake once before on this repository (lane C, head 52f7eb8, closed the same
+way). Reported rather than retried silently.
+
 ## 7. PROVENANCE
 
 - The op, the caps, the profile, the read-back and latest-wins: `rebuild/coach/machine-settings-commands.cjs`, imported and executed, never restated.
