@@ -44,15 +44,16 @@ unmoved) / A0 host **32** / w7 **19**, all 0 fail. Four msedge checks PASS.
     athlete can see
 
 Informational, the gym card after B-NTC: no day+3 same-lift-group refusal appears
-in any of the four walks, and `gym-check.mjs` reports `"Last time" prints on day
-1's active set from the engine's own comparison (C4d), and day 2's lifts, which
-have none on file, print nothing`. No walk places a same-group lift three days apart, so that is an absence, not a proof.
+in any of the four walks; `gym-check.mjs` reports `"Last time"` printing on day
+1's active set from the engine's own comparison (C4d) and nothing on day 2's
+lifts, which have none on file. No walk puts a same-group lift three days apart, so that is an absence, not a proof.
 
 ## SERVED, AND PREFLIGHT (DECISIONS:135 (3), self-check)
 
-http://127.0.0.1:4178/ , `serve.mjs` pid **59320**, rebuilt on this head;
+http://127.0.0.1:4178/ , `serve.mjs` pid **54224**, rebuilt on this head;
 `/app.js` **1445621 bytes** served and on disk. Diff inside custody **PASS**: 18
 paths, all under `dad-first-run/` and `w7-preview/today/`, nothing under
-`rebuild/m3/w6/` at all now; report <= 60 **PASS**; no U+2013 or
-U+2014 in UI custody **PASS**; counts present **PASS**; CI at the exact head:
-run ids in the annex.
+`rebuild/m3/w6/` now; report <= 60 **PASS**; no U+2013/U+2014 in UI custody
+**PASS**; counts present **PASS**. CI run ids, and the one windows-only
+`b-ntc-journeys` result that will not reproduce here (238/238 PASS on node 22
+and 24, any concurrency, clean `.tmp`), are in the annex.

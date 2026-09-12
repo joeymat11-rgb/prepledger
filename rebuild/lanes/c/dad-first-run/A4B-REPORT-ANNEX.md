@@ -532,3 +532,76 @@ need not match the document's ids (S35), R14 the starter week invents a load
   suites, and now does not enumerate `catalogue.test.mjs` either. `.github` is
   editable only inside an engine package that re-pins it (DECISIONS:112, :117
   (4)), so this stays a residual on A4b's ledger line.
+
+## 6. CI AT 52f7eb8, AND THE WINDOWS-ONLY `b-ntc-journeys` RESULT
+
+`pipeline` **34682324863 success**. `rebuild` **34682324819**: job
+`rebuild-public (ubuntu-latest)` **success**, job `rebuild-public
+(windows-latest)` **failure** at step 13, "Cumulative B-NTC native-carrier and
+legacy-census evidence".
+
+What is NOT the failure. Every pin line the unblock was about passes on BOTH
+runners, windows included: `PRODUCT IMPLEMENTED; 33 at the declared post-image /
+0 at the pinned pre-image / 20 carried byte-identical from the parent / 0
+unlisted drift`, and `FIDELITY OBSERVED; sourceBase 50fa37a ancestor of HEAD
+52f7eb8`. There is no `WORKTREE-SOURCE-PIN` and no `GIT-SOURCE-PIN` anywhere in
+either log. The two heads before it (d5696bc, 70287c5) failed on BOTH runners;
+this one does not.
+
+Where it stops. On windows, 14 of the package's 15 declared children print
+`CHILD <name> OBSERVED; exit 0`; the 15th, `durable-journeys`
+(`rebuild/m4/spec/b-ntc-journeys.cjs`), prints nothing and the run ends 16s
+later with `B PACKAGE B-NTC FAIL; required evidence missing or failed; local
+diagnostics withheld`. That sentence is `b-package.cjs:1536-1538`: when the
+refusing assertion's leading word is not one of the runner's own `FAIL_CODES`,
+the child's captured stdout is never echoed, so the TAP is not in the log and
+cannot be. On ubuntu the same child prints `53381 bytes of stdout` and is
+OBSERVED, between `focused` and `profile-refusals`, in 11s.
+
+What that child runs, and what this branch owns of it. `b-ntc-journeys.cjs` is
+19 lines: it sha-pins ten files against `packages/B-NTC.json`'s `product` map,
+then spawns ONE `node --test --test-reporter=tap` over all ten with
+`TZ=America/New_York`, `MEASURED_TEST_NOW=2026-09-03`, `NODE_OPTIONS=''`,
+`timeout:180000`, and asserts exactly `/^# pass 238$/m` and `/^# fail 0$/m`. The
+ten are `rebuild/m3/w7-preview/today/test/{adapter,checkin,design.test.cjs,gym,
+ntc-h6-delta,package.test.cjs,view}`, `rebuild/m3/w6/host/test/{journey,
+engine-equivalence}` and `rebuild/m3/w6/test/local-today-journey.test.mjs`. This
+branch modifies **none of the ten**; all ten are byte-identical to the tip,
+which is why the sha loop (the only part of the child that can fail fast) passed.
+What the branch does reach them with is indirect: `design.cjs` and `build.mjs`,
+which `design.test.cjs`, `package.test.cjs` and `view.test.mjs` exercise, and
+`today-entry.mjs`'s setup graph, which `local-today-journey.test.mjs` imports.
+
+Attempts to reproduce it, all on this Windows PC, all from a deleted `.tmp`
+(the build's `DIST` is `.tmp/w7-today-dist`, so a deleted `.tmp` is the
+fresh-checkout state CI starts from):
+
+- `node rebuild/m4/spec/b-ntc-journeys.cjs` on node **24.18.0**, CI env:
+  `# pass 238 / # fail 0`, `B-NTC DURABLE JOURNEYS: 238/238 PASS`.
+- the same child on node **22.22.0** (CI's `node-version: '22'`, downloaded for
+  this): `# pass 238 / # fail 0`, same verdict, 9.5s.
+- the same ten files on node 22 at `--test-concurrency=3` (a GitHub windows
+  runner has 4 CPUs; this PC has more, and `node --test` sizes its file
+  concurrency from `availableParallelism`): `# pass 238 / # fail 0`.
+- `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC`, which runs
+  the child itself: `B PACKAGE B-NTC PUBLIC CI EVIDENCE PASS`, worktree clean
+  before and after.
+
+Ruled out on the evidence, not by assertion: CRLF (`.gitattributes` is `* text=
+auto eol=lf`, so both runners check out the same bytes, and the child's own sha
+loop would have refused first); a spawn timeout (180s budget, 16s elapsed); a
+`maxBuffer` overrun (8MB budget, 53KB of TAP on ubuntu); and a stale `.tmp`
+(deleted before every local run above).
+
+Not yet ruled out, and it cannot be from here: an ordering or timing difference
+on the runner itself - the ten files run in one `node --test` process, three of
+them build into the same `.tmp/w7-today-dist` and two of them bind a local HTTP
+port, so the interleaving is real and the runner's is not this PC's. A re-run of
+the failed job would settle flake-or-not in one shot; the token this worktree
+has cannot POST `rerun-failed-jobs` (403, "Resource not accessible by personal
+access token"), so the next push is the second sample.
+
+The honest statement of the residual: this branch touches none of the ten files
+the failing child executes, passes that child on both node versions CI could
+use and at the runner's concurrency, and passes the gate command itself; the
+windows-latest result is unexplained and is NOT claimed as green.
