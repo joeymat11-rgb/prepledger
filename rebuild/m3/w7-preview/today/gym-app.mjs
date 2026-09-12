@@ -91,6 +91,16 @@ export function newGymDraft() { return { effort: null, entry: { load: null, reps
 export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draft, settings } = {}) {
   if (!phone) throw new Error('Gym card: no host element');
   let busy = false;
+  /* D2 round 2, R2-1 - see `show`. True while THIS mount is the screen on the phone. */
+  let owns = true;
+  /* Navigation, of every kind: ownership is handed over BEFORE the page moves, so a
+     read, a save or any other deferred work that settles afterwards has nothing to
+     paint onto. Nothing is cancelled and nothing is thrown; the answer simply arrives
+     to a mount that is no longer the screen. */
+  function leaveCard(go) {
+    owns = false;
+    return go();
+  }
   const held = draft && typeof draft === 'object' ? draft : newGymDraft();
   if (!Object.hasOwn(held, 'effort')) held.effort = null;   // NOTHING is preselected
   if (!held.entry || typeof held.entry !== 'object') held.entry = { load: null, reps: null };
@@ -172,7 +182,15 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     for (const el of root.querySelectorAll('[data-arrow]')) el.innerHTML = ARROW;
     for (const el of root.querySelectorAll('[data-check]')) el.innerHTML = CHECK;
   }
+  /* D2 ROUND 2, R2-1 - MOUNT OWNERSHIP. `phone` is the page's ONE surface and every
+     screen shares it. This mount owns it from the moment it is created until the
+     athlete navigates away, and after that it owns nothing: a background read that
+     settles a second later must not put the workout back over Today or over the
+     check-in he is now filling in. `owns` is that ownership, `leaveCard` hands it over
+     BEFORE the caller's navigation runs, and every write to the shared element goes
+     through `show`, which refuses once ownership is gone. */
   function show(root) {
+    if (!owns) return;
     phone.replaceChildren(root);
     const heading = root.querySelector('h1') || root;
     heading.tabIndex = -1;
@@ -195,7 +213,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'workout-title', view.title || '');
     put(map, 'stub-note', note);
     put(map, 'workout-detail', detail || '');
-    root.querySelector('[data-go="today"]').addEventListener('click', event => { event.preventDefault(); onBack(); });
+    root.querySelector('[data-go="today"]').addEventListener('click', event => {
+      event.preventDefault(); leaveCard(() => onBack());
+    });
     icons(root);
     show(root);
   }
@@ -349,7 +369,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     const toCheckIn = root.querySelector('[data-action="checkin"]');
     if (toCheckIn) {
       toCheckIn.hidden = typeof onCheckIn !== 'function';
-      if (typeof onCheckIn === 'function') toCheckIn.addEventListener('click', () => onCheckIn());
+      if (typeof onCheckIn === 'function') {
+        toCheckIn.addEventListener('click', () => leaveCard(() => onCheckIn()));
+      }
     }
 
     const help = root.querySelector('[data-action="clean-rep"]');
@@ -380,7 +402,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'up-next', upNext ? upNext.label : '');
     if (!upNext) root.querySelector('.next-lift').hidden = true;
 
-    root.querySelector('[data-action="back"]').addEventListener('click', () => onBack());
+    root.querySelector('[data-action="back"]').addEventListener('click', () => leaveCard(() => onBack()));
     if (view.message) root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(view.message), 'gym-error');
     icons(root);
     show(root);
@@ -392,7 +414,7 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     busy = false;
     if (!result.ok) { refusalScreen(view, result); return; }
     if (onChanged) onChanged();
-    onBack();
+    leaveCard(() => onBack());
   }
 
   /* Every slot is recorded but this device has no saved set to show on the rest
@@ -413,7 +435,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     put(map, 'next-effort', '');
     put(map, 'primary-label', FINISH_WORKOUT);
     map.get('primary').addEventListener('click', () => { if (!busy) finishNow(view); });
-    for (const el of root.querySelectorAll('[data-action="back"]')) el.addEventListener('click', () => onBack());
+    for (const el of root.querySelectorAll('[data-action="back"]')) {
+      el.addEventListener('click', () => leaveCard(() => onBack()));
+    }
     icons(root);
     show(root);
   }
@@ -453,7 +477,9 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       await paint();
       if (onChanged) onChanged();
     });
-    for (const el of root.querySelectorAll('[data-action="back"]')) el.addEventListener('click', () => onBack());
+    for (const el of root.querySelectorAll('[data-action="back"]')) {
+      el.addEventListener('click', () => leaveCard(() => onBack()));
+    }
     icons(root);
     show(root);
   }
@@ -476,7 +502,12 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
     (result && result.code) || '');
 
   async function paint() {
+    /* D2 round 2, R2-1 - a repaint asked for by work that started while this mount WAS
+       the screen, and answered after the athlete left it, paints nothing. The read
+       still resolves and is still cached; it simply has no surface to claim. */
+    if (!owns) return null;
     const view = await model.read();
+    if (!owns) return null;
     if (view.phase === 'blocked') return refusalScreen(view, view);
     if (view.phase === 'finished') return stub(view, WORKOUT_RECORDED,
       view.sets + (view.sets === 1 ? ' set' : ' sets') + ' recorded');
@@ -512,6 +543,8 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
        waits for it, which is the whole point of finding 1. */
     read: () => settingsReading,
     stateFor: (liftId) => (settingsRead.has(liftId) ? settingsRead.get(liftId).state : 'reading'),
+    /* D2 round 2, R2-1 - whether THIS mount is still the screen on the phone. */
+    owns: () => owns,
   });
   return first;
 }

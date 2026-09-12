@@ -299,6 +299,23 @@ try {
   assert.deepEqual(await storedPairs(page), [["Seat", "five"]], "cancelling changed the record");
   notes.push("cancelling wrote nothing and left the record as it was");
 
+  /* ---------- D2 ROUND 2, R2-1: BACK KEEPS TODAY ----------
+     The card's settings read is a background read, and a mount that has been left
+     must never repaint over the screen the athlete went to. In a real browser the
+     read is usually already finished, so this is a floor rather than a race: press
+     Back, land on Today, and hold there while any deferred work could still settle. */
+  await page.click('[data-action="back"]');
+  await page.waitForSelector('[data-slot="primary-label"]');
+  await page.waitForTimeout(1000);
+  assert.equal(await page.$('[data-slot="log"]'), null,
+    "the gym card repainted itself over Today after Back");
+  assert.equal(await page.$('[data-slot="settings-block"]'), null,
+    "the settings block repainted itself over Today after Back");
+  assert(await page.$('[data-slot="primary-label"]'), "Today did not survive Back");
+  notes.push("Back landed on Today and NOTHING deferred repainted the card over it");
+  await openCard(page);
+  await page.waitForSelector('[data-slot="settings-block"]');
+
   /* ---------- THE SET STILL LOGS, with the editor open ---------- */
   await page.click('[data-action="settings-open"]');
   await page.waitForSelector('[data-settings-name="0"]');
@@ -341,7 +358,8 @@ if (problems.length || failures) {
   console.log("GYM-CARD MACHINE SETTINGS BROWSER CHECK PASS - the active set opened with the "
     + "honest empty state and no figure -> an empty capture refused -> two settings and a cue "
     + "captured and shown back verbatim -> a genuine reload -> a correction that replaced the "
-    + "whole machine -> cancelling wrote nothing -> the set still logged with the editor open "
+    + "whole machine -> cancelling wrote nothing -> Back landed on Today and no deferred read "
+    + "repainted the card over it -> the set still logged with the editor open "
     + `-> the same record at 320px, across ${kills} REAL PROCESS KILLS (taskkill /F /T, each `
     + "verified dead); no off-origin request, no horizontal overflow at 390px or 320px, every "
     + "settings box >= 16px, every settings target >= 44px, exactly ONE primary action on the "

@@ -954,3 +954,95 @@ test('D2.1 / D2.2 - the new states are declared, dash free, and carry no figure'
   assert.equal(/await\s+settingsLane\.latest/.test(gym), false,
     'the optional read must never be awaited on the card paint path');
 });
+
+/* ==========================================================================
+   D2 ROUND 2 - R2-1, MOUNT OWNERSHIP. The deferred read used to repaint the card
+   whenever it settled, over whatever screen the athlete had navigated to.
+   ========================================================================== */
+
+/* The card with a read that only answers when the test says so, on the SHARED phone
+   element the rest of the page uses. */
+async function cardWithHeldRead(kit, leave) {
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  const phone = doc.getElementById('phone');
+  await kit.model.start();
+  let release = null;
+  const delayed = new Promise((resolve) => { release = resolve; });
+  const mounted = mountGym(doc, phone, {
+    model: kit.model,
+    onBack: () => leave(doc, phone, 'back'),
+    onCheckIn: () => leave(doc, phone, 'checkin'),
+    settings: { latest: () => delayed, save: async () => ({ ok: false }), close() {} },
+  });
+  await mounted;
+  assert(doc.querySelector('#phone [data-slot="log"]'), 'the card is usable with the read pending');
+  return { dom, doc, phone, mounted, release: (value) => release(value) };
+}
+
+test('D2.R2 - BACK during a deferred read: the destination screen is never repainted over', async () => {
+  const kit = await device();
+  const page = await cardWithHeldRead(kit, (doc, phone) => {
+    /* Exactly what the page does: it replaces the shared surface with another screen. */
+    const other = doc.createElement('section');
+    other.setAttribute('data-slot', 'synthetic-destination');
+    other.textContent = 'SYNTHETIC_TODAY';
+    phone.replaceChildren(other);
+  });
+  page.doc.querySelector('#phone [data-action="back"]').dispatchEvent(new page.dom.window.Event('click'));
+  assert.equal(page.phone.textContent, 'SYNTHETIC_TODAY', 'the page navigated');
+  assert.equal(page.mounted.settings.owns(), false, 'and the card handed the surface over');
+  page.release(null);
+  await page.mounted.settings.read();
+  await settle();
+  assert.equal(page.phone.textContent, 'SYNTHETIC_TODAY', 'the late read painted NOTHING');
+  assert.equal(page.doc.querySelector('#phone [data-slot="log"]'), null, 'the card did not come back');
+  assert(page.doc.querySelector('#phone [data-slot="synthetic-destination"]'), 'the destination is intact');
+  kit.settings.close(); kit.gymHost.close(); page.dom.window.close();
+});
+
+test('D2.R2 - the CHECK-IN opened mid-read keeps its screen AND its half-typed draft', async () => {
+  const kit = await device();
+  const page = await cardWithHeldRead(kit, (doc, phone) => {
+    /* The check-in the athlete is now filling in, with an answer already typed. */
+    const sheet = doc.createElement('section');
+    sheet.setAttribute('data-slot', 'synthetic-checkin');
+    const box = doc.createElement('input');
+    box.type = 'text';
+    box.id = 'synthetic-checkin-note';
+    sheet.append(box);
+    phone.replaceChildren(sheet);
+    box.value = 'SYNTHETIC_HALF_TYPED';
+  });
+  page.doc.querySelector('#phone [data-action="checkin"]').dispatchEvent(new page.dom.window.Event('click'));
+  assert(page.doc.querySelector('#phone [data-slot="synthetic-checkin"]'), 'the check-in is on the screen');
+  page.release(null);
+  await page.mounted.settings.read();
+  await settle();
+  assert(page.doc.querySelector('#phone [data-slot="synthetic-checkin"]'), 'and it still is');
+  assert.equal(page.doc.querySelector('#phone #synthetic-checkin-note').value, 'SYNTHETIC_HALF_TYPED',
+    'his half-typed answer survived the late read');
+  assert.equal(page.doc.querySelector('#phone [data-slot="log"]'), null, 'the workout did not reclaim the phone');
+  kit.settings.close(); kit.gymHost.close(); page.dom.window.close();
+});
+
+test('D2.R2 - a read that FAILS after navigation is equally silent', async () => {
+  const kit = await device();
+  const dom = new JSDOM(shell(), { url: 'http://127.0.0.1:4178/' });
+  const doc = dom.window.document;
+  const phone = doc.getElementById('phone');
+  await kit.model.start();
+  let reject = null;
+  const delayed = new Promise((resolve, no) => { reject = no; });
+  const mounted = mountGym(doc, phone, { model: kit.model,
+    onBack: () => { phone.replaceChildren(doc.createTextNode('SYNTHETIC_TODAY')); },
+    settings: { latest: () => delayed, save: async () => ({ ok: false }), close() {} } });
+  await mounted;
+  doc.querySelector('#phone [data-action="back"]').dispatchEvent(new dom.window.Event('click'));
+  reject(new Error('SYNTHETIC_READ_FAILURE'));
+  await mounted.settings.read();
+  await settle();
+  assert.equal(phone.textContent, 'SYNTHETIC_TODAY', 'a failed late read paints nothing either');
+  assert.equal(doc.querySelector('#phone [data-slot="settings-block"]'), null);
+  kit.settings.close(); kit.gymHost.close(); dom.window.close();
+});
