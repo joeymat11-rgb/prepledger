@@ -1107,13 +1107,19 @@ else. **For the PM:**
 GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]
 ```
 
-on a ledger line that ends in the `RULED` terminal word — e.g.
+**alone in its own `·`-delimited clause**, on a ledger line that ends in the `RULED` terminal
+word — e.g.
 
 ```
-- 2026-09-12 · cowork · LANE B RULINGS — … ; GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate · RULED
+- 2026-09-12 · cowork · LANE B RULINGS — … the carriers are not inheritable … · GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate · RULED
 ```
 
-Everything around the token is prose the runner never reads. The token's `<packageId>` must be
+**The clause must be the token and nothing else (r10b N1).** A token with any word or mark
+before or after it inside the same clause frees **nothing** — so `may not GATE-SUPERSESSION …`,
+`"GATE-SUPERSESSION …"`, `(GATE-SUPERSESSION …)`, `**GATE-SUPERSESSION …**` and
+`` `GATE-SUPERSESSION …` `` are all refused, and a line can discuss, quote or refuse the token
+safely. Put it between two `·` separators, exactly as `RULED` stands.
+Everything around that clause is prose the runner never reads. The token's `<packageId>` must be
 this package's own (`GATE-SUPERSESSION-RULING-DOES-NOT-NAME-THIS-PACKAGE`), each carrier must be
 one of the five (`-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE`), the line must be
 `RULED` (`-RULING-IS-NOT-A-RULED-LINE`), and a line with no token frees nothing

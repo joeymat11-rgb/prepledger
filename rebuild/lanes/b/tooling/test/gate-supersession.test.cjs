@@ -77,9 +77,19 @@ const CENSUS_CHILD = 'h3-census-identity', UNRELATED_CHILD = 'h3-unrelated';
 // The PM's line, in the ledger's own shape, carrying the F1 GRANT TOKEN. Everything around
 // the token is prose and the runner never reads it; the token, the package id, the carrier
 // list and the `RULED` terminal word are the whole of the admission.
+// TOOLING-REVIEW-r10b N1: the token BEGINS ITS OWN `·` clause and is the whole of it.
 const GRANT = 'GATE-SUPERSESSION M2-H3-CLEAN-INIT ' + CARRIERS.join(',');
 const RULING_LINE = '- 2026-09-12 · cowork · LANE B RULINGS — REQUESTS 08:40 (b) RATIFIED: the NATIVE-CARRIERS ' +
-  'byte-identity carriers are not inheritable by a child that changes any file the parent spec declares; ' + GRANT + ' · RULED';
+  'byte-identity carriers are not inheritable by a child that changes any file the parent spec declares · ' + GRANT + ' · RULED';
+// N1's own controls: the same token NEGATED, QUOTED, BRACKETED, EMPHASISED and BACKTICKED
+// inside a clause. r10-fix admitted every one of them; none of them begins a clause.
+const WRAPPED_LINES = [
+  '- 2026-09-12 · cowork · M2-H3-CLEAN-INIT may not ' + GRANT + ' until the cells land · RULED',
+  '- 2026-09-12 · cowork · the token would read "' + GRANT + '" if it were granted · RULED',
+  '- 2026-09-12 · cowork · (' + GRANT + ') is REFUSED for now · RULED',
+  '- 2026-09-12 · cowork · **' + GRANT + '** is under discussion, not ruled · RULED',
+  '- 2026-09-12 · cowork · `' + GRANT + '` is the shape a future line would carry · RULED',
+];
 // r10 F1's own controls, both of which the keyword scan admitted: a line about something
 // else that merely CONTAINS the words, and a line that REFUSES the role outright.
 const PROSE_LINE = '- 2026-09-12 · cowork · LANE B RULINGS — MOVES_RULING B-NTC-INHERITED-1 RATIFIED AS WRITTEN, ' +
@@ -92,7 +102,7 @@ const OTHER_PACKAGE_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-B1-GR
 const SIXTH_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT conformance · RULED';
 const ONE_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT second-gate · RULED';
 const UNRULED_LINE = '- 2026-09-12 · cowork · GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers · PROPOSED';
-const LEDGER = [RULING_LINE, PROSE_LINE, REFUSING_LINE, OTHER_PACKAGE_LINE, SIXTH_LINE, ONE_LINE, UNRULED_LINE];
+const LEDGER = [RULING_LINE, PROSE_LINE, REFUSING_LINE, OTHER_PACKAGE_LINE, SIXTH_LINE, ONE_LINE, UNRULED_LINE, ...WRAPPED_LINES];
 write('rebuild/DECISIONS.md', [...LEDGER, ''].join('\n'));
 const shaOf = line => sha(Buffer.from(line));
 
@@ -190,8 +200,20 @@ test('r10 F6 — the role is REQUESTS 08:40 (b), not DECISIONS:147 (b), everywhe
   assert(source.includes('b-ntc-successors.cjs:142'), 'the refusing line for H3 is :142, the else branch');
 });
 
+test('r10b N1 — the token must BEGIN its own · clause; negated, quoted or wrapped frees nothing', () => {
+  // r10-fix matched the token after any whitespace, so all five of these ADMITTED five
+  // carriers. A ledger clause is the smallest unit a PM writes deliberately, so the grant is
+  // one: nothing before the token, nothing after its carrier list.
+  for (const line of WRAPPED_LINES)
+    assert.throws(() => api.supersessionRuling(spec(CARRIERS, shaOf(line))),
+      /GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN/, 'wrapped token frees nothing: ' + line.slice(30, 70));
+  // And the bare grant, alone in its clause, still passes.
+  assert.deepEqual([...api.supersessionRuling(spec()).granted].sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
+});
+
 test('r10 F1 — the grant is a TOKEN, and prose about the role frees nothing', () => {
-  assert.equal(api.SUPERSESSION_GRANT_SHAPE, 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]');
+  assert.equal(api.SUPERSESSION_GRANT_SHAPE,
+    'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…], alone in its own · clause');
   const ok = api.supersessionRuling(spec());
   assert.deepEqual([...ok.granted].sort(), api.BYTE_IDENTITY_CARRIERS.slice().sort());
   assert.equal(ok.line, RULING_LINE);

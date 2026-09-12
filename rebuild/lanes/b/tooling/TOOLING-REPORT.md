@@ -2424,17 +2424,18 @@ measurement is reproduced; the PASS word itself is not reachable in a fixture.
 `product-phase-and-ledger` 7/7 · `execution-targets` 9/9 · `successor-moves` 9/9 ·
 `pinned-unchanged-and-ruled-substitutions` 12/12 · `seal-tip-and-byte-identity` 16/16 ·
 `parent-pin-shapes-and-spec-successors` 8/8 · `parent-gate-closure-and-load-floor` 14/14 ·
-`gate-supersession` **11/11** · `../tooling/test/preflight.test.cjs` 9/9 — **95 cases, 0 fail**
+`gate-supersession` **12/12** · `../tooling/test/preflight.test.cjs` 9/9 — **96 cases, 0 fail**
 across nine suites (r10 measured 94; the supersession suite gains F1's token controls, F2's
 one-carrier line, F3's phased seal block, F4's in-process withdrawal, F5's four distinctness
-refusals and F7's pre-r10 parent artifact).
+refusals, F7's pre-r10 parent artifact and r10b N1's five wrapped-token controls). Runner at
+this head: `c8dfdd491c9fc8bcc614c3bbb60f3b91913ec824c97c380f1f281715f1e17093`, 223 525 B.
 
 ### r10-fix — the H3 scratch probe, in the grant-token shape
 
 `origin/rebuild/lane-b-h3 @ 902fd88` cloned `--shared` to `…/fx7-scratch/fx-h3e`; one probe
 commit on the lane's own chain tip appends the PM line
-`… ; GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate · RULED`
-(`DECISIONS:150`, line sha256 `5326712ac02e…`) and `refs/remotes/origin/rebuild/t2-client-core`
+`… not inheritable … · GATE-SUPERSESSION M2-H3-CLEAN-INIT source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate · RULED`
+— the token alone in its own clause, per r10b N1 — and `refs/remotes/origin/rebuild/t2-client-core`
 points at it; the r10-fix runner and suites overlaid, all seven specs re-pinned, H3's two
 `superseded-by-child` tooling posts re-stated, and — taking TOOLING-REVIEW-r10's correction —
 `node_modules` junctioned at the root and at `rebuild/m3/w5` and `rebuild/m3/w6` from the h3
@@ -2451,7 +2452,8 @@ That is F5 working on the real case, and it is a finding for the H3 builder: und
 author **one red-first cell per superseded carrier**.
 
 **Pass 2 — with a cell per carrier (four of them probe-only files).** The run reaches
-everything, exit **2**, `CI REVIEW-PENDING: 3 open obligation(s)`:
+everything, exit **2**, `CI REVIEW-PENDING: 2 open obligation(s)` (r10b N2: the
+unsealed-profile OPEN line is not CI-blocking, and this report first miscounted it as a third):
 
 ```
 COVERAGE 0/19 original gate(s) covered by 0 executed child(ren) (0 inherited, the parent map
@@ -2459,7 +2461,7 @@ COVERAGE 0/19 original gate(s) covered by 0 executed child(ren) (0 inherited, th
   inherited-carriers 3, second-gate 1, source-carriers 3, writers-differential 1), counted
   toward the 19 only under that ruling; 10 re-execute under --full
 SUPERSESSIONS 5 byte-identity carrier(s) of B-NTC SUPERSEDED over 9 gate(s) under DECISIONS:150,
-  located on refs/remotes/origin/rebuild/t2-client-core BY ITS OWN SHA256 5326712ac02e; …
+  located on refs/remotes/origin/rebuild/t2-client-core BY ITS OWN SHA256 446d7c9d69b5; …
 SUPERSEDED source-carriers <- merge-source migrate-source writers-source; … b-ntc-successors.cjs:142
   refuses the unlisted parent pin drift
 SUPERSEDED EVIDENCE source-carriers; laws UNMOVED; red-first h3-cells; public census the runner's
@@ -2469,5 +2471,12 @@ SUPERSEDED EVIDENCE source-carriers; laws UNMOVED; red-first h3-cells; public ce
 OPEN theme … | OPEN brief … | OPEN closed cumulative profile not sealed
 ```
 
-All eight declared children ran exit 0. The three remaining obligations are the theme line, the
-brief acceptance (both PM-side) and the unsealed profile — which is what (b) buys.
+All eight declared children ran exit 0. The two remaining CI obligations are the theme line and
+the brief acceptance, both PM-side — which is what (b) buys.
+
+**r10b N1, applied here too.** The grant token must BEGIN its own `·`-delimited clause and be
+the whole of it, so the probe line now reads `… not inheritable … · GATE-SUPERSESSION M2-H3-CLEAN-INIT
+<five carriers> · RULED`. r10-fix matched the token after any whitespace, which let a token
+standing INSIDE a clause be negated, quoted, bracketed, emphasised or backticked and still free
+five carriers; five suite cases now measure exactly those five wrappings and each refuses
+`GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN`, with the bare grant still admitted.

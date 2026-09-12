@@ -657,8 +657,20 @@ const SUPERSESSION_RUNNER_CENSUS = 'runner-live-triggered-line';
 // brief acceptance is held to `ACCEPTED` — so a line that argues about the role, or refuses
 // it, carries no token and frees nothing. The carriers the token names are the ONLY carriers
 // the spec may supersede (F2), one by one.
-const SUPERSESSION_GRANT = /(?:^|[\s·])GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*)(?![A-Za-z0-9,-])/g;
-const SUPERSESSION_GRANT_SHAPE = 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…]';
+//
+// TOOLING-REVIEW-r10b N1. The token must BEGIN ITS OWN `·`-DELIMITED CLAUSE and be the whole
+// of it. r10-fix matched the token after any whitespace, so a token that stood INSIDE a
+// clause could be negated, quoted or wrapped by the words around it and still free five
+// carriers: `… may not GATE-SUPERSESSION M2-X a,b …`, `"GATE-SUPERSESSION M2-X a"`,
+// `(GATE-SUPERSESSION M2-X a)`, `**GATE-SUPERSESSION M2-X a**`. A ledger clause is the
+// smallest unit a PM writes deliberately, so the grant is one: split the line on `·`, trim,
+// and the clause must be EXACTLY the token and its carrier list. Nothing before it, nothing
+// after it, and every wrapper — a bracket, a quote, a backtick, an emphasis marker, a
+// negating word — leaves the clause something other than the token and frees nothing.
+const SUPERSESSION_GRANT = /^GATE-SUPERSESSION\s+(M2-[A-Za-z0-9-]+)\s+([a-z0-9]+(?:-[a-z0-9]+)*(?:,[a-z0-9]+(?:-[a-z0-9]+)*)*)$/;
+const SUPERSESSION_GRANT_SHAPE = 'GATE-SUPERSESSION <packageId> <carrier>[,<carrier>…], alone in its own · clause';
+// The grant clauses of one ledger line: every `·`-delimited clause that IS a grant token.
+const supersessionGrants = line => line.split('·').map(c => SUPERSESSION_GRANT.exec(c.trim())).filter(Boolean);
 // What coverage() ADMITTED, so the --full gate sweep and the seal can see it without being
 // handed it through four signatures. Empty for every package that declares none, and it is
 // written exactly once, by coverage(), after the ruling and the evidence have both stood.
@@ -934,7 +946,7 @@ function supersessionRuling(s) {
   assert(/(?:^|[ ·])RULED$/.test(line.trim()), 'GATE-SUPERSESSION-RULING-IS-NOT-A-RULED-LINE DECISIONS:' + at +
     '; a supersession stands on a RULED ledger line and on nothing else');
   // F1: the POSITIVE, STRUCTURED grant. No prose is read.
-  const grants = [...line.matchAll(SUPERSESSION_GRANT)];
+  const grants = supersessionGrants(line);
   assert(grants.length, 'GATE-SUPERSESSION-RULING-DOES-NOT-CARRY-THE-GRANT-TOKEN DECISIONS:' + at +
     '; a supersession is granted by the exact token ' + SUPERSESSION_GRANT_SHAPE + ' and never by prose about it');
   const mine = grants.filter(g => g[1] === s.packageId);
