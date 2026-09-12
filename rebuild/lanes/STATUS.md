@@ -1,10 +1,10 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-12 13:55 ET by the lane C integrator at DECISIONS:170 · whoever writes the next MERGED line refreshes this block; tail below = last 15 events, older lines in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @ cf8e5c2 (the catalogue-heads merge; this docs commit sits on top) · last merge :170 CATALOGUE HEADS (before it: :151 REPORT A PROBLEM CONTROL, :150 COACH WAVE ONE TEXT + C6A)
+## STATE (refreshed 2026-09-12 17:17 ET by the lane C integrator at DECISIONS:171 · whoever writes the next MERGED line refreshes this block; tail below = last 15 events, older lines in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @ 5f9dfb5 (the N1 merge; this docs commit sits on top) · last merge :171 N1 NUTRITION ENTRY (before it: :170 CATALOGUE HEADS, :151 REPORT A PROBLEM CONTROL)
 - PM: P1 + P2 MERGED · queued briefs P3 preview guard, P4 gym-app retry-once, P5 full-bleed layout, P6 coach reason-on-disk (client), P7 A5 preflight dashes — no new dispatch while A4 sits accepted-unmerged (:119 cap) · owner look at A4 pending
 - B: B-NTC MERGED :144 · TIP FREEZE for its pinned files LIFTED · next H3 M2-H3-CLEAN-INIT (rebuild/lane-b-h3 @ 43f9ea7) blind r1 (MAX) starts now, carrying :142 (F-A accepted, F-B first-weigh-in seeding INSIDE H3, F-C successor granted, :117(4) setup.test.mjs enumeration rides H3) · then the B1+B2 bundle (:136), then B4+B3 · tooling r7 changes ride the next runner re-pin
-- C: catalogue heads MERGED :170 · N1 @ 25650f8 + settings display @ fffc983 PR-READY → D2 blind reviews · both rebase onto this merge · phone voice session after N2 (D2 brief)
+- C: N1 MERGED :171 · settings @ ea78c24 D2 ACCEPT → rebasing onto this merge for D2's combined-tree check → integrate · N2 build next (D2 brief :167) · phone voice session after N2
 - WAITING ON THE OWNER: iPhone HAND-PROOF v2 at https://earned-slice.netlify.app/ (one line per row, PASS/FAIL/SEE)
 - THROTTLE: none · usage at 10:49 ET fh 44 / sd 70
 
@@ -31,3 +31,4 @@
 2026-09-12 16:49 ET · D2 · REVIEWING R3 · N1 @ a61c851 then SETTINGS @ ea78c24 per C REQUESTS 16:21. Original bars plus R2-1 repros, exact-head controls/retry/navigation, regression, mutation, browser and CI checks before reports. Own sparse review worktrees only; hourly cadence while active. No verdict yet.
 2026-09-12 16:59 ET · D2 · ACCEPT R3 · N1 @ a61c851; a7de723 rebuild/lanes/d2/N1-REVIEW.md. R2-1 closed: acknowledgment survives failed read; retry submits nothing. Food 56/56, serial 1280/1280, 12 bar + 2 new mutants killed, browser 3 kills, exact-head both-OS CI green. CI registration/local-gate custody residuals stated. Lane review only.
 2026-09-12 16:59 ET · D2 · ACCEPT R3 · SETTINGS @ ea78c24; f5fd9fb rebuild/lanes/d2/GYM-CARD-SETTINGS-REVIEW.md. R2-1 closed: Back/check-in preserve destination across late read success/failure. Suite 51/51, serial 1275/1275, 10 bar + 1 new mutant killed, browser 3 kills, exact-head both-OS CI green. Any rebase is a new head. Lane review only.
+2026-09-12 17:17 ET · C (integrator) · MERGED · N1 NUTRITION ENTRY (rebuild/lane-c-n1 @ a61c851) → rebuild/t2-client-core, ledger line 171 · merged-tree food 56, today step 164, setup 157, catalogue 57, problem 25, coach 201, B-NTC gate PASS, build PASS 107 inputs · next: settings rebase + integrate; N2 build
