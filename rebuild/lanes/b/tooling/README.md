@@ -883,3 +883,56 @@ command and the commit URL are printed, `--ci-run <id>` must be supplied by the 
 looked, and without it the preflight FAILS at `CI-UNVERIFIED` rather than passing quietly.
 The id is recorded and explicitly NOT verified; what it buys is that a human looked and can
 be asked which run they looked at.
+
+## r7b and r8 — the parent-pin shapes, spec-driven successors, and an AUTHENTIC receipt
+
+The runner these two passes deliver is
+`1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00`, 2195 lines, 176 412 B,
+pinned as `tooling.runnerSha256` by all seven package specs; `TOOLING-REPORT.md` §"r7b and
+r8-fix" carries the full byte table and the suite counts.
+
+- **r7b F-E — two artifact shapes are in the chain.** The accepted originals write `product`
+  as a flat file → sha256 map; this runner writes file → `{pre, post, role}`. The readers
+  knew only the flat one, so the FIRST child of a package this runner sealed refused
+  `PARENT-PIN-BROKEN-AT-SOURCEBASE` on a file whose bytes are identical everywhere — it
+  blocked every child of B-NTC, not just H3. One normaliser, `parentPin()`, now stands
+  between every reader (`pins()` for parent AND grandparent, and product()'s pre-image
+  check) and either shape: a string is a sha; an object's pinned byte is its POST-image,
+  the image the parent's own seal stands at. **r8 change 4**: only the literal `null` means
+  "no post yet" — a falsy non-null post (`0`, `""`, `false`) is `PARENT-PIN-SHAPE`, not a
+  silent fallback to the pre-image. The SEALED ARTIFACT is never rewritten;
+  `acceptance-b-ntc-native-trend-context.json` is merged and receipted at `DECISIONS:141`.
+- **r7b F-C — the successor machinery is spec-driven.** `SUCCESSOR_PACKAGES`,
+  `SUCCESSOR_PARENT_COMMIT`, `SUCCESSOR_WRAPPER` and `SUCCESSOR_SUPPORT` are gone; a
+  constant naming one package could not read `DECISIONS:142`'s grant to another. What
+  admits a package is `successorRuling()`: the ruling LINE, located on the chain branch by
+  the sha256 the spec records, must name `M2-<ID>` (taken from the command line, never the
+  spec), use the word SUCCESSOR, stand on `DECISIONS:113`'s conditions (a)–(e), and NAME
+  the support file — which must itself be a path this spec declares it changes. The
+  acceptance commit is the parent receipt's own `reviewedCommit`; the accepted schedule is
+  the parent artifact's own `children` needles, falling back to a spec-named `wrapper` that
+  must be a parent execution pin; the gate set is the parent's `byChild` ∩ the carriers this
+  spec declares ∩ the parent's executionPins ∩ the carriers whose closure reaches the
+  support file. Conditions (a)–(e) are enforced exactly as before.
+- **r8 change 1 — the byte-identity receipt must be AUTHENTIC, not merely consistent.** This
+  was the one ungated admission point in r7b: a receipt written by hand, by a process that
+  never ran a gate, returned `ok:true` and the private oracle, the historical audit and the
+  19 gates were skipped on a plain disk read. Consistency with the bytes on disk is exactly
+  what a forger has. `receipts/<ID>.json` must now (a) be COMMITTED — its bytes at `HEAD`
+  must equal the bytes on disk, and if it already stands at the package's receipt base those
+  bytes must match too — and (b) have **its own sha256 named in the verdict file**, which is
+  the one string that exists only after a seal step has written one. Either missing →
+  `SEALED-RUN-RECEIPT-NOT-IN-GIT` / `SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT`, the step
+  is unavailable, and the FULL run with the private census stands. The seal step prints the
+  instruction (`SEALED RUN NEXT STEP …`) on the run that writes the receipt.
+- **r8 change 2** — the `receipts/*.json` exemption from `UNLISTED-SOURCE-CHANGE` narrows to
+  THIS package's own receipt, decided in `fidelity()` where the id is known. It cannot be
+  removed outright: change 1 requires the receipt to be committable.
+- **r8 change 5** — the preflight's UI dash check scans untracked files too
+  (`git ls-files --others --exclude-standard`), the same set check (1) already counted.
+- **`SEAL_TIP_RULE` is one word.** `:135 (4)` stays `'first-parent'` — the PM has been asked
+  whether plain ancestry of the current tip suffices and has not ruled, and relaxing an
+  enforced seal rule is not the tooling's call. `'ancestor'` is fully implemented and the
+  suite measures BOTH settings on one repository, including the case that divides them: a
+  lane that ran `git merge --no-ff <tip>`, where the tip IS an ancestor of HEAD and is NOT in
+  its first-parent chain. Both settings still refuse a genuinely stale base.

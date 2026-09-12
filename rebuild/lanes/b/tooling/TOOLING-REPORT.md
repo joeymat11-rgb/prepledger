@@ -2019,3 +2019,61 @@ reproduces `ENVELOPE PENDING artifact=87f4848c… spec=05a5aa1f… runner=eedabc
 and `LAWS 45/45 executed`, then stops in the clone's own `node_modules`
 (`Cannot find module '@noble/hashes/sha2.js'`), which is a fixture gap and not a runner rule.
 `PUBLIC CI EVIDENCE PASS` was therefore NOT re-reached in the clone, and is not claimed here.
+
+## r7b and r8-fix — the delivered bytes at THIS head, re-measured
+
+The r7 table above is superseded: it was taken before the **r7b** pass (the two defects the
+H3 builder found) and before the **r8-fix** pass (TOOLING-REVIEW-r8's five changes), and
+`DECISIONS:119 (6)` asks that a report's figures be the head's own. Measured with
+`Get-FileHash -Algorithm SHA256` on the committed bytes; `TOOLING-REPORT.md` is not in the
+table because a file cannot carry its own hash.
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 2195 | 176 412 | `1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00` |
+| `README.md` | 938 | 68 523 | `e905ce73fd9c7a0403a063d610208ed6853fae9ce850115d61c263074f401aa7` |
+| `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
+| `test/successor-moves.test.cjs` | 391 | 26 189 | `d561d8490f78b3a6c63a83178f456b45cd3a78946eaf43817b6b47ae28c8f628` |
+| `test/product-phase-and-ledger.test.cjs` | 224 | 14 492 | `5984aa2610fd13f33253b6b2089c9e7d251b12cb094ee82fa40b38d99dc10430` |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 280 | 19 095 | `d692bf7b301beb2facc6ad9f76c974e63215d8f78b539229dbafd8317c6d1d2c` |
+| `test/seal-tip-and-byte-identity.test.cjs` | 391 | 23 321 | `2c2cdb8a51e9b26c89f6871dd599d3d84d647a78b46be459d997d2b7e54b4aed` |
+| `test/parent-pin-shapes-and-spec-successors.test.cjs` | 248 | 16 577 | `08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175` |
+| `../tooling/preflight.cjs` | 166 | 10 896 | `fff710f9fc9c3ab38d74eea1f58889d0b2ba09af86439bcbf22e2622fae08eae` |
+| `../tooling/test/preflight.test.cjs` | 191 | 10 371 | `f80bc48697e38f27f342fac10ddbc5bc63f45b9156ad15b2a1cc6e91ea364748` |
+
+The **seven** package specs carry `1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00`
+as `tooling.runnerSha256`, re-pinned mechanically. Their own bytes at this head:
+`B-NTC.json` 24 020 B `69016bf1…` · `B-LOM.json` 13 757 B `07e50efa…` ·
+`H3.json` 12 553 B `b11e578b…` · `B1.json` 25 107 B `2003f54d…` ·
+`B2.json` 26 013 B `d5ba0926…` · `B3.json` 21 006 B `42c72fd7…` · `B4.json` 20 473 B `1360dd1d…`.
+
+**r7b** (runner `56aba344…`, superseded by the figures above) fixed the two defects the H3
+builder found: **F-E**, the parent-artifact readers knew only the flat `product` shape and so
+blocked every child of B-NTC; and **F-C**, the successor machinery was hard-coded to
+B-NTC-as-child and could not read `DECISIONS:142`'s grant to M2-H3-CLEAN-INIT. **r8-fix**
+then applied TOOLING-REVIEW-r8's five changes, of which change 1 is the load-bearing one:
+the `:136 (3)` byte-identity receipt must be COMMITTED and its own sha256 must be NAMED in
+the verdict file before the step may stand in for a FULL run. `README.md` §"r7b and r8"
+carries the long form of all of it.
+
+## r7b / r8-fix — the suites at this head
+
+| suite | cases | exit |
+|---|---|---|
+| `test/product-phase-and-ledger.test.cjs` | 7/7 | 0 |
+| `test/execution-targets.test.cjs` | 9/9 | 0 |
+| `test/successor-moves.test.cjs` | 9/9 | 0 |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 12/12 | 0 |
+| `test/seal-tip-and-byte-identity.test.cjs` | 16/16 | 0 |
+| `test/parent-pin-shapes-and-spec-successors.test.cjs` | 8/8 | 0 |
+| `../tooling/test/preflight.test.cjs` | 9/9 | 0 |
+
+**70 cases, 0 fail.** r7 measured 58 across six suites; r7b added the seventh
+(`parent-pin-shapes-and-spec-successors`, 8) and r8-fix added four more cases — two for the
+receipt's authenticity, one for `parentPin`'s falsy-post edge and one for the preflight's
+untracked UI scan — plus the `SEAL_TIP_RULE` case that compiles the runner a second time
+with the one word changed and measures BOTH settings on one repository.
+
+Terminals at this head, `--ci --package`, exit **2** and `CI REVIEW-PENDING` for all seven:
+B-NTC **5 open** · H3 **12** · B1 **6** · B2 **6** · B4 **10** · B3 **10** · B-LOM **12** —
+every count equal to r7's, so neither pass moved an obligation.
