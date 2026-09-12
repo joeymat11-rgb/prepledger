@@ -2,7 +2,7 @@
   "version": 1,
   "lanePackage": "H3",
   "packageId": "M2-H3-CLEAN-INIT",
-  "status": "PROPOSED",
+  "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md",
     "sha256": "67e95134b2c48f0c175f3481575854e03e685f6ce50fbf97efe041a459f5b301",
