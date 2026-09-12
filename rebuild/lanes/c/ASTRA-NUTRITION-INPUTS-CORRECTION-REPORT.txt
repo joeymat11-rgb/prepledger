@@ -1,0 +1,74 @@
+EARNED — NUTRITION REVIEWED EXECUTION OWNERSHIP CORRECTION
+Date: 2026-09-11. Builder evidence; distinct review remains required.
+FILE: ASTRA-NUTRITION-INPUTS-CORRECTION.md at347b98e.
+Exact base: 938913671d9dbd352f90adee963e4aef02cee43d.
+Branch/tree: codex/astra-nutrition-inputs-correction, BASE/astra-nutrition-inputs-correction.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+Read original input contract/report and authoritative bab83aa local-era scope.
+Read independent review910d5182dc555ca8a7ac406f0db380d9a2df2679: REQUIRED CORRECTION R1
+only, no additional substantive finding. This report supersedes the original
+builder claim that every raw invocation was refused; that claim missed concurrency.
+
+BEFORE / AFTER EXECUTED
+Before source edits, appended the actual Today reproduction to the owned input
+test and ran --test-name-pattern='immediately queued matching' at938913 source.
+prepare P; start commitNutritionInputs(P) without await; immediately call public
+client.execute('nutritionInputs', same proposal); await both.
+RED: raw acknowledged=true; intended acknowledged=false/NUTRITION_INPUT_STALE;
+exactly one note persisted. Test exit1, raw-refusal assertion failed.
+Also executed the reviewer's retained .tmp/nutrition-inputs-review.mjs from its
+review tree with retained NODE_PATH and TZ=America/New_York: identical R1 output.
+Its wrong-device/commitment, competing weight, competing-root and read-ownership
+controls passed. No changes made to that witness or its source tree.
+
+After correction, identical owned reproduction is GREEN: intended acknowledged=true,
+raw acknowledged=false/NUTRITION_INPUT_PREPARATION_REQUIRED, exactly one note.
+Revision and sequence each increase exactly once; factual read names intended op.
+
+CORRECTION / SCOPE
+Only local-client.mjs, inputs-boundary.cjs, inputs-contract.md, appended input tests
+and this sole new report changed. No today-bindings, public-client/host, Today UI,
+scale wiring, typed wire/history, schema/lease/authority, initialSetup, crypto,
+repository, stage, engine, frozen source/pins/workflows or old tests changed.
+Boundary invokes a private executeReviewed callback. Local-client holds an
+unexposed execution capability and public execute forwards only command and args.
+Every raw nutrition command is refused before bridge staging, regardless of active
+review or payload equality; a public third argument cannot supply the capability.
+The serialized boundary is the sole nutrition caller admitted to the bridge, so
+its active preparation belongs to that private invocation and its CAS attempts.
+Existing revision/token/context/batch guard remains in the actual transaction.
+Existing C1 execution, state18 handling and state20/expired-lease normalization are
+shared by the public and private routes. No new store, transport, lease, durable
+token or global lock was added. Unrelated writes keep their existing routes.
+
+FINAL TARGETED EXECUTION
+Node v24.19.0, TZ=America/New_York, retained dependencies only; no install.
+  node --test --test-reporter=spec
+    rebuild/m3/w6/test/nutrition-inputs.test.mjs
+    rebuild/m3/w6/test/local-client.test.mjs
+    rebuild/m3/w6/test/local-initial-setup.test.mjs
+58 PASS, 0 FAIL, 0 SKIP, exit0: original10 inputs +4 correction tests +44 existing.
+Source comparison against938913 confirms original10 input tests unchanged;
+only correction cases appended. New deterministic controls cover matching and
+different raw calls queued before/after the reviewed invocation; both raw forms
+during a held encrypted transaction; no Saved before completion; concurrent
+legitimate repeat returning the same op; exactly one revision/sequence and reopen.
+An independent installation writes actual weight171 while nutrition sealing is
+held: weight saves without waiting, nutrition refuses stale, no extra sequence.
+A fresh review then saves with the next sequence. Existing quota/retry,
+postcommit-close/reopen, stale weight, expiry, integrity, shared workout and cache
+loss checks all remain passing. Initial competing-context fixture accidentally
+shared one calendar queue and was stopped; corrected to separate real calendars
+and an independent factory facade over the same database, as the reviewer used.
+git diff --check PASS.
+
+UNCHANGED LIMITS / NEXT
+Original inherited C4 page-pin result remains103/105 with2 failures (assertion and
+parent), not PASS. No new C4/page-pin campaign or pin edit. The original report
+retains exact expected/actual hashes and byte-equality evidence against693b021.
+Local schema1 setup-note on schema2 local-era lease remains factual capture only;
+hosted adoption and U1/U2 complete effective plan/selection, U3/U4 qualification,
+U5 four-field advice and approved UI remain open. No expanded nutrition policy.
+No full/private tests, phone/CI claim, extra agent, self-review, other-tree edit,
+push/PR, integration merge, deployment, install or soak. Return to the same
+independent reviewer; root owns disposition and integration.

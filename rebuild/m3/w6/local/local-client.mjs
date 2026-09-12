@@ -24,6 +24,7 @@ import { openRepository, StorageFailure } from "../repository.mjs";
 import { createBridge } from "../bridge.mjs";
 import Stage from "../t2-stage.cjs";
 import Client from "../../../client/index.cjs";
+import NutritionInputs from '../../../m4/nutrition/inputs-boundary.cjs';
 import { openLocalKeys, probeRecord, keysPresent } from "./local-keys.mjs";
 import { createLocalEra, localEraConfig, readLocalEra, publicEra,
   leaseExpired, leaseRenewalDue, renewLocalEraLease } from "./local-era.mjs";
@@ -48,7 +49,7 @@ const MARKER_VERSION = 1;
 export const LOCAL_GENERATION_PROFILE = "earned/local-generation-metadata/v1";
 export const markerDatabaseName = databaseName => `${databaseName}-local`;
 export const DERIVED = "derived";
-const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout"]);
+const COMMANDS = new Set(["weighIn", "logSet", "logSession", "finishSession", "workout", "nutritionInputs"]);
 // Every collection rebuild/client/README.md lists. enroll() seals all of them
 // EMPTY so a fresh install and a migrated one have the same shape.
 export const COLLECTIONS = ["ops", "outbox", "dispositions", "rejected", "receipts", "planTxns", "plan",
@@ -225,9 +226,15 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
 
   // Synchronous, reject-only, inside the durable transaction. It can refuse; it
   // can never write, and it never returns a promise (repository refuses one).
-  const validateCommit = context => commitFailure({ staged: pending, attempt, batch: context.batch });
+  const validateCommit = context => commitFailure({ staged: pending, attempt, batch: context.batch }) || nutritionInputs.validateCommit(context);
 
   const bridge = createBridge({ repository, stage, validateCommit });
+  const reviewedNutritionExecution = Symbol('private nutrition execution');
+  const nutritionInputs = NutritionInputs.createInputsBoundary({ repository,
+    executeReviewed: args => execute('nutritionInputs', args, reviewedNutritionExecution), scope: { athleteId, deviceId, sessionEpoch },
+    localConfig: metadata => localEraConfig(metadata, { athleteId, deviceId, clock }),
+    currentFailure: () => closed ? { acknowledged: false, prepared: false, read: false, state: 3, code: 'LOCAL_CLIENT_CLOSED' } :
+      status.state !== 'ready' ? { acknowledged: false, prepared: false, read: false, state: status.code === 'LOCAL_LEASE_EXPIRED' ? 20 : 18, code: status.code } : null });
 
   // The null-lane clean init on the T2 side: every collection present and EMPTY,
   // an intact checkpoint, this device's record, and the era sealed in metadata.
@@ -368,6 +375,31 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     sessionEpoch, workoutCommands, alive: () => !closed, booted: () => booted && !closed && status.state === "ready",
     client: api });
 
+  // The capability stays in this closure: public execute forwards only command
+  // and args. A matching raw proposal cannot enqueue a nutrition bridge attempt.
+  function execute(command, args, authorization) {
+    if (closed) return Promise.resolve(refusal(3, "LOCAL_CLIENT_CLOSED"));
+    if (!COMMANDS.has(command)) return Promise.resolve(refusal(3, "LOCAL_COMMAND_UNSUPPORTED"));
+    if (status.state !== "ready")
+      return Promise.resolve(refusal(status.code === "LOCAL_LEASE_EXPIRED" ? 20 : 18, status.code));
+    if (command === 'nutritionInputs' && authorization !== reviewedNutritionExecution)
+      return Promise.resolve(refusal(3, 'NUTRITION_INPUT_PREPARATION_REQUIRED'));
+    return bridge.execute(command, args).then(async result => {
+      if (result?.state === 18) status = { state: "restore-required", code: result.code || "RESTORE_UNPROVEN" };
+      // Preserve C1's lease refusal normalization for both public and reviewed calls.
+      if (result?.acknowledged !== true && result?.state === 20 && !result.code) {
+        let code = LEASE_CODES[result.reason] || "LOCAL_LEASE_REFUSED";
+        try {
+          const era = readLocalEra((await repository.load()).generation.metadata);
+          if (leaseExpired(era.lease, clock.now())) code = "LOCAL_LEASE_EXPIRED";
+        } catch { /* an unreadable generation is a state-18 problem, not this one */ }
+        if (code === "LOCAL_LEASE_EXPIRED") status = { state: "restore-required", code };
+        return { ...result, code, ...(code === "LOCAL_LEASE_EXPIRED" ? { copy: LEASE_EXPIRED_COPY } : {}) };
+      }
+      return result;
+    });
+  }
+
   api = Object.freeze({
     status: () => ({ ...status }),
     enroll,
@@ -383,30 +415,12 @@ export async function openLocalDurableClient({ indexedDB = globalThis.indexedDB,
     // The bridge's own result, unwrapped: acknowledged only after the IDB
     // transaction completed, with durableRevision and the reported durability.
     execute(command, args) {
-      if (closed) return Promise.resolve(refusal(3, "LOCAL_CLIENT_CLOSED"));
-      if (!COMMANDS.has(command)) return Promise.resolve(refusal(3, "LOCAL_COMMAND_UNSUPPORTED"));
-      if (status.state !== "ready")
-        return Promise.resolve(refusal(status.code === "LOCAL_LEASE_EXPIRED" ? 20 : 18, status.code));
-      return bridge.execute(command, args).then(async result => {
-        if (result?.state === 18) status = { state: "restore-required", code: result.code || "RESTORE_UNPROVEN" };
-        // The real client refuses a lapsed lease with state 20 and NO code — and
-        // often no `reason` either, because the face's write-state precedence
-        // answers before lease.cjs is asked. So the sealed lease itself is read and
-        // the condition named, which is what lets a host tell an expired local era
-        // from any other state 20 and write honest copy for it.
-        if (result?.acknowledged !== true && result?.state === 20 && !result.code) {
-          let code = LEASE_CODES[result.reason] || "LOCAL_LEASE_REFUSED";
-          try {
-            const era = readLocalEra((await repository.load()).generation.metadata);
-            if (leaseExpired(era.lease, clock.now())) code = "LOCAL_LEASE_EXPIRED";
-          } catch { /* an unreadable generation is a state-18 problem, not this one */ }
-          if (code === "LOCAL_LEASE_EXPIRED") status = { state: "restore-required", code };
-          return { ...result, code, ...(code === "LOCAL_LEASE_EXPIRED" ? { copy: LEASE_EXPIRED_COPY } : {}) };
-        }
-        return result;
-      });
+      return execute(command, args);
     },
     current: () => bridge.current(),
+    readNutritionInputs: () => nutritionInputs.read(),
+    prepareNutritionInputs: request => nutritionInputs.prepare(request),
+    commitNutritionInputs: request => nutritionInputs.commit(request),
     // The client's own resume face, read from the freshly loaded generation. A
     // read: it builds the unchanged client over the loaded collections and never
     // commits, so no repository write and no sequence is consumed.

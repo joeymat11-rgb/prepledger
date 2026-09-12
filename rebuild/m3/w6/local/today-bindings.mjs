@@ -518,6 +518,9 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       importRebaseRequired: booted.importRebaseRequired === true,
       leaseRenewedUntil: booted.leaseRenewedUntil || null }),
     createReadingHost, createGymHost, createCheckInHost,
+    readNutritionInputs: () => client.readNutritionInputs(),
+    prepareNutritionInputs: request => client.prepareNutritionInputs(request),
+    commitNutritionInputs: request => operation(calendar ? calendar.sample().day : typeof liveDay === 'function' ? liveDay() : clock.today(), () => client.commitNutritionInputs(request)),
     initialSetup: () => client.initialSetup(),
     /* C4b-D1. The day this installation's OWN writes (the weigh-in path, the
        lease window, the enrolment stamp) are stamped with, right now. Every host

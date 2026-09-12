@@ -1,0 +1,89 @@
+EARNED — DURABLE PERSONAL NUTRITION INPUTS CANDIDATE
+Date: 2026-09-11. Builder evidence, not independent acceptance or phone readiness.
+Brief: ASTRA-NUTRITION-INPUTS.md, ae34fcf with authoritative local-era amendment bab83aa.
+Exact base: 693b021f01d832a889f6933f2dcad2258431d808.
+Branch/worktree: codex/astra-nutrition-inputs, BASE/astra-nutrition-inputs.
+BASE is the work directory named by the brief.
+
+RESULT AND EXACT SCOPE
+Added inputs-wire.cjs, inputs-history.cjs, inputs-boundary.cjs and inputs-contract.md
+under rebuild/m4/nutrition, plus rebuild/m3/w6/test/nutrition-inputs.test.mjs.
+Narrow existing-file changes: rebuild/client/index.cjs constructs the typed fact;
+rebuild/m3/w6/t2-stage.cjs admits the named staged command; local/local-client.mjs
+composes the review boundary with its existing bridge/validator; local/today-bindings.mjs
+adds three forwarding methods. This is the sole report. No initialSetup/athlete-state,
+authority/schema validators, crypto/repository/lease, host recovery, existing tests,
+engine/runtime, scale branch, UI/workflow or frozen source/pin was changed.
+
+WIRE AND CURRENTNESS
+Published the proposed contract at87269d5; corrected it to the authoritative C1
+local-era scope at1039a5d before enabling that route. Actual output is one schema1
+fact/setup-note with ordinary human-readable note text and a closed typed payload;
+structured nutrition data is never serialized into text. The same accepted C1 route
+already writes schema1 weighIn operations on its schema2 self-issued local-era lease.
+This deliberately means saved-on-this-device, never hosted admission or an accepted
+effective plan. A setup-note does not enter the native physiological event context.
+Actual produced note passes unchanged authority.validShape and the typed validator.
+Hosted lease/schema adoption remains deferred exactly as for the existing C4 route;
+no T3 acceptance, profile widening or new lease is claimed or executed.
+
+readNutritionInputs(), prepareNutritionInputs({expectedRevision,proposal}) and
+commitNutritionInputs({preparedId}) are exposed on the actual Today installation.
+The complete proposal is copied/frozen for review. Preparation reuses the existing
+local session epoch and repository revision/token. The reject-only commit hook
+compares the real batch, scope, effective tuple, parents and payload before the
+existing encrypted transaction can commit. A raw execute call cannot bypass review.
+The existing bridge owns transaction completion, retries and Saved publication;
+its existing local client names an expired lease. Postcommit context loss reports
+the disk commit without acknowledging Saved, and reopen recovers the original.
+Read authenticates local-era originals, checks integrity and current revision,
+and resolves complete assertion heads. It writes no cache and does not re-enroll.
+The local-era reader does not claim hosted/mixed-key recovery interpretation.
+
+SEMANTICS
+Explicit goal/phase and optional recorded four-field plan retain original effective
+date/time/offset, units, source and agreed date. Target, minimum, range, unavailable,
+not-prescribed, unknown, no-existing-plan and cleared meanings remain distinct.
+Full successor assertions name the previous assertion causally; updates/corrections
+retain originals. Concurrent heads are unresolved rather than fieldwise blends.
+A goal change does not mutate the original recorded plan or infer a phase from scale.
+No advice, allowance, macro ratio, body model, defaults or plan transaction is created.
+
+EXECUTED EVIDENCE
+Node v24.19.0, retained dependencies only. No install or lockfile change.
+Final focused/neighbor command:
+  node --test --test-reporter=spec
+    rebuild/m3/w6/test/nutrition-inputs.test.mjs
+    rebuild/m3/w6/test/local-client.test.mjs
+    rebuild/m3/w6/test/local-initial-setup.test.mjs
+54/54 PASS (10 new input tests, 44 existing checks), exit0.
+New joined journey uses actual immutable initialSetup enrollment, then goal+complete
+plan review/save, weight, workout Start/Set/Finish, cache removal, reopen, history,
+and a following-day 40lb prescription/Start. All operations retain one athlete,
+device and lease. No fake complete plan or imported private input enters the test.
+Controls execute immutable review versus caller mutation, original/update/correction/
+clear retention, invalid/partial/wrong-unit refusal with no durable sequence use,
+stale review after another write, idempotent retry, real encrypted quota failure,
+transaction delay before success, expiry, closed context, cross-athlete review IDs,
+postcommit context loss/reopen, wrong-scope originals and damaged checkpoint refusal.
+
+The additionally executed unchanged local-today-journey suite exposes an inherited
+page-pin failure: combined run105 tests,103 PASS,2 FAIL (the one assertion plus its
+parent). Expected today-entry SHA f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593;
+actual624f02a05334fe37f27bbf573a4455fa44a0f3a1c0d8837055cdece7192ebc95.
+Executed byte comparison proves today-entry.mjs AND local-today-journey.test.mjs
+identical to base693b021. Test SHA b52771c5f43fee2391b3e78e47cd96e67dddcecd4d235904aff98f448645fb6a.
+The old pin was not edited. No broad campaign was run to relitigate it.
+git diff --check PASS. Earlier joined-fixture failure was an assertion expecting
+initialSetup after cleanInit; changed the NEW fixture to actual initialSetup enrollment.
+
+NEXT / LIMITS
+This is useful durable factual capture, not U1-U5 closure. U1 still requires the
+actual leased complete intake-domain manifest and coupled scalar/range/absence,
+phase/policy semantics. U2 still requires qualified accepted selection/fallback and
+the trusted effective-group projection. U3/U4 physiological qualification and U5
+daily-plan/UI wiring remain. The immediate successor remains useful individualized
+calorie/protein/carbohydrate/fat guidance and the approved nutrition UI, learning
+from actual response; this candidate is not an indefinite logger-only release.
+Distinct review and integration belong to root. No self-review, extra agent,
+full/private campaign, phone/CI claim, push, PR, merge, purchase or deployment.

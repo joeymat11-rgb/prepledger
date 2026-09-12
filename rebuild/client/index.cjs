@@ -20,6 +20,7 @@
    client paints a SKELETON until boot() has loaded the complete local frontier (state 9). */
 const { Store, memoryBackend } = require("./store.cjs");
 const Ops = require("./ops.cjs");
+const NutritionInputs = require('../m4/nutrition/inputs-wire.cjs');
 const Lease = require("./lease.cjs");
 const { Outbox } = require("./outbox.cjs");
 const { createSync } = require("./sync.cjs");
@@ -230,6 +231,7 @@ function createClient(config) {
             if (valid !== true) invalidWorkout(valid);
           } catch (_) { invalidWorkout(); }
         }
+        if (a.nutritionInputs && !NutritionInputs.validate(op, id => model.rejected.has(id) ? undefined : model.ops.get(id))) throw new Error('NUTRITION_INPUT_INVALID');
         ops.push(op); pred = op.op_id; });
     } catch (e) {
       if (workout) e = new Error("WORKOUT_INPUT_INVALID"); // Includes faulty prepared-action getters reached by Ops.build.
@@ -260,6 +262,10 @@ function createClient(config) {
     boot, restart, store, model,
     /* named actions (sheet 318–320) */
     workout: value => commitBatch([{ field: "workout", value, workout: value }]),
+    nutritionInputs: value => {
+      try { return commit({ ...NutritionInputs.prepare(value), nutritionInputs: true }); }
+      catch { return { acknowledged: false, state: 3, code: 'NUTRITION_INPUT_INVALID', copy: COPY.SAVE_FAILED_INVALID('Check the nutrition inputs.') }; }
+    },
     weighIn: ({ date, lb }) => { if (typeof lb !== "number" || !Number.isFinite(lb)) { model.fields.weighIn = lb; return { acknowledged: false, state: 3, copy: COPY.SAVE_FAILED_INVALID("A weight is required.") }; } return commit({ field: "weighIn", value: lb, kind: "fact", class: "reading", payload: { lb: q(lb, "lb"), source: "athlete" }, effective: effectiveOn(date) }); },
     logSet: (p) => commit({ field: "logSet", value: p, kind: "session-set", class: "session", payload: setPayload(p, activeSession()), also: (t) => { t.del("drafts", "active"); }, after: () => { model.draft = null; } }),
     decision: (p) => { const payload = { answer: p.answer }; if (p.proposal != null) payload.proposal_id = p.proposal; return commit({ field: "decision", value: p, kind: "proposal-response", class: "plan", payload, copy: COPY.RESOLUTION_SAVED }); },
