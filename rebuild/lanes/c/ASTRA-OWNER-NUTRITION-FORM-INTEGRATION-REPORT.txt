@@ -1,0 +1,42 @@
+NUTRITION FORM MODULE — DISTINCT LOCAL ASSEMBLY
+September 12, 2026. FILE ASTRA-OWNER-NUTRITION-FORM-JOIN.md at PM12a90ba.
+Exact source union and eight form checks PASS; actual owner entry hook remains.
+
+Integrator owner_release_integrator, neither author nor independent reviewer.
+NEXT/ROADMAP/LANES read during this continuing assembly. Root scoped-accepted
+f3e60d87e1847da194d77155b66e061a879abe6c under independent
+ecf0e757d96a9668af20f9db180c33a1dcc16ea4; full delta review/correction report read.
+Verified owned codex/astra-owner-phone-integration clean at
+f40845fa2c15cec98d4302c4ea3b6e35be24aad6 before mechanical --no-ff merge.
+Source merge165fd4f1c2cc5869e1bdc8259115a401a5540ca5, parents:
+f40845fa2c15cec98d4302c4ea3b6e35be24aad6 and
+f3e60d87e1847da194d77155b66e061a879abe6c.
+Original form base26b511b536de272c692f023555622cb69be8e231 already an ancestor.
+No conflict/manual resolution or implementation edit.
+
+Complete inventory assertion: joined delta equals26b511b..f3e60d8, exactly nine
+additions, every blob identical to acceptedf3e60d8. Under rebuild/:
+lanes/c/ASTRA-NUTRITION-INPUT-FORM-REPORT.txt and correction report;
+m3/w7-preview/test/nutrition-input-browser-check.mjs, nutrition-input-browser-entry.mjs,
+nutrition-input-fixture.mjs, nutrition-input-form.test.mjs;
+m3/w7-preview/today/nutrition-input-model.mjs, nutrition-input-view.mjs,
+nutrition-input.css. All existing scale/host/Today/backend source unchanged.
+
+Actual command: node --test rebuild/m3/w7-preview/test/nutrition-input-form.test.mjs
+Retained Node24.19.0, TZ=America/New_York, NODE_PATH=retained W6 dependencies;
+EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this owned integration tree.
+PASS8/8, zero fail/skip/cancel, exit0. Real installation review/save/reopen,
+quota/context loss, stale/calendar/competing changes, mounted Back and retired
+review requiring fresh review then separate confirmation all execute.
+No installation, new browser or broad engine/private campaign.
+
+The retained PWA/Today build predates this form join: verified all13+3 files
+against .tmp/scale-today-artifacts.json. No rebuild performed. Existing metadata
+does not include the form model/view/CSS; this addition is not bundled/reachable.
+Last app b4b3d91e0d9facdc35e4948c33587b914b6442404ddb7369712d118d5c2d5edb,
+inventory9c799460813b7e72fe1d6a3b3d324b24b476d5d2bdac17a6baf38dcadcd2bb24.
+Next requires explicit actual Today entry/full-plan hook, CSS import and retained
+model lifecycle wiring. Qualified advice/U1-U5/source-policy/CI/phone remain open.
+No source pins, private data, other-tree edits, agents, install/lock churn,
+actual integration-branch/PR merge, push/deploy or self-acceptance.
+git diff --check PASS; this is the sole added integration report.
