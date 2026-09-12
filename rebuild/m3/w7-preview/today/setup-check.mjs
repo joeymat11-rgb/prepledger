@@ -235,7 +235,15 @@ async function runFlow(page, stopAt = 6) {
   await reachable(page, "screen 2");
   await inputsAreLargeEnough(page, "screen 2");
   await noDashes(page, "screen 2");
-  assert.match(await phone(page), /Earned plans two kinds of day so far: upper body and lower body\./);
+  const week = await phone(page);
+  assert.match(week, /Earned plans two kinds of day so far: upper body and lower body\./);
+  /* A4b (DECISIONS:125 (1)): the rule is declared on the screen as Earned's own,
+     and each day says whose choice its kind is. */
+  assert.match(week, /That is Earned’s own rule, not a published standard\./);
+  assert.match(week, /Your choice/);
+  /* And the F1 sentence, at exactly the two days this flow chooses
+     (DECISIONS:125 (2), verbatim). */
+  assert.match(week, /With two days, Earned's full-body plan is coming; for now one upper day and one lower day\./);
   if (stopAt === 2) return;
 
   await next(page);                                    // -> 3
@@ -282,6 +290,49 @@ async function runFlow(page, stopAt = 6) {
   /* The chip SHOWS the gloss and STORES the bare label (DECISIONS:115, S25):
      "quads (front of thigh)" is what the athlete taps, "quads" is what is
      written. The read-back on screen 6 is what proves the second half. */
+  /* ---------------- A4b: BOTH DOORS, on the real screen (S34, S40, S41) -------
+     The doors are offered before either is opened, the build door fills the week
+     from the catalogue, and the choose door's two searches both add a lift. The
+     week that results is twenty-odd entries long, which is the state S40 names
+     as the one most likely to overflow. */
+  const doors = await phone(page);
+  assert.match(doors, /How do you want to start\?/);
+  assert.match(doors, /Build my week for me/);
+  assert.match(doors, /I’ll choose/);
+  /* Two days is the floor, and the screen says so rather than implying a band
+     it cannot reach (A4B-BRIEF 4.4 (1) and (2)). */
+  await tap(page, "Build my week for me");
+  const built = await phone(page);
+  assert.match(built, /Two days is the floor of what Earned can count/);
+  assert.match(built, /At two days there is no room for arms or shoulders on their own\./);
+  const proposed = await page.evaluate(() =>
+    document.querySelectorAll("#phone fieldset.question .followup").length);
+  assert(proposed >= 12, "the build door filled the week: " + proposed + " lifts");
+  await reachable(page, "screen 3, built");
+  await inputsAreLargeEnough(page, "screen 3, built");
+  await noDashes(page, "screen 3, built");
+
+  await tap(page, "I’ll choose");
+  await page.fill("#setup-search", "lat pulldown");
+  await page.dispatchEvent("#setup-search", "change");
+  await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("Lat pulldown"));
+  await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#phone .followup .row")];
+    const row = rows.find(r => r.textContent.includes("Lat pulldown"));
+    if (!row) throw new Error("the search found nothing to add");
+    row.querySelector("button").click();
+  });
+  /* Layer one, then layer two, then that region's lifts. */
+  await tap(page, "Shoulders");
+  await tap(page, "Side delts");
+  const picker = await phone(page);
+  assert.match(picker, /Lateral raise/);
+  assert.doesNotMatch(picker, /delts_side/, "no engine label is ever shown to him");
+  await reachable(page, "screen 3, picker open");
+  await inputsAreLargeEnough(page, "screen 3, picker open");
+  await noDashes(page, "screen 3, picker open");
+
+  /* And the by-hand path A4 shipped still works, beside both doors. */
   await addLift("Upper body", "Chest press", "chest");
   await addLift("Lower body", "Leg press", "quads (front of thigh)");
   await reachable(page, "screen 3");
@@ -371,6 +422,19 @@ try {
   assert.equal(empty.rows, 0, "the generation holds NO first-run operation: " + JSON.stringify(empty));
   assert.equal(empty.enrolled, false);
   notes.push("a real taskkill mid-flow left zero operations and no partial athlete");
+
+  /* ---------- 320px, on the two screens A4b changed (S40) ----------
+     The narrow phone runs the SAME flow, not a reduced one: screen 2 with its
+     proposal and its honest sentence, screen 3 with the doors, the built week,
+     the search open and the picker open. reachable() is what measures it, and it
+     refuses any sideways scroll at all. The device is still unenrolled here, so
+     the flow is genuinely available. */
+  await hardKill(context);
+  ({ context, page } = await relaunch("?screen=setup", NARROW));
+  await runFlow(page, 3);
+  notes.push("screens 1 to 3, both doors and the picker open, measured at 320px");
+  await hardKill(context);
+  ({ context, page } = await relaunch());
 
   /* ---------- the whole flow, then the ONE write ----------
      Back to the plain URL: this launch came up on ?screen=setup, and a reload
