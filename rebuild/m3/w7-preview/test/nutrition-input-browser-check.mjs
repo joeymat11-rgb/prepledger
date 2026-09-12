@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import fs from 'node:fs/promises';
+import http from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildBrowser } from '../../w6/build-browser.mjs';
+import Design from '../today/design.cjs';
+const here=path.dirname(fileURLToPath(import.meta.url)),root=path.resolve(here,'../../../..'),out=path.join(root,'.tmp/nutrition-input-form');
+const {chromium}=createRequire(new URL('../../w6/package.json',import.meta.url))('playwright-core');
+assert(process.env.W7_BROWSER_BIN,'Set W7_BROWSER_BIN to retained browser; no install.');
+await fs.mkdir(out,{recursive:true});
+await buildBrowser({entryPoints:[path.join(here,'nutrition-input-browser-entry.mjs')],outfile:path.join(out,'app.js')});
+const css=Design.composeStyles(Design.readApproved(),await fs.readFile(path.join(here,'../today/preview.css'),'utf8'),Design.readFonts())+'\n'+await fs.readFile(path.join(here,'../today/nutrition-input.css'),'utf8');
+await fs.writeFile(path.join(out,'styles.css'),css);
+await fs.writeFile(path.join(out,'index.html'),'<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Earned nutrition input check</title><link rel="stylesheet" href="/styles.css"><body><main class="phone"><div id="form" class="view"></div></main><script type="module" src="/app.js"></script></body></html>');
+const files={'/':'index.html','/app.js':'app.js','/styles.css':'styles.css'};
+const server=http.createServer(async(req,res)=>{const file=files[req.url];if(!file){res.writeHead(404);res.end();return;}res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});res.end(await fs.readFile(path.join(out,file)));});
+await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+const url=`http://127.0.0.1:${server.address().port}`,browser=await chromium.launch({executablePath:process.env.W7_BROWSER_BIN,headless:true});
+const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];
+page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>{if(!request.url().startsWith(url)&&!request.url().startsWith('data:'))errors.push('Unexpected remote request');});
+const checkLayout=async(label)=>{assert(await page.locator('.nutrition-input').evaluate(el=>el.scrollWidth<=el.clientWidth),label+' form overflow');assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),label+' page overflow');};
+const select=async(name,value)=>page.locator(`[name="${name}"]`).selectOption(value);
+const fill=async(name,value)=>page.locator(`[name="${name}"]`).fill(value);
+const waitPhase=async phase=>page.waitForFunction(p=>globalThis.nutritionHarness?.snapshot().phase===p&&!nutritionHarness.snapshot().busy,phase);
+try {
+  await page.goto(url);await page.getByRole('heading',{name:'Your nutrition.'}).waitFor();
+  assert.equal(await page.locator('select').count(),2);assert.deepEqual(await page.locator('select').evaluateAll(es=>es.map(e=>e.value)),['','']);
+  await checkLayout('390 fresh');await page.screenshot({path:path.join(out,'01-fresh-390.png'),fullPage:true});
+  await page.getByRole('button',{name:'Review my answers',exact:true}).click();await page.waitForFunction(()=>document.activeElement.name==='goal.kind');
+  await select('goal.kind','declared');await fill('goal.statement','Build strength steadily.');await fill('goal.phase','My maintenance phase');
+  await page.getByRole('button',{name:'Back to my plan',exact:true}).click();assert.equal((await page.evaluate(()=>nutritionHarness.read())).view.records.length,0);
+  assert.equal((await page.evaluate(()=>nutritionHarness.weigh())).ok,true);
+  await page.getByRole('button',{name:'Return to Your nutrition',exact:true}).click();assert.equal(await page.getByLabel('Your goal',{exact:true}).inputValue(),'Build strength steadily.');
+  await select('existing_plan.kind','recorded');await fill('existing_plan.source','My written agreement');await fill('existing_plan.agreed_date','2026-09-12');
+  for(const [key,kind] of [['calories','target'],['protein','minimum'],['carbohydrate','range'],['fat','not_prescribed']]){
+    await page.locator(`details[data-detail="${key}"] summary`).click();await select(`existing_plan.fields.${key}.kind`,kind);
+    if(key==='calories')await fill(`existing_plan.fields.${key}.amount`,'2175');
+    if(key==='protein')await fill(`existing_plan.fields.${key}.amount`,'135');
+    if(key==='carbohydrate'){await fill(`existing_plan.fields.${key}.lower`,'190');await fill(`existing_plan.fields.${key}.upper`,'245');await select(`existing_plan.fields.${key}.lower_inclusive`,'true');await select(`existing_plan.fields.${key}.upper_inclusive`,'false');}
+    await page.locator(`details[data-detail="${key}"] summary`).click();
+  }
+  await page.setViewportSize({width:320,height:740});await checkLayout('320 recorded');await page.screenshot({path:path.join(out,'02-recorded-320.png'),fullPage:true});
+  await page.getByRole('button',{name:'Review my answers',exact:true}).click();await waitPhase('review');assert.match(await page.locator('#form').textContent(),/Target: 2175 kcal\/day/);assert.match(await page.locator('#form').textContent(),/less than 245 g\/day/);await checkLayout('320 review');
+  await page.screenshot({path:path.join(out,'03-review-320.png'),fullPage:true});
+  await page.getByRole('button',{name:'Save my answers',exact:true}).scrollIntoViewIfNeeded();await page.screenshot({path:path.join(out,'03-review-confirmation-320.png'),fullPage:true});
+  await page.getByRole('button',{name:'Edit answers',exact:true}).click();assert.equal(await page.getByLabel('Your goal',{exact:true}).inputValue(),'Build strength steadily.');
+  await page.getByRole('button',{name:'Review my answers',exact:true}).click();await waitPhase('review');await page.getByRole('button',{name:'Save my answers',exact:true}).click();await waitPhase('saved');assert.match(await page.locator('[role=status]').textContent(),/Saved on this phone/);
+  const original=(await page.evaluate(()=>nutritionHarness.read())).view.local.current.inputs;
+  await page.reload();await waitPhase('edit');assert.equal(await page.getByLabel('Your goal',{exact:true}).inputValue(),'Build strength steadily.');
+  await fill('goal.statement','Practice consistency.');await page.getByRole('button',{name:'Review my answers',exact:true}).click();await waitPhase('review');
+  assert.equal((await page.evaluate(()=>nutritionHarness.weigh())).ok,true);await page.getByRole('button',{name:'Save my answers',exact:true}).click();await waitPhase('error');assert.match(await page.locator('[role=alert]').textContent(),/Another entry/);
+  await page.getByRole('button',{name:'Edit answers',exact:true}).click();await page.getByRole('button',{name:'Review my answers',exact:true}).click();await waitPhase('review');
+  await page.evaluate(()=>nutritionHarness.setNow('2026-09-13T00:05:00Z'));await page.getByRole('button',{name:'Save my answers',exact:true}).click();await waitPhase('edit');assert.match(await page.locator('[role=status]').textContent(),/date or time zone changed/);assert.equal(await page.getByLabel('Your goal',{exact:true}).inputValue(),'Practice consistency.');
+  await page.getByRole('button',{name:'Review my answers',exact:true}).click();await waitPhase('review');await page.getByRole('button',{name:'Save my answers',exact:true}).click();await waitPhase('saved');
+  const saved=(await page.evaluate(()=>nutritionHarness.read())).view;assert.equal(saved.records.length,2);assert.deepEqual(saved.local.current.inputs.existing_plan,original.existing_plan);assert.equal(saved.records[1].original.effective.local_date,'2026-09-13');
+  await page.setViewportSize({width:390,height:844});await page.screenshot({path:path.join(out,'04-saved-390.png'),fullPage:true});
+  await page.getByRole('button',{name:'Change my answers',exact:true}).click();await page.setViewportSize({width:320,height:740});await page.addStyleTag({content:'html {font-size:200% !important}'});
+  await page.locator('details[data-detail="carbohydrate"] summary').click();await checkLayout('320 enlarged text');await page.screenshot({path:path.join(out,'05-enlarged-320.png'),fullPage:true});
+  assert(await page.locator('input,select').evaluateAll(es=>es.every(e=>parseFloat(getComputedStyle(e).fontSize)>=16)));
+  assert(await page.locator('input,select,summary,button').evaluateAll(es=>es.filter(e=>e.getClientRects().length).every(e=>e.getBoundingClientRect().height>=44)));
+  await page.getByRole('button',{name:'Back to my plan',exact:true}).focus();const visited=new Set();for(let i=0;i<24;i++){await page.keyboard.press('Tab');visited.add(await page.evaluate(()=>{const e=document.activeElement;return e.tagName+':'+(e.name||e.textContent.trim());}));}assert([...visited].some(x=>x.includes('SELECT:goal.kind')));assert([...visited].some(x=>x.includes('Review my answers')));
+  assert.deepEqual(errors,[]);console.log('NUTRITION FORM BROWSER PASS: actual IndexedDB save/reload; stale/rollover; Back/weight; four-field preservation; 320/390/enlarged layouts, labels, focus, touch sizes, no remote requests/page errors.');
+  console.log('Screenshots: '+out);
+} finally {await browser.close();await new Promise(resolve=>server.close(resolve));}

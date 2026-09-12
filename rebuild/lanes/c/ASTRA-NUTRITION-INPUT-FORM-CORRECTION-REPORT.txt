@@ -1,0 +1,57 @@
+EARNED — NUTRITION FORM RETIRED-REVIEW CORRECTION
+2026-09-12. Builder evidence; same independent reviewer follows.
+FILE ASTRA-NUTRITION-INPUT-FORM-CORRECTION.md at3503a90.
+Exact base4a9e48ea8b21f5ebf55e94d97f338ad00d0ebcea.
+Branch/tree codex/astra-nutrition-input-form-correction,
+BASE/astra-nutrition-input-form-correction; BASE is the brief's work directory.
+Read NEXT/ROADMAP/LANES, original form brief and full independent review
+e6d840e62dff03ca9312a57bc7b8fad2ca9119e1. F1 only, no added scope.
+
+BEFORE
+Executed reviewer's unchanged .tmp/form-independent-probe.mjs against original
+review tree:4 PASS/1 FAIL,exit1. Failure canRetry=true versus false for a retired
+preparation. Added actual two-model mounted regression before source change:
+first model reviews; second real model on the same installation prepares a
+different review; first confirms. Source-before test exit1 on canRetry=true.
+The accepted backend refuses the retired ID with no durable write. Its behavior
+and the original independent witness/tree remain untouched.
+
+CHANGE
+Only nutrition-input-model.mjs and two view lines changed; original owned form
+test has one appended case, and this is the ONE new report. Missing/retired
+NUTRITION_INPUT_PREPARATION_REQUIRED now names the real remedy, marks review
+required, clears the irrecoverable private preparation and disables same-ID retry.
+The view keeps the exact reviewed values and draft, offers Edit answers plus
+Review my answers again, and has no Try saving again or Save button in this state.
+The new action calls review only. It reads the actual current basis and obtains
+a fresh prepared review; a separate Save my answers confirmation is still required.
+No automatic reprepare-and-commit. Genuine quota retry retains its existing ID
+path. State18/20 and committed-context-loss branches remain unchanged.
+
+AFTER / EXECUTED
+Retained Node24.19.0, dependencies via ignored existing junctions, no installs.
+  node --test rebuild/m3/w7-preview/test/nutrition-input-form.test.mjs
+8 PASS,0 FAIL/SKIP/CANCEL,exit0. Original7 cases preserved exactly; executed
+source-prefix comparison with base confirms only one appended correction case.
+New case uses actual installation/calendar/backend, two real models and mounted
+JSDOM form. Retired ID: phase=error, canRetry=false, specific review remedy, draft
+byte-equivalent, no confirm affordance, no storage advice. Repeated old confirm
+does nothing. Revision and fact count remain unchanged after refusal and after
+clicking the fresh-review button. Only clicking the separate Save confirmation
+commits: exactly one record/sequence, all inputs equal the first reviewed draft,
+never the competing model's different goal. Existing quota/retry and late actual
+transaction/context-loss/reopen cases pass unchanged, as do stale weight,
+rollover/time-zone, hidden field semantics, source-preserving corrections and Back.
+git diff --check PASS. No backend/host/calendar/schema/CSS/shared Today or pin edits.
+
+REUSE / LIMITS / NEXT
+Unchanged actual Chrome320/390/enlarged layout and module-save evidence reuse
+the original form report and independent e6d840e; no repeated browser campaign.
+Accepted backend58/7bc403f evidence reused; no new backend test campaign.
+This is the bounded F1 recovery correction, not actual Today entry integration
+or U1-U5 qualified nutrition guidance. Original integration hook and all local-
+only/hosted/source-policy/CI/phone limits remain. Scale correction74c0cce tree
+and its pending independent review remain untouched.
+No other-tree writes, extra agent, private/full tests, installs, push/PR/merge,
+deployment or self-acceptance. native_scale_today reviews; root accepts; distinct
+integrator follows.

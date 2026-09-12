@@ -1,0 +1,108 @@
+EARNED — PERSONAL NUTRITION FORM MODULE
+Date: 2026-09-12. Builder evidence; independent UI review remains required.
+FILE: ASTRA-NUTRITION-INPUT-FORM.md atbaf9754.
+Exact base: 26b511b536de272c692f023555622cb69be8e231.
+Branch/tree: codex/astra-nutrition-input-form, BASE/astra-nutrition-input-form.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+Parent confirmed backend acceptance after independent7bc403f3f2ef6c3307871c1d96ac4b3a8620c28c;
+read that complete ACCEPT report. Backend58 evidence is reused, not rerun here.
+Read NEXT/ROADMAP/LANES, owner product goal/current decisions, approved Refinement A
+and Additions C handoffs, fresh-nutrition plan55efbc7. Authoritative later bab83aa
+permits local factual capture; older stage2 language does not impose hosted adoption.
+
+RESULT / OWNERSHIP
+Only NEW files: today/nutrition-input-model.mjs, nutrition-input-view.mjs,
+nutrition-input.css; test/nutrition-input-fixture.mjs, nutrition-input-form.test.mjs,
+nutrition-input-browser-entry.mjs, nutrition-input-browser-check.mjs under
+rebuild/m3/w7-preview; and this ONE report. No shared Today entry/app/model/CSS,
+public-client, host, local-client, today-bindings, backend inputs-* or old tests edited.
+This is a mountable real form module; actual Today entry integration is still due.
+The owned browser harness mounts it over actual IndexedDB/webcrypto and the existing
+installation, not fake successful callbacks, mock persistence or a second store.
+
+INTERACTION / MEANING
+Two initially unanswered questions: own goal/phase and existing plan. Unknown and
+no existing plan stay distinct. Declared goal reveals own-word fields; recorded
+plan reveals source/date and four individual expandable sections. No numeric or
+phase default. Target/minimum/range with explicit open/closed limits, not-prescribed
+and unknown preserve wire meanings and kcal/day or g/day. Unknown can retain a
+specific explanation; an explicit unknown choice with no detail says only that
+the person does not know the amount. Blank quantities are never converted to zero.
+Goal-only edits retain the complete actual plan. Updates, corrections and explicit
+clear reasons use existing successor facts; originals remain. Hidden values from
+unselected answers are not submitted. Concurrent changed nutrition requires an
+explicit load of saved answers, not a blend that silently overwrites its newer plan.
+
+Review displays exactly the prepared complete values and meanings, effective tuple
+and change meaning. Only confirm invokes commit. The model takes the installation's
+actual read revision and source; it mints no durable basis. Preparation and commit
+use the same supplied local calendar. Commit runs its day/offset check inside that
+calendar queue and calls the existing installation.client.commitNutritionInputs
+guarded API, avoiding nested calendar.run through Today's forwarding method.
+Rollover/time-zone change keeps draft and requires a new review for current time.
+Review effective time is the actual preparation sample; confirmation cannot silently
+backdate a new day. A weight write stales the review; refresh/review reuses answers.
+Quota allows retry of the same prepared commit. Real completed acknowledgment alone
+shows Saved on this phone, with sync explicitly unconfirmed. Postcommit context
+loss says the record reached the phone and asks for reopen/readback, never Saved.
+Back/unmount keeps transient draft in the retained model, creates no operation,
+and permits ordinary weight/workout use. Reload recovers saved factual input only;
+uncommitted draft is deliberately memory-only, with no draft-store promise.
+
+DESIGN / EXECUTED EVIDENCE
+Frontend-design skill applied within approved direction, no aesthetic re-audit:
+paper #F4F0E8, ink #1C1B18, muted #5A5348, line #D8D0C2, green #2E5A3C;
+existing Instrument Serif headings/Sans controls; left aligned, short initial
+screen, optional detail rows, one review action. Reused approved page/back/primary/
+link/detail-head/fine/status/error classes; new CSS is scoped to this form only.
+No mock prescription numbers or personal defaults copied into production source.
+
+Node v24.19.0, retained dependencies, no installs/lockfile change:
+  node --test rebuild/m3/w7-preview/test/nutrition-input-form.test.mjs
+7 PASS, 0 FAIL, 0 SKIP, exit0. Actual encrypted fake-indexeddb installation controls:
+unknown/none, four-field review/edit/save/reopen, immutable review, goal-only
+correction/clear/history, invalid/unknown field, actual stale weight, quota/retry,
+late transaction/context loss/reopen, rollover/offset, competing nutrition and
+mounted labels/Back/draft preservation with actual subsequent weight save.
+
+  W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+  node rebuild/m3/w7-preview/test/nutrition-input-browser-check.mjs
+NUTRITION FORM BROWSER PASS, exit0. Retained Chrome152.0.7977.83, headless desktop.
+Uses existing buildBrowser crypto boundary and pinned design/font composition.
+Real browser steps: initially blank selectors; validation/focus; enter goal; Back
+and real weight; return draft; record four plan types; review/edit/confirm; actual
+page reload; goal-only change with real stale weight; retained values; explicit
+date rollover/review; durable second assertion preserves original plan exactly.
+320/390 widths and320 at200% root text: no form/page horizontal overflow; focusable
+controls >=16px, visible touch controls >=44px; Tab reaches fields and primary
+action without trap. No page errors or remote requests. Native fonts load locally.
+Screenshots visually inspected: .tmp/nutrition-input-form/01-fresh-390.png,
+03-review-320.png, 03-review-confirmation-320.png, 05-enlarged-320.png.
+Also retained02-recorded-320.png and04-saved-390.png in that same ignored directory.
+Browser harness/build/assets stay in this tree; no repository-root web serving.
+Initial harness issues: reload supplied initialSetup again, correctly refused by
+the existing host; changed harness to open existing first and enroll only on actual
+LOCAL_FIRST_RUN. Wait now tolerates reload startup; keyboard check reads activeElement
+when Tab leaves document. Final checks above pass. git diff --check PASS.
+
+PRECISE NEXT OWNER HOOK / LIMITS
+The entry owner imports createNutritionInputModel from nutrition-input-model.mjs
+and mountNutritionInput from nutrition-input-view.mjs, and includes nutrition-input.css
+after current approved styles. Once the real installation and its calendar are ready:
+  model = createNutritionInputModel({installation, calendar}); await model.load();
+  mounted = mountNutritionInput(doc, root, {model, onBack, onSaved});
+Keep that model across Back/remount; mounted.destroy() removes only view listeners.
+Use a persistent model subscription to refresh Today/full-plan read after phase=saved
+even if the person returned while commit completed; close model on era teardown.
+onBack restores the current plan and focus to its invoking control. Add the short
+Your nutrition entry to the actual Today/full-plan flow in the separately owned join.
+Do not call load again on every remount and discard the draft. Reopen should create
+a model over the new installation/calendar and read actual saved originals.
+
+This module records factual answers, never recommends nutrition or turns a recorded
+agreement into a qualified effective plan. U1/U2 complete intake/selection, U3/U4
+physiological qualification and U5 useful four-field guidance remain connected work.
+Inherited C4 page-pin103/105 with2 failures remains documented unchanged in backend
+reports; no new campaign or pin edit. No physical-phone/CI/full/private claim, new
+agent, other-tree write, frozen-law edit, push/PR/merge/deploy/install or self-acceptance.
+Root owns next actual entry join, distinct review and integration.
