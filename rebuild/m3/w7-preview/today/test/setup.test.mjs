@@ -1985,8 +1985,8 @@ test('S42 - the two honest sentences render exactly when their predicate holds',
   assert.equal(textAt2().includes(Model.COPY.screen2TwoDays), false);
 
   model.toggleDay('4');
-  /* DECISIONS:125 (2), verbatim. */
-  assert(textAt2().includes('With two days, Earned\'s full-body plan is coming; for now one upper day and one lower day.'));
+  /* DECISIONS:125 (2)'s words, with :132 (3)'s apostrophe. */
+  assert(textAt2().includes('With two days, Earned’s full-body plan is coming; for now one upper day and one lower day.'));
   assert.equal(textAt2().includes(Model.COPY.screen2OneDay), false, 'and the one-day sentence clears');
   /* The band arithmetic belongs to screen 3, beside the week it is about. */
   assert(textAt3().includes(Model.COPY.floorSentence), 'two days is the floor, said out loud');
@@ -2177,4 +2177,95 @@ test('S30 / S35 - a week built through the doors is a document the constructor a
   const tagged = Object.values(op.payload.tags);
   assert(tagged.some((t) => typeof t.head === 'string'), 'some lift carries a region');
   assert(tagged.some((t) => t.secondary.length > 0), 'and some lift carries a lend');
+});
+
+/* =====================================================================
+   DECISIONS:133 (2) - the owner's screen 6, in the pane, at the A4b head.
+   Three defects, all of them the same failure: a row or a gap was composed
+   out of an exercise's NAME without asking whether there was one, so an
+   unnamed exercise printed punctuation where a subject belongs
+   (",: What does it work? ..." / ", has nothing it works yet."), the gaps
+   ran together into one sentence, and the sets line read like a form label
+   rather than a sentence.
+   ===================================================================== */
+
+/* One upper day, one exercise, nothing filled in but the day. This is the
+   state the owner was looking at. */
+function weekWithOneUnnamed(name = '') {
+  const model = createSetupModel({ today: DAY });
+  model.setName('Dad');
+  model.toggleDay('1');
+  model.setDayKind('1', 'U');
+  const row = model.addExercise('U');
+  if (name !== '') model.setExerciseField(row.key, 'n', name);
+  return { model, key: row.key };
+}
+const gapLines = (kit) => [...kit.doc.querySelectorAll('#phone .followup button.text-link')]
+  .map((b) => b.textContent.trim());
+
+test(':133 (2) a - an unnamed exercise reads "One exercise (unnamed)", never punctuation', () => {
+  for (const name of ['', '   ', ',']) {
+    const { model } = weekWithOneUnnamed(name);
+    const text = screenAt(6, model).text();
+    assert(text.includes(Model.COPY.unnamedExercise),
+      `name ${JSON.stringify(name)}: the fallback is missing`);
+    assert.equal(text.includes(',: '), false, 'no bare punctuation where a name belongs');
+    assert.equal(/(^|\s),\s/.test(text), false, 'no orphan comma standing in for a subject');
+  }
+});
+
+test(':133 (2) b - a named exercise still reads as its own name', () => {
+  const { model } = weekWithOneUnnamed('Chest press');
+  const text = screenAt(6, model).text();
+  assert(text.includes('Chest press'));
+  assert.equal(text.includes(Model.COPY.unnamedExercise), false, 'the fallback stays away');
+});
+
+test(':133 (2) c - the gaps are ONE PER LINE, each a full sentence with a subject', () => {
+  const { model } = weekWithOneUnnamed();
+  const kit = screenAt(6, model);
+  const gaps = gapLines(kit);
+  assert(gaps.length >= 3, 'the three gaps this state has: ' + JSON.stringify(gaps));
+
+  /* One per line: every gap sits in its own block wrapper, so the browser
+     cannot run them together the way the owner saw. */
+  const wrappers = [...kit.doc.querySelectorAll('#phone .followup .gap')];
+  assert.equal(wrappers.length, gaps.length, 'one wrapper per gap');
+  for (const wrap of wrappers) {
+    assert.equal(wrap.querySelectorAll('button').length, 1, 'one gap per line');
+  }
+
+  for (const line of gaps) {
+    assert(/^[A-Z]/.test(line), 'a gap starts a sentence: ' + JSON.stringify(line));
+    assert(line.endsWith('.'), 'a gap ends one: ' + JSON.stringify(line));
+    assert.equal(/^\s*,/.test(line), false, 'never a fragment: ' + JSON.stringify(line));
+  }
+  /* The unnamed exercise is the SUBJECT of its own gaps, not a blank. */
+  const about = gaps.filter((l) => l.startsWith(Model.COPY.unnamedSubject));
+  assert(about.length >= 2, 'its gaps name it: ' + JSON.stringify(gaps));
+  assert(gaps.some((l) => /nothing it works yet\.$/.test(l)));
+  assert(gaps.some((l) => /no lightest setting yet\.$/.test(l)));
+  /* And the glued sentence the owner read is gone. */
+  assert.equal(kit.text().includes('in it., has nothing'), false);
+});
+
+test(':133 (2) d - the sets line is a sentence, not a form label', () => {
+  const { model } = weekWithOneUnnamed('Chest press');
+  const text = screenAt(6, model).text();
+  assert(text.includes(Model.STANDARD_SETS + ' sets · aim for ' + Model.STANDARD_HI + ' reps'),
+    'the owner\'s wording');
+  assert.equal(text.toLowerCase().includes('sets of each exercise ' + Model.STANDARD_SETS), false,
+    'the form label is gone from the summary');
+});
+
+test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence', () => {
+  const model = createSetupModel({ today: DAY });
+  model.toggleDay('1'); model.toggleDay('4');
+  const text = screenAt(2, model).text();
+  assert(text.includes(Model.COPY.screen2TwoDays), 'the sentence is still on screen');
+  /* Same words as DECISIONS:125 (2); the apostrophe is typography and matches
+     the rest of the screen (:132 (3)). */
+  assert(Model.COPY.screen2TwoDays.includes('Earned’s full-body plan is coming'));
+  assert.equal(text.includes(String.fromCharCode(39)), false,
+    'no straight apostrophe anywhere on screen 2');
 });

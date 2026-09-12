@@ -243,7 +243,10 @@ async function runFlow(page, stopAt = 6) {
   assert.match(week, /Your choice/);
   /* And the F1 sentence, at exactly the two days this flow chooses
      (DECISIONS:125 (2), verbatim). */
-  assert.match(week, /With two days, Earned's full-body plan is coming; for now one upper day and one lower day\./);
+  assert.match(week, /With two days, Earned’s full-body plan is coming; for now one upper day and one lower day\./);
+  /* DECISIONS:132 (3): one screen, one apostrophe. */
+  assert.equal(week.includes(String.fromCharCode(39)), false,
+    "screen 2 renders a straight apostrophe: " + week.slice(0, 80));
   if (stopAt === 2) return;
 
   await next(page);                                    // -> 3
@@ -433,6 +436,61 @@ try {
   ({ context, page } = await relaunch("?screen=setup", NARROW));
   await runFlow(page, 3);
   notes.push("screens 1 to 3, both doors and the picker open, measured at 320px");
+  await hardKill(context);
+
+  /* ---------- DECISIONS:133 (2): screen 6 with an UNNAMED exercise ----------
+     The state the owner was looking at in the pane, walked in a real browser and
+     read off the rendered DOM: one training day, one exercise, nothing filled in
+     but the day. The three defects he named are asserted here as absences AND as
+     presences, because "no empty name" is satisfiable by printing nothing at
+     all, which would be a second defect wearing the first one's clothes. */
+  ({ context, page } = await relaunch("?screen=setup"));
+  await page.waitForSelector("#phone article.page");
+  await page.fill("#setup-name", "Dad");
+  await next(page);                                    // -> 2
+  await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("2 of 6"));
+  await page.evaluate(() => {
+    const block = [...document.querySelectorAll("#phone fieldset.question")]
+      .find(f => f.querySelector("legend") && f.querySelector("legend").textContent.trim() === "Monday");
+    [...block.querySelectorAll(".option")].find(x => x.textContent.trim() === "Monday").click();
+  });
+  await next(page);                                    // -> 3
+  await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("3 of 6"));
+  /* Add one exercise by hand and name NOTHING. */
+  await page.evaluate(() => {
+    const add = [...document.querySelectorAll("#phone fieldset.question button.text-link")]
+      .find(x => x.textContent.trim() === "Add an exercise");
+    if (!add) throw new Error("no add control on screen 3");
+    add.click();
+  });
+  for (const to of [4, 5, 6]) {
+    await next(page);
+    await page.waitForFunction(n => document.querySelector("#phone").textContent.includes(n + " of 6"), to);
+  }
+  const six = await phone(page);
+  assert.match(six, /One exercise \(unnamed\)/, "the row names the exercise he has not named");
+  assert.equal(/,\s*:/.test(six), false, "a bare punctuation name is on screen: " + six.slice(0, 200));
+  assert.match(six, /3 sets · aim for 10 reps/, "the sets line is a sentence");
+  assert.doesNotMatch(six, /sets of each exercise 3/, "screen 3's field label is out of the summary");
+  /* One gap per line, each its own block, each a whole sentence. */
+  const gaps = await page.evaluate(() =>
+    [...document.querySelectorAll("#phone .followup p.gap")].map(p => ({
+      text: p.textContent.trim(),
+      buttons: p.querySelectorAll("button").length,
+      block: getComputedStyle(p).display,
+    })));
+  assert(gaps.length >= 3, "the gaps this state has: " + JSON.stringify(gaps));
+  for (const gap of gaps) {
+    assert.equal(gap.buttons, 1, "one gap per line: " + JSON.stringify(gap));
+    assert.equal(gap.block, "block", "a gap is its own block: " + JSON.stringify(gap));
+    assert(/^[A-Z]/.test(gap.text) && gap.text.endsWith("."), "a gap is a sentence: " + gap.text);
+  }
+  assert.equal(six.includes("in it., has nothing"), false, "the glued gap sentence is gone");
+  assert(gaps.some(g => g.text.startsWith("One exercise ")), "an unnamed exercise is its gaps' subject");
+  await reachable(page, "screen 6, one unnamed exercise");
+  await noDashes(page, "screen 6, one unnamed exercise");
+  notes.push("screen 6 with an unnamed exercise: named row, sentence sets line, "
+    + gaps.length + " gaps each on its own line");
   await hardKill(context);
   ({ context, page } = await relaunch());
 

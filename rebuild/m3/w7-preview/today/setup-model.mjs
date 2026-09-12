@@ -101,7 +101,10 @@ export const COPY = Object.freeze({
   /* The F1 sentence, verbatim from DECISIONS:125 (2). It is shown only while a
      two-day week is what he has chosen, and it will clear itself the day F1
      merges, with no edit here. */
-  screen2TwoDays: 'With two days, Earned\'s full-body plan is coming; for now one upper day and one lower day.',
+  /* The WORDS are DECISIONS:125 (2)'s, unchanged. The apostrophe is typography:
+     the ledger prints it straight, the rest of this screen prints it curly, and
+     :132 (3) rules that one screen uses one apostrophe. Nothing else moved. */
+  screen2TwoDays: 'With two days, Earned’s full-body plan is coming; for now one upper day and one lower day.',
   /* Its sibling. One day is the same shortfall, further along, and saying it
      only for two days would be a silence for the athlete who has less. */
   screen2OneDay: 'With one day, Earned can give you one upper day. A second day is what lets it cover your lower body at all.',
@@ -148,6 +151,14 @@ export const COPY = Object.freeze({
   screen6Head: 'Here’s your week.',
   screen6NoLoad: 'We have not put a weight on anything. On your first session Earned will ask you to pick a load you can control, and whatever that gives is where you start.',
   repsWord: 'reps',
+  /* DECISIONS:133 (2). An exercise he has not named yet still has to be TALKED
+     ABOUT: in the summary rows, in the equipment rows and in the gaps. The mock
+     had a fallback for exactly this and the build lost it, so an unnamed row
+     printed its punctuation and nothing else. Two words because the ledger uses
+     two: the ROW says which one it is ("One exercise (unnamed)") and a GAP takes
+     it as a subject ("One exercise has nothing it works yet."). */
+  unnamedExercise: 'One exercise (unnamed)',
+  unnamedSubject: 'One exercise',
   jumpWord: 'jump',
   unknownWord: 'not answered yet',
   setupEntry: 'Set up your week',
@@ -542,11 +553,15 @@ export function createSetupModel({ today = localISO(), answers = createSetupAnsw
     missingExercises() {
       const out = [];
       for (const row of answers.exercises) {
-        const label = trim(row.n);
-        if (label === '') {
+        /* DECISIONS:133 (2). The SUBJECT of every gap about this exercise, so no
+           sentence can start with a blank or a stray comma. An unnamed exercise
+           is named as a gap of its own AND still speaks for its other gaps: the
+           owner saw all three at once, and hiding two of them behind the first
+           would make the screen under-report what it knows is missing. */
+        const label = exerciseSubject(row.n);
+        if (!hasName(row.n)) {
           out.push({ screen: 3, key: row.key, code: 'CLEAN_INIT_EXERCISE_REQUIRED',
             copy: MISSING.exerciseName.replace('KIND', DAY_KIND_WORDS[row.day].toLowerCase()) });
-          continue;
         }
         if (trim(row.mg) === '') {
           out.push({ screen: 3, key: row.key, code: 'CLEAN_INIT_EXERCISE_REQUIRED',
@@ -629,6 +644,21 @@ export const standardStepLine = () => 'Leave the jump blank and Earned uses '
   + STANDARD_INC + ' ' + STANDARD_INC_UNIT + ', its standard step. Change it if yours is different.';
 export const standardStepSummary = () => 'jump: ' + STANDARD_INC + ' ' + STANDARD_INC_UNIT
   + ', Earned’s standard step';
+/* DECISIONS:133 (2). THE ONE PLACE THAT DECIDES WHETHER AN EXERCISE HAS A NAME.
+   A name is present when it carries at least one letter or digit: that is the
+   honest test, because the owner's own row was a lone comma and a lone comma is
+   not a name. Everything that talks about an exercise - the two summary rows and
+   every gap sentence - asks THIS, so the three defects cannot come back one at a
+   time. `named()` is the row wording, `subject()` the sentence wording. */
+export const hasName = (value) => /[\p{L}\p{N}]/u.test(typeof value === 'string' ? value : '');
+export const namedExercise = (value) => (hasName(value) ? value.trim() : COPY.unnamedExercise);
+export const exerciseSubject = (value) => (hasName(value) ? value.trim() : COPY.unnamedSubject);
+
+/* The per-exercise line on screen 6, as the owner asked for it (:133 (2)):
+   "3 sets - aim for 10 reps", a sentence, not the screen-3 field label. The two
+   digits are HIS answers, the same two S8 already allows on this screen. */
+export const setsLine = (sets, hi) => sets + ' sets · aim for ' + hi + ' ' + COPY.repsWord;
+
 export const counterLine = (n) => n + ' of ' + SCREENS;
 export const glossFor = (label) => (MG_GLOSS[label] ? label + ' (' + MG_GLOSS[label] + ')' : label);
 
@@ -640,4 +670,5 @@ export default {
   SCREENS, COPY, VALIDATION, MISSING, REFUSAL_SENTENCES, REQUIRED_SETUP, REQUIRED_EXERCISE,
   createCleanInitState, dayKindValidation, standardStartLine, standardStepLine,
   standardStepSummary, counterLine, glossFor,
+  hasName, namedExercise, exerciseSubject, setsLine,
 };

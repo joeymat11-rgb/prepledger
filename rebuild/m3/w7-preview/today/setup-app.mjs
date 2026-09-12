@@ -33,7 +33,9 @@ const { COPY, VALIDATION, MISSING, MG_LABELS, SETS_OPTIONS, HI_OPTIONS, WEEKDAYS
   WEEKDAY_NAMES, DAY_KINDS, DAY_KIND_WORDS, SCREENS, STANDARD_INC, STANDARD_INC_UNIT,
   GROUP_WORDS, REGION_WORDS,
   standardStartLine, standardStepLine, standardStepSummary, counterLine, glossFor,
-  dayKindValidation, parseRungs } = Model;
+  dayKindValidation, parseRungs,
+  /* DECISIONS:133 (2): the one naming predicate and the summary's sets line. */
+  namedExercise, setsLine } = Model;
 
 const groupWord = (g) => GROUP_WORDS[g] || g;
 const regionWord = (r) => REGION_WORDS[r] || r;
@@ -416,11 +418,11 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       top.append(el('span', 'unit', DAY_KINDS.includes(kind) ? DAY_KIND_WORDS[kind] : COPY.restWord));
       row.append(top);
       const lifts = DAY_KINDS.includes(kind) ? answers.exercises.filter((x) => x.day === kind) : [];
+      /* DECISIONS:133 (2). The row names the exercise even when he has not, and
+         the sets read as a sentence rather than as screen 3's field label. */
       for (const lift of lifts) {
-        const line = lift.n.trim() === '' ? COPY.exerciseNameLabel
-          : lift.n.trim() + ': ' + (lift.mg.trim() || COPY.worksLabel)
-            + ' · ' + COPY.setsLabel.toLowerCase() + ' ' + answers.sets
-            + ' · ' + answers.hi + ' ' + COPY.repsWord;
+        const line = namedExercise(lift.n) + ': ' + (lift.mg.trim() || COPY.worksLabel)
+          + ' · ' + setsLine(answers.sets, answers.hi);
         row.append(el('p', 'fine', line));
       }
       body.append(row);
@@ -430,7 +432,7 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       const step = lift.inc.trim() === '' ? standardStepSummary()
         : COPY.jumpWord + ': ' + lift.inc.trim() + ' ' + STANDARD_INC_UNIT;
       const first = rungs.length ? rungs.join(', ') : lift.first.trim();
-      body.append(el('p', 'fine', (lift.n.trim() || COPY.exerciseNameLabel) + ': '
+      body.append(el('p', 'fine', namedExercise(lift.n) + ': '
         + COPY.firstLabel.toLowerCase() + ' ' + (first === '' ? COPY.unknownWord : first) + ' · ' + step));
     }
     const priorities = el('div', 'macro-row');
@@ -447,11 +449,18 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
   function refusalBlock(body, missing) {
     const block = el('div', 'followup');
     block.append(el('p', 'section-label', COPY.refusalHead));
+    /* ONE GAP PER LINE (DECISIONS:133 (2)). These were bare inline buttons, so
+       the browser flowed them into one run-on sentence and the owner read three
+       gaps as one: "... has no exercises in it., has nothing it works yet., has
+       no lightest setting yet.". Each now sits in its own block, and each copy
+       is a whole sentence with a subject (setup-model.mjs missingExercises). */
     for (const item of missing) {
+      const wrap = el('p', 'gap');
       const line = el('button', 'text-link', item.copy);
       line.type = 'button';
       line.addEventListener('click', () => { model.goto(item.screen); paint(true); });
-      block.append(line);
+      wrap.append(line);
+      block.append(wrap);
     }
     body.append(block);
   }
