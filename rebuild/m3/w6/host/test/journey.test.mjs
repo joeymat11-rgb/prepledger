@@ -28,7 +28,8 @@ const Commands = require('../../../../m4/workout/commands.cjs');
 const Adapter = require('../../../../m4/workout/engine-capture.cjs');
 const History = require('../../../../m4/workout/engine-history.cjs');
 const SourceProjection = require('../../../../m4/workout/source-projection.cjs');
-const { createCleanInitState, SCHEMA_V, AUTONOMY_FLOOR } = require('../../../../m4/workout/athlete-state.cjs');
+const { createCleanInitState, SCHEMA_V, AUTONOMY_FLOOR,
+  BLACKOUT_MEMBERS, MODEL_MEMBERS } = require('../../../../m4/workout/athlete-state.cjs');
 const { createNullLaneWorkoutBasis, createUnavailableStringLaneResolver } = require('../../../../m4/workout/workout-basis.cjs');
 const { createWorkoutResumePolicy } = require('../../../../m4/workout/resume-policy.cjs');
 // B-NTC — the qualified nativeTrendContext provider (step 17).
@@ -118,8 +119,24 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert(engineState.exercises.every(e => e.w === null), 'every lift starts with no working load');
     assert(engineState.exercises.every(e => Array.isArray(e.steps) && e.steps.length), 'real available loads are supplied');
     assert(Object.isFrozen(engineState));
-    // No seed/migrate/merge import: the state has none of the members those add.
-    for (const absent of ['trend', 'model', 'blackout', 'feedRules']) assert(!Object.hasOwn(engineState, absent), absent);
+    // No seed/migrate/merge import: the state has none of the members those add
+    // and nothing here needs. `trend` stays absent because this athlete has
+    // declared no bodyweight and nothing may invent one.
+    for (const absent of ['trend', 'feedRules']) assert(!Object.hasOwn(engineState, absent), absent);
+    /* H3 (DECISIONS:124) MOVED THIS CELL, deliberately. `model` and `blackout`
+       used to be absent too, and that absence is exactly what made the accepted
+       engine throw for a brand-new athlete (energy.cjs:370, then energy.cjs:84).
+       The constructor now writes both. The cell therefore asserts the stronger
+       thing: they are present, closed over the member sets the module itself
+       declares, and every value is this athlete's own setup date or an explicit
+       absence — still no import, and still not one number. */
+    assert.deepEqual(Reflect.ownKeys(engineState.blackout), BLACKOUT_MEMBERS);
+    assert.deepEqual(Reflect.ownKeys(engineState.model), MODEL_MEMBERS);
+    assert.equal(engineState.model.anchorISO, engineState.split[0].from, 'anchored on his own setup date');
+    assert.equal(engineState.model.drip, null);
+    assert.equal(engineState.model.src, null);
+    assert(engineState.blackout.until < engineState.split[0].from, 'no blackout in force from day one');
+    assert.equal(Object.hasOwn(engineState.model, 'lean'), false, 'no body-composition anchor is invented');
   });
 
   await t.test('2. clean-init refuses rather than falling back', () => {

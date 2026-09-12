@@ -11,6 +11,13 @@
 //   (b) the empty value of that member (`[]`, `{}`, `null`).
 // There is no default lift list, no default load, no default week.
 //
+// H3 (DECISIONS:124) adds TWO members that are not history and not the
+// athlete's own words: `blackout` and `model`, which the accepted engine
+// dereferences without a guard. Rule (b) still holds for every value in them —
+// each is the athlete's own setup date or an explicit absence, never a number.
+// The block above `freezeDeep` carries the trace, the measurements and the
+// reason `model.lean` is absent rather than null.
+//
 // The split is REQUIRED. rebuild/engine/plan.cjs `dayType(iso, s)` falls back
 // to a fixed Mon/Thu=U, Tue/Fri=L, Wed=REFEED week when the state carries no
 // `split` entry covering the day; that fallback is one athlete's week, not a
@@ -58,6 +65,12 @@ const SCHEMA_V = 60;
 const AUTONOMY_FLOOR = 'propose';
 const REQUIRED_SETUP = ['athlete_label', 'split', 'exercises', 'priority_muscles'];
 const REQUIRED_EXERCISE = ['id', 'n', 'mg', 'day', 'sets', 'hi', 'inc', 'steps'];
+// H3 (DECISIONS:124). The EXACT member set of the two objects this constructor
+// writes for the accepted engine's unguarded readers. Exported so a cell can
+// assert the constructed objects are closed over exactly these names — a member
+// added, removed or renamed is a refusal here, never a silent drift.
+const BLACKOUT_MEMBERS = ['until'];
+const MODEL_MEMBERS = ['anchorISO', 'drip', 'src'];
 const DAY_KINDS = ['U', 'L'];
 const fail = (code, detail) => { const e = new Error(code); e.code = code; if (detail !== undefined) e.detail = detail; throw e; };
 const isPlain = v => v !== null && typeof v === 'object' && !Array.isArray(v) &&
@@ -113,6 +126,90 @@ function checkExercise(raw, seen) {
   return { id, n, mg, day, sets, hi, inc, steps: steps.slice(), w: null, forks: [] };
 }
 
+/* ===== H3 — THE TWO MEMBERS THE ACCEPTED ENGINE DEREFERENCES (DECISIONS:124) =====
+   A clean-init state carried neither `blackout` nor `model`, and the accepted
+   engine reads both without a guard, so Today THREW for a brand-new athlete:
+   rebuild/engine/energy.cjs:370 `daysUntil(s.blackout.until)`, then — once
+   blackout exists — rebuild/engine/energy.cjs:84 `s.model.anchorISO` in bfEst.
+   They are not the only two sites: sleep.cjs:358, sleep.cjs:1913 and
+   writers.cjs:427/:917/:1694 read `s.blackout.until` equally unguarded (only
+   today.cjs:228/:282/:409 and sleep.cjs:1879 test for the object first), which
+   is why the honest fix is the CONSTRUCTOR's and not a guard at one reader.
+   `blackout: {}` is not a fix shape either: daysUntil(undefined) reaches
+   `mk()` at rebuild/engine/dates.cjs:8 and throws on `undefined.split`.
+
+   EVERY VALUE BELOW IS THE ATHLETE'S OWN SETUP DATE OR AN EXPLICIT ABSENCE.
+   Nothing is copied from rebuild/engine/seed.cjs — that file's
+   `model: { lean: 139.7, anchorISO: "2026-07-21", drip: 0, src: "coach's eye" }`
+   and `blackout.until = SEAL_UNTIL` are ONE athlete's numbers (the H1 rule).
+
+   `blackout.until` — THE DAY BEFORE `split.from`, not `split.from` itself.
+   Nine of the ten readers ask `daysUntil(until) > 0`, so either choice leaves
+   no blackout in force from day one. The tenth does not: rebuild/engine/
+   sleep.cjs:1879 asks `iso <= s.blackout.until`, INCLUSIVE, and with
+   `until = split.from` the athlete's very first weigh-in comes back
+   `dayWeather(split.from).flags = [{k:"sealwater", why:"scale carries event
+   water — sealed window"}], noisy: true` — measured, not argued. One day
+   earlier and the window is empty for every day this athlete can ever have,
+   because he cannot have a reading before the day he set the app up.
+
+   `model.anchorISO` — `split.from`, the athlete's own setup date, so
+   `weeksBetween(anchorISO, today)` is 0 on day one rather than a distance from
+   a stranger's anchor.
+
+   `model.drip` — `null`, which is THIS member's own documented absence:
+   rebuild/engine/energy.cjs:21 `dripOf` tests `d == null` and substitutes the
+   engine's own `DRIP_DEFAULT` (constants.cjs:68, `0.0`). No number is invented
+   here; the engine's stated default is used because the engine states it.
+
+   `model.src` — `null`. Every reader compares `=== "DEXA"`, so null never
+   throws and never claims a scan.
+
+   `model.lean` IS DELIBERATELY NOT WRITTEN, and this is the one place where
+   the shape DECISIONS:124 sketches would have invented a figure. The athlete's
+   setup document (REQUIRED_SETUP) carries no bodyweight and no body-fat
+   reading — he has declared no body composition at all — so there is no honest
+   value. Both candidates were driven through the real screen and MEASURED:
+     * `lean: null` — `s.model.lean + drip * wks` coerces null to 0, so bfEst
+       reports `lean: 0`, proteinTarget reports `g: 0, ffmKg: 0`, and
+       rebuild/m3/w7-preview/today/today-app.cjs:209 (`Number.isFinite(g)`)
+       PRINTS "0 g protein" on Today. Once a bodyweight exists it is worse:
+       `pct = ((trend - 0) / trend) * 100` = 100.0% body fat.
+     * member absent — every derived figure is non-finite, the same
+       `Number.isFinite` gate reads it as no reading, and the slot shows
+       "Not available yet". That is the truth: he has no anchor.
+   NaN is not an option: rebuild/engine/writers.cjs:424 `applyRead` round-trips
+   the state through `JSON.parse(JSON.stringify(...))`, which turns NaN into
+   null, so a NaN anchor would silently become the 0 above at the first
+   weigh-in. An absent member survives that round trip absent.
+   The residue is recorded and routed in rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md
+   (finding F-A): rebuild/engine/energy.cjs:116 proteinTarget has no gated
+   branch of its own, unlike calorieTarget and stepTarget, so it always returns
+   a figure. Today's own view layer is what keeps that off the screen. Closing
+   it needs an engine edit, which this package does not make.
+
+   The day before `iso`, by pure UTC arithmetic on a date-only string. This
+   module has NO CLOCK and must not gain one; nothing here reads the time. */
+const dayBefore = (iso) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  const at = new Date(Date.UTC(2000, 0, 1));
+  at.setUTCFullYear(y, m - 1, d - 1);   // setUTCFullYear, so years < 100 are not shifted into 1900
+  let out;
+  try { out = at.toISOString().slice(0, 10); } catch (e) { out = null; }
+  // The round trip is the guard: a `from` that is not a real calendar day
+  // (2026-02-30 passes the shape test at checkSplit) would otherwise hand the
+  // engine a silently normalised window.
+  if (out === null || !isoDay(out) || dayAfter(out) !== iso)
+    fail('CLEAN_INIT_SPLIT_REQUIRED', 'from must be a real calendar day');
+  return out;
+};
+const dayAfter = (iso) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  const at = new Date(Date.UTC(2000, 0, 1));
+  at.setUTCFullYear(y, m - 1, d + 1);
+  try { return at.toISOString().slice(0, 10); } catch (e) { return null; }
+};
+
 function freezeDeep(value) {
   const stack = [value];
   while (stack.length) {
@@ -137,6 +234,12 @@ function createCleanInitState({ setup } = {}) {
       !setup.priority_muscles.every(x => typeof x === 'string' && x.trim()))
     fail('CLEAN_INIT_PRIORITY_MUSCLES_REQUIRED', 'priority_muscles');
   const split = checkSplit(setup.split);
+  /* H3 (DECISIONS:124) — see the block above freezeDeep for every value's
+     derivation and for why `model.lean` is absent. `closed()` pins both member
+     sets: a member added, removed or renamed refuses here rather than reaching
+     the engine. */
+  const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, 'CLEAN_INIT_BLACKOUT_REQUIRED');
+  const model = closed({ anchorISO: split.from, drip: null, src: null }, MODEL_MEMBERS, 'CLEAN_INIT_MODEL_REQUIRED');
   const seen = new Set();
   const exercises = setup.exercises.map(e => checkExercise(e, seen));
   const covered = new Set(Object.values(split.map).filter(v => DAY_KINDS.includes(v)));
@@ -159,6 +262,10 @@ function createCleanInitState({ setup } = {}) {
     // The engine's own most-supervised floor, written deliberately and cited
     // in the header. No `mode` member: that vocabulary does not exist.
     plan: { autonomy: AUTONOMY_FLOOR },
+    // H3 (DECISIONS:124). Not history: the two members the accepted engine
+    // dereferences without a guard, each value the athlete's own setup date or
+    // an explicit absence. Built and pinned above.
+    blackout, model,
     queue: [], feed: [], weekly: [], events: [], proposals: [], agentProposals: [],
     adjustments: [], forecasts: [], accepted: [], retirements: {},
     split: [split],
@@ -168,4 +275,4 @@ function createCleanInitState({ setup } = {}) {
 
 const PROFILE = 'earned/clean-init-state/v1';
 module.exports = { createCleanInitState, PROFILE, REQUIRED_SETUP, REQUIRED_EXERCISE,
-  SCHEMA_V, AUTONOMY_FLOOR };
+  SCHEMA_V, AUTONOMY_FLOOR, BLACKOUT_MEMBERS, MODEL_MEMBERS };
