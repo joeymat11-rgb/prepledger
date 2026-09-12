@@ -1,0 +1,109 @@
+EARNED — INDEPENDENT NATIVE SCALE TODAY REVIEW
+Date: 2026-09-12. Verdict: REQUIRED CORRECTION R1, stale visible Why evidence.
+Candidate de90349fea7cc68ebada5a2d6469e244e5d7b14b.
+Base154bf80454b5df2f1d10e4f74c4375b3b123b7b3.
+FILE ASTRA-NATIVE-SCALE-TODAY-REVIEW.md at01729af; original scope and both
+8f1b4ca/0b78eac amendments read. Full candidate report and delta inspected.
+Reviewer phone_release_review, distinct from author native_scale_today.
+Owned branch codex/astra-native-scale-today-review, tree BASE/astra-native-scale-today-review.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+
+R1 — WHY STILL DISPLAYS WITHDRAWN SCALE NUMBERS AFTER SUCCESSFUL REFRESH
+Independent actual Today boot/model/renderer with actual initial setup, calendar,
+shared local durable client/stage/encrypted repository (synthetic facts, JSDOM,
+fake-indexeddb and Node webcrypto). Save morning170, await page.refresh(), render
+Why. A second actual reading host from page.hosts saves180 on the same date.
+New source correctly requires DAILY_READING_RESOLUTION_REQUIRED: no baseline,
+zero eligible readings. Before refresh the first cached model still names170.
+After await page.refresh(), the actual page model now has baseline=null/count0
+and that exclusion, but the visible Why DOM STILL says 'Baseline: 170 lb',
+'Smoothed scale weight: 170 lb' and '1 eligible readings', without the conflict.
+This is a persistent displayed false baseline after the normal refresh boundary,
+not merely a snapshot being superseded while a read is in flight.
+
+Runnable retained witness: .tmp/scale-cache-review.mjs in this review tree.
+node .tmp/scale-cache-review.mjs, with NODE_PATH and TZ below, exit0.
+Prints AFTER_REAL_SHARED_WRITE and AFTER_EXPLICIT_PAGE_REFRESH, including model
+and visible-text mismatch. Imports/harness derive from the candidate's actual
+host test; the independent scenario uses public page and reading-host APIs.
+No canned scale view, injected commit result or direct storage mutation is used.
+
+Cause: today-entry.mjs redraw refreshes scale, but renders only when
+item.api.screen()==='today' (lines332-335). Same-day update refreshes readings,
+workout and check-in but does not repaint Why. Thus refreshed conflict/refusal
+cannot withdraw the earlier Why numbers. Required: refresh or safely invalidate
+visible scale evidence on Why when its source changes/refuses, preserving active
+editors, navigation/focus and no-redraw-after-close. Add this actual source-to-DOM
+regression. Root has routed R1; no implementation changes made here.
+
+EXECUTED CHECKS
+Retained Node24.19.0, NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules,
+TZ=America/New_York; EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this tree.
+Retained root/W5/W6 dependency junctions only; no installs or lock churn.
+node --test rebuild/m3/w6/test/local-scale-feedback.test.mjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+  rebuild/m3/w6/test/public-client.test.mjs
+  rebuild/m3/w7-preview/today/test/nutrition-availability.test.mjs
+  rebuild/m4/nutrition/scale-feedback.test.mjs
+75 PASS,0 FAIL/SKIP/CANCEL,exit0; .tmp/focused75.log.
+This includes actual owner baseline/Why/reopen; late then10 eligible readings;
+actual T2-produced correction and competing removal history; token/revision,
+observation/session/calendar refusals; invalid original/history; actual workout
+Start/Set/Finish then excluded weight; cache loss; real concurrent weight invalidating
+an in-flight snapshot; active-editor rollover and prior owner lifecycle controls.
+Unchanged pure arithmetic/correction evidence reuses ce796727; no extra general
+physiology campaign was run beyond the explicitly requested75 command.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+node rebuild/m3/w6/test/local-scale-browser.mjs
+PASS,exit0. Rebuilds actual owner bundle; visible setup controls, actual weight
+save, Today/Why, keyboard focus+Enter evidence access and reload;0 page errors.
+Actual viewport/document/phone widths:390/390/372 and320/320/302. Document and
+phone horizontal-overflow assertions pass. Independently opened screenshots:
+.tmp/scale-today-screens/today-320.png, today-390.png, why-320.png.
+Approved Refinement A/Additions C direction inspected: paper/ink/green and
+Instrument type retained; programme/nutrition above subordinate weight evidence,
+prominent workout action and nearby optional Why. Both widths are readable;
+Why wraps into a long paragraph but stays within the phone, back action reachable.
+Baseline clearly says weekly rate not yet measured; Why distinguishes scale
+change from fat loss and labels local facts not server-accepted. Actual Chrome
+at synthetic phone dimensions is not physical-phone or full accessibility proof.
+
+SOURCE / AUTHORITY ASSESSMENT
+Public scale read uses static scaleAsOf, guarded scale-feedback observation and
+stageVerified's same-generation history authentication/lease/scope. Publication
+rechecks session/observation, revision AND token, local date and offset. Renderer
+arguments do not supply history, eligibility or policy. Full projection/provenance
+is retained privately; small copied view exposes facts/explanations, not operations,
+keys or commitments. Existing checked projection and arithmetic are reused.
+Host read/save/restart closes cached view on failure/in-flight refresh and checks
+handle/era close plus day before returning it. Source refresh alone is insufficient
+to withdraw already rendered Why content: R1 remains required despite those checks.
+
+PRESERVED REDS
+Executed node --test rebuild/m3/w6/test/local-host-journey.test.mjs:
+16 PASS,1 FAIL,17 tests,exit1. .tmp/host17.log. Failure is exact guard-call count7
+versus pinned6. Added static local scale-feedback is the seventh call. Later
+local-kind count3 is stale against actual4; the first assertion stops before it.
+Source allowlist adds only scale-feedback; seven inbound kinds remain unchanged,
+disjoint and denied. Executed all-seven-inbound refusal and reachable-inbound
+no-write subtests PASS. This suite is not PASS; no count pin was edited.
+
+Old local-today-journey pin remains f48553425e8d89e8ab8a19144fa57b6ccb7deccb3f4e87a505173ddfc0823593.
+Independently hashed exact parent entry blob624f02a05334fe37f27bbf573a4455fa44a0f3a1c0d8837055cdece7192ebc95;
+candidate entry blob/working bytes34075659362a031befdbe7b2e8b328a37dde2a3a615bab7ebf97be88eb5fcb2f.
+Thus pin was already stale before this licensed entry change. Both old journey-test
+files and pure scale-feedback.mjs compare unchanged to parent. No additional
+97-test joined campaign executed here; builder's95 PASS/2 FAIL stays reported
+builder evidence, not a new PASS. Pins/counts need later explicit qualified changes.
+
+LIMITS / NEXT
+No other substantive correction found in this bounded review. Correction UI,
+imported blackout mapping, unsupported temporal reclassification and unresolved
+history boundaries remain. This is factual scale feedback, not a nutrition
+prescription, body-fat estimate or complete individualized coaching endpoint.
+Four nutrition availability meanings retained. Full engine/source-policy/CI,
+both-OS and physical-phone release qualification remain separate and required.
+One report only; no product/test/pin edits, private data/campaign, extra agents,
+other-tree writes, push/PR/merge/deploy or integration. git diff --check PASS.
+Root owns disposition; same reviewer can validate the focused correction delta.
