@@ -14,6 +14,9 @@ const cap = (...args) => E.cap(...args);
 const currentRate = (...args) => E.currentRate(...args);
 const cutRateBand = (...args) => E.cutRateBand(...args);
 const dayType = (...args) => E.dayType(...args);
+const isTrainingKind = (...args) => E.isTrainingKind(...args);
+const exerciseOnDay = (...args) => E.exerciseOnDay(...args);
+const orderedExercisesForDay = (...args) => E.orderedExercisesForDay(...args);
 const daysUntil = (...args) => E.daysUntil(...args);
 const debutDebit = (...args) => E.debutDebit(...args);
 const energyBalanceTarget = (...args) => E.energyBalanceTarget(...args);
@@ -52,7 +55,7 @@ const windowFor = (...args) => E.windowFor(...args);
 // Copied from frozen src/app.jsx @ fe516c1:1471-1478.
 function pickStructural(s, iso, slp) {
   const dt = dayType(iso, s);
-  const candidates = s.queue.filter((q) => !q.done && q.state !== "PROPOSED" && (q.kind === "debut" || q.kind === "unlock") && q.exId && exActive(s, q.exId) && exById(s, q.exId) && exById(s, q.exId).day === dt);   /* FIX split-1 (P1-1): a retired lift wins no structural slot */
+  const candidates = s.queue.filter((q) => !q.done && q.state !== "PROPOSED" && (q.kind === "debut" || q.kind === "unlock") && q.exId && exActive(s, q.exId) && exerciseOnDay(exById(s, q.exId), dt));   /* FIX split-1 (P1-1): a retired lift wins no structural slot */
   const passes = candidates.filter((q) => !(q.exId === "hack" && slp.last && slp.last.h < 4.5));
   const main = passes.find((q) => !q.coApproved) || null;
   const riders = passes.filter((q) => q.coApproved && q !== main);
@@ -62,14 +65,13 @@ function pickStructural(s, iso, slp) {
 // Copied from frozen src/app.jsx @ fe516c1:1481-1595.
 function genSession(s, iso, slp) {
   const dt = dayType(iso, s);
-  if (dt !== "U" && dt !== "L") return null;
+  if (!isTrainingKind(dt)) return null;
+  const pool = orderedExercisesForDay(s, dt);
+  if (dt === "F" && !["U", "L"].every((family) => pool.some((e) => e.day === family))) {
+    const error = new Error("FULL_BODY_FAMILY_MISSING"); error.code = "FULL_BODY_FAMILY_MISSING"; throw error;
+  }
   const { main, riders } = pickStructural(s, iso, slp);
   const active = new Set([main, ...riders].filter(Boolean).map((q) => q.exId));
-  const ord = (s.exOrder && s.exOrder[dt]) || [];
-  const pool = s.exercises.filter((e) => e.day === dt && exActive(s, e.id)).sort((a, b) => {   /* SPLIT item d — retired lifts leave the day pool; the raw record is never filtered */
-    const ia = ord.indexOf(a.id), ib = ord.indexOf(b.id);
-    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
-  });
   const ex = pool.map((e) => {
     const isDebutNow = active.has(e.id);
     const q = isDebutNow ? s.queue.find((x) => x.exId === e.id && !x.done && (x.kind === "debut" || x.kind === "unlock")) : null;
@@ -176,7 +178,7 @@ function genSession(s, iso, slp) {
     const c9 = ex.map((l9) => { const m9 = l9.runway && l9.runway.match(/^(\S+) EARNS AT THE TOP OF THE WINDOW \([^)]*\) — you are (\d+) rep/); return m9 ? { n: l9.n, up: m9[1], d: +m9[2] } : (l9.runway && /you are there/.test(l9.runway) ? { n: l9.n, up: (l9.runway.split(" ")[0]), d: 0 } : null); }).filter(Boolean).sort((a9, b9) => a9.d - b9.d);
     return c9.length ? " · closest to a new weight: " + c9[0].n + ", " + (c9[0].d === 0 ? "at the line" : c9[0].d + " rep" + (c9[0].d === 1 ? "" : "s") + " away from " + c9[0].up) : "";
   })();
-  return { name: dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day" + nearest, structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
+  return { name: dt === "F" ? "FULL BODY" : dt === "U" ? "UPPER" : "LOWER", structural: main ? main.t : "none queued — rep progression day" + nearest, structuralId: main ? main.id : null, riderIds: riders.map((r) => r.id), ex };
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:8436-8476.
@@ -251,9 +253,15 @@ function fiveLevers(s) {
   const wk7 = Object.keys(s.sessionLog || {}).filter((d) => { const g = (mk(tISO) - mk(d)) / DAY; return g >= 0 && g < 7; }).length;
   // Progress, not a fault: a logged session reads neutral (a rolling count that sits at 1-3
   // most of the week is not something to "adjust" — Part 1a fix). ✓ only at the weekly target.
-  const training = wk7 >= 4
-    ? { label: "TRAINING", state: "good", detail: `${wk7} of 4 · complete` }
-    : { label: "TRAINING", state: "quiet", detail: wk7 === 0 ? "none logged yet" : `${wk7} of 4 this week` };
+  // F uses the same seven dates as the banked-session numerator. The legacy
+  // U/L-only denominator is retained until its separate correction is ruled.
+  const windowKinds = Array.from({ length: 7 }, (_, i) => {
+    const date = mk(tISO); date.setDate(date.getDate() - i); return dayType(isoOf(date), s);
+  });
+  const sessionTarget = windowKinds.includes("F") ? windowKinds.filter(isTrainingKind).length : 4;
+  const training = wk7 >= sessionTarget
+    ? { label: "TRAINING", state: "good", detail: `${wk7} of ${sessionTarget} · complete` }
+    : { label: "TRAINING", state: "quiet", detail: wk7 === 0 ? "none logged yet" : `${wk7} of ${sessionTarget} this week` };
   // SLEEP — is he on his clean-night target run?
   // SLEEP — but ONLY if the record is current: three dark nights must not read as a
   // clean week. The run atSleepTarget reports ended whenever the nights end; when the
@@ -568,11 +576,11 @@ function nowModelUncached(s, deps) {
     for (let k9 = 0; k9 < 7; k9++) {
       const d9 = isoOf(new Date(todayStart().getTime() + k9 * 864e5));
       const dt9 = dayType(d9, s);
-      if (dt9 === "U" || dt9 === "L") {
+      if (isTrainingKind(dt9)) {
         const sess9 = genSession(s, d9);
         const beats = ((sess9 && sess9.ex) || []).filter((e) => e && e.prev && Array.isArray(e.prev.reps) && e.prev.reps.length).slice(0, 2)
           .map((e) => e.n + (typeof e.w === "number" ? " " + e.w : "") + " — beat " + e.prev.reps.join("·"));
-        workout = { title: (dt9 === "U" ? "UPPER BODY" : "LOWER BODY") + " · " + (k9 === 0 ? "TODAY" : k9 === 1 ? "TOMORROW" : fmtShort(d9).toUpperCase()), sub: beats.join(" · "), today: k9 === 0, iso: d9 };
+        workout = { title: (dt9 === "F" ? "FULL BODY" : dt9 === "U" ? "UPPER BODY" : "LOWER BODY") + " · " + (k9 === 0 ? "TODAY" : k9 === 1 ? "TOMORROW" : fmtShort(d9).toUpperCase()), sub: beats.join(" · "), today: k9 === 0, iso: d9 };
         break;
       }
     }

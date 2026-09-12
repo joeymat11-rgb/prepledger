@@ -20,6 +20,7 @@ const recoveryIndex = (...args) => E.recoveryIndex(...args);
 const rirSetsOf = (...args) => E.rirSetsOf(...args);
 const sessionScore = (...args) => E.sessionScore(...args);
 const todayStart = (...args) => E.todayStart(...args);
+const trainingWeek = (...args) => E.trainingWeek(...args);
 const windowFor = (...args) => E.windowFor(...args);
 
 // Copied from frozen src/app.jsx @ fe516c1:1398-1401.
@@ -59,9 +60,11 @@ function muscleVolume(s) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:8674-8705.
-function programmeVolume(s) {
+function programmeVolume(s, iso) {
   const perWeek = {};
-  for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
+  const week = trainingWeek(s, iso);
+  if (week.hasFullBody) Object.assign(perWeek, week.exposure);
+  else for (let i = 0; i < 7; i++) { const t = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY)), s); if (t === "U" || t === "L") perWeek[t] = (perWeek[t] || 0) + 1; }
   const by = {};
   const add = (mg, n) => { if (mg) by[mg] = (by[mg] || 0) + n; };
   /* Bucket by HEAD where a muscle has separately-trained heads. Pelland 2025
