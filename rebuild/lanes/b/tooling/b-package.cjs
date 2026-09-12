@@ -99,6 +99,13 @@ const TOOLING = 'rebuild/lanes/b/tooling', RUNNER = TOOLING + '/b-package.cjs';
 // tooling directory, which is already inside fidelity()'s change check — this runner still
 // never writes a byte in rebuild/m4/spec.
 const RECEIPT_DIR = TOOLING + '/receipts';
+// DECISIONS:135 (4), and THE ONE WORD that decides what "on the tip" means (r8 F1). The PM
+// has been asked whether plain ancestry of the CURRENT tip suffices; until that is ruled,
+// 'first-parent' stands — it is the stricter of the two and relaxing an enforced seal rule
+// on a reviewer's recommendation is the PM's call, not the tooling's. 'ancestor' is the
+// other setting, fully implemented and fully tested; changing this string is the whole of
+// the change, and a reviewer can see that it is.
+const SEAL_TIP_RULE = 'first-parent'; // 'first-parent' | 'ancestor'
 // The closed package-id list. Case-exact, and in THE RULED ORDER — r7 F6. DECISIONS:124
 // rules the chain "ORDER B-NTC → H3 → B1 → B2 → B4 → B3", superseding DECISIONS:103 (1)'s
 // "B-NTC first, then B1, B2, B4, B3" by inserting H3 after B-NTC; those six stand here in
@@ -243,7 +250,12 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/test/successor-moves.test.cjs', TOOLING + '/test/product-phase-and-ledger.test.cjs',
   TOOLING + '/test/pinned-unchanged-and-ruled-substitutions.test.cjs', TOOLING + '/test/seal-tip-and-byte-identity.test.cjs',
   TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
-  ...IDS.map(i => TOOLING + '/packages/' + i + '.json'), ...IDS.map(i => RECEIPT_DIR + '/' + i + '.json')];
+  // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
+  // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
+  // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
+  // Git, so it has to be committable — but a run of B1 has no business finding B2's receipt
+  // changed under it and calling that accounted for.
+  ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
@@ -1180,7 +1192,11 @@ function parentPin(entry, file) {
   if (typeof entry === 'string') { assert(/^[a-f0-9]{64}$/.test(entry), 'PARENT-PIN-SHAPE ' + file); return entry; }
   assert(entry && typeof entry === 'object' && !Array.isArray(entry) && Object.hasOwn(entry, 'pre') && Object.hasOwn(entry, 'post'),
     'PARENT-PIN-SHAPE ' + file + '; a parent product entry is a sha256 or a {pre, post, role} pin');
-  const pinned = entry.post || entry.pre;
+  // r8 change 4. `entry.post || entry.pre` read a FALSY non-null post — 0, "", false — as
+  // "no post" and silently fell back to the pre-image. Unreachable through a parent this
+  // runner sealed, but a normaliser that stands between every reader and two shapes has to
+  // be TOTAL: only the literal null means "this file has no post-image yet".
+  const pinned = entry.post === null ? entry.pre : entry.post;
   assert(/^[a-f0-9]{64}$/.test(pinned), 'PARENT-PIN-SHAPE ' + file);
   return pinned;
 }
@@ -1353,7 +1369,10 @@ function fidelity(s, sealed) {
   ancestor(s.sourceBase, 'HEAD', 'SOURCEBASE-NOT-BEHIND-HEAD'); // sourceBase is an ancestor of HEAD
   const changed = L.git(root, ['diff', '--name-only', s.sourceBase, 'HEAD', '--', 'rebuild/engine', 'rebuild/conform', 'rebuild/m4/spec', TOOLING]).toString().split(/\r?\n/).filter(Boolean);
   const targets = new Set(s.children.flatMap(c => childArgv(c)));
-  const unlisted = changed.filter(f => !(Object.hasOwn(s.product, f) || f === ARTIFACT || f === REVIEW || TOOLING_FILES.includes(f) || targets.has(f) || f === (s.carrierSuccessor && s.carrierSuccessor.file)));
+  // r8 change 2: THIS package's own sealed-run receipt is accounted for (change 1 requires
+  // it to be committed); any OTHER package's receipt appearing in this diff is not.
+  const ownReceipt = RECEIPT_DIR + '/' + ID + '.json';
+  const unlisted = changed.filter(f => !(Object.hasOwn(s.product, f) || f === ARTIFACT || f === REVIEW || TOOLING_FILES.includes(f) || f === ownReceipt || targets.has(f) || f === (s.carrierSuccessor && s.carrierSuccessor.file)));
   assert(!unlisted.length, 'UNLISTED-SOURCE-CHANGE ' + unlisted.join(' '));
   assert.equal(diskSha(RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER');
   assert.equal(gitSha('HEAD', RUNNER), s.tooling.runnerSha256, 'RUNNER-BYTES-NOT-THE-REVIEWED-RUNNER-IN-GIT');
@@ -1816,10 +1835,20 @@ const ARTIFACT_KEYS = ['version', 'lanePackage', 'packageId', 'sourceBase', 'par
 function sealOnTheTip(s, out) {
   const tip = L.git(root, ['rev-parse', CHAIN_REF]).toString().trim();
   assert(/^[a-f0-9]{40}$/.test(tip), 'CHAIN-TIP-UNRESOLVED ' + CHAIN_REF);
+  // r8 F1, and the PM has NOT relaxed it yet, so first-parent stands. What changed is that
+  // the question is now ONE CONSTANT: `SEAL_TIP_RULE`. Under 'first-parent' the tip must be
+  // in HEAD's own first-parent chain (a rebase, a fresh branch, a fast-forward); under
+  // 'ancestor' it need only be behind HEAD, which admits the `git merge --no-ff <tip>`
+  // workflow :137 (1) makes the house move and which r8 recommends. Both branches are
+  // exercised by the suite at both settings, so the day the PM answers, one word moves and
+  // nothing else does. The FREEZE escape below is identical either way.
   const firstParents = new Set(L.git(root, ['rev-list', '--first-parent', 'HEAD']).toString().split(/\r?\n/).filter(Boolean));
-  if (firstParents.has(tip)) {
-    out('SEAL BASE ON THE TIP; ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) +
-      ' and that commit stands in this HEAD\'s own first-parent chain (DECISIONS:135 (4))');
+  const onTip = SEAL_TIP_RULE === 'first-parent' ? firstParents.has(tip)
+    : (() => { try { L.git(root, ['merge-base', '--is-ancestor', tip, 'HEAD']); return true; } catch { return false; } })();
+  if (onTip) {
+    out('SEAL BASE ON THE TIP; ' + CHAIN_REF + ' is at ' + tip.slice(0, 7) + ' and that commit ' +
+      (SEAL_TIP_RULE === 'first-parent' ? 'stands in this HEAD\'s own first-parent chain' : 'is an ancestor of this HEAD') +
+      ' (DECISIONS:135 (4), rule=' + SEAL_TIP_RULE + ')');
     return;
   }
   const freeze = s.authorizations.freeze || null;
@@ -1859,11 +1888,47 @@ function sealOnTheTip(s, out) {
 const SEALED_RUN_KEYS = ['version', 'lanePackage', 'packageId', 'sealedRun'];
 const SEALED_RUN_BLOCK_KEYS = ['artifactSha256', 'specSha256', 'runnerSha256', 'envelopeKey', 'verdictFile', 'product'];
 const VERDICT_FILE = 'rebuild/lanes/b/VERDICT-' + ID + '.md'; // W7: derived here, never named by a spec
+//
+// r8 CHANGE 1 — THE RECEIPT MUST BE AUTHENTIC, NOT MERELY CONSISTENT. r8 measured the hole
+// and it is the only ungated admission point in the pass: a receipt WRITTEN BY HAND, by a
+// process that never ran a gate, returned ok:true, and `main` then skipped privateOracle(),
+// historical() and the 19 gates on nothing but a plain disk read. Consistency with the
+// bytes on disk is exactly what a forger has; it is not evidence that a FULL run happened.
+//
+// So the receipt is now bound to two things the hand that writes it cannot also write:
+//   (1) ITS OWN SHA256 STANDS IN THE VERDICT FILE. `:136 (3)` says "the verdict file reports
+//       the sealed run"; r7 read that as three hashes pasted anywhere in the prose, which a
+//       forger supplies as easily as the receipt. The verdict must now name the RECEIPT —
+//       the one string that only exists once the seal step has actually written one.
+//   (2) THOSE BYTES STAND IN GIT, at HEAD (and, once the envelope is ACCEPTED, also at the
+//       package's own RECEIPT BASE — the commit the PM's ledger line names, which no lane
+//       can rewrite). An untracked receipt, or one edited since it was committed, refuses.
+// Both are cheap and neither is a judgement: they say the receipt was produced by a run
+// that was committed and reviewed, which is precisely what "in place of a FULL run" needs.
 function sealedRunReceipt(s, key) {
   const file = RECEIPT_DIR + '/' + ID + '.json';
   if (!fs.existsSync(rel(file))) return { ok: false, code: 'SEALED-RUN-RECEIPT-ABSENT', file };
   let r = null;
   try { r = J.parseExact(fs.readFileSync(rel(file))); } catch { return { ok: false, code: 'SEALED-RUN-RECEIPT-UNREADABLE', file }; }
+  const receiptSha = diskSha(file);
+  // (2) IN GIT. HEAD is MANDATORY: the receipt must be committed, so an untracked one — the hand-written
+  // case r8 fired — and one edited since it was committed both refuse here.
+  let atHead = null;
+  try { atHead = gitSha('HEAD', file); } catch { atHead = null; }
+  if (atHead !== receiptSha)
+    return { ok: false, code: 'SEALED-RUN-RECEIPT-NOT-IN-GIT', file, at: 'HEAD', moved: [file + ' is not committed at HEAD'] };
+  // The package's own RECEIPT BASE — the commit the PM's ledger line names — is checked
+  // ONCE SET, meaning: if the receipt already stands there, its bytes must be these. It
+  // cannot be required to exist there, because the base is the commit the PM signed and the
+  // seal step that writes the receipt runs after it; what this refuses is the other order,
+  // a receipt that stood at the base and has since been replaced by a different one.
+  const parts = String(key).split(':');
+  if (parts[0] === 'ACCEPTED' && /^[a-f0-9]{40}$/.test(parts[3] || '')) {
+    let atBase = null;
+    try { atBase = gitSha(parts[3], file); } catch { atBase = null; }
+    if (atBase !== null && atBase !== receiptSha)
+      return { ok: false, code: 'SEALED-RUN-RECEIPT-NOT-IN-GIT', file, at: parts[3], moved: [file + ' differs at the receipt base ' + parts[3].slice(0, 12)] };
+  }
   const shaped = r && typeof r === 'object' && !Array.isArray(r) && r.version === 1 && r.lanePackage === ID &&
     r.packageId === s.packageId && r.sealedRun && typeof r.sealedRun === 'object' && !Array.isArray(r.sealedRun) &&
     same(Object.keys(r).sort(), SEALED_RUN_KEYS.slice().sort()) &&
@@ -1891,7 +1956,12 @@ function sealedRunReceipt(s, key) {
   const verdict = fs.readFileSync(rel(VERDICT_FILE), 'utf8');
   const unnamed = [sr.artifactSha256, sr.specSha256, sr.runnerSha256].filter(h => !verdict.includes(h));
   if (unnamed.length) return { ok: false, code: 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES', file };
-  return { ok: true, file, receipt: r };
+  // r8 change 1 (1). The three hashes above are public and a forger has them; the RECEIPT'S
+  // OWN sha256 exists only once a seal step has written one, so naming it in the verdict is
+  // the sentence a human wrote about a run that happened. Without it the step is unavailable
+  // and the FULL run stands.
+  if (!verdict.includes(receiptSha)) return { ok: false, code: 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT', file };
+  return { ok: true, file, receipt: r, receiptSha };
 }
 // The seal step's own write. Called ONLY from the terminal branch of a --full run that has
 // just printed nothing yet and is about to print POSTFIX PACKAGE PASS, so the bytes it
@@ -1905,6 +1975,15 @@ function writeSealedRunReceipt(s, key) {
   fs.mkdirSync(rel(RECEIPT_DIR), { recursive: true });
   fs.writeFileSync(rel(RECEIPT_DIR + '/' + ID + '.json'), JSON.stringify(body, null, 2) + '\n');
   return body;
+}
+// r8 change 1. What the sealer must do with the file the seal step just wrote, printed on
+// the run that writes it so nobody has to find it in a README: COMMIT it, and NAME its
+// sha256 in the verdict file's sealed-run section. Until both are true the byte-identity
+// step is unavailable and every authorized rerun is a FULL run, which is the safe default.
+function sealedRunReceiptInstruction() {
+  const file = RECEIPT_DIR + '/' + ID + '.json';
+  return 'commit ' + file + ' and write its sha256 ' + diskSha(file) + ' into ' + VERDICT_FILE +
+    '; the DECISIONS:136 (3) byte-identity step is UNAVAILABLE until those bytes stand in Git and the verdict names them';
 }
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
@@ -2060,7 +2139,8 @@ try {
     if (reverify.ok) {
       say('AUTHORIZED STEP BYTE-IDENTITY RE-VERIFY (DECISIONS:136 (3)); artifact, runner, spec and all ' +
         Object.keys(s.product).length + ' pinned product file(s) are byte-identical to the sealed run recorded in ' + reverify.file +
-        ', and ' + VERDICT_FILE + ' names those evidence hashes; the private oracle, the historical audit and the ' +
+        ' ' + reverify.receiptSha + ', whose own bytes stand IN GIT at every base checked and whose sha256 ' + VERDICT_FILE +
+        ' names (r8 change 1: a receipt no seal step wrote, or one not committed, refuses here); the private oracle, the historical audit and the ' +
         GATE_IDS.length + ' original gates are NOT re-run on this step — the FIRST full run with the private census stands as the evidence');
     } else {
       if (reverify.code === 'SEALED-RUN-RECEIPT-VOID')
@@ -2095,7 +2175,8 @@ try {
       const wrote = writeSealedRunReceipt(s, last.key);
       say('SEALED RUN RECORDED ' + RECEIPT_DIR + '/' + ID + '.json; artifact=' + wrote.sealedRun.artifactSha256.slice(0, 12) +
         ' spec=' + wrote.sealedRun.specSha256.slice(0, 12) + ' runner=' + wrote.sealedRun.runnerSha256.slice(0, 12) +
-        ' over ' + Object.keys(wrote.sealedRun.product).length + ' pinned product file(s); the next AUTHORIZED rerun is a byte-identity re-verify while every one of them is unchanged');
+        ' over ' + Object.keys(wrote.sealedRun.product).length + ' pinned product file(s)');
+      say('SEALED RUN NEXT STEP ' + sealedRunReceiptInstruction());
     }
     say(ready ? 'POSTFIX PACKAGE PASS ' + s.packageId
       : 'POSTFIX PACKAGE REVIEW-PENDING: ' + open.length + ' open obligation(s); independent exact-artifact acceptance required');

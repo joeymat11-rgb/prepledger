@@ -137,6 +137,22 @@ test(':135 (3) — U+2013 and U+2014 in UI custody fail; outside it they are not
   assert.equal(run([...GREEN, ...ui]).code, 0);
 });
 
+test('r8 — the UI dash check scans UNTRACKED files too, as check (1) already did', () => {
+  // r8 change 5, measured: an em dash in a screen template not yet committed read as
+  // PREFLIGHT PASS, while the custody diff counted the same untracked file. The two checks
+  // now scan the same set — `git ls-files` plus `--others --exclude-standard`.
+  const ui = ['--ui-custody', 'rebuild/m3/w7-preview/today/*.html'];
+  const fresh = 'rebuild/m3/w7-preview/today/screens.fresh.html';
+  write(fresh, '<p>an untracked line with an — in it</p>\n');
+  const r = run([...GREEN, ...ui]);
+  assert.equal(r.line, 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH');
+  assert.match(r.stderr, /screens\.fresh\.html:1/);
+  // Clean bytes in the same untracked file pass, so this is the dash and not the file.
+  write(fresh, '<p>an untracked line with a hyphen - in it</p>\n');
+  assert.equal(run([...GREEN, ...ui]).code, 0);
+  fs.rmSync(path.join(scratch, fresh));
+});
+
 test(':135 (3) — CI is UNVERIFIED without --ci-run, and the exact command is printed', () => {
   const r = run();
   assert.equal(r.code, 1);

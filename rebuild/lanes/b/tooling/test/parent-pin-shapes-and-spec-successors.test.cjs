@@ -115,6 +115,14 @@ test('F-E — a parent product entry is read from EITHER shape, and gives the sa
   assert.equal(api.parentPin({ pre: planSha, post: null, role: 'new' }, PLAN), planSha);
   for (const bad of [null, 42, [], {}, { pre: 'nope', post: null }, 'not-a-sha', { pre: null, post: null, role: 'new' }])
     assert.throws(() => api.parentPin(bad, PLAN), /PARENT-PIN-SHAPE/);
+  // r8 change 4. `post || pre` read a FALSY NON-NULL post as absent and fell back to the
+  // pre-image — silently answering a question it had not been asked. Only the literal null
+  // means "no post-image yet"; 0, "" and false are malformed and say so.
+  for (const post of [0, '', false, NaN])
+    assert.throws(() => api.parentPin({ pre: planSha, post, role: 'edited' }, PLAN), /PARENT-PIN-SHAPE/,
+      'a falsy non-null post is malformed, not a fallback: ' + JSON.stringify(post));
+  // …and the one case that IS a fallback is still exactly that one.
+  assert.equal(api.parentPin({ pre: planSha, post: null, role: 'new' }, PLAN), planSha);
 });
 
 test('F-E — pins() re-asserts a parent sealed in EITHER shape; B-NTC\'s children unblock', () => {

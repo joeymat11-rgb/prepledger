@@ -130,7 +130,13 @@ function main() {
   const uiHits = [];
   if (uiCustody) {
     const uiRe = globs(uiCustody).map(toRe);
-    for (const f of git('ls-files').split(/\r?\n/).filter(Boolean).filter(f => uiRe.some(re => re.test(f)))) {
+    // r8 change 5. `git ls-files` alone missed UNTRACKED files, so an em dash in a screen
+    // template that had not been committed yet read as PREFLIGHT PASS — while check (1)
+    // above counts untracked files. The two checks now scan the same set: tracked plus
+    // `--others --exclude-standard`, which is what a reviewer of this branch would see.
+    const tracked = git('ls-files').split(/\r?\n/).filter(Boolean);
+    const untracked = git('ls-files', '--others', '--exclude-standard').split(/\r?\n/).filter(Boolean);
+    for (const f of [...new Set([...tracked, ...untracked])].sort().filter(f => uiRe.some(re => re.test(f)))) {
       const full = path.join(root, f);
       if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) continue;
       fs.readFileSync(full, 'utf8').split(/\r?\n/).forEach((line, i) => { if (DASHES.test(line)) uiHits.push(f + ':' + (i + 1)); });
