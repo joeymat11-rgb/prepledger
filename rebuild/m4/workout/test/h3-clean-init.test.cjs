@@ -542,73 +542,71 @@ test('H3/11 - the LABEL half changes no other engine behaviour, and the INDIRECT
   assert.equal((body.match(/:/g) || []).length, 7, 'exactly seven head entries: three delt, four back');
 });
 
-/* ============ H3/12 — THE HELD QUESTION (review r1 finding 1, PM ITEM) ============
-   F-B's first-read branch runs BEFORE the sealed / off-window test, so a FIRST
-   weigh-in seeds the trend even when the row it writes says the reading was set
-   aside. The reviewer measured the contradiction and it is real: the row says
-   "late read — set aside" and the feed says "LATE READ — SET ASIDE", and the
-   trend is that reading. The SEEDING RULE IS NOT CHANGED HERE — DECISIONS:142
-   (3) ruled it in, and which way the contradiction resolves is the PM's word.
+/* ====== H3/12 — THE FIRST READ AND THE WINDOW (DECISIONS:146 (3), OPTION B) ======
+   The first draft of F-B seeded the trend whatever the window. Review r1 found
+   what that made the app say: a first read at 23:00 came back with
+   `offWindow: true`, `note: "late read — set aside"` and a LATE READ — SET
+   ASIDE feed line, and the trend WAS that reading; a sealed first read said
+   "sealed — excluded from trend" and was the trend. The same two calls on a
+   trend-carrying athlete leave his trend alone, so two athletes were told the
+   same words and given different arithmetic.
 
-   This cell DOCUMENTS the behaviour instead of arguing it, in the exact shape
-   that lets one assertion flip either way once the answer lands:
+   The PM ruled OPTION B (`:146 (3)`): seed only from an in-window, unsealed
+   first read; otherwise the trend stays absent and Today keeps saying "Not
+   available yet". The copy was not rewritten — the behaviour was made to match
+   it. This cell asserts B, and the option-A branch is kept only so the two
+   readings of the question stay visible in one place. */
+const FIRST_READ_ON_A_SET_ASIDE_ROW = false;   // DECISIONS:146 (3) = OPTION B
 
-     OPTION A (today's behaviour) — seed regardless of the window. A man who
-       weighs himself at 23:00 on his first day has given the app its only
-       reading; leaving the trend empty would show him nothing until tomorrow.
-       The copy is then what must change: a first read is not "set aside" from a
-       trend it IS.
-     OPTION B — `if (first && !sealed && !offW)`. The trend stays absent until an
-       IN-WINDOW reading arrives, the copy stays true as written, and the
-       clean-init athlete keeps the F-A surface ("Not available yet") one day
-       longer. Every figure stays non-finite in the meantime, which H3/5 already
-       proves is safe.
-
-   Whichever the PM picks, `ANSWER` below changes and the assertions follow it.
-   Nothing else in this suite depends on the late/sealed path. */
-const FIRST_READ_ON_A_SET_ASIDE_ROW = 'A';   // 'A' = seed regardless (today) · 'B' = in-window only
-
-test('H3/12 - a first weigh-in that is late or sealed: what the trend does, and what the row says', () => {
+test('H3/12 - a first weigh-in that is late or sealed does NOT seed the trend, and Today says so', () => {
   const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
-  const seeds = FIRST_READ_ON_A_SET_ASIDE_ROW === 'A';
+  const seeds = FIRST_READ_ON_A_SET_ASIDE_ROW;
+  assert.equal(seeds, false, 'DECISIONS:146 (3) ruled option B; this cell asserts B');
 
-  /* IN WINDOW — not the held case, and unaffected by the answer. */
+  /* IN WINDOW — the ruled-in case, unchanged. */
   const inWindow = E.applyRead(plainState(), DAY, 186.4, { hour: 8 });
-  assert.equal(inWindow.trend, 186.4);
+  assert.equal(inWindow.trend, 186.4, 'an in-window first read IS the trend');
   assert.equal(!!inWindow.reads[0].offWindow, false);
   assert.equal(inWindow.reads[0].sealed, false);
   assert.equal(inWindow.reads[0].note, '', 'nothing is claimed about a reading with nothing to compare to');
 
-  /* LATE (off-window) FIRST READ. */
+  /* LATE (off-window) FIRST READ — recorded, and NOT the trend. */
   const late = E.applyRead(plainState(), DAY, 186.4, { hour: 23 });
+  assert.equal(late.reads.length, 1, 'the reading is still RECORDED — it is never refused');
+  assert.equal(late.reads[0].w, 186.4, 'and it is his number, unchanged');
   assert.equal(late.reads[0].offWindow, true, 'the row is marked off-window');
   assert.equal(late.reads[0].note, 'late read — set aside', 'and it says so');
   assert.equal((late.feed[0] || {}).t, 'LATE READ — SET ASIDE', 'and the feed repeats it');
-  assert.equal(Number.isFinite(late.trend), seeds,
-    seeds ? 'OPTION A: it seeds the trend anyway — the contradiction the PM is being asked about'
-      : 'OPTION B: the trend stays absent until an in-window reading arrives');
-  if (seeds) assert.equal(late.trend, 186.4, 'and the trend IS the reading the row calls set aside');
-  else assert.equal(Object.hasOwn(late, 'trend'), false);
+  assert.equal(Object.hasOwn(late, 'trend'), false, 'set aside means SET ASIDE: no trend is written');
+  assert.equal(late.reads[0].pt, null, 'and there is still no prior trend to report');
 
-  /* SEALED FIRST READ — a blackout in force on day one. A clean-init athlete
-     cannot reach this by himself (H3/4 proves no blackout is in force), so the
-     state is built by hand and said to be built by hand. */
+  /* SEALED FIRST READ. A clean-init athlete cannot reach this by himself (H3/4
+     proves no blackout is in force), so the state is built by hand and said to be. */
   const sealedState = { ...plainState(), blackout: { until: offsetDay(DAY, 13) } };
   const sealed = E.applyRead(sealedState, DAY, 186.4, { hour: 8 });
   assert.equal(sealed.reads[0].sealed, true, 'the row is marked sealed');
   assert.equal(sealed.reads[0].note, 'sealed — excluded from trend', 'and it says EXCLUDED FROM TREND');
-  assert.equal(Number.isFinite(sealed.trend), seeds,
-    seeds ? 'OPTION A: it is nonetheless the trend' : 'OPTION B: it really is excluded');
-  if (seeds) assert.equal(sealed.trend, 186.4);
+  assert.equal(Object.hasOwn(sealed, 'trend'), false, 'so it really is excluded');
 
-  /* THE DIFFERENTIAL THAT MAKES IT A CONTRADICTION AND NOT A CHOICE OF DEFAULT:
-     an athlete who already HAS a trend is left alone by both hours, so the two
-     athletes are told the same words and given different arithmetic. */
+  /* THE TWO ATHLETES NOW AGREE. A trend-carrying athlete was always left alone
+     by both hours; the clean-init athlete is now left alone in the same words. */
   const carried = { ...plainState(), trend: 187.2 };
   assert.equal(E.applyRead(carried, DAY, 186.4, { hour: 23 }).trend, 187.2,
-    'a trend-carrying athlete: the late read really is set aside');
+    'a trend-carrying athlete: the late read is set aside');
   assert.equal(E.applyRead({ ...carried, blackout: { until: offsetDay(DAY, 13) } }, DAY, 186.4, { hour: 8 }).trend,
-    187.2, 'and a sealed read really is excluded');
+    187.2, 'and a sealed read is excluded');
+
+  /* AND TODAY KEEPS THE HONEST SURFACE until an in-window reading arrives. */
+  const view = createTodayModel({ today: DAY, basisState: JSON.parse(JSON.stringify(late)) }).read();
+  assert.equal(Number.isFinite(view.proteinTarget.g), false, 'no figure is claimed from a trend he has not established');
+  assert.equal(view.currentRate.measured, false);
+
+  /* THEN AN IN-WINDOW READING THE NEXT MORNING SEEDS IT — the late row is still
+     on file, and the trend is the first reading that was actually in window. */
+  const next = E.applyRead(late, offsetDay(DAY, 1), 185.9, { hour: 8 });
+  assert.equal(next.trend, 185.9, 'the first IN-WINDOW reading is the seed');
+  assert.equal(next.reads.length, 2, 'and nothing he recorded was thrown away');
+  assert.equal(next.reads[1].pt, null, 'it is still a first trend, so there is no prior one');
 });
 
 /* ====== H3/13 — the rebuild.yml enumeration DECISIONS:142 (2)(b) rides on H3 ======

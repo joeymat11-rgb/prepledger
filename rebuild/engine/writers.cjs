@@ -438,9 +438,19 @@ function applyRead(state, iso, w, opts) {
      observation of the level, never a default or another athlete's figure. It
      is taken verbatim rather than rounded, because rounding it would already be
      changing what he typed; every later trend keeps the accepted 1-dp EMA.
-     A level is established by its first observation whatever the window, so
-     this branch runs before the sealed/off-window test: those govern how a
-     reading MOVES an existing trend, not whether a level exists at all.
+     THE WINDOW APPLIES TO THE FIRST READ TOO — DECISIONS:146 (3), OPTION B.
+     The first draft seeded the trend whatever the window, and review r1 caught
+     what that made the app say: a first read at 23:00 came back
+     `offWindow: true`, `note: "late read — set aside"`, a feed line reading
+     LATE READ - SET ASIDE, and the trend was that reading; a sealed first read
+     said "sealed - excluded from trend" and was the trend. The same two calls
+     on a trend-carrying athlete really do leave his trend alone, so two
+     athletes were told the same words and given different arithmetic. The PM
+     ruled the contradiction out rather than rewriting the copy: a set-aside
+     reading is set aside for a new athlete exactly as it is for an old one,
+     and until an in-window, unsealed reading arrives Today keeps saying
+     "Not available yet" - which is true, and which H3/5 proves is safe,
+     because every figure derived from an absent trend stays non-finite.
      Nothing else changes — for any state that already carries a finite trend
      `first` is false and every line below is the accepted one, byte for byte in
      behaviour (45 laws unmoved, public census byte-identical). */
@@ -469,8 +479,9 @@ function applyRead(state, iso, w, opts) {
      the line must not claim an hour it did not see. */
   s.feed = s.feed.filter((f) => !(f && f.op === "lateread:" + iso));
   if (offW) s.feed.unshift({ d: iso, op: "lateread:" + iso, t: "LATE READ — SET ASIDE", how: LATE_READ_HOW });
-  if (first) s.trend = w;
-  else if (!sealed && !offW) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
+  // DECISIONS:146 (3) option B: the first reading seeds the trend only when the
+  // same row is neither sealed nor off-window — one window test, both branches.
+  if (!sealed && !offW) s.trend = first ? w : +(s.trend + 0.3 * dCl).toFixed(1);
   return s;
 }
 
