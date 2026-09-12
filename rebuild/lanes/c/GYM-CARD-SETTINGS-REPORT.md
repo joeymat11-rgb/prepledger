@@ -1,16 +1,18 @@
 # GYM CARD: MACHINE SETTINGS ON THE ACTIVE SET - REPORT
 
-Branch `rebuild/lane-c-settings`, rebased onto `origin/rebuild/t2-client-core` @ `05b73e2` (catalogue heads merged, :170) - CLEAN, no conflict. Brief `GYM-CARD-SETTINGS-DISPLAY-BRIEF.md` (DECISIONS:154 (2), :140 wave one). Evidence: `GYM-CARD-SETTINGS-REPORT-ANNEX.md`.
+Branch `rebuild/lane-c-settings`, rebased onto `origin/rebuild/t2-client-core` @ `63f3a1c` - CLEAN, no conflict. Brief `GYM-CARD-SETTINGS-DISPLAY-BRIEF.md` (DECISIONS:154 (2), :140 wave one). Evidence: `GYM-CARD-SETTINGS-REPORT-ANNEX.md`.
 
-## D2 ROUND 1 - THE THREE BLOCKING FINDINGS (review `a7c91a1`, candidate `fffc983`)
+## D2 ROUND 2 - R2-1, MOUNT OWNERSHIP (review `db30e96`, candidate `3c5d4c1`)
 
-Every finding reproduced first, at D2's own bytes. RED was measured by stashing ONLY the three product files and running the suite with the new cells present: **3 fail / 45 pass**. GREEN at this head: **48 pass / 0 fail**.
+D2 closed round 1's findings 2 and 3 and the blocking render symptom of finding 1, and isolated what remained: the deferred read repainted **whoever now owned the screen**. `paint()` ran whenever the read settled, and `show()` replaced `phone` unconditionally, so a read answering after Back put the workout back over Today, and after the check-in route put it over the sheet the athlete was filling in. Reproduced at D2's own bytes: RED **3 fail / 48 pass** with only `gym-app.mjs` stashed; GREEN **51 / 0**.
 
-**1 (P1, S8) - the optional settings read BLOCKED the card. CONFIRMED and removed.** `paint()` used to `await settingsLane.latest(view.lift.id)` before `renderActive`, so with a pending read `mountGym` never finished: no active set, no log control, no workout. That await is GONE. The read is now a cache keyed by exercise id (`settingsRead`), started from `settingsPaint` and never awaited on the paint path; its answer arrives in its OWN repaint and is applied only to the lift it belongs to, so a late answer for a lift the athlete has moved past is stored and never shown. `mountGym` resolves while the read is still in flight, and the card is fully operable. Cells: `D2.1 - the card paints and the set LOGS while the settings read is still pending` (a lane whose `latest` never settles, `mountGym` observed resolved, then the set logged THROUGH THE BUTTON, then the late answer released and landed) and a shape cell pinning that `await settingsLane.latest` appears nowhere in `gym-app.mjs`.
+**The fix is ownership, not cancellation.** The mount holds `owns`, true from creation until the athlete leaves. EVERY exit - the active set's Back, both rest-screen Backs, the stub's `data-go="today"`, the finish, and the check-in route - now goes through `leaveCard(go)`, which hands ownership over BEFORE the caller's navigation runs. `show()` refuses to touch `phone` without ownership and `paint()` returns early without it, both before and after its own `await model.read()`, so a read, a save or any other deferred work that answers late is simply answering to a mount that is no longer the screen. Nothing is cancelled and nothing throws: the read still resolves and is still cached, and `first.settings.owns()` reports the state.
 
-**2 (P2, S1/S2) - a failed read was rendered as a confirmed absence. CONFIRMED and fixed.** The catch assigned `null` and `renderBlock` printed "No settings saved yet." for it. The read now has three states - `known`, `reading`, `failed` - and `renderBlock` refuses to let the last two fall through to the empty state: `reading` says it is reading, `failed` says **"Settings could not be read."** with what it means and what to do, both through `plainOrDrop`, both dash free and figure free. And the capture affordance is CLOSED while the record is unknown, so a failed read can never seed a replacement editor that would overwrite settings the athlete still has. Cell: `D2.2 - a FAILED read says so, never prints the empty state, and seeds no editor`, which also logs a set through the button to prove the workout is untouched.
+Cells (all three RED at `3c5d4c1`): `D2.R2 - BACK during a deferred read: the destination screen is never repainted over`; `D2.R2 - the CHECK-IN opened mid-read keeps its screen AND its half-typed draft` (the destination's typed answer is asserted intact); `D2.R2 - a read that FAILS after navigation is equally silent`. `machine-settings-check.mjs` gained a real-browser step: from the active set, Back, land on Today, hold a second, and assert neither the log control nor the settings block has reclaimed the screen. Mutants **S-M1 to S-M10 re-run, 10/10 killed**, restored 51/51.
 
-**3 (S8/S-M6) - the handler prerequisite survived. CONFIRMED and KILLED.** S8 drove `kit.model.logSet` directly, so a guard added to the click handler was invisible. Two new cells drive the ACTUAL log control with nothing saved for the lift, and with the editor open and unsaved text in it. Re-run at this head with the mutation in the handler (`if (busy)` becomes `if (busy || !(settingsRead.get(view.lift.id) || {}).latest)`): **4 fail** (`D2.1`, `D2.2`, and both `D2.3 / S-M6` cells), bytes restored, 48/48 again. **All ten mutants S-M1 to S-M10 re-run and killed 10/10** on the new shape (S-M1 and S-M6 re-pointed at the code that replaced what they used to target); table in the annex.
+## D2 ROUND 1 - ALL THREE CLOSED BY D2 (review `a7c91a1`, candidate `fffc983`)
+
+RED then was **3 fail / 45 pass** with the three product files stashed; GREEN 48/0. **1** - the `await settingsLane.latest(...)` on the paint path is GONE; the read is a cache keyed by exercise id, started from `settingsPaint`, never awaited, applied in its own repaint to the lift it belongs to (cells `D2.1 ...` plus a shape cell pinning that no such await exists in `gym-app.mjs`). **2** - the read carries three states and `renderBlock` never lets `reading` or `failed` fall through to the empty state; a failure says "Settings could not be read." with what it means and what to do, and the capture affordance stays closed while the record is unknown (`D2.2 ...`). **3** - two cells drive the ACTUAL log button with nothing saved and with unsaved editor text, and S-M6 in the handler now fails 4 cells (`D2.3 / S-M6 ...`). D2 verified all three closed.
 
 ## WHAT IS ON THE SCREEN
 
@@ -32,27 +34,25 @@ Executed, not asserted: **S6a** compares the op the card writes with the op the 
 
 ## COUNTS (Windows, on this head)
 
-`test/machine-settings-ui.test.mjs` **48** (43 + 5 D2 cells) / today step **164** / setup **157** / catalogue **57** / problem **25** / copy **36** / coach **201** / W6 **552** / journey **51** (PAGE_PINS unmoved) / A0 host **32**, all 0 fail. Combined serial today + coach + W6 + host: **1272 / 1272**.
+`test/machine-settings-ui.test.mjs` **51** (43 + 5 round-1 + 3 round-2 cells) / today step **164** / setup **157** / catalogue **57** / problem **25** / copy **36** / coach **201** / W6 **552** / journey **51** (PAGE_PINS unmoved) / A0 host **32**, all 0 fail. Combined serial today + coach + W6 + host: **1275 / 1275**.
 
     B PACKAGE B-NTC PUBLIC CI EVIDENCE PASS - public evidence only, NOT the package verdict
     A1 TODAY BUILD PASS: 3 assets; 107 pinned inputs (13 engine, 12 client); build
-    earned-bd15cff23da2; approved design pinned; 68 bound classes; no em/en dash in any
+    earned-c11d9c726b3b; approved design pinned; 68 bound classes; no em/en dash in any
     text the athlete can see
 
-RED first, executed: at the original build, with the block never painted onto the active set, **43 tests, 16 pass, 27 fail**; at this round, the three product files stashed, **48 tests, 45 pass, 3 fail**. **Ten mutants S-M1 to S-M10 re-run and killed**, restored 48/48 (table in the annex). Six msedge checks PASS at this head (`browser-check`, `dash-check`, `setup-check`, `checkin-check`, `gym-check`, `machine-settings-check`), the last across 3 real `taskkill /F /T` each verified dead, and `gym-check` still carrying the capture through the SAME kill the workout does.
+Six msedge checks PASS at this head (`browser-check`, `dash-check`, `setup-check`, `checkin-check`, `gym-check`, `machine-settings-check`), the last across 3 real `taskkill /F /T` each verified dead and now walking Back to Today, and `gym-check` still carrying the capture through the SAME kill the workout does.
 
 ## PREFLIGHT, NAMED (DECISIONS:155 (6), self-check)
 
-1. `git status --porcelain` and `git diff --stat 05b73e2..HEAD` - diff inside custody.
+1. `git status --porcelain` and `git diff --stat 63f3a1c..HEAD` - diff inside custody.
 2. The eleven `node --test` count commands above, run from the worktree root (annex section 2 lists them verbatim).
 3. `node rebuild/m3/w7-preview/today/build.mjs` - build PASS at the exact head.
 4. `node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` - the gate ALONE, `git status --porcelain` captured before and after and byte-identical.
 5. `node -e` over this report (<= 60 lines) and over every file in UI custody for U+2013/U+2014 in string literals (comments are not the athlete's text, DECISIONS:114 (1)).
 6. `node ..\tools\ci-status.js rebuild/lane-c-settings <sha>` from `work/lane-c/main` - CI green at the exact head.
 
-## SERVED, AND WHAT IS OWED
-
-The D2 round-1 build is `earned-bd15cff23da2` from THIS branch, which still does not carry N1: the two branches are independent and each is rebased onto `05b73e2`.
+## WHAT IS OWED
 
 **CI residual**: `test/machine-settings-ui.test.mjs` and `machine-settings-check.mjs` are not in `rebuild.yml`'s enumerated today step - `.github` is editable only inside a re-pinning engine package (DECISIONS:112), so they ride the next re-seal with the setup, catalogue, copy and problem suites.
 
