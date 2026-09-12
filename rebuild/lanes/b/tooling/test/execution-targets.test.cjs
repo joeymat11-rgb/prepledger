@@ -52,7 +52,7 @@ write(pass, 'console.log("PROBE PASS\\n" + "x".repeat(240));');
 write(good, 'console.log("OWN PASS\\n" + "y".repeat(240));');
 write(fail, 'throw new Error("SECOND TARGET EXECUTED");');
 const child = (argv, name = 'probe-child', needle = 'PROBE PASS') => ({ name, argv, needle });
-const packageFor = c => ({ children: [c], product: { [good]: { role: 'new', pre: sha(good), post: null } }, coverage: { inherited: {}, moves: {}, successors: null } });
+const packageFor = c => ({ children: [c], product: { [good]: { role: 'new', pre: sha(good), post: null } }, coverage: { inherited: {}, moves: {}, successors: null, superseded: null } });
 const env = { ...process.env, NODE_OPTIONS: '', NODE_V8_COVERAGE: '' };
 delete env.NODE_TEST_CONTEXT; // The outer node:test worker is not the package runner's environment.
 const execute = c => api.children(packageFor(c), env);
@@ -89,14 +89,16 @@ test('direct own execution passes, missing execution and throwing execution refu
   assert.throws(() => seal(s, new Map()), /OWN-CHILD-DID-NOT-EXECUTE/);
   const noOwn = packageFor(child([pass]));
   assert.throws(() => seal(noOwn, new Map()), /SEALED-WITHOUT-EXECUTING-ITS-OWN-PRODUCT/);
-  assert.throws(() => execute(child([fail])), /Required child/);
+  // TOOLING-REVIEW-r10 F5: the same refusal, now carrying a name in FAIL_CODES instead of
+  // the bare sentence "Required child <name>", which printed a bare FAIL.
+  assert.throws(() => execute(child([fail])), /CHILD-REQUIRED-EXIT-ZERO/);
 });
 test('Node --test executes both good targets and fails a throwing second target', () => {
   const c = child(['--test', '--test-reporter=tap', pass, good], 'multi-good', 'TAP version 13');
   const ran = execute(c);
   assert.deepEqual(ran.get(c.name).targets, [pass, good]);
   assert.match(fs.readFileSync(path.join(scratch, c.name + '.log'), 'utf8'), /OWN PASS/);
-  assert.throws(() => execute(child(['--test', pass, fail], 'multi-fail', 'TAP version 13')), /Required child/);
+  assert.throws(() => execute(child(['--test', pass, fail], 'multi-fail', 'TAP version 13')), /CHILD-REQUIRED-EXIT-ZERO/);
   assert.match(fs.readFileSync(path.join(scratch, 'multi-fail.log'), 'utf8'), /SECOND TARGET EXECUTED/);
 });
 test('inherited pinned original cannot become a trailing application argument', () => {
@@ -111,7 +113,7 @@ test('inherited pinned original cannot become a trailing application argument', 
   // The rule under test is: an inherited pinned original must not be reachable only as a
   // trailing application argument. So the map is BUILT here, the way every other case in
   // this file builds its inputs, and the suite is deterministic on any single branch.
-  const fixture = { children: [], coverage: { inherited: {}, moves: {}, successors: null }, product: {} };
+  const fixture = { children: [], coverage: { inherited: {}, moves: {}, successors: null, superseded: null }, product: {} };
   const carriers = ['source-carriers', 'inherited-carriers', 'defect-witnesses', 'writers-differential', 'second-gate'];
   const gatesOf = { 'source-carriers': ['migrate-source', 'merge-source', 'writers-source'],
     'inherited-carriers': ['witnesses-2', 'witnesses-5', 'migrate-differential'],
