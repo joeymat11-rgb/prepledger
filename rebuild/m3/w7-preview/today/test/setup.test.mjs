@@ -1950,6 +1950,13 @@ test('S27 - screen 2 says whose choice each day is, and prints the rule as Earne
   let kit = screenAt(2, model);
   assert(kit.text().includes(Model.COPY.screen2Proposal));
   assert(kit.text().includes(Model.COPY.screen2Rule), 'the rule is declared on the screen');
+  /* DECISIONS:129 (3): the MECHANISM is invented and says so, and its INTENT is
+     said too, with the citation for that intent in the module's own header. */
+  assert(kit.text().includes(Model.COPY.screen2Why), 'and what it is for');
+  const ruleSource = readRepo('rebuild/m3/w7-preview/today/split-kinds.mjs');
+  assert(/Schoenfeld,\s*(\/\/\s*)?Ogborn and Krieger 2016/.test(ruleSource),
+    'the intent carries its citation');
+  assert(/INVENTED/.test(ruleSource), 'and the mechanism is still marked invented');
   assert(kit.text().includes(Model.COPY.screen2Ours), 'a proposal is labelled as one');
   assert.equal(kit.text().includes(Model.COPY.screen2Yours), false, 'nothing is his yet');
   model.setDayKind('3', 'U');

@@ -131,8 +131,11 @@ export function mountSetup(doc, phone, { model, onDone, onBack } = {}) {
       }
       body.append(block);
     }
-    /* The rule, declared as Earned's own invention, under the days it moved. */
+    /* The rule, declared as Earned's own invention, under the days it moved, and
+       beneath it what the rule is FOR, which is not invented (DECISIONS:129 (3);
+       the citation itself is in split-kinds.mjs, not on the screen). */
     body.append(el('p', 'small muted', COPY.screen2Rule));
+    body.append(el('p', 'small muted', COPY.screen2Why));
     /* The honest sentences for the weeks the engine cannot yet serve well
        (DECISIONS:125 (2), F1). Predicate only: they appear when the week is that
        small and clear the moment it is not. */

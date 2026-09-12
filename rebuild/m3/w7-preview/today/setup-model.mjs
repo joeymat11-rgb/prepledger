@@ -84,12 +84,18 @@ export const COPY = Object.freeze({
   screen2Head: 'Which days?',
   screen2Lead: 'Tap the days you will be in the gym, then say what each one is. You can change this whenever your week changes.',
   screen2Kinds: 'Earned plans two kinds of day so far: upper body and lower body.',
-  /* A4b screen 2 (DECISIONS:125 (1)). He picks the days; Earned says what each
-     one is. The rule is Earned's own and the screen says so in its own words:
-     no published standard states it, and inventing a citation would be worse
-     than admitting the invention. */
+  /* A4b screen 2 (DECISIONS:125 (1), confirmed :129 (3)). He picks the days;
+     Earned says what each one is. The MECHANISM is Earned's own and the screen
+     says so in its own words: no published standard states it, and inventing a
+     citation for it would be worse than admitting the invention. What it is FOR
+     is cited, in the next line. */
   screen2Proposal: 'Tap the days you will be in the gym. Earned says what each day is.',
   screen2Rule: 'Earned alternates upper and lower down your week, and when the count is odd it repeats the kind across your longest gap. That is Earned’s own rule, not a published standard. Change any day and Earned will leave it alone after that.',
+  /* WHAT THE RULE IS FOR, which is not invented (DECISIONS:129 (3)): each muscle
+     worked about twice a week with roughly two days between sessions of the same
+     kind. The citation itself lives in split-kinds.mjs's header, where a source
+     belongs; the screen says the intent in his words and no digits. */
+  screen2Why: 'The point is to work each muscle about twice a week, with a couple of days between sessions of the same kind.',
   screen2Yours: 'Your choice',
   screen2Ours: 'Earned’s suggestion',
   /* The F1 sentence, verbatim from DECISIONS:125 (2). It is shown only while a

@@ -4,12 +4,19 @@
 // either upper lower ... some people won't know to not put two uppers back to
 // back").
 //
-// THE RULE IS INVENTED, AND THE SCREEN SAYS SO. No ledger line and no engine
-// constant states an alternation rule. It is deliberately NOT derived from
+// THE MECHANISM IS INVENTED, AND THE SCREEN SAYS SO; THE INTENT IS CITED
+// (DECISIONS:129 (3)). No ledger line and no engine constant states an
+// alternation rule, and this one is deliberately NOT derived from
 // rebuild/engine/plan.cjs:21's fallback week (Mon/Thu upper, Tue/Fri lower):
 // that is ONE athlete's week, and H1 (DECISIONS:93 condition C3) forbids it as a
-// source. So this module states a rule of Earned's own, prints it on screen, and
-// lets the athlete override any day with one tap.
+// source. So the MECHANISM below - alternate in calendar order, never stack a
+// kind on consecutive training days when the count allows, an odd count puts the
+// extra kind furthest from its twin - is Earned's own and is marked invented.
+// What it is FOR is not invented: each muscle trained about twice a week, with
+// roughly forty-eight hours between sessions of the same kind (Schoenfeld,
+// Ogborn and Krieger 2016, frequency meta-analysis). Alternating is the shortest
+// mechanism that reaches that intent from a list of days alone, and the athlete
+// may override any day with one tap.
 //
 // PURE. No clock, no state, no store, no DOM. Input is the weekday indices he
 // tapped; output is a kind for each of them and nothing else. The caller's array
