@@ -322,3 +322,26 @@ look is the approval), VoiceOver, and any build or CI integration.
 - **The per-exercise rep target** is lane B's engine question
   (REQUESTS `17:25 ET · PM → B`). Until it is answered, one standard for all.
 - **The owner's second look** at this mock is the gate. Nothing merges before it.
+
+## 9. A4B
+
+`rebuild/lanes/c/dad-first-run/A4B-BRIEF.md` - **299 lines**, 23,969 bytes, LF only, sha256
+`bc002193ae970ba5d6c9ae937c07b42ad04d7563f9905fb03b1d12996b7801ec`, base
+`b31ae5f024f24a4cda78f55ebcd1de23135fb6bf` (`origin/rebuild/t2-client-core` with A4 merged at `57839c3`,
+ledger line 128), branch `rebuild/lane-c-a4b`. The screens-tier brief for the owner's round-2 rulings
+`DECISIONS:125` and `:127`, acceptance bar written before the build, effort named per role (builder MEDIUM,
+reviewer HIGH, integrator LOW, `:119 (5)`). It carries: screen 2 as days-only with `proposeKinds(days)`
+specified as a pure function plus its expected output for every day count 1 to 7 and the red-first cells;
+the two-day F1 sentence verbatim from `:125 (2)`; screen 3's two doors and the `exercise-catalogue.mjs`
+vocabulary with its provenance decomposed into seven classes (every `mg` SOURCED to `seed.cjs:14-60`, the
+delt regions SOURCED to `constants.cjs:333`, the 0.5 lend fraction SOURCED to `constants.cjs:330`, the rest
+INVENTED) and a reviewer sample of at least 15 entries; the starter week sized by the engine's own formula
+(`volume.cjs:74-82`) against `VOL_BANDS` with the arithmetic for every day count and both boundary cases
+stated rather than papered over; storage (`mg` in the document, `head` and `secondary` on a widened
+three-member op payload, because `REQUIRED_EXERCISE` is closed at eight members); acceptance checks S26 to
+S44 with mutants M21 to M32, the unchanged-suite counts and the CI residual wording; out-of-scope F1, F2 and
+H3; a batched-owner-notes section with placeholders for screens 4 to 6; and five REQUESTS-ready questions.
+The section 2.1 rule and the section 4.3 table were EXECUTED before the brief was committed: every row's
+kinds, `D_U`/`D_L`, weekly sets and zone reproduce exactly, no two calendar-consecutive training days share a
+kind at any count except the one forced stack at seven days, and the function is pure and returns `{}` on an
+empty week.

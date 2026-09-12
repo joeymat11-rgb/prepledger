@@ -14,7 +14,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { webcrypto } from 'node:crypto';
+import { webcrypto, createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -34,6 +34,9 @@ const DAY = TodayModel.SYNTHETIC_DAY;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../../../../..');
 const readRepo = (rel) => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+/* Bytes, not text: the B-NTC pins are sha256 over the file as it sits on disk. */
+const repoPath = (rel) => path.join(ROOT, rel);
+const shaOf = (rel) => createHash('sha256').update(fs.readFileSync(repoPath(rel))).digest('hex');
 const SETUP_FILES = ['setup-model.mjs', 'setup-commands.mjs', 'setup-host.mjs', 'setup-app.mjs',
   'setup-check.mjs'];
 const setupFileText = (name) => readRepo('rebuild/m3/w7-preview/today/' + name);
@@ -113,6 +116,12 @@ const documentOf = (kit) => {
   assert.equal(built.ok, true, 'the fixture is complete: ' + JSON.stringify(built.missing));
   return built.setup;
 };
+/* A4b: the producer now takes the tags beside the document. A fixture built by
+   hand carries none, and an untagged lift is stored deliberately untagged. */
+const tagsFor = (setup) => Object.fromEntries(
+  setup.exercises.map((e) => [e.id, { head: null, secondary: [] }]));
+/* host.save(document, tags) - spread so the two always travel together. */
+const withTags = (setup) => [setup, tagsFor(setup)];
 
 /* ==========================================================================
    1. THE CONTRACT, MEMBER BY MEMBER (BUILD-BRIEF section 2.1, fourteen rows).
@@ -626,12 +635,13 @@ test('S16 - changing one answer on screen 2 changes ONLY that answer', () => {
    ========================================================================== */
 test('A4 - the producer builds ONE fact of the accepted client\'s own envelope', () => {
   const setup = documentOf(filled());
-  const action = prepare({ action: ACTION, input: { setup } });
+  const action = prepare({ action: ACTION, input: { setup, tags: tagsFor(setup) } });
   assert.equal(action.kind, 'fact');
   assert.equal(action.class, 'event');
   assert.equal(action.payload.profile, PROFILE);
   assert.deepEqual(action.payload.setup, setup);
-  assert.deepEqual(Object.keys(action.payload).sort(), ['profile', 'setup']);
+  /* A4b widened the payload from two members to exactly three (A4B-BRIEF 5). */
+  assert.deepEqual(Object.keys(action.payload).sort(), ['profile', 'setup', 'tags']);
   assert.equal(SetupCommands.createSetupCommands().schemaVersion, SETUP_SCHEMA_VERSION);
 });
 
@@ -646,7 +656,7 @@ test('A4 - the producer REFUSES anything that is not its own request', () => {
 test('A4 - validate() accepts its OWN envelope and refuses every other lane\'s', () => {
   const setup = documentOf(filled());
   const mine = { kind: 'fact', class: 'event', effective: { local_date: DAY },
-    payload: { profile: PROFILE, setup }, causal_parents: [], athlete_id: 'a' };
+    payload: { profile: PROFILE, setup, tags: tagsFor(setup) }, causal_parents: [], athlete_id: 'a' };
   assert.equal(validate(mine, () => null), true);
   const others = [
     { ...mine, kind: 'tombstone' },
@@ -673,7 +683,7 @@ test('S18 / M7 / M8 - the whole first run is ONE operation, written once, with i
   const kit = await device();
   assert.equal(await kit.host.enrolled(), false, 'a fresh installation carries no first-run op');
   assert.equal((await opsOf(kit.host.repository)).length, 0);
-  const result = await kit.host.save(documentOf(filled()));
+  const result = await kit.host.save(...withTags(documentOf(filled())));
   assert.equal(result.ok, true, result.code || '');
   const ops = await opsOf(kit.host.repository);
   assert.equal(ops.length, 1, 'ONE op for six screens, never one per screen');
@@ -687,7 +697,7 @@ test('S18 / M7 / M8 - the whole first run is ONE operation, written once, with i
 
 test('S18 - a RELAUNCH over the same encrypted store reads the first run back and writes nothing', async () => {
   const kit = await device();
-  await kit.host.save(documentOf(filled()));
+  await kit.host.save(...withTags(documentOf(filled())));
   kit.host.close();
   const again = await kit.open();
   assert.equal(await again.enrolled(), true, 'the record, not a flag, answers the question');
@@ -700,8 +710,8 @@ test('S18 - a RELAUNCH over the same encrypted store reads the first run back an
 
 test('S13 - a SECOND "Start using Earned" finds the op that is there and writes nothing', async () => {
   const kit = await device();
-  assert.equal((await kit.host.save(documentOf(filled()))).ok, true);
-  const second = await kit.host.save(documentOf(filled()));
+  assert.equal((await kit.host.save(...withTags(documentOf(filled())))).ok, true);
+  const second = await kit.host.save(...withTags(documentOf(filled())));
   assert.equal(second.ok, false);
   assert.equal(second.code, 'SETUP_ALREADY_RECORDED');
   assert.equal((await opsOf(kit.host.repository)).length, 1, 'still one op');
@@ -711,8 +721,8 @@ test('S13 - a SECOND "Start using Earned" finds the op that is there and writes 
 test('S13 - a SECOND TAB over the same installation cannot enrol the device twice', async () => {
   const kit = await device();
   const tab = await kit.open();
-  assert.equal((await kit.host.save(documentOf(filled()))).ok, true);
-  const fromTheOtherTab = await tab.save(documentOf(filled()));
+  assert.equal((await kit.host.save(...withTags(documentOf(filled())))).ok, true);
+  const fromTheOtherTab = await tab.save(...withTags(documentOf(filled())));
   assert.equal(fromTheOtherTab.ok, false, 'the second tab sees the record the first one wrote');
   assert.equal((await opsOf(tab.repository)).length, 1);
   kit.host.close();
@@ -733,7 +743,7 @@ test('S13 / M9 - once the record holds a first run, the setup ROUTE refuses and 
   api.render('setup');
   assert.equal(api.screen(), 'setup', 'a fresh installation can reach the six screens');
 
-  assert.equal((await before.host.save(documentOf(filled()))).ok, true);
+  assert.equal((await before.host.save(...withTags(documentOf(filled())))).ok, true);
   await before.refresh();
   const after = await createSetupEntry({ today: DAY }, lane);
   assert.equal(after.firstRun(), false);
@@ -790,7 +800,7 @@ test('S15 - boot({basisState, hosts, today}) works, and is what the checks use',
 test('S15 - a foreign basisState over an ALREADY ENROLLED installation is refused', async () => {
   const fault = faultDatabase();
   const host = await createSetupHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
-  assert.equal((await host.save(documentOf(filled()))).ok, true);
+  assert.equal((await host.save(...withTags(documentOf(filled())))).ok, true);
   host.close();
   const dom = new JSDOM(shell());
   await assert.rejects(() => boot({ document: dom.window.document, today: DAY,
@@ -803,7 +813,7 @@ test('S18 / S19 - after the first run, the page opens on the REAL local era and 
   const fault = faultDatabase();
   const host = await createSetupHost({ day: DAY, indexedDB: fault.indexedDB, crypto: webcrypto });
   const setup = documentOf(filled());
-  assert.equal((await host.save(setup)).ok, true);
+  assert.equal((await host.save(setup, tagsFor(setup))).ok, true);
   host.close();
   const dom = new JSDOM(shell());
   const booted = await boot({ document: dom.window.document, today: DAY,
@@ -837,7 +847,7 @@ test('S19 - after the first run, the landing Today SAYS the figures on it are no
   assert.equal(fresh.window.document.getElementById('phone').textContent.includes(sentence), false,
     'before the first run there is nothing to say');
 
-  assert.equal((await before.host.save(documentOf(filled()))).ok, true);
+  assert.equal((await before.host.save(...withTags(documentOf(filled())))).ok, true);
   before.host.close();
   const after = await createSetupEntry({ today: DAY }, lane);
   assert.equal(after.athleteLabel(), 'Dad', 'the entry knows whose week is recorded');
@@ -1275,7 +1285,12 @@ test('2.8 row 13 - Autonomy floor "propose": SOURCED, written by the constructor
   const state = createCleanInitState({ setup: documentOf(filled()) });
   assert.deepEqual(state.plan, { autonomy: 'propose' });
   const source = setupCode();
-  assert.equal(/autonomy|propose/.test(source), false, 'no screen names it');
+  /* A4b: the flow now PROPOSES a session kind (proposeKinds, DECISIONS:125 (1)),
+     so the bare word "propose" is no longer a reliable marker. What must stay
+     absent is the engine's autonomy VOCABULARY: the member name, and the level
+     as a string literal, which is the only form in which a screen could show it. */
+  assert.equal(/autonomy/.test(source), false, 'no screen names the member');
+  assert.equal(/['"]propose['"]/.test(source), false, 'no screen names the level');
 });
 
 test('2.8 row 14 - Starting load: SOURCED, there is no member for one and the debut path is the probe', () => {
@@ -1359,7 +1374,13 @@ test('A4 - screen 2: seven weekday toggles, each choosing its own kind, unchosen
 
 test('A4 - screen 2 names an unanswered day ONLY after he has tried to move on', () => {
   const model = createSetupModel({ today: DAY });
+  /* A4b: a day he taps on is never unanswered - Earned proposes its kind. The
+     one way back to unanswered is his own: claim a kind, then tap it again to
+     give it back, which clears rather than silently re-proposing (S27). */
   model.toggleDay('2');
+  model.setDayKind('2', model.answers().days['2']);
+  model.setDayKind('2', model.answers().days['2']);
+  assert.equal(model.answers().days['2'], '', 'the day is unanswered again');
   assert.equal(screenAt(2, model).text().includes(Model.dayKindValidation('Tuesday')), false, 'quiet first');
   model.next();
   model.goto(2);
@@ -1453,4 +1474,951 @@ test('A4 - "Start using Earned" writes ONCE through the durable lane and lands o
   assert.equal((await opsOf(entry.host.repository)).length, 1, 'exactly one operation');
   assert.equal(api.screen(), 'today', 'and he lands on Today');
   entry.host.close();
+});
+
+/* ==========================================================================
+   A4b. DECISIONS:125 (1) - the athlete picks only the DAYS and Earned proposes
+   each day's kind; :127 - the catalogue, the two doors and the starter week.
+   A4B-BRIEF.md sections 2 to 5, bar S26-S44.
+   ========================================================================== */
+const DAYS = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+const named = (...names) => names.map((x) => DAYS[x]).sort((a, b) => a - b);
+
+/* S26 - the rule, every day count. A4B-BRIEF section 2.2 IS this table. */
+const KIND_ROWS = [
+  { n: 1, days: named('Wed'), kinds: { 3: 'U' }, U: 1, L: 0 },
+  { n: 2, days: named('Mon', 'Thu'), kinds: { 1: 'U', 4: 'L' }, U: 1, L: 1 },
+  { n: 3, days: named('Mon', 'Wed', 'Fri'), kinds: { 1: 'U', 3: 'L', 5: 'U' }, U: 2, L: 1 },
+  { n: 3, days: named('Sat', 'Sun', 'Mon'), kinds: { 6: 'U', 0: 'L', 1: 'U' }, U: 2, L: 1 },
+  { n: 4, days: named('Mon', 'Tue', 'Thu', 'Fri'), kinds: { 1: 'U', 2: 'L', 4: 'U', 5: 'L' }, U: 2, L: 2 },
+  { n: 5, days: named('Mon', 'Tue', 'Wed', 'Thu', 'Fri'),
+    kinds: { 1: 'U', 2: 'L', 3: 'U', 4: 'L', 5: 'U' }, U: 3, L: 2 },
+  { n: 6, days: named('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'),
+    kinds: { 1: 'U', 2: 'L', 3: 'U', 4: 'L', 5: 'U', 6: 'L' }, U: 3, L: 3 },
+  { n: 7, days: named('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'),
+    kinds: { 1: 'U', 2: 'L', 3: 'U', 4: 'L', 5: 'U', 6: 'L', 0: 'U' }, U: 4, L: 3 },
+];
+const countKind = (kinds, want) => Object.values(kinds).filter((k) => k === want).length;
+
+for (const row of KIND_ROWS) {
+  test(`S26 - proposeKinds: ${row.n} day(s) [${row.days.join(',')}] -> ${JSON.stringify(row.kinds)}`, async () => {
+    const { proposeKinds } = await import('../split-kinds.mjs');
+    const got = proposeKinds(row.days);
+    assert.deepEqual(got, row.kinds);
+    assert.equal(countKind(got, 'U'), row.U, 'upper days');
+    assert.equal(countKind(got, 'L'), row.L, 'lower days');
+  });
+}
+
+test('S26 - no two training days that follow each other share a kind, except the one forced stack', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  for (const row of KIND_ROWS) {
+    const kinds = proposeKinds(row.days);
+    const seq = row.days.map((d) => kinds[d]);
+    let stacks = 0;
+    for (let i = 0; i < seq.length; i += 1) if (seq[i] === seq[(i + 1) % seq.length]) stacks += 1;
+    /* An even count can alternate perfectly; an odd count cannot, and exactly one
+       pair must repeat. n = 1 is the degenerate case: the single day follows
+       itself. */
+    assert.equal(stacks, row.n === 1 ? 1 : (row.n % 2 === 0 ? 0 : 1),
+      row.n + ' days: ' + seq.join(','));
+  }
+});
+
+test('S26 - the forced stack straddles the LARGEST cyclic gap, the day furthest from its twin', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  for (const row of KIND_ROWS) {
+    if (row.n % 2 === 0 || row.n === 1) continue;
+    const days = row.days, n = days.length;
+    const kinds = proposeKinds(days);
+    const gap = (i) => (days[(i + 1) % n] - days[i] + 7) % 7;
+    let biggest = 0;
+    for (let i = 1; i < n; i += 1) if (gap(i) > gap(biggest)) biggest = i;
+    assert.equal(kinds[days[biggest]], kinds[days[(biggest + 1) % n]],
+      row.n + ' days: the repeat sits across the largest gap (' + gap(biggest) + ')');
+  }
+});
+
+test('S26 - empty, keys-equal-days, never REST, and PURE', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  assert.deepEqual(proposeKinds([]), {});
+  for (const row of KIND_ROWS) {
+    const got = proposeKinds(row.days);
+    assert.deepEqual(Object.keys(got).map(Number).sort((a, b) => a - b), row.days,
+      'the keys are exactly the days he chose');
+    for (const value of Object.values(got)) assert(value === 'U' || value === 'L', 'never REST');
+    /* Pure: the same input twice is deep-equal, and the input is not mutated. */
+    const copy = row.days.slice();
+    assert.deepEqual(proposeKinds(copy), got);
+    assert.deepEqual(copy, row.days, 'the caller\'s array is not mutated');
+  }
+});
+
+/* =====================================================================
+   A4b S32 / S33: the starter week, sized to the bands.
+   The 4.3 table is the fixture. The weekly-set numbers are NOT read back
+   out of the proposer: they are recomputed here with volume.cjs:74-82's
+   own arithmetic (sets x lifts in the bucket x days of that kind), and
+   the zone with volume.cjs:83's own ladder. The proposer only supplies
+   the rows.
+   ===================================================================== */
+
+const WEEK_TABLE = [
+  { n: 1, days: named('Mon'), DU: 1, DL: 0,
+    major: { U: { lifts: 2, sets: 6, zone: 'LOW' } },
+    minor: {} },
+  { n: 2, days: named('Mon', 'Thu'), DU: 1, DL: 1,
+    major: { U: { lifts: 2, sets: 6, zone: 'LOW' }, L: { lifts: 2, sets: 6, zone: 'LOW' } },
+    minor: {} },
+  { n: 3, days: named('Mon', 'Wed', 'Fri'), DU: 2, DL: 1,
+    major: { U: { lifts: 2, sets: 12, zone: 'IN-BAND' }, L: { lifts: 2, sets: 6, zone: 'LOW' } },
+    minor: {} },
+  { n: 4, days: named('Mon', 'Tue', 'Thu', 'Fri'), DU: 2, DL: 2,
+    major: { U: { lifts: 2, sets: 12, zone: 'IN-BAND' }, L: { lifts: 2, sets: 12, zone: 'IN-BAND' } },
+    minor: {} },
+  { n: 5, days: named('Mon', 'Tue', 'Wed', 'Thu', 'Fri'), DU: 3, DL: 2,
+    major: { U: { lifts: 1, sets: 9, zone: 'IN-BAND' }, L: { lifts: 2, sets: 12, zone: 'IN-BAND' } },
+    minor: { U: { lifts: 1, sets: 9, zone: 'IN-BAND' } } },
+  { n: 6, days: named('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'), DU: 3, DL: 3,
+    major: { U: { lifts: 1, sets: 9, zone: 'IN-BAND' }, L: { lifts: 1, sets: 9, zone: 'IN-BAND' } },
+    minor: { U: { lifts: 1, sets: 9, zone: 'IN-BAND' }, L: { lifts: 1, sets: 9, zone: 'IN-BAND' } } },
+  { n: 7, days: named('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'), DU: 4, DL: 3,
+    major: { U: { lifts: 1, sets: 12, zone: 'IN-BAND' }, L: { lifts: 1, sets: 9, zone: 'IN-BAND' } },
+    minor: { U: { lifts: 1, sets: 12, zone: 'IN-BAND' }, L: { lifts: 1, sets: 9, zone: 'IN-BAND' } } },
+];
+
+/* volume.cjs:83's ladder, re-typed here so the fixture is checked against the
+   engine's boundaries and not against the proposer's opinion of them. */
+const BANDS = { floor: 6, lo: 8, hi: 14, ceil: 22 };
+const engineZone = (sets) => (sets < BANDS.floor ? 'UNDER'
+  : sets < BANDS.lo ? 'LOW'
+    : sets <= BANDS.hi ? 'IN-BAND'
+      : sets <= BANDS.ceil ? 'HIGH' : 'OVER');
+
+/* volume.cjs:62-82: perWeek counts the days of each kind, and every lift adds
+   sets x thatKindsDays to the bucket head || mg. */
+function engineWeeklySets(rows, kinds, tags) {
+  const perWeek = { U: 0, L: 0 };
+  for (const k of Object.values(kinds)) if (k === 'U' || k === 'L') perWeek[k] += 1;
+  const by = {};
+  for (const row of rows) {
+    const days = perWeek[row.day] || 0;
+    if (!days || !row.sets) continue;
+    const tag = tags[row.id] || {};
+    const bucket = tag.head || row.mg;
+    by[bucket] = (by[bucket] || 0) + row.sets * days;
+  }
+  return by;
+}
+
+for (const row of WEEK_TABLE) {
+  test(`S32 - starter week at ${row.n} day(s): every 4.3 cell, from volume.cjs's own arithmetic`, async () => {
+    const { proposeKinds } = await import('../split-kinds.mjs');
+    const { proposeWeek, UPPER_MAJORS, LOWER_MAJORS, MINORS } = await import('../starter-week.mjs');
+    const kinds = proposeKinds(row.days);
+    assert.equal(Object.values(kinds).filter((k) => k === 'U').length, row.DU, 'D_U');
+    assert.equal(Object.values(kinds).filter((k) => k === 'L').length, row.DL, 'D_L');
+
+    /* The brief's 4.2 lists, named on screen as INVENTED. */
+    assert.deepEqual([...UPPER_MAJORS], ['chest', 'lats', 'upper_back', 'delts_side']);
+    assert.deepEqual([...LOWER_MAJORS], ['quads', 'hams', 'glutes', 'calves']);
+    assert.deepEqual([...MINORS], ['delts_front', 'delts_rear', 'biceps', 'triceps', 'abs']);
+
+    const week = proposeWeek({ kinds });
+    assert.ok(week.rows.length > 0, 'the proposer produced nothing');
+    const by = engineWeeklySets(week.rows, kinds, week.tags);
+    const majors = { U: UPPER_MAJORS, L: LOWER_MAJORS };
+
+    for (const kind of ['U', 'L']) {
+      const cell = row.major[kind];
+      for (const bucket of majors[kind]) {
+        const lifts = week.rows.filter((r) => r.day === kind
+          && ((week.tags[r.id] || {}).head || r.mg) === bucket);
+        if (!cell) { assert.equal(lifts.length, 0, `${bucket} should be absent`); continue; }
+        assert.equal(lifts.length, cell.lifts, `${kind} major ${bucket} lifts`);
+        assert.equal(by[bucket], cell.sets, `${kind} major ${bucket} weekly sets`);
+        assert.equal(engineZone(by[bucket]), cell.zone, `${kind} major ${bucket} zone`);
+      }
+    }
+
+    for (const bucket of MINORS) {
+      const lifts = week.rows.filter((r) => ((week.tags[r.id] || {}).head || r.mg) === bucket);
+      const kind = lifts.length ? lifts[0].day : null;
+      const cell = kind ? row.minor[kind] : null;
+      if (!cell) {
+        assert.equal(lifts.length, 0, `minor ${bucket} must be absent at ${row.n} days`);
+        continue;
+      }
+      assert.equal(lifts.length, cell.lifts, `minor ${bucket} lifts`);
+      assert.equal(by[bucket], cell.sets, `minor ${bucket} weekly sets`);
+      assert.equal(engineZone(by[bucket]), cell.zone, `minor ${bucket} zone`);
+    }
+
+    /* The two LOW rows are the brief's 4.4 (1): stated, never inflated. */
+    if (row.n <= 2) {
+      assert.equal(engineZone(by.chest), 'LOW', 'two days is the floor, not the band');
+      assert.equal(by.chest, 6);
+    }
+  });
+}
+
+test('S33 - the starter week invents no load, set count or rep target', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  const { proposeWeek } = await import('../starter-week.mjs');
+  const { STANDARD_SETS, STANDARD_HI } = await import('../setup-model.mjs');
+  const cat = await import('../exercise-catalogue.mjs');
+  for (const row of WEEK_TABLE) {
+    const week = proposeWeek({ kinds: proposeKinds(row.days) });
+    assert.ok(week.rows.length > 0, row.n + ' days');
+    for (const r of week.rows) {
+      assert.equal(r.sets, STANDARD_SETS, r.id);
+      assert.equal(r.hi, STANDARD_HI, r.id);
+      /* Loads are never asked here: screen 4 is unchanged and still collects the
+         athlete's own rungs. The proposer leaves all three blank. */
+      assert.equal(r.first, '', r.id);
+      assert.equal(r.inc, '', r.id);
+      assert.equal(r.rungs, '', r.id);
+      assert.equal(r.w, undefined, r.id);
+    }
+  }
+  for (const entry of cat.CATALOGUE) {
+    for (const k of ['w', 'weight', 'load', 'first', 'steps']) {
+      assert.equal(entry[k], undefined, `${entry.id} carries ${k}`);
+    }
+  }
+});
+
+test('S32 - every proposed row is a catalogue entry and carries its tags', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  const { proposeWeek } = await import('../starter-week.mjs');
+  const { byId, bucketOf } = await import('../exercise-catalogue.mjs');
+  for (const row of WEEK_TABLE) {
+    const week = proposeWeek({ kinds: proposeKinds(row.days) });
+    const ids = week.rows.map((r) => r.id);
+    assert.ok(ids.length > 0, row.n + ' days produced nothing');
+    assert.equal(new Set(ids).size, ids.length, 'no lift is placed twice');
+    assert.deepEqual(Object.keys(week.tags).sort(), [...ids].sort(),
+      'the tag key set is exactly the row ids');
+    for (const r of week.rows) {
+      const entry = byId(r.id);
+      assert.ok(entry, r.id + ' is not in the catalogue');
+      assert.equal(r.n, entry.n);
+      assert.equal(r.mg, entry.mg);
+      assert.equal(week.tags[r.id].head, entry.head);
+      assert.deepEqual(week.tags[r.id].secondary, entry.secondary.map((s) => ({ ...s })));
+      assert.ok(entry.kinds.includes(r.day), r.id + ' placed on the wrong kind');
+      assert.ok(bucketOf(entry));
+    }
+  }
+});
+
+test('S32 - proposeWeek is pure, deterministic, and silent on days he did not choose', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  const { proposeWeek } = await import('../starter-week.mjs');
+  for (const row of WEEK_TABLE) {
+    const kinds = proposeKinds(row.days);
+    const copy = JSON.parse(JSON.stringify(kinds));
+    const a = proposeWeek({ kinds });
+    assert.ok(a.rows.length > 0, row.n + ' days produced nothing');
+    const b = proposeWeek({ kinds });
+    assert.deepEqual(a, b, 'same input, same week');
+    assert.deepEqual(kinds, copy, 'the caller\'s map is not mutated');
+    for (const r of a.rows) assert.ok(r.day === 'U' || r.day === 'L');
+  }
+  assert.deepEqual(proposeWeek({ kinds: {} }), { rows: [], tags: {} });
+  assert.deepEqual(proposeWeek(), { rows: [], tags: {} });
+});
+
+/* The brief's 4.2 says "always 8 lifts x 3 sets = 24 sets at every day count".
+   That holds for UPPER, and for both kinds while D <= 2 (four majors x 2). It
+   does NOT hold for LOWER at D >= 3: the minors list names four upper minors
+   (delts_front, delts_rear, biceps, triceps) and exactly ONE lower minor (abs),
+   so a lower session there is four majors + abs = 5 lifts, 15 sets. The 4.3
+   table is unaffected - every cell in it is per bucket, not per session. This
+   test pins the arithmetic the RULE produces rather than the sentence, and the
+   discrepancy is reported rather than papered over by inventing lower minors. */
+test('S32 - session size follows the composition rule, and the 8-lift sentence holds only where it can', async () => {
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  const { proposeWeek } = await import('../starter-week.mjs');
+  const expected = {
+    1: { U: 8 }, 2: { U: 8, L: 8 }, 3: { U: 8, L: 8 }, 4: { U: 8, L: 8 },
+    5: { U: 8, L: 8 }, 6: { U: 8, L: 5 }, 7: { U: 8, L: 5 },
+  };
+  for (const row of WEEK_TABLE) {
+    const week = proposeWeek({ kinds: proposeKinds(row.days) });
+    for (const kind of ['U', 'L']) {
+      const lifts = week.rows.filter((r) => r.day === kind);
+      const want = expected[row.n][kind] || 0;
+      assert.equal(lifts.length, want, `${row.n} days, ${kind} session lifts`);
+      /* The brief's claim was about SETS, so say the sets out loud too: an
+         upper session is 24 sets everywhere, a lower one is 24 while D_L <= 2
+         and 15 at D_L >= 3 (four majors plus abs, the catalogue's only lower
+         minor). Review round 1 condition C2; the brief is amended to match. */
+      const sets = lifts.reduce((n, r) => n + r.sets, 0);
+      assert.equal(sets, want * 3, `${row.n} days, ${kind} session sets`);
+      if (kind === 'L' && row.DL >= 3) assert.equal(sets, 15, 'lower at D_L >= 3');
+      if (kind === 'L' && row.DL > 0 && row.DL <= 2) assert.equal(sets, 24, 'lower at D_L <= 2');
+      if (kind === 'U' && row.DU > 0) assert.equal(sets, 24, 'upper, at every day count');
+    }
+  }
+});
+
+/* =====================================================================
+   A4b S35: the payload widens to exactly three members.
+   ===================================================================== */
+
+/* A whole first run, driven through the model exactly as the screens drive it:
+   the proposal door on screen 3, then screen 4's own load questions, unchanged. */
+async function runThroughProposal(days) {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const { proposeKinds } = await import('../split-kinds.mjs');
+  const { proposeWeek } = await import('../starter-week.mjs');
+  const model = createSetupModel({ today: '2026-09-12' });
+  model.setName('A');
+  const kinds = proposeKinds(days);
+  for (const d of days) {
+    model.toggleDay(String(d));
+    model.setDayKind(String(d), kinds[d]);
+  }
+  const week = proposeWeek({ kinds });
+  model.applyProposal(week.rows, week.tags);
+  for (const row of model.answers().exercises) {
+    model.setExerciseField(row.key, 'first', '20');
+    model.setExerciseField(row.key, 'inc', '5');
+  }
+  return { model, kinds, week };
+}
+
+const DAY_LISTS = [
+  named('Mon'), named('Mon', 'Thu'), named('Mon', 'Wed', 'Fri'),
+  named('Mon', 'Tue', 'Thu', 'Fri'), named('Mon', 'Tue', 'Wed', 'Thu', 'Fri'),
+  named('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'),
+  named('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'),
+];
+
+test('S35 - the document the proposal builds is still exactly what createCleanInitState takes', async () => {
+  const { createCleanInitState, REQUIRED_EXERCISE } = await import('../setup-model.mjs');
+  for (const days of DAY_LISTS) {
+    const { model, kinds } = await runThroughProposal(days);
+    const built = model.document();
+    assert.equal(built.ok, true, days.length + ' days: ' + JSON.stringify(built.missing));
+    const state = createCleanInitState({ setup: built.setup });
+    assert.ok(Object.isFrozen(state), 'the constructor returns a frozen state');
+    for (const ex of state.exercises) {
+      /* Eight members in, plus the two the constructor itself adds. */
+      assert.deepEqual(Object.keys(ex).sort(),
+        [...REQUIRED_EXERCISE, 'w', 'forks'].sort(), ex.id);
+      assert.equal(ex.w, null, ex.id + ' must arrive with no working load');
+    }
+    /* The split the state carries is the split he chose (athlete-state.cjs:163
+       stores it as a one-entry history). */
+    for (const d of ['0', '1', '2', '3', '4', '5', '6']) {
+      const want = kinds[Number(d)] || 'REST';
+      assert.equal(state.split[0].map[d], want, 'weekday ' + d);
+    }
+    /* exOrder matches the days: a kind with training days has its lifts in
+       document order, and a kind with none has none. */
+    for (const kind of ['U', 'L']) {
+      const want = built.setup.exercises.filter((e) => e.day === kind).map((e) => e.id);
+      assert.deepEqual(state.exOrder[kind], want, kind + ' exOrder');
+      if (!Object.values(kinds).includes(kind)) assert.deepEqual(want, [], 'no ' + kind + ' day');
+    }
+    const ids = built.setup.exercises.map((e) => e.id);
+    assert.deepEqual(Object.keys(built.tags).sort(), [...ids].sort(),
+      'the tag key set is exactly the document ids');
+  }
+});
+
+test('S35 - prepare builds a payload of exactly three members', async () => {
+  const { prepare } = await import('../setup-commands.mjs');
+  const { model } = await runThroughProposal(named('Mon', 'Thu'));
+  const built = model.document();
+  const op = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+  assert.deepEqual(Object.keys(op.payload).sort(), ['profile', 'setup', 'tags']);
+  assert.deepEqual(op.payload.tags, built.tags);
+  assert.equal(op.class, 'event');
+  assert.equal(op.kind, 'fact');
+});
+
+test('S35 - validate accepts the three-member payload and every refusal cell', async () => {
+  const { validate, PROFILE } = await import('../setup-commands.mjs');
+  const { model } = await runThroughProposal(named('Mon', 'Thu'));
+  const built = model.document();
+  const ids = built.setup.exercises.map((e) => e.id);
+  const base = () => ({
+    kind: 'fact', class: 'event', athlete_id: 'a1', causal_parents: [],
+    effective: { local_date: '2026-09-12', local_time: '09:00', utc_offset: '-04:00' },
+    payload: JSON.parse(JSON.stringify({ profile: PROFILE, setup: built.setup, tags: built.tags })),
+  });
+  const read = () => null;
+  assert.equal(validate(base(), read), true, 'the three-member payload is accepted');
+
+  const cells = [
+    ['two members', (op) => { delete op.payload.tags; }],
+    ['four members', (op) => { op.payload.extra = 1; }],
+    ['a tags key the document does not have', (op) => { op.payload.tags.ghost = { head: null, secondary: [] }; }],
+    ['a document id with no tag', (op) => { delete op.payload.tags[ids[0]]; }],
+    ['tags not a map', (op) => { op.payload.tags = []; }],
+    ['head a number', (op) => { op.payload.tags[ids[0]].head = 3; }],
+    ['head an empty string', (op) => { op.payload.tags[ids[0]].head = ''; }],
+    ['head undefined', (op) => { delete op.payload.tags[ids[0]].head; }],
+    ['a tag with a third member', (op) => { op.payload.tags[ids[0]].why = 'x'; }],
+    ['secondary not an array', (op) => { op.payload.tags[ids[0]].secondary = {}; }],
+    ['lend 0', (op) => { op.payload.tags[ids[0]].secondary = [{ mg: 'triceps', lend: 0 }]; }],
+    ['lend 1.5', (op) => { op.payload.tags[ids[0]].secondary = [{ mg: 'triceps', lend: 1.5 }]; }],
+    ['lend the string "0.5"', (op) => { op.payload.tags[ids[0]].secondary = [{ mg: 'triceps', lend: '0.5' }]; }],
+    ['lend NaN', (op) => { op.payload.tags[ids[0]].secondary = [{ mg: 'triceps', lend: NaN }]; }],
+    ['a secondary with no mg', (op) => { op.payload.tags[ids[0]].secondary = [{ lend: 0.5 }]; }],
+    ['a secondary with an extra member', (op) => { op.payload.tags[ids[0]].secondary = [{ mg: 'triceps', lend: 0.5, why: 1 }]; }],
+    ['head added to a document exercise', (op) => { op.payload.setup.exercises[0].head = 'lats'; }],
+  ];
+  for (const [why, mutate] of cells) {
+    const op = base();
+    mutate(op);
+    assert.equal(validate(op, read), false, 'must refuse: ' + why);
+  }
+  assert.equal(validate(base(), read), true, 'and still accepts the good one');
+});
+
+test('S35 - prepare refuses the same shapes rather than writing them', async () => {
+  const { prepare } = await import('../setup-commands.mjs');
+  const { model } = await runThroughProposal(named('Mon', 'Thu'));
+  const built = model.document();
+  const ids = built.setup.exercises.map((e) => e.id);
+  const copy = () => JSON.parse(JSON.stringify(built.tags));
+  const throws = (tags, why) => assert.throws(
+    () => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags } }),
+    /SETUP_INPUT_INVALID/, 'must refuse: ' + why);
+
+  throws(undefined, 'no tags at all');
+  throws(null, 'tags null');
+  throws([], 'tags an array');
+  const extra = copy(); extra.ghost = { head: null, secondary: [] };
+  throws(extra, 'a key the document does not have');
+  const short = copy(); delete short[ids[0]];
+  throws(short, 'a document id with no tag');
+  const badLend = copy(); badLend[ids[0]].secondary = [{ mg: 'triceps', lend: 2 }];
+  throws(badLend, 'lend above 1');
+  const badHead = copy(); badHead[ids[0]].head = 7;
+  throws(badHead, 'head a number');
+  /* And the good one still goes through. */
+  const op = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: copy() } });
+  assert.equal(Object.keys(op.payload).length, 3);
+});
+
+test('S35 - a hand-added lift is stored untagged, not guessed at', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const model = createSetupModel({ today: '2026-09-12' });
+  model.setName('A');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addExercise('U');
+  model.setExerciseField(row.key, 'n', 'Thing I do');
+  model.chooseMgOther(row.key); model.setMgOther(row.key, 'chest');
+  model.setExerciseField(row.key, 'first', '20');
+  const built = model.document();
+  assert.equal(built.ok, true, JSON.stringify(built.missing));
+  const id = built.setup.exercises[0].id;
+  assert.deepEqual(built.tags[id], { head: null, secondary: [] });
+  assert.equal(built.setup.exercises[0].head, undefined, 'no ninth member on the document');
+});
+
+/* =====================================================================
+   A4b S27 / S30 / S31 / S34 / S42: the two screens.
+   ===================================================================== */
+
+test('S27 - Earned proposes a kind for every day he taps, and never leaves one blank', () => {
+  const model = createSetupModel({ today: DAY });
+  for (const d of ['1', '3', '5']) model.toggleDay(d);
+  const days = model.answers().days;
+  assert.deepEqual([days['1'], days['3'], days['5']], ['U', 'L', 'U'],
+    'the alternation rule, on the screen the athlete actually uses');
+  for (const d of ['0', '2', '4', '6']) assert.equal(days[d], null, 'an untapped day stays off');
+  assert.deepEqual(model.overrides(), {}, 'nothing here is his choice yet');
+});
+
+test('S27 - an override survives leaving and re-entering screen 2, and changes no other day', () => {
+  const model = createSetupModel({ today: DAY });
+  for (const d of ['1', '3', '5']) model.toggleDay(d);
+  model.setDayKind('3', 'U');                       // his choice, against the proposal
+  assert.deepEqual(model.overrides(), { 3: 'U' });
+  const before = model.answers().days;
+  model.next(); model.goto(4); model.back(); model.goto(2);
+  assert.deepEqual(model.answers().days, before, 'navigation changed nothing');
+  assert.equal(model.answers().days['3'], 'U', 'his day survived the round trip');
+  /* And it is what reaches split.map. */
+  model.setName('A');
+  for (const kind of ['U', 'L']) {
+    if (!model.kindsInSplit().includes(kind)) continue;
+    const row = model.addExercise(kind);
+    model.setExerciseField(row.key, 'n', 'Lift ' + kind);
+    model.chooseMg(row.key, 'chest');
+    model.setExerciseField(row.key, 'first', '20');
+  }
+  const built = model.document();
+  assert.equal(built.ok, true, JSON.stringify(built.missing));
+  assert.equal(built.setup.split.map['3'], 'U', 'the override is what was written');
+});
+
+test('S27 - adding a day re-proposes the days he did NOT speak for, and only those', () => {
+  const model = createSetupModel({ today: DAY });
+  for (const d of ['1', '3', '5']) model.toggleDay(d);
+  model.setDayKind('3', 'U');
+  model.toggleDay('6');                               // a fourth day arrives
+  const days = model.answers().days;
+  assert.equal(days['3'], 'U', 'the day he claimed is untouched');
+  assert.deepEqual(model.overrides(), { 3: 'U' });
+  for (const d of ['1', '5', '6']) assert(days[d] === 'U' || days[d] === 'L', d + ' still has a kind');
+});
+
+test('S27 - screen 2 says whose choice each day is, and prints the rule as Earned\'s own', () => {
+  const model = createSetupModel({ today: DAY });
+  for (const d of ['1', '3', '5']) model.toggleDay(d);
+  let kit = screenAt(2, model);
+  assert(kit.text().includes(Model.COPY.screen2Proposal));
+  assert(kit.text().includes(Model.COPY.screen2Rule), 'the rule is declared on the screen');
+  /* DECISIONS:129 (3): the MECHANISM is invented and says so, and its INTENT is
+     said too, with the citation for that intent in the module's own header. */
+  assert(kit.text().includes(Model.COPY.screen2Why), 'and what it is for');
+  const ruleSource = readRepo('rebuild/m3/w7-preview/today/split-kinds.mjs');
+  assert(/Schoenfeld,\s*(\/\/\s*)?Ogborn and Krieger 2016/.test(ruleSource),
+    'the intent carries its citation');
+  assert(/INVENTED/.test(ruleSource), 'and the mechanism is still marked invented');
+  assert(kit.text().includes(Model.COPY.screen2Ours), 'a proposal is labelled as one');
+  assert.equal(kit.text().includes(Model.COPY.screen2Yours), false, 'nothing is his yet');
+  model.setDayKind('3', 'U');
+  kit = screenAt(2, model);
+  assert(kit.text().includes(Model.COPY.screen2Yours), 'and his choice is labelled as his');
+});
+
+test('S42 - the two honest sentences render exactly when their predicate holds', () => {
+  const model = createSetupModel({ today: DAY });
+  const textAt2 = () => screenAt(2, model).text();
+  const textAt3 = () => screenAt(3, model).text();
+
+  assert.equal(textAt2().includes(Model.COPY.screen2OneDay), false, 'no days, no sentence');
+  model.toggleDay('1');
+  assert(textAt2().includes(Model.COPY.screen2OneDay), 'one day says so');
+  assert.equal(textAt2().includes(Model.COPY.screen2TwoDays), false);
+
+  model.toggleDay('4');
+  /* DECISIONS:125 (2)'s words, with :132 (3)'s apostrophe. */
+  assert(textAt2().includes('With two days, Earned’s full-body plan is coming; for now one upper day and one lower day.'));
+  assert.equal(textAt2().includes(Model.COPY.screen2OneDay), false, 'and the one-day sentence clears');
+  /* The band arithmetic belongs to screen 3, beside the week it is about. */
+  assert(textAt3().includes(Model.COPY.floorSentence), 'two days is the floor, said out loud');
+  assert(textAt3().includes(Model.COPY.minorsSentence), 'and the minors get no direct lift');
+
+  model.toggleDay('2');
+  assert.equal(textAt2().includes(Model.COPY.screen2TwoDays), false, 'a third day clears it');
+  assert.equal(textAt3().includes(Model.COPY.floorSentence), false, 'and clears the floor sentence');
+  assert.equal(textAt3().includes(Model.COPY.minorsSentence), false);
+});
+
+/* A model with a four-day week and a name, ready for screen 3. */
+function weekOfFour() {
+  const model = createSetupModel({ today: DAY });
+  model.setName('A');
+  for (const d of ['1', '2', '4', '5']) model.toggleDay(d);
+  return model;
+}
+const linkNamed = (kit, label) => [...kit.doc.querySelectorAll('#phone button')]
+  .find((b) => b.textContent.trim() === label);
+
+test('S34 - screen 3 offers BOTH doors, and the build door fills the week from the catalogue', () => {
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  assert(kit.text().includes(Model.COPY.doorsHead));
+  assert(kit.chip(Model.COPY.doorBuild), 'door one');
+  assert(kit.chip(Model.COPY.doorChoose), 'door two');
+  assert.equal(model.answers().exercises.length, 0, 'nothing is filled in before he picks');
+
+  kit.chip(Model.COPY.doorBuild).click();
+  const rows = model.answers().exercises;
+  assert.equal(rows.length, 16, 'four majors x 2 lifts, on each of the two kinds');
+  for (const row of rows) {
+    assert(row.n.trim() !== '', 'every proposed lift is named');
+    assert(Model.MG_LABELS.includes(row.mg), row.n + ' carries an engine label');
+    assert.equal(row.first, '', 'and no load');
+  }
+});
+
+test('S34 - after either door, every entry is renameable and removable, and the other door is one tap away', () => {
+  for (const first of [Model.COPY.doorBuild, Model.COPY.doorChoose]) {
+    const model = weekOfFour();
+    let kit = screenAt(3, model);
+    kit.chip(first).click();
+    kit = screenAt(3, model);
+    /* The other door is still on the screen, and so is the switch beneath it. */
+    assert(kit.chip(Model.COPY.doorBuild) && kit.chip(Model.COPY.doorChoose), 'both doors remain');
+    /* Add one by hand so both paths have a row to edit. */
+    if (model.answers().exercises.length === 0) {
+      const row = model.addExercise('U');
+      model.setExerciseField(row.key, 'n', 'Mine');
+    }
+    const row = model.answers().exercises[0];
+    assert.equal(model.setExerciseField(row.key, 'n', 'My own name'), 'My own name');
+    assert.equal(model.answers().exercises[0].n, 'My own name');
+    assert.equal(model.removeExercise(row.key), true);
+    assert.equal(model.answers().exercises.some((e) => e.key === row.key), false);
+  }
+});
+
+test('S34 - switching doors adds nothing he did not ask for and destroys nothing he did', () => {
+  const model = weekOfFour();
+  let kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  const mine = model.addExercise('U');
+  model.setExerciseField(mine.key, 'n', 'My own lift');
+  model.chooseMg(mine.key, 'chest');
+
+  kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorBuild).click();
+  assert(model.answers().exercises.some((e) => e.n === 'My own lift'), 'his lift survived the build door');
+  const afterBuild = model.answers().exercises.length;
+
+  /* Building again replaces the proposal's own rows, not his, so the week does
+     not grow every time he taps. */
+  kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorBuild).click();
+  assert.equal(model.answers().exercises.length, afterBuild, 'the week did not double');
+  assert(model.answers().exercises.some((e) => e.n === 'My own lift'));
+});
+
+/* Type into a live field and let the view repaint itself, which is what the
+   athlete's own keyboard does. The view is mounted ONCE: its search box, its open
+   group and what he has typed are view state, and re-mounting would reset them. */
+function typeInto(kit, id, value) {
+  const box = kit.doc.getElementById(id);
+  assert(box, 'no field ' + id + ' on the screen');
+  box.value = value;
+  box.dispatchEvent(new kit.dom.window.Event('input'));
+  box.dispatchEvent(new kit.dom.window.Event('change'));
+}
+
+test('S30 - screen 3 search finds a lift by name and by alias, and adds it with its tags', async () => {
+  const { byId } = await import('../exercise-catalogue.mjs');
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  typeInto(kit, 'setup-search', 'lat pulldown');
+  assert(kit.text().includes(byId('lat_pulldown').n), 'the lift is offered');
+  linkNamed(kit, Model.COPY.addFromCatalogue).click();
+  const added = model.answers().exercises.find((e) => e.n === byId('lat_pulldown').n);
+  assert(added, 'and adding it puts it in the week');
+  assert.equal(added.mg, 'back');
+  assert.equal(added.head, 'lats', 'with the region tag the catalogue carries');
+  assert.equal(added.day, 'U', 'on a kind his split actually has');
+});
+
+test('S30 - search says so when it has nothing, instead of showing an empty list', () => {
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  typeInto(kit, 'setup-search', 'zzzznotalift');
+  assert(kit.text().includes(Model.COPY.searchNone));
+  assert.equal(model.answers().exercises.length, 0, 'and nothing was added');
+});
+
+test('S31 - the picker on screen: six groups, then that group\'s regions, then its lifts', async () => {
+  const { REGIONS, entriesFor } = await import('../exercise-catalogue.mjs');
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  assert(kit.text().includes(Model.COPY.workLabel), 'the second search is offered by its own question');
+  for (const g of ['chest', 'back', 'shoulders', 'arms', 'legs', 'core']) {
+    assert(kit.chip(Model.GROUP_WORDS[g]), 'group ' + g + ' is a door');
+  }
+  kit.chip(Model.GROUP_WORDS.back).click();
+  for (const r of REGIONS.back) assert(kit.chip(Model.REGION_WORDS[r]), 'region ' + r);
+  kit.chip(Model.REGION_WORDS.lats).click();
+  for (const entry of entriesFor('back', 'lats')) {
+    assert(kit.text().includes(entry.n), entry.id + ' is offered');
+  }
+  assert.equal(kit.text().includes('upper_back'), false, 'no engine label is ever shown');
+  assert.equal(kit.text().includes('delts_side'), false);
+});
+
+test('S31 - the custom picker adds his own lift, and refuses to guess a bucket it cannot name', () => {
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  /* Stopping at a group that names one engine bucket is complete. */
+  kit.chip(Model.GROUP_WORDS.chest).click();
+  typeInto(kit, 'setup-custom', 'The angled press thing');
+  kit.doc.getElementById('setup-custom-add').click();
+  const mine = model.answers().exercises.find((e) => e.n === 'The angled press thing');
+  assert(mine, 'his own lift is in the week');
+  assert.equal(mine.mg, 'chest');
+  assert.equal(mine.head, null, 'stopping at the group leaves no region claim');
+  assert.deepEqual(mine.secondary, [], 'and claims no lends it cannot source');
+});
+
+test('S31 - a group the engine has no single bucket for asks for the part, and adds nothing meanwhile', () => {
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorChoose).click();
+  kit.chip(Model.GROUP_WORDS.arms).click();
+  typeInto(kit, 'setup-custom', 'That cable thing');
+  assert(kit.text().includes(Model.COPY.customRegionRequired), 'it says which part it needs');
+  assert.equal(kit.doc.getElementById('setup-custom-add').disabled, true,
+    'and will not add a lift it cannot bucket');
+  assert.equal(model.answers().exercises.length, 0);
+  /* Opening the region answers it. */
+  kit.chip(Model.REGION_WORDS.biceps).click();
+  typeInto(kit, 'setup-custom', 'That cable thing');
+  kit.doc.getElementById('setup-custom-add').click();
+  const mine = model.answers().exercises.find((e) => e.n === 'That cable thing');
+  assert(mine, 'now it goes in');
+  assert.equal(mine.mg, 'biceps');
+  assert.equal(mine.head, 'biceps');
+});
+
+test('S30 / S35 - a week built through the doors is a document the constructor accepts, tags and all', async () => {
+  const { createCleanInitState } = await import('../setup-model.mjs');
+  const { prepare } = await import('../setup-commands.mjs');
+  const model = weekOfFour();
+  const kit = screenAt(3, model);
+  kit.chip(Model.COPY.doorBuild).click();
+  kit.chip(Model.COPY.doorChoose).click();
+  typeInto(kit, 'setup-search', 'hip thrust');
+  linkNamed(kit, Model.COPY.addFromCatalogue).click();
+  for (const row of model.answers().exercises) model.setExerciseField(row.key, 'first', '20');
+  const built = model.document();
+  assert.equal(built.ok, true, JSON.stringify(built.missing));
+  const state = createCleanInitState({ setup: built.setup });
+  assert.equal(state.exercises.length, built.setup.exercises.length);
+  const op = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+  assert.equal(Object.keys(op.payload).length, 3);
+  /* The tags carry real regions and real lends, not empty placeholders. */
+  const tagged = Object.values(op.payload.tags);
+  assert(tagged.some((t) => typeof t.head === 'string'), 'some lift carries a region');
+  assert(tagged.some((t) => t.secondary.length > 0), 'and some lift carries a lend');
+});
+
+/* =====================================================================
+   DECISIONS:133 (2) - the owner's screen 6, in the pane, at the A4b head.
+   Three defects, all of them the same failure: a row or a gap was composed
+   out of an exercise's NAME without asking whether there was one, so an
+   unnamed exercise printed punctuation where a subject belongs
+   (",: What does it work? ..." / ", has nothing it works yet."), the gaps
+   ran together into one sentence, and the sets line read like a form label
+   rather than a sentence.
+   ===================================================================== */
+
+/* One upper day, one exercise, nothing filled in but the day. This is the
+   state the owner was looking at. */
+function weekWithOneUnnamed(name = '') {
+  const model = createSetupModel({ today: DAY });
+  model.setName('Dad');
+  model.toggleDay('1');
+  model.setDayKind('1', 'U');
+  const row = model.addExercise('U');
+  if (name !== '') model.setExerciseField(row.key, 'n', name);
+  return { model, key: row.key };
+}
+const gapLines = (kit) => [...kit.doc.querySelectorAll('#phone .followup button.text-link')]
+  .map((b) => b.textContent.trim());
+
+test(':133 (2) a - an unnamed exercise reads "One exercise (unnamed)", never punctuation', () => {
+  for (const name of ['', '   ', ',']) {
+    const { model } = weekWithOneUnnamed(name);
+    const text = screenAt(6, model).text();
+    assert(text.includes(Model.COPY.unnamedExercise),
+      `name ${JSON.stringify(name)}: the fallback is missing`);
+    assert.equal(text.includes(',: '), false, 'no bare punctuation where a name belongs');
+    assert.equal(/(^|\s),\s/.test(text), false, 'no orphan comma standing in for a subject');
+  }
+});
+
+test(':133 (2) b - a named exercise still reads as its own name', () => {
+  const { model } = weekWithOneUnnamed('Chest press');
+  const text = screenAt(6, model).text();
+  assert(text.includes('Chest press'));
+  assert.equal(text.includes(Model.COPY.unnamedExercise), false, 'the fallback stays away');
+});
+
+test(':133 (2) c - the gaps are ONE PER LINE, each a full sentence with a subject', () => {
+  const { model } = weekWithOneUnnamed();
+  const kit = screenAt(6, model);
+  const gaps = gapLines(kit);
+  assert(gaps.length >= 3, 'the three gaps this state has: ' + JSON.stringify(gaps));
+
+  /* One per line: every gap sits in its own block wrapper, so the browser
+     cannot run them together the way the owner saw. */
+  const wrappers = [...kit.doc.querySelectorAll('#phone .followup .gap')];
+  assert.equal(wrappers.length, gaps.length, 'one wrapper per gap');
+  for (const wrap of wrappers) {
+    assert.equal(wrap.querySelectorAll('button').length, 1, 'one gap per line');
+  }
+
+  for (const line of gaps) {
+    assert(/^[A-Z]/.test(line), 'a gap starts a sentence: ' + JSON.stringify(line));
+    assert(line.endsWith('.'), 'a gap ends one: ' + JSON.stringify(line));
+    assert.equal(/^\s*,/.test(line), false, 'never a fragment: ' + JSON.stringify(line));
+  }
+  /* The unnamed exercise is the SUBJECT of its own gaps, not a blank. */
+  const about = gaps.filter((l) => l.startsWith(Model.COPY.unnamedSubject));
+  assert(about.length >= 2, 'its gaps name it: ' + JSON.stringify(gaps));
+  assert(gaps.some((l) => /nothing it works yet\.$/.test(l)));
+  assert(gaps.some((l) => /no lightest setting yet\.$/.test(l)));
+  /* And the glued sentence the owner read is gone. */
+  assert.equal(kit.text().includes('in it., has nothing'), false);
+});
+
+test(':133 (2) d - the sets line is a sentence, not a form label', () => {
+  const { model } = weekWithOneUnnamed('Chest press');
+  const text = screenAt(6, model).text();
+  assert(text.includes(Model.STANDARD_SETS + ' sets · aim for ' + Model.STANDARD_HI + ' reps'),
+    'the owner\'s wording');
+  assert.equal(text.toLowerCase().includes('sets of each exercise ' + Model.STANDARD_SETS), false,
+    'the form label is gone from the summary');
+});
+
+test(':132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence', () => {
+  const model = createSetupModel({ today: DAY });
+  model.toggleDay('1'); model.toggleDay('4');
+  const text = screenAt(2, model).text();
+  assert(text.includes(Model.COPY.screen2TwoDays), 'the sentence is still on screen');
+  /* Same words as DECISIONS:125 (2); the apostrophe is typography and matches
+     the rest of the screen (:132 (3)). */
+  assert(Model.COPY.screen2TwoDays.includes('Earned’s full-body plan is coming'));
+  assert.equal(text.includes(String.fromCharCode(39)), false,
+    'no straight apostrophe anywhere on screen 2');
+});
+
+/* =====================================================================
+   A4b re-pin: the three files the merged B-NTC artifact reaches are
+   BYTE-IDENTICAL to the tip, and stay that way.
+
+   packages/B-NTC.json pins a list of files and
+   rebuild/conform/v4/postfix/legacy-gates.cjs:12-16 checks each one TWICE -
+   as a git object at the pinned commit, and as the bytes ON DISK. A single
+   byte of A4b's in a pinned file turns rebuild.yml's B-NTC step red however
+   well licensed the change is, so A4b keeps its tags handling in lane C's own
+   setup-host.mjs and touches none of them. This test is the guard: it reads
+   the pin out of the package itself rather than restating a hash, so it also
+   goes red if the package moves and nobody re-reads it.
+   ===================================================================== */
+test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', () => {
+  const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
+  const pins = pkg.product;
+  assert(pins && typeof pins === 'object', 'the package still carries its product pins');
+  const entries = Object.entries(pins).filter(([, v]) => v && typeof v.post === 'string');
+  assert(entries.length >= 40, 'pins found: ' + entries.length);
+
+  const missed = [];
+  for (const [file, pin] of entries) {
+    const onDisk = shaOf(file);
+    if (onDisk !== pin.post) missed.push(file + ' on disk ' + onDisk.slice(0, 12)
+      + ' but pinned ' + pin.post.slice(0, 12));
+  }
+  assert.deepEqual(missed, [], 'A4b changed a file the B-NTC artifact pins on disk');
+});
+
+test('re-pin - the three files A4b used to touch are the tip\'s bytes', () => {
+  const pkg = JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/B-NTC.json'));
+  const pins = pkg.product;
+  for (const file of ['rebuild/m3/w6/local/today-bindings.mjs',
+    'rebuild/m3/w6/test/local-today-journey.test.mjs']) {
+    assert(pins[file], file + ' is pinned by the package');
+    assert.equal(shaOf(file),
+      pins[file].post, file + ' must stay byte-identical');
+  }
+  /* today-entry.mjs is not pinned by the package, but the pinned journey suite
+     pins it by sha in PAGE_PINS, so it is in the same class. */
+  const journey = readRepo('rebuild/m3/w6/test/local-today-journey.test.mjs');
+  const pinned = /'today-entry\.mjs':\s*'([a-f0-9]{64})'/.exec(journey);
+  assert(pinned, 'PAGE_PINS still pins today-entry.mjs');
+  assert.equal(shaOf('rebuild/m3/w7-preview/today/today-entry.mjs'), pinned[1],
+    'today-entry.mjs must match the pin the journey suite carries');
+});
+
+test('re-pin - the durable lane writes the tags and reads them back, from setup-host.mjs', async () => {
+  const kit = await device();
+  const setup = documentOf(filled());
+  const tags = tagsFor(setup);
+  /* The envelope the six screens send through today-entry.mjs's one-argument
+     onDone, and the two-argument form the suite uses, are the same write. */
+  assert.equal((await kit.host.save({ setup, tags })).ok, true);
+  const rows = await kit.host.all();
+  assert.equal(rows.length, 1, 'ONE op');
+  assert.deepEqual(rows[0].setup, setup);
+  assert.deepEqual(rows[0].tags, tags, 'the third member came back beside the document');
+  const ops = await opsOf(kit.host.repository);
+  assert.equal(ops.length, 1);
+  assert.deepEqual(Object.keys(ops[0].payload).sort(), ['profile', 'setup', 'tags'],
+    'the op on disk carries exactly three payload members');
+  kit.host.close();
+});
+
+test('re-pin - envelopeOf tells an envelope from a document, and never guesses', async () => {
+  const { envelopeOf } = await import('../setup-host.mjs');
+  const setup = documentOf(filled());
+  const tags = tagsFor(setup);
+  assert.deepEqual(envelopeOf({ setup, tags }), { setup, tags }, 'the screens\' one argument');
+  assert.deepEqual(envelopeOf(setup, tags), { setup, tags }, 'the suite\'s two');
+  /* A real document is REQUIRED_SETUP's four members and can never be read as an
+     envelope; a two-member object that is not exactly {setup, tags} is not one
+     either, and is passed through as the document so the producer refuses it. */
+  assert.deepEqual(envelopeOf(setup), { setup, tags: undefined });
+  assert.deepEqual(envelopeOf({ setup, extra: 1 }), { setup: { setup, extra: 1 }, tags: undefined });
+  assert.deepEqual(envelopeOf(null), { setup: null, tags: undefined });
+});
+
+test('re-pin - a write with tags but NO setup is refused, and writes nothing', async () => {
+  const kit = await device();
+  const setup = documentOf(filled());
+  const refused = await kit.host.save({ setup: undefined, tags: tagsFor(setup) });
+  assert.equal(refused.ok, false, 'no document, no op');
+  assert.equal((await kit.host.all()).length, 0, 'and the generation is still empty');
+  /* The same lane still takes the good write afterwards. */
+  assert.equal((await kit.host.save({ setup, tags: tagsFor(setup) })).ok, true);
+  kit.host.close();
+});
+
+test('re-pin - tags for an id the week does not have are refused at the lane', async () => {
+  const kit = await device();
+  const setup = documentOf(filled());
+  const tags = tagsFor(setup);
+  tags.ghost_lift = { head: null, secondary: [] };
+  const refused = await kit.host.save({ setup, tags });
+  assert.equal(refused.ok, false, 'the key set must match the document ids');
+  assert.equal((await kit.host.all()).length, 0, 'nothing was written');
+  kit.host.close();
+});
+
+/* =====================================================================
+   C9 (round-4 review). The two survivors masked each other: dropping
+   `envelopeOf` from the wrapped save (Y4) is caught by the producer's own
+   split, and dropping it from `prepare` (Y1) is caught by the wrapper - so
+   either one alone left the suite green while Y1 ALONE breaks the path the
+   whole re-pin exists for. The page does not get lane C's wrapper: boot()
+   hands today-entry.mjs an already-open era and today-entry asks W6's OWN
+   createSetupHost for the lane, passing lane C's commands but keeping w6's
+   one-argument `save(setup)`. Nothing tested that. This does: the envelope
+   goes in through w6's own host, and the op on disk must still carry the
+   three members in order.
+   ===================================================================== */
+test('C9 - an envelope through w6\'s OWN createSetupHost().save() still writes three members', async () => {
+  const { openTodayHosts, DATABASE, NAMESPACE } = await import('../gym-host.mjs');
+  const { createSetupCommands } = await import('../setup-commands.mjs');
+  const fault = faultDatabase();
+  const era = await openTodayHosts({ indexedDB: fault.indexedDB, crypto: webcrypto,
+    databaseName: DATABASE, namespace: NAMESPACE, day: DAY });
+  try {
+    const w6 = await era.createSetupHost({ day: DAY,
+      commands: createSetupCommands(), profile: PROFILE });
+    const setup = documentOf(filled());
+    const tags = tagsFor(setup);
+    const written = await w6.save({ setup, tags });
+    assert.equal(written.ok, true,
+      'w6\'s one-argument save took the envelope: ' + written.code);
+    const ops = await opsOf(w6.repository);
+    assert.equal(ops.length, 1, 'ONE op');
+    assert.deepEqual(Object.keys(ops[0].payload), ['profile', 'setup', 'tags'],
+      'three payload members, in the order the producer writes them');
+    assert.deepEqual(ops[0].payload.setup, setup, 'the document, not the envelope');
+    assert.deepEqual(ops[0].payload.tags, tags, 'the tags travelled with it');
+    w6.close();
+  } finally { era.close(); }
 });

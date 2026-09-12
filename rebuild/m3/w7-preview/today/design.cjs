@@ -184,6 +184,15 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "This check-in could not be recorded on this device, and no part of it was recorded.",
   "Recorded today",
   "Not available on this device",
+  /* REPORT A PROBLEM (DECISIONS:140 (3)). The approved prototype has no control for
+     reporting a fault and no clipboard, so all three sentences are preview-owned:
+     the control itself, the confirmation when the clipboard took the block, and the
+     instruction when it did not or could not. Each is checked ABSENT from the
+     approved references and PRESENT in a view source, exactly as every other
+     preview-owned sentence on this page is. */
+  "Report a problem",
+  "Copied. Send it to Joe.",
+  "Select all and copy, then send it to Joe.",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,
@@ -386,8 +395,15 @@ const setupSource = (root = ROOT) => SETUP_SOURCES
 function assertSetupBinding(approved, templateHtml, root = ROOT) {
   const vocabulary = setupVocabulary(root);
   const source = setupSource(root);
+  /* A harvested sentence is UNESCAPED (grab undoes the JS escapes), so a sentence
+     that legitimately contains an apostrophe - A4b's DECISIONS:125 (2) F1
+     sentence quotes the ledger verbatim, apostrophe and all - appears in the
+     source only in its escaped form. Re-escape before looking, so the check
+     still bites on a genuinely missing sentence without failing on a quote. */
+  const asWritten = (line) => line.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
   for (const line of [...vocabulary.copy, ...vocabulary.validation, ...vocabulary.refusals]) {
-    assert(source.includes(line), `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
+    assert(source.includes(line) || source.includes(asWritten(line)),
+      `SETUP-BINDING FAIL: declared first-run copy missing from the view: "${line}"`);
   }
   const start = templateHtml.indexOf('<template id="t-setup">');
   assert(start > 0, "SETUP-BINDING FAIL: the first-run screen is not in the shipped template");

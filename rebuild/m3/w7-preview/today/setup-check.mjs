@@ -61,6 +61,17 @@ let kills = 0;
 
 function watch(page) {
   page.on("pageerror", (error) => problems.push("pageerror: " + error.message));
+  /* AN UNHANDLED REJECTION IS NOT A pageerror. Every control on these six
+     screens is an async click handler, so a throw inside one becomes a rejected
+     promise nobody awaits: the screen simply does not advance and the next
+     waitFor times out with no reason attached. Report it as the failure it is. */
+  page.addInitScript(() => {
+    window.addEventListener("unhandledrejection", (event) => {
+      const reason = event.reason;
+      const text = (reason && (reason.stack || reason.message)) || String(reason);
+      console.error("unhandledrejection: " + text);
+    });
+  });
   page.on("console", (message) => {
     if (message.type() !== "error") return;
     const where = (message.location() && message.location().url) || "";
@@ -235,7 +246,18 @@ async function runFlow(page, stopAt = 6) {
   await reachable(page, "screen 2");
   await inputsAreLargeEnough(page, "screen 2");
   await noDashes(page, "screen 2");
-  assert.match(await phone(page), /Earned plans two kinds of day so far: upper body and lower body\./);
+  const week = await phone(page);
+  assert.match(week, /Earned plans two kinds of day so far: upper body and lower body\./);
+  /* A4b (DECISIONS:125 (1)): the rule is declared on the screen as Earned's own,
+     and each day says whose choice its kind is. */
+  assert.match(week, /That is Earned’s own rule, not a published standard\./);
+  assert.match(week, /Your choice/);
+  /* And the F1 sentence, at exactly the two days this flow chooses
+     (DECISIONS:125 (2), verbatim). */
+  assert.match(week, /With two days, Earned’s full-body plan is coming; for now one upper day and one lower day\./);
+  /* DECISIONS:132 (3): one screen, one apostrophe. */
+  assert.equal(week.includes(String.fromCharCode(39)), false,
+    "screen 2 renders a straight apostrophe: " + week.slice(0, 80));
   if (stopAt === 2) return;
 
   await next(page);                                    // -> 3
@@ -282,6 +304,49 @@ async function runFlow(page, stopAt = 6) {
   /* The chip SHOWS the gloss and STORES the bare label (DECISIONS:115, S25):
      "quads (front of thigh)" is what the athlete taps, "quads" is what is
      written. The read-back on screen 6 is what proves the second half. */
+  /* ---------------- A4b: BOTH DOORS, on the real screen (S34, S40, S41) -------
+     The doors are offered before either is opened, the build door fills the week
+     from the catalogue, and the choose door's two searches both add a lift. The
+     week that results is twenty-odd entries long, which is the state S40 names
+     as the one most likely to overflow. */
+  const doors = await phone(page);
+  assert.match(doors, /How do you want to start\?/);
+  assert.match(doors, /Build my week for me/);
+  assert.match(doors, /I’ll choose/);
+  /* Two days is the floor, and the screen says so rather than implying a band
+     it cannot reach (A4B-BRIEF 4.4 (1) and (2)). */
+  await tap(page, "Build my week for me");
+  const built = await phone(page);
+  assert.match(built, /Two days is the floor of what Earned can count/);
+  assert.match(built, /At two days there is no room for arms or shoulders on their own\./);
+  const proposed = await page.evaluate(() =>
+    document.querySelectorAll("#phone fieldset.question .followup").length);
+  assert(proposed >= 12, "the build door filled the week: " + proposed + " lifts");
+  await reachable(page, "screen 3, built");
+  await inputsAreLargeEnough(page, "screen 3, built");
+  await noDashes(page, "screen 3, built");
+
+  await tap(page, "I’ll choose");
+  await page.fill("#setup-search", "lat pulldown");
+  await page.dispatchEvent("#setup-search", "change");
+  await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("Lat pulldown"));
+  await page.evaluate(() => {
+    const rows = [...document.querySelectorAll("#phone .followup .row")];
+    const row = rows.find(r => r.textContent.includes("Lat pulldown"));
+    if (!row) throw new Error("the search found nothing to add");
+    row.querySelector("button").click();
+  });
+  /* Layer one, then layer two, then that region's lifts. */
+  await tap(page, "Shoulders");
+  await tap(page, "Side delts");
+  const picker = await phone(page);
+  assert.match(picker, /Lateral raise/);
+  assert.doesNotMatch(picker, /delts_side/, "no engine label is ever shown to him");
+  await reachable(page, "screen 3, picker open");
+  await inputsAreLargeEnough(page, "screen 3, picker open");
+  await noDashes(page, "screen 3, picker open");
+
+  /* And the by-hand path A4 shipped still works, beside both doors. */
   await addLift("Upper body", "Chest press", "chest");
   await addLift("Lower body", "Leg press", "quads (front of thigh)");
   await reachable(page, "screen 3");
@@ -371,6 +436,74 @@ try {
   assert.equal(empty.rows, 0, "the generation holds NO first-run operation: " + JSON.stringify(empty));
   assert.equal(empty.enrolled, false);
   notes.push("a real taskkill mid-flow left zero operations and no partial athlete");
+
+  /* ---------- 320px, on the two screens A4b changed (S40) ----------
+     The narrow phone runs the SAME flow, not a reduced one: screen 2 with its
+     proposal and its honest sentence, screen 3 with the doors, the built week,
+     the search open and the picker open. reachable() is what measures it, and it
+     refuses any sideways scroll at all. The device is still unenrolled here, so
+     the flow is genuinely available. */
+  await hardKill(context);
+  ({ context, page } = await relaunch("?screen=setup", NARROW));
+  await runFlow(page, 3);
+  notes.push("screens 1 to 3, both doors and the picker open, measured at 320px");
+  await hardKill(context);
+
+  /* ---------- DECISIONS:133 (2): screen 6 with an UNNAMED exercise ----------
+     The state the owner was looking at in the pane, walked in a real browser and
+     read off the rendered DOM: one training day, one exercise, nothing filled in
+     but the day. The three defects he named are asserted here as absences AND as
+     presences, because "no empty name" is satisfiable by printing nothing at
+     all, which would be a second defect wearing the first one's clothes. */
+  ({ context, page } = await relaunch("?screen=setup"));
+  await page.waitForSelector("#phone article.page");
+  await page.fill("#setup-name", "Dad");
+  await next(page);                                    // -> 2
+  await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("2 of 6"));
+  await page.evaluate(() => {
+    const block = [...document.querySelectorAll("#phone fieldset.question")]
+      .find(f => f.querySelector("legend") && f.querySelector("legend").textContent.trim() === "Monday");
+    [...block.querySelectorAll(".option")].find(x => x.textContent.trim() === "Monday").click();
+  });
+  await next(page);                                    // -> 3
+  await page.waitForFunction(() => document.querySelector("#phone").textContent.includes("3 of 6"));
+  /* Add one exercise by hand and name NOTHING. */
+  await page.evaluate(() => {
+    const add = [...document.querySelectorAll("#phone fieldset.question button.text-link")]
+      .find(x => x.textContent.trim() === "Add an exercise");
+    if (!add) throw new Error("no add control on screen 3");
+    add.click();
+  });
+  for (const to of [4, 5, 6]) {
+    await next(page);
+    await page.waitForFunction(n => document.querySelector("#phone").textContent.includes(n + " of 6"), to);
+  }
+  const six = await phone(page);
+  assert.match(six, /One exercise \(unnamed\)/, "the row names the exercise he has not named");
+  assert.equal(/,\s*:/.test(six), false, "a bare punctuation name is on screen: " + six.slice(0, 200));
+  assert.match(six, /3 sets · aim for 10 reps/, "the sets line is a sentence");
+  assert.doesNotMatch(six, /sets of each exercise 3/, "screen 3's field label is out of the summary");
+  /* One gap per line, each its own block, each a whole sentence. */
+  const gaps = await page.evaluate(() =>
+    [...document.querySelectorAll("#phone .followup p.gap")].map(p => ({
+      text: p.textContent.trim(),
+      buttons: p.querySelectorAll("button").length,
+      block: getComputedStyle(p).display,
+    })));
+  assert(gaps.length >= 3, "the gaps this state has: " + JSON.stringify(gaps));
+  for (const gap of gaps) {
+    assert.equal(gap.buttons, 1, "one gap per line: " + JSON.stringify(gap));
+    assert.equal(gap.block, "block", "a gap is its own block: " + JSON.stringify(gap));
+    assert(/^[A-Z]/.test(gap.text) && gap.text.endsWith("."), "a gap is a sentence: " + gap.text);
+  }
+  assert.equal(six.includes("in it., has nothing"), false, "the glued gap sentence is gone");
+  assert(gaps.some(g => g.text.startsWith("One exercise ")), "an unnamed exercise is its gaps' subject");
+  await reachable(page, "screen 6, one unnamed exercise");
+  await noDashes(page, "screen 6, one unnamed exercise");
+  notes.push("screen 6 with an unnamed exercise: named row, sentence sets line, "
+    + gaps.length + " gaps each on its own line");
+  await hardKill(context);
+  ({ context, page } = await relaunch());
 
   /* ---------- the whole flow, then the ONE write ----------
      Back to the plain URL: this launch came up on ?screen=setup, and a reload
