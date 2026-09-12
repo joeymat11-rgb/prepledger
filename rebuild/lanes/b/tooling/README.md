@@ -886,8 +886,8 @@ be asked which run they looked at.
 
 ## r7b and r8 — the parent-pin shapes, spec-driven successors, and an AUTHENTIC receipt
 
-The runner these two passes deliver is
-`1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00`, 2195 lines, 176 412 B,
+The runner these passes deliver is
+`59ecc7f91f5f8f6d40c5c0f61267c6f71ca7edd7987b8022da39c5a04a1cce0d`, 2200 lines, 176 780 B,
 pinned as `tooling.runnerSha256` by all seven package specs; `TOOLING-REPORT.md` §"r7b and
 r8-fix" carries the full byte table and the suite counts.
 
@@ -930,9 +930,11 @@ r8-fix" carries the full byte table and the suite counts.
   removed outright: change 1 requires the receipt to be committable.
 - **r8 change 5** — the preflight's UI dash check scans untracked files too
   (`git ls-files --others --exclude-standard`), the same set check (1) already counted.
-- **`SEAL_TIP_RULE` is one word.** `:135 (4)` stays `'first-parent'` — the PM has been asked
-  whether plain ancestry of the current tip suffices and has not ruled, and relaxing an
-  enforced seal rule is not the tooling's call. `'ancestor'` is fully implemented and the
-  suite measures BOTH settings on one repository, including the case that divides them: a
-  lane that ran `git merge --no-ff <tip>`, where the tip IS an ancestor of HEAD and is NOT in
-  its first-parent chain. Both settings still refuse a genuinely stale base.
+- **`SEAL_TIP_RULE` is one word, and `DECISIONS:145` set it to `'ancestor'`.** The PM ruled
+  seal-on-the-tip as ANCESTRY: the CURRENT `origin/rebuild/t2-client-core` must be an
+  ancestor of the branch head; a merge and a rebase both count; a stale base does not; the
+  FREEZE escape is kept. That is what the runner ships. `'first-parent'` — the earlier,
+  stricter reading, which additionally forbade the `git merge --no-ff <tip>` workflow
+  `:137 (1)` makes the house move — remains implemented, and the suite measures BOTH
+  settings on one repository, including the case that divides them and the stale base that
+  neither admits.

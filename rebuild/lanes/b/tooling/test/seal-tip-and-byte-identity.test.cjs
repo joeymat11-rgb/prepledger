@@ -117,8 +117,8 @@ test(':135 (4) — a head whose first-parent chain carries the chain tip may sea
 
 test(':135 (4) — the tip moving ahead refuses the seal, by name', () => {
   // The stale-base case :135 diagnoses: the chain moves and the lane head does not follow.
-  // The lane head still has the OLD tip as an ancestor, which is why ancestry is not the
-  // question asked — the CURRENT tip must stand in this head's own first-parent chain.
+  // The lane head still has the OLD tip as an ancestor; what is asked is the CURRENT tip,
+  // and that is what makes ancestry (DECISIONS:145) exclude every stale base.
   git('checkout', '--quiet', 'fixture-chain');
   write('rebuild/DECISIONS.md', '- 2026-09-12 · cowork · a chain line\n- 2026-09-12 · cowork · a later chain line\n');
   git('add', '-A'); git('commit', '--quiet', '-m', 'the chain moves on');
@@ -127,19 +127,22 @@ test(':135 (4) — the tip moving ahead refuses the seal, by name', () => {
   assert.equal(git('rev-parse', 'HEAD').trim(), LANE_HEAD);
   assert.notEqual(tip, BASE);
   assert.throws(() => api.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
-  // And the old tip IS still an ancestor of this head — so a merge-base ancestry test would
-  // have admitted it. The refusal is the whole point of :135 (4).
+  // The OLD tip is still an ancestor of this head, and that is exactly why the question is
+  // asked of the CURRENT tip: a stale base is a head with every chain commit but the latest
+  // ones, and DECISIONS:145's ancestry test refuses it for that reason.
   cp.execFileSync('git', ['merge-base', '--is-ancestor', BASE, 'HEAD'], { cwd: scratch });
 });
 
-test(':135 (4) — REBASING onto the tip restores the seal; merging the tip in does not', () => {
-  // The operational consequence, measured. `git merge --no-ff <tip>` from the lane puts the
-  // tip on the SECOND parent, so the head is not built ON it and the refusal stands — this
-  // is the one case where :135 (4) is stricter than "the tip is behind me".
+test(':135 (4) / :145 — MERGING the tip restores the seal, and so does rebasing onto it', () => {
+  // DECISIONS:145 RULED ancestry: "merge or rebase both count". `git merge --no-ff <tip>`
+  // from the lane puts the tip on the SECOND parent — the case the first-parent reading
+  // refused and :137 (1) makes the house move — and it is a seal under the shipped rule.
   git('merge', '--no-ff', '--quiet', '-m', 'merge the chain tip', 'fixture-chain');
-  assert.throws(() => api.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
+  said.length = 0;
+  api.sealOnTheTip(spec(), out);
+  assert.match(said[0], /SEAL BASE ON THE TIP/);
   // A REBASE onto the tip — ":135's own timeline: rebase + final round + seal each, on the
-  // tip" — puts it in the first-parent chain and the seal is admitted, with no ledger line.
+  // tip" — is the other way, and is admitted with no ledger line either.
   git('reset', '--quiet', '--hard', LANE_HEAD);
   git('rebase', '--quiet', 'fixture-chain');
   said.length = 0;
@@ -345,47 +348,57 @@ test('r8 — the verdict must name the RECEIPT\'s own sha256, not only the three
 });
 
 // ------------------------------------ r8 F1: the tip rule is ONE constant, both ways tested
-test('r8 F1 — SEAL_TIP_RULE is one word, and both settings are implemented and measured', () => {
-  assert.equal(api.SEAL_TIP_RULE, 'first-parent', 'the PM has not relaxed it; the stricter rule stands');
+test('r8 F1 / DECISIONS:145 — SEAL_TIP_RULE is one word, and both settings are measured', () => {
+  // DECISIONS:145 RULED ancestry: the current chain tip must be an ancestor of the branch
+  // head, a merge and a rebase both count, a stale base does not, the FREEZE escape is kept.
+  assert.equal(api.SEAL_TIP_RULE, 'ancestor', 'DECISIONS:145 is the shipped rule');
   // The same source with the one word changed, and nothing else — asserted, not assumed.
-  const relaxed = fixtureSource.replace("const SEAL_TIP_RULE = 'first-parent';", "const SEAL_TIP_RULE = 'ancestor';");
-  const a = fixtureSource.split('\n'), b = relaxed.split('\n');
+  const strict = fixtureSource.replace("const SEAL_TIP_RULE = 'ancestor';", "const SEAL_TIP_RULE = 'first-parent';");
+  const a = fixtureSource.split('\n'), b = strict.split('\n');
   assert.equal(a.length, b.length);
   assert.equal(a.filter((line, i) => line !== b[i]).length, 1, 'exactly one line differs between the two rules');
-  const relaxedFile = path.join(scratch, 'rebuild/lanes/b/tooling/b-package-ancestor.cjs');
-  fs.writeFileSync(relaxedFile, relaxed);
-  const m2 = new Module(relaxedFile, module);
-  m2.filename = relaxedFile;
+  const strictFile = path.join(scratch, 'rebuild/lanes/b/tooling/b-package-first-parent.cjs');
+  fs.writeFileSync(strictFile, strict);
+  const m2 = new Module(strictFile, module);
+  m2.filename = strictFile;
   m2.paths = Module._nodeModulePaths(path.dirname(path.join(sourceRoot, runnerRel)));
   const base2 = m2.require.bind(m2);
   m2.require = file => base2(path.isAbsolute(file) && file.startsWith(scratch + path.sep)
     ? path.join(sourceRoot, path.relative(scratch, file)) : file);
   const saved = process.argv;
-  process.argv = [process.execPath, relaxedFile, '--full', '--package', 'B-NTC'];
+  process.argv = [process.execPath, strictFile, '--full', '--package', 'B-NTC'];
   try {
-    m2._compile(relaxed.slice(0, relaxed.indexOf(delimiter)) +
-      '\nmodule.exports={sealOnTheTip,SEAL_TIP_RULE,init(a,raw){logDir=root;ARTIFACT=a;specRaw=raw;}};', relaxedFile);
+    m2._compile(strict.slice(0, strict.indexOf(delimiter)) +
+      '\nmodule.exports={sealOnTheTip,SEAL_TIP_RULE,init(a,raw){logDir=root;ARTIFACT=a;specRaw=raw;}};', strictFile);
   } finally { process.argv = saved; }
   const alt = m2.exports;
   alt.init(ARTIFACT, SPEC_BYTES);
-  assert.equal(alt.SEAL_TIP_RULE, 'ancestor');
+  assert.equal(alt.SEAL_TIP_RULE, 'first-parent');
   // THE CASE THAT DIVIDES THEM, measured on one repository: a lane that MERGED the tip with
   // `--no-ff`. The tip is an ancestor of HEAD and is NOT in HEAD's first-parent chain.
+  // DECISIONS:145 rules this a SEAL, which is what the shipped runner now says.
   git('checkout', '--quiet', 'fixture-lane');
   git('reset', '--quiet', '--hard', LANE_HEAD);
   git('merge', '--no-ff', '--quiet', '-m', 'merge the chain tip', 'fixture-chain');
   const tip = git('rev-parse', 'refs/heads/fixture-chain').trim();
   cp.execFileSync('git', ['merge-base', '--is-ancestor', tip, 'HEAD'], { cwd: scratch });
   assert(!git('rev-list', '--first-parent', 'HEAD').split(/\r?\n/).includes(tip));
-  assert.throws(() => api.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
   said.length = 0;
-  alt.sealOnTheTip(spec(), out);
+  api.sealOnTheTip(spec(), out);
   assert.match(said[0], /SEAL BASE ON THE TIP/);
   assert.match(said[0], /rule=ancestor/);
-  // And 'ancestor' still refuses a genuinely STALE base, which is the failure :135 names.
+  assert.throws(() => alt.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
+  // A REBASE onto the tip satisfies both, so :145 widens and does not replace.
+  git('reset', '--quiet', '--hard', LANE_HEAD);
+  git('rebase', '--quiet', 'fixture-chain');
+  said.length = 0;
+  api.sealOnTheTip(spec(), out); alt.sealOnTheTip(spec(), out);
+  assert.equal(said.length, 2);
+  for (const line of said) assert.match(line, /SEAL BASE ON THE TIP/);
+  // And ancestry still refuses a genuinely STALE base, which is the failure :135 names.
   git('checkout', '--quiet', 'fixture-chain');
   git('commit', '--quiet', '--allow-empty', '-m', 'the chain moves past this lane');
   git('checkout', '--quiet', 'fixture-lane');
-  assert.throws(() => alt.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
   assert.throws(() => api.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
+  assert.throws(() => alt.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
 });
