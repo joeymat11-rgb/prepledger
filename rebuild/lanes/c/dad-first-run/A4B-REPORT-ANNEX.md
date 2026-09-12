@@ -594,14 +594,26 @@ loop would have refused first); a spawn timeout (180s budget, 16s elapsed); a
 (deleted before every local run above).
 
 Not yet ruled out, and it cannot be from here: an ordering or timing difference
-on the runner itself - the ten files run in one `node --test` process, three of
-them build into the same `.tmp/w7-today-dist` and two of them bind a local HTTP
-port, so the interleaving is real and the runner's is not this PC's. A re-run of
+on the runner itself - the ten files run under one `node --test`, and one of
+them (`package.test.cjs`) rebuilds `.tmp/w7-today-dist` and binds a local HTTP
+port while the other nine run beside it. A re-run of
 the failed job would settle flake-or-not in one shot; the token this worktree
 has cannot POST `rerun-failed-jobs` (403, "Resource not accessible by personal
 access token"), so the next push is the second sample.
 
-The honest statement of the residual: this branch touches none of the ten files
-the failing child executes, passes that child on both node versions CI could
-use and at the runner's concurrency, and passes the gate command itself; the
-windows-latest result is unexplained and is NOT claimed as green.
+The honest statement of the residual, as written before the second sample: this
+branch touches none of the ten files the failing child executes, passes that
+child on both node versions CI could use and at the runner's concurrency, and
+passes the gate command itself; the windows-latest result is unexplained.
+
+THE SECOND SAMPLE SETTLED IT. The next push (8f4e6af) changed only these two
+documents - the whole code tree, and every one of the ten files the child
+executes, byte-identical to 52f7eb8 - and CI came back green on BOTH runners:
+`rebuild` **34683297008 success**, with `rebuild-public (windows-latest)`
+success at step 13 and every step after it, and `pipeline` **34683296919
+success**. So the 52f7eb8 windows failure was transient: the same tree, the same
+runner image, the same child, green. It is recorded here rather than erased,
+because a flake in a gate whose diagnostics are withheld costs the next lane an
+hour, and because `b-package.cjs`'s `local diagnostics withheld` branch is worth
+a REQUEST to lane B - one line of the child's captured stderr would have named
+this in a minute.

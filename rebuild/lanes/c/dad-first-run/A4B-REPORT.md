@@ -54,6 +54,6 @@ http://127.0.0.1:4178/ , `serve.mjs` pid **54224**, rebuilt on this head;
 `/app.js` **1445621 bytes** served and on disk. Diff inside custody **PASS**: 18
 paths, all under `dad-first-run/` and `w7-preview/today/`, nothing under
 `rebuild/m3/w6/` now; report <= 60 **PASS**; no U+2013/U+2014 in UI custody
-**PASS**; counts present **PASS**. CI run ids, and the one windows-only
-`b-ntc-journeys` result that will not reproduce here (238/238 PASS on node 22
-and 24, any concurrency, clean `.tmp`), are in the annex.
+**PASS**; counts present **PASS**. CI **green on both runners** - `rebuild`
+34683297008, `pipeline` 34683296919. The one windows-only `b-ntc-journeys`
+failure before it was transient, and the annex says so with its evidence.
