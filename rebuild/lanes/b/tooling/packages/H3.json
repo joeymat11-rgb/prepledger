@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md",
-    "sha256": "a03c6666d0d66fd2aa9181faabf128034c25615c17603b0825849d6810b4f6a5",
+    "sha256": "4c01d70f3798069f7e9a6042ed240eb294086c34f4f478fa25563ea719e13b0e",
     "acceptedLedgerLine": null
   },
   "sourceBase": "ce38aa3bd174c94526e01fb5056df850ad322b80",

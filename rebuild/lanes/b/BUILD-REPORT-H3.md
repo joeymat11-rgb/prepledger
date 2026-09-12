@@ -1,55 +1,59 @@
-# BUILD REPORT — M2-H3-CLEAN-INIT
+# BUILD REPORT — M2-H3-CLEAN-INIT (v1.1, the `:135 (5)` bundle)
 
-Branch `rebuild/lane-b-h3`, parent head `b8d5cc7` (B-NTC candidate). Brief `rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md` sha256 `73bbce7c7c1db4e2d022a45b0338a2f4065897001f7e9470ccb6ed6d1edfca1c`, 105 lines. `git diff b8d5cc7 -- rebuild/engine` **empty**; `git diff --check` clean; UTF-8, no BOM, LF.
+Branch `rebuild/lane-b-h3`, `sourceBase` `ce38aa3` (B-NTC integrated, ledger `:144`). Parent: the sealed B-NTC artifact `87f4848c…` at `9ad2ecab`, receipt `:141`. Merged in: `origin/rebuild/t2-client-core` (`ce38aa3`/`7f35e90`) and `rebuild/lane-b-tooling` `b46b5fd` (runner **review-pending, r8**). Brief `rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md`, 126 lines. `git diff --check` clean; UTF-8, no BOM, LF.
 
-| Path | Role | sha256 |
+## What the package carries
+
+**H3** — `createCleanInitState` writes `blackout: {until: <day before split.from>}` and `model: {anchorISO: split.from, drip: null, src: null}`, both pinned by `closed()`; `model.lean` deliberately absent (F-A accepted as built at `:142 (3)`). **F-B** (S2) — `writers.cjs` `applyRead` gains a first-read branch seeding the trend with **the reading itself**, verbatim; needs no owner ruling (it invents nothing and writes only the number he typed — brief §4). **F2 LABEL half** — `MG_LABEL` gains the four BACK region heads. **`rebuild.yml`** enumerates `setup.test.mjs` per `:142 (2)(b)`.
+
+| File | Role | sha256 `ce38aa3` → HEAD |
 | --- | --- | --- |
-| `rebuild/m4/workout/athlete-state.cjs` | edited (the product) | `dccc5fb5…` → `318357b199bb782d1714b2b1baa193bacfc10d37fb4ef081d9b6c42f394dd1cb` |
-| `rebuild/m4/workout/test/h3-clean-init.test.cjs` | new (the cells) | `e3b0c442…` → on disk |
-| `rebuild/m3/w6/host/test/journey.test.mjs` | edited — one cell moved (brief §4) | `228c076d…` → `aecb8fe4980ce65ebb6488310302458dffc9b15a30aeeae1238b8491287f1832` |
-| `rebuild/lanes/b/{BRIEF-H3-CLEAN-INIT,BUILD-REPORT-H3}.md`, `tooling/packages/H3.json` | new / SKELETON→PROPOSED | — |
+| `rebuild/m4/workout/athlete-state.cjs` | new to the pinned inventory | `dccc5fb5…` → `cdf51db8…` |
+| `rebuild/engine/writers.cjs` | edited (F-B) | `00291236…` → `b57b8f8e…` |
+| `rebuild/engine/constants.cjs` | edited (F2 LABEL) | `954e4f4b…` → `e387579f…` |
+| `.github/workflows/rebuild.yml` | edited | `839a79ab…` → `cf4b83c1…` |
+| `rebuild/m3/w6/host/test/journey.test.mjs` | edited (the A0 cell that asserted the defect) | `228c076d…` → `aecb8fe4…` |
+| `rebuild/m3/w7-preview/today/test/setup.test.mjs` | new to the inventory (lane C's H3 cell flips) | `264358a0…` → `842e2f49…` |
+| `rebuild/m4/workout/test/h3-clean-init.test.cjs` | new | absent → `62f6651f…` |
+| `b-package.cjs`, `packages/B-NTC.json` | superseded-by-child | parent execution pins |
 
-**Cells.** `node --test --test-reporter=tap rebuild/m4/workout/test/h3-clean-init.test.cjs` → **7/7 pass, 0 fail, exit 0**. Against the parent's `athlete-state.cjs` (stashed) → **RED 6/7**; only H3/6 (the gym card, day+0 and day+3) is green both sides, which is its point. Six named mutants M1–M6, each applied to a private compilation of a copy, each killed by a named cell; a mutation site not present exactly once refuses.
+## Cells, mutants, unmoved
 
-**Unmoved.**
+`node --test --test-reporter=tap rebuild/m4/workout/test/h3-clean-init.test.cjs` → **11/11, exit 0**. RED-first: **6/7** against the parent's `athlete-state.cjs`; **4/4** of the new F-B/F2 cells (H3/8–11) against the parent's engine files. Six named mutants, each killed by a named cell.
 
 | Suite | Parent | H3 |
 | --- | --- | --- |
-| the seven enumerated today files | 164/164 exit 0 | **164/164 exit 0** |
-| A0 `journey` + `engine-equivalence` | 23/23 exit 0 | **23/23 exit 0** |
-| B-NTC provider `native-trend-context` | 39/39 exit 0 | **39/39 exit 0** |
-| `local-host-journey` · `local-today-journey` | 17/17 · 51/51 | **17/17 · 51/51** |
-| the 45 register laws | `45 RED-frozen · 39 RED-candidate`, exit 1 | **identical line, exit 1** |
-| public census | — | untouched, byte-identical; clean-init is not in it |
-| B-NTC's nine own carriers | green | **refuse at one pin — F-C** |
+| the **eight** enumerated today files | 268/268 | **268/268 exit 0** (`setup.test.mjs` **104/104**) |
+| A0 `journey` + `engine-equivalence` | 23/23 | **23/23 exit 0** |
+| provider `native-trend-context` | 39/39 | **39/39 exit 0** |
+| `local-host-journey` + `local-today-journey` | 68/68 | **68/68 exit 0** |
+| `copy.test.mjs` | 36/36 | **36/36 exit 0** |
+| the 45 register laws | `45 RED-frozen · 39 RED-candidate` | **identical line, exit 1** |
+| B-NTC's own carriers | green | **refuse — F-C** |
+
+**Public census byte-identical, proven:** `rebuild/conform/run.cjs` run on the tree as it stands and again with `writers.cjs`, `constants.cjs` and `athlete-state.cjs` held out — two 81-line logs, same sha256 `401706332af64b5cd2a78aae173b943f95aefc5b71a9897356a44ef7f6b55b5a`, 21,338 bytes each.
 
 ## The runner
 
     $ node rebuild/lanes/b/tooling/b-package.cjs --ci --package H3
-    B PACKAGE H3 FAIL REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT; required evidence
-    missing or failed; local diagnostics withheld                              exit 1
-    $ node rebuild/lanes/b/tooling/b-package.cjs --full --package H3
-    (the same line)                                                            exit 1
+    B PACKAGE H3 SPEC OBSERVED packages/H3.json 34dac072…; runner 769fd09e… byte-identical
+    B PACKAGE H3 PARENT BOUND B-NTC …87f4848c…; single-parent chain holds
+    B PACKAGE H3 POSTFIX M2-H3-CLEAN-INIT REVIEW-PENDING mode=--ci
+    B PACKAGE H3 ENVELOPE ABSENT; …acceptance-h3-clean-init.json is not sealed yet
+    B PACKAGE H3 FAIL PARENT-PIN-BROKEN-AT-SOURCEBASE                         exit 1
 
-H3 registers no D-id — `:124` rules it **engine-tier** beside H1/H2, and D1–D45 is the M2 audit register, none of which H3 repairs — while `NO_REGISTER_IDS` is fixed at `{B-NTC, B-LOM}` inside `b-package.cjs` (W7). **Finding F-D**, a runner limitation recorded for the tooling pass: one reviewed line, `'H3'` added to `NO_REGISTER_IDS`. **The runner was not edited.**
+`--full` stops at the same code. F-D is gone (the merged runner admits `H3`) and the parent now BINDS. What refuses is **F-E, new and not H3's**: the artifact writer emits `product` as `{pre,post,role}` while `held()` (`b-package.cjs:1067`) reads it as a flat sha — so `pins()` refuses on the first entry, `rebuild/engine/plan.cjs`, whose bytes are in fact identical everywhere. The same assumption appears again in the product pre-image check. **It blocks every child of B-NTC, not just H3.**
 
-**REHEARSAL** (uncommitted, reverted; a probe *copy* of the runner, never the runner). With `'H3'` in `NO_REGISTER_IDS` and F-C's single re-pin applied on disk, the same committed spec reaches:
+**REHEARSAL** (probe *copy* of the runner, never the runner; uncommitted, removed). With those two readers normalised, the same committed spec runs straight through: `PARENT PINS RE-ASSERTED … 53 product pins`; `PRODUCT IMPLEMENTED; 9 at the declared post-image / 0 at the pinned pre-image / 49 carried byte-identical / 0 unlisted drift`; `AUTHORITY OBSERVED owner DECISIONS:60 and contract DECISIONS:49 … at the parent receipt base`; `LAWS 45/45 executed`, `45 RED-frozen · 39 RED-candidate`; and stops at **F-C**'s `Required child source-carriers` and nothing else.
 
-    B PACKAGE H3 CI REVIEW-PENDING: 9 open obligation(s); public evidence only;
-    no PASS is claimed                                                         exit 2
-    B PACKAGE H3 BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING     (--full)     exit 2
+## OPEN
 
-with `PRODUCT IMPLEMENTED; 3 at the declared post-image / 0 at the pinned pre-image / 52 carried byte-identical / 0 unlisted drift`, `LAWS 45/45 executed`, **all 8 children OBSERVED exit 0** (`source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`, `second-gate`, `h3-cells`, `a0-journeys`, `ntc-provider-cells`), `COVERAGE 9/19 gates by 5 executed children`, and `NO-REGISTER OBLIGATION H3 … 1 of 1 declared child(ren) executing one of this package's own role:"new" product file(s)` — Y1 satisfied by `h3-cells`.
-
-The 9 OPEN obligations are all ledger-clearable: parent artifact not named by the PM · single-parent scan (Y2) not reached · no sealed chain head on disk · parent/grandparent pins not re-asserted · product inventory completeness unverified · theme ledger line null · brief not accepted by a PM ledger line · owner and contract lines not verified at a chain commit · closed cumulative profile not sealed.
-
-## OPEN, with reasons
-
-* **F-C, the principal one.** H3 cannot close the item without moving `journey.test.mjs:122`, whose assertion *is* the defect; B-NTC's spec and artifact pin that file and all nine B-NTC carriers share one `preflight()` over every pin. The single re-pin `228c076d… → aecb8fe4…` in `packages/B-NTC.json` and `acceptance-b-ntc-native-trend-context.json` was rehearsed and makes every carrier green again, so F-C is exactly one byte and nothing deeper. Taking it is the PM's call — or, more properly, an `h3-successors.cjs` carrier under `coverage.successors` with the substitution enumerated verbatim per `DECISIONS:113 (1)(c)`, the way B-NTC did it for NATIVE-CARRIERS. Not done here.
-* **F-D** — the runner has no seat for H3 (above).
-* **F-A / F-B** — two engine-tier findings measured in passing and routed, not closed: `proteinTarget` has no gated branch (`energy.cjs:116`), and `applyRead` has no first-read branch (`writers.cjs:451`), so a clean-init athlete's first weigh-in makes `trend` NaN. Neither is closable here: the engine stays byte-identical and any `trend` H3 wrote would be an invented bodyweight (H1).
-* **parent pins** — `parent.decided` is `false`, both sha fields `null`: the runner resolves the chosen artifact at `CHAIN_REF` and B-NTC is not merged there yet. Per `:116 (3)` only pins move after B-NTC seals.
+* **F-C — granted at `:142`, not declarable.** The runner's successor path is hard-coded to B-NTC-as-child: `SUCCESSOR_PACKAGES = new Set(['B-NTC'])` (`:156`), `SUCCESSOR_PARENT_COMMIT` (`:163`) and `SUCCESSOR_WRAPPER` (`:167`) are constants, and a substitution target must match `rebuild/m4/spec/*.cjs`. A `coverage.successors` block refuses `SUCCESSOR-PACKAGE-NOT-RULED H3`. Tooling: admit `H3` and take the parent commit/wrapper from the bound artifact. The substitution H3 will enumerate verbatim is in brief §9; note the scope is now three pinned files (`journey.test.mjs`, `writers.cjs`, `constants.cjs`), so all five carriers refuse until it exists.
+* **F-E — new tooling blocker** (above). Fix the writer or both readers, together.
+* **F-D — closed but REVIEW-PENDING**: the runner this `--ci` stands on is `b46b5fd`, under blind review r8.
+* **The two ledger lines**, per `:135 (2)`, appended by the lane once the PM accepts the brief BY NAME: a **THEME** line naming `M2-H3-CLEAN-INIT` and this brief path, and a **BRIEF-BY-SHA** line citing the brief by sha256 and ending in `ACCEPTED`, both in the `:122`/`:126` shape with the lineSha in the STATUS line. Until they stand on `origin/rebuild/t2-client-core`, `brief.acceptedLedgerLine` is `null` and `status` stays `PROPOSED`.
+* **F2 wording** — the leg/arm/core names the bundle lists are already `mg` labels that render identically and would break lane C's accepted cell 2.8 row 2; only the four BACK heads are added. Brief §5 states the disagreement and what would change lane B's mind.
 
 ## Commits — author `lane-b-builder-h3 <builder-h3@earned.local>`, not pushed
 
-`c602836` the change, the cells, the moved A0 cell, the brief, the spec · `f35c991` spec: parent stays UNDECIDED until B-NTC is on the chain ref · this report.
+`13f6639` merge the integrated B-NTC tip · `c3aae8f` merge the r7/r8 tooling runner · `98cbc5e` F-B, F2 LABEL, `setup.test.mjs` in CI, spec rebuilt on the merged parent · this brief v1.1 and report.

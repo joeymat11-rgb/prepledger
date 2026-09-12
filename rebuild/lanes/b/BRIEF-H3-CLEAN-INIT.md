@@ -1,10 +1,10 @@
-# BRIEF — M2-H3-CLEAN-INIT (lane B, child of M2-B-NTC)
+# BRIEF — M2-H3-CLEAN-INIT · v1.1 (lane B, child of M2-B-NTC)
 
-`DECISIONS:124` RULED: `createCleanInitState` writes neither `blackout` nor `model`, so the accepted engine **throws** for a brand-new athlete and Today stands on the preview's sample athlete (S2 blocker beside B-NTC). Rehearsed against the B-NTC candidate head `b8d5cc7` (`:116 (3)`); only pins move after B-NTC seals. Branch `rebuild/lane-b-h3`. `git diff b8d5cc7 -- rebuild/engine` is **empty**.
+**The bundle.** `DECISIONS:124` ruled H3: `createCleanInitState` wrote neither `blackout` nor `model`, so the accepted engine **threw** for a brand-new athlete and Today stood on the preview's sample athlete (S2). `DECISIONS:142` then judged H3's own findings and `:135 (5)` bundled F2's LABEL half into the same seal. This package therefore carries FOUR things: **H3** (the two members), **F-B** (an S2 blocker of its own: the first weigh-in must not make the trend NaN), **F2 LABEL** (`MG_LABEL` region heads), and the **`rebuild.yml` enumeration of `setup.test.mjs`** that `:142 (2)` option (b) rides on H3's seal. Parent: the sealed and INTEGRATED B-NTC artifact `87f4848c…` at `9ad2ecab`, receipt `:141`, integrated at `ce38aa3` (ledger `:144`). `sourceBase` is `ce38aa3`.
 
 ## 1 · READ-LIST
 
-`DECISIONS:124` · `rebuild/lanes/REQUESTS.md` 2026-09-11 20:45 ET (lane C's finding, throw sites) · `origin/rebuild/lane-c-a4:rebuild/m3/w7-preview/today/test/setup.test.mjs` cell `H3 - the accepted engine still cannot paint Today for a clean-init athlete` + `…/A4-REVIEW-ANNEX.md` §H3 (ported in §5) · `rebuild/m4/workout/athlete-state.cjs` · `rebuild/engine/{energy,sleep,writers,today,dates,seed,constants}.cjs` (§2) · `origin/rebuild/lane-c-a4:…/setup-model.mjs` (what setup collects) · `rebuild/lanes/b/tooling/README.md` + `packages/{H3,B-NTC}.json` · `BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md` §1–§6 · `PLAN-TRACK-B-PACKAGES-v1.md` §3.
+`DECISIONS:124` (the H3 ruling) · `:142` (F-A accepted as built; F-B inside H3; F-C granted in the `:113` shape; F-D is tooling; `setup.test.mjs` rides H3) · `:135 (5)` (the bundle) and `:135 (2)` (the lane appends its own theme/brief citation lines) · `:113 (1)` (the successor conditions a–e) · `rebuild/lanes/REQUESTS.md` 2026-09-11 20:45 ET (lane C's finding, with the throw sites) · `rebuild/m3/w7-preview/today/test/setup.test.mjs` (lane C's red-first H3 cell, S3, and provenance 2.8 row 2) · `rebuild/m4/workout/athlete-state.cjs` · `rebuild/engine/{energy,sleep,writers,today,dates,seed,constants,volume}.cjs` · `rebuild/m3/w7-preview/today/setup-model.mjs` (what the setup document collects; `REFUSAL_SENTENCES`; `MG_LABELS`) · `rebuild/lanes/b/tooling/README.md` + `packages/{H3,B-NTC}.json` · `BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md` §1–§6 · `PLAN-TRACK-B-PACKAGES-v1.md` §3.
 
 ## 2 · TRACE — every engine reader of `s.blackout` / `s.model` (32 hits, all listed)
 
@@ -25,81 +25,101 @@
 
 `bfEst` reads exactly four members: `anchorISO`, `lean`, `src`, `drip`.
 
-## 3 · THE MEMBER SET, AND EVERY VALUE'S DERIVATION
+## 3 · H3 — THE MEMBER SET, AND EVERY VALUE'S DERIVATION
 
-`REQUIRED_SETUP` is `athlete_label, split, exercises, priority_muscles` — **no bodyweight, no body-fat reading** (checked against lane C's `setup-model.mjs`). `split.from` is the athlete's setup date (A4 S6) and is the only value H3 derives anything from. Nothing comes from `seed.cjs:70/:78` (`lean 139.7`, `anchorISO "2026-07-21"`, `src "coach's eye"`, `SEAL_UNTIL`) — the H1 rule, executed both ways by H3/2.
+`REQUIRED_SETUP` is `athlete_label, split, exercises, priority_muscles` — **no bodyweight, no body-fat reading** (checked against lane C's own `setup-model.mjs`). `split.from` is the athlete's setup date and is the only value H3 derives anything from. Nothing comes from `seed.cjs:70/:78` (`lean 139.7`, `anchorISO "2026-07-21"`, `src "coach's eye"`, `SEAL_UNTIL`) — the H1 rule, executed both ways by H3/2.
 
     blackout: { until: <the day BEFORE split.from> }
     model:    { anchorISO: split.from, drip: null, src: null }
 
-* **`until` = the day before, not the setup date.** Nine of ten readers ask `daysUntil(until) > 0` (`dates.cjs:17`; on the day itself that is `0`), so either choice leaves no blackout in force. The tenth does not: `sleep.cjs:1879` is **inclusive**, and with `until = split.from` the first weigh-in comes back `dayWeather(split.from).flags = [{k:"sealwater", why:"scale carries event water — sealed window"}], noisy: true` — **measured**. One day earlier and the window is empty for every day he can ever have, because he cannot weigh in before he set the app up. Pure UTC arithmetic; the module still has no clock.
-* **`anchorISO` = `split.from`** — `weeksBetween` is 0 on day one, not a distance from a stranger's anchor. **`drip` = `null`** — the member's own documented absence: `dripOf` tests `d == null` and uses the engine's own `DRIP_DEFAULT` (`constants.cjs:68`, `0.0`). **`src` = `null`** — every reader compares `=== "DEXA"`; no scan and no eye is claimed.
-* **`lean` is DELIBERATELY NOT WRITTEN** — the one place :124's sketch would have invented a figure (**finding F-A**). Both candidates driven through the real screen:
+* **`until` = the day before, not the setup date.** Nine of ten readers ask `daysUntil(until) > 0` (`dates.cjs:17`; on the day itself that is `0`), so either choice leaves no blackout in force. The tenth does not: `sleep.cjs:1879` is **inclusive**, and with `until = split.from` the first weigh-in comes back `dayWeather(split.from).flags = [{k:"sealwater", why:"scale carries event water — sealed window"}], noisy: true` — **measured**. One day earlier and the window is empty for every day he can ever have. Pure UTC arithmetic; the module still has no clock.
+* **`anchorISO` = `split.from`**; **`drip` = `null`**, the member's own documented absence (`dripOf` tests `d == null` and uses the engine's own `DRIP_DEFAULT`, `constants.cjs:68`, `0.0`); **`src` = `null`**, since every reader compares `=== "DEXA"`.
+* **`lean` is DELIBERATELY NOT WRITTEN** — `:142 (3)` accepts F-A as built. Both candidates were driven through the real screen:
 
 | `model.lean` | `bfEst` | `proteinTarget` | `today-app.cjs:209` `Number.isFinite(g)` | Screen |
 | --- | --- | --- | --- | --- |
 | `null` | `lean: 0` (null coerces) | `g: 0, ffmKg: 0` | **true** | **"0 g protein"** |
 | absent | non-finite | `g: NaN` | false | **"Not available yet"** |
 
-With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100.0 % body fat**. `NaN` is no third option — `writers.cjs:424` `applyRead` round-trips through `JSON.parse(JSON.stringify(…))`, turning `NaN` into `null`, i.e. into the `0` above at the first weigh-in. An absent member survives absent.
+With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100.0 % body fat**. `NaN` is no third option — `applyRead` round-trips through `JSON.parse(JSON.stringify(…))`, turning `NaN` into `null`, i.e. into the `0` above.
 
-## 4 · THE HUNK
+**The two `closed()` codes are `STATE_BLACKOUT_MEMBER_SET` / `STATE_MODEL_MEMBER_SET`, deliberately NOT `CLEAN_INIT_*`.** That prefix is the athlete-facing refusal vocabulary: lane C's `setup.test.mjs` S3 asserts every `CLEAN_INIT_*` code this module can throw has a screen sentence and that the table names **exactly** those codes. These two are builder-side invariants over the module's own literals — no setup document any screen can produce reaches them — so minting `CLEAN_INIT_*` codes would have forced lane C to write screen copy for something no athlete can cause. Renaming them keeps S3 green with no edit to lane C's model.
 
-`rebuild/m4/workout/athlete-state.cjs` — the only product file H3 edits. pre (at `b8d5cc7`) `dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c` → post `318357b199bb782d1714b2b1baa193bacfc10d37fb4ef081d9b6c42f394dd1cb`. Four changes: (1) `BLACKOUT_MEMBERS`/`MODEL_MEMBERS`, exported, so a cell reads the closed set from the module's own declaration; (2) `dayBefore`/`dayAfter`, pure UTC arithmetic with a calendar round-trip guard (`2026-02-30` passes `checkSplit`'s shape test and would hand the engine a silently normalised window — it now refuses `CLEAN_INIT_SPLIT_REQUIRED / from must be a real calendar day`); (3) the two objects built, **pinned by `closed()`** (`STATE_BLACKOUT_MEMBER_SET`, `STATE_MODEL_MEMBER_SET`) and written into the state so `freezeDeep` reaches them; (4) the comment block carrying §2–§3. Still imports nothing from `rebuild/engine`.
+## 4 · F-B — THE FIRST WEIGH-IN (`DECISIONS:142 (3)`, S2)
 
-**One test cell also moves, and cannot not.** `rebuild/m3/w6/host/test/journey.test.mjs:122` asserted `for (const absent of ['trend','model','blackout','feedRules'])` — the very absence H3 closes. It now asserts the stronger thing (present; closed over the declared sets; each value the setup date or an absence; `lean` absent) and keeps `trend`/`feedRules` absent. pre `228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3` → post `aecb8fe4980ce65ebb6488310302458dffc9b15a30aeeae1238b8491287f1832`. Consequence: **finding F-C**.
+`rebuild/engine/writers.cjs` `applyRead` had **no first-read branch**: `s.trend = +(s.trend + 0.3 * dCl).toFixed(1)`. Every state it was built for arrived with a `trend` (seed, or migrate walking one forward). A clean-init athlete has none and must not, so his first weigh-in made `trend` **NaN** and every figure downstream stayed non-finite for good — the owner's own first weigh-in on 09-13 included.
 
-## 5 · CELLS — `rebuild/m4/workout/test/h3-clean-init.test.cjs` (new)
+**The rule, and it needs no owner ruling.** The seed is **the reading itself**: `if (first) s.trend = w;`. It invents nothing, it chooses nothing between alternatives that differ in what they claim about him, and the only number written is the one he typed. It is taken **verbatim rather than rounded**, because rounding would already be changing what he typed; from the second reading on the accepted 1-dp EMA is untouched. `first` is `!Number.isFinite(s.trend)`, so **every state that already carries a trend takes exactly the accepted path** — that is why the 45 laws and the census do not move. The branch runs before the sealed / off-window test: those govern how a reading MOVES an existing trend, not whether a level exists at all. `pt` on that first row is `null`, not `undefined`, because `undefined` would be dropped by the writer's own JSON round trip.
 
-**RED at `b8d5cc7`: 6 of 7 fail. GREEN after: 7 of 7, exit 0.**
+**What the chain reads before a second reading exists** (cell H3/9, all measured): `trend` = the reading · `reads[0].pt` = `null` · `reads[0].note` = `""` (no spike, seal or noise claim against nothing) · `weekly` = `[]` — one reading is not a week · `currentRate.measured` = `false`, `n` = 0 · `latestRead`/`morningRead` = the reading · and **F-A still holds**: `proteinTarget.g`/`bf`/`ffmKg` all non-finite, the protein slots still read "Not available yet". Every digit on the screen is his date, his lift count, or the number he put on the scale. **No invented figure reaches Today.**
 
-| Cell | Executes | RED at parent |
+## 5 · F2, LABEL HALF (`DECISIONS:135 (5)`) — AND THE ONE PLACE THE BUNDLE AND THE TREE DISAGREE
+
+`volume.cjs:74` buckets a lift by `e.head || e.mg`; `volume.cjs:32` renders the bucket with `MG_LABEL[k] || k`. A REGION HEAD needs an entry or it prints its key; a bare muscle label does not, because there the key IS the word. Added, keyed `<muscle>_<head>` exactly as the three delt heads already are:
+
+    back_lats: "lats" · back_upper: "upper back" · back_traps: "traps" · back_lower: "lower back"
+
+**The leg, arm and core names the bundle also lists are NOT added, and this is a disagreement the PM should see.** They are already the engine's own `mg` labels (`seed.cjs` `mg` values; `setup-model.mjs:26` `MG_LABELS`), so `|| k` renders each of them identically today — an entry would change **no character on any screen**. It would also break lane C's accepted provenance cell `setup.test.mjs` 2.8 row 2, which asserts the engine has no gloss table for the labels first-run collects. Cell H3/11 asserts lane C's own predicate directly so the two cannot drift. If the PM meant those names as *new head keys distinct from the muscle labels*, lane C's catalogue does not yet contain them (grep: the only region-head strings on the tip are the three delt keys), and lane B will add them the moment the catalogue names them. **The INDIRECT half stays with F1** — `INDIRECT` is asserted byte-for-byte unchanged by H3/11.
+
+## 6 · HUNKS (sha256, `ce38aa3` → HEAD)
+
+| File | Role | pre → post |
+| --- | --- | --- |
+| `rebuild/m4/workout/athlete-state.cjs` | new to the pinned inventory | `dccc5fb5…` → `cdf51db8…` |
+| `rebuild/engine/writers.cjs` | edited (F-B) | `00291236…` → `b57b8f8e…` |
+| `rebuild/engine/constants.cjs` | edited (F2 LABEL) | `954e4f4b…` → `e387579f…` |
+| `.github/workflows/rebuild.yml` | edited (`:142 (2)(b)`) | `839a79ab…` → `cf4b83c1…` |
+| `rebuild/m3/w6/host/test/journey.test.mjs` | edited (the A0 cell that asserted the defect) | `228c076d…` → `aecb8fe4…` |
+| `rebuild/m3/w7-preview/today/test/setup.test.mjs` | new to the pinned inventory (lane C's H3 cell flips) | `264358a0…` → `842e2f49…` |
+| `rebuild/m4/workout/test/h3-clean-init.test.cjs` | new | absent → `62f6651f…` |
+| `b-package.cjs`, `packages/B-NTC.json` | superseded-by-child (the r7/r8 tooling merge) | parent execution pins |
+
+`rebuild.yml`: `setup.test.mjs` joins the today step, named not globbed, and the standing note that said it was NOT enumerated is corrected to say why it now is. `journey.test.mjs:122` asserted `for (const absent of ['trend','model','blackout','feedRules'])` — the very absence H3 closes; it now asserts the stronger thing and keeps `trend`/`feedRules` absent. Lane C's `H3 - the accepted engine still cannot paint Today for a clean-init athlete` is **inverted, not deleted**: the same four states in the same order, the fourth now produced by the constructor — `:124`'s "the A4 red-first cell flips GREEN".
+
+## 7 · CELLS — `rebuild/m4/workout/test/h3-clean-init.test.cjs`
+
+**GREEN 11/11, exit 0. RED at the parent: 6/7 with the parent's `athlete-state.cjs`; 4/4 of the new cells (H3/8–11) with the parent's engine files.**
+
+| Cell | Executes | RED |
 | --- | --- | --- |
 | H3/1 | both members written; `closed()` pins each set; frozen; survives the engine's JSON round trip | yes |
-| H3/2 | every value is the setup date or an absence; no seed value anywhere; every setup-document value round-trips | yes |
-| H3/3 | **lane C's four states, ported**: throw on `until`; `blackout:{}` throws in `dates.cjs`; a valid blackout only moves the throw to `anchorISO`; **state 4 now paints from the constructor's own state** | yes |
-| H3/4 | all seven Today readers + `blackoutOn`/`dayWeather`/`weekWeather`/`observedTDEE`; no `sealwater`, `noisy:false`; the first weigh-in is not `sealed` | yes |
-| H3/5 | **no invented number**: `proteinTarget.g/ffmKg/bf` non-finite, protein slots read "Not available yet", no `NaN` on screen, the only digits are the date and the lifts he declared | yes |
+| H3/2 | every value the setup date or an absence; no seed value anywhere; every setup-document value round-trips | yes |
+| H3/3 | **lane C's four states, ported**; state 4 now paints from the constructor's own state | yes |
+| H3/4 | all seven Today readers + `blackoutOn`/`dayWeather`/`weekWeather`/`observedTDEE`; no `sealwater`; first weigh-in not `sealed` | yes |
+| H3/5 | **no invented number**: `g`/`bf`/`ffmKg` non-finite, slots read "Not available yet", the only digits are his date and his lifts | yes |
 | H3/6 | the gym card day+0 and day+3, a page load each, B-NTC's `lane`/`conductDay` helpers reused | no — green both sides, which is the point |
-| H3/7 | the six mutants, each on a private compilation of a copy | yes |
+| H3/7 | six named mutants, each on a private compilation of a copy | yes |
+| **H3/8** | **F-B red-first**: first weigh-in → trend finite and **equal to the reading**; `pt` null; second reading damped as today; a carried trend never re-seeds | **yes** |
+| **H3/9** | **F-B** the whole trend/pt/weekly chain before a second reading; F-A still holds; no NaN on screen | **yes** |
+| **H3/10** | **F2** `programmeVolume` buckets each new head on its own and `mgLabel` prints its label; a label with no head renders exactly as before; an unknown bucket still falls through | **yes** |
+| **H3/11** | **F2** `INDIRECT` byte-identical; lane C's 2.8-row-2 predicate holds; exactly seven head entries | **yes** |
 
-Lane C's cell asserted only `doesNotThrow` for state 4, over `{anchorISO, anchorLb, k}`. H3/5 is the bar that shape does not meet.
+**Mutants — six, each killed by a named cell.** M1 a member removed (H3/1, H3/3) · M2 `until` in the future (H3/2, H3/4) · M3 a copied seed value (H3/2, the H1 rule executed) · M4 a model member renamed (H3/1, H3/3) · M5 `closed()` skipped so the seed's `reason` drifts in (H3/1) · M6 a NaN date, the calendar round-trip guard removed (H3/7). A mutation whose `from` is not present exactly once refuses rather than applying to nothing.
 
-## 6 · MUTANTS — six, each killed by a named cell
+## 8 · UNMOVED, AND THE CENSUS
 
-| Mutant | | Killed by |
+| Suite | Parent `ce38aa3` | H3 |
 | --- | --- | --- |
-| M1 | a member removed — `blackout` loses `until` | H3/1, H3/3 state 2 |
-| M2 | `until` in the future — a blackout in force from day one | H3/2, H3/4 (`blackoutOn` true) |
-| M3 | a copied seed value — the owner's own anchor (`seed.cjs:70`) | H3/2, the H1 rule executed |
-| M4 | a model member renamed (`anchorISO`→`anchorIso`) | H3/1, H3/3 state 4 |
-| M5 | `closed()` skipped, so the seed's `reason` member drifts in | H3/1 (`Reflect.ownKeys`), H3/2 |
-| M6 | a NaN date — the calendar round-trip guard removed | H3/7 (`2026-02-30` slides into March) |
+| the **eight** enumerated today files | 268/268 exit 0 | **268/268 exit 0** (`setup.test.mjs` **104/104**) |
+| A0 `journey` + `engine-equivalence` | 23/23 | **23/23 exit 0** |
+| B-NTC provider `native-trend-context` | 39/39 | **39/39 exit 0** |
+| `local-host-journey` + `local-today-journey` | 68/68 | **68/68 exit 0** |
+| `copy.test.mjs` | 36/36 | **36/36 exit 0** |
+| the 45 register laws | `45 RED-frozen · 39 RED-candidate` | **identical line, exit 1** |
+| B-NTC's own carriers | green | **refuse — F-C, granted at `:142`** |
 
-A mutation whose `from` is not present exactly once refuses rather than applying to nothing.
+**Public census: byte-identical, PROVEN.** `node rebuild/conform/run.cjs` run twice on the same tree — once as it stands, once with `writers.cjs`, `constants.cjs` and `athlete-state.cjs` held out — gives two 81-line logs with the same sha256 `401706332af64b5cd2a78aae173b943f95aefc5b71a9897356a44ef7f6b55b5a` (21,338 bytes each). Clean-init is not in the census and the engine change is unreachable from any golden.
 
-## 7 · UNMOVED, MOVED, CENSUS
+## 9 · FINDINGS AND OPEN ITEMS
 
-| Suite | Parent `b8d5cc7` | H3 |
-| --- | --- | --- |
-| the seven enumerated today files | 164/164 exit 0 | **164/164 exit 0** |
-| A0 (`journey` + `engine-equivalence`) | 23/23 exit 0 | **23/23 exit 0** (with §4's moved cell) |
-| B-NTC provider (`native-trend-context`) | 39/39 exit 0 | **39/39 exit 0** |
-| `local-host-journey` / `local-today-journey` | 17/17, 51/51 | **17/17, 51/51** |
-| the 45 register laws | `45 RED-frozen · 39 RED-candidate`, exit 1 | **identical line, exit 1** |
-| B-NTC's nine own carriers | green | **all refuse at one pin — F-C** |
+* **F-A — accepted as built** (`:142 (3)`). `proteinTarget` (`energy.cjs:116`) still has no gated branch of its own; the view layer's `Number.isFinite` gate is what keeps a figure off the screen. H3/5 and H3/9 pin both halves.
+* **F-C — granted, NOT DECLARABLE BY THIS SPEC.** `:142` grants a successor for the B-NTC gate whose carrier pins `journey.test.mjs`. The runner's successor path is hard-coded to B-NTC-as-child-of-NATIVE-CARRIERS: `SUCCESSOR_PACKAGES = new Set(['B-NTC'])` (`b-package.cjs:156`), `SUCCESSOR_PARENT_COMMIT = 'b95ccca…'` (`:163`), `SUCCESSOR_WRAPPER = native-carriers-package.cjs` (`:167`), and a substitution target must match `rebuild/m4/spec/*.cjs`. Declaring `coverage.successors` refuses with `SUCCESSOR-PACKAGE-NOT-RULED H3`. **Tooling, one reviewed change:** admit `H3` and take the parent commit and wrapper from the bound artifact instead of a constant. The substitution H3 will enumerate, verbatim, once it can: in `rebuild/m4/spec/b-ntc-successors.cjs`, the `CHILD_SPEC` pin of `rebuild/m3/w6/host/test/journey.test.mjs`, `228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3` → `aecb8fe4980ce65ebb6488310302458dffc9b15a30aeeae1238b8491287f1832`. Note the scope is wider than one file now: F-B and F2 also move `writers.cjs` and `constants.cjs`, which the same `preflight()` pins, so all five carriers refuse until the successor exists.
+* **F-D — closed by the tooling, review-pending.** Runner `b46b5fd` on `rebuild/lane-b-tooling` carries `H3` in `NO_REGISTER_IDS` and the `pinned-unchanged` role. It is merged into this branch and is **under blind review r8**; H3's `--ci` therefore stands on a runner that is not yet accepted, and this brief states that rather than implying otherwise.
+* **F-E — NEW, and it blocks every child of B-NTC.** The artifact WRITER emits `product` as `{file: {pre, post, role}}` (`acceptance-b-ntc-native-trend-context.json`), while the grandparent artifact emits `{file: "<sha>"}` and `b-package.cjs` reads it as the latter — `held()` (`:1067`) compares a sha string to an object, so `pins()` refuses `PARENT-PIN-BROKEN-AT-SOURCEBASE rebuild/engine/plan.cjs` on the first entry. The same assumption appears a second time in the product `pre`-image check (`UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin`). Measured, not inferred: with the two readers normalised in a **probe copy** of the runner (never the runner), the same committed spec runs straight through — `PARENT PINS RE-ASSERTED … 53 product pins`, `PRODUCT IMPLEMENTED; 9 at the declared post-image / 0 at the pinned pre-image / 49 carried byte-identical / 0 unlisted drift`, `AUTHORITY OBSERVED owner :60 and contract :49`, `LAWS 45/45 executed` — and stops at F-C's `Required child source-carriers` and nothing else. **Tooling: fix the writer or both readers, together.**
+* **The two ledger lines this package still owes** (`:135 (2)`, the lane appends them itself once the PM accepts the brief BY NAME): a **THEME** line naming `M2-H3-CLEAN-INIT` and this brief path, and a **BRIEF-BY-SHA** line citing `rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md` by its sha256 and ending in the `ACCEPTED` terminal word, both in the `:122`/`:126` shape with the lineSha in the STATUS line. Until they stand on the chain branch, `brief.acceptedLedgerLine` is `null` and `status` stays `PROPOSED` — neither can be struck off by declaration.
 
-**Public census: untouched and byte-identical.** Clean-init is not in it — the census runs over the frozen app's goldens and `createCleanInitState` has none. Nothing under `rebuild/conform/goldens` is read or written and no engine byte moves, so the census line cannot differ. **No private fixture in this worktree**: `--full` stops at the BLOCKED line.
+## 10 · PROTECTED SURFACES · SIBLING NOTE
 
-## 8 · FINDINGS — routed, not papered over
+Never opened, hashed or quoted: `rebuild/conform/private/live.json` and the private `live.main` golden (absent from this worktree by design, so `--full` stops at the BLOCKED line); `rebuild/conform/goldens`. Two engine files change and both are proven inert against the census and the 45 laws above; every other file under `rebuild/engine` is byte-identical to `ce38aa3`.
 
-* **F-A · `proteinTarget` has no gate.** `energy.cjs:116` always returns a figure, unlike `calorieTarget`/`stepTarget` which return `{gated:true,…}`. For an athlete with no anchor it returns `NaN` (or `0` on the `lean:null` shape); what keeps that off the screen is `today-app.cjs:209`'s `Number.isFinite` gate — a **view-layer** guard, not an engine one. Engine tier, beside H1/H2; closing it needs an engine edit this package does not make. H3/5 pins both halves so it cannot drift.
-* **F-B · `applyRead` has no first-read branch.** `writers.cjs:451` `s.trend = +(s.trend + 0.3*dCl).toFixed(1)`. A clean-init state carries no `trend` — nor may it, the athlete has declared no bodyweight — so his **first weigh-in makes `trend` NaN** and every figure downstream stays non-finite. H3 does not close this and must not: any `trend` it wrote would be an invented bodyweight. Engine tier. Measured.
-* **F-C · H3 cannot close the item without moving a byte B-NTC pins.** B-NTC's spec and artifact pin `journey.test.mjs` in `product`, and all nine B-NTC carriers share one `preflight()` asserting every pin against disk — so §4's unavoidable cell move refuses them **at the pin**, before an assertion runs. This is the ordinary child re-pin (see §9), not a regression: **`228c076d… → aecb8fe4980ce65ebb6488310302458dffc9b15a30aeeae1238b8491287f1832` in `packages/B-NTC.json`, in `acceptance-b-ntc-native-trend-context.json` and in `b-ntc-journeys.cjs`'s own pin**, taken when H3 merges. An OPEN obligation of this package, and the PM's to authorise.
-* **F-D · the runner has no seat for H3.** `NO_REGISTER_IDS` is `{B-NTC, B-LOM}`, fixed in `b-package.cjs` (W7), so `--ci --package H3` refuses at `REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT H3`, **exit 1**, before the runner pin or any child. H3 genuinely has no D-id: `:124` rules it **engine-tier** beside H1/H2, and D1–D45 is the M2 audit register, none of which H3 repairs; declaring one would be a false spec. **For the tooling pass, one reviewed line:** add `'H3'` to `NO_REGISTER_IDS`. H3 then falls under TOOLING-REVIEW-r4 Y1 and owes its own executed children, which it has — `h3-cells` runs `rebuild/m4/workout/test/h3-clean-init.test.cjs`, declared `role: "new"`. This builder did **not** edit the runner.
-
-## 9 · PROTECTED SURFACES · SIBLING NOTE
-
-Never opened, hashed or quoted: `rebuild/conform/private/live.json` and the private `live.main` golden (absent here by design); `rebuild/conform/goldens`; every file under `rebuild/engine`.
-
-**Sibling note.** B1 re-pins `rebuild/m4/workout/athlete-state.cjs` at its rebase. H3 lands before B1 in the ruled order (B-NTC → H3 → B1 → B2 → B4 → B3), so B1's pre-image for that file is `318357b199bb782d1714b2b1baa193bacfc10d37fb4ef081d9b6c42f394dd1cb`, not `dccc5fb5…`. F-C's `journey.test.mjs` re-pin travels with it.
+**Sibling note.** B1 re-pins `rebuild/m4/workout/athlete-state.cjs` at its rebase. H3 lands before B1 in the ruled order (B-NTC → H3 → B1 → B2 → B4 → B3), so B1's pre-image for that file is `cdf51db8…`, and its pre-images for `writers.cjs`, `constants.cjs`, `rebuild.yml`, `journey.test.mjs` and `setup.test.mjs` are H3's post-images above, not the parent's.
