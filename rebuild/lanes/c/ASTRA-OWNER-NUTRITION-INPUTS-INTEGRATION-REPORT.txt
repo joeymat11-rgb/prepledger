@@ -1,0 +1,95 @@
+DURABLE NUTRITION INPUTS — DISTINCT LOCAL ASSEMBLY
+September 12, 2026. FILE ASTRA-OWNER-NUTRITION-INPUTS-JOIN.md at PM 3fdfc2c.
+Mechanical join, 58 focused checks and actual PWA build PASS.
+Factual input backend is bundled; no usable nutrition form/advice claim.
+
+(1) EXACT SOURCE / ROLE
+Integrator /root/owner_release_integrator, distinct from author and reviewer.
+Read NEXT/ROADMAP/LANES, current ASTRA-CHECKPOINT, full original independent
+910d5182dc555ca8a7ac406f0db380d9a2df2679, correction independent
+7bc403f3f2ef6c3307871c1d96ac4b3a8620c28c and both author reports/source delta.
+Root scoped-accepted corrected 26b511b after independent R1 closure.
+Verified owned codex/astra-owner-phone-integration clean at exact
+ead19136417075885b8dddbdc8e6ad681108c850 before mutation.
+Worktree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-phone-integration.
+Mechanical --no-ff merge 54b8eb0cfd4ad3a5fdcbcbe3375313b79ed928e2:
+first parent ead19136417075885b8dddbdc8e6ad681108c850;
+second parent 26b511b536de272c692f023555622cb69be8e231;
+correction parent 938913671d9dbd352f90adee963e4aef02cee43d;
+original input base 693b021f01d832a889f6933f2dcad2258431d808.
+No conflict or manual resolution. No integrator implementation/test changes.
+
+(2) EXACT DIFF / PRESERVED COMPOSITION
+Executed complete changed-file equality between ead1913..joined and
+693b021..26b511b: exactly 11 files. Each joined Git blob equals 26b511b:
+rebuild/client/index.cjs;
+rebuild/m3/w6/local/local-client.mjs, local/today-bindings.mjs, t2-stage.cjs;
+rebuild/m3/w6/test/nutrition-inputs.test.mjs;
+rebuild/m4/nutrition/inputs-wire.cjs, inputs-history.cjs, inputs-boundary.cjs,
+inputs-contract.md;
+rebuild/lanes/c/ASTRA-NUTRITION-INPUTS-REPORT.txt and
+ASTRA-NUTRITION-INPUTS-CORRECTION-REPORT.txt.
+All other tracked source unchanged: accepted lifecycle, shared scale arithmetic,
+nutrition display and phone source remain exact. Unfinished scale Today/form
+work was not incorporated. Earlier reports remain historical evidence.
+
+(3) ACTUAL COMBINED EXECUTION
+Retained Node v24.19.0, existing root/W6/W5 dependency junctions; no install.
+TZ=America/New_York; MEASURED_TEST_NOW=2026-09-03;
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules;
+EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this integration worktree.
+BASE is the parent work directory above.
+node --test rebuild/m3/w6/test/nutrition-inputs.test.mjs
+  rebuild/m3/w6/test/local-client.test.mjs
+  rebuild/m3/w6/test/local-initial-setup.test.mjs
+PASS 58/58 = 14 inputs + 44 existing client/setup checks; zero failures/skips/
+cancellations, exit 0. Actual Today concurrent R1 check: intended acknowledged
+true; raw acknowledged false/NUTRITION_INPUT_PREPARATION_REQUIRED; one note.
+Held encryption, prompt raw refusal, no early Saved, legitimate retry, competing
+weight/CAS staleness, quota, expiry, integrity and postcommit reopen controls pass.
+
+The focused shared-store journey executed actual immutable setup enrollment,
+reviewed synthetic goal/complete recorded plan, durable input save, actual weight
+170, Start/40x10-effort2/Finish, derived-cache removal and independent reopen.
+One athlete/device/lease across records; original input projection and initial
+setup survive; following-day 40lb prescription and Start work. Inputs remain
+local factual records: accepted current and effectivePlan null, advice not_qualified.
+This is actual local-client/stage/encrypted repository execution with synthetic
+IndexedDB and Node webcrypto, not a browser/physical-phone or hosted-lease proof.
+
+(4) ACTUAL BUILD / INVENTORY
+Preserved prior outputs in owned ignored .tmp/pre-nutrition-inputs-slice-pwa-dist/
+and .tmp/pre-nutrition-inputs-w7-today-dist/ before rebuilding.
+node rebuild/slice/pwa/build-pwa.mjs: A5 PWA BUILD PASS, exit 0; 13 files,
+11 precached/pinned assets, 13 exact header rules; approved colors and existing
+private-shape/path/no-network-reference guards PASS.
+Output .tmp/slice-pwa-dist/; Today output .tmp/w7-today-dist/.
+Actual build metadata includes all three new input modules, SHA256:
+inputs-wire.cjs 99c1d432ade8c5f55ca0b658e91221a9bd65c01bf3cbe2047e59a9ed3db8bb90
+inputs-history.cjs 2d71d290ff391c49d640166c367bba150a309d11bf1d85c88a194f77f2213176
+inputs-boundary.cjs 535d0a3d8a0f01cce50d848873d2f127f04e13e277423935539e8b8226f19c2f
+Client wire construction, staged admission, closure-private reviewed execution
+and Today read/prepare/commit forwarding are present. No visible form consumes
+those methods yet. Native scale-feedback.mjs remains absent from bundle inputs.
+Direct output Buffer comparison: nine PWA files unchanged; app/index/sw/headers
+updated. Today index/styles unchanged; app.js changed. No whole-artifact equality
+claim against the prior build. App SHA256
+5035c2d43a0f7860224027b6ca4cc2a9a155232491abcc43b385e975bff920ad;
+cache earned-slice-f303ccb0ff0d402479cf4fc48bb631e4.
+Ignored .tmp/nutrition-inputs-artifacts.json SHA256
+3bb9954ef5d0252662e693b72a143d70fe1c1cb86030e00796aa0c6740892d98.
+
+(5) REUSE / REMAINING QUALIFICATION
+Reused unaffected frontend/layout/browser evidence only for unchanged paths;
+changed shared-store behavior ran in the focused journey above. No broad browser,
+full engine/private or CI campaign repeated. Inherited local-today-journey remains
+103/105 with two failures (old page-pin assertion and parent), not relabeled PASS;
+its source/page pin was not edited or rerun. Full source/engine qualification,
+including new scale dependencies, remains required. Stable BNTC413/07f unchanged.
+U1/U2 complete intake/selection, U3/U4 physiological qualification, U5 four-field
+advice/UI, hosted adoption and actual phone acceptance remain open. A bundled
+capture backend is not usable nutrition UI or an effective prescribed plan.
+No PR51/B1, actual rebuild/t2-client-core/PR merge, push, deployment, private
+data, frozen laws/oracles, source pins, workflows, lock churn, installation,
+other tree edits or protected-soak operation. git diff --check PASS. Only this
+report added beyond the mechanical accepted source merge; no self-acceptance.
