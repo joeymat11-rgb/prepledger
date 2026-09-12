@@ -52,3 +52,67 @@ Cells **13/13, exit 0**. RED-first: **5/5** (H3/8–12) against the parent's `wr
 ## Commits — author `lane-b-builder-h3 <builder-h3@earned.local>`, not pushed
 
 `…9a01d6b` (v1.3) · merge `dac3af9` · merge `978d821` · `5e6e7c9` option B + runner re-pin · this brief v1.4 and report.
+
+---
+
+# FIX r2 — H3-REVIEW-r2 APPLIED, AND THE ONE BLOCKER THAT REMAINS
+
+Branch `rebuild/lane-b-h3`, author `lane-b-builder-h3c`, nothing pushed. Runner of record `4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3` (`rebuild/lane-b-tooling` @ `17341d5`). Brief of record v1.9, sha256 `67e95134b2c48f0c175f3481575854e03e685f6ce50fbf97efe041a459f5b301`, 34,208 bytes, 175 lines. Review of record `rebuild/lanes/b/reviews/H3-REVIEW-r2.md` (ACCEPT WITH CHANGES), sha256 `a9b4854ffe88db70261e1aa31fbc6945764e9d4019b33d0aa71314091a625de3`, 16,465 bytes, committed here under `lane-b-reviewer-h3 <reviewer-h3@earned.local>`.
+
+`origin/rebuild/t2-client-core` is merged `--no-ff` and **is an ancestor of HEAD** (`git merge-base --is-ancestor` exits 0), so `DECISIONS:145`'s ancestry rule holds. The tip carries `DECISIONS:165` (THEME) and `:166` (BRIEF ACCEPTED BY SHA) for this package. **The spec does not cite them, and cannot** — §r2-1.
+
+## r2-1 · THE BLOCKER: `:165` AND `:166` CANNOT BE CITED BY THIS RUNNER
+
+Both lines were located on the chain branch by their own bytes:
+
+| Line | sha256 of its exact bytes | terminal | role segment |
+| --- | --- | --- | --- |
+| `DECISIONS:165` THEME | `48496d9fe6907f845933af72151dc15e09f17e10702081dc96470c03fcea5dd3` | `· ACCEPTED` ✓ | `· cowork (lane B, per DECISIONS:135 (2)) ·` |
+| `DECISIONS:166` BRIEF-BY-SHA | `4816ca9b3ed613f4130802fb11613a1d92cee144fd648d8f3ba4fd261cf60a21` | `· ACCEPTED` ✓ | `· cowork (lane B, per DECISIONS:135 (2)) ·` |
+
+`:166` carries this brief's path, the binding sha256 `67e95134…` and the byte count 34208 — all three checked against the spec's own pin before anything else was attempted.
+
+**Why they refuse.** `rebuild/conform/v4/postfix/legacy-gates.cjs:24` reads `if(role&&!new RegExp(' · '+role+' · ').test(found[0]))fail('RECEIPT-ROLE');` — the located line must carry the declared role **between two `·` separators, as the whole of that clause**. The role a spec may declare is not free: `b-package.cjs:1385` is `claim(s.authorizations.theme, 'cowork', 'theme')`, `:1220` is `claim(s.brief.acceptedLedgerLine, 'cowork', 'brief acceptance')`, and `claim()` (`:828`) asserts `v.role === role`. So the spec must say `cowork` and the line must read `· cowork ·`. These two read `· cowork (lane B, per DECISIONS:135 (2)) ·`.
+
+**Measured, both ways.** With both citations written into the spec in exactly `packages/B-NTC.json`'s shape — `{ledgerLine, role, line, lineSha256}`, the line taken verbatim out of Git on the chain branch and the sha computed from those bytes, never retyped — `--ci` fails **`B PACKAGE H3 FAIL RECEIPT-ROLE`, exit 1**, which is strictly worse than leaving them out. Declaring `role: 'cowork (lane B, per DECISIONS:135 (2))'` instead is refused by `claim()` before the line is read. B-NTC's own `:122`/`:126` read `· cowork ·` and pass, and **80 other lines** of `rebuild/DECISIONS.md` use the bare form: these two are the deviation. This is **not** a runner defect (the runner is doing what every other citation in the tree satisfies) and **not** a spec-truth problem lane B can fix (the bytes are the PM's).
+
+**THE FIX, one clause in each line.** Re-write the role segment of `:165` and `:166` as bare `· cowork ·` and move the qualification into the prose, exactly as `:122`/`:126` do — e.g. `- 2026-09-12 · cowork · THEME M2-H3-CLEAN-INIT (lane B, per DECISIONS:135 (2)) — …`. Nothing else in either line changes, and **`:166`'s binding sha256 is unaffected because the brief is not touched**. Lane B has therefore left `authorizations.theme` and `brief.acceptedLedgerLine` at **`null`** with `status` `PROPOSED`, so `--ci` stands at `CI REVIEW-PENDING: 2 open obligation(s)`, exit 2 — the two being exactly theme and brief. Once the lines are re-written, citing them is a three-field spec edit and the package reaches `PUBLIC CI EVIDENCE PASS`.
+
+*Recorded for the sealer, measured:* with a citeable `:166`, `status` must also move to `BRIEF-ACCEPTED` or `b-package.cjs:1221` refuses `BRIEF-ACCEPTANCE-STATUS`.
+
+## r2-2 · ERRATA AGAINST THE BRIEF — r2's DOC CORRECTIONS, RECORDED HERE BECAUSE `:166` PINS THE BRIEF'S BYTES
+
+`:166` accepts the brief **by sha256 `67e95134…`**; editing the file would void that citation and need a fresh PM line. All five corrections are documentation-only — **not one changes a measurement, a pin, a cell or a verdict.**
+
+1. **The four self-version strings are stale BY CONSTRUCTION.** The text calls itself v1.6/v1.7/v1.8 in four places, including `§9`'s "so the BRIEF-BY-SHA line must cite v1.8", which should read **v1.9**. A document whose bytes are pinned by a line accepting those bytes cannot correct its own version string without changing the sha just accepted. **Read every self-reference as v1.9**; the header line is authoritative and does say v1.9.
+2. **`§9`'s runner shas** mention the earlier runners `c609cf71…` / `c8dfdd49…`. The runner of record is **`4482bb8a…`** (`17341d5`) — what `packages/H3.json` pins and what every run quoted here used.
+3. **`h3-supersede-inherited-carriers.test.cjs`'s header promise.** It says the cell proves "(a) … **and** (b) the two it does declare are held to a DIFFERENTIAL", which reads as two differentials in one file. The file has **three** cells: H3/SUP-5 the unchanged-prior-module half over the real inventory; H3/SUP-6 the **constants** differential (exactly one exported key moves, four keys added, no existing gloss touched); H3/SUP-7 that no producer on the tree sets those four keys. The **writers** differential lives in `h3-supersede-writers-differential.test.cjs` (H3/SUP-8/9/10). Read (b) as "the constants file it declares is held to a differential, and the writers file to its own carrier's". No assertion is affected.
+4. **`§7`'s red-first count.** The brief says "**RED at the parent: 1 pass / 13 fail**". Re-measured on this head with the parent's `athlete-state.cjs` **and** both engine files: **2 pass / 12 fail** — H3/6 (the gym card) and H3/13 (the CI-line guard) pass and neither is red-first by design. r2 is right. With **only** `athlete-state.cjs` reverted it is **4 pass / 10 fail** (H3/10 and H3/11, the F2 LABEL cells, also pass because `constants.cjs` is still H3's).
+5. **The sibling note's athlete-state sha.** It cites `e1e05a63…` as B1's pre-image for `rebuild/m4/workout/athlete-state.cjs`; that was v1.8's post and the `sleep.needed` fold moved it. The post of record — declared by `packages/H3.json` and on disk — is **`d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c`**, so **B1's pre-image for that file is `d0e26f74…`**.
+
+**IF THE SEALER OR THE PM PREFERS A RE-PIN**, lane B will issue v1.10 with all five corrected in place; that needs one new BRIEF-BY-SHA line carrying the new sha256, superseding `:166`. Lane B does not choose: the errata route costs no ledger line, the re-pin route costs one and leaves no stale strings.
+
+## r2-3 · THE RUN, ON THE REAL CHAIN
+
+`--ci --package H3` → **exit 2**. After `LAWS 45/45 executed | TOTAL 45 laws · 45 RED-frozen · 39 RED-candidate · 89 GREEN repair controls · 97/104 mutant executions DETECTED · 0 HARNESS_ERROR · AUDIT RED-FIRST FAIL` and `LAWS DECLARED-STATE 45/45 …`: `CARRIERS NONE DECLARED`; all **ten** declared children `OBSERVED; exit 0`; `COVERAGE 0/19 original gate(s) covered by 0 executed child(ren) (0 inherited…); 9 SUPERSEDED`; `SUPERSESSIONS 5 byte-identity carrier(s) of B-NTC SUPERSEDED over 9 gate(s) under DECISIONS:160, located on refs/remotes/origin/rebuild/t2-client-core BY ITS OWN SHA256 3746ff573af4`; five `SUPERSEDED <carrier> <- <gates>` and five `SUPERSEDED EVIDENCE` lines, each naming `engine-files differential engine-files-differential over 27 file(s)`; `NO-REGISTER OBLIGATION … 8 of 8 declared child(ren)`; then
+
+```
+B PACKAGE H3 OPEN theme ledger line accepting this brief is null (THEME-AUTHORIZATION-UNAVAILABLE before any receipt)
+B PACKAGE H3 OPEN brief rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md not accepted by a PM ledger line
+B PACKAGE H3 OPEN closed cumulative profile not sealed
+B PACKAGE H3 CI REVIEW-PENDING: 2 open obligation(s); public evidence only; no PASS is claimed
+```
+
+`--full --package H3` → **`B PACKAGE H3 BLOCKED REQUIRED-PRIVATE-PREPARATION-MISSING`, exit 2**.
+
+## r2-4 · COUNTS, RE-RUN ON THIS HEAD
+
+`h3-clean-init.test.cjs` **14/14** · the five `h3-supersede-*.test.cjs` **16/16** (4 · 3 · 3 · 3 · 3; RED on the parent's engine bytes 3 · 3 · 2 · 2 · 1) · `h3-engine-files-differential.cjs` exit 0, 27 files, 3,048 bytes · the eight enumerated today files **321/321** (`setup.test.mjs` **157/157**) · A0 **23/23** · B-NTC provider **39/39** · `local-host-journey` + `local-today-journey` **68/68** · `copy.test.mjs` **36/36** · the 45 register laws `45 RED-frozen · 39 RED-candidate` · public census 81 lines, 10,587 bytes raw, sha256 `189cbcc56381157e660be8b7a25bb64b24999256690a1bf62eef5952567e6e84`, unchanged.
+
+## r2-5 · STILL OPEN
+
+* **The seal**, and behind it the two citations of §r2-1 — the only thing between this package and `PUBLIC CI EVIDENCE PASS`.
+* **F-G** `sleep.cleanH`: two engine-stated defaults (`|| 7.5` at `sleep.cjs:1071`, `|| 8` at `sleep.cjs:925`), so a clean-night run stays 0 however well he sleeps. Held open by an assertion in H3/S1; not on Today's projection; needs a ruling.
+* **F-H**: the tip's `catalogue.test.mjs` and `problem.test.mjs` are named nowhere in `.github/workflows/rebuild.yml` — 2 of the 11 files under that directory run nowhere in CI. Beyond `DECISIONS:142 (2)(b)`, so not lane B's to apply; cell H3/13 asserts the exact state.
+* **F-A** unchanged: `energy.cjs:117 proteinTarget` has no gate of its own; the view layer's `Number.isFinite` keeps the figure off the screen.
+* **H3-CORE** stands at `rebuild/lane-b-h3-core` @ `b9a5850` as the `DECISIONS:147` contingency fallback, unchanged.
