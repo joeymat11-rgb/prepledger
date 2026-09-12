@@ -26,6 +26,9 @@ const { plainOrDrop } = require("./plain-copy.cjs");
    module and this file only gathers what the page can honestly observe and hands it
    over. Nothing here reads a store, and the control writes nothing at all. */
 const ProblemReport = require("./problem-report.cjs");
+/* N1 (DECISIONS:143) - the nutrition entry's own words, its refusals and the projector
+   the adapter replays a stored food day with. Pure: no DOM, no store. */
+const FoodModel = require("./food-model.cjs");
 
 const NUMBER = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const ARROW = '<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
@@ -83,6 +86,52 @@ const NOT_WIRED = "Not wired yet";
    ONE sentence rather than a phone-dependent one this page has no way to choose
    between - it cannot know whose phone it is until the first run has named him, and
    the control has to work before that. Recorded as a REQUESTS line for the PM. */
+/* N1 (DECISIONS:143) - every word the nutrition entry can put on the screen. They are
+   HERE, in a view source, because design.cjs's copy binding reads VIEW_SOURCES and
+   test/design.test.cjs pins that list; food-model.cjs owns the RULE and names each
+   refusal by code, this file owns the wording. All of them are preview-owned: the
+   approved 2026-09-08 nutrition screen shows targets and has no entry on it, so the
+   prototype has no words for recording an intake, refusing one, reading one back, or
+   having no target to show at all. */
+const FOOD_HEAD = "Today's intake";
+const FOOD_LEAD = "Enter what you actually ate today. Either figure on its own is enough.";
+const FOOD_CAL_LABEL = "Calories eaten";
+const FOOD_PRO_LABEL = "Protein eaten";
+const FOOD_SAVE = "Record today's intake";
+const FOOD_SAVED = "Recorded today";
+const FOOD_CORRECTION = "Recording it again replaces today's figures.";
+const FOOD_REFUSED = "This intake could not be recorded on this device, and no part of it was recorded.";
+const FOOD_NO_TARGETS = "Earned has no calorie band or protein target for you yet: it needs a starting estimate of your body composition, which this device has not recorded. Your intake is still yours to record, and it is kept.";
+const FOOD_NOT_PRESCRIBED = "Not prescribed. The engine issues no carbohydrate or fat target.";
+/* D2 ROUND 1 - A REFUSAL THE ATHLETE CAN ACT ON (finding 3), AND A DAY THE ENGINE
+   CANNOT READ BACK (finding 1). Every refusal this screen shows now says three things:
+   WHAT was refused, WHY in the words of whatever refused it, and WHAT TO DO next. The
+   why is never reworded here: a client refusal arrives with its own copy, and where
+   there is no copy the code it named is shown as the code it named. */
+const FOOD_REFUSED_ACTION = "Your figures are still in the boxes above. Record them again, and if it keeps failing, report a problem from Today.";
+const FOOD_REASON = "The store's own reason: ";
+const FOOD_NO_STORE = "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.";
+const FOOD_OPENING = "Opening this device's encrypted store.";
+/* The sentence this screen has always carried about the PLAN behind it, which N1 did
+   not build and which Today's NOT_WIRED marker describes the same way. Byte identical
+   to the literal it replaces: view.test.mjs is pinned on disk by B-NTC and asserts it. */
+const FOOD_PLAN_UNWIRED = "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.";
+/* D2 ROUND 2, R2-1 - A COMMIT AND A READ ARE TWO OUTCOMES, AND SO ARE THEIR SENTENCES.
+   An acknowledged intake is recorded whatever the read that follows it does; an intake
+   whose save threw before it answered is genuinely UNKNOWN, and this screen says which
+   of the two happened rather than asserting that nothing was stored. */
+const FOOD_SAVED_UNREAD = "Earned could not read today's record back just now, so what is shown here may not be the whole day.";
+const FOOD_UNKNOWN = "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.";
+const FOOD_READ_ACTION = "Nothing you entered is lost. Read today's record again below, or open Earned again on this device.";
+const FOOD_READ_RETRY = "Read today's record again";
+const FOOD_KEPT_UNREADABLE = "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.";
+/* One sentence per refusal code, and no code without one. */
+const FOOD_REFUSAL_COPY = Object.freeze({
+  NOTHING: "Enter calories, protein, or both. Nothing was recorded.",
+  CAL_RANGE: "Calories are recorded as a whole number between 0 and 20000. Nothing was recorded.",
+  PRO_RANGE: "Protein is recorded as a whole number of grams between 0 and 1000. Nothing was recorded.",
+});
+
 const PROBLEM_ENTRY = "Report a problem";
 const PROBLEM_COPIED = "Copied. Send it to Joe.";
 const PROBLEM_SELECT = "Select all and copy, then send it to Joe.";
@@ -196,6 +245,87 @@ function mountToday(doc, model, options = {}) {
   const setup = options.setup || null;
   const firstRun = () => !!(setup && typeof setup.firstRun === "function" && setup.firstRun() === true);
 
+  /* N1 - THE FOOD LANE, and why this module opens it rather than boot().
+
+     The four other lanes are opened by today-entry.mjs boot() and injected here. That
+     file is PINNED ON DISK by the merged B-NTC artifact through
+     rebuild/m3/w6/test/local-today-journey.test.mjs PAGE_PINS, so it cannot gain a
+     fifth lane until DECISIONS:154 (5) unpins it. N1 therefore takes the same
+     injection point for its tests (`options.food`) and, when the page was given none,
+     opens its own lane from here - once, asynchronously, and failing CLOSED: a device
+     that will not give this page an encrypted store offers no entry and records
+     nothing, and (D2 round 1, finding 3) says so in words the athlete can act on
+     rather than claiming the feature was never built. That is why every jsdom mount in
+     this repository is unchanged by N1: jsdom has no indexedDB.
+
+     The lane object is a READER plus a writer, never a store: `rows()` is synchronous
+     because the adapter's projector is, and it is refreshed from the durable log after
+     every write rather than from the screen's own memory. */
+  let foodLane = options.food || null;
+  let foodOpening = null;
+  let foodSaving = null;
+  /* D2 round 1, finding 3 - the CAUSE of a lane that would not open, kept rather than
+     swallowed, so the screen can say why instead of claiming the feature is unbuilt. */
+  let foodLaneFailure = null;
+  /* D2 round 2, R2-1 - what is known about the LAST write whose read-back did not
+     land: `{state: "unavailable"|"unknown", day, code}`. "unavailable" means the client
+     acknowledged the op and only the read failed, so the day below is a FACT. "unknown"
+     means the save itself threw before it answered, so nothing may be claimed about it
+     either way. Cleared the moment a read succeeds. */
+  let foodReadBack = null;
+  if (foodLane && typeof model.setFoodDays === "function") model.setFoodDays(foodLane);
+
+  function foodEntryFor(host, rows) {
+    let cache = rows;
+    return {
+      host,
+      rows: () => cache,
+      async refresh() { cache = await host.all(); return cache; },
+      /* D2 ROUND 2, R2-1 - THE COMMIT AND THE READ-BACK ARE TWO OUTCOMES. The op is
+         durable the moment the client acknowledges it. A read that fails afterwards
+         changes nothing about that, and used to reject out of here and take the
+         acknowledgment, the screen and the event promise with it. It is reported
+         instead, so the caller can keep what it knows and offer the read again. */
+      async save(day) {
+        const result = await host.save(day);
+        if (!result || result.ok !== true) return result;
+        try { await this.refresh(); return { ...result, readBack: true, readCode: null }; }
+        catch (error) {
+          return { ...result, readBack: false,
+            readCode: (error && (error.code || error.message)) || "FOOD_READ_BACK_FAILED" };
+        }
+      },
+      close() { host.close(); },
+    };
+  }
+
+  function openFoodLane() {
+    if (foodLane || foodOpening) return foodOpening;
+    const view = doc.defaultView || null;
+    const idb = (view && view.indexedDB) || (typeof globalThis !== "undefined" ? globalThis.indexedDB : undefined);
+    const web = (view && view.crypto) || (typeof globalThis !== "undefined" ? globalThis.crypto : undefined);
+    if (!idb || !web || !web.subtle) { foodLaneFailure = "NO_LOCAL_STORE"; return null; }
+    foodOpening = Promise.resolve()
+      .then(() => import("./food-host.mjs"))
+      .then((module) => module.createFoodHost({ day: model.today, indexedDB: idb, crypto: web }))
+      .then(async (host) => {
+        const lane = foodEntryFor(host, await host.all());
+        foodLane = lane;
+        if (typeof model.setFoodDays === "function") model.setFoodDays(lane);
+        if (screen === "today" || screen === "nutrition") render(screen, false);
+        return lane;
+      })
+      .catch((error) => {
+        /* `foodOpening` is deliberately LEFT SET: one attempt per mount. A cleared
+           handle would let every repaint reopen a store that has already refused. */
+        foodLane = null;
+        foodLaneFailure = (error && (error.code || error.message)) || "FOOD_LANE_UNAVAILABLE";
+        if (screen === "nutrition") render(screen, false);
+        return null;
+      });
+    return foodOpening;
+  }
+
   let screen = "today";
   /* A3 review F7 — BACK RETURNS WHERE THE ATHLETE CAME FROM. The check-in is reachable
      from two places, and "back" from it must not silently move the athlete: entered
@@ -306,7 +436,13 @@ function mountToday(doc, model, options = {}) {
       : view.workout.exerciseCount + (view.workout.exerciseCount === 1 ? " exercise" : " exercises")
         + " · " + (sessionState || "Your set targets are ready"));
 
-    for (const name of ["nutrition-state", "coach-state"]) put(map, name, NOT_WIRED);
+    /* N1 - the nutrition entry says what the DURABLE record says once this device has
+       a food lane, and keeps A1's unwired marker until it does. With no lane there is
+       nothing to record and nothing to report, which is the state the marker has
+       always described. Written straight, like the check-in's, so a day with nothing
+       recorded says NOTHING rather than a placeholder the athlete never entered. */
+    map.get("nutrition-state").textContent = plainOrDrop(nutritionState(), "nutrition-state");
+    put(map, "coach-state", NOT_WIRED);
     /* Written straight, not through put(): when nothing is recorded this slot says
        NOTHING. An empty check-in is empty, and a placeholder sentence would be the
        page inventing a state the athlete never entered. */
@@ -443,8 +579,19 @@ function mountToday(doc, model, options = {}) {
   }
 
   /* ---------------- entry points that are NOT wired ---------------- */
+  /* H3 HONESTY, AT THE ONE SCREEN THAT ONLY PAINTS TARGETS (DECISIONS:124 / :142).
+     The engine cannot produce a calorie band or a protein target for a clean-init
+     athlete yet: energyBalanceTarget and proteinTarget do not return a blocked view,
+     they THROW on his state. This screen therefore reads defensively - an unreadable
+     view is NO FIGURE and the reason, never a zero and never a stack trace - so that
+     his intake entry below is still usable on the day he finishes setup. When H3
+     lands this branch simply stops being taken. */
+  function readOrNoTargets() {
+    try { return model.read(); }
+    catch (_) { return { blocked: true, blockedCopy: null }; }
+  }
   function renderNutrition(focus) {
-    const view = model.read();
+    const view = readOrNoTargets();
     const root = template("t-nutrition");
     const map = slots(root);
     const host = map.get("macros");
@@ -479,9 +626,211 @@ function mountToday(doc, model, options = {}) {
       row.append(top, note);
       host.append(row);
     }
-    put(map, "stub-note", "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.");
+    /* N1 - the entry, and the one sentence under it.
+
+       WITHOUT A FOOD LANE there is nothing to record into, and the screen says which
+       of the two true things happened: the store is still opening, or it refused and
+       here is its reason. With the lane open the screen records. */
+    if (!foodLane) {
+      /* D2 round 1, finding 3 - WHAT cannot happen, WHY, and WHAT TO DO, FIRST. The
+         only sentence here used to be the unwired-screen one, which answered none of
+         the three: what is actually true of a device with no entry is that THIS DEVICE
+         would not open a store, and that is now what it says and what it tells him to
+         do about it. The attempt is made BEFORE the sentence is chosen, so a store
+         that is still opening says it is opening rather than that it failed.
+
+         THE UNWIRED SENTENCE STAYS, LAST, AND IT IS STILL TRUE: the full nutrition
+         PLAN behind this tile is genuinely unbuilt, which is what Today's own
+         NOT_WIRED marker says about it too. It is also load bearing under custody -
+         rebuild/m3/w7-preview/today/test/view.test.mjs is pinned ON DISK by the merged
+         B-NTC artifact (DECISIONS:144) and asserts it here, so this build cannot
+         remove it and does not try; it demotes it below the sentence the athlete can
+         act on instead. */
+      const opening = openFoodLane();
+      const why = opening && !foodLaneFailure ? FOOD_OPENING
+        : foodLaneFailure ? FOOD_NO_STORE + " " + FOOD_REASON + foodLaneFailure + "."
+          : FOOD_NO_STORE;
+      put(map, "stub-note", why + " " + FOOD_PLAN_UNWIRED);
+    } else {
+      /* H3 HONESTY (N1.11, DECISIONS:124 / :142). Before H3 lands, the engine has no
+         calorie band and no protein target for a clean-init athlete: proteinTarget and
+         energyBalanceTarget both throw on his state, so this screen paints NO FIGURE
+         and says why. The entry below still records - his intake is his fact, and the
+         target is the engine's. This branch flips to the figures the moment the
+         engine can produce them; nothing here has to change for it. */
+      put(map, "stub-note", view.blocked ? FOOD_NO_TARGETS : FOOD_NOT_PRESCRIBED);
+      foodEntry(map);
+    }
     wire(root);
     show(root, focus);
+  }
+
+  /* N1 - TODAY'S INTAKE. Two optional boxes, one primary action, and a read-back that
+     comes from the PROJECTED engine state rather than from what was typed. Every
+     refusal is the page's own sentence and is decided before anything is written; no
+     value is ever clamped into range. A second save for the same day is a CORRECTION:
+     it writes a NEW operation and the projector takes the latest for that date. */
+  function foodEntry(map) {
+    const section = map.get("food-entry");
+    if (!section) return null;
+    section.hidden = false;
+    put(map, "food-head", FOOD_HEAD);
+    put(map, "food-lead", FOOD_LEAD);
+    put(map, "food-cal-label", FOOD_CAL_LABEL);
+    put(map, "food-pro-label", FOOD_PRO_LABEL);
+    put(map, "food-save-label", FOOD_SAVE);
+    const error = map.get("food-error");
+    const recorded = map.get("food-recorded");
+    const cal = map.get("food-cal");
+    const pro = map.get("food-pro");
+    /* D2 round 1, finding 3 - a lane that opened INTO a refusal (a lost lease, a
+       restore the athlete has not done) says so before he types, in the client's own
+       words, with the action attached. */
+    const opened = foodLane && foodLane.host ? foodLane.host.openedRefusal : null;
+    error.textContent = opened
+      ? plainOrDrop(FOOD_REFUSED + " " + reasonOf(opened) + " " + FOOD_REFUSED_ACTION, "food-error")
+      : "";
+    /* What the ENGINE holds for today, after the replay. A day with nothing recorded
+       says nothing at all - it is never a zero (writers.cjs's own rule, N1 1.2). */
+    const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
+    const row = typeof model.recordedFood === "function" ? model.recordedFood(model.today) : null;
+    const has = logged && (logged.cal !== null || logged.pro !== null);
+    /* D2 round 1, finding 1 - the day IS recorded and the engine would not take it.
+       The athlete sees his own figures, out of the operation the log holds, and the
+       reason his ledger has nothing to read back. Nothing is dropped and no engine
+       figure is invented. */
+    const unreadable = !has && !!row
+      && typeof model.foodUnavailable === "function" && model.foodUnavailable(model.today);
+    if (unreadable) {
+      recorded.textContent = plainOrDrop(
+        provenanceLine(row) + " · " + intakeLine(dayOf(row)) + " " + FOOD_KEPT_UNREADABLE, "food-recorded");
+    } else {
+      recorded.textContent = has
+        ? plainOrDrop(provenanceLine(row) + " · " + intakeLine(logged) + " " + FOOD_CORRECTION, "food-recorded")
+        : "";
+    }
+    recorded.hidden = !has && !unreadable;
+    /* D2 ROUND 2, R2-1 - AN ACKNOWLEDGED INTAKE STAYS ON THE SCREEN even when the read
+       that should have confirmed it failed. The acknowledgment is built from the
+       COMMITTED operation, not from a log this device could not read; the read failure
+       is named beside it with its own reason and the read is offered again. An UNKNOWN
+       outcome claims neither that it was stored nor that it was not. */
+    const retry = map.get("food-retry");
+    /* HIS DRAFT SURVIVES. The repaint that carries the read failure rebuilds the two
+       boxes from the template, so what he typed is put back into them. */
+    if (foodReadBack && foodReadBack.entry) {
+      cal.value = foodReadBack.entry.cal === undefined ? "" : String(foodReadBack.entry.cal);
+      pro.value = foodReadBack.entry.pro === undefined ? "" : String(foodReadBack.entry.pro);
+    }
+    if (foodReadBack && foodReadBack.state === "unavailable") {
+      recorded.textContent = plainOrDrop(
+        FOOD_SAVED + " · " + intakeLine(foodReadBack.day) + " " + FOOD_SAVED_UNREAD, "food-recorded");
+      recorded.hidden = false;
+    }
+    if (foodReadBack) {
+      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + "." : "";
+      const head = foodReadBack.state === "unknown" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;
+      error.textContent = plainOrDrop([head, said, FOOD_READ_ACTION].filter(Boolean).join(" "), "food-error");
+    }
+    if (retry) {
+      retry.hidden = !foodReadBack;
+      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, "food-retry") : "";
+      if (foodReadBack) retry.addEventListener("click", () => { foodSaving = retryFoodRead(); });
+    }
+    const save = map.get("food-save");
+    save.addEventListener("click", () => { foodSaving = recordIntake(save, cal, pro, error); });
+    return section;
+  }
+  /* The write itself, kept as a named async function so the click handler can hand the
+     in-flight promise to `foodPending()`: a durable write is several turns of the
+     event loop and a check that polls the log needs to know when it has settled. */
+  async function recordIntake(save, cal, pro, error) {
+    {
+      const entry = { cal: cal.value, pro: pro.value };
+      const refusal = FoodModel.refusalFor(entry);
+      if (refusal) {
+        error.textContent = plainOrDrop(FOOD_REFUSAL_COPY[refusal] || FOOD_REFUSED, "food-error");
+        return;
+      }
+      const dayValues = FoodModel.dayFromEntry(entry);
+      save.disabled = true;
+      let result = null;
+      /* D2 ROUND 2, R2-1 - THIS PROMISE NEVER REJECTS. A lane that throws out of save
+         has told us nothing about whether the op landed, so the outcome is UNKNOWN and
+         the screen says unknown; it is never reported as "no part of it was recorded",
+         and it never becomes a rejected event promise with a blank screen behind it. */
+      try { result = await foodLane.save(dayValues); }
+      catch (thrown) {
+        foodReadBack = { state: "unknown", day: dayValues, entry,
+          code: (thrown && (thrown.code || thrown.message)) || "FOOD_WRITE_UNKNOWN" };
+        save.disabled = false;
+        render("nutrition", false);
+        return;
+      }
+      finally { save.disabled = false; }
+      if (!result || result.ok !== true) {
+        /* D2 round 1, finding 3 - the refusal the CLIENT made, not a shrug. What was
+           refused, its own reason, and what to do; the boxes are deliberately not
+           re-rendered, so everything he typed is still there to record again. */
+        error.textContent = plainOrDrop(
+          FOOD_REFUSED + " " + reasonOf(result) + " " + FOOD_REFUSED_ACTION, "food-error");
+        return;
+      }
+      /* ACKNOWLEDGED. The op is durable; the read that follows it is a separate
+         outcome and `readBack === false` says it did not land. The committed day is
+         kept here so the screen can show the acknowledgment from the OPERATION rather
+         than from a log it could not read. */
+      foodReadBack = result.readBack === false
+        ? { state: "unavailable", day: dayValues, entry, code: result.readCode || null }
+        : null;
+      render("nutrition", false);
+    }
+  }
+
+  /* D2 round 2, R2-1 - THE READ, ON ITS OWN. It submits no intake: it asks the lane to
+     read the durable log again and, when that answers, the screen goes back to saying
+     what the record says. A read that fails again updates only the reason. */
+  async function retryFoodRead() {
+    if (!foodLane || typeof foodLane.refresh !== "function") return;
+    try {
+      await foodLane.refresh();
+      foodReadBack = null;
+    } catch (error) {
+      foodReadBack = Object.assign({}, foodReadBack,
+        { code: (error && (error.code || error.message)) || "FOOD_READ_BACK_FAILED" });
+    }
+    render("nutrition", false);
+  }
+  /* WHY, IN THE WORDS OF WHATEVER REFUSED. A client refusal carries its own copy; a
+     refusal with no copy carries the code it named, and the code is shown as the code.
+     Neither is reworded here, and a refusal with neither says nothing extra rather
+     than inventing a cause. */
+  function reasonOf(refusal) {
+    const copy = refusal && typeof refusal.copy === "string" ? refusal.copy.trim() : "";
+    if (copy) return copy;
+    const code = refusal && refusal.code ? String(refusal.code).trim() : "";
+    return code ? FOOD_REASON + code + "." : "";
+  }
+  /* The recorded figures, in the engine's own units, and only the ones it holds. */
+  function intakeLine(logged) {
+    const parts = [];
+    if (logged.cal !== null && logged.cal !== undefined) parts.push(amount(logged.cal) + " kcal");
+    if (logged.pro !== null && logged.pro !== undefined) parts.push(amount(logged.pro) + " g protein");
+    return parts.join(" · ");
+  }
+  /* The operation's own day, shaped like a projected one so one line renders both. */
+  function dayOf(row) {
+    const day = (row && row.day) || {};
+    return { cal: day.cal === undefined ? null : day.cal, pro: day.pro === undefined ? null : day.pro };
+  }
+  /* D2 round 1, finding 4 - PROVENANCE. The stored effective stamp, as the operation
+     carries it: the local time it was recorded at and the offset that time was in.
+     Neither is computed here, and a stamp the log does not hold is not invented. */
+  function provenanceLine(row) {
+    let line = FOOD_SAVED;
+    if (row && typeof row.time === "string" && row.time) line += " at " + row.time;
+    if (row && typeof row.offset === "string" && row.offset) line += " (local offset " + row.offset + ")";
+    return line;
   }
 
   function renderStub(id, focus, note, extra, noteSlot = "stub-note") {
@@ -606,6 +955,15 @@ function mountToday(doc, model, options = {}) {
 
   /* A3 — Today's one-line report on the check-in. It reads the DURABLE lane, never a
      flag this page sets, and says nothing at all when nothing is recorded. */
+  /* N1 - Today's one word about the nutrition entry. It reads the PROJECTED engine
+     state, never a flag this page sets: with no lane it is A1's unwired marker, with a
+     lane and nothing recorded it is silent, and with a recorded day it says so. */
+  function nutritionState() {
+    if (!foodLane) { openFoodLane(); return NOT_WIRED; }
+    const logged = typeof model.loggedFood === "function" ? model.loggedFood(model.today) : null;
+    return logged && (logged.cal !== null || logged.pro !== null) ? FOOD_SAVED : "";
+  }
+
   function recoveryState() {
     const summary = checkinSummary();
     if (!summary || summary.durable !== true) return CHECKIN_NO_STORE_SHORT;
@@ -699,7 +1057,8 @@ function mountToday(doc, model, options = {}) {
     return found ? found[1] : null;
   }
   render(requestedScreen() || "today");
-  return { render, read: () => model.read(), openWeighIn, screen: () => screen };
+  return { render, read: () => model.read(), openWeighIn, screen: () => screen,
+    foodPending: () => foodSaving, foodReady: () => foodOpening };
 }
 
 /* Mounting is the page entry's job (today-entry.mjs), so this module can be required by
@@ -711,4 +1070,8 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   UNFINISHED_WORKOUT, CLOSE_UNFINISHED_WORKOUT,
   CHECKIN_RECORDED_TODAY, CHECKIN_NO_STORE_SHORT, CHECKIN_NO_STORE,
   SETUP_ENTRY, SETUP_NOT_HIS_NUMBERS, setupNoteNeeded,
-  PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT };
+  PROBLEM_ENTRY, PROBLEM_COPIED, PROBLEM_SELECT,
+  FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
+  FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY,
+  FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_OPENING, FOOD_KEPT_UNREADABLE,
+  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY };

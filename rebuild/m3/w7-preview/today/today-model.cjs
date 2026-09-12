@@ -40,6 +40,9 @@
 
 const { createTodayEngine } = require("./today-engine.cjs");
 const { SYNTHETIC_DAY, createSyntheticState } = require("../fixtures.cjs");
+/* N1 - the food-day projector and the words the nutrition screen owns. Pure: no DOM,
+   no store, nothing from rebuild/engine (it is HANDED the engine it must write with). */
+const FoodModel = require("./food-model.cjs");
 
 /* C4b: the three synthetic enrolment labels that used to live here
    (SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY) are gone.
@@ -118,6 +121,16 @@ function createTodayModel(options = {}) {
   const durable = !!readings;
   const storageNote = durable ? STORE_NOTE : NO_STORE_NOTE;
 
+  /* N1 - THE FOOD LANE, injected exactly as `readings` is, and for the same reason:
+     this module holds no client and no store of its own. It is a reader only. The
+     rows it yields are what rebuild/m3/w7-preview/today/food-host.mjs read back out
+     of the durable generation; with no lane at all the plan still renders and an
+     intake is refused in words rather than written somewhere that can lose it. It is
+     SETTABLE after construction because the page opens this lane lazily (the four
+     other lanes are opened by boot(), which is pinned on disk by B-NTC and cannot
+     gain a fifth). */
+  let foodDays = options.foodDays || null;
+
   const E = engineFactory({ clock: engineClockFor(day) });
 
   let lastMessage = null;
@@ -128,11 +141,31 @@ function createTodayModel(options = {}) {
     return readings ? readings.reads() : [];
   }
 
-  /* op log -> engine state, through the ACCEPTED writer. */
+  /* N1 - the durable food-day operations, as THIS page's food lane read them back.
+     Rows only; nothing is interpreted here. */
+  function storedFoodDays() {
+    return foodDays && typeof foodDays.rows === "function" ? foodDays.rows() : [];
+  }
+
+  /* op log -> engine state, through the ACCEPTED writers, and nothing else.
+
+     N1 adds the second replay beside A1's. The readings go first because the engine's
+     own order is a reading then the day it belongs to, and because `writeDaily` writes
+     into `dailyLogs` which no reading touches: the two replays do not interact. Both
+     go through an ENGINE writer (`applyRead`, `writeDaily`); the adapter computes
+     nothing of its own in either. */
   function stateFromOps() {
+    return foodProjectionOf().state;
+  }
+
+  /* D2 round 1, finding 1 - the same replay, with the days the ENGINE would not take
+     named rather than thrown. A food day it refuses (no body-composition estimate, so
+     no owed ledger to consult) is still recorded and still the athlete's; it simply
+     has no engine figure to read back, and the screen is told which days those are. */
+  function foodProjectionOf() {
     let state = clone(basis);
     for (const r of storedReads()) state = E.applyRead(state, r.date, r.lb, { hour: 8 });
-    return state;
+    return FoodModel.foodProjection(state, storedFoodDays(), E);
   }
 
   function sessionFor(state) {
@@ -264,6 +297,18 @@ function createTodayModel(options = {}) {
     today: day,
     engine: E,
     readings,
+    /* N1 - the lane the page opens lazily, and what the engine holds for a day once
+       it is replayed. `loggedFood` reads the PROJECTED state, never the screen's
+       memory, so what the athlete is shown is what the engine would be asked. */
+    foodDays: () => foodDays,
+    setFoodDays(lane) { foodDays = lane || null; return foodDays; },
+    storedFoodDays,
+    loggedFood: (date) => FoodModel.loggedDay(stateFromOps(), date || day),
+    /* The op the log holds for a date, with its effective stamp: provenance, and the
+       athlete's own figures for a day the engine could not take. */
+    recordedFood: (date) => FoodModel.recordedDay(storedFoodDays(), date || day),
+    /* True when a day IS recorded and the engine refused to replay it. */
+    foodUnavailable: (date) => foodProjectionOf().unavailable.includes(date || day),
     basisState: () => clone(basis),
     stateFromOps,
     storedReads,
