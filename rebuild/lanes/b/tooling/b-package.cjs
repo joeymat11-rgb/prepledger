@@ -396,6 +396,38 @@ function requiresOriginal(file, original) {
   }
   return false;
 }
+// r7 F1. THE FILES A DECLARED CHILD ACTUALLY RUNS: its argv targets and everything those
+// reach through a RELATIVE require/import specifier, resolved exactly the way
+// requiresOriginal() resolves one — READ, never executed. This is what "executed" has to
+// mean for the "pinned-unchanged" role, because the case the role exists for is a module
+// under test: H3 declares rebuild/m4/workout/athlete-state.cjs and runs it through
+// rebuild/m4/workout/test/h3-clean-init.test.cjs, which is what a test file is for. An
+// argv-membership test would have refused every such declaration and left the dishonest
+// role `new` as the only spelling available, which is the defect r7 F1 is closing.
+//
+// Bounded, and the bound is REPORTED rather than silent: a truncated walk would turn "this
+// file is not executed" into "the walk stopped before reaching it", which is a different
+// sentence and must not be printed as the first one.
+const EXECUTED_CLOSURE_LIMIT = 512;
+function executedClosure(targets) {
+  const files = new Set(), queue = [...targets];
+  let capped = false;
+  while (queue.length) {
+    const f = queue.shift();
+    if (files.has(f) || !fs.existsSync(rel(f)) || !fs.statSync(rel(f)).isFile()) continue;
+    if (files.size >= EXECUTED_CLOSURE_LIMIT) { capped = true; break; }
+    files.add(f);
+    const src = fs.readFileSync(rel(f), 'utf8'), dir = path.posix.dirname(f);
+    for (const m of src.matchAll(/(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]/g)) {
+      const ref = m[1] || m[2];
+      if (!ref || !ref.startsWith('.')) continue;
+      const base = path.posix.normalize(path.posix.join(dir, ref));
+      for (const cand of [base, base + '.cjs', base + '.js', base + '.mjs'])
+        if (fs.existsSync(rel(cand)) && fs.statSync(rel(cand)).isFile()) { queue.push(cand); break; }
+    }
+  }
+  return { files, capped };
+}
 // Y1. The package's OWN children: the declared children whose argv executes a file THIS
 // spec declares in product with role "new" — its own new code, as opposed to the parent's
 // successor children, which are what the inherited coverage map already binds. Decided by
@@ -687,15 +719,17 @@ function spec() {
   // declare anything and call it unchanged. "pinned-unchanged" claims three things at once
   // — the package DECLARES the file, a declared child EXECUTES it, and no byte of it moved
   // — and the runner can take all three: the declaration is this map, the bytes are checked
-  // in product(), and the execution is the file standing in some declared child's argv,
-  // which children() then actually spawns in this process with its exact needle. A file
+  // in product(), and the execution is the file standing in a declared child's argv OR
+  // reached from one through a relative require (executedClosure) — children() then
+  // actually spawns those argv targets in this process with their exact needles. A file
   // nothing runs cannot carry the role; it is either `new` (this package writes it),
   // `edited` (this package changes it) or it does not belong in the inventory.
-  const executedTargets = new Set(s.children.flatMap(c => childArgv(c)));
+  const executed = executedClosure(s.children.flatMap(c => childArgv(c)));
   for (const [file, pin] of Object.entries(s.product))
-    assert(pin.role !== 'pinned-unchanged' || executedTargets.has(file),
+    assert(pin.role !== 'pinned-unchanged' || executed.files.has(file),
       'PRODUCT-PINNED-UNCHANGED-IS-NOT-EXECUTED-BY-A-DECLARED-CHILD ' + file +
-      '; the role says a declared child runs this file, and no declared child argv names it');
+      '; the role says a declared child runs this file, and no declared child argv names it or reaches it through a relative require' +
+      (executed.capped ? ' within the first ' + EXECUTED_CLOSURE_LIMIT + ' files of the closure' : ''));
   // W2 + N1. A covering child is a DECLARED child by name and its EXECUTION covers the
   // gate. INHERITED coverage is bounded by the parent artifact (coverage() asserts the map
   // itself). A MOVE is bounded HERE, three ways at once: it must state a reason; its child

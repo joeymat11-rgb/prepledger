@@ -49,8 +49,8 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(source.slice(0, source.indexOf(delimiter)) +
-    '\nmodule.exports={product,describes,ruledDescriptions,failCode,FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,' +
-    'init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    '\nmodule.exports={product,describes,ruledDescriptions,failCode,executedClosure,EXECUTED_CLOSURE_LIMIT,' +
+    'FAIL_CODES,IDS,PRODUCT_ROLES,NO_REGISTER_IDS,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -131,6 +131,29 @@ test('F1 — pre: null is role "new" only, and an absent file is still at the pr
   assert.equal(api.product({ product: { [absent]: { pre: null, post: null, role: 'new' } } }, noParent, unsealed), 'NOT-IMPLEMENTED');
   // A file declared as not existing that DOES exist is unlisted drift, exactly as before.
   assert.throws(() => api.product({ product: { [OWN]: { pre: null, post: '0'.repeat(64), role: 'new' } } }, noParent, unsealed), /UNLISTED-PRODUCT-DRIFT/);
+});
+
+test('F1 — "executed" is the child\'s argv AND what it reaches through a relative require', () => {
+  // The case the role exists for is a module under test: the child runs the TEST file and
+  // the test file requires the module. An argv-membership test would have refused every
+  // such declaration and left the dishonest role `new` as the only spelling available.
+  const mod = 'rebuild/m4/workout/athlete-state.cjs';
+  const deep = 'rebuild/m4/workout/clean-init.cjs';
+  const spec = 'rebuild/m4/workout/test/h3-clean-init.test.cjs';
+  const alone = 'rebuild/m4/workout/never-required.cjs';
+  write(deep, 'module.exports = { blackout: true };\n');
+  write(mod, "const deep = require('./clean-init.cjs');\nmodule.exports = { deep };\n");
+  write(spec, "const state = require('../athlete-state.cjs');\nconsole.log(state);\n");
+  write(alone, 'module.exports = { nobody: true };\n');
+  const reached = api.executedClosure([spec]);
+  assert.equal(reached.capped, false);
+  assert.deepEqual([...reached.files].sort(), [deep, mod, spec].sort());
+  assert(!reached.files.has(alone), 'a file no child reaches is not executed');
+  // A bare require of a package, an absent relative file and a cycle are all walked safely.
+  write(mod, "require('node:fs');\nrequire('./h3-not-written.cjs');\nrequire('./test/h3-clean-init.test.cjs');\nmodule.exports = {};\n");
+  const cyclic = api.executedClosure([spec]);
+  assert.deepEqual([...cyclic.files].sort(), [mod, spec].sort());
+  assert.equal(typeof api.EXECUTED_CLOSURE_LIMIT, 'number');
 });
 
 // --------------------------------------------- F2. the ruling's own enumerated descriptions
