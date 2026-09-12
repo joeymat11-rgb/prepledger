@@ -1,0 +1,76 @@
+EARNED — INDEPENDENT SCALE TODAY LIFECYCLE DELTA REVIEW
+Date: 2026-09-12. Verdict: ACCEPT, bounded R1 correction.
+Candidate74c0cce323d46f3dbf558bdace667ef661288efd.
+Parentde90349fea7cc68ebada5a2d6469e244e5d7b14b.
+FILE ASTRA-NATIVE-SCALE-TODAY-REVIEW.md continuation at3503a90.
+Reviewer phone_release_review, nonauthor of correction qualification_delta_review.
+Owned tree/branch BASE/astra-native-scale-today-delta-review,
+  codex/astra-native-scale-today-delta-review.
+BASE=C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work.
+Full correction report and four-file delta read. Original REQUIRED CORRECTION
+reportbe7fe6b40fc545d97db1e33d29d6543421d31ef6/tree/witness remain unchanged.
+
+R1 REPLAY
+Copied original .tmp/scale-cache-review.mjs into this owned tree with only import
+paths relocated. Same actual owner setup/boot, saved170, Why open, second actual
+shared reading host saves180 on same date, await page.refresh(). Exit0:
+model baseline=null,count0,DAILY_READING_RESOLUTION_REQUIRED; visible Why now
+withdraws170/count1 and shows0 eligible readings plus resolution explanation.
+whyStillShows170:false. This closes the reported source-to-DOM mismatch.
+As before, a cached view can precede the next lifecycle refresh; the demonstrated
+requirement here is withdrawal during refresh and correct publication afterwards.
+
+EXECUTED
+Retained Node24.19.0; NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules,
+TZ=America/New_York; EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this tree.
+Retained ignored root/W5/W6 junctions only, no installs.
+node .tmp/scale-cache-review.mjs: exit0, original independent witness now corrected.
+node --test rebuild/m3/w6/test/local-scale-lifecycle.test.mjs
+  rebuild/m3/w6/test/local-scale-feedback.test.mjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+28 PASS,0 FAIL/SKIP/CANCEL,exit0; .tmp/focused28.log.
+Six new lifecycle checks plus six unchanged scale-host and16 unchanged owner
+checks cover the source-to-DOM regression, actual normal write/correction/removal,
+focused Back, date withdrawal/current-day return, damaged-store refusal, preserved
+weight editor, held actual decrypt/close sentinel and retained workout/check-in/
+weight drafts. Existing host authentication/currentness/rate and calendar/offset/
+reopen controls remain passing. Correction/removal remain T2 producer fixtures,
+not a claim of a new correction UI.
+
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+node rebuild/m3/w6/test/local-scale-lifecycle-browser.mjs: exit0, CHROME PASS.
+Actual owner bundle rebuilt. Visible setup/save170, keyboard Why, another real
+browser installation handle saves180 into same database; actual foreground
+callback refreshes open Why, withdrawing170/count1. Back and reload agree.
+320/390 document and phone overflow assertions pass;0 page errors. Independently
+viewed .tmp/scale-lifecycle/after-why-320.png: old quantity absent, conflict/count
+explanation readable, existing hierarchy and reachable Back retained.
+Synthetic desktop Chrome dimensions are not physical-phone qualification.
+
+SOURCE ASSESSMENT
+Only product change is today-entry.mjs lifecycle. Read-only repaint covers Today,
+Why and current nutrition placeholder; workout/recovery and weight dialog remain
+outside it. Old scale cache is cleared before pending read repaint, then verified
+result repaints on completion. Day change withholds old quantities while preserving
+explicit navigation. Focused data-go navigation and phone scroll are restored.
+Read-only repaint distinguishes same-screen Today paint from old-day Back, avoiding
+recursive navigation. Refusal withdraws read-only evidence while retaining editor
+DOM/drafts; closure checks after asynchronous work prevent late DOM publication
+or installing replacement workout hosts after teardown. No new read authority.
+
+Executed diff confirms public-client, local hosts, nutrition arithmetic/view,
+original owner/scale tests and both pinned journey tests unchanged fromde90349.
+Entire delta is today-entry, two new owned test files and author's one report.
+Original75/browser/layout/authority/arithmetic findings reusebe7fe6b andce796727;
+no repeat broad campaign. Original local-host16/17 guard-count7vs6 and later
+local-kind4vs3 pin mismatch remain red. Original joined95/97 page-pin failures
+remain inherited recorded evidence, not PASS; no pin edits or reruns here.
+Later explicit source qualification still must resolve those stale expectations.
+
+No additional substantive correction found. Factual scale feedback remains distinct
+from fat loss, nutrition prescription and complete coaching. Correction UI, imported
+blackout mapping, time reclassification and unresolved-history limits remain. Full
+engine/source-policy/CI, both-OS and actual-phone release qualification remain.
+One report only; no product/test edits, private/full campaign, extra agents, other
+tree writes, installs, push/PR/merge/deploy or integration. git diff --check PASS.
+Root owns acceptance; distinct integrator follows.
