@@ -44,19 +44,18 @@ tool list and its dispatcher), `onboarding-text.cjs` (the scripted driver that s
 `voice-app.mjs`, `test/voice.test.mjs`, plus the four shared page files under the standing licence
 (`DECISIONS:135 (1)`: `today-app.cjs`, `screens.template.html`, `design.cjs`, `build.mjs`).
 
-**OUT, always**: `rebuild/engine/**`, `rebuild/client/**`, `rebuild/m4/**`, `rebuild/conform/**`,
-`.github/**`, and the relay itself (lane D). C6 writes **no** model prompt into the repo as product code and
-**no** provider key anywhere, ever.
+**OUT, always**: `rebuild/engine/**`, `rebuild/client/**`, `rebuild/m4/**`, `rebuild/conform/**`, `.github/**`
+and the relay itself (lane D). C6 writes no model prompt into the repo as product code and no provider key.
 
-**C6 IS NOT** a second way to build a week: it is a second way to ANSWER THE SAME SIX QUESTIONS. The screens
-stay the fallback, the review step and the record, and the produced op is the same op.
+**C6 IS NOT** a second way to build a week: it is a second way to ANSWER THE SAME SIX QUESTIONS; the screens
+stay the fallback, the review step and the record, and the op is the same op.
 
 ## 2. PART A - THE TEXT REHEARSAL (build starts now)
 
-The C5 prototype already proves the shape for the daily coach: a fixed script routed to a fixed intent,
-tools that return tagged values, templates that contain no digits (`coach-text.cjs:9-15`), and a mechanical
-traceability check (`tools.cjs:253` `untraceable`). Part A does the same for onboarding, with **no model**: a
-scripted driver reads a transcript file and calls tools. There is no network and nothing is sent anywhere.
+The C5 prototype proves the shape: a fixed script routed to a fixed intent, tools returning tagged values,
+templates with no digits (`coach-text.cjs:9-15`), and a mechanical traceability check (`tools.cjs:253`).
+Part A does the same for onboarding with **no model**: a scripted driver reads a transcript and calls tools.
+There is no network and nothing is sent anywhere.
 
 ### 2.1 The closed tool list
 
@@ -168,57 +167,51 @@ because both paths drive the same `setup-model.mjs` answers object. At the end t
 
 ### 3.2 Mic permission in the installed app: what is known and what is not
 
-- **Known, cited**: the app is an installed PWA with `display: standalone` and a service worker whose only
-  job is offline launch of the exact built assets (`rebuild/slice/A5-REPORT.md:297`, `:617`). Everything is
-  same-origin; the CSP and the "zero off-origin requests" rule are A1's and A5's.
-- **UNKNOWN, and stated as unknown**: no real iPhone has run this build at all
-  (`A5-REPORT.md:524-528`: "No real iPhone was touched"; the iOS guidance on the page is guidance about
-  where the Share control is, not a confirmed result). So **whether `getUserMedia` prompts, persists and
-  survives relaunch inside an iOS Home Screen app is UNKNOWN to this repository**, and the first row of the
-  hand test exists to decide it. The brief does not assert it either way and the build must not either: the
-  screen says what it has confirmed and offers the tap path when the microphone is unavailable, with the
-  browser's own refusal named.
+- **Known, cited**: the app is an installed PWA, `display: standalone`, service worker for offline launch of
+  the exact built assets (`A5-REPORT.md:297`, `:617`); the CSP and zero-off-origin rule are A1's and A5's.
+- **UNKNOWN, and stated as unknown**: no real iPhone has run this build at all (`A5-REPORT.md:524-528`).
+  So **whether `getUserMedia` prompts, persists and survives relaunch inside an iOS Home Screen app is
+  UNKNOWN to this repository**, and a hand-test row exists to decide it. The build must not assert it
+  either: the screen says what it has confirmed and offers the tap path when the microphone is unavailable,
+  naming the browser's own refusal.
 - **Design consequence**: permission is requested when the athlete chooses "talking", never on load, and a
   denial is a named, dash-free sentence plus the tap path, never a dead end.
 
 ### 3.3 Consent, cap, recording
 
-Opt-in is **per user** and its proof shape already exists: `tools.cjs:985` `OPT_IN_REQUIRED` is
-`["user","accepted","accepted_at","screen_version","wording"]`, refused with `COACH_OPT_IN_REQUIRED`
-(`:986`), and the named users are `["joe","dad"]` (`:984`). The wording must NAME that audio and text leave
-the phone (`:89`, `:134`); the exact sentence is **the builder's to write and the reviewer's to check**, and
-it is stored with the opt-in. No server-side recording (`:134`). The minute cap is the relay's to enforce,
-not the phone's (see 3.6 for what lane D found). The provider spending cap is the owner's, verified before
-any live call by `verifyCostCap` (`tools.cjs:938`, fields `:927`) and gated by `startLiveSession` (`:1019`).
+Opt-in is **per user**, its proof shape already exists (`tools.cjs:985` `OPT_IN_REQUIRED`, refused with
+`COACH_OPT_IN_REQUIRED` `:986`, named users `:984`), and the wording must NAME that audio and text leave the
+phone (`:89`, `:134`); the sentence is the builder's to write and the reviewer's to check, and it is a
+separate local record (`:156 (3)`). No server-side recording. **The minute cap is the PHONE's at 10 minutes
+and the budget the relay's at $15** (`:158`); see 3.6. The owner's $50 project cap is verified before any
+live call by `verifyCostCap` (`tools.cjs:938`, fields `:927`) and gated by `startLiveSession` (`:1019`).
 
 ### 3.4 The Part C acceptance bar
 
 | id | check |
 |---|---|
-| V1 | Voice is optional: with voice declined, refused or unavailable, the six screens behave exactly as they do today, byte-identical op for the same answers (Part A's parity test, re-run through the page) |
+| V1 | **Wave one**: voice is optional; declined, refused or unavailable, the gym card behaves exactly as it does today and every write still goes through its own dispatcher. (The onboarding parity form of this row returns when onboarding's wave comes) |
 | V2 | "I'll tap instead" on every screen loses nothing: switch mid-question, finish by tap, assert the answers object is unchanged apart from the answer in flight |
 | V3 | Any spoken answer is correctable by tap, and the tap wins; correcting after the read-back re-runs the read-back |
-| V4 | Submit is a tap. No spoken utterance can write the op; asserted by driving a transcript that says "submit" and finding zero operations |
+| V4 | **Wave one permits confirmed spoken writes** through the existing dispatcher (a set, a machine setting), each with the tier-1 spoken confirm naming its values; an unconfirmed utterance writes nothing. The old "submit is a tap, no spoken write" row belongs to onboarding and returns with it |
 | V5 | The model receives ONLY the closed tool list, and the PHONE does not carry it: the request body has no tool, model, instruction or session-config field at all (3.6), and the declared surface is the relay's, checked against `TIERS` by the agreed artifact |
 | V6 | Every spoken number traces to a tool result in the same turn (`tools.cjs:253`), over the recorded transcripts of the hand test |
-| V7 | The phone never holds a long-lived key: a source and built-asset scan finds no provider key shape; the only credentials in memory are the enrolled admission credential (3.6) and the SDP answer, and neither the provider key, account id nor any billing figure ever arrives |
+| V7 | The phone never holds a long-lived provider key: a source and built-asset scan finds no provider key shape; the only credentials are the per-phone relay credential (`:156 (3)`) and the SDP answer, and neither the provider key, account id nor any billing figure ever arrives |
 | V8 | Mic denial and mic absence are named, dash-free, and offer the tap path; the browser's own error is quoted, not invented |
 | V9 | Off-origin is exactly: one relay origin and the provider's documented transport origins, each named and pinned, no wildcard (3.6). Asserted at build time and at run time |
-| V10 | No recording: nothing writes audio or a transcript to the store; the only durable write of the whole session is the one setup op |
+| V10 | No recording: nothing writes audio or a transcript to the store, and the only durable writes are the ops wave one's own tools make through the accepted paths |
 | V11 | 390x844 and 320px with the transcript filling; inputs >= 16px; tap targets >= 44px; the primary action reachable in every state |
-| V12 | The owner's iPhone hand test (3.5) PASSES, and it is not substitutable by a unit test: audio is untestable in the pane (`DECISIONS:134`) |
+| V12 | The owner's iPhone hand test PASSES, and it is the **five-step gym demo** of `COACH-EXPERIENCE-BRIEF.md` (`:156 (5)`), not 3.5's onboarding rows. Not substitutable by a unit test: audio is untestable in the pane |
 
 ### 3.5 The hand test, owner's iPhone (C3-HAND-PROOF style)
+**SUPERSEDED by 3.6.** These rows are an ONBOARDING script; `:156 (5)` and `:140` make the wave-one hand
+test `COACH-EXPERIENCE-BRIEF.md`'s five-step gym demo. Kept as the onboarding hand test, re-pinned later.
 
-**SUPERSEDED by 3.6.** These twelve rows are an ONBOARDING script; lane D (f3eea83 section 1) and `:140`
-rank onboarding wave THREE and the gym demo wave ONE, so the hand test gating the first live session is
-`COACH-EXPERIENCE-BRIEF.md`'s. They are kept as the onboarding hand test, re-pinned when its wave comes.
+### 3.6 Part C v0.3: the SDP /session hand-off (lane D f3eea83 + wire pins d66f76c)
 
-### 3.6 Part C v0.2: the SDP /session hand-off (lane D f3eea83)
-
-Lane C's REVIEW of `rebuild/lanes/d/BRIEF-C6-RELAY.md` sections 2 to 4. **Verdict: ACCEPT with two amendments
-and three pins.** Lane D replaced the token mint with a trusted-server SDP exchange because `gpt-live-1` has
-no client-secret API; the change is sound and better bounded than the original.
+Lane C's review of lane D's relay brief, now RULED by `DECISIONS:156` and `:158` and amended by lane D's
+four asks in `C6-WIRE-PINS-v0.1.md` (`d66f76c`), all four applied below. `POST /session` with the
+GPT-Live-1 SDP exchange replaces the token mint; ":134's token wording is read as admission" (`:156 (1)`).
 
 **Every C6 boundary, checked:**
 
@@ -231,33 +224,42 @@ no client-secret API; the change is sound and better bounded than the original.
 | the relay stores nothing | **AMENDED, openly** (D section 4). Lane C ACCEPTS the minimal control state (authenticated user, nonce digest, opaque session id, deadline, admission state, reservations) on two conditions: it carries **no athlete content, no SDP, no audio, no transcript, no tool result and no opt-in text**, and it has a stated retention bound. D says this needs a PM line rather than reading it into C's "counters only"; lane C agrees it does |
 | the per-session minute cap is enforced relay-side | **NOT PROVED, and D was right to say so.** The Live create schema exposes no session duration; the REST hangup page documents SIP and WebRTC applicability is unverified; Live sideband would put audio through the relay, which C6 forbids. D's resolution stands: prove WebRTC termination first, else `/session` refuses with `COACH_ENFORCEMENT_UNAVAILABLE` before any provider call |
 
-**The cutoff, and what the phone must do.** Lane D states plainly that "running a phone timer does not
-terminate an existing provider stream". So a phone-side timer is a **belt, never the brace**: the phone runs
-its own minute timer and, at the cap, closes its `RTCPeerConnection` and stops its microphone. That ends
-the phone's half and is worth doing, but it is **not** the spend guarantee, and **the app must never say it
-is**: the screen says the app ended the call, and no copy anywhere claims a cap is enforced until C6-05
-passes. Describing the phone timer as the cap would be the dishonest version of exactly the gap D refused to
-paper over. Until C6-05, C6 voice is demo-only on the owner's own phone with him watching.
+**The cutoff, RULED.** `DECISIONS:158`: the owner said yes to going live without server-side hang-up, on two
+conditions the PM enforces. The wave-one **session cap on the phone is 10 minutes**; at the cap the phone
+stops its microphone tracks and closes its `RTCPeerConnection`, and **the screen says the app ended the
+call**. The relay's **monthly budget starts at $15** of minutes across both users (not `:156 (4) (b)`'s
+70 %), with the owner's $50 project cap the hard ceiling. **C6-05 reads "phone termination + provider cap +
+idle timeout"** until lane D proves server-side termination on a synthetic session, at which point it goes
+in without a further ruling.
+
+**The copy describes the phone's action and nothing else** (lane D ask 4; `:158`). The phone's timer is not
+the spend guarantee and no string may imply it is: the sentence names what this phone did, never provider
+finalization or billing. Lane D's suggested caption `Audio stopped on this phone.` is a fair factual shape;
+lane C owns the final wording and the reviewer pins it. **There is no owner-watched demo exception**
+(`:156 (5)`, lane D ask 1): `/session` refuses before provider creation until its prerequisites hold, and
+a separately authorized synthetic verification is not an enabled product demo.
 
 **What Part C must do differently from section 3.1 to 3.5:**
 
 1. **WebRTC, not a bearer token.** The phone creates an `RTCPeerConnection`, gathers an SDP offer, POSTs
    `{user, opt_in, nonce, sdp_offer}` with its admission credential, and sets the returned `sdp_answer` as
    the remote description. Mic permission is requested before the offer, so a denial costs no session.
-2. **An admission credential the phone must hold.** D section 3 is right that a body string is not
-   authentication. This is NEW work for Part C that the old section 4 did not have, and its enrolment,
-   form, expiry and revocation are a companion contract to settle before either lane builds.
-3. **The closed tool list is carried in the SERVER's session config, not by the phone and not per turn.**
-   D section 2 rejects client-supplied tools, model, instructions and session configuration, so the phone
-   sends none: V5 becomes "the request body has no tool or config field at all", and the reviewer checks the
-   relay's declared surface against `onboarding-tools.cjs`'s `TIERS` through an agreed artifact.
+2. **A per-phone admission credential, RULED** (`:156 (3)`): one relay credential per enrolled phone, minted
+   by the owner at enrolment with the PM in the pane, **stored on the phone**, mapped server-side to `joe`
+   or `dad`, revoked by removal, and **never the ledger authority key**. Consent stays a **separate local
+   record** and no athlete history reaches the relay. Its cryptographic profile, expiry and refresh remain
+   the open C/D companion contract; a header's presence never authenticates a caller.
+3. **The closed tool list is the SERVER's session config, not the phone's and not per turn, and for wave one
+   it is `wave1-tools.cjs`, NOT the onboarding tools** (lane D ask 2; `:156 (5)`). D section 2 rejects
+   client-supplied tools, model, instructions and session configuration, so the phone sends none: V5 is "the
+   request body has no tool or config field at all", and the reviewer checks the relay's declared surface
+   against the served wave-one tier artifact (`rebuild/coach/wave1-tools.cjs`), through an agreed artifact.
 4. **Wave one is the gym demo, not onboarding.** Agreed (D section 1, `DECISIONS:140`): the first live bar
    is `COACH-EXPERIENCE-BRIEF.md`'s five-step script, so the phone session ships for the gym conversation
    and onboarding rides the same transport in its own wave. Section 3.5's rows are the onboarding hand test
    and are marked superseded for wave one.
 
 ## 4. THE TOKEN HAND-OFF CONTRACT - SUPERSEDED
-
 The `POST /session-token` proposal is **replaced** by lane D's SDP `POST /session`
 (`rebuild/lanes/d/BRIEF-C6-RELAY.md` @ `rebuild/lane-d-c6` `f3eea83`); lane C's review, the boundary
 verdicts and the Part C deltas are **3.6**. The old text is in this file's git history.
@@ -294,5 +296,5 @@ verdicts and the Part C deltas are **3.6**. The old text is in this file's git h
 1. `C -> PM · C6 Part A is buildable now under :139 (a) and touches only rebuild/coach/** (lane C exclusive). Confirm no separate licence line is needed, and that Part C's four shared page files ride the :135 (1) standing licence under one-Today-build-at-a-time behind A4b.`
 2. `C -> PM · A4B-BRIEF.md is NOT on the tip (it is rebuild/lane-c-a4b @ c2bfcff). C6 Part A's parity fixtures need A4b's catalogue and the three-member {profile, setup, tags} payload. Confirm Part A builds against the A4b branch and rebases at its merge, or that it ships against the two-member payload and gains tags later.`
 3. `C -> PM · The opt-in sentence that names audio and text leaving the phone is owner-facing copy. Does the owner want to write it, or does the builder draft it and the owner approve it at the hand test?`
-4. `C -> D · C6 SDP HAND-OFF, lane C REVIEW of BRIEF-C6-RELAY.md f3eea83 sections 2-4 (full text: BRIEF-C6-VOICE-ONBOARDING.md 3.6). ACCEPT POST /session replacing the token mint. Section 2 ACCEPTED as written: closed request/reply, nonce echoed, nine fixed codes never provider text, no SDP on error, nothing sensitive in the reply; lane C owns the fixed COPY for all nine codes, one dash-free sentence each with the tap path, delivered in the phone build. Section 2 CSP AMENDED and accepted: one relay origin PLUS the provider documented transport origins, each named and pinned, no wildcard. Section 3 ACCEPTED: a body string is not authentication, lane C owns the phone proof; enrolment/form/expiry/revocation is a companion contract to settle before either lane builds. Section 4 storage AMENDED and ACCEPTED by lane C on two conditions: the minimal control state carries no athlete content, no SDP, no audio, no transcript, no tool result and no opt-in text, and it has a stated retention bound; it needs a PM line, not a reading of C's counters paragraph. Section 4 minutes: lane C AGREES /session must refuse with COACH_ENFORCEMENT_UNAVAILABLE until WebRTC termination is proved; the phone will run its own timer and close its RTCPeerConnection at the cap as a BELT only, the screen will say the app ended the call, and no C6 copy will claim a cap is enforced until C6-05 passes. THREE PINS the phone needs before Part C builds: (1) the verified relay ORIGIN plus the exact provider transport origins, no placeholder; (2) the exact request and reply JSON with field TYPES (user, opt_in five members, nonce, sdp_offer; nonce, session_id, sdp_answer, session_minute_cap, deadline_at, provider, model) and the credential's carriage; (3) who enforces the cutoff and exactly what the phone receives when it fires (a close on the peer connection, a sideband event, or nothing). AGREED: wave one is the five-step gym demo and onboarding is wave three, so the phone session ships for the gym conversation first and 3.5's onboarding hand rows are marked superseded. The tool list is the SERVER's: the phone sends no tool, model, instruction or session-config field at all.`
+4. `C -> D · C6 WIRE PINS v0.1 (d66f76c), lane C REVIEW. BOUNDS ACCEPTED AS WRITTEN: lower-case UUIDv4 nonce retained across a logical retry, canonical UTC YYYY-MM-DDTHH:mm:ss.sssZ with valid calendar values, SDP nonempty and at most 65536 UTF-8 bytes both ways, request FOUR members, success SEVEN, error THREE, unique JSON keys, application/json, Cache-Control no-store, no body logged, error nonce null when unparseable, and an ambiguous failure after POST is NOT permission to mint a new nonce. BEARER CARRIAGE: YES, acceptable. Reason: the credential is relay-scoped and per phone (DECISIONS:156 (3)), it is minted by the owner at enrolment, mapped server-side to joe or dad and revoked by removal, it is never the OpenAI key and never the ledger authority key, and a header keeps it out of the JSON body, the SDP, the query string and the logs. Lane C adds two conditions: the phone stores it in the app origin's own storage and never in a URL or a log, and lane C will NOT implement admission as a string-presence check, as your pin already says. STILL OPEN and blocking Part C: the credential's cryptographic profile, expiry, refresh and revocation signal to the phone; the relay origin plus the recorded browser transport inventory (pin 1); and pin 3's cutoff notification, which lane C now treats as NO EVENT by default per DECISIONS:158, with the 10-minute phone cap and the phone-only caption. FOLDED: :156 and :158 are in BRIEF-C6-VOICE-ONBOARDING.md 3.6 v0.3, your four asks all applied, the demo exception removed, server tools pointed at wave1-tools.cjs, the V criteria re-pinned to wave one.`
 5. `C -> PM/D · iOS microphone permission inside an installed Home Screen app is UNKNOWN to this repository (A5-REPORT.md:524-528: no real iPhone has run this build). Row 2 of the hand test decides it. If it fails, is C6 voice deferred to Safari-tab-only, or dropped for Dad's first day with the screens path standing?`
