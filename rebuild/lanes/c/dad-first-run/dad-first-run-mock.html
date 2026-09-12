@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Earned · Dad first-run setup (mock)</title>
+<!-- LANE C · Dad first-run setup screens · CLICKABLE MOCK, not product code.
+     Self-contained: no external stylesheet, script, font or image request.
+     Typefaces fall back to the system stack when Instrument is not installed.
+     Design tokens, typography and class vocabulary copied from
+     rebuild/m1/approved-2026-09-08/Earned-additions-C-approved.html lines 5 and 7.
+
+     REVISION 2 (owner look, DECISIONS:114 and :115):
+       1. No em dash (U+2014) and no en dash (U+2013) anywhere in this file.
+       2. Screen 3 PROPOSES a named standard start (3 sets, 10 reps), pre-filled
+          and changeable. The "I'm not sure" options are gone.
+       3. The muscle chips are the engine's own labels, spelled as
+          rebuild/engine/seed.cjs spells them (see the MG constant below).
+       4. Screen 2 copy per DECISIONS:114 (4).
+     PROVENANCE: every list and number on these screens is sourced or marked
+     INVENTED in rebuild/lanes/c/dad-first-run/BUILD-BRIEF.md section 2.8.
+     EVERY number typed into this mock is the tester's own; every example value
+     shown in the review rail is fictional. Nothing is saved anywhere. -->
+<style>
+:root{--paper:#F4F0E8;--ink:#1C1B18;--muted:#5A5348;--line:#D8D0C2;--green:#2E5A3C;--ground:#E7E1D4;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.45 'Instrument Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation;min-height:44px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+h1,h2,p{margin:0}
+h1,h2,.number,.brand{font-family:'Instrument Serif',Georgia,serif;font-weight:400}
+h1{font-size:47px;line-height:1.04;letter-spacing:-.025em}
+h2{font-size:30px;line-height:1.15}
+.stage{display:grid;justify-items:center;gap:16px;padding:24px 8px}
+.review{width:min(390px,100%);font-size:13px;color:var(--muted)}
+.review strong{color:var(--ink)}
+.phone{width:390px;max-width:100%;height:844px;max-height:88vh;overflow:hidden;border-radius:30px;background:var(--paper);border:1px solid #cbc3b5}
+.view{height:100%;overflow:auto;scrollbar-width:none}
+.view::-webkit-scrollbar{display:none}
+.page{padding:25px 23px 20px;min-height:100%;display:flex;flex-direction:column}
+.mast{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:30px}
+.brand{font-size:27px}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+</style>
+<style>
+.intro{margin:24px 0 20px}
+.intro .label{color:var(--green);margin-bottom:9px;font-size:14px}
+.intro p{margin-top:12px;color:var(--muted);max-width:33ch;font-size:15px}
+.bottom{margin-top:auto;padding-top:20px}
+.primary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;width:100%;padding:15px 17px;background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:14px;font-weight:600;text-align:left}
+.primary[disabled]{opacity:.38}
+.primary svg{width:21px;height:21px;flex:none}
+.back{background:none;border:0;padding:3px 0;color:var(--muted);display:flex;align-items:center;gap:8px;text-align:left}
+.link{display:inline-flex;align-items:center;justify-content:space-between;gap:12px;background:none;border:0;padding:8px 0;text-align:left;font-size:15px;text-decoration:underline;text-decoration-color:#b7ae9f;text-underline-offset:5px}
+.link svg{width:18px;height:18px;flex:none}
+.back svg{width:18px;height:18px}
+.field{display:block;margin-top:18px}
+.field span{display:block;font-size:15px;margin-bottom:8px}
+.field input{width:100%;min-height:48px;font-size:16px;border:1px solid #a99e8d;background:#faf7f1;border-radius:9px;padding:12px}
+.hint{font-size:13px;color:var(--muted);margin-top:7px}
+.options{display:flex;flex-wrap:wrap;gap:8px}
+.option{border:1px solid #a99e8d;border-radius:8px;padding:9px 12px;background:none;font-size:14px;min-height:44px}
+.option[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.dayrow{border-top:1px solid var(--line);padding:11px 0}
+.dayrow:first-of-type{border-top:1px solid var(--ink)}
+.dayrow .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.daybtn{flex:1;text-align:left;border:0;background:none;padding:6px 0;font-size:16px}
+.daybtn[aria-pressed=true]{font-weight:600}
+.pick{display:flex;gap:7px;margin-top:9px}
+.block{border:1px solid var(--line);border-radius:12px;padding:14px;margin:18px 0;background:#faf7f1}
+.block h3{font:14px/1.3 'Instrument Sans',Arial,sans-serif;font-weight:600;margin:0 0 4px;text-transform:none}
+.block p.std{font-size:15px;margin-bottom:4px}
+.q{margin-top:14px}
+.q p{font-size:15px;margin-bottom:8px}
+</style>
+<style>
+.exlist{margin-top:10px}
+.exrow{border-top:1px solid var(--line);padding:12px 0}
+.exrow:first-child{border-top:1px solid var(--ink)}
+.exrow .row{display:flex;align-items:flex-start;gap:10px}
+.exrow input.name{flex:1;min-width:0;min-height:48px;font-size:16px;border:1px solid #a99e8d;background:#faf7f1;border-radius:9px;padding:11px}
+.drop{border:0;background:none;color:var(--muted);font-size:20px;width:44px;flex:none;text-align:center}
+.add{width:100%;border:1px dashed #a99e8d;border-radius:10px;background:none;padding:12px;font-size:15px;margin-top:12px;color:var(--muted)}
+.mgrow{margin-top:9px}
+.mgother{width:100%;min-height:48px;font-size:16px;border:1px solid #a99e8d;background:#faf7f1;border-radius:9px;padding:11px;margin-top:8px}
+.loads{display:flex;gap:10px;margin-top:9px}
+.loads label{flex:1;font-size:13px;color:var(--muted)}
+.loads input{width:100%;min-height:48px;font-size:16px;border:1px solid #a99e8d;background:#faf7f1;border-radius:9px;padding:11px;margin-top:5px}
+details.rungs{margin-top:10px}
+details.rungs summary{min-height:44px;padding:10px 0;font-size:14px;color:var(--muted);cursor:pointer}
+details.rungs input{width:100%;min-height:48px;font-size:16px;border:1px solid #a99e8d;background:#faf7f1;border-radius:9px;padding:11px}
+.err{font-size:13px;color:var(--green);margin-top:7px}
+.sum{border-top:1px solid var(--ink);padding:13px 0;border-bottom:1px solid var(--line)}
+.sum h3{font:16px/1.3 'Instrument Sans',Arial,sans-serif;font-weight:600;margin:0 0 5px}
+.sum p{font-size:14px;color:var(--muted)}
+.refuse{border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:18px;background:#faf7f1}
+.refuse h3{font:16px/1.3 'Instrument Sans',Arial,sans-serif;font-weight:600;margin:0 0 10px}
+.refuse button{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:12px 0;font-size:15px}
+.refuse button:first-of-type{border-top:0}
+.fine{font-size:13px;color:var(--muted);margin-top:14px}
+.food{border-top:1px solid var(--ink);border-bottom:1px solid var(--line);padding:15px 0 12px}
+.number{font-size:37px;line-height:1.2}
+.training{padding:19px 0 12px;border-bottom:1px solid var(--line)}
+/* Long screens keep the primary action inside the first viewport (acceptance A7). */
+.page.tall .bottom{position:sticky;bottom:-20px;background:var(--paper);padding-bottom:8px;margin-top:24px}
+@media(max-width:350px){.page{padding:22px 18px}h1{font-size:39px}}
+</style></head>
+<body><main class="stage">
+<aside class="review"><strong>Earned · Dad first-run setup, design mock</strong><br>
+Six screens, then Today. Tap straight through. Nothing is saved and nothing leaves this page.<br>
+Earned supplies exactly two numbers, each named on the screen that uses it: the standard start
+(3 sets, aim for 10 reps) and the 5&nbsp;lb standard step. Everything else is the athlete's own.</aside>
+<section class="phone" aria-label="Earned first-run setup"><div class="view" id="view"></div></section>
+<aside class="review">A proposal for the setup flow. It is not a working app, not a coach, and nothing here is a training recommendation.</aside>
+</main>
+<script>
+"use strict";
+var ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg>';
+var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+
+/* THE MUSCLE LABELS ARE THE ENGINE'S OWN (DECISIONS:115).
+   `v` is stored verbatim as the exercise's `mg`; rebuild/m4/workout/athlete-state.cjs:98
+   accepts any non-empty string, so nothing is mapped, bucketed or translated.
+   Source, every label, in the owner's own seed: rebuild/engine/seed.cjs
+     delts 16 · back 20 · biceps 31 · chest 33 · forearms 39 · triceps 41 ·
+     calves 46 · abs 48 · quads 52 · glutes 54 · hams 58   (EXERCISES 14-60)
+   `g` is a plain-language GLOSS shown beside the label. The gloss is INVENTED
+   by this mock (the engine has no gloss table; constants.cjs:333 MG_LABEL only
+   names delt heads) and is display-only: it never changes the stored value. */
+var MG = [
+  { v:"chest",    g:"chest" },
+  { v:"back",     g:"back" },
+  { v:"delts",    g:"delts (shoulders)" },
+  { v:"biceps",   g:"biceps" },
+  { v:"triceps",  g:"triceps" },
+  { v:"forearms", g:"forearms" },
+  { v:"abs",      g:"abs (core)" },
+  { v:"quads",    g:"quads (front of thigh)" },
+  { v:"hams",     g:"hams (hamstrings)" },
+  { v:"glutes",   g:"glutes" },
+  { v:"calves",   g:"calves" }
+];
+var OTHER = { v:"__other", g:"something else" };
+
+/* THE THREE NUMBERS EARNED SUPPLIES. Each is a declared per-athlete-setup
+   standard, never one athlete's numbers (the H1 rule, DECISIONS:93 C3), and
+   each is named on the screen that uses it.
+   STANDARD_SETS / STANDARD_HI: INVENTED. The accepted engine has no default
+   set count and no default rep target for a new lift; the only related engine
+   numbers are progression.cjs:426 (`ex.hi || 8`, a guard that clean-init never
+   reaches) and constants.cjs:327 VOL_BANDS {floor 6, lo 8, hi 14, ceil 22},
+   which are WEEKLY sets per muscle, not per-exercise. See BUILD-BRIEF 2.8.
+   STANDARD_INC: sourced. migrate.cjs:795 clamps any inc above 5 to 5, and the
+   engine's own two newborn lifts are minted with inc 5 (migrate.cjs:1651, :1653). */
+var STANDARD_SETS = 3;
+var STANDARD_HI = 10;
+var STANDARD_INC = 5;
+var view = document.getElementById("view");
+
+// ---- all setup answers live here, in memory only -------------------------
+var S = {
+  screen: 1,
+  tried: {},                 // screens he has tried to leave: gates the quiet validation copy
+  name: "",
+  days: {0:null,1:null,2:null,3:null,4:null,5:null,6:null},  // null = not a training day
+  /* PRE-FILLED WITH THE STANDARD. Earned proposes, it does not ask
+     (DECISIONS:114 (2)). These two can be changed but never emptied. */
+  sets: STANDARD_SETS, reps: STANDARD_HI, setsOwn: false, repsOwn: false,
+  ex: [],                    // {key,n,mg,other,mgText,day,low,inc,rungs}
+  prio: [],
+  seq: 0
+};
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function isoToday(){ var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0"); }
+function num(v){ var n = Number(String(v).trim()); return (isFinite(n) && n > 0) ? n : null; }
+function kinds(){ var k = {}; for (var d=0;d<7;d++) if (S.days[d]) k[S.days[d]] = true; return k; }
+function exOf(kind){ return S.ex.filter(function(e){ return e.day === kind; }); }
+function standardStill(){ return !S.setsOwn && !S.repsOwn; }
+
+// ---- what is still unknown. Nothing here is ever guessed to get past it. --
+// `sets` and `hi` are NOT in this list any more: Earned proposes them, so they
+// can never be unknown (DECISIONS:114 (2)).
+var LABEL = {U:"upper-body", L:"lower-body"};
+function missing(){
+  var out = [], k = kinds(), any = false, d;
+  if (!S.name.trim()) out.push({t:"We don't know what to call you.", s:1});
+  for (d=0; d<7; d++){ if (S.days[d]) any = true; }
+  if (!any) out.push({t:"We don't know which days you train.", s:2});
+  for (d=0; d<7; d++){ if (S.days[d] === "?")
+    out.push({t:DAYS[d] + " doesn't have a session kind yet.", s:2}); }
+  ["U","L"].forEach(function(kind){
+    if (k[kind] && !exOf(kind).length)
+      out.push({t:"Your " + LABEL[kind] + " day has no exercises in it.", s:3});
+  });
+  S.ex.forEach(function(e){
+    var nm = e.n.trim() ? '"' + e.n.trim() + '"' : "One exercise";
+    if (!e.n.trim()) out.push({t:"One exercise still has no name.", s:3});
+    else if (!String(e.mg || "").trim()) out.push({t:nm + ": we don't know what it works.", s:3});
+    if (e.n.trim() && num(e.low) == null)
+      out.push({t:nm + " has no lightest setting yet.", s:4});
+  });
+  return out;
+}
+// ---- the document rebuild/m4/workout/athlete-state.cjs would receive -------
+function setupDoc(){
+  var map = {}; for (var d=0; d<7; d++) map[String(d)] = (S.days[d] === "U" || S.days[d] === "L") ? S.days[d] : "REST";
+  return { athlete_label: S.name.trim(), split: { from: isoToday(), map: map },
+    exercises: S.ex.map(function(e){ var lo = num(e.low), rr = parseRungs(e.rungs);
+      return { id: slug(e.n) , n: e.n.trim(), mg: String(e.mg || "").trim(), day: e.day, sets: S.sets, hi: S.reps,
+        inc: num(e.inc) == null ? STANDARD_INC : num(e.inc), steps: rr ? rr : (lo == null ? [] : [lo]) }; }),
+    priority_muscles: S.prio.slice() };
+}
+
+// slug + rung parsing mirror the engine's own shapes (progression.cjs:406-409)
+function slug(n){ var b = String(n||"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+  return b || ("lift_" + (++S.seq)); }
+function parseRungs(text){
+  var r = String(text || "").split(/[^0-9.]+/).map(Number).filter(function(x){ return isFinite(x) && x > 0; });
+  if (r.length < 2) return null;
+  r = r.filter(function(v,i,a){ return a.indexOf(v) === i; }).sort(function(a,b){ return a - b; });
+  return r.length >= 2 ? r : null;
+}
+// ---- chrome ---------------------------------------------------------------
+function head(n, backTo){
+  return '<header class="mast">' +
+    (backTo ? '<button class="back" data-go="' + backTo + '"><span aria-hidden="true">&#8592;</span> Back</button>'
+            : '<span class="brand">Earned</span>') +
+    '<span class="small muted">' + n + ' of 6</span></header>';
+}
+function nextBtn(label, to, off){
+  return '<div class="bottom"><button class="primary" data-next="' + to + '"' + (off ? " disabled" : "") +
+    '>' + label + ' ' + ARROW + '</button></div>';
+}
+/* A chip list. An entry is either a bare value (the numeric chips) or
+   {v, g}: `v` is the value stored, `g` the label shown. Nothing but `v` is
+   ever written into the setup document. */
+function chips(list, isOn, attr){
+  return '<div class="options">' + list.map(function(o){
+    var v = (o && o.v != null) ? o.v : o;
+    var g = (o && o.g != null) ? o.g : o;
+    return '<button class="option" ' + attr(v) + ' aria-pressed="' + (isOn(v) ? "true" : "false") + '">' +
+      esc(g) + '</button>'; }).join("") + '</div>';
+}
+
+// ---- screen 1 · name ------------------------------------------------------
+function s1(){
+  return '<article class="page">' + head(1, null) +
+    '<section class="intro"><p class="label">Setting up</p>' +
+    '<h1>Let\'s set up your week.</h1>' +
+    '<p>Six short questions about your gym and your week. None of it is a target and none of it is a promise.</p>' +
+    '</section>' +
+    '<label class="field"><span>What should we call you?</span>' +
+    '<input type="text" data-field="name" value="' + esc(S.name) + '" autocomplete="given-name" ' +
+    'enterkeyhint="next" placeholder=""></label>' +
+    (S.tried[1] && !S.name.trim() ? '<p class="err">We need something to call you. A first name is fine.</p>' : "") +
+    '<p class="hint">You can change any of this later.</p>' +
+    nextBtn("Next", 2) + '</article>';
+}
+// ---- screen 2 · training days --------------------------------------------
+function s2(){
+  var rows = "";
+  for (var d = 0; d < 7; d++){
+    var on = !!S.days[d], kind = S.days[d];
+    rows += '<div class="dayrow"><div class="row">' +
+      '<button class="daybtn" data-day="' + d + '" aria-pressed="' + (on ? "true" : "false") + '">' +
+      DAYS[d] + '</button><span class="small muted">' + (on ? "training" : "rest") + '</span></div>' +
+      (on ? '<div class="pick">' +
+        '<button class="option" data-kind="' + d + ':U" aria-pressed="' + (kind === "U" ? "true" : "false") + '">Upper body</button>' +
+        '<button class="option" data-kind="' + d + ':L" aria-pressed="' + (kind === "L" ? "true" : "false") + '">Lower body</button>' +
+        '</div>' + (S.tried[2] && kind === "?" ? '<p class="err">Tell us what ' + DAYS[d] + ' is: upper or lower.</p>' : "") : "") +
+      '</div>';
+  }
+  return '<article class="page">' + head(2, 1) +
+    '<section class="intro"><h1>Which days?</h1>' +
+    '<p>Tap the days you\'ll be in the gym, then say what each one is.</p>' +
+    '<p>Earned plans two kinds of day so far: upper body and lower body.</p></section>' +
+    rows + (S.tried[2] && !Object.keys(S.days).some(function(d){ return S.days[d]; })
+      ? '<p class="err">Pick at least one day you\'ll train.</p>' : "") +
+    nextBtn("Next", 3) + '</article>';
+}
+
+// ---- screen 3 · exercises + the standard start ---------------------------
+function exBlock(kind){
+  var list = exOf(kind), out = '<h2>' + (kind === "U" ? "Upper body" : "Lower body") + '</h2><div class="exlist">';
+  if (!list.length) out += '<p class="hint">Nothing here yet.</p>';
+  list.forEach(function(e){
+    out += '<div class="exrow"><div class="row">' +
+      '<input class="name" type="text" data-exname="' + e.key + '" value="' + esc(e.n) + '" ' +
+      'placeholder="What is it called?" autocomplete="off">' +
+      '<button class="drop" data-exdrop="' + e.key + '" aria-label="Remove this exercise">&times;</button></div>' +
+      '<div class="mgrow">' + chips(MG.concat([OTHER]),
+        function(v){ return v === OTHER.v ? !!e.other : (!e.other && e.mg === v); },
+        function(v){ return 'data-exmg="' + e.key + ':' + v + '"'; }) +
+      (e.other ? '<input class="mgother" type="text" data-exmgtext="' + e.key + '" value="' + esc(e.mgText || "") +
+        '" placeholder="What does it work?" autocomplete="off">' : "") +
+      '</div></div>';
+  });
+  return out + '<button class="add" data-add="' + kind + '">+ Add an exercise</button></div>';
+}
+function s3(){
+  var k = kinds(), body = "";
+  if (!k.U && !k.L) body = '<p class="hint">Go back and pick your training days first.</p>';
+  if (k.U) body += exBlock("U");
+  if (k.L) body += '<div style="height:22px"></div>' + exBlock("L");
+  var setOpts = [2,3,4], repOpts = [6,8,10,12];
+  return '<article class="page tall">' + head(3, 2) +
+    '<section class="intro"><h1>What you\'ll do.</h1>' +
+    '<p>Name what you actually use. A machine\'s own label is a fine name.</p>' +
+    '<p>Don\'t add a weight yet. Earned asks for that at the gym, on the day.</p></section>' +
+    '<div class="block"><h3>Earned&#39;s standard start</h3>' +
+    '<p class="std">' + STANDARD_SETS + ' sets, aim for ' + STANDARD_HI + ' reps.</p>' +
+    '<p class="hint">That is where Earned starts every new lift, the same for every exercise below. ' +
+    'Change either one if you already know better.</p>' +
+    '<div class="q"><p>Sets of each exercise</p>' +
+    chips(setOpts, function(v){ return S.sets === v; }, function(v){ return 'data-sets="' + v + '"'; }) + '</div>' +
+    '<div class="q"><p>Reps you aim to reach before the weight goes up</p>' +
+    chips(repOpts, function(v){ return S.reps === v; }, function(v){ return 'data-reps="' + v + '"'; }) + '</div>' +
+    '<p class="hint">' + (standardStill()
+      ? 'Both are Earned&#39;s standard start. Nothing here was read off anyone else&#39;s training.'
+      : 'These are your numbers now, not the standard.') + '</p></div>' +
+    body + nextBtn("Next", 4) + '</article>';
+}
+
+// ---- screen 4 · what the weights do --------------------------------------
+function s4(){
+  var rows = "";
+  if (!S.ex.length) rows = '<p class="hint">No exercises yet. Go back a step and add what you use.</p>';
+  S.ex.forEach(function(e){
+    var badJump = e.inc !== "" && e.inc != null && num(e.inc) == null;
+    var badLow  = e.low !== "" && e.low != null && num(e.low) == null;
+    rows += '<div class="exrow"><strong>' + esc(e.n.trim() || "Unnamed exercise") + '</strong>' +
+      '<span class="small muted"> &middot; ' + (e.day === "U" ? "upper" : "lower") + '</span>' +
+      '<div class="loads">' +
+      '<label>Lightest setting<input type="text" inputmode="decimal" data-exlow="' + e.key + '" value="' + esc(e.low) + '"></label>' +
+      '<label>Smallest jump up<input type="text" inputmode="decimal" data-exinc="' + e.key + '" value="' + esc(e.inc) + '"></label>' +
+      '</div>' +
+      '<p class="hint">Leave the jump blank and Earned uses ' + STANDARD_INC +
+      ' lb, its standard step. Change it if yours is different.</p>' +
+      (badLow || badJump ? '<p class="err">' + (badLow ? "That doesn\'t look like a weight. Numbers only. " : "") +
+        (badJump ? "The jump needs to be more than nothing." : "") + '</p>' : "") +
+      (S.tried[4] && num(e.low) == null && e.n.trim() ? '<p class="err">We still need the lightest setting for this one.</p>' : "") +
+      '<details class="rungs"><summary>My machine\'s jumps are uneven: let me list them</summary>' +
+      '<input type="text" inputmode="decimal" data-exrungs="' + e.key + '" value="' + esc(e.rungs) +
+      '" placeholder="20 30 40 55 70">' +
+      '<p class="hint">Every setting it can make, smallest first. Then Earned never asks for a weight the machine can\'t do.</p>' +
+      (e.rungs && !parseRungs(e.rungs) ? '<p class="err">Give us at least two numbers, smallest first.</p>' : "") +
+      '</details></div>';
+  });
+  return '<article class="page tall">' + head(4, 3) +
+    '<section class="intro"><h1>What the weights do.</h1>' +
+    '<p>This is about the machine, not about you. Look at the stack or the plates and tell us what it can make.</p></section>' +
+    rows + nextBtn("Next", 5) + '</article>';
+}
+
+// ---- screen 5 · priority muscles (the one genuinely skippable answer) -----
+function s5(){
+  return '<article class="page tall">' + head(5, 4) +
+    '<section class="intro"><h1>Anything in particular?</h1>' +
+    '<p>Tap what you care about most. You can leave this empty.</p></section>' +
+    chips(MG, function(v){ return S.prio.indexOf(v) >= 0; }, function(v){ return 'data-prio="' + v + '"'; }) +
+    '<p class="hint">We\'ll keep this with your plan. It doesn\'t change your sessions yet.</p>' +
+    '<div class="bottom"><button class="primary" data-next="6">Next ' + ARROW + '</button>' +
+    '<button class="link" data-skip="5">Skip this ' + ARROW + '</button></div></article>';
+}
+
+// ---- screen 6 · what we'll do with this -----------------------------------
+function weekRows(){
+  var out = "", d;
+  for (d = 0; d < 7; d++){
+    if (!S.days[d]) continue;
+    var kind = S.days[d], list = (kind === "U" || kind === "L") ? exOf(kind) : [];
+    out += '<div class="sum"><h3>' + DAYS[d] + ' &middot; ' +
+      (kind === "U" ? "upper body" : kind === "L" ? "lower body" : "session kind not chosen") + '</h3>' +
+      '<p>' + (list.length ? list.map(function(e){ return esc(e.n.trim() || "unnamed"); }).join(" &middot; ")
+                           : "nothing added yet") + '</p></div>';
+  }
+  return out || '<div class="sum"><h3>No training days yet</h3><p>Nothing to show.</p></div>';
+}
+function gearRows(){
+  if (!S.ex.length) return "";
+  return '<div class="sum"><h3>Your equipment</h3>' + S.ex.map(function(e){
+    var rr = parseRungs(e.rungs), lo = num(e.low), incV = num(e.inc);
+    return '<p>' + esc(e.n.trim() || "unnamed") + ': ' +
+      (rr ? "settings " + rr.join(", ")
+          : (lo == null ? "lightest setting not given yet" : "from " + lo) + ", jump " +
+            (incV == null ? STANDARD_INC + " lb (Earned&#39;s standard step)" : incV + " lb")) + '</p>';
+  }).join("") + '</div>';
+}
+
+function s6(){
+  var gaps = missing(), ok = gaps.length === 0;
+  var intro = '<section class="intro"><h1>' + (ok ? "Here&#39;s your week." : "Nearly there.") + '</h1>' +
+    '<p>' + (ok ? "This is everything Earned now knows. Nothing here was guessed."
+                : "Earned has kept everything you&#39;ve told it. A few things are still unknown.") + '</p></section>';
+  var rows = weekRows() + gearRows() +
+    '<div class="sum"><h3>Every exercise</h3><p>' +
+      S.sets + " sets &middot; aiming for " + S.reps + " reps" +
+      (standardStill() ? " &middot; Earned&#39;s standard start" : " &middot; your own numbers") + '</p></div>' +
+    '<div class="sum"><h3>What matters most to you</h3><p>' +
+      (S.prio.length ? S.prio.join(" &middot; ") : "nothing named, that&#39;s fine") + '</p></div>' +
+    '<div class="sum"><h3>Weights</h3><p>We haven&#39;t put a weight on anything. On your first session Earned ' +
+    'will ask you to pick a load you can control, and whatever that gives is where you start.</p></div>' +
+    '<p class="fine">Your week starts today. Earned won&#39;t plan a day you didn&#39;t choose.</p>' +
+    '<details class="rungs"><summary>For the reviewer: exactly what this would write</summary>' +
+    '<pre class="hint" style="white-space:pre-wrap;word-break:break-word">' +
+    esc(JSON.stringify(setupDoc(), null, 1)) + '</pre>' +
+    '<p class="hint">This is the <code>setup</code> document rebuild/m4/workout/athlete-state.cjs ' +
+    'createCleanInitState() takes. Not shown to the athlete in the real build.</p></details>';
+  var body = intro + rows;
+  if (ok) return '<article class="page tall">' + head(6, 5) + body + nextBtn("Start using Earned", "today") + '</article>';
+  var list = gaps.map(function(g){ return '<button data-go="' + g.s + '">' + esc(g.t) +
+    ' <span class="muted small">&#8592; fix this</span></button>'; }).join("");
+  return '<article class="page tall">' + head(6, 5) + intro +
+    '<div class="refuse"><h3>Earned can&#39;t build your week yet</h3>' + list +
+    '<p class="fine">Nothing here is guessed to get past this, and nothing you&#39;ve already said is lost.</p></div>' +
+    rows + '<div class="bottom"><button class="primary" disabled>Start using Earned ' + ARROW + '</button></div></article>';
+}
+
+// ---- after setup · the Today he lands on ---------------------------------
+// Shape and wording follow the merged A1 page (rebuild/m3/w7-preview/today/):
+// honest empty states, and unwired entries saying so in the app's own words.
+function today(){
+  var d = new Date(), kind = S.days[d.getDay()], list = (kind === "U" || kind === "L") ? exOf(kind) : [];
+  var label = kind === "U" ? "Upper body" : kind === "L" ? "Lower body" : "Rest day";
+  var dateTxt = DAYS[d.getDay()] + ", " + ["January","February","March","April","May","June","July",
+    "August","September","October","November","December"][d.getMonth()] + " " + d.getDate();
+  return '<article class="page"><header class="mast"><span class="brand">Earned</span>' +
+    '<span class="small muted">' + dateTxt + '</span></header>' +
+    '<section class="intro"><p class="label">Your plan for today</p>' +
+    '<h1>' + (list.length ? "Find your working weights." : "Rest today.") + '</h1>' +
+    '<p>' + (list.length
+      ? "First time through. Pick a load you can control, log what it gives, and that becomes your line."
+      : "You didn&#39;t put a session on " + DAYS[d.getDay()] + ".") + '</p></section>' +
+    '<section class="food"><p class="small">Eat about</p>' +
+    '<p class="small muted" style="margin-top:8px">Not yet. Earned sets this from your own weigh-ins, ' +
+    'and it has none. Nothing is shown until there is something true to show.</p></section>' +
+    '<section class="training"><div class="row"><h2>' + label + '</h2>' +
+    '<span class="small muted">' + (list.length ? list.length + (list.length === 1 ? " exercise" : " exercises") : "") + '</span></div>' +
+    '<p class="small muted">' + (list.length ? list.map(function(e){ return esc(e.n.trim() || "unnamed"); }).join(" &middot; ")
+      : "Nothing scheduled.") + '</p></section>' +
+    '<p class="small muted" style="margin-top:15px">No weight readings yet: not wired yet in this mock.</p>' +
+    '<div class="bottom">' + (list.length
+      ? '<button class="primary" data-info="1">Start ' + label.toLowerCase() + ' ' + ARROW + '</button>'
+      : '<button class="primary" disabled>Nothing to start today ' + ARROW + '</button>') +
+    '<button class="link" data-go="1">Run the setup again (mock only) ' + ARROW + '</button></div></article>';
+}
+
+// ---- render ---------------------------------------------------------------
+var SCREENS = {1:s1, 2:s2, 3:s3, 4:s4, 5:s5, 6:s6, today:today};
+function render(){
+  var f = SCREENS[S.screen] || s1;
+  view.innerHTML = f();
+  view.scrollTop = 0;
+}
+function go(to){ S.screen = (to === "today") ? "today" : Number(to); render(); }
+function findEx(key){ for (var i=0;i<S.ex.length;i++) if (S.ex[i].key === key) return S.ex[i]; return null; }
+
+// ---- input: written straight into state, never re-rendered mid-typing -----
+view.addEventListener("input", function(ev){
+  var t = ev.target, e;
+  if (t.dataset.field === "name") { S.name = t.value; return; }
+  if (t.dataset.exname)  { e = findEx(t.dataset.exname);  if (e) e.n = t.value; return; }
+  if (t.dataset.exlow)   { e = findEx(t.dataset.exlow);   if (e) e.low = t.value; return; }
+  if (t.dataset.exinc)   { e = findEx(t.dataset.exinc);   if (e) e.inc = t.value; return; }
+  if (t.dataset.exrungs) { e = findEx(t.dataset.exrungs); if (e) e.rungs = t.value; return; }
+  /* "something else": the typed label IS the stored mg. No mapping, no bucket.
+     athlete-state.cjs:98 takes any non-empty string. */
+  if (t.dataset.exmgtext){ e = findEx(t.dataset.exmgtext); if (e){ e.mgText = t.value; e.mg = t.value; } return; }
+});
+
+view.addEventListener("click", function(ev){
+  var b = ev.target.closest ? ev.target.closest("button") : null;
+  if (!b || b.disabled) return;
+  var d = b.dataset, e, i;
+  if (d.go)   { go(d.go); return; }
+  if (d.skip) { go(Number(d.skip) + 1); return; }
+  if (d.next) { S.tried[S.screen] = true; go(d.next); return; }
+  if (d.info) { render(); return; }                       // mock: the gym card is not part of this flow
+  if (d.day != null){ i = Number(d.day);
+    S.days[i] = S.days[i] ? null : "?";                   // "?" = training, kind not chosen yet
+    render(); return; }
+  if (d.kind){ var p = d.kind.split(":"); i = Number(p[0]);
+    S.days[i] = (S.days[i] === p[1]) ? "?" : p[1];        // a chosen kind can be tapped back off
+    S.ex = S.ex.filter(function(x){ return kinds()[x.day]; });
+    render(); return; }
+  /* THE STANDARD IS NEVER EMPTIED. Tapping the selected chip again does
+     nothing: Earned proposes these two, so "unknown" is not one of the
+     answers (DECISIONS:114 (2)). Choosing another value makes it his. */
+  if (d.sets != null){ var v = Number(d.sets);
+    if (v !== S.sets){ S.sets = v; S.setsOwn = (v !== STANDARD_SETS); render(); } return; }
+  if (d.reps != null){ var r = Number(d.reps);
+    if (r !== S.reps){ S.reps = r; S.repsOwn = (r !== STANDARD_HI); render(); } return; }
+  if (d.add){ S.ex.push({key:"k" + (++S.seq), n:"", mg:"", other:false, mgText:"",
+    day:d.add, low:"", inc:"", rungs:""}); render(); return; }
+  if (d.exdrop){ S.ex = S.ex.filter(function(x){ return x.key !== d.exdrop; }); render(); return; }
+  if (d.exmg){ var q = d.exmg.split(":"); e = findEx(q[0]);
+    if (e){
+      if (q[1] === "__other"){ e.other = !e.other; e.mg = e.other ? (e.mgText || "") : ""; }
+      else { e.other = false; e.mgText = ""; e.mg = (e.mg === q[1]) ? "" : q[1]; }
+    }
+    render(); return; }
+  if (d.prio){ var at = S.prio.indexOf(d.prio);
+    if (at >= 0) S.prio.splice(at, 1); else S.prio.push(d.prio); render(); return; }
+});
+render();
+</script></body></html>
