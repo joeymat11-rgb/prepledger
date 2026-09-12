@@ -522,15 +522,14 @@ test('H6 every added head is marked INVENTED-and-declared in the source', () => 
   assert.match(block, /DECISIONS:154 \(8\)/, 'the ruling that added them is not cited');
 });
 
-/* ---- H7: how far the resolved head actually travels, EXECUTED ------------
-   The brief's H7 wants the produced op's tags to carry the secondary head. Two
-   of the three steps between the catalogue and the op are in files this build's
-   custody does not include (setup-model.mjs document(), which maps each credit
-   to {mg, lend}, and setup-commands.mjs tagsOf, which refuses a secondary with
-   any third key). So the cells below drive the real path and record exactly
-   where the head stops today, rather than claiming a reach this edit does not
-   have. They are written to FAIL the moment that boundary moves, so the
-   widening cannot land silently and cannot be forgotten either. */
+/* ---- H7: THE RESOLVED HEAD REACHES THE STORED OP'S TAGS, EXECUTED -------
+   These two cells used to hold a boundary: the head reached the athlete's row and
+   stopped there, because setup-model.mjs document() narrowed every credit to
+   {mg, lend} and setup-commands.mjs tagsOf refused a secondary with any third
+   key. That boundary is CLOSED now (lane decision under DECISIONS:135 (1),
+   disclosed to lane D/F2 as additive), so they assert the reach instead - end to
+   end, through the real reducer and the real producer, and through validate as
+   well, because an op the client would refuse is not a stored op. */
 test('H7 the resolved head reaches the setup model\'s own exercise row', async () => {
   const { createSetupModel } = await import('../setup-model.mjs');
   const model = createSetupModel({ today: '2030-02-04' });
@@ -543,9 +542,9 @@ test('H7 the resolved head reaches the setup model\'s own exercise row', async (
     'addFromCatalogue clones the credit whole, so the head is on the athlete\'s row');
 });
 
-test('H7 and the op does NOT carry it yet: the two places that drop it, named', async () => {
+test('H7 and the op the client would store carries it, all the way through', async () => {
   const { createSetupModel } = await import('../setup-model.mjs');
-  const { prepare } = await import('../setup-commands.mjs');
+  const { prepare, validate } = await import('../setup-commands.mjs');
   const model = createSetupModel({ today: '2030-02-04' });
   model.setName('Dad');
   model.toggleDay('1'); model.setDayKind('1', 'U');
@@ -554,27 +553,62 @@ test('H7 and the op does NOT carry it yet: the two places that drop it, named', 
   model.togglePriority('chest');
   const built = model.document();
   assert.equal(built.ok, true, JSON.stringify(built.missing));
+  const id = Object.keys(built.tags)[0];
 
-  /* (1) setup-model.mjs document() maps every credit to exactly {mg, lend}. */
-  const tag = built.tags[Object.keys(built.tags)[0]];
-  const credit = tag.secondary.find((s) => s.mg === 'delts');
-  assert.deepEqual(Object.keys(credit).sort(), ['lend', 'mg'],
-    'document() still narrows the credit; widening it is the first of two lines');
+  /* (1) document() keeps the head ON the credit. */
+  const credit = built.tags[id].secondary.find((s) => s.mg === 'delts');
+  assert.deepEqual(Object.keys(credit).sort(), ['head', 'lend', 'mg']);
+  assert.equal(credit.head, 'delts_front');
 
-  /* The op is built from those tags and is otherwise exactly what A4b shipped. */
+  /* (2) the producer carries it into the op, and the payload stays three members
+     and the document stays exactly what the clean-init constructor takes. */
   const action = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
-  assert.deepEqual(Object.keys(action.payload).sort(), ['profile', 'setup', 'tags'],
-    'the payload stays three members');
-  assert.equal(action.payload.tags[Object.keys(built.tags)[0]].secondary
-    .find((s) => s.mg === 'delts').head, undefined);
+  assert.deepEqual(Object.keys(action.payload).sort(), ['profile', 'setup', 'tags']);
+  assert.deepEqual(action.payload.setup, built.setup, 'the document is untouched by any of this');
+  const stored = action.payload.tags[id].secondary.find((s) => s.mg === 'delts');
+  assert.deepEqual(stored, { mg: 'delts', lend: 0.5, head: 'delts_front' });
+  /* The triceps credit is unresolved and stays two members: absent is unchanged. */
+  assert.deepEqual(action.payload.tags[id].secondary.find((s) => s.mg === 'triceps'),
+    { mg: 'triceps', lend: 0.5 });
 
-  /* (2) setup-commands.mjs tagsOf refuses a secondary with a third key, so even a
-     caller that kept the head could not get it into the op. This is the second
-     line: `Object.keys(s).length !== 2` has to admit an optional `head`, and the
-     returned credit has to carry it. */
-  const carried = JSON.parse(JSON.stringify(built.tags));
-  carried[Object.keys(carried)[0]].secondary.find((s) => s.mg === 'delts').head = 'delts_front';
-  assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: carried } }),
-    /SETUP_INPUT_INVALID/,
-    'when this stops throwing, the head travels and this cell is the one to rewrite');
+  /* (3) and the client would ACCEPT that op: validate re-checks the same tags. */
+  const op = { kind: 'fact', class: 'event', athlete_id: 'owner', causal_parents: [],
+    effective: { local_date: '2030-02-04', local_time: '08:00', utc_offset: '-05:00' },
+    payload: action.payload };
+  assert.equal(validate(op, () => null), true, 'the widened credit passes the envelope check too');
+});
+
+test('H7 an illegal secondary head is refused, by the producer and by validate', async () => {
+  const { createSetupModel } = await import('../setup-model.mjs');
+  const { prepare, validate } = await import('../setup-commands.mjs');
+  const model = createSetupModel({ today: '2030-02-04' });
+  model.setName('Dad');
+  model.toggleDay('1'); model.setDayKind('1', 'U');
+  const row = model.addFromCatalogue('U', byId('barbell_bench_press'));
+  model.setExerciseField(row.key, 'first', '20');
+  model.togglePriority('chest');
+  const built = model.document();
+  const id = Object.keys(built.tags)[0];
+  const good = prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: built.tags } });
+
+  /* A name that is not a region label at all, and a name that belongs to another
+     engine label: neither is a legal head, and the producer says so in its own code. */
+  for (const bad of ['delts_lateral', 'shoulders', '', null, 7]) {
+    const tags = JSON.parse(JSON.stringify(built.tags));
+    tags[id].secondary.find((s) => s.mg === 'delts').head = bad;
+    assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags } }),
+      /SETUP_INPUT_INVALID/, 'head=' + JSON.stringify(bad) + ' was accepted');
+  }
+  /* A fourth key is still refused: this widened ONE optional member, not the shape. */
+  const four = JSON.parse(JSON.stringify(built.tags));
+  four[id].secondary.find((s) => s.mg === 'delts').note = 'x';
+  assert.throws(() => prepare({ action: 'first-run-setup', input: { setup: built.setup, tags: four } }),
+    /SETUP_INPUT_INVALID/);
+
+  /* And an envelope carrying an illegal head is refused on the way in, too. */
+  const opBad = { kind: 'fact', class: 'event', athlete_id: 'owner', causal_parents: [],
+    effective: { local_date: '2030-02-04', local_time: '08:00', utc_offset: '-05:00' },
+    payload: JSON.parse(JSON.stringify(good.payload)) };
+  opBad.payload.tags[id].secondary.find((s) => s.mg === 'delts').head = 'delts_lateral';
+  assert.equal(validate(opBad, () => null), false);
 });
