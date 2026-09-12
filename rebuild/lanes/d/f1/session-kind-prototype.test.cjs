@@ -1,10 +1,35 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
+const path = require('node:path');
+const vm = require('node:vm');
 const F = require('./session-kind-prototype.cjs');
-const planFactory = require('../../../engine/plan.cjs');
-const todayFactory = require('../../../engine/today.cjs');
-const { createCleanInitState } = require('../../../m4/workout/athlete-state.cjs');
+const PARENT = '964f18389fd930719fa0000300229f6cf4b5d15a';
+const PARENT_READ_LIST = new Set([
+  'rebuild/engine/plan.cjs',
+  'rebuild/engine/today.cjs',
+  'rebuild/m4/workout/athlete-state.cjs',
+]);
+// Historical RED witnesses stay on the pre-F product, even after F is built.
+// These three factories are self-contained and receive no require or seed.
+// Keep the caller's realm so the constructor's plain-object guard stays real.
+function fromParent(file) {
+  assert.ok(PARENT_READ_LIST.has(file), 'parent source is outside the read-list');
+  const source = execFileSync('git', ['show', `${PARENT}:${file}`], {
+    cwd: path.resolve(__dirname, '../../../..'), encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const module = { exports: {} };
+  const load = vm.compileFunction(source, ['module', 'exports', 'require'], {
+    filename: `${PARENT}:${file}`,
+  });
+  load(module, module.exports);
+  return module.exports;
+}
+const planFactory = fromParent('rebuild/engine/plan.cjs');
+const todayFactory = fromParent('rebuild/engine/today.cjs');
+const { createCleanInitState } = fromParent('rebuild/m4/workout/athlete-state.cjs');
 
 // Entirely fictional inputs. Only public, non-seed factories are loaded.
 const upper = [{ id: 'test-chest', day: 'U', mg: 'chest', sets: 3 }];

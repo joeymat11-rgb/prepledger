@@ -16,6 +16,7 @@ const bfEst = (...args) => E.bfEst(...args);
 const weightNoise = (...args) => E.weightNoise(...args);
 const currentRate = (...args) => E.currentRate(...args);
 const dayType = (...args) => E.dayType(...args);
+const isTrainingKind = (...args) => E.isTrainingKind(...args);
 const proteinTarget = (...args) => E.proteinTarget(...args);
 const proteinHit = (...args) => E.proteinHit(...args);
 const weeksBetween = (...args) => E.weeksBetween(...args);
@@ -1664,7 +1665,7 @@ function bodyAlarm(s, slp) {
   if (!sig) return null;
   const { tI, yISO, pr5, lastNight, todaySpike, prevSpike, partial, patParts, pulseTrig, red } = sig;
   const t = dayType(tI, s);
-  const trainDay = (t === "U" || t === "L") && !s.sessionLog[tI];
+  const trainDay = isTrainingKind(t) && !s.sessionLog[tI];
   let canaryName = null;
   try { const can = labGroupsM(s).flatMap((g) => g.cards).find((c) => c.id === "canary"); if (can && can.status === "LIVE") { const m = (can.forYou || "").match(/Canary: ([^(]+)\(/); if (m) canaryName = m[1].trim(); } } catch (e) {}
   const lo = lightsOutT(s);

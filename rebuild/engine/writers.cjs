@@ -37,6 +37,7 @@ const forkFrom = (...args) => E.forkFrom(...args);
 const forksOf = (...args) => E.forksOf(...args);
 const genSession = (...args) => E.genSession(...args);
 const isoOf = (...args) => E.isoOf(...args);
+const isTrainingKind = (...args) => E.isTrainingKind(...args);
 const labGroups = (...args) => E.labGroups(...args);
 const labGroupsM = (...args) => E.labGroupsM(...args);
 const lastUndoable = (...args) => E.lastUndoable(...args);
@@ -54,6 +55,7 @@ const nameAt = (...args) => E.nameAt(...args);
 const nextLoad = (...args) => E.nextLoad(...args);
 const normalizePlan = (...args) => E.normalizePlan(...args);
 const observedTDEE = (...args) => E.observedTDEE(...args);
+const orderedExercisesForDay = (...args) => E.orderedExercisesForDay(...args);
 const owedLedger = (...args) => E.owedLedger(...args);
 const owedNights = (...args) => E.owedNights(...args);
 const paceRushed = (...args) => E.paceRushed(...args);
@@ -85,6 +87,7 @@ const structuralMovesThisWeek = (...args) => E.structuralMovesThisWeek(...args);
 const targetsFor = (...args) => E.targetsFor(...args);
 const tempRead = (...args) => E.tempRead(...args);
 const todayStart = (...args) => E.todayStart(...args);
+const trainingWeek = (...args) => E.trainingWeek(...args);
 const trialTpl = (...args) => E.trialTpl(...args);
 const trialVerdict = (...args) => E.trialVerdict(...args);
 const typicalError = (...args) => E.typicalError(...args);
@@ -729,7 +732,7 @@ function sessionDebrief(s, iso) {
   if (!wasClean) summary.push(`Short sleep${night ? ` (${night.h} h)` : ""} — worth about 3% on a heavy set and closer to 10% on a long one, so it is the likeliest reason for anything down here. It does not cost you anything else: the reps count, a record can still bank, and the step is still sized by what you had left. What the flag buys is that today cannot be read as a stall.`);
   else if (rushedDay) summary.push(`You logged this one rushed. Short rest costs reps on the back sets, so nothing here counts toward a stall.`);
   else summary.push(`Normal sleep, unhurried — nothing here needs discounting.${night ? ` ${night.h} h into it.` : ""}`);
-  summary.push(`${nLift} lifts · ${totalReps} reps${med ? ` (your usual ${dayType(iso, s) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` · ${sessLoad.toLocaleString()} lb moved${loadPc != null ? ` (${loadPc >= 0 ? "+" : ""}${loadPc}% vs the same lifts last time)` : ""}` : ""}.`);
+  summary.push(`${nLift} lifts · ${totalReps} reps${med ? ` (your usual ${dayType(iso, s) === "F" ? "full body" : dayType(iso, s) === "U" ? "upper" : "lower"} day: ~${med})` : ""}${sessLoad ? ` · ${sessLoad.toLocaleString()} lb moved${loadPc != null ? ` (${loadPc >= 0 ? "+" : ""}${loadPc}% vs the same lifts last time)` : ""}` : ""}.`);
   /* Cross-lift reads. Each earns its place by needing more than one lift to see. */
   if (marks.room.length >= 2) summary.push(`${marks.room.length} lifts finished with reps left on the set that is meant to reach failure (${marks.room.join(", ")}). Muscle growth tracks how close a set ends to failure, so that is the cheapest thing on this page to fix — and the app has already sized bigger steps there because of it.`);
   if (nLift && marks.unrated.length === nLift) summary.push(`No last-set ratings anywhere today, so every step below defaults to a single rep. Rating the final set is what lets the app size the jump to what you actually had left.`);
@@ -884,7 +887,7 @@ function theOneThing(s, slp, hour = clock.hour(), graceDays = Infinity) {
   const slLogged = owed.length === 0;
   const dLogged = s.dailyLogs[tISO] && s.dailyLogs[tISO].cal != null;
   const dt = dayType(tISO, s);
-  const trainToday = dt === "U" || dt === "L";
+  const trainToday = isTrainingKind(dt);
   const sessDone = !!s.sessionLog[tISO];
   if (!slLogged) {
     const flips = !slp.clean && slp.run + 1 >= slp.need;
@@ -899,7 +902,7 @@ function theOneThing(s, slp, hour = clock.hour(), graceDays = Infinity) {
   const openEv = efOne.closable && efOne.overdue && efOne.days >= -graceDays ? efOne.ev : null;
   if (openEv) return { t: "Close out " + openEv.t, sub: "zero-comp or honest — one tap, the ledger doesn't guess" };
   if (trainToday && sessDone && !dLogged && hour < 17) return { t: "Session banked ✓ — day open", sub: "numbers close it tonight · everything else is reading" };
-  if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (g.structural || g.name), sub: "log it in TRAIN when the iron's down" }; }
+  if (trainToday && !sessDone && hour >= 10) { const g = genSession(s, tISO, slp); return { t: "Today: " + (dt === "F" ? g.name : (g.structural || g.name)), sub: "log it in TRAIN when the iron's down" }; }
   if (!dLogged && hour >= 17) return { t: "Close the day", sub: "cal · protein · steps — pre-filled to targets, adjust and tap" };
   if (!dLogged) return { t: "Day open — nothing owed yet", sub: "numbers close it tonight · everything else is optional reading" };
   const lo2 = lightsOutT(s);
@@ -1058,7 +1061,7 @@ function dayProtocol(s, slp) {
   const tI = isoOf(todayStart());
   const yISO = isoOf(new Date(todayStart().getTime() - DAY));
   const t = dayType(tI, s);
-  const trainDay = t === "U" || t === "L";
+  const trainDay = isTrainingKind(t);
   const sessDone = !!s.sessionLog[tI];
   const lastNight = s.sleep.nights.find((n) => n.d === yISO);
   const pr4 = pulseRead(s);
@@ -1076,7 +1079,7 @@ function dayProtocol(s, slp) {
   /* 3 · the session */
   if (trainDay && !sessDone) {
     const g = genSession(s, tI, slp);
-    if (g && g.ex && g.ex.length) steps.push({ a: `Session: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "rate the LAST set of each lift — that is the number that sizes the next jump" : "short sleep — the reps still count and a record can still bank; what the flag buys you is that today cannot be read as a stall. Rate the last set anyway"), w: 90 });
+    if (g && g.ex && g.ex.length) steps.push({ a: `${t === "F" ? "Full body" : "Session"}: ${g.ex.length} lifts`, why: (g.structural && g.structural.indexOf("NONE") !== 0 ? g.structural.toLowerCase() + " · " : "") + (slp.clean ? "rate the LAST set of each lift — that is the number that sizes the next jump" : "short sleep — the reps still count and a record can still bank; what the flag buys you is that today cannot be read as a stall. Rate the last set anyway"), w: 90 });
   }
 
   /* 3.5 · energy availability — the reading that outranks everything except an
@@ -1286,11 +1289,28 @@ function exerciseSelection(s) {
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:8800-8805.
-function _weeklyFreq(day9) {
+function _weeklyFreq(day9, s, iso) {
+  // F uses the query week's family exposures; retain the legacy no-F branch.
+  const week = s && trainingWeek(s, iso);
+  if (week && week.hasFullBody) return week.exposure[day9] || 0;
   /* same fixed-week walk as programmeVolume — dayType without state, per its contract */
   const perWeek = {};
   for (let i = 0; i < 7; i++) { const t9 = dayType(isoOf(new Date(mk("2026-07-27").getTime() + i * DAY))); if (t9 === "U" || t9 === "L") perWeek[t9] = (perWeek[t9] || 0) + 1; }
   return perWeek[day9] || 0;
+}
+
+// The cap is direct sets for one bucket across the complete F pool, not total work.
+function _volumeSessionSets(s, ex, delta, week = trainingWeek(s)) {
+  if (!week.hasFullBody) return (ex.sets || 1) + delta;
+  const bucket = ex.head || ex.mg;
+  return orderedExercisesForDay(s, "F").filter((e) => (e.head || e.mg) === bucket)
+    .reduce((n, e) => n + (e.sets || 0), delta);
+}
+
+function _volumeSessionLabel(s, day) {
+  const family = day === "L" ? "lower" : "upper";
+  const week = trainingWeek(s);
+  return week.hasFullBody ? (week.kinds.includes(day) ? family + " or full body" : "full body") : family;
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:9022-9139.
@@ -1383,13 +1403,14 @@ function volumePush(s) {
     if (vc.status === "READING") { skips.push({ mg: m.mg, why: "its last set change is still being read (" + vc.have + "/" + vc.need + " sessions) — one increment per read, per muscle" }); continue; }
     if (vc.status === "LIVE" && vc.delivered === false) { skips.push({ mg: m.mg, why: "the last added set was never delivered at prescribed effort — effort first, then dose" }); continue; }
     if (vc.status === "LIVE" && !vc.tolerated) { skips.push({ mg: m.mg, why: "its last add is not being tolerated — the staged review (hold, verify, subtract only on repeats, pain, or recovery leaving GREEN) owns this muscle. A null read never blocks: re-eligibility keys on tolerance, not on a growth claim the instrument cannot make" }); continue; }
-    const freq = _weeklyFreq(ex.day);
+    const freq = _weeklyFreq(ex.day, s);
     if (!freq) { skips.push({ mg: m.mg, why: "no training day carries its lift" }); continue; }
     const dSess = m.sets < VOL_BANDS.floor ? Math.min(2, Math.max(1, Math.ceil((VOL_BANDS.floor - m.sets) / freq))) : 1;
     const toWk = +(m.sets + dSess * freq).toFixed(1);
     const toSess9 = (ex.sets || 1) + dSess;
     /* A4 — the per-session concentration cap, with frequency as the release valve */
-    if (toSess9 > VOL_SESS_CAP) { skips.push({ mg: m.mg, why: "the session is full — " + toSess9 + " direct sets of one muscle in one session passes the per-session cap (" + VOL_SESS_CAP + "). The next set for this muscle belongs on ANOTHER day: a frequency change, which is the owner's split to change — never session bloat" }); continue; }
+    const bucketSess9 = _volumeSessionSets(s, ex, dSess);
+    if (bucketSess9 > VOL_SESS_CAP) { skips.push({ mg: m.mg, why: "the session is full — " + bucketSess9 + " direct sets of one muscle in one session passes the per-session cap (" + VOL_SESS_CAP + "). The next set for this muscle belongs on ANOTHER day: a frequency change, which is the owner's split to change — never session bloat" }); continue; }
     if (toWk > VOL_PUSH_CEIL_WK) { skips.push({ mg: m.mg, why: "the absolute ceiling binds — " + m.sets + " weekly now, +" + (dSess * freq) + " would pass " + VOL_PUSH_CEIL_WK }); continue; }
     if (toWk > VOL_REVIEW_HI && !(vc.status === "LIVE" && vc.delivered !== false && vc.tolerated)) { skips.push({ mg: m.mg, why: "past the review zone (" + VOL_REVIEW_LO + "–" + VOL_REVIEW_HI + " weekly sets) progression is gated on this muscle's own delivered+tolerated reads, and it has none standing" }); continue; }
     /* ITEM 9 — THE HEADROOM SOFT NOTE (Joe's ruling: information on the card, never a
@@ -1483,7 +1504,7 @@ function sweepVolume(s, dow7 = mk(clock.today()).getDay()) {
       const doorOpen9 = (s.proposals || []).some((p) => p && !p.resolved && p.rid && String(p.rid).indexOf("volpush_") === 0);   /* R18f fix2 — one door files: an open EARNED VOLUME card closes this one */
       if (!already9 && !doorOpen9 && !declined9 && !passed9) {
         ns = ns || JSON.parse(JSON.stringify(s));
-        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + clock.nowMs(), kind: "volume", pg: s.planGen || 0, mg: vp9.mg, exId: vp9.exId, dir: 1, title: `VOLUME +1 — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (the regime or stall read, recovery, the sleep mean, the volume budget, spillover charges, the delivery read) passed before this filed." + (vp9.headroomNote ? " " + vp9.headroomNote : ""), gatesClosed: false }];
+        ns.agentProposals = [...(ns.agentProposals || []), { id: "vol" + vp9.mg + clock.nowMs(), kind: "volume", pg: s.planGen || 0, mg: vp9.mg, exId: vp9.exId, dir: trainingWeek(s).hasFullBody ? vp9.dSess : 1, title: `VOLUME +${trainingWeek(s).hasFullBody ? vp9.dSess : 1} — ${vp9.mg.toUpperCase()} via ${vp9.exName}`, body: "The desk is awake again — one chooser, house gates. " + vp9.routing + " Weekly " + vp9.fromWk + " → " + vp9.toWk + " sets; every gate (the regime or stall read, recovery, the sleep mean, the volume budget, spillover charges, the delivery read) passed before this filed." + (vp9.headroomNote ? " " + vp9.headroomNote : ""), gatesClosed: false }];
       }
     }
     /* gates closed → silence: the ONE-CHANGE card owns that render, and the owner's-call
@@ -1865,7 +1886,7 @@ function runAdaptive(state, todayISO, raOpts) {
     const deskPassed = vp.mode === "PUSH" && (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp.mg).toUpperCase()) === 0 && (mk(todayISO) - mk(f.d)) / DAY < 14);
     if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH")
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
-        `${vp.basis === "stall" ? "Your own measured state earned this through the stall arm: the scale is stalled with nothing looking wrong — lifts not falling, recovery GREEN, the 3-night sleep mean clean, no other volume move this week — and a stalled scale with clean instruments still earns the question." : vp.basis === "surplus" ? "Your own measured state earned this: a surplus inside the controlled-gain cap, lifts not falling, recovery GREEN, the sleep mean clean, and the block's batch open." : "Your own measured state earned this: regime FREE confirmed a week apart, lifts not falling while fat clearly falls, recovery GREEN, the 3-night sleep mean clean, and no other volume move this week."} ${cap(mgLabel(vp.mg))} carries your own training-order priority at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set.${vp.reviewZone ? ` REVIEW ZONE: this lands past ${VOL_BANDS.hi} weekly sets (${VOL_REVIEW_LO}–${VOL_REVIEW_HI}) — progression here continues only on your own delivered+tolerated reads.` : ""}${vp.headroomNote ? " " + vp.headroomNote : ""} HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 and Nait-Yahia 2026 asked retention; neither found a volume advantage), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. A null read HOLDS; sets come off only on repeated deterioration, pain, or recovery leaving GREEN, with a receipt. Per-session cap ${VOL_SESS_CAP}; absolute ceiling ${vp.ceil} weekly sets, never normally reached.`,
+        `${vp.basis === "stall" ? "Your own measured state earned this through the stall arm: the scale is stalled with nothing looking wrong — lifts not falling, recovery GREEN, the 3-night sleep mean clean, no other volume move this week — and a stalled scale with clean instruments still earns the question." : vp.basis === "surplus" ? "Your own measured state earned this: a surplus inside the controlled-gain cap, lifts not falling, recovery GREEN, the sleep mean clean, and the block's batch open." : "Your own measured state earned this: regime FREE confirmed a week apart, lifts not falling while fat clearly falls, recovery GREEN, the 3-night sleep mean clean, and no other volume move this week."} ${cap(mgLabel(vp.mg))} carries your own training-order priority at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${_volumeSessionLabel(s, vp.day)} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set.${vp.reviewZone ? ` REVIEW ZONE: this lands past ${VOL_BANDS.hi} weekly sets (${VOL_REVIEW_LO}–${VOL_REVIEW_HI}) — progression here continues only on your own delivered+tolerated reads.` : ""}${vp.headroomNote ? " " + vp.headroomNote : ""} HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 and Nait-Yahia 2026 asked retention; neither found a volume advantage), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. A null read HOLDS; sets come off only on repeated deterioration, pain, or recovery leaving GREEN, with a receipt. Per-session cap ${VOL_SESS_CAP}; absolute ceiling ${vp.ceil} weekly sets, never normally reached.`,
         { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* A5 — the premise is now the clean VOLUME budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask) are untouched */
     /* the staged-hold half (A2) — subtraction is the LAST stage, never the reflex: a
        null read HOLDS, verification is named on the card, and the proposal files only
@@ -1904,13 +1925,13 @@ function runAdaptive(state, todayISO, raOpts) {
     const OWNER_CALLS = [
       { mg: "hams", exId: "ham",
         title: (ex, fromWk, toWk) => `OWNER'S CALL — HAMS: ${fromWk} → ${toWk} WEEKLY SETS`,
-        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each lower session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes on those days. This is the FLOOR CORRECTION: ${ex.sets * fq} weekly sets sits under the growth floor, and the climb lands where sets pay best on the evidence's own curve (Pelland 2025, roughly 5–10 weekly sets — returns stay positive above that, each set just buys less).` },
+        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each ${_volumeSessionLabel(s, ex.day)} session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes on those days. This is the FLOOR CORRECTION: ${ex.sets * fq} weekly sets sits under the growth floor, and the climb lands where sets pay best on the evidence's own curve (Pelland 2025, roughly 5–10 weekly sets — returns stay positive above that, each set just buys less).` },
       { mg: "chest", exId: "press",
         title: (ex, fromWk, toWk) => `OWNER'S CALL — CHEST: ${fromWk} → ${toWk} WEEKLY SETS`,
-        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each upper session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes. PRESS IS A COMPOUND: the added set fractionally credits triceps and front delts (half a set each per session), and that spillover charges those muscles' weekly structural budget — nothing else stacks on them the same week. After this move chest sits in the working zone, triceps stays inside its band, and front delts stays indirect-only by design: the press IS its lever. Grade MODERATE-TO-LOW — at-floor to working zone, and the more-volume-during-a-deficit bridge is untested (Roth 2023 asked retention).` },
+        body: (ex, fq) => `Approving adds 1 set to ${ex.n} each ${_volumeSessionLabel(s, ex.day)} session — ${ex.sets}→${ex.sets + 1} per session, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly, about 3 extra minutes. PRESS IS A COMPOUND: the added set fractionally credits triceps and front delts (half a set each per session), and that spillover charges those muscles' weekly structural budget — nothing else stacks on them the same week. After this move chest sits in the working zone, triceps stays inside its band, and front delts stays indirect-only by design: the press IS its lever. Grade MODERATE-TO-LOW — at-floor to working zone, and the more-volume-during-a-deficit bridge is untested (Roth 2023 asked retention).` },
       { mg: "delts_rear", exId: "rearDelt",
         title: (ex, fromWk, toWk) => `OWNER'S CALL — REAR DELT: ${fromWk} → ${toWk} WEEKLY SETS`,
-        body: (ex, fq) => `Approving adds 1 set per side to ${ex.n} each upper session — ${ex.sets}→${ex.sets + 1} per side, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly. UNILATERAL, so the honest gym time is ~4–5 extra minutes (a set per side plus rests), and the logging convention is unchanged: one number per round, the weaker side. Grade MODERATE-TO-LOW — at-floor to working zone, the same untested bridge.` },
+        body: (ex, fq) => `Approving adds 1 set per side to ${ex.n} each ${_volumeSessionLabel(s, ex.day)} session — ${ex.sets}→${ex.sets + 1} per side, ${ex.sets * fq}→${(ex.sets + 1) * fq} weekly. UNILATERAL, so the honest gym time is ~4–5 extra minutes (a set per side plus rests), and the logging convention is unchanged: one number per round, the weaker side. Grade MODERATE-TO-LOW — at-floor to working zone, the same untested bridge.` },
     ];
     OWNER_CALLS.forEach((oc) => {
       const seen = (s.proposals || []).some((p) => p && p.rid && p.rid.indexOf("volpush_" + oc.mg + "_") === 0)
@@ -1918,7 +1939,8 @@ function runAdaptive(state, todayISO, raOpts) {
       if (seen || sealed) return;
       const ex = (s.exercises || []).find((x) => x.id === oc.exId);
       if (!ex) return;
-      const fq = _weeklyFreq(ex.day) || 2;
+      const fq = _weeklyFreq(ex.day, s) || (trainingWeek(s).hasFullBody ? 0 : 2);
+      if (trainingWeek(s).hasFullBody && (!exActive(s, ex.id) || !fq || _volumeSessionSets(s, ex, 1) > VOL_SESS_CAP)) return;
       propose("volpush_" + oc.mg + "_" + monday, oc.title(ex, ex.sets * fq, (ex.sets + 1) * fq),
         ownerGate + oc.body(ex, fq) + ownerCaveat,
         { kind: "sets", exId: oc.exId, delta: 1, mg: oc.mg, owner: true });
@@ -2584,7 +2606,7 @@ function booksToday(s) {
   items.push({ k: "numbers", ok: !!(dl9 && dl9.cal != null) });
   items.push({ k: "night", ok: s.sleep.nights.some((n) => n.d === y9) });
   const ty9 = dayType(t9, s);
-  if (ty9 === "U" || ty9 === "L") items.push({ k: "session", ok: !!s.sessionLog[t9] });
+  if (isTrainingKind(ty9)) items.push({ k: "session", ok: !!s.sessionLog[t9] });
   if ((s.pulse || []).some((x) => x.d < t9)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === t9) });
   if ((s.temp || []).some((x) => x.d < t9)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === t9) });
   if ((s.energy || []).some((x) => x.d < t9)) items.push({ k: "energy", ok: (s.energy || []).some((x) => x.d === t9) });
@@ -2602,7 +2624,7 @@ function liveBooks(s) {
   items.push({ k: "numbers", ok: !!(dl && dl.cal != null) });
   items.push({ k: "night", ok: s.sleep.nights.some((n) => n.d === y) });
   const t2 = dayType(y, s);
-  if (t2 === "U" || t2 === "L") items.push({ k: "session", ok: !!s.sessionLog[y] });
+  if (isTrainingKind(t2)) items.push({ k: "session", ok: !!s.sessionLog[y] });
   if ((s.pulse || []).some((x) => x.d < y)) items.push({ k: "pulse", ok: (s.pulse || []).some((x) => x.d === y) });
   if ((s.temp || []).some((x) => x.d < y)) items.push({ k: "temp", ok: (s.temp || []).some((x) => x.d === y) });
   if ((s.energy || []).some((x) => x.d < y)) items.push({ k: "energy", ok: (s.energy || []).some((x) => x.d === y) });
@@ -2616,7 +2638,7 @@ function liveBooks(s) {
 function briefAnswered(s, q) { return (s.feed || []).some((f) => f.t === "ANALYST ANSWER" && (f.how || "").indexOf(q.slice(0, 120) + " →") === 0); }
 
 // Copied from frozen src/app.jsx @ fe516c1:14551-14551.
-const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d, s); if ((t === "U" || t === "L") && !s.sessionLog[d]) return d; } return null; };
+const nextTrainingISO = (s) => { for (let i = 0; i <= 7; i++) { const d = isoOf(new Date(todayStart().getTime() + i * DAY)); const t = dayType(d, s); if (isTrainingKind(t) && !s.sessionLog[d]) return d; } return null; };
 
 // Copied from frozen src/app.jsx @ fe516c1:14836-14842.
 function stepValue(v, step, dir, min) {

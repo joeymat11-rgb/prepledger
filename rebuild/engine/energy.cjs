@@ -12,6 +12,7 @@ const progressionTrend = (...args) => E.progressionTrend(...args);
 const daysUntil = (...args) => E.daysUntil(...args);
 const fmtShort = (...args) => E.fmtShort(...args);
 const dayType = (...args) => E.dayType(...args);
+const isTrainingKind = (...args) => E.isTrainingKind(...args);
 const signalState = (...args) => E.signalState(...args);
 const weekWeather = (...args) => E.weekWeather(...args);
 const recoveryIndex = (...args) => E.recoveryIndex(...args);
@@ -806,7 +807,7 @@ function energyAvailability(s) {
   const wks = Math.max(1, rows.length / 7);
   const logged = sessDays / wks;
   let scheduled = 0;
-  for (let i = 0; i < 7; i++) { const d = isoOf(new Date(todayStart().getTime() - i * DAY)); const t2 = dayType(d, s); if (t2 === "U" || t2 === "L") scheduled++; }
+  for (let i = 0; i < 7; i++) { const d = isoOf(new Date(todayStart().getTime() - i * DAY)); const t2 = dayType(d, s); if (isTrainingKind(t2)) scheduled++; }
   const perWk = Math.max(logged, scheduled);
   const sessPerDay = perWk / 7;
   const trainKcal = sessPerDay * EA_KCAL_PER_SESSION;

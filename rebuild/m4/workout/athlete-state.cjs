@@ -59,6 +59,7 @@ const AUTONOMY_FLOOR = 'propose';
 const REQUIRED_SETUP = ['athlete_label', 'split', 'exercises', 'priority_muscles'];
 const REQUIRED_EXERCISE = ['id', 'n', 'mg', 'day', 'sets', 'hi', 'inc', 'steps'];
 const DAY_KINDS = ['U', 'L'];
+const SESSION_KINDS = ['U', 'L', 'F'];
 const fail = (code, detail) => { const e = new Error(code); e.code = code; if (detail !== undefined) e.detail = detail; throw e; };
 const isPlain = v => v !== null && typeof v === 'object' && !Array.isArray(v) &&
   [Object.prototype, null].includes(Object.getPrototypeOf(v));
@@ -82,12 +83,12 @@ function checkSplit(split) {
     fail('CLEAN_INIT_SPLIT_REQUIRED', 'map needs one entry for each weekday 0-6');
   for (const d of weekdays) {
     const v = split.map[d];
-    // dayType returns REST for any value that is not exactly "U" or "L"; the
+    // dayType returns REST for any value that is not U, L or F; the
     // supplier still requires the caller to name each day explicitly rather
     // than leaving one to be read as REST by accident.
-    if (![...DAY_KINDS, 'REST'].includes(v)) fail('CLEAN_INIT_SPLIT_REQUIRED', 'weekday ' + d + ' must be U, L or REST');
+    if (![...SESSION_KINDS, 'REST'].includes(v)) fail('CLEAN_INIT_SPLIT_REQUIRED', 'weekday ' + d + ' must be U, L, F or REST');
   }
-  if (!weekdays.some(d => DAY_KINDS.includes(split.map[d])))
+  if (!weekdays.some(d => SESSION_KINDS.includes(split.map[d])))
     fail('CLEAN_INIT_SPLIT_REQUIRED', 'at least one training day is required');
   return { from: split.from, map: Object.fromEntries(weekdays.map(d => [d, split.map[d]])) };
 }
@@ -140,6 +141,12 @@ function createCleanInitState({ setup } = {}) {
   const seen = new Set();
   const exercises = setup.exercises.map(e => checkExercise(e, seen));
   const covered = new Set(Object.values(split.map).filter(v => DAY_KINDS.includes(v)));
+  if (Object.values(split.map).includes('F')) {
+    for (const family of DAY_KINDS) {
+      if (!exercises.some(e => e.day === family)) fail('CLEAN_INIT_FULL_BODY_FAMILY_REQUIRED', family);
+      covered.add(family);
+    }
+  }
   for (const kind of new Set(exercises.map(e => e.day)))
     if (!covered.has(kind)) fail('CLEAN_INIT_SPLIT_REQUIRED', 'no ' + kind + ' day in the split for a ' + kind + ' exercise');
   const exOrder = Object.fromEntries(DAY_KINDS.map(kind =>

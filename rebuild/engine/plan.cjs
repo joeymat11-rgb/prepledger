@@ -13,12 +13,45 @@ function dayType(iso, s) {
   const list = (s && s.split) || [];
   let ent = null;
   for (const x of list) if (x && x.from && x.from <= iso) ent = x;
-  if (ent && ent.map) { const v = ent.map[d]; return v === "U" || v === "L" ? v : "REST"; }
+  if (ent && ent.map) { const v = ent.map[d]; return isTrainingKind(v) ? v : "REST"; }
   if (d === 3) {
     const off = s && s.targets && s.targets.refeedOff;
     return off && iso >= off ? "REST" : "REFEED";
   }
   return d === 1 || d === 4 ? "U" : d === 2 || d === 5 ? "L" : "REST";
+}
+
+// F is a session kind. Exercises retain their U/L identity and history.
+function isTrainingKind(kind) { return kind === "U" || kind === "L" || kind === "F"; }
+function exerciseOnDay(ex, kind) {
+  return !!ex && (kind === "F" ? ex.day === "U" || ex.day === "L" : isTrainingKind(kind) && ex.day === kind);
+}
+function orderedExercisesForDay(s, kind) {
+  const family = (day) => {
+    const ord = (s.exOrder && s.exOrder[day]) || [];
+    return s.exercises.filter((e) => e.day === day && exActive(s, e.id)).sort((a, b) => {
+      const ia = ord.indexOf(a.id), ib = ord.indexOf(b.id);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
+  };
+  if (kind !== "F") return kind === "U" || kind === "L" ? family(kind) : [];
+  const upper = family("U"), lower = family("L"), out = [];
+  for (let i = 0; i < Math.max(upper.length, lower.length); i++) {
+    if (upper[i]) out.push(upper[i]);
+    if (lower[i]) out.push(lower[i]);
+  }
+  return out;
+}
+function trainingWeek(s, iso = isoOf(todayStart())) {
+  const monday = mk(iso);
+  monday.setDate(monday.getDate() - (monday.getDay() + 6) % 7);
+  const kinds = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(monday); date.setDate(date.getDate() + i);
+    return dayType(isoOf(date), s);
+  });
+  const count = (family) => kinds.filter((kind) => kind === family || kind === "F").length;
+  return { from: isoOf(monday), kinds, sessions: kinds.filter(isTrainingKind).length,
+    exposure: { U: count("U"), L: count("L") }, hasFullBody: kinds.includes("F") };
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:1773-1776.
@@ -338,6 +371,6 @@ function forkExposures(s, exId) {
 }
 
 return {
-  dayType, forkFrom, resetForksOf, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, pinsBornOf, _bornValid, exActive, canonicalizePlan, normalizePlan, deriveInsertionSeams, applyInsertionSeams, eraFresh, forkExposures
+  dayType, isTrainingKind, exerciseOnDay, orderedExercisesForDay, trainingWeek, forkFrom, resetForksOf, forksOf, eraIdx, sameEra, nameAt, pinsUnfilled, pinsBornOf, _bornValid, exActive, canonicalizePlan, normalizePlan, deriveInsertionSeams, applyInsertionSeams, eraFresh, forkExposures
 };
 };
