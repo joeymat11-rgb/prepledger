@@ -1,0 +1,70 @@
+EARNED — INDEPENDENT NUTRITION FORM F1 DELTA REVIEW
+2026-09-12. ACCEPT, bounded correction; original F1 closed by execution.
+
+(1) SOURCE / INDEPENDENCE
+FILE ASTRA-NUTRITION-INPUT-FORM-REVIEW.md continuation at517620d.
+Candidatef3e60d87e1847da194d77155b66e061a879abe6c;
+base4a9e48ea8b21f5ebf55e94d97f338ad00d0ebcea.
+Same nonauthor reviewer native_scale_today as originale6d840e62dff03ca9312a57bc7b8fad2ca9119e1.
+New isolated branch codex/astra-nutrition-input-form-delta-review, tree:
+C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-nutrition-input-form-delta-review
+Read complete correction report and exact diff. Original review/witness tree
+remains unchanged. No product edit; only this report is committed here.
+
+(2) DELTA INSPECTED
+Product delta is only nutrition-input-model.mjs and nutrition-input-view.mjs.
+PREPARATION_REQUIRED gets its specific new-review remedy, clears the retired
+private handle, sets reviewRequired and excludes same-ID retry. The mounted
+action invokes review only; separate confirmation still invokes real commit.
+Quota and committed/context-loss branches retain their existing behavior.
+One test appended; executed prefix comparison confirms original seven test
+bodies/assertions remain byte-equivalent after line-ending normalization.
+No CSS, backend, host, calendar, wire, shared Today entry or source-pin delta.
+
+(3) EXECUTED
+Retained Node24.19.0:
+C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe
+TZ=America/New_York;
+NODE_PATH=<sibling m3-w6-browser-bridge>/rebuild/m3/w6/node_modules.
+Ignored tree-local node_modules and rebuild/m3/w6/node_modules junctions point
+to the corresponding retained sibling dependency directories. No installs.
+
+node --test --test-reporter=spec rebuild/m3/w7-preview/test/nutrition-input-form.test.mjs
+8 PASS,0 FAIL/SKIP/CANCEL,exit0. Includes original seven semantic/save/reopen/
+quota/postcommit-context/rollover/stale/Back controls and appended mounted F1.
+
+node .tmp/form-f1-delta-probe.mjs
+F1 DELTA PASS and QUOTA IDENTITY PASS,exit0. This independent ignored script
+replays the original actual sequence: model A reviews; model B prepares another
+review over the same installation; A confirms the now-retired ID. Corrected
+expected remedy replaces the obsolete original storage-copy expectation.
+
+Observed A: error, canRetry=false, review-again message, no storage advice,
+no confirm control, Review my answers again visible. Two further model confirms
+are no-ops. Actual repository revision/fact count unchanged; full draft retained.
+Clicking the mounted review action obtains the original complete values anew
+while revision and fact count remain unchanged. Only clicking the separate
+confirmation commits: exactly one record and one device-sequence increment;
+stored inputs equal A's retained full review, never B's different goal.
+
+Independent quota control uses actual faultDatabase, model and guarded client.
+A transparent delegation records preparedIds while forwarding both commit calls
+to the actual client (no substituted result). Real quota failure: canRetry=true,
+reviewRequired=false, no fact. After removing only the quota fault, retry saves
+one fact; both real commit calls carried exactly the same preparedId.
+
+Executed test-prefix comparison: ORIGINAL SEVEN TESTS PREFIX UNCHANGED.
+Executed complete changed-path listing agrees with the four-file author delta
+(two product files, appended test and author report). git diff --check PASS.
+
+(4) VERDICT / REUSED LIMITS
+F1 is closed. No further correction found in this delta. Root alone awards
+scope acceptance; a distinct integrator assembles it. Actual owner Today entry,
+full-plan hook, CSS import and retained-model lifecycle wiring remain next;
+this exported module is not a delivered owner flow or qualified nutrition advice.
+Reuse originale6d840e's actual Chrome320/390 and200%320/390 layout/labels/keyboard
+evidence and unchanged accepted backend58/7bc403f evidence. No repeat browser,
+layout or broad backend campaign was run. U1-U5, source-policy/CI/both-OS/actual
+phone qualification retain their separate required scope.
+No product/source-pin/frozen-law edits, private data, extra agents, other-tree
+writes, installs/lock churn, push/PR/merge/deploy or self-integration.
