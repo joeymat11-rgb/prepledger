@@ -332,3 +332,135 @@ apostrophe in the F1 sentence against the curly one everywhere else on screen 2.
 
 **C3 remains open as a residual**, correctly: it is a REQUESTS line for the lane lead to
 the PM and no such line is on the tip yet. The code is unchanged and right.
+
+---
+
+## 14. Round 3 (owner look `DECISIONS:133`, delta 8e558ce) - evidence
+
+Candidate @ **8e558ce** (code **c4a95d2**), base **9d493d0**. `git status --short` empty at
+start and end. **Code delta `bb2640c..8e558ce` under `rebuild/m3` is exactly the four
+files named**: `setup-app.mjs` (+16/-7), `setup-model.mjs` (+35/-4), `setup-check.mjs`
+(+59/-1), `test/setup.test.mjs` (+93/-2). Everything else in the delta is docs, and the
+non-`dad-first-run` docs (`LANES.md`, `REQUESTS.md`, `STATUS.md`, `lanes/d/CHARTER.md`,
+`slice/P6-...`) arrive with the rebase onto 9d493d0, not from A4b's own commits.
+
+### (1) The three `:133 (2)` strings, rendered with the owner's own row
+
+`screenAt(6)` in jsdom with one exercise whose name is a lone comma - and again with
+`""` and with `" "`. All three name shapes give the same screen:
+
+```
+week row  : One exercise (unnamed): What does it work? · 3 sets · aim for 10 reps
+equip row : One exercise (unnamed): lightest setting not answered yet · jump: 5 lb, Earned's standard step
+p.gap blocks: 3
+  gap 1: One exercise on your upper body day still has no name.
+  gap 2: One exercise has nothing it works yet.
+  gap 3: One exercise has no lightest setting yet.
+every gap a full sentence with a subject (capital + full stop): true
+no glued run-on ("., " anywhere in the block): true ; old screen-3 label leaked: false
+stray leading punctuation row (",:"): false
+```
+
+The three defects the owner read in the pane - `",: What does it work? · sets of each
+exercise 3 · 10 reps"`, the glued `"... has no exercises in it., has nothing it works
+yet., has no lightest setting yet."` and the form-label sets line - are all gone, and the
+sets line reads exactly `3 sets · aim for 10 reps` as `:133 (2)` words it.
+
+### RED-first, executed: the tests at c4a95d2 against the code at c4a95d2~1
+
+```
+not ok 136 - S42 - the two honest sentences render exactly when their predicate holds
+not ok 146 - :133 (2) a - an unnamed exercise reads "One exercise (unnamed)", never punctuation
+not ok 148 - :133 (2) c - the gaps are ONE PER LINE, each a full sentence with a subject
+not ok 149 - :133 (2) d - the sets line is a sentence, not a form label
+not ok 150 - :132 (3) - screen 2 uses ONE apostrophe, the curly one, in every sentence
+# tests 150  # pass 145  # fail 5
+```
+
+(`hasName` is absent from the old `setup-model.mjs`, confirmed by grep.) The report claims
+**fail 4**; the true figure is **fail 5** - the fifth is `S42`, which asserts the F1
+sentence verbatim and so moved with the apostrophe. `:133 (2) b - a named exercise still
+reads as its own name` is green on both sides, correctly: it is a regression guard, not a
+defect cell, and a reviewer should not expect it to have been red.
+
+### (2) The one naming predicate
+
+`hasName = /[\p{L}\p{N}]/u`. Probed:
+
+```
+""  " "  "  "  ","  "-"  "--"  "..."  "…"  "!?"  "()"  "·"  U+2014  " \t\n "  "💪"   -> hasName FALSE
+"a"  "  a"  "1"  "0"  "Ω"  "一"  "٣"  "3 sets"                                    -> hasName TRUE
+null, undefined, 5, {}                                                            -> FALSE (no throw)
+```
+
+**The predicate is right.** A name of only punctuation counts as unnamed, which is the
+case the owner actually hit, and it is the honest reading: a lone comma is not a name.
+Letters and digits in any script count, so the rule is not Latin-only. `namedExercise`
+returns the trimmed name or `"One exercise (unnamed)"`, `exerciseSubject` the trimmed name
+or `"One exercise"`, and every place that talks about a lift asks one of the two, which is
+what stops the three defects returning one at a time. One observation, not a defect: an
+emoji-only name ("💪") is treated as unnamed, so the flow ASKS for a name rather than
+silently accepting one the summary could not read back; the document refuses until he
+answers, which is A4's own named-refusal behaviour.
+
+### (3) `DECISIONS:132 (3)`, the apostrophe
+
+Zero straight apostrophes in the ten screen-2 strings, and zero anywhere in `COPY` at all.
+`screen2TwoDays` is byte-equal to `:125 (2)`'s sentence with the curly apostrophe, and
+normalising the apostrophe shows the WORDS are unchanged from the ledger. Typography only,
+as `:132 (3)` rules.
+
+### (4) Screen 6 re-checked by this reviewer in a REAL browser
+
+Own build, own `serve.mjs` on a random port, msedge at 390x844, driven to screen 6 with
+one exercise named `,`:
+
+```
+p.gap blocks: 4   (three of the owner's, plus the empty lower day I also left)
+  gap 1 (top 843px):  Your lower body day has no exercises in it.
+  gap 2 (top 895px):  One exercise on your upper body day still has no name.
+  gap 3 (top 964px):  One exercise has nothing it works yet.
+  gap 4 (top 1016px): One exercise has no lightest setting yet.
+distinct vertical positions: 4 of 4      <- genuinely one gap per LINE, measured
+rows:
+  One exercise (unnamed): What does it work? · 3 sets · aim for 10 reps
+  One exercise (unnamed): lightest setting not answered yet · jump: 5 lb, Earned's standard step
+```
+
+The shipped `setup-check.mjs` also carries its own step now and passed here on a fresh
+build: "screen 6 with an unnamed exercise: named row, sentence sets line, 3 gaps each on
+its own line", inside a run with **7** real `taskkill /F /T` kills, the mid-flow kill still
+leaving zero operations and no partial athlete, and A4's C1 landing sentence still shown.
+NOTE for the record: the first time this reviewer ran that check it FAILED on the straight
+apostrophe - because the reviewer's own `.tmp` dist was still the round-2 build, not
+because anything on the branch was wrong. Rebuilt and re-run: PASS.
+
+The served page on 4178 (pid 16880) IS the round-3 build; a raw `includes()` on the bundle
+is not evidence either way, because esbuild escapes every non-ASCII character, so this was
+checked through `plain-copy.cjs`'s own `decodeEscapes`:
+
+```
+served 4178: 1430855 bytes  curly F1 true / straight false / One exercise (unnamed) true / sets line true
+fresh dist : 1430831 bytes  same four, all true
+```
+
+The 24-byte difference is the same cosmetic `m3-w6-browser-bridge` module-banner delta
+judged in round 2; no page-owned module is affected.
+
+### (5) Counts and mutants
+
+setup **150** (145 -> 150, the five new cells) / catalogue **43** / today **64** / copy
+**36** / gym **64** / checkin **28** / W6 **552** / journey **51** / A0 host **31** /
+w7-preview **19** / `--ci` **PASS** with the worktree clean before and after / `build.mjs`
+**PASS**, **102** pinned inputs. Zero regressions.
+
+Five mutants, **5 killed / 0 survived**, each restored byte-identical with an empty
+`git status --short`:
+
+| # | mutation | result |
+|---|---|---|
+| X1 | the naming predicate reverts to the old `=== ''` emptiness test | KILLED 149/1 - `:133 (2) a` |
+| X2 | the gaps are glued back into one run of inline buttons | KILLED 143/7 - `S4`, `S23 (b)`, `A4 - the named refusal ... is tappable back` |
+| **X3** | REVIEWER: the sets line goes back to screen 3's form label | KILLED 149/1 - `:133 (2) d` |
+| **X4** | REVIEWER: an unnamed exercise stops reporting its OTHER gaps (the pre-fix short-circuit) | KILLED 149/1 - `:133 (2) c` |
+| **X5** | REVIEWER: the straight apostrophe comes back to screen 2 | KILLED 148/2 - `S42`, `:132 (3)` |
