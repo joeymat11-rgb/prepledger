@@ -134,6 +134,11 @@
     </div>
     <p class="error" role="alert" data-slot="food-error"></p>
     <p class="small muted" data-slot="food-recorded" hidden></p>
+    <!-- D2 round 2 · the READ, on its own. A commit and the read-back that follows it
+         are two outcomes: when the intake is acknowledged but the read fails, this
+         asks for the READ again and never submits a second intake. Hidden until
+         there is a failed read to retry. -->
+    <button class="text-link" type="button" data-action="food-retry" data-slot="food-retry" hidden></button>
     <button class="primary" type="button" data-slot="food-save"><span data-slot="food-save-label"></span></button>
   </section>
 </article>

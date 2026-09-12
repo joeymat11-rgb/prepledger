@@ -219,6 +219,11 @@ const PREVIEW_RUNTIME_COPY = Object.freeze([
   "Your intake cannot be recorded on this device yet. Earned could not open its encrypted store here, so there is nowhere to keep what you enter and nothing you type is kept. Open Earned again on this device, or use one that allows local storage, and this entry starts working.",
   "Opening this device's encrypted store.",
   "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.",
+  /* D2 round 2 - a commit and the read that follows it are two outcomes. */
+  "Earned could not read today's record back just now, so what is shown here may not be the whole day.",
+  "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.",
+  "Nothing you entered is lost. Read today's record again below, or open Earned again on this device.",
+  "Read today's record again",
 ]);
 /* A4 — Dad's first run. The approved 2026-09-08 design has NO first-run screen at
    all, so every sentence the six screens show is preview-owned and named here,

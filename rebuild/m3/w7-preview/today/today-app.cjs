@@ -116,6 +116,14 @@ const FOOD_OPENING = "Opening this device's encrypted store.";
    not build and which Today's NOT_WIRED marker describes the same way. Byte identical
    to the literal it replaces: view.test.mjs is pinned on disk by B-NTC and asserts it. */
 const FOOD_PLAN_UNWIRED = "The full nutrition screen is not wired yet. Energy and protein above are today's engine targets; nothing else on this screen is a value.";
+/* D2 ROUND 2, R2-1 - A COMMIT AND A READ ARE TWO OUTCOMES, AND SO ARE THEIR SENTENCES.
+   An acknowledged intake is recorded whatever the read that follows it does; an intake
+   whose save threw before it answered is genuinely UNKNOWN, and this screen says which
+   of the two happened rather than asserting that nothing was stored. */
+const FOOD_SAVED_UNREAD = "Earned could not read today's record back just now, so what is shown here may not be the whole day.";
+const FOOD_UNKNOWN = "Earned could not tell whether this intake was recorded on this device. It may have been kept and it may not.";
+const FOOD_READ_ACTION = "Nothing you entered is lost. Read today's record again below, or open Earned again on this device.";
+const FOOD_READ_RETRY = "Read today's record again";
 const FOOD_KEPT_UNREADABLE = "Recorded and kept on this device. Earned cannot show today's figures back through its own ledger yet: it has no starting estimate of your body composition, and that ledger will not open without one. Nothing is lost, and they appear here as soon as that estimate exists.";
 /* One sentence per refusal code, and no code without one. */
 const FOOD_REFUSAL_COPY = Object.freeze({
@@ -259,6 +267,12 @@ function mountToday(doc, model, options = {}) {
   /* D2 round 1, finding 3 - the CAUSE of a lane that would not open, kept rather than
      swallowed, so the screen can say why instead of claiming the feature is unbuilt. */
   let foodLaneFailure = null;
+  /* D2 round 2, R2-1 - what is known about the LAST write whose read-back did not
+     land: `{state: "unavailable"|"unknown", day, code}`. "unavailable" means the client
+     acknowledged the op and only the read failed, so the day below is a FACT. "unknown"
+     means the save itself threw before it answered, so nothing may be claimed about it
+     either way. Cleared the moment a read succeeds. */
+  let foodReadBack = null;
   if (foodLane && typeof model.setFoodDays === "function") model.setFoodDays(foodLane);
 
   function foodEntryFor(host, rows) {
@@ -267,10 +281,19 @@ function mountToday(doc, model, options = {}) {
       host,
       rows: () => cache,
       async refresh() { cache = await host.all(); return cache; },
+      /* D2 ROUND 2, R2-1 - THE COMMIT AND THE READ-BACK ARE TWO OUTCOMES. The op is
+         durable the moment the client acknowledges it. A read that fails afterwards
+         changes nothing about that, and used to reject out of here and take the
+         acknowledgment, the screen and the event promise with it. It is reported
+         instead, so the caller can keep what it knows and offer the read again. */
       async save(day) {
         const result = await host.save(day);
-        if (result && result.ok) await this.refresh();
-        return result;
+        if (!result || result.ok !== true) return result;
+        try { await this.refresh(); return { ...result, readBack: true, readCode: null }; }
+        catch (error) {
+          return { ...result, readBack: false,
+            readCode: (error && (error.code || error.message)) || "FOOD_READ_BACK_FAILED" };
+        }
       },
       close() { host.close(); },
     };
@@ -687,6 +710,33 @@ function mountToday(doc, model, options = {}) {
         : "";
     }
     recorded.hidden = !has && !unreadable;
+    /* D2 ROUND 2, R2-1 - AN ACKNOWLEDGED INTAKE STAYS ON THE SCREEN even when the read
+       that should have confirmed it failed. The acknowledgment is built from the
+       COMMITTED operation, not from a log this device could not read; the read failure
+       is named beside it with its own reason and the read is offered again. An UNKNOWN
+       outcome claims neither that it was stored nor that it was not. */
+    const retry = map.get("food-retry");
+    /* HIS DRAFT SURVIVES. The repaint that carries the read failure rebuilds the two
+       boxes from the template, so what he typed is put back into them. */
+    if (foodReadBack && foodReadBack.entry) {
+      cal.value = foodReadBack.entry.cal === undefined ? "" : String(foodReadBack.entry.cal);
+      pro.value = foodReadBack.entry.pro === undefined ? "" : String(foodReadBack.entry.pro);
+    }
+    if (foodReadBack && foodReadBack.state === "unavailable") {
+      recorded.textContent = plainOrDrop(
+        FOOD_SAVED + " · " + intakeLine(foodReadBack.day) + " " + FOOD_SAVED_UNREAD, "food-recorded");
+      recorded.hidden = false;
+    }
+    if (foodReadBack) {
+      const said = foodReadBack.code ? FOOD_REASON + foodReadBack.code + "." : "";
+      const head = foodReadBack.state === "unknown" ? FOOD_UNKNOWN : FOOD_SAVED_UNREAD;
+      error.textContent = plainOrDrop([head, said, FOOD_READ_ACTION].filter(Boolean).join(" "), "food-error");
+    }
+    if (retry) {
+      retry.hidden = !foodReadBack;
+      retry.textContent = foodReadBack ? plainOrDrop(FOOD_READ_RETRY, "food-retry") : "";
+      if (foodReadBack) retry.addEventListener("click", () => { foodSaving = retryFoodRead(); });
+    }
     const save = map.get("food-save");
     save.addEventListener("click", () => { foodSaving = recordIntake(save, cal, pro, error); });
     return section;
@@ -705,7 +755,18 @@ function mountToday(doc, model, options = {}) {
       const dayValues = FoodModel.dayFromEntry(entry);
       save.disabled = true;
       let result = null;
+      /* D2 ROUND 2, R2-1 - THIS PROMISE NEVER REJECTS. A lane that throws out of save
+         has told us nothing about whether the op landed, so the outcome is UNKNOWN and
+         the screen says unknown; it is never reported as "no part of it was recorded",
+         and it never becomes a rejected event promise with a blank screen behind it. */
       try { result = await foodLane.save(dayValues); }
+      catch (thrown) {
+        foodReadBack = { state: "unknown", day: dayValues, entry,
+          code: (thrown && (thrown.code || thrown.message)) || "FOOD_WRITE_UNKNOWN" };
+        save.disabled = false;
+        render("nutrition", false);
+        return;
+      }
       finally { save.disabled = false; }
       if (!result || result.ok !== true) {
         /* D2 round 1, finding 3 - the refusal the CLIENT made, not a shrug. What was
@@ -715,8 +776,30 @@ function mountToday(doc, model, options = {}) {
           FOOD_REFUSED + " " + reasonOf(result) + " " + FOOD_REFUSED_ACTION, "food-error");
         return;
       }
+      /* ACKNOWLEDGED. The op is durable; the read that follows it is a separate
+         outcome and `readBack === false` says it did not land. The committed day is
+         kept here so the screen can show the acknowledgment from the OPERATION rather
+         than from a log it could not read. */
+      foodReadBack = result.readBack === false
+        ? { state: "unavailable", day: dayValues, entry, code: result.readCode || null }
+        : null;
       render("nutrition", false);
     }
+  }
+
+  /* D2 round 2, R2-1 - THE READ, ON ITS OWN. It submits no intake: it asks the lane to
+     read the durable log again and, when that answers, the screen goes back to saying
+     what the record says. A read that fails again updates only the reason. */
+  async function retryFoodRead() {
+    if (!foodLane || typeof foodLane.refresh !== "function") return;
+    try {
+      await foodLane.refresh();
+      foodReadBack = null;
+    } catch (error) {
+      foodReadBack = Object.assign({}, foodReadBack,
+        { code: (error && (error.code || error.message)) || "FOOD_READ_BACK_FAILED" });
+    }
+    render("nutrition", false);
   }
   /* WHY, IN THE WORDS OF WHATEVER REFUSED. A client refusal carries its own copy; a
      refusal with no copy carries the code it named, and the code is shown as the code.
@@ -991,4 +1074,4 @@ module.exports = { mountToday, createTodayModel, calorieHeadline, calorieBand, m
   FOOD_HEAD, FOOD_LEAD, FOOD_CAL_LABEL, FOOD_PRO_LABEL, FOOD_SAVE, FOOD_SAVED,
   FOOD_CORRECTION, FOOD_REFUSED, FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY,
   FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_OPENING, FOOD_KEPT_UNREADABLE,
-  FOOD_PLAN_UNWIRED };
+  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY };

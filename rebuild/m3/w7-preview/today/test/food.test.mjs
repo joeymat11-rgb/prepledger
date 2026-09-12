@@ -29,7 +29,8 @@ const { createTodayModel, SYNTHETIC_DAY, createBasisState, engineClockFor } = To
 const { mountToday, NOT_WIRED, FOOD_HEAD, FOOD_SAVE, FOOD_SAVED, FOOD_CORRECTION,
   FOOD_NO_TARGETS, FOOD_NOT_PRESCRIBED, FOOD_REFUSAL_COPY, FOOD_REFUSED,
   FOOD_REFUSED_ACTION, FOOD_REASON, FOOD_NO_STORE, FOOD_KEPT_UNREADABLE,
-  FOOD_PLAN_UNWIRED } = TodayApp;
+  FOOD_PLAN_UNWIRED, FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION,
+  FOOD_READ_RETRY } = TodayApp;
 const { prepare, validate, dayOf, LIMITS, MEMBERS, ACTION } = FoodCommands;
 const DAY = SYNTHETIC_DAY;
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -919,4 +920,123 @@ test('D2.3 / D2.4 - the new sentences are declared, dash free, and carry no figu
     assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
   }
   assert.equal(AI_DASH.test(FOOD_REASON), false);
+});
+
+/* ==========================================================================
+   D2 ROUND 2 - R2-1. A COMMIT AND THE READ THAT FOLLOWS IT ARE TWO OUTCOMES.
+   ========================================================================== */
+
+/* THE REAL HOST, with the read-back that today-app's own lane performs after an
+   acknowledged write made to fail. `entryFor` above is that lane, byte for byte in
+   shape; here it is built over a host whose `all()` refuses on demand. */
+function laneOverFailingRead(host, rows, failing) {
+  let cache = rows;
+  const lane = {
+    host,
+    rows: () => cache,
+    async refresh() {
+      if (failing.on) throw new Error('SYNTHETIC_READBACK_FAILURE');
+      cache = await host.all();
+      return cache;
+    },
+    async save(day) {
+      const result = await host.save(day);
+      if (!result || result.ok !== true) return result;
+      try { await lane.refresh(); return { ...result, readBack: true, readCode: null }; }
+      catch (error) {
+        return { ...result, readBack: false, readCode: error.message };
+      }
+    },
+    close() { host.close(); },
+  };
+  return lane;
+}
+
+test('D2.R2 - an ACKNOWLEDGED intake whose read-back fails stays on screen, with a retry', async () => {
+  const kit = await device();
+  const failing = { on: true };
+  const lane = laneOverFailingRead(kit.host, await kit.host.all(), failing);
+  const model = createTodayModel({ today: DAY });
+  const page = screenOn({ model, mount: { food: lane } });
+  page.api.render('nutrition');
+  page.doc.querySelector('#food-cal').value = '1800';
+  /* The event promise must SETTLE, not reject: a rejected one is the silence D2 found. */
+  await assert.doesNotReject(async () => {
+    page.pick('food-save').dispatchEvent(new page.dom.window.Event('click'));
+    await page.api.foodPending();
+  }, 'the save event promise rejected into silence');
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  /* The operation IS durable: the client acknowledged it. */
+  assert.equal((await opsOf(kit.host.repository)).length, 1, 'the intake committed');
+  const said = page.pick('food-recorded').textContent;
+  assert.equal(page.pick('food-recorded').hidden, false, 'the acknowledgment is on the screen');
+  assert(said.startsWith(FOOD_SAVED), 'and it says it was recorded: ' + said);
+  assert.match(said, /1,800 kcal/, 'from the COMMITTED operation, not from a log it could not read');
+  assert(said.includes(FOOD_SAVED_UNREAD), 'with the read failure named beside it');
+  const error = page.pick('food-error').textContent;
+  assert(error.includes(FOOD_SAVED_UNREAD), 'the read failure is stated: ' + error);
+  assert(error.includes(FOOD_REASON + 'SYNTHETIC_READBACK_FAILURE.'), 'with its own reason');
+  assert(error.includes(FOOD_READ_ACTION), 'and what to do about it');
+  assert.equal(page.doc.querySelector('#food-cal').value, '1800', 'his figures are still in the box');
+  /* THE RETRY READS, and submits no second intake. */
+  const retry = page.pick('food-retry');
+  assert.equal(retry.hidden, false, 'the read is offered again');
+  assert.equal(retry.textContent, FOOD_READ_RETRY);
+  failing.on = false;
+  retry.dispatchEvent(new page.dom.window.Event('click'));
+  await page.api.foodPending();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal((await opsOf(kit.host.repository)).length, 1, 'the retry wrote NOTHING');
+  assert.equal(page.pick('food-retry').hidden, true, 'and the read succeeded, so it is gone');
+  assert.equal(page.pick('food-error').textContent, '', 'no failure is left on the screen');
+  assert.deepEqual(model.loggedFood(DAY), { cal: 1800, pro: null }, 'the record reads back normally');
+  assert.match(page.pick('food-recorded').textContent, /1,800 kcal/);
+  kit.host.close();
+});
+
+test('D2.R2 - the page own lane reports the read-back failure instead of throwing it', async () => {
+  /* The lane today-app builds for itself, driven straight: a refresh that refuses
+     must come back as an outcome on the acknowledged result, never as a rejection. */
+  const kit = await device();
+  const api = mountToday(new JSDOM(shell()).window.document, createTodayModel({ today: DAY }), {});
+  assert.equal(typeof api.foodReady, 'function');
+  const source = readRepo('rebuild/m3/w7-preview/today/today-app.cjs');
+  const lane = source.slice(source.indexOf('function foodEntryFor'), source.indexOf('function openFoodLane'));
+  assert(lane.includes('readBack: true'), 'the lane reports a read-back that landed');
+  assert(lane.includes('readBack: false'), 'and one that did not');
+  assert.equal(/if \(result && result\.ok\) await this\.refresh\(\);/.test(lane), false,
+    'the read-back is no longer allowed to reject out of save');
+  kit.host.close();
+});
+
+test('D2.R2 - a save whose outcome is UNKNOWN says unknown, and never that nothing was stored', async () => {
+  const kit = await device();
+  const page = screenOn({ model: createTodayModel({ today: DAY }),
+    mount: { food: { rows: () => [], async refresh() { return []; },
+      async save() { throw new Error('SYNTHETIC_WRITE_INTERRUPTED'); } } } });
+  page.api.render('nutrition');
+  page.doc.querySelector('#food-cal').value = '2100';
+  await assert.doesNotReject(async () => {
+    page.pick('food-save').dispatchEvent(new page.dom.window.Event('click'));
+    await page.api.foodPending();
+  }, 'a throwing save rejected the event promise');
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const error = page.pick('food-error').textContent;
+  assert(error.includes(FOOD_UNKNOWN), 'it says UNKNOWN: ' + error);
+  assert(error.includes(FOOD_REASON + 'SYNTHETIC_WRITE_INTERRUPTED.'), 'with its own reason');
+  assert(error.includes(FOOD_READ_ACTION), 'and what to do');
+  assert.equal(error.includes(FOOD_REFUSED), false,
+    'it never claims that no part of it was recorded');
+  assert.equal(page.doc.querySelector('#food-cal').value, '2100', 'his figures are still there');
+  assert.equal(page.pick('food-retry').hidden, false, 'and the read is offered');
+});
+
+test('D2.R2 - the new sentences are declared, dash free, and carry no figure', () => {
+  const source = design.appSource();
+  for (const line of [FOOD_SAVED_UNREAD, FOOD_UNKNOWN, FOOD_READ_ACTION, FOOD_READ_RETRY]) {
+    assert(design.PREVIEW_RUNTIME_COPY.includes(line), 'declared: ' + line);
+    assert(source.includes(line), 'present in a view source: ' + line);
+    assert.equal(AI_DASH.test(line), false, 'dash free: ' + line);
+    assert.equal(/\d/.test(line), false, 'no invented figure: ' + line);
+  }
 });
