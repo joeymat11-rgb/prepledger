@@ -52,7 +52,7 @@ write(pass, 'console.log("PROBE PASS\\n" + "x".repeat(240));');
 write(good, 'console.log("OWN PASS\\n" + "y".repeat(240));');
 write(fail, 'throw new Error("SECOND TARGET EXECUTED");');
 const child = (argv, name = 'probe-child', needle = 'PROBE PASS') => ({ name, argv, needle });
-const packageFor = c => ({ children: [c], product: { [good]: { role: 'new', pre: sha(good), post: null } }, coverage: { inherited: {}, moves: {}, successors: null } });
+const packageFor = c => ({ children: [c], product: { [good]: { role: 'new', pre: sha(good), post: null } }, coverage: { inherited: {}, moves: {}, successors: null, superseded: null } });
 const env = { ...process.env, NODE_OPTIONS: '', NODE_V8_COVERAGE: '' };
 delete env.NODE_TEST_CONTEXT; // The outer node:test worker is not the package runner's environment.
 const execute = c => api.children(packageFor(c), env);
@@ -111,7 +111,7 @@ test('inherited pinned original cannot become a trailing application argument', 
   // The rule under test is: an inherited pinned original must not be reachable only as a
   // trailing application argument. So the map is BUILT here, the way every other case in
   // this file builds its inputs, and the suite is deterministic on any single branch.
-  const fixture = { children: [], coverage: { inherited: {}, moves: {}, successors: null }, product: {} };
+  const fixture = { children: [], coverage: { inherited: {}, moves: {}, successors: null, superseded: null }, product: {} };
   const carriers = ['source-carriers', 'inherited-carriers', 'defect-witnesses', 'writers-differential', 'second-gate'];
   const gatesOf = { 'source-carriers': ['migrate-source', 'merge-source', 'writers-source'],
     'inherited-carriers': ['witnesses-2', 'witnesses-5', 'migrate-differential'],

@@ -1017,3 +1017,79 @@ through `successorSpecShape()` (r9 F5), and every new code in `FAIL_CODES`.
 `.cjs/.mjs/.js/.json` under the roots the carrier itself reaches; a target a parent gate
 loads through a computed path this runner cannot see is out of the set and refuses. That is
 the safe direction — a refusal, never an admission — and it is narrower than `:147`'s words.
+
+## r10 — `DECISIONS:147` contingency (b): GATE SUPERSESSION
+
+**Speculative, under `DECISIONS:100`.** The PM has been asked to ratify option (b) as plan
+of record and has not yet ruled. The role below is built, tested and shipped INERT: every
+package spec holds `coverage.superseded: null`, and a spec that declares the block before
+the PM's line lands refuses `GATE-SUPERSESSION-RULING-NOT-CITED`. If the PM rules otherwise
+the branch is adjusted; nothing in the tree depends on it today.
+
+**What two H3 builders measured, independently.** `BRIEF-H3-CLEAN-INIT` v1.7 §9 and
+`BRIEF-H3-CORE` §5 both end at the same wall. The five NATIVE-CARRIERS carriers —
+`source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`,
+`second-gate` — do not **pin** `rebuild/engine`, they **reconstruct** it: `baseline()` reads
+every carried file from a frozen `BASE` and applies the literal carrier list whose bytes are
+pinned by `CHANGES_SHA`. And `b-ntc-successors.cjs:141/:145` additionally assert every path
+`packages/B-NTC.json` declares **at B-NTC's own post**. So:
+
+> **No child of M2-B-NTC that changes ANY file the parent spec declares — engine byte or
+> not — can carry these five by substitution.** `:147`'s widening of `:113 (1) (c)` is
+> necessary and nowhere near sufficient, and H3-CORE proved the second half with no engine
+> byte changed at all. B-NTC passed them because it moved only execution pins.
+
+**The role.** Such a child may declare a gate SUPERSEDED and stand its own EXECUTED evidence
+in its place. Five things bound it, and not one of them is a word in a spec:
+
+```json
+"superseded": {
+  "rulingLineSha256": null,
+  "gates": { "<one of the five carriers>": { "why": "<why byte-identity cannot be carried>",
+    "evidence": { "laws": null, "redFirst": ["<child>"], "census": "runner-live-triggered-line",
+                  "legacyDifferential": "<child>", "writersDifferential": "<child>" } } }
+}
+```
+
+1. **Only those five.** `BYTE_IDENTITY_CARRIERS` is fixed in `b-package.cjs` (W7) and every
+   other gate of the nineteen refuses **by name**
+   (`GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE`). A name that is one of the five
+   but is not a carrier of THIS parent refuses against the parent artifact's own
+   `coverage.byChild` (`-CARRIER-IS-NOT-A-PARENT-CARRIER`), and a carrier a successor also
+   claims refuses (`-CARRIER-IS-ALSO-CLAIMED-BY-A-SUCCESSOR`).
+2. **The evidence is EXECUTED, not claimed.** Every child the block names must be a declared
+   child of this package (`-EVIDENCE-CHILD-NOT-DECLARED`) that RAN IN THIS RUN
+   (`-EVIDENCE-CHILD-NOT-EXECUTED`) and ran green (`-EVIDENCE-CHILD-NOT-GREEN`) — `ran` is
+   the map `children()` built by actually spawning them. `laws: null` is "the 45-law register
+   did not move"; a moved register must name D-ids this package REGISTERED
+   (`-EVIDENCE-LAWS-MOVED-OUTSIDE-THE-REGISTERED-INVENTORY`) and its brief must itself be
+   accepted (`-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF`). `census` is either a declared
+   cell or the literal `runner-live-triggered-line`, which is the runner's OWN census line and
+   is admitted only while it says `none` (`-EVIDENCE-CENSUS-LINE-IS-NOT-CLEAN`).
+3. **The ruling is the PM's own bytes.** `rulingLineSha256` locates a line in
+   `rebuild/DECISIONS.md` on `CHAIN_REF` by its sha256 — the same mechanic as every other
+   citation in this file — and that line must name this package, grant the supersession in
+   the word (`SUPERSEDE`/`SUPERSEDED`/`NOT-INHERITABLE`) and name one of the five carriers.
+   The placeholder `null` refuses `GATE-SUPERSESSION-RULING-NOT-CITED`; the line is
+   **re-taken at the seal**, so a seal cannot stand on a ruling that has since moved.
+4. **It is reported SUPERSEDED, never OBSERVED and never carried.** `coverage.inherited` must
+   DROP every superseded gate (`GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED`), the
+   parent-map equality is taken against `byChild` **minus** those gates, the covered-set
+   bound becomes `covered + superseded = |byChild| + |moves|`, and the run prints
+   `SUPERSESSIONS`, one `SUPERSEDED <carrier> <- <gates>` line and one
+   `SUPERSEDED EVIDENCE` line naming every piece.
+5. **`--full` re-executes everything else, as today.** A superseded gate is not re-run — its
+   byte-identity reconstruction is exactly what the child cannot reproduce — and the gate set
+   is still closed against `GATE_IDS`, so a gate can be skipped only through a supersession
+   `coverage()` already admitted. The sealed artifact records `coverage.superseded` (the gate
+   ids), `coverage.supersessions` (the carriers, the PM line's sha256 and the evidence names)
+   and a `run` list disjoint from both.
+
+`test/gate-supersession.test.cjs` (10 cases) builds B-NTC's own nine-gate/five-carrier
+`byChild` map and a fixture PM line on a probe chain, and measures: the five and only the
+five; an H3-shaped spec with all five superseded and its four children ADMITTED; a sixth gate
+refused by name; a missing and a never-run evidence child refused; a red evidence child
+refused; the placeholder, an absent line and a real line that grants nothing all refused; the
+inherited/superseded conflict and the mixed four-superseded-one-carried case; the artifact's
+disjoint `covered`/`superseded`/`run` and its recorded evidence names; the laws rule; and
+every new code in `FAIL_CODES`.

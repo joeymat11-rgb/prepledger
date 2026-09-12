@@ -1,0 +1,37 @@
+# TOOLING — r10 BUILD REPORT · `DECISIONS:147` contingency (b), GATE SUPERSESSION
+
+Runner `bd76b8ef49b10db46797ab1fd66d02f80c0d3b96c8779f11369ebe965a7e6fbf` (213 247 B), re-pinned in all seven specs. Suites **94/94, 0 fail** across nine. Terminals unchanged: B1 6 · B2 6 · B3 10 · B4 10 · B-LOM 12 · B-NTC 5 · H3 12, all exit 2. Author `lane-b-tooling7`; not pushed.
+
+**SPECULATIVE, under `DECISIONS:100`.** The PM has been asked to ratify option (b) as plan of record and has not ruled. Everything here ships **INERT**: all seven specs hold `coverage.superseded: null`, and a spec that declares the block before the PM's line lands refuses `GATE-SUPERSESSION-RULING-NOT-CITED` — the expected pre-ruling state, not a defect. If the PM rules otherwise the branch is adjusted and nothing outside this tooling directory has to move.
+
+## The finding the role answers
+
+Two H3 builders measured the same wall independently, on two branches, one with no engine byte changed at all.
+
+* `BRIEF-H3-CLEAN-INIT` v1.7 §9 — the five NATIVE-CARRIERS carriers do not **pin** `rebuild/engine`, they **reconstruct** it: `baseline()` reads every carried file from a frozen `BASE` and applies the 48 literal carriers of `native-carriers-changes.json`, pinned by `CHANGES_SHA`. Extending that list moves `CHANGES_SHA` to a value that is neither the pre- nor the post-image of any declared product path, so `SUCCESSOR-SUBSTITUTION-NOT-A-RE-TARGET-AND-NOT-RULED` refuses it — correctly.
+* `BRIEF-H3-CORE` §5 — `b-ntc-successors.cjs:141/:145` additionally hold every path `packages/B-NTC.json` declares **at B-NTC's own post**, so a child that changes ANY declared file is refused one layer deeper, engine or no engine.
+
+So `:147`'s "the same widening serves B1+B2, B4+B3 and F1 without a further ruling" does not hold as measured: **every remaining engine package hits the same walls.** B-NTC passed them because it moved only execution pins.
+
+## What was built
+
+* **(i) Five carriers, and only five.** `BYTE_IDENTITY_CARRIERS` — `source-carriers`, `inherited-carriers`, `defect-witnesses`, `writers-differential`, `second-gate` — is fixed in the runner (W7) and named from the parent artifact's own `coverage.byChild` values. Anything else refuses `GATE-SUPERSESSION-CARRIER-IS-NOT-A-BYTE-IDENTITY-GATE`; one of the five that is not a carrier of THIS parent refuses `-CARRIER-IS-NOT-A-PARENT-CARRIER`; one a successor also claims refuses `-CARRIER-IS-ALSO-CLAIMED-BY-A-SUCCESSOR`.
+* **(ii) The evidence is EXECUTED.** `coverage.superseded.gates.<carrier>.evidence` names the 45-law row (`laws: null` unmoved, else D-ids), the red-first cells, the public-census proof (a declared cell or the literal `runner-live-triggered-line`, admitted only while that line says `none`) and the legacy + writers differentials. Every named child must be a DECLARED child (`-EVIDENCE-CHILD-NOT-DECLARED`) that ran in THIS run (`-EVIDENCE-CHILD-NOT-EXECUTED`) and ran green (`-EVIDENCE-CHILD-NOT-GREEN`) — `ran` is the map `children()` built by actually spawning them. A moved register must name registered D-ids and an accepted brief (`-EVIDENCE-LAWS-MOVED-OUTSIDE-THE-REGISTERED-INVENTORY`, `-EVIDENCE-LAWS-MOVED-WITHOUT-AN-ACCEPTED-BRIEF`).
+* **(iii) The ruling is the PM's own bytes.** `rulingLineSha256` locates a line in `rebuild/DECISIONS.md` on `CHAIN_REF` by its sha256 — the mechanic every other citation in this file uses — and that line must name this package, grant the supersession in the word (`SUPERSEDE`/`SUPERSEDED`/`NOT-INHERITABLE`) and name one of the five. It is **re-taken at the seal**, so a seal cannot stand on a withdrawn ruling.
+* **(iv) Reported SUPERSEDED, never OBSERVED.** `coverage.inherited` must drop every superseded gate (`GATE-SUPERSESSION-GATE-IS-ALSO-INHERITED`); the parent-map equality is taken against `byChild` minus those gates; the bound becomes `covered + superseded = |byChild| + |moves|`, so the gates count toward the nineteen only under the ruling. The run prints `SUPERSESSIONS`, one `SUPERSEDED <carrier> <- <gates>` line and one `SUPERSEDED EVIDENCE` line naming every piece. The sealed artifact records `coverage.superseded` (gate ids), `coverage.supersessions` (carriers, the PM line's sha256, the evidence names) and a `run` list disjoint from both.
+* **(v) `--full` is unchanged except for the skip.** Superseded gates are not re-executed; every other original gate re-executes as today and the set is still closed against `GATE_IDS`, so a gate can be skipped only through a supersession `coverage()` admitted.
+
+## Tests — `test/gate-supersession.test.cjs`, 10/10
+
+Built on B-NTC's own nine-gate/five-carrier `byChild` map with a fixture PM line on a probe chain: the five and only the five; an H3-shaped spec with all five superseded and its evidence **ADMITTED** (nine gates, `inherited` empty); a sixth gate refused by name (five spellings) and a non-carrier refused against the parent map; a missing, a never-run and a red evidence child each refused; the placeholder `null`, a sha that hashes to no line, and a real chain line that grants nothing all refused; the inherited/superseded conflict and the mixed four-superseded-one-carried case; the artifact's disjoint `covered`/`superseded`/`run` and its recorded evidence names; the laws rule in all three states; the closed block, row and evidence key sets; and all nineteen new codes in `FAIL_CODES`.
+
+## H3 scratch probe (`origin/rebuild/lane-b-h3 @ 902fd88`, five marked SUPERSEDED, probe ruling line)
+
+The header now reads `… 5 byte-identity carrier(s) declared SUPERSEDED under a PM line recorded by sha256 e827f2d43054, each with its own named and executed evidence`, and the run proceeds through `PARENT OPTION`, `PARENT BOUND`, `PARENT PINS RE-ASSERTED`, `PRODUCT IMPLEMENTED`, `FIDELITY OBSERVED`, `AUTHORITY OBSERVED`, `LAWS 45/45` and `CARRIERS NONE DECLARED`. **The five inherited-carrier walls where every earlier probe stopped are gone.** It stops instead at `Required child h3-cells`, and a second pass dropping that child stops at `a0-journeys`: both import `fake-indexeddb`, which is installed in **no lane-B worktree on this PC**. So `coverage()` and the `SUPERSESSIONS` lines are not reached from a `--shared` clone, and the run phase is measured by the suite instead. The refusal is the rule working — a named evidence child that is not green refuses, and the runner cannot tell a missing dev dependency from a red cell.
+
+## OPEN
+
+1. **The ruling.** Nothing here is usable until the PM writes the line. Every shipped spec is `null`, and this pass is speculative under `:100`.
+2. **The judgement the runner cannot make.** It checks that the named evidence exists, is this package's own, and ran green; it cannot judge whether that evidence is *as strong as* the byte-identity gate it replaces. That is the reviewer's and the PM's, which is why the role is gated on a ruling and why the evidence names travel into the artifact.
+3. **For the H3 builder and the PM:** under (b), H3's cells and journeys become the substantive evidence for nine of the nineteen gates, and they cannot currently execute on this machine at all (`fake-indexeddb` absent). That has to be fixed before (b) buys a seal.
+4. **The artifact's `coverage` sub-object gained two keys** (`superseded`, `supersessions`). No sealed artifact is affected today — B-NTC's still stands at the runner it sealed with — but a re-seal of B-NTC takes them up, as it already takes up every other runner change since `eedabccd…`.
