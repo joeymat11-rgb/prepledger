@@ -330,33 +330,7 @@ const VOL_BANDS = { floor: 6, lo: 8, hi: 14, ceil: 22 };
 const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, pulldown: { biceps: 0.5 }, curl: { forearms: 0.5 } };
 
 // Copied from frozen src/app.jsx @ fe516c1:8360-8360.
-/* F2 LABEL half (DECISIONS:135 (5), bundled into H3). A lift is bucketed by
-   `e.head || e.mg` (volume.cjs:74) and the bucket is rendered by
-   `<this table>[k] || k` (volume.cjs:32). A REGION HEAD therefore needs an
-   entry here or it prints its own key; a bare muscle label needs none, because
-   for those the key already IS the word people read.
-   The four added below are the BACK region's heads, keyed `<muscle>_<head>`
-   exactly as the three delt heads already are.
-   THEY ARE INERT ON THIS TREE, and saying so is the point. No producer sets
-   `e.head` to any of them: seed.cjs and migrate.cjs set only `delts_side` and
-   `delts_rear`, and lane C's catalogue does not name them either — grep over
-   rebuild/m3/w7-preview/today, rebuild/lanes/c/dad-first-run and rebuild/engine
-   finds these four keys, and the strings "upper back" and "lower back", nowhere
-   but on the line below. So the table is reachable only once some producer
-   writes one of these heads onto a lift; until then `MG_LABEL[k] || k` is never
-   consulted for them and no screen changes. That is also exactly why the public
-   census cannot move, which the package proves by running it both ways.
-   The leg, arm and core heads the bundle also names are
-   ALREADY the engine's own muscle labels (rebuild/engine/seed.cjs `mg` values;
-   rebuild/m3/w7-preview/today/setup-model.mjs:26 MG_LABELS), so `|| k` renders
-   every one of them identically today and an entry would change no character on
-   any screen. They are deliberately NOT added: lane C's accepted provenance
-   cell 2.8 row 2 in rebuild/m3/w7-preview/today/test/setup.test.mjs asserts this
-   table carries no gloss for the labels first-run collects, and a no-op entry
-   would break that cell to buy nothing. The brief records this as the one place
-   the bundle's wording and the tree disagree, with the measurement. */
-const MG_LABEL = { delts_side: "side delt", delts_rear: "rear delt", delts_front: "front delt",
-  back_lats: "lats", back_upper: "upper back", back_traps: "traps", back_lower: "lower back" };
+const MG_LABEL = { delts_side: "side delt", delts_rear: "rear delt", delts_front: "front delt" };
 
 // Copied from frozen src/app.jsx @ fe516c1:8712-8712.
 const HYP_SDES = 2.05, HYP_B = 1.76;

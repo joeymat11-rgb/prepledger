@@ -428,35 +428,8 @@ function applyRead(state, iso, w, opts) {
   /* off-window: today's read after the window closed — accepted, never refused, but it
      rides beside the trend rather than inside it (the sealed precedent). */
   const offW = iso === isoOf(todayStart()) && !readWindow(s, opts && opts.hour).open && !readWindow(s, opts && opts.hour).hasRead && !sealed;
-  /* H3 / F-B (DECISIONS:142 (3)) — THE FIRST READ. Every state this writer was
-     built for arrived with a `trend` already on it (seed.cjs, or migrate.cjs
-     walking one forward). A CLEAN-INIT athlete has none, and must not: he has
-     declared no bodyweight and nothing may invent one for him. Without this
-     branch `s.trend + 0.3 * dCl` is `undefined + …` = NaN on his very first
-     weigh-in, and every figure downstream stays non-finite for good.
-     The seed is the READING ITSELF — his own number, the engine's first
-     observation of the level, never a default or another athlete's figure. It
-     is taken verbatim rather than rounded, because rounding it would already be
-     changing what he typed; every later trend keeps the accepted 1-dp EMA.
-     THE WINDOW APPLIES TO THE FIRST READ TOO — DECISIONS:146 (3), OPTION B.
-     The first draft seeded the trend whatever the window, and review r1 caught
-     what that made the app say: a first read at 23:00 came back
-     `offWindow: true`, `note: "late read — set aside"`, a feed line reading
-     LATE READ - SET ASIDE, and the trend was that reading; a sealed first read
-     said "sealed - excluded from trend" and was the trend. The same two calls
-     on a trend-carrying athlete really do leave his trend alone, so two
-     athletes were told the same words and given different arithmetic. The PM
-     ruled the contradiction out rather than rewriting the copy: a set-aside
-     reading is set aside for a new athlete exactly as it is for an old one,
-     and until an in-window, unsealed reading arrives Today keeps saying
-     "Not available yet" - which is true, and which H3/5 proves is safe,
-     because every figure derived from an absent trend stays non-finite.
-     Nothing else changes — for any state that already carries a finite trend
-     `first` is false and every line below is the accepted one, byte for byte in
-     behaviour (45 laws unmoved, public census byte-identical). */
-  const first = !Number.isFinite(s.trend);
-  const dRaw = first ? 0 : w - s.trend, dCl = Math.max(-1.5, Math.min(1.5, dRaw));
-  const spike = !first && Math.abs(dRaw) > 1.5;
+  const dRaw = w - s.trend, dCl = Math.max(-1.5, Math.min(1.5, dRaw));
+  const spike = Math.abs(dRaw) > 1.5;
   const clean = s.reads.filter((r) => !r.sealed && !r.offWindow);
   const dl = [];
   for (let i = 1; i < clean.length; i++) { if (Math.round((mk(clean[i].d) - mk(clean[i - 1].d)) / DAY) === 1) { const dd = clean[i].w - clean[i - 1].w; if (Math.abs(dd) < 1.5) dl.push(dd); } }
@@ -465,10 +438,7 @@ function applyRead(state, iso, w, opts) {
   const water9 = ydl9.sodium === "high" || (ydl9.alc || 0) > 0 ? "salt or alcohol yesterday — water noise likely" : "";
   const base9 = sealed ? "sealed — excluded from trend" : spike ? "spike — damped in trend" : nf && Math.abs(dRaw) <= nf ? "inside your noise — not information" : "";
   const note9 = offW ? ["late read — set aside", water9, base9].filter(Boolean).join(" · ") : (water9 && base9 ? water9 + " · " + base9 : water9 || base9);   /* the salt/alcohol explanation is honest information whatever the hour */
-  // `pt` is the PRIOR trend. On the first read there is none, and `null` says
-  // that; `undefined` would be dropped by the JSON round trip above and read
-  // back as a member that was never written.
-  const row9 = { d: iso, w, sealed, pt: first ? null : s.trend, note: note9 };
+  const row9 = { d: iso, w, sealed, pt: s.trend, note: note9 };
   if (offW) row9.offWindow = true;
   s.reads.push(row9);
   /* SCALE-1 — ONE receipt per day, op-keyed and idempotent: a re-logged read (the
@@ -479,9 +449,7 @@ function applyRead(state, iso, w, opts) {
      the line must not claim an hour it did not see. */
   s.feed = s.feed.filter((f) => !(f && f.op === "lateread:" + iso));
   if (offW) s.feed.unshift({ d: iso, op: "lateread:" + iso, t: "LATE READ — SET ASIDE", how: LATE_READ_HOW });
-  // DECISIONS:146 (3) option B: the first reading seeds the trend only when the
-  // same row is neither sealed nor off-window — one window test, both branches.
-  if (!sealed && !offW) s.trend = first ? w : +(s.trend + 0.3 * dCl).toFixed(1);
+  if (!sealed && !offW) s.trend = +(s.trend + 0.3 * dCl).toFixed(1);
   return s;
 }
 

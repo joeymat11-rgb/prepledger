@@ -41,7 +41,7 @@ const Module = require('node:module');
 const { webcrypto } = require('node:crypto');
 
 const AthleteState = require('../athlete-state.cjs');
-const { createCleanInitState, BLACKOUT_MEMBERS, MODEL_MEMBERS, REQUIRED_SETUP } = AthleteState;
+const { createCleanInitState, BLACKOUT_MEMBERS, MODEL_MEMBERS, SLEEP_MEMBERS, REQUIRED_SETUP } = AthleteState;
 const TodayModel = require('../../../m3/w7-preview/today/today-model.cjs');
 const { createTodayModel } = TodayModel;
 const { createTodayEngine } = require('../../../m3/w7-preview/today/today-engine.cjs');
@@ -367,9 +367,20 @@ const MUTANTS = [
       const s = mutated.createCleanInitState({ setup: bad });
       assert.equal(s.blackout.until, '2026-03-01', 'the mutant normalises 2026-02-30 into March behind the athlete\'s back');
     } },
+  { id: 'M7', name: 'sleep.needed COPIED from the seed instead of read from the engine (seed.cjs:80)',
+    from: "require('../../engine/constants.cjs')().SLEEP_ANCHOR_MIN_N", to: '3',
+    killedBy: 'H3/S1 (the value IS read from the engine, and the module types no digit)',
+    dies: mutated => {
+      const s = mutated.createCleanInitState({ setup: SETUP });
+      assert.equal(s.sleep.needed, 3, 'the mutant produces the same number TODAY, which is why a value test alone would miss it...');
+      const mutatedSrc = fs.readFileSync(STATE_FILE, 'utf8')
+        .replace("require('../../engine/constants.cjs')().SLEEP_ANCHOR_MIN_N", '3');
+      assert.equal(/require\('\.\.\/\.\.\/engine\/constants\.cjs'\)\(\)\.SLEEP_ANCHOR_MIN_N/.test(mutatedSrc), false,
+        '...but it no longer reads the engine constant, so if the engine moved the number this state would silently not - exactly what H3/S1 refuses');
+    } },
 ];
 
-test('H3/7 - six named mutants, each of them killed by a named cell', () => {
+test('H3/7 - seven named mutants, each of them killed by a named cell', () => {
   const original = fs.readFileSync(STATE_FILE, 'utf8');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'h3-mutants-'));
   try {
@@ -382,231 +393,102 @@ test('H3/7 - six named mutants, each of them killed by a named cell', () => {
       const m = new Module(file, module);
       m.filename = file;
       m.paths = Module._nodeModulePaths(dir);
+      /* The mutant is compiled OUTSIDE the repository, so its own relative
+         specifiers — athlete-state.cjs reads the engine's constants through
+         one (H3/S1) — are resolved against the REAL module's directory
+         instead. Nothing enters the require cache of the mutant, and the
+         modules it reaches are the real ones, unmutated, which is the point:
+         only the bytes under test differ. */
+      const normal = m.require.bind(m);
+      m.require = name => (name.startsWith('.')
+        ? require(path.resolve(path.dirname(STATE_FILE), name))
+        : normal(name));
       m._compile(fs.readFileSync(file, 'utf8'), file);
       mutant.dies(m.exports);
     }
-    assert.equal(MUTANTS.length, 6, 'six named mutants, no fewer');
+    assert.equal(MUTANTS.length, 7, 'seven named mutants, no fewer');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-/* ====================== F-B — THE FIRST WEIGH-IN (DECISIONS:142 (3)) ======================
-   An S2 blocker in its own right: the owner's FIRST weigh-in must not make the
-   trend NaN. `rebuild/engine/writers.cjs` applyRead gains a first-read branch
-   that seeds the trend with THE READING ITSELF — his own number, the engine's
-   first observation of the level, never a default and never another athlete's
-   figure. Nothing about the rule needs an owner ruling: it invents nothing,
-   chooses nothing between alternatives that differ in what they claim about
-   him, and the only number it writes is the one he typed. The brief says so in
-   one line; if the PM disagrees the cell is where the disagreement lands. */
-test('H3/8 - first weigh-in on a clean-init athlete: trend finite and equal to the reading, second reading damped as today', () => {
+/* ============ H3/S1 - `sleep.needed`, lane C's H3-class finding (REQUESTS 04:11 (1)) ======
+   RED-FIRST. The pre-image shape is `sleep: { nights: [] }` with `needed`
+   ABSENT, and this cell asserts the defect on that shape before it asserts the
+   fix on ours, so the cell is red on the parent's athlete-state.cjs and green
+   on this one. Nothing here reads rebuild/engine/seed.cjs. */
+test('H3/S1 - sleep.needed is the engine\'s own constant, and four unguarded readers stop printing `undefined`', () => {
   const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
   const state = plainState();
-  assert.equal(Object.hasOwn(state, 'trend'), false, 'he arrives with no bodyweight, and none is invented for him');
 
-  /* THE FIRST READING. */
-  const one = E.applyRead(state, DAY, 186.4, { hour: 8 });
-  assert.equal(Number.isFinite(one.trend), true, 'the trend is a number, not NaN');
-  assert.equal(one.trend, 186.4, 'and it is exactly what he put on the scale');
-  assert.equal(one.reads.length, 1);
-  assert.equal(one.reads[0].w, 186.4);
-  assert.equal(one.reads[0].pt, null, 'there was no prior trend, and the row says so rather than carrying undefined');
-  assert.equal(one.reads[0].sealed, false);
-  assert.equal(one.reads[0].note, '', 'no spike, no seal, no noise claim on a reading with nothing to compare to');
-  /* It survives the round trip the writer itself makes (JSON.parse/stringify):
-     a NaN or an undefined here would come back null and re-enter the defect. */
-  const plain = JSON.parse(JSON.stringify(one));
-  assert.equal(plain.trend, 186.4);
-  assert.equal(plain.reads[0].pt, null);
+  /* (1) THE MEMBER SET IS PINNED, like blackout and model. */
+  assert.deepEqual(Reflect.ownKeys(state.sleep).sort(), SLEEP_MEMBERS.slice().sort(),
+    'the sleep object is closed over exactly the declared names');
+  assert.deepEqual(state.sleep.nights, [], 'no night is seeded');
 
-  /* THE SECOND READING — damped exactly as today: trend += 0.3 * clamp(d). */
-  const two = E.applyRead(one, offsetDay(DAY, 1), 184.9, { hour: 8 });
-  const expected = +(186.4 + 0.3 * Math.max(-1.5, Math.min(1.5, 184.9 - 186.4))).toFixed(1);
-  assert.equal(two.trend, expected, 'the accepted EMA, unchanged, from the second reading on');
-  assert.equal(two.reads[1].pt, 186.4, 'and the second row carries the real prior trend');
+  /* (2) THE VALUE IS THE ENGINE'S, READ OUT OF THE ENGINE. Not a literal in
+     athlete-state.cjs and not a copy of seed.cjs's `sleep.needed: 3`. */
+  const K = require('../../../engine/constants.cjs')();
+  assert.equal(state.sleep.needed, K.SLEEP_ANCHOR_MIN_N,
+    'sleep.needed IS rebuild/engine/constants.cjs SLEEP_ANCHOR_MIN_N');
+  assert.equal(state.sleep.needed, AthleteState.SLEEP_NEEDED);
+  assert.equal(typeof state.sleep.needed, 'number');
+  assert(Number.isInteger(state.sleep.needed) && state.sleep.needed >= 1,
+    'a reachable target: a run of at least one night');
+  /* The H1 rule, executed: this module never names the seed, and the value is
+     not typed as a digit beside the member either. */
+  const src = readRepo('rebuild/m4/workout/athlete-state.cjs');
+  assert.equal(/require\([^)]*seed\.cjs/.test(src), false, 'athlete-state.cjs never reads the seed');
+  assert(/closed\(\{ nights: \[\], needed: SLEEP_NEEDED \}/.test(src),
+    'the member is written from the engine-read constant, never from a literal');
+  assert(/require\('\.\.\/\.\.\/engine\/constants\.cjs'\)\(\)\.SLEEP_ANCHOR_MIN_N/.test(src),
+    'the value is READ from the engine at load time - a literal here could drift from it silently (mutant M7)');
 
-  /* AN ATHLETE WHO ALREADY HAS A TREND IS UNTOUCHED — the branch is reached
-     only when there is no finite trend, so every accepted state behaves as it
-     did. This is the same arithmetic asserted over a state that carries one. */
-  const carried = E.applyRead({ ...plainState(), trend: 200 }, DAY, 198.5, { hour: 8 });
-  assert.equal(carried.trend, +(200 + 0.3 * -1.5).toFixed(1), 'a carried trend still damps, never re-seeds');
-  assert.equal(carried.reads[0].pt, 200);
-});
+  /* (3) WHAT THE READERS EXPECT FOR ZERO NIGHTS IS UNCHANGED. */
+  assert.deepEqual(E.atSleepTarget(state, null), { run: 0, at: false },
+    'sleep.cjs:1053 - not at a sleep target he has no nights for');
+  assert.equal(E.sleepInfo(state).need, state.sleep.needed, 'sleep.cjs:1903 need is a number, not undefined');
+  assert.equal(E.fiveLevers(state).sleep.detail, '99 nights dark — can\'t read',
+    'today.cjs:264 - with no night at all the dark branch answers, as before');
 
-test('H3/9 - after that first weigh-in, Today paints his own number and still invents none', async () => {
-  const { JSDOM } = await import('jsdom');
-  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
-  const state = JSON.parse(JSON.stringify(E.applyRead(plainState(), DAY, 186.4, { hour: 8 })));
-  const view = createTodayModel({ today: DAY, basisState: state }).read();
+  /* (4) THE DEFECT, MEASURED ON THE PRE-IMAGE SHAPE AND GONE ON OURS.
+     One night on the record takes today.cjs:266 out of the dark branch. */
+  const night = { d: offsetDay(DAY, -1), h: 6.1 };
+  const withNight = JSON.parse(JSON.stringify(state)); withNight.sleep.nights = [night];
+  const preImage = JSON.parse(JSON.stringify(withNight)); delete preImage.sleep.needed;
 
-  /* The whole trend/pt/weekly chain, named, with what each reads before a
-     SECOND reading exists. Every one of them is finite or an honest gate. */
-  assert.equal(state.trend, 186.4, 'trend');
-  assert.equal(state.reads[0].pt, null, 'pt on the first row');
-  assert.deepEqual(state.weekly, [], 'weekly: no snapshot yet — one reading is not a week');
-  assert.equal(view.currentRate.measured, false, 'currentRate: not measured, and says so');
-  assert.equal(view.currentRate.n, 0);
-  assert.equal(view.latestRead.lb, 186.4, 'the reading he entered is the reading shown');
-  assert.equal(view.morningRead.lb, 186.4, 'and it is this morning\'s reading');
-  /* F-A still holds after the seeding: no body-composition anchor exists, so
-     every figure derived from one is STILL non-finite and the view still says
-     "Not available yet". Seeding the trend must not make bfEst start inventing. */
-  assert.equal(Number.isFinite(view.proteinTarget.g), false, 'no protein figure is claimed');
-  assert.equal(Number.isFinite(view.proteinTarget.bf), false, 'no body-fat percentage is claimed');
-  assert.equal(Number.isFinite(view.proteinTarget.ffmKg), false, 'no lean mass is claimed');
+  assert.equal(E.fiveLevers(preImage).sleep.detail, '0/undefined clean',
+    'RED: the parent shape puts the word undefined on the SLEEP lever');
+  assert.equal(E.fiveLevers(withNight).sleep.detail, '0/' + state.sleep.needed + ' clean',
+    'GREEN: ours prints a number he can count towards');
+  assert.equal(E.sleepInfo(preImage).need, undefined,
+    'RED: sleep.cjs:1903 hands its caller `need: undefined` on the parent shape');
+  assert.equal(Object.hasOwn(JSON.parse(JSON.stringify(E.sleepInfo(preImage))), 'need'), false,
+    'RED: and JSON.stringify DROPS the member, so a host reading the projection sees no `need` at all');
+  assert.equal(E.sleepInfo(withNight).need, state.sleep.needed, 'GREEN: a number that survives the round trip');
+  assert.equal(JSON.parse(JSON.stringify(E.sleepInfo(withNight))).need, state.sleep.needed, 'GREEN');
+  /* recoveryIndex is where the NaN was: `Math.min(3, undefined - 0) * 10`. */
+  const reason = s => JSON.stringify(E.recoveryIndex(s));
+  assert(/0 of undefined clean nights/.test(reason(preImage)), 'RED: "0 of undefined clean nights"');
+  assert(/NaN more nights/.test(reason(preImage)), 'RED: and a NaN count of nights owed');
+  assert.equal(/undefined clean nights|NaN more nights/.test(reason(withNight)), false,
+    'GREEN: neither survives');
+  assert(/3 more nights/.test(reason(withNight)), 'GREEN: three named nights owed');
 
-  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()),
-    { url: 'http://127.0.0.1:4178/' });
-  const doc = dom.window.document;
-  todayApp.mountToday(doc, createTodayModel({ today: DAY, basisState: state }), {});
-  const text = doc.getElementById('phone').textContent.replace(/\s+/g, ' ').trim();
-  assert.equal(/NaN/.test(text), false, 'no NaN reaches the screen');
-  assert.equal(doc.querySelector('[data-slot="protein"]').textContent, 'Not available yet');
-  assert(text.includes('186.4'), 'his own reading is on the screen');
-  /* Every figure on the page is his own reading, his date, or his lift count —
-     the same bound-slot standard as H3/5, with the reading now among them. */
-  const digits = (text.match(/\d[\d,.]*/g) || []).sort();
-  assert.deepEqual(digits, ['186.4', '186.4', '2', '7'].sort(),
-    'the 7th, 2 lifts, and the number he put on the scale — twice, as trend and as this morning');
-});
-
-/* ============== F2, LABEL HALF — MG_LABEL region heads (DECISIONS:135 (5)) ============== */
-test('H3/10 - volume bucketing reads the four new back region heads, and renders their labels', () => {
-  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
-  const constants = readRepo('rebuild/engine/constants.cjs');
-  /* The four the bundle names for the BACK region, spelled as the engine spells
-     a head key (`<muscle>_<head>`, as delts_side/rear/front already are). */
-  for (const [key, label] of [['back_lats', 'lats'], ['back_upper', 'upper back'],
-    ['back_traps', 'traps'], ['back_lower', 'lower back']])
-    assert(constants.includes(key + ': "' + label + '"'), key + ' carries the label "' + label + '"');
-  /* The three that were already there are untouched. */
-  for (const [key, label] of [['delts_side', 'side delt'], ['delts_rear', 'rear delt'], ['delts_front', 'front delt']])
-    assert(constants.includes(key + ': "' + label + '"'), key + ' is unchanged');
-
-  /* THE BUCKETING, EXECUTED. volume.cjs:74 buckets by `e.head || e.mg`; a lift
-     carrying one of the new heads must land in its own bucket and be printed
-     with its label, not its key. */
-  const state = plainState();
-  state.trend = 186.4;
-  state.exercises = [
-    { id: 'pulldown', n: 'Lat pulldown', mg: 'back', head: 'back_lats', day: 'U', sets: 4, hi: 10, inc: 10, steps: [50, 60], w: 60, forks: [] },
-    { id: 'face-pull', n: 'Face pull', mg: 'back', head: 'back_upper', day: 'U', sets: 3, hi: 15, inc: 5, steps: [20, 25], w: 25, forks: [] },
-    { id: 'shrug', n: 'Shrug', mg: 'back', head: 'back_traps', day: 'U', sets: 2, hi: 12, inc: 10, steps: [90, 100], w: 100, forks: [] },
-    { id: 'back-ext', n: 'Back extension', mg: 'back', head: 'back_lower', day: 'L', sets: 2, hi: 12, inc: 5, steps: [10, 15], w: 15, forks: [] },
-    /* AND A LABEL WITH NO HEAD — it must bucket and render exactly as before. */
-    { id: 'leg-press', n: 'Leg press', mg: 'quads', day: 'L', sets: 3, hi: 12, inc: 10, steps: [90, 100], w: 100, forks: [] },
-  ];
-  state.exOrder = { U: ['pulldown', 'face-pull', 'shrug'], L: ['back-ext', 'leg-press'] };
-  /* programmeVolume counts a fixed week beginning 2026-07-27, so this athlete's
-     own split must already be in force across it or dayType falls back to the
-     engine's Mon/Thu week and the per-week counts stop being his. Two U days
-     and one L day, exactly as SETUP declares them. */
-  state.split = [{ from: '2026-07-01', map: SETUP.split.map }];
-  const rows = E.programmeVolume(state);
-  const buckets = new Map(rows.map(r => [r.mg, r]));
-  assert(buckets.size, 'the volume reader produced buckets to inspect');
-  /* volume.cjs:74 `bucket = e.head || e.mg` — each headed lift lands in its OWN
-     bucket, and volume.cjs:32 `mgLabel(k) = MG_LABEL[k] || k` prints the label. */
-  for (const [key, label] of [['back_lats', 'lats'], ['back_upper', 'upper back'],
-    ['back_traps', 'traps'], ['back_lower', 'lower back']]) {
-    assert(buckets.has(key), key + ' is its own bucket, not pooled into "back"');
-    assert.equal(E.mgLabel(key), label, key + ' prints "' + label + '", not its key');
-  }
-  assert.equal(buckets.has('back'), false, 'the four headed lifts did NOT collapse into one "back" bucket');
-  /* A LABEL WITH NO HEAD renders exactly as before: the key is the word. */
-  assert(buckets.has('quads'), 'a lift with no head still buckets on its mg label');
-  assert.equal(E.mgLabel('quads'), 'quads', 'and prints exactly as it did before this change');
-  assert.equal(E.mgLabel('chest'), 'chest');
-  assert.equal(E.mgLabel('synthetic-unmapped'), 'synthetic-unmapped', 'an unknown bucket still falls through to its own key');
-  /* The sets really are this athlete's own declared sets, per bucket. */
-  assert.equal(buckets.get('back_lats').sets, 4 * 2, '4 sets on each of his two U days');
-  assert.equal(buckets.get('quads').sets, 3 * 1, '3 sets on his one L day');
-});
-
-test('H3/11 - the LABEL half changes no other engine behaviour, and the INDIRECT half is untouched', () => {
-  const constants = readRepo('rebuild/engine/constants.cjs');
-  /* The bundle is the LABEL half only; F1 keeps the INDIRECT half. */
-  assert(constants.includes('const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, pulldown: { biceps: 0.5 }, curl: { forearms: 0.5 } };'),
-    'INDIRECT is byte-for-byte what it was: the INDIRECT half stays with F1');
-  /* Lane C's accepted provenance cell 2.8 row 2 asserts the engine has no gloss
-     table for the labels first-run collects. Adding entries for the bare muscle
-     labels would break it and change nothing on screen, so they are not added.
-     This cell asserts lane C's own predicate directly, so the two cannot drift. */
-  assert.equal(/MG_LABEL[\s\S]{0,400}quads/.test(constants), false,
-    'lane C setup.test.mjs 2.8 row 2 still holds against this table');
-  const MG_LABELS = ['chest', 'back', 'delts', 'biceps', 'triceps', 'forearms', 'abs', 'quads', 'hams', 'glutes', 'calves'];
-  const table = constants.slice(constants.indexOf('const MG_LABEL = {'));
-  const body = table.slice(0, table.indexOf('};') + 2);
-  for (const label of MG_LABELS)
-    assert.equal(new RegExp('\\b' + label + ':').test(body), false,
-      label + ' is a muscle label, not a head: `MG_LABEL[k] || k` already renders it as itself');
-  assert.equal((body.match(/:/g) || []).length, 7, 'exactly seven head entries: three delt, four back');
-});
-
-/* ====== H3/12 — THE FIRST READ AND THE WINDOW (DECISIONS:146 (3), OPTION B) ======
-   The first draft of F-B seeded the trend whatever the window. Review r1 found
-   what that made the app say: a first read at 23:00 came back with
-   `offWindow: true`, `note: "late read — set aside"` and a LATE READ — SET
-   ASIDE feed line, and the trend WAS that reading; a sealed first read said
-   "sealed — excluded from trend" and was the trend. The same two calls on a
-   trend-carrying athlete leave his trend alone, so two athletes were told the
-   same words and given different arithmetic.
-
-   The PM ruled OPTION B (`:146 (3)`): seed only from an in-window, unsealed
-   first read; otherwise the trend stays absent and Today keeps saying "Not
-   available yet". The copy was not rewritten — the behaviour was made to match
-   it. This cell asserts B, and the option-A branch is kept only so the two
-   readings of the question stay visible in one place. */
-const FIRST_READ_ON_A_SET_ASIDE_ROW = false;   // DECISIONS:146 (3) = OPTION B
-
-test('H3/12 - a first weigh-in that is late or sealed does NOT seed the trend, and Today says so', () => {
-  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
-  const seeds = FIRST_READ_ON_A_SET_ASIDE_ROW;
-  assert.equal(seeds, false, 'DECISIONS:146 (3) ruled option B; this cell asserts B');
-
-  /* IN WINDOW — the ruled-in case, unchanged. */
-  const inWindow = E.applyRead(plainState(), DAY, 186.4, { hour: 8 });
-  assert.equal(inWindow.trend, 186.4, 'an in-window first read IS the trend');
-  assert.equal(!!inWindow.reads[0].offWindow, false);
-  assert.equal(inWindow.reads[0].sealed, false);
-  assert.equal(inWindow.reads[0].note, '', 'nothing is claimed about a reading with nothing to compare to');
-
-  /* LATE (off-window) FIRST READ — recorded, and NOT the trend. */
-  const late = E.applyRead(plainState(), DAY, 186.4, { hour: 23 });
-  assert.equal(late.reads.length, 1, 'the reading is still RECORDED — it is never refused');
-  assert.equal(late.reads[0].w, 186.4, 'and it is his number, unchanged');
-  assert.equal(late.reads[0].offWindow, true, 'the row is marked off-window');
-  assert.equal(late.reads[0].note, 'late read — set aside', 'and it says so');
-  assert.equal((late.feed[0] || {}).t, 'LATE READ — SET ASIDE', 'and the feed repeats it');
-  assert.equal(Object.hasOwn(late, 'trend'), false, 'set aside means SET ASIDE: no trend is written');
-  assert.equal(late.reads[0].pt, null, 'and there is still no prior trend to report');
-
-  /* SEALED FIRST READ. A clean-init athlete cannot reach this by himself (H3/4
-     proves no blackout is in force), so the state is built by hand and said to be. */
-  const sealedState = { ...plainState(), blackout: { until: offsetDay(DAY, 13) } };
-  const sealed = E.applyRead(sealedState, DAY, 186.4, { hour: 8 });
-  assert.equal(sealed.reads[0].sealed, true, 'the row is marked sealed');
-  assert.equal(sealed.reads[0].note, 'sealed — excluded from trend', 'and it says EXCLUDED FROM TREND');
-  assert.equal(Object.hasOwn(sealed, 'trend'), false, 'so it really is excluded');
-
-  /* THE TWO ATHLETES NOW AGREE. A trend-carrying athlete was always left alone
-     by both hours; the clean-init athlete is now left alone in the same words. */
-  const carried = { ...plainState(), trend: 187.2 };
-  assert.equal(E.applyRead(carried, DAY, 186.4, { hour: 23 }).trend, 187.2,
-    'a trend-carrying athlete: the late read is set aside');
-  assert.equal(E.applyRead({ ...carried, blackout: { until: offsetDay(DAY, 13) } }, DAY, 186.4, { hour: 8 }).trend,
-    187.2, 'and a sealed read is excluded');
-
-  /* AND TODAY KEEPS THE HONEST SURFACE until an in-window reading arrives. */
-  const view = createTodayModel({ today: DAY, basisState: JSON.parse(JSON.stringify(late)) }).read();
-  assert.equal(Number.isFinite(view.proteinTarget.g), false, 'no figure is claimed from a trend he has not established');
-  assert.equal(view.currentRate.measured, false);
-
-  /* THEN AN IN-WINDOW READING THE NEXT MORNING SEEDS IT — the late row is still
-     on file, and the trend is the first reading that was actually in window. */
-  const next = E.applyRead(late, offsetDay(DAY, 1), 185.9, { hour: 8 });
-  assert.equal(next.trend, 185.9, 'the first IN-WINDOW reading is the seed');
-  assert.equal(next.reads.length, 2, 'and nothing he recorded was thrown away');
-  assert.equal(next.reads[1].pt, null, 'it is still a first trend, so there is no prior one');
+  /* (5) F-G IS OPEN AND THIS CELL HOLDS IT OPEN. `sleep.cleanH` is still
+     absent - the engine states two different defaults for it (7.5 at
+     sleep.cjs:1071, 8 at sleep.cjs:925) so there is no single honest value -
+     and the measured consequence is that the clean-night RUN cannot advance.
+     Recorded here so it cannot be forgotten, and so that closing it turns this
+     assertion red rather than passing unnoticed. */
+  const slept = JSON.parse(JSON.stringify(state));
+  slept.sleep.nights = [-3, -2, -1].map(k => ({ d: offsetDay(DAY, k), h: 8.3 }));
+  assert.equal(Object.hasOwn(slept.sleep, 'cleanH'), false, 'F-G: cleanH is deliberately not written');
+  assert.deepEqual(E.atSleepTarget(slept, null), { run: 0, at: false },
+    'F-G, measured: three clean 8.3 h nights still count as a run of 0, because sleep.cjs:1051 compares against an absent cleanH');
+  /* And it is NOT on Today's own projection, which is why F-G is an open
+     finding and not an S2 blocker: the view carries no `undefined` text. */
+  const view = createTodayModel({ today: DAY, basisState: withNight }).read();
+  assert.equal(/undefined/.test(JSON.stringify(view)), false,
+    'no reader in the Today projection prints undefined on this state');
 });
 
 /* ====== H3/13 — the rebuild.yml enumeration DECISIONS:142 (2)(b) rides on H3 ======

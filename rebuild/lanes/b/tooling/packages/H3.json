@@ -4,8 +4,8 @@
   "packageId": "M2-H3-CLEAN-INIT",
   "status": "PROPOSED",
   "brief": {
-    "file": "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md",
-    "sha256": "2ddddb16e8da89f71fb1888ee34600d1c8717410cac53e9cf19d664c98e67313",
+    "file": "rebuild/lanes/b/BRIEF-H3-CORE.md",
+    "sha256": "abc4c85275e05c25b54c4cb9887eafc685d575f8ef3163df158f6e8d0249964e",
     "acceptedLedgerLine": null
   },
   "sourceBase": "ce38aa3bd174c94526e01fb5056df850ad322b80",
@@ -62,8 +62,8 @@
     },
     "rebuild/engine/writers.cjs": {
       "pre": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
-      "post": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
-      "role": "edited"
+      "post": "00291236ee0fe5a5bf0130d50219cb7753013302ae82a2c0af507f5a7aa649e6",
+      "role": "carried"
     },
     "rebuild/engine/index.cjs": {
       "pre": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
@@ -92,8 +92,8 @@
     },
     "rebuild/engine/constants.cjs": {
       "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
-      "post": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
-      "role": "edited"
+      "post": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
+      "role": "carried"
     },
     "rebuild/engine/dates.cjs": {
       "pre": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
@@ -237,7 +237,7 @@
     },
     "rebuild/m3/w6/host/test/journey.test.mjs": {
       "pre": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
-      "post": "aecb8fe4980ce65ebb6488310302458dffc9b15a30aeeae1238b8491287f1832",
+      "post": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
@@ -317,7 +317,7 @@
     },
     "rebuild/m4/workout/athlete-state.cjs": {
       "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
-      "post": "e1e05a633a6007417b7d1c07d2de2ca7065cf7943fe1f07076d2e6d9c7120acc",
+      "post": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
@@ -327,7 +327,7 @@
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "e169309411f88330e366ce2f19ee47d7d554f7b6ab62c15a0b5258591e043509",
+      "post": "f384c58903cc12f0f016e92c32e81b7ee81f5a30e0f8c93da4bc9f062e12312c",
       "role": "new"
     }
   },
@@ -419,7 +419,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/h3-clean-init.test.cjs"
       ],
-      "needle": "# pass 13"
+      "needle": "# pass 9"
     },
     {
       "name": "a0-journeys",
@@ -457,5 +457,7 @@
       "needle": "# pass 39"
     }
   ],
-  "notes": []
+  "notes": [
+    "H3-CORE (DECISIONS:147 CONTINGENCY). This spec is M2-H3-CLEAN-INIT at the CORE scope: DECISIONS:124 (the clean-init members) plus lane C H3-class sleep.needed. F-B (writers.cjs) and F2 LABEL (constants.cjs) are DEFERRED to the full package on rebuild/lane-b-h3, where both engine files stay edited; NO rebuild/engine byte moves here. The .github/workflows/rebuild.yml setup.test.mjs enumeration is deferred with them, MEASURED reason in BRIEF-H3-CORE.md section 5."
+  ]
 }
