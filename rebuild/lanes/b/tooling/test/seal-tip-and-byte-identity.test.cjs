@@ -85,8 +85,8 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--full', '--package', 'B-NTC'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={sealOnTheTip,sealedRunReceipt,writeSealedRunReceipt,VERDICT_FILE,FAIL_CODES,' +
-    'init(a,raw){logDir=root;ARTIFACT=a;specRaw=raw;}};', runnerFile);
+    '\nmodule.exports={sealOnTheTip,sealedRunReceipt,writeSealedRunReceipt,sealedRunReceiptInstruction,' +
+    'VERDICT_FILE,SEAL_TIP_RULE,FAIL_CODES,init(a,raw){logDir=root;ARTIFACT=a;specRaw=raw;}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 const SPEC_BYTES = Buffer.from('{"the":"reviewed spec bytes"}\n');
@@ -178,10 +178,19 @@ test(':135 (4) — a freeze naming another package, or another base, frees nothi
 
 // ------------------------------------------- DECISIONS:136 (3) the byte-identity re-verify
 const KEY = 'ACCEPTED:' + 'a'.repeat(64) + ':' + BASE + ':' + BASE;
-function seal() {
+const RECEIPT = 'rebuild/lanes/b/tooling/receipts/B-NTC.json';
+const receiptSha = () => sha(fs.readFileSync(path.join(scratch, RECEIPT)));
+// r8 change 1. A SEALED RUN is no longer "a file on disk that agrees with the bytes": the
+// receipt's own sha256 must stand in the verdict file AND its bytes must be committed. This
+// helper does what the sealer must do — write, name, commit — so every case below starts
+// from an authentic receipt and takes exactly one of those three away.
+function seal(commit = true, name = true) {
   const wrote = api.writeSealedRunReceipt(spec(), KEY);
-  write(VERDICT, ['# VERDICT B-NTC', 'artifact ' + wrote.sealedRun.artifactSha256,
-    'spec ' + wrote.sealedRun.specSha256, 'runner ' + wrote.sealedRun.runnerSha256, ''].join('\n'));
+  const lines = ['# VERDICT B-NTC', 'artifact ' + wrote.sealedRun.artifactSha256,
+    'spec ' + wrote.sealedRun.specSha256, 'runner ' + wrote.sealedRun.runnerSha256];
+  if (name) lines.push('sealed-run receipt ' + RECEIPT + ' sha256 ' + receiptSha());
+  write(VERDICT, lines.join('\n') + '\n');
+  if (commit) { git('add', '-A'); git('commit', '--quiet', '-m', 'the sealed run'); }
   return wrote;
 }
 
@@ -253,18 +262,28 @@ test(':136 (3) — the verdict file must NAME the sealed run\'s evidence hashes'
 });
 
 test(':136 (3) — a mis-shaped or re-keyed receipt is refused, never partly trusted', () => {
+  // r8 change 1 put the authenticity test FIRST, so each variant below is COMMITTED and its
+  // sha named in the verdict — otherwise every one of them would refuse at NOT-IN-GIT and
+  // this case would prove nothing about the shape rules it is here for.
   const file = path.join(scratch, 'rebuild/lanes/b/tooling/receipts/B-NTC.json');
   const before = fs.readFileSync(file, 'utf8');
+  const land = text => {
+    fs.writeFileSync(file, text);
+    write(VERDICT, ['# VERDICT B-NTC', 'artifact ' + sha(fs.readFileSync(path.join(scratch, ARTIFACT))),
+      'spec ' + sha(SPEC_BYTES), 'runner ' + sha(fs.readFileSync(runnerFile)),
+      'sealed-run receipt sha256 ' + receiptSha(), ''].join('\n'));
+    git('add', '-A'); git('commit', '--quiet', '-m', 'a receipt variant');
+  };
   const body = JSON.parse(before);
   delete body.sealedRun.envelopeKey;
-  fs.writeFileSync(file, JSON.stringify(body, null, 2) + '\n');
+  land(JSON.stringify(body, null, 2) + '\n');
   assert.equal(api.sealedRunReceipt(spec(), KEY).code, 'SEALED-RUN-RECEIPT-SHAPE');
   const other = JSON.parse(before); other.packageId = 'M2-SOMEONE-ELSE';
-  fs.writeFileSync(file, JSON.stringify(other, null, 2) + '\n');
+  land(JSON.stringify(other, null, 2) + '\n');
   assert.equal(api.sealedRunReceipt(spec(), KEY).code, 'SEALED-RUN-RECEIPT-SHAPE');
-  fs.writeFileSync(file, '{ not json at all');
+  land('{ not json at all');
   assert.equal(api.sealedRunReceipt(spec(), KEY).code, 'SEALED-RUN-RECEIPT-UNREADABLE');
-  fs.writeFileSync(file, before);
+  seal();
   assert.equal(api.sealedRunReceipt(spec(), KEY).ok, true);
 });
 
@@ -272,6 +291,101 @@ test('both rulings carry their own names in the refusal vocabulary', () => {
   for (const code of ['SEAL-BASE-IS-NOT-THE-CHAIN-TIP', 'SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH',
     'SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE', 'SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN',
     'SEAL-FREEZE-LINE-SHAPE', 'SEALED-RUN-RECEIPT-VOID', 'SEALED-RUN-RECEIPT-ABSENT', 'SEALED-RUN-RECEIPT-SHAPE',
-    'SEALED-RUN-RECEIPT-UNREADABLE', 'SEALED-RUN-VERDICT-FILE-ABSENT', 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES'])
+    'SEALED-RUN-RECEIPT-UNREADABLE', 'SEALED-RUN-VERDICT-FILE-ABSENT', 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-EVIDENCE-HASHES',
+    'SEALED-RUN-RECEIPT-NOT-IN-GIT', 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT'])
     assert(api.FAIL_CODES.has(code), 'the vocabulary carries ' + code);
+});
+
+// -------------------------------------------------- r8 change 1: authentic, not consistent
+test('r8 — a receipt that is not COMMITTED refuses, however consistent it is', () => {
+  // The hole r8 fired: a receipt written by hand, by a process that never ran a gate,
+  // returned ok:true and the 19 gates were skipped on a plain disk read. Written and named
+  // but NOT committed is exactly that case, and it now refuses by name.
+  const r = api.sealedRunReceipt(spec(), KEY);
+  assert.equal(r.ok, true, 'the committed control still re-verifies');
+  // (a) EDITED SINCE IT WAS COMMITTED. Perfectly canonical, perfectly shaped, and the
+  // authenticity test fires BEFORE the content tests, so this is NOT-IN-GIT and not VOID.
+  const committed = fs.readFileSync(path.join(scratch, RECEIPT), 'utf8');
+  const edited = JSON.parse(committed);
+  edited.sealedRun.artifactSha256 = '7'.repeat(64);
+  fs.writeFileSync(path.join(scratch, RECEIPT), JSON.stringify(edited, null, 2) + '\n');
+  const dirty = api.sealedRunReceipt(spec(), KEY);
+  assert.equal(dirty.ok, false);
+  assert.equal(dirty.code, 'SEALED-RUN-RECEIPT-NOT-IN-GIT');
+  assert.match(dirty.moved[0], /is not committed at HEAD/);
+  fs.writeFileSync(path.join(scratch, RECEIPT), committed);
+  assert.equal(api.sealedRunReceipt(spec(), KEY).ok, true);
+  // (b) NEVER COMMITTED AT ALL — the hand-written case, with the identical bytes on disk.
+  git('rm', '--cached', '--quiet', RECEIPT);
+  git('commit', '--quiet', '-m', 'the receipt is no longer in Git');
+  const only = api.sealedRunReceipt(spec(), KEY);
+  assert.equal(only.ok, false);
+  assert.equal(only.code, 'SEALED-RUN-RECEIPT-NOT-IN-GIT');
+  seal();                                              // restore the authentic one
+  assert.equal(api.sealedRunReceipt(spec(), KEY).ok, true);
+});
+
+test('r8 — the verdict must name the RECEIPT\'s own sha256, not only the three public ones', () => {
+  // The three evidence hashes are public and a forger has them; the receipt's sha256 exists
+  // only once a seal step has written one. Take just that line out and the step is gone.
+  seal(true, false);
+  const r = api.sealedRunReceipt(spec(), KEY);
+  assert.equal(r.ok, false);
+  assert.equal(r.code, 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT');
+  // A verdict naming SOME receipt sha, but not this one, is the same refusal.
+  const before = fs.readFileSync(path.join(scratch, VERDICT), 'utf8');
+  write(VERDICT, before + 'sealed-run receipt sha256 ' + '9'.repeat(64) + '\n');
+  git('add', '-A'); git('commit', '--quiet', '-m', 'a verdict naming the wrong receipt');
+  assert.equal(api.sealedRunReceipt(spec(), KEY).code, 'SEALED-RUN-VERDICT-DOES-NOT-NAME-THE-RECEIPT');
+  seal();
+  assert.equal(api.sealedRunReceipt(spec(), KEY).ok, true);
+  // And the seal step TELLS the sealer what to do, on the run that writes the receipt.
+  const instruction = api.sealedRunReceiptInstruction();
+  assert(instruction.includes(RECEIPT) && instruction.includes(receiptSha()) && instruction.includes(VERDICT));
+});
+
+// ------------------------------------ r8 F1: the tip rule is ONE constant, both ways tested
+test('r8 F1 — SEAL_TIP_RULE is one word, and both settings are implemented and measured', () => {
+  assert.equal(api.SEAL_TIP_RULE, 'first-parent', 'the PM has not relaxed it; the stricter rule stands');
+  // The same source with the one word changed, and nothing else — asserted, not assumed.
+  const relaxed = fixtureSource.replace("const SEAL_TIP_RULE = 'first-parent';", "const SEAL_TIP_RULE = 'ancestor';");
+  const a = fixtureSource.split('\n'), b = relaxed.split('\n');
+  assert.equal(a.length, b.length);
+  assert.equal(a.filter((line, i) => line !== b[i]).length, 1, 'exactly one line differs between the two rules');
+  const relaxedFile = path.join(scratch, 'rebuild/lanes/b/tooling/b-package-ancestor.cjs');
+  fs.writeFileSync(relaxedFile, relaxed);
+  const m2 = new Module(relaxedFile, module);
+  m2.filename = relaxedFile;
+  m2.paths = Module._nodeModulePaths(path.dirname(path.join(sourceRoot, runnerRel)));
+  const base2 = m2.require.bind(m2);
+  m2.require = file => base2(path.isAbsolute(file) && file.startsWith(scratch + path.sep)
+    ? path.join(sourceRoot, path.relative(scratch, file)) : file);
+  const saved = process.argv;
+  process.argv = [process.execPath, relaxedFile, '--full', '--package', 'B-NTC'];
+  try {
+    m2._compile(relaxed.slice(0, relaxed.indexOf(delimiter)) +
+      '\nmodule.exports={sealOnTheTip,SEAL_TIP_RULE,init(a,raw){logDir=root;ARTIFACT=a;specRaw=raw;}};', relaxedFile);
+  } finally { process.argv = saved; }
+  const alt = m2.exports;
+  alt.init(ARTIFACT, SPEC_BYTES);
+  assert.equal(alt.SEAL_TIP_RULE, 'ancestor');
+  // THE CASE THAT DIVIDES THEM, measured on one repository: a lane that MERGED the tip with
+  // `--no-ff`. The tip is an ancestor of HEAD and is NOT in HEAD's first-parent chain.
+  git('checkout', '--quiet', 'fixture-lane');
+  git('reset', '--quiet', '--hard', LANE_HEAD);
+  git('merge', '--no-ff', '--quiet', '-m', 'merge the chain tip', 'fixture-chain');
+  const tip = git('rev-parse', 'refs/heads/fixture-chain').trim();
+  cp.execFileSync('git', ['merge-base', '--is-ancestor', tip, 'HEAD'], { cwd: scratch });
+  assert(!git('rev-list', '--first-parent', 'HEAD').split(/\r?\n/).includes(tip));
+  assert.throws(() => api.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
+  said.length = 0;
+  alt.sealOnTheTip(spec(), out);
+  assert.match(said[0], /SEAL BASE ON THE TIP/);
+  assert.match(said[0], /rule=ancestor/);
+  // And 'ancestor' still refuses a genuinely STALE base, which is the failure :135 names.
+  git('checkout', '--quiet', 'fixture-chain');
+  git('commit', '--quiet', '--allow-empty', '-m', 'the chain moves past this lane');
+  git('checkout', '--quiet', 'fixture-lane');
+  assert.throws(() => alt.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
+  assert.throws(() => api.sealOnTheTip(spec(), out), /SEAL-BASE-IS-NOT-THE-CHAIN-TIP/);
 });
