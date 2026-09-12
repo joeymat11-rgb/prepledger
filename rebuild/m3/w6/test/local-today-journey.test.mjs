@@ -622,7 +622,12 @@ export const PAGE_PINS = Object.freeze({
      leaving a red suite behind it. Re-read against today-bindings.mjs at every
      re-pin: boot() still opens the local era BY DEFAULT (the `hosts` branch is
      byte-unchanged) and no wrapper opens a store of its own. */
-  'today-entry.mjs': 'b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111',
+  /* A4b re-pin. today-entry.mjs changed in exactly one place: the setup view's
+     onDone now takes (document, tags) and hands both to host.save, because the
+     first-run op carries a third payload member (A4B-BRIEF 5). Re-read against
+     today-bindings.mjs: boot() still opens the local era BY DEFAULT, the `hosts`
+     branch is byte-unchanged, and neither wrapper opens a store of its own. */
+  'today-entry.mjs': 'c2802779b0ff46251d65559a93a41e1d4baa151a5b9d5bfca4c1ce5b3e779668',
   'gym-host.mjs': '70a59b5c328f3b029790ed49b957dd2b78eada1b9bdff9606de5ae17a4f01c18',
   'reading-host.mjs': 'a3e9201587f97446f90856f3235cf99da8d487d1be127416be1e5086d17be6aa',
   'checkin-host.mjs': '029b3a9b711cf4f9ef7ba8d33452d87b262d9c1ee34b005009134a8a81ec660b',

@@ -533,6 +533,10 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
           date: op.effective && op.effective.local_date ? op.effective.local_date : null,
           time: op.effective && op.effective.local_time ? op.effective.local_time : null,
           setup: JSON.parse(JSON.stringify(op.payload.setup)),
+          /* A4b's third member, read back beside the document it describes. An
+             op written before A4b carries none, and null says so rather than
+             inventing an empty map that would read as "deliberately untagged". */
+          tags: op.payload.tags ? JSON.parse(JSON.stringify(op.payload.tags)) : null,
         }));
     }
 
@@ -543,7 +547,11 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
       async all() { return setupsIn((await bindings.repository.load()).generation); },
       /* THE FIRST-RUN QUESTION, answered by the record. */
       async enrolled() { return (await handle.all()).length > 0; },
-      async save(setup) {
+      /* `tags` is A4b's third payload member (A4B-BRIEF 5): the head and the
+         secondary lends, keyed by the document's own exercise ids, which the
+         closed document itself cannot carry. This lane only forwards it; the
+         producer command validates it, here and again on the built envelope. */
+      async save(setup, tags) {
         if (!alive) return { ok: false, state: 3, copy: null, code: "LOCAL_CLIENT_CLOSED", op_id: null };
         /* First run happens ONCE (BUILD-BRIEF 2.3, S13). Re-read the generation
            immediately before the write: a second tap or a second tab that got
@@ -551,7 +559,8 @@ function buildEra({ client, prescriptionCapture, workoutCommands, booted, indexe
         if (await handle.enrolled()) {
           return { ok: false, state: 0, copy: null, code: "SETUP_ALREADY_RECORDED", op_id: null };
         }
-        const result = await setupClient.execute("workout", { action: "first-run-setup", input: { setup } });
+        const result = await setupClient.execute("workout",
+          { action: "first-run-setup", input: { setup, tags } });
         return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
           code: result.code || null, op_id: result.op_id || null };
       },

@@ -90,6 +90,14 @@ const REQUIRED_INPUTS = Object.freeze([
   "rebuild/m3/w7-preview/today/setup-commands.mjs",
   "rebuild/m3/w7-preview/today/setup-model.mjs",
   "rebuild/m3/w7-preview/today/setup-app.mjs",
+  /* A4b — the three modules the second round added. A build that lost split-kinds
+     would be a page that asks a beginner which kind each day is; one that lost the
+     catalogue or the starter week would be a page with only the "I'll name it
+     myself" door, which is the door DECISIONS:127 exists to stop being the only
+     one. All three are pure: no DOM, no store, nothing from rebuild/engine. */
+  "rebuild/m3/w7-preview/today/split-kinds.mjs",
+  "rebuild/m3/w7-preview/today/exercise-catalogue.mjs",
+  "rebuild/m3/w7-preview/today/starter-week.mjs",
   "rebuild/m4/workout/athlete-state.cjs",
   "rebuild/m3/w6/host/workout-host.mjs",
   "rebuild/m3/w6/host/engine-runtime-host.cjs",
