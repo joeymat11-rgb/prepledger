@@ -99,6 +99,16 @@ const moduleText = ["'use strict';",
 
 const successorText = ["'use strict';", "require('./b-ntc-successors.cjs').run('source-carriers');", ''].join('\n');
 
+// r7b F-C. The ruling is no longer a constant naming one package: successorRuling() reads
+// the LINE the spec cites by sha256 off the chain branch and requires it to name this
+// package, grant a SUCCESSOR, stand on the base ruling's conditions and name the support
+// file. So the fixture's chain branch carries a line of its own, in the ledger's shape.
+const SUPPORT = 'rebuild/m4/workout/engine-runtime.cjs';
+const RULING_LINE = '- 2026-09-11 · cowork · LANE B RULINGS — MOVES_RULING B-NTC-INHERITED-1 RATIFIED AS WRITTEN: ' +
+  'for M2-B-NTC only, the child may declare coverage.inherited naming a SUCCESSOR executable per parent child name, ' +
+  'on the conditions (a)-(e); the pin re-target is the one engine-runtime supersession makes necessary · RULED';
+const OTHER_RULING = '- 2026-09-11 · cowork · a chain line that grants nothing · RULED';
+write('rebuild/DECISIONS.md', [OTHER_RULING, RULING_LINE, ''].join('\n'));
 write(ORIGINAL, originalText);
 write(WRAPPER, wrapperText);
 write(MODULE, moduleText);
@@ -121,18 +131,18 @@ git('add', '-A');
 git('commit', '--quiet', '-m', 'fixture');
 const parentCommit = git('rev-parse', 'HEAD').trim();
 
-// The runner, compiled with exactly TWO literals changed: the chain branch (this fixture's
-// own branch) and the parent acceptance commit (this fixture's own commit). Both are
-// asserted below to be the only differences, so no other rule is relaxed for the test.
+// The runner, compiled with exactly ONE literal changed: the chain branch (this fixture's
+// own branch). r7b F-C removed the second — `SUCCESSOR_PARENT_COMMIT` was a constant naming
+// B-NTC's parent and is now taken from the parent's OWN receipt (`bound.reviewedCommit`),
+// so the fixture supplies it as data like every other parent fact.
 const fixtureSource = source
-  .replace("const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';", "const CHAIN_REF = 'refs/heads/fixture-chain';")
-  .replace(/const SUCCESSOR_PARENT_COMMIT = '[a-f0-9]{40}';/, "const SUCCESSOR_PARENT_COMMIT = '" + parentCommit + "';");
+  .replace("const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';", "const CHAIN_REF = 'refs/heads/fixture-chain';");
 {
   const a = source.split('\n'), b = fixtureSource.split('\n');
   assert.equal(a.length, b.length, 'the fixture changes no line count');
   const moved = a.map((line, i) => [i, line]).filter(([i, line]) => line !== b[i]);
-  assert.equal(moved.length, 2, 'exactly two constants are re-pointed at the fixture');
-  for (const [, line] of moved) assert.match(line, /^const (?:CHAIN_REF|SUCCESSOR_PARENT_COMMIT) = '/);
+  assert.equal(moved.length, 1, 'exactly one constant is re-pointed at the fixture');
+  for (const [, line] of moved) assert.match(line, /^const CHAIN_REF = '/);
 }
 write(runnerRel, fixtureSource);
 const runnerFile = path.join(scratch, runnerRel);
@@ -146,7 +156,7 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={closure,successorGates,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,failCode,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_PACKAGES,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    '\nmodule.exports={closure,successorGates,successorRuling,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,failCode,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_RULING_ID,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -161,19 +171,31 @@ test.after(() => {
 // ------------------------------------------------------------------ the fixture spec
 const GATE = 'migrate-source', PARENT_CHILD = 'source-carriers', CHILD = 'source-carriers';
 const inherited = { 'migrate-source': CHILD, 'merge-source': CHILD, 'writers-source': CHILD };
-const bound = () => ({ option: { id: 'NATIVE-CARRIERS' }, decided: true, acceptance: {
+// r7b F-C: `reviewedCommit` is the parent's own receipt commit, which option() reads out of
+// the ledger line; the runner takes the acceptance commit from THERE, never from a constant.
+// The parent here is an accepted ORIGINAL, so it carries no `children` of its own and the
+// accepted schedule is read from the declared WRAPPER — the older of the two shapes.
+const bound = () => ({ option: { id: 'NATIVE-CARRIERS' }, decided: true, reviewedCommit: parentCommit, acceptance: {
   product: {},
   executionPins: { [ORIGINAL]: sha(fs.readFileSync(path.join(scratch, ORIGINAL))), [WRAPPER]: sha(fs.readFileSync(path.join(scratch, WRAPPER))) },
   coverage: { byChild: { ...inherited } } } });
 const pin = f => ({ pre: sha(fs.readFileSync(path.join(scratch, f))), post: sha(fs.readFileSync(path.join(scratch, f))), role: 'new' });
+const RULING_SHA = sha(Buffer.from(RULING_LINE));
 const spec = () => ({
+  packageId: 'M2-B-NTC-NATIVE-TREND-CONTEXT',
   // The successor and the module it loads are this package's OWN new product; the closure
   // walk is bounded by exactly that set, and everything it reaches outside it is a boundary
-  // file the runner requires to be a parent pin or the immutable conform library.
-  product: { [SUCCESSOR]: pin(SUCCESSOR), [MODULE]: pin(MODULE) },
+  // file the runner requires to be a parent pin or the immutable conform library. The
+  // SUPPORT file is declared a change of this package, which is what makes the successor
+  // necessary at all — r7b F-C requires that fact, never the spec's word for it.
+  product: { [SUCCESSOR]: pin(SUCCESSOR), [MODULE]: pin(MODULE),
+    [SUPPORT]: { pre: '1'.repeat(64), post: '2'.repeat(64), role: 'superseded-by-child' } },
   children: [{ name: CHILD, argv: [SUCCESSOR], needle: VERDICT }],
   coverage: { inherited: { ...inherited }, moves: {}, successors: {
-    ruling: 'MOVES_RULING=' + api.SUCCESSOR_RULING + ' B-NTC-INHERITED-1',
+    ruling: 'MOVES_RULING=' + api.SUCCESSOR_RULING + ' ' + api.SUCCESSOR_RULING_ID,
+    rulingLineSha256: RULING_SHA,
+    support: SUPPORT,
+    wrapper: WRAPPER,
     parentAcceptanceCommit: parentCommit,
     carriers: { [PARENT_CHILD]: { successor: SUCCESSOR, original: ORIGINAL } },
     substitutions: JSON.parse(JSON.stringify(substitutions)) } },
@@ -191,9 +213,9 @@ test('the faithful successor is admitted, and every derived fact is the parent\'
   assert.equal(proof.substitutions, 1);
   assert.equal(proof.verdict, VERDICT);
   // The admitted gate set is DERIVED, not declared: three gates, all from the parent map.
-  assert.deepEqual([...api.successorGates(bound()).keys()].sort(), ['merge-source', 'migrate-source', 'writers-source']);
+  assert.deepEqual([...api.successorGates(spec(), bound()).keys()].sort(), ['merge-source', 'migrate-source', 'writers-source']);
   // The accepted schedule is read out of the wrapper, in full, not as a prefix.
-  assert.equal(api.acceptedVerdicts(bound()).get(PARENT_CHILD), VERDICT);
+  assert.equal(api.acceptedVerdicts(spec(), bound()).get(PARENT_CHILD), VERDICT);
   // The source closure is the successor plus the module it loads, and nothing else.
   assert.deepEqual([...api.closure(SUCCESSOR).keys()].sort(), [MODULE, SUCCESSOR].sort());
 });
@@ -210,14 +232,21 @@ test('Z1 — only the ruling admits a successor; no other id, package or gate do
   const quiet = bound();
   write(ORIGINAL, originalText.replace(FROM, "const PINNED_SUPPORT = 'rebuild/m4/spec/unrelated.cjs';"));
   quiet.acceptance.executionPins[ORIGINAL] = sha(fs.readFileSync(path.join(scratch, ORIGINAL)));
-  assert.equal(api.successorGates(quiet).size, 0);
+  assert.equal(api.successorGates(spec(), quiet).size, 0);
   write(ORIGINAL, originalText);
   // A declared carrier the spec does not name.
   const missing = spec(); delete missing.coverage.successors.carriers[PARENT_CHILD];
-  assert.throws(() => carry(missing), /SUCCESSOR-CARRIER-NOT-DECLARED/);
-  // And the id itself is a runner constant, never a spec's word for itself.
+  assert.throws(() => carry(missing), /SUCCESSOR-GATE-NOT-IN-THE-RULING|SUCCESSOR-CARRIER-NOT-DECLARED/);
+  // r7b F-C. `SUCCESSOR_PACKAGES` is gone — a constant naming one package could not read
+  // DECISIONS:142's grant to another. What admits a package is the RULING'S OWN LINE on the
+  // chain branch, located by the sha256 the spec records and required to name THIS package.
+  const wrongSha = spec(); wrongSha.coverage.successors.rulingLineSha256 = '0'.repeat(64);
+  assert.throws(() => carry(wrongSha), /SUCCESSOR-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH/);
+  const grantsNothing = spec(); grantsNothing.coverage.successors.rulingLineSha256 = sha(Buffer.from(OTHER_RULING));
+  assert.throws(() => carry(grantsNothing), /SUCCESSOR-RULING-DOES-NOT-NAME-THIS-PACKAGE|SUCCESSOR-RULING-DOES-NOT-GRANT-A-SUCCESSOR/);
+  // The base conditions (a)-(e) are still this runner's, and the coordinate and id with them.
   assert.equal(api.SUCCESSOR_RULING, 'DECISIONS:113');
-  assert.deepEqual([...api.SUCCESSOR_PACKAGES], ['B-NTC']);
+  assert.equal(api.SUCCESSOR_RULING_ID, 'B-NTC-INHERITED-1');
   assert.equal(api.MOVES_RULING, null); // X1 is NOT widened by any of this
 });
 
@@ -281,10 +310,11 @@ test('Z3 — the successor is held to the parent\'s accepted verdict in full, no
 });
 
 test('Z5 — the parent acceptance commit is anchored, and no spec names a commit', () => {
-  // The spec must agree with the runner's constant; it can never choose another commit.
+  // r7b F-C: the spec must agree with the PARENT'S OWN RECEIPT, which option() read out of
+  // the ledger line — not with a constant in the runner. A spec that names another commit
+  // refuses by name, so it can still never choose one.
   const other = spec(); other.coverage.successors.parentAcceptanceCommit = 'f'.repeat(40);
-  // spec() enforces that equality; successorCoverage never reads the spec's value at all.
-  assert.equal(carry(other).original, ORIGINAL);
+  assert.throws(() => carry(other), /SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-IS-NOT-THE-PARENT-REVIEWED-COMMIT/);
   // Z5: the withdrawn code read `p.sourceCommit` off a policy file and checked nothing
   // about where that commit sat. There is no such read anywhere in the runner now.
   assert(!/\.sourceCommit\b/.test(fixtureSource), 'the runner reads no policy sourceCommit');
@@ -293,13 +323,13 @@ test('Z5 — the parent acceptance commit is anchored, and no spec names a commi
   git('commit', '--quiet', '--allow-empty', '-m', 'later');
   assert.notEqual(git('rev-parse', 'HEAD').trim(), parentCommit);
   assert.equal(carry().verdict, VERDICT);
-  // A commit that is NOT an ancestor cannot be substituted by any input, because the
-  // commit is a runner constant; what the source must carry is the two ancestry asks.
-  // TOOLING-REVIEW r7 F3: both now go through the ONE named ancestry helper, so the
-  // refusal carries a code instead of reaching the catch as "Command failed". The asks
-  // themselves are unchanged — the helper's body is the same `merge-base --is-ancestor`.
-  assert.equal(fixtureSource.split("ancestor(SUCCESSOR_PARENT_COMMIT, CHAIN_REF, 'SUCCESSOR-PARENT-COMMIT-NOT-ON-THE-CHAIN-BRANCH')").length, 2);
-  assert.equal(fixtureSource.split("ancestor(SUCCESSOR_PARENT_COMMIT, 'HEAD', 'SUCCESSOR-PARENT-COMMIT-NOT-BEHIND-HEAD')").length, 2);
+  // The commit is still never an input's choice: it is the parent receipt's own, and both
+  // ancestry asks still stand over it. TOOLING-REVIEW r7 F3: both go through the ONE named
+  // ancestry helper, so the refusal carries a code instead of reaching the catch as
+  // "Command failed"; the asks are the same `merge-base --is-ancestor` as ever.
+  assert.equal(fixtureSource.split("ancestor(PARENT_COMMIT, CHAIN_REF, 'SUCCESSOR-PARENT-COMMIT-NOT-ON-THE-CHAIN-BRANCH')").length, 2);
+  assert.equal(fixtureSource.split("ancestor(PARENT_COMMIT, 'HEAD', 'SUCCESSOR-PARENT-COMMIT-NOT-BEHIND-HEAD')").length, 2);
+  assert.equal(fixtureSource.split("const PARENT_COMMIT = bound.reviewedCommit;").length, 2, 'the commit comes from the parent receipt, once');
   assert.equal(fixtureSource.split("L.git(root, ['merge-base', '--is-ancestor', commit, of]);").length, 2, 'exactly one ancestry call site');
 });
 
@@ -309,7 +339,11 @@ test('Z6 — the refusal vocabulary is derived from the runner and covers these 
     'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT', 'SUCCESSOR-SUBSTITUTION-TABLE-DISAGREES-WITH-THE-SPEC',
     'SUCCESSOR-REPLACEMENT-NOT-DRIVEN-BY-THE-DECLARED-TABLE', 'SUCCESSOR-EXECUTED-VERDICT',
     'SPEC-BYTES-NOT-THE-REVIEWED-SPEC-IN-GIT', 'COVERAGE-MOVES-REFUSED-WITHOUT-A-PM-RULING',
-    'SUCCESSOR-RULING-NOT-CITED', 'SUCCESSOR-PACKAGE-NOT-RULED'])
+    'SUCCESSOR-RULING-NOT-CITED', 'SUCCESSOR-RULING-DOES-NOT-NAME-THIS-PACKAGE',
+    'SUCCESSOR-RULING-DOES-NOT-GRANT-A-SUCCESSOR', 'SUCCESSOR-RULING-DOES-NOT-STAND-ON-THE-BASE-CONDITIONS',
+    'SUCCESSOR-RULING-DOES-NOT-NAME-THE-SUPPORT-FILE', 'SUCCESSOR-SUPPORT-IS-NOT-A-DECLARED-CHANGE-OF-THIS-PACKAGE',
+    'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-IS-NOT-THE-PARENT-REVIEWED-COMMIT', 'SUCCESSOR-ACCEPTED-SCHEDULE-UNAVAILABLE',
+    'PARENT-PIN-SHAPE'])
     assert(api.FAIL_CODES.has(code), 'vocabulary carries ' + code);
   // It is a vocabulary, not an echo: a string an input could shape is not in it.
   assert(!api.FAIL_CODES.has('ARBITRARY-TEXT-FROM-A-CHILD-PROCESS'));

@@ -152,23 +152,32 @@ const SUCCESSOR_RULING = 'DECISIONS:113';
 // is what makes rulingText() a reading of THE RULING rather than of whatever line happens
 // to be numbered 113 the day it is read.
 const SUCCESSOR_RULING_ID = 'B-NTC-INHERITED-1';
-// ":113 … for M2-B-NTC only". Fixed here; a spec cannot nominate its own id.
-const SUCCESSOR_PACKAGES = new Set(['B-NTC']);
+// r7b F-C. `SUCCESSOR_PACKAGES = new Set(['B-NTC'])` stood here and had to go: DECISIONS:142
+// granted M2-H3-CLEAN-INIT a successor "in the :113 shape" and the constant made the grant
+// undeclarable — a PM ruling that the tooling could not read. What admits a package now is
+// successorRuling(): the ruling LINE ITSELF, found on the chain branch by its own sha256,
+// must name `M2-<ID>`, use the word SUCCESSOR, stand on THIS ruling's conditions (a)-(e),
+// and name the support file. The constants below are the BASE CONTRACT every grant is held
+// to and they stay fixed here (W7); what varies per grant is in the spec and is verified
+// against the parent artifact's own bytes.
 // ":113 (b) … the Git blob at the parent's acceptance commit b95ccca…". The commit is the
 // one DECISIONS:104's re-seal names as reviewed, and it is asserted to be on the real chain
 // branch (CHAIN_REF) and an ancestor of HEAD before any blob is read out of it — X2's rule
 // applied to the successor path, which is r5's Z5. There is no policy `sourceCommit`: every
 // successor and original byte is verified on disk and in Git AT HEAD, and the parent's own
 // bytes against the chain. A commit a file names is never trusted for provenance.
-const SUCCESSOR_PARENT_COMMIT = 'b95ccca879e371b5ba225ad12cae612ec89469ba';
-// The parent wrapper whose `verdicts` table IS the accepted schedule (r5 Z3): the exact
-// terminal strings the parent's own children must print. Read out of the immutable
-// original, never re-typed here, exactly as PIN_PATHS and GATE_NEEDLE are.
-const SUCCESSOR_WRAPPER = 'rebuild/m4/spec/native-carriers-package.cjs';
-// The support file whose supersession is what makes a successor necessary at all
-// (DECISIONS:109 PATH A). A parent carrier that does not reach it has no claim to a
-// successor, and successorGates() refuses the gate rather than admitting it.
-const SUCCESSOR_SUPPORT = 'rebuild/m4/workout/engine-runtime.cjs';
+// r7b F-C: the constant `SUCCESSOR_PARENT_COMMIT = 'b95ccca…'` is gone. It was the parent's
+// reviewed commit written down, and the runner already HAS that commit as a verified fact:
+// option() takes it out of the parent's own receipt line (`bound.reviewedCommit`), after
+// asserting the receipt's base is on the chain branch and the artifact's bytes stand there.
+// The spec declares `parentAcceptanceCommit` and successorProof() asserts it EQUALS
+// bound.reviewedCommit, so the spec agrees with the parent's receipt or refuses — and a
+// child of any parent gets the right commit without a tooling change.
+//
+// r7b F-C: `SUCCESSOR_WRAPPER` and `SUCCESSOR_SUPPORT` are gone the same way. The wrapper is
+// the spec's `wrapper` (required only where the parent artifact carries no `children` of its
+// own) and must be a parent EXECUTION PIN; the support file is the spec's `support` and must
+// be named by the ruling AND declared a change by this package (successorRuling).
 // r5 Z2. The successor's own substitution table must stand in its source as ONE strict-JSON
 // literal under this name, so the runner can read it without executing a line of the lane's
 // code — the same discipline PIN_PATHS uses against run.cjs. Every replacement the successor
@@ -487,32 +496,99 @@ function closure(file, enter = () => true) {
 // superseded support file. Nine names are never typed here. A gate the parent does not
 // record, or one whose carrier does not reach the support file, is not in the returned map
 // and coverage() refuses it by the ordinary rule.
-function successorGates(bound) {
+// r7b F-C. SPEC-DRIVEN, and every one of the four facts is taken from bytes no spec writes.
+//
+// r7 derived the carrier's path by CONCATENATION — `'rebuild/m4/spec/native-carriers-' +
+// child + '.cjs'` — which is B-NTC-as-child-of-NATIVE-CARRIERS and nothing else, and it
+// tested the closure against one hard-coded support file. DECISIONS:142 granted
+// M2-H3-CLEAN-INIT a successor over a DIFFERENT parent, a different carrier naming scheme
+// and a different support file, and none of it was declarable. The spec now declares the
+// parent child name, the parent's own original executable and the support file; the runner
+// still decides, from (1) the PARENT ARTIFACT's own coverage.byChild, (2) the PARENT's own
+// executionPins, (3) the carrier's own source closure reaching the support file, and (4)
+// the ruling line on the chain branch naming that support file (successorRuling). A spec
+// that declares a carrier the parent does not pin, or one that does not reach the support
+// file, gets no gate at all and coverage() refuses it by the ordinary rule.
+function successorGates(s, bound) {
   const out = new Map(); // gate -> { child, original }
+  const sup = s && s.coverage && s.coverage.successors;
   const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
-  if (!byChild) return out;
+  if (!sup || !byChild) return out;
   const epins = bound.acceptance.executionPins;
   for (const [gate, child] of Object.entries(byChild)) {
-    // The parent's carrier for a child name is the file the parent PINS under that name;
-    // the concatenation is only ever admitted because the parent's own pin map agrees.
-    const original = 'rebuild/m4/spec/native-carriers-' + child + '.cjs';
-    if (!Object.hasOwn(epins, original)) continue;
+    const declared = Object.hasOwn(sup.carriers, child) ? sup.carriers[child] : null;
+    if (!declared) continue;                                   // not a carrier this spec claims
+    const original = declared.original;
+    if (!Object.hasOwn(epins, original)) continue;             // the parent must pin it
+    if (!fs.existsSync(rel(original))) continue;
     let reaches = false;
-    for (const src of closure(original).values()) if (src.includes(SUCCESSOR_SUPPORT)) { reaches = true; break; }
-    if (!reaches) continue;
+    for (const src of closure(original).values()) if (src.includes(sup.support)) { reaches = true; break; }
+    if (!reaches) continue;                                    // it has no claim to a successor
     out.set(gate, { child, original });
   }
   return out;
+}
+// r7b F-C. THE RULING, and what it must say before a spec may claim anything under it.
+//
+// This is what replaced `SUCCESSOR_PACKAGES = new Set(['B-NTC'])`. A constant naming one
+// package could not be widened without a reviewed tooling change for every grant the PM
+// makes; the RULING'S OWN BYTES can, because the PM writes them and no lane can. The line
+// is located by its sha256 (r7 F4, renumber-proof) and must then say four things:
+//   (1) it names THIS package — `M2-<ID>`, derived from the command line, never the spec;
+//   (2) it GRANTS a successor, in the word;
+//   (3) it stands on the BASE ruling's conditions (a)-(e) — the id this runner fixes, or
+//       that ruling's own coordinate — so :142's "in the :113 shape" is the same contract
+//       and a future grant cannot invent conditions of its own;
+//   (4) it NAMES the support file, the path whose supersession makes a successor necessary
+//       at all, by full path, basename, or basename without its final extension (:113 says
+//       "engine-runtime", :142 says "rebuild/m3/w6/host/test/journey.test.mjs").
+// And the support file must be one THIS SPEC declares a CHANGE on, so "made necessary by a
+// declared product path" is a fact about the package and not a word in a spec.
+function successorRuling(s) {
+  const sup = s.coverage.successors;
+  const line = rulingText(s), at = RULING_LINE_AT;
+  assert(line.includes('M2-' + ID), 'SUCCESSOR-RULING-DOES-NOT-NAME-THIS-PACKAGE DECISIONS:' + at + ' does not name M2-' + ID);
+  assert(/\bSUCCESSOR\b/.test(line), 'SUCCESSOR-RULING-DOES-NOT-GRANT-A-SUCCESSOR DECISIONS:' + at);
+  assert(line.includes(SUCCESSOR_RULING_ID) || line.includes(SUCCESSOR_RULING) || line.includes(':' + SUCCESSOR_RULING.split(':')[1]),
+    'SUCCESSOR-RULING-DOES-NOT-STAND-ON-THE-BASE-CONDITIONS DECISIONS:' + at + '; a grant must be in the ' + SUCCESSOR_RULING + ' shape');
+  const base = path.posix.basename(sup.support), stem = base.replace(/\.[a-z0-9]+$/, '');
+  assert(line.includes(sup.support) || line.includes(base) || (stem.length >= 8 && line.includes(stem)),
+    'SUCCESSOR-RULING-DOES-NOT-NAME-THE-SUPPORT-FILE DECISIONS:' + at + ' ' + sup.support);
+  const changed = Object.entries(s.product).filter(([f, p]) => f === sup.support && p.post && p.pre !== p.post &&
+    (p.role === 'edited' || p.role === 'superseded-by-child'));
+  assert(changed.length === 1, 'SUCCESSOR-SUPPORT-IS-NOT-A-DECLARED-CHANGE-OF-THIS-PACKAGE ' + sup.support +
+    '; a successor is made necessary by a product path this package declares it changes');
+  return { line, at };
 }
 // Z3. The ACCEPTED SCHEDULE, read out of the parent wrapper's own `verdicts` table — the
 // exact terminal string each parent child prints. The wrapper's bytes are a parent
 // execution pin, re-asserted here before a character is parsed, so this is the parent's
 // own text and not a re-typing of it. A successor is held to the string its parent was
 // held to, in full: "NATIVE SOURCE CARRIERS: 6/6 PASS;", not "NATIVE SOURCE CARRIERS:".
-function acceptedVerdicts(bound) {
-  const pin = bound.acceptance.executionPins[SUCCESSOR_WRAPPER];
-  assert(pin, 'SUCCESSOR-WRAPPER-NOT-A-PARENT-EXECUTION-PIN ' + SUCCESSOR_WRAPPER);
-  assert.equal(diskSha(SUCCESSOR_WRAPPER), pin, 'SUCCESSOR-WRAPPER-BYTES ' + SUCCESSOR_WRAPPER);
+//
+// r7b F-C: WHERE the schedule is read from is now decided by the parent, not by a constant.
+// A parent sealed by THIS runner carries `children: [{name, argv, needle}]` in its own
+// bytes — proposed() puts the spec's children there — so the accepted verdict for a parent
+// child name is read straight out of the parent artifact and no wrapper file exists or is
+// needed. That is the case for every child of B-NTC, H3 included. The WRAPPER path is the
+// older shape, for a parent the accepted originals sealed (acceptance-native-carriers.json
+// has no `children`): the spec names it and it must be a parent EXECUTION PIN, re-asserted
+// byte-for-byte here before a character is parsed. Neither source is a re-typing.
+function acceptedVerdicts(s, bound) {
+  const kids = bound.acceptance.children;
+  if (Array.isArray(kids) && kids.length) {
+    const own = new Map();
+    for (const c of kids)
+      if (c && typeof c.name === 'string' && typeof c.needle === 'string' && c.needle.length) own.set(c.name, c.needle);
+    if (own.size) return own;
+  }
+  const wrapper = s.coverage.successors.wrapper;
+  assert(typeof wrapper === 'string' && wrapper.length,
+    'SUCCESSOR-ACCEPTED-SCHEDULE-UNAVAILABLE; the parent artifact declares no children, so the spec must name the parent wrapper whose verdicts table is the accepted schedule');
+  const pin = bound.acceptance.executionPins[wrapper];
+  assert(pin, 'SUCCESSOR-WRAPPER-NOT-A-PARENT-EXECUTION-PIN ' + wrapper);
+  assert.equal(diskSha(wrapper), pin, 'SUCCESSOR-WRAPPER-BYTES ' + wrapper);
+  const SUCCESSOR_WRAPPER = wrapper;
   const src = fs.readFileSync(rel(SUCCESSOR_WRAPPER), 'utf8');
   const block = /^const verdicts=\{$([\s\S]*?)^\};$/m.exec(src);
   assert(block, 'SUCCESSOR-ACCEPTED-SCHEDULE-UNREADABLE ' + SUCCESSOR_WRAPPER);
@@ -581,19 +657,26 @@ function claim(v, role, label) { // a ledger citation whose text hashes to the s
 // r6 already required; only the way the line is LOCATED changed. The runner's own
 // SUCCESSOR_RULING coordinate stays as the human-readable citation and is reported beside
 // the line index actually found, so a drifted coordinate is visible without being fatal.
-let RULING_TEXT = null, RULING_LINE_AT = null;
+// The cache is keyed by the sha it resolved, not by "have I run yet": a run reads one spec
+// and one ruling, but a function that answers the FIRST question ever asked of it and then
+// ignores its argument is a trap for anyone who calls it twice — and r7b calls it from
+// spec(), successorProof() and successorCoverage(). Same bytes, same answer, no re-read.
+let RULING_TEXT = null, RULING_LINE_AT = null, RULING_KEY = null;
 function rulingText(s) {
-  if (RULING_TEXT === null) {
-    const sup = s && s.coverage && s.coverage.successors;
+  const sup0 = s && s.coverage && s.coverage.successors;
+  if (RULING_TEXT === null || RULING_KEY !== (sup0 && sup0.rulingLineSha256)) {
+    const sup = sup0;
     assert(sup && /^[a-f0-9]{64}$/.test(sup.rulingLineSha256), 'SUCCESSOR-RULING-LINE-SHA256-SHAPE');
     const lines = L.object(root, CHAIN_REF, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
     const hits = lines.map((line, i) => [i + 1, line]).filter(([, line]) => sha(Buffer.from(line)) === sup.rulingLineSha256);
     assert.equal(hits.length, 1, 'SUCCESSOR-RULING-LINE-SHA256-NOT-A-UNIQUE-LINE-ON-THE-CHAIN-BRANCH ' + hits.length + ' line(s) on ' + CHAIN_REF + ' hash to the recorded sha256');
     const [at, line] = hits[0];
-    assert(line.includes(SUCCESSOR_RULING_ID),
-      'SUCCESSOR-RULING-LINE-IS-NOT-THE-RULING; the line recorded by sha256 stands at DECISIONS:' + at + ' on the chain branch and does not carry ' + SUCCESSOR_RULING_ID);
-    RULING_LINE_AT = at;
-    RULING_TEXT = line;
+    // r7b F-C: WHAT the line must say is successorRuling()'s question, not this one's —
+    // :113 carries `B-NTC-INHERITED-1` and :142 grants "in the :113 shape" without repeating
+    // the id, and both are rulings. This function's whole job is to LOCATE the line by its
+    // own bytes on the chain branch; every test of its content stands in one place below.
+    assert(line.trim().length >= 40, 'SUCCESSOR-RULING-LINE-IS-NOT-THE-RULING; DECISIONS:' + at + ' is too short to be a ruling');
+    RULING_LINE_AT = at; RULING_TEXT = line; RULING_KEY = sup.rulingLineSha256;
   }
   return RULING_TEXT;
 }
@@ -807,13 +890,23 @@ function spec() {
     assert(s.coverage.successors && typeof s.coverage.successors === 'object' && !Array.isArray(s.coverage.successors), 'SUCCESSOR-BLOCK-UNDECLARED');
     // r7 F4 adds `rulingLineSha256`: the ruling line is now LOCATED by its own bytes on the
     // chain branch instead of by a ledger line number (rulingText()).
-    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
-      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, parentAcceptanceCommit, carriers, substitutions');
+    // r7b F-C adds `support` (the path whose supersession makes the successor necessary)
+    // and `wrapper` (the older parent shape's accepted schedule, null where the parent
+    // artifact carries its own children). Everything that was a runner constant naming
+    // B-NTC-as-child now stands here and is verified against bytes no spec writes.
+    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'support', 'wrapper', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
+      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, support, wrapper, parentAcceptanceCommit, carriers, substitutions');
     const sup = s.coverage.successors;
-    assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID + '; ' + SUCCESSOR_RULING + ' names ' + [...SUCCESSOR_PACKAGES].join(' ') + ' only');
-    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING=' + SUCCESSOR_RULING),
-      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=' + SUCCESSOR_RULING);
-    assert.equal(sup.parentAcceptanceCommit, SUCCESSOR_PARENT_COMMIT, 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT');
+    assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING='),
+      'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=<the ledger coordinate it stands on>');
+    assert(typeof sup.support === 'string' && /^[a-z0-9][a-z0-9./_-]+$/.test(sup.support), 'SUCCESSOR-SUPPORT-SHAPE ' + JSON.stringify(sup.support));
+    assert(sup.wrapper === null || (typeof sup.wrapper === 'string' && sup.wrapper.length), 'SUCCESSOR-WRAPPER-SHAPE ' + JSON.stringify(sup.wrapper));
+    assert(/^[a-f0-9]{40}$/.test(sup.parentAcceptanceCommit), 'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-SHAPE');
+    // THE ADMISSION, and it is the ruling's own bytes on the chain branch — not a constant
+    // in this file and not a word in the spec. Everything below it is reachable only after
+    // the PM's line has named this package, granted a successor, stood on the base
+    // conditions and named the support file this package declares it changes.
+    successorRuling(s);
     assert(sup.carriers && typeof sup.carriers === 'object' && !Array.isArray(sup.carriers) && Object.keys(sup.carriers).length, 'SUCCESSOR-CARRIERS-UNDECLARED');
     for (const [name, c] of Object.entries(sup.carriers)) {
       keys(c, ['successor', 'original'], 'Successor carrier ' + name);
@@ -834,7 +927,17 @@ function spec() {
     // decided here, before any child runs. Residual, said out loud: (B) bounds WHICH module
     // and HOW MANY, not the substance of the text; the substance is still the spec's
     // enumeration, the parent's own bytes, and the package review.
-    const superseded = Object.entries(s.product).filter(([, p]) => p.role === 'superseded-by-child');
+    // r7b F-C widens branch (A) from `superseded-by-child` alone to EVERY product pin this
+    // package declares a CHANGE on. ":113 (c)" writes "a pin re-target made necessary by a
+    // declared superseded-by-child product path" because that was the only changing role
+    // B-NTC had over a parent EXECUTION pin; DECISIONS:142 grants H3 the same mechanic over
+    // a parent PRODUCT pin, which this package declares `edited`. Nothing is trusted that
+    // was not already: every pre/post pair below is the parent's own pinned byte and this
+    // package's own post, both re-verified in product() against the parent artifact and the
+    // bytes on disk. A substitution can still only carry images the spec declares and the
+    // runner has independently checked.
+    const superseded = Object.entries(s.product).filter(([, p]) =>
+      (p.role === 'superseded-by-child' || p.role === 'edited') && p.post && p.pre !== p.post);
     const ruledOriginals = new Set(), usedDescriptions = new Set();
     for (const sub of sup.substitutions) {
       keys(sub, ['original', 'from', 'to', 'why'], 'Successor substitution');
@@ -1054,6 +1157,32 @@ function parent(s) {
 // pin against Git at HEAD — so a worktree that disagrees with the reviewed history under
 // rebuild/m4/spec, rebuild/m3 or .github (where 28 of the 31 parent pins and all 23
 // grandparent pins live, outside the 18 PIN_PATHS git-status check) cannot pass unnoticed.
+// r7b F-E, found by the H3 builder and blocking EVERY child of B-NTC, not just H3.
+//
+// TWO ARTIFACT SHAPES ARE IN THE CHAIN, and the readers only knew one. The accepted
+// originals write `product` as a FLAT MAP of file -> sha256 (acceptance-native-carriers.json
+// and every artifact above it); THIS runner's proposed() writes `product` as the SPEC's own
+// map, file -> {pre, post, role}, because the child's roles and both images travel into the
+// seal. So `held()` and product()'s pre-image check compared a sha string to an OBJECT the
+// moment the bound parent was a package sealed by this runner, and `pins()` refused
+// `PARENT-PIN-BROKEN-AT-SOURCEBASE` on the first entry — `rebuild/engine/plan.cjs`, whose
+// bytes are in fact identical everywhere.
+//
+// THE READERS ARE FIXED, NEVER THE SEALED ARTIFACT. `acceptance-b-ntc-native-trend-context
+// .json` is merged, receipted at DECISIONS:141 and named by a verdict file; rewriting it to
+// suit a reader would void a receipt to fix a bug in the thing that reads it. So one
+// normaliser stands between every reader and either shape, and it is narrow: a string is a
+// sha; an object is the spec-pin shape and its PINNED BYTE is `post || pre` — the image the
+// parent's own seal stands at, which is what "the parent pinned this file" has always meant.
+// Anything else is a named refusal, never a silently skipped entry.
+function parentPin(entry, file) {
+  if (typeof entry === 'string') { assert(/^[a-f0-9]{64}$/.test(entry), 'PARENT-PIN-SHAPE ' + file); return entry; }
+  assert(entry && typeof entry === 'object' && !Array.isArray(entry) && Object.hasOwn(entry, 'pre') && Object.hasOwn(entry, 'post'),
+    'PARENT-PIN-SHAPE ' + file + '; a parent product entry is a sha256 or a {pre, post, role} pin');
+  const pinned = entry.post || entry.pre;
+  assert(/^[a-f0-9]{64}$/.test(pinned), 'PARENT-PIN-SHAPE ' + file);
+  return pinned;
+}
 function held(s, file, hash, code) {
   if (Object.hasOwn(s.product, file)) { assert.equal(gitSha(s.sourceBase, file), hash, code + '-AT-SOURCEBASE ' + file); return false; }
   assert.equal(diskSha(file), hash, code + ' ' + file);
@@ -1063,8 +1192,8 @@ function held(s, file, hash, code) {
 function pins(s, bound) {
   if (!bound) { note('parent and grandparent artifact pins not re-asserted'); return; }
   const a = bound.acceptance; let kept = 0, gkept = 0, base = 0;
-  for (const [file, hash] of Object.entries({ ...a.product, ...a.executionPins })) {
-    if (held(s, file, hash, 'PARENT-PIN-BROKEN')) kept++; else base++;
+  for (const [file, entry] of Object.entries({ ...a.product, ...a.executionPins })) {
+    if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN')) kept++; else base++;
   }
   const g = a.parent;
   assert(g && typeof g.artifact === 'string' && /^[a-f0-9]{64}$/.test(g.sha256), 'Grandparent coordinates');
@@ -1075,9 +1204,11 @@ function pins(s, bound) {
     assert.equal(gr.status, 'ACCEPTED', 'Grandparent independently accepted');
     L.verifyReceipt(root, gr.receipt.commit, gr.receipt, { role: 'cowork', mentions: [g.sha256, g.artifact] });
   }
-  for (const [file, hash] of Object.entries({ ...ga.product, ...ga.executionPins })) {
+  // The grandparent is read through the same normaliser: the chain now has both shapes in
+  // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.
+  for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
-    if (held(s, file, hash, 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
+    if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
     Object.keys(a.product).length + ' product pins through the inventory below, and ' + gkept + ' un-superseded grandparent pin(s) from ' +
@@ -1105,7 +1236,9 @@ function product(s, bound, sealed) {
   const at = { pre: [], post: [], carried: [], drift: [], superseded: [], unchanged: [], grandfathered: [] };
   for (const [file, pin] of Object.entries(s.product)) {
     if (pmap && Object.hasOwn(pmap, file)) {
-      assert.equal(pin.pre, pmap[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
+      // r7b F-E, the second place the flat-sha assumption stood. The child's pre-image must
+      // be the byte the parent's seal stands at, whichever shape the parent artifact wrote.
+      assert.equal(pin.pre, parentPin(pmap[file], file), 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent pin: ' + file);
       assert(pin.role === 'carried' || pin.role === 'edited', 'PARENT-PRODUCT-PIN-NOT-DECLARED-CARRIED-OR-EDITED ' + file);
       assert(pin.role !== 'superseded-by-child', 'PRODUCT-ROLE-MISLABELLED ' + file + ' is a parent PRODUCT pin, not an execution pin');
     } else if (epins && Object.hasOwn(epins, file)) {
@@ -1116,7 +1249,7 @@ function product(s, bound, sealed) {
       // same equality that binds a parent PRODUCT pre-image binds this one.
       assert.equal(pin.role, 'superseded-by-child', 'PARENT-EXECUTION-PIN-NOT-DECLARED-SUPERSEDED ' + file +
         ' is pinned by the parent in executionPins; declare role "superseded-by-child" (DECISIONS:109), never "new"');
-      assert.equal(pin.pre, epins[file], 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent execution pin: ' + file);
+      assert.equal(pin.pre, parentPin(epins[file], file), 'UNLISTED-PRODUCT-DRIFT pre-image is not the parent execution pin: ' + file);
       at.superseded.push(file);
     } else {
       // r7 F1. A file the parent pins in neither map is this package's own: it either
@@ -1424,11 +1557,18 @@ function successorProof(s, bound, ran) {
   const proofs = new Map();
   const sup = s.coverage.successors;
   if (sup === null || !bound) return proofs;
-  assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
-  // Z5, once for the run: the parent's acceptance commit is on the real chain branch,
-  // resolved from Git refs, and behind HEAD. Nothing below reads a blob before this holds.
-  ancestor(SUCCESSOR_PARENT_COMMIT, CHAIN_REF, 'SUCCESSOR-PARENT-COMMIT-NOT-ON-THE-CHAIN-BRANCH');
-  ancestor(SUCCESSOR_PARENT_COMMIT, 'HEAD', 'SUCCESSOR-PARENT-COMMIT-NOT-BEHIND-HEAD');
+  // r7b F-C. The admission is the RULING's, re-taken here beside the parent's own bytes —
+  // spec() has already refused a spec whose cited line does not name this package.
+  successorRuling(s);
+  // r7b F-C / Z5. The parent's acceptance commit is no longer a constant: it is the commit
+  // the PARENT'S OWN RECEIPT names as reviewed, which option() took out of the ledger line
+  // after asserting the receipt base is on the chain branch and the artifact's bytes stand
+  // there. The spec must agree with it, so a spec can name no commit of its own.
+  const PARENT_COMMIT = bound.reviewedCommit;
+  assert.equal(sup.parentAcceptanceCommit, PARENT_COMMIT,
+    'SUCCESSOR-PARENT-ACCEPTANCE-COMMIT-IS-NOT-THE-PARENT-REVIEWED-COMMIT; the parent receipt names ' + String(PARENT_COMMIT).slice(0, 12));
+  ancestor(PARENT_COMMIT, CHAIN_REF, 'SUCCESSOR-PARENT-COMMIT-NOT-ON-THE-CHAIN-BRANCH');
+  ancestor(PARENT_COMMIT, 'HEAD', 'SUCCESSOR-PARENT-COMMIT-NOT-BEHIND-HEAD');
   // Z2 (c), the substitution list as a whole, BEFORE any carrier is considered. Every file
   // a substitution touches is a parent EXECUTION PIN, byte-equal to that pin and to the Git
   // blob at the parent's acceptance commit; every `from` stands exactly once in it; every
@@ -1439,24 +1579,24 @@ function successorProof(s, bound, ran) {
     assert(pin, 'SUCCESSOR-SUBSTITUTION-TARGET-NOT-A-PARENT-EXECUTION-PIN ' + sub.original);
     const bytes = fs.readFileSync(rel(sub.original));
     assert.equal(sha(bytes), pin, 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + sub.original);
-    assert.equal(sha(bytes), gitSha(SUCCESSOR_PARENT_COMMIT, sub.original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + sub.original);
+    assert.equal(sha(bytes), gitSha(PARENT_COMMIT, sub.original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + sub.original);
     const text = bytes.toString('utf8');
     assert.equal(text.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
     assert.equal(text.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
   }
-  const accepted = acceptedVerdicts(bound);
+  const accepted = acceptedVerdicts(s, bound);
   for (const [parentChild, declared] of Object.entries(sup.carriers))
-    proofs.set(parentChild, proveSuccessor(s, bound, ran, parentChild, declared, accepted));
+    proofs.set(parentChild, proveSuccessor(s, bound, ran, parentChild, declared, accepted, PARENT_COMMIT));
   return proofs;
 }
-function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
+function proveSuccessor(s, bound, ran, parentChild, declared, accepted, PARENT_COMMIT) {
   const sup = s.coverage.successors, original = declared.original;
   assert.equal(bound.acceptance.executionPins[original] !== undefined, true, 'SUCCESSOR-ORIGINAL-NOT-A-PARENT-EXECUTION-PIN ' + original);
   // (1) the original is the parent's own byte, on disk, in the parent's pin map, and in Git
   // at the parent's acceptance commit — anchored on the chain by successorProof() above.
   const originalBytes = fs.readFileSync(rel(original));
   assert.equal(sha(originalBytes), bound.acceptance.executionPins[original], 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + original);
-  assert.equal(sha(originalBytes), gitSha(SUCCESSOR_PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
+  assert.equal(sha(originalBytes), gitSha(PARENT_COMMIT, original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + original);
   const originalText = originalBytes.toString('utf8');
   // (2) names it, and does not contain it. The closure is the files THIS PACKAGE declares as
   // its own role:"new" product — the lane's code and nothing else. Every file the walk stops
@@ -1517,10 +1657,13 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted) {
 // carry the ruling, and the ruled gate set is derived from the parent artifact's bytes.
 function successorCoverage(s, bound, proofs, gate, child, targets) {
   assert(s.coverage.successors !== null, 'INHERITED-COVERAGE-CHILD-IS-NOT-A-PARENT-PINNED-EXECUTABLE ' + gate + ' ' + child + ' ' + targets[0]);
-  assert(SUCCESSOR_PACKAGES.has(ID), 'SUCCESSOR-PACKAGE-NOT-RULED ' + ID);
-  const admitted = successorGates(bound);
+  // r7b F-C: the ruling admits the package, and the gate set is derived from the parent
+  // artifact's own byChild map plus the carriers THIS spec declares plus the support file
+  // the ruling names. A gate the ruling does not reach is simply not in the map.
+  successorRuling(s);
+  const admitted = successorGates(s, bound);
   assert(admitted.has(gate), 'SUCCESSOR-GATE-NOT-IN-THE-RULING ' + gate +
-    '; the parent artifact records ' + admitted.size + ' gate(s) whose carrier reaches ' + SUCCESSOR_SUPPORT);
+    '; the parent artifact records ' + admitted.size + ' gate(s) whose declared carrier reaches ' + s.coverage.successors.support);
   const { child: parentChild, original } = admitted.get(gate);
   const proof = proofs.get(parentChild);
   assert(proof, 'SUCCESSOR-CARRIER-NOT-DECLARED ' + gate + ' ' + parentChild);
@@ -1575,7 +1718,7 @@ function coverage(s, bound, ran) {
     const sup = s.coverage.successors;
     say('SUCCESSORS ' + proofs.size + ' declared successor executable(s) PROVED against the parent original, of which ' + carried.size +
       ' carry an inherited gate under MOVES_RULING=' + SUCCESSOR_RULING + ' (' + sup.ruling + '); coverage.moves stays {} and X1 is unwidened; each successor LOADS the parent carrier\'s own original, byte-equal to the parent execution pin AND to the Git blob at ' +
-      SUCCESSOR_PARENT_COMMIT.slice(0, 7) + ' (on ' + CHAIN_REF + ' and behind HEAD), contains none of its lines, replaces only through the declared table, and prints the parent\'s own accepted verdict in full; ' +
+      String(bound.reviewedCommit).slice(0, 7) + ' (the commit the parent\'s own receipt names as reviewed, on ' + CHAIN_REF + ' and behind HEAD), contains none of its lines, replaces only through the declared table, and prints the parent\'s own accepted verdict in full; ' +
       sup.substitutions.length + ' enumerated substitution(s)');
     for (const p of proofs.values())
       say('SUCCESSOR ' + p.parentChild + ' <- ' + p.successor + ' loads ' + p.original + '; child ' + p.child + '; ' +
