@@ -244,6 +244,119 @@ test('F1-07c real proposal consequence prices one upper set as three and one low
   }
 });
 
+// Owner :157 proof on invented observations, without replacing an instrument.
+// The eight symbolic engine buckets mirror A4b's declared major-bucket list;
+// they are not catalogue snapshots and do not claim the pending C/F2 projection.
+// Every load, read, night and performed set below is synthetic test evidence.
+function eligibleTwoSetStarter(training = { 1: 'F', 4: 'F' }) {
+  const E = P.engine();
+  const pool = [['U', 'chest'], ['U', 'lats'], ['U', 'upper_back'], ['U', 'delts_side'],
+    ['L', 'quads'], ['L', 'hams'], ['L', 'glutes'], ['L', 'calves']]
+    .map(([family, bucket]) => exercise('f1-starter-' + bucket, family, 2, bucket));
+  const s = state(P, training, pool);
+  s.split[0].from = '2026-08-01';
+  s.trend = 178.6;
+  s.model = { lean: 140, anchorISO: DAY, src: 'DEXA', drip: 0 };
+  s.blackout = { until: '2026-07-01' };
+  s.sleep.cleanH = 7.5; s.sleep.needed = 3;
+  for (const e of s.exercises) e.w = 20;
+  for (let i = 0; i < 43; i++) {
+    const d = nextDay(E, DAY, i - 42);
+    s.reads.push({ d, w: 180 - i / 30 });
+    s.dailyLogs[d] = { cal: 2800, steps: 6500 };
+    s.sleep.nights.push({ d, h: 8 });
+    if (d < DAY && E.dayType(d, s) === 'F') s.sessionLog[d] = { entries:
+      s.exercises.map(e => ({ id: e.id, w: 20, reps: [10, 9], rir: 2, rirSets: [2, 0] })) };
+  }
+  return { E, s };
+}
+
+test('F1-07d two-set starters earn exactly one additional set from real qualified observations', () => {
+  for (const training of [{ 1: 'F', 4: 'F' }, { 1: 'F', 3: 'F', 5: 'F' }]) {
+    const { E, s } = eligibleTwoSetStarter(training);
+    const before = deep(s); const freq = Object.keys(training).length;
+    const pv = E.programmeVolume(s);
+    assert.equal(pv.length, 8);
+    assert(pv.every(m => m.sets === 2 * freq && m.sets < E.VOL_BANDS.lo));
+    if (freq === 2) assert(pv.every(m => m.sets < E.VOL_BANDS.floor));
+    const prog = E.progressionTrend(s);
+    assert.equal(prog.state, 'flat'); assert.equal(prog.nLifts, 8);
+    assert(prog.lifts.every(lift => lift.n >= E.TREND_MIN_SESSIONS));
+    const rate = E.currentRate(s);
+    assert.equal(rate.measured, true); assert(rate.lo > 0);
+    const reg = E.regime(s);
+    assert.equal(reg.key, 'free'); assert.equal(reg.confirmed, true);
+    const eb = E.energyBalanceTarget(s);
+    assert.equal(eb.regime, 'free'); assert.equal(eb.regimeConfirmed, true);
+    assert.equal(E.recoveryIndex(s).band, 'GREEN');
+    assert.deepEqual(E.recoveryIndex(s).flags, []);
+    assert.equal(E.sleepMean3At(s, DAY), true);
+    assert.deepEqual(E.structuralMovesThisWeek(s).sets, []);
+    const offer = E.volumePush(s);
+    assert.equal(offer.mode, 'PUSH'); assert.equal(offer.dSess, 1);
+    assert.equal(offer.fromSess, 2); assert.equal(offer.toSess, 3);
+    assert.equal(offer.freq, freq); assert.equal(offer.fromWk, 2 * freq);
+    assert.equal(offer.toWk, 3 * freq);
+    assert.equal(E.volumeConversion(s, offer.exId).status, 'IDLE');
+    assert.equal(deep(s), before);
+  }
+});
+
+test('F1-07e the below-floor two-set starter files a real one-set card without applying it', () => {
+  const { E, s } = eligibleTwoSetStarter();
+  const before = deep(s); const choice = E.volumePush(s);
+  const filed = E.sweepVolume(s);
+  assert(filed); assert.equal(filed.agentProposals.length, 1);
+  const card = filed.agentProposals[0];
+  assert.equal(card.kind, 'volume'); assert.equal(card.dir, 1);
+  assert.equal(card.exId, choice.exId); assert.equal(card.mg, choice.mg);
+  assert.equal(card.gatesClosed, false);
+  assert.equal(deep(filed.exercises), deep(s.exercises));
+  assert.equal(deep({ ...filed, agentProposals: [] }), before);
+  assert.equal(deep(s), before);
+  // A real tap is a separate positive control: this card enacts its own promise.
+  const filedBefore = deep(filed);
+  const approved = E.applyAgentProposal(filed, card, DAY);
+  assert.equal(approved.exercises.find(e => e.id === card.exId).sets, 3);
+  assert(approved.exercises.filter(e => e.id !== card.exId).every(e => e.sets === 2));
+  assert.equal(deep(approved.sessionLog), deep(s.sessionLog));
+  assert.equal(deep(filed), filedBefore);
+});
+
+test('F1-07f declining the actual starter card preserves two sets and the next F workout', () => {
+  const { E, s } = eligibleTwoSetStarter();
+  const filed = E.sweepVolume(s);
+  assert(filed); assert.equal(filed.agentProposals.length, 1);
+  const card = filed.agentProposals[0]; const before = deep(filed);
+  const declined = E.dismissAgentProposal(filed, card, DAY);
+  assert.equal(declined.agentProposals.length, 0);
+  assert(declined.exercises.every(e => e.sets === 2));
+  for (const key of ['exercises', 'exOrder', 'split', 'plan', 'sessionLog', 'reads', 'dailyLogs', 'sleep', 'adjustments'])
+    assert.equal(deep(declined[key]), deep(filed[key]));
+  assert.equal(declined.feed.length, filed.feed.length + 1);
+  assert(declined.feed[0].t.startsWith('VOLUME PASSED'));
+  assert.equal(deep(filed), before);
+  const restored = structuredClone(declined); const restoredBefore = deep(restored);
+  assert.equal(E.sweepVolume(restored), null, 'the declined card must not immediately refile');
+  const next = E.genSession(restored, DAY, slp);
+  assert.equal(next.name, 'FULL BODY'); assert.equal(next.ex.length, 8);
+  assert(next.ex.every(card => card.tgt.length === 2));
+  assert.equal(next.ex.reduce((n, card) => n + card.tgt.length, 0), 16);
+  assert.equal(deep(restored), restoredBefore);
+});
+
+test('F1-07g the same two-set plan without training evidence stays unqualified', () => {
+  const { E, s } = eligibleTwoSetStarter();
+  s.sessionLog = {};
+  s.exercises.forEach(e => { e.w = null; });
+  const before = deep(s);
+  assert.equal(E.progressionTrend(s).state, 'unknown');
+  assert.equal(E.volumePush(s).mode, 'ABSTAIN');
+  assert.equal(E.sweepVolume(s), null);
+  assert(s.exercises.every(e => e.sets === 2));
+  assert.equal(deep(s), before);
+});
+
 test('F1-11 next-training lookup finds F, skips a finished F and respects REST', () => {
   const E = P.engine(); const s = state(P);
   assert.equal(E.nextTrainingISO(s), DAY);
