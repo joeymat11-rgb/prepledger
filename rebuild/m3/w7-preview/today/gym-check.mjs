@@ -251,6 +251,35 @@ try {
     .map((s) => ({ done: s.classList.contains("done"), text: s.textContent.trim() })));
   assert.equal(stripAfterUndo.filter((s) => s.done).length, 0, "no set is marked logged after Undo");
 
+  /* ---------- DECISIONS:154 (2): THE MACHINE SETTINGS FOR THIS LIFT ----------
+     Captured HERE, on the active set, so the process kill below is what proves it
+     is in the encrypted store rather than in this page load's memory. The block's
+     own geometry, its refusals and its correction path are machine-settings-check.mjs;
+     what this check adds is that the capture rides the SAME kill the workout does. */
+  await page.waitForSelector('[data-slot="settings-block"]:not([hidden])', { timeout: 20000 });
+  assert.match(await text(page, '[data-slot="settings-block"]'), /No settings saved yet\./,
+    "a machine this device holds nothing for says so, and shows no figure");
+  await page.click('[data-action="settings-open"]');
+  await page.waitForSelector('[data-settings-name="0"]');
+  await page.evaluate(() => {
+    const set = (attr, value) => {
+      const box = document.querySelector('[data-settings-' + attr + '="0"]');
+      box.value = value;
+      box.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    set("name", "Seat");
+    set("value", "four");
+  });
+  await page.click('[data-slot="settings-save"]');
+  await page.waitForFunction(() =>
+    document.querySelectorAll('[data-slot="settings-list"] .row').length === 1);
+  const captured = await page.evaluate(() =>
+    [...document.querySelectorAll('[data-slot="settings-list"] .row')]
+      .map((row) => row.querySelector("strong").textContent + " " + row.querySelector("span").textContent));
+  assert.deepEqual(captured, ["Seat four"], "the block shows the capture back verbatim");
+  await noDashes(page, "the active set, with machine settings captured");
+  notes.push("machine settings captured on the active set: " + captured.join(", "));
+
   // Log set 1 again, this time with a stated effort, then rest.
   await page.click('.choice:nth-child(3)');
   await page.click('[data-slot="log"]');
@@ -274,6 +303,13 @@ try {
   await page.waitForSelector('[data-slot="log"]');
   assert.equal(await text(page, '[data-slot="entry-title"]'), "What you did · Set 2",
     "the session resumed at the next set, out of this device's own store");
+  /* DECISIONS:154 (2): and so did the machine settings, for the same reason. */
+  await page.waitForSelector('[data-slot="settings-block"]:not([hidden])', { timeout: 20000 });
+  assert.deepEqual(await page.evaluate(() =>
+    [...document.querySelectorAll('[data-slot="settings-list"] .row')]
+      .map((row) => row.querySelector("strong").textContent + " " + row.querySelector("span").textContent)),
+  ["Seat four"], "the machine settings did not survive a REAL process kill");
+  notes.push("the machine settings survived the same taskkill /F /T the workout did");
   const resumedStrip = await page.evaluate(() => [...document.querySelectorAll(".slot")]
     .map((s) => ({ done: s.classList.contains("done"), text: s.textContent.trim() })));
   assert.equal(resumedStrip.filter((s) => s.done).length, 1, "the recorded set came back");
@@ -335,7 +371,13 @@ try {
     return { summary: booted.workout.summary(), ops: ops.length,
       workoutOps: ops.filter((op) => op.class === "session").length,
       readingOps: ops.filter((op) => op.class === "reading").length,
-      dayTwoOps: ops.filter((op) => op.effective && op.effective.local_date === day).length };
+      dayTwoOps: ops.filter((op) => op.effective && op.effective.local_date === day).length,
+      /* DECISIONS:154 (2): the machine-settings fact this check captured on the active
+         set is in the SAME generation, which is the point of one store. It is counted
+         by name so the composition below stays a statement about what day one did
+         rather than a total that quietly absorbs anything new. */
+      settingsOps: ops.filter((op) => op.payload
+        && op.payload.profile === "earned/machine-settings/v1").length };
   }, DAY_TWO);
   assert.equal(shippedDayTwo.summary.phase, "blocked", JSON.stringify(shippedDayTwo.summary));
   assert.equal(shippedDayTwo.summary.code, "PERFORMED_LEGACY_ORDER_MAPPING_REQUIRED",
@@ -359,9 +401,13 @@ try {
     + DAY_TWO + ", but " + shippedDayTwo.dayTwoOps + " are");
   assert.equal(shippedDayTwo.workoutOps, 8, "day 1's eight workout operations: " + shippedDayTwo.workoutOps);
   assert.equal(shippedDayTwo.readingOps, 1, "and the one morning, now in the SAME generation");
-  assert.equal(shippedDayTwo.ops, 9,
-    "which is all there is — day one's eight sets-and-session operations plus its one morning: "
-    + shippedDayTwo.ops);
+  /* DECISIONS:154 (2) adds exactly one more, and names it: the machine settings this
+     check captured on the active set, in the same one generation under the same lease. */
+  assert.equal(shippedDayTwo.settingsOps, 1,
+    "the one machine-settings fact, in the SAME generation: " + shippedDayTwo.settingsOps);
+  assert.equal(shippedDayTwo.ops, 10,
+    "which is all there is — day one's eight sets-and-session operations, its one morning "
+    + "and its one machine-settings capture: " + shippedDayTwo.ops);
 
   /* Now the athlete S2 actually ships to. DECISIONS:100 has Joe starting FRESH, so
      the daily path that matters is the one without a ported log — same device, same
@@ -453,7 +499,9 @@ try {
      so a future change to either journey says which half moved. */
   assert.equal(bothDays.workoutOps, 14, "day 1's eight workout operations plus day 2's six: " + bothDays.workoutOps);
   assert.equal(bothDays.readingOps, 2, "and both mornings, in the SAME generation: " + bothDays.readingOps);
-  assert.equal(bothDays.ops, 16, "ONE generation holds all of it: " + bothDays.ops);
+  /* DECISIONS:154 (2) adds the one machine-settings capture, so 17 - and it is named
+     rather than absorbed, for the same reason both halves above are. */
+  assert.equal(bothDays.ops, 17, "ONE generation holds all of it: " + bothDays.ops);
   assert.equal(bothDays.leases, 1, "under ONE lease_id across both write paths");
   /* C4b review D1 — each Start is stamped on the day its own host stood on.
      This is the invariant that, when it broke, left a Start on disk that no
@@ -523,8 +571,9 @@ try {
     + "both came back out of the encrypted store and the session resumed at the next set -> finished -> Today "
     + "says recorded, through a reload, a new page and a SECOND real kill. DAY 2 (" + DAY_TWO + ", the page's own "
     + "entry point over the same device storage): prepares -> weigh-in -> Start -> every set -> finished; a THIRD "
-    + "real kill, and the history still reads with BOTH sessions. ONE STORE (C4b): 16 operations in ONE sealed "
-    + "generation under ONE lease — 14 workout and both mornings; each Start stamped on its own day; the "
+    + "real kill, and the history still reads with BOTH sessions. ONE STORE (C4b): 17 operations in ONE sealed "
+    + "generation under ONE lease — 14 workout, both mornings and one machine-settings capture; "
+    + "each Start stamped on its own day; the "
     + "workout order is KIND-AWARE (C4c), so day 1's Start opens it and day 2's descends from day 1's close "
     + "and the Undo's tombstone, and every causal parent of a Start is a workout operation. "
     + "\"Last time\" prints on day 1's active set from the engine's own comparison (C4d), and day 2's "
