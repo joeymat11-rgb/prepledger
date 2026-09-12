@@ -1731,8 +1731,18 @@ test('S32 - session size follows the composition rule, and the 8-lift sentence h
   for (const row of WEEK_TABLE) {
     const week = proposeWeek({ kinds: proposeKinds(row.days) });
     for (const kind of ['U', 'L']) {
-      const n = week.rows.filter((r) => r.day === kind).length;
-      assert.equal(n, expected[row.n][kind] || 0, `${row.n} days, ${kind} session`);
+      const lifts = week.rows.filter((r) => r.day === kind);
+      const want = expected[row.n][kind] || 0;
+      assert.equal(lifts.length, want, `${row.n} days, ${kind} session lifts`);
+      /* The brief's claim was about SETS, so say the sets out loud too: an
+         upper session is 24 sets everywhere, a lower one is 24 while D_L <= 2
+         and 15 at D_L >= 3 (four majors plus abs, the catalogue's only lower
+         minor). Review round 1 condition C2; the brief is amended to match. */
+      const sets = lifts.reduce((n, r) => n + r.sets, 0);
+      assert.equal(sets, want * 3, `${row.n} days, ${kind} session sets`);
+      if (kind === 'L' && row.DL >= 3) assert.equal(sets, 15, 'lower at D_L >= 3');
+      if (kind === 'L' && row.DL > 0 && row.DL <= 2) assert.equal(sets, 24, 'lower at D_L <= 2');
+      if (kind === 'U' && row.DU > 0) assert.equal(sets, 24, 'upper, at every day count');
     }
   }
 });
