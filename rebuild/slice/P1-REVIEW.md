@@ -1,6 +1,9 @@
 # P1 REVIEW — NO AI DASHES IN THE UI
 
 FINAL VERDICT: REJECT at f06631b48cd669528cf03811bc5801c21839ca94
+**SUPERSEDED BY ROUND 2 (at the end of this file): FINAL VERDICT: ACCEPT at
+9dc0bbd296e47803b8e2faaa6a8f5f5f68df9ab6.** Round 1 is kept below exactly as it was written, because the
+round-2 obligations only make sense beside the findings that produced them.
 
 Reviewer: independent Opus, did not build this. Authority DECISIONS:114 (1), 116, 117 (1); LANES.md screens tier
 (one independent reviewer, author != reviewer, CI green on BOTH runners). Brief `rebuild/slice/P1-NO-DASHES-BRIEF.md`
@@ -482,3 +485,215 @@ never saw or printed it. Nothing under `ledger/`, `rebuild/conform/private/` or 
 printed. No `package-lock.json` change, no install. Work confined to `work/pm-review-p1`; no other worktree touched.
 Every mutant restored byte-for-byte with `git status --porcelain` asserted empty. This file is the only thing I
 commit.
+
+---
+---
+
+# ROUND 2 — DELTA REVIEW
+
+FINAL VERDICT: ACCEPT at 9dc0bbd296e47803b8e2faaa6a8f5f5f68df9ab6
+
+Same reviewer, same worktree `work/pm-review-p1`, re-detached onto `origin/rebuild/polish-p1` at 9dc0bbd
+(code head 8680e0d). All three round-1 findings are fixed, and fixed better than I asked: the per-slot
+containment I offered as a non-binding recommendation was taken as a required change, and the optional copy
+note was taken too. Everything below I executed myself.
+
+## R2.1 — Scope of the delta
+
+```
+> git log --oneline f06631b..HEAD
+9dc0bbd slice + lanes: CI green at the round-2 head, and the STATUS line
+8680e0d slice: P1-REPORT.md - Round 2
+dd8904a today: fail closed per SLOT, and punctuate the last-chance status line
+b54d023 pwa/test: move A5's two title pins to the swept title, and sweep A5's own copy
+9bb5620 slice: P1-REVIEW.md - independent review, REJECT at f06631b
+```
+
+13 paths touched since f06631b: nine under `rebuild/m3/w7-preview/today/**`, the two A5 TEST files the PM
+widened custody to, `rebuild/slice/P1-REPORT.md`, my own `P1-REVIEW.md`, and `rebuild/lanes/STATUS.md`.
+Executed, against the base, with everything licensed excluded:
+
+```
+> git diff --name-only origin/rebuild/t2-client-core...HEAD -- . \
+    ':(exclude)rebuild/m3/w7-preview/today' ':(exclude)rebuild/slice/P1-REPORT.md' \
+    ':(exclude)rebuild/slice/P1-REVIEW.md' ':(exclude)rebuild/lanes/STATUS.md' \
+    ':(exclude)rebuild/slice/pwa/test/pwa.test.cjs' ':(exclude)rebuild/slice/pwa/test/package.test.cjs'
+(no output)
+```
+
+Nothing outside the widened custody. No A5 SOURCE file was touched — only A5's two test files, which is exactly
+the ruling. PASS.
+
+## R2.2 — Counts
+
+Re-run one file at a time, `--test-reporter tap`, on a clean tree:
+
+```
+adapter.test.mjs  # tests 20  # pass 20  # fail 0     design.test.cjs   # tests 11  # pass 11  # fail 0
+package.test.cjs  # tests 10  # pass 10  # fail 0     view.test.mjs     # tests 23  # pass 23  # fail 0
+                                                  -> today 64, UNCHANGED
+gym.test.mjs      # tests 64  # pass 64  # fail 0     checkin.test.mjs  # tests 28  # pass 28  # fail 0
+copy.test.mjs     # tests 36  # pass 36  # fail 0  -> 192 total, 0 fail
+A0 host           # tests 22  # pass 22  # fail 0
+A5 pwa+workflow   # tests 44  # pass 44  # fail 0
+A5 built folder   # tests 11  # pass 11  # fail 0
+native-carriers --ci   EXITCODE=0   NATIVE CARRIERS PUBLIC CI EVIDENCE PASS
+A1 build               EXITCODE=0   A1 TODAY BUILD PASS ... (904 frozen-source strings ...; 1 harvested
+                                    approved term(s) dash-normalised)
+git status --porcelain: (empty)
+```
+
+192 with copy 36, pwa+workflow 44/44, built-folder 11/11, A0 22/22 — every number the coordinator named.
+
+*Reviewer's own error, recorded so nobody chases it.* An earlier pass of mine ran `node --test` with no file
+arguments from the repository root (a PowerShell `$args` collision in my harness), which walked the whole
+repository and left `rebuild/m4/spec/acceptance-load-writes.json` modified. With that file dirty,
+`native-carriers --ci` exits 1 and `copy.test.mjs` reported 9 failures. After `git checkout -- .` and a clean
+rebuild, both are green as listed above and the tree stays clean through every later run. Nothing in this
+branch caused it. Worth one line for the integrator: these `rebuild/m4/spec/*-load-writes.json` ledgers are
+rewritten by a FAILING suite, so a red run can poison the next `native-carriers --ci`; always re-check from a
+clean tree.
+
+## R2.3 — The three msedge checks
+
+```
+browser-check.mjs   EXITCODE=0  "...no em/en dash in the rendered DOM of 11 screen states (DECISIONS:114)..."
+gym-check.mjs       EXITCODE=0  "...No em/en dash in the rendered DOM at any of the 12 states above..."
+checkin-check.mjs   EXITCODE=0  "...no em/en dash in the rendered DOM at any of the 8 states walked..."
+git status --porcelain: (empty)
+```
+
+31 real-browser states, all dash-free, msedge on this PC, after a build.
+
+## R2.4 — The two A5 pins are corrected, NOT loosened (required check 3)
+
+Both are still LITERAL titles. I proved they are still tripwires by restoring the old em-dash title in
+`index.shell.html` and running each A5 suite:
+
+| mutant | suite | result |
+|---|---|---|
+| old `<title>Earned — Today</title>` | `pwa.test.cjs` + `workflow.test.cjs` | **KILLED**, exit 1: `not ok 34 - the built page becomes installable...` AND `not ok 35 - no em dash and no en dash in anything A5 puts on the athlete's screen` (`AI DASH in A1's shell as A5 reads it`) |
+| old `<title>Earned — Today</title>` | `package.test.cjs` | **KILLED**, exit 1, and earlier than expected: `AI_DASH_IN_BUILD: 1 em/en dash(es) in text the athlete can see (DECISIONS:114): index.html: markup outside a comment` — A1's own build guard refuses before A5's pin is even reached |
+
+Both plants restored byte-for-byte; tree clean. The builder went further than my obligation 1 asked and also
+took obligation 2: each A5 suite now carries its own no-dash sweep over what A5 actually deploys, each with a
+RED-FIRST assertion that one more dash would be caught. I have no objection to the `app.js` exemption in those
+sweeps — it is A1's bundle, and A1's own build guard already refuses every A1-owned literal in it.
+
+## R2.5 — Fail closed PER SLOT (required check 4)
+
+The mechanism is `plainOrDrop(value, where, fallback = "")` in `plain-copy.cjs`: it catches ONLY
+`error.code === "AI_DASH_IN_UI"`, logs the refusal and the text to `console.error`, and returns the fallback;
+anything else it rethrows. I verified all four properties directly, against the real module:
+
+```
+DIRECT: plainOrDrop(non-dash thrower)   -> TypeError: not a string          (NOT swallowed)
+DIRECT: plainOrDrop(word-joined dash)   -> ""   / with fallback "FALLBACK"  (slot dropped)
+DIRECT: plainCopy still throws          -> AI_DASH_IN_UI                    (the refusal is intact)
+```
+
+Coverage: `plainOrDrop(` appears at **26** call sites across `today-app.cjs` (11), `gym-app.mjs` (7),
+`checkin-app.mjs` (6) and `today-entry.mjs` (2), and **zero** bare `plainCopy(` remains in any of the three
+view modules. The one remaining bare `plainCopy(` is in `today-entry.mjs`'s last-chance handler, where the
+try/catch is written out explicitly. That is the 27 the builder reports, and it is every DOM write.
+
+The planted-dash test reproduces. `copy.test.mjs` poisons the view DTO's `nowModel.move.title` with
+`NOTHING TO FIX—HOLD THE LINE` (a word-joined dash, the shape the normaliser refuses) without editing
+`rebuild/engine` — which is precisely how a future engine package would arrive — then asserts every other slot
+still carries text, that `kcal-note` is bound exactly as before, that the page does NOT say "could not open",
+that no dash is on screen, and that exactly one refusal was logged naming the slot (`instruction`). Four
+mutants confirm none of that is decorative:
+
+| mutant | result |
+|---|---|
+| `plainOrDrop` RETHROWS (containment removed) | **KILLED**, exit 1: `not ok 15 - a refused string costs its own slot, never the whole of Today` + `not ok 16` |
+| `plainOrDrop` swallows EVERY error | **KILLED**, exit 1: `not ok 16 - plainOrDrop drops only an AI-dash refusal, and rethrows anything else` — `Missing expected exception (TypeError)` |
+| `console.error` removed from `plainOrDrop` (a silent refusal) | **KILLED**, exit 1: `not ok 15` |
+| the last-chance status line un-punctuated again | **KILLED**, exit 1: `not ok 14 - the last-chance boot screen punctuates the cause it shows` |
+
+All restored byte-for-byte; `git status --porcelain` empty after each; final rebuild exit 0, tree clean.
+
+**Round-1 Finding 6 is now closed, not merely mitigated.** In round 1 the same poisoned engine string took the
+whole of Today down; it now costs one line. The residual I flagged is gone.
+
+## R2.6 — The last-chance status line (required check 5, round-1 Finding 2)
+
+`bootFailureCopy` is now exported and asserted. The three cases, plus a fourth the builder added:
+
+```
+plain cause      -> "Today did not open: IDB_OPEN_FAILED. Nothing was recorded."
+                    "Today could not open on this device. Nothing was changed or recorded. IDB_OPEN_FAILED."
+rewritten cause  -> "Today did not open: T2 lease not found: sign in again. Nothing was recorded."
+refused cause    -> "Today did not open. Nothing was recorded."
+                    "Today could not open on this device. Nothing was changed or recorded."
+already stopped  -> "Today did not open: It did not open. Nothing was recorded."   (no second full stop)
+```
+
+That is better than the string it replaced in round 1 and better than the pre-brief original. Finding 2 closed.
+
+## R2.7 — Round-1 Finding 3 (the "18 dashed literals" count)
+
+Corrected in the report. Closed.
+
+## R2.8 — A5's two preflight dashes (required check 6): CONFIRMED, and recorded as an A5-lane residual
+
+My own scan of A5's sources, comments stripped:
+
+```
+preflight.html: dashes total=4  outside comments=1
+    "...<p><strong>Offline launch</strong> — <span data-pwa="state" role="status">checking this device…</span></p>..."
+preflight.js:   dashes total=3  outside comments=1
+    "...'All ' + status.total + ' files of this build are stored on this device — everything the launch needs is here.'..."
+preflight.css:  dashes total=0  outside comments=0
+```
+
+**Exactly one user-facing em dash in each**, exactly as the builder states, and the two A5 suites pin the count
+at one each so a third would fail. No other A5 source text file carries a dash outside a comment.
+
+**A5-LANE RESIDUAL, for the PM to brief (not P1's to fix, and correctly not fixed here).** Two strings A5 owns
+still put an em dash on the athlete's screen, and the owner's rule ("no ai dashes are allowed in the ui") does
+not stop at A1's folder:
+
+1. `rebuild/slice/pwa/preflight.html` — `<strong>Offline launch</strong> — <span data-pwa="state">`
+   → suggested: `<strong>Offline launch:</strong> <span data-pwa="state">`
+2. `rebuild/slice/pwa/preflight.js` — `"...are stored on this device — everything the launch needs is here."`
+   → suggested: `"...are stored on this device: everything the launch needs is here."`
+
+When the A5 lane lands those two, the pins in both suites drop from 1 to 0 and the exemption disappears. Until
+then they are pinned rather than hidden, which is the right way to carry a known residual.
+
+## R2.9 — CI at the head (required check 7)
+
+```
+> node work/lane-c/tools/ci-status.js rebuild/polish-p1 9dc0bbd296e47803b8e2faaa6a8f5f5f68df9ab6
+9dc0bbd pipeline   completed  success  34659085148  2026-09-11T23:42:50Z
+9dc0bbd rebuild    completed  success  34659085152  2026-09-11T23:42:50Z
+
+> node work/lane-c/tools/ci-status.js rebuild/polish-p1 8680e0d
+8680e0d pipeline   completed  success  34658721425  2026-09-11T23:36:51Z
+8680e0d rebuild    completed  success  34658721317  2026-09-11T23:36:51Z
+```
+
+Both workflows completed/success at BOTH shas, on both runners. The four run ids match the builder's exactly.
+The tier gate that failed in round 1 is met. Round-1 Finding 1 closed.
+
+## R2.10 — What still stands from round 1, unchanged and non-blocking
+
+* `copy.test.mjs` and `checkin.test.mjs` are still not enumerated in `.github/workflows/rebuild.yml` (it names
+  five today files by hand). Pre-existing, correctly recorded, rides the next B-NTC re-seal per
+  DECISIONS:117 (4). The build-time half of the rule DOES ride CI, through the enumerated
+  `rebuild/slice/pwa/test/package.test.cjs`, which now fails on any A1-owned dash — so the branch is not
+  defenceless in CI in the meantime.
+* `browser-check.mjs`'s PASS line still says "11 screen states" over a comma-separated list containing a state
+  name with a comma in it. Cosmetic, no obligation.
+
+## R2.11 — VERDICT
+
+**ACCEPT at 9dc0bbd296e47803b8e2faaa6a8f5f5f68df9ab6.** No proof obligations remain against P1. All three
+round-1 findings are closed with executed evidence; the per-slot containment closes the one residual risk I
+was most worried about; CI is green on both runners at both round-2 shas; and the A5 preflight residual is
+pinned, named, and handed to the right lane. Ready for mechanical integration.
+
+Rules observed as in round 1: no secret printed or copied, nothing read under `ledger/`,
+`rebuild/conform/private/` or `src/history.js`, no lockfile change, no other worktree touched, every mutant
+restored byte-for-byte with the tree asserted clean.
