@@ -42,7 +42,9 @@ const stripComments = (src) => src
 test("no dash survives in any source string this lane writes for the athlete", () => {
   for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs",
     /* C6 Part A: the onboarding modules are athlete-facing too. */
-    "onboarding-tools.cjs", "onboarding-text.cjs"]) {
+    "onboarding-tools.cjs", "onboarding-text.cjs",
+    /* Coach wave one: so are the demo's. */
+    "wave1-tools.cjs", "wave1-text.cjs", "machine-settings-commands.cjs"]) {
     const code = stripComments(fs.readFileSync(at(file), "utf8"));
     const offending = code.split("\n")
       .map((line, i) => [i + 1, line])

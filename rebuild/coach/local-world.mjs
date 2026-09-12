@@ -35,6 +35,9 @@ import CheckInModel from '../m3/w7-preview/today/checkin-model.mjs';
    module composes and does not invent, so the producer command and the profile
    are setup-host.mjs's own and nothing here shapes an op. */
 import { createSetupHost } from '../m3/w7-preview/today/setup-host.mjs';
+/* Coach wave one. The era's own lease schema, which is what the accepted client
+   stamps every producer-injected command with. */
+import { LOCAL_ERA_SCHEMA_VERSION } from '../m3/w6/local/local-era.mjs';
 
 const require = createRequire(import.meta.url);
 const Capture = require('../m4/workout/capture.cjs');
@@ -47,6 +50,7 @@ const { createWorkoutResumePolicy } = require('../m4/workout/resume-policy.cjs')
 const { createEngineRuntime } = require('../m4/workout/engine-runtime.cjs');
 const { createNullLaneWorkoutBasis } = require('../m4/workout/workout-basis.cjs');
 const TodayModel = require('../m3/w7-preview/today/today-model.cjs');
+const MachineSettings = require('./machine-settings-commands.cjs');
 
 const { createCheckInModel } = CheckInModel;
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
@@ -131,6 +135,56 @@ function gymOver(bindings, { day, engineState, prescriptionCapture, plannedSplit
     } };
 }
 
+/* COACH WAVE ONE: the machine-settings lane, opened the way the check-in lane is
+   opened, and for the same reason. `workout` is the only producer-injected
+   command the accepted stage takes (checkin-commands.cjs:11-19), and
+   `client.hostBindings({ workoutCommands })` is where a lane hands its own
+   producer in. So this factory supplies machine-settings-commands.cjs and the
+   profile its facts carry, and NOTHING under rebuild/m3/w7-preview or
+   rebuild/client is touched to make it work.
+
+   It is THIS installation's: the same repository, the same lease, the same one
+   generation the weigh-in and the workout are in, and a fresh hostBindings()
+   like the gym card's so the lanes serialise on the repository's own
+   compare-and-swap rather than sharing staging state. */
+export async function createMachineSettingsHost({ client, day }) {
+  if (!client || typeof client.hostBindings !== 'function') {
+    throw new TypeError('createMachineSettingsHost requires the local durable client');
+  }
+  if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+    throw new TypeError('createMachineSettingsHost requires day');
+  }
+  const bindings = await client.hostBindings({
+    workoutCommands: MachineSettings.createMachineSettingsCommands() });
+  const laneClient = createDurablePublicClient({ ...bindings, schemaVersion: LOCAL_ERA_SCHEMA_VERSION });
+  const opened = await laneClient.reopen();
+  let alive = true;
+
+  const handle = Object.freeze({
+    repository: bindings.repository, client: laneClient, day,
+    profile: MachineSettings.PROFILE,
+    openedRefusal: opened && opened.refusal ? { ...opened.refusal } : null,
+    /* Every stored machine fact in this generation, oldest first. */
+    async all() { return MachineSettings.machineSettingsIn((await bindings.repository.load()).generation); },
+    /* The LATEST for one exercise id, and nothing else. */
+    async latest(exercise_id) { return MachineSettings.latestFor(await handle.all(), exercise_id); },
+    /* ONE op per change. A correction is a new op; there is no update here
+       because there is none in an append-only log. */
+    async save(machine) {
+      if (!alive) return { ok: false, state: 3, copy: null, code: 'LOCAL_CLIENT_CLOSED', op_id: null };
+      const result = await laneClient.execute('workout',
+        { action: MachineSettings.ACTION, input: { machine } });
+      return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
+        code: result.code || null, op_id: result.op_id || null };
+    },
+    async restart() { return laneClient.reopen(); },
+    face() { const current = laneClient.current(); return current && current.view ? current.view : null; },
+    // Detaches THIS handle only, exactly as the other lanes' close() does.
+    close() { alive = false; },
+  });
+  return handle;
+}
+
 /* THE ONE ENTRY POINT. Opens (and on first run enrols) the local installation,
    boots it, and returns the world tools.cjs takes: today + gym + check-in, all
    over real durable storage. `consent` stays injectable — the consent write is
@@ -142,7 +196,10 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   /* C6 Part A: the first-run lane. Off by default, because the coach's daily
      world is a world that is ALREADY set up, and opening a setup host there
      would say otherwise. */
-  withSetup = false, setupDeviceKeys, setupDatabaseName, setupNamespace } = {}) {
+  withSetup = false, setupDeviceKeys, setupDatabaseName, setupNamespace,
+  /* Coach wave one: the machine-settings lane, on by default because step 3 of
+     the demo is a read the coach makes every time it is asked. */
+  withMachineSettings = true } = {}) {
   const web = crypto || globalThis.crypto;
   const idb = indexedDB || globalThis.indexedDB;
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('openCoachWorld requires day');
@@ -194,15 +251,25 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
       ...(setupNamespace ? { namespace: setupNamespace } : {}) });
   }
 
+  /* Wave one's machine-settings lane, which IS on this era: it is opened from
+     THIS client's own hostBindings, so a stored setting shares the generation,
+     the lease and the commit path with the weigh-in and the workout. */
+  const machineSettings = withMachineSettings
+    ? await createMachineSettingsHost({ client, day })
+    : null;
+
   return Object.freeze({
-    client, bindings, today, gym, gymHost, checkin, checkInHost, setupHost, consent, day, readings,
+    client, bindings, today, gym, gymHost, checkin, checkInHost, setupHost, machineSettings,
+    consent, day, readings,
     era: { eraId: booted.eraId || null, leaseId: booted.leaseId || null, revision: booted.revision },
     checkInOnLocalEra: false,
     setupOnLocalEra: false,
+    machineSettingsOnLocalEra: !!machineSettings,
     close() {
       try { client.close(); } catch {}
       if (checkInHost) { try { checkInHost.close(); } catch {} }
       if (setupHost) { try { setupHost.close(); } catch {} }
+      if (machineSettings) { try { machineSettings.close(); } catch {} }
     },
   });
 }

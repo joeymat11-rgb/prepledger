@@ -1,0 +1,66 @@
+{
+  "_note": "The five-step demo of COACH-EXPERIENCE-BRIEF.md, in text. One step per entry, in order, as the owner wrote them. There is no model: the driver reads this file and calls tools.",
+  "exercise_id": "chest-press",
+  "steps": [
+    {
+      "id": "s1",
+      "step": 1,
+      "ask": "Open the app.",
+      "intent": "open",
+      "why": "Today shows, and the coach says what it can see. Nothing new: the existing today_plan read."
+    },
+    {
+      "id": "s2",
+      "step": 2,
+      "ask": "What am I hitting today?",
+      "intent": "today_with_why",
+      "topic": "instruction",
+      "why": "The day read back from the engine, with the WHY slot beside it. The slot is honest when nothing is recorded."
+    },
+    {
+      "id": "s3a",
+      "step": 3,
+      "ask": "What's my seat on the chest press?",
+      "intent": "machine_settings",
+      "why": "Never captured yet, so the coach says it does not have it and offers to keep it. Nothing is written."
+    },
+    {
+      "id": "s3b",
+      "step": 3,
+      "ask": "Seat four, pin three.",
+      "intent": "record_machine_settings",
+      "yes": true,
+      "settings": [
+        { "name": "seat", "value": "four" },
+        { "name": "pin", "value": "three" }
+      ],
+      "why": "His words, cut into the pairs he gave and stored as they are. Nothing is interpreted."
+    },
+    {
+      "id": "s3c",
+      "step": 3,
+      "ask": "What's my seat on the chest press?",
+      "intent": "machine_settings",
+      "why": "Now it is a stored fact, read back with the op it came from in its source."
+    },
+    {
+      "id": "s4",
+      "step": 4,
+      "ask": "One-ten for eight.",
+      "intent": "log_set",
+      "yes": true,
+      "load": "110",
+      "reps": "8",
+      "effort": "two",
+      "why": "Logged through the gym card's own write path. The confirm names the weight and the reps first."
+    },
+    {
+      "id": "s5",
+      "step": 5,
+      "ask": "Why is today lighter than last week?",
+      "intent": "why_only",
+      "topic": "instruction",
+      "why": "The engine's stored reason in one sentence, or not recorded. No arithmetic and no comparison the engine did not make."
+    }
+  ]
+}
