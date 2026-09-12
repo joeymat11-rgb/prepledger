@@ -2082,3 +2082,143 @@ with the one word changed and measures BOTH settings on one repository.
 Terminals at this head, `--ci --package`, exit **2** and `CI REVIEW-PENDING` for all seven:
 B-NTC **5 open** · H3 **12** · B1 **6** · B2 **6** · B4 **10** · B3 **10** · B-LOM **12** —
 every count equal to r7's, so neither pass moved an obligation.
+
+## r9 — `DECISIONS:147` — the delivered bytes at THIS head
+
+The r7b/r8-fix table above is superseded. Measured on the committed bytes;
+`TOOLING-REPORT.md` and `TOOLING-FIX-r7-REPORT.md` are not in the table because a file
+cannot carry its own hash and the second is written after it.
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 2436 | 194 420 | `c609cf71349c53ec33fda0b68f85138a7b6f85ce2a16f43e88617cfae9aa7bb7` |
+| `README.md` | 1019 | 74 996 | `c6b4122df3bee142997ca8f0f661a33b11ac341cb63ac1581aee303fca62f11f` |
+| `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
+| `test/successor-moves.test.cjs` | 413 | 27 664 | `ac9e2d0257f6a043e8294f23c713c17c769031497430fd46bd8c7690489b7d6a` |
+| `test/product-phase-and-ledger.test.cjs` | 224 | 14 492 | `5984aa2610fd13f33253b6b2089c9e7d251b12cb094ee82fa40b38d99dc10430` |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 280 | 19 095 | `d692bf7b301beb2facc6ad9f76c974e63215d8f78b539229dbafd8317c6d1d2c` |
+| `test/seal-tip-and-byte-identity.test.cjs` | 404 | 24 011 | `acbb8add15ca78459345ad0e301e037f17c943f0321ebe29bdec2b1faa9f4b9b` |
+| `test/parent-pin-shapes-and-spec-successors.test.cjs` | 248 | 16 577 | `08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175` |
+| `test/parent-gate-closure-and-load-floor.test.cjs` | 497 | 31 872 | `0b9c04c167f077f2cfa7581a45d092644e13baf7b602fdfedf3232c5e3452bba` |
+| `../tooling/preflight.cjs` | 166 | 10 896 | `fff710f9fc9c3ab38d74eea1f58889d0b2ba09af86439bcbf22e2622fae08eae` |
+| `../tooling/test/preflight.test.cjs` | 191 | 10 371 | `f80bc48697e38f27f342fac10ddbc5bc63f45b9156ad15b2a1cc6e91ea364748` |
+
+The **seven** package specs carry `c609cf71349c53ec33fda0b68f85138a7b6f85ce2a16f43e88617cfae9aa7bb7`
+as `tooling.runnerSha256`, re-pinned mechanically. Their own bytes at this head:
+`B-NTC.json` 24 020 B `9d9e325e…` · `B-LOM.json` 13 757 B `26f78ed1…` ·
+`H3.json` 12 553 B `3b742095…` · `B1.json` 25 107 B `bc499f4f…` ·
+`B2.json` 26 013 B `f28f62f7…` · `B3.json` 21 006 B `72f9ec3d…` · `B4.json` 20 473 B `e85479f8…`.
+
+### What `:147` changed, and what it did not
+
+`:147` amends `:113 (1) (c)` only; (a), (b), (d) and (e) are untouched and their tests are
+unchanged. Three things moved, all in the direction of *more* proof per substitution:
+
+1. **The target set became the parent gate's own source closure.** `parentClosure(commit,
+   roots)` reads blobs out of Git at the parent's **reviewed** commit — never off disk —
+   and follows relative `require`/`import` specifiers and `rebuild/…` path literals, with
+   `.cjs/.js/.mjs/.json` resolution, bounded at 512 files and memoised per
+   `commit|roots`. Measured against the real parent at
+   `9ad2ecab141753e9e8e74d3a105bd168d5e72286` — **corrected per TOOLING-REVIEW-r9 F2**, which
+   found an earlier sentence here attributing one carrier's figure to six of them — the
+   closure is **171** files from the one source carrier, **175** from the five gate
+   carriers, **180** from the ten spec carriers, **219** from all fifteen children and
+   **222** from the eighteen `executionPins`. It contains all five files
+   `BRIEF-H3-CLEAN-INIT` v1.6 §9 names. The set is the UNION over the carriers a child
+   declares, so declaring another carrier widens the target set for every substitution.
+   Before `:147` the admitted set was one file per carrier, which is why no child of B-NTC
+   could ever declare the re-target it actually needs: the wrappers are nine lines long.
+2. **Protected surfaces refuse by name, and the refusal is live.** That closure reaches
+   `rebuild/conform/oracle/**`, so `SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE` is
+   a rule with something to catch rather than a formality, and it is asserted first in BOTH
+   phases — before the root shape in `spec()` (r9 F5 found the shape dominating it there,
+   so a golden refused as a SHAPE and the ruling's own exclusion printed nowhere) and before
+   the sha anchors and the review clause in `successorProof()`.
+3. **The load floor and the copy test moved to the loaded body — and, after r9 F1, to the
+   RIGHT one.** The first cut walked the whole closure and took the fattest body in it:
+   measured against the real parent, all five B-NTC carriers chose
+   `rebuild/conform/v4/postfix/acceptance-step-efficacy.json` (**7 791** qualifying lines)
+   and never `b-ntc-successors.cjs` (**174**), and since a JSON fixture cannot be pasted
+   into a successor the copy test — the one mechanical proof that the parent body is loaded
+   and not pasted — was inert, admitting a successor that carried the loaded module
+   verbatim. `parentClosure(…, 'require')` now walks the **compile edge only**: relative
+   `require`/`import`, no path literals, no `.json`. The copy test runs over **every** body
+   so reached (the original included) and is asked **before** the floor, because a paste is
+   evidence whatever its length; the floor is then the largest of those bodies. A nine-line
+   wrapper over a 174-line module passes; a nine-line wrapper over a five-line module
+   refuses the paste on `SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT` and, with the
+   paste removed, on `SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD`.
+
+A fourth change is a narrowing, not a widening: `coverage.successors.reviewFile` is a
+required key of a closed block, and **r9 F3** makes it custody rather than a name. The path
+must stand under `rebuild/lanes/b/reviews/` (checked in both phases, so neither depends on
+the other having run); `reviewFileSha256` pins its bytes; and those bytes must stand in Git
+at `HEAD`. Then **both** the `from` and the `to` of every substitution must stand verbatim
+in it. **Said out loud:** that the review's AUTHOR is not the spec's builder is not
+machine-checkable — nothing in a Git tree records who wrote a file — and the runner says so
+beside the check. A fifth: `SUCCESSOR-SUBSTITUTION-IS-A-WHOLE-FILE-REPLACEMENT` re-asserts
+r9 C (vi) at run phase, where r9 admitted it.
+
+**Two refusals that fired BARE now carry names (r9 F4).** A `sourceBase` naming no commit
+reached Git four functions later as "Command failed"; existence is now asked once, by name
+(`commitExists()` → `SPEC-SOURCE-BASE-NOT-A-COMMIT`, with `SPEC-SOURCE-BASE-SHAPE` beside
+it). A parent artifact whose pinned `sha256` is tampered by one nibble now refuses
+`PARENT-ARTIFACT-BYTES` instead of an unnamed sentence.
+
+**Stated residual, unchanged in kind from r7.** The closure follows the edges this runner
+can see. A target a parent gate loads through a computed path is out of the set and
+refuses — the safe direction — so the shipped rule is narrower than `:147`'s words, and a
+future gate with a dynamic loader would need this recorded before it could be carried.
+
+## r9 — the suites at this head
+
+| suite | cases | exit |
+|---|---|---|
+| `test/product-phase-and-ledger.test.cjs` | 7/7 | 0 |
+| `test/execution-targets.test.cjs` | 9/9 | 0 |
+| `test/successor-moves.test.cjs` | 9/9 | 0 |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 12/12 | 0 |
+| `test/seal-tip-and-byte-identity.test.cjs` | 16/16 | 0 |
+| `test/parent-pin-shapes-and-spec-successors.test.cjs` | 8/8 | 0 |
+| `test/parent-gate-closure-and-load-floor.test.cjs` | 14/14 | 0 |
+| `../tooling/test/preflight.test.cjs` | 9/9 | 0 |
+
+**84 cases, 0 fail** (79 at the rejected r9 head; the r9-fix pass adds five to the closure
+suite — the compile edge, r9's paste control, the whole-file replacement at run phase, the
+review's custody and the four `spec()`-phase refusals). r7b/r8-fix measured 70 across seven
+suites; r9 adds the eighth,
+`parent-gate-closure-and-load-floor` (9), and re-states `successor-moves` around the review
+clause: its fixture spec now cites a review file carrying the one substitution verbatim, and
+the case that mutates a `from` into text absent from the original writes that same text into
+the review first — so it still refuses `SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-
+ORIGINAL`, the reason it was written to measure, and not the new review refusal that would
+otherwise mask it.
+
+Terminals at this head, `--ci --package`, exit **2** and `CI REVIEW-PENDING` for all seven:
+B1 **6 open** · B2 **6** · B3 **10** · B4 **10** · B-LOM **12** · B-NTC **5** · H3 **12** —
+every count equal to r7's, r7b's and r8-fix's, so `:147` moved no obligation in any shipped
+package. No run printed a PASS word.
+
+### The H3 scratch probe
+
+`origin/rebuild/lane-b-h3 @ e4f1c70` was cloned `--shared` into
+`…/fx7-scratch/fx-h3c`, its chain ref pointed at the lane's own
+`origin/rebuild/t2-client-core`, the r9 runner and suites overlaid, all seven specs
+re-pinned and H3's two `superseded-by-child` posts re-stated — the same probe-only re-pin
+the H3 builder makes whenever the lane takes up a new runner. The probe touched no
+worktree.
+
+It stopped **twice**, and neither stop is a `:147` shape gate:
+
+* first at `Brief bytes` — `H3.json` pins `9cef95a3…` for `BRIEF-H3-CLEAN-INIT.md` while the
+  brief on its own branch at `e4f1c70` is `f6c4c4df…` (v1.6). That is the H3 lane's own
+  stale pin, not a tooling question; the probe re-stated it to see past it.
+* then at `Required child source-carriers`, after fourteen full evidence lines including
+  `PARENT OPTION`, `PARENT BOUND`, `PARENT PINS RE-ASSERTED`, `PRODUCT IMPLEMENTED`,
+  `FIDELITY OBSERVED`, `AUTHORITY OBSERVED` and `LAWS 45/45`. The spec at `e4f1c70` still
+  reads `coverage.successors: null` — the runner's own `SPEC OBSERVED` line says `no
+  successor carriers declared` — so the inherited `source-carriers` gate has no carrier at
+  all. **This is the expected stop: the missing `coverage.successors` block, not the shape
+  gate.** Every refusal r7b's probe hit on the way there is gone.
+
+`PUBLIC CI EVIDENCE PASS` was not reached in the clone and is not claimed here.
