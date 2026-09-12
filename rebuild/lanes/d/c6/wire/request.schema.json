@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:earned:lane-d:c6:wire:request",
+  "title": "Proposed C6 session request",
+  "description": "Structural proposal only; no adapter, authentication, consent gesture, freshness, replay or spending enforcement is proved. The four wire names are INVENTED in BRIEF-C6-RELAY. The canonical UTC timestamp grammar, lowercase UUIDv4 nonce, nonempty string requirements and SDP bound are INVENTED conventions for C review. Request credentials are separate from this body.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["user", "opt_in", "nonce", "sdp_offer"],
+  "properties": {
+    "user": { "$ref": "#/$defs/user" },
+    "opt_in": { "$ref": "#/$defs/optIn" },
+    "nonce": { "$ref": "#/$defs/nonce" },
+    "sdp_offer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 65536,
+      "description": "INVENTED limit: at most 65536 UTF-8 bytes. JSON Schema maxLength counts Unicode characters, not encoded bytes, and is only a necessary structural bound. A separate UTF-8 byte-length check is required before provider creation. This schema does not parse or authorize SDP."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "user": { "const": "joe" } }, "required": ["user"] },
+      "then": { "properties": { "opt_in": { "properties": { "user": { "const": "joe" } } } } }
+    },
+    {
+      "if": { "properties": { "user": { "const": "dad" } }, "required": ["user"] },
+      "then": { "properties": { "opt_in": { "properties": { "user": { "const": "dad" } } } } }
+    }
+  ],
+  "$defs": {
+    "user": {
+      "type": "string",
+      "enum": ["joe", "dad"],
+      "description": "Existing exact named-user ids; neither this enum nor matching opt_in.user authenticates a caller."
+    },
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "INVENTED wire convention: lowercase canonical UUIDv4. Echo matching is separate from trustworthy replay rejection."
+    },
+    "utcTimestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+      "description": "INVENTED fixed UTC wire grammar YYYY-MM-DDTHH:mm:ss.sssZ. The pattern is lexical; a real calendar-validity check is required because format may be annotation-only. It does not establish freshness, clock truth or a consent gesture."
+    },
+    "optIn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["user", "accepted", "accepted_at", "screen_version", "wording"],
+      "properties": {
+        "user": { "$ref": "#/$defs/user" },
+        "accepted": { "type": "boolean", "const": true },
+        "accepted_at": { "$ref": "#/$defs/utcTimestamp" },
+        "screen_version": {
+          "type": "string",
+          "minLength": 1,
+          "description": "INVENTED strict string shape only. The reviewed version allowlist is a separate C/D prerequisite; this schema does not approve any version."
+        },
+        "wording": {
+          "type": "string",
+          "minLength": 1,
+          "description": "INVENTED strict string shape only. Must equal the actual reviewed wording for screen_version at admission; nonempty text is not a supported disclosure or evidence of agreement."
+        }
+      }
+    }
+  }
+}

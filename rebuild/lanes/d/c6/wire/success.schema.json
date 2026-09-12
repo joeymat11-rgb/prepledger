@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:earned:lane-d:c6:wire:success",
+  "title": "Proposed C6 session success body",
+  "description": "Exactly the seven success fields in BRIEF-C6-RELAY, carried with HTTP 200 only after admission and provider success. Structural validity does not prove authentication, cap verification, committed state, deadline enforcement or live creation. Canonical timestamps, nonce form, nonempty strings, SDP bounds and the numeric representation ceiling are INVENTED conventions for C review. No ok flag, token, billing figure or upstream diagnostic is present.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["nonce", "session_id", "sdp_answer", "session_minute_cap", "deadline_at", "provider", "model"],
+  "properties": {
+    "nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "INVENTED lowercase UUIDv4 grammar. Must echo the admitted request nonce exactly; a single-response schema cannot establish that relationship."
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Opaque provider session id. INVENTED nonempty string shape only; no prefix, UUID pattern or provider id syntax is assumed."
+    },
+    "sdp_answer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 65536,
+      "description": "INVENTED maximum 65536 UTF-8 bytes. maxLength is a Unicode-character check, so a separate encoded-byte check is required. No provider answer authenticity or SDP negotiation is proved by this schema."
+    },
+    "session_minute_cap": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991,
+      "description": "Finite positive whole minutes. The maximum is an INVENTED JavaScript safe-integer representation guard, not an operational allowance or selected session duration. Actual minutes must be server-owned and fit the reviewed allowance and enforcement mechanism."
+    },
+    "deadline_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\\.[0-9]{3}Z$",
+      "description": "INVENTED canonical UTC timestamp grammar YYYY-MM-DDTHH:mm:ss.sssZ; separate calendar-validity checking is required when format is annotation-only. This value may be sent only for an actually committed server deadline whose enforcement prerequisite is proved. Token expiry and a phone timer are not that proof."
+    },
+    "provider": {
+      "type": "string",
+      "const": "openai",
+      "description": "Selected provider; lowercase spelling follows the existing coach cap example."
+    },
+    "model": {
+      "type": "string",
+      "const": "gpt-live-1",
+      "description": "Owner-selected model retained by the brief. Client input cannot choose it."
+    }
+  }
+}

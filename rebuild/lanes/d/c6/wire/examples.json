@@ -1,0 +1,67 @@
+{
+  "_meta": {
+    "purpose": "Synthetic documentation only. This wrapper and its metadata are never sent over the wire. No adapter, account verification, live creation or enforcement is exercised.",
+    "bounds": "UUIDv4, millisecond UTC timestamp, nonempty strings, 65536 UTF-8-byte SDP bounds and safe-integer minute representation are INVENTED proposed conventions. JSON Schema maxLength counts Unicode characters; UTF-8 byte count and real calendar validity require separate checks.",
+    "consent": "The screen_version and wording mirror the existing public synthetic cost-cap fixture; neither a reviewed production version nor actual agreement is established. Authentication credentials are deliberately absent from these documentation examples and must be supplied via a separately agreed transport.",
+    "sdp": "The short SDP strings are synthetic, incomplete placeholders with no addresses or credentials. They must never be used to negotiate a session.",
+    "minutes": "The five-minute value and corresponding deadline are invented examples only; no session allowance has been selected or verified.",
+    "error_nonce": "For every error code, nonce is null if the incoming nonce is absent or invalid; otherwise it is the exact incoming valid nonce. Code and transport status do not change that rule.",
+    "http_status_by_code": {
+      "COACH_REQUEST_INVALID": 400,
+      "COACH_AUTH_REQUIRED": 403,
+      "COACH_USER_NOT_NAMED": 403,
+      "COACH_OPT_IN_REQUIRED": 403,
+      "COACH_SESSION_REQUEST_REPLAYED": 409,
+      "COACH_SESSION_CAP_REACHED": 429,
+      "COACH_CAP_NOT_VERIFIED": 503,
+      "COACH_ENFORCEMENT_UNAVAILABLE": 503,
+      "COACH_RELAY_UNAVAILABLE": 503
+    }
+  },
+  "requests": [
+    {
+      "user": "joe",
+      "opt_in": {
+        "user": "joe",
+        "accepted": true,
+        "accepted_at": "2030-02-01T09:30:00.000Z",
+        "screen_version": "coach-opt-in-v1",
+        "wording": "Your voice audio and the text of this conversation leave this phone and are sent to OpenAI's API so it can answer you. Nothing is sent until you say yes here."
+      },
+      "nonce": "00000000-0000-4000-8000-000000000001",
+      "sdp_offer": "v=0\r\ns=SYNTHETIC OFFER - DO NOT CONNECT\r\nt=0 0\r\n"
+    },
+    {
+      "user": "dad",
+      "opt_in": {
+        "user": "dad",
+        "accepted": true,
+        "accepted_at": "2030-02-01T09:30:00.000Z",
+        "screen_version": "coach-opt-in-v1",
+        "wording": "Your voice audio and the text of this conversation leave this phone and are sent to OpenAI's API so it can answer you. Nothing is sent until you say yes here."
+      },
+      "nonce": "00000000-0000-4000-8000-000000000002",
+      "sdp_offer": "v=0\r\ns=SYNTHETIC OFFER - DO NOT CONNECT\r\nt=0 0\r\n"
+    }
+  ],
+  "success": {
+    "nonce": "00000000-0000-4000-8000-000000000001",
+    "session_id": "synthetic opaque session",
+    "sdp_answer": "v=0\r\ns=SYNTHETIC ANSWER - DO NOT CONNECT\r\nt=0 0\r\n",
+    "session_minute_cap": 5,
+    "deadline_at": "2030-02-01T09:35:00.000Z",
+    "provider": "openai",
+    "model": "gpt-live-1"
+  },
+  "errors": [
+    { "ok": false, "code": "COACH_REQUEST_INVALID", "nonce": null },
+    { "ok": false, "code": "COACH_AUTH_REQUIRED", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_USER_NOT_NAMED", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_OPT_IN_REQUIRED", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_SESSION_REQUEST_REPLAYED", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_SESSION_CAP_REACHED", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_CAP_NOT_VERIFIED", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_ENFORCEMENT_UNAVAILABLE", "nonce": "00000000-0000-4000-8000-000000000001" },
+    { "ok": false, "code": "COACH_RELAY_UNAVAILABLE", "nonce": "00000000-0000-4000-8000-000000000001" }
+  ]
+}

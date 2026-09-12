@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:earned:lane-d:c6:wire:error",
+  "title": "Proposed C6 fixed error body",
+  "description": "Closed three-field error envelope from BRIEF-C6-RELAY; the nine codes and HTTP mappings are INVENTED for C's fixed-copy review. HTTP status is transport metadata, not a body member: 400 REQUEST_INVALID; 403 AUTH_REQUIRED, USER_NOT_NAMED, OPT_IN_REQUIRED; 409 SESSION_REQUEST_REPLAYED; 429 SESSION_CAP_REACHED; 503 CAP_NOT_VERIFIED, ENFORCEMENT_UNAVAILABLE, RELAY_UNAVAILABLE, each prefixed COACH_. No provider text, SDP, credential, billing figure or partial success may be appended. Structural validation alone cannot establish a refusal happened before any provider creation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["ok", "code", "nonce"],
+  "properties": {
+    "ok": { "type": "boolean", "const": false },
+    "code": {
+      "type": "string",
+      "enum": [
+        "COACH_REQUEST_INVALID",
+        "COACH_AUTH_REQUIRED",
+        "COACH_USER_NOT_NAMED",
+        "COACH_OPT_IN_REQUIRED",
+        "COACH_SESSION_REQUEST_REPLAYED",
+        "COACH_SESSION_CAP_REACHED",
+        "COACH_CAP_NOT_VERIFIED",
+        "COACH_ENFORCEMENT_UNAVAILABLE",
+        "COACH_RELAY_UNAVAILABLE"
+      ]
+    },
+    "nonce": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+        }
+      ],
+      "description": "INVENTED convention: null when the request has no valid lowercase UUIDv4 nonce; otherwise echo that exact request nonce, including when another field is invalid. A standalone response schema cannot enforce this cross-message relationship. Never reflect an invalid string."
+    }
+  }
+}
