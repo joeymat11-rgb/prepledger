@@ -40,6 +40,10 @@
     <div class="row"><h2 data-slot="workout-title"></h2></div>
     <p class="small muted" data-slot="workout-count"></p>
     <button class="link recovery-link" type="button" data-go="recovery">How are you feeling today? <span class="muted" data-own data-slot="recovery-state"></span> <span data-arrow></span></button>
+    <!-- N2 · the sleep entry (DECISIONS:167). The approved prototype has no sleep
+         screen at all, so both this entry's label and the screen behind it are
+         preview-owned and declared in design.cjs; the template carries no literal. -->
+    <button class="link recovery-link" type="button" data-go="sleep" data-own data-slot="sleep-entry"><span data-slot="sleep-entry-label"></span> <span class="muted" data-own data-slot="sleep-state"></span> <span data-arrow></span></button>
   </section>
   <button class="link trend" type="button" data-go="why">
     <span><span data-slot="morning"></span><span class="sub" data-slot="trend"></span></span>
@@ -153,6 +157,58 @@
      handoff item 4 requires the reuse; the prototype stores nothing, so it can
      never have a record to reuse). Every answer starts unselected; the view sets
      no aria-pressed="true" and no <option> selected here. -->
+<!-- N2 · THE SLEEP ENTRY (DECISIONS:167, brief rebuild/lanes/d2/BRIEF-N2-SLEEP-ENTRY.md
+     v1.0 sha256 b0969edb…). The approved 2026-09-08 design has NO sleep screen at all,
+     so EVERY sentence this screen shows is preview-owned and declared in design.cjs;
+     the template carries no literal and no figure. Its classes and controls are the
+     approved design's own. TIMES is the first mode, because a beginner thinks in clock
+     times (:167 (3)). The whole entry is HIDDEN until this device has a sleep lane. -->
+<template id="t-sleep">
+<article class="page">
+  <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
+  <header class="detail-head">
+    <h1 data-own data-slot="sleep-title"></h1>
+    <p data-own data-slot="sleep-night"></p>
+  </header>
+  <p class="note" data-own data-slot="sleep-note"></p>
+  <section class="field" data-own data-slot="sleep-entry-form" hidden>
+    <div class="section-label" data-slot="sleep-mode-label"></div>
+    <div class="row" data-slot="sleep-modes">
+      <button class="choice" type="button" data-action="sleep-mode-times" data-slot="sleep-mode-times"></button>
+      <button class="choice" type="button" data-action="sleep-mode-hours" data-slot="sleep-mode-hours"></button>
+    </div>
+    <div data-slot="sleep-times" hidden>
+      <div class="field">
+        <label for="sleep-bed" data-slot="sleep-bed-label"></label>
+        <input id="sleep-bed" class="hours" type="time" data-slot="sleep-bed">
+      </div>
+      <div class="field">
+        <label for="sleep-wake" data-slot="sleep-wake-label"></label>
+        <input id="sleep-wake" class="hours" type="time" data-slot="sleep-wake">
+      </div>
+      <button class="text-link" type="button" data-action="sleep-awake" data-slot="sleep-awake-toggle"></button>
+      <div class="field" data-slot="sleep-awake-field" hidden>
+        <label for="sleep-awake" data-slot="sleep-awake-label"></label>
+        <input id="sleep-awake" class="hours" type="number" inputmode="numeric" min="0" step="1" data-slot="sleep-awake">
+      </div>
+      <p class="small muted" data-slot="sleep-estimate"></p>
+    </div>
+    <div data-slot="sleep-hours-mode" hidden>
+      <div class="field">
+        <label for="sleep-hours" data-slot="sleep-hours-label"></label>
+        <input id="sleep-hours" class="hours" type="number" inputmode="decimal" min="0" step="0.25" data-slot="sleep-hours">
+      </div>
+      <p class="small muted" data-slot="sleep-hours-note"></p>
+    </div>
+    <p class="small muted" data-slot="sleep-checkin" hidden></p>
+    <button class="text-link" type="button" data-action="sleep-use-checkin" data-slot="sleep-use-checkin" hidden></button>
+    <p class="error" role="alert" data-slot="sleep-error"></p>
+    <p class="small muted" data-slot="sleep-recorded" hidden></p>
+    <button class="primary" type="button" data-slot="sleep-save"><span data-slot="sleep-save-label"></span></button>
+  </section>
+</article>
+</template>
+
 <template id="t-recovery">
 <article class="page checkin">
   <button class="back" type="button" data-go="today"><span aria-hidden="true">←</span> Today</button>
