@@ -63,7 +63,7 @@ const LEASE_FIELDS = ["lease_id", "athlete_id", "device_id", "range", "not_befor
 // device's workout history, read it again to address a correction. They are the
 // only ones allowed to run. Everything else, known inbound kind or a kind that
 // does not exist yet, refuses by default.
-export const LOCAL_OBSERVATION_KINDS = Object.freeze(["local-recovery-basis", "workout-history", "workout-edit-history"]);
+export const LOCAL_OBSERVATION_KINDS = Object.freeze(["local-recovery-basis", "workout-history", "workout-edit-history", "scale-feedback"]);
 // The seven inbound kinds as public-client.mjs passes them TODAY. This is not
 // what the guard decides on — the allowlist above is — it is the other half of
 // the pin: test/local-host-journey.test.mjs reads public-client.mjs and fails if

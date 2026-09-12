@@ -59,7 +59,7 @@ export async function createCheckInEntry(model, options = {}) {
   async function refresh() {
     const row = await checkin.refresh();
     summary = { durable: !!host, recorded: !!row, date: row ? row.date : null };
-    if (onRefresh) onRefresh();
+    if (onRefresh) await onRefresh();
     return summary;
   }
   await refresh();
@@ -103,7 +103,7 @@ export async function createWorkoutEntry(model, options = {}) {
     const read = await gym.read();
     summary = { phase: read.phase, sets: read.done || 0, code: read.code || null,
       copy: read.copy || null, unfinished: read.unfinished || null };
-    if (onRefresh) onRefresh();
+    if (onRefresh) await onRefresh();
     return summary;
   }
   /* The accepted close for a session abandoned on an earlier day. It writes through
@@ -311,7 +311,15 @@ async function bootMode(options = {}) {
     current.api.destroy();
   }
   function showRetained(item) {
-    park(); current = item; phone.replaceChildren(...item.dom); paintNotice();
+    park(); current = item; phone.replaceChildren(...item.dom); paintReadOnly(item); paintNotice();
+  }
+  const readOnly = item => ['today', 'why', 'nutrition'].includes(item.api.screen()) && !phone.querySelector('[role="dialog"]');
+  function paintReadOnly(item) {
+    if (closed || current !== item || !readOnly(item)) return;
+    const focused = [...phone.querySelectorAll('[data-go]')].indexOf(doc.activeElement), scroll = phone.scrollTop;
+    item.api.render(item.api.screen());
+    if (focused >= 0) phone.querySelectorAll('[data-go]')[focused]?.focus({ preventScroll: true });
+    phone.scrollTop = scroll;
   }
   async function makeDay(day) {
     const readings = await hosts.createReadingHost({ day });
@@ -327,9 +335,15 @@ async function bootMode(options = {}) {
     item.api = mountToday(doc, item.model, { workout: item.workout, checkin: item.checkin,
       async onRecorded() { await refresh(); },
       beforeNavigate(next) {
-        if (next === 'today' && calendar.sample().day !== item.model.today) { void refresh({ move: true }).catch(() => {}); return false; }
+        if (next === 'today' && item.api?.screen() !== 'today' && calendar.sample().day !== item.model.today) { void refresh({ move: true }).catch(() => {}); return false; }
       } });
-    const redraw = () => { if (current === item && item.api.screen() === 'today' && !phone.querySelector('[role="dialog"]')) item.api.render('today'); };
+    const redraw = async () => {
+      if (closed) return;
+      const pending = item.readings.refreshScale();
+      paintReadOnly(item); // The reader withdrew its old view before this await.
+      await pending;
+      paintReadOnly(item);
+    };
     item.workout.setOnRefresh(redraw); item.checkin.setOnRefresh(redraw);
     paintNotice();
   }
@@ -337,6 +351,7 @@ async function bootMode(options = {}) {
     if (closed) return;
     const day = calendar.sample().day;
     if (current && day !== current.model.today) {
+      paintReadOnly(current); // Old-day scale quantities are no longer current.
       paintNotice();
       // Never replace an active editor. Its DOM and entry-owned draft stay on
       // their original day, and the local write guard refuses a stale save.
@@ -352,15 +367,23 @@ async function bootMode(options = {}) {
       }
       mount(item);
     } else {
-      const reopened = await current.readings.restart();
+      const reopening = current.readings.restart();
+      paintReadOnly(current);
+      const reopened = await reopening;
+      if (closed) return;
       if (reopened.ready !== true) throw Object.assign(new Error(reopened.code || 'LOCAL_REOPEN_FAILED'), { code: reopened.code });
       const signature = JSON.stringify(current.model.storedReads());
       if (signature !== current.readSignature && current.api.screen() === 'today' && !phone.querySelector('[role="dialog"]')) {
         const previous = current.workout;
-        current.workout = await createWorkoutEntry(current.model, { hosts, draft: previous.gymDraft() });
+        const replacement = await createWorkoutEntry(current.model, { hosts, draft: previous.gymDraft() });
+        if (closed) { replacement.gymHost.close(); return; }
+        current.workout = replacement;
         current.readSignature = signature; previous.gymHost.close(); current.api.destroy(); mount(current);
       }
-      await current.workout.refresh(); await current.checkin.refresh();
+      await current.workout.refresh();
+      if (closed) return;
+      await current.checkin.refresh();
+      if (closed) return;
       paintNotice();
     }
   }
@@ -370,7 +393,12 @@ async function bootMode(options = {}) {
       restoreRequired = error.code || error.message;
       failures.push(restoreRequired);
       if (status) status.textContent = RESTORE_REQUIRED + ' (' + restoreRequired + ')';
-      phone.textContent = RESTORE_REQUIRED + ' (' + restoreRequired + ')';
+      // A storage refusal withdraws read-only evidence. Editors retain their
+      // DOM/drafts and the existing status reports why saving is unavailable.
+      if (current && readOnly(current)) {
+        try { paintReadOnly(current); }
+        catch { phone.textContent = RESTORE_REQUIRED + ' (' + restoreRequired + ')'; }
+      }
       throw error;
     }).finally(() => { refreshing = null; });
     return refreshing;

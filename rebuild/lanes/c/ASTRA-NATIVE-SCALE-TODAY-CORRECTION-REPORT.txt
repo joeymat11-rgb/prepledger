@@ -1,0 +1,94 @@
+EARNED — SCALE TODAY VISIBLE EVIDENCE LIFECYCLE CORRECTION
+2026-09-12. Builder evidence; same independent reviewer follows.
+FILE ASTRA-NATIVE-SCALE-TODAY-CORRECTION.md at56188ad.
+Exact base de90349fea7cc68ebada5a2d6469e244e5d7b14b.
+Branch/tree codex/astra-native-scale-today-correction,
+BASE/astra-native-scale-today-correction; BASE is the brief's work directory.
+Read NEXT/ROADMAP/LANES, original scale Today brief/report, complete independent
+reviewbe7fe6b40fc545d97db1e33d29d6543421d31ef6. R1 only; no additional finding.
+
+BEFORE / AFTER
+Executed original retained reviewer .tmp/scale-cache-review.mjs in its tree before
+product edits. Real owner setup, morning170, Why open, second actual shared reading
+host saves180 same date, await page.refresh(). Model baseline=null/count0 and
+DAILY_READING_RESOLUTION_REQUIRED; visible Why retained170/count1. Output
+whyStillShows170:true. Also added the same actual source-to-DOM regression in the
+owned lifecycle test: source-before exit1 on the retained170 assertion.
+After correction, replayed the original script with only product import paths
+relocated into this tree's ignored .tmp/scale-cache-review.mjs. Original review
+tree/script untouched. Same sequence exit0, whyStillShows170:false; visible Why
+shows0 eligible readings and multiple-readings resolution text, matching model.
+
+SOURCE CHANGE
+Only today-entry.mjs lifecycle regions changed. New read-only paint helper handles
+Today, Why and nutrition without replacing workout/recovery or a weight dialog.
+It preserves focused data-go navigation and scroll position. Refresh withdraws old
+visible scale evidence after the real reader clears its cache, before awaiting,
+then renders current evidence when refresh finishes. Calendar-invalid Why renders
+the existing unverified copy while retaining its day and explicit Back behavior.
+Returning to a retained read-only screen also re-reads its current model view.
+The beforeNavigate guard distinguishes a same-screen Today repaint from a request
+to leave a retained old-day view. No wholesale move to Today or editor rebuild.
+Storage refusal keeps editor DOM/drafts, reports existing failure status and paints
+read-only refusal/unverified content; fallback plain refusal is limited to a
+read-only view whose renderer itself fails. Close checks after asynchronous restart,
+workout replacement and refresh prevent late DOM paint or installing a new host
+after teardown. No today-app change was needed.
+
+No calculation, host/public-client protocol, repository, schema, crypto, engine,
+CSS, source pin, old tests, nutrition form or other-tree changes. Existing source
+qualification and retained-day contracts remain unchanged. Two new owned tests:
+local-scale-lifecycle.test.mjs and local-scale-lifecycle-browser.mjs under w6/test;
+this is the ONE new report.
+
+EXECUTION
+Retained Node24.19.0. TZ=America/New_York;
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules;
+EARNED_READING_W6_ROOT/EARNED_SOURCE_R1_ROOT=this correction tree.
+Retained ignored root/W6/W5 dependency junctions only; no install or lock churn.
+  node --test --test-reporter=dot
+    rebuild/m3/w6/test/local-scale-lifecycle.test.mjs
+    rebuild/m3/w6/test/local-scale-feedback.test.mjs
+    rebuild/m3/w6/test/local-owner-entry.test.mjs
+28 PASS, exit0:6 new lifecycle +6 unchanged scale-host +16 unchanged owner checks.
+New cases: original conflict while Why open; real normal reading/correction/removal
+with focused Back; calendar withdrawal and current-day Back; actual damaged-store
+refusal on Why and preserved weight editor; held real decrypt then close with a
+DOM sentinel proving no late paint; same-day source refresh retaining workout,
+check-in and weight DOM/drafts. T2 correction/removal producer fixture follows
+the existing owned scale test, not a claim that correction UI is implemented.
+Existing checks retain real rate threshold/host currentness/authentication,
+shared workout and cache-loss, original owner calendar/offset/reopen and all
+three retained editor behaviors. No original assertion was modified.
+
+  W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe
+  node rebuild/m3/w6/test/local-scale-lifecycle-browser.mjs
+SCALE LIFECYCLE CHROME PASS, exit0. Builds the actual owner bundle via unchanged
+buildToday/buildBrowser and pinned approved design/fonts. Real visible setup and
+weight170, Why keyboard entry, second real browser installation handle saves180
+in same IndexedDB generation while Why remains open; actual foreground callback
+refreshes the page. Old baseline/count are withdrawn, Back and reload agree.
+390/320 document and phone overflow checks pass; no page errors. Desktop Chrome
+is not physical-phone qualification. Only synthetic facts and local127.0.0.1.
+Screenshots visually inspected in .tmp/scale-lifecycle:
+before-why-390.png and after-why-320.png; also retained after-why-390.png.
+Harness serves only known built assets and its synthetic probe, never repo root.
+
+Initial new close fixture attempted to delay a frozen reading method and correctly
+failed; replaced with delay around real crypto.decrypt, without fake return data.
+Initial browser probe used implicit legacy clock and produced a later-than-cutoff
+reading; corrected probe to actual local calendar, retaining genuine as-of rules.
+The check-in draft assertion was corrected to its actual answers() API. Final
+commands above pass; none of these fixture corrections changed product semantics.
+git diff --check PASS. Final delta contains only the four scoped files.
+
+LIMITS / NEXT
+Original75-pass evidence remains under independentbe7fe6b; no repeat broad set.
+Inherited local-host-journey16/17 remains red on guard-count7 versus pinned6;
+later local-kind count3 versus4 remains stale. Original joined95/97 preserves
+old page hash assertion and parent failures. No pin/count edits or reruns here.
+Correction UI, imported blackout mapping, time reclassification, unresolved
+history semantics and all factual scale versus nutrition/physiology limitations
+remain. No extra agent, self-acceptance, private/full campaign, phone/CI claim,
+source-policy edits, other-tree writes, installs, push/PR/merge/deploy or soak.
+Same phone_release_review reviews delta; root accepts; distinct integrator follows.

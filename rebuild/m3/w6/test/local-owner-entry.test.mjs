@@ -59,7 +59,7 @@ test('actual default boot uses persisted setup and wall date without injected da
   assert.deepEqual(page.model.storedReads(),[]);assert.equal(page.model.read().calorieTarget.mid,null);
   assert.equal(page.model.read().proteinTarget.g,null);assert.equal(page.model.read().statusFace.word,'Unknown');
   const text=dom.window.document.getElementById('phone').textContent;
-  assert.match(text,/Synthetic owner setup/);assert.match(text,/Initial-setup projection is not available/);
+  assert.match(text,/Synthetic owner setup/);assert.match(text,/Record a morning weight before noon/);
   assert.doesNotMatch(text,/GREEN|2,300|100%|Synthetic athlete/);
 });
 
