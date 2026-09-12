@@ -132,7 +132,7 @@ function checkExercise(raw, seen) {
    rebuild/engine/energy.cjs:370 `daysUntil(s.blackout.until)`, then — once
    blackout exists — rebuild/engine/energy.cjs:84 `s.model.anchorISO` in bfEst.
    They are not the only two sites: sleep.cjs:358, sleep.cjs:1913 and
-   writers.cjs:427/:917/:1694 read `s.blackout.until` equally unguarded (only
+   writers.cjs:427/:938/:1715 read `s.blackout.until` equally unguarded (only
    today.cjs:228/:282/:409 and sleep.cjs:1879 test for the object first), which
    is why the honest fix is the CONSTRUCTOR's and not a guard at one reader.
    `blackout: {}` is not a fix shape either: daysUntil(undefined) reaches
@@ -172,18 +172,18 @@ function checkExercise(raw, seen) {
    value. Both candidates were driven through the real screen and MEASURED:
      * `lean: null` — `s.model.lean + drip * wks` coerces null to 0, so bfEst
        reports `lean: 0`, proteinTarget reports `g: 0, ffmKg: 0`, and
-       rebuild/m3/w7-preview/today/today-app.cjs:209 (`Number.isFinite(g)`)
+       rebuild/m3/w7-preview/today/today-app.cjs:259/:260 (`Number.isFinite(g)`)
        PRINTS "0 g protein" on Today. Once a bodyweight exists it is worse:
        `pct = ((trend - 0) / trend) * 100` = 100.0% body fat.
      * member absent — every derived figure is non-finite, the same
        `Number.isFinite` gate reads it as no reading, and the slot shows
        "Not available yet". That is the truth: he has no anchor.
-   NaN is not an option: rebuild/engine/writers.cjs:424 `applyRead` round-trips
+   NaN is not an option: rebuild/engine/writers.cjs:425 `applyRead` round-trips
    the state through `JSON.parse(JSON.stringify(...))`, which turns NaN into
    null, so a NaN anchor would silently become the 0 above at the first
    weigh-in. An absent member survives that round trip absent.
    The residue is recorded and routed in rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md
-   (finding F-A): rebuild/engine/energy.cjs:116 proteinTarget has no gated
+   (finding F-A): rebuild/engine/energy.cjs:117 proteinTarget has no gated
    branch of its own, unlike calorieTarget and stepTarget, so it always returns
    a figure. Today's own view layer is what keeps that off the screen. Closing
    it needs an engine edit, which this package does not make.

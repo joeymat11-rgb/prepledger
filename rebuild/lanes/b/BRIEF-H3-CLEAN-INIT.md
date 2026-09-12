@@ -1,4 +1,4 @@
-# BRIEF — M2-H3-CLEAN-INIT · v1.2 (lane B, child of M2-B-NTC)
+# BRIEF — M2-H3-CLEAN-INIT · v1.3 (lane B, child of M2-B-NTC)
 
 **The bundle.** `DECISIONS:124` ruled H3: `createCleanInitState` wrote neither `blackout` nor `model`, so the accepted engine **threw** for a brand-new athlete and Today stood on the preview's sample athlete (S2). `DECISIONS:142` then judged H3's own findings and `:135 (5)` bundled F2's LABEL half into the same seal. This package therefore carries FOUR things: **H3** (the two members), **F-B** (an S2 blocker of its own: the first weigh-in must not make the trend NaN), **F2 LABEL** (`MG_LABEL` region heads), and the **`rebuild.yml` enumeration of `setup.test.mjs`** that `:142 (2)` option (b) rides on H3's seal. Parent: the sealed and INTEGRATED B-NTC artifact `87f4848c…` at `9ad2ecab`, receipt `:141`, integrated at `ce38aa3` (ledger `:144`). `sourceBase` is `ce38aa3`.
 
@@ -11,7 +11,7 @@
 | Reader | Member | Guard | On a clean-init state |
 | --- | --- | --- | --- |
 | `energy.cjs:370` `observedTDEE` | `blackout.until` | **none** | **threw** — the first throw |
-| `sleep.cjs:358`, `:1913`; `writers.cjs:427`, `:917`, `:1694` | `blackout.until` | **none** | would throw |
+| `sleep.cjs:358`, `:1913`; `writers.cjs:427`, `:938`, `:1715` | `blackout.until` | **none** | would throw |
 | `sleep.cjs:1879` `dayWeather` | `blackout.until` | `s.blackout &&` | **`iso <= until`, INCLUSIVE** — §3 |
 | `today.cjs:228`, `:282`, `:409` | `blackout.until` | yes | quiet |
 | `energy.cjs:84` `bfEst` | `model.anchorISO` | **none** | **threw** — the second throw |
@@ -36,12 +36,12 @@
 * **`anchorISO` = `split.from`**; **`drip` = `null`**, the member's own documented absence (`dripOf` tests `d == null` and uses the engine's own `DRIP_DEFAULT`, `constants.cjs:68`, `0.0`); **`src` = `null`**, since every reader compares `=== "DEXA"`.
 * **`lean` is DELIBERATELY NOT WRITTEN** — `:142 (3)` accepts F-A as built. Both candidates were driven through the real screen:
 
-| `model.lean` | `bfEst` | `proteinTarget` | `today-app.cjs:209` `Number.isFinite(g)` | Screen |
+| `model.lean` | `bfEst` | `proteinTarget` | `today-app.cjs:259/:260` `Number.isFinite(g)` | Screen |
 | --- | --- | --- | --- | --- |
 | `null` | `lean: 0` (null coerces) | `g: 0, ffmKg: 0` | **true** | **"0 g protein"** |
 | absent | non-finite | `g: NaN` | false | **"Not available yet"** |
 
-With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100.0 % body fat**. `NaN` is no third option — `applyRead` round-trips through `JSON.parse(JSON.stringify(…))`, turning `NaN` into `null`, i.e. into the `0` above.
+With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100.0 % body fat**. `NaN` is no third option — `applyRead` (`writers.cjs:425`) round-trips through `JSON.parse(JSON.stringify(…))`, turning `NaN` into `null`, i.e. into the `0` above.
 
 **The two `closed()` codes are `STATE_BLACKOUT_MEMBER_SET` / `STATE_MODEL_MEMBER_SET`, deliberately NOT `CLEAN_INIT_*`.** That prefix is the athlete-facing refusal vocabulary: lane C's `setup.test.mjs` S3 asserts every `CLEAN_INIT_*` code this module can throw has a screen sentence and that the table names **exactly** those codes. These two are builder-side invariants over the module's own literals — no setup document any screen can produce reaches them — so minting `CLEAN_INIT_*` codes would have forced lane C to write screen copy for something no athlete can cause. Renaming them keeps S3 green with no edit to lane C's model.
 
@@ -51,7 +51,14 @@ With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100
 
 **The rule, and it needs no owner ruling.** The seed is **the reading itself**: `if (first) s.trend = w;`. It invents nothing, it chooses nothing between alternatives that differ in what they claim about him, and the only number written is the one he typed. It is taken **verbatim rather than rounded**, because rounding would already be changing what he typed; from the second reading on the accepted 1-dp EMA is untouched. `first` is `!Number.isFinite(s.trend)`, so **every state that already carries a trend takes exactly the accepted path** — that is why the 45 laws and the census do not move. The branch runs before the sealed / off-window test: those govern how a reading MOVES an existing trend, not whether a level exists at all. `pt` on that first row is `null`, not `undefined`, because `undefined` would be dropped by the writer's own JSON round trip.
 
-**What the chain reads before a second reading exists** (cell H3/9, all measured): `trend` = the reading · `reads[0].pt` = `null` · `reads[0].note` = `""` (no spike, seal or noise claim against nothing) · `weekly` = `[]` — one reading is not a week · `currentRate.measured` = `false`, `n` = 0 · `latestRead`/`morningRead` = the reading · and **F-A still holds**: `proteinTarget.g`/`bf`/`ffmKg` all non-finite, the protein slots still read "Not available yet". Every digit on the screen is his date, his lift count, or the number he put on the scale. **No invented figure reaches Today.**
+**What the chain reads before a second reading exists** (cell H3/9, all measured, for an **in-window** first read): `trend` = the reading · `reads[0].pt` = `null` · `reads[0].note` = `""` (no spike, seal or noise claim against nothing) · `weekly` = `[]` — one reading is not a week · `currentRate.measured` = `false`, `n` = 0 · `latestRead`/`morningRead` = the reading · and **F-A still holds**: `proteinTarget.g`/`bf`/`ffmKg` all non-finite, the protein slots still read "Not available yet". Every digit on the screen is his date, his lift count, or the number he put on the scale. **No invented figure reaches Today.**
+
+**HELD FOR THE PM — the late or sealed first read (review r1 finding 1).** The branch runs BEFORE the sealed / off-window test, so a first weigh-in seeds the trend even when the row it writes says the reading was set aside. Measured at `hour: 23`: `reads[0].offWindow = true`, `note = "late read — set aside"`, the feed carries `LATE READ — SET ASIDE` — **and `trend = 186.4`**. Sealed first read: `sealed = true`, `note = "sealed — excluded from trend"`, **`trend = 186.4`**. The same two calls on a trend-carrying athlete leave his trend at `187.2`, so two athletes are told the same words and given different arithmetic. It is not a wrong figure — it is still his own number — it is a copy/semantics contradiction, and **which way it resolves is the PM's word, not lane B's**. The seeding rule is therefore UNCHANGED in this revision. The two options, both honest:
+
+* **A — seed regardless of the window** (today's behaviour). A man who weighs himself at 23:00 on his first day has given the app its only reading, and leaving the trend empty shows him nothing until tomorrow. Then the **copy** is what must change: a first read cannot be "set aside" from a trend it *is*.
+* **B — `if (first && !sealed && !offW)`.** The trend stays absent until an in-window reading arrives, the copy stays true exactly as written, and the athlete keeps the F-A surface ("Not available yet") one day longer — which H3/5 already proves is safe, because every derived figure stays non-finite.
+
+Cell **H3/12** documents the current behaviour in both branches and in the differential against a trend-carrying athlete, with one constant (`FIRST_READ_ON_A_SET_ASIDE_ROW`) that flips the assertions the day the answer lands. Nothing else in the suite depends on that path.
 
 ## 5 · F2, LABEL HALF (`DECISIONS:135 (5)`) — AND THE ONE PLACE THE BUNDLE AND THE TREE DISAGREE
 
@@ -59,7 +66,7 @@ With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100
 
     back_lats: "lats" · back_upper: "upper back" · back_traps: "traps" · back_lower: "lower back"
 
-**The leg, arm and core names the bundle also lists are NOT added, and this is a disagreement the PM should see.** They are already the engine's own `mg` labels (`seed.cjs` `mg` values; `setup-model.mjs:26` `MG_LABELS`), so `|| k` renders each of them identically today — an entry would change **no character on any screen**. It would also break lane C's accepted provenance cell `setup.test.mjs` 2.8 row 2, which asserts the engine has no gloss table for the labels first-run collects. Cell H3/11 asserts lane C's own predicate directly so the two cannot drift. If the PM meant those names as *new head keys distinct from the muscle labels*, lane C's catalogue does not yet contain them (grep: the only region-head strings on the tip are the three delt keys), and lane B will add them the moment the catalogue names them. **The INDIRECT half stays with F1** — `INDIRECT` is asserted byte-for-byte unchanged by H3/11.
+**The leg, arm and core names the bundle also lists are NOT added, and this is a disagreement the PM should see.** They are already the engine's own `mg` labels (`seed.cjs` `mg` values; `setup-model.mjs:26` `MG_LABELS`), so `|| k` renders each of them identically today — an entry would change **no character on any screen**. It would also break lane C's accepted provenance cell `setup.test.mjs` 2.8 row 2, which asserts the engine has no gloss table for the labels first-run collects. Cell H3/11 asserts lane C's own predicate directly so the two cannot drift. If the PM meant those names as *new head keys distinct from the muscle labels*, lane C's catalogue does not yet contain them (grep: the only region-head strings on the tip are the three delt keys), and lane B will add them the moment the catalogue names them. **The four heads are INERT on this tree, and that is stated rather than glossed** (review r1 finding 3): no producer sets `e.head` to any of them — `seed.cjs` and `migrate.cjs` set only `delts_side`/`delts_rear` — and the four keys, and the strings "upper back" and "lower back", occur nowhere in the tree but on the `MG_LABEL` line itself. They become reachable only once a producer writes one of these heads onto a lift; until then `MG_LABEL[k] || k` is never consulted for them, no screen changes, and that is precisely why the public census cannot move. The in-tree comment at `constants.cjs:342` now says this too. **The INDIRECT half stays with F1** — `INDIRECT` is asserted byte-for-byte unchanged by H3/11.
 
 ## 6 · HUNKS (sha256, `ce38aa3` → HEAD)
 
@@ -78,7 +85,7 @@ With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100
 
 ## 7 · CELLS — `rebuild/m4/workout/test/h3-clean-init.test.cjs`
 
-**GREEN 11/11, exit 0. RED at the parent: 6/7 with the parent's `athlete-state.cjs`; 4/4 of the new cells (H3/8–11) with the parent's engine files.**
+**GREEN 13/13, exit 0. RED at the parent: 6/7 with the parent's `athlete-state.cjs`; 4/4 of the F-B/F2 cells (H3/8–11) with the parent's engine files.** H3/12 documents a held question and H3/13 guards a CI line, so neither is red-first.
 
 | Cell | Executes | RED |
 | --- | --- | --- |
@@ -93,8 +100,10 @@ With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100
 | **H3/9** | **F-B** the whole trend/pt/weekly chain before a second reading; F-A still holds; no NaN on screen | **yes** |
 | **H3/10** | **F2** `programmeVolume` buckets each new head on its own and `mgLabel` prints its label; a label with no head renders exactly as before; an unknown bucket still falls through | **yes** |
 | **H3/11** | **F2** `INDIRECT` byte-identical; lane C's 2.8-row-2 predicate holds; exactly seven head entries | **yes** |
+| **H3/12** | **HELD (review r1 finding 1)** the late and sealed first read, both branches and the differential against a trend-carrying athlete; one constant flips it when the PM answers | n/a — it documents, it does not assert a fix |
+| **H3/13** | the CI today step names all eight files including `setup.test.mjs`, none globbed, and the eight are exactly what the directory holds | **yes** |
 
-**Mutants — six, each killed by a named cell.** M1 a member removed (H3/1, H3/3) · M2 `until` in the future (H3/2, H3/4) · M3 a copied seed value (H3/2, the H1 rule executed) · M4 a model member renamed (H3/1, H3/3) · M5 `closed()` skipped so the seed's `reason` drifts in (H3/1) · M6 a NaN date, the calendar round-trip guard removed (H3/7). A mutation whose `from` is not present exactly once refuses rather than applying to nothing.
+**Mutants — six, each killed by a named cell.** The killers below are the cells that were EXECUTED against each mutation (review r1 finding 7 corrected the earlier, looser attribution): M1 a member removed → H3/1, 2, 3, 4, 5 · M2 `until` in the future → H3/2, 4 · M3 a copied seed value → H3/2, the H1 rule executed · M4 a model member renamed → H3/1, 2, 3, 4, 5 · M5 `closed()` skipped so the seed's `reason` drifts in → **H3/1 alone** (H3/2 passes under M5) · M6 a NaN date, the calendar round-trip guard removed → H3/7. A mutation whose `from` is not present exactly once refuses rather than applying to nothing. H3/7's own `dies()` predicates witness that each mutation took effect; they do not re-run the killing cell, and the brief does not claim they do.
 
 ## 8 · UNMOVED, AND THE CENSUS
 
@@ -112,7 +121,7 @@ With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100
 
 ## 9 · FINDINGS AND OPEN ITEMS
 
-* **F-A — accepted as built** (`:142 (3)`). `proteinTarget` (`energy.cjs:116`) still has no gated branch of its own; the view layer's `Number.isFinite` gate is what keeps a figure off the screen. H3/5 and H3/9 pin both halves.
+* **F-A — accepted as built** (`:142 (3)`). `proteinTarget` (`energy.cjs:117`) still has no gated branch of its own; the view layer's `Number.isFinite` gate is what keeps a figure off the screen. H3/5 and H3/9 pin both halves.
 * **F-D and F-E — CLOSED by the r8 runner** `1a3d395d80fcdc9c1ccc3a85f118a8feaa2a314d1553d3420dc864d67e66cd00` (`rebuild/lane-b-tooling` `45e5110`, **r8 ACCEPT WITH CHANGES applied**), merged here and re-pinned as `tooling.runnerSha256`. `H3` is admitted with no D-id, and `parentPin()` now reads both artifact shapes. Measured on this head: `PARENT PINS RE-ASSERTED … 53 product pins`, `PRODUCT IMPLEMENTED; 9 at the declared post-image / 0 at the pinned pre-image / 49 carried byte-identical / 0 unlisted drift`, `FIDELITY OBSERVED`, `AUTHORITY OBSERVED owner :60 and contract :49`, `LAWS 45/45 executed`.
 
 * **F-C — GRANTED at `:142`, and the grant's SUPPORT FILE does not reach the gates that refuse. `coverage.successors` is `null`, and this is the one thing H3 cannot close by itself.** The runner derives the admitted gates (`successorGates()`, `b-package.cjs:525`): a parent `byChild` gate qualifies only if the carrier's own **source closure contains the support path as a literal**. `:142` names `rebuild/m3/w6/host/test/journey.test.mjs`. Measured over the real closures:
@@ -123,7 +132,7 @@ With a bodyweight on file `null` is worse: `pct = ((trend-0)/trend)*100` = **100
 | `rebuild/engine/writers.cjs` | **yes** | **yes** | **yes** | **yes** | **yes** | no |
 | `packages/B-NTC.json` | **yes** | **yes** | **yes** | **yes** | **yes** | **yes** |
 
-  So the grant admits **no gate at all**: `journey.test.mjs` is reached only by `b-ntc-journeys.cjs`, and `durable-journeys` is not one of the parent's nine inherited gates. What actually refuses all five inherited carriers is `writers.cjs` — `Unlisted parent pin drift rebuild/engine/writers.cjs`, raised by the shared `preflight()` in `b-ntc-successors.cjs`. **That is a scope question for the PM, not a tooling defect:** `:142`'s F-C grant was written before `:135 (5)` bundled F-B and F2 into this package, and those are what move an engine file the same preflight pins. **The grant needs one more sentence naming `rebuild/engine/writers.cjs` (and `rebuild/engine/constants.cjs`) as support paths**; with that, the five gates are admitted and H3 can declare the successor and enumerate the substitution. Lane B did **not** take either of the two shortcuts available: it did not edit the runner, and it did not rewrite `packages/B-NTC.json`'s posts to its own bytes — that file is a parent execution pin and B-NTC never produced those bytes, so writing them there would forge the parent's own record.
+  So the grant admits **no gate at all**: `journey.test.mjs` is reached only by `b-ntc-journeys.cjs`, and `durable-journeys` is not one of the parent's nine inherited gates. What actually refuses all five inherited carriers is `writers.cjs` — `Unlisted parent pin drift rebuild/engine/writers.cjs`, raised by the shared `preflight()` in `b-ntc-successors.cjs`. **That is a scope question for the PM, not a tooling defect:** `:142`'s F-C grant was written before `:135 (5)` bundled F-B and F2 into this package, and those are what move an engine file the same preflight pins. **The grant needs one more sentence naming `rebuild/engine/writers.cjs` as the support path** — and `rebuild/engine/constants.cjs` must NOT be named, because it is a literal in **no** file under `rebuild/m4/spec` (0 hits) and so admits nothing; `journey.test.mjs` would matter only if `durable-journeys` ever became a gate; with that, the five gates are admitted and H3 can declare the successor and enumerate the substitution. Lane B did **not** take either of the two shortcuts available: it did not edit the runner, and it did not rewrite `packages/B-NTC.json`'s posts to its own bytes — that file is a parent execution pin and B-NTC never produced those bytes, so writing them there would forge the parent's own record.
 
 * **SEAL ON THE TIP (`:135 (4)`, `SEAL_TIP_RULE = 'first-parent'`).** This branch is exactly the case that divides the two settings, and the measurement is: tip `ce38aa3` **is an ancestor of HEAD `f7e0007` (true)** and **is NOT in HEAD's first-parent chain (1447 commits, false)**, because the tip was merged with `git merge --no-ff` as the SECOND parent. Under `'first-parent'` the seal would refuse; under `'ancestor'` it would pass. The check lives at the seal, which neither `--ci` nor `--full` reaches on this head, so it is reported as measured rather than quoted. **Lane B has not rebased** and will not without a ruling.
 * **The two ledger lines this package still owes** (`:135 (2)`, the lane appends them itself once the PM accepts the brief BY NAME): a **THEME** line naming `M2-H3-CLEAN-INIT` and this brief path, and a **BRIEF-BY-SHA** line citing `rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md` by its sha256 and ending in the `ACCEPTED` terminal word, both in the `:122`/`:126` shape with the lineSha in the STATUS line. Until they stand on the chain branch, `brief.acceptedLedgerLine` is `null` and `status` stays `PROPOSED` — neither can be struck off by declaration.

@@ -87,7 +87,7 @@ test('H3/1 - the constructor writes both members and closed() pins each member s
   assert.equal(Object.isFrozen(state.blackout), true);
   assert.equal(Object.isFrozen(state.model), true);
   // And they survive the round trip the engine's own writers make
-  // (rebuild/engine/writers.cjs:424 JSON.parse(JSON.stringify(state))), which
+  // (rebuild/engine/writers.cjs:425 JSON.parse(JSON.stringify(state))), which
   // is why no value in them may be NaN or undefined-as-a-value.
   const round = plainState();
   assert.deepEqual(round.blackout, state.blackout);
@@ -217,7 +217,7 @@ test('H3/5 - Today paints, and shows NO number this athlete has not given it', a
   /* proteinTarget has NO gate of its own (rebuild/engine/energy.cjs:116 — the
      finding F-A in the brief), so it returns a figure whatever the state. What
      keeps an invented number off the screen is that the figure is NOT FINITE,
-     and rebuild/m3/w7-preview/today/today-app.cjs:209 gates on exactly that.
+     and rebuild/m3/w7-preview/today/today-app.cjs:259/:260 gates on exactly that.
      Both halves are asserted, because either one alone would let "0 g" through:
      `model.lean: null` coerces to 0 and prints. */
   assert.equal(Number.isFinite(view.proteinTarget.g), false, 'no protein figure is claimed');
@@ -347,7 +347,7 @@ const MUTANTS = [
   { id: 'M5', name: 'closed() SKIPPED for the new members, so drift reaches the engine',
     from: 'const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, \'STATE_BLACKOUT_MEMBER_SET\');',
     to: 'const blackout = { until: dayBefore(split.from), reason: \'wedding fortnight\' };',
-    killedBy: 'H3/1 (Reflect.ownKeys equals the declared set) and H3/2',
+    killedBy: 'H3/1 (Reflect.ownKeys equals the declared set) alone - executed, M5 passes H3/2',
     dies: mutated => {
       const s = mutated.createCleanInitState({ setup: SETUP });
       assert.deepEqual(Reflect.ownKeys(s.blackout), ['until', 'reason'],
@@ -422,7 +422,6 @@ test('H3/8 - first weigh-in on a clean-init athlete: trend finite and equal to t
   const two = E.applyRead(one, offsetDay(DAY, 1), 184.9, { hour: 8 });
   const expected = +(186.4 + 0.3 * Math.max(-1.5, Math.min(1.5, 184.9 - 186.4))).toFixed(1);
   assert.equal(two.trend, expected, 'the accepted EMA, unchanged, from the second reading on');
-  assert.equal(two.trend, 185.95 === expected ? expected : two.trend);
   assert.equal(two.reads[1].pt, 186.4, 'and the second row carries the real prior trend');
 
   /* AN ATHLETE WHO ALREADY HAS A TREND IS UNTOUCHED — the branch is reached
@@ -541,4 +540,94 @@ test('H3/11 - the LABEL half changes no other engine behaviour, and the INDIRECT
     assert.equal(new RegExp('\\b' + label + ':').test(body), false,
       label + ' is a muscle label, not a head: `MG_LABEL[k] || k` already renders it as itself');
   assert.equal((body.match(/:/g) || []).length, 7, 'exactly seven head entries: three delt, four back');
+});
+
+/* ============ H3/12 — THE HELD QUESTION (review r1 finding 1, PM ITEM) ============
+   F-B's first-read branch runs BEFORE the sealed / off-window test, so a FIRST
+   weigh-in seeds the trend even when the row it writes says the reading was set
+   aside. The reviewer measured the contradiction and it is real: the row says
+   "late read — set aside" and the feed says "LATE READ — SET ASIDE", and the
+   trend is that reading. The SEEDING RULE IS NOT CHANGED HERE — DECISIONS:142
+   (3) ruled it in, and which way the contradiction resolves is the PM's word.
+
+   This cell DOCUMENTS the behaviour instead of arguing it, in the exact shape
+   that lets one assertion flip either way once the answer lands:
+
+     OPTION A (today's behaviour) — seed regardless of the window. A man who
+       weighs himself at 23:00 on his first day has given the app its only
+       reading; leaving the trend empty would show him nothing until tomorrow.
+       The copy is then what must change: a first read is not "set aside" from a
+       trend it IS.
+     OPTION B — `if (first && !sealed && !offW)`. The trend stays absent until an
+       IN-WINDOW reading arrives, the copy stays true as written, and the
+       clean-init athlete keeps the F-A surface ("Not available yet") one day
+       longer. Every figure stays non-finite in the meantime, which H3/5 already
+       proves is safe.
+
+   Whichever the PM picks, `ANSWER` below changes and the assertions follow it.
+   Nothing else in this suite depends on the late/sealed path. */
+const FIRST_READ_ON_A_SET_ASIDE_ROW = 'A';   // 'A' = seed regardless (today) · 'B' = in-window only
+
+test('H3/12 - a first weigh-in that is late or sealed: what the trend does, and what the row says', () => {
+  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
+  const seeds = FIRST_READ_ON_A_SET_ASIDE_ROW === 'A';
+
+  /* IN WINDOW — not the held case, and unaffected by the answer. */
+  const inWindow = E.applyRead(plainState(), DAY, 186.4, { hour: 8 });
+  assert.equal(inWindow.trend, 186.4);
+  assert.equal(!!inWindow.reads[0].offWindow, false);
+  assert.equal(inWindow.reads[0].sealed, false);
+  assert.equal(inWindow.reads[0].note, '', 'nothing is claimed about a reading with nothing to compare to');
+
+  /* LATE (off-window) FIRST READ. */
+  const late = E.applyRead(plainState(), DAY, 186.4, { hour: 23 });
+  assert.equal(late.reads[0].offWindow, true, 'the row is marked off-window');
+  assert.equal(late.reads[0].note, 'late read — set aside', 'and it says so');
+  assert.equal((late.feed[0] || {}).t, 'LATE READ — SET ASIDE', 'and the feed repeats it');
+  assert.equal(Number.isFinite(late.trend), seeds,
+    seeds ? 'OPTION A: it seeds the trend anyway — the contradiction the PM is being asked about'
+      : 'OPTION B: the trend stays absent until an in-window reading arrives');
+  if (seeds) assert.equal(late.trend, 186.4, 'and the trend IS the reading the row calls set aside');
+  else assert.equal(Object.hasOwn(late, 'trend'), false);
+
+  /* SEALED FIRST READ — a blackout in force on day one. A clean-init athlete
+     cannot reach this by himself (H3/4 proves no blackout is in force), so the
+     state is built by hand and said to be built by hand. */
+  const sealedState = { ...plainState(), blackout: { until: offsetDay(DAY, 13) } };
+  const sealed = E.applyRead(sealedState, DAY, 186.4, { hour: 8 });
+  assert.equal(sealed.reads[0].sealed, true, 'the row is marked sealed');
+  assert.equal(sealed.reads[0].note, 'sealed — excluded from trend', 'and it says EXCLUDED FROM TREND');
+  assert.equal(Number.isFinite(sealed.trend), seeds,
+    seeds ? 'OPTION A: it is nonetheless the trend' : 'OPTION B: it really is excluded');
+  if (seeds) assert.equal(sealed.trend, 186.4);
+
+  /* THE DIFFERENTIAL THAT MAKES IT A CONTRADICTION AND NOT A CHOICE OF DEFAULT:
+     an athlete who already HAS a trend is left alone by both hours, so the two
+     athletes are told the same words and given different arithmetic. */
+  const carried = { ...plainState(), trend: 187.2 };
+  assert.equal(E.applyRead(carried, DAY, 186.4, { hour: 23 }).trend, 187.2,
+    'a trend-carrying athlete: the late read really is set aside');
+  assert.equal(E.applyRead({ ...carried, blackout: { until: offsetDay(DAY, 13) } }, DAY, 186.4, { hour: 8 }).trend,
+    187.2, 'and a sealed read really is excluded');
+});
+
+/* ====== H3/13 — the rebuild.yml enumeration DECISIONS:142 (2)(b) rides on H3 ======
+   Review r1 PM ITEM: nothing in the tree asserts it. The only workflow cell,
+   conform/v4/postfix/test/ci-second-gate.test.cjs, is stale-RED at this head AND
+   at ce38aa3 (pre-existing, not an H3 regression), so H3 carries its own. */
+test('H3/13 - the CI today step enumerates setup.test.mjs, named and not globbed', () => {
+  const yml = readRepo('.github/workflows/rebuild.yml');
+  const step = yml.split('\n').find(l => l.trim().startsWith('run: node --test') && l.includes('w7-preview/today/test/adapter.test.mjs'));
+  assert(step, 'the today step is still one `run:` line naming its files');
+  const FILES = ['adapter.test.mjs', 'checkin.test.mjs', 'design.test.cjs', 'gym.test.mjs',
+    'ntc-h6-delta.test.mjs', 'package.test.cjs', 'setup.test.mjs', 'view.test.mjs'];
+  for (const f of FILES)
+    assert(step.includes('rebuild/m3/w7-preview/today/test/' + f), f + ' is named in the today step');
+  assert.equal(/[*?]/.test(step), false, 'every file is named rather than globbed, as the step has always said');
+  /* And the eight named there are exactly the eight that exist, so a file added
+     under that directory cannot acquire a CI home by accident or lose one. */
+  const onDisk = fs.readdirSync(path.join(REPO, 'rebuild/m3/w7-preview/today/test'))
+    .filter(n => /\.test\.(mjs|cjs)$/.test(n)).sort();
+  assert.deepEqual(onDisk, FILES.concat('copy.test.mjs').sort(),
+    'the directory holds the eight enumerated files plus copy.test.mjs (A4 own, enumerated by lane C)');
 });

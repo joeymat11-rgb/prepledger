@@ -5,7 +5,7 @@
   "status": "PROPOSED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-H3-CLEAN-INIT.md",
-    "sha256": "1e7ba4220402c39868089a23981f13537549c6ed5324cb5dc94ca4a354e74f3f",
+    "sha256": "60567b60b42844b9104e7bbaa910f142beb45ac6f8743c2fceafae0607ae91d1",
     "acceptedLedgerLine": null
   },
   "sourceBase": "ce38aa3bd174c94526e01fb5056df850ad322b80",
@@ -92,7 +92,7 @@
     },
     "rebuild/engine/constants.cjs": {
       "pre": "954e4f4bb7d478f880c2421f24d2340c2aab5461c5995bcb9181526def44005c",
-      "post": "e387579f575989100be8aca8062a713c9f314f5653a598a7afc544a3ecfcc34f",
+      "post": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
       "role": "edited"
     },
     "rebuild/engine/dates.cjs": {
@@ -317,7 +317,7 @@
     },
     "rebuild/m4/workout/athlete-state.cjs": {
       "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
-      "post": "cdf51db8b956fb138dea9e394fd7da3fe11de4cdf1a89d17ceb9faa4815df124",
+      "post": "e1e05a633a6007417b7d1c07d2de2ca7065cf7943fe1f07076d2e6d9c7120acc",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
@@ -327,7 +327,7 @@
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "62f6651f0836b92d3cc135a3491743d8ee808ea99639c8ec6d26ebfa13e0c943",
+      "post": "f1a29705da91d4ada1a407302ac980268dc6fe19b2dfdd017f4f2d7dff9d2929",
       "role": "new"
     }
   },

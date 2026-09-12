@@ -336,8 +336,17 @@ const INDIRECT = { press: { triceps: 0.5, delts: 0.5 }, rows: { biceps: 0.5 }, p
    entry here or it prints its own key; a bare muscle label needs none, because
    for those the key already IS the word people read.
    The four added below are the BACK region's heads, keyed `<muscle>_<head>`
-   exactly as the three delt heads already are, carrying the label strings lane
-   C's catalogue uses. The leg, arm and core heads the bundle also names are
+   exactly as the three delt heads already are.
+   THEY ARE INERT ON THIS TREE, and saying so is the point. No producer sets
+   `e.head` to any of them: seed.cjs and migrate.cjs set only `delts_side` and
+   `delts_rear`, and lane C's catalogue does not name them either — grep over
+   rebuild/m3/w7-preview/today, rebuild/lanes/c/dad-first-run and rebuild/engine
+   finds these four keys, and the strings "upper back" and "lower back", nowhere
+   but on the line below. So the table is reachable only once some producer
+   writes one of these heads onto a lift; until then `MG_LABEL[k] || k` is never
+   consulted for them and no screen changes. That is also exactly why the public
+   census cannot move, which the package proves by running it both ways.
+   The leg, arm and core heads the bundle also names are
    ALREADY the engine's own muscle labels (rebuild/engine/seed.cjs `mg` values;
    rebuild/m3/w7-preview/today/setup-model.mjs:26 MG_LABELS), so `|| k` renders
    every one of them identically today and an entry would change no character on
