@@ -2,11 +2,16 @@
   "version": 1,
   "lanePackage": "B-NTC",
   "packageId": "M2-B-NTC-NATIVE-TREND-CONTEXT",
-  "status": "PROPOSED",
+  "status": "BRIEF-ACCEPTED",
   "brief": {
     "file": "rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md",
     "sha256": "4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c",
-    "acceptedLedgerLine": null
+    "acceptedLedgerLine": {
+      "ledgerLine": 126,
+      "role": "cowork",
+      "line": "- 2026-09-11 · cowork · BRIEF ACCEPTED BY SHA for M2-B-NTC-NATIVE-TREND-CONTEXT: rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md, sha256 4aa94069d5a8680181618825f3294334d9768acf960daa58c1e137fc6106572c (125275 bytes), is the brief of record. It is the DECISIONS:108 (a) brief (sha256 prefix 0ba59cca) grown ONLY by the amendments its own v1.3 header table lists: the r1 fixes, the :109 obligations and enumeration, the C4 join, the :113 (1) successor carriers, the B-NTC-REVIEW-r2 changes, the :117 (4) C5 CI step and the B-NTC-REVIEW-r3 prose corrections R1 and R2. DECISIONS:113 (2) re-accepted it by name and left the binding sha256 to lane B; this line carries that sha256 and is the citation brief.acceptedLedgerLine cites · ACCEPTED",
+      "lineSha256": "fc4bfef5ff1796ec7deec214c0f2c7550a2d4d6d4b2b8018344b190b5c5bd5e1"
+    }
   },
   "sourceBase": "7b1678a4a8449053000d52a0a8e9e070f32a240e",
   "dIds": [],
@@ -407,7 +412,12 @@
       "line": "- 2026-09-06 · cowork · POSTFIX-GATE BRIEF (PR #34, rebuild/m2-postfix-brief @ 45d52cb, base 811d1c0; exactly two Markdown files under rebuild/m2; no code, queue, ledger or dependency change) ACCEPTED as the successor-acceptance CONTRACT for the first repair package (D33/D34/D35 import guards, 8+3+2 = 13 estimated hours per the register) — resolves the successor-gate portion of OPEN-FIX/OPEN-V4 only; M2-FIX still needs the owner's own disposition and the theme's behaviour/delta brief; no runner exists yet and the first implemented run must report BASELINE PASS / FIXES PENDING. Checked against the real sources: every citation is exact (run-defect-laws.cjs 27–33 key-sorting snapshot and 46–70 inspect/parity; helpers.cjs 31–58 B adapter forms and patch/__auditOriginal; migrate-source 15–37, merge-source 21–24, writers-source 32–34 whole-module pins; second-gate.mjs 40–54/108–144/159–163; engine-test.jsx 8388–8391 migrate(null) → isPristineSeed true; second-gate-carrier 46–49 ghSync and 155–157 marker; app.jsx @ fe516c1 13242–13251 restore, 13270–13272 boot, 16217 pristine9, 22161–22174 forced-import policy; frozen source blob f98671d823f0d8cd83e730cdd930afe5f5e7b628; the three V4 law ids exist; the D34 seed does Object.assign(T.SEED, …) so it cannot serve as the unmodified-SEED positive; 0c3e7ce:rebuild/t3/REPORT-CLAUDE.md §6 retrievable). The mechanics are sound and fail-closed: the original 45-law runner, seeds, goldens, oracle and second gate stay untouched; a separately named runner under rebuild/conform/v4/postfix with BASELINE/PACKAGE phases; per-ID disposition UNRULED/APPROVED-FIX/KEEP/DEFER filled only from recorded rulings, PRESENT only with APPROVED-FIX, exit 2 without authorization; on-disk mutants in disposable copies executed in fresh processes; every output difference must match exactly one reviewed delta, no wildcard; any delta reaching a census value, receipt, assertion site or DTO stops for a scoped expectation amendment; unapproved incidental changes = UNAPPROVED-DELTA blocker. TWO ADDITIONS, binding for the implementation (not a re-review of the docs): (1) authorization citations are verified mechanically — the manifest pins each cited owner/cowork ledger line by its sha256 and the runner confirms that exact line is present in rebuild/DECISIONS.md at candidateBase (git show), a citation file's existence proves nothing; (2) the queued non-D obligations are enumerated in the manifest as fixed IDs with their source (ledger line / report section) — \"later received\" objections enter only through a successor manifest version. cowork's own practice from here: the M2-RULE line will enumerate every approved ID explicitly so per-ID citations resolve. Dry-run: 45d52cb merges cleanly onto the W5-merged tree; scope-package PASS/PASS · rebuild/m2/BRIEF-POSTFIX-GATE.md · OPEN-FIX gate contract DONE; M2-RULE awaiting the owner",
       "lineSha256": "f14f5e9280bc4a4316757ccfb5ed68e57152f8913bbe6979d6c1ad4f2cefac52"
     },
-    "theme": null,
+    "theme": {
+      "ledgerLine": 122,
+      "role": "cowork",
+      "line": "- 2026-09-11 · cowork · THEME M2-B-NTC-NATIVE-TREND-CONTEXT — the qualified nativeTrendContext provider, DECISIONS:103 (1) first in the lane-B chain and the S2 blocker. Its behaviour/delta contract is rebuild/lanes/b/BRIEF-B-NTC-NATIVE-TREND-CONTEXT.md; its parent is M2-NATIVE-CARRIERS, rebuild/m4/spec/acceptance-native-carriers.json sha256 e940359b684b90e2e92ae325a86c018f91a7aa27bec7c5466165116657c2201a, whose engine-runtime.cjs and rebuild.yml execution pins this child supersedes under DECISIONS:109 PATH A. This line is the THEME citation the seal runner requires; it authorises no PASS word by itself · ACCEPTED",
+      "lineSha256": "3ca8bf169fe96f3cd0ec51ea68b1406e76fdaa11d67e38cadb0559319d272384"
+    },
     "review": {
       "role": "cowork",
       "prefix": "POSTFIX-ACCEPTANCE M2-B-NTC-NATIVE-TREND-CONTEXT",
