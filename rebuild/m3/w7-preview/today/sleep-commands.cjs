@@ -1,0 +1,150 @@
+"use strict";
+
+/* sleep-commands.cjs - N2's CLOSED command: one completed night becomes ONE operation
+   of rebuild/client's own envelope. Kind "fact", class "sleep" - both already members
+   of the accepted rebuild/client/ops.cjs KINDS and CLASSES lists (`:19-20`), so this
+   lane writes the accepted class for exactly this fact and edits no client byte.
+
+   NOTHING HERE INTERPRETS A NIGHT. There is no score, no debt, no target and no
+   derived figure in the payload: it is the athlete's own answer for one night, in one
+   of exactly two shapes. The HOURS a pair of clock times comes to is not computed
+   here at all - the projector asks the engine's own writers.cjs sleepSpanH for it
+   (N2 brief, "the preview/result h comes ONLY from E.sleepSpanH").
+
+   SEAM S2 IS WHY THE PROJECTOR BUILDS THE ROW. Unlike N1, where writers.cjs already
+   had writeDaily, the engine has NO function that appends a sleep night; DECISIONS:107
+   names that absence and checkin-model.mjs:89 states it in the product's own words. So
+   sleep-model.cjs constructs the `{d, h, bed?, wake?, awakeMin?}` row itself, in the
+   ARRAY shape rebuild/engine/sleep.cjs already reads. */
+
+const PROFILE = "earned/sleep-night/v1";
+const ACTION = "sleep-night";
+const OP_CLASS = "sleep";
+const OP_KIND = "fact";
+
+/* THE BOUNDS ARE INVENTED (N2 brief, "Exact copy and states"): nothing upstream bounds
+   an entered duration. 0 to 24 INCLUSIVE follows A3's own 0..24 precedent, and an
+   explicit 0 is a legitimate answer - a blank is unknown and is refused in words
+   rather than becoming a zero. Two decimals is sleepSpanH's own precision. */
+const HOURS_MIN = 0;
+const HOURS_MAX = 24;
+const HM_RE = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+const TIME_MEMBERS = Object.freeze(["bed", "wake", "awake_min"]);
+const MEMBERS = Object.freeze(["date", "hours", "bed", "wake", "awake_min", "from_checkin_op_id"]);
+
+const isMap = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+const bad = () => { throw new TypeError("SLEEP_INPUT_INVALID"); };
+
+/* A calendar-valid date, refused rather than normalised: "2026-02-30" is not a night. */
+function isRealDate(iso) {
+  if (!DAY_RE.test(iso)) return false;
+  const [y, m, d] = iso.split("-").map(Number);
+  const when = new Date(Date.UTC(y, m - 1, d));
+  return when.getUTCFullYear() === y && when.getUTCMonth() === m - 1 && when.getUTCDate() === d;
+}
+
+const minutesOf = (hm) => { const [h, m] = hm.split(":").map(Number); return h * 60 + m; };
+/* The span in WHOLE MINUTES, so an awake answer is compared against the same integer
+   the athlete typed rather than against a rounded decimal hour (N2 brief). */
+function spanMinutes(bed, wake) {
+  let span = minutesOf(wake) - minutesOf(bed);
+  if (span <= 0) span += 1440;
+  return span;
+}
+
+const twoDecimals = (value) => Math.round(value * 100) === Number((value * 100).toFixed(6));
+
+/* One night's answer, validated member by member. Returns a fresh object holding ONLY
+   the members actually given, in exactly one of the two accepted shapes. */
+function nightOf(input) {
+  if (!isMap(input)) bad();
+  for (const key of Object.keys(input)) if (!MEMBERS.includes(key)) bad();
+  if (typeof input.date !== "string" || !isRealDate(input.date)) bad();
+  const out = { date: input.date };
+
+  const hasHours = Object.hasOwn(input, "hours");
+  const hasBed = Object.hasOwn(input, "bed");
+  const hasWake = Object.hasOwn(input, "wake");
+  const hasAwake = Object.hasOwn(input, "awake_min");
+  const hasSource = Object.hasOwn(input, "from_checkin_op_id");
+
+  /* EXACTLY ONE SHAPE. Both at once, a lone time, or awake minutes with no times are
+     each refused before anything is written. */
+  if (hasHours && (hasBed || hasWake || hasAwake)) bad();
+  if (!hasHours && !(hasBed && hasWake)) bad();
+  if ((hasBed && !hasWake) || (hasWake && !hasBed)) bad();
+
+  if (hasHours) {
+    const hours = input.hours;
+    if (typeof hours !== "number" || !Number.isFinite(hours)) bad();
+    if (hours < HOURS_MIN || hours > HOURS_MAX) bad();
+    if (!twoDecimals(hours)) bad();
+    out.hours = hours;
+    /* The check-in reference travels only with a duration COPIED from a check-in. */
+    if (hasSource) {
+      if (typeof input.from_checkin_op_id !== "string" || !input.from_checkin_op_id.trim()) bad();
+      out.from_checkin_op_id = input.from_checkin_op_id;
+    }
+    return out;
+  }
+
+  if (hasSource) bad();
+  if (typeof input.bed !== "string" || !HM_RE.test(input.bed)) bad();
+  if (typeof input.wake !== "string" || !HM_RE.test(input.wake)) bad();
+  /* EQUAL TIMES ARE REFUSED, never accepted as a full day: sleepSpanH wraps a zero
+     span to 1440 minutes, so "23:00 to 23:00" would silently become 24 hours. The
+     screen offers the hours mode for a clock-change night instead. */
+  if (input.bed === input.wake) bad();
+  out.bed = input.bed;
+  out.wake = input.wake;
+  if (hasAwake) {
+    const awake = input.awake_min;
+    if (typeof awake !== "number" || !Number.isFinite(awake) || !Number.isInteger(awake)) bad();
+    if (awake < 0 || awake > spanMinutes(input.bed, input.wake)) bad();
+    out.awake_min = awake;
+  }
+  return out;
+}
+
+function prepare(request) {
+  if (!isMap(request) || Object.keys(request).length !== 2
+    || request.action !== ACTION || !isMap(request.input)) bad();
+  const input = request.input;
+  for (const key of Object.keys(input)) if (key !== "night" && key !== "effective") bad();
+  const action = { class: OP_CLASS, kind: OP_KIND,
+    payload: { profile: PROFILE, night: nightOf(input.night) },
+    parents: [] };
+  if (Object.hasOwn(input, "effective")) {
+    const e = input.effective;
+    if (!isMap(e) || Object.keys(e).length !== 3
+      || !["local_date", "local_time", "utc_offset"].every((k) => typeof e[k] === "string")) bad();
+    action.effective = { local_date: e.local_date, local_time: e.local_time, utc_offset: e.utc_offset };
+  }
+  return action;
+}
+
+/* The shape the client re-checks on the envelope it actually built, after its own
+   Ops.build. It re-derives nothing. */
+function validate(op, readOperation) {
+  if (!op || op.kind !== OP_KIND || op.class !== OP_CLASS) return false;
+  if (!op.effective || !DAY_RE.test(op.effective.local_date)) return false;
+  if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.night)) return false;
+  if (Object.keys(op.payload).length !== 2) return false;
+  try { nightOf(JSON.parse(JSON.stringify(op.payload.night))); } catch { return false; }
+  if (!Array.isArray(op.causal_parents)) return false;
+  for (const id of op.causal_parents) {
+    const parent = readOperation(id);
+    if (!parent || parent.athlete_id !== op.athlete_id) return false;
+  }
+  return true;
+}
+
+function createSleepCommands() {
+  /* schemaVersion 2 is the accepted client's requirement for a producer-injected
+     command, and this device's local era carries exactly one lease at that schema. */
+  return Object.freeze({ schemaVersion: 2, prepare, validate });
+}
+
+module.exports = { createSleepCommands, prepare, validate, nightOf, isRealDate, spanMinutes,
+  PROFILE, ACTION, OP_CLASS, OP_KIND, HOURS_MIN, HOURS_MAX, HM_RE, DAY_RE, MEMBERS, TIME_MEMBERS };
