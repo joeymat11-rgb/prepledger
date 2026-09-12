@@ -41,7 +41,7 @@ const Module = require('node:module');
 const { webcrypto } = require('node:crypto');
 
 const AthleteState = require('../athlete-state.cjs');
-const { createCleanInitState, BLACKOUT_MEMBERS, MODEL_MEMBERS, REQUIRED_SETUP } = AthleteState;
+const { createCleanInitState, BLACKOUT_MEMBERS, MODEL_MEMBERS, SLEEP_MEMBERS, REQUIRED_SETUP } = AthleteState;
 const TodayModel = require('../../../m3/w7-preview/today/today-model.cjs');
 const { createTodayModel } = TodayModel;
 const { createTodayEngine } = require('../../../m3/w7-preview/today/today-engine.cjs');
@@ -367,9 +367,20 @@ const MUTANTS = [
       const s = mutated.createCleanInitState({ setup: bad });
       assert.equal(s.blackout.until, '2026-03-01', 'the mutant normalises 2026-02-30 into March behind the athlete\'s back');
     } },
+  { id: 'M7', name: 'sleep.needed COPIED from the seed instead of read from the engine (seed.cjs:80)',
+    from: "require('../../engine/constants.cjs')().SLEEP_ANCHOR_MIN_N", to: '3',
+    killedBy: 'H3/S1 (the value IS read from the engine, and the module types no digit)',
+    dies: mutated => {
+      const s = mutated.createCleanInitState({ setup: SETUP });
+      assert.equal(s.sleep.needed, 3, 'the mutant produces the same number TODAY, which is why a value test alone would miss it...');
+      const mutatedSrc = fs.readFileSync(STATE_FILE, 'utf8')
+        .replace("require('../../engine/constants.cjs')().SLEEP_ANCHOR_MIN_N", '3');
+      assert.equal(/require\('\.\.\/\.\.\/engine\/constants\.cjs'\)\(\)\.SLEEP_ANCHOR_MIN_N/.test(mutatedSrc), false,
+        '...but it no longer reads the engine constant, so if the engine moved the number this state would silently not - exactly what H3/S1 refuses');
+    } },
 ];
 
-test('H3/7 - six named mutants, each of them killed by a named cell', () => {
+test('H3/7 - seven named mutants, each of them killed by a named cell', () => {
   const original = fs.readFileSync(STATE_FILE, 'utf8');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'h3-mutants-'));
   try {
@@ -382,11 +393,102 @@ test('H3/7 - six named mutants, each of them killed by a named cell', () => {
       const m = new Module(file, module);
       m.filename = file;
       m.paths = Module._nodeModulePaths(dir);
+      /* The mutant is compiled OUTSIDE the repository, so its own relative
+         specifiers — athlete-state.cjs reads the engine's constants through
+         one (H3/S1) — are resolved against the REAL module's directory
+         instead. Nothing enters the require cache of the mutant, and the
+         modules it reaches are the real ones, unmutated, which is the point:
+         only the bytes under test differ. */
+      const normal = m.require.bind(m);
+      m.require = name => (name.startsWith('.')
+        ? require(path.resolve(path.dirname(STATE_FILE), name))
+        : normal(name));
       m._compile(fs.readFileSync(file, 'utf8'), file);
       mutant.dies(m.exports);
     }
-    assert.equal(MUTANTS.length, 6, 'six named mutants, no fewer');
+    assert.equal(MUTANTS.length, 7, 'seven named mutants, no fewer');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+/* ============ H3/S1 - `sleep.needed`, lane C's H3-class finding (REQUESTS 04:11 (1)) ======
+   RED-FIRST. The pre-image shape is `sleep: { nights: [] }` with `needed`
+   ABSENT, and this cell asserts the defect on that shape before it asserts the
+   fix on ours, so the cell is red on the parent's athlete-state.cjs and green
+   on this one. Nothing here reads rebuild/engine/seed.cjs. */
+test('H3/S1 - sleep.needed is the engine\'s own constant, and four unguarded readers stop printing `undefined`', () => {
+  const E = createTodayEngine({ clock: TodayModel.engineClockFor(DAY) });
+  const state = plainState();
+
+  /* (1) THE MEMBER SET IS PINNED, like blackout and model. */
+  assert.deepEqual(Reflect.ownKeys(state.sleep).sort(), SLEEP_MEMBERS.slice().sort(),
+    'the sleep object is closed over exactly the declared names');
+  assert.deepEqual(state.sleep.nights, [], 'no night is seeded');
+
+  /* (2) THE VALUE IS THE ENGINE'S, READ OUT OF THE ENGINE. Not a literal in
+     athlete-state.cjs and not a copy of seed.cjs's `sleep.needed: 3`. */
+  const K = require('../../../engine/constants.cjs')();
+  assert.equal(state.sleep.needed, K.SLEEP_ANCHOR_MIN_N,
+    'sleep.needed IS rebuild/engine/constants.cjs SLEEP_ANCHOR_MIN_N');
+  assert.equal(state.sleep.needed, AthleteState.SLEEP_NEEDED);
+  assert.equal(typeof state.sleep.needed, 'number');
+  assert(Number.isInteger(state.sleep.needed) && state.sleep.needed >= 1,
+    'a reachable target: a run of at least one night');
+  /* The H1 rule, executed: this module never names the seed, and the value is
+     not typed as a digit beside the member either. */
+  const src = readRepo('rebuild/m4/workout/athlete-state.cjs');
+  assert.equal(/require\([^)]*seed\.cjs/.test(src), false, 'athlete-state.cjs never reads the seed');
+  assert(/closed\(\{ nights: \[\], needed: SLEEP_NEEDED \}/.test(src),
+    'the member is written from the engine-read constant, never from a literal');
+  assert(/require\('\.\.\/\.\.\/engine\/constants\.cjs'\)\(\)\.SLEEP_ANCHOR_MIN_N/.test(src),
+    'the value is READ from the engine at load time - a literal here could drift from it silently (mutant M7)');
+
+  /* (3) WHAT THE READERS EXPECT FOR ZERO NIGHTS IS UNCHANGED. */
+  assert.deepEqual(E.atSleepTarget(state, null), { run: 0, at: false },
+    'sleep.cjs:1053 - not at a sleep target he has no nights for');
+  assert.equal(E.sleepInfo(state).need, state.sleep.needed, 'sleep.cjs:1903 need is a number, not undefined');
+  assert.equal(E.fiveLevers(state).sleep.detail, '99 nights dark — can\'t read',
+    'today.cjs:264 - with no night at all the dark branch answers, as before');
+
+  /* (4) THE DEFECT, MEASURED ON THE PRE-IMAGE SHAPE AND GONE ON OURS.
+     One night on the record takes today.cjs:266 out of the dark branch. */
+  const night = { d: offsetDay(DAY, -1), h: 6.1 };
+  const withNight = JSON.parse(JSON.stringify(state)); withNight.sleep.nights = [night];
+  const preImage = JSON.parse(JSON.stringify(withNight)); delete preImage.sleep.needed;
+
+  assert.equal(E.fiveLevers(preImage).sleep.detail, '0/undefined clean',
+    'RED: the parent shape puts the word undefined on the SLEEP lever');
+  assert.equal(E.fiveLevers(withNight).sleep.detail, '0/' + state.sleep.needed + ' clean',
+    'GREEN: ours prints a number he can count towards');
+  assert.equal(E.sleepInfo(preImage).need, undefined,
+    'RED: sleep.cjs:1903 hands its caller `need: undefined` on the parent shape');
+  assert.equal(Object.hasOwn(JSON.parse(JSON.stringify(E.sleepInfo(preImage))), 'need'), false,
+    'RED: and JSON.stringify DROPS the member, so a host reading the projection sees no `need` at all');
+  assert.equal(E.sleepInfo(withNight).need, state.sleep.needed, 'GREEN: a number that survives the round trip');
+  assert.equal(JSON.parse(JSON.stringify(E.sleepInfo(withNight))).need, state.sleep.needed, 'GREEN');
+  /* recoveryIndex is where the NaN was: `Math.min(3, undefined - 0) * 10`. */
+  const reason = s => JSON.stringify(E.recoveryIndex(s));
+  assert(/0 of undefined clean nights/.test(reason(preImage)), 'RED: "0 of undefined clean nights"');
+  assert(/NaN more nights/.test(reason(preImage)), 'RED: and a NaN count of nights owed');
+  assert.equal(/undefined clean nights|NaN more nights/.test(reason(withNight)), false,
+    'GREEN: neither survives');
+  assert(/3 more nights/.test(reason(withNight)), 'GREEN: three named nights owed');
+
+  /* (5) F-G IS OPEN AND THIS CELL HOLDS IT OPEN. `sleep.cleanH` is still
+     absent - the engine states two different defaults for it (7.5 at
+     sleep.cjs:1071, 8 at sleep.cjs:925) so there is no single honest value -
+     and the measured consequence is that the clean-night RUN cannot advance.
+     Recorded here so it cannot be forgotten, and so that closing it turns this
+     assertion red rather than passing unnoticed. */
+  const slept = JSON.parse(JSON.stringify(state));
+  slept.sleep.nights = [-3, -2, -1].map(k => ({ d: offsetDay(DAY, k), h: 8.3 }));
+  assert.equal(Object.hasOwn(slept.sleep, 'cleanH'), false, 'F-G: cleanH is deliberately not written');
+  assert.deepEqual(E.atSleepTarget(slept, null), { run: 0, at: false },
+    'F-G, measured: three clean 8.3 h nights still count as a run of 0, because sleep.cjs:1051 compares against an absent cleanH');
+  /* And it is NOT on Today's own projection, which is why F-G is an open
+     finding and not an S2 blocker: the view carries no `undefined` text. */
+  const view = createTodayModel({ today: DAY, basisState: withNight }).read();
+  assert.equal(/undefined/.test(JSON.stringify(view)), false,
+    'no reader in the Today projection prints undefined on this state');
 });
 
 /* ====================== F-B — THE FIRST WEIGH-IN (DECISIONS:142 (3)) ======================
@@ -626,6 +728,21 @@ test('H3/13 - the CI today step enumerates setup.test.mjs, named and not globbed
      under that directory cannot acquire a CI home by accident or lose one. */
   const onDisk = fs.readdirSync(path.join(REPO, 'rebuild/m3/w7-preview/today/test'))
     .filter(n => /\.test\.(mjs|cjs)$/.test(n)).sort();
-  assert.deepEqual(onDisk, FILES.concat('copy.test.mjs').sort(),
-    'the directory holds the eight enumerated files plus copy.test.mjs (A4 own, enumerated by lane C)');
+  /* NOT ENUMERATED ANYWHERE, AND THIS IS A FINDING, NOT A LICENCE (v1.8 F-H).
+     `copy.test.mjs` is A4's own and lane C enumerates it elsewhere.
+     `catalogue.test.mjs` and `problem.test.mjs` arrived with the tip merged
+     into this branch (origin/rebuild/t2-client-core @ ec80cbe) and
+     `.github/workflows/rebuild.yml` names NEITHER — measured: the string
+     "catalogue" and the string "problem" do not occur in the workflow at all,
+     so 2 of the 11 test files under that directory have no CI home. That is a
+     rebuild.yml change only the PM may rule on (the :142 (2)(b) precedent),
+     so H3 does NOT apply it and asserts the exact state instead: a third file
+     appearing unenumerated, or one of these two acquiring a home, turns this
+     red and sends someone to read it. */
+  const UNENUMERATED = ['catalogue.test.mjs', 'copy.test.mjs', 'problem.test.mjs'];
+  assert.deepEqual(onDisk, FILES.concat(UNENUMERATED).sort(),
+    'the directory holds exactly the eight enumerated files plus the three this step does not name');
+  for (const f of ['catalogue.test.mjs', 'problem.test.mjs'])
+    assert.equal(new RegExp(f.replace('.', '\\.')).test(yml), false,
+      f + ' has no CI home anywhere in the workflow — F-H, raised for the PM, not fixed here');
 });

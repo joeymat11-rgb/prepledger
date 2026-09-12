@@ -29,7 +29,7 @@ const Adapter = require('../../../../m4/workout/engine-capture.cjs');
 const History = require('../../../../m4/workout/engine-history.cjs');
 const SourceProjection = require('../../../../m4/workout/source-projection.cjs');
 const { createCleanInitState, SCHEMA_V, AUTONOMY_FLOOR,
-  BLACKOUT_MEMBERS, MODEL_MEMBERS } = require('../../../../m4/workout/athlete-state.cjs');
+  BLACKOUT_MEMBERS, MODEL_MEMBERS, SLEEP_MEMBERS, SLEEP_NEEDED } = require('../../../../m4/workout/athlete-state.cjs');
 const { createNullLaneWorkoutBasis, createUnavailableStringLaneResolver } = require('../../../../m4/workout/workout-basis.cjs');
 const { createWorkoutResumePolicy } = require('../../../../m4/workout/resume-policy.cjs');
 // B-NTC — the qualified nativeTrendContext provider (step 17).
@@ -112,7 +112,19 @@ test('host journey — clean init, record, relaunch, resume, finish, history, co
     assert.deepEqual(engineState.sessionLog, {});
     assert.deepEqual(engineState.reads, []);
     assert.deepEqual(engineState.queue, []);
-    assert.deepEqual(engineState.sleep, { nights: [] });
+    /* H3-CORE MOVED THIS LINE, for the same reason H3 moved the two below.
+       `sleep: { nights: [] }` left `needed` absent, and four accepted readers
+       dereference `s.sleep.needed` unguarded — today.cjs:266 printed the word
+       "undefined" on the SLEEP lever the moment a night reached the record
+       (lane C's REQUESTS 04:11 (1)). The cell asserts the stronger thing: the
+       object is closed over the module's own declared member set, `nights` is
+       still empty — nothing is seeded — and `needed` IS the engine's own
+       exported constant, never a number this file or that one types. */
+    assert.deepEqual(Reflect.ownKeys(engineState.sleep).sort(), SLEEP_MEMBERS.slice().sort());
+    assert.deepEqual(engineState.sleep.nights, []);
+    assert.equal(engineState.sleep.needed, SLEEP_NEEDED);
+    assert.equal(engineState.sleep.needed,
+      require('../../../../engine/constants.cjs')().SLEEP_ANCHOR_MIN_N);
     assert.deepEqual(engineState.priority_muscles, ['chest', 'back']);
     assert.equal(engineState.split.length, 1);
     assert.equal(engineState.split[0].map['5'], 'U');

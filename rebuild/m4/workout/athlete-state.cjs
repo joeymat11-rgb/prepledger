@@ -71,6 +71,16 @@ const REQUIRED_EXERCISE = ['id', 'n', 'mg', 'day', 'sets', 'hi', 'inc', 'steps']
 // added, removed or renamed is a refusal here, never a silent drift.
 const BLACKOUT_MEMBERS = ['until'];
 const MODEL_MEMBERS = ['anchorISO', 'drip', 'src'];
+// H3-CORE (lane C's H3-class finding, REQUESTS 04:11 (1)). The same rule for the
+// `sleep` object: its member set is pinned, and `needed` joins `nights` because
+// four accepted readers dereference `s.sleep.needed` with no guard of their own
+// (rebuild/engine/sleep.cjs:239, :1053, :1903 and rebuild/engine/today.cjs:266).
+const SLEEP_MEMBERS = ['nights', 'needed'];
+// THE VALUE IS THE ENGINE'S OWN, READ OUT OF THE ENGINE — never typed here and
+// never copied from rebuild/engine/seed.cjs. createConstants() is a pure factory
+// with no clock, no history and no state, so requiring it does not give this
+// module a clock (see the header rule).
+const SLEEP_NEEDED = require('../../engine/constants.cjs')().SLEEP_ANCHOR_MIN_N;
 const DAY_KINDS = ['U', 'L'];
 const fail = (code, detail) => { const e = new Error(code); e.code = code; if (detail !== undefined) e.detail = detail; throw e; };
 const isPlain = v => v !== null && typeof v === 'object' && !Array.isArray(v) &&
@@ -248,6 +258,48 @@ function createCleanInitState({ setup } = {}) {
      screen sentence for something no athlete can cause. */
   const blackout = closed({ until: dayBefore(split.from) }, BLACKOUT_MEMBERS, 'STATE_BLACKOUT_MEMBER_SET');
   const model = closed({ anchorISO: split.from, drip: null, src: null }, MODEL_MEMBERS, 'STATE_MODEL_MEMBER_SET');
+  /* H3-CORE — `sleep.needed`, lane C's H3-class finding (REQUESTS 04:11 (1)).
+     `sleep: { nights: [] }` left `needed` ABSENT, and four accepted readers
+     dereference it with no guard: rebuild/engine/sleep.cjs:1053 `run >=
+     s.sleep.needed` (so `atTarget` is `0 >= undefined` — FALSE for ever, not
+     just on day one), sleep.cjs:1903 `need: s.sleep.needed` (JSON.stringify
+     DROPS the member, so `sleepInfo(s)` comes back without `need` at all),
+     sleep.cjs:239 `${slp.run} of ${s.sleep.needed} clean nights` and
+     rebuild/engine/today.cjs:266 `${sl.run}/${s.sleep.needed} clean` — the
+     second of which puts the literal text "0/undefined clean" on the SLEEP
+     lever the moment the athlete has a night on the record. All four measured.
+     THE VALUE IS 3, AND IT IS NOT TYPED HERE. It is read at load time out of
+     the engine's own `rebuild/engine/constants.cjs` — `SLEEP_ANCHOR_MIN_N`
+     (constants.cjs:315), the ONE named sleep-night-count constant the engine
+     exports — so it cannot drift from the engine and it is not a copy of
+     rebuild/engine/seed.cjs's `sleep.needed: 3` (that file is one athlete's
+     record; the H1 rule forbids reading it, and a cell asserts this module
+     never names it). The engine states the same 3 twice more in its own logic:
+     sleep.cjs:1041 `if (run.length < 3) return true` — its own debt run — and
+     sleep.cjs:239 `Math.min(3, s.sleep.needed - slp.run) * 10`, which caps the
+     sleep restriction's weight at three nights, so any larger `needed` would
+     change no weight and only make the sentence unreachable.
+     WHAT THE READERS EXPECT FOR ZERO NIGHTS IS UNCHANGED: with no nights
+     `run` is 0 and `at` is `0 >= 3` = FALSE, exactly as it reads today. The
+     athlete is not at a sleep target he has no nights for; the difference is
+     that he can now REACH one, and that the screen says "0/3" instead of
+     "0/undefined".
+     THE SETUP DOCUMENT CONTRIBUTES NOTHING HERE, AND THAT IS SAID OUT LOUD:
+     REQUIRED_SETUP carries no sleep entry, so there is no athlete-declared
+     value to derive from — which is why the engine's own exported constant is
+     the only honest source, and why `cleanH` is NOT written (below, F-G). */
+  const sleep = closed({ nights: [], needed: SLEEP_NEEDED }, SLEEP_MEMBERS, 'STATE_SLEEP_MEMBER_SET');
+  /* F-G, OPEN AND NOT CLOSED HERE. `s.sleep.cleanH` is the other half of the
+     same pair and is deliberately left absent: the engine states TWO different
+     defaults for it in its own code — `|| 7.5` at sleep.cjs:1071 (sleepAnchor)
+     and `|| 8` at sleep.cjs:925 (lightsOutT) — so there is no single
+     engine-stated value and picking one would be inventing a preference. The
+     measured consequence, asserted by a cell so it cannot be forgotten:
+     sleep.cjs:1051 `nights[i].h >= s.sleep.cleanH` is false for every night,
+     so `atSleepTarget(s).run` stays 0 and `at` stays false however well the
+     athlete sleeps. That is a live defect, it is recorded in
+     rebuild/lanes/b/BRIEF-H3-CORE.md, and closing it needs a ruling on which
+     of the engine's own two defaults is the clean-night bar. */
   const seen = new Set();
   const exercises = setup.exercises.map(e => checkExercise(e, seen));
   const covered = new Set(Object.values(split.map).filter(v => DAY_KINDS.includes(v)));
@@ -265,7 +317,7 @@ function createCleanInitState({ setup } = {}) {
     // Every history member starts empty. Nothing is seeded, imported or merged.
     reads: [], dailyLogs: {}, sessionLog: {},
     exercises, exOrder,
-    sleep: { nights: [] },
+    sleep,
     targets: {},
     // The engine's own most-supervised floor, written deliberately and cited
     // in the header. No `mode` member: that vocabulary does not exist.
@@ -283,4 +335,4 @@ function createCleanInitState({ setup } = {}) {
 
 const PROFILE = 'earned/clean-init-state/v1';
 module.exports = { createCleanInitState, PROFILE, REQUIRED_SETUP, REQUIRED_EXERCISE,
-  SCHEMA_V, AUTONOMY_FLOOR, BLACKOUT_MEMBERS, MODEL_MEMBERS };
+  SCHEMA_V, AUTONOMY_FLOOR, BLACKOUT_MEMBERS, MODEL_MEMBERS, SLEEP_MEMBERS, SLEEP_NEEDED };

@@ -237,7 +237,7 @@
     },
     "rebuild/m3/w6/host/test/journey.test.mjs": {
       "pre": "228c076dbc0b1fde64d0ccf235486ef92f6c3434489d6e1ade0967d824935cc3",
-      "post": "aecb8fe4980ce65ebb6488310302458dffc9b15a30aeeae1238b8491287f1832",
+      "post": "7b78319ea83cdeb5679faa8e5995867244c8fa540d57ee8f53f6b6d437b0322d",
       "role": "edited"
     },
     "rebuild/m3/w7-preview/today/test/gym.test.mjs": {
@@ -317,35 +317,114 @@
     },
     "rebuild/m4/workout/athlete-state.cjs": {
       "pre": "dccc5fb5d35de12652f70e2d12c3e0e156181a8fe93b53cd296ddc52fa56f06c",
-      "post": "e1e05a633a6007417b7d1c07d2de2ca7065cf7943fe1f07076d2e6d9c7120acc",
+      "post": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
       "role": "new"
     },
     "rebuild/m3/w7-preview/today/test/setup.test.mjs": {
       "pre": "264358a0747c8523c17e5d4d25b57c4db6d236541ad506857afb8ceea4cc5800",
-      "post": "842e2f490af60d8974976a4c7b9d5236c5d10a03905d6698055c6af4aa98ff75",
+      "post": "e4b797ebfae92107ffbdd7e07184f702b9a3503c91f202b652eb506bab1321ca",
       "role": "new"
     },
     "rebuild/m4/workout/test/h3-clean-init.test.cjs": {
       "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "post": "e169309411f88330e366ce2f19ee47d7d554f7b6ab62c15a0b5258591e043509",
+      "post": "fe247d2d7a485639bb5aafe88b46a8bc6f8cf9f67a183c3e735b0eeaa227551b",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "dc92e91810246fca195ab3a031236aaffba2b04522e5718fb72f9f6eda62d0dc",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "69c8d05fa3a1ccf6b3b3458706ffc633c9f83063dd604bd15549ba61d1c7f0ff",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "e41ec9f2d1ea8d7d650ce139799da783301f7d5e99365e6386c0ccf61e990c7f",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "fec3f052539305091a95657db4287e4e072e18cc871cf28956a5149786e23ad2",
+      "role": "new"
+    },
+    "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs": {
+      "pre": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "post": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
       "role": "new"
     }
   },
   "coverage": {
-    "inherited": {
-      "migrate-source": "source-carriers",
-      "merge-source": "source-carriers",
-      "writers-source": "source-carriers",
-      "witnesses-2": "inherited-carriers",
-      "witnesses-5": "inherited-carriers",
-      "migrate-differential": "inherited-carriers",
-      "witnesses-7": "defect-witnesses",
-      "writers-differential": "writers-differential",
-      "second-gate": "second-gate"
-    },
+    "inherited": {},
     "moves": {},
     "successors": null,
-    "superseded": null
+    "superseded": {
+      "rulingLineSha256": null,
+      "gates": {
+        "source-carriers": {
+          "why": "it RECONSTRUCTS rebuild/engine from a frozen BASE plus the 48 literal carriers of native-carriers-changes.json, whose bytes are pinned by CHANGES_SHA at native-carriers-source.cjs:37; H3 edits two engine files, extending that list moves a sha that is no declared product pre- or post-image, and DECISIONS:113 (1) (c) as widened by :147 admits only a pin re-target",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-source-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites"
+          }
+        },
+        "inherited-carriers": {
+          "why": "priorModule re-reads every prior engine module against the same sha-pinned carrier list (native-carriers-source-carriers.cjs:82/:85/:88/:89) and pins the substitution order at :138, so the two files H3 declares are refused there for the same reason as source-carriers",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-inherited-carriers"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites"
+          }
+        },
+        "defect-witnesses": {
+          "why": "every one of its ten complete comparisons needs the FROZEN side reconstructed from that same pinned carrier list, so no witness can be produced on both sides once an engine byte H3 declares has moved",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-defect-witnesses"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites"
+          }
+        },
+        "writers-differential": {
+          "why": "the gate is the differential over rebuild/engine/writers.cjs itself, which is the file F-B edits, and it reaches it through the same reconstruction",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-writers-differential"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites"
+          }
+        },
+        "second-gate": {
+          "why": "the independent second reading is taken over the reconstructed engine, so it refuses the child tree before it compares anything",
+          "evidence": {
+            "laws": null,
+            "redFirst": [
+              "h3-sup-second-gate"
+            ],
+            "census": "runner-live-triggered-line",
+            "legacyDifferential": "a0-journeys",
+            "writersDifferential": "today-suites"
+          }
+        }
+      }
+    }
   },
   "carrierSuccessor": null,
   "witnessFlips": [],
@@ -379,39 +458,49 @@
   },
   "children": [
     {
-      "name": "source-carriers",
+      "name": "h3-sup-source-carriers",
       "argv": [
-        "rebuild/m4/spec/b-ntc-source-carriers.cjs"
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-source-carriers.test.cjs"
       ],
-      "needle": "NATIVE SOURCE CARRIERS: 6/6 PASS;"
+      "needle": "# pass 4"
     },
     {
-      "name": "inherited-carriers",
+      "name": "h3-sup-inherited-carriers",
       "argv": [
-        "rebuild/m4/spec/b-ntc-inherited-carriers.cjs"
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-inherited-carriers.test.cjs"
       ],
-      "needle": "NATIVE INHERITED CARRIERS: 6/6 PASS;"
+      "needle": "# pass 3"
     },
     {
-      "name": "defect-witnesses",
+      "name": "h3-sup-defect-witnesses",
       "argv": [
-        "rebuild/m4/spec/b-ntc-defect-witnesses.cjs"
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-defect-witnesses.test.cjs"
       ],
-      "needle": "NATIVE DEFECT WITNESSES: 10/10 complete comparisons PASS;"
+      "needle": "# pass 3"
     },
     {
-      "name": "writers-differential",
+      "name": "h3-sup-writers-differential",
       "argv": [
-        "rebuild/m4/spec/b-ntc-writers-differential.cjs"
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-writers-differential.test.cjs"
       ],
-      "needle": "NATIVE WRITERS DIFFERENTIAL: 3/3 Date/trap modes PASS;"
+      "needle": "# pass 3"
     },
     {
-      "name": "second-gate",
+      "name": "h3-sup-second-gate",
       "argv": [
-        "rebuild/m4/spec/b-ntc-second-gate.cjs"
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs"
       ],
-      "needle": "NATIVE SECOND GATE:"
+      "needle": "# pass 3"
     },
     {
       "name": "h3-cells",
@@ -420,7 +509,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/h3-clean-init.test.cjs"
       ],
-      "needle": "# pass 13"
+      "needle": "# pass 14"
     },
     {
       "name": "a0-journeys",
@@ -446,7 +535,7 @@
         "rebuild/m3/w7-preview/today/test/setup.test.mjs",
         "rebuild/m3/w7-preview/today/test/view.test.mjs"
       ],
-      "needle": "# pass 268"
+      "needle": "# pass 320"
     },
     {
       "name": "ntc-provider-cells",
@@ -458,5 +547,7 @@
       "needle": "# pass 39"
     }
   ],
-  "notes": []
+  "notes": [
+    "H3 supersedes the five NATIVE-CARRIERS byte-identity carriers under REQUESTS 2026-09-12 09:25 (the GATE-SUPERSESSION token line is NOT yet on the chain, so rulingLineSha256 is the null placeholder and the runner refuses GATE-SUPERSESSION-RULING-NOT-CITED by design). Evidence: one red-first cell per carrier under rebuild/m4/workout/test/, each measured RED on the parent engine bytes; the two shared differentials are a0-journeys and today-suites; the census slot is the runner's own live-triggered line, clean. BRIEF-H3-CLEAN-INIT.md v1.8 section 9 carries the measurement and the exact token the PM must write."
+  ]
 }

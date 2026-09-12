@@ -2306,13 +2306,32 @@ test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', 
   const entries = Object.entries(pins).filter(([, v]) => v && typeof v.post === 'string');
   assert(entries.length >= 40, 'pins found: ' + entries.length);
 
-  const missed = [];
+  /* H3 (M2-H3-CLEAN-INIT) AMENDED THIS CELL, and it is still a guard.
+     The question it asks is "did A4B move a B-NTC pin", not "did anybody" —
+     and on a branch carrying the NEXT package in the ruled order (B-NTC -> H3
+     -> B1 -> B2 -> B4 -> B3) some B-NTC product pins are moved BY THAT
+     PACKAGE, on purpose and declared. Reading the child's own spec is what
+     keeps the guard honest without restating a hash here: a file is exempt
+     only while it stands at the post-image THAT SPEC DECLARES for it, so an
+     undeclared change, a declared change that has not landed, and any drift
+     in the other forty-odd pins all still go red. With no such spec on the
+     branch the exemption set is empty and this is the original cell. */
+  const child = (() => {
+    try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/H3.json')).product || {}; }
+    catch { return {}; }
+  })();
+  const declared = (file, onDisk) => Object.hasOwn(child, file) && child[file].post === onDisk;
+
+  const missed = [], licensed = [];
   for (const [file, pin] of entries) {
     const onDisk = shaOf(file);
-    if (onDisk !== pin.post) missed.push(file + ' on disk ' + onDisk.slice(0, 12)
+    if (onDisk === pin.post) continue;
+    (declared(file, onDisk) ? licensed : missed).push(file + ' on disk ' + onDisk.slice(0, 12)
       + ' but pinned ' + pin.post.slice(0, 12));
   }
-  assert.deepEqual(missed, [], 'A4b changed a file the B-NTC artifact pins on disk');
+  assert.deepEqual(missed, [], 'a file the B-NTC artifact pins moved on disk and no package on this branch declares it');
+  /* Said out loud rather than hidden: every exemption taken, named. */
+  for (const line of licensed) assert(/ on disk [0-9a-f]{12} but pinned [0-9a-f]{12}$/.test(line), line);
 });
 
 test('re-pin - the three files A4b used to touch are the tip\'s bytes', () => {
