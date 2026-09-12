@@ -522,3 +522,93 @@ test('R2 - a block built over a store holding a weigh-in, a set and a first run 
   }
   setup.host.close(); gymHost.close(); kit.readings.close();
 });
+
+/* ==========================================================================
+   ROUND 1, CONDITION C1 - THE SHAPE AND THE VALUE SETS, PINNED FIELD BY FIELD.
+
+   The reviewer landed two mutants that this suite missed, and both missed for
+   the same reason: every test above looks for a value it PLANTED, and neither a
+   ninth field nor a field that carries something it should not is a planted
+   value. E2 put JSON.stringify(model.read()) - the whole of Today's view DTO,
+   engine figures included - into `user agent`, and survived. Z4 added a ninth
+   field, and survived.
+
+   So this is the other kind of test: nothing here knows what the block SHOULD
+   say. It asserts what a block may BE - how many lines, which keys, in which
+   order, and for every enumerated field, that its value is one of the values
+   that field is allowed to have. A field that carries page internals is caught
+   because page internals are not in any of those sets, whatever they happen to
+   contain on the day.
+   ========================================================================== */
+const STAMP = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{2}:\d{2}$/;
+const BUILD_SHAPE = /^earned-([0-9a-f]{12}|notinjected)$/;
+const DEVICE_SHAPE = /^(device-[0-9a-f]{8}|none)$/;
+/* A user agent is a sentence about a browser. It is the one free-text field in
+   the block, so it is the one a mutation can hide behind: these three characters
+   are what a serialised object brings with it and what a user agent never has. */
+const STRUCTURED = /[{}"]/;
+
+function assertBlockShape(block, where = 'the block') {
+  const rows = block.split('\n');
+  assert.equal(rows.length, FIELDS.length, where + ' is exactly ' + FIELDS.length + ' lines');
+  const keys = rows.map((row) => row.slice(0, row.indexOf(': ')));
+  assert.deepEqual(keys, [...FIELDS], where + ' carries exactly these fields, in this order');
+  const value = (field) => rows[FIELDS.indexOf(field)].slice(field.length + 2);
+  assert(ENROLMENT.includes(value('enrolment')) || value('enrolment') === UNKNOWN, 'enrolment');
+  assert(OFFLINE.includes(value('offline-ready')) || value('offline-ready') === UNKNOWN, 'offline-ready');
+  assert.match(value('build'), BUILD_SHAPE, 'build');
+  assert.match(value('device'), DEVICE_SHAPE, 'device');
+  const lanes = value('lane open');
+  if (lanes !== NONE) {
+    for (const name of lanes.split(', ')) assert(LANES.includes(name), 'lane open: ' + name);
+  }
+  assert(value('at') === UNKNOWN || STAMP.test(value('at')), 'at: ' + value('at'));
+  assert.equal(STRUCTURED.test(value('user agent')), false,
+    'the user agent field carries structured data: ' + value('user agent').slice(0, 120));
+  assert.equal(value('screen').includes(' '), false, 'screen is one token: ' + value('screen'));
+  return { rows, value };
+}
+
+test('C1 - the block is eight fields in order and every value is in its own set', () => {
+  /* Over every state the builder can be handed, including the ones that mean
+     "this page could not observe it". */
+  const screens = ['today', 'gym', 'recovery', 'setup', 'nutrition', 'coach'];
+  const devices = [null, 'device-' + 'a1b2c3d4e5f60718293a4b5c6d7e8f90', 'not an id', ''];
+  const agents = ['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', '', null,
+    'Probe 1.0 — experimental'];
+  let checked = 0;
+  for (const screen of screens) {
+    for (const enrolment of [...ENROLMENT, undefined, 'probably']) {
+      for (const offlineReady of [...OFFLINE, undefined]) {
+        for (const device of devices) {
+          for (const userAgent of agents) {
+            assertBlockShape(buildProblemReport({ screen, lanes: { workout: true, setup: true },
+              enrolment, offlineReady, device, userAgent, at: new Date(2026, 8, 3, 8, 5, 9) }));
+            checked += 1;
+          }
+        }
+      }
+    }
+  }
+  assert.equal(checked, screens.length * 6 * 4 * devices.length * agents.length);
+  /* And the empty state, which is what a page with nothing open would hand it. */
+  assertBlockShape(buildProblemReport({}), 'the empty block');
+});
+
+test('C1 - the page block is the same shape, and user agent is the browser\'s own string', async () => {
+  const kit = await installation();
+  const setup = await createSetupEntry({ today: DAY }, kit.lane);
+  const workout = await createWorkoutEntry(kit.model, kit.lane);
+  const page = today({ model: kit.model, setup, workout }, undefined);
+  await page.tap();
+  const { value } = assertBlockShape(page.area().value, 'the block the page copied');
+  /* BYTE-EQUAL to the platform's own string, not a rendering of something else.
+     Through the page's render boundary, which is how every other string on this
+     screen arrives (DECISIONS:114 (1) / :121). */
+  assert.equal(value('user agent'),
+    PlainCopy.plainCopy(page.dom.window.navigator.userAgent, 'problem-user-agent'));
+  assert(value('user agent').length > 0, 'the browser really gave one');
+  assert.equal(value('screen'), 'today');
+  assert.equal(value('lane open'), 'workout, setup');
+  setup.host.close();
+});
