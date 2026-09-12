@@ -31,6 +31,10 @@ import { causalTips, startOrderRefusalOf } from '../m3/w7-preview/today/gym-host
 import { createGymModel } from '../m3/w7-preview/today/gym-model.mjs';
 import { createCheckInHost } from '../m3/w7-preview/today/checkin-host.mjs';
 import CheckInModel from '../m3/w7-preview/today/checkin-model.mjs';
+/* C6 Part A. The first-run lane, opened the same way the other three are: this
+   module composes and does not invent, so the producer command and the profile
+   are setup-host.mjs's own and nothing here shapes an op. */
+import { createSetupHost } from '../m3/w7-preview/today/setup-host.mjs';
 
 const require = createRequire(import.meta.url);
 const Capture = require('../m4/workout/capture.cjs');
@@ -134,7 +138,11 @@ function gymOver(bindings, { day, engineState, prescriptionCapture, plannedSplit
 export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   databaseName = COACH_DATABASE, namespace = COACH_NAMESPACE,
   athleteId = COACH_ATHLETE, deviceId = COACH_DEVICE,
-  checkInDeviceKeys, withCheckIn = true, consent = null } = {}) {
+  checkInDeviceKeys, withCheckIn = true, consent = null,
+  /* C6 Part A: the first-run lane. Off by default, because the coach's daily
+     world is a world that is ALREADY set up, and opening a setup host there
+     would say otherwise. */
+  withSetup = false, setupDeviceKeys, setupDatabaseName, setupNamespace } = {}) {
   const web = crypto || globalThis.crypto;
   const idb = indexedDB || globalThis.indexedDB;
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('openCoachWorld requires day');
@@ -171,11 +179,31 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
     await checkin.refresh();
   }
 
+  /* THE FIRST-RUN LANE (C6 Part A). Like the check-in, it is the accepted lane's
+     own host: setup-host.mjs mints nothing here, supplies setup-commands.mjs as
+     the producer and the profile its fact carries, and answers "has this device
+     been set up?" from the DURABLE record rather than a flag. It is NOT yet on
+     this era either, for the same reason the check-in is not: setup-host.mjs
+     opens its own installation through gym-host.mjs openTodayHosts. Disclosed,
+     not hidden, and it is the same lane-c-today merge away. */
+  let setupHost = null;
+  if (withSetup) {
+    setupHost = await createSetupHost({ day, indexedDB: idb, crypto: web,
+      deviceKeys: setupDeviceKeys,
+      ...(setupDatabaseName ? { databaseName: setupDatabaseName } : {}),
+      ...(setupNamespace ? { namespace: setupNamespace } : {}) });
+  }
+
   return Object.freeze({
-    client, bindings, today, gym, gymHost, checkin, checkInHost, consent, day, readings,
+    client, bindings, today, gym, gymHost, checkin, checkInHost, setupHost, consent, day, readings,
     era: { eraId: booted.eraId || null, leaseId: booted.leaseId || null, revision: booted.revision },
     checkInOnLocalEra: false,
-    close() { try { client.close(); } catch {} if (checkInHost) { try { checkInHost.close(); } catch {} } },
+    setupOnLocalEra: false,
+    close() {
+      try { client.close(); } catch {}
+      if (checkInHost) { try { checkInHost.close(); } catch {} }
+      if (setupHost) { try { setupHost.close(); } catch {} }
+    },
   });
 }
 

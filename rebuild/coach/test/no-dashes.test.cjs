@@ -40,7 +40,9 @@ const stripComments = (src) => src
   .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 
 test("no dash survives in any source string this lane writes for the athlete", () => {
-  for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs"]) {
+  for (const file of ["tools.cjs", "coach-text.cjs", "local-world.mjs",
+    /* C6 Part A: the onboarding modules are athlete-facing too. */
+    "onboarding-tools.cjs", "onboarding-text.cjs"]) {
     const code = stripComments(fs.readFileSync(at(file), "utf8"));
     const offending = code.split("\n")
       .map((line, i) => [i + 1, line])
@@ -58,6 +60,43 @@ test("no dash in any template's own words", () => {
       assert.ok(!DASH.test(lit), "template " + name + " carries a dash: " + lit);
     }
   }
+});
+
+/* C6 Part A, check A10. The onboarding coach is athlete-facing copy the same way
+   the daily coach is, and it reads setup-model.mjs's own sentences back, so the
+   rule has to hold over the whole rehearsal and not only over this lane's files. */
+test("no dash in the onboarding tools, templates, fixtures or transcripts", async () => {
+  const OB = require("../onboarding-tools.cjs");
+  const OT = require("../onboarding-text.cjs");
+  const STRING_LITERAL = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`/g;
+
+  for (const [name, fn] of Object.entries(OT.TEMPLATES)) {
+    for (const lit of stripComments(String(fn)).match(STRING_LITERAL) || []) {
+      assert.ok(!DASH.test(lit), "onboarding template " + name + " carries a dash: " + lit);
+    }
+  }
+  for (const [topic, why] of Object.entries(OB.NEVER_VIA_COACH_SETUP)) {
+    assert.deepEqual(dashes(why), [], "onboarding tier-3 " + topic + " carries a dash: " + why);
+  }
+  assert.deepEqual(dashes(fs.readFileSync(at("scripts/onboarding-script.json"), "utf8")), []);
+
+  /* and the rehearsal itself, every fixture, every spoken line */
+  const model = (await import("../../m3/w7-preview/today/setup-model.mjs")).default;
+  const catalogue = await import("../../m3/w7-preview/today/exercise-catalogue.mjs");
+  const commands = await import("../../m3/w7-preview/today/setup-commands.mjs");
+  const host = () => { const ops = []; return { async save() { ops.push(1); return { ok: ops.length === 1, state: 0, code: ops.length === 1 ? null : "SETUP_ALREADY_RECORDED", copy: null, op_id: "op-1" }; } }; };
+  let lines = 0;
+  for (const fixture of OT.loadScript().fixtures) {
+    const tools = OB.createOnboardingTools({ setup: model.createSetupModel({ today: "2030-02-04" }),
+      catalogue, model, commands, effective: { local_date: "2030-02-04", local_time: "13:00", utc_offset: "-05:00" },
+      host: host() });
+    const run = await OT.driveByVoice(tools, fixture);
+    for (const turn of run.turns) {
+      lines += 1;
+      assert.deepEqual(dashes(turn.answer), [], fixture.id + " " + turn.id + " speaks a dash: " + turn.answer);
+    }
+  }
+  assert.ok(lines >= 48, "the sweep did not reach the transcripts");
 });
 
 test("no dash in the tier-3 explanations or the scripted questions", () => {

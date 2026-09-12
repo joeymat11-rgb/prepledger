@@ -1,0 +1,114 @@
+{
+  "_note": "C6 Part A fixtures. ONE set of answers per fixture, read by BOTH drivers: the screens' own setters (opTap) and the seven tools (opVoice). Anything that differed between the two paths would have to differ HERE, and it cannot, because there is only one copy.",
+  "questions": [
+    { "screen": 1, "ask": "What should we call you?" },
+    { "screen": 2, "ask": "Which days will you be in the gym?" },
+    { "screen": 3, "ask": "What will you do on those days?" },
+    { "screen": 4, "ask": "What can the weights make?" },
+    { "screen": 5, "ask": "Anything you care about most?" },
+    { "screen": 6, "ask": "Here is your week. Shall I save it?" }
+  ],
+  "fixtures": [
+    {
+      "id": "two_day",
+      "why": "the floor of what Earned can count: two days, one upper and one lower",
+      "name": "Dad",
+      "days": ["1", "4"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "chest_press_machine", "first": "20", "inc": "" },
+        { "day": "L", "catalogue_id": "leg_press", "first": "45", "inc": "" }
+      ],
+      "priorities": ["chest"],
+      "complete": true
+    },
+    {
+      "id": "four_day",
+      "why": "a fuller week, four days, two of each kind",
+      "name": "Joe",
+      "days": ["1", "2", "4", "5"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "lat_pulldown", "first": "30", "inc": "10" },
+        { "day": "U", "catalogue_id": "shoulder_press_machine", "first": "15", "inc": "" },
+        { "day": "L", "catalogue_id": "back_squat", "first": "45", "inc": "5" },
+        { "day": "L", "catalogue_id": "leg_extension", "first": "25", "inc": "" }
+      ],
+      "priorities": ["back", "quads"],
+      "complete": true
+    },
+    {
+      "id": "free_text_muscle",
+      "why": "a lift the catalogue does not have, and a muscle he names in his own words",
+      "name": "Sam",
+      "days": ["1", "4"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "seated_cable_row", "first": "40", "inc": "" },
+        { "day": "L", "name": "The sled thing by the window", "mg_other": "shins", "first": "60", "inc": "" }
+      ],
+      "priorities": [],
+      "complete": true
+    },
+    {
+      "id": "uneven_rungs",
+      "why": "a stack whose jumps are uneven, listed smallest first",
+      "name": "Pat",
+      "days": ["2", "5"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "barbell_curl", "rungs": "10, 25, 45" },
+        { "day": "L", "catalogue_id": "leg_press", "rungs": "20, 40, 60, 90" }
+      ],
+      "priorities": ["biceps"],
+      "complete": true
+    },
+    {
+      "id": "skipped_priority",
+      "why": "screen 5 left empty, which is an answer and not a gap",
+      "name": "Alex",
+      "days": ["0", "3"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "chest_press_machine", "first": "20", "inc": "" },
+        { "day": "L", "catalogue_id": "back_squat", "first": "45", "inc": "" }
+      ],
+      "priorities": [],
+      "complete": true
+    },
+    {
+      "id": "inc_override",
+      "why": "he overrides Earned's standard step with his own machine's jump",
+      "name": "Robin",
+      "days": ["1", "3", "5"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "lat_pulldown", "first": "30", "inc": "2.5" },
+        { "day": "U", "catalogue_id": "barbell_curl", "first": "10", "inc": "" },
+        { "day": "L", "catalogue_id": "leg_extension", "first": "25", "inc": "7.5" }
+      ],
+      "priorities": ["hams"],
+      "complete": true
+    },
+    {
+      "id": "unnamed_exercise",
+      "why": "a lift he has not named. It is named as a gap and nothing is invented to fill it",
+      "name": "Chris",
+      "days": ["1", "4"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "chest_press_machine", "first": "20", "inc": "" },
+        { "day": "L", "first": "45", "inc": "" }
+      ],
+      "priorities": [],
+      "complete": false,
+      "expectMissing": ["CLEAN_INIT_EXERCISE_REQUIRED"]
+    },
+    {
+      "id": "unknown_first",
+      "why": "I do not know, said out loud. It stays blank and the summary names it",
+      "name": "Morgan",
+      "days": ["1", "4"],
+      "exercises": [
+        { "day": "U", "catalogue_id": "chest_press_machine", "first": "20", "inc": "" },
+        { "day": "L", "catalogue_id": "leg_press", "unknown": true }
+      ],
+      "priorities": [],
+      "complete": false,
+      "expectMissing": ["CLEAN_INIT_EXERCISE_REQUIRED"]
+    }
+  ]
+}
