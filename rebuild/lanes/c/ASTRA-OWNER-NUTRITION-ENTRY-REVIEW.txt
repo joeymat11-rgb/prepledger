@@ -1,0 +1,153 @@
+EARNED — INDEPENDENT ACTUAL OWNER NUTRITION ENTRY REVIEW
+2026-09-12. Verdict: CORRECTION REQUIRED, one reproduced P2 (F1).
+
+(1) SOURCE / BOUNDARY
+FILE ASTRA-OWNER-NUTRITION-ENTRY-REVIEW.md at PM ce11fd2.
+Candidate 2c46b23ab859f189af193175ec6955fbf57bbeb0;
+base 6306555f26d67fa62930680274c430b0c0b8bced.
+Tree C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/astra-owner-nutrition-entry-review
+Branch codex/astra-owner-nutrition-entry-review. Reviewer native_scale_today;
+candidate author qualification_delta_review. Reviewed the actual owner join,
+not my previous scale implementation. Read NEXT, ROADMAP, lanes/LANES, builder
+FILE and complete candidate report. Candidate diff is the reported six files:
+three today product files, two new evidence files and one builder report.
+Accepted input model/view/CSS and backend are unchanged in this candidate.
+Prior accepted form f3e60d8/ecf0e757 and backend/scale receipts are reused;
+this report does not independently award their broader qualifications.
+
+(2) F1 — P2: FOOTER REPLACEMENT DETACHES THE LIVE OWNER STATUS
+Location rebuild/m3/w7-preview/today/today-entry.mjs:287-288.
+The new querySelector('aside.review') selects the FIRST aside in the actual
+index.shell.html:17-21, containing today-identity, today-storage and today-status.
+Assigning textContent removes those three nodes. The intended explanatory
+footer at index.shell.html:28 remains unchanged with the obsolete initial-setup
+nutrition projection statement. This is an introduced runtime DOM regression;
+the approved source shell need not change to fix the target selection.
+
+Executed actual owner boot with the complete approved shell/templates, real
+encrypted shared repository and synthetic routine. Opened nutrition input,
+typed and focused a declared goal, then committed a damaged integrity checkpoint
+through the real reading repository and awaited foreground refresh refusal.
+Draft DOM, value and focus were retained correctly. refresh() rejected with
+T2_INTEGRITY_UNPROVEN; the status captured before boot's replacement received
+'Restore required — sign in (T2_INTEGRITY_UNPROVEN)' but was disconnected.
+The visible document contained no Restore required warning. Identity/storage
+nodes were also absent and the obsolete footer remained. The catch at450-455
+relies on this existing status precisely when retaining an active editor.
+The passing supplied tests inspect retained editor/phone content, and miss
+this live page-status requirement. No data loss or unauthorized write alleged.
+
+Required correction: target the actual explanatory footer without replacing
+the owner identity/storage/status container; preserve the live status and
+exercise a refusal while an editor and its focus/draft are retained. Keep all
+original31 checks. No reviewer product edit was made.
+
+(3) EXECUTED CHECKS
+Retained Node v24.19.0; TZ=America/New_York. Existing dependency junctions only:
+root node_modules from BASE/m3-w6-browser-bridge/node_modules; w5/w6 dependencies
+from BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules. No installation.
+Commands below run at the review tree; node denotes the retained node.exe at
+C:/Users/joeym/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe.
+
+node --test rebuild/m3/w6/test/local-owner-nutrition.test.mjs
+  rebuild/m3/w6/test/local-owner-entry.test.mjs
+  rebuild/m3/w6/test/local-scale-lifecycle.test.mjs
+Combined31 tests,31 pass,0 fail: nutrition9, owner16, scale lifecycle6.
+Executed actual prepared review/save/reload and goal-only history, four separate
+unavailable guidance values, stale review/remedy, quota retry, save after Back,
+close during save, retained day remount/current-day Back, external saved inputs
+without replacing draft, authenticated summary withdrawal and existing entries.
+
+node --test .tmp/owner-join-review-probe.mjs
+Independent2 tests:1 pass,1 fail. F1 above is the exact failed assertion.
+Passing source-selected asynchronous control holds real decrypt during owner
+foreground refresh, queues the actual reviewed confirm, and clicks Back before
+release. After actual refresh/save completion the summary updates automatically,
+the invoker has focus, exactly one nutrition record/operation exists, and
+effectivePlan remains null. No stubbed read/commit/acknowledgement was substituted.
+Probe SHA256 fc4a4ba0520b6a7f26360bcad3bd0592e118da5abf7e9e0d63952abd30429027.
+The runnable probe is retained ignored in this review tree and reproduced below
+so the sole report carries the witness. It can be saved as that .tmp path.
+
+(4) ACTUAL PWA / VISUAL
+W7_BROWSER_BIN=C:/Program Files/Google/Chrome/Application/chrome.exe;
+EARNED_READING_W6_ROOT and EARNED_SOURCE_R1_ROOT=this tree;
+NODE_PATH=BASE/m3-w6-browser-bridge/rebuild/m3/w6/node_modules.
+node rebuild/m3/w6/test/local-owner-nutrition-browser.mjs
+PASS: actual built PWA and real Chrome152.0.7977.83, touch setup/form/review/save,
+Back/reload/goal-only edit, keyboard activation/Escape/focus, weight/Why/workout.
+320/390 and200% root text document/phone overflow checks passed; input/action
+48px checks passed; zero page errors.13 files/11 precache,107 bundle inputs,
+required model/view present and accepted form CSS included verbatim.
+Actual screenshots inspected: .tmp/owner-nutrition-browser/recorded-390.png and
+answers-320-large.png. Separate recorded amounts/unavailable guidance and form
+wrapping are legible; screenshots also show the misplaced new top note and
+unchanged old bottom note. Those normal screenshots do not prove refusal UI.
+Inventory .tmp/owner-nutrition-browser/inventory.json confirms app SHA256
+07129ebd0e6ba502f1eb5adaf36c82bda2d6e569252a628d6b367e1013e1ae7d;
+stylesheet b7a61ffe5fa9cbf4063eac967ab102b5dc7ab3b0b01b10da6ff509881c87aea2.
+Reviewed product hashes match the builder report:
+today-entry b830405baad5dcc6bc7ece7d1d6b06716baca971448471207af1d8aca8a66460
+today-app 20a129fccc944a7a8e9d355f94b9907454e70dd6f5b2f7a5b04baa5129a9e740
+build 1b2be41327401aef4d98342415282c640b3e7a47a603f43631ac092d17d3dcb7.
+
+(5) LIMITS / NEXT ACTOR
+git diff --check passed. This review commits only this report, no product/test
+or source-pin changes. The documented old PAGE_PINS entry hash and host guard
+inventory assertion6 (actual7) were not refreshed or counted as passing gates.
+No broad/private/CI/physical-phone/Safari qualification; no secrets, installs,
+remote operation, publication, merge or integration. No effective guidance plan
+or overall Earned completion claim. Root assigns a bounded F1 correction to its
+author, then reviewer reruns the consequential delta; distinct integration follows
+acceptance. Unchanged module/backend/browser controls can be reused as appropriate.
+
+(6) RUNNABLE INDEPENDENT WITNESS (.tmp/owner-join-review-probe.mjs)
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+import { webcrypto } from 'node:crypto';
+const require=createRequire(new URL('../rebuild/m3/w6/package.json',import.meta.url));
+const {IDBFactory}=require('fake-indexeddb'),{JSDOM}=require('jsdom');
+import { boot } from '../rebuild/m3/w7-preview/today/today-entry.mjs';
+import { openTodayInstallation } from '../rebuild/m3/w6/local/today-bindings.mjs';
+import { createLocalCalendar } from '../rebuild/m3/w6/local/calendar.mjs';
+import design from '../rebuild/m3/w7-preview/today/design.cjs';
+const setup={athlete_label:'Synthetic independent owner',split:{from:'2026-01-01',map:{0:'U',1:'U',2:'U',3:'U',4:'U',5:'U',6:'U'}},exercises:[{id:'press',n:'Press',mg:'chest',day:'U',sets:1,hi:10,inc:2.5,steps:[20,22.5,25]}],priority_muscles:[]};
+async function fixture(t,crypto=webcrypto){
+ const indexedDB=new IDBFactory(),calendar=createLocalCalendar({now:()=>new Date('2026-09-12T12:00:00Z'),offsetMinutes:()=>-240});
+ const era=await openTodayInstallation({indexedDB,crypto,calendar,initialSetup:setup});era.close();
+ const dom=new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->',design.templateHtml()),{url:'http://localhost/'}),doc=dom.window.document;
+ const originalStatus=doc.getElementById('today-status');assert(originalStatus);
+ const page=await boot({document:doc,indexedDB,crypto,calendar}),phone=doc.getElementById('phone');
+ t.after(()=>{page.close();dom.window.close();});return {page,doc,phone,dom,originalStatus};
+}
+function enter(f){f.page.api.render('nutrition');f.phone.querySelector('[data-go="nutrition-input"]').click();}
+function field(f,name,value){const el=f.phone.querySelector(`[name="${name}"]`);el.value=value;el.dispatchEvent(new f.dom.window.Event(el.tagName==='SELECT'?'change':'input',{bubbles:true}));return el;}
+
+test('independent F1: refused foreground refresh must leave a connected visible status beside retained editor',async t=>{
+ const f=await fixture(t);enter(f);field(f,'goal.kind','declared');const input=field(f,'goal.statement','Keep my actual draft');input.focus();
+ const reader=await f.page.hosts.createReadingHost({day:'2026-09-12'});t.after(()=>reader.close());
+ const snapshot=await reader.repository.load(),next=structuredClone(snapshot.generation);next.collections.meta.checkpoint.counts.ops++;
+ await reader.repository.commit(snapshot,next,()=>null);await assert.rejects(f.page.refresh());
+ assert(input.isConnected);assert.equal(input.value,'Keep my actual draft');assert.equal(f.doc.activeElement,input);assert.equal(f.page.api.screen(),'nutrition-input');
+ assert.match(f.originalStatus.textContent,/Restore required/);assert(f.page.restoreRequired);
+ console.log(JSON.stringify({statusConnected:f.originalStatus.isConnected,identityPresent:!!f.doc.getElementById('today-identity'),storagePresent:!!f.doc.getElementById('today-storage'),visibleRefusal:/Restore required/.test(f.doc.body.textContent),obsoleteFooter:/Nutrition projection for initial setup is not available yet/.test(f.doc.body.textContent),draft:input.value,restoreRequired:f.page.restoreRequired}));
+ assert.equal(f.originalStatus.isConnected,true,'storage refusal was written into a status node detached by the new aside.review replacement');
+ assert.match(f.doc.body.textContent,/Restore required/);
+});
+
+test('independent control: real save queued inside held foreground refresh survives Back and updates summary once',async t=>{
+ let armed=false,entered,release;const started=new Promise(r=>entered=r),hold=new Promise(r=>release=r);t.after(()=>release());
+ const crypto={getRandomValues:webcrypto.getRandomValues.bind(webcrypto),subtle:new Proxy(webcrypto.subtle,{get(target,key){if(key==='decrypt')return async(...args)=>{if(armed){armed=false;entered();await hold;}return target.decrypt(...args);};const value=target[key];return typeof value==='function'?value.bind(target):value;}})};
+ const f=await fixture(t,crypto);enter(f);field(f,'goal.kind','unknown');field(f,'existing_plan.kind','none');await f.page.nutrition.review();assert.equal(f.page.nutrition.snapshot().phase,'review');
+ assert.equal((await f.page.hosts.readNutritionInputs()).view.records.length,0);
+ armed=true;const refreshing=f.page.refresh();await started;const saving=f.page.nutrition.confirm();
+ f.phone.querySelector('[data-action="back"]').click();assert.equal(f.page.api.screen(),'nutrition');assert.doesNotMatch(f.phone.textContent,/I have no existing plan/);
+ release();await Promise.all([refreshing,saving]);
+ for(let i=0;i<100&&!f.phone.textContent.includes('I have no existing plan');i++)await new Promise(r=>setTimeout(r,0));
+ assert.match(f.phone.textContent,/I have no existing plan/);assert.equal(f.doc.activeElement.dataset.go,'nutrition-input');
+ const facts=(await f.page.hosts.readNutritionInputs()).view;assert.equal(facts.records.length,1);assert.equal(facts.effectivePlan,null);
+ assert.equal(Object.keys((await f.page.hosts.generation()).generation.collections.ops).length,1);
+ assert.doesNotMatch([...f.phone.querySelectorAll('.macro-row')].map(x=>x.textContent).join(''),/I have no existing plan/);
+});
+
