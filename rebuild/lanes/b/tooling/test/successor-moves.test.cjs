@@ -109,6 +109,11 @@ const RULING_LINE = '- 2026-09-11 · cowork · LANE B RULINGS — MOVES_RULING B
   'on the conditions (a)-(e); the pin re-target is the one engine-runtime supersession makes necessary · RULED';
 const OTHER_RULING = '- 2026-09-11 · cowork · a chain line that grants nothing · RULED';
 write('rebuild/DECISIONS.md', [OTHER_RULING, RULING_LINE, ''].join('\n'));
+// DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE REVIEW".
+// The review the fixture spec cites, carrying the one substitution verbatim.
+const REVIEW_FILE = 'rebuild/lanes/b/reviews/B-NTC-REVIEW-r2.md';
+write(REVIEW_FILE, ['# B-NTC REVIEW r2', 'The enumerated substitution, quoted verbatim:',
+  '  from: ' + FROM, '  to:   ' + TO, ''].join('\n'));
 write(ORIGINAL, originalText);
 write(WRAPPER, wrapperText);
 write(MODULE, moduleText);
@@ -156,7 +161,7 @@ const savedArgv = process.argv;
 process.argv = [process.execPath, runnerFile, '--ci', '--package', 'B-NTC'];
 try {
   m._compile(fixtureSource.slice(0, fixtureSource.indexOf(delimiter)) +
-    '\nmodule.exports={closure,successorGates,successorRuling,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,failCode,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_RULING_ID,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
+    '\nmodule.exports={closure,parentClosure,successorGates,successorRuling,acceptedVerdicts,successorTable,successorProof,successorCoverage,coverage,failCode,MOVES_RULING,SUCCESSOR_RULING,SUCCESSOR_RULING_ID,SUCCESSOR_LOAD_FLOOR,SUBSTITUTION_FORBIDDEN,FAIL_CODES,init(){logDir=root;specRaw=Buffer.from("{}");}};', runnerFile);
 } finally { process.argv = savedArgv; }
 const api = m.exports;
 api.init();
@@ -196,6 +201,7 @@ const spec = () => ({
     rulingLineSha256: RULING_SHA,
     support: SUPPORT,
     wrapper: WRAPPER,
+    reviewFile: REVIEW_FILE,
     parentAcceptanceCommit: parentCommit,
     carriers: { [PARENT_CHILD]: { successor: SUCCESSOR, original: ORIGINAL } },
     substitutions: JSON.parse(JSON.stringify(substitutions)) } },
@@ -235,8 +241,10 @@ test('Z1 — only the ruling admits a successor; no other id, package or gate do
   assert.equal(api.successorGates(spec(), quiet).size, 0);
   write(ORIGINAL, originalText);
   // A declared carrier the spec does not name.
+  // DECISIONS:147: with no carrier declared there is no parent gate closure for a
+  // substitution to live in either, so this refuses one assertion earlier than it did.
   const missing = spec(); delete missing.coverage.successors.carriers[PARENT_CHILD];
-  assert.throws(() => carry(missing), /SUCCESSOR-GATE-NOT-IN-THE-RULING|SUCCESSOR-CARRIER-NOT-DECLARED/);
+  assert.throws(() => carry(missing), /SUCCESSOR-SUBSTITUTION-TARGET-NOT-IN-THE-PARENT-GATE-CLOSURE|SUCCESSOR-GATE-NOT-IN-THE-RULING|SUCCESSOR-CARRIER-NOT-DECLARED/);
   // r7b F-C. `SUCCESSOR_PACKAGES` is gone — a constant naming one package could not read
   // DECISIONS:142's grant to another. What admits a package is the RULING'S OWN LINE on the
   // chain branch, located by the sha256 the spec records and required to name THIS package.
@@ -287,10 +295,14 @@ test('Z2 — the substitutions are exactly the spec\'s, and nothing else replace
   write(MODULE, moduleText.replace('  return body;', "  return body.replace('throw', 'return');"));
   assert.throws(() => carry(), /SUCCESSOR-REPLACEMENT-NOT-DRIVEN-BY-THE-DECLARED-TABLE/);
   write(MODULE, moduleText);
-  // A spec substitution whose `from` is not in the original at all.
+  // A spec substitution whose `from` is not in the original at all. DECISIONS:147 asks the
+  // review first, so the review is given the same text: this case is about the ORIGINAL.
   const absent = spec(); absent.coverage.successors.substitutions[0].from = 'const NOT_IN_THE_ORIGINAL_AT_ALL = 1;';
+  const reviewBefore = fs.readFileSync(path.join(scratch, REVIEW_FILE), 'utf8');
+  write(REVIEW_FILE, reviewBefore + '  from: const NOT_IN_THE_ORIGINAL_AT_ALL = 1;\n');
   write(MODULE, moduleText.replace(JSON.stringify(substitutions, null, 1), JSON.stringify(absent.coverage.successors.substitutions, null, 1)));
   assert.throws(() => carry(absent), /SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL/);
+  write(REVIEW_FILE, reviewBefore);
   write(MODULE, moduleText);
   // No table at all.
   write(MODULE, moduleText.replace('const SUBSTITUTIONS = ', 'const NOT_THE_TABLE = '));

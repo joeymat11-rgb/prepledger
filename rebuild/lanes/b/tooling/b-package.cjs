@@ -254,6 +254,7 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/test/successor-moves.test.cjs', TOOLING + '/test/product-phase-and-ledger.test.cjs',
   TOOLING + '/test/pinned-unchanged-and-ruled-substitutions.test.cjs', TOOLING + '/test/seal-tip-and-byte-identity.test.cjs',
   TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
+  TOOLING + '/test/parent-gate-closure-and-load-floor.test.cjs',
   // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
   // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
   // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
@@ -513,6 +514,62 @@ function closure(file, enter = () => true) {
 // superseded support file. Nine names are never typed here. A gate the parent does not
 // record, or one whose carrier does not reach the support file, is not in the returned map
 // and coverage() refuses it by the ordinary rule.
+// DECISIONS:147 — THE PARENT GATE'S OWN SOURCE CLOSURE, computed from GIT BLOBS at the
+// parent's reviewed commit. `:113 (1) (c)` admitted a substitution only over a file the
+// parent pins in executionPins, and BRIEF-H3 v1.6 §9 measured what that costs: every file a
+// child of B-NTC must re-target — `native-carriers-source.cjs`, `native-carriers-reference
+// .cjs`, `native-carriers-changes.json`, `native-next-target-candidate/source-delta.cjs`,
+// `b-ntc-successors.cjs` — is reached by the gate and pinned by nobody, so `:1603` refused
+// all five and there was no successor to build. `:147` amends (c): a substitution may live
+// in ANY file of the parent gate's own source closure, parent-transitive, sha-anchored to
+// the parent's reviewed commit.
+//
+// The closure is walked over the BLOBS AT THAT COMMIT — never disk, never HEAD — and it has
+// two kinds of edge, because a gate reaches its own programme both ways:
+//   • RELATIVE REQUIRE/IMPORT specifiers, resolved as requiresOriginal() resolves one;
+//   • REPOSITORY PATH LITERALS (`'rebuild/…'` with a code or data extension) that resolve
+//     to a blob at that commit — which is how a carrier names the original it compiles
+//     privately, the very mechanism `:113 (b)` requires it to use.
+// Both are READ, never executed. The walk is bounded by CLOSURE_LIMIT and by the commit: a
+// path that does not stand there is not in the closure at all.
+const PARENT_CLOSURE_LIMIT = 512;
+const PARENT_CLOSURE_EXT = ['', '.cjs', '.js', '.mjs', '.json'];
+const PARENT_CLOSURE_CACHE = new Map();
+function parentClosure(commit, roots) {
+  const key = commit + '|' + roots.slice().sort().join(' ');
+  if (PARENT_CLOSURE_CACHE.has(key)) return PARENT_CLOSURE_CACHE.get(key);
+  const blob = f => { try { return L.object(root, commit, f).toString('utf8'); } catch { return null; } };
+  const files = new Map(), queue = [...roots];
+  while (queue.length && files.size < PARENT_CLOSURE_LIMIT) {
+    const f = queue.shift();
+    if (files.has(f)) continue;
+    const src = blob(f);
+    if (src === null) continue;
+    files.set(f, src);
+    if (f.endsWith('.json')) continue;          // data, not a source of further edges
+    const dir = path.posix.dirname(f);
+    for (const m of src.matchAll(/(?:\brequire|\bimport)\s*\(\s*['"]([^'"]+)['"]\s*\)|\bfrom\s*['"]([^'"]+)['"]/g)) {
+      const ref = m[1] || m[2];
+      if (!ref || !ref.startsWith('.')) continue;
+      const base = path.posix.normalize(path.posix.join(dir, ref));
+      for (const e of PARENT_CLOSURE_EXT) if (blob(base + e) !== null) { queue.push(base + e); break; }
+    }
+    for (const m of src.matchAll(/['"](rebuild\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json))['"]/g))
+      if (!files.has(m[1])) queue.push(m[1]);
+  }
+  PARENT_CLOSURE_CACHE.set(key, files);
+  return files;
+}
+// `:147`'s own exclusion, asserted by name and never by a path shape alone: "no substitution
+// may reach rebuild/conform/private/**, goldens, or the private fixture". These roots ARE in
+// the measured closure — `rebuild/conform/oracle/**` is reached by the gate — so the refusal
+// is live, not vacuous. Fixed HERE (W7); a spec can never nominate an exempt path.
+const SUBSTITUTION_FORBIDDEN = ['rebuild/conform/private/', 'rebuild/conform/golden/', 'rebuild/conform/goldens/',
+  'rebuild/conform/oracle/'];
+// The LOAD FLOOR: how many trimmed 40+ character lines a body must carry before the copy
+// test can say anything. Fixed here (W7). `:147` moves WHERE it is measured — the body the
+// wrapper loads, not the wrapper — and leaves the number alone.
+const SUCCESSOR_LOAD_FLOOR = 8;
 // r7b F-C. SPEC-DRIVEN, and every one of the four facts is taken from bytes no spec writes.
 //
 // r7 derived the carrier's path by CONCATENATION — `'rebuild/m4/spec/native-carriers-' +
@@ -911,8 +968,13 @@ function spec() {
     // and `wrapper` (the older parent shape's accepted schedule, null where the parent
     // artifact carries its own children). Everything that was a runner constant naming
     // B-NTC-as-child now stands here and is verified against bytes no spec writes.
-    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'support', 'wrapper', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
-      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, support, wrapper, parentAcceptanceCommit, carriers, substitutions');
+    // DECISIONS:147 adds `reviewFile`: `:113 (1) (c)` says each substitution is "enumerated
+    // verbatim in the package spec AND IN THE REVIEW", and only the spec half was ever
+    // asserted. The spec cites the review path; the runner reads that file and requires
+    // every `from` and `to` to stand in it verbatim, so a substitution a reviewer never saw
+    // cannot ride in on a spec alone.
+    keys(s.coverage.successors, ['ruling', 'rulingLineSha256', 'support', 'wrapper', 'reviewFile', 'parentAcceptanceCommit', 'carriers', 'substitutions'],
+      'SUCCESSOR-BLOCK-KEYS-NOT-CLOSED; the successor block is exactly ruling, rulingLineSha256, support, wrapper, reviewFile, parentAcceptanceCommit, carriers, substitutions');
     const sup = s.coverage.successors;
     assert(typeof sup.ruling === 'string' && sup.ruling.includes('MOVES_RULING='),
       'SUCCESSOR-RULING-NOT-CITED ' + JSON.stringify(sup.ruling) + '; the spec must cite MOVES_RULING=<the ledger coordinate it stands on>');
@@ -966,7 +1028,21 @@ function spec() {
       // is required of it is stronger and is checked at run time against the parent's own
       // bytes (successorProof): it must be a file the PARENT pins in executionPins, equal
       // to that pin and to the Git blob at the parent's acceptance commit.
-      assert(/^rebuild\/m4\/spec\/[a-z0-9.-]+\.cjs$/.test(sub.original), 'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
+      // DECISIONS:147 widens the target shape: a substitution may live in any file of the
+      // parent gate's own source closure, which reaches subdirectories and `.json` data as
+      // well as the flat `.cjs` programmes `:113 (c)` assumed. The root stays
+      // `rebuild/m4/spec/` — the parent's own gate programme — which is NARROWER than
+      // ":147"'s words and is said out loud as such: the closure also reaches
+      // `rebuild/engine/**` and `rebuild/conform/**`, and a re-target over the engine under
+      // test would be a code change wearing a re-target's name. Every file BRIEF-H3 v1.6 §9
+      // measured is under this root. Widen it further only with a reviewed tooling change.
+      assert(/^rebuild\/m4\/spec\/[A-Za-z0-9._/-]+\.(?:cjs|mjs|js|json)$/.test(sub.original) && !sub.original.includes('..'),
+        'SUCCESSOR-SUBSTITUTION-TARGET-SHAPE ' + sub.original);
+      // ":147 — no substitution may reach rebuild/conform/private/**, goldens, or the
+      // private fixture." Asserted by name here as well as by the root above, because the
+      // ruling says it and a later widening of the root must not silently lose it.
+      assert(!SUBSTITUTION_FORBIDDEN.some(p => sub.original.startsWith(p)),
+        'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE ' + sub.original);
       // (A) RE-TARGET. Replacing every superseded-by-child pre-image sha by its own post
       // turns `from` into `to`; or `from` and `to` differ only inside the one region where a
       // superseded-by-child PATH stands. Either way the two sides differ only in a path or a
@@ -998,6 +1074,15 @@ function spec() {
       usedDescriptions.add(hit);
       ruledOriginals.add(sub.original);
     }
+    // DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE
+    // REVIEW". The spec names the review file; the runner reads it and requires every
+    // `from` and every `to` to stand in it VERBATIM. A substitution a reviewer never saw
+    // cannot enter on the spec's word alone, and a review that quotes three of four
+    // substitutions refuses on the fourth by name.
+    assert(typeof sup.reviewFile === 'string' && /^rebuild\/lanes\/b\/[A-Za-z0-9._/-]+\.md$/.test(sup.reviewFile) && !sup.reviewFile.includes('..'),
+      'SUCCESSOR-REVIEW-FILE-SHAPE ' + JSON.stringify(sup.reviewFile));
+    // The CONTENT half stands in successorProof(), beside every other fact a substitution is
+    // held to, so one function answers "is this substitution admissible" end to end.
   }
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
   // DECISIONS:135 (4). `freeze` is the ONE optional authorization: a PM FREEZE line naming
@@ -1598,12 +1683,42 @@ function successorProof(s, bound, ran) {
   // blob at the parent's acceptance commit; every `from` stands exactly once in it; every
   // `to` stands in it not at all. A substitution over a file the parent does not pin, or
   // one whose `from` is not there, or one that is already applied, all refuse here.
+  // DECISIONS:147. The admissible target set is THE PARENT GATE'S OWN SOURCE CLOSURE at the
+  // parent's reviewed commit, walked from the declared carriers' own originals — not the
+  // parent's executionPins, which BRIEF-H3 v1.6 §9 measured to contain none of the five
+  // files a child of B-NTC must re-target. The closure is Git's, at a commit the parent's
+  // own receipt names, so a spec can neither widen it nor choose the commit.
+  const gateClosure = parentClosure(PARENT_COMMIT, Object.values(sup.carriers).map(c => c.original));
+  // DECISIONS:147 / ":113 (1) (c) … enumerated verbatim in the package spec AND IN THE
+  // REVIEW". Only the spec half was ever asserted. The spec names the review file; every
+  // `from` and every `to` must stand in it VERBATIM, so a substitution a reviewer never saw
+  // cannot enter on the spec's word alone, and a review that quotes three of four refuses
+  // on the fourth by name.
+  let reviewText = '';
+  if (sup.substitutions.length) {
+    assert(fs.existsSync(rel(sup.reviewFile)), 'SUCCESSOR-REVIEW-FILE-ABSENT ' + sup.reviewFile);
+    reviewText = fs.readFileSync(rel(sup.reviewFile), 'utf8');
+  }
   for (const sub of sup.substitutions) {
-    const pin = bound.acceptance.executionPins[sub.original];
-    assert(pin, 'SUCCESSOR-SUBSTITUTION-TARGET-NOT-A-PARENT-EXECUTION-PIN ' + sub.original);
+    // ADMISSIBILITY FIRST — is this file a target at all — and only then whether a reviewer
+    // saw it. A substitution reaching a protected surface is refused by the ruling itself,
+    // and a review quoting it would not make it admissible.
+    assert(gateClosure.has(sub.original), 'SUCCESSOR-SUBSTITUTION-TARGET-NOT-IN-THE-PARENT-GATE-CLOSURE ' + sub.original +
+      '; the closure at ' + PARENT_COMMIT.slice(0, 12) + ' carries ' + gateClosure.size + ' file(s) and not this one');
+    assert(!SUBSTITUTION_FORBIDDEN.some(p => sub.original.startsWith(p)),
+      'SUCCESSOR-SUBSTITUTION-TARGET-IS-A-PROTECTED-SURFACE ' + sub.original);
+    assert(reviewText.includes(sub.from) && reviewText.includes(sub.to),
+      'SUCCESSOR-SUBSTITUTION-NOT-ENUMERATED-IN-THE-REVIEW ' + sub.original + '; ' + sup.reviewFile +
+      ' does not carry this substitution verbatim');
     const bytes = fs.readFileSync(rel(sub.original));
-    assert.equal(sha(bytes), pin, 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + sub.original);
+    // SHA-ANCHORED to the parent's reviewed commit, which is `:147`'s own requirement and
+    // the thing that makes a closure membership test worth anything: the bytes being
+    // substituted must be the bytes the parent was accepted on.
     assert.equal(sha(bytes), gitSha(PARENT_COMMIT, sub.original), 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-ACCEPTANCE-BLOB ' + sub.original);
+    // And where the parent DOES pin the file, the pin still binds — strictly more, never
+    // less, than `:113 (c)` asked before `:147` widened it.
+    const pin = bound.acceptance.executionPins[sub.original];
+    if (pin) assert.equal(sha(bytes), pin, 'SUCCESSOR-ORIGINAL-NOT-THE-PARENT-EXECUTION-PIN ' + sub.original);
     const text = bytes.toString('utf8');
     assert.equal(text.split(sub.from).length, 2, 'SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.from.slice(0, 48)));
     assert.equal(text.split(sub.to).length, 1, 'SUCCESSOR-SUBSTITUTION-ALREADY-IN-THE-ORIGINAL ' + sub.original + ' ' + JSON.stringify(sub.to.slice(0, 48)));
@@ -1652,12 +1767,31 @@ function proveSuccessor(s, bound, ran, parentChild, declared, accepted, PARENT_C
   // line of the original must be absent from the successor's own source.
   const subs = sup.substitutions.filter(x => x.original === original);
   const quoted = sup.substitutions.flatMap(x => [x.from, x.to]);
-  const lines = originalText.split('\n').map(l => l.trim())
+  const qualify = text => text.split('\n').map(l => l.trim())
     .filter(l => l.length >= 40 && !quoted.some(q => q.includes(l) || l.includes(q)));
-  assert(lines.length >= 8, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original);
+  // DECISIONS:147. THE FLOOR IS MEASURED ON THE BODY THE WRAPPER LOADS, not on the wrapper.
+  // B-NTC's carriers are nine-line wrappers carrying seven qualifying lines each, and they
+  // LOAD `b-ntc-successors.cjs` (242 lines) — which is exactly `:113 (b)`'s own mechanic.
+  // The old floor was calibrated to NATIVE-CARRIERS' large programmes, so BRIEF-H3 v1.6 §9
+  // measured `SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD` on all five of B-NTC's carriers
+  // and no child of B-NTC could ever have met it. So: if the declared original does not
+  // itself carry the floor, follow it to the largest body in ITS OWN closure at the parent's
+  // reviewed commit and measure there. The copy test moves with the floor, which makes it
+  // STRONGER, not weaker — the successor must not paste the body it is supposed to load.
+  let floorFile = original, lines = qualify(originalText);
+  if (lines.length < SUCCESSOR_LOAD_FLOOR) {
+    for (const [f, src] of parentClosure(PARENT_COMMIT, [original])) {
+      if (f === original) continue;
+      const q = qualify(src);
+      if (q.length > lines.length) { lines = q; floorFile = f; }
+    }
+  }
+  assert(lines.length >= SUCCESSOR_LOAD_FLOOR, 'SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD ' + original +
+    '; the largest body in its own closure at ' + PARENT_COMMIT.slice(0, 12) + ' is ' + floorFile + ' with ' + lines.length +
+    ' qualifying line(s), and ' + SUCCESSOR_LOAD_FLOOR + ' are required');
   const copied = lines.filter(l => body.includes(l));
   assert(!copied.length, 'SUCCESSOR-COPIES-THE-ORIGINAL-INSTEAD-OF-LOADING-IT ' + parentChild + '; ' +
-    copied.length + ' of ' + lines.length + ' original line(s) stand verbatim in the successor source');
+    copied.length + ' of ' + lines.length + ' line(s) of ' + floorFile + ' stand verbatim in the successor source');
   // (3) the replacements are exactly the enumerated ones, and nothing else replaces.
   const { table, holder } = successorTable(sources);
   assert.deepEqual(table, sup.substitutions, 'SUCCESSOR-SUBSTITUTION-TABLE-DISAGREES-WITH-THE-SPEC ' + holder);

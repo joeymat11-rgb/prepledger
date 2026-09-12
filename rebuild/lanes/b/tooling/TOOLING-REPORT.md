@@ -2082,3 +2082,117 @@ with the one word changed and measures BOTH settings on one repository.
 Terminals at this head, `--ci --package`, exit **2** and `CI REVIEW-PENDING` for all seven:
 B-NTC **5 open** · H3 **12** · B1 **6** · B2 **6** · B4 **10** · B3 **10** · B-LOM **12** —
 every count equal to r7's, so neither pass moved an obligation.
+
+## r9 — `DECISIONS:147` — the delivered bytes at THIS head
+
+The r7b/r8-fix table above is superseded. Measured on the committed bytes;
+`TOOLING-REPORT.md` and `TOOLING-FIX-r7-REPORT.md` are not in the table because a file
+cannot carry its own hash and the second is written after it.
+
+| file | lines | bytes | sha256 |
+|---|---|---|---|
+| `b-package.cjs` | 2334 | 186 616 | `44649169a6e6f7331a2e4bbf1b523f6a39d96a46cdda69a789cd10fa92f2f77a` |
+| `README.md` | 999 | 73 142 | `9fe60e0d4a41bd3cad66d5b86528f17a1329c102109be784121facdbad0e248a` |
+| `test/execution-targets.test.cjs` | 197 | 13 304 | `d36db094ed10df0ea2d9ca2eb81b2b88caafad179b28f47992dbf80b4ed39bf4` |
+| `test/successor-moves.test.cjs` | 403 | 27 212 | `e1e79863d100325d548225d1e22783b6f07710141e160c43e0bcae81f1e2fa34` |
+| `test/product-phase-and-ledger.test.cjs` | 224 | 14 492 | `5984aa2610fd13f33253b6b2089c9e7d251b12cb094ee82fa40b38d99dc10430` |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 280 | 19 095 | `d692bf7b301beb2facc6ad9f76c974e63215d8f78b539229dbafd8317c6d1d2c` |
+| `test/seal-tip-and-byte-identity.test.cjs` | 404 | 24 011 | `acbb8add15ca78459345ad0e301e037f17c943f0321ebe29bdec2b1faa9f4b9b` |
+| `test/parent-pin-shapes-and-spec-successors.test.cjs` | 248 | 16 577 | `08f832a90ae8ba07ce76da57923c311eed5702a3fc98139a95870e1247351175` |
+| `test/parent-gate-closure-and-load-floor.test.cjs` | 351 | 21 755 | `03e3086c57e4821d523c3393b1734c6e77f7cf5fa99317e73fa0e694d56a2822` |
+| `../tooling/preflight.cjs` | 166 | 10 896 | `fff710f9fc9c3ab38d74eea1f58889d0b2ba09af86439bcbf22e2622fae08eae` |
+| `../tooling/test/preflight.test.cjs` | 191 | 10 371 | `f80bc48697e38f27f342fac10ddbc5bc63f45b9156ad15b2a1cc6e91ea364748` |
+
+The **seven** package specs carry `44649169a6e6f7331a2e4bbf1b523f6a39d96a46cdda69a789cd10fa92f2f77a`
+as `tooling.runnerSha256`, re-pinned mechanically. Their own bytes at this head:
+`B-NTC.json` 24 020 B `f85454b8…` · `B-LOM.json` 13 757 B `fd444c36…` ·
+`H3.json` 12 553 B `24cc3cac…` · `B1.json` 25 107 B `633c4833…` ·
+`B2.json` 26 013 B `b1fd353a…` · `B3.json` 21 006 B `a6b943a8…` · `B4.json` 20 473 B `bff34fb1…`.
+
+### What `:147` changed, and what it did not
+
+`:147` amends `:113 (1) (c)` only; (a), (b), (d) and (e) are untouched and their tests are
+unchanged. Three things moved, all in the direction of *more* proof per substitution:
+
+1. **The target set became the parent gate's own source closure.** `parentClosure(commit,
+   roots)` reads blobs out of Git at the parent's **reviewed** commit — never off disk —
+   and follows relative `require`/`import` specifiers and `rebuild/…` path literals, with
+   `.cjs/.js/.mjs/.json` resolution, bounded at 512 files and memoised per
+   `commit|roots`. Measured against the real parent at
+   `9ad2ecab141753e9e8e74d3a105bd168d5e72286`, the closure of B-NTC's six source carriers
+   is **171 files**, and it contains all five files `BRIEF-H3-CLEAN-INIT` v1.6 §9 names.
+   Before `:147` the admitted set was one file per carrier, which is why no child of B-NTC
+   could ever declare the re-target it actually needs: the wrappers are nine lines long.
+2. **Protected surfaces refuse by name, and the refusal is live.** The same 171-file
+   closure reaches `rebuild/conform/oracle/**`, so `SUCCESSOR-SUBSTITUTION-TARGET-IS-A-
+   PROTECTED-SURFACE` is a rule with something to catch rather than a formality, and it is
+   asserted before the sha anchors and before the review clause so that a golden target
+   refuses for being a golden and for no other reason.
+3. **The load floor and the copy test moved to the loaded body.** `proveSuccessor()` counts
+   qualifying lines (≥ 40 chars, not one of the declared quoted strings) in the named
+   original, and when there are fewer than 8 it walks that file's own closure and takes the
+   fattest body it reaches, naming the file it used in both the floor refusal and the copy
+   refusal. A nine-line wrapper that loads a 242-line module is therefore measured against
+   the module; a nine-line wrapper that loads a five-line module still refuses
+   `SUCCESSOR-ORIGINAL-TOO-SHORT-TO-PROVE-A-LOAD`.
+
+A fourth change is a narrowing, not a widening: `coverage.successors.reviewFile` is now a
+required key of a closed block, shape-checked in `spec()` (`rebuild/lanes/b/**.md`) and
+read in `successorProof()`, where **both** the `from` and the `to` of every substitution
+must stand verbatim in it. A spec can no longer enumerate a substitution that the review
+the spec itself cites does not carry.
+
+**Stated residual, unchanged in kind from r7.** The closure follows the edges this runner
+can see. A target a parent gate loads through a computed path is out of the set and
+refuses — the safe direction — so the shipped rule is narrower than `:147`'s words, and a
+future gate with a dynamic loader would need this recorded before it could be carried.
+
+## r9 — the suites at this head
+
+| suite | cases | exit |
+|---|---|---|
+| `test/product-phase-and-ledger.test.cjs` | 7/7 | 0 |
+| `test/execution-targets.test.cjs` | 9/9 | 0 |
+| `test/successor-moves.test.cjs` | 9/9 | 0 |
+| `test/pinned-unchanged-and-ruled-substitutions.test.cjs` | 12/12 | 0 |
+| `test/seal-tip-and-byte-identity.test.cjs` | 16/16 | 0 |
+| `test/parent-pin-shapes-and-spec-successors.test.cjs` | 8/8 | 0 |
+| `test/parent-gate-closure-and-load-floor.test.cjs` | 9/9 | 0 |
+| `../tooling/test/preflight.test.cjs` | 9/9 | 0 |
+
+**79 cases, 0 fail.** r7b/r8-fix measured 70 across seven suites; r9 adds the eighth,
+`parent-gate-closure-and-load-floor` (9), and re-states `successor-moves` around the review
+clause: its fixture spec now cites a review file carrying the one substitution verbatim, and
+the case that mutates a `from` into text absent from the original writes that same text into
+the review first — so it still refuses `SUCCESSOR-SUBSTITUTION-NOT-EXACTLY-ONCE-IN-THE-
+ORIGINAL`, the reason it was written to measure, and not the new review refusal that would
+otherwise mask it.
+
+Terminals at this head, `--ci --package`, exit **2** and `CI REVIEW-PENDING` for all seven:
+B1 **6 open** · B2 **6** · B3 **10** · B4 **10** · B-LOM **12** · B-NTC **5** · H3 **12** —
+every count equal to r7's, r7b's and r8-fix's, so `:147` moved no obligation in any shipped
+package. No run printed a PASS word.
+
+### The H3 scratch probe
+
+`origin/rebuild/lane-b-h3 @ e4f1c70` was cloned `--shared` into
+`…/fx7-scratch/fx-h3c`, its chain ref pointed at the lane's own
+`origin/rebuild/t2-client-core`, the r9 runner and suites overlaid, all seven specs
+re-pinned and H3's two `superseded-by-child` posts re-stated — the same probe-only re-pin
+the H3 builder makes whenever the lane takes up a new runner. The probe touched no
+worktree.
+
+It stopped **twice**, and neither stop is a `:147` shape gate:
+
+* first at `Brief bytes` — `H3.json` pins `9cef95a3…` for `BRIEF-H3-CLEAN-INIT.md` while the
+  brief on its own branch at `e4f1c70` is `f6c4c4df…` (v1.6). That is the H3 lane's own
+  stale pin, not a tooling question; the probe re-stated it to see past it.
+* then at `Required child source-carriers`, after fourteen full evidence lines including
+  `PARENT OPTION`, `PARENT BOUND`, `PARENT PINS RE-ASSERTED`, `PRODUCT IMPLEMENTED`,
+  `FIDELITY OBSERVED`, `AUTHORITY OBSERVED` and `LAWS 45/45`. The spec at `e4f1c70` still
+  reads `coverage.successors: null` — the runner's own `SPEC OBSERVED` line says `no
+  successor carriers declared` — so the inherited `source-carriers` gate has no carrier at
+  all. **This is the expected stop: the missing `coverage.successors` block, not the shape
+  gate.** Every refusal r7b's probe hit on the way there is gone.
+
+`PUBLIC CI EVIDENCE PASS` was not reached in the clone and is not claimed here.
