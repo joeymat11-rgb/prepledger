@@ -464,3 +464,159 @@ Five mutants, **5 killed / 0 survived**, each restored byte-identical with an em
 | **X3** | REVIEWER: the sets line goes back to screen 3's form label | KILLED 149/1 - `:133 (2) d` |
 | **X4** | REVIEWER: an unnamed exercise stops reporting its OTHER gaps (the pre-fix short-circuit) | KILLED 149/1 - `:133 (2) c` |
 | **X5** | REVIEWER: the straight apostrophe comes back to screen 2 | KILLED 148/2 - `S42`, `:132 (3)` |
+
+---
+
+## 15. Round 4 (B-NTC re-pin, delta 5ba2419) - evidence
+
+Candidate @ **5ba2419** (code **52f7eb8**), base **0964b30** (carries the B-NTC merge
+ce38aa3). Worktree clean at start and at end.
+
+### Custody, and the three files
+
+`git diff --stat 0964b30..5ba2419` touches **only** `rebuild/m3/w7-preview/today/**` and
+`rebuild/lanes/c/dad-first-run/**`. Nothing under `rebuild/m3/w6`, `rebuild/m4`,
+`rebuild/engine`, `rebuild/client`, `rebuild/conform` or `.github`. The three files A4b
+used to touch are byte-identical to the tip, checked by sha256 against
+`git show 0964b30:<path>`:
+
+```
+IDENTICAL rebuild/m3/w6/local/today-bindings.mjs        95315f7a0e63cd49648a8c6c031d38a7bbce3f8e8f64e2fdfaf713b3ee174ce8
+IDENTICAL rebuild/m3/w6/test/local-today-journey.test.mjs 4572517ce67b99ae93fc369821a387029bcbc2907ff9463ed33c6d123f4d62a7
+IDENTICAL rebuild/m3/w7-preview/today/today-entry.mjs   b50b92314b8e7730b4aab56e79a9bff2f03d949d234eeaf2a7270ec83f3fa111
+```
+
+`today-entry.mjs` is back to its A4 value: A4b now changes it not at all.
+
+### The B-NTC gate, run alone
+
+```
+==BEFORE==   (empty)
+B PACKAGE B-NTC PUBLIC CI EVIDENCE PASS - public evidence only, NOT the package verdict ...
+==AFTERGATE== (empty)   ==AFTER== (empty)
+```
+
+`node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC` **PASSES** with the
+worktree clean before and after. NOTE, and it is not A4b's: `native-carriers-package.cjs
+--ci` now reports FAIL on this tree. That gate is **retired from CI** - `rebuild.yml:82`
+runs the B-NTC gate in its place, on the tip as well as on this branch - and the B-NTC
+package's own PROTECTED SURFACES line says the parent "keeps its own pin and therefore
+REFUSES on these bytes; that refusal is this child's to supersede". The bytes in question
+are `rebuild/m4/workout/engine-runtime.cjs`, which A4b does not touch. An earlier run of
+mine reported both gates failing; that was my own fault - I had left
+`rebuild/m4/spec/acceptance-native-carriers.json` modified by a concurrent run, and both
+gates hash the worktree. Restored, re-run alone, results as above.
+
+### Counts, executed here
+
+```
+setup                      156 / 156 / 0        W6                    552 / 552 / 0
+catalogue                   43 /  43 / 0        journey                51 /  51 / 0  (PAGE_PINS unmoved)
+today4                      64 /  64 / 0        host (3 test files)    32 /  32 / 0
+copy                        36 /  36 / 0        w7-preview             19 /  19 / 0
+gym                         64 /  64 / 0        build.mjs  PASS, 103 pinned inputs
+checkin                     28 /  28 / 0
+ntc-h6-delta                 8 /   8 / 0
+rebuild.yml today step AS WRITTEN   164 / 164 / 0
+the same step + setup.test.mjs      320 / 320 / 0
+```
+
+**The six new setup subtests**, by name (`test(` names 135 -> 141, none removed):
+
+1. `re-pin - every file the B-NTC package pins is untouched by A4b, on disk`
+2. `re-pin - the three files A4b used to touch are the tip's bytes`
+3. `re-pin - the durable lane writes the tags and reads them back, from setup-host.mjs`
+4. `re-pin - envelopeOf tells an envelope from a document, and never guesses`
+5. `re-pin - a write with tags but NO setup is refused, and writes nothing`
+6. `re-pin - tags for an id the week does not have are refused at the lane`
+
+### The store, dumped on both paths
+
+```
+PATH 1, lane C's wrapped host, save({setup, tags}):
+  ok true, op-device-...-1 ; second save -> SETUP_ALREADY_RECORDED
+  generation: ops 1 | outbox 1
+     kind=fact class=event payload keys IN ORDER ["profile","setup","tags"] profile=earned/first-run-setup/v1 schema=2
+  read back: rows 1 | label Dad | tags 16 ids | tag ids === document ids TRUE
+  lease local-era:e8ac6085...
+PATH 2, W6'S OWN createSetupHost and its unchanged one-argument save(envelope):
+  ok true ; generation: ops 1 | outbox 1 ; payload keys IN ORDER ["profile","setup","tags"]
+  reading-host lease === setup lease TRUE      (one era, one lease, one clock)
+  w6's own read-back carries tags: NO (w6's setupsIn predates A4b)
+  lane C's setupsIn over the SAME generation reads them: yes
+```
+
+ONE op, ONE generation, first-run-only, tags read back and keyed to the document's own
+ids - semantically what round 3 accepted, moved without loss.
+
+### THE SEAM JUDGMENT: honest, with one undeclared coupling
+
+Read, not assumed:
+
+- **`rebuild/client/index.cjs:216-231` has no payload allowlist.** It checks the command's
+  `schemaVersion === 2` and that `prepare`/`validate` are functions, calls
+  `prepare(actions[0].workout)`, refuses only if `action.extra` collides with a reserved
+  ENVELOPE key (`op_id, athlete_id, ..., payload, ...`), builds the op, then requires
+  `validate(op, readOperation) === true`. The payload's shape is the producer's business
+  by design - that is the A3 seam (`DECISIONS:107`) and `:129 (2)` ruled the widening.
+- **w6's `save(setup)` validates nothing.** Read at the tip
+  (`today-bindings.mjs:546-557`): it checks `alive`, re-reads `enrolled()`, then calls
+  `execute("workout", { action: "first-run-setup", input: { setup } })`. The argument is
+  forwarded opaquely. Passing an envelope therefore evades no check w6 performs.
+- **The producer's own gate got STRICTER, not looser:** `validate` now requires
+  `Object.keys(op.payload).length === 3` and re-runs `tagsOf` on the built envelope.
+- **`envelopeOf` cannot confuse the two shapes**, proved rather than argued: a real
+  document's keys are `["athlete_label","split","exercises","priority_muscles"]`; every
+  malformed shape I fed it falls through to the document branch and is then refused -
+  `setupOf({setup:1, tags:2})` throws `SETUP_INPUT_INVALID`.
+
+So nothing is smuggled past a validator: the only validator on that path is lane C's own,
+and it was widened by ruling and tightened in fact. **The judgment is HONEST USE.**
+
+The one thing it leaves behind is a coupling nobody can read from w6: that file's
+parameter is named `setup` and now sometimes carries `{setup, tags}`, and w6 cannot be
+annotated because it is pinned on disk. That is a readability hazard for the next reader
+and a latent breakage if anyone ever adds a shape check to `save`. Condition C8.
+
+### Mutants: 3 killed, 2 survived, and what the survivors mean
+
+| # | mutation | result |
+|---|---|---|
+| Y2 | the producer writes the op WITHOUT the tags member | KILLED 141/15 |
+| Y3 | tags need not match the week's exercise ids | KILLED 153/3 - incl. `re-pin - tags for an id the week does not have are refused at the lane` |
+| **Y5** | ONE byte changed in the B-NTC-pinned `today-bindings.mjs` | KILLED 154/2 - `re-pin - every file the B-NTC package pins is untouched by A4b, on disk` and `... are the tip's bytes`, AND the gate: `B PACKAGE B-NTC FAIL WORKTREE-SOURCE-PIN` exit 1. The pin test bites exactly as claimed |
+| Y1 | `envelopeOf` dropped from `prepare` | **SURVIVED** 156/0 |
+| Y4 | `envelopeOf` dropped from the wrapped `save` | **SURVIVED** 156/0 |
+
+The two survivors mask each other, and I proved it:
+
+```
+BASELINE            w6.save(envelope) -> ok true
+Y1 alone            w6.save(envelope) -> ok false, state 3, WORKOUT_INPUT_INVALID, nothing written
+Y1 + Y4 together    suite pass 153 fail 3  (KILLED)
+```
+
+Y4 alone is harmless because `prepare`'s split catches it - benign redundancy. **Y1 alone
+is not harmless**: it breaks the w6 one-argument path, which is the whole point of this
+round's design, and the suite stays green. The new subtest `envelopeOf tells an envelope
+from a document` tests the FUNCTION; nothing drives an envelope through w6's own
+`createSetupHost().save()` into `prepare`. Condition C9, with the red-first test being
+exactly the probe above.
+
+### Browser and the served page
+
+Four msedge checks PASS with verified real `taskkill /F /T`: `setup-check.mjs` with
+**7** kills, the mid-flow kill still leaving zero operations and no partial athlete, and
+its round-3 step "screen 6 with an unnamed exercise: named row, sentence sets line, 3 gaps
+each on its own line"; plus `browser-check`, `gym-check`, `checkin-check`.
+`http://127.0.0.1:4178/?screen=setup` returns **200**, and through
+`plain-copy.cjs`'s `decodeEscapes` the served bundle carries every round-3 marker:
+`One exercise (unnamed)` true, the sentence sets line true, the curly F1 sentence true,
+the straight one false, the two doors true, `screen2Why` true.
+
+### Residual noted
+
+`w6`'s own `setupsIn` returns rows WITHOUT `tags`; only lane C's `setup-host.mjs`
+`setupsIn` reads them. Nothing reads tags yet (F2, `DECISIONS:127 (6)`), so there is no
+defect today - but F2 must take its tags from lane C's read-back, not from a host obtained
+straight from w6.

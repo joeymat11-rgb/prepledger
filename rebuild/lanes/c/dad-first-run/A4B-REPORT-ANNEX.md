@@ -617,3 +617,43 @@ because a flake in a gate whose diagnostics are withheld costs the next lane an
 hour, and because `b-package.cjs`'s `local diagnostics withheld` branch is worth
 a REQUEST to lane B - one line of the child's captured stderr would have named
 this in a minute.
+
+## 7. ROUND 4, C9: THE MUTANT THE SUITE COULD NOT SEE
+
+The reviewer's round-4 mutants left two survivors, Y1 (`envelopeOf` dropped from
+`prepare`) and Y4 (dropped from lane C's wrapped `save`), and they survived
+because they mask each other: with both in place either half still splits the
+envelope. Y4 alone is benign redundancy. **Y1 alone is not**: the page does not
+get lane C's wrapper at all. `boot()` hands `today-entry.mjs` an already-open
+era and today-entry asks **w6's OWN** `createSetupHost` for the lane, passing
+lane C's commands but keeping w6's one-argument `save(setup)` - so with Y1 the
+envelope reaches `setupOf` whole and the write is refused. The suite stayed
+green anyway, because `re-pin - envelopeOf tells an envelope from a document`
+tests the FUNCTION and every durable subtest went in through the wrapper.
+
+The new subtest closes exactly that hole. It opens the era through
+`openTodayHosts`, asks `era.createSetupHost({ day, commands: createSetupCommands(),
+profile: PROFILE })` - w6's own handle, not lane C's - calls `w6.save({ setup,
+tags })` with ONE argument, and asserts on the op as it sits in the generation:
+one op, `Object.keys(payload)` deep-equal to `['profile', 'setup', 'tags']` in
+that order, the document (not the envelope) under `setup`, and the tags beside it.
+
+RED first, executed, with only `prepare`'s `envelopeOf` call replaced by a plain
+`{ setup: input.setup, tags: input.tags }`:
+
+```
+Y1 applied     tests 157 | pass 156 | fail 1
+               C9 - an envelope through w6's OWN createSetupHost().save()
+               AssertionError: w6's one-argument save took the envelope
+               false !== true          (ok false; no op written)
+restored       tests 157 | pass 157 | fail 0
+```
+
+`git diff --stat` after the restore shows the one test file and nothing else, so
+the mutation left no residue in `setup-commands.mjs`.
+
+C8 is recorded and not fixed here, deliberately: w6's parameter is still spelled
+`setup` and now sometimes carries `{setup, tags}`. Renaming it to `input` (or
+restoring the second parameter) is a byte in `today-bindings.mjs`, which is the
+one thing this whole round exists to avoid - so it rides the lane lead's REQUESTS
+line to whoever next unpins that file.
