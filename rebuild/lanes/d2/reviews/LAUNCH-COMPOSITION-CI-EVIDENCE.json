@@ -1,0 +1,400 @@
+{
+  "candidate": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+  "frozenIntegration": "ea0a011f540448a5ece05d4c0ab7e0c8af17fedc",
+  "reviewedAt": "2026-09-13T03:03:19.1525605-04:00",
+  "scope": "Only sole CI blocker and actual full-custody mechanical preflight; unchanged prior source/browser evidence retained, no redundant suite rerun.",
+  "priorIndependentEvidence": {
+    "reviewCommits": [
+      "2e1db5e034b587b58d0f8603a0b61bea44704703",
+      "b9d8624ed377f2bbb761de0179bbdac6f5ae3d48"
+    ],
+    "file": "rebuild/lanes/d2/reviews/LAUNCH-COMPOSITION-EVIDENCE.json",
+    "priorVerdict": "REJECT for missing exact-head Windows CI; preserved"
+  },
+  "independentlyVerifiedAttempt2": {
+    "id": 34742308033,
+    "name": "rebuild",
+    "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "attempt": 2,
+    "url": "https://github.com/joeymat11-rgb/prepledger/actions/runs/34742308033",
+    "jobs": [
+      {
+        "id": 103687833664,
+        "name": "rebuild-public (windows-latest)",
+        "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Run npm ci --no-audit --no-fund --include=dev",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 5,
+            "name": "Install pnpm 9 (the version both W6 and W5 lockfiles were written with)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 6,
+            "name": "Install the pinned W6 browser-build dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 7,
+            "name": "Install the pinned W5 source and reconciliation dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 8,
+            "name": "Check frozen files and actual old-app package",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 9,
+            "name": "Public law, mutant, adapter and archived-artifact checks",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 10,
+            "name": "Unchanged public oracle and frozen-engine witnesses",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 11,
+            "name": "Prove the new checks fail closed",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 12,
+            "name": "Accepted synchronous client restart witness",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 13,
+            "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 14,
+            "name": "A0 — the workout host over the real durable client",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 15,
+            "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 16,
+            "name": "C5 — the voice coach tool contract and text prototype",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 17,
+            "name": "A5 — the PWA shell's lockfile-only suites",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 18,
+            "name": "A5 — the built deploy folder itself",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 19,
+            "name": "Report the evidence boundary",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 37,
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 38,
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 39,
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      },
+      {
+        "id": 103687834487,
+        "name": "rebuild-public (ubuntu-latest)",
+        "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+        "status": "completed",
+        "conclusion": "success",
+        "steps": [
+          {
+            "number": 1,
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 2,
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 3,
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 4,
+            "name": "Run npm ci --no-audit --no-fund --include=dev",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 5,
+            "name": "Install pnpm 9 (the version both W6 and W5 lockfiles were written with)",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 6,
+            "name": "Install the pinned W6 browser-build dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 7,
+            "name": "Install the pinned W5 source and reconciliation dependencies",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 8,
+            "name": "Check frozen files and actual old-app package",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 9,
+            "name": "Public law, mutant, adapter and archived-artifact checks",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 10,
+            "name": "Unchanged public oracle and frozen-engine witnesses",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 11,
+            "name": "Prove the new checks fail closed",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 12,
+            "name": "Accepted synchronous client restart witness",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 13,
+            "name": "Cumulative H3 clean-init, native-carrier and legacy-census evidence",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 14,
+            "name": "A0 — the workout host over the real durable client",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 15,
+            "name": "A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 16,
+            "name": "C5 — the voice coach tool contract and text prototype",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 17,
+            "name": "A5 — the PWA shell's lockfile-only suites",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 18,
+            "name": "A5 — the built deploy folder itself",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 19,
+            "name": "Report the evidence boundary",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 37,
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 38,
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success"
+          },
+          {
+            "number": 39,
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ]
+  },
+  "independentlyReverifiedShared": {
+    "id": 34742308032,
+    "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+    "conclusion": "success",
+    "attempt": 1,
+    "jobs": [
+      {
+        "id": 103683953002,
+        "name": "shared-preflight (ubuntu-latest)",
+        "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+        "conclusion": "success",
+        "regressionStep": "success"
+      },
+      {
+        "id": 103683953106,
+        "name": "shared-preflight (windows-latest)",
+        "head": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+        "conclusion": "success",
+        "regressionStep": "success"
+      }
+    ]
+  },
+  "b196Attributed": {
+    "reportCommit": "55f9d72110c8640c5e131f167546356c810a4d3e",
+    "reportFile": "rebuild/lanes/b/LAUNCH-H3-GATE-AF4ED1F.md",
+    "actualCheckoutBothJobs": "af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+    "nodeBothJobs": "22.23.2",
+    "h3ObservedChildrenExitZeroEach": 10,
+    "h3TerminalEach": "B PACKAGE H3 PUBLIC CI EVIDENCE PASS",
+    "hostedH3SubsetTapCount": null,
+    "fullTodayEach": {
+      "tests": 553,
+      "pass": 553,
+      "fail": 0,
+      "cancel": 0,
+      "skip": 0
+    },
+    "oneAuthorizedUiRetry": true,
+    "debugLogging": false,
+    "api403QueuedNothing": true,
+    "githubScheduledBothFreshMatrixJobs": true,
+    "localH3Rerun": false,
+    "d2ReadPrivateOrH3Logs": false
+  },
+  "actualD2Mechanical": {
+    "argv": [
+      "rebuild/lanes/tooling/preflight.cjs",
+      "--custody",
+      ".github/workflows/shared-preflight.yml,rebuild/lanes/b/BUILD-REPORT-SHARED-PREFLIGHT-CI.md,rebuild/lanes/c/HOTFIX-DIRNAME.md,rebuild/lanes/c/LAUNCH-ADOPTION-PROBES.mjs,rebuild/lanes/c/LAUNCH-ADOPTION-R2-REPORT.md,rebuild/lanes/c/LAUNCH-ADOPTION-REPORT.md,rebuild/lanes/c/LAUNCH-COMPOSITION-REPORT.md,rebuild/lanes/d/PREFLIGHT-COMMENT-REGEX-REPORT.md,rebuild/lanes/tooling/preflight-dash-scan.cjs,rebuild/lanes/tooling/preflight.cjs,rebuild/lanes/tooling/test/preflight.test.cjs,rebuild/lanes/tooling/test/shared-preflight-ci-registration.test.cjs,rebuild/m3/w7-preview/today/build.mjs,rebuild/m3/w7-preview/today/gym-app.mjs,rebuild/m3/w7-preview/today/machine-settings-check.mjs,rebuild/m3/w7-preview/today/plain-copy.cjs,rebuild/m3/w7-preview/today/test/copy.test.mjs,rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs",
+      "--report",
+      "rebuild/lanes/c/LAUNCH-COMPOSITION-REPORT.md",
+      "--status-line",
+      ".tmp/d2-final-ci-status.txt",
+      "--ui-custody",
+      "rebuild/m3/w7-preview/today/build.mjs,rebuild/m3/w7-preview/today/gym-app.mjs,rebuild/m3/w7-preview/today/plain-copy.cjs",
+      "--ci-run",
+      "34742308033"
+    ],
+    "statusLine": "D2 exact af4ed1f CI review: verified rebuild34742308033 attempt2 both OS success with actual Today553/553; shared34742308032 both OS67/67. Original attempt1 failure retained. Independent source/browser evidence unchanged; final PM judgment remains separate.",
+    "statusCharacters": 257,
+    "reportLines": 39,
+    "changedCustodyPaths": 18,
+    "uiSourceFiles": 3,
+    "uiDashHits": 0,
+    "commentExemptions": 20,
+    "regexExemptions": 6,
+    "ciRunVerifiedBeforeUse": "34742308033 attempt2",
+    "exit": 0,
+    "stdout": "PREFLIGHT PASS af4ed1f1939ee02d159c0a430c7b57fe004aee4d",
+    "log": ".tmp/d2-final-mechanical-verified-ci.log",
+    "toolVerifiesCiItself": false
+  },
+  "builderReconciliation": {
+    "receiptCommit": "06de7553732d8c31369fd93e1fe5262028b536f2",
+    "receiptFile": "rebuild/lanes/c/LAUNCH-COMPOSITION-RECEIPT.md",
+    "readAfterIndependentExecution": true,
+    "ownBuilderMechanical": "PASS, full18 paths/3 UI sources,39/60 report,229/400 status,0UI hits,20comment/6regex",
+    "claimsMatch": true
+  },
+  "preservedFailure": {
+    "run": 34742308033,
+    "attempt": 1,
+    "windowsJob": 103683952988,
+    "terminal": "CHILD-REQUIRED-EXIT-ZERO",
+    "child": "today-suites",
+    "fullTodaySkipped": true,
+    "exactCaseAndMechanism": null,
+    "diagnosedFix": false,
+    "meaning": "Unexplained intermittent execution evidence remains preserved; attempt2 adds successful exact-head validation."
+  },
+  "reviewerVerdict": "ACCEPT exact candidate; sole CI blocker closed by new evidence",
+  "authority": "Reviewer only. No PM acceptance, source edit, shared push or integration. Final M requires separate exact-head gate/CI/preflight and authorization."
+}
