@@ -16,6 +16,8 @@ const buildRirSets = (...args) => E.buildRirSets(...args);
 const calorieFloor = (...args) => E.calorieFloor(...args);
 const cap = (...args) => E.cap(...args);
 const cleanAtDate = (...args) => E.cleanAtDate(...args);
+const currentSleepObservation = (...args) => E.currentSleepObservation(...args);
+const finiteSleep = (...args) => E.finiteSleep(...args);
 const coarseLifts = (...args) => E.coarseLifts(...args);
 const currentRate = (...args) => E.currentRate(...args);
 const cutRateBand = (...args) => E.cutRateBand(...args);
@@ -852,7 +854,8 @@ function weekReview(s) {
   const sess = Object.keys(s.sessionLog).filter(inWin);
   const wins = s.feed.filter((f) => inWin(f.d) && /OWNED|DEBUT|EARNED|RECLAIM|ZERO-COMP|RESET COMPLETE/.test(f.t));
   const nights = s.sleep.nights.filter((n) => inWin(n.d));
-  const cleanN = nights.filter((n) => n.h >= s.sleep.cleanH).length;
+  const targetKnown = Number.isFinite(s.sleep.cleanH);
+  const cleanN = targetKnown ? nights.filter((n) => n.h >= s.sleep.cleanH).length : null;
   const fixes = s.feed.filter((f) => inWin(f.d) && f.t.indexOf("FIX WINDOW CLOSED") === 0).length;
   const holds = s.exercises.filter((e) => e.holdFlag).length;
   const cur = currentRate(s);
@@ -869,7 +872,7 @@ function weekReview(s) {
   const lines = [
     `protein ${proHit}/${proN} on target${fixes ? ` · ${fixes} fix window${fixes > 1 ? "s" : ""} closed same-day` : ""}`,
     `${sess.length} session${sess.length === 1 ? "" : "s"} logged · ${wins.length} win${wins.length === 1 ? "" : "s"} filed${holds ? ` · ${holds} lift on hold` : ""}`,
-    `sleep ${cleanN}/${nights.length} clean${sealedNow ? " · scale sealed — verdict Monday" : cur.measured ? ` · rate ~${cur.fat}/wk vs band ${cutRateBand(s).band.join("–")}` : ""}`,
+    `sleep ${targetKnown ? `${cleanN}/${nights.length} clean` : `${nights.length} nights recorded; target not recorded — comparison unavailable`}${sealedNow ? " · scale sealed — verdict Monday" : cur.measured ? ` · rate ~${cur.fat}/wk vs band ${cutRateBand(s).band.join("–")}` : ""}`,
     adjLine,
   ];
   let verdict;
@@ -919,8 +922,8 @@ function theOneThing(s, slp, hour = clock.hour(), graceDays = Infinity) {
   const trainToday = dt === "U" || dt === "L";
   const sessDone = !!s.sessionLog[tISO];
   if (!slLogged) {
-    const flips = !slp.clean && slp.run + 1 >= slp.need;
-    return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? "one tap — ≥7.5 flips you CLEAN and today's attempts count for keeps" : "one tap — the whole engine keys off it" };
+    const flips = slp.targetKnown && !slp.clean && slp.run + 1 >= slp.need;
+    return { t: `Log ${fmtShort(owed[0])}'s night`, sub: flips ? `one tap — a night at your ${s.sleep.cleanH} h target updates the target count; delivered reps already count` : "one tap — the whole engine keys off it" };
   }
   if (s.fixWindow && !dLogged) return { t: "Fix window is open", sub: `hit ${proteinTarget(s).g} today and yesterday's miss becomes a save — bouncing back is the skill being scored` };
   /* r3 blocker D — routed through the ONE selector the card uses. This used to be a raw
@@ -937,7 +940,9 @@ function theOneThing(s, slp, hour = clock.hour(), graceDays = Infinity) {
   const lo2 = lightsOutT(s);
   /* wake reference comes off lightsOutT, which now reads his measured median
      rather than the authored 06:45 — see LIGHTS_OUT_NOTE. */
-  return { t: "Everything's banked ✓", sub: (slp.clean ? "protect the streak" : "tonight rebuilds the reset") + ` — lights out ${fmt12(lo2.t)}, up ${fmt12(lo2.wakeRef || "07:30")}` };
+  return { t: "Everything's banked ✓", sub: lo2.target == null
+    ? (lo2.override && Number.isFinite(lo2.mins) ? `Lights out ${fmt12(lo2.t)} (set by you; override). Sleep target not recorded.` : "Sleep target not recorded; no bedtime calculated.")
+    : (slp.clean ? "sleep plan on file" : "tonight's sleep plan") + ` — lights out ${fmt12(lo2.t)}, up ${fmt12(lo2.wakeRef || "07:30")}` };
 }
 
 // Copied from frozen src/app.jsx @ fe516c1:6917-6932.
@@ -1158,13 +1163,16 @@ function dayProtocol(s, slp) {
   if (dayType(isoOf(new Date(todayStart().getTime() + DAY)), s) === "REFEED") steps.push({ a: "Normal day — refeed is tomorrow", why: "no pre-saving calories tonight. Worth knowing what tomorrow does and does not buy: at a matched weekly total, the only refeed RCT in trained people did not survive independent reanalysis, and across 12 trials the resting-metabolism benefit in resistance-trained subgroups is 11 kcal/day, 95% CI −67 to +46. It is a day you enjoy, not a metabolic intervention — and it is not free, because a higher Wednesday against a fixed week is a deeper Monday.", w: 35 });
 
   /* 5 · repair last night, tonight */
+  if (Number.isFinite(lo.target) && Number.isFinite(lo.mins)) {
   if (lastNight) {
-    if (lastNight.h < (s.sleep.cleanH || 7.5)) steps.push({ a: `Lights out ~${fmt12((() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })())} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; up at your usual ~${fmt12(lo.wakeRef || "07:30")} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm`, w: 55 + Math.min(25, Math.round(((s.sleep.cleanH || 7.5) - lastNight.h) * 12)) });
+    if (finiteSleep(lastNight) && Number.isFinite(s.sleep.cleanH) && lastNight.h < s.sleep.cleanH) steps.push({ a: `Lights out ~${fmt12((() => { let m = lo.mins - 20; if (m < 0) m += 1440; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; })())} — 20 early`, why: `last night ran ${lastNight.h} h — one modestly early night repays most of it; up at your usual ~${fmt12(lo.wakeRef || "07:30")} (aim near it — the morning log takes whatever really happened). If you must nap: ≤25 min, before 3 pm`, w: 55 + Math.min(25, Math.round((s.sleep.cleanH - lastNight.h) * 12)) });
     else if (lastNight.sol != null && lastNight.sol >= 30) steps.push({ a: `Wind-down 30 min before ${fmt12(lo.t)}`, why: `drift-off ran ${lastNight.sol} min last night — screens off, lights low; the drift is usually paying for the evening's light`, w: 50 });
     else if ((lastNight.awakeMin || 0) >= 30) steps.push({ a: "Tonight: cooler room, no fluids after ~8:30", why: `you were awake ${lastNight.awakeMin} min mid-night — the two cheapest fixes first`, w: 48 });
     else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — up ~${fmt12(lo.wakeRef || "07:30")} · ${lo.target} h asleep + ~${lo.sol} min drift-off${(() => { const melaN = s.sleep.nights.filter((n) => n.d >= ((s.sleep.melaExp || {}).started || "2026-07-23") && !(n.tags || []).includes("mela")).length; return melaN < 7 ? ` · no-melatonin night ${melaN + 1}/7 — note your drift-off` : ""; })()}`, w: 30 });
   } else steps.push({ a: `Lights out ~${fmt12(lo.t)}${lo.override ? " (set by you tonight)" : ""}`, why: `a bearing, not a test — up ~${fmt12(lo.wakeRef || "07:30")} · ${lo.target} h asleep + ~${lo.sol} min drift-off`, w: 30 });
-  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins`, w: 28 }); } }
+  } else if (lo.override && Number.isFinite(lo.mins)) steps.push({ a: `Lights out ~${fmt12(lo.t)} (set by you; override)`, why: "Sleep target not recorded; no sleep duration inferred.", w: 30 });
+  else steps.push({ a: "Sleep target not recorded", why: "No bedtime calculated; record the target when known.", w: 30 });
+  { const tc3 = todayCaff(s); if (tc3 && tc3.mg > 0 && Number.isFinite(lo.mins)) { const at3 = caffAt(tc3.mg, tc3.atH, lo.mins / 60); if (at3 > 50) steps.push({ a: "Caffeine: earlier or smaller", why: `~${at3} mg still aboard at lights-out${tc3.logged ? "" : " (typical dose — log today's real one on NOW)"} — above ~50 mg deep sleep measurably thins`, w: 28 }); } }
 
   /* 6 · floor */
   /* Walking has never been tested as an interference modality — the concurrent-
@@ -1372,7 +1380,7 @@ function volumePush(s) {
       why: "the regime reads " + eb.regime + (eb.regimeConfirmed ? "" : " (unconfirmed)") + " and the scale is not stalled — an added set spends recovery, and the measured state says that budget is already funding something" };
   }
   const rec = recoveryIndex(s);
-  if (rec.band !== "GREEN") return { mode: "WITHHELD", veto: "recovery", band: rec.band,
+  if (["WATCH", "LOW"].includes(rec.band)) return { mode: "WITHHELD", veto: "recovery", band: rec.band,
     why: "recovery is " + rec.band + " (" + rec.flags.map((f) => f.k).join(", ") + ") — an added set spends recovery, and the instrument says there is nothing spare. This is the ceiling working, not the lever failing" };
   /* B2 — one short night no longer gates the offer; sustained debt still does */
   if (!sleepMean3At(s, isoOf(todayStart()))) return { mode: "WITHHELD", veto: "sleep",
@@ -1414,7 +1422,7 @@ function volumePush(s) {
     const vc = volumeConversion(s, ex.id);
     if (vc.status === "READING") { skips.push({ mg: m.mg, why: "its last set change is still being read (" + vc.have + "/" + vc.need + " sessions) — one increment per read, per muscle" }); continue; }
     if (vc.status === "LIVE" && vc.delivered === false) { skips.push({ mg: m.mg, why: "the last added set was never delivered at prescribed effort — effort first, then dose" }); continue; }
-    if (vc.status === "LIVE" && !vc.tolerated) { skips.push({ mg: m.mg, why: "its last add is not being tolerated — the staged review (hold, verify, subtract only on repeats, pain, or recovery leaving GREEN) owns this muscle. A null read never blocks: re-eligibility keys on tolerance, not on a growth claim the instrument cannot make" }); continue; }
+    if (vc.status === "LIVE" && !vc.tolerated) { skips.push({ mg: m.mg, why: "its last add is not being tolerated — the staged review (hold, verify, subtract only on repeats, pain, or recorded WATCH/LOW recovery) owns this muscle. A null read never blocks: re-eligibility keys on tolerance, not on a growth claim the instrument cannot make" }); continue; }
     const freq = _weeklyFreq(ex.day);
     if (!freq) { skips.push({ mg: m.mg, why: "no training day carries its lift" }); continue; }
     const dSess = m.sets < VOL_BANDS.floor ? Math.min(2, Math.max(1, Math.ceil((VOL_BANDS.floor - m.sets) / freq))) : 1;
@@ -1895,14 +1903,20 @@ function runAdaptive(state, todayISO, raOpts) {
        this muscle again'; door 2 filing the identical earned card the same day broke
        that promise (driven by the audit). The desk's own recent-feed guard, taken here. */
     const deskPassed = vp.mode === "PUSH" && (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp.mg).toUpperCase()) === 0 && (mk(todayISO) - mk(f.d)) / DAY < 14);
-    if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH")
+    if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH") {
+    const vpRecovery = recoveryIndex(s);
+    const vpRecoveryUnknown = vpRecovery.band === "UNKNOWN";
+    const vpRecoveryDetail = !vpRecoveryUnknown ? "" : !vpRecovery.sleepEvidence
+      ? `Sleep target not recorded; sleep contribution unavailable. ${vpRecovery.flags.map((f) => `${f.receipt}; ${f.fix}`).join(". ")}. `
+      : "Current sleep is not recorded; recovery is UNKNOWN. ";
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
-        `${vp.basis === "stall" ? "Your own measured state earned this through the stall arm: the scale is stalled with nothing looking wrong — lifts not falling, recovery GREEN, the 3-night sleep mean clean, no other volume move this week — and a stalled scale with clean instruments still earns the question." : vp.basis === "surplus" ? "Your own measured state earned this: a surplus inside the controlled-gain cap, lifts not falling, recovery GREEN, the sleep mean clean, and the block's batch open." : "Your own measured state earned this: regime FREE confirmed a week apart, lifts not falling while fat clearly falls, recovery GREEN, the 3-night sleep mean clean, and no other volume move this week."} ${cap(mgLabel(vp.mg))} carries your own training-order priority at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set.${vp.reviewZone ? ` REVIEW ZONE: this lands past ${VOL_BANDS.hi} weekly sets (${VOL_REVIEW_LO}–${VOL_REVIEW_HI}) — progression here continues only on your own delivered+tolerated reads.` : ""}${vp.headroomNote ? " " + vp.headroomNote : ""} HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 and Nait-Yahia 2026 asked retention; neither found a volume advantage), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. A null read HOLDS; sets come off only on repeated deterioration, pain, or recovery leaving GREEN, with a receipt. Per-session cap ${VOL_SESS_CAP}; absolute ceiling ${vp.ceil} weekly sets, never normally reached.`,
+        `${vp.basis === "stall" ? (vpRecoveryUnknown ? "Your measured scale is stalled, lifts are not falling, no recorded WATCH/LOW recovery or sustained three-night sleep-debt restriction is established, and no other volume move ran this week. These prerequisites earn the volume question while recovery remains incomplete." : "Your own measured state earned this through the stall arm: the scale is stalled with nothing looking wrong — lifts not falling, no recorded WATCH/LOW recovery or sustained sleep-debt restriction, no other volume move this week — and a stalled scale with clean instruments still earns the question.") : vp.basis === "surplus" ? "Your own measured state earned this: a surplus inside the controlled-gain cap, lifts not falling, no recorded WATCH/LOW recovery or sustained sleep-debt restriction, and the block's batch open." : "Your own measured state earned this: regime FREE confirmed a week apart, lifts not falling while fat clearly falls, no recorded WATCH/LOW recovery or sustained sleep-debt restriction, and no other volume move this week."} ${vpRecoveryUnknown ? vpRecoveryDetail : ""}${cap(mgLabel(vp.mg))} carries your own training-order priority at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set.${vp.reviewZone ? ` REVIEW ZONE: this lands past ${VOL_BANDS.hi} weekly sets (${VOL_REVIEW_LO}–${VOL_REVIEW_HI}) — progression here continues only on your own delivered+tolerated reads.` : ""}${vp.headroomNote ? " " + vp.headroomNote : ""} HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 and Nait-Yahia 2026 asked retention; neither found a volume advantage), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. A null read HOLDS; sets come off only on repeated deterioration, pain, or recorded WATCH or LOW recovery, with a receipt. Per-session cap ${VOL_SESS_CAP}; absolute ceiling ${vp.ceil} weekly sets, never normally reached.`,
         { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* A5 — the premise is now the clean VOLUME budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask) are untouched */
+    }
     /* the staged-hold half (A2) — subtraction is the LAST stage, never the reflex: a
        null read HOLDS, verification is named on the card, and the proposal files only
        when the lift ITSELF deteriorates AND the deterioration repeats, pain speaks
-       (the governor — the immediate safety path), or recovery leaves GREEN. */
+       (the governor — the immediate safety path), or recovery is WATCH or LOW. */
     (s.exercises || []).forEach((ex9) => {
       if (typeof ex9.w !== "number") return;
       if (!exActive(s, ex9.id)) return;   /* FIX split-1 (P1-1): a retired lift files no rollback */
@@ -1912,7 +1926,7 @@ function runAdaptive(state, todayISO, raOpts) {
       const rollDeclined = (s.adjustments || []).some((a) => a && a.dismissed && a.rid === rid9);
       if (!sealed && !rollDeclined)
         propose(rid9, `${String(ex9.n).toUpperCase()} — THE ADDED SET IS NOT BEING TOLERATED`,
-          `The staged receipt: ${vc9.dK} set${vc9.dK > 1 ? "s were" : " was"} added to ${ex9.n} on ${fmtShort(vc9.changedAt)}. Over the ${vc9.trend.n} sessions since, the lift ITSELF is deteriorating (${vc9.trend.pct}%/session, CI ${vc9.trend.lo} to ${vc9.trend.hi}) — a falling read, not a null one — and ${vc9.safety ? "the governor holds this lift while it falls: the immediate safety path" : (vc9.trend.n >= TREND_MIN_SESSIONS + 2 ? "the deterioration has repeated past the minimum window" : "recovery has left GREEN while it falls")}. Delivery was ${vc9.delivered === true ? "verified — the RIR reports say the sets ran hard" : "unrated"}; execution, rest and technique standardization are yours to check before you tap. Approving takes the added set${vc9.dK > 1 ? "s" : ""} back off — ${ex9.sets}→${ex9.sets - vc9.dK} per session. Nothing is lost: the experiment ran, the answer was measured on your own bar, and both are on the record.`,
+          `The staged receipt: ${vc9.dK} set${vc9.dK > 1 ? "s were" : " was"} added to ${ex9.n} on ${fmtShort(vc9.changedAt)}. Over the ${vc9.trend.n} sessions since, the lift ITSELF is deteriorating (${vc9.trend.pct}%/session, CI ${vc9.trend.lo} to ${vc9.trend.hi}) — a falling read, not a null one — and ${vc9.safety ? "the governor holds this lift while it falls: the immediate safety path" : (vc9.trend.n >= TREND_MIN_SESSIONS + 2 ? "the deterioration has repeated past the minimum window" : "recorded recovery is WATCH or LOW while it falls")}. Delivery was ${vc9.delivered === true ? "verified — the RIR reports say the sets ran hard" : "unrated"}; execution, rest and technique standardization are yours to check before you tap. Approving takes the added set${vc9.dK > 1 ? "s" : ""} back off — ${ex9.sets}→${ex9.sets - vc9.dK} per session. Nothing is lost: the experiment ran, the answer was measured on your own bar, and both are on the record.`,
           { kind: "sets", exId: ex9.id, delta: -vc9.dK, mg: (ex9.head || ex9.mg) });
     });
   }
@@ -2079,7 +2093,7 @@ function runAdaptive(state, todayISO, raOpts) {
   if (rec.band !== "LOW") {
     s.proposals.filter((p) => p.rid && p.rid.indexOf("recovery_") === 0 && !p.resolved).forEach((p) => {
       p.resolved = true; p.stoodDown = true;
-      s.feed.unshift({ d: todayISO, t: "RECOVERY CARD STOOD DOWN", how: `the signals that raised it have cleared — ${rec.flags.length} of ${rec.watched} still up, which is below the line that holds structural changes` });
+      s.feed.unshift({ d: todayISO, t: "RECOVERY CARD STOOD DOWN", how: rec.score == null ? `${!rec.sleepEvidence ? "Sleep target not recorded; sleep contribution unavailable." : "current sleep is not recorded; recovery is UNKNOWN."} The known inputs do not establish LOW; the full rating is unavailable. ${rec.flags.map((f) => `${f.receipt}; ${f.fix}`).join(". ")}` : `the recorded signals are below the LOW trigger — ${rec.flags.length} of ${rec.watched} still up` });
     });
   }
   if (rec.band === "LOW") {
@@ -2091,7 +2105,7 @@ function runAdaptive(state, todayISO, raOpts) {
     const why = [
       `${rec.flags.length} of the ${rec.watched} signals I watch are up.`,
       rec.lever ? `Start here: ${rec.lever.receipt}. ${cap(rec.lever.fix)}.` : "",
-      others.length ? `Also up — ${others.map((f) => f.receipt).join("; ")}.` : "",
+      others.length ? `Also up — ${others.map((f) => rec.lever ? f.receipt : `${f.receipt}; ${f.fix}`).join("; ")}.` : "",
       rec.excludedDips ? `Not counted: ${rec.excludedDips} rep dip${rec.excludedDips > 1 ? "s" : ""} on short-sleep or rushed sessions, because those days lower reps by themselves and the sleep signal already has them.` : "",
       "Until these clear, no structural change runs this week — loads hold exactly where they are. Reps still progress, the record still counts, and nothing auto-changes. Tap to log the hold; leave it and the app re-reads it every morning.",
     ].filter(Boolean).join(" ");
@@ -2518,7 +2532,7 @@ function askContext(s, docs) {
   const days = Object.entries(s.dailyLogs).sort((a, b) => (a[0] < b[0] ? -1 : 1)).slice(-14)
     .map(([d, v]) => { const w2 = dayWeather(s, d); return `${d}: cal ${v.cal ?? "—"} · pro ${v.pro ?? "—"} · steps ${v.steps ?? "—"}${w2.flags.length ? "  ⌁[" + w2.flags.map((f) => f.k).join(",") + "]" : ""}`; }).join("\n");
   const sess2 = Object.keys(s.sessionLog).sort().slice(-6).map((d) => { const sl2 = s.sessionLog[d]; const parts = [(sl2.entries || []).map((e) => `${e.id} ${e.w}×${(e.reps || []).join(",")}${e.rir != null ? ` RIR${e.rir}` : ""}`).join(" · ") || "no lifts"]; if ((sl2.skipped || []).length) parts.push("SKIPPED: " + sl2.skipped.map((k) => k.id).join(", ")); if (sl2.note) parts.push(`note: "${sl2.note.slice(0, 120)}"`); return `${d}: ` + parts.join(" · "); }).join("\n");
-  const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${n.h}h · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
+  const nights2 = s.sleep.nights.slice(-14).map((n) => `${n.d}: ${finiteSleep(n) ? n.h + "h" : "hours not recorded"} · bed ${n.bed || "—"} → wake ${n.wake || "—"} · drift-off ${n.sol ?? "?"}m${(n.tags || []).length ? " · " + n.tags.join("/") : ""}`).join("\n");
   const laws = `DATA WEATHER LAW: days marked ⌁[event/sealwater/estimate/postrefeed] carry water or intake noise — NEVER build causal or trend claims on them without naming the flag; prefer clean days, and say when a finding leans on flagged ones. HOUSE LAWS: fat-loss corridor ${cutRateBand(s).band.join('–')} lb/wk in ${apModeOf(s) === "fatloss" ? "MAX FAT LOSS" : "MAX BODY COMP"} mode (${(s.rate || {}).redline || 1.9}+ = too fast); calorie floor ${calorieFloor(s).floor} (DERIVED from energy availability at his lean mass — not the old authored 1,700); calories, protein and steps are all DERIVED from his record, never quoted as constants — take them from the CANONICAL NUMBERS block and nowhere else; a new best becomes official on ONE repeat, because his own measured set-to-set spread is about ±${typicalError(s, null).reps} reps (${typicalError(s, null).src}) and a +1 record sits inside it — a jump two standard errors clear of the old line banks on the first sighting instead; short sleep does NOT block a record and does NOT cap the step (that rule was retired — Craven 2022 puts acute sleep loss at −2.85% on strength — real, CI 1.23–4.47, just smaller than his own day-to-day spread — and no trial has ever tested damping progression on low-readiness days), what it does is exempt the day from counting toward a stall; terminal RIR gates every earn (0 blocks it), can take an earn early off one honest sighting — always by his tap, never automatically — and sizes the jump where the machine's rung ladder is on file; it is the most valuable number he enters; one structural change per session; effort tapers to a single terminal failure set per exercise (RIR 2→1→…→0) — proximity to failure is the training variable with the dose-response, not load or rep range, which are interchangeable from about 5 to 30 reps; the scale seal quarantines event water; the weekly refeed is RETIRED — he took it off the calendar himself after the evidence was laid out, so do not propose one and never claim a refeed aids fat loss, muscle retention, metabolism or next-day performance; past Wednesdays on the record were refeeds and stay described as such, because they were; every change is a proposal — the athlete consents, the coach holds structural authority. NEVER assert a mechanism this app cannot cite; saying 'there is no good evidence either way' is always available and always preferred to a confident guess.`;
   const evs = (s.events || []).map((e) => `${e.d}: ${e.t}${e.estimated ? " (est-declared)" : ""}`).join(" · ") || "none";
   const trls = (s.trials || []).map((t3) => { const tp = trialTpl(t3); return tp ? `${tp.t} (${t3.declined ? (t3.retired ? "retired " + t3.retired : "declined") : "started " + t3.started})` : ""; }).filter(Boolean).join(" · ") || "none";
@@ -2540,7 +2554,7 @@ function askContext(s, docs) {
     + `Do NOT vary it by day type: the only direct training-vs-rest-day comparison (Moore 2024, indicator amino acid oxidation) found requirement HIGHER on rest days, and no study has ever tested raising protein on a short-sleep or low-recovery day. `
     + (() => { const stC = stepTarget(s); return stC.gated ? "" : `STEP TARGET ${stC.lo.toLocaleString()}–${stC.hi.toLocaleString()}/day — this is not a health guideline, it is the step count his measured maintenance was measured at (${stC.avg.toLocaleString()} across ${stC.days} days). Every 1,000 steps is about ${stC.kcalPer1k} kcal at his bodyweight, so drifting off it silently invalidates the calorie band. `; })()
     + (() => { const an = sleepAnchor(s); if (!an.measured) return `SLEEP CLOCK: not enough nights with bed and wake times yet — ${an.why} `;
-        const shift = an.shiftMin > 0 ? `To clear his ${an.target} h target at the wake time he already keeps, lights out ${an.needBed} — ${an.shiftMin} minutes earlier.` : "He already clears his target.";
+        const shift = an.target == null ? "Sleep target not recorded; comparison unavailable." : an.shiftMin > 0 ? `To clear his ${an.target} h target at the wake time he already keeps, lights out ${an.needBed} — ${an.shiftMin} minutes earlier.` : "He already clears his target.";
         return `HIS SLEEP CLOCK (measured, do NOT re-derive): bed ${an.bed} +/-${an.bedSDmin} min, up ${an.wake} +/-${an.wakeSDmin} min, ${an.curH} h asleep across ${an.n} nights. ${shift} His BEDTIME is the steadier end of the night and his WAKE is the variable one, so name bedtime as the lever — never 'fix your wake time', which asks him to control the end he controls least. Sleep is a BODY-COMPOSITION lever here, not a session one: at a matched deficit short sleep shifts roughly 60% more of the loss onto lean mass (Nedeltcheva 2010), while the session cost sits inside the noise. `; })()
     + (() => { const dx = dietExit(s); if (dx.gated) return "";
         return `THE DIET EXIT (his stated plan, not a default): straight to maintenance, hold, then decide. One step from ${dx.from} to ${dx.maintenance} — his MEASURED maintenance — then hold ${dx.holdMin}-${dx.holdFull} weeks before choosing anything else. Do NOT propose a reverse-diet ramp: it has no controlled trial behind it, only practitioner convention, and what is replicated is time spent AT maintenance (MATADOR, Byrne 2018), which does not require arriving slowly. Do NOT assume a surplus or a build follows — he has not decided that, and the hold exists so the decision has data behind it. If he asks when to stop cutting, say plainly that no study answers it and his body-fat interval (${dx.bfLo}-${dx.bfHi}%) is wider than the decision. `; })()
@@ -2550,7 +2564,10 @@ function askContext(s, docs) {
         return `WEEKLY SET ALLOCATION (by head; deltoids counted separately because they are separately trained): ${vi8.pv.map((m) => mgLabel(m.mg) + " " + m.sets + (m.indirectOnly ? " (indirect only)" : "")).join(", ")}. ${vi8.growthOK ? "His MEASURED regime is FREE — lifts holding or rising while fat still falls, confirmed a week apart — so the growth band applies again and raising the lowest muscle is worth proposing; the engine may already have filed that card, so do not double-propose." : "The regime detector does NOT currently sanction adding sets (regime: " + vi8.regimeKey + "), so do NOT recommend adding sets to a muscle sitting below the 6-12 band. That band is a GROWTH dose-response measured in people eating enough to build. Roth 2023 (n=38, six weeks, 30 kcal/kg deficit, 2.8 g/kg protein) compared ~20 weekly sets against ~12 and found lean mass preserved identically with no muscle-thickness difference; Bickel 2011 held young adults' thigh lean mass for 32 weeks on one-ninth of the volume that built it. Retention is cheap and is not volume-sensitive. If he asks about a low muscle, say it is adequate for holding and is the first thing to raise when his own measured state sanctions building."} `; })()
     + `HIS MEASURED SET-TO-SET REP SPREAD ${typicalError(s, null).reps} reps (n=${typicalError(s, null).n} paired sets at identical load) — use this when judging whether a rep change is real. A +1 rep session is inside it. `
     + "If you disagree with any of these, say WHY and by how much rather than quietly substituting your own — a number that changes between screens is worse than one that is slightly wrong.";
-  const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): last night " + ((gate2.last || {}).h ?? "—") + " h; " + gate2.run + " consecutive night(s) at his " + s.sleep.cleanH + " h target; the session is flagged " + (gate2.clean ? "NORMAL" : "SHORT SLEEP") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
+  const observation = currentSleepObservation(s);
+  const sleepNow = observation ? "recorded " + observation.d + ": " + observation.h + " h" : "UNKNOWN (no current finite sleep observation)";
+  const sleepTarget = gate2.targetKnown ? gate2.run + " consecutive night(s) at the recorded " + s.sleep.cleanH + " h target" : "sleep target not recorded; comparison unavailable";
+  const dict = LEDGER_DICT + canon + " SLEEP RIGHT NOW (do not re-derive): " + sleepNow + "; " + sleepTarget + "; " + (gate2.clean ? "no observed short-sleep restriction" : "observed short sleep or three-night debt") + ". Short sleep no longer blocks a record or caps a progression step — it only exempts the day from counting toward a stall. EVENTS: " + evs + ". ACTIVE TRIALS: " + trls + ".";
   const clip = (t, n) => (t ? String(t).replace(/^<!--.*-->\n?/, "").slice(0, n) : "");
   const analysisSec = docs.analysis ? `\n\n=== TONIGHT'S ENGINE ANALYSIS (analysis.json — soft trend, rate, TDEE, drivers, regime, prior decisions) ===\n${clip(docs.analysis, 3500)}` : "";
   const suggSec = docs.suggestions ? `\n\n=== YOUR CURRENT APPROVE/DISMISS SUGGESTIONS (the NOW cards) ===\n${clip(docs.suggestions, 1800)}` : "";

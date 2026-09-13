@@ -78,6 +78,8 @@ jobs:
         run: node rebuild/t2/rig187.cjs
       # B-NTC succeeds the memory-only preview with the executed durable Today,
       # gym and check-in suites below. Historical preview tests remain in Git.
+      # B1-B2 now owns this cumulative step under DECISIONS:214.
+      # Historical H3 registration rationale follows.
       # M2-H3-CLEAN-INIT SUCCEEDS M2-B-NTC HERE, exactly as B-NTC succeeded the accepted
       # originals at ce38aa3 (it replaced "Cumulative extracted-engine native-carrier and
       # legacy-census evidence" / `node rebuild/m4/spec/native-carriers-package.cjs --ci`
@@ -86,8 +88,11 @@ jobs:
       # it: H3 re-pins packages/B-NTC.json onto the r10 runner, and a spec so re-pinned no
       # longer recomputes the artifact B-NTC's own seal stands on. Same position, same job,
       # same matrix; one command changes.
-      - name: Cumulative H3 clean-init, native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package H3
+      # PM246 adds four closed B1-B2 children in the dispatcher profile:
+      # b2-public-source-cells, b2-public-source-audit,
+      # b2-era30-cells and b2-era30-audit. Each has its own exact argv and pin.
+      - name: Cumulative B1-B2 repairs, clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package B1-B2
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
@@ -133,7 +138,7 @@ jobs:
       # copy, gym, machine-settings-ui, problem and setup import jsdom, installed by
       # the pinned W6 browser-build step above. No lockfile of this step's own.
       - name: A1/A2/A3/A4 — the rebound Today page, the gym card, the check-in, the B-NTC delta cells and first-run setup
-        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs
+        run: node --test rebuild/m3/w7-preview/today/test/adapter.test.mjs rebuild/m3/w7-preview/today/test/catalogue.test.mjs rebuild/m3/w7-preview/today/test/checkin.test.mjs rebuild/m3/w7-preview/today/test/copy.test.mjs rebuild/m3/w7-preview/today/test/design.test.cjs rebuild/m3/w7-preview/today/test/food.test.mjs rebuild/m3/w7-preview/today/test/gym.test.mjs rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs rebuild/m3/w7-preview/today/test/ntc-h6-delta.test.mjs rebuild/m3/w7-preview/today/test/package.test.cjs rebuild/m3/w7-preview/today/test/problem.test.mjs rebuild/m3/w7-preview/today/test/setup.test.mjs rebuild/m3/w7-preview/today/test/view.test.mjs rebuild/m3/w7-preview/today/test/sleep.test.mjs
       # DECISIONS:117 (4). rebuild.yml is pinned by the accepted engine artifact, so any
       # step lands only inside a re-pinning engine package (DECISIONS:112's standing rule) —
       # lane C's C5 voice coach therefore RIDES THE B-NTC SEAL as one more disclosed hunk,

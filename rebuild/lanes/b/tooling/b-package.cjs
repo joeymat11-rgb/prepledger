@@ -121,10 +121,30 @@ const SEAL_TIP_RULE = 'ancestor'; // 'ancestor' (DECISIONS:145) | 'first-parent'
 // claimed the ruled order and the array did not carry it. Both now say the same thing.
 // Widening this list is the ONLY way a new package id becomes runnable — a spec can never
 // nominate its own id.
-const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+// DECISIONS:191/214 adds the combined successor. Historical separate IDs remain
+// readable; they do not create alternate parents for the new combined package.
+const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1-B2', 'B1', 'B2', 'B4', 'B3', 'B-LOM'];
+const B1B2_D_IDS = Object.freeze(['D10','D8','D21','D19','D16','D17','D24','D25','D27','D23','D9','D2','D1','D5','D6','D7','D3','D4','D29','D18','D28','D30','D31','D32']);
+// DECISIONS:232 licenses this ONE edge. These are the untouched DECISIONS:187
+// artifact/review/receipt coordinates, not a replacement acceptance artifact.
+const B1B2_PARENT = Object.freeze({id:'H3',packageId:'M2-H3-CLEAN-INIT',artifact:'rebuild/m4/spec/acceptance-h3-clean-init.json',sha256:'b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f',review:'rebuild/m4/spec/review-h3-clean-init.json',reviewSha256:'42295d2f4327cef9f4fa736848645f641c91a637b21445c95235d0e19af8f23d',reviewedCommit:'5f0c3781a227e18ffdf8236090fe2499ecd8782b',receiptBase:'a4ed5ce827e88e856091ecfcd51c287582ae62f9',receiptLineSha256:'364ab2a21f7e5f8da63a7b969d459481c681ceb6fb123249864030d37fc21a02',supersessionLineSha256:'3746ff573af4522ff8199f21d210d5915954bb7190e6914ca5e7a7e5853184bb'});
+const B1B2_SUPERSESSION_LINE = '6ec20d7aaed20cb75f421e666de6eec2ad5ab1c476d984ab90560e65278fbf00';
+const B1B2_FAMILIES = Object.freeze({
+  'source-carriers':['merge-source','migrate-source','writers-source'],
+  'inherited-carriers':['migrate-differential','witnesses-2','witnesses-5'],
+  'defect-witnesses':['witnesses-7'], 'writers-differential':['writers-differential'], 'second-gate':['second-gate'],
+});
+const B1B2_CARRIER = 'rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs';
+const B1B2_REPAIRED = Object.freeze({
+  'witnesses-1':{original:'rebuild/engine/test/defect-witnesses.cjs',sha256:'557c12e72690c39733369a09dba920055ffa6fbbb8b4508d6307fbdc66294644',mode:'--witness-1',cases:10,substitutions:12,substitutionSha256:'2d405512137e62f71b1aa1de94e4bfd84b8b94571b9b533fd79073e2347115fc'},
+  'witnesses-3':{original:'rebuild/engine/test/defect-witnesses-3.cjs',sha256:'f5169bebd527ac13c8a570859bb5d728535a2a71734e135904a77be36c8506e6',mode:'--witness-3',cases:5,substitutions:9,substitutionSha256:'7cd4605244fefd21a345997a89e6d2d24d085301af5543a778a51c43ed55cd81'},
+  'witnesses-4':{original:'rebuild/engine/test/defect-witnesses-4.cjs',sha256:'c90ffeaa953a9b04146432f39702f87fc8c51ce7f0be77876f075fc4142b87f7',mode:'--witness-4',cases:5,substitutions:5,substitutionSha256:'03acd7864f57cb8a2904f7a3619055c10e42584a02ee7fede6dbdcb2eea3d67a'},
+});
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
+// DECISIONS:193/:198. Reviewed authority, never supplied by a package or environment.
+const PM_HANDOVER = Object.freeze({commit:'3ef096d671af924caefa346c530f06784f382af0',lineNumber:193,lineSha256:'5ec62695b9ed298e239e19526595cbb9471262310f12fc7c52e9d7114691ab63',document:'rebuild/lanes/astra/OWNER-APPROVED-HANDOVER.md',documentSha256:'9be34fa068556bf1b57a8cfdb65b9692fa190a76b73750f0a76767db40989d67'});
 // X1. The PM ruling that would admit a gate MOVE. It does not exist, so every non-empty
 // coverage.moves refuses — see the header. Setting this to anything other than null is a
 // reviewed tooling change, not a spec change, and it must not land before X3's needle
@@ -257,6 +277,8 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   TOOLING + '/test/parent-pin-shapes-and-spec-successors.test.cjs',
   TOOLING + '/test/parent-gate-closure-and-load-floor.test.cjs',
   TOOLING + '/test/gate-supersession.test.cjs',
+  TOOLING + '/test/astra-issuer-compatibility.test.cjs', TOOLING + '/test/git-blob-pin-classes.test.cjs',
+  TOOLING + '/test/b1b2-registration.test.cjs', TOOLING + '/test/superseded-parent-continuity.test.cjs',
   // r8 change 2. `receipts/<every id>.json` STOOD HERE and no longer does: the exemption is
   // narrowed to THIS PACKAGE'S OWN receipt and moved into fidelity(), where `ID` is known.
   // It cannot be removed outright — r8 change 1 requires the receipt's bytes to stand in
@@ -264,6 +286,122 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   // changed under it and calling that accounted for.
   ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
+const B1B2_TOOL_TESTS = Object.freeze(['astra-issuer-compatibility','product-phase-and-ledger','seal-tip-and-byte-identity','gate-supersession','pinned-unchanged-and-ruled-substitutions','parent-pin-shapes-and-spec-successors','git-blob-pin-classes','b1b2-registration','superseded-parent-continuity'].map(n => TOOLING + '/test/' + n + '.test.cjs'));
+const B1B2_EXECUTABLES = new Set(['rebuild/lanes/b/b2-delta-cells.cjs', 'rebuild/engine/test/b2-public-source-faults.test.cjs', 'rebuild/engine/test/b2-era30.test.cjs', ...B1B2_TOOL_TESTS]);
+const B1B2_MODES = new Map([[B1B2_CARRIER, new Set(['--public-laws','--witness-1','--witness-3','--witness-4'])],
+  ['rebuild/engine/test/b1-unknown-recovery.test.cjs', new Set(['--audit-mutations','--audit-historical-mutations'])],
+  ['rebuild/engine/test/b2-public-source-faults.test.cjs', new Set(['--audit-mutations'])],
+  ['rebuild/engine/test/b2-era30.test.cjs', new Set(['--audit-mutations'])]]);
+const B1B2_SOURCE_BASE = '100820aa47a4f8729642033499eaec0f0ee282e1';
+// PM300: this fixed admission set, not a self-consistent profile, names the
+// five later rulings and six documents required by this one combined package.
+const B1B2_AMENDMENTS = Object.freeze({
+  'repair-and-availability': { lineSha256:'a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf', documents:[
+    {file:'rebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md',sha256:'569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef'},
+    {file:'rebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md',sha256:'392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295'}]},
+  'reference-factory': { lineSha256:'bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb', documents:[
+    {file:'rebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md',sha256:'9f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4'}]},
+  'today-clearance': { lineSha256:'3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef', documents:[
+    {file:'rebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md',sha256:'34ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432'}]},
+  'captured-date': { lineSha256:'86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a', documents:[
+    {file:'rebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md',sha256:'9f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6'}]},
+  'source-graph': { lineSha256:'599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773', documents:[
+    {file:'rebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md',sha256:'222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017'}]},
+});
+function b1b2AmendmentShape(s) {
+  if (ID !== 'B1-B2') return;
+  const amendments = s.authorizations && s.authorizations.amendments;
+  assert(amendments && typeof amendments === 'object' && !Array.isArray(amendments), 'B1B2-AMENDMENTS-REQUIRED');
+  keys(amendments, Object.keys(B1B2_AMENDMENTS), 'B1B2-AMENDMENTS-CLOSED-IDS');
+  for (const [id, expected] of Object.entries(B1B2_AMENDMENTS)) {
+    const row = amendments[id];
+    assert(row && typeof row === 'object' && !Array.isArray(row), 'B1B2-AMENDMENT-ROW '+id);
+    keys(row, ['claim','documents'], 'B1B2-AMENDMENT-CLOSED-ROW '+id);
+    assert(row.claim && typeof row.claim === 'object' && !Array.isArray(row.claim), 'B1B2-AMENDMENT-CLAIM '+id);
+    claim(row.claim, 'Astra PM', 'B1B2 amendment '+id);
+    assert.equal(row.claim.lineSha256, expected.lineSha256, 'B1B2-AMENDMENT-REQUIRED-LINE '+id);
+    assert.deepEqual(row.documents, expected.documents, 'B1B2-AMENDMENT-EXACT-DOCUMENTS '+id);
+  }
+}
+const B1B2_TODAY = Object.freeze(['adapter.test.mjs','catalogue.test.mjs','checkin.test.mjs','copy.test.mjs','design.test.cjs','food.test.mjs','gym.test.mjs','machine-settings-ui.test.mjs','ntc-h6-delta.test.mjs','package.test.cjs','problem.test.mjs','setup.test.mjs','view.test.mjs']);
+// DECISIONS236: exact C bfc2935/source60e24a8; scoped D2 review98eeb183.
+// These immutable post-images identify the admitted source, not its acceptance
+// in this new engine context. The later combined-head review remains required.
+const B1B2_N2_PINS = Object.freeze({
+  'rebuild/coach/local-world.mjs':'5c46ab64d7233beb341fceae615e5ef81477e98accd654732791b5d29a626292',
+  'rebuild/lanes/c/N2-R4-REPORT.md':'70b0ff9e7f48abd5534a24ff15fa43e76a92f0ec87872303809350e8cc37bef5',
+  'rebuild/m3/w7-preview/today/build.mjs':'b7ae73d94a8c9e255307baab24343e281a4244bb9ea1dd3de211d7dfd8aa400f',
+  'rebuild/m3/w7-preview/today/design.cjs':'ef7f2a174c41b247e9472e1699e71df70369036bb7719ea3f8c28dd04e9c1175',
+  'rebuild/m3/w7-preview/today/preview.css':'d6278685a57b1d851881fafa3c1c0d1250aadb30cb2beb56069e93d773a67bab',
+  'rebuild/m3/w7-preview/today/screens.template.html':'6779adff94c19ab482e6f484d334c34cd8c4fcbaa4badabb173658451113c662',
+  'rebuild/m3/w7-preview/today/sleep-check.mjs':'fc59516168c87b9c601f87586f954840851ef3b9fa22621121c1c983a6eeb5d7',
+  'rebuild/m3/w7-preview/today/sleep-commands.cjs':'36c779be57f4975c5a4327113d139edf2652dc59c981523c3531442fd88105ed',
+  'rebuild/m3/w7-preview/today/sleep-host.mjs':'730143f0f16ed1ac8c369cdeb0701bf0e58984de734a97afc50716dc1bf1bbb4',
+  'rebuild/m3/w7-preview/today/sleep-model.cjs':'eff392a49fd067dbcc01648a27df3a5dddd55ad5328873b07a8f0006ebd1afe3',
+  'rebuild/m3/w7-preview/today/test/sleep.test.mjs':'bdd358dc69afde543db8e5566f151c0a4c777066b1218a67eea8eafdd2070271',
+  'rebuild/m3/w7-preview/today/today-app.cjs':'18c79030cc7f420d6c7cb1d14cbd4febeb79c6ee31bdf327a772f5d4f180e5e7',
+  'rebuild/m3/w7-preview/today/today-model.cjs':'958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637',
+});
+const B1B2_CHILD_ARGV = (() => {
+  const et='rebuild/engine/test/', w='rebuild/m4/workout/test/', t='rebuild/m3/w7-preview/today/test/';
+  const tap=(...files)=>['--test','--test-reporter=tap',...files];
+  return Object.freeze({
+    'b1-delta-cells':[et+'b1-delta-cells.cjs'],
+    'b2-delta-cells':['rebuild/lanes/b/b2-delta-cells.cjs'],
+    'unknown-and-target-cells':tap(et+'b1-unknown-recovery.test.cjs',et+'b1b2-sleep-target-cells.cjs'),
+    'combined-legacy':[B1B2_CARRIER],
+    'public-laws':[B1B2_CARRIER,'--public-laws'],
+    'current-mutation-audit':[et+'b1-unknown-recovery.test.cjs','--audit-mutations'],
+    'historical-mutation-audit':[et+'b1-unknown-recovery.test.cjs','--audit-historical-mutations'],
+    'b2-public-source-cells':tap(et+'b2-public-source-faults.test.cjs'),
+    'b2-public-source-audit':[et+'b2-public-source-faults.test.cjs','--audit-mutations'],
+    'b2-era30-cells':tap(et+'b2-era30.test.cjs'),
+    'b2-era30-audit':[et+'b2-era30.test.cjs','--audit-mutations'],
+    'b1b2-sup-source':tap(w+'b1b2-supersede-source-carriers.test.cjs'),
+    'b1b2-sup-inherited':tap(w+'b1b2-supersede-inherited-carriers.test.cjs'),
+    'b1b2-sup-defects':tap(w+'b1b2-supersede-defect-witnesses.test.cjs'),
+    'b1b2-sup-writers':tap(w+'b1b2-supersede-writers-differential.test.cjs'),
+    'b1b2-sup-second':tap(w+'b1b2-supersede-second-gate.test.cjs'),
+    'engine-files-differential':[w+'b1b2-engine-files-differential.cjs'],
+    'public-census':[w+'b1b2-public-census.cjs'],
+    'h3-cells':tap(w+'b1b2-h3-clean-init.test.cjs'),
+    'repaired-witnesses-1':[B1B2_CARRIER,'--witness-1'],
+    'repaired-witnesses-3':[B1B2_CARRIER,'--witness-3'],
+    'repaired-witnesses-4':[B1B2_CARRIER,'--witness-4'],
+    'a0-journeys':tap('rebuild/m3/w6/host/test/journey.test.mjs','rebuild/m3/w6/host/test/engine-equivalence.test.cjs'),
+    'ntc-provider-cells':tap(w+'native-trend-context.test.cjs'),
+    'today-suites':tap(...B1B2_TODAY.map(n=>t+n),t+'sleep.test.mjs'),
+    'tooling-cohort':tap(...B1B2_TOOL_TESTS),
+  });
+})();
+// Pure declaration check shared by spec entry and the final re-evaluation.
+// Filesystem/receipt/execution checks still occur independently at their gates.
+function b1b2Inventory(s) {
+  if (ID !== 'B1-B2') return;
+  b1b2AmendmentShape(s);
+  assert.equal(s.sourceBase,B1B2_SOURCE_BASE,'B1B2-REGISTRATION-SOURCE-BASE');
+  assert.equal(s.lanePackage,'B1-B2','B1B2-REGISTRATION-CLI-ID');
+  assert.equal(s.packageId,'M2-B1-B2','B1B2-REGISTRATION-PACKAGE-ID');
+  assert.deepEqual(s.dIds,B1B2_D_IDS,'B1B2-REGISTRATION-24-IDS');
+  assert.deepEqual(s.children.map(c=>c.name),Object.keys(B1B2_CHILD_ARGV),'B1B2-REGISTRATION-CLOSED-CHILDREN');
+  for (const c of s.children) {
+    assert.deepEqual(c.argv,B1B2_CHILD_ARGV[c.name],'B1B2-REGISTRATION-EXACT-ARGV '+c.name);
+    for (const target of c.argv.filter(a=>!a.startsWith('-')))
+      assert(Object.hasOwn(s.product,target),'B1B2-REGISTRATION-EXECUTABLE-OWNERSHIP '+target);
+  }
+  for (const name of ['b1b2-evidence.cjs','b1b2-source-changes.json'])
+    assert(Object.hasOwn(s.product,'rebuild/m4/workout/test/'+name),'B1B2-REGISTRATION-HELPER-OWNERSHIP '+name);
+  for (const [file,hash] of Object.entries(B1B2_N2_PINS))
+    assert.equal(s.product[file]?.post,hash,'B1B2-REGISTRATION-N2-EXACT-POST '+file);
+  assert.deepEqual(s.coverage.inherited,{},'B1B2-REGISTRATION-NO-INHERITED-CREDIT');
+  assert.deepEqual(s.coverage.moves,{},'B1B2-REGISTRATION-NO-MOVES');
+  assert.equal(s.coverage.successors,null,'B1B2-REGISTRATION-NO-OLD-SUCCESSOR-ROUTE');
+  const reds=['b1b2-sup-source','b1b2-sup-inherited','b1b2-sup-defects','b1b2-sup-writers','b1b2-sup-second'];
+  assert.deepEqual(Object.keys(s.coverage.superseded.gates),Object.keys(B1B2_FAMILIES),'B1B2-REGISTRATION-FIVE-FAMILIES');
+  Object.keys(B1B2_FAMILIES).forEach((family,i)=>assert.deepEqual(s.coverage.superseded.gates[family].evidence,
+    {laws:s.dIds,redFirst:[reds[i]],legacyDifferential:'combined-legacy',writersDifferential:'unknown-and-target-cells',engineFilesDifferential:'engine-files-differential',census:'public-census'},
+    'B1B2-REGISTRATION-CURRENT-FAMILY-EVIDENCE '+family));
+}
 // N2. A child never runs inline code and never short-circuits node. NO_INLINE is matched
 // on the flag PREFIX, so the `=<code>` spellings (--eval=, --print=, --input-type=,
 // --require=, --import=) are caught with the bare ones; NO_RUN catches every form that
@@ -419,11 +557,15 @@ function childArgv(c) {
   assert(new Set(flags).size === flags.length, 'CHILD-ARGV-DUPLICATE-FLAG ' + c.name);
   const testMode = flags.includes('--test');
   assert(testMode || !flags.includes('--test-reporter=tap'), 'CHILD-ARGV-REPORTER-WITHOUT-TEST ' + c.name);
-  const targets = c.argv.slice(i);
+  let targets = c.argv.slice(i);
+  // The only application arguments licensed by 232. A mode is never returned
+  // as an execution target; all ownership/hash readers see the actual script.
+  if (ID === 'B1-B2' && !testMode && flags.length === 0 && targets.length === 2 &&
+      B1B2_MODES.get(targets[0])?.has(targets[1])) targets = targets.slice(0, 1);
   assert(targets.length, 'CHILD-ARGV-EXECUTES-NO-FILE ' + c.name);
   for (const f of targets) {
     assert(!f.startsWith('-'), 'CHILD-ARGV-FLAG-AFTER-FILE ' + c.name + ' ' + f);
-    assert(!path.isAbsolute(f) && !path.win32.isAbsolute(f) && !f.includes('..') && !f.includes('\\') && /\.(?:cjs|mjs|js)$/.test(f) && CHILD_ROOTS.some(r => f.startsWith(r)) && fs.existsSync(rel(f)) && fs.statSync(rel(f)).isFile(), 'CHILD-ARGV-TARGET ' + c.name + ' ' + f);
+    assert(!path.isAbsolute(f) && !path.win32.isAbsolute(f) && !f.includes('..') && !f.includes('\\') && /\.(?:cjs|mjs|js)$/.test(f) && (CHILD_ROOTS.some(r => f.startsWith(r)) || (ID === 'B1-B2' && B1B2_EXECUTABLES.has(f))) && fs.existsSync(rel(f)) && fs.statSync(rel(f)).isFile(), 'CHILD-ARGV-TARGET ' + c.name + ' ' + f);
   }
   assert(testMode || targets.length === 1, 'CHILD-ARGV-BARE-SCRIPT-ARGUMENTS ' + c.name + '; extra positional files are not executed by Node');
   return targets;
@@ -706,7 +848,7 @@ let SUPERSEDED_RESOLVED = new Map();
 function successorGates(s, bound) {
   const out = new Map(); // gate -> { child, original }
   const sup = s && s.coverage && s.coverage.successors;
-  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  const byChild = parentCoverage(s, bound);
   if (!sup || !byChild) return out;
   const epins = bound.acceptance.executionPins;
   for (const [gate, child] of Object.entries(byChild)) {
@@ -825,10 +967,83 @@ const SPEC_KEYS = ['version', 'lanePackage', 'packageId', 'status', 'brief', 'so
   'privateLiveTriggered', 'parent', 'tooling', 'product', 'coverage', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
   'authorizations', 'artifact', 'children', 'notes'];
 const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
+// PM acceptance is authority from the PM, not the independent reviewer's model.
+// Historical cowork is an immutable set of exact lines at the owner handover.
+// Re-read Git on every call, including at the seal; no stale authority cache.
+function pmRole(line) {
+  const m = /^- \d{4}-\d{2}-\d{2} · (cowork|Astra PM) · /.exec(line);
+  assert(m, 'PM-ISSUER-ROLE; expected an exact PM role in the ledger header');
+  return m[1];
+}
+function pmHandover() {
+  ancestor(PM_HANDOVER.commit, CHAIN_REF, 'PM-HANDOVER-NOT-ON-CHAIN');
+  const read = at => L.object(root, at, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const historical = read(PM_HANDOVER.commit);
+  function prove(at, lines) {
+    assert.equal(sha(Buffer.from(lines[PM_HANDOVER.lineNumber - 1] || '')), PM_HANDOVER.lineSha256,
+      'PM-HANDOVER-LINE-BYTES');
+    assert.equal(lines.filter(line => sha(Buffer.from(line)) === PM_HANDOVER.lineSha256).length, 1,
+      'PM-HANDOVER-LINE-UNIQUE');
+    assert.equal(sha(L.object(root, at, PM_HANDOVER.document)), PM_HANDOVER.documentSha256,
+      'PM-HANDOVER-DOCUMENT-BYTES');
+  }
+  prove(PM_HANDOVER.commit, historical);
+  prove(CHAIN_REF, read(CHAIN_REF));
+  return { historical, read, prove };
+}
+function pmReceipt(at, receipt, mentions, expectedRole) {
+  const role = pmRole(receipt && receipt.line);
+  if (expectedRole !== undefined) assert.equal(role, expectedRole, 'PM-ISSUER-CLAIM-ROLE');
+  // Retain the original commit/path, exact unique line/hash, role and content checks.
+  L.verifyReceipt(root, at, receipt, { role, mentions });
+  ancestor(at, CHAIN_REF, 'PM-RECEIPT-CONTEXT-NOT-ON-CHAIN');
+  const handover = pmHandover();
+  if (role === 'cowork') {
+    assert.equal(handover.historical.filter(line => line === receipt.line).length, 1,
+      'PM-COWORK-NOT-HISTORICAL');
+  } else {
+    ancestor(PM_HANDOVER.commit, at, 'PM-ASTRA-CONTEXT-PREDATES-HANDOVER');
+    assert(!handover.historical.includes(receipt.line), 'PM-ASTRA-CLAIM-PREDATES-HANDOVER');
+    const context = handover.read(at);
+    handover.prove(at, context);
+    assert(context.indexOf(receipt.line) >= PM_HANDOVER.lineNumber, 'PM-ASTRA-LINE-BEFORE-HANDOVER');
+  }
+  return role;
+}
+function pmLedger(at, v, mentions) {
+  assert(v && ['cowork', 'Astra PM'].includes(v.role), 'PM-ISSUER-CLAIM-ROLE');
+  claim(v, v.role, 'PM authority');
+  return pmReceipt(at, { commit: at, path: 'rebuild/DECISIONS.md', line: v.line,
+    lineSha256: v.lineSha256 }, mentions, v.role);
+}
 function claim(v, role, label) { // a ledger citation whose text hashes to the sha it names
   keys(v, CLAIM_KEYS, 'Authorization claim ' + label);
   assert(Number.isInteger(v.ledgerLine) && v.ledgerLine > 0 && v.role === role, 'Claim coordinates ' + label);
   assert(typeof v.line === 'string' && !/[\r\n]/.test(v.line) && /^[a-f0-9]{64}$/.test(v.lineSha256) && sha(Buffer.from(v.line)) === v.lineSha256, 'LEDGER-LINE-SHA256 ' + label);
+}
+// Re-read real Git objects at every call. The receipt-context call is additional
+// to the current-chain check, never a replacement for it. No candidate ledger,
+// mutable line number, cached verdict or document basename supplies authority.
+function b1b2Amendments(s, at = CHAIN_REF) {
+  if (ID !== 'B1-B2') return {};
+  b1b2AmendmentShape(s);
+  const pins = {};
+  for (const [id, row] of Object.entries(s.authorizations.amendments)) {
+    pmLedger(at, row.claim, []);
+    for (const document of row.documents) {
+      assert.equal(sha(L.object(root, at, document.file)), document.sha256,
+        'B1B2-AMENDMENT-DOCUMENT-BYTES '+id+' '+document.file+' at '+at);
+      pins[document.file] = document.sha256;
+    }
+  }
+  return pins;
+}
+function authorizationKeys(s) {
+  const authKeys = Object.keys(s.authorizations).sort();
+  const allowedAuth = ['owner', 'contract', 'theme', 'review', 'freeze', ...(ID === 'B1-B2' ? ['amendments'] : [])];
+  assert(authKeys.every(k => allowedAuth.includes(k)),
+    'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
+  keys({ ...s.authorizations, freeze: null }, allowedAuth, 'Closed authorization keys');
 }
 // r6 change 4, as r7 F4 re-anchors it. THE RULING'S OWN BYTES, read from Git on the chain
 // branch — the one text a spec cannot write.
@@ -974,6 +1189,14 @@ function supersessionRuling(s) {
     assert(BYTE_IDENTITY_CARRIERS.includes(c), 'GATE-SUPERSESSION-RULING-NAMES-A-CARRIER-THAT-IS-NOT-A-BYTE-IDENTITY-GATE ' +
       c + ' DECISIONS:' + at + '; the token may name only ' + BYTE_IDENTITY_CARRIERS.join(','));
     granted.add(c);
+  }
+  if (ID === 'B1-B2') {
+    assert.equal(s.packageId, 'M2-B1-B2', 'B1B2-SUPERSESSION-PACKAGE');
+    assert.equal(sup.rulingLineSha256, B1B2_SUPERSESSION_LINE, 'B1B2-SUPERSESSION-CURRENT-RULING');
+    pmReceipt(CHAIN_REF, {commit:CHAIN_REF,path:'rebuild/DECISIONS.md',line,lineSha256:sup.rulingLineSha256},
+      ['GATE-SUPERSESSION M2-B1-B2'], 'Astra PM');
+    assert.equal(mine.length, 1, 'B1B2-SUPERSESSION-ONE-GRANT');
+    assert.deepEqual([...granted].sort(), Object.keys(B1B2_FAMILIES).sort(), 'B1B2-SUPERSESSION-FIVE-FAMILIES');
   }
   return { at, line, granted };
 }
@@ -1211,13 +1434,13 @@ function spec() {
   assert.equal(s.version, 1); assert.equal(s.lanePackage, ID);
   // The package id is BOUND to the id on the command line, not merely shaped like one: a
   // spec filed as B1.json cannot carry M2-B2-…'s id and so cannot claim B2's artifact path.
-  assert(new RegExp('^M2-' + escapeRe(ID) + '-[A-Z0-9-]+$').test(s.packageId), 'Package id shape');
+  assert(ID === 'B1-B2' ? s.packageId === 'M2-B1-B2' : new RegExp('^M2-' + escapeRe(ID) + '-[A-Z0-9-]+$').test(s.packageId), 'Package id shape');
   assert(['SKELETON', 'PROPOSED', 'BRIEF-ACCEPTED'].includes(s.status), 'Spec status');
   // N4. The brief acceptance is a ledger CITATION, shaped exactly like owner/contract/theme
   // — never a bare integer a spec can invent. Its bytes are resolved in Git by authority().
   keys(s.brief, ['file', 'sha256', 'acceptedLedgerLine'], 'Brief citation');
   if (s.brief.acceptedLedgerLine !== null) {
-    claim(s.brief.acceptedLedgerLine, 'cowork', 'brief acceptance');
+    pmLedger(CHAIN_REF, s.brief.acceptedLedgerLine, [s.packageId, s.brief.file]);
     assert.equal(s.status, 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-STATUS disagrees with the cited ledger line');
     assert(s.brief.acceptedLedgerLine.line.includes(s.packageId) && s.brief.acceptedLedgerLine.line.includes(s.brief.file) &&
       /(?:^|[ ·])ACCEPTED$/.test(s.brief.acceptedLedgerLine.line), 'Brief acceptance line names this package and brief and ends in the ACCEPT terminal word');
@@ -1244,6 +1467,7 @@ function spec() {
   assert(s.dIds.length || NO_REGISTER_IDS.has(ID),
     'REGISTER-D-ID-INVENTORY-EMPTY-AND-NOT-EXEMPT ' + ID + '; a repair package registers at least one D-id, and only the ids fixed in NO_REGISTER_IDS are exempt');
   assert.deepEqual(Object.keys(s.laws).sort(), s.dIds.slice().sort(), 'Exactly one law id per D-id');
+  if (ID === 'B1-B2') assert.deepEqual(s.dIds, B1B2_D_IDS, 'B1B2-EXACT-24-DEFECT-IDENTITIES');
   assert.deepEqual(s.carriedAcceptedIds, CARRIED, 'Carried accepted ids');
   assert(Array.isArray(s.privateLiveTriggered) && s.privateLiveTriggered.every(d => s.dIds.includes(d)), 'LIVE-triggered subset');
   keys(s.parent, ['decided', 'chosen', 'options'], 'Parent block');
@@ -1314,7 +1538,7 @@ function spec() {
   // those gates on a single executable. "All 19 by one child" satisfies none of the three.
   // REQUESTS 08:40 (b) adds `superseded`: `null` in every package that declares none, which
   // today is all seven. Its whole spec-phase shape stands in supersededSpecShape() below.
-  keys(s.coverage, ['inherited', 'moves', 'successors', 'superseded'], 'Coverage block');
+  keys(s.coverage, ['inherited', 'moves', 'successors', 'superseded', ...(ID === 'B1-B2' ? ['repairedWitnesses'] : [])], 'Coverage block');
   // X1 — BLOCKING, and it is the FIRST thing decided about coverage. r3's residual R3-A is
   // the move/needle composite: a declared child that never ran the gate's original could
   // still be reported as carrying a moved gate. Every part of that finding enters through a
@@ -1365,24 +1589,24 @@ function spec() {
   // REQUESTS 08:40 (b). The same discipline for the gate-supersession block: its whole
   // spec-phase shape is one named function, measurable on its own.
   supersededSpecShape(s, names);
+  repairedWitnesses(s);
+  b1b2Inventory(s);
   for (const flip of s.witnessFlips) keys(flip, ['file', 'line', 'from', 'to'], 'Witness flip');
   // DECISIONS:135 (4). `freeze` is the ONE optional authorization: a PM FREEZE line naming
   // the base a seal stands on, cited exactly as owner/contract/theme are and matched the
   // same way in sealOnTheTip(). Optional so that every spec that does not need one — all of
   // them, on a branch that carries the tip — keeps the closed four it already has, and so
   // that adding the key changes no sealed artifact's bytes.
-  const authKeys = Object.keys(s.authorizations).sort();
-  assert(authKeys.every(k => ['owner', 'contract', 'theme', 'review', 'freeze'].includes(k)),
-    'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
-  keys({ ...s.authorizations, freeze: null }, ['owner', 'contract', 'theme', 'review', 'freeze'], 'Closed authorization keys');
+  authorizationKeys(s);
+  b1b2Amendments(s);
   if (s.authorizations.freeze) {
-    claim(s.authorizations.freeze, 'cowork', 'freeze');
+    pmLedger(CHAIN_REF, s.authorizations.freeze, [s.packageId]);
     assert(/\bFREEZE\b/.test(s.authorizations.freeze.line) && /\b[a-f0-9]{40}\b/.test(s.authorizations.freeze.line),
       'SEAL-FREEZE-LINE-SHAPE; a freeze citation must say FREEZE and name a 40-hex base commit');
   }
   claim(s.authorizations.owner, 'owner', 'owner'); claim(s.authorizations.contract, 'cowork', 'contract');
   if (s.authorizations.theme !== null) {
-    claim(s.authorizations.theme, 'cowork', 'theme');
+    pmLedger(CHAIN_REF, s.authorizations.theme, [s.packageId]);
     // r7 F3. This was one of the three refusals the r7 reviewer fired that printed a bare
     // FAIL: a theme citation that is well-formed and hashes to its own sha but names some
     // other package, or does not end in the ACCEPT terminal word, is a shape refusal and
@@ -1391,7 +1615,7 @@ function spec() {
       'THEME-LINE-DOES-NOT-BIND-THIS-PACKAGE-ID ' + s.packageId + '; the cited theme line must name this package id and end in the ACCEPT terminal word');
   }
   keys(s.authorizations.review, ['role', 'prefix', 'terminal'], 'Review claim');
-  assert(s.authorizations.review.role === 'cowork' && s.authorizations.review.terminal === 'ACCEPTED' &&
+  assert(['cowork', 'Astra PM'].includes(s.authorizations.review.role) && s.authorizations.review.terminal === 'ACCEPTED' &&
     s.authorizations.review.prefix === 'POSTFIX-ACCEPTANCE ' + s.packageId, 'Review claim binds this package id');
   const slug = s.packageId.replace(/^M2-/, '').toLowerCase(); // W7: derived here, only agreed to by the spec
   ARTIFACT = 'rebuild/m4/spec/acceptance-' + slug + '.json'; REVIEW = 'rebuild/m4/spec/review-' + slug + '.json';
@@ -1461,7 +1685,7 @@ function option(o) {
   // in rebuild/DECISIONS.md in Git at that base, under role cowork, mentioning this
   // artifact path and this hash. X2 decides WHERE that base may be; this decides WHAT must
   // stand there. Both are required — neither substitutes for the other.
-  L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [o.sha256, o.artifact] });
+  pmReceipt(r.commit, r, [o.sha256, o.artifact]);
   const m = RECEIPT.exec(r.line);
   assert(m && m[1] === acceptance.packageId && m[3] === o.artifact && m[4] === o.sha256, 'Parent receipt content ' + o.id);
   assert.equal(sha(L.object(root, m[2], o.artifact)), o.sha256, 'Parent artifact bytes in Git at its reviewed commit ' + o.id);
@@ -1483,6 +1707,138 @@ function option(o) {
     '; review ' + o.review + ' ' + o.reviewSha256.slice(0, 12) + ' byte-identical on disk and on that branch; receipt base ' +
     r.commit.slice(0, 7) + ' is an ancestor of it');
   return { option: o, acceptance, reviewedCommit: m[2], receiptBase: r.commit };
+}
+// DECISIONS:232. One reader for every prospective/runtime/seal coverage path.
+// Earlier packages retain their exact old byChild semantics. Only the fixed
+// accepted H3 -> B1-B2 edge may derive its nine gates from supersession records.
+// The artifact itself is never amended. No accepted boolean is inherited.
+function parentCoverage(s, bound) {
+  if (ID !== 'B1-B2') return bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  assert.equal(s.packageId, 'M2-B1-B2', 'B1B2-PARENT-PACKAGE');
+  assert(bound && bound.decided && s.parent?.decided && s.parent.chosen === 'H3', 'B1B2-PARENT-NOT-BOUND');
+  assert.equal(s.parent.options.length, 1, 'B1B2-PARENT-ONE-OPTION');
+  for (const key of ['id','artifact','sha256','review','reviewSha256']) {
+    assert.equal(bound.option[key], B1B2_PARENT[key], 'B1B2-PARENT-EXACT-' + key.toUpperCase());
+    assert.equal(s.parent.options[0][key], B1B2_PARENT[key], 'B1B2-PARENT-SPEC-' + key.toUpperCase());
+  }
+  const fresh = option(bound.option); // fresh disk/Git/chain/receipt/issuer provenance
+  assert.equal(fresh.reviewedCommit, B1B2_PARENT.reviewedCommit, 'B1B2-PARENT-REVIEWED-COMMIT');
+  assert.equal(fresh.receiptBase, B1B2_PARENT.receiptBase, 'B1B2-PARENT-RECEIPT-BASE');
+  const review = J.parseExact(fs.readFileSync(rel(B1B2_PARENT.review)));
+  assert.equal(review.receipt.lineSha256, B1B2_PARENT.receiptLineSha256, 'B1B2-PARENT-RECEIPT-LINE');
+  for (const [file, hash] of [[B1B2_PARENT.artifact,B1B2_PARENT.sha256],[B1B2_PARENT.review,B1B2_PARENT.reviewSha256]])
+    assert.equal(gitSha('HEAD', file), hash, 'B1B2-PARENT-HEAD-BYTES ' + file);
+  assert(same(bound.acceptance, fresh.acceptance), 'B1B2-PARENT-BOUND-OBJECT-DRIFT');
+  const a = fresh.acceptance, c = a.coverage;
+  assert.equal(a.packageId, B1B2_PARENT.packageId, 'B1B2-PARENT-ARTIFACT-ID');
+  assert.deepEqual(a.gates, GATE_IDS.slice().sort(), 'B1B2-PARENT-ORIGINAL-GATES');
+  assert.deepEqual(c.covered, [], 'B1B2-PARENT-COVERED-MUST-STAY-EMPTY');
+  assert.deepEqual(c.byChild, {}, 'B1B2-PARENT-BYCHILD-MUST-STAY-EMPTY');
+  assert.deepEqual(c.moves, {}, 'B1B2-PARENT-MOVES-MUST-STAY-EMPTY');
+  assert.equal(c.successors, null, 'B1B2-PARENT-SUCCESSORS-MUST-STAY-NULL');
+  assert.deepEqual(c.supersededByCarrier, B1B2_FAMILIES, 'B1B2-PARENT-FAMILY-GATE-GROUPS');
+  const gateMap = Object.fromEntries(Object.entries(c.supersededByCarrier).flatMap(([family, gates]) => gates.map(g => [g, family])));
+  assert.equal(Object.keys(gateMap).length, 9, 'B1B2-PARENT-NINE-SUPERSEDED');
+  assert.deepEqual(c.superseded, Object.keys(gateMap).sort(), 'B1B2-PARENT-SUPERSEDED-MAP-AGREEMENT');
+  assert.deepEqual(c.run, GATE_IDS.filter(g => !Object.hasOwn(gateMap, g)).sort(), 'B1B2-PARENT-RUN-PARTITION');
+  assert.equal(c.supersessions.rulingLineSha256, B1B2_PARENT.supersessionLineSha256, 'B1B2-PARENT-HISTORICAL-SUPERSESSION');
+  assert.deepEqual(Object.keys(c.supersessions.gates).sort(), Object.keys(B1B2_FAMILIES).sort(), 'B1B2-PARENT-SUPERSESSION-FAMILIES');
+  const childrenByName = new Map(a.children.map(child => [child.name, child]));
+  assert.equal(childrenByName.size, a.children.length, 'B1B2-PARENT-DUPLICATE-CHILD');
+  for (const child of a.children) for (const target of childArgv(child)) {
+    assert(Object.hasOwn(a.executionPins, target), 'B1B2-PARENT-CHILD-UNPINNED ' + target);
+    assert.equal(gitSha(fresh.reviewedCommit, target), a.executionPins[target], 'B1B2-PARENT-CHILD-SOURCE-PIN ' + target);
+  }
+  for (const [family, row] of Object.entries(c.supersessions.gates)) {
+    for (const name of evidenceChildren(row.evidence))
+      assert(childrenByName.has(name), 'B1B2-PARENT-EVIDENCE-UNDECLARED ' + family + ' ' + name);
+    assert(row.evidence.redFirst.length, 'B1B2-PARENT-FAMILY-EVIDENCE-EMPTY ' + family);
+  }
+  supersessionRuling(s); // current 232 grant; historical 160 can never admit this edge
+  assert.deepEqual(Object.keys(s.coverage.superseded.gates).sort(), Object.keys(B1B2_FAMILIES).sort(), 'B1B2-CURRENT-FIVE-FAMILIES');
+  return gateMap;
+}
+function repairedWitnesses(s, ran) {
+  if (ID !== 'B1-B2') return new Map();
+  const rows = s.coverage.repairedWitnesses;
+  assert(rows && typeof rows === 'object' && !Array.isArray(rows), 'B1B2-REPAIRED-CLOSED-GATES');
+  keys(rows, Object.keys(B1B2_REPAIRED), 'B1B2-REPAIRED-CLOSED-GATES');
+  const byName = byNameOf(s), covered = new Map(), used = new Set();
+  const carrierPin = s.product[B1B2_CARRIER];
+  assert(carrierPin && ['new','edited','superseded-by-child'].includes(carrierPin.role) && carrierPin.post,
+    'B1B2-REPAIRED-CARRIER-NOT-OWNED');
+  assert.equal(diskSha(B1B2_CARRIER), carrierPin.post, 'B1B2-REPAIRED-CARRIER-DISK');
+  assert.equal(gitSha('HEAD', B1B2_CARRIER), carrierPin.post, 'B1B2-REPAIRED-CARRIER-HEAD');
+  const source = fs.readFileSync(rel(B1B2_CARRIER), 'utf8');
+  const modeTables = [...source.matchAll(/^const REPAIRED_MODES = (\{[^\r\n]+\});$/gm)];
+  assert.equal(modeTables.length, 1, 'B1B2-REPAIRED-MODES-ONE-LITERAL');
+  assert.deepEqual(JSON.parse(modeTables[0][1]), Object.fromEntries(Object.values(B1B2_REPAIRED)
+    .map(r => [r.mode,path.posix.basename(r.original,'.cjs')])), 'B1B2-REPAIRED-MODE-OWNERSHIP');
+  for (const [gate, expected] of Object.entries(B1B2_REPAIRED)) {
+    const row = rows[gate];
+    keys(row, ['original','sha256','child','mode','substitutions'], 'B1B2-REPAIRED-ROW-KEYS ' + gate);
+    for (const key of ['original','sha256','mode']) assert.equal(row[key], expected[key], 'B1B2-REPAIRED-' + key.toUpperCase() + ' ' + gate);
+    assert.equal(GATE_FILE.get(gate), row.original, 'B1B2-REPAIRED-ORIGINAL-EXECUTABLE ' + gate);
+    const original = fs.readFileSync(rel(row.original));
+    assert.equal(sha(original), row.sha256, 'B1B2-REPAIRED-ORIGINAL-DISK ' + gate);
+    assert.equal(gitSha('HEAD', row.original), row.sha256, 'B1B2-REPAIRED-ORIGINAL-HEAD ' + gate);
+    assert.equal(gitSha(s.sourceBase, row.original), row.sha256, 'B1B2-REPAIRED-ORIGINAL-SOURCEBASE ' + gate);
+    assert(Array.isArray(row.substitutions) && row.substitutions.length === expected.substitutions && row.substitutions.every(x =>
+      Array.isArray(x) && x.length === 2 && x.every(v => typeof v === 'string' && v.length) && x[0] !== x[1]), 'B1B2-REPAIRED-SUBSTITUTION-SHAPE ' + gate);
+    assert.equal(sha(Buffer.from(JSON.stringify(row.substitutions))), expected.substitutionSha256,
+      'B1B2-REPAIRED-APPROVED-SUBSTITUTIONS ' + gate);
+    let body = original.toString('utf8');
+    for (const [from,to] of row.substitutions) {
+      assert.equal(body.split(from).length, 2, 'B1B2-REPAIRED-EXACT-ORIGINAL-SITE ' + gate);
+      body = body.replace(from,to);
+    }
+    assert(typeof row.child === 'string' && byName.has(row.child) && !used.has(row.child), 'B1B2-REPAIRED-SEPARATE-CHILD ' + gate);
+    const child = byName.get(row.child);
+    assert.deepEqual(child.argv, [B1B2_CARRIER,row.mode], 'B1B2-REPAIRED-CHILD-MODE ' + gate);
+    assert.deepEqual(childArgv(child), [B1B2_CARRIER], 'B1B2-REPAIRED-EXECUTABLE-OWNERSHIP ' + gate);
+    assert.equal(s.children.filter(c => same(c.argv,child.argv)).length, 1, 'B1B2-REPAIRED-DUPLICATE-EXECUTION ' + gate);
+    const terminal = 'B1B2 REPAIRED WITNESS ' + gate + ': ' + expected.cases + ' cases; ' + expected.substitutions + ' substitutions; original SHA256 ' + row.sha256;
+    assert.equal(child.needle, terminal, 'B1B2-REPAIRED-EXACT-TERMINAL ' + gate);
+    assert(!Object.hasOwn(s.coverage.inherited,gate) && !Object.hasOwn(s.coverage.moves,gate), 'B1B2-REPAIRED-DUPLICATE-CREDIT ' + gate);
+    for (const family of Object.values(s.coverage.superseded.gates))
+      assert(!evidenceChildren(family.evidence).includes(row.child), 'B1B2-REPAIRED-FAMILY-DUPLICATE-CREDIT ' + gate);
+    if (ran) {
+      const r = ran.get(row.child);
+      assert(r?.ok && r.repairedWitness === gate && r.originalCases === expected.cases && r.originalSha256 === expected.sha256 &&
+        r.substitutions === expected.substitutions && same(r.targets,[B1B2_CARRIER]), 'B1B2-REPAIRED-EXECUTION-MISSING ' + gate);
+    }
+    used.add(row.child); covered.set(gate,row.child);
+  }
+  return covered;
+}
+function b1b2Tap(child, output) {
+  if (ID !== 'B1-B2' || !child.argv.includes('--test')) return;
+  assert(/^# pass [1-9][0-9]*$/.test(child.needle), 'B1B2-TAP-EXACT-PASS-COUNT');
+  const count = key => {
+    const lines = [...output.matchAll(new RegExp('^# '+key+' ([0-9]+)\\r?$', 'gm'))];
+    assert.equal(lines.length, 1, 'B1B2-TAP-ONE-TOTAL ' + key);
+    return Number(lines[0][1]);
+  };
+  const expected = Number(child.needle.slice('# pass '.length));
+  assert.equal(count('tests'), expected, 'B1B2-TAP-COMPLETE-TEST-COUNT');
+  assert.equal(count('pass'), expected, 'B1B2-TAP-COMPLETE-PASS-COUNT');
+  for (const key of ['fail','cancelled','skipped','todo']) assert.equal(count(key), 0, 'B1B2-TAP-NONZERO-' + key.toUpperCase());
+}
+function repairedWitnessOutput(s, child, output) {
+  if (ID !== 'B1-B2') return {};
+  const hit = Object.entries(s.coverage.repairedWitnesses).find(([,r]) => r.child === child.name);
+  if (!hit) return {};
+  const [gate,row] = hit, expected = B1B2_REPAIRED[gate];
+  assert(expected, 'B1B2-REPAIRED-OUTPUT-GATE');
+  const tag = gate === 'witnesses-1' ? '' : ' ' + gate.slice(-1);
+  const originalTerminal = 'DEFECT WITNESSES' + tag + ': ' + expected.cases + '/' + expected.cases + ' reproduced; behavior intentionally unchanged';
+  const lines = output.trimEnd().split(/\r?\n/);
+  assert.equal(lines.filter(l => l.startsWith('REPRODUCED ')).length, expected.cases, 'B1B2-REPAIRED-ORIGINAL-CASE-COUNT ' + gate);
+  assert.equal(lines.filter(l => l === originalTerminal).length, 1, 'B1B2-REPAIRED-ORIGINAL-TERMINAL ' + gate);
+  assert.equal(lines.at(-1), child.needle, 'B1B2-REPAIRED-LAST-TERMINAL ' + gate);
+  assert.equal(lines.at(-2), originalTerminal, 'B1B2-REPAIRED-ORIGINAL-LAST-TERMINAL ' + gate);
+  assert.equal(lines.filter(l => l.startsWith('B1B2 REPAIRED WITNESS ')).length, 1, 'B1B2-REPAIRED-ONE-TERMINAL ' + gate);
+  return {repairedWitness:gate,originalCases:expected.cases,originalSha256:row.sha256,substitutions:expected.substitutions};
 }
 function parent(s) {
   const sealed = s.parent.options.map(option).filter(Boolean);
@@ -1578,17 +1934,75 @@ function parentPin(entry, file) {
   assert(/^[a-f0-9]{64}$/.test(pinned), 'PARENT-PIN-SHAPE ' + file);
   return pinned;
 }
-function held(s, file, hash, code) {
+// DECISIONS:154/214. Classes are derived here, never supplied by the spec.
+function pinClass(file) {
+  assert(typeof file === 'string' && file.length && !path.isAbsolute(file) && !path.win32.isAbsolute(file) &&
+    !file.includes('\\') && path.posix.normalize(file) === file &&
+    file.split('/').every(part => part && part !== '.' && part !== '..' && !/[ .]$|[:\x00-\x1f]/.test(part)),
+    'PIN-PATH-NORMALIZED ' + file);
+  const parts = file.split('/');
+  assert(parts[0].toLowerCase() !== 'rebuild' || parts[0] === 'rebuild', 'PIN-PATH-NORMALIZED ' + file);
+  assert(parts[0] !== 'rebuild' || !['engine','conform','m4'].includes((parts[1] || '').toLowerCase()) ||
+    parts[1] === parts[1].toLowerCase(), 'PIN-PATH-NORMALIZED ' + file);
+  return /^rebuild\/(?:engine|conform|m4)(?:\/|$)/.test(file) ? 'disk-head' : 'sourcebase-git';
+}
+function pinPhase(phase) {
+  assert(['ci','full-entry','full-terminal'].includes(phase), 'PIN-PHASE-CLOSED ' + phase);
+  return phase !== 'ci';
+}
+function gitBoundPin(s, file, hash, code, phase) {
+  const strict = pinPhase(phase);
+  assert.equal(pinClass(file), 'sourcebase-git', 'PIN-CLASS-EXPECTED-GIT ' + file);
+  // Always this package's declared sourceBase; never search another historical
+  // commit for matching bytes or substitute today's disk for a missing object.
+  assert.equal(gitSha(s.sourceBase, file), hash, code + '-AT-SOURCEBASE ' + file);
+  if (strict) {
+    assert.equal(diskSha(file), hash, 'GIT-BOUND-PIN-DISK ' + phase + ' ' + file);
+    assert.equal(gitSha('HEAD', file), hash, 'GIT-BOUND-PIN-HEAD ' + phase + ' ' + file);
+  }
+  return hash;
+}
+function unchangedGitPins(s, bound) {
+  const result = new Map();
+  const add = (file, hash, role, from) => {
+    if (pinClass(file) === 'sourcebase-git') result.set(file, {hash, role, from});
+  };
+  for (const [file, pin] of Object.entries(s.product))
+    if (pin.role === 'carried' || pin.role === 'pinned-unchanged') add(file, pin.pre, pin.role, 'own');
+  if (!bound) return result;
+  const a = bound.acceptance, parent = {...a.product, ...a.executionPins};
+  for (const [file, entry] of Object.entries(parent))
+    if (!Object.hasOwn(s.product, file)) add(file, parentPin(entry, file), 'inherited', 'parent');
+  const g = a.parent;
+  if (g) {
+    assert.equal(pinClass(g.artifact), 'disk-head', 'GRANDPARENT-ARTIFACT-CORE-PATH');
+    assert.equal(diskSha(g.artifact), g.sha256, 'GRANDPARENT-ARTIFACT-BYTES');
+    const ga = J.parseExact(fs.readFileSync(rel(g.artifact)));
+    for (const [file, entry] of Object.entries({...ga.product, ...ga.executionPins}))
+      if (!Object.hasOwn(parent, file) && !Object.hasOwn(s.product, file))
+        add(file, parentPin(entry, file), 'inherited', 'grandparent');
+  }
+  return result;
+}
+function verifyUnchangedGitPins(s, bound, phase) {
+  pinPhase(phase);
+  const entries = unchangedGitPins(s, bound);
+  for (const [file, entry] of entries) gitBoundPin(s, file, entry.hash, 'UNCHANGED-PIN-BROKEN', phase);
+  return entries;
+}
+function held(s, file, hash, code, phase = ci ? 'ci' : 'full-entry') {
+  pinPhase(phase); const kind = pinClass(file);
   if (Object.hasOwn(s.product, file)) { assert.equal(gitSha(s.sourceBase, file), hash, code + '-AT-SOURCEBASE ' + file); return false; }
+  if (kind === 'sourcebase-git') { gitBoundPin(s, file, hash, code, phase); return true; }
   assert.equal(diskSha(file), hash, code + ' ' + file);
   assert.equal(gitSha('HEAD', file), hash, code + '-GIT-DISK-DISAGREE ' + file);
   return true;
 }
-function pins(s, bound) {
+function pins(s, bound, phase = ci ? 'ci' : 'full-entry') {
   if (!bound) { note('parent and grandparent artifact pins not re-asserted'); return; }
   const a = bound.acceptance; let kept = 0, gkept = 0, base = 0;
   for (const [file, entry] of Object.entries({ ...a.product, ...a.executionPins })) {
-    if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN')) kept++; else base++;
+    if (held(s, file, parentPin(entry, file), 'PARENT-PIN-BROKEN', phase)) kept++; else base++;
   }
   const g = a.parent;
   assert(g && typeof g.artifact === 'string' && /^[a-f0-9]{64}$/.test(g.sha256), 'Grandparent coordinates');
@@ -1597,17 +2011,28 @@ function pins(s, bound) {
   if (g.review) {
     const gr = J.parseExact(fs.readFileSync(rel(g.review)));
     assert.equal(gr.status, 'ACCEPTED', 'Grandparent independently accepted');
-    L.verifyReceipt(root, gr.receipt.commit, gr.receipt, { role: 'cowork', mentions: [g.sha256, g.artifact] });
+    pmReceipt(gr.receipt.commit, gr.receipt, [g.sha256, g.artifact]);
+    // Issuer custody is not an acceptance payload: bind the exact terminal,
+    // package, artifact and reviewed Git bytes just as option() does for a parent.
+    const gm = RECEIPT.exec(gr.receipt.line);
+    assert(gm, 'Grandparent receipt content: exact POSTFIX-ACCEPTANCE');
+    assert.equal(gm[1], ga.packageId, 'GRANDPARENT-RECEIPT-PACKAGE');
+    assert.equal(gm[3], g.artifact, 'GRANDPARENT-RECEIPT-ARTIFACT');
+    assert.equal(gm[4], g.sha256, 'GRANDPARENT-RECEIPT-HASH');
+    ancestor(gm[2], 'HEAD', 'GRANDPARENT-REVIEWED-COMMIT-NOT-BEHIND-HEAD');
+    ancestor(gm[2], CHAIN_REF, 'GRANDPARENT-REVIEWED-COMMIT-NOT-ON-THE-CHAIN-BRANCH');
+    assert.equal(sha(L.object(root, gm[2], g.artifact)), g.sha256, 'GRANDPARENT-REVIEWED-ARTIFACT-BYTES');
   }
   // The grandparent is read through the same normaliser: the chain now has both shapes in
   // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.
   for (const [file, entry] of Object.entries({ ...ga.product, ...ga.executionPins })) {
     if (Object.hasOwn(a.product, file) || Object.hasOwn(a.executionPins, file)) continue;
-    if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN')) gkept++; else base++;
+    if (held(s, file, parentPin(entry, file), 'GRANDPARENT-PIN-BROKEN', phase)) gkept++; else base++;
   }
   say('PARENT PINS RE-ASSERTED at run time; ' + kept + ' pin(s) from ' + bound.option.artifact + ' plus its ' +
     Object.keys(a.product).length + ' product pins through the inventory below, and ' + gkept + ' un-superseded grandparent pin(s) from ' +
-    g.artifact + ', byte-identical on disk AND in Git at HEAD; ' + base + ' superseded pin(s) preserved in Git at sourceBase ' +
+    g.artifact + '; phase=' + phase + ', core pins on disk/HEAD; unchanged outside-core pins at sourceBase' +
+    (phase === 'ci' ? ' (Git-bound only)' : ' AND disk/HEAD') + '; ' + base + ' declared inventory pin(s) preserved in Git at sourceBase ' +
     s.sourceBase.slice(0, 7) + '; parent artifact byte-identical in Git at ' + bound.reviewedCommit);
 }
 // Walk the accepted chain to the artifact that still carries the audit baseline (the
@@ -1626,7 +2051,8 @@ function baselineOf(bound) {
 // W2. The inventory is checked against the PARENT's product map, not only against itself:
 // a pre-image that is not the parent's pinned byte, and a parent-pinned file this spec
 // drops from its inventory, are both UNLISTED-PRODUCT-DRIFT.
-function product(s, bound, sealed) {
+function product(s, bound, sealed, pinVerificationPhase = ci ? 'ci' : 'full-entry') {
+  pinPhase(pinVerificationPhase);
   const pmap = bound && bound.acceptance.product, epins = bound && bound.acceptance.executionPins;
   const at = { pre: [], post: [], carried: [], drift: [], superseded: [], unchanged: [], grandfathered: [] };
   for (const [file, pin] of Object.entries(s.product)) {
@@ -1692,7 +2118,9 @@ function product(s, bound, sealed) {
       '" with pre === post; a file this package edits, supersedes or writes must reach a post-image it does not already stand at — a file it declares, runs and leaves alone is role "pinned-unchanged"');
     if (grandfathered) at.grandfathered.push(file);
     if (pin.role === 'new' && pin.post === null && !fs.existsSync(rel(file))) { at.pre.push(file); continue; }
-    const disk = diskSha(file);
+    const kind = pinClass(file);
+    const gitUnchanged = kind === 'sourcebase-git' && ['carried','pinned-unchanged'].includes(pin.role);
+    const disk = gitUnchanged ? gitBoundPin(s, file, pin.pre, 'PRODUCT-PIN-BROKEN', pinVerificationPhase) : diskSha(file);
     // The POST-image is asked first, and the order is the whole of the change (fix r5
     // follow-up, from lane B's own §4.2 objection). A file this package declares and PINS
     // but does not CHANGE carries pre === post — it is complete at those bytes, and it was
@@ -1724,7 +2152,7 @@ function product(s, bound, sealed) {
   const standing = at.post.length + at.unchanged.length;
   const phase = standing === 0 ? 'NOT-IMPLEMENTED' : at.pre.length === 0 ? 'IMPLEMENTED' : 'PARTIAL';
   say('PRODUCT ' + phase + '; ' + at.post.length + ' at the declared post-image / ' + at.pre.length + ' at the pinned pre-image / ' + at.carried.length +
-    ' carried byte-identical from the parent / ' + at.unchanged.length + ' declared role "pinned-unchanged" — executed by a declared child, produced by nothing' +
+    ' carried at their declared pin class from the parent / ' + at.unchanged.length + ' declared role "pinned-unchanged" — executed by a declared child, produced by nothing' +
     ' / 0 unlisted drift' + (pmap ? '; the inventory covers all ' + Object.keys(pmap).length + ' parent-pinned product files' : '') +
     '; ' + at.superseded.length + ' declared role "superseded-by-child" over a parent EXECUTION pin, each equal to the parent byte' +
     (at.superseded.length ? ' (' + at.superseded.join(' ') + ')' : ''));
@@ -1782,6 +2210,7 @@ function ledger(at, v, mentions) {
   L.verifyReceipt(root, at, { commit: at, path: 'rebuild/DECISIONS.md', line: v.line, lineSha256: v.lineSha256 }, { role: v.role, mentions });
 }
 function authority(s, bound) {
+  b1b2Amendments(s);
   const theme = s.authorizations.theme, accepted = s.brief.acceptedLedgerLine;
   const themeOpen = () => note('theme ledger line accepting this brief is null (THEME-AUTHORIZATION-UNAVAILABLE before any receipt)');
   const briefOpen = () => note('brief ' + s.brief.file + ' not accepted by a PM ledger line');
@@ -1815,8 +2244,8 @@ function authority(s, bound) {
   ledger(at, s.authorizations.owner, ['M2-RULE']);
   ledger(at, s.authorizations.contract, ['POSTFIX-GATE BRIEF']);
   assert.equal(s.authorizations.contract.lineSha256, bound.acceptance.authorizations.contract.lineSha256, 'INHERITED-CONTRACT-AUTHORIZATION');
-  if (!theme) themeOpen(); else ledger(own, theme, [s.packageId]);
-  if (!accepted) briefOpen(); else ledger(own, accepted, [s.packageId, s.brief.file]);
+  if (!theme) themeOpen(); else pmLedger(own, theme, [s.packageId]);
+  if (!accepted) briefOpen(); else pmLedger(own, accepted, [s.packageId, s.brief.file]);
   say('AUTHORITY OBSERVED owner DECISIONS:' + s.authorizations.owner.ledgerLine + ' and contract DECISIONS:' + s.authorizations.contract.ledgerLine +
     ' present as exact ledger line bytes at the parent receipt base ' + at.slice(0, 7) + ' under their own roles; contract inherited byte-equal from the parent; theme ' +
     (theme ? 'DECISIONS:' + theme.ledgerLine + ' found in Git on ' + CHAIN_REF : 'NULL — no PASS word is available') + '; brief acceptance ' +
@@ -1910,6 +2339,7 @@ function children(s, env) {
     // printed a handful of bytes did not execute a gate file: `node --version` exits 0 and
     // prints its own eight characters at line start, so the floor is what refuses it.
     assert(new RegExp('^' + escapeRe(c.needle), 'm').test(out), 'CHILD-NEEDLE-NOT-A-TERMINAL-LINE ' + c.name);
+    b1b2Tap(c,out);
     // X3. A MOVING child is held to the ORIGINAL GATE'S OWN test, not to a byte count. r3's
     // N3-05 and N3-07 both cleared the >=200-byte floor while the original never ran — 283
     // bytes of `z`, and a fabricated verdict line printed before the require. Neither can
@@ -1924,7 +2354,7 @@ function children(s, env) {
         ' byte(s) of stdout without ' + JSON.stringify(GATE_NEEDLE.get(gate)) + ' — the byte floor is not evidence for a moving child');
     if (!moved.length) assert(bytes >= NEEDLE_FLOOR || GATE_TERMINAL.test(out),
       'CHILD-DID-NOT-REALLY-EXECUTE ' + c.name + '; ' + bytes + ' byte(s) of stdout and no original gate terminal line');
-    ran.set(c.name, { ok: true, needle: c.needle, bytes, targets, moved });
+    ran.set(c.name, { ok: true, needle: c.needle, bytes, targets, moved, ...repairedWitnessOutput(s,c,out) });
     say('CHILD ' + c.name + ' OBSERVED; exit 0, ' + bytes + ' bytes of stdout, exact declared verdict at line start; ran ' + targets.join(' ') +
       (moved.length ? '; and emitted the original gate needle(s) ' + moved.join(' ') : ''));
   }
@@ -2189,7 +2619,7 @@ function successorCoverage(s, bound, proofs, gate, child, targets) {
 // that decides whether any of it is ADMITTED.
 function supersededGateIds(s, bound) {
   const sup = s.coverage.superseded;
-  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  const byChild = parentCoverage(s, bound);
   if (sup == null || !byChild) return [];
   return Object.entries(byChild).filter(([, c]) => Object.hasOwn(sup.gates, c)).map(([g]) => g).sort();
 }
@@ -2197,7 +2627,7 @@ function supersededGateIds(s, bound) {
 // F2 asked for the true count per carrier in both the coverage line and the artifact.
 function supersededByCarrier(s, bound) {
   const sup = s.coverage.superseded;
-  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  const byChild = parentCoverage(s, bound);
   if (sup == null || !byChild) return {};
   const out = {};
   for (const carrier of Object.keys(sup.gates).sort())
@@ -2238,7 +2668,7 @@ function supersededGates(s, bound, ran) {
   const sup = s.coverage.superseded;
   if (sup == null) return out;
   const ruling = supersessionRuling(s);                        // (iii) — refuses if absent
-  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  const byChild = parentCoverage(s, bound);
   assert(byChild, 'GATE-SUPERSESSION-WITHOUT-A-BOUND-PARENT-ARTIFACT; a gate can only be superseded against the parent that covered it');
   const parentCarriers = new Set(Object.values(byChild));
   // DECISIONS:153 (ii). The runner's own named-files differential, once per run, before any
@@ -2266,6 +2696,16 @@ function supersededGates(s, bound, ran) {
         '; the named evidence child did not run in this run');
       assert(r.ok, 'GATE-SUPERSESSION-EVIDENCE-CHILD-NOT-GREEN ' + carrier + ' ' + child +
         '; the named evidence child ran and did not pass');
+      if (ID === 'B1-B2') {
+        const targets = childArgv(byName.get(child));
+        assert.deepEqual(r.targets, targets, 'B1B2-CURRENT-EVIDENCE-EXECUTABLES ' + child);
+        for (const target of targets) {
+          const pin = s.product[target];
+          assert(pin?.post, 'B1B2-CURRENT-EVIDENCE-PRODUCT-PIN ' + target);
+          assert.equal(diskSha(target), pin.post, 'B1B2-CURRENT-EVIDENCE-DISK ' + target);
+          assert.equal(gitSha('HEAD', target), pin.post, 'B1B2-CURRENT-EVIDENCE-HEAD ' + target);
+        }
+      }
       executed.push(child);
     }
     // The runner's OWN census line as evidence is admitted only when that line says `none`.
@@ -2294,7 +2734,8 @@ function supersededGates(s, bound, ran) {
 // declared verdict — never by a file's existence. The inherited set must be exactly the
 // parent artifact's own covered set; a move is carried by this package's own successor.
 function coverage(s, bound, ran) {
-  const covered = new Map([...Object.entries(s.coverage.inherited), ...Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])]);
+  const repaired = repairedWitnesses(s, ran);
+  const covered = new Map([...Object.entries(s.coverage.inherited), ...Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child]), ...repaired]);
   const carried = new Map(); // gate -> the successor proof, for the gates DECISIONS:113 admits
   for (const [gate, child] of covered) assert(ran.get(child) && ran.get(child).ok, 'COVERAGE-CHILD-NOT-EXECUTED ' + gate + ' ' + child);
   // Every declared successor is proved before any gate is admitted by one, so a carrier
@@ -2305,7 +2746,7 @@ function coverage(s, bound, ran) {
   // equality below is taken against the parent map MINUS the superseded gates.
   const superseded = supersededGates(s, bound, ran);
   SUPERSEDED_RESOLVED = superseded;
-  const byChild = bound && bound.acceptance.coverage && bound.acceptance.coverage.byChild;
+  const byChild = parentCoverage(s, bound);
   if (!byChild) { if (covered.size) note('inherited coverage unverified against a parent artifact until the PM names the parent'); }
   else {
     // N1. The WHOLE inherited map, gate AND child, is the parent artifact's own — not just
@@ -2327,9 +2768,15 @@ function coverage(s, bound, ran) {
     }
     // The closed bound the accepted original states as assert.equal(covered.length, 9):
     // exactly the parent's covered set plus this package's own declared, bounded moves.
-    assert.equal(covered.size + superseded.size, Object.keys(byChild).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
+    assert.equal(covered.size + superseded.size, Object.keys(byChild).length + Object.keys(s.coverage.moves).length + repaired.size, 'COVERED-SET-BOUND');
   }
-  assert.equal(covered.size, Object.keys(s.coverage.inherited).length + Object.keys(s.coverage.moves).length, 'COVERED-SET-BOUND');
+  assert.equal(covered.size, Object.keys(s.coverage.inherited).length + Object.keys(s.coverage.moves).length + repaired.size, 'COVERED-SET-BOUND');
+  if (ID === 'B1-B2') {
+    assert.equal(superseded.size, 9, 'B1B2-COVERAGE-NINE-SUPERSEDED');
+    assert.equal(repaired.size, 3, 'B1B2-COVERAGE-THREE-REPAIRED');
+    assert.equal(GATE_IDS.length-covered.size-superseded.size, 7, 'B1B2-COVERAGE-SEVEN-ORIGINALS');
+    for (const gate of repaired.keys()) assert(!superseded.has(gate), 'B1B2-COVERAGE-DUPLICATE-GATE ' + gate);
+  }
   say('COVERAGE ' + covered.size + '/' + GATE_IDS.length + ' original gate(s) covered by ' + new Set(covered.values()).size + ' executed child(ren) (' +
     Object.keys(s.coverage.inherited).length + ' inherited' + (byChild ? ', the parent map byte-for-byte' : ', unverified') + '; ' +
     Object.keys(s.coverage.moves).length + ' moved, each naming its own original executable in a relative require specifier' +
@@ -2388,9 +2835,10 @@ function coverage(s, bound, ran) {
       say('SUCCESSOR SUBSTITUTION ' + sub.original + '; ' + JSON.stringify(sub.from) + ' -> ' + JSON.stringify(sub.to) + '; ' + sub.why);
   }
   for (const [gate, child] of covered) {
-    const move = s.coverage.moves[gate], succ = carried.get(gate);
+    const move = s.coverage.moves[gate], succ = carried.get(gate), repair = repaired.has(gate) && s.coverage.repairedWitnesses[gate];
     say('COVERAGE ' + gate + ' <- child ' + child + ' executed in this run; exit 0 and exact declared verdict' +
-      (move ? '; MOVED, declared against ' + GATE_FILE.get(gate) + ' and observed emitting that gate’s own needle — ' + move.reason
+      (repair ? '; REPAIRED original ' + repair.original + ', pinned original assertions and exact approved substitutions, original terminal observed'
+        : move ? '; MOVED, declared against ' + GATE_FILE.get(gate) + ' and observed emitting that gate’s own needle — ' + move.reason
         : succ ? '; inherited from ' + bound.option.id + ' and CARRIED BY A SUCCESSOR ' + succ.successor + ' that loads ' + succ.original +
           ' (' + succ.substitutions + ' declared substitution(s); verdict ' + JSON.stringify(succ.verdict) + ')'
           : '; inherited from ' + (bound ? bound.option.id : 'the parent the PM has not named yet')));
@@ -2422,11 +2870,13 @@ function noRegister(s, ran) {
 // integrator writes acceptance-<slug>.json with exactly these bytes — this tooling never
 // writes in rebuild/m4/spec.
 function proposed(s, bound) {
+  b1b2Amendments(s); // The unchanged authorizations field below carries every claim/document pin.
   const pins = { [RUNNER]: diskSha(RUNNER), [TOOLING + '/packages/' + ID + '.json']: sha(specRaw) };
   if (fs.existsSync(rel(s.brief.file))) pins[s.brief.file] = diskSha(s.brief.file);
   if (s.carrierSuccessor && fs.existsSync(rel(s.carrierSuccessor.file))) pins[s.carrierSuccessor.file] = diskSha(s.carrierSuccessor.file);
   for (const c of s.children) for (const f of childArgv(c)) pins[f] = diskSha(f);
-  const covered = [...Object.keys(s.coverage.inherited), ...Object.keys(s.coverage.moves)].sort(), o = bound.option;
+  const repaired = repairedWitnesses(s);
+  const covered = [...Object.keys(s.coverage.inherited), ...Object.keys(s.coverage.moves), ...repaired.keys()].sort(), o = bound.option;
   return {
     version: 1, lanePackage: ID, packageId: s.packageId, sourceBase: s.sourceBase,
     // X2: the parent's review byte-pin travels INTO the sealed artifact, so a later reader
@@ -2450,7 +2900,8 @@ function proposed(s, bound) {
       supersededByCarrier: supersededByCarrier(s, bound),
       run: GATE_IDS.filter(g => !covered.includes(g) && !supersededGateIds(s, bound).includes(g)).sort(),
       moves: s.coverage.moves, successors: s.coverage.successors, supersessions: s.coverage.superseded ?? null,
-      byChild: { ...s.coverage.inherited, ...Object.fromEntries(Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])) } },
+      byChild: { ...s.coverage.inherited, ...Object.fromEntries(Object.entries(s.coverage.moves).map(([g, m]) => [g, m.child])), ...Object.fromEntries(repaired) },
+      ...(ID === 'B1-B2' ? {repairedWitnesses:s.coverage.repairedWitnesses} : {}) },
     authorizations: s.authorizations, product: s.product, carrierSuccessor: s.carrierSuccessor, witnessFlips: s.witnessFlips,
     protectedSurfaces: s.protectedSurfaces, children: s.children, artifact: { file: ARTIFACT, review: REVIEW }, executionPins: pins,
   };
@@ -2511,6 +2962,7 @@ function sealOnTheTip(s, out) {
   const [at, line] = hits[0];
   assert(/\bFREEZE\b/.test(line) && line.includes(s.packageId),
     'SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE DECISIONS:' + at);
+  pmLedger(CHAIN_REF, freeze, [s.packageId]);
   const named = (line.match(/\b[a-f0-9]{40}\b/g) || []).filter(c => firstParents.has(c));
   assert(named.length, 'SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN DECISIONS:' + at +
     '; the freeze must name the commit this seal actually stands on');
@@ -2637,7 +3089,19 @@ function sealedRunReceiptInstruction() {
 }
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
-function envelope(s, bound, ran) {
+function envelope(s, bound, ran, pinVerificationPhase = ci ? 'ci' : (ran ? 'full-terminal' : 'full-entry')) {
+  const amendmentPins = b1b2Amendments(s);
+  if (ID === 'B1-B2' && pinVerificationPhase !== 'ci')
+    L.checkSources(root, 'HEAD', amendmentPins); // actual FULL entry AND terminal, including an unsealed candidate
+  const gitUnchanged = verifyUnchangedGitPins(s, bound, pinVerificationPhase);
+  if (ID === 'B1-B2') {
+    parentCoverage(s,bound);
+    repairedWitnesses(s,ran);
+    if (ran) {
+      const terminalSuperseded = supersededGates(s,bound,ran);
+      assert.deepEqual([...terminalSuperseded.keys()].sort(), [...SUPERSEDED_RESOLVED.keys()].sort(), 'B1B2-SUPERSESSION-CHANGED-DURING-RUN');
+    }
+  }
   const said = [], out = line => said.push('B PACKAGE ' + ID + ' ' + line);
   if (!fs.existsSync(rel(ARTIFACT)) || !fs.existsSync(rel(REVIEW))) {
     out('ENVELOPE ABSENT; ' + ARTIFACT + ' is not sealed yet — no PASS word is available');
@@ -2703,11 +3167,14 @@ function envelope(s, bound, ran) {
     assert(ran.get(c.name) && ran.get(c.name).ok, 'NO-REGISTER-PACKAGE-OWN-CHILD-DID-NOT-EXECUTE ' + ID + ' ' + c.name);
   assert(s.authorizations.theme, 'THEME-AUTHORIZATION-UNAVAILABLE'); // no PASS before the brief's own ledger line is bound
   assert(s.brief.acceptedLedgerLine && s.status === 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-UNAVAILABLE'); // N4: no PASS on an unaccepted brief
-  L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [s.packageId, ARTIFACT, hash] });
+  pmReceipt(r.commit, r, [s.packageId, ARTIFACT, hash], s.authorizations.review.role);
+  b1b2Amendments(s, r.commit); // exact six documents must also stand at the actual acceptance receipt context
   const cited = { owner: [s.authorizations.owner, ['M2-RULE']], contract: [s.authorizations.contract, ['POSTFIX-GATE BRIEF']],
     theme: [s.authorizations.theme, [s.packageId]], brief: [s.brief.acceptedLedgerLine, [s.packageId, s.brief.file]] };
-  for (const [v, mentions] of Object.values(cited))
-    L.verifyReceipt(root, r.commit, { commit: r.commit, path: 'rebuild/DECISIONS.md', line: v.line, lineSha256: v.lineSha256 }, { role: v.role, mentions });
+  for (const [name, [v, mentions]] of Object.entries(cited)) {
+    if (name === 'theme' || name === 'brief') pmLedger(r.commit, v, mentions);
+    else ledger(r.commit, v, mentions); // Original historical owner/contract roles and hashes.
+  }
   const re = new RegExp('^(?:- [^\\r\\n]+ )?POSTFIX-ACCEPTANCE ' + s.packageId + ' ([a-f0-9]{40}) (' +
     ARTIFACT.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + ') ([a-f0-9]{64}) ACCEPTED$');
   const v = re.exec(r.line);
@@ -2717,7 +3184,14 @@ function envelope(s, bound, ran) {
   // commit — the spec and this runner included, since both are execution pins.
   const reviewed = { ...m.executionPins };
   for (const [file, pin] of Object.entries(m.product)) reviewed[file] = pin.post || pin.pre;
-  L.checkSources(root, v[1], reviewed); // the original routine: Git at the reviewed commit AND the worktree
+  // Unchanged outside-core pins remain bound to THIS spec's sourceBase. The
+  // strict full phases above additionally prove disk/HEAD, including at the
+  // terminal decision. All actual implementation, runner/spec and core pins
+  // retain the original reviewed-commit plus worktree check.
+  for (const file of gitUnchanged.keys()) delete reviewed[file];
+  Object.assign(reviewed, amendmentPins); // fixed authority pins cannot be overridden by product/execution declarations
+  L.checkSources(root, v[1], reviewed);
+  if (ID === 'B1-B2') L.checkSources(root, 'HEAD', amendmentPins); // authorized CI also binds current HEAD/worktree documents
   ancestor(v[1], 'HEAD', 'REVIEWED-COMMIT-NOT-BEHIND-HEAD');
   ancestor(r.commit, CHAIN_REF, 'RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH'); // the real chain branch, from Git refs, never from the spec
   ancestor(s.sourceBase, 'HEAD', 'SOURCEBASE-NOT-BEHIND-HEAD');
@@ -2782,14 +3256,15 @@ try {
   const bound = parent(s);
   // Evaluated once HERE only to supply the header word and the sealed pins fidelity()
   // needs; the evaluation that DECIDES runs after every gate (W5).
+  const entryPinPhase = ci ? 'ci' : 'full-entry';
   const first = envelope(s, bound);
   say('POSTFIX ' + s.packageId + ' ' + (first.authorized ? 'AUTHORIZED' : 'REVIEW-PENDING') + ' mode=' + args[0]);
   for (const line of first.said) console.log(line);
-  pins(s, bound);
+  pins(s, bound, entryPinPhase);
   // r7 F1: the sealed artifact is handed over so product() can tell a spec whose role-new
   // pre === post declarations are ALREADY SEALED (grandfathered, reported, non-blocking)
   // from one that is making them fresh (refused).
-  const phase = product(s, bound, first.sealed);
+  const phase = product(s, bound, first.sealed, entryPinPhase);
   fidelity(s, first.sealed);
   authority(s, bound);
   // Honesty: this line ECHOES free text the spec supplies and counts it. It asserts
@@ -2833,7 +3308,8 @@ try {
   // swapped mid-run changes `key` and refuses here, before any terminal word is printed.
   // `ran` is handed over so the Y1 seal assert can re-take the EXECUTION half against the
   // map this run actually produced, not only the declaration half it could see at the top.
-  const last = envelope(s, bound, ran);
+  b1b2Inventory(s);
+  const last = envelope(s, bound, ran, ci ? 'ci' : 'full-terminal');
   assert.equal(last.key, first.key, 'ENVELOPE-CHANGED-DURING-THE-RUN');
   assert.equal(last.authorized, first.authorized, 'ENVELOPE-CHANGED-DURING-THE-RUN');
   if (!last.authorized) note(last.sealed === null ? 'closed cumulative profile not sealed' : 'independent exact-artifact acceptance PENDING', false);
