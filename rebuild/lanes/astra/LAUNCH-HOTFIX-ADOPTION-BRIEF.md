@@ -16,6 +16,16 @@ Acceptance:
 7. Run the named existing Today tests, copy tests and current H3 public gate; report counts and terminal verdict only. If H3's pinned evidence refuses the candidate, stop and route to B/PM, never bypass or rewrite the accepted artifact.
    Operator clarification under DECISIONS:196: H3 --ci reads historical source blobs despite its public label. B is the sole designated local gate runner and supplies its exact-candidate verdict. C/D2 run their authorized synthetic/browser checks; neither executes the private-reading gate. Command, pins and required proof remain unchanged.
 8. Windows and Ubuntu CI must pass at the exact published candidate head. Reviewer executes independently and reports ACCEPT/REJECT plus remaining limits. C author != D2 reviewer != integrator.
+
+## Executed settings-failure extension, DECISIONS:197
+
+C's isolated held-read experiments distinguish a real refusal-message loss from two premature test waits. Extend runtime custody only to `rebuild/m3/w7-preview/today/gym-app.mjs` and existing `rebuild/m3/w7-preview/today/test/machine-settings-ui.test.mjs` on the same launch adoption candidate. No new test filename or workflow, engine, client, binding or pin change is licensed.
+
+Preserve the current draft's producer refusal across an overlapping row-add/read repaint. A new draft, cancel or successful save resets the appropriate message; a late old operation must not attach a refusal to a different draft. The invalid draft and operation/outbox counts remain unchanged until an authorized valid save.
+
+Replace only the S7/S8 cancellation/open and D2.1 mount fixed-tick assumptions with bounded waits for their actual completion predicates, preserving every behavioral assertion. Prove that optional settings reads do not block workout logging. Add the deterministic held-read refusal-survival regression, RED on the original behavior and GREEN after the fix. No guessed larger delay, skipped case or relaxed assertion is a fix.
+
+After both this extension and the build-guard correction, rerun the relevant existing suites and six freshly built browser checks on the final candidate. Carry source/build identity, exact-head both-OS rebuild CI, D2 independent execution, B's unchanged H3 gate verdict196 and third-role merged-tree checks. Earlier548/548 and browser successes describe earlier bytes only. This remains a candidate until accepted.
 9. On PM authorization, a third-role integrator merges the accepted head and checks the merged built artifact. No release-ready or Sunday-ready claim until this evidence exists. Integration may trigger the existing Earned slice pipeline; no main or relay deployment is licensed.
 
 Handoff: C publishes the combined candidate, report <=60 lines, bar cell counts, run IDs and fresh-build evidence; D2 reviews in its own tree. Unresolved N2 defects stay outside this package and keep their own review.
