@@ -52,7 +52,12 @@ function createPlanEditProjector({ basisState, setupOperation, validateTags, pro
         collections.sync?.snapshot?.recoveryPlan || Object.keys(collections.sync?.snapshot?.plan || {}).length) fail('PLAN_EDIT_IMPORTED_CONTEXT_UNAVAILABLE');
     if (Object.keys(collections.plan || {}).length || Object.keys(collections.planTransactions || {}).length)
       fail('PLAN_EDIT_UNSUPPORTED_PLAN_CONTEXT');
-    const ops = collections.ops || {}, rejected = collections.rejected || {};
+    const ops = collections.ops || {}, rejected = collections.rejected ?? {};
+    // This companion admits only the local installation context. Its existing
+    // host refuses inbound authority dispositions; ciphertext cannot supply one.
+    // Keep the records intact and refuse rather than treating an index as proof.
+    if (!rejected || typeof rejected !== 'object' || Array.isArray(rejected) || Object.keys(rejected).length)
+      fail('PLAN_EDIT_REJECTION_UNPROVEN');
     if (!equal(ops[origin.op_id], origin) || rejected[origin.op_id]) fail('PLAN_EDIT_ORIGIN_UNPROVEN');
     const rows = Object.entries(ops).map(([id, op]) => {
       if (!op || op.op_id !== id || op.athlete_id !== origin.athlete_id || op.device_id !== origin.device_id ||

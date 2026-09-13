@@ -191,13 +191,13 @@ test('qualified tombstone removes its intent and changes complete basis',()=>{
   f.generation.collections.ops[t.op_id]=t;const after=f.model.read(f.generation,tomorrow);
   assert.deepEqual(after.state,f.state);assert.equal(after.intents[0].status,'tombstoned');assert.notEqual(after.plan_basis,before);
 });
-test('rejected intent excludes its changes; child based on invalidated intent refuses',()=>{
+test('unproved local rejection refuses instead of excluding an edit or its descendants',()=>{
   const f=fixture(),first=f.append(change('press',{sets:3}),'first');
   f.generation.collections.rejected[first.op_id]={op_id:first.op_id,kind:'plan-mutation'};
-  assert.deepEqual(f.model.read(f.generation,tomorrow).state,f.state);
+  assert.throws(()=>f.model.read(f.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
   const g=fixture(),parent=g.append(change('press',{sets:3}),'first');g.append(change('other',{sets:4}),'second');
   g.generation.collections.rejected[parent.op_id]={op_id:parent.op_id};
-  assert.throws(()=>g.model.read(g.generation,tomorrow),{code:'PLAN_EDIT_BASIS_INVALIDATED'});
+  assert.throws(()=>g.model.read(g.generation,tomorrow),{code:'PLAN_EDIT_REJECTION_UNPROVEN'});
 });
 test('missing, cyclical or incomparable causal history refuses instead of sequence-wins',()=>{
   for(const mutate of [(op)=>op.causal_parents=['missing'],op=>op.causal_parents=[op.op_id],op=>op.causal_parents=[]]){

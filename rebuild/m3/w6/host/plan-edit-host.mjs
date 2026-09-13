@@ -131,17 +131,29 @@ export async function createPlanEditHost({ client, clock, basisState, setupOpera
       if (!alive) return refusal('LOCAL_CLIENT_CLOSED');
       const entry = reviews.get(review_id);
       if (!entry) return refusal('PLAN_EDIT_REVIEW_REQUIRED');
-      if (entry.result) return copy(entry.result);
       const current = await readVerified();
       if (!current.read) return { ...current,ok:false,acknowledged:false };
+      if (!alive) return refusal('LOCAL_CLIENT_CLOSED');
+      if (reviews.get(review_id) !== entry) return refusal('PLAN_EDIT_REVIEW_REQUIRED');
       const prior = current.intents.find(x => x.intent_id === entry.args.input.intent_id);
-      if (prior) { const result = outcome(entry,prior); if (result.ok) entry.result = copy(result); return result; }
+      if (prior) {
+        const result = outcome(entry,prior);
+        if (!result.ok) return result;
+        if (entry.result && entry.result.op_id !== prior.op_id) return refusal('PLAN_EDIT_INTENT_CONFLICT');
+        // Cached metadata describes the historical commit. It can be returned
+        // only after this read proves the context and exact intent still active.
+        if (!entry.result) entry.result = copy(result);
+        return copy(entry.result);
+      }
+      if (entry.result) return refusal('PLAN_EDIT_INTENT_CONFLICT');
       if (!matches(entry,current)) return stale();
       active = entry;
       let result;
       try { result = await lane.execute('workout',entry.args); }
       catch { result = refusal('PLAN_EDIT_SAVE_OUTCOME_UNKNOWN'); }
       finally { active = null; }
+      if (!alive) return refusal('LOCAL_CLIENT_CLOSED');
+      if (reviews.get(review_id) !== entry) return refusal('PLAN_EDIT_REVIEW_REQUIRED');
       if (result.acknowledged === true) {
         entry.result = { ...result,ok:true,intent_id:entry.args.input.intent_id,
           starts_on:entry.args.input.starts_on,edit:copy(entry.args.input.edit) };
@@ -150,6 +162,8 @@ export async function createPlanEditHost({ client, clock, basisState, setupOpera
       // An uncertain reply is resolved by this intent on authenticated disk.
       // A different historical value never establishes that this save committed.
       const after = await readVerified();
+      if (!alive) return refusal('LOCAL_CLIENT_CLOSED');
+      if (reviews.get(review_id) !== entry) return refusal('PLAN_EDIT_REVIEW_REQUIRED');
       const recorded = after.read && after.intents.find(x => x.intent_id === entry.args.input.intent_id);
       if (recorded) {
         const reconciled = outcome(entry,recorded);

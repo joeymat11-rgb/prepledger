@@ -10,6 +10,8 @@ const files = {
   canonical: path.join(root, 'rebuild/client/canonical.cjs'),
 };
 const cases = [
+  { id:'unproved-rejection-is-authority', file:'model', test:'unproved local rejection refuses instead of excluding an edit or its descendants', replacements:[
+    [' || Object.keys(rejected).length', '']] },
   { id:'next-local-date', file:'commands', test:'the built operation must start on the next authored local date', replacements:[
     ["input.starts_on !== nextLocalDate(op.effective.local_date) || ", '']] },
   { id:'empty-tags-fall-back', file:'model', test:'explicit empty original tag snapshots require exact provenance and survive rename', replacements:[
