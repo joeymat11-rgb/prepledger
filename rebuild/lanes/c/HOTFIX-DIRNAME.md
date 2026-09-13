@@ -1,5 +1,7 @@
 # HOTFIX: the deployed page did not boot (`__dirname is not defined`)
 
+Historical builder report at 4c19239. The Astra adoption's current scope and measurements are in LAUNCH-ADOPTION-REPORT.md and its publication receipt.
+
 **MINE.** In the :185 test-hygiene work I derived `plain-copy.cjs`'s `OWNED` from `__dirname` so the dash guard could be proved RED against a copy of the today directory. `plain-copy.cjs` is a BUNDLED INPUT of the shipped page, and in a browser `__dirname` does not exist: reading it at module scope threw before the first paint and every screen was gone. Found by the N2 builder, not by a test.
 **THE FIX** is the N2 builder's exact spelling, taken verbatim from `744c63c` so his branch rebases clean: `const OWNED_PATH = typeof __dirname === "string" ? __dirname : "rebuild/m3/w7-preview/today";`. `typeof` on an undeclared name does not throw, and the fallback is the same four segments, so the build keeps the derived value and the browser never evaluates the read. Attribution is unchanged on the real tree: **117 banners / 33 owned / 0 offences**, `OWNED` still `rebuild/m3/w7-preview/today/`, and `AI_DASH_GUARD_BLIND` still fires for a wrong-depth copy (proved by the plant in `copy.test.mjs`, RED on the copy and GREEN on the tree).
 
