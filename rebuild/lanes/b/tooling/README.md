@@ -1160,3 +1160,23 @@ re-seal is B-NTC's own `--full` recomputation: `proposed()` now emits `supersede
 `supersededByCarrier` and `supersessions`, so `same(m, proposed())` cannot hold for an artifact
 written by an older runner and `SEALED-PROFILE-RECOMPUTATION` is the refusal — the same cost every
 runner change since `eedabccd…` already carries.
+
+## Astra PM issuer transition (DECISIONS:193/:198)
+
+The issuer compatibility candidate recognizes the exact `Astra PM` ledger header for new PM claims. `cowork` is historical only: the exact claim must already occur once in the ledger at owner handover commit3ef096d671af924caefa346c530f06784f382af0. A newly written cowork claim fails even when it is on the genuine later chain. Historical receipts remain verifiable when inherited from later contexts.
+
+The runner pins the handover commit, owner-line position/hash and approved handover-document hash. It re-reads the immutable anchor and current chain on every authority check, and checks the receipt context and its ancestry. A package cannot supply substitute handover coordinates. Role words in a payload, aliases, pre-handover Astra claims and candidate-only approvals confer no authority.
+
+The fence covers spec brief/theme/freeze citations, authority, own acceptance, parent option, grandparent pins and the actual freeze escape. Owner and inherited contract remain on their original roles/hashes. Review-envelope acceptance is PM authority; the independent reviewer and integrator identities belong in their truthful separate evidence records. `ACCEPTED-BY-NAME` does not satisfy machine `ACCEPTED` grammar.
+
+Grandparent receipts also parse that exact acceptance grammar, bind the package id, artifact path and hash, and verify the artifact bytes at the named reviewed commit. That commit must be behind both HEAD and the actual chain. A valid issuer or an `ACCEPTED` JSON status alone cannot substitute for those checks. The R1 regressions exercise malformed payloads through actual parent option and grandparent pins, with a restored valid control and source mutants for each added guard.
+
+Tests execute the actual checker functions in synthetic Git repositories. Only the chain ref and immutable synthetic handover coordinates are substituted in their compiled runner; authority, receipt, profile, ancestry and pin functions are not mocked. The full gate is not entered and no private fixture is used. The new issuer suite additionally checks production authority pins against the real public handover documents and original helper bytes.
+
+Run the named focused suite from the isolated tooling tree (on Windows keep TEMP/TMP within that tree's .tmp):
+
+```
+node --test rebuild/lanes/b/tooling/test/astra-issuer-compatibility.test.cjs rebuild/lanes/b/tooling/test/product-phase-and-ledger.test.cjs rebuild/lanes/b/tooling/test/seal-tip-and-byte-identity.test.cjs rebuild/lanes/b/tooling/test/gate-supersession.test.cjs
+```
+
+This is a tooling candidate, not a reseal of H3. Its runner byte change invalidates reuse of a seal made by the old runner. Accepted H3 artifacts/specs/receipts and frozen helpers stay unchanged. After independent MAX review, the next licensed successor must register the test, carry the new pins and its required FULL/private/CI/receipt/rerun evidence. Tooling tests alone grant no package PASS or product integration. Other pending tooling obligations and bundle/F1/F2 admission remain separately scoped.

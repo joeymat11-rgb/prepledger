@@ -15,8 +15,8 @@
 //      They now resolve on CHAIN_REF. Cases (d), (e), (f) below.
 //
 // Method is the house one: compile the REAL runner, changing only its filesystem root by
-// its module location, and for the ledger cases one further constant — asserted below to be
-// the ONLY line that differs — pointed at a Git repository this test builds itself. No
+// its module location, and for the ledger cases the chain branch and synthetic handover pins — asserted below to be
+// the only two differing lines — pointed at a Git repository this test builds itself. No
 // accepted artifact, no receipt, no ref of the real repository and no private input is
 // forged, read or moved.
 const test = require('node:test');
@@ -75,16 +75,25 @@ write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, THEME_LINE, ACCEPT_LIN
 git('add', '-A'); git('commit', '--quiet', '-m', 'the child era');
 const CHAIN_HEAD = git('rev-parse', 'HEAD').trim();
 assert.notEqual(CHAIN_HEAD, PARENT_RECEIPT_BASE);
+// Historical fixture claims are present before its synthetic owner handover.
+const HANDOVER = '- 2026-09-12 · owner · fixture Astra PM handover · OWNER-RULED';
+const HANDOVER_DOC = 'Synthetic fixture handover, no product or private data.\n';
+write('rebuild/lanes/astra/OWNER-APPROVED-HANDOVER.md', HANDOVER_DOC);
+write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, THEME_LINE, ACCEPT_LINE, HANDOVER, ''].join('\n'));
+git('add', '-A'); git('commit', '--quiet', '-m', 'fixture owner handover');
+const fixtureHandover = {commit:git('rev-parse','HEAD').trim(),lineNumber:5,lineSha256:sha(Buffer.from(HANDOVER)),
+  document:'rebuild/lanes/astra/OWNER-APPROVED-HANDOVER.md',documentSha256:sha(Buffer.from(HANDOVER_DOC))};
 
-const fixtureSource = source.replace(
+const fixtureSource = source.replace(/^const PM_HANDOVER = Object.freeze\(.*\);$/m,
+  "const PM_HANDOVER = Object.freeze(" + JSON.stringify(fixtureHandover) + ");").replace(
   "const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';",
   "const CHAIN_REF = 'refs/heads/fixture-chain';");
 {
   const a = source.split('\n'), b = fixtureSource.split('\n');
   assert.equal(a.length, b.length, 'the fixture changes no line count');
   const moved = a.map((line, i) => [i, line]).filter(([i, line]) => line !== b[i]);
-  assert.equal(moved.length, 1, 'exactly one constant is re-pointed at the fixture');
-  assert.match(moved[0][1], /^const CHAIN_REF = '/);
+  assert.equal(moved.length, 2, 'only the chain ref and pinned synthetic handover are re-pointed');
+  assert(moved.every(([, line]) => /^const (CHAIN_REF|PM_HANDOVER) = /.test(line)));
 }
 write(runnerRel, fixtureSource);
 const runnerFile = path.join(scratch, runnerRel);
@@ -190,7 +199,7 @@ test('(e) an ABSENT line still leaves its obligation OPEN, and a FORGED one stil
   assert.throws(() => api.authority(spec(claim(THEME_LINE), claim(forged)), bound()), /RECEIPT-EXACT-LINE-MISSING/);
   // And a real line that does not MENTION this package still refuses on content.
   const other = '- 2026-09-11 · cowork · BRIEF ACCEPTED for M2-SOMEONE-ELSE at ' + BRIEF + ' · ACCEPTED';
-  write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, THEME_LINE, ACCEPT_LINE, other, ''].join('\n'));
+  write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, THEME_LINE, ACCEPT_LINE, HANDOVER, other, ''].join('\n'));
   git('add', '-A'); git('commit', '--quiet', '-m', 'another package');
   api.open.length = 0;
   assert.throws(() => api.authority(spec(claim(THEME_LINE), claim(other)), bound()), /RECEIPT-CONTENT/);
@@ -207,7 +216,7 @@ test('(f) OWNER and CONTRACT still resolve at the PARENT receipt base, and the c
   assert.throws(() => api.authority(spec(null, null), wrongContract), /INHERITED-CONTRACT-AUTHORIZATION/);
   // An owner line that is not at the parent's receipt base still refuses there.
   const late = '- 2026-09-11 · owner · M2-RULE written far too late · M2-RULE DONE';
-  write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, THEME_LINE, ACCEPT_LINE, late, ''].join('\n'));
+  write('rebuild/DECISIONS.md', [OWNER_LINE, CONTRACT_LINE, THEME_LINE, ACCEPT_LINE, HANDOVER, late, ''].join('\n'));
   git('add', '-A'); git('commit', '--quiet', '-m', 'a late owner line');
   const s = spec(null, null); s.authorizations.owner = claim(late);
   assert.throws(() => api.authority(s, bound()), /RECEIPT-EXACT-LINE-MISSING/);

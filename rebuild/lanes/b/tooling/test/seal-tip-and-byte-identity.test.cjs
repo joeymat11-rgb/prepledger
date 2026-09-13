@@ -10,8 +10,8 @@
 //   PACKAGE PASS on that basis; ANY byte change voids the receipt and forces the FULL run
 //   exactly as before; the first FULL run with the private census is unchanged."
 //
-// Method is the house one: compile the REAL runner with exactly ONE literal changed — the
-// chain branch — asserted below to be the only line that differs. No ref, object or commit
+// Method is the house one: compile the REAL runner with only the chain branch and its synthetic handover pins changed,
+// asserted below to be the only two lines that differ. No ref, object or commit
 // of the real repository is read, and no private input exists in this tree.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -48,7 +48,10 @@ const VERDICT = 'rebuild/lanes/b/VERDICT-B-NTC.md';
 const PRODUCT = 'rebuild/m4/spec/fixture-seal-product.cjs';
 write(ARTIFACT, '{"version":1,"lanePackage":"B-NTC"}\n');
 write(PRODUCT, 'console.log("the pinned product byte");\n');
-write('rebuild/DECISIONS.md', '- 2026-09-12 · cowork · a chain line\n');
+const HANDOVER = '- 2026-09-12 · owner · fixture Astra PM handover · OWNER-RULED';
+const HANDOVER_DOC = 'Synthetic fixture handover, no product or private data.\n';
+write('rebuild/lanes/astra/OWNER-APPROVED-HANDOVER.md', HANDOVER_DOC);
+write('rebuild/DECISIONS.md', '- 2026-09-12 · cowork · a chain line\n' + HANDOVER + '\n');
 write(runnerRel, source); // placeholder; the fixture runner is written below
 
 git('init', '--quiet', '-b', 'fixture-chain');
@@ -56,6 +59,8 @@ git('config', 'user.email', 'tooling7@earned.local');
 git('config', 'user.name', 'lane-b-tooling7');
 git('add', '-A'); git('commit', '--quiet', '-m', 'the chain base');
 const BASE = git('rev-parse', 'HEAD').trim();
+const fixtureHandover = {commit:BASE,lineNumber:2,lineSha256:sha(Buffer.from(HANDOVER)),
+  document:'rebuild/lanes/astra/OWNER-APPROVED-HANDOVER.md',documentSha256:sha(Buffer.from(HANDOVER_DOC))};
 // The lane branch: one commit of its own on top of the chain base, so the chain tip stands
 // in its first-parent chain exactly as a merged or freshly branched lane head does.
 git('checkout', '--quiet', '-b', 'fixture-lane');
@@ -63,15 +68,16 @@ write('rebuild/lanes/b/NOTES.md', 'lane work\n');
 git('add', '-A'); git('commit', '--quiet', '-m', 'lane work');
 const LANE_HEAD = git('rev-parse', 'HEAD').trim();
 
-const fixtureSource = source.replace(
+const fixtureSource = source.replace(/^const PM_HANDOVER = Object.freeze\(.*\);$/m,
+  "const PM_HANDOVER = Object.freeze(" + JSON.stringify(fixtureHandover) + ");").replace(
   "const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';",
   "const CHAIN_REF = 'refs/heads/fixture-chain';");
 {
   const a = source.split('\n'), b = fixtureSource.split('\n');
   assert.equal(a.length, b.length, 'the fixture changes no line count');
   const moved = a.map((line, i) => [i, line]).filter(([i, line]) => line !== b[i]);
-  assert.equal(moved.length, 1, 'exactly one constant is re-pointed at the fixture');
-  assert.match(moved[0][1], /^const CHAIN_REF = '/);
+  assert.equal(moved.length, 2, 'only the chain ref and pinned synthetic handover are re-pointed');
+  assert(moved.every(([, line]) => /^const (CHAIN_REF|PM_HANDOVER) = /.test(line)));
 }
 write(runnerRel, fixtureSource);
 const runnerFile = path.join(scratch, runnerRel);
@@ -101,7 +107,7 @@ test.after(() => {
 
 const said = [];
 const out = line => said.push(line);
-const claim = line => ({ ledgerLine: 1, role: 'cowork', line, lineSha256: sha(Buffer.from(line)) });
+const claim = line => ({ ledgerLine: 1, role: 'Astra PM', line, lineSha256: sha(Buffer.from(line)) });
 const spec = freeze => ({ packageId: PACKAGE_ID, authorizations: { freeze: freeze || null },
   product: { [PRODUCT]: { pre: null, post: sha(fs.readFileSync(path.join(scratch, PRODUCT))), role: 'new' } } });
 
@@ -120,7 +126,7 @@ test(':135 (4) — the tip moving ahead refuses the seal, by name', () => {
   // The lane head still has the OLD tip as an ancestor; what is asked is the CURRENT tip,
   // and that is what makes ancestry (DECISIONS:145) exclude every stale base.
   git('checkout', '--quiet', 'fixture-chain');
-  write('rebuild/DECISIONS.md', '- 2026-09-12 · cowork · a chain line\n- 2026-09-12 · cowork · a later chain line\n');
+  write('rebuild/DECISIONS.md', fs.readFileSync(path.join(scratch, 'rebuild/DECISIONS.md'), 'utf8') + '- 2026-09-12 · cowork · a later chain line\n');
   git('add', '-A'); git('commit', '--quiet', '-m', 'the chain moves on');
   const tip = git('rev-parse', 'HEAD').trim();
   git('checkout', '--quiet', 'fixture-lane');
@@ -154,7 +160,7 @@ test(':135 (4) / :145 — MERGING the tip restores the seal, and so does rebasin
 });
 
 test(':135 (4) — a PM FREEZE line naming THIS base frees the seal, and only that', () => {
-  const FREEZE = '- 2026-09-12 · cowork · FREEZE for ' + PACKAGE_ID + ' at base ' + LANE_HEAD + ' · RULED';
+  const FREEZE = '- 2026-09-12 · Astra PM · FREEZE for ' + PACKAGE_ID + ' at base ' + LANE_HEAD + ' · RULED';
   // A freeze the lane wrote for itself is not on the chain branch and frees nothing.
   assert.throws(() => api.sealOnTheTip(spec(claim(FREEZE)), out), /SEAL-FREEZE-LINE-NOT-ON-THE-CHAIN-BRANCH/);
   // The PM writes it on the chain branch. Now the same citation resolves.
@@ -169,8 +175,8 @@ test(':135 (4) — a PM FREEZE line naming THIS base frees the seal, and only th
 });
 
 test(':135 (4) — a freeze naming another package, or another base, frees nothing', () => {
-  const forOther = '- 2026-09-12 · cowork · FREEZE for M2-SOMEONE-ELSE at base ' + LANE_HEAD + ' · RULED';
-  const forOtherBase = '- 2026-09-12 · cowork · FREEZE for ' + PACKAGE_ID + ' at base ' + 'f'.repeat(40) + ' · RULED';
+  const forOther = '- 2026-09-12 · Astra PM · FREEZE for M2-SOMEONE-ELSE at base ' + LANE_HEAD + ' · RULED';
+  const forOtherBase = '- 2026-09-12 · Astra PM · FREEZE for ' + PACKAGE_ID + ' at base ' + 'f'.repeat(40) + ' · RULED';
   git('checkout', '--quiet', 'fixture-chain');
   write('rebuild/DECISIONS.md', fs.readFileSync(path.join(scratch, 'rebuild/DECISIONS.md'), 'utf8') + forOther + '\n' + forOtherBase + '\n');
   git('add', '-A'); git('commit', '--quiet', '-m', 'two freezes that do not apply');
