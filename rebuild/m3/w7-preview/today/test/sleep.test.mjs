@@ -157,11 +157,11 @@ test('N2-01 - unknown keys, foreign shapes and a forged check-in reference all r
   ]) assert.throws(() => prepare(request), /SLEEP_INPUT_INVALID/, JSON.stringify(request));
   /* And validate() refuses the same shapes on the envelope the client actually built. */
   const read = () => null;
-  assert.equal(validate({ kind: OP_KIND, class: OP_CLASS, effective: { local_date: NIGHT },
+  assert.equal(validate({ kind: OP_KIND, class: OP_CLASS, effective: { local_date: DAY },
     payload: { profile: PROFILE, night: { date: NIGHT, hours: 7 } }, causal_parents: [] }, read), true);
-  assert.equal(validate({ kind: OP_KIND, class: OP_CLASS, effective: { local_date: NIGHT },
+  assert.equal(validate({ kind: OP_KIND, class: OP_CLASS, effective: { local_date: DAY },
     payload: { profile: 'earned/other/v1', night: { date: NIGHT, hours: 7 } }, causal_parents: [] }, read), false);
-  assert.equal(validate({ kind: 'event', class: OP_CLASS, effective: { local_date: NIGHT },
+  assert.equal(validate({ kind: 'event', class: OP_CLASS, effective: { local_date: DAY },
     payload: { profile: PROFILE, night: { date: NIGHT, hours: 7 } }, causal_parents: [] }, read), false);
 });
 
@@ -217,6 +217,60 @@ test('N2-02 - lone times, equal times, bad clock values and excessive awake minu
   assert.equal(SleepModel.timesRefusal({ bed: '23:00', wake: '06:30', awake_min: '451', date: NIGHT }, DAY), refusals.AWAKE);
   assert.equal(SleepModel.timesRefusal({ bed: '23:00', wake: '06:30', awake_min: '4.5', date: NIGHT }, DAY), refusals.AWAKE);
   assert.equal(SleepModel.timesRefusal({ bed: '23:00', wake: '06:30', date: NIGHT }, DAY), null);
+});
+
+/* D2 R4: UI date checks do not enforce the producer's completed-night contract. */
+for (const [label, date, accepted] of [
+  ['previous night', NIGHT, true],
+  ['late entry', '2030-01-30', true],
+  ['same-day night', DAY, false],
+  ['future night', '2030-02-05', false],
+]) {
+  test('N2-02 R5 - the actual producer admits only completed nights: ' + label, async () => {
+    const kit = await device();
+    try {
+      const before = { ops: await opsOf(kit.host.repository), outbox: await outboxOf(kit.host.repository) };
+      const saved = await kit.host.save({ date, hours: 2 }, { supersedes: null });
+      const after = { ops: await opsOf(kit.host.repository), outbox: await outboxOf(kit.host.repository) };
+      assert.deepEqual({ ok: saved.ok, opsAdded: after.ops.length - before.ops.length,
+        outboxAdded: after.outbox.length - before.outbox.length },
+      { ok: accepted, opsAdded: accepted ? 1 : 0, outboxAdded: accepted ? 1 : 0 });
+      if (accepted) {
+        const row = (await kit.host.forDate(date)).at(-1);
+        assert.equal(row.savedDate, DAY, 'the client stamps the real save day');
+        assert.equal(row.night.date, date, 'a late entry retains its own night label');
+      } else {
+        assert.deepEqual(after, before, 'refusal preserves every existing op and outbox entry');
+      }
+    } finally { kit.host.close(); }
+  });
+}
+
+test('N2-02 / N2-04 R5 - completion uses the envelope clock after an open host crosses midnight', async () => {
+  const { openTodayInstallation } = await import('../../../w6/local/today-bindings.mjs');
+  let day = DAY;
+  const clock = { today: () => day, now: () => day + 'T13:00:00.000Z', tz: '-05:00', monotonicMs: () => 0 };
+  const era = await openTodayInstallation({ indexedDB: faultDatabase().indexedDB, crypto: webcrypto, day, clock });
+  const host = await createSleepHost({ day, era });
+  const snapshot = async () => ({ ops: await opsOf(host.repository), outbox: await outboxOf(host.repository) });
+  try {
+    const empty = await snapshot();
+    assert.equal((await host.save({ date: DAY, hours: 2 }, { supersedes: null })).ok, false);
+    assert.deepEqual(await snapshot(), empty, 'the current night writes nothing');
+    day = '2030-02-05';
+    assert.equal((await host.save({ date: DAY, hours: 2 }, { supersedes: null })).ok, true,
+      'the same night becomes eligible after the installation clock advances');
+    const committed = await snapshot();
+    assert.equal(committed.ops.length, empty.ops.length + 1);
+    assert.equal(committed.outbox.length, empty.outbox.length + 1);
+    const row = (await host.forDate(DAY)).at(-1);
+    assert.equal(row.night.date, DAY);
+    assert.equal(row.savedDate, day, 'the envelope uses the new clock, not host construction day');
+    for (const date of [day, '2030-02-06']) {
+      assert.equal((await host.save({ date, hours: 2 }, { supersedes: null })).ok, false);
+      assert.deepEqual(await snapshot(), committed, 'a refused night preserves the accepted night and its outbox');
+    }
+  } finally { host.close(); era.close(); }
 });
 
 /* ==========================================================================

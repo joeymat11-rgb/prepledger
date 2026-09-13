@@ -212,7 +212,8 @@ function revisionIsCurrent(op, readOperation) {
    Ops.build. It re-derives nothing. */
 function validate(op, readOperation) {
   if (!op || op.kind !== OP_KIND || op.class !== OP_CLASS) return false;
-  if (!op.effective || !DAY_RE.test(op.effective.local_date)) return false;
+  if (!op.effective || typeof op.effective.local_date !== "string"
+    || !isRealDate(op.effective.local_date)) return false;
   if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.night)) return false;
   const members = Object.keys(op.payload).length;
   if (members !== 2 && !(members === 3 && Object.hasOwn(op.payload, "supersedes"))) return false;
@@ -221,6 +222,10 @@ function validate(op, readOperation) {
     if (expected !== null && (typeof expected !== "string" || expected === "")) return false;
   }
   try { nightOf(JSON.parse(JSON.stringify(op.payload.night))); } catch { return false; }
+  /* A night must have finished before the client's actual save day. Check the
+     envelope built for this commit, so an open host crossing midnight uses the
+     installation's current day rather than its construction day or the UI's read. */
+  if (op.payload.night.date >= op.effective.local_date) return false;
   if (!citedCheckInIsReal(op, readOperation)) return false;
   if (!revisionIsCurrent(op, readOperation)) return false;
   if (!Array.isArray(op.causal_parents)) return false;
