@@ -30,3 +30,5 @@ Brief and executable candidate were examined first; builder report/rationale rem
 - No product files changed, acceptance/receipt issued, merge, main push or deployment performed by this reviewer.
 
 Executable witnesses, controls and rerun commands: `PLAN-EDIT-REVIEW-ANNEX.md`, `PLAN-EDIT-REVIEW-ANNEX.mjs`, `PLAN-EDIT-BROWSER-IMPORT.mjs` beside this report. D owns fixes on a new exact head; this reviewer retests before any revised verdict.
+
+Post-publication check: builder PLAN-EDIT-CANDIDATE-REPORT.md was read only after review/annex commit f355ccc was published. Its 46-test and 13-mutant counts reproduce, and it explicitly holds C/B admission. It contains no evidence closing R1/R2; verdict unchanged.
