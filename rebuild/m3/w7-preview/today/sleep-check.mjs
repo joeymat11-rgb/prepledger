@@ -9,7 +9,7 @@
 //
 // It also measures what only a browser can: the entry and its one primary action are in
 // view at 390x844 and at 320px with no sideways scroll, every box renders at 16px or
-// more, every tap target is at least 44px high, no U+2013 or U+2014 is rendered in
+// more and at least 48px high, the save target is at least 44px high, no U+2013 or U+2014 is rendered in
 // anything N2 owns, and the page requests nothing off this local origin.
 //
 // THE KILL IS THE POINT. context.close() is a graceful shutdown: the browser flushes
@@ -230,9 +230,9 @@ async function boxesAreLargeEnough(page, label) {
   assert(sizes.length >= 1, label + ": no visible box on the entry");
   for (const entry of sizes) {
     assert(entry.size >= 16, `${label}: ${entry.id} renders at ${entry.size}px`);
-    assert(entry.h >= 44, `${label}: ${entry.id} is ${entry.h}px high`);
+    assert(entry.h >= 48, `${label}: ${entry.id} is ${entry.h}px high`);
   }
-  notes.push(`${label}: ${sizes.length} visible box(es), each >= 16px text and >= 44px high`);
+  notes.push(`${label}: ${sizes.length} visible box(es), each >= 16px text and >= 48px high`);
   return sizes;
 }
 /* THE OWNER'S RULE, AT RENDER TIME (DECISIONS:114 (1)), scoped to what N2 owns. */
@@ -576,8 +576,11 @@ try {
   const originalNight = await page.inputValue('#sleep-date');
   const advanced = await page.evaluate(async () => {
     const entry = await import('/app.js');
-    const detached = document.implementation.createHTMLDocument('Synthetic clock adoption');
-    detached.documentElement.innerHTML = document.documentElement.innerHTML;
+    // Parse the served shell, not the live page's temporary text-enlargement styles.
+    // Copying those style attributes through innerHTML violates the unchanged CSP.
+    const response = await fetch('/', { cache: 'no-store' });
+    if (!response.ok) throw new Error('The served shell could not be read');
+    const detached = new DOMParser().parseFromString(await response.text(), 'text/html');
     const opened = await entry.boot({ document: detached, today: '2030-02-05' });
     await opened.api.sleepReady();
     return opened.hosts.liveDay();
@@ -625,7 +628,7 @@ if (problems.length || failures) {
     + "correction that replaced the whole night -> an out-of-range duration refused with nothing "
     + `written -> the same record at 320px, across ${kills} REAL PROCESS KILLS (taskkill /F /T, `
     + "each verified dead); no off-origin request, no horizontal overflow at 390px or 320px, "
-    + "every visible box >= 16px and >= 44px, exactly ONE primary action, and no U+2013 or "
+    + "every visible box >= 16px and >= 48px, exactly ONE primary action, and no U+2013 or "
     + "U+2014 rendered in anything N2 owns.\n  " + notes.join("\n  "));
 }
 /* A killed browser can leave a handle this process cannot drain. */
