@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint2026-09-13: C current-card refusal repair7e64848d/source4d004985 is built; exact three-path identity and21-line report verified, D2/MAX independent review286 commissioned. C LOW, original L3 failure retained. B/MAX R9 construction continues; PM288 additionally corrects one prospective helper predicate to the actual exact historical R/S merge-base M, preserving source proofs and final ancestry gates. ER/D/E LOW, I paused. PM remains MAX; desktop Medium/iPhone MAX display cause remains unconfirmed, Fast unchanged. Goal268 remains Joe/history/coaching memory then Dad; soak gates wide beta only.
+PM checkpoint2026-09-13: C current-card refusal repair7e64848d/source4d004985 is built; exact three-path identity and21-line report verified, D2/MAX independent review286 commissioned. C LOW, original L3 failure retained. B/MAX R9 construction continues; PM288 additionally corrects one prospective helper predicate to the actual exact historical R/S merge-base M, preserving source proofs and final ancestry gates. ER/D/E LOW, I paused. PM remains MAX; desktop Medium/iPhone MAX display cause remains unconfirmed, Fast unchanged. Goal268 remains Joe/history/coaching memory then Dad; soak gates wide beta only. D2 module loading exposed two omitted synthetic fixture helpers before0 real cases; exact public helpers/complete current inventory licensed290, with prior closure claims qualified and functional evidence retained.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
