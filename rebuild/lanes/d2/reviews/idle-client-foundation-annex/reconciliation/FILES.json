@@ -1,0 +1,46 @@
+{
+  "firstVerdict": "00c6237a2169aa6da2b3348c6b28ac8e821dbf9d",
+  "phase": "after-author-report-and-RED-reconciliation",
+  "files": [
+    {
+      "path": "rebuild/lanes/d2/reviews/IDLE-CLIENT-FOUNDATION-RECONCILIATION.md",
+      "bytes": 3630,
+      "sha256": "9651136fa4d51e2ba07daa496682be8ff237f0d6c9a63da5311f1c4c794af1eb"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/IDLE-CLIENT-FOUNDATION-RECONCILIATION.json",
+      "bytes": 20089,
+      "sha256": "6b4ae067cdab9938c595057d0371763014d6d7a0d26e99c8ec24b829024f98eb"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/idle-client-foundation-annex/reconciliation/first-read.json",
+      "bytes": 1017,
+      "sha256": "8d1dbe76f69e56618fe0fb14f843cf9d73cb208a6e946769e09e60382535ffc2"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/idle-client-foundation-annex/reconciliation/archive-verification.json",
+      "bytes": 12393,
+      "sha256": "6969a07e08768da0198a6f720fd288985e8e5ae83cef91af67fbaeee62d07fa8"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/idle-client-foundation-annex/reconciliation/read-author.mjs",
+      "bytes": 1729,
+      "sha256": "429f06a0abb55d992500ab1da4a774d43b226acc129bbae971310676b49fc142"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/idle-client-foundation-annex/reconciliation/verify-author-archive.mjs",
+      "bytes": 3084,
+      "sha256": "7042c0e2883af4d2f5fd7233e3f03227b1b5451b63c16ac79b0c8bc1db5a635f"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/idle-client-foundation-annex/reconciliation/reconcile-evidence.mjs",
+      "bytes": 5592,
+      "sha256": "39bdf1c07d15cdee22200aa6912c1088612ee4f023436432aeee20aa0447b05a"
+    },
+    {
+      "path": "rebuild/lanes/d2/reviews/idle-client-foundation-annex/reconciliation/README.md",
+      "bytes": 1374,
+      "sha256": "444c2d3458b659a0643cad5cda1a65e3d523f08ea5afefcd16ae567a28babe18"
+    }
+  ]
+}
