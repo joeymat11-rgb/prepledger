@@ -29,6 +29,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { startServer } from "./serve.mjs";
+import { DIST } from "./build.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const executablePath = process.env.W7_BROWSER_BIN;
@@ -574,17 +575,15 @@ try {
   await page.click('#phone [data-slot="sleep-mode-hours"]');
   await typeHours(page, '6.25');
   const originalNight = await page.inputValue('#sleep-date');
-  const advanced = await page.evaluate(async () => {
+  const advanced = await page.evaluate(async (shell) => {
     const entry = await import('/app.js');
-    // Parse the served shell, not the live page's temporary text-enlargement styles.
-    // Copying those style attributes through innerHTML violates the unchanged CSP.
-    const response = await fetch('/', { cache: 'no-store' });
-    if (!response.ok) throw new Error('The served shell could not be read');
-    const detached = new DOMParser().parseFromString(await response.text(), 'text/html');
+    // Parse the exact built shell supplied by the runner. The live page has temporary
+    // font styles, and the unchanged CSP also forbids a browser fetch for this shell.
+    const detached = new DOMParser().parseFromString(shell, 'text/html');
     const opened = await entry.boot({ document: detached, today: '2030-02-05' });
     await opened.api.sleepReady();
     return opened.hosts.liveDay();
-  });
+  }, fs.readFileSync(path.join(DIST, 'index.html'), 'utf8'));
   assert.equal(advanced, '2030-02-05');
   assert.equal(await page.inputValue('#sleep-hours'), '6.25');
   await tapSave(page);
