@@ -5,12 +5,12 @@ PM checkpoint2026-09-13: owner306 chooses existing Codex usage; no paid Agents A
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW:300/304 candidate083bd47 handed off; existing public evidence custody316 only | earned-astra-b-follow-up; hourly building,20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; hourly building,20 minutes waiting |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact E e85ad803 client/repository foundation review318; report-last | earned-lane-d2-requests;20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact083bd47 tooling-successor review316; independent source-first/report-last | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: exact E e85ad803 foundation complete; public evidence archive318 only | earned-astra-e-follow-up; hourly building,20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW:300/304 candidate083bd47 and public archive5ea3eca complete; await exact review disposition | earned-astra-b-follow-up; PAUSED waiting; direct PM handoff |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact E e85ad803 client/repository foundation review318; report-last | earned-lane-d2-requests;hourly reviewing; pause after handoff |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact083bd47 tooling-successor review316; independent source-first/report-last | earned-astra-engine-review-follow-up; hourly reviewing; pause after handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: exact e85ad803 foundation and public archiveb7dc5a04 complete; await exact review disposition | earned-astra-e-follow-up; PAUSED waiting; direct PM handoff |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
 ## Worktrees
@@ -71,7 +71,7 @@ Send meaningful events to the PM task directly and publish concise STATUS/REQUES
 
 Read `GATE-WINDOW.md` before every shared publication. It is currently ENDED under210. The START/END procedure still applies to a future named integration window. After an explicit START, all shared integration pushes, including PM and lane docs, pause until explicit END; own-branch evidence and direct messages continue. Never let a scheduled wake move the frozen tip. Read-only fetches verify the actual remote identity rather than concealing movement.
 
-The three existing heartbeats were updated in place; only B/C received new ones. Empty waiting wakes end quietly. Hourly while building, 20 minutes when waiting for a handoff, and immediate response to completion messages; PM remains every 30 minutes. The previous Fable bridge automation stays paused. A historical PM-RESUMED does not undo Joe's new authority ruling.
+The original20-minute waiting-poll policy is superseded by PM320. Completed/dependency-waiting B/C/D/E heartbeats are PAUSED; I remains paused. Direct handoffs wake ready work immediately, and PM continues every30 minutes as fallback. Active ER/D2 reviews keep hourly heartbeats. Resume the same heartbeat for substantive work and pause it after complete handoff; no duplicate automation, abandoned work or relaxed review.
 
 The named companion reviewer was subsequently started with its own single heartbeat under195; six active seats now exist. The integrator remains a separate task commissioned for an accepted head, never the author or reviewer. D's coherent revised brief6b3465e was accepted by exact hash195; actual C consumer and B admission remain open. Gate operator196 is B alone because even H3 --ci reads historical source blobs. The runner consumes only the existing required local inputs through the unchanged gate and reports counts/verdict; no raw private data enters reports or chats.
 
@@ -98,3 +98,5 @@ PM314 resolves the first real E implementation race with one additional reposito
 PM316: B083bd47/tested1dcdbc0 is handed off with author331/331 and all original setup/test failures retained; author report is evidence, not acceptance. ER/MAX now reviews the exact tooling successor independently. B/LOW only preserves the existing public evidence in the named Git archive; E/XHIGH continues314. Final native/input/composition/full admission remains later.
 
 PM318: E e85ad803/source4191eeb completes the five-file isolated foundation, with author254/254 and preserved original failures/reversals. D2/MAX now reviews it independently while ER/MAX handles B316. E/LOW archives existing public evidence only. PM current50+5 custody hashes are verified; no actual controller, provider, canonical consumer or complete-memory acceptance is implied.
+
+PM320 reduces idle polling using owner306 authority. No active review is paused: ER316 and D2318 remain MAX. E archiveb7dc5a04 is verified39 paths/37 original public files, with product candidate unchanged; it is routed for review only after the first verdict. B archive5ea3eca is complete. Completed builders remain available for immediate direct PM dispatch.
