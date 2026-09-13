@@ -127,3 +127,5 @@
 2026-09-13 15:02 ET · PM-CARETAKER · Astra · 9e39364499cad11e37d67f94a622d1971e58684a · C7e64848d refusal repair ready; D2 MAX review286, C LOW. B MAX R9 continues; exact historical graph helper correction288 ruled after real Git proof. No full-memory or release acceptance; Fast unchanged.
 
 2026-09-13 15:09 ET · PM-CARETAKER · Astra · ed39231c89cd0f7ffcadc199d6c5e12538856f6c · D2 review loading found two missing public fixture helpers before any real case. Exact helpers verified/admitted290; prior inventory completeness qualified, original functional evidence retained. D2/B MAX, C LOW. No app-failure or release claim.
+
+2026-09-13 15:15 ET · B/Astra · R4-READY · codex/astra-b1b2-r4 @ f2dea2e · PM282/288; U cbcebb3; captured Today date fixed; original16/331/267 pass, R9 trace change disclosed. BUILD-B1B2-R4-R9.md. ER/MAX in PM court; LOW standby,20m; later gates held.
