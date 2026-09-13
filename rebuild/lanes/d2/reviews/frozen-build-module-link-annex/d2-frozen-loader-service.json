@@ -1,0 +1,28 @@
+{
+  "node": "v22.23.2",
+  "actualFiles": [
+    {
+      "path": "node_modules/esbuild/lib/main.js",
+      "bytes": 97214,
+      "sha256": "8331fe1d8b3a07381f33cc425fcfaa94776e263113653f80ec3ba433e9657e73"
+    },
+    {
+      "path": "node_modules/@esbuild/win32-x64/esbuild.exe",
+      "bytes": 11670528,
+      "sha256": "ec02ee9b14ab332416fedd10614dfb80eed5304d94f67745067c011934a8c3c3"
+    }
+  ],
+  "actualSpawns": [
+    {
+      "path": "node_modules/@esbuild/win32-x64/esbuild.exe",
+      "args": [
+        "--service=0.28.1",
+        "--ping"
+      ]
+    }
+  ],
+  "esbuild": "0.28.1",
+  "syntheticTransformBytes": 928,
+  "fixtureOnly": true,
+  "productSourceExecuted": false
+}

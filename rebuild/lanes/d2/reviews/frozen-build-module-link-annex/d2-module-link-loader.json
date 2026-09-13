@@ -1,0 +1,149 @@
+{
+  "candidate": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+  "testedSource": "46aead247d00c5d8b4e63155ca7563ab68d60848",
+  "base": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "mode": "loader",
+  "startedAt": "2026-09-13T22:26:45.734Z",
+  "finishedAt": "2026-09-13T22:26:46.129Z",
+  "command": {
+    "executable": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\tools\\node.exe",
+    "args": [
+      ".tmp/d2-audit-frozen-loader.mjs"
+    ],
+    "cwd": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link"
+  },
+  "runnerSHA256": "554e72f026db053ef187a31e64c640a90ed060e6ca2b37195ee5189529c9b337",
+  "controls": {
+    "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+    "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls.test.mjs",
+    "sha256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+    "adaptation": "No source change; helper owner is process.cwd(), supplied own cwd selects new root/candidate fixture bytes.",
+    "selection": "^D2 F[23] "
+  },
+  "environment": {
+    "cleared": "GIT_*; NODE_OPTIONS; NODE_PATH; ESBUILD_BINARY_PATH; NODE_V8_COVERAGE; NODE_TEST_CONTEXT",
+    "set": {
+      "TZ": "America/New_York",
+      "TEMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp",
+      "TMP": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp",
+      "ESBUILD_WORKER_THREADS": "0",
+      "GIT_CONFIG_NOSYSTEM": "1",
+      "GIT_CONFIG_GLOBAL": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\empty-gitconfig"
+    },
+    "gitVersion": "git version 2.53.0.windows.3"
+  },
+  "before": {
+    "inputs": [
+      {
+        "path": "rebuild/conform/engines/build-engines.mjs",
+        "bytes": 6565,
+        "sha256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+        "nlink": 1
+      },
+      {
+        "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+        "bytes": 13577,
+        "sha256": "974bb3641d9a91a40a4dea3a4661bec02fcdf3dcb2ba18670be58043fd46d660",
+        "nlink": 1
+      },
+      {
+        "path": "package.json",
+        "bytes": 654,
+        "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+        "nlink": 1
+      },
+      {
+        "path": "package-lock.json",
+        "bytes": 35020,
+        "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+        "nlink": 1
+      }
+    ],
+    "packages": [
+      {
+        "name": "esbuild",
+        "version": "0.28.1",
+        "archiveSHA256": "eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5",
+        "files": 7,
+        "allBytesMatchPrior": true
+      },
+      {
+        "name": "@esbuild/win32-x64",
+        "version": "0.28.1",
+        "archiveSHA256": "5c5d62da7572b57ddc1fa3caedc36c1218b5d8d02ce9c7ee70e3339fce4453c4",
+        "files": 3,
+        "allBytesMatchPrior": true
+      }
+    ],
+    "node": {
+      "version": "v22.23.2",
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+      "platform": "win32",
+      "arch": "x64"
+    }
+  },
+  "after": {
+    "inputs": [
+      {
+        "path": "rebuild/conform/engines/build-engines.mjs",
+        "bytes": 6565,
+        "sha256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+        "nlink": 1
+      },
+      {
+        "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+        "bytes": 13577,
+        "sha256": "974bb3641d9a91a40a4dea3a4661bec02fcdf3dcb2ba18670be58043fd46d660",
+        "nlink": 1
+      },
+      {
+        "path": "package.json",
+        "bytes": 654,
+        "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+        "nlink": 1
+      },
+      {
+        "path": "package-lock.json",
+        "bytes": 35020,
+        "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+        "nlink": 1
+      }
+    ],
+    "packages": [
+      {
+        "name": "esbuild",
+        "version": "0.28.1",
+        "archiveSHA256": "eb8ef756f8299d16d5c8b35678606d715ba29923f500db7b37c181310eed40a5",
+        "files": 7,
+        "allBytesMatchPrior": true
+      },
+      {
+        "name": "@esbuild/win32-x64",
+        "version": "0.28.1",
+        "archiveSHA256": "5c5d62da7572b57ddc1fa3caedc36c1218b5d8d02ce9c7ee70e3339fce4453c4",
+        "files": 3,
+        "allBytesMatchPrior": true
+      }
+    ],
+    "node": {
+      "version": "v22.23.2",
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+      "platform": "win32",
+      "arch": "x64"
+    }
+  },
+  "result": {
+    "exit": 0,
+    "signal": null,
+    "error": null,
+    "stdout": {
+      "bytes": 334,
+      "sha256": "396961665a8d01ce367252d18394de98d2b5051ae864544737909e600e1e7378"
+    },
+    "stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "newAuthorOutcomesRead": false
+}

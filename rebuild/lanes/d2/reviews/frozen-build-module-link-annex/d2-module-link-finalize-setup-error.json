@@ -1,0 +1,20 @@
+{
+  "stage": "D2 post-run metadata inspection; no candidate execution",
+  "command": {
+    "executable": ".tmp/tools/node.exe",
+    "args": [
+      ".tmp/d2-module-link-finalize.mjs"
+    ]
+  },
+  "source": ".tmp/d2-module-link-finalize-setup-error.mjs",
+  "exit": 1,
+  "error": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "actualTailHex": "7d0a",
+    "expectedTailHex": "5c6e",
+    "location": "d2-module-link-finalize.mjs:4:237"
+  },
+  "effect": "Stopped before raw observation copy or final evidence write. Public12/12 and selected F2/F3 2/2 results unchanged. Fixed only own analyzer and reran read-only packaging; not a candidate defect or regression kill.",
+  "sourceOfFailureRecord": "Observed exec tool result chunk b9e798"
+}

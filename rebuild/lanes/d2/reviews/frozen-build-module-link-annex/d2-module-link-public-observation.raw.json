@@ -1,0 +1,49 @@
+{
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-module-hardlink-KY4JFO",
+  "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-module-alias-ekmXJd\\builder-alias.mjs",
+  "main": "b60d5aa9155523cdb2e494a2ad4abdbbd24979de",
+  "old": "0e2531fd044e4df571939835ed5ea9d4a06514c7",
+  "before": {
+    "invocations": [],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO"
+    ],
+    "scratchExists": false,
+    "outputNames": [
+      "build-engines.mjs",
+      "engine-main.cjs",
+      "engine-old.cjs"
+    ],
+    "main": "b6cd471a79167e6645e631e07cb9615f9fc6c92911b865e44371b5cb653c647e",
+    "old": "6d11d6eaee066ee44d22ce36512c69e33005206ef9d0abb38cd339f7e6a64a56",
+    "builder": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+    "alias": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+    "builderLinks": 2,
+    "aliasLinks": 2,
+    "sentinel": "PRESERVE MODULE ALIAS"
+  },
+  "result": {
+    "code": 1,
+    "stdout": "",
+    "stderr": "file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO/rebuild/conform/engines/build-engines.mjs:37\r\n      stat.isFile() && stat.nlink !== 1) throw new Error('Unowned or linked path refused: ' + target);\r\n                                               ^\r\n\r\nError: Unowned or linked path refused: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-module-hardlink-KY4JFO\\rebuild\\conform\\engines\\build-engines.mjs\r\n    at checked (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO/rebuild/conform/engines/build-engines.mjs:37:48)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO/rebuild/conform/engines/build-engines.mjs:40:1\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.23.2\r\n"
+  },
+  "after": {
+    "invocations": [],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO"
+    ],
+    "scratchExists": false,
+    "outputNames": [
+      "build-engines.mjs",
+      "engine-main.cjs",
+      "engine-old.cjs"
+    ],
+    "main": "b6cd471a79167e6645e631e07cb9615f9fc6c92911b865e44371b5cb653c647e",
+    "old": "6d11d6eaee066ee44d22ce36512c69e33005206ef9d0abb38cd339f7e6a64a56",
+    "builder": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+    "alias": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+    "builderLinks": 2,
+    "aliasLinks": 2,
+    "sentinel": "PRESERVE MODULE ALIAS"
+  }
+}

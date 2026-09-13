@@ -1,0 +1,209 @@
+{
+  "createdAt": "2026-09-13T22:28:21.579Z",
+  "candidate": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+  "testedSource": "46aead247d00c5d8b4e63155ca7563ab68d60848",
+  "sourceMutated": false,
+  "finalInputs": [
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6565,
+      "sha256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+      "gitBlob": "60f6567a0112a4b3b27f124827b6d9a1d03df0b1",
+      "finalDiskMatch": true,
+      "nlink": 1
+    },
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 13577,
+      "sha256": "974bb3641d9a91a40a4dea3a4661bec02fcdf3dcb2ba18670be58043fd46d660",
+      "gitBlob": "89b432654f5f74d050946208a48d5b90b69ca287",
+      "finalDiskMatch": true,
+      "nlink": 1
+    },
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "package.json",
+      "bytes": 654,
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "gitBlob": "40be303497e72b7f64ca9c51ad6b60e95726a1bf",
+      "finalDiskMatch": true,
+      "nlink": 1
+    },
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "package-lock.json",
+      "bytes": 35020,
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "gitBlob": "e91044cb3aae2f7c3b3ea61398516ac0cbcd50ea",
+      "finalDiskMatch": true,
+      "nlink": 1
+    }
+  ],
+  "runs": [
+    {
+      "mode": "loader",
+      "metadata": ".tmp/d2-module-link-loader.json",
+      "metadataSHA256": "8095ef4a071915a65b827d5375daf09a4820c65ca903654aae092c36d99d216e",
+      "exit": 0,
+      "args": [
+        ".tmp/d2-audit-frozen-loader.mjs"
+      ],
+      "stdout": {
+        "bytes": 334,
+        "sha256": "396961665a8d01ce367252d18394de98d2b5051ae864544737909e600e1e7378"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "mode": "public",
+      "metadata": ".tmp/d2-module-link-public.json",
+      "metadataSHA256": "1440dfd587274a28b17b04a4362a93d9a3d0df51caa7d078a551505216d3c61b",
+      "exit": 0,
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "rebuild/conform/engines/test/build-engines.test.mjs"
+      ],
+      "stdout": {
+        "bytes": 2870,
+        "sha256": "35b080ac1c064724ff0c45e8aa097c56de0674014153a834243d0af5e335e6cb"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "mode": "controls",
+      "metadata": ".tmp/d2-module-link-controls.json",
+      "metadataSHA256": "82256e3664cb4bec65fdabe78c62b61f5a37ab62964cb7b1493b32bb8236051c",
+      "exit": 0,
+      "args": [
+        "--test",
+        "--test-concurrency=1",
+        "--test-reporter=tap",
+        "--test-name-pattern=^D2 F[23] ",
+        ".tmp/d2-frozen-controls.test.mjs"
+      ],
+      "stdout": {
+        "bytes": 582,
+        "sha256": "904f1f73c32d8f8c75a3bcd73cb94f16e75991ab2830da735cdc3df6e6008a8d"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "publicObservation": {
+    "originalPath": ".tmp\\fb-module-alias-ekmXJd\\observation.json",
+    "rawBytes": 3130,
+    "rawSHA256": "900878c27bdabc731a2f9171a042e1918569d3c4ba086c3d4701e57e6809b169",
+    "rawTailHex": "7d0a",
+    "formatNote": "Raw observation is valid JSON with a terminal newline (last two bytes 7d0a). First reviewer post-run analysis mistakenly expected literal backslash-n and stopped at that assertion before copy/derived output. Exact failed analyzer retained separately; corrected analysis parses the full raw bytes. No tests rerun and no candidate change.",
+    "parsed": {
+      "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-module-hardlink-KY4JFO",
+      "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-module-alias-ekmXJd\\builder-alias.mjs",
+      "main": "b60d5aa9155523cdb2e494a2ad4abdbbd24979de",
+      "old": "0e2531fd044e4df571939835ed5ea9d4a06514c7",
+      "before": {
+        "invocations": [],
+        "worktrees": [
+          "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO"
+        ],
+        "scratchExists": false,
+        "outputNames": [
+          "build-engines.mjs",
+          "engine-main.cjs",
+          "engine-old.cjs"
+        ],
+        "main": "b6cd471a79167e6645e631e07cb9615f9fc6c92911b865e44371b5cb653c647e",
+        "old": "6d11d6eaee066ee44d22ce36512c69e33005206ef9d0abb38cd339f7e6a64a56",
+        "builder": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+        "alias": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+        "builderLinks": 2,
+        "aliasLinks": 2,
+        "sentinel": "PRESERVE MODULE ALIAS"
+      },
+      "result": {
+        "code": 1,
+        "stdout": "",
+        "stderr": "file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO/rebuild/conform/engines/build-engines.mjs:37\r\n      stat.isFile() && stat.nlink !== 1) throw new Error('Unowned or linked path refused: ' + target);\r\n                                               ^\r\n\r\nError: Unowned or linked path refused: C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-module-hardlink-KY4JFO\\rebuild\\conform\\engines\\build-engines.mjs\r\n    at checked (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO/rebuild/conform/engines/build-engines.mjs:37:48)\r\n    at file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO/rebuild/conform/engines/build-engines.mjs:40:1\r\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\r\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)\r\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\r\n\r\nNode.js v22.23.2\r\n"
+      },
+      "after": {
+        "invocations": [],
+        "worktrees": [
+          "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-module-link/.tmp/fb-module-hardlink-KY4JFO"
+        ],
+        "scratchExists": false,
+        "outputNames": [
+          "build-engines.mjs",
+          "engine-main.cjs",
+          "engine-old.cjs"
+        ],
+        "main": "b6cd471a79167e6645e631e07cb9615f9fc6c92911b865e44371b5cb653c647e",
+        "old": "6d11d6eaee066ee44d22ce36512c69e33005206ef9d0abb38cd339f7e6a64a56",
+        "builder": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+        "alias": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+        "builderLinks": 2,
+        "aliasLinks": 2,
+        "sentinel": "PRESERVE MODULE ALIAS"
+      }
+    }
+  },
+  "controlFiles": [
+    {
+      "id": "F2",
+      "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-module-link-IPaPiW",
+      "builderSHA256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+      "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\D2-builder-alias-fb-D2-module-link-IPaPiW.mjs",
+      "linked": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-module-link-IPaPiW\\rebuild\\conform\\engines\\build-engines.mjs",
+      "linkedSHA256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+      "aliasSHA256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+      "linkedLinks": "2",
+      "aliasLinks": "2",
+      "sameFileID": true,
+      "scratchExists": false,
+      "outputNames": [
+        "build-engines.mjs"
+      ]
+    },
+    {
+      "id": "F3",
+      "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-loader-link-PG2Pe2",
+      "builderSHA256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+      "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\D2-loader-alias-fb-D2-loader-link-PG2Pe2.js",
+      "linked": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-module-link\\.tmp\\fb-D2-loader-link-PG2Pe2\\node_modules\\esbuild\\lib\\main.js",
+      "linkedSHA256": "8331fe1d8b3a07381f33cc425fcfaa94776e263113653f80ec3ba433e9657e73",
+      "aliasSHA256": "8331fe1d8b3a07381f33cc425fcfaa94776e263113653f80ec3ba433e9657e73",
+      "linkedLinks": "2",
+      "aliasLinks": "2",
+      "sameFileID": true,
+      "scratchExists": false,
+      "outputNames": [
+        "build-engines.mjs"
+      ]
+    }
+  ],
+  "publicCases": 12,
+  "publicPass": 12,
+  "independentSelected": [
+    "F2",
+    "F3"
+  ],
+  "independentPass": 2,
+  "priorF2RedAt": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+  "currentControlsSHA256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+  "newAuthorOutcomesRead": false,
+  "reviewConclusion": "R1 closes for checked builder-module hardlinks on this exact Windows synthetic setup; PM sole judge; no engine/frozen/platform claim."
+}

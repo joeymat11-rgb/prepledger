@@ -1,0 +1,179 @@
+{
+  "candidate": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+  "prior": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+  "readAt": "2026-09-13T22:25:50.091Z",
+  "sourceDelta": {
+    "only": "checked(script); before checked(here);",
+    "beforeSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "afterSHA256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+    "guardOccurrences": 1,
+    "guardOffset": 3300,
+    "refLoopOffset": 3332,
+    "loaderOffset": 3654,
+    "scratchOffset": 3822
+  },
+  "testDelta": {
+    "additiveOnly": true,
+    "addedBytes": 1613,
+    "addedSHA256": "11e3b4aa913a856fce20fdf3d445942da1ee88e60221e2c3563c7cca40ed39af",
+    "existingTestBytesUnchanged": true,
+    "observationWriter": " fs.writeFileSync(path.join(outside,'observation.json'),JSON.stringify({root:f.root,alias,main:f.main,old:f.old,before,result:r,after},null,2)+'\\n');"
+  },
+  "unchangedRoutes": [
+    "root and CLI/default parsing",
+    "reference resolution",
+    "checked() implementation",
+    "package/fileURL loading",
+    "scratch EEXIST handling",
+    "Git worktree creation/head verification",
+    "exclusive entry write and clock ordering",
+    "esbuild options/nodePaths",
+    "retained bundle identity",
+    "publication and success/export timing"
+  ],
+  "dependencies": {
+    "priorLockMetadataMatches": true,
+    "priorFiles": [
+      {
+        "path": "node_modules/esbuild/bin/esbuild",
+        "bytes": 9350,
+        "sha256": "fe9a7b65a540d8df1a0f59941d52e7c1260c36fed9a2af3dd966f15381b6eb76"
+      },
+      {
+        "path": "node_modules/esbuild/install.js",
+        "bytes": 11773,
+        "sha256": "612294e278914443bdcf81cb17f54afec34dbdd2ebd999a6ee187912320cc315"
+      },
+      {
+        "path": "node_modules/esbuild/lib/main.d.ts",
+        "bytes": 23392,
+        "sha256": "161c8e0690c46021506e32fda85956d785b70f309ae97011fd27374c065cac9b"
+      },
+      {
+        "path": "node_modules/esbuild/lib/main.js",
+        "bytes": 97214,
+        "sha256": "8331fe1d8b3a07381f33cc425fcfaa94776e263113653f80ec3ba433e9657e73"
+      },
+      {
+        "path": "node_modules/esbuild/LICENSE.md",
+        "bytes": 1069,
+        "sha256": "b40ec5baec7bb34fa5b1c09521fa3cd52d5fad7adafed74932a2010d3612a681"
+      },
+      {
+        "path": "node_modules/esbuild/package.json",
+        "bytes": 3980,
+        "sha256": "d55d1d19fcc5b6079e4a71dd4111340c79c682bc36835ac7058a0c364c7db58a"
+      },
+      {
+        "path": "node_modules/esbuild/README.md",
+        "bytes": 175,
+        "sha256": "6d481cd60ec3c679e5e395f547ab4221147f35642894f6b95a8df38fd25c87bd"
+      },
+      {
+        "path": "node_modules/@esbuild/win32-x64/esbuild.exe",
+        "bytes": 11670528,
+        "sha256": "ec02ee9b14ab332416fedd10614dfb80eed5304d94f67745067c011934a8c3c3"
+      },
+      {
+        "path": "node_modules/@esbuild/win32-x64/package.json",
+        "bytes": 374,
+        "sha256": "4a63b84fa1059fef348e29e3a39c26168213bb7f0aa1ac0174e439cc1e62a9f8"
+      },
+      {
+        "path": "node_modules/@esbuild/win32-x64/README.md",
+        "bytes": 143,
+        "sha256": "29cf512fa580b72392176bf694933ae0decaf18116fdeee917511b445411ce16"
+      }
+    ]
+  },
+  "priorF2": {
+    "id": "F2",
+    "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t",
+    "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\D2-builder-alias-fb-D2-module-link-6A2t1t.mjs",
+    "links": 2,
+    "originalBuilderSHA256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "exit": 0,
+    "stdout": "HEAD is now at 38771f9 Invented main source\nHEAD is now at 9f1744a Invented old source\nbuilt main @ 38771f901d269869727f404cf0ebc33657286fb4 → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 9f1744a1d581f0fa26547e5ae764b02d766d5d1b → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD 38771f9)\nPreparing worktree (detached HEAD 9f1744a)\n",
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-frozen-build-setup\\.tmp\\fb-D2-module-link-6A2t1t\\.tmp\\earned-engine-build-fNwk77"
+    ],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-6A2t1t",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-6A2t1t/.tmp/earned-engine-build-fNwk77/main-38771f901d269869727f404cf0ebc33657286fb4",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-frozen-build-setup/.tmp/fb-D2-module-link-6A2t1t/.tmp/earned-engine-build-fNwk77/old-9f1744a1d581f0fa26547e5ae764b02d766d5d1b"
+    ],
+    "builderBytesUnchanged": true
+  },
+  "priorRecords": [
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-install-frozen-deps.mjs",
+      "copy": ".tmp/d2-install-frozen-deps.mjs",
+      "bytes": 3043,
+      "sha256": "55e2cc31b16e0560b524ec493faf7519f4ff991f4af60a3ea97cfa890b40f081"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-audit-frozen-loader.mjs",
+      "copy": ".tmp/d2-audit-frozen-loader.mjs",
+      "bytes": 2305,
+      "sha256": "ffee824d19d6180165728f184805720fb6f32f6f1996dd5a420991d26ee62ccd"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-dependency-inventory.json",
+      "copy": ".tmp/prior-d2-frozen-dependency-inventory.json",
+      "bytes": 3368,
+      "sha256": "90222234c5759feb3aaeb56e6c76e7ce829d4a0caf9ca50756261bd1d65355a4"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-loader-inventory.json",
+      "copy": ".tmp/prior-d2-frozen-loader-inventory.json",
+      "bytes": 2381,
+      "sha256": "03b8b026c6fe33722ce6eb2bc17e3068e6daa2fc046f80050d63e590d7bdd391"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-corrected-observations.json",
+      "copy": ".tmp/prior-d2-frozen-controls-corrected-observations.json",
+      "bytes": 11544,
+      "sha256": "cf20c9c3ba4990d4f2397b460cf765c2bdc4028c34f6a22ef849ce2f0138f6a9"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-corrected.json",
+      "copy": ".tmp/prior-d2-frozen-controls-corrected.json",
+      "bytes": 867,
+      "sha256": "6f6a5aaf655eea76e22e74b89c43ee0cfbfafdae1337c38b91544550cf25a030"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-controls-corrected.tap",
+      "copy": ".tmp/prior-d2-frozen-controls-corrected.tap",
+      "bytes": 2113,
+      "sha256": "b242efa314bedc5dabd19502723bd01a3cd6e1fe6dea50b84b921846c16d9fd4"
+    },
+    {
+      "ref": "561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad",
+      "path": "rebuild/lanes/d2/reviews/frozen-build-setup-annex/d2-frozen-first-evidence.json",
+      "copy": ".tmp/prior-d2-frozen-first-evidence.json",
+      "bytes": 3984,
+      "sha256": "d7accbba40e847417511d96cbb73563ab96567314c86b46fd3eda0739a88fa41"
+    }
+  ],
+  "reuse": {
+    "F1": "unchanged CLI/default/override route",
+    "F4": "unchanged copy/rename/publication/success-output route",
+    "F5": "unchanged invocation/ref/bundle/publication route",
+    "reversals": "unchanged file hardlink guard, exclusive entry flag and delayed success announcements; no rerun licensed/needed"
+  },
+  "currentControls": {
+    "sha256": "fa751620c0e3278056f4d704dae9638b422eff81991a8c76b3565e26e6093925",
+    "sourceChanged": false,
+    "adaptation": "process.cwd() supplies new assigned owner; fixtures copy current pinned builder bytes",
+    "selectedPattern": "^D2 F[23] "
+  },
+  "newAuthorOutcomesRead": false
+}
