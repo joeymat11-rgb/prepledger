@@ -1193,7 +1193,7 @@ The154/184 snapshot at64f59af checked current registration separately: exactly o
 
 The actual eight-file composed tooling cohort passed157/157 on Node24.19.0, zero failures/cancellations/skips. Its first156/157 result is preserved: r10 F3 required the established header-only call `const first = envelope(s, bound);`, which was restored using the new default entry phase, without changing that test. The new pin suite contributes17 tests including five behavioral source-mutant controls; the new registration suite contributes17 current/historical workflow controls. See `rebuild/lanes/b/BUILD-B1B2-TOOLING-154-184.md` for exact commands and preimage accounting. These are tooling results, not native census, package PASS, acceptance or integration.
 
-## B1-B2 successor composition (232/234/236)
+## Historical B1-B2 composition (232/234/236; rejected cc6a1315)
 
 `packages/B1-B2.json` is the complete prospective profile for exactly `--package B1-B2` / `M2-B1-B2`, with sourceBase100820aa47a4f8729642033499eaec0f0ee282e1,24 registered IDs,110 product pins and22 explicit child commands. The only parent is the unchanged H3 artifact/review at receipt187. Its historical `covered` and `byChild` are empty; the nine superseded obligations are derived from its authenticated five groups, children, execution pins and receipt. The same reader supplies prospective artifacts, coverage, original-gate selection and terminal revalidation. Old package routes remain unchanged.
 
@@ -1210,3 +1210,23 @@ Node TAP children must report exactly one complete tests/pass total matching the
 The complete nine-file tooling command is the profile's `tooling-cohort.argv`. It adds actual declaration and continuity readers to the existing issuer/pin/seal/supersession tests. Tests use invented Git repositories or public code metadata; they do not execute the package CLI, native factory, census or private data. The build report records actual Node22 results and preserves earlier setup failures separately from meaningful refusal/mutant evidence.
 
 Construction produces no acceptance or review artifact. Independent MAX review of the exact composition precedes the separately named B-only PC validation window. Native/frozen/public-census/H3/private/FULL evidence, measured deltas, artifacts, PM receipt, both operating-system CI and third-role integration remain distinct required steps; no deployment or phone acceptance follows from these tooling tests.
+
+## B1-B2 R2 repair construction (PM246/248)
+
+The preceding232/234/236 composition is the historical rejected `cc6a1315` candidate. R2 uses engine/evidence source `48a3063a23528ed240eb2356226d237d2793a9da`. Its profile contains112 product pins and26 closed child commands. The new public source and ERA30 test files each have one exact positive-test command and one exact source-fault audit command; no other mode or package gains their execution route.
+
+The source map preserves the original M-to-R eight-file/65-hunk record verbatim and adds a separate R-to-S four-file/10-hunk record with five changed/added engine evidence files. Future source/native readers bind the complete candidate engine inventory and fixed constructor/direct-dependency closure before loading. Remaining transitive product pins belong to the full profile phase. Native frame comparisons now explicitly name M and S and retain an empty approved-delta list; any actual field difference stops for its measured review.
+
+Measured public recovery proof is283 U/FG tests,27 B1 delta cells and46 current behavioral faults. The historical audit still distinguishes34 behavioral faults from its one declaration-alias assertion, and the phaseArc-only probe is separate. Recorded sleep controls, unknown target/cost behavior and six unchanged writer clock traces are covered. B2 retains32 delta cells with fixed Q2 outcomes.
+
+The new B2 source test has20 positive test blocks and55 source faults:52 composed engine kills and exactly three PM248 delegated dependency-contract kills. Those three expose combinations unreachable through the composed engine and never receive composed/native kill credit. The protected D7 original test remains unexecuted.
+
+ERA30 commits212 complete reference frames before candidate observation, then compares56 test blocks across14 families and four date/reference cells. Its12 permitted frozen helper declarations retain literal provenance. The lossless embedded frames include returns, errors, traces, input descriptors/aliases and the complete LAB aggregate/card order. All eight source faults fail the intended family across32 cells, and every restoration reruns all56 positives. No whole frozen app or seed/history/private data is evaluated.
+
+Retained public modes pass with their original cases, ordered substitutions and complete terminals. All45 public laws remain30 GREEN/15 RED on S, with43 GREEN controls and21 RED among52 patch mutants. Only the two D25 missing-sleep detail leaves change from R; protein and every law outcome remain unchanged. These patch mutants are a different inventory from the55 new source faults.
+
+The complete nine-file cohort passed267/267 on Node22.23.2 at `4dda08aac905e8ff628dd37ba744ce5fad28c354`, with zero failures, cancellations, skips or todos. Current registration contributes90 checks; continuity contributes37. All recorded input bytes matched before and after. The profile's old258 count is retained only as historical evidence and is replaced by this observed267 for future execution.
+
+The Node22 tooling cohort is the exact nine-file `tooling-cohort.argv` in the profile. It checks actual production declarations/continuity in synthetic Git repositories, all26 child omissions, modes, product hashes, the admitted13 C postimages, historical authorities and exact public-source admission. The package CLI and native/frozen gate are not entered. Final measured totals and log hashes live in `../BUILD-B1B2-TOOLING-154-184.md`.
+
+Source28 and writers287=4+283 are prospective static child counts; inherited5, defects5, second4, H3 14, Today630, A0 23 and NTC39 remain unexecuted on this composition. A later authorized mismatch is a failure requiring affected review. Independent MAX review, affected D2 review, the exact B-only PC gate window, measured deltas, package artifacts/receipt, both-OS CI and third-role integration remain separate required steps. R2 is local and unpushed.
