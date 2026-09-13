@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: affected B8e65805 N2 scoped ACCEPTdf9f36ab with separate d7c76a0e reconciliation adopted278;147 Node checks/10 Edge cases/one actual kill, fresh earned-842c45e7a3c9. D2/MAX proceeds directly to C18ff0dcf lifecycle repair review276. ER/MAX complete B R3 review remains active; B/C/D/E LOW, I paused. Full import/memory composition and personal phone proof remain. Owner268 targets Joe with his history AND Dad; soak gates wide beta only. PM/active review efforts verified.
+PM checkpoint2026-09-13: ER final48e591d7 rejects exact B8e65805/T797e4cf for R9, an actual mixed-date Today result at midnight; twelve review artifacts adopted282 and B/MAX narrow captured-date repair released. Original R8 and affected N2 acceptance278 remain scoped to their proved identities. D2/MAX continues isolated C18ff0dcf lifecycle review276; ER/C/D/E LOW, I paused. Saved and executed efforts verified184247Z. Owner280 delegates Fast management, but no callable live speed control was found and no Fast setting changed. Joe/history/coaching memory then Dad remains goal268; soak gates wide beta only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: exact8e65805/T797e4cf R8 successor handed off272; ER/MAX review active, preserve candidate | earned-astra-b-follow-up;20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: narrow R9 captured-Today-date correction282 from exact8e65805; preserve original review and warning/action behavior | earned-astra-b-follow-up;20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact18ff0dcf/dc768c9 lifecycle repair in independent D2/MAX review276; preserve source | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: C18ff0dcf lifecycle successor review276; B R3 N2 scoped acceptance/reconciliation complete278 | earned-lane-d2-requests;20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact R3 R8 repair8e65805/T797e4cf independent review272; original162f189 preserved | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: completed R3 REJECT R9 final48e591d7 adopted282; await exact successor commission | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: lifecycle0f57c99c direction selected266; await named decision/provider implementation release | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
@@ -57,11 +57,11 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | LOW; R3 R8 successor8e65805 in review272 | MAX for a named engine/proof correction or separately released companion |
+| B | MAX; narrow R9 captured-date repair282 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; repair18ff0dcf in review276 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
 | D2 | MAX; exact C18ff0dcf lifecycle review276 | MAX for the next named independent successor |
-| Engine reviewer | MAX; R3 R8 independent review272 | MAX for next named independent successor review |
+| Engine reviewer | LOW; R3 final48e591d7 review complete282 | MAX for next named independent successor review |
 | E | LOW; exact lifecycle addendum complete | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
 
@@ -79,4 +79,8 @@ DECISIONS:197 adds only gym-app.mjs and its existing settings UI test to C's lau
 
 No fresh product tests were run for this coordination-only setup. Required package tests, independent review, both-OS CI, private verdicts where applicable and device evidence remain delivery conditions. Check actual Astra usage as needed; do not reuse an old Claude meter or purchase credits automatically.
 
-Fast mode discussion2026-09-13: owner is considering Fast across chats because development has taken too long. This is not yet authorization to change speed or spending. PM recommends Fast for active builders/reviewers with existing reasoning levels retained, Standard for waiting checks; no speed setting was changed. Installed Astra cache describes priority/Fast as2x speed; official Codex pricing lists2.5x Standard credit usage, including faster consumption of included limits: https://learn.chatgpt.com/docs/agent-configuration/speed and https://learn.chatgpt.com/docs/pricing. These are product/pricing facts, not measured whole-project acceleration. Do not halve the personal forecast automatically, conflate Fast with Low reasoning, or treat API2x pricing as this ChatGPT-sign-in multiplier.
+Fast mode authority280,2026-09-13: Joe delegates speed settings as well as effort. Use Fast for active Earned implementation/review and Standard for waiting checks; preserve reasoning levels and independent evidence requirements. This is authorized use of the existing account, not permission to purchase credits or change accounts. Current app task controls expose model/effort but no service tier. Local installed app/CLI schemas identify thread/settings/update and turn/settings/update serviceTier, but the desktop child uses an inaccessible live transport and the daemon control socket is not connected. Native app UI control is unavailable. No Fast setting was changed or read back. Until a supported control exists, PM advises manual toggles rather than claiming a prompt changed speed. Do not repeat transport exploration on every wake, write the Codex database/global config, restart active work, or affect unrelated projects.
+
+Installed Astra cache describes priority/Fast as2x speed; official Codex pricing lists2.5x Standard credit usage, including faster consumption of included limits: https://learn.chatgpt.com/docs/agent-configuration/speed and https://learn.chatgpt.com/docs/pricing. These are product/pricing facts, not measured whole-project acceleration. Do not halve the personal forecast, conflate Fast with Low reasoning, or use API2x pricing for this ChatGPT-sign-in multiplier.
+
+Audit2026-09-13T18:42:47Z: PM/B/D2 saved/executed MAX, ER/C/D/E LOW, I LOW/paused. B repair turn01a09c12-c8ee-7281-899c-05fd2f10577a records max; D2 review turn01a09bed-16c8-7912-aefa-51e988e50161 remains max. ER completed its prior MAX review before LOW standby01a09c12-c9b7-7f50-a7fa-627e5a6c3a5d. Local metadata audit .tmp/effort-audits/20260913T184247969564Z.json records both task and executed contexts, not the UI selector or Fast tier.
