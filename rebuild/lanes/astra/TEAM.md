@@ -1,15 +1,16 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at 3ef096d. Operational checkpoint: 2026-09-13 01:00 ET. All seats use GPT-6 Astra. PM, D and D2 are retained chats; B and C are new persistent chats. The app sidebar section is Earned — Astra team. The current assignments below supersede older transfer checkpoints retained later in this file.
+Owner-approved handover: DECISIONS:193, published at 3ef096d; memory202 and E203. Operational checkpoint: 2026-09-13 01:28 ET. Seven active seats use GPT-6 Astra. PM, D and D2 are retained chats; B/C/engine reviewer/E are new persistent chats. The app sidebar section is Earned — Astra team. The current assignments below supersede older transfer checkpoints retained later in this file.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Issuer f047b5b REJECT R1, fixing exact grandparent payload within198; sole gate196 operator; prospective preflight CI registration brief; B1+B2 scope docs next | earned-astra-b-follow-up; hourly building, 20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch R2 0ce2a6f prepared locally for D2; final stable-tip composition pending; N2 next separately | earned-astra-c-follow-up; hourly building, 20 minutes waiting |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Shared preflight correction200 in a new isolated tree; companion74920fb bounded review PASS, downstream admission held | earned-lane-d-hourly; hourly building, 20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Launch R2 guard correction review, then independent preflight200 review; N2 round 3 remains REJECT | earned-lane-d2-requests; hourly reviewing, 20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Issuer198 review ada12bbc REJECT R1, awaiting B successor; companion74920fb review completed fdc4c8e | earned-astra-engine-review-follow-up; hourly reviewing, 20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Additive preflight CI201 first; issuer f047b5b REJECT R1 preserved for later fix; sole gate196 operator; B1+B2 scope docs next | earned-astra-b-follow-up; hourly building, 20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch R2 0ce2a6f bounded guard ACCEPT a9b444e; final stable-tip composition pending; N2 next separately | earned-astra-c-follow-up; hourly building, 20 minutes waiting |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Fixing D2 raw-text closing-tag finding on preflight200 candidate dae1fb2; companion74920fb bounded PASS, downstream admission held | earned-lane-d-hourly; hourly building, 20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Independent preflight200 review, C R2 guard closed; N2 round3 REJECT. Future memory implementation reviewer after current priorities | earned-lane-d2-requests; hourly reviewing, 20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Prospective201 bar read; waiting exact CI candidate, issuer R1 successor follows; companion74920fb review completed fdc4c8e | earned-astra-engine-review-follow-up; hourly reviewing, 20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | Coaching Memory v1 implementation brief and whole-plan beta coverage under202/203; docs only now, code after prerequisites and precise custody | earned-astra-e-follow-up; hourly design, 20 minutes waiting |
 | Integrator | Commission a third-role task for a named accepted head | Verify custody, exact-head and merged-tree evidence; integration branch only | No merge authorized by this roster alone |
 
 ## Worktrees
@@ -22,6 +23,7 @@ New-tree root on Joe's PC: `C:/Users/joeym/Documents/prepledger-dev/work/pm-care
 - C: `lane-c`, branch `rebuild/astra-c-lead`.
 - C launch successors: `c-launch-adoption` and `c-launch-r2`, their own named branches; the latter is locally prepared, not a final gate candidate.
 - D tooling200: `preflight-comments`, branch `rebuild/astra-preflight-comments`; earlier feature trees remain preserved.
+- E: `lane-e`, branch `rebuild/astra-e-memory`, public sparse checkout verified clean at1988db9; no runtime custody released.
 - Engine reviewer: `review-plan-edit`, branch `rebuild/astra-review-plan-edit`, public sparse checkout initialized clean at6b3465e.
 - D retains its own trees beneath `C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/lane-d/`.
 - D2 retains its own trees beneath `C:/Users/joeym/Documents/prepledger-dev/work/lane-d2/`.

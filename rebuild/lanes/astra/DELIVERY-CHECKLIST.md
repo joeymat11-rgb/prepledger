@@ -1,12 +1,12 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 01:00 ET, observed tip ee3d1d9. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope: DECISIONS:193. No completion date inferred from a model handover. Stable validation window is PREPARING, not active; consult GATE-WINDOW.md before publishing shared docs.
+PM reconciliation at 2026-09-13 01:28 ET, observed tip1988db9. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope: DECISIONS193/202. No completion date inferred from a model handover. Stable validation window is PREPARING, not active; consult GATE-WINDOW.md before publishing shared docs.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
-| Full Astra operating handover | Published193; six active chats with schedules. C launch custody194/197 and B isolated tooling custody198 released; old work preserved, returning work reconciled by PM | PM/B/C |
-| Fresh app launch | C R2 0ce2a6f prepared locally: author553/553, same built app bytes as R1. D2 reviewing R1's partial-attribution correction. R1 2b9b09a had independent552/552 and six Edge flows/20 profile kills, but local H3 and both CI jobs refused ancestry before Today. A stable real-tip composed successor and all final-head evidence are still required | C/D2; B gate; PM then third integrator |
-| Shared mechanical preflight | D correction200 in progress: raw scan rejects26 permitted comment/regex lines. D2 reviews separately. Existing CI does not run its regression suite; B preparing prospective registration/pin brief. No omitted UI custody, fake CI id or renamed PASS | D/D2, B CI proposal, PM |
+| Full Astra operating handover | Published193, seven active chats with schedules after E203; old work preserved, returning work reconciled by PM | PM and all leads |
+| Fresh app launch | C R2 0ce2a6f: author553/553, same built app bytes as R1; independent bounded guard ACCEPTa9b444e. R1 2b9b09a had independent552/552 and six Edge flows/20 profile kills, but local H3 and both CI jobs refused ancestry before Today. Stable real-tip composed successor and all final-head evidence still required | C/D2; B gate; PM then third integrator |
+| Shared mechanical preflight | D candidate dae1fb2:43/43 +7 mutants, but D2 found HTML raw-text closing-tag boundary hides visible dash. D fixes within200. B builds separate additive CI201 with shared test path and public-only checkout; ER independently reviews. Final200 bytes need bothOS proof | D/D2, B/ER, PM |
 | N2 sleep entry | D2 round 3 REJECT at 744c63c: coach freshness/confirmation, false commit reconciliation, historical day/quality | C fixes; D2 reruns affected and required bar |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
 | B1+B2 | Named baseff6b6b5 lacks bundle. Issuer198 candidatef047b5b independently REJECTED ada12bbc: grandparent payload check missing despite88/88. B fixes within198, reviewer retests successor; no tooling acceptance yet. B1 UNKNOWN/finite-observation amendment, bundle profile, cell35 and pin obligations remain to be prepared | B; independent engine reviewer; PM |
