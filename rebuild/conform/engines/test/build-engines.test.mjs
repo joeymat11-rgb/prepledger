@@ -80,6 +80,20 @@ test('real build: failure in second build retains old outputs and the first new 
 test('real build: refuses a root belonging to a different builder before any scratch write',async()=>{
  const f=fixture('caller'),other=fixture('other-root');const r=await run(f,[other.root,'main='+other.main,'old='+other.old]);assertFailure(r);assert.match(r.stderr,/supplied root must own/);assert.equal(invocations(f).length,0);assert.equal(invocations(other).length,0);
 });
+test('real build: refuses module hardlink before any invocation worktree or output change',async()=>{
+ const f=fixture('module-hardlink'),outside=fs.mkdtempSync(path.join(owner,'.tmp','fb-module-alias-'));
+ const alias=path.join(outside,'builder-alias.mjs');write(outside,'sentinel','PRESERVE MODULE ALIAS');fs.linkSync(f.script,alias);
+ assert.equal(fs.statSync(f.script).nlink,2);assert.equal(fs.statSync(alias).nlink,2);
+ assert.equal(fs.statSync(f.script).ino,fs.statSync(alias).ino);assert.deepEqual(fs.readFileSync(f.script),bytes);assert.deepEqual(fs.readFileSync(alias),bytes);
+ write(f.root,'rebuild/conform/engines/engine-main.cjs','PREVIOUS MAIN');write(f.root,'rebuild/conform/engines/engine-old.cjs','PREVIOUS OLD');
+ const snapshot=()=>({invocations:invocations(f),worktrees:worktrees(f),scratchExists:fs.existsSync(path.join(f.root,'.tmp')),outputNames:fs.readdirSync(f.out),
+  main:sha(output(f,'main')),old:sha(output(f,'old')),builder:sha(fs.readFileSync(f.script)),alias:sha(fs.readFileSync(alias)),
+  builderLinks:fs.statSync(f.script).nlink,aliasLinks:fs.statSync(alias).nlink,sentinel:fs.readFileSync(path.join(outside,'sentinel'),'utf8')});
+ const before=snapshot();assert.equal(before.invocations.length,0);assert.equal(before.worktrees.length,1);assert.equal(before.scratchExists,false);
+ const r=await run(f),after=snapshot();
+ fs.writeFileSync(path.join(outside,'observation.json'),JSON.stringify({root:f.root,alias,main:f.main,old:f.old,before,result:r,after},null,2)+'\n');
+ assertFailure(r);assert.match(r.stderr,/Unowned or linked path refused/);assert.deepEqual(after,before);
+});
 for(const link of ['scratch-junction','root-junction','output-hardlink'])test(`real build: refuses ${link} without changing linked evidence`,async()=>{
  const f=fixture(link),outside=fs.mkdtempSync(path.join(owner,'.tmp','fb-link-target-'));write(outside,'sentinel','PRESERVE');let args=[f.root,'main='+f.main,'old='+f.old];
  if(link==='scratch-junction')fs.symlinkSync(outside,path.join(f.root,'.tmp'),process.platform==='win32'?'junction':'dir');
