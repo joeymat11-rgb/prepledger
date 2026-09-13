@@ -1,17 +1,17 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at 3ef096d; memory202 and E203. Operational checkpoint: 2026-09-13 01:46 ET. Eight seats use GPT-6 Astra, including the separately commissioned integration seat in preparation only. PM, D and D2 are retained chats; B/C/engine reviewer/E/I are new persistent chats. The app sidebar section is Earned — Astra team. The current assignments below supersede older transfer checkpoints retained later in this file.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 05:14 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Additive CI201 composed b09d55a with reviewed D bytes,67 local checks; hosted/ER pending. Returning to issuer198 R1; sole gate196 operator | earned-astra-b-follow-up; hourly building, 20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch R2 0ce2a6f bounded guard ACCEPT a9b444e; final stable-tip composition pending; N2 next separately | earned-astra-c-follow-up; hourly building, 20 minutes waiting |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Preflight200 aab62dd bounded ACCEPTddba29d; final CI/composition held. Companion74920fb bounded PASS, downstream admission held | earned-lane-d-hourly; hourly building, 20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | C guard and D200 runtime findings closed; waits final launch composition. N2 round3 REJECT; future memory reviewer after current priorities | earned-lane-d2-requests; hourly reviewing, 20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Independent201 review at b09d55a, issuer R1 successor follows; companion74920fb review completed fdc4c8e | earned-astra-engine-review-follow-up; hourly reviewing, 20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | Two design docs BRIEF-READY2794d7e; PM judgment/G2 consent/G3 pins next. No runtime custody released | earned-astra-e-follow-up; hourly design, 20 minutes waiting |
-| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | Separate integrator, one preparation pass under INTEGRATOR-BRIEF.md; waits final accepted head and explicit PM grant, no merge yet | earned-astra-integration-follow-up;20 minutes waiting,30 during authorized integration, pause at completion |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | B1+B2 runtime/tooling and finite successor registration; B4+B3 next; sole gate operator | earned-astra-b-follow-up; hourly building,20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | N2 R4 draft PR54; preserve head through D2 final report, then scoped producer date repair; actual CI with B | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core/provider/portable harness28-file construction under230; companion/F1/F2 downstream admission held | earned-lane-d-hourly; hourly building,20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Final N2 R4 independent review, new completed-night producer finding; later C consumers/memory | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Waiting for exact complete B1+B2 candidate/profile; reserved later D S3 core/provider review, no repeated issuer review | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | S3 six-family registry complete, implementation feedback only; memory design accepted, consent/pin dependencies pending | earned-astra-e-follow-up; hourly design,20 minutes waiting |
+| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
 ## Worktrees
 
@@ -43,7 +43,7 @@ D and D2 have acknowledged :193 directly. D reports F2 f3e9561 (79 cells / 15 mu
 
 Send meaningful events to the PM task directly and publish concise STATUS/REQUESTS records. Joe never relays lane messages. PM refreshes the current STATE and DELIVERY-CHECKLIST; historical events remain append-only. Fetch/rebase and stage only named own files before docs publication. Product integration has one designated writer.
 
-Read `GATE-WINDOW.md` before every shared publication. It is currently PREPARING. After an explicit START, all shared integration pushes, including PM and lane docs, pause until explicit END; own-branch evidence and direct messages continue. Never let a scheduled wake move the frozen tip. Read-only fetches verify the actual remote identity rather than concealing movement.
+Read `GATE-WINDOW.md` before every shared publication. It is currently ENDED under210. The START/END procedure still applies to a future named integration window. After an explicit START, all shared integration pushes, including PM and lane docs, pause until explicit END; own-branch evidence and direct messages continue. Never let a scheduled wake move the frozen tip. Read-only fetches verify the actual remote identity rather than concealing movement.
 
 The three existing heartbeats were updated in place; only B/C received new ones. Empty waiting wakes end quietly. Hourly while building, 20 minutes when waiting for a handoff, and immediate response to completion messages; PM remains every 30 minutes. The previous Fable bridge automation stays paused. A historical PM-RESUMED does not undo Joe's new authority ruling.
 

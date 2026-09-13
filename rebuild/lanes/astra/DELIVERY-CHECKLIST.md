@@ -1,13 +1,13 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 04:50 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Current N2 draft/review and B construction are separate from accepted M.
+PM reconciliation at 2026-09-13 05:14 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 review, B engine construction and D S3 core construction are separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
 | Full Astra operating handover | Published193, eight development seats with schedules after E203 and separate integrator I; old work preserved, returning work reconciled by PM | PM and all leads |
 | Fresh app launch | Launch package accepted/integrated atM100820aa; independent C/D2, B196, I fresh build/six Edge flows20kills; integration full34745429303 and shared34745429317 bothOS verified. No physical-phone or deployment claim | Complete in development; owner-use proof separate |
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
-| N2 sleep entry | R4 bdbee8b published, draft PR54; builder903 tests/18 cells/18 mutants and final582b4a3 browser7kills/48px. Earlier744c63c R3 rejection preserved. D2 independent review active; actual bothOS push34748446936 failed, cause/registration pending | D2 review; B exact successor/sleep CI; C responds to findings |
+| N2 sleep entry | R4 bdbee8b draft PR54; D2 required903/18cells/fresh browser pass, new same/future-date acceptance at producer boundary while normal UI refuses. Final review/mutants pending; C scoped repair then independent recheck. Both34748446936 OS jobs stopped at H3 chain-tip envelope before children; A0/Today skipped | D2 final report; C fix; B exact successor/sleep CI |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
 | B1+B2 | Public runtime construction6c9248e and tooling underway; exact154/184 amendment222 and synthetic public-law scope224 licensed. Reported public checks are not FULL/acceptance. Actual successor children/registration, complete profile and independent review remain | B builds/maps; separate MAX reviewer; PM judges |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
@@ -20,7 +20,7 @@ PM reconciliation at 2026-09-13 04:50 ET. Product source M100820aa accepted; END
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
 | Dad start | Joe's required real-use period and same-code shakedown, Dad walkthrough; F1 if his schedule needs it | Joe/Dad with PM |
-| S3 personal-history port | D610f6dc/e7e452e/ba8c648/9ca5da4 contract/harness/provider/context and E81533bd registry complete under212/220/226. B reconciles exact30runtime/11new plus harness/pins/CI inventory before concrete custody release. Actual imported-data Today/gym/later-workout/restart proof and acceptedB3 remain; no reliable date | B finite map; PM construction split; D admission/C consumer; Joe actual-use confirmation |
+| S3 personal-history port | D contract/provider/context, E81533bd registry and B1c8eacc map accepted. PM230 releases D28-path core/provider/harness at06c5b4a with independent reviewer; B capture/final successor and C real consumers remain later work. Actual imported-data Today/gym/later-workout/restart and acceptedB3 required; no reliable date | D builds core; B current engine priority; C afterN2; Joe actual-use confirmation |
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
