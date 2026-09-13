@@ -1,0 +1,11 @@
+import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import {spawnSync} from 'node:child_process';const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
+const dir='.tmp/frozen-author-reconciliation',ref='4c355b2751e14f281bd5c529a67d2492675dbaca',prefix='rebuild/lanes/e/reviews/frozen-build-setup-evidence/',map=JSON.parse(fs.readFileSync(dir+'/ORIGINAL-PATHS.json'));
+function git(args){const r=spawnSync('git',args,{maxBuffer:4*1024*1024});if(r.status)throw Error('Archive Git read failed');return r.stdout;}
+if(git(['rev-parse',ref+'^']).toString().trim()!==map.candidate)throw Error('Archive parent mismatch');
+const changed=git(['diff','--name-only',map.candidate,ref]).toString().trim().split('\n');if(changed.length!==19||changed.some(x=>!x.startsWith(prefix)))throw Error('Unexpected evidence diff');
+fs.mkdirSync(dir+'/archive',{recursive:true});const files=[];
+for(const x of map.files){if(!x.archivePath.startsWith(prefix)||x.archivePath.slice(prefix.length).includes('/')||!/^[-a-z0-9]+\.(json|tap|mjs)$/.test(path.basename(x.archivePath)))throw Error('Unlisted archive path');const b=git(['show',ref+':'+x.archivePath]);if(b.length!==x.bytes||sha(b)!==x.sha256)throw Error('Archive identity mismatch');fs.writeFileSync(dir+'/archive/'+path.basename(x.archivePath),b);files.push({...x,exact:true});}
+const result={archive:ref,candidate:map.candidate,source:map.source,directChild:true,changedPaths:changed,copiedFiles:files,copiedBytes:files.reduce((n,x)=>n+x.bytes,0),firstVerdict:'561d3b2779decaaa7f5b8e8bca21f1cbdd9a08ad',afterFirstCommitAndSend:true,authorSourceExecuted:false};fs.writeFileSync(dir+'/archive-verification.json',JSON.stringify(result,null,2)+'\n');
+console.log(JSON.stringify({verified:files.length,bytes:result.copiedBytes,changed:changed.length}));
+for(const x of files.filter(x=>x.archivePath.endsWith('.tap'))){const t=fs.readFileSync(dir+'/archive/'+path.basename(x.archivePath),'utf8');console.log(path.basename(x.archivePath),t.split('\n').filter(l=>/^# (tests|pass|fail|cancelled|skipped|todo)/.test(l)).join('; '));}
+for(const name of ['dependency-inventory.json','final-inventory.json','reversals.json','reversals.mjs','setup.mjs'])console.log(name,fs.readFileSync(dir+'/archive/'+name,'utf8'));
