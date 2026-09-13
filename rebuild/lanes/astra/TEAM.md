@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 06:59 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 07:15 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Holdcc6a1315 through ER/D2; answer setup, prepare docs-only incremental memory pin/CI map; actual gate later | earned-astra-b-follow-up; hourly building,20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Holdcc6a1315 through ER final verdict; D2 scope accepted, memory mapc34e4ec accepted244; actual gate later | earned-astra-b-follow-up; hourly building,20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold independently accepted N2 bfc2935; B exact combined CI/admission next, then scoped consumers | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core R1–R10 repair in existing28paths on rebuild/astra-d-s3-core-r2; originalebc4c4e preserved, B/C protected joins retained | earned-lane-d-hourly; hourly building,20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Named affected N2 review at combinedcc6a1315, actual public consumer controls and fresh browser proof | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Combinedcc6a1315 N2 scoped ACCEPTb33530ba adopted; wait for named successor review | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Complete B1+B2 code/profile atcc6a1315 plus named public/tooling proof; S3 successor later | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | ef982610 memory contract accepted; waits concrete B incremental map/accepted repaired-D provider join, no further broad design task | earned-astra-e-follow-up; hourly design,20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | ef982610 contract and Bc34e4ec map accepted; wait for precise PM lifecycle/browser/source release after accepted repaired D and B chain | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
 ## Worktrees
