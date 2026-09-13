@@ -14,6 +14,7 @@ Acceptance:
 5. Preserve P1 no-dash attribution and fail-closed wrong-depth controls. Any new source scan must avoid false PASS from missing attribution and false rejection of allowed guarded reads. Review its real coverage honestly; do not claim it catches every browser incompatibility.
 6. Unique scratch plants must not mutate tracked production sources during sibling suites; prove the original intermittent/cache interference is absent under the relevant combined run without weakening assertions.
 7. Run the named existing Today tests, copy tests and current H3 public gate; report counts and terminal verdict only. If H3's pinned evidence refuses the candidate, stop and route to B/PM, never bypass or rewrite the accepted artifact.
+   Operator clarification under DECISIONS:196: H3 --ci reads historical source blobs despite its public label. B is the sole designated local gate runner and supplies its exact-candidate verdict. C/D2 run their authorized synthetic/browser checks; neither executes the private-reading gate. Command, pins and required proof remain unchanged.
 8. Windows and Ubuntu CI must pass at the exact published candidate head. Reviewer executes independently and reports ACCEPT/REJECT plus remaining limits. C author != D2 reviewer != integrator.
 9. On PM authorization, a third-role integrator merges the accepted head and checks the merged built artifact. No release-ready or Sunday-ready claim until this evidence exists. Integration may trigger the existing Earned slice pipeline; no main or relay deployment is licensed.
 

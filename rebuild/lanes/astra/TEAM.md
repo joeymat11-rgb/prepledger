@@ -5,11 +5,11 @@ Owner-approved handover: DECISIONS:193, published at 3ef096d. Operational checkp
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Engine and gate inventory before replacement write custody | earned-astra-b-follow-up; 20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Engine/issuer brief inventory; designated local gate execution196; no product/tooling-write grant yet | earned-astra-b-follow-up; 20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch adoption writer under DECISIONS:194; N2 next separately | earned-astra-c-follow-up; C changes same heartbeat to hourly building |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | F1/F2, plan-edit companion, existing relay candidate | earned-lane-d-hourly; hourly building |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | F1/F2, plan-edit companion, existing relay candidate | earned-lane-d-hourly; 20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Independent launch adoption review; N2 round 3 remains REJECT | earned-lane-d2-requests; 20 minutes waiting |
-| Engine reviewer | Commission a separate task at MAX for a named package | Independent execution after brief, before builder rationale; no author contribution | No empty standing task or duplicate heartbeat |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Astra MAX independent companion review6b3465e under brief195; consumer/cumulative admission still separate | earned-astra-engine-review-follow-up; hourly reviewing, pause at completion without new assignment |
 | Integrator | Commission a third-role task for a named accepted head | Verify custody, exact-head and merged-tree evidence; integration branch only | No merge authorized by this roster alone |
 
 ## Worktrees
@@ -19,6 +19,7 @@ New-tree root on Joe's PC: `C:/Users/joeym/Documents/prepledger-dev/work/pm-care
 - PM: `session-20260912`, branch `rebuild/pm-caretaker-20260912`.
 - B: `lane-b`, branch `rebuild/astra-b-lead`.
 - C: `lane-c`, branch `rebuild/astra-c-lead`.
+- Engine reviewer: `review-plan-edit`, branch `rebuild/astra-review-plan-edit`, public sparse checkout initialized clean at6b3465e.
 - D retains its own trees beneath `C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/lane-d/`.
 - D2 retains its own trees beneath `C:/Users/joeym/Documents/prepledger-dev/work/lane-d2/`.
 
@@ -37,5 +38,7 @@ D and D2 have acknowledged :193 directly. D reports F2 f3e9561 (79 cells / 15 mu
 Send meaningful events to the PM task directly and publish concise STATUS/REQUESTS records. Joe never relays lane messages. PM refreshes the current STATE and DELIVERY-CHECKLIST; historical events remain append-only. Fetch/rebase and stage only named own files before docs publication. Product integration has one designated writer.
 
 The three existing heartbeats were updated in place; only B/C received new ones. Empty waiting wakes end quietly. Hourly while building, 20 minutes when waiting for a handoff, and immediate response to completion messages; PM remains every 30 minutes. The previous Fable bridge automation stays paused. A historical PM-RESUMED does not undo Joe's new authority ruling.
+
+The named companion reviewer was subsequently started with its own single heartbeat under195; six active seats now exist. The integrator remains a separate task commissioned for an accepted head, never the author or reviewer. D's coherent revised brief6b3465e was accepted by exact hash195; actual C consumer and B admission remain open. Gate operator196 is B alone because even H3 --ci reads historical source blobs. The runner consumes only the existing required local inputs through the unchanged gate and reports counts/verdict; no raw private data enters reports or chats.
 
 No fresh product tests were run for this coordination-only setup. Required package tests, independent review, both-OS CI, private verdicts where applicable and device evidence remain delivery conditions. Check actual Astra usage as needed; do not reuse an old Claude meter or purchase credits automatically.

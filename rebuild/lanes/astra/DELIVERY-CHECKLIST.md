@@ -11,7 +11,7 @@ PM reconciliation at 2026-09-12 23:50 ET, observed tip befa2c9. Recent DECISIONS
 | B1+B2 | Named branch currently ff6b6b5, actual bundle not yet on that head | B; independent engine reviewer; PM |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
-| Edit My Week v1 | Exercises and Machine settings scope :176; PM read companion briefbb949a0, requested coherent interface/CI/admission clarification; composed candidate in flight | D companion; C editor after N2; D2 review |
+| Edit My Week v1 | Narrow companion brief6b3465e accepted195; separate Astra MAX review started. Actual C future-gym/open-draft join and B cumulative/CI admission remain open | D companion; engine reviewer; C editor after N2; D2 screen review |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
