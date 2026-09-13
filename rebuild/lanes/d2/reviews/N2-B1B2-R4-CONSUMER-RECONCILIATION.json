@@ -1,0 +1,55 @@
+{
+  "firstCommit": "eb62616e4dcc188f63fb4728ee4d2d90ddee5cb4",
+  "firstSendConfirmed": true,
+  "readUTC": "2026-09-13T20:09:27.360Z",
+  "candidate": "f2dea2ec8426d12e95483e180821839fbf1165f7",
+  "sources": [
+    {
+      "role": "B R4 report",
+      "commit": "f2dea2ec8426d12e95483e180821839fbf1165f7",
+      "path": "rebuild/lanes/b/BUILD-B1B2-R4-R9.md",
+      "bytes": 10070,
+      "lines": 41,
+      "sha256": "d94ed40d99e85acbe2d0eeeeb2608163e4591f59169974a2202382fa7bf84897",
+      "readScope": "complete report"
+    },
+    {
+      "role": "B README",
+      "commit": "f2dea2ec8426d12e95483e180821839fbf1165f7",
+      "path": "rebuild/lanes/b/tooling/README.md",
+      "bytes": 104942,
+      "lines": 1258,
+      "sha256": "d628898abe0c4deb8309741b4704b36ec6884ecb87748f9e3890c0057c819184",
+      "readScope": "R4 captured-date registration section; historical middle was truncated in initial tool output"
+    },
+    {
+      "role": "ER report",
+      "commit": "66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c",
+      "path": "rebuild/lanes/astra/REVIEW-B1B2-R4-R9.md",
+      "bytes": 9777,
+      "lines": 37,
+      "sha256": "eda036b1089302ecf2604876374f8d6de99be2230551fcfe0960b582d43637da",
+      "readScope": "complete report"
+    },
+    {
+      "role": "ER reconciliation",
+      "commit": "66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c",
+      "path": "rebuild/lanes/astra/reviews/B1B2-R4-AUTHOR-RECONCILIATION.json",
+      "bytes": 4491,
+      "lines": 58,
+      "sha256": "1bafcb09ad6f7f20519180b1e5bb9aeba57ca27291a510f98a764ba7369b43e8",
+      "readScope": "complete report"
+    }
+  ],
+  "firstArtifactsUnchanged": {
+    "reviewSHA256": "bb4f148b21e7417e1d5dd22c1e0fcbf3ee4f7ef5c1ef49b09dd1bace99dce488",
+    "evidenceSHA256": "acef747e983cbe46ee1d22a2343f2ec7c364fe475dfc2af2608f5a412c7de7fa",
+    "annexFiles": 8
+  },
+  "verdict": "No affected consumer defect in actual fixed-day page binding; unchanged",
+  "materialDiscrepancies": [],
+  "newProductExecutions": 0,
+  "largeERMachineEvidenceDecoded": false,
+  "authority": "PM sole judge/shared writer; no D2 acceptance or release line",
+  "next": "D2 LOW standby after local final handoff"
+}

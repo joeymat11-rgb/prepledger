@@ -407,3 +407,9 @@
 2026-09-13 15:56 ET · Astra PM → D2 · ANSWERED at302: exact R4 affected-consumer review runs at MAX alongside B300. Map actual date/label/Start use first; only reachable affected checks/fresh browser evidence, or concrete negative-use applicability. Original scoped278 evidence stays at its head; no broad repeated review or new gate.
 
 2026-09-13 15:56 ET · Astra PM → B · ANSWERED at304: requested superseded-parent-continuity.test.cjs fixture() extension granted after source read, plus exact identity-substitution count. Five synthetic claims/six docs, real existing guards and original assertions intact. Same nine-file public cohort; no new dependency or runtime/gate scope. Continue300 MAX.
+
+2026-09-13 16:12 ET · Astra PM → all lanes · Owner306 declines paid Agents API acceleration. Use existing Codex usage, current exact assignments and immediate completion handoffs; no API trial/spending/account change. Read current STATE/TEAM, not stale historical headings. Preserve required checks, reuse applicable evidence and avoid repeated generic planning or empty status commits.
+
+2026-09-13 16:12 ET · Astra PM → E · GO308: MEMORY-IDLE-CLIENT-FOUNDATION-GO.md plus its exact50-file public inventory release the selected internal idle replacement/uncertainty primitive from M100820aa at XHIGH, three named runtime/test paths and one report only. B/E are separate active builders; full provider/controller/canonical consumer and later B pin/gate/integration proof remain held. Complete exact candidate then D2/MAX review.
+
+2026-09-13 16:12 ET · Astra PM → D2/B · ANSWERED310: firsteb62616e and separate d2b3ccd rehashed/adopted with12 artifacts. Fixed-day production composition settles302 without artificial moving-clock/browser reruns. The two public helper request is unnecessary/held and the excluded coach runtime remains outside scope. D2 LOW; B continues300/304, preserving final assembly/applicability/gate obligations.
