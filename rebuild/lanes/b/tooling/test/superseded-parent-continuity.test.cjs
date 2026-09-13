@@ -62,11 +62,27 @@ function fixture({parentEdit=()=>{},ruleEdit=x=>x,runnerEdit=x=>x,id='B1-B2'}={}
  const token='GATE-SUPERSESSION M2-B1-B2 source-carriers,inherited-carriers,defect-witnesses,writers-differential,second-gate';
  const rule=ruleEdit('- 2026-09-13 · Astra PM · '+token+' · Synthetic tooling grant only · RULED');
  write('rebuild/DECISIONS.md',receiptLine+'\n'+handLine+'\n'+rule+'\n');const sourceBase=commit();
+ // PM304: six invented documents/five claims, with the same closed PM300
+ // shape. Only immutable fixture identities below change in the real runner.
+ const amendmentStart='const B1B2_AMENDMENTS = ',amendmentEnd='function b1b2AmendmentShape(s) {';
+ assert.equal(source.split(amendmentStart).length,2);assert.equal(source.split(amendmentEnd).length,2);
+ const amendmentLiteral=source.slice(source.indexOf(amendmentStart),source.indexOf(amendmentEnd));
+ const amendmentExpected=JSON.parse(vm.runInNewContext(amendmentLiteral+'JSON.stringify(B1B2_AMENDMENTS);'));
+ const amendmentClaims={},amendmentDocuments={};
+ for(const [id,row]of Object.entries(amendmentExpected)){
+  const line='- 2026-09-13 · Astra PM · Synthetic M2-B1-B2 amendment '+id+' · RULED';
+  row.lineSha256=sha(line);
+  for(const d of row.documents){const body='Synthetic authority document for '+id+' / '+d.file+'\n';amendmentDocuments[d.file]=body;d.sha256=sha(body);write(d.file,body);}
+  amendmentClaims[id]={claim:{ledgerLine:4+Object.keys(amendmentClaims).length,role:'Astra PM',line,lineSha256:row.lineSha256},documents:row.documents};
+ }
+ assert.equal(Object.keys(amendmentClaims).length,5);assert.equal(Object.keys(amendmentDocuments).length,6);
+ const amendmentLedger=receiptLine+'\n'+handLine+'\n'+rule+'\n'+Object.values(amendmentClaims).map(r=>r.claim.line).join('\n')+'\n';
+ write('rebuild/DECISIONS.md',amendmentLedger);const amendmentsAdmitted=commit();
  const expected={...ACTUAL_PARENT,sha256:sha(artifactBytes),reviewSha256:sha(reviewBytes),reviewedCommit,receiptBase,receiptLineSha256:sha(receiptLine)};
  const option={id:'H3',artifact,sha256:expected.sha256,review,reviewSha256:expected.reviewSha256,receiptLedgerLine:187,note:'Synthetic unit fixture'};
  const s={packageId:'M2-B1-B2',sourceBase,parent:{decided:true,chosen:'H3',options:[option]},product:{},children:[],brief:{file:'rebuild/lanes/b/synthetic-brief.md',acceptedLedgerLine:{}},
    coverage:{inherited:{},moves:{},successors:null,superseded:{rulingLineSha256:sha(rule),gates:{}},repairedWitnesses:approvedRows()},
-   dIds:H3.dIds,laws:{},carriedAcceptedIds:[],privateLiveTriggered:[],carrierSuccessor:null,witnessFlips:[],protectedSurfaces:[],authorizations:{},artifact:{}};
+   dIds:H3.dIds,laws:{},carriedAcceptedIds:[],privateLiveTriggered:[],carrierSuccessor:null,witnessFlips:[],protectedSurfaces:[],authorizations:{...(id==='B1-B2'?{amendments:structuredClone(amendmentClaims)}:{})},artifact:{}};
  const files={};
  function child(name,file,needle){const body='// synthetic child declaration, never native evidence\n';write(file,body);files[file]=body;s.product[file]={pre:null,post:sha(body),role:'new'};s.children.push({name,argv:[file],needle});return name;}
  const legacy=child('current-legacy','rebuild/m4/workout/test/synthetic-legacy.cjs','synthetic legacy');
@@ -87,11 +103,17 @@ function fixture({parentEdit=()=>{},ruleEdit=x=>x,runnerEdit=x=>x,id='B1-B2'}={}
  write('rebuild/lanes/b/b2-delta-cells.cjs','// argv fixture\n');
  for(const name of ['astra-issuer-compatibility','product-phase-and-ledger','seal-tip-and-byte-identity','gate-supersession','pinned-unchanged-and-ruled-substitutions','parent-pin-shapes-and-spec-successors','git-blob-pin-classes','b1b2-registration','superseded-parent-continuity'])write('rebuild/lanes/b/tooling/test/'+name+'.test.cjs','// argv fixture\n');
  commit();
- let code=source.replace("const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';","const CHAIN_REF = 'refs/heads/fixture-chain';")
-  .replace(/^const PM_HANDOVER = Object\.freeze\(.+\);$/m,'const PM_HANDOVER = Object.freeze('+JSON.stringify(handover)+');')
-  .replace(/^const B1B2_PARENT = Object\.freeze\(.+\);$/m,'const B1B2_PARENT = Object.freeze('+JSON.stringify(expected)+');')
-  .replace(/^const B1B2_SUPERSESSION_LINE = '.+';$/m,"const B1B2_SUPERSESSION_LINE = '"+sha(rule)+"';");
- assert.equal(source.split('\n').filter((l,i)=>l!==code.split('\n')[i]).length,4,'only fixture repository identities change');code=runnerEdit(code);
+ const identityEdits=[
+  ['CHAIN_REF',"const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';","const CHAIN_REF = 'refs/heads/fixture-chain';"],
+  ['PM_HANDOVER',source.match(/^const PM_HANDOVER = Object\.freeze\(.+\);$/m)[0],'const PM_HANDOVER = Object.freeze('+JSON.stringify(handover)+');'],
+  ['B1B2_PARENT',source.match(/^const B1B2_PARENT = Object\.freeze\(.+\);$/m)[0],'const B1B2_PARENT = Object.freeze('+JSON.stringify(expected)+');'],
+  ['B1B2_SUPERSESSION_LINE',source.match(/^const B1B2_SUPERSESSION_LINE = '.+';$/m)[0],"const B1B2_SUPERSESSION_LINE = '"+sha(rule)+"';"],
+  ['B1B2_AMENDMENTS',amendmentLiteral,amendmentStart+'Object.freeze('+JSON.stringify(amendmentExpected)+');\n'],
+ ];
+ assert.deepEqual(identityEdits.map(r=>r[0]),['CHAIN_REF','PM_HANDOVER','B1B2_PARENT','B1B2_SUPERSESSION_LINE','B1B2_AMENDMENTS']);
+ let code=source;for(const [name,from,to]of identityEdits){assert.equal(code.split(from).length,2,name+' exact identity substitution');code=code.replace(from,to);}
+ let inverse=code;for(const [name,from,to]of identityEdits.slice().reverse()){assert.equal(inverse.split(to).length,2,name+' exact inverse');inverse=inverse.replace(to,from);}
+ assert.equal(inverse,source,'exactly five identity substitutions; no guard or function-body change');code=runnerEdit(code);
  write(runner,code);write('rebuild/lanes/b/tooling/packages/B1-B2.json','{}\n');
  const file=path.join(dir,runner),m=new Module(file,module);m.filename=file;m.paths=Module._nodeModulePaths(path.dirname(path.join(root,runner)));
  const originalRequire=m.require.bind(m);m.require=name=>originalRequire(path.isAbsolute(name)&&name.startsWith(dir+path.sep)?path.join(root,path.relative(dir,name)):name);
@@ -101,7 +123,7 @@ function fixture({parentEdit=()=>{},ruleEdit=x=>x,runnerEdit=x=>x,id='B1-B2'}={}
  const bound={option,acceptance:old,reviewedCommit,receiptBase,decided:true};
   const ran=id==='B1-B2'?new Map(s.children.map(c=>[c.name,{ok:true,targets:api.childArgv(c)}])):new Map();
   if(id==='B1-B2')for(const[gate,row]of Object.entries(s.coverage.repairedWitnesses)){const[,cases,substitutions]=witnessPins[gate];Object.assign(ran.get(row.child),{repairedWitness:gate,originalCases:cases,originalSha256:row.sha256,substitutions});}
- return{dir,git,write,commit,sourceBase,s,bound,ran,api,rule,option,receiptLine,handLine,reviewBytes,artifactBytes};
+ return{dir,git,write,commit,sourceBase,s,bound,ran,api,rule,option,receiptLine,handLine,reviewBytes,artifactBytes,amendmentClaims,amendmentDocuments,amendmentExpected,amendmentLedger,amendmentsAdmitted};
 }
 test.after(()=>{for(const dir of scratches){const resolved=fs.realpathSync(dir);assert.equal(path.dirname(resolved),fs.realpathSync(temp));assert(path.basename(resolved).startsWith('b1b2-continuity-'));fs.rmSync(resolved,{recursive:true,force:true});}});
 

@@ -293,6 +293,36 @@ const B1B2_MODES = new Map([[B1B2_CARRIER, new Set(['--public-laws','--witness-1
   ['rebuild/engine/test/b2-public-source-faults.test.cjs', new Set(['--audit-mutations'])],
   ['rebuild/engine/test/b2-era30.test.cjs', new Set(['--audit-mutations'])]]);
 const B1B2_SOURCE_BASE = '100820aa47a4f8729642033499eaec0f0ee282e1';
+// PM300: this fixed admission set, not a self-consistent profile, names the
+// five later rulings and six documents required by this one combined package.
+const B1B2_AMENDMENTS = Object.freeze({
+  'repair-and-availability': { lineSha256:'a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf', documents:[
+    {file:'rebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md',sha256:'569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef'},
+    {file:'rebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md',sha256:'392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295'}]},
+  'reference-factory': { lineSha256:'bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb', documents:[
+    {file:'rebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md',sha256:'9f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4'}]},
+  'today-clearance': { lineSha256:'3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef', documents:[
+    {file:'rebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md',sha256:'34ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432'}]},
+  'captured-date': { lineSha256:'86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a', documents:[
+    {file:'rebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md',sha256:'9f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6'}]},
+  'source-graph': { lineSha256:'599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773', documents:[
+    {file:'rebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md',sha256:'222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017'}]},
+});
+function b1b2AmendmentShape(s) {
+  if (ID !== 'B1-B2') return;
+  const amendments = s.authorizations && s.authorizations.amendments;
+  assert(amendments && typeof amendments === 'object' && !Array.isArray(amendments), 'B1B2-AMENDMENTS-REQUIRED');
+  keys(amendments, Object.keys(B1B2_AMENDMENTS), 'B1B2-AMENDMENTS-CLOSED-IDS');
+  for (const [id, expected] of Object.entries(B1B2_AMENDMENTS)) {
+    const row = amendments[id];
+    assert(row && typeof row === 'object' && !Array.isArray(row), 'B1B2-AMENDMENT-ROW '+id);
+    keys(row, ['claim','documents'], 'B1B2-AMENDMENT-CLOSED-ROW '+id);
+    assert(row.claim && typeof row.claim === 'object' && !Array.isArray(row.claim), 'B1B2-AMENDMENT-CLAIM '+id);
+    claim(row.claim, 'Astra PM', 'B1B2 amendment '+id);
+    assert.equal(row.claim.lineSha256, expected.lineSha256, 'B1B2-AMENDMENT-REQUIRED-LINE '+id);
+    assert.deepEqual(row.documents, expected.documents, 'B1B2-AMENDMENT-EXACT-DOCUMENTS '+id);
+  }
+}
 const B1B2_TODAY = Object.freeze(['adapter.test.mjs','catalogue.test.mjs','checkin.test.mjs','copy.test.mjs','design.test.cjs','food.test.mjs','gym.test.mjs','machine-settings-ui.test.mjs','ntc-h6-delta.test.mjs','package.test.cjs','problem.test.mjs','setup.test.mjs','view.test.mjs']);
 // DECISIONS236: exact C bfc2935/source60e24a8; scoped D2 review98eeb183.
 // These immutable post-images identify the admitted source, not its acceptance
@@ -348,6 +378,7 @@ const B1B2_CHILD_ARGV = (() => {
 // Filesystem/receipt/execution checks still occur independently at their gates.
 function b1b2Inventory(s) {
   if (ID !== 'B1-B2') return;
+  b1b2AmendmentShape(s);
   assert.equal(s.sourceBase,B1B2_SOURCE_BASE,'B1B2-REGISTRATION-SOURCE-BASE');
   assert.equal(s.lanePackage,'B1-B2','B1B2-REGISTRATION-CLI-ID');
   assert.equal(s.packageId,'M2-B1-B2','B1B2-REGISTRATION-PACKAGE-ID');
@@ -990,6 +1021,30 @@ function claim(v, role, label) { // a ledger citation whose text hashes to the s
   assert(Number.isInteger(v.ledgerLine) && v.ledgerLine > 0 && v.role === role, 'Claim coordinates ' + label);
   assert(typeof v.line === 'string' && !/[\r\n]/.test(v.line) && /^[a-f0-9]{64}$/.test(v.lineSha256) && sha(Buffer.from(v.line)) === v.lineSha256, 'LEDGER-LINE-SHA256 ' + label);
 }
+// Re-read real Git objects at every call. The receipt-context call is additional
+// to the current-chain check, never a replacement for it. No candidate ledger,
+// mutable line number, cached verdict or document basename supplies authority.
+function b1b2Amendments(s, at = CHAIN_REF) {
+  if (ID !== 'B1-B2') return {};
+  b1b2AmendmentShape(s);
+  const pins = {};
+  for (const [id, row] of Object.entries(s.authorizations.amendments)) {
+    pmLedger(at, row.claim, []);
+    for (const document of row.documents) {
+      assert.equal(sha(L.object(root, at, document.file)), document.sha256,
+        'B1B2-AMENDMENT-DOCUMENT-BYTES '+id+' '+document.file+' at '+at);
+      pins[document.file] = document.sha256;
+    }
+  }
+  return pins;
+}
+function authorizationKeys(s) {
+  const authKeys = Object.keys(s.authorizations).sort();
+  const allowedAuth = ['owner', 'contract', 'theme', 'review', 'freeze', ...(ID === 'B1-B2' ? ['amendments'] : [])];
+  assert(authKeys.every(k => allowedAuth.includes(k)),
+    'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
+  keys({ ...s.authorizations, freeze: null }, allowedAuth, 'Closed authorization keys');
+}
 // r6 change 4, as r7 F4 re-anchors it. THE RULING'S OWN BYTES, read from Git on the chain
 // branch — the one text a spec cannot write.
 //
@@ -1542,10 +1597,8 @@ function spec() {
   // same way in sealOnTheTip(). Optional so that every spec that does not need one — all of
   // them, on a branch that carries the tip — keeps the closed four it already has, and so
   // that adding the key changes no sealed artifact's bytes.
-  const authKeys = Object.keys(s.authorizations).sort();
-  assert(authKeys.every(k => ['owner', 'contract', 'theme', 'review', 'freeze'].includes(k)),
-    'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
-  keys({ ...s.authorizations, freeze: null }, ['owner', 'contract', 'theme', 'review', 'freeze'], 'Closed authorization keys');
+  authorizationKeys(s);
+  b1b2Amendments(s);
   if (s.authorizations.freeze) {
     pmLedger(CHAIN_REF, s.authorizations.freeze, [s.packageId]);
     assert(/\bFREEZE\b/.test(s.authorizations.freeze.line) && /\b[a-f0-9]{40}\b/.test(s.authorizations.freeze.line),
@@ -2157,6 +2210,7 @@ function ledger(at, v, mentions) {
   L.verifyReceipt(root, at, { commit: at, path: 'rebuild/DECISIONS.md', line: v.line, lineSha256: v.lineSha256 }, { role: v.role, mentions });
 }
 function authority(s, bound) {
+  b1b2Amendments(s);
   const theme = s.authorizations.theme, accepted = s.brief.acceptedLedgerLine;
   const themeOpen = () => note('theme ledger line accepting this brief is null (THEME-AUTHORIZATION-UNAVAILABLE before any receipt)');
   const briefOpen = () => note('brief ' + s.brief.file + ' not accepted by a PM ledger line');
@@ -2816,6 +2870,7 @@ function noRegister(s, ran) {
 // integrator writes acceptance-<slug>.json with exactly these bytes — this tooling never
 // writes in rebuild/m4/spec.
 function proposed(s, bound) {
+  b1b2Amendments(s); // The unchanged authorizations field below carries every claim/document pin.
   const pins = { [RUNNER]: diskSha(RUNNER), [TOOLING + '/packages/' + ID + '.json']: sha(specRaw) };
   if (fs.existsSync(rel(s.brief.file))) pins[s.brief.file] = diskSha(s.brief.file);
   if (s.carrierSuccessor && fs.existsSync(rel(s.carrierSuccessor.file))) pins[s.carrierSuccessor.file] = diskSha(s.carrierSuccessor.file);
@@ -3035,6 +3090,9 @@ function sealedRunReceiptInstruction() {
 // Returns {authorized, said, sealed, key}; `key` identifies everything this evaluation
 // depended on, and the END-of-run re-evaluation must reproduce it exactly (W5).
 function envelope(s, bound, ran, pinVerificationPhase = ci ? 'ci' : (ran ? 'full-terminal' : 'full-entry')) {
+  const amendmentPins = b1b2Amendments(s);
+  if (ID === 'B1-B2' && pinVerificationPhase !== 'ci')
+    L.checkSources(root, 'HEAD', amendmentPins); // actual FULL entry AND terminal, including an unsealed candidate
   const gitUnchanged = verifyUnchangedGitPins(s, bound, pinVerificationPhase);
   if (ID === 'B1-B2') {
     parentCoverage(s,bound);
@@ -3110,6 +3168,7 @@ function envelope(s, bound, ran, pinVerificationPhase = ci ? 'ci' : (ran ? 'full
   assert(s.authorizations.theme, 'THEME-AUTHORIZATION-UNAVAILABLE'); // no PASS before the brief's own ledger line is bound
   assert(s.brief.acceptedLedgerLine && s.status === 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-UNAVAILABLE'); // N4: no PASS on an unaccepted brief
   pmReceipt(r.commit, r, [s.packageId, ARTIFACT, hash], s.authorizations.review.role);
+  b1b2Amendments(s, r.commit); // exact six documents must also stand at the actual acceptance receipt context
   const cited = { owner: [s.authorizations.owner, ['M2-RULE']], contract: [s.authorizations.contract, ['POSTFIX-GATE BRIEF']],
     theme: [s.authorizations.theme, [s.packageId]], brief: [s.brief.acceptedLedgerLine, [s.packageId, s.brief.file]] };
   for (const [name, [v, mentions]] of Object.entries(cited)) {
@@ -3130,7 +3189,9 @@ function envelope(s, bound, ran, pinVerificationPhase = ci ? 'ci' : (ran ? 'full
   // terminal decision. All actual implementation, runner/spec and core pins
   // retain the original reviewed-commit plus worktree check.
   for (const file of gitUnchanged.keys()) delete reviewed[file];
+  Object.assign(reviewed, amendmentPins); // fixed authority pins cannot be overridden by product/execution declarations
   L.checkSources(root, v[1], reviewed);
+  if (ID === 'B1-B2') L.checkSources(root, 'HEAD', amendmentPins); // authorized CI also binds current HEAD/worktree documents
   ancestor(v[1], 'HEAD', 'REVIEWED-COMMIT-NOT-BEHIND-HEAD');
   ancestor(r.commit, CHAIN_REF, 'RECEIPT-BASE-NOT-ON-THE-CHAIN-BRANCH'); // the real chain branch, from Git refs, never from the spec
   ancestor(s.sourceBase, 'HEAD', 'SOURCEBASE-NOT-BEHIND-HEAD');

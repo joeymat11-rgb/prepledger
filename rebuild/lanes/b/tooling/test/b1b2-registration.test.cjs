@@ -135,8 +135,11 @@ const familyBlock=runnerSource.slice(runnerSource.indexOf('const B1B2_FAMILIES =
 const toolLine=runnerSource.split('\n').find(l=>l.startsWith('const B1B2_TOOL_TESTS ='));
 function inventoryModule(code=declaration){
  const m=new Module(path.join(root,'.tmp','registration-reader.cjs'));
- m.require=name=>{assert.equal(name,'node:assert/strict');return assert;};
- m._compile("const assert=require('node:assert/strict'), ID='B1-B2', TOOLING='rebuild/lanes/b/tooling';\n"+idsLine+'\n'+familyBlock+'\n'+toolLine+'\n'+code+'\nmodule.exports={check:b1b2Inventory,argv:B1B2_CHILD_ARGV};',m.id);
+ m.require=name=>{assert(['node:assert/strict','node:crypto'].includes(name));return require(name);};
+ const claimCode=runnerSource.slice(runnerSource.indexOf('function claim('),runnerSource.indexOf('// Re-read real Git objects'));
+ const keysCode=runnerSource.split('\n').find(l=>l.startsWith('const keys ='));
+ const claimKeys=runnerSource.split('\n').find(l=>l.startsWith('const CLAIM_KEYS ='));
+ m._compile("const assert=require('node:assert/strict'), ID='B1-B2', TOOLING='rebuild/lanes/b/tooling';\nconst sha=x=>require('node:crypto').createHash('sha256').update(x).digest('hex');\n"+keysCode+'\n'+claimKeys+'\n'+claimCode+'\n'+idsLine+'\n'+familyBlock+'\n'+toolLine+'\n'+code+'\nmodule.exports={check:b1b2Inventory,argv:B1B2_CHILD_ARGV};',m.id);
  return m.exports;
 }
 const inventory=inventoryModule();
@@ -269,4 +272,180 @@ for(const[name,guard,mutate]of[
  assert.throws(()=>inventory.check(s),/B1B2-REGISTRATION-/);
  const mutant=inventoryModule(declaration.replace(guard,'// intentional guard-removal mutant'));
  assert.doesNotThrow(()=>mutant.check(s));
+});
+
+// PM300: real authority/Git functions, called inside owned synthetic histories.
+// Reuse only the already licensed continuity fixture constructor, before its
+// tests; no original witness, native factory, package main or gate is executed.
+const amendmentStart='const B1B2_AMENDMENTS = ',amendmentEnd='function b1b2AmendmentShape(s) {';
+function amendmentLiteral(source){
+ assert.equal(source.split(amendmentStart).length,2);assert.equal(source.split(amendmentEnd).length,2);
+ return source.slice(source.indexOf(amendmentStart),source.indexOf(amendmentEnd));
+}
+const fixedAmendments=JSON.parse(vm.runInNewContext(amendmentLiteral(runnerSource)+'JSON.stringify(B1B2_AMENDMENTS);'));
+const amendmentIds=['repair-and-availability','reference-factory','today-clearance','captured-date','source-graph'];
+const amendmentLineHashes=['a519f6cc8bbe9ad5b0c254bc2c03368265f15c9d1216c4e809c6b99eeeff5ecf','bad4cb7863900080a4ee9b3af8c5e02d6b0e62a58c7409ab2d30f7ba47ce19bb','3006cfb8c2a7c9cb5e5ecc9570bdee5ef6b1aaa9dc6ccf7230baa09d7142e4ef','86849eda203dcb741a7f5e88792fdfa632c2ab0c8e7ce780050a633dc3dcfd8a','599e0afb2d9c2ffb6e0ab0b6878f5d76abc0a27579dd076d4f09f26e2ff1d773'];
+const amendmentDocuments=[
+ ['rebuild/lanes/astra/B1B2-COMPLETE-REPAIR-PM-GO.md','569ab646d1e4d498f774607f76290b3a29d1bbf2d9287bbcfff5a68df350e1ef'],
+ ['rebuild/lanes/astra/B1B2-R7-TARGET-AVAILABILITY-PM-RULING.md','392d83ecb6138cdd58077a9dcf380739588570c2f9ed4d0a8cd2d3c5feb90295'],
+ ['rebuild/lanes/astra/B1B2-REFERENCE-AND-FACTORY-PM-GO.md','9f3dab4487287a28ac67da6622abc7cdbfb926cc5fbafed17a1bdd9c843bbcf4'],
+ ['rebuild/lanes/astra/B1B2-R2-R8-PM-DISPOSITION.md','34ed6048ee03e98fe6df6059a6c82d24c086bc117a08267bf3bdadc1efe95432'],
+ ['rebuild/lanes/astra/B1B2-R3-R9-PM-DISPOSITION.md','9f8b97ce50edc211ae3126092eb76d20c510391b8cc66b9e6a0ac1b016ad8ce6'],
+ ['rebuild/lanes/astra/B1B2-R4-SOURCE-GRAPH-PM-RULING.md','222b5bc0dcc75db1e95306cdc8a244ecb817a986a045a495dfaad0766dee3017'],
+];
+const continuityPath=path.join(root,'rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs');
+const continuitySource=fs.readFileSync(continuityPath,'utf8');
+assert.equal(continuitySource.split('test.after(').length,2);
+let fixturePrefix=continuitySource.slice(0,continuitySource.indexOf('test.after('));
+const fixtureExports='module.exports={parentCoverage,';
+assert.equal(fixturePrefix.split(fixtureExports).length,2);
+fixturePrefix=fixturePrefix.replace(fixtureExports,'module.exports={b1b2Inventory,b1b2Amendments,authorizationKeys,authority,spec,pmReceipt,pmLedger,open,');
+const fixtureModule=new Module(continuityPath,module);fixtureModule.filename=continuityPath;
+fixtureModule.paths=Module._nodeModulePaths(path.dirname(continuityPath));
+fixtureModule._compile(fixturePrefix+'\nmodule.exports={fixture,scratches};',continuityPath);
+const fixtureScratch=fixtureModule.exports.scratches;
+test.after(()=>{for(const dir of fixtureScratch){const resolved=fs.realpathSync(dir),parent=fs.realpathSync(path.join(root,'.tmp'));assert.equal(path.dirname(resolved),parent);assert(path.basename(resolved).startsWith('b1b2-continuity-'));fs.rmSync(resolved,{recursive:true,force:true});}});
+
+function amendmentFixture(edit=x=>x){
+ const f=fixtureModule.exports.fixture({runnerEdit:edit});
+ const documents=f.amendmentDocuments,expected=f.amendmentExpected,claims=f.amendmentClaims;
+ const oldLedger=f.receiptLine+'\n'+f.handLine+'\n'+f.rule+'\n';
+ const beforeAmendments=f.sourceBase,ledger=f.amendmentLedger,admitted=f.amendmentsAdmitted;
+ f.s.authorizations={owner:{},contract:{},theme:null,review:{},amendments:structuredClone(claims)};
+ f.s.brief.acceptedLedgerLine=null;
+ return Object.assign(f,{documents,claims,expected,oldLedger,ledger,beforeAmendments,admitted});
+}
+let sharedAmendmentFixture;
+function af(){return sharedAmendmentFixture ||= amendmentFixture();}
+function amendmentPositive(f){
+ const actual=f.api.b1b2Amendments(f.s);
+ assert.deepEqual(actual,Object.fromEntries(Object.entries(f.documents).map(([file,body])=>[file,hash(Buffer.from(body))])));
+ return actual;
+}
+function restoredProfile(mutate,expected){
+ const f=af(),saved=structuredClone(f.s.authorizations);amendmentPositive(f);
+ try{mutate(f.s);assert.throws(()=>f.api.b1b2Amendments(f.s),expected);}finally{f.s.authorizations=saved;}
+ amendmentPositive(f);
+}
+
+test('A1 real PM300 closed admission table matches exact shared line/document bytes',()=>{
+ assert.deepEqual(Object.keys(fixedAmendments),amendmentIds);
+ assert.deepEqual(Object.values(fixedAmendments).map(r=>r.lineSha256),amendmentLineHashes);
+ assert.deepEqual(Object.values(fixedAmendments).flatMap(r=>r.documents.map(d=>[d.file,d.sha256])),amendmentDocuments);
+ const p=currentProfile(),lines=L.object(root,'refs/remotes/origin/rebuild/t2-client-core','rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+ for(const [id,row]of Object.entries(p.authorizations.amendments)){
+  assert.equal(lines.filter(l=>l===row.claim.line&&hash(Buffer.from(l))===fixedAmendments[id].lineSha256).length,1);
+  assert.equal(row.claim.role,'Astra PM');
+  for(const d of row.documents)assert.equal(hash(L.object(root,'refs/remotes/origin/rebuild/t2-client-core',d.file)),d.sha256);
+ }
+ inventory.check(p);
+});
+test('A2 complete synthetic amendment authority verifies real issuer, Git, shape and six documents',()=>{
+ const f=af();amendmentPositive(f);f.api.authorizationKeys(f.s);
+ const p=currentProfile();p.authorizations.amendments=structuredClone(f.claims);f.api.b1b2Inventory(p);
+ f.api.open.length=0;f.api.authority(f.s,null);assert(f.api.open.every(o=>!/amendment/i.test(o.reason)));
+ const artifact=f.api.proposed(f.s,f.bound);assert.deepEqual(artifact.authorizations.amendments,f.s.authorizations.amendments);
+ assert.equal(Object.values(artifact.authorizations.amendments).flatMap(r=>r.documents).length,6);
+ // This proves the real unsealed entry/terminal path only; ABSENT is not acceptance.
+ assert.equal(f.api.envelope(f.s,f.bound,undefined,'full-entry').key,'ABSENT');
+ f.api.coverage(f.s,f.bound,f.ran);
+ assert.equal(f.api.envelope(f.s,f.bound,f.ran,'full-terminal').key,'ABSENT');
+});
+for(const id of amendmentIds){
+ test('A3 missing required amendment refuses and restores: '+id,()=>restoredProfile(s=>delete s.authorizations.amendments[id],/B1B2-AMENDMENTS-CLOSED-IDS/));
+ test('A4 forged self-consistent claim refuses and restores: '+id,()=>restoredProfile(s=>{const c=s.authorizations.amendments[id].claim;c.line+=' forged';c.lineSha256=hash(Buffer.from(c.line));},/B1B2-AMENDMENT-REQUIRED-LINE/));
+ test('A5 wrong role refuses and restores: '+id,()=>restoredProfile(s=>s.authorizations.amendments[id].claim.role='cowork',/Claim coordinates/));
+ test('A6 mismatched claim bytes refuse and restore: '+id,()=>restoredProfile(s=>s.authorizations.amendments[id].claim.line+=' changed',/LEDGER-LINE-SHA256/));
+}
+for(const [name,mutate,code]of[
+ ['absent block',s=>delete s.authorizations.amendments,/B1B2-AMENDMENTS-REQUIRED/],
+ ['null block',s=>s.authorizations.amendments=null,/B1B2-AMENDMENTS-REQUIRED/],
+ ['array block',s=>s.authorizations.amendments=[],/B1B2-AMENDMENTS-REQUIRED/],
+ ['extra stable ID',s=>s.authorizations.amendments.extra=s.authorizations.amendments['source-graph'],/B1B2-AMENDMENTS-CLOSED-IDS/],
+ ['extra row field',s=>s.authorizations.amendments['source-graph'].waived=true,/B1B2-AMENDMENT-CLOSED-ROW/],
+ ['extra claim field',s=>s.authorizations.amendments['source-graph'].claim.accepted=true,/Authorization claim/],
+ ['missing claim field',s=>delete s.authorizations.amendments['source-graph'].claim.ledgerLine,/Authorization claim/],
+ ['invalid coordinate',s=>s.authorizations.amendments['source-graph'].claim.ledgerLine=0,/Claim coordinates/],
+ ['reordered documents',s=>s.authorizations.amendments['repair-and-availability'].documents.reverse(),/B1B2-AMENDMENT-EXACT-DOCUMENTS/],
+ ['duplicate document',s=>s.authorizations.amendments['repair-and-availability'].documents[1]=s.authorizations.amendments['repair-and-availability'].documents[0],/B1B2-AMENDMENT-EXACT-DOCUMENTS/],
+ ['extra document',s=>s.authorizations.amendments['source-graph'].documents.push(s.authorizations.amendments['source-graph'].documents[0]),/B1B2-AMENDMENT-EXACT-DOCUMENTS/],
+])test('A7 closed amendment shape refuses '+name,()=>restoredProfile(mutate,code));
+for(const [id,row]of Object.entries(fixedAmendments))for(const [index,d]of row.documents.entries()){
+ for(const field of ['file','sha256'])test('A8 exact document '+field+' refuses and restores: '+path.basename(d.file),()=>restoredProfile(s=>s.authorizations.amendments[id].documents[index][field]=field==='file'?path.basename(d.file):'0'.repeat(64),/B1B2-AMENDMENT-EXACT-DOCUMENTS/));
+ test('A9 actual shared document bytes refuse and restore: '+path.basename(d.file),()=>{
+  const f=af();amendmentPositive(f);f.write(d.file,f.documents[d.file]+'changed\n');f.commit();
+  try{assert.throws(()=>f.api.b1b2Amendments(f.s),/B1B2-AMENDMENT-DOCUMENT-BYTES/);}finally{f.write(d.file,f.documents[d.file]);f.commit();}
+  amendmentPositive(f);
+ });
+}
+test('A10 actual spec rejects duplicate decoded amendment, claim and document JSON keys',()=>{
+ const f=af(),file=profilePath,saved=fs.readFileSync(path.join(f.dir,file));
+ for(const text of ['{"authorizations":{"amendments":{},"\\u0061mendments":{}}}',
+  '{"authorizations":{"amendments":{"source-graph":{},"source-\\u0067raph":{}}}}',
+  '{"claim":{"line":"a","l\\u0069ne":"b"}}','{"documents":[{"file":"a","f\\u0069le":"b"}]}']){
+  f.write(file,text);assert.throws(()=>f.api.spec(),{code:'JSON-DUPLICATE-KEY'});
+ }
+ f.write(file,saved);amendmentPositive(f);
+});
+test('A11 shared line absent or duplicated refuses despite exact candidate-local authority',()=>{
+ const f=af(),line=f.claims['source-graph'].claim.line;amendmentPositive(f);
+ for(const ledger of [f.ledger.replace(line+'\n',''),f.ledger+line+'\n']){
+  f.write('rebuild/DECISIONS.md',ledger);f.commit();
+  const chain=f.git('rev-parse','HEAD');f.git('checkout','--quiet','-b','candidate-local-'+chain.slice(0,8));
+  f.write('rebuild/DECISIONS.md',f.ledger);f.commit();
+  try{assert.throws(()=>f.api.b1b2Amendments(f.s),/RECEIPT-EXACT-LINE-MISSING/);}finally{f.git('checkout','--quiet','fixture-chain');f.write('rebuild/DECISIONS.md',f.ledger);f.commit();}
+  amendmentPositive(f);
+ }
+});
+test('A12 receipt context must itself contain the exact lines and six documents',()=>{
+ const f=af();amendmentPositive(f);assert.throws(()=>f.api.b1b2Amendments(f.s,f.beforeAmendments),/RECEIPT-EXACT-LINE-MISSING/);
+ const file=amendmentDocuments[0][0];f.write(file,f.documents[file]+'receipt-only drift\n');const wrong=f.commit();
+ f.write(file,f.documents[file]);f.commit();amendmentPositive(f);
+ assert.throws(()=>f.api.b1b2Amendments(f.s,wrong),/B1B2-AMENDMENT-DOCUMENT-BYTES/);
+ assert.deepEqual(f.api.b1b2Amendments(f.s,f.admitted),amendmentPositive(f));
+ f.git('checkout','--quiet','-b','off-chain-receipt');const side=f.commit();f.git('checkout','--quiet','fixture-chain');
+ assert.throws(()=>f.api.b1b2Amendments(f.s,side),/PM-RECEIPT-CONTEXT-NOT-ON-CHAIN/);amendmentPositive(f);
+});
+test('A13 actual envelope re-reads shared authority and documents after entry',()=>{
+ const f=af();assert.equal(f.api.envelope(f.s,f.bound,undefined,'full-entry').key,'ABSENT');
+ const line=f.claims['source-graph'].claim.line;f.write('rebuild/DECISIONS.md',f.ledger.replace(line+'\n',''));f.commit();
+ try{assert.throws(()=>f.api.envelope(f.s,f.bound,f.ran,'full-terminal'),/RECEIPT-EXACT-LINE-MISSING/);}finally{f.write('rebuild/DECISIONS.md',f.ledger);f.commit();}
+ assert.equal(f.api.envelope(f.s,f.bound,undefined,'full-entry').key,'ABSENT');
+ const file=amendmentDocuments[1][0];f.write(file,f.documents[file]+'terminal drift\n');f.commit();
+ try{assert.throws(()=>f.api.envelope(f.s,f.bound,f.ran,'full-terminal'),/B1B2-AMENDMENT-DOCUMENT-BYTES/);}finally{f.write(file,f.documents[file]);f.commit();}
+ assert.equal(f.api.envelope(f.s,f.bound,f.ran,'full-terminal').key,'ABSENT');
+});
+test('A14 actual FULL entry and terminal bind candidate HEAD and worktree documents',()=>{
+ const f=af(),file=amendmentDocuments[2][0];
+ for(const phase of ['full-entry','full-terminal']){
+  f.write(file,f.documents[file]+'disk-only\n');
+  try{assert.throws(()=>f.api.envelope(f.s,f.bound,undefined,phase),/WORKTREE-SOURCE-PIN/);}finally{f.write(file,f.documents[file]);}
+ }
+ f.git('checkout','--quiet','-b','candidate-document-drift');f.write(file,f.documents[file]+'HEAD-only\n');f.commit();f.write(file,f.documents[file]);
+ try{assert.throws(()=>f.api.envelope(f.s,f.bound,undefined,'full-entry'),/GIT-SOURCE-PIN/);}finally{f.write(file,f.documents[file]+'HEAD-only\n');f.git('checkout','--quiet','fixture-chain');}
+ assert.equal(f.api.envelope(f.s,f.bound,f.ran,'full-terminal').key,'ABSENT');
+});
+test('A15 explanatory ledger coordinates may move without replacing exact authority',()=>{
+ const f=af(),saved=structuredClone(f.s.authorizations);for(const row of Object.values(f.s.authorizations.amendments))row.claim.ledgerLine+=1000;
+ try{amendmentPositive(f);}finally{f.s.authorizations=saved;}amendmentPositive(f);
+});
+test('A16 only B1-B2 gains the required authorization key',()=>{
+ const keysCode=runnerSource.split('\n').find(l=>l.startsWith('const keys ='));
+ const fn=runnerSource.slice(runnerSource.indexOf('function authorizationKeys('),runnerSource.indexOf('// r6 change 4'));
+ for(const ID of ['B-NTC','H3','B1','B2','B4','B3','B-LOM','B1-B2']){
+  const m=new Module(path.join(root,'.tmp','authorization-keys.cjs'));m._compile('const assert=require("node:assert/strict"),ID='+JSON.stringify(ID)+';\n'+keysCode+'\n'+fn+'\nmodule.exports=authorizationKeys;',m.id);
+  const s={authorizations:{owner:{},contract:{},theme:null,review:{}}};
+  if(ID==='B1-B2'){assert.throws(()=>m.exports(s),/Closed authorization keys/);s.authorizations.amendments={};m.exports(s);}
+  else{m.exports(s);s.authorizations.amendments={};assert.throws(()=>m.exports(s),/AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET/);}
+ }
+});
+for(const [name,from,to,corrupt,error]of[
+ ['fixed admission',"    assert.equal(row.claim.lineSha256, expected.lineSha256, 'B1B2-AMENDMENT-REQUIRED-LINE '+id);",'',f=>{const c=f.s.authorizations.amendments['source-graph'].claim;c.line+=' forged';c.lineSha256=hash(Buffer.from(c.line));f.write('rebuild/DECISIONS.md',f.ledger+c.line+'\n');f.commit();},/B1B2-AMENDMENT-REQUIRED-LINE/],
+ ['real shared issuer','    pmLedger(at, row.claim, []);','',f=>{f.write('rebuild/DECISIONS.md',f.oldLedger);f.commit();},/RECEIPT-EXACT-LINE-MISSING/],
+ ['document object bytes',"      assert.equal(sha(L.object(root, at, document.file)), document.sha256,\n        'B1B2-AMENDMENT-DOCUMENT-BYTES '+id+' '+document.file+' at '+at);",'',f=>{const file=amendmentDocuments[0][0];f.write(file,f.documents[file]+'corrupted\n');f.commit();},/B1B2-AMENDMENT-DOCUMENT-BYTES/],
+])test('A17 guard-removal mutant loses its runnable '+name+' refusal',()=>{
+ assert.equal(runnerSource.split(from).length,2);
+ const baseline=amendmentFixture();amendmentPositive(baseline);corrupt(baseline);assert.throws(()=>baseline.api.b1b2Amendments(baseline.s),error);
+ const mutant=amendmentFixture(code=>code.replace(from,to));amendmentPositive(mutant);corrupt(mutant);assert.doesNotThrow(()=>mutant.api.b1b2Amendments(mutant.s));
+ const restored=amendmentFixture();amendmentPositive(restored);
 });
