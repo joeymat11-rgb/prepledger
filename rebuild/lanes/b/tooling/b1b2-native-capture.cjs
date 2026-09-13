@@ -87,9 +87,10 @@ function tapCensus(){
   const decode=new StringDecoder('utf8');let pending='',bad=false,header=0,plan=null,results=[],trailer=[],done=false;
   const order=['tests','suites','pass','fail','cancelled','skipped','todo','duration_ms'];const values={};
   function line(s){
+    if(/^\s*Bail out!/i.test(s)){bad=true;return;}
     if(s==='TAP version 13'){if(header++||results.length||trailer.length)bad=true;return;}
     let m=/^1\.\.([0-9]+)$/.exec(s);if(m){if(header!==1||plan!==null||trailer.length||Number(m[1])!==results.length)bad=true;plan=Number(m[1]);return;}
-    m=/^(not ok|ok) ([0-9]+) - /.exec(s);if(m){if(header!==1||plan!==null||trailer.length||Number(m[2])!==results.length+1)bad=true;if(results.length===4){bad=true;return;}results.push(m[1]);return;}
+    m=/^(not ok|ok) ([0-9]+) - /.exec(s);if(m){if(/\s+#\s*(?:SKIP|TODO)\b/i.test(s))bad=true;if(header!==1||plan!==null||trailer.length||Number(m[2])!==results.length+1)bad=true;if(results.length===4){bad=true;return;}results.push(m[1]);return;}
     m=/^# (tests|suites|pass|fail|cancelled|skipped|todo|duration_ms) (\d+(?:\.\d+)?)$/.exec(s);
     if(m){if(plan===null||m[1]!==order[trailer.length]||own(values,m[1]))bad=true;if(trailer.length===order.length){bad=true;return;}trailer.push(m[1]);values[m[1]]=Number(m[2]);return;}
     if(trailer.length&&s.trim()!=='')bad=true;
