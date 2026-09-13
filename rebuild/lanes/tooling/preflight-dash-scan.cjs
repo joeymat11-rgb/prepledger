@@ -157,12 +157,15 @@ function scanDashes(source, filename) {
       if (tag[1]) continue;
       if (/^(xmp|iframe|noembed|noframes|plaintext)$/u.test(name)) fail('unsupported HTML raw-text element', at);
       if (!['script','style','textarea','title'].includes(name)) continue;
-      const close = new RegExp('</' + name + '\\s*>', 'iu').exec(source.slice(i));
+      const close = new RegExp('</' + name + '(?=[\\t\\n\\f\\r />])', 'i').exec(source.slice(i));
       if (!close) fail('unterminated HTML text element', at);
       const end = i + close.index;
+      const closing = new RegExp('^</' + name + '[\\t\\n\\f\\r ]*>', 'i').exec(source.slice(end));
+      // HTML ends raw text before JS/CSS classification, even for end-tag parse errors.
+      if (!closing) fail('unsupported HTML text closing tag', end);
       if (name === 'script') javascript(i, end);
       if (name === 'style') css(i, end);
-      i = end + close[0].length; // RCDATA remains visible, including comment-looking text.
+      i = end + closing[0].length; // RCDATA remains visible, including comment-looking text.
     }
   }
   const extension = path.extname(filename).toLowerCase();

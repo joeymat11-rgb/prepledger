@@ -30,6 +30,9 @@ mutationCases['strings-are-comments'] = { from: 'string(c); expression = false;'
 mutationCases['syntax-check-ignored'] = {
   from: "if (checked.error || checked.status !== 0) fail('invalid or unsupported JavaScript syntax', start);",
   to: 'void checked;', pattern: '^200 unknown or unterminated syntax fails explicitly instead of creating an exemption$' };
+mutationCases['raw-text-boundary'] = {
+  from: "'(?=[\\\\t\\\\n\\\\f\\\\r />])'", to: "'[\\\\t\\\\n\\\\f\\\\r ]*>'",
+  pattern: '^200 HTML text end tags with attributes or solidus refuse before comment exemptions$' };
 let fixtureHelper = helperSource;
 if (mutation) {
   assert(Object.hasOwn(mutationCases, mutation), 'closed mutation list');
@@ -239,6 +242,11 @@ test('200 each exemption mutation fails its actual child-process assertion and r
     assert.match(result.stdout, /^# fail 1$/m);
     assert.match(result.stdout, /^# tests 1$/m);
     assert.doesNotMatch(result.stdout+result.stderr, /SyntaxError|ReferenceError|MODULE_NOT_FOUND/);
+    if (name === 'raw-text-boundary') {
+      assert.equal(scanCase('html', '<style>/* comment </style data-x><p>—</p> */</style>').line,
+        'PREFLIGHT FAIL UI-CUSTODY-SYNTAX');
+      continue;
+    }
     const allowed = positive[name] || (name === 'syntax-check-ignored' && positive['js-line']);
     const [extension, text] = allowed || negatives['js-comment-looking-string'];
     assert.equal(scanCase(extension,text).line, allowed ? 'PREFLIGHT FAIL CI-UNVERIFIED' : 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH');
