@@ -37,7 +37,7 @@ function checked(value, optional = false) {
       stat.isFile() && stat.nlink !== 1) throw new Error('Unowned or linked path refused: ' + target);
   return stat;
 }
-checked(here);
+checked(script); checked(here);
 for (const name of Object.keys(commits)) {
   checked(path.join(here, `engine-${name}.cjs`), true);
   const full = git(['rev-parse','--verify','--end-of-options', commits[name] + '^{commit}']);
