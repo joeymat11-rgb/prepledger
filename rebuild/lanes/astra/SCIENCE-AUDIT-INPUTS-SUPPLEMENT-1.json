@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "authority": "PM360 under owner356 and SCIENCE-AUDIT-GO clause2",
+  "purpose": "Input-only static Today engine composition trace, no findings or author outcomes",
+  "originalManifestSha256": "9553ba37c4ed8fc974884b3e008d67c1212889a42ab56dfa61246ca5e2a1b3d1",
+  "files": [
+    {
+      "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+      "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+      "bytes": 1451,
+      "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "kind": "prepared-browser-composition-static-only"
+    }
+  ],
+  "limits": "E and D2 may inspect this text in their own science-audit worktrees. No evaluation/import/execution, added seed/migrate/private dependency, product edit or acceptance. Original72-row inventory remains unchanged; record supplemental actual read coverage separately."
+}
