@@ -22,3 +22,5 @@ PM reconciliation at 2026-09-13 01:00 ET, observed tip ee3d1d9. Recent DECISIONS
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
+
+Owner positioning and personalization discussion is retained in POSITIONING-CONTEXT.md for later scope reconciliation. It does not add a release deliverable or change the current queue; reported capabilities require code/evidence verification before any shipped claim.
