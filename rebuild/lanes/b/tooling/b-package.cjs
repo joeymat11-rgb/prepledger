@@ -287,9 +287,11 @@ const TOOLING_FILES = [RUNNER, TOOLING + '/README.md', TOOLING + '/TOOLING-REPOR
   ...IDS.map(i => TOOLING + '/packages/' + i + '.json')];
 const CHILD_ROOTS = ['rebuild/m4/spec/', 'rebuild/conform/v4/postfix/', 'rebuild/engine/test/', 'rebuild/m4/workout/test/', 'rebuild/m3/w7-preview/test/', 'rebuild/m3/w6/host/test/', 'rebuild/m3/w7-preview/today/test/'];
 const B1B2_TOOL_TESTS = Object.freeze(['astra-issuer-compatibility','product-phase-and-ledger','seal-tip-and-byte-identity','gate-supersession','pinned-unchanged-and-ruled-substitutions','parent-pin-shapes-and-spec-successors','git-blob-pin-classes','b1b2-registration','superseded-parent-continuity'].map(n => TOOLING + '/test/' + n + '.test.cjs'));
-const B1B2_EXECUTABLES = new Set(['rebuild/lanes/b/b2-delta-cells.cjs', ...B1B2_TOOL_TESTS]);
+const B1B2_EXECUTABLES = new Set(['rebuild/lanes/b/b2-delta-cells.cjs', 'rebuild/engine/test/b2-public-source-faults.test.cjs', 'rebuild/engine/test/b2-era30.test.cjs', ...B1B2_TOOL_TESTS]);
 const B1B2_MODES = new Map([[B1B2_CARRIER, new Set(['--public-laws','--witness-1','--witness-3','--witness-4'])],
-  ['rebuild/engine/test/b1-unknown-recovery.test.cjs', new Set(['--audit-mutations','--audit-historical-mutations'])]]);
+  ['rebuild/engine/test/b1-unknown-recovery.test.cjs', new Set(['--audit-mutations','--audit-historical-mutations'])],
+  ['rebuild/engine/test/b2-public-source-faults.test.cjs', new Set(['--audit-mutations'])],
+  ['rebuild/engine/test/b2-era30.test.cjs', new Set(['--audit-mutations'])]]);
 const B1B2_SOURCE_BASE = '100820aa47a4f8729642033499eaec0f0ee282e1';
 const B1B2_TODAY = Object.freeze(['adapter.test.mjs','catalogue.test.mjs','checkin.test.mjs','copy.test.mjs','design.test.cjs','food.test.mjs','gym.test.mjs','machine-settings-ui.test.mjs','ntc-h6-delta.test.mjs','package.test.cjs','problem.test.mjs','setup.test.mjs','view.test.mjs']);
 // DECISIONS236: exact C bfc2935/source60e24a8; scoped D2 review98eeb183.
@@ -321,6 +323,10 @@ const B1B2_CHILD_ARGV = (() => {
     'public-laws':[B1B2_CARRIER,'--public-laws'],
     'current-mutation-audit':[et+'b1-unknown-recovery.test.cjs','--audit-mutations'],
     'historical-mutation-audit':[et+'b1-unknown-recovery.test.cjs','--audit-historical-mutations'],
+    'b2-public-source-cells':tap(et+'b2-public-source-faults.test.cjs'),
+    'b2-public-source-audit':[et+'b2-public-source-faults.test.cjs','--audit-mutations'],
+    'b2-era30-cells':tap(et+'b2-era30.test.cjs'),
+    'b2-era30-audit':[et+'b2-era30.test.cjs','--audit-mutations'],
     'b1b2-sup-source':tap(w+'b1b2-supersede-source-carriers.test.cjs'),
     'b1b2-sup-inherited':tap(w+'b1b2-supersede-inherited-carriers.test.cjs'),
     'b1b2-sup-defects':tap(w+'b1b2-supersede-defect-witnesses.test.cjs'),

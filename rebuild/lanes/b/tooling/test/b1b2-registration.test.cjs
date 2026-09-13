@@ -13,6 +13,7 @@ const oldName='- name: Cumulative H3 clean-init, native-carrier and legacy-censu
 const newName='- name: Cumulative B1-B2 repairs, clean-init, native-carrier and legacy-census evidence';
 const historyMarker='      # M2-H3-CLEAN-INIT SUCCEEDS M2-B-NTC HERE,';
 const successorMarker='      # B1-B2 now owns this cumulative step under DECISIONS:214.\n      # Historical H3 registration rationale follows.\n'+historyMarker;
+const repairRegistration='      # PM246 adds four closed B1-B2 children in the dispatcher profile:\n      # b2-public-source-cells, b2-public-source-audit,\n      # b2-era30-cells and b2-era30-audit. Each has its own exact argv and pin.\n';
 const TODAY=['adapter.test.mjs','catalogue.test.mjs','checkin.test.mjs','copy.test.mjs','design.test.cjs','food.test.mjs','gym.test.mjs','machine-settings-ui.test.mjs','ntc-h6-delta.test.mjs','package.test.cjs','problem.test.mjs','setup.test.mjs','view.test.mjs'];
 // Exact named admission236. Previous heads' results do not prove this composition.
 const N2_ADMISSION='bfc293573e1010559e0119bdc7ff666e89f740cc';
@@ -22,7 +23,7 @@ const original=L.object(root,M,workflow).toString('utf8');
 function currentWorkflow(text) {
   for(const part of [before,oldName,historyMarker])assert.equal(original.split(part).length,2,'CURRENT-BASE-EXACT');
   const appendSleep=text=>text.replace('rebuild/m3/w7-preview/today/test/view.test.mjs','rebuild/m3/w7-preview/today/test/view.test.mjs '+SLEEP);
-  const expected=appendSleep(original.replace(before,after).replace(oldName,newName).replace(historyMarker,successorMarker));
+  const expected=appendSleep(original.replace(before,after).replace('      '+oldName,repairRegistration+'      '+newName).replace(historyMarker,successorMarker));
   assert.equal(text,expected,'CURRENT-WORKFLOW-EXACT');
   assert.equal(text.split(after).length,2,'CURRENT-CUMULATIVE-EXACTLY-ONCE');
   assert.equal(text.split(before).length,1,'CURRENT-PARENT-COMMAND-RETIRED');
@@ -141,9 +142,28 @@ function inventoryModule(code=declaration){
 const inventory=inventoryModule();
 const currentProfile=()=>JSON.parse(fs.readFileSync(path.join(root,profilePath)));
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+test('C12c public law source admission retains exact M/R and the closed four-image successor',()=>{
+ const source=fs.readFileSync(path.join(root,'rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs'),'utf8');
+ const start='function publicLawSourceSide(',end='\nfunction runPublicLaws()';assert.equal(source.split(start).length,2);assert.equal(source.split(end).length,2);
+ const code=source.slice(source.indexOf(start),source.indexOf(end));
+ const check=text=>new vm.Script(text+'\npublicLawSourceSide;').runInNewContext({assert},{timeout:1000});
+ const admitted=check(code),names=['dates','constants','entered-load','performed','plan','progression','sleep','energy','policy','today','volume','migrate','earn','merge','writers'].map(n=>n+'.cjs');
+ const pins=Object.fromEntries(names.map(n=>[n,{base:'a'.repeat(64),candidate:'b'.repeat(64)}]));
+ const repair={sourceBase:'6c9248e695a4478abdbaae0f9f48395ac56000fa',runtime:Object.fromEntries(['progression','sleep','today','writers'].map(n=>['rebuild/engine/'+n+'.cjs',{pre:'b'.repeat(64),post:'c'.repeat(64)}]))};
+ const old=key=>Object.fromEntries(names.map(n=>[n,pins[n][key]]));const next={...old('candidate'),...Object.fromEntries(['progression','sleep','today','writers'].map(n=>[n+'.cjs','c'.repeat(64)]))};
+ assert.equal(admitted(old('base'),pins,repair),'M');assert.equal(admitted(old('candidate'),pins,repair),'candidate');assert.equal(admitted(next,pins,repair),'successor');
+ const wrong={...next,'constants.cjs':'d'.repeat(64)};assert.throws(()=>admitted(wrong,pins,repair),/exact public/);
+ assert.throws(()=>admitted({...next,extra:'c'.repeat(64)},pins,repair),/module inventory/);
+ assert.throws(()=>admitted(next,pins,{...repair,sourceBase:'1'.repeat(40)}),/fixed R/);
+ assert.throws(()=>admitted(next,pins,{...repair,runtime:{...repair.runtime,'rebuild/engine/energy.cjs':{pre:'b'.repeat(64),post:'c'.repeat(64)}}}),/four repair/);
+ const bad=structuredClone(repair);bad.runtime['rebuild/engine/sleep.cjs'].pre='e'.repeat(64);assert.throws(()=>admitted(next,pins,bad),/R preimage/);
+ const guard="names.every(n=>manifest[n]===(repair.runtime['rebuild/engine/'+n]?.post||pins[n].candidate))";
+ assert.equal(code.split(guard).length,2);const mutant=check(code.replace(guard,"Object.entries(repair.runtime).every(([file,row])=>manifest[file.slice('rebuild/engine/'.length)]===row.post)"));
+ assert.throws(()=>assert.throws(()=>mutant(wrong,pins,repair)),e=>e.code==='ERR_ASSERTION'&&/^Missing expected exception/.test(e.message));
+});
 test('C9 full current profile passes the actual closed registration checker',()=>{
  const s=currentProfile();inventory.check(s);
- assert.equal(s.children.length,22);assert.equal(s.witnessFlips.length,35);
+ assert.equal(s.children.length,26);assert.equal(s.witnessFlips.length,35);
  assert.equal(s.parent.chosen,'H3');assert.equal(s.parent.options.length,1);
  assert.equal(s.parent.options[0].receiptLedgerLine,187);
  assert.equal(s.parent.options[0].sha256,'b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f');
@@ -163,6 +183,10 @@ for(const[name,mutate,code]of[
  ['extra child',s=>s.children.push({...s.children[0],name:'extra'}),'CLOSED-CHILDREN'],
  ['duplicated child',s=>s.children.push(s.children[0]),'CLOSED-CHILDREN'],
  ['wrong application mode',s=>s.children.find(c=>c.name==='public-laws').argv[1]='--witness-2','EXACT-ARGV'],
+ ['wrong public source audit mode',s=>s.children.find(c=>c.name==='b2-public-source-audit').argv[1]='--audit-historical-mutations','EXACT-ARGV'],
+ ['wrong ERA30 audit mode',s=>s.children.find(c=>c.name==='b2-era30-audit').argv[1]='--public-laws','EXACT-ARGV'],
+ ['missing public source ownership',s=>delete s.product['rebuild/engine/test/b2-public-source-faults.test.cjs'],'EXECUTABLE-OWNERSHIP'],
+ ['missing ERA30 ownership',s=>delete s.product['rebuild/engine/test/b2-era30.test.cjs'],'EXECUTABLE-OWNERSHIP'],
  ['missing target ownership',s=>delete s.product['rebuild/engine/test/b1b2-sleep-target-cells.cjs'],'EXECUTABLE-OWNERSHIP'],
  ['missing source helper',s=>delete s.product['rebuild/m4/workout/test/b1b2-evidence.cjs'],'HELPER-OWNERSHIP'],
  ['missing source manifest',s=>delete s.product['rebuild/m4/workout/test/b1b2-source-changes.json'],'HELPER-OWNERSHIP'],

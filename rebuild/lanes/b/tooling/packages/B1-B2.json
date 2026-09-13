@@ -95,7 +95,7 @@
   },
   "tooling": {
     "runner": "rebuild/lanes/b/tooling/b-package.cjs",
-    "runnerSha256": "c8fce2391f2de75cb589d274abc859b698dca915e39c9d94df25b3770548326f"
+    "runnerSha256": "de8d1074a0614c006ce0913b793b021540e4563f5396b146c4e4163887a447fe"
   },
   "product": {
     "rebuild/engine/plan.cjs": {
@@ -105,22 +105,22 @@
     },
     "rebuild/engine/progression.cjs": {
       "pre": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
-      "post": "9adaeecb715e42533fcd51483e67f52a9d8d530a0de80865e28ae572152599a8",
+      "post": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
       "role": "edited"
     },
     "rebuild/engine/sleep.cjs": {
       "pre": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
-      "post": "b55cb352aed6be0032391e7b695223928154cd89c43023838c69baaa33a22e2d",
+      "post": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
       "role": "edited"
     },
     "rebuild/engine/today.cjs": {
       "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
-      "post": "36ce41f37c6d50d79588540470f6f87d050e9ef944b9ce76eb44ad380b952135",
+      "post": "fff395dfb1d5e1890eacabf39a76a9c65e413b4f89a2c14d74d00c1343260392",
       "role": "edited"
     },
     "rebuild/engine/writers.cjs": {
       "pre": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
-      "post": "694e220db85eac38a1068e7e7ed9404edb786140df165dd621f0eee2f4531959",
+      "post": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
       "role": "edited"
     },
     "rebuild/engine/index.cjs": {
@@ -220,7 +220,7 @@
     },
     ".github/workflows/rebuild.yml": {
       "pre": "34bec65a549a8d29128da3fe1bf08398c0cab47298c094c154f0e42a3614e882",
-      "post": "44660536fff2efdc949e389dc4fcc7f29a600d1d11a879ef513b4bb0b2ab48c1",
+      "post": "fa5a4e766310f816b929480df316ad5db961220e0f7b4b8a9f55c8b84e6bb282",
       "role": "edited"
     },
     "rebuild/m4/spec/b-ntc-successors.cjs": {
@@ -365,7 +365,7 @@
     },
     "rebuild/lanes/b/tooling/b-package.cjs": {
       "pre": "4482bb8aa344b4aa090a01cbcf2164f9834320d71ce24a24bcc0154b0c037db3",
-      "post": "c8fce2391f2de75cb589d274abc859b698dca915e39c9d94df25b3770548326f",
+      "post": "de8d1074a0614c006ce0913b793b021540e4563f5396b146c4e4163887a447fe",
       "role": "edited"
     },
     "rebuild/lanes/b/tooling/packages/B-NTC.json": {
@@ -425,7 +425,7 @@
     },
     "rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs": {
       "pre": null,
-      "post": "06f8ce254714c6a738501b3939716304319e066d8452b7b7783cd2c222a6c0e5",
+      "post": "7888d4e78cf8b7c6f2c46eb449ae5985d1bc794d3a5701c08ae6780459b4253d",
       "role": "new"
     },
     "rebuild/engine/test/b1-delta-cells.cjs": {
@@ -435,17 +435,17 @@
     },
     "rebuild/engine/test/b1-unknown-recovery.test.cjs": {
       "pre": null,
-      "post": "16fc92146d36bd8879c5d93569431889cac10b3c708fb6ad049378abf8c2832e",
+      "post": "c3e215af814551b65a1037f493e6b501759cf5847d3039081c6affbbd1362d95",
       "role": "new"
     },
     "rebuild/engine/test/b1b2-public-engine.cjs": {
       "pre": null,
-      "post": "a83c1507653f61441c6f1423a88b32fc802e87ae49f96ea3e254715408e84049",
+      "post": "59ce589984af6c937540e184fa5b5b5e5e63bf8bad61669c6656676540bdbd13",
       "role": "new"
     },
     "rebuild/engine/test/b1b2-sleep-target-cells.cjs": {
       "pre": null,
-      "post": "e2f83116a7896d398c212fb8acc0fd80e10c0de625cce2cf9f95c4f7e817267c",
+      "post": "4421c90ec1a858e9eb284e55059915c3864d9348ca0d214ee59ebf722b2b92eb",
       "role": "new"
     },
     "rebuild/lanes/b/b2-delta-cells.cjs": {
@@ -460,12 +460,12 @@
     },
     "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs": {
       "pre": null,
-      "post": "9880e1cdaac694eb1ba08c9e18fd5c8aa744f4bec57954fee900aaaa40fe3912",
+      "post": "de91a9abbf241d78a7900ce2ff509c9cf5b023c6777856071be490df83234c58",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs": {
       "pre": null,
-      "post": "019abe461d90c28844fceeec44e5f7449a816573145e3b9edd2e4994e9e6ba30",
+      "post": "9c11898cdd8c9903136bef7a8e4cf43c13408f631f279e7a2e5fa410977641eb",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-supersede-defect-witnesses.test.cjs": {
@@ -480,17 +480,17 @@
     },
     "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs": {
       "pre": null,
-      "post": "08f348277a9415a092f0ba9db57a4078c22f0a6c0c02fa2808da905905b75b7a",
+      "post": "ca4b995b463296d22e4dc55826e3ad057f5d996ab9a62ecc69b85f3684f4ce6c",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs": {
       "pre": null,
-      "post": "ffbb2430f44b21c2ffee490e2226f238ecb76cd8e08b5fa673c9ba943c9985f4",
+      "post": "983d9090da985f72f1b84a08ac6b472ae5a2745411d7c7b641ee6661de9ba571",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-public-census.cjs": {
       "pre": null,
-      "post": "d29058f14b300aa8c7907935afd06a7a259305cf9df9dea8d59711ee9e6f7282",
+      "post": "9a84751f545a6c532a45903cd9ebe4929f3ca91a1dfdbed55f8f569b9a15c3d9",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-h3-clean-init.test.cjs": {
@@ -565,22 +565,22 @@
     },
     "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs": {
       "pre": null,
-      "post": "9b7c2593c9992e736aea78b20171a1ba8c4d61f4d5e086a17a2635ecb8719dbb",
+      "post": "86460702573037c88e51150df803563e8e2c1ed9bd7f7ec250cb6250ed3f67a1",
       "role": "new"
     },
     "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs": {
       "pre": null,
-      "post": "c8d5b284af1c452285c60f8343e07f2452f0fee3612f58214ec64cfcb5092c45",
+      "post": "7f67542e3915d815ca5e743a86f88a0813e016533cc866af4c814eab68281038",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-evidence.cjs": {
       "pre": null,
-      "post": "4a2b06a0a20935210bd9eb1541b17367d89f8d1437070d298c8bb31f334fe3bf",
+      "post": "383e141c893511f1dd8852783e8b03fc24e496ee39b584b1df00635550090243",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-source-changes.json": {
       "pre": null,
-      "post": "eaf2b799f04e1ff8fef0105404d028cbf2e460e551b73f035c76a7b2089e3bb2",
+      "post": "b44a6801e3144f5fbb57e95151ce98d1f79c44b3a57ce199c51e51cb2c0187f1",
       "role": "new"
     },
     "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs": {
@@ -646,6 +646,16 @@
     "rebuild/m3/w7-preview/today/today-model.cjs": {
       "pre": "040f883203bb6a1b9ce6e4991f6f566c79154b2eb9454bef10a12ce98fc5aa8d",
       "post": "958136d7ee4a741b82d4e16a6b331a332cd0c96f59fde45d9938b1f57a711637",
+      "role": "new"
+    },
+    "rebuild/engine/test/b2-public-source-faults.test.cjs": {
+      "pre": null,
+      "post": "688acfe5b21415d95a7218ab7e71c91159b8ca7d7dc87eca77a4e2bdea08f466",
+      "role": "new"
+    },
+    "rebuild/engine/test/b2-era30.test.cjs": {
+      "pre": null,
+      "post": "78ba43847681a176298c91257cc456a6d5aed5f03b6783b091521d473d6335d5",
       "role": "new"
     }
   },
@@ -1262,7 +1272,7 @@
         "rebuild/engine/test/b1-unknown-recovery.test.cjs",
         "rebuild/engine/test/b1b2-sleep-target-cells.cjs"
       ],
-      "needle": "# pass 148"
+      "needle": "# pass 283"
     },
     {
       "name": "combined-legacy",
@@ -1296,13 +1306,47 @@
       "needle": "PUBLIC CONSTRUCTION AUDIT --audit-historical-mutations: EXPECTED BEHAVIOR; runtime bytes restored and SHA256-checked"
     },
     {
+      "name": "b2-public-source-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/engine/test/b2-public-source-faults.test.cjs"
+      ],
+      "needle": "# pass 20"
+    },
+    {
+      "name": "b2-public-source-audit",
+      "argv": [
+        "rebuild/engine/test/b2-public-source-faults.test.cjs",
+        "--audit-mutations"
+      ],
+      "needle": "B2 ATTRIBUTION: 52 composed; 3 delegated dependency-contract kills (unreachable composed combinations). Protected D7 tools/engine-test.jsx:70 UNEXECUTED."
+    },
+    {
+      "name": "b2-era30-cells",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/engine/test/b2-era30.test.cjs"
+      ],
+      "needle": "# pass 56"
+    },
+    {
+      "name": "b2-era30-audit",
+      "argv": [
+        "rebuild/engine/test/b2-era30.test.cjs",
+        "--audit-mutations"
+      ],
+      "needle": "ERA30 SOURCE AUDIT: 8 behavioral kills across 32 named matrix cells; 56/56 restored positives; all source bytes restored"
+    },
+    {
       "name": "b1b2-sup-source",
       "argv": [
         "--test",
         "--test-reporter=tap",
         "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs"
       ],
-      "needle": "# pass 5"
+      "needle": "# pass 28"
     },
     {
       "name": "b1b2-sup-inherited",
@@ -1329,7 +1373,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs"
       ],
-      "needle": "# pass 152"
+      "needle": "# pass 287"
     },
     {
       "name": "b1b2-sup-second",
@@ -1352,7 +1396,7 @@
       "argv": [
         "rebuild/m4/workout/test/b1b2-public-census.cjs"
       ],
-      "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/R frame comparisons; "
+      "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/S frame comparisons; "
     },
     {
       "name": "h3-cells",
@@ -1447,14 +1491,18 @@
     }
   ],
   "notes": [
-    "DECISIONS232 GO plus234 brief/theme serialization. This is the complete prospective construction profile, not an acceptance artifact, receipt or observed package PASS.",
-    "Runtime source R=6c9248e695a4478abdbaae0f9f48395ac56000fa: exact eight runtime post-images. Immutable parent H3 artifact/review187 and every original witness remain unchanged.",
-    "DECISIONS236 at061fe6ba68469989dd29c20009ba36351d19fac3 admits exact Cbfc293573e1010559e0119bdc7ff666e89f740cc/source60e24a8:12 reviewed source/test post-images plus preserved report. All thirteen standing Today files plus sleep.test.mjs are explicit. No C source byte is repaired by B. The separate combined-head D2 review remains required.",
-    "UNMEASURED prospective new-family TAP expectations from builder static declaration count: source5, inherited5, defects5 (3+2), writers152 (3+1+U120+FG28), second4 (3+1), retained H3 fourteen. Seven H3 mutants are inside one of its fourteen tests. These are not execution evidence. PM232 ordering clarification permits prospective pins, requires actual later named-PC measurement, and rejects auto-adjustment after mismatch.",
-    "UNMEASURED Today630 is the prospective sum of retained13-file baseline553 and admitted N2 sleep77; A0 23/NTC39 are retained baseline counts, not observed at this composed head. All own final Node22 child counts must match exactly with zero fail/cancel/skip/todo.",
-    "Measured Node22.23.2 complete nine-file tooling cohort:258/258, zero fail/cancel/skip/todo,407701.9782ms; log SHA256 554134642e19a2309e0abd075fde1de371d8b308545bded10f81f3c199c7cafd. The pre-review authoring placeholder259 was replaced with this actual count before the first independent review; no package or native run occurred. Report/README/status and this measured profile field were finalized afterward; runner/test/product bytes are those exercised.",
-    "Nineteen original gate identities remain: nine current-family replacements, three distinct original-witness modes, and seven original gateRun executions. Combined legacy independently preserves four complete files,31 cases,35 exact substitutions. No moves or duplicate gate credit.",
-    "All45 synthetic public laws retain original laws: prior M6GREEN/39RED and R30GREEN/15RED, not45PASS or native census. D45 licensed words-only frame movement remains distinct from the24 repaired IDs; D22 row and frames unchanged.",
-    "Protected seed uses the existing parent metadata pin only during authoring. Native/frozen/private/FULL validation and artifact production remain held for the later explicit exact-head PC grant after independent MAX review."
+    "Historical rejected cc6a1315 construction: DECISIONS232 GO plus234 brief/theme serialization. This is the complete prospective construction profile, not an acceptance artifact, receipt or observed package PASS.",
+    "Historical rejected cc6a1315 construction: Runtime source R=6c9248e695a4478abdbaae0f9f48395ac56000fa: exact eight runtime post-images. Immutable parent H3 artifact/review187 and every original witness remain unchanged.",
+    "Historical rejected cc6a1315 construction: DECISIONS236 at061fe6ba68469989dd29c20009ba36351d19fac3 admits exact Cbfc293573e1010559e0119bdc7ff666e89f740cc/source60e24a8:12 reviewed source/test post-images plus preserved report. All thirteen standing Today files plus sleep.test.mjs are explicit. No C source byte is repaired by B. The separate combined-head D2 review remains required.",
+    "Historical rejected cc6a1315 construction: UNMEASURED prospective new-family TAP expectations from builder static declaration count: source5, inherited5, defects5 (3+2), writers152 (3+1+U120+FG28), second4 (3+1), retained H3 fourteen. Seven H3 mutants are inside one of its fourteen tests. These are not execution evidence. PM232 ordering clarification permits prospective pins, requires actual later named-PC measurement, and rejects auto-adjustment after mismatch.",
+    "Historical rejected cc6a1315 construction: UNMEASURED Today630 is the prospective sum of retained13-file baseline553 and admitted N2 sleep77; A0 23/NTC39 are retained baseline counts, not observed at this composed head. All own final Node22 child counts must match exactly with zero fail/cancel/skip/todo.",
+    "Historical rejected cc6a1315 construction: Measured Node22.23.2 complete nine-file tooling cohort:258/258, zero fail/cancel/skip/todo,407701.9782ms; log SHA256 554134642e19a2309e0abd075fde1de371d8b308545bded10f81f3c199c7cafd. The pre-review authoring placeholder259 was replaced with this actual count before the first independent review; no package or native run occurred. Report/README/status and this measured profile field were finalized afterward; runner/test/product bytes are those exercised.",
+    "Historical rejected cc6a1315 construction: Nineteen original gate identities remain: nine current-family replacements, three distinct original-witness modes, and seven original gateRun executions. Combined legacy independently preserves four complete files,31 cases,35 exact substitutions. No moves or duplicate gate credit.",
+    "Historical rejected cc6a1315 construction: All45 synthetic public laws retain original laws: prior M6GREEN/39RED and R30GREEN/15RED, not45PASS or native census. D45 licensed words-only frame movement remains distinct from the24 repaired IDs; D22 row and frames unchanged.",
+    "Historical rejected cc6a1315 construction: Protected seed uses the existing parent metadata pin only during authoring. Native/frozen/private/FULL validation and artifact production remain held for the later explicit exact-head PC grant after independent MAX review.",
+    "PM246/248 successor engine/evidence source S=48a3063a23528ed240eb2356226d237d2793a9da. Preserve original M-to-R eight-file/65-hunk proof; separate R-to-S four-file/10-hunk proof and five changed/added engine evidence files. C thirteen postimages and9+3+7 coverage remain unchanged. This is construction, not package acceptance.",
+    "Four new exact children: B2 public20 positives and52composed+3separately labeled delegated source faults (unreachable composed combinations); ERA30 56 positives over212 complete reference frames and8faults/32matrix cells. Measured public source only, no native gate credit.",
+    "Current public U+FG283, B1 27, current46behavioral faults, historical34behavioral+1alias plusseparatephaseArcprobe measured atS. New native source28 and writers287 expectations are prospective static counts only; inherited5/defects5/second4/H3 14/Today630/A0 23/NTC39 remain held and unmeasured atS.",
+    "Tooling cohort count remains the prior258 until the changed nine-file cohort is actually measured. No old result certifies changed tooling; final observed count will be recorded before review."
   ]
 }

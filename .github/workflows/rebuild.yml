@@ -88,6 +88,9 @@ jobs:
       # it: H3 re-pins packages/B-NTC.json onto the r10 runner, and a spec so re-pinned no
       # longer recomputes the artifact B-NTC's own seal stands on. Same position, same job,
       # same matrix; one command changes.
+      # PM246 adds four closed B1-B2 children in the dispatcher profile:
+      # b2-public-source-cells, b2-public-source-audit,
+      # b2-era30-cells and b2-era30-audit. Each has its own exact argv and pin.
       - name: Cumulative B1-B2 repairs, clean-init, native-carrier and legacy-census evidence
         run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package B1-B2
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to

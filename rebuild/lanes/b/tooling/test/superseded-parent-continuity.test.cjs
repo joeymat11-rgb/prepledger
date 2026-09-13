@@ -80,6 +80,10 @@ function fixture({parentEdit=()=>{},ruleEdit=x=>x,runnerEdit=x=>x,id='B1-B2'}={}
  for(const [gate,row]of Object.entries(s.coverage.repairedWitnesses)){const [,cases,substitutions]=witnessPins[gate];s.children.push({name:row.child,argv:[carrier,row.mode],needle:'B1B2 REPAIRED WITNESS '+gate+': '+cases+' cases; '+substitutions+' substitutions; original SHA256 '+row.sha256});}
   write('rebuild/engine/test/b1-unknown-recovery.test.cjs','// argv fixture\n');
   s.product['rebuild/engine/test/b1-unknown-recovery.test.cjs']={pre:null,post:sha('// argv fixture\n'),role:'new'};
+ for(const name of ['b2-public-source-faults.test.cjs','b2-era30.test.cjs']) {
+  const file='rebuild/engine/test/'+name;write(file,'// argv fixture\n');
+  s.product[file]={pre:null,post:sha('// argv fixture\n'),role:'new'};
+ }
  write('rebuild/lanes/b/b2-delta-cells.cjs','// argv fixture\n');
  for(const name of ['astra-issuer-compatibility','product-phase-and-ledger','seal-tip-and-byte-identity','gate-supersession','pinned-unchanged-and-ruled-substitutions','parent-pin-shapes-and-spec-successors','git-blob-pin-classes','b1b2-registration','superseded-parent-continuity'])write('rebuild/lanes/b/tooling/test/'+name+'.test.cjs','// argv fixture\n');
  commit();
@@ -173,6 +177,11 @@ test('repair stdout parser refuses missing original cases or full original termi
 test('closed argv modes return only actual targets and reject every other combination',()=>{
  const f=fixture();for(const mode of ['--public-laws','--witness-1','--witness-3','--witness-4'])assert.deepEqual(f.api.childArgv({name:'mode',argv:[carrier,mode]}),[carrier]);
  const unknown='rebuild/engine/test/b1-unknown-recovery.test.cjs';for(const mode of ['--audit-mutations','--audit-historical-mutations'])assert.deepEqual(f.api.childArgv({name:'audit',argv:[unknown,mode]}),[unknown]);
+ for(const file of ['rebuild/engine/test/b2-public-source-faults.test.cjs','rebuild/engine/test/b2-era30.test.cjs']) {
+  assert.deepEqual(f.api.childArgv({name:'audit',argv:[file,'--audit-mutations']}),[file]);
+  assert.deepEqual(f.api.childArgv({name:'cells',argv:['--test','--test-reporter=tap',file]}),[file]);
+  for(const mode of ['--audit-historical-mutations','--public-laws','--witness-1'])assert.throws(()=>f.api.childArgv({name:'bad',argv:[file,mode]}),/CHILD-ARGV/);
+ }
  for(const argv of [[carrier,'--witness-2'],[carrier,'--eval=x'],['--test',carrier,'--witness-1'],[unknown,'--public-laws'],[carrier,'--witness-1','--witness-3'],['rebuild/lanes/b/tooling/b-package.cjs'],['rebuild/lanes/b/unlisted.cjs']])assert.throws(()=>f.api.childArgv({name:'bad',argv}),/CHILD-ARGV/);
  assert.deepEqual(f.api.childArgv({name:'B2',argv:['rebuild/lanes/b/b2-delta-cells.cjs']}),['rebuild/lanes/b/b2-delta-cells.cjs']);
 });
@@ -180,6 +189,7 @@ test('older package argv and byChild readers keep their old semantics',()=>{
  const f=fixture({id:'H3'});assert.deepEqual(f.api.parentCoverage({},f.bound),{});
  assert.throws(()=>f.api.childArgv({name:'old',argv:[carrier,'--witness-1']}),/CHILD-ARGV/);
  assert.throws(()=>f.api.childArgv({name:'old',argv:['rebuild/lanes/b/b2-delta-cells.cjs']}),/CHILD-ARGV/);
+ for(const file of ['rebuild/engine/test/b2-public-source-faults.test.cjs','rebuild/engine/test/b2-era30.test.cjs'])assert.throws(()=>f.api.childArgv({name:'old',argv:[file,'--audit-mutations']}),/CHILD-ARGV/);
 });
 // Guard removal must change an otherwise runnable refusal into an admission.
 // Malformed repository construction or a different downstream refusal is not a kill.
