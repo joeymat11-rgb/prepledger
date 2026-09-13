@@ -5,8 +5,8 @@
 // line; lane B builds it as rebuild/lanes/tooling/preflight.cjs (small, plumbing tier)."
 //
 // SHARED BY ALL LANES, which is why it lives at rebuild/lanes/tooling/ and not under any
-// one lane. PLUMBING TIER: it decides nothing about a package's evidence, it holds no
-// exemption anyone could lean on, and a PASS here is not a claim about anything except the
+// one lane. PLUMBING TIER: it implements the declared source policy under :200, not
+// a package's evidence or rendered-text proof. A PASS claims only the
 // six mechanical facts below. The lane's own runner is still the judge of its package.
 //
 // Usage:
@@ -27,7 +27,7 @@
 const fs = require('node:fs'), path = require('node:path'), cp = require('node:child_process');
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
 const REPORT_MAX_LINES = 60, STATUS_MAX_CHARS = 400;
-const DASHES = /[–—]/; // en dash, em dash — refused in UI custody files
+const { scanDashes } = require('./preflight-dash-scan.cjs');
 
 function die(code, detail) {
   if (detail) process.stderr.write('preflight: ' + code + ': ' + detail + '\n');
@@ -122,12 +122,13 @@ function main() {
   if ([...longest].length > STATUS_MAX_CHARS)
     die('STATUS-LINE-TOO-LONG', [...longest].length + ' characters, max ' + STATUS_MAX_CHARS);
 
-  // (4) NO U+2013 / U+2014 IN UI CUSTODY. The screens ship these bytes to a phone, where the
-  // two dashes render inconsistently and have cost this project a round trip more than once.
+  // (4) NO U+2013 / U+2014 IN UI COPY. :200 excludes lexical comments and regex syntax,
+  // retaining string/template/HTML/CSS checks and the separate mandatory P1 render guard.
   // Only the UI custody globs are asked; prose files are not the target of this rule, and a
   // lane that declares no --ui-custody is told so on the stderr summary rather than passing
   // as if the check had run.
   const uiHits = [];
+  let commentLines = 0, regexLines = 0;
   if (uiCustody) {
     const uiRe = globs(uiCustody).map(toRe);
     // r8 change 5. `git ls-files` alone missed UNTRACKED files, so an em dash in a screen
@@ -139,9 +140,14 @@ function main() {
     for (const f of [...new Set([...tracked, ...untracked])].sort().filter(f => uiRe.some(re => re.test(f)))) {
       const full = path.join(root, f);
       if (!fs.existsSync(full) || fs.statSync(full).isDirectory()) continue;
-      fs.readFileSync(full, 'utf8').split(/\r?\n/).forEach((line, i) => { if (DASHES.test(line)) uiHits.push(f + ':' + (i + 1)); });
+      let scan;
+      try { scan = scanDashes(fs.readFileSync(full, 'utf8'), f); }
+      catch (error) { die('UI-CUSTODY-SYNTAX', f + ':' + (error.line || 1) + ' ' + error.message); }
+      scan.hits.forEach(line => uiHits.push(f + ':' + line));
+      commentLines += scan.comments; regexLines += scan.regex;
     }
     if (uiHits.length) die('UI-CUSTODY-EN-OR-EM-DASH', uiHits.length + ' line(s): ' + uiHits.slice(0, 12).join(' '));
+    process.stderr.write('preflight: lexical exemptions: comments ' + commentLines + ', regex ' + regexLines + '\n');
   }
 
   // (6) CI GREEN AT THE EXACT HEAD SHA — out of reach offline, so the command is printed and
