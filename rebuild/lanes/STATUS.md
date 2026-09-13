@@ -1,17 +1,15 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 17:22 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @1c263e0762ea41baf563b71201a7513e8b33ebb3 before this docs checkpoint. Product M100820aa remains integrated; full34745429303/shared34745429317 bothOS verified. Local source A3bfed63 prepared, not integrated/released; END210 stands.
+## STATE (refreshed 2026-09-13 17:41 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @774780033d9d491f79122c73be8b1be0d9c175e8 before this docs checkpoint. Product M100820aa integrated; local A3bfed63 prepared only. END210 stands; no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 uses existing Codex usage, no paid API trial. Owner268: Joe/history/memory then Dad; soak gates wide beta only. PM MAX for this acceptance/assembly judgment, HIGH advised for routine coordination.
-- B: tooling083bd47 scoped ACCEPT322. Static native input map4fe30da complete,38 exact program objects applicable to A. HIGH now closes pinned original/setup/manifest and output-observer design328; nativeFieldDeltas UNKNOWN, no native execution.
-- E: exacte85ad803/source4191eeb foundation scoped ACCEPT324; D2254/254 and9/9 with5 meaningful reversals;41 artifacts adopted. LOW/paused; actual controller/provider/complete memory remains later.
+- B: bcec6848 boundary/observer proposal accepted330 with strict diagnostic-only limits. MAX implements named helper/operator/public synthetic test and helper post-pin from A; real nativeFieldDeltas UNKNOWN, original assertions/first failure retained.
+- E: memory foundatione85ad803 scoped ACCEPT324 preserved. HIGH now temporarily owns isolated frozen-build Windows URL/scratch setup332, exactly builder/new public synthetic test/report, no real history/frozen execution.
 - C: lifecycle7e64848d scoped ACCEPT294, actual144/37/4; LOW waiting full consumer/composition release. N2 prior147/10/kill/build retains8e65805; R4 applicability accepted310.
 - D: partial import harnessf0b01d9 preserved; LOW waits exact reviewed B native-Date/membership+host companionb73cf852. Real owner import, acceptedB3 and full joins remain.
-- REVIEW/INTEGRATION: ER/D2 complete/LOW, paused320. I source A3bfed63/report75c358ce completed; PM verified114 overlay/1493 preserved/51 engine/404 m3 identities. I LOW/paused; actual native/full/receipt/currentCI and final integration remain.
+- REVIEW/INTEGRATION: ER/D2 complete/LOW/paused; next exact reviews are B330 by ER/MAX and E332 pure build support by D2/MAX. I A3bfed63/report75c358ce complete/LOW/paused. No active full/native/receipt/CI/integration grant.
 - OWNER: no immediate action. September18–23 Joe/history/memory estimate remains limited-confidence; Dad after existing two-day Joe trial and his checks. Private import, credentials and device actions remain point-of-use.
-- SCHEDULE: PM30min; B HIGH/hourly on substantive328 preparation. C/D/E/ER/D2/I complete or waiting and PAUSED320. Direct handoffs start ready work immediately. No duplicate tasks or relaxed quality checks; Fast unavailable.
-
-2026-09-13 15:09 ET · PM-CARETAKER · Astra · ed39231c89cd0f7ffcadc199d6c5e12538856f6c · D2 review loading found two missing public fixture helpers before any real case. Exact helpers verified/admitted290; prior inventory completeness qualified, original functional evidence retained. D2/B MAX, C LOW. No app-failure or release claim.
+- SCHEDULE: PM30min; B MAX and E HIGH hourly while building330/332. C/D/ER/D2/I waiting/PAUSED320; direct exact handoffs start work immediately. Two builders, no duplicate lanes or paid API; Fast unavailable.
 
 2026-09-13 15:21 ET · PM-CARETAKER · Astra · ee6bdec136e880898063640c8b7b50e49b7b7d95 · C lifecycle scoped ACCEPT294:144/37/4,24 artifacts; C/D2 LOW. B R4f2dea2ec ready, ER MAX review292; B note296 complete, LOW. Full memory/import/phone still open; no Fast change.
 
@@ -40,3 +38,5 @@
 2026-09-13 17:11 ET · PM-CARETAKER · Astra · 1ac5036d1d9373b1e816580d3232b4d72d8ed069 · Scoped B tooling322 and E client324 accepted after independent review. I HIGH assembles exact B source; B HIGH maps remaining native inputs326. Reviewers LOW/paused; C/D/E wait actual joins. No owner action, paid API, release or full-memory PASS.
 
 2026-09-13 17:22 ET · PM-CARETAKER · Astra · 1c263e0762ea41baf563b71201a7513e8b33ebb3 · I source A3bfed63 prepared/identity-verified, LOW/paused. B38-program input map complete;328 grants exact remaining code/manifest reads and safe output-observer proposal, HIGH. Existing private-gate custody retained; no run or owner action.
+
+2026-09-13 17:41 ET · PM-CARETAKER · Astra · 774780033d9d491f79122c73be8b1be0d9c175e8 · B MAX implements safe native diagnostics330; E HIGH fixes isolated Windows build setup332 in parallel. Exact separate scopes/public synthetic bars; ER/D2 MAX review follows handoff. Original gates/privacy retained; no native run, owner action or new spend.
