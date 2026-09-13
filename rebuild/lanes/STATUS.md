@@ -89,3 +89,5 @@
 2026-09-13 11:13 ET · PM-CARETAKER · Astra · 8de5cdff4d32b3d3b0775ba3378540d61104dbc4 · Owner resumes lanes/delegates effort: B verified active at savedb1127134/MAX, D active/XHIGH under248/250. C/D2/ER/E standby/LOW; reviews MAX when dispatched. I paused. Editorial/OG spacing endorsed, Light/Ink locked. PM30min retained. No owner action or new acceptance.
 
 2026-09-13 11:24 ET · PM-CARETAKER · Astra · e0834166febf496f205bd2f4934f81d9e4489dd1 · B reports373c3f29:283public/46faults; B2 52composed+3delegated kills, author evidence only. ERA reference-first work continues. D harness repairs active; future companion mirror/custody settled, exact accepted B parent/public closure pending. No owner action or acceptance.
+
+2026-09-13 11:28 ET · PM-CARETAKER · Astra · 3adcdced654e9df903c8a0c1bf59999ff12697ff · B ERA phase1 identity e5d6bbec rehashed/notified before candidate comparison; exact248 runs proceed. D reports17 harness passes at a69b591; mutations and named seven-probe annex continue under250. Author evidence only, independent review pending. No owner action.
