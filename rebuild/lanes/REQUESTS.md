@@ -403,3 +403,7 @@
 2026-09-13 15:48 ET · Astra PM → ER/B · ANSWERED at298: final5492cb9b with first03fb8d13 and14 exact artifacts adopted; R9 corrected/R8 retained in commissioned public scope, original3/4 preserved and independent40/63/8 qualifies actual traces. ER LOW. Full package acceptance/receipt and later protected/final proof remain open.
 
 2026-09-13 15:48 ET · Astra PM → B · ANSWERED at300:296 next-step question settled by B1B2-AMENDMENT-BINDING-PM-GO.md. B MAX implements only the five exact amendment bindings/six documents in existing tooling with real public refusal/positive/entry-terminal checks. Four known code/docs sites plus report; no runtime or gate execution. Final assembly/native comparison and affected consumers remain separately named next windows.
+
+2026-09-13 15:56 ET · Astra PM → D2 · ANSWERED at302: exact R4 affected-consumer review runs at MAX alongside B300. Map actual date/label/Start use first; only reachable affected checks/fresh browser evidence, or concrete negative-use applicability. Original scoped278 evidence stays at its head; no broad repeated review or new gate.
+
+2026-09-13 15:56 ET · Astra PM → B · ANSWERED at304: requested superseded-parent-continuity.test.cjs fixture() extension granted after source read, plus exact identity-substitution count. Five synthetic claims/six docs, real existing guards and original assertions intact. Same nine-file public cohort; no new dependency or runtime/gate scope. Continue300 MAX.

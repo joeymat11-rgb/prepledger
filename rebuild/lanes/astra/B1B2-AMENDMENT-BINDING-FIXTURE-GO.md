@@ -1,0 +1,9 @@
+# PM300: one existing synthetic fixture extension
+
+2026-09-13 · PM304 under193/232/298/300. B/MAX may additionally edit only fixture() in rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs and its exact fixture-identity substitution assertion.
+
+PM read the actual f2dea2ec source: fixture() at40-105 creates an invented Git repository, an authenticated synthetic handover/grant, an incomplete B1-B2 authorizations:{} at69, and exactly four identity-only runner substitutions at90-94. Existing positives at151-158 exercise real proposed()/envelope-related accounting. Requiring300's amendment guards correctly makes this old empty fixture incomplete; that is a fixture adaptation, not a reason to weaken the new guard.
+
+Supply the five named synthetic amendment claims and six synthetic document objects in that invented Git chain, with the same closed shape as300. Rebind only their corresponding immutable identity constants in the owned fixture runner, just as its existing synthetic parent/handover identities are bound. Enumerate every actual identity substitution and adjust the exact count deliberately; retain an assertion that no guard/function-body change slipped into the fixture adaptation. Do not replace real issuer, Git, authorization, proposed or envelope functions with success stubs.
+
+All original parent/gate/issuer/coverage assertions and negative cases stay intact. Project runner/profile authority still binds300's real five line/six document hashes; synthetic fixture identities cannot escape into product data, authority, artifacts or receipts. Report the exact extra test-only hunk, fixture count and actual results with the300 handoff. Existing nine-file public tooling cohort only; no new dependency or execution mode. No runtime/protected/native/package/FULL/CI grant, and no additional file scope follows.

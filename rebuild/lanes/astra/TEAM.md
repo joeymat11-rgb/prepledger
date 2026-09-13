@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: B R4 f2dea2ec/9a4b2d0/Ucbcebb3d scoped ACCEPT298, first03fb8d13/final5492cb9b and14 exact artifacts adopted. Original R9 raw3/4 preserved; independent40/63/8/R8/public evidence closes the date defect in scope. B/MAX now owns exact mechanical amendment binding300; ER LOW until a new successor review. C lifecycle7e64848d scoped ACCEPT294 remains separate; C/D2/D/E LOW, I paused. Final engine admission/composition/native/FULL/CI/receipt, import, full memory and phone proof remain. PM MAX; no Fast change. Owner268 remains Joe/history/coaching memory then Dad; soak gates wide beta only.
+PM checkpoint2026-09-13: B R4 f2dea2ec/9a4b2d0/Ucbcebb3d scoped ACCEPT298, first03fb8d13/final5492cb9b and14 exact artifacts adopted. Original R9 raw3/4 preserved; independent40/63/8/R8/public evidence closes the date defect in scope. B/MAX now owns exact mechanical amendment binding300; ER LOW until a new successor review. C lifecycle7e64848d scoped ACCEPT294 remains separate. D2/MAX now reviews only actual affected R4 consumers302 in parallel; B300 has exact supporting fixture grant304. C/D/E LOW, ER LOW pending next candidate, I paused. Final engine admission/composition/native/FULL/CI/receipt, import, full memory and phone proof remain. PM MAX; no Fast change. Owner268 remains Joe/history/coaching memory then Dad; soak gates wide beta only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
@@ -8,7 +8,7 @@ PM checkpoint2026-09-13: B R4 f2dea2ec/9a4b2d0/Ucbcebb3d scoped ACCEPT298, first
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: finite amendment-binding tooling preparation300 from scoped acceptedf2dea2ec; exact successor review follows | earned-astra-b-follow-up;20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: lifecycle R3 first223242c9/final3974b340 scoped ACCEPT294 complete; await exact next commission | earned-lane-d2-requests;20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact R4 affected-consumer relevance/join review302 alongside B300; no unrelated reruns | earned-lane-d2-requests;20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: R4 first03fb8d13/final5492cb9b scoped ACCEPT298 complete; await exact tooling-successor commission | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: lifecycle0f57c99c direction selected266; await named decision/provider implementation release | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
@@ -60,7 +60,7 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | B | MAX; exact amendment-binding tooling preparation300 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; lifecycle R3 scoped accepted294 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | LOW; exact lifecycle R3 review/reconciliation complete294 | MAX for the next named independent successor |
+| D2 | MAX; exact affected R4 consumer review302 | MAX for the next named independent successor |
 | Engine reviewer | LOW; R4 review/reconciliation complete298 | MAX for next named independent successor review |
 | E | LOW; exact lifecycle addendum complete | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
@@ -88,3 +88,5 @@ Audit2026-09-13T18:42:47Z: PM/B/D2 saved/executed MAX, ER/C/D/E LOW, I LOW/pause
 B296 planning-only note delivered2026-09-13: next exact preparation is mechanical amendment binding in b/tooling/b-package.cjs and packages/B1-B2.json, with affected existing registration tests/README; b1b2Inventory/spec/authority/proposed/envelope must enforce named actual ruling identities. This is the author's planning map, not a new implementation grant or independent verdict. PM names the closed representation and final assembly/integrator after ER disposition. Historical sourceBase M stays distinct from current-chain ancestry; nativeFieldDeltas remain unknown until exact authorized comparison, then expectation admission and actual source/family/census/H3/second/FULL/receipt/currentCI. No code/test/gate ran for this note. B returned LOW.
 
 PM300 settles B296's next representation/scope question: B1B2-AMENDMENT-BINDING-PM-GO.md names five authenticated amendment claims and six exact document pins, with real entry/terminal/receipt checks and the existing public tooling cohort. The broader assembly/native-comparison sequence remains pending this finite implementation/review; no runtime or protected gate has been released.
+
+PM302 removes one avoidable scheduling dependency: D2 may prove actual R4 consumer relevance/behavior while B changes only release tooling. Preserve actual-byte applicability on final assembly; no added gate or unrelated repeat tests. PM304 licenses the one identified existing synthetic fixture adaptation for B300.

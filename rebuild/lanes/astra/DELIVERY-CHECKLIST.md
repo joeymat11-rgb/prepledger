@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint2026-09-13: B R4 f2dea2ec/9a4b2d0/Ucbcebb3d scoped ACCEPT298, first03fb8d13/final5492cb9b and14 exact artifacts adopted. Original R9 raw3/4 preserved; independent40/63/8/R8/public evidence closes the date defect in scope. B/MAX now owns exact mechanical amendment binding300; ER LOW until a new successor review. C lifecycle7e64848d scoped ACCEPT294 remains separate; C/D2/D/E LOW, I paused. Final engine admission/composition/native/FULL/CI/receipt, import, full memory and phone proof remain. PM MAX; no Fast change. Owner268 remains Joe/history/coaching memory then Dad; soak gates wide beta only.
+PM checkpoint2026-09-13: B R4 f2dea2ec/9a4b2d0/Ucbcebb3d scoped ACCEPT298, first03fb8d13/final5492cb9b and14 exact artifacts adopted. Original R9 raw3/4 preserved; independent40/63/8/R8/public evidence closes the date defect in scope. B/MAX now owns exact mechanical amendment binding300; ER LOW until a new successor review. C lifecycle7e64848d scoped ACCEPT294 remains separate. D2/MAX now reviews only actual affected R4 consumers302 in parallel; B300 has exact supporting fixture grant304. C/D/E LOW, ER LOW pending next candidate, I paused. Final engine admission/composition/native/FULL/CI/receipt, import, full memory and phone proof remain. PM MAX; no Fast change. Owner268 remains Joe/history/coaching memory then Dad; soak gates wide beta only.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
