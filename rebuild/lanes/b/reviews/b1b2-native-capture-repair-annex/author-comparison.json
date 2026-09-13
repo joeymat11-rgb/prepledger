@@ -1,0 +1,175 @@
+{
+  "firstVerdictUnchanged": true,
+  "verdict": "REJECT R1; R2 repair substantiated for reviewed scope",
+  "allAuthorArchiveFilesRead": 31,
+  "allBytesVerified": 312233,
+  "allSevenPhasesReconciled": true,
+  "reportLines": 39,
+  "finalPublicEvidenceEqualAfterOnlyRandomDirectoryNormalization": true,
+  "fullFinalControls": [
+    {
+      "id": "hook-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "completion-refusal-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "acl-readback-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "output-whitelist-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "first-failure-guard-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "tap-directive-refusal-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "tap-bailout-refusal-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "deferred-final-refusal-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "wrapper-ownership-refusal-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "async-init-latch-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "async-resolve-latch-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    },
+    {
+      "id": "builtin-cleanup-pin-removal",
+      "killedBy": "ERR_ASSERTION",
+      "sourceRestored": true
+    }
+  ],
+  "prospective": [
+    {
+      "phase": "red",
+      "source": "2b6be830ef501a1550518c7a5ff9649d74f1a050",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    },
+    {
+      "phase": "r2",
+      "source": "839dbcae0c4ae18a4301b0bc2065792b22ac9166",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    },
+    {
+      "phase": "full-first",
+      "source": "3a4ef50a30478317478f2fff0350943619e04660",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    },
+    {
+      "phase": "termination",
+      "source": "41efa979978d11e490b8cee667e73c33a5de9a74",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    },
+    {
+      "phase": "deferred-red",
+      "source": "691d442eb102926662301eea4b2f4a077d935432",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    },
+    {
+      "phase": "hook-prototype",
+      "source": "a637945f040225bb2247f49f963b22db6586c45c",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    },
+    {
+      "phase": "full-final",
+      "source": "df8fa14fa08d28cde6bf53a710df0bb089c4720e",
+      "manifestSourceAndArgvAgree": true,
+      "headerSourceAndRuntimeAgree": true,
+      "interimProductBodiesOpened": false
+    }
+  ],
+  "allElevenBuiltinModuleIdentitiesMatch": true,
+  "allFourFunctionPinsMatch": true,
+  "builtinRevision": "v2 preserves entire v1 module inventory/read ranges and adds four captured public-function pins plus final IO and bookkeeping statements.",
+  "expectationChange": "Prototype nextTick case actually returned capture PASS with no executed callback, while the then assertion demanded FAIL. Final permits PASS or FAIL only for this discarded callback, consistent with PM350; executed deferred cases remain required FAIL and actual child 4/4 exit0 stays unchanged.",
+  "failureHistory": [
+    {
+      "phase": "red",
+      "pass": 2,
+      "tests": 10,
+      "meaning": "later exit/late IO and six TAP contradictions still falsely passed capture under preimage"
+    },
+    {
+      "phase": "r2",
+      "pass": 7,
+      "tests": 7,
+      "meaning": "isolated R2 corrected"
+    },
+    {
+      "phase": "full-first",
+      "pass": 45,
+      "tests": 45,
+      "meaning": "nine guard controls; synchronous wrapper passes then-known tests, later disproved"
+    },
+    {
+      "phase": "termination",
+      "pass": 1,
+      "tests": 2,
+      "meaning": "executed microtask false PASS; nextTick discarded"
+    },
+    {
+      "phase": "deferred-red",
+      "pass": 0,
+      "tests": 4,
+      "meaning": "nested microtask/Promise/async-await/already-attached precreated Promise all expose premature completion"
+    },
+    {
+      "phase": "hook-prototype",
+      "pass": 10,
+      "tests": 11,
+      "meaning": "executed deferred cases refused; sole failure was discarded-nextTick expectation"
+    },
+    {
+      "phase": "full-final",
+      "pass": 61,
+      "tests": 61,
+      "meaning": "twelve reversal controls with restoration; replicated independently but insufficient for noninterference"
+    }
+  ],
+  "remainingFailure": "Author hook-fault seams deliberately exercise API/cleanup failures outside callbacks and poison ignored callback arguments. They do not cover trackPromise mutating a previously untracked nonextensible Promise before the Boolean callback. Independent actual-node frozen/sealed/nonextensible regressions therefore remain unaddressed.",
+  "authorityManifestReference": ".tmp/native-capture-repair/authority.json is referenced by replay metadata but outside the finite 31-copy grant and was not opened. Already licensed authoritative PM bars independently establish scope; it is not needed for this conclusion.",
+  "originalNativeInvoked": false,
+  "productChanged": false,
+  "newExecutionDuringReconciliation": false
+}
