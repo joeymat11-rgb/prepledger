@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM checkpoint 2026-09-13: complete engine R2 rejected for R8 Today false clearance under existing246/R7. Final ER162f189 report/evidence adopted; B resumes MAX for the narrow repair in B1B2-R2-R8-PM-DISPOSITION.md. ER/D/D2 LOW standby, I paused; E XHIGH lifecycle and C HIGH browser closure preparation under264. D2 accepted258 remains scoped to c4716ed. PM HIGH for this bounded ruling; all full/native/private/CI/phone holds remain.
+PM checkpoint 2026-09-13: complete engine R2 rejected for R8 Today false clearance under existing246/R7. Final ER162f189 report/evidence adopted; B resumes MAX for the narrow repair in B1B2-R2-R8-PM-DISPOSITION.md. ER/D/D2 LOW standby, I paused; E XHIGH lifecycle under264; C301f587 static browser direction settled/LOW standby. D2 accepted258 remains scoped to c4716ed. PM HIGH for this bounded ruling; all full/native/private/CI/phone holds remain.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ PM checkpoint 2026-09-13: complete engine R2 rejected for R8 Today false clearan
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
-| Coaching Memory v1 | Exact Eef982610 contract and Bc34e4ec incremental map accepted242/244. Mapping complete; E/C now prepare concrete idle-only lifecycle and static browser closure under264; actual measured browser closure and named successors on accepted repaired-D/complete-B parents precede release. Actual prefix reconstruction/G1 and final runtime custody held; no implementation PASS | D independent review/B repairs first; PM precise release; E/C afterN2; B final registration; D2 later review |
+| Coaching Memory v1 | Exact Eef982610 contract and Bc34e4ec incremental map accepted242/244. Mapping complete; E prepares idle-only lifecycle; C301f587 static browser direction settled under264; actual measured browser closure and named successors on accepted repaired-D/complete-B parents precede release. Actual prefix reconstruction/G1 and final runtime custody held; no implementation PASS | D independent review/B repairs first; PM precise release; E/C afterN2; B final registration; D2 later review |
 | Whole-plan beta coverage | Planning audit identifies missing joined journey, fresh nutrition qualification, durable consent/reason consumer and constraint/action boundaries. E maps existing obligations and proposed choices; no default estimates or new adaptive rules authorized | E coverage map; PM routes accepted gaps and owner choices |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
