@@ -306,6 +306,8 @@ module.exports.CONSTRUCTION_MUTATIONS.push(...[
   ]
 ]);
 
+// D23-4 historical pre-R9 anchor was d9 = plusDays(isoOf(todayStart()), k9);
+// PM282 binds the same millisecond-step fault to the captured-date successor.
 module.exports.HISTORICAL_SOURCE_MUTATIONS = [
   [
     "D10-1",
@@ -582,7 +584,7 @@ module.exports.HISTORICAL_SOURCE_MUTATIONS = [
   [
     "D23-4",
     "today",
-    "d9 = plusDays(isoOf(todayStart()), k9);",
+    "d9 = plusDays(tISO, k9);",
     "d9 = isoOf(new Date(todayStart().getTime()+k9*DAY));",
     "rebuild/engine/test/b1-delta-cells.cjs",
     null
@@ -884,6 +886,7 @@ module.exports.CONSTRUCTION_MUTATIONS.push(...[
  ['R8-now-quiet-propagation','else if (fix.recoveryNote) move =','else if (false) move =','FG5 R8 exact reviewer'],
  ['R8-action-note-field-omitted','{ ...fix, body: fix.body + " " + recoveryNote, recoveryNote } : fix;','{ ...fix, body: fix.body + " " + recoveryNote } : fix;','FG5 R8 precedence calories|FG5 R8 precedence break']
 ].map(([id,before,after,filter])=>[id,'today',before,after,'rebuild/engine/test/b1b2-sleep-target-cells.cjs',filter]));
+module.exports.CONSTRUCTION_MUTATIONS.push(["R9-workout-fresh-date","today","d9 = plusDays(tISO, k9);","d9 = plusDays(isoOf(todayStart()), k9);","rebuild/engine/test/b1b2-sleep-target-cells.cjs","FG6 R9"]);
 module.exports.runConstructionAudit=runConstructionAudit;
 if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))?0:1);
 
