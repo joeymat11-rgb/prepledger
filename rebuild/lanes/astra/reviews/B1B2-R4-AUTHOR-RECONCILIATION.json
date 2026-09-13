@@ -1,0 +1,58 @@
+{
+  "firstVerdictCommit": "03fb8d139b36167271281da339d89f23d51ddeb1",
+  "firstVerdictSentToPM": "confirmed tool response before this read",
+  "readAt": "2026-09-13T19:43:39.602Z",
+  "candidate": "f2dea2ec8426d12e95483e180821839fbf1165f7",
+  "report": {
+    "file": "rebuild/lanes/b/BUILD-B1B2-R4-R9.md",
+    "lines": 41,
+    "bytes": 10070,
+    "sha256": "d94ed40d99e85acbe2d0eeeeb2608163e4591f59169974a2202382fa7bf84897"
+  },
+  "readme": {
+    "file": "rebuild/lanes/b/tooling/README.md",
+    "bytes": 104942,
+    "sha256": "d628898abe0c4deb8309741b4704b36ec6884ecb87748f9e3890c0057c819184",
+    "newRationaleDiff": "a1501dee209a5f0473de4b880376af25c2fc390fae8ee6e5472e85fb1df34620"
+  },
+  "firstEvidencePreserved": true,
+  "completedAt": "2026-09-13T19:44:54.861Z",
+  "verdictUnchanged": "SCOPED PASS R9 repair/R8 retained; full package HOLD",
+  "independentEvidence": {
+    "file": "rebuild/lanes/astra/reviews/B1B2-R4-REVIEW-EVIDENCE.json",
+    "bytes": 1104984,
+    "sha256": "9aaa1a3681edac3b8694f9a7ddec27782830deb87c44e8f96a935eb6659a255c",
+    "builderReportReadFalseIntentionallyFrozenAtFirstVerdict": true
+  },
+  "agreements": [
+    "Exact C4/tested/U/C3/T,17 paths, one captured-date hunk, complete engine/public identities, unchanged m3 and unread seed identity match independent custody.",
+    "Author separates unchanged original R9 three bug passes/four raw trace failures from its qualified copy; ER preserves original7 unchanged and supplies independent40/63/8 actual output/caller proof. Author qualified7 and own21 advancing pairs are not counted as ER executions.",
+    "R8 sixteen, recovery331, current64 fault attribution, historical34+alias+separate partial probe, carrier31/35 and exact45-law complete-row/frame equality agree. Author fault execution at a5dfc7e2 is explicitly distinct from ER fresh faults at C4.",
+    "R8 original e936bc0d is immutable R2 source; exact single-root substitutions produce R3 e824add5 then this R4 090034e2 with identical assertions. The two original source labels are compatible, not a changed assertion.",
+    "PM288 complete merge-base set [M], old erroneous predicate/refusal, preserved historical records and real lazy helper metadata path agree. Author discloses a transient unapproved proposal/reversion and earlier transcript-only runs. ER does not retroactively authorize them or promote them to file-backed execution; its own fresh immutable-U refusal and actual repaired-helper proof are separate.",
+    "Public-law partial totals, same112 pins/26 children/15 public modes/9+3+7 identities, and source94/writers335 prospective limits agree. Tooling267 is measured by each final review/report only; earlier registration notes remain prospective.",
+    "README is strictly appended and retains preceding records, exact authority holds, native-delta emptiness and absence of package/full/currentCI/phone credit."
+  ],
+  "authorClaimsNotBorrowed": [
+    "No author ignored evidence, sibling worktree or dependencies were read. Their reported hashes, setup refusals and intermediate execution heads remain attributed author statements.",
+    "ER retains its independently verified C3/T B2 positives/ERA positive and C2/S fault/reference/witness receipts; these are not relabeled as the builder own differently timed runs.",
+    "Author declared stale mutation anchors, restrictive metadata guard and incomplete public-copy loader failure remain setup disclosures only. No such failure becomes an ER behavioral kill."
+  ],
+  "differencesRequiringProductOrReportRepair": [],
+  "nextAuthority": "Sole PM adopts exact reviewer artifacts and names final mechanical binding/composition/affected consumer/protected execution work. C lifecycle remains separate. No product test rerun was needed after rationale reading.",
+  "R8SourceChain": [
+    {
+      "source": "162f189814e9db66a9487243a9458cef01519876:rebuild/lanes/astra/reviews/B1B2-R2-TODAY-CLEARANCE-REVIEW.cjs",
+      "sha256": "e936bc0dbf3cff304db0c75d5200dcbcee3afd4e1b347b546616885ec3907ab5"
+    },
+    {
+      "source": "48e591d7ff72ab16feb6893d0b398b14bc58362e:rebuild/lanes/astra/reviews/B1B2-R3-TODAY-CLEARANCE-REVIEW.cjs",
+      "sha256": "e824add5655d710f1f23e7069a41012996dddc3169c57be9ee5a2664a59a6e8f"
+    },
+    {
+      "source": "03fb8d139b36167271281da339d89f23d51ddeb1:rebuild/lanes/astra/reviews/B1B2-R4-TODAY-CLEARANCE-REVIEW.cjs",
+      "sha256": "090034e23a7a1a04b23a3d685dcb9659cfe02d1d63f132f7b3bcddbeb9cf5c77"
+    }
+  ],
+  "readmeAppendedOnly": true
+}
