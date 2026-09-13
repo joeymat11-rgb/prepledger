@@ -1,0 +1,157 @@
+{
+  "candidate": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "tested": "8986d493058f1f6488781a105586c3177dd4f3fc",
+  "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+  "authority": "5b81dc8fa0c8b31f46865b7588e190dcab7f9a15",
+  "initialFullIndexTree": "d29ebfbe09df0402a618121073b7ada1f938082a",
+  "fullIndexPaths": 1610,
+  "bars": [
+    {
+      "file": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REVIEW.md",
+      "ref": "5b81dc8fa0c8b31f46865b7588e190dcab7f9a15",
+      "bytes": 6267,
+      "sha256": "2f2ded00e400dc5b312c64b96408e4478feca6c4aef1cebdf61dab7f9fd1268d"
+    },
+    {
+      "file": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-REVIEW-INPUTS.json",
+      "ref": "5b81dc8fa0c8b31f46865b7588e190dcab7f9a15",
+      "bytes": 3440,
+      "sha256": "ef0c0879a21de55141bfa255abfb16e741fa0a55c5b53b2e766a91afc7c29b0b"
+    },
+    {
+      "file": "rebuild/lanes/astra/B1B2-NATIVE-CAPTURE-GO.md",
+      "ref": "5b81dc8fa0c8b31f46865b7588e190dcab7f9a15",
+      "bytes": 6604,
+      "sha256": "3aca3d79eb6870088350fd801640ace0a4b6fd1c297c0fb05f2bdbb5322682ec"
+    },
+    {
+      "file": "rebuild/lanes/b/B1B2-NATIVE-BOUNDARIES-PLAN.json",
+      "ref": "bcec684876d0f3d941cd4abc8983ebf8a5eb2dd0",
+      "bytes": 29115,
+      "sha256": "7ed4ecead49357b7bf78e65904c2df50188b958d7481dd4aee35f168a1ba0644"
+    }
+  ],
+  "manifest": {
+    "kind": "INPUT_ONLY_CUSTODY_NOT_OUTCOMES",
+    "authority": "PM336 and full PM330 bar",
+    "candidate": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+    "testedSource": "8986d493058f1f6488781a105586c3177dd4f3fc",
+    "base": "3bfed63febef002b8540d6ff3c56e19d08368711",
+    "node": {
+      "version": "22.23.2",
+      "platform": "win-x64",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    },
+    "inputs": [
+      {
+        "role": "candidate",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "bytes": 41569,
+        "sha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+        "gitBlob": "e169ec8bc7c843d034bec96ea9cba4ef90d4ae83",
+        "use": "synthetic invocation only"
+      },
+      {
+        "role": "candidate",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+        "bytes": 14267,
+        "sha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+        "gitBlob": "3be4869d3ba487b15535967f4d2687d41b708a77",
+        "use": "synthetic invocation only"
+      },
+      {
+        "role": "candidate",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+        "bytes": 28677,
+        "sha256": "712fd9af1074d6dff9f908060790c5cd20c56b77bf25a1cec315e49638e1cb46",
+        "gitBlob": "b2d9a38cecac0be9f2083d075ce9196de5e98442",
+        "use": "only committed executable test entry"
+      },
+      {
+        "role": "candidate",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "bytes": 89271,
+        "sha256": "cfcf6e9d232d0f1f4fad818684d0f3f58ad840feaca53cbb07d53565b6f1ac04",
+        "gitBlob": "fc5a065fe258ff4488d8d8296ef55fbfda4cd313",
+        "use": "profile metadata comparison only"
+      },
+      {
+        "role": "candidate",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+        "bytes": 196822,
+        "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058",
+        "gitBlob": "7302b88e30d1c36b9d4558486d4cde1369915d32",
+        "use": "public helper input"
+      },
+      {
+        "role": "candidate",
+        "ref": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+        "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+        "bytes": 1061,
+        "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+        "gitBlob": "6f31a562de7447a53236991899417f1a591d62ce",
+        "use": "STATIC ONLY: no original gate invocation"
+      },
+      {
+        "role": "base",
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "bytes": 36945,
+        "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+        "gitBlob": "6070de8835303eacff27cbf6f2879fd28bc4c132",
+        "use": "static preimage comparison"
+      },
+      {
+        "role": "base",
+        "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+        "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "bytes": 89271,
+        "sha256": "184d79ad82201a7d2c9ed1c631776077149727223eb5ae259393759bfbd957e7",
+        "gitBlob": "ecc4b33ea1406eb43b5dbc39cbdb15792f5feefd",
+        "use": "static preimage comparison"
+      }
+    ]
+  },
+  "changed": [
+    "rebuild/lanes/b/BUILD-B1B2-NATIVE-CAPTURE.md",
+    "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+    "rebuild/lanes/b/tooling/packages/B1-B2.json",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+    "rebuild/m4/workout/test/b1b2-evidence.cjs"
+  ],
+  "profileOnlyHelperPost": true,
+  "unchanged": [
+    {
+      "path": "rebuild/engine",
+      "gitObject": "e51462d83985592bcfbde846dab3b9d7abde9c20"
+    },
+    {
+      "path": "rebuild/m3",
+      "gitObject": "6e7bb5e9cd00041467731c1fe5a0210c19665771"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "gitObject": "7302b88e30d1c36b9d4558486d4cde1369915d32"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "gitObject": "6f31a562de7447a53236991899417f1a591d62ce"
+    }
+  ],
+  "node": {
+    "path": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\review-preflight-ci\\.tmp\\reviewer-node22\\node-v22.23.2-win-x64\\node.exe",
+    "version": "v22.23.2",
+    "bytes": 86997320,
+    "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+  },
+  "originalProtectedPathsUnmaterialized": true,
+  "authorReportRead": false,
+  "authorOutcomesRead": false,
+  "setupCorrection": "read-tree -mu HEAD applied sparse flags but did not create the two named instruction files on this no-checkout index; explicit checkout-index of NEXT/AGENTS completed hydration. Full index remained exact, only those two absent paths were reported, no excluded materialization or staging."
+}

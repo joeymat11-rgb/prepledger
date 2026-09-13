@@ -1,0 +1,555 @@
+{
+  "candidate": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "records": [
+    {
+      "mode": "normal",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\9354088233ab3b551d0165f512ff4d68",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 600,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\n# Subtest: ER unchanged synthetic 1\nok 1 - ER unchanged synthetic 1\n  ---\n  duration_ms: 0.3861\n  type: 'test'\n  ...\n# Subtest: ER unchanged synthetic 2\nok 2 - ER unchanged synthetic 2\n  ---\n  duration_ms: 0.059\n  type: 'test'\n  ...\n# Subtest: ER unchanged synthetic 3\nok 3 - ER unchanged synthetic 3\n  ---\n  duration_ms: 0.0369\n  type: 'test'\n  ...\n# Subtest: ER actual observation lifecycle\nok 4 - ER actual observation lifecycle\n  ---\n  duration_ms: 912.3388\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 974.9213\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "before-exit",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\a60c38f95b75a0807835b909198f29cf",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "DIAGNOSTIC"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": false,
+        "bytes": {
+          "stdout": 603,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "DIAGNOSTIC"
+      },
+      "rawStdout": "TAP version 13\n# Subtest: ER unchanged synthetic 1\nok 1 - ER unchanged synthetic 1\n  ---\n  duration_ms: 0.5415\n  type: 'test'\n  ...\n# Subtest: ER unchanged synthetic 2\nok 2 - ER unchanged synthetic 2\n  ---\n  duration_ms: 0.0639\n  type: 'test'\n  ...\n# Subtest: ER unchanged synthetic 3\nok 3 - ER unchanged synthetic 3\n  ---\n  duration_ms: 0.0373\n  type: 'test'\n  ...\n# Subtest: ER actual observation lifecycle\nok 4 - ER actual observation lifecycle\n  ---\n  duration_ms: 1169.8306\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1233.3696\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "late-exit",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\3bd309c55fc1d41771f6be717aaa89fd",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 601,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\n# Subtest: ER unchanged synthetic 1\nok 1 - ER unchanged synthetic 1\n  ---\n  duration_ms: 0.391\n  type: 'test'\n  ...\n# Subtest: ER unchanged synthetic 2\nok 2 - ER unchanged synthetic 2\n  ---\n  duration_ms: 0.0578\n  type: 'test'\n  ...\n# Subtest: ER unchanged synthetic 3\nok 3 - ER unchanged synthetic 3\n  ---\n  duration_ms: 0.0355\n  type: 'test'\n  ...\n# Subtest: ER actual observation lifecycle\nok 4 - ER actual observation lifecycle\n  ---\n  duration_ms: 815.0762\n  type: 'test'\n  ...\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1291.9663\n",
+      "rawStderr": "",
+      "syntheticOnly": true,
+      "lateReach": {
+        "called": true,
+        "completionMarkerBefore": false,
+        "completionMarkerAfter": false
+      }
+    },
+    {
+      "mode": "manual-good",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\d605c5c2324a28c68857661c7f0b66b3",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 174,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "manual-skip",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\900580b1eef12c945883b0a596f38bc4",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 190,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented # SKIP invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "manual-todo",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\dbd5e6db8c31870c1ac333981ce95cd3",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 190,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented # TODO invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "manual-bailout",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\c0e718011cb2974e1775ff52c037d653",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 193,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\nBail out! invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "manual-pending",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\29dd82dd1cbeab3ab64fe580764845d8",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "DIAGNOSTIC"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": false,
+        "bytes": {
+          "stdout": 174,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "DIAGNOSTIC"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "manual-pending",
+      "operatorSha256": "01fb3c175035c84bad4982b85d554ec2cb6316f364626ec2d5cc2e699eb9233c",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\bb1ec06c12ab285b980f656b94d4875e",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": true,
+        "bytes": {
+          "stdout": 174,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "NONE"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    },
+    {
+      "mode": "manual-pending",
+      "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "directory": ".tmp\\b1b2-native-capture\\8d7139f5ac66fabcd603d668e3954451",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "DIAGNOSTIC"
+      },
+      "privateManifest": {
+        "v": 1,
+        "complete": false,
+        "bytes": {
+          "stdout": 174,
+          "stderr": 0
+        },
+        "overflow": false,
+        "childExit": 0,
+        "childSignal": null,
+        "captureFailure": "DIAGNOSTIC"
+      },
+      "rawStdout": "TAP version 13\nok 1 - invented\nok 2 - invented\nok 3 - invented\nok 4 - invented\n1..4\n# tests 4\n# suites 0\n# pass 4\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1\n",
+      "rawStderr": "",
+      "syntheticOnly": true
+    }
+  ],
+  "controls": [
+    {
+      "id": "ER-HOOK-OBSERVATION",
+      "originalSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "mutantSha256": "35a0f67923c2c2d485f904d94d9e8bffeb943395486b8f26dd5c88a8879556cc",
+      "anchor": "  observeNativeDifference(kind,actual,before,after);",
+      "replacement": "  // deliberate observer removal",
+      "mutantFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "ER-HOOK-OBSERVATION\n\nfalse !== true\n"
+      },
+      "baselinePassed": true,
+      "freshRestoredPassed": true,
+      "originalDiskUnchanged": true
+    },
+    {
+      "id": "ER-COMPLETION-REFUSAL",
+      "originalSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+      "mutantSha256": "01fb3c175035c84bad4982b85d554ec2cb6316f364626ec2d5cc2e699eb9233c",
+      "anchor": "need(!fs.existsSync(path.join(dir,'capture-manifest.json'))&&observed.length===2,'DIAGNOSTIC');",
+      "replacement": "/* deliberate completion guard removal */",
+      "mutantFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "ER-COMPLETION-REFUSAL\n\n'PASS' !== 'FAIL'\n"
+      },
+      "baselinePassed": true,
+      "freshRestoredPassed": true,
+      "originalDiskUnchanged": true
+    },
+    {
+      "id": "ER-OUTPUT-WHITELIST",
+      "originalSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "mutantSha256": "f3fe41c1ace9ea3f005c3c14fb6f87b10c25682cf5a5f16e3a3b3513a71fb268",
+      "anchor": "id=matches[0];}",
+      "replacement": "id=p;}",
+      "mutantFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "ER-OUTPUT-WHITELIST\n\ntrue !== false\n"
+      },
+      "baselinePassed": true,
+      "freshRestoredPassed": true,
+      "originalDiskUnchanged": true
+    },
+    {
+      "id": "ER-FIRST-FAILURE",
+      "originalSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+      "mutantSha256": "7630c2ed9db815bdaccea3d63a52e4dc56b32dab2261e36a2ab379086bf80c17",
+      "anchor": "  assert.equal(JSON.stringify(actual)===JSON.stringify(approved),true,'exact admitted native field deltas '+kind+'; measured '+actual.length+' (values retained process-locally)');",
+      "replacement": "  /* deliberate first-failure assertion removal */",
+      "mutantFailure": {
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "ER-FIRST-FAILURE\n\ntrue !== false\n"
+      },
+      "baselinePassed": true,
+      "freshRestoredPassed": true,
+      "originalDiskUnchanged": true
+    }
+  ],
+  "originalNativeInvoked": false,
+  "protectedInputsRead": false,
+  "authorOutcomesRead": false
+}
