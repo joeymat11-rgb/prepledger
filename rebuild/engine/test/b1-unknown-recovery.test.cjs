@@ -599,12 +599,16 @@ module.exports.HISTORICAL_SOURCE_MUTATIONS = [
  doesNotThrow; their earlier raw exceptions were NOT counted as kills.
  B1 now27/27; exact M2/27. Earlier26-cell checkpoint remains recorded above.
 */
+// D19-3 full off-by-one reconstruction from the accepted prose: phaseArc day
+// increment1->2 and resume offset1->2, plus the exact temporary constants7->8.
+// The historical report publishes the mutant name/effects, not executable code.
+module.exports.HISTORICAL_SOURCE_MUTATIONS.push(['D19-3','policy','brkS.daysSince + 1','brkS.daysSince + 2','rebuild/engine/test/b1-delta-cells.cjs',null]);
 // Explicit opt-in construction audit; ordinary node --test never mutates sources.
 function runConstructionAudit(mode) {
  const fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process'),crypto=require('node:crypto');
  const root=path.resolve(__dirname,'../../..'),scratch=path.join(root,'.tmp','b1b2-public-audit');fs.mkdirSync(scratch,{recursive:true});
  const licensed=['dates','sleep','policy','today','plan','progression','volume','writers'].map(n=>'rebuild/engine/'+n+'.cjs');
- const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),saved=new Map(licensed.map(p=>[p,fs.readFileSync(path.join(root,p))]));
+ const sha=x=>crypto.createHash('sha256').update(x).digest('hex'),saved=new Map((mode==='--audit-historical-mutations'?[...licensed,'rebuild/engine/constants.cjs']:licensed).map(p=>[p,fs.readFileSync(path.join(root,p))]));
  const before=Object.fromEntries([...saved].map(([p,b])=>[p,sha(b)]));
  const run=(args,label)=>{const r=cp.spawnSync(process.execPath,args,{cwd:root,encoding:'utf8',windowsHide:true,env:{...process.env,TZ:'America/New_York'}});if(r.error)throw r.error;fs.writeFileSync(path.join(scratch,label+'.log'),r.stdout+r.stderr);return {status:r.status,text:r.stdout+r.stderr};};
  const restore=()=>{for(const [p,b]of saved)fs.writeFileSync(path.join(root,p),b);for(const [p,h]of Object.entries(before))assert.equal(sha(fs.readFileSync(path.join(root,p))),h,'source restoration '+p);};
@@ -614,14 +618,35 @@ function runConstructionAudit(mode) {
    for(const [id,name,a,b,evidence,filter]of (mode==='--audit-mutations'?module.exports.CONSTRUCTION_MUTATIONS:module.exports.HISTORICAL_SOURCE_MUTATIONS)){
     const p='rebuild/engine/'+name+'.cjs';assert.ok(licensed.includes(p),'unlicensed mutation source');assert.ok(['rebuild/engine/test/b1-unknown-recovery.test.cjs','rebuild/engine/test/b1b2-sleep-target-cells.cjs','rebuild/engine/test/b1-delta-cells.cjs'].includes(evidence));
     const source=saved.get(p).toString('utf8');assert.equal(source.split(a).length,2,'exact mutation anchor '+id);
-    let r;try{fs.writeFileSync(path.join(root,p),source.replace(a,b));r=run(filter?['--test','--test-reporter=tap','--test-name-pattern='+filter,evidence]:[evidence],id);}finally{restore();}
+    let r;try{fs.writeFileSync(path.join(root,p),source.replace(a,b));
+    if(id==='D19-3'){
+     const current=fs.readFileSync(path.join(root,p),'utf8'),resume='plusDays(brkS.end, 1)';assert.equal(current.split(resume).length,2);fs.writeFileSync(path.join(root,p),current.replace(resume,'plusDays(brkS.end, 2)'));
+     const constants='rebuild/engine/constants.cjs',bytes=saved.get(constants),literal='const BREAK_LEN_DAYS = 7;';assert.equal(bytes.toString().split(literal).length,2);fs.writeFileSync(path.join(root,constants),bytes.toString().replace(literal,'const BREAK_LEN_DAYS = 8;'));
+    }
+    r=run(filter?['--test','--test-reporter=tap','--test-name-pattern='+filter,evidence]:[evidence],id);}finally{restore();}
     const record=(r.text.match(/^PUBLIC_B1_RESULT (.+)$/m)||[])[1];
     const delta=record?JSON.parse(record):null;
     const failures=delta?delta.failures.length:(r.text.match(/^not ok /gm)||[]).length,assertions=delta?delta.failures.filter(f=>f.code==='ERR_ASSERTION').length:(r.text.match(/code: 'ERR_ASSERTION'/g)||[]).length;
     const classification=r.status===1&&failures>0&&failures===assertions?'BEHAVIORAL_KILL':r.status===0?'SURVIVED':'SETUP_OR_BOUNDARY_FAILURE';
     const kind=id==='D10-2'&&classification==='BEHAVIORAL_KILL'?'DECLARATION_ALIAS_KILL':classification;
     result.push({id,classification:kind,failures,assertions});console.log(id+' '+kind);
+    if(id==='D19-3'){const positive=run(['rebuild/engine/test/b1-delta-cells.cjs'],'D19-3-restored-positive');assert.equal(positive.status,0,'positive control after full constants restoration');}
    }
+    const positive=run(['--test','rebuild/engine/test/b1-unknown-recovery.test.cjs','rebuild/engine/test/b1b2-sleep-target-cells.cjs'],'post-mutation-positive');assert.equal(positive.status,0,'fresh positive after all mutations');
+  } else if(mode==='--audit-public-laws') {
+   const argv=['rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs','--public-laws'];
+   const first=run(argv,'candidate-laws-before');assert.equal(first.status,0);
+   for(const p of licensed)fs.writeFileSync(path.join(root,p),cp.execFileSync('git',['show','100820aa47a4f8729642033499eaec0f0ee282e1:'+p],{cwd:root,windowsHide:true}));
+   let middle;try{middle=run(argv,'M-laws');assert.equal(middle.status,0);}finally{restore();}
+   const last=run(argv,'candidate-laws-after');assert.equal(last.status,0);assert.equal(first.text,last.text,'fresh positive law control after restoration');
+   const base=JSON.parse(fs.readFileSync(path.join(scratch,'public-laws-M.json'))),candidate=JSON.parse(fs.readFileSync(path.join(scratch,'public-laws-candidate.json')));
+   const equal=require('node:util').isDeepStrictEqual,changes=base.rows.filter((r,i)=>!equal(r,candidate.rows[i])).map(r=>r.defect),d22base=base.rows.find(r=>r.defect==='D22'),d22candidate=candidate.rows.find(r=>r.defect==='D22');
+   assert.equal(equal(d22base,d22candidate),true,'D22 complete normalized row parity');
+   const d45base=base.rows.find(r=>r.defect==='D45'),d45candidate=candidate.rows.find(r=>r.defect==='D45'),expectedD45=structuredClone(d45base);
+   const oldCopy='last night — h; 0 consecutive night(s) at his 7.5 h target; the session is flagged NORMAL',newCopy='UNKNOWN (no current finite sleep observation); 0 consecutive night(s) at the recorded 7.5 h target; no observed short-sleep restriction';
+   assert.equal(expectedD45.frames[0].name,'askContext');assert.equal(expectedD45.frames[0].result.split(oldCopy).length,2);expectedD45.frames[0].result=expectedD45.frames[0].result.replace(oldCopy,newCopy);assert.deepEqual(expectedD45,d45candidate,'D45 only the approved askContext output segment changes');
+   assert.deepEqual(changes,['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10','D16','D17','D18','D19','D21','D23','D24','D25','D27','D28','D29','D30','D31','D32','D45']);
+   result.push({id:'public-laws',classification:'MEASURED_PUBLIC_SYNTHETIC',base:base.totals,candidate:candidate.totals,changedRows:changes,unchangedRows:45-changes.length,d22RowParity:equal(d22base,d22candidate),d22FramesParity:equal(d22base.frames,d22candidate.frames)});console.log(JSON.stringify(result[0]));
   } else if(mode==='--audit-preimage') {
    for(const p of licensed)fs.writeFileSync(path.join(root,p),cp.execFileSync('git',['show','100820aa47a4f8729642033499eaec0f0ee282e1:'+p],{cwd:root,windowsHide:true}));
    const rows=[['b1',['rebuild/engine/test/b1-delta-cells.cjs']],['b2',['rebuild/lanes/b/b2-delta-cells.cjs']],['u',['--test','--test-reporter=tap','rebuild/engine/test/b1-unknown-recovery.test.cjs']],['fg',['--test','--test-reporter=tap','rebuild/engine/test/b1b2-sleep-target-cells.cjs']]];
@@ -631,12 +656,26 @@ function runConstructionAudit(mode) {
     result.push({id,status:r.status,tests,pass,fail,assertions,...(delta?{deltaTotal:delta.total,deltaPass:delta.passed,deltaAssertions:delta.failures.length}:{}),classification:tests?(fail===assertions?'BEHAVIOR_ONLY':'SETUP_OR_BOUNDARY_FAILURE'):/TypeError|ReferenceError|SyntaxError/.test(r.text)?'SETUP_OR_BOUNDARY_FAILURE':'DELTA_PROGRAM'});console.log(JSON.stringify(result.at(-1)));}
   } else throw Error('unsupported construction audit mode');
  } finally {restore();}
+ if(mode==='--audit-preimage'){const fresh=run(['--test','rebuild/engine/test/b1-unknown-recovery.test.cjs','rebuild/engine/test/b1b2-sleep-target-cells.cjs'],'preimage-restored-positive');assert.equal(fresh.status,0);const b1=run(['rebuild/engine/test/b1-delta-cells.cjs'],'preimage-restored-B1');assert.equal(b1.status,0);}
  fs.writeFileSync(path.join(scratch,mode.slice(2)+'.json'),JSON.stringify({sourceBefore:before,sourceRestored:true,results:result},null,2)+'\n');
  const ok=result.every(r=>!['SURVIVED','SETUP_OR_BOUNDARY_FAILURE'].includes(r.classification));console.log('PUBLIC CONSTRUCTION AUDIT '+mode+': '+(ok?'EXPECTED BEHAVIOR':'FAIL')+'; runtime bytes restored and SHA256-checked');return ok;
 }
 module.exports.runConstructionAudit=runConstructionAudit;
-if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage'].includes(a)))?0:1);
+if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))?0:1);
 
 // Expanded amendment audit:20/20 behavioral kills. Historical audit:34/34
 // licensed historical probes detected plus1 separately labeled phaseArc output probe.
 // Current standard cells: U118/118, FG28/28, B1 27/27, B2 32/32.
+test('U9 liftCall independent WATCH diagnosis names recorded band without prior GREEN claim',()=>{const T=engine(),s=stallState();s.exercises.push({id:'held1',holdFlag:true},{id:'held2',holdFlag:true});s.sessionLog['2026-09-02']={entries:[],niggles:['joint']};assert.equal(T.recoveryIndex(s).band,'WATCH');const r=T.liftCall(s,'press',{alarm:null});assert.equal(r.verdict,'RESET');assert.match(r.why,/WATCH/);assert.doesNotMatch(r.why,/left GREEN/);});
+test('U10 law source boundary refuses forbidden or unknown names before reads',()=>{const C=require('../../conform/v4/postfix/legacy-b1b2-carriers.cjs'),fs=require('node:fs'),read=fs.readFileSync;let reads=0;fs.readFileSync=function(...a){reads++;return read.apply(this,a);};try{for(const name of ['seed.cjs','../helpers.cjs','writers-reference.cjs','../../private/live.json','laws-unknown.cjs'])assert.throws(()=>C.publicLawSource(name),/PUBLIC_LAW_DENIED_BEFORE_READ/);assert.equal(reads,0);}finally{fs.readFileSync=read;}});
+// Final successor checkpoint after the recorded WATCH copy control and law boundary:
+// U120/120, FG28/28; B1 27/27; B2 32/32; carriers4/4,31cases,35substitutions.
+// M preimage at preceding119-cell checkpoint: U46pass/73assertion failures.
+// Historical mutation audit now35 named historical probes detected (34 behavioral,
+// 1 declaration-alias), plus1 separate phaseArc-only length probe. Full D19-3
+// reconstruction fails B1 assertions; constants and policy hashes restore, and
+// the fresh B1 positive passes. Amendment20/20 behavioral probes also detected.
+
+// Final exact-M successor rerun after law boundary: U47/120 pass,73 ERR_ASSERTION
+// failures; FG3/28 pass,25 ERR_ASSERTION failures; B1 2/27 pass,25 assertion
+// failures; B2 BASE32/32. Fresh restored U+FG148/148 and B1 27/27.

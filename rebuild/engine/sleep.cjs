@@ -127,7 +127,7 @@ function liftCall(s, exId, opts = {}) {
     /* U4 — A STALL OPENS A DIAGNOSIS, never a reflex. The three-count is the SIGNAL
        (already filtered to comparable sessions: rushed, short-sleep and event days
        never counted); the CAUSE decides the move. Lightening is supported only when
-       pain speaks (the governor holds this lift) or recovery has left GREEN —
+       pain speaks (the governor holds this lift) or recorded recovery is WATCH/LOW —
        otherwise a plateau with a green body is time-or-stimulus, and a load cut
        answers neither (deload trials tested different interventions entirely).
        PRECEDENCE, NAMED: a diagnosed reset is the one sanctioned exception to
@@ -136,7 +136,7 @@ function liftCall(s, exId, opts = {}) {
     const rec9 = recoveryIndex(s);
     const fat9 = (() => { try { return ["WATCH", "LOW"].includes(recoveryIndex(s).band); } catch (e) { return false; } })();
     if (pain9 || fat9) { const newW = ex2 && typeof ex2.w === "number" ? deloadLoad(ex2) : null;
-      return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total, and ${pain9 ? "the governor holds this lift — pain speaks there" : "recovery has left GREEN"} — the diagnosis supports lightening a notch to rebuild. A reset deliberately prescribes below delivered capacity: the named exception, on your tap only.`, receipts: R2 }; }
+      return { verdict: "RESET", vel, n: clean.length, newW, why: `${stall} honest sessions without beating your total, and ${pain9 ? "the governor holds this lift — pain speaks there" : "recorded recovery is " + recoveryIndex(s).band} — the diagnosis supports lightening a notch to rebuild. A reset deliberately prescribes below delivered capacity: the named exception, on your tap only.`, receipts: R2 }; }
     return { verdict: "REVIEW", vel, n: clean.length,
       why: `${stall} comparable sessions without a beat — a stall signal, not yet a cause. The check ran: governor clear (no pain flag), recovery ${rec9.band === "UNKNOWN" ? "UNKNOWN (current sleep not recorded)" : "GREEN"}, and protocol noise was never in the count. The recorded evidence does not support lightening — the target stands.`,
       receipts: R2.concat(["Stall review: the cause check ran and nothing supports a load cut today. If pain or recovery turns while the stall holds, the reset offer files itself."]) };

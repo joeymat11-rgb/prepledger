@@ -97,7 +97,7 @@ const CONSTRUCTION_SOURCE_MANIFEST = {
     },
     "sleep.cjs": {
       "base": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
-      "candidate": "409c889b6971cef094fcc5ca851eb0007e610782071d9027f81ad1100f9986e5"
+      "candidate": "b55cb352aed6be0032391e7b695223928154cd89c43023838c69baaa33a22e2d"
     },
     "energy.cjs": {
       "base": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
@@ -129,7 +129,7 @@ const CONSTRUCTION_SOURCE_MANIFEST = {
     },
     "writers.cjs": {
       "base": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
-      "candidate": "a75fc60a1294827d04347153cdfef3c434fd3efa3671f06f35dba4b746d26da6"
+      "candidate": "694e220db85eac38a1068e7e7ed9404edb786140df165dd621f0eee2f4531959"
     }
   }
 };
