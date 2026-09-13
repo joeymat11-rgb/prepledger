@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 06:30 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 06:41 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | B1+B2 runtime/tooling and finite successor registration; B4+B3 next; sole gate operator | earned-astra-b-follow-up; hourly building,20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold independently accepted N2 bfc2935; B exact combined CI/admission next, then scoped consumers | earned-astra-c-follow-up; hourly building,20 minutes waiting |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core/provider candidateebc4c4e with independent MAX reviewer; address bounded findings, B/C downstream custody retained | earned-lane-d-hourly; hourly building,20 minutes waiting |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core R1–R10 repair in existing28paths on rebuild/astra-d-s3-core-r2; originalebc4c4e preserved, B/C protected joins retained | earned-lane-d-hourly; hourly building,20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | N2 scoped review complete98eeb183; reserved affected combined-head review when PM names B ready head | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Independent S3 core/provider review under230 active; B1+B2 priority when complete candidate/profile commissioned | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | S3 independent review26ba95c complete REJECT; waits exact B1+B2 handoff with priority, then named S3 corrected successor | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | Exact local decision/consent/source-replay contract under PM selected direction; docs/public code only, runtime custody pending | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
