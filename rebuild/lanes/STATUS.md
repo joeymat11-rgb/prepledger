@@ -93,3 +93,5 @@
 2026-09-13 11:28 ET · PM-CARETAKER · Astra · 3adcdced654e9df903c8a0c1bf59999ff12697ff · B ERA phase1 identity e5d6bbec rehashed/notified before candidate comparison; exact248 runs proceed. D reports17 harness passes at a69b591; mutations and named seven-probe annex continue under250. Author evidence only, independent review pending. No owner action.
 
 2026-09-13 11:32 ET · D · HARNESS-READY-PARTIAL · rebuild/astra-d-s3-r3-harness@f0b01d9; report d/S3-CORE-R3-HARNESS-REPORT.md:17 harness/59 named mutants+restored/7 unchanged annex probes;111 Git/copy pins equal. R2 stays rejected; native-Date/membership+host companion waits on reviewed B1+B2 parent, then complete combined proof. PM rehashed report; D now LOW standby.
+
+2026-09-13 11:54 ET · B · R2-REVIEW-READY · rebuild/astra-b1b2-r2@c4716ed · Public:283 recovery,55 B2 faults (52+3 delegated),56 ERA/8 faults,267 tooling+90 final registration. Report b/BUILD-B1B2-TOOLING-154-184.md (41 lines). Local/unpushed; PM to MAX and affected D2 next. Native/FULL/CI/integration held.
