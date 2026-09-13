@@ -91,3 +91,5 @@
 2026-09-13 11:24 ET · PM-CARETAKER · Astra · e0834166febf496f205bd2f4934f81d9e4489dd1 · B reports373c3f29:283public/46faults; B2 52composed+3delegated kills, author evidence only. ERA reference-first work continues. D harness repairs active; future companion mirror/custody settled, exact accepted B parent/public closure pending. No owner action or acceptance.
 
 2026-09-13 11:28 ET · PM-CARETAKER · Astra · 3adcdced654e9df903c8a0c1bf59999ff12697ff · B ERA phase1 identity e5d6bbec rehashed/notified before candidate comparison; exact248 runs proceed. D reports17 harness passes at a69b591; mutations and named seven-probe annex continue under250. Author evidence only, independent review pending. No owner action.
+
+2026-09-13 11:32 ET · D · HARNESS-READY-PARTIAL · rebuild/astra-d-s3-r3-harness@f0b01d9; report d/S3-CORE-R3-HARNESS-REPORT.md:17 harness/59 named mutants+restored/7 unchanged annex probes;111 Git/copy pins equal. R2 stays rejected; native-Date/membership+host companion waits on reviewed B1+B2 parent, then complete combined proof. PM rehashed report; D now LOW standby.
