@@ -1,0 +1,27 @@
+{
+  "result": {
+    "acknowledged": false,
+    "state": 3,
+    "code": "WORKOUT_RESUME_REQUIRED",
+    "copy": "Start not confirmed. Your input is retained; resolve the indicated condition before trying again."
+  },
+  "phase": "active",
+  "message": {
+    "code": "WORKOUT_RESUME_REQUIRED",
+    "copy": "Start not confirmed. Your input is retained; resolve the indicated condition before trying again."
+  },
+  "currentError": "",
+  "detachedError": "Start not confirmed. Your input is retained; resolve the indicated condition before trying again. · WORKOUT_RESUME_REQUIRED",
+  "currentLogVisible": true,
+  "counts": {
+    "busy": 0,
+    "read": 0,
+    "paint": 0,
+    "start": 0,
+    "settingsOpening": 0,
+    "settingsReading": 0,
+    "settingsSaving": 0
+  },
+  "opsBefore": 1,
+  "opsAfter": 1
+}

@@ -1,14 +1,14 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: ER final48e591d7 rejects exact B8e65805/T797e4cf for R9, an actual mixed-date Today result at midnight; twelve review artifacts adopted282 and B/MAX narrow captured-date repair released. Original R8 and affected N2 acceptance278 remain scoped to their proved identities. D2/MAX continues isolated C18ff0dcf lifecycle review276; ER/C/D/E LOW, I paused. Saved and executed efforts verified184247Z. Owner280 delegates Fast management, but no callable live speed control was found and no Fast setting changed. Joe/history/coaching memory then Dad remains goal268; soak gates wide beta only.
+PM checkpoint2026-09-13: D2 firstf9f70a71 independently closes C lifecycle L1/L2 (141+37 pass) but finds one current-card failed-save message gap;27 exact artifacts including separate377b0d32 reconciliation adopted284 and C/XHIGH narrow three-file repair released. D2 completed separate377b0d32 report-last reconciliation and returned LOW. B/MAX R9 captured-date repair282 continues separately; ER/D/E LOW, I paused. PM saved/current reply MAX verified185104Z despite owner-reported PC Medium/iPhone MAX labels; display cause unconfirmed. Fast is authorized280 but still not controllable through current tools. Goal268 remains Joe/history/memory then Dad; soak gates wide beta only.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: narrow R9 captured-Today-date correction282 from exact8e65805; preserve original review and warning/action behavior | earned-astra-b-follow-up;20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact18ff0dcf/dc768c9 lifecycle repair in independent D2/MAX review276; preserve source | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | XHIGH: narrow current-card failed-set refusal repair284 from18ff0dcf; L1/L2 independently fixed | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: C18ff0dcf lifecycle successor review276; B R3 N2 scoped acceptance/reconciliation complete278 | earned-lane-d2-requests;20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: C18ff0dcf first verdict f9f70a71 and separate377b0d32 reconciliation complete284; await exact successor | earned-lane-d2-requests;20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: completed R3 REJECT R9 final48e591d7 adopted282; await exact successor commission | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: lifecycle0f57c99c direction selected266; await named decision/provider implementation release | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
@@ -59,8 +59,8 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | --- | --- | --- |
 | B | MAX; narrow R9 captured-date repair282 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
-| C | LOW; repair18ff0dcf in review276 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | MAX; exact C18ff0dcf lifecycle review276 | MAX for the next named independent successor |
+| C | XHIGH; current-card failed-set refusal repair284 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
+| D2 | LOW; C R2 firstf9f70a71/final377b0d32 review complete284 | MAX for the next named independent successor |
 | Engine reviewer | LOW; R3 final48e591d7 review complete282 | MAX for next named independent successor review |
 | E | LOW; exact lifecycle addendum complete | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
