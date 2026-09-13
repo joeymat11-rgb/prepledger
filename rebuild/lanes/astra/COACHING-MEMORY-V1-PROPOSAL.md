@@ -31,3 +31,7 @@ Recommendation: make this a named beta deliverable. Start a bounded implementati
 This version establishes dependable memory. Statistical learning about which interventions caused better outcomes is a separate scientific/product scope, requiring its own evidence; recording an outcome does not establish causation. No new recommendation formula, automated plan mutation, raw transcript archive or broad private-data export is implied.
 
 Owner decision proposed: make Coaching Memory v1 a required beta feature and start its design/dependency work now, with implementation following the launch and sleep-entry fixes. Until a yes, this file is a reviewable proposal only.
+
+## Owner response,2026-09-13
+
+APPROVED at DECISIONS202. Joe replied: "Yes, and look into any other planning gaps there may be, and rule if we should build another lane to address". The original proposal above is retained as the scope he approved; its pending-status wording is historical. Coaching Memory v1 is now a required beta feature, with design/dependency work authorized now and implementation following the stated launch/N2 prerequisites. PM also audits planning gaps and decides whether a distinct lane is useful. Other newly discovered product/science features are not automatically approved by this audit instruction.

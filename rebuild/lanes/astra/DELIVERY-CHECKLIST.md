@@ -14,6 +14,7 @@ PM reconciliation at 2026-09-13 01:00 ET, observed tip ee3d1d9. Recent DECISIONS
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
+| Coaching Memory v1 | Owner-approved beta requirement202. Design and dependency audit starts now; confirmed preferences/constraints, durable reasons, later-session recall and user correction. Product implementation follows launch/N2 and accepted client/pin/CI route | PM names dedicated custody after planning audit; independent reviewer required |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
@@ -23,4 +24,4 @@ PM reconciliation at 2026-09-13 01:00 ET, observed tip ee3d1d9. Recent DECISIONS
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
 
-Owner positioning and personalization discussion is retained in POSITIONING-CONTEXT.md for later scope reconciliation. It does not add a release deliverable or change the current queue; reported capabilities require code/evidence verification before any shipped claim.
+Owner positioning and personalization discussion is retained in POSITIONING-CONTEXT.md. Its memory subset was subsequently approved as the Coaching Memory v1 beta requirement202; other ideas remain planning context. Reported capabilities require code/evidence verification before any shipped claim.

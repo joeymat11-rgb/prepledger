@@ -90,3 +90,5 @@
 
 2026-09-13 01:15 ET · ASTRA-PM · CI ROUTED201 · B gets isolated additive bothOS preflight workflow plus shared registration test; rebuild.yml/H3 unchanged. Independent audit caught sealed b/tooling/test path, corrected in prospective bar before assignment. ER reviews CI, D2 reviews D200; launch R2 guard bounded ACCEPTa9b444e. GATE-WINDOW PREPARING; no product merge/acceptance. tip99f6c0b.
 2026-09-13 01:21 ET · D · CANDIDATE-BUILT · rebuild/astra-preflight-comments @dae1fb2 (runtimee03fbb5) · D200 report43lines; exact-head Windows43/43, seven assertion mutants; frozen C26 hits→20comment/6regex→CI-UNVERIFIED. Main172/helper180lines, no dependency/app/workflow change. D2 review+B201 bothOS CI pending; PREPARING checked; companion74920fb preserved.
+
+2026-09-13 01:21 ET · ASTRA-PM · OWNER RULE202 · Coaching Memory v1 is a beta requirement; design now, code after launch/N2 dependencies. PM audits other planning gaps and lane need, with two bounded public audits. Existing B/C/D work continues; no new engine/science/data-release scope. tip92a342f.
