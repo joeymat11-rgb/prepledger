@@ -2,6 +2,7 @@
 
 Status: proposed builder contract; no acceptance or independent review claim.
 Owner: Lane D. Source checkout: `2924c28`, `rebuild/lane-d-plan-edit`.
+Candidate composition: `rebuild/lane-d-plan-edit-f2` on F1/F2 predecessor `f3e9561`; source recon remains pinned above.
 Authority: DECISIONS:176(2), after the F2 candidate; D2 EDIT MY WEEK v1.0 at `f497e28`, narrowed by :176(1).
 PM remains the single judge. C owns consumer wiring after N2; D2 owns its UI review.
 
@@ -44,7 +45,7 @@ All listed files are NEW and D-owned for this package; no existing client, Today
 | --- | --- |
 | `rebuild/m4/workout/plan-edit-commands.cjs` | `createPlanEditCommands({validateTags})` returns `{schemaVersion:2,prepare,validate}`; exports `PROFILE`, `ACTION`, `nextLocalDate` and input validation. Descriptor-safe closed records refuse getters, bad prototypes, symbols, non-enumerable members, sparse arrays, nonfinite quantities and unknown fields. |
 | `rebuild/m4/workout/plan-edit-model.cjs` | `createPlanEditProjector({basisState,setupOperation,validateTags,projectNewExerciseTags,hashBasis}).read(generation,date)` returns frozen `{state,plan_basis,causal_parents,pending_dates,applied_ids,intents}` or an explicit refusal. `plan_basis` covers current and pending history independently of projection date. |
-| `rebuild/m3/w6/host/plan-edit-host.mjs` | `createPlanEditHost({client,clock,basisState,setupOperation,validateTags,projectNewExerciseTags,newIntentId})`; `read(date?)`, `review(edit)`, `save(review_id)`, `close()`. Uses the already-open installation and its existing clock. C supplies the trusted base projection and stable new exercise IDs, never renderer-authored state. |
+| `rebuild/m3/w6/host/plan-edit-host.mjs` | `createPlanEditHost({client,clock,basisState,setupOperation,validateTags,projectNewExerciseTags,newIntentId})`; `read(date?)`, `review(edit)`, `save(review_id)`, `cancel(review_id)`, `close()`. Uses the already-open installation and its existing clock. C supplies the trusted base projection and stable new exercise IDs, never renderer-authored state. |
 | `rebuild/lanes/d/plan-edit/model.test.cjs` | Synthetic pure command/projector, identity/history and malformed-input cells. |
 | `rebuild/lanes/d/plan-edit/durable-host.test.mjs` | Real existing encrypted repository, stage and local-era composition; failure, retry, reopen and captured-basis cells. |
 
@@ -81,7 +82,7 @@ Input and the actually built envelope are both validated. A producer's shape val
 2. C supplies the trusted unedited programme basis plus the matching first-run operation; current measured/history state remains on the existing factual-history path. Validate provenance and plan correspondence; do not take editor-provided state, regenerate setup, or replace measured/history collections.
 3. Replay all qualifying structural operations over that origin in proven causal order, including previously saved changes waiting for tomorrow. Read current and next-date projections from the same generation.
 4. Proposed `seen_plan_basis` is a deterministic commitment to the whole reviewed pending programme, setup identity/commitment, ordered contributing operation IDs/commitments, relevant rejection/tombstone outcomes and the reviewed local dates. It is not merely the selected exercise, a timestamp, a fresh counter or `basis-0`.
-5. `prepare(edit)` captures an immutable private preparation with the complete basis, exact diff, stable intent/new ID, authored day and tomorrow date. Return display data and an opaque preparation handle; a handle from another host, cancelled handle or changed body cannot authorize Save.
+5. `review(edit)` is the single public preparation method. It captures an immutable private preparation with the complete basis, exact diff, stable intent/new ID, authored day and tomorrow date, returning display data and opaque `review_id`. `cancel(review_id)` invalidates that review, including during encryption; `close()` invalidates every review. Foreign, cancelled or body-changed handles cannot authorize Save. The injected producer's internal `prepare(request)` only constructs the action; it is not a second public host preparation method.
 6. Before each staged attempt, recompute the full basis from that attempt's generation and compare with the preparation. Preserve the reviewed intent across the bridge's retries. A changed plan or local day returns the D2 stale-review refusal; it is never silently rebased.
 7. Compose, never replace, the host bindings' stage and synchronous validateCommit. Validate the actual one-operation batch, exact reviewed members, parents, dates, identity and same still-live preparation at the final transaction boundary. Recheck liveDay synchronously there.
 8. Existing client construction writes one operation and one outbox entry in one local transaction; the existing repository seals the whole generation and commits by revision/token CAS. No additional collection, editor store, acknowledgement cache or durable clock is introduced.
@@ -122,11 +123,17 @@ Notes follow the same existing ID across renames. New IDs have no inherited note
 | PE14 / :176 | Pending exercises compose across repeated saves; leap/month/year boundary arithmetic; midnight between review/stage/commit requires fresh review and a newly displayed start date. |
 
 PE12 is a consumer composition proof jointly supplied with C, not satisfied by an injected fake gym. EW16 DOM/copy/viewport/focus remains C's editor and D2's review scope.
+Actual future gym creation with its matching operation-derived basis and preservation of current/open workout, unsaved gym and check-in drafts are mandatory for end-to-end acceptance. Browser graph compilation and synthetic adapters do not satisfy PE12.
 Run appropriate existing setup, workout, check-in, note and F1/F2 regressions on the exact composed candidate. No private/seed/source-history/soak fixture is permitted; synthetic logs stay in the lane's `.tmp`.
+Exact companion command: `node --test --test-reporter=tap rebuild/lanes/d/plan-edit/model.test.cjs rebuild/lanes/d/plan-edit/durable-host.test.mjs rebuild/lanes/d/plan-edit/browser-build.test.mjs`.
+Fault commands: `node rebuild/lanes/d/plan-edit/model-mutants.cjs` and `node rebuild/lanes/d/plan-edit/host-mutants.mjs`; run without construction-source overrides on the composed candidate.
+CI handoff to lane B under DECISIONS:178: register those exact modules/commands on Windows and Ubuntu, using the existing pinned W5/W6 dependencies; publish exact-head run IDs. D does not edit workflows or claim local counts as both-OS CI.
+Engine-consumed m4 work retains its applicable closed cumulative profile, ancestor/parent pins, private verdict, receipt, authorized rerun and re-verification admission. B supplies that admission and PM judges; plumbing proof or this brief does not waive it or grant sealing/tooling custody to D.
 
 ## 8. Delivery size and outstanding joins
 
 Proposed size: three new runtime modules, two new test modules; target at most 900 runtime lines and 650 synthetic test lines. This is an estimate to make the package reviewable, not a test-count claim.
+Built size at product `8a094da`: runtime 481 lines in three new modules; 629 lines in the two proposed suites, plus 46 lines for the browser graph/negative control and 134 lines in two mutation harnesses. These additional proof files stay under lane D; runtime custody is unchanged.
 The scalar-method limitation is explicit: implementation uses the existing producer-injected client plan-mutation builder and durability path under :176, not an unapproved stage command or client-core edit.
 Still to prove: same-generation authenticated durable wrapper; complete causal/rejection basis; operation-derived workout basis; historical tag/projection correspondence. These are mandatory implementation cells, not deferred defects.
 C must confirm via REQUESTS the trusted base projection, live installation day, returned dated state/basis and refresh/new-gym hookup. Existing captured-state/static-basis hosts cannot meet EW14 by a redraw alone.
