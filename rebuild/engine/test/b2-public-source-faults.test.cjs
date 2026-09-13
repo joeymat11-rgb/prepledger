@@ -11,7 +11,7 @@ const {spawnSync} = require('node:child_process');
 // Pin executable assembly and real context BEFORE importing either. Runtime
 // source hashes are deliberately not child guards: faults must fail behavior.
 for(const [file,digest]of [
-  ['./b1b2-public-engine.cjs','59ce589984af6c937540e184fa5b5b5e5e63bf8bad61669c6656676540bdbd13'],
+  ['./b1b2-public-engine.cjs','208156f785e36635abf9093fa626dff70c3ea49853cff6c5123e7f8fdfdc68b2'],
   ['../../m4/workout/native-trend-context.cjs','f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a']]){
   assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,file))).digest('hex'),digest,'SETUP public executable pin '+file);
 }

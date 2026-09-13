@@ -311,7 +311,7 @@ function theOneFix(s, levers) {
     ...(recovery.score === null ? ["Recovery rating unavailable."] : []),
     ...recovery.flags.map((f) => `${f.receipt}. ${f.fix}`)].join(" ") : null;
   const withRecovery = (fix) => recoveryNote ? { ...fix, body: fix.body + " " + recoveryNote, recoveryNote } : fix;
-  // Rungs 4/5 — only once logging, steps and sleep are covered AND the trend has stalled
+  // Rungs 4/5 retain the stalled-cut decisions; qualify unavailable sleep.
   const cr = currentRate(s);
   /* D27 — rungs 4/5 are CUT advice: the committed phase decides, and its own recorded start times it */
   const arc = (() => { try { return phaseArc(s); } catch (e) { return { key: "cut", weeks: weekDay().wk }; } })();   /* r4 GUARD - a phase that cannot be derived leaves the PRE-D27 reading standing, so theOneFix/nowModel never throw where the frozen engine returned */

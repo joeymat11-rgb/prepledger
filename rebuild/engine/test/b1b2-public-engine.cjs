@@ -165,3 +165,14 @@ module.exports.SUCCESSOR_SOURCE_MANIFEST = Object.freeze({
     "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a"
   }
 });
+
+// PM262: additive S-to-T Today repair; historical M/R and R/S pins stay fixed.
+module.exports.REPAIR_SOURCE_MANIFEST = Object.freeze({
+  "sourceBase": "48a3063a23528ed240eb2356226d237d2793a9da",
+  "runtime": {
+    "rebuild/engine/today.cjs": {
+      "pre": "fff395dfb1d5e1890eacabf39a76a9c65e413b4f89a2c14d74d00c1343260392",
+      "post": "80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91"
+    }
+  }
+});
