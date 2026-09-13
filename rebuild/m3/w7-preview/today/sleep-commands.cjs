@@ -111,10 +111,23 @@ function prepare(request) {
   if (!isMap(request) || Object.keys(request).length !== 2
     || request.action !== ACTION || !isMap(request.input)) bad();
   const input = request.input;
-  for (const key of Object.keys(input)) if (key !== "night" && key !== "effective") bad();
+  for (const key of Object.keys(input)) {
+    if (key !== "night" && key !== "effective" && key !== "supersedes") bad();
+  }
   const action = { class: OP_CLASS, kind: OP_KIND,
     payload: { profile: PROFILE, night: nightOf(input.night) },
     parents: [] };
+  /* D2 ROUND 2, FINDING 1 - THE EXPECTED REVISION TRAVELS WITH THE WRITE. A correction
+     states which operation it believes it is replacing (or `null` for "this night has
+     none"), and that statement is carried INTO the payload so the check can be made at
+     the store, inside the commit, rather than in a read the caller did earlier. A write
+     that carries no expectation at all is an ordinary append and is checked no further,
+     exactly as every night written before this change was. */
+  if (Object.hasOwn(input, "supersedes")) {
+    const expected = input.supersedes;
+    if (expected !== null && (typeof expected !== "string" || expected === "")) bad();
+    action.payload.supersedes = expected;
+  }
   if (Object.hasOwn(input, "effective")) {
     const e = input.effective;
     if (!isMap(e) || Object.keys(e).length !== 3
@@ -149,15 +162,67 @@ function citedCheckInIsReal(op, readOperation) {
   return answers.sleep_hours_source === "entered";
 }
 
+/* D2 ROUND 2, FINDING 1 - THE CHECK IS INSIDE THE COMMIT, NOT BEFORE IT.
+   A read the caller did before calling the client proves nothing: two saves can both
+   read the same winner and both be acknowledged, and the second replaces a night its
+   editor never saw. The accepted client calls this validator on the envelope it has
+   just built, SYNCHRONOUSLY, immediately before the one local transaction that writes
+   the operation (rebuild/client/index.cjs:228-233), with a reader over the accepted
+   operations as they stand AT THAT MOMENT. Nothing can interleave between this answer
+   and that transaction, so a refusal here is a refusal at the commit.
+
+   The reader is by op id, not an enumeration - but on this device an op id is
+   `op-<device>-<sequence>` and the envelope carries its own device and sequence, so
+   every earlier operation THIS DEVICE wrote can be read back one by one. That is the
+   whole log for a one-device era, which is what this lane is. The rule: if the write
+   states an expectation, the night's current winning operation must be exactly the one
+   it names (or none, for `null`). The second of two concurrent corrections therefore
+   sees the first already accepted and is refused with nothing written. */
+const LIMIT = 100000;
+function currentNightOp(op, readOperation, date) {
+  if (typeof readOperation !== "function") return undefined;
+  const device = op.device_id;
+  const upto = Number(op.device_seq);
+  if (typeof device !== "string" || !Number.isSafeInteger(upto) || upto < 1 || upto > LIMIT) return undefined;
+  let winner = null;
+  const dead = new Set();
+  const nights = [];
+  for (let seq = 1; seq < upto; seq += 1) {
+    const earlier = readOperation("op-" + device + "-" + seq);
+    if (!earlier) continue;                                  // rejected, or never written
+    if (earlier.kind === "tombstone" && typeof earlier.target_op_id === "string") {
+      dead.add(earlier.target_op_id); continue;
+    }
+    if (earlier.kind !== OP_KIND || earlier.class !== OP_CLASS) continue;
+    if (!isMap(earlier.payload) || earlier.payload.profile !== PROFILE) continue;
+    if (!isMap(earlier.payload.night) || earlier.payload.night.date !== date) continue;
+    nights.push(earlier.op_id);
+  }
+  for (const id of nights) if (!dead.has(id)) winner = id;
+  return winner;
+}
+function revisionIsCurrent(op, readOperation) {
+  if (!Object.hasOwn(op.payload, "supersedes")) return true;   // no expectation stated
+  const held = currentNightOp(op, readOperation, op.payload.night.date);
+  if (held === undefined) return false;                        // the log cannot be read: refuse
+  return held === op.payload.supersedes;
+}
+
 /* The shape the client re-checks on the envelope it actually built, after its own
    Ops.build. It re-derives nothing. */
 function validate(op, readOperation) {
   if (!op || op.kind !== OP_KIND || op.class !== OP_CLASS) return false;
   if (!op.effective || !DAY_RE.test(op.effective.local_date)) return false;
   if (!isMap(op.payload) || op.payload.profile !== PROFILE || !isMap(op.payload.night)) return false;
-  if (Object.keys(op.payload).length !== 2) return false;
+  const members = Object.keys(op.payload).length;
+  if (members !== 2 && !(members === 3 && Object.hasOwn(op.payload, "supersedes"))) return false;
+  if (Object.hasOwn(op.payload, "supersedes")) {
+    const expected = op.payload.supersedes;
+    if (expected !== null && (typeof expected !== "string" || expected === "")) return false;
+  }
   try { nightOf(JSON.parse(JSON.stringify(op.payload.night))); } catch { return false; }
   if (!citedCheckInIsReal(op, readOperation)) return false;
+  if (!revisionIsCurrent(op, readOperation)) return false;
   if (!Array.isArray(op.causal_parents)) return false;
   for (const id of op.causal_parents) {
     const parent = readOperation(id);
@@ -173,5 +238,5 @@ function createSleepCommands() {
 }
 
 module.exports = { createSleepCommands, prepare, validate, nightOf, isRealDate, spanMinutes,
-  citedCheckInIsReal, CHECKIN_PROFILE,
+  citedCheckInIsReal, CHECKIN_PROFILE, currentNightOp, revisionIsCurrent,
   PROFILE, ACTION, OP_CLASS, OP_KIND, HOURS_MIN, HOURS_MAX, HM_RE, DAY_RE, MEMBERS, TIME_MEMBERS };

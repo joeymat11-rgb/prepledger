@@ -98,6 +98,32 @@ export function checkInSourceFault(generation, night) {
   return null;
 }
 
+/* D2 ROUND 2, FINDING 6 - THE ERA'S SLEEP ROWS, WHERE ANY CONSUMER ON THIS DEVICE CAN
+   READ THEM SYNCHRONOUSLY. A projector is synchronous and a repository read is not, so
+   a consumer that is handed a state - the coach's Today, its gym, its check-in - cannot
+   await the log at the moment it is asked. This register is written by the only thing
+   that changes the answer, the writer itself: `createSleepHost` primes it from the
+   durable read when it opens, and refreshes it after every committed night and every
+   `all()`. It is keyed on the ERA (one device, one generation, one lease) and holds
+   nothing but rows that were read back out of that generation. It is a cache of a
+   durable read, never a second store, and a consumer that has no era registered gets
+   an empty list and says so rather than guessing. */
+const ERA_ROWS = new WeakMap();
+/* The era's CLIENT is the identity that matters: two callers may hold two era handles
+   over one installation (the coach holds its own, a host opened beside it holds
+   another), and both are the same generation only because they are the same client. */
+const eraKey = (era) => {
+  if (!era || typeof era !== 'object') return null;
+  return era.client && typeof era.client === 'object' ? era.client : era;
+};
+const rememberRows = (era, rows) => { const key = eraKey(era); if (key) ERA_ROWS.set(key, rows); };
+export function sleepRowsOn(era) {
+  const key = eraKey(era);
+  const rows = key ? ERA_ROWS.get(key) : null;
+  return Array.isArray(rows) ? rows : [];
+}
+export function forgetSleepRows(era) { const key = eraKey(era); if (key) ERA_ROWS.delete(key); }
+
 export async function createSleepHost({ day, indexedDB, crypto, era: given,
   databaseName = DATABASE, namespace = NAMESPACE } = {}) {
   if (typeof day !== 'string' || !DAY_RE.test(day)) throw new TypeError('createSleepHost requires day');
@@ -116,7 +142,11 @@ export async function createSleepHost({ day, indexedDB, crypto, era: given,
       athleteId: era.athleteId, deviceId: era.deviceId,
       device: null, deviceKeyCustody: 'local-keys.mjs',
       openedRefusal: opened && opened.refusal ? { ...opened.refusal } : null,
-      async all() { return sleepNightsIn((await bindings.repository.load()).generation, PROFILE); },
+      async all() {
+        const rows = sleepNightsIn((await bindings.repository.load()).generation, PROFILE);
+        rememberRows(era, rows);       // every read refreshes what the era's consumers see
+        return rows;
+      },
       async forDate(date) {
         if (typeof date !== 'string' || !DAY_RE.test(date)) throw new TypeError('forDate requires a date');
         return (await handle.all()).filter((row) => row.night.date === date);
@@ -133,34 +163,62 @@ export async function createSleepHost({ day, indexedDB, crypto, era: given,
       async save(night, { supersedes } = {}) {
         if (!alive) return { ok: false, state: 3, copy: null, code: 'LOCAL_CLIENT_CLOSED', op_id: null };
         const refuse = (code) => ({ ok: false, state: 3, copy: null, code, op_id: null });
+        const date = night && night.date;
         let generation;
         try { generation = (await bindings.repository.load()).generation; }
         catch { return refuse('SLEEP_PRECONDITION_UNREADABLE'); }
         const fault = checkInSourceFault(generation, night);
         if (fault) return refuse(fault);
+        /* The pre-read still runs, because it names the refusal in this lane's own
+           words and costs one read. It is no longer what ENFORCES the expectation:
+           D2 round 2, finding 1 - the enforcement is inside the commit, where the
+           producer's validate re-asks the same question of the generation actually
+           being written (sleep-commands.cjs revisionIsCurrent). */
+        const winner = (held) => (held.length === 0 ? null : held[held.length - 1].op_id);
         if (supersedes !== undefined) {
-          const date = night && night.date;
           const held = sleepNightsIn(generation, PROFILE).filter((row) => row.night.date === date);
-          const current = held.length === 0 ? null : held[held.length - 1].op_id;
-          if (current !== supersedes) return refuse('SLEEP_STALE_NIGHT');
+          if (winner(held) !== supersedes) return refuse('SLEEP_STALE_NIGHT');
         }
         let result;
+        const input = supersedes === undefined ? { night } : { night, supersedes };
         try {
-          result = await sleepClient.execute('workout', { action: ACTION, input: { night } });
+          result = await sleepClient.execute('workout', { action: ACTION, input });
         } catch (error) {
           const code = (error && error.message) || 'SLEEP_WRITE_REFUSED';
           return { ok: false, state: 3, copy: null, code, op_id: null };
         }
-        return { ok: result.acknowledged === true, state: result.state, copy: result.copy,
+        if (result.acknowledged !== true) {
+          /* A refusal from the commit itself. The client reports an invalid envelope
+             without this lane's vocabulary, so the log is asked why: if the night has
+             moved on since this write was prepared, that is a STALE correction and is
+             named as one. Nothing was written either way. */
+          if (supersedes !== undefined) {
+            try {
+              const now = (await bindings.repository.load()).generation;
+              const held = sleepNightsIn(now, PROFILE).filter((row) => row.night.date === date);
+              if (winner(held) !== supersedes) return refuse('SLEEP_STALE_NIGHT');
+            } catch { /* the reason stays the client's own */ }
+          }
+          return { ok: false, state: result.state, copy: result.copy,
+            code: result.code || 'SLEEP_WRITE_REFUSED', op_id: null };
+        }
+        /* THE ERA'S ROWS, kept current for every consumer on this device the moment a
+           night is committed (D2 round 2, finding 6). */
+        try { rememberRows(era, sleepNightsIn((await bindings.repository.load()).generation, PROFILE)); }
+        catch { /* the register simply stays where it was */ }
+        return { ok: true, state: result.state, copy: result.copy,
           code: result.code || null, op_id: result.op_id || null };
       },
       async restart() { return sleepClient.reopen(); },
       face() { const current = sleepClient.current(); return current && current.view ? current.view : null; },
       close() { alive = false; if (!given) era.close(); },
     };
+    /* Primed from the DURABLE read, once, at open: a consumer that reads the register
+       before anything is written on this run still sees what the store holds. */
+    try { rememberRows(era, await handle.all()); } catch { /* the lane still opens */ }
     return Object.freeze(handle);
   } catch (error) { if (!given) era.close(); throw error; }
 }
 
-export default { createSleepHost, sleepNightsIn, checkInSourceFault, PROFILE, OP_CLASS,
-  OP_KIND, SLEEP_SCHEMA_VERSION };
+export default { createSleepHost, sleepNightsIn, checkInSourceFault, sleepRowsOn,
+  forgetSleepRows, PROFILE, OP_CLASS, OP_KIND, SLEEP_SCHEMA_VERSION };

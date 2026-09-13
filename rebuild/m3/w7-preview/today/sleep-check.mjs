@@ -368,8 +368,79 @@ try {
   await page.click('#phone [data-go="sleep"]');
   await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
 
+  /* ---------- D2 ROUND 2, FINDING 3 - A SECOND VISIT TO THE CHECK-IN ----------
+     The first visit rebinds the sheet over the night that was just recorded. What is
+     typed into THAT sheet has to be there on the way back, which is what round 2
+     found it was not. */
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="recovery"]', { timeout: 20000 });
+  await page.click('#phone [data-go="recovery"]');
+  await page.waitForSelector("#phone .page", { timeout: 20000 });
+  const typedInto = await page.evaluate(() => {
+    /* A free-text answer on this sheet is a FOLLOW-UP: it appears once a choice asks
+       for it. So the athlete answers something first, exactly as he would. */
+    const visible = () => [...document.querySelectorAll("#phone textarea, #phone input[type='text']")]
+      .find((el) => el.offsetParent !== null);
+    if (!visible()) {
+      const choice = [...document.querySelectorAll("#phone button")]
+        .find((el) => el.offsetParent !== null && /^(Mild|Significant)$/.test(el.textContent.trim()));
+      if (choice) choice.click();
+    }
+    const box = visible();
+    if (!box) return null;
+    box.value = "typed on the first visit";
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    return box.getAttribute("data-slot") || box.id || "a text box";
+  });
+  if (typedInto) {
+    await page.click('#phone [data-go="today"]');
+    await page.waitForSelector('#phone [data-go="recovery"]', { timeout: 20000 });
+    await page.click('#phone [data-go="recovery"]');
+    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    const kept = await page.evaluate(() => [...document.querySelectorAll("#phone textarea, #phone input")]
+      .map((el) => el.value).filter(Boolean));
+    assert(kept.includes("typed on the first visit"),
+      "the second visit to the check-in lost what was typed on the first: " + kept.join(" | "));
+    notes.push("the check-in kept what was typed into it across a second visit (" + typedInto + ")");
+  } else {
+    notes.push("no visible free-text box on the check-in at this state; the repeated-visit "
+      + "draft journey is proved in sleep.test.mjs N2-07");
+  }
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+
+  /* ---------- D2 ROUND 2, FINDING 2 - A RELAUNCH WITH THE NIGHT ALREADY STORED ----
+     A fresh boot on a device that HOLDS a night: no save happens, and the workout the
+     athlete opens is prepared after the replay rather than before it. The gym host's
+     own projection is asserted over the real host in sleep.test.mjs N2-09; what a
+     browser can show is that the whole journey is consistent and carries no NaN. */
+  await hardKill(context);
+  ({ context, page } = await relaunch());
+  assert.match(await recorded(page), /5\.5 h/, "the relaunch lost the night");
+  await page.click('#phone [data-go="today"]');
+  await page.waitForSelector('#phone [data-slot="primary-label"]', { timeout: 20000 });
+  assert.match(await page.textContent('#phone [data-slot="sleep-state"]'), /5\.5 h/,
+    "Today after a boot with a stored night");
+  const boots = ((await page.textContent('#phone [data-slot="primary-label"]')) || "").trim();
+  if (/^(Start|Resume|Review)/.test(boots)) {
+    await page.click('#phone [data-slot="primary"]');
+    await page.waitForSelector("#phone .page", { timeout: 20000 });
+    const after = await page.textContent("#phone");
+    assert.doesNotMatch(after, /NaN|undefined/, "the workout after a boot with a stored night");
+    await page.click("#phone .back");
+    await page.waitForSelector('#phone [data-go="sleep"]', { timeout: 20000 });
+    notes.push("a fresh boot with a night already stored: Today -> workout (" + boots + ") -> Today, truthful");
+  } else {
+    notes.push("after the relaunch the workout route needed " + boots + " first; the boot rebind "
+      + "is proved in sleep.test.mjs N2-09");
+  }
+  await page.click('#phone [data-go="sleep"]');
+  await page.waitForSelector('#phone [data-slot="sleep-entry-form"]:not([hidden])');
+
   /* ---------- A REFUSAL RECORDS NOTHING ---------- */
   await page.click('#phone [data-slot="sleep-change"]');
+  await page.waitForSelector('#phone [data-action="sleep-mode-hours"]:not([hidden])');
+  await page.click('#phone [data-action="sleep-mode-hours"]');
   await page.waitForSelector('#phone #sleep-hours');
   await typeHours(page, "25");
   await tapSave(page);

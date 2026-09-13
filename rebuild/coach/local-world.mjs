@@ -30,11 +30,20 @@ import { projectWorkoutRecords } from '../m4/workout/project-history.mjs';
 import { causalTips, startOrderRefusalOf } from '../m3/w7-preview/today/gym-host.mjs';
 import { createGymModel } from '../m3/w7-preview/today/gym-model.mjs';
 import { createCheckInHost } from '../m3/w7-preview/today/checkin-host.mjs';
-import CheckInModel from '../m3/w7-preview/today/checkin-model.mjs';
+import CheckInModel, { sleepNightFor } from '../m3/w7-preview/today/checkin-model.mjs';
 /* C6 Part A. The first-run lane, opened the same way the other three are: this
    module composes and does not invent, so the producer command and the profile
    are setup-host.mjs's own and nothing here shapes an op. */
 import { createSetupHost } from '../m3/w7-preview/today/setup-host.mjs';
+/* N2, D2 ROUND 2, FINDING 6. THE READ SIDE OF THE SLEEP NIGHT. :167 (2) made this
+   companion optional "only if the row cannot pass without it"; D2's round-2 review
+   executed the actual `today_checkin` tool over a real generation holding a 1 h sleep
+   night and the coach reported 8 h, which settles that question. The coach is a
+   CONSUMER here and nothing more: it opens the same lane the screen opens, on ITS OWN
+   era (one client, one generation, one lease), and reads the night back through the
+   SAME pure projector and the SAME accepted A3 function the page uses. It writes no
+   night, invents no default, and adds no tool. */
+import { createSleepHost, sleepRowsOn } from '../m3/w7-preview/today/sleep-host.mjs';
 /* Coach wave one. The era's own lease schema, which is what the accepted client
    stamps every producer-injected command with. */
 import { LOCAL_ERA_SCHEMA_VERSION } from '../m3/w6/local/local-era.mjs';
@@ -199,7 +208,12 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   withSetup = false, setupDeviceKeys, setupDatabaseName, setupNamespace,
   /* Coach wave one: the machine-settings lane, on by default because step 3 of
      the demo is a read the coach makes every time it is asked. */
-  withMachineSettings = true } = {}) {
+  withMachineSettings = true,
+  /* N2 wave: the sleep lane, ON by default because the coach is asked about last
+     night every time it is asked about today, and a consumer that cannot see the
+     night the athlete recorded reports the imported basis as if it were a record
+     (D2 round 2, finding 6). */
+  withSleep = true } = {}) {
   const web = crypto || globalThis.crypto;
   const idb = indexedDB || globalThis.indexedDB;
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('openCoachWorld requires day');
@@ -221,6 +235,23 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   const readings = readingLane(client);
   const today = createTodayModel({ today: day, readings });
   const bindings = await client.hostBindings();
+
+  /* D2 ROUND 2, FINDING 6 - THE SLEEP LANE, ON THIS ERA, BEFORE ANYTHING READS THE
+     STATE. `today.stateFromOps()` is what the gym host, the check-in and every tool
+     are composed from, so the night has to be in it before they are built, not after.
+     The rows come from the era's own register (sleep-host.mjs), which is primed from
+     the durable read when the lane opens and refreshed by the writer the moment a
+     night commits - so a night saved through ANY host on this era, including one the
+     coach did not open, is what the next read reports. If the lane cannot open, the
+     register is empty, `sleepOnLocalEra` is false and the coach says it has no night
+     rather than reporting the imported basis as if it were a record. */
+  let sleepHost = null;
+  if (withSleep) {
+    try { sleepHost = await createSleepHost({ day, era: { client, athleteId, deviceId } }); }
+    catch { sleepHost = null; }
+  }
+  const sleepEra = { client, athleteId, deviceId };
+  if (sleepHost) today.setSleepNights({ rows: () => sleepRowsOn(sleepEra) });
   const gymHost = gymOver(bindings, { day, engineState: today.stateFromOps(), prescriptionCapture,
     plannedSplitSlotId: 'earned-coach-local/' + day });
   const gym = createGymModel({ gymHost, sessionTitle: today.read().workout.title });
@@ -232,8 +263,24 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   let checkInHost = null, checkin = null;
   if (withCheckIn) {
     checkInHost = await createCheckInHost({ day, indexedDB: idb, crypto: web, deviceKeys: checkInDeviceKeys });
-    checkin = createCheckInModel({ host: checkInHost, day, engineState: today.stateFromOps() });
-    await checkin.refresh();
+    const model = createCheckInModel({ host: checkInHost, day, engineState: today.stateFromOps() });
+    await model.refresh();
+    /* D2 ROUND 2, FINDING 6 - THE NIGHT IS READ WHEN IT IS ASKED FOR, NOT WHEN THE
+       WORLD OPENED. `createCheckInModel` freezes the night it found at construction,
+       which is right for a screen that is mounted and left, and wrong for a coach that
+       is asked hours later, after a night has been recorded on this same device. The
+       model is NOT changed and NOT rebuilt: this wrapper answers `read()` with the
+       model's own view and the night taken from the CURRENT projected state, through
+       A3's own `sleepNightFor` - the same function the model itself uses, over the
+       same state the screen would be painted from. Every other member is the model's,
+       unwrapped, so nothing else about A3 moves. */
+    const liveNight = () => sleepNightFor(today.stateFromOps(), day);
+    checkin = Object.freeze({
+      ...model,
+      read() { return { ...model.read(), sleepRecord: liveNight() }; },
+      get sleepRecord() { return liveNight(); },
+      model,
+    });
   }
 
   /* THE FIRST-RUN LANE (C6 Part A). Like the check-in, it is the accepted lane's
@@ -260,12 +307,18 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
 
   return Object.freeze({
     client, bindings, today, gym, gymHost, checkin, checkInHost, setupHost, machineSettings,
-    consent, day, readings,
+    sleepHost, consent, day, readings,
     era: { eraId: booted.eraId || null, leaseId: booted.leaseId || null, revision: booted.revision },
     checkInOnLocalEra: false,
     setupOnLocalEra: false,
     machineSettingsOnLocalEra: !!machineSettings,
+    /* True only when the coach can really read this device's sleep nights. When it is
+       false the coach has no night of record to state, and says so. */
+    sleepOnLocalEra: !!sleepHost,
+    /* The night the coach would state now, read from the CURRENT projected state. */
+    sleepNight() { return sleepNightFor(today.stateFromOps(), day); },
     close() {
+      if (sleepHost) { try { sleepHost.close(); } catch {} }
       try { client.close(); } catch {}
       if (checkInHost) { try { checkInHost.close(); } catch {} }
       if (setupHost) { try { setupHost.close(); } catch {} }
