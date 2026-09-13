@@ -79,3 +79,5 @@
 2026-09-13 07:27 ET · PM-CARETAKER · Astra · ce9779dc765b5520ff68a45e500ef8953e0b7dd5 · B finite repairs assigned; missing-target contribution stays unavailable with real warnings retained. ERA30 literal-reference closure remains PM/B task. ER reviewing D S3 R2; memory map complete. No owner action or package/phone acceptance.
 
 2026-09-13 07:40 ET · PM-CARETAKER · Astra · ed211499f82b8dc0a4d3486e46218423f0e40dd3 · B R1/R2 reproduced then18 public checks pass; R7 found weekly summary inventing clean-night counts. Exact weekReview guard hunk released under246;8 failing consumer checks retained. ER S3 review ongoing; no owner action or full-package claim.
+
+2026-09-13 07:41 ET · PM-CARETAKER · Astra · b27ba62a21bb6a050993a8976f768d4d104d2575 · Three actual writer propagation failures reproduced: recorded debt mislabeled missing, unranked warnings lose actions. Exact copy/render hunks released under246 with original failures/controls retained. B repairs and ER S3 review continue; no owner action.
