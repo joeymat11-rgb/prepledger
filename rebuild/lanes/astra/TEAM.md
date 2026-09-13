@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 06:25 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 06:30 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
@@ -10,7 +10,7 @@ Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Ope
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core/provider candidateebc4c4e with independent MAX reviewer; address bounded findings, B/C downstream custody retained | earned-lane-d-hourly; hourly building,20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | N2 scoped review complete98eeb183; reserved affected combined-head review when PM names B ready head | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Independent S3 core/provider review under230 active; B1+B2 priority when complete candidate/profile commissioned | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | S3 registry complete; C/B memory inputs incorporated at239ca308, waiting on PM exact coordinated G2 contract/custody | earned-astra-e-follow-up; hourly design,20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | Exact local decision/consent/source-replay contract under PM selected direction; docs/public code only, runtime custody pending | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
 ## Worktrees

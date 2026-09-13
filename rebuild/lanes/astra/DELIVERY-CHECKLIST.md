@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 06:25 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 combined admission, B engine construction and D S3 core independent review remain separate from accepted M.
+PM reconciliation at 2026-09-13 06:30 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 combined admission, B engine construction and D S3 core independent review remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ PM reconciliation at 2026-09-13 06:25 ET. Product source M100820aa accepted; END
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
-| Coaching Memory v1 | Required for beta202; E design accepted204. C consenta3a10a3 and B pin73eee8f notes delivered and reconciled by E239ca308 G2 custody proposal. Missing joined trusted issuance/consent/application/reopen contract identified; PM selecting exact contract/author subset. No runtime custody released | PM contract/custody; E design; C consumers afterN2; B pin route; D2 independent review |
+| Coaching Memory v1 | Required202, design204; C a3a10a3/B73eee8f notes and E239ca308 proposal delivered. PM selected local coordinated decision contract, with one atomic truth and shared source-frontier restoration. E finite exact contract/task assigned; final provider/Today-entry seam and B incremental pins must close before runtime release | E concrete contract; PM custody judgment; C consumers afterN2; B protected route; D2 review |
 | Whole-plan beta coverage | Planning audit identifies missing joined journey, fresh nutrition qualification, durable consent/reason consumer and constraint/action boundaries. E maps existing obligations and proposed choices; no default estimates or new adaptive rules authorized | E coverage map; PM routes accepted gaps and owner choices |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
