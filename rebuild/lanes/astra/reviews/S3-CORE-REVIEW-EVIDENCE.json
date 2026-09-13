@@ -1,0 +1,1759 @@
+{
+  "profile": "earned/independent-s3-core-review/v1",
+  "candidate": "ebc4c4e870497199c113c5e5c85bdced679589cf",
+  "code": "0d50571fad8643f684685670807f2370df3b22f1",
+  "parent": "06c5b4a5d76c9973849d0f4cde51b379bc35be43",
+  "sourceM": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "manifest": {
+    "path": "rebuild/m4/spec/s3-portable-sources.json",
+    "bytes": 27184,
+    "sha256": "c7623bcaa982182ab2cccd5ca542c450a758a4b8a2be99b0d4c063d55926a15d"
+  },
+  "verifiedPublicSources": 111,
+  "originalAndBothScratchCopiesMatch": true,
+  "allMatchExactCandidateGitBlobs": true,
+  "toolVersions": {
+    "node": "v22.23.2",
+    "npm": "10.9.8",
+    "pnpm": "9.15.9"
+  },
+  "bindingInputs": [
+    {
+      "ref": "06631c16d7428025e008d2580db45c40d28d207a",
+      "file": "rebuild/lanes/astra/S3-CORE-CONSTRUCTION-GO.md",
+      "bytes": 12527,
+      "sha256": "9cca800ebdeffedea1dcad5cff4e74afe04cb7e51ac4909ee18f46f2c1a382b6"
+    },
+    {
+      "ref": "06631c16d7428025e008d2580db45c40d28d207a",
+      "file": "rebuild/lanes/astra/S3-LOCAL-PROFILE-PM-JUDGMENT.md",
+      "bytes": 8317,
+      "sha256": "786ee9e7231b6cdb5aaf2086612c6e6191be924a716479a86214eba98dc5f3d6"
+    },
+    {
+      "ref": "06631c16d7428025e008d2580db45c40d28d207a",
+      "file": "rebuild/lanes/astra/S3-PROVIDER-PM-JUDGMENT.md",
+      "bytes": 7093,
+      "sha256": "103c7b379d5603eef91b18bdb235c7b9c50d383d6c1f7cb38312721345449922"
+    },
+    {
+      "ref": "1c8eacc6d6e0559e93ba8147d5b4ab9e4643e28b",
+      "file": "rebuild/lanes/b/S3-PIN-CI-MAP.md",
+      "bytes": 20786,
+      "sha256": "a2a511090987a55a0f3fd770b01fd46ef399b41b8d2c3dd03d71f2056d013b58"
+    },
+    {
+      "ref": "610f6dc77495478cf1b854243b9f899a9a36503d",
+      "file": "rebuild/lanes/d/S3-LOCAL-SOURCE-ORDER-CONTRACT.md",
+      "bytes": 20661,
+      "sha256": "d5d36206e6cbe5c7cfc4df60e1f90eb0744085f1dc46d79827ff702eaabea0dc"
+    },
+    {
+      "ref": "e7e452e3162528c28610ab53758f4759d902e328",
+      "file": "rebuild/lanes/d/S3-PORTABLE-HARNESS-BRIEF.md",
+      "bytes": 18555,
+      "sha256": "0b1d8d167f675cebbfcf1b2bfb8ec4ca3c3a09dceff2d45d3683d59c41c97a07"
+    },
+    {
+      "ref": "ba8c648d91799ef266e4ac2956eff18f5ebb697c",
+      "file": "rebuild/lanes/d/S3-PRODUCTION-PROVIDER-NOTE.md",
+      "bytes": 18354,
+      "sha256": "f77a1d06de79bc0aac0c8537e807c36104cfdc4c360b9a74f38e885316c80e81"
+    },
+    {
+      "ref": "9ca5da4fc5062c9c2f352ab0a0104e3bb99242c0",
+      "file": "rebuild/lanes/d/S3-PROVIDER-CONTEXT-MAP.md",
+      "bytes": 16754,
+      "sha256": "ebd197ad0eb07ec8dd862ee2b66ec9234da3227f69ea71c0495d0e8980e990ae"
+    },
+    {
+      "ref": "81533bd08ef6ce94e23cad951566653982352371",
+      "file": "rebuild/lanes/e/S3-FAMILY-REGISTRY.md",
+      "bytes": 17865,
+      "sha256": "65de6a2f369146d4250b2f1e4a81d33314247169c68239cd76f58b9acf5c77a4"
+    },
+    {
+      "ref": "4f75048027a035988f17a45162e2e852db076fd9",
+      "file": "rebuild/lanes/astra/TOOL-RUNTIME-LOCATIONS.md",
+      "bytes": 1871,
+      "sha256": "f49af4d4d5afddc0822c92ca97d1c88fc45f86db19b11849d6dee5d306a3457e"
+    }
+  ],
+  "runs": [
+    "4b3d74ae-2800-46e5-b29e-28308fe27f68",
+    "39c85ddf-ac41-4663-a90a-c31375db7143"
+  ],
+  "inventories": [
+    {
+      "mode": "suite-core",
+      "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/suite-core-inventory.json",
+      "bytes": 6052,
+      "sha256": "d8bcd13aa146ce9b74d5298315652dd50028e2de5861e457d4acd5b13dea723d",
+      "total": {
+        "tests": 45,
+        "pass": 45,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "status": 0
+      },
+      "files": [
+        {
+          "file": "rebuild/m3/w6/test/local-source-admission.test.mjs",
+          "sha256": "4b88348ffb11d2d3d8002ed5acbdd65ba3e2163670aeee85b83ad2cb015a34c8",
+          "discovered": 14,
+          "executed": 14
+        },
+        {
+          "file": "rebuild/m3/w6/test/local-source-commit.test.mjs",
+          "sha256": "04ec9d32b6047375c6b3fd0a3ae69c1bfddcf0dd8493eeb5414b99f28e027f7f",
+          "discovered": 9,
+          "executed": 9
+        },
+        {
+          "file": "rebuild/m4/import/test/local-source-order.test.cjs",
+          "sha256": "d8d0d07528b1f3ae0f61542caee9492bc67d2e4c7892cfafa339ca389424853b",
+          "discovered": 4,
+          "executed": 4
+        },
+        {
+          "file": "rebuild/m4/import/test/browser-parity.test.mjs",
+          "sha256": "68d27db487ed467c45a5be471b87ddd693fe163104aad18f10b6b4042f6b2ad8",
+          "discovered": 2,
+          "executed": 2
+        },
+        {
+          "file": "rebuild/m4/import/test/s3/harness.test.mjs",
+          "sha256": "fd61989d526179f80b05f2ad45ed7eb68d165e72c8dade78f91184299df95827",
+          "discovered": 9,
+          "executed": 9
+        },
+        {
+          "file": "rebuild/m4/import/test/engine-provider.test.cjs",
+          "sha256": "e05d275bb3cadfcdfb60fcc182c45bf930f1df12fb259c81cd58ec8a2d4b9611",
+          "discovered": 7,
+          "executed": 7
+        }
+      ]
+    },
+    {
+      "mode": "suite-import",
+      "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/suite-import-inventory.json",
+      "bytes": 4800,
+      "sha256": "db2d6c7fed9100cf48df36cfc0d32ce6a0a4041e2ac678efc4e7f60d28f661aa",
+      "total": {
+        "tests": 41,
+        "pass": 41,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "status": 0
+      },
+      "files": [
+        {
+          "file": "rebuild/m4/import/test/prepare.test.cjs",
+          "sha256": "358b71568c6b4c2668522160a13381b8a57091c51194a3d47ed15c418752095a",
+          "discovered": 14,
+          "executed": 14
+        },
+        {
+          "file": "rebuild/m4/import/test/reading-replay.test.cjs",
+          "sha256": "fafd535ca89f3843de845c9b773b8540b0914729cd40161ad9dd86d1c4c53b49",
+          "discovered": 27,
+          "executed": 27
+        }
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "id": "publish-uses-fresh-cas-basis",
+      "test": "S3-COMMIT-PUBLISH-CAS",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "3b92f9fab502984460f811bb8bb4491adfb83629d638c03049ee5b2f0b4a91e5",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/publish-uses-fresh-cas-basis.log",
+        "bytes": 4246,
+        "sha256": "408fe33ce0d01c1a8319067e331c30be7d63df5ee5f757286bfb0632bd5367e5"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/publish-uses-fresh-cas-basis-restored.log",
+        "bytes": 2427,
+        "sha256": "891f4719d7a628bbbf48808886b8fecb47425697b2b7858e2dda83916ff55e4c"
+      },
+      "restoredTotals": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "publish-cancel-ignored",
+      "test": "S3-COMMIT-SEAL-CANCEL",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "a2cecb7d20b52d28acd6b66c1b268729856fb2f1b072134d6a60c59a74a21d90",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/publish-cancel-ignored.log",
+        "bytes": 127461,
+        "sha256": "9a183f64e486cf57d97138c9023cf78baec6280e3c8120df943329c8e487ad0f"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/publish-cancel-ignored-restored.log",
+        "bytes": 2426,
+        "sha256": "c2abcb3177b32286fb42614ea49a4d2dc5a237ecb06a85c4dfffe96caf70264a"
+      },
+      "restoredTotals": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "completion-disagrees",
+      "test": "S3-COMMIT-ATOMIC",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "e9e730e014f9ca5f163a455107f45bc8289d00eb643fd1e4860c7c0153e5faad",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/completion-disagrees.log",
+        "bytes": 3223,
+        "sha256": "62e1d114941140607001dd517d063c426b16b0d5e3d91060f7c43cb6cd440918"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/completion-disagrees-restored.log",
+        "bytes": 2425,
+        "sha256": "85c5bc6246dda36227f42d57d9f517c95dc2eb15220afeccdcd2b31038d2e4d4"
+      },
+      "restoredTotals": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "rollback-replaces-history",
+      "test": "S3-COMMIT-ROLLBACK",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "2cf72445c5256f25490f0bb4310700a0efa0a89482cba9e21c00fccbc963b295",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/rollback-replaces-history.log",
+        "bytes": 3207,
+        "sha256": "7a616a7d5d13aab46f26e63f15a365fe07aa445612ad3e1f7b48a90c571b53a9"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/rollback-replaces-history-restored.log",
+        "bytes": 2425,
+        "sha256": "a6a5157f6e3a6dca23f302936c04a7d6044ab3ed1a93a6c30091e9f1c6d7d7e6"
+      },
+      "restoredTotals": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "lost-ack-not-reconciled",
+      "test": "S3-COMMIT-ACK",
+      "target": "rebuild/m3/w6/local/source-commit.mjs",
+      "original_sha256": "63ae3d0bf399fd73f628949d6c00e9c21d83395afa29cceb50e54361d3a4736b",
+      "mutant_sha256": "486ba2c746d67f2478390fdf5803e4883c14846e4c332132d1b6fb46e0c077f4",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/lost-ack-not-reconciled.log",
+        "bytes": 4941,
+        "sha256": "7b958a56cfb1814744292d7d8bb6caa3ff5e27ce82d7247d09cf40f5d56f8b5c"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-0-8b2105ba-c442-480c-86ab-679653e801fb/lost-ack-not-reconciled-restored.log",
+        "bytes": 2427,
+        "sha256": "6c571e7fb3313d9ede5bf8f8a4484ec21a507d9bdad806ae37ff9a372fb534b9"
+      },
+      "restoredTotals": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "captured-set-count-unchecked",
+      "test": "S3-Q-F3-LAYOUT",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "68394872ff1f5671454612547f8471ca36c589b1c82ffb38ee2f4a7d2d8a8e25",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/captured-set-count-unchecked.log",
+        "bytes": 4543,
+        "sha256": "0f0e71804de1e7978c4fef7c3da6a3438df56198ae738a3a11e1f9705ecf1faf"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/captured-set-count-unchecked-restored.log",
+        "bytes": 3722,
+        "sha256": "d4ceb45c65476e618f97ddc72b7e2d7b6959accebca16ee52e514efac472bdf2"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "source-original-rewrite-allowed",
+      "test": "S3-Q-CHECKPOINT-ORIGINAL",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "bacd83d7c22b88eb95fc874a8a5b48f46e7c44e6c0109182506f1358ae14c0f1",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/source-original-rewrite-allowed.log",
+        "bytes": 4501,
+        "sha256": "5cfb431687cd83ee5271e4d1d9a6cb25f4d69a6b399ff20e330f906991655c2d"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/source-original-rewrite-allowed-restored.log",
+        "bytes": 3720,
+        "sha256": "40666fc9ded605359e77910a1bb46ccd9b8f9c4210ac757d1852cb6a75307190"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "ambiguous-import-picked",
+      "test": "S3-Q-IMPORT-NAME",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "48e845ce824f1451bbffed773d408de56f914e0813558ec0bcf8aa4210c8decd",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/ambiguous-import-picked.log",
+        "bytes": 4503,
+        "sha256": "aec8b54f7212fe8bee036b2f8854bad3086d61c60c7fc2057e2ff010eec9720b"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/ambiguous-import-picked-restored.log",
+        "bytes": 3720,
+        "sha256": "a767d8b0b9242be060f2d9e9251db7f57f6d77fd5b0f54961f57b2a3865d0be8"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "identity-confirmation-bypassed",
+      "test": "S3-Q-REVIEW",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "1555842b0f3a5224cda76299072d2354983a4a1adb948e42fb66a27334edce68",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/identity-confirmation-bypassed.log",
+        "bytes": 4511,
+        "sha256": "b617bb003cc494939e150fbe9cc8a001d6c33d832443f3efead9da36c046d666"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/identity-confirmation-bypassed-restored.log",
+        "bytes": 3722,
+        "sha256": "eac105593b76a66bd310e2d61096b53d9649407a957faf3edf5aafb1215aff14"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "semantic-currentness-ignored",
+      "test": "S3-Q-CURRENT",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "d9f965a4b32938758a3738cd0be4bf597cc63cf220d5d6a12b57b37f8cea775c",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/semantic-currentness-ignored.log",
+        "bytes": 4491,
+        "sha256": "383e9c664ea95ab6e5fb79ee9f7dd2009d3e06ff9b16519955140ec2409c48b4"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/semantic-currentness-ignored-restored.log",
+        "bytes": 3719,
+        "sha256": "01e141a31be96d2c00c119e9b90e91fe8d5a8d9163492431cbd323af0b5a0a83"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "original-hour-replaced",
+      "test": "S3-Q-LATE-HOUR",
+      "target": "rebuild/m3/w6/local/source-admission.mjs",
+      "original_sha256": "97d5132803cfbb5ade3a30c7ba725f49a2b40de466137a68e627ebb6ff497a89",
+      "mutant_sha256": "cf5128f11ab13d82e1286a34752b8e7d15d846fc68ede94952a53f41c2ae3a55",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/original-hour-replaced.log",
+        "bytes": 4540,
+        "sha256": "6d235021464d378bd9ec3dde66b684c827ff7149699921d764d989fe6174ae4e"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-1-743dc74a-a9f9-481c-ac85-cf66093b1aa0/original-hour-replaced-restored.log",
+        "bytes": 3722,
+        "sha256": "7a823377fb7f9ff7013bd2efc71dd0b0369a6f576d8ab74e9e6004ea91653628"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "provider-caught-fault-escapes",
+      "test": "S3-PROVIDER-CAUGHT60",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "original_sha256": "f8b3d4cb7f8a7fd2c414a83b54cc497ca3aee71be90269ddd30b3eeb9c231a3e",
+      "mutant_sha256": "76b60d833ad16d23f8dd3ab600852a9803a1b960b6e029a51b9039493dffaa15",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-2-b4c8ecbe-7dbd-4c69-afae-636c140b1e9c/provider-caught-fault-escapes.log",
+        "bytes": 3822,
+        "sha256": "f4a1c292cb8f5455d05fff5638fc20f1587c17176becbb625406f6394c6a2b9e"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-2-b4c8ecbe-7dbd-4c69-afae-636c140b1e9c/provider-caught-fault-escapes-restored.log",
+        "bytes": 1834,
+        "sha256": "463882aafd722be34d50f966855bed0828158225246fafbd187a477ca69c4f8d"
+      },
+      "restoredTotals": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "provider-context-record-mutable",
+      "test": "S3-PROVIDER-CONTEXT-CUSTODY",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "original_sha256": "e1c992c714f5753835f02cfcae672ff1da72d4a21b3b56d340fe9a5d0507103a",
+      "mutant_sha256": "32cf7fc52cb48374f590638c7443e49249921ca28228cc603443730039444cb8",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-2-b4c8ecbe-7dbd-4c69-afae-636c140b1e9c/provider-context-record-mutable.log",
+        "bytes": 2869,
+        "sha256": "efde1df2af777ed29447e8251e7903647cbe7e6b7ec93225cd1c639b93392af6"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-2-b4c8ecbe-7dbd-4c69-afae-636c140b1e9c/provider-context-record-mutable-restored.log",
+        "bytes": 1835,
+        "sha256": "7d1b22000f7b79ed6475948a4fa3fa67f0728c2a20814f91c87ad89b64bd8d14"
+      },
+      "restoredTotals": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "provider-default-entry-unchecked",
+      "test": "S3-PROVIDER-MAPPING",
+      "target": "rebuild/m4/import/local-source-profile.cjs",
+      "original_sha256": "e1c992c714f5753835f02cfcae672ff1da72d4a21b3b56d340fe9a5d0507103a",
+      "mutant_sha256": "e83d5080ca75e26abd41efe32e65e67035926b9b82163f8087793a9c66ccacbf",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-2-b4c8ecbe-7dbd-4c69-afae-636c140b1e9c/provider-default-entry-unchecked.log",
+        "bytes": 2825,
+        "sha256": "2de95197ef76b552593b5b2083f3138de98099c631e62ef093514c43e94c7f58"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-2-b4c8ecbe-7dbd-4c69-afae-636c140b1e9c/provider-default-entry-unchecked-restored.log",
+        "bytes": 1832,
+        "sha256": "8400abd8311ab018d533df986f77fe39ef520baca70bd826a7221b0f4203b418"
+      },
+      "restoredTotals": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "prefix-answer-assumed",
+      "test": "S3-ORDER-ATTESTATION",
+      "target": "rebuild/m4/import/local-source-order.cjs",
+      "original_sha256": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
+      "mutant_sha256": "9d5f3c3d348af03e301b678e875a6e3bfb42f15c25757fe21cba03adc1c96f3f",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-3-0952636f-7f78-467c-95dd-d5087b511d0c/prefix-answer-assumed.log",
+        "bytes": 2003,
+        "sha256": "af6f9d8f9431c9993efb3230ed163208aff9c544b04367e81b22d38fb3ddcd48"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-3-0952636f-7f78-467c-95dd-d5087b511d0c/prefix-answer-assumed-restored.log",
+        "bytes": 1147,
+        "sha256": "3adabc214f545e4dc29abc3261700da9b3265f255ae2757ddfc525b3d016d2e7"
+      },
+      "restoredTotals": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "source-scope-unbound",
+      "test": "S3-ORDER-MEMBERS",
+      "target": "rebuild/m4/import/local-source-order.cjs",
+      "original_sha256": "6c89fd55696b846c519c8f195b1df5fa3b6aa6bf5ec1d23d2074622ad742cf43",
+      "mutant_sha256": "85b2e1671e928b2f1e683b504926257720661cfddc1e0287a48dddcb658793a9",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-3-0952636f-7f78-467c-95dd-d5087b511d0c/source-scope-unbound.log",
+        "bytes": 2144,
+        "sha256": "5587b65a7a8116f362321244683e43b9a0c678e7d08c92d2123626ef073c7eb4"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-core-3-0952636f-7f78-467c-95dd-d5087b511d0c/source-scope-unbound-restored.log",
+        "bytes": 1145,
+        "sha256": "05593fa8183128cb379c15b90b58ff92911589e46d061aba833de2cdac275f55"
+      },
+      "restoredTotals": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "source-alias",
+      "test": "all exposed copies and caller buffers",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "8e8b6033d14903eedf474c3ba801ecefccfe07a564db424f078fea1d5b0c705e",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/source-alias.log",
+        "bytes": 882747,
+        "sha256": "b66b1c3a7efe6ec6a7a71ab3193da82f0b894737bd7631a1c9594bd4ab72a176"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/source-alias-restored.log",
+        "bytes": 3455,
+        "sha256": "4f3369771867fc43dbb9da95727df7dd47141c0f1afb66e261d01cbcd40e12b0"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "mutated-preimage",
+      "test": "actual current-schema migration mutates input",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "3eee81221e13340a180c58dffb46e734021cc3948d56a32a60859270c2d4a4ce",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/mutated-preimage.log",
+        "bytes": 120624,
+        "sha256": "d475aa3c0b8c8fb0460e946d6a3fd5e597a2b28af4b4618fd9d3a673a41b480e"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/mutated-preimage-restored.log",
+        "bytes": 3456,
+        "sha256": "d47554389b9e2041aaeae3d46842a0c33c872c01418535fe38bbffee5b06bb91"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "discard-migration-return",
+      "test": "a supported earlier schema",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "dcac87a8fd91b3bd242edc51819977905b865dbe6774a0448bc02cdc32647bcc",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/discard-migration-return.log",
+        "bytes": 39994,
+        "sha256": "a30e4aa9b210be0d2bc7ea5521ccf5a99acaf524be7acc89e2d75638386954a8"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/discard-migration-return-restored.log",
+        "bytes": 3456,
+        "sha256": "54a9c5bf13f91f3d0c3f9f592a3f69ea790b1c5e6a3bb036599bc4a5a8709d77"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "omit-local-guard",
+      "test": "actual guard refuses local-only loss",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "ebca4c1939a9403486886cfd038763521eba737fcbaaf7325454f75b8dc4caa4",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/omit-local-guard.log",
+        "bytes": 83971,
+        "sha256": "2a40c9222fd89fd1cdaaaab91df620d1bc593d07eb3a4a8bf0b970c7441d9a83"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/omit-local-guard-restored.log",
+        "bytes": 3456,
+        "sha256": "403414fc70614feef4a363b20808d7128a64aee2c4d4714dc199ec0fa0d9f438"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "omit-remote-guard",
+      "test": "actual guard refuses a reached remote loss",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "a057204b5555c55726d26854a869668d792303a87655bf51e9cc618c21905a73",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/omit-remote-guard.log",
+        "bytes": 93363,
+        "sha256": "c2812cc92e073517e41741bbf93ca39e48c13fba6b4c71fc9d2fa3b52e1d6de1"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/omit-remote-guard-restored.log",
+        "bytes": 3456,
+        "sha256": "5c267bbc8e53b7cb3b8a98924ca87830dfa3e1ffb99db5cd250ca0844c4c32e1"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "count-only-guard",
+      "test": "actual D33 identity guard detects a replaced date",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "f6a0a75158474bacba5ccc9c42816b9b576a33133d78e8d37a6d2c9adb55a3c5",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/count-only-guard.log",
+        "bytes": 5880,
+        "sha256": "b635e3318702a7fdeaddf478f6c60c01a3c1a537097ba734de8e20144c81c03a"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/count-only-guard-restored.log",
+        "bytes": 3457,
+        "sha256": "c9ede5e81d287f23d0734e685b66e9fa78fa74735bf3ba0ab130b3934ab35344"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "duplicate-key-parser",
+      "test": "strict source parser refuses duplicate keys",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "3c13134f388316561b71690429efe6e4381e00224c233dd6220a78cb07b5cd4e",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/duplicate-key-parser.log",
+        "bytes": 4199,
+        "sha256": "f4404e542f44ca31af1294921fcc84670b64edb6996cbfb781f439a66f5704bb"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/duplicate-key-parser-restored.log",
+        "bytes": 3456,
+        "sha256": "3dc8a2fbecd2afd18ae05983ebf866d0083b344d6781225b0ff9b9eb2a155704"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "future-fallthrough",
+      "test": "future schemas and seed-dependent inputs",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "30cf1a9f125261d7c4af73c4ce7c1f63361f55f1a7008616893036793bae633a",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/future-fallthrough.log",
+        "bytes": 5402,
+        "sha256": "3b1c48b5ef935c7c48e8e73b32fb81deca2d28d7fb95c9021489a206266be616"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/future-fallthrough-restored.log",
+        "bytes": 3456,
+        "sha256": "e11d2e5d3cbc8ca81e43c699a4a268104027d2454c7a9a30a0e0abbba5a63b3f"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "lossy-json",
+      "test": "migration result must retain current schema",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "86fb8ac3bea68b91fd0c63c4f2b5f9ba37267a8e275e6b09b31d45372ef237c8",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/lossy-json.log",
+        "bytes": 4208,
+        "sha256": "e673d80fe07784381901bf76c97c5e7cb028d26d1b7c99c0e4906c8141a90567"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/lossy-json-restored.log",
+        "bytes": 3457,
+        "sha256": "79d4d5ca1be960285ffcb44c505e2cb20929a4e793b1c9c00459ebe191fe233d"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "private-error-leak",
+      "test": "private engine error prose and guard details",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "b251ce3bb6f8f25ca9d2bd3d75f25567d325a32e1e08eae3cfb625d7cb9a8ce9",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/private-error-leak.log",
+        "bytes": 4239,
+        "sha256": "21bb5ca1f28b077b022018c153622d5d3cb5aba497035bc0d8c4881f8a88e11b"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-prepare-006acbe5-3bae-40ca-b44d-aa38bfecc183/private-error-leak-restored.log",
+        "bytes": 3455,
+        "sha256": "217b43ca1edadf20f11266aa9800bbb66419182b90429cd30ecc40ac70553fb2"
+      },
+      "restoredTotals": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "trust-supplied-candidate",
+      "test": "changed candidate or supplied checkpoint coverage",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "7d6744f1a5e887d15b370b1cc13419e63a3857c43ae41c62f5c851ddc3ce2952",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/trust-supplied-candidate.log",
+        "bytes": 7858,
+        "sha256": "cd6e6bbac7078237e19174001dd6693c38c6829091895e887d685469d07632b9"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/trust-supplied-candidate-restored.log",
+        "bytes": 7085,
+        "sha256": "968efeddea5a7ccd8872228efe8f726c217e3be9f313ce8fc1f320a89f41cc62"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "pending-effect-enters-engine",
+      "test": "accepted correction reconstructs earlier and later effects",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "173290309bb6bf9541efb06afd8b19653aa400ed6c517258c1c096c1357629ff",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/pending-effect-enters-engine.log",
+        "bytes": 86856,
+        "sha256": "73a782f2f145c7c04065ef9f19f395a5e96da8ce064a4a2f012c430d2bca2bf0"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/pending-effect-enters-engine-restored.log",
+        "bytes": 7084,
+        "sha256": "20f10a7a7e93de66bee6bd3c5f9709f310846a4e9955f92c663b6b7c62c00e11"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "skip-checkpoint-listed-original",
+      "test": "source checkpoint membership",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "86ddded3a096caf52a8864bd082da65a7fb285b9fddaada71c0324157f15e13a",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/skip-checkpoint-listed-original.log",
+        "bytes": 7857,
+        "sha256": "b8b8e635cba434c0b5ff268005a8b1d176c6b0fde247cb7752d472b234d68ee7"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/skip-checkpoint-listed-original-restored.log",
+        "bytes": 7084,
+        "sha256": "18eef304963e75a3de36fd563524de7ddd9cab83550d84df0b420da46cc86507"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "removed-original-kept",
+      "test": "removing an earlier reading",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "1e913cef0be38fde9b28553d1220bb5ca1554d5489b41c4b4ebc1d666297312e",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/removed-original-kept.log",
+        "bytes": 47800,
+        "sha256": "b704a454ef9d731dd3d04dbe20633cf6f874eba582e0073ae7a76a8b002d37f1"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/removed-original-kept-restored.log",
+        "bytes": 7086,
+        "sha256": "961b352ed00444885767c3254bc17ef277e2491db19138a2040831fb185acf86"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "current-clock-reclassifies-history",
+      "test": "the actual original-day hour",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "aa4b7b5ef44ef730549dd36811f9aa0919dc94c164744ef75fb9ae5901d968e5",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/current-clock-reclassifies-history.log",
+        "bytes": 7889,
+        "sha256": "29f7baefedc808f9f61a141c12ebcc060a2f1750283da4514048afbf51a74b55"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/current-clock-reclassifies-history-restored.log",
+        "bytes": 7085,
+        "sha256": "ec714467d8eb22cb6da2a0afc2808761a051f5e71f6b81607288ecdfc4af308c"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "pending-source-overlap-ignored",
+      "test": "known pending/source overlap",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "6ec48b8b83343952bd54fa9eb49b1cfa6c423e44f0525b064efbca4ea3a50ec8",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/pending-source-overlap-ignored.log",
+        "bytes": 7871,
+        "sha256": "bea25524100c46ce5a623e90b4aeaa51c9a4a949b69f187b96a8ea02ec8aeac1"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/pending-source-overlap-ignored-restored.log",
+        "bytes": 7086,
+        "sha256": "9893ef9a48a62a669f9178854377785bb392958fe39330f6bdde2271d4c878c4"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "saved-coverage-trusted",
+      "test": "changed candidate or supplied checkpoint coverage",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "0a147fdf7117e5350819166408f53ed537c69486f96a78efdf96c6d189b5dda5",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/saved-coverage-trusted.log",
+        "bytes": 7849,
+        "sha256": "774f989e69dc00c016209711cf554bf8f6a7854c6173961d54b4a6e08e58b3ef"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/saved-coverage-trusted-restored.log",
+        "bytes": 7085,
+        "sha256": "8c760eca87e4d1ccef91964c0b13e7eacd4bb636bc94d371c525db89d704e8c9"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "merged-native-image-assumed-covered",
+      "test": "known pending/source overlap",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "4fdd5e63520abc47ca64c6e8d46141519928e6e8b7ed4881eb517e54baafc6fe",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/merged-native-image-assumed-covered.log",
+        "bytes": 7875,
+        "sha256": "0f640d9d9460e4b76bdd35bb1bf32e7c69b5f5899b23bbd864844e97f989e139"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/merged-native-image-assumed-covered-restored.log",
+        "bytes": 7085,
+        "sha256": "352bb88052198c3a2dedad091a41531b50e3e0de997b2af83587ada90109d345"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "prior-native-image-assumed",
+      "test": "different local bytes and checkpoint originals",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "55b961a2e78d437335eaf8291ab8308da9c3537d7aa25b3b0fe7215795454bcc",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/prior-native-image-assumed.log",
+        "bytes": 7856,
+        "sha256": "9172b28feb8e9dbb87f2f714cc68ca0b6521e14cff8c8c3131e0d7d651f27cfa"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/prior-native-image-assumed-restored.log",
+        "bytes": 7090,
+        "sha256": "8d3d30374e812170da143a4be1ae7d3253685846034b98e109aefea7298ed4da"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "inherited-correction-not-rebuilt",
+      "test": "native local image is reproduced",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "1dcb04e86e8422478e3cd14d094cafbe79d45adf8f16f6571f2794a4ced9ed69",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/inherited-correction-not-rebuilt.log",
+        "bytes": 81788,
+        "sha256": "5ee6f6dfd3d7f2eb9fb39a9b4e642590a9cf1f00a7e6434d6b67e6367bc41bb6"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/inherited-correction-not-rebuilt-restored.log",
+        "bytes": 7087,
+        "sha256": "5d82c563176dab2ad1b2bb426269d828c70ba2fb4ce529a8e3c1fe457d79087d"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "rollback-uses-later-request-cut",
+      "test": "rollback selects the target activation",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "abc56a981afaea0b86d9d0939a4fc368e0f7a8f4df5c520b1ac5474fd73c9c44",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/rollback-uses-later-request-cut.log",
+        "bytes": 10401,
+        "sha256": "06049092d204bb1489a8f915d21693354c8c10911f2de3028021d768744bded5"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/rollback-uses-later-request-cut-restored.log",
+        "bytes": 7086,
+        "sha256": "3d6d00f61086e2633813beeebc8e5306074ebfa445c3b6a25152a933019c9acd"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "checkpoint-original-comparison-omitted",
+      "test": "different local bytes and checkpoint originals",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "6dc2d33b79cf43e954bcab463e2eea7a4ede45edabeb8c34322ab864f8e64037",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/checkpoint-original-comparison-omitted.log",
+        "bytes": 7858,
+        "sha256": "678e519f7fc21745df381fd3c054f6e5b889e61e5108b153a37896972fb5bb4b"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/checkpoint-original-comparison-omitted-restored.log",
+        "bytes": 7087,
+        "sha256": "1db4de750d3d3c9970d2ab701b7be27b496db8415d31449e587f3a6d14876d11"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "daily-partial-replaces-whole",
+      "test": "daily partial correction preserves",
+      "target": "rebuild/m4/import/daily-history.cjs",
+      "original_sha256": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "mutant_sha256": "774623a0bdf1f688be0833d58e18828594cefeb27d4480b21c229da094241818",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-partial-replaces-whole.log",
+        "bytes": 44776,
+        "sha256": "7a6c7cdb9d7a8c2bd08b62c9eee7fe00892fd75f5869a444a89a4f60d085da4c"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-partial-replaces-whole-restored.log",
+        "bytes": 7088,
+        "sha256": "bf4315f0b115fd2845b7a43bd7c1b61bdcb01dfa0e499241ac87dfd863ed45b6"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "daily-pending-enters-accepted",
+      "test": "accepted food and steps",
+      "target": "rebuild/m4/import/daily-history.cjs",
+      "original_sha256": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "mutant_sha256": "236286bb4a3f94aa5a55cefc605580a2ddcc7e7e868e5c50e47fb49282d4a3ff",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-pending-enters-accepted.log",
+        "bytes": 44541,
+        "sha256": "d9ed36abfecfbf684d68dab95aaeec60d601bb50bc813edd4215369e9be86042"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-pending-enters-accepted-restored.log",
+        "bytes": 7086,
+        "sha256": "04ad500249ebfceb6653cfbbd4f6d033156e4d716213ff27711e790b3a7892fb"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "daily-causal-edge-ignored",
+      "test": "daily concurrent edits",
+      "target": "rebuild/m4/import/daily-history.cjs",
+      "original_sha256": "5358b3ba6a9a92e217651f0a74d85511f50a30d276c7a483a025034de6e604f7",
+      "mutant_sha256": "2e3a73e2782d47078ede3f8e96c932f020a6a8c0210277536961e2bee158cbe0",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-causal-edge-ignored.log",
+        "bytes": 7875,
+        "sha256": "d159a1e42f98c948639e5f775eae0db97a2b5630dd4a059756c932981c0c31c1"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-causal-edge-ignored-restored.log",
+        "bytes": 7085,
+        "sha256": "01479bc7af23e5cec3132986587309699e5790edb0f52cd2f62f31a7197d21da"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "daily-native-source-overlap-ignored",
+      "test": "native daily lineage reproduces original local image",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "d6be89a2fb0bce94abee4a639c196b6c5f1b5ea7717765e29fe9ec99abdf183a",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-native-source-overlap-ignored.log",
+        "bytes": 7869,
+        "sha256": "ffa2ea76d7992cd5216a943511933748bae629cf44944eeb76c58c9725265883"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/daily-native-source-overlap-ignored-restored.log",
+        "bytes": 7082,
+        "sha256": "c54546c056174fb294c74f47c6a5f03c29dc1f1297661482c6dc9f5214ccf4bb"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "removed-daily-added-field-forgotten",
+      "test": "removed daily originals retain",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "6bcd690e0050e2e339e0874bd9ae6786d5c23939eba01f26645d0c826c7ea033",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/removed-daily-added-field-forgotten.log",
+        "bytes": 7967,
+        "sha256": "e1eb622c780d6a81e77f86d5eac0cf0325bd65de1cf633ab69e9400fe8bd658c"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/removed-daily-added-field-forgotten-restored.log",
+        "bytes": 7090,
+        "sha256": "1102d94c48df5835670dd64c9b66bda6547ef25f400a2187830a4476c2678380"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "workout-binding-uses-rollback-intent",
+      "test": "rollback selects the target activation",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "8b7d903fbd2460bbf2923c440c17eeeed316aed9d18ecec25b246a313ad29e99",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/workout-binding-uses-rollback-intent.log",
+        "bytes": 7964,
+        "sha256": "42945058596392feed0449331271b6d8a2079781203be0a6179846ec6b5913e9"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/workout-binding-uses-rollback-intent-restored.log",
+        "bytes": 7083,
+        "sha256": "74616f05e169f945c8324e22e858da2ddabc94632453b8bdb2c813fdd0576d96"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "workout-binding-copies-another-log",
+      "test": "workout source binding cannot arise",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "d7cc3fcd52779206b1bdf08842394a96901a42516be0088721debe6f1e10a31d",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/workout-binding-copies-another-log.log",
+        "bytes": 32974,
+        "sha256": "ad675ed1f1191f27ce31d3a7bc93a3ad7fd86abb4f6c799fb7040e6220b3019d"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/workout-binding-copies-another-log-restored.log",
+        "bytes": 7087,
+        "sha256": "1a54cf5486732a4e0cf29fde61d12a1aff7e6f6b063cc2d2c0bb7e3b38a3a401"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "workout-binding-loses-material",
+      "test": "rollback selects the target activation",
+      "target": "rebuild/m4/import/replay-core.cjs",
+      "original_sha256": "c8b95d38d1d9807a1f232cde215bad9b7cf67304f8e57efc096e083cf8c750a2",
+      "mutant_sha256": "11b4204bab005b1363a26385ea1fd32b1a2e3241db4c930025b458d848aee1f9",
+      "assertion": true,
+      "restored": true,
+      "selectedOwnAssertion": true,
+      "log": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/workout-binding-loses-material.log",
+        "bytes": 8664,
+        "sha256": "815be9a4aa7e6e11c9bf8d2e95bde1c55c94f0a996fd6cb2f5876d2350c8f5fe"
+      },
+      "restoredLog": {
+        "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/mutation-reading-replay-c34728ef-07f0-4e1d-84ce-6c97b0122940/workout-binding-loses-material-restored.log",
+        "bytes": 7087,
+        "sha256": "c831ec949e58736ff2c10341a9cc1aa14fc42fc1ed1090fc7016a23364cc73fd"
+      },
+      "restoredTotals": {
+        "tests": 27,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "browser": {
+    "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/browser-core-evidence.json",
+    "bytes": 27803,
+    "sha256": "2b23b641988678f71c13c2ec3528ff1f3082a4577e7e947e0a5fa1168e08e57f",
+    "cells": 19,
+    "scope": "PORTABLE ONLY",
+    "killed": true,
+    "realC2": false,
+    "profileIsSchema": false,
+    "first": {
+      "cells": 10,
+      "evidence": {
+        "revision": 4,
+        "selection": "local-source:5647a6a88218a0ec4fd28c570305c997d4dd2bffa8c2fb86170c6030baedba5f",
+        "originals": {
+          "TEST-ONLY-setup": "c4c09b30a2169f49242fa71ae3822a75760a6a636cfd65db41ea4cf9dcdcb59e",
+          "TEST-ONLY-reading": "9f5af1d53f7a0cc4815372da17af5ce02a04b03e3e9238d99bfbeedc2cb0a711",
+          "TEST-ONLY-food": "edd429833f445eaee965db2a5387d0bf6ff7cb9cac86d1c55f0f4cdec0f542b3",
+          "TEST-ONLY-machine": "6d65c6b5f3df8973cf0265160f6fd9ef48eec9db3045a6ae5b52fb2ceec4dc44",
+          "TEST-ONLY-checkin": "693137ad7c620262e9e02f7aa4531f226a4160dd16cf43b9d49f66431d32d917",
+          "S3-w-6": "b8405e8ef8d9889f9428f437e9e9163e6c57366c5c23761c39c6d2ef4be8ea00",
+          "S3-w-7": "6938351da1cf846b7d0a8daf12bb7e461f996f3a0f5457396d532bc80b94aeac",
+          "S3-w-8": "1d225117caaf69ee651065ab405d03ed3eb252ab4dd1f6b50c3e51b434494e85",
+          "S3-w-9": "5d04469731dee6379a46feab3fa52514bf22b43038f9d9dc4e32ece2833a8677",
+          "S3-w-10": "80d1797f11dc814b5e33cfd15bfc6c5fc93e50998005bad11745b31b96fedb86",
+          "S3-w-11": "282f0b8b0718b6982ece116ba88ca7c0218c6588bf6c5829cde2385b2843d962",
+          "S3-w-12": "4dfe0854a32e03fdd750afbcfcfbd0f9a8183c96b58a10f4a207e0b56518fb70"
+        },
+        "counts": {
+          "ops": 12,
+          "reads": 29,
+          "workouts": 1
+        },
+        "sourceDigest": "7e03ebe9d0e8da5aa377c0d1e40d240eebb4904a3a81f779d0669227a83c7c1d",
+        "materialDigest": "99b70a538df661e92bd88c06cb8f1f6b7a20fe3b5b2768cb1085ecbe97272d8f",
+        "ready": true,
+        "pending": [
+          "local-capture-start-resume",
+          "today-gym-consumers"
+        ],
+        "complete": false
+      }
+    },
+    "second": {
+      "cells": 8,
+      "evidence": {
+        "revision": 8,
+        "selection": "local-source:d7b22ae162b5563c3ca6d7305017f54bb8bc60261fccbb5e20ed6d208e2d8598",
+        "originals": {
+          "TEST-ONLY-setup": "c4c09b30a2169f49242fa71ae3822a75760a6a636cfd65db41ea4cf9dcdcb59e",
+          "TEST-ONLY-reading": "9f5af1d53f7a0cc4815372da17af5ce02a04b03e3e9238d99bfbeedc2cb0a711",
+          "TEST-ONLY-food": "edd429833f445eaee965db2a5387d0bf6ff7cb9cac86d1c55f0f4cdec0f542b3",
+          "TEST-ONLY-machine": "6d65c6b5f3df8973cf0265160f6fd9ef48eec9db3045a6ae5b52fb2ceec4dc44",
+          "TEST-ONLY-checkin": "693137ad7c620262e9e02f7aa4531f226a4160dd16cf43b9d49f66431d32d917",
+          "S3-w-6": "b8405e8ef8d9889f9428f437e9e9163e6c57366c5c23761c39c6d2ef4be8ea00",
+          "S3-w-7": "6938351da1cf846b7d0a8daf12bb7e461f996f3a0f5457396d532bc80b94aeac",
+          "S3-w-8": "1d225117caaf69ee651065ab405d03ed3eb252ab4dd1f6b50c3e51b434494e85",
+          "S3-w-9": "5d04469731dee6379a46feab3fa52514bf22b43038f9d9dc4e32ece2833a8677",
+          "S3-w-10": "80d1797f11dc814b5e33cfd15bfc6c5fc93e50998005bad11745b31b96fedb86",
+          "S3-w-11": "282f0b8b0718b6982ece116ba88ca7c0218c6588bf6c5829cde2385b2843d962",
+          "S3-w-12": "4dfe0854a32e03fdd750afbcfcfbd0f9a8183c96b58a10f4a207e0b56518fb70",
+          "TEST-ONLY-later-reading": "d676dd14297874ae5561f6b904aacbdf4b1fd974acaf4e94b2787be19f3e7db6",
+          "S3-w-14": "8e30687327f2e21ec3e38f8b78b327b45042163d83e60bad7f3032964c0861f4",
+          "S3-w-15": "6cad03ca446dc38eb4708b7674d8cf0222b76e70186e4a559381bbddc810a2c0",
+          "S3-w-16": "7cee496ed4bb781e419a1f1df972eb8b7a1ff02853e0402064740eeb48f8785c",
+          "S3-w-17": "ebaa1d6ad5c64f000285dafa04d7d764b131b6da72b2609caee324da224fd3c8",
+          "S3-w-18": "7f5e0f60b3d18c44d668f9d81165aeaf557ebfbffa8c1f70ec7fb54249ba4c81",
+          "S3-w-19": "b892ce5d8cf17d91c4f9d5d13ca229acfd8a9d4749c783cb1c4abdcf9b9f13a7",
+          "S3-w-20": "11e04aab9719acb16c43436f06865f04429bc10f5bc427e96455338bcf25a717"
+        },
+        "counts": {
+          "ops": 20,
+          "reads": 30,
+          "workouts": 2
+        },
+        "sourceDigest": "7e03ebe9d0e8da5aa377c0d1e40d240eebb4904a3a81f779d0669227a83c7c1d",
+        "materialDigest": "99b70a538df661e92bd88c06cb8f1f6b7a20fe3b5b2768cb1085ecbe97272d8f",
+        "ready": true,
+        "pending": [
+          "local-capture-start-resume",
+          "today-gym-consumers"
+        ],
+        "complete": false
+      }
+    },
+    "graphs": [
+      {
+        "name": "product",
+        "sha256": "5db3d5d120a34dc61696ea3bc502f1bcf222e996365774cd7d4999a4821c9418",
+        "inputs": 62
+      },
+      {
+        "name": "test",
+        "sha256": "d3db17a5b16c9ae0aa7e39b4b10ba586bcef37437dd9990f252253e0389abd1c",
+        "inputs": 71
+      }
+    ]
+  },
+  "independentLogs": [
+    {
+      "path": ".tmp/s3/39c85ddf-ac41-4663-a90a-c31375db7143/logs/reviewer-admission.log",
+      "bytes": 7217,
+      "sha256": "08c48177dcf56b6aa29b5f05441ebd08451c6e54520dd794f01ea806dcd3824b",
+      "totals": {
+        "tests": 8,
+        "pass": 4,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": ".tmp/s3/39c85ddf-ac41-4663-a90a-c31375db7143/logs/reviewer-provider.log",
+      "bytes": 3095,
+      "sha256": "c601971ba617c8ba0adedb0ee096ef4910a39a6203994d5b15db1b03b2ea33ee",
+      "totals": {
+        "tests": 4,
+        "pass": 2,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": ".tmp/s3/39c85ddf-ac41-4663-a90a-c31375db7143/logs/reviewer-provider-final.log",
+      "bytes": 3188,
+      "sha256": "38e149369e5808c72d9ab5cbd1d05d21aed32780cc8f264367670485b586fdf5",
+      "totals": {
+        "tests": 4,
+        "pass": 2,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": ".tmp/s3/39c85ddf-ac41-4663-a90a-c31375db7143/logs/reviewer-draft51.log",
+      "bytes": 2280,
+      "sha256": "4ee94bec83eaaefe663fa8d5440cdc87c1092fe319fb291224b03edaeeeda5dd",
+      "totals": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/logs/reviewer-harness.log",
+      "bytes": 1085,
+      "sha256": "4ded622f394a7b601aacb2c26d80eb07251b5f3763fc7c33c94c44c3198cc791"
+    }
+  ],
+  "independentHarness": {
+    "path": ".tmp/s3/4b3d74ae-2800-46e5-b29e-28308fe27f68/reviewer-s3-harness-IFuJNo/annex-evidence.json",
+    "bytes": 3985,
+    "sha256": "2c15f81afb3016ff1e4ec431ceed2755b06c5111ec4208e545d8de62024cf91e",
+    "result": {
+      "profile": "earned/independent-s3-harness-review/v1",
+      "candidate": "ebc4c4e870497199c113c5e5c85bdced679589cf",
+      "node": "v22.23.2",
+      "platform": "win32",
+      "tree": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\review-s3-core\\.tmp\\s3\\4b3d74ae-2800-46e5-b29e-28308fe27f68\\tree",
+      "run": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\review-s3-core\\.tmp\\s3\\4b3d74ae-2800-46e5-b29e-28308fe27f68",
+      "before": {
+        "manifest_sha256": "c7623bcaa982182ab2cccd5ca542c450a758a4b8a2be99b0d4c063d55926a15d",
+        "source_count": 111
+      },
+      "after": {
+        "manifest_sha256": "c7623bcaa982182ab2cccd5ca542c450a758a4b8a2be99b0d4c063d55926a15d",
+        "source_count": 111
+      },
+      "reviewer_source_sha256": "a370af67163c60633db8048aad61a76425af95dd424f97befe012d5fbb7802ce",
+      "scope": "Public harness adversaries only. No private, port, oracle, retained-tree or actual owner data. No acceptance or final P1 verdict.",
+      "browser_probe": "requested",
+      "results": [
+        {
+          "name": "literal-listed-positive",
+          "expectation": "A listed literal import resolves to exactly one listed edge",
+          "pass": true,
+          "observed": [
+            [
+              "entry.mjs",
+              "listed.mjs"
+            ]
+          ]
+        },
+        {
+          "name": "literal-unlisted-refusal-control",
+          "expectation": "The matched literal syntax refuses a harmless unlisted path",
+          "pass": true,
+          "observed": {
+            "refused": true
+          }
+        },
+        {
+          "name": "side-effect-unlisted-refusal",
+          "expectation": "A side-effect import must refuse before any target load",
+          "pass": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Missing expected exception."
+          }
+        },
+        {
+          "name": "computed-unlisted-refusal",
+          "expectation": "A computed import must be resolved or refused before any target load",
+          "pass": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Missing expected exception."
+          }
+        },
+        {
+          "name": "selected-assertion-positive",
+          "expectation": "The selected test itself failing ERR_ASSERTION qualifies",
+          "pass": true,
+          "observed": {
+            "name": "reviewer selected guard",
+            "assertion": true,
+            "status": 1
+          }
+        },
+        {
+          "name": "unrelated-assertion-cannot-qualify-selected-typeerror",
+          "expectation": "A selected TypeError plus unrelated ERR_ASSERTION must be rejected",
+          "pass": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Missing expected exception."
+          }
+        },
+        {
+          "name": "current-head-cjs-unlisted-refusal-control",
+          "expectation": "The unchanged preload blocks CommonJS resolution of the unlisted sentinel",
+          "pass": true,
+          "observed": {
+            "refused": true
+          }
+        },
+        {
+          "name": "current-head-esm-unlisted-refusal",
+          "expectation": "The same unchanged preload must block ESM loading of that unlisted sentinel",
+          "pass": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Unlisted ESM executed successfully: REVIEWER_UNLISTED_ESM_EXECUTED"
+          }
+        },
+        {
+          "name": "browser-evidence-schema-identity",
+          "expectation": "Actual browser evidence keeps its schema profile separate from its browser directory",
+          "pass": false,
+          "error": {
+            "name": "AssertionError",
+            "code": "ERR_ASSERTION",
+            "message": "Duplicate profile property must not replace evidence schema with the browser directory\n+ actual - expected\n\n+ 'C:\\\\Users\\\\joeym\\\\Documents\\\\prepledger-dev\\\\work\\\\pm-caretaker\\\\review-s3-core\\\\.tmp\\\\s3\\\\4b3d74ae-2800-46e5-b29e-28308fe27f68\\\\browser-profile\\\\core-1789295303946'\n- 'earned/s3-browser-core/v1'\n"
+          }
+        }
+      ],
+      "passed": 4,
+      "failed": 5
+    }
+  },
+  "independentDraft51": {
+    "path": ".tmp/s3/39c85ddf-ac41-4663-a90a-c31375db7143/review-draft51-OdYGYu/evidence.json",
+    "bytes": 1029,
+    "sha256": "d4b5908a3bcfa66304bb99091c33f5c53cd4d4035194b9f159f8549f940ffa21",
+    "result": {
+      "candidate": "ebc4c4e870497199c113c5e5c85bdced679589cf",
+      "target": "rebuild/m4/import/engine-provider.cjs",
+      "original_sha256": "f8b3d4cb7f8a7fd2c414a83b54cc497ca3aee71be90269ddd30b3eeb9c231a3e",
+      "mutant_sha256": "0a8b7226df0d21dbac3504cafd79fff4988603e4ad1756155787a29568d3d856",
+      "baseline": {
+        "status": 0,
+        "totals": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "selected": "ok",
+        "selectedAssertion": false,
+        "setupFailure": false
+      },
+      "mutant": {
+        "status": 0,
+        "totals": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "selected": "ok",
+        "selectedAssertion": false,
+        "setupFailure": false
+      },
+      "restored": {
+        "status": 0,
+        "totals": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0
+        },
+        "selected": "ok",
+        "selectedAssertion": false,
+        "setupFailure": false
+      },
+      "restored_all_source_hashes": true
+    }
+  },
+  "annexes": [
+    {
+      "path": "rebuild/lanes/astra/reviews/S3-ADMISSION-REVIEW-ANNEX.mjs",
+      "bytes": 13508,
+      "sha256": "d7278c30e40cbfca883ad7080ca03413be06927db5d694442c07f0fad99d2a0f"
+    },
+    {
+      "path": "rebuild/lanes/astra/reviews/S3-PROVIDER-REVIEW-ANNEX.mjs",
+      "bytes": 8712,
+      "sha256": "96629e40ba5beef76aeac1b410a33ae514a700a0ff6b59c7675e374b07a00126"
+    },
+    {
+      "path": "rebuild/lanes/astra/reviews/S3-HARNESS-REVIEW-ANNEX.mjs",
+      "bytes": 12499,
+      "sha256": "a370af67163c60633db8048aad61a76425af95dd424f97befe012d5fbb7802ce"
+    },
+    {
+      "path": "rebuild/lanes/astra/reviews/S3-PROVIDER-DRAFT51-ANNEX.mjs",
+      "bytes": 7504,
+      "sha256": "16232b8d7a3a71f30424d54f7a8ded4f0f1ee88876e984d2c6d3f45a352d6914"
+    },
+    {
+      "path": "rebuild/lanes/astra/reviews/S3-CORE-REVIEW-EVIDENCE.mjs",
+      "bytes": 6429,
+      "sha256": "11e3b325d8bf39cb25d1353c951848744e94d7513c2e4e86f65917e9ac970281"
+    }
+  ],
+  "limits": "Public synthetic core review only. Builder report unread at verdict. No owner data, real C2, protected final consumer/capture tests, private gate, PM acceptance, integration or deployment."
+}
