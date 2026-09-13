@@ -464,9 +464,9 @@ function fieldDiff(a,b,at='$',out=[]) {
 // PM330 output-only diagnostics. Never an expectation or field-delta waiver.
 const NATIVE_DIAGNOSTIC_STATES=Object.freeze(['reads','trend','feed','queue','sleep','dailyLogs','sessionLog','model','learned','adjustments','suggestionLog','corrLog','exercises']);
 let nativeObservation;
-const NATIVE_FUNCTION_STRING=Function.prototype.toString;
-const NATIVE_HOOK_PINS=Object.freeze({createHook:'fe8223decbb582cec92799127df3e5a5231a8d5d467b31b9216ec2d903d54460',enable:'857ccb0b6fe725486e1fdd07fede7b909a067d294050c957b7b95d49c6973fc0',disable:'7b21d3e0c8841ef1785fd7a1b18fa975f9f3c92f7d2d0aad40a948987c7d60e1',unlink:'2b2d28c8fd4dafdb8f216f278863c3671344be98d86803ff41a72bbf37087cad'});
-function nativeCaptureFunction(fn,pin){if(typeof fn!=='function'||sha(Reflect.apply(NATIVE_FUNCTION_STRING,fn,[]))!==pin)throw Error('DIAGNOSTIC_BUILTIN');return fn;}
+const NATIVE_FUNCTION_STRING=Function.prototype.toString,NATIVE_CALL=Reflect.apply;
+const NATIVE_HOOK_PINS=Object.freeze({createHook:'fe8223decbb582cec92799127df3e5a5231a8d5d467b31b9216ec2d903d54460',enable:'857ccb0b6fe725486e1fdd07fede7b909a067d294050c957b7b95d49c6973fc0',disable:'7b21d3e0c8841ef1785fd7a1b18fa975f9f3c92f7d2d0aad40a948987c7d60e1',unlink:'2b2d28c8fd4dafdb8f216f278863c3671344be98d86803ff41a72bbf37087cad',promiseCreate:'df1c137cbb005919cd7bf2ffe4ffabe437cd734a6cdf861a4bb6b37d2b877353',promiseStop:'07f0aa7c21d66e6d8731962e0c5bf56afab65208068f0a598e4d7b43fce982a5',iterator:'d54c5f58ed8a91b4293430b55eb7fe216ba82a680e0d2a119a068559f6926fa5',iteratorNext:'05a9615ca5cd6c3e314eb0f41b54e2c2fe18521c7357ec5affd61a8ac9572cb7'});
+function nativeCaptureFunction(fn,pin){if(typeof fn!=='function'||sha(NATIVE_CALL(NATIVE_FUNCTION_STRING,fn,[]))!==pin)throw Error('DIAGNOSTIC_BUILTIN');return fn;}
 
 function nativeDiagnosticCategories(kind,paths,rootKeys) {
   if(!['second-readers','second-applyRead'].includes(kind)||!Array.isArray(paths)||paths.length>100000||!Array.isArray(rootKeys)||rootKeys.length>100000)throw Error('DIAGNOSTIC_SHAPE');
@@ -486,22 +486,35 @@ function nativeDiagnosticCategories(kind,paths,rootKeys) {
 function installNativeExitCapture(state,marker) {
   const original=process.emit,descriptor=Object.getOwnPropertyDescriptor(process,'emit');
   if(typeof original!=='function'||(descriptor&&!Object.hasOwn(descriptor,'value')))throw Error('DIAGNOSTIC_EMITTER');
-  // PM350: callback arguments are deliberately ignored; no IO, scheduling or throws.
+  // PM354/358: callbacks ignore arguments; only observer-owned flags may change.
   let deferred=false;
   const createHook=nativeCaptureFunction(require('node:async_hooks').createHook,NATIVE_HOOK_PINS.createHook);
-  const hook=Reflect.apply(createHook,undefined,[{init(){deferred=true;},promiseResolve(){deferred=true;}}]);
+  const hook=NATIVE_CALL(createHook,undefined,[{init(){deferred=true;}}]);
+  const noPromise=Object.getOwnPropertySymbols(hook).filter(k=>k.description==='kNoPromiseHook');
+  if(noPromise.length!==1)throw Error('DIAGNOSTIC_HOOK_FLAG');
+  const flag=Object.getOwnPropertyDescriptor(hook,noPromise[0]);
+  if(!flag||flag.value!==false||!flag.writable||!flag.enumerable||!flag.configurable)throw Error('DIAGNOSTIC_HOOK_FLAG');
+  // Exact Node22 internal flag on this new hook only; never tag application Promises.
+  Object.defineProperty(hook,noPromise[0],{value:true,writable:false,configurable:false});
+  const promiseCreate=nativeCaptureFunction(require('node:v8').promiseHooks.createHook,NATIVE_HOOK_PINS.promiseCreate);
+  const iterator=nativeCaptureFunction(Array.prototype[Symbol.iterator],NATIVE_HOOK_PINS.iterator);
+  const iteratorPrototype=Object.getPrototypeOf(NATIVE_CALL(iterator,[],[])),iteratorNext=Object.getOwnPropertyDescriptor(iteratorPrototype,'next');
+  nativeCaptureFunction(iteratorNext&&iteratorNext.value,NATIVE_HOOK_PINS.iteratorNext);
   const enable=nativeCaptureFunction(hook.enable,NATIVE_HOOK_PINS.enable),disable=nativeCaptureFunction(hook.disable,NATIVE_HOOK_PINS.disable),finalUnlink=nativeCaptureFunction(fs.unlinkSync,NATIVE_HOOK_PINS.unlink);
   let depth=0;
   const sameDescriptor=(a,b)=>a===undefined?b===undefined:!!b&&['value','writable','enumerable','configurable'].every(k=>a[k]===b[k]);
   function capturedExit(...args) {
-    if(this!==process||args[0]!=='exit')return Reflect.apply(original,this,args);
+    if(this!==process||args[0]!=='exit')return NATIVE_CALL(original,this,args);
     const outer=depth++===0;
     // Pinned Node22 sets _exiting; we never manufacture a termination flag.
     const terminating=process.version==='v22.23.2'&&process._exiting===true;
     if(!outer||!terminating)state.failed=true;
-    let returned=false,hookAttempted=false,prepared=false;
-    if(outer&&terminating){hookAttempted=true;try{if(Reflect.apply(enable,hook,[])!==hook)throw Error('DIAGNOSTIC_HOOK');}catch(_){state.failed=true;}}
-    try{const result=Reflect.apply(original,this,args);returned=true;return result;}
+    let returned=false,hookAttempted=false,prepared=false,stopPromises;
+    if(outer&&terminating)try{
+      stopPromises=nativeCaptureFunction(promiseCreate({init(){deferred=true;},settled(){deferred=true;}}),NATIVE_HOOK_PINS.promiseStop);
+      hookAttempted=true;if(NATIVE_CALL(enable,hook,[])!==hook)throw Error('DIAGNOSTIC_HOOK');
+    }catch(_){state.failed=true;}
+    try{const result=NATIVE_CALL(original,this,args);returned=true;return result;}
     finally {
       depth--;if(!returned)state.failed=true;
       if(outer){
@@ -518,7 +531,15 @@ function installNativeExitCapture(state,marker) {
             prepared=true;
           }
         } catch(_){state.failed=true;}
-        finally {if(hookAttempted)try{if(Reflect.apply(disable,hook,[])!==hook)throw Error('DIAGNOSTIC_HOOK');}catch(_){state.failed=true;}}
+        finally {
+          // Promise notifications remain active through non-Promise hook removal.
+          if(hookAttempted)try{if(NATIVE_CALL(disable,hook,[])!==hook)throw Error('DIAGNOSTIC_HOOK');}catch(_){state.failed=true;}
+          if(stopPromises)try{
+            if(Array.prototype[Symbol.iterator]!==iterator||!sameDescriptor(Object.getOwnPropertyDescriptor(iteratorPrototype,'next'),iteratorNext))throw Error('DIAGNOSTIC_PROMISE_CLEANUP');
+            // Direct call: pinned cleanup only visits its private bound stop functions.
+            if(stopPromises()!==undefined)throw Error('DIAGNOSTIC_PROMISE_CLEANUP');
+          }catch(_){state.failed=true;}
+        }
         // Restoration, marker validation and hook removal all precede publication.
         // The observed interval includes completion cleanup; no microtask drain guess.
         if(deferred)state.failed=true;
