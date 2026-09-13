@@ -1,8 +1,8 @@
 'use strict';
 const {test}=require('node:test'),assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
 const {createReadingReplay}=require(process.env.EARNED_REPLAY_CANDIDATE||'../reading-replay.cjs'),{createImportPreparation}=require('../prepare.cjs');
-const {createEngine}=require('../../../engine/index.cjs'),F=require('../../../m3/w7-preview/fixtures.cjs'),Ops=require('../../../client/ops.cjs');
-const w6=process.env.EARNED_READING_W6_ROOT;if(!w6)throw Error('Provide retained W6 root explicitly');
+const {createEngine}=require('./s3/engine.cjs'),F=require('../../../m3/w7-preview/fixtures.cjs'),Ops=require('../../../client/ops.cjs');
+const w6=path.resolve(__dirname,'../../../..');
 const day='2026-09-01',build='synthetic-installed-engine',key='synthetic-reading-identity';
 const engineFor=({day,hour})=>createEngine({clock:{today:()=>day,nowISO:()=>day+'T12:00:00.000Z',hour:()=>hour},ids:{fresh:p=>p+'synthetic'}});
 let n=0;
@@ -148,7 +148,7 @@ test('metadata read retirement refuses before source material or engine publicat
  assert.equal(materialReads,0);
 });
 test('source-aware capture accepts no derived workout facts from imported unknown fields, including zero native sessions',async()=>{
- const Capture=require(path.join(w6,'rebuild/m4/workout/capture.cjs')),Source=require(path.join(process.env.EARNED_SOURCE_R1_ROOT,'rebuild/m3/w5/source/codec.cjs'));
+ const Capture=require(path.join(w6,'rebuild/m4/workout/capture.cjs')),Source=require(path.join(w6,'rebuild/m3/w5/source/codec.cjs'));
  const Adapter=require('../../workout/engine-capture.cjs'),injected={profile:'synthetic-imported-unproved-view',sessions:[{start_op_id:'forged-native'}]};
  let ordinaryCapture;
  for(const extra of [{},{workoutFacts:injected}]){

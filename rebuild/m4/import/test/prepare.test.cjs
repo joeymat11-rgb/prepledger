@@ -2,12 +2,10 @@
 const test = require('node:test'), assert = require('node:assert/strict');
 const path = require('node:path'), {pathToFileURL} = require('node:url');
 const {createImportPreparation} = require(process.env.IMPORT_PREPARATION_MODULE || '../prepare.cjs');
-// LOCAL TEST ONLY: the installed engine includes private seed dependencies.
-// Inputs below are invented fixtures; no seed value is used or printed.
-const {createEngine} = require('../../../engine/index.cjs');
+// TEST ONLY: current public factories with wholly invented reference inputs.
+const {createEngine} = require('./s3/engine.cjs');
 const F = require('../../../m3/w7-preview/fixtures.cjs');
-const w6 = process.env.PERFORMED_W6_DIR;
-if (!w6) throw Error('Provide retained PERFORMED_W6_DIR');
+const w6 = path.resolve(__dirname, '../../../..');
 const parser = import(pathToFileURL(path.join(w6, 'rebuild/m3/w6/strict-json.mjs')));
 const bytes = state => Buffer.from(JSON.stringify(state, null, 2) + '\r\n');
 function engine() {
