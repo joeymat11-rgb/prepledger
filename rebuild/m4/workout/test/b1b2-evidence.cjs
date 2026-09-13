@@ -186,7 +186,7 @@ function migrationWorker(ref,mode) {
     if(request==='../index.cjs')return {createEngine:options=>nativeEngine(ref,options)};
     assert.ok(['node:assert/strict','node:path','node:child_process','./migrate-reference.cjs','../../conform/oracle/legacy-records.cjs',frozen].includes(request),'closed original migration dependency BEFORE load');return normal(request);
   };
-  try {m._compile('const process=module.__process,console=module.__console;\n'+bytes.toString(),abs);}
+  try {m._compile('"use strict";const process=module.__process,console=module.__console;\n'+bytes.toString(),abs);}
   finally {globalThis.Date=savedDate;assert.strictEqual(globalThis.Date,savedDate);assert.deepEqual(disk(file),bytes);}
   const terminal=output.at(-1);assert.match(terminal,new RegExp('^M5 SYNTHETIC '+mode+': PASS'));
   const counts=/([0-9]+) exact differential cases; ([0-9]+) migration exits/.exec(terminal);assert.ok(counts);assert.ok(+counts[1]>0&&+counts[2]>0);

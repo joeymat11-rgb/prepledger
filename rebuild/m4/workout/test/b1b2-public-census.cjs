@@ -82,7 +82,7 @@ function runOriginal(side,stage,mode) {
   };
   // Only a lexical process facade is added. Original source bytes, input
   // snapshots, golden comparisons and failure/exit behavior are unchanged.
-  m._compile('const process=module.__process;\n'+pinned(ORIGINAL),file);
+  m._compile('"use strict";const process=module.__process;\n'+pinned(ORIGINAL),file);
 }
 if(process.env.B1B2_CENSUS_STAGE!==undefined) {
   // A selected internal stage never prints the complete parent terminal. An
