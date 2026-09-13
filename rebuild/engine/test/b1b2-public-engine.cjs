@@ -176,3 +176,14 @@ module.exports.REPAIR_SOURCE_MANIFEST = Object.freeze({
     }
   }
 });
+
+// PM282: one captured Today date; all M/R/S/T manifests remain historical.
+module.exports.R9_SOURCE_MANIFEST = Object.freeze({
+  "sourceBase": "797e4cf39fac39148ccae784116999669b82caf3",
+  "runtime": {
+    "rebuild/engine/today.cjs": {
+      "pre": "80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91",
+      "post": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f"
+    }
+  }
+});
