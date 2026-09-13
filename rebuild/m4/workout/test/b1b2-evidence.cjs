@@ -1,5 +1,6 @@
 'use strict';
-// GO232/246 construction. Native consumers are deliberately lazy: authoring this
+// GO232/246 construction plus the additive PM262 S/T repair record.
+// Native consumers are deliberately lazy: authoring this
 // helper never imports a seed, historical bundle, oracle, or athlete fixture.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -11,12 +12,16 @@ const changes = require('./b1b2-source-changes.json');
 const ROOT = path.resolve(__dirname, '../../../..');
 const M = '100820aa47a4f8729642033499eaec0f0ee282e1';
 const R = '6c9248e695a4478abdbaae0f9f48395ac56000fa';
+const S = '48a3063a23528ed240eb2356226d237d2793a9da';
+const SUCCESSOR_RECORD_SHA = '895490c937b1a68b198ea25b71524dc0d8e50eaf60e582b16afc4994d62e4251';
 const H3_BASE = 'ce38aa3bd174c94526e01fb5056df850ad322b80';
 const W = 'rebuild/m4/workout/test/';
 const RUNTIME = ['dates','plan','policy','progression','sleep','today','volume','writers'].map(n => 'rebuild/engine/' + n + '.cjs');
 const NEW_ENGINE = ['b1-delta-cells.cjs','b1-unknown-recovery.test.cjs','b1b2-public-engine.cjs','b1b2-sleep-target-cells.cjs'].map(n => 'rebuild/engine/test/' + n);
 const SUCCESSOR_RUNTIME = ['writers','today','progression','sleep'].map(n => 'rebuild/engine/' + n + '.cjs');
 const SUCCESSOR_NEW_ENGINE = ['b2-public-source-faults.test.cjs','b2-era30.test.cjs'].map(n => 'rebuild/engine/test/' + n);
+const REPAIR_RUNTIME = ['rebuild/engine/today.cjs'];
+const REPAIR_ENGINE_EVIDENCE = ['b1-unknown-recovery.test.cjs','b1b2-public-engine.cjs','b1b2-sleep-target-cells.cjs','b2-public-source-faults.test.cjs','b2-era30.test.cjs'].map(n => 'rebuild/engine/test/' + n);
 const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 const git = args => cp.execFileSync('git', args, { cwd: ROOT, maxBuffer: 9e7, windowsHide: true });
 function keys(value, expected, label) {
@@ -29,9 +34,18 @@ function successorRef(table = changes.successor) {
   assert.equal(typeof table.runtimeSource, 'string');
   assert.match(table.runtimeSource, /^[a-f0-9]{40}$/, 'successor immutable commit');
   assert.ok(![M,R,H3_BASE,'0'.repeat(40)].includes(table.runtimeSource), 'successor distinct source');
+  assert.equal(table.runtimeSource, S, 'fixed historical S source');
   return table.runtimeSource;
 }
-const sourceRef = ref => { assert.ok([M,R,H3_BASE,'HEAD'].includes(ref) || ref === successorRef(), 'fixed source ref'); return ref; };
+function repairRef(table = changes.repair) {
+  keys(table, ['sourceBase','runtimeSource','runtime','engineEvidence','nativeComparison'], 'repair');
+  assert.equal(table.sourceBase, S, 'repair fixed S preimage');
+  assert.equal(typeof table.runtimeSource, 'string');
+  assert.match(table.runtimeSource, /^[a-f0-9]{40}$/, 'repair immutable commit');
+  assert.ok(![M,R,S,H3_BASE,'0'.repeat(40)].includes(table.runtimeSource), 'repair distinct source');
+  return table.runtimeSource;
+}
+const sourceRef = ref => { assert.ok([M,R,S,H3_BASE,'HEAD'].includes(ref) || ref === repairRef(), 'fixed source ref'); return ref; };
 const blob = (ref, file) => git(['show', sourceRef(ref) + ':' + file]);
 const disk = file => fs.readFileSync(path.join(ROOT, file));
 const list = ref => git(['ls-tree','-r','--name-only',sourceRef(ref),'rebuild/engine']).toString().trim().split('\n').filter(Boolean).sort();
@@ -109,7 +123,9 @@ function validateSuccessor(table = changes.successor) {
   assert.deepEqual(actual,declared,'exact R/S engine source delta');
   return table;
 }
-function reconstructSuccessor(table = changes.successor, current = disk, head = file => blob('HEAD',file)) {
+// S is immutable history. Current disk/HEAD belong to T and are checked only by
+// the additive repair proof, never by rewriting this R/S record.
+function reconstructSuccessor(table = changes.successor, historical = file => blob(S,file)) {
   validateSuccessor(table);const S=table.runtimeSource,runtime=[],engineEvidence=[];
   for(const row of table.runtime) {
     const before=blob(R,row.file),after=blob(S,row.file);
@@ -118,7 +134,7 @@ function reconstructSuccessor(table = changes.successor, current = disk, head = 
     for(const h of row.hunks)forward=exact(forward,h.before,h.after,h.id);
     for(const h of [...row.hunks].reverse())inverse=exact(inverse,h.after,h.before,h.id+' inverse');
     assert.equal(forward,after.toString(),'whole successor forward '+row.file);assert.equal(inverse,before.toString(),'whole successor inverse '+row.file);
-    assert.deepEqual(current(row.file),after,'candidate S post '+row.file);assert.deepEqual(head(row.file),after,'candidate HEAD/S post '+row.file);
+    assert.deepEqual(historical(row.file),after,'historical S post '+row.file);
     runtime.push({file:row.file,pre:row.pre,post:row.post,hunks:row.hunks.length});
   }
   const originalFiles=list(R);
@@ -126,10 +142,69 @@ function reconstructSuccessor(table = changes.successor, current = disk, head = 
     if(row.pre===null)assert.equal(originalFiles.includes(row.file),false,'new successor file absent at R');
     else assert.equal(sha(blob(R,row.file)),row.pre,'successor evidence R preimage '+row.file);
     const after=blob(S,row.file);assert.equal(sha(after),row.post,'successor evidence S postimage '+row.file);
-    assert.deepEqual(current(row.file),after,'candidate S evidence '+row.file);assert.deepEqual(head(row.file),after,'candidate HEAD/S evidence '+row.file);
+    assert.deepEqual(historical(row.file),after,'historical S evidence '+row.file);
     engineEvidence.push({...row});
   }
   return {sourceBase:R,runtimeSource:S,runtime,engineEvidence};
+}
+function validateRepair(table = changes.repair) {
+  assert.equal(sha(JSON.stringify(changes.successor)),SUCCESSOR_RECORD_SHA,'preserved entire R/S source record');
+  validateSuccessor();
+  const T=repairRef(table);
+  assert.equal(T,repairRef(),'single named repair source');
+  assert.equal(git(['rev-parse','--verify',T+'^{commit}']).toString().trim(),T,'repair commit identity');
+  git(['merge-base','--is-ancestor',S,T]);
+  assert.ok(Array.isArray(table.runtime),'repair runtime array');
+  assert.deepEqual(table.runtime.map(row=>row.file).sort(),REPAIR_RUNTIME.slice().sort(),'exact one repair runtime file');
+  assert.ok(Array.isArray(table.engineEvidence),'repair evidence array');
+  const files=[],ids=[];
+  for(const row of table.runtime) {
+    keys(row,['file','pre','post','hunks'],'repair runtime row');
+    assert.match(row.pre,/^[a-f0-9]{64}$/);assert.match(row.post,/^[a-f0-9]{64}$/);assert.notEqual(row.pre,row.post);
+    assert.ok(Array.isArray(row.hunks) && row.hunks.length>0,'repair literal hunks');
+    for(const h of row.hunks) {
+      keys(h,['id','before','after'],'repair hunk');
+      assert.equal(typeof h.id,'string');assert.ok(h.id.length>0);ids.push(h.id);
+      assert.equal(typeof h.before,'string');assert.equal(typeof h.after,'string');
+      assert.ok(h.before && h.after && h.before!==h.after,'nonempty non-noop repair hunk');
+    }
+    files.push(row.file);
+  }
+  for(const row of table.engineEvidence) {
+    keys(row,['file','pre','post'],'repair engine evidence row');
+    assert.ok(REPAIR_ENGINE_EVIDENCE.includes(row.file),'closed repair engine evidence file');
+    assert.match(row.pre,/^[a-f0-9]{64}$/,'existing repair evidence preimage');
+    assert.match(row.post,/^[a-f0-9]{64}$/);assert.notEqual(row.pre,row.post);files.push(row.file);
+  }
+  assert.equal(new Set(files).size,files.length,'unique repair paths');
+  assert.equal(new Set(ids).size,ids.length,'unique repair hunk identities');
+  keys(table.nativeComparison,['from','to','fieldDeltas'],'repair native comparison');
+  assert.equal(table.nativeComparison.from,M,'repair native comparison M base');assert.equal(table.nativeComparison.to,T,'repair native comparison T source');
+  assert.deepEqual(table.nativeComparison.fieldDeltas,[],'repair native deltas require separate PM admission');
+  const declared=files.map(file=>'M\t'+file).sort();
+  const actual=git(['diff','--no-ext-diff','--no-textconv','--no-renames','--name-status',S,T,'--','rebuild/engine']).toString().trim().split('\n').filter(Boolean).sort();
+  assert.deepEqual(actual,declared,'exact S/T engine source delta');
+  return table;
+}
+function reconstructRepair(table = changes.repair, current = disk, head = file => blob('HEAD',file)) {
+  validateRepair(table);const T=table.runtimeSource,runtime=[],engineEvidence=[];
+  for(const row of table.runtime) {
+    const before=blob(S,row.file),after=blob(T,row.file);
+    assert.equal(sha(before),row.pre,'repair S preimage '+row.file);assert.equal(sha(after),row.post,'repair T postimage '+row.file);
+    let forward=before.toString(),inverse=after.toString();
+    for(const h of row.hunks)forward=exact(forward,h.before,h.after,h.id);
+    for(const h of [...row.hunks].reverse())inverse=exact(inverse,h.after,h.before,h.id+' inverse');
+    assert.equal(forward,after.toString(),'whole repair forward '+row.file);assert.equal(inverse,before.toString(),'whole repair inverse '+row.file);
+    assert.deepEqual(current(row.file),after,'candidate T post '+row.file);assert.deepEqual(head(row.file),after,'candidate HEAD/T post '+row.file);
+    runtime.push({file:row.file,pre:row.pre,post:row.post,hunks:row.hunks.length});
+  }
+  for(const row of table.engineEvidence) {
+    assert.equal(sha(blob(S,row.file)),row.pre,'repair evidence S preimage '+row.file);
+    const after=blob(T,row.file);assert.equal(sha(after),row.post,'repair evidence T postimage '+row.file);
+    assert.deepEqual(current(row.file),after,'candidate T evidence '+row.file);assert.deepEqual(head(row.file),after,'candidate HEAD/T evidence '+row.file);
+    engineEvidence.push({...row});
+  }
+  return {sourceBase:S,runtimeSource:T,runtime,engineEvidence};
 }
 function original(name) {
   const file=W+name;
@@ -170,27 +245,32 @@ function historicalEngineInventory() {
   return {total:expected.length,added:NEW_ENGINE.length,changed:moved.length,unchanged:unchanged.length};
 }
 function closedEngineInventory() {
-  const table=validateSuccessor(),S=table.runtimeSource;
-  reconstructSuccessor(table);
-  const original=historicalEngineInventory(),prior=list(R),added=table.engineEvidence.filter(row=>row.pre===null).map(row=>row.file);
+  const successor=validateSuccessor(),repair=validateRepair(),T=repair.runtimeSource;
+  reconstructSuccessor(successor);reconstructRepair(repair);
+  const original=historicalEngineInventory(),prior=list(R),added=successor.engineEvidence.filter(row=>row.pre===null).map(row=>row.file);
   const expected=[...prior,...added].sort();
-  assert.deepEqual(list(S),expected,'closed successor source inventory');assert.deepEqual(list('HEAD'),expected,'closed successor HEAD inventory');
+  assert.deepEqual(list(S),expected,'closed historical successor source inventory');
+  assert.deepEqual(list(T),expected,'closed repair source inventory');assert.deepEqual(list('HEAD'),expected,'closed repair HEAD inventory');
   const actual=[];
   function walk(dir){for(const e of fs.readdirSync(path.join(ROOT,dir),{withFileTypes:true})){const f=dir+'/'+e.name;if(e.isDirectory())walk(f);else actual.push(f);}}
   walk('rebuild/engine');assert.deepEqual(actual.sort(),expected,'closed candidate on-disk engine inventory');
-  const moved=[],unchanged=[];
+  const successorMoved=[],successorUnchanged=[],repairMoved=[],repairUnchanged=[];
   for(const file of expected) {
-    const after=blob(S,file);
-    assert.deepEqual(disk(file),after,'candidate disk/S '+file);assert.deepEqual(blob('HEAD',file),after,'candidate HEAD/S '+file);
-    if(!added.includes(file)){if(blob(R,file).equals(after))unchanged.push(file);else moved.push(file);}
+    const historical=blob(S,file),after=blob(T,file);
+    assert.deepEqual(disk(file),after,'candidate disk/T '+file);assert.deepEqual(blob('HEAD',file),after,'candidate HEAD/T '+file);
+    if(!added.includes(file)){if(blob(R,file).equals(historical))successorUnchanged.push(file);else successorMoved.push(file);}
+    if(historical.equals(after))repairUnchanged.push(file);else repairMoved.push(file);
   }
-  assert.deepEqual(moved.sort(),[...table.runtime.map(row=>row.file),...table.engineEvidence.filter(row=>row.pre!==null).map(row=>row.file)].sort(),'closed changed successor engine inventory');
-  return {runtimeSource:S,total:expected.length,original,successor:{sourceBase:R,added:added.length,changed:moved.length,unchanged:unchanged.length}};
+  assert.deepEqual(successorMoved.sort(),[...successor.runtime.map(row=>row.file),...successor.engineEvidence.filter(row=>row.pre!==null).map(row=>row.file)].sort(),'closed changed historical successor engine inventory');
+  assert.deepEqual(repairMoved.sort(),[...repair.runtime.map(row=>row.file),...repair.engineEvidence.map(row=>row.file)].sort(),'closed changed repair engine inventory');
+  return {runtimeSource:T,total:expected.length,original,
+    successor:{sourceBase:R,runtimeSource:S,added:added.length,changed:successorMoved.length,unchanged:successorUnchanged.length},
+    repair:{sourceBase:S,runtimeSource:T,added:0,changed:repairMoved.length,unchanged:repairUnchanged.length}};
 }
 function candidateSource(file) {
-  const S=successorRef(),bytes=blob(S,file);
-  assert.deepEqual(disk(file),bytes,'candidate dependency disk/S '+file);
-  assert.deepEqual(blob('HEAD',file),bytes,'candidate dependency HEAD/S '+file);
+  const T=repairRef(),bytes=blob(T,file);
+  assert.deepEqual(disk(file),bytes,'candidate dependency disk/T '+file);
+  assert.deepEqual(blob('HEAD',file),bytes,'candidate dependency HEAD/T '+file);
   return bytes;
 }
 function s1Source() {
@@ -255,8 +335,11 @@ function loadOriginal(name, repairedS1=false) {
 }
 const MODULES=['dates','constants','seed','entered-load','performed','plan','progression','sleep','energy','policy','today','volume','migrate','earn','merge','writers'].map(n=>n+'.cjs');
 const BROWSER=['dates','constants','entered-load','performed','plan','progression','sleep','energy','policy','today','volume','earn'].map(n=>n+'.cjs');
+function nativeSourceRef(ref) {
+  assert.ok([M,repairRef()].includes(ref),'closed native factory source BEFORE read');return ref;
+}
 function sourceFactory(ref) {
-  const table=validateSuccessor();assert.ok([M,R,table.runtimeSource].includes(ref),'closed native factory source BEFORE read');const cache=new Map();
+  nativeSourceRef(ref);validateRepair();const cache=new Map();
   return function load(name) {
     assert.ok(MODULES.includes(name),'closed engine factory BEFORE read '+name);
     if(cache.has(name)) return cache.get(name).exports;
@@ -273,7 +356,7 @@ const DAY='2026-09-07';
 const clock=()=>({today:()=>DAY,nowISO:()=>DAY+'T08:00:00.000Z'});
 const refusingIds=Object.freeze({next:()=>{throw Error('IDS_UNAVAILABLE');},fresh:()=>{throw Error('IDS_UNAVAILABLE');}});
 function nativeBrowser(ref) {
-  reconstructSuccessor();
+  nativeSourceRef(ref);reconstructRepair();
   const browserFile='rebuild/m3/w7-preview/browser-engine.cjs',source=blob(M,browserFile).toString();
   assert.deepEqual(candidateSource(browserFile),blob(M,browserFile),'unchanged browser constructor');
   assert.deepEqual([...source.matchAll(/require\("\.\.\/\.\.\/engine\/([^"\n]+)"\)/g)].map(m=>m[1]),BROWSER);
@@ -285,7 +368,7 @@ function nativeBrowser(ref) {
   return E;
 }
 function nativeEngine(ref,options) {
-  reconstructSuccessor();
+  nativeSourceRef(ref);reconstructRepair();
   const file='rebuild/engine/index.cjs',source=blob(M,file).toString();
   assert.deepEqual(blob(ref,file),blob(M,file));assert.deepEqual(candidateSource(file),blob(M,file),'unchanged engine constructor');
   assert.deepEqual([...source.matchAll(/require\("\.\/([^"\n]+)"\)/g)].map(m=>m[1]),MODULES);
@@ -307,8 +390,8 @@ function fieldDiff(a,b,at='$',out=[]) {
   return out;
 }
 function approvedNativeDifference(kind,before,after) {
-  assert.ok(['second-readers','second-applyRead','native-census-main','native-census-frozen','native-census-unfrozen'].includes(kind),'closed successor native comparison kind');
-  const comparison=validateSuccessor().nativeComparison;
+  assert.ok(['second-readers','second-applyRead','native-census-main','native-census-frozen','native-census-unfrozen'].includes(kind),'closed repair native comparison kind');
+  const comparison=validateRepair().nativeComparison;
   const actual=fieldDiff(before,after),approved=comparison.fieldDeltas;
   // Empty at construction: a native delta must be measured and separately
   // admitted. No reader-wide exception, ignored prose, or equality sampling.
@@ -317,14 +400,15 @@ function approvedNativeDifference(kind,before,after) {
   return {kind,sourceBase:comparison.from,runtimeSource:comparison.to,before:sha(JSON.stringify(before)),after:sha(JSON.stringify(after)),deltaCount:actual.length};
 }
 function migrationWorker(ref,mode) {
-  const S=validateSuccessor().runtimeSource;
-  assert.ok([M,S].includes(ref),'closed candidate migration side');assert.ok(['frozen','native'].includes(mode));
+  const T=repairRef();
+  assert.ok([M,T].includes(ref),'closed candidate migration side');assert.ok(['frozen','native'].includes(mode));
   closedEngineInventory();
   for(const dependency of ['rebuild/engine/test/migrate-reference.cjs','rebuild/conform/oracle/legacy-records.cjs'])candidateSource(dependency);
   const file='rebuild/engine/test/migrate-differential.cjs',bytes=candidateSource(file);
   assert.equal(sha(bytes),changes.originals[file]);assert.deepEqual(bytes,blob(M,file));assert.deepEqual(bytes,blob('HEAD',file));
   assert.deepEqual(blob(M,'rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'));
-  assert.deepEqual(candidateSource('rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'),'retained R/S migration source');
+  assert.deepEqual(blob(S,'rebuild/engine/migrate.cjs'),blob(R,'rebuild/engine/migrate.cjs'),'retained historical R/S migration source');
+  assert.deepEqual(candidateSource('rebuild/engine/migrate.cjs'),blob(S,'rebuild/engine/migrate.cjs'),'retained S/T migration source');
   const abs=path.join(ROOT,file),normal=Module.createRequire(abs),output=[],savedDate=globalThis.Date;
   const frozen=path.join(ROOT,'rebuild/conform/engines/engine-main.cjs'),m=new Module(abs,module);m.filename=abs;
   m.__process={argv:[process.execPath,abs,'--worker',mode],env:{...process.env,ENGINE_MAIN:frozen,MEASURED_TEST_NOW:'2026-09-03',TZ:'America/New_York'}};
@@ -340,20 +424,20 @@ function migrationWorker(ref,mode) {
   for(const line of output)console.log(line);
 }
 function migrationContinuity() {
-  const S=validateSuccessor().runtimeSource;
+  const T=validateRepair().runtimeSource;
   assert.equal(process.env.B1B2_MIGRATION_STAGE,undefined,'full parent execution required');
   const target=path.join(ROOT,W+'b1b2-supersede-inherited-carriers.test.cjs'),reports=[];
-  for(const side of ['M','S'])for(const mode of ['frozen','native']) {
+  for(const side of ['M','T'])for(const mode of ['frozen','native']) {
     const result=cp.spawnSync(process.execPath,[target],{cwd:ROOT,windowsHide:true,encoding:'utf8',maxBuffer:9e7,
       env:{...process.env,TZ:'America/New_York',MEASURED_TEST_NOW:'2026-09-03',B1B2_MIGRATION_STAGE:'worker',B1B2_MIGRATION_SIDE:side,B1B2_MIGRATION_CLOCK:mode}});
     process.stdout.write(result.stdout||'');process.stderr.write(result.stderr||'');if(result.error)throw result.error;
     assert.equal(result.status,0,'complete original migration worker '+side+'/'+mode);assert.equal(result.signal,null);
     const terminal=(result.stdout||'').trim().split('\n').at(-1);assert.match(terminal,new RegExp('^M5 SYNTHETIC '+mode+': PASS'));
     const counts=/([0-9]+) exact differential cases; ([0-9]+) migration exits/.exec(terminal);assert.ok(counts&&+counts[1]>0&&+counts[2]>0);
-    reports.push({side,source:side==='M'?M:S,mode,cases:+counts[1],exits:+counts[2],stdout:result.stdout,stderr:result.stderr,sha256:sha(result.stdout),terminal});
+    reports.push({side,source:side==='M'?M:T,mode,cases:+counts[1],exits:+counts[2],stdout:result.stdout,stderr:result.stderr,sha256:sha(result.stdout),terminal});
   }
   assert.equal(reports.length,4);
-  for(const mode of ['frozen','native']) {const rows=reports.filter(r=>r.mode===mode);assert.equal(rows[0].stdout,rows[1].stdout,'whole original M/S migration output');assert.equal(rows[0].stderr,rows[1].stderr);}
+  for(const mode of ['frozen','native']) {const rows=reports.filter(r=>r.mode===mode);assert.equal(rows[0].stdout,rows[1].stdout,'whole original M/T migration output');assert.equal(rows[0].stderr,rows[1].stderr);}
   return reports.map(({stdout,stderr,...r})=>r);
 }
-module.exports={ROOT,M,R,get S(){return successorRef();},H3_BASE,W,RUNTIME,NEW_ENGINE,SUCCESSOR_NEW_ENGINE,changes,sha,blob,disk,exact,validateTable,reconstructRuntime,validateSuccessor,reconstructSuccessor,reconstructH3,historicalEngineInventory,closedEngineInventory,candidateSource,pinScopedOriginalDependencies,original,s1Source,loadOriginal,nativeBrowser,nativeEngine,READERS,DAY,projection,fieldDiff,approvedNativeDifference,migrationContinuity,migrationWorker};
+module.exports={ROOT,M,R,get S(){return successorRef();},get T(){return repairRef();},H3_BASE,W,RUNTIME,NEW_ENGINE,SUCCESSOR_NEW_ENGINE,SUCCESSOR_RECORD_SHA,REPAIR_RUNTIME,REPAIR_ENGINE_EVIDENCE,changes,sha,blob,disk,exact,validateTable,reconstructRuntime,validateSuccessor,reconstructSuccessor,validateRepair,reconstructRepair,reconstructH3,historicalEngineInventory,closedEngineInventory,candidateSource,pinScopedOriginalDependencies,original,s1Source,loadOriginal,nativeBrowser,nativeEngine,READERS,DAY,projection,fieldDiff,approvedNativeDifference,migrationContinuity,migrationWorker};

@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const cp=require('node:child_process');
 const H=require('./b1b2-evidence.cjs');
 assert.deepEqual(process.argv.slice(2),[]);
-const inventory=H.closedEngineInventory(),runtime=H.reconstructRuntime(),successor=H.reconstructSuccessor(),h3=H.reconstructH3();
+const inventory=H.closedEngineInventory(),runtime=H.reconstructRuntime(),successor=H.reconstructSuccessor(),repair=H.reconstructRepair(),h3=H.reconstructH3();
 // Fixed profile data only: no profile path can select an import or execution.
 const profileFile='rebuild/lanes/b/tooling/packages/B1-B2.json';
 const profileBytes=H.disk(profileFile);assert.deepEqual(profileBytes,H.blob('HEAD',profileFile));
@@ -34,4 +34,5 @@ for(const file of outside) {
 }
 console.log('B1B2 ENGINE FILES DIFFERENTIAL: '+outside.length+' tracked rebuild/engine files outside product byte-identical');
 console.log('B1B2 HISTORICAL ENGINE INVENTORY: '+runtime.length+' M/R runtime files; '+runtime.reduce((n,row)=>n+row.hunks,0)+' M/R hunks; '+h3+' original H3 hunks; '+inventory.original.unchanged+' M/R unchanged; '+inventory.original.added+' original evidence additions');
-console.log('B1B2 SUCCESSOR ENGINE INVENTORY: '+successor.runtime.length+' R/S runtime files; '+successor.runtime.reduce((n,row)=>n+row.hunks,0)+' R/S hunks; '+inventory.successor.changed+' changed engine files; '+inventory.successor.unchanged+' R/S unchanged; '+inventory.successor.added+' successor evidence additions; '+inventory.total+' full disk/HEAD/S entries; S='+H.S);
+console.log('B1B2 SUCCESSOR ENGINE INVENTORY: '+successor.runtime.length+' R/S runtime files; '+successor.runtime.reduce((n,row)=>n+row.hunks,0)+' R/S hunks; '+inventory.successor.changed+' changed engine files; '+inventory.successor.unchanged+' R/S unchanged; '+inventory.successor.added+' successor evidence additions; S='+H.S);
+console.log('B1B2 REPAIR ENGINE INVENTORY: '+repair.runtime.length+' S/T runtime files; '+repair.runtime.reduce((n,row)=>n+row.hunks,0)+' S/T hunks; '+inventory.repair.changed+' changed engine files; '+inventory.repair.unchanged+' S/T unchanged; '+inventory.repair.added+' repair evidence additions; '+inventory.total+' full disk/HEAD/T entries; T='+H.T);
