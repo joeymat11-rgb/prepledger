@@ -7,7 +7,7 @@ const { execFileSync } = require('node:child_process');
 const Module = require('node:module');
 
 const ROOT = path.resolve(__dirname, '../../../..');
-const BASE = '964f183';
+const BASE = 'ff6b6b573174bad3d20c4a817d7b68978506bf39'; // Named B1+B2 branch head; H3 is merged.
 const DAY = '2026-09-14'; // Monday; the explicit synthetic calendar owns this day.
 const MODULES = Object.freeze(['dates', 'constants', 'plan', 'performed', 'progression',
   'sleep', 'energy', 'policy', 'today', 'volume', 'earn', 'writers']);
