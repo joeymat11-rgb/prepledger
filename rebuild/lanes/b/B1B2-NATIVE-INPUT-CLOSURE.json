@@ -1,0 +1,3112 @@
+{
+  "schemaVersion": 1,
+  "kind": "STATIC INPUT BOUNDARY; NOT EXECUTION OR ACCEPTANCE",
+  "commission": {
+    "shared": "1c263e0762ea41baf563b71201a7513e8b33ebb3",
+    "path": "rebuild/lanes/astra/B1B2-NATIVE-INPUTS-GO.md",
+    "sha256": "db45605edb705ab83bd1322af4e178b39fabe0cfa63aec252cbb8021a469ce1c"
+  },
+  "candidate": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+  "M": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "U": "cbcebb3d26bf8892adbe84fbbe0a7c5e85856013",
+  "assembly": {
+    "source": "3bfed63febef002b8540d6ff3c56e19d08368711",
+    "tree": "8c75832ac3f8940d6fea4d944ee81535c154c6ef",
+    "parents": [
+      "1c263e0762ea41baf563b71201a7513e8b33ebb3",
+      "083bd47efc16d02105b3ebe2912bcf5aa4a5f240"
+    ],
+    "status": "All38 listed inspected program objects and source-map object equal candidate083bd47; metadata-only applicability, no assembly acceptance or execution",
+    "programs": [
+      {
+        "path": "rebuild/engine/test/census-partial.cjs",
+        "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/conform/oracle/census.cjs",
+        "gitBlob": "1e57d6c67e29ec13d79a1ecd2771e8e5aa7d967f",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/conform/oracle/legacy-records.cjs",
+        "gitBlob": "79208359acb1e00ac10f3faca8194a4b75ba6e6a",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/conform/lib/harness.cjs",
+        "gitBlob": "68e454fc08fd41b78485842554d449560b5a6f8a",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/test/volume-projection.cjs",
+        "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/test/volume-reference.cjs",
+        "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/oracle-shim.cjs",
+        "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074",
+        "equalsInspected": true
+      },
+      {
+        "path": "tools/_fixed-now.mjs",
+        "gitBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/test/migrate-differential.cjs",
+        "gitBlob": "d590d4a73a6806652fb6352065ec8e0a7f0efb52",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/test/migrate-reference.cjs",
+        "gitBlob": "89a5e0827b629e67c0d7f167fa03b6a36355a01e",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "gitBlob": "e0e06df2ecc1f2e3f5d70b8dc208744ecd041465",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "gitBlob": "eda12c46a010d492bb25d248e78a6db1b6143b62",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "gitBlob": "e9662526c46fcbdc721149c887ff9d159ea205b1",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "gitBlob": "6e5d3d35afb15e80f1ce82907e0e1b761c40c95c",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "gitBlob": "7c9481cfe0b652a4789cb09d7581e5baa0f1ecf5",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "gitBlob": "634888e4c96ca2fe596f3d8e2caee7a92c4ae7fe",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "gitBlob": "42e39c9f8e6da144488ffaedb7469f2dfbeb36c7",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "gitBlob": "c2264a5d77ec8100870b6e026d411bcf2fcb04cd",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "gitBlob": "7cc0597911ab23e8f3cc52a9974db6eb687f3401",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "gitBlob": "aa6a7b96e8b14c729e7e0377e20c1b37d00ac8ce",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "gitBlob": "ebdd171f30a0ad37af6058faab6457de986a05b0",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/migrate.cjs",
+        "gitBlob": "0e283e7e4ece8d2e5362ed579a34c3edbd2cf708",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "gitBlob": "1659e14ec656b1b03def5e0d643c0f8872df231d",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/merge.cjs",
+        "gitBlob": "5d03859568ce3119a27afd82e5cc8d7560290f6f",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "gitBlob": "74e9cc7ad03f4dd34f6e1886b9c27e639c2f7427",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "gitBlob": "6070de8835303eacff27cbf6f2879fd28bc4c132",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+        "gitBlob": "36087ca9070cf8c29121b08a2dc762217da975b1",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+        "gitBlob": "6f31a562de7447a53236991899417f1a591d62ce",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+        "gitBlob": "ddb49bc94d31b1226014d31cf04e799831f4b2f5",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+        "gitBlob": "5e4a018e12b1f84fb37bdae9a836ae043fcfffbf",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+        "gitBlob": "6ef620421593da4dece2ff035ad376b326098f5f",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+        "gitBlob": "2c0b5eeeb6c8a6f53ac872bf48ac291fa11200bf",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/engine/index.cjs",
+        "gitBlob": "a4d1ad3741e522486d6e4d61f39b8b6793674902",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+        "gitBlob": "0b5aedcc9335cdd29f58a90e2ba973fd345abcdb",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+        "gitBlob": "8f81e9f007acc6385f3c5147f768752534c7eb31",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/engine-runtime.cjs",
+        "gitBlob": "e31822803d53cf9b7ec36cbf4d95630b1cac6843",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+        "gitBlob": "09a3f706cb5e0e97e3f85d62610c0d17722a39bf",
+        "equalsInspected": true
+      },
+      {
+        "path": "rebuild/m4/workout/athlete-state.cjs",
+        "gitBlob": "38f90847d22db3cab199b2425c8044bbd284f579",
+        "equalsInspected": true
+      }
+    ],
+    "sourceMapGitBlob": "7302b88e30d1c36b9d4558486d4cde1369915d32"
+  },
+  "nativeFieldDeltas": "UNKNOWN",
+  "sourceMapId": {
+    "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+    "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+    "gitBlob": "7302b88e30d1c36b9d4558486d4cde1369915d32",
+    "bytes": 196822,
+    "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+  },
+  "programs": [
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/test/census-partial.cjs",
+      "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3",
+      "bytes": 11924,
+      "sha256": "41bfb9339b7c564699c06ba73e99f6474d637b18314aba47a61588ab0c0418f6",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/test/census-partial.cjs",
+        "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3",
+        "bytes": 11924
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "3951b632c0fccc6fd14932761f5cce03ae739fa3"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/conform/oracle/census.cjs",
+      "gitBlob": "1e57d6c67e29ec13d79a1ecd2771e8e5aa7d967f",
+      "bytes": 7678,
+      "sha256": "3c99540b75e66cd632a67395404b22de699cc983f109b7499adaeaea0fde811a",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/conform/oracle/census.cjs",
+        "gitBlob": "1e57d6c67e29ec13d79a1ecd2771e8e5aa7d967f",
+        "bytes": 7678
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "1e57d6c67e29ec13d79a1ecd2771e8e5aa7d967f"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/conform/oracle/legacy-records.cjs",
+      "gitBlob": "79208359acb1e00ac10f3faca8194a4b75ba6e6a",
+      "bytes": 4248,
+      "sha256": "852ce69067f199b7dbe77fbb1b3514676c9cf1e2a260cec1259a1ddc1aa3c95f",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/conform/oracle/legacy-records.cjs",
+        "gitBlob": "79208359acb1e00ac10f3faca8194a4b75ba6e6a",
+        "bytes": 4248
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "79208359acb1e00ac10f3faca8194a4b75ba6e6a"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/conform/lib/harness.cjs",
+      "gitBlob": "68e454fc08fd41b78485842554d449560b5a6f8a",
+      "bytes": 6429,
+      "sha256": "f8667e3e0119ab4b04e417f20f4fc6d602612ebc7aff847d7e432d86c399e79e",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/conform/lib/harness.cjs",
+        "gitBlob": "68e454fc08fd41b78485842554d449560b5a6f8a",
+        "bytes": 6429
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "68e454fc08fd41b78485842554d449560b5a6f8a"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/test/volume-projection.cjs",
+      "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1",
+      "bytes": 2264,
+      "sha256": "681880aeb461b20a479dc97a6bfb128aa34ebb399c50d9647d07462b24857444",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/test/volume-projection.cjs",
+        "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1",
+        "bytes": 2264
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/test/volume-reference.cjs",
+      "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102",
+      "bytes": 1463,
+      "sha256": "37ab7ddf4dde7c38873a0b09d6beb31b6a5e208807a40dd03d1070c6051c97e3",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/test/volume-reference.cjs",
+        "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102",
+        "bytes": 1463
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "05a7b969f46febd07c982b742d9e8ebcc8866102"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/oracle-shim.cjs",
+      "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074",
+      "bytes": 826,
+      "sha256": "dd653bc170d3c5ae3b8cfa5c2ca8166b1de385a0903e056eab7ea062c125052d",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/oracle-shim.cjs",
+        "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074",
+        "bytes": 826
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "a1c69ef86cfa4160715e8973aa74dd7190a63074"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "tools/_fixed-now.mjs",
+      "gitBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8",
+      "bytes": 3917,
+      "sha256": "ab939a356467d095f357d796f87a6567b9bcb9e0171b17fe4fb0f447916cf5a7",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "tools/_fixed-now.mjs",
+        "gitBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8",
+        "bytes": 3917
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "ffa6aa33c85667cda021d2719799f6bd5762b5e8"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/test/migrate-differential.cjs",
+      "gitBlob": "d590d4a73a6806652fb6352065ec8e0a7f0efb52",
+      "bytes": 21709,
+      "sha256": "fcc8cf83824d80c29eeb500275c3ed3ec3b14184ec4b8911d23129b18972ed8d",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/test/migrate-differential.cjs",
+        "gitBlob": "d590d4a73a6806652fb6352065ec8e0a7f0efb52",
+        "bytes": 21709
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": "fcc8cf83824d80c29eeb500275c3ed3ec3b14184ec4b8911d23129b18972ed8d"
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/test/migrate-reference.cjs",
+      "gitBlob": "89a5e0827b629e67c0d7f167fa03b6a36355a01e",
+      "bytes": 7702,
+      "sha256": "1a8a2a85de01dd91cea3d282a94745f8fe731f9cd0db6c31b594c196ca664a50",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/test/migrate-reference.cjs",
+        "gitBlob": "89a5e0827b629e67c0d7f167fa03b6a36355a01e",
+        "bytes": 7702
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/dates.cjs",
+      "gitBlob": "e0e06df2ecc1f2e3f5d70b8dc208744ecd041465",
+      "bytes": 1343,
+      "sha256": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/dates.cjs",
+        "gitBlob": "50c3eaf37047e2dc3f1f0b606c28749371679db0",
+        "bytes": 1106
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/constants.cjs",
+      "gitBlob": "eda12c46a010d492bb25d248e78a6db1b6143b62",
+      "bytes": 23393,
+      "sha256": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/constants.cjs",
+        "gitBlob": "eda12c46a010d492bb25d248e78a6db1b6143b62",
+        "bytes": 23393
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/entered-load.cjs",
+      "gitBlob": "e9662526c46fcbdc721149c887ff9d159ea205b1",
+      "bytes": 906,
+      "sha256": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/entered-load.cjs",
+        "gitBlob": "e9662526c46fcbdc721149c887ff9d159ea205b1",
+        "bytes": 906
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/performed.cjs",
+      "gitBlob": "6e5d3d35afb15e80f1ce82907e0e1b761c40c95c",
+      "bytes": 19479,
+      "sha256": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/performed.cjs",
+        "gitBlob": "6e5d3d35afb15e80f1ce82907e0e1b761c40c95c",
+        "bytes": 19479
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/plan.cjs",
+      "gitBlob": "7c9481cfe0b652a4789cb09d7581e5baa0f1ecf5",
+      "bytes": 19853,
+      "sha256": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/plan.cjs",
+        "gitBlob": "5e6216e0daf0e5622985d350dffa5614b8a3921a",
+        "bytes": 19784
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/progression.cjs",
+      "gitBlob": "634888e4c96ca2fe596f3d8e2caee7a92c4ae7fe",
+      "bytes": 54604,
+      "sha256": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/progression.cjs",
+        "gitBlob": "90d88efe175bd6973e5cf0d1977f47d64f6d149d",
+        "bytes": 53582
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/sleep.cjs",
+      "gitBlob": "42e39c9f8e6da144488ffaedb7469f2dfbeb36c7",
+      "bytes": 188103,
+      "sha256": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/sleep.cjs",
+        "gitBlob": "1472f5b665b04706193b0779fafc4627be5612dd",
+        "bytes": 185229
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/energy.cjs",
+      "gitBlob": "c2264a5d77ec8100870b6e026d411bcf2fcb04cd",
+      "bytes": 94493,
+      "sha256": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/energy.cjs",
+        "gitBlob": "c2264a5d77ec8100870b6e026d411bcf2fcb04cd",
+        "bytes": 94493
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/policy.cjs",
+      "gitBlob": "7cc0597911ab23e8f3cc52a9974db6eb687f3401",
+      "bytes": 56874,
+      "sha256": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/policy.cjs",
+        "gitBlob": "18a9bf0824c8d0bbec8295f9bab9795d0b94dcbf",
+        "bytes": 56493
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/today.cjs",
+      "gitBlob": "aa6a7b96e8b14c729e7e0377e20c1b37d00ac8ce",
+      "bytes": 48911,
+      "sha256": "180cdfd01be61de258477bf78c5de27f4deecaee748710c613976a303b29998f",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/today.cjs",
+        "gitBlob": "9db7fb48260c53a06b4e7a993da7e4e16df4fcb0",
+        "bytes": 46420
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/volume.cjs",
+      "gitBlob": "ebdd171f30a0ad37af6058faab6457de986a05b0",
+      "bytes": 25485,
+      "sha256": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/volume.cjs",
+        "gitBlob": "94f4a7622e2955dfaa34e574db9707fd2a891c62",
+        "bytes": 23465
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/migrate.cjs",
+      "gitBlob": "0e283e7e4ece8d2e5362ed579a34c3edbd2cf708",
+      "bytes": 184433,
+      "sha256": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/migrate.cjs",
+        "gitBlob": "0e283e7e4ece8d2e5362ed579a34c3edbd2cf708",
+        "bytes": 184433
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/earn.cjs",
+      "gitBlob": "1659e14ec656b1b03def5e0d643c0f8872df231d",
+      "bytes": 11429,
+      "sha256": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/earn.cjs",
+        "gitBlob": "1659e14ec656b1b03def5e0d643c0f8872df231d",
+        "bytes": 11429
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/merge.cjs",
+      "gitBlob": "5d03859568ce3119a27afd82e5cc8d7560290f6f",
+      "bytes": 84396,
+      "sha256": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/merge.cjs",
+        "gitBlob": "5d03859568ce3119a27afd82e5cc8d7560290f6f",
+        "bytes": 84396
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/writers.cjs",
+      "gitBlob": "74e9cc7ad03f4dd34f6e1886b9c27e639c2f7427",
+      "bytes": 261840,
+      "sha256": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/writers.cjs",
+        "gitBlob": "7f568644228b30f6ad62e658d0991a6058e5e7bd",
+        "bytes": 259235
+      },
+      "inspection": "Previously licensed factory; this pass loader/file/subprocess/storage-site scan only",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "gitBlob": "6070de8835303eacff27cbf6f2879fd28bc4c132",
+      "bytes": 36945,
+      "sha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+      "gitBlob": "36087ca9070cf8c29121b08a2dc762217da975b1",
+      "bytes": 8642,
+      "sha256": "281c6302204278288b40ba6dcd148f1f3d4341757b66152c758b4f78608bc016",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "gitBlob": "6f31a562de7447a53236991899417f1a591d62ce",
+      "bytes": 1061,
+      "sha256": "29784eaf4f0b6ba4dfc386bb9dd4d09723a8003afeb01c6dc13b4a12a562d5a2",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+      "gitBlob": "ddb49bc94d31b1226014d31cf04e799831f4b2f5",
+      "bytes": 3804,
+      "sha256": "a23f1966a41ec84e1e6212e3c35ed3276dc74d660bdafc188d91a9bf6f9e812c",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+      "gitBlob": "5e4a018e12b1f84fb37bdae9a836ae043fcfffbf",
+      "bytes": 1132,
+      "sha256": "4ec48c63fa12c9f0ce0d5888df519a2e99944c9e198b67f0e84319d111dad6a2",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+      "gitBlob": "6ef620421593da4dece2ff035ad376b326098f5f",
+      "bytes": 16536,
+      "sha256": "7ccce9f82a4c92508e6001487249df5a0c9b7cc888a767b85409752f72399389",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+      "gitBlob": "2c0b5eeeb6c8a6f53ac872bf48ac291fa11200bf",
+      "bytes": 3857,
+      "sha256": "06e12e433a0b34fdd9fe8bf4a2fbf8c571a9612e364ecab3209855ae91cefd7d",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+        "present": false
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/engine/index.cjs",
+      "gitBlob": "a4d1ad3741e522486d6e4d61f39b8b6793674902",
+      "bytes": 1111,
+      "sha256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/engine/index.cjs",
+        "gitBlob": "a4d1ad3741e522486d6e4d61f39b8b6793674902",
+        "bytes": 1111
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+      "gitBlob": "0b5aedcc9335cdd29f58a90e2ba973fd345abcdb",
+      "bytes": 1451,
+      "sha256": "4b1b19c0b7dcabb81dc6cc7364bc0c61834d326c25497ad0c2ff795ab0f00f61",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+        "gitBlob": "0b5aedcc9335cdd29f58a90e2ba973fd345abcdb",
+        "bytes": 1451
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+      "gitBlob": "8f81e9f007acc6385f3c5147f768752534c7eb31",
+      "bytes": 1969,
+      "sha256": "c5e3ed2491ccb3fd50d21260879aab4a6bcc736caef687b2cc0d6fa5b5ba5d1c",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+        "gitBlob": "8f81e9f007acc6385f3c5147f768752534c7eb31",
+        "bytes": 1969
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "gitBlob": "e31822803d53cf9b7ec36cbf4d95630b1cac6843",
+      "bytes": 5596,
+      "sha256": "c03732e896a9596a06edd304bb8f23f2340c29b5e036043a4205f225916be936",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/engine-runtime.cjs",
+        "gitBlob": "e31822803d53cf9b7ec36cbf4d95630b1cac6843",
+        "bytes": 5596
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+      "gitBlob": "09a3f706cb5e0e97e3f85d62610c0d17722a39bf",
+      "bytes": 7305,
+      "sha256": "e210bfa04ce61ef64cc1cc3244d4af4545ca99a0a8610608bae2dccf821b1b4d",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+        "gitBlob": "09a3f706cb5e0e97e3f85d62610c0d17722a39bf",
+        "bytes": 7305
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "gitBlob": "38f90847d22db3cab199b2425c8044bbd284f579",
+      "bytes": 21198,
+      "sha256": "d0e26f7401f6d04f44aef808eaca3c05e658f9c1ebd25a45ad9d2b3a3e69601c",
+      "M": {
+        "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+        "path": "rebuild/m4/workout/athlete-state.cjs",
+        "gitBlob": "38f90847d22db3cab199b2425c8044bbd284f579",
+        "bytes": 21198
+      },
+      "inspection": "Program text: loader graph and relevant call bodies inspected; no evaluation",
+      "declaredPin": null
+    }
+  ],
+  "loaderSites": [
+    {
+      "path": "rebuild/engine/test/census-partial.cjs",
+      "sites": [
+        {
+          "line": 9,
+          "kind": "module load"
+        },
+        {
+          "line": 10,
+          "kind": "module load"
+        },
+        {
+          "line": 11,
+          "kind": "module load"
+        },
+        {
+          "line": 12,
+          "kind": "subprocess"
+        },
+        {
+          "line": 13,
+          "kind": "module load"
+        },
+        {
+          "line": 14,
+          "kind": "module load"
+        },
+        {
+          "line": 15,
+          "kind": "module load"
+        },
+        {
+          "line": 16,
+          "kind": "module load"
+        },
+        {
+          "line": 22,
+          "kind": "file read"
+        },
+        {
+          "line": 64,
+          "kind": "module load"
+        },
+        {
+          "line": 70,
+          "kind": "file read"
+        },
+        {
+          "line": 71,
+          "kind": "module load"
+        },
+        {
+          "line": 95,
+          "kind": "subprocess"
+        },
+        {
+          "line": 113,
+          "kind": "file read"
+        },
+        {
+          "line": 129,
+          "kind": "module load"
+        },
+        {
+          "line": 130,
+          "kind": "module load"
+        },
+        {
+          "line": 142,
+          "kind": "file read"
+        },
+        {
+          "line": 147,
+          "kind": "file read"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/conform/oracle/census.cjs",
+      "sites": [
+        {
+          "line": 29,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/conform/oracle/legacy-records.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/conform/lib/harness.cjs",
+      "sites": [
+        {
+          "line": 10,
+          "kind": "module load"
+        },
+        {
+          "line": 40,
+          "kind": "file write"
+        },
+        {
+          "line": 61,
+          "kind": "file write"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/test/volume-projection.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/test/volume-reference.cjs",
+      "sites": [
+        {
+          "line": 5,
+          "kind": "Git subprocess"
+        },
+        {
+          "line": 6,
+          "kind": "module load"
+        },
+        {
+          "line": 7,
+          "kind": "module load"
+        },
+        {
+          "line": 10,
+          "kind": "Git subprocess"
+        },
+        {
+          "line": 25,
+          "kind": "dynamic evaluation"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/oracle-shim.cjs",
+      "sites": [
+        {
+          "line": 3,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "tools/_fixed-now.mjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/test/migrate-differential.cjs",
+      "sites": [
+        {
+          "line": 4,
+          "kind": "module load"
+        },
+        {
+          "line": 5,
+          "kind": "module load"
+        },
+        {
+          "line": 6,
+          "kind": "subprocess"
+        },
+        {
+          "line": 10,
+          "kind": "subprocess"
+        },
+        {
+          "line": 21,
+          "kind": "module load"
+        },
+        {
+          "line": 23,
+          "kind": "module load"
+        },
+        {
+          "line": 24,
+          "kind": "module load"
+        },
+        {
+          "line": 38,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/test/migrate-reference.cjs",
+      "sites": [
+        {
+          "line": 4,
+          "kind": "Git subprocess"
+        },
+        {
+          "line": 5,
+          "kind": "module load"
+        },
+        {
+          "line": 6,
+          "kind": "module load"
+        },
+        {
+          "line": 117,
+          "kind": "Git subprocess"
+        },
+        {
+          "line": 144,
+          "kind": "dynamic evaluation"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/dates.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/constants.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/entered-load.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/performed.cjs",
+      "sites": [
+        {
+          "line": 6,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/plan.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/progression.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/sleep.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/energy.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/policy.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/today.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/volume.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/migrate.cjs",
+      "sites": [
+        {
+          "line": 1700,
+          "kind": "injected storage scan"
+        },
+        {
+          "line": 1701,
+          "kind": "injected storage scan"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/earn.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/merge.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/engine/writers.cjs",
+      "sites": []
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "sites": [
+        {
+          "line": 5,
+          "kind": "module load"
+        },
+        {
+          "line": 6,
+          "kind": "module load"
+        },
+        {
+          "line": 7,
+          "kind": "module load"
+        },
+        {
+          "line": 8,
+          "kind": "module load"
+        },
+        {
+          "line": 9,
+          "kind": "module load"
+        },
+        {
+          "line": 10,
+          "kind": "module load"
+        },
+        {
+          "line": 11,
+          "kind": "module load"
+        },
+        {
+          "line": 29,
+          "kind": "Git subprocess"
+        },
+        {
+          "line": 61,
+          "kind": "file read"
+        },
+        {
+          "line": 324,
+          "kind": "file read"
+        },
+        {
+          "line": 406,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 424,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 438,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 450,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 493,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 504,
+          "kind": "subprocess"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+      "sites": [
+        {
+          "line": 5,
+          "kind": "module load"
+        },
+        {
+          "line": 6,
+          "kind": "module load"
+        },
+        {
+          "line": 57,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 62,
+          "kind": "file write"
+        },
+        {
+          "line": 74,
+          "kind": "subprocess"
+        },
+        {
+          "line": 86,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 94,
+          "kind": "file write"
+        },
+        {
+          "line": 96,
+          "kind": "subprocess"
+        },
+        {
+          "line": 106,
+          "kind": "file read"
+        },
+        {
+          "line": 109,
+          "kind": "file write"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "sites": [
+        {
+          "line": 2,
+          "kind": "module load"
+        },
+        {
+          "line": 3,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+      "sites": [
+        {
+          "line": 2,
+          "kind": "module load"
+        },
+        {
+          "line": 3,
+          "kind": "module load"
+        },
+        {
+          "line": 15,
+          "kind": "dynamic evaluation"
+        },
+        {
+          "line": 32,
+          "kind": "file read"
+        },
+        {
+          "line": 35,
+          "kind": "file read"
+        },
+        {
+          "line": 41,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs",
+      "sites": [
+        {
+          "line": 2,
+          "kind": "module load"
+        },
+        {
+          "line": 3,
+          "kind": "module load"
+        },
+        {
+          "line": 14,
+          "kind": "module load"
+        },
+        {
+          "line": 15,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs",
+      "sites": [
+        {
+          "line": 3,
+          "kind": "module load"
+        },
+        {
+          "line": 4,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs",
+      "sites": [
+        {
+          "line": 3,
+          "kind": "module load"
+        },
+        {
+          "line": 4,
+          "kind": "module load"
+        },
+        {
+          "line": 5,
+          "kind": "module load"
+        },
+        {
+          "line": 16,
+          "kind": "Git subprocess"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/engine/index.cjs",
+      "sites": [
+        {
+          "line": 4,
+          "kind": "module load"
+        },
+        {
+          "line": 5,
+          "kind": "module load"
+        },
+        {
+          "line": 6,
+          "kind": "module load"
+        },
+        {
+          "line": 7,
+          "kind": "module load"
+        },
+        {
+          "line": 8,
+          "kind": "module load"
+        },
+        {
+          "line": 9,
+          "kind": "module load"
+        },
+        {
+          "line": 10,
+          "kind": "module load"
+        },
+        {
+          "line": 11,
+          "kind": "module load"
+        },
+        {
+          "line": 12,
+          "kind": "module load"
+        },
+        {
+          "line": 13,
+          "kind": "module load"
+        },
+        {
+          "line": 14,
+          "kind": "module load"
+        },
+        {
+          "line": 15,
+          "kind": "module load"
+        },
+        {
+          "line": 16,
+          "kind": "module load"
+        },
+        {
+          "line": 17,
+          "kind": "module load"
+        },
+        {
+          "line": 18,
+          "kind": "module load"
+        },
+        {
+          "line": 19,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w7-preview/browser-engine.cjs",
+      "sites": [
+        {
+          "line": 7,
+          "kind": "module load"
+        },
+        {
+          "line": 8,
+          "kind": "module load"
+        },
+        {
+          "line": 11,
+          "kind": "module load"
+        },
+        {
+          "line": 12,
+          "kind": "module load"
+        },
+        {
+          "line": 13,
+          "kind": "module load"
+        },
+        {
+          "line": 14,
+          "kind": "module load"
+        },
+        {
+          "line": 15,
+          "kind": "module load"
+        },
+        {
+          "line": 16,
+          "kind": "module load"
+        },
+        {
+          "line": 17,
+          "kind": "module load"
+        },
+        {
+          "line": 18,
+          "kind": "module load"
+        },
+        {
+          "line": 19,
+          "kind": "module load"
+        },
+        {
+          "line": 20,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w7-preview/today/today-engine.cjs",
+      "sites": [
+        {
+          "line": 22,
+          "kind": "module load"
+        },
+        {
+          "line": 23,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/engine-runtime.cjs",
+      "sites": [
+        {
+          "line": 29,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/host/engine-runtime-host.cjs",
+      "sites": [
+        {
+          "line": 9,
+          "kind": "module load"
+        },
+        {
+          "line": 54,
+          "kind": "module load"
+        },
+        {
+          "line": 55,
+          "kind": "module load"
+        },
+        {
+          "line": 56,
+          "kind": "module load"
+        },
+        {
+          "line": 57,
+          "kind": "module load"
+        },
+        {
+          "line": 58,
+          "kind": "module load"
+        },
+        {
+          "line": 59,
+          "kind": "module load"
+        },
+        {
+          "line": 60,
+          "kind": "module load"
+        },
+        {
+          "line": 61,
+          "kind": "module load"
+        },
+        {
+          "line": 62,
+          "kind": "module load"
+        },
+        {
+          "line": 63,
+          "kind": "module load"
+        },
+        {
+          "line": 64,
+          "kind": "module load"
+        },
+        {
+          "line": 65,
+          "kind": "module load"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/athlete-state.cjs",
+      "sites": [
+        {
+          "line": 83,
+          "kind": "module load"
+        }
+      ]
+    }
+  ],
+  "engineInventoryMetadata": {
+    "M": [
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "gitBlob": "eda12c46a010d492bb25d248e78a6db1b6143b62",
+        "bytes": 23393
+      },
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "gitBlob": "50c3eaf37047e2dc3f1f0b606c28749371679db0",
+        "bytes": 1106
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "gitBlob": "1659e14ec656b1b03def5e0d643c0f8872df231d",
+        "bytes": 11429
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "gitBlob": "c2264a5d77ec8100870b6e026d411bcf2fcb04cd",
+        "bytes": 94493
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "gitBlob": "e9662526c46fcbdc721149c887ff9d159ea205b1",
+        "bytes": 906
+      },
+      {
+        "path": "rebuild/engine/index.cjs",
+        "gitBlob": "a4d1ad3741e522486d6e4d61f39b8b6793674902",
+        "bytes": 1111
+      },
+      {
+        "path": "rebuild/engine/merge.cjs",
+        "gitBlob": "5d03859568ce3119a27afd82e5cc8d7560290f6f",
+        "bytes": 84396
+      },
+      {
+        "path": "rebuild/engine/migrate.cjs",
+        "gitBlob": "0e283e7e4ece8d2e5362ed579a34c3edbd2cf708",
+        "bytes": 184433
+      },
+      {
+        "path": "rebuild/engine/oracle-shim.cjs",
+        "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074",
+        "bytes": 826
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "gitBlob": "6e5d3d35afb15e80f1ce82907e0e1b761c40c95c",
+        "bytes": 19479
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "gitBlob": "5e6216e0daf0e5622985d350dffa5614b8a3921a",
+        "bytes": 19784
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "gitBlob": "18a9bf0824c8d0bbec8295f9bab9795d0b94dcbf",
+        "bytes": 56493
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "gitBlob": "90d88efe175bd6973e5cf0d1977f47d64f6d149d",
+        "bytes": 53582
+      },
+      {
+        "path": "rebuild/engine/seed.cjs",
+        "gitBlob": "767aba2187807d35d1b96e77f34a224fb93b61ea",
+        "bytes": 32170
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "gitBlob": "1472f5b665b04706193b0779fafc4627be5612dd",
+        "bytes": 185229
+      },
+      {
+        "path": "rebuild/engine/test/census-partial.cjs",
+        "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3",
+        "bytes": 11924
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-2.cjs",
+        "gitBlob": "08a8a4d6d5586998c14d302ecee4654cf0a49204",
+        "bytes": 7892
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-3.cjs",
+        "gitBlob": "e66b57c94ddb889a17e232bd49862e6508eb4c3d",
+        "bytes": 5081
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-4.cjs",
+        "gitBlob": "6f0fdcc11ec1dfa87880d497401af45ff4b4f272",
+        "bytes": 6465
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-5.cjs",
+        "gitBlob": "b68b60e7b2b78cc491f1783401e590bff1840ac6",
+        "bytes": 5286
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-6.cjs",
+        "gitBlob": "b540ca7ca60e8072c3c5093ec7f4a7967a8c4ed0",
+        "bytes": 8055
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-7.cjs",
+        "gitBlob": "ee67e1da61898157a1e19837114e0e424aa640de",
+        "bytes": 8511
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses.cjs",
+        "gitBlob": "3c9cd3d48620e561059d4218525925ad8e75b607",
+        "bytes": 4126
+      },
+      {
+        "path": "rebuild/engine/test/merge-differential.cjs",
+        "gitBlob": "09cdfe281a5ab83fab9d0d3423c252ca2f5b5b7c",
+        "bytes": 19619
+      },
+      {
+        "path": "rebuild/engine/test/merge-laws-adapter.mjs",
+        "gitBlob": "2822165d2f9bd24c70b9db8e47c77743f4835588",
+        "bytes": 251
+      },
+      {
+        "path": "rebuild/engine/test/merge-laws.cjs",
+        "gitBlob": "ee07bdeb5fc8ca517965b2da800e85e1c4ac6218",
+        "bytes": 9786
+      },
+      {
+        "path": "rebuild/engine/test/merge-source.cjs",
+        "gitBlob": "54cdbf28f6c635a328a7dfa4e9d36df55153470c",
+        "bytes": 3504
+      },
+      {
+        "path": "rebuild/engine/test/migrate-differential.cjs",
+        "gitBlob": "d590d4a73a6806652fb6352065ec8e0a7f0efb52",
+        "bytes": 21709
+      },
+      {
+        "path": "rebuild/engine/test/migrate-full.cjs",
+        "gitBlob": "05ad430637497647a502e35024b6203c45c684c6",
+        "bytes": 17203
+      },
+      {
+        "path": "rebuild/engine/test/migrate-reference.cjs",
+        "gitBlob": "89a5e0827b629e67c0d7f167fa03b6a36355a01e",
+        "bytes": 7702
+      },
+      {
+        "path": "rebuild/engine/test/migrate-source.cjs",
+        "gitBlob": "64c442833898f16144aa01c45f74544ec834c33c",
+        "bytes": 4328
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-adapter.mjs",
+        "gitBlob": "47520e178b468ebb820f2cae0598472956d414b2",
+        "bytes": 1690
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-assertions.json",
+        "gitBlob": "edb352644223c61c721a4a46f38fc671a91746d5",
+        "bytes": 35907
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-carrier.cjs",
+        "gitBlob": "d617e0a57969185ed9db6a0360578b02a7fd92c5",
+        "bytes": 15886
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-inventory.json",
+        "gitBlob": "30751fd57d51515ad78dbbbae5fa18571920e398",
+        "bytes": 23120
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-preload.cjs",
+        "gitBlob": "843c3875eaf211e389e7d75a3425166e445d5d9b",
+        "bytes": 4505
+      },
+      {
+        "path": "rebuild/engine/test/second-gate.mjs",
+        "gitBlob": "b638cb9cae7a2f46df611468112bfdb7ecaf1c9e",
+        "bytes": 13201
+      },
+      {
+        "path": "rebuild/engine/test/volume-projection.cjs",
+        "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1",
+        "bytes": 2264
+      },
+      {
+        "path": "rebuild/engine/test/volume-reference.cjs",
+        "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102",
+        "bytes": 1463
+      },
+      {
+        "path": "rebuild/engine/test/writers-differential.cjs",
+        "gitBlob": "619face0b3a3228cc9fa51964d2666a880afc02c",
+        "bytes": 19518
+      },
+      {
+        "path": "rebuild/engine/test/writers-reference.cjs",
+        "gitBlob": "cca3efffb5d1104d7a7d0eee5e7c3d6541ab82ce",
+        "bytes": 3200
+      },
+      {
+        "path": "rebuild/engine/test/writers-source.cjs",
+        "gitBlob": "d50be2a1f444c0971df0672fec258bc245daabcd",
+        "bytes": 9919
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "gitBlob": "9db7fb48260c53a06b4e7a993da7e4e16df4fcb0",
+        "bytes": 46420
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "gitBlob": "94f4a7622e2955dfaa34e574db9707fd2a891c62",
+        "bytes": 23465
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "gitBlob": "7f568644228b30f6ad62e658d0991a6058e5e7bd",
+        "bytes": 259235
+      }
+    ],
+    "U": [
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "gitBlob": "eda12c46a010d492bb25d248e78a6db1b6143b62",
+        "bytes": 23393
+      },
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "gitBlob": "e0e06df2ecc1f2e3f5d70b8dc208744ecd041465",
+        "bytes": 1343
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "gitBlob": "1659e14ec656b1b03def5e0d643c0f8872df231d",
+        "bytes": 11429
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "gitBlob": "c2264a5d77ec8100870b6e026d411bcf2fcb04cd",
+        "bytes": 94493
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "gitBlob": "e9662526c46fcbdc721149c887ff9d159ea205b1",
+        "bytes": 906
+      },
+      {
+        "path": "rebuild/engine/index.cjs",
+        "gitBlob": "a4d1ad3741e522486d6e4d61f39b8b6793674902",
+        "bytes": 1111
+      },
+      {
+        "path": "rebuild/engine/merge.cjs",
+        "gitBlob": "5d03859568ce3119a27afd82e5cc8d7560290f6f",
+        "bytes": 84396
+      },
+      {
+        "path": "rebuild/engine/migrate.cjs",
+        "gitBlob": "0e283e7e4ece8d2e5362ed579a34c3edbd2cf708",
+        "bytes": 184433
+      },
+      {
+        "path": "rebuild/engine/oracle-shim.cjs",
+        "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074",
+        "bytes": 826
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "gitBlob": "6e5d3d35afb15e80f1ce82907e0e1b761c40c95c",
+        "bytes": 19479
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "gitBlob": "7c9481cfe0b652a4789cb09d7581e5baa0f1ecf5",
+        "bytes": 19853
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "gitBlob": "7cc0597911ab23e8f3cc52a9974db6eb687f3401",
+        "bytes": 56874
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "gitBlob": "634888e4c96ca2fe596f3d8e2caee7a92c4ae7fe",
+        "bytes": 54604
+      },
+      {
+        "path": "rebuild/engine/seed.cjs",
+        "gitBlob": "767aba2187807d35d1b96e77f34a224fb93b61ea",
+        "bytes": 32170
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "gitBlob": "42e39c9f8e6da144488ffaedb7469f2dfbeb36c7",
+        "bytes": 188103
+      },
+      {
+        "path": "rebuild/engine/test/b1-delta-cells.cjs",
+        "gitBlob": "2d3ab8730ebfc115216621d6c4dc982da8d5deb3",
+        "bytes": 61185
+      },
+      {
+        "path": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+        "gitBlob": "0665730cece3a47c1fac55d491201888e29f021c",
+        "bytes": 55323
+      },
+      {
+        "path": "rebuild/engine/test/b1b2-public-engine.cjs",
+        "gitBlob": "59f7fa88fd5dd75df1f23fbffc2c0cfc180833fe",
+        "bytes": 10827
+      },
+      {
+        "path": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+        "gitBlob": "5c93d46f37606684a79250a1f275da1d194f8ece",
+        "bytes": 64433
+      },
+      {
+        "path": "rebuild/engine/test/b2-era30.test.cjs",
+        "gitBlob": "c9918594cc5ca66622ac1677e1859020dfdc2008",
+        "bytes": 435756
+      },
+      {
+        "path": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+        "gitBlob": "e275167ec764a35d1f6296c0ca83716a09306933",
+        "bytes": 32555
+      },
+      {
+        "path": "rebuild/engine/test/census-partial.cjs",
+        "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3",
+        "bytes": 11924
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-2.cjs",
+        "gitBlob": "08a8a4d6d5586998c14d302ecee4654cf0a49204",
+        "bytes": 7892
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-3.cjs",
+        "gitBlob": "e66b57c94ddb889a17e232bd49862e6508eb4c3d",
+        "bytes": 5081
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-4.cjs",
+        "gitBlob": "6f0fdcc11ec1dfa87880d497401af45ff4b4f272",
+        "bytes": 6465
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-5.cjs",
+        "gitBlob": "b68b60e7b2b78cc491f1783401e590bff1840ac6",
+        "bytes": 5286
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-6.cjs",
+        "gitBlob": "b540ca7ca60e8072c3c5093ec7f4a7967a8c4ed0",
+        "bytes": 8055
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-7.cjs",
+        "gitBlob": "ee67e1da61898157a1e19837114e0e424aa640de",
+        "bytes": 8511
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses.cjs",
+        "gitBlob": "3c9cd3d48620e561059d4218525925ad8e75b607",
+        "bytes": 4126
+      },
+      {
+        "path": "rebuild/engine/test/merge-differential.cjs",
+        "gitBlob": "09cdfe281a5ab83fab9d0d3423c252ca2f5b5b7c",
+        "bytes": 19619
+      },
+      {
+        "path": "rebuild/engine/test/merge-laws-adapter.mjs",
+        "gitBlob": "2822165d2f9bd24c70b9db8e47c77743f4835588",
+        "bytes": 251
+      },
+      {
+        "path": "rebuild/engine/test/merge-laws.cjs",
+        "gitBlob": "ee07bdeb5fc8ca517965b2da800e85e1c4ac6218",
+        "bytes": 9786
+      },
+      {
+        "path": "rebuild/engine/test/merge-source.cjs",
+        "gitBlob": "54cdbf28f6c635a328a7dfa4e9d36df55153470c",
+        "bytes": 3504
+      },
+      {
+        "path": "rebuild/engine/test/migrate-differential.cjs",
+        "gitBlob": "d590d4a73a6806652fb6352065ec8e0a7f0efb52",
+        "bytes": 21709
+      },
+      {
+        "path": "rebuild/engine/test/migrate-full.cjs",
+        "gitBlob": "05ad430637497647a502e35024b6203c45c684c6",
+        "bytes": 17203
+      },
+      {
+        "path": "rebuild/engine/test/migrate-reference.cjs",
+        "gitBlob": "89a5e0827b629e67c0d7f167fa03b6a36355a01e",
+        "bytes": 7702
+      },
+      {
+        "path": "rebuild/engine/test/migrate-source.cjs",
+        "gitBlob": "64c442833898f16144aa01c45f74544ec834c33c",
+        "bytes": 4328
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-adapter.mjs",
+        "gitBlob": "47520e178b468ebb820f2cae0598472956d414b2",
+        "bytes": 1690
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-assertions.json",
+        "gitBlob": "edb352644223c61c721a4a46f38fc671a91746d5",
+        "bytes": 35907
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-carrier.cjs",
+        "gitBlob": "d617e0a57969185ed9db6a0360578b02a7fd92c5",
+        "bytes": 15886
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-inventory.json",
+        "gitBlob": "30751fd57d51515ad78dbbbae5fa18571920e398",
+        "bytes": 23120
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-preload.cjs",
+        "gitBlob": "843c3875eaf211e389e7d75a3425166e445d5d9b",
+        "bytes": 4505
+      },
+      {
+        "path": "rebuild/engine/test/second-gate.mjs",
+        "gitBlob": "b638cb9cae7a2f46df611468112bfdb7ecaf1c9e",
+        "bytes": 13201
+      },
+      {
+        "path": "rebuild/engine/test/volume-projection.cjs",
+        "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1",
+        "bytes": 2264
+      },
+      {
+        "path": "rebuild/engine/test/volume-reference.cjs",
+        "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102",
+        "bytes": 1463
+      },
+      {
+        "path": "rebuild/engine/test/writers-differential.cjs",
+        "gitBlob": "619face0b3a3228cc9fa51964d2666a880afc02c",
+        "bytes": 19518
+      },
+      {
+        "path": "rebuild/engine/test/writers-reference.cjs",
+        "gitBlob": "cca3efffb5d1104d7a7d0eee5e7c3d6541ab82ce",
+        "bytes": 3200
+      },
+      {
+        "path": "rebuild/engine/test/writers-source.cjs",
+        "gitBlob": "d50be2a1f444c0971df0672fec258bc245daabcd",
+        "bytes": 9919
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "gitBlob": "aa6a7b96e8b14c729e7e0377e20c1b37d00ac8ce",
+        "bytes": 48911
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "gitBlob": "ebdd171f30a0ad37af6058faab6457de986a05b0",
+        "bytes": 25485
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "gitBlob": "74e9cc7ad03f4dd34f6e1886b9c27e639c2f7427",
+        "bytes": 261840
+      }
+    ],
+    "candidate": [
+      {
+        "path": "rebuild/engine/constants.cjs",
+        "gitBlob": "eda12c46a010d492bb25d248e78a6db1b6143b62",
+        "bytes": 23393
+      },
+      {
+        "path": "rebuild/engine/dates.cjs",
+        "gitBlob": "e0e06df2ecc1f2e3f5d70b8dc208744ecd041465",
+        "bytes": 1343
+      },
+      {
+        "path": "rebuild/engine/earn.cjs",
+        "gitBlob": "1659e14ec656b1b03def5e0d643c0f8872df231d",
+        "bytes": 11429
+      },
+      {
+        "path": "rebuild/engine/energy.cjs",
+        "gitBlob": "c2264a5d77ec8100870b6e026d411bcf2fcb04cd",
+        "bytes": 94493
+      },
+      {
+        "path": "rebuild/engine/entered-load.cjs",
+        "gitBlob": "e9662526c46fcbdc721149c887ff9d159ea205b1",
+        "bytes": 906
+      },
+      {
+        "path": "rebuild/engine/index.cjs",
+        "gitBlob": "a4d1ad3741e522486d6e4d61f39b8b6793674902",
+        "bytes": 1111
+      },
+      {
+        "path": "rebuild/engine/merge.cjs",
+        "gitBlob": "5d03859568ce3119a27afd82e5cc8d7560290f6f",
+        "bytes": 84396
+      },
+      {
+        "path": "rebuild/engine/migrate.cjs",
+        "gitBlob": "0e283e7e4ece8d2e5362ed579a34c3edbd2cf708",
+        "bytes": 184433
+      },
+      {
+        "path": "rebuild/engine/oracle-shim.cjs",
+        "gitBlob": "a1c69ef86cfa4160715e8973aa74dd7190a63074",
+        "bytes": 826
+      },
+      {
+        "path": "rebuild/engine/performed.cjs",
+        "gitBlob": "6e5d3d35afb15e80f1ce82907e0e1b761c40c95c",
+        "bytes": 19479
+      },
+      {
+        "path": "rebuild/engine/plan.cjs",
+        "gitBlob": "7c9481cfe0b652a4789cb09d7581e5baa0f1ecf5",
+        "bytes": 19853
+      },
+      {
+        "path": "rebuild/engine/policy.cjs",
+        "gitBlob": "7cc0597911ab23e8f3cc52a9974db6eb687f3401",
+        "bytes": 56874
+      },
+      {
+        "path": "rebuild/engine/progression.cjs",
+        "gitBlob": "634888e4c96ca2fe596f3d8e2caee7a92c4ae7fe",
+        "bytes": 54604
+      },
+      {
+        "path": "rebuild/engine/seed.cjs",
+        "gitBlob": "767aba2187807d35d1b96e77f34a224fb93b61ea",
+        "bytes": 32170
+      },
+      {
+        "path": "rebuild/engine/sleep.cjs",
+        "gitBlob": "42e39c9f8e6da144488ffaedb7469f2dfbeb36c7",
+        "bytes": 188103
+      },
+      {
+        "path": "rebuild/engine/test/b1-delta-cells.cjs",
+        "gitBlob": "2d3ab8730ebfc115216621d6c4dc982da8d5deb3",
+        "bytes": 61185
+      },
+      {
+        "path": "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+        "gitBlob": "0665730cece3a47c1fac55d491201888e29f021c",
+        "bytes": 55323
+      },
+      {
+        "path": "rebuild/engine/test/b1b2-public-engine.cjs",
+        "gitBlob": "59f7fa88fd5dd75df1f23fbffc2c0cfc180833fe",
+        "bytes": 10827
+      },
+      {
+        "path": "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+        "gitBlob": "5c93d46f37606684a79250a1f275da1d194f8ece",
+        "bytes": 64433
+      },
+      {
+        "path": "rebuild/engine/test/b2-era30.test.cjs",
+        "gitBlob": "c9918594cc5ca66622ac1677e1859020dfdc2008",
+        "bytes": 435756
+      },
+      {
+        "path": "rebuild/engine/test/b2-public-source-faults.test.cjs",
+        "gitBlob": "e275167ec764a35d1f6296c0ca83716a09306933",
+        "bytes": 32555
+      },
+      {
+        "path": "rebuild/engine/test/census-partial.cjs",
+        "gitBlob": "3951b632c0fccc6fd14932761f5cce03ae739fa3",
+        "bytes": 11924
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-2.cjs",
+        "gitBlob": "08a8a4d6d5586998c14d302ecee4654cf0a49204",
+        "bytes": 7892
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-3.cjs",
+        "gitBlob": "e66b57c94ddb889a17e232bd49862e6508eb4c3d",
+        "bytes": 5081
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-4.cjs",
+        "gitBlob": "6f0fdcc11ec1dfa87880d497401af45ff4b4f272",
+        "bytes": 6465
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-5.cjs",
+        "gitBlob": "b68b60e7b2b78cc491f1783401e590bff1840ac6",
+        "bytes": 5286
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-6.cjs",
+        "gitBlob": "b540ca7ca60e8072c3c5093ec7f4a7967a8c4ed0",
+        "bytes": 8055
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses-7.cjs",
+        "gitBlob": "ee67e1da61898157a1e19837114e0e424aa640de",
+        "bytes": 8511
+      },
+      {
+        "path": "rebuild/engine/test/defect-witnesses.cjs",
+        "gitBlob": "3c9cd3d48620e561059d4218525925ad8e75b607",
+        "bytes": 4126
+      },
+      {
+        "path": "rebuild/engine/test/merge-differential.cjs",
+        "gitBlob": "09cdfe281a5ab83fab9d0d3423c252ca2f5b5b7c",
+        "bytes": 19619
+      },
+      {
+        "path": "rebuild/engine/test/merge-laws-adapter.mjs",
+        "gitBlob": "2822165d2f9bd24c70b9db8e47c77743f4835588",
+        "bytes": 251
+      },
+      {
+        "path": "rebuild/engine/test/merge-laws.cjs",
+        "gitBlob": "ee07bdeb5fc8ca517965b2da800e85e1c4ac6218",
+        "bytes": 9786
+      },
+      {
+        "path": "rebuild/engine/test/merge-source.cjs",
+        "gitBlob": "54cdbf28f6c635a328a7dfa4e9d36df55153470c",
+        "bytes": 3504
+      },
+      {
+        "path": "rebuild/engine/test/migrate-differential.cjs",
+        "gitBlob": "d590d4a73a6806652fb6352065ec8e0a7f0efb52",
+        "bytes": 21709
+      },
+      {
+        "path": "rebuild/engine/test/migrate-full.cjs",
+        "gitBlob": "05ad430637497647a502e35024b6203c45c684c6",
+        "bytes": 17203
+      },
+      {
+        "path": "rebuild/engine/test/migrate-reference.cjs",
+        "gitBlob": "89a5e0827b629e67c0d7f167fa03b6a36355a01e",
+        "bytes": 7702
+      },
+      {
+        "path": "rebuild/engine/test/migrate-source.cjs",
+        "gitBlob": "64c442833898f16144aa01c45f74544ec834c33c",
+        "bytes": 4328
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-adapter.mjs",
+        "gitBlob": "47520e178b468ebb820f2cae0598472956d414b2",
+        "bytes": 1690
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-assertions.json",
+        "gitBlob": "edb352644223c61c721a4a46f38fc671a91746d5",
+        "bytes": 35907
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-carrier.cjs",
+        "gitBlob": "d617e0a57969185ed9db6a0360578b02a7fd92c5",
+        "bytes": 15886
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-inventory.json",
+        "gitBlob": "30751fd57d51515ad78dbbbae5fa18571920e398",
+        "bytes": 23120
+      },
+      {
+        "path": "rebuild/engine/test/second-gate-preload.cjs",
+        "gitBlob": "843c3875eaf211e389e7d75a3425166e445d5d9b",
+        "bytes": 4505
+      },
+      {
+        "path": "rebuild/engine/test/second-gate.mjs",
+        "gitBlob": "b638cb9cae7a2f46df611468112bfdb7ecaf1c9e",
+        "bytes": 13201
+      },
+      {
+        "path": "rebuild/engine/test/volume-projection.cjs",
+        "gitBlob": "578cb2e3ed2d543cc89c35b8f66d74fb10a7bec1",
+        "bytes": 2264
+      },
+      {
+        "path": "rebuild/engine/test/volume-reference.cjs",
+        "gitBlob": "05a7b969f46febd07c982b742d9e8ebcc8866102",
+        "bytes": 1463
+      },
+      {
+        "path": "rebuild/engine/test/writers-differential.cjs",
+        "gitBlob": "619face0b3a3228cc9fa51964d2666a880afc02c",
+        "bytes": 19518
+      },
+      {
+        "path": "rebuild/engine/test/writers-reference.cjs",
+        "gitBlob": "cca3efffb5d1104d7a7d0eee5e7c3d6541ab82ce",
+        "bytes": 3200
+      },
+      {
+        "path": "rebuild/engine/test/writers-source.cjs",
+        "gitBlob": "d50be2a1f444c0971df0672fec258bc245daabcd",
+        "bytes": 9919
+      },
+      {
+        "path": "rebuild/engine/today.cjs",
+        "gitBlob": "aa6a7b96e8b14c729e7e0377e20c1b37d00ac8ce",
+        "bytes": 48911
+      },
+      {
+        "path": "rebuild/engine/volume.cjs",
+        "gitBlob": "ebdd171f30a0ad37af6058faab6457de986a05b0",
+        "bytes": 25485
+      },
+      {
+        "path": "rebuild/engine/writers.cjs",
+        "gitBlob": "74e9cc7ad03f4dd34f6e1886b9c27e639c2f7427",
+        "bytes": 261840
+      }
+    ]
+  },
+  "graph": [
+    {
+      "from": "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs",
+      "site": "top-level H.loadOriginal, then SECOND-1 test",
+      "to": [
+        "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs"
+      ],
+      "kind": "literal helper require; computed pinned original compile",
+      "status": "original H3 body unopened; its unknown transitive loads prevent executable-closure claim"
+    },
+    {
+      "from": "H.loadOriginal -> pinScopedOriginalDependencies",
+      "to": [
+        "H.closedEngineInventory",
+        "rebuild/m3/w7-preview/browser-engine.cjs",
+        "rebuild/m3/w7-preview/today/today-engine.cjs",
+        "rebuild/m4/workout/engine-runtime.cjs",
+        "rebuild/m3/w6/host/engine-runtime-host.cjs",
+        "rebuild/lanes/b/tooling/packages/H3.json",
+        "rebuild/m4/workout/athlete-state.cjs"
+      ],
+      "kind": "full inventory plus disk/U/HEAD pin reads; original Module._compile uses normal resolution"
+    },
+    {
+      "from": "H.closedEngineInventory/historicalEngineInventory",
+      "to": [
+        "complete rebuild/engine trees at M,R,S,T,U,HEAD",
+        "complete candidate on-disk rebuild/engine tree"
+      ],
+      "kind": "ls-tree; recursive readdirSync; git show and readFileSync for every engine object",
+      "status": "includes seed and historical engine program snapshots; metadata enumeration only this turn",
+      "detail": "Not restricted to factories used by a selected reader. Expected closed set has51 candidate engine objects; missing hydration cannot be treated as a product failure."
+    },
+    {
+      "from": "H.nativeBrowser(M/U)",
+      "to": [
+        "M:rebuild/m3/w7-preview/browser-engine.cjs",
+        "12 BROWSER factories from chosen M or U",
+        "seed.cjs",
+        "writers.cjs"
+      ],
+      "kind": "Git source, pinned candidate disk/U/HEAD, Module._compile; sourceFactory caches per side",
+      "detail": "Fixed DAY2026-09-07, nowISO08:00Z; refusing IDs; factory require override admits only ./entered-load.cjs"
+    },
+    {
+      "from": "H.nativeEngine(M/U,options)",
+      "to": [
+        "M:rebuild/engine/index.cjs",
+        "all16 MODULES factories from chosen M or U"
+      ],
+      "kind": "same sourceFactory boundary; injected options retained",
+      "detail": "Includes seed,migrate,merge unlike browser constructor. index defaults drafts to empty length/key facade."
+    },
+    {
+      "from": "SECOND-1 body",
+      "to": [
+        "a.SEED and b.SEED",
+        "H.projection all15 readers",
+        "a.applyRead and b.applyRead",
+        "H.approvedNativeDifference"
+      ],
+      "kind": "same M seed clone, exact seed equality, independent structuredClone per reader; JSON outputs; whole applyRead at H.DAY,186.4,{hour:8}",
+      "detail": "Reader approval assertion precedes applyRead; a reader delta aborts this body before whole applyRead. No partial run may be reported as all16 comparisons."
+    },
+    {
+      "from": "H.approvedNativeDifference",
+      "to": [
+        "H.validateR9().nativeComparison.fieldDeltas"
+      ],
+      "kind": "whole fieldDiff+exact JSON equality to approved list; before/after digests on success",
+      "detail": "Map holds prospective []; UNKNOWN until actual execution. Refusal reports kind and measured count, not field paths or values. Does not persist second-reader raw deltas."
+    },
+    {
+      "from": "rebuild/m4/workout/test/b1b2-public-census.cjs",
+      "to": [
+        "rebuild/engine/test/census-partial.cjs",
+        "8 nativePrograms pins",
+        "H.nativeEngine",
+        "two M/U main subprocesses",
+        "four M/U frozen/unfrozen worker subprocesses"
+      ],
+      "kind": "source-pinned original compilation with lexical process facade; observations do not replace returned values",
+      "detail": "Original argv --public or --worker frozen/unfrozen; parent rewrites child launcher to same wrapper; other literal requires checked. Current candidate disk/HEAD/M nativePrograms pins checked."
+    },
+    {
+      "from": "rebuild/engine/test/census-partial.cjs main",
+      "to": [
+        "rebuild/conform/oracle/manifest.json",
+        "rebuild/conform/fixtures/preimage-2026-08-15.json",
+        "rebuild/conform/fixtures/synthetic-pending-debut.json",
+        "manifest.goldens[name+.main].path",
+        "ENGINE_MAIN or rebuild/conform/engines/engine-main.cjs",
+        "rebuild/engine/test/volume-reference.cjs"
+      ],
+      "kind": "runtime fs/JSON reads, frozen module require, one frozen migration per original raw fixture",
+      "detail": "Default also loads private/live.json; --public omits live data but validates all3 manifest entries. Checks fixture/golden/hash/stamp pins before passing snapshots by stdin."
+    },
+    {
+      "from": "rebuild/engine/test/census-partial.cjs worker",
+      "to": [
+        "stdin packet fd0",
+        "tools/_fixed-now.mjs",
+        "rebuild/engine/oracle-shim.cjs",
+        "census.cjs",
+        "volume-projection.cjs"
+      ],
+      "kind": "dynamic import pathToFileURL; require; JSON packet",
+      "detail": "Fresh process Date=frozen/unfrozen; retains seed and original snapshot/output/Date comparisons; original parent hides private details and does not relay worker exception text."
+    },
+    {
+      "from": "rebuild/m4/workout/test/b1b2-public-census.cjs observations",
+      "to": [
+        ".tmp/b1b2-census-<generated>/M-main.json",
+        "U-main.json",
+        "M-frozen.json",
+        "U-frozen.json",
+        "M-unfrozen.json",
+        "U-unfrozen.json",
+        "difference-main/frozen/unfrozen.json"
+      ],
+      "kind": "writes full typed frames and before/after differences; rereads own frame files",
+      "detail": "Protected derived content: never model-read or published. Wrapper forwards original parent terminals and compares complete three frame pairs, not a new substitute gate."
+    },
+    {
+      "from": "rebuild/conform/oracle/census.cjs",
+      "to": [
+        "./legacy-records.cjs",
+        "supplied T.migrate/readers/records"
+      ],
+      "kind": "literal require and injected table calls",
+      "detail": "legacy-records has no loaders/files/processes; projections can carry private prose/records into in-memory results."
+    },
+    {
+      "from": "rebuild/conform/lib/harness.cjs",
+      "to": [
+        "node:fs",
+        "opts.logPath when runLaws/runMutants used"
+      ],
+      "kind": "canon/diffPaths pure for this census route; appendFileSync optional other runner use"
+    },
+    {
+      "from": "rebuild/engine/test/volume-projection.cjs",
+      "to": [
+        "12 supplied reader functions"
+      ],
+      "kind": "in-memory calls; no imports/files/subprocesses",
+      "detail": "Input clones; keeps exception names/messages. Uses original session blocks and unchanged move dates."
+    },
+    {
+      "from": "rebuild/engine/test/volume-reference.cjs",
+      "to": [
+        "fe516c1:src/app.jsx",
+        "G.sessionScore"
+      ],
+      "kind": "git show full pinned historical blob then select7 declared ranges and new Function",
+      "detail": "Frozen source object f98671d823f0d8cd83e730cdd930afe5f5e7b628; full blob is read before range selection; no protected source read this turn. Ranges are metadata only in referenceRangeDeclarations."
+    },
+    {
+      "from": "rebuild/engine/oracle-shim.cjs",
+      "to": [
+        "rebuild/engine/index.cjs"
+      ],
+      "kind": "literal require and createEngine",
+      "detail": "Requires MEASURED_TEST_NOW and TZ; injected local-noon clock/hour/dow/nowMs/tz; deterministic fresh IDs."
+    },
+    {
+      "from": "tools/_fixed-now.mjs",
+      "to": [
+        "process.env.MEASURED_TEST_NOW",
+        "globalThis.Date"
+      ],
+      "kind": "no further loader; date replacement",
+      "detail": "Anchor defaults2026-07-29 but future census must explicitly2026-09-03; local noon, original Date argument constructors retained."
+    },
+    {
+      "from": "H.migrationContinuity",
+      "to": [
+        "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs",
+        "H.migrationWorker"
+      ],
+      "kind": "4 subprocesses M/U by frozen/native; worker selection through B1B2_MIGRATION_*",
+      "detail": "Worker argv [] to wrapper; original facade argv --worker mode; exact whole stdout/stderr equality and original terminal counts checked."
+    },
+    {
+      "from": "H.migrationWorker -> migrate-differential.cjs",
+      "to": [
+        "rebuild/engine/test/migrate-reference.cjs",
+        "rebuild/conform/oracle/legacy-records.cjs",
+        "frozen engine-main.cjs",
+        "nativeEngine(ref,options)"
+      ],
+      "kind": "pinned original Module._compile, require guard, captured console",
+      "detail": "Original all comparison cases retained; synthetic(T) starts from T.SEED and does not prove all residual data synthetic. Original top-level program can itself spawn frozen/native workers. Error assertions may print complete post-state."
+    },
+    {
+      "from": "rebuild/engine/test/migrate-reference.cjs",
+      "to": [
+        "fe516c1:src/app.jsx",
+        "frozen G SEED and named EXTERNAL dependencies",
+        "injected drafts/clock/IDs/Date"
+      ],
+      "kind": "git show full pinned source, RANGES selection, new Function, wrapped reference Date restore",
+      "detail": "No localStorage read from browser: patchV51 gets injected facade. RANGES includes KNOWN_CORR and correction patches; historical blob remains unopened."
+    },
+    {
+      "from": "nonseed factory loader scan",
+      "to": [
+        "rebuild/engine/performed.cjs -> ./entered-load.cjs",
+        "migrate.cjs -> injected drafts.length/key"
+      ],
+      "kind": "only detected factory module dependency and storage seam",
+      "detail": "No execution or general proof from regex. Prior reviewed code scope retained; seed remains unopened so unknown seed loader/body edges are explicit."
+    },
+    {
+      "from": "runtime constructors",
+      "to": [
+        "today-engine -> browser-engine + writers",
+        "engine-runtime -> MODULES.map ../../engine/<name>.cjs",
+        "engine-runtime-host ->12 literal factories",
+        "athlete-state -> constants factory"
+      ],
+      "kind": "ordinary constructor loader scan",
+      "detail": "Performed brings entered-load. These are pinned before original H3, but unresolved original may invoke more than these constructors."
+    }
+  ],
+  "protectedLeaves": [
+    {
+      "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+      "path": "rebuild/engine/seed.cjs",
+      "gitBlob": "767aba2187807d35d1b96e77f34a224fb93b61ea",
+      "bytes": 32170,
+      "candidate": {
+        "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+        "path": "rebuild/engine/seed.cjs",
+        "gitBlob": "767aba2187807d35d1b96e77f34a224fb93b61ea",
+        "bytes": 32170
+      },
+      "role": "embedded original athlete SEED/history; factory load and inventory read only future unchanged gate",
+      "opened": false
+    },
+    {
+      "path": "fe516c1:src/app.jsx",
+      "gitBlob": "f98671d823f0d8cd83e730cdd930afe5f5e7b628",
+      "role": "full historical blob consumed by volume/migration references before code range selection",
+      "opened": false
+    },
+    {
+      "path": "rebuild/conform/engines/engine-main.cjs",
+      "gitBlob": null,
+      "sha256": null,
+      "role": "generated frozen bundle from fe516c1; ENGINE_MAIN override; setup/build closure and local exact artifact hash not established",
+      "opened": false
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/conform/fixtures/preimage-2026-08-15.json",
+      "gitBlob": "ac12a16681e37c68d03541f02b3602f07b799893",
+      "bytes": 157544,
+      "role": "original fixture; no content read",
+      "opened": false
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/conform/fixtures/synthetic-pending-debut.json",
+      "gitBlob": "888da9f0c354ad85f2279b7591522ce2f84f8994",
+      "bytes": 11923,
+      "role": "original fixture; no content read",
+      "opened": false
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/conform/oracle/manifest.json",
+      "gitBlob": "3005859c4dc724ced809bf4e5dcbcc83ff7f40cd",
+      "bytes": 2143,
+      "role": "metadata leaf: names/pins known via gate code; internal golden paths/hashes not opened",
+      "opened": false
+    },
+    {
+      "path": "rebuild/conform/private/live.json",
+      "role": "only unchanged required default gate under196; not public wrapper; no current content read or copied",
+      "opened": false
+    },
+    {
+      "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+      "path": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+      "gitBlob": "ab177f9d21b8d61bbfdf0fc1d64e4d5bb9ac216a",
+      "bytes": 8089,
+      "sha256": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "role": "unopened original program; retained SUP14/15/16 plus embedded-input boundary unresolved",
+      "opened": false
+    }
+  ],
+  "commands": {
+    "smallestRegistered": {
+      "name": "b1b2-sup-second",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ],
+      "needle": "# pass 4"
+    },
+    "otherRelevant": [
+      {
+        "name": "b1b2-sup-inherited",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs"
+        ],
+        "needle": "# pass 5"
+      },
+      {
+        "name": "engine-files-differential",
+        "argv": [
+          "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs"
+        ],
+        "needle": "B1B2 ENGINE FILES DIFFERENTIAL: 27 tracked rebuild/engine files outside product byte-identical"
+      },
+      {
+        "name": "public-census",
+        "argv": [
+          "rebuild/m4/workout/test/b1b2-public-census.cjs"
+        ],
+        "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/U frame comparisons; "
+      }
+    ],
+    "comparisonClock": {
+      "capturedDay": "2026-09-07",
+      "nowISO": "2026-09-07T08:00:00.000Z",
+      "TZ": "America/New_York",
+      "readerCount": 15,
+      "readers": [
+        "nowModel",
+        "statusFace",
+        "currentRate",
+        "calorieTarget",
+        "proteinTarget",
+        "marchingOrder",
+        "readRecency",
+        "fiveLevers",
+        "recoveryIndex",
+        "sleepInfo",
+        "observedTDEE",
+        "weekDigest",
+        "debtLedger",
+        "theOneThing",
+        "dossierData"
+      ],
+      "wholeApplyRead": true
+    },
+    "censusAndMigrationEnvironment": {
+      "MEASURED_TEST_NOW": "2026-09-03",
+      "TZ": "America/New_York",
+      "ENGINE_MAIN": "explicit owned exact frozen bundle; unresolved"
+    },
+    "runtime": {
+      "requiredNode": "22.23.2",
+      "ownedRuntimeProvisioned": false,
+      "gitRequired": true,
+      "additionalNpmDependencyInInspectedLoaders": false,
+      "unopenedOriginalMayAddDependencies": true
+    },
+    "executed": false
+  },
+  "outputCustody": {
+    "unchangedGate": true,
+    "raw": "local protected stdout/stderr/frame custody only; no model/published raw reads",
+    "public": "exit/signal, test IDs and zero skip/cancel totals, fixed comparison kind, delta count, fixed schema-field category only; mask dynamic keys/athlete identifiers; never raw actual/expected or exception messages",
+    "limitations": [
+      "Current SECOND-1 provides count on failure but no field categories; cannot infer paths from count.",
+      "Any diagnostic extension needs named authorization/review; no replacement comparison or filtering away original assertions.",
+      "Reader failure prevents applyRead; report as not executed.",
+      "Existing census default private row already gives verdict-only withheld text; retain it.",
+      "Census full frames/differences and migrate failure output are protected derived data, even if source fixture labelled public/synthetic."
+    ]
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "question": "May B inspect only code-only loader/setup/assertion ranges of rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs (original sha256 d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6), with embedded protected content kept unopened, to resolve H.loadOriginal before the registered command?",
+      "reason": "Mandatory top-level load precedes SECOND-1; its transitive closure cannot be assumed from H helper list."
+    },
+    {
+      "id": "Q2",
+      "question": "May the subsequent named B-only execution include unchanged gate-internal full51-engine disk/Git inventory reads, M/U seed factory reads and all retained original H3 inputs under196, without model inspection or any copied fixture?",
+      "reason": "Smallest existing registered comparison reaches those before reader outputs. This is an access window, not an expectation waiver."
+    },
+    {
+      "id": "Q3",
+      "question": "May B inspect rebuild/conform/engines/build-engines.mjs setup loaders and metadata-only oracle/manifest.json fields, then return any additional exact setup dependencies before preparing the frozen bundle and original fixture/golden pins?",
+      "reason": "Needed for later original census/migration routes, not enough licence from native program filenames. ENGINE_MAIN generated identity and dynamic golden paths/hashes remain unresolved; no current regeneration or historical/private source read requested here."
+    },
+    {
+      "id": "Q4",
+      "question": "May B propose an independently reviewed output-only observation/capture seam for the unchanged required command that retains private raw failures locally and emits only fixed field categories, counts and verdicts, before native execution?",
+      "reason": "SECOND-1 currently stops after first reader delta and emits no paths, while seed deepEqual/inventory errors and migration assertions can dump values. No such seam is implemented/authorized by326. Raw dynamic keys, values, exception text, frame data must not reach tool output. Must not swallow failures, change inputs, omit original tests or claim unexecuted applyRead."
+    },
+    {
+      "id": "Q5",
+      "question": "Will PM name the precise B-only command/window on A3bfed63febef002b8540d6ff3c56e19d08368711 after the remaining input/output boundaries, with every measured delta separately ruled?",
+      "reason": "All38 listed inspected program objects and source map equal083bd47; no native execution or expectation change follows from applicability."
+    }
+  ],
+  "verification": {
+    "testsRun": 0,
+    "nativeProgramsRun": 0,
+    "productModulesEvaluated": 0,
+    "productEdits": 0,
+    "indexEntriesBeforeHydration": 1279,
+    "indexTreeMatch": true,
+    "publicHydrated": 22,
+    "priorAgentsAllCompleted": true,
+    "usage": {
+      "ordinaryUsageAllowed": true,
+      "weeklyUsedPercent": 61,
+      "resetCreditUsed": false
+    },
+    "metadataToolNode": "v24.19.0"
+  },
+  "provenance": {
+    "priorFiniteMetadataCommit": "5ea3ecaeb60613cb7402c0e8e52d7c843c0a9827",
+    "priorFiniteMetadataSha256": "b9d545203171ad11e9d21084d825ced29dfd0d5230cb4fbb2a999e256ea45aee",
+    "newNativeEvidence": false
+  },
+  "referenceRangeDeclarations": [
+    {
+      "program": "rebuild/engine/test/volume-reference.cjs",
+      "sourceBlob": "f98671d823f0d8cd83e730cdd930afe5f5e7b628",
+      "sourceOpened": false,
+      "ranges": [
+        [
+          3159,
+          3160
+        ],
+        [
+          3169,
+          3169
+        ],
+        [
+          3171,
+          3171
+        ],
+        [
+          8627,
+          8627
+        ],
+        [
+          8712,
+          8713
+        ],
+        [
+          8862,
+          8879
+        ],
+        [
+          9015,
+          9021
+        ]
+      ]
+    },
+    {
+      "program": "rebuild/engine/test/migrate-reference.cjs",
+      "sourceBlob": "f98671d823f0d8cd83e730cdd930afe5f5e7b628",
+      "sourceOpened": false,
+      "ranges": [
+        [
+          305,
+          305
+        ],
+        [
+          306,
+          306
+        ],
+        [
+          307,
+          307
+        ],
+        [
+          308,
+          308
+        ],
+        [
+          311,
+          311
+        ],
+        [
+          633,
+          633
+        ],
+        [
+          1034,
+          1046
+        ],
+        [
+          1818,
+          1830
+        ],
+        [
+          1858,
+          1858
+        ],
+        [
+          2021,
+          2021
+        ],
+        [
+          2220,
+          2262
+        ],
+        [
+          2277,
+          2318
+        ],
+        [
+          2321,
+          2335
+        ],
+        [
+          2362,
+          2380
+        ],
+        [
+          2381,
+          2453
+        ],
+        [
+          2466,
+          2558
+        ],
+        [
+          10287,
+          10287
+        ],
+        [
+          10298,
+          10353
+        ],
+        [
+          10370,
+          10426
+        ],
+        [
+          10439,
+          10654
+        ],
+        [
+          10657,
+          10672
+        ],
+        [
+          10675,
+          10680
+        ],
+        [
+          10681,
+          10691
+        ],
+        [
+          10692,
+          10699
+        ],
+        [
+          10700,
+          10704
+        ],
+        [
+          10705,
+          10718
+        ],
+        [
+          10719,
+          10724
+        ],
+        [
+          10725,
+          10730
+        ],
+        [
+          10731,
+          10745
+        ],
+        [
+          10746,
+          10764
+        ],
+        [
+          10765,
+          10792
+        ],
+        [
+          10804,
+          10884
+        ],
+        [
+          10885,
+          10888
+        ],
+        [
+          10889,
+          10892
+        ],
+        [
+          10893,
+          10896
+        ],
+        [
+          10897,
+          10902
+        ],
+        [
+          10903,
+          10913
+        ],
+        [
+          10914,
+          10927
+        ],
+        [
+          10928,
+          10948
+        ],
+        [
+          10949,
+          10949
+        ],
+        [
+          10950,
+          10950
+        ],
+        [
+          10951,
+          10951
+        ],
+        [
+          10952,
+          10952
+        ],
+        [
+          10953,
+          10953
+        ],
+        [
+          10954,
+          10964
+        ],
+        [
+          10965,
+          10969
+        ],
+        [
+          10970,
+          10978
+        ],
+        [
+          10979,
+          10983
+        ],
+        [
+          10984,
+          10984
+        ],
+        [
+          10985,
+          10985
+        ],
+        [
+          10986,
+          10986
+        ],
+        [
+          10987,
+          10993
+        ],
+        [
+          10997,
+          11008
+        ],
+        [
+          11014,
+          11018
+        ],
+        [
+          11019,
+          11036
+        ],
+        [
+          11037,
+          11049
+        ],
+        [
+          11052,
+          11052
+        ],
+        [
+          11053,
+          11071
+        ],
+        [
+          11072,
+          11099
+        ],
+        [
+          11100,
+          11124
+        ],
+        [
+          11125,
+          11143
+        ],
+        [
+          11144,
+          11171
+        ],
+        [
+          11172,
+          11189
+        ],
+        [
+          11201,
+          11218
+        ],
+        [
+          11219,
+          11238
+        ],
+        [
+          11258,
+          11258
+        ],
+        [
+          11259,
+          11309
+        ],
+        [
+          11322,
+          11403
+        ],
+        [
+          11404,
+          11416
+        ],
+        [
+          11417,
+          11450
+        ],
+        [
+          11451,
+          11493
+        ],
+        [
+          11494,
+          11542
+        ],
+        [
+          11543,
+          11579
+        ],
+        [
+          11580,
+          11637
+        ],
+        [
+          11638,
+          11702
+        ],
+        [
+          11703,
+          11832
+        ],
+        [
+          11833,
+          11853
+        ],
+        [
+          11854,
+          11866
+        ],
+        [
+          11867,
+          11900
+        ],
+        [
+          11901,
+          11927
+        ],
+        [
+          11928,
+          11957
+        ],
+        [
+          11958,
+          11971
+        ],
+        [
+          11983,
+          11983
+        ],
+        [
+          12001,
+          12044
+        ],
+        [
+          12057,
+          12068
+        ],
+        [
+          12099,
+          12214
+        ],
+        [
+          12222,
+          12262
+        ],
+        [
+          12263,
+          12311
+        ],
+        [
+          13233,
+          13241
+        ],
+        [
+          13289,
+          13327
+        ],
+        [
+          13328,
+          13361
+        ],
+        [
+          13378,
+          13378
+        ],
+        [
+          13379,
+          13385
+        ],
+        [
+          13590,
+          13593
+        ],
+        [
+          13913,
+          13913
+        ],
+        [
+          13920,
+          13925
+        ],
+        [
+          13926,
+          13926
+        ],
+        [
+          13927,
+          13942
+        ],
+        [
+          13960,
+          13960
+        ],
+        [
+          14180,
+          14183
+        ],
+        [
+          14189,
+          14211
+        ]
+      ]
+    }
+  ]
+}
