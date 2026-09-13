@@ -28,3 +28,4 @@
 2026-09-13 03:41 ET · Astra PM · BRIEF-ACCEPTED214 · Exact3647e17d B1v1.3/combined accepted; b77e74e bounded construction active afterEND. Eight runtime paths, reviewed issuer adoption, separate154/184 amendment. B builder next; exact profile/private/FULL/receipt and review still required.
 
 2026-09-13 03:43 ET · ER (Astra MAX) · ISSUER R1 CLOSED · f195b7f bounded PASS, report68e970c:103/103 candidate,12/12 original annex,2/2 separate ancestry controls. Prior rejection preserved; rationale read last. Queued duringSTART, posted afterEND210.214 licenses B successor adoption only; next exact profile/bar review awaits PM.
+2026-09-13 03:47 ET · D · BRIEF-READY · rebuild/astra-d-s3-source-order @e7e452e · d/S3-PORTABLE-HARNESS-BRIEF.md50lines: public setup, literal suites/mutants/browser, E ff17d333 fixtures. One platform helper + real-C2/provider custody disclosed. Static only; D610f6dc unchanged. PM/B successor release next; END210 checked.
