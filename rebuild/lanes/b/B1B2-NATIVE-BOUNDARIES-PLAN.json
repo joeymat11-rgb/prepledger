@@ -1,0 +1,645 @@
+{
+  "version": 1,
+  "kind": "PM328 STATIC BOUNDARY AND OBSERVER DESIGN ONLY",
+  "authority": {
+    "shared": "774780033d9d491f79122c73be8b1be0d9c175e8",
+    "grantPath": "rebuild/lanes/astra/B1B2-NATIVE-BOUNDARIES-GO.md",
+    "sha256": "24b388bbfb91acba7b9df096f2e253c4988a62949e016575365c72a1c7eab5c9"
+  },
+  "source": {
+    "A": "3bfed63febef002b8540d6ff3c56e19d08368711",
+    "preservedCandidate": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+    "priorReport": "4fe30da310455f71cec13664f124d4180172d0eb",
+    "branch": "codex/astra-b1b2-native-boundaries",
+    "assemblyNotRebased": true
+  },
+  "newInputs": [
+    {
+      "path": "rebuild/m4/workout/test/h3-supersede-second-gate.test.cjs",
+      "bytes": 8089,
+      "sha256": "d186664aa8e5ec97ba25c91eca68b93beac7ea718cee57a93227e55265cae1f6",
+      "objects": [
+        {
+          "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+          "gitBlob": "ab177f9d21b8d61bbfdf0fc1d64e4d5bb9ac216a"
+        },
+        {
+          "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+          "gitBlob": "ab177f9d21b8d61bbfdf0fc1d64e4d5bb9ac216a"
+        },
+        {
+          "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+          "gitBlob": "ab177f9d21b8d61bbfdf0fc1d64e4d5bb9ac216a"
+        }
+      ],
+      "lineCount": 140
+    },
+    {
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 3791,
+      "sha256": "19f7520f329151eaf8b113e6cde4019113fbc0774e06709d0eeaab4f50bc09fb",
+      "objects": [
+        {
+          "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+          "gitBlob": "13df95ba5888004873676a806e5a75098510b763"
+        },
+        {
+          "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+          "gitBlob": "13df95ba5888004873676a806e5a75098510b763"
+        },
+        {
+          "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+          "gitBlob": "13df95ba5888004873676a806e5a75098510b763"
+        }
+      ],
+      "lineCount": 32
+    },
+    {
+      "path": "rebuild/conform/oracle/manifest.json",
+      "bytes": 2143,
+      "sha256": "77d8caa13f20fc6198c36a334a0d0ae1af126c617ad90651a23c667ffcabc29a",
+      "objects": [
+        {
+          "ref": "3bfed63febef002b8540d6ff3c56e19d08368711",
+          "gitBlob": "3005859c4dc724ced809bf4e5dcbcc83ff7f40cd"
+        },
+        {
+          "ref": "083bd47efc16d02105b3ebe2912bcf5aa4a5f240",
+          "gitBlob": "3005859c4dc724ced809bf4e5dcbcc83ff7f40cd"
+        },
+        {
+          "ref": "100820aa47a4f8729642033499eaec0f0ee282e1",
+          "gitBlob": "3005859c4dc724ced809bf4e5dcbcc83ff7f40cd"
+        }
+      ],
+      "lineCount": 48
+    }
+  ],
+  "readRanges": {
+    "h3": {
+      "structuralInventory": {
+        "lines": [
+          1,
+          141
+        ],
+        "output": "line/kind/indent only, no source text or literals"
+      },
+      "code": [
+        {
+          "from": 31,
+          "to": 60,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 64,
+          "to": 69,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 72,
+          "to": 73,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 78,
+          "to": 100,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 102,
+          "to": 107,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 110,
+          "to": 110,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 113,
+          "to": 116,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 118,
+          "to": 119,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 128,
+          "to": 134,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        },
+        {
+          "from": 137,
+          "to": 140,
+          "render": "all string/numeric literals replaced with placeholders; no embedded input values"
+        }
+      ],
+      "loaderLiteralExtraction": {
+        "lines": [
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          38,
+          39,
+          41,
+          42,
+          43,
+          55,
+          56,
+          58,
+          60,
+          78,
+          79,
+          80,
+          119,
+          138
+        ],
+        "allowed": "module/file/Git operands only; other literals excluded"
+      },
+      "verifiedBooleans": [
+        "READERS equals prior fixed15 names in order",
+        "DAY equals existing captured comparison day",
+        "privately relative-loader prefix is dot"
+      ],
+      "withheldInputRange": [
+        120,
+        127
+      ],
+      "allOtherLiteralValuesUnread": true
+    },
+    "build": {
+      "lines": [
+        1,
+        32
+      ],
+      "render": "ordinary setup code only"
+    },
+    "manifest": {
+      "manifestVersion": 1,
+      "censusVersion": 3,
+      "entryCount": 3,
+      "fieldsRead": [
+        "manifestVersion",
+        "censusVersion",
+        "goldens fixed entry names",
+        "goldens.*.blob",
+        "goldens.*.path",
+        "goldens.*.blobSha256",
+        "goldens.*.goldenSha256",
+        "goldens.*.engineSha256",
+        "goldens.*.censusVersion"
+      ],
+      "entries": [
+        {
+          "entry": "preimage-2026-08-15.main",
+          "blob": "preimage-2026-08-15",
+          "path": "golden/preimage-2026-08-15.main.json",
+          "blobSha256": "b5eb62d459d6e58bfb26bfa65f772db193998825166d7538403dad41eddda499",
+          "goldenSha256": "890683a26dc8e2b5f353e94b268cf9e75623877a91f6dd7cdb287beebf481bfb",
+          "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+          "censusVersion": 3
+        },
+        {
+          "entry": "synthetic-pending-debut.main",
+          "blob": "synthetic-pending-debut",
+          "path": "golden/synthetic-pending-debut.main.json",
+          "blobSha256": "653d4c99ca3a4b5103fe8f1c0d2dc965a6c531922a286c35f705c3d5df8e738e",
+          "goldenSha256": "194a38df3b4f8e87f8690a09c21c042e4f319b9d3f604cd06f3c018db6a84a2f",
+          "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+          "censusVersion": 3
+        },
+        {
+          "entry": "live.main",
+          "blob": "live",
+          "path": "private/live.main.json",
+          "blobSha256": "dbb2d582e915a9ed153847329907dd797bd0470a16821539270aebafe1228845",
+          "goldenSha256": "3218ad7576defc54c60dca4f193b4c13f4052db17b3a6289855732b7ed22255e",
+          "engineSha256": "21a95f492de8965fd877d0ea7df875b1c2caee3a72b592c41c8326e9000fd8f0",
+          "censusVersion": 3
+        }
+      ],
+      "excludedFields": [
+        "status text",
+        "clock values",
+        "tz values",
+        "engine label text",
+        "engineCommit text",
+        "privacy text"
+      ],
+      "fixturesOrGoldenContentsRead": false
+    }
+  },
+  "resolvedGraph": [
+    {
+      "site": "H3 lines38-43",
+      "reads": [
+        "rebuild/lanes/b/tooling/packages/H3.json"
+      ],
+      "imports": [
+        "node:test",
+        "node:assert/strict",
+        "node:fs",
+        "node:path",
+        "node:child_process",
+        "node:module",
+        "rebuild/m3/w7-preview/browser-engine.cjs",
+        "rebuild/engine/seed.cjs"
+      ],
+      "meaning": "BASE is H3 profile.sourceBase, not M/U. No frozen engine-main load in this original second-gate program."
+    },
+    {
+      "site": "H3 lines40-56 privately()",
+      "sourceBase": "ce38aa3bd174c94526e01fb5056df850ad322b80",
+      "read": "git show BASE:rebuild/engine/writers.cjs",
+      "historicalWriterGitBlob": "52cb37a3a1ad5718122826f32c33b47b01d8d806",
+      "currentImport": "rebuild/engine/writers.cjs",
+      "resolution": "Module._compile of historical writer; relative require resolves against current source dirname, other require uses normal Module resolution",
+      "historicalBodyRead": false,
+      "remaining": "historical writer loader body is an unopened source leaf; exact dependency surfaced without opening it"
+    },
+    {
+      "site": "H3 lines64-89",
+      "calls": [
+        "current browser constructor",
+        "current SEED factory",
+        "selected historical/current writer factory",
+        "15 reader projection"
+      ],
+      "meaning": "Same original current seed retained. Project catches original exceptions into original string outputs; original missing-reader and full JSON comparisons remain untouched."
+    },
+    {
+      "site": "H3 lines92-116",
+      "calls": [
+        "SUP14 reader availability",
+        "SUP15 moved-reader list and whole JSON comparison",
+        "original whole applyRead comparison"
+      ],
+      "meaning": "No changed clock, input literal or mutation. Comparison failure preserves original stop and diagnostic strings remain private."
+    },
+    {
+      "site": "H3 lines118-140",
+      "imports": [
+        "rebuild/m4/workout/athlete-state.cjs"
+      ],
+      "reads": [
+        "rebuild/engine/migrate.cjs"
+      ],
+      "calls": [
+        "createCleanInitState using unopened SETUP literal",
+        "SUP16 original first-read assertions",
+        "source inclusion guard"
+      ],
+      "meaning": "Original fixture literal120-127 unprinted; no replacement synthetic fixture is proposed for real gate."
+    },
+    {
+      "site": "build-engines lines11-end",
+      "imports": [
+        "node:fs",
+        "node:path",
+        "node:child_process",
+        "node:os",
+        "node:crypto",
+        "<owned root>/node_modules/esbuild/lib/main.js"
+      ],
+      "commands": [
+        [
+          "git",
+          "-C",
+          "<root>",
+          "rev-parse",
+          "--short",
+          "<commit>^{commit}"
+        ],
+        [
+          "git",
+          "-C",
+          "<temp wt>",
+          "rev-parse",
+          "--short",
+          "HEAD"
+        ],
+        [
+          "git",
+          "-C",
+          "<root>",
+          "worktree",
+          "remove",
+          "--force",
+          "<temp wt>"
+        ],
+        [
+          "git",
+          "-C",
+          "<root>",
+          "worktree",
+          "add",
+          "--detach",
+          "<temp wt>",
+          "<commit>"
+        ]
+      ],
+      "writes": [
+        "<os.tmpdir()>/earned-engine-wt/main/tools/_engine-entry.mjs",
+        "<os.tmpdir()>/earned-engine-wt/old/tools/_engine-entry.mjs",
+        "<build script dir>/engine-main.cjs",
+        "<build script dir>/engine-old.cjs"
+      ],
+      "deletes": [
+        "mismatched shared temp worktree recursively",
+        "generated _engine-entry.mjs after build"
+      ],
+      "scopeConflict": "Shared os.tmpdir()/earned-engine-wt paths can belong to another actor; current rule forbids their reuse/deletion. No builder invocation authorized."
+    },
+    {
+      "site": "generated entry and esbuild.build",
+      "imports": [
+        "<selected historical commit>:tools/_fixed-now.mjs",
+        "<selected historical commit>:src/app.jsx",
+        "further source and JSX automatic runtime imports unresolved"
+      ],
+      "options": {
+        "bundle": true,
+        "platform": "node",
+        "format": "cjs",
+        "jsx": "automatic",
+        "loader": {
+          ".jsx": "jsx"
+        },
+        "nodePaths": [
+          "<owned root>/node_modules"
+        ]
+      },
+      "meaning": "Both main and old are built by current script. It does not have main-only selection. Historic sources and bundle contents stay unopened."
+    },
+    {
+      "site": "manifest metadata -> census main",
+      "reads": [
+        "rebuild/conform/golden/preimage-2026-08-15.main.json",
+        "rebuild/conform/golden/synthetic-pending-debut.main.json",
+        "rebuild/conform/private/live.main.json"
+      ],
+      "meaning": "Three exact golden paths/hashes now known; no golden bytes verified or opened. Generated bundle SHA is environment-dependent; committed stamp metadata not changed."
+    }
+  ],
+  "historicalSetupLeaves": [
+    {
+      "commit": "fe516c1f2b1d7d756a24e46d000d23ac1c747aa8",
+      "clockPath": "tools/_fixed-now.mjs",
+      "clockBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8",
+      "sourcePath": "src/app.jsx",
+      "sourceBlob": "f98671d823f0d8cd83e730cdd930afe5f5e7b628",
+      "contentsRead": false
+    },
+    {
+      "commit": "a0009c3644263a2a7227f9b5dec16f7f7edaf51b",
+      "clockPath": "tools/_fixed-now.mjs",
+      "clockBlob": "ffa6aa33c85667cda021d2719799f6bd5762b5e8",
+      "sourcePath": "src/app.jsx",
+      "sourceBlob": "dd23c949481a730497c247549cad033c99dd0028",
+      "contentsRead": false
+    }
+  ],
+  "observerProposal": {
+    "implemented": false,
+    "exactFiles": [
+      {
+        "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+        "sites": [
+          "approvedNativeDifference immediately after existing actual=fieldDiff(before,after), before unchanged first assertion",
+          "new internal nativeDiagnosticCategories(kind, pathStrings, topLevelKeys)",
+          "new internal observeNativeDifference(kind, actual) with wholly contained failure path"
+        ],
+        "change": "Copy only actual row path strings into bounded categorizer; never pass values/objects to serializer, never intercept assert or replace fieldDiff/comparator; original assertions and return object untouched",
+        "oldSha256": "884218f2fa5f2e012a018f096f05f6ec3fb7a4027b4123c5bacc0aa25fce4b9c"
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+        "sites": [
+          "fixed main() launch",
+          "bounded stream-to-local-file capture",
+          "strict diagnostic/TAP trailer validation",
+          "public summary serializer"
+        ],
+        "change": "New separately pinned B-only operator tool. Spawn unchanged original Node command once, no assertion/reader/writer injection. Not a replacement registered package child."
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+        "sites": [
+          "synthetic process/file/diagnostic refusal and leakage tests",
+          "actual comparison-hook wiring and mutation controls"
+        ],
+        "change": "New independently pinned synthetic review program, outside existing nine-file registered tooling cohort; no new pass-count claim for current package."
+      },
+      {
+        "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+        "sites": [
+          "product[rebuild/m4/workout/test/b1b2-evidence.cjs].post"
+        ],
+        "change": "Only the helper postimage digest must change if observer is commissioned. Existing112 product keys,26 child argv,all expectations,9+3+7,sourceBase M and historical maps retained. New operator/test tools are separately pinned in implementation/review and exact execution grant, not silently registered as package products."
+      }
+    ],
+    "pinImpact": {
+      "helperDirectHashReferencesObserved": [
+        {
+          "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+          "line": 578
+        }
+      ],
+      "boundedSearchOnly": true,
+      "otherExistingFilesChecked": [
+        "rebuild/lanes/b/b2-delta-cells.cjs",
+        "rebuild/engine/test/b1-unknown-recovery.test.cjs",
+        "rebuild/engine/test/b1b2-sleep-target-cells.cjs",
+        "rebuild/engine/test/b1b2-public-engine.cjs",
+        "rebuild/engine/test/b2-public-source-faults.test.cjs",
+        "rebuild/engine/test/b2-era30.test.cjs",
+        "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs"
+      ],
+      "meaning": "No helper digest literal in those seven; not a repo-wide pin-closure claim. Later exact changed-file inventory plus relevant registered synthetic refusal checks must detect any other current binding. Profile own digest in any later artifact/grant must bind the successor; no self-referential seal or old acceptance promotion."
+    },
+    "launch": {
+      "runtime": "owned pinned Node22.23.2; executable bytes named in later grant",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ],
+      "cwd": "exact later A-derived B-owned worktree",
+      "extraCliArguments": "reject",
+      "childEnvironment": "retain commissioned environment; add only EARNED_B1B2_CAPTURE_DIR for same owned invocation; keep historical source/clock/inputs unchanged",
+      "notFd3": "Node --test workers do not offer a stable inherited extra descriptor; use inherited environment carrying one verified private directory, not a guessed fd3 channel",
+      "privateDirectory": ".tmp/b1b2-native-capture/<fresh collision-resistant invocation id> beneath exact owned root",
+      "files": [
+        "stdout.raw",
+        "stderr.raw",
+        "native-diagnostics.jsonl",
+        "capture-manifest.json"
+      ],
+      "ownership": "launcher creates fresh directory exclusively; resolves canonical own-root containment and rejects preexisting entries/junctions/symlinks along writable path. Verify owner-only access suitable for Windows; mode0700 alone is not claimed to enforce a Windows ACL. No arbitrary caller output path or other actor scratch."
+    },
+    "flow": [
+      "Launcher validates literal argv, commissioned source/tree/helper/profile/operator pins and safe own capture directory before spawn; retains source/environment identities privately.",
+      "Original helper computes real fieldDiff exactly once. Inside a contained observation block copy actual row paths and top-level own-key names only for unambiguous category matching; no values/objects enter the serializer. Original comparison objects are never mutated or cloned into public diagnostics.",
+      "Helper disabled when EARNED_B1B2_CAPTURE_DIR absent: no writes/changed returns. When enabled, one worker writes bounded fixed-schema records to exclusive native-diagnostics.jsonl; no stdout/stderr diagnostic printing. Directory/IO/category failures are contained, do not throw across original assertion, and leave missing/invalid capture.",
+      "Original assertion executes in original order. Reader failure still ends that test body before whole applyRead. No retry, assertion interception, injected success, extra reader, or write route.",
+      "Launcher streams raw child stdout/stderr privately with byte caps and continuously drains both pipes. On cap breach retain bounded prefix, mark overflow/truncation, discard remaining bytes without printing or killing/restarting child; preserve observed natural child exit/signal.",
+      "After child close, launcher validates strict diagnostics sequence, exact schema/key set/fixed categories/safe integers/count sums, finite files and unique complete top-level TAP census trailer. Any malformed, duplicate, unexpected, overflowed or missing record is capture failure; never parse arbitrary YAML actual/expected/stack as public text.",
+      "Only a fresh fixed-schema public JSON object is emitted. Gate verdict and capture verdict are separate; gate failure cannot become acceptance. Child exit0 alone, silent observer, partial census, unobserved applyRead or malformed capture cannot become PASS."
+    ],
+    "categories": {
+      "readers": [
+        "nowModel",
+        "statusFace",
+        "currentRate",
+        "calorieTarget",
+        "proteinTarget",
+        "marchingOrder",
+        "readRecency",
+        "fiveLevers",
+        "recoveryIndex",
+        "sleepInfo",
+        "observedTDEE",
+        "weekDigest",
+        "debtLedger",
+        "theOneThing",
+        "dossierData"
+      ],
+      "readerRule": "Each actual path must equal $.<fixed reader> or begin $.<fixed reader>.; emit only that fixed reader identifier. Unknown/root reader paths invalidate diagnostics rather than guessing a reader.",
+      "stateFields": [
+        "reads",
+        "trend",
+        "feed",
+        "queue",
+        "sleep",
+        "dailyLogs",
+        "sessionLog",
+        "model",
+        "learned",
+        "adjustments",
+        "suggestionLog",
+        "corrLog",
+        "exercises"
+      ],
+      "stateRule": "For second-applyRead, use actual before/after top-level own-key names (locally only) to verify a unique path prefix against the fixed state field list. Root $ is state-shape. Unknown or ambiguous dot-containing keys collapse to state-other; never infer a field from a lossy dotted string or emit an arbitrary segment. Root-key count/length obey the same finite caps.",
+      "censusRule": "Existing census command is not launched by this operator. Shared helper may use fixed operation category for actual census-frame differences when separately commissioned later; no fine-grained census category or present execution is claimed.",
+      "zero": "MATCH only from actual empty differences and original child gate success; no categories guessed from delta count.",
+      "aggregation": "Every actual difference contributes exactly once; sum of category counts must equal actual difference count; values/dynamic keys/dates/arbitrary exception messages never serialized."
+    },
+    "protocol": {
+      "recordKeys": [
+        "v",
+        "seq",
+        "kind",
+        "categories",
+        "differenceCount",
+        "comparisonVerdict"
+      ],
+      "allowedKinds": [
+        "second-readers",
+        "second-applyRead"
+      ],
+      "categoryRowKeys": [
+        "id",
+        "count"
+      ],
+      "comparisonVerdicts": [
+        "MATCH",
+        "DIFFERENT"
+      ],
+      "sequence": "Only reader record1 then applyRead record2; no duplicate/reordered/extra record. With native failure allow partial report as partial failure, never acceptance. Absent applyRead is NOT_OBSERVED, never PASS.",
+      "stickyFailure": "Observer functions contain own errors; a missing/partial record or inconsistent sequence cannot be repaired by a later success. The enclosing capture validator rejects. No mutation of original process.exitCode solely to hide an observer failure.",
+      "caps": {
+        "stdoutBytes": 268435456,
+        "stderrBytes": 67108864,
+        "diagnosticBytes": 65536,
+        "records": 2,
+        "differenceRows": 100000,
+        "pathCodeUnits": 4096
+      },
+      "schemaPolicy": "Reject unknown keys/prototype surprises/nonplain objects, nonfinite/negative/unsafe counts, inconsistent totals, unknown kind/category/enum, duplicate JSON keys, trailing bytes or non-UTF8. Never echo rejected input. Each writer record is exactly canonical JSON.stringify(record) plus LF; byte-exact parse/reserialize comparison rejects duplicate keys, alternate encodings and noncanonical/trailing content without a new parser dependency.",
+      "publicKeys": [
+        "gateVerdict",
+        "captureVerdict",
+        "childExit",
+        "childSignal",
+        "tests",
+        "pass",
+        "fail",
+        "cancelled",
+        "skipped",
+        "todo",
+        "comparisons",
+        "fixedFailureCode"
+      ],
+      "publicForbidden": [
+        "raw paths",
+        "dynamic object keys",
+        "dates",
+        "actual/expected",
+        "serialized state",
+        "exception message/stack",
+        "raw TAP/YAML",
+        "raw file payload",
+        "private-content digests"
+      ],
+      "census": "Preserve unchanged complete original4 tests. For PASS require unique matching TAP trailer tests4/pass4/fail0/cancelled0/skipped0/todo0 and no signal plus exit0 and two complete valid comparison records. On fail preserve whatever complete census actually exists or mark unavailable; never fabricate zeros."
+    },
+    "syntheticReviewBar": [
+      "Execute the actual helper hook on synthetic original comparison inputs after its existing validation succeeds, verify per-reader and applyRead categories/counts from deliberately different fields; do not stub fieldDiff/assertions or use a count-derived oracle.",
+      "Place distinct invented secret sentinels in values, dynamic keys, date-like strings and arbitrary exceptions; prove only fixed schema bytes appear publicly, including mismatch/error/overflow paths. Check decoded output object and raw emitted bytes. Include ambiguous top-level keys containing dots so reads.secret cannot masquerade as reads; such rows must use state-other and no raw key is emitted.",
+      "Compare observed-versus-disabled original process on synthetic passing and failing fixtures: identical original assertions reached, first failure, raw test census, child exit/signal and no input mutation. Capture failures add acceptance refusal only, preserving the raw gate result.",
+      "Force first reader mismatch and prove applyRead side-effect marker never occurs and no applyRead diagnostic/PASS appears; preserve partial reader diagnostic and gate FAIL.",
+      "No record, one record on passing child, duplicated/reordered/extra records, duplicate JSON keys, malformed UTF8/JSON, extra keys, forged kind/category, nonfinite/unsafe counts, count-sum mismatch and trailing bytes all refuse without echo.",
+      "Break categorization, directory access, open/write/full-disk/partial-write/close and helper observer branch; original assertion/exit behavior continues, but capture cannot pass. Later good record must not clear earlier failure.",
+      "Cross each stdout/stderr/diagnostic/path/row limit; capped raw prefixes marked truncated, no public payload, pipe drainage completes, no hang and no invented natural exit or complete evidence.",
+      "Child exit nonzero/signal, startup error, absent/duplicate/fake TAP trailer or lost stdout/stderr cannot pass even with forged complete MATCH records; expected counts do not substitute for actual census.",
+      "Refuse changed source/helper/profile/operator identities, additional argv, preexisting capture directories, links/junctions, escape paths and another worktree; no out-of-root write or arbitrary module command.",
+      "Independently reverse actual observer call, fail-closed diagnostic validation, output whitelist and first-failure-preservation guard in disposable synthetic copies; each must fail its intended assertion and exact original bytes must be restored. No setup error counts as behavioral kill."
+    ],
+    "acceptance": "Source-first independent review then actual synthetic tests/controls, report-last reconciliation. No original/private input until exact later PM window on A or integrator-supplied accepted observer successor."
+  },
+  "remainingDependencies": [
+    {
+      "id": "D1",
+      "path": "ce38aa3bd174c94526e01fb5056df850ad322b80:rebuild/engine/writers.cjs",
+      "gitBlob": "52cb37a3a1ad5718122826f32c33b47b01d8d806",
+      "function": "H3 privately() historical factory compilation and its own require calls",
+      "state": "Actual new historical source leaf identified; unopened, no assumption about deeper imports. Existing193/196 consumption applies only future exact gate, not current code read."
+    },
+    {
+      "id": "D2",
+      "path": "<owned root>/node_modules/esbuild/lib/main.js",
+      "function": "build-engines dynamic import -> esbuild.build/native service -> historical bundle imports",
+      "state": "Additional actual program dependency returned before opening; exact owned package/binary/lock identities not inspected. Protected historical src imports and automatic JSX runtime closure remain within later setup review/custody, not guessed complete."
+    },
+    {
+      "id": "D3",
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "function": "shared wtBase/remove-force/rmSync and Windows URL/path setup",
+      "state": "Cannot invoke as-is against shared temp paths under current isolation. Future setup must use own exclusive scratch with verified path containment; absolute drive-path import and URL.pathname output derivation need explicit Windows-safe resolution. Source-level hazards only, no observed execution failure claimed."
+    },
+    {
+      "id": "D4",
+      "path": "engine-main.cjs/engine-old.cjs plus three pinned fixture/golden paths",
+      "function": "later unchanged build/original gate and stamp verification",
+      "state": "Manifest paths/hashes resolved, bytes and generated artifact identities not verified. No regeneration, pin normalization, fixture copy, or import performed."
+    }
+  ],
+  "custody": {
+    "existing193196": "B-only unchanged gate consumption settled, exact invocation still pending",
+    "nativeFieldDeltas": "UNKNOWN",
+    "originalTestsPreserved": true,
+    "privateDataModelRead": false,
+    "productOrObserverImplementation": false,
+    "nativeOrTestExecution": false,
+    "onlyAuthoredPaths": [
+      "rebuild/lanes/b/B1B2-NATIVE-BOUNDARIES-PLAN.md",
+      "rebuild/lanes/b/B1B2-NATIVE-BOUNDARIES-PLAN.json"
+    ]
+  }
+}
