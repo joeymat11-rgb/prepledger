@@ -303,6 +303,14 @@ function theOneFix(s, levers) {
     title: "Protect tonight's sleep",
     body: "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
     whyNot: "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food." };
+  // R8: a quiet sleep comparison is not clearance. Keep the actual recovery
+  // observations and actions together, without selecting or pricing a leader.
+  // The existing logging/steps/finite-sleep decisions above retain precedence.
+  const recovery = L.sleep.state === "quiet" ? E.recoveryIndex(s) : null;
+  const recoveryNote = recovery ? [L.sleep.detail + ".",
+    ...(recovery.score === null ? ["Recovery rating unavailable."] : []),
+    ...recovery.flags.map((f) => `${f.receipt}. ${f.fix}`)].join(" ") : null;
+  const withRecovery = (fix) => recoveryNote ? { ...fix, body: fix.body + " " + recoveryNote, recoveryNote } : fix;
   // Rungs 4/5 — only once logging, steps and sleep are covered AND the trend has stalled
   const cr = currentRate(s);
   /* D27 — rungs 4/5 are CUT advice: the committed phase decides, and its own recorded start times it */
@@ -310,14 +318,17 @@ function theOneFix(s, levers) {
   const onCut = arc.key === "cut";
   const stalled = onCut && !sealed && cr.measured && cr.scale < floor;
   const longCut = arc.weeks >= 10;
-  if (stalled && longCut) return { rung: "break", lever: "DEFICIT", state: "caution",
+  if (stalled && longCut) return withRecovery({ rung: "break", lever: "DEFICIT", state: "caution",
     title: "A diet break has earned its place",
     body: "You've held the deficit for weeks and the trend has flattened. A full week at maintenance is the intervention with real adherence evidence here — not a deeper cut. A planned pause, not a lapse.",
-    whyNot: null };
-  if (stalled) return { rung: "calories", lever: "DEFICIT", state: "caution",
+    whyNot: null });
+  if (stalled) return withRecovery({ rung: "calories", lever: "DEFICIT", state: "caution",
     title: "Now a small calorie trim earns its place",
-    body: "Logging, steps and sleep are all covered and the trend has flattened — this is the rung where a modest cut is finally the honest move. Keep it small; " + DEFICIT_CEILING.line() + ".",
-    whyNot: null };
+    body: (recoveryNote ? "Logging is complete and the trend has flattened; the sleep comparison is unavailable. Keep any calorie trim small; " : "Logging, steps and sleep are all covered and the trend has flattened — this is the rung where a modest cut is finally the honest move. Keep it small; ") + DEFICIT_CEILING.line() + ".",
+    whyNot: null });
+  if (recoveryNote) return { rung: "hold", lever: null, state: "quiet",
+    title: recovery.flags.length ? "Recorded recovery warnings" : "Sleep comparison unavailable",
+    body: recoveryNote, whyNot: null, recoveryNote };
   // Everything covered, trend doing its job — the good, quiet state
   return { rung: "hold", lever: null, state: "good",
     title: "Nothing to fix — hold the line",
@@ -491,9 +502,10 @@ function marchingOrder(s, deps) {
   // action is unchanged — only the reason gains the horizon). Self-silencing: an ambiguous or
   // absent crossing leaves the standing if-then exactly as it was.
   const fc = (deps && deps.fc) || safeCrossing(s);
-  const why = fc && fc.fires
+  const why = (fc && fc.fires
     ? `Approaching the lean-loss rate (~${fc.wksEarly}–${fc.wksLate} wks) — protein first protects lean while Auto-Pilot eases the deficit back.`
-    : ((fix && fix.title) || "Hold the line — the five are covered and the trend is doing its job.");
+    : ((fix && fix.title) || "Hold the line — the five are covered and the trend is doing its job."))
+    + (fix && fix.recoveryNote ? " " + fix.recoveryNote : "");
   return {
     owed: false, kind: "day",
     ifText: "If it's a meal", thenText: "protein first",
@@ -567,7 +579,8 @@ function nowModelUncached(s, deps) {
   }
   else if (fix.state === "caution") move = { kind: "fix", lever: fix.lever, title: _plain9(String(fix.title || "").toUpperCase()), body: _plain9(fix.body) };
   else if (cr.measured && !eb.gated && (cr.scale > rb.band[1] || cr.scale < rb.band[0]))
-    move = { kind: "rate", title: "HOW FAST YOU'RE LOSING", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) };
+    move = { kind: "rate", title: "HOW FAST YOU'RE LOSING", strip: _rateStrip(rb, cr), body: _rateWord(rb, cr) + (fix.recoveryNote ? " " + _plain9(fix.recoveryNote) : "") };
+  else if (fix.recoveryNote) move = { kind: "quiet", title: _plain9(String(fix.title || "").toUpperCase()), body: _plain9(fix.body) };
   else move = { kind: "quiet", title: "NOTHING NEEDS YOU", body: "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying." };
   /* NEXT WORKOUT */
   let workout = { title: "REST DAY", sub: "Recovery is training too — the next session is on its way.", today: false };
