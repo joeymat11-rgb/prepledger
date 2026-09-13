@@ -27,6 +27,7 @@ No producer, preparation, preview, cancel or projection writes anything. Only th
 | `rebuild/m3/w6/t2-stage.cjs:9,63` | Stage admits `workout`, not literal `planEdit`; injected commands can return a plan member to the existing builder. This is the proposed transport seam. |
 | `rebuild/m3/w6/local/host-bindings.mjs:229,261,283` | Host bindings share the installation repository, lease and clock; commands are injected; the existing synchronous commit validator must remain composed. |
 | `rebuild/m3/w6/bridge.mjs:14,40`; `repository.mjs:239,244,259` | CAS failures can restage against a newer generation. Final synchronous validation runs inside the transaction, and Saved follows completion. |
+| `rebuild/m3/w6/build-browser.mjs:36`; `node-sha256-browser.mjs:22` | Browser crypto rewriting admits exact existing client importers only. The host uses the existing SHA256 browser adapter and injects hashing into the pure model; no build allowlist change. |
 | `rebuild/m3/w6/public-client.mjs:213,256` | Authenticated storage is not alone proof of local immutable operation identity; local-history authentication must reach T2 on companion reads and writes. |
 | `rebuild/engine/plan.cjs:59,87` | Names have their own dated `renames` seams. `exActive` treats any retirement as inactive, without querying its date; future retirement cannot be put into today's projection. |
 | `rebuild/m4/workout/workout-basis.cjs:40`; `rebuild/m3/w6/local/today-bindings.mjs:305,348` | Current gym composition captures engineState and static plan-basis labels. Edited-plan state and actual operation basis must travel together. |
@@ -42,13 +43,14 @@ All listed files are NEW and D-owned for this package; no existing client, Today
 | New path | Interface and responsibility |
 | --- | --- |
 | `rebuild/m4/workout/plan-edit-commands.cjs` | `createPlanEditCommands({validateTags})` returns `{schemaVersion:2,prepare,validate}`; exports `PROFILE`, `ACTION`, `nextLocalDate` and input validation. Descriptor-safe closed records refuse getters, bad prototypes, symbols, non-enumerable members, sparse arrays, nonfinite quantities and unknown fields. |
-| `rebuild/m4/workout/plan-edit-model.cjs` | `createPlanEditProjector({basisState,setupOperation,validateTags,projectNewExerciseTags}).read(generation,date)` returns frozen `{state,plan_basis,causal_parents,pending_dates,applied_ids,intents}` or an explicit refusal. `plan_basis` covers current and pending history independently of projection date. |
+| `rebuild/m4/workout/plan-edit-model.cjs` | `createPlanEditProjector({basisState,setupOperation,validateTags,projectNewExerciseTags,hashBasis}).read(generation,date)` returns frozen `{state,plan_basis,causal_parents,pending_dates,applied_ids,intents}` or an explicit refusal. `plan_basis` covers current and pending history independently of projection date. |
 | `rebuild/m3/w6/host/plan-edit-host.mjs` | `createPlanEditHost({client,clock,basisState,setupOperation,validateTags,projectNewExerciseTags,newIntentId})`; `read(date?)`, `review(edit)`, `save(review_id)`, `close()`. Uses the already-open installation and its existing clock. C supplies the trusted base projection and stable new exercise IDs, never renderer-authored state. |
 | `rebuild/lanes/d/plan-edit/model.test.cjs` | Synthetic pure command/projector, identity/history and malformed-input cells. |
 | `rebuild/lanes/d/plan-edit/durable-host.test.mjs` | Real existing encrypted repository, stage and local-era composition; failure, retry, reopen and captured-basis cells. |
 
 `validateTags(exercise,tags)` is C's injected F2 validator over its canonical taxonomy; it returns true or refuses. No copied catalogue/anatomy list.
 `projectNewExerciseTags(exercise,tags,{op_id,date})` is required for add/replace and supplies the source-owned F2 tag marker, including derived regionsByMuscle. It may not borrow another row's provenance; a missing binding refuses. Synthetic adapter tests do not claim the actual C/F2 integration is proved.
+`hashBasis(canonicalText)` is required by the pure model and must return exactly 64 lowercase hexadecimal characters. The durable host binds the existing W6 browser SHA256 adapter internally; C's host interface remains unchanged. The model reuses client canonical encoding and imports no Node crypto.
 The host/provider shape may be refined before code freeze to match C's real composition; any changed interface is named in REQUESTS before consumer implementation.
 
 ## 4. Proposed closed intent and operation
