@@ -863,6 +863,27 @@ module.exports.CONSTRUCTION_MUTATIONS.push(...[
     "U9 R7 clock trace"
   ]
 ]);
+// PM262 R8 guard reversals run in the same owned, restored public-source audit.
+// Each filter selects an actual consumer assertion, never a pin/syntax refusal.
+module.exports.CONSTRUCTION_MUTATIONS.push(...[
+ ['R8-quiet-recovery-join','const recovery = L.sleep.state === "quiet" ? E.recoveryIndex(s) : null;','const recovery = false ? E.recoveryIndex(s) : null;','FG5 R8 exact reviewer'],
+ ['R8-eager-recovery-join','const recovery = L.sleep.state === "quiet" ? E.recoveryIndex(s) : null;','const recovery = true ? E.recoveryIndex(s) : null;','FG5 R8 known healthy'],
+ ['R8-current-observation-detail','[L.sleep.detail + ".",','["",','FG5 R8 missing observation'],
+ ['R8-unavailable-rating-omitted','...(recovery.score === null ? ["Recovery rating unavailable."] : []),','...(false ? ["Recovery rating unavailable."] : []),','FG5 R8 exact reviewer'],
+ ['R8-rating-absence-invented','...(recovery.score === null ? ["Recovery rating unavailable."] : []),','...(true ? ["Recovery rating unavailable."] : []),','FG5 R8 healthy observations unavailable'],
+ ['R8-recorded-receipts-omitted','...recovery.flags.map((f) => `${f.receipt}. ${f.fix}`)','...recovery.flags.map((f) => `${f.fix}`)','FG5 R8 independent warnings'],
+ ['R8-recorded-actions-omitted','...recovery.flags.map((f) => `${f.receipt}. ${f.fix}`)','...recovery.flags.map((f) => `${f.receipt}`)','FG5 R8 independent warnings'],
+ ['R8-break-qualifier-omitted','if (stalled && longCut) return withRecovery({','if (stalled && longCut) return ((fix) => fix)({','FG5 R8 precedence break'],
+ ['R8-calories-qualifier-omitted','if (stalled) return withRecovery({','if (stalled) return ((fix) => fix)({','FG5 R8 precedence calories'],
+ ['R8-calories-false-covered','body: (recoveryNote ? "Logging is complete','body: (false ? "Logging is complete','FG5 R8 precedence calories'],
+ ['R8-quiet-fallback-omitted','if (recoveryNote) return { rung: "hold",','if (false) return { rung: "hold",','FG5 R8 exact reviewer'],
+ ['R8-recorded-warning-title-omitted','title: recovery.flags.length ? "Recorded recovery warnings"','title: false ? "Recorded recovery warnings"','FG5 R8 exact reviewer'],
+ ['R8-recorded-warning-title-invented','title: recovery.flags.length ? "Recorded recovery warnings"','title: true ? "Recorded recovery warnings"','FG5 R8 healthy observations unavailable'],
+ ['R8-marching-warning-propagation','(fix && fix.recoveryNote ? " " + fix.recoveryNote : "")','(false ? " " + fix.recoveryNote : "")','FG5 R8 exact reviewer|FG5 R8 actual foresight'],
+ ['R8-rate-warning-propagation','(fix.recoveryNote ? " " + _plain9(fix.recoveryNote) : "")','(false ? " " + _plain9(fix.recoveryNote) : "")','FG5 R8 precedence rate'],
+ ['R8-now-quiet-propagation','else if (fix.recoveryNote) move =','else if (false) move =','FG5 R8 exact reviewer'],
+ ['R8-action-note-field-omitted','{ ...fix, body: fix.body + " " + recoveryNote, recoveryNote } : fix;','{ ...fix, body: fix.body + " " + recoveryNote } : fix;','FG5 R8 precedence calories|FG5 R8 precedence break']
+].map(([id,before,after,filter])=>[id,'today',before,after,'rebuild/engine/test/b1b2-sleep-target-cells.cjs',filter]));
 module.exports.runConstructionAudit=runConstructionAudit;
 if(require.main===module&&process.argv.some(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))process.exit(runConstructionAudit(process.argv.find(a=>['--audit-mutations','--audit-historical-mutations','--audit-preimage','--audit-public-laws'].includes(a)))?0:1);
 
