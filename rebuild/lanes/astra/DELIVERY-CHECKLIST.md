@@ -1,13 +1,13 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 05:26 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 repair, B engine construction and D S3 core remain separate from accepted M.
+PM reconciliation at 2026-09-13 05:36 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 repair, B engine construction and D S3 core remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
 | Full Astra operating handover | Published193, eight development seats with schedules after E203 and separate integrator I; old work preserved, returning work reconciled by PM | PM and all leads |
 | Fresh app launch | Launch package accepted/integrated atM100820aa; independent C/D2, B196, I fresh build/six Edge flows20kills; integration full34745429303 and shared34745429317 bothOS verified. No physical-phone or deployment claim | Complete in development; owner-use proof separate |
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
-| N2 sleep entry | D2aefc06f final REJECT atbdbee8b for one producer date boundary; all old R3 closes, independent903/18cells/18mutants/8adverse and fresh113input7kill pass retained. C actual5-case red2validPASS/3invalid assertion failures; scoped correction underway. PR54 draft, exact B successor/sleep CI required | C fix; D2 exact successor review; B CI |
+| N2 sleep entry | R5 PR54 at19aa865/source80614eb, builder908/sleep71/date5 and fresh113input7kill browser pass. D2 independently confirmed raw-client effective override permits incomplete nights:1validPASS/2invalid assertion failures; final review pending, head fixed. Draft description accurately records open producer issue; earlier R4 closures/evidence retained | D2 verifies; C corrects after handoff; B exact71-test/current-package CI |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
 | B1+B2 | Runtime6c9248e; tooling reported157/157 with original156/157 retained. Exact abf6505 successor registration amendment accepted at232: new current evidence, inherited nine plus three repaired/seven original gates and one setup-test lookup hunk. Complete composition, MAX review and actual native/private/FULL proof pending | B builds/registers; separate MAX reviewer; PM later exact gate grant |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
