@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: atomic head: abort-after after publication is unknown and never revives the old handle
+not ok 1 - atomic head: abort-after after publication is unknown and never revives the old handle
+  ---
+  duration_ms: 21.2892
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1316:52'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1319:127)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: atomic head: close-after after publication is unknown and never revives the old handle
+not ok 2 - atomic head: close-after after publication is unknown and never revives the old handle
+  ---
+  duration_ms: 7.0554
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1316:52'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1319:127)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 157.5762

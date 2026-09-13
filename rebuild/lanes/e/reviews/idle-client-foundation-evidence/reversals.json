@@ -1,0 +1,47 @@
+[
+  {
+    "name": "queue-epoch",
+    "pattern": "idle replacement: synchronous history invalidation",
+    "status": 1,
+    "fail": 1,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restoredPass": 1
+  },
+  {
+    "name": "sticky-write",
+    "pattern": "idle replacement: unknown (edit|resume|general-close) write",
+    "status": 1,
+    "fail": 3,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restoredPass": 3
+  },
+  {
+    "name": "all-day-history",
+    "pattern": "idle replacement: (active-today|unfinished-earlier) history",
+    "status": 1,
+    "fail": 2,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restoredPass": 2
+  },
+  {
+    "name": "old-handle",
+    "pattern": "idle replacement: idle (prepared|unprepared) host",
+    "status": 1,
+    "fail": 2,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restoredPass": 2
+  },
+  {
+    "name": "publication-unknown",
+    "pattern": "idle replacement: publisher (throw-before|assign-throw|assign-promise|assign-value)",
+    "status": 1,
+    "fail": 4,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restoredPass": 4
+  }
+]

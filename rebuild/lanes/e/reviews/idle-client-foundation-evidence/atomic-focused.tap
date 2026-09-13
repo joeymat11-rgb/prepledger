@@ -1,0 +1,175 @@
+TAP version 13
+# Subtest: atomic head: success is readonly and preserves active previous adoption and every stored collection byte
+not ok 1 - atomic head: success is readonly and preserves active previous adoption and every stored collection byte
+  ---
+  duration_ms: 41.2486
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1259:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1264:10)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: atomic head: earlier independent revision write refuses inside the real readonly transaction
+ok 2 - atomic head: earlier independent revision write refuses inside the real readonly transaction
+  ---
+  duration_ms: 10.9411
+  type: 'test'
+  ...
+# Subtest: atomic head: earlier independent token write refuses inside the real readonly transaction
+ok 3 - atomic head: earlier independent token write refuses inside the real readonly transaction
+  ---
+  duration_ms: 10.6476
+  type: 'test'
+  ...
+# Subtest: atomic head: earlier independent missing write refuses inside the real readonly transaction
+ok 4 - atomic head: earlier independent missing write refuses inside the real readonly transaction
+  ---
+  duration_ms: 5.5631
+  type: 'test'
+  ...
+# Subtest: atomic head: earlier independent malformed write refuses inside the real readonly transaction
+ok 5 - atomic head: earlier independent malformed write refuses inside the real readonly transaction
+  ---
+  duration_ms: 4.6621
+  type: 'test'
+  ...
+# Subtest: atomic head: a later independent writer waits for synchronous publication and transaction completion
+not ok 6 - atomic head: a later independent writer waits for synchronous publication and transaction completion
+  ---
+  duration_ms: 3.6079
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1286:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1291:10)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: atomic head: queue changing while an earlier transaction blocks the read refuses publication
+ok 7 - atomic head: queue changing while an earlier transaction blocks the read refuses publication
+  ---
+  duration_ms: 7.0243
+  type: 'test'
+  ...
+# Subtest: atomic head: session changing while an earlier transaction blocks the read refuses publication
+ok 8 - atomic head: session changing while an earlier transaction blocks the read refuses publication
+  ---
+  duration_ms: 5.6814
+  type: 'test'
+  ...
+# Subtest: atomic head: observation changing while an earlier transaction blocks the read refuses publication
+ok 9 - atomic head: observation changing while an earlier transaction blocks the read refuses publication
+  ---
+  duration_ms: 8.0709
+  type: 'test'
+  ...
+# Subtest: atomic head: begin-failure leaves the old preparation usable and writes nothing
+ok 10 - atomic head: begin-failure leaves the old preparation usable and writes nothing
+  ---
+  duration_ms: 6.9403
+  type: 'test'
+  ...
+# Subtest: atomic head: read-failure leaves the old preparation usable and writes nothing
+ok 11 - atomic head: read-failure leaves the old preparation usable and writes nothing
+  ---
+  duration_ms: 6.9428
+  type: 'test'
+  ...
+# Subtest: atomic head: abort-before leaves the old preparation usable and writes nothing
+not ok 12 - atomic head: abort-before leaves the old preparation usable and writes nothing
+  ---
+  duration_ms: 3.4491
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1309:70'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"stored":false,"durable":false,"state":18,"code":"WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN","reason":"Replacement publication is unknown; rebuild the trusted host before another replacement.","replaced":false,"outcomeUnknown":true,"publicationCompleted":true,"oldHandleRetired":true,"failureCode":"CURRENT_HEAD_READ_ABORTED"}
+    + actual - expected
+    
+    + 'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN'
+    - 'CURRENT_HEAD_READ_ABORTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'CURRENT_HEAD_READ_ABORTED'
+  actual: 'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN'
+  operator: 'strictEqual'
+  stack: |-
+    expectReplacementRefused (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:971:66)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1311:11)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: atomic head: abort-after after publication is unknown and never revives the old handle
+not ok 13 - atomic head: abort-after after publication is unknown and never revives the old handle
+  ---
+  duration_ms: 4.145
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1316:52'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'SESSION_CHANGED'
+    - 'CURRENT_HEAD_READ_ABORTED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'CURRENT_HEAD_READ_ABORTED'
+  actual: 'SESSION_CHANGED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1321:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: atomic head: close-after after publication is unknown and never revives the old handle
+ok 14 - atomic head: close-after after publication is unknown and never revives the old handle
+  ---
+  duration_ms: 4.5143
+  type: 'test'
+  ...
+# Subtest: atomic head: missing capability refuses rather than falling back to a snapshot check
+ok 15 - atomic head: missing capability refuses rather than falling back to a snapshot check
+  ---
+  duration_ms: 6.3937
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 11
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 279.0123

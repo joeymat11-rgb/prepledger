@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: idle replacement: synchronous currentness reentrancy cannot publish ahead of a queued Start
+ok 1 - idle replacement: synchronous currentness reentrancy cannot publish ahead of a queued Start
+  ---
+  duration_ms: 25.5737
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 151.6966

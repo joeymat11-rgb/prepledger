@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: idle replacement: idle unprepared host publishes exactly once without a write
+not ok 1 - idle replacement: idle unprepared host publishes exactly once without a write
+  ---
+  duration_ms: 39.1935
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:975:36'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'SESSION_CHANGED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'SESSION_CHANGED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:983:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: idle replacement: idle prepared host publishes exactly once without a write
+not ok 2 - idle replacement: idle prepared host publishes exactly once without a write
+  ---
+  duration_ms: 10.1191
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:975:36'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'SESSION_CHANGED'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'SESSION_CHANGED'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:983:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 183.8398

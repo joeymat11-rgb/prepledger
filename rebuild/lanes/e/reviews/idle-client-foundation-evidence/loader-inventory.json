@@ -1,0 +1,1797 @@
+{
+  "kind": "STATIC_REVIEW_WITH_REAL_TWO_ENTRY_EXECUTION_NOT_PACKAGE_OR_BROWSER_CLOSURE",
+  "files": 50,
+  "edges": [
+    {
+      "file": "rebuild/client/face.cjs",
+      "reference": "./copy.cjs",
+      "resolved": "rebuild/client/copy.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./store.cjs",
+      "resolved": "rebuild/client/store.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./lease.cjs",
+      "resolved": "rebuild/client/lease.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./outbox.cjs",
+      "resolved": "rebuild/client/outbox.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./sync.cjs",
+      "resolved": "rebuild/client/sync.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./face.cjs",
+      "resolved": "rebuild/client/face.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./plan.cjs",
+      "resolved": "rebuild/client/plan.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./session.cjs",
+      "resolved": "rebuild/client/session.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./bodycomp.cjs",
+      "resolved": "rebuild/client/bodycomp.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./copy.cjs",
+      "resolved": "rebuild/client/copy.cjs"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "reference": "./canonical.cjs",
+      "resolved": "rebuild/client/canonical.cjs"
+    },
+    {
+      "file": "rebuild/client/lease.cjs",
+      "reference": "./ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/client/ops.cjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/client/ops.cjs",
+      "reference": "./canonical.cjs",
+      "resolved": "rebuild/client/canonical.cjs"
+    },
+    {
+      "file": "rebuild/client/plan.cjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/client/plan.cjs",
+      "reference": "./canonical.cjs",
+      "resolved": "rebuild/client/canonical.cjs"
+    },
+    {
+      "file": "rebuild/client/session.cjs",
+      "reference": "./copy.cjs",
+      "resolved": "rebuild/client/copy.cjs"
+    },
+    {
+      "file": "rebuild/client/sync.cjs",
+      "reference": "./ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/client/sync.cjs",
+      "reference": "./copy.cjs",
+      "resolved": "rebuild/client/copy.cjs"
+    },
+    {
+      "file": "rebuild/client/sync.cjs",
+      "reference": "./copy.cjs",
+      "resolved": "rebuild/client/copy.cjs"
+    },
+    {
+      "file": "rebuild/conform/lib/ops.cjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/conform/lib/ops.cjs",
+      "reference": "./canonical.cjs",
+      "resolved": "rebuild/conform/lib/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/crypto.cjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/m3/w5/crypto.cjs",
+      "reference": "../../authority/canonical.cjs",
+      "resolved": "rebuild/authority/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/crypto.cjs",
+      "reference": "./reconciliation/server-bytes.cjs",
+      "resolved": "rebuild/m3/w5/reconciliation/server-bytes.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/public-client.cjs",
+      "reference": "../../authority/canonical.cjs",
+      "resolved": "rebuild/authority/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/codec.cjs",
+      "reference": "@noble/hashes/sha2.js",
+      "resolved": "@noble/hashes/sha2.js"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "reference": "../../../authority/canonical.cjs",
+      "resolved": "rebuild/authority/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "reference": "./codec.cjs",
+      "resolved": "rebuild/m3/w5/reconciliation/codec.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/source/codec.cjs",
+      "reference": "../reconciliation/codec.cjs",
+      "resolved": "rebuild/m3/w5/reconciliation/codec.cjs"
+    },
+    {
+      "file": "rebuild/m3/w5/source/codec.cjs",
+      "reference": "@noble/hashes/sha2.js",
+      "resolved": "@noble/hashes/sha2.js"
+    },
+    {
+      "file": "rebuild/m3/w6/bridge.mjs",
+      "reference": "./repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/candidate-grant.mjs",
+      "reference": "../../authority/canonical.cjs",
+      "resolved": "rebuild/authority/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/history-proof.mjs",
+      "reference": "../w5/public-client.cjs",
+      "resolved": "rebuild/m3/w5/public-client.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "reference": "@noble/hashes/hmac.js",
+      "resolved": "@noble/hashes/hmac.js"
+    },
+    {
+      "file": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "reference": "@noble/hashes/sha2.js",
+      "resolved": "@noble/hashes/sha2.js"
+    },
+    {
+      "file": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "reference": "@noble/hashes/utils.js",
+      "resolved": "@noble/hashes/utils.js"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "../w5/public-client.cjs",
+      "resolved": "rebuild/m3/w5/public-client.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "./bridge.mjs",
+      "resolved": "rebuild/m3/w6/bridge.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "./repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "./recovery-local.mjs",
+      "resolved": "rebuild/m3/w6/recovery-local.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "./recovery-history.mjs",
+      "resolved": "rebuild/m3/w6/recovery-history.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "./candidate-grant.mjs",
+      "resolved": "rebuild/m3/w6/candidate-grant.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "../../authority/canonical.cjs",
+      "resolved": "rebuild/authority/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "./history-proof.mjs",
+      "resolved": "rebuild/m3/w6/history-proof.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "../../m4/workout/schema.cjs",
+      "resolved": "rebuild/m4/workout/schema.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "../../m4/workout/stored-history.mjs",
+      "resolved": "rebuild/m4/workout/stored-history.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "../../m4/workout/continuation.mjs",
+      "resolved": "rebuild/m4/workout/continuation.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "reference": "../../m4/workout/commands.cjs",
+      "resolved": "rebuild/m4/workout/commands.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-history.mjs",
+      "reference": "./repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-history.mjs",
+      "reference": "./recovery-profile.mjs",
+      "resolved": "rebuild/m3/w6/recovery-profile.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-history.mjs",
+      "reference": "./recovery-snapshot.cjs",
+      "resolved": "rebuild/m3/w6/recovery-snapshot.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-local.mjs",
+      "reference": "./repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-local.mjs",
+      "reference": "./recovery-profile.mjs",
+      "resolved": "rebuild/m3/w6/recovery-profile.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-local.mjs",
+      "reference": "./t2-stage.cjs",
+      "resolved": "rebuild/m3/w6/t2-stage.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-plan.cjs",
+      "reference": "../../authority/canonical.cjs",
+      "resolved": "rebuild/authority/canonical.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-plan.cjs",
+      "reference": "./node-sha256-browser.mjs",
+      "resolved": "rebuild/m3/w6/node-sha256-browser.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-plan.cjs",
+      "reference": "./recovery-plan-reader.cjs",
+      "resolved": "rebuild/m3/w6/recovery-plan-reader.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-profile.mjs",
+      "reference": "./recovery-plan.cjs",
+      "resolved": "rebuild/m3/w6/recovery-plan.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/repository.mjs",
+      "reference": "./recovery-stage.mjs",
+      "resolved": "rebuild/m3/w6/recovery-stage.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/repository.mjs",
+      "reference": "./import-custody.mjs",
+      "resolved": "rebuild/m3/w6/import-custody.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "reference": "../../client/index.cjs",
+      "resolved": "rebuild/client/index.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "reference": "../../client/ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "reference": "../../m4/workout/commands.cjs",
+      "resolved": "rebuild/m4/workout/commands.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "reference": "./recovery-snapshot.cjs",
+      "resolved": "rebuild/m3/w6/recovery-snapshot.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "node:test",
+      "resolved": "node:test"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "node:assert/strict",
+      "resolved": "node:assert/strict"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../public-client.mjs",
+      "resolved": "rebuild/m3/w6/public-client.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../strict-json.mjs",
+      "resolved": "rebuild/m3/w6/strict-json.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "./support.mjs",
+      "resolved": "rebuild/m3/w6/test/support.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../../m4/workout/capture.cjs",
+      "resolved": "rebuild/m4/workout/capture.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../../m4/workout/commands.cjs",
+      "resolved": "rebuild/m4/workout/commands.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../../m4/workout/schema.cjs",
+      "resolved": "rebuild/m4/workout/schema.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../w5/crypto.cjs",
+      "resolved": "rebuild/m3/w5/crypto.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../w5/public-client.cjs",
+      "resolved": "rebuild/m3/w5/public-client.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../w5/source/codec.cjs",
+      "resolved": "rebuild/m3/w5/source/codec.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "reference": "../../../m4/workout/continuation.mjs",
+      "resolved": "rebuild/m4/workout/continuation.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "node:test",
+      "resolved": "node:test"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "node:assert/strict",
+      "resolved": "node:assert/strict"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "node:module",
+      "resolved": "node:module"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../public-client.mjs",
+      "resolved": "rebuild/m3/w6/public-client.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../candidate-grant.mjs",
+      "resolved": "rebuild/m3/w6/candidate-grant.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "./support.mjs",
+      "resolved": "rebuild/m3/w6/test/support.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../../w5/crypto.cjs",
+      "resolved": "rebuild/m3/w5/crypto.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../../w5/public-client.cjs",
+      "resolved": "rebuild/m3/w5/public-client.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../../../client/ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../../../client/ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../../../client/ops.cjs",
+      "resolved": "rebuild/client/ops.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "reference": "../repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "fake-indexeddb",
+      "resolved": "fake-indexeddb"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "node:crypto",
+      "resolved": "node:crypto"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "node:module",
+      "resolved": "node:module"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "../repository.mjs",
+      "resolved": "rebuild/m3/w6/repository.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "../bridge.mjs",
+      "resolved": "rebuild/m3/w6/bridge.mjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "../../../client/index.cjs",
+      "resolved": "rebuild/client/index.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "../../../conform/lib/ops.cjs",
+      "resolved": "rebuild/conform/lib/ops.cjs"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "reference": "../t2-stage.cjs",
+      "resolved": "rebuild/m3/w6/t2-stage.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/authority-profile.cjs",
+      "reference": "./edit-values.cjs",
+      "resolved": "rebuild/m4/workout/edit-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/commands.cjs",
+      "reference": "./schema.cjs",
+      "resolved": "rebuild/m4/workout/schema.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/commands.cjs",
+      "reference": "./authority-profile.cjs",
+      "resolved": "rebuild/m4/workout/authority-profile.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/context-values.cjs",
+      "reference": "./edit-values.cjs",
+      "resolved": "rebuild/m4/workout/edit-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/continuation.mjs",
+      "reference": "../../client/session.cjs",
+      "resolved": "rebuild/client/session.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/edit-history.cjs",
+      "reference": "./edit-values.cjs",
+      "resolved": "rebuild/m4/workout/edit-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/edit-history.cjs",
+      "reference": "./schema.cjs",
+      "resolved": "rebuild/m4/workout/schema.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/edit-history.cjs",
+      "reference": "./context-values.cjs",
+      "resolved": "rebuild/m4/workout/context-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/project-history.mjs",
+      "reference": "./edit-history.cjs",
+      "resolved": "rebuild/m4/workout/edit-history.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/schema.cjs",
+      "reference": "./edit-values.cjs",
+      "resolved": "rebuild/m4/workout/edit-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/schema.cjs",
+      "reference": "./context-values.cjs",
+      "resolved": "rebuild/m4/workout/context-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/schema.cjs",
+      "reference": "./source-control-values.cjs",
+      "resolved": "rebuild/m4/workout/source-control-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/source-control-values.cjs",
+      "reference": "./edit-values.cjs",
+      "resolved": "rebuild/m4/workout/edit-values.cjs"
+    },
+    {
+      "file": "rebuild/m4/workout/stored-history.mjs",
+      "reference": "../../m3/w6/history-proof.mjs",
+      "resolved": "rebuild/m3/w6/history-proof.mjs"
+    },
+    {
+      "file": "rebuild/m4/workout/stored-history.mjs",
+      "reference": "./project-history.mjs",
+      "resolved": "rebuild/m4/workout/project-history.mjs"
+    },
+    {
+      "file": "rebuild/m4/workout/stored-history.mjs",
+      "reference": "./edit-history.cjs",
+      "resolved": "rebuild/m4/workout/edit-history.cjs"
+    }
+  ],
+  "hazards": [
+    {
+      "file": "rebuild/client/face.cjs",
+      "line": 11,
+      "text": "require(\"./copy.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 21,
+      "text": "require(\"./store.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 22,
+      "text": "require(\"./ops.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 23,
+      "text": "require(\"./lease.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 24,
+      "text": "require(\"./outbox.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 25,
+      "text": "require(\"./sync.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 26,
+      "text": "require(\"./face.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 27,
+      "text": "require(\"./plan.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 28,
+      "text": "require(\"./session.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 29,
+      "text": "require(\"./bodycomp.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 30,
+      "text": "require(\"./copy.cjs\");"
+    },
+    {
+      "file": "rebuild/client/index.cjs",
+      "line": 31,
+      "text": "require(\"./canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/client/lease.cjs",
+      "line": 7,
+      "text": "require(\"./ops.cjs\");"
+    },
+    {
+      "file": "rebuild/client/ops.cjs",
+      "line": 13,
+      "text": "require(\"node:crypto\");"
+    },
+    {
+      "file": "rebuild/client/ops.cjs",
+      "line": 14,
+      "text": "require(\"./canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/client/plan.cjs",
+      "line": 12,
+      "text": "require(\"node:crypto\");"
+    },
+    {
+      "file": "rebuild/client/plan.cjs",
+      "line": 13,
+      "text": "require(\"./canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/client/session.cjs",
+      "line": 87,
+      "text": "require(\"./copy.cjs\").SETS_COMBINED : null };"
+    },
+    {
+      "file": "rebuild/client/sync.cjs",
+      "line": 14,
+      "text": "require(\"./ops.cjs\");"
+    },
+    {
+      "file": "rebuild/client/sync.cjs",
+      "line": 69,
+      "text": "require(\"./copy.cjs\").REJECTED_BLOCKED + \": \" + r.error.message }; }"
+    },
+    {
+      "file": "rebuild/client/sync.cjs",
+      "line": 125,
+      "text": "require(\"./copy.cjs\");"
+    },
+    {
+      "file": "rebuild/conform/lib/ops.cjs",
+      "line": 11,
+      "text": "require(\"node:crypto\");"
+    },
+    {
+      "file": "rebuild/conform/lib/ops.cjs",
+      "line": 12,
+      "text": "require(\"./canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w5/crypto.cjs",
+      "line": 9,
+      "text": "require(\"node:crypto\");"
+    },
+    {
+      "file": "rebuild/m3/w5/crypto.cjs",
+      "line": 10,
+      "text": "require(\"../../authority/canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w5/crypto.cjs",
+      "line": 12,
+      "text": "require('./reconciliation/server-bytes.cjs').update(sink,without(record,new Set([field])),{canonical:true,domain});"
+    },
+    {
+      "file": "rebuild/m3/w5/public-client.cjs",
+      "line": 7,
+      "text": "require(\"../../authority/canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/codec.cjs",
+      "line": 4,
+      "text": "require('@noble/hashes/sha2.js');"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "line": 4,
+      "text": "require('node:crypto');"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "line": 5,
+      "text": "require('../../../authority/canonical.cjs');"
+    },
+    {
+      "file": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "line": 6,
+      "text": "require('./codec.cjs');"
+    },
+    {
+      "file": "rebuild/m3/w5/source/codec.cjs",
+      "line": 4,
+      "text": "require('../reconciliation/codec.cjs');"
+    },
+    {
+      "file": "rebuild/m3/w5/source/codec.cjs",
+      "line": 5,
+      "text": "require('@noble/hashes/sha2.js');"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-plan.cjs",
+      "line": 4,
+      "text": "require(\"../../authority/canonical.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-plan.cjs",
+      "line": 5,
+      "text": "require(\"./node-sha256-browser.mjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/recovery-plan.cjs",
+      "line": 9,
+      "text": "require(\"./recovery-plan-reader.cjs\")({ hmac, canonicalEncode });"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "line": 4,
+      "text": "require(\"../../client/index.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "line": 5,
+      "text": "require(\"../../client/ops.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "line": 6,
+      "text": "require(\"../../m4/workout/commands.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/t2-stage.cjs",
+      "line": 151,
+      "text": "require(\"./recovery-snapshot.cjs\").recoveredSnapshotFields(sourcePlan, archiveProof.reference);"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 3,
+      "text": "createRequire } from \"node:module\";"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 8,
+      "text": "createRequire(import.meta.url), Signer = require(\"../../w5/crypto.cjs\"), W5 = require(\"../../w5/public-client.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 8,
+      "text": "require(\"../../w5/crypto.cjs\"), W5 = require(\"../../w5/public-client.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 8,
+      "text": "require(\"../../w5/public-client.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 39,
+      "text": "require(\"../../../client/ops.cjs\").commitmentOf(first, config().identityKey);"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 63,
+      "text": "require(\"../../../client/ops.cjs\").commitmentOf(op, config().identityKey);"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 74,
+      "text": "require(\"../../../client/ops.cjs\").commitmentOf(actual, config().identityKey));"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 199,
+      "text": "import(\"../repository.mjs\")).openRepository(f.setup);"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "line": 275,
+      "text": "import(\"../repository.mjs\")).openRepository({ ...f.setup, crypto });"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "line": 3,
+      "text": "createRequire } from \"node:module\";"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "line": 6,
+      "text": "createRequire(import.meta.url);"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "line": 7,
+      "text": "require(\"../../../client/index.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "line": 8,
+      "text": "require(\"../../../conform/lib/ops.cjs\");"
+    },
+    {
+      "file": "rebuild/m3/w6/test/support.mjs",
+      "line": 9,
+      "text": "require(\"../t2-stage.cjs\");"
+    },
+    {
+      "file": "rebuild/m4/workout/authority-profile.cjs",
+      "line": 2,
+      "text": "require('./edit-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/commands.cjs",
+      "line": 3,
+      "text": "require('./schema.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/commands.cjs",
+      "line": 4,
+      "text": "require('./authority-profile.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/context-values.cjs",
+      "line": 4,
+      "text": "require('./edit-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/edit-history.cjs",
+      "line": 4,
+      "text": "require('./edit-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/edit-history.cjs",
+      "line": 5,
+      "text": "require('./schema.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/edit-history.cjs",
+      "line": 6,
+      "text": "require('./context-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/schema.cjs",
+      "line": 2,
+      "text": "require('./edit-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/schema.cjs",
+      "line": 3,
+      "text": "require('./context-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/schema.cjs",
+      "line": 4,
+      "text": "require('./source-control-values.cjs');"
+    },
+    {
+      "file": "rebuild/m4/workout/source-control-values.cjs",
+      "line": 4,
+      "text": "require('./edit-values.cjs');"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/argon2.d.ts",
+      "sha256": "85cf3ba3a1e2927e1bbcef97c8165976858dce5cad9274f353a730db2a42836f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/argon2.d.ts.map",
+      "sha256": "4a116794119f4115f2781b30a3ffc2cabe9de9ed4f7395b97a4f9705d93ff8f8"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/argon2.js",
+      "sha256": "234745e4cdeb7dda6df63f828532ba79463714778f772c6546066d489e28656b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/argon2.js.map",
+      "sha256": "2ffa23eca4cc545c1b2b4df0ad32b17b92aeff5a8061a5e273c1d294e692fe40"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake1.d.ts",
+      "sha256": "b950dfa64eff1e6efaae669a1a4b5de13204f7062dd2d104db313e41fa8a1958"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake1.d.ts.map",
+      "sha256": "623e13126db9d74966f3830542853980114ad7eb899305823619abdc197063d6"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake1.js",
+      "sha256": "88a0649706a8a01495028458a466f71eae83dc76a14a3a501dde7e086ce9d180"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake1.js.map",
+      "sha256": "b627dc46af2ac7647a152bdbbfc79bff39f1eb2bc2bf31008b6d5370ae747ec6"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake2.d.ts",
+      "sha256": "05430fddafdadc731b51474339ca8944ff988c1fbb2028160fd16726906fca56"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake2.d.ts.map",
+      "sha256": "fdf15fff41878983c9843f9289bd35de0b12a68aa9474e749a29af0ee7249248"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake2.js",
+      "sha256": "0349c61ff467cb14d413421b212616c0343f4dd4e36a0b1d626e1847dcabafd5"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake2.js.map",
+      "sha256": "4a23d6d0e79cb386fb48cdc3c5d5fb29293f41bebdb113242a01625f9d738bd3"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake3.d.ts",
+      "sha256": "a52e2e71f34040c09d74fd321a5613f8763af7942f096ba9e9afc7fe3f38448d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake3.d.ts.map",
+      "sha256": "4003e04a44015032d90d46086c011bbf89f3c762400cded11a633ca36cac3a60"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake3.js",
+      "sha256": "fa2cf9aa74cc1a4c2e3a3c4b6bc2c9e7b060fa01f9b8b472ba9cfa6cdb516563"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/blake3.js.map",
+      "sha256": "d2b5332f34a5ed5ec215a28e390ada32d014b6ab80b2dc13ced93fc2cf2c62c4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/eskdf.d.ts",
+      "sha256": "d512c960f6a500828263c782045181c1a063c8afa6da5136f1e8f454a822a91e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/eskdf.d.ts.map",
+      "sha256": "f763153495ba532ceba94217e7d493f30007a48214e14e6a13b6efd85614a95d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/eskdf.js",
+      "sha256": "0e9224c728638dd84c5ae36bc3bd497ba5d469d79ffe4a678aa14542066aca53"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/eskdf.js.map",
+      "sha256": "fc8bdba43e5737f26b5a4ddd6179fcf12bbea1b8c3efd04653790d20fb2189b1"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hkdf.d.ts",
+      "sha256": "78a7b31e84db4998964ded8db68c99a88108a10ef8e8909d335b71bd1e419003"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hkdf.d.ts.map",
+      "sha256": "b445c737942c78f03eafeeabdd8c1ee31a8e7db346d2cc8fcd74ce81e7b12673"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hkdf.js",
+      "sha256": "c0de209ef30cc76c14781d7746e6802b44eb17b7bfad6c07e5c17c5806c9836d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hkdf.js.map",
+      "sha256": "1b99f324224123fc48d1fe6f69652c1ceb3b7b6ca8935b0ef15504b220a66e63"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hmac.d.ts",
+      "sha256": "2c8266d989528442c6967133a6caccb1f98acee8f64dbc3633fca9a59d42ef10"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hmac.d.ts.map",
+      "sha256": "56212ea4ac3b4f5b9d57f756ee8e9e0a493f6a9d899a5386ba9a0b653aee4a7c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hmac.js",
+      "sha256": "137ed94227806b351a55b09801287a4dba72d2a35d3838730becf641271bc3dd"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/hmac.js.map",
+      "sha256": "97b2b9333b804257bc78d72144dedc41ee7f1158d472b20dcb433a15d2d52ad7"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/index.d.ts",
+      "sha256": "f667f6b1d66ba55f0dcd27f5ff050063fecfe289bad00e8c5d48344a775c1439"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/index.d.ts.map",
+      "sha256": "7755bad6a1fd1a6a721ae0bbaac3da2d95847c72f2dff7bdaf44d56cd82ac9d9"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/index.js",
+      "sha256": "3c9667faad18381e2bb97e6cb66db21f61bd25eb38d0b433619bb25c463f0355"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/index.js.map",
+      "sha256": "83b6afe18f37031aa4c8392ad00baf0ab21198c110cf46bc39400e980924c855"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/legacy.d.ts",
+      "sha256": "038e9c0f13a591880b6e5850d2989481dbef39a1f69ec6c5610f291498d1f4ee"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/legacy.d.ts.map",
+      "sha256": "a45be558d2b50f9c16c43c9bcbddd79432b355c2a3ddde0bcb9bcc95c8cfc45d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/legacy.js",
+      "sha256": "4722d1db35565d162f60f56065a6c283397188f582255b2a3cef809837b254cd"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/legacy.js.map",
+      "sha256": "75bdccc13ec3c786fb7477b621eb5e71928b7b6a2633e1d4e00445e9bbc2b3ce"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/LICENSE",
+      "sha256": "4f221aee6e072336700c408c68ab3b96a3fc09f6aebe6f48f1bd99e5ef13faec"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/package.json",
+      "sha256": "df2580ed1896b0deffc07437c6a8d83fcf233e4c4c1e77c12e491563222c4719"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/pbkdf2.d.ts",
+      "sha256": "d29d2f98f32eaa310f3ad5eea66f67a53cf3b560908a1dee9b037b6937e1480f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/pbkdf2.d.ts.map",
+      "sha256": "0eaa93589f875a6bb23b177180f3f82beb9b9f6c860a3e72fc5f8667e1ee28e3"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/pbkdf2.js",
+      "sha256": "d61f870b99cf8e67b6df0ae5f582c74177445844d6a92ea51e8060032d05b555"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/pbkdf2.js.map",
+      "sha256": "0d087596faad30cbd7c4ba8b8ea9a5901f972b27f0980a4b81e0a4c8c1651366"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/README.md",
+      "sha256": "e87dfafe55390e65273e1e7dfe10abf166909aa5f87a8f431521ea43a66ea97c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/scrypt.d.ts",
+      "sha256": "b0d010fe61506614e26981c05ca5a050ce39280f9fce1ba2a64ff7a2af09c94e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/scrypt.d.ts.map",
+      "sha256": "c2e1e42a3d0ecddad7cf4448e226bab3e2ecb017fd5ad9ed6d006e3fe474b346"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/scrypt.js",
+      "sha256": "fa8355cfeac385ec3bedf5902c51f109df3a16622c7efa9926f5dc4cdf9361c2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/scrypt.js.map",
+      "sha256": "980579eba718b4e733d95349093fda4e6d6907681e8181a5b6d3566209344653"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha2.d.ts",
+      "sha256": "e4bb95a0c8fe1fa1de39286287a8e9f714e8b27639064eaabcdbed9c2c55d02e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha2.d.ts.map",
+      "sha256": "ef16788d3a6d9024543a6f8e70110af7b6a2a054622282b7e2c7e74c7761abbf"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha2.js",
+      "sha256": "0fb8e3c3f2c73a890be2524ac5d2542aaed4decff69e561231a86131203b3973"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha2.js.map",
+      "sha256": "3ff4a350f0c889147a4c1952a115fe22ade88c2418433635b56eab32ee6133fd"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3-addons.d.ts",
+      "sha256": "91afb3ee38724ff044d2b57cd835350a6c41e0f446671aa232ad8fc90417fe17"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3-addons.d.ts.map",
+      "sha256": "fc3103ebd0ca44e971688a1abbfd8047dfd4ef88c3f7dd4effd74a1a96f6b6eb"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3-addons.js",
+      "sha256": "2111ee351601d648828ce66b532662cf1f1e2fa27ae2e4b1bbecf97159fb301f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3-addons.js.map",
+      "sha256": "1917a8d84bb5018fe0696ecaa9bb12841c1c1e127ae4885a5cb152b319d9a6bc"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3.d.ts",
+      "sha256": "47c94c6c03262bd2f68985060d4086560d00e898fcbf5e95f01de51e8cbcb8ab"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3.d.ts.map",
+      "sha256": "ae7bcb18660bdb8fc500284318f475f0ad81151fdcdb7e89d0d01b23d3d5f1ef"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3.js",
+      "sha256": "55b453d0a65c657aa408ec86d4ea8dd8f96740cd68963ea9ef180db4004f878f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/sha3.js.map",
+      "sha256": "fae8bd97ffd8cd3dee2ea1c5a1571cdb0e322b45da026f4b8c70b2b065afee21"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/argon2.ts",
+      "sha256": "4f56a2c933caef2037a37e1ef749c6329b132482edc4e6560dd758e1f78ce2f4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/blake1.ts",
+      "sha256": "1c29a6c54eeab28720e3082aa0b60aafd8aa01c51f7af11212c82b1cc32982b0"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/blake2.ts",
+      "sha256": "aa8ae43c63113ca05d4727c70385fd9a5b2fca539e44d8ba4ecb89f4447e3e28"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/blake3.ts",
+      "sha256": "e77d358bb5ab896d66e20e6d77cfea09168b79cdd53c37bfaa569488d750b605"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/eskdf.ts",
+      "sha256": "6aebb0e4ca27f2227d0e9d1f1f042b3ff8d74c68fb3465297b9653feb516855e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/hkdf.ts",
+      "sha256": "a92d0498f18771c17d2b45feb147640f2eb8c3593522e48ca9f2f05fa2a975c1"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/hmac.ts",
+      "sha256": "c036247c1df936ece5cef21d10827b4fe4aecbc27934520f3d775c6ae120149a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/index.ts",
+      "sha256": "9f2034ab7b5c452fd7b2b9df6ec7ef0266830cd11f05908e9f5e862993a19c30"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/legacy.ts",
+      "sha256": "c7a602006acaa6bdf2c77340dec674255f8e79445006e3210daa49699f0b2c9b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/pbkdf2.ts",
+      "sha256": "9073ca755fa8ac828cfc8b57fb76897d63dd30bb07373afa629d846b5d3ad5f4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/scrypt.ts",
+      "sha256": "cc64e929d9f8e1a5340c891d88bb249d4483e46f47aa9683a65927cccc39776f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/sha2.ts",
+      "sha256": "cbfb39c31c0cc4eac0a5c3a3e865a4919b7aee3d535ea060e025881e25f0992a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/sha3-addons.ts",
+      "sha256": "21df8ac0d3e81f6bd7d2fe084a32a56a319e96887512e219170898c3151dd6fd"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/sha3.ts",
+      "sha256": "a54cfefe730fd657db7456b5c30e0103e828ef52026020fdb479afe4a87bb543"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/utils.ts",
+      "sha256": "f6d41d00837e63f8f96f4cc6d3a9f2b1f907858eb1501b96d257e085d6410b16"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/webcrypto.ts",
+      "sha256": "d9ac6b1041b15fc38651ca28184d938f6b36a24f2ba0a5ed5c823c7c5e3622d0"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/_blake.ts",
+      "sha256": "03c2ce5f9ce4400e45f48d1083d2851092dfb6b5c23d4a739ea87ad86d120818"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/_md.ts",
+      "sha256": "075488c9f102694bddcf71e30aae477d91dbc833f8a555bd11828954ebd6da16"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/src/_u64.ts",
+      "sha256": "af1a378f452ba03fb2302ed79f26764dc863982512681ffc068a122e3f3e4ed3"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/utils.d.ts",
+      "sha256": "ed8b5ae9e1f97b6aaf52f7ed14ffabf6ed0cdd7946210ef26f19219023393c62"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/utils.d.ts.map",
+      "sha256": "336aba14ab08a90f5b36f9dbb3f2c32b9f539491bcf5aeb8e078ad3b7b80a172"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/utils.js",
+      "sha256": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/utils.js.map",
+      "sha256": "8a56fa0c496abef9ac999dcb6db5f66eadbab3a849f674a3d62abc9c30521666"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/webcrypto.d.ts",
+      "sha256": "eb2c9abbad2d68e86adc437b2fc307bec69e62cecbd5ad8c244795d65e8ef5cb"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/webcrypto.d.ts.map",
+      "sha256": "3e915ede2df86777e7e5e26e30f3670f10bda6fc193c2b90068d329082c12a6e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/webcrypto.js",
+      "sha256": "549577dbf7db80b5faad042045eb4f39692088578bf4a4603b31f781b5e7ca9e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/webcrypto.js.map",
+      "sha256": "10f0a20bbf420597a7413cdfd156d3a5b301e80ffd1b4bc5d5fd7e198ad97d2b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_blake.d.ts",
+      "sha256": "8d809af1af72d2ffb294bd26c4f539c7548f2ea756b8afa2934101645f5eb8d9"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_blake.d.ts.map",
+      "sha256": "9c33c09d981fc17b1c7eba81551b4b8ad72f8b58756f3238a31b07114660b843"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_blake.js",
+      "sha256": "d25543ec4f84723fa4aec60d2d55a90b51bb7eeb9f70c747f2f55503e67ee75b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_blake.js.map",
+      "sha256": "ade7fb31cdb01dc1f45def540d7b65cb4b9483e74d72e9efb16fe1a95a2317ab"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_md.d.ts",
+      "sha256": "d7e7a34f5a1877ad89e8ada891c47d4559649f7c41d9e97c550d491a0e98c623"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_md.d.ts.map",
+      "sha256": "d8375d69daa6a99c6a362edf4ca1576c92a381736d1e111d04f1c4af255b66c5"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_md.js",
+      "sha256": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_md.js.map",
+      "sha256": "92d7e31e15d8050a636125f7b6f837c477bc6cace618b81ca217d1272de21c04"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_u64.d.ts",
+      "sha256": "9932eb9900ccf560eca21841b6223a586b256fa5c5b79c09775ebbc3bf20affb"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_u64.d.ts.map",
+      "sha256": "757522b4676dd1c6fcfbea1e40226f6821a53885d5d931bc7e773c479c454d4b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_u64.js",
+      "sha256": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/@noble/hashes/_u64.js.map",
+      "sha256": "01bac6b32e4cdf8629739deb8da436a311a7eb17723fd297b08e66a46f517869"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/auto/index.js",
+      "sha256": "321dba5515db66c56b9b634d1e48100a8c835187d9849492183db3e4e3e1274b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/auto/index.mjs",
+      "sha256": "484e2c85b3cafb240317590feab968990dfdbd1257af74f8080031361bf5477a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/auto/package.json",
+      "sha256": "3d04369a44dc75f6a70dfc51080beb357eb39b395a2db0b6557ce8b9900ceec4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/auto.d.ts",
+      "sha256": "1e75fcf97bdaa08cda7f54196ac97f4cee497af18ef723e6c2a48a39a670ce47"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/fakeIndexedDB.js",
+      "sha256": "afeb38084602fe187245add39511865de130f381f8b9c9574e100d170b46afa0"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBCursor.js",
+      "sha256": "c45d40aefda4c27d4ee90c52216cc333d8ccf81cc6dc1cf3f5d98a0642a22332"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBCursorWithValue.js",
+      "sha256": "03f34178ac81e1ac64ff6368fc716a1c5eca2e6a34cab2f25dc275036f67779b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBDatabase.js",
+      "sha256": "4650978e151fa59fd8d2caef72aaf553988a0c5f29d9eb8cf20310af854a77e2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBFactory.js",
+      "sha256": "af4e85e266e4ea41cc604fe35f56e68699a3e562cf74cb3286b6dcb1f4ee9280"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBIndex.js",
+      "sha256": "4bf18e1f8ae4b65e561d43de1ad69fc1a16d98f4a7f0706b601d2e46ecb93ca4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBKeyRange.js",
+      "sha256": "b3c26346546b29d7e1c3f0d371f2831d4bfd4de7ee4a0a1d95b397220d465524"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBObjectStore.js",
+      "sha256": "b356c6d741681946a59cf72917e6fdf958e8eddcf26404cb2d84b33d5ffe9576"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBOpenDBRequest.js",
+      "sha256": "51f64560e5519b24f29c41f6d244d8f893ec6deb2c4f01f2c425607bdc26ad69"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBRecord.js",
+      "sha256": "adc567ceeb07b43cdd1b3f7a04d056efc93bbb516736ab29dd8a5eca94f00047"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBRequest.js",
+      "sha256": "2405130edd85a1e2e097d052c43fec4fce474f03767fe9d0a610d981be907508"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBTransaction.js",
+      "sha256": "7e7175a4bcbc17f79429210c2fa5c2df674bc9357988bb889732b8707bef11f2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/FDBVersionChangeEvent.js",
+      "sha256": "498338a3be2f885df9e3d672c6d779d4075e614219a8d32689bc31471c6ba16d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/forceCloseDatabase.js",
+      "sha256": "a08cf545e6907e516aa995bdbf8329df6f67e9efac15afa7e0e44545ef8c9b88"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/index.js",
+      "sha256": "aaac0829db0a75ce45760c4b5b8681248b199c98dbc348bf7e19789b42ee9377"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/binarySearchTree.js",
+      "sha256": "65d5b78adfe4f4bff983f888fd8c3721aebf68d6b77ca474039a22750da59a2a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/canInjectKey.js",
+      "sha256": "088860c6067ab043522accd8581b2569a25e333cef08b0adbf4d662891472c0f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/cloneValueForInsertion.js",
+      "sha256": "0446484e6dfee793e6d3541cd02d4fac27ed18da07aa5d6feb000273cc3d4203"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/closeConnection.js",
+      "sha256": "1d12d06e3542cfcf86070c672fe0c45ac25d83802b328b99cadbafcf919dae34"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/cmp.js",
+      "sha256": "28ab6885d1d495f3a3542bf46d204bd81c61958f27b1fcad104036178b4b62ee"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/Database.js",
+      "sha256": "9ead5303d7ef6382e4db632b01b0bb8e1f5aaf146e4a216d388848b7de35902a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/enforceRange.js",
+      "sha256": "66bcd7c5c2caba331ed7fb8a4c553481d2d9a5877ee57924a35f01ef89f6d171"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/errors.js",
+      "sha256": "ef689beb82ccb161f35369cc7da2fa558d69a3a372ededd684222d44130977d8"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/extractGetAllOptions.js",
+      "sha256": "6ae95572e80b5945eef6db8e6e472eedef246ae38c052d551a990fda2be02b94"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/extractKey.js",
+      "sha256": "2598dc6b145a8f33aa2152c654fa62e016f2fa3b2427f08c10002c1e3d546e43"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/FakeDOMStringList.js",
+      "sha256": "60ad989dae1a14b8d45885402e6eb6daccb13a05f353627d409ff5dd72b2e7b4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/FakeEvent.js",
+      "sha256": "03234f9506474bbab67f9226f5deeeb8d26483ea99cbf845217ef2299fb00f71"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/FakeEventTarget.js",
+      "sha256": "c2a6dd6c0129595ed54a84329249b79b651c875e72874ea96ce0ca06a53f0c62"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/getKeyPath.js",
+      "sha256": "7865a6e5df3369d77865d1cd86d3735110cbd5d4a7cb7f25160b1e93e85d969c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/Index.js",
+      "sha256": "6aa58d8711528191fa5fb50e6496bb07695f8b4f9f4cf48a10d83a928c8dd2a2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/intersection.js",
+      "sha256": "8a9dfbb668fe82ff1cd527202c205a1dc6a4686075619b62e4d4a5aa4b3cf0ab"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/isPotentiallyValidKeyRange.js",
+      "sha256": "a548f1ded583f6863d5f065579b60cba4467806bea1b30a5e5bb0b1e60a5f0e0"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/isSharedArrayBuffer.js",
+      "sha256": "d8aa00b85160ca44d8b2f41bc3f8de24d7a802c38311b32c1dc90d7ba97f8c0c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/KeyGenerator.js",
+      "sha256": "0d51771a6a4bbc375e7c0561aada483eb78b63c7b9c0d682b45f851d237855d1"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/ObjectStore.js",
+      "sha256": "4868c9a6f64900c16bb59e4358b34964601819a698b733c6f2c00ce533a336bd"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/RecordStore.js",
+      "sha256": "df04c3b4025792aaff0441b4cd8d1fdcabfc6b401ba39346f50294f0170e96db"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/scheduling.js",
+      "sha256": "4b85bfcf70bfc2e04f4177c4dd507ec10205ad01a715dceecfa46cd1b52c665a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/types.js",
+      "sha256": "5ecf2f4d83e6260dabd6ec48e76d8ddebccf956563f34072221bf960d3b8c255"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/validateKeyPath.js",
+      "sha256": "08a243c85891818ecd0777dc633c928425e82a64c14bb97b08f6f4872df0ad55"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/validateRequiredArguments.js",
+      "sha256": "e94c6f6ba78bf279f20e9777e9db31b004acc4f4ca546bed33f091352bdd2036"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/valueToKey.js",
+      "sha256": "89468aa610107f95fc0fab93cba4872d4604e68806de88d852ce60714edf8bd6"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/valueToKeyRange.js",
+      "sha256": "2e3fbae6d925d3e266c4d381c2b5eea7548a89e0c017e290b6ef0965ea92c10f"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/lib/valueToKeyWithoutThrowing.js",
+      "sha256": "788c67a9057f4136dd3b420e9d7762f4d64b11ba106c34a03b687cf0d2341f05"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/cjs/package.json",
+      "sha256": "dbf8353f77358bc12169b7bb7301e1978d5b503e002ee927229a8993672818fc"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/fakeIndexedDB.js",
+      "sha256": "d5e976278c38b011fd4264152b55b3a86cee0bcfaa10edc41e57c3a4f9b7e6ba"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBCursor.js",
+      "sha256": "525914ffc7a506c1f6343325fe45ab2cec35a89dd0b2804eb710c4236d49275d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBCursorWithValue.js",
+      "sha256": "df0387f379445153120e3e7e87ef01f463984d91890b2f9e68827911c5f38dc8"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBDatabase.js",
+      "sha256": "4ace3585a0df384db8ba5319c88230bbe357a630c4af0750a8cdef00330fecfd"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBFactory.js",
+      "sha256": "0b931d22ca105d25270bb99e8198900de4b67f48f8bdc2dbb20baffcb777b8c7"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBIndex.js",
+      "sha256": "9090153289181c0f34071e47a2e8a14a95694a6c1244dfc3ccbc8b72758314ce"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBKeyRange.js",
+      "sha256": "d0560ebcefad8c0e220bb7146940d5d7f42932fe946e7e72a2cff8d7b07bc8f3"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBObjectStore.js",
+      "sha256": "0c7a13359542f5e7abfcd6d1f548b93c189f979d7f45835dde69cce862f43b02"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBOpenDBRequest.js",
+      "sha256": "08de83ff7455795bfa17b4ff6811d6adf926aa2235c743a0890e27d1d6928b3e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBRecord.js",
+      "sha256": "f311f89d9252f0fdbaf5c5d1ed4e6fb9e24db0b719e21256662eccad144f896c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBRequest.js",
+      "sha256": "4d87b9c1971258c20e07261ded65bfc82962181bda5f3dcb9f32e935062f9c96"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBTransaction.js",
+      "sha256": "0f1eab0fd7246b67c8cf84cc8df2d733b9288d11457a814c5456ebd763529fd2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/FDBVersionChangeEvent.js",
+      "sha256": "3ef84fd543dd0fb14d478a9ac9b6f3a932e08e907081584fbb39d19410ddaaa2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/forceCloseDatabase.js",
+      "sha256": "be73dfaa8eda15064dbba36dfbc15f6948fa61ddbf85852f50894aec44ddbd13"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/index.js",
+      "sha256": "45791e33b9247a10f52e8aecb3358adef073505ea0abf3368e2dd1367b1df651"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/binarySearchTree.js",
+      "sha256": "a1f5fdef0842c338e0636ed8f7db994e39581c18276c27871cf183a8eb72b142"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/canInjectKey.js",
+      "sha256": "4f5edc82747f9fefe5adfda9409c7a9d23c91d1289132378eee14ebd2873d08e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/cloneValueForInsertion.js",
+      "sha256": "48db0f9802a0310599a795c8911517efb8dc634638b04ed20da53f5ad1d43f19"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/closeConnection.js",
+      "sha256": "3980e6cc75d681e332e8884e205629b99ca79c88b0ae7ec2374056d127eba70e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/cmp.js",
+      "sha256": "bed134465533a67c32385d513bb0eb53cd3f0c345a810f03acec76f9a9d2cd38"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/Database.js",
+      "sha256": "0211ed0b35daea3fcaaec6cfce37e3e467ed77d9c51fbf1e8c3a1274c97a2ac5"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/enforceRange.js",
+      "sha256": "dd4b01502533d5355f6fd8e347ad57ac21862b82d7fa8cef4f262b3a28dcac2d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/errors.js",
+      "sha256": "1e388f274166cdda947d59e711dc530528da07fce2805258867dc1935ea37969"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/extractGetAllOptions.js",
+      "sha256": "e79524b8a783907f4654e039fb98afcb2de43dafee1fdcc0ebe2355cba1c31f7"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/extractKey.js",
+      "sha256": "0e49ff5cc3d9dd24aa23cbdf31a8538835e4ac919f15e9ff64e0620b4893deff"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/FakeDOMStringList.js",
+      "sha256": "21227f286a754746088dfa7a099f2899183baacc1b4aa629054e66ace8d53aef"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/FakeEvent.js",
+      "sha256": "532189b1e822d267cd90720dda2b545ad7bb6f7f9ba84aa2ea9bc5c3681f0f4b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/FakeEventTarget.js",
+      "sha256": "2e331238c3d95b49077745f98084bcb1d0c66dd5b6591dc1563e6a9ea5637e4c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/getKeyPath.js",
+      "sha256": "6a08ea6a49ca4f39ff8040b06bd07f9d67fe6dab8249491370d4a2ae99cf46ef"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/Index.js",
+      "sha256": "639bf36888401763b619b1f82816211eddb005061ccb9498b946d67d93be87f9"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/intersection.js",
+      "sha256": "f9751ee9da6f0e9510a90c868b53be4a4c828fa3f97c13486cee1ff64ffbc650"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/isPotentiallyValidKeyRange.js",
+      "sha256": "71a3be7b6c73c6a8a77384dc560d47ff55454c9a48dd6b577e60f1382fc91e02"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/isSharedArrayBuffer.js",
+      "sha256": "2905b2c5472cc389c3bcb2a2ecd9f2f1694d522277c377fe83e730a6a6d1eb8a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/KeyGenerator.js",
+      "sha256": "d3784ea3d14fab523d670235886d600383c047c5106a89a90e5e308c6aac1e3d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/ObjectStore.js",
+      "sha256": "703e0ef89c9650fd600051233d8f4e9f829efe77c39ead93fadba2726db18300"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/RecordStore.js",
+      "sha256": "301d0f824ea68ab593cf9b8bce4e86c3569c0785622225a99710ec8a12d65202"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/scheduling.js",
+      "sha256": "ccec4db00f46f5fdc1c3d20c01c0e2be57ddf4eb2546acfc5785f12b857f8bfa"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/types.js",
+      "sha256": "2e29cd9a98755c46896f7a2d56524db2d6d96b248e36db46de14c30bf47c8d05"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/validateKeyPath.js",
+      "sha256": "fc27ce74444a2693e8b259b1abca4411542c33544b92a350f6694abeba5bd5c1"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/validateRequiredArguments.js",
+      "sha256": "8e7edeaf1b27b3afd79413e396f2163213605cbae87d0f8ebf6f0a1683795e7b"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/valueToKey.js",
+      "sha256": "b1b14fe186f2129d5ce812ab8f91bbcf2b336f2a89cff9bf764047ac02997222"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/valueToKeyRange.js",
+      "sha256": "e8ba602f7a0fdd98a21106ef82361d7618dbf9dbe453ff07303986af4e134285"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/build/esm/lib/valueToKeyWithoutThrowing.js",
+      "sha256": "672e630cade58dce5bf35e1a1bd08492698d0a1038131392f4a073027c9813a9"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/fakeIndexedDB.d.ts",
+      "sha256": "47deee36bdcac968f68630f6123dcd4c9df95ed997c51a460e854cf77d811423"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBCursor.d.ts",
+      "sha256": "0e29deb00c6e4a5ebb0b01bdbd828ef1037b4d9f5a8919df22bbe0bfdc309ad3"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBCursor.js",
+      "sha256": "a268ca16e1144bda6f107baa490a139cc08578bb9c9b2d5d779db5a3f07cccc4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBCursorWithValue.d.ts",
+      "sha256": "699b18e0868fa4235842949db9b528abd8e9abef824700d96f5c568d08646b6d"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBCursorWithValue.js",
+      "sha256": "c6ae10cacef8057e5f1afd4f20afe0e96495f1fe0d8831d73fcb437cec56e53c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBDatabase.d.ts",
+      "sha256": "a72059c97869633d59e4d94ed0514470c0352a9b5dd84e631d5f605453a6fb6e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBDatabase.js",
+      "sha256": "8ad7d4123e0c0c4ec4138ee056b7108a6bbddf2bd287121137c52e7c182b6d1c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBFactory.d.ts",
+      "sha256": "31af781829951a769ba18af6e879f72028d9dbe0835b27e351dce4eea23e0384"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBFactory.js",
+      "sha256": "dd9081f586dfc74c0e6b5adc6b91f6b8231968311fd533bf16f53ed3bd6e8ac0"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBIndex.d.ts",
+      "sha256": "e73db5b0ff5057acf9df683f9c0a27e8fa8e86679bc4fe5ce2bb20bb424436e3"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBIndex.js",
+      "sha256": "254d1209de1d98005f0e93e7faacf6ba4a5eef56909516232d65d33509c286f7"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBKeyRange.d.ts",
+      "sha256": "a345de9c9967d9790f6e8d98917fddaf7edf3a5089cd89752c627737d5c01b5e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBKeyRange.js",
+      "sha256": "41dd2934adbbf061b586523ee5efe86b9c7b972bc086cd2e7251da3b065459d7"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBObjectStore.d.ts",
+      "sha256": "3e369b91b84f635e574707b0bc01ce7167b9841c96285cfcc705808eff0de325"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBObjectStore.js",
+      "sha256": "027f2c26de09a028087977fd3123cab59c86f0e56c1335b5c2781fbce2b0f048"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBOpenDBRequest.d.ts",
+      "sha256": "5e2fda2befab9f97424bf82b96d49050b63e1e3230dd5774807c7b7489daffe2"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBOpenDBRequest.js",
+      "sha256": "67fe428c5875a0d3ebb11f59f702475e768c5b27ab987c00677a7ed0fb3b35a6"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBRequest.d.ts",
+      "sha256": "b676afbeeeb50807b5c74f280fee1a94460429f285a7ffeafb04617d58e22021"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBRequest.js",
+      "sha256": "ad1ee6e7eba9ba445a886cdf4e86c9f97a33fa02581c3c8f9c56671c77a5b495"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBTransaction.d.ts",
+      "sha256": "199a92dc3646f173fbc60c88c8c931973b2c563189268fade18a11130e87d90e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBTransaction.js",
+      "sha256": "8b88158d8956d96a0d431eff5bfba9376d72f9fd9a061a52a7fb7d3a80e11340"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBVersionChangeEvent.d.ts",
+      "sha256": "395e4ee633619539163041a52acf9e616a3f2a22b932e6cd334213fb22c0f6f9"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/FDBVersionChangeEvent.js",
+      "sha256": "8e990e2e494ba4c3400a34450fa748c23e717241a7e9e98de98402fa697a166a"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/package.json",
+      "sha256": "3d04369a44dc75f6a70dfc51080beb357eb39b395a2db0b6557ce8b9900ceec4"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/lib/README.md",
+      "sha256": "48e3fdb697497dfa651ca64a39a59bb014e36c69de6c377b5bd28bed9ac910ee"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/LICENSE",
+      "sha256": "0c2e77addd3045b932ae0de86b7cf66aa1eeed4248d4dab37e851f9e5499d85e"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/package.json",
+      "sha256": "399966a1e2ed0a9ea31436530f51f5d9c5bea0834e7e502352b9a2ec096e747c"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/README.md",
+      "sha256": "4be8f55e75a999776b27e570affa8f2f970fe9689145de6258d6079d08b7c871"
+    },
+    {
+      "path": ".tmp/idle-foundation/node_modules/fake-indexeddb/types.d.ts",
+      "sha256": "d401ff419b87e7e103828cf80b558156cd0ac4ec480e3cad91943e5b5bffef5e"
+    }
+  ]
+}

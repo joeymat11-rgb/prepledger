@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: idle replacement: active-today history never proves idle
+ok 1 - idle replacement: active-today history never proves idle
+  ---
+  duration_ms: 29.463
+  type: 'test'
+  ...
+# Subtest: idle replacement: unfinished-earlier history never proves idle
+ok 2 - idle replacement: unfinished-earlier history never proves idle
+  ---
+  duration_ms: 8.8766
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.388

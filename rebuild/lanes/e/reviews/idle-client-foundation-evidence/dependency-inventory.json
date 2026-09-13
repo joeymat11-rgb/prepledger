@@ -1,0 +1,19 @@
+{
+  "runtime": "v22.23.2",
+  "packages": [
+    {
+      "name": "@noble/hashes",
+      "version": "2.2.0",
+      "integrity": "sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==",
+      "tarballSha256": "018b38bd7af36645fa0ece8f89eba21c828f3e4d219da5aacadd78bd0e654606",
+      "scriptsExecuted": false
+    },
+    {
+      "name": "fake-indexeddb",
+      "version": "6.2.5",
+      "integrity": "sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w==",
+      "tarballSha256": "f790f803ae4cfd7ebe2705b0f4c9116a387cd0d6988288eec15ff437e34cd6fb",
+      "scriptsExecuted": false
+    }
+  ]
+}

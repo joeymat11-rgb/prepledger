@@ -1,0 +1,910 @@
+TAP version 13
+# Subtest: legacy history: actual old writer observations and correction survive signed durable reopen without invented capture
+ok 1 - legacy history: actual old writer observations and correction survive signed durable reopen without invented capture
+  ---
+  duration_ms: 43.7666
+  type: 'test'
+  ...
+# Subtest: legacy history: accepted concurrent corrections remain unresolved while unrelated sets stay readable
+ok 2 - legacy history: accepted concurrent corrections remain unresolved while unrelated sets stay readable
+  ---
+  duration_ms: 12.6885
+  type: 'test'
+  ...
+# Subtest: legacy history: causal correction chain and removal work but an edit after removal stays unresolved
+ok 3 - legacy history: causal correction chain and removal work but an edit after removal stays unresolved
+  ---
+  duration_ms: 41.0808
+  type: 'test'
+  ...
+# Subtest: legacy history: unrecognized effort and raw slot remain original context instead of new schema meaning
+ok 4 - legacy history: unrecognized effort and raw slot remain original context instead of new schema meaning
+  ---
+  duration_ms: 9.066
+  type: 'test'
+  ...
+# Subtest: legacy history: missing explicit target causality cannot be replaced by a signed accepted position
+ok 5 - legacy history: missing explicit target causality cannot be replaced by a signed accepted position
+  ---
+  duration_ms: 9.4814
+  type: 'test'
+  ...
+# Subtest: legacy history: unsupported target effects remain attached and cannot silently leave a usable set
+ok 6 - legacy history: unsupported target effects remain attached and cannot silently leave a usable set
+  ---
+  duration_ms: 9.3808
+  type: 'test'
+  ...
+# Subtest: legacy history: absent or malformed Start context preserves original observations and named mapping needs
+ok 7 - legacy history: absent or malformed Start context preserves original observations and named mapping needs
+  ---
+  duration_ms: 18.4196
+  type: 'test'
+  ...
+# Subtest: shared edit history: nested replacement and removal restoration survive actual durable reopen
+ok 8 - shared edit history: nested replacement and removal restoration survive actual durable reopen
+  ---
+  duration_ms: 39.8219
+  type: 'test'
+  ...
+# Subtest: shared edit history: reserve clear is a durable correction and never a recorded observation
+ok 9 - shared edit history: reserve clear is a durable correction and never a recorded observation
+  ---
+  duration_ms: 15.8036
+  type: 'test'
+  ...
+# Subtest: shared edit history: corrected Start Skip and Close drive actual resume and next-Start refusal
+ok 10 - shared edit history: corrected Start Skip and Close drive actual resume and next-Start refusal
+  ---
+  duration_ms: 35.4837
+  type: 'test'
+  ...
+# Subtest: shared edit history: signed accepted ties resolve while a concurrent pending edit remains separate
+ok 11 - shared edit history: signed accepted ties resolve while a concurrent pending edit remains separate
+  ---
+  duration_ms: 60.3149
+  type: 'test'
+  ...
+# Subtest: configured history projection is private to authenticated preparation and isolated between callbacks
+ok 12 - configured history projection is private to authenticated preparation and isolated between callbacks
+  ---
+  duration_ms: 2.8242
+  type: 'test'
+  ...
+# Subtest: unavailable history revision prevents basis and producer callbacks
+ok 13 - unavailable history revision prevents basis and producer callbacks
+  ---
+  duration_ms: 2.1465
+  type: 'test'
+  ...
+# Subtest: unavailable history throw prevents basis and producer callbacks
+ok 14 - unavailable history throw prevents basis and producer callbacks
+  ---
+  duration_ms: 1.9423
+  type: 'test'
+  ...
+# Subtest: changed stored original cannot reach the configured history projector
+ok 15 - changed stored original cannot reach the configured history projector
+  ---
+  duration_ms: 10.2605
+  type: 'test'
+  ...
+# Subtest: history-based preparation checks revision again before publishing instructions
+ok 16 - history-based preparation checks revision again before publishing instructions
+  ---
+  duration_ms: 2.825
+  type: 'test'
+  ...
+# Subtest: history-based preparation checks token again before publishing instructions
+ok 17 - history-based preparation checks token again before publishing instructions
+  ---
+  duration_ms: 2.3472
+  type: 'test'
+  ...
+# Subtest: history-based preparation checks observation again before publishing instructions
+ok 18 - history-based preparation checks observation again before publishing instructions
+  ---
+  duration_ms: 2.7788
+  type: 'test'
+  ...
+# Subtest: history-based preparation checks retirement again before publishing instructions
+ok 19 - history-based preparation checks retirement again before publishing instructions
+  ---
+  duration_ms: 2.4899
+  type: 'test'
+  ...
+# Subtest: finished partial workout preserves captured terminal identity and bounded opener through removal and fresh read
+ok 20 - finished partial workout preserves captured terminal identity and bounded opener through removal and fresh read
+  ---
+  duration_ms: 21.82
+  type: 'test'
+  ...
+# Subtest: actual prepared correction/removal chain preserves the original, later sets and finished session on reopen
+ok 21 - actual prepared correction/removal chain preserves the original, later sets and finished session on reopen
+  ---
+  duration_ms: 31.9907
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses changed revision without rewriting history
+ok 22 - prepared correction refuses changed revision without rewriting history
+  ---
+  duration_ms: 11.0564
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses changed retired without rewriting history
+ok 23 - prepared correction refuses changed retired without rewriting history
+  ---
+  duration_ms: 8.2724
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses changed session without rewriting history
+ok 24 - prepared correction refuses changed session without rewriting history
+  ---
+  duration_ms: 8.3096
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses changed observation without rewriting history
+ok 25 - prepared correction refuses changed observation without rewriting history
+  ---
+  duration_ms: 8.0706
+  type: 'test'
+  ...
+# Subtest: ambiguous, missing and incomplete known history cannot issue a prepared correction
+ok 26 - ambiguous, missing and incomplete known history cannot issue a prepared correction
+  ---
+  duration_ms: 15.7731
+  type: 'test'
+  ...
+# Subtest: prepared correction lost acknowledgement is one actual fact after fresh history reconciliation
+ok 27 - prepared correction lost acknowledgement is one actual fact after fresh history reconciliation
+  ---
+  duration_ms: 12.6178
+  type: 'test'
+  ...
+# Subtest: authenticated rejected target refuses correction with state19 in-process and after relaunch
+ok 28 - authenticated rejected target refuses correction with state19 in-process and after relaunch
+  ---
+  duration_ms: 14.9315
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses a substituted payload at the final transaction cut
+ok 29 - prepared correction refuses a substituted payload at the final transaction cut
+  ---
+  duration_ms: 9.9621
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses substituted target_op_id at the final transaction cut
+ok 30 - prepared correction refuses substituted target_op_id at the final transaction cut
+  ---
+  duration_ms: 25.276
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses substituted causal_parents at the final transaction cut
+ok 31 - prepared correction refuses substituted causal_parents at the final transaction cut
+  ---
+  duration_ms: 21.7386
+  type: 'test'
+  ...
+# Subtest: prepared correction refuses substituted lift_lineage_id at the final transaction cut
+ok 32 - prepared correction refuses substituted lift_lineage_id at the final transaction cut
+  ---
+  duration_ms: 21.9433
+  type: 'test'
+  ...
+# Subtest: prepared correction rejects nested getters and caller-supplied target fields
+ok 33 - prepared correction rejects nested getters and caller-supplied target fields
+  ---
+  duration_ms: 9.2446
+  type: 'test'
+  ...
+# Subtest: a mistaken duplicate can be removed by its exact identity without deleting the other attempt
+ok 34 - a mistaken duplicate can be removed by its exact identity without deleting the other attempt
+  ---
+  duration_ms: 17.7136
+  type: 'test'
+  ...
+# Subtest: late retirement during correction validation prevents the durable effect
+ok 35 - late retirement during correction validation prevents the durable effect
+  ---
+  duration_ms: 13.5406
+  type: 'test'
+  ...
+# Subtest: correction history guard refusal is typed, not a successful preparation or escaped exception
+ok 36 - correction history guard refusal is typed, not a successful preparation or escaped exception
+  ---
+  duration_ms: 7.6289
+  type: 'test'
+  ...
+# Subtest: continuation reopens the actual stored workout and finishes once with original capture and exact performed facts
+ok 37 - continuation reopens the actual stored workout and finishes once with original capture and exact performed facts
+  ---
+  duration_ms: 27.1921
+  type: 'test'
+  ...
+# Subtest: original capture is never current safety permission and normal Finish cannot hide remaining work
+ok 38 - original capture is never current safety permission and normal Finish cannot hide remaining work
+  ---
+  duration_ms: 8.4228
+  type: 'test'
+  ...
+# Subtest: prepared continuation refuses revision change before a durable command
+ok 39 - prepared continuation refuses revision change before a durable command
+  ---
+  duration_ms: 8.6105
+  type: 'test'
+  ...
+# Subtest: prepared continuation refuses retired change before a durable command
+ok 40 - prepared continuation refuses retired change before a durable command
+  ---
+  duration_ms: 8.1459
+  type: 'test'
+  ...
+# Subtest: prepared continuation refuses standing change before a durable command
+ok 41 - prepared continuation refuses standing change before a durable command
+  ---
+  duration_ms: 6.4144
+  type: 'test'
+  ...
+# Subtest: prepared continuation refuses observation change before a durable command
+ok 42 - prepared continuation refuses observation change before a durable command
+  ---
+  duration_ms: 6.3451
+  type: 'test'
+  ...
+# Subtest: continuation rejects malformed current safety actions without modifying stored original
+ok 43 - continuation rejects malformed current safety actions without modifying stored original
+  ---
+  duration_ms: 7.1517
+  type: 'test'
+  ...
+# Subtest: continuation rejects malformed current safety reason without modifying stored original
+ok 44 - continuation rejects malformed current safety reason without modifying stored original
+  ---
+  duration_ms: 5.6287
+  type: 'test'
+  ...
+# Subtest: continuation rejects malformed current safety slot without modifying stored original
+ok 45 - continuation rejects malformed current safety slot without modifying stored original
+  ---
+  duration_ms: 5.8007
+  type: 'test'
+  ...
+# Subtest: continuation refuses colliding facts, but actual targeted removal restores an unambiguous slot
+ok 46 - continuation refuses colliding facts, but actual targeted removal restores an unambiguous slot
+  ---
+  duration_ms: 13.5959
+  type: 'test'
+  ...
+# Subtest: continuation uses actual session candidate rule: 12:00/13:00/2026-09-04
+ok 47 - continuation uses actual session candidate rule: 12:00/13:00/2026-09-04
+  ---
+  duration_ms: 6.1084
+  type: 'test'
+  ...
+# Subtest: continuation uses actual session candidate rule: 23:00/01:00/2026-09-05
+ok 48 - continuation uses actual session candidate rule: 23:00/01:00/2026-09-05
+  ---
+  duration_ms: 6.3592
+  type: 'test'
+  ...
+# Subtest: continuation uses actual session candidate rule: 22:59/01:00/2026-09-05
+ok 49 - continuation uses actual session candidate rule: 22:59/01:00/2026-09-05
+  ---
+  duration_ms: 5.4926
+  type: 'test'
+  ...
+# Subtest: continuation uses actual session candidate rule: 23:00/01:01/2026-09-05
+ok 50 - continuation uses actual session candidate rule: 23:00/01:01/2026-09-05
+  ---
+  duration_ms: 5.8287
+  type: 'test'
+  ...
+# Subtest: continuation cannot treat partial authority prefix or unresolved edits as permission
+ok 51 - continuation cannot treat partial authority prefix or unresolved edits as permission
+  ---
+  duration_ms: 13.3725
+  type: 'test'
+  ...
+# Subtest: resumed write lost acknowledgement is reconciled by actual fresh history, not a second set
+ok 52 - resumed write lost acknowledgement is reconciled by actual fresh history, not a second set
+  ---
+  duration_ms: 10.5744
+  type: 'test'
+  ...
+# Subtest: late downstream validator retirement refuses a resumed write at the actual commit cut
+ok 53 - late downstream validator retirement refuses a resumed write at the actual commit cut
+  ---
+  duration_ms: 8.5894
+  type: 'test'
+  ...
+# Subtest: resumed final command guard rejects a substituted performed value in an otherwise matching batch
+ok 54 - resumed final command guard rejects a substituted performed value in an otherwise matching batch
+  ---
+  duration_ms: 8.1536
+  type: 'test'
+  ...
+# Subtest: resumed command rejects nested accessors before executing any caller getter
+ok 55 - resumed command rejects nested accessors before executing any caller getter
+  ---
+  duration_ms: 6.6998
+  type: 'test'
+  ...
+# Subtest: actual currentHead exchange persists original workout proof for a fresh history read with a different current key
+ok 56 - actual currentHead exchange persists original workout proof for a fresh history read with a different current key
+  ---
+  duration_ms: 14.8003
+  type: 'test'
+  ...
+# Subtest: currentHead identity exemption cannot conceal a rewritten record behind a lowered local frontier
+ok 57 - currentHead identity exemption cannot conceal a rewritten record behind a lowered local frontier
+  ---
+  duration_ms: 11.4279
+  type: 'test'
+  ...
+# Subtest: currentHead identity exemption cannot conceal a missing record behind a lowered local frontier
+ok 58 - currentHead identity exemption cannot conceal a missing record behind a lowered local frontier
+  ---
+  duration_ms: 11.5644
+  type: 'test'
+  ...
+# Subtest: resealed local producer substitution cannot become original or corrected history
+ok 59 - resealed local producer substitution cannot become original or corrected history
+  ---
+  duration_ms: 9.6545
+  type: 'test'
+  ...
+# Subtest: resealed local basis substitution cannot become original or corrected history
+ok 60 - resealed local basis substitution cannot become original or corrected history
+  ---
+  duration_ms: 11.4002
+  type: 'test'
+  ...
+# Subtest: resealed local performed substitution cannot become original or corrected history
+ok 61 - resealed local performed substitution cannot become original or corrected history
+  ---
+  duration_ms: 9.0017
+  type: 'test'
+  ...
+# Subtest: resealed local correction substitution cannot become original or corrected history
+ok 62 - resealed local correction substitution cannot become original or corrected history
+  ---
+  duration_ms: 9.5836
+  type: 'test'
+  ...
+# Subtest: unavailable matching local identity key refuses history (missing)
+ok 63 - unavailable matching local identity key refuses history (missing)
+  ---
+  duration_ms: 5.1738
+  type: 'test'
+  ...
+# Subtest: unavailable matching local identity key refuses history (changed)
+ok 64 - unavailable matching local identity key refuses history (changed)
+  ---
+  duration_ms: 32.9845
+  type: 'test'
+  ...
+# Subtest: exact server-signed history remains readable without the original local identity key
+ok 65 - exact server-signed history remains readable without the original local identity key
+  ---
+  duration_ms: 11.629
+  type: 'test'
+  ...
+# Subtest: actual reference-only first correction projects without fabricating a causal edge or rewriting its original
+ok 66 - actual reference-only first correction projects without fabricating a causal edge or rewriting its original
+  ---
+  duration_ms: 10.2797
+  type: 'test'
+  ...
+# Subtest: actual causal edit chain and removal preserve originals and unrelated sets after reopen
+ok 67 - actual causal edit chain and removal preserve originals and unrelated sets after reopen
+  ---
+  duration_ms: 19.2365
+  type: 'test'
+  ...
+# Subtest: transport succession cannot silently resolve competing corrections in either stored arrival order
+ok 68 - transport succession cannot silently resolve competing corrections in either stored arrival order
+  ---
+  duration_ms: 13.4431
+  type: 'test'
+  ...
+# Subtest: colliding set records stay separate and a targeted removal cannot remove the other attempt
+ok 69 - colliding set records stay separate and a targeted removal cannot remove the other attempt
+  ---
+  duration_ms: 12.2087
+  type: 'test'
+  ...
+# Subtest: fresh client recovers exact original workout and stored Set/edit/Skip/Close facts without a new Start or producer
+ok 70 - fresh client recovers exact original workout and stored Set/edit/Skip/Close facts without a new Start or producer
+  ---
+  duration_ms: 15.1337
+  type: 'test'
+  ...
+# Subtest: history distinguishes actual signed accepted prefix from local pending facts
+ok 71 - history distinguishes actual signed accepted prefix from local pending facts
+  ---
+  duration_ms: 12.2088
+  type: 'test'
+  ...
+# Subtest: invented stored receipt/frontier cannot promote an unsigned operation to accepted history
+ok 72 - invented stored receipt/frontier cannot promote an unsigned operation to accepted history
+  ---
+  duration_ms: 4.9882
+  type: 'test'
+  ...
+# Subtest: standing lost during history authentication never exposes the stored workout
+ok 73 - standing lost during history authentication never exposes the stored workout
+  ---
+  duration_ms: 1.6147
+  type: 'test'
+  ...
+# Subtest: interleaved durable change retires a history read instead of returning mixed generations
+ok 74 - interleaved durable change retires a history read instead of returning mixed generations
+  ---
+  duration_ms: 5.3633
+  type: 'test'
+  ...
+# Subtest: malformed receipt index is an integrity refusal, never an empty workout
+ok 75 - malformed receipt index is an integrity refusal, never an empty workout
+  ---
+  duration_ms: 5.3533
+  type: 'test'
+  ...
+# Subtest: actual stored receipt index with a missing operation refuses integrity before preparing
+ok 76 - actual stored receipt index with a missing operation refuses integrity before preparing
+  ---
+  duration_ms: 8.0594
+  type: 'test'
+  ...
+# Subtest: actual stored receipt index with a rewritten operation refuses integrity before preparing
+ok 77 - actual stored receipt index with a rewritten operation refuses integrity before preparing
+  ---
+  duration_ms: 11.1663
+  type: 'test'
+  ...
+# Subtest: fresh client cannot create another prepared Start over an unresolved durable workout
+ok 78 - fresh client cannot create another prepared Start over an unresolved durable workout
+  ---
+  duration_ms: 5.7004
+  type: 'test'
+  ...
+# Subtest: confirmed Start also requires history reconciliation after recreating the client
+ok 79 - confirmed Start also requires history reconciliation after recreating the client
+  ---
+  duration_ms: 5.0838
+  type: 'test'
+  ...
+# Subtest: a matching durable close allows the next preparation without rewriting the original
+ok 80 - a matching durable close allows the next preparation without rewriting the original
+  ---
+  duration_ms: 10.6868
+  type: 'test'
+  ...
+# Subtest: a rejected close cannot unlock a new Start
+ok 81 - a rejected close cannot unlock a new Start
+  ---
+  duration_ms: 7.0477
+  type: 'test'
+  ...
+# Subtest: another workout close does not close the current Start
+ok 82 - another workout close does not close the current Start
+  ---
+  duration_ms: 14.0122
+  type: 'test'
+  ...
+# Subtest: two client instances prepared on one generation can durably start only once
+ok 83 - two client instances prepared on one generation can durably start only once
+  ---
+  duration_ms: 10.2182
+  type: 'test'
+  ...
+# Subtest: receipt-only workout history is not mistaken for an empty local session list
+ok 84 - receipt-only workout history is not mistaken for an empty local session list
+  ---
+  duration_ms: 5.2899
+  type: 'test'
+  ...
+# Subtest: prepared actual Start stores the displayed original in one T2 batch and encrypted generation
+ok 85 - prepared actual Start stores the displayed original in one T2 batch and encrypted generation
+  ---
+  duration_ms: 5.153
+  type: 'test'
+  ...
+# Subtest: concurrent and repeated handle Start produce one effect and never re-run the producer
+ok 86 - concurrent and repeated handle Start produce one effect and never re-run the producer
+  ---
+  duration_ms: 4.1631
+  type: 'test'
+  ...
+# Subtest: raw caller capture cannot bypass the private handle
+ok 87 - raw caller capture cannot bypass the private handle
+  ---
+  duration_ms: 4.0915
+  type: 'test'
+  ...
+# Subtest: a selected captured writer without the preparation configuration still fails closed
+ok 88 - a selected captured writer without the preparation configuration still fails closed
+  ---
+  duration_ms: 3.6299
+  type: 'test'
+  ...
+# Subtest: another durable generation invalidates prepared Start without recapturing
+ok 89 - another durable generation invalidates prepared Start without recapturing
+  ---
+  duration_ms: 4.0652
+  type: 'test'
+  ...
+# Subtest: same revision with a different authenticated token invalidates the earlier preparation
+ok 90 - same revision with a different authenticated token invalidates the earlier preparation
+  ---
+  duration_ms: 4.3956
+  type: 'test'
+  ...
+# Subtest: changed session refuses before Start
+ok 91 - changed session refuses before Start
+  ---
+  duration_ms: 2.3945
+  type: 'test'
+  ...
+# Subtest: changed observation refuses before Start
+ok 92 - changed observation refuses before Start
+  ---
+  duration_ms: 1.8272
+  type: 'test'
+  ...
+# Subtest: late downstream validator retirement cannot pass the final transaction
+ok 93 - late downstream validator retirement cannot pass the final transaction
+  ---
+  duration_ms: 4.0123
+  type: 'test'
+  ...
+# Subtest: quota abort permits exact retry without recapture
+ok 94 - quota abort permits exact retry without recapture
+  ---
+  duration_ms: 6.592
+  type: 'test'
+  ...
+# Subtest: lost commit reply reconciles the actual stored Start, never another operation
+ok 95 - lost commit reply reconciles the actual stored Start, never another operation
+  ---
+  duration_ms: 5.1411
+  type: 'test'
+  ...
+# Subtest: retirement after the final validator does not claim cancellation or Saved
+ok 96 - retirement after the final validator does not claim cancellation or Saved
+  ---
+  duration_ms: 3.7321
+  type: 'test'
+  ...
+# Subtest: hostile getters never run and caller request changes cannot change queued preparation
+ok 97 - hostile getters never run and caller request changes cannot change queued preparation
+  ---
+  duration_ms: 4.0131
+  type: 'test'
+  ...
+# Subtest: another client instance cannot use an old local handle
+ok 98 - another client instance cannot use an old local handle
+  ---
+  duration_ms: 1.9092
+  type: 'test'
+  ...
+# Subtest: retirement during asynchronous preparation cannot create a surviving handle
+ok 99 - retirement during asynchronous preparation cannot create a surviving handle
+  ---
+  duration_ms: 2.0885
+  type: 'test'
+  ...
+# Subtest: definitely refused retirement does not leave a fabricated uncertain write
+ok 100 - definitely refused retirement does not leave a fabricated uncertain write
+  ---
+  duration_ms: 6.1352
+  type: 'test'
+  ...
+# Subtest: competing write before commit cannot silently recapture on a CAS retry
+ok 101 - competing write before commit cannot silently recapture on a CAS retry
+  ---
+  duration_ms: 6.6917
+  type: 'test'
+  ...
+# Subtest: retirement also invalidates a preparation queued before disposal
+ok 102 - retirement also invalidates a preparation queued before disposal
+  ---
+  duration_ms: 2.0744
+  type: 'test'
+  ...
+# Subtest: v2 host owns resolved source and exact capture through atomic Start and durable reopen
+ok 103 - v2 host owns resolved source and exact capture through atomic Start and durable reopen
+  ---
+  duration_ms: 13.3902
+  type: 'test'
+  ...
+# Subtest: v2 host refuses producer source W mismatch before a handle or write
+ok 104 - v2 host refuses producer source W mismatch before a handle or write
+  ---
+  duration_ms: 2.673
+  type: 'test'
+  ...
+# Subtest: v2 host refuses producer source log_digest mismatch before a handle or write
+ok 105 - v2 host refuses producer source log_digest mismatch before a handle or write
+  ---
+  duration_ms: 2.7413
+  type: 'test'
+  ...
+# Subtest: v2 host refuses producer source selection_id mismatch before a handle or write
+ok 106 - v2 host refuses producer source selection_id mismatch before a handle or write
+  ---
+  duration_ms: 1.9523
+  type: 'test'
+  ...
+# Subtest: v2 host refuses producer source missing mismatch before a handle or write
+ok 107 - v2 host refuses producer source missing mismatch before a handle or write
+  ---
+  duration_ms: 1.7181
+  type: 'test'
+  ...
+# Subtest: v2 host refuses producer source extra mismatch before a handle or write
+ok 108 - v2 host refuses producer source extra mismatch before a handle or write
+  ---
+  duration_ms: 1.7352
+  type: 'test'
+  ...
+# Subtest: v2 host refuses missing static source basis without invoking the producer
+ok 109 - v2 host refuses missing static source basis without invoking the producer
+  ---
+  duration_ms: 1.8489
+  type: 'test'
+  ...
+# Subtest: v2 host refuses extra static source basis without invoking the producer
+ok 110 - v2 host refuses extra static source basis without invoking the producer
+  ---
+  duration_ms: 1.768
+  type: 'test'
+  ...
+# Subtest: v2 host refuses getter static source basis without invoking the producer
+ok 111 - v2 host refuses getter static source basis without invoking the producer
+  ---
+  duration_ms: 1.9177
+  type: 'test'
+  ...
+# Subtest: v2 host requires the selected reference as a parent and actual Start refuses its absence from stored operations
+ok 112 - v2 host requires the selected reference as a parent and actual Start refuses its absence from stored operations
+  ---
+  duration_ms: 5.7383
+  type: 'test'
+  ...
+# Subtest: v1 host keeps its closed resolver and source-free producer context
+ok 113 - v1 host keeps its closed resolver and source-free producer context
+  ---
+  duration_ms: 5.0614
+  type: 'test'
+  ...
+# Subtest: v2 public prepare Start and resume reject renderer source_basis
+ok 114 - v2 public prepare Start and resume reject renderer source_basis
+  ---
+  duration_ms: 8.2185
+  type: 'test'
+  ...
+# Subtest: v2 public prepare Start and resume reject renderer allowed_actions
+ok 115 - v2 public prepare Start and resume reject renderer allowed_actions
+  ---
+  duration_ms: 7.0337
+  type: 'test'
+  ...
+# Subtest: v2 public prepare Start and resume reject renderer clearance
+ok 116 - v2 public prepare Start and resume reject renderer clearance
+  ---
+  duration_ms: 7.5252
+  type: 'test'
+  ...
+# Subtest: v2 source change between preparation and Start refuses through the actual revision fence without recapture
+ok 117 - v2 source change between preparation and Start refuses through the actual revision fence without recapture
+  ---
+  duration_ms: 12.2861
+  type: 'test'
+  ...
+# Subtest: v2 source change at the actual Start commit cut refuses the CAS retry without recapture
+ok 118 - v2 source change at the actual Start commit cut refuses the CAS retry without recapture
+  ---
+  duration_ms: 5.8616
+  type: 'test'
+  ...
+# Subtest: v2 current resume source B preserves exact v2 original without recapturing
+ok 119 - v2 current resume source B preserves exact v2 original without recapturing
+  ---
+  duration_ms: 24.6439
+  type: 'test'
+  ...
+# Subtest: v2 current resume source B preserves exact v1 original without recapturing
+ok 120 - v2 current resume source B preserves exact v1 original without recapturing
+  ---
+  duration_ms: 16.4778
+  type: 'test'
+  ...
+# Subtest: v2 resume refuses current source W mismatch while preserving original
+ok 121 - v2 resume refuses current source W mismatch while preserving original
+  ---
+  duration_ms: 15.2854
+  type: 'test'
+  ...
+# Subtest: v2 resume refuses current source log_digest mismatch while preserving original
+ok 122 - v2 resume refuses current source log_digest mismatch while preserving original
+  ---
+  duration_ms: 16.1967
+  type: 'test'
+  ...
+# Subtest: v2 resume refuses current source selection_id mismatch while preserving original
+ok 123 - v2 resume refuses current source selection_id mismatch while preserving original
+  ---
+  duration_ms: 15.192
+  type: 'test'
+  ...
+# Subtest: v2 resume refuses current source missing mismatch while preserving original
+ok 124 - v2 resume refuses current source missing mismatch while preserving original
+  ---
+  duration_ms: 16.1284
+  type: 'test'
+  ...
+# Subtest: v2 uncertain Start reconciles its same stored capture once without invoking the producer again
+ok 125 - v2 uncertain Start reconciles its same stored capture once without invoking the producer again
+  ---
+  duration_ms: 5.7334
+  type: 'test'
+  ...
+# Subtest: actual T2 batch with a different schema than its verified lease refuses20 before durability, retaining input
+ok 126 - actual T2 batch with a different schema than its verified lease refuses20 before durability, retaining input
+  ---
+  duration_ms: 31.2726
+  type: 'test'
+  ...
+# Subtest: a supplied stage cannot change its candidate after schema inspection while the bridge awaits
+ok 127 - a supplied stage cannot change its candidate after schema inspection while the bridge awaits
+  ---
+  duration_ms: 4.0952
+  type: 'test'
+  ...
+# Subtest: default configured schema still rejects a differently versioned signed lease with existing18
+ok 128 - default configured schema still rejects a differently versioned signed lease with existing18
+  ---
+  duration_ms: 2.8607
+  type: 'test'
+  ...
+# Subtest: known session loss retains17 precedence over an unsupported writer schema
+ok 129 - known session loss retains17 precedence over an unsupported writer schema
+  ---
+  duration_ms: 3.0725
+  type: 'test'
+  ...
+# Subtest: staging-time session epoch loss takes precedence over the actual writer schema mismatch
+ok 130 - staging-time session epoch loss takes precedence over the actual writer schema mismatch
+  ---
+  duration_ms: 3.6933
+  type: 'test'
+  ...
+# Subtest: staging-time observation epoch loss takes precedence over the actual writer schema mismatch
+ok 131 - staging-time observation epoch loss takes precedence over the actual writer schema mismatch
+  ---
+  duration_ms: 3.0602
+  type: 'test'
+  ...
+# Subtest: structural candidate grants allow repeated checks and clones, then retire; stale epoch and changed signed bytes fail
+ok 132 - structural candidate grants allow repeated checks and clones, then retire; stale epoch and changed signed bytes fail
+  ---
+  duration_ms: 0.4386
+  type: 'test'
+  ...
+# Subtest: actual public disposition drains only after IDB complete; exact signed proof survives reopen and replay
+ok 133 - actual public disposition drains only after IDB complete; exact signed proof survives reopen and replay
+  ---
+  duration_ms: 13.1449
+  type: 'test'
+  ...
+# Subtest: verified sink abort retains whole generation and underlying17/18/19/20 with nonprivate reasons
+ok 134 - verified sink abort retains whole generation and underlying17/18/19/20 with nonprivate reasons
+  ---
+  duration_ms: 22.6048
+  type: 'test'
+  ...
+# Subtest: numeric zero frontier is durable success; a real T2 receipt storage throw becomes reasoned3, never W5 exception12
+ok 135 - numeric zero frontier is durable success; a real T2 receipt storage throw becomes reasoned3, never W5 exception12
+  ---
+  duration_ms: 6.7316
+  type: 'test'
+  ...
+# Subtest: signed snapshot ingests exact second-device history without inventing T2 product projection
+ok 136 - signed snapshot ingests exact second-device history without inventing T2 product projection
+  ---
+  duration_ms: 6.2295
+  type: 'test'
+  ...
+# Subtest: mutated/forged/incompatible responses never change disk, and account switch cannot write into new scope
+ok 137 - mutated/forged/incompatible responses never change disk, and account switch cannot write into new scope
+  ---
+  duration_ms: 1.7207
+  type: 'test'
+  ...
+# Subtest: time exchange stores a challenge-bound sample only, creates no checkpoint or allowance
+ok 138 - time exchange stores a challenge-bound sample only, creates no checkpoint or allowance
+  ---
+  duration_ms: 3.6998
+  type: 'test'
+  ...
+# Subtest: independent public clients race from fresh snapshots; full actual batch metadata reaches immutable final validator
+ok 139 - independent public clients race from fresh snapshots; full actual batch metadata reaches immutable final validator
+  ---
+  duration_ms: 5.9842
+  type: 'test'
+  ...
+# Subtest: prepared permission is sampled once for repeated T2 predicates; renewal is not silently implemented
+ok 140 - prepared permission is sampled once for repeated T2 predicates; renewal is not silently implemented
+  ---
+  duration_ms: 4.4502
+  type: 'test'
+  ...
+# Subtest: historical signed proof is reverified in a new client/key context, never replaced by a durable verified flag
+ok 141 - historical signed proof is reverified in a new client/key context, never replaced by a durable verified flag
+  ---
+  duration_ms: 4.3195
+  type: 'test'
+  ...
+# Subtest: unknown historical proof families refuse18 and hide prior truth (empty record maps)
+ok 142 - unknown historical proof families refuse18 and hide prior truth (empty record maps)
+  ---
+  duration_ms: 16.6638
+  type: 'test'
+  ...
+# Subtest: unknown historical proof families refuse18 and hide prior truth (nonempty record maps)
+ok 143 - unknown historical proof families refuse18 and hide prior truth (nonempty record maps)
+  ---
+  duration_ms: 17.547
+  type: 'test'
+  ...
+# Subtest: all five declared historical proof families permit empty maps without replacing signature checks
+ok 144 - all five declared historical proof families permit empty maps without replacing signature checks
+  ---
+  duration_ms: 3.3277
+  type: 'test'
+  ...
+# Subtest: new known runtime evidence invalidates a sealed candidate even without a newer durable revision
+ok 145 - new known runtime evidence invalidates a sealed candidate even without a newer durable revision
+  ---
+  duration_ms: 2.6033
+  type: 'test'
+  ...
+# Subtest: current immediately hides prior account truth when session changes without another command
+ok 146 - current immediately hides prior account truth when session changes without another command
+  ---
+  duration_ms: 2.3485
+  type: 'test'
+  ...
+# Subtest: context changes after actual IDB complete withhold Saved while preserving the completed disk facts
+ok 147 - context changes after actual IDB complete withhold Saved while preserving the completed disk facts
+  ---
+  duration_ms: 8.1618
+  type: 'test'
+  ...
+# Subtest: inbound completion changed-context uses confirmed:false without falsely reporting durable disk as aborted
+ok 148 - inbound completion changed-context uses confirmed:false without falsely reporting durable disk as aborted
+  ---
+  duration_ms: 2.7183
+  type: 'test'
+  ...
+# Subtest: time guard failures preserve each specific underlying17/18/19/20 instead of generic3
+ok 149 - time guard failures preserve each specific underlying17/18/19/20 instead of generic3
+  ---
+  duration_ms: 4.3963
+  type: 'test'
+  ...
+# Subtest: B11 pending time network request does not stall an allowed local write or clear its unresolved guard
+ok 150 - B11 pending time network request does not stall an allowed local write or clear its unresolved guard
+  ---
+  duration_ms: 4.876
+  type: 'test'
+  ...
+1..150
+# tests 150
+# suites 0
+# pass 150
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1497.0988

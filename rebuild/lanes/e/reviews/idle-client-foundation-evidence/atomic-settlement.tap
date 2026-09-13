@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: atomic head: successful replacement stays pending until the readonly transaction completes
+ok 1 - atomic head: successful replacement stays pending until the readonly transaction completes
+  ---
+  duration_ms: 20.4682
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 174.5583

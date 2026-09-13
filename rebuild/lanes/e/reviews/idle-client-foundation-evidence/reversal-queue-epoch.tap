@@ -1,0 +1,33 @@
+TAP version 13
+# Subtest: idle replacement: synchronous history invalidation changes the private fence
+not ok 1 - idle replacement: synchronous history invalidation changes the private fence
+  ---
+  duration_ms: 20.5156
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1131:54'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + undefined
+    - 'WORKOUT_REPLACEMENT_BUSY'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'WORKOUT_REPLACEMENT_BUSY'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1134:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 151.5125

@@ -1,0 +1,38 @@
+[
+  {
+    "name": "atomic-comparison",
+    "file": "rebuild/m3/w6/repository.mjs",
+    "pattern": "idle replacement: (revision|token) changing during final-read",
+    "failed": 2,
+    "restoredPass": 2,
+    "before": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc",
+    "restored": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc"
+  },
+  {
+    "name": "wait-complete",
+    "file": "rebuild/m3/w6/repository.mjs",
+    "pattern": "atomic head: successful replacement stays pending",
+    "failed": 1,
+    "restoredPass": 1,
+    "before": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc",
+    "restored": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc"
+  },
+  {
+    "name": "post-publication-failure",
+    "file": "rebuild/m3/w6/public-client.mjs",
+    "pattern": "atomic head: (abort-after|close-after) after publication",
+    "failed": 2,
+    "restoredPass": 2,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31"
+  },
+  {
+    "name": "currentness-reentrancy",
+    "file": "rebuild/m3/w6/public-client.mjs",
+    "pattern": "idle replacement: synchronous currentness reentrancy",
+    "failed": 1,
+    "restoredPass": 1,
+    "before": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+    "restored": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31"
+  }
+]

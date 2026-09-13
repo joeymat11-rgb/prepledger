@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: atomic head: abort-after after publication is unknown and never revives the old handle
+ok 1 - atomic head: abort-after after publication is unknown and never revives the old handle
+  ---
+  duration_ms: 22.0227
+  type: 'test'
+  ...
+# Subtest: atomic head: close-after after publication is unknown and never revives the old handle
+ok 2 - atomic head: close-after after publication is unknown and never revives the old handle
+  ---
+  duration_ms: 5.6186
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 159.7555

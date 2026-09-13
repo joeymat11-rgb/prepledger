@@ -1,0 +1,78 @@
+{
+  "base": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "unchangedPublicInputs": 46,
+  "source": [
+    {
+      "file": "rebuild/m3/w6/public-client.mjs",
+      "bytes": 66014,
+      "sha256": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31"
+    },
+    {
+      "file": "rebuild/m3/w6/repository.mjs",
+      "bytes": 20668,
+      "sha256": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc"
+    },
+    {
+      "file": "rebuild/m3/w6/test/public-client.test.mjs",
+      "bytes": 30443,
+      "sha256": "ff30457ad80c778b7cf030f41744b07390021e950cc7e55282d723e732887f02"
+    },
+    {
+      "file": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "bytes": 137258,
+      "sha256": "6e73717de83d027e6aa7b181494fb8918fc0ab8daee61f7c0bd37edc0835df70"
+    }
+  ],
+  "runtime": "v22.23.2",
+  "runtimeSha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+  "outputs": [
+    {
+      "file": "baseline.tap",
+      "sha256": "187e060c31ae346ad939553e087f771f640298e328777f59ca4dbcc91489068d"
+    },
+    {
+      "file": "expanded-focused.tap",
+      "sha256": "1498f60d47858164cb4c7164d108a1e4d19b5a83a934e5ca1efceaf4fa8e1377"
+    },
+    {
+      "file": "construction-full.tap",
+      "sha256": "1d2e01d36df1c921f14236db927c14072a827f89983c3059336d71c91e4fda53"
+    },
+    {
+      "file": "red-atomic-head.tap",
+      "sha256": "2038490f3332e829b96b67c897fbf80772b2c34750ebc42abfe1d1fd99408408"
+    },
+    {
+      "file": "repaired-atomic-head.tap",
+      "sha256": "043578a1e4f47512c0534fd0757853ac3edd6b3e3dba136a458ef5f2fc41ef83"
+    },
+    {
+      "file": "atomic-focused.tap",
+      "sha256": "86b017e94921f882bba7a0a63cf2320d86c175d29b9ab22b5ba3ef4aff6d67cd"
+    },
+    {
+      "file": "atomic-focused-restored-adapter.tap",
+      "sha256": "dea169dc97df453895aa1ab5b21bc657e35d6ca2c82d6bdc9df9dada86e23813"
+    },
+    {
+      "file": "final-full.tap",
+      "sha256": "f6ffb66ef96ee06f27f5e6528464dc0b9379d3be54d2e388616c1ff105dc14ff"
+    },
+    {
+      "file": "reversals.json",
+      "sha256": "89d296ae1d36cd7c7b9de91adb22bc4b4edf3abb83212c9363d60c1e8f28168d"
+    },
+    {
+      "file": "atomic-reversals.json",
+      "sha256": "1cd82bbe005442f1a15fdd6e8910b84bc4b13375cb7ed65265d02b4b98099dea"
+    },
+    {
+      "file": "loader-inventory.json",
+      "sha256": "f074c9f01346f80f989431ba58d685a6b14ce82280065be21fcdc8d39a9ca508"
+    },
+    {
+      "file": "dependency-inventory.json",
+      "sha256": "5dfe6b50b9fcd29cd970b3c8d82e4267daa2f2947760e976d82adf978bdd64de"
+    }
+  ]
+}

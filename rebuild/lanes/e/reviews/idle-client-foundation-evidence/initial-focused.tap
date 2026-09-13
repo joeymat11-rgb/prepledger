@@ -1,0 +1,250 @@
+TAP version 13
+# Subtest: idle replacement: idle unprepared host publishes exactly once without a write
+ok 1 - idle replacement: idle unprepared host publishes exactly once without a write
+  ---
+  duration_ms: 54.9313
+  type: 'test'
+  ...
+# Subtest: idle replacement: idle prepared host publishes exactly once without a write
+ok 2 - idle replacement: idle prepared host publishes exactly once without a write
+  ---
+  duration_ms: 9.8486
+  type: 'test'
+  ...
+# Subtest: idle replacement: fully closed recorded workout preserves complete generation ops outbox and retained history
+ok 3 - idle replacement: fully closed recorded workout preserves complete generation ops outbox and retained history
+  ---
+  duration_ms: 26.1538
+  type: 'test'
+  ...
+# Subtest: idle replacement: false before publication retains the old usable preparation
+ok 4 - idle replacement: false before publication retains the old usable preparation
+  ---
+  duration_ms: 7.0812
+  type: 'test'
+  ...
+# Subtest: idle replacement: throw before publication retains the old usable preparation
+ok 5 - idle replacement: throw before publication retains the old usable preparation
+  ---
+  duration_ms: 6.9528
+  type: 'test'
+  ...
+# Subtest: idle replacement: promise before publication retains the old usable preparation
+ok 6 - idle replacement: promise before publication retains the old usable preparation
+  ---
+  duration_ms: 6.5652
+  type: 'test'
+  ...
+# Subtest: idle replacement: failed-preparation before publication retains the old usable preparation
+ok 7 - idle replacement: failed-preparation before publication retains the old usable preparation
+  ---
+  duration_ms: 6.7054
+  type: 'test'
+  ...
+# Subtest: idle replacement: publisher throw-before is unknown publication without rolling back external effects
+ok 8 - idle replacement: publisher throw-before is unknown publication without rolling back external effects
+  ---
+  duration_ms: 6.1219
+  type: 'test'
+  ...
+# Subtest: idle replacement: publisher assign-throw is unknown publication without rolling back external effects
+ok 9 - idle replacement: publisher assign-throw is unknown publication without rolling back external effects
+  ---
+  duration_ms: 13.3264
+  type: 'test'
+  ...
+# Subtest: idle replacement: publisher assign-promise is unknown publication without rolling back external effects
+ok 10 - idle replacement: publisher assign-promise is unknown publication without rolling back external effects
+  ---
+  duration_ms: 6.389
+  type: 'test'
+  ...
+# Subtest: idle replacement: publisher assign-value is unknown publication without rolling back external effects
+ok 11 - idle replacement: publisher assign-value is unknown publication without rolling back external effects
+  ---
+  duration_ms: 6.5109
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects expected-getter capability shape before any accessor or publication
+ok 12 - idle replacement: rejects expected-getter capability shape before any accessor or publication
+  ---
+  duration_ms: 4.3012
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects callback-getter capability shape before any accessor or publication
+ok 13 - idle replacement: rejects callback-getter capability shape before any accessor or publication
+  ---
+  duration_ms: 5.0434
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects async-check capability shape before any accessor or publication
+ok 14 - idle replacement: rejects async-check capability shape before any accessor or publication
+  ---
+  duration_ms: 4.4548
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects async-publish capability shape before any accessor or publication
+ok 15 - idle replacement: rejects async-publish capability shape before any accessor or publication
+  ---
+  duration_ms: 4.0323
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects generator-check capability shape before any accessor or publication
+ok 16 - idle replacement: rejects generator-check capability shape before any accessor or publication
+  ---
+  duration_ms: 4.1634
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects generator-publish capability shape before any accessor or publication
+ok 17 - idle replacement: rejects generator-publish capability shape before any accessor or publication
+  ---
+  duration_ms: 4.384
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects missing-token capability shape before any accessor or publication
+ok 18 - idle replacement: rejects missing-token capability shape before any accessor or publication
+  ---
+  duration_ms: 4.4818
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects object-epoch capability shape before any accessor or publication
+ok 19 - idle replacement: rejects object-epoch capability shape before any accessor or publication
+  ---
+  duration_ms: 3.935
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejects extra capability shape before any accessor or publication
+ok 20 - idle replacement: rejects extra capability shape before any accessor or publication
+  ---
+  duration_ms: 3.5529
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual namespace binding cannot be replaced by caller claims
+ok 21 - idle replacement: actual namespace binding cannot be replaced by caller claims
+  ---
+  duration_ms: 4.5414
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual athleteId binding cannot be replaced by caller claims
+ok 22 - idle replacement: actual athleteId binding cannot be replaced by caller claims
+  ---
+  duration_ms: 3.9186
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual deviceId binding cannot be replaced by caller claims
+ok 23 - idle replacement: actual deviceId binding cannot be replaced by caller claims
+  ---
+  duration_ms: 3.9665
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual sessionEpoch binding cannot be replaced by caller claims
+ok 24 - idle replacement: actual sessionEpoch binding cannot be replaced by caller claims
+  ---
+  duration_ms: 4.8004
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual observationEpoch binding cannot be replaced by caller claims
+ok 25 - idle replacement: actual observationEpoch binding cannot be replaced by caller claims
+  ---
+  duration_ms: 3.9804
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual revision binding cannot be replaced by caller claims
+ok 26 - idle replacement: actual revision binding cannot be replaced by caller claims
+  ---
+  duration_ms: 4.124
+  type: 'test'
+  ...
+# Subtest: idle replacement: actual token binding cannot be replaced by caller claims
+ok 27 - idle replacement: actual token binding cannot be replaced by caller claims
+  ---
+  duration_ms: 4.9947
+  type: 'test'
+  ...
+# Subtest: idle replacement: active-today history never proves idle
+ok 28 - idle replacement: active-today history never proves idle
+  ---
+  duration_ms: 6.1115
+  type: 'test'
+  ...
+# Subtest: idle replacement: unfinished-earlier history never proves idle
+ok 29 - idle replacement: unfinished-earlier history never proves idle
+  ---
+  duration_ms: 6.3882
+  type: 'test'
+  ...
+# Subtest: idle replacement: legacy-closed history never proves idle
+ok 30 - idle replacement: legacy-closed history never proves idle
+  ---
+  duration_ms: 14.2486
+  type: 'test'
+  ...
+# Subtest: idle replacement: other-device-closed history never proves idle
+ok 31 - idle replacement: other-device-closed history never proves idle
+  ---
+  duration_ms: 18.52
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejected-start history never proves idle
+ok 32 - idle replacement: rejected-start history never proves idle
+  ---
+  duration_ms: 12.1761
+  type: 'test'
+  ...
+# Subtest: idle replacement: rejected-close history never proves idle
+ok 33 - idle replacement: rejected-close history never proves idle
+  ---
+  duration_ms: 11.4002
+  type: 'test'
+  ...
+# Subtest: idle replacement: unproved-local history never proves idle
+ok 34 - idle replacement: unproved-local history never proves idle
+  ---
+  duration_ms: 7.5023
+  type: 'test'
+  ...
+# Subtest: idle replacement: unproved-signature history never proves idle
+ok 35 - idle replacement: unproved-signature history never proves idle
+  ---
+  duration_ms: 8.266
+  type: 'test'
+  ...
+# Subtest: idle replacement: unresolved-edit history never proves idle
+ok 36 - idle replacement: unresolved-edit history never proves idle
+  ---
+  duration_ms: 13.597
+  type: 'test'
+  ...
+# Subtest: idle replacement: unproved-prefix history never proves idle
+ok 37 - idle replacement: unproved-prefix history never proves idle
+  ---
+  duration_ms: 8.2048
+  type: 'test'
+  ...
+# Subtest: idle replacement: recovered-source history never proves idle
+not ok 38 - idle replacement: recovered-source history never proves idle
+  ---
+  duration_ms: 1.3997
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1036:227'
+  failureType: 'testCodeFailure'
+  error: 'RECOVERY_ADOPTION_PROOFS_STRIPPED'
+  code: 'RECOVERY_ADOPTION_PROOFS_STRIPPED'
+  name: 'StorageFailure'
+  stack: |-
+    refuseUnevidenced (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/repository.mjs:130:11)
+    async sealAdoption (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/repository.mjs:146:24)
+    async Object.commit (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/repository.mjs:306:24)
+    async TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1045:130)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 37
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 460.6329

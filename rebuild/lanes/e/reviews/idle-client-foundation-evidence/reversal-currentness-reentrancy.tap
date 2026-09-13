@@ -1,0 +1,37 @@
+TAP version 13
+# Subtest: idle replacement: synchronous currentness reentrancy cannot publish ahead of a queued Start
+not ok 1 - idle replacement: synchronous currentness reentrancy cannot publish ahead of a queued Start
+  ---
+  duration_ms: 20.65
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\e-idle-client-foundation\\rebuild\\m3\\w6\\test\\prepared-workout.test.mjs:1125:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + 'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN'
+    - 'WORKOUT_REPLACEMENT_BUSY'
+                           ^
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'WORKOUT_REPLACEMENT_BUSY'
+  actual: 'WORKOUT_REPLACEMENT_PUBLICATION_UNKNOWN'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/e-idle-client-foundation/rebuild/m3/w6/test/prepared-workout.test.mjs:1128:10)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 176.0228
