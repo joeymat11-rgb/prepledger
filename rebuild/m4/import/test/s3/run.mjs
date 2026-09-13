@@ -46,9 +46,27 @@ export function verifySources(root,manifest,{extra=false}={}){
 // data; template expressions remain executable tokens. Unknown computed module
 // sites refuse. The sole reviewed factory loop has a byte-bound explicit map.
 function moduleTokens(source){
- const tokens=[];let i=0;
- const push=(type,value,start)=>tokens.push({type,value,start,end:i});
- const regexStart=()=>!tokens.length||/^(?:[({[=,:;!?&|+*%^~<>-]|return|throw|case|yield|typeof|void|delete|in|of)$/.test(tokens.at(-1).value);
+ const tokens=[],parens=[];let i=0;
+ const control=new Set(['if','while','for','with','switch','catch']);
+ const push=(type,value,start)=>{
+  const previous=tokens.at(-1),property=type==='id'&&previous?.type==='punct'&&previous.value==='.';
+  const token={type,value,start,end:i,property};
+  if(type==='punct'&&value==='('){
+   const keyword=previous?.value==='await'&&tokens.at(-2)?.value==='for'?tokens.at(-2):previous;
+   parens.push(keyword?.type==='id'&&!keyword.property&&control.has(keyword.value)?keyword.value:null);
+  }else if(type==='punct'&&value===')')token.statement=parens.pop()!=null;
+  tokens.push(token);
+ };
+ const regexStart=()=>{
+  const last=tokens.at(-1);
+  if(!last)return true;
+  if(last.type==='punct'&&last.value===')')return last.statement===true;
+  if(last.property)return false;
+  // `of` is contextual only within a for header. A property or an ordinary
+  // variable named of finishes an expression and therefore precedes division.
+  if(last.type==='id'&&last.value==='of')return parens.at(-1)==='for';
+  return last.type==='punct'&&/^[({[=,:;!?&|+*%^~<>-]$/.test(last.value)||last.type==='id'&&/^(?:return|throw|case|yield|typeof|void|delete|in|else|do)$/.test(last.value);
+ };
  function scan(templateExpression=false){let depth=0;
   while(i<source.length){const start=i,c=source[i],next=source[i+1];
    if(/\s/.test(c)){i++;continue;}

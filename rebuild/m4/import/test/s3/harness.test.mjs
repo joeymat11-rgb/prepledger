@@ -121,28 +121,32 @@ function isolatedChild(args,cwd){
 }
 test('S3-HARNESS-EXACT-IDENTITY: a passing selected test cannot borrow a suffix-named assertion',()=>{
  const f=fixture(),file=path.join(f.root,'rebuild','identity.cjs'),selected='selected boundary';
- const execute=(fails,other)=>{
+ const execute=(label,fails,other)=>{
   fs.writeFileSync(file,"const test=require('node:test'),assert=require('node:assert/strict');\n"+
    'test('+JSON.stringify(selected)+',()=>assert.equal(1,'+(fails?2:1)+'));\n'+
    'test('+JSON.stringify(other)+',()=>assert.equal(3,4));\n');
   const actual=isolatedChild(['--test','--test-reporter=tap',file],f.root);
   assert.equal(actual.status,1);assert.match(actual.stdout,/^# tests 2$/m);assert.match(actual.stdout,/^# skipped 0$/m);assert.match(actual.stdout,/^# cancelled 0$/m);
-  fs.writeFileSync(path.join(f.root,'rebuild','identity-'+(fails?'fail':'pass')+'.tap'),actual.stdout);
+  fs.writeFileSync(path.join(f.root,'rebuild','identity-'+label+'.tap'),actual.stdout);
   return actual;
  };
- const right=execute(true,'unrelated boundary');
+ const right=execute('exact-fail',true,'unrelated boundary');
  assert.equal(mutantSummary(right.stdout,right.status,selected).name,selected);
- const wrong=execute(false,'unrelated selected boundary suffix');
+ const wrong=execute('exact-pass-suffix-fail',false,'unrelated selected boundary suffix');
  assert.throws(()=>mutantSummary(wrong.stdout,wrong.status,selected),{code:'S3_MUTANT_NOT_ASSERTION'});
- const duplicate=execute(false,selected);
+ const duplicate=execute('duplicate-pass-fail',false,selected);
  assert.throws(()=>mutantSummary(duplicate.stdout,duplicate.status,selected),{code:'S3_MUTANT_NOT_ASSERTION'});
+ const duplicateFail=execute('duplicate-fail-fail',true,selected);
+ assert.throws(()=>mutantSummary(duplicateFail.stdout,duplicateFail.status,selected),{code:'S3_MUTANT_NOT_ASSERTION'});
  assert.throws(()=>mutantSummary(right.stdout,right.status,'selected'),{code:'S3_MUTANT_NOT_ASSERTION'});
+ const suffix=execute('exact-and-suffix-fail',true,'unrelated selected boundary suffix');
+ assert.equal(mutantSummary(suffix.stdout,suffix.status,selected).name,selected);
 });
 function lexicalControl(source,refuse){
  const f=fixture(),file=path.join(f.root,f.file);fs.writeFileSync(file,source);
  const syntax=isolatedChild(['--check',file],f.root);assert.equal(syntax.status,0,'Actual Node syntax: '+syntax.stderr);
  if(refuse)assert.throws(()=>inspectStaticEdges(f.root,f.manifest),{code:'S3_UNLISTED_EDGE'});
- else assert.deepEqual(inspectStaticEdges(f.root,f.manifest),[]);
+ else {let edges;assert.doesNotThrow(()=>{edges=inspectStaticEdges(f.root,f.manifest);});assert.deepEqual(edges,[]);}
 }
 test('S3-HARNESS-PROPERTY-DIVISION: property keywords cannot hide escaped-slash imports',()=>{
  lexicalControl("const obj={x:1}; obj.x / import('.\\x2fsentinel.mjs') / 2;",true);
@@ -153,7 +157,7 @@ test('S3-HARNESS-PROPERTY-DIVISION: property keywords cannot hide escaped-slash 
 });
 test('S3-HARNESS-CONTROL-REGEX: a statement regex after a control condition is data',()=>{
  lexicalControl("const value=/import(x)/; value.test('ok');",false);
- for(const source of ["if (true) /import(x)/.test('ok');", "if ((true)) /import(x)/.test('ok');", "while (false) /import(x)/.test('ok');", "for (;false;) /import(x)/.test('ok');"])
+ for(const source of ["if (true) /import(x)/.test('ok');", "if ((true)) /import(x)/.test('ok');", "while (false) /import(x)/.test('ok');", "for (;false;) /import(x)/.test('ok');", "if ('(') /import(x)/.test('ok');", "if (')') /import(x)/.test('ok');"])
   lexicalControl(source,false);
  lexicalControl("const f=()=>1; f() / import('.\\x2fsentinel.mjs') / 2;",true);
  lexicalControl("const obj={if:()=>1}; obj.if(true) / import('.\\x2fsentinel.mjs') / 2;",true);

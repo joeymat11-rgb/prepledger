@@ -343,7 +343,7 @@
     },
     {
       "path": "rebuild/m4/import/test/mutations.cjs",
-      "sha256": "0c279836874ff73f91033ee47011d24309cb2210275e27ef0aa66b301c6bb00b"
+      "sha256": "ec0d98af304f299fdf00fb092c670a33a0b6ac7d0646f4dc7ed6e99b9b03787f"
     },
     {
       "path": "rebuild/m4/import/test/prepare.test.cjs",
@@ -351,7 +351,7 @@
     },
     {
       "path": "rebuild/m4/import/test/reading-replay-faults.cjs",
-      "sha256": "247dc49cd6528f9314c93697e47f4de06dcd05e0e1422918d6570f51579953f4"
+      "sha256": "92262c324b572204462896085414a5d4b2de476403a9ee48bb1320df24b0d363"
     },
     {
       "path": "rebuild/m4/import/test/reading-replay.test.cjs",
@@ -375,15 +375,15 @@
     },
     {
       "path": "rebuild/m4/import/test/s3/harness.test.mjs",
-      "sha256": "0b63c69581658b2532d91583ccf4e0998006341b2901132b97c3828a7ee2aa1d"
+      "sha256": "72f7e9c66a21ad30eeb5f395825e2c5737028bbc4ae6d3ed1c4834e44243a8fd"
     },
     {
       "path": "rebuild/m4/import/test/s3/mutations.cjs",
-      "sha256": "6d32556a0caaffc8edc045ab675b6eb73cad9b31905fa644602977a34c3f118b"
+      "sha256": "3cb410dddbc14c8628efb42f517b2c82b6eb69b303f19650ac634fa99aefb7b1"
     },
     {
       "path": "rebuild/m4/import/test/s3/run.mjs",
-      "sha256": "064403a3acb1bf307164590c42c87fc47597eca96f381bb7bdee0623c09282b5"
+      "sha256": "b9f905e6e32aad74c08735d4cc22a796c30fea765712301ebb4b125e9542363b"
     },
     {
       "path": "rebuild/m4/workout/athlete-state.cjs",
@@ -475,11 +475,35 @@
   },
   "coreMutations": [
     {
+      "id": "r3-selected-suffix-assertion-borrowed",
+      "target": "rebuild/m4/import/test/s3/mutations.cjs",
+      "needle": "\n  const hit=/^(not ok|ok) [0-9]+ - (.+)$/.exec(lines[index]);\n  if(!hit||hit[2]!==name)continue;",
+      "replacement": "\n  const hit=/^(not ok) [0-9]+ - (.+)$/.exec(lines[index]);\n  if(!hit||!hit[2].includes(name))continue;",
+      "test": "S3-HARNESS-EXACT-IDENTITY: a passing selected test cannot borrow a suffix-named assertion",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r3-property-of-regex-confusion",
+      "target": "rebuild/m4/import/test/s3/run.mjs",
+      "needle": "if(last.property)return false;",
+      "replacement": "if(last.property)return last.value==='of';",
+      "test": "S3-HARNESS-PROPERTY-DIVISION: property keywords cannot hide escaped-slash imports",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
+      "id": "r3-control-regex-treated-as-division",
+      "target": "rebuild/m4/import/test/s3/run.mjs",
+      "needle": "if(last.type==='punct'&&last.value===')')return last.statement===true;",
+      "replacement": "if(last.type==='punct'&&last.value===')')return false;",
+      "test": "S3-HARNESS-CONTROL-REGEX: a statement regex after a control condition is data",
+      "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
+    },
+    {
       "id": "r1-enrollment-namespace-unbound",
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "g.metadata.namespace!==namespace||",
       "replacement": "",
-      "test": "S3-Q-ENROLLMENT",
+      "test": "S3-Q-ENROLLMENT: matching authenticated namespace qualifies and a caller relabel refuses",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -487,7 +511,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "['plan','planTxns','planTransactions','planHistory','suspensions','issuances']",
       "replacement": "['planTxns','planTransactions','planHistory','suspensions','issuances']",
-      "test": "S3-Q-PLAN-COLLECTION",
+      "test": "S3-Q-PLAN-COLLECTION: empty plan is supported but unexplained sealed programme state refuses",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -495,7 +519,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "if(!expected||encode([...counts.keys()])!==encode(expected.ex.map(card=>card.id)))fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
       "replacement": "",
-      "test": "S3-Q-LAYOUT-COMPLETE",
+      "test": "S3-Q-LAYOUT-COMPLETE: an omitted entire lift refuses while original historical loads and incomplete facts survive",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -503,7 +527,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "if(Ops.TARGET_REQUIRED.has(op.kind)?typeof op.target_op_id!=='string'||!op.target_op_id:Object.hasOwn(op,'target_op_id'))fail('LOCAL_SOURCE_ORIGINAL_INVALID');",
       "replacement": "",
-      "test": "S3-Q-TARGET-KIND",
+      "test": "S3-Q-TARGET-KIND: normal causally linked reading projects once but a committed fact target refuses",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -511,7 +535,7 @@
       "target": "rebuild/m4/import/engine-provider.cjs",
       "needle": "function reached(day){try{context.clockAt(day,0);}catch{unproven();}}",
       "replacement": "function reached(day){}",
-      "test": "S3-PROVIDER-CALENDAR-REACHED",
+      "test": "S3-PROVIDER-CALENDAR-REACHED: real regression over DST requires historical range coverage",
       "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
     },
     {
@@ -519,7 +543,7 @@
       "target": "rebuild/m4/import/engine-provider.cjs",
       "needle": ":unavailable('drafts'),nativeTrendContext",
       "replacement": ":Object.freeze({length:0,key:()=>null}),nativeTrendContext",
-      "test": "S3-PROVIDER-CAUGHT51",
+      "test": "S3-PROVIDER-CAUGHT51: caught draft scans remain poisoned outside the engine",
       "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
     },
     {
@@ -527,7 +551,7 @@
       "target": "rebuild/m4/import/test/s3/current-head.cjs",
       "needle": "Module.registerHooks({",
       "replacement": "void ({",
-      "test": "S3-HARNESS-ESM-RUNTIME",
+      "test": "S3-HARNESS-ESM-RUNTIME: actual CJS and ESM children cannot execute an unlisted sentinel",
       "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
     },
     {
@@ -535,7 +559,7 @@
       "target": "rebuild/m4/import/test/s3/run.mjs",
       "needle": "if(!mapped)refusal('S3_UNLISTED_EDGE',entry.path+' computed '+token.value);",
       "replacement": "if(!mapped)continue;",
-      "test": "S3-HARNESS-ESM-STATIC",
+      "test": "S3-HARNESS-ESM-STATIC: side effects and computed imports refuse before copying",
       "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
     },
     {
@@ -543,7 +567,7 @@
       "target": "rebuild/m4/import/test/s3/run.mjs",
       "needle": "else if(token.value==='import'&&next?.type==='string')edge(next.value);",
       "replacement": "else if(token.value==='import'&&next?.type==='string')continue;",
-      "test": "S3-HARNESS-ESM-STATIC",
+      "test": "S3-HARNESS-ESM-STATIC: side effects and computed imports refuse before copying",
       "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
     },
     {
@@ -551,7 +575,7 @@
       "target": "rebuild/m4/import/test/s3/mutations.cjs",
       "needle": "\n  matches.push(codes.length===1&&codes[0][1]==='ERR_ASSERTION'?",
       "replacement": "\n  matches.push(log.includes('ERR_ASSERTION')?",
-      "test": "S3-HARNESS-MUTANT-OWN-DIAGNOSTIC",
+      "test": "S3-HARNESS-MUTANT-OWN-DIAGNOSTIC: selected TypeError cannot borrow an unrelated assertion",
       "testFile": "rebuild/m4/import/test/s3/harness.test.mjs"
     },
     {
@@ -559,7 +583,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "publish:()=>repository.commit(held.expected,next,()=>syncGuard(held.stamp))",
       "replacement": "publish:async()=>repository.commit(await repository.load(),next,()=>syncGuard(held.stamp))",
-      "test": "S3-COMMIT-PUBLISH-CAS",
+      "test": "S3-COMMIT-PUBLISH-CAS: a concurrent factual save after preflight cannot be overwritten by publication",
       "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
     },
     {
@@ -567,7 +591,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "for(const [id,count]of counts)if(state.exercises.find(e=>e.id===id).sets!==count)fail('LOCAL_SOURCE_PROGRAMME_UNRESOLVED');",
       "replacement": "",
-      "test": "S3-Q-F3-LAYOUT",
+      "test": "S3-Q-F3-LAYOUT: a valid capture with different configured set counts stays unresolved",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -575,7 +599,7 @@
       "target": "rebuild/m4/import/engine-provider.cjs",
       "needle": "if(fault)missing(fault);if(calendarFault)unproven();if(error)throw error;return value;",
       "replacement": "if(calendarFault)unproven();if(error)throw error;return value;",
-      "test": "S3-PROVIDER-CAUGHT60",
+      "test": "S3-PROVIDER-CAUGHT60: inner patch catch cannot publish partial v60 or clear instance poison",
       "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
     },
     {
@@ -583,7 +607,7 @@
       "target": "rebuild/m4/import/local-source-profile.cjs",
       "needle": "contexts.set(handle,freeze(",
       "replacement": "contexts.set(handle,(",
-      "test": "S3-PROVIDER-CONTEXT-CUSTODY",
+      "test": "S3-PROVIDER-CONTEXT-CUSTODY: looked-up context and its clock stay immutable",
       "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
     },
     {
@@ -591,7 +615,7 @@
       "target": "rebuild/m4/import/local-source-profile.cjs",
       "needle": "||mapping.engine.path!=='rebuild/engine/oracle-shim.cjs'",
       "replacement": "",
-      "test": "S3-PROVIDER-MAPPING",
+      "test": "S3-PROVIDER-MAPPING: path, entry, closure, preparation day and compatibility cannot be arbitrary labels",
       "testFile": "rebuild/m4/import/test/engine-provider.test.cjs"
     },
     {
@@ -599,7 +623,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "||encode(currentOps[id])!==encode(original)",
       "replacement": "",
-      "test": "S3-Q-CHECKPOINT-ORIGINAL",
+      "test": "S3-Q-CHECKPOINT-ORIGINAL: rewriting and recommitting an original under the same ID still refuses",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -607,7 +631,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "if(entries.length!==1)fail(entries.length?'LOCAL_SOURCE_IMPORT_AMBIGUOUS':'LOCAL_SOURCE_IMPORT_REQUIRED');",
       "replacement": "if(!entries.length)fail('LOCAL_SOURCE_IMPORT_REQUIRED');",
-      "test": "S3-Q-IMPORT-NAME",
+      "test": "S3-Q-IMPORT-NAME: duplicate matching import metadata does not pick the first source silently",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -615,7 +639,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "if(identityConfirmed!==true&&!existingSelection)fail('LOCAL_SOURCE_IDENTITY_CONFIRMATION_REQUIRED');",
       "replacement": "",
-      "test": "S3-Q-REVIEW",
+      "test": "S3-Q-REVIEW: cloned reviews and caller-supplied selection evidence cannot replace identity confirmation",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -623,7 +647,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "||stamp()!==expected",
       "replacement": "",
-      "test": "S3-Q-CURRENT",
+      "test": "S3-Q-CURRENT: same-count semantic change and a new durable operation both invalidate guidance",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -631,7 +655,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "const eff=row.original.effective,hour=Number(eff?.local_time?.slice(0,2));",
       "replacement": "const eff=row.original.effective,hour=8;",
-      "test": "S3-Q-LATE-HOUR",
+      "test": "S3-Q-LATE-HOUR: a real evening fact stays outside the trend rather than borrowing hour8",
       "testFile": "rebuild/m3/w6/test/local-source-admission.test.mjs"
     },
     {
@@ -639,7 +663,7 @@
       "target": "rebuild/m4/import/local-source-order.cjs",
       "needle": "if(answer!==true)fail('ORDER_EVIDENCE_REQUIRED');",
       "replacement": "",
-      "test": "S3-ORDER-ATTESTATION",
+      "test": "S3-ORDER-ATTESTATION: exact immutable displayed membership requires a distinct factual answer",
       "testFile": "rebuild/m4/import/test/local-source-order.test.cjs"
     },
     {
@@ -647,7 +671,7 @@
       "target": "rebuild/m4/import/local-source-order.cjs",
       "needle": "'athlete_id','source_digest','checkpoint_digest'",
       "replacement": "'athlete_id','checkpoint_digest'",
-      "test": "S3-ORDER-MEMBERS",
+      "test": "S3-ORDER-MEMBERS: dates and labels do not repair changed members or mapped root interpretation",
       "testFile": "rebuild/m4/import/test/local-source-order.test.cjs"
     },
     {
@@ -655,7 +679,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "publish:()=>repository.commit(held.expected,next,()=>syncGuard(held.stamp))",
       "replacement": "publish:()=>repository.commit(held.expected,next,()=>null)",
-      "test": "S3-COMMIT-SEAL-CANCEL",
+      "test": "S3-COMMIT-SEAL-CANCEL: semantic cancellation after publish begins is rejected inside the real transaction",
       "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
     },
     {
@@ -663,7 +687,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "{...e,rebaseRequired:false,localSourceSelectionId:selectionId}",
       "replacement": "{...e,rebaseRequired:true,localSourceSelectionId:selectionId}",
-      "test": "S3-COMMIT-ATOMIC",
+      "test": "S3-COMMIT-ATOMIC: one real CAS publishes projection, evidence, selection and matching completion",
       "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
     },
     {
@@ -671,7 +695,7 @@
       "target": "rebuild/m3/w6/local/source-admission.mjs",
       "needle": "next.metadata.localSources.selections[selectionId]=copy(selection);",
       "replacement": "next.metadata.localSources.selections={[selectionId]:copy(selection)};",
-      "test": "S3-COMMIT-ROLLBACK",
+      "test": "S3-COMMIT-ROLLBACK: rollback appends evidence and retains later local facts and old selections",
       "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
     },
     {
@@ -679,7 +703,7 @@
       "target": "rebuild/m3/w6/local/source-commit.mjs",
       "needle": "try{return await capability.reconcile();}catch{throw error;}",
       "replacement": "throw error;",
-      "test": "S3-COMMIT-ACK",
+      "test": "S3-COMMIT-ACK: lost acknowledgment reconciles the exact durable selection without a second write",
       "testFile": "rebuild/m3/w6/test/local-source-commit.test.mjs"
     }
   ],
