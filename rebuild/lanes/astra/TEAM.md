@@ -1,6 +1,6 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: owner306 uses existing Codex usage; no paid API. B tooling322/E memory-client324 scoped accepted; I source A3bfed63 prepared, I/ER/D2 LOW and paused. B bcec6848 native boundary/observer proposal accepted with330 privacy/first-failure limits. B/MAX now implements exact public-tested native capture helper/operator; E/HIGH independently fixes only frozen-build scratch/Windows path setup332 with invented Git/esbuild fixtures. Two builders, disjoint files; future ER/MAX and D2/MAX independent reviews respectively. NativeFieldDeltas UNKNOWN; no real native/private/frozen execution or full package/receipt/currentCI/import/phone proof yet. C294/E324 memory foundations retained; qualified controller/provider/canonical joins remain. Joe/history/memory then Dad; soak wide beta only. PM MAX for current boundary judgment; HIGH for routine coordination. Fast unavailable.
+PM checkpoint2026-09-13: owner306 uses existing Codex usage. B/MAX native capture330 is active. E332 pure build setup candidate2fdf33e5/sourcea0109d93 is complete, exact three-file/byte scope verified; author11/11/four reversals, not acceptance. D2/MAX independently reviews334; E LOW preserves public evidence. Earlier B322/E324/C294 scoped acceptances and I A3bfed63 source remain; ER/I/C/D LOW/paused. No real native/private/frozen/FULL/CI result or nativeFieldDeltas yet. Full memory/provider/controller/import/phone work remains. Joe/history/memory then Dad, soak wide beta only. PM MAX for exact review handoff; HIGH advised for routine coordination. Fast unavailable, no paid API.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
@@ -8,9 +8,9 @@ PM checkpoint2026-09-13: owner306 uses existing Codex usage; no paid API. B tool
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: exact native-capture helper/operator/public synthetic test330, from A3bfed63; no real native run | earned-astra-b-follow-up; hourly during build; pause on handoff |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: E318 independent handoff complete, scoped ACCEPT324 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact2fdf33e5 pure build-setup review334, source-first/report-last | earned-lane-d2-requests; hourly while reviewing; pause on handoff |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: B316 tooling handoff complete, scoped ACCEPT322 | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | HIGH: temporary isolated frozen-build Windows/scratch fix332; memory foundation324 preserved | earned-astra-e-follow-up; hourly during build; pause on handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: completed332 candidate2fdf33e5; only exact public evidence archive334 | earned-astra-e-follow-up; hourly until archive complete, then PAUSED320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees
@@ -60,9 +60,9 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: exact native-capture helper/operator/public synthetic test330, from A3bfed63; no real native run | earned-astra-b-follow-up; hourly during build; pause on handoff |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; lifecycle R3 scoped accepted294 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | LOW: E318 independent handoff complete, scoped ACCEPT324 | earned-lane-d2-requests; PAUSED320; direct PM handoff |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact2fdf33e5 pure build-setup review334, source-first/report-last | earned-lane-d2-requests; hourly while reviewing; pause on handoff |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: B316 tooling handoff complete, scoped ACCEPT322 | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | HIGH: temporary isolated frozen-build Windows/scratch fix332; memory foundation324 preserved | earned-astra-e-follow-up; hourly during build; pause on handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: completed332 candidate2fdf33e5; only exact public evidence archive334 | earned-astra-e-follow-up; hourly until archive complete, then PAUSED320 |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 Joe endorsed Editorial with original bullet spacing; Light and Ink bases remain locked. This is an example design preview endorsement, not an implementation, owner-data or deployment claim. Keep development focused on the current engine/import repairs and their joined acceptance requirements.
@@ -106,3 +106,5 @@ PM322/324 accept the two isolated completed scopes and preserve all first/report
 PM328 adopts the completed326 source assembly and finite static map. Input/output boundary closure is the immediate engine work; it is not a new scientific policy, data import or native PASS. Completed I/ER/D2 remain paused; only B is active on this exact preparation.
 
 PM330/332 release two concrete nonoverlapping implementations on existing usage: B capture helper/operator; E frozen-build path/scratch support. Independent ER/MAX and D2/MAX review bars are written before build. E is temporarily assigned this support file, not native gate custody. Private data runs remain solely B under an exact later window; the diagnostic summary cannot replace field-level expectation admission.
+
+PM334 verifies E332 exact three-file handoff and starts D2/MAX independent review while B330 continues. E LOW archives only existing public proof; do not treat author11/11 as acceptance. No historical/private/frozen invocation is assigned to D2 or E.
