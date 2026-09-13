@@ -1,0 +1,41 @@
+# S3: local profile judgments and final construction prerequisites
+
+2026-09-13, Astra PM under owner193/202 and S3-DATA-USE-PM-JUDGMENT.md at9cae2564ccfd13a2504a00e960d96623692ffb1a. Own-branch ruling; START205 and frozen shared T ea0a011f540448a5ece05d4c0ab7e0c8af17fedc remain unchanged. Launch final-M100820aa47a4f8729642033499eaec0f0ee282e1 has priority; this document is excluded from M and queued for reconciliation after END.
+
+PM read D's57-line S3-LOCAL-SOURCE-ORDER-CONTRACT.md at610f6dc77495478cf1b854243b9f899a9a36503d, recomputed20661bytes/SHA256d5d36206e6cbe5c7cfc4df60e1f90eb0744085f1dc46d79827ff702eaabea0dc. PM read B's40-line S3-PIN-CI-MAP.md ate57dc813da3a45a22faf7fc5d52d4deccd45ec7a, recomputed10976bytes/SHA256befa9bb09955e322af4aad3dffe29e6ae2a9c0da04798476829e79a06430ccce. An independent public-doc audit corroborated the specific remaining gaps; it is not runtime review.
+
+## J1: local qualification design accepted by name
+
+Accept D's local-only qualification Q, opaque controller ownership, immutable source evidence, separate capture/history profiles, currentness and two-phase CAS publication as the S3 design. Hosted signatures/frontiers/selection operations retain their existing meaning. local_selection_id names durable controller evidence, never an operation ID or fabricated parent; actual Start/continuation/resume must carry and validate the complete local_source_basis. Preserve original and hosted-v2 captures.
+
+The six-row family taxonomy is the closed design boundary, not permission to count every listed family as supported. Each actual producer/current fold/engine adapter and supported, retained-only or unresolved result must be named before implementation release. Programme agreement and exercise correspondence require meaningful positives; an implementation that refuses every actual setup/check-in/food case cannot claim S3 complete. No science threshold, new plan consent or source-precedence rule is introduced.
+
+Retain D's whole-basis interpretation checks, all-await invalidation, pre-batch capture binding, atomic source/assertion/projection/completion publication, acknowledgment-loss reconciliation, authenticated reopen and append-only rollback. No old-store replacement, duplicate completed workout, synthetic measurement or bare completion-flag acceptance is licensed.
+
+## J2: factual prefix confirmation mechanism approved prospectively
+
+Approve D's narrow athlete-attested legacy-prefix mechanism as a new PM design decision. It is not supplied by an older ruling. At actual use, show the specific file/fingerprint/membership and included native root/group, then ask D's exact yes/no chronology-and-no-overlap question separately from athlete/file identity confirmation. Bind the answer, displayed review and immutable membership to the proposed order map.
+
+This ruling is not Joe's factual answer and does not authorize an actual private import. Only his answer about the concrete selected material can supply this assertion. No/unknown, overlapping/interleaved history, unresolved exercise correspondence, multiple independent roots or changed claim leaves records retained and application pending. Do not persuade the user to answer Yes to unblock the app. Dates are labels; the assertion is attributed to the athlete and never described as machine-proved ancestry.
+
+Preserve all original op IDs, parents, captures and legacy session order. Later true descendants requalify against the same bound relationship; changed membership/placement/source requires the contract's renewed evidence. The map grants no plan consent or eligibility to invalid performance.
+
+## J3: inventory accepted; named final prerequisite work only
+
+Accept B's map as the current28-runtime-path inventory:8 admission/core,11 protected producer/capture/engine,9 C consumer; nine are new. Four inherited own-path byte entries plus schema's separate shared-edit/retained-R1 binding are explicitly retained. Absence from an ancestor pin map is not edit clearance. Actual implementation parent/pins must be rechecked when released.
+
+D now owns one bounded public portable-harness construction brief, lanes/d/S3-PORTABLE-HARNESS-BRIEF.md, at most60lines. Name exact synthetic engine/fixtures, current-W6 dependency setup, pure browser entry, per-run scratch and every changed/new executable harness/test/spec path. Give separate actual Node-suite, mutation-program and browser commands, preserving hosted behavior and meaningful existing assertions. Do not execute existing programs that reach installed/private/retained dependencies to discover whether they fail.
+
+D may inspect the public static import/require dependency graph at T rooted in the exact existing test programs named by B's map lines30-33 and their current public source modules, plus run-current-head.cjs/shared-edit-source-pins.json for the retained-R1 seam. This licenses source/header analysis only. Do not read private seed/history, ledger, conform/private, src/history.js, protected soak, an installed engine or any retained/other lane checkout; encountering such an edge is evidence of a dependency to replace with explicit public synthetic setup, not permission to open it. No runtime, test, pin or workflow edit is released by this paragraph.
+
+E now owns one exact family/effect registry appendix in the existing S3-SOURCE-ADMISSION-BRIEF.md, or a single linked lanes/e/S3-FAMILY-REGISTRY.md if its60-line cap would be exceeded. Map D's six families to real producer, current fold, engine writer/adapter, supported positive and retained-only/unresolved negative. Use current public source at T rooted in D's named Today setup/checkin/food/settings modules, reading/daily/workout folds and the existing actual-source consumer read-list; public static dependencies needed to name the adapters are included, with the same private/retained/soak exclusions. N2's future writer remains prospective until its accepted head is named. This closes a concrete implementation input, not another broad beta audit.
+
+B reconciles only the resulting exact D/E deltas into the cumulative successor package/spec, source/helper/test pins and enumerated both-OS CI command inventory after its current final-M service and engine preparation. Preserve all existing children and separate standalone mutants/browser commands. Name the actual public closure and nonzero/assertion-killed acceptance bar; no hash-only refresh, hidden test, setup-error mutant, silent skip or inherited retained tree is accepted. Issuer198 adoption and any FULL/private execution keep their own permissions.
+
+Prospective author split is D admission/portable core, B protected capture/engine and successor pins, C sole Today/import consumer. D2 is the separate complete-candidate reviewer; B's map is not independent review of B's own code. This assigns preparation ownership only. PM will name exact runtime/test/harness custody and implementation parent after these finite prerequisites; no directory-wide or generic protected edit grant follows.
+
+No additional general lane is created. The admission job is separable, but existing D can own it without introducing an overlapping writer or a new review chain. C retains launch/N2 priority; B retains191's B1+B2 then B4+B3 order. These design closures proceed in parallel, not ahead of the current integration.
+
+The decisive positive remains D's P1: a real C2 bundle plus a completed native workout made before import, the actual file/controller/assertion path, imported-history-dependent Today AND actual gym prescription/previous performance, a further saved native descendant, force-kill/reopen and byte preservation of every original/new record/capture/outbox entry exactly once. Empty-side and genuine postactivation cases are controls only. Supported family positives and assertion-killed currentness/order/commit mutants remain required.
+
+Final S3 still needs accepted B3, cumulative FULL/private verdict and receipt, authorized exact-head verification, complete both-OS CI, independent review/integration, and the later concrete owner-authorized PC/iPhone use. This document is design acceptance and bounded public preparation, not a runtime PASS, import permission, delivery-date promise or waiver. No owner question is needed now; the factual question belongs beside the actual selected file.
