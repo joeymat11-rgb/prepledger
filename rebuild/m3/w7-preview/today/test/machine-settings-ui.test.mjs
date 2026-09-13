@@ -329,6 +329,69 @@ for (const editedSurface of ['entry', 'editor']) {
   });
 }
 
+for (const completionOwner of ['current card', 'newer entry', 'replacement mount']) {
+  test('MEM284 real failed set after editor repaint respects ' + completionOwner, async () => {
+    const kit = await device(), draft = GymApp.newGymDraft(), pause = completionPause();
+    let page, replacement, refused, changed = 0;
+    const client = kit.gymHost.host.client;
+    kit.model = createGymModel({ gymHost: { ...kit.gymHost, host: { ...kit.gymHost.host,
+      client: { ...client, executeResumedWorkout: async input => {
+        // Execute the real quota-refused transaction first; delay only delivery.
+        kit.fault.state.mode = 'quota'; kit.fault.state.armed = true;
+        try { refused = await client.executeResumedWorkout(input); }
+        finally { kit.fault.state.armed = false; }
+        pause.enter(); await pause.wait; return refused;
+      } } } } });
+    try {
+      page = await card(kit, { draft, onChanged: () => { changed++; } });
+      await page.open(); page.type(0, 'Seat', 'four');
+      performedInput(page, '#gym-weight', '35'); performedInput(page, '#gym-reps', '7');
+      const choice = [...page.phone.querySelectorAll('[data-slot="choices"] button')].find(button => button.textContent === '2');
+      assert(choice); choice.dispatchEvent(new page.dom.window.Event('click'));
+      const before = await completionCollections(kit), oldError = page.phone.querySelector('#gym-error');
+      page.click('[data-slot="log"]'); await pause.reached;
+      assert.equal(refused.acknowledged, false); assert.equal(refused.code, 'TRANSACTION_WRITE_FAILED');
+      const snapshot = page.mounted.refreshState(); assert.equal(snapshot.counts.busy, 1);
+      await page.addRow(); page.type(1, 'Pin', 'second row');
+      await waitFor(() => page.phone.querySelector('#gym-error') !== oldError
+        && page.mounted.refreshState().counts.paint === 0, 'independent editor repaint before refusal delivery');
+      assert.equal(oldError.isConnected, false);
+      if (completionOwner === 'newer entry') {
+        performedInput(page, '#gym-weight', ''); performedInput(page, '#gym-reps', '');
+      } else if (completionOwner === 'replacement mount') {
+        replacement = mountGym(page.doc, page.phone, { model: kit.model, draft, settings: kit.settings,
+          onBack() {}, onChanged: () => { changed++; } });
+        await replacement; if (replacement.settings.read()) await replacement.settings.read();
+        assert.equal(page.mounted.refreshState().owns, false); assert.equal(replacement.refreshState().owns, true);
+      }
+      const currentError = page.phone.querySelector('#gym-error'), screen = page.phone.firstElementChild;
+      const entry = draft.entry, effort = draft.effort, editor = draft.settingsEditor.draft;
+      assert.equal(currentError.textContent, '');
+      pause.release(); await waitFor(() => page.mounted.refreshState().counts.busy === 0, 'real refusal delivery');
+      await settle();
+      assert.deepEqual(await completionCollections(kit), before, 'real refused write preserves both complete collections');
+      assert.equal(page.phone.firstElementChild, screen, 'completion does not replace the current card');
+      assert.equal(draft.entry, entry); assert.equal(draft.effort, effort); assert.equal(effort.label, '2');
+      assert.deepEqual(entry, completionOwner === 'newer entry' ? { load: '', reps: '' } : { load: '35', reps: '7' });
+      assert.equal(draft.settingsEditor.draft, editor);
+      assert.deepEqual(editor.rows, [{ name: 'Seat', value: 'four' }, { name: 'Pin', value: 'second row' }]);
+      assert.equal(changed, 0); assert(page.pick('log'));
+      assert.equal(oldError.textContent, '', 'detached predecessor receives no result');
+      if (completionOwner === 'current card') {
+        assert.equal(currentError.textContent, refused.copy + ' · ' + refused.code, 'current card shows the actual refusal');
+        assert.equal(page.mounted.refreshState().owns, true);
+      } else assert.equal(currentError.textContent, '', 'older result cannot annotate a newer entry or replacement mount');
+      assert(Object.values(page.mounted.refreshState().counts).every(value => value === 0));
+      if (replacement) assert(Object.values(replacement.refreshState().counts).every(value => value === 0));
+      assert.equal(snapshot.counts.busy, 1);
+    } finally {
+      pause.release(); kit.fault.state.armed = false;
+      if (page) await waitFor(() => Object.values(page.mounted.refreshState().counts).every(value => value === 0), 'refusal cleanup');
+      kit.settings.close(); kit.gymHost.close(); page?.dom.window.close();
+    }
+  });
+}
+
 for (const succeeds of [false, true]) {
   test('MEM266 departed settings ' + (succeeds ? 'success' : 'failure') + ' cannot replace a newer editor draft or screen', async () => {
     const kit = await device(), draft = GymApp.newGymDraft();

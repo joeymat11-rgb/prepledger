@@ -447,7 +447,10 @@ export function mountGym(doc, phone, { model, onBack, onChanged, onCheckIn, draf
       finally { busy = false; }
       if (!ownsMount() || lifecycle.entryRevision !== submittedRevision) return;
       if (!result.ok) {
-        root.querySelector('#gym-error').textContent = plainOrDrop(refusalText(result), 'gym-error');
+        // An independent editor repaint can detach the submitted card while this
+        // mount and set draft still own the result.
+        const current = phone.querySelector('#gym-error');
+        if (current) current.textContent = plainOrDrop(refusalText(result), 'gym-error');
         return;
       }
       held.entry = { load: null, reps: null };
