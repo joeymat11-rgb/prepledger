@@ -221,20 +221,27 @@ function loadPublicLaws(){
  laws.sort((a,b)=>Number(a.defect.slice(1))-Number(b.defect.slice(1)));assert.equal(laws.length,45);assert.equal(new Set(laws.map(l=>l.id)).size,45);
  laws.forEach((l,i)=>{assert.equal(l.defect,'D'+(i+1));assert.equal(l.expect,'GREEN');assert.equal(typeof l.run,'function');assert.equal(typeof l.control,'function');assert.ok(l.cite&&l.mutants.length);l.mutants.forEach(m=>{assert.equal(typeof m.make,'function');assert.equal(typeof m.name,'string');});});return {helpers,laws};
 }
-function publicLawSourceSide(manifest,pins,repair){
+function publicLawSourceSide(manifest,pins,repair,current){
  const names=Object.keys(pins).sort();assert.deepEqual(Object.keys(manifest).sort(),names,'law public module inventory');
  assert.equal(repair.sourceBase,'6c9248e695a4478abdbaae0f9f48395ac56000fa','law fixed R repair source');
  const files=['progression','sleep','today','writers'].map(n=>'rebuild/engine/'+n+'.cjs');
  assert.deepEqual(Object.keys(repair.runtime).sort(),files.slice().sort(),'law exact four repair images');
  for(const file of files){const row=repair.runtime[file],name=file.slice('rebuild/engine/'.length);assert.deepEqual(Object.keys(row).sort(),['post','pre']);assert.equal(row.pre,pins[name].candidate,'law R preimage '+name);assert.match(row.post,/^[a-f0-9]{64}$/);}
+ assert.deepEqual(Object.keys(current).sort(),['runtime','sourceBase'],'law closed S/T manifest');
+ assert.equal(current.sourceBase,'48a3063a23528ed240eb2356226d237d2793a9da','law fixed S repair source');
+ const today='rebuild/engine/today.cjs';assert.deepEqual(Object.keys(current.runtime),[today],'law exact one T repair image');
+ assert.deepEqual(Object.keys(current.runtime[today]).sort(),['post','pre'],'law closed T repair row');
+ assert.equal(current.runtime[today].pre,repair.runtime[today].post,'law S preimage today.cjs');
+ assert.equal(current.runtime[today].post,'80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91','law exact T postimage today.cjs');
  const base=names.every(n=>manifest[n]===pins[n].base),candidate=names.every(n=>manifest[n]===pins[n].candidate);
  const successor=names.every(n=>manifest[n]===(repair.runtime['rebuild/engine/'+n]?.post||pins[n].candidate));
- assert.ok(base||candidate||successor,'law execution requires exact public M, R or manifested successor modules');
- return base?'M':candidate?'candidate':'successor';
+ const repaired=names.every(n=>manifest[n]===(current.runtime['rebuild/engine/'+n]?.post||repair.runtime['rebuild/engine/'+n]?.post||pins[n].candidate));
+ assert.ok(base||candidate||successor||repaired,'law execution requires exact public M, R, S or T modules');
+ return base?'M':candidate?'candidate':successor?'successor':'repair';
 }
 function runPublicLaws(){
  const manifest=H.inspectClosure(),pins=H.CONSTRUCTION_SOURCE_MANIFEST.modules;
- const side=publicLawSourceSide(manifest,pins,H.SUCCESSOR_SOURCE_MANIFEST);
+ const side=publicLawSourceSide(manifest,pins,H.SUCCESSOR_SOURCE_MANIFEST,H.REPAIR_SOURCE_MANIFEST);
  const {helpers,laws}=loadPublicLaws();const rows=[];
  const execute=(law,B)=>{try{const r=law.run(B);assert.equal(typeof r.ok,'boolean');return {status:r.ok?'GREEN':'RED',detail:snapshot(r.detail)};}catch(e){return {status:'HARNESS_ERROR',error:e.name+': '+e.message};}};
  for(const law of laws){const frames=[],raw=execute(law,publicLawBundle(helpers,frames));let control,mutants=[];try{control=execute(law,law.control(publicLawBundle(helpers)));mutants=law.mutants.map(m=>({name:m.name,...execute(law,m.make(law.control(publicLawBundle(helpers))))}));}catch(e){control={status:'HARNESS_ERROR',error:e.name+': '+e.message};}const row={id:law.id,defect:law.defect,raw,control,mutants,frames};rows.push(row);console.log(law.defect+' run='+raw.status+' control='+control.status+' mutants='+mutants.map(m=>m.status).join(','));}
