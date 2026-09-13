@@ -34,3 +34,12 @@ Observed tests use explicitly synthetic sessionLog engine-view rows; opaque-carr
 F1's dated-query B2 dependency remains outside F2; the comparison pin is a named public prebuild product, not an acceptance pin.
 C supplies the live companion; B supplies actual predecessor replay, closed cumulative gates, private FULL and sealing; PM judges.
 No private/seed/history/soak reads, network/live actions, Today/client edits, merges, pushes or deployment were performed for this prebuild.
+
+## Plan-edit new-row seam (:176)
+The same F2 factory now also exposes validateExerciseTags(ex8,tags) and projectNewExerciseTags(ex8,tags,{op_id,date}).
+Both reuse the existing setup validator; input is closed to eight authored fields, refusing borrowed load, forks, marker or history.
+Projection returns exactly the new row that setup projection returns: unknown w, empty forks, preserved snapshot and source-owned regional marker.
+This lets the plan-edit companion attach a reviewed new identity without replaying setup over an enrolled athlete or duplicating the taxonomy.
+Four additional cells pass, including all 83 rows equal to the existing setup projection, hostile context refusal and explicit-empty preservation.
+Updated full focused run: 79/79; existing semantic mutants15/15. Logs .tmp/f2-new-exercise-api-all.tap and .tmp/f2-new-exercise-mutants.log.
+The frozen accepted brief remains unchanged; this bounded API addition is declared here for companion review and C integration, not an acceptance claim.

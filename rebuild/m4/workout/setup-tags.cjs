@@ -74,25 +74,13 @@ function createSetupTagProjector(options) {
   freeze(regionsByMuscle);
   const known = new Set([...muscles, ...Object.keys(regions)]);
 
-  function check(setup, tags) {
-    if (tags === null || tags === undefined) return null;
-    const source = cloneData(setup), snapshot = cloneData(tags);
-    if (!closed(source, SETUP) || !text(source.athlete_label) || !Array.isArray(source.exercises)
-        || !source.exercises.length || !Array.isArray(source.priority_muscles)
-        || !source.priority_muscles.every(text) || !plain(snapshot)) fail();
-    if (!closed(source.split, ['from', 'map']) || !day(source.split.from)
-        || !closed(source.split.map, ['0', '1', '2', '3', '4', '5', '6'])
-        || !Object.values(source.split.map).every(k => ['U', 'L', 'F', 'REST'].includes(k))) fail();
-    const ids = new Set();
-    for (const e of source.exercises) {
-      if (!closed(e, EXERCISE) || !text(e.id) || ids.has(e.id) || !text(e.n)
+  // One shared validator serves setup and newly added exercise snapshots.
+  function checkExerciseTag(e, tag) {
+      if (!closed(e, EXERCISE) || !text(e.id) || !text(e.n)
           || !muscles.includes(e.mg) || !['U', 'L'].includes(e.day)
           || !Number.isSafeInteger(e.sets) || e.sets <= 0 || !Number.isSafeInteger(e.hi) || e.hi <= 0
           || typeof e.inc !== 'number' || e.inc <= 0 || !Array.isArray(e.steps) || !e.steps.length
           || !e.steps.every((v, i) => typeof v === 'number' && v > 0 && (!i || v > e.steps[i - 1]))) fail();
-      ids.add(e.id);
-      if (!own(snapshot, e.id)) fail();
-      const tag = snapshot[e.id];
       if (!closed(tag, ['head', 'secondary']) || !Array.isArray(tag.secondary)
           || !(tag.head === null || (typeof tag.head === 'string' && own(regions, tag.head) && regions[tag.head] === e.mg))) fail();
       const targets = new Set(), bucket = tag.head || e.mg;
@@ -109,6 +97,33 @@ function createSetupTagProjector(options) {
             || (tag.head === null && regions[target] === e.mg)) fail();
         targets.add(target);
       }
+  }
+
+  function validateExerciseTags(exercise, tags) {
+    checkExerciseTag(cloneData(exercise), cloneData(tags)); return true;
+  }
+  function projectNewExerciseTags(exercise, tags, context) {
+    const e = cloneData(exercise), tag = cloneData(tags), ctx = cloneData(context);
+    checkExerciseTag(e, tag);
+    if (!closed(ctx, ['op_id', 'date']) || !text(ctx.op_id) || !day(ctx.date)) fail();
+    return freeze({ ...e, w: null, forks: [], head: tag.head, secondary: tag.secondary,
+      volumeTags: { profile: PROFILE, op_id: ctx.op_id, date: ctx.date, regionsByMuscle } });
+  }
+
+  function check(setup, tags) {
+    if (tags === null || tags === undefined) return null;
+    const source = cloneData(setup), snapshot = cloneData(tags);
+    if (!closed(source, SETUP) || !text(source.athlete_label) || !Array.isArray(source.exercises)
+        || !source.exercises.length || !Array.isArray(source.priority_muscles)
+        || !source.priority_muscles.every(text) || !plain(snapshot)) fail();
+    if (!closed(source.split, ['from', 'map']) || !day(source.split.from)
+        || !closed(source.split.map, ['0', '1', '2', '3', '4', '5', '6'])
+        || !Object.values(source.split.map).every(k => ['U', 'L', 'F', 'REST'].includes(k))) fail();
+    const ids = new Set();
+    for (const e of source.exercises) {
+      if (ids.has(e.id) || !own(snapshot, e.id)) fail();
+      ids.add(e.id);
+      checkExerciseTag(e, snapshot[e.id]);
     }
     if (Object.keys(snapshot).length !== ids.size) fail();
     return { source, snapshot, ids };
@@ -177,7 +192,7 @@ function createSetupTagProjector(options) {
     }
     return freeze(out);
   }
-  return Object.freeze({ validateSetupTags, projectSetupTags });
+  return Object.freeze({ validateSetupTags, projectSetupTags, validateExerciseTags, projectNewExerciseTags });
 }
 
 module.exports = { createSetupTagProjector, PROFILE };

@@ -340,3 +340,43 @@ test('F2-02 malformed taxonomy configuration refuses at factory creation', () =>
     bad(() => createSetupTagProjector(config));
   }
 });
+
+test('F2-PE01 new exercise projection matches every existing setup snapshot', () => {
+  const f = fixture(), full = project(f);
+  for (const row of f.setup.exercises) {
+    const before = bytes([row, f.tags[row.id]]);
+    assert.equal(projector.validateExerciseTags(row, f.tags[row.id]), true);
+    const actual = projector.projectNewExerciseTags(row, f.tags[row.id], {op_id:OP, date:DATE});
+    assert.deepEqual(actual, full.exercises.find(e => e.id === row.id));
+    assert.equal(bytes([row, f.tags[row.id]]), before);
+    assertFrozen(actual);
+  }
+});
+
+test('F2-PE02 new exercise API refuses carried load history or an old marker', () => {
+  const f = fixture([CATALOGUE[0]]), row = f.setup.exercises[0], tag = f.tags[row.id];
+  for (const fields of [{w:20},{forks:[]},{volumeTags:{profile:PROFILE}},{last:{reps:[8]}}])
+    bad(() => projector.projectNewExerciseTags({...row,...fields},tag,{op_id:OP,date:DATE}));
+});
+
+test('F2-PE03 new exercise API binds exact operation/date and rejects hostile contexts', () => {
+  const f = fixture([CATALOGUE[0]]), row = f.setup.exercises[0], tag = f.tags[row.id];
+  const actual = projector.projectNewExerciseTags(row,tag,{op_id:'plan-edit-2',date:'2026-09-15'});
+  assert.equal(actual.volumeTags.op_id,'plan-edit-2');
+  assert.equal(actual.volumeTags.date,'2026-09-15');
+  for (const context of [{op_id:'',date:DATE},{op_id:OP,date:'2026-02-30'},{op_id:OP,date:DATE,extra:1}])
+    bad(() => projector.projectNewExerciseTags(row,tag,context));
+  let reads=0; const hostile={date:DATE};
+  Object.defineProperty(hostile,'op_id',{enumerable:true,get(){reads++;return OP;}});
+  bad(() => projector.projectNewExerciseTags(row,tag,hostile)); assert.equal(reads,0);
+});
+
+test('F2-PE04 new exercise API preserves empty helpers and shares semantic refusals', () => {
+  const f = fixture([CATALOGUE[0]]), row = {...f.setup.exercises[0],id:'press',mg:'chest'};
+  const actual = projector.projectNewExerciseTags(row,{head:null,secondary:[]},{op_id:OP,date:DATE});
+  assert.deepEqual(actual.secondary,[]);
+  assert.equal(actual.w,null); assert.deepEqual(actual.forks,[]);
+  const invalid = {head:null,secondary:[{mg:'delts',head:'upper_back',lend:0.5}]};
+  bad(() => projector.validateExerciseTags(row,invalid));
+  bad(() => projector.projectNewExerciseTags(row,invalid,{op_id:OP,date:DATE}));
+});
