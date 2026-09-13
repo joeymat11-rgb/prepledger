@@ -1,17 +1,15 @@
 # LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
 
-## STATE (refreshed 2026-09-13 18:20 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
-- TIP rebuild/t2-client-core @6689c2ccf3a31dcf0594bcca2305998354a89208 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
-- PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. HIGH advised for routine coordination, MAX for complete engine judgment.
-- B: capturef9e45f922/source8986d493 and archive553a88d8 complete/verified. LOW/paused320 while ER reviews336. NativeFieldDeltas UNKNOWN.
-- E: repairb54fec2d/source46aead24 complete338; verified exact builder statement/additive regression, author evidence only. LOW ten-file public archive342; prior rejection/source/archives and memory324 preserved.
+## STATE (refreshed 2026-09-13 18:32 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @75302be3e453574be631299a75bea67d8f211ec2 before this docs checkpoint. M100820aa integrated; A3bfed63 prepared only. END210; no deployment/phone PASS.
+- PM: sole Astra PM193; owner306 existing Codex usage, no API trial. Joe/history/memory then Dad; soak wide beta only. MAX advised for current false-pass judgment; HIGH for routine coordination.
+- B: MAX344 repairs complete review336 R1/R2 from capturef9e45f922; fresh named nested own tree, original root guard and public synthetic scope preserved. NativeFieldDeltas UNKNOWN.
+- E: repairb54fec2d/source46aead24 and archive4bc6671d complete/verified; LOW/paused320. D2 reviews342; prior rejection/source/archives and memory324 preserved.
 - C: lifecycle7e64848d scoped ACCEPT294; LOW waiting full consumer/composition. N2 prior147/10/kill/build and R4 applicability310 retained.
 - D: partial import harnessf0b01d9 retained; LOW waits reviewed B native-Date/membership+host companionb73cf852, acceptedB3 and full joins.
-- REVIEW/INTEGRATION: D2 MAX exact module-link successor342, first verdict before new author outcomes; original334 REJECT preserved. ER MAX capture336/fixture340 continues. I LOW/paused. No full/native/receipt/CI/integration acceptance.
+- REVIEW/INTEGRATION: ER first9de7bb79/final0c5010e9 REJECT R1/R2 complete, LOW/paused;34 exact artifacts adopted. D2 MAX342 source-first/report-last continues. I LOW/paused. No full/native/receipt/CI/integration acceptance.
 - OWNER: no immediate action. September18–23 Joe/history/memory forecast remains limited-confidence; Dad after existing two-day Joe trial and own checks. Import/credentials/device actions remain point-of-use.
-- SCHEDULE: PM30min; ER/D2 MAX reviews hourly. E LOW hourly only until finite342 archive handoff; B/C/D/I paused LOW. Immediate exact handoffs, no duplicate lane/API expense.
-
-2026-09-13 16:50 ET · PM-CARETAKER · Astra · 19bb942ec94768f93b9e9a2527775fb5b7abc64f ·320 pauses repeated waiting-lane polling to conserve existing usage. Direct handoffs and PM30-minute oversight remain; ER/D2 MAX reviews stay active. B/E archives complete and preserved; no new owner action or quality waiver.
+- SCHEDULE: PM30min; B MAX repair and D2 MAX review hourly. C/D/E/ER/I paused LOW. Immediate exact handoffs, no duplicate lane/API expense.
 
 2026-09-13, 16:48 ET · D2 · STARTED PM318 · codex/astra-d2-idle-client-foundation · MAX exact E e85ad803/source4191eeb8 review;55 public inputs/full index verified before hydration.308/312/314 and lifecycle contract read first. Author current/RED outcomes unread. Independent verdict first; PM sole judge.
 
@@ -40,3 +38,5 @@
 2026-09-13 18:17 ET · PM-CARETAKER · Astra · d36cd84cc4211d577c5fc66f1ac91157c6826fef ·340 preserves final D2 REJECT R1, LOW/paused; E HIGH338 fix continues. ER MAX336 own-root synthetic replay clarified under existing bar; original26/28 retained. No native/private/FULL/phone PASS or paid API.
 
 2026-09-13 18:20 ET · PM-CARETAKER · Astra · 6689c2ccf3a31dcf0594bcca2305998354a89208 ·342 sends completed Eb54fec2d module-link repair to D2 MAX; E LOW archives existing proof. ER MAX336 continues. Original R1 rejection/failures retained; no native/FULL/phone PASS or paid API.
+
+2026-09-13 18:32 ET · PM-CARETAKER · Astra · 75302be3e453574be631299a75bea67d8f211ec2 ·344 verifies complete ER REJECT R1/R2 and commissions B MAX focused capture repair.34 exact review artifacts/all failures retained; ER LOW/paused. D2 MAX342 continues; E archive complete LOW/paused. Existing usage only; no native run or owner action.

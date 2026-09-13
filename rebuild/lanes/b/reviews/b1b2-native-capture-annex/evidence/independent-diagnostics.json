@@ -1,0 +1,72 @@
+[
+  {
+    "mode": "normal",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "before-exit",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "late-exit",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-good",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-skip",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-todo",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-bailout",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-pending",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-pending",
+    "operatorSha256": "01fb3c175035c84bad4982b85d554ec2cb6316f364626ec2d5cc2e699eb9233c",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  },
+  {
+    "mode": "manual-pending",
+    "operatorSha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d",
+    "raw": "{\"v\":1,\"seq\":1,\"kind\":\"second-readers\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n{\"v\":1,\"seq\":2,\"kind\":\"second-applyRead\",\"categories\":[],\"differenceCount\":0,\"comparisonVerdict\":\"MATCH\"}\n",
+    "sha256": "a6cbb66eb9038d27e38fb74e4b8fe9ab1b01b50fae82e7b5e4dcec5b70ec96c6",
+    "bytes": 210
+  }
+]

@@ -1,0 +1,706 @@
+{
+  "firstVerdict": "9de7bb79778224d581ddb9648ccbc5a44bd2ad13",
+  "authorAccessAfterFirstVerdictSent": true,
+  "candidate": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "archive": "553a88d8f772b8fcb5f3a01307baf7f1a8718713",
+  "report": {
+    "bytes": 8071,
+    "sha256": "7baed34a8b24c999ad22180f61000a164248c96dafc0da2ff341b0d683e0570d",
+    "lines": 33
+  },
+  "index": {
+    "bytes": 1402,
+    "sha256": "816b04c4e6176efa07c8d8a917066ac1867f8bbd798542f88cacd1f3fc472df5"
+  },
+  "mapping": {
+    "bytes": 4208,
+    "sha256": "d00da676e02d1007da2c44a700731f1702979b1686a77727184d6cb627ecbacc"
+  },
+  "archiveDirectChild": true,
+  "files": [
+    {
+      "originalPath": ".tmp/native-capture-runs/replay-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/replay-evidence.json",
+      "bytes": 6188,
+      "sha256": "c8ba46eabb800f118ee1452a51a615eafaeb4d16cf18c37884038f84da4e483a",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/d1-static.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/d1-static.json",
+      "bytes": 881,
+      "sha256": "19af479763be04c8b42a8f6542d7e57a3f5d69b5736ff9abecf327eefa31bdb8",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/inputs.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/inputs.json",
+      "bytes": 1475,
+      "sha256": "78ff7f2e590e0ceabecfb2837132e31bc18952eb27a19ea0d3e51a621a2c9f23",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/stdout.tap",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/stdout.tap",
+      "bytes": 23843,
+      "sha256": "fa5a6d3931a6387e30c73d1b3c34756525f2d2bd78c5a492789400294688a48e",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/stderr.log",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/first/public-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/first/public-evidence.json",
+      "bytes": 16908,
+      "sha256": "7d926b3a66f87280c26098a9e1867a56380b702b726255d534f9561090701bb7",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/inputs-retrospective.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/inputs-retrospective.json",
+      "bytes": 1592,
+      "sha256": "b83a146bd4cbef039b948468e657520eb5e3b3191b5c5132fdd8012642114317",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/stdout.tap",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/stdout.tap",
+      "bytes": 9356,
+      "sha256": "5aa7d6fceefe33c51f753ac50e110c219b9b767db73f8a20a07e4bcf82d81150",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/stderr.log",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/second/public-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/second/public-evidence.json",
+      "bytes": 18254,
+      "sha256": "32f6276fb879394737b05cb35cf805585418c8fbf2c57c6341486c3854e4b557",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/inputs.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/inputs.json",
+      "bytes": 1607,
+      "sha256": "bb878ab6f18bd46f607c8ef5d7494039cb0d8e2ad597475a3bca2007d0e7862f",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/stdout.tap",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/stdout.tap",
+      "bytes": 6090,
+      "sha256": "4bb00768e5c1fc7975e11d566a9dcbf728227e39d8ffb0acfd7b6cf42c1977cd",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/stderr.log",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "verified": true
+    },
+    {
+      "originalPath": ".tmp/native-capture-runs/third/public-evidence.json",
+      "archivePath": "rebuild/lanes/b/reviews/b1b2-native-capture-evidence/third/public-evidence.json",
+      "bytes": 26038,
+      "sha256": "b4c4137512fd093b435820f4cd570abf653c2c529a3278dec8225daf6ca78360",
+      "verified": true
+    }
+  ],
+  "totalCopiedBytes": 112232,
+  "runs": [
+    {
+      "name": "first",
+      "census": {
+        "tests": 22,
+        "suites": 0,
+        "pass": 9,
+        "fail": 13,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2633.4732
+      },
+      "results": [
+        {
+          "status": "ok",
+          "number": 1,
+          "name": "public closure and owned Node22 are exact"
+        },
+        {
+          "status": "not ok",
+          "number": 2,
+          "name": "actual hook passes with identical objects and unchanged return; disabled writes nothing"
+        },
+        {
+          "status": "not ok",
+          "number": 3,
+          "name": "actual reader differences produce fixed categories but original assertion still fails"
+        },
+        {
+          "status": "not ok",
+          "number": 4,
+          "name": "actual state differences use fixed fields and disambiguate dotted dynamic keys"
+        },
+        {
+          "status": "not ok",
+          "number": 5,
+          "name": "observer write/fsync/close failures are sticky across later valid calls"
+        },
+        {
+          "status": "not ok",
+          "number": 6,
+          "name": "partial writes retry; zero write, marker deletion failure and malformed paths never complete"
+        },
+        {
+          "status": "not ok",
+          "number": 7,
+          "name": "actual row and key/path limits refuse without altering the original failure"
+        },
+        {
+          "status": "not ok",
+          "number": 8,
+          "name": "actual operator and helper pass a real four-test invented child"
+        },
+        {
+          "status": "not ok",
+          "number": 9,
+          "name": "first real helper failure preserves child outcome and prevents writer reach"
+        },
+        {
+          "status": "not ok",
+          "number": 10,
+          "name": "writer failure retains both observations and cannot become capture acceptance"
+        },
+        {
+          "status": "not ok",
+          "number": 11,
+          "name": "enabled and disabled invented gate preserve census, original failure and inputs"
+        },
+        {
+          "status": "ok",
+          "number": 12,
+          "name": "canonical diagnostic refusal matrix does not echo data"
+        },
+        {
+          "status": "ok",
+          "number": 13,
+          "name": "silence, valid later rows after incomplete marker and oversized diagnostics refuse"
+        },
+        {
+          "status": "ok",
+          "number": 14,
+          "name": "child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse"
+        },
+        {
+          "status": "ok",
+          "number": 15,
+          "name": "real stdout and stderr cap crossings drain to natural zero exit"
+        },
+        {
+          "status": "not ok",
+          "number": 16,
+          "name": "actual Windows access restriction and fresh-directory guard"
+        },
+        {
+          "status": "not ok",
+          "number": 17,
+          "name": "directory link escape and stale files are refused by actual helper"
+        },
+        {
+          "status": "ok",
+          "number": 18,
+          "name": "production identity/argv/root checks cannot be weakened by fixture transport"
+        },
+        {
+          "status": "ok",
+          "number": 19,
+          "name": "real signal and raw fsync/close failures never pass capture"
+        },
+        {
+          "status": "ok",
+          "number": 20,
+          "name": "actual main emits only safe schema after real invented raw sentinel streams"
+        },
+        {
+          "status": "not ok",
+          "number": 21,
+          "name": "meaningful source reversals fail intended assertions and restore bytes"
+        },
+        {
+          "status": "ok",
+          "number": 22,
+          "name": "tracked runtime originals restored and evidence finished"
+        }
+      ],
+      "controlRecords": [],
+      "input": {
+        "source": "ef08dbf3244c040928d27eea9d791d7394c32df4",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+        ],
+        "files": [
+          {
+            "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+            "bytes": 52432,
+            "sha256": "fde201da3d327c56ae68d9899171bf25c35344b4f5f5da6783f87726d35051d1"
+          },
+          {
+            "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+            "bytes": 196822,
+            "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+            "bytes": 89271,
+            "sha256": "43d49984128e908e21394b1001eb021b579a7f368f7b433faea174fe211a8eed"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+            "bytes": 13815,
+            "sha256": "a404726a4e2fa8d0a9a18df50ef3e9d05e74d21a1edf5f94ecd9618dc25aea74"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+            "bytes": 22621,
+            "sha256": "824ba596a3d9fe3dc2089408cf472991404db812bf9bbe4ae2d25fd51ab7de05"
+          },
+          {
+            "path": ".tmp/runtime/node.exe",
+            "bytes": 86997320,
+            "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+          }
+        ],
+        "closure": "Builtins, listed public helper/map/operator/test; invented child; real validateR9 Git metadata only; actual ACL on invented empty folder. Production main original child never invoked."
+      },
+      "allRawBytesVerified": true,
+      "replayInputsOutcomesAndControlsCrossBound": true
+    },
+    {
+      "name": "second",
+      "census": {
+        "tests": 22,
+        "suites": 0,
+        "pass": 17,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12449.905
+      },
+      "results": [
+        {
+          "status": "ok",
+          "number": 1,
+          "name": "public closure and owned Node22 are exact"
+        },
+        {
+          "status": "ok",
+          "number": 2,
+          "name": "actual hook passes with identical objects and unchanged return; disabled writes nothing"
+        },
+        {
+          "status": "ok",
+          "number": 3,
+          "name": "actual reader differences produce fixed categories but original assertion still fails"
+        },
+        {
+          "status": "ok",
+          "number": 4,
+          "name": "actual state differences use fixed fields and disambiguate dotted dynamic keys"
+        },
+        {
+          "status": "ok",
+          "number": 5,
+          "name": "observer write/fsync/close failures are sticky across later valid calls"
+        },
+        {
+          "status": "ok",
+          "number": 6,
+          "name": "partial writes retry; zero write, marker deletion failure and malformed paths never complete"
+        },
+        {
+          "status": "ok",
+          "number": 7,
+          "name": "actual row and key/path limits refuse without altering the original failure"
+        },
+        {
+          "status": "not ok",
+          "number": 8,
+          "name": "actual operator and helper pass a real four-test invented child"
+        },
+        {
+          "status": "not ok",
+          "number": 9,
+          "name": "first real helper failure preserves child outcome and prevents writer reach"
+        },
+        {
+          "status": "not ok",
+          "number": 10,
+          "name": "writer failure retains both observations and cannot become capture acceptance"
+        },
+        {
+          "status": "not ok",
+          "number": 11,
+          "name": "enabled and disabled invented gate preserve census, original failure and inputs"
+        },
+        {
+          "status": "ok",
+          "number": 12,
+          "name": "canonical diagnostic refusal matrix does not echo data"
+        },
+        {
+          "status": "ok",
+          "number": 13,
+          "name": "silence, valid later rows after incomplete marker and oversized diagnostics refuse"
+        },
+        {
+          "status": "ok",
+          "number": 14,
+          "name": "child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse"
+        },
+        {
+          "status": "ok",
+          "number": 15,
+          "name": "real stdout and stderr cap crossings drain to natural zero exit"
+        },
+        {
+          "status": "ok",
+          "number": 16,
+          "name": "actual Windows access restriction and fresh-directory guard"
+        },
+        {
+          "status": "ok",
+          "number": 17,
+          "name": "directory link escape and stale files are refused by actual helper"
+        },
+        {
+          "status": "ok",
+          "number": 18,
+          "name": "production identity/argv/root checks cannot be weakened by fixture transport"
+        },
+        {
+          "status": "ok",
+          "number": 19,
+          "name": "real signal and raw fsync/close failures never pass capture"
+        },
+        {
+          "status": "ok",
+          "number": 20,
+          "name": "actual main emits only safe schema after real invented raw sentinel streams"
+        },
+        {
+          "status": "not ok",
+          "number": 21,
+          "name": "meaningful source reversals fail intended assertions and restore bytes"
+        },
+        {
+          "status": "ok",
+          "number": 22,
+          "name": "tracked runtime originals restored and evidence finished"
+        }
+      ],
+      "controlRecords": [
+        {
+          "id": "hook-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "completion-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "acl-readback-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        }
+      ],
+      "input": {
+        "source": "34e0cf063f6e86383deaf0383cd52c16a04a9b49",
+        "manifestTiming": "Retrospective immutable Git metadata after second run; not represented as a pre-run manifest.",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+        ],
+        "files": [
+          {
+            "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+            "bytes": 41139,
+            "sha256": "17e07eb30b77854429199c217f16f65d396c9e6e5e1e77e17b8a7a5e17bb83e7"
+          },
+          {
+            "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+            "bytes": 196822,
+            "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+            "bytes": 89271,
+            "sha256": "4f10706c83469aa2a3600432eebf278e622b9aca6f4c35e6b934ce002fc9e14b"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+            "bytes": 13906,
+            "sha256": "590a2278ecc0e6ecb88fc0f7211d9c89e5972a3c07b108e9b17d6a70e2971972"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+            "bytes": 22621,
+            "sha256": "824ba596a3d9fe3dc2089408cf472991404db812bf9bbe4ae2d25fd51ab7de05"
+          },
+          {
+            "path": ".tmp/runtime/node.exe",
+            "bytes": 86997320,
+            "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+          }
+        ],
+        "closure": "Builtins, listed public helper/map/operator/test; invented child; real validateR9 Git metadata only; actual ACL on invented empty folder. Production main original child never invoked."
+      },
+      "allRawBytesVerified": true,
+      "replayInputsOutcomesAndControlsCrossBound": true
+    },
+    {
+      "name": "third",
+      "census": {
+        "tests": 28,
+        "suites": 0,
+        "pass": 28,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 27901.0241
+      },
+      "results": [
+        {
+          "status": "ok",
+          "number": 1,
+          "name": "public closure and owned Node22 are exact"
+        },
+        {
+          "status": "ok",
+          "number": 2,
+          "name": "actual hook passes with identical objects and unchanged return; disabled writes nothing"
+        },
+        {
+          "status": "ok",
+          "number": 3,
+          "name": "actual reader differences produce fixed categories but original assertion still fails"
+        },
+        {
+          "status": "ok",
+          "number": 4,
+          "name": "actual state differences use fixed fields and disambiguate dotted dynamic keys"
+        },
+        {
+          "status": "ok",
+          "number": 5,
+          "name": "observer write/fsync/close failures are sticky across later valid calls"
+        },
+        {
+          "status": "ok",
+          "number": 6,
+          "name": "partial writes retry; zero write, marker deletion failure and malformed paths never complete"
+        },
+        {
+          "status": "ok",
+          "number": 7,
+          "name": "actual row and key/path limits refuse without altering the original failure"
+        },
+        {
+          "status": "ok",
+          "number": 8,
+          "name": "every admitted reader/state category comes from actual differing objects"
+        },
+        {
+          "status": "ok",
+          "number": 9,
+          "name": "late observer failure cannot revive completion at natural exit"
+        },
+        {
+          "status": "ok",
+          "number": 10,
+          "name": "categorizer, access and full-disk observer faults remain failures after later calls"
+        },
+        {
+          "status": "ok",
+          "number": 11,
+          "name": "actual operator and helper pass a real four-test invented child"
+        },
+        {
+          "status": "ok",
+          "number": 12,
+          "name": "first real helper failure preserves child outcome and prevents writer reach"
+        },
+        {
+          "status": "ok",
+          "number": 13,
+          "name": "writer failure retains both observations and cannot become capture acceptance"
+        },
+        {
+          "status": "ok",
+          "number": 14,
+          "name": "enabled and disabled invented gate preserve census, original failure and inputs"
+        },
+        {
+          "status": "ok",
+          "number": 15,
+          "name": "canonical diagnostic refusal matrix does not echo data"
+        },
+        {
+          "status": "ok",
+          "number": 16,
+          "name": "silence, valid later rows after incomplete marker and oversized diagnostics refuse"
+        },
+        {
+          "status": "ok",
+          "number": 17,
+          "name": "child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse"
+        },
+        {
+          "status": "ok",
+          "number": 18,
+          "name": "real stdout and stderr cap crossings drain to natural zero exit"
+        },
+        {
+          "status": "ok",
+          "number": 19,
+          "name": "actual Windows access restriction and fresh-directory guard"
+        },
+        {
+          "status": "ok",
+          "number": 20,
+          "name": "directory link escape and stale files are refused by actual helper"
+        },
+        {
+          "status": "ok",
+          "number": 21,
+          "name": "production identity/argv/root checks cannot be weakened by fixture transport"
+        },
+        {
+          "status": "ok",
+          "number": 22,
+          "name": "fresh path collisions, escaped roots and borrowed runtime are refused"
+        },
+        {
+          "status": "ok",
+          "number": 23,
+          "name": "premature plans and forged complete census cannot pass"
+        },
+        {
+          "status": "ok",
+          "number": 24,
+          "name": "real signal and raw fsync/close failures never pass capture"
+        },
+        {
+          "status": "ok",
+          "number": 25,
+          "name": "actual main emits only safe schema after real invented raw sentinel streams"
+        },
+        {
+          "status": "ok",
+          "number": 26,
+          "name": "actual main success emits exact fixed JSON after real four-test helper child"
+        },
+        {
+          "status": "ok",
+          "number": 27,
+          "name": "meaningful source reversals fail intended assertions and restore bytes"
+        },
+        {
+          "status": "ok",
+          "number": 28,
+          "name": "tracked runtime originals restored and evidence finished"
+        }
+      ],
+      "controlRecords": [
+        {
+          "id": "hook-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "completion-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "acl-readback-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "output-whitelist-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "first-failure-guard-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        }
+      ],
+      "input": {
+        "source": "8986d493058f1f6488781a105586c3177dd4f3fc",
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+        ],
+        "files": [
+          {
+            "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+            "bytes": 41569,
+            "sha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398"
+          },
+          {
+            "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+            "bytes": 196822,
+            "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+            "bytes": 89271,
+            "sha256": "cfcf6e9d232d0f1f4fad818684d0f3f58ad840feaca53cbb07d53565b6f1ac04"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+            "bytes": 14267,
+            "sha256": "0dcbab59bda0d78a6933630d69740a39a8bb923c8337022500b317749e94b70d"
+          },
+          {
+            "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+            "bytes": 28677,
+            "sha256": "712fd9af1074d6dff9f908060790c5cd20c56b77bf25a1cec315e49638e1cb46"
+          },
+          {
+            "path": ".tmp/runtime/node.exe",
+            "bytes": 86997320,
+            "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+          }
+        ],
+        "closure": "Builtins, listed public helper/map/operator/test; invented child; real validateR9 Git metadata only; actual ACL on invented empty folder. Production main original child never invoked. Synthetic helper exit-listener transport added; actual child uses natural Node process exit. No additional input or package loader."
+      },
+      "allRawBytesVerified": true,
+      "replayInputsOutcomesAndControlsCrossBound": true
+    }
+  ],
+  "originalNativeInvoked": false,
+  "historicalD1SourceRead": false,
+  "verdict": "REJECT unchanged: R1/R2 independent counterexamples are outside author coverage"
+}

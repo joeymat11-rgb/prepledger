@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: existing Codex usage only. ER/MAX reviews B capturef9e45f922336; B archive553a88d8 complete, B LOW/paused;340 permits unchanged contained fixture replay. E R1 repairb54fec2d/source46aead24 complete, exact one-statement/additive-regression scope verified; D2/MAX exact successor review342 now active, source-first/report-last. E LOW ten-file existing public archive only. Original D2 first561d3b27/final4c63a55a REJECT and all failures remain. B322/E324/C294 acceptances and I A3bfed63 source remain; no real native/FULL/CI result or nativeFieldDeltas yet. Full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. HIGH advised for routine PM, MAX reviews; no paid API.
+PM checkpoint2026-09-13: existing Codex usage only. Complete ER first9de7bb79/final0c5010e9 REJECT R1/R2 is verified;34 exact artifacts adopted344, source and all failures preserved. B/MAX now repairs the two false passes from exactf9e45f922 in the named fresh nested own tree; existing public synthetic scope, production root guard and original native gate preserved. ER LOW/paused until exact completed successor. D2/MAX continues exact E module-link review342; E archive4bc6671d complete/verified12 paths10 copies15489bytes, E LOW/paused. B322/E324/C294 acceptances and I A3bfed63 source remain; no real native/FULL/CI result or nativeFieldDeltas yet. Full memory/import/phone joins remain. Joe/history/memory then Dad; soak wide beta only. MAX advised for current PM false-pass judgment, HIGH for routine coordination; no paid API.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: capturef9e45f922 and public archive553a88d8 complete; ER reviews336 | earned-astra-b-follow-up; PAUSED320, direct PM handoff |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: R1/R2 capture repair344 from exactf9e45f922; named fresh own nested root, public synthetic only | earned-astra-b-follow-up; hourly during repair, paused after complete handoff320 |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact7e64848d/4d004985 lifecycle scoped ACCEPT294; await named full-memory implementation/composition release | earned-astra-c-follow-up; PAUSED waiting; direct PM handoff |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;PAUSED waiting; direct PM handoff |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exactb54fec2d module-link successor review342; source-first/report-last, prior334 applicability | earned-lane-d2-requests; hourly while reviewing, then paused320 |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exactf9e45f922 native-capture review336, source-first/report-last, synthetic only | earned-astra-engine-review-follow-up; hourly during review, paused after handoff320 |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: repairb54fec2d/source46aead24 complete338; exact ten-file public evidence archive342 only | earned-astra-e-follow-up; hourly until finite archive complete, then paused320 |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: complete336 first9de7bb79/final0c5010e9 REJECT R1/R2; await exact repaired candidate | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: repairb54fec2d and archive4bc6671d complete; D2 reviews342 | earned-astra-e-follow-up; PAUSED320; direct PM handoff |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
 
 ## Worktrees
@@ -55,15 +55,15 @@ Apply corrections through the task tool, never by writing Codex's database/confi
 
 Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignments. ER saved=max and current review turn01a09b81-21a7-7d03-8fdf-82624dee6cfb records max at16:02:06.434Z/16:14:30.141Z, including collaboration settings; no Medium context found for that review. PM saved/executed high; B/C/D/E low; D2 saved low after its completed max review; I low/paused. The owner's reported Medium selector display remains unexplained and is not claimed fixed. Local metadata-only audit is .tmp/effort-audits/20260913T163756136595Z.json, produced by the read-only .tmp/caretaker-effort-audit.py helper. These local operational files are outside product/release evidence; if absent, repeat the bounded metadata query rather than infer settings.
 
-| Seat | Applied current effort | Next substantive assignment |
+| Seat | Current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: exact native-capture helper/operator/public synthetic test330, from A3bfed63; no real native run | earned-astra-b-follow-up; hourly during build; pause on handoff |
-| D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
-| C | LOW; lifecycle R3 scoped accepted294 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact2fdf33e5 pure build-setup review334, source-first/report-last | earned-lane-d2-requests; hourly while reviewing; pause on handoff |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW: B316 tooling handoff complete, scoped ACCEPT322 | earned-astra-engine-review-follow-up; PAUSED320; direct PM handoff |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: completed332 candidate2fdf33e5; only exact public evidence archive334 | earned-astra-e-follow-up; hourly until archive complete, then PAUSED320 |
-| I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LOW: source A3bfed63 plus report75c358ce complete326; await exact next candidate/window | earned-astra-integration-follow-up; PAUSED320; direct PM handoff |
+| B | MAX commissioned344 | Repair R1/R2 in exact public capture scope; no original native run |
+| D | LOW; partial import harness handed off | XHIGH for the exact provider/admission join release |
+| C | LOW; lifecycle scoped accepted294 | XHIGH for actual concurrency work; HIGH for bounded UI/plumbing |
+| D2 | MAX; exact module-link review342 | Finish independent first verdict and separate author reconciliation |
+| Engine reviewer | LOW; complete336 REJECT R1/R2 | MAX for the exact completed344 successor |
+| E | LOW; repair/archive342 complete | Reassess actual complexity when a memory or support dependency is ready |
+| I | LOW; source A3bfed63 complete326 | HIGH for a named accepted source assembly; no product testing |
 
 Joe endorsed Editorial with original bullet spacing; Light and Ink bases remain locked. This is an example design preview endorsement, not an implementation, owner-data or deployment claim. Keep development focused on the current engine/import repairs and their joined acceptance requirements.
 
