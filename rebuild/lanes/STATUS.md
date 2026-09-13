@@ -4,14 +4,12 @@
 - TIP rebuild/t2-client-core @66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c before this docs checkpoint. Product M100820aa remains integrated; full34745429303/shared34745429317 bothOS verified. END210 stands; no deployment/phone PASS.
 - PM: sole Astra PM193; owner306 uses existing Codex usage and declines paid API trial. Owner268: Joe/history/memory then Dad; soak gates wide beta only. PM MAX for release judgment, HIGH advised afterward for routine coordination.
 - B: MAX, exact tooling preparation300/304 from scoped-accepted R4f2dea2ec/Ucbcebb3d. Current author cohort324/328 had four setup/fixture failures under repair, no product acceptance. ER exact successor next; final authority/native/FULL/CI/receipt remains.
-- E: XHIGH assigned308, isolated idle-client foundation from accepted M, same runtime bytes as R4; one client source/two existing tests/report. Separate from B and C; no full memory/controller/provider activation.
+- E: XHIGH assigned308, isolated idle-client foundation from accepted M, same runtime bytes as R4; client plus readonly repository boundary314/two existing tests/report. Separate from B and C; no full memory/controller/provider activation.
 - C: lifecycle7e64848d scoped ACCEPT294, actual144/37/4; LOW waiting exact full consumer/composition release. N2 prior147/10/kill/build retains8e65805; current R4 applicability accepted310.
 - D: partial import harnessf0b01d9 preserved; LOW waits exact reviewed B native-Date/membership+host companionb73cf852. Real owner import, acceptedB3 and full joins remain.
 - REVIEW/INTEGRATION: D2 firsteb62616e/finald2b3ccd source-only310 accepted; LOW after handoff. ER LOW awaits B300 successor; next E308 review D2/MAX on exact candidate. I paused until named final accepted candidate.
 - OWNER: no immediate action. September18–23 Joe/history/memory estimate remains limited-confidence; Dad after existing two-day Joe trial and his checks. Private import, credentials and device actions remain point-of-use.
 - SCHEDULE: PM30min, active B/E hourly, waiting20min, immediate completion handoffs. No acknowledgement-only commits/unchanged audits. One Today writer, one private gate process, one shared integration writer. Current app Fast control/readback unavailable; no speed setting change claimed.
-
-2026-09-13 · PM-CARETAKER · Astra · 0b93425ebac0a27012aef9947a3e6e5ddee7db83 · Owner268 prioritizes Joe with history and Dad personal use; soak gates wide beta only. Two-day Joe trial/Dad walkthrough retained. B MAX repair and C XHIGH groundwork active; C embedded existing S14 build clarified. No owner action now.
 
 2026-09-13 · PM-CARETAKER · Astra · c5efdba68b685f39bbe8f34ef1579cb68df9d80f · C1316639 lifecycle groundwork built, author137 checks/two faults; D2 MAX independent review270 commissioned. C LOW, B MAX R8 continues. This stage is not complete memory; Joe/Dad personal goal and wide-beta-only soak unchanged.
 
@@ -40,3 +38,5 @@
 2026-09-13 16:12 ET · PM-CARETAKER · Astra · 66e3126bf9a84b823bae1e2ffbdc7c37e1eb2f1c · Owner306: existing Codex usage, no API trial. E XHIGH idle-client foundation308 starts alongside B MAX tooling. D2 source applicability ACCEPT310; no redundant browser rerun, LOW standby. Final engine/import/memory/phone checks remain; no owner action.
 
 2026-09-13 16:21 ET · PM-CARETAKER · Astra · 2e2ed0ea63e9dd0bf0acfdf8f69b46b08b8f9980 · E308 active XHIGH;312 settles exact two-package lock setup and trusted publisher failure semantics. Ordinary refusal preserves the old host; invalid publisher effects are unknown, never claimed rolled back. No path expansion or full-memory acceptance.
+
+2026-09-13 16:31 ET · PM-CARETAKER · Astra · d7fd582d53bb2cb19b0c906efad4752b4d48d5a2 · E found two real final-read revision/token races;314 licenses one additive read-only repository fence, same tests. Keep red proof, no single-writer assumption or extra write. E XHIGH/B MAX continue; full memory/review/device proof remains.
