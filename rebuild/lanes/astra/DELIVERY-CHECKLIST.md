@@ -11,7 +11,7 @@ PM reconciliation at 2026-09-12 23:50 ET, observed tip befa2c9. Recent DECISIONS
 | B1+B2 | Named baseff6b6b5 lacks bundle. B issuer tooling brief accepted198 and build assigned; B1 UNKNOWN/finite-observation amendment and actual combined profile remain to be prepared | B; independent engine reviewer; PM |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
-| Edit My Week v1 | Independent reviewf355ccce REJECTS6b3465e: stale Save acknowledgment and unproved rejection status. D assigned fixes on own successor; same reviewer retests. Real C consumer and B cumulative/CI admission still open | D; engine reviewer; C editor after N2; D2 screen review |
+| Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
