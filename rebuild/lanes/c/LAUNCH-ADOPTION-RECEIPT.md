@@ -40,3 +40,11 @@ The nine-path diff is six launch/runtime/test/harness paths and three C report/e
 Do not rerun unchanged failing CI or author speculative fixes: B first supplies the cumulative-gate cause; PM routes any required scope.
 N2 remains next after launch integration. The later D companion is 74920fb0c7658c0bbd8d47388e23d0e8f98508f2 with bounded review fdc4c8e, not 6b3465e.
 C's actual PE12/EW14/EW16 consumer proof stays open after N2. No editor authoring started.
+
+## Round 2 preparation
+
+B's exact R1 gate and both CI runners returned SEAL-BASE-IS-NOT-THE-CHAIN-TIP, no suite/census counts. No settings/engine-law failure is inferred.
+D2 final R1 review b38a1767 is REJECT: partial guard attribution, required ancestry/CI and preflight200. Its positive552/6browser/6settings evidence remains.
+C's fresh c-launch-r2 tree holds local prepared0ce2a6fc097bbd5939ca25b52b5d74468e93d56c, sourceb538473. Only build.mjs/copy.test.mjs plus26-line R2 report differ from the preserved candidate.
+Pre-banner actual-bundle regression RED1assertion; correction copy39/39 and named Today553/553, zero skips. Fresh emitted app retains earned-b6acba5d032b and the SHA256 above.
+PM's gate window is PREPARING. R2 is not pushed; no stale CI/gate retry or Dtooling import. Wait named composition/base/GO and independent preflight200 before final candidate evidence.
