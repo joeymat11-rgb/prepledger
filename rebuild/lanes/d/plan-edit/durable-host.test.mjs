@@ -66,18 +66,18 @@ const expectSame = (actual, expected, why) => assert.equal(HASH(actual), HASH(ex
 function cryptoControl() {
   let gate = null;
   const subtle = new Proxy(webcrypto.subtle, { get(target, key) {
-    if (key === 'encrypt') return async (...args) => {
+    if (key === 'encrypt' || key === 'decrypt') return async (...args) => {
       const held = gate;
-      if (held && held.remaining > 0) {
+      if (held && held.method === key && held.remaining > 0) {
         if (--held.remaining === 0) held.entered.resolve();
         await held.release.promise;
       }
-      return target.encrypt(...args);
+      return target[key](...args);
     };
     const value = Reflect.get(target, key); return typeof value === 'function' ? value.bind(target) : value;
   } });
   return { crypto: { subtle, getRandomValues: webcrypto.getRandomValues.bind(webcrypto) },
-    hold(n = 1) { gate = { remaining: n, entered: deferred(), release: deferred() }; return gate; },
+    hold(n = 1, method = 'encrypt') { gate = { remaining: n, method, entered: deferred(), release: deferred() }; return gate; },
     release() { gate?.release.resolve(); gate = null; } };
 }
 async function scaffold({ indexedDB = new IDBFactory() } = {}) {
@@ -270,6 +270,21 @@ test('PE10-retry closed installation cannot reaffirm a previously acknowledged s
   } finally { h.close(); }
 });
 
+test('PE10-retry cancellation during authenticated reread cannot return cached acknowledgement', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host(), preview = await reviewed(host, { sets: 3 });
+    assert.equal((await host.save(preview.review_id)).acknowledged, true);
+    const before = await h.snapshot(), gate = h.crypt.hold(1, 'decrypt');
+    const retry = host.save(preview.review_id);
+    assert.equal(await Promise.race([gate.entered.promise.then(() => true), retry.then(() => false)]), true,
+      'retry must reach the actual encrypted repository read');
+    host.cancel(preview.review_id); h.crypt.release();
+    const result = await retry; assert.equal(result.acknowledged, false);
+    assert.equal(result.code, 'PLAN_EDIT_REVIEW_REQUIRED');
+    expectSame(await h.snapshot(), before, 'cancelled retry preserves the historical commit without another write');
+  } finally { h.close(); }
+});
+
 test('PE10-retry durable authenticated retraction defeats an earlier save acknowledgement', async () => {
   const h = await scaffold(); try {
     const host = await h.host(), preview = await reviewed(host, { sets: 3 });
@@ -300,6 +315,24 @@ test('PE10-retry durable authenticated retraction defeats an earlier save acknow
     assert.equal(retry.acknowledged, false, 'PE10_RETRY_RETRACTED_INTENT_REFUSED');
     assert.equal(retry.ok, false); assert.equal(retry.code, 'PLAN_EDIT_INTENT_CONFLICT');
     expectSame(await h.snapshot(), before, 'retry creates no replacement operation or outbox item');
+  } finally { h.close(); }
+});
+
+test('PE09-rejection unproved encrypted rejection cannot remove an authenticated plan edit', async () => {
+  const h = await scaffold(); try {
+    const host = await h.host(), preview = await reviewed(host, { sets: 3 });
+    const saved = await host.save(preview.review_id); assert.equal(saved.acknowledged, true);
+    const committed = await h.snapshot();
+    await h.tamper(generation => { generation.collections.rejected[saved.op_id] = { op_id: saved.op_id }; });
+    const faulted = await h.snapshot();
+    expectSame(faulted.generation.collections.ops, committed.generation.collections.ops, 'operation bytes and HMAC remain exact');
+    assert.equal(Object.keys(faulted.generation.metadata.wireProofs?.disposition || {}).length, 0);
+    const current = await host.read(NEXT);
+    assert.equal(current.read, false, 'PE09_UNPROVED_REJECTION_REFUSED');
+    assert.equal(current.code, 'PLAN_EDIT_REJECTION_UNPROVEN');
+    const retry = await host.save(preview.review_id);
+    assert.equal(retry.acknowledged, false); assert.equal(retry.code, 'PLAN_EDIT_REJECTION_UNPROVEN');
+    expectSame(await h.snapshot(), faulted, 'refusal does not delete, repair or replace stored facts');
   } finally { h.close(); }
 });
 

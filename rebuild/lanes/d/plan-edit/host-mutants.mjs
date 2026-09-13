@@ -10,6 +10,9 @@ const testFile=fileURLToPath(new URL('./durable-host.test.mjs',import.meta.url))
 const original=readFileSync(host,'utf8').replaceAll('\r\n','\n');
 const auth='const candidate = bindings.stage(generation,command,args,{ ...integration,\n        historyAuthentication:integration?.historyAuthentication || { signedOperationIds:[] } });';
 const cases=[
+ ['cached-retry-bypasses-read', '^PE10-retry closed ', [[
+  "      if (!entry) return refusal('PLAN_EDIT_REVIEW_REQUIRED');\n      const current = await readVerified();",
+  "      if (!entry) return refusal('PLAN_EDIT_REVIEW_REQUIRED');\n      if (entry.result) return copy(entry.result);\n      const current = await readVerified();"]]],
  ['local-auth', '^PE09-auth ', [[auth,'const candidate = bindings.stage(generation,command,args,integration);']]],
  ['cancelled-review', '^PE09 cancel ', [
   ['reviews.get(entry.args.input.intent_id) === entry &&','true &&'],
