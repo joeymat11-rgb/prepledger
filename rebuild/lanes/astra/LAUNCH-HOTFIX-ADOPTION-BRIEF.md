@@ -26,6 +26,14 @@ Preserve the current draft's producer refusal across an overlapping row-add/read
 Replace only the S7/S8 cancellation/open and D2.1 mount fixed-tick assumptions with bounded waits for their actual completion predicates, preserving every behavioral assertion. Prove that optional settings reads do not block workout logging. Add the deterministic held-read refusal-survival regression, RED on the original behavior and GREEN after the fix. No guessed larger delay, skipped case or relaxed assertion is a fix.
 
 After both this extension and the build-guard correction, rerun the relevant existing suites and six freshly built browser checks on the final candidate. Carry source/build identity, exact-head both-OS rebuild CI, D2 independent execution, B's unchanged H3 gate verdict196 and third-role merged-tree checks. Earlier548/548 and browser successes describe earlier bytes only. This remains a candidate until accepted.
+
+## Conditional browser-harness readiness extension, DECISIONS:199
+
+Before a tracked edit, a deterministic held-read probe on the unchanged candidate must show that the original `openCard` helper returns while the settings block is legitimately pending and the open button disabled. Release that same read and prove the saved settings reappear unchanged. A nondeterministic successful rerun alone does not establish this cause.
+
+If that probe confirms the missing readiness boundary, C may edit only `openCard` in `rebuild/m3/w7-preview/today/machine-settings-check.mjs`: retain the visible-block wait and add a bounded wait for `settings-open` to become enabled. Preserve every data-equality, layout and real profile-kill assertion. A known empty/incorrect result, read failure or readiness timeout must still fail; no retrying writes, invented values, ignored errors or larger guessed sleeps. If the probe shows actual loss after loading, report it and route a product fix instead.
+
+Rerun the official updated harness and all six fresh-built browser flows on the final published head, including the three profile kills. Record the prior official 320px failure honestly and distinguish controlled proof from successful reruns. D2 reviews this added test-path scope independently; all :194/:196 gates remain unchanged.
 9. On PM authorization, a third-role integrator merges the accepted head and checks the merged built artifact. No release-ready or Sunday-ready claim until this evidence exists. Integration may trigger the existing Earned slice pipeline; no main or relay deployment is licensed.
 
 Handoff: C publishes the combined candidate, report <=60 lines, bar cell counts, run IDs and fresh-build evidence; D2 reviews in its own tree. Unresolved N2 defects stay outside this package and keep their own review.
