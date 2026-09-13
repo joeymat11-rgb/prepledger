@@ -33,7 +33,7 @@ C's914/914 belongs to60e24a8 and is builder-attributed here; D2's affected98 and
 CI is separately bounded under178/186/232:
 Own public metadata: candidate-head push full34750344980 attempt1 FAIL; Windows103705635442/Ubuntu103705635837 fail H3 step13 and skip subsequent A0/Today/coach. No sleep77 registration proof follows.
 PR full34750345931 likewise fails step13 on Ubuntu103705636207/Windows103705636562; API head_sha namesbfc2935, but D2 did not verify a PR checkout SHA or substitute it for push evidence.
-Push shared34750344999 and PR shared34750345925 succeed on bothOS; pipelines34750344972/34750345922 succeed for suite/preview, production skipped. No rerun was dispatched.
+Push shared34750344999 and PR shared34750345925 succeed on bothOS. Push pipeline34750344972 has suite/preview SUCCESS and production skipped; PR pipeline34750345922 has suite SUCCESS and preview/production skipped. No rerun was dispatched.
 D2 read no H3/private log and ran no H3/REAL-C2 command; current terminal causes are not inferred from metadata. Earlier exactbdbee8b chain-tip diagnosis remains attributed to B.
 B still owns admitted77-test registration beside all13 standing Today files and the named B1+B2 successor's actual bothOS proof. This scoped ACCEPT is not that admission or a package/phone/release PASS.
 Next is PM's named disposition and B's admitted composition/CI; D2 awaits a specifically assigned review. No authority acceptance line, seal, merge, deployment or import by D2.
