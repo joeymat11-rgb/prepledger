@@ -41,3 +41,15 @@ B4+B3 implementation, protected source admission beyond composition, independent
 Launch evidence at af4ed1f remains separate: C/D2 public local/browser passes and B's unchanged local196 PASS are recorded on their own branches. Exact push Windows CI failed the eight-file Today child; the naturally green PR ran a same-tree synthetic merge, not the exact candidate. A bounded public Node22 diagnostic is assigned to C with full child output; no blind H3 rerun, synthetic-head waiver or integration permission follows.
 
 No owner decision is needed for this planning assignment. The actual import remains a later concrete yes/no owner action. All private files, protected soak, main and relay deployment remain untouched.
+
+## Source-contract handoff: protected design assigned to D
+
+E's47-line S3-SOURCE-ADMISSION-BRIEF.md at88dd4d76a6e62bcff3ae2a7b92136ae658f1b714, SHA2566d56913b1fbc22393a45cc40e26b168a75708f4aa77f4ac7fa1bf61dd888dfcf, is accepted as gap analysis and prospective direction only. PM read it, the local host allowlist and engine-order producer; independent public-source audit confirms the two unresolved boundaries. This does not accept the proposed interfaces as executable, admit a source or release runtime custody.
+
+Assign existing D one docs-only protected closure design at lanes/d/S3-LOCAL-SOURCE-ORDER-CONTRACT.md, at most60lines, with B's source/order/pin constraints and E's exact read-list. D's adjacent producer/projector work makes it the bounded design owner; C retains the sole UI consumer, E retains delivery planning. No new general builder or review chain is created, and no code starts behind the current integration hold.
+
+A must specify local qualification as its own validated provenance and operation basis, preserving the local host key/observation restrictions. Locally committed records never become hosted ACCEPTED receipts, a fabricated W/log position or synthetic source activation. Name each operation family's eligibility, current interpretation and truthful refusal; verified bytes and same-athlete confirmation alone are insufficient.
+
+B must specify the available evidence and refusal table for ordering imported history with native Starts made before import. Preserve original identities, parents, captures and imported sessionLog. Dates or same-athlete confirmation cannot create missing ancestry; unresolved overlap remains unresolved. Use an explicit reviewed mapping/profile rather than weakening the existing activation-descendant contract or claiming B3 already supplies it.
+
+The proposed two-phase currentness/publication contract remains the design target. Include interpretation/disposition changes in qualification validity even when op IDs/counts stay constant. Return exact minimal source/test/profile deltas, portable replay parity, positive pre-import-workout witness and unresolved product choices. D designs, B supplies engine/pin constraints, PM judges before any implementation licence; an independent reviewer remains separate from the eventual author.
