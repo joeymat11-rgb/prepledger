@@ -1,0 +1,39 @@
+TAP version 13
+# Subtest: PM348 termination assumption regression-exit-microtask
+not ok 1 - PM348 termination assumption regression-exit-microtask
+  ---
+  duration_ms: 1356.1508
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:119:76'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM348 deferred observation after dispatch must not be accepted
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:119:424)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: PM348 termination assumption regression-exit-nexttick
+ok 2 - PM348 termination assumption regression-exit-nexttick
+  ---
+  duration_ms: 986.433
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2475.4001

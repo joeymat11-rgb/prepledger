@@ -1,0 +1,345 @@
+{
+  "node": "v22.23.2",
+  "nodeSha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+  "helperSha256": "e206cb0dfc71ca001fb574c27ee921acaf771a015cd09b885f07203d1761a1e8",
+  "operatorSha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+  "cases": [
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-exit-nested-microtask",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-exit-nested-microtask",
+      "dir": ".tmp\\b1b2-native-capture\\54fc09e65e6f2a4991c92ab0a4cced6a",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "terminationAssumption": "regression-exit-nested-microtask",
+      "deferredCalled": true,
+      "detail": {
+        "mode": "regression-exit-nested-microtask",
+        "initialExiting": false,
+        "restoredBeforePublication": true,
+        "finalExiting": true,
+        "listenerOrder": [
+          "first",
+          "last"
+        ],
+        "partialWrites": 0,
+        "deferredCalled": true,
+        "markerBeforeDeferred": false
+      },
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-exit-promise",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-exit-promise",
+      "dir": ".tmp\\b1b2-native-capture\\a75e3ac73251f205d2771677d73c7b22",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "terminationAssumption": "regression-exit-promise",
+      "deferredCalled": true,
+      "detail": {
+        "mode": "regression-exit-promise",
+        "initialExiting": false,
+        "restoredBeforePublication": true,
+        "finalExiting": true,
+        "listenerOrder": [
+          "first",
+          "last"
+        ],
+        "partialWrites": 0,
+        "deferredCalled": true,
+        "markerBeforeDeferred": false
+      },
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-exit-async-await",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-exit-async-await",
+      "dir": ".tmp\\b1b2-native-capture\\2f943b03cdfd5a316805d43458ed782f",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "terminationAssumption": "regression-exit-async-await",
+      "deferredCalled": true,
+      "detail": {
+        "mode": "regression-exit-async-await",
+        "initialExiting": false,
+        "restoredBeforePublication": true,
+        "finalExiting": true,
+        "listenerOrder": [
+          "first",
+          "last"
+        ],
+        "partialWrites": 0,
+        "deferredCalled": true,
+        "markerBeforeDeferred": false
+      },
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-exit-precreated-promise",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-exit-precreated-promise",
+      "dir": ".tmp\\b1b2-native-capture\\d3a3aebea7429192481a65b20d4a8806",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "terminationAssumption": "regression-exit-precreated-promise",
+      "deferredCalled": true,
+      "detail": {
+        "mode": "regression-exit-precreated-promise",
+        "initialExiting": false,
+        "restoredBeforePublication": true,
+        "finalExiting": true,
+        "listenerOrder": [
+          "first",
+          "last"
+        ],
+        "partialWrites": 0,
+        "deferredCalled": true,
+        "markerBeforeDeferred": false
+      },
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    }
+  ],
+  "controls": []
+}

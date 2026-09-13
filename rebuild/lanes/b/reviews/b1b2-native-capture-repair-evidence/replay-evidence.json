@@ -1,0 +1,477 @@
+{
+  "version": 1,
+  "authority344": "010aef10cfec509bded9af9112fb5e95ac745253",
+  "authority348": "e66e9ec39f36b5c7bd5108779bb16ebe58302ded",
+  "authority350": "1a0cc98640dae57930569ed8ed7d5a7918ccf11f",
+  "preimage": "f9e45f922bcb489d8ef4a4eded83b968356f16e4",
+  "testedSource": "df8fa14fa08d28cde6bf53a710df0bb089c4720e",
+  "sourceFiles": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 45331,
+      "sha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 48347,
+      "sha256": "27dec2e00e3fc48570704c98330d588e97ad78c7c9817a855af41739627d9a8f"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "ba48e26700567b17397eefcaf08532eb5680d01d00226a6b9bf27b8dc468be55"
+    }
+  ],
+  "runs": [
+    {
+      "phase": "red",
+      "source": "2b6be830ef501a1550518c7a5ff9649d74f1a050",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM344",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 1,
+      "counts": {
+        "tests": 10,
+        "pass": 2,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 11976.5105
+      },
+      "controls": [],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/red/inputs.json",
+          "bytes": 1756,
+          "sha256": "c13d7b35fb8b38af8eae2e233661dfe05e4e2c232e51c3aeb40f43be3db3968b"
+        },
+        {
+          "path": ".tmp/native-capture-repair/red/stdout.tap",
+          "bytes": 9523,
+          "sha256": "613924a2ac55c56feb48869a3a130faea22aacdfcdb3d819ec4b263e6aceeaaa"
+        },
+        {
+          "path": ".tmp/native-capture-repair/red/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/red/public-evidence.json",
+          "bytes": 12930,
+          "sha256": "c01089a72445b93e68c429095fd75d99bc4af4a28ed383e6713b38c1d393ec92"
+        }
+      ]
+    },
+    {
+      "phase": "r2",
+      "source": "839dbcae0c4ae18a4301b0bc2065792b22ac9166",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM344 R2",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 0,
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 7340.4503
+      },
+      "controls": [],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/r2/inputs.json",
+          "bytes": 1766,
+          "sha256": "8f3633c373e2b1147ef853c725a693737bdba0d76edfeab0793f7a779d699db0"
+        },
+        {
+          "path": ".tmp/native-capture-repair/r2/stdout.tap",
+          "bytes": 1746,
+          "sha256": "c29cf8ca84ed8f9e234653951b3099fd5ab5f1da2591d44b484cfa7716d2e8c4"
+        },
+        {
+          "path": ".tmp/native-capture-repair/r2/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/r2/public-evidence.json",
+          "bytes": 8710,
+          "sha256": "4a3b1c2bf1758cc0eaee3c29490eab42429f63ced20940181a02087cc3cd02be"
+        }
+      ]
+    },
+    {
+      "phase": "full-first",
+      "source": "3a4ef50a30478317478f2fff0350943619e04660",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 0,
+      "counts": {
+        "tests": 45,
+        "pass": 45,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 61409.9725
+      },
+      "controls": [
+        {
+          "id": "hook-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "completion-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "acl-readback-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "output-whitelist-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "first-failure-guard-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "tap-directive-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "tap-bailout-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "late-failure-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "wrapper-ownership-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        }
+      ],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/full-first/inputs.json",
+          "bytes": 1956,
+          "sha256": "af0e7cccdbf170aba1986d57f0275dbc708c67b845eb7f4ef0510ad7dbf30a7e"
+        },
+        {
+          "path": ".tmp/native-capture-repair/full-first/stdout.tap",
+          "bytes": 9722,
+          "sha256": "d14ea391090c4622a8c92c72c32f2a30c1617397f46d01c3dd0c52e928c12468"
+        },
+        {
+          "path": ".tmp/native-capture-repair/full-first/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/full-first/public-evidence.json",
+          "bytes": 70734,
+          "sha256": "aac36db0c658b51923599356147685fbf7d847734b9052ca561f17a760a0976a"
+        }
+      ]
+    },
+    {
+      "phase": "termination",
+      "source": "41efa979978d11e490b8cee667e73c33a5de9a74",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM348 termination assumption",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 1,
+      "counts": {
+        "tests": 2,
+        "pass": 1,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2475.4001
+      },
+      "controls": [],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/termination/inputs.json",
+          "bytes": 2112,
+          "sha256": "4b5c11dd44ace22b61acf244a6dbe7b202c17c81cc7c2cc5966550515fddac95"
+        },
+        {
+          "path": ".tmp/native-capture-repair/termination/stdout.tap",
+          "bytes": 1390,
+          "sha256": "03fd50b8d2a045b46910326cd5335462a070bb9933164eaecc82854cf49e7a1b"
+        },
+        {
+          "path": ".tmp/native-capture-repair/termination/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/termination/public-evidence.json",
+          "bytes": 4344,
+          "sha256": "fab7d0ea493223f6d9d164efe305f74025475fe812f93bc86f37dacaaaa91720"
+        }
+      ]
+    },
+    {
+      "phase": "deferred-red",
+      "source": "691d442eb102926662301eea4b2f4a077d935432",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM348 termination assumption regression-exit-(nested|promise|async|precreated)",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 1,
+      "counts": {
+        "tests": 4,
+        "pass": 0,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5584.7194
+      },
+      "controls": [],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/deferred-red/inputs.json",
+          "bytes": 2313,
+          "sha256": "2b4a9853d6d2e151ef6d2b4a697f60c4545e71b7391810ecd95e085a3b250a14"
+        },
+        {
+          "path": ".tmp/native-capture-repair/deferred-red/stdout.tap",
+          "bytes": 4531,
+          "sha256": "83b42d47e17361f0085584d88b662e311d70c090b0ee6a51e18c9b8877bae944"
+        },
+        {
+          "path": ".tmp/native-capture-repair/deferred-red/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/deferred-red/public-evidence.json",
+          "bytes": 9094,
+          "sha256": "1ac0104abfbe9abfc3730bdc6ae5a9acd479c1f482cb6a78fff6b75dea0bf57a"
+        }
+      ]
+    },
+    {
+      "phase": "hook-prototype",
+      "source": "a637945f040225bb2247f49f963b22db6586c45c",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=PM348 termination assumption|PM348 actual exit dispatch|PM344 R1|PM344 R2 canonical",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 1,
+      "counts": {
+        "tests": 11,
+        "pass": 10,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 18037.0103
+      },
+      "controls": [],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/hook-prototype/inputs.json",
+          "bytes": 2531,
+          "sha256": "a7bb09446f1e13d001276a3449e429b5200984ef3ed4fae9b43a795df3d70ea8"
+        },
+        {
+          "path": ".tmp/native-capture-repair/hook-prototype/stdout.tap",
+          "bytes": 3238,
+          "sha256": "2a2878bce5fd4686caff5c46cd6969665775a9048ebcf8494c1fc96b40a48304"
+        },
+        {
+          "path": ".tmp/native-capture-repair/hook-prototype/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/hook-prototype/public-evidence.json",
+          "bytes": 23898,
+          "sha256": "07554fe4eda05c1a986d806fe5396c85970c11b0e6b0a23b2aa7233e2cd4f007"
+        }
+      ]
+    },
+    {
+      "phase": "full-final",
+      "source": "df8fa14fa08d28cde6bf53a710df0bb089c4720e",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+      ],
+      "exit": 0,
+      "counts": {
+        "tests": 61,
+        "pass": 61,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 82950.171
+      },
+      "controls": [
+        {
+          "id": "hook-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "completion-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "acl-readback-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "output-whitelist-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "first-failure-guard-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "tap-directive-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "tap-bailout-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "deferred-final-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "wrapper-ownership-refusal-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "async-init-latch-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "async-resolve-latch-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        },
+        {
+          "id": "builtin-cleanup-pin-removal",
+          "killedBy": "ERR_ASSERTION",
+          "sourceRestored": true
+        }
+      ],
+      "files": [
+        {
+          "path": ".tmp/native-capture-repair/full-final/inputs.json",
+          "bytes": 2760,
+          "sha256": "cc0921affb84036a3aef8406252c8be8128c3ba1c4c76fe8866def096032b3d4"
+        },
+        {
+          "path": ".tmp/native-capture-repair/full-final/stdout.tap",
+          "bytes": 13277,
+          "sha256": "997314740fc52fac7f55945e3ff237f96b93669d5ef044f33467f5ff8558a933"
+        },
+        {
+          "path": ".tmp/native-capture-repair/full-final/stderr.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": ".tmp/native-capture-repair/full-final/public-evidence.json",
+          "bytes": 97263,
+          "sha256": "23fbf2d79c9409507fd99895548ffd1726816ecd1a0806530007baf7bad8c877"
+        }
+      ]
+    }
+  ],
+  "manifestFiles": [
+    {
+      "path": ".tmp/native-capture-repair/authority.json",
+      "bytes": 525,
+      "sha256": "fbd0cbbc8f1b4ea6c8e0d0e03cdd0221b9bce57b9ae18015ba91da893d901d01"
+    },
+    {
+      "path": ".tmp/native-capture-repair/builtin-closure.json",
+      "bytes": 5174,
+      "sha256": "19fd9292ae6889e7175f2004982baf5f39979b2036629d527b9186117ecc0ecd"
+    },
+    {
+      "path": ".tmp/native-capture-repair/builtin-closure.final.json",
+      "bytes": 6496,
+      "sha256": "3c783e7924cbe274d23b23f57672a3fd38cbdc35838c12ab4c37b0a1ae984fef"
+    }
+  ],
+  "staticChecks": {
+    "originalComparisonValidationAssertionsReturnByteIdentical": true,
+    "profileOnlyHelperPost": true,
+    "products": 112,
+    "children": 26,
+    "dIds": 24,
+    "remainingProfileDeepEqual": true,
+    "unchanged": [
+      "rebuild/engine",
+      "rebuild/m3",
+      "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+    ],
+    "originalFullIndex": 1610,
+    "protectedFilesAbsent": true
+  },
+  "limitations": [
+    "No original native/H3/seed/private/frozen/history/FULL/CI execution.",
+    "Fixed diagnostics do not admit any native field delta; nativeFieldDeltas UNKNOWN.",
+    "Node/V8/native filesystem and hook bookkeeping boundaries are pinned runtime assumptions, not inspected C++ proof.",
+    "Only builder evidence; independent ER/MAX successor review still required."
+  ]
+}

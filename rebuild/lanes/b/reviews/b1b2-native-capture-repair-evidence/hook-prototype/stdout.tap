@@ -1,0 +1,93 @@
+TAP version 13
+# Subtest: PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+ok 1 - PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+  ---
+  duration_ms: 2258.352
+  type: 'test'
+  ...
+# Subtest: PM344 R1 third observation in a later real exit listener refuses capture
+ok 2 - PM344 R1 third observation in a later real exit listener refuses capture
+  ---
+  duration_ms: 1368.7694
+  type: 'test'
+  ...
+# Subtest: PM344 R1 late finalization IO failures remain capture failures
+ok 3 - PM344 R1 late finalization IO failures remain capture failures
+  ---
+  duration_ms: 1851.9098
+  type: 'test'
+  ...
+# Subtest: PM344 R2 canonical manual and actual Node positives remain valid
+ok 4 - PM344 R2 canonical manual and actual Node positives remain valid
+  ---
+  duration_ms: 1876.3316
+  type: 'test'
+  ...
+# Subtest: PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+ok 5 - PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+  ---
+  duration_ms: 2827.8119
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-microtask
+ok 6 - PM348 termination assumption regression-exit-microtask
+  ---
+  duration_ms: 1385.0102
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-nexttick
+not ok 7 - PM348 termination assumption regression-exit-nexttick
+  ---
+  duration_ms: 924.4265
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:119:204'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM350 conservatively refuses queued nextTick without changing child outcome
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:119:712)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM348 termination assumption regression-exit-nested-microtask
+ok 8 - PM348 termination assumption regression-exit-nested-microtask
+  ---
+  duration_ms: 1311.9241
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-promise
+ok 9 - PM348 termination assumption regression-exit-promise
+  ---
+  duration_ms: 1415.9896
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-async-await
+ok 10 - PM348 termination assumption regression-exit-async-await
+  ---
+  duration_ms: 1317.5967
+  type: 'test'
+  ...
+# Subtest: PM348 termination assumption regression-exit-precreated-promise
+ok 11 - PM348 termination assumption regression-exit-precreated-promise
+  ---
+  duration_ms: 1383.9642
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18037.0103

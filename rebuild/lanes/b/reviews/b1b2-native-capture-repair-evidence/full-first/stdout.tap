@@ -1,0 +1,280 @@
+TAP version 13
+# Subtest: public closure and owned Node22 are exact
+ok 1 - public closure and owned Node22 are exact
+  ---
+  duration_ms: 1.8405
+  type: 'test'
+  ...
+# Subtest: actual hook passes with identical objects and unchanged return; disabled writes nothing
+ok 2 - actual hook passes with identical objects and unchanged return; disabled writes nothing
+  ---
+  duration_ms: 1250.1294
+  type: 'test'
+  ...
+# Subtest: actual reader differences produce fixed categories but original assertion still fails
+ok 3 - actual reader differences produce fixed categories but original assertion still fails
+  ---
+  duration_ms: 419.4937
+  type: 'test'
+  ...
+# Subtest: actual state differences use fixed fields and disambiguate dotted dynamic keys
+ok 4 - actual state differences use fixed fields and disambiguate dotted dynamic keys
+  ---
+  duration_ms: 810.662
+  type: 'test'
+  ...
+# Subtest: observer write/fsync/close failures are sticky across later valid calls
+ok 5 - observer write/fsync/close failures are sticky across later valid calls
+  ---
+  duration_ms: 3206.2506
+  type: 'test'
+  ...
+# Subtest: partial writes retry and zero writes leave completion pending
+ok 6 - partial writes retry and zero writes leave completion pending
+  ---
+  duration_ms: 1636.7757
+  type: 'test'
+  ...
+# Subtest: actual row and key/path limits refuse without altering the original failure
+ok 7 - actual row and key/path limits refuse without altering the original failure
+  ---
+  duration_ms: 816.4125
+  type: 'test'
+  ...
+# Subtest: every admitted reader/state category comes from actual differing objects
+ok 8 - every admitted reader/state category comes from actual differing objects
+  ---
+  duration_ms: 1650.4534
+  type: 'test'
+  ...
+# Subtest: unit third observer failure retains pending status
+ok 9 - unit third observer failure retains pending status
+  ---
+  duration_ms: 1244.1103
+  type: 'test'
+  ...
+# Subtest: categorizer, access and full-disk observer faults remain failures after later calls
+ok 10 - categorizer, access and full-disk observer faults remain failures after later calls
+  ---
+  duration_ms: 2407.9487
+  type: 'test'
+  ...
+# Subtest: actual operator and helper pass a real four-test invented child
+ok 11 - actual operator and helper pass a real four-test invented child
+  ---
+  duration_ms: 1008.0462
+  type: 'test'
+  ...
+# Subtest: first real helper failure preserves child outcome and prevents writer reach
+ok 12 - first real helper failure preserves child outcome and prevents writer reach
+  ---
+  duration_ms: 538.5138
+  type: 'test'
+  ...
+# Subtest: writer failure retains both observations and cannot become capture acceptance
+ok 13 - writer failure retains both observations and cannot become capture acceptance
+  ---
+  duration_ms: 944.7389
+  type: 'test'
+  ...
+# Subtest: enabled and disabled invented gate preserve census, original failure and inputs
+ok 14 - enabled and disabled invented gate preserve census, original failure and inputs
+  ---
+  duration_ms: 4847.6924
+  type: 'test'
+  ...
+# Subtest: canonical diagnostic refusal matrix does not echo data
+ok 15 - canonical diagnostic refusal matrix does not echo data
+  ---
+  duration_ms: 1.2798
+  type: 'test'
+  ...
+# Subtest: silence, valid later rows after incomplete marker and oversized diagnostics refuse
+ok 16 - silence, valid later rows after incomplete marker and oversized diagnostics refuse
+  ---
+  duration_ms: 222.0304
+  type: 'test'
+  ...
+# Subtest: child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+ok 17 - child nonzero, spawn failure, raw IO failure, missing/duplicate/fake census refuse
+  ---
+  duration_ms: 325.5767
+  type: 'test'
+  ...
+# Subtest: real stdout and stderr cap crossings drain to natural zero exit
+ok 18 - real stdout and stderr cap crossings drain to natural zero exit
+  ---
+  duration_ms: 533.0265
+  type: 'test'
+  ...
+# Subtest: actual Windows access restriction and fresh-directory guard
+ok 19 - actual Windows access restriction and fresh-directory guard
+  ---
+  duration_ms: 358.178
+  type: 'test'
+  ...
+# Subtest: directory link escape and stale files are refused by actual helper
+ok 20 - directory link escape and stale files are refused by actual helper
+  ---
+  duration_ms: 755.3098
+  type: 'test'
+  ...
+# Subtest: production identity/argv/root checks cannot be weakened by fixture transport
+ok 21 - production identity/argv/root checks cannot be weakened by fixture transport
+  ---
+  duration_ms: 17.3144
+  type: 'test'
+  ...
+# Subtest: fresh path collisions, escaped roots and borrowed runtime are refused
+ok 22 - fresh path collisions, escaped roots and borrowed runtime are refused
+  ---
+  duration_ms: 418.4794
+  type: 'test'
+  ...
+# Subtest: premature plans and forged complete census cannot pass
+ok 23 - premature plans and forged complete census cannot pass
+  ---
+  duration_ms: 215.2763
+  type: 'test'
+  ...
+# Subtest: real signal and raw fsync/close failures never pass capture
+ok 24 - real signal and raw fsync/close failures never pass capture
+  ---
+  duration_ms: 249.4765
+  type: 'test'
+  ...
+# Subtest: actual main emits only safe schema after real invented raw sentinel streams
+ok 25 - actual main emits only safe schema after real invented raw sentinel streams
+  ---
+  duration_ms: 232.2484
+  type: 'test'
+  ...
+# Subtest: actual main success emits exact fixed JSON after real four-test helper child
+ok 26 - actual main success emits exact fixed JSON after real four-test helper child
+  ---
+  duration_ms: 1139.5231
+  type: 'test'
+  ...
+# Subtest: meaningful source reversals fail intended assertions and restore bytes
+ok 27 - meaningful source reversals fail intended assertions and restore bytes
+  ---
+  duration_ms: 6109.6929
+  type: 'test'
+  ...
+# Subtest: PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+ok 28 - PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+  ---
+  duration_ms: 2324.7808
+  type: 'test'
+  ...
+# Subtest: PM344 R1 third observation in a later real exit listener refuses capture
+ok 29 - PM344 R1 third observation in a later real exit listener refuses capture
+  ---
+  duration_ms: 1337.0285
+  type: 'test'
+  ...
+# Subtest: PM344 R1 late finalization IO failures remain capture failures
+ok 30 - PM344 R1 late finalization IO failures remain capture failures
+  ---
+  duration_ms: 1942.7195
+  type: 'test'
+  ...
+# Subtest: PM344 R2 canonical manual and actual Node positives remain valid
+ok 31 - PM344 R2 canonical manual and actual Node positives remain valid
+  ---
+  duration_ms: 1851.7772
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+ok 32 - PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+  ---
+  duration_ms: 845.2597
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+ok 33 - PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+  ---
+  duration_ms: 918.5657
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+ok 34 - PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+  ---
+  duration_ms: 911.2607
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+ok 35 - PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+  ---
+  duration_ms: 885.5982
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+ok 36 - PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+  ---
+  duration_ms: 858.3367
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+ok 37 - PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+  ---
+  duration_ms: 926.5465
+  type: 'test'
+  ...
+# Subtest: PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+ok 38 - PM348 actual exit dispatch restores descriptors before publication and preserves delegation
+  ---
+  duration_ms: 2849.8929
+  type: 'test'
+  ...
+# Subtest: PM348 regression-manual-exit cannot publish complete capture
+ok 39 - PM348 regression-manual-exit cannot publish complete capture
+  ---
+  duration_ms: 901.7627
+  type: 'test'
+  ...
+# Subtest: PM348 regression-manual-throw cannot publish complete capture
+ok 40 - PM348 regression-manual-throw cannot publish complete capture
+  ---
+  duration_ms: 953.9525
+  type: 'test'
+  ...
+# Subtest: PM348 regression-reentrant cannot publish complete capture
+ok 41 - PM348 regression-reentrant cannot publish complete capture
+  ---
+  duration_ms: 951.6339
+  type: 'test'
+  ...
+# Subtest: PM348 regression-lost-owner cannot publish complete capture
+ok 42 - PM348 regression-lost-owner cannot publish complete capture
+  ---
+  duration_ms: 947.1274
+  type: 'test'
+  ...
+# Subtest: PM348 regression-restore-failure cannot publish complete capture
+ok 43 - PM348 regression-restore-failure cannot publish complete capture
+  ---
+  duration_ms: 951.2421
+  type: 'test'
+  ...
+# Subtest: PM348 disabled capture preserves real child outcomes and does not install wrapper
+ok 44 - PM348 disabled capture preserves real child outcomes and does not install wrapper
+  ---
+  duration_ms: 9562.4942
+  type: 'test'
+  ...
+# Subtest: tracked runtime originals restored and evidence finished
+ok 45 - tracked runtime originals restored and evidence finished
+  ---
+  duration_ms: 0.7325
+  type: 'test'
+  ...
+1..45
+# tests 45
+# suites 0
+# pass 45
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61409.9725

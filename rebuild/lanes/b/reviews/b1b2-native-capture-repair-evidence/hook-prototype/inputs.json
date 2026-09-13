@@ -1,0 +1,48 @@
+{
+  "phase": "PM350 inspected builtin prototype; actual core lifecycle and deferred cases",
+  "source": "a637945f040225bb2247f49f963b22db6586c45c",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "--test-name-pattern=PM348 termination assumption|PM348 actual exit dispatch|PM344 R1|PM344 R2 canonical",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 44639,
+      "sha256": "60a623446bf78294da655bf196fa5bbdcf8fef757497da95480761d1c35c7459"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 42750,
+      "sha256": "ba89cd3a2b79e981977c0f724ea924643c9e35e0e030d227d4268f570a22f70e"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "453e7176e6c221a4a229c1b11f304989fedebb36600a079b9ffb1802cb51e864"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    }
+  ],
+  "closure": "Existing actual helper/operator/test/source-map; Node builtins; unchanged validateR9 commit/ancestry metadata; owned invented child fixtures including real exit listeners and contained late fs faults; actual Windows ACL. No new external modules, native program or protected input. Production child launch intercepted only inside existing synthetic transport. PM348 adds only native process emitter delegation/descriptor restoration and reads pinned Node _exiting without setting it; real invented lifecycle tests, disabled comparison, own partial-write and late-fault cases. No new channel/dependency. PM350 eleven named builtin JS modules/ranges inspected before enabling node:async_hooks. Opaque boundaries recorded in builtin manifest. Callbacks only set a local boolean; nextTick may conservatively refuse capture with unchanged child outcome.",
+  "builtinManifest": {
+    "path": ".tmp/native-capture-repair/builtin-closure.json",
+    "bytes": 5174,
+    "sha256": "19fd9292ae6889e7175f2004982baf5f39979b2036629d527b9186117ecc0ecd"
+  }
+}

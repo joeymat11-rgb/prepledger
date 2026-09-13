@@ -1,0 +1,47 @@
+{
+  "phase": "PM350 full corrected cohort with cleanup/API failure controls",
+  "source": "df8fa14fa08d28cde6bf53a710df0bb089c4720e",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 45331,
+      "sha256": "a010ef5b0460ecda3009c2cd54c7c7292b987e2ee954f9d6a2e4a949eaaf0b67"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 48347,
+      "sha256": "27dec2e00e3fc48570704c98330d588e97ad78c7c9817a855af41739627d9a8f"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "ba48e26700567b17397eefcaf08532eb5680d01d00226a6b9bf27b8dc468be55"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    }
+  ],
+  "closure": "Existing actual helper/operator/test/source-map; Node builtins; unchanged validateR9 commit/ancestry metadata; owned invented child fixtures including real exit listeners and contained late fs faults; actual Windows ACL. No new external modules, native program or protected input. Production child launch intercepted only inside existing synthetic transport. PM348 adds only native process emitter delegation/descriptor restoration and reads pinned Node _exiting without setting it; real invented lifecycle tests, disabled comparison, own partial-write and late-fault cases. No new channel/dependency. PM350 eleven named builtin JS modules/ranges inspected before enabling node:async_hooks. Opaque boundaries recorded in builtin manifest. Callbacks only set a local boolean; nextTick may conservatively refuse capture with unchanged child outcome. Fault-only invented children use existing node:module to load the exact helper in an isolated Reflect.apply transport; native API functions remain byte-pinned and original comparison/assertions are unchanged. Fault injection is outside hook callbacks; poisoned callback arguments are passed without inspection. No new source/dependency or channel.",
+  "builtinManifest": {
+    "path": ".tmp/native-capture-repair/builtin-closure.final.json",
+    "bytes": 6496,
+    "sha256": "3c783e7924cbe274d23b23f57672a3fd38cbdc35838c12ab4c37b0a1ae984fef"
+  }
+}

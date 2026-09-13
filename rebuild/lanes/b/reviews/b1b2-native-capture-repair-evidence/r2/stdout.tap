@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: PM344 R2 canonical manual and actual Node positives remain valid
+ok 1 - PM344 R2 canonical manual and actual Node positives remain valid
+  ---
+  duration_ms: 1879.1734
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+ok 2 - PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+  ---
+  duration_ms: 897.4009
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+ok 3 - PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+  ---
+  duration_ms: 892.2129
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+ok 4 - PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+  ---
+  duration_ms: 903.3979
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+ok 5 - PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+  ---
+  duration_ms: 858.1762
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+ok 6 - PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+  ---
+  duration_ms: 908.4131
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+ok 7 - PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+  ---
+  duration_ms: 891.0286
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 7340.4503

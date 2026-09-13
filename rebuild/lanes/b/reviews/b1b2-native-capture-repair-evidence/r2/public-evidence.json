@@ -1,0 +1,329 @@
+{
+  "node": "v22.23.2",
+  "nodeSha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+  "helperSha256": "73a075ea7792cdb716ca0129928ab4206f4537a29b9d9b41c49796176df5c398",
+  "operatorSha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721",
+  "cases": [
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\1e3d6fa73f13b0db9d6205aa3c77ed9e",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-normal",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-normal",
+      "dir": ".tmp\\b1b2-native-capture\\f188f672b719edb6e41e98adf18808be",
+      "result": {
+        "gateVerdict": "PASS",
+        "captureVerdict": "PASS",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "NONE"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\c839a1178d1e66157d895027e1281343",
+      "result": {
+        "gateVerdict": "FAIL",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "CENSUS"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\6fb1d5137caf9ed74f01fce40a20744f",
+      "result": {
+        "gateVerdict": "FAIL",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "CENSUS"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\bf5d76304ddff2301a25d7d0db2da8e5",
+      "result": {
+        "gateVerdict": "FAIL",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "CENSUS"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\48ba1b3fef1db89d9a69297a818bc934",
+      "result": {
+        "gateVerdict": "FAIL",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "CENSUS"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\7e43f5961bd90e1b1cfa76759fcf5f77",
+      "result": {
+        "gateVerdict": "FAIL",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "CENSUS"
+      }
+    },
+    {
+      "transport": "actual operator spawn",
+      "mode": "regression-manual",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs"
+      ]
+    },
+    {
+      "mode": "regression-manual",
+      "dir": ".tmp\\b1b2-native-capture\\522f28243f273494ac2134c0f80199e5",
+      "result": {
+        "gateVerdict": "FAIL",
+        "captureVerdict": "FAIL",
+        "childExit": 0,
+        "childSignal": null,
+        "tests": null,
+        "pass": null,
+        "fail": null,
+        "cancelled": null,
+        "skipped": null,
+        "todo": null,
+        "comparisons": [
+          {
+            "kind": "second-readers",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          },
+          {
+            "kind": "second-applyRead",
+            "categories": [],
+            "differenceCount": 0,
+            "comparisonVerdict": "MATCH"
+          }
+        ],
+        "fixedFailureCode": "CENSUS"
+      }
+    }
+  ],
+  "controls": []
+}

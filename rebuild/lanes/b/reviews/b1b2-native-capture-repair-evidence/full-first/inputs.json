@@ -1,0 +1,42 @@
+{
+  "phase": "PM344 plus PM348 first complete corrected cohort",
+  "source": "3a4ef50a30478317478f2fff0350943619e04660",
+  "argv": [
+    "--test",
+    "--test-reporter=tap",
+    "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs"
+  ],
+  "files": [
+    {
+      "path": "rebuild/m4/workout/test/b1b2-evidence.cjs",
+      "bytes": 43546,
+      "sha256": "e206cb0dfc71ca001fb574c27ee921acaf771a015cd09b885f07203d1761a1e8"
+    },
+    {
+      "path": "rebuild/m4/workout/test/b1b2-source-changes.json",
+      "bytes": 196822,
+      "sha256": "e67660fd6d5fd05e2bcfe6a46fecb1a85d19592dbc99d6807580c30273ba1058"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/b1b2-native-capture.cjs",
+      "bytes": 14364,
+      "sha256": "40868e4b4d71648c7b6e84a57e1a3ddcc053514c65c16b2569faa986115af721"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/test/b1b2-native-capture.test.cjs",
+      "bytes": 40895,
+      "sha256": "35cb44447a67c42b14591d687a33c490c193f86b5bd47e399b48a81a3cee5267"
+    },
+    {
+      "path": "rebuild/lanes/b/tooling/packages/B1-B2.json",
+      "bytes": 89271,
+      "sha256": "af9b36700fd9b78d9f14dc1650f82fa9151cc766c5ca4e1ad502300ec109c666"
+    },
+    {
+      "path": ".tmp/runtime/node.exe",
+      "bytes": 86997320,
+      "sha256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4"
+    }
+  ],
+  "closure": "Existing actual helper/operator/test/source-map; Node builtins; unchanged validateR9 commit/ancestry metadata; owned invented child fixtures including real exit listeners and contained late fs faults; actual Windows ACL. No new external modules, native program or protected input. Production child launch intercepted only inside existing synthetic transport. PM348 adds only native process emitter delegation/descriptor restoration and reads pinned Node _exiting without setting it; real invented lifecycle tests, disabled comparison, own partial-write and late-fault cases. No new channel/dependency."
+}

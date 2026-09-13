@@ -1,0 +1,102 @@
+TAP version 13
+# Subtest: PM348 termination assumption regression-exit-nested-microtask
+not ok 1 - PM348 termination assumption regression-exit-nested-microtask
+  ---
+  duration_ms: 1338.2407
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:119:204'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM348 deferred observation after dispatch must not be accepted
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:119:552)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: PM348 termination assumption regression-exit-promise
+not ok 2 - PM348 termination assumption regression-exit-promise
+  ---
+  duration_ms: 1434.5386
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:119:204'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM348 deferred observation after dispatch must not be accepted
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:119:552)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM348 termination assumption regression-exit-async-await
+not ok 3 - PM348 termination assumption regression-exit-async-await
+  ---
+  duration_ms: 1323.671
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:119:204'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM348 deferred observation after dispatch must not be accepted
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:119:552)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM348 termination assumption regression-exit-precreated-promise
+not ok 4 - PM348 termination assumption regression-exit-precreated-promise
+  ---
+  duration_ms: 1376.2601
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:119:204'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM348 deferred observation after dispatch must not be accepted
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:119:552)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 0
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5584.7194

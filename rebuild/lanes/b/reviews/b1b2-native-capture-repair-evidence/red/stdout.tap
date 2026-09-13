@@ -1,0 +1,206 @@
+TAP version 13
+# Subtest: PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+ok 1 - PM344 R1 actual normal and before-exit ordering preserve gate outcomes
+  ---
+  duration_ms: 2368.4
+  type: 'test'
+  ...
+# Subtest: PM344 R1 third observation in a later real exit listener refuses capture
+not ok 2 - PM344 R1 third observation in a later real exit listener refuses capture
+  ---
+  duration_ms: 1313.6932
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:117:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R1 late exit observation must remain a capture refusal
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:117:419)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R1 late finalization IO failures remain capture failures
+not ok 3 - PM344 R1 late finalization IO failures remain capture failures
+  ---
+  duration_ms: 995.0266
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:118:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R1 late lstatSync failure must refuse
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:118:264)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R2 canonical manual and actual Node positives remain valid
+ok 4 - PM344 R2 canonical manual and actual Node positives remain valid
+  ---
+  duration_ms: 1829.2114
+  type: 'test'
+  ...
+# Subtest: PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+not ok 5 - PM344 R2 contradictory SKIP refuses through actual capture and chunked parser
+  ---
+  duration_ms: 876.7722
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:120:505'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R2 SKIP cannot become PASS
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:120:694)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+not ok 6 - PM344 R2 contradictory TODO refuses through actual capture and chunked parser
+  ---
+  duration_ms: 939.7369
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:120:505'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R2 TODO cannot become PASS
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:120:694)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+not ok 7 - PM344 R2 contradictory BAILOUT refuses through actual capture and chunked parser
+  ---
+  duration_ms: 837.063
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:120:505'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R2 BAILOUT cannot become PASS
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:120:694)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+not ok 8 - PM344 R2 contradictory mixed-case-skip refuses through actual capture and chunked parser
+  ---
+  duration_ms: 944.5144
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:120:505'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R2 mixed-case-skip cannot become PASS
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:120:694)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+not ok 9 - PM344 R2 contradictory mixed-case-todo refuses through actual capture and chunked parser
+  ---
+  duration_ms: 840.0952
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:120:505'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R2 mixed-case-todo cannot become PASS
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:120:694)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+not ok 10 - PM344 R2 contradictory mixed-case-bailout refuses through actual capture and chunked parser
+  ---
+  duration_ms: 915.7939
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\native-capture-repair\\work\\pm-caretaker\\b1b2-native-capture\\rebuild\\lanes\\b\\tooling\\test\\b1b2-native-capture.test.cjs:120:505'
+  failureType: 'testCodeFailure'
+  error: |-
+    PM344-R2 mixed-case-bailout cannot become PASS
+    
+    'PASS' !== 'FAIL'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'FAIL'
+  actual: 'PASS'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (C:\Users\joeym\Documents\prepledger-dev\work\pm-caretaker\native-capture-repair\work\pm-caretaker\b1b2-native-capture\rebuild\lanes\b\tooling\test\b1b2-native-capture.test.cjs:120:694)
+    process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 2
+# fail 8
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11976.5105
