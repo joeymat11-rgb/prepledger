@@ -167,6 +167,92 @@ export function assertNoNetworkReference(assets) {
   return assets.length;
 }
 
+/* THE NODE-ONLY GLOBALS, refused before a byte is written.
+
+   A page that names `__dirname` at module scope does not boot: the browser throws
+   `__dirname is not defined` before the first paint, and every screen is gone. That is
+   not a hypothetical - it shipped. plain-copy.cjs, which is a bundled input, derived a
+   constant from `__dirname`; the guard it belongs to runs only at BUILD time, so every
+   Node suite stayed green while the deployed page was dead.
+
+   So the build now refuses a bundle that reads one of Node's own globals where a browser
+   will execute it. The scan is deliberately crude and static, in the shape of the dash
+   guard beside it: esbuild writes a `// <path>` banner before each module, and anything
+   outside a comment that reads `__dirname`, `__filename` or calls `require(` is an
+   offence. Nor is a mention inside a comment, because a file that explains why it does
+   not do something must not fail for saying so (DECISIONS:114 (1)). The bundler's own
+   `__require` shim and its banners are left alone: only bare, unprefixed reads count.
+
+   EXACTLY ONE IDIOM IS EXEMPT, and only in its own true-branch:
+   `typeof __dirname === "string" ? __dirname : <fallback>`. That read cannot execute in
+   a browser, because the test in front of it is false there, and it is how a module that
+   must run in both places asks which one it is in (plain-copy.cjs). An UNGUARDED read is
+   still an offence even one line away from a guarded one: the exemption rewrites only the
+   guard-and-its-own-consequent, so anything else is left for the scan to find. */
+const NODE_ONLY = Object.freeze([
+  ["__dirname", /(^|[^.\w$"'`])__dirname\b/],
+  ["__filename", /(^|[^.\w$"'`])__filename\b/],
+  ["require(", /(^|[^.\w$"'`])require\s*\(/],
+]);
+export function assertNoNodeOnlyGlobals(assets) {
+  const offences = [];
+  let scannedModules = 0;
+  for (const [name, bytes] of assets) {
+    if (!name.endsWith(".js")) continue;
+    const text = typeof bytes === "string" ? bytes : bytes.toString("utf8");
+    /* ONLY THE MODULES THIS REPOSITORY WROTE. esbuild's `// <path>` banner says who
+       each stretch of the bundle came from, exactly as the dash guard uses it. A
+       VENDORED module may legitimately carry a dead CommonJS branch that names
+       `require(`, and refusing the build for somebody else's dead branch would be a
+       false accusation - the defect this guard exists for was in one of ours. */
+    for (const segment of segmentsByModule(text)) {
+      if (!segment.module || /node_modules/.test(segment.module)) continue;
+      scannedModules += 1;
+      /* comments out; then the ONE exempt idiom, guard and its own consequent
+         together; then bare `typeof X`, which names nothing and reads nothing. */
+      const code = segment.code
+        .replace(/\/\*[\s\S]*?\*\//g, " ")
+        .replace(/(^|[^:])\/\/.*$/gm, "$1")
+        .replace(/typeof\s+(__dirname|__filename|require)\s*===?\s*["'][a-z]+["']\s*\?\s*\1\b/g, "GUARDED")
+        .replace(/typeof\s+(__dirname|__filename|require)\b/g, "TYPEOF_ONLY");
+      for (const [label, pattern] of NODE_ONLY) {
+        const hit = code.match(pattern);
+        if (hit) {
+          const at = code.indexOf(hit[0]);
+          offences.push({ asset: name, module: segment.module, what: label,
+            near: code.slice(Math.max(0, at - 60), at + 60).trim() });
+        }
+      }
+    }
+  }
+  assert(scannedModules > 20, "NODE-GLOBAL-GUARD BLIND: only " + scannedModules
+    + " own module(s) carried a banner, so this guard would pass on anything");
+  assert.equal(offences.length, 0, "NODE-GLOBAL-IN-BUNDLE FAIL: "
+    + offences.map((o) => `${o.module} reads ${o.what} ... ${o.near}`).join(" | "));
+  return { offences, scannedModules };
+}
+
+/* The bundle cut at its module banners: `// <path>` on a line of its own, which is what
+   esbuild writes in front of each module it inlines. */
+function segmentsByModule(text) {
+  const out = [];
+  let module = null;
+  let start = 0;
+  const lines = text.split("\n");
+  let offset = 0;
+  for (const line of lines) {
+    const hit = /^\s*\/\/ (\S+\.(?:cjs|mjs|js))\s*$/.exec(line);
+    if (hit) {
+      if (module) out.push({ module, code: text.slice(start, offset) });
+      module = hit[1];
+      start = offset + line.length + 1;
+    }
+    offset += line.length + 1;
+  }
+  if (module) out.push({ module, code: text.slice(start) });
+  return out;
+}
+
 /* THE BUILD ID (REPORT-A-PROBLEM-BRIEF section 2, DECISIONS:140 (3)).
 
    sha256 over the PINNED INPUT INVENTORY - every module esbuild actually put in the
@@ -266,6 +352,8 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
     "app.js": injectBuildId((await fs.readFile(built.outfile)).toString("utf8"), buildTag),
   };
   assertNoNetworkReference(Object.entries(contents));
+  /* Before a byte is written: nothing in the bundle reads a global only Node has. */
+  const nodeGlobals = assertNoNodeOnlyGlobals(Object.entries(contents));
   /* Before a byte is written: no em dash and no en dash in anything the athlete reads. */
   const dashes = assertNoAiDashesInAssets(Object.entries(contents));
   await realDirectory(dist);
@@ -276,7 +364,7 @@ export async function buildToday({ dist = DIST, scratch = SCRATCH } = {}) {
   for (const name of ASSETS) await fs.writeFile(path.join(dist, name), contents[name]);
   assert.deepEqual((await fs.readdir(dist)).sort(), [...ASSETS].sort(), "PACKAGE-ALLOWLIST FAIL");
 
-  return { dist, assets: [...ASSETS], inputs, inventory: built.inventory, dashes,
+  return { dist, assets: [...ASSETS], inputs, inventory: built.inventory, dashes, nodeGlobals,
     buildId, buildTag,
     approved: APPROVED.map((a) => a.sha256), fonts: fonts.map((f) => ({ name: f.name, sha256: f.sha256 })), binding };
 }
