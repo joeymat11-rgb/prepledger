@@ -30,11 +30,20 @@ import { projectWorkoutRecords } from '../m4/workout/project-history.mjs';
 import { causalTips, startOrderRefusalOf } from '../m3/w7-preview/today/gym-host.mjs';
 import { createGymModel } from '../m3/w7-preview/today/gym-model.mjs';
 import { createCheckInHost } from '../m3/w7-preview/today/checkin-host.mjs';
-import CheckInModel from '../m3/w7-preview/today/checkin-model.mjs';
+import CheckInModel, { sleepNightFor } from '../m3/w7-preview/today/checkin-model.mjs';
 /* C6 Part A. The first-run lane, opened the same way the other three are: this
    module composes and does not invent, so the producer command and the profile
    are setup-host.mjs's own and nothing here shapes an op. */
 import { createSetupHost } from '../m3/w7-preview/today/setup-host.mjs';
+/* N2, D2 ROUND 2, FINDING 6. THE READ SIDE OF THE SLEEP NIGHT. :167 (2) made this
+   companion optional "only if the row cannot pass without it"; D2's round-2 review
+   executed the actual `today_checkin` tool over a real generation holding a 1 h sleep
+   night and the coach reported 8 h, which settles that question. The coach is a
+   CONSUMER here and nothing more: it opens the same lane the screen opens, on ITS OWN
+   era (one client, one generation, one lease), and reads the night back through the
+   SAME pure projector and the SAME accepted A3 function the page uses. It writes no
+   night, invents no default, and adds no tool. */
+import { createSleepHost } from '../m3/w7-preview/today/sleep-host.mjs';
 /* Coach wave one. The era's own lease schema, which is what the accepted client
    stamps every producer-injected command with. */
 import { LOCAL_ERA_SCHEMA_VERSION } from '../m3/w6/local/local-era.mjs';
@@ -199,7 +208,12 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   withSetup = false, setupDeviceKeys, setupDatabaseName, setupNamespace,
   /* Coach wave one: the machine-settings lane, on by default because step 3 of
      the demo is a read the coach makes every time it is asked. */
-  withMachineSettings = true } = {}) {
+  withMachineSettings = true,
+  /* N2 wave: the sleep lane, ON by default because the coach is asked about last
+     night every time it is asked about today, and a consumer that cannot see the
+     night the athlete recorded reports the imported basis as if it were a record
+     (D2 round 2, finding 6). */
+  withSleep = true } = {}) {
   const web = crypto || globalThis.crypto;
   const idb = indexedDB || globalThis.indexedDB;
   if (typeof day !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new TypeError('openCoachWorld requires day');
@@ -221,6 +235,36 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   const readings = readingLane(client);
   const today = createTodayModel({ today: day, readings });
   const bindings = await client.hostBindings();
+
+  // Each tool refresh reads the repository; a different client can write this store.
+  let sleepHost = null;
+  let sleepRows = [], sleepReadable = false, alive = true;
+  if (withSleep) {
+    try { sleepHost = await createSleepHost({ day, era: { client, athleteId, deviceId } }); }
+    catch { sleepHost = null; }
+  }
+  today.setSleepNights({ rows: () => sleepRows });
+  async function refreshSleep() {
+    sleepReadable = false;
+    try {
+      if (!alive || !sleepHost || sleepHost.openedRefusal) return false;
+      sleepRows = await sleepHost.all();
+      sleepReadable = true;
+      return true;
+    } catch { return false; }
+    finally { if (!sleepReadable) sleepRows = []; }
+  }
+  const checkInState = () => {
+    const state = today.stateFromOps();
+    if (!sleepReadable) state.sleep = { ...state.sleep, nights: [] };
+    return state;
+  };
+  const sleepIdentity = () => {
+    const night = sleepNightFor(checkInState(), day);
+    const op = night ? today.recordedSleep(night.date) : null;
+    return JSON.stringify([night, op && op.op_id]);
+  };
+  await refreshSleep();
   const gymHost = gymOver(bindings, { day, engineState: today.stateFromOps(), prescriptionCapture,
     plannedSplitSlotId: 'earned-coach-local/' + day });
   const gym = createGymModel({ gymHost, sessionTitle: today.read().workout.title });
@@ -232,8 +276,50 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
   let checkInHost = null, checkin = null;
   if (withCheckIn) {
     checkInHost = await createCheckInHost({ day, indexedDB: idb, crypto: web, deviceKeys: checkInDeviceKeys });
-    checkin = createCheckInModel({ host: checkInHost, day, engineState: today.stateFromOps() });
-    await checkin.refresh();
+    let model = createCheckInModel({ host: checkInHost, day, engineState: checkInState() });
+    let identity = sleepIdentity(), checkInReadable = true;
+    await model.refresh();
+    async function refreshCheckIn() {
+      await refreshSleep();
+      const current = sleepIdentity();
+      if (current !== identity) {
+        const fresh = createCheckInModel({ host: checkInHost, day, engineState: checkInState() });
+        const was = model.draft().state(), next = fresh.draft();
+        for (const [group, label] of Object.entries(was.choices)) if (label) next.choose(group, label);
+        for (const [name, on] of Object.entries(was.issues)) if (on) next.toggleIssue(name);
+        if (was.fields.sleep_hours && next.state().sleepRecord) next.answerSleepHere();
+        for (const [field, value] of Object.entries(was.fields)) if (value !== '') next.set(field, value);
+        // A different dated observation requires a new confirmation, even at equal hours.
+        model = fresh;
+        identity = current;
+      }
+      try { const row = await model.refresh(); checkInReadable = true; return row; }
+      catch { checkInReadable = false; return null; }
+    }
+    checkin = Object.freeze({
+      day, host: checkInHost,
+      read() { return { ...model.read(),
+        ...(!checkInReadable ? { recorded: null, note: 'The check-in could not be read on this device.' } : {}),
+        ...(!sleepReadable ? { sleepRecord: null, note: 'Sleep could not be read on this device.' } : {}) }; },
+      refresh: refreshCheckIn,
+      draft: () => model.draft(),
+      recorded: () => checkInReadable ? model.recorded() : null,
+      get sleepRecord() { return sleepReadable ? model.sleepRecord : null; },
+      get model() { return model; },
+      async save() {
+        const confirmed = model.draft().state().sleepConfirm === 'confirmed';
+        const expected = identity;
+        await refreshCheckIn();
+        if (!alive || !checkInReadable || (confirmed && !sleepReadable)) {
+          return { ok: false, code: 'CHECKIN_SOURCE_UNAVAILABLE', copy: 'The check-in could not be read on this device. Nothing was recorded.' };
+        }
+        if (confirmed && expected !== identity) {
+          return { ok: false, code: 'SLEEP_NIGHT_CHANGED', copy: 'This night changed while you were editing. Review the saved record before trying again. Nothing was recorded.' };
+        }
+        return model.save();
+      },
+      async reopen() { await refreshCheckIn(); await model.reopen(); return checkin.read(); },
+    });
   }
 
   /* THE FIRST-RUN LANE (C6 Part A). Like the check-in, it is the accepted lane's
@@ -260,12 +346,19 @@ export async function openCoachWorld({ indexedDB, crypto, day = SYNTHETIC_DAY,
 
   return Object.freeze({
     client, bindings, today, gym, gymHost, checkin, checkInHost, setupHost, machineSettings,
-    consent, day, readings,
+    sleepHost, consent, day, readings,
     era: { eraId: booted.eraId || null, leaseId: booted.leaseId || null, revision: booted.revision },
     checkInOnLocalEra: false,
     setupOnLocalEra: false,
     machineSettingsOnLocalEra: !!machineSettings,
+    /* True only when the coach can really read this device's sleep nights. When it is
+       false the coach has no night of record to state, and says so. */
+    get sleepOnLocalEra() { return alive && sleepReadable; },
+    /* The night the coach would state now, read from the CURRENT projected state. */
+    sleepNight() { return alive && sleepReadable ? sleepNightFor(checkInState(), day) : null; },
     close() {
+      alive = false; sleepReadable = false; sleepRows = [];
+      if (sleepHost) { try { sleepHost.close(); } catch {} }
       try { client.close(); } catch {}
       if (checkInHost) { try { checkInHost.close(); } catch {} }
       if (setupHost) { try { setupHost.close(); } catch {} }

@@ -43,6 +43,10 @@ const { SYNTHETIC_DAY, createSyntheticState } = require("../fixtures.cjs");
 /* N1 - the food-day projector and the words the nutrition screen owns. Pure: no DOM,
    no store, nothing from rebuild/engine (it is HANDED the engine it must write with). */
 const FoodModel = require("./food-model.cjs");
+/* N2 - the sleep-night projector, which is seam S2's own half: the engine has no
+   writer that appends a night, so that module builds the row in the shape
+   rebuild/engine/sleep.cjs already reads. Pure, and HANDED the engine it must use. */
+const SleepModel = require("./sleep-model.cjs");
 
 /* C4b: the three synthetic enrolment labels that used to live here
    (SYNTHETIC_DEVICE_ID, SYNTHETIC_ATHLETE_ID, SYNTHETIC_IDENTITY_KEY) are gone.
@@ -130,6 +134,11 @@ function createTodayModel(options = {}) {
      other lanes are opened by boot(), which is pinned on disk by B-NTC and cannot
      gain a fifth). */
   let foodDays = options.foodDays || null;
+  /* N2 - THE SLEEP LANE, injected exactly as `readings` and `foodDays` are, and
+     settable after construction for exactly the same reason: the page opens it lazily
+     because today-entry.mjs boot() is pinned on disk by B-NTC (DECISIONS:144) and its
+     pin-class transition is lane B's round after H3 (:154 (5)). */
+  let sleepNights = options.sleepNights || null;
 
   const E = engineFactory({ clock: engineClockFor(day) });
 
@@ -164,8 +173,20 @@ function createTodayModel(options = {}) {
      has no engine figure to read back, and the screen is told which days those are. */
   function foodProjectionOf() {
     let state = clone(basis);
+    /* N2 - THE SLEEP REPLAY GOES FIRST. The workout preparation, the recovery
+       check-in and B-NTC's day facts all read `sleep.nights`, so a night has to be in
+       the state BEFORE anything that consumes it is computed from that state. It
+       touches only `sleep.nights` and no reading or food day touches that, so the
+       three replays do not interact. */
+    state = SleepModel.projectSleepNights(state, storedSleepNights(), E);
     for (const r of storedReads()) state = E.applyRead(state, r.date, r.lb, { hour: 8 });
     return FoodModel.foodProjection(state, storedFoodDays(), E);
+  }
+
+  /* N2 - the durable sleep-night operations, as THIS page's sleep lane read them back.
+     Rows only; nothing is interpreted here. */
+  function storedSleepNights() {
+    return sleepNights && typeof sleepNights.rows === "function" ? sleepNights.rows() : [];
   }
 
   function sessionFor(state) {
@@ -309,6 +330,15 @@ function createTodayModel(options = {}) {
     recordedFood: (date) => FoodModel.recordedDay(storedFoodDays(), date || day),
     /* True when a day IS recorded and the engine refused to replay it. */
     foodUnavailable: (date) => foodProjectionOf().unavailable.includes(date || day),
+    /* N2 - the sleep lane, and what the ENGINE holds for a night once it is replayed.
+       `loggedSleep` reads the PROJECTED state, never the screen's memory, so what the
+       athlete is shown is what the workout preparation and the check-in would be
+       asked; `recordedSleep` is the winning OPERATION, with its save stamp. */
+    sleepNights: () => sleepNights,
+    setSleepNights(lane) { sleepNights = lane || null; return sleepNights; },
+    storedSleepNights,
+    loggedSleep: (date) => SleepModel.loggedNight(stateFromOps(), date),
+    recordedSleep: (date) => SleepModel.recordedNight(storedSleepNights(), date),
     basisState: () => clone(basis),
     stateFromOps,
     storedReads,

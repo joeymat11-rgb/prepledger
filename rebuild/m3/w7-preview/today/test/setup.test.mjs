@@ -2317,6 +2317,19 @@ test('re-pin - every file the B-NTC package pins is untouched by A4b, on disk', 
      in the other forty-odd pins all still go red. With no such spec on the
      branch the exemption set is empty and this is the original cell. */
   const child = (() => {
+    const current = 'rebuild/lanes/b/tooling/packages/B1-B2.json';
+    if (fs.existsSync(repoPath(current))) {
+      const profile = JSON.parse(readRepo(current));
+      assert(profile && profile.version === 1 && profile.lanePackage === 'B1-B2' && profile.packageId === 'M2-B1-B2', 'B1B2 child profile schema');
+      assert(profile.product && typeof profile.product === 'object' && !Array.isArray(profile.product), 'B1B2 child product map');
+      for (const pin of Object.values(profile.product)) {
+        assert(pin && typeof pin === 'object' && !Array.isArray(pin), 'B1B2 child product pin');
+        assert.deepEqual(Object.keys(pin).sort(), ['post','pre','role'], 'B1B2 child product pin keys');
+        assert(['edited','carried','new','superseded-by-child','pinned-unchanged'].includes(pin.role), 'B1B2 child product role');
+        for (const key of ['pre','post']) assert(pin[key] === null || (typeof pin[key] === 'string' && /^[a-f0-9]{64}$/.test(pin[key])), 'B1B2 child product hash');
+      }
+      return profile.product;
+    }
     try { return JSON.parse(readRepo('rebuild/lanes/b/tooling/packages/H3.json')).product || {}; }
     catch { return {}; }
   })();

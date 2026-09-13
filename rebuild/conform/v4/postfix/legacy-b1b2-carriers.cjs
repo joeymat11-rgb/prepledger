@@ -36,9 +36,11 @@ function prepareCarrier(id,bytes){
  for(const [site,before,after]of t.b2[id]||[])source=exact(source,before,after,site,edits);
  return {source,edits,sourceHash:sha(bytes),carrierHash:sha(source)};
 }
-function runPublic(){
+const REPAIRED_MODES = {"--witness-1":"defect-witnesses","--witness-3":"defect-witnesses-3","--witness-4":"defect-witnesses-4"};
+function runPublic(selected){
+ if(selected!==undefined)assert.ok(Object.values(REPAIRED_MODES).includes(selected),'closed repaired witness');
  H.inspectClosure();const results=[];
- for(const id of Object.keys(PINS)){
+ for(const id of selected===undefined?Object.keys(PINS):[selected]){
   const file=path.join(root,'rebuild/engine/test',id+'.cjs'),bytes=fs.readFileSync(file),p=prepareCarrier(id,bytes),output=[];
   const m=new Module(file);m.filename=file;
   m.require=request=>{
@@ -54,14 +56,15 @@ function runPublic(){
   const expected={'defect-witnesses':10,'defect-witnesses-2':11,'defect-witnesses-3':5,'defect-witnesses-4':5}[id];
   assert.equal(output.filter(x=>x.startsWith('REPRODUCED ')).length,expected);
   assert.match(output.at(-1),new RegExp(expected+'/'+expected));assert.deepEqual(fs.readFileSync(file),bytes);
-  results.push({id,cases:expected,edits:p.edits,tail:output.at(-1)});
+  results.push({id,cases:expected,edits:p.edits,tail:output.at(-1),output});
  }
- assert.equal(results.flatMap(r=>r.edits).filter(e=>e.site.startsWith('D12-')).length,2);
+ assert.equal(results.flatMap(r=>r.edits).filter(e=>e.site.startsWith('D12-')).length,selected===undefined?2:0);
  return results;
 }
 module.exports={PINS,prepareCarrier,runPublic};
-if(require.main===module)assert.deepEqual(process.argv.slice(2),process.argv.includes("--public-laws")?["--public-laws"]:[],"unsupported public carrier argv");
-if(require.main===module&&!process.argv.includes("--public-laws")){process.env.TZ='America/New_York';const r=runPublic();console.log('B1B2 PUBLIC CARRIERS: '+r.length+'/4; '+r.reduce((n,x)=>n+x.cases,0)+' cases; '+r.reduce((n,x)=>n+x.edits.length,0)+' substitutions; original bytes retained');}
+if(require.main===module){const argv=process.argv.slice(2);assert.ok(argv.length===0||(argv.length===1&&(argv[0]==='--public-laws'||Object.hasOwn(REPAIRED_MODES,argv[0]))),'unsupported public carrier argv');}
+if(require.main===module&&process.argv.length===2){process.env.TZ='America/New_York';const r=runPublic();for(const row of r)for(const line of row.output)console.log(line);console.log('B1B2 PUBLIC CARRIERS: '+r.length+'/4; '+r.reduce((n,x)=>n+x.cases,0)+' cases; '+r.reduce((n,x)=>n+x.edits.length,0)+' substitutions; original bytes retained');}
+if(require.main===module&&Object.hasOwn(REPAIRED_MODES,process.argv[2])){process.env.TZ='America/New_York';const id=REPAIRED_MODES[process.argv[2]],r=runPublic(id)[0];for(const line of r.output)console.log(line);console.log('B1B2 REPAIRED WITNESS witnesses-'+process.argv[2].slice(-1)+': '+r.cases+' cases; '+r.edits.length+' substitutions; original SHA256 '+PINS[id]);}
 
 const PUBLIC_LAW_CATALOG = [
   {

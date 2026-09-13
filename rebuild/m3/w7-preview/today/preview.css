@@ -14,6 +14,9 @@
 .view .hours,
 .view textarea { font-size: 16px; }
 
+/* N2's accepted brief requires 48px inputs; the existing button touch minimum is 44px. */
+.view [data-slot="sleep-entry-form"] input { min-height: 48px; }
+
 /* The morning weigh-in sheet. The 2026-09-08 design does not cover a weigh-in entry
    screen, so this is preview-owned chrome built only from approved tokens and the
    approved direct-entry control (.field / .number-control / .step / .error / .cta). */
