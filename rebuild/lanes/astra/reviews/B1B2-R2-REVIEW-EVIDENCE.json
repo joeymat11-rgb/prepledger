@@ -78959,15 +78959,3481 @@
     "Use a fresh own review-b1b2-r2 tree and the separately licensed exact candidate objects. Review driver stage/stage-tooling reconstruct the verified finite closure; execute only its 15 named modes plus original reviewer annexes. No borrowed dependencies or injected Node options.",
     "Create .tmp/r2-review from this evidence preflight/allowedReference/annexAdaptation before replaying the ERA reviewer; its frozen snippets were separately extracted and Git-verified under254. Reference re-evaluation loads only the 18 named public construction files.",
     "Own source/authority/consumer/fault reviewer scripts write their results under .tmp/er-b1b2-r2/results; final assembler rechecks manifests and archives logs. Fault replay audit directories are intentionally exact per this observation, not an unchecked newest directory.",
-    "B1 mutation audits share the final positive filename; the retained raw positive belongs to the historical last run. B2 individual selected positives were asserted in the executed runner, but only full initial/final raw positives were saved. All ERA per-fault restored positives are retained."
+    "B1 mutation audits share the final positive filename; the retained raw positive belongs to the historical last run. B2 individual selected positives were asserted in the executed runner, but only full initial/final raw positives were saved. All ERA per-fault restored positives are retained.",
+    "The driver today-clearance mode is a separate16-case reviewer R7 join test. At C its expected observed exit is1:12 named R7-TODAY-FALSE-CLEARANCE assertions and4 finite-target controls pass. Its test assertions express the required behavior and must become green after an accepted named repair."
   ],
   "reviewerCorrections": [
     "Original full-runtime68c trace equality was too broad for unknown-target cases:246 R7 intentionally changes WATCH to UNKNOWN and can open an offer. Exact original-writer-on-S comparison proves the writer adds no clock/ID requests; original same-path controls remain equal.",
-    "The independent R/S public-law assertion first named a clean-night count as the old text. Full observed R input was dark/empty and returned the literal 99-night description. Corrected to both exact D25 paths and verified all other complete frames; no candidate change."
+    "The independent R/S public-law assertion first named a clean-night count as the old text. Full observed R input was dark/empty and returned the literal 99-night description. Corrected to both exact D25 paths and verified all other complete frames; no candidate change.",
+    "The first new Today fixture failed only its own logging prerequisite in16 cases; archived separately. Completing the prior three invented sleep nights exposes12 actual false-clearance assertion failures, with4 finite-target controls passing. No source or prior evidence was replaced."
   ],
   "holds": [
+    "R8 requires named theOneFix/marchingOrder/nowModel consumer repair under R7 clause7 and exact successor review; do not fabricate a target, cost, rank or new restriction.",
     "Bind246/248/R7 to an exact accepted amended theme/brief in the actual final composition before full entry/seal; current profile mechanically cites60/49/232/234 only.",
     "Final sourceBase/ancestry/freeze, native field-delta admission, protected full/H3/census/second gate, actual current both-OS CI and receipt remain separate.",
     "D2 owns affected N2 browser acceptance. No candidate ancestry push, integration, private import, phone use or deployment."
+  ],
+  "builderReportRead": false,
+  "independentVerdict": {
+    "result": "REJECT",
+    "finding": "R8: actual Today consumers turn unavailable sleep-target contribution plus real observed debt into positive clearance",
+    "candidate": "c4716edad91453e74ba17f70ab076781ff5367de",
+    "priorVerdict": "ff0c3c13de82220549224a6481be2b85e2cace7d preserved",
+    "earlierEvidenceCheckpoint": "850bb88ef581a2f3387c62f6413705ad7c3caac0",
+    "earlierEvidenceSHA256": "7d0078b66c67497c59623694a80e4cd077243eb1d9cd3ca9c5602e9a10c09da2"
+  },
+  "todayClearance": {
+    "finding": "R8",
+    "rule": "PM246 R7 clauses4-7 at2529e0ab",
+    "run": {
+      "candidate": "c4716edad91453e74ba17f70ab076781ff5367de",
+      "action": "today-clearance",
+      "argv": [
+        "--test",
+        "--test-reporter=tap",
+        "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\review-b1b2-r2\\rebuild\\lanes\\astra\\reviews\\B1B2-R2-TODAY-CLEARANCE-REVIEW.cjs"
+      ],
+      "node": "v22.23.2",
+      "start": "2026-09-13T16:44:18.068Z",
+      "durationMs": 348.0177,
+      "status": 1,
+      "signal": null,
+      "stdoutSha256": "6e2109cf3e3f5ca7dcbe3a63a691e2a05c8fcd8845deca461ae9f474435ca522",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "restored": true,
+      "tail": [
+        "  ---",
+        "  duration_ms: 9.4538",
+        "  type: 'test'",
+        "  ...",
+        "1..16",
+        "# tests 16",
+        "# suites 0",
+        "# pass 4",
+        "# fail 12",
+        "# cancelled 0",
+        "# skipped 0",
+        "# todo 0",
+        "# duration_ms 288.9025",
+        ""
+      ],
+      "stdout": {
+        "bytes": 73355,
+        "sha256": "6e2109cf3e3f5ca7dcbe3a63a691e2a05c8fcd8845deca461ae9f474435ca522",
+        "gzipBase64": "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"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gzipBase64": "H4sIAAAAAAACCgMAAAAAAAAAAAA="
+      }
+    },
+    "totals": {
+      "tests": 16,
+      "pass": 4,
+      "fail": 12,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "observations": [
+      {
+        "target": "missing",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "missing",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "null",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "null",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "string",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": "8",
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "string",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": "8",
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "NaN",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "NaN",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "infinity",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "infinity",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "negative-infinity",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "negative-infinity",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": null,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": null,
+          "band": "UNKNOWN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "observed short night or three-night sleep debt",
+              "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+              "cost": null
+            }
+          ],
+          "lever": null,
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "observed short night or three-night sleep debt"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "quiet",
+          "detail": "sleep target not recorded"
+        },
+        "fix": {
+          "rung": "hold",
+          "lever": null,
+          "state": "good",
+          "title": "Nothing to fix — hold the line",
+          "body": "The five are covered and the trend is doing its job. Silence is a valid state here; there's no lever worth pulling today.",
+          "whyNot": null
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Nothing to fix — hold the line",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "quiet",
+            "title": "NOTHING NEEDS YOU",
+            "body": "Log and lift — the plan is doing its job. Silence is a valid state here; the coach speaks only when something is worth saying."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "eight",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": 8,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": 80,
+          "band": "GREEN",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "sleep reset — 1 of 3 clean nights",
+              "fix": "2 more nights at 8 h or better, back to back",
+              "cost": 20
+            }
+          ],
+          "lever": {
+            "k": "sleep",
+            "receipt": "sleep reset — 1 of 3 clean nights",
+            "fix": "2 more nights at 8 h or better, back to back",
+            "cost": 20
+          },
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "sleep reset — 1 of 3 clean nights"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "caution",
+          "detail": "1/3 clean"
+        },
+        "fix": {
+          "rung": "sleep",
+          "lever": "SLEEP",
+          "state": "caution",
+          "title": "Protect tonight's sleep",
+          "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+          "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Protect tonight's sleep",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "fix",
+            "lever": "SLEEP",
+            "title": "PROTECT TONIGHT'S SLEEP",
+            "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "eight",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": 8,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": 70,
+          "band": "WATCH",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "sleep reset — 0 of 3 clean nights",
+              "fix": "3 more nights at 8 h or better, back to back",
+              "cost": 30
+            }
+          ],
+          "lever": {
+            "k": "sleep",
+            "receipt": "sleep reset — 0 of 3 clean nights",
+            "fix": "3 more nights at 8 h or better, back to back",
+            "cost": 30
+          },
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "sleep reset — 0 of 3 clean nights"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "caution",
+          "detail": "0/3 clean"
+        },
+        "fix": {
+          "rung": "sleep",
+          "lever": "SLEEP",
+          "state": "caution",
+          "title": "Protect tonight's sleep",
+          "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+          "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Protect tonight's sleep",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "fix",
+            "lever": "SLEEP",
+            "title": "PROTECT TONIGHT'S SLEEP",
+            "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "nine",
+        "debt": "short",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 8
+              },
+              {
+                "d": "2026-09-01",
+                "h": 8
+              },
+              {
+                "d": "2026-09-02",
+                "h": 2
+              },
+              {
+                "d": "2026-09-03",
+                "h": 8
+              }
+            ],
+            "cleanH": 9,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": 70,
+          "band": "WATCH",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "sleep reset — 0 of 3 clean nights",
+              "fix": "3 more nights at 9 h or better, back to back",
+              "cost": 30
+            }
+          ],
+          "lever": {
+            "k": "sleep",
+            "receipt": "sleep reset — 0 of 3 clean nights",
+            "fix": "3 more nights at 9 h or better, back to back",
+            "cost": 30
+          },
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "sleep reset — 0 of 3 clean nights"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "caution",
+          "detail": "0/3 clean"
+        },
+        "fix": {
+          "rung": "sleep",
+          "lever": "SLEEP",
+          "state": "caution",
+          "title": "Protect tonight's sleep",
+          "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+          "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Protect tonight's sleep",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "fix",
+            "lever": "SLEEP",
+            "title": "PROTECT TONIGHT'S SLEEP",
+            "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      },
+      {
+        "target": "nine",
+        "debt": "three-night",
+        "input": {
+          "v": 60,
+          "trend": 180,
+          "reads": [
+            {
+              "d": "2026-09-03",
+              "w": 180,
+              "pt": 180
+            }
+          ],
+          "weekly": [],
+          "dailyLogs": {
+            "2026-08-31": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-01": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-02": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            },
+            "2026-09-03": {
+              "cal": 2200,
+              "pro": 180,
+              "steps": 10000
+            }
+          },
+          "sessionLog": {
+            "2026-09-03": {
+              "entries": []
+            }
+          },
+          "sleep": {
+            "nights": [
+              {
+                "d": "2026-08-31",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-01",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-02",
+                "h": 6.6
+              },
+              {
+                "d": "2026-09-03",
+                "h": 6.6
+              }
+            ],
+            "cleanH": 9,
+            "needed": 3,
+            "debts": []
+          },
+          "exercises": [],
+          "queue": [],
+          "feed": [],
+          "forecasts": [],
+          "adjustments": [],
+          "proposals": [],
+          "suggestionLog": [],
+          "targets": {},
+          "learned": {
+            "tdee": [],
+            "anchors": []
+          },
+          "plan": {
+            "goals": [],
+            "ifthen": [],
+            "setAt": {},
+            "phaseLog": []
+          },
+          "exOrder": {
+            "U": [
+              "fly"
+            ],
+            "L": [
+              "hipthrust"
+            ]
+          },
+          "planGen": 52,
+          "retirements": {},
+          "insertions": {},
+          "waist": [],
+          "photos": [],
+          "events": [],
+          "trials": [],
+          "agentProposals": [],
+          "blackout": {
+            "until": "2026-07-27"
+          },
+          "model": {
+            "lean": 150,
+            "drip": 0,
+            "src": "synthetic",
+            "anchorISO": "2026-08-01"
+          },
+          "dayCtx": {},
+          "pulse": [],
+          "energy": []
+        },
+        "recovery": {
+          "score": 70,
+          "band": "WATCH",
+          "flags": [
+            {
+              "k": "sleep",
+              "receipt": "sleep reset — 0 of 3 clean nights",
+              "fix": "3 more nights at 9 h or better, back to back",
+              "cost": 30
+            }
+          ],
+          "lever": {
+            "k": "sleep",
+            "receipt": "sleep reset — 0 of 3 clean nights",
+            "fix": "3 more nights at 9 h or better, back to back",
+            "cost": 30
+          },
+          "watched": 7,
+          "excludedDips": 0,
+          "factors": [
+            "sleep reset — 0 of 3 clean nights"
+          ]
+        },
+        "owed": [],
+        "sleepLever": {
+          "label": "SLEEP",
+          "state": "caution",
+          "detail": "0/3 clean"
+        },
+        "fix": {
+          "rung": "sleep",
+          "lever": "SLEEP",
+          "state": "caution",
+          "title": "Protect tonight's sleep",
+          "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+          "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+        },
+        "order": {
+          "owed": false,
+          "kind": "day",
+          "ifText": "If it's a meal",
+          "thenText": "protein first",
+          "why": "Protect tonight's sleep",
+          "targetLine": "Today: 170 g protein · calories still calibrating",
+          "link": {
+            "key": "now.capture2",
+            "id": "pl-closeday"
+          },
+          "more": [],
+          "foresight": null
+        },
+        "now": {
+          "tISO": "2026-09-03",
+          "status": {
+            "word": "CALIBRATING",
+            "glyph": "◇",
+            "cause": "Still learning your baseline — keep logging and the read sharpens.",
+            "coach": {
+              "title": "YOUR COACH IS STILL LEARNING",
+              "body": "It wants more workout data before changing anything — it can read 0 of the 4 lifts it needs so far. Until then, the plan stays exactly as is. It never guesses."
+            }
+          },
+          "eat": {
+            "gated": true,
+            "lo": null,
+            "hi": null,
+            "tag": null,
+            "sub": "A few more logged days and the range appears — the coach never guesses a number this important.",
+            "proteinG": 170,
+            "proteinNote": null
+          },
+          "move": {
+            "kind": "fix",
+            "lever": "SLEEP",
+            "title": "PROTECT TONIGHT'S SLEEP",
+            "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+          },
+          "decisionsN": 0,
+          "workout": {
+            "title": "UPPER BODY · TODAY",
+            "sub": "",
+            "today": true,
+            "iso": "2026-09-03"
+          },
+          "headed": {
+            "weight": 180,
+            "dest": null,
+            "wksOut": null,
+            "line": "a few more weigh-ins and the road ahead draws itself",
+            "bfLine": "body fat: best guess 17%, honestly 13–21",
+            "foot": "AN ESTIMATE, NOT A PROMISE — REDRAWN EVERY WEEK"
+          }
+        },
+        "inputPreserved": true
+      }
+    ],
+    "failureAttribution": [
+      {
+        "index": 1,
+        "name": "REVIEW R7 Today clearance missing short",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 2,
+        "name": "REVIEW R7 Today clearance missing three-night",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 3,
+        "name": "REVIEW R7 Today clearance null short",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 4,
+        "name": "REVIEW R7 Today clearance null three-night",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 5,
+        "name": "REVIEW R7 Today clearance string short",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 6,
+        "name": "REVIEW R7 Today clearance string three-night",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 7,
+        "name": "REVIEW R7 Today clearance NaN short",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 8,
+        "name": "REVIEW R7 Today clearance NaN three-night",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 9,
+        "name": "REVIEW R7 Today clearance infinity short",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 10,
+        "name": "REVIEW R7 Today clearance infinity three-night",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 11,
+        "name": "REVIEW R7 Today clearance negative-infinity short",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      },
+      {
+        "index": 12,
+        "name": "REVIEW R7 Today clearance negative-infinity three-night",
+        "code": "ERR_ASSERTION",
+        "assertion": "R7-TODAY-FALSE-CLEARANCE"
+      }
+    ],
+    "prerequisiteCorrection": {
+      "classification": "reviewer fixture only; not a candidate failure",
+      "explanation": "First fixture omitted older nights checked by owedNights, so all16 stopped at owed.length1 before the decision. Corrected invented records cover every prior three calendar nights; no engine stub, mutation or expectation change.",
+      "run": {
+        "argv": [
+          "--test",
+          "--test-reporter=tap",
+          "rebuild/lanes/astra/reviews/B1B2-R2-TODAY-CLEARANCE-REVIEW.cjs"
+        ],
+        "status": 1,
+        "totals": {
+          "tests": 16,
+          "pass": 0,
+          "fail": 16,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "assertionCount": 16,
+        "observations": [],
+        "stdoutSha256": "ddce1e126c745b4779ee59a33b112fe91bdcc683ea38b59fed96c8ca4ad0d0ef",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout": {
+        "bytes": 17717,
+        "sha256": "ddce1e126c745b4779ee59a33b112fe91bdcc683ea38b59fed96c8ca4ad0d0ef",
+        "gzipBase64": "H4sIAAAAAAACCu2b32/bNhDH3/1XcMhDugdpIiVblrYOcFIPCFCkheN2GCAgYKSLzVomVZJKa2B//EDZSWzDP7EBA6p7MWiaRx15vg++Js/jwUfyBNoIJQkNOxfkrn6wYGxKRsPPN8M/ySgmY1XwBclL4JrLHMhcGCPkhJip0rYjlSVqRijxTjYhxPO8DiFFrbkVSt7PTUpY1+/2WdIhxC4qSMmlc+OyQ0ip8mZUSi6v0yz7ZECbLPuiYDHPsncqr+cgrcmySkNVQjEB7RXwlGXflJ5lWTX3cq7B8hnoLNPwJOCb90AfmKeZe/9Qi7LIspJLMFnGjdX8eZjJsit6xbwR88Yf3g3+8q7fDwejwe310Fuu1M+/mJQGaRw7Px+5KGsN41fvr1UBfyx73QDQWumU/O2WTggvS1KqycRtS6VBw9daGGHBEMOtMI8Cil+JBl6SAnLRBEgY15FPoWhmaF4o+entWxI8d+SqcE8fjkb3g7u74Wh88+HWPVvyuesfGAPabebQ+dI49b2C3EKRNnPw3Na8TAntEKIq0Nw6jy+N1SK3w681L52NsTyfvSxk3KxUWvhu/d+4VHIxV7X5nby5TlfBWsbqNVRbkWoCtRGnrTA9R2kZpGWMnkN0SoTCNPn5xVVf1/JGDsxC5ne5qoC8kW7PuOu4nyo1MymjUUqjTZPVMCEtaMnLX1x873UtJeimndIgilPWXbMylmt71C6JopTGS7PGYpWBg0cL+kop65ZbHZpmyrUEY1KW9FYz+b5/XirbqQbwpJhMXxKanZTQ64Y705oGPut1GaY1pvUPktaVVjkY8xFkIeRklWTm6ESxy/P++jzK2NEpHtA4TGlyrt80oCllS6tmF/4DuoRnwUXWZbkpEsKDTFkbvxMlic+CoI8kQZIgSf5fkvxb7+PzObJDoUTHaXJUnvT9ftijyBRkCjKlTUxxX67tI4zuQZ5sWOxhSdKLECWIEkRJC1GyQ6D0TgHKUYnCqM+isItgQbAgWNoEllt+uylQ4oM8eR2+5/SkH1KUJ0gRpEjrKLJDm/SPsuT41U7Pj6IkRKQgUhApbUKKkI9CCrvYVCfJQaJs2eyRKBFeFSNPkCdt5ckOnUKD07ByVK1gZRlyBbnSrotjmHArnsDbLVjo4ZrVfdb7ytyCkOIhLTIGGdNyxuwSMexM0pxSVktZhMe5yBvkTat4A44JWzrmcFntusWeuhWWBHjsgihBlLQQJbvkSnQCUE4orWVBiLdDiBXESrt+EQkJWwLlcGXtmsEekHQZ/jEYQYIgaSFIdsmT3nGcnKBOumEcI1QQKgiVHwQq1Pdpr3NBlqZN09TNdzzoXJCKm2XDZc7y09zxoiyhaPrNTFTVqm1VoZrGGjMI6/b8II6izj9TeSeSNUUAAA=="
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gzipBase64": "H4sIAAAAAAACCgMAAAAAAAAAAAA="
+      }
+    }
+  },
+  "effort": {
+    "ownSettingDirectlyObservable": false,
+    "subagentsUsed": false,
+    "verification": "PM independently inspected saved state_5.sqlite and actual rollout metadata: gpt-6-astra, reasoning_effort=max, collaboration settings=max; no Medium context. PM instructed preserving completed work and finishing normal synthesis with targeted unresolved checks only.",
+    "reportedTurn": "01a09b81-21a7-7d03-8fdf-82624dee6cfb",
+    "reportedContextsUTC": [
+      "2026-09-13T16:02:06.434Z",
+      "2026-09-13T16:14:30.141Z"
+    ]
+  },
+  "reviewerSources": [
+    {
+      "file": "B1B2-R2-AUTHORITY-REVIEW.cjs",
+      "bytes": 6001,
+      "sha256": "354d4460a5aeb3f8dc9c203671e34d2e2ac174edeb42bb566f3a401ddb085a64"
+    },
+    {
+      "file": "B1B2-R2-CONSUMER-REVIEW.cjs",
+      "bytes": 9940,
+      "sha256": "4d005b6677330c7fae28213617bba2e07057560d96fcfd9f245b5aee0b051ec1"
+    },
+    {
+      "file": "B1B2-R2-ERA-REVIEW.cjs",
+      "bytes": 9254,
+      "sha256": "128b1d1c74a3a3db78fafdb1c5e8826377bf0ade8074f37ffa348825eb5a9c86"
+    },
+    {
+      "file": "B1B2-R2-FAULT-REVIEW.cjs",
+      "bytes": 8599,
+      "sha256": "3a687467d96d4a09f3a7b6ddc7eb3f9b3aef4232826229778248b7565cf6697b"
+    },
+    {
+      "file": "B1B2-R2-IDENTITY-REVIEW-ANNEX.cjs",
+      "bytes": 13769,
+      "sha256": "e373474885c2c6fddde08814897a1e1c1b72a2c0e0ce7be69ea203cafaa0e880"
+    },
+    {
+      "file": "B1B2-R2-IDENTITY-REVIEW-RUN.cjs",
+      "bytes": 1005,
+      "sha256": "7ea6dc5c728f79bc6f2d5e41f5d8d2e1b23f4b2d37360d826710b5b20327b77c"
+    },
+    {
+      "file": "B1B2-R2-RECOVERY-REVIEW-ANNEX.cjs",
+      "bytes": 7846,
+      "sha256": "091db1f1eee11b0e8a7d2eea493dcb74ee5624488b23c3f38659077beeb837ea"
+    },
+    {
+      "file": "B1B2-R2-REVIEW-DRIVER.cjs",
+      "bytes": 9912,
+      "sha256": "b32a29ae9c72919a5ac3099d06c14c0585e9d1d4c3cb61f017011ef374544839"
+    },
+    {
+      "file": "B1B2-R2-REVIEW-EVIDENCE.cjs",
+      "bytes": 9499,
+      "sha256": "fdcb65ed85087ede792a9050a57004fd257096850b407a3622125f55a173ea46"
+    },
+    {
+      "file": "B1B2-R2-SOURCE-REVIEW.cjs",
+      "bytes": 6540,
+      "sha256": "bc4b128506fd946d5176d2d0c9c25b6a4332f506d8d67560d1692ad80560108c"
+    },
+    {
+      "file": "B1B2-R2-TODAY-CLEARANCE-REVIEW.cjs",
+      "bytes": 3420,
+      "sha256": "e936bc0dbf3cff304db0c75d5200dcbcee3afd4e1b347b546616885ec3907ab5"
+    }
   ]
 }

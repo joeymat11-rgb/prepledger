@@ -53,6 +53,7 @@ else{
  let argv=modes[action];
  if(action==='recovery-annex')argv=['--test','--test-reporter=tap',path.join(__dirname,'B1B2-R2-RECOVERY-REVIEW-ANNEX.cjs')];
  if(action==='identity-annex')argv=['--test','--test-reporter=tap',path.join(__dirname,'B1B2-R2-IDENTITY-REVIEW-RUN.cjs')];
+ if(action==='today-clearance')argv=['--test','--test-reporter=tap',path.join(__dirname,'B1B2-R2-TODAY-CLEARANCE-REVIEW.cjs')];
  let cwd=pub;
  if(action==='tooling-cohort'){
   const p=JSON.parse(fs.readFileSync(path.join(root,'rebuild/lanes/b/tooling/packages/B1-B2.json')));argv=p.children.find(c=>c.name==='tooling-cohort').argv;assert.deepEqual(argv,['--test','--test-reporter=tap',...['astra-issuer-compatibility','product-phase-and-ledger','seal-tip-and-byte-identity','gate-supersession','pinned-unchanged-and-ruled-substitutions','parent-pin-shapes-and-spec-successors','git-blob-pin-classes','b1b2-registration','superseded-parent-continuity'].map(n=>'rebuild/lanes/b/tooling/test/'+n+'.test.cjs')]);cwd=root;
