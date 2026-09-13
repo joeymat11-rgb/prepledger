@@ -8,6 +8,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const {spawnSync} = require('node:child_process');
+// Pin executable assembly and real context BEFORE importing either. Runtime
+// source hashes are deliberately not child guards: faults must fail behavior.
+for(const [file,digest]of [
+  ['./b1b2-public-engine.cjs','0c6b82db2c05159e0ba29b677960eb1f9414ba0e14a794806d88d5984fbaa268'],
+  ['../../m4/workout/native-trend-context.cjs','f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a']]){
+  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.resolve(__dirname,file))).digest('hex'),digest,'SETUP public executable pin '+file);
+}
 const H = require('./b1b2-public-engine.cjs');
 const {createNativeTrendContextBinding,createDayFactsReader} = require('../../m4/workout/native-trend-context.cjs');
 const lift = (o={}) => ({id:'public-lift',n:'Press',w:100,inc:5,sets:2,hi:10,last:[8,7],setup:'invented',day:'U',mg:'chest',...o});
@@ -60,6 +67,7 @@ test('Q2 fixed full owner matrix and D18 complete weekly feed',()=>{
     assert.deepEqual(owners(s),['inc']);assert.deepEqual(E.structuralMovesThisWeek(s).mgsTouched,['chest']);assert.deepEqual(s,before);}
   const now=lift({id:'now',n:'Press (now heavy)'});
   assert.deepEqual(owners(structural([short,now],'VOLUME +1 — CHEST via Press (now heavy) (now 3 sets)')),['now']);
+  assert.deepEqual(owners(structural([now],'VOLUME +1 — CHEST via Press (now heavy)')),['now']);
   assert.deepEqual(owners(structural([inc], 'VOLUME +1 — CHEST via Press incline')),['inc']);
   const former=lift({id:'former',n:'Row',mg:'back',renames:[{prevN:'Bench'}]}),live=lift({id:'live',n:'Bench'});
   for(const xs of [[former,live],[live,former]]){
@@ -67,15 +75,23 @@ test('Q2 fixed full owner matrix and D18 complete weekly feed',()=>{
     s.feed[0].exId='former';assert.deepEqual(owners(s),['former']);s.feed[0].exId='unknown';assert.deepEqual(owners(s),[]);
   }
   assert.deepEqual(owners(structural([former],'VOLUME +1 — BACK via Bench (now 3 sets)')),['former']);
+  const former2=lift({id:'former2',n:'Row two',renames:[{prevN:'Bench'}]});
+  for(const xs of [[former,former2],[former2,former]])assert.deepEqual(owners(structural(xs,'VOLUME +1 — BACK via Bench (now 3 sets)')),[xs[0].id]);
+  const numeric=structural([lift({id:7})],'VOLUME +1 — CHEST via unrelated (now 3 sets)');numeric.feed[0].exId='7';assert.deepEqual(owners(numeric),[7]);
+  const empty=lift({id:'empty',n:'Press (now )'});
+  // C6 retained legacy ambiguity: two exact LIVE names admit an empty suffix;
+  // only the existing first matching live lift receives the structural move.
+  for(const xs of [[short,empty],[empty,short]])assert.deepEqual(owners(structural(xs,'VOLUME +1 — CHEST via Press (now )')),[xs[0].id]);
   const stale=structural([inc],receipt);stale.feed[0].d='2026-08-30';assert.deepEqual(owners(stale),[]);
   const dup=structural([inc],receipt);dup.feed.push({...dup.feed[0]});assert.deepEqual(owners(dup),['inc']);
   assert.deepEqual(owners(structural([inc],'VOLUME PASSED')),[]);
 });
 test('D29 fractional indirect credit uses correct independent buckets',()=>{
-  const s=state();s.exercises=[lift({id:'press',mg:'chest'}),lift({id:'front',mg:'delts',head:'delts_front'}),lift({id:'tri',mg:'triceps'})];
+  const s=state();s.exercises=[lift({id:'press',mg:'chest'}),lift({id:'front',mg:'delts',head:'delts_front'}),lift({id:'tri',mg:'triceps'}),lift({id:'coarse-control',mg:'delts'})];
   s.sessionLog={'2026-09-01':{entries:[{id:'press',w:100,reps:[10]}]}};
   const rows=engine().muscleVolume(s),front=rows.find(x=>x.mg==='delts_front'),tri=rows.find(x=>x.mg==='triceps');
   assert.ok(front,'front bucket must exist');assert.ok(tri,'triceps bucket must exist');assert.equal(front.n7,0.5);assert.equal(tri.n7,0.5);
+  assert.equal(rows.some(x=>x.mg==='delts'),false,'no duplicated coarse bucket credit');
 });
 test('D28 actual Monday week and passed schedule including boundary change',()=>{
   const E=engine(),s=state();s.split=[{from:'2026-08-31',map:{0:'L',1:'U',2:'U',3:'U',4:'U',5:'U',6:'U'}},{from:'2026-09-06',map:{0:'U',1:'L',2:'L',3:'L',4:'L',5:'L',6:'L'}}];
@@ -167,7 +183,7 @@ fault('earn-boundary-rejects-decimal-loads',G,'_deriveSightingFull','/^ [-+]?(?:
 fault('earn-owner-trusts-exid-only',G,'_deriveSightingFull','else for (const n9 of names9)','else for (const n9 of [])','D4');
 fault('press-credit-goes-to-unreturned-coarse-delt-bucket',V,'muscleVolume','mg2 === "delts" ? "delts_front" : mg2','mg2','D29');
 fault('indirect-credit-remaps-every-key-to-delts-front',V,'muscleVolume','mg2 === "delts" ? "delts_front" : mg2','"delts_front"','D29');
-fault('indirect-credit-doubled-into-both-keys',V,'muscleVolume','by[k6] = (by[k6] || 0) + n6 * f2;','by[k6] = (by[k6] || 0) + n6 * f2; by[mg2] = (by[mg2] || 0) + n6 * f2;','D29');
+fault('indirect-credit-doubled-into-both-keys',V,'muscleVolume','by[k6] = (by[k6] || 0) + n6 * f2;','by[k6] = (by[k6] || 0) + n6 * f2; if (mg2 === "delts") by[mg2] = (by[mg2] || 0) + n6 * f2;','D29');
 fault('indirect-credit-rounded-before-summing',V,'muscleVolume','+ n6 * f2','+ Math.round(n6 * f2)','D29');
 fault('eighty-feed-lines-only',V,'structuralMovesThisWeek','(s.feed || []).forEach','(s.feed || []).slice(0,80).forEach','Q2');
 fault('weekly-bound-dropped-with-the-prefix',V,'structuralMovesThisWeek',' || f.d < monday','','Q2');
@@ -188,7 +204,7 @@ fault('replication-threshold-relaxed-with-the-era-cut',V,'volumeConversion','/ D
 fault('volume-owner-returns-to-substring',V,'structuralMovesThisWeek','own9 === n9 || tail9 === n9','tail9 !== null && tail9.includes(n9)','Q2');
 fault('volume-owner-splits-at-the-FIRST-now',V,'structuralMovesThisWeek','tail9.lastIndexOf(" (now ")','tail9.indexOf(" (now ")','Q2');
 fault('volume-owner-trusts-exid-only-Q2',V,'structuralMovesThisWeek',': (xs9.find((x) => owns9(String((x && x.n) || ""))) || xs9.find((x) => _formerNames(x).some(owns9)))',': null','Q2');
-fault('volume-owner-drops-the-no-suffix-tail',V,'structuralMovesThisWeek','own9 === n9 || tail9 === n9','cut9 >= 0 && own9 === n9','Q2');
+fault('volume-owner-drops-the-no-suffix-tail',V,'structuralMovesThisWeek','own9 === n9 || tail9 === n9','own9 === n9','Q2');
 fault('volume-owner-drops-the-former-name-term',V,'structuralMovesThisWeek',' || xs9.find((x) => _formerNames(x).some(owns9))','','Q2');
 fault('volume-owner-drops-the-live-name-tier',V,'structuralMovesThisWeek','xs9.find((x) => owns9(String((x && x.n) || ""))) || ','','Q2');
 // §1.6 names multi-site faults: apply their complete original guard removals.
@@ -197,6 +213,8 @@ FAULTS.find(f=>f.id==='as-of-restricts-era-but-not-session-dates').additional=[
   {fn:'progressAnchor',from:'if (days9[i] > atA) continue;',to:''}];
 FAULTS.find(f=>f.id==='future-cut-applied-to-the-trend-only').additional=[
   {fn:'progressAnchor',from:'if (row.d > atA) continue;',to:''}];
+FAULTS.find(f=>f.id==='dedupe-drops-the-sort').additional=[
+  {fn:'parseRungs',from:'[...new Set(r)].sort((a, b) => a - b)',to:'[...new Set(r)]'}];
 function replaceFault(source,f){
   const begin=source.indexOf('function '+f.fn+'(');assert.ok(begin>=0,'SETUP declaration '+f.fn);
   let end=source.indexOf('\n// Copied',begin);if(end<0)end=source.length;
@@ -269,6 +287,11 @@ function native(s,day='2026-09-03',fault) {
 }
 test('D1 fixed first-line fit and native no-surviving-line semantics',()=>{
   const T=H.createEngine({clock:H.clockAt('2026-09-03')});
+  assert.deepEqual(T.targetsFor(lift({std:[6,5],sets:3}),state()),[6,5,4]);
+  assert.deepEqual(T.targetsFor(lift({reclaim:[5,4],sets:3}),state()),[5,4,3]);
+  const fit=lift({first:[8,7],last:null});const output=T.targetsFor(fit,state(fit));assert.deepEqual(output,[8,7]);assert.notEqual(output,fit.first);
+  assert.deepEqual(T.targetsFor(lift({last:null}),state()),[8,8]);
+  assert.deepEqual(T.targetsFor(lift({last:[14,13,13],hi:15,sets:3}),state()),[14,14,13]);
   for(const [sets,expected] of [[3,[8,7,6]],[1,[8]]]){
     const ex=lift({last:null,first:[8,7],sets});assert.deepEqual(T.targetsFor(ex,state(ex)),expected);
     const cached=lift({last:[12,11],first:[8,7],sets}),s=state(cached);s.workoutFacts=facts([['2026-09-01',[null,null]]]);
