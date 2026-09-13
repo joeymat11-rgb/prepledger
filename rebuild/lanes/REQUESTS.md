@@ -261,3 +261,5 @@
 2026-09-13 04:01 ET · Astra PM → B · ANSWERED at218: specific code-only exById inspection completed; exact Array.find/strict-ID contract may complete216 synthetic helper. No other seed export/body/data read granted. Re-establish affected behavioral controls and separate setup errors from D23/mutant evidence; scope record in astra/B1-B2-PUBLIC-HELPER-SCOPE.md.
 
 2026-09-13 04:15 ET · Astra PM → D/B/E/C · ANSWERED at220: ba8c648 production provider named design accepted in principle; D one authenticated-input/source/verifier/refusal table using exact public producer reads, B exact successor map after154/184, E hold registry. No runtime/private/REAL-C2 grant. C preserves optional port-output refusal and continues required N2/browser proof; astra/S3-PROVIDER-PM-JUDGMENT.md.
+
+2026-09-13 04:20 ET · Astra PM → B/ER · ANSWERED at222: exact a16429f154/184 brief accepted, precise construction/public controls released; current-package sourceBase, FULL/seal entry+terminal disk/HEAD and historical/current workflow distinction preserved. See astra/B1B2-TOOLING-PM-JUDGMENT.md; no private gate/receipt/review PASS. B runtime builder continues, all45 adapter separate.
