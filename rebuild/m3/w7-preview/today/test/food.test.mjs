@@ -91,6 +91,57 @@ function screenOn(options = {}) {
 }
 const rowsFor = (pairs) => pairs.map(([date, day], index) => ({ op_id: 'op-' + index, date, day }));
 
+/* ==========================================================================
+   WHICH ENGINE IS UNDER US (H3 / DECISIONS:142 (3)).
+
+   Two cells below were written against the PRE-H3 engine and say so in their
+   own prose: a clean-init athlete has no trend, so every figure derived from
+   one is non-finite and the engine refuses to read him at all. H3 makes the
+   FIRST weigh-in seed the trend (writers.cjs applyRead, `first`), and with
+   that the refusal goes away: the engine answers for him, with a null figure,
+   because he still has no reading.
+
+   This file has to be green on BOTH trees - it is one file, and it lands on a
+   tree that does not have H3 and stays there after H3 merges - so the two
+   cells ask the engine WHICH IT IS and then assert what that engine owes.
+
+   The probe is deliberately not `model.read()` and not `loggedFood()`: those
+   are the things the cells themselves assert, and a detector that is also the
+   assertion proves nothing on either tree. It is the narrowest neighbouring
+   surface that moves with H3 and with nothing else - the engine's own protein
+   target for this very athlete, which throws out of the missing
+   body-composition anchor before H3 and answers after it. No version string,
+   no file bytes, no date: the engine is asked about the athlete in question. */
+const H3_SEEDS_FIRST_READ = (() => {
+  const clean = createCleanInitState({ setup: firstRunDocument() });
+  const engine = createTodayModel({ today: DAY, basisState: clean }).engine;
+  try { engine.proteinTarget(clean); return true; }
+  catch { return false; }
+})();
+
+/* Review C1. The paragraph above is an argument about WHICH SURFACE the detector
+   asks, and an argument is not a test: swapping the probe for `model.read()` (the
+   surface N1.11 itself asserts) leaves all 56 cells green on this tree, because
+   here both surfaces throw. It would only come apart on a tree where they
+   disagree, which is the one place this file is supposed to be trustworthy.
+   So the probe's own text is pinned, the way this repo already pins PAGE_PINS
+   and the design harvest. Comments are stripped first, because the prose around
+   the detector deliberately names the very calls this forbids. */
+test('H3 probe - the detector asks the ENGINE, not the surface the cells assert', () => {
+  const own = codeOf(readRepo('rebuild/m3/w7-preview/today/test/food.test.mjs'));
+  const start = own.indexOf('const H3_SEEDS_FIRST_READ');
+  assert(start > 0, 'the engine detector is gone');
+  const end = own.indexOf('})();', start);
+  assert(end > start, 'the engine detector is not the IIFE it was');
+  const probe = own.slice(start, end);
+  assert(probe.includes('engine.proteinTarget(clean)'),
+    'the probe no longer asks the engine for this athlete: ' + probe);
+  /* and it must not be any of the things the two cells go on to assert */
+  assert.equal(/\.read\(\)/.test(probe), false, 'the probe became model.read(), which N1.11 asserts');
+  assert.equal(/loggedFood\(/.test(probe), false, 'the probe became loggedFood(), which D2.1 asserts');
+  assert.equal(/foodUnavailable\(/.test(probe), false, 'the probe became foodUnavailable(), which D2.1 asserts');
+});
+
 /* THE FIRST RUN'S OWN DOCUMENT, built through the accepted reducer rather than by
    hand, so the clean-init athlete N1.11 uses is the athlete A4 actually creates: a
    hand-written setup object is refused by createCleanInitState, and a fixture that
@@ -572,28 +623,53 @@ test('N1.6 - a second entry for the same day is a CORRECTION: a new op, the late
   kit.host.close();
 });
 
-test('N1.11 - H3: a clean-init athlete gets NO figure, the reason, and a working entry', async () => {
-  /* Executed rather than asserted from the brief: the engine really does throw for
-     this athlete, which is why the screen may print nothing. */
+test('N1.11 - H3: a clean-init athlete gets NO INVENTED figure, and a working entry', async () => {
+  /* Executed rather than asserted from the brief, on whichever engine is under us. */
   const clean = createCleanInitState({ setup: firstRunDocument() });
   const model = createTodayModel({ today: DAY, basisState: clean });
-  /* The engine does not return a blocked view for this athlete: it THROWS, out of
-     energy.cjs, because there is no body-composition estimate to build a band on. That
-     is the fact H3 will change, and it is executed here rather than quoted. */
-  assert.throws(() => model.read(), /./, 'the engine cannot produce a plan for a clean-init athlete yet');
+  if (H3_SEEDS_FIRST_READ) {
+    /* H3. The engine now ANSWERS for this athlete rather than throwing - he has a
+       trend the moment he weighs in - so Today can read him. He still has no
+       reading here, so what it reads back is a plan with no figures in it. */
+    assert.doesNotThrow(() => model.read(), 'H3 reads a clean-init athlete without throwing');
+  } else {
+    /* Pre-H3. The engine does not return a blocked view for this athlete: it
+       THROWS, out of energy.cjs, because there is no body-composition estimate to
+       build a band on. That is the fact H3 changes, executed here, not quoted. */
+    assert.throws(() => model.read(), /./, 'the engine cannot produce a plan for a clean-init athlete yet');
+  }
   const kit = await device();
   /* Landed on nutrition, as ?screen= does, so the unreadable view is met by the one
      screen that knows how to say so rather than by Today. */
   const page = screenOn({ model, query: '?screen=nutrition', mount: { food: await laneOver(kit.host) } });
   page.api.render('nutrition');
-  assert.equal(page.doc.querySelectorAll('.macro-row').length, 0, 'NO figure at all');
-  assert.equal(page.pick('stub-note').textContent, FOOD_NO_TARGETS);
+  /* THE INVARIANT, on both trees and the whole point of the cell: whatever the
+     engine does with him, NOTHING on this screen invents a figure for an athlete
+     who has declared no bodyweight. Pre-H3 that is said by printing no macro row
+     at all and giving the reason; on H3 the rows exist but every one of them
+     reads "Not prescribed". Neither may carry a digit. */
+  const rows = [...page.doc.querySelectorAll('.macro-row')];
+  for (const row of rows) {
+    assert.doesNotMatch(row.textContent, /\d/, 'a macro row invented a figure: ' + row.textContent);
+  }
   assert.doesNotMatch(page.pick('stub-note').textContent, /\d/, 'and no number in the reason');
-  /* And his intake is still his fact. */
+  if (H3_SEEDS_FIRST_READ) {
+    assert.equal(rows.length, 4, 'H3 shows the four macro rows');
+    for (const row of rows) {
+      assert.match(row.textContent, /Not prescribed/, 'and says so in words: ' + row.textContent);
+    }
+  } else {
+    assert.equal(rows.length, 0, 'NO figure at all');
+    assert.equal(page.pick('stub-note').textContent, FOOD_NO_TARGETS);
+  }
+  /* And his intake is still his fact, on either engine. */
   assert.equal(page.pick('food-entry').hidden, false);
   page.doc.querySelector('#food-cal').value = '1800';
   await page.tapSave();
   assert.equal((await opsOf(kit.host.repository)).length, 1, 'the entry still records');
+  /* Unbranched on purpose. A CALORIE-only day replays on both engines: the owed
+     ledger is consulted for protein, and it is protein alone that the pre-H3
+     engine refuses (see D2.1). Branching here would have hidden that. */
   assert.deepEqual(model.loggedFood(DAY), { cal: 1800, pro: null });
   kit.host.close();
 });
@@ -785,16 +861,29 @@ test('D2.1 - a clean-init athlete can record PROTEIN: kept, replayed, read back'
   page.doc.querySelector('#food-pro').value = '150';
   await page.tapSave();
   assert.equal((await opsOf(kit.host.repository)).length, 1, 'the protein intake IS recorded');
-  /* The crash: writeDaily consults the OWED LEDGER for any day carrying pro, and
-     proteinTarget throws on this athlete state. The projector must survive it. */
+  /* The crash this cell was written for: writeDaily consults the OWED LEDGER for
+     any day carrying pro, and proteinTarget throws on this athlete state. The
+     projector must survive it. On H3 there is no refusal left to survive, and
+     the same call must still not throw - so this line is not branched. */
   assert.doesNotThrow(() => model.stateFromOps(), 'the projection survives the refusal');
-  assert.equal(model.loggedFood(DAY), null, 'the engine holds no figure for him yet');
-  assert.equal(model.foodUnavailable(DAY), true, 'and the screen is told exactly that');
   const line = page.pick('food-recorded').textContent;
+  /* HIS OWN RECORD IS NEVER HIDDEN AND NEVER ALTERED, on either engine. That is
+     what D2 was raised about, and it is the half that must not move. */
   assert.equal(page.pick('food-recorded').hidden, false, 'his own record is never hidden');
   assert.match(line, /150 g protein/, 'his protein is read back off the operation');
-  assert(line.includes(FOOD_KEPT_UNREADABLE), 'with the reason his ledger has nothing');
   assert.doesNotMatch(page.pick('stub-note').textContent, /\d/, 'and still no invented target');
+  if (H3_SEEDS_FIRST_READ) {
+    /* H3. The owed ledger opens for him, so the day replays and there is no
+       refusal to report: the line is the ordinary correction notice. */
+    assert.deepEqual(model.loggedFood(DAY), { cal: null, pro: 150 }, 'H3 replays his protein');
+    assert.equal(model.foodUnavailable(DAY), false, 'and nothing is unreadable any more');
+    assert.equal(line.includes(FOOD_KEPT_UNREADABLE), false,
+      'a reason for a refusal that did not happen would be a lie');
+  } else {
+    assert.equal(model.loggedFood(DAY), null, 'the engine holds no figure for him yet');
+    assert.equal(model.foodUnavailable(DAY), true, 'and the screen is told exactly that');
+    assert(line.includes(FOOD_KEPT_UNREADABLE), 'with the reason his ledger has nothing');
+  }
   /* Calories AND protein together take the same path, and a reopen still holds it. */
   page.doc.querySelector('#food-cal').value = '2100';
   page.doc.querySelector('#food-pro').value = '150';
@@ -807,7 +896,8 @@ test('D2.1 - a clean-init athlete can record PROTEIN: kept, replayed, read back'
   assert.deepEqual(rows[rows.length - 1].day, { cal: 2100, pro: 150 }, 'durable across a reopen');
   const reread = createTodayModel({ today: DAY, basisState: clean, foodDays: { rows: () => rows } });
   assert.doesNotThrow(() => reread.loggedFood(DAY), 'and the replay survives the reopen too');
-  assert.equal(reread.foodUnavailable(DAY), true);
+  assert.equal(reread.foodUnavailable(DAY), !H3_SEEDS_FIRST_READ,
+    'unreadable before H3, readable after it, and never a throw either way');
   again.close();
 });
 

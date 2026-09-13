@@ -1,48 +1,125 @@
-# N2 D2 synthetic reproduction annex
+# N2 review round 2: executable evidence annex
 
-Exact head 3925e90e79699f19d7dc166b7941eb122eed18bf. Run from a dependency-ready repository root. The first script confirms eight defect observations; its assertions intentionally describe the observed wrong behavior. Save as .d2-n2-probes.mjs and run node .d2-n2-probes.mjs. No private records or product edits.
+Exact head 7d2fdab6fd0a41ead7c9edc4534d002ca2905504. This replaces the round-1 annex; the prior witness remains at 8cfe796. Review before builder report, local synthetic storage only, no private reads. These are defect-observation scripts: they assert the current wrong outcome, so their assertions should turn RED when the defect is fixed.
 
-```js
-import a from 'node:assert/strict';import fs from 'node:fs';import {webcrypto} from 'node:crypto';import {JSDOM} from 'jsdom';
-import {faultDatabase} from './rebuild/m3/w6/test/support.mjs';import {createSleepHost,sleepNightsIn,PROFILE} from './rebuild/m3/w7-preview/today/sleep-host.mjs';
-import S from './rebuild/m3/w7-preview/today/sleep-model.cjs';import T from './rebuild/m3/w7-preview/today/today-model.cjs';import A from './rebuild/m3/w7-preview/today/today-app.cjs';import D from './rebuild/m3/w7-preview/today/design.cjs';
-import {createWorkoutEntry,createCheckInEntry} from './rebuild/m3/w7-preview/today/today-entry.mjs';
-const day=T.SYNTHETIC_DAY,night=S.nightDateFor(day),fault=faultDatabase(),inputs={indexedDB:fault.indexedDB,crypto:webcrypto};
-const host=await createSleepHost({day,...inputs}),model=T.createTodayModel({today:day});
-const source=fs.readFileSync('rebuild/m3/w7-preview/today/today-app.cjs','utf8'),body=source.slice(source.indexOf('function sleepEntryFor('),source.indexOf('function openSleepLane(')).trim(),factory=Function('return ('+body+')')();
-function page(lane,m=model,more={}){const dom=new JSDOM(D.shellHtml().replace('<!-- APPROVED_TEMPLATES -->',D.templateHtml()),{url:'http://localhost/?screen=sleep'}),doc=dom.window.document,api=A.mountToday(doc,m,{sleep:lane,...more});return {dom,doc,api,pick:s=>doc.querySelector('[data-slot="'+s+'"]'),type(s,v){const el=this.pick(s);el.value=v;el.dispatchEvent(new dom.window.Event('input',{bubbles:true}))},async save(h){this.pick('sleep-mode-hours').click();this.type('sleep-hours',String(h));this.pick('sleep-save').click();await api.sleepPending();}}}
-let observations=0;const found=name=>{observations++;console.log('CONFIRMED '+name)};
-// A nonempty but nonexistent source id is admitted by the real producer/store.
-const forged=await host.save({date:night,hours:7,from_checkin_op_id:'synthetic-nonexistent-source'});a.equal(forged.ok,true);a.equal((await host.all()).length,1);found('N2-01 forged source accepted');
-// The unchanged captured gym host never receives the newly projected sleep row.
-const workout=await createWorkoutEntry(model,inputs),before=workout.gymHost.host.lastProjection().accepted_state.sleep.nights.find(n=>n.d===night)?.h;
-const lane=factory(host,await host.all()),p=page(lane);await p.save(1);await workout.refresh();a.equal(model.loggedSleep(night).h,1);a.equal(workout.gymHost.host.lastProjection().accepted_state.sleep.nights.find(n=>n.d===night)?.h,before);a.notEqual(before,1);found('N2-10 Today changes but actual gym captured state stays old');
-// A stale screen can replace a newer complete night without a precondition.
-const stale=page(factory(host,await host.all()),T.createTodayModel({today:day}));await host.save({date:night,hours:9});await stale.save(6);a.equal(S.recordedNight(await host.all(),night).night.hours,6);found('N2-05 stale editor overwrites newer night');
-// A clock/source-origin field is lost rather than preserved on same-date overlay.
-const basis={sleep:{nights:[{d:night,h:8,bed:'23:00',wake:'07:00',awakeMin:0,sourceNote:'synthetic original'}]}},projected=S.projectSleepNights(basis,[{night:{date:night,hours:6}}],model.engine);a.equal(projected.sleep.nights[0].sourceNote,undefined);a.equal(basis.sleep.nights[0].sourceNote,'synthetic original');found('N2-13 unrelated row field removed');
-// Device identity is discarded; unordered devices receive an invented winner.
-const op=(id,device,h)=>({op_id:id,device_id:device,device_seq:1,kind:'fact',class:'sleep',causal_parents:[],effective:{local_date:day},payload:{profile:PROFILE,night:{date:night,hours:h}}});const rows=sleepNightsIn({collections:{ops:{a:op('a','device-a',3),b:op('b','device-b',9)}}});a.equal(rows.length,2);a.equal(S.winningNights(rows).length,1);found('N2-06 unordered-device winner invented');
-// Actual factory reports committed/read-failed, but screen discards the known value/draft.
-const failHost=await createSleepHost({day,indexedDB:faultDatabase().indexedDB,crypto:webcrypto}),failedLane=factory({...failHost,async all(){throw Error('SYNTHETIC_READ_FAILURE')}},[]),failurePage=page(failedLane,T.createTodayModel({today:day,basisState:{...model.basisState(),sleep:{...model.basisState().sleep,nights:[]}}}));await failurePage.save(5);a.equal((await failHost.all()).length,1);a.equal(failurePage.pick('sleep-recorded').hidden,true);a.equal(failurePage.pick('sleep-hours').value,'');found('N2-14 acknowledged read failure loses visible night and draft');
-// An in-flight save renders Sleep even after explicit navigation away.
-let release;const deferred=new Promise(r=>release=r),navPage=page({rows:()=>[],save:()=>deferred},T.createTodayModel({today:day}));navPage.pick('sleep-mode-hours').click();navPage.type('sleep-hours','4');navPage.pick('sleep-save').click();navPage.api.render('today');release({ok:true,readBack:false});await navPage.api.sleepPending();a.equal(navPage.api.screen(),'sleep');found('N2-15 late save steals navigation');
-// There is no night selector or quality display in the rendered contract.
-a.equal(p.doc.querySelector('input[type="date"]'),null);a.equal(/Quality:|Quality not recorded\./.test(p.doc.getElementById('phone').textContent),false);found('N2-04/08 selected-date and quality states absent');
-console.log('D2 N2 independent baseline defects: '+observations+'/8 confirmed.');for(const q of [p,stale,failurePage,navPage])q.dom.window.close();host.close();failHost.close();workout.gymHost.close();
+## Reproduction
+Save each fenced module at the ROOT OF YOUR OWN WORKTREE as `.d2-n2-r2-probes.mjs` and `.d2-n2-r2-boundaries.mjs`, then run `node <filename>`. Use the checked-in root/W6/W5 development dependencies, including jsdom and fake-indexeddb; no credential or live service is needed. Do not run alongside tests that mutate product files. All imports are public source; every value is synthetic.
+
+The first module uses the exact source `sleepEntryFor` factory rather than a hand-written save adapter. It confirms seven defects: two concurrent corrections acknowledge, real check-in reuse hidden, second check-in re-entry reverts new draft text, saved-unread correction displays old hours, failed reconciliation claims nothing saved, late save leaves gym stale, actual boot leaves gym stale. The second injects a real IDB commit abort (PASS, neither op nor outbox survives) and invokes the actual coach tool twice (both report 8 h despite a stored 1 h night, including after reopen). No network/model call is made.
+
+### Main probes
+```javascript
+import a from 'node:assert/strict';
+import fs from 'node:fs';
+import {webcrypto} from 'node:crypto';
+import {JSDOM} from 'jsdom';
+import {faultDatabase} from './rebuild/m3/w6/test/support.mjs';
+import {createSleepHost} from './rebuild/m3/w7-preview/today/sleep-host.mjs';
+import {createWorkoutEntry,createCheckInEntry,boot} from './rebuild/m3/w7-preview/today/today-entry.mjs';
+import S from './rebuild/m3/w7-preview/today/sleep-model.cjs';
+import T from './rebuild/m3/w7-preview/today/today-model.cjs';
+import A from './rebuild/m3/w7-preview/today/today-app.cjs';
+import D from './rebuild/m3/w7-preview/today/design.cjs';
+const day=T.SYNTHETIC_DAY, night=S.nightDateFor(day);
+const source=fs.readFileSync('rebuild/m3/w7-preview/today/today-app.cjs','utf8');
+const body=source.slice(source.indexOf('function sleepEntryFor('),source.indexOf('function openSleepLane(')).trim();
+const factory=Function('return ('+body+')')();
+const shell=()=>D.shellHtml().replace('<!-- APPROVED_TEMPLATES -->',D.templateHtml());
+const found=[];const log=(id,detail)=>{found.push(id);console.log(JSON.stringify({id,...detail}));};
+async function fixture(){const fault=faultDatabase(),inputs={indexedDB:fault.indexedDB,crypto:webcrypto};const basis=T.createTodayModel({today:day}).basisState();basis.sleep.nights=[];const model=T.createTodayModel({today:day,basisState:basis});const host=await createSleepHost({day,...inputs});return {fault,inputs,model,host};}
+function page(f,lane,extra={}){const dom=new JSDOM(shell(),{url:'http://localhost/?screen=sleep'});Object.defineProperty(dom.window,'indexedDB',{value:f.inputs.indexedDB});Object.defineProperty(dom.window,'crypto',{value:webcrypto});const doc=dom.window.document,api=A.mountToday(doc,f.model,{sleep:lane,...extra});const pick=s=>doc.querySelector('#phone [data-slot="'+s+'"]');return {dom,doc,api,pick,type(s,v){const x=pick(s);x.value=v;x.dispatchEvent(new dom.window.Event('input',{bubbles:true}));},async save(h){if(pick('sleep-change')&&!pick('sleep-change').hidden)pick('sleep-change').click();pick('sleep-mode-hours').click();this.type('sleep-hours',String(h));pick('sleep-save').click();await api.sleepPending();},chooseDate(d){const x=pick('sleep-date');x.value=d;x.dispatchEvent(new dom.window.Event('change',{bubbles:true}));}};}
+// The two precondition reads happen before the public client's serialized commands.
+{
+ const f=await fixture(); const one=await f.host.save({date:night,hours:7});a.equal(one.ok,true);
+ const results=await Promise.all([f.host.save({date:night,hours:8},{supersedes:one.op_id}),f.host.save({date:night,hours:5},{supersedes:one.op_id})]);
+ a.deepEqual(results.map(r=>r.ok),[true,true]);a.equal((await f.host.all()).length,3);
+ log('R2-1 concurrent stale correction admitted',{acknowledged:results.map(r=>r.ok),ops:3,winner:S.recordedNight(await f.host.all(),night).night.hours});f.host.close();
+}
+// The actual check-in stores unit/value, not the number used in the new UI fixture.
+{
+ const f=await fixture(),entry=await createCheckInEntry(f.model,f.inputs);entry.checkin.draft().set('sleep_hours','7');entry.checkin.draft().choose('sleep_quality','Good');a.equal((await entry.checkin.save()).ok,true);
+ const p=page(f,factory(f.host,[]),{checkin:entry});await p.api.checkInKitReady();a.equal(entry.checkin.recorded().answers.sleep_hours.value,7);a.equal(p.pick('sleep-use-checkin').hidden,true);a.match(p.pick('sleep-quality').textContent,/Good/);
+ log('R2-2 real entered check-in hours cannot be reused',{stored:entry.checkin.recorded().answers.sleep_hours,useHidden:p.pick('sleep-use-checkin').hidden});p.dom.window.close();f.host.close();entry.host.close();
+}
+// A draft made in the replacement model disappears on the next route re-entry.
+{
+ const f=await fixture(),entry=await createCheckInEntry(f.model,f.inputs);entry.checkin.draft().choose('soreness','Mild');entry.checkin.draft().set('soreness_location','Original synthetic detail');
+ const p=page(f,factory(f.host,[]),{checkin:entry});await p.api.checkInKitReady();await p.save(6);await p.api.render('recovery');
+ let box=[...p.doc.querySelectorAll('#phone input,#phone textarea')].find(x=>x.value==='Original synthetic detail');a.ok(box);box.value='Updated synthetic detail';box.dispatchEvent(new p.dom.window.Event('input',{bubbles:true}));
+ p.api.render('today');await p.api.render('recovery');const values=[...p.doc.querySelectorAll('#phone input,#phone textarea')].map(x=>x.value);a.ok(values.includes('Original synthetic detail'));a.equal(values.includes('Updated synthetic detail'),false);
+ log('R2-3 second check-in re-entry loses current draft',{revertedToOriginal:true});p.dom.window.close();f.host.close();entry.host.close();
+}
+// A committed correction with failed read must show the acknowledged new hours.
+{
+ const f=await fixture();await f.host.save({date:night,hours:8});const rows=await f.host.all();
+ const lane=factory({...f.host,async all(){throw Error('SYNTHETIC_READ_FAILURE');}},rows),p=page(f,lane);await p.save(5);
+ a.equal(S.recordedNight(await f.host.all(),night).night.hours,5);a.equal(p.api.sleepAck().hours,5);a.match(p.pick('sleep-recorded').textContent,/8 h/);a.doesNotMatch(p.pick('sleep-recorded').textContent,/5 h/);
+ log('R2-4 saved-unread correction shows old hours',{durable:5,ack:5,display:p.pick('sleep-recorded').textContent});p.dom.window.close();f.host.close();
+}
+// A failed reconciliation read does not prove that the preceding command failed.
+{
+ const f=await fixture(),lane=factory({...f.host,async save(n,p){a.equal((await f.host.save(n,p)).ok,true);throw Error('SYNTHETIC_ACK_LOST');},async all(){throw Error('SYNTHETIC_READ_FAILURE');}},[]),p=page(f,lane);await p.save(4);
+ a.equal((await f.host.all()).length,1);a.match(p.pick('sleep-error').textContent,/Nothing was recorded/);a.equal(p.pick('sleep-save').disabled,false);
+ log('R2-5 unknown acknowledged outcome mislabeled as no write',{ops:1,display:p.pick('sleep-error').textContent,retryEnabled:true});p.dom.window.close();f.host.close();
+}
+// A save finished after Back updates Today but skips the actual gym rebind.
+{
+ const f=await fixture(),workout=await createWorkoutEntry(f.model,f.inputs),real=factory(f.host,[]);let release;const wait=new Promise(r=>release=r);
+ const lane={...real,async save(n,p){await wait;return real.save(n,p);}},p=page(f,lane,{workout});p.pick('sleep-mode-hours').click();p.type('sleep-hours','1');p.pick('sleep-save').click();p.api.render('today');release();await p.api.sleepPending();
+ a.equal(p.api.screen(),'today');a.equal(f.model.loggedSleep(night).h,1);a.equal(p.api.workoutEntry(),workout);await workout.refresh();a.equal(workout.gymHost.host.lastProjection().accepted_state.sleep.nights.some(n=>n.d===night),false);
+ log('R2-6 late save leaves actual gym stale',{todayHours:1,gymHasNight:false,route:'today'});p.dom.window.close();f.host.close();workout.gymHost.close();
+}
+// Real boot captures gym before opening/replaying the existing sleep lane.
+{
+ const f=await fixture();await f.host.save({date:night,hours:3});const dom=new JSDOM(shell(),{url:'http://localhost/?screen=sleep'});Object.defineProperty(dom.window,'indexedDB',{value:f.inputs.indexedDB});Object.defineProperty(dom.window,'crypto',{value:webcrypto});
+ const b=await boot({document:dom.window.document,today:day,model:f.model,...f.inputs});await b.api.sleepReady();a.equal(b.model.loggedSleep(night).h,3);a.equal(b.api.workoutEntry().gymHost.host.lastProjection().accepted_state.sleep.nights.some(n=>n.d===night),false);
+ log('R2-7 real boot does not rebind gym after replay',{todayHours:3,gymHasNight:false});dom.window.close();f.host.close();b.workout.gymHost.close();b.checkin?.host?.close();
+}
+console.log('D2 round-2 independent defects confirmed: '+found.length);
 
 ```
 
-Save the following as .d2-n2-checkin-probe.mjs and run node .d2-n2-checkin-probe.mjs. It confirms the ninth observation through the real check-in entry and DOM.
-```js
-import a from 'node:assert/strict';import fs from 'node:fs';import {webcrypto} from 'node:crypto';import {JSDOM} from 'jsdom';import {faultDatabase} from './rebuild/m3/w6/test/support.mjs';import {createSleepHost} from './rebuild/m3/w7-preview/today/sleep-host.mjs';import {createCheckInEntry} from './rebuild/m3/w7-preview/today/today-entry.mjs';import S from './rebuild/m3/w7-preview/today/sleep-model.cjs';import T from './rebuild/m3/w7-preview/today/today-model.cjs';import A from './rebuild/m3/w7-preview/today/today-app.cjs';import D from './rebuild/m3/w7-preview/today/design.cjs';
-const day=T.SYNTHETIC_DAY,base=T.createTodayModel({today:day}).basisState();base.sleep.nights=[];const model=T.createTodayModel({today:day,basisState:base}),input={indexedDB:faultDatabase().indexedDB,crypto:webcrypto},host=await createSleepHost({day,...input}),entry=await createCheckInEntry(model,input);
-entry.checkin.draft().choose('soreness','Mild');entry.checkin.draft().set('soreness_location','Synthetic half entry');
-const source=fs.readFileSync('rebuild/m3/w7-preview/today/today-app.cjs','utf8'),body=source.slice(source.indexOf('function sleepEntryFor('),source.indexOf('function openSleepLane(')).trim(),lane=Function('return ('+body+')')()(host,[]),dom=new JSDOM(D.shellHtml().replace('<!-- APPROVED_TEMPLATES -->',D.templateHtml()),{url:'http://localhost/?screen=sleep'}),doc=dom.window.document,api=A.mountToday(doc,model,{sleep:lane,checkin:entry});await api.checkInKitReady();
-const pick=s=>doc.querySelector('[data-slot="'+s+'"]');pick('sleep-mode-hours').click();const box=pick('sleep-hours');box.value='6';box.dispatchEvent(new dom.window.Event('input'));pick('sleep-save').click();await api.sleepPending();await api.render('recovery');a.equal([...doc.querySelectorAll('input,textarea')].some(x=>x.value==='Synthetic half entry'),false);a.equal(entry.checkin.draft().state().fields.soreness_location,'Synthetic half entry');console.log('CONFIRMED N2-07 new check-in mount loses unrelated held draft on sleep rebind');dom.window.close();host.close();entry.host.close();
+### Commit and actual coach boundary
+```javascript
+import a from 'node:assert/strict';
+import {webcrypto} from 'node:crypto';
+import {faultDatabase} from './rebuild/m3/w6/test/support.mjs';
+import {createSleepHost} from './rebuild/m3/w7-preview/today/sleep-host.mjs';
+import {openCoachWorld} from './rebuild/coach/local-world.mjs';
+import Tools from './rebuild/coach/tools.cjs';
+const day='2030-02-04',night='2030-02-03';
+// Abort the actual pending IDB commit after the active generation put, before completion.
+{
+ const f=faultDatabase(),host=await createSleepHost({day,indexedDB:f.indexedDB,crypto:webcrypto});
+ const before=await host.repository.load();f.state.mode='delay';f.state.armed=true;
+ const pending=host.save({date:night,hours:6});await f.state.write.promise;f.state.tx.abort();f.state.release=true;f.state.armed=false;
+ const result=await pending,after=await host.repository.load();a.equal(result.ok,false);a.deepEqual(after.generation.collections.ops,before.generation.collections.ops);a.deepEqual(after.generation.collections.outbox,before.generation.collections.outbox);
+ console.log(JSON.stringify({id:'commit-abort',refused:!result.ok,opsUnchanged:true,outboxUnchanged:true}));host.close();
+}
+// The real public coach reader, over a real saved sleep op in its own local generation.
+{
+ const f=faultDatabase(),inputs={indexedDB:f.indexedDB,crypto:webcrypto,day};let world=await openCoachWorld(inputs);
+ const host=await createSleepHost({day,era:{client:world.client,athleteId:world.bindings.athleteId,deviceId:world.bindings.deviceId}});
+ a.equal((await host.save({date:night,hours:1})).ok,true);a.equal((await host.all()).at(-1).night.hours,1);
+ const one=await Tools.createCoachTools(world).openTurn('synthetic-d2-after-save').call.today_checkin({});
+ a.equal(one.ok,true);a.equal(one.values.sleepRecordHours.value,8);a.notEqual(one.values.sleepRecordHours.value,1);
+ console.log(JSON.stringify({id:'actual-coach-after-save',durable:1,reported:one.values.sleepRecordHours.value,ok:one.ok}));host.close();world.close();world=await openCoachWorld(inputs);
+ const two=await Tools.createCoachTools(world).openTurn('synthetic-d2-after-reopen').call.today_checkin({});
+ a.equal(two.ok,true);a.equal(two.values.sleepRecordHours.value,8);const ops=Object.values((await world.bindings.repository.load()).generation.collections.ops);a.equal(ops.find(o=>o.class==='sleep').payload.night.hours,1);
+ console.log(JSON.stringify({id:'actual-coach-after-reopen',durable:1,reported:two.values.sleepRecordHours.value,ok:two.ok}));world.close();
+}
 
 ```
 
-Commands: node --test --test-reporter=tap rebuild/m3/w7-preview/today/test/sleep.test.mjs (34/34); node --test --test-reporter=tap --test-concurrency=1 rebuild/m3/w7-preview/today/test/*.test.* rebuild/coach/test/*.test.cjs rebuild/m3/w6/test/*.test.mjs rebuild/m3/w6/host/test/*.test.* (1314/1314); node rebuild/m3/w7-preview/today/build.mjs (PASS); node rebuild/m3/w7-preview/today/sleep-check.mjs (PASS, three verified Edge process kills, TEMP/TMP inside own worktree).
-For each N2-01..N2-18, node --test --test-reporter=tap --test-name-pattern=N2-XX rebuild/m3/w7-preview/today/test/sleep.test.mjs ran. Selected pass counts in order: 2,3,3,2,3,4,1,2,1,1,1,1,1,5,1,4,1,1. Overlapping labels mean these are not additive test counts or complete row coverage.
-M01-M12 source mutations and failed-test counts are named in the main review. Every original Buffer was restored in finally; tracked diff empty and final 34/34. Local logs/scripts remain under work/lane-d2/review-n2 only. No forbidden history input was read.
+## Commands and coverage
+`node --test --test-reporter=tap --test-concurrency=1 rebuild/m3/w7-preview/today/test/*.test.* rebuild/coach/test/*.test.cjs rebuild/m3/w6/test/*.test.mjs rebuild/m3/w6/host/test/*.test.*` -> 1374 pass, 0 fail/skipped. Final standalone sleep -> 43/43. Every separate `--test-name-pattern=N2-XX` ran against sleep.test.mjs: XX 01..18 selected 4,3,3,3,5,5,2,2,2,1,1,1,2,5,1,4,1,1 passes. Overlap is intentional, not extra coverage.
+
+Independent mutations M01..M14: blank accepted / hours cap 25 / equal clocks allowed / awake cap removed / fabricated duration 123 / lowest device sequence wins / basis discarded / obsolete clock fields retained / wrong op class / rejected ops included / stamp removed / escaped em dash / multi-device winner / initial draft carry removed. Failed-test counts: 1,2,1,1,9,6,3,3,1,1,1,3,1,1. All killed by assertions, no syntax failures. Original file buffers restored in finally; final tracked diff empty. M07's first anchor matched twice, runner stopped BEFORE editing it, then resumed with unique `for (const row of previous) if`.
+
+`node rebuild/m3/w7-preview/today/build.mjs` -> PASS 113 inputs, earned-d409fd478846. `node rebuild/m3/w7-preview/today/sleep-check.mjs` -> PASS with W7_BROWSER_BIN at installed Edge and TEMP/TMP inside own worktree/.tmp: three actual profile-scoped taskkill /F /T events, each verified dead. Both modes, correction, same-page A3, gym return and 390/320px app-frame checks passed. All kills occur after observed save; neither commit-boundary kill was executed.
+
+Independent Edge 375x844: app-frame horizontal overflow 0, three inputs 16px/44px, Save 58px high, Tab reaches bed/wake/Save. At synthetic 2x computed fonts: overflow 0, inputs 32px/66.39px, Save 78.39px. Outer document remains 398px (preview frame), so neither result proves outer-page fit. No physical iPhone/keyboard/zoom claim. Enlarged-font stress is not browser zoom.
+
+CI API at exact SHA: rebuild34727122011 Windows/Ubuntu success, 22 passed steps each; pipeline34727122066 suite8/preview7 passed steps, production skipped. New sleep suite absent from enumeration; :178/:184 place it in B1+B2. Local B-NTC command would require forbidden src/history.js and was not executed or bypassed. No workflow review was performed.
+
+C's report read after these executions. N2-12 still invokes the projector twice, N2-11 still asserts an inherited clean-init throw, and named cells do not execute rollover or process-kill boundaries. Normal-path wins are credited in the review; these omissions and the reproduced defects remain explicit.
