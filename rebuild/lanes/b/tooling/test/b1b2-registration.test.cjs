@@ -142,7 +142,7 @@ function inventoryModule(code=declaration){
 const inventory=inventoryModule();
 const currentProfile=()=>JSON.parse(fs.readFileSync(path.join(root,profilePath)));
 const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
-test('C12c public law source admission retains exact M/R and the closed four-image successor',()=>{
+test('C12c public law source admission retains exact M/R/S and the closed Today-only T repair',()=>{
  const source=fs.readFileSync(path.join(root,'rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs'),'utf8');
  const start='function publicLawSourceSide(',end='\nfunction runPublicLaws()';assert.equal(source.split(start).length,2);assert.equal(source.split(end).length,2);
  const code=source.slice(source.indexOf(start),source.indexOf(end));
@@ -150,20 +150,36 @@ test('C12c public law source admission retains exact M/R and the closed four-ima
  const admitted=check(code),names=['dates','constants','entered-load','performed','plan','progression','sleep','energy','policy','today','volume','migrate','earn','merge','writers'].map(n=>n+'.cjs');
  const pins=Object.fromEntries(names.map(n=>[n,{base:'a'.repeat(64),candidate:'b'.repeat(64)}]));
  const repair={sourceBase:'6c9248e695a4478abdbaae0f9f48395ac56000fa',runtime:Object.fromEntries(['progression','sleep','today','writers'].map(n=>['rebuild/engine/'+n+'.cjs',{pre:'b'.repeat(64),post:'c'.repeat(64)}]))};
+ const today='rebuild/engine/today.cjs',current={sourceBase:'48a3063a23528ed240eb2356226d237d2793a9da',runtime:{[today]:{pre:'c'.repeat(64),post:'80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91'}}};
  const old=key=>Object.fromEntries(names.map(n=>[n,pins[n][key]]));const next={...old('candidate'),...Object.fromEntries(['progression','sleep','today','writers'].map(n=>[n+'.cjs','c'.repeat(64)]))};
- assert.equal(admitted(old('base'),pins,repair),'M');assert.equal(admitted(old('candidate'),pins,repair),'candidate');assert.equal(admitted(next,pins,repair),'successor');
- const wrong={...next,'constants.cjs':'d'.repeat(64)};assert.throws(()=>admitted(wrong,pins,repair),/exact public/);
- assert.throws(()=>admitted({...next,extra:'c'.repeat(64)},pins,repair),/module inventory/);
- assert.throws(()=>admitted(next,pins,{...repair,sourceBase:'1'.repeat(40)}),/fixed R/);
- assert.throws(()=>admitted(next,pins,{...repair,runtime:{...repair.runtime,'rebuild/engine/energy.cjs':{pre:'b'.repeat(64),post:'c'.repeat(64)}}}),/four repair/);
- const bad=structuredClone(repair);bad.runtime['rebuild/engine/sleep.cjs'].pre='e'.repeat(64);assert.throws(()=>admitted(next,pins,bad),/R preimage/);
+ const repaired={...next,'today.cjs':current.runtime[today].post};
+ assert.equal(admitted(old('base'),pins,repair,current),'M');assert.equal(admitted(old('candidate'),pins,repair,current),'candidate');assert.equal(admitted(next,pins,repair,current),'successor');assert.equal(admitted(repaired,pins,repair,current),'repair');
+ const wrong={...next,'constants.cjs':'d'.repeat(64)};assert.throws(()=>admitted(wrong,pins,repair,current),/exact public/);
+ assert.throws(()=>admitted({...next,extra:'c'.repeat(64)},pins,repair,current),/module inventory/);
+ assert.throws(()=>admitted(next,pins,{...repair,sourceBase:'1'.repeat(40)},current),/fixed R/);
+ assert.throws(()=>admitted(next,pins,{...repair,runtime:{...repair.runtime,'rebuild/engine/energy.cjs':{pre:'b'.repeat(64),post:'c'.repeat(64)}}},current),/four repair/);
+ const bad=structuredClone(repair);bad.runtime['rebuild/engine/sleep.cjs'].pre='e'.repeat(64);assert.throws(()=>admitted(next,pins,bad,current),/R preimage/);
+ const wrongT={...repaired,'sleep.cjs':pins['sleep.cjs'].candidate};assert.throws(()=>admitted(wrongT,pins,repair,current),/exact public/);
+ assert.throws(()=>admitted(repaired,pins,repair,{...current,sourceBase:repair.sourceBase}),/fixed S/);
+ assert.throws(()=>admitted(repaired,pins,repair,{...current,extra:true}),/closed S\/T manifest/);
+ assert.throws(()=>admitted(repaired,pins,repair,{...current,runtime:{}}),/one T repair image/);
+ assert.throws(()=>admitted(repaired,pins,repair,{...current,runtime:{...current.runtime,'rebuild/engine/sleep.cjs':{pre:'c'.repeat(64),post:'d'.repeat(64)}}}),/one T repair image/);
+ for(const [key,value,refusal]of[['pre','d'.repeat(64),/S preimage/],['post','d'.repeat(64),/exact T postimage/],['extra',true,/closed T repair row/]]) {
+  const changed=structuredClone(current);changed.runtime[today][key]=value;assert.throws(()=>admitted(repaired,pins,repair,changed),refusal);
+ }
  const guard="names.every(n=>manifest[n]===(repair.runtime['rebuild/engine/'+n]?.post||pins[n].candidate))";
  assert.equal(code.split(guard).length,2);const mutant=check(code.replace(guard,"Object.entries(repair.runtime).every(([file,row])=>manifest[file.slice('rebuild/engine/'.length)]===row.post)"));
- assert.throws(()=>assert.throws(()=>mutant(wrong,pins,repair)),e=>e.code==='ERR_ASSERTION'&&/^Missing expected exception/.test(e.message));
+ assert.throws(()=>assert.throws(()=>mutant(wrong,pins,repair,current)),e=>e.code==='ERR_ASSERTION'&&/^Missing expected exception/.test(e.message));
+ const repairGuard="names.every(n=>manifest[n]===(current.runtime['rebuild/engine/'+n]?.post||repair.runtime['rebuild/engine/'+n]?.post||pins[n].candidate))";
+ assert.equal(code.split(repairGuard).length,2);const repairMutant=check(code.replace(repairGuard,"Object.entries(current.runtime).every(([file,row])=>manifest[file.slice('rebuild/engine/'.length)]===row.post)"));
+ assert.throws(()=>assert.throws(()=>repairMutant(wrongT,pins,repair,current)),e=>e.code==='ERR_ASSERTION'&&/^Missing expected exception/.test(e.message));
 });
 test('C9 full current profile passes the actual closed registration checker',()=>{
  const s=currentProfile();inventory.check(s);
  assert.equal(s.children.length,26);assert.equal(s.witnessFlips.length,35);
+ for(const [name,count]of [['unknown-and-target-cells',323],['b1b2-sup-source',62],['b1b2-sup-writers',327],['tooling-cohort',267]])
+  assert.equal(s.children.find(c=>c.name===name).needle,'# pass '+count,'exact R3 expectation; prospective until that child runs');
+ assert.equal(s.children.find(c=>c.name==='public-census').needle,'B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/T frame comparisons; ');
  assert.equal(s.parent.chosen,'H3');assert.equal(s.parent.options.length,1);
  assert.equal(s.parent.options[0].receiptLedgerLine,187);
  assert.equal(s.parent.options[0].sha256,'b457b539a384d8c72531b880cd771e996c6b231f034a49272e899c1fba61e61f');

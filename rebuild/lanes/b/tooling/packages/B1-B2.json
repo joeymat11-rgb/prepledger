@@ -115,7 +115,7 @@
     },
     "rebuild/engine/today.cjs": {
       "pre": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
-      "post": "fff395dfb1d5e1890eacabf39a76a9c65e413b4f89a2c14d74d00c1343260392",
+      "post": "80d4196cfe50637ed373dcf5fa0eab1c2ef549b957aea7c032ab518d2a67ba91",
       "role": "edited"
     },
     "rebuild/engine/writers.cjs": {
@@ -425,7 +425,7 @@
     },
     "rebuild/conform/v4/postfix/legacy-b1b2-carriers.cjs": {
       "pre": null,
-      "post": "7888d4e78cf8b7c6f2c46eb449ae5985d1bc794d3a5701c08ae6780459b4253d",
+      "post": "3305899385a33f748315f13997d55f027192d8a19e001059698d8425a00ddf00",
       "role": "new"
     },
     "rebuild/engine/test/b1-delta-cells.cjs": {
@@ -435,17 +435,17 @@
     },
     "rebuild/engine/test/b1-unknown-recovery.test.cjs": {
       "pre": null,
-      "post": "c3e215af814551b65a1037f493e6b501759cf5847d3039081c6affbbd1362d95",
+      "post": "7e0a624088ba35d9319b50d44666d46a3005d4508dca21c9986f055799c9ab58",
       "role": "new"
     },
     "rebuild/engine/test/b1b2-public-engine.cjs": {
       "pre": null,
-      "post": "59ce589984af6c937540e184fa5b5b5e5e63bf8bad61669c6656676540bdbd13",
+      "post": "208156f785e36635abf9093fa626dff70c3ea49853cff6c5123e7f8fdfdc68b2",
       "role": "new"
     },
     "rebuild/engine/test/b1b2-sleep-target-cells.cjs": {
       "pre": null,
-      "post": "4421c90ec1a858e9eb284e55059915c3864d9348ca0d214ee59ebf722b2b92eb",
+      "post": "2f0f1f326333e388ac1ae88c54ffb350af9066392442c0586100d06ba9608265",
       "role": "new"
     },
     "rebuild/lanes/b/b2-delta-cells.cjs": {
@@ -460,12 +460,12 @@
     },
     "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs": {
       "pre": null,
-      "post": "de91a9abbf241d78a7900ce2ff509c9cf5b023c6777856071be490df83234c58",
+      "post": "f831e88bb2348f73fbaa6564e453ce4161e428d67e887527dfde3f76199aa038",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-supersede-inherited-carriers.test.cjs": {
       "pre": null,
-      "post": "9c11898cdd8c9903136bef7a8e4cf43c13408f631f279e7a2e5fa410977641eb",
+      "post": "e420e50135f12db6b47d8ace52976457f521ada2dc49a611712842733d6c3ca0",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-supersede-defect-witnesses.test.cjs": {
@@ -480,17 +480,17 @@
     },
     "rebuild/m4/workout/test/b1b2-supersede-second-gate.test.cjs": {
       "pre": null,
-      "post": "ca4b995b463296d22e4dc55826e3ad057f5d996ab9a62ecc69b85f3684f4ce6c",
+      "post": "4df3f1e16a10b9a963f268331b5ff5d045d661e71a89738b8fc6e58150ba3181",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-engine-files-differential.cjs": {
       "pre": null,
-      "post": "983d9090da985f72f1b84a08ac6b472ae5a2745411d7c7b641ee6661de9ba571",
+      "post": "fcec953d5c7cc1d2df4be5f1b0bf84e2283cf315df89d181301ed66ffd34c98e",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-public-census.cjs": {
       "pre": null,
-      "post": "9a84751f545a6c532a45903cd9ebe4929f3ca91a1dfdbed55f8f569b9a15c3d9",
+      "post": "5b9e736a7c5b40d401566fcb3c737b422d1c89816f301a20240d2491e1a68f81",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-h3-clean-init.test.cjs": {
@@ -565,7 +565,7 @@
     },
     "rebuild/lanes/b/tooling/test/b1b2-registration.test.cjs": {
       "pre": null,
-      "post": "86460702573037c88e51150df803563e8e2c1ed9bd7f7ec250cb6250ed3f67a1",
+      "post": "19762570d6ee60cad3aa168a34d21a3a2ba991d6f60e1ccea3521caa6e5757d7",
       "role": "new"
     },
     "rebuild/lanes/b/tooling/test/superseded-parent-continuity.test.cjs": {
@@ -575,12 +575,12 @@
     },
     "rebuild/m4/workout/test/b1b2-evidence.cjs": {
       "pre": null,
-      "post": "383e141c893511f1dd8852783e8b03fc24e496ee39b584b1df00635550090243",
+      "post": "fdca5cbc94369f0479de72870e2af8eab6b8bca1451cacd94cc9900e472e2f7d",
       "role": "new"
     },
     "rebuild/m4/workout/test/b1b2-source-changes.json": {
       "pre": null,
-      "post": "b44a6801e3144f5fbb57e95151ce98d1f79c44b3a57ce199c51e51cb2c0187f1",
+      "post": "b980b0efa89db3d9a43a6e8114ca9bfaf012436951dc545c443de6ac30eef6ba",
       "role": "new"
     },
     "rebuild/conform/v4/postfix/test/ci-second-gate.test.cjs": {
@@ -650,7 +650,7 @@
     },
     "rebuild/engine/test/b2-public-source-faults.test.cjs": {
       "pre": null,
-      "post": "688acfe5b21415d95a7218ab7e71c91159b8ca7d7dc87eca77a4e2bdea08f466",
+      "post": "98a299af9c85a16493c455df98033b9b7129f863fd234c3d846c0afa0e9c2388",
       "role": "new"
     },
     "rebuild/engine/test/b2-era30.test.cjs": {
@@ -1272,7 +1272,7 @@
         "rebuild/engine/test/b1-unknown-recovery.test.cjs",
         "rebuild/engine/test/b1b2-sleep-target-cells.cjs"
       ],
-      "needle": "# pass 283"
+      "needle": "# pass 323"
     },
     {
       "name": "combined-legacy",
@@ -1346,7 +1346,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/b1b2-supersede-source-carriers.test.cjs"
       ],
-      "needle": "# pass 28"
+      "needle": "# pass 62"
     },
     {
       "name": "b1b2-sup-inherited",
@@ -1373,7 +1373,7 @@
         "--test-reporter=tap",
         "rebuild/m4/workout/test/b1b2-supersede-writers-differential.test.cjs"
       ],
-      "needle": "# pass 287"
+      "needle": "# pass 327"
     },
     {
       "name": "b1b2-sup-second",
@@ -1396,7 +1396,7 @@
       "argv": [
         "rebuild/m4/workout/test/b1b2-public-census.cjs"
       ],
-      "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/S frame comparisons; "
+      "needle": "B1B2 PUBLIC CENSUS: 2 complete original public runs; 3 complete M/T frame comparisons; "
     },
     {
       "name": "h3-cells",
@@ -1504,6 +1504,11 @@
     "Four new exact children: B2 public20 positives and52composed+3separately labeled delegated source faults (unreachable composed combinations); ERA30 56 positives over212 complete reference frames and8faults/32matrix cells. Measured public source only, no native gate credit.",
     "Current public U+FG283, B1 27, current46behavioral faults, historical34behavioral+1alias plusseparatephaseArcprobe measured atS. New native source28 and writers287 expectations are prospective static counts only; inherited5/defects5/second4/H3 14/Today630/A0 23/NTC39 remain held and unmeasured atS.",
     "Actual R2 nine-file tooling cohort267/267 PASS on Node22.23.2 at4dda08aac905e8ff628dd37ba744ce5fad28c354,386629.9436ms,exit0, zero fail/cancel/skip/todo. .tmp/r2-tooling/cohort.tap,220576bytes,SHA256b6f2afc32df4b63b1effa98149174a0299697d277673fbb96e25b02aebb5611a; input manifest0a0f4bb8887ce43f5dc694de5a11e21f6d2af9d78e11e4a008be30613dc527cd. Before/after public input bytes matched.",
-    "Fresh S public laws:45 raw (30 GREEN/15 RED),43 GREEN controls,52 patch mutants (21 RED),0 harness errors;52 patch mutants are distinct from55 source faults. Same-input R/S frames differ only in the two D25 missing-sleep detail leaves; protein and all outcomes unchanged. Full comparison and hashes are in the build report."
+    "Fresh S public laws:45 raw (30 GREEN/15 RED),43 GREEN controls,52 patch mutants (21 RED),0 harness errors;52 patch mutants are distinct from55 source faults. Same-input R/S frames differ only in the two D25 missing-sleep detail leaves; protein and all outcomes unchanged. Full comparison and hashes are in the build report.",
+    "PM262 R3 source T=797e4cf39fac39148ccae784116999669b82caf3. Preceding R2 notes retain their original heads and scope. All112 product entries,26 literal children,15 public command licences and9+3+7 coverage remain; no authority binding or scope hold is amended.",
+    "The original M/R eight-file65-hunk and R/S four-file10-hunk plus5-evidence records remain unchanged. Additive S/T is exactly today.cjs with3hunks and4modified existing engine evidence files. Historical SUCCESSOR inventory is R/S; separate REPAIR inventory is full disk/HEAD/T. Native comparison and public census are M/T, with no admitted native deltas.",
+    "R3 child expectations: U/FG323; source62 and writers327=4+323 prospective. The changed existing registration body retains the nine-file tooling cohort count267 as a prospective exact-T expectation. No new/source-family/native/tooling child was executed by the registration author; other held counts remain unchanged.",
+    "Root-reported public evidence at2f764600:323/323 U/FG and63/63 current behavioral faults with exact source restoration. Root repeats the licensed public commands on final T. These public results do not clear native/frozen/family/census/H3/second-gate/private/FULL/currentCI/receipt/integration/phone holds or the separately held mechanical authority amendments.",
+    "Root-reported final T carrier checks:combined4/4,31cases35substitutions; separate witnesses10/5/5cases and12/9/5substitutions;45laws30GREEN15RED,43GREENcontrols,52patchmutants21RED,zero harness errors. S/T comparison has zero changed rows or leaves across all45 complete rows/frames. Root evidence SHA25627a31ce60f9368a0868176c678c7ffe1d6f536b50d3793ff63a18bcf579345ef. The first copy-setup ENOENT remains separately preserved with zero product-failure or kill credit."
   ]
 }
