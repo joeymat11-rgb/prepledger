@@ -1,0 +1,946 @@
+{
+  "buildTag": "earned-842c45e7a3c9",
+  "assets": [
+    {
+      "name": "index.html",
+      "bytes": 30994,
+      "sha256": "f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d",
+      "actualSHA256": "f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d"
+    },
+    {
+      "name": "styles.css",
+      "bytes": 177491,
+      "sha256": "567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb",
+      "actualSHA256": "567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb"
+    },
+    {
+      "name": "app.js",
+      "bytes": 1591843,
+      "sha256": "1810c91e8f3361fd559b3b03d48f23a4ec3e028e87ce49690b99693c313154f4",
+      "actualSHA256": "1810c91e8f3361fd559b3b03d48f23a4ec3e028e87ce49690b99693c313154f4"
+    }
+  ],
+  "served": [
+    {
+      "name": "index.html",
+      "bytes": 30994,
+      "sha256": "f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d"
+    },
+    {
+      "name": "styles.css",
+      "bytes": 177491,
+      "sha256": "567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb"
+    },
+    {
+      "name": "app.js",
+      "bytes": 1591843,
+      "sha256": "1810c91e8f3361fd559b3b03d48f23a4ec3e028e87ce49690b99693c313154f4"
+    }
+  ],
+  "profileRoot": ".tmp\\d2-r3-browser-pGmic1",
+  "edge": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "playwright": "1.62.1",
+  "cases": [
+    {
+      "name": "unknown previous2/current8",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "observed short night or three-night sleep debt",
+            "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+            "cost": null
+          }
+        ],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "observed short night or three-night sleep debt"
+        ]
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Recorded recovery warnings",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+        "whyNot": null,
+        "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "RECORDED RECOVERY WARNINGS",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "record": {
+        "op_id": "op-device-1c23da7e3352a23a0fccfd4010121bb4-1",
+        "device_id": "device-1c23da7e3352a23a0fccfd4010121bb4",
+        "device_seq": 1,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 2
+        }
+      },
+      "instruction": "RECORDED RECOVERY WARNINGS",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    RECORDED RECOVERY WARNINGS\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 2 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": 2
+          },
+          {
+            "d": "2030-02-04",
+            "h": 8
+          }
+        ],
+        "needed": 3
+      },
+      "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "2 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00.",
+      "inputMetrics": [
+        {
+          "id": "sleep-date",
+          "height": 48,
+          "font": 16
+        },
+        {
+          "id": "sleep-bed",
+          "height": 48,
+          "font": 16
+        },
+        {
+          "id": "sleep-wake",
+          "height": 48,
+          "font": 16
+        }
+      ],
+      "recoveryText": "\n      Your sleep record already has last night.\n      From your sleep record for 2030-02-03 · 0 h\n      \n        Yes, that’s right\n        No, answer it here\n      \n    ",
+      "journey": {
+        "realClockCorrection": true,
+        "realZeroCorrection": true,
+        "actualStart": true,
+        "exactKillReopen": true,
+        "opCounts": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "reopened": {
+          "phase": "active",
+          "record": {
+            "op_id": "op-device-1c23da7e3352a23a0fccfd4010121bb4-3",
+            "device_id": "device-1c23da7e3352a23a0fccfd4010121bb4",
+            "device_seq": 3,
+            "savedDate": "2030-02-04",
+            "savedTime": "08:00",
+            "savedOffset": "-05:00",
+            "supersedes": "op-device-1c23da7e3352a23a0fccfd4010121bb4-2",
+            "night": {
+              "date": "2030-02-03",
+              "hours": 0
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "unknown three6.6",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "observed short night or three-night sleep debt",
+            "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+            "cost": null
+          }
+        ],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "observed short night or three-night sleep debt"
+        ]
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Recorded recovery warnings",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+        "whyNot": null,
+        "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "RECORDED RECOVERY WARNINGS",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "record": {
+        "op_id": "op-device-33b97bd176e8fd36581470c5c6dd67dc-3",
+        "device_id": "device-33b97bd176e8fd36581470c5c6dd67dc",
+        "device_seq": 3,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 6.6
+        }
+      },
+      "instruction": "RECORDED RECOVERY WARNINGS",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    RECORDED RECOVERY WARNINGS\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 6.6 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 6.6
+          },
+          {
+            "d": "2030-02-02",
+            "h": 6.6
+          },
+          {
+            "d": "2030-02-03",
+            "h": 6.6
+          }
+        ],
+        "needed": 3
+      },
+      "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "6.6 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "null target previous2/current8",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "observed short night or three-night sleep debt",
+            "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+            "cost": null
+          }
+        ],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "observed short night or three-night sleep debt"
+        ]
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Recorded recovery warnings",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+        "whyNot": null,
+        "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "RECORDED RECOVERY WARNINGS",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "record": {
+        "op_id": "op-device-a864f98d9541bc084cd5c7c6343c9a87-1",
+        "device_id": "device-a864f98d9541bc084cd5c7c6343c9a87",
+        "device_seq": 1,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 2
+        }
+      },
+      "instruction": "RECORDED RECOVERY WARNINGS",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    RECORDED RECOVERY WARNINGS\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 2 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": 2
+          },
+          {
+            "d": "2030-02-04",
+            "h": 8
+          }
+        ],
+        "cleanH": null,
+        "needed": 3
+      },
+      "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "2 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "string target three6.6",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "observed short night or three-night sleep debt",
+            "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+            "cost": null
+          }
+        ],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "observed short night or three-night sleep debt"
+        ]
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Recorded recovery warnings",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+        "whyNot": null,
+        "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "RECORDED RECOVERY WARNINGS",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "record": {
+        "op_id": "op-device-677b4eaf779871d4448a580abbc36a68-3",
+        "device_id": "device-677b4eaf779871d4448a580abbc36a68",
+        "device_seq": 3,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 6.6
+        }
+      },
+      "instruction": "RECORDED RECOVERY WARNINGS",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    RECORDED RECOVERY WARNINGS\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 6.6 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 6.6
+          },
+          {
+            "d": "2030-02-02",
+            "h": 6.6
+          },
+          {
+            "d": "2030-02-03",
+            "h": 6.6
+          }
+        ],
+        "cleanH": "8",
+        "needed": 3
+      },
+      "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "6.6 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "finite target8",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": 80,
+        "band": "GREEN",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "sleep reset — 1 of 3 clean nights",
+            "fix": "2 more nights at 8 h or better, back to back",
+            "cost": 20
+          }
+        ],
+        "lever": {
+          "k": "sleep",
+          "receipt": "sleep reset — 1 of 3 clean nights",
+          "fix": "2 more nights at 8 h or better, back to back",
+          "cost": 20
+        },
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "sleep reset — 1 of 3 clean nights"
+        ]
+      },
+      "fix": {
+        "rung": "sleep",
+        "lever": "SLEEP",
+        "state": "caution",
+        "title": "Protect tonight's sleep",
+        "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+        "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+      },
+      "move": {
+        "kind": "fix",
+        "lever": "SLEEP",
+        "title": "PROTECT TONIGHT'S SLEEP",
+        "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+      },
+      "record": {
+        "op_id": "op-device-fc1d78eac4a0ee031b802167a0a2feaa-1",
+        "device_id": "device-fc1d78eac4a0ee031b802167a0a2feaa",
+        "device_seq": 1,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 2
+        }
+      },
+      "instruction": "PROTECT TONIGHT'S SLEEP",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    PROTECT TONIGHT'S SLEEP\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 2 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": 2
+          },
+          {
+            "d": "2030-02-04",
+            "h": 8
+          }
+        ],
+        "cleanH": 8,
+        "needed": 3
+      },
+      "why": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "2 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "finite target9",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": 70,
+        "band": "WATCH",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "sleep reset — 0 of 3 clean nights",
+            "fix": "3 more nights at 9 h or better, back to back",
+            "cost": 30
+          }
+        ],
+        "lever": {
+          "k": "sleep",
+          "receipt": "sleep reset — 0 of 3 clean nights",
+          "fix": "3 more nights at 9 h or better, back to back",
+          "cost": 30
+        },
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "sleep reset — 0 of 3 clean nights"
+        ]
+      },
+      "fix": {
+        "rung": "sleep",
+        "lever": "SLEEP",
+        "state": "caution",
+        "title": "Protect tonight's sleep",
+        "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+        "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+      },
+      "move": {
+        "kind": "fix",
+        "lever": "SLEEP",
+        "title": "PROTECT TONIGHT'S SLEEP",
+        "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+      },
+      "record": {
+        "op_id": "op-device-6a4fcb181990be1cd534c409d404f7e6-1",
+        "device_id": "device-6a4fcb181990be1cd534c409d404f7e6",
+        "device_seq": 1,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 2
+        }
+      },
+      "instruction": "PROTECT TONIGHT'S SLEEP",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    PROTECT TONIGHT'S SLEEP\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 2 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": 2
+          },
+          {
+            "d": "2030-02-04",
+            "h": 8
+          }
+        ],
+        "cleanH": 9,
+        "needed": 3
+      },
+      "why": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut.",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "2 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "genuine zero",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "flags": [
+          {
+            "k": "sleep",
+            "receipt": "observed short night or three-night sleep debt",
+            "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+            "cost": null
+          }
+        ],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": [
+          "observed short night or three-night sleep debt"
+        ]
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Recorded recovery warnings",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+        "whyNot": null,
+        "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "RECORDED RECOVERY WARNINGS",
+        "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+      },
+      "record": {
+        "op_id": "op-device-52a4b32e165dd72ed5a3e90a11459e00-1",
+        "device_id": "device-52a4b32e165dd72ed5a3e90a11459e00",
+        "device_seq": 1,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 0
+        }
+      },
+      "instruction": "RECORDED RECOVERY WARNINGS",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    RECORDED RECOVERY WARNINGS\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 0 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": 0
+          }
+        ],
+        "needed": 3
+      },
+      "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "0 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "healthy8 unknown target",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": 100,
+        "band": "GREEN",
+        "flags": [],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": []
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Sleep comparison unavailable",
+        "body": "sleep target not recorded.",
+        "whyNot": null,
+        "recoveryNote": "sleep target not recorded."
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "SLEEP COMPARISON UNAVAILABLE",
+        "body": "sleep target not recorded."
+      },
+      "record": {
+        "op_id": "op-device-03df5f3bccec91418a046e686b269c02-1",
+        "device_id": "device-03df5f3bccec91418a046e686b269c02",
+        "device_seq": 1,
+        "savedDate": "2030-02-04",
+        "savedTime": "08:00",
+        "savedOffset": "-05:00",
+        "supersedes": null,
+        "night": {
+          "date": "2030-02-03",
+          "hours": 8
+        }
+      },
+      "instruction": "SLEEP COMPARISON UNAVAILABLE",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    SLEEP COMPARISON UNAVAILABLE\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep 8 h \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": 8
+          }
+        ],
+        "needed": 3
+      },
+      "why": "sleep target not recorded.",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "8 h Entered as an approximate duration. Recorded 2030-02-04 at 08:00."
+    },
+    {
+      "name": "missing hours in dated basis",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "sleepEvidence": {
+          "state": "UNKNOWN",
+          "expectedDate": "2030-02-03",
+          "lastDate": "2030-02-03"
+        },
+        "flags": [],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": []
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Sleep comparison unavailable",
+        "body": "current sleep not recorded. Recovery rating unavailable.",
+        "whyNot": null,
+        "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "SLEEP COMPARISON UNAVAILABLE",
+        "body": "current sleep not recorded. Recovery rating unavailable."
+      },
+      "record": null,
+      "instruction": "SLEEP COMPARISON UNAVAILABLE",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    SLEEP COMPARISON UNAVAILABLE\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep  \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03"
+          }
+        ],
+        "cleanH": 8,
+        "needed": 3
+      },
+      "why": "current sleep not recorded. Recovery rating unavailable.",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "undefined h"
+    },
+    {
+      "name": "invalid null hours in dated basis",
+      "owed": [],
+      "steps": "good",
+      "recovery": {
+        "score": null,
+        "band": "UNKNOWN",
+        "sleepEvidence": {
+          "state": "UNKNOWN",
+          "expectedDate": "2030-02-03",
+          "lastDate": "2030-02-03"
+        },
+        "flags": [],
+        "lever": null,
+        "watched": 7,
+        "excludedDips": 0,
+        "factors": []
+      },
+      "fix": {
+        "rung": "hold",
+        "lever": null,
+        "state": "quiet",
+        "title": "Sleep comparison unavailable",
+        "body": "current sleep not recorded. Recovery rating unavailable.",
+        "whyNot": null,
+        "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+      },
+      "move": {
+        "kind": "quiet",
+        "title": "SLEEP COMPARISON UNAVAILABLE",
+        "body": "current sleep not recorded. Recovery rating unavailable."
+      },
+      "record": null,
+      "instruction": "SLEEP COMPARISON UNAVAILABLE",
+      "phone": "\n  \n    Earned\n    Monday, February 4\n  \n  \n    Your plan for today\n    SLEEP COMPARISON UNAVAILABLE\n    The cut is working: this week's drop is real now, not noise.\n  \n  \n  \n  \n    Eat about\n    \n      2,300 kcal\n      155 g protein\n    \n    Today's target 2,262 to 2,360 kcal\n    Your full nutrition plan Recorded today \n  \n  \n    UPPER BODY · TODAY\n    2 exercises · Your set targets are ready\n    How are you feeling today?  \n    \n    Sleep  \n  \n  \n    This morning ✓ 180.0 lb · D2 invented satisfied morning readWeight trend 180.4 lb · Why this plan?\n    \n  \n  \n    Start UPPER BODY · TODAY\n    \n    Set up your week\n    Ask your coachYour plan, progress and the reasons behind it. Not wired yet\n    \n    Report a problem\n    \n    \n  \n",
+      "phase": "ready",
+      "sleep": {
+        "nights": [
+          {
+            "d": "2030-02-01",
+            "h": 8
+          },
+          {
+            "d": "2030-02-02",
+            "h": 8
+          },
+          {
+            "d": "2030-02-03",
+            "h": null
+          }
+        ],
+        "cleanH": 8,
+        "needed": 3
+      },
+      "why": "current sleep not recorded. Recovery rating unavailable.",
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "width": {
+        "client": 388,
+        "scroll": 388
+      },
+      "sleepText": "null h"
+    }
+  ],
+  "killProof": [
+    {
+      "profile": ".tmp\\d2-r3-browser-pGmic1\\case-0",
+      "pids": [
+        64340,
+        24084,
+        46220,
+        57656,
+        19120,
+        45796,
+        63456,
+        13576
+      ],
+      "remaining": 0
+    }
+  ],
+  "problems": [],
+  "faviconDiagnostics": [
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    },
+    {
+      "message": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "url": "http://127.0.0.1:62266/favicon.ico"
+    }
+  ],
+  "limits": "Ten affected browser cases; one post-save/post-Start process kill. Prior seven boundary kills remain historical at c4716ed; no new precommit/preack kills, physical phone or full CI."
+}

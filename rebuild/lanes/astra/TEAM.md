@@ -1,14 +1,14 @@
 # Earned: active Astra team
 
-PM checkpoint2026-09-13: C18ff0dcf/dc768c9 two lifecycle fixes built; D2/MAX successor review276 queues immediately after its active B R3 N2 review/reconciliation272. ER/MAX B8e65805 review active; B/C/D/E LOW, I paused. C author141+37 pass and exact source/report are recorded, not acceptance. Full import/memory composition and personal device proof remain. Owner268 targets Joe with his history AND Dad; soak gates wide beta only. PM saved/executed MAX verified.
+PM checkpoint2026-09-13: affected B8e65805 N2 scoped ACCEPTdf9f36ab with separate d7c76a0e reconciliation adopted278;147 Node checks/10 Edge cases/one actual kill, fresh earned-842c45e7a3c9. D2/MAX proceeds directly to C18ff0dcf lifecycle repair review276. ER/MAX complete B R3 review remains active; B/C/D/E LOW, I paused. Full import/memory composition and personal phone proof remain. Owner268 targets Joe with his history AND Dad; soak gates wide beta only. PM/active review efforts verified.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | LOW: exact8e65805/T797e4cf R8 successor handed off272; ER/MAX review active, preserve candidate | earned-astra-b-follow-up;20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact18ff0dcf/dc768c9 lifecycle repair handed off; independent D2/MAX review276 queued after current B N2 | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: exact18ff0dcf/dc768c9 lifecycle repair in independent D2/MAX review276; preserve source | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: exact B R3 affected N2 scope272; then C18ff0dcf lifecycle successor review276 | earned-lane-d2-requests;20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX: C18ff0dcf lifecycle successor review276; B R3 N2 scoped acceptance/reconciliation complete278 | earned-lane-d2-requests;20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX: exact R3 R8 repair8e65805/T797e4cf independent review272; original162f189 preserved | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: lifecycle0f57c99c direction selected266; await named decision/provider implementation release | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
@@ -59,8 +59,8 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | --- | --- | --- |
 | B | LOW; R3 R8 successor8e65805 in review272 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
-| C | LOW; repair18ff0dcf handed off, review276 queued | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
-| D2 | MAX; affected B N2 review272 | MAX for queued exact C18ff0dcf review276 immediately after reconciliation |
+| C | LOW; repair18ff0dcf in review276 | XHIGH for an actual concurrency correction; HIGH for later bounded UI/plumbing |
+| D2 | MAX; exact C18ff0dcf lifecycle review276 | MAX for the next named independent successor |
 | Engine reviewer | MAX; R3 R8 independent review272 | MAX for next named independent successor review |
 | E | LOW; exact lifecycle addendum complete | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
@@ -78,3 +78,5 @@ The named companion reviewer was subsequently started with its own single heartb
 DECISIONS:197 adds only gym-app.mjs and its existing settings UI test to C's launch adoption after executed timing/refusal-loss probes. DECISIONS:198 accepts B's issuer brief with the mandatory PM historical-authority fence and releases that isolated tooling candidate. No bundle code, frozen helper, H3 record, workflow or private-file edit follows from that release. Companion reviewer found stale acknowledgment after closure/retraction; D independently reproduced both on test-only successor7b073a8 while reviewed runtime6b3465e remains unchanged. Final review and fixes are still pending.
 
 No fresh product tests were run for this coordination-only setup. Required package tests, independent review, both-OS CI, private verdicts where applicable and device evidence remain delivery conditions. Check actual Astra usage as needed; do not reuse an old Claude meter or purchase credits automatically.
+
+Fast mode discussion2026-09-13: owner is considering Fast across chats because development has taken too long. This is not yet authorization to change speed or spending. PM recommends Fast for active builders/reviewers with existing reasoning levels retained, Standard for waiting checks; no speed setting was changed. Installed Astra cache describes priority/Fast as2x speed; official Codex pricing lists2.5x Standard credit usage, including faster consumption of included limits: https://learn.chatgpt.com/docs/agent-configuration/speed and https://learn.chatgpt.com/docs/pricing. These are product/pricing facts, not measured whole-project acceleration. Do not halve the personal forecast automatically, conflate Fast with Low reasoning, or treat API2x pricing as this ChatGPT-sign-in multiplier.

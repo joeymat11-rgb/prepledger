@@ -1,0 +1,32 @@
+{
+  "buildTag": "earned-842c45e7a3c9",
+  "assets": [
+    {
+      "name": "index.html",
+      "bytes": 30994,
+      "sha256": "f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d",
+      "actualSHA256": "f691d5c31447047a02b50004e105f89d58469079fcf219ede146d4f2471b6f2d"
+    },
+    {
+      "name": "styles.css",
+      "bytes": 177491,
+      "sha256": "567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb",
+      "actualSHA256": "567a3a3c4677aeed2dcb2090d5fbf4fc31a3a5b47680dabc7bee4f09f3b35cbb"
+    },
+    {
+      "name": "app.js",
+      "bytes": 1591843,
+      "sha256": "1810c91e8f3361fd559b3b03d48f23a4ec3e028e87ce49690b99693c313154f4",
+      "actualSHA256": "1810c91e8f3361fd559b3b03d48f23a4ec3e028e87ce49690b99693c313154f4"
+    }
+  ],
+  "profileRoot": ".tmp\\d2-r3-browser-cmHE4B",
+  "edge": "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
+  "playwright": "1.62.1",
+  "cases": [],
+  "killProof": [],
+  "problems": [
+    "console Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "limits": "Ten affected browser cases; one post-save/post-Start process kill. Prior seven boundary kills remain historical at c4716ed; no new precommit/preack kills, physical phone or full CI."
+}

@@ -1,0 +1,12 @@
+# N2 on B1+B2 R3: report-last reconciliation
+2026-09-13 · D2 · Independent affected-scope ACCEPT unchanged; PM remains the sole judge/shared writer.
+Independent df9f36ab766de5c4c7f78f5e566b9f486cf4477b was committed and sent to PM before B's report read. Original37-line review SHA2568dde55040e423652453003206dc3385ab7aeefdccad3c787c047b0c0d7e6fcee and evidence SHA256e18b870792f261f6ee5a1324c8bef46b8ce3c447e2257c22810bb634f22935f6 remain exact.
+Then read only 8e65805481091daacda3266ad9113b49553cf3f4:rebuild/lanes/b/BUILD-B1B2-TOOLING-154-184.md,34 lines11330bytes SHA25660239aee0f870fbcfcce7b9b97c6e06ca85a1fe70776791f10cc2d9a85ce7a95. Engine/source remains T797e4cf39fac39148ccae784116999669b82caf3.
+B's bounded Today join, real unranked warning/action propagation, absent-versus-observed inputs and preserved finite8/9 descriptions agree with D2's actual affected consumer results. No affected report discrepancy or new consumer repair is identified.
+B's thirteen unchanged C postimages and only today.cjs runtime change agree with D2's source/closure checks. The separate C1316639 lifecycle stage remains absent from this composition.
+D2 supplies its own current147 Node passes,10 Edge cases, one verified profile kill and fresh earned-842c45e7a3c9 with three HTTP-verified assets. Prior c4716ed build/boundary evidence is retained at its original head, never promoted by B's report.
+B's16-case replay,323 recovery checks,63 faults, B2/ERA/carrier/law/tooling/registration counts and source reconstruction are author evidence for ER's review, not additional independently executed D2 proof.
+The reported42/18 extra injected time queries on unavailable-comparison paths require ER's full advancing-clock/source judgment. D2 exercised the actual fixed-day consumer composition and neither proves those changes harmless nor invents a rejection from count alone.
+Original verdict/evidence, executable witnesses and failed setup attempts remain unchanged. No test rerun, new source-fault credit, new STATUS event or shared/candidate-ancestry push follows from this report read.
+Full engine/native/private/CI/receipt/integration/phone obligations remain held; no authority acceptance line or package/release claim is made here.
+Final local handoff goes to PM for sole-writer publication. Under already-issued PM276, D2 proceeds directly at MAX to the exact isolated C lifecycle R2 successor review; no further confirmation or B/D composition is inferred.

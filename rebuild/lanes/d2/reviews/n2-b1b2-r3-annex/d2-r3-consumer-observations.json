@@ -1,0 +1,1189 @@
+[
+  {
+    "kind": "previous-short/current8/absent",
+    "observedHours": 8,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "previous-short/current8/null",
+    "observedHours": 8,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "previous-short/current8/string",
+    "observedHours": 8,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "previous-short/current8/NaN",
+    "observedHours": 8,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "previous-short/current8/Infinity",
+    "observedHours": 8,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "previous-short/current8/negativeInfinity",
+    "observedHours": 8,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "three-consecutive6.6/absent",
+    "observedHours": 6.6,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "three-consecutive6.6/null",
+    "observedHours": 6.6,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "three-consecutive6.6/string",
+    "observedHours": 6.6,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "three-consecutive6.6/NaN",
+    "observedHours": 6.6,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "three-consecutive6.6/Infinity",
+    "observedHours": 6.6,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "three-consecutive6.6/negativeInfinity",
+    "observedHours": 6.6,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "finite8",
+    "recovery": {
+      "score": 80,
+      "band": "GREEN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "sleep reset — 1 of 3 clean nights",
+          "fix": "2 more nights at 8 h or better, back to back",
+          "cost": 20
+        }
+      ],
+      "lever": {
+        "k": "sleep",
+        "receipt": "sleep reset — 1 of 3 clean nights",
+        "fix": "2 more nights at 8 h or better, back to back",
+        "cost": 20
+      },
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "sleep reset — 1 of 3 clean nights"
+      ]
+    },
+    "fix": {
+      "rung": "sleep",
+      "lever": "SLEEP",
+      "state": "caution",
+      "title": "Protect tonight's sleep",
+      "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+      "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+    },
+    "move": {
+      "kind": "fix",
+      "lever": "SLEEP",
+      "title": "PROTECT TONIGHT'S SLEEP",
+      "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+    }
+  },
+  {
+    "kind": "finite9",
+    "recovery": {
+      "score": 70,
+      "band": "WATCH",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "sleep reset — 0 of 3 clean nights",
+          "fix": "3 more nights at 9 h or better, back to back",
+          "cost": 30
+        }
+      ],
+      "lever": {
+        "k": "sleep",
+        "receipt": "sleep reset — 0 of 3 clean nights",
+        "fix": "3 more nights at 9 h or better, back to back",
+        "cost": 30
+      },
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "sleep reset — 0 of 3 clean nights"
+      ]
+    },
+    "fix": {
+      "rung": "sleep",
+      "lever": "SLEEP",
+      "state": "caution",
+      "title": "Protect tonight's sleep",
+      "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the deficit.",
+      "whyNot": "On short sleep a deeper cut spends muscle; a full night keeps the loss coming off fat. Sleep is the lever tonight, not food."
+    },
+    "move": {
+      "kind": "fix",
+      "lever": "SLEEP",
+      "title": "PROTECT TONIGHT'S SLEEP",
+      "body": "Short sleep pushes more of the loss onto lean mass instead of fat (Nedeltcheva 2010), so a good night is worth more than a smaller plate right now. Guard lights-out before you touch the calorie cut."
+    }
+  },
+  {
+    "kind": "real0",
+    "observedHours": 0,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "real2",
+    "observedHours": 2,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "flags": [
+        {
+          "k": "sleep",
+          "receipt": "observed short night or three-night sleep debt",
+          "fix": "record your sleep target to compare nights with it; the observed debt still counts",
+          "cost": null
+        }
+      ],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": [
+        "observed short night or three-night sleep debt"
+      ]
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Recorded recovery warnings",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Recorded recovery warnings sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "RECORDED RECOVERY WARNINGS",
+      "body": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+    },
+    "instruction": "RECORDED RECOVERY WARNINGS",
+    "why": "sleep target not recorded. Recovery rating unavailable. observed short night or three-night sleep debt. record your sleep target to compare nights with it; the observed debt still counts"
+  },
+  {
+    "kind": "real8",
+    "observedHours": 8,
+    "recovery": {
+      "score": 100,
+      "band": "GREEN",
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "sleep target not recorded.",
+      "whyNot": null,
+      "recoveryNote": "sleep target not recorded."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable sleep target not recorded.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "sleep target not recorded."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "sleep target not recorded."
+  },
+  {
+    "kind": "missing",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  },
+  {
+    "kind": "null",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  },
+  {
+    "kind": "string",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  },
+  {
+    "kind": "NaN",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  },
+  {
+    "kind": "Infinity",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  },
+  {
+    "kind": "stale",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  },
+  {
+    "kind": "future",
+    "observedHours": null,
+    "recovery": {
+      "score": null,
+      "band": "UNKNOWN",
+      "sleepEvidence": {
+        "state": "UNKNOWN",
+        "expectedDate": "2030-02-03",
+        "lastDate": "2030-02-03"
+      },
+      "flags": [],
+      "lever": null,
+      "watched": 7,
+      "excludedDips": 0,
+      "factors": []
+    },
+    "fix": {
+      "rung": "hold",
+      "lever": null,
+      "state": "quiet",
+      "title": "Sleep comparison unavailable",
+      "body": "current sleep not recorded. Recovery rating unavailable.",
+      "whyNot": null,
+      "recoveryNote": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "march": {
+      "owed": false,
+      "kind": "day",
+      "ifText": "If it's a meal",
+      "thenText": "protein first",
+      "why": "Sleep comparison unavailable current sleep not recorded. Recovery rating unavailable.",
+      "targetLine": "Today: 2262–2360 kcal · 155 g protein",
+      "link": {
+        "key": "now.capture2",
+        "id": "pl-closeday"
+      },
+      "more": [],
+      "foresight": null
+    },
+    "move": {
+      "kind": "quiet",
+      "title": "SLEEP COMPARISON UNAVAILABLE",
+      "body": "current sleep not recorded. Recovery rating unavailable."
+    },
+    "instruction": "SLEEP COMPARISON UNAVAILABLE",
+    "why": "current sleep not recorded. Recovery rating unavailable."
+  }
+]
