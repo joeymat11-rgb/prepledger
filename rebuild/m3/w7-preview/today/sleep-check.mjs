@@ -278,6 +278,11 @@ try {
   await reachable(page, "sleep at 390");
   await boxesAreLargeEnough(page, "sleep at 390");
   await noDashes(page, "sleep at 390");
+  await page.click('#phone [data-slot="sleep-awake-toggle"]');
+  const awakeBoxes = await boxesAreLargeEnough(page, 'time-awake disclosure at 390');
+  assert(awakeBoxes.some(box => box.id === 'sleep-awake'));
+  await reachable(page, 'time-awake disclosure at 390');
+  await page.click('#phone [data-slot="sleep-awake-toggle"]');
   await page.evaluate(() => { document.getElementById('sleep-bed').style.fontSize = '8px'; });
   await assert.rejects(() => boxesAreLargeEnough(page, 'negative undersized input'), /renders at 8px/);
   await page.evaluate(() => { document.getElementById('sleep-bed').style.fontSize = ''; });
@@ -369,6 +374,8 @@ try {
   await page.waitForSelector('#phone [data-action="sleep-mode-hours"]:not([hidden])');
   await page.click('#phone [data-action="sleep-mode-hours"]');
   await page.waitForSelector('#phone #sleep-hours');
+  const hoursBoxes = await boxesAreLargeEnough(page, 'hours entry at 390');
+  assert(hoursBoxes.some(box => box.id === 'sleep-hours'));
   await typeHours(page, "5.5");
   await tapSave(page);
   await page.waitForFunction(() => {
@@ -567,6 +574,14 @@ try {
   }
   assert(focused.has('sleep-bed') && focused.has('sleep-wake') && focused.has('sleep-save'));
   notes.push('Tab reaches bed, wake and Save at 375px with doubled text');
+  await page.click('#phone [data-slot="sleep-awake-toggle"]');
+  const enlargedAwake = await boxesAreLargeEnough(page, 'time-awake disclosure with doubled text');
+  assert(enlargedAwake.some(box => box.id === 'sleep-awake') && enlargedAwake.every(box => box.size >= 32));
+  await reachable(page, 'time-awake disclosure with doubled text');
+  await page.click('#phone [data-slot="sleep-mode-hours"]');
+  const enlargedHours = await boxesAreLargeEnough(page, 'hours entry with doubled text');
+  assert(enlargedHours.some(box => box.id === 'sleep-hours') && enlargedHours.every(box => box.size >= 32));
+  await reachable(page, 'hours entry with doubled text');
 
   // An existing public entry on the next day advances the one installation clock.
   // It uses a detached document so the original page and its typed draft stay open.
