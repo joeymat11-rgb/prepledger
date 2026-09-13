@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 05:14 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 06:25 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | B1+B2 runtime/tooling and finite successor registration; B4+B3 next; sole gate operator | earned-astra-b-follow-up; hourly building,20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | N2 R4 draft PR54; preserve head through D2 final report, then scoped producer date repair; actual CI with B | earned-astra-c-follow-up; hourly building,20 minutes waiting |
-| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core/provider/portable harness28-file construction under230; companion/F1/F2 downstream admission held | earned-lane-d-hourly; hourly building,20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Final N2 R4 independent review, new completed-night producer finding; later C consumers/memory | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Waiting for exact complete B1+B2 candidate/profile; reserved later D S3 core/provider review, no repeated issuer review | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | S3 six-family registry complete, implementation feedback only; memory design accepted, consent/pin dependencies pending | earned-astra-e-follow-up; hourly design,20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold independently accepted N2 bfc2935; B exact combined CI/admission next, then scoped consumers | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 core/provider candidateebc4c4e with independent MAX reviewer; address bounded findings, B/C downstream custody retained | earned-lane-d-hourly; hourly building,20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | N2 scoped review complete98eeb183; reserved affected combined-head review when PM names B ready head | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | Independent S3 core/provider review under230 active; B1+B2 priority when complete candidate/profile commissioned | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | S3 registry complete; C/B memory inputs incorporated at239ca308, waiting on PM exact coordinated G2 contract/custody | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
 ## Worktrees
