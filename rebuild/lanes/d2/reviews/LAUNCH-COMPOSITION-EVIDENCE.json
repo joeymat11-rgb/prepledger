@@ -500,6 +500,11 @@
       "historicalPublicInputs": 7,
       "uniquePublicBlobs": 14,
       "fetchRemoteRemaining": false
+    },
+    "publishedReport": {
+      "commit": "4d129e0a151c091b6cf641400d70401ed7145728",
+      "file": "rebuild/lanes/b/LAUNCH-H3-GATE-AF4ED1F.md",
+      "reconciliation": "Read after final independent review publication; confirms previously attributed terminal/count/checkout evidence. No verdict change or rerun."
     }
   },
   "independentlyVerifiedPrMetadata": [
