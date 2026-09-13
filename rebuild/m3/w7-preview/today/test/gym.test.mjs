@@ -34,6 +34,7 @@ import TodayApp from '../today-app.cjs';
 import TodayModel from '../today-model.cjs';
 import design from '../design.cjs';
 import EditValues from '../../../../m4/workout/edit-values.cjs';
+import { newGymDraft } from '../gym-app.mjs';
 
 const { createTodayModel, SYNTHETIC_DAY } = TodayModel;
 const DAY = SYNTHETIC_DAY;
@@ -253,6 +254,172 @@ test('A2 — the gym card journey, on the real stack', async t => {
     assert.equal(prepared.code, 'WORKOUT_PREPARATION_INVALID');
     reopened.close();
   });
+});
+
+// PM266: pause real client calls, not a substitute model, at the submission seam.
+const lifecycleGate = () => {
+  let release, entered;
+  return { promise: new Promise(resolve => { release = resolve; }),
+    reached: new Promise(resolve => { entered = resolve; }),
+    release: () => release(), enter: () => entered() };
+};
+function observedModel(kit, overrides, hostForDay) {
+  return createGymModel({ gymHost: { ...kit.gymHost,
+    host: { ...kit.gymHost.host, client: { ...kit.gymHost.host.client, ...overrides } } }, hostForDay });
+}
+
+test('MEM266 model read is observable before its first await and releases after failure', async () => {
+  const kit = await device(), gate = lifecycleGate();
+  const model = observedModel(kit, { readWorkoutHistory: async () => {
+    gate.enter(); await gate.promise; throw new Error('SYNTHETIC_HISTORY_UNAVAILABLE');
+  } });
+  const old = model.lifecycleState(), read = model.read();
+  assert.equal(model.lifecycleState().reads, 1);
+  assert(model.lifecycleState().epoch > old.epoch);
+  assert.equal(old.reads, 0, 'a saved snapshot cannot change under its caller');
+  assert(Object.isFrozen(old) && Object.isFrozen(old.counts) && Object.isFrozen(old.unresolved));
+  await gate.reached; gate.release();
+  await assert.rejects(read, /SYNTHETIC_HISTORY_UNAVAILABLE/);
+  assert.equal(model.lifecycleState().reads, 0);
+  assert.equal(model.lifecycleState().uncertain, false, 'a refused read is not a guessed unknown write');
+  assert.deepEqual(await opsOf(kit.gymHost.repository), []);
+  kit.gymHost.close();
+});
+
+for (const kind of ['start', 'logSet', 'undo', 'finish', 'closeUnfinished']) {
+  test('MEM266 ' + kind + ' remains submitted across an actual client await', async () => {
+    const kit = await device(), gate = lifecycleGate();
+    if (kind !== 'start') assert((await kit.model.start()).ok);
+    let view = await kit.model.read(), opId;
+    if (kind === 'undo') { const logged = await logCurrent(kit.model, view, CHOSEN); assert(logged.ok); opId = logged.opId; }
+    const method = kind === 'start' ? 'startPreparedWorkout'
+      : kind === 'undo' ? 'prepareWorkoutEdit' : 'prepareWorkoutContinuation';
+    const original = kit.gymHost.host.client[method];
+    const overrides = { [method]: async input => { gate.enter(); await gate.promise; return original(input); } };
+    const other = { ...kit.gymHost, host: { ...kit.gymHost.host, client: { ...kit.gymHost.host.client, ...overrides } }, close() {} };
+    const model = observedModel(kit, overrides, async () => other);
+    if (kind === 'start') await model.read();
+    const before = await opsOf(kit.gymHost.repository);
+    const input = kind === 'logSet' ? { startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: String(view.entry.load), reps: String(view.entry.reps), effort: CHOSEN }
+      : { startId: view.startId, opId, day: DAY };
+    const pending = model[kind](input);
+    assert.equal(model.lifecycleState().counts[kind], 1, 'synchronous submission fence');
+    await gate.reached;
+    assert.equal(model.lifecycleState().actions, 1);
+    assert.deepEqual(await opsOf(kit.gymHost.repository), before, 'pause has not written');
+    gate.release();
+    const result = await pending;
+    // A normal close of an incomplete session is still the existing refusal.
+    if (kind !== 'finish') assert(result.ok, result.code);
+    assert.equal(model.lifecycleState().actions, 0);
+    assert.equal(model.lifecycleState().uncertain, false);
+    const after = await opsOf(kit.gymHost.repository);
+    for (const op of before) assert.deepEqual(after.find(x => x.op_id === op.op_id), op);
+    kit.gymHost.close();
+  });
+}
+
+for (const kind of ['start', 'logSet', 'undo', 'finish', 'closeUnfinished']) {
+  test('MEM266 raw unknown ' + kind + ' preserves its exact handle after finally and later reads', async () => {
+    const kit = await device();
+    if (kind !== 'start') assert((await kit.model.start()).ok);
+    const view = await kit.model.read();
+    let opId;
+    if (kind === 'undo') { const logged = await logCurrent(kit.model, view, CHOSEN); assert(logged.ok); opId = logged.opId; }
+    const method = kind === 'start' ? 'startPreparedWorkout' : kind === 'undo' ? 'commitWorkoutEdit' : 'executeResumedWorkout';
+    const key = kind === 'start' ? 'preparedId' : kind === 'undo' ? 'editId' : 'resumeId';
+    let attempted;
+    const overrides = { [method]: async input => { attempted = input[key];
+      return { acknowledged: false, outcomeUnknown: true, code: 'SYNTHETIC_UNKNOWN', copy: 'Not confirmed.' }; } };
+    const other = { ...kit.gymHost, host: { ...kit.gymHost.host, client: { ...kit.gymHost.host.client, ...overrides } }, close() {} };
+    const model = observedModel(kit, overrides, async () => other);
+    if (kind === 'start') await model.read();
+    const before = await opsOf(kit.gymHost.repository);
+    const result = await model[kind](kind === 'logSet' ? { startId: view.startId, slot: view.set.slot, lift: view.set.lift,
+      load: '40', reps: '12', effort: CHOSEN } : { startId: view.startId, opId, day: DAY });
+    assert.equal(result.ok, false); assert.equal(result.outcomeUnknown, undefined, 'display result stays unchanged');
+    const state = model.lifecycleState();
+    assert.equal(state.actions, 0); assert.equal(state.uncertain, true);
+    assert.equal(state.unresolved[0].handleId, attempted);
+    assert.equal(state.unresolved[0].handleKind, key);
+    assert.equal(state.unresolved[0].action, kind);
+    assert(Object.isFrozen(state.unresolved[0]));
+    await model.read(); model.forget();
+    assert.equal(model.lifecycleState().uncertain, true, 'a later readable view does not reconcile an attempt');
+    assert.deepEqual(await opsOf(kit.gymHost.repository), before);
+    kit.gymHost.close();
+  });
+}
+
+test('MEM266 known abort preserves original operations without manufacturing uncertainty', async () => {
+  const kit = await device();
+  const model = observedModel(kit, { startPreparedWorkout: async () => ({ acknowledged: false, code: 'TRANSACTION_ABORTED' }) });
+  await model.read();
+  const before = await opsOf(kit.gymHost.repository);
+  assert.equal((await model.start()).code, 'TRANSACTION_ABORTED');
+  assert.equal(model.lifecycleState().uncertain, false);
+  assert.equal(model.lifecycleState().actions, 0);
+  assert.deepEqual(await opsOf(kit.gymHost.repository), before);
+  kit.gymHost.close();
+});
+
+test('MEM266 stored but unacknowledged raw outcome stays observed even without an unknown flag', async () => {
+  const kit = await device(); let attempted;
+  const model = observedModel(kit, { startPreparedWorkout: async ({ preparedId }) => {
+    attempted = preparedId; return { acknowledged: false, stored: true, durable: true, committed: true, code: 'SYNTHETIC_LATE_REFUSAL' };
+  } });
+  await model.read(); assert.equal((await model.start()).code, 'SYNTHETIC_LATE_REFUSAL');
+  const state = model.lifecycleState();
+  assert.equal(state.uncertain, true); assert.equal(state.unresolved[0].outcomeUnknown, false);
+  assert.equal(state.unresolved[0].stored, true); assert.equal(state.unresolved[0].handleId, attempted);
+  assert.deepEqual(await opsOf(kit.gymHost.repository), [], 'synthetic observation is not a new writer');
+  kit.gymHost.close();
+});
+
+test('MEM266 a different-draft mount takes the actual screen from an older pending paint', async () => {
+  const kit = await device(); assert((await kit.model.start()).ok);
+  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()));
+  const doc = dom.window.document, phone = doc.getElementById('phone'), gate = lifecycleGate();
+  const delayed = { ...kit.model, read: async () => { gate.enter(); await gate.promise; return kit.model.read(); } };
+  const first = mountGym(doc, phone, { model: delayed, draft: newGymDraft(), onBack() {} });
+  await gate.reached;
+  const epoch = first.refreshState().epoch;
+  const second = mountGym(doc, phone, { model: kit.model, draft: newGymDraft(), onBack() {} }); await second;
+  const screen = phone.firstElementChild;
+  assert.equal(first.refreshState().owns, false); assert(first.refreshState().epoch > epoch);
+  assert.equal(first.refreshState().counts.read, 1);
+  gate.release(); await first;
+  assert.equal(first.refreshState().counts.read, 0); assert.equal(first.refreshState().counts.paint, 0);
+  assert.equal(phone.firstElementChild, screen);
+  kit.gymHost.close(); dom.window.close();
+});
+
+test('MEM266 a departed log completion cannot erase the same draft owned by a new mount', async () => {
+  const kit = await device(); assert((await kit.model.start()).ok);
+  const dom = new JSDOM(design.shellHtml().replace('<!-- APPROVED_TEMPLATES -->', design.templateHtml()));
+  const doc = dom.window.document, phone = doc.getElementById('phone'), draft = newGymDraft(), gate = lifecycleGate();
+  const delayed = { ...kit.model, logSet: async input => { gate.enter(); await gate.promise; return kit.model.logSet(input); } };
+  const first = mountGym(doc, phone, { model: delayed, draft, onBack() {} }); await first;
+  const click = selector => phone.querySelector(selector).dispatchEvent(new dom.window.Event('click'));
+  click('[data-slot="choices"] button'); click('[data-slot="log"]'); await gate.reached;
+  assert.equal(first.refreshState().counts.busy, 1);
+  click('[data-action="back"]');
+  const second = mountGym(doc, phone, { model: kit.model, draft, onBack() {} }); await second;
+  for (const selector of ['#gym-weight', '#gym-reps']) {
+    const input = phone.querySelector(selector); input.value = ''; input.dispatchEvent(new dom.window.Event('input'));
+  }
+  const heldEntry = draft.entry, heldEffort = draft.effort, screen = phone.firstElementChild;
+  assert.equal(second.refreshState().draft, true, 'intentional empty strings remain a draft');
+  gate.release();
+  for (let i = 0; i < 200 && first.refreshState().counts.busy; i++) await new Promise(resolve => setTimeout(resolve, 1));
+  assert.equal(first.refreshState().owns, false); assert.equal(first.refreshState().counts.busy, 0);
+  assert.equal(phone.firstElementChild, screen);
+  assert.equal(draft.entry, heldEntry); assert.equal(draft.effort, heldEffort);
+  assert.equal(draft.entry.load, ''); assert.equal(draft.entry.reps, '');
+  const third = mountGym(doc, phone, { model: delayed, draft, onBack() {} }); await third;
+  assert.equal(second.refreshState().owns, false, 'same-draft replacement invalidates even a mount without navigation');
+  kit.gymHost.close(); dom.window.close();
 });
 
 test('A2 — resume, relaunch and a process kill', async t => {

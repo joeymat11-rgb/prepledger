@@ -84,6 +84,7 @@ async function card(kit, options = {}) {
   const phone = doc.getElementById('phone');
   await kit.model.start();
   const mounted = mountGym(doc, phone, { model: kit.model, onBack: () => {},
+    draft: options.draft,
     settings: Object.hasOwn(options, 'settings') ? options.settings : kit.settings });
   await mounted;
   /* D2 round 1, finding 1 - the card is on the screen BEFORE the settings read has
@@ -166,6 +167,109 @@ test('S1 - with nothing stored the active set says so, in the brief\'s own sente
   assert.match(blockText(page), /No settings saved yet\./);
   assert.equal(SETTINGS_NONE, 'No settings saved yet.', 'the brief names this sentence verbatim');
   kit.settings.close(); kit.gymHost.close();
+});
+
+test('MEM266 remount retains the same entry, effort, editor and failed-save error until explicit resolution', async () => {
+  const kit = await device(), draft = GymApp.newGymDraft();
+  const failedLane = { latest: (...args) => kit.settings.latest(...args), save: async () => ({ ok: false }) };
+  let page = await card(kit, { draft, settings: failedLane });
+  const epoch = page.mounted.refreshState().epoch;
+  for (const selector of ['#gym-weight', '#gym-reps']) {
+    const input = page.doc.querySelector(selector); input.value = ''; input.dispatchEvent(new page.dom.window.Event('input'));
+  }
+  page.click('[data-slot="choices"] button');
+  const entry = draft.entry, effort = draft.effort;
+  await page.open(); page.type(0, 'Seat', 'four'); page.cue('');
+  const editor = draft.settingsEditor.draft;
+  await page.save();
+  assert.equal(draft.settingsEditor.draft, editor);
+  assert.equal(draft.settingsEditor.error, SETTINGS_NOT_SAVED);
+  assert(page.mounted.refreshState().epoch > epoch);
+  assert.equal(page.mounted.refreshState().counts.settingsSaving, 0);
+  assert(page.mounted.settings.pending(), 'settled promise remains compatible with existing callers');
+  const first = page;
+  page = await card(kit, { draft });
+  assert.equal(first.mounted.refreshState().owns, false);
+  assert.equal(draft.entry, entry); assert.equal(draft.effort, effort);
+  assert.equal(page.doc.querySelector('#gym-weight').value, '');
+  assert.equal(page.doc.querySelector('#gym-reps').value, '');
+  assert.equal(draft.settingsEditor.draft, editor);
+  assert.equal(page.pick('settings-error').textContent, SETTINGS_NOT_SAVED);
+  assert.equal(page.rowCount(), 1); assert.equal(page.doc.querySelector('[data-settings-value="0"]').value, 'four');
+  assert.equal(page.mounted.refreshState().editor, true);
+  const before = await settingsOps(kit.settings.repository);
+  page.click('[data-action="settings-cancel"]'); await settle();
+  assert.equal(draft.settingsEditor.draft, null); assert.equal(draft.settingsEditor.error, null);
+  assert.deepEqual(await settingsOps(kit.settings.repository), before, 'Cancel is not a save');
+  await page.open(); page.type(0, 'Seat', 'five');
+  await page.save();
+  assert.equal(draft.settingsEditor.draft, null); assert.equal(draft.settingsEditor.lift, null);
+  assert.equal(page.mounted.refreshState().editor, false);
+  assert.equal((await settingsOps(kit.settings.repository)).length, before.length + 1);
+  assert.deepEqual(pairs(page), [['Seat', 'five']]);
+  kit.settings.close(); kit.gymHost.close(); first.dom.window.close(); page.dom.window.close();
+});
+
+for (const succeeds of [false, true]) {
+  test('MEM266 departed settings ' + (succeeds ? 'success' : 'failure') + ' cannot replace a newer editor draft or screen', async () => {
+    const kit = await device(), draft = GymApp.newGymDraft();
+    let release, entered;
+    const gate = new Promise(resolve => { release = resolve; });
+    const reached = new Promise(resolve => { entered = resolve; });
+    const page = await card(kit, { draft, settings: {
+      latest: (...args) => kit.settings.latest(...args),
+      save: async machine => { entered(); await gate; return succeeds ? kit.settings.save(machine) : { ok: false }; },
+    } });
+    await page.open(); page.type(0, 'Seat', 'four');
+    page.click('[data-slot="settings-save"]'); await reached;
+    assert.equal(page.mounted.refreshState().counts.settingsSaving, 1);
+    page.click('[data-action="back"]');
+    const next = await card(kit, { draft });
+    next.type(0, 'Seat', 'six'); next.cue('New draft');
+    const current = draft.settingsEditor.draft, screen = next.phone.firstElementChild;
+    release(); await page.mounted.settings.pending();
+    assert.equal(page.mounted.refreshState().counts.settingsSaving, 0);
+    assert.equal(draft.settingsEditor.draft, current);
+    assert.equal(current.rows[0].value, 'six'); assert.equal(current.cues, 'New draft');
+    assert.equal(draft.settingsEditor.error, null, 'old failure cannot annotate a newer answer');
+    assert.equal(next.phone.firstElementChild, screen);
+    assert.equal((await settingsOps(kit.settings.repository)).length, succeeds ? 1 : 0);
+    kit.settings.close(); kit.gymHost.close(); page.dom.window.close(); next.dom.window.close();
+  });
+}
+
+test('MEM266 pending optional read and settled read/open promises report actual activity', async () => {
+  const kit = await device(), draft = GymApp.newGymDraft();
+  await kit.model.start();
+  const dom = new JSDOM(shell()), doc = dom.window.document;
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const mounted = mountGym(doc, doc.getElementById('phone'), { model: kit.model, draft, onBack() {},
+    settings: { latest: () => gate, save: (...args) => kit.settings.save(...args) } });
+  assert.equal(mounted.refreshState().counts.paint, 1);
+  assert.equal(mounted.refreshState().counts.read, 1);
+  await mounted;
+  assert.equal(mounted.refreshState().counts.paint, 0);
+  assert.equal(mounted.refreshState().counts.read, 0);
+  assert.equal(mounted.refreshState().counts.settingsReading, 1);
+  assert(doc.querySelector('[data-slot="log"]'), 'optional read does not gate logging');
+  release(null); await mounted.settings.read();
+  assert.equal(mounted.refreshState().counts.settingsReading, 0);
+  assert(mounted.settings.read(), 'settled read reference stays available');
+  const snapshot = mounted.refreshState();
+  assert(Object.isFrozen(snapshot) && Object.isFrozen(snapshot.counts));
+  doc.querySelector('[data-action="back"]').dispatchEvent(new dom.window.Event('click'));
+  assert.equal(mounted.refreshState().owns, false); assert.equal(snapshot.owns, true);
+  Object.defineProperty(dom.window, 'indexedDB', { value: kit.fault.indexedDB });
+  Object.defineProperty(dom.window, 'crypto', { value: webcrypto });
+  const opening = mountGym(doc, doc.getElementById('phone'), { model: kit.model, draft, onBack() {} });
+  await opening;
+  await opening.settings.ready();
+  if (opening.settings.read()) await opening.settings.read();
+  assert(opening.settings.ready()); assert(opening.settings.lane());
+  assert.equal(opening.refreshState().counts.settingsOpening, 0);
+  assert.equal(opening.refreshState().counts.settingsReading, 0);
+  opening.settings.lane().close(); kit.settings.close(); kit.gymHost.close(); dom.window.close();
 });
 
 test('S1 - the empty block carries NO figure and no dash of any kind', async () => {

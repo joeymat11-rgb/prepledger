@@ -94,6 +94,41 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
   let preparedId = null;       // a live preparation handle, held only until Start
   let previousByLift = new Map();
 
+  // Observation only: these counters never authorize a host replacement or alter
+  // the client's preparation/retry protocol. A settled unknown write stays unknown.
+  let lifecycleEpoch = 0;
+  const inFlight = { read: 0, start: 0, logSet: 0, undo: 0, finish: 0, closeUnfinished: 0 };
+  const unresolved = [];
+  async function submitted(kind, action) {
+    inFlight[kind] += 1; lifecycleEpoch += 1;
+    try { return await action(); }
+    finally { inFlight[kind] -= 1; lifecycleEpoch += 1; }
+  }
+  function observe(result, attempt) {
+    if (result && (result.outcomeUnknown === true || (result.acknowledged !== true
+      && (result.committed === true || result.stored === true || result.durable === true)))) {
+      unresolved.push(Object.freeze({ ...attempt, code: result.code || null,
+        outcomeUnknown: result.outcomeUnknown === true, committed: result.committed === true,
+        stored: result.stored === true, durable: result.durable === true }));
+      lifecycleEpoch += 1;
+    }
+    return result;
+  }
+  async function writeOutcome(owner, method, input, attempt) {
+    try { return observe(await owner[method](input), attempt); }
+    catch (error) {
+      if (!['TRANSACTION_ABORTED', 'TRANSACTION_WRITE_FAILED'].includes(error?.code))
+        observe({ outcomeUnknown: true, code: error?.code || null }, attempt);
+      throw error;
+    }
+  }
+  function lifecycleState() {
+    const counts = Object.freeze({ ...inFlight });
+    return Object.freeze({ epoch: lifecycleEpoch, counts,
+      reads: counts.read, actions: Object.entries(counts).filter(([kind]) => kind !== 'read').reduce((n, [, count]) => n + count, 0),
+      uncertain: unresolved.length > 0, unresolved: Object.freeze(unresolved.slice()) });
+  }
+
   /* A refusal, in the LAYER'S own words. The durable client contains whatever the
      producer threw and answers with its own WORKOUT_PREPARATION_INVALID, so when
      that is the answer the host's recorded producer refusal is reported beside it —
@@ -311,7 +346,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
       sameLift: next.lift_lineage_id === current.lift_lineage_id };
   }
 
-  async function read() {
+  function read() { return submitted('read', readView); }
+  async function readView() {
     const told = message; message = null;
     const base = { day, title: sessionTitle || null, message: told, saved: null };
     const listed = await history();
@@ -388,7 +424,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
 
   /* ---------------- the actions ---------------- */
 
-  async function start() {
+  function start() { return submitted('start', startWorkout); }
+  async function startWorkout() {
     if (!preparedId) { const view = await read(); if (view.phase !== 'ready') return { ok: false, code: view.code || 'WORKOUT_NOT_READY', copy: view.copy || null }; }
     /* Re-run the guard immediately before the write, against the generation the
        write will land on. A Start that cannot be ordered is refused here and
@@ -396,7 +433,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
        afterwards, so it must never reach the log. */
     const unorderable = await orderRefusal();
     if (unorderable) { preparedId = null; message = unorderable; return { ok: false, ...unorderable }; }
-    const result = await client.startPreparedWorkout({ preparedId });
+    const result = await writeOutcome(client, 'startPreparedWorkout', { preparedId },
+      { action: 'start', handleKind: 'preparedId', handleId: preparedId });
     preparedId = null;
     if (result.acknowledged !== true) return remember(result);
     saved = null;
@@ -409,7 +447,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
      direction forbids a preselected one, so the athlete states it, including
      "Unsure", which stores the accepted tag "unknown"). Everything else is the
      accepted layer's to accept or refuse, in its own words. */
-  async function logSet({ startId, slot, lift, load, reps, effort } = {}) {
+  function logSet(input) { return submitted('logSet', () => recordSet(input)); }
+  async function recordSet({ startId, slot, lift, load, reps, effort } = {}) {
     if (load === '' || load === null || load === undefined || reps === '' || reps === null || reps === undefined) {
       message = { code: null, copy: ENTER_PERFORMED };
       return { ok: false, code: null, copy: ENTER_PERFORMED };
@@ -417,10 +456,10 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
     if (!effort) { message = { code: null, copy: CHOOSE_EFFORT }; return { ok: false, code: null, copy: CHOOSE_EFFORT }; }
     const handle = await client.prepareWorkoutContinuation({ session_start_op_id: startId });
     if (!handle.prepared) return remember(handle);
-    const result = await client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'set', input: {
+    const result = await writeOutcome(client, 'executeResumedWorkout', { resumeId: handle.resumeId, action: 'set', input: {
       session_start_op_id: startId, logical_set_slot: slot, lift_lineage_id: lift,
       load: { value: Number(load), unit: 'lb' }, reps: { value: Number(reps), unit: 'rep' },
-      reserve: clone(effort) } });
+      reserve: clone(effort) } }, { action: 'logSet', handleKind: 'resumeId', handleId: handle.resumeId, startId });
     if (result.acknowledged !== true) return remember(result);
     saved = { startId, opId: result.op_id };
     return { ok: true, opId: result.op_id };
@@ -433,24 +472,28 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
      engine's next reading of this session does not see it. The set operation
      itself and the removal that retired it both stay on disk, which is what an
      honest history is. */
-  async function undo({ startId, opId } = {}) {
+  function undo(input) { return submitted('undo', () => removeSet(input)); }
+  async function removeSet({ startId, opId } = {}) {
     const prepared = await client.prepareWorkoutEdit({ target_op_id: opId });
     if (!prepared.prepared) return remember(prepared);
-    const result = await client.commitWorkoutEdit({ editId: prepared.editId, action: 'remove', change: UNDO_REASON });
+    const result = await writeOutcome(client, 'commitWorkoutEdit', { editId: prepared.editId, action: 'remove', change: UNDO_REASON },
+      { action: 'undo', handleKind: 'editId', handleId: prepared.editId, startId, opId });
     if (result.acknowledged !== true) return remember(result);
     if (saved && saved.opId === opId) saved = null;
     void startId;
     return { ok: true, opId: result.op_id };
   }
 
-  function forget() { saved = null; }
+  function forget() { saved = null; lifecycleEpoch += 1; }
 
-  async function finish({ startId } = {}) {
+  function finish(input) { return submitted('finish', () => finishWorkout(input)); }
+  async function finishWorkout({ startId } = {}) {
     const handle = await client.prepareWorkoutContinuation({ session_start_op_id: startId });
     if (!handle.prepared) return remember(handle);
     const parents = [startId, ...handle.view.slots.filter(s => s.completion).map(s => s.completion.op_id)];
-    const result = await client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'close', input: {
-      session_start_op_id: startId, completion_kind: 'normal', causal_parents: [...new Set(parents)] } });
+    const result = await writeOutcome(client, 'executeResumedWorkout', { resumeId: handle.resumeId, action: 'close', input: {
+      session_start_op_id: startId, completion_kind: 'normal', causal_parents: [...new Set(parents)] } },
+      { action: 'finish', handleKind: 'resumeId', handleId: handle.resumeId, startId });
     if (result.acknowledged !== true) return remember(result);
     saved = null;
     return { ok: true, opId: result.op_id };
@@ -464,7 +507,8 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
      layer's: the continuation, the close command, the causal parents taken from
      the slots that were actually recorded. Nothing is deleted, and the sets that
      were done stay exactly as they were logged. */
-  async function closeUnfinished({ startId, day: sessionDay } = {}) {
+  function closeUnfinished(input) { return submitted('closeUnfinished', () => closeEarlierWorkout(input)); }
+  async function closeEarlierWorkout({ startId, day: sessionDay } = {}) {
     if (typeof startId !== 'string' || !startId.trim() || typeof sessionDay !== 'string' || !sessionDay.trim())
       return { ok: false, code: 'WORKOUT_RECOVERY_TARGET_REQUIRED', copy: null };
     if (typeof hostForDay !== 'function') {
@@ -476,9 +520,10 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
       const handle = await other.host.client.prepareWorkoutContinuation({ session_start_op_id: startId });
       if (!handle.prepared) return remember(handle);
       const parents = [startId, ...handle.view.slots.filter(s => s.completion).map(s => s.completion.op_id)];
-      const result = await other.host.client.executeResumedWorkout({ resumeId: handle.resumeId, action: 'close',
+      const result = await writeOutcome(other.host.client, 'executeResumedWorkout', { resumeId: handle.resumeId, action: 'close',
         input: { session_start_op_id: startId, completion_kind: 'early',
-          causal_parents: [...new Set(parents)] } });
+          causal_parents: [...new Set(parents)] } },
+        { action: 'closeUnfinished', handleKind: 'resumeId', handleId: handle.resumeId, startId, day: sessionDay });
       if (result.acknowledged !== true) return remember(result);
       return { ok: true, opId: result.op_id };
     } finally {
@@ -486,7 +531,7 @@ export function createGymModel({ gymHost, sessionTitle, hostForDay } = {}) {
     }
   }
 
-  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished,
+  return Object.freeze({ read, start, logSet, undo, finish, forget, closeUnfinished, lifecycleState,
     effortChoices: () => EFFORT_CHOICES.map(choice => ({ label: choice.label, reserve: choice.reserve })),
     previous: () => previousByLift, day });
 }
