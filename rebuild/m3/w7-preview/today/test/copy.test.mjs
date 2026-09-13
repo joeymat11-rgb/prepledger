@@ -261,6 +261,37 @@ test('A1 the built bundle EVALUATES with no Node globals, as a browser must run 
   dom.window.close();
 });
 
+test('Launch guard scans the emitted prelude and otherwise unattributed JavaScript assets', async () => {
+  const vm = await import('node:vm');
+  const result = await buildToday();
+  const bundle = fs.readFileSync(path.join(result.dist, 'app.js'), 'utf8');
+  const baseline = assertNoNodeOnlyGlobals([['app.js', bundle]]);
+  const clauses = bundle.match(/^export \{[\s\S]*?\};\s*$/m) || [];
+  assert.equal(clauses.length, 1, 'one trailing export clause in the actual emitted bundle');
+  const script = bundle.replace(clauses[0], '');
+  const prefix = 'var launchUnattributed = __dirname;\n';
+  assert.throws(() => new vm.Script(prefix + script).runInNewContext({}, { timeout: 20000 }),
+    error => error.name === 'ReferenceError' && /__dirname is not defined/.test(error.message),
+    'this actual emitted-bundle prefix crashes before any module body can run');
+  assert.throws(() => assertNoNodeOnlyGlobals([['app.js', prefix + bundle]]),
+    /NODE-GLOBAL-IN-BUNDLE FAIL: <unattributed> reads __dirname/,
+    'code before the first banner must not fall outside the guard');
+  for (const code of ['var x = __filename;', 'var x = require("missing");']) {
+    assert.throws(() => assertNoNodeOnlyGlobals([['app.js', code + '\n' + bundle]]),
+      /NODE-GLOBAL-IN-BUNDLE FAIL: <unattributed>/, code);
+  }
+  for (const code of [prefix, 'var x = __filename;', 'var x = require("missing");']) {
+    assert.throws(() => assertNoNodeOnlyGlobals([['app.js', bundle], ['extra.js', code]]),
+      /NODE-GLOBAL-IN-BUNDLE FAIL: <unattributed>/,
+      'attribution in one asset cannot hide an unsafe unattributed second asset');
+  }
+  const safe = 'var x = typeof __dirname === "string" ? __dirname : "browser";\n';
+  const admitted = assertNoNodeOnlyGlobals([['app.js', safe + bundle], ['extra.js', safe]]);
+  assert.equal(admitted.offences.length, 0, 'safe generated prelude and extra script remain allowed');
+  assert.equal(admitted.scannedModules, baseline.scannedModules,
+    'unattributed text must not inflate the owned-module attribution floor');
+});
+
 test('Launch guard refuses missing attribution and unsafe guarded browser reads', async () => {
   // Synthetic module banners exercise attribution separately from the real bundle.
   // A typeof check is safe only when its true branch cannot execute in a browser.

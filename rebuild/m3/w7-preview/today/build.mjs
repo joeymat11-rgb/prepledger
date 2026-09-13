@@ -200,14 +200,15 @@ export function assertNoNodeOnlyGlobals(assets) {
   for (const [name, bytes] of assets) {
     if (!name.endsWith(".js")) continue;
     const text = typeof bytes === "string" ? bytes : bytes.toString("utf8");
-    /* ONLY THE MODULES THIS REPOSITORY WROTE. esbuild's `// <path>` banner says who
-       each stretch of the bundle came from, exactly as the dash guard uses it. A
+    /* esbuild's `// <path>` banner says who each module came from. Text before the
+       first banner, or in an asset with no banner, is still executable and must be
+       scanned; it does not count toward the owned-module attribution floor. A
        VENDORED module may legitimately carry a dead CommonJS branch that names
        `require(`, and refusing the build for somebody else's dead branch would be a
        false accusation - the defect this guard exists for was in one of ours. */
     for (const segment of segmentsByModule(text)) {
-      if (!segment.module || /node_modules/.test(segment.module)) continue;
-      scannedModules += 1;
+      if (segment.module && /node_modules/.test(segment.module)) continue;
+      if (segment.module) scannedModules += 1;
       /* comments out; then the ONE exempt idiom, guard and its own consequent
          together; then bare `typeof X`, which names nothing and reads nothing. */
       const code = segment.code
@@ -220,7 +221,7 @@ export function assertNoNodeOnlyGlobals(assets) {
         const hit = code.match(pattern);
         if (hit) {
           const at = code.indexOf(hit[0]);
-          offences.push({ asset: name, module: segment.module, what: label,
+          offences.push({ asset: name, module: segment.module || '<unattributed>', what: label,
             near: code.slice(Math.max(0, at - 60), at + 60).trim() });
         }
       }
@@ -244,13 +245,13 @@ function segmentsByModule(text) {
   for (const line of lines) {
     const hit = /^\s*\/\/ (\S+\.(?:cjs|mjs|js))\s*$/.exec(line);
     if (hit) {
-      if (module) out.push({ module, code: text.slice(start, offset) });
+      if (module || offset > start) out.push({ module, code: text.slice(start, offset) });
       module = hit[1];
       start = offset + line.length + 1;
     }
     offset += line.length + 1;
   }
-  if (module) out.push({ module, code: text.slice(start) });
+  if (module || start < text.length) out.push({ module, code: text.slice(start) });
   return out;
 }
 
