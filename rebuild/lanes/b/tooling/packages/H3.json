@@ -167,7 +167,7 @@
     },
     ".github/workflows/rebuild.yml": {
       "pre": "839a79ab2eecb025e7603e1f5b7dc887e422f58768fd253a02cc7daf40090078",
-      "post": "61fb1a86394ae16efaa9ee423953251196357c50fa436dc60cdfbc4d84ba57e9",
+      "post": "19e861df30d0af0bad97b55309b311178fcbefb73bac0b792fc6c32e74a361e6",
       "role": "edited"
     },
     "rebuild/m4/spec/b-ntc-successors.cjs": {

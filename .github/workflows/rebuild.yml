@@ -78,8 +78,16 @@ jobs:
         run: node rebuild/t2/rig187.cjs
       # B-NTC succeeds the memory-only preview with the executed durable Today,
       # gym and check-in suites below. Historical preview tests remain in Git.
-      - name: Cumulative B-NTC native-carrier and legacy-census evidence
-        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package B-NTC
+      # M2-H3-CLEAN-INIT SUCCEEDS M2-B-NTC HERE, exactly as B-NTC succeeded the accepted
+      # originals at ce38aa3 (it replaced "Cumulative extracted-engine native-carrier and
+      # legacy-census evidence" / `node rebuild/m4/spec/native-carriers-package.cjs --ci`
+      # with its own line). A cumulative profile carries its parent's evidence forward, so
+      # the child's gate IS the standing step and the parent's is retired, not kept beside
+      # it: H3 re-pins packages/B-NTC.json onto the r10 runner, and a spec so re-pinned no
+      # longer recomputes the artifact B-NTC's own seal stands on. Same position, same job,
+      # same matrix; one command changes.
+      - name: Cumulative H3 clean-init, native-carrier and legacy-census evidence
+        run: node rebuild/lanes/b/tooling/b-package.cjs --ci --package H3
       # The slice suites get their CI home here (DECISIONS 99/101/102 deferred them to
       # this re-seal). Each file is named rather than globbed so the same set runs on
       # both runners whatever the shell does with a wildcard.
