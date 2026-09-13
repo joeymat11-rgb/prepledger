@@ -53,3 +53,5 @@ Use the same explicit fixture definition for frozen/current/candidate comparison
 Before helper-backed execution, establish the full static public dependency closure and source manifest; refuse seed/history/private/installed/retained reads and unresolved dynamic edges. Put assembly/order/injection drift assertions against public index.cjs text/structure in existing licensed evidence homes WITHOUT importing index/seed; negative boundary controls must refuse before a forbidden read. No loader fallback, real seed bytes, frozen-witness rewrite or additional runtime path.
 
 Enumerate and pin this helper and its actual dependencies in the successor. Its public results never replace the actual full-engine/profile/private obligations. No additional helper path, private/FULL/seal invocation, new science/default behavior or integration is granted. Continue the already licensed work once these boundaries are established.
+
+The subsequent one-interface code-only inspection and exact exById contract are recorded in B1-B2-PUBLIC-HELPER-SCOPE.md. That named exception does not expand data access or execution beyond its stated limits.
