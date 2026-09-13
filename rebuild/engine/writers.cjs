@@ -1897,21 +1897,22 @@ function runAdaptive(state, todayISO, raOpts) {
      would teach him to read neither. A decline buys the WEEK for the whole lever. */
   {
     const vp = volumePush(s);
-    const vpRecovery = recoveryIndex(s);
-    const vpRecoveryUnknown = vpRecovery.band === "UNKNOWN";
-    const vpRecoveryDetail = currentSleepObservation(s)
-      ? `Sleep target not recorded; sleep contribution unavailable. ${vpRecovery.flags.map((f) => `${f.receipt}; ${f.fix}`).join(". ")}. `
-      : "Current sleep is not recorded; recovery is UNKNOWN. ";
     const vpDeclined = (s.adjustments || []).some((a) => a && a.dismissed && a.rid && a.rid.indexOf("volpush_") === 0 && a.d >= monday);
     const deskOpen = (s.agentProposals || []).some((ap) => ap && ap.kind === "volume");   /* R18f fix2 — one door files: an open desk offer closes this one */
     /* R18f fix3 — the desk's PASS promised 'the ledger waits two weeks before raising
        this muscle again'; door 2 filing the identical earned card the same day broke
        that promise (driven by the audit). The desk's own recent-feed guard, taken here. */
     const deskPassed = vp.mode === "PUSH" && (s.feed || []).slice(0, 80).some((f) => f && f.t && f.d && f.t.indexOf("VOLUME PASSED — " + String(vp.mg).toUpperCase()) === 0 && (mk(todayISO) - mk(f.d)) / DAY < 14);
-    if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH")
+    if (!sealed && !vpDeclined && !deskOpen && !deskPassed && vp.mode === "PUSH") {
+    const vpRecovery = recoveryIndex(s);
+    const vpRecoveryUnknown = vpRecovery.band === "UNKNOWN";
+    const vpRecoveryDetail = !vpRecoveryUnknown ? "" : !vpRecovery.sleepEvidence
+      ? `Sleep target not recorded; sleep contribution unavailable. ${vpRecovery.flags.map((f) => `${f.receipt}; ${f.fix}`).join(". ")}. `
+      : "Current sleep is not recorded; recovery is UNKNOWN. ";
       propose(`volpush_${vp.mg}_${monday}`, `${cap(mgLabel(vp.mg))} — EARNED VOLUME: ${vp.fromWk} → ${vp.toWk} WEEKLY SETS`,
         `${vp.basis === "stall" ? (vpRecoveryUnknown ? "Your measured scale is stalled, lifts are not falling, no recorded WATCH/LOW recovery or sustained three-night sleep-debt restriction is established, and no other volume move ran this week. These prerequisites earn the volume question while recovery remains incomplete." : "Your own measured state earned this through the stall arm: the scale is stalled with nothing looking wrong — lifts not falling, no recorded WATCH/LOW recovery or sustained sleep-debt restriction, no other volume move this week — and a stalled scale with clean instruments still earns the question.") : vp.basis === "surplus" ? "Your own measured state earned this: a surplus inside the controlled-gain cap, lifts not falling, no recorded WATCH/LOW recovery or sustained sleep-debt restriction, and the block's batch open." : "Your own measured state earned this: regime FREE confirmed a week apart, lifts not falling while fat clearly falls, no recorded WATCH/LOW recovery or sustained sleep-debt restriction, and no other volume move this week."} ${vpRecoveryUnknown ? vpRecoveryDetail : ""}${cap(mgLabel(vp.mg))} carries your own training-order priority at ${vp.fromWk} weekly sets${vp.zone === "UNDER" ? " — under the growth floor, an underdose to correct decisively rather than creep at" : ""}. Approving adds ${vp.dSess} set${vp.dSess > 1 ? "s" : ""} to ${vp.exName} each ${vp.day === "L" ? "lower" : "upper"} session — ${vp.fromSess}→${vp.toSess} per session, ${vp.fromWk}→${vp.toWk} weekly, roughly ${vp.dSess * 3} extra minutes on those days (one set plus its rest). The new set lands inside the effort taper automatically: the RIR ladder re-keys, and failure stays spent exactly once, on the final set.${vp.reviewZone ? ` REVIEW ZONE: this lands past ${VOL_BANDS.hi} weekly sets (${VOL_REVIEW_LO}–${VOL_REVIEW_HI}) — progression here continues only on your own delivered+tolerated reads.` : ""}${vp.headroomNote ? " " + vp.headroomNote : ""} HONEST GRADE — MODERATE-TO-LOW: volume drives growth with no in-range plateau (Pelland 2025) and you fit the recomp profile (Barakat 2020 — headroom, ~14% body fat, deficit under ~500), but no trial has tested MORE volume DURING a deficit for growth (Roth 2023 and Nait-Yahia 2026 asked retention; neither found a volume advantage), so the coach adds a LITTLE and reads your own bar before the next step. The trend window restarts at the change on purpose — a bigger number from more sets proves nothing. A null read HOLDS; sets come off only on repeated deterioration, pain, or recorded WATCH or LOW recovery, with a receipt. Per-session cap ${VOL_SESS_CAP}; absolute ceiling ${vp.ceil} weekly sets, never normally reached.`,
         { kind: "sets", exId: vp.exId, delta: vp.dSess, mg: vp.mg, fromWk: vp.fromWk, toWk: vp.toWk, freq: vp.freq, budgetPremise: true });   /* A5 — the premise is now the clean VOLUME budget; the belt and reconciler key on it, so owner's-call cards (whose premise is Joe's ask) are untouched */
+    }
     /* the staged-hold half (A2) — subtraction is the LAST stage, never the reflex: a
        null read HOLDS, verification is named on the card, and the proposal files only
        when the lift ITSELF deteriorates AND the deterioration repeats, pain speaks
@@ -2092,7 +2093,7 @@ function runAdaptive(state, todayISO, raOpts) {
   if (rec.band !== "LOW") {
     s.proposals.filter((p) => p.rid && p.rid.indexOf("recovery_") === 0 && !p.resolved).forEach((p) => {
       p.resolved = true; p.stoodDown = true;
-      s.feed.unshift({ d: todayISO, t: "RECOVERY CARD STOOD DOWN", how: rec.score == null ? `${currentSleepObservation(s) ? "Sleep target not recorded; sleep contribution unavailable." : "current sleep is not recorded; recovery is UNKNOWN."} The known inputs do not establish LOW; the full rating is unavailable. ${rec.flags.map((f) => `${f.receipt}; ${f.fix}`).join(". ")}` : `the recorded signals are below the LOW trigger — ${rec.flags.length} of ${rec.watched} still up` });
+      s.feed.unshift({ d: todayISO, t: "RECOVERY CARD STOOD DOWN", how: rec.score == null ? `${!rec.sleepEvidence ? "Sleep target not recorded; sleep contribution unavailable." : "current sleep is not recorded; recovery is UNKNOWN."} The known inputs do not establish LOW; the full rating is unavailable. ${rec.flags.map((f) => `${f.receipt}; ${f.fix}`).join(". ")}` : `the recorded signals are below the LOW trigger — ${rec.flags.length} of ${rec.watched} still up` });
     });
   }
   if (rec.band === "LOW") {
