@@ -19,8 +19,11 @@ const daysUntil = (s) => Math.round((mk(s) - todayStart()) / DAY);
 // Copied from frozen src/app.jsx @ fe516c1:310-310.
 const fmtShort = (s) => { const d = mk(s); return `${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`; };
 
-// Copied from frozen src/app.jsx @ fe516c1:311-311.
-const weeksBetween = (aISO, bISO) => (mk(bISO) - mk(aISO)) / DAY / 7;
+/* D10 — NEW declaration, no frozen counterpart: the calendar-day shift primitive D21/D19/D16/D24/D23 consume. */
+const plusDays = (iso, n) => { const d = mk(iso); d.setDate(d.getDate() + n); return isoOf(d); };
 
-return { DAY, mk, isoOf, todayStart, daysUntil, fmtShort, weeksBetween };
+// Copied from frozen src/app.jsx @ fe516c1:311-311.
+const weeksBetween = (aISO, bISO) => Math.round((mk(bISO) - mk(aISO)) / DAY) / 7;
+
+return { DAY, mk, isoOf, todayStart, daysUntil, fmtShort, weeksBetween, plusDays };
 };

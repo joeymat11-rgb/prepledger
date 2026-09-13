@@ -31,11 +31,13 @@ function inspectClosure() {
   assert.ok(index.includes('for (const createModule of modules) Object.assign(E, createModule(E, deps));'));
   assert.ok(index.includes('return { ...E, __test: { ...E } };'));
   const manifest = {};
+  assert.doesNotMatch(index,/\bimport\s*\(|\beval\s*\(|new Function/,'unresolved index execution edge');
   for(const file of PUBLIC_MODULES) {
     const source=publicSource(file), calls=[...source.matchAll(/\brequire\s*\(([^)]*)\)/g)].map(m=>m[1]);
     assert.deepEqual(calls,file==='performed.cjs'?["'./entered-load.cjs'"]:[],'unresolved dependency in '+file);
     // Product modules have no filesystem/network execution API. The performed
     // dependency above is the sole require edge, resolved by the closed loader.
+    assert.doesNotMatch(source,/\bimport\s*\(|\beval\s*\(|new Function|process\.|readFile|fetch\s*\(/,'unresolved public execution edge in '+file);
     manifest[file]=crypto.createHash('sha256').update(source).digest('hex');
   }
   return Object.freeze(manifest);
@@ -51,10 +53,84 @@ function createEngine({clock,ids,drafts}={}) {
     m.require=(request)=>{assert.equal(request,'./entered-load.cjs','PUBLIC_ENGINE_DENIED_BEFORE_READ: '+request);return load('entered-load.cjs');};
     m._compile(publicSource(file),m.filename);return m.exports;
   }
-  const modules=MODULES.map(file=>file==='seed.cjs'?()=>({SEED:syntheticState(),HISTORY:[]}):load(file));
+  // PM supplied this exact code-only declaration from M's seed factory. Its
+  // name-only interface inventory is HISTORY, EXERCISES, SEED, weekRollups,
+  // ROLLUPS, exById. No other executable seed export is simulated here.
+  const exById = (s, id) => s.exercises.find((e) => e.id === id);
+  const modules=MODULES.map(file=>file==='seed.cjs'?()=>({SEED:syntheticState(),HISTORY:[],ROLLUPS:[],exById}):load(file));
   const E = {};
   const deps = { clock, ids, drafts: drafts === undefined ? Object.freeze({ length: 0, key: () => null }) : drafts };
   for (const createModule of modules) Object.assign(E, createModule(E, deps));
   return { ...E, __test: { ...E } };
 }
 module.exports={createEngine,syntheticState,clockAt,inspectClosure,publicSource,MODULES,PUBLIC_MODULES};
+
+// Immutable construction source manifest; metadata, not a mutant-kill guard.
+const CONSTRUCTION_SOURCE_MANIFEST = {
+  "base": "100820aa47a4f8729642033499eaec0f0ee282e1",
+  "syntheticFixtureSHA256": "25f241d23765796328ea6ff6aea7621799582045cf9ee316068fcef499189046",
+  "indexSHA256": "40ccc489a44dfdb4581e157a06f8bcf70fe77e25f33051ffca90b5910cd6b893",
+  "modules": {
+    "dates.cjs": {
+      "base": "19e9ce7e0a4b2dc770a41b2a8a722f57ad767c36b2edfe967cf866b88be3dff6",
+      "candidate": "b51f3f1e0e94c6d7c1ae08d9049db6338e51c70e451674e3a87d94bf190fe067"
+    },
+    "constants.cjs": {
+      "base": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380",
+      "candidate": "106113baf0bca78d2f113b965b0902ee33acd35a96e453eed25cd79cc3bc5380"
+    },
+    "entered-load.cjs": {
+      "base": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3",
+      "candidate": "2a0cd97ec843924e6dc428f2dbb0fe3c5bf10335610a3315c205c84fc324a3a3"
+    },
+    "performed.cjs": {
+      "base": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a",
+      "candidate": "2372e66ba4e31f7229c870e4d1e2e95855d7a49ee705394c23b53b84ec249f3a"
+    },
+    "plan.cjs": {
+      "base": "1b26c87f6fa037259a4ce480585e07714f5b38d4995a56bc94965f49386af2a3",
+      "candidate": "4c6f981706694771501d3d050440eb4f9a62e64b6eac7c59ff9c4742dfaa7e93"
+    },
+    "progression.cjs": {
+      "base": "7031838d37cfc522d3757437abc957b0a8e3688af0b540a830673d9aad030ef5",
+      "candidate": "9adaeecb715e42533fcd51483e67f52a9d8d530a0de80865e28ae572152599a8"
+    },
+    "sleep.cjs": {
+      "base": "3dd34e111fe56f757d55ad2a419e019109a4746430a76c1477d1bdfb94145da0",
+      "candidate": "409c889b6971cef094fcc5ca851eb0007e610782071d9027f81ad1100f9986e5"
+    },
+    "energy.cjs": {
+      "base": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc",
+      "candidate": "4dd7195e51d207bd4b8f4e09db066fd6b4fcb954a85efa4e097d4f06a587fffc"
+    },
+    "policy.cjs": {
+      "base": "a1d21404ec52de9f7726071d60e05c0911590a417d11bf8f9076241762a3768d",
+      "candidate": "a92706d3187e621102f90e83c91e14b8b7fbda7006a9793c3c9413ceff98a870"
+    },
+    "today.cjs": {
+      "base": "397532ecf20a4f5a9e1bd4a7d8d312cf5fd52058427603a7726ba512107bdbb3",
+      "candidate": "36ce41f37c6d50d79588540470f6f87d050e9ef944b9ce76eb44ad380b952135"
+    },
+    "volume.cjs": {
+      "base": "c32298e7855da61f7584f89982ab50107a5fe2c41143d3af9f6569eddba2f9d4",
+      "candidate": "d58159bc0c098983fa1db6a1f8542d93611537934fca2b2a17bae236bcacd321"
+    },
+    "migrate.cjs": {
+      "base": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41",
+      "candidate": "60959d58f63ca79e210d6ace763e93507bf5f30e5f744fe068a58eb653414f41"
+    },
+    "earn.cjs": {
+      "base": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da",
+      "candidate": "4b8838807ee973e6cc31a75a74c5d5b389efc8b640433c09df0dd12dfd0584da"
+    },
+    "merge.cjs": {
+      "base": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98",
+      "candidate": "b69dd11f6a44b41001741bd88b0e6cffbd8e0140837216775360b33b2d7e3d98"
+    },
+    "writers.cjs": {
+      "base": "0522797dcf832dcdc63fa99e3218ce302f577893b87251bafe3553cd96ad448e",
+      "candidate": "a75fc60a1294827d04347153cdfef3c434fd3efa3671f06f35dba4b746d26da6"
+    }
+  }
+};
+module.exports.CONSTRUCTION_SOURCE_MANIFEST=Object.freeze(CONSTRUCTION_SOURCE_MANIFEST);
