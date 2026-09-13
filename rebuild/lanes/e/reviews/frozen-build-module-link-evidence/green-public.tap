@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: real build: Windows-safe spaces hash percent and Unicode paths retain exports clock ordering and options
+ok 1 - real build: Windows-safe spaces hash percent and Unicode paths retain exports clock ordering and options
+  ---
+  duration_ms: 1469.8348
+  type: 'test'
+  ...
+# Subtest: real build: repeated runs preserve mismatched preexisting worktree and sentinel
+ok 2 - real build: repeated runs preserve mismatched preexisting worktree and sentinel
+  ---
+  duration_ms: 1955.9518
+  type: 'test'
+  ...
+# Subtest: real build: concurrent runs own distinct worktrees entries and retained bundles
+ok 3 - real build: concurrent runs own distinct worktrees entries and retained bundles
+  ---
+  duration_ms: 1662.1284
+  type: 'test'
+  ...
+# Subtest: real build: missing explicit ref cannot claim previous outputs as new success
+ok 4 - real build: missing explicit ref cannot claim previous outputs as new success
+  ---
+  duration_ms: 744.9291
+  type: 'test'
+  ...
+# Subtest: real build: failure in second build retains old outputs and the first new bundle as evidence
+ok 5 - real build: failure in second build retains old outputs and the first new bundle as evidence
+  ---
+  duration_ms: 1345.5747
+  type: 'test'
+  ...
+# Subtest: real build: refuses a root belonging to a different builder before any scratch write
+ok 6 - real build: refuses a root belonging to a different builder before any scratch write
+  ---
+  duration_ms: 1256.6521
+  type: 'test'
+  ...
+# Subtest: real build: refuses module hardlink before any invocation worktree or output change
+ok 7 - real build: refuses module hardlink before any invocation worktree or output change
+  ---
+  duration_ms: 727.8352
+  type: 'test'
+  ...
+# Subtest: real build: refuses scratch-junction without changing linked evidence
+ok 8 - real build: refuses scratch-junction without changing linked evidence
+  ---
+  duration_ms: 799.8956
+  type: 'test'
+  ...
+# Subtest: real build: refuses root-junction without changing linked evidence
+ok 9 - real build: refuses root-junction without changing linked evidence
+  ---
+  duration_ms: 635.8515
+  type: 'test'
+  ...
+# Subtest: real build: refuses output-hardlink without changing linked evidence
+ok 10 - real build: refuses output-hardlink without changing linked evidence
+  ---
+  duration_ms: 699.3748
+  type: 'test'
+  ...
+# Subtest: real build: a scratch file is never removed or reused as a directory
+ok 11 - real build: a scratch file is never removed or reused as a directory
+  ---
+  duration_ms: 849.5828
+  type: 'test'
+  ...
+# Subtest: real build: a committed entry sentinel is never overwritten or cleaned away
+ok 12 - real build: a committed entry sentinel is never overwritten or cleaned away
+  ---
+  duration_ms: 990.2508
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 13197.4036

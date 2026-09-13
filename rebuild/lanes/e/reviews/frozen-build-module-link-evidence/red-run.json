@@ -1,0 +1,10 @@
+{
+  "commit": "db73de30e0c181ec63372fb10855b5de90ad4185",
+  "args": [
+    "--test",
+    "--test-name-pattern=refuses module hardlink",
+    "rebuild/conform/engines/test/build-engines.test.mjs"
+  ],
+  "status": 1,
+  "signal": null
+}

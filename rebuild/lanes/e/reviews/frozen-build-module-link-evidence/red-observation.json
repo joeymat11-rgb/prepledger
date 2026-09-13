@@ -1,0 +1,53 @@
+{
+  "root": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\frozen-build-module-link\\.tmp\\fb-module-hardlink-vk7B8h",
+  "alias": "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\frozen-build-module-link\\.tmp\\fb-module-alias-r6RJVi\\builder-alias.mjs",
+  "main": "986b7ba7c770ab3c5045be5ada0a118f288322e5",
+  "old": "87a722a2c7abca3b83d05942299d16be9d1dc3c1",
+  "before": {
+    "invocations": [],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/frozen-build-module-link/.tmp/fb-module-hardlink-vk7B8h"
+    ],
+    "scratchExists": false,
+    "outputNames": [
+      "build-engines.mjs",
+      "engine-main.cjs",
+      "engine-old.cjs"
+    ],
+    "main": "b6cd471a79167e6645e631e07cb9615f9fc6c92911b865e44371b5cb653c647e",
+    "old": "6d11d6eaee066ee44d22ce36512c69e33005206ef9d0abb38cd339f7e6a64a56",
+    "builder": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "alias": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "builderLinks": 2,
+    "aliasLinks": 2,
+    "sentinel": "PRESERVE MODULE ALIAS"
+  },
+  "result": {
+    "code": 0,
+    "stdout": "HEAD is now at 986b7ba Invented main source\nHEAD is now at 87a722a Invented old source\nbuilt main @ 986b7ba7c770ab3c5045be5ada0a118f288322e5 → rebuild\\conform\\engines\\engine-main.cjs  sha256=e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1  (2484 bytes)\nbuilt old @ 87a722a2c7abca3b83d05942299d16be9d1dc3c1 → rebuild\\conform\\engines\\engine-old.cjs  sha256=b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b  (2483 bytes)\nexport ENGINE_MAIN=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\frozen-build-module-link\\.tmp\\fb-module-hardlink-vk7B8h\\rebuild\\conform\\engines\\engine-main.cjs ENGINE_OLD=C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\frozen-build-module-link\\.tmp\\fb-module-hardlink-vk7B8h\\rebuild\\conform\\engines\\engine-old.cjs\n",
+    "stderr": "Preparing worktree (detached HEAD 986b7ba)\nPreparing worktree (detached HEAD 87a722a)\n"
+  },
+  "after": {
+    "invocations": [
+      "C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\frozen-build-module-link\\.tmp\\fb-module-hardlink-vk7B8h\\.tmp\\earned-engine-build-pAbvJN"
+    ],
+    "worktrees": [
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/frozen-build-module-link/.tmp/fb-module-hardlink-vk7B8h",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/frozen-build-module-link/.tmp/fb-module-hardlink-vk7B8h/.tmp/earned-engine-build-pAbvJN/main-986b7ba7c770ab3c5045be5ada0a118f288322e5",
+      "C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/frozen-build-module-link/.tmp/fb-module-hardlink-vk7B8h/.tmp/earned-engine-build-pAbvJN/old-87a722a2c7abca3b83d05942299d16be9d1dc3c1"
+    ],
+    "scratchExists": true,
+    "outputNames": [
+      "build-engines.mjs",
+      "engine-main.cjs",
+      "engine-old.cjs"
+    ],
+    "main": "e47f95719c41a0ed545649630b8e40a04426f77c78975624ab5ba7929b03aaf1",
+    "old": "b707079e0c38a5edbea12c89041bdee6b25e7c4335b766e5c9ee17fd3fe38a1b",
+    "builder": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "alias": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+    "builderLinks": 2,
+    "aliasLinks": 2,
+    "sentinel": "PRESERVE MODULE ALIAS"
+  }
+}

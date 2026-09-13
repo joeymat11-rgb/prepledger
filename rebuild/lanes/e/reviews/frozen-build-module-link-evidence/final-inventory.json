@@ -1,0 +1,73 @@
+{
+  "base": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "red": "db73de30e0c181ec63372fb10855b5de90ad4185",
+  "testedSource": "46aead247d00c5d8b4e63155ca7563ab68d60848",
+  "completeIndexEntries": 1609,
+  "baseTree": "22eb61ffac92aae49face59b4f52d5af2fa87e42",
+  "originalAssertionsUnchanged": true,
+  "builderOnlyAddsCheckedScript": true,
+  "platform": "win32",
+  "arch": "x64",
+  "product": [
+    {
+      "file": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6565,
+      "sha256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0"
+    },
+    {
+      "file": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 13577,
+      "sha256": "974bb3641d9a91a40a4dea3a4661bec02fcdf3dcb2ba18670be58043fd46d660"
+    }
+  ],
+  "evidence": [
+    {
+      "file": ".tmp/frozen-build-module-link/dependency-inventory.json",
+      "bytes": 1747,
+      "sha256": "8e0bdf7c1b6107b417a3ede7d11b97fbe033b097a7058be0772f3763fe1f82ed"
+    },
+    {
+      "file": ".tmp/frozen-build-module-link/red-public.tap",
+      "bytes": 1298,
+      "sha256": "237f28839ee19c4fc264416b5093e65e27a3b7a5ac8e45387491cd02869fdb84"
+    },
+    {
+      "file": ".tmp/frozen-build-module-link/red-public.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": ".tmp/frozen-build-module-link/red-run.json",
+      "bytes": 232,
+      "sha256": "a7922f5539ab518ef7f4ec1a1b561bf1bad763025808ce8087f8c78c34f97e80"
+    },
+    {
+      "file": ".tmp/frozen-build-module-link/green-public.tap",
+      "bytes": 2870,
+      "sha256": "44b56d3a5976b4b1c34cb4526bf5d725e1bc9a2f2468851646f9f5e4532c8e9f"
+    },
+    {
+      "file": ".tmp/frozen-build-module-link/green-public.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": ".tmp/frozen-build-module-link/green-run.json",
+      "bytes": 181,
+      "sha256": "9c7738dbe218f7cbbbc7d6e705abf3b481656108d0aa433e96b3a3cddc0efd28"
+    }
+  ],
+  "observations": [
+    {
+      "file": ".tmp/fb-module-alias-cne10V/observation.json",
+      "bytes": 3106,
+      "sha256": "cf91d50316a926d98d0da525c6a595dbcc916099f956fa9d941ff4a7bc227333"
+    },
+    {
+      "file": ".tmp/fb-module-alias-r6RJVi/observation.json",
+      "bytes": 3410,
+      "sha256": "a1208a4ebdec3d130c44ba6ee04aa2a04f91b540f70cbcc9426a8554bc6df8ad"
+    }
+  ],
+  "setupFailure": "Initial skip-worktree command placed -z after --stdin; git refused before any update. Corrected newline stdin ordering; full index retained. No product execution occurred in that failed command."
+}
