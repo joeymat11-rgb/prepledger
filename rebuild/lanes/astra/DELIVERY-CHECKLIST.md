@@ -4,14 +4,14 @@ PM reconciliation at 2026-09-12 23:50 ET, observed tip befa2c9. Recent DECISIONS
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
-| Full Astra operating handover | Published3ef096d; five chats in Earned — Astra team, schedules active; C launch custody released194, B inventory/brief work continues | PM/B/C |
-| Fresh app launch | C adopting4c19239 onto current H3 under194; D2 read new bar. B found failed H3/base rebuild CI on both OS; current combined-head evidence required before integration | C/B then D2 then integrator |
+| Full Astra operating handover | Published193; six active chats with schedules. C launch custody194/197 and B isolated tooling custody198 released; old work preserved, returning work reconciled by PM | PM/B/C |
+| Fresh app launch | C fixing build-guard gap and reproduced settings refusal-loss under197; preliminary548 tests/six browser checks passed on earlier bytes. Final-head both-OS CI, B gate and D2 review required | C/B then D2 then integrator |
 | N2 sleep entry | D2 round 3 REJECT at 744c63c: coach freshness/confirmation, false commit reconciliation, historical day/quality | C fixes; D2 reruns affected and required bar |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
-| B1+B2 | Named branch currently ff6b6b5, actual bundle not yet on that head | B; independent engine reviewer; PM |
+| B1+B2 | Named baseff6b6b5 lacks bundle. B issuer tooling brief accepted198 and build assigned; B1 UNKNOWN/finite-observation amendment and actual combined profile remain to be prepared | B; independent engine reviewer; PM |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
-| Edit My Week v1 | Narrow companion brief6b3465e accepted195; separate Astra MAX review started. Actual C future-gym/open-draft join and B cumulative/CI admission remain open | D companion; engine reviewer; C editor after N2; D2 screen review |
+| Edit My Week v1 | Brief6b3465e accepted195; independent reviewer found stale save acknowledgment after closure/retraction, D reproduced both with unchanged runtime. Final report/fixes, real C consumer and B cumulative/CI admission remain open | D; engine reviewer; C editor after N2; D2 screen review |
 | Coach wave one | Text baseline merged; reason-on-disk P6, relay review/CI, phone session and owner account/device steps remain | PM/C/D |
 | P3 preview guard | Brief accepted :190; workflow ownership/CI compatibility needed | PM assigns after handover |
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |

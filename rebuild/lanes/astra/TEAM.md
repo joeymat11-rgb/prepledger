@@ -5,7 +5,7 @@ Owner-approved handover: DECISIONS:193, published at 3ef096d. Operational checkp
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Engine/issuer brief inventory; designated local gate execution196; no product/tooling-write grant yet | earned-astra-b-follow-up; 20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Isolated issuer compatibility tooling198; designated local gate execution196; B1+B2 scope docs next | earned-astra-b-follow-up; B changes same heartbeat to hourly building |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch adoption writer under DECISIONS:194; N2 next separately | earned-astra-c-follow-up; C changes same heartbeat to hourly building |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | F1/F2, plan-edit companion, existing relay candidate | earned-lane-d-hourly; 20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Independent launch adoption review; N2 round 3 remains REJECT | earned-lane-d2-requests; 20 minutes waiting |
@@ -18,6 +18,7 @@ New-tree root on Joe's PC: `C:/Users/joeym/Documents/prepledger-dev/work/pm-care
 
 - PM: `session-20260912`, branch `rebuild/pm-caretaker-20260912`.
 - B: `lane-b`, branch `rebuild/astra-b-lead`.
+- B tooling198: `b-issuer-compatibility`, branch `rebuild/astra-issuer-compatibility`, created by B after reading the accepted brief and PM narrowing bar.
 - C: `lane-c`, branch `rebuild/astra-c-lead`.
 - Engine reviewer: `review-plan-edit`, branch `rebuild/astra-review-plan-edit`, public sparse checkout initialized clean at6b3465e.
 - D retains its own trees beneath `C:/Users/joeym/Documents/Codex/2026-09-04/read-rebuild-t3-brief-md-and/work/lane-d/`.
@@ -40,5 +41,7 @@ Send meaningful events to the PM task directly and publish concise STATUS/REQUES
 The three existing heartbeats were updated in place; only B/C received new ones. Empty waiting wakes end quietly. Hourly while building, 20 minutes when waiting for a handoff, and immediate response to completion messages; PM remains every 30 minutes. The previous Fable bridge automation stays paused. A historical PM-RESUMED does not undo Joe's new authority ruling.
 
 The named companion reviewer was subsequently started with its own single heartbeat under195; six active seats now exist. The integrator remains a separate task commissioned for an accepted head, never the author or reviewer. D's coherent revised brief6b3465e was accepted by exact hash195; actual C consumer and B admission remain open. Gate operator196 is B alone because even H3 --ci reads historical source blobs. The runner consumes only the existing required local inputs through the unchanged gate and reports counts/verdict; no raw private data enters reports or chats.
+
+DECISIONS:197 adds only gym-app.mjs and its existing settings UI test to C's launch adoption after executed timing/refusal-loss probes. DECISIONS:198 accepts B's issuer brief with the mandatory PM historical-authority fence and releases that isolated tooling candidate. No bundle code, frozen helper, H3 record, workflow or private-file edit follows from that release. Companion reviewer found stale acknowledgment after closure/retraction; D independently reproduced both on test-only successor7b073a8 while reviewed runtime6b3465e remains unchanged. Final review and fixes are still pending.
 
 No fresh product tests were run for this coordination-only setup. Required package tests, independent review, both-OS CI, private verdicts where applicable and device evidence remain delivery conditions. Check actual Astra usage as needed; do not reuse an old Claude meter or purchase credits automatically.
