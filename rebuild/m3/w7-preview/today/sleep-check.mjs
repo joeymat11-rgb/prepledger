@@ -559,9 +559,17 @@ try {
   await reachable(page, 'sleep at 375');
   await boxesAreLargeEnough(page, 'sleep at 375');
   await page.evaluate(() => {
-    const sized = [...document.querySelectorAll('#phone, #phone *')]
-      .map(el => [el, parseFloat(getComputedStyle(el).fontSize)]);
-    for (const [el, px] of sized) el.style.fontSize = (px * 2) + 'px';
+    // Modify the already loaded stylesheet through CSSOM so enlarged text also
+    // applies to nodes recreated by a mode/disclosure change. Per-node styles do not.
+    const enlarge = rules => {
+      for (const rule of rules) {
+        const size = rule.style && rule.style.getPropertyValue('font-size');
+        if (size) rule.style.setProperty('font-size', `calc((${size}) * 2)`,
+          rule.style.getPropertyPriority('font-size'));
+        if (rule.cssRules) enlarge(rule.cssRules);
+      }
+    };
+    for (const sheet of document.styleSheets) enlarge(sheet.cssRules);
   });
   await reachable(page, 'sleep at 375 with doubled text');
   const enlarged = await boxesAreLargeEnough(page, 'sleep at 375 with doubled text');
