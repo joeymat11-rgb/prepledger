@@ -1649,6 +1649,16 @@ function pins(s, bound) {
     const gr = J.parseExact(fs.readFileSync(rel(g.review)));
     assert.equal(gr.status, 'ACCEPTED', 'Grandparent independently accepted');
     pmReceipt(gr.receipt.commit, gr.receipt, [g.sha256, g.artifact]);
+    // Issuer custody is not an acceptance payload: bind the exact terminal,
+    // package, artifact and reviewed Git bytes just as option() does for a parent.
+    const gm = RECEIPT.exec(gr.receipt.line);
+    assert(gm, 'Grandparent receipt content: exact POSTFIX-ACCEPTANCE');
+    assert.equal(gm[1], ga.packageId, 'GRANDPARENT-RECEIPT-PACKAGE');
+    assert.equal(gm[3], g.artifact, 'GRANDPARENT-RECEIPT-ARTIFACT');
+    assert.equal(gm[4], g.sha256, 'GRANDPARENT-RECEIPT-HASH');
+    ancestor(gm[2], 'HEAD', 'GRANDPARENT-REVIEWED-COMMIT-NOT-BEHIND-HEAD');
+    ancestor(gm[2], CHAIN_REF, 'GRANDPARENT-REVIEWED-COMMIT-NOT-ON-THE-CHAIN-BRANCH');
+    assert.equal(sha(L.object(root, gm[2], g.artifact)), g.sha256, 'GRANDPARENT-REVIEWED-ARTIFACT-BYTES');
   }
   // The grandparent is read through the same normaliser: the chain now has both shapes in
   // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.

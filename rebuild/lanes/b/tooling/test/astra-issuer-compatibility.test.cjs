@@ -140,6 +140,64 @@ test('Astra receipt is also accepted as a grandparent through actual pins',()=>{
   const bound=f.api.option(newer.option);bound.decided=true;
   f.api.pins(f.s,bound);
 });
+// R1: preserve issuer, exact-line authority and the accepted parent while
+// changing only the grandparent payload. Every probe reaches option() + pins().
+function grandparentFixture(code=source) {
+  const f=makeFixture({code,astraParent:true}),grand=f.parent;
+  const parent=f.parentPackage('FIXTURE-R1-NEXT','Astra PM',grand);
+  const bound=f.api.option(parent.option);bound.decided=true;f.api.pins(f.s,bound);
+  return {f,grand,parent,bound};
+}
+function replaceGrandparentReceipt(setup,line) {
+  const {f,grand,parent}=setup,at=f.append(line);
+  const receipt={...grand.receipt,commit:at,line,lineSha256:hash(Buffer.from(line))};
+  f.write(grand.option.review,json({version:1,status:'ACCEPTED',receipt}));f.commit('R1 replacement review');
+  assert.equal(f.read(grand.option.review).toString('utf8').trimEnd(),f.git('show','HEAD:'+grand.option.review));
+  const bound=f.api.option(parent.option);bound.decided=true;return bound;
+}
+function restoreGrandparentReceipt(setup) {
+  const {f,grand,parent}=setup;
+  f.write(grand.option.review,json({version:1,status:'ACCEPTED',receipt:grand.receipt}));f.commit('R1 restore genuine review');
+  const bound=f.api.option(parent.option);bound.decided=true;f.api.pins(f.s,bound);
+}
+const grandparentPayloadCases=[
+  ...['REJECTED','PENDING','ACCEPTED-BY-NAME'].map(terminal=>({name:'terminal '+terminal,
+    line:({grand})=>grand.receipt.line.replace(/ACCEPTED$/,terminal)})),
+  {name:'different package',line:({grand})=>grand.receipt.line.replace(grand.acceptance.packageId,'M2-DIFFERENT-PACKAGE')},
+  {name:'nonexistent reviewed commit',line:({grand})=>grand.receipt.line.replace(grand.reviewedCommit,'0'.repeat(40))},
+  ...['artifact','sha256'].map(field=>({name:'wrong '+field+' despite a correct mention',line:({grand})=>{
+    const actual=grand.option[field],wrong=field==='artifact'?'rebuild/m4/spec/wrong-artifact.json':'0'.repeat(64);
+    return grand.receipt.line.replace(actual,wrong).replace(' · POSTFIX-ACCEPTANCE ',' · expected '+actual+' · POSTFIX-ACCEPTANCE ');
+  }}))
+];
+for(const entry of grandparentPayloadCases) test('R1 grandparent refuses '+entry.name,()=>{
+  const setup=grandparentFixture(),bound=replaceGrandparentReceipt(setup,entry.line(setup));
+  assert.throws(()=>setup.f.api.pins(setup.f.s,bound),/Grandparent|GRANDPARENT|git/);
+  restoreGrandparentReceipt(setup);
+});
+function wrongGrandparentArtifact(setup) {
+  const {f,grand}=setup,bytes=f.read(grand.option.artifact);
+  f.write(grand.option.artifact,json({...grand.acceptance,unreviewed:true}));const wrong=f.commit('R1 different artifact bytes');
+  f.write(grand.option.artifact,bytes);f.commit('R1 restore current artifact');
+  return grand.receipt.line.replace(grand.reviewedCommit,wrong);
+}
+test('R1 grandparent refuses different artifact bytes at an existing reviewed commit',()=>{
+  const setup=grandparentFixture(),bound=replaceGrandparentReceipt(setup,wrongGrandparentArtifact(setup));
+  assert.throws(()=>setup.f.api.pins(setup.f.s,bound),/GRANDPARENT-REVIEWED-ARTIFACT-BYTES/);
+  restoreGrandparentReceipt(setup);
+});
+function offChainGrandparentCommit(setup) {
+  const {f,grand}=setup;
+  f.git('checkout','--quiet','-b','fixture-r1-side');const outside=f.commit('R1 same artifact on an unmerged branch');
+  f.git('checkout','--quiet','fixture-chain');
+  return grand.receipt.line.replace(grand.reviewedCommit,outside);
+}
+test('R1 grandparent refuses a reviewed commit outside HEAD and the actual chain',()=>{
+  const setup=grandparentFixture(),bound=replaceGrandparentReceipt(setup,offChainGrandparentCommit(setup));
+  assert.throws(()=>setup.f.api.pins(setup.f.s,bound),/GRANDPARENT-REVIEWED-COMMIT-NOT-/);
+  restoreGrandparentReceipt(setup);
+});
+
 test('a historical receipt still verifies from a later descendant context',()=>{
   const f=makeFixture();const r={...f.parent.receipt,commit:f.git('rev-parse','HEAD')};
   assert.equal(f.api.pmReceipt(r.commit,r,[f.parent.option.sha256,f.parent.option.artifact]),'cowork');
@@ -314,9 +372,37 @@ test('source mutant: dropping actual anchor ancestry loses the historical-claim 
 });
 test('source mutant: dropping receipt ancestry loses the actual grandparent pins refusal',()=>{
   const f=makeFixture({code:mutated("ancestor(at, CHAIN_REF, 'PM-RECEIPT-CONTEXT-NOT-ON-CHAIN');",'/* mutant: off-chain receipt context */')});
-  f.git('checkout','--quiet','-b','fixture-candidate');const outside=f.parentPackage('FIXTURE-OFFCHAIN','Astra PM',f.grand);
-  const newer={...f.parent,acceptance:{...f.parent.acceptance,parent:{artifact:outside.option.artifact,sha256:outside.option.sha256,review:outside.option.review}}};
-  losesAssertion(()=>assert.throws(()=>f.api.pins(f.s,newer),/PM-RECEIPT-CONTEXT-NOT-ON-CHAIN/));
+  // Keep the accepted artifact/reviewed commit on the chain; only its receipt
+  // context is outside it, so the new reviewed-commit guard cannot mask this one.
+  f.git('checkout','--quiet','-b','fixture-candidate');const outside=f.commit('off-chain context with the genuine historical line');
+  f.git('checkout','--quiet','fixture-chain');
+  const receipt={...f.grand.receipt,commit:outside};
+  f.write(f.grand.option.review,json({version:1,status:'ACCEPTED',receipt}));f.commit('fixture off-chain grandparent receipt context');
+  const bound=f.api.option(f.parent.option);bound.decided=true;
+  losesAssertion(()=>assert.throws(()=>f.api.pins(f.s,bound),/PM-RECEIPT-CONTEXT-NOT-ON-CHAIN/));
+  f.write(f.grand.option.review,json({version:1,status:'ACCEPTED',receipt:f.grand.receipt}));f.commit('fixture restore historical receipt context');
+  f.api.pins(f.s,bound);
+});
+
+for (const entry of [
+  {name:'exact terminal',from:'const gm = RECEIPT.exec(gr.receipt.line);',
+    to:"const gm = RECEIPT.exec(gr.receipt.line.replace(/(?:REJECTED|PENDING|ACCEPTED-BY-NAME)$/, 'ACCEPTED'));",
+    line:grandparentPayloadCases[0].line,pattern:/Grandparent receipt content/},
+  {name:'package binding',from:"assert.equal(gm[1], ga.packageId, 'GRANDPARENT-RECEIPT-PACKAGE');",
+    line:grandparentPayloadCases.find(x=>x.name==='different package').line,pattern:/GRANDPARENT-RECEIPT-PACKAGE/},
+  {name:'artifact path binding',from:"assert.equal(gm[3], g.artifact, 'GRANDPARENT-RECEIPT-ARTIFACT');",
+    line:grandparentPayloadCases.find(x=>x.name==='wrong artifact despite a correct mention').line,pattern:/GRANDPARENT-RECEIPT-ARTIFACT/},
+  {name:'artifact hash binding',from:"assert.equal(gm[4], g.sha256, 'GRANDPARENT-RECEIPT-HASH');",
+    line:grandparentPayloadCases.find(x=>x.name==='wrong sha256 despite a correct mention').line,pattern:/GRANDPARENT-RECEIPT-HASH/},
+  {name:'reviewed artifact bytes',from:"assert.equal(sha(L.object(root, gm[2], g.artifact)), g.sha256, 'GRANDPARENT-REVIEWED-ARTIFACT-BYTES');",
+    line:wrongGrandparentArtifact,pattern:/GRANDPARENT-REVIEWED-ARTIFACT-BYTES/},
+  {name:'reviewed commit ancestry',from:"ancestor(gm[2], 'HEAD', 'GRANDPARENT-REVIEWED-COMMIT-NOT-BEHIND-HEAD');\n    ancestor(gm[2], CHAIN_REF, 'GRANDPARENT-REVIEWED-COMMIT-NOT-ON-THE-CHAIN-BRANCH');",
+    line:offChainGrandparentCommit,pattern:/GRANDPARENT-REVIEWED-COMMIT-NOT-/}
+]) test('R1 source mutant: removing '+entry.name+' loses the actual grandparent pins refusal',()=>{
+  const setup=grandparentFixture(mutated(entry.from,entry.to||'/* R1 mutant: removed grandparent guard */'));
+  const bound=replaceGrandparentReceipt(setup,entry.line(setup));
+  losesAssertion(()=>assert.throws(()=>setup.f.api.pins(setup.f.s,bound),entry.pattern));
+  restoreGrandparentReceipt(setup);
 });
 test('source mutant: reviving a pre-handover Astra line loses actual spec refusal',()=>{
   const f=makeFixture({code:mutated("assert(!handover.historical.includes(receipt.line), 'PM-ASTRA-CLAIM-PREDATES-HANDOVER');",'/* mutant: revive void historical Astra */')

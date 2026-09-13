@@ -1169,6 +1169,8 @@ The runner pins the handover commit, owner-line position/hash and approved hando
 
 The fence covers spec brief/theme/freeze citations, authority, own acceptance, parent option, grandparent pins and the actual freeze escape. Owner and inherited contract remain on their original roles/hashes. Review-envelope acceptance is PM authority; the independent reviewer and integrator identities belong in their truthful separate evidence records. `ACCEPTED-BY-NAME` does not satisfy machine `ACCEPTED` grammar.
 
+Grandparent receipts also parse that exact acceptance grammar, bind the package id, artifact path and hash, and verify the artifact bytes at the named reviewed commit. That commit must be behind both HEAD and the actual chain. A valid issuer or an `ACCEPTED` JSON status alone cannot substitute for those checks. The R1 regressions exercise malformed payloads through actual parent option and grandparent pins, with a restored valid control and source mutants for each added guard.
+
 Tests execute the actual checker functions in synthetic Git repositories. Only the chain ref and immutable synthetic handover coordinates are substituted in their compiled runner; authority, receipt, profile, ancestry and pin functions are not mocked. The full gate is not entered and no private fixture is used. The new issuer suite additionally checks production authority pins against the real public handover documents and original helper bytes.
 
 Run the named focused suite from the isolated tooling tree (on Windows keep TEMP/TMP within that tree's .tmp):
