@@ -2,7 +2,7 @@
 
 Candidate af4ed1f1939ee02d159c0a430c7b57fe004aee4d, rebuild/astra-c-launch-composition, Draft PR53: https://github.com/joeymat11-rgb/prepledger/pull/53.
 Frozen parent/integration T: ea0a011f540448a5ece05d4c0ab7e0c8af17fedc, under START205. This separate receipt branch does not change the tested candidate.
-Status: local/browser execution complete; final review/complete exact-head CI/preflight/PM judgment remain held. No integration or release permission.
+Status: local/browser execution complete; D2 REJECT for the missing complete exact-head Windows CI result. Final CI/preflight/PM judgment remain held. No integration or release permission.
 
 ## Exact source and local proof
 
@@ -36,7 +36,15 @@ Real integration was fetched before publication and after the local runs, still 
 
 ## Independent review and next actor
 
-D2 reports independent553/553 Today,67/67 shared,6official browsers/20kills, matching fresh assets,18guard controls+1assertion mutant,6real-host settings cases and17preflight controls; final independent verdict remains held for CI evidence.
+D2 final review2e1db5e034b587b58d0f8603a0b61bea44704703 REJECTS that one CI blocker; no composition code finding. Independent553/553 Today,67/67 shared,6browsers/20kills, matching assets,18guard controls+1mutant,6settings cases and17preflight controls pass. C read the final report.
+B's published gate/CI report4d129e0a151c091b6cf641400d70401ed7145728, lanes/b/LAUNCH-H3-GATE-AF4ED1F.md, was read and agrees with the attributed evidence above.
+
+One PM-authorized public diagnostic: fresh work/pm-caretaker/c-launch-node22-diagnostic at unchanged af4ed1f, Node22.23.2 confirmed from failed hosted Windows setup, existing three locks installed locally.
+The exact eight-file standalone Today child from B ran once with --test-reporter=tap; default DIST and SCRATCH were absent beforehand.321/321,0fail/cancel/skip,exit0,10056.5331ms(test),10131ms(process).
+Full public stdout .tmp/node22-today-stdout.tap:71525bytes,SHA256da6bb457bd6d549de29978c9a07931b0576a75c30194498568895813acc42088; stderr .tmp/node22-today-stderr.log:0bytes. Summary .tmp/node22-diagnostic-result.json.
+No H3 wrapper/generated-reference inputs/environment or private log was used; B confirmed the targets are within C's standalone public closure. Source stayed clean. No failing test or spawn error reproduced.
+Cold output and Node22 alone did not cause a deterministic failure in this run. A timing/environment-specific failure remains possible; this neither identifies the old case nor replaces exact-head CI. No further run was started.
+
 Preserve the original crash, R1 prefix rejection, first320px settings failure, prior ancestry refusal and original26-hit preflight FAIL as historical evidence. Later successes do not rewrite them.
 PM judges the complete named evidence. Separate I must build/test final M with conditional approval and ledger before a separately authorized T-to-M fast-forward. Shared publication stays paused until PM END.
 Physical iPhone behavior remains unproved. N2 remains the next code task after launch integration; memory/S3 planning is separate, with no private import or new runtime licence.
