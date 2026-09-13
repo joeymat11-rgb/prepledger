@@ -221,13 +221,24 @@ function loadPublicLaws(){
  laws.sort((a,b)=>Number(a.defect.slice(1))-Number(b.defect.slice(1)));assert.equal(laws.length,45);assert.equal(new Set(laws.map(l=>l.id)).size,45);
  laws.forEach((l,i)=>{assert.equal(l.defect,'D'+(i+1));assert.equal(l.expect,'GREEN');assert.equal(typeof l.run,'function');assert.equal(typeof l.control,'function');assert.ok(l.cite&&l.mutants.length);l.mutants.forEach(m=>{assert.equal(typeof m.make,'function');assert.equal(typeof m.name,'string');});});return {helpers,laws};
 }
+function publicLawSourceSide(manifest,pins,repair){
+ const names=Object.keys(pins).sort();assert.deepEqual(Object.keys(manifest).sort(),names,'law public module inventory');
+ assert.equal(repair.sourceBase,'6c9248e695a4478abdbaae0f9f48395ac56000fa','law fixed R repair source');
+ const files=['progression','sleep','today','writers'].map(n=>'rebuild/engine/'+n+'.cjs');
+ assert.deepEqual(Object.keys(repair.runtime).sort(),files.slice().sort(),'law exact four repair images');
+ for(const file of files){const row=repair.runtime[file],name=file.slice('rebuild/engine/'.length);assert.deepEqual(Object.keys(row).sort(),['post','pre']);assert.equal(row.pre,pins[name].candidate,'law R preimage '+name);assert.match(row.post,/^[a-f0-9]{64}$/);}
+ const base=names.every(n=>manifest[n]===pins[n].base),candidate=names.every(n=>manifest[n]===pins[n].candidate);
+ const successor=names.every(n=>manifest[n]===(repair.runtime['rebuild/engine/'+n]?.post||pins[n].candidate));
+ assert.ok(base||candidate||successor,'law execution requires exact public M, R or manifested successor modules');
+ return base?'M':candidate?'candidate':'successor';
+}
 function runPublicLaws(){
  const manifest=H.inspectClosure(),pins=H.CONSTRUCTION_SOURCE_MANIFEST.modules;
- const base=Object.keys(manifest).every(n=>manifest[n]===pins[n].base),candidate=Object.keys(manifest).every(n=>manifest[n]===pins[n].candidate);assert.ok(base||candidate,'law execution requires exact public M or manifested candidate modules');
+ const side=publicLawSourceSide(manifest,pins,H.SUCCESSOR_SOURCE_MANIFEST);
  const {helpers,laws}=loadPublicLaws();const rows=[];
  const execute=(law,B)=>{try{const r=law.run(B);assert.equal(typeof r.ok,'boolean');return {status:r.ok?'GREEN':'RED',detail:snapshot(r.detail)};}catch(e){return {status:'HARNESS_ERROR',error:e.name+': '+e.message};}};
  for(const law of laws){const frames=[],raw=execute(law,publicLawBundle(helpers,frames));let control,mutants=[];try{control=execute(law,law.control(publicLawBundle(helpers)));mutants=law.mutants.map(m=>({name:m.name,...execute(law,m.make(law.control(publicLawBundle(helpers))))}));}catch(e){control={status:'HARNESS_ERROR',error:e.name+': '+e.message};}const row={id:law.id,defect:law.defect,raw,control,mutants,frames};rows.push(row);console.log(law.defect+' run='+raw.status+' control='+control.status+' mutants='+mutants.map(m=>m.status).join(','));}
- const side=base?'M':'candidate',all=rows.flatMap(r=>[r.raw,r.control,...r.mutants]);const result={side,fixture:'explicit public synthetic SEED; never production or frozen bundle',manifest,rows,totals:{laws:rows.length,rawGreen:rows.filter(r=>r.raw.status==='GREEN').length,rawRed:rows.filter(r=>r.raw.status==='RED').length,controlsGreen:rows.filter(r=>r.control.status==='GREEN').length,mutants:rows.reduce((n,r)=>n+r.mutants.length,0),mutantsRed:rows.reduce((n,r)=>n+r.mutants.filter(m=>m.status==='RED').length,0),harnessErrors:all.filter(x=>x.status==='HARNESS_ERROR').length}};
+ const all=rows.flatMap(r=>[r.raw,r.control,...r.mutants]);const result={side,fixture:'explicit public synthetic SEED; never production or frozen bundle',manifest,rows,totals:{laws:rows.length,rawGreen:rows.filter(r=>r.raw.status==='GREEN').length,rawRed:rows.filter(r=>r.raw.status==='RED').length,controlsGreen:rows.filter(r=>r.control.status==='GREEN').length,mutants:rows.reduce((n,r)=>n+r.mutants.length,0),mutantsRed:rows.reduce((n,r)=>n+r.mutants.filter(m=>m.status==='RED').length,0),harnessErrors:all.filter(x=>x.status==='HARNESS_ERROR').length}};
  const dir=path.join(root,'.tmp','b1b2-public-audit');fs.mkdirSync(dir,{recursive:true});fs.writeFileSync(path.join(dir,'public-laws-'+side+'.json'),JSON.stringify(result,null,2)+'\n');console.log('PUBLIC_LAWS_TOTAL '+JSON.stringify({side,...result.totals}));return result;
 }
 module.exports.PUBLIC_LAW_CATALOG=PUBLIC_LAW_CATALOG;module.exports.runPublicLaws=runPublicLaws;
