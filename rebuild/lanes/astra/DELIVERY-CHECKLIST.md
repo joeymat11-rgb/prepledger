@@ -1,6 +1,6 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 07:27 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
+PM reconciliation at 2026-09-13 07:56 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. Combined B1+B2/N2 review, D S3 corrections and memory integration mapping remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ PM reconciliation at 2026-09-13 07:27 ET. Product source M100820aa accepted; END
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
 | N2 sleep entry | D2 R6 ACCEPT98eeb183 atCbfc2935; combinedcc6a1315 scoped ACCEPTb33530ba: own98+7 consumer controls, fresh113-input build/7 browser kills; exact13 C/8 runtime identities. Registered77sleep beside13Today, full ER/package/CI/gate/integration pending; PR54Draft | ER complete review; B later admitted CI; PM/third integrator |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
-| B1+B2 | Completecc6a1315 rejected by independent ERff0c3c13 after report-last reconciliation:3 behavioral defects and Q2/B2/B1 proof gaps; public/tooling positives retained. B fresh R1–R6/R7 correction assigned246, with two new test files and exact public/native-context custody; literal ERA30 execution awaits finite closure. Native/family/census/FULL/CI/receipt still held | B repairs/reference plan; PM finite grant; ER complete successor review later |
+| B1+B2 | Completecc6a1315 rejected by independent ERff0c3c13 after report-last reconciliation:3 behavioral defects and Q2/B2/B1 proof gaps; public/tooling positives retained. B fresh R1–R6/R7 correction assigned246, with two new test files and exact public/native-context custody; 248 admits finite inline reference/Date construction and exact ERA30 execution after pinned expectations, with3 explicitly delegated factory controls. Native/family/census/FULL/CI/receipt still held | B repairs/reference plan; PM finite grant; ER complete successor review later |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
 | F1 full-body and F2 tags | D prebuilt 4d1549e / latest reported f3e9561; F1 retains B2-dependent red cell, consumers/gate still pending | D/B/C |
 | Edit My Week v1 | Bounded independent fix reviewfdc4c8e PASS at74920fb; R1/R2 closed. Real C future-gym/draft/DOM proof and B cumulative/profile/private/CI/receipt admission still open; no package acceptance | C after N2; B admission; PM judgment; D supports joins |
@@ -20,7 +20,7 @@ PM reconciliation at 2026-09-13 07:27 ET. Product source M100820aa accepted; END
 | P4/P5/P7 polish | Briefs exist; new proposed behavior/design/copy remain unapproved | PM prepares owner yes/no choices when ready |
 | Joe daily use | Launch and N2 evidence, correct build, real setup/workout hand proof remain | PM prepares; Joe performs |
 | Dad start | Joe's required real-use period and same-code shakedown, Dad walkthrough; F1 if his schedule needs it | Joe/Dad with PM |
-| S3 personal-history port | Original REJECT26ba95c preserved; D R2 candidate0df6ad3/source946c360 has15 existing-path changes and verified111 manifest pins. Author57+41/56mutants/27browser reported; exact independent ER review commissioned. Protected B capture/C consumers, actual C2/data Today/gym/restart/P1 and acceptedB3 remain | ER exact R2 review; D findings; B/C later joins; Joe actual-use confirmation |
+| S3 personal-history port | Independent R2 REJECTfe2c79ef at0df6ad3/source946c360: original10 faults closed, own57+41/56mutants/27Edge/22boundaries retained; four date/identity/lexical/membership findings remain. D two harness fixes and finite engine-context companion assigned250; B protected source route held. Final C2/data/gym/restart/P1 and acceptedB3 remain | D repairs/companion; PM exact B route; ER successor; B/C later joins; Joe real use |
 | Later scope | Hosted sync/second phone, broader beta/hardening and protected soak remain under existing milestones | Reconcile after current critical packages |
 
 Done means implemented, independently accepted, automated evidence green, integrated, required device evidence observed and any release specifically authorized. An old green report is not green for a new head. Future optional rep-ceiling and other new science/product scope stays unassigned.
