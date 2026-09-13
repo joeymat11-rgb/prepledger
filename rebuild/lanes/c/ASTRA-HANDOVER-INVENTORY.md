@@ -34,3 +34,6 @@ N2 D2 review/annex at `b9f9d86` independently records 1382/1382, sleep 50, 17 mu
 - P3 workflow work stays PM/B; P4/P5/P7 product choices remain held. Physical hand proof, live voice credentials/deployment and import are not granted by this inventory.
 
 Next: PM writer handback, then isolated launch adoption. Owner input needed: none for this handover inventory.
+
+Checkpoint 2026-09-13 00:45 ET: :194/:197/:199 released the isolated launch scope. Candidate 2b9b09a is published; exact local 552/552 and six official fresh-built Edge flows pass. LAUNCH-ADOPTION-RECEIPT.md carries the evidence and remaining gate/CI/preflight/reviewer holds. The historical inventory above is not the current write-custody state.
+:196 designates B alone for local H3/cumulative gate execution; C does not read its historical/private inputs. N2 remains after launch integration. Later week-editor companion is D's reviewed 74920fb/fdc4c8e; actual C consumer/draft proof is still required after N2.
