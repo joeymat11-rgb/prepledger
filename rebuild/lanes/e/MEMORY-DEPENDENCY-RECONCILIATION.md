@@ -25,6 +25,6 @@ Current H3 or a properly accepted successor remains B-only gate work when specif
 
 ## Remaining handoff
 
-G3's source inventory is supplied, but conditional until C's final G2 note and PM's exact implementation custody are resolved. E requested C's exact note head after urgent launch work. Incorporate its accepted payload/transaction shape, legacy issuance views, actual plan application and already-permitted positive M10/J6 example; report any additional path back to B before code.
+G3's source inventory is supplied, but conditional until C's final G2 note and PM's exact implementation custody are resolved. C notea3a10a3072950de209d9843e41181529e00cda90 is now received. MEMORY-G2-CUSTODY-PROPOSAL.md reconciles its typed payload/transaction mismatch, legacy issuance/application/restoration gap and source-supported ladder positive candidate. No new path beyond B's map is proposed; PM must still choose the shared contract and exact subset. Report any further path to B before code.
 G1 launch/N2 and final release remain open. Do not start a plan applier inside memory modules, turn a response record into a claimed programme consequence, or accept all-refusal as positive delivery. These204 corrections need no repeat owner/design approval.
 Keep this reconciliation on E's own branch throughout START205; shared STATUS/REQUESTS/DECISIONS remain frozen. This planning does not block launch, call for another lane or authorize runtime/private/gate/phone/deploy actions.
