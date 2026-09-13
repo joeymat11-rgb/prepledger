@@ -1,6 +1,6 @@
 # Launch integration: stable validation window
 
-State: PREPARING, not active. PM will publish a separate explicit START with the final immutable integration tip and notify every active lane. Do not infer a freeze from this preparation document.
+State: ACTIVE. Explicit START under PM205,2026-09-13 02:06 ET. The commit publishing this state and LAUNCH-COMPOSITION-GO.md is frozen T; PM supplies its resulting full SHA directly to every active lane and integrator. No shared integration publication until explicit END, apart from the separately authorized fast-forward of tested final M. A bounded source-composition GO is not final product acceptance or integration permission.
 
 ## Why
 
