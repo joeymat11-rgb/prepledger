@@ -193,6 +193,26 @@ test('200 recursive template and embedded HTML language boundaries preserve allo
     ['css', 'p{color:red}'], ['mjs', 'const x=1/2; x.toString();']
   ]) assert.equal(scanCase(extension, text).line, 'PREFLIGHT FAIL CI-UNVERIFIED');
 });
+
+test('200 HTML text end tags with attributes or solidus refuse before comment exemptions', () => {
+  for (const name of ['style', 'script', 'textarea', 'title']) {
+    for (const ending of [' data-x>', '/>', ' / >', '\tdata-x="x">', '\n/>']) {
+      const text = '<' + name + '>/* comment </' + name + ending + '<p>—</p> */</' + name + '>';
+      const result = scanCase('html', text);
+      assert.equal(result.line, 'PREFLIGHT FAIL UI-CUSTODY-SYNTAX', name + JSON.stringify(ending));
+      assert.equal(result.code, 1);
+    }
+  }
+});
+
+test('200 canonical HTML text boundaries keep comments bounded and visible copy checked', () => {
+  for (const name of ['style', 'script']) {
+    const start = '<' + name + '>/* allowed —; misleading </' + name + 'x> */';
+    const close = '</' + name.toUpperCase() + ' \t\r\n\f>';
+    assert.equal(scanCase('html', start + close + '<p>clean</p>').line, 'PREFLIGHT FAIL CI-UNVERIFIED');
+    assert.equal(scanCase('html', start + close + '<p>—</p>').line, 'PREFLIGHT FAIL UI-CUSTODY-EN-OR-EM-DASH');
+  }
+});
 test('200 JavaScript is syntax checked without evaluating candidate statements', () => {
   assert.equal(scanCase('mjs', '/* — */ throw new Error("candidate source must never run");').line,
     'PREFLIGHT FAIL CI-UNVERIFIED');
