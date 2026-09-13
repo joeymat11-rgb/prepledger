@@ -125,6 +125,8 @@ const SPEC_DIR = path.join(__dirname, 'packages'), IDS = ['B-NTC', 'H3', 'B1', '
 // The real chain branch, resolved from GIT REFS and never from a spec (X2/R3-B). Every
 // ancestry assertion that decides whether a commit is on the accepted chain names THIS.
 const CHAIN_REF = 'refs/remotes/origin/rebuild/t2-client-core';
+// DECISIONS:193/:198. Reviewed authority, never supplied by a package or environment.
+const PM_HANDOVER = Object.freeze({commit:'3ef096d671af924caefa346c530f06784f382af0',lineNumber:193,lineSha256:'5ec62695b9ed298e239e19526595cbb9471262310f12fc7c52e9d7114691ab63',document:'rebuild/lanes/astra/OWNER-APPROVED-HANDOVER.md',documentSha256:'9be34fa068556bf1b57a8cfdb65b9692fa190a76b73750f0a76767db40989d67'});
 // X1. The PM ruling that would admit a gate MOVE. It does not exist, so every non-empty
 // coverage.moves refuses — see the header. Setting this to anything other than null is a
 // reviewed tooling change, not a spec change, and it must not land before X3's needle
@@ -825,6 +827,55 @@ const SPEC_KEYS = ['version', 'lanePackage', 'packageId', 'status', 'brief', 'so
   'privateLiveTriggered', 'parent', 'tooling', 'product', 'coverage', 'carrierSuccessor', 'witnessFlips', 'protectedSurfaces',
   'authorizations', 'artifact', 'children', 'notes'];
 const CLAIM_KEYS = ['ledgerLine', 'role', 'line', 'lineSha256'];
+// PM acceptance is authority from the PM, not the independent reviewer's model.
+// Historical cowork is an immutable set of exact lines at the owner handover.
+// Re-read Git on every call, including at the seal; no stale authority cache.
+function pmRole(line) {
+  const m = /^- \d{4}-\d{2}-\d{2} · (cowork|Astra PM) · /.exec(line);
+  assert(m, 'PM-ISSUER-ROLE; expected an exact PM role in the ledger header');
+  return m[1];
+}
+function pmHandover() {
+  ancestor(PM_HANDOVER.commit, CHAIN_REF, 'PM-HANDOVER-NOT-ON-CHAIN');
+  const read = at => L.object(root, at, 'rebuild/DECISIONS.md').toString('utf8').split(/\r?\n/);
+  const historical = read(PM_HANDOVER.commit);
+  function prove(at, lines) {
+    assert.equal(sha(Buffer.from(lines[PM_HANDOVER.lineNumber - 1] || '')), PM_HANDOVER.lineSha256,
+      'PM-HANDOVER-LINE-BYTES');
+    assert.equal(lines.filter(line => sha(Buffer.from(line)) === PM_HANDOVER.lineSha256).length, 1,
+      'PM-HANDOVER-LINE-UNIQUE');
+    assert.equal(sha(L.object(root, at, PM_HANDOVER.document)), PM_HANDOVER.documentSha256,
+      'PM-HANDOVER-DOCUMENT-BYTES');
+  }
+  prove(PM_HANDOVER.commit, historical);
+  prove(CHAIN_REF, read(CHAIN_REF));
+  return { historical, read, prove };
+}
+function pmReceipt(at, receipt, mentions, expectedRole) {
+  const role = pmRole(receipt && receipt.line);
+  if (expectedRole !== undefined) assert.equal(role, expectedRole, 'PM-ISSUER-CLAIM-ROLE');
+  // Retain the original commit/path, exact unique line/hash, role and content checks.
+  L.verifyReceipt(root, at, receipt, { role, mentions });
+  ancestor(at, CHAIN_REF, 'PM-RECEIPT-CONTEXT-NOT-ON-CHAIN');
+  const handover = pmHandover();
+  if (role === 'cowork') {
+    assert.equal(handover.historical.filter(line => line === receipt.line).length, 1,
+      'PM-COWORK-NOT-HISTORICAL');
+  } else {
+    ancestor(PM_HANDOVER.commit, at, 'PM-ASTRA-CONTEXT-PREDATES-HANDOVER');
+    assert(!handover.historical.includes(receipt.line), 'PM-ASTRA-CLAIM-PREDATES-HANDOVER');
+    const context = handover.read(at);
+    handover.prove(at, context);
+    assert(context.indexOf(receipt.line) >= PM_HANDOVER.lineNumber, 'PM-ASTRA-LINE-BEFORE-HANDOVER');
+  }
+  return role;
+}
+function pmLedger(at, v, mentions) {
+  assert(v && ['cowork', 'Astra PM'].includes(v.role), 'PM-ISSUER-CLAIM-ROLE');
+  claim(v, v.role, 'PM authority');
+  return pmReceipt(at, { commit: at, path: 'rebuild/DECISIONS.md', line: v.line,
+    lineSha256: v.lineSha256 }, mentions, v.role);
+}
 function claim(v, role, label) { // a ledger citation whose text hashes to the sha it names
   keys(v, CLAIM_KEYS, 'Authorization claim ' + label);
   assert(Number.isInteger(v.ledgerLine) && v.ledgerLine > 0 && v.role === role, 'Claim coordinates ' + label);
@@ -1217,7 +1268,7 @@ function spec() {
   // — never a bare integer a spec can invent. Its bytes are resolved in Git by authority().
   keys(s.brief, ['file', 'sha256', 'acceptedLedgerLine'], 'Brief citation');
   if (s.brief.acceptedLedgerLine !== null) {
-    claim(s.brief.acceptedLedgerLine, 'cowork', 'brief acceptance');
+    pmLedger(CHAIN_REF, s.brief.acceptedLedgerLine, [s.packageId, s.brief.file]);
     assert.equal(s.status, 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-STATUS disagrees with the cited ledger line');
     assert(s.brief.acceptedLedgerLine.line.includes(s.packageId) && s.brief.acceptedLedgerLine.line.includes(s.brief.file) &&
       /(?:^|[ ·])ACCEPTED$/.test(s.brief.acceptedLedgerLine.line), 'Brief acceptance line names this package and brief and ends in the ACCEPT terminal word');
@@ -1376,13 +1427,13 @@ function spec() {
     'AUTHORIZATION-KEY-NOT-IN-THE-CLOSED-SET ' + authKeys.join(' '));
   keys({ ...s.authorizations, freeze: null }, ['owner', 'contract', 'theme', 'review', 'freeze'], 'Closed authorization keys');
   if (s.authorizations.freeze) {
-    claim(s.authorizations.freeze, 'cowork', 'freeze');
+    pmLedger(CHAIN_REF, s.authorizations.freeze, [s.packageId]);
     assert(/\bFREEZE\b/.test(s.authorizations.freeze.line) && /\b[a-f0-9]{40}\b/.test(s.authorizations.freeze.line),
       'SEAL-FREEZE-LINE-SHAPE; a freeze citation must say FREEZE and name a 40-hex base commit');
   }
   claim(s.authorizations.owner, 'owner', 'owner'); claim(s.authorizations.contract, 'cowork', 'contract');
   if (s.authorizations.theme !== null) {
-    claim(s.authorizations.theme, 'cowork', 'theme');
+    pmLedger(CHAIN_REF, s.authorizations.theme, [s.packageId]);
     // r7 F3. This was one of the three refusals the r7 reviewer fired that printed a bare
     // FAIL: a theme citation that is well-formed and hashes to its own sha but names some
     // other package, or does not end in the ACCEPT terminal word, is a shape refusal and
@@ -1391,7 +1442,7 @@ function spec() {
       'THEME-LINE-DOES-NOT-BIND-THIS-PACKAGE-ID ' + s.packageId + '; the cited theme line must name this package id and end in the ACCEPT terminal word');
   }
   keys(s.authorizations.review, ['role', 'prefix', 'terminal'], 'Review claim');
-  assert(s.authorizations.review.role === 'cowork' && s.authorizations.review.terminal === 'ACCEPTED' &&
+  assert(['cowork', 'Astra PM'].includes(s.authorizations.review.role) && s.authorizations.review.terminal === 'ACCEPTED' &&
     s.authorizations.review.prefix === 'POSTFIX-ACCEPTANCE ' + s.packageId, 'Review claim binds this package id');
   const slug = s.packageId.replace(/^M2-/, '').toLowerCase(); // W7: derived here, only agreed to by the spec
   ARTIFACT = 'rebuild/m4/spec/acceptance-' + slug + '.json'; REVIEW = 'rebuild/m4/spec/review-' + slug + '.json';
@@ -1461,7 +1512,7 @@ function option(o) {
   // in rebuild/DECISIONS.md in Git at that base, under role cowork, mentioning this
   // artifact path and this hash. X2 decides WHERE that base may be; this decides WHAT must
   // stand there. Both are required — neither substitutes for the other.
-  L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [o.sha256, o.artifact] });
+  pmReceipt(r.commit, r, [o.sha256, o.artifact]);
   const m = RECEIPT.exec(r.line);
   assert(m && m[1] === acceptance.packageId && m[3] === o.artifact && m[4] === o.sha256, 'Parent receipt content ' + o.id);
   assert.equal(sha(L.object(root, m[2], o.artifact)), o.sha256, 'Parent artifact bytes in Git at its reviewed commit ' + o.id);
@@ -1597,7 +1648,7 @@ function pins(s, bound) {
   if (g.review) {
     const gr = J.parseExact(fs.readFileSync(rel(g.review)));
     assert.equal(gr.status, 'ACCEPTED', 'Grandparent independently accepted');
-    L.verifyReceipt(root, gr.receipt.commit, gr.receipt, { role: 'cowork', mentions: [g.sha256, g.artifact] });
+    pmReceipt(gr.receipt.commit, gr.receipt, [g.sha256, g.artifact]);
   }
   // The grandparent is read through the same normaliser: the chain now has both shapes in
   // it, and a grandparent sealed by THIS runner is exactly as likely as a parent.
@@ -1815,8 +1866,8 @@ function authority(s, bound) {
   ledger(at, s.authorizations.owner, ['M2-RULE']);
   ledger(at, s.authorizations.contract, ['POSTFIX-GATE BRIEF']);
   assert.equal(s.authorizations.contract.lineSha256, bound.acceptance.authorizations.contract.lineSha256, 'INHERITED-CONTRACT-AUTHORIZATION');
-  if (!theme) themeOpen(); else ledger(own, theme, [s.packageId]);
-  if (!accepted) briefOpen(); else ledger(own, accepted, [s.packageId, s.brief.file]);
+  if (!theme) themeOpen(); else pmLedger(own, theme, [s.packageId]);
+  if (!accepted) briefOpen(); else pmLedger(own, accepted, [s.packageId, s.brief.file]);
   say('AUTHORITY OBSERVED owner DECISIONS:' + s.authorizations.owner.ledgerLine + ' and contract DECISIONS:' + s.authorizations.contract.ledgerLine +
     ' present as exact ledger line bytes at the parent receipt base ' + at.slice(0, 7) + ' under their own roles; contract inherited byte-equal from the parent; theme ' +
     (theme ? 'DECISIONS:' + theme.ledgerLine + ' found in Git on ' + CHAIN_REF : 'NULL — no PASS word is available') + '; brief acceptance ' +
@@ -2511,6 +2562,7 @@ function sealOnTheTip(s, out) {
   const [at, line] = hits[0];
   assert(/\bFREEZE\b/.test(line) && line.includes(s.packageId),
     'SEAL-FREEZE-LINE-DOES-NOT-FREEZE-THIS-PACKAGE DECISIONS:' + at);
+  pmLedger(CHAIN_REF, freeze, [s.packageId]);
   const named = (line.match(/\b[a-f0-9]{40}\b/g) || []).filter(c => firstParents.has(c));
   assert(named.length, 'SEAL-FREEZE-LINE-DOES-NOT-NAME-A-BASE-IN-THIS-FIRST-PARENT-CHAIN DECISIONS:' + at +
     '; the freeze must name the commit this seal actually stands on');
@@ -2703,11 +2755,13 @@ function envelope(s, bound, ran) {
     assert(ran.get(c.name) && ran.get(c.name).ok, 'NO-REGISTER-PACKAGE-OWN-CHILD-DID-NOT-EXECUTE ' + ID + ' ' + c.name);
   assert(s.authorizations.theme, 'THEME-AUTHORIZATION-UNAVAILABLE'); // no PASS before the brief's own ledger line is bound
   assert(s.brief.acceptedLedgerLine && s.status === 'BRIEF-ACCEPTED', 'BRIEF-ACCEPTANCE-UNAVAILABLE'); // N4: no PASS on an unaccepted brief
-  L.verifyReceipt(root, r.commit, r, { role: 'cowork', mentions: [s.packageId, ARTIFACT, hash] });
+  pmReceipt(r.commit, r, [s.packageId, ARTIFACT, hash], s.authorizations.review.role);
   const cited = { owner: [s.authorizations.owner, ['M2-RULE']], contract: [s.authorizations.contract, ['POSTFIX-GATE BRIEF']],
     theme: [s.authorizations.theme, [s.packageId]], brief: [s.brief.acceptedLedgerLine, [s.packageId, s.brief.file]] };
-  for (const [v, mentions] of Object.values(cited))
-    L.verifyReceipt(root, r.commit, { commit: r.commit, path: 'rebuild/DECISIONS.md', line: v.line, lineSha256: v.lineSha256 }, { role: v.role, mentions });
+  for (const [name, [v, mentions]] of Object.entries(cited)) {
+    if (name === 'theme' || name === 'brief') pmLedger(r.commit, v, mentions);
+    else ledger(r.commit, v, mentions); // Original historical owner/contract roles and hashes.
+  }
   const re = new RegExp('^(?:- [^\\r\\n]+ )?POSTFIX-ACCEPTANCE ' + s.packageId + ' ([a-f0-9]{40}) (' +
     ARTIFACT.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') + ') ([a-f0-9]{64}) ACCEPTED$');
   const v = re.exec(r.line);
