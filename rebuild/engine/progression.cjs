@@ -149,16 +149,19 @@ function progressAnchor(ex, s) {
   const fkA = forksOf(s, ex.id);
   const atA = isoOf(todayStart());
   if (_nativeView(s)) {
-    const rows = _governingRows(ex, s) || [];
+    const rows = _governingRows(ex, s);
+    if (rows === null) return base;
+    let fallback = null;
     for (let i = rows.length - 1; i >= 0; i--) {
       const row = rows[i];
       if (row.d > atA) continue;
+      if (fallback === null) fallback = _lineOf(row);
       if (!sameEra(fkA, row.d, atA)) continue;
       if (_rowRushed(s, row)) continue;
       if (!_rowAtCurrentLoad(row, ex)) continue;
       return _lineOf(row);
     }
-    return base;
+    return fallback === null ? [] : fallback;
   }
   const days9 = Object.keys(s.sessionLog || {}).sort();
   for (let i = days9.length - 1; i >= 0; i--) {
