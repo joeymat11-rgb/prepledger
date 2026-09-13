@@ -1,15 +1,15 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 11:32 ET. Joe renewed usage and delegated task effort252. B continues the engine proof; D has handed off its partial harness repairs and is now LOW standby for the reviewed B companion. Eight seats use GPT-6 Astra; integration seat I remains paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 12:00 ET. Under owner effort252, ER and D2 are commissioned at MAX for B's complete R2 c4716ed; B moves to LOW standby for findings. D partial harness f0b01d9 remains LOW standby for the reviewed B companion. Eight seats use GPT-6 Astra; I remains paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Repair R1–R6/R7;248 releases finite reference construction/exact ERA30 proof after pinned expectations and3 labeled factory probes; full gates later | earned-astra-b-follow-up; hourly building,20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Complete R2 c4716ed/source S48a3063 handed off; ER complete composition and D2 affected N2 review commissioned. Preserve candidate unpushed; respond to concrete findings. Full gates/companion later | earned-astra-b-follow-up;20 minutes waiting |
 | C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold accepted N2 bfc2935; D2 combined scope accepted, B engine repair/review next; respond only to named affected consumer finding | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
-| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Combinedcc6a1315 N2 scoped ACCEPTb33530ba adopted; wait for named successor review | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
-| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | B1+B2 and S3 R2 independent rejections complete; wait for named complete successor, B priority | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
+| D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | MAX affected N2 consumer/browser review on c4716ed under B1B2-R2-COMPLETE-REVIEW-DISPATCH.md; independent verdict before builder report | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
+| Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | MAX complete B1+B2 R2 code/profile/public review on c4716ed under named dispatch; preserve ff0c3c13, builder report last. Protected full/native gates still held | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
 | E | 01a0993a-e234-7920-86bc-39737cbb4458 | ef982610 contract and Bc34e4ec map accepted; wait for precise PM lifecycle/browser/source release after accepted repaired D and B chain | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
@@ -47,11 +47,11 @@ Effort is assigned to the actual work, not permanently to a seat. PM applies tas
 
 | Seat | Applied current effort | Next substantive assignment |
 | --- | --- | --- |
-| B | MAX; resumed saved engine/proof successor b1127134 | MAX for current R1–R6/R7 and finite ERA30 construction |
+| B | LOW; complete c4716ed handed off, waiting for independent findings | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
 | C | LOW; standby | HIGH for bounded UI/plumbing, raise for demonstrated difficult joins |
-| D2 | LOW; standby | MAX for a named independent review |
-| Engine reviewer | LOW; standby | MAX for a named complete successor review, B priority |
+| D2 | MAX; commissioned affected c4716ed N2 review | Return LOW when its exact independent handoff is complete |
+| Engine reviewer | MAX; commissioned complete c4716ed B1+B2 R2 review | Return LOW when its exact independent handoff is complete |
 | E | LOW; standby | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
 
