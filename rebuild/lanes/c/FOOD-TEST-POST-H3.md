@@ -18,12 +18,13 @@ file's own location, byte-identical on the real tree: `build.mjs` `SOURCE_REL` a
 `buildToday()` also takes `{ dist, scratch }`, defaulting to the accepted paths.
 **(c) jsdom is a NON-ISSUE:** a root devDependency installed by `rebuild.yml`'s own `npm ci --include=dev`, already
 imported by the enumerated `checkin`, `gym` and `view` tests. The "No dependency, no lockfile" note belongs to the C5
-coach step, not the today step.
-**COUNTS, one `node --test` invocation, three runs each, on BOTH trees (tip `bcdea5d`, and that tip merged with H3
+coach step, not the today step. **COUNTS, one `node --test` invocation, three runs each, on BOTH trees (tip `bcdea5d`, and that tip merged with H3
 `e994c10`): whole today directory 546/546 x3. copy 36/36. food 56/56. build PASS.**
-**The shared `.tmp/w7-today-dist` race is NOT reachable.** Five suites build (`copy`, `food`, `package`, `problem`,
-`machine-settings-ui`); together in one invocation they are 178/178 three times, and the full directory is green three
-times. The hazard is real but unobserved, so nothing is isolated for it; `buildToday({ dist, scratch })` is the seam.
-**LANE B MAY NAME THE WHOLE DIRECTORY.** Every today test passes in one invocation, repeatedly, on both trees. The
-minimum ask is adding `food.test.mjs` to the A1/A2/A3 step: that list plus `food.test.mjs` is 220/220 x3 on both trees.
-There is no longer a file that must be held out.
+**Review C1 (non-blocking, ACCEPT at `c528369`) then added one cell: the detector's own text is pinned, because
+substituting `model.read()` for `engine.proteinTarget(clean)` survived 56/56 here - both throw on this tree. Red first:
+fail 1, the new cell alone. Restored: food 57/57, whole directory 547/547.**
+**The shared `.tmp/w7-today-dist` race is NOT reachable.** The five suites that build (`copy`, `food`, `package`,
+`problem`, `machine-settings-ui`) are 178/178 three times together, and the full directory is green three times. The
+hazard is real but unobserved, so nothing is isolated for it; `buildToday({ dist, scratch })` is the seam if it bites.
+**LANE B MAY NAME THE WHOLE DIRECTORY:** every today test passes in one invocation, repeatedly, on both trees. The
+minimum ask is adding `food.test.mjs` to the A1/A2/A3 step, which is 220/220 x3 on both trees. No file need be held out.
