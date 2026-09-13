@@ -42,8 +42,9 @@ function inspectClosure() {
   }
   return Object.freeze(manifest);
 }
-function createEngine({clock,ids,drafts}={}) {
+function createEngine({clock,ids,drafts,nativeTrendContext}={}) {
   if(!clock || typeof clock.today!=='function') throw new TypeError('createEngine requires an injected clock.today()');
+  if(nativeTrendContext!==undefined && typeof nativeTrendContext!=='function') throw new TypeError('nativeTrendContext must be an owned resolver function');
   inspectClosure();
   const cache=new Map();
   function load(file) {
@@ -59,7 +60,9 @@ function createEngine({clock,ids,drafts}={}) {
   const exById = (s, id) => s.exercises.find((e) => e.id === id);
   const modules=MODULES.map(file=>file==='seed.cjs'?()=>({SEED:syntheticState(),HISTORY:[],ROLLUPS:[],exById}):load(file));
   const E = {};
-  const deps = { clock, ids, drafts: drafts === undefined ? Object.freeze({ length: 0, key: () => null }) : drafts };
+  // PM246: test-only forwarding into the actual performed factory. The caller
+  // supplies the real native-trend-context binding; no flags are synthesized.
+  const deps = { clock, ids, drafts: drafts === undefined ? Object.freeze({ length: 0, key: () => null }) : drafts, nativeTrendContext };
   for (const createModule of modules) Object.assign(E, createModule(E, deps));
   return { ...E, __test: { ...E } };
 }
