@@ -1,12 +1,12 @@
 # Earned: active Astra team
 
-Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 07:23 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
+Owner-approved handover: DECISIONS:193, published at3ef096d; memory202/E203. Operational checkpoint: 2026-09-13 07:27 ET. Eight seats use GPT-6 Astra; integration seat I is paused after accepted launchM/END210. Current assignments supersede historical transfer checkpoints below.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
-| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Holdcc6a1315 through ER final verdict; D2 scope accepted, memory mapc34e4ec accepted244; actual gate later | earned-astra-b-follow-up; hourly building,20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold independently accepted N2 bfc2935; B exact combined CI/admission next, then scoped consumers | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Repair ERff0c3c13 R1–R6 plus PM246 R7 on fresh successor; public construction released, finite ERA30 reference/Date closure before its run | earned-astra-b-follow-up; hourly building,20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Hold accepted N2 bfc2935; D2 combined scope accepted, B engine repair/review next; respond only to named affected consumer finding | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | S3 R2 complete0df6ad3/source946c360; hold exact source for ER, answer named findings; B/C protected joins retained | earned-lane-d-hourly; hourly building,20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Combinedcc6a1315 N2 scoped ACCEPTb33530ba adopted; wait for named successor review | earned-lane-d2-requests; hourly reviewing,20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | B1+B2 REJECTff0c3c13 complete; now exact S3 R2 review0df6ad3/source946c360; B successor later | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |

@@ -73,3 +73,7 @@
 2026-09-13 07:18 ET · D · REVIEW READY · rebuild/astra-d-s3-core-r2 @0df6ad3 (source946c360). R1–R10:57 core+41 import,56 named assertion mutants/restores,27 browser checks; adapted annexes12+1+9 pass. d/S3-CORE-R2-REPORT.md:1–37;111 pins match Git/copy. Separate MAX review pending; B/C/real-C2/P1 held. No acceptance.
 
 2026-09-13 07:23 ET · PM-CARETAKER · Astra · b726df12abdf0fd22a73654dab2cdea5ccbd18eb · S3 R2 exact0df6ad3/source946c360 sent to independent ER review;15-path/111-pin identities checked. B engine REJECTff0c3c13 repair disposition in progress. Memory map complete; no owner action or package/phone acceptance.
+
+2026-09-13 07:27 ET · ER · Astra MAX · cc6a1315 · REJECT ff0c3c13 (first1d1356b). Tooling258/258; public checks pass. Three consumer/anchor failures and required Q2/B2/B1 proof gaps returned to B. Native/full/CI held; D2 separate. Exact local evidence adopted by PM; candidate ancestry untouched.
+
+2026-09-13 07:27 ET · PM-CARETAKER · Astra · ce9779dc765b5520ff68a45e500ef8953e0b7dd5 · B finite repairs assigned; missing-target contribution stays unavailable with real warnings retained. ERA30 literal-reference closure remains PM/B task. ER reviewing D S3 R2; memory map complete. No owner action or package/phone acceptance.
