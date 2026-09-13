@@ -1,0 +1,1639 @@
+{
+  "candidate": "e85ad803ae8af600726c1491f35c90c7b3cd2c03",
+  "entries": [
+    "rebuild/m3/w6/test/public-client.test.mjs",
+    "rebuild/m3/w6/test/prepared-workout.test.mjs"
+  ],
+  "nodes": [
+    {
+      "path": "rebuild/authority/canonical.cjs",
+      "sha256": "c8888a3907d543371400e75ccfcb11bec2c3e3e7a40e74bd9d471b21a26e08cc",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/client/bodycomp.cjs",
+      "sha256": "c55d66e5a8c8ae14f90b935d0ad07454d311e606a032d5c8c6ce1f094c3399d2",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/client/canonical.cjs",
+      "sha256": "fcf4302c52e149feeaa83c611b7ccdae8992306c6881623b888d086b4e3c1a6e",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/client/copy.cjs",
+      "sha256": "d93aca93eb4efea346f5fbd0c38995133be781b9d27502c883134afd0b231b81",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/client/face.cjs",
+      "sha256": "ede658a223ddb691bf9f64737edc63507dc0d594a462e6f8f3bea9c3aeaa98f0",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 11,
+          "specifier": "./copy.cjs",
+          "resolved": "rebuild/client/copy.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 11,
+          "text": "const COPY = require(\"./copy.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/client/index.cjs",
+      "sha256": "f5e272c048191e6fc5ee56465a7d0bf264e8b488f5fa4bd19a8819a5496ebfa9",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 21,
+          "specifier": "./store.cjs",
+          "resolved": "rebuild/client/store.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 22,
+          "specifier": "./ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 23,
+          "specifier": "./lease.cjs",
+          "resolved": "rebuild/client/lease.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 24,
+          "specifier": "./outbox.cjs",
+          "resolved": "rebuild/client/outbox.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 25,
+          "specifier": "./sync.cjs",
+          "resolved": "rebuild/client/sync.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 26,
+          "specifier": "./face.cjs",
+          "resolved": "rebuild/client/face.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 27,
+          "specifier": "./plan.cjs",
+          "resolved": "rebuild/client/plan.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 28,
+          "specifier": "./session.cjs",
+          "resolved": "rebuild/client/session.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 29,
+          "specifier": "./bodycomp.cjs",
+          "resolved": "rebuild/client/bodycomp.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 30,
+          "specifier": "./copy.cjs",
+          "resolved": "rebuild/client/copy.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 31,
+          "specifier": "./canonical.cjs",
+          "resolved": "rebuild/client/canonical.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 21,
+          "text": "const { Store, memoryBackend } = require(\"./store.cjs\");"
+        },
+        {
+          "line": 22,
+          "text": "const Ops = require(\"./ops.cjs\");"
+        },
+        {
+          "line": 23,
+          "text": "const Lease = require(\"./lease.cjs\");"
+        },
+        {
+          "line": 24,
+          "text": "const { Outbox } = require(\"./outbox.cjs\");"
+        },
+        {
+          "line": 25,
+          "text": "const { createSync } = require(\"./sync.cjs\");"
+        },
+        {
+          "line": 26,
+          "text": "const { createFace, addDays } = require(\"./face.cjs\");"
+        },
+        {
+          "line": 27,
+          "text": "const Plan = require(\"./plan.cjs\");"
+        },
+        {
+          "line": 28,
+          "text": "const Session = require(\"./session.cjs\");"
+        },
+        {
+          "line": 29,
+          "text": "const { leanFromEstimate } = require(\"./bodycomp.cjs\");"
+        },
+        {
+          "line": 30,
+          "text": "const COPY = require(\"./copy.cjs\");"
+        },
+        {
+          "line": 31,
+          "text": "const Canonical = require(\"./canonical.cjs\");"
+        },
+        {
+          "line": 94,
+          "text": "  // alone cannot suppress an unsent edit: require its exact accepted original"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/client/lease.cjs",
+      "sha256": "b8e676d448e27cfecdf27ebd7fcf4766f7f73bfc8a2c6b69fb8754a1b8b0b771",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 7,
+          "specifier": "./ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 7,
+          "text": "const { signatureOver } = require(\"./ops.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/client/ops.cjs",
+      "sha256": "4f0e2931d9d0d139ab44cb907cba13c8f9120277155477a56f2a7dbe4301209b",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 13,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "require",
+          "line": 14,
+          "specifier": "./canonical.cjs",
+          "resolved": "rebuild/client/canonical.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 13,
+          "text": "const crypto = require(\"node:crypto\");"
+        },
+        {
+          "line": 14,
+          "text": "const { encode } = require(\"./canonical.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/client/outbox.cjs",
+      "sha256": "e74d97e4cd71ae958b0873fbb680a917e8a12847797671b97f2e538f13f80f2e",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/client/plan.cjs",
+      "sha256": "91bba71bce872f57733aac88d6c8ce74e8c648d442262a5bed5879cfafc66839",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 12,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "require",
+          "line": 13,
+          "specifier": "./canonical.cjs",
+          "resolved": "rebuild/client/canonical.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 12,
+          "text": "const crypto = require(\"node:crypto\");"
+        },
+        {
+          "line": 13,
+          "text": "const { encode } = require(\"./canonical.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/client/session.cjs",
+      "sha256": "dcc1c0c77fa42fbd6a8751b9d118164e2b24ff54560802bf10315983fb8b43c3",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 87,
+          "specifier": "./copy.cjs",
+          "resolved": "rebuild/client/copy.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 87,
+          "text": "  return { canonical, slots, progressionBearing: bearing, pendingCollisions: pending, gates: gateResults, deleted: 0, rewritten: 0, history: bearing ? require(\"./copy.cjs\").SETS_COMBINED : null };"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/client/store.cjs",
+      "sha256": "f6ac3007354524b680d178086c87d7a321a8f8da0973b2b29f6f3d4c6ddcc6b0",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/client/sync.cjs",
+      "sha256": "42a3b53b4d54120efc4259de2813518f84cf69dfb9ed063529c4baadb7264f3a",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 14,
+          "specifier": "./ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 69,
+          "specifier": "./copy.cjs",
+          "resolved": "rebuild/client/copy.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 125,
+          "specifier": "./copy.cjs",
+          "resolved": "rebuild/client/copy.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 14,
+          "text": "const { signatureOver } = require(\"./ops.cjs\");"
+        },
+        {
+          "line": 69,
+          "text": "    if (!r.ok) { if (!pendingRecovery.some((p) => p.op_id === d.op_id)) pendingRecovery.push(d); return { stored: false, blocked: true, reason: require(\"./copy.cjs\").REJECTED_BLOCKED + \": \" + r.error.message }; }"
+        },
+        {
+          "line": 125,
+          "text": "    const COPY = require(\"./copy.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/conform/lib/canonical.cjs",
+      "sha256": "ca9d5daa7df046be3849ca21e9a21cdf43cbff4fd204246b673ec5621e84f4fa",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/conform/lib/ops.cjs",
+      "sha256": "cbf7e73cd899492981a03bc4b4153f12a77cc664c4c90c29774ef30bf981d1c1",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 11,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "require",
+          "line": 12,
+          "specifier": "./canonical.cjs",
+          "resolved": "rebuild/conform/lib/canonical.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 11,
+          "text": "const crypto = require(\"node:crypto\");"
+        },
+        {
+          "line": 12,
+          "text": "const CANON = require(\"./canonical.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w5/crypto.cjs",
+      "sha256": "4fd0ebea06c4b66c1680c526939dc5671d009ba3b0488daa2735237193397203",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 9,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "require",
+          "line": 10,
+          "specifier": "../../authority/canonical.cjs",
+          "resolved": "rebuild/authority/canonical.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 12,
+          "specifier": "./reconciliation/server-bytes.cjs",
+          "resolved": "rebuild/m3/w5/reconciliation/server-bytes.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 9,
+          "text": "  sign, verify, createSign, createVerify } = require(\"node:crypto\");"
+        },
+        {
+          "line": 10,
+          "text": "const { canonicalEncode } = require(\"../../authority/canonical.cjs\");"
+        },
+        {
+          "line": 12,
+          "text": "const updateRows=(sink,record,domain,field)=>require('./reconciliation/server-bytes.cjs').update(sink,without(record,new Set([field])),{canonical:true,domain});"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w5/public-client.cjs",
+      "sha256": "e692ba364c6b53c8287effe07d99064b9cad92095af43c9faa8bd4997a4e5e74",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 7,
+          "specifier": "../../authority/canonical.cjs",
+          "resolved": "rebuild/authority/canonical.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 7,
+          "text": "const { canonicalEncode } = require(\"../../authority/canonical.cjs\");"
+        },
+        {
+          "line": 63,
+          "text": "      // Lazy import keeps malformed configured keys fail-closed without an"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w5/reconciliation/codec.cjs",
+      "sha256": "cd18eeaa9b64b482e771cdf42af7e6020c9ab9f293a467fce6a829f78ce6042e",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "@noble/hashes/sha2.js",
+          "external": true
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const { sha256 } = require('@noble/hashes/sha2.js');"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w5/reconciliation/server-bytes.cjs",
+      "sha256": "1efbc53d5db6bf63edab60fb29814a406cd742c93a5fd3ab1921aba0d854c5dc",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "require",
+          "line": 5,
+          "specifier": "../../../authority/canonical.cjs",
+          "resolved": "rebuild/authority/canonical.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 6,
+          "specifier": "./codec.cjs",
+          "resolved": "rebuild/m3/w5/reconciliation/codec.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const {createHash}=require('node:crypto');"
+        },
+        {
+          "line": 5,
+          "text": "const {canonicalEncode}=require('../../../authority/canonical.cjs');"
+        },
+        {
+          "line": 6,
+          "text": "const BASE=require('./codec.cjs');"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w5/source/codec.cjs",
+      "sha256": "e6591fcd586b568a6fa8c0aff89336dde75e4c80864f4fe23c399e1dc1c3c0d6",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "../reconciliation/codec.cjs",
+          "resolved": "rebuild/m3/w5/reconciliation/codec.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 5,
+          "specifier": "@noble/hashes/sha2.js",
+          "external": true
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const C = require('../reconciliation/codec.cjs');"
+        },
+        {
+          "line": 5,
+          "text": "const {sha256}=require('@noble/hashes/sha2.js');"
+        },
+        {
+          "line": 6,
+          "text": "const PROFILE = 'earned/source-import/v1', COLLECTION = 'sourceImports';"
+        },
+        {
+          "line": 84,
+          "text": "  check(p.type===(action==='activate'?'source-import-intent':'source-rollback-intent')&&p.source_id===sourceId&&"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/bridge.mjs",
+      "sha256": "52371ccb6e8bd16b67ab87b0cc177af07bd40ae9c0632be9cbbbfb19c17e0a00",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "./repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import { StorageFailure } from \"./repository.mjs\";"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/candidate-grant.mjs",
+      "sha256": "d65dfcafcde6a1105fe7720264c4adc3f28859c8f5bb3f53dcbb9e67c9cf951a",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "../../authority/canonical.cjs",
+          "resolved": "rebuild/authority/canonical.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import Canonical from \"../../authority/canonical.cjs\";"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/history-proof.mjs",
+      "sha256": "9abd450ad2d13ff9f4bb343f340437a2047a5d13ce2370d3db90435c9cab0114",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "../w5/public-client.cjs",
+          "resolved": "rebuild/m3/w5/public-client.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import W5 from \"../w5/public-client.cjs\";"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/import-custody.mjs",
+      "sha256": "9f5d0c461d58275ce619b3028fb64c167a684bf21abff41bd71bd3daf20eeec7",
+      "edges": [],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "// Inactive import originals and a named checkpoint in the existing generations"
+        },
+        {
+          "line": 3,
+          "text": "const PROFILE = 'earned/local-import-custody/v1', STORE = 'generations';"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/node-sha256-browser.mjs",
+      "sha256": "0b6faf991b118d145641e3c49071c3f0ac124792e2288f1c44b70fd7f23efa97",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "@noble/hashes/hmac.js",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "@noble/hashes/sha2.js",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "@noble/hashes/utils.js",
+          "external": true
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import { hmac } from \"@noble/hashes/hmac.js\";"
+        },
+        {
+          "line": 2,
+          "text": "import { sha256 } from \"@noble/hashes/sha2.js\";"
+        },
+        {
+          "line": 3,
+          "text": "import { bytesToHex, utf8ToBytes } from \"@noble/hashes/utils.js\";"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/public-client.mjs",
+      "sha256": "9cb0ba3d2da5e9bb85620ed3f103c344926def627533b2ce3e321dd24a828c31",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "../w5/public-client.cjs",
+          "resolved": "rebuild/m3/w5/public-client.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "./bridge.mjs",
+          "resolved": "rebuild/m3/w6/bridge.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "./repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 4,
+          "specifier": "./recovery-local.mjs",
+          "resolved": "rebuild/m3/w6/recovery-local.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 5,
+          "specifier": "./recovery-history.mjs",
+          "resolved": "rebuild/m3/w6/recovery-history.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 6,
+          "specifier": "./candidate-grant.mjs",
+          "resolved": "rebuild/m3/w6/candidate-grant.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 7,
+          "specifier": "../../authority/canonical.cjs",
+          "resolved": "rebuild/authority/canonical.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 8,
+          "specifier": "./history-proof.mjs",
+          "resolved": "rebuild/m3/w6/history-proof.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 9,
+          "specifier": "../../m4/workout/schema.cjs",
+          "resolved": "rebuild/m4/workout/schema.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 10,
+          "specifier": "../../m4/workout/stored-history.mjs",
+          "resolved": "rebuild/m4/workout/stored-history.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 11,
+          "specifier": "../../m4/workout/continuation.mjs",
+          "resolved": "rebuild/m4/workout/continuation.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 12,
+          "specifier": "../../m4/workout/commands.cjs",
+          "resolved": "rebuild/m4/workout/commands.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import W5 from \"../w5/public-client.cjs\";"
+        },
+        {
+          "line": 2,
+          "text": "import { createBridge } from \"./bridge.mjs\";"
+        },
+        {
+          "line": 3,
+          "text": "import { StorageFailure } from \"./repository.mjs\";"
+        },
+        {
+          "line": 4,
+          "text": "import { createLocalRecoveryBasis } from \"./recovery-local.mjs\";"
+        },
+        {
+          "line": 5,
+          "text": "import { authenticateRecoveryArchives } from \"./recovery-history.mjs\";"
+        },
+        {
+          "line": 6,
+          "text": "import { createCandidateGrant } from \"./candidate-grant.mjs\";"
+        },
+        {
+          "line": 7,
+          "text": "import Canonical from \"../../authority/canonical.cjs\";"
+        },
+        {
+          "line": 8,
+          "text": "import { verifyHistoricalHead, sameRecordedValue } from \"./history-proof.mjs\";"
+        },
+        {
+          "line": 9,
+          "text": "import WorkoutSchema from \"../../m4/workout/schema.cjs\";"
+        },
+        {
+          "line": 10,
+          "text": "import {storedWorkoutHistory} from \"../../m4/workout/stored-history.mjs\";"
+        },
+        {
+          "line": 11,
+          "text": "import {workoutContinuation} from \"../../m4/workout/continuation.mjs\";"
+        },
+        {
+          "line": 12,
+          "text": "import WorkoutCommands from \"../../m4/workout/commands.cjs\";"
+        },
+        {
+          "line": 251,
+          "text": "    // required. History reads and performed-fact corrections do not require"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-history.mjs",
+      "sha256": "f4ca4aae3c2f4f94ff89640f00a1cebcbf5ebab56c2c11c5f95b84da1019e478",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "./repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "./recovery-profile.mjs",
+          "resolved": "rebuild/m3/w6/recovery-profile.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "./recovery-snapshot.cjs",
+          "resolved": "rebuild/m3/w6/recovery-snapshot.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import {StorageFailure} from './repository.mjs';"
+        },
+        {
+          "line": 2,
+          "text": "import {validateArchivedRecoveryProfile} from './recovery-profile.mjs';"
+        },
+        {
+          "line": 3,
+          "text": "import Snapshot from './recovery-snapshot.cjs';"
+        },
+        {
+          "line": 6,
+          "text": "// standing, renewal, permission, a recovery activation or a completed import."
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-local.mjs",
+      "sha256": "da94b8eeb73c41d01d2eb55ac57ab0e1d1f37ce64dc9d5a3158a0c3651e2904e",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "./repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "./recovery-profile.mjs",
+          "resolved": "rebuild/m3/w6/recovery-profile.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "./t2-stage.cjs",
+          "resolved": "rebuild/m3/w6/t2-stage.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import {StorageFailure} from './repository.mjs';"
+        },
+        {
+          "line": 2,
+          "text": "import {validateRecoveryProfile} from './recovery-profile.mjs';"
+        },
+        {
+          "line": 3,
+          "text": "import T2 from './t2-stage.cjs';"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-plan-reader.cjs",
+      "sha256": "69e58c26bb452fea48101fd73a9ee07e29d9b531dbbde9ab67330dffd61babc5",
+      "edges": [],
+      "rawLoaderLines": [
+        {
+          "line": 3,
+          "text": "// Source-equivalence test pins this closure; no authority signer/writer import."
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-plan.cjs",
+      "sha256": "32a9c0343b1c602beb0bb38f565d6a66355012bab3d34928f1e1df859838e2b3",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "../../authority/canonical.cjs",
+          "resolved": "rebuild/authority/canonical.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 5,
+          "specifier": "./node-sha256-browser.mjs",
+          "resolved": "rebuild/m3/w6/node-sha256-browser.mjs"
+        },
+        {
+          "kind": "require",
+          "line": 9,
+          "specifier": "./recovery-plan-reader.cjs",
+          "resolved": "rebuild/m3/w6/recovery-plan-reader.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const { canonicalEncode } = require(\"../../authority/canonical.cjs\");"
+        },
+        {
+          "line": 5,
+          "text": "const { createHmac } = require(\"./node-sha256-browser.mjs\");"
+        },
+        {
+          "line": 9,
+          "text": "const Plan = require(\"./recovery-plan-reader.cjs\")({ hmac, canonicalEncode });"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-profile.mjs",
+      "sha256": "dc16a4c0626a63e83bddea3a53ed8043647740428e868346623fcd7ba812e666",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "./recovery-plan.cjs",
+          "resolved": "rebuild/m3/w6/recovery-plan.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 3,
+          "text": "import RecoveryPlan from './recovery-plan.cjs';"
+        },
+        {
+          "line": 10,
+          "text": " if(hasSources&&(P.DOMAINS.manifest!=='earned/r1/rows-v4/manifest'||sourceCodec?.PROFILE!=='earned/source-import/v1'||"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-snapshot.cjs",
+      "sha256": "80252922aeda425eabf1402d22613e299481a0242c77be9c707354d14fd5aa23",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/m3/w6/recovery-stage.mjs",
+      "sha256": "ef96cb867ba61cc74262d7a7c49060fd2aeb5d15b66448d22aa0cef30b1d023d",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/m3/w6/repository.mjs",
+      "sha256": "c300f00d1bb6d7473bddc310559695876a4a76b53f4b35e3dfff7edeb1383ddc",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "./recovery-stage.mjs",
+          "resolved": "rebuild/m3/w6/recovery-stage.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "./import-custody.mjs",
+          "resolved": "rebuild/m3/w6/import-custody.mjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import { createRecoveryStage } from './recovery-stage.mjs';"
+        },
+        {
+          "line": 2,
+          "text": "import { createImportCustody } from './import-custody.mjs';"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/strict-json.mjs",
+      "sha256": "1605acb16b8d828578979755e9ce3387efaab70f6b22370bbd565355187b7fb9",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/m3/w6/t2-stage.cjs",
+      "sha256": "9972732fa2324b500005f7b5800b2087b34b4e23eef4a623cce83355bedca592",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "../../client/index.cjs",
+          "resolved": "rebuild/client/index.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 5,
+          "specifier": "../../client/ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 6,
+          "specifier": "../../m4/workout/commands.cjs",
+          "resolved": "rebuild/m4/workout/commands.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 151,
+          "specifier": "./recovery-snapshot.cjs",
+          "resolved": "rebuild/m3/w6/recovery-snapshot.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const Client = require(\"../../client/index.cjs\");"
+        },
+        {
+          "line": 5,
+          "text": "const Ops = require(\"../../client/ops.cjs\");"
+        },
+        {
+          "line": 6,
+          "text": "const {createWorkoutCommands}=require(\"../../m4/workout/commands.cjs\");"
+        },
+        {
+          "line": 42,
+          "text": "      // records require recovery of their matching identity before this read."
+        },
+        {
+          "line": 151,
+          "text": "    const recoveredSnapshot = require(\"./recovery-snapshot.cjs\").recoveredSnapshotFields(sourcePlan, archiveProof.reference);"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/test/prepared-workout.test.mjs",
+      "sha256": "6e73717de83d027e6aa7b181494fb8918fc0ab8daee61f7c0bd37edc0835df70",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "node:test",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "node:assert/strict",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 4,
+          "specifier": "../public-client.mjs",
+          "resolved": "rebuild/m3/w6/public-client.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 5,
+          "specifier": "../strict-json.mjs",
+          "resolved": "rebuild/m3/w6/strict-json.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 6,
+          "specifier": "./support.mjs",
+          "resolved": "rebuild/m3/w6/test/support.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 7,
+          "specifier": "../../../m4/workout/capture.cjs",
+          "resolved": "rebuild/m4/workout/capture.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 8,
+          "specifier": "../../../m4/workout/commands.cjs",
+          "resolved": "rebuild/m4/workout/commands.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 9,
+          "specifier": "../../../m4/workout/schema.cjs",
+          "resolved": "rebuild/m4/workout/schema.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 10,
+          "specifier": "../../w5/crypto.cjs",
+          "resolved": "rebuild/m3/w5/crypto.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 11,
+          "specifier": "../../w5/public-client.cjs",
+          "resolved": "rebuild/m3/w5/public-client.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 12,
+          "specifier": "../../w5/source/codec.cjs",
+          "resolved": "rebuild/m3/w5/source/codec.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 13,
+          "specifier": "../../../m4/workout/continuation.mjs",
+          "resolved": "rebuild/m4/workout/continuation.mjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import test from 'node:test';"
+        },
+        {
+          "line": 2,
+          "text": "import assert from 'node:assert/strict';"
+        },
+        {
+          "line": 3,
+          "text": "import {webcrypto} from 'node:crypto';"
+        },
+        {
+          "line": 4,
+          "text": "import {createDurablePublicClient} from '../public-client.mjs';"
+        },
+        {
+          "line": 5,
+          "text": "import {parseStrictJson} from '../strict-json.mjs';"
+        },
+        {
+          "line": 6,
+          "text": "import {fixture,initial,config,O,Client,createT2Stage,faultDatabase,mutateActive,deferred} from './support.mjs';"
+        },
+        {
+          "line": 7,
+          "text": "import Capture from '../../../m4/workout/capture.cjs';"
+        },
+        {
+          "line": 8,
+          "text": "import Commands from '../../../m4/workout/commands.cjs';"
+        },
+        {
+          "line": 9,
+          "text": "import Schema from '../../../m4/workout/schema.cjs';"
+        },
+        {
+          "line": 10,
+          "text": "import Sign from '../../w5/crypto.cjs';"
+        },
+        {
+          "line": 11,
+          "text": "import Wire from '../../w5/public-client.cjs';"
+        },
+        {
+          "line": 12,
+          "text": "import Source from '../../w5/source/codec.cjs';"
+        },
+        {
+          "line": 13,
+          "text": "import {workoutContinuation} from '../../../m4/workout/continuation.mjs';"
+        },
+        {
+          "line": 168,
+          "text": "  assert.equal(correction.acknowledged,true,'Start correction does not require fictitious lift lineage');"
+        },
+        {
+          "line": 857,
+          "text": "  payload:{type:'source-import-intent',interval:{start:'2026-09-04',end:'2026-09-04'},source_id:'synthetic-'+label,"
+        },
+        {
+          "line": 963,
+          "text": "// they are not a production controller, consumer, import or phone qualification."
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/test/public-client.test.mjs",
+      "sha256": "ff30457ad80c778b7cf030f41744b07390021e950cc7e55282d723e732887f02",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 8,
+          "specifier": "../../w5/crypto.cjs",
+          "resolved": "rebuild/m3/w5/crypto.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 8,
+          "specifier": "../../w5/public-client.cjs",
+          "resolved": "rebuild/m3/w5/public-client.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 39,
+          "specifier": "../../../client/ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 63,
+          "specifier": "../../../client/ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 74,
+          "specifier": "../../../client/ops.cjs",
+          "resolved": "rebuild/client/ops.cjs"
+        },
+        {
+          "kind": "dynamic-import",
+          "line": 199,
+          "specifier": "../repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "dynamic-import",
+          "line": 275,
+          "specifier": "../repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "node:test",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "node:assert/strict",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "node:module",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 4,
+          "specifier": "../public-client.mjs",
+          "resolved": "rebuild/m3/w6/public-client.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 5,
+          "specifier": "../candidate-grant.mjs",
+          "resolved": "rebuild/m3/w6/candidate-grant.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 6,
+          "specifier": "../repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 7,
+          "specifier": "./support.mjs",
+          "resolved": "rebuild/m3/w6/test/support.mjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import test from \"node:test\";"
+        },
+        {
+          "line": 2,
+          "text": "import assert from \"node:assert/strict\";"
+        },
+        {
+          "line": 3,
+          "text": "import { createRequire } from \"node:module\";"
+        },
+        {
+          "line": 4,
+          "text": "import { createDurablePublicClient } from \"../public-client.mjs\";"
+        },
+        {
+          "line": 5,
+          "text": "import { createCandidateGrant } from \"../candidate-grant.mjs\";"
+        },
+        {
+          "line": 6,
+          "text": "import { StorageFailure } from \"../repository.mjs\";"
+        },
+        {
+          "line": 7,
+          "text": "import { Client, O, config, initial, fixture, faultDatabase, deferred, createT2Stage } from \"./support.mjs\";"
+        },
+        {
+          "line": 8,
+          "text": "const require = createRequire(import.meta.url), Signer = require(\"../../w5/crypto.cjs\"), W5 = require(\"../../w5/public-client.cjs\");"
+        },
+        {
+          "line": 39,
+          "text": "        first.canonical_content_commitment = require(\"../../../client/ops.cjs\").commitmentOf(first, config().identityKey);"
+        },
+        {
+          "line": 63,
+          "text": "      op.canonical_content_commitment = require(\"../../../client/ops.cjs\").commitmentOf(op, config().identityKey);"
+        },
+        {
+          "line": 74,
+          "text": "    assert.equal(actual.canonical_content_commitment, require(\"../../../client/ops.cjs\").commitmentOf(actual, config().identityKey));"
+        },
+        {
+          "line": 199,
+          "text": "  const secondRepo = await (await import(\"../repository.mjs\")).openRepository(f.setup);"
+        },
+        {
+          "line": 275,
+          "text": "  const repository = await (await import(\"../repository.mjs\")).openRepository({ ...f.setup, crypto });"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m3/w6/test/support.mjs",
+      "sha256": "6f62d795db9f69c6c757a2a23fba33e9288bf99ccf6afb2c7c79e3eca3da1462",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 7,
+          "specifier": "../../../client/index.cjs",
+          "resolved": "rebuild/client/index.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 8,
+          "specifier": "../../../conform/lib/ops.cjs",
+          "resolved": "rebuild/conform/lib/ops.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 9,
+          "specifier": "../t2-stage.cjs",
+          "resolved": "rebuild/m3/w6/t2-stage.cjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "fake-indexeddb",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "node:crypto",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "node:module",
+          "external": true
+        },
+        {
+          "kind": "static-import",
+          "line": 4,
+          "specifier": "../repository.mjs",
+          "resolved": "rebuild/m3/w6/repository.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 5,
+          "specifier": "../bridge.mjs",
+          "resolved": "rebuild/m3/w6/bridge.mjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import { IDBFactory } from \"fake-indexeddb\";"
+        },
+        {
+          "line": 2,
+          "text": "import { webcrypto } from \"node:crypto\";"
+        },
+        {
+          "line": 3,
+          "text": "import { createRequire } from \"node:module\";"
+        },
+        {
+          "line": 4,
+          "text": "import { openRepository } from \"../repository.mjs\";"
+        },
+        {
+          "line": 5,
+          "text": "import { createBridge } from \"../bridge.mjs\";"
+        },
+        {
+          "line": 6,
+          "text": "const require = createRequire(import.meta.url);"
+        },
+        {
+          "line": 7,
+          "text": "export const Client = require(\"../../../client/index.cjs\");"
+        },
+        {
+          "line": 8,
+          "text": "export const O = require(\"../../../conform/lib/ops.cjs\");"
+        },
+        {
+          "line": 9,
+          "text": "export const { createT2Stage } = require(\"../t2-stage.cjs\");"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/authority-profile.cjs",
+      "sha256": "3627b2ecd7c31357460be06bec34d044c418f31e3a2a9a8c60a8ff9b6e94ed63",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 2,
+          "specifier": "./edit-values.cjs",
+          "resolved": "rebuild/m4/workout/edit-values.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 2,
+          "text": "const V=require('./edit-values.cjs');"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/capture.cjs",
+      "sha256": "c20fb021034b7c110d58cd14cb8e5fb547ce23d0436086894dce67e23a4674ea",
+      "edges": [],
+      "rawLoaderLines": [
+        {
+          "line": 52,
+          "text": "    (sourceCodec?.PROFILE!=='earned/source-import/v1'||typeof sourceCodec.basis!=='function'))"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/commands.cjs",
+      "sha256": "ee4de3b4ea573fe6f924fdff97f793e5679219516e4188fcc6b9f689c9b5c571",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 3,
+          "specifier": "./schema.cjs",
+          "resolved": "rebuild/m4/workout/schema.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "./authority-profile.cjs",
+          "resolved": "rebuild/m4/workout/authority-profile.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 3,
+          "text": "const {validateWorkoutShape}=require('./schema.cjs');"
+        },
+        {
+          "line": 4,
+          "text": "const {createWorkoutProfile}=require('./authority-profile.cjs');"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/context-values.cjs",
+      "sha256": "8cd6fe62aaf0ab1f11ecd7a35564f057b3b6c5a5e4facd5404f8f7b63caf4a2b",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "./edit-values.cjs",
+          "resolved": "rebuild/m4/workout/edit-values.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const V=require('./edit-values.cjs');"
+        },
+        {
+          "line": 7,
+          "text": "const reserved=new Set(['source-import-intent','source-rollback-intent']);"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/continuation.mjs",
+      "sha256": "b688367c42158606738c03b7c9d6752fd86ce58480a8485f34ee275605d83f7d",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "../../client/session.cjs",
+          "resolved": "rebuild/client/session.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import Session from '../../client/session.cjs';"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/edit-history.cjs",
+      "sha256": "3e5dd5053ddbcc2491cc604da35e42fde625c6c0b94d409431c3bba65042d3e2",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "./edit-values.cjs",
+          "resolved": "rebuild/m4/workout/edit-values.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 5,
+          "specifier": "./schema.cjs",
+          "resolved": "rebuild/m4/workout/schema.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 6,
+          "specifier": "./context-values.cjs",
+          "resolved": "rebuild/m4/workout/context-values.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const V=require('./edit-values.cjs');"
+        },
+        {
+          "line": 5,
+          "text": "const Schema=require('./schema.cjs');"
+        },
+        {
+          "line": 6,
+          "text": "const Context=require('./context-values.cjs');"
+        },
+        {
+          "line": 85,
+          "text": " // Unlike schema2 accepted ties, supported schema1 edits require semantic"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/edit-values.cjs",
+      "sha256": "bc3e760bb1870a3a30f7f7e15d427faea00ef31b9d4256050ac30161b3ec1546",
+      "edges": [],
+      "rawLoaderLines": []
+    },
+    {
+      "path": "rebuild/m4/workout/project-history.mjs",
+      "sha256": "ac78fc64c72055cb1283ed3e449cd4def16dd1fd34bcc1e2b05858769e35fe92",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "./edit-history.cjs",
+          "resolved": "rebuild/m4/workout/edit-history.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import EditHistory from './edit-history.cjs';"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/schema.cjs",
+      "sha256": "9d18cce9434118fd33364c2bc6842923707685328fa62d115b90c63460923458",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 2,
+          "specifier": "./edit-values.cjs",
+          "resolved": "rebuild/m4/workout/edit-values.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 3,
+          "specifier": "./context-values.cjs",
+          "resolved": "rebuild/m4/workout/context-values.cjs"
+        },
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "./source-control-values.cjs",
+          "resolved": "rebuild/m4/workout/source-control-values.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 2,
+          "text": "const EditValues = require('./edit-values.cjs');"
+        },
+        {
+          "line": 3,
+          "text": "const ContextValues = require('./context-values.cjs');"
+        },
+        {
+          "line": 4,
+          "text": "const SourceControlValues = require('./source-control-values.cjs');"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/source-control-values.cjs",
+      "sha256": "635ba7ec7515a53bb7029b81d223586a9d884b3d60e464ce178bf73a0d4ba560",
+      "edges": [
+        {
+          "kind": "require",
+          "line": 4,
+          "specifier": "./edit-values.cjs",
+          "resolved": "rebuild/m4/workout/edit-values.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 4,
+          "text": "const V=require('./edit-values.cjs');"
+        },
+        {
+          "line": 14,
+          "text": "  !['source-import-intent','source-rollback-intent'].includes(p.type)||!identifier(p.source_id)||!digest(p.material_digest)||"
+        }
+      ]
+    },
+    {
+      "path": "rebuild/m4/workout/stored-history.mjs",
+      "sha256": "78db774066ccc465bbdce8394bf3bb545c197664a9f7703cc8b34003e002567e",
+      "edges": [
+        {
+          "kind": "static-import",
+          "line": 1,
+          "specifier": "../../m3/w6/history-proof.mjs",
+          "resolved": "rebuild/m3/w6/history-proof.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 2,
+          "specifier": "./project-history.mjs",
+          "resolved": "rebuild/m4/workout/project-history.mjs"
+        },
+        {
+          "kind": "static-import",
+          "line": 3,
+          "specifier": "./edit-history.cjs",
+          "resolved": "rebuild/m4/workout/edit-history.cjs"
+        }
+      ],
+      "rawLoaderLines": [
+        {
+          "line": 1,
+          "text": "import {sameRecordedValue} from '../../m3/w6/history-proof.mjs';"
+        },
+        {
+          "line": 2,
+          "text": "import {projectWorkoutRecords} from './project-history.mjs';"
+        },
+        {
+          "line": 3,
+          "text": "import EditHistory from './edit-history.cjs';"
+        }
+      ]
+    }
+  ],
+  "denied": [],
+  "method": "literal traversal plus manual audit of current raw require/createRequire/dynamic-loader/runtime-read lines; no source execution",
+  "productModulesExecuted": 0
+}

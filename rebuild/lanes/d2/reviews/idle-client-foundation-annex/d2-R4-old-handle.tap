@@ -1,0 +1,56 @@
+TAP version 13
+# Subtest: D2 I8 abort in the post-read microtask cannot revive a published old handle
+not ok 1 - D2 I8 abort in the post-read microtask cannot revive a published old handle
+  ---
+  duration_ms: 19.8324
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-idle-client-foundation\\.tmp\\d2-controls.mjs:165:38'
+  failureType: 'testCodeFailure'
+  error: |-
+    failure after publication must never revive the retired client
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-idle-client-foundation/.tmp/d2-controls.mjs:169:166)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: D2 I8 close in the post-read microtask cannot revive a published old handle
+not ok 2 - D2 I8 close in the post-read microtask cannot revive a published old handle
+  ---
+  duration_ms: 5.2324
+  type: 'test'
+  location: 'C:\\Users\\joeym\\Documents\\prepledger-dev\\work\\pm-caretaker\\d2-idle-client-foundation\\.tmp\\d2-controls.mjs:165:38'
+  failureType: 'testCodeFailure'
+  error: |-
+    failure after publication must never revive the retired client
+    
+    false !== true
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/joeym/Documents/prepledger-dev/work/pm-caretaker/d2-idle-client-foundation/.tmp/d2-controls.mjs:169:166)
+    runNextTicks (node:internal/process/task_queues:64:5)
+    process.processImmediate (node:internal/timers:452:9)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 0
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 142.979
