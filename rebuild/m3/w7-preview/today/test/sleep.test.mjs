@@ -273,6 +273,82 @@ test('N2-02 / N2-04 R5 - completion uses the envelope clock after an open host c
   } finally { host.close(); era.close(); }
 });
 
+/* R5's envelope comparison must not compare against a caller-authored save stamp. */
+for (const [label, date, saveDay] of [
+  ['current night with tomorrow stamp', DAY, '2030-02-05'],
+  ['future night with later stamp', '2030-02-05', '2030-02-06'],
+  ['previous night with matching stamp', NIGHT, DAY],
+  ['late night with backdated stamp', '2030-01-30', '2030-02-01'],
+]) {
+  test('N2-01 / N2-02 R6 - raw producer refuses a supplied save stamp: ' + label, async () => {
+    const kit = await device();
+    try {
+      assert.equal((await kit.host.save({ date: '2029-12-01', hours: 0 }, { supersedes: null })).ok, true);
+      const before = { ops: await opsOf(kit.host.repository), outbox: await outboxOf(kit.host.repository) };
+      const result = await kit.host.client.execute('workout', { action: ACTION, input: {
+        night: { date, hours: 2 }, supersedes: null,
+        effective: { local_date: saveDay, local_time: '08:00', utc_offset: '+00:00' },
+      } });
+      const after = { ops: await opsOf(kit.host.repository), outbox: await outboxOf(kit.host.repository) };
+      assert.deepEqual({ acknowledged: result.acknowledged, opsAdded: after.ops.length - before.ops.length,
+        outboxAdded: after.outbox.length - before.outbox.length },
+      { acknowledged: false, opsAdded: 0, outboxAdded: 0 });
+      assert.deepEqual(after, before, 'the raw refusal preserves the existing observation and outbox');
+      assert.equal(kit.host.today(), DAY, 'the installation day remains the actual day');
+    } finally { kit.host.close(); }
+  });
+}
+
+test('N2-01 / N2-05 R6 - ordinary raw past-night writes and corrections keep the client stamp', async () => {
+  const kit = await device();
+  try {
+    let prior = null;
+    let count = (await opsOf(kit.host.repository)).length;
+    for (const night of [{ date: NIGHT, hours: 0 }, { date: NIGHT, bed: '23:00', wake: '06:30' }]) {
+      const beforeOps = await opsOf(kit.host.repository), beforeOutbox = await outboxOf(kit.host.repository);
+      const result = await kit.host.client.execute('workout', { action: ACTION, input: { night, supersedes: prior } });
+      assert.equal(result.acknowledged, true);
+      const ops = await opsOf(kit.host.repository), outbox = await outboxOf(kit.host.repository);
+      assert.equal(ops.length, ++count);
+      assert.equal(outbox.length, beforeOutbox.length + 1);
+      assert.deepEqual(ops.slice(0, -1), beforeOps, 'correction appends and retains the previous observation');
+      const row = (await kit.host.forDate(NIGHT)).at(-1);
+      assert.deepEqual(row.night, night);
+      assert.equal(row.savedDate, DAY);
+      assert.equal(ops.at(-1).effective.local_date, DAY);
+      prior = row.op_id;
+    }
+  } finally { kit.host.close(); }
+});
+
+test('N2-02 / N2-04 R6 - raw producer keeps the actual clock through midnight and correction', async () => {
+  const { openTodayInstallation } = await import('../../../w6/local/today-bindings.mjs');
+  let day = DAY;
+  const clock = { today: () => day, now: () => day + 'T13:00:00.000Z', tz: '-05:00', monotonicMs: () => 0 };
+  const era = await openTodayInstallation({ indexedDB: faultDatabase().indexedDB, crypto: webcrypto, day, clock });
+  const host = await createSleepHost({ day, era });
+  const snapshot = async () => ({ ops: await opsOf(host.repository), outbox: await outboxOf(host.repository) });
+  const save = (hours, supersedes) => host.client.execute('workout',
+    { action: ACTION, input: { night: { date: DAY, hours }, supersedes } });
+  try {
+    const before = await snapshot();
+    assert.equal((await save(2, null)).acknowledged, false);
+    assert.deepEqual(await snapshot(), before, 'raw current-night refusal writes nothing');
+    day = '2030-02-05';
+    assert.equal((await save(2, null)).acknowledged, true);
+    const first = (await host.forDate(DAY)).at(-1);
+    assert.equal(first.savedDate, day);
+    assert.equal((await save(3, first.op_id)).acknowledged, true);
+    const rows = await host.forDate(DAY), after = await snapshot();
+    assert.equal(rows.length, 2);
+    assert.equal(rows[0].op_id, first.op_id);
+    assert.deepEqual(rows.map(row => row.night.hours), [2, 3]);
+    assert(rows.every(row => row.savedDate === day && row.night.date === DAY));
+    assert.equal(after.ops.length, before.ops.length + 2);
+    assert.equal(after.outbox.length, before.outbox.length + 2);
+  } finally { host.close(); era.close(); }
+});
+
 /* ==========================================================================
    N2-03 - THE HOURS ARE THE ENGINE'S. Seam S2 is the ROW, never the span.
    ========================================================================== */

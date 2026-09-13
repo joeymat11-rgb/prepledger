@@ -111,8 +111,10 @@ function prepare(request) {
   if (!isMap(request) || Object.keys(request).length !== 2
     || request.action !== ACTION || !isMap(request.input)) bad();
   const input = request.input;
+  /* The caller labels the night; only the client supplies its actual save stamp.
+     A supplied effective date could otherwise bypass the completed-night guard. */
   for (const key of Object.keys(input)) {
-    if (key !== "night" && key !== "effective" && key !== "supersedes") bad();
+    if (key !== "night" && key !== "supersedes") bad();
   }
   const action = { class: OP_CLASS, kind: OP_KIND,
     payload: { profile: PROFILE, night: nightOf(input.night) },
@@ -127,12 +129,6 @@ function prepare(request) {
     const expected = input.supersedes;
     if (expected !== null && (typeof expected !== "string" || expected === "")) bad();
     action.payload.supersedes = expected;
-  }
-  if (Object.hasOwn(input, "effective")) {
-    const e = input.effective;
-    if (!isMap(e) || Object.keys(e).length !== 3
-      || !["local_date", "local_time", "utc_offset"].every((k) => typeof e[k] === "string")) bad();
-    action.effective = { local_date: e.local_date, local_time: e.local_time, utc_offset: e.utc_offset };
   }
   return action;
 }
