@@ -68,7 +68,8 @@ function createEngine({clock,ids,drafts,nativeTrendContext}={}) {
 }
 module.exports={createEngine,syntheticState,clockAt,inspectClosure,publicSource,MODULES,PUBLIC_MODULES};
 
-// Immutable construction source manifest; metadata, not a mutant-kill guard.
+// Immutable original M-to-R construction manifest; candidate fields name R.
+// Successor metadata follows separately; neither manifest is a mutant-kill guard.
 const CONSTRUCTION_SOURCE_MANIFEST = {
   "base": "100820aa47a4f8729642033499eaec0f0ee282e1",
   "syntheticFixtureSHA256": "25f241d23765796328ea6ff6aea7621799582045cf9ee316068fcef499189046",
@@ -137,3 +138,30 @@ const CONSTRUCTION_SOURCE_MANIFEST = {
   }
 };
 module.exports.CONSTRUCTION_SOURCE_MANIFEST=Object.freeze(CONSTRUCTION_SOURCE_MANIFEST);
+
+// PM246: exact four repair images; public native context is a read-only dependency.
+module.exports.SUCCESSOR_SOURCE_MANIFEST = Object.freeze({
+  "sourceBase": "6c9248e695a4478abdbaae0f9f48395ac56000fa",
+  "runtime": {
+    "rebuild/engine/progression.cjs": {
+      "pre": "9adaeecb715e42533fcd51483e67f52a9d8d530a0de80865e28ae572152599a8",
+      "post": "2384d12e5788fb01324a62d7bbc7fa7303a3e748f97ecd4a6f9a5c82975dbc7a"
+    },
+    "rebuild/engine/sleep.cjs": {
+      "pre": "b55cb352aed6be0032391e7b695223928154cd89c43023838c69baaa33a22e2d",
+      "post": "57475760a52e7e76adddc4c34cf4b4f0f6f33b034cfc248b23abb441c03cfde8"
+    },
+    "rebuild/engine/today.cjs": {
+      "pre": "36ce41f37c6d50d79588540470f6f87d050e9ef944b9ce76eb44ad380b952135",
+      "post": "fff395dfb1d5e1890eacabf39a76a9c65e413b4f89a2c14d74d00c1343260392"
+    },
+    "rebuild/engine/writers.cjs": {
+      "pre": "694e220db85eac38a1068e7e7ed9404edb786140df165dd621f0eee2f4531959",
+      "post": "7e8ba66e82a24983e98d063fe948838f77ec168b52515cdfe2e6483291027494"
+    }
+  },
+  "nativeTrendContext": {
+    "file": "rebuild/m4/workout/native-trend-context.cjs",
+    "sha256": "f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a"
+  }
+});
