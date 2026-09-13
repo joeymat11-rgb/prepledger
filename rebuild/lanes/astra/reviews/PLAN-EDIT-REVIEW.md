@@ -30,3 +30,5 @@ Actual C future-gym state and operation basis, open workout/check-in draft prese
 Final F1/F2/B2-dependent composition, B's applicable cumulative/profile/pins/private verdict/receipt/authorized rerun, exact-head Windows+Ubuntu command registration/CI and PM judgment are still required. This is no machine package acceptance or merge permission. Latest PM integration hold/routing remains authoritative.
 
 Commands and both executable reviewer annexes are listed in `PLAN-EDIT-REVIEW-ANNEX.md` beside this report. D has no remaining R1/R2 fix assigned by this review; C/B/PM own the remaining admission work.
+
+Post-publication check: PLAN-EDIT-R1-FIX-REPORT.md was read only after review/annex commit96c4b10 was published. Its unchanged-witness, 50-test and 15-mutant claims reproduce independently; it retains the same external gates. Bounded verdict unchanged.
