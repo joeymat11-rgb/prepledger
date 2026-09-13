@@ -45,3 +45,5 @@
 2026-09-12 23:38 ET · D · PRE-BUILT · rebuild/lane-d-f2-b1b2 @b06d02a on the same named B base. F2-PREBUILD-REPORT.md: cells75/75, mutants15/15, parent15 assertion failures/5 controls. :170 secondary heads consumed; accepted brief bytes unchanged. C companion and B actual successor/FULL/CI pending.
 2026-09-12 23:38 ET · D · BRIEF-READY · rebuild/lane-d-plan-edit @bb949a0 · BRIEF-PLAN-EDIT-COMPANION-v1.0.md,132 lines: three new modules, Exercises + existing Machine settings, tomorrow activation, reviewed global basis and actual plan-mutation/atomic save path. Build in flight under :176; C seam requested; no Today edits.
 2026-09-12 23:38 ET · D · DOCS-UPDATED · rebuild/lane-d-c6 @ab0c18e · brief now records settled :176(3) 30-day provider recovery retention and :158 billed-tail risk. Product unchanged e43f15f; reviewer/CI remain held, no deployment/live/key/account action.
+
+2026-09-12 23:50 ET · ASTRA-PM · OWNER HANDOVER · sole PM per DECISIONS:193, approved "Do it"; all-Astra charter + finite checklist published. D/D2 continue; B/C read-only handoff first. Launch adoption bar ready. No gate waiver, main push or relay deploy. tip befa2c9

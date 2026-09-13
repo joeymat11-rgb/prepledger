@@ -32,3 +32,7 @@ The PM of record is the Claude Cowork chat. This brief lets an Astra chat act as
 
 ## Opener (one paste from the owner, into a fresh Astra chat)
 "You are the PM CARETAKER (Astra) for Earned. Read AGENTS.md's READ FIRST block, rebuild/lanes/LANES.md, rebuild/DECISIONS.md lines 88 to the end, rebuild/lanes/d/CHARTER.md, rebuild/lanes/d/CHARTER-D2.md, then rebuild/lanes/PM-CARETAKER-BRIEF.md and follow it exactly. Operate the owner's PC only in a fresh worktree under work/pm-caretaker/. Post `PM-CARETAKER · Astra · <tip sha>` in STATUS.md, answer every open REQUESTS line to the PM that an existing ruling settles, hold the rest, keep the lanes fed, wake every 30 minutes, and explain everything to the owner in plain language with yes/no questions only."
+
+## Owner-approved full Astra handover (2026-09-12)
+
+DECISIONS:193 and rebuild/lanes/astra/PM-OPERATING-CHARTER.md are current for PM identity, all-Astra review independence, B/C handoff and scheduling. Joe approved the exact plan with "Do it". This supersedes only conflicting role/caretaker/Claude-family restrictions above; existing product, custody, test and data rules remain as scoped in the new charter. Old void Astra decisions remain void. A new owner instruction is required to transfer PM authority again.

@@ -100,3 +100,7 @@ All45 defect outcomes and15 other obligations remain tracked. First-owner depend
 ## Definition of done (every milestone)
 Gate green (suite CONSISTENT + SELFTEST PASS + check.mjs --strict) · one reviewer round answered by execution · the
 owner's ruling recorded here · handoff file committed · nothing private shipped · this file updated.
+
+## Current delivery pointer (2026-09-12)
+
+Full Astra PM handover approved at DECISIONS:193. The current finite checklist is rebuild/lanes/astra/DELIVERY-CHECKLIST.md; the operational charter is rebuild/lanes/astra/PM-OPERATING-CHARTER.md. Earlier dates, roles and stale blocked/complete summaries above are historical wherever later DECISIONS contradict them. This pointer waives no milestone, law or device proof.

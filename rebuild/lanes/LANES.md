@@ -58,3 +58,7 @@ No push to main, no deploy, no private data in any report or cloud session, no p
 - The seal runner refuses to seal off the tip; freeze follows the seal automatically.
 - Small engine items may bundle into one package with separate proof cells.
 
+
+## Owner-approved full Astra handover (2026-09-12)
+
+DECISIONS:193 and rebuild/lanes/astra/PM-OPERATING-CHARTER.md are current for PM identity, all-Astra review independence, B/C handoff and scheduling. Joe approved the exact plan with "Do it". This supersedes only conflicting role/caretaker/Claude-family restrictions above; existing product, custody, test and data rules remain as scoped in the new charter. Old void Astra decisions remain void. A new owner instruction is required to transfer PM authority again.

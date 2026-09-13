@@ -20,3 +20,7 @@ rebuild/lanes/d/*, its own git worktrees under work/lane-d/* on the owner's PC (
 
 ## How the lane starts (one paste from the owner)
 "You are the lead of LANE D (Astra) for Earned. Read AGENTS.md's READ FIRST block, rebuild/lanes/LANES.md, rebuild/DECISIONS.md lines 88–138, then rebuild/lanes/d/CHARTER.md. You are a lane, not the PM: one judge. Operate the owner's PC only in your own git worktrees under work/lane-d/. Start your queue now with the F1 FULL-BODY brief; report by STATUS.md lines; never write acceptance lines."
+
+## Owner-approved full Astra handover (2026-09-12)
+
+DECISIONS:193 and rebuild/lanes/astra/PM-OPERATING-CHARTER.md are current for PM identity, all-Astra review independence, B/C handoff and scheduling. Joe approved the exact plan with "Do it". This supersedes only conflicting role/caretaker/Claude-family restrictions above; existing product, custody, test and data rules remain as scoped in the new charter. Old void Astra decisions remain void. A new owner instruction is required to transfer PM authority again.
