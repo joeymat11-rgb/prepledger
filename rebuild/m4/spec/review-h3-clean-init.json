@@ -1,10 +1,5 @@
 {
   "version": 1,
-  "status": "ACCEPTED",
-  "receipt": {
-    "commit": "b1747ec8a87422d2975a65eb39491e1b6fcc39a3",
-    "path": "rebuild/DECISIONS.md",
-    "line": "- 2026-09-12 · cowork · POSTFIX-ACCEPTANCE M2-H3-CLEAN-INIT 521a00491490bd0d3f265bc3eb47dbaec3fd3246 rebuild/m4/spec/acceptance-h3-clean-init.json 2b6e579eec4fadc2165e6edadd7f7a3a2ab18ae76950063634596598a2825262 ACCEPTED",
-    "lineSha256": "458336df0285d6fe48f705e962d23876d402e3e08c269add70f70f0f6db41c80"
-  }
+  "status": "PENDING",
+  "receipt": null
 }
