@@ -119,20 +119,20 @@ test('D31 actual hard post-change block cannot reuse earlier tolerance',()=>{
   for(const [i,d]of ['2026-08-05','2026-08-12','2026-08-19','2026-08-26'].entries())addLog(good,d,3,9+i);
   assert.equal(E.volumeConversion(good,ex.id).status,'LIVE');
 });
-function replication(forks=[],priorDays=['2026-07-01','2026-07-08','2026-07-15','2026-07-29']){
+function replication(forks=[],priorDays=['2026-05-01','2026-05-15','2026-05-29','2026-06-26']){
   const ex=lift({sets:3,forks}),s=state(ex);
   priorDays.forEach((d,i)=>addLog(s,d,2,8+2*i));
-  ['2026-08-01','2026-08-08','2026-08-15','2026-08-29'].forEach((d,i)=>addLog(s,d,3,8+2*i));
+  ['2026-07-01','2026-07-15','2026-07-29','2026-08-26'].forEach((d,i)=>addLog(s,d,3,8+2*i));
   return s;
 }
 test('D32 actual replication retains thresholds, inclusive era and query-side forks',()=>{
   const E=engine(),read=s=>E.volumeConversion(s,s.exercises[0].id);
   assert.equal(read(replication()).tier,'REPLICATED');
-  assert.equal(read(replication([{from:'2026-08-01'}])).tier,'OUTCOME-COMPATIBLE');
-  assert.equal(read(replication([{from:'2026-07-01'}])).tier,'REPLICATED');
-  assert.equal(read(replication([{from:'2026-07-01'},{from:'2026-09-10'}])).tier,'REPLICATED');
-  assert.equal(read(replication([],['2026-07-01','2026-07-08','2026-07-15'])).tier,'OUTCOME-COMPATIBLE');
-  assert.equal(read(replication([],['2026-07-01','2026-07-08','2026-07-15','2026-07-22'])).tier,'OUTCOME-COMPATIBLE');
+  assert.equal(read(replication([{from:'2026-07-01'}])).tier,'OUTCOME-COMPATIBLE');
+  assert.equal(read(replication([{from:'2026-05-01'}])).tier,'REPLICATED');
+  assert.equal(read(replication([{from:'2026-05-01'},{from:'2026-09-10'}])).tier,'REPLICATED');
+  assert.equal(read(replication([],['2026-05-01','2026-05-29','2026-06-26'])).tier,'OUTCOME-COMPATIBLE');
+  assert.equal(read(replication([],['2026-05-01','2026-05-08','2026-05-15','2026-05-22'])).tier,'OUTCOME-COMPATIBLE');
 });
 function fault(id,file,fn,from,to,pattern){FAULTS.push({id,file,fn,from,to,pattern});}
 const P='plan.cjs',G='progression.cjs',V='volume.cjs';
@@ -191,20 +191,40 @@ fault('volume-owner-trusts-exid-only-Q2',V,'structuralMovesThisWeek',': (xs9.fin
 fault('volume-owner-drops-the-no-suffix-tail',V,'structuralMovesThisWeek','own9 === n9 || tail9 === n9','cut9 >= 0 && own9 === n9','Q2');
 fault('volume-owner-drops-the-former-name-term',V,'structuralMovesThisWeek',' || xs9.find((x) => _formerNames(x).some(owns9))','','Q2');
 fault('volume-owner-drops-the-live-name-tier',V,'structuralMovesThisWeek','xs9.find((x) => owns9(String((x && x.n) || ""))) || ','','Q2');
+// §1.6 names multi-site faults: apply their complete original guard removals.
+FAULTS.find(f=>f.id==='as-of-restricts-era-but-not-session-dates').additional=[
+  {fn:'progressAnchor',from:'if (row.d > atA) continue;',to:''},
+  {fn:'progressAnchor',from:'if (days9[i] > atA) continue;',to:''}];
+FAULTS.find(f=>f.id==='future-cut-applied-to-the-trend-only').additional=[
+  {fn:'progressAnchor',from:'if (row.d > atA) continue;',to:''}];
 function replaceFault(source,f){
   const begin=source.indexOf('function '+f.fn+'(');assert.ok(begin>=0,'SETUP declaration '+f.fn);
   let end=source.indexOf('\n// Copied',begin);if(end<0)end=source.length;
   const body=source.slice(begin,end);assert.equal(body.split(f.from).length-1,1,'SETUP exact source site '+f.id);
-  return source.slice(0,begin)+body.replace(f.from,f.to)+source.slice(end);
+  let out=source.slice(0,begin)+body.replace(f.from,f.to)+source.slice(end);
+  for(const part of f.additional||[])out=replaceFault(out,{...part,id:f.id});
+  return out;
 }
 const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 function audit(){
   const repo=path.resolve(__dirname,'../../..');
   const files=H.PUBLIC_MODULES.map(n=>'rebuild/engine/'+n).concat(['rebuild/engine/index.cjs','rebuild/engine/test/b1b2-public-engine.cjs','rebuild/m4/workout/native-trend-context.cjs','rebuild/engine/test/b2-public-source-faults.test.cjs']);
+  assert.equal(files.length,19);assert.equal(new Set(files).size,19);
+  H.inspectClosure(); // Text-only index and closed public factory requires.
+  const context=fs.readFileSync(path.join(repo,files[17]),'utf8');
+  assert.doesNotMatch(context,/\brequire\s*\(|\bimport\s*\(|readFile|fetch\s*\(/,'SETUP context closure');
+  assert.equal(sha(context),'f300f3f2855f98781eadfbabf526d64ed32706f7e52f597b65d0fa6fcb50904a','SETUP public context pin');
+  const manifest=Object.fromEntries(files.map(f=>[f,sha(fs.readFileSync(path.join(repo,f)))]));
+  fs.mkdirSync(path.join(repo,'.tmp'),{recursive:true});
   const dir=fs.mkdtempSync(path.join(repo,'.tmp/b2-fault-'));
   for(const f of files){const to=path.join(dir,f);fs.mkdirSync(path.dirname(to),{recursive:true});fs.copyFileSync(path.join(repo,f),to);}
+  const restored=()=>{for(const f of files)assert.equal(sha(fs.readFileSync(path.join(dir,f))),manifest[f],'RESTORATION '+f);};
+  restored();
   const child=path.join(dir,'rebuild/engine/test/b2-public-source-faults.test.cjs');
-  const run=pattern=>spawnSync(process.execPath,['--test','--test-reporter=tap','--test-name-pattern','^'+pattern,child],{cwd:dir,encoding:'utf8',env:{...process.env},windowsHide:true});
+  const env={...process.env};for(const k of ['NODE_OPTIONS','NODE_PATH','NODE_V8_COVERAGE'])delete env[k];
+  const run=pattern=>spawnSync(process.execPath,['--test','--test-reporter=tap',...(pattern?['--test-name-pattern','^'+pattern]:[]),child],{cwd:dir,encoding:'utf8',env,windowsHide:true,timeout:30000,maxBuffer:8*1024*1024});
+  const initial=run();assert.equal(initial.status,0,'SETUP full positive\n'+initial.stdout);
+  fs.writeFileSync(path.join(dir,'positive-initial.tap'),initial.stdout+initial.stderr);
   const results=[];
   for(const f of FAULTS){const target=path.join(dir,'rebuild/engine',f.file),before=fs.readFileSync(target);let outcome='SETUP';
     if(['post-change-check-on-the-dates-only','post-change-check-is-inclusive-of-the-prior-day','replication-era-checked-on-the-block-start-only'].includes(f.id)){
@@ -215,10 +235,15 @@ function audit(){
       outcome=r.status!==0&&/code: 'ERR_ASSERTION'/.test(r.stdout)&&!/(?:SyntaxError|ReferenceError|TypeError|SETUP|PUBLIC_ENGINE_DENIED)/.test(r.stdout)?'BEHAVIORAL_KILL':r.status===0?'SURVIVED':'SETUP';
       fs.writeFileSync(path.join(dir,f.id+'.tap'),r.stdout+r.stderr);
     }catch(e){console.log('FAULT SETUP '+f.id+' '+e.message);}
-    finally{fs.writeFileSync(target,before);assert.equal(sha(fs.readFileSync(target)),sha(before),'RESTORATION');const p=run(f.pattern);assert.equal(p.status,0,'RESTORED POSITIVE '+f.id);}
-    results.push({id:f.id,outcome});console.log('B2 SOURCE FAULT '+f.id+' '+outcome);
+    finally{fs.writeFileSync(target,before);restored();const p=run(f.pattern);assert.equal(p.status,0,'RESTORED POSITIVE '+f.id);}
+    const logfile=path.join(dir,f.id+'.tap');results.push({id:f.id,outcome,logSHA256:fs.existsSync(logfile)?sha(fs.readFileSync(logfile)):null});console.log('B2 SOURCE FAULT '+f.id+' '+outcome);
   }
-  console.log('B2 PUBLIC SOURCE FAULTS: '+results.length+' attempted; '+results.filter(x=>x.outcome==='BEHAVIORAL_KILL').length+' behavioral kills; '+results.filter(x=>x.outcome==='SURVIVED').length+' survived; '+results.filter(x=>x.outcome==='SETUP').length+' setup; exact restoration and fresh positives.');
+  const final=run();assert.equal(final.status,0,'RESTORED FULL POSITIVE\n'+final.stdout);restored();
+  fs.writeFileSync(path.join(dir,'positive-final.tap'),final.stdout+final.stderr);
+  const evidence={manifest,results,initialLogSHA256:sha(initial.stdout+initial.stderr),finalLogSHA256:sha(final.stdout+final.stderr),restored:true};
+  fs.writeFileSync(path.join(dir,'audit.json'),JSON.stringify(evidence,null,2)+'\n');
+  console.log('PUBLIC CLOSURE '+sha(JSON.stringify(manifest))+'; EVIDENCE '+sha(fs.readFileSync(path.join(dir,'audit.json')))+'; '+dir);
+  console.log('B2 PUBLIC SOURCE FAULTS: '+results.length+' catalogued; '+results.filter(x=>x.outcome==='BEHAVIORAL_KILL').length+' behavioral kills; '+results.filter(x=>x.outcome==='SURVIVED').length+' survived; '+results.filter(x=>x.outcome==='SETUP').length+' setup; '+results.filter(x=>x.outcome==='HELD').length+' held; exact restoration and fresh positives.');
   if(results.some(x=>x.outcome!=='BEHAVIORAL_KILL'))process.exitCode=1;
 }
 if(process.argv.includes('--audit-mutations'))audit();
@@ -259,6 +284,15 @@ test('D7 native earlier/current/future date bounds and query advance',()=>{
 test('R3 native future-only anchor is empty, never cached or future evidence',()=>{
   const ex=lift({last:[7,6]}),s=state(ex);s.workoutFacts=facts([['2026-09-10',[13,12]]]);
   native(s).run(E=>assert.deepEqual(E.progressAnchor(ex,s),[]));
+  native(s,'2026-09-03','missing').run(E=>assert.deepEqual(E.progressAnchor(ex,s),[]));
+});
+test('D7 actual native trend query bounds preserve no-asOf and causal same-day order',()=>{
+  const ex=lift(),s=state(ex),days=['2026-08-28','2026-08-30','2026-09-01','2026-09-03','2026-09-10'];
+  s.workoutFacts=facts(days.map((d,i)=>[d,[8+i,7+i]]));
+  native(s).run(E=>{const result=E.liftTrend(s,ex.id,{asOf:'2026-09-03'});assert.ok(result);assert.deepEqual(result.pts.map(p=>p.d),days.slice(0,4));assert.equal(E.liftTrend(s,ex.id).to,'2026-09-10');});
+  s.workoutFacts=facts([['2026-09-03',[9,8]],['2026-09-03',[10,9]]]);
+  native(s).run(E=>assert.deepEqual(E.progressAnchor(ex,s),[10,9]));
+  s.workoutFacts.order.start_ids.reverse();native(s).run(E=>assert.deepEqual(E.progressAnchor(ex,s),[9,8]));
 });
 test('native same-day reset refuses both consumers; before/after retain positives',()=>{
   for(const method of ['targetsFor','progressAnchor']){
@@ -271,9 +305,11 @@ test('native same-day reset refuses both consumers; before/after retain positive
   s.workoutFacts=facts([['2026-09-02',[9,8]]]);native(s).run(E=>assert.deepEqual(E.progressAnchor(ex,s),[9,8]));
 });
 test('actual native resolver fails closed on missing, mismatched, throwing, nonboolean and pace',()=>{
-  const faults=['missing',a=>({...a,source_revision:2}),()=>{throw Error('invented refusal');},a=>({...a,debt:null})];
+  const faults=['missing',a=>({...a,source_revision:2}),a=>({...a,start_op_id:'different-start'}),a=>({...a,effective:{...a.effective,local_date:'2026-01-01'}}),()=>{throw Error('invented refusal');},...['hard','rushed','debt'].map(k=>a=>({...a,[k]:null}))];
   for(const fault of faults){const ex=lift(),s=state(ex);s.workoutFacts=facts([['2026-09-01',[9,8]]]);
     native(s,'2026-09-03',fault).run(E=>assert.throws(()=>E.progressAnchor(ex,s),{code:'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'}));}
   const ex=lift(),s=state(ex);s.workoutFacts=facts([['2026-09-01',[9,8]]]);s.workoutFacts.sessions[0].pace='unknown-invented-value';
+  native(s).run(E=>assert.throws(()=>E.progressAnchor(ex,s),{code:'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'}));
+  s.workoutFacts.sessions[0].pace='normal';s.workoutFacts.sessions[0].record.pace='rushed';
   native(s).run(E=>assert.throws(()=>E.progressAnchor(ex,s),{code:'PERFORMED_NATIVE_TREND_CONTEXT_REQUIRED'}));
 });
