@@ -269,6 +269,7 @@ function specimens(day) {
   for(const kind of ['technique','sets','other']) {const s=old(four(fork(invented(day),day)));s.exercises[0].forks[0].kind=kind;add('SET-COUNT','fork-kind-'+kind,s,manualFit(day,[-3,-2,-1,0],[8,10,12,14]));}
   add('CLOCK','counting',rows(fork(invented(day),day),day,[-1],[10]),counting(1));
   add('CLOCK','live',four(fork(invented(day),day)),manualFit(day,[-3,-2,-1,0],[8,10,12,14]));
+  add('CLOCK','ambient-trap',four(fork(invented(day),day)),manualFit(day,[-3,-2,-1,0],[8,10,12,14]),{trap:true});
   for(const live of [false,true]) {const s=old(fork(invented(day),day));rows(s,day,live?[-3,-2,-1,0]:[-1],live?[8,10,12,14]:[10]);add('LAB',live?'live':'armed',s,live?manualFit(day,[-3,-2,-1,0],[8,10,12,14]):counting(1),{lab:true});}
   assert.deepEqual([...new Set(cases.map(c=>c.family))].sort(),FAMILIES.slice().sort());
   return cases;
@@ -317,6 +318,7 @@ function identities(value) {
 }
 function runCase(which,c,mode,day) {
   const rig=engine(mode,day),trace=[],restoreIdentity=identities(c.s),input=graph(c.s);
+  if(c.trap){const Parent=ambientDate(mode);rig.context.Date=class TrapDate extends Parent{constructor(...args){if(!args.length)throw Error('ERA30_AMBIENT_DATE');super(...args);}static now(){throw Error('ERA30_AMBIENT_DATE');}};}
   let read;
   if(which==='candidate') {
     const deps={...rig.E};
@@ -326,7 +328,7 @@ function runCase(which,c,mode,day) {
   const invoke=()=>read(c.s,c.exId);
   const start=observed(invoke,c.s);
   let frame=start,first=null;
-  if(c.query){first=start;rig.query(c.query);trace.length=0;rig.clockEvents.length=0;frame=observed(invoke,c.s);}
+  if(c.query){first={frame:start,trace:structuredClone(trace),clock:rig.clockEvents.slice()};rig.query(c.query);trace.length=0;rig.clockEvents.length=0;frame=observed(invoke,c.s);}
   const directTrace=structuredClone(trace),directClock=rig.clockEvents.slice();let lab=null;
   if(c.lab){rig.E.setOneRead=read;trace.length=0;rig.clockEvents.length=0;lab=observed(()=>rig.E.labAnalytics2(c.s),c.s);}
   restoreIdentity();assert.deepEqual(graph(c.s),input);
@@ -348,7 +350,7 @@ function subgraph(g,root) {
 }
 function assertIndependent(c,got) {
   if(c.expected)assert.deepEqual(got.frame,{value:graph(c.expected)},c.id+' independent result');
-  if(c.firstExpected)assert.deepEqual(got.first,{value:graph(c.firstExpected)},c.id+' independent first query');
+  if(c.firstExpected){assert.deepEqual(got.first.frame,{value:graph(c.firstExpected)},c.id+' independent first query');assert.equal(got.first.trace.filter(x=>x.name==='todayStart').length,1);assert.equal(got.first.clock.length,1);}
   if(c.expectedError)assert.deepEqual(got.frame,{error:{name:'Error',message:c.expectedError}},c.id+' exact exception');
   const nQueries=got.trace.filter(x=>x.name==='todayStart').length;
   assert.equal(nQueries,c.noQuery?0:1,c.id+' conditional query calls');
