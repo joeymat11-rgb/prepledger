@@ -1,6 +1,6 @@
 'use strict';
 // Product-level public proof, not a conformance replacement or reviewer verdict.
-// Run against current named runtime factories, or F1_SOURCE_REF=964f183 for
+// Run against current named runtime factories, or F1_SOURCE_REF=the fixture BASE for
 // RED-first. F1-C controls must pass on both. No private or seeded engine import.
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -23,7 +23,8 @@ test('F1-01a F-only constructor preserves families, configured sets and unknown 
   assert.deepEqual(s.exOrder, { U: ['f1-upper'], L: ['f1-lower'] });
   assert.deepEqual(s.sessionLog, {});
   assert.deepEqual(s.sleep.nights, []);
-  assert.equal(Object.hasOwn(s, 'model'), false);
+  const parent = B.createCleanInitState({ setup: setup({ 1: 'U', 4: 'L' }) });
+  for (const key of ['model', 'blackout', 'sleep']) assert.deepEqual(s[key], parent[key]);
   assert(Object.isFrozen(s.exercises[0]));
 });
 

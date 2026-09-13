@@ -89,8 +89,9 @@ async function scaffold(state, options = {}) {
 
 test('F1 raw clean init: F debut prepares without invented initialization fields', async () => {
   const state = createCleanInitState({ setup: setupFor(false) });
-  assert(!Object.hasOwn(state, 'blackout'));
-  assert(!Object.hasOwn(state, 'model'));
+  assert.deepEqual(state.blackout, { until: '2026-08-30' });
+  assert.deepEqual(state.model, { anchorISO: '2026-08-31', drip: null, src: null });
+  assert.equal(state.sleep.needed, 3); // H3's accepted clean-init member.
   const h = await scaffold(state);
   try {
     const host = h.hostAt(FIRST), before = await h.ops();
