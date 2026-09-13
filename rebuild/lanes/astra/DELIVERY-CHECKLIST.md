@@ -1,13 +1,13 @@
 # Earned: current delivery checklist
 
-PM reconciliation at 2026-09-13 05:44 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 correction, B engine construction and D S3 core remain separate from accepted M.
+PM reconciliation at 2026-09-13 05:55 ET. Product source M100820aa accepted; END210 remains. Recent DECISIONS/STATUS outrank older roadmap dates. Owner-approved scope193/202; no completion date inferred. N2 scoped review, B engine construction and D S3 core remain separate from accepted M.
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
 | Full Astra operating handover | Published193, eight development seats with schedules after E203 and separate integrator I; old work preserved, returning work reconciled by PM | PM and all leads |
 | Fresh app launch | Launch package accepted/integrated atM100820aa; independent C/D2, B196, I fresh build/six Edge flows20kills; integration full34745429303 and shared34745429317 bothOS verified. No physical-phone or deployment claim | Complete in development; owner-use proof separate |
 | Shared mechanical preflight | Exact reviewed D200 + B201 workflow/registration adopted inM; actual bothOS67/67 and independent boundaries; full-custody/3UI preflight passed | Complete in development |
-| N2 sleep entry | D2 final720b317 REJECT at19aa865 for one raw caller-effective override; scoped81/4mutants/fresh113input7kill pass retained, separate raw witness1PASS/2ERR_ASSERTION. Final handoff complete; C only producer/test correction authorized, valid past/correction/rollover and zero-write controls retained. PR54 remains Draft; actual final B CI required | C correction; D2 exact successor; B suite/current-package CI |
+| N2 sleep entry | R6 Draft PR54 bfc2935/source60e24a8 refuses caller stamps. Builder914/sleep77/raw6/fresh113input7kill passes; D2 exact scoped review active, original raw/date/clock controls retained. Previous R5/R4 rejects and evidence remain at original heads. B actual admitted final77 suite/head CI required; no acceptance | D2 review; C findings if any; B current-package CI |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
 | B1+B2 | Runtime6c9248e; tooling reported157/157 with original156/157 retained. Exact abf6505 successor registration amendment accepted at232: new current evidence, inherited nine plus three repaired/seven original gates and one setup-test lookup hunk. Complete composition, MAX review and actual native/private/FULL proof pending | B builds/registers; separate MAX reviewer; PM later exact gate grant |
 | B4+B3 | Accepted order after B1+B2; candidate reconciliation needed | B |
