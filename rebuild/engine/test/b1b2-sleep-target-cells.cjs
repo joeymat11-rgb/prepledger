@@ -188,7 +188,7 @@ for(const [name,target]of r8Targets)for(const debt of ['short','three-night'])te
  assert.equal(focus.owed.length,0,'All three previous calendar nights and current logging close the decision prerequisites');assert.ok(sleep);assert.ok(T.currentSleepObservation(s));
  if(Number.isFinite(target)) {
   assert.equal(sleep.cost,target===8&&debt==='short'?20:30);assert.equal(fix.rung,'sleep');assert.equal(now.move.kind,'fix');assert.equal(now.move.lever,'SLEEP');assert.equal(order.why,fix.title);
-  const ref=R8_FINITE_S.find(r=>r.target===target&&r.debt===debt);assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Complete finite-target Today outputs stay exactly S');assert.deepEqual(trace,r9Trace(ref.trace),'Finite-target clock queries stay exactly S');return;
+  const ref=R8_FINITE_S.find(r=>r.target===target&&r.debt===debt);assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Complete finite-target Today outputs stay exactly S');assert.deepEqual(trace,r9Trace(ref.trace),'Finite-target trace removes only the redundant workout date query');return;
  }
  assert.equal(sleep.cost,null);assert.equal(rec.score,null);assert.equal(rec.lever,null);assert.equal(rec.band,'UNKNOWN');assert.equal(levers.sleep.state,'quiet');
  assert.equal(fix.state,'quiet');assert.equal(fix.lever,null);assert.equal(fix.title,'Recorded recovery warnings');assert.equal(now.move.kind,'quiet');r8NoClearance(out);r8ActualWarnings(out);
@@ -223,7 +223,7 @@ for(const [kind,day,loss,phase]of [['calories','2026-08-01',0,'cut'],['break','2
  if(kind==='steps')s.dailyLogs[day].steps=1000;if(kind==='logging')s.sleep.nights.shift();if(kind==='decisions')s.proposals=[{rid:'r8-decision',title:'Review recorded change',why:'An existing decision needs your answer.',resolved:false}];
  const out=r8Read(s,day,true),{rec,focus,fix,order,now,trace}=out,ref=R8_CONTROLS_S.find(r=>r.kind===kind);
  assert.equal(focus.owed.length,kind==='logging'?1:0);assert.equal(fix.rung,['rate','decisions'].includes(kind)?'hold':kind);assert.equal(now.move.kind,kind==='rate'?'rate':kind==='decisions'?'decisions':'fix');assert.ok(rec.flags.find(f=>f.k==='sleep'));assert.equal(rec.lever,null);
- if(['logging','steps'].includes(kind)){assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Existing logging/steps actions and all outputs stay S');assert.deepEqual(trace,r9Trace(ref.trace),'Logging/steps clock queries stay S');return;}
+ if(['logging','steps'].includes(kind)){assert.deepEqual(r8Json({fix,order,now}),ref.outputs,'Existing logging/steps actions and all outputs stay S');assert.deepEqual(trace,r9Trace(ref.trace),'Logging/steps trace removes only the redundant workout date query');return;}
  if(kind==='decisions'){assert.deepEqual(r8Json(now),ref.outputs.now,'Pending real decision retains precedence and full output');return;}
  assert.equal(out.rate.measured,true);assert.equal(out.energy.gated,false);r8NoClearance(out);r8ActualWarnings(out);
  const {why,...orderRest}=order,{why:oldWhy,...oldOrderRest}=ref.outputs.order;assert.deepEqual(r8Json(orderRest),oldOrderRest,'Meal action and target unchanged');
@@ -236,7 +236,9 @@ for(const [name,target]of Object.entries({...unknownTargets,known:8}))test(`FG4 
  const T=engine(),s=state();s.sleep.cleanH=target;s.sleep.needed=1;s.sleep.nights=[{d:'2026-09-03',h:2}];const before=structuredClone(s),out=T.theOneThing(s,T.sleepInfo(s),21);assert.match(out.t,/^Log /);if(Number.isFinite(target))assert.match(out.sub,/8 h target/);else assert.doesNotMatch(out.sub,/target|updates the target count/);assert.deepEqual(s,before);
 });
 
-// PM282: S constants above remain historical bytes. R9 removes one workout date read.
+// PM282: S constants above remain historical bytes. These fixed-time controls
+// scan one workout date. Project their name-only trace by one identical today
+// entry; the advancing-clock cases below check actual calendar values.
 function r9Trace(trace){const out=trace.slice();const i=out.lastIndexOf("today");assert.ok(i>=0);out.splice(i,1);return out;}
 function r9Clock(start,step){let index=0;const trace=[],clock={tz:'America/New_York'},day=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;for(const [key,fn]of Object.entries({today:day,hour:d=>d.getHours(),dow:d=>d.getDay(),nowISO:d=>d.toISOString(),nowMs:d=>d.getTime()}))clock[key]=()=>{const ms=start+step*index++,value=fn(new Date(ms));trace.push({key,ms,value});return value;};return{clock,trace};}
 for(const [kind,oldCount]of [['unknown-debt',43],['unknown-healthy',43],['pending-decision',43],['finite-sleep',33],['finite-healthy',43],['logging',33],['steps',51]])test(`FG6 R9 advancing calendar ${kind}`,()=>{
