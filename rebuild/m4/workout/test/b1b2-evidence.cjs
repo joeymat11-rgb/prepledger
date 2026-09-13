@@ -491,6 +491,13 @@ function observeNativeDifference(kind,actual,before,after) {
     for(let walk=dir;;walk=path.dirname(walk)) {const st=fs.lstatSync(walk);if(!st.isDirectory()||st.isSymbolicLink()||!equal(fs.realpathSync(walk),walk))throw Error('DIAGNOSTIC_LINK');if(equal(walk,ROOT))break;if(path.dirname(walk)===walk)throw Error('DIAGNOSTIC_ROOT');}
     const marker=path.join(dir,'capture-manifest.json'),mark=fs.lstatSync(marker);
     if(!mark.isFile()||mark.isSymbolicLink()||mark.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');
+    if(state.seq===0&&!state.exitRegistered){
+      process.once('exit',()=>{
+        if(state.failed||state.seq!==2||state.fd!==undefined)return;
+        try{const st=fs.lstatSync(marker);if(!st.isFile()||st.isSymbolicLink()||st.nlink!==1||fs.readFileSync(marker,'utf8')!=='{"v":1,"pending":true}\n')throw Error('DIAGNOSTIC_MARKER');fs.unlinkSync(marker);}
+        catch(_){state.failed=true;}
+      });state.exitRegistered=true;
+    }
     if(!Array.isArray(actual)||actual.length>100000)throw Error('DIAGNOSTIC_ROWS');
     const roots=[...new Set([before,after].flatMap(v=>v&&typeof v==='object'?Object.keys(v):[]))];
     const categories=nativeDiagnosticCategories(kind,actual.map(row=>row.path),roots);
@@ -502,8 +509,8 @@ function observeNativeDifference(kind,actual,before,after) {
     if(fs.fstatSync(state.fd).size+bytes.length>65536)throw Error('DIAGNOSTIC_OVERFLOW');
     let offset=0;while(offset<bytes.length){const n=fs.writeSync(state.fd,bytes,offset,bytes.length-offset);if(!Number.isSafeInteger(n)||n<=0)throw Error('DIAGNOSTIC_WRITE');offset+=n;}
     fs.fsyncSync(state.fd);state.seq++;
-    if(state.seq===2){fs.closeSync(state.fd);state.fd=undefined;fs.unlinkSync(marker);}
-    // Last IO commits completion only after both rows, fsync and close succeed.
+    if(state.seq===2){fs.closeSync(state.fd);state.fd=undefined;}
+    // Natural process exit commits completion after all observations, fsync and close succeed.
   } catch (_) {if(!nativeObservation)nativeObservation={directory,seq:0,failed:true};nativeObservation.failed=true;if(nativeObservation.fd!==undefined){try{fs.closeSync(nativeObservation.fd);}catch(_){}nativeObservation.fd=undefined;}}
 }
 function approvedNativeDifference(kind,before,after) {

@@ -32,7 +32,8 @@ function verifyCommission(){
   need(keys(c,['v','source','nodeSha256','operatorSha256','helperSha256','profileSha256','childSha256'])&&c.v===1&&/^[a-f0-9]{40}$/.test(c.source),'IDENTITY');
   for(const k of ['nodeSha256','operatorSha256','helperSha256','profileSha256','childSha256'])need(typeof c[k]==='string'&&/^[a-f0-9]{64}$/.test(c[k]),'IDENTITY');
   need(git(['rev-parse','HEAD']).toString().trim()===c.source,'IDENTITY');git(['merge-base','--is-ancestor',BASE,c.source]);
-  need(!process.env.NODE_OPTIONS&&!process.env.NODE_PATH,'IDENTITY');
+  need(!process.env.NODE_OPTIONS&&!process.env.NODE_PATH&&!process.env.NODE_TEST_CONTEXT,'IDENTITY');
+  need(equalPath(process.execPath,path.join(ROOT,'.tmp','runtime','node.exe')),'IDENTITY');safeDirectory(path.dirname(process.execPath));
   const paths=[[process.execPath,c.nodeSha256],[__filename,c.operatorSha256],[path.join(ROOT,HELPER),c.helperSha256],[path.join(ROOT,PROFILE),c.profileSha256],[path.join(ROOT,CHILD),c.childSha256]];
   for(const [file,digest]of paths){safeFile(file);need(sha(fs.readFileSync(file))===digest,'IDENTITY');}
   for(const p of [path.relative(ROOT,__filename).split(path.sep).join('/'),HELPER,PROFILE,CHILD])need(fs.readFileSync(path.join(ROOT,p)).equals(git(['show','HEAD:'+p])),'IDENTITY');
@@ -87,17 +88,17 @@ function tapCensus(){
   const order=['tests','suites','pass','fail','cancelled','skipped','todo','duration_ms'];const values={};
   function line(s){
     if(s==='TAP version 13'){if(header++||results.length||trailer.length)bad=true;return;}
-    let m=/^1\.\.([0-9]+)$/.exec(s);if(m){if(plan!==null||trailer.length)bad=true;plan=Number(m[1]);return;}
-    m=/^(not ok|ok) ([0-9]+) - /.exec(s);if(m){if(trailer.length||Number(m[2])!==results.length+1)bad=true;results.push(m[1]);return;}
+    let m=/^1\.\.([0-9]+)$/.exec(s);if(m){if(header!==1||plan!==null||trailer.length||Number(m[1])!==results.length)bad=true;plan=Number(m[1]);return;}
+    m=/^(not ok|ok) ([0-9]+) - /.exec(s);if(m){if(header!==1||plan!==null||trailer.length||Number(m[2])!==results.length+1)bad=true;if(results.length===4){bad=true;return;}results.push(m[1]);return;}
     m=/^# (tests|suites|pass|fail|cancelled|skipped|todo|duration_ms) (\d+(?:\.\d+)?)$/.exec(s);
-    if(m){if(m[1]!==order[trailer.length]||own(values,m[1]))bad=true;trailer.push(m[1]);values[m[1]]=Number(m[2]);return;}
+    if(m){if(plan===null||m[1]!==order[trailer.length]||own(values,m[1]))bad=true;if(trailer.length===order.length){bad=true;return;}trailer.push(m[1]);values[m[1]]=Number(m[2]);return;}
     if(trailer.length&&s.trim()!=='')bad=true;
   }
   return {push(bytes){pending+=decode.write(bytes);if(pending.length>65536&&!pending.includes('\n')){bad=true;pending='';}let i;while((i=pending.indexOf('\n'))>=0){const row=pending.slice(0,i).replace(/\r$/,'');if(row.length>65536)bad=true;else line(row);pending=pending.slice(i+1);}},finish(){
     need(!done,'CENSUS');done=true;pending+=decode.end();if(pending.trim())line(pending);
     need(!bad&&header===1&&trailer.length===order.length&&plan===results.length,'CENSUS');
     for(const k of order.slice(0,-1))need(Number.isSafeInteger(values[k])&&values[k]>=0,'CENSUS');
-    need(values.tests===results.length&&values.pass===results.filter(r=>r==='ok').length&&values.fail===results.filter(r=>r==='not ok').length,'CENSUS');
+    need(values.suites===0&&values.tests===results.length&&values.pass===results.filter(r=>r==='ok').length&&values.fail===results.filter(r=>r==='not ok').length,'CENSUS');
     return Object.fromEntries(['tests','pass','fail','cancelled','skipped','todo'].map(k=>[k,values[k]]));
   }};
 }
