@@ -1,16 +1,16 @@
 # Earned: active Astra team
 
-PM checkpoint 2026-09-13: complete engine R2 rejected for R8 Today false clearance under existing246/R7. Final ER162f189 report/evidence adopted; B resumes MAX for the narrow repair in B1B2-R2-R8-PM-DISPOSITION.md. ER/D/D2 LOW standby, I paused; E XHIGH lifecycle under264; C browser direction301f587 settled and LOW standby. D2 accepted258 remains scoped to c4716ed. PM HIGH for this bounded ruling; all full/native/private/CI/phone holds remain.
+PM checkpoint2026-09-13: B/MAX R8 engine repair and C/XHIGH four-path memory lifecycle groundwork266 run in parallel. E lifecycle0f57c99c and C browser301f587 directions settled; E/D/ER/D2 LOW standby, I paused. D2 reviews C stage on immutable handoff. PM saved/executed MAX verified for accelerated release judgment. Full B/D composition, memory joins and beta/device gates remain.
 
 | Seat | Task ID | Current assignment | Heartbeat ID |
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | MAX: repair R8 Today false clearance under262 in fresh successor from rejected c4716ed; preserve all original evidence. Full gates/companion later | earned-astra-b-follow-up;20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | LOW: final301f587 browser direction settled under264; await finite memory implementation release, accepted N2 retained | earned-astra-c-follow-up; hourly building,20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | XHIGH: four-path memory lifecycle groundwork266; exact0c744cbd source, no host swap/provider/writer changes; immutable stage to D2 | earned-astra-c-follow-up; hourly building,20 minutes waiting |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | Partial harness f0b01d9/source a69b591 handed off: author17 checks/59 mutants/restores/7 annex probes, report rehashed/adopted. Wait for reviewed B native-Date/membership+host companion; full S3 review remains later | earned-lane-d-hourly;20 minutes waiting |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Complete scoped ACCEPT6872c41/reconciliation dab8b9e adopted258 at c4716ed;105+16 tests, fresh113-input build/7 browser kills. LOW standby for named changed consumer | earned-lane-d2-requests;20 minutes waiting |
 | Engine reviewer | 01a098ef-640e-7b93-8fce-c5307468b0ff | LOW standby: final R2 REJECT162f189/R8 handed off after report-last reconciliation; next exact successor review at MAX | earned-astra-engine-review-follow-up; hourly reviewing,20 minutes waiting |
-| E | 01a0993a-e234-7920-86bc-39737cbb4458 | XHIGH: exact idle-only memory lifecycle/custody addendum under264; accepted contract retained, no runtime edits | earned-astra-e-follow-up; hourly design,20 minutes waiting |
+| E | 01a0993a-e234-7920-86bc-39737cbb4458 | LOW: lifecycle0f57c99c direction selected266; await named decision/provider implementation release | earned-astra-e-follow-up; hourly design,20 minutes waiting |
 | I | 01a0994b-7da6-72f2-98ee-9d707c25a4fa | LaunchM integrated/validated, END210; no new assignment or polling until exact PM grant | earned-astra-integration-follow-up; PAUSED |
 
 ## Worktrees
@@ -59,10 +59,10 @@ Audit2026-09-13T16:37:56Z: all seven other seats' saved settings match assignmen
 | --- | --- | --- |
 | B | MAX; R8 Today consumer repair assigned262 | MAX for a named engine/proof correction or separately released companion |
 | D | LOW; partial harness repairs handed off, waiting for reviewed B companion | XHIGH on the exact D provider/admission join release; reassess actual complexity before dispatch |
-| C | LOW; final301f587 browser addendum handed off | HIGH for bounded UI/plumbing, raise for demonstrated difficult joins |
+| C | XHIGH; lifecycle groundwork266 | HIGH for bounded UI/plumbing, raise for demonstrated difficult joins |
 | D2 | LOW; affected c4716ed N2 review and reconciliation complete | MAX for the next specifically named independent review |
 | Engine reviewer | LOW; final R2 REJECT162f189 handed off | MAX for next named independent successor review |
-| E | XHIGH; lifecycle addendum264 | HIGH for a precisely released design/implementation task |
+| E | LOW; exact lifecycle addendum complete | HIGH for a precisely released design/implementation task |
 | I | PAUSED; no new turn or setting change | XHIGH for a specifically authorized integration; separate author/reviewer roles remain |
 
 Joe endorsed Editorial with original bullet spacing; Light and Ink bases remain locked. This is an example design preview endorsement, not an implementation, owner-data or deployment claim. Keep development focused on the current engine/import repairs and their joined acceptance requirements.
