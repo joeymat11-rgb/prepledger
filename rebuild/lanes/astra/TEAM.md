@@ -6,7 +6,7 @@ Owner-approved handover: DECISIONS:193, published at 3ef096d. Operational checkp
 | --- | --- | --- | --- |
 | PM | 01a098c1-1d81-70b3-a380-0eb4d23b7f15 | Sole technical judge, custody, queue, owner communication | earned-pm-caretaker, renamed Earned — Astra PM; 30 minutes |
 | B | 01a098e6-f5cf-7d20-8fb4-7a689bf4a4f2 | Engine and gate inventory before replacement write custody | earned-astra-b-follow-up; 20 minutes waiting |
-| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch/N2 adoption inventory before replacement write custody | earned-astra-c-follow-up; 20 minutes waiting |
+| C | 01a098e7-408b-7bc0-960f-99d7f555da5b | Launch adoption writer under DECISIONS:194; N2 next separately | earned-astra-c-follow-up; C changes same heartbeat to hourly building |
 | D | 01a094c3-286d-7ec3-96a7-a7a5293d8851 | F1/F2, plan-edit companion, existing relay candidate | earned-lane-d-hourly; hourly building |
 | D2 | 01a095f0-b5e6-7a63-9964-3b82798ad675 | Independent launch adoption review; N2 round 3 remains REJECT | earned-lane-d2-requests; 20 minutes waiting |
 | Engine reviewer | Commission a separate task at MAX for a named package | Independent execution after brief, before builder rationale; no author contribution | No empty standing task or duplicate heartbeat |
@@ -27,6 +27,8 @@ B/C were created with no checkout, then populated with a public sparse checkout 
 ## Transfer checkpoint
 
 The old B/C HANDOFF-READY request was published at 3ef096d. Their unpublished work and active processes remain unknown; no claim of clean handback has been made. New leads inventory published refs and bars, then report to PM. Their product-write hold is released only by an explicit PM custody entry after handback or demonstrated inactivity. Time passing alone is not release. No old branch is force-pushed and no process is killed.
+
+DECISIONS:194 releases C's isolated launch adoption after its inventory and stable published-head observations; this does not claim unpublished work is clean. C creates `c-launch-adoption` / `rebuild/astra-c-launch-adoption`, preserves old trees and reports any renewed overlapping publication. B remains inventory/brief-only while diagnosing the newly observed failed H3/base rebuild CI step. Further product integration is held until the launch combined-head CI/review requirements in :194 are met.
 
 D and D2 have acknowledged :193 directly. D reports F2 f3e9561 (79 cells / 15 mutants) and a composed companion candidate in preparation; PM has requested a coherent brief interface/CI/admission clarification before hashing acceptance. D2 read the prospective launch adoption bar and is preparing independent evidence while C supplies the combined head. Neither is a new product PASS.
 

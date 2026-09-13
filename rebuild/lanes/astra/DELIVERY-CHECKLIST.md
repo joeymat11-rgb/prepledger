@@ -4,8 +4,8 @@ PM reconciliation at 2026-09-12 23:50 ET, observed tip befa2c9. Recent DECISIONS
 
 | Deliverable | Observed state | Next owner |
 | --- | --- | --- |
-| Full Astra operating handover | Published3ef096d; five chats in Earned — Astra team, schedules active; B/C inventory running, product-write handback pending | PM/B/C |
-| Fresh app launch | Existing 4c19239 fix unaccepted; D2 waiting for written bar and H3 combined head | C then D2 then integrator |
+| Full Astra operating handover | Published3ef096d; five chats in Earned — Astra team, schedules active; C launch custody released194, B inventory/brief work continues | PM/B/C |
+| Fresh app launch | C adopting4c19239 onto current H3 under194; D2 read new bar. B found failed H3/base rebuild CI on both OS; current combined-head evidence required before integration | C/B then D2 then integrator |
 | N2 sleep entry | D2 round 3 REJECT at 744c63c: coach freshness/confirmation, false commit reconciliation, historical day/quality | C fixes; D2 reruns affected and required bar |
 | H3 clean-init engine | Merged :189, existing receipt retained | B uses as parent |
 | B1+B2 | Named branch currently ff6b6b5, actual bundle not yet on that head | B; independent engine reviewer; PM |
