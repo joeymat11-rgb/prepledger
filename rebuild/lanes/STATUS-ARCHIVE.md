@@ -424,3 +424,21 @@
 2026-09-13 14:45 ET · PM-CARETAKER · Astra · 074d512d56e1e55b87defe270e972e0c9a1565e9 · ER R9 mixed-date rejection adopted282; B MAX narrow repair active. D2 MAX C276 review; ER LOW complete. Efforts verified. Owner280 delegates Fast, but no live speed control available and no speed changed. Joe/history/Dad goal unchanged.
 
 2026-09-13 14:55 ET · PM-CARETAKER · Astra · 850708dc9404e8962ebaab7f261f3fea42f04865 · C L1/L2 independently fixed141+37; D2-L3 failed-save message gap routed C XHIGH284,27 artifacts adopted with final377b0d32 reconciliation. D2 LOW, B MAX R9 active. This PM reply verified MAX despite PC Medium/iPhone MAX display mismatch; Fast unchanged.
+
+
+## Archived at 2026-09-13 17:22 ET: state before328
+
+# LANE STATUS - one line per event (see LANES.md Reporting). Newest at the bottom.
+
+## STATE (refreshed 2026-09-13 17:11 ET by Astra PM; older state/events are preserved in STATUS-ARCHIVE.md)
+- TIP rebuild/t2-client-core @1ac5036d1d9373b1e816580d3232b4d72d8ed069 before this docs checkpoint. Product M100820aa remains integrated; full34745429303/shared34745429317 bothOS verified. END210 stands; no deployment/phone PASS.
+- PM: sole Astra PM193; owner306 uses existing Codex usage, no paid API trial. Owner268: Joe/history/memory then Dad; soak gates wide beta only. PM MAX for this acceptance/assembly judgment, HIGH advised for routine coordination.
+- B: exact083bd47/tested1dcdbc0 tooling scoped ACCEPT322, ER331/331 plus7 faults/restores;11 artifacts adopted. HIGH now performs finite native-input preparation326; no execution yet, nativeFieldDeltas UNKNOWN.
+- E: exacte85ad803/source4191eeb foundation scoped ACCEPT324; D2254/254 and9/9 with5 meaningful reversals;41 artifacts adopted. LOW/paused; actual controller/provider/complete memory remains later.
+- C: lifecycle7e64848d scoped ACCEPT294, actual144/37/4; LOW waiting full consumer/composition release. N2 prior147/10/kill/build retains8e65805; R4 applicability accepted310.
+- D: partial import harnessf0b01d9 preserved; LOW waits exact reviewed B native-Date/membership+host companionb73cf852. Real owner import, acceptedB3 and full joins remain.
+- REVIEW/INTEGRATION: ER/D2 complete/LOW with paused heartbeats320. Existing separate I/HIGH prepares exact local114-object B validation assembly326 from this shared publication and083bd47, preserving both histories. No freeze/push/merge-to-shared grant.
+- OWNER: no immediate action. September18–23 Joe/history/memory estimate remains limited-confidence; Dad after existing two-day Joe trial and his checks. Private import, credentials and device actions remain point-of-use.
+- SCHEDULE: PM30min; substantive I/B HIGH preparation resumes existing hourly heartbeats; complete/dependency-waiting C/D/E/ER/D2 paused320. Direct handoffs start ready work immediately. No quality/evidence reduction or duplicate tasks; Fast control/readback still unavailable.
+
+2026-09-13 15:02 ET · PM-CARETAKER · Astra · 9e39364499cad11e37d67f94a622d1971e58684a · C7e64848d refusal repair ready; D2 MAX review286, C LOW. B MAX R9 continues; exact historical graph helper correction288 ruled after real Git proof. No full-memory or release acceptance; Fast unchanged.
