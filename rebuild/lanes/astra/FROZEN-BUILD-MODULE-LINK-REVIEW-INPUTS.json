@@ -1,0 +1,64 @@
+{
+  "kind": "INPUT_ONLY_CUSTODY_NOT_OUTCOMES",
+  "candidate": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+  "testedSource": "46aead247d00c5d8b4e63155ca7563ab68d60848",
+  "base": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+  "inputs": [
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6565,
+      "sha256": "e07d8b6a5a43beb615d797360a58d2d0474beff6a56ff07b84ef4e53d3e870b0",
+      "gitBlob": "60f6567a0112a4b3b27f124827b6d9a1d03df0b1"
+    },
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 13577,
+      "sha256": "974bb3641d9a91a40a4dea3a4661bec02fcdf3dcb2ba18670be58043fd46d660",
+      "gitBlob": "89b432654f5f74d050946208a48d5b90b69ca287"
+    },
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "package.json",
+      "bytes": 654,
+      "sha256": "a201428565aae9426d47a2f42c027cce9d9aaae46775f91029e271d0eb10195c",
+      "gitBlob": "40be303497e72b7f64ca9c51ad6b60e95726a1bf"
+    },
+    {
+      "role": "current",
+      "ref": "b54fec2de8d33d7d41f038b47e76b1e5bc1763a3",
+      "path": "package-lock.json",
+      "bytes": 35020,
+      "sha256": "b745ab5e0c982ef61db59fc0b7df5deb0f540af9e0e59a015a11443171210608",
+      "gitBlob": "e91044cb3aae2f7c3b3ea61398516ac0cbcd50ea"
+    },
+    {
+      "role": "preimage",
+      "ref": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+      "path": "rebuild/conform/engines/build-engines.mjs",
+      "bytes": 6548,
+      "sha256": "6bc9b7f150f879fb944c3866cd6d3ef771791cf5de561b84bb5c410913dd4a7b",
+      "gitBlob": "b618c03313ac9b76d4a0c4b389e5127836b26f28"
+    },
+    {
+      "role": "preimage",
+      "ref": "2fdf33e5d3d357b8886591cfec7252ebf3518013",
+      "path": "rebuild/conform/engines/test/build-engines.test.mjs",
+      "bytes": 11964,
+      "sha256": "4fab36958c354abc70c9bf9eebbb84226ecf2f9c3fdcc45b36c3c8709e04a21d",
+      "gitBlob": "1b89c28a745f356d36d2149349e43ecffea8ff99"
+    }
+  ],
+  "runtime": {
+    "nodeVersion": "22.23.2",
+    "nodeWinX64SHA256": "0d0f5e39f9f3d9587bc19f73eab3c2c9c4903fd02d6dbf9c853dd81b3d95fad4",
+    "esbuildVersion": "0.28.1",
+    "loaderSHA256": "8331fe1d8b3a07381f33cc425fcfaa94776e263113653f80ec3ba433e9657e73",
+    "serviceWinX64SHA256": "ec02ee9b14ab332416fedd10614dfb80eed5304d94f67745067c011934a8c3c3",
+    "setup": "Original332/334 owned integrity-verified packages only; original scope retained"
+  }
+}
